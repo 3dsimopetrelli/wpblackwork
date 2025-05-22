@@ -1,0 +1,25 @@
+.product_meta .sparrow__tag a {
+	text-transform: capitalize;
+	margin-right: 10px;
+    margin-bottom: 12px;
+    padding: 23px 15px;
+    line-height: 0px;
+}
+
+span.detail-content.sparrow__tag {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    align-content: start;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 990px) {
+ .product_meta .sparrow__tag a {
+    margin-right: 10px;
+    padding: 16px 9px;
+    line-height: 0px;
+    font-size: 13px;
+    
+ }
+}

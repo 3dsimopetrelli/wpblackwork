@@ -1,0 +1,131 @@
+/*
+| ====================================================================
+| = ROTELLINA CSS
+| ====================================================================
+*/
+
+[data-role="green"]
+{
+	width: 45%;
+	max-width: 130px;
+  	-webkit-transition: all .4s ease;
+  	-o-transition: all .4s ease;
+	transition: all .4s ease;
+	z-index: 9999;
+}
+
+@media only screen and (min-width: 768px)
+{
+  [data-role="green"]
+  {
+    bottom: -webkit-calc(14px + 0.02vw);
+    bottom: calc(14px + 0.02vw);
+    right: -webkit-calc(14px + 0.02vw);
+    right: calc(14px + 0.02vw);
+	max-width: 150px;
+  }
+}
+
+[data-role="green"] a
+{
+	font-size: -webkit-calc(24px + 0.02vw);
+	font-size: calc(24px + 0.02vw);
+	line-height: 1.2em; /* optical fix */
+    text-align: center;
+    color: #fff;
+    font-weight: 500;
+}
+
+[data-role="green"]:hover a
+{
+	color: black;
+	color: #fff;
+	font-weight: 500;
+
+}
+
+
+/* Animazione cambio testo */
+[data-role="green"] a::before
+{
+	content: 'MAKE';
+	display: block;
+	position: absolute;
+	left: 50%;
+	top: 50%;
+		-webkit-transform: translate3d(-50%, -53%, 0);
+	transform: translate3d(-50%, -53%, 0);
+	letter-spacing: -.01em;
+		-webkit-animation: cambio_nome 2.6s ease-in infinite;
+	animation: cambio_nome 2.6s ease-in infinite;
+	z-index: 10000;
+}
+
+@-webkit-keyframes cambio_nome
+{
+	33.333% { content: "YOUR"; }
+	66.666% { content: "30%OFF"; }
+}
+@keyframes cambio_nome
+{
+	33.333% { content: "YOUR"; }
+	66.666% { content: "30%OFF"; }
+} 
+
+
+/* Contenuto */
+
+
+
+.nature-lettering div
+{
+	display: block;
+	
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	-webkit-transform: translate3d(-50%, -53%, 0);
+	transform: translate3d(-50%, -53%, 0);
+	letter-spacing: -.01em;
+	z-index: 10000;
+
+}
+
+
+[data-role="green"] svg
+{
+	width: 100%;
+	height: 100%;
+	-webkit-animation: rotating 6s linear infinite;
+  animation: rotating 6s linear infinite;
+}
+
+[data-role="green"]:hover svg
+{
+	-webkit-animation-play-state: paused;
+	animation-play-state: paused;
+}
+
+@-webkit-keyframes rotating /* Safari and Chrome */ {
+  from {
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  to {
+    -webkit-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes rotating {
+  from {
+    -ms-transform: rotate(0deg);
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  to {
+    -ms-transform: rotate(360deg);
+    -webkit-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}

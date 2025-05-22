@@ -1,0 +1,87 @@
+/*
+| ====================================================================
+| = BOX CATEGORY
+| ====================================================================
+*/
+
+.box_cat_animation, .box_cat_hover {
+	background-size: cover;
+	position: relative;
+	max-width: 100%;
+	height: auto;
+	padding-bottom: 99.5%;
+	border-radius: 7px;
+    border: solid 1px #E2E2E2;
+}
+
+.box_cat_hover-inner {
+	position: absolute;
+	top: 0;
+	left: 0;
+  transition: .2s;
+}
+
+.box_cat_hover:hover .box_cat_hover-inner:last-child {
+  opacity: 0;
+  transition: .2s;
+}
+
+.box_cat_animation:hover .box_cat_animation-inner:last-child {
+	animation: fade 1s steps(1) infinite ;
+}
+
+.box_cat_animation-inner {
+	position: absolute;
+	top: 0;
+	left: 0;
+}
+
+@keyframes fade {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+
+/* Animazione testo sotto immagine*/
+
+a.box_cat_a_wrap .c-themes__text-wrapper {
+    align-items: baseline;
+	display: flex;
+    position: relative;
+	opacity: 0.9;
+    transition: opacity 0.15s, transform 0.2s;
+
+    
+}
+a.box_cat_a_wrap .c-themes__title-wrapper {
+	display: flex;
+    align-items: baseline;
+    gap: 2vw;
+}
+
+a.box_cat_a_wrap .c-themes__links-wrapper {
+	align-items: center;
+    display: flex;
+    flex-grow: 1;
+    overflow: visible;
+    justify-content: right;
+}
+
+	.box_cat_a_wrap:not(:hover) .c-themes__text-wrapper {
+		opacity: 0;
+		transform: translateY(-10px);
+	}
+
+@media (max-width: 770px) {
+	.box_cat_a_wrap:not(:hover) .c-themes__text-wrapper {
+	    opacity: 1;
+	    transform: none;
+	}
+}

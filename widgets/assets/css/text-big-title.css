@@ -1,0 +1,80 @@
+/*
+| ====================================================================
+| = TEXT BIG TITLE
+| ====================================================================
+*/
+
+.sas_big_title {
+    width: 100%;
+    
+    font-size: 20.3vw; 
+    line-height: 16vw;
+    text-align: left;
+    margin-bottom: 40px;
+    letter-spacing: -8px;
+}
+@media only screen and (min-width: 1440px)  {
+	.sas_big_title {
+		font-size: 19.3vw; 
+		line-height: 16vw;
+		text-align: center;
+	}
+}
+@media only screen and (min-width: 1500px)  {
+	.sas_big_title {
+		font-size: 17.5vw; 
+		line-height: 16vw;
+		text-align: center;
+
+	}
+}
+@media only screen and (min-width: 1585px)  {
+	.sas_big_title {
+		font-size: 17vw; 
+		line-height: 16vw;
+		text-align: center;
+
+	}
+}
+@media only screen and (min-width: 1630px)  {
+	.sas_big_title {
+		font-size: 16.5vw; 
+		line-height: 16vw;
+		text-align: center;
+
+	}
+}
+@media only screen and (min-width: 1680px)  {
+	.sas_big_title {
+		font-size: 16vw; 
+		line-height: 16vw;
+		text-align: center;
+
+	}
+}
+@media only screen and (min-width: 1730px)  {
+	.sas_big_title {
+		font-size: 15.5vw; 
+		line-height: 16vw;
+		text-align: center;
+
+	}
+}
+@media only screen and (min-width: 1790px)  {
+	.sas_big_title {
+		font-size: 15vw; 
+		line-height: 16vw;
+		text-align: center;
+
+	}
+}
+@media only screen and (min-width: 1848px)  {
+	.sas_big_title {
+		font-size: 14vw; 
+		line-height: 16vw;
+		text-align: center;
+
+	}
+}
+
+
