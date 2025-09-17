@@ -6,7 +6,7 @@ use \Elementor\Controls_Manager;
 
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
-class SAS_Fixed_Price_Bar extends Widget_Base {
+class BW_Fixed_Price_Bar extends Widget_Base {
 
 	public function get_name() {
 		return 'sas-fixed-price-bar';
@@ -193,5 +193,5 @@ class SAS_Fixed_Price_Bar extends Widget_Base {
 }
 
 if (is_woocommerce()) {
-	$widgets_manager->register(new SAS_Fixed_Price_Bar());
+	$widgets_manager->register(new BW_Fixed_Price_Bar());
 }

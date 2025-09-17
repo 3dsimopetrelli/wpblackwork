@@ -6,7 +6,7 @@ use \Elementor\Controls_Manager;
 
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
-class SAS_Text_Big_Title extends Widget_Base {
+class BW_Text_Big_Title extends Widget_Base {
 
 	public function get_name() {
 		return 'sas-text-big-title';
@@ -179,4 +179,4 @@ class SAS_Text_Big_Title extends Widget_Base {
 		
 	}
 }
-$widgets_manager->register(new SAS_Text_Big_Title());
+$widgets_manager->register(new BW_Text_Big_Title());

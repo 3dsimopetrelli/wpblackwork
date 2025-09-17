@@ -1,5 +1,5 @@
 <?php
-namespace SAS\Widgets;
+namespace BW\Widgets;
 
 use \Elementor\Widget_Base;
 use \Elementor\Controls_Manager;
@@ -7,7 +7,7 @@ use \Elementor\Core\Kits\Documents\Tabs\Global_Colors as Scheme_Color;
 
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
-class SAS_Mobile_Menu extends Widget_Base {
+class BW_Mobile_Menu extends Widget_Base {
 
 	private function get_available_menus() {
         $menus = wp_get_nav_menus();
@@ -356,5 +356,5 @@ class SAS_Mobile_Menu extends Widget_Base {
 	}
 }
 if (class_exists('woocommerce')) {
-	$widgets_manager->register(new SAS_Mobile_Menu());
+	$widgets_manager->register(new BW_Mobile_Menu());
 }

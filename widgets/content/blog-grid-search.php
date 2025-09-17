@@ -1,5 +1,5 @@
 <?php
-namespace SAS\Widgets;
+namespace BW\Widgets;
 
 use \Elementor\Widget_Base;
 use \Elementor\Controls_Manager;
@@ -11,7 +11,7 @@ use \Elementor\Group_Control_Image_Size;
 
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
-class SAS_Blog_Search extends Widget_Base {
+class BW_Blog_Search extends Widget_Base {
 
 	public function get_name() {
 		return 'sas-blog-search';
@@ -951,4 +951,4 @@ class SAS_Blog_Search extends Widget_Base {
 }
 
 
-$widgets_manager->register(new SAS_Blog_Search());
+$widgets_manager->register(new BW_Blog_Search());

@@ -1,6 +1,6 @@
 <?php
 
-class SAS_Walker extends Walker_Nav_Menu {
+class BW_Walker extends Walker_Nav_Menu {
 
     private $currentItem;
 

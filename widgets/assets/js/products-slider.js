@@ -2,7 +2,7 @@
 	'use strict';
 
 	
-        var SAS_Products_Slider = function( $scope, $ ) {
+        var BW_Products_Slider = function( $scope, $ ) {
 		
 	
 		var columns = $('.elementor-element-' + $scope.attr("data-id") + ' .sas-total_wrap_post_slider').data('slidercolumns');
@@ -185,7 +185,7 @@
 		
 		
   $( window ).on( 'elementor/frontend/init', function() {
-    elementorFrontend.hooks.addAction( 'frontend/element_ready/sas-products-slider.default', SAS_Products_Slider );
+    elementorFrontend.hooks.addAction( 'frontend/element_ready/sas-products-slider.default', BW_Products_Slider );
   } );
   
   

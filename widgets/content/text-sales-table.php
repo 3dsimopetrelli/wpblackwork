@@ -6,7 +6,7 @@ use \Elementor\Controls_Manager;
 
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
-class SAS_Sales_Table extends Widget_Base {
+class BW_Sales_Table extends Widget_Base {
 
 	public function get_name() {
 		return 'sas-sales-table';
@@ -315,4 +315,4 @@ endif;
 		
 	}
 }
-$widgets_manager->register(new SAS_Sales_Table());
+$widgets_manager->register(new BW_Sales_Table());

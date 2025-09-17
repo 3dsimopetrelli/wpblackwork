@@ -43,7 +43,7 @@ if ( is_plugin_active( 'woocommerce/woocommerce.php' ) ) {
 				$template_path = $woocommerce->template_url;
 			}
 
-			$plugin_path = SAS_PLUGIN_PATH . 'templates/';
+			$plugin_path = BW_PLUGIN_PATH . 'templates/';
 
 			// Look within passed path within the theme - this is priority
 			$template = locate_template( array(
@@ -68,7 +68,7 @@ if ( is_plugin_active( 'woocommerce/woocommerce.php' ) ) {
 			// Don't load JS if current product type is bundle to prevent the page from not working
 			if (!(wc_get_product() && wc_get_product()->is_type('bundle'))) {
 				wp_deregister_script( 'wc-add-to-cart-variation' );
-				wp_register_script( 'wc-add-to-cart-variation', SAS_PLUGIN_URL . 'assets/js/frontend/add-to-cart-variation.js', array( 'jquery', 'wp-util' ), self::VERSION );
+				wp_register_script( 'wc-add-to-cart-variation', BW_PLUGIN_URL . 'assets/js/frontend/add-to-cart-variation.js', array( 'jquery', 'wp-util' ), self::VERSION );
 			}
 		}
 	}

@@ -1,5 +1,5 @@
 <?php
-namespace SAS\Widgets;
+namespace BW\Widgets;
 
 use \Elementor\Widget_Base;
 use \Elementor\Controls_Manager;
@@ -7,7 +7,7 @@ use \Elementor\Core\Kits\Documents\Tabs\Global_Colors as Scheme_Color;
 
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
-class SAS_Header_User extends Widget_Base {
+class BW_Header_User extends Widget_Base {
 
 	public function get_name() {
 		return 'sas-header-user';
@@ -247,5 +247,5 @@ class SAS_Header_User extends Widget_Base {
 	}
 }
 if (class_exists('woocommerce')) {
-	$widgets_manager->register(new SAS_Header_User());
+	$widgets_manager->register(new BW_Header_User());
 }

@@ -1,5 +1,5 @@
 <?php
-namespace SAS\Widgets;
+namespace BW\Widgets;
 
 use \Elementor\Widget_Base;
 use \Elementor\Controls_Manager;
@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
 
-class SAS_Product_Review extends Widget_Base {
+class BW_Product_Review extends Widget_Base {
 
 	public function get_name() {
 		return 'sas-product-review';
@@ -176,5 +176,5 @@ class SAS_Product_Review extends Widget_Base {
 }
 
 if (class_exists('woocommerce')) {
-	$widgets_manager->register(new SAS_Product_Review());
+	$widgets_manager->register(new BW_Product_Review());
 }

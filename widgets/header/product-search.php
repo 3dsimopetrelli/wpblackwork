@@ -1,5 +1,5 @@
 <?php
-namespace SAS\Widgets;
+namespace BW\Widgets;
 
 use \Elementor\Controls_Manager;
 use \Elementor\Core\Kits\Documents\Tabs\Global_Colors;

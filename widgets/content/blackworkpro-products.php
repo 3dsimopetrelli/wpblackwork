@@ -1,5 +1,5 @@
 <?php
-namespace SAS\Widgets;
+namespace BW\Widgets;
 
 use Elementor\Controls_Manager;
 use Elementor\Widget_Base;
@@ -8,7 +8,7 @@ if ( ! defined( 'ABSPATH' ) ) {
         exit; // Exit if accessed directly.
 }
 
-class SAS_Blackworkpro_Products extends Widget_Base {
+class BW_Blackworkpro_Products extends Widget_Base {
 
         public function get_name() {
                 return 'blackworkpro-products';
@@ -204,4 +204,4 @@ class SAS_Blackworkpro_Products extends Widget_Base {
         }
 }
 
-$widgets_manager->register( new SAS_Blackworkpro_Products() );
+$widgets_manager->register( new BW_Blackworkpro_Products() );
