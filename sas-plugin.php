@@ -23,13 +23,13 @@ if ( ! defined( "ABSPATH" ) ) {
 	die( "You shouldnt be here" );
 }
 
-define( 'SAS_PLUGIN_PLUGIN_FILE', __FILE__);
-define( 'SAS_PBNAME', plugin_basename(SAS_PLUGIN_PLUGIN_FILE) );
-define( 'SAS_PLUGIN_PATH', plugin_dir_path( __FILE__ ));
-define( 'SAS_PLUGIN_URL', plugins_url("/", __FILE__ ));
-define( 'SAS_PLUGIN_VERSION', '1.0.0');
+define( 'BW_PLUGIN_PLUGIN_FILE', __FILE__);
+define( 'BW_PBNAME', plugin_basename(BW_PLUGIN_PLUGIN_FILE) );
+define( 'BW_PLUGIN_PATH', plugin_dir_path( __FILE__ ));
+define( 'BW_PLUGIN_URL', plugins_url("/", __FILE__ ));
+define( 'BW_PLUGIN_VERSION', '1.0.0');
 
-class SAS_Plugin {
+class BW_Plugin {
 
     /**
 	 * Plugin Version
@@ -50,7 +50,7 @@ class SAS_Plugin {
 	const MINIMUM_PHP_VERSION = '7.0';
 
     /**
-     * @var SAS_Plugin
+     * @var BW_Plugin
      */
     private static $instance;
 
@@ -106,11 +106,11 @@ class SAS_Plugin {
 	}
 
 	public function scripts_enqueue() {
-		wp_enqueue_script('sas-slickslider', trailingslashit(SAS_PLUGIN_URL) . 'widgets/assets/js/slick.js', array('jquery'), SAS_PLUGIN_VERSION, false);
+		wp_enqueue_script('sas-slickslider', trailingslashit(BW_PLUGIN_URL) . 'widgets/assets/js/slick.js', array('jquery'), BW_PLUGIN_VERSION, false);
 	}
 
 	public function plugin_row_meta( $plugin_meta, $plugin_file ) {
-		if ( SAS_PBNAME === $plugin_file ) {
+		if ( BW_PBNAME === $plugin_file ) {
 			$row_meta = [
 				'demo' => '<a target="_blank" href="https://demo.sasground.net/sas/demo" aria-label="' . esc_attr( __( 'All Demos', 'sas' ) ) . '" target="_blank">' . __( 'View Demos', 'sas' ) . '</a>',
 				
@@ -180,7 +180,7 @@ class SAS_Plugin {
 		$message = sprintf(
 			/* translators: 1: Plugin name 2: Elementor */
 			esc_html__( '"%1$s" requires "%2$s" to be installed and activated.', 'elementor-hello-world' ),
-			'<strong>' . esc_html__( 'SAS Elementor Widgets', 'elementor-hello-world' ) . '</strong>',
+			'<strong>' . esc_html__( 'BW Elementor Widgets', 'elementor-hello-world' ) . '</strong>',
 			'<strong>' . esc_html__( 'Elementor', 'elementor-hello-world' ) . '</strong>'
 		);
 
@@ -195,7 +195,7 @@ class SAS_Plugin {
 		$message = sprintf(
 			/* translators: 1: Plugin name 2: Elementor 3: Required Elementor version */
 			esc_html__( '"%1$s" requires "%2$s" version %3$s or greater.', 'elementor-hello-world' ),
-			'<strong>' . esc_html__( 'SAS Elementor Widgets', 'elementor-hello-world' ) . '</strong>',
+			'<strong>' . esc_html__( 'BW Elementor Widgets', 'elementor-hello-world' ) . '</strong>',
 			'<strong>' . esc_html__( 'Elementor', 'elementor-hello-world' ) . '</strong>',
 			self::MINIMUM_ELEMENTOR_VERSION
 		);
@@ -211,7 +211,7 @@ class SAS_Plugin {
 		$message = sprintf(
 			/* translators: 1: Plugin name 2: PHP 3: Required PHP version */
 			esc_html__( '"%1$s" requires "%2$s" version %3$s or greater.', 'elementor-hello-world' ),
-			'<strong>' . esc_html__( 'SAS Elementor Widgets', 'elementor-hello-world' ) . '</strong>',
+			'<strong>' . esc_html__( 'BW Elementor Widgets', 'elementor-hello-world' ) . '</strong>',
 			'<strong>' . esc_html__( 'PHP', 'elementor-hello-world' ) . '</strong>',
 			self::MINIMUM_PHP_VERSION
 		);
@@ -220,8 +220,8 @@ class SAS_Plugin {
 	}
 
     public static function getInstance() {
-		if ( ! isset( self::$instance ) && ! ( self::$instance instanceof SAS_Plugin ) ) {
-			self::$instance = new SAS_Plugin();
+		if ( ! isset( self::$instance ) && ! ( self::$instance instanceof BW_Plugin ) ) {
+			self::$instance = new BW_Plugin();
 		}
 		return self::$instance;
     }
@@ -315,7 +315,7 @@ public function register_portfolio() {
 
     
     
-// class SAS_Plugin   
+// class BW_Plugin   
 }
 
 
@@ -359,4 +359,4 @@ if (!function_exists('sas_do_shortcode')) {
 }
 	
 
-SAS_Plugin::getInstance();
+BW_Plugin::getInstance();

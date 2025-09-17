@@ -1,5 +1,5 @@
 <?php
-namespace SAS\Widgets;
+namespace BW\Widgets;
 
 use \Elementor\Widget_Base;
 use \Elementor\Controls_Manager;
@@ -11,7 +11,7 @@ use \Elementor\Group_Control_Image_Size;
 
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
-class SAS_Woo_Products extends Widget_Base {
+class BW_Woo_Products extends Widget_Base {
 
 	public function get_name() {
 		return 'sas-products';
@@ -987,5 +987,5 @@ $this->add_render_attribute(
 		
 }
 if (class_exists('woocommerce')) {
-	$widgets_manager->register(new SAS_Woo_Products());
+	$widgets_manager->register(new BW_Woo_Products());
 }

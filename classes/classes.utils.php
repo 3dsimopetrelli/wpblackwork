@@ -6,7 +6,7 @@ if ( ! defined( "ABSPATH" ) ) {
 	die( "You shouldnt be here" );
 }
 
-class SAS_utils {
+class BW_utils {
 
 	const UTILS_OPTIONSNAME = "saspcodes-settings";
 
@@ -98,7 +98,7 @@ class SAS_utils {
 
     public static function term_insert($term_description, $taxonomy) {
     	$rvalue = 0;
-    	$slug = SAS_utils::sanitizeslug($term_description);
+    	$slug = BW_utils::sanitizeslug($term_description);
 
     	$term_description = ucfirst($term_description);
 

@@ -1,14 +1,14 @@
 <?php
 
-class SAS_Plugin_Builder_Megamenu {
+class BW_Plugin_Builder_Megamenu {
     public static $instance;
 
     private $content = '';
     public $megamenu_id = 0;
 
     public static function getInstance() {
-        if (!isset(self::$instance) && !(self::$instance instanceof SAS_Plugin_Builder_Megamenu)) {
-            self::$instance = new SAS_Plugin_Builder_Megamenu();
+        if (!isset(self::$instance) && !(self::$instance instanceof BW_Plugin_Builder_Megamenu)) {
+            self::$instance = new BW_Plugin_Builder_Megamenu();
         }
         return self::$instance;
     }
@@ -111,4 +111,4 @@ class SAS_Plugin_Builder_Megamenu {
 
 }
 
-SAS_Plugin_Builder_Megamenu::getInstance();
+BW_Plugin_Builder_Megamenu::getInstance();

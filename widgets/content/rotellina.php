@@ -6,7 +6,7 @@ use \Elementor\Controls_Manager;
 
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
-class SAS_Rotellina extends Widget_Base {
+class BW_Rotellina extends Widget_Base {
 
 	public function get_name() {
 		return 'sas-rotellina';
@@ -263,4 +263,4 @@ class SAS_Rotellina extends Widget_Base {
 		
 	}
 }
-$widgets_manager->register(new SAS_Rotellina());
+$widgets_manager->register(new BW_Rotellina());

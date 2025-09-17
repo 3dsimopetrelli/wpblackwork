@@ -6,7 +6,7 @@ if ( ! defined( "ABSPATH" ) ) {
 }
 
 
-class SAS_wpapi_purchasecodes {
+class BW_wpapi_purchasecodes {
 
 	private static $_instance;
 	const PURCHASECODES_TAXONOMY = "purchasecodes";
@@ -115,11 +115,11 @@ class SAS_wpapi_purchasecodes {
 				"ping_status" => "closed",
 			));
 
-			SAS_utils::setPostMeta($post_id,"purchasecode-email",$data["email"]);
-			SAS_utils::setPostMeta($post_id,"purchasecode-date_created",$data["date_created"]);
-			SAS_utils::setPostMeta($post_id,"purchasecode-date_expires",$data["date_expires"]);
-			SAS_utils::setPostMeta($post_id,"purchasecode-domain",$data["domain"]);
-			SAS_utils::setPostMeta($post_id,"purchasecode-theme",$data["theme"]);
+			BW_utils::setPostMeta($post_id,"purchasecode-email",$data["email"]);
+			BW_utils::setPostMeta($post_id,"purchasecode-date_created",$data["date_created"]);
+			BW_utils::setPostMeta($post_id,"purchasecode-date_expires",$data["date_expires"]);
+			BW_utils::setPostMeta($post_id,"purchasecode-domain",$data["domain"]);
+			BW_utils::setPostMeta($post_id,"purchasecode-theme",$data["theme"]);
 		}
 
 		$rvalue["post_id"] = $post_id;
@@ -133,11 +133,11 @@ class SAS_wpapi_purchasecodes {
 		if (defined("DOING_AUTOSAVE") && DOING_AUTOSAVE ) return $post_id;
 		$custom = get_post_custom($post->ID);
 
-		$email = SAS_utils::getPostMeta($custom,"purchasecode-email","");
-		$date_created = SAS_utils::getPostMeta($custom,"purchasecode-date_created","");
-		$date_expires = SAS_utils::getPostMeta($custom,"purchasecode-date_expires","");
-		$domain = SAS_utils::getPostMeta($custom,"purchasecode-domain","");
-		$theme = SAS_utils::getPostMeta($custom,"purchasecode-theme","");
+		$email = BW_utils::getPostMeta($custom,"purchasecode-email","");
+		$date_created = BW_utils::getPostMeta($custom,"purchasecode-date_created","");
+		$date_expires = BW_utils::getPostMeta($custom,"purchasecode-date_expires","");
+		$domain = BW_utils::getPostMeta($custom,"purchasecode-domain","");
+		$theme = BW_utils::getPostMeta($custom,"purchasecode-theme","");
 	?>
 		<p class="label"><label style="font-weight: bold;"><?php echo esc_html__("Email", "tiam") ?></label></p>
 		<div class="purchasecode-email">
@@ -175,11 +175,11 @@ class SAS_wpapi_purchasecodes {
 			$post_type = get_post_type($post->ID);
 
 			if ($post_type==self::PURCHASECODES_TAXONOMY) {
-				SAS_utils::updatePostMeta($post->ID,"purchasecode-email");
-				SAS_utils::updatePostMeta($post->ID,"purchasecode-date_created");
-				SAS_utils::updatePostMeta($post->ID,"purchasecode-date_expires");
-				SAS_utils::updatePostMeta($post->ID,"purchasecode-domain");
-				SAS_utils::updatePostMeta($post->ID,"purchasecode-theme");
+				BW_utils::updatePostMeta($post->ID,"purchasecode-email");
+				BW_utils::updatePostMeta($post->ID,"purchasecode-date_created");
+				BW_utils::updatePostMeta($post->ID,"purchasecode-date_expires");
+				BW_utils::updatePostMeta($post->ID,"purchasecode-domain");
+				BW_utils::updatePostMeta($post->ID,"purchasecode-theme");
 			}
 		}
 	}

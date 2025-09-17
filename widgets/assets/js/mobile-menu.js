@@ -4,7 +4,7 @@
 	
 	'use strict';
  
-  var SAS_Mobile_Menu = function( $scope, $ ) {
+  var BW_Mobile_Menu = function( $scope, $ ) {
    /* 
 	if ( $scope.find( '#sas-smart_user_widget' ) ){
 		$('#sas-smart_user_widget').smartmenus({
@@ -32,7 +32,7 @@
    
 
   $( window ).on( 'elementor/frontend/init', function() {
-    elementorFrontend.hooks.addAction( 'frontend/element_ready/sas-header-mobile-menu.default', SAS_Mobile_Menu );
+    elementorFrontend.hooks.addAction( 'frontend/element_ready/sas-header-mobile-menu.default', BW_Mobile_Menu );
   } );
   
   

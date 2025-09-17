@@ -6,7 +6,7 @@ use \Elementor\Controls_Manager;
 
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
-class SAS_Box_Category extends Widget_Base {
+class BW_Box_Category extends Widget_Base {
 
 	public function get_name() {
 		return 'sas-box-category';
@@ -291,4 +291,4 @@ class SAS_Box_Category extends Widget_Base {
 		
 	}
 }
-$widgets_manager->register(new SAS_Box_Category());
+$widgets_manager->register(new BW_Box_Category());

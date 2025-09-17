@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
 
-class SAS_Product_Meta extends Base_Widget {
+class BW_Product_Meta extends Base_Widget {
 
 	public function get_name() {
 		return 'sparrow-woocommerce-product-meta';
@@ -448,4 +448,4 @@ class SAS_Product_Meta extends Base_Widget {
 }
 
 
-$widgets_manager->register(new SAS_Product_Meta());
+$widgets_manager->register(new BW_Product_Meta());

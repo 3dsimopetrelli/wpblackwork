@@ -4,7 +4,7 @@ if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly.
 }
 
-class SAS_Elementor_Widgets {
+class BW_Elementor_Widgets {
 	public function __construct() {
         add_action( 'elementor/widgets/register', array( $this, 'include_widgets' ) );
     	// Add categories
@@ -24,7 +24,7 @@ class SAS_Elementor_Widgets {
 
 	// Register styles to admin for icons
 	public function enqueue_editor_styles() {
-		wp_enqueue_style( 'sas-el-widget-font-icons', trailingslashit(SAS_PLUGIN_URL) . 'widgets/assets/css/el-widget-icons.css');
+		wp_enqueue_style( 'sas-el-widget-font-icons', trailingslashit(BW_PLUGIN_URL) . 'widgets/assets/css/el-widget-icons.css');
 		
 
 	}
@@ -46,28 +46,28 @@ class SAS_Elementor_Widgets {
 	
     
     public function widget_styles() {
-		wp_enqueue_style( 'sas-base', trailingslashit(SAS_PLUGIN_URL) . 'widgets/assets/css/base-style.css', __FILE__ );
+		wp_enqueue_style( 'sas-base', trailingslashit(BW_PLUGIN_URL) . 'widgets/assets/css/base-style.css', __FILE__ );
 		
 		// Content
-		wp_enqueue_style( 'sas-sales-table', trailingslashit(SAS_PLUGIN_URL) . 'widgets/assets/css/sales-table-style.css', __FILE__ );
-		wp_enqueue_style( 'sas-text-big-title', trailingslashit(SAS_PLUGIN_URL) . 'widgets/assets/css/text-big-title.css', __FILE__ );
+		wp_enqueue_style( 'sas-sales-table', trailingslashit(BW_PLUGIN_URL) . 'widgets/assets/css/sales-table-style.css', __FILE__ );
+		wp_enqueue_style( 'sas-text-big-title', trailingslashit(BW_PLUGIN_URL) . 'widgets/assets/css/text-big-title.css', __FILE__ );
 		
-		wp_enqueue_style( 'sas-box-category', trailingslashit(SAS_PLUGIN_URL) . 'widgets/assets/css/box-category.css', __FILE__ );
-		wp_enqueue_style( 'sas-tags', trailingslashit(SAS_PLUGIN_URL) . 'widgets/assets/css/sparrow-tags.css', __FILE__ );
+		wp_enqueue_style( 'sas-box-category', trailingslashit(BW_PLUGIN_URL) . 'widgets/assets/css/box-category.css', __FILE__ );
+		wp_enqueue_style( 'sas-tags', trailingslashit(BW_PLUGIN_URL) . 'widgets/assets/css/sparrow-tags.css', __FILE__ );
 
-		wp_enqueue_style( 'sas-productslider-style', trailingslashit(SAS_PLUGIN_URL) . 'widgets/assets/css/products-slider.css', __FILE__ );
+		wp_enqueue_style( 'sas-productslider-style', trailingslashit(BW_PLUGIN_URL) . 'widgets/assets/css/products-slider.css', __FILE__ );
 
-		wp_enqueue_style( 'sas-postslider-style', trailingslashit(SAS_PLUGIN_URL) . 'widgets/assets/css/postslider-style.css', __FILE__ );
+		wp_enqueue_style( 'sas-postslider-style', trailingslashit(BW_PLUGIN_URL) . 'widgets/assets/css/postslider-style.css', __FILE__ );
 		
-		wp_enqueue_style( 'sas-rotellina', trailingslashit(SAS_PLUGIN_URL) . 'widgets/assets/css/rotellina.css', __FILE__ );
+		wp_enqueue_style( 'sas-rotellina', trailingslashit(BW_PLUGIN_URL) . 'widgets/assets/css/rotellina.css', __FILE__ );
 		
-		wp_enqueue_style( 'sas-fixed-price-bar-style', trailingslashit(SAS_PLUGIN_URL) . 'widgets/assets/css/fixed-price-bar.css', __FILE__ );
+		wp_enqueue_style( 'sas-fixed-price-bar-style', trailingslashit(BW_PLUGIN_URL) . 'widgets/assets/css/fixed-price-bar.css', __FILE__ );
 
-		wp_enqueue_style( 'sas-mobile-menu', trailingslashit(SAS_PLUGIN_URL) . 'widgets/assets/css/mobile-menu.css', __FILE__ );
+		wp_enqueue_style( 'sas-mobile-menu', trailingslashit(BW_PLUGIN_URL) . 'widgets/assets/css/mobile-menu.css', __FILE__ );
 
-		wp_enqueue_style( 'sas-search', trailingslashit(SAS_PLUGIN_URL) . 'widgets/assets/css/sas-search.css', __FILE__ );
+		wp_enqueue_style( 'sas-search', trailingslashit(BW_PLUGIN_URL) . 'widgets/assets/css/sas-search.css', __FILE__ );
 
-		wp_enqueue_style( 'sas-slick-style', trailingslashit(SAS_PLUGIN_URL) . 'widgets/assets/css/slick.css', __FILE__ );
+		wp_enqueue_style( 'sas-slick-style', trailingslashit(BW_PLUGIN_URL) . 'widgets/assets/css/slick.css', __FILE__ );
 		
     }
 
@@ -80,22 +80,22 @@ class SAS_Elementor_Widgets {
         $api_settings    = get_option( 'sas' );
         
     // Header widget  
-        wp_register_script('sas-header-user', trailingslashit(SAS_PLUGIN_URL) . 'widgets/assets/js/user.js', array('jquery'), SAS_PLUGIN_VERSION, true);
-        wp_register_script('smartmenu', trailingslashit(SAS_PLUGIN_URL) . 'widgets/assets/js/smartmenu.js', array(), SAS_PLUGIN_VERSION, true);
+        wp_register_script('sas-header-user', trailingslashit(BW_PLUGIN_URL) . 'widgets/assets/js/user.js', array('jquery'), BW_PLUGIN_VERSION, true);
+        wp_register_script('smartmenu', trailingslashit(BW_PLUGIN_URL) . 'widgets/assets/js/smartmenu.js', array(), BW_PLUGIN_VERSION, true);
 		
 
     // Content
-		wp_register_script('isotope', trailingslashit(SAS_PLUGIN_URL) . 'assets/js/isotope.js', array(),'',true);
-		wp_register_script('sas-productslider', trailingslashit(SAS_PLUGIN_URL) . 'widgets/assets/js/products-slider.js', array('jquery'), SAS_PLUGIN_VERSION, true);
-	    wp_register_script('sas-woo-products', trailingslashit(SAS_PLUGIN_URL) . 'widgets/assets/js/woo-products.js', array('jquery'), SAS_PLUGIN_VERSION, true);
+		wp_register_script('isotope', trailingslashit(BW_PLUGIN_URL) . 'assets/js/isotope.js', array(),'',true);
+		wp_register_script('sas-productslider', trailingslashit(BW_PLUGIN_URL) . 'widgets/assets/js/products-slider.js', array('jquery'), BW_PLUGIN_VERSION, true);
+	    wp_register_script('sas-woo-products', trailingslashit(BW_PLUGIN_URL) . 'widgets/assets/js/woo-products.js', array('jquery'), BW_PLUGIN_VERSION, true);
 
-	    wp_register_script('sas-mobile-menu-js', trailingslashit(SAS_PLUGIN_URL) . 'widgets/assets/js/mobile-menu.js', array('jquery'), SAS_PLUGIN_VERSION, true);
+	    wp_register_script('sas-mobile-menu-js', trailingslashit(BW_PLUGIN_URL) . 'widgets/assets/js/mobile-menu.js', array('jquery'), BW_PLUGIN_VERSION, true);
 
    
     // Grid isotope layout
-	    wp_register_script('sas-products', trailingslashit(SAS_PLUGIN_URL) . 'widgets/assets/js/products.js', array('jquery'), SAS_PLUGIN_VERSION, true);
-	    wp_register_script('sas-blog-grid', trailingslashit(SAS_PLUGIN_URL) . 'widgets/assets/js/blog-grid.js', array('jquery'), SAS_PLUGIN_VERSION, true);
-	    wp_register_script('sas-fixed-price-bar', trailingslashit(SAS_PLUGIN_URL) . 'widgets/assets/js/fixed-price-bar.js', array('jquery'), SAS_PLUGIN_VERSION, true);
+	    wp_register_script('sas-products', trailingslashit(BW_PLUGIN_URL) . 'widgets/assets/js/products.js', array('jquery'), BW_PLUGIN_VERSION, true);
+	    wp_register_script('sas-blog-grid', trailingslashit(BW_PLUGIN_URL) . 'widgets/assets/js/blog-grid.js', array('jquery'), BW_PLUGIN_VERSION, true);
+	    wp_register_script('sas-fixed-price-bar', trailingslashit(BW_PLUGIN_URL) . 'widgets/assets/js/fixed-price-bar.js', array('jquery'), BW_PLUGIN_VERSION, true);
         
 		wp_localize_script( 'sas-blog-grid', 'ajax_object', array('ajaxurl' => admin_url( 'admin-ajax.php' )));
         
@@ -105,14 +105,14 @@ class SAS_Elementor_Widgets {
      * @param $widgets_manager Elementor\Widgets_Manager
      */
     public function include_widgets($widgets_manager) {
-        $files = glob(trailingslashit(SAS_PLUGIN_PATH) . '/widgets/header/*.php');
+        $files = glob(trailingslashit(BW_PLUGIN_PATH) . '/widgets/header/*.php');
         foreach ($files as $file){
             if(file_exists($file)){
                 require_once  $file;
             }
         }
 
-        $files = glob(trailingslashit(SAS_PLUGIN_PATH) . '/widgets/content/*.php');
+        $files = glob(trailingslashit(BW_PLUGIN_PATH) . '/widgets/content/*.php');
         foreach ($files as $file){
             if(file_exists($file)){
                 require_once  $file;
@@ -124,20 +124,20 @@ class SAS_Elementor_Widgets {
 		$elements_manager->add_category(
 			'sas-header',
 			[
-				'title' => __( 'SAS Header', 'sas' ),
+				'title' => __( 'BW Header', 'sas' ),
             ]);
         $elements_manager->add_category(    
 			'sas-content',
 			[
-				'title' => __( 'SAS Theme', 'sas' ),
+				'title' => __( 'BW Theme', 'sas' ),
             ]);
         $elements_manager->add_category(
 			'sas-footer',
 			[
-				'title' => __( 'SAS Footer', 'sas' ),
+				'title' => __( 'BW Footer', 'sas' ),
 			]);
 	}
 }
 
-new SAS_Elementor_Widgets();
+new BW_Elementor_Widgets();
 
