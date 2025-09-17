@@ -2,7 +2,7 @@
 /*
  * Plugin Name: Sparrow Core
  * Author: Sparrow&Snow
- * Author URI: https://www.sparrowandsnow.com/
+ * Author URI: https://www.blackwork.com
  * Version: 1.0.0
  * Text Domain: sparrow
  * Description: Core plugin required for Sparow Theme.
