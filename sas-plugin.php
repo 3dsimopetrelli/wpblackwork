@@ -56,23 +56,11 @@ class BW_Plugin {
 
     public function init() {
 
-		function custom_product_search_query($query) {
-			// Check if this is a search query and if the 'product_search' parameter is set
-			if ($query->is_search && !empty($_GET['search_type'])) {
-				// Modify the search query to include product attributes like title, category, and tags
-				$query->set('post_type', 'product');
-				$query->set('s', sanitize_text_field($_GET['s']));
-			} else if ( $query->is_search && empty($_GET['search_type']) ) {
-				$query->set('post_type', 'post');
-			}
-		}
-		add_action('pre_get_posts', 'custom_product_search_query');
-
-		function cc_mime_types($mimes) {
-			$mimes['svg'] = 'image/svg+xml';
-			return $mimes;
-		}
-		add_filter('upload_mimes', 'cc_mime_types');
+                function cc_mime_types($mimes) {
+                        $mimes['svg'] = 'image/svg+xml';
+                        return $mimes;
+                }
+                add_filter('upload_mimes', 'cc_mime_types');
 
 		if ( ! did_action( 'elementor/loaded' ) ) {
 			add_action( 'admin_notices', array( $this, 'admin_notice_missing_main_plugin' ) );
@@ -97,17 +85,9 @@ class BW_Plugin {
 		add_filter( 'plugin_row_meta', [ $this, 'plugin_row_meta' ], 10, 2 );
 
 		if (did_action( 'elementor/loaded' )) {
-			require_once( 'sas-el-widgets.php' );
-			require_once( 'framework/helper.php' );
-			require_once( 'framework/query_helper.php' );
-		}
-
-        add_action( 'wp_enqueue_scripts', [ $this,'scripts_enqueue' ] );
-	}
-
-	public function scripts_enqueue() {
-		wp_enqueue_script('sas-slickslider', trailingslashit(BW_PLUGIN_URL) . 'widgets/assets/js/slick.js', array('jquery'), BW_PLUGIN_VERSION, false);
-	}
+                        require_once( 'sas-el-widgets.php' );
+                }
+        }
 
 	public function plugin_row_meta( $plugin_meta, $plugin_file ) {
 		if ( BW_PBNAME === $plugin_file ) {

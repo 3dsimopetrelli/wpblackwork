@@ -23,19 +23,11 @@ class BW_Blackworkpro_Products extends Widget_Base {
         }
 
         public function get_categories() {
-                return [ 'sas-content' ];
+                return [ 'blackworkpro' ];
         }
 
         public function get_keywords() {
                 return [ 'woocommerce', 'products', 'blackworkpro' ];
-        }
-
-        public function get_style_depends() {
-                return [ 'sas-base' ];
-        }
-
-        public function get_script_depends() {
-                return [ 'sas-woo-products' ];
         }
 
         protected function register_controls() {
@@ -203,5 +195,3 @@ class BW_Blackworkpro_Products extends Widget_Base {
                 }
         }
 }
-
-$widgets_manager->register( new BW_Blackworkpro_Products() );
