@@ -89,18 +89,30 @@ class BW_Plugin {
 			return;
 		}
 
-		require_once 'classes/post-type.php';
-		require_once 'classes/sas-purchasecodes.php';
-		require_once 'classes/wc-variations-radio-buttons.php';
+                $this->require_if_exists(
+                        'classes/post-type.php',
+                        'Custom post type helpers not included in this build; skipping optional include.'
+                );
+                $this->require_if_exists(
+                        'classes/sas-purchasecodes.php',
+                        'Purchase code validation disabled because the original file is not bundled with the plugin.'
+                );
+                require_once 'classes/wc-variations-radio-buttons.php';
 
 		add_action( 'init', array( $this, 'register_portfolio' ) );
 		add_filter( 'plugin_row_meta', [ $this, 'plugin_row_meta' ], 10, 2 );
 
-		if (did_action( 'elementor/loaded' )) {
-			require_once( 'sas-el-widgets.php' );
-			require_once( 'framework/helper.php' );
-			require_once( 'framework/query_helper.php' );
-		}
+                if (did_action( 'elementor/loaded' )) {
+                        require_once( 'sas-el-widgets.php' );
+                        $this->require_if_exists(
+                                'framework/helper.php',
+                                'Helper utilities file missing from distribution; Elementor helpers left inactive.'
+                        );
+                        $this->require_if_exists(
+                                'framework/query_helper.php',
+                                'Query helper utilities file missing from distribution; Elementor query helpers left inactive.'
+                        );
+                }
 
         add_action( 'wp_enqueue_scripts', [ $this,'scripts_enqueue' ] );
 	}
@@ -136,11 +148,22 @@ class BW_Plugin {
     public function sas_create_builders() {
         load_plugin_textdomain( 'sas' );
         if ( $this->plugin_is_active( 'elementor' ) ){
-			require_once 'classes/megamenu/megamenu.php';
-			require_once 'classes/megamenu/walker.megamenu.php';
+                        $megamenu_loaded = $this->require_if_exists(
+                                'classes/megamenu/megamenu.php',
+                                'Mega menu builder disabled because the bundled files are not available.'
+                        );
+                        $walker_loaded = $this->require_if_exists(
+                                'classes/megamenu/walker.megamenu.php',
+                                'Mega menu walker unavailable; default WordPress walker will be used instead.'
+                        );
+
+                        if ( $megamenu_loaded && $walker_loaded ) {
             $this->sas_add_elementor_cpt('megamenu_builder');
-			$this->sas_add_elementor_cpt('sas-portfolio');
-			$this->sas_remove_elementor_colors();
+                        } else {
+                                // Mega menu support is skipped to avoid fatal errors when the optional files are missing.
+                        }
+                        $this->sas_add_elementor_cpt('sas-portfolio');
+                        $this->sas_remove_elementor_colors();
         }
     }
 
@@ -299,23 +322,47 @@ public function register_portfolio() {
 		}
 	}
 
-    register_taxonomy("sas-portfolio-categories", "sas-portfolio",
-		array(
-			"hierarchical" => true,
-			"label" => __( "Portfolio Categories", 'sas'),
-			"singular_label" => __( "Category", 'sas'),
-			"rewrite" => array( 'slug' => 'sas-portfolio-categories', 'hierarchical' => true),
-			'show_in_nav_menus' => false,
-			'show_admin_column' => true,
-			'show_in_rest'      => true,
-			)
-		);
-	}
+register_taxonomy("sas-portfolio-categories", "sas-portfolio",
+                array(
+                        "hierarchical" => true,
+                        "label" => __( "Portfolio Categories", 'sas'),
+                        "singular_label" => __( "Category", 'sas'),
+                        "rewrite" => array( 'slug' => 'sas-portfolio-categories', 'hierarchical' => true),
+                        'show_in_nav_menus' => false,
+                        'show_admin_column' => true,
+                        'show_in_rest'      => true,
+                        )
+                );
+        }
+
+
+
+
+    private function require_if_exists( $relative_path, $context = '' ) {
+        $file_path = BW_PLUGIN_PATH . ltrim( $relative_path, '/' );
+
+        if ( file_exists( $file_path ) ) {
+            require_once $file_path;
+
+            return true;
+        }
+
+        if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+            $message = sprintf( 'BW_Plugin missing dependency: %s', $relative_path );
+
+            if ( ! empty( $context ) ) {
+                $message .= sprintf( ' (%s)', $context );
+            }
+
+            error_log( $message );
+        }
+
+        return false;
+    }
 
 
     
-    
-// class BW_Plugin   
+// class BW_Plugin
 }
 
 
