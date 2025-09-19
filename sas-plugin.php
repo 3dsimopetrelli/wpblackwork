@@ -1,6 +1,6 @@
 <?php
 /*
- * Plugin Name: Sparrow Core
+ * Plugin Name: Blackwork Core
  * Author: Sparrow&Snow
  * Author URI: https://www.blackwork.com
  * Version: 1.0.0
