@@ -1,7 +1,7 @@
 <?php
 /*
  * Plugin Name: Blackwork Core
- * Author: Sparrow&Snow
+ * Author: SIMELONE
  * Author URI: https://www.blackwork.com
  * Version: 1.0.0
  * Text Domain: sparrow
