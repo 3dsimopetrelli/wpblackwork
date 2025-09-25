@@ -882,18 +882,28 @@ class Product_Search_Form extends \Elementor\Widget_Base {
 
 	private function render_search_icon( $icon, $attributes = [] ) {
 		// When the experiment is active and the search icon renders as SVG, it needs additional container for the icon box border.
-		if ( Plugin::elementor()->experiments->is_feature_active( 'e_font_icon_svg' ) ) {
-			$icon_html = Icons_Manager::render_font_icon( $icon, $attributes );
+                $should_render_svg = false;
 
-			Utils::print_unescaped_internal_string( sprintf( '<div class="e-font-icon-svg-container">%s</div>', $icon_html ) );
-		} else {
-			$migration_allowed = Icons_Manager::is_migration_allowed();
+                if ( class_exists( '\\ElementorPro\\Plugin' ) ) {
+                        $elementor = Plugin::elementor();
 
-			if ( ! $migration_allowed || ! Icons_Manager::render_icon( $icon, [ 'aria-hidden' => 'true' ] ) ) {
-				Utils::print_unescaped_internal_string( sprintf( '<i %s aria-hidden="true"></i>', esc_attr( $this->get_render_attribute_string( 'icon' ) ) ) );
-			}
-		}
-	}
+                        if ( $elementor && isset( $elementor->experiments ) && is_object( $elementor->experiments ) && method_exists( $elementor->experiments, 'is_feature_active' ) ) {
+                                $should_render_svg = $elementor->experiments->is_feature_active( 'e_font_icon_svg' );
+                        }
+                }
+
+                if ( $should_render_svg ) {
+                        $icon_html = Icons_Manager::render_font_icon( $icon, $attributes );
+
+                        Utils::print_unescaped_internal_string( sprintf( '<div class="e-font-icon-svg-container">%s</div>', $icon_html ) );
+                } else {
+                        $migration_allowed = Icons_Manager::is_migration_allowed();
+
+                        if ( ! $migration_allowed || ! Icons_Manager::render_icon( $icon, [ 'aria-hidden' => 'true' ] ) ) {
+                                Utils::print_unescaped_internal_string( sprintf( '<i %s aria-hidden="true"></i>', esc_attr( $this->get_render_attribute_string( 'icon' ) ) ) );
+                        }
+                }
+        }
 
 	public function get_group_name() {
 		return 'theme-elements';
@@ -901,6 +911,6 @@ class Product_Search_Form extends \Elementor\Widget_Base {
 }
 
 
-if (class_exists('woocommerce')) {
-	$widgets_manager->register(new Product_Search_Form());
+if ( class_exists( 'woocommerce' ) && class_exists( '\\ElementorPro\\Plugin' ) ) {
+        $widgets_manager->register( new Product_Search_Form() );
 }
