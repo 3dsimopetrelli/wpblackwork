@@ -105,17 +105,33 @@ class BW_Elementor_Widgets {
      * @param $widgets_manager Elementor\Widgets_Manager
      */
     public function include_widgets($widgets_manager) {
-        $files = glob(trailingslashit(BW_PLUGIN_PATH) . '/widgets/header/*.php');
-        foreach ($files as $file){
-            if(file_exists($file)){
-                require_once  $file;
-            }
-        }
+        $elementor_pro_active = did_action( 'elementor_pro/init' ) || class_exists( 'ElementorPro\\Modules\\Woocommerce\\Widgets\\Base_Widget' );
 
-        $files = glob(trailingslashit(BW_PLUGIN_PATH) . '/widgets/content/*.php');
-        foreach ($files as $file){
-            if(file_exists($file)){
-                require_once  $file;
+        $pro_only_files = array_filter( array_map( 'realpath', array(
+            BW_PLUGIN_PATH . 'widgets/content/product-meta.php',
+        ) ) );
+
+        $directories = array( 'header', 'content' );
+
+        foreach ( $directories as $directory ) {
+            $files = glob( BW_PLUGIN_PATH . 'widgets/' . $directory . '/*.php' );
+
+            if ( empty( $files ) ) {
+                continue;
+            }
+
+            foreach ( $files as $file ) {
+                if ( ! file_exists( $file ) ) {
+                    continue;
+                }
+
+                $real_file = realpath( $file );
+
+                if ( ! $elementor_pro_active && $real_file && in_array( $real_file, $pro_only_files, true ) ) {
+                    continue;
+                }
+
+                require_once $file;
             }
         }
     }
