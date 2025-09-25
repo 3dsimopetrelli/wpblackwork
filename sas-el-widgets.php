@@ -85,16 +85,22 @@ class BW_Elementor_Widgets {
 		
 
     // Content
-		wp_register_script('isotope', trailingslashit(BW_PLUGIN_URL) . 'assets/js/isotope.js', array(),'',true);
-		wp_register_script('sas-productslider', trailingslashit(BW_PLUGIN_URL) . 'widgets/assets/js/products-slider.js', array('jquery'), BW_PLUGIN_VERSION, true);
-	    wp_register_script('sas-woo-products', trailingslashit(BW_PLUGIN_URL) . 'widgets/assets/js/woo-products.js', array('jquery'), BW_PLUGIN_VERSION, true);
+                wp_register_script(
+                        'isotope',
+                        'https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js',
+                        array( 'jquery' ),
+                        '3.0.6',
+                        true
+                );
+                wp_register_script('sas-productslider', trailingslashit(BW_PLUGIN_URL) . 'widgets/assets/js/products-slider.js', array('jquery'), BW_PLUGIN_VERSION, true);
+            wp_register_script('sas-woo-products', trailingslashit(BW_PLUGIN_URL) . 'widgets/assets/js/woo-products.js', array('jquery', 'imagesloaded'), BW_PLUGIN_VERSION, true);
 
 	    wp_register_script('sas-mobile-menu-js', trailingslashit(BW_PLUGIN_URL) . 'widgets/assets/js/mobile-menu.js', array('jquery'), BW_PLUGIN_VERSION, true);
 
    
     // Grid isotope layout
 	    wp_register_script('sas-products', trailingslashit(BW_PLUGIN_URL) . 'widgets/assets/js/products.js', array('jquery'), BW_PLUGIN_VERSION, true);
-	    wp_register_script('sas-blog-grid', trailingslashit(BW_PLUGIN_URL) . 'widgets/assets/js/blog-grid.js', array('jquery'), BW_PLUGIN_VERSION, true);
+            wp_register_script('sas-blog-grid', trailingslashit(BW_PLUGIN_URL) . 'widgets/assets/js/blog-grid.js', array('jquery', 'imagesloaded'), BW_PLUGIN_VERSION, true);
 	    wp_register_script('sas-fixed-price-bar', trailingslashit(BW_PLUGIN_URL) . 'widgets/assets/js/fixed-price-bar.js', array('jquery'), BW_PLUGIN_VERSION, true);
         
 		wp_localize_script( 'sas-blog-grid', 'ajax_object', array('ajaxurl' => admin_url( 'admin-ajax.php' )));

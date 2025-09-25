@@ -35,7 +35,7 @@ class BW_Blackworkpro_Products extends Widget_Base {
         }
 
         public function get_script_depends() {
-                return [ 'sas-woo-products' ];
+                return [ 'isotope', 'sas-woo-products' ];
         }
 
         protected function register_controls() {
