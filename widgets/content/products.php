@@ -37,9 +37,9 @@ class BW_Woo_Products extends Widget_Base {
 		return [ 'sas-base' ];
 	}
 	//JS
-	public function get_script_depends() {
-		return [ 'sas-woo-products' ];
-	}
+        public function get_script_depends() {
+                return [ 'isotope', 'sas-woo-products' ];
+        }
 	
 	
 	// CONTROLS **********
