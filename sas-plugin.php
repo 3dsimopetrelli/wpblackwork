@@ -102,16 +102,20 @@ class BW_Plugin {
 		add_action( 'init', array( $this, 'register_portfolio' ) );
 		add_filter( 'plugin_row_meta', [ $this, 'plugin_row_meta' ], 10, 2 );
 
-                if (did_action( 'elementor/loaded' )) {
-                        require_once( 'sas-el-widgets.php' );
+                if ( did_action( 'elementor/loaded' ) ) {
+                        require_once 'sas-el-widgets.php';
+
                         $this->require_if_exists(
                                 'framework/helper.php',
                                 'Helper utilities file missing from distribution; Elementor helpers left inactive.'
                         );
+
                         $this->require_if_exists(
                                 'framework/query_helper.php',
                                 'Query helper utilities file missing from distribution; Elementor query helpers left inactive.'
                         );
+
+                        $this->register_helper_fallbacks();
                 }
 
         add_action( 'wp_enqueue_scripts', [ $this,'scripts_enqueue' ] );
@@ -337,6 +341,138 @@ register_taxonomy("sas-portfolio-categories", "sas-portfolio",
 
 
 
+
+    private function register_helper_fallbacks() {
+        if ( function_exists( 'sas_get_posts' ) && function_exists( 'sas_post_pagination' ) ) {
+            return;
+        }
+
+        if ( ! function_exists( 'sas_get_posts' ) ) {
+            function sas_get_posts( $settings = array(), $paged = 1 ) {
+                $defaults = array(
+                    'posts_per_page'    => get_option( 'posts_per_page' ),
+                    'order'             => 'DESC',
+                    'orderby'           => 'date',
+                    'source'            => '',
+                    'post_categories'   => array(),
+                    'exclude_posts'     => '',
+                    'blog_posts_offset' => 0,
+                    'category_name'     => '',
+                );
+
+                $settings = wp_parse_args( $settings, $defaults );
+
+                $per_page = isset( $settings['posts_per_page'] ) ? absint( $settings['posts_per_page'] ) : 0;
+
+                if ( $per_page < 1 ) {
+                    $per_page = (int) get_option( 'posts_per_page', 10 );
+                }
+
+                $order = strtoupper( isset( $settings['order'] ) ? $settings['order'] : 'DESC' );
+
+                if ( ! in_array( $order, array( 'ASC', 'DESC' ), true ) ) {
+                    $order = 'DESC';
+                }
+
+                $orderby = isset( $settings['orderby'] ) ? $settings['orderby'] : 'date';
+
+                if ( 'category' === $orderby ) {
+                    $orderby = 'name';
+                }
+
+                $valid_orderby = array( 'date', 'title', 'rand', 'name' );
+
+                if ( ! in_array( $orderby, $valid_orderby, true ) ) {
+                    $orderby = 'date';
+                }
+
+                $args = array(
+                    'post_type'           => 'post',
+                    'post_status'         => 'publish',
+                    'paged'               => max( 1, (int) $paged ),
+                    'posts_per_page'      => $per_page,
+                    'order'               => $order,
+                    'orderby'             => $orderby,
+                    'ignore_sticky_posts' => false,
+                );
+
+                if ( ! empty( $settings['category_name'] ) ) {
+                    $args['category_name'] = sanitize_title( $settings['category_name'] );
+                } elseif ( 'by_name' === $settings['source'] && ! empty( $settings['post_categories'] ) ) {
+                    $categories = array_filter( array_map( 'sanitize_title', (array) $settings['post_categories'] ) );
+
+                    if ( ! empty( $categories ) ) {
+                        $args['category_name'] = implode( ',', $categories );
+                    }
+                }
+
+                if ( ! empty( $settings['exclude_posts'] ) ) {
+                    $exclude = is_array( $settings['exclude_posts'] )
+                        ? $settings['exclude_posts']
+                        : preg_split( '/[\s,]+/', $settings['exclude_posts'] );
+
+                    $exclude = array_filter( array_map( 'absint', (array) $exclude ) );
+
+                    if ( ! empty( $exclude ) ) {
+                        $args['post__not_in'] = $exclude;
+                    }
+                }
+
+                $offset = isset( $settings['blog_posts_offset'] ) ? (int) $settings['blog_posts_offset'] : 0;
+
+                if ( $offset > 0 ) {
+                    $args['offset'] = $offset;
+                }
+
+                return new \WP_Query( $args );
+            }
+        }
+
+        if ( ! function_exists( 'sas_post_pagination' ) ) {
+            function sas_post_pagination( $query = null ) {
+                if ( ! $query instanceof \WP_Query ) {
+                    global $wp_query;
+
+                    if ( $wp_query instanceof \WP_Query ) {
+                        $query = $wp_query;
+                    }
+                }
+
+                if ( ! $query instanceof \WP_Query ) {
+                    return;
+                }
+
+                $total = (int) $query->max_num_pages;
+
+                if ( $total < 2 ) {
+                    return;
+                }
+
+                $current = max( 1, (int) get_query_var( 'paged' ) );
+
+                if ( $current < 1 ) {
+                    $current = max( 1, (int) get_query_var( 'page', 1 ) );
+                }
+
+                $links = paginate_links( array(
+                    'total'     => $total,
+                    'current'   => $current,
+                    'type'      => 'list',
+                    'mid_size'  => 1,
+                    'prev_text' => '&laquo;',
+                    'next_text' => '&raquo;',
+                ) );
+
+                if ( empty( $links ) ) {
+                    return;
+                }
+
+                echo '<nav class="sas-pagination" aria-label="' . esc_attr__( 'Posts navigation', 'sas' ) . '">';
+                echo wp_kses_post( $links );
+                echo '</nav>';
+            }
+        }
+    }
 
     private function require_if_exists( $relative_path, $context = '' ) {
         $file_path = BW_PLUGIN_PATH . ltrim( $relative_path, '/' );

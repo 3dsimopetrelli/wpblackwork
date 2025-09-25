@@ -11,6 +11,23 @@ use \Elementor\Group_Control_Image_Size;
 
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
+if ( ! \function_exists( 'sas_get_posts' ) ) {
+        if ( \is_admin() ) {
+                \add_action(
+                        'admin_notices',
+                        static function () {
+                                if ( ! \current_user_can( 'activate_plugins' ) ) {
+                                        return;
+                                }
+
+                                echo '<div class="notice notice-warning"><p>' . \esc_html__( 'Blackwork Blog Grid widget is unavailable because its post helper functions are missing. Please ensure the framework helper file is installed.', 'sas' ) . '</p></div>';
+                        }
+                );
+        }
+
+        return;
+}
+
 class BW_Blog extends Widget_Base {
 
 	public function get_name() {
