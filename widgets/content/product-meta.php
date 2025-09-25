@@ -6,8 +6,10 @@ use Elementor\Core\Kits\Documents\Tabs\Global_Colors;
 use Elementor\Group_Control_Typography;
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly
+        exit; // Exit if accessed directly
 }
+
+if ( \did_action( 'elementor_pro/init' ) || \class_exists( 'ElementorPro\\Modules\\Woocommerce\\Widgets\\Base_Widget' ) ) {
 
 class BW_Product_Meta extends Base_Widget {
 
@@ -447,5 +449,6 @@ class BW_Product_Meta extends Base_Widget {
 	}
 }
 
+$widgets_manager->register( new BW_Product_Meta() );
 
-$widgets_manager->register(new BW_Product_Meta());
+}
