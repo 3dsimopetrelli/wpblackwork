@@ -1,18 +1,41 @@
-jQuery(document).ready(function($){
-  $('.bw-products-slider').each(function(){
-    let el = $(this);
+jQuery(document).ready(function ($) {
+  $('.bw-products-slider').each(function () {
+    var $slider = $(this);
 
-    let autoplay = el.data('autoplay');
-    let wrap = el.data('wrap') === 'yes';
-    let fade = el.data('fade') === 'yes';
+    var columns = parseInt($slider.data('columns'), 10);
+    var gap = parseInt($slider.data('gap'), 10);
+    var autoplay = parseInt($slider.data('autoplay'), 10);
+    var wrap = $slider.data('wrap') === 'yes';
+    var fade = $slider.data('fade') === 'yes';
 
-    el.flickity({
+    if (isNaN(columns) || columns < 1) {
+      columns = 1;
+    }
+
+    if (isNaN(gap)) {
+      gap = 0;
+    }
+
+    if (isNaN(autoplay) || autoplay <= 0) {
+      autoplay = false;
+    }
+
+    $slider.find('.carousel-cell').css('margin-right', gap + 'px');
+
+    var flickityOptions = {
       cellAlign: 'left',
       contain: true,
-      groupCells: true,
-      autoPlay: autoplay ? autoplay : false,
+      groupCells: columns > 1 ? columns : 1,
+      autoPlay: autoplay,
       wrapAround: wrap,
-      fade: fade
-    });
+      fade: fade,
+      pageDots: false
+    };
+
+    if (fade) {
+      flickityOptions.groupCells = false;
+    }
+
+    $slider.flickity(flickityOptions);
   });
 });
