@@ -13,6 +13,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 // Loader dei widget
 require_once __DIR__ . '/includes/class-bw-widget-loader.php';
 
+// Registrazione widget Elementor
+function bw_widgets_register_elementor_widgets( $widgets_manager = null ) {
+    BW_Widget_Loader::instance()->register_widgets( $widgets_manager );
+}
+add_action( 'elementor/widgets/register', 'bw_widgets_register_elementor_widgets' );
+add_action( 'elementor/widgets/widgets_registered', 'bw_widgets_register_elementor_widgets' );
+
 // Registrazione asset condivisi tra i widget
 function bw_widgets_register_assets() {
     $plugin_url = plugin_dir_url( __FILE__ );
