@@ -13,6 +13,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 // Loader dei widget
 require_once __DIR__ . '/includes/class-bw-widget-loader.php';
 
+add_action( 'elementor/widgets/register', function( $widgets_manager ) {
+    require_once __DIR__ . '/includes/widgets/class-bw-products-slide-widget.php';
+    $widgets_manager->register( new Widget_Bw_Products_Slide() );
+} );
+
 // Registrazione widget Elementor
 function bw_widgets_register_elementor_widgets( $widgets_manager = null ) {
     BW_Widget_Loader::instance()->register_widgets( $widgets_manager );
