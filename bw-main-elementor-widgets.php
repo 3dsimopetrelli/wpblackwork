@@ -27,8 +27,6 @@ add_action( 'elementor/widgets/widgets_registered', 'bw_widgets_register_element
 
 // Registrazione asset condivisi tra i widget
 function bw_widgets_register_assets() {
-    $plugin_url = plugin_dir_url( __FILE__ );
-
     wp_register_style(
         'flickity-css',
         'https://unpkg.com/flickity@2.3.0/dist/flickity.css',
@@ -46,14 +44,14 @@ function bw_widgets_register_assets() {
 
     wp_register_style(
         'bw-products-slide-style',
-        $plugin_url . 'assets/css/bw-products-slide.css',
+        plugins_url( '/assets/css/bw-products-slide.css', __FILE__ ),
         [],
         '1.0.0'
     );
 
     wp_register_script(
         'bw-products-slide-script',
-        $plugin_url . 'assets/js/bw-products-slide.js',
+        plugins_url( '/assets/js/bw-products-slide.js', __FILE__ ),
         [ 'jquery', 'flickity-js' ],
         '1.0.0',
         true
