@@ -56,4 +56,6 @@ function bw_widgets_register_assets() {
 }
 add_action( 'elementor/frontend/after_register_styles', 'bw_widgets_register_assets' );
 add_action( 'elementor/frontend/after_register_scripts', 'bw_widgets_register_assets' );
+add_action( 'elementor/editor/after_enqueue_styles', 'bw_widgets_register_assets' );
+add_action( 'elementor/editor/after_enqueue_scripts', 'bw_widgets_register_assets' );
 add_action( 'wp_enqueue_scripts', 'bw_widgets_register_assets' );
