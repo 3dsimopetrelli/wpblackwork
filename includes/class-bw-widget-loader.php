@@ -47,9 +47,12 @@ class BW_Widget_Loader {
         foreach ( $files as $file ) {
             require_once $file;
             $class_name = $this->get_class_from_file( $file );
-            if ( class_exists( $class_name ) ) {
-                $this->register_widget_with_manager( $widgets_manager, $class_name );
+
+            if ( ! $class_name || ! class_exists( $class_name ) ) {
+                continue;
             }
+
+            $this->register_widget_with_manager( $widgets_manager, $class_name );
         }
 
         $this->widgets_registered = true;
@@ -69,14 +72,20 @@ class BW_Widget_Loader {
     }
 
     private function get_class_from_file( $file ) {
-        $basename = basename( $file, '.php' );
-        $basename = preg_replace( '/^class-/', '', $basename );
-        $basename = preg_replace( '/-widget$/', '', $basename );
+        $basename = basename( $file );
 
-        $parts = array_filter( explode( '-', $basename ) );
+        if ( ! preg_match( '/^class-(.+)-widget\.php$/', $basename, $matches ) ) {
+            return '';
+        }
+
+        $parts = array_filter( explode( '-', $matches[1] ) );
         $parts = array_map( static function( $part ) {
             return ucfirst( $part );
         }, $parts );
+
+        if ( empty( $parts ) ) {
+            return '';
+        }
 
         return 'Widget_' . implode( '_', $parts );
     }
