@@ -13,7 +13,10 @@ class BW_Widget_Loader {
      */
     private $widgets_registered = false;
 
-    private function __construct() {}
+    private function __construct() {
+        add_action( 'elementor/widgets/register', [ $this, 'register_widgets' ] );
+        add_action( 'elementor/widgets/widgets_registered', [ $this, 'register_widgets' ] );
+    }
 
     public static function instance() {
         if ( null === self::$instance ) {
@@ -78,3 +81,5 @@ class BW_Widget_Loader {
         return 'Widget_' . implode( '_', $parts );
     }
 }
+
+BW_Widget_Loader::instance();
