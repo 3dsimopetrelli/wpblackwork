@@ -1,12 +1,11 @@
 <?php
 use Elementor\Controls_Manager;
-use Elementor\Widget_Base;
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-class Widget_Bw_Products_Slide extends Widget_Base {
+class Widget_Bw_Products_Slide extends \Elementor\Widget_Base {
 
     public function get_name() {
         return 'bw_products_slide';
@@ -21,7 +20,7 @@ class Widget_Bw_Products_Slide extends Widget_Base {
     }
 
     public function get_categories() {
-        return [ 'general' ];
+        return [ 'black-work' ];
     }
 
     public function get_script_depends() {

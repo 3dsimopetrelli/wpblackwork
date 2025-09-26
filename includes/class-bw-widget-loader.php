@@ -13,10 +13,7 @@ class BW_Widget_Loader {
      */
     private $widgets_registered = false;
 
-    private function __construct() {
-        add_action( 'elementor/widgets/register', [ $this, 'register_widgets' ] );
-        add_action( 'elementor/widgets/widgets_registered', [ $this, 'register_widgets' ] );
-    }
+    private function __construct() {}
 
     public static function instance() {
         if ( null === self::$instance ) {
@@ -24,6 +21,14 @@ class BW_Widget_Loader {
         }
 
         return self::$instance;
+    }
+
+    /**
+     * Collega le azioni necessarie per registrare i widget con Elementor.
+     */
+    public function register_hooks() {
+        add_action( 'elementor/widgets/register', [ $this, 'register_widgets' ] );
+        add_action( 'elementor/widgets/widgets_registered', [ $this, 'register_widgets' ] );
     }
 
     public function register_widgets( $widgets_manager = null ) {
@@ -73,13 +78,14 @@ class BW_Widget_Loader {
         $basename = preg_replace( '/^class-/', '', $basename );
         $basename = preg_replace( '/-widget$/', '', $basename );
 
-        $parts = array_filter( explode( '-', $basename ) );
-        $parts = array_map( static function( $part ) {
-            return ucfirst( $part );
-        }, $parts );
+        $parts = preg_split( '/[-_]+/', $basename );
+        $parts = array_map(
+            static function ( $part ) {
+                return ucwords( strtolower( $part ) );
+            },
+            array_filter( $parts )
+        );
 
         return 'Widget_' . implode( '_', $parts );
     }
 }
-
-BW_Widget_Loader::instance();

@@ -10,22 +10,16 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-// Loader dei widget
+// Include il loader dei widget.
 require_once __DIR__ . '/includes/class-bw-widget-loader.php';
 
-add_action( 'elementor/widgets/register', function( $widgets_manager ) {
-    require_once __DIR__ . '/includes/widgets/class-bw-products-slide-widget.php';
-    $widgets_manager->register( new Widget_Bw_Products_Slide() );
-} );
+// Inizializza il loader per collegare le azioni di Elementor.
+$bw_widget_loader = BW_Widget_Loader::instance();
+$bw_widget_loader->register_hooks();
 
-// Registrazione widget Elementor
-function bw_widgets_register_elementor_widgets( $widgets_manager = null ) {
-    BW_Widget_Loader::instance()->register_widgets( $widgets_manager );
-}
-add_action( 'elementor/widgets/register', 'bw_widgets_register_elementor_widgets' );
-add_action( 'elementor/widgets/widgets_registered', 'bw_widgets_register_elementor_widgets' );
-
-// Registrazione asset condivisi tra i widget
+/**
+ * Registra gli asset condivisi dei widget BW.
+ */
 function bw_widgets_register_assets() {
     wp_register_style(
         'flickity-css',
@@ -44,21 +38,35 @@ function bw_widgets_register_assets() {
 
     wp_register_style(
         'bw-products-slide-style',
-        plugins_url( '/assets/css/bw-products-slide.css', __FILE__ ),
+        plugins_url( 'assets/css/bw-products-slide.css', __FILE__ ),
         [],
         '1.0.0'
     );
 
     wp_register_script(
         'bw-products-slide-script',
-        plugins_url( '/assets/js/bw-products-slide.js', __FILE__ ),
+        plugins_url( 'assets/js/bw-products-slide.js', __FILE__ ),
         [ 'jquery', 'flickity-js' ],
         '1.0.0',
         true
     );
 }
+add_action( 'wp_enqueue_scripts', 'bw_widgets_register_assets' );
 add_action( 'elementor/frontend/after_register_styles', 'bw_widgets_register_assets' );
 add_action( 'elementor/frontend/after_register_scripts', 'bw_widgets_register_assets' );
-add_action( 'elementor/editor/after_enqueue_styles', 'bw_widgets_register_assets' );
-add_action( 'elementor/editor/after_enqueue_scripts', 'bw_widgets_register_assets' );
-add_action( 'wp_enqueue_scripts', 'bw_widgets_register_assets' );
+
+/**
+ * Aggiunge la categoria personalizzata Black Work ad Elementor.
+ *
+ * @param \Elementor\Elements_Manager $elements_manager Gestore delle categorie di Elementor.
+ */
+function bw_widgets_register_category( $elements_manager ) {
+    $elements_manager->add_category(
+        'black-work',
+        [
+            'title' => __( 'Black Work', 'bw-elementor-widgets' ),
+            'icon'  => 'fa fa-cube',
+        ]
+    );
+}
+add_action( 'elementor/elements/categories_registered', 'bw_widgets_register_category' );
