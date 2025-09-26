@@ -4,12 +4,30 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 class BW_Widget_Loader {
-    public function __construct() {
-        add_action( 'elementor/widgets/register', [ $this, 'register_widgets' ] );
-        add_action( 'elementor/widgets/widgets_registered', [ $this, 'register_widgets' ] );
+    private static $instance = null;
+
+    /**
+     * Flag per evitare registrazioni multiple.
+     *
+     * @var bool
+     */
+    private $widgets_registered = false;
+
+    private function __construct() {}
+
+    public static function instance() {
+        if ( null === self::$instance ) {
+            self::$instance = new self();
+        }
+
+        return self::$instance;
     }
 
     public function register_widgets( $widgets_manager = null ) {
+        if ( $this->widgets_registered ) {
+            return;
+        }
+
         if ( null === $widgets_manager && class_exists( '\\Elementor\\Plugin' ) ) {
             $widgets_manager = \Elementor\Plugin::instance()->widgets_manager;
         }
@@ -26,6 +44,8 @@ class BW_Widget_Loader {
                 $widgets_manager->register( new $class_name() );
             }
         }
+
+        $this->widgets_registered = true;
     }
 
     private function get_class_from_file( $file ) {
@@ -41,5 +61,3 @@ class BW_Widget_Loader {
         return 'Widget_' . implode( '_', $parts );
     }
 }
-
-new BW_Widget_Loader();
