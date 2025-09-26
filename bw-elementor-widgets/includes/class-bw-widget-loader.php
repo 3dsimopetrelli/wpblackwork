@@ -28,7 +28,11 @@ class BW_Widget_Loader {
             return;
         }
 
-        if ( null === $widgets_manager && class_exists( '\\Elementor\\Plugin' ) ) {
+        if ( ! did_action( 'elementor/loaded' ) && null === $widgets_manager ) {
+            return;
+        }
+
+        if ( null === $widgets_manager && class_exists( '\Elementor\Plugin' ) ) {
             $widgets_manager = \Elementor\Plugin::instance()->widgets_manager;
         }
 
@@ -36,16 +40,29 @@ class BW_Widget_Loader {
             return;
         }
 
-        $files = glob( __DIR__ . '/widgets/class-bw-*-widget.php' );
+        $files = glob( __DIR__ . '/widgets/class-bw-*-widget.php' ) ?: [];
         foreach ( $files as $file ) {
             require_once $file;
             $class_name = $this->get_class_from_file( $file );
             if ( class_exists( $class_name ) ) {
-                $widgets_manager->register( new $class_name() );
+                $this->register_widget_with_manager( $widgets_manager, $class_name );
             }
         }
 
         $this->widgets_registered = true;
+    }
+
+    private function register_widget_with_manager( $widgets_manager, $class_name ) {
+        $widget_instance = new $class_name();
+
+        if ( method_exists( $widgets_manager, 'register' ) ) {
+            $widgets_manager->register( $widget_instance );
+            return;
+        }
+
+        if ( method_exists( $widgets_manager, 'register_widget_type' ) ) {
+            $widgets_manager->register_widget_type( $widget_instance );
+        }
     }
 
     private function get_class_from_file( $file ) {
