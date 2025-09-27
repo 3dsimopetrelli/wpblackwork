@@ -321,12 +321,11 @@ class Widget_Bw_Products_Slide extends Widget_Base {
             'class="bw-products-slider"',
             'data-columns="' . esc_attr( $columns ) . '"',
             'data-gap="' . esc_attr( $gap ) . '"',
-            'data-auto-play="' . esc_attr( $autoplay_enabled ? 'yes' : 'no' ) . '"',
-            'data-auto-play-speed="' . esc_attr( $autoplay_speed ) . '"',
-            'data-prev-next-buttons="' . esc_attr( $prev_next_buttons ? 'yes' : 'no' ) . '"',
-            'data-page-dots="' . esc_attr( $page_dots ? 'yes' : 'no' ) . '"',
-            'data-wrap-around="' . esc_attr( $wrap_around ? 'yes' : 'no' ) . '"',
-            'data-fade="' . esc_attr( $fade ? 'yes' : 'no' ) . '"',
+            'data-autoplay="' . esc_attr( $autoplay_enabled ? $autoplay_speed : 'false' ) . '"',
+            'data-arrows="' . esc_attr( $prev_next_buttons ? 'true' : 'false' ) . '"',
+            'data-dots="' . esc_attr( $page_dots ? 'true' : 'false' ) . '"',
+            'data-wrap="' . esc_attr( $wrap_around ? 'true' : 'false' ) . '"',
+            'data-fade="' . esc_attr( $fade ? 'true' : 'false' ) . '"',
             'style="' . esc_attr( $style_attr ) . '"',
         ];
 
