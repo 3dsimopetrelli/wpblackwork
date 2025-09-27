@@ -38,6 +38,10 @@
             wrapAround: wrap,
             fade: fade
         });
+        setTimeout(function () {
+            $slider.flickity('resize');
+            $slider.flickity('reloadCells');
+        }, 300);
         console.log('>>> Flickity inizializzato su', $slider);
     }
 
