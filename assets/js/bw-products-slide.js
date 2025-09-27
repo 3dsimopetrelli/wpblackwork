@@ -1,4 +1,5 @@
 (function($){
+  console.log("✅ Init BW Products Slider JS caricato");
   function waitForImages($wrap){
     return new Promise(function(resolve){
       var $imgs = $wrap.find('img'); if(!$imgs.length) return resolve();
