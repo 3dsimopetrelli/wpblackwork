@@ -40,8 +40,10 @@ add_action( 'elementor/frontend/after_register_styles', 'bw_widgets_register_ass
 
 add_action( 'elementor/preview/enqueue_scripts', function() {
     wp_enqueue_script( 'flickity-js' );
+    wp_enqueue_style( 'flickity-css' );
     wp_enqueue_script( 'bw-products-slide-script' );
-    wp_add_inline_script( 'bw-products-slide-script', 'console.log("✅ BW Products JS ENQUEUED in preview iframe");' );
+    wp_enqueue_style( 'bw-products-slide-style' );
+    wp_add_inline_script( 'flickity-js', 'console.log("✅ Flickity caricato anche in editor Elementor");' );
 } );
 
 add_action( 'elementor/preview/enqueue_styles', function() {
