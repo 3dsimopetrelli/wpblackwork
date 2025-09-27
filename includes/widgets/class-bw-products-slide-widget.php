@@ -249,14 +249,10 @@ class Widget_Bw_Products_Slide extends Widget_Base {
     }
 
     protected function render() {
-        $src = esc_url( includes_url( 'images/uploader.png' ) );
-
         echo '<div class="bw-products-slider">';
-        for ( $i = 1; $i <= 5; $i++ ) {
-            $alt = sprintf( 'Slide %d', $i );
-
+        for ($i = 1; $i <= 5; $i++) {
             echo '<div class="carousel-cell">';
-            echo '<img src="' . $src . '" alt="' . esc_attr( $alt ) . '">';
+            echo '<div class="cell-media">Slide ' . $i . '</div>';
             echo '</div>';
         }
         echo '</div>';

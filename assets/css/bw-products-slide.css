@@ -1,14 +1,22 @@
-.bw-products-slider {
+.bw-products-slider { width: 100%; }
+.bw-products-slider .carousel-cell { width: 100%; }
+
+.bw-products-slider .cell-media {
   width: 100%;
-  overflow: hidden;
+  height: 280px;            /* altezza fissa per test */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f2f2f2;
+  color: #555;
+  font: 600 20px/1.2 system-ui, sans-serif;
 }
-.bw-products-slider .carousel-cell {
-  width: 100%;
-}
+
 .bw-products-slider .carousel-cell img {
   display: block;
   width: 100%;
-  height: auto;
-  min-height: 200px;
+  height: 280px;
   object-fit: cover;
 }
+
+.bw-products-slider.flickity-enabled { overflow: hidden; }
