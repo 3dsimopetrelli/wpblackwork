@@ -38,16 +38,34 @@
             wrapAround: wrap,
             fade: fade
         });
-        if (typeof $slider.imagesLoaded === 'function') {
-            $slider.imagesLoaded(function () {
-                $slider.flickity('resize');
-                $slider.flickity('reloadCells');
-            });
-        }
-        setTimeout(function () {
+
+        var refreshSlider = function () {
             $slider.flickity('resize');
             $slider.flickity('reloadCells');
+        };
+
+        if (typeof $slider.imagesLoaded === 'function') {
+            $slider.imagesLoaded(function () {
+                refreshSlider();
+            });
+        } else {
+            refreshSlider();
+        }
+
+        setTimeout(function () {
+            refreshSlider();
         }, 500);
+
+        if (typeof elementorFrontend !== 'undefined' && typeof elementorFrontend.isEditMode === 'function' && elementorFrontend.isEditMode()) {
+            var refreshInterval = setInterval(function () {
+                if (!document.body.contains($slider[0])) {
+                    clearInterval(refreshInterval);
+                    return;
+                }
+
+                refreshSlider();
+            }, 1000);
+        }
         console.log('>>> Flickity inizializzato su', $slider);
     }
 
