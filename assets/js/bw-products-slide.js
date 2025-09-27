@@ -4,32 +4,39 @@ jQuery(document).ready(function ($) {
 
     var columns = parseInt($slider.data('columns'), 10);
     var gap = parseInt($slider.data('gap'), 10);
-    var autoplay = parseInt($slider.data('autoplay'), 10);
-    var wrap = $slider.data('wrap') === 'yes';
+    var autoplayEnabled = $slider.data('autoPlay') === 'yes';
+    var autoplaySpeed = parseInt($slider.data('autoPlaySpeed'), 10);
+    var prevNextButtons = $slider.data('prevNextButtons') === 'yes';
+    var pageDots = $slider.data('pageDots') === 'yes';
+    var wrapAround = $slider.data('wrapAround') === 'yes';
     var fade = $slider.data('fade') === 'yes';
 
     if (isNaN(columns) || columns < 1) {
       columns = 1;
     }
 
-    if (isNaN(gap)) {
-      gap = 0;
+    if ($slider.length) {
+      if (!isNaN(gap)) {
+        $slider[0].style.setProperty('--gap', gap + 'px');
+      }
+
+      $slider[0].style.setProperty('--columns', columns);
     }
 
-    if (isNaN(autoplay) || autoplay <= 0) {
-      autoplay = false;
+    var autoplay = false;
+    if (autoplayEnabled) {
+      autoplay = !isNaN(autoplaySpeed) && autoplaySpeed > 0 ? autoplaySpeed : 3000;
     }
-
-    $slider.find('.carousel-cell').css('margin-right', gap + 'px');
 
     var flickityOptions = {
       cellAlign: 'left',
       contain: true,
       groupCells: columns > 1 ? columns : 1,
       autoPlay: autoplay,
-      wrapAround: wrap,
+      wrapAround: wrapAround,
       fade: fade,
-      pageDots: false
+      prevNextButtons: prevNextButtons,
+      pageDots: pageDots
     };
 
     if (fade) {

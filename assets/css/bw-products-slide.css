@@ -1,20 +1,28 @@
 .bw-products-slider {
   width: 100%;
+  --columns: 3;
+  --gap: 20px;
+  --image-height: auto;
 }
 
 .carousel-cell {
   width: calc(100% / var(--columns));
   margin-right: var(--gap);
+  box-sizing: border-box;
+}
+
+.carousel-cell:last-child {
+  margin-right: 0;
 }
 
 .carousel-cell img {
   display: block;
-  max-width: 100%;
-  border: 1px solid #000;
+  width: 100%;
+  height: var(--image-height);
+  object-fit: cover;
 }
 
 .caption {
   margin-top: 10px;
   text-align: center;
-  font-family: serif;
 }
