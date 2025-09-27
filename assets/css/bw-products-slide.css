@@ -1,5 +1,6 @@
 .bw-products-slider {
   width: 100%;
+  overflow: hidden;
 }
 .bw-products-slider .carousel-cell {
   width: 100%;
@@ -8,4 +9,6 @@
   display: block;
   width: 100%;
   height: auto;
+  min-height: 200px;
+  object-fit: cover;
 }
