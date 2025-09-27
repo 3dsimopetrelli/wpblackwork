@@ -38,10 +38,16 @@
             wrapAround: wrap,
             fade: fade
         });
+        if (typeof $slider.imagesLoaded === 'function') {
+            $slider.imagesLoaded(function () {
+                $slider.flickity('resize');
+                $slider.flickity('reloadCells');
+            });
+        }
         setTimeout(function () {
             $slider.flickity('resize');
             $slider.flickity('reloadCells');
-        }, 300);
+        }, 500);
         console.log('>>> Flickity inizializzato su', $slider);
     }
 
