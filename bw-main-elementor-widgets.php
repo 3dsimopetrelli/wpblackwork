@@ -25,6 +25,16 @@ add_action( 'wp_enqueue_scripts', 'bw_widgets_register_assets' );
 add_action( 'elementor/frontend/after_register_styles', 'bw_widgets_register_assets' );
 add_action( 'elementor/frontend/after_register_scripts', 'bw_widgets_register_assets' );
 
+add_action( 'elementor/frontend/after_enqueue_styles', function() {
+    wp_enqueue_style( 'flickity-css' );
+    wp_enqueue_style( 'bw-products-slide-style' );
+} );
+
+add_action( 'elementor/frontend/after_enqueue_scripts', function() {
+    wp_enqueue_script( 'flickity-js' );
+    wp_enqueue_script( 'bw-products-slide-script' );
+} );
+
 add_action( 'elementor/preview/enqueue_styles', function() {
     wp_enqueue_style( 'flickity-css' );
     wp_enqueue_style( 'bw-products-slide-style' );
