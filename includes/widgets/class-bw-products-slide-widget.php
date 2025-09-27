@@ -249,13 +249,33 @@ class Widget_Bw_Products_Slide extends Widget_Base {
     }
 
     protected function render() {
-        echo '<div class="bw-products-slider">';
-        for ($i = 1; $i <= 5; $i++) {
-            echo '<div class="carousel-cell">';
-            echo '<div class="cell-media">Slide ' . $i . '</div>';
-            echo '</div>';
-        }
-        echo '</div>';
+        ?>
+        <div class="bw-products-slider">
+            <?php for ( $i = 1; $i <= 5; $i++ ) : ?>
+                <div class="carousel-cell">
+                    <div class="cell-media">Slide <?php echo $i; ?></div>
+                </div>
+            <?php endfor; ?>
+        </div>
+        <?php if ( \Elementor\Plugin::$instance->editor->is_edit_mode() ) : ?>
+            <script>
+            jQuery(document).ready(function($) {
+                var $carousel = $('.bw-products-slider');
+                if ($carousel.length && !$carousel.data('flickity')) {
+                    console.log("🎯 Init Flickity from inline script (editor mode)");
+                    $carousel.flickity({
+                        cellAlign: 'left',
+                        contain: true,
+                        pageDots: true,
+                        prevNextButtons: true,
+                        wrapAround: true,
+                        groupCells: true
+                    });
+                }
+            });
+            </script>
+        <?php endif; ?>
+        <?php
     }
 
     private function get_post_type_options() {
