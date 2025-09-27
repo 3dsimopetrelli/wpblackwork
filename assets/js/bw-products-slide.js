@@ -1,87 +1,68 @@
 (function ($) {
-    function initBwProductsSlider($scope) {
-        console.log('>>> initBwProductsSlider called', $scope);
-        var $slider = $scope.find('.bw-products-slider');
-        console.log('>>> slider trovato:', $slider.length);
+  function boolData(v) { return v === true || v === 'true' || v === 1 || v === '1'; }
 
-        if (!$slider.length) return;
+  function initBwProductsSlider($scope) {
+    var $slider = $scope.find('.bw-products-slider');
+    if (!$slider.length) return;
 
-        // Evita doppia init
-        if ($slider.hasClass('is-initialized')) return;
-        $slider.addClass('is-initialized');
+    // evita doppia init
+    if ($slider.data('bw-init')) return;
+    $slider.data('bw-init', true);
 
-        // Inizializza Flickity con i data-*
-        var autoplay = $slider.data('autoplay') ? parseInt($slider.data('autoplay'), 10) : false;
-        var arrows = $slider.data('arrows') === true || $slider.data('arrows') === 'true';
-        var dots = $slider.data('dots') === true || $slider.data('dots') === 'true';
-        var wrap = $slider.data('wrap') === true || $slider.data('wrap') === 'true';
-        var fade = $slider.data('fade') === true || $slider.data('fade') === 'true';
-        var gap = $slider.data('gap');
-        var columns = $slider.data('columns');
+    // leggi data-*
+    var autoplay = $slider.data('autoplay') ? parseInt($slider.data('autoplay'), 10) : false;
+    var arrows   = boolData($slider.data('arrows'));
+    var dots     = boolData($slider.data('dots'));
+    var wrap     = boolData($slider.data('wrap'));
+    var fade     = boolData($slider.data('fade'));
+    var columns  = $slider.data('columns') ? parseInt($slider.data('columns'), 10) : 3;
+    var gap      = $slider.data('gap') ? parseInt($slider.data('gap'), 10) : 20;
 
-        console.log('>>> settings letti:', {
-            autoplay: autoplay,
-            arrows: arrows,
-            dots: dots,
-            wrap: wrap,
-            fade: fade,
-            gap: gap,
-            columns: columns
-        });
+    // imposta larghezze cella per sicurezza (non fanno danno anche con Flickity)
+    $slider.find('.carousel-cell').css({ width: (100 / columns) + '%' });
 
-        $slider.flickity({
-            cellAlign: 'left',
-            contain: true,
-            autoPlay: autoplay,
-            prevNextButtons: arrows,
-            pageDots: dots,
-            wrapAround: wrap,
-            fade: fade
-        });
-        if (typeof $slider.imagesLoaded === 'function') {
-            $slider.imagesLoaded(function () {
-                $slider.flickity('resize');
-                $slider.flickity('reloadCells');
-            });
-        } else {
-            $slider.flickity('resize');
-            $slider.flickity('reloadCells');
-        }
-        setTimeout(function () {
-            $slider.flickity('resize');
-            $slider.flickity('reloadCells');
-        }, 500);
-
-        if (
-            typeof elementorFrontend !== 'undefined' &&
-            typeof elementorFrontend.isEditMode === 'function' &&
-            elementorFrontend.isEditMode()
-        ) {
-            var intervalId = $slider.data('bw-slider-interval');
-
-            if (!intervalId) {
-                intervalId = setInterval(function () {
-                    if (!$.contains(document, $slider[0])) {
-                        clearInterval(intervalId);
-                        $slider.removeData('bw-slider-interval');
-                        return;
-                    }
-
-                    $slider.flickity('resize');
-                    $slider.flickity('reloadCells');
-                }, 1000);
-
-                $slider.data('bw-slider-interval', intervalId);
-            }
-        }
-        console.log('>>> Flickity inizializzato su', $slider);
-    }
-
-    // Hook Elementor: frontend + editor
-    $(window).on('elementor/frontend/init', function () {
-        elementorFrontend.hooks.addAction(
-            'frontend/element_ready/bw_products_slide.default',
-            initBwProductsSlider
-        );
+    // inizializza Flickity
+    $slider.flickity({
+      cellAlign: 'left',
+      contain: true,
+      autoPlay: autoplay || false,
+      prevNextButtons: arrows,
+      pageDots: dots,
+      wrapAround: wrap,
+      fade: fade
     });
+
+    // quando Flickity è pronto, ricalcola
+    $slider.on('ready.flickity', function () {
+      $slider.flickity('resize').flickity('reloadCells');
+    });
+
+    // dopo immagini caricate (richiede imagesLoaded che è nel pkgd)
+    $slider.imagesLoaded(function () {
+      $slider.flickity('resize').flickity('reloadCells');
+    });
+
+    // su window load e resize
+    $(window).on('load resize', function () {
+      $slider.flickity('resize').flickity('reloadCells');
+    });
+
+    // Fix per editor: rinfresca quando Elementor aggiorna pannelli / DOM
+    if (window.elementorFrontend && elementorFrontend.isEditMode()) {
+      // quando il widget viene (ri)renderizzato
+      setTimeout(function(){ $slider.flickity('resize').flickity('reloadCells'); }, 300);
+      // quando si cambia pannello o controllo
+      elementor.channels.editor && elementor.channels.editor.on('change', function(){
+        $slider.flickity('resize').flickity('reloadCells');
+      });
+      // osserva cambi dimensioni del contenitore
+      var ro = new ResizeObserver(function(){ $slider.flickity('resize').flickity('reloadCells'); });
+      ro.observe($slider.get(0));
+    }
+  }
+
+  // hook Elementor (frontend + editor)
+  $(window).on('elementor/frontend/init', function () {
+    elementorFrontend.hooks.addAction('frontend/element_ready/bw_products_slide.default', initBwProductsSlider);
+  });
 })(jQuery);
