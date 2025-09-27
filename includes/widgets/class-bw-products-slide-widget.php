@@ -284,10 +284,32 @@ class Widget_Bw_Products_Slide extends Widget_Base {
             return;
         }
 
-        $columns = isset( $settings['columns'] ) ? (int) $settings['columns'] : 3;
+        $columns_setting = isset( $settings['columns'] ) ? $settings['columns'] : 3;
+        if ( is_array( $columns_setting ) ) {
+            if ( isset( $columns_setting['size'] ) ) {
+                $columns = (int) $columns_setting['size'];
+            } elseif ( isset( $columns_setting['value'] ) ) {
+                $columns = (int) $columns_setting['value'];
+            } else {
+                $columns = (int) reset( $columns_setting );
+            }
+        } else {
+            $columns = (int) $columns_setting;
+        }
         $columns = max( 2, min( 6, $columns ) );
 
-        $gap = isset( $settings['gap'] ) ? (int) $settings['gap'] : 20;
+        $gap_setting = isset( $settings['gap'] ) ? $settings['gap'] : 20;
+        if ( is_array( $gap_setting ) ) {
+            if ( isset( $gap_setting['size'] ) ) {
+                $gap = (int) $gap_setting['size'];
+            } elseif ( isset( $gap_setting['value'] ) ) {
+                $gap = (int) $gap_setting['value'];
+            } else {
+                $gap = (int) reset( $gap_setting );
+            }
+        } else {
+            $gap = (int) $gap_setting;
+        }
         $gap = max( 0, $gap );
 
         $image_height = isset( $settings['image_height'] ) ? (int) $settings['image_height'] : 0;
@@ -305,28 +327,23 @@ class Widget_Bw_Products_Slide extends Widget_Base {
         $show_subtitle = isset( $settings['show_subtitle'] ) && 'yes' === $settings['show_subtitle'];
         $show_price    = isset( $settings['show_price'] ) && 'yes' === $settings['show_price'];
 
-        $style_parts = [
-            '--columns:' . $columns,
-            '--gap:' . $gap . 'px',
-            '--image-height:' . ( $image_height > 0 ? $image_height . 'px' : 'auto' ),
-        ];
-
-        $style_attr = implode( ';', $style_parts );
-
-        if ( substr( $style_attr, -1 ) !== ';' ) {
-            $style_attr .= ';';
-        }
+        $style_attr = sprintf(
+            '--columns: %1$d; --gap: %2$dpx; --image-height: %3$s;',
+            $columns,
+            $gap,
+            $image_height > 0 ? $image_height . 'px' : 'auto'
+        );
 
         $slider_attributes = [
             'class="bw-products-slider"',
+            'style="' . esc_attr( $style_attr ) . '"',
             'data-columns="' . esc_attr( $columns ) . '"',
             'data-gap="' . esc_attr( $gap ) . '"',
-            'data-autoplay="' . esc_attr( $autoplay_enabled ? $autoplay_speed : 'false' ) . '"',
+            'data-autoplay="' . esc_attr( $autoplay_enabled ? $autoplay_speed : 0 ) . '"',
             'data-arrows="' . esc_attr( $prev_next_buttons ? 'true' : 'false' ) . '"',
             'data-dots="' . esc_attr( $page_dots ? 'true' : 'false' ) . '"',
             'data-wrap="' . esc_attr( $wrap_around ? 'true' : 'false' ) . '"',
             'data-fade="' . esc_attr( $fade ? 'true' : 'false' ) . '"',
-            'style="' . esc_attr( $style_attr ) . '"',
         ];
 
         echo '<div ' . implode( ' ', $slider_attributes ) . '>';
