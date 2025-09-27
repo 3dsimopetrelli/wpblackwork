@@ -1,31 +1,11 @@
-/* Fallback editor: prima dell'init usa una griglia leggibile */
-.bw-products-slider:not(.flickity-enabled) {
-  display: grid;
-  grid-template-columns: repeat(var(--columns, 3), minmax(0, 1fr));
-  gap: var(--gap, 20px);
+.bw-products-slider {
+  width: 100%;
 }
-
-/* Dopo l'init: Flickity gestisce il layout */
-.bw-products-slider.flickity-enabled {
-  display: block; /* lascia a Flickity il controllo del layout */
+.bw-products-slider .carousel-cell {
+  width: 100%;
 }
-
-/* Celle: reset margini quando siamo in fallback */
-.bw-products-slider:not(.flickity-enabled) .carousel-cell {
-  width: auto;
-  margin: 0;
-}
-
-/* Quando Flickity è attivo, lasciamo che posizioni lui: niente margini orizzontali esterni */
-.carousel-cell img {
+.bw-products-slider .carousel-cell img {
   display: block;
   width: 100%;
   height: auto;
-  object-fit: cover;
-}
-
-.caption {
-  margin-top: 10px;
-  text-align: center;
-  font-family: serif;
 }

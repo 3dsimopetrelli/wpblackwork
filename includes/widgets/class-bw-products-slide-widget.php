@@ -249,129 +249,13 @@ class Widget_Bw_Products_Slide extends Widget_Base {
     }
 
     protected function render() {
-        $settings = $this->get_settings_for_display();
-
-        $args = [
-            'posts_per_page' => -1,
-        ];
-
-        $post_type = ! empty( $settings['post_type'] ) ? $settings['post_type'] : 'post';
-
-        if ( 'all' === $post_type ) {
-            $args['post_type'] = get_post_types( [ 'public' => true ] );
-            $args['orderby']   = 'date';
-            $args['order']     = 'DESC';
-        } else {
-            $args['post_type'] = $post_type;
-        }
-
-        if ( $settings['category'] ) {
-            $args['category_name'] = $settings['category'];
-        }
-
-        if ( $settings['include_ids'] ) {
-            $ids = array_filter( array_map( 'intval', array_map( 'trim', explode( ',', $settings['include_ids'] ) ) ) );
-
-            if ( ! empty( $ids ) ) {
-                $args['post__in'] = $ids;
-            }
-        }
-
-        $query = new \WP_Query( $args );
-
-        if ( ! $query->have_posts() ) {
-            wp_reset_postdata();
-            return;
-        }
-
-        $columns_setting = isset( $settings['columns'] ) ? $settings['columns'] : 3;
-        if ( is_array( $columns_setting ) ) {
-            if ( isset( $columns_setting['size'] ) ) {
-                $columns = (int) $columns_setting['size'];
-            } elseif ( isset( $columns_setting['value'] ) ) {
-                $columns = (int) $columns_setting['value'];
-            } else {
-                $columns = (int) reset( $columns_setting );
-            }
-        } else {
-            $columns = (int) $columns_setting;
-        }
-        $columns = max( 2, min( 6, $columns ) );
-
-        $gap_setting = isset( $settings['gap'] ) ? $settings['gap'] : 20;
-        if ( is_array( $gap_setting ) ) {
-            if ( isset( $gap_setting['size'] ) ) {
-                $gap = (int) $gap_setting['size'];
-            } elseif ( isset( $gap_setting['value'] ) ) {
-                $gap = (int) $gap_setting['value'];
-            } else {
-                $gap = (int) reset( $gap_setting );
-            }
-        } else {
-            $gap = (int) $gap_setting;
-        }
-        $gap = max( 0, $gap );
-
-        $image_height = isset( $settings['image_height'] ) ? (int) $settings['image_height'] : 0;
-
-        $autoplay_enabled = isset( $settings['autoplay'] ) && 'yes' === $settings['autoplay'];
-        $autoplay_speed   = isset( $settings['autoplay_speed'] ) ? (int) $settings['autoplay_speed'] : 3000;
-        $autoplay_speed   = $autoplay_speed > 0 ? $autoplay_speed : 3000;
-
-        $prev_next_buttons = isset( $settings['prev_next_buttons'] ) && 'yes' === $settings['prev_next_buttons'];
-        $page_dots         = isset( $settings['page_dots'] ) && 'yes' === $settings['page_dots'];
-        $wrap_around       = isset( $settings['wrap_around'] ) && 'yes' === $settings['wrap_around'];
-        $fade              = isset( $settings['fade'] ) && 'yes' === $settings['fade'];
-
-        $show_title    = isset( $settings['show_title'] ) && 'yes' === $settings['show_title'];
-        $show_subtitle = isset( $settings['show_subtitle'] ) && 'yes' === $settings['show_subtitle'];
-        $show_price    = isset( $settings['show_price'] ) && 'yes' === $settings['show_price'];
-
-        $style_attr = sprintf(
-            '--columns: %1$d; --gap: %2$dpx; --image-height: %3$s;',
-            $columns,
-            $gap,
-            $image_height > 0 ? $image_height . 'px' : 'auto'
-        );
-
-        $slider_attributes = [
-            'class="bw-products-slider"',
-            'style="' . esc_attr( $style_attr ) . '"',
-            'data-columns="' . esc_attr( $columns ) . '"',
-            'data-gap="' . esc_attr( $gap ) . '"',
-            'data-autoplay="' . esc_attr( $autoplay_enabled ? $autoplay_speed : 0 ) . '"',
-            'data-arrows="' . esc_attr( $prev_next_buttons ? 'true' : 'false' ) . '"',
-            'data-dots="' . esc_attr( $page_dots ? 'true' : 'false' ) . '"',
-            'data-wrap="' . esc_attr( $wrap_around ? 'true' : 'false' ) . '"',
-            'data-fade="' . esc_attr( $fade ? 'true' : 'false' ) . '"',
-        ];
-
-        echo '<div ' . implode( ' ', $slider_attributes ) . '>';
-
-        while ( $query->have_posts() ) : $query->the_post();
+        echo '<div class="bw-products-slider">';
+        for ( $i = 1; $i <= 5; $i++ ) {
             echo '<div class="carousel-cell">';
-                if ( has_post_thumbnail() ) {
-                    echo '<img src="' . esc_url( get_the_post_thumbnail_url( get_the_ID(), 'medium' ) ) . '" alt="' . esc_attr( get_the_title() ) . '">';
-                }
-                echo '<div class="caption">';
-                    if ( $show_title ) {
-                        echo '<h4>' . esc_html( get_the_title() ) . '</h4>';
-                    }
-                    if ( $show_subtitle ) {
-                        echo '<p>' . esc_html( get_the_excerpt() ) . '</p>';
-                    }
-                    if ( $show_price && function_exists( 'wc_get_product' ) ) {
-                        $product = wc_get_product( get_the_ID() );
-                        if ( $product ) {
-                            echo '<span class="price">' . wp_kses_post( $product->get_price_html() ) . '</span>';
-                        }
-                    }
-                echo '</div>';
+            echo '<img src="https://via.placeholder.com/400x300?text=Slide+' . $i . '" alt="Slide ' . $i . '">';
             echo '</div>';
-        endwhile;
-
+        }
         echo '</div>';
-        wp_reset_postdata();
     }
 
     private function get_post_type_options() {
