@@ -21,6 +21,17 @@
     // imposta larghezze cella per sicurezza (non fanno danno anche con Flickity)
     $slider.find('.carousel-cell').css({ width: (100 / columns) + '%' });
 
+    function refreshSlider() {
+      $slider.flickity('resize').flickity('reloadCells');
+    }
+
+    function scheduleRefreshes() {
+      refreshSlider();
+      setTimeout(refreshSlider, 300);
+      setTimeout(refreshSlider, 1000);
+      setTimeout(refreshSlider, 2000);
+    }
+
     // inizializza Flickity
     $slider.flickity({
       cellAlign: 'left',
@@ -32,32 +43,45 @@
       fade: fade
     });
 
+    scheduleRefreshes();
+
     // quando Flickity è pronto, ricalcola
     $slider.on('ready.flickity', function () {
-      $slider.flickity('resize').flickity('reloadCells');
+      refreshSlider();
     });
 
     // dopo immagini caricate (richiede imagesLoaded che è nel pkgd)
     $slider.imagesLoaded(function () {
-      $slider.flickity('resize').flickity('reloadCells');
+      scheduleRefreshes();
     });
 
     // su window load e resize
     $(window).on('load resize', function () {
-      $slider.flickity('resize').flickity('reloadCells');
+      refreshSlider();
     });
 
     // Fix per editor: rinfresca quando Elementor aggiorna pannelli / DOM
     if (window.elementorFrontend && elementorFrontend.isEditMode()) {
       // quando il widget viene (ri)renderizzato
-      setTimeout(function(){ $slider.flickity('resize').flickity('reloadCells'); }, 300);
+      setTimeout(refreshSlider, 300);
       // quando si cambia pannello o controllo
       elementor.channels.editor && elementor.channels.editor.on('change', function(){
-        $slider.flickity('resize').flickity('reloadCells');
+        refreshSlider();
       });
       // osserva cambi dimensioni del contenitore
-      var ro = new ResizeObserver(function(){ $slider.flickity('resize').flickity('reloadCells'); });
+      var ro = new ResizeObserver(function(){ refreshSlider(); });
       ro.observe($slider.get(0));
+
+      var editRefreshDuration = 10000;
+      var editRefreshInterval = 2000;
+      var elapsed = 0;
+      var intervalId = setInterval(function () {
+        elapsed += editRefreshInterval;
+        refreshSlider();
+        if (elapsed >= editRefreshDuration) {
+          clearInterval(intervalId);
+        }
+      }, editRefreshInterval);
     }
   }
 
