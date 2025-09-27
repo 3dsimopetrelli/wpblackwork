@@ -43,11 +43,37 @@
                 $slider.flickity('resize');
                 $slider.flickity('reloadCells');
             });
+        } else {
+            $slider.flickity('resize');
+            $slider.flickity('reloadCells');
         }
         setTimeout(function () {
             $slider.flickity('resize');
             $slider.flickity('reloadCells');
         }, 500);
+
+        if (
+            typeof elementorFrontend !== 'undefined' &&
+            typeof elementorFrontend.isEditMode === 'function' &&
+            elementorFrontend.isEditMode()
+        ) {
+            var intervalId = $slider.data('bw-slider-interval');
+
+            if (!intervalId) {
+                intervalId = setInterval(function () {
+                    if (!$.contains(document, $slider[0])) {
+                        clearInterval(intervalId);
+                        $slider.removeData('bw-slider-interval');
+                        return;
+                    }
+
+                    $slider.flickity('resize');
+                    $slider.flickity('reloadCells');
+                }, 1000);
+
+                $slider.data('bw-slider-interval', intervalId);
+            }
+        }
         console.log('>>> Flickity inizializzato su', $slider);
     }
 
