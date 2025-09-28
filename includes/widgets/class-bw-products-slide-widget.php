@@ -249,38 +249,153 @@ class Widget_Bw_Products_Slide extends Widget_Base {
     }
 
     protected function render() {
-        $carousel_id = 'bw-products-slider-' . $this->get_id();
+        $settings          = $this->get_settings_for_display();
+        $carousel_id       = 'bw-products-slider-' . $this->get_id();
+        $post_type         = ! empty( $settings['post_type'] ) && 'all' !== $settings['post_type'] ? $settings['post_type'] : 'any';
+        $columns           = ! empty( $settings['columns'] ) ? absint( $settings['columns'] ) : 3;
+        $gap               = isset( $settings['gap'] ) ? max( 0, absint( $settings['gap'] ) ) : 20;
+        $image_height      = isset( $settings['image_height'] ) ? absint( $settings['image_height'] ) : 0;
+        $autoplay_speed    = ! empty( $settings['autoplay_speed'] ) ? absint( $settings['autoplay_speed'] ) : 3000;
+        $autoplay_value    = ( isset( $settings['autoplay'] ) && 'yes' === $settings['autoplay'] ) ? $autoplay_speed : 0;
+        $wrap_around       = isset( $settings['wrap_around'] ) && 'yes' === $settings['wrap_around'];
+        $page_dots         = isset( $settings['page_dots'] ) && 'yes' === $settings['page_dots'];
+        $prev_next_buttons = isset( $settings['prev_next_buttons'] ) && 'yes' === $settings['prev_next_buttons'];
+        $fade              = isset( $settings['fade'] ) && 'yes' === $settings['fade'];
 
+        $query_args = [
+            'post_type'           => $post_type,
+            'posts_per_page'      => -1,
+            'ignore_sticky_posts' => true,
+        ];
+
+        if ( ! empty( $settings['include_ids'] ) ) {
+            $include_ids = array_filter( array_map( 'absint', explode( ',', $settings['include_ids'] ) ) );
+            if ( ! empty( $include_ids ) ) {
+                $query_args['post__in']       = $include_ids;
+                $query_args['orderby']        = 'post__in';
+                $query_args['posts_per_page'] = count( $include_ids );
+            }
+        }
+
+        if ( ! empty( $settings['category'] ) ) {
+            $category = sanitize_text_field( $settings['category'] );
+
+            if ( 'product' === $post_type && taxonomy_exists( 'product_cat' ) ) {
+                $query_args['tax_query'] = [
+                    [
+                        'taxonomy' => 'product_cat',
+                        'field'    => 'slug',
+                        'terms'    => array_map( 'sanitize_title', array_map( 'trim', explode( ',', $category ) ) ),
+                    ],
+                ];
+            } else {
+                $query_args['category_name'] = $category;
+            }
+        }
+
+        $slider_classes = [ 'bw-products-slider' ];
+        if ( $fade ) {
+            $slider_classes[] = 'bw-products-slider--fade';
+        }
+
+        $wrapper_style  = '--bw-columns:' . max( 1, $columns ) . ';';
+        $wrapper_style .= '--bw-gap:' . $gap . 'px;';
+        if ( $image_height > 0 ) {
+            $wrapper_style .= '--bw-image-height:' . $image_height . 'px;';
+        } else {
+            $wrapper_style .= '--bw-image-height:auto;';
+        }
+
+        $query = new \WP_Query( $query_args );
         ?>
-        <div id="<?php echo esc_attr( $carousel_id ); ?>" class="bw-products-slider">
-            <?php for ( $i = 1; $i <= 5; $i++ ) : ?>
-                <div class="carousel-cell">
-                    <div class="cell-media">Slide <?php echo $i; ?></div>
+        <div
+            id="<?php echo esc_attr( $carousel_id ); ?>"
+            class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $slider_classes ) ) ); ?>"
+            data-autoplay="<?php echo esc_attr( $autoplay_value ); ?>"
+            data-wrap-around="<?php echo esc_attr( $wrap_around ? 'true' : 'false' ); ?>"
+            data-page-dots="<?php echo esc_attr( $page_dots ? 'true' : 'false' ); ?>"
+            data-prev-next-buttons="<?php echo esc_attr( $prev_next_buttons ? 'true' : 'false' ); ?>"
+            data-fade="<?php echo esc_attr( $fade ? 'yes' : 'no' ); ?>"
+            style="<?php echo esc_attr( $wrapper_style ); ?>"
+        >
+            <?php if ( $query->have_posts() ) : ?>
+                <?php
+                while ( $query->have_posts() ) :
+                    $query->the_post();
+
+                    $post_id    = get_the_ID();
+                    $permalink  = get_permalink( $post_id );
+                    $title      = get_the_title( $post_id );
+                    $excerpt    = get_the_excerpt( $post_id );
+                    $media_html = '';
+
+                    if ( has_post_thumbnail( $post_id ) ) {
+                        $media_html = get_the_post_thumbnail( $post_id, 'large', [ 'class' => 'product-image', 'loading' => 'lazy' ] );
+                    }
+
+                    if ( empty( $excerpt ) ) {
+                        $excerpt = wp_trim_words( wp_strip_all_tags( get_the_content( null, false, $post_id ) ), 20 );
+                    }
+
+                    $price_html = '';
+                    if ( isset( $settings['show_price'] ) && 'yes' === $settings['show_price'] ) {
+                        if ( function_exists( 'wc_get_product' ) ) {
+                            $product = wc_get_product( $post_id );
+                            if ( $product ) {
+                                $price_html = $product->get_price_html();
+                            }
+                        }
+
+                        if ( empty( $price_html ) ) {
+                            $price_meta_keys = [ '_price', 'price', 'product_price' ];
+                            foreach ( $price_meta_keys as $meta_key ) {
+                                $meta_value = get_post_meta( $post_id, $meta_key, true );
+                                if ( '' !== $meta_value && null !== $meta_value ) {
+                                    $price_html = esc_html( $meta_value );
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    ?>
+                    <article <?php post_class( 'carousel-cell product-slide' ); ?>>
+                        <?php if ( $media_html ) : ?>
+                            <div class="cell-media">
+                                <a class="product-link" href="<?php echo esc_url( $permalink ); ?>">
+                                    <?php echo wp_kses_post( $media_html ); ?>
+                                </a>
+                            </div>
+                        <?php endif; ?>
+
+                        <div class="caption">
+                            <?php if ( isset( $settings['show_title'] ) && 'yes' === $settings['show_title'] ) : ?>
+                                <h4 class="product-title">
+                                    <a class="product-link" href="<?php echo esc_url( $permalink ); ?>">
+                                        <?php echo esc_html( $title ); ?>
+                                    </a>
+                                </h4>
+                            <?php endif; ?>
+
+                            <?php if ( isset( $settings['show_subtitle'] ) && 'yes' === $settings['show_subtitle'] && ! empty( $excerpt ) ) : ?>
+                                <p class="product-description"><?php echo wp_kses_post( $excerpt ); ?></p>
+                            <?php endif; ?>
+
+                            <?php if ( isset( $settings['show_price'] ) && 'yes' === $settings['show_price'] && ! empty( $price_html ) ) : ?>
+                                <div class="product-price price"><?php echo wp_kses_post( $price_html ); ?></div>
+                            <?php endif; ?>
+                        </div>
+                    </article>
+                <?php endwhile; ?>
+            <?php else : ?>
+                <div class="carousel-cell product-slide">
+                    <div class="caption">
+                        <p class="product-description"><?php esc_html_e( 'Nessun contenuto disponibile.', 'plugin-name' ); ?></p>
+                    </div>
                 </div>
-            <?php endfor; ?>
+            <?php endif; ?>
         </div>
         <?php
-        if ( \Elementor\Plugin::$instance->editor->is_edit_mode() ) {
-            ?>
-            <script>
-            jQuery(function($){
-                var $carousel = $('.bw-products-slider');
-                if ($carousel.length && !$carousel.data('flickity')) {
-                    $carousel.flickity({
-                        cellAlign: 'left',
-                        contain: true,
-                        wrapAround: true,
-                        pageDots: true,
-                        prevNextButtons: true,
-                        autoPlay: 3000
-                    });
-                }
-            });
-            </script>
-            <?php
-        }
-        ?>
-        <?php
+        wp_reset_postdata();
     }
 
     private function get_post_type_options() {
