@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 class Widget_Bw_Products_Slide extends Widget_Base {
 
     public function get_name() {
-        return 'bw_products_slide';
+        return 'bw-products-slide';
     }
 
     public function get_title() {
@@ -27,11 +27,11 @@ class Widget_Bw_Products_Slide extends Widget_Base {
     }
 
     public function get_script_depends() {
-        return [ 'flickity-js', 'bw-products-slide-script' ];
+        return [ 'flickity-js', 'bw-products-js' ];
     }
 
     public function get_style_depends() {
-        return [ 'flickity-css', 'bw-products-slide-style' ];
+        return [ 'flickity-css', 'bw-products-style' ];
     }
 
     protected function register_controls() {
@@ -259,23 +259,27 @@ class Widget_Bw_Products_Slide extends Widget_Base {
                 </div>
             <?php endfor; ?>
         </div>
-        <?php if ( \Elementor\Plugin::$instance->editor->is_edit_mode() ) : ?>
+        <?php
+        if ( \Elementor\Plugin::$instance->editor->is_edit_mode() ) {
+            ?>
             <script>
-            jQuery(function($) {
-                var $carousel = $('#<?php echo esc_js( $carousel_id ); ?>');
+            jQuery(function($){
+                var $carousel = $('.bw-products-slider');
                 if ($carousel.length && !$carousel.data('flickity')) {
                     $carousel.flickity({
                         cellAlign: 'left',
                         contain: true,
+                        wrapAround: true,
                         pageDots: true,
                         prevNextButtons: true,
-                        wrapAround: true,
-                        groupCells: true
+                        autoPlay: 3000
                     });
                 }
             });
             </script>
-        <?php endif; ?>
+            <?php
+        }
+        ?>
         <?php
     }
 
