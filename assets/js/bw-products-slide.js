@@ -12,6 +12,7 @@ jQuery(window).on('elementor/frontend/init', function () {
         var flkty = new Flickity(carouselElement, {
           cellAlign: 'left',
           contain: true,
+          imagesLoaded: true,
           wrapAround: true,
           pageDots: true,
           prevNextButtons: true,
