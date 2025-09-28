@@ -18,6 +18,13 @@ jQuery(window).on('elementor/frontend/init', function () {
           prevNextButtons: true,
           autoPlay: 3000
         });
+        if (elementorFrontend.isEditMode()) {
+          flkty.on('ready', function () {
+            flkty.reloadCells();
+            flkty.resize();
+            window.dispatchEvent(new Event('resize'));
+          });
+        }
         $carousel.data('flickity', flkty);
         flkty.resize();
         window.dispatchEvent(new Event('resize'));
