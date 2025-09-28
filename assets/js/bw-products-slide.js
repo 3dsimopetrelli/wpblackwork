@@ -1,9 +1,6 @@
-(function($){
-  console.log("✅ Init BW Products Slider JS caricato");
-
+(function($) {
   jQuery(window).on('elementor/frontend/init', function() {
-    var editMode = Boolean(elementorFrontend.isEditMode());
-    console.log("BW Products JS LOADED — editMode:", editMode);
+    console.log('✅ BW Products Slider JS inizializzato');
 
     elementorFrontend.hooks.addAction(
       'frontend/element_ready/bw_products_slide.default',
@@ -12,10 +9,10 @@
   });
 
   function initBwProductsSlider($scope) {
-    console.log("👉 initBwProductsSlider called", $scope);
+    console.log('👉 initBwProductsSlider chiamato');
 
     var $carousel = $scope.find('.bw-products-slider');
-    if ($carousel.length) {
+    if ($carousel.length && !$carousel.data('flickity')) {
       $carousel.flickity({
         cellAlign: 'left',
         contain: true,

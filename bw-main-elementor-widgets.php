@@ -28,35 +28,28 @@ function bw_widgets_register_assets() {
 
     wp_register_style( 'bw-products-slide-style', $plugin_url . '/assets/css/bw-products-slide.css', [], $style_version );
     wp_register_script( 'bw-products-slide-script', $plugin_url . '/assets/js/bw-products-slide.js', [ 'jquery', 'flickity-js' ], $script_version, true );
-
-    wp_add_inline_script(
-        'bw-products-slide-script',
-        'console.log("BW Products JS LOADED — editMode:", (window.elementorFrontend && elementorFrontend.isEditMode && elementorFrontend.isEditMode()));'
-    );
 }
 add_action( 'wp_enqueue_scripts', 'bw_widgets_register_assets' );
 add_action( 'elementor/frontend/after_register_scripts', 'bw_widgets_register_assets' );
 add_action( 'elementor/frontend/after_register_styles', 'bw_widgets_register_assets' );
 
-add_action( 'elementor/preview/enqueue_scripts', function() {
+add_action( 'elementor/preview/enqueue_scripts', static function() {
     wp_enqueue_script( 'flickity-js' );
-    wp_enqueue_style( 'flickity-css' );
     wp_enqueue_script( 'bw-products-slide-script' );
-    wp_enqueue_style( 'bw-products-slide-style' );
-    wp_add_inline_script( 'flickity-js', 'console.log("✅ Flickity caricato anche in editor Elementor");' );
+    wp_add_inline_script( 'bw-products-slide-script', 'console.log("✅ BW Products JS caricato anche in editor Elementor");' );
 } );
 
-add_action( 'elementor/preview/enqueue_styles', function() {
+add_action( 'elementor/preview/enqueue_styles', static function() {
     wp_enqueue_style( 'flickity-css' );
     wp_enqueue_style( 'bw-products-slide-style' );
 } );
 
-add_action( 'elementor/frontend/after_enqueue_scripts', function() {
+add_action( 'elementor/frontend/after_enqueue_scripts', static function() {
     wp_enqueue_script( 'flickity-js' );
     wp_enqueue_script( 'bw-products-slide-script' );
 } );
 
-add_action( 'elementor/frontend/after_enqueue_styles', function() {
+add_action( 'elementor/frontend/after_enqueue_styles', static function() {
     wp_enqueue_style( 'flickity-css' );
     wp_enqueue_style( 'bw-products-slide-style' );
 } );
