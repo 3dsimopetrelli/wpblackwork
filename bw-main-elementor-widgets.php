@@ -54,6 +54,16 @@ add_action( 'elementor/frontend/after_enqueue_styles', static function() {
     wp_enqueue_style( 'bw-products-slide-style' );
 } );
 
+add_action( 'elementor/editor/after_enqueue_scripts', static function() {
+    wp_enqueue_script( 'flickity-js' );
+    wp_enqueue_script( 'bw-products-slide-script' );
+} );
+
+add_action( 'elementor/editor/after_enqueue_styles', static function() {
+    wp_enqueue_style( 'flickity-css' );
+    wp_enqueue_style( 'bw-products-slide-style' );
+} );
+
 // Aggiungi categoria personalizzata "Black Work"
 add_action( 'elementor/elements/categories_registered', static function( $elements_manager ) {
     if ( ! method_exists( $elements_manager, 'add_category' ) ) {
