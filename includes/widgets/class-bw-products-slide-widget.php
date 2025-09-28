@@ -249,8 +249,10 @@ class Widget_Bw_Products_Slide extends Widget_Base {
     }
 
     protected function render() {
+        $carousel_id = 'bw-products-slider-' . $this->get_id();
+
         ?>
-        <div class="bw-products-slider">
+        <div id="<?php echo esc_attr( $carousel_id ); ?>" class="bw-products-slider">
             <?php for ( $i = 1; $i <= 5; $i++ ) : ?>
                 <div class="carousel-cell">
                     <div class="cell-media">Slide <?php echo $i; ?></div>
@@ -259,10 +261,9 @@ class Widget_Bw_Products_Slide extends Widget_Base {
         </div>
         <?php if ( \Elementor\Plugin::$instance->editor->is_edit_mode() ) : ?>
             <script>
-            jQuery(document).ready(function($) {
-                var $carousel = $('.bw-products-slider');
+            jQuery(function($) {
+                var $carousel = $('#<?php echo esc_js( $carousel_id ); ?>');
                 if ($carousel.length && !$carousel.data('flickity')) {
-                    console.log("🎯 Init Flickity from inline script (editor mode)");
                     $carousel.flickity({
                         cellAlign: 'left',
                         contain: true,
