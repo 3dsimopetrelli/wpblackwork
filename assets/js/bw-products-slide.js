@@ -3,8 +3,13 @@ jQuery(window).on('elementor/frontend/init', function () {
     'frontend/element_ready/bw-products-slide.default',
     function ($scope, $) {
       var $carousel = $scope.find('.bw-products-slider');
-      if ($carousel.length && !$carousel.data('flickity')) {
-        $carousel.flickity({
+      var carouselElement = $carousel.length ? $carousel.get(0) : null;
+      if (
+        carouselElement &&
+        !$carousel.data('flickity') &&
+        !(carouselElement.flickity && carouselElement.flickity.isInitActivated)
+      ) {
+        var flkty = new Flickity(carouselElement, {
           cellAlign: 'left',
           contain: true,
           wrapAround: true,
@@ -12,6 +17,9 @@ jQuery(window).on('elementor/frontend/init', function () {
           prevNextButtons: true,
           autoPlay: 3000
         });
+        $carousel.data('flickity', flkty);
+        flkty.resize();
+        window.dispatchEvent(new Event('resize'));
       }
     }
   );
