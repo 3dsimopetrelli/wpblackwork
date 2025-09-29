@@ -5,7 +5,8 @@ if (!defined('ABSPATH')) {
 
 // Mostra la pagina coming soon se attiva
 function bw_show_coming_soon() {
-    if (!is_user_logged_in() && get_option('bw_coming_soon_active') == 1) {
+    // Verifica se il coming soon è attivo
+    if (get_option('bw_coming_soon_active') == 1 && !is_user_logged_in() && !is_admin()) {
         include plugin_dir_path(__FILE__) . '../public/coming-soon-template.php';
         exit;
     }
@@ -18,7 +19,7 @@ function bw_handle_subscription() {
         $email = sanitize_email($_POST['bw_email']);
 
         if (!empty($email)) {
-            $api_key = "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";
+            $api_key = "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";
 
             $url = "https://api.brevo.com/v3/contacts";
             $body = array(
@@ -43,4 +44,3 @@ function bw_handle_subscription() {
     }
 }
 add_action("init", "bw_handle_subscription");
-?>
