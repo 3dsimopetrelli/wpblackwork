@@ -1,37 +1,89 @@
 .bw-products-slider {
   width: 100%;
   --bw-columns: 1;
-  --bw-gap: 20px;
-  --bw-image-height: 280px;
-}
-
-.bw-products-slider .carousel-cell {
-  width: calc((100% - (var(--bw-columns) - 1) * var(--bw-gap)) / var(--bw-columns));
-  margin-right: var(--bw-gap);
-}
-
-.bw-products-slider .carousel-cell:last-child {
-  margin-right: 0;
-}
-
-.bw-products-slider .cell-media {
-  width: 100%;
-  height: var(--bw-image-height);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #f2f2f2;
-  color: #555;
-  font: 600 20px/1.2 system-ui, sans-serif;
-}
-
-.bw-products-slider .carousel-cell img {
-  display: block;
-  width: 100%;
-  height: var(--bw-image-height);
-  object-fit: cover;
+  --bw-gutter: 20px;
+  --bw-gap: var(--bw-gutter);
+  --bw-image-height: none;
+  padding: 0 calc(var(--bw-gutter) / 2);
 }
 
 .bw-products-slider.flickity-enabled {
   overflow: hidden;
+}
+
+.bw-products-slider .bw-products-slide-item {
+  width: calc(100% / var(--bw-columns) - var(--bw-gutter));
+  margin: 0 calc(var(--bw-gutter) / 2);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.bw-products-slider .bw-products-slide-item__media {
+  position: relative;
+  overflow: hidden;
+  border-radius: 4px;
+}
+
+.bw-products-slider .bw-products-slide-item__media img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: var(--bw-image-height);
+  object-fit: cover;
+}
+
+.bw-products-slider .bw-products-slide-item__content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.bw-products-slider .bw-products-slide-item__content .product-title {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.bw-products-slider .bw-products-slide-item__content .product-title a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.bw-products-slider .bw-products-slide-item__content .product-title a:hover,
+.bw-products-slider .bw-products-slide-item__content .product-title a:focus {
+  text-decoration: underline;
+}
+
+.bw-products-slider .bw-products-slide-item__content .product-description {
+  margin: 0;
+}
+
+.bw-products-slider .bw-products-slide-item__content .product-description p {
+  margin: 0;
+}
+
+.bw-products-slider .bw-products-slide-item__content .product-price {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bw-products-slider .product-price .price-original {
+  color: inherit;
+  opacity: 0.65;
+  text-decoration: line-through;
+}
+
+.bw-products-slider .product-price .price-original del {
+  text-decoration: inherit;
+}
+
+.bw-products-slider .product-price .price-sale {
+  color: inherit;
+  font-weight: 600;
+}
+
+.bw-products-slider .product-price .price-regular {
+  font-weight: 600;
 }

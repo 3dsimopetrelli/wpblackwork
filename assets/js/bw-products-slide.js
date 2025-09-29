@@ -42,6 +42,7 @@
 
     var options = {
       imagesLoaded: true,
+      cellSelector: '.bw-products-slide-item',
       cellAlign: 'left',
       contain: true,
       wrapAround: parseBool($carousel.data('wrapAround'), true),
