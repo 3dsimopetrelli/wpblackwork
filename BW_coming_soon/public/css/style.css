@@ -22,60 +22,118 @@ body {
 }
 
 .bw-overlay {
-    position: relative;
-    z-index: 2;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;              /* attiva flexbox */
+    justify-content: center;    /* centro orizzontale */
+    align-items: center;        /* centro verticale */
+    flex-direction: column;     /* elementi uno sopra l’altro */
+    opacity: 0;
+    visibility: hidden;
     padding: 20px;
-    max-width: 300px;
+    box-sizing: border-box;
+}
+
+.bw-overlay.show {
+    visibility: visible;
+    animation: fadeIn 1.5s ease forwards;
+}
+
+.bw-text {
+    max-width: 320px;           /* stringe la colonna */
+    text-align: justify;
+    font-size: 12px;
+    line-height: 1.6;
+    color: black;
+    font-family: 'Inter', sans-serif;
+}
+
+
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .bw-text {
     font-size: 12px;
     line-height: 1.4;
     color: black;
+    text-align: justify; /* giustifica il testo */
+    font-family: 'Inter', sans-serif;
 }
 
 .bw-newsletter {
     margin-top: 20px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
 }
 
-.bw-newsletter input[type="text"],
-.bw-newsletter input[type="email"] {
-    padding: 6px;
-    border-radius: 4px;
+.bw-input-group {
+    display: flex;
     border: 1px solid #ccc;
-    width: 100%;
+    border-radius: 25px;
+    overflow: hidden;
+    background: white;
 }
 
-.bw-privacy {
-    font-size: 10px;
-    line-height: 1.2;
-}
-
-.privacy-note {
-    font-size: 10px;
-    color: #444;
+.bw-input-group input[type="email"] {
+    flex: 1;
+    padding: 10px 15px;
+    border: none;
+    outline: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
 }
 
 .bw-btn {
-    background: #00ff00;
+    background: white;
     color: black;
-    padding: 8px;
+    padding: 10px 20px;
     border: none;
-    border-radius: 20px;
-    font-weight: bold;
+    border-left: 1px solid #ccc;
     cursor: pointer;
-    text-align: center;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
 }
 
 .bw-btn:hover {
-    opacity: 0.9;
+    background: #f0f0f0;
+}
+
+.bw-privacy {
+    display: flex;
+    align-items: center;
+    gap: 6px; /* spazio tra checkbox e testo */
+    font-size: 9px;
+    line-height: 1.4;
+    font-family: 'Inter', sans-serif;
+}
+
+.bw-privacy input[type="checkbox"] {
+    margin: 0;
+}
+
+
+
+.bw-privacy a {
+    color: black;
+    text-decoration: underline;
 }
 
 .bw-success {
-    margin-top: 10px;
-    font-size: 11px;
+    font-size: 12px;
     color: green;
+    margin-top: 10px;
+    font-family: 'Inter', sans-serif;
 }
