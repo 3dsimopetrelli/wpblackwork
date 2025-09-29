@@ -10,6 +10,13 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+
+// Includi il modulo BW Coming Soon
+if ( file_exists( plugin_dir_path( __FILE__ ) . 'BW_coming_soon/bw-coming-soon.php' ) ) {
+    require_once plugin_dir_path( __FILE__ ) . 'BW_coming_soon/bw-coming-soon.php';
+}
+
+
 // Loader dei widget
 require_once __DIR__ . '/includes/class-bw-widget-loader.php';
 
