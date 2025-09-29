@@ -1,38 +1,81 @@
 body {
     margin: 0;
     padding: 0;
-    background: black;
-    color: white;
-    font-family: sans-serif;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    font-family: 'Inter', sans-serif;
+    color: black;
 }
 
-.bw-container {
-    position: relative;
+.bw-video-background {
+    position: fixed;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
+    overflow: hidden;
+    z-index: -1;
+}
+
+.bw-video-background video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.bw-overlay {
+    position: relative;
+    z-index: 2;
+    padding: 20px;
+    max-width: 300px;
 }
 
 .bw-text {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    max-width: 200px;
     font-size: 12px;
     line-height: 1.4;
+    color: black;
 }
 
-.bw-image {
+.bw-newsletter {
+    margin-top: 20px;
     display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
+    flex-direction: column;
+    gap: 10px;
 }
 
-.bw-image img {
-    max-height: 90%;
-    max-width: 90%;
+.bw-newsletter input[type="text"],
+.bw-newsletter input[type="email"] {
+    padding: 6px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    width: 100%;
+}
+
+.bw-privacy {
+    font-size: 10px;
+    line-height: 1.2;
+}
+
+.privacy-note {
+    font-size: 10px;
+    color: #444;
+}
+
+.bw-btn {
+    background: #00ff00;
+    color: black;
+    padding: 8px;
+    border: none;
+    border-radius: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    text-align: center;
+}
+
+.bw-btn:hover {
+    opacity: 0.9;
+}
+
+.bw-success {
+    margin-top: 10px;
+    font-size: 11px;
+    color: green;
 }
