@@ -189,7 +189,7 @@ class Widget_Bw_Products_Slide extends Widget_Base {
             Group_Control_Typography::get_type(),
             [
                 'name' => 'title_typography',
-                'selector' => '{{WRAPPER}} .bw-products-slider .carousel-cell .caption h4',
+                'selector' => '{{WRAPPER}} .bw-products-slider .bw-products-slide-item__content .product-title',
             ]
         );
 
@@ -197,7 +197,7 @@ class Widget_Bw_Products_Slide extends Widget_Base {
             'label' => __( 'Colore', 'plugin-name' ),
             'type' => Controls_Manager::COLOR,
             'selectors' => [
-                '{{WRAPPER}} .bw-products-slider .carousel-cell .caption h4' => 'color: {{VALUE}};',
+                '{{WRAPPER}} .bw-products-slider .bw-products-slide-item__content .product-title' => 'color: {{VALUE}};',
             ],
         ]);
 
@@ -211,7 +211,7 @@ class Widget_Bw_Products_Slide extends Widget_Base {
             Group_Control_Typography::get_type(),
             [
                 'name' => 'description_typography',
-                'selector' => '{{WRAPPER}} .bw-products-slider .carousel-cell .caption p',
+                'selector' => '{{WRAPPER}} .bw-products-slider .bw-products-slide-item__content .product-description',
             ]
         );
 
@@ -219,7 +219,7 @@ class Widget_Bw_Products_Slide extends Widget_Base {
             'label' => __( 'Colore', 'plugin-name' ),
             'type' => Controls_Manager::COLOR,
             'selectors' => [
-                '{{WRAPPER}} .bw-products-slider .carousel-cell .caption p' => 'color: {{VALUE}};',
+                '{{WRAPPER}} .bw-products-slider .bw-products-slide-item__content .product-description' => 'color: {{VALUE}};',
             ],
         ]);
 
@@ -233,7 +233,7 @@ class Widget_Bw_Products_Slide extends Widget_Base {
             Group_Control_Typography::get_type(),
             [
                 'name' => 'price_typography',
-                'selector' => '{{WRAPPER}} .bw-products-slider .carousel-cell .caption .price',
+                'selector' => '{{WRAPPER}} .bw-products-slider .bw-products-slide-item__content .product-price',
             ]
         );
 
@@ -241,11 +241,94 @@ class Widget_Bw_Products_Slide extends Widget_Base {
             'label' => __( 'Colore', 'plugin-name' ),
             'type' => Controls_Manager::COLOR,
             'selectors' => [
-                '{{WRAPPER}} .bw-products-slider .carousel-cell .caption .price' => 'color: {{VALUE}};',
+                '{{WRAPPER}} .bw-products-slider .bw-products-slide-item__content .product-price' => 'color: {{VALUE}};',
             ],
         ]);
 
         $this->end_controls_section();
+    }
+
+    protected function get_price_markup( $post_id ) {
+        if ( ! $post_id ) {
+            return '';
+        }
+
+        $format_price = static function( $value ) {
+            if ( '' === $value || null === $value ) {
+                return '';
+            }
+
+            if ( function_exists( 'wc_price' ) && is_numeric( $value ) ) {
+                return wc_price( $value );
+            }
+
+            if ( is_numeric( $value ) ) {
+                $value = number_format_i18n( (float) $value, 2 );
+            }
+
+            return esc_html( $value );
+        };
+
+        if ( function_exists( 'wc_get_product' ) ) {
+            $product = wc_get_product( $post_id );
+            if ( $product ) {
+                $price_html = $product->get_price_html();
+                if ( ! empty( $price_html ) ) {
+                    return $price_html;
+                }
+
+                $regular_price = $product->get_regular_price();
+                $sale_price    = $product->get_sale_price();
+                $current_price = $product->get_price();
+
+                $regular_markup = $format_price( $regular_price );
+                $sale_markup    = $format_price( $sale_price );
+                $current_markup = $format_price( $current_price );
+
+                if ( $sale_markup && $regular_markup && $sale_markup !== $regular_markup ) {
+                    return '<span class="price-original"><del>' . $regular_markup . '</del></span>' .
+                        '<span class="price-sale">' . $sale_markup . '</span>';
+                }
+
+                if ( $current_markup ) {
+                    return '<span class="price-regular">' . $current_markup . '</span>';
+                }
+            }
+        }
+
+        $regular_price = get_post_meta( $post_id, '_regular_price', true );
+        $sale_price    = get_post_meta( $post_id, '_sale_price', true );
+        $current_price = get_post_meta( $post_id, '_price', true );
+
+        if ( '' === $current_price && '' === $regular_price && '' === $sale_price ) {
+            $additional_keys = [ 'price', 'product_price' ];
+            foreach ( $additional_keys as $meta_key ) {
+                $meta_value = get_post_meta( $post_id, $meta_key, true );
+                if ( '' !== $meta_value && null !== $meta_value ) {
+                    $current_price = $meta_value;
+                    break;
+                }
+            }
+        }
+
+        $regular_markup = $format_price( $regular_price );
+        $sale_markup    = $format_price( $sale_price );
+        $current_markup = $format_price( $current_price );
+
+        if ( $sale_markup && $regular_markup && $sale_markup !== $regular_markup ) {
+            return '<span class="price-original"><del>' . $regular_markup . '</del></span>' .
+                '<span class="price-sale">' . $sale_markup . '</span>';
+        }
+
+        if ( $current_markup ) {
+            return '<span class="price-regular">' . $current_markup . '</span>';
+        }
+
+        if ( $regular_markup ) {
+            return '<span class="price-regular">' . $regular_markup . '</span>';
+        }
+
+        return '';
     }
 
     protected function render() {
@@ -299,11 +382,12 @@ class Widget_Bw_Products_Slide extends Widget_Base {
         }
 
         $wrapper_style  = '--bw-columns:' . max( 1, $columns ) . ';';
-        $wrapper_style .= '--bw-gap:' . $gap . 'px;';
+        $wrapper_style .= '--bw-gutter:' . max( 0, $gap ) . 'px;';
+        $wrapper_style .= '--bw-gap:' . max( 0, $gap ) . 'px;';
         if ( $image_height > 0 ) {
             $wrapper_style .= '--bw-image-height:' . $image_height . 'px;';
         } else {
-            $wrapper_style .= '--bw-image-height:auto;';
+            $wrapper_style .= '--bw-image-height:none;';
         }
 
         $query = new \WP_Query( $query_args );
@@ -337,47 +421,35 @@ class Widget_Bw_Products_Slide extends Widget_Base {
                         $excerpt = wp_trim_words( wp_strip_all_tags( get_the_content( null, false, $post_id ) ), 20 );
                     }
 
+                    if ( ! empty( $excerpt ) && false === strpos( $excerpt, '<p' ) ) {
+                        $excerpt = '<p>' . $excerpt . '</p>';
+                    }
+
                     $price_html = '';
                     if ( isset( $settings['show_price'] ) && 'yes' === $settings['show_price'] ) {
-                        if ( function_exists( 'wc_get_product' ) ) {
-                            $product = wc_get_product( $post_id );
-                            if ( $product ) {
-                                $price_html = $product->get_price_html();
-                            }
-                        }
-
-                        if ( empty( $price_html ) ) {
-                            $price_meta_keys = [ '_price', 'price', 'product_price' ];
-                            foreach ( $price_meta_keys as $meta_key ) {
-                                $meta_value = get_post_meta( $post_id, $meta_key, true );
-                                if ( '' !== $meta_value && null !== $meta_value ) {
-                                    $price_html = esc_html( $meta_value );
-                                    break;
-                                }
-                            }
-                        }
+                        $price_html = $this->get_price_markup( $post_id );
                     }
                     ?>
-                    <article <?php post_class( 'carousel-cell product-slide' ); ?>>
+                    <article <?php post_class( 'bw-products-slide-item carousel-cell product-slide' ); ?>>
                         <?php if ( $media_html ) : ?>
-                            <div class="cell-media">
+                            <div class="bw-products-slide-item__media">
                                 <a class="product-link" href="<?php echo esc_url( $permalink ); ?>">
                                     <?php echo wp_kses_post( $media_html ); ?>
                                 </a>
                             </div>
                         <?php endif; ?>
 
-                        <div class="caption">
+                        <div class="bw-products-slide-item__content">
                             <?php if ( isset( $settings['show_title'] ) && 'yes' === $settings['show_title'] ) : ?>
-                                <h4 class="product-title">
+                                <h3 class="product-title">
                                     <a class="product-link" href="<?php echo esc_url( $permalink ); ?>">
                                         <?php echo esc_html( $title ); ?>
                                     </a>
-                                </h4>
+                                </h3>
                             <?php endif; ?>
 
                             <?php if ( isset( $settings['show_subtitle'] ) && 'yes' === $settings['show_subtitle'] && ! empty( $excerpt ) ) : ?>
-                                <p class="product-description"><?php echo wp_kses_post( $excerpt ); ?></p>
+                                <div class="product-description"><?php echo wp_kses_post( $excerpt ); ?></div>
                             <?php endif; ?>
 
                             <?php if ( isset( $settings['show_price'] ) && 'yes' === $settings['show_price'] && ! empty( $price_html ) ) : ?>
@@ -387,8 +459,8 @@ class Widget_Bw_Products_Slide extends Widget_Base {
                     </article>
                 <?php endwhile; ?>
             <?php else : ?>
-                <div class="carousel-cell product-slide">
-                    <div class="caption">
+                <div class="bw-products-slide-item carousel-cell product-slide">
+                    <div class="bw-products-slide-item__content">
                         <p class="product-description"><?php esc_html_e( 'Nessun contenuto disponibile.', 'plugin-name' ); ?></p>
                     </div>
                 </div>
