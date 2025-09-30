@@ -33,7 +33,7 @@ An archive spanning centuries of antiquarian material, rare books and prints, cu
                 </div>
                 <label class="bw-privacy">
                     <input type="checkbox" name="bw_privacy" required>
-                    By signing up, I agree to the <a href="/privacy-policy" target="_blank">privacy policy</a> of Blackwork.pro
+                    I agree that my email will only be used for Blackwork updates.
                 </label>
                 <?php if (isset($_GET['bw_subscribed']) && $_GET['bw_subscribed'] == '1') : ?>
                     <p class="bw-success">Thanks for subscribing! Please check your email inbox to confirm your subscription. If you don’t see it, check your spam folder.</p>
