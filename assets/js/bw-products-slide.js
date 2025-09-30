@@ -12,10 +12,49 @@
 
     var existingInstance = Flickity.data(carouselElement);
     if (existingInstance) {
-      existingInstance.reloadCells();
-      existingInstance.resize();
-      window.dispatchEvent(new Event('resize'));
-      return;
+      var existingEditorEvents = $carousel.data('bwFlickityEditorEvents');
+
+      if (existingEditorEvents) {
+        if (
+          existingEditorEvents.editorChannel &&
+          typeof existingEditorEvents.editorChannel.off === 'function'
+        ) {
+          existingEditorEvents.editorChannel.off(
+            'panel:open',
+            existingEditorEvents.handleResize
+          );
+          existingEditorEvents.editorChannel.off(
+            'panel:close',
+            existingEditorEvents.handleResize
+          );
+        }
+
+        if (
+          typeof elementorFrontend !== 'undefined' &&
+          elementorFrontend.hooks &&
+          typeof elementorFrontend.hooks.removeAction === 'function'
+        ) {
+          elementorFrontend.hooks.removeAction(
+            'document/responsive/after_set_breakpoint',
+            existingEditorEvents.handleResize
+          );
+        }
+
+        if (
+          existingEditorEvents.flickityInstance &&
+          typeof existingEditorEvents.flickityInstance.off === 'function'
+        ) {
+          existingEditorEvents.flickityInstance.off(
+            'ready',
+            existingEditorEvents.triggerFullRefresh
+          );
+        }
+      }
+
+      existingInstance.destroy();
+
+      $carousel.removeData('bwFlickityEditorEvents');
+      $carousel.removeData('bwFlickityEditorEventsBound');
     }
 
     var parseBool = function (value, defaultValue) {
@@ -88,6 +127,12 @@
         );
 
         $carousel.data('bwFlickityEditorEventsBound', true);
+        $carousel.data('bwFlickityEditorEvents', {
+          handleResize: handleResize,
+          triggerFullRefresh: triggerFullRefresh,
+          editorChannel: editorChannel,
+          flickityInstance: flkty,
+        });
       }
     }
   };
