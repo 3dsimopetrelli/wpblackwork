@@ -58,37 +58,144 @@
     }
 
     var parseBool = function (value, defaultValue) {
-      if (typeof value === 'undefined') {
+      if (typeof value === 'undefined' || value === null) {
         return defaultValue;
       }
+
+      if (typeof value === 'boolean') {
+        return value;
+      }
+
+      if (typeof value === 'number') {
+        return value !== 0;
+      }
+
       if (typeof value === 'string') {
-        value = value.toLowerCase();
-        if (value === 'false' || value === '0' || value === 'no') {
+        var normalized = value.toLowerCase().trim();
+        if (normalized === '') {
+          return defaultValue;
+        }
+        if (['false', '0', 'no', 'off'].indexOf(normalized) !== -1) {
           return false;
         }
-        if (value === 'true' || value === '1' || value === 'yes') {
+        if (['true', '1', 'yes', 'on'].indexOf(normalized) !== -1) {
           return true;
         }
       }
-      return Boolean(value);
+
+      return defaultValue;
     };
 
-    var autoplaySetting = parseInt($carousel.data('autoplay'), 10);
-    var autoplayOption = 3000;
-    if (!isNaN(autoplaySetting)) {
-      autoplayOption = autoplaySetting > 0 ? autoplaySetting : false;
+    var parseFloatOption = function (value, defaultValue) {
+      if (typeof value === 'undefined' || value === null || value === '') {
+        return defaultValue;
+      }
+
+      var parsed = parseFloat(value);
+      return isNaN(parsed) ? defaultValue : parsed;
+    };
+
+    var parseIntOption = function (value, defaultValue) {
+      if (typeof value === 'undefined' || value === null || value === '') {
+        return defaultValue;
+      }
+
+      var parsed = parseInt(value, 10);
+      return isNaN(parsed) ? defaultValue : parsed;
+    };
+
+    var cellAlign = $carousel.data('cellAlign');
+    var validAlignments = ['left', 'center', 'right'];
+    if (validAlignments.indexOf(cellAlign) === -1) {
+      cellAlign = 'left';
     }
 
+    var contain = parseBool($carousel.data('contain'), true);
+
+    var groupCellsData = $carousel.data('groupCells');
+    var groupCells = 1;
+    if (typeof groupCellsData === 'string' && groupCellsData.toLowerCase() === 'auto') {
+      groupCells = 'auto';
+    } else {
+      groupCells = Math.max(1, parseIntOption(groupCellsData, 1));
+    }
+
+    var wrapAround = parseBool($carousel.data('wrapAround'), false);
+    var freeScroll = parseBool($carousel.data('freeScroll'), false);
+    var freeScrollFriction = parseFloatOption(
+      $carousel.data('freeScrollFriction'),
+      0.075
+    );
+    var friction = parseFloatOption($carousel.data('friction'), 0.28);
+    var selectedAttraction = parseFloatOption(
+      $carousel.data('selectedAttraction'),
+      0.025
+    );
+    var draggable = parseBool($carousel.data('draggable'), true);
+    var dragThreshold = Math.max(0, parseIntOption($carousel.data('dragThreshold'), 3));
+    var percentPosition = parseBool($carousel.data('percentPosition'), true);
+    var adaptiveHeight = parseBool($carousel.data('adaptiveHeight'), false);
+    var resize = parseBool($carousel.data('resize'), true);
+    var watchCss = parseBool($carousel.data('watchCss'), false);
+    var imagesLoaded = parseBool($carousel.data('imagesLoaded'), true);
+    var setGallerySize = parseBool($carousel.data('setGallerySize'), true);
+    var prevNextButtons = parseBool($carousel.data('prevNextButtons'), true);
+    var pageDots = parseBool($carousel.data('pageDots'), true);
+    var accessibility = parseBool($carousel.data('accessibility'), true);
+    var rightToLeft = parseBool($carousel.data('rightToLeft'), false);
+
+    var autoPlayRaw = $carousel.data('autoPlay');
+    var autoPlayValue = parseIntOption(autoPlayRaw, 0);
+    var autoPlay = autoPlayValue > 0 ? autoPlayValue : false;
+
+    var pauseAutoPlayOnHover = parseBool(
+      $carousel.data('pauseAutoPlayOnHover'),
+      true
+    );
+
+    var initialIndex = Math.max(0, parseIntOption($carousel.data('initialIndex'), 0));
+
+    var asNavFor = $carousel.data('asNavFor');
+    if (typeof asNavFor === 'string') {
+      asNavFor = asNavFor.trim();
+    }
+
+    var arrowShape = $carousel.data('arrowShape');
+
     var options = {
-      imagesLoaded: true,
       cellSelector: '.bw-products-slide-item',
-      cellAlign: 'left',
-      contain: true,
-      wrapAround: parseBool($carousel.data('wrapAround'), true),
-      pageDots: parseBool($carousel.data('pageDots'), true),
-      prevNextButtons: parseBool($carousel.data('prevNextButtons'), true),
-      autoPlay: autoplayOption,
+      cellAlign: cellAlign,
+      contain: contain,
+      groupCells: groupCells,
+      wrapAround: wrapAround,
+      freeScroll: freeScroll,
+      freeScrollFriction: freeScrollFriction,
+      friction: friction,
+      selectedAttraction: selectedAttraction,
+      draggable: draggable,
+      dragThreshold: dragThreshold,
+      percentPosition: percentPosition,
+      adaptiveHeight: adaptiveHeight,
+      resize: resize,
+      watchCSS: watchCss,
+      imagesLoaded: imagesLoaded,
+      setGallerySize: setGallerySize,
+      prevNextButtons: prevNextButtons,
+      pageDots: pageDots,
+      accessibility: accessibility,
+      rightToLeft: rightToLeft,
+      autoPlay: autoPlay,
+      pauseAutoPlayOnHover: pauseAutoPlayOnHover,
+      initialIndex: initialIndex,
     };
+
+    if (asNavFor && typeof asNavFor === 'string' && asNavFor !== '') {
+      options.asNavFor = asNavFor;
+    }
+
+    if (arrowShape && typeof arrowShape === 'string' && arrowShape !== '') {
+      options.arrowShape = arrowShape;
+    }
 
     if ($carousel.data('fade') === 'yes') {
       options.fade = true;
