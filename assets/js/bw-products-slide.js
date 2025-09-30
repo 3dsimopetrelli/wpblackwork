@@ -10,8 +10,57 @@
       return;
     }
 
+    var applyLayoutSettings = function () {
+      var columns = parseInt($carousel.data('columns'), 10);
+      if (isNaN(columns) || columns < 1) {
+        columns = 1;
+      }
+
+      var gap = parseInt($carousel.data('gap'), 10);
+      if (isNaN(gap) || gap < 0) {
+        gap = 0;
+      }
+
+      var imageHeight = parseInt($carousel.data('imageHeight'), 10);
+      if (isNaN(imageHeight) || imageHeight < 0) {
+        imageHeight = 0;
+      }
+
+      var widthExpression = 'calc(100% / ' + columns + ' - ' + gap + 'px)';
+      var halfGap = Math.max(gap / 2, 0);
+      var marginValue = Math.round(halfGap * 100) / 100;
+      var marginExpression = marginValue + 'px';
+
+      $carousel.find('.bw-products-slide-item').each(function () {
+        var $item = $(this);
+
+        $item.css({
+          width: widthExpression,
+          marginLeft: marginExpression,
+          marginRight: marginExpression,
+          flex: '0 0 auto',
+        });
+
+        var $images = $item.find('img');
+        if (imageHeight > 0) {
+          $images.css({
+            maxHeight: imageHeight + 'px',
+            objectFit: 'cover',
+          });
+        } else {
+          $images.css({
+            maxHeight: '',
+            objectFit: '',
+          });
+        }
+      });
+    };
+
+    applyLayoutSettings();
+
     var existingInstance = Flickity.data(carouselElement);
     if (existingInstance) {
+      applyLayoutSettings();
       existingInstance.reloadCells();
       existingInstance.resize();
       window.dispatchEvent(new Event('resize'));
@@ -55,22 +104,26 @@
     }
 
     var flkty = new Flickity(carouselElement, options);
+    applyLayoutSettings();
     flkty.reloadCells();
     flkty.resize();
     window.dispatchEvent(new Event('resize'));
 
     var handleResize = function () {
+      applyLayoutSettings();
       flkty.resize();
     };
 
-    if (elementorFrontend.isEditMode()) {
-      var triggerFullRefresh = function () {
-        flkty.reloadCells();
-        flkty.resize();
-        window.dispatchEvent(new Event('resize'));
-      };
+    var triggerFullRefresh = function () {
+      applyLayoutSettings();
+      flkty.reloadCells();
+      flkty.resize();
+      window.dispatchEvent(new Event('resize'));
+    };
 
-      flkty.on('ready', triggerFullRefresh);
+    flkty.on('ready', triggerFullRefresh);
+
+    if (elementorFrontend.isEditMode()) {
 
       if (!$carousel.data('bwFlickityEditorEventsBound')) {
         var editorChannel = elementor && elementor.channels && elementor.channels.editor;

@@ -189,7 +189,7 @@ class Widget_Bw_Products_Slide extends Widget_Base {
             Group_Control_Typography::get_type(),
             [
                 'name' => 'title_typography',
-                'selector' => '{{WRAPPER}} .bw-products-slider .carousel-cell .caption h4',
+                'selector' => '{{WRAPPER}} .bw-products-slider .carousel-cell .caption h3',
             ]
         );
 
@@ -197,7 +197,7 @@ class Widget_Bw_Products_Slide extends Widget_Base {
             'label' => __( 'Colore', 'plugin-name' ),
             'type' => Controls_Manager::COLOR,
             'selectors' => [
-                '{{WRAPPER}} .bw-products-slider .carousel-cell .caption h4' => 'color: {{VALUE}};',
+                '{{WRAPPER}} .bw-products-slider .carousel-cell .caption h3' => 'color: {{VALUE}};',
             ],
         ]);
 
@@ -306,6 +306,10 @@ class Widget_Bw_Products_Slide extends Widget_Base {
             $wrapper_style .= '--bw-image-height:auto;';
         }
 
+        $item_width  = sprintf( 'calc(100%% / %1$d - %2$dpx)', max( 1, $columns ), $gap );
+        $item_margin = $gap > 0 ? round( $gap / 2, 2 ) . 'px' : '0px';
+        $item_style = sprintf( 'width:%1$s;flex:0 0 auto;margin-left:%2$s;margin-right:%2$s;', $item_width, $item_margin );
+
         $query = new \WP_Query( $query_args );
         ?>
         <div
@@ -316,6 +320,9 @@ class Widget_Bw_Products_Slide extends Widget_Base {
             data-page-dots="<?php echo esc_attr( $page_dots ? 'true' : 'false' ); ?>"
             data-prev-next-buttons="<?php echo esc_attr( $prev_next_buttons ? 'true' : 'false' ); ?>"
             data-fade="<?php echo esc_attr( $fade ? 'yes' : 'no' ); ?>"
+            data-columns="<?php echo esc_attr( max( 1, $columns ) ); ?>"
+            data-gap="<?php echo esc_attr( $gap ); ?>"
+            data-image-height="<?php echo esc_attr( $image_height ); ?>"
             style="<?php echo esc_attr( $wrapper_style ); ?>"
         >
             <?php if ( $query->have_posts() ) : ?>
@@ -347,18 +354,28 @@ class Widget_Bw_Products_Slide extends Widget_Base {
                         }
 
                         if ( empty( $price_html ) ) {
-                            $price_meta_keys = [ '_price', 'price', 'product_price' ];
-                            foreach ( $price_meta_keys as $meta_key ) {
-                                $meta_value = get_post_meta( $post_id, $meta_key, true );
-                                if ( '' !== $meta_value && null !== $meta_value ) {
-                                    $price_html = esc_html( $meta_value );
-                                    break;
+                            $regular_price = get_post_meta( $post_id, '_regular_price', true );
+                            $sale_price    = get_post_meta( $post_id, '_sale_price', true );
+                            if ( '' !== $sale_price && '' !== $regular_price ) {
+                                $formatted_regular = function_exists( 'wc_price' ) ? wc_price( $regular_price ) : esc_html( $regular_price );
+                                $formatted_sale    = function_exists( 'wc_price' ) ? wc_price( $sale_price ) : esc_html( $sale_price );
+                                $price_html        = '<span class="product-price-regular price-regular"><del>' . wp_kses_post( $formatted_regular ) . '</del></span>';
+                                $price_html       .= '<span class="product-price-sale price-sale"><ins>' . wp_kses_post( $formatted_sale ) . '</ins></span>';
+                            } else {
+                                $price_meta_keys = [ '_price', 'price', 'product_price' ];
+                                foreach ( $price_meta_keys as $meta_key ) {
+                                    $meta_value = get_post_meta( $post_id, $meta_key, true );
+                                    if ( '' !== $meta_value && null !== $meta_value ) {
+                                        $formatted_meta = function_exists( 'wc_price' ) ? wc_price( $meta_value ) : esc_html( $meta_value );
+                                        $price_html     = '<span class="product-price-regular">' . wp_kses_post( $formatted_meta ) . '</span>';
+                                        break;
+                                    }
                                 }
                             }
                         }
                     }
                     ?>
-                    <article <?php post_class( 'carousel-cell product-slide' ); ?>>
+                    <article <?php post_class( 'carousel-cell product-slide bw-products-slide-item' ); ?> style="<?php echo esc_attr( $item_style ); ?>">
                         <?php if ( $media_html ) : ?>
                             <div class="cell-media">
                                 <a class="product-link" href="<?php echo esc_url( $permalink ); ?>">
@@ -369,11 +386,11 @@ class Widget_Bw_Products_Slide extends Widget_Base {
 
                         <div class="caption">
                             <?php if ( isset( $settings['show_title'] ) && 'yes' === $settings['show_title'] ) : ?>
-                                <h4 class="product-title">
+                                <h3 class="product-title">
                                     <a class="product-link" href="<?php echo esc_url( $permalink ); ?>">
                                         <?php echo esc_html( $title ); ?>
                                     </a>
-                                </h4>
+                                </h3>
                             <?php endif; ?>
 
                             <?php if ( isset( $settings['show_subtitle'] ) && 'yes' === $settings['show_subtitle'] && ! empty( $excerpt ) ) : ?>
@@ -387,7 +404,7 @@ class Widget_Bw_Products_Slide extends Widget_Base {
                     </article>
                 <?php endwhile; ?>
             <?php else : ?>
-                <div class="carousel-cell product-slide">
+                <div class="carousel-cell product-slide bw-products-slide-item" style="<?php echo esc_attr( $item_style ); ?>">
                     <div class="caption">
                         <p class="product-description"><?php esc_html_e( 'Nessun contenuto disponibile.', 'plugin-name' ); ?></p>
                     </div>
