@@ -74,7 +74,9 @@
       flkty.on('ready', triggerFullRefresh);
 
       if (!$carousel.data('bwFlickityEditorEventsBound')) {
-        var editorChannel = elementor && elementor.channels && elementor.channels.editor;
+        var editorChannel = typeof elementor !== 'undefined' && elementor.channels
+          ? elementor.channels.editor
+          : null;
         if (editorChannel && editorChannel.on) {
           editorChannel.on('panel:open', handleResize);
           editorChannel.on('panel:close', handleResize);
