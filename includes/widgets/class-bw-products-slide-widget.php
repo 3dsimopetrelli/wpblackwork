@@ -116,51 +116,234 @@ class Widget_Bw_Products_Slide extends Widget_Base {
             'label' => __( 'Slider Settings', 'plugin-name' ),
         ]);
 
-        $this->add_control('autoplay', [
-            'label' => __( 'Autoplay', 'plugin-name' ),
+        $this->add_control('slider_settings_general_heading', [
+            'label' => __( 'General Options', 'plugin-name' ),
+            'type' => Controls_Manager::HEADING,
+        ]);
+
+        $this->add_control('cell_align', [
+            'label' => __( 'Cell Align', 'plugin-name' ),
+            'type' => Controls_Manager::SELECT,
+            'options' => [
+                'left' => __( 'Left', 'plugin-name' ),
+                'center' => __( 'Center', 'plugin-name' ),
+                'right' => __( 'Right', 'plugin-name' ),
+            ],
+            'default' => 'left',
+        ]);
+
+        $this->add_control('contain', [
+            'label' => __( 'Contain', 'plugin-name' ),
             'type' => Controls_Manager::SWITCHER,
-            'label_on' => __( 'On', 'plugin-name' ),
-            'label_off' => __( 'Off', 'plugin-name' ),
             'return_value' => 'yes',
             'default' => 'yes',
         ]);
 
-        $this->add_control('autoplay_speed', [
-            'label' => __( 'Durata autoplay (ms)', 'plugin-name' ),
-            'type' => Controls_Manager::NUMBER,
-            'min' => 100,
-            'step' => 100,
-            'default' => 3000,
-            'condition' => [
-                'autoplay' => 'yes',
+        $this->add_control('group_cells', [
+            'label' => __( 'Group Cells', 'plugin-name' ),
+            'type' => Controls_Manager::SELECT,
+            'options' => [
+                '1' => '1',
+                '2' => '2',
+                '3' => '3',
+                '4' => '4',
+                'auto' => __( 'Auto', 'plugin-name' ),
             ],
+            'default' => '1',
+        ]);
+
+        $this->add_control('wrap_around', [
+            'label' => __( 'Wrap Around', 'plugin-name' ),
+            'type' => Controls_Manager::SWITCHER,
+            'return_value' => 'yes',
+            'default' => '',
+        ]);
+
+        $this->add_control('free_scroll', [
+            'label' => __( 'Free Scroll', 'plugin-name' ),
+            'type' => Controls_Manager::SWITCHER,
+            'return_value' => 'yes',
+            'default' => '',
+        ]);
+
+        $this->add_control('free_scroll_friction', [
+            'label' => __( 'Free Scroll Friction', 'plugin-name' ),
+            'type' => Controls_Manager::SLIDER,
+            'size_units' => [ '' ],
+            'range' => [
+                '' => [
+                    'min' => 0,
+                    'max' => 1,
+                    'step' => 0.01,
+                ],
+            ],
+            'default' => [ 'size' => 0.075 ],
+        ]);
+
+        $this->add_control('friction', [
+            'label' => __( 'Friction', 'plugin-name' ),
+            'type' => Controls_Manager::SLIDER,
+            'size_units' => [ '' ],
+            'range' => [
+                '' => [
+                    'min' => 0,
+                    'max' => 1,
+                    'step' => 0.01,
+                ],
+            ],
+            'default' => [ 'size' => 0.28 ],
+        ]);
+
+        $this->add_control('selected_attraction', [
+            'label' => __( 'Selected Attraction', 'plugin-name' ),
+            'type' => Controls_Manager::SLIDER,
+            'size_units' => [ '' ],
+            'range' => [
+                '' => [
+                    'min' => 0,
+                    'max' => 1,
+                    'step' => 0.01,
+                ],
+            ],
+            'default' => [ 'size' => 0.025 ],
+        ]);
+
+        $this->add_control('draggable', [
+            'label' => __( 'Draggable', 'plugin-name' ),
+            'type' => Controls_Manager::SWITCHER,
+            'return_value' => 'yes',
+            'default' => 'yes',
+        ]);
+
+        $this->add_control('drag_threshold', [
+            'label' => __( 'Drag Threshold', 'plugin-name' ),
+            'type' => Controls_Manager::NUMBER,
+            'min' => 0,
+            'default' => 3,
+        ]);
+
+        $this->add_control('percent_position', [
+            'label' => __( 'Percent Position', 'plugin-name' ),
+            'type' => Controls_Manager::SWITCHER,
+            'return_value' => 'yes',
+            'default' => 'yes',
+        ]);
+
+        $this->add_control('adaptive_height', [
+            'label' => __( 'Adaptive Height', 'plugin-name' ),
+            'type' => Controls_Manager::SWITCHER,
+            'return_value' => 'yes',
+            'default' => '',
+        ]);
+
+        $this->add_control('resize', [
+            'label' => __( 'Resize', 'plugin-name' ),
+            'type' => Controls_Manager::SWITCHER,
+            'return_value' => 'yes',
+            'default' => 'yes',
+        ]);
+
+        $this->add_control('watch_css', [
+            'label' => __( 'Watch CSS', 'plugin-name' ),
+            'type' => Controls_Manager::SWITCHER,
+            'return_value' => 'yes',
+            'default' => '',
+        ]);
+
+        $this->add_control('images_loaded', [
+            'label' => __( 'Images Loaded', 'plugin-name' ),
+            'type' => Controls_Manager::SWITCHER,
+            'return_value' => 'yes',
+            'default' => 'yes',
+        ]);
+
+        $this->add_control('set_gallery_size', [
+            'label' => __( 'Set Gallery Size', 'plugin-name' ),
+            'type' => Controls_Manager::SWITCHER,
+            'return_value' => 'yes',
+            'default' => 'yes',
+        ]);
+
+        $this->add_control('slider_settings_navigation_heading', [
+            'label' => __( 'Navigation', 'plugin-name' ),
+            'type' => Controls_Manager::HEADING,
+            'separator' => 'before',
         ]);
 
         $this->add_control('prev_next_buttons', [
-            'label' => __( 'Mostra arrows', 'plugin-name' ),
+            'label' => __( 'Prev/Next Buttons', 'plugin-name' ),
             'type' => Controls_Manager::SWITCHER,
-            'label_on' => __( 'Show', 'plugin-name' ),
-            'label_off' => __( 'Hide', 'plugin-name' ),
             'return_value' => 'yes',
             'default' => 'yes',
         ]);
 
         $this->add_control('page_dots', [
-            'label' => __( 'Mostra dots', 'plugin-name' ),
+            'label' => __( 'Page Dots', 'plugin-name' ),
             'type' => Controls_Manager::SWITCHER,
-            'label_on' => __( 'Show', 'plugin-name' ),
-            'label_off' => __( 'Hide', 'plugin-name' ),
             'return_value' => 'yes',
             'default' => 'yes',
         ]);
 
-        $this->add_control('wrap_around', [
-            'label' => __( 'Wrap-around', 'plugin-name' ),
+        $this->add_control('accessibility', [
+            'label' => __( 'Accessibility', 'plugin-name' ),
             'type' => Controls_Manager::SWITCHER,
-            'label_on' => __( 'On', 'plugin-name' ),
-            'label_off' => __( 'Off', 'plugin-name' ),
             'return_value' => 'yes',
             'default' => 'yes',
+        ]);
+
+        $this->add_control('as_nav_for', [
+            'label' => __( 'As Nav For', 'plugin-name' ),
+            'type' => Controls_Manager::TEXT,
+            'placeholder' => '.selector',
+            'default' => '',
+        ]);
+
+        $this->add_control('right_to_left', [
+            'label' => __( 'Right To Left', 'plugin-name' ),
+            'type' => Controls_Manager::SWITCHER,
+            'return_value' => 'yes',
+            'default' => '',
+        ]);
+
+        $this->add_control('slider_settings_autoplay_heading', [
+            'label' => __( 'Autoplay', 'plugin-name' ),
+            'type' => Controls_Manager::HEADING,
+            'separator' => 'before',
+        ]);
+
+        $this->add_control('auto_play', [
+            'label' => __( 'Autoplay (ms)', 'plugin-name' ),
+            'type' => Controls_Manager::NUMBER,
+            'min' => 0,
+            'step' => 100,
+            'default' => 0,
+        ]);
+
+        $this->add_control('pause_auto_play_on_hover', [
+            'label' => __( 'Pause On Hover', 'plugin-name' ),
+            'type' => Controls_Manager::SWITCHER,
+            'return_value' => 'yes',
+            'default' => 'yes',
+        ]);
+
+        $this->add_control('slider_settings_extra_heading', [
+            'label' => __( 'Extra', 'plugin-name' ),
+            'type' => Controls_Manager::HEADING,
+            'separator' => 'before',
+        ]);
+
+        $this->add_control('initial_index', [
+            'label' => __( 'Initial Index', 'plugin-name' ),
+            'type' => Controls_Manager::NUMBER,
+            'min' => 0,
+            'default' => 0,
+        ]);
+
+        $this->add_control('arrow_shape', [
+            'label' => __( 'Arrow Shape', 'plugin-name' ),
+            'type' => Controls_Manager::TEXTAREA,
+            'rows' => 3,
+            'default' => 'M 0,50 L 60,100 L 50,90 L 20,60 L 80,60 L 80,40 L 20,40 L 50,10 Z',
         ]);
 
         $this->add_control('fade', [
@@ -332,18 +515,122 @@ class Widget_Bw_Products_Slide extends Widget_Base {
     }
 
     protected function render() {
-        $settings          = $this->get_settings_for_display();
-        $carousel_id       = 'bw-products-slider-' . $this->get_id();
-        $post_type         = ! empty( $settings['post_type'] ) && 'all' !== $settings['post_type'] ? $settings['post_type'] : 'any';
-        $columns           = ! empty( $settings['columns'] ) ? absint( $settings['columns'] ) : 3;
-        $gap               = isset( $settings['gap'] ) ? max( 0, absint( $settings['gap'] ) ) : 20;
-        $image_height      = isset( $settings['image_height'] ) ? absint( $settings['image_height'] ) : 0;
-        $autoplay_speed    = ! empty( $settings['autoplay_speed'] ) ? absint( $settings['autoplay_speed'] ) : 3000;
-        $autoplay_value    = ( isset( $settings['autoplay'] ) && 'yes' === $settings['autoplay'] ) ? $autoplay_speed : 0;
-        $wrap_around       = isset( $settings['wrap_around'] ) && 'yes' === $settings['wrap_around'];
-        $page_dots         = isset( $settings['page_dots'] ) && 'yes' === $settings['page_dots'];
-        $prev_next_buttons = isset( $settings['prev_next_buttons'] ) && 'yes' === $settings['prev_next_buttons'];
-        $fade              = isset( $settings['fade'] ) && 'yes' === $settings['fade'];
+        $settings     = $this->get_settings_for_display();
+        $carousel_id  = 'bw-products-slider-' . $this->get_id();
+        $post_type    = ! empty( $settings['post_type'] ) && 'all' !== $settings['post_type'] ? $settings['post_type'] : 'any';
+        $columns      = ! empty( $settings['columns'] ) ? absint( $settings['columns'] ) : 3;
+        $gap          = isset( $settings['gap'] ) ? max( 0, absint( $settings['gap'] ) ) : 20;
+        $image_height = isset( $settings['image_height'] ) ? absint( $settings['image_height'] ) : 0;
+
+        $bool_setting = static function ( array $slider_settings, $key, $default = false ) {
+            if ( isset( $slider_settings[ $key ] ) ) {
+                return 'yes' === $slider_settings[ $key ];
+            }
+
+            return $default;
+        };
+
+        $float_setting = static function ( array $slider_settings, $key, $default ) {
+            if ( ! isset( $slider_settings[ $key ] ) ) {
+                return (float) $default;
+            }
+
+            $value = $slider_settings[ $key ];
+
+            if ( is_array( $value ) ) {
+                if ( isset( $value['size'] ) && '' !== $value['size'] ) {
+                    $value = $value['size'];
+                } elseif ( isset( $value['value'] ) && '' !== $value['value'] ) {
+                    $value = $value['value'];
+                } else {
+                    return (float) $default;
+                }
+            }
+
+            if ( '' === $value || null === $value || ! is_numeric( $value ) ) {
+                return (float) $default;
+            }
+
+            return (float) $value;
+        };
+
+        $int_setting = static function ( array $slider_settings, $key, $default = 0 ) {
+            if ( isset( $slider_settings[ $key ] ) && '' !== $slider_settings[ $key ] && null !== $slider_settings[ $key ] ) {
+                return absint( $slider_settings[ $key ] );
+            }
+
+            return absint( $default );
+        };
+
+        $cell_align = isset( $settings['cell_align'] ) && in_array( $settings['cell_align'], [ 'left', 'center', 'right' ], true ) ? $settings['cell_align'] : 'left';
+        $contain    = $bool_setting( $settings, 'contain', true );
+
+        $group_cells = isset( $settings['group_cells'] ) ? $settings['group_cells'] : '1';
+        if ( 'auto' !== $group_cells ) {
+            $group_cells = max( 1, absint( $group_cells ) );
+        }
+
+        $wrap_around            = $bool_setting( $settings, 'wrap_around', false );
+        $free_scroll            = $bool_setting( $settings, 'free_scroll', false );
+        $free_scroll_friction   = $float_setting( $settings, 'free_scroll_friction', 0.075 );
+        $friction               = $float_setting( $settings, 'friction', 0.28 );
+        $selected_attraction    = $float_setting( $settings, 'selected_attraction', 0.025 );
+        $draggable              = $bool_setting( $settings, 'draggable', true );
+        $drag_threshold         = max( 0, $int_setting( $settings, 'drag_threshold', 3 ) );
+        $percent_position       = $bool_setting( $settings, 'percent_position', true );
+        $adaptive_height        = $bool_setting( $settings, 'adaptive_height', false );
+        $resize                 = $bool_setting( $settings, 'resize', true );
+        $watch_css              = $bool_setting( $settings, 'watch_css', false );
+        $images_loaded          = $bool_setting( $settings, 'images_loaded', true );
+        $set_gallery_size       = $bool_setting( $settings, 'set_gallery_size', true );
+        $prev_next_buttons      = $bool_setting( $settings, 'prev_next_buttons', true );
+        $page_dots              = $bool_setting( $settings, 'page_dots', true );
+        $accessibility          = $bool_setting( $settings, 'accessibility', true );
+        $as_nav_for             = isset( $settings['as_nav_for'] ) ? sanitize_text_field( $settings['as_nav_for'] ) : '';
+        $right_to_left          = $bool_setting( $settings, 'right_to_left', false );
+        $auto_play              = isset( $settings['auto_play'] ) ? max( 0, absint( $settings['auto_play'] ) ) : 0;
+        $pause_on_hover         = $bool_setting( $settings, 'pause_auto_play_on_hover', true );
+        $initial_index          = max( 0, $int_setting( $settings, 'initial_index', 0 ) );
+        $arrow_shape            = isset( $settings['arrow_shape'] ) ? sanitize_textarea_field( $settings['arrow_shape'] ) : '';
+        $fade                   = isset( $settings['fade'] ) && 'yes' === $settings['fade'];
+
+        $bool_to_string = static function ( $value ) {
+            return $value ? 'true' : 'false';
+        };
+
+        $slider_data_attributes = [
+            'data-cell-align'                => $cell_align,
+            'data-contain'                   => $bool_to_string( $contain ),
+            'data-group-cells'               => 'auto' === $group_cells ? 'auto' : (string) $group_cells,
+            'data-wrap-around'               => $bool_to_string( $wrap_around ),
+            'data-free-scroll'               => $bool_to_string( $free_scroll ),
+            'data-free-scroll-friction'      => (string) $free_scroll_friction,
+            'data-friction'                  => (string) $friction,
+            'data-selected-attraction'       => (string) $selected_attraction,
+            'data-draggable'                 => $bool_to_string( $draggable ),
+            'data-drag-threshold'            => (string) $drag_threshold,
+            'data-percent-position'          => $bool_to_string( $percent_position ),
+            'data-adaptive-height'           => $bool_to_string( $adaptive_height ),
+            'data-resize'                    => $bool_to_string( $resize ),
+            'data-watch-css'                 => $bool_to_string( $watch_css ),
+            'data-images-loaded'             => $bool_to_string( $images_loaded ),
+            'data-set-gallery-size'          => $bool_to_string( $set_gallery_size ),
+            'data-prev-next-buttons'         => $bool_to_string( $prev_next_buttons ),
+            'data-page-dots'                 => $bool_to_string( $page_dots ),
+            'data-accessibility'             => $bool_to_string( $accessibility ),
+            'data-as-nav-for'                => $as_nav_for,
+            'data-right-to-left'             => $bool_to_string( $right_to_left ),
+            'data-auto-play'                 => (string) $auto_play,
+            'data-pause-auto-play-on-hover'  => $bool_to_string( $pause_on_hover ),
+            'data-initial-index'             => (string) $initial_index,
+            'data-arrow-shape'               => $arrow_shape,
+            'data-fade'                      => $fade ? 'yes' : 'no',
+        ];
+
+        $data_attribute_string = '';
+        foreach ( $slider_data_attributes as $attribute => $value ) {
+            $data_attribute_string .= sprintf( ' %s="%s"', esc_attr( $attribute ), esc_attr( $value ) );
+        }
 
         $query_args = [
             'post_type'           => $post_type,
@@ -395,11 +682,7 @@ class Widget_Bw_Products_Slide extends Widget_Base {
         <div
             id="<?php echo esc_attr( $carousel_id ); ?>"
             class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $slider_classes ) ) ); ?>"
-            data-autoplay="<?php echo esc_attr( $autoplay_value ); ?>"
-            data-wrap-around="<?php echo esc_attr( $wrap_around ? 'true' : 'false' ); ?>"
-            data-page-dots="<?php echo esc_attr( $page_dots ? 'true' : 'false' ); ?>"
-            data-prev-next-buttons="<?php echo esc_attr( $prev_next_buttons ? 'true' : 'false' ); ?>"
-            data-fade="<?php echo esc_attr( $fade ? 'yes' : 'no' ); ?>"
+            <?php echo $data_attribute_string; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
             style="<?php echo esc_attr( $wrapper_style ); ?>"
         >
             <?php if ( $query->have_posts() ) : ?>
