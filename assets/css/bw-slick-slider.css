@@ -1,0 +1,200 @@
+.bw-slick-slider {
+  position: relative;
+  width: 100%;
+  --bw-columns: 3;
+  --bw-gap: 24px;
+  --bw-image-height: auto;
+}
+
+.bw-slick-slider .slick-list {
+  margin: 0 calc(var(--bw-gap) / -2);
+}
+
+.bw-slick-slider .slick-slide {
+  height: auto;
+}
+
+.bw-slick-slider .bw-slick-item {
+  padding: calc(var(--bw-gap) / 2);
+  outline: none;
+  height: 100%;
+}
+
+.bw-slick-slider .bw-slick-item__inner {
+  background: #fff;
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.bw-slick-slider .bw-slick-item__inner:hover,
+.bw-slick-slider .bw-slick-item__inner:focus-within {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 32px rgba(15, 15, 15, 0.12);
+}
+
+.bw-slick-slider .bw-slick-item__image {
+  position: relative;
+  overflow: hidden;
+  border-radius: 18px;
+}
+
+.bw-slick-slider .bw-slick-item__image--placeholder {
+  background: #f4f4f4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bw-slick-slider .bw-slick-item__image img {
+  display: block;
+  width: 100%;
+  height: var(--bw-image-height);
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.bw-slick-slider--no-crop .bw-slick-item__image img {
+  height: auto;
+  object-fit: contain;
+}
+
+.bw-slick-slider .bw-slick-item__image-placeholder {
+  display: block;
+  width: 100%;
+  padding-bottom: 65%;
+  background: repeating-linear-gradient(
+      45deg,
+      rgba(0, 0, 0, 0.04),
+      rgba(0, 0, 0, 0.04) 10px,
+      rgba(0, 0, 0, 0.08) 10px,
+      rgba(0, 0, 0, 0.08) 20px
+    );
+}
+
+.bw-slick-slider .bw-slick-item__inner:hover .bw-slick-item__image img {
+  transform: scale(1.04);
+}
+
+.bw-slick-slider .bw-slick-item__overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: rgba(0, 0, 0, 0.55);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.bw-slick-slider .bw-slick-item__inner:hover .bw-slick-item__overlay,
+.bw-slick-slider .bw-slick-item__inner:focus-within .bw-slick-item__overlay {
+  opacity: 1;
+  visibility: visible;
+}
+
+.bw-slick-slider .bw-slick-item__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+}
+
+.bw-slick-slider .bw-slick-item__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.65em 1.6em;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  background-color: rgba(255, 255, 255, 0.92);
+  color: #0f0f0f;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: none;
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+.bw-slick-slider .bw-slick-item__button:hover,
+.bw-slick-slider .bw-slick-item__button:focus {
+  background-color: #0f0f0f;
+  border-color: #0f0f0f;
+  color: #ffffff;
+}
+
+.bw-slick-slider .bw-slick-item__content {
+  padding: 20px 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.bw-slick-slider .bw-slick-item__title {
+  margin: 0;
+  font-size: 1.125rem;
+  line-height: 1.3;
+}
+
+.bw-slick-slider .bw-slick-item__title a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.bw-slick-slider .bw-slick-item__title a:hover,
+.bw-slick-slider .bw-slick-item__title a:focus {
+  text-decoration: underline;
+}
+
+.bw-slick-slider .bw-slick-item__excerpt {
+  color: #4b4b4b;
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+.bw-slick-slider .bw-slick-item__excerpt p {
+  margin: 0;
+}
+
+.bw-slick-slider .bw-slick-item__price {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  color: #111;
+}
+
+.bw-slick-slider .bw-slick-item__price .price-original {
+  color: rgba(17, 17, 17, 0.55);
+  text-decoration: line-through;
+}
+
+.bw-slick-slider .bw-slick-item__price .price-original del {
+  text-decoration: inherit;
+}
+
+.bw-slick-slider .bw-slick-item__price .price-sale {
+  color: #111;
+}
+
+.bw-slick-slider .bw-slick-item__price .price-regular {
+  color: #111;
+}
+
+.bw-slick-slider .bw-slick-placeholder {
+  padding: calc(var(--bw-gap) / 2);
+}
+
+.bw-slick-slider .bw-slick-placeholder__inner {
+  border-radius: 18px;
+  background: #f4f4f4;
+  padding: 32px;
+  text-align: center;
+  font-style: italic;
+  color: #777;
+}

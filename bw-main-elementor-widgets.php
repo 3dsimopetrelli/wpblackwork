@@ -51,6 +51,36 @@ function bw_enqueue_flickity() {
         '1.0.0',
         true
     );
+
+    wp_enqueue_style(
+        'slick-css',
+        'https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css',
+        [],
+        '1.8.1'
+    );
+
+    wp_enqueue_script(
+        'slick-js',
+        'https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js',
+        ['jquery'],
+        '1.8.1',
+        true
+    );
+
+    wp_enqueue_style(
+        'bw-slick-slider-style',
+        plugin_dir_url(__FILE__) . 'assets/css/bw-slick-slider.css',
+        [],
+        '1.0.0'
+    );
+
+    wp_enqueue_script(
+        'bw-slick-slider-js',
+        plugin_dir_url(__FILE__) . 'assets/js/bw-slick-slider.js',
+        ['jquery', 'slick-js'],
+        '1.0.0',
+        true
+    );
 }
 
 // Aggiungi categoria personalizzata "Black Work"
