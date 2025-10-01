@@ -34,13 +34,12 @@
   flex-direction: column;
   height: 100%;
   overflow: hidden;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: transform 0.3s ease;
 }
 
 .bw-slick-slider .bw-slick-item__inner:hover,
 .bw-slick-slider .bw-slick-item__inner:focus-within {
   transform: translateY(-4px);
-  box-shadow: 0 18px 32px rgba(15, 15, 15, 0.12);
 }
 
 .bw-slick-slider .bw-slick-item__image {
@@ -100,9 +99,10 @@
   pointer-events: none;
 }
 
-.bw-slick-slider .bw-slick-item__inner:hover .overlay-buttons,
-.bw-slick-slider .bw-slick-item__inner:focus-within .overlay-buttons,
-.bw-slick-slider .bw-slick-item__image:hover .overlay-buttons {
+.bw-slick-slider .bw-slick-item__image:hover .overlay-buttons,
+.bw-slick-slider .bw-slick-item__image:focus-within .overlay-buttons,
+.bw-slick-slider .overlay-buttons:hover,
+.bw-slick-slider .overlay-buttons:focus-within {
   opacity: 1;
   transform: translateY(0);
   pointer-events: auto;
@@ -121,7 +121,7 @@
   border-radius: 0;
   font-weight: 500;
   text-decoration: none;
-  overflow: hidden;
+  overflow: visible;
   transition: background 0.3s ease, color 0.3s ease;
 }
 
@@ -139,15 +139,23 @@
   border-left: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-.bw-slick-slider .overlay-button::after {
+.bw-slick-slider .overlay-button__label {
+  position: relative;
+  display: inline-block;
+  line-height: 1.2;
+}
+
+.bw-slick-slider .overlay-button__label::after {
   content: "";
   position: absolute;
   left: 0;
-  bottom: 8px;
-  width: 0;
+  bottom: -0.35em;
+  width: 100%;
   height: 2px;
   background: currentColor;
-  transition: width 0.3s ease;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease;
 }
 
 .bw-slick-slider .overlay-button:hover,
@@ -156,9 +164,9 @@
   color: var(--bw-overlay-buttons-color-hover);
 }
 
-.bw-slick-slider .overlay-button:hover::after,
-.bw-slick-slider .overlay-button:focus::after {
-  width: 100%;
+.bw-slick-slider .overlay-button:hover .overlay-button__label::after,
+.bw-slick-slider .overlay-button:focus .overlay-button__label::after {
+  transform: scaleX(1);
 }
 
 .bw-slick-slider .bw-slick-item__content {
