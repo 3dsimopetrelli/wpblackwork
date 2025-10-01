@@ -29,23 +29,22 @@
 
 .bw-slick-slider .bw-slick-item__inner {
   background: #fff;
-  border-radius: 18px;
   display: flex;
   flex-direction: column;
   height: 100%;
-  overflow: hidden;
-  transition: transform 0.3s ease;
-}
-
-.bw-slick-slider .bw-slick-item__inner:hover,
-.bw-slick-slider .bw-slick-item__inner:focus-within {
-  transform: translateY(-4px);
 }
 
 .bw-slick-slider .bw-slick-item__image {
   position: relative;
+}
+
+.bw-slick-slider .bw-ss__card {
+  position: relative;
+}
+
+.bw-slick-slider .bw-ss__media {
+  position: relative;
   overflow: hidden;
-  border-radius: 18px;
 }
 
 .bw-slick-slider .bw-slick-item__image--placeholder {
@@ -55,15 +54,19 @@
   justify-content: center;
 }
 
-.bw-slick-slider .bw-slick-item__image img {
+.bw-slick-slider .bw-slick-item__image img,
+.bw-slick-slider .bw-ss__media img {
   display: block;
   width: 100%;
   height: var(--bw-image-height);
   object-fit: cover;
-  transition: transform 0.5s ease;
+  transition: none;
+  transform: none;
+  border-radius: inherit;
 }
 
-.bw-slick-slider--no-crop .bw-slick-item__image img {
+.bw-slick-slider--no-crop .bw-slick-item__image img,
+.bw-slick-slider--no-crop .bw-ss__media img {
   height: auto;
   object-fit: contain;
 }
@@ -81,30 +84,36 @@
     );
 }
 
-.bw-slick-slider .bw-slick-item__inner:hover .bw-slick-item__image img {
-  transform: scale(1.04);
-}
-
-.bw-slick-slider .overlay-buttons {
+.bw-slick-slider .overlay-buttons,
+.bw-slick-slider .bw-ss__overlay {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
+  inset: 0;
   display: flex;
-  gap: 0;
+  align-items: flex-end;
+  justify-content: center;
   opacity: 0;
   transform: translateY(10px);
-  transition: all 0.3s ease;
+  transition: opacity 0.25s ease, transform 0.25s ease;
   z-index: 2;
   pointer-events: none;
+  box-sizing: border-box;
+  padding: 16px;
+  border-radius: inherit;
 }
 
-.bw-slick-slider .bw-slick-item__image:hover .overlay-buttons,
-.bw-slick-slider .bw-slick-item__image:focus-within .overlay-buttons,
-.bw-slick-slider .overlay-buttons:hover,
-.bw-slick-slider .overlay-buttons:focus-within {
+.bw-slick-slider .bw-ss__media:hover .bw-ss__overlay,
+.bw-slick-slider .bw-ss__media:focus-within .bw-ss__overlay,
+.bw-slick-slider .bw-ss__overlay:hover,
+.bw-slick-slider .bw-ss__overlay:focus-within {
   opacity: 1;
   transform: translateY(0);
+  pointer-events: auto;
+}
+
+.bw-slick-slider .bw-ss__buttons {
+  display: flex;
+  width: 100%;
+  gap: 0;
   pointer-events: auto;
 }
 
