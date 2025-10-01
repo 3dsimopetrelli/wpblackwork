@@ -275,6 +275,12 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
             'default'      => 'yes',
         ] );
 
+        $this->add_control( 'image_border_radius', [
+            'label'      => __( 'Border Radius', 'bw-elementor-widgets' ),
+            'type'       => Controls_Manager::DIMENSIONS,
+            'size_units' => [ 'px', '%' ],
+        ] );
+
         $this->end_controls_section();
 
         $this->start_controls_section( 'slider_section', [
@@ -604,6 +610,8 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
             $slider_settings_json = htmlspecialchars( $slider_settings_json, ENT_QUOTES, 'UTF-8' );
         }
 
+        $image_border_radius_style = $this->build_border_radius_style( isset( $settings['image_border_radius'] ) ? (array) $settings['image_border_radius'] : [] );
+
         $query = new \WP_Query( $query_args );
         ?>
         <div
@@ -634,7 +642,12 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
 
                     $thumbnail_html = '';
                     if ( has_post_thumbnail( $post_id ) ) {
-                        $thumbnail_html = get_the_post_thumbnail( $post_id, 'large', [ 'loading' => 'lazy' ] );
+                        $thumbnail_args = [ 'loading' => 'lazy' ];
+                        if ( $image_border_radius_style ) {
+                            $thumbnail_args['style'] = $image_border_radius_style;
+                        }
+
+                        $thumbnail_html = get_the_post_thumbnail( $post_id, 'large', $thumbnail_args );
                     }
 
                     $price_html = '';
@@ -657,10 +670,10 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
                                 <?php if ( $overlay_buttons_enabled ) : ?>
                                     <div class="overlay-buttons">
                                         <a class="overlay-button overlay-button--view" href="<?php echo esc_url( $permalink ); ?>">
-                                            <?php esc_html_e( 'View Product', 'bw-elementor-widgets' ); ?>
+                                            <span class="overlay-button__label"><?php esc_html_e( 'View Product', 'bw-elementor-widgets' ); ?></span>
                                         </a>
                                         <a class="overlay-button overlay-button--quick" href="<?php echo esc_url( $quick_view_link ); ?>">
-                                            <?php esc_html_e( 'Quick View', 'bw-elementor-widgets' ); ?>
+                                            <span class="overlay-button__label"><?php esc_html_e( 'Quick View', 'bw-elementor-widgets' ); ?></span>
                                         </a>
                                     </div>
                                 <?php endif; ?>
@@ -694,6 +707,53 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
         </div>
         <?php
         wp_reset_postdata();
+    }
+
+    private function build_border_radius_style( $dimensions ) {
+        if ( empty( $dimensions ) || ! is_array( $dimensions ) ) {
+            return '';
+        }
+
+        $sides          = [ 'top', 'right', 'bottom', 'left' ];
+        $allowed_units  = [ 'px', '%' ];
+        $values         = [];
+        $has_custom_val = false;
+
+        foreach ( $sides as $side ) {
+            $value = isset( $dimensions[ $side ] ) ? trim( (string) $dimensions[ $side ] ) : '';
+            $unit  = isset( $dimensions[ $side . '_unit' ] ) ? $dimensions[ $side . '_unit' ] : ( $dimensions['unit'] ?? 'px' );
+
+            if ( ! in_array( $unit, $allowed_units, true ) ) {
+                $unit = 'px';
+            }
+
+            if ( '' === $value && '0' !== $value ) {
+                $values[] = '0';
+                continue;
+            }
+
+            if ( is_numeric( $value ) ) {
+                if ( 0 === (float) $value ) {
+                    $values[] = '0';
+                } else {
+                    $values[]      = $value . $unit;
+                    $has_custom_val = true;
+                }
+                continue;
+            }
+
+            $values[] = $value;
+
+            if ( '0' !== $value && '0px' !== $value && '0%' !== $value ) {
+                $has_custom_val = true;
+            }
+        }
+
+        if ( ! $has_custom_val ) {
+            return '';
+        }
+
+        return 'border-radius:' . implode( ' ', $values ) . ';';
     }
 
     private function parse_ids( $ids_string ) {
