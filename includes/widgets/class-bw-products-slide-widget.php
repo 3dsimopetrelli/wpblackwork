@@ -109,6 +109,178 @@ class Widget_Bw_Products_Slide extends Widget_Base {
             'min' => 0,
             'default' => 0,
         ]);
+        $this->add_responsive_control('side_padding_left', [
+            'label' => __( 'Side Padding Left', 'plugin-name' ),
+            'type' => Controls_Manager::SLIDER,
+            'size_units' => [ 'px', '%' ],
+            'range' => [
+                'px' => [ 'min' => 0, 'max' => 200 ],
+                '%' => [ 'min' => 0, 'max' => 50 ],
+            ],
+            'selectors' => [
+                '{{WRAPPER}} .bw-products-slider' => '--bw-side-padding-left: {{SIZE}}{{UNIT}};',
+            ],
+        ]);
+
+        $this->add_responsive_control('side_padding_right', [
+            'label' => __( 'Side Padding Right', 'plugin-name' ),
+            'type' => Controls_Manager::SLIDER,
+            'size_units' => [ 'px', '%' ],
+            'range' => [
+                'px' => [ 'min' => 0, 'max' => 200 ],
+                '%' => [ 'min' => 0, 'max' => 50 ],
+            ],
+            'selectors' => [
+                '{{WRAPPER}} .bw-products-slider' => '--bw-side-padding-right: {{SIZE}}{{UNIT}};',
+            ],
+        ]);
+
+        $this->add_responsive_control('top_spacing', [
+            'label' => __( 'Top Spacing', 'plugin-name' ),
+            'type' => Controls_Manager::SLIDER,
+            'size_units' => [ 'px', '%' ],
+            'range' => [
+                'px' => [ 'min' => 0, 'max' => 200 ],
+                '%' => [ 'min' => 0, 'max' => 50 ],
+            ],
+            'selectors' => [
+                '{{WRAPPER}} .bw-products-slider' => '--bw-top-spacing: {{SIZE}}{{UNIT}};',
+            ],
+        ]);
+
+        $this->add_responsive_control('bottom_spacing', [
+            'label' => __( 'Bottom Spacing', 'plugin-name' ),
+            'type' => Controls_Manager::SLIDER,
+            'size_units' => [ 'px', '%' ],
+            'range' => [
+                'px' => [ 'min' => 0, 'max' => 200 ],
+                '%' => [ 'min' => 0, 'max' => 50 ],
+            ],
+            'selectors' => [
+                '{{WRAPPER}} .bw-products-slider' => '--bw-bottom-spacing: {{SIZE}}{{UNIT}};',
+            ],
+        ]);
+        $this->end_controls_section();
+
+        $this->start_controls_section('typography_section', [
+            'label' => __( 'Typography', 'plugin-name' ),
+            'tab' => Controls_Manager::TAB_STYLE,
+        ]);
+
+        $this->add_control('title_typography_heading', [
+            'label' => __( 'Titolo', 'plugin-name' ),
+            'type' => Controls_Manager::HEADING,
+            'separator' => 'before',
+        ]);
+
+        $this->add_group_control(
+            Group_Control_Typography::get_type(),
+            [
+                'name' => 'title_typography',
+                'selector' => '{{WRAPPER}} .bw-products-slider .bw-products-slide-title',
+            ]
+        );
+
+        $this->add_responsive_control('title_margin_top', [
+            'label' => __( 'Margin Top', 'plugin-name' ),
+            'type' => Controls_Manager::SLIDER,
+            'size_units' => [ 'px' ],
+            'range' => [
+                'px' => [ 'min' => -100, 'max' => 200 ],
+            ],
+            'selectors' => [
+                '{{WRAPPER}} .bw-products-slider .bw-products-slide-title' => 'margin-top: {{SIZE}}{{UNIT}};',
+            ],
+        ]);
+
+        $this->add_responsive_control('title_margin_bottom', [
+            'label' => __( 'Margin Bottom', 'plugin-name' ),
+            'type' => Controls_Manager::SLIDER,
+            'size_units' => [ 'px' ],
+            'range' => [
+                'px' => [ 'min' => -100, 'max' => 200 ],
+            ],
+            'selectors' => [
+                '{{WRAPPER}} .bw-products-slider .bw-products-slide-title' => 'margin-bottom: {{SIZE}}{{UNIT}};',
+            ],
+        ]);
+
+        $this->add_control('description_typography_heading', [
+            'label' => __( 'Descrizione', 'plugin-name' ),
+            'type' => Controls_Manager::HEADING,
+            'separator' => 'before',
+        ]);
+
+        $this->add_group_control(
+            Group_Control_Typography::get_type(),
+            [
+                'name' => 'description_typography',
+                'selector' => '{{WRAPPER}} .bw-products-slider .bw-products-slide-description',
+            ]
+        );
+
+        $this->add_responsive_control('description_margin_top', [
+            'label' => __( 'Margin Top', 'plugin-name' ),
+            'type' => Controls_Manager::SLIDER,
+            'size_units' => [ 'px' ],
+            'range' => [
+                'px' => [ 'min' => -100, 'max' => 200 ],
+            ],
+            'selectors' => [
+                '{{WRAPPER}} .bw-products-slider .bw-products-slide-description' => 'margin-top: {{SIZE}}{{UNIT}};',
+            ],
+        ]);
+
+        $this->add_responsive_control('description_margin_bottom', [
+            'label' => __( 'Margin Bottom', 'plugin-name' ),
+            'type' => Controls_Manager::SLIDER,
+            'size_units' => [ 'px' ],
+            'range' => [
+                'px' => [ 'min' => -100, 'max' => 200 ],
+            ],
+            'selectors' => [
+                '{{WRAPPER}} .bw-products-slider .bw-products-slide-description' => 'margin-bottom: {{SIZE}}{{UNIT}};',
+            ],
+        ]);
+
+        $this->add_control('price_typography_heading', [
+            'label' => __( 'Prezzo', 'plugin-name' ),
+            'type' => Controls_Manager::HEADING,
+            'separator' => 'before',
+        ]);
+
+        $this->add_group_control(
+            Group_Control_Typography::get_type(),
+            [
+                'name' => 'price_typography',
+                'selector' => '{{WRAPPER}} .bw-products-slider .bw-products-slide-price',
+            ]
+        );
+
+        $this->add_responsive_control('price_margin_top', [
+            'label' => __( 'Margin Top', 'plugin-name' ),
+            'type' => Controls_Manager::SLIDER,
+            'size_units' => [ 'px' ],
+            'range' => [
+                'px' => [ 'min' => -100, 'max' => 200 ],
+            ],
+            'selectors' => [
+                '{{WRAPPER}} .bw-products-slider .bw-products-slide-price' => 'margin-top: {{SIZE}}{{UNIT}};',
+            ],
+        ]);
+
+        $this->add_responsive_control('price_margin_bottom', [
+            'label' => __( 'Margin Bottom', 'plugin-name' ),
+            'type' => Controls_Manager::SLIDER,
+            'size_units' => [ 'px' ],
+            'range' => [
+                'px' => [ 'min' => -100, 'max' => 200 ],
+            ],
+            'selectors' => [
+                '{{WRAPPER}} .bw-products-slider .bw-products-slide-price' => 'margin-bottom: {{SIZE}}{{UNIT}};',
+            ],
+        ]);
+
         $this->end_controls_section();
 
         // SECTION SLIDER SETTINGS
@@ -368,19 +540,11 @@ class Widget_Bw_Products_Slide extends Widget_Base {
             'separator' => 'before',
         ]);
 
-        $this->add_group_control(
-            Group_Control_Typography::get_type(),
-            [
-                'name' => 'title_typography',
-                'selector' => '{{WRAPPER}} .bw-products-slider .bw-products-slide-item__content .product-title',
-            ]
-        );
-
         $this->add_control('title_color', [
             'label' => __( 'Colore', 'plugin-name' ),
             'type' => Controls_Manager::COLOR,
             'selectors' => [
-                '{{WRAPPER}} .bw-products-slider .bw-products-slide-item__content .product-title' => 'color: {{VALUE}};',
+                '{{WRAPPER}} .bw-products-slider .bw-products-slide-title' => 'color: {{VALUE}};',
             ],
         ]);
 
@@ -390,19 +554,11 @@ class Widget_Bw_Products_Slide extends Widget_Base {
             'separator' => 'before',
         ]);
 
-        $this->add_group_control(
-            Group_Control_Typography::get_type(),
-            [
-                'name' => 'description_typography',
-                'selector' => '{{WRAPPER}} .bw-products-slider .bw-products-slide-item__content .product-description',
-            ]
-        );
-
         $this->add_control('description_color', [
             'label' => __( 'Colore', 'plugin-name' ),
             'type' => Controls_Manager::COLOR,
             'selectors' => [
-                '{{WRAPPER}} .bw-products-slider .bw-products-slide-item__content .product-description' => 'color: {{VALUE}};',
+                '{{WRAPPER}} .bw-products-slider .bw-products-slide-description' => 'color: {{VALUE}};',
             ],
         ]);
 
@@ -412,19 +568,11 @@ class Widget_Bw_Products_Slide extends Widget_Base {
             'separator' => 'before',
         ]);
 
-        $this->add_group_control(
-            Group_Control_Typography::get_type(),
-            [
-                'name' => 'price_typography',
-                'selector' => '{{WRAPPER}} .bw-products-slider .bw-products-slide-item__content .product-price',
-            ]
-        );
-
         $this->add_control('price_color', [
             'label' => __( 'Colore', 'plugin-name' ),
             'type' => Controls_Manager::COLOR,
             'selectors' => [
-                '{{WRAPPER}} .bw-products-slider .bw-products-slide-item__content .product-price' => 'color: {{VALUE}};',
+                '{{WRAPPER}} .bw-products-slider .bw-products-slide-price' => 'color: {{VALUE}};',
             ],
         ]);
 
@@ -724,7 +872,7 @@ class Widget_Bw_Products_Slide extends Widget_Base {
 
                         <div class="bw-products-slide-item__content">
                             <?php if ( isset( $settings['show_title'] ) && 'yes' === $settings['show_title'] ) : ?>
-                                <h3 class="product-title">
+                                <h3 class="product-title bw-products-slide-title">
                                     <a class="product-link" href="<?php echo esc_url( $permalink ); ?>">
                                         <?php echo esc_html( $title ); ?>
                                     </a>
@@ -732,11 +880,11 @@ class Widget_Bw_Products_Slide extends Widget_Base {
                             <?php endif; ?>
 
                             <?php if ( isset( $settings['show_subtitle'] ) && 'yes' === $settings['show_subtitle'] && ! empty( $excerpt ) ) : ?>
-                                <div class="product-description"><?php echo wp_kses_post( $excerpt ); ?></div>
+                                <div class="product-description bw-products-slide-description"><?php echo wp_kses_post( $excerpt ); ?></div>
                             <?php endif; ?>
 
                             <?php if ( isset( $settings['show_price'] ) && 'yes' === $settings['show_price'] && ! empty( $price_html ) ) : ?>
-                                <div class="product-price price"><?php echo wp_kses_post( $price_html ); ?></div>
+                                <div class="product-price price bw-products-slide-price"><?php echo wp_kses_post( $price_html ); ?></div>
                             <?php endif; ?>
                         </div>
                     </article>
@@ -744,7 +892,7 @@ class Widget_Bw_Products_Slide extends Widget_Base {
             <?php else : ?>
                 <div class="bw-products-slide-item carousel-cell product-slide">
                     <div class="bw-products-slide-item__content">
-                        <p class="product-description"><?php esc_html_e( 'Nessun contenuto disponibile.', 'plugin-name' ); ?></p>
+                        <p class="product-description bw-products-slide-description"><?php esc_html_e( 'Nessun contenuto disponibile.', 'plugin-name' ); ?></p>
                     </div>
                 </div>
             <?php endif; ?>
