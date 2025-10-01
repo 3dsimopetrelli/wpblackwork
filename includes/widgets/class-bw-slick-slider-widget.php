@@ -1,5 +1,6 @@
 <?php
 use Elementor\Controls_Manager;
+use Elementor\Group_Control_Typography;
 use Elementor\Repeater;
 use Elementor\Widget_Base;
 
@@ -99,6 +100,157 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
                 'px' => [ 'min' => 0, 'max' => 80, 'step' => 1 ],
             ],
             'default' => [ 'size' => 24, 'unit' => 'px' ],
+        ] );
+
+        $this->add_responsive_control( 'side_padding', [
+            'label' => __( 'Side Padding', 'bw-elementor-widgets' ),
+            'type'  => Controls_Manager::DIMENSIONS,
+            'allowed_dimensions' => [ 'left', 'right' ],
+            'size_units' => [ 'px', '%' ],
+            'range' => [
+                'px' => [ 'min' => 0, 'max' => 200, 'step' => 1 ],
+                '%'  => [ 'min' => 0, 'max' => 30, 'step' => 1 ],
+            ],
+            'selectors' => [
+                '{{WRAPPER}} .bw-slick-slider' => 'padding-left: {{LEFT}}{{UNIT}}; padding-right: {{RIGHT}}{{UNIT}};',
+            ],
+        ] );
+
+        $this->add_responsive_control( 'top_spacing', [
+            'label' => __( 'Top Spacing', 'bw-elementor-widgets' ),
+            'type'  => Controls_Manager::SLIDER,
+            'size_units' => [ 'px', '%' ],
+            'range' => [
+                'px' => [ 'min' => 0, 'max' => 200, 'step' => 1 ],
+                '%'  => [ 'min' => 0, 'max' => 30, 'step' => 1 ],
+            ],
+            'selectors' => [
+                '{{WRAPPER}} .bw-slick-slider' => 'padding-top: {{SIZE}}{{UNIT}};',
+            ],
+        ] );
+
+        $this->add_responsive_control( 'bottom_spacing', [
+            'label' => __( 'Bottom Spacing', 'bw-elementor-widgets' ),
+            'type'  => Controls_Manager::SLIDER,
+            'size_units' => [ 'px', '%' ],
+            'range' => [
+                'px' => [ 'min' => 0, 'max' => 200, 'step' => 1 ],
+                '%'  => [ 'min' => 0, 'max' => 30, 'step' => 1 ],
+            ],
+            'selectors' => [
+                '{{WRAPPER}} .bw-slick-slider' => 'padding-bottom: {{SIZE}}{{UNIT}};',
+            ],
+        ] );
+
+        $this->end_controls_section();
+
+        $this->start_controls_section( 'typography_section', [
+            'label' => __( 'Typography', 'bw-elementor-widgets' ),
+            'tab'   => Controls_Manager::TAB_STYLE,
+        ] );
+
+        $this->add_control( 'title_typography_heading', [
+            'label' => __( 'Titolo', 'bw-elementor-widgets' ),
+            'type'  => Controls_Manager::HEADING,
+        ] );
+
+        $this->add_group_control( Group_Control_Typography::get_type(), [
+            'name'     => 'title_typography',
+            'selector' => '{{WRAPPER}} .bw-slick-slider .bw-slick-title',
+        ] );
+
+        $this->add_responsive_control( 'title_margin_top', [
+            'label' => __( 'Margin Top', 'bw-elementor-widgets' ),
+            'type'  => Controls_Manager::SLIDER,
+            'size_units' => [ 'px' ],
+            'range' => [
+                'px' => [ 'min' => -100, 'max' => 200, 'step' => 1 ],
+            ],
+            'selectors' => [
+                '{{WRAPPER}} .bw-slick-slider .bw-slick-title' => 'margin-top: {{SIZE}}{{UNIT}};',
+            ],
+        ] );
+
+        $this->add_responsive_control( 'title_margin_bottom', [
+            'label' => __( 'Margin Bottom', 'bw-elementor-widgets' ),
+            'type'  => Controls_Manager::SLIDER,
+            'size_units' => [ 'px' ],
+            'range' => [
+                'px' => [ 'min' => -100, 'max' => 200, 'step' => 1 ],
+            ],
+            'selectors' => [
+                '{{WRAPPER}} .bw-slick-slider .bw-slick-title' => 'margin-bottom: {{SIZE}}{{UNIT}};',
+            ],
+        ] );
+
+        $this->add_control( 'description_typography_heading', [
+            'label' => __( 'Descrizione', 'bw-elementor-widgets' ),
+            'type'  => Controls_Manager::HEADING,
+            'separator' => 'before',
+        ] );
+
+        $this->add_group_control( Group_Control_Typography::get_type(), [
+            'name'     => 'description_typography',
+            'selector' => '{{WRAPPER}} .bw-slick-slider .bw-slick-description',
+        ] );
+
+        $this->add_responsive_control( 'description_margin_top', [
+            'label' => __( 'Margin Top', 'bw-elementor-widgets' ),
+            'type'  => Controls_Manager::SLIDER,
+            'size_units' => [ 'px' ],
+            'range' => [
+                'px' => [ 'min' => -100, 'max' => 200, 'step' => 1 ],
+            ],
+            'selectors' => [
+                '{{WRAPPER}} .bw-slick-slider .bw-slick-description' => 'margin-top: {{SIZE}}{{UNIT}};',
+            ],
+        ] );
+
+        $this->add_responsive_control( 'description_margin_bottom', [
+            'label' => __( 'Margin Bottom', 'bw-elementor-widgets' ),
+            'type'  => Controls_Manager::SLIDER,
+            'size_units' => [ 'px' ],
+            'range' => [
+                'px' => [ 'min' => -100, 'max' => 200, 'step' => 1 ],
+            ],
+            'selectors' => [
+                '{{WRAPPER}} .bw-slick-slider .bw-slick-description' => 'margin-bottom: {{SIZE}}{{UNIT}};',
+            ],
+        ] );
+
+        $this->add_control( 'price_typography_heading', [
+            'label' => __( 'Prezzo', 'bw-elementor-widgets' ),
+            'type'  => Controls_Manager::HEADING,
+            'separator' => 'before',
+        ] );
+
+        $this->add_group_control( Group_Control_Typography::get_type(), [
+            'name'     => 'price_typography',
+            'selector' => '{{WRAPPER}} .bw-slick-slider .bw-slick-price',
+        ] );
+
+        $this->add_responsive_control( 'price_margin_top', [
+            'label' => __( 'Margin Top', 'bw-elementor-widgets' ),
+            'type'  => Controls_Manager::SLIDER,
+            'size_units' => [ 'px' ],
+            'range' => [
+                'px' => [ 'min' => -100, 'max' => 200, 'step' => 1 ],
+            ],
+            'selectors' => [
+                '{{WRAPPER}} .bw-slick-slider .bw-slick-price' => 'margin-top: {{SIZE}}{{UNIT}};',
+            ],
+        ] );
+
+        $this->add_responsive_control( 'price_margin_bottom', [
+            'label' => __( 'Margin Bottom', 'bw-elementor-widgets' ),
+            'type'  => Controls_Manager::SLIDER,
+            'size_units' => [ 'px' ],
+            'range' => [
+                'px' => [ 'min' => -100, 'max' => 200, 'step' => 1 ],
+            ],
+            'selectors' => [
+                '{{WRAPPER}} .bw-slick-slider .bw-slick-price' => 'margin-bottom: {{SIZE}}{{UNIT}};',
+            ],
         ] );
 
         $this->end_controls_section();
@@ -404,18 +556,18 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
                             </div>
 
                             <div class="bw-slick-item__content">
-                                <h3 class="bw-slick-item__title">
+                                <h3 class="bw-slick-item__title bw-slick-title">
                                     <a href="<?php echo esc_url( $permalink ); ?>">
                                         <?php echo esc_html( $title ); ?>
                                     </a>
                                 </h3>
 
                                 <?php if ( ! empty( $excerpt ) ) : ?>
-                                    <div class="bw-slick-item__excerpt"><?php echo wp_kses_post( $excerpt ); ?></div>
+                                    <div class="bw-slick-item__excerpt bw-slick-description"><?php echo wp_kses_post( $excerpt ); ?></div>
                                 <?php endif; ?>
 
                                 <?php if ( $price_html ) : ?>
-                                    <div class="bw-slick-item__price price"><?php echo wp_kses_post( $price_html ); ?></div>
+                                    <div class="bw-slick-item__price price bw-slick-price"><?php echo wp_kses_post( $price_html ); ?></div>
                                 <?php endif; ?>
                             </div>
                         </div>
