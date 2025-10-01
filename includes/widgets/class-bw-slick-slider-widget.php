@@ -275,10 +275,15 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
             'default'      => 'yes',
         ] );
 
-        $this->add_control( 'image_border_radius', [
+        $this->add_responsive_control( 'image_border_radius', [
             'label'      => __( 'Border Radius', 'bw-elementor-widgets' ),
             'type'       => Controls_Manager::DIMENSIONS,
-            'size_units' => [ 'px', '%' ],
+            'size_units' => [ 'px', '%', 'em' ],
+            'selectors'  => [
+                '{{WRAPPER}} .bw-ss__media'   => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                '{{WRAPPER}} .bw-ss__media img' => 'border-radius: inherit;',
+                '{{WRAPPER}} .bw-ss__overlay' => 'border-radius: inherit;',
+            ],
         ] );
 
         $this->end_controls_section();
@@ -439,26 +444,63 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
 
         $this->end_controls_section();
 
+        $this->start_controls_section(
+            'section_view_buttons',
+            [
+                'label' => __( 'View Buttons', 'bw-elementor-widgets' ),
+                'tab'   => Controls_Manager::TAB_CONTENT,
+            ]
+        );
+
+        $this->add_control(
+            'view_buttons_enable',
+            [
+                'label'        => __( 'Enable Buttons', 'bw-elementor-widgets' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'label_on'     => __( 'On', 'bw-elementor-widgets' ),
+                'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
+                'return_value' => 'yes',
+                'default'      => 'yes',
+            ]
+        );
+
+        $this->add_responsive_control(
+            'view_buttons_padding',
+            [
+                'label'      => __( 'Buttons Padding', 'bw-elementor-widgets' ),
+                'type'       => Controls_Manager::DIMENSIONS,
+                'size_units' => [ 'px', 'em', '%' ],
+                'default'    => [
+                    'top'    => 16,
+                    'right'  => 16,
+                    'bottom' => 16,
+                    'left'   => 16,
+                    'unit'   => 'px',
+                ],
+                'selectors'  => [
+                    '{{WRAPPER}} .bw-ss__overlay' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+                'condition'  => [
+                    'view_buttons_enable' => 'yes',
+                ],
+            ]
+        );
+
+        $this->end_controls_section();
+
         $this->start_controls_section( 'overlay_buttons_section', [
             'label' => __( 'Overlay Buttons', 'bw-elementor-widgets' ),
             'tab'   => Controls_Manager::TAB_STYLE,
         ] );
 
-        $this->add_control( 'overlay_buttons_enable', [
-            'label'        => __( 'Enable Overlay Buttons', 'bw-elementor-widgets' ),
-            'type'         => Controls_Manager::SWITCHER,
-            'return_value' => 'yes',
-            'default'      => 'yes',
-        ] );
-
         $this->add_group_control( Group_Control_Typography::get_type(), [
             'name'      => 'overlay_buttons_typography',
-            'selector'  => '{{WRAPPER}} .bw-slick-slider .overlay-buttons a',
-            'condition' => [ 'overlay_buttons_enable' => 'yes' ],
+            'selector'  => '{{WRAPPER}} .bw-slick-slider .bw-ss__btn',
+            'condition' => [ 'view_buttons_enable' => 'yes' ],
         ] );
 
         $this->start_controls_tabs( 'overlay_buttons_color_tabs', [
-            'condition' => [ 'overlay_buttons_enable' => 'yes' ],
+            'condition' => [ 'view_buttons_enable' => 'yes' ],
         ] );
 
         $this->start_controls_tab( 'overlay_buttons_color_normal', [
@@ -520,7 +562,7 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
             'selectors' => [
                 '{{WRAPPER}} .bw-slick-slider' => '--bw-overlay-buttons-radius: {{SIZE}}{{UNIT}};',
             ],
-            'condition' => [ 'overlay_buttons_enable' => 'yes' ],
+            'condition' => [ 'view_buttons_enable' => 'yes' ],
         ] );
 
         $this->add_responsive_control( 'overlay_buttons_padding_vertical', [
@@ -532,7 +574,7 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
             'selectors' => [
                 '{{WRAPPER}} .bw-slick-slider' => '--bw-overlay-buttons-padding-y: {{SIZE}}{{UNIT}};',
             ],
-            'condition' => [ 'overlay_buttons_enable' => 'yes' ],
+            'condition' => [ 'view_buttons_enable' => 'yes' ],
         ] );
 
         $this->add_responsive_control( 'overlay_buttons_padding_horizontal', [
@@ -544,7 +586,7 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
             'selectors' => [
                 '{{WRAPPER}} .bw-slick-slider' => '--bw-overlay-buttons-padding-x: {{SIZE}}{{UNIT}};',
             ],
-            'condition' => [ 'overlay_buttons_enable' => 'yes' ],
+            'condition' => [ 'view_buttons_enable' => 'yes' ],
         ] );
 
         $this->end_controls_section();
@@ -552,7 +594,9 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
 
     protected function render() {
         $settings      = $this->get_settings_for_display();
-        $overlay_buttons_enabled = isset( $settings['overlay_buttons_enable'] ) && 'yes' === $settings['overlay_buttons_enable'];
+        $view_buttons_enabled = isset( $settings['view_buttons_enable'] )
+            ? ( 'yes' === $settings['view_buttons_enable'] )
+            : ( isset( $settings['overlay_buttons_enable'] ) ? 'yes' === $settings['overlay_buttons_enable'] : true );
         $content_type  = isset( $settings['content_type'] ) && 'product' === $settings['content_type'] ? 'product' : 'post';
         $columns       = isset( $settings['columns'] ) ? max( 1, absint( $settings['columns'] ) ) : 3;
         $gap           = isset( $settings['gap']['size'] ) ? max( 0, absint( $settings['gap']['size'] ) ) : 24;
@@ -610,8 +654,6 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
             $slider_settings_json = htmlspecialchars( $slider_settings_json, ENT_QUOTES, 'UTF-8' );
         }
 
-        $image_border_radius_style = $this->build_border_radius_style( isset( $settings['image_border_radius'] ) ? (array) $settings['image_border_radius'] : [] );
-
         $query = new \WP_Query( $query_args );
         ?>
         <div
@@ -643,10 +685,6 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
                     $thumbnail_html = '';
                     if ( has_post_thumbnail( $post_id ) ) {
                         $thumbnail_args = [ 'loading' => 'lazy' ];
-                        if ( $image_border_radius_style ) {
-                            $thumbnail_args['style'] = $image_border_radius_style;
-                        }
-
                         $thumbnail_html = get_the_post_thumbnail( $post_id, 'large', $thumbnail_args );
                     }
 
@@ -658,28 +696,36 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
                     $quick_view_link = add_query_arg( [ 'quick-view' => $post_id ], $permalink );
                     ?>
                     <article <?php post_class( 'bw-slick-item' ); ?>>
-                        <div class="bw-slick-item__inner">
-                            <div class="bw-slick-item__image<?php echo $thumbnail_html ? '' : ' bw-slick-item__image--placeholder'; ?>">
+                        <div class="bw-slick-item__inner bw-ss__card">
+                            <?php
+                            $media_classes = [ 'bw-slick-item__image', 'bw-ss__media' ];
+                            if ( ! $thumbnail_html ) {
+                                $media_classes[] = 'bw-slick-item__image--placeholder';
+                            }
+                            ?>
+                            <div class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $media_classes ) ) ); ?>">
                                 <?php if ( $thumbnail_html ) : ?>
-                                    <a class="bw-slick-item__media-link" href="<?php echo esc_url( $permalink ); ?>">
+                                    <a class="bw-slick-item__media-link bw-ss__media-link" href="<?php echo esc_url( $permalink ); ?>">
                                         <?php echo wp_kses_post( $thumbnail_html ); ?>
                                     </a>
                                 <?php else : ?>
                                     <span class="bw-slick-item__image-placeholder" aria-hidden="true"></span>
                                 <?php endif; ?>
-                                <?php if ( $overlay_buttons_enabled ) : ?>
-                                    <div class="overlay-buttons">
-                                        <a class="overlay-button overlay-button--view" href="<?php echo esc_url( $permalink ); ?>">
-                                            <span class="overlay-button__label"><?php esc_html_e( 'View Product', 'bw-elementor-widgets' ); ?></span>
-                                        </a>
-                                        <a class="overlay-button overlay-button--quick" href="<?php echo esc_url( $quick_view_link ); ?>">
-                                            <span class="overlay-button__label"><?php esc_html_e( 'Quick View', 'bw-elementor-widgets' ); ?></span>
-                                        </a>
+                                <?php if ( $thumbnail_html && $view_buttons_enabled ) : ?>
+                                    <div class="overlay-buttons bw-ss__overlay has-buttons">
+                                        <div class="bw-ss__buttons">
+                                            <a class="overlay-button overlay-button--view bw-ss__btn" href="<?php echo esc_url( $permalink ); ?>">
+                                                <span class="overlay-button__label"><?php esc_html_e( 'View Product', 'bw-elementor-widgets' ); ?></span>
+                                            </a>
+                                            <a class="overlay-button overlay-button--quick bw-ss__btn" href="<?php echo esc_url( $quick_view_link ); ?>">
+                                                <span class="overlay-button__label"><?php esc_html_e( 'Quick View', 'bw-elementor-widgets' ); ?></span>
+                                            </a>
+                                        </div>
                                     </div>
                                 <?php endif; ?>
                             </div>
 
-                            <div class="bw-slick-item__content">
+                            <div class="bw-slick-item__content bw-ss__content">
                                 <h3 class="bw-slick-item__title bw-slick-title">
                                     <a href="<?php echo esc_url( $permalink ); ?>">
                                         <?php echo esc_html( $title ); ?>
@@ -707,53 +753,6 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
         </div>
         <?php
         wp_reset_postdata();
-    }
-
-    private function build_border_radius_style( $dimensions ) {
-        if ( empty( $dimensions ) || ! is_array( $dimensions ) ) {
-            return '';
-        }
-
-        $sides          = [ 'top', 'right', 'bottom', 'left' ];
-        $allowed_units  = [ 'px', '%' ];
-        $values         = [];
-        $has_custom_val = false;
-
-        foreach ( $sides as $side ) {
-            $value = isset( $dimensions[ $side ] ) ? trim( (string) $dimensions[ $side ] ) : '';
-            $unit  = isset( $dimensions[ $side . '_unit' ] ) ? $dimensions[ $side . '_unit' ] : ( $dimensions['unit'] ?? 'px' );
-
-            if ( ! in_array( $unit, $allowed_units, true ) ) {
-                $unit = 'px';
-            }
-
-            if ( '' === $value && '0' !== $value ) {
-                $values[] = '0';
-                continue;
-            }
-
-            if ( is_numeric( $value ) ) {
-                if ( 0 === (float) $value ) {
-                    $values[] = '0';
-                } else {
-                    $values[]      = $value . $unit;
-                    $has_custom_val = true;
-                }
-                continue;
-            }
-
-            $values[] = $value;
-
-            if ( '0' !== $value && '0px' !== $value && '0%' !== $value ) {
-                $has_custom_val = true;
-            }
-        }
-
-        if ( ! $has_custom_val ) {
-            return '';
-        }
-
-        return 'border-radius:' . implode( ' ', $values ) . ';';
     }
 
     private function parse_ids( $ids_string ) {
