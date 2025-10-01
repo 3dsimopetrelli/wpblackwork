@@ -134,7 +134,8 @@
   gap: 12px;
 }
 
-.bw-slick-slider .bw-slick-item__title {
+.bw-slick-slider .bw-slick-item__title,
+.bw-slick-slider .bw-slick-title {
   margin: 0;
   font-size: 1.125rem;
   line-height: 1.3;
@@ -150,17 +151,20 @@
   text-decoration: underline;
 }
 
-.bw-slick-slider .bw-slick-item__excerpt {
+.bw-slick-slider .bw-slick-item__excerpt,
+.bw-slick-slider .bw-slick-description {
   color: #4b4b4b;
   font-size: 0.95rem;
   line-height: 1.55;
 }
 
-.bw-slick-slider .bw-slick-item__excerpt p {
+.bw-slick-slider .bw-slick-item__excerpt p,
+.bw-slick-slider .bw-slick-description p {
   margin: 0;
 }
 
-.bw-slick-slider .bw-slick-item__price {
+.bw-slick-slider .bw-slick-item__price,
+.bw-slick-slider .bw-slick-price {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
