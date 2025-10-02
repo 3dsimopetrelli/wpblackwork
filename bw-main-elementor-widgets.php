@@ -89,11 +89,21 @@ function bw_enqueue_flickity() {
         true
     );
 
+    if ( class_exists( 'WooCommerce' ) ) {
+        wp_enqueue_script( 'wc-add-to-cart-variation' );
+    }
+
     wp_localize_script(
         'bw-slick-slider-js',
         'bwSlickSlider',
         [
             'assetsUrl' => plugin_dir_url(__FILE__) . 'assets/',
+            'ajaxUrl'   => admin_url( 'admin-ajax.php' ),
+            'quickViewNonce' => wp_create_nonce( 'bw_quick_view_nonce' ),
+            'i18n'      => [
+                'loading' => __( 'Caricamento prodotto…', 'bw' ),
+                'error'   => __( 'Impossibile caricare le informazioni del prodotto.', 'bw' ),
+            ],
         ]
     );
 }

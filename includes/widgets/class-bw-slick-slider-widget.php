@@ -179,6 +179,30 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
 
         $this->end_controls_section();
 
+        $this->start_controls_section(
+            'section_quick_view',
+            [
+                'label'     => __( 'Quick View', 'bw' ),
+                'tab'       => Controls_Manager::TAB_CONTENT,
+                'condition' => [ 'content_type' => 'product' ],
+            ]
+        );
+
+        $this->add_control(
+            'quick_view_enable',
+            [
+                'label'        => __( 'Enable Quick View', 'bw' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'label_on'     => __( 'On', 'bw' ),
+                'label_off'    => __( 'Off', 'bw' ),
+                'return_value' => 'yes',
+                'default'      => 'yes',
+                'description'  => __( 'Mostra il pulsante Quick View sul prodotto.', 'bw' ),
+            ]
+        );
+
+        $this->end_controls_section();
+
         $this->start_controls_section( 'typography_section', [
             'label' => __( 'Typography', 'bw-elementor-widgets' ),
             'tab'   => Controls_Manager::TAB_STYLE,
@@ -287,6 +311,59 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
                 '{{WRAPPER}} .bw-slick-slider .bw-slick-price' => 'margin-bottom: {{SIZE}}{{UNIT}};',
             ],
         ] );
+
+        $this->end_controls_section();
+
+        $this->start_controls_section(
+            'section_quickview_style',
+            [
+                'label'     => __( 'Quick View', 'bw' ),
+                'tab'       => Controls_Manager::TAB_STYLE,
+                'condition' => [
+                    'content_type'      => 'product',
+                    'quick_view_enable' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_group_control(
+            Group_Control_Typography::get_type(),
+            [
+                'name'     => 'qv_title_typo',
+                'label'    => __( 'Title Typography', 'bw' ),
+                'selector' => '{{WRAPPER}} .bw-quickview .bw-qv-title',
+            ]
+        );
+
+        $this->add_group_control(
+            Group_Control_Typography::get_type(),
+            [
+                'name'     => 'qv_desc_typo',
+                'label'    => __( 'Description Typography', 'bw' ),
+                'selector' => '{{WRAPPER}} .bw-quickview .bw-qv-description',
+            ]
+        );
+
+        $this->add_group_control(
+            Group_Control_Typography::get_type(),
+            [
+                'name'     => 'qv_price_typo',
+                'label'    => __( 'Price Typography', 'bw' ),
+                'selector' => '{{WRAPPER}} .bw-quickview .bw-qv-price',
+            ]
+        );
+
+        $this->add_responsive_control(
+            'qv_padding',
+            [
+                'label'      => __( 'Content Padding', 'bw' ),
+                'type'       => Controls_Manager::DIMENSIONS,
+                'size_units' => [ 'px', '%' ],
+                'selectors'  => [
+                    '{{WRAPPER}} .bw-quickview .bw-quickview-content' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
 
         $this->end_controls_section();
 
@@ -692,6 +769,8 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
             ? ( 'yes' === $settings['view_buttons_enable'] )
             : ( isset( $settings['overlay_buttons_enable'] ) ? 'yes' === $settings['overlay_buttons_enable'] : true );
         $content_type  = isset( $settings['content_type'] ) && 'product' === $settings['content_type'] ? 'product' : 'post';
+        $quick_view_setting = isset( $settings['quick_view_enable'] ) ? ( 'yes' === $settings['quick_view_enable'] ) : true;
+        $quick_view_enabled = ( 'product' === $content_type ) && $quick_view_setting;
         $columns       = isset( $settings['columns'] ) ? max( 1, absint( $settings['columns'] ) ) : 3;
         $gap           = isset( $settings['gap']['size'] ) ? max( 0, absint( $settings['gap']['size'] ) ) : 24;
         $image_height  = isset( $settings['image_height'] ) ? max( 0, absint( $settings['image_height'] ) ) : 0;
@@ -751,6 +830,9 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
         $slider_settings = $this->prepare_slider_settings( $settings, $columns, $slides_scroll );
 
         $wrapper_classes = [ 'bw-slick-slider' ];
+        if ( $quick_view_enabled && 'product' === $content_type ) {
+            $wrapper_classes[] = 'bw-slick-slider--quick-view';
+        }
         if ( ! $image_crop ) {
             $wrapper_classes[] = 'bw-slick-slider--no-crop';
         }
@@ -773,6 +855,7 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
         <div
             class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $wrapper_classes ) ) ); ?>"
             data-columns="<?php echo esc_attr( $columns ); ?>"
+            data-has-quick-view="<?php echo $quick_view_enabled ? 'true' : 'false'; ?>"
             <?php if ( $slider_settings_json ) : ?>
                 data-slider-settings="<?php echo $slider_settings_json; ?>"
             <?php endif; ?>
@@ -825,13 +908,21 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
                                 <?php else : ?>
                                     <span class="bw-slick-item__image-placeholder" aria-hidden="true"></span>
                                 <?php endif; ?>
-                                <?php if ( $thumbnail_html && $view_buttons_enabled ) : ?>
+                                <?php if ( $thumbnail_html && $view_buttons_enabled && ! $quick_view_enabled ) : ?>
                                     <div class="overlay-buttons bw-ss__overlay has-buttons">
                                         <div class="bw-ss__buttons">
                                             <a class="overlay-button overlay-button--view bw-ss__btn" href="<?php echo esc_url( $permalink ); ?>">
                                                 <span class="overlay-button__label"><?php esc_html_e( 'View Product', 'bw-elementor-widgets' ); ?></span>
                                             </a>
-                                            <a class="overlay-button overlay-button--quick bw-ss__btn" href="<?php echo esc_url( $quick_view_link ); ?>">
+                                        </div>
+                                    </div>
+                                <?php elseif ( $thumbnail_html && $view_buttons_enabled && $quick_view_enabled ) : ?>
+                                    <div class="overlay-buttons bw-ss__overlay has-buttons">
+                                        <div class="bw-ss__buttons">
+                                            <a class="overlay-button overlay-button--view bw-ss__btn" href="<?php echo esc_url( $permalink ); ?>">
+                                                <span class="overlay-button__label"><?php esc_html_e( 'View Product', 'bw-elementor-widgets' ); ?></span>
+                                            </a>
+                                            <a class="overlay-button overlay-button--quick bw-ss__btn" href="<?php echo esc_url( $quick_view_link ); ?>" data-product-id="<?php echo esc_attr( $post_id ); ?>">
                                                 <span class="overlay-button__label"><?php esc_html_e( 'Quick View', 'bw-elementor-widgets' ); ?></span>
                                             </a>
                                         </div>
@@ -865,6 +956,28 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
                 </div>
             <?php endif; ?>
         </div>
+        <?php if ( $quick_view_enabled && 'product' === $content_type ) : ?>
+            <div class="bw-quickview-overlay" data-product-quick-view aria-hidden="true">
+                <div class="bw-quickview-backdrop" data-quickview-close></div>
+                <div class="bw-quickview" role="dialog" aria-modal="true" aria-label="<?php esc_attr_e( 'Product quick view', 'bw-elementor-widgets' ); ?>" tabindex="-1">
+                    <button type="button" class="bw-quickview-close" aria-label="<?php esc_attr_e( 'Close quick view', 'bw-elementor-widgets' ); ?>" data-quickview-close>
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <div class="bw-quickview-image">
+                        <img src="" alt="" />
+                        <div class="bw-loader" aria-hidden="true"></div>
+                    </div>
+                    <div class="bw-quickview-content">
+                        <h2 class="bw-qv-title">Product Title</h2>
+                        <div class="bw-qv-description">Product short description</div>
+                        <div class="bw-qv-variations"></div>
+                        <div class="bw-qv-price">$99.00</div>
+                        <div class="bw-qv-addtocart"></div>
+                        <div class="bw-qv-message" role="alert"></div>
+                    </div>
+                </div>
+            </div>
+        <?php endif; ?>
         <?php
         wp_reset_postdata();
     }
