@@ -890,6 +890,7 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
                         $price_html = $this->get_price_markup( $post_id );
                     }
 
+                    $quick_view_link = add_query_arg( [ 'quick-view' => $post_id ], $permalink );
                     ?>
                     <article <?php post_class( 'bw-slick-item' ); ?>>
                         <div class="bw-slick-item__inner bw-ss__card">
@@ -908,20 +909,20 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
                                     <span class="bw-slick-item__image-placeholder" aria-hidden="true"></span>
                                 <?php endif; ?>
                                 <?php if ( $thumbnail_html && $view_buttons_enabled && ! $quick_view_enabled ) : ?>
-                                    <div class="overlay-buttons bw-overlay-buttons bw-ss__overlay has-buttons">
+                                    <div class="overlay-buttons bw-ss__overlay has-buttons">
                                         <div class="bw-ss__buttons">
-                                            <a class="overlay-button bw-overlay-button overlay-button--view bw-ss__btn bw-view-btn" href="<?php echo esc_url( $permalink ); ?>">
+                                            <a class="overlay-button overlay-button--view bw-ss__btn bw-view-btn" href="<?php echo esc_url( $permalink ); ?>">
                                                 <span class="overlay-button__label"><?php esc_html_e( 'View Product', 'bw-elementor-widgets' ); ?></span>
                                             </a>
                                         </div>
                                     </div>
                                 <?php elseif ( $thumbnail_html && $view_buttons_enabled && $quick_view_enabled ) : ?>
-                                    <div class="overlay-buttons bw-overlay-buttons bw-ss__overlay has-buttons">
+                                    <div class="overlay-buttons bw-ss__overlay has-buttons">
                                         <div class="bw-ss__buttons">
-                                            <a class="overlay-button bw-overlay-button overlay-button--view bw-ss__btn bw-view-btn" href="<?php echo esc_url( $permalink ); ?>">
+                                            <a class="overlay-button overlay-button--view bw-ss__btn bw-view-btn" href="<?php echo esc_url( $permalink ); ?>">
                                                 <span class="overlay-button__label"><?php esc_html_e( 'View Product', 'bw-elementor-widgets' ); ?></span>
                                             </a>
-                                            <a class="overlay-button bw-overlay-button overlay-button--quick bw-ss__btn bw-quickview-btn bw-qv-btn" href="#" data-product-id="<?php echo esc_attr( $post_id ); ?>">
+                                            <a class="overlay-button overlay-button--quick bw-ss__btn bw-quickview-btn" href="<?php echo esc_url( $quick_view_link ); ?>" data-product-id="<?php echo esc_attr( $post_id ); ?>">
                                                 <span class="overlay-button__label"><?php esc_html_e( 'Quick View', 'bw-elementor-widgets' ); ?></span>
                                             </a>
                                         </div>
@@ -959,7 +960,7 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
             <div class="bw-quickview-overlay" data-product-quick-view aria-hidden="true">
                 <div class="bw-quickview-backdrop" data-quickview-close></div>
                 <div class="bw-quickview" role="dialog" aria-modal="true" aria-label="<?php esc_attr_e( 'Product quick view', 'bw-elementor-widgets' ); ?>" tabindex="-1">
-                    <button type="button" class="bw-quickview-close bw-qv-close" aria-label="<?php esc_attr_e( 'Close quick view', 'bw-elementor-widgets' ); ?>" data-quickview-close>
+                    <button type="button" class="bw-quickview-close" aria-label="<?php esc_attr_e( 'Close quick view', 'bw-elementor-widgets' ); ?>" data-quickview-close>
                         <span aria-hidden="true">&times;</span>
                     </button>
                     <div class="bw-quickview-image">
