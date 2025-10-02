@@ -16,12 +16,21 @@ class WC_Product_Digital_Asset extends WC_Product_Variable {
     protected $product_type = 'digital_asset';
 
     /**
-     * WC_Product_Digital_Asset constructor.
+     * Always treat digital assets as virtual products.
      *
-     * @param mixed $product Product to initialize.
+     * @return bool
      */
-    public function __construct( $product = 0 ) {
-        parent::__construct( $product );
+    public function is_virtual() {
+        return true;
+    }
+
+    /**
+     * Always treat digital assets as downloadable products.
+     *
+     * @return bool
+     */
+    public function is_downloadable() {
+        return true;
     }
 
     /**
