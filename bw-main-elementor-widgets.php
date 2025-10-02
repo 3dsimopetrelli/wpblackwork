@@ -20,6 +20,9 @@ if ( file_exists( plugin_dir_path( __FILE__ ) . 'BW_coming_soon/bw-coming-soon.p
 // Loader dei widget
 require_once __DIR__ . '/includes/class-bw-widget-loader.php';
 
+// Tipi di prodotto personalizzati per WooCommerce
+require_once plugin_dir_path( __FILE__ ) . 'includes/product-types/product-types-init.php';
+
 add_action('elementor/frontend/after_enqueue_scripts', 'bw_enqueue_flickity');
 add_action('elementor/editor/after_enqueue_scripts', 'bw_enqueue_flickity');
 
