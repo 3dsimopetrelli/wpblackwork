@@ -206,10 +206,25 @@
 .bw-slick-next {
   position: absolute;
   bottom: 15px;
-  background: none;
-  border: none;
+  background: none !important;
+  border: none !important;
   cursor: pointer;
   z-index: 10;
+  box-shadow: none !important;
+  padding: 0; /* default */
+}
+
+.bw-slick-prev:hover,
+.bw-slick-next:hover {
+  background: none !important;
+  box-shadow: none !important;
+}
+
+.bw-slick-prev img,
+.bw-slick-next img {
+  width: 30px; /* default */
+  height: auto;
+  display: block;
 }
 
 .bw-slick-prev {
