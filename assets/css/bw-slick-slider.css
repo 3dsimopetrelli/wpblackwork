@@ -208,6 +208,19 @@
   text-decoration: underline;
 }
 
+.bw-qv-overlay {
+  display: none;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.bw-qv-overlay.is-open {
+  display: flex;
+  opacity: 1;
+  pointer-events: auto;
+}
+
 .bw-quickview-overlay {
   position: fixed;
   inset: 0;

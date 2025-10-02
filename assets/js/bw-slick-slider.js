@@ -190,8 +190,6 @@
     return settings;
   };
 
-  var quickViewActiveInstance = null;
-
   var isObject = function (value) {
     return Object.prototype.toString.call(value) === '[object Object]';
   };
@@ -220,219 +218,201 @@
       type: 'POST',
       dataType: 'json',
       data: {
-        action: 'bw_get_quick_view',
+        action: 'bw_qv_get_product',
         nonce: window.bwSlickSlider.quickViewNonce || '',
         product_id: productId,
       },
     });
   };
 
-  var QuickView = function ($widget) {
-    this.$widget = $widget;
-    this.$overlay = $widget.find('[data-product-quick-view]');
-    this.$dialog = this.$overlay.find('.bw-quickview');
-    this.$imageWrap = this.$overlay.find('.bw-quickview-image');
-    this.$image = this.$imageWrap.find('img');
-    this.$loader = this.$overlay.find('.bw-loader');
-    this.$title = this.$overlay.find('.bw-qv-title');
-    this.$description = this.$overlay.find('.bw-qv-description');
-    this.$variations = this.$overlay.find('.bw-qv-variations');
-    this.$price = this.$overlay.find('.bw-qv-price');
-    this.$addToCart = this.$overlay.find('.bw-qv-addtocart');
-    this.$message = this.$overlay.find('.bw-qv-message');
-    this.currentRequest = null;
-    this.isOpen = false;
-    this.isLoading = false;
-    this.lastTrigger = null;
+  var activeQuickViewClose = null;
 
-    this.bindEvents();
-  };
+  var setupQuickViewOverlay = function ($overlay) {
+    var state = {
+      currentRequest: null,
+      isOpen: false,
+      lastTrigger: null,
+    };
 
-  QuickView.prototype.bindEvents = function () {
-    var self = this;
+    var $dialog = $overlay.find('.bw-quickview');
+    var $image = $overlay.find('.bw-quickview-image img');
+    var $loader = $overlay.find('.bw-loader');
+    var $content = $overlay.find('.bw-quickview-content, .bw-qv-content');
+    var $title = $overlay.find('.bw-qv-title');
+    var $description = $overlay.find('.bw-qv-description');
+    var $variations = $overlay.find('.bw-qv-variations');
+    var $price = $overlay.find('.bw-qv-price');
+    var $addToCart = $overlay.find('.bw-qv-addtocart');
+    var $message = $overlay.find('.bw-qv-message');
 
-    this.$widget.on('click', '.overlay-button--quick', function (event) {
-      event.preventDefault();
+    var resetContent = function () {
+      $title.text('');
+      $description.empty();
+      $variations.empty();
+      $price.empty();
+      $addToCart.empty();
 
-      var $trigger = $(event.currentTarget);
-      var productId = parseInt($trigger.attr('data-product-id'), 10);
+      toggleSection($description, false);
+      toggleSection($variations, false);
+      toggleSection($price, false);
+      toggleSection($addToCart, false);
 
-      if (!productId || self.isLoading) {
+      if ($message.length) {
+        $message.empty().removeClass('is-visible');
+      }
+    };
+
+    var toggleSection = function ($element, hasContent) {
+      if (!$element || !$element.length) {
         return;
       }
 
-      self.open(productId, $trigger);
-    });
-
-    this.$overlay.on('click', '[data-quickview-close]', function (event) {
-      event.preventDefault();
-      self.close();
-    });
-
-    this.$overlay.on('click', function (event) {
-      if (event.target === self.$overlay.get(0)) {
-        self.close();
+      if (hasContent) {
+        $element.removeClass('is-empty').attr('aria-hidden', 'false');
+      } else {
+        $element.addClass('is-empty').attr('aria-hidden', 'true');
       }
-    });
-  };
+    };
 
-  QuickView.prototype.resetContent = function () {
-    this.$title.text('');
-    this.$description.empty();
-    this.$variations.empty();
-    this.$price.empty();
-    this.$addToCart.empty();
-    this.$message.empty().removeClass('is-visible');
-  };
+    var populateContent = function (data) {
+      var title = data && data.title ? data.title : '';
+      var description = data && data.description ? data.description : '';
+      var priceHtml = data && data.price_html ? data.price_html : '';
+      var variationsHtml = data && data.variations_html ? data.variations_html : '';
+      var addToCartHtml = data && data.add_to_cart_html ? data.add_to_cart_html : '';
+      var imageSrc = data && data.image ? data.image : '';
+      var imageAlt = data && data.image_alt ? data.image_alt : '';
 
-  QuickView.prototype.toggleSection = function ($element, hasContent) {
-    if (!$element || !$element.length) {
-      return;
-    }
+      $title.text(title);
+      $description.html(description);
+      $variations.html(variationsHtml);
+      $price.html(priceHtml);
+      $addToCart.html(addToCartHtml);
 
-    if (hasContent) {
-      $element.removeClass('is-empty').attr('aria-hidden', 'false');
-    } else {
-      $element.addClass('is-empty').attr('aria-hidden', 'true');
-    }
-  };
-
-  QuickView.prototype.showMessage = function (message) {
-    var text = message || getLocalizedString('error', 'Unable to load product.');
-
-    if (this.$message && this.$message.length) {
-      this.$message.text(text).addClass('is-visible');
-    }
-  };
-
-  QuickView.prototype.updateContent = function (data) {
-    var title = data && data.title ? data.title : '';
-    var description = data && data.description ? data.description : '';
-    var priceHtml = data && data.price_html ? data.price_html : '';
-    var variationsHtml = data && data.variations_html ? data.variations_html : '';
-    var addToCartHtml = data && data.add_to_cart_html ? data.add_to_cart_html : '';
-    var imageSrc = data && data.image ? data.image : '';
-    var imageAlt = data && data.image_alt ? data.image_alt : '';
-
-    this.$title.text(title);
-    this.$description.html(description);
-    this.$variations.html(variationsHtml);
-    this.$price.html(priceHtml);
-    this.$addToCart.html(addToCartHtml);
-
-    if (variationsHtml && this.$variations.length && $.fn.wc_variation_form) {
-      this.$variations.find('.variations_form').each(function () {
-        var $form = $(this);
-        if (typeof $form.wc_variation_form === 'function') {
-          $form.wc_variation_form();
-        }
-        $form.trigger('wc_variation_form');
-      });
-    }
-
-    this.toggleSection(this.$description, !!description);
-    this.toggleSection(this.$variations, !!variationsHtml);
-    this.toggleSection(this.$price, !!priceHtml);
-    this.toggleSection(this.$addToCart, !!addToCartHtml);
-
-    if (imageSrc) {
-      this.$image.attr('src', imageSrc);
-    }
-
-    this.$image.attr('alt', imageAlt || title || '');
-  };
-
-  QuickView.prototype.setLoadingState = function (isLoading) {
-    if (isLoading) {
-      this.$overlay.addClass('loading').removeClass('loaded show-content has-error');
-    } else {
-      this.$overlay.removeClass('loading');
-    }
-  };
-
-  QuickView.prototype.open = function (productId, $trigger) {
-    var self = this;
-    var $originImage = null;
-
-    if ($trigger && $trigger.length) {
-      $originImage = $trigger
-        .closest('.bw-ss__card')
-        .find('.bw-ss__media img')
-        .first();
-    }
-
-    this.resetContent();
-    this.isOpen = true;
-    this.isLoading = true;
-    this.lastTrigger = $trigger || null;
-    quickViewActiveInstance = this;
-
-    this.$overlay.attr('aria-hidden', 'false');
-    this.$overlay.addClass('is-active loading opening');
-    $('body').addClass('bw-quickview-open');
-
-    if ($originImage && $originImage.length) {
-      var previewSrc = $originImage.attr('src') || $originImage.attr('data-src') || '';
-      var previewAlt = $originImage.attr('alt') || '';
-      if (previewSrc) {
-        this.$image.attr('src', previewSrc);
+      if (variationsHtml && $variations.length && $.fn.wc_variation_form) {
+        $variations.find('.variations_form').each(function () {
+          var $form = $(this);
+          if (typeof $form.wc_variation_form === 'function') {
+            $form.wc_variation_form();
+          }
+          $form.trigger('wc_variation_form');
+        });
       }
-      this.$image.attr('alt', previewAlt);
-    }
 
-    this.$dialog.focus();
+      toggleSection($description, !!description);
+      toggleSection($variations, !!variationsHtml);
+      toggleSection($price, !!priceHtml);
+      toggleSection($addToCart, !!addToCartHtml);
 
-    this.setLoadingState(true);
+      if (imageSrc) {
+        $image.attr('src', imageSrc);
+      }
 
-    this.fetchData(productId)
-      .then(function (data) {
-        if (!self.isOpen) {
-          return;
-        }
-        self.updateContent(data || {});
-        self.$overlay.addClass('loaded');
+      $image.attr('alt', imageAlt || title || '');
+    };
+
+    var close = function () {
+      if (!state.isOpen) {
+        return;
+      }
+
+      if (state.currentRequest && typeof state.currentRequest.abort === 'function') {
+        state.currentRequest.abort();
+        state.currentRequest = null;
+      }
+
+      state.isOpen = false;
+
+      $overlay
+        .removeClass('is-open is-active opening loaded show-content loading has-error')
+        .attr('aria-hidden', 'true');
+
+      $('body').removeClass('bw-quickview-open');
+
+      if (state.lastTrigger && state.lastTrigger.length) {
+        state.lastTrigger.focus();
+      }
+
+      state.lastTrigger = null;
+      resetContent();
+
+      if (activeQuickViewClose === close) {
+        activeQuickViewClose = null;
+      }
+    };
+
+    var handleError = function (message) {
+      close();
+
+      if (message && window.console && typeof window.console.error === 'function') {
+        window.console.error('Quick View:', message);
+      }
+    };
+
+    var open = function (event, payload) {
+      var options = payload || {};
+      var productId = parseInt(options.productId, 10);
+
+      if (!productId) {
+        return;
+      }
+
+      if (state.currentRequest && typeof state.currentRequest.abort === 'function') {
+        state.currentRequest.abort();
+        state.currentRequest = null;
+      }
+
+      resetContent();
+      state.isOpen = true;
+      state.lastTrigger = options.trigger || null;
+
+      $overlay
+        .attr('aria-hidden', 'false')
+        .addClass('is-open is-active loading opening')
+        .removeClass('loaded show-content has-error');
+
+      $('body').addClass('bw-quickview-open');
+
+      if (options.preview && options.preview.src) {
+        $image.attr('src', options.preview.src);
+        $image.attr('alt', options.preview.alt || '');
+      }
+
+      if ($dialog.length) {
         setTimeout(function () {
-          self.$overlay.addClass('show-content');
-        }, 40);
-      })
-      .catch(function (error) {
-        if (!self.isOpen) {
-          return;
-        }
-        var message = error && error.message ? error.message : null;
-        self.$overlay.addClass('has-error loaded show-content');
-        self.showMessage(message);
-      })
-      .then(function () {
-        if (!self.isOpen) {
-          return;
-        }
-        self.setLoadingState(false);
-        self.isLoading = false;
-      });
-  };
+          $dialog.trigger('focus');
+        }, 20);
+      }
 
-  QuickView.prototype.fetchData = function (productId) {
-    var self = this;
+      activeQuickViewClose = close;
 
-    if (this.currentRequest && typeof this.currentRequest.abort === 'function') {
-      this.currentRequest.abort();
-    }
-
-    return new Promise(function (resolve, reject) {
-      self.currentRequest = fetchQuickViewData(productId)
+      state.currentRequest = fetchQuickViewData(productId)
         .done(function (response) {
+          if (!state.isOpen) {
+            return;
+          }
+
           if (response && response.success) {
-            resolve(response.data || {});
+            populateContent(response.data || {});
+            $overlay.addClass('loaded');
+            setTimeout(function () {
+              if (state.isOpen) {
+                $overlay.addClass('show-content').removeClass('opening');
+              }
+            }, 40);
           } else {
             var message = getLocalizedString('error', 'Unable to load product.');
             if (response && response.data && response.data.message) {
               message = response.data.message;
             }
-            reject({ message: message });
+            handleError(message);
           }
         })
-        .fail(function (jqXHR) {
+        .fail(function (jqXHR, textStatus) {
+          if (textStatus === 'abort') {
+            return;
+          }
+
           var errorMessage = getLocalizedString('error', 'Unable to load product.');
 
           if (jqXHR && jqXHR.responseJSON && jqXHR.responseJSON.data) {
@@ -441,43 +421,34 @@
             }
           }
 
-          reject({ message: errorMessage });
+          handleError(errorMessage);
         })
         .always(function () {
-          self.currentRequest = null;
+          state.currentRequest = null;
+          $overlay.removeClass('loading');
         });
+    };
+
+    $overlay.on('bw:qv:open', open);
+
+    $overlay.on('click', '.bw-quickview-close, .bw-qv-close', function (event) {
+      event.preventDefault();
+      close();
     });
-  };
 
-  QuickView.prototype.close = function () {
-    if (!this.isOpen) {
-      return;
-    }
+    $overlay.on('click', '.bw-quickview-backdrop', function (event) {
+      event.preventDefault();
+      close();
+    });
 
-    var $lastTrigger = this.lastTrigger;
+    $overlay.on('click', function (event) {
+      if (event.target === event.currentTarget) {
+        close();
+      }
+    });
 
-    if (this.currentRequest && typeof this.currentRequest.abort === 'function') {
-      this.currentRequest.abort();
-      this.currentRequest = null;
-    }
-
-    this.isOpen = false;
-    this.isLoading = false;
-    this.lastTrigger = null;
-
-    this.$overlay
-      .removeClass('is-active opening loaded show-content loading has-error')
-      .attr('aria-hidden', 'true');
-
-    $('body').removeClass('bw-quickview-open');
-
-    if ($lastTrigger && $lastTrigger.length) {
-      $lastTrigger.focus();
-    }
-
-    if (quickViewActiveInstance === this) {
-      quickViewActiveInstance = null;
-    }
+    $overlay.data('bw-init', true);
+    $overlay.data('bw-close', close);
   };
 
   var initSlickSlider = function ($scope) {
@@ -525,49 +496,83 @@
     });
   };
 
-  var initQuickView = function (context) {
-    var $context;
-
-    if (context && context.jquery) {
-      $context = context;
-    } else if (context) {
-      $context = $(context);
-    } else {
-      $context = $(document);
-    }
-
-    var $widgets = $context.find('.elementor-widget-bw-slick-slider');
-
-    if ($context.is('.elementor-widget-bw-slick-slider')) {
-      $widgets = $widgets.add($context);
-    }
-
-    $widgets.each(function () {
+  var initQuickView = function () {
+    $('.elementor-widget-bw-slick-slider').each(function () {
       var $widget = $(this);
+      var $overlay = $widget.find('[data-product-quick-view]').first();
 
-      if ($widget.data('bwQuickViewInit')) {
+      if (!$overlay.length) {
         return;
       }
 
-      if (!$widget.find('[data-product-quick-view]').length) {
+      if (!$overlay.hasClass('bw-qv-overlay')) {
+        $overlay.addClass('bw-qv-overlay');
+      }
+
+      if (!$overlay.data('bw-init')) {
+        setupQuickViewOverlay($overlay);
+      }
+
+      if ($widget.data('bw-qv-triggers')) {
         return;
       }
 
-      $widget.data('bwQuickViewInit', true);
-      var instance = new QuickView($widget);
-      $widget.data('bwQuickViewInstance', instance);
+      $widget.on('click', '.overlay-button--quick', function (event) {
+        event.preventDefault();
+
+        var $trigger = $(this);
+        var productId = parseInt($trigger.attr('data-product-id'), 10);
+
+        if (!productId) {
+          return;
+        }
+
+        var $originImage = $trigger
+          .closest('.bw-ss__card')
+          .find('.bw-ss__media img')
+          .first();
+
+        var preview = null;
+
+        if ($originImage && $originImage.length) {
+          preview = {
+            src: $originImage.attr('src') || $originImage.attr('data-src') || '',
+            alt: $originImage.attr('alt') || '',
+          };
+        }
+
+        $overlay.trigger('bw:qv:open', [
+          {
+            productId: productId,
+            trigger: $trigger,
+            preview: preview,
+          },
+        ]);
+      });
+
+      $widget.data('bw-qv-triggers', true);
+    });
+
+    $('.bw-quickview-overlay').each(function () {
+      var $overlay = $(this);
+
+      if (!$overlay.hasClass('bw-qv-overlay')) {
+        $overlay.addClass('bw-qv-overlay');
+      }
+
+      if (!$overlay.data('bw-init')) {
+        setupQuickViewOverlay($overlay);
+      }
     });
   };
 
   $(document).on('keyup', function (event) {
-    if (event.key === 'Escape' && quickViewActiveInstance) {
-      quickViewActiveInstance.close();
+    if (event.key === 'Escape' && typeof activeQuickViewClose === 'function') {
+      activeQuickViewClose();
     }
   });
 
-  $(function () {
-    initQuickView($(document));
-  });
+  $(initQuickView);
 
   $(window).on('elementor/frontend/init', function () {
     if (
@@ -579,17 +584,10 @@
     }
 
     elementorFrontend.hooks.addAction(
-      'frontend/element_ready/global',
-      function ($scope) {
-        initQuickView($scope);
-      }
-    );
-
-    elementorFrontend.hooks.addAction(
       'frontend/element_ready/bw-slick-slider.default',
       function ($scope) {
         initSlickSlider($scope);
-        initQuickView($scope);
+        initQuickView();
       }
     );
   });
