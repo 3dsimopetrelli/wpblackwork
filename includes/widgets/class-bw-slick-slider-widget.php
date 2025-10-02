@@ -67,6 +67,22 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
             'condition'   => [ 'content_type' => 'product' ],
         ] );
 
+        $this->add_control(
+            'product_type',
+            [
+                'label'     => __( 'Product Type', 'bw' ),
+                'type'      => Controls_Manager::SELECT,
+                'options'   => [
+                    ''               => __( 'All', 'bw' ),
+                    'digital_asset'  => __( 'Digital Assets', 'bw' ),
+                    'book'           => __( 'Books', 'bw' ),
+                    'print'          => __( 'Prints', 'bw' ),
+                ],
+                'default'   => '',
+                'condition' => [ 'content_type' => 'product' ],
+            ]
+        );
+
         $this->add_control( 'include_ids', [
             'label'       => __( 'ID specifici', 'bw-elementor-widgets' ),
             'type'        => Controls_Manager::TEXT,
@@ -603,6 +619,7 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
         $image_height  = isset( $settings['image_height'] ) ? max( 0, absint( $settings['image_height'] ) ) : 0;
         $image_crop    = isset( $settings['image_crop'] ) && 'yes' === $settings['image_crop'];
         $include_ids   = isset( $settings['include_ids'] ) ? $this->parse_ids( $settings['include_ids'] ) : [];
+        $product_type  = isset( $settings['product_type'] ) ? sanitize_key( $settings['product_type'] ) : '';
         $slides_scroll = isset( $settings['slides_to_scroll'] ) ? max( 1, absint( $settings['slides_to_scroll'] ) ) : 1;
 
         $query_args = [
@@ -618,14 +635,26 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
 
         if ( 'product' === $content_type ) {
             $category_ids = isset( $settings['product_categories'] ) ? array_filter( array_map( 'absint', (array) $settings['product_categories'] ) ) : [];
+            $tax_query    = [];
+
             if ( ! empty( $category_ids ) ) {
-                $query_args['tax_query'] = [
-                    [
-                        'taxonomy' => 'product_cat',
-                        'field'    => 'term_id',
-                        'terms'    => $category_ids,
-                    ],
+                $tax_query[] = [
+                    'taxonomy' => 'product_cat',
+                    'field'    => 'term_id',
+                    'terms'    => $category_ids,
                 ];
+            }
+
+            if ( ! empty( $product_type ) ) {
+                $tax_query[] = [
+                    'taxonomy' => 'product_type',
+                    'field'    => 'slug',
+                    'terms'    => $product_type,
+                ];
+            }
+
+            if ( ! empty( $tax_query ) ) {
+                $query_args['tax_query'] = $tax_query;
             }
         } else {
             $category_ids = isset( $settings['post_categories'] ) ? array_filter( array_map( 'absint', (array) $settings['post_categories'] ) ) : [];
