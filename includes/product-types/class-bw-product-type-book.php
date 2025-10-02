@@ -4,9 +4,9 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-if ( class_exists( 'WC_Product_Simple' ) && ! class_exists( 'WC_Product_Book' ) ) {
+if ( class_exists( 'WC_Product_Variable' ) && ! class_exists( 'WC_Product_Book' ) ) {
 
-class WC_Product_Book extends WC_Product_Simple {
+class WC_Product_Book extends WC_Product_Variable {
 
     /**
      * Product type identifier.
