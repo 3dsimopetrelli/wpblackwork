@@ -74,8 +74,6 @@ if ( ! function_exists( 'bw_ajax_get_child_categories' ) ) {
 add_action( 'wp_ajax_bw_get_child_categories', 'bw_ajax_get_child_categories' );
 add_action( 'wp_ajax_bw_get_quick_view', 'bw_ajax_get_quick_view_product' );
 add_action( 'wp_ajax_nopriv_bw_get_quick_view', 'bw_ajax_get_quick_view_product' );
-add_action( 'wp_ajax_bw_quickview_product', 'bw_ajax_quickview_product' );
-add_action( 'wp_ajax_nopriv_bw_quickview_product', 'bw_ajax_quickview_product' );
 
 if ( ! function_exists( 'bw_get_quick_view_add_to_cart_html' ) ) {
     /**
@@ -135,38 +133,35 @@ if ( ! function_exists( 'bw_get_quick_view_add_to_cart_html' ) ) {
     }
 }
 
-if ( ! function_exists( 'bw_get_quick_view_product_data' ) ) {
+if ( ! function_exists( 'bw_ajax_get_quick_view_product' ) ) {
     /**
-     * Build the data array for the Quick View response.
-     *
-     * @param int $product_id WooCommerce product ID.
-     *
-     * @return array|\WP_Error
+     * AJAX callback to retrieve WooCommerce product information for Quick View.
      */
-    function bw_get_quick_view_product_data( $product_id ) {
+    function bw_ajax_get_quick_view_product() {
+        check_ajax_referer( 'bw_quick_view_nonce', 'nonce' );
+
+        $product_id = isset( $_POST['product_id'] ) ? absint( $_POST['product_id'] ) : 0;
+
         if ( $product_id <= 0 ) {
-            return new \WP_Error(
-                'bw_quick_view_invalid_product',
-                __( 'Prodotto non valido.', 'bw' ),
-                [ 'status' => 400 ]
+            wp_send_json_error(
+                [ 'message' => __( 'Prodotto non valido.', 'bw' ) ],
+                400
             );
         }
 
         if ( ! function_exists( 'wc_get_product' ) ) {
-            return new \WP_Error(
-                'bw_quick_view_missing_wc',
-                __( 'WooCommerce non è attivo.', 'bw' ),
-                [ 'status' => 400 ]
+            wp_send_json_error(
+                [ 'message' => __( 'WooCommerce non è attivo.', 'bw' ) ],
+                400
             );
         }
 
         $product = wc_get_product( $product_id );
 
         if ( ! $product ) {
-            return new \WP_Error(
-                'bw_quick_view_not_found',
-                __( 'Prodotto non trovato.', 'bw' ),
-                [ 'status' => 404 ]
+            wp_send_json_error(
+                [ 'message' => __( 'Prodotto non trovato.', 'bw' ) ],
+                404
             );
         }
 
@@ -198,7 +193,7 @@ if ( ! function_exists( 'bw_get_quick_view_product_data' ) ) {
         $price_html = $product->get_price_html();
         $cart_html  = bw_get_quick_view_add_to_cart_html( $product );
 
-        $variations_html  = '';
+        $variations_html = '';
         $add_to_cart_html = $cart_html;
 
         if ( $product->is_type( 'variable' ) ) {
@@ -206,75 +201,18 @@ if ( ! function_exists( 'bw_get_quick_view_product_data' ) ) {
             $add_to_cart_html = '';
         }
 
-        return [
-            'id'               => $product_id,
-            'title'            => $product->get_name(),
-            'image'            => $image_url,
-            'image_alt'        => $image_alt,
-            'description'      => $description,
-            'price'            => $price_html,
-            'price_html'       => $price_html,
-            'variations'       => $variations_html,
-            'variations_html'  => $variations_html,
-            'add_to_cart'      => $add_to_cart_html,
-            'add_to_cart_html' => $add_to_cart_html,
-            'permalink'        => get_permalink( $product_id ),
+        $data = [
+            'id'              => $product_id,
+            'title'           => $product->get_name(),
+            'image'           => $image_url,
+            'image_alt'       => $image_alt,
+            'description'     => $description,
+            'price_html'      => $price_html,
+            'variations_html' => $variations_html,
+            'add_to_cart_html'=> $add_to_cart_html,
+            'permalink'       => get_permalink( $product_id ),
         ];
-    }
-}
-
-if ( ! function_exists( 'bw_send_quick_view_response' ) ) {
-    /**
-     * Send the Quick View response payload.
-     *
-     * @param int $product_id WooCommerce product ID.
-     */
-    function bw_send_quick_view_response( $product_id ) {
-        $data = bw_get_quick_view_product_data( $product_id );
-
-        if ( is_wp_error( $data ) ) {
-            $status = 400;
-            $error_data = $data->get_error_data();
-
-            if ( is_array( $error_data ) && isset( $error_data['status'] ) ) {
-                $status_candidate = absint( $error_data['status'] );
-                if ( $status_candidate > 0 ) {
-                    $status = $status_candidate;
-                }
-            }
-
-            wp_send_json_error(
-                [ 'message' => $data->get_error_message() ],
-                $status
-            );
-        }
 
         wp_send_json_success( $data );
-    }
-}
-
-if ( ! function_exists( 'bw_ajax_get_quick_view_product' ) ) {
-    /**
-     * AJAX callback to retrieve WooCommerce product information for legacy Quick View action.
-     */
-    function bw_ajax_get_quick_view_product() {
-        check_ajax_referer( 'bw_quick_view_nonce', 'nonce' );
-
-        $product_id = isset( $_POST['product_id'] ) ? absint( $_POST['product_id'] ) : 0;
-
-        bw_send_quick_view_response( $product_id );
-    }
-}
-
-if ( ! function_exists( 'bw_ajax_quickview_product' ) ) {
-    /**
-     * AJAX callback used by the Slick Slider Quick View popup.
-     */
-    function bw_ajax_quickview_product() {
-        check_ajax_referer( 'bw_quick_view_nonce', 'nonce' );
-
-        $product_id = isset( $_POST['product_id'] ) ? absint( $_POST['product_id'] ) : 0;
-
-        bw_send_quick_view_response( $product_id );
     }
 }

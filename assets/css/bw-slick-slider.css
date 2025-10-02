@@ -85,7 +85,6 @@
 }
 
 .bw-slick-slider .overlay-buttons,
-.bw-slick-slider .bw-overlay-buttons,
 .bw-slick-slider .bw-ss__overlay {
   position: absolute;
   inset: 0;
@@ -118,8 +117,7 @@
   pointer-events: auto;
 }
 
-.bw-slick-slider .overlay-button,
-.bw-slick-slider .bw-overlay-button {
+.bw-slick-slider .overlay-button {
   position: relative;
   display: inline-flex;
   justify-content: center;
@@ -210,36 +208,33 @@
   text-decoration: underline;
 }
 
-
 .bw-quickview-overlay {
   position: fixed;
   inset: 0;
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
-  padding: 24px;
   z-index: 9999;
-  opacity: 0;
-  visibility: hidden;
   pointer-events: none;
-  transition: opacity 0.35s ease, visibility 0.35s ease;
 }
 
-.bw-quickview-overlay.active {
-  opacity: 1;
-  visibility: visible;
+.bw-quickview-overlay.is-active {
+  display: flex;
   pointer-events: auto;
 }
 
 .bw-quickview-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(7, 7, 10, 0.3);
+  background: rgba(7, 7, 10, 0.2);
   opacity: 0;
   transition: opacity 0.35s ease;
 }
 
-.bw-quickview-backdrop.visible {
+.bw-quickview-overlay.opening .bw-quickview-backdrop,
+.bw-quickview-overlay.loaded .bw-quickview-backdrop,
+.bw-quickview-overlay.show-content .bw-quickview-backdrop,
+.bw-quickview-overlay.loading .bw-quickview-backdrop {
   opacity: 1;
 }
 
@@ -254,14 +249,14 @@
   box-shadow: 0 25px 70px rgba(10, 12, 23, 0.25);
   overflow: hidden;
   opacity: 0;
-  transform: scale(0.94);
+  transform: scale(0.92);
   transform-origin: center;
-  transition: opacity 0.4s ease, transform 0.4s ease;
+  transition: opacity 0.45s ease, transform 0.45s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-.bw-quickview.opening,
-.bw-quickview.loaded,
-.bw-quickview.show-content {
+.bw-quickview-overlay.opening .bw-quickview,
+.bw-quickview-overlay.loaded .bw-quickview,
+.bw-quickview-overlay.show-content .bw-quickview {
   opacity: 1;
   transform: scale(1);
 }
@@ -306,6 +301,11 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.bw-quickview-overlay.show-content .bw-quickview-image img {
+  transform: scale(1.01);
 }
 
 .bw-loader {
@@ -334,7 +334,7 @@
   animation: bw-spin 0.75s linear infinite;
 }
 
-.bw-quickview.loading .bw-loader {
+.bw-quickview-overlay.loading .bw-loader {
   opacity: 1;
 }
 
@@ -348,11 +348,11 @@
   gap: 20px;
   overflow-y: auto;
   opacity: 0;
-  transform: translateY(40px);
+  transform: translateY(35px);
   transition: opacity 0.4s ease, transform 0.4s ease;
 }
 
-.bw-quickview.show-content .bw-quickview-content {
+.bw-quickview-overlay.show-content .bw-quickview-content {
   opacity: 1;
   transform: translateY(0);
 }
@@ -397,6 +397,12 @@
 
 .bw-qv-message.is-visible {
   display: block;
+}
+
+.bw-quickview-fly-image {
+  border-radius: 18px;
+  pointer-events: none;
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.15);
 }
 
 body.bw-quickview-open {
