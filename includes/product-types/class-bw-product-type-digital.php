@@ -16,6 +16,24 @@ class WC_Product_Digital_Asset extends WC_Product_Variable {
     protected $product_type = 'digital_asset';
 
     /**
+     * Initialize the digital asset product.
+     *
+     * @param int|WC_Product $product Product ID or object.
+     */
+    public function __construct( $product ) {
+        parent::__construct( $product );
+    }
+
+    /**
+     * Get the product type.
+     *
+     * @return string
+     */
+    public function get_type() {
+        return 'digital_asset';
+    }
+
+    /**
      * Always treat digital assets as virtual products.
      *
      * @return bool
@@ -31,15 +49,6 @@ class WC_Product_Digital_Asset extends WC_Product_Variable {
      */
     public function is_downloadable() {
         return true;
-    }
-
-    /**
-     * Get the product type.
-     *
-     * @return string
-     */
-    public function get_type() {
-        return 'digital_asset';
     }
 }
 
