@@ -58,14 +58,33 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
             'condition'   => [ 'content_type' => 'post' ],
         ] );
 
-        $this->add_control( 'product_categories', [
-            'label'       => __( 'Categoria', 'bw-elementor-widgets' ),
-            'type'        => Controls_Manager::SELECT2,
-            'label_block' => true,
-            'options'     => $this->get_taxonomy_terms_options( 'product_cat' ),
-            'multiple'    => true,
-            'condition'   => [ 'content_type' => 'product' ],
-        ] );
+        $this->add_control(
+            'product_cat_parent',
+            [
+                'label'       => __( 'Categoria Padre', 'bw' ),
+                'type'        => Controls_Manager::SELECT2,
+                'label_block' => true,
+                'multiple'    => false,
+                'options'     => bw_get_parent_product_categories(),
+                'condition'   => [ 'content_type' => 'product' ],
+            ]
+        );
+
+        $this->add_control(
+            'product_cat_child',
+            [
+                'label'       => __( 'Sotto-categoria', 'bw' ),
+                'type'        => Controls_Manager::SELECT2,
+                'label_block' => true,
+                'multiple'    => true,
+                'options'     => [],
+                'condition'   => [
+                    'content_type'       => 'product',
+                    'product_cat_parent!' => '',
+                ],
+                'description' => __( 'Seleziona una o più sottocategorie della categoria padre scelta.', 'bw' ),
+            ]
+        );
 
         $this->add_control(
             'product_type',
@@ -620,6 +639,8 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
         $image_crop    = isset( $settings['image_crop'] ) && 'yes' === $settings['image_crop'];
         $include_ids   = isset( $settings['include_ids'] ) ? $this->parse_ids( $settings['include_ids'] ) : [];
         $product_type  = isset( $settings['product_type'] ) ? sanitize_key( $settings['product_type'] ) : '';
+        $product_cat_parent = isset( $settings['product_cat_parent'] ) ? absint( $settings['product_cat_parent'] ) : 0;
+        $product_cat_child  = isset( $settings['product_cat_child'] ) ? array_filter( array_map( 'absint', (array) $settings['product_cat_child'] ) ) : [];
         $slides_scroll = isset( $settings['slides_to_scroll'] ) ? max( 1, absint( $settings['slides_to_scroll'] ) ) : 1;
 
         $query_args = [
@@ -634,14 +655,19 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
         }
 
         if ( 'product' === $content_type ) {
-            $category_ids = isset( $settings['product_categories'] ) ? array_filter( array_map( 'absint', (array) $settings['product_categories'] ) ) : [];
             $tax_query    = [];
 
-            if ( ! empty( $category_ids ) ) {
+            if ( ! empty( $product_cat_child ) ) {
                 $tax_query[] = [
                     'taxonomy' => 'product_cat',
                     'field'    => 'term_id',
-                    'terms'    => $category_ids,
+                    'terms'    => $product_cat_child,
+                ];
+            } elseif ( $product_cat_parent > 0 ) {
+                $tax_query[] = [
+                    'taxonomy' => 'product_cat',
+                    'field'    => 'term_id',
+                    'terms'    => [ $product_cat_parent ],
                 ];
             }
 
