@@ -218,7 +218,7 @@
       type: 'POST',
       dataType: 'json',
       data: {
-        action: 'bw_qv_get_product',
+        action: 'bw_get_quick_view',
         nonce: window.bwSlickSlider.quickViewNonce || '',
         product_id: productId,
       },
