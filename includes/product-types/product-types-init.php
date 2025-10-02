@@ -8,32 +8,46 @@ require_once plugin_dir_path( __FILE__ ) . 'class-bw-product-type-digital.php';
 require_once plugin_dir_path( __FILE__ ) . 'class-bw-product-type-book.php';
 require_once plugin_dir_path( __FILE__ ) . 'class-bw-product-type-print.php';
 
-// Mostrare le tabs di attributi, variazioni, spedizione anche per i custom types.
+// Personalizzazione tabs prodotto per i digital asset.
 add_filter( 'woocommerce_product_data_tabs', function( $tabs ) {
-    $custom_types = [ 'digital_asset', 'book', 'print' ];
+    if ( isset( $tabs['attribute'] ) ) {
+        $tabs['attribute']['class'][] = 'show_if_digital_asset';
+    }
 
-    foreach ( $custom_types as $type ) {
-        $tabs['attribute']['class'][]  = 'show_if_' . $type;
-        $tabs['variations']['class'][] = 'show_if_' . $type;
-        $tabs['shipping']['class'][]   = 'show_if_' . $type;
-        $tabs['inventory']['class'][]  = 'show_if_' . $type;
+    if ( isset( $tabs['variations'] ) ) {
+        $tabs['variations']['class'][] = 'show_if_digital_asset';
+    }
+
+    if ( isset( $tabs['inventory'] ) ) {
+        $tabs['inventory']['class'][] = 'show_if_digital_asset';
+    }
+
+    if ( isset( $tabs['shipping'] ) ) {
+        $tabs['shipping']['class'][] = 'hide_if_digital_asset';
     }
 
     return $tabs;
 } );
 
-// Aggiungere le sezioni pannelli variabili.
+// Attivare i pannelli variabili per i digital asset.
 add_action( 'admin_footer', function() {
     global $pagenow, $post;
 
-    if ( $pagenow === 'post.php' && $post instanceof WP_Post && get_post_type( $post ) === 'product' ) : ?>
+    $is_product_screen = false;
+
+    if ( in_array( $pagenow, array( 'post.php', 'post-new.php' ), true ) ) {
+        if ( $post instanceof WP_Post ) {
+            $is_product_screen = ( 'product' === get_post_type( $post ) );
+        } elseif ( isset( $_GET['post_type'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+            $is_product_screen = ( 'product' === sanitize_text_field( wp_unslash( $_GET['post_type'] ) ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        }
+    }
+
+    if ( $is_product_screen ) : ?>
         <script type="text/javascript">
             jQuery(document).ready(function($){
-                var custom_types = ['digital_asset','book','print'];
-                custom_types.forEach(function(type){
-                    $('.options_group.show_if_variable').addClass('show_if_' + type);
-                    $('#variable_product_options').addClass('show_if_' + type);
-                });
+                $('.options_group.show_if_variable').addClass('show_if_digital_asset');
+                $('#variable_product_options').addClass('show_if_digital_asset');
             });
         </script>
     <?php endif;
