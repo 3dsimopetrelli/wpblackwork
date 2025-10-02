@@ -317,6 +317,10 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
                 'range' => [
                     'px' => [ 'min' => 10, 'max' => 100 ],
                 ],
+                'default' => [
+                    'size' => 30,
+                    'unit' => 'px',
+                ],
                 'selectors' => [
                     '{{WRAPPER}} .bw-slick-prev img, {{WRAPPER}} .bw-slick-next img' => 'width: {{SIZE}}{{UNIT}}; height: auto;',
                 ],
@@ -329,6 +333,14 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
                 'label' => __( 'Arrow Padding', 'bw' ),
                 'type' => Controls_Manager::DIMENSIONS,
                 'size_units' => [ 'px', '%' ],
+                'default' => [
+                    'top' => 0,
+                    'right' => 0,
+                    'bottom' => 0,
+                    'left' => 0,
+                    'unit' => 'px',
+                    'isLinked' => true,
+                ],
                 'selectors' => [
                     '{{WRAPPER}} .bw-slick-prev, {{WRAPPER}} .bw-slick-next' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
