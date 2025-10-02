@@ -88,6 +88,14 @@ function bw_enqueue_flickity() {
         '1.0.0',
         true
     );
+
+    wp_localize_script(
+        'bw-slick-slider-js',
+        'bwSlickSlider',
+        [
+            'assetsUrl' => plugin_dir_url(__FILE__) . 'assets/',
+        ]
+    );
 }
 
 function bw_enqueue_slick_slider_admin_script() {

@@ -1,6 +1,18 @@
 (function ($) {
   'use strict';
 
+  var ensureTrailingSlash = function (path) {
+    if (typeof path !== 'string' || !path.length) {
+      return '';
+    }
+
+    return path.charAt(path.length - 1) === '/' ? path : path + '/';
+  };
+
+  var assetsUrl = ensureTrailingSlash(
+    (window.bwSlickSlider && window.bwSlickSlider.assetsUrl) || ''
+  );
+
   var normalizeBoolean = function (value, fallback) {
     if (typeof value === 'boolean') {
       return value;
@@ -193,6 +205,20 @@
       }
 
       var settings = parseSettings($currentSlider);
+
+      if (typeof settings.prevArrow === 'undefined') {
+        settings.prevArrow =
+          '<button type="button" class="bw-slick-prev"><img src="' +
+          assetsUrl +
+          'img/arrow-l.svg" alt="prev"></button>';
+      }
+
+      if (typeof settings.nextArrow === 'undefined') {
+        settings.nextArrow =
+          '<button type="button" class="bw-slick-next"><img src="' +
+          assetsUrl +
+          'img/arrow-d.svg" alt="next"></button>';
+      }
 
       $currentSlider.slick(settings);
 
