@@ -242,7 +242,7 @@
     this.$message = this.$overlay.find('.bw-qv-message');
     this.currentRequest = null;
     this.isOpen = false;
-    this.isPreparing = false;
+    this.isLoading = false;
     this.lastTrigger = null;
 
     this.bindEvents();
@@ -257,7 +257,7 @@
       var $trigger = $(event.currentTarget);
       var productId = parseInt($trigger.attr('data-product-id'), 10);
 
-      if (!productId || self.isPreparing) {
+      if (!productId || self.isLoading) {
         return;
       }
 
@@ -273,69 +273,6 @@
       if (event.target === self.$overlay.get(0)) {
         self.close();
       }
-    });
-  };
-
-  QuickView.prototype.animateImage = function ($originImage) {
-    var self = this;
-
-    return new Promise(function (resolve) {
-      if (!$originImage || !$originImage.length || !$originImage.get(0)) {
-        resolve();
-        return;
-      }
-
-      var originRect = $originImage.get(0).getBoundingClientRect();
-
-      if (!originRect.width || !originRect.height) {
-        resolve();
-        return;
-      }
-
-      var $clone = $originImage.clone().addClass('bw-quickview-fly-image');
-      var computed = window.getComputedStyle($originImage.get(0));
-
-      $clone.css({
-        position: 'fixed',
-        top: originRect.top + 'px',
-        left: originRect.left + 'px',
-        width: originRect.width + 'px',
-        height: originRect.height + 'px',
-        margin: 0,
-        zIndex: 99999,
-        transition:
-          'transform 0.55s cubic-bezier(0.23, 1, 0.32, 1), top 0.55s ease, left 0.55s ease, width 0.55s ease, height 0.55s ease',
-        borderRadius: computed.borderRadius || '0px',
-        objectFit: computed.objectFit || 'cover',
-      });
-
-      $('body').append($clone);
-
-      requestAnimationFrame(function () {
-        var targetRect = self.$imageWrap.get(0).getBoundingClientRect();
-        var scaleX = targetRect.width / Math.max(originRect.width, 1);
-        var scaleY = targetRect.height / Math.max(originRect.height, 1);
-        var translateX = targetRect.left - originRect.left;
-        var translateY = targetRect.top - originRect.top;
-
-        $clone.css({
-          transform:
-            'translate3d(' +
-            translateX +
-            'px,' +
-            translateY +
-            'px,0) scale(' +
-            scaleX +
-            ',' +
-            scaleY +
-            ')',
-        });
-      });
-
-      $clone.one('transitionend', function () {
-        $clone.remove();
-        resolve();
-      });
     });
   };
 
@@ -425,13 +362,13 @@
     }
 
     this.resetContent();
-    this.isPreparing = true;
     this.isOpen = true;
+    this.isLoading = true;
     this.lastTrigger = $trigger || null;
     quickViewActiveInstance = this;
 
     this.$overlay.attr('aria-hidden', 'false');
-    this.$overlay.addClass('is-active loading is-preparing');
+    this.$overlay.addClass('is-active loading opening');
     $('body').addClass('bw-quickview-open');
 
     if ($originImage && $originImage.length) {
@@ -443,10 +380,7 @@
       this.$image.attr('alt', previewAlt);
     }
 
-    this.animateImage($originImage).then(function () {
-      self.$overlay.removeClass('is-preparing').addClass('opening');
-      self.$dialog.focus();
-    });
+    this.$dialog.focus();
 
     this.setLoadingState(true);
 
@@ -474,7 +408,7 @@
           return;
         }
         self.setLoadingState(false);
-        self.isPreparing = false;
+        self.isLoading = false;
       });
   };
 
@@ -528,11 +462,11 @@
     }
 
     this.isOpen = false;
-    this.isPreparing = false;
+    this.isLoading = false;
     this.lastTrigger = null;
 
     this.$overlay
-      .removeClass('is-active opening loaded show-content loading has-error is-preparing')
+      .removeClass('is-active opening loaded show-content loading has-error')
       .attr('aria-hidden', 'true');
 
     $('body').removeClass('bw-quickview-open');
@@ -591,30 +525,48 @@
     });
   };
 
-  var initQuickView = function ($scope) {
-    var $widget = $scope.closest('.elementor-widget-bw-slick-slider');
+  var initQuickView = function (context) {
+    var $context;
 
-    if (!$widget.length) {
-      $widget = $scope;
+    if (context && context.jquery) {
+      $context = context;
+    } else if (context) {
+      $context = $(context);
+    } else {
+      $context = $(document);
     }
 
-    if ($widget.data('bwQuickViewInit')) {
-      return;
+    var $widgets = $context.find('.elementor-widget-bw-slick-slider');
+
+    if ($context.is('.elementor-widget-bw-slick-slider')) {
+      $widgets = $widgets.add($context);
     }
 
-    if (!$widget.find('[data-product-quick-view]').length) {
-      return;
-    }
+    $widgets.each(function () {
+      var $widget = $(this);
 
-    $widget.data('bwQuickViewInit', true);
-    var instance = new QuickView($widget);
-    $widget.data('bwQuickViewInstance', instance);
+      if ($widget.data('bwQuickViewInit')) {
+        return;
+      }
+
+      if (!$widget.find('[data-product-quick-view]').length) {
+        return;
+      }
+
+      $widget.data('bwQuickViewInit', true);
+      var instance = new QuickView($widget);
+      $widget.data('bwQuickViewInstance', instance);
+    });
   };
 
   $(document).on('keyup', function (event) {
     if (event.key === 'Escape' && quickViewActiveInstance) {
       quickViewActiveInstance.close();
     }
+  });
+
+  $(function () {
+    initQuickView($(document));
   });
 
   $(window).on('elementor/frontend/init', function () {
@@ -625,6 +577,13 @@
     ) {
       return;
     }
+
+    elementorFrontend.hooks.addAction(
+      'frontend/element_ready/global',
+      function ($scope) {
+        initQuickView($scope);
+      }
+    );
 
     elementorFrontend.hooks.addAction(
       'frontend/element_ready/bw-slick-slider.default',

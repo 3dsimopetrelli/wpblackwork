@@ -911,7 +911,7 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
                                 <?php if ( $thumbnail_html && $view_buttons_enabled && ! $quick_view_enabled ) : ?>
                                     <div class="overlay-buttons bw-ss__overlay has-buttons">
                                         <div class="bw-ss__buttons">
-                                            <a class="overlay-button overlay-button--view bw-ss__btn" href="<?php echo esc_url( $permalink ); ?>">
+                                            <a class="overlay-button overlay-button--view bw-ss__btn bw-view-btn" href="<?php echo esc_url( $permalink ); ?>">
                                                 <span class="overlay-button__label"><?php esc_html_e( 'View Product', 'bw-elementor-widgets' ); ?></span>
                                             </a>
                                         </div>
@@ -919,10 +919,10 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
                                 <?php elseif ( $thumbnail_html && $view_buttons_enabled && $quick_view_enabled ) : ?>
                                     <div class="overlay-buttons bw-ss__overlay has-buttons">
                                         <div class="bw-ss__buttons">
-                                            <a class="overlay-button overlay-button--view bw-ss__btn" href="<?php echo esc_url( $permalink ); ?>">
+                                            <a class="overlay-button overlay-button--view bw-ss__btn bw-view-btn" href="<?php echo esc_url( $permalink ); ?>">
                                                 <span class="overlay-button__label"><?php esc_html_e( 'View Product', 'bw-elementor-widgets' ); ?></span>
                                             </a>
-                                            <a class="overlay-button overlay-button--quick bw-ss__btn" href="<?php echo esc_url( $quick_view_link ); ?>" data-product-id="<?php echo esc_attr( $post_id ); ?>">
+                                            <a class="overlay-button overlay-button--quick bw-ss__btn bw-quickview-btn" href="<?php echo esc_url( $quick_view_link ); ?>" data-product-id="<?php echo esc_attr( $post_id ); ?>">
                                                 <span class="overlay-button__label"><?php esc_html_e( 'Quick View', 'bw-elementor-widgets' ); ?></span>
                                             </a>
                                         </div>
