@@ -290,6 +290,53 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
 
         $this->end_controls_section();
 
+        $this->start_controls_section(
+            'section_arrows_style',
+            [
+                'label' => __( 'Navigation Arrows', 'bw' ),
+                'tab'   => Controls_Manager::TAB_STYLE,
+            ]
+        );
+
+        $this->add_control(
+            'arrows_color',
+            [
+                'label' => __( 'Arrow Color', 'bw' ),
+                'type'  => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .bw-slick-prev img, {{WRAPPER}} .bw-slick-next img' => 'filter: brightness(0) saturate(100%) invert(0%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(0) contrast(100%) drop-shadow(0 0 0 {{VALUE}});',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'arrows_size',
+            [
+                'label' => __( 'Arrow Size', 'bw' ),
+                'type' => Controls_Manager::SLIDER,
+                'range' => [
+                    'px' => [ 'min' => 10, 'max' => 100 ],
+                ],
+                'selectors' => [
+                    '{{WRAPPER}} .bw-slick-prev img, {{WRAPPER}} .bw-slick-next img' => 'width: {{SIZE}}{{UNIT}}; height: auto;',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'arrows_padding',
+            [
+                'label' => __( 'Arrow Padding', 'bw' ),
+                'type' => Controls_Manager::DIMENSIONS,
+                'size_units' => [ 'px', '%' ],
+                'selectors' => [
+                    '{{WRAPPER}} .bw-slick-prev, {{WRAPPER}} .bw-slick-next' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->end_controls_section();
+
         $this->start_controls_section( 'images_section', [
             'label' => __( 'Immagini', 'bw-elementor-widgets' ),
         ] );
