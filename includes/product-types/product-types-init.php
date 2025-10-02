@@ -10,44 +10,12 @@ require_once plugin_dir_path( __FILE__ ) . 'class-bw-product-type-print.php';
 
 // Personalizzazione tabs prodotto per i digital asset.
 add_filter( 'woocommerce_product_data_tabs', function( $tabs ) {
-    if ( isset( $tabs['attribute'] ) ) {
-        $tabs['attribute']['class'][] = 'show_if_digital_asset';
-    }
-
-    if ( isset( $tabs['variations'] ) ) {
-        $tabs['variations']['class'][] = 'show_if_digital_asset';
-    }
-
-    if ( isset( $tabs['inventory'] ) ) {
-        $tabs['inventory']['class'][] = 'show_if_digital_asset';
-    }
+    $tabs['attribute']['class'][]  = 'show_if_digital_asset';
+    $tabs['variations']['class'][] = 'show_if_digital_asset';
+    $tabs['inventory']['class'][]  = 'show_if_digital_asset';
 
     if ( isset( $tabs['shipping'] ) ) {
         $tabs['shipping']['class'][] = 'hide_if_digital_asset';
-    }
-
-    $custom_simple_types = array( 'book', 'print' );
-
-    foreach ( $custom_simple_types as $type ) {
-        if ( isset( $tabs['general'] ) ) {
-            $tabs['general']['class'][] = 'show_if_' . $type;
-        }
-
-        if ( isset( $tabs['inventory'] ) ) {
-            $tabs['inventory']['class'][] = 'show_if_' . $type;
-        }
-
-        if ( isset( $tabs['shipping'] ) ) {
-            $tabs['shipping']['class'][] = 'show_if_' . $type;
-        }
-
-        if ( isset( $tabs['linked_product'] ) ) {
-            $tabs['linked_product']['class'][] = 'show_if_' . $type;
-        }
-
-        if ( isset( $tabs['advanced'] ) ) {
-            $tabs['advanced']['class'][] = 'show_if_' . $type;
-        }
     }
 
     return $tabs;
@@ -56,28 +24,11 @@ add_filter( 'woocommerce_product_data_tabs', function( $tabs ) {
 // Attivare i pannelli variabili per i digital asset.
 add_action( 'admin_footer', function() {
     global $pagenow, $post;
-
-    $is_product_screen = false;
-
-    if ( in_array( $pagenow, array( 'post.php', 'post-new.php' ), true ) ) {
-        if ( $post instanceof WP_Post ) {
-            $is_product_screen = ( 'product' === get_post_type( $post ) );
-        } elseif ( isset( $_GET['post_type'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-            $is_product_screen = ( 'product' === sanitize_text_field( wp_unslash( $_GET['post_type'] ) ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-        }
-    }
-
-    if ( $is_product_screen ) : ?>
+    if ( $pagenow === 'post.php' && get_post_type( $post ) === 'product' ) : ?>
         <script type="text/javascript">
             jQuery(document).ready(function($){
                 $('.options_group.show_if_variable').addClass('show_if_digital_asset');
                 $('#variable_product_options').addClass('show_if_digital_asset');
-
-                var custom_simple = ['book', 'print'];
-
-                custom_simple.forEach(function(type){
-                    $('.show_if_simple').addClass('show_if_' + type);
-                });
             });
         </script>
     <?php endif;
