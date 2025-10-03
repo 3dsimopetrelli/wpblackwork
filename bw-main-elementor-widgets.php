@@ -26,40 +26,12 @@ require_once __DIR__ . '/includes/class-bw-widget-loader.php';
 // Tipi di prodotto personalizzati per WooCommerce
 require_once plugin_dir_path( __FILE__ ) . 'includes/product-types/product-types-init.php';
 
-add_action('elementor/frontend/after_enqueue_scripts', 'bw_enqueue_flickity');
-add_action('elementor/editor/after_enqueue_scripts', 'bw_enqueue_flickity');
-add_action('elementor/preview/enqueue_scripts', 'bw_enqueue_flickity');
+add_action('elementor/frontend/after_enqueue_scripts', 'bw_enqueue_slick_slider_assets');
+add_action('elementor/editor/after_enqueue_scripts', 'bw_enqueue_slick_slider_assets');
+add_action('elementor/preview/enqueue_scripts', 'bw_enqueue_slick_slider_assets');
 add_action('elementor/editor/after_enqueue_scripts', 'bw_enqueue_slick_slider_admin_script');
 
-function bw_enqueue_flickity() {
-    wp_enqueue_style(
-        'flickity-css',
-        'https://unpkg.com/flickity@2.3.0/dist/flickity.min.css',
-        [],
-        '2.3.0'
-    );
-
-    wp_enqueue_script(
-        'flickity-js',
-        'https://unpkg.com/flickity@2.3.0/dist/flickity.pkgd.min.js',
-        ['jquery'],
-        '2.3.0',
-        true
-    );
-
-    wp_enqueue_style(
-        'bw-products-style',
-        plugin_dir_url(__FILE__) . 'assets/css/bw-products-slide.css'
-    );
-
-    wp_enqueue_script(
-        'bw-products-js',
-        plugin_dir_url(__FILE__) . 'assets/js/bw-products-slide.js',
-        ['jquery', 'flickity-js'],
-        '1.0.0',
-        true
-    );
-
+function bw_enqueue_slick_slider_assets() {
     wp_enqueue_style(
         'slick-css',
         'https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css',

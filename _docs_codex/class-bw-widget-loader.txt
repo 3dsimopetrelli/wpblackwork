@@ -19,7 +19,7 @@ class BW_Widget_Loader {
 
     private function get_class_from_file( $file ) {
         $basename = basename($file, '.php');
-        // es: class-bw-products-slide-widget.php → Widget_Bw_Products_Slide
+        // es: class-bw-slick-slider-widget.php → Widget_Bw_Slick_Slider
         $parts = explode('-', str_replace('class-', '', $basename));
         $class = 'Widget_';
         foreach ($parts as $p) {
