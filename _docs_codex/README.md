@@ -13,12 +13,13 @@ bw-elementor-widgets/
 │── includes/
 │    │── class-bw-widget-loader.php      // loader automatico dei widget
 │    │── widgets/
-│    │    │── class-bw-products-slide-widget.php
+│    │    └── class-bw-slick-slider-widget.php
 │── assets/
 │    ├── css/
-│    │    └── bw-products-slide.css
+│    │    └── bw-slick-slider.css
 │    └── js/
-│         └── bw-products-slide.js
+│         ├── bw-slick-slider.js
+│         └── bw-slick-slider-admin.js
 ```
 
 ---
@@ -34,27 +35,8 @@ bw-elementor-widgets/
 
 ## 🚀 Widget attuali
 
-### BW Products Slide
-Uno slider basato su **Flickity** che mostra prodotti o post con controlli configurabili da Elementor:
-
-- **Query**  
-  - Post type  
-  - Categoria  
-  - ID specifici  
-
-- **Display Options**  
-  - Mostra/Nascondi titolo  
-  - Mostra/Nascondi sottotitolo (excerpt)  
-  - Mostra/Nascondi prezzo (WooCommerce)  
-
-- **Layout**  
-  - Numero di colonne (2–6)  
-  - Spazio tra colonne  
-
-- **Slider Settings**  
-  - Velocità autoplay (ms)  
-  - Loop infinito  
-  - Effetto fade  
+### BW Slick Slider
+Uno slider basato su **Slick Carousel** che consente di mostrare post o prodotti WooCommerce con controlli per query, layout e funzionalità di quick view.
 
 ---
 
@@ -78,7 +60,7 @@ Uno slider basato su **Flickity** che mostra prodotti o post con controlli confi
 ## 📦 Dipendenze
 
 - [Elementor](https://elementor.com/)  
-- [Flickity](https://flickity.metafizzy.co/) (incluso via CDN)  
+- [Slick Carousel](https://kenwheeler.github.io/slick/) (incluso via CDN)
 
 ---
 
