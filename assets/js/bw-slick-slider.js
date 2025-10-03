@@ -206,20 +206,47 @@
     return typeof fallback === 'string' ? fallback : '';
   };
 
-  var fetchQuickViewData = function (productId) {
-    if (!isObject(window.bwSlickSlider) || !window.bwSlickSlider.ajaxUrl) {
+  var extractString = function (value) {
+    return typeof value === 'string' ? value.trim() : '';
+  };
+
+  var fetchQuickViewData = function (productId, requestConfig) {
+    var config = requestConfig || {};
+    var ajaxUrl =
+      extractString(config.ajaxUrl) ||
+      extractString(config.ajax_url) ||
+      extractString(config.ajaxurl) ||
+      (isObject(window.bwSlickSlider)
+        ? extractString(window.bwSlickSlider.ajaxUrl)
+        : '') ||
+      (typeof elementorFrontendConfig !== 'undefined' &&
+      elementorFrontendConfig &&
+      elementorFrontendConfig.urls
+        ? extractString(elementorFrontendConfig.urls.ajax)
+        : '') ||
+      extractString(window.ajaxurl);
+
+    if (!ajaxUrl) {
       return $.Deferred().reject({
         message: 'Missing AJAX endpoint.',
       }).promise();
     }
 
+    var nonce =
+      extractString(config.quickViewNonce) ||
+      extractString(config.nonce) ||
+      extractString(config.quick_view_nonce) ||
+      (isObject(window.bwSlickSlider)
+        ? extractString(window.bwSlickSlider.quickViewNonce)
+        : '');
+
     return $.ajax({
-      url: window.bwSlickSlider.ajaxUrl,
+      url: ajaxUrl,
       type: 'POST',
       dataType: 'json',
       data: {
         action: 'bw_get_quick_view',
-        nonce: window.bwSlickSlider.quickViewNonce || '',
+        nonce: nonce,
         product_id: productId,
       },
     });
@@ -228,6 +255,11 @@
   var activeQuickViewClose = null;
 
   var setupQuickViewOverlay = function ($overlay) {
+    var overlayConfig = {
+      ajaxUrl: extractString($overlay.attr('data-ajax-url')),
+      quickViewNonce: extractString($overlay.attr('data-quick-view-nonce')),
+    };
+
     var state = {
       currentRequest: null,
       isOpen: false,
@@ -386,7 +418,7 @@
 
       activeQuickViewClose = close;
 
-      state.currentRequest = fetchQuickViewData(productId)
+      state.currentRequest = fetchQuickViewData(productId, overlayConfig)
         .done(function (response) {
           if (!state.isOpen) {
             return;
