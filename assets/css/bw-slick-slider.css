@@ -122,7 +122,8 @@
   display: inline-flex;
   justify-content: center;
   align-items: center;
-  width: 50%;
+  width: 100%;
+  flex: 1 1 100%;
   padding: var(--bw-overlay-buttons-padding-y) var(--bw-overlay-buttons-padding-x);
   background: var(--bw-overlay-buttons-background);
   color: var(--bw-overlay-buttons-color);
@@ -134,9 +135,13 @@
   transition: background 0.3s ease, color 0.3s ease;
 }
 
-.bw-slick-slider .bw-ss__buttons .bw-view-btn {
-  flex: 1 1 100%;
-  width: 100%;
+.bw-slick-slider .bw-ss__buttons--double .overlay-button {
+  flex: 1 1 50%;
+  width: 50%;
+}
+
+.bw-slick-slider .bw-btn-addtocart {
+  text-decoration: none;
 }
 
 .bw-slick-slider .overlay-button:first-child {
