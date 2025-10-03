@@ -28,6 +28,7 @@ require_once plugin_dir_path( __FILE__ ) . 'includes/product-types/product-types
 
 add_action('elementor/frontend/after_enqueue_scripts', 'bw_enqueue_flickity');
 add_action('elementor/editor/after_enqueue_scripts', 'bw_enqueue_flickity');
+add_action('elementor/preview/enqueue_scripts', 'bw_enqueue_flickity');
 add_action('elementor/editor/after_enqueue_scripts', 'bw_enqueue_slick_slider_admin_script');
 
 function bw_enqueue_flickity() {
