@@ -957,7 +957,7 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
             <?php endif; ?>
         </div>
         <?php if ( $quick_view_enabled && 'product' === $content_type ) : ?>
-            <div class="bw-quickview-overlay" data-product-quick-view aria-hidden="true">
+            <div class="bw-quickview-overlay" data-product-quick-view aria-hidden="true" data-ajax-url="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>" data-quick-view-nonce="<?php echo esc_attr( wp_create_nonce( 'bw_quick_view_nonce' ) ); ?>">
                 <div class="bw-quickview-backdrop" data-quickview-close></div>
                 <div class="bw-quickview" role="dialog" aria-modal="true" aria-label="<?php esc_attr_e( 'Product quick view', 'bw-elementor-widgets' ); ?>" tabindex="-1">
                     <button type="button" class="bw-quickview-close" aria-label="<?php esc_attr_e( 'Close quick view', 'bw-elementor-widgets' ); ?>" data-quickview-close>
