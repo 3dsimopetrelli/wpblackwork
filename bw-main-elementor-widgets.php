@@ -85,7 +85,7 @@ function bw_enqueue_flickity() {
         'bw-slick-slider-js',
         plugin_dir_url(__FILE__) . 'assets/js/bw-slick-slider.js',
         ['jquery', 'slick-js'],
-        '1.0.0',
+        filemtime( __DIR__ . '/assets/js/bw-slick-slider.js' ),
         true
     );
 
