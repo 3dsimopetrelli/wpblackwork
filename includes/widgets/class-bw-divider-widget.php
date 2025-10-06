@@ -20,7 +20,7 @@ class Widget_Bw_Divider extends Widget_Base {
     }
 
     public function get_categories() {
-        return [ 'black-work' ];
+        return [ 'blackwork' ];
     }
 
     public function get_style_depends() {
@@ -163,7 +163,39 @@ class Widget_Bw_Divider extends Widget_Base {
             return '';
         }
 
-        return wp_kses( $svg_content, $this->get_allowed_svg_html() );
+        $prepared_svg = $this->prepare_svg_markup( $svg_content );
+
+        return wp_kses( $prepared_svg, $this->get_allowed_svg_html() );
+    }
+
+    private function prepare_svg_markup( $svg_content ) {
+        if ( empty( $svg_content ) ) {
+            return '';
+        }
+
+        $libxml_previous_state = libxml_use_internal_errors( true );
+
+        $dom = new DOMDocument();
+
+        if ( ! $dom->loadXML( $svg_content ) ) {
+            libxml_clear_errors();
+            libxml_use_internal_errors( $libxml_previous_state );
+
+            return $svg_content;
+        }
+
+        libxml_clear_errors();
+        libxml_use_internal_errors( $libxml_previous_state );
+
+        $paths = $dom->getElementsByTagName( 'path' );
+
+        foreach ( $paths as $path ) {
+            $path->setAttribute( 'fill', 'none' );
+            $path->setAttribute( 'stroke', 'currentColor' );
+            $path->removeAttribute( 'style' );
+        }
+
+        return $dom->saveXML( $dom->documentElement );
     }
 
     private function get_allowed_svg_html() {

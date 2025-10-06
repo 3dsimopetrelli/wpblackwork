@@ -23,7 +23,7 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
     }
 
     public function get_categories() {
-        return [ 'black-work' ];
+        return [ 'blackwork' ];
     }
 
     public function get_script_depends() {
