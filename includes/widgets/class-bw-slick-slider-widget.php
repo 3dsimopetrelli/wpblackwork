@@ -391,6 +391,7 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
                 'px' => [ 'min' => 100, 'max' => 800, 'step' => 1 ],
                 '%'  => [ 'min' => 10, 'max' => 100, 'step' => 1 ],
             ],
+            'render_type' => 'template',
             'selectors'  => [
                 '{{WRAPPER}} .bw-slick-slider' => '--bw-column-width: {{SIZE}}{{UNIT}};',
             ],
