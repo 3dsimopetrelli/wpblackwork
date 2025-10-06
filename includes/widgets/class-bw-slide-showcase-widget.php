@@ -110,6 +110,7 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
                 'px' => [ 'min' => 100, 'max' => 1200, 'step' => 1 ],
                 '%'  => [ 'min' => 10, 'max' => 100, 'step' => 1 ],
             ],
+            'render_type' => 'template',
             'selectors'  => [
                 '{{WRAPPER}} .bw-slide-showcase-slider' => '--bw-slide-showcase-column-width: {{SIZE}}{{UNIT}}; --bw-column-width: {{SIZE}}{{UNIT}};',
             ],
