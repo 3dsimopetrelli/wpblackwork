@@ -3,6 +3,36 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+if ( ! function_exists( 'bw_get_product_categories_options' ) ) {
+    /**
+     * Retrieve all WooCommerce product categories.
+     *
+     * @return array<int,string>
+     */
+    function bw_get_product_categories_options() {
+        $terms = get_terms(
+            [
+                'taxonomy'   => 'product_cat',
+                'hide_empty' => false,
+                'orderby'    => 'name',
+                'order'      => 'ASC',
+            ]
+        );
+
+        $options = [];
+
+        if ( empty( $terms ) || is_wp_error( $terms ) ) {
+            return $options;
+        }
+
+        foreach ( $terms as $term ) {
+            $options[ $term->term_id ] = $term->name;
+        }
+
+        return $options;
+    }
+}
+
 if ( ! function_exists( 'bw_get_parent_product_categories' ) ) {
     /**
      * Retrieve WooCommerce top-level product categories.
