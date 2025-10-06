@@ -1,25 +1,28 @@
-.bw-divider {
-  display: block;
-  width: 100%;
-  text-align: center;
-  --bw-divider-color: #000000;
-  --bw-divider-stroke-width: 1px;
+.bw-divider{
+  --divider-color:#000;
+  --divider-thickness:1px;
+  --flags-size:24px;
+  --flags-gap:8px;
+  width:100%;
 }
 
-.bw-divider svg {
-  width: 100%;
-  height: auto;
-  display: block;
+.bw-divider__line{
+  width:100%;
+  height:var(--divider-thickness);
+  background:var(--divider-color);
 }
 
-.bw-divider path {
-  fill: none !important;
-  stroke: var(--bw-divider-color, #000000) !important;
-  stroke-width: var(--bw-divider-stroke-width, 1px) !important;
+.bw-divider__flags{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  width:100%;
+  margin-top:var(--flags-gap);
 }
 
-.bw-divider img {
-  display: inline-block;
-  max-width: 100%;
-  height: auto;
+.bw-divider__flag{
+  width:var(--flags-size);
+  height:var(--flags-size);
+  display:block;
+  object-fit:contain;
 }
