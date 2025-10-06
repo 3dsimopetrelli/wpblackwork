@@ -132,35 +132,20 @@ class Widget_Bw_Divider extends Widget_Base {
     }
 
     protected function render() {
-        $s = $this->get_settings_for_display();
-
-        $color = ! empty( $s['line_color'] ) ? $s['line_color'] : '#000000';
-        $thick_unit = isset( $s['line_thickness']['unit'] ) ? $s['line_thickness']['unit'] : 'px';
-        $fsize_unit = isset( $s['flags_size']['unit'] ) ? $s['flags_size']['unit'] : 'px';
-        $fgap_unit  = isset( $s['flags_gap']['unit'] ) ? $s['flags_gap']['unit'] : 'px';
-        $fmt_unit   = isset( $s['flags_margin_top']['unit'] ) ? $s['flags_margin_top']['unit'] : 'px';
-
-        $thick = isset( $s['line_thickness']['size'] ) && $s['line_thickness']['size'] !== '' ? $s['line_thickness']['size'] . $thick_unit : '1px';
-        $fsize = isset( $s['flags_size']['size'] ) && $s['flags_size']['size'] !== '' ? $s['flags_size']['size'] . $fsize_unit : '24px';
-        $fgap  = isset( $s['flags_gap']['size'] ) && $s['flags_gap']['size'] !== '' ? $s['flags_gap']['size'] . $fgap_unit : '8px';
-        $fmt   = isset( $s['flags_margin_top']['size'] ) && $s['flags_margin_top']['size'] !== '' ? $s['flags_margin_top']['size'] . $fmt_unit : '0px';
-
         $left  = BW_MEW_URL . 'assets/img/img-divider-1.svg';
         $right = BW_MEW_URL . 'assets/img/img-divider-2.svg';
 
-        echo '<div class="bw-divider"
-                  style="--divider-color:' . esc_attr( $color ) . ';
-                         --divider-thickness:' . esc_attr( $thick ) . ';
-                         --flags-size:' . esc_attr( $fsize ) . ';
-                         --flags-gap:' . esc_attr( $fgap ) . ';
-                         --flags-margin-top:' . esc_attr( $fmt ) . ';">
-                <div class="bw-divider__line" role="presentation"></div>
-                <div class="bw-divider__flags" aria-hidden="true">
-                    <img class="bw-divider__flag bw-divider__flag--left"  src="' . esc_url( $left ) . '"  alt="" />
-                    <img class="bw-divider__flag bw-divider__flag--right" src="' . esc_url( $right ) . '" alt="" />
-                </div>
-              </div>';
+        $this->add_render_attribute( 'divider', 'class', 'bw-divider' );
+
+        echo '<div ' . $this->get_render_attribute_string( 'divider' ) . '>';
+        echo '    <div class="bw-divider__line" role="presentation"></div>';
+        echo '    <div class="bw-divider__flags" aria-hidden="true">';
+        echo '        <img class="bw-divider__flag bw-divider__flag--left"  src="' . esc_url( $left ) . '"  alt="" />';
+        echo '        <img class="bw-divider__flag bw-divider__flag--right" src="' . esc_url( $right ) . '" alt="" />';
+        echo '    </div>';
+        echo '</div>';
     }
+
 
     private function register_style() {
         $css_relative_path = 'assets/css/bw-divider.css';
