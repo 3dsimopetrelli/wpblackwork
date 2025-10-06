@@ -81,7 +81,7 @@ class Widget_Bw_Divider extends Widget_Base {
             'type'  => Controls_Manager::SLIDER,
             'size_units' => [ 'px' ],
             'range' => [
-                'px' => [ 'min' => 1, 'max' => 20, 'step' => 1 ],
+                'px' => [ 'min' => 1, 'max' => 20 ],
             ],
             'default' => [ 'size' => 1, 'unit' => 'px' ],
             'selectors' => [
@@ -94,7 +94,7 @@ class Widget_Bw_Divider extends Widget_Base {
             'type'  => Controls_Manager::SLIDER,
             'size_units' => [ 'px' ],
             'range' => [
-                'px' => [ 'min' => 8, 'max' => 80, 'step' => 1 ],
+                'px' => [ 'min' => 8, 'max' => 120 ],
             ],
             'default' => [ 'size' => 24, 'unit' => 'px' ],
             'selectors' => [
@@ -107,11 +107,24 @@ class Widget_Bw_Divider extends Widget_Base {
             'type'  => Controls_Manager::SLIDER,
             'size_units' => [ 'px' ],
             'range' => [
-                'px' => [ 'min' => 0, 'max' => 40, 'step' => 1 ],
+                'px' => [ 'min' => 0, 'max' => 80 ],
             ],
             'default' => [ 'size' => 8, 'unit' => 'px' ],
             'selectors' => [
                 '{{WRAPPER}} .bw-divider' => '--flags-gap: {{SIZE}}{{UNIT}};',
+            ],
+        ] );
+
+        $this->add_control( 'flags_margin_top', [
+            'label' => __( 'Flags Margin Top', 'bw-elementor-widgets' ),
+            'type'  => Controls_Manager::SLIDER,
+            'size_units' => [ 'px' ],
+            'range' => [
+                'px' => [ 'min' => -50, 'max' => 100 ],
+            ],
+            'default' => [ 'size' => 0, 'unit' => 'px' ],
+            'selectors' => [
+                '{{WRAPPER}} .bw-divider' => '--flags-margin-top: {{SIZE}}{{UNIT}};',
             ],
         ] );
 
@@ -125,10 +138,12 @@ class Widget_Bw_Divider extends Widget_Base {
         $thick_unit = isset( $s['line_thickness']['unit'] ) ? $s['line_thickness']['unit'] : 'px';
         $fsize_unit = isset( $s['flags_size']['unit'] ) ? $s['flags_size']['unit'] : 'px';
         $fgap_unit  = isset( $s['flags_gap']['unit'] ) ? $s['flags_gap']['unit'] : 'px';
+        $fmt_unit   = isset( $s['flags_margin_top']['unit'] ) ? $s['flags_margin_top']['unit'] : 'px';
 
-        $thick = ! empty( $s['line_thickness']['size'] ) ? $s['line_thickness']['size'] . $thick_unit : '1px';
-        $fsize = ! empty( $s['flags_size']['size'] ) ? $s['flags_size']['size'] . $fsize_unit : '24px';
-        $fgap  = ! empty( $s['flags_gap']['size'] ) ? $s['flags_gap']['size'] . $fgap_unit : '8px';
+        $thick = isset( $s['line_thickness']['size'] ) && $s['line_thickness']['size'] !== '' ? $s['line_thickness']['size'] . $thick_unit : '1px';
+        $fsize = isset( $s['flags_size']['size'] ) && $s['flags_size']['size'] !== '' ? $s['flags_size']['size'] . $fsize_unit : '24px';
+        $fgap  = isset( $s['flags_gap']['size'] ) && $s['flags_gap']['size'] !== '' ? $s['flags_gap']['size'] . $fgap_unit : '8px';
+        $fmt   = isset( $s['flags_margin_top']['size'] ) && $s['flags_margin_top']['size'] !== '' ? $s['flags_margin_top']['size'] . $fmt_unit : '0px';
 
         $left  = BW_MEW_URL . 'assets/img/img-divider-1.svg';
         $right = BW_MEW_URL . 'assets/img/img-divider-2.svg';
@@ -137,7 +152,8 @@ class Widget_Bw_Divider extends Widget_Base {
                   style="--divider-color:' . esc_attr( $color ) . ';
                          --divider-thickness:' . esc_attr( $thick ) . ';
                          --flags-size:' . esc_attr( $fsize ) . ';
-                         --flags-gap:' . esc_attr( $fgap ) . ';">
+                         --flags-gap:' . esc_attr( $fgap ) . ';
+                         --flags-margin-top:' . esc_attr( $fmt ) . ';">
                 <div class="bw-divider__line" role="presentation"></div>
                 <div class="bw-divider__flags" aria-hidden="true">
                     <img class="bw-divider__flag bw-divider__flag--left"  src="' . esc_url( $left ) . '"  alt="" />

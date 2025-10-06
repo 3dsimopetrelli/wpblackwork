@@ -3,26 +3,31 @@
   --divider-thickness:1px;
   --flags-size:24px;
   --flags-gap:8px;
+  --flags-margin-top:0px;
   width:100%;
 }
 
+/* linea nera */
 .bw-divider__line{
   width:100%;
   height:var(--divider-thickness);
   background:var(--divider-color);
 }
 
+/* contenitore bandiere */
 .bw-divider__flags{
   display:flex;
   justify-content:space-between;
-  align-items:center;
+  align-items:flex-start;
   width:100%;
   margin-top:var(--flags-gap);
+  transform:translateY(var(--flags-margin-top));
 }
 
+/* immagini bandiera */
 .bw-divider__flag{
   width:var(--flags-size);
   height:var(--flags-size);
-  display:block;
   object-fit:contain;
+  display:block;
 }
