@@ -249,11 +249,15 @@
       return;
     }
 
-    elementorFrontend.hooks.addAction(
+    var widgetsToInit = [
       'frontend/element_ready/bw-slick-slider.default',
-      function ($scope) {
+      'frontend/element_ready/bw-slide-showcase.default',
+    ];
+
+    widgetsToInit.forEach(function (hook) {
+      elementorFrontend.hooks.addAction(hook, function ($scope) {
         initSlickSlider($scope);
-      }
-    );
+      });
+    });
   });
 })(jQuery);
