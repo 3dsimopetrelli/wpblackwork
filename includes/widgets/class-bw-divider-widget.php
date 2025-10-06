@@ -71,6 +71,9 @@ class Widget_Bw_Divider extends Widget_Base {
             'label'   => __( 'Line Color', 'bw-elementor-widgets' ),
             'type'    => Controls_Manager::COLOR,
             'default' => '#000000',
+            'selectors' => [
+                '{{WRAPPER}} .bw-divider' => '--divider-color: {{VALUE}};',
+            ],
         ] );
 
         $this->add_control( 'line_thickness', [
@@ -81,60 +84,66 @@ class Widget_Bw_Divider extends Widget_Base {
                 'px' => [ 'min' => 1, 'max' => 20, 'step' => 1 ],
             ],
             'default' => [ 'size' => 1, 'unit' => 'px' ],
+            'selectors' => [
+                '{{WRAPPER}} .bw-divider' => '--divider-thickness: {{SIZE}}{{UNIT}};',
+            ],
         ] );
 
-        $this->add_control( 'divider_style', [
-            'label'   => __( 'Divider Style', 'bw-elementor-widgets' ),
-            'type'    => Controls_Manager::SELECT,
-            'options' => [
-                'style1' => __( 'Style 1', 'bw-elementor-widgets' ),
-                'style2' => __( 'Style 2', 'bw-elementor-widgets' ),
+        $this->add_control( 'flags_size', [
+            'label' => __( 'Flags Size', 'bw-elementor-widgets' ),
+            'type'  => Controls_Manager::SLIDER,
+            'size_units' => [ 'px' ],
+            'range' => [
+                'px' => [ 'min' => 8, 'max' => 80, 'step' => 1 ],
             ],
-            'default' => 'style1',
+            'default' => [ 'size' => 24, 'unit' => 'px' ],
+            'selectors' => [
+                '{{WRAPPER}} .bw-divider' => '--flags-size: {{SIZE}}{{UNIT}};',
+            ],
+        ] );
+
+        $this->add_control( 'flags_gap', [
+            'label' => __( 'Flags Gap', 'bw-elementor-widgets' ),
+            'type'  => Controls_Manager::SLIDER,
+            'size_units' => [ 'px' ],
+            'range' => [
+                'px' => [ 'min' => 0, 'max' => 40, 'step' => 1 ],
+            ],
+            'default' => [ 'size' => 8, 'unit' => 'px' ],
+            'selectors' => [
+                '{{WRAPPER}} .bw-divider' => '--flags-gap: {{SIZE}}{{UNIT}};',
+            ],
         ] );
 
         $this->end_controls_section();
     }
 
     protected function render() {
-        $settings = $this->get_settings_for_display();
-        $wrapper_styles = [];
+        $s = $this->get_settings_for_display();
 
-        if ( ! empty( $settings['line_color'] ) ) {
-            $wrapper_styles[] = '--bw-divider-color: ' . esc_attr( $settings['line_color'] ) . ';';
-        }
+        $color = ! empty( $s['line_color'] ) ? $s['line_color'] : '#000000';
+        $thick_unit = isset( $s['line_thickness']['unit'] ) ? $s['line_thickness']['unit'] : 'px';
+        $fsize_unit = isset( $s['flags_size']['unit'] ) ? $s['flags_size']['unit'] : 'px';
+        $fgap_unit  = isset( $s['flags_gap']['unit'] ) ? $s['flags_gap']['unit'] : 'px';
 
-        $line_thickness = isset( $settings['line_thickness']['size'] ) ? (float) $settings['line_thickness']['size'] : 0;
-        if ( $line_thickness > 0 ) {
-            $wrapper_styles[] = '--bw-divider-stroke-width: ' . $line_thickness . 'px;';
-        }
+        $thick = ! empty( $s['line_thickness']['size'] ) ? $s['line_thickness']['size'] . $thick_unit : '1px';
+        $fsize = ! empty( $s['flags_size']['size'] ) ? $s['flags_size']['size'] . $fsize_unit : '24px';
+        $fgap  = ! empty( $s['flags_gap']['size'] ) ? $s['flags_gap']['size'] . $fgap_unit : '8px';
 
-        $this->add_render_attribute( 'wrapper', 'class', 'bw-divider' );
+        $left  = BW_MEW_URL . 'assets/img/img-divider-1.svg';
+        $right = BW_MEW_URL . 'assets/img/img-divider-2.svg';
 
-        if ( ! empty( $wrapper_styles ) ) {
-            $this->add_render_attribute( 'wrapper', 'style', implode( ' ', $wrapper_styles ) );
-        }
-
-        $style_choice = ! empty( $settings['divider_style'] ) ? $settings['divider_style'] : 'style1';
-        $svg_filename = 'style2' === $style_choice ? 'img-divider-2.svg' : 'img-divider-1.svg';
-        $relative_svg_path = 'assets/img/' . $svg_filename;
-
-        $svg_markup = $this->get_svg_markup( $svg_filename );
-        $image_url  = $this->get_asset_url( $relative_svg_path );
-
-        echo '<div ' . $this->get_render_attribute_string( 'wrapper' ) . '>';
-
-        if ( $svg_markup ) {
-            echo $svg_markup; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-        } else {
-            printf(
-                '<img src="%1$s" alt="%2$s" class="bw-divider__image" />',
-                esc_url( $image_url ),
-                esc_attr__( 'Divider', 'bw-elementor-widgets' )
-            );
-        }
-
-        echo '</div>';
+        echo '<div class="bw-divider"
+                  style="--divider-color:' . esc_attr( $color ) . ';
+                         --divider-thickness:' . esc_attr( $thick ) . ';
+                         --flags-size:' . esc_attr( $fsize ) . ';
+                         --flags-gap:' . esc_attr( $fgap ) . ';">
+                <div class="bw-divider__line" role="presentation"></div>
+                <div class="bw-divider__flags" aria-hidden="true">
+                    <img class="bw-divider__flag bw-divider__flag--left"  src="' . esc_url( $left ) . '"  alt="" />
+                    <img class="bw-divider__flag bw-divider__flag--right" src="' . esc_url( $right ) . '" alt="" />
+                </div>
+              </div>';
     }
 
     private function register_style() {
@@ -148,116 +157,6 @@ class Widget_Bw_Divider extends Widget_Base {
             [],
             $version
         );
-    }
-
-    private function get_svg_markup( $filename ) {
-        $file_path = $this->get_asset_path( 'assets/img/' . $filename );
-
-        if ( ! file_exists( $file_path ) ) {
-            return '';
-        }
-
-        $svg_content = file_get_contents( $file_path );
-
-        if ( false === $svg_content ) {
-            return '';
-        }
-
-        $prepared_svg = $this->prepare_svg_markup( $svg_content );
-
-        return wp_kses( $prepared_svg, $this->get_allowed_svg_html() );
-    }
-
-    private function prepare_svg_markup( $svg_content ) {
-        if ( empty( $svg_content ) ) {
-            return '';
-        }
-
-        $libxml_previous_state = libxml_use_internal_errors( true );
-
-        $dom = new DOMDocument();
-
-        if ( ! $dom->loadXML( $svg_content ) ) {
-            libxml_clear_errors();
-            libxml_use_internal_errors( $libxml_previous_state );
-
-            return $svg_content;
-        }
-
-        libxml_clear_errors();
-        libxml_use_internal_errors( $libxml_previous_state );
-
-        $paths = $dom->getElementsByTagName( 'path' );
-
-        foreach ( $paths as $path ) {
-            $path->setAttribute( 'fill', 'none' );
-            $path->setAttribute( 'stroke', 'currentColor' );
-            $path->removeAttribute( 'style' );
-        }
-
-        return $dom->saveXML( $dom->documentElement );
-    }
-
-    private function get_allowed_svg_html() {
-        return [
-            'svg' => [
-                'class' => true,
-                'xmlns' => true,
-                'width' => true,
-                'height' => true,
-                'viewBox' => true,
-                'fill' => true,
-                'stroke' => true,
-                'stroke-width' => true,
-                'role' => true,
-                'aria-hidden' => true,
-                'focusable' => true,
-                'style' => true,
-                'preserveAspectRatio' => true,
-            ],
-            'g' => [
-                'clip-path' => true,
-                'fill' => true,
-                'stroke' => true,
-                'stroke-width' => true,
-                'style' => true,
-                'class' => true,
-                'id' => true,
-            ],
-            'path' => [
-                'd' => true,
-                'fill' => true,
-                'stroke' => true,
-                'stroke-width' => true,
-                'style' => true,
-                'clip-path' => true,
-                'transform' => true,
-                'id' => true,
-            ],
-            'rect' => [
-                'width' => true,
-                'height' => true,
-                'fill' => true,
-                'stroke' => true,
-                'stroke-width' => true,
-                'style' => true,
-                'clip-path' => true,
-                'transform' => true,
-                'x' => true,
-                'y' => true,
-                'rx' => true,
-                'ry' => true,
-                'id' => true,
-            ],
-            'defs' => [
-                'id' => true,
-            ],
-            'clipPath' => [
-                'id' => true,
-            ],
-            'title' => true,
-            'desc' => true,
-        ];
     }
 
     private function get_asset_url( $relative_path ) {
