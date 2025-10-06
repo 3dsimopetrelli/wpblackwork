@@ -20,7 +20,7 @@ class Widget_Bw_Divider extends Widget_Base {
     }
 
     public function get_categories() {
-        return [ 'bw-category' ];
+        return [ 'black-work' ];
     }
 
     public function get_style_depends() {
@@ -117,9 +117,10 @@ class Widget_Bw_Divider extends Widget_Base {
 
         $style_choice = ! empty( $settings['divider_style'] ) ? $settings['divider_style'] : 'style1';
         $svg_filename = 'style2' === $style_choice ? 'img-divider-2.svg' : 'img-divider-1.svg';
+        $relative_svg_path = 'assets/img/' . $svg_filename;
 
         $svg_markup = $this->get_svg_markup( $svg_filename );
-        $image_url  = $this->get_asset_url( 'assets/img/' . $svg_filename );
+        $image_url  = $this->get_asset_url( $relative_svg_path );
 
         echo '<div ' . $this->get_render_attribute_string( 'wrapper' ) . '>';
 
@@ -127,7 +128,7 @@ class Widget_Bw_Divider extends Widget_Base {
             echo $svg_markup; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
         } else {
             printf(
-                '<img src="%1$s" alt="%2$s" />',
+                '<img src="%1$s" alt="%2$s" class="bw-divider__image" />',
                 esc_url( $image_url ),
                 esc_attr__( 'Divider', 'bw-elementor-widgets' )
             );
@@ -138,7 +139,7 @@ class Widget_Bw_Divider extends Widget_Base {
 
     private function register_style() {
         $css_relative_path = 'assets/css/bw-divider.css';
-        $css_file          = $this->get_plugin_path( $css_relative_path );
+        $css_file          = $this->get_asset_path( $css_relative_path );
         $version           = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
 
         wp_register_style(
@@ -150,7 +151,7 @@ class Widget_Bw_Divider extends Widget_Base {
     }
 
     private function get_svg_markup( $filename ) {
-        $file_path = $this->get_plugin_path( 'assets/img/' . $filename );
+        $file_path = $this->get_asset_path( 'assets/img/' . $filename );
 
         if ( ! file_exists( $file_path ) ) {
             return '';
@@ -228,11 +229,15 @@ class Widget_Bw_Divider extends Widget_Base {
     }
 
     private function get_asset_url( $relative_path ) {
-        return plugins_url( $relative_path, $this->get_plugin_main_file() );
+        $base_url = defined( 'BW_MEW_URL' ) ? BW_MEW_URL : plugins_url( '/', $this->get_plugin_main_file() );
+
+        return trailingslashit( $base_url ) . ltrim( $relative_path, '/' );
     }
 
-    private function get_plugin_path( $relative_path ) {
-        return trailingslashit( dirname( $this->get_plugin_main_file() ) ) . ltrim( $relative_path, '/' );
+    private function get_asset_path( $relative_path ) {
+        $base_path = defined( 'BW_MEW_PATH' ) ? BW_MEW_PATH : dirname( $this->get_plugin_main_file() );
+
+        return trailingslashit( $base_path ) . ltrim( $relative_path, '/' );
     }
 
     private function get_plugin_main_file() {

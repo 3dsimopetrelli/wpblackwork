@@ -10,6 +10,14 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+if ( ! defined( 'BW_MEW_URL' ) ) {
+    define( 'BW_MEW_URL', plugin_dir_url( __FILE__ ) );
+}
+
+if ( ! defined( 'BW_MEW_PATH' ) ) {
+    define( 'BW_MEW_PATH', plugin_dir_path( __FILE__ ) );
+}
+
 
 // Includi il modulo BW Coming Soon
 if ( file_exists( plugin_dir_path( __FILE__ ) . 'BW_coming_soon/bw-coming-soon.php' ) ) {
@@ -107,7 +115,7 @@ function bw_register_divider_style() {
     );
 }
 
-// Aggiungi categoria personalizzata "Black Work"
+// Aggiungi categoria personalizzata "Black Work Widgets"
 add_action( 'elementor/elements/categories_registered', static function( $elements_manager ) {
     if ( ! method_exists( $elements_manager, 'add_category' ) ) {
         return;
@@ -116,22 +124,8 @@ add_action( 'elementor/elements/categories_registered', static function( $elemen
     $elements_manager->add_category(
         'black-work',
         [
-            'title' => __( 'Black Work', 'bw-elementor-widgets' ),
+            'title' => __( 'Black Work Widgets', 'bw-elementor-widgets' ),
             'icon'  => 'fa fa-cube',
-        ]
-    );
-} );
-
-add_action( 'elementor/elements/categories_registered', static function( $elements_manager ) {
-    if ( ! method_exists( $elements_manager, 'add_category' ) ) {
-        return;
-    }
-
-    $elements_manager->add_category(
-        'bw-category',
-        [
-            'title' => __( 'BW Widgets', 'bw-elementor-widgets' ),
-            'icon'  => 'fa fa-minus',
         ]
     );
 } );
