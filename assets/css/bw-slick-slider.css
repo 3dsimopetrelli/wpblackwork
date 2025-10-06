@@ -23,6 +23,11 @@
   max-width: var(--bw-column-width);
 }
 
+.bw-slick-slider[data-has-column-width="true"] .slick-slide {
+  width: var(--bw-column-width);
+  max-width: none;
+}
+
 .bw-slick-slider .bw-slick-item {
   padding: calc(var(--bw-gap) / 2);
   outline: none;
