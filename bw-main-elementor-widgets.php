@@ -30,6 +30,7 @@ add_action('elementor/frontend/after_enqueue_scripts', 'bw_enqueue_slick_slider_
 add_action('elementor/editor/after_enqueue_scripts', 'bw_enqueue_slick_slider_assets');
 add_action('elementor/preview/enqueue_scripts', 'bw_enqueue_slick_slider_assets');
 add_action('elementor/editor/after_enqueue_scripts', 'bw_enqueue_slick_slider_admin_script');
+add_action('init', 'bw_register_divider_style');
 
 function bw_enqueue_slick_slider_assets() {
     wp_enqueue_style(
@@ -94,6 +95,18 @@ function bw_enqueue_slick_slider_admin_script() {
     );
 }
 
+function bw_register_divider_style() {
+    $css_file = __DIR__ . '/assets/css/bw-divider.css';
+    $version  = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
+
+    wp_register_style(
+        'bw-divider-style',
+        plugin_dir_url(__FILE__) . 'assets/css/bw-divider.css',
+        [],
+        $version
+    );
+}
+
 // Aggiungi categoria personalizzata "Black Work"
 add_action( 'elementor/elements/categories_registered', static function( $elements_manager ) {
     if ( ! method_exists( $elements_manager, 'add_category' ) ) {
@@ -105,6 +118,20 @@ add_action( 'elementor/elements/categories_registered', static function( $elemen
         [
             'title' => __( 'Black Work', 'bw-elementor-widgets' ),
             'icon'  => 'fa fa-cube',
+        ]
+    );
+} );
+
+add_action( 'elementor/elements/categories_registered', static function( $elements_manager ) {
+    if ( ! method_exists( $elements_manager, 'add_category' ) ) {
+        return;
+    }
+
+    $elements_manager->add_category(
+        'bw-category',
+        [
+            'title' => __( 'BW Widgets', 'bw-elementor-widgets' ),
+            'icon'  => 'fa fa-minus',
         ]
     );
 } );
