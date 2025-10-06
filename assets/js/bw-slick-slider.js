@@ -201,11 +201,40 @@
     $sliders.each(function () {
       var $currentSlider = $(this);
 
+      var hasCustomColumnWidth = false;
+      var columnWidthValue = '';
+
+      if ($currentSlider.length && $currentSlider[0]) {
+        var computedStyle = window.getComputedStyle($currentSlider[0]);
+        if (computedStyle) {
+          columnWidthValue = computedStyle
+            .getPropertyValue('--bw-column-width')
+            .trim();
+
+          if (
+            columnWidthValue &&
+            columnWidthValue !== 'auto' &&
+            columnWidthValue !== 'initial' &&
+            columnWidthValue !== 'inherit' &&
+            columnWidthValue !== 'unset'
+          ) {
+            hasCustomColumnWidth = true;
+          }
+        }
+      }
+
       if ($currentSlider.hasClass('slick-initialized')) {
         $currentSlider.slick('unslick');
       }
 
       var settings = parseSettings($currentSlider);
+
+      if (hasCustomColumnWidth) {
+        $currentSlider.attr('data-has-column-width', 'true');
+        settings.variableWidth = true;
+      } else {
+        $currentSlider.removeAttr('data-has-column-width');
+      }
 
       if (typeof settings.prevArrow === 'undefined') {
         settings.prevArrow =
