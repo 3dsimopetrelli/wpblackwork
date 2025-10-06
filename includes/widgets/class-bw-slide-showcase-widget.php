@@ -102,6 +102,20 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
             'default' => '1',
         ] );
 
+        $this->add_responsive_control( 'column_width', [
+            'label'      => __( 'Larghezza colonna', 'bw-elementor-widgets' ),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => [ 'px', '%' ],
+            'range'      => [
+                'px' => [ 'min' => 100, 'max' => 1200, 'step' => 1 ],
+                '%'  => [ 'min' => 10, 'max' => 100, 'step' => 1 ],
+            ],
+            'selectors'  => [
+                '{{WRAPPER}} .bw-slide-showcase-slider' => '--bw-slide-showcase-column-width: {{SIZE}}{{UNIT}}; --bw-column-width: {{SIZE}}{{UNIT}};',
+            ],
+            'description' => __( 'Imposta la larghezza massima degli elementi della vetrina.', 'bw-elementor-widgets' ),
+        ] );
+
         $this->add_control( 'gap', [
             'label' => __( 'Spazio tra colonne (px)', 'bw-elementor-widgets' ),
             'type'  => Controls_Manager::SLIDER,
@@ -377,15 +391,18 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
     }
 
     protected function render() {
-        $settings      = $this->get_settings_for_display();
-        $columns       = isset( $settings['columns'] ) ? max( 1, absint( $settings['columns'] ) ) : 1;
-        $gap           = isset( $settings['gap']['size'] ) ? max( 0, absint( $settings['gap']['size'] ) ) : 0;
-        $image_height  = isset( $settings['image_height'] ) ? max( 0, absint( $settings['image_height'] ) ) : 0;
-        $image_crop    = isset( $settings['image_crop'] ) && 'yes' === $settings['image_crop'];
-        $include_ids   = isset( $settings['include_ids'] ) ? $this->parse_ids( $settings['include_ids'] ) : [];
-        $product_type  = isset( $settings['product_type'] ) ? sanitize_key( $settings['product_type'] ) : '';
-        $product_cat   = isset( $settings['product_cat_parent'] ) ? absint( $settings['product_cat_parent'] ) : 0;
-        $slides_scroll = isset( $settings['slides_to_scroll'] ) ? max( 1, absint( $settings['slides_to_scroll'] ) ) : 1;
+        $settings           = $this->get_settings_for_display();
+        $columns            = isset( $settings['columns'] ) ? max( 1, absint( $settings['columns'] ) ) : 1;
+        $gap                = isset( $settings['gap']['size'] ) ? max( 0, absint( $settings['gap']['size'] ) ) : 0;
+        $image_height       = isset( $settings['image_height'] ) ? max( 0, absint( $settings['image_height'] ) ) : 0;
+        $image_crop         = isset( $settings['image_crop'] ) && 'yes' === $settings['image_crop'];
+        $include_ids        = isset( $settings['include_ids'] ) ? $this->parse_ids( $settings['include_ids'] ) : [];
+        $product_type       = isset( $settings['product_type'] ) ? sanitize_key( $settings['product_type'] ) : '';
+        $product_cat        = isset( $settings['product_cat_parent'] ) ? absint( $settings['product_cat_parent'] ) : 0;
+        $slides_scroll      = isset( $settings['slides_to_scroll'] ) ? max( 1, absint( $settings['slides_to_scroll'] ) ) : 1;
+        $column_width_data  = $this->get_slider_value_with_unit( $settings, 'column_width', null, 'px' );
+        $column_width       = isset( $column_width_data['size'] ) ? $column_width_data['size'] : null;
+        $column_width_unit  = isset( $column_width_data['unit'] ) ? $column_width_data['unit'] : 'px';
 
         $query_args = [
             'post_type'      => 'product',
@@ -455,6 +472,14 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
         $wrapper_style .= '--bw-gap:' . $gap . 'px;';
         $wrapper_style .= '--bw-slide-showcase-columns:' . $columns . ';';
         $wrapper_style .= '--bw-columns:' . $columns . ';';
+        if ( null !== $column_width && '' !== $column_width && (float) $column_width > 0 ) {
+            $wrapper_style .= '--bw-slide-showcase-column-width:' . $column_width . $column_width_unit . ';';
+            $wrapper_style .= '--bw-column-width:' . $column_width . $column_width_unit . ';';
+        } else {
+            $wrapper_style .= '--bw-slide-showcase-column-width:auto;';
+            $wrapper_style .= '--bw-column-width:auto;';
+        }
+
         if ( $image_height > 0 ) {
             $wrapper_style .= '--bw-slide-showcase-image-height:' . $image_height . 'px;';
             $wrapper_style .= '--bw-image-height:' . $image_height . 'px;';
@@ -575,6 +600,51 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
         </div>
         <?php
         wp_reset_postdata();
+    }
+
+    private function get_slider_value_with_unit( $settings, $control_id, $default_size = null, $default_unit = 'px' ) {
+        if ( ! isset( $settings[ $control_id ] ) ) {
+            return [
+                'size' => $default_size,
+                'unit' => $default_unit,
+            ];
+        }
+
+        $value = $settings[ $control_id ];
+        $size  = null;
+        $unit  = $default_unit;
+
+        if ( is_array( $value ) ) {
+            if ( isset( $value['unit'] ) && '' !== $value['unit'] ) {
+                $unit = $value['unit'];
+            }
+
+            if ( isset( $value['size'] ) && '' !== $value['size'] ) {
+                $size = $value['size'];
+            } elseif ( isset( $value['sizes'] ) && is_array( $value['sizes'] ) ) {
+                foreach ( [ 'desktop', 'tablet', 'mobile' ] as $device ) {
+                    if ( isset( $value['sizes'][ $device ] ) && '' !== $value['sizes'][ $device ] ) {
+                        $size = $value['sizes'][ $device ];
+                        break;
+                    }
+                }
+            }
+        } elseif ( '' !== $value && null !== $value ) {
+            $size = $value;
+        }
+
+        if ( null === $size ) {
+            $size = $default_size;
+        }
+
+        if ( is_numeric( $size ) ) {
+            $size = (float) $size;
+        }
+
+        return [
+            'size' => $size,
+            'unit' => $unit,
+        ];
     }
 
     private function parse_ids( $ids_string ) {

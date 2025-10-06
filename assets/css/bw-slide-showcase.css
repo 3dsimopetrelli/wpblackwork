@@ -1,3 +1,7 @@
+.bw-slide-showcase-slider {
+    --bw-slide-showcase-column-width: auto;
+}
+
 .bw-slide-showcase-slider * {
     margin: 0;
     padding: 0;
@@ -10,6 +14,7 @@
 
 .bw-slide-showcase-slider .slick-slide {
     height: auto;
+    max-width: var(--bw-slide-showcase-column-width, var(--bw-column-width, 100%));
     padding: 0 calc(var(--bw-slide-showcase-gap, var(--bw-gap, 0px)) / 2);
 }
 
