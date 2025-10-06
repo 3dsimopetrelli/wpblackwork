@@ -4,6 +4,7 @@
   --bw-columns: 3;
   --bw-gap: 24px;
   --bw-image-height: auto;
+  --bw-column-width: auto;
   --bw-overlay-buttons-background: #ffffff;
   --bw-overlay-buttons-background-hover: #f5f5f5;
   --bw-overlay-buttons-color: #000000;
@@ -19,6 +20,7 @@
 
 .bw-slick-slider .slick-slide {
   height: auto;
+  max-width: var(--bw-column-width);
 }
 
 .bw-slick-slider .bw-slick-item {

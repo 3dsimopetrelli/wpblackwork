@@ -59,6 +59,19 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
         ] );
 
         $this->add_control(
+            'product_categories',
+            [
+                'label'       => __( 'Categoria', 'bw-elementor-widgets' ),
+                'type'        => Controls_Manager::SELECT2,
+                'label_block' => true,
+                'multiple'    => true,
+                'options'     => bw_get_product_categories_options(),
+                'condition'   => [ 'content_type' => 'product' ],
+                'description' => __( 'Seleziona una o più categorie prodotto.', 'bw-elementor-widgets' ),
+            ]
+        );
+
+        $this->add_control(
             'product_cat_parent',
             [
                 'label'       => __( 'Categoria Padre', 'bw' ),
@@ -353,11 +366,35 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
             'label' => __( 'Immagini', 'bw-elementor-widgets' ),
         ] );
 
-        $this->add_control( 'image_height', [
-            'label'   => __( 'Altezza immagini (px)', 'bw-elementor-widgets' ),
-            'type'    => Controls_Manager::NUMBER,
-            'min'     => 0,
-            'default' => 420,
+        $this->add_responsive_control( 'image_height', [
+            'label'      => __( 'Altezza immagini', 'bw-elementor-widgets' ),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => [ 'px', '%' ],
+            'range'      => [
+                'px' => [ 'min' => 0, 'max' => 1200, 'step' => 1 ],
+                '%'  => [ 'min' => 0, 'max' => 100, 'step' => 1 ],
+            ],
+            'default'    => [
+                'size' => 420,
+                'unit' => 'px',
+            ],
+            'selectors'  => [
+                '{{WRAPPER}} .bw-slick-slider' => '--bw-image-height: {{SIZE}}{{UNIT}};',
+            ],
+        ] );
+
+        $this->add_responsive_control( 'image_column_width', [
+            'label'      => __( 'Larghezza colonna', 'bw-elementor-widgets' ),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => [ 'px', '%' ],
+            'range'      => [
+                'px' => [ 'min' => 100, 'max' => 800, 'step' => 1 ],
+                '%'  => [ 'min' => 10, 'max' => 100, 'step' => 1 ],
+            ],
+            'selectors'  => [
+                '{{WRAPPER}} .bw-slick-slider' => '--bw-column-width: {{SIZE}}{{UNIT}};',
+            ],
+            'description' => __( 'Controlla la larghezza massima delle colonne dello slider.', 'bw-elementor-widgets' ),
         ] );
 
         $this->add_control( 'image_crop', [
@@ -694,10 +731,18 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
         $content_type  = isset( $settings['content_type'] ) && 'product' === $settings['content_type'] ? 'product' : 'post';
         $columns       = isset( $settings['columns'] ) ? max( 1, absint( $settings['columns'] ) ) : 3;
         $gap           = isset( $settings['gap']['size'] ) ? max( 0, absint( $settings['gap']['size'] ) ) : 24;
-        $image_height  = isset( $settings['image_height'] ) ? max( 0, absint( $settings['image_height'] ) ) : 0;
+        $image_height_data = $this->get_slider_value_with_unit( $settings, 'image_height', 420, 'px' );
+        $image_height      = isset( $image_height_data['size'] ) ? max( 0, (float) $image_height_data['size'] ) : 0;
+        $image_height_unit = isset( $image_height_data['unit'] ) ? $image_height_data['unit'] : 'px';
+        $column_width_data = $this->get_slider_value_with_unit( $settings, 'image_column_width', null, 'px' );
+        $column_width      = isset( $column_width_data['size'] ) ? $column_width_data['size'] : null;
+        $column_width_unit = isset( $column_width_data['unit'] ) ? $column_width_data['unit'] : 'px';
         $image_crop    = isset( $settings['image_crop'] ) && 'yes' === $settings['image_crop'];
         $include_ids   = isset( $settings['include_ids'] ) ? $this->parse_ids( $settings['include_ids'] ) : [];
         $product_type  = isset( $settings['product_type'] ) ? sanitize_key( $settings['product_type'] ) : '';
+        $product_categories = isset( $settings['product_categories'] )
+            ? array_filter( array_map( 'absint', (array) $settings['product_categories'] ) )
+            : [];
         $product_cat_parent = isset( $settings['product_cat_parent'] ) ? absint( $settings['product_cat_parent'] ) : 0;
         $product_cat_child  = isset( $settings['product_cat_child'] ) ? array_filter( array_map( 'absint', (array) $settings['product_cat_child'] ) ) : [];
         $slides_scroll = isset( $settings['slides_to_scroll'] ) ? max( 1, absint( $settings['slides_to_scroll'] ) ) : 1;
@@ -716,7 +761,13 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
         if ( 'product' === $content_type ) {
             $tax_query    = [];
 
-            if ( ! empty( $product_cat_child ) ) {
+            if ( ! empty( $product_categories ) ) {
+                $tax_query[] = [
+                    'taxonomy' => 'product_cat',
+                    'field'    => 'term_id',
+                    'terms'    => $product_categories,
+                ];
+            } elseif ( ! empty( $product_cat_child ) ) {
                 $tax_query[] = [
                     'taxonomy' => 'product_cat',
                     'field'    => 'term_id',
@@ -758,9 +809,15 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
         $wrapper_style = '--bw-columns:' . $columns . ';';
         $wrapper_style .= '--bw-gap:' . $gap . 'px;';
         if ( $image_height > 0 ) {
-            $wrapper_style .= '--bw-image-height:' . $image_height . 'px;';
+            $wrapper_style .= '--bw-image-height:' . $image_height . $image_height_unit . ';';
         } else {
             $wrapper_style .= '--bw-image-height:auto;';
+        }
+
+        if ( null !== $column_width && '' !== $column_width && (float) $column_width > 0 ) {
+            $wrapper_style .= '--bw-column-width:' . $column_width . $column_width_unit . ';';
+        } else {
+            $wrapper_style .= '--bw-column-width:auto;';
         }
 
         $slider_settings_json = ! empty( $slider_settings ) ? wp_json_encode( $slider_settings ) : '';
@@ -892,6 +949,51 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
         </div>
         <?php
         wp_reset_postdata();
+    }
+
+    private function get_slider_value_with_unit( $settings, $control_id, $default_size = null, $default_unit = 'px' ) {
+        if ( ! isset( $settings[ $control_id ] ) ) {
+            return [
+                'size' => $default_size,
+                'unit' => $default_unit,
+            ];
+        }
+
+        $value = $settings[ $control_id ];
+        $size  = null;
+        $unit  = $default_unit;
+
+        if ( is_array( $value ) ) {
+            if ( isset( $value['unit'] ) && '' !== $value['unit'] ) {
+                $unit = $value['unit'];
+            }
+
+            if ( isset( $value['size'] ) && '' !== $value['size'] ) {
+                $size = $value['size'];
+            } elseif ( isset( $value['sizes'] ) && is_array( $value['sizes'] ) ) {
+                foreach ( [ 'desktop', 'tablet', 'mobile' ] as $device ) {
+                    if ( isset( $value['sizes'][ $device ] ) && '' !== $value['sizes'][ $device ] ) {
+                        $size = $value['sizes'][ $device ];
+                        break;
+                    }
+                }
+            }
+        } elseif ( '' !== $value && null !== $value ) {
+            $size = $value;
+        }
+
+        if ( null === $size ) {
+            $size = $default_size;
+        }
+
+        if ( is_numeric( $size ) ) {
+            $size = (float) $size;
+        }
+
+        return [
+            'size' => $size,
+            'unit' => $unit,
+        ];
     }
 
     private function parse_ids( $ids_string ) {
