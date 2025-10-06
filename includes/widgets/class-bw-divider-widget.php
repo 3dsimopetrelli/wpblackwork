@@ -128,12 +128,37 @@ class Widget_Bw_Divider extends Widget_Base {
             ],
         ] );
 
+        $this->add_control( 'left_svg', [
+            'label' => __( 'Left SVG Icon', 'bw' ),
+            'type' => Controls_Manager::MEDIA,
+            'media_types' => [ 'svg' ],
+            'default' => [
+                'url' => BW_MEW_URL . 'assets/img/img-divider-1.svg',
+            ],
+        ] );
+
+        $this->add_control( 'right_svg', [
+            'label' => __( 'Right SVG Icon', 'bw' ),
+            'type' => Controls_Manager::MEDIA,
+            'media_types' => [ 'svg' ],
+            'default' => [
+                'url' => BW_MEW_URL . 'assets/img/img-divider-2.svg',
+            ],
+        ] );
+
         $this->end_controls_section();
     }
 
     protected function render() {
-        $left  = BW_MEW_URL . 'assets/img/img-divider-1.svg';
-        $right = BW_MEW_URL . 'assets/img/img-divider-2.svg';
+        $settings = $this->get_settings_for_display();
+
+        $left  = ! empty( $settings['left_svg']['url'] )
+            ? $settings['left_svg']['url']
+            : BW_MEW_URL . 'assets/img/img-divider-1.svg';
+
+        $right = ! empty( $settings['right_svg']['url'] )
+            ? $settings['right_svg']['url']
+            : BW_MEW_URL . 'assets/img/img-divider-2.svg';
 
         $this->add_render_attribute( 'divider', 'class', 'bw-divider' );
 
