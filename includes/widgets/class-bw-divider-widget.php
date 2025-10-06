@@ -20,7 +20,7 @@ class Widget_Bw_Divider extends Widget_Base {
     }
 
     public function get_categories() {
-        return [ 'bw-category' ];
+        return [ 'black-work' ];
     }
 
     public function get_style_depends() {
@@ -222,17 +222,32 @@ class Widget_Bw_Divider extends Widget_Base {
             'clipPath' => [
                 'id' => true,
             ],
+            'clippath' => [
+                'id' => true,
+            ],
             'title' => true,
             'desc' => true,
         ];
     }
 
     private function get_asset_url( $relative_path ) {
+        $relative_path = ltrim( $relative_path, '/' );
+
+        if ( defined( 'BW_MEW_URL' ) ) {
+            return trailingslashit( BW_MEW_URL ) . $relative_path;
+        }
+
         return plugins_url( $relative_path, $this->get_plugin_main_file() );
     }
 
     private function get_plugin_path( $relative_path ) {
-        return trailingslashit( dirname( $this->get_plugin_main_file() ) ) . ltrim( $relative_path, '/' );
+        $relative_path = ltrim( $relative_path, '/' );
+
+        if ( defined( 'BW_MEW_PATH' ) ) {
+            return trailingslashit( BW_MEW_PATH ) . $relative_path;
+        }
+
+        return trailingslashit( dirname( $this->get_plugin_main_file() ) ) . $relative_path;
     }
 
     private function get_plugin_main_file() {

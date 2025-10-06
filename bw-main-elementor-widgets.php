@@ -10,21 +10,29 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+if ( ! defined( 'BW_MEW_URL' ) ) {
+    define( 'BW_MEW_URL', plugin_dir_url( __FILE__ ) );
+}
+
+if ( ! defined( 'BW_MEW_PATH' ) ) {
+    define( 'BW_MEW_PATH', plugin_dir_path( __FILE__ ) );
+}
+
 
 // Includi il modulo BW Coming Soon
-if ( file_exists( plugin_dir_path( __FILE__ ) . 'BW_coming_soon/bw-coming-soon.php' ) ) {
-    require_once plugin_dir_path( __FILE__ ) . 'BW_coming_soon/bw-coming-soon.php';
+if ( file_exists( BW_MEW_PATH . 'BW_coming_soon/bw-coming-soon.php' ) ) {
+    require_once BW_MEW_PATH . 'BW_coming_soon/bw-coming-soon.php';
 }
 
 
 // Helper functions
-require_once __DIR__ . '/includes/helpers.php';
+require_once BW_MEW_PATH . 'includes/helpers.php';
 
 // Loader dei widget
-require_once __DIR__ . '/includes/class-bw-widget-loader.php';
+require_once BW_MEW_PATH . 'includes/class-bw-widget-loader.php';
 
 // Tipi di prodotto personalizzati per WooCommerce
-require_once plugin_dir_path( __FILE__ ) . 'includes/product-types/product-types-init.php';
+require_once BW_MEW_PATH . 'includes/product-types/product-types-init.php';
 
 add_action('elementor/frontend/after_enqueue_scripts', 'bw_enqueue_slick_slider_assets');
 add_action('elementor/editor/after_enqueue_scripts', 'bw_enqueue_slick_slider_assets');
@@ -50,16 +58,16 @@ function bw_enqueue_slick_slider_assets() {
 
     wp_enqueue_style(
         'bw-slick-slider-style',
-        plugin_dir_url(__FILE__) . 'assets/css/bw-slick-slider.css',
+        BW_MEW_URL . 'assets/css/bw-slick-slider.css',
         [],
         '1.0.0'
     );
 
     wp_enqueue_script(
         'bw-slick-slider-js',
-        plugin_dir_url(__FILE__) . 'assets/js/bw-slick-slider.js',
+        BW_MEW_URL . 'assets/js/bw-slick-slider.js',
         ['jquery', 'slick-js'],
-        filemtime( __DIR__ . '/assets/js/bw-slick-slider.js' ),
+        filemtime( BW_MEW_PATH . 'assets/js/bw-slick-slider.js' ),
         true
     );
 
@@ -71,7 +79,7 @@ function bw_enqueue_slick_slider_assets() {
         'bw-slick-slider-js',
         'bwSlickSlider',
         [
-            'assetsUrl' => plugin_dir_url(__FILE__) . 'assets/',
+            'assetsUrl' => BW_MEW_URL . 'assets/',
         ]
     );
 }
@@ -79,7 +87,7 @@ function bw_enqueue_slick_slider_assets() {
 function bw_enqueue_slick_slider_admin_script() {
     wp_enqueue_script(
         'bw-slick-slider-admin',
-        plugin_dir_url(__FILE__) . 'assets/js/bw-slick-slider-admin.js',
+        BW_MEW_URL . 'assets/js/bw-slick-slider-admin.js',
         ['jquery'],
         '1.0.0',
         true
@@ -96,18 +104,18 @@ function bw_enqueue_slick_slider_admin_script() {
 }
 
 function bw_register_divider_style() {
-    $css_file = __DIR__ . '/assets/css/bw-divider.css';
+    $css_file = BW_MEW_PATH . 'assets/css/bw-divider.css';
     $version  = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
 
     wp_register_style(
         'bw-divider-style',
-        plugin_dir_url(__FILE__) . 'assets/css/bw-divider.css',
+        BW_MEW_URL . 'assets/css/bw-divider.css',
         [],
         $version
     );
 }
 
-// Aggiungi categoria personalizzata "Black Work"
+// Aggiungi categoria personalizzata "Black Work Widgets"
 add_action( 'elementor/elements/categories_registered', static function( $elements_manager ) {
     if ( ! method_exists( $elements_manager, 'add_category' ) ) {
         return;
@@ -116,22 +124,8 @@ add_action( 'elementor/elements/categories_registered', static function( $elemen
     $elements_manager->add_category(
         'black-work',
         [
-            'title' => __( 'Black Work', 'bw-elementor-widgets' ),
+            'title' => __( 'Black Work Widgets', 'bw-elementor-widgets' ),
             'icon'  => 'fa fa-cube',
-        ]
-    );
-} );
-
-add_action( 'elementor/elements/categories_registered', static function( $elements_manager ) {
-    if ( ! method_exists( $elements_manager, 'add_category' ) ) {
-        return;
-    }
-
-    $elements_manager->add_category(
-        'bw-category',
-        [
-            'title' => __( 'BW Widgets', 'bw-elementor-widgets' ),
-            'icon'  => 'fa fa-minus',
         ]
     );
 } );
