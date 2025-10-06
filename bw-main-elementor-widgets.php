@@ -116,16 +116,12 @@ function bw_register_divider_style() {
 }
 
 // Aggiungi categoria personalizzata "Black Work Widgets"
-add_action( 'elementor/elements/categories_registered', static function( $elements_manager ) {
-    if ( ! method_exists( $elements_manager, 'add_category' ) ) {
-        return;
-    }
-
+add_action( 'elementor/elements/categories_registered', function( $elements_manager ) {
     $elements_manager->add_category(
-        'black-work',
+        'blackwork',
         [
-            'title' => __( 'Black Work Widgets', 'bw-elementor-widgets' ),
-            'icon'  => 'fa fa-cube',
+            'title' => __( 'Black Work Widgets', 'bw' ),
+            'icon'  => 'fa fa-plug',
         ]
     );
 } );

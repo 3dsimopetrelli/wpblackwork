@@ -7,22 +7,15 @@
 }
 
 .bw-divider svg {
-  display: inline-block;
-  max-width: 100%;
+  width: 100%;
   height: auto;
-  color: var(--bw-divider-color, #000000);
+  display: block;
 }
 
-.bw-divider svg path,
-.bw-divider svg rect,
-.bw-divider svg circle,
-.bw-divider svg ellipse,
-.bw-divider svg line,
-.bw-divider svg polyline,
-.bw-divider svg polygon {
-  fill: var(--bw-divider-color, #000000) !important;
+.bw-divider path {
+  fill: none !important;
   stroke: var(--bw-divider-color, #000000) !important;
-  stroke-width: var(--bw-divider-stroke-width, 1px);
+  stroke-width: var(--bw-divider-stroke-width, 1px) !important;
 }
 
 .bw-divider img {
