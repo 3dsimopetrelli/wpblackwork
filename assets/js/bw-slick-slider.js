@@ -190,6 +190,165 @@
     return settings;
   };
 
+  var sliderObservers = typeof WeakMap === 'function' ? new WeakMap() : null;
+  var rebuildTimeouts = typeof WeakMap === 'function' ? new WeakMap() : null;
+
+  var getColumnWidthInfo = function ($slider) {
+    var info = {
+      value: 'auto',
+      hasCustom: false,
+    };
+
+    if (!$slider || !$slider.length || !$slider[0]) {
+      return info;
+    }
+
+    var computedStyle = window.getComputedStyle($slider[0]);
+    if (!computedStyle) {
+      return info;
+    }
+
+    var columnWidthValue = computedStyle
+      .getPropertyValue('--bw-column-width')
+      .trim();
+
+    if (
+      columnWidthValue &&
+      columnWidthValue !== 'auto' &&
+      columnWidthValue !== 'initial' &&
+      columnWidthValue !== 'inherit' &&
+      columnWidthValue !== 'unset'
+    ) {
+      info.value = columnWidthValue;
+      info.hasCustom = true;
+    }
+
+    return info;
+  };
+
+  var rebuildSlider = function ($currentSlider) {
+    if (!$currentSlider || !$currentSlider.length) {
+      return;
+    }
+
+    var columnWidthInfo = getColumnWidthInfo($currentSlider);
+
+    if ($currentSlider.hasClass('slick-initialized')) {
+      $currentSlider.slick('unslick');
+    }
+
+    var settings = parseSettings($currentSlider);
+
+    if (columnWidthInfo.hasCustom) {
+      $currentSlider.attr('data-has-column-width', 'true');
+      settings.variableWidth = true;
+    } else {
+      $currentSlider.removeAttr('data-has-column-width');
+    }
+
+    if (typeof settings.prevArrow === 'undefined') {
+      settings.prevArrow =
+        '<button type="button" class="bw-slick-prev"><img src="' +
+        assetsUrl +
+        'img/arrow-l.svg" alt="prev"></button>';
+    }
+
+    if (typeof settings.nextArrow === 'undefined') {
+      settings.nextArrow =
+        '<button type="button" class="bw-slick-next"><img src="' +
+        assetsUrl +
+        'img/arrow-d.svg" alt="next"></button>';
+    }
+
+    $currentSlider.slick(settings);
+
+    if (
+      typeof elementorFrontend !== 'undefined' &&
+      elementorFrontend.isEditMode()
+    ) {
+      setTimeout(function () {
+        if ($currentSlider.hasClass('slick-initialized')) {
+          $currentSlider.slick('setPosition');
+        }
+      }, 100);
+    }
+
+    $currentSlider.data('bwColumnWidthValue', columnWidthInfo.value);
+  };
+
+  var scheduleRebuild = function ($slider) {
+    if (!$slider || !$slider.length) {
+      return;
+    }
+
+    if (!rebuildTimeouts) {
+      rebuildSlider($slider);
+      return;
+    }
+
+    var element = $slider[0];
+    var existingTimeout = rebuildTimeouts.get(element);
+    if (existingTimeout) {
+      clearTimeout(existingTimeout);
+    }
+
+    var timeoutId = setTimeout(function () {
+      rebuildTimeouts.delete(element);
+      rebuildSlider($slider);
+    }, 100);
+
+    rebuildTimeouts.set(element, timeoutId);
+  };
+
+  var observeColumnWidthChanges = function ($slider) {
+    if (
+      typeof MutationObserver === 'undefined' ||
+      !sliderObservers ||
+      !$slider ||
+      !$slider.length
+    ) {
+      return;
+    }
+
+    var element = $slider[0];
+    if (sliderObservers.has(element)) {
+      return;
+    }
+
+    var observer = new MutationObserver(function (mutations) {
+      var shouldRebuild = false;
+      var previousValue = $slider.data('bwColumnWidthValue');
+
+      mutations.forEach(function (mutation) {
+        if (mutation.type !== 'attributes') {
+          return;
+        }
+
+        if (mutation.attributeName !== 'style') {
+          return;
+        }
+
+        var info = getColumnWidthInfo($slider);
+        if (info.value !== previousValue) {
+          shouldRebuild = true;
+          previousValue = info.value;
+        }
+      });
+
+      if (shouldRebuild) {
+        $slider.data('bwColumnWidthValue', previousValue);
+        scheduleRebuild($slider);
+      }
+    });
+
+    observer.observe(element, {
+      attributes: true,
+      attributeFilter: ['style'],
+    });
+
+    sliderObservers.set(element, observer);
+  };
+
   var initSlickSlider = function ($scope) {
     var $context = $scope && $scope.length ? $scope : $(document);
     var $sliders = $context.find('.bw-slick-slider');
@@ -201,66 +360,13 @@
     $sliders.each(function () {
       var $currentSlider = $(this);
 
-      var hasCustomColumnWidth = false;
-      var columnWidthValue = '';
-
-      if ($currentSlider.length && $currentSlider[0]) {
-        var computedStyle = window.getComputedStyle($currentSlider[0]);
-        if (computedStyle) {
-          columnWidthValue = computedStyle
-            .getPropertyValue('--bw-column-width')
-            .trim();
-
-          if (
-            columnWidthValue &&
-            columnWidthValue !== 'auto' &&
-            columnWidthValue !== 'initial' &&
-            columnWidthValue !== 'inherit' &&
-            columnWidthValue !== 'unset'
-          ) {
-            hasCustomColumnWidth = true;
-          }
-        }
-      }
-
-      if ($currentSlider.hasClass('slick-initialized')) {
-        $currentSlider.slick('unslick');
-      }
-
-      var settings = parseSettings($currentSlider);
-
-      if (hasCustomColumnWidth) {
-        $currentSlider.attr('data-has-column-width', 'true');
-        settings.variableWidth = true;
-      } else {
-        $currentSlider.removeAttr('data-has-column-width');
-      }
-
-      if (typeof settings.prevArrow === 'undefined') {
-        settings.prevArrow =
-          '<button type="button" class="bw-slick-prev"><img src="' +
-          assetsUrl +
-          'img/arrow-l.svg" alt="prev"></button>';
-      }
-
-      if (typeof settings.nextArrow === 'undefined') {
-        settings.nextArrow =
-          '<button type="button" class="bw-slick-next"><img src="' +
-          assetsUrl +
-          'img/arrow-d.svg" alt="next"></button>';
-      }
-
-      $currentSlider.slick(settings);
+      rebuildSlider($currentSlider);
 
       if (
         typeof elementorFrontend !== 'undefined' &&
         elementorFrontend.isEditMode()
       ) {
-        setTimeout(function () {
-          if ($currentSlider.hasClass('slick-initialized')) {
-            $currentSlider.slick('setPosition');
-          }
-        }, 100);
+        observeColumnWidthChanges($currentSlider);
       }
     });
   };
