@@ -30,6 +30,7 @@ require_once __DIR__ . '/includes/helpers.php';
 
 // Loader dei widget
 require_once __DIR__ . '/includes/class-bw-widget-loader.php';
+require_once( __DIR__ . '/includes/widgets/class-bw-slide-showcase-widget.php' );
 
 // Tipi di prodotto personalizzati per WooCommerce
 require_once plugin_dir_path( __FILE__ ) . 'includes/product-types/product-types-init.php';
@@ -61,6 +62,16 @@ function bw_enqueue_slick_slider_assets() {
         plugin_dir_url(__FILE__) . 'assets/css/bw-slick-slider.css',
         [],
         '1.0.0'
+    );
+
+    $showcase_css_file = __DIR__ . '/assets/css/bw-slide-showcase.css';
+    $showcase_version  = file_exists( $showcase_css_file ) ? filemtime( $showcase_css_file ) : '1.0.0';
+
+    wp_enqueue_style(
+        'bw-slide-showcase-style',
+        plugin_dir_url(__FILE__) . 'assets/css/bw-slide-showcase.css',
+        [],
+        $showcase_version
     );
 
     wp_enqueue_script(
