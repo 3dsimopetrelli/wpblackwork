@@ -870,14 +870,14 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
                                     <div class="bw-slide-showcase-info">
                                         <div class="bw-slide-showcase-info-item pwslideshowkeyinfoitem">
                                             <span class="pwslideshowkeyinfoitem__value">29 Assets</span>
-                                            <div class="bw-slide-showcase-badges">
-                                                <span class="bw-slide-showcase-badge">SVG</span>
-                                                <span class="bw-slide-showcase-badge">EPS</span>
-                                                <span class="bw-slide-showcase-badge">PNG</span>
-                                            </div>
                                         </div>
                                         <div class="bw-slide-showcase-info-item pwslideshowkeyinfoitem">
                                             <span class="pwslideshowkeyinfoitem__value">95.2MB</span>
+                                        </div>
+                                        <div class="bw-slide-showcase-badges">
+                                            <span class="bw-slide-showcase-badge">SVG</span>
+                                            <span class="bw-slide-showcase-badge">EPS</span>
+                                            <span class="bw-slide-showcase-badge">PNG</span>
                                         </div>
                                     </div>
                                     <a href="<?php echo esc_url( $btn_url ); ?>" class="bw-slide-showcase-view-btn"<?php echo $link_attrs; ?>>
