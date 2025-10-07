@@ -195,6 +195,16 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
             ],
         ] );
 
+        $this->add_responsive_control( 'slide_padding', [
+            'label' => __( 'Slide Padding', 'bw-elementor-widgets' ),
+            'type'  => Controls_Manager::DIMENSIONS,
+            'size_units' => [ 'px', '%', 'em', 'rem' ],
+            'selectors' => [
+                '{{WRAPPER}} .bw-slick-slider .bw-slick-item__content' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                '{{WRAPPER}} .bw-slick-slider .bw-ss__content' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+            ],
+        ] );
+
         $this->end_controls_section();
 
         $this->start_controls_section( 'typography_section', [
