@@ -2,6 +2,7 @@
 use Elementor\Controls_Manager;
 use Elementor\Repeater;
 use Elementor\Widget_Base;
+use Elementor\Group_Control_Typography;
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
@@ -39,6 +40,7 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
         $this->register_image_controls();
         $this->register_slider_controls();
         $this->register_button_controls();
+        $this->register_style_controls();
     }
 
     private function register_query_controls() {
@@ -428,6 +430,192 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
                 'nofollow'    => false,
             ],
         ] );
+
+        $this->end_controls_section();
+    }
+
+    private function register_style_controls() {
+        $this->start_controls_section( 'title_style_section', [
+            'label' => __( 'Titolo', 'bw-elementor-widgets' ),
+            'tab'   => Controls_Manager::TAB_STYLE,
+        ] );
+
+        $this->add_control( 'title_color', [
+            'label'     => __( 'Colore', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => [
+                '{{WRAPPER}} .bw-slide-showcase-title-section h1' => 'color: {{VALUE}};',
+            ],
+        ] );
+
+        $this->add_group_control( Group_Control_Typography::get_type(), [
+            'name'     => 'title_typography',
+            'selector' => '{{WRAPPER}} .bw-slide-showcase-title-section h1',
+        ] );
+
+        $this->add_responsive_control( 'title_padding', [
+            'label'      => __( 'Padding', 'bw-elementor-widgets' ),
+            'type'       => Controls_Manager::DIMENSIONS,
+            'size_units' => [ 'px', '%', 'em', 'rem' ],
+            'selectors'  => [
+                '{{WRAPPER}} .bw-slide-showcase-title-section h1' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+            ],
+        ] );
+
+        $this->end_controls_section();
+
+        $this->start_controls_section( 'subtitle_style_section', [
+            'label' => __( 'Sottotitolo', 'bw-elementor-widgets' ),
+            'tab'   => Controls_Manager::TAB_STYLE,
+        ] );
+
+        $this->add_control( 'subtitle_color', [
+            'label'     => __( 'Colore', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => [
+                '{{WRAPPER}} .bw-slide-showcase-title-section p' => 'color: {{VALUE}};',
+            ],
+        ] );
+
+        $this->add_group_control( Group_Control_Typography::get_type(), [
+            'name'     => 'subtitle_typography',
+            'selector' => '{{WRAPPER}} .bw-slide-showcase-title-section p',
+        ] );
+
+        $this->add_responsive_control( 'subtitle_padding', [
+            'label'      => __( 'Padding', 'bw-elementor-widgets' ),
+            'type'       => Controls_Manager::DIMENSIONS,
+            'size_units' => [ 'px', '%', 'em', 'rem' ],
+            'selectors'  => [
+                '{{WRAPPER}} .bw-slide-showcase-title-section p' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+            ],
+        ] );
+
+        $this->end_controls_section();
+
+        $this->start_controls_section( 'info_style_section', [
+            'label' => __( 'Informazioni', 'bw-elementor-widgets' ),
+            'tab'   => Controls_Manager::TAB_STYLE,
+        ] );
+
+        $this->add_control( 'info_color', [
+            'label'     => __( 'Colore', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => [
+                '{{WRAPPER}} .bw-slide-showcase-info, {{WRAPPER}} .bw-slide-showcase-info-item' => 'color: {{VALUE}};',
+            ],
+        ] );
+
+        $this->add_group_control( Group_Control_Typography::get_type(), [
+            'name'     => 'info_typography',
+            'selector' => '{{WRAPPER}} .bw-slide-showcase-info, {{WRAPPER}} .bw-slide-showcase-info-item',
+        ] );
+
+        $this->end_controls_section();
+
+        $this->start_controls_section( 'badge_style_section', [
+            'label' => __( 'Badge', 'bw-elementor-widgets' ),
+            'tab'   => Controls_Manager::TAB_STYLE,
+        ] );
+
+        $this->add_control( 'badge_color', [
+            'label'     => __( 'Colore testo', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => [
+                '{{WRAPPER}} .bw-slide-showcase-badge' => 'color: {{VALUE}};',
+            ],
+        ] );
+
+        $this->add_control( 'badge_background_color', [
+            'label'     => __( 'Colore sfondo', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => [
+                '{{WRAPPER}} .bw-slide-showcase-badge' => 'background-color: {{VALUE}};',
+            ],
+        ] );
+
+        $this->add_group_control( Group_Control_Typography::get_type(), [
+            'name'     => 'badge_typography',
+            'selector' => '{{WRAPPER}} .bw-slide-showcase-badge',
+        ] );
+
+        $this->add_responsive_control( 'badge_padding', [
+            'label'      => __( 'Padding', 'bw-elementor-widgets' ),
+            'type'       => Controls_Manager::DIMENSIONS,
+            'size_units' => [ 'px', '%', 'em', 'rem' ],
+            'selectors'  => [
+                '{{WRAPPER}} .bw-slide-showcase-badge' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+            ],
+        ] );
+
+        $this->end_controls_section();
+
+        $this->start_controls_section( 'button_style_section', [
+            'label' => __( 'Bottone', 'bw-elementor-widgets' ),
+            'tab'   => Controls_Manager::TAB_STYLE,
+        ] );
+
+        $this->add_group_control( Group_Control_Typography::get_type(), [
+            'name'     => 'button_typography',
+            'selector' => '{{WRAPPER}} .bw-slide-showcase-view-btn',
+        ] );
+
+        $this->add_responsive_control( 'button_padding', [
+            'label'      => __( 'Padding', 'bw-elementor-widgets' ),
+            'type'       => Controls_Manager::DIMENSIONS,
+            'size_units' => [ 'px', '%', 'em', 'rem' ],
+            'selectors'  => [
+                '{{WRAPPER}} .bw-slide-showcase-view-btn' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+            ],
+        ] );
+
+        $this->start_controls_tabs( 'button_style_tabs' );
+
+        $this->start_controls_tab( 'button_style_normal', [
+            'label' => __( 'Normale', 'bw-elementor-widgets' ),
+        ] );
+
+        $this->add_control( 'button_text_color', [
+            'label'     => __( 'Colore testo', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => [
+                '{{WRAPPER}} .bw-slide-showcase-view-btn' => 'color: {{VALUE}};',
+            ],
+        ] );
+
+        $this->add_control( 'button_background_color', [
+            'label'     => __( 'Colore sfondo', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => [
+                '{{WRAPPER}} .bw-slide-showcase-view-btn' => 'background-color: {{VALUE}};',
+            ],
+        ] );
+
+        $this->end_controls_tab();
+
+        $this->start_controls_tab( 'button_style_hover', [
+            'label' => __( 'Hover', 'bw-elementor-widgets' ),
+        ] );
+
+        $this->add_control( 'button_text_color_hover', [
+            'label'     => __( 'Colore testo', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => [
+                '{{WRAPPER}} .bw-slide-showcase-view-btn:hover' => 'color: {{VALUE}};',
+            ],
+        ] );
+
+        $this->add_control( 'button_background_color_hover', [
+            'label'     => __( 'Colore sfondo', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => [
+                '{{WRAPPER}} .bw-slide-showcase-view-btn:hover' => 'background-color: {{VALUE}};',
+            ],
+        ] );
+
+        $this->end_controls_tab();
+
+        $this->end_controls_tabs();
 
         $this->end_controls_section();
     }
