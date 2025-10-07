@@ -96,6 +96,18 @@
     gap: 16px;
 }
 
+.pwslideshowkeyinfoitem {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.pwslideshowkeyinfoitem__value {
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+}
+
 .bw-slide-showcase-info-item {
     display: flex;
     align-items: center;
