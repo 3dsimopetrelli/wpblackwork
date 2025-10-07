@@ -375,6 +375,66 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
             ]
         );
 
+        $this->add_responsive_control(
+            'arrows_vertical_offset',
+            [
+                'label' => __( 'Vertical Offset', 'bw' ),
+                'type'  => Controls_Manager::SLIDER,
+                'size_units' => [ 'px', '%' ],
+                'range' => [
+                    'px' => [ 'min' => -300, 'max' => 300, 'step' => 1 ],
+                    '%'  => [ 'min' => -100, 'max' => 100, 'step' => 1 ],
+                ],
+                'default' => [
+                    'size' => 15,
+                    'unit' => 'px',
+                ],
+                'selectors' => [
+                    '{{WRAPPER}} .bw-slick-prev, {{WRAPPER}} .bw-slick-next' => 'bottom: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'arrows_prev_horizontal_offset',
+            [
+                'label' => __( 'Previous Arrow Horizontal Offset', 'bw' ),
+                'type'  => Controls_Manager::SLIDER,
+                'size_units' => [ 'px', '%' ],
+                'range' => [
+                    'px' => [ 'min' => -300, 'max' => 300, 'step' => 1 ],
+                    '%'  => [ 'min' => -100, 'max' => 100, 'step' => 1 ],
+                ],
+                'default' => [
+                    'size' => 55,
+                    'unit' => 'px',
+                ],
+                'selectors' => [
+                    '{{WRAPPER}} .bw-slick-prev' => 'right: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'arrows_next_horizontal_offset',
+            [
+                'label' => __( 'Next Arrow Horizontal Offset', 'bw' ),
+                'type'  => Controls_Manager::SLIDER,
+                'size_units' => [ 'px', '%' ],
+                'range' => [
+                    'px' => [ 'min' => -300, 'max' => 300, 'step' => 1 ],
+                    '%'  => [ 'min' => -100, 'max' => 100, 'step' => 1 ],
+                ],
+                'default' => [
+                    'size' => 15,
+                    'unit' => 'px',
+                ],
+                'selectors' => [
+                    '{{WRAPPER}} .bw-slick-next' => 'right: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
+
         $this->end_controls_section();
 
         $this->start_controls_section( 'images_section', [
