@@ -46,6 +46,24 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
             'label' => __( 'Query', 'bw-elementor-widgets' ),
         ] );
 
+        $post_type_options = $this->get_post_type_options();
+        if ( empty( $post_type_options ) ) {
+            $post_type_options = [ 'post' => __( 'Post', 'bw-elementor-widgets' ) ];
+        }
+
+        $post_type_keys    = array_keys( $post_type_options );
+        $default_post_type = array_key_exists( 'product', $post_type_options ) ? 'product' : reset( $post_type_keys );
+
+        $this->add_control(
+            'post_type',
+            [
+                'label'   => __( 'Post Type', 'bw-elementor-widgets' ),
+                'type'    => Controls_Manager::SELECT,
+                'options' => $post_type_options,
+                'default' => $default_post_type,
+            ]
+        );
+
         $this->add_control(
             'product_cat_parent',
             [
@@ -54,15 +72,16 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
                 'label_block' => true,
                 'multiple'    => false,
                 'options'     => function_exists( 'bw_get_parent_product_categories' ) ? bw_get_parent_product_categories() : [],
+                'condition'   => [ 'post_type' => 'product' ],
             ]
         );
 
         $this->add_control(
             'product_type',
             [
-                'label'   => __( 'Product Type', 'bw' ),
-                'type'    => Controls_Manager::SELECT,
-                'options' => [
+                'label'     => __( 'Product Type', 'bw' ),
+                'type'      => Controls_Manager::SELECT,
+                'options'   => [
                     ''          => __( 'All', 'bw' ),
                     'simple'    => __( 'Simple', 'bw' ),
                     'variable'  => __( 'Variable', 'bw' ),
@@ -71,7 +90,8 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
                     'on_sale'   => __( 'On Sale', 'bw' ),
                     'featured'  => __( 'Featured', 'bw' ),
                 ],
-                'default' => '',
+                'default'   => '',
+                'condition' => [ 'post_type' => 'product' ],
             ]
         );
 
@@ -419,6 +439,7 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
         $image_height       = isset( $settings['image_height'] ) ? max( 0, absint( $settings['image_height'] ) ) : 0;
         $image_crop         = isset( $settings['image_crop'] ) && 'yes' === $settings['image_crop'];
         $include_ids        = isset( $settings['include_ids'] ) ? $this->parse_ids( $settings['include_ids'] ) : [];
+        $post_type          = isset( $settings['post_type'] ) ? sanitize_key( $settings['post_type'] ) : 'product';
         $product_type       = isset( $settings['product_type'] ) ? sanitize_key( $settings['product_type'] ) : '';
         $product_cat        = isset( $settings['product_cat_parent'] ) ? absint( $settings['product_cat_parent'] ) : 0;
         $slides_scroll      = isset( $settings['slides_to_scroll'] ) ? max( 1, absint( $settings['slides_to_scroll'] ) ) : 1;
@@ -429,8 +450,18 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
         $mask_opacity_value = isset( $settings['image_mask_opacity'] ) ? (float) $settings['image_mask_opacity'] : 0.6;
         $mask_opacity       = max( 0, min( 1, $mask_opacity_value ) );
 
+        $available_post_types = $this->get_post_type_options();
+        if ( empty( $available_post_types ) ) {
+            $available_post_types = [ 'post' => __( 'Post', 'bw-elementor-widgets' ) ];
+        }
+
+        if ( ! array_key_exists( $post_type, $available_post_types ) ) {
+            $post_type_keys = array_keys( $available_post_types );
+            $post_type      = array_key_exists( 'product', $available_post_types ) ? 'product' : reset( $post_type_keys );
+        }
+
         $query_args = [
-            'post_type'      => 'product',
+            'post_type'      => $post_type,
             'posts_per_page' => -1,
             'post_status'    => 'publish',
         ];
@@ -440,46 +471,48 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
             $query_args['orderby']  = 'post__in';
         }
 
-        $tax_query = [];
-        if ( $product_cat > 0 ) {
-            $tax_query[] = [
-                'taxonomy' => 'product_cat',
-                'field'    => 'term_id',
-                'terms'    => [ $product_cat ],
-            ];
-        }
+        if ( 'product' === $post_type ) {
+            $tax_query = [];
+            if ( $product_cat > 0 ) {
+                $tax_query[] = [
+                    'taxonomy' => 'product_cat',
+                    'field'    => 'term_id',
+                    'terms'    => [ $product_cat ],
+                ];
+            }
 
-        if ( in_array( $product_type, [ 'simple', 'variable', 'grouped', 'external' ], true ) ) {
-            $tax_query[] = [
-                'taxonomy' => 'product_type',
-                'field'    => 'slug',
-                'terms'    => [ $product_type ],
-            ];
-        } elseif ( 'featured' === $product_type ) {
-            $tax_query[] = [
-                'taxonomy' => 'product_visibility',
-                'field'    => 'slug',
-                'terms'    => [ 'featured' ],
-            ];
-        } elseif ( 'on_sale' === $product_type ) {
-            if ( function_exists( 'wc_get_product_ids_on_sale' ) ) {
-                $sale_ids = wc_get_product_ids_on_sale();
-                $sale_ids = array_map( 'absint', (array) $sale_ids );
-                $sale_ids = array_filter( $sale_ids );
-                if ( ! empty( $sale_ids ) ) {
-                    if ( isset( $query_args['post__in'] ) ) {
-                        $query_args['post__in'] = array_values( array_intersect( $query_args['post__in'], $sale_ids ) );
+            if ( in_array( $product_type, [ 'simple', 'variable', 'grouped', 'external' ], true ) ) {
+                $tax_query[] = [
+                    'taxonomy' => 'product_type',
+                    'field'    => 'slug',
+                    'terms'    => [ $product_type ],
+                ];
+            } elseif ( 'featured' === $product_type ) {
+                $tax_query[] = [
+                    'taxonomy' => 'product_visibility',
+                    'field'    => 'slug',
+                    'terms'    => [ 'featured' ],
+                ];
+            } elseif ( 'on_sale' === $product_type ) {
+                if ( function_exists( 'wc_get_product_ids_on_sale' ) ) {
+                    $sale_ids = wc_get_product_ids_on_sale();
+                    $sale_ids = array_map( 'absint', (array) $sale_ids );
+                    $sale_ids = array_filter( $sale_ids );
+                    if ( ! empty( $sale_ids ) ) {
+                        if ( isset( $query_args['post__in'] ) ) {
+                            $query_args['post__in'] = array_values( array_intersect( $query_args['post__in'], $sale_ids ) );
+                        } else {
+                            $query_args['post__in'] = $sale_ids;
+                        }
                     } else {
-                        $query_args['post__in'] = $sale_ids;
+                        $query_args['post__in'] = [ 0 ];
                     }
-                } else {
-                    $query_args['post__in'] = [ 0 ];
                 }
             }
-        }
 
-        if ( ! empty( $tax_query ) ) {
-            $query_args['tax_query'] = $tax_query;
+            if ( ! empty( $tax_query ) ) {
+                $query_args['tax_query'] = $tax_query;
+            }
         }
 
         if ( isset( $query_args['post__in'] ) && empty( $query_args['post__in'] ) ) {
@@ -675,6 +708,47 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
             'size' => $size,
             'unit' => $unit,
         ];
+    }
+
+    private function get_post_type_options() {
+        $post_types = get_post_types(
+            [
+                'public' => true,
+            ],
+            'objects'
+        );
+
+        $options = [];
+
+        if ( empty( $post_types ) || ! is_array( $post_types ) ) {
+            return $options;
+        }
+
+        foreach ( $post_types as $post_type ) {
+            if ( ! isset( $post_type->name ) ) {
+                continue;
+            }
+
+            if ( 'attachment' === $post_type->name ) {
+                continue;
+            }
+
+            $label = '';
+
+            if ( isset( $post_type->labels->singular_name ) && '' !== $post_type->labels->singular_name ) {
+                $label = $post_type->labels->singular_name;
+            } elseif ( isset( $post_type->label ) && '' !== $post_type->label ) {
+                $label = $post_type->label;
+            } else {
+                $label = ucfirst( $post_type->name );
+            }
+
+            $options[ $post_type->name ] = $label;
+        }
+
+        asort( $options );
+
+        return $options;
     }
 
     private function parse_ids( $ids_string ) {

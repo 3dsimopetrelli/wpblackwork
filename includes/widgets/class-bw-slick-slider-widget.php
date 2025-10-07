@@ -39,14 +39,19 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
             'label' => __( 'Query', 'bw-elementor-widgets' ),
         ] );
 
+        $post_type_options = $this->get_post_type_options();
+        if ( empty( $post_type_options ) ) {
+            $post_type_options = [ 'post' => __( 'Post', 'bw-elementor-widgets' ) ];
+        }
+
+        $post_type_keys    = array_keys( $post_type_options );
+        $default_post_type = array_key_exists( 'post', $post_type_options ) ? 'post' : reset( $post_type_keys );
+
         $this->add_control( 'content_type', [
-            'label'   => __( 'Tipo di contenuto', 'bw-elementor-widgets' ),
+            'label'   => __( 'Post Type', 'bw-elementor-widgets' ),
             'type'    => Controls_Manager::SELECT,
-            'options' => [
-                'post'    => __( 'Post', 'bw-elementor-widgets' ),
-                'product' => __( 'Product', 'bw-elementor-widgets' ),
-            ],
-            'default' => 'post',
+            'options' => $post_type_options,
+            'default' => $default_post_type,
         ] );
 
         $this->add_control( 'post_categories', [
@@ -725,11 +730,20 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
     }
 
     protected function render() {
-        $settings      = $this->get_settings_for_display();
+        $settings            = $this->get_settings_for_display();
         $view_buttons_enabled = isset( $settings['view_buttons_enable'] )
             ? ( 'yes' === $settings['view_buttons_enable'] )
             : ( isset( $settings['overlay_buttons_enable'] ) ? 'yes' === $settings['overlay_buttons_enable'] : true );
-        $content_type  = isset( $settings['content_type'] ) && 'product' === $settings['content_type'] ? 'product' : 'post';
+        $content_type        = isset( $settings['content_type'] ) ? sanitize_key( $settings['content_type'] ) : 'post';
+        $available_post_types = $this->get_post_type_options();
+        if ( empty( $available_post_types ) ) {
+            $available_post_types = [ 'post' => __( 'Post', 'bw-elementor-widgets' ) ];
+        }
+
+        if ( ! array_key_exists( $content_type, $available_post_types ) ) {
+            $post_type_keys = array_keys( $available_post_types );
+            $content_type   = array_key_exists( 'post', $available_post_types ) ? 'post' : reset( $post_type_keys );
+        }
         $columns       = isset( $settings['columns'] ) ? max( 1, absint( $settings['columns'] ) ) : 3;
         $gap           = isset( $settings['gap']['size'] ) ? max( 0, absint( $settings['gap']['size'] ) ) : 24;
         $image_height_data = $this->get_slider_value_with_unit( $settings, 'image_height', 420, 'px' );
@@ -749,7 +763,7 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
         $slides_scroll = isset( $settings['slides_to_scroll'] ) ? max( 1, absint( $settings['slides_to_scroll'] ) ) : 1;
 
         $query_args = [
-            'post_type'      => 'product' === $content_type ? 'product' : 'post',
+            'post_type'      => $content_type,
             'posts_per_page' => -1,
             'post_status'    => 'publish',
         ];
@@ -793,7 +807,7 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
             if ( ! empty( $tax_query ) ) {
                 $query_args['tax_query'] = $tax_query;
             }
-        } else {
+        } elseif ( 'post' === $content_type ) {
             $category_ids = isset( $settings['post_categories'] ) ? array_filter( array_map( 'absint', (array) $settings['post_categories'] ) ) : [];
             if ( ! empty( $category_ids ) ) {
                 $query_args['category__in'] = $category_ids;
@@ -995,6 +1009,47 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
             'size' => $size,
             'unit' => $unit,
         ];
+    }
+
+    private function get_post_type_options() {
+        $post_types = get_post_types(
+            [
+                'public' => true,
+            ],
+            'objects'
+        );
+
+        $options = [];
+
+        if ( empty( $post_types ) || ! is_array( $post_types ) ) {
+            return $options;
+        }
+
+        foreach ( $post_types as $post_type ) {
+            if ( ! isset( $post_type->name ) ) {
+                continue;
+            }
+
+            if ( 'attachment' === $post_type->name ) {
+                continue;
+            }
+
+            $label = '';
+
+            if ( isset( $post_type->labels->singular_name ) && '' !== $post_type->labels->singular_name ) {
+                $label = $post_type->labels->singular_name;
+            } elseif ( isset( $post_type->label ) && '' !== $post_type->label ) {
+                $label = $post_type->label;
+            } else {
+                $label = ucfirst( $post_type->name );
+            }
+
+            $options[ $post_type->name ] = $label;
+        }
+
+        asort( $options );
+
+        return $options;
     }
 
     private function parse_ids( $ids_string ) {
