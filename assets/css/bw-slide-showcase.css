@@ -91,27 +91,37 @@
 
 .bw-slide-showcase-info {
     display: flex;
-    gap: 20px;
     align-items: center;
+    flex-wrap: nowrap;
+    gap: 16px;
 }
 
 .bw-slide-showcase-info-item {
+    display: flex;
+    align-items: center;
     font-size: 0.9rem;
     font-weight: 500;
+    line-height: 1;
+    margin: 0;
 }
 
 .bw-slide-showcase-badges {
     display: flex;
+    align-items: center;
     gap: 8px;
-    margin-top: 8px;
+    margin: 0;
 }
 
 .bw-slide-showcase-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     padding: 4px 12px;
     border: 1px solid rgba(255, 255, 255, 0.5);
     border-radius: 20px;
     font-size: 0.75rem;
     text-transform: uppercase;
+    line-height: 1;
 }
 
 .bw-slide-showcase-view-btn {
