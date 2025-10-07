@@ -198,6 +198,27 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
             ],
         ] );
 
+        $this->add_control( 'image_mask', [
+            'label'        => __( 'Maschera nera', 'bw-elementor-widgets' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
+            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
+            'return_value' => 'yes',
+            'default'      => 'yes',
+        ] );
+
+        $this->add_control( 'image_mask_opacity', [
+            'label'       => __( 'Opacità maschera', 'bw-elementor-widgets' ),
+            'type'        => Controls_Manager::NUMBER,
+            'min'         => 0,
+            'max'         => 1,
+            'step'        => 0.05,
+            'default'     => 0.6,
+            'condition'   => [
+                'image_mask' => 'yes',
+            ],
+        ] );
+
         $this->end_controls_section();
     }
 
@@ -404,6 +425,9 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
         $column_width_data  = $this->get_slider_value_with_unit( $settings, 'column_width', null, 'px' );
         $column_width       = isset( $column_width_data['size'] ) ? $column_width_data['size'] : null;
         $column_width_unit  = isset( $column_width_data['unit'] ) ? $column_width_data['unit'] : 'px';
+        $mask_enabled       = ! isset( $settings['image_mask'] ) || 'yes' === $settings['image_mask'];
+        $mask_opacity_value = isset( $settings['image_mask_opacity'] ) ? (float) $settings['image_mask_opacity'] : 0.6;
+        $mask_opacity       = max( 0, min( 1, $mask_opacity_value ) );
 
         $query_args = [
             'post_type'      => 'product',
@@ -485,6 +509,7 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
             $wrapper_style .= '--bw-slide-showcase-image-height:' . $image_height . 'px;';
             $wrapper_style .= '--bw-image-height:' . $image_height . 'px;';
         } else {
+            $wrapper_style .= '--bw-slide-showcase-image-height:auto;';
             $wrapper_style .= '--bw-image-height:auto;';
         }
 
@@ -559,10 +584,14 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
                     ?>
                     <div class="bw-slide-showcase-slide">
                         <div class="bw-slide-showcase-item"<?php if ( $border_radius_value ) : ?> style="border-radius: <?php echo esc_attr( $border_radius_value ); ?>;"<?php endif; ?>>
-                            <?php if ( $image_url ) : ?>
-                                <img src="<?php echo esc_url( $image_url ); ?>" alt="<?php echo esc_attr( $title ); ?>" class="bw-slide-showcase-image" style="<?php echo $this->build_image_style( $image_height, $object_fit ); ?>">
-                            <?php endif; ?>
-                            <div class="bw-slide-showcase-overlay"></div>
+                            <div class="bw-slide-showcase-media">
+                                <?php if ( $image_url ) : ?>
+                                    <img src="<?php echo esc_url( $image_url ); ?>" alt="<?php echo esc_attr( $title ); ?>" class="bw-slide-showcase-image" style="<?php echo $this->build_image_style( $image_height, $object_fit ); ?>">
+                                <?php endif; ?>
+                                <?php if ( $mask_enabled ) : ?>
+                                    <div class="bw-slide-showcase-overlay" style="opacity: <?php echo esc_attr( $mask_opacity ); ?>;"></div>
+                                <?php endif; ?>
+                            </div>
                             <div class="bw-slide-showcase-content" style="<?php echo $this->build_content_style( $side_padding_value, $top_spacing_value, $bottom_spacing_value ); ?>">
                                 <div class="bw-slide-showcase-title-section">
                                     <h1><?php echo esc_html( $title ); ?></h1>
@@ -828,11 +857,7 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
     private function build_image_style( $image_height, $object_fit ) {
         $styles = [];
 
-        if ( $image_height > 0 ) {
-            $styles[] = 'height: ' . absint( $image_height ) . 'px;';
-        } else {
-            $styles[] = 'height: auto;';
-        }
+        $styles[] = 'height: 100%;';
 
         $allowed_fits = [ 'cover', 'contain', 'fill', 'none', 'scale-down' ];
         $fit_value    = in_array( $object_fit, $allowed_fits, true ) ? $object_fit : 'cover';
