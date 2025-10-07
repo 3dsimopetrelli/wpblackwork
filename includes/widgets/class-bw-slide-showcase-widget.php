@@ -941,9 +941,22 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
                         $image_url = get_the_post_thumbnail_url( $post_id, 'large' );
                     }
 
+                    $meta_assets_count = get_post_meta( $post_id, '_product_assets_count', true );
+                    $meta_size_mb      = get_post_meta( $post_id, '_product_size_mb', true );
+                    $meta_formats      = get_post_meta( $post_id, '_product_formats', true );
+                    $meta_button_text  = get_post_meta( $post_id, '_product_button_text', true );
+                    $meta_button_link  = get_post_meta( $post_id, '_product_button_link', true );
+
                     $btn_url = $permalink;
-                    if ( ! empty( $custom_link['url'] ) ) {
+                    if ( ! empty( $meta_button_link ) ) {
+                        $btn_url = esc_url( $meta_button_link );
+                    } elseif ( ! empty( $custom_link['url'] ) ) {
                         $btn_url = $custom_link['url'];
+                    }
+
+                    $button_text_value = $button_text;
+                    if ( ! empty( $meta_button_text ) ) {
+                        $button_text_value = wp_strip_all_tags( $meta_button_text );
                     }
 
                     $link_attributes = [];
@@ -986,22 +999,60 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
                                     <?php endif; ?>
                                 </div>
                                 <div class="bw-slide-showcase-bottom-section">
-                                    <div class="bw-slide-showcase-info">
-                                        <div class="bw-slide-showcase-info-item pwslideshowkeyinfoitem">
-                                            <span class="pwslideshowkeyinfoitem__value">29 Assets</span>
+                                    <?php
+                                    $assets_display = '';
+                                    if ( '' !== $meta_assets_count ) {
+                                        $assets_number = absint( $meta_assets_count );
+                                        if ( $assets_number > 0 ) {
+                                            $assets_label   = _n( 'Asset', 'Assets', $assets_number, 'bw-elementor-widgets' );
+                                            $assets_display = sprintf( '%d %s', $assets_number, $assets_label );
+                                        }
+                                    }
+
+                                    $size_display = '';
+                                    if ( '' !== $meta_size_mb ) {
+                                        $size_display = trim( wp_strip_all_tags( $meta_size_mb ) );
+                                        if ( '' !== $size_display && ! preg_match( '/[a-zA-Z]/', $size_display ) ) {
+                                            $size_display .= 'MB';
+                                        }
+                                    }
+
+                                    $format_badges = [];
+                                    if ( '' !== $meta_formats ) {
+                                        $raw_formats = explode( ',', $meta_formats );
+                                        foreach ( $raw_formats as $format ) {
+                                            $format = trim( wp_strip_all_tags( $format ) );
+                                            if ( '' !== $format ) {
+                                                $format_badges[] = $format;
+                                            }
+                                        }
+                                    }
+
+                                    if ( $assets_display || $size_display || ! empty( $format_badges ) ) :
+                                        ?>
+                                        <div class="bw-slide-showcase-info">
+                                            <?php if ( $assets_display ) : ?>
+                                                <div class="bw-slide-showcase-info-item pwslideshowkeyinfoitem">
+                                                    <span class="pwslideshowkeyinfoitem__value"><?php echo esc_html( $assets_display ); ?></span>
+                                                </div>
+                                            <?php endif; ?>
+                                            <?php if ( $size_display ) : ?>
+                                                <div class="bw-slide-showcase-info-item pwslideshowkeyinfoitem">
+                                                    <span class="pwslideshowkeyinfoitem__value"><?php echo esc_html( $size_display ); ?></span>
+                                                </div>
+                                            <?php endif; ?>
+                                            <?php if ( ! empty( $format_badges ) ) : ?>
+                                                <div class="bw-slide-showcase-badges">
+                                                    <?php foreach ( $format_badges as $format_badge ) : ?>
+                                                        <span class="bw-slide-showcase-badge"><?php echo esc_html( $format_badge ); ?></span>
+                                                    <?php endforeach; ?>
+                                                </div>
+                                            <?php endif; ?>
                                         </div>
-                                        <div class="bw-slide-showcase-info-item pwslideshowkeyinfoitem">
-                                            <span class="pwslideshowkeyinfoitem__value">95.2MB</span>
-                                        </div>
-                                        <div class="bw-slide-showcase-badges">
-                                            <span class="bw-slide-showcase-badge">SVG</span>
-                                            <span class="bw-slide-showcase-badge">EPS</span>
-                                            <span class="bw-slide-showcase-badge">PNG</span>
-                                        </div>
-                                    </div>
+                                    <?php endif; ?>
                                     <a href="<?php echo esc_url( $btn_url ); ?>" class="bw-slide-showcase-view-btn"<?php echo $link_attrs; ?>>
                                         <span class="bw-slide-showcase-arrow">→</span>
-                                        <?php echo esc_html( $button_text ); ?>
+                                        <?php echo esc_html( $button_text_value ); ?>
                                     </a>
                                 </div>
                             </div>
