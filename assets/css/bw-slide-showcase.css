@@ -61,10 +61,8 @@
 
 .bw-slide-showcase-content {
     position: absolute;
-    top: 50px;
-    left: 50px;
-    right: 50px;
-    bottom: 50px;
+    inset: 0;
+    padding: 0;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
