@@ -277,6 +277,7 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
             <div
                 class="bw-product-slide-wrapper slick-slider"
                 data-columns="<?php echo esc_attr( $columns ); ?>"
+                data-image-crop="<?php echo esc_attr( $image_crop ? 'true' : 'false' ); ?>"
                 <?php if ( $has_custom_column_width ) : ?>
                     data-has-column-width="true"
                 <?php endif; ?>
