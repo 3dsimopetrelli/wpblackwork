@@ -892,22 +892,12 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
         $side_padding_value  = $this->format_side_padding( isset( $settings['side_padding'] ) ? $settings['side_padding'] : [] );
         $top_spacing_value   = $this->format_slider_dimension( isset( $settings['top_spacing'] ) ? $settings['top_spacing'] : [] );
         $bottom_spacing_value = $this->format_slider_dimension( isset( $settings['bottom_spacing'] ) ? $settings['bottom_spacing'] : [] );
-        $slide_padding_top_value = $this->get_slider_value_with_unit( $settings, 'slide_padding_top', 0, 'px' );
-        $slide_padding_bottom_value = $this->get_slider_value_with_unit( $settings, 'slide_padding_bottom', 0, 'px' );
-        $padding_top         = isset( $slide_padding_top_value['size'] ) ? intval( $slide_padding_top_value['size'] ) : 0;
-        $padding_bottom      = isset( $slide_padding_bottom_value['size'] ) ? intval( $slide_padding_bottom_value['size'] ) : 0;
         $content_style_parts = [];
 
         $base_content_style = $this->build_content_style( $side_padding_value, $top_spacing_value, $bottom_spacing_value );
         if ( $base_content_style ) {
             $content_style_parts[] = $base_content_style;
         }
-
-        $content_style_parts[] = sprintf(
-            'padding-top:%dpx; padding-bottom:%dpx;',
-            $padding_top,
-            $padding_bottom
-        );
 
         $content_style = trim( implode( ' ', $content_style_parts ) );
         $object_fit          = $image_crop ? 'cover' : 'contain';
@@ -991,7 +981,7 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
                                     <div class="bw-slide-showcase-overlay" style="opacity: <?php echo esc_attr( $mask_opacity ); ?>;"></div>
                                 <?php endif; ?>
                             </div>
-                            <div class="bw-slide-showcase-content content" style="<?php echo esc_attr( $content_style ); ?>">
+                            <div class="bw-slide-showcase-content content"<?php echo $content_style ? ' style="' . esc_attr( $content_style ) . '"' : ''; ?>>
                                 <div class="bw-slide-showcase-title-section">
                                     <h1><?php echo esc_html( $title ); ?></h1>
                                     <?php if ( $subtitle ) : ?>
