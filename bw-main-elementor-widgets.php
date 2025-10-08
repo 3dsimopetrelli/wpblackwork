@@ -30,6 +30,7 @@ require_once __DIR__ . '/includes/helpers.php';
 
 // Loader dei widget
 require_once __DIR__ . '/includes/class-bw-widget-loader.php';
+require_once( __DIR__ . '/includes/widgets/class-bw-product-slide-widget.php' );
 // Tipi di prodotto personalizzati per WooCommerce
 require_once plugin_dir_path( __FILE__ ) . 'includes/product-types/product-types-init.php';
 // Metabox per prodotti digitali
@@ -74,11 +75,32 @@ function bw_enqueue_slick_slider_assets() {
         $showcase_version
     );
 
+    $product_slide_css_file = __DIR__ . '/assets/css/bw-product-slide.css';
+    $product_slide_version  = file_exists( $product_slide_css_file ) ? filemtime( $product_slide_css_file ) : '1.0.0';
+
+    wp_enqueue_style(
+        'bw-product-slide-style',
+        plugin_dir_url(__FILE__) . 'assets/css/bw-product-slide.css',
+        [],
+        $product_slide_version
+    );
+
     wp_enqueue_script(
         'bw-slick-slider-js',
         plugin_dir_url(__FILE__) . 'assets/js/bw-slick-slider.js',
         ['jquery', 'slick-js'],
         filemtime( __DIR__ . '/assets/js/bw-slick-slider.js' ),
+        true
+    );
+
+    $product_slide_js_file = __DIR__ . '/assets/js/bw-product-slide.js';
+    $product_slide_version_js = file_exists( $product_slide_js_file ) ? filemtime( $product_slide_js_file ) : '1.0.0';
+
+    wp_enqueue_script(
+        'bw-product-slide-js',
+        plugin_dir_url(__FILE__) . 'assets/js/bw-product-slide.js',
+        [ 'jquery', 'slick-js' ],
+        $product_slide_version_js,
         true
     );
 
