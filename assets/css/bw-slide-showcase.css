@@ -159,17 +159,22 @@
 }
 
 .bw-slide-showcase-arrow {
-    width: 24px;
-    height: 24px;
+    width: 26px;
+    height: 26px;
     display: flex;
     align-items: center;
     justify-content: center;
+    background: #80FD03;
     border: 1px solid #000;
     border-radius: 50%;
-    font-size: 1rem;
-    color: #000;
-    background: transparent;
     flex-shrink: 0;
+}
+
+.bw-slide-showcase-arrow img {
+    width: 10px;
+    height: auto;
+    display: block;
+    filter: invert(0);
 }
 
 @media (max-width: 768px) {
