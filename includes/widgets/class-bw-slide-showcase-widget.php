@@ -162,26 +162,6 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
             ],
         ] );
 
-        $this->add_control( 'top_spacing', [
-            'label' => __( 'Top Spacing (px)', 'bw-elementor-widgets' ),
-            'type'  => Controls_Manager::SLIDER,
-            'size_units' => [ 'px' ],
-            'range' => [
-                'px' => [ 'min' => 0, 'max' => 200, 'step' => 1 ],
-            ],
-            'default' => [ 'size' => 50, 'unit' => 'px' ],
-        ] );
-
-        $this->add_control( 'bottom_spacing', [
-            'label' => __( 'Bottom Spacing (px)', 'bw-elementor-widgets' ),
-            'type'  => Controls_Manager::SLIDER,
-            'size_units' => [ 'px' ],
-            'range' => [
-                'px' => [ 'min' => 0, 'max' => 200, 'step' => 1 ],
-            ],
-            'default' => [ 'size' => 50, 'unit' => 'px' ],
-        ] );
-
         $this->end_controls_section();
     }
 
@@ -955,11 +935,9 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
 
         $border_radius_value = $this->format_dimensions( isset( $settings['border_radius'] ) ? $settings['border_radius'] : [] );
         $side_padding_value  = $this->format_side_padding( isset( $settings['side_padding'] ) ? $settings['side_padding'] : [] );
-        $top_spacing_value   = $this->format_slider_dimension( isset( $settings['top_spacing'] ) ? $settings['top_spacing'] : [] );
-        $bottom_spacing_value = $this->format_slider_dimension( isset( $settings['bottom_spacing'] ) ? $settings['bottom_spacing'] : [] );
         $content_style_parts = [];
 
-        $base_content_style = $this->build_content_style( $side_padding_value, $top_spacing_value, $bottom_spacing_value );
+        $base_content_style = $this->build_content_style( $side_padding_value );
         if ( $base_content_style ) {
             $content_style_parts[] = $base_content_style;
         }
@@ -1340,32 +1318,11 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
         return implode( ' ', $styles );
     }
 
-    private function format_slider_dimension( $setting ) {
-        if ( empty( $setting ) || ! is_array( $setting ) ) {
-            return '';
-        }
-
-        if ( ! isset( $setting['size'] ) || '' === $setting['size'] ) {
-            return '';
-        }
-
-        $unit = $this->sanitize_dimension_unit( isset( $setting['unit'] ) ? $setting['unit'] : '', [ 'px', '%', 'em' ], 'px' );
-        return $setting['size'] . $unit;
-    }
-
-    private function build_content_style( $side_padding, $top_spacing, $bottom_spacing ) {
+    private function build_content_style( $side_padding ) {
         $styles = [];
 
         if ( $side_padding ) {
             $styles[] = trim( $side_padding );
-        }
-
-        if ( $top_spacing ) {
-            $styles[] = 'padding-top: ' . $top_spacing . ';';
-        }
-
-        if ( $bottom_spacing ) {
-            $styles[] = 'padding-bottom: ' . $bottom_spacing . ';';
         }
 
         return implode( ' ', $styles );
