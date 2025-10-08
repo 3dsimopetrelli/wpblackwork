@@ -431,6 +431,111 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
             ],
         ] );
 
+        $this->add_control(
+            'button_color',
+            [
+                'label'   => __( 'Colore principale pulsante', 'bw' ),
+                'type'    => Controls_Manager::COLOR,
+                'default' => '#80FD03',
+                'selectors' => [
+                    '{{WRAPPER}}' => '--btn-bg: {{VALUE}}; --arrow-bg: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'button_text_color',
+            [
+                'label'   => __( 'Colore testo pulsante', 'bw' ),
+                'type'    => Controls_Manager::COLOR,
+                'default' => '#000000',
+                'selectors' => [
+                    '{{WRAPPER}}' => '--btn-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'button_border_color',
+            [
+                'label'   => __( 'Colore bordo pulsante', 'bw' ),
+                'type'    => Controls_Manager::COLOR,
+                'default' => '#000000',
+                'selectors' => [
+                    '{{WRAPPER}}' => '--btn-border-color: {{VALUE}}; --arrow-border-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'button_border_width',
+            [
+                'label' => __( 'Spessore bordo (px)', 'bw' ),
+                'type'  => Controls_Manager::SLIDER,
+                'size_units' => [ 'px' ],
+                'range' => [
+                    'px' => [ 'min' => 0, 'max' => 10 ],
+                ],
+                'default' => [ 'size' => 1, 'unit' => 'px' ],
+                'selectors' => [
+                    '{{WRAPPER}}' => '--btn-border-width: {{SIZE}}{{UNIT}}; --arrow-border-width: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'arrow_margin',
+            [
+                'label' => __( 'Margini sfera freccia', 'bw' ),
+                'type'  => Controls_Manager::DIMENSIONS,
+                'size_units' => [ 'px', '%' ],
+                'default' => [
+                    'top' => 0,
+                    'right' => 0,
+                    'bottom' => 0,
+                    'left' => 0,
+                    'unit' => 'px',
+                    'isLinked' => true,
+                ],
+                'selectors' => [
+                    '{{WRAPPER}}' => '--arrow-margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'arrow_size',
+            [
+                'label' => __( 'Dimensione sfera freccia', 'bw' ),
+                'type'  => Controls_Manager::SLIDER,
+                'range' => [ 'px' => [ 'min' => 20, 'max' => 100 ] ],
+                'default' => [ 'size' => 46, 'unit' => 'px' ],
+                'selectors' => [
+                    '{{WRAPPER}}' => '--arrow-size: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'button_padding',
+            [
+                'label' => __( 'Padding pulsante testo', 'bw' ),
+                'type'  => Controls_Manager::DIMENSIONS,
+                'size_units' => [ 'px' ],
+                'default' => [
+                    'top' => 14,
+                    'right' => 32,
+                    'bottom' => 14,
+                    'left' => 32,
+                    'unit' => 'px',
+                    'isLinked' => false,
+                ],
+                'selectors' => [
+                    '{{WRAPPER}}' => '--btn-padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
         $this->end_controls_section();
     }
 
@@ -1012,12 +1117,14 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
                                             <?php endif; ?>
                                         </div>
                                     <?php endif; ?>
-                                    <a href="<?php echo esc_url( $btn_url ); ?>" class="bw-slide-showcase-view-btn"<?php echo $link_attrs; ?>>
-                                        <span class="bw-slide-showcase-arrow">
+                                    <div class="bw-slide-showcase-button-container">
+                                        <button class="bw-slide-showcase-arrow-btn" aria-label="Go">
                                             <img src="<?php echo BW_MEW_URL . 'assets/img/button_arrow.svg'; ?>" alt="arrow">
-                                        </span>
-                                        <?php echo esc_html( $button_text_value ); ?>
-                                    </a>
+                                        </button>
+                                        <a href="<?php echo esc_url( $btn_url ); ?>" class="bw-slide-showcase-text-btn"<?php echo $link_attrs; ?>>
+                                            <?php echo esc_html( $button_text_value ); ?>
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
                         </div>

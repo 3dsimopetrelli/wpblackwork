@@ -136,45 +136,68 @@
     line-height: 1;
 }
 
-.bw-slide-showcase-view-btn {
-    display: inline-flex;
+/* =============================
+   MODERN BUTTON (dual style)
+   ============================= */
+
+.bw-slide-showcase-button-container {
+    display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 14px 32px;
-    background: #80FD03;
-    color: #000;
-    border: 1px solid #000;
-    border-radius: 50px;
-    font-size: 1rem;
-    font-weight: 600;
-    line-height: 1;
-    text-decoration: none;
-    cursor: pointer;
-    transition: background 0.3s ease, filter 0.3s ease;
+    gap: 20px;
+    position: relative;
+    z-index: 5;
 }
 
-.bw-slide-showcase-view-btn:hover {
-    background: #9FFF32;
-    filter: brightness(1.05);
-}
-
-.bw-slide-showcase-arrow {
-    width: 26px;
-    height: 26px;
+.bw-slide-showcase-arrow-btn {
+    width: var(--arrow-size, 46px);
+    height: var(--arrow-size, 46px);
+    background-color: var(--arrow-bg, #80FD03);
+    border: var(--arrow-border-width, 1px) solid var(--arrow-border-color, #000);
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #80FD03;
-    border: 1px solid #000;
-    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
     flex-shrink: 0;
+    margin: var(--arrow-margin, 0);
 }
 
-.bw-slide-showcase-arrow img {
-    width: 10px;
-    height: auto;
+.bw-slide-showcase-arrow-btn img,
+.bw-slide-showcase-arrow-btn svg {
+    width: 20px;
+    height: 20px;
     display: block;
-    filter: invert(0);
+    stroke: var(--arrow-icon-color, #000);
+    stroke-width: 2.5;
+    fill: none;
+}
+
+.bw-slide-showcase-text-btn {
+    background-color: var(--btn-bg, #80FD03);
+    color: var(--btn-color, #000);
+    border: var(--btn-border-width, 1px) solid var(--btn-border-color, #000);
+    padding: var(--btn-padding, 14px 32px);
+    border-radius: 25px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.bw-slide-showcase-button-container:hover .bw-slide-showcase-arrow-btn {
+    transform: translateX(-2px) scale(1.05);
+}
+
+.bw-slide-showcase-button-container:hover .bw-slide-showcase-text-btn {
+    transform: translateX(2px);
+}
+
+.bw-slide-showcase-arrow-btn:hover,
+.bw-slide-showcase-text-btn:hover {
+    background-color: #9FFF32;
 }
 
 @media (max-width: 768px) {
