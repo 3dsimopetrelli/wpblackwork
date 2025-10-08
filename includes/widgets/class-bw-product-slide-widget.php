@@ -191,10 +191,10 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
                 </div>
                 <div class="bw-product-slide-arrows">
                     <button class="bw-prev" type="button" aria-label="<?php esc_attr_e( 'Slide precedente', 'bw-elementor-widgets' ); ?>">
-                        <img src="<?php echo esc_url( BW_MEW_URL . 'assets/img/arrow-left.svg' ); ?>" alt="<?php esc_attr_e( 'Indietro', 'bw-elementor-widgets' ); ?>">
+                        <img src="<?php echo esc_url( BW_MEW_URL . 'assets/img/arrow-l.svg' ); ?>" alt="<?php esc_attr_e( 'Indietro', 'bw-elementor-widgets' ); ?>">
                     </button>
                     <button class="bw-next" type="button" aria-label="<?php esc_attr_e( 'Slide successiva', 'bw-elementor-widgets' ); ?>">
-                        <img src="<?php echo esc_url( BW_MEW_URL . 'assets/img/arrow-right.svg' ); ?>" alt="<?php esc_attr_e( 'Avanti', 'bw-elementor-widgets' ); ?>">
+                        <img src="<?php echo esc_url( BW_MEW_URL . 'assets/img/arrow-d.svg' ); ?>" alt="<?php esc_attr_e( 'Avanti', 'bw-elementor-widgets' ); ?>">
                     </button>
                 </div>
             </div>
