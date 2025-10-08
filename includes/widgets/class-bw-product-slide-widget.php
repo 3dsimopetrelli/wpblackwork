@@ -51,6 +51,15 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
             $this->remove_control( $section_id );
         }
 
+        $this->update_responsive_control(
+            'column_width',
+            [
+                'selectors' => [
+                    '{{WRAPPER}} .bw-product-slide-wrapper' => '--bw-product-slide-column-width: {{SIZE}}{{UNIT}}; --bw-column-width: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
+
         $this->update_control(
             'arrows_color',
             [
