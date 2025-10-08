@@ -142,6 +142,8 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
         $product_type  = isset( $settings['product_type'] ) ? sanitize_key( $settings['product_type'] ) : '';
         $product_cat   = isset( $settings['product_cat_parent'] ) ? absint( $settings['product_cat_parent'] ) : 0;
         $slides_scroll = isset( $settings['slides_to_scroll'] ) ? max( 1, absint( $settings['slides_to_scroll'] ) ) : 1;
+        $column_width  = $this->get_column_width_value( $settings );
+        $column_unit   = $this->get_column_width_unit( $settings );
 
         $available_post_types = $this->get_post_type_options();
         if ( empty( $available_post_types ) ) {
@@ -258,6 +260,16 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
             $wrapper_style .= '--bw-product-slide-image-height:auto;';
         }
 
+        $has_custom_column_width = false;
+        if ( null !== $column_width ) {
+            $wrapper_style         .= '--bw-product-slide-column-width:' . $column_width . $column_unit . ';';
+            $wrapper_style         .= '--bw-column-width:' . $column_width . $column_unit . ';';
+            $has_custom_column_width = true;
+        } else {
+            $wrapper_style .= '--bw-product-slide-column-width:auto;';
+            $wrapper_style .= '--bw-column-width:auto;';
+        }
+
         $object_fit  = $image_crop ? 'cover' : 'contain';
         $image_style = $this->build_image_style( $object_fit );
         ?>
@@ -265,6 +277,9 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
             <div
                 class="bw-product-slide-wrapper slick-slider"
                 data-columns="<?php echo esc_attr( $columns ); ?>"
+                <?php if ( $has_custom_column_width ) : ?>
+                    data-has-column-width="true"
+                <?php endif; ?>
                 <?php if ( $slider_settings_json ) : ?>
                     data-slider-settings="<?php echo $slider_settings_json; ?>"
                 <?php endif; ?>
@@ -313,6 +328,39 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
             </div>
         </div>
         <?php
+    }
+
+    private function get_column_width_value( $settings ) {
+        if ( empty( $settings['column_width'] ) || ! is_array( $settings['column_width'] ) ) {
+            return null;
+        }
+
+        $size = isset( $settings['column_width']['size'] ) ? $settings['column_width']['size'] : null;
+        if ( null === $size || '' === $size ) {
+            return null;
+        }
+
+        $size = (float) $size;
+        if ( $size <= 0 ) {
+            return null;
+        }
+
+        return $size;
+    }
+
+    private function get_column_width_unit( $settings ) {
+        if ( empty( $settings['column_width'] ) || ! is_array( $settings['column_width'] ) ) {
+            return 'px';
+        }
+
+        $unit          = isset( $settings['column_width']['unit'] ) ? $settings['column_width']['unit'] : 'px';
+        $allowed_units = [ 'px', '%' ];
+
+        if ( ! in_array( $unit, $allowed_units, true ) ) {
+            $unit = 'px';
+        }
+
+        return $unit;
     }
 
     private function parse_ids( $ids_string ) {
