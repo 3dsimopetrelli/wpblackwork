@@ -182,34 +182,6 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
             'default' => [ 'size' => 50, 'unit' => 'px' ],
         ] );
 
-        $this->add_responsive_control(
-            'slide_padding_top',
-            [
-                'label' => __( 'Slide Padding Top', 'bw' ),
-                'type' => Controls_Manager::SLIDER,
-                'size_units' => [ 'px' ],
-                'range' => [ 'px' => [ 'min' => 0, 'max' => 200 ] ],
-                'default' => [ 'size' => 0 ],
-                'selectors' => [
-                    '{{WRAPPER}} .bw-slide-showcase-item .content' => 'padding-top: {{SIZE}}{{UNIT}};',
-                ],
-            ]
-        );
-
-        $this->add_responsive_control(
-            'slide_padding_bottom',
-            [
-                'label' => __( 'Slide Padding Bottom', 'bw' ),
-                'type' => Controls_Manager::SLIDER,
-                'size_units' => [ 'px' ],
-                'range' => [ 'px' => [ 'min' => 0, 'max' => 200 ] ],
-                'default' => [ 'size' => 0 ],
-                'selectors' => [
-                    '{{WRAPPER}} .bw-slide-showcase-item .content' => 'padding-bottom: {{SIZE}}{{UNIT}};',
-                ],
-            ]
-        );
-
         $this->end_controls_section();
     }
 
