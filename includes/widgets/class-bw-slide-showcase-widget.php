@@ -419,18 +419,6 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
             'placeholder' => __( 'View Collection', 'bw-elementor-widgets' ),
         ] );
 
-        $this->add_control( 'view_button_link', [
-            'label'       => __( 'Link bottone', 'bw-elementor-widgets' ),
-            'type'        => Controls_Manager::URL,
-            'placeholder' => __( 'https://example.com', 'bw-elementor-widgets' ),
-            'show_external' => true,
-            'default'     => [
-                'url'         => '',
-                'is_external' => false,
-                'nofollow'    => false,
-            ],
-        ] );
-
         $this->add_control(
             'button_color',
             [
@@ -979,7 +967,6 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
         $content_style = trim( implode( ' ', $content_style_parts ) );
         $object_fit          = $image_crop ? 'cover' : 'contain';
         $button_text         = ! empty( $settings['view_button_text'] ) ? $settings['view_button_text'] : __( 'View Collection', 'bw-elementor-widgets' );
-        $custom_link         = isset( $settings['view_button_link'] ) ? $settings['view_button_link'] : [];
         ?>
         <div
             class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $wrapper_classes ) ) ); ?>"
@@ -1017,8 +1004,6 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
                     $btn_url = $permalink;
                     if ( ! empty( $meta_button_link ) ) {
                         $btn_url = esc_url( $meta_button_link );
-                    } elseif ( ! empty( $custom_link['url'] ) ) {
-                        $btn_url = $custom_link['url'];
                     }
 
                     $button_text_value = $button_text;
@@ -1026,26 +1011,7 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
                         $button_text_value = wp_strip_all_tags( $meta_button_text );
                     }
 
-                    $link_attributes = [];
-                    $rel_values      = [];
-
-                    if ( ! empty( $custom_link['is_external'] ) ) {
-                        $link_attributes['target'] = '_blank';
-                        $rel_values[]               = 'noopener';
-                    }
-
-                    if ( ! empty( $custom_link['nofollow'] ) ) {
-                        $rel_values[] = 'nofollow';
-                    }
-
-                    if ( ! empty( $rel_values ) ) {
-                        $link_attributes['rel'] = implode( ' ', array_unique( $rel_values ) );
-                    }
-
                     $link_attrs = '';
-                    foreach ( $link_attributes as $attr_key => $attr_value ) {
-                        $link_attrs .= ' ' . $attr_key . '="' . esc_attr( $attr_value ) . '"';
-                    }
 
                     ?>
                     <div class="bw-slide-showcase-slide">
