@@ -2,6 +2,9 @@
     position: relative;
     background: #fafafa;
     overflow: hidden;
+    --bw-product-slide-arrow-bottom: 20px;
+    --bw-product-slide-arrows-right: 15px;
+    --bw-product-slide-arrows-gap: 16px;
 }
 
 .bw-product-slide-wrapper {
@@ -32,12 +35,7 @@
 /* UI ELEMENTS */
 .bw-product-slide-ui {
     position: absolute;
-    bottom: 20px;
-    left: 20px;
-    right: 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    inset: 0;
     pointer-events: none;
     z-index: 2;
 }
@@ -47,11 +45,17 @@
     font-size: 14px;
     color: #000;
     pointer-events: auto;
+    position: absolute;
+    bottom: var(--bw-product-slide-arrow-bottom);
+    left: 20px;
 }
 
 .bw-product-slide-arrows {
+    position: absolute;
+    bottom: var(--bw-product-slide-arrow-bottom);
+    right: var(--bw-product-slide-arrows-right);
     display: flex;
-    gap: 16px;
+    gap: var(--bw-product-slide-arrows-gap);
     pointer-events: auto;
 }
 
@@ -195,10 +199,13 @@ body.popup-active {
 }
 
 @media (max-width: 767px) {
-    .bw-product-slide-ui {
-        bottom: 16px;
+    .bw-product-slide {
+        --bw-product-slide-arrow-bottom: 16px;
+        --bw-product-slide-arrows-right: 16px;
+    }
+
+    .bw-product-slide-count {
         left: 16px;
-        right: 16px;
     }
 
     .bw-product-slide-arrows button {
