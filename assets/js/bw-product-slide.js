@@ -141,12 +141,31 @@
     initProductSlide($(document));
   });
 
-  if (window.elementorFrontend && window.elementorFrontend.hooks) {
-    window.elementorFrontend.hooks.addAction(
+  var productSlideHooksRegistered = false;
+  var registerElementorHooks = function () {
+    if (productSlideHooksRegistered) {
+      return;
+    }
+
+    var frontend = window.elementorFrontend;
+    if (
+      !frontend ||
+      !frontend.hooks ||
+      typeof frontend.hooks.addAction !== 'function'
+    ) {
+      return;
+    }
+
+    productSlideHooksRegistered = true;
+
+    frontend.hooks.addAction(
       'frontend/element_ready/bw-product-slide.default',
       function ($scope) {
         initProductSlide($scope);
       }
     );
-  }
+  };
+
+  registerElementorHooks();
+  $(window).on('elementor/frontend/init', registerElementorHooks);
 })(jQuery);
