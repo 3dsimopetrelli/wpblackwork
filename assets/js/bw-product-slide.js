@@ -31,25 +31,30 @@
       return;
     }
 
+    var $body = $('body');
+    var $popupTitle = $popup.find('.bw-popup-title');
+
     var openPopup = function () {
       $popup.addClass('active');
-      $('body').addClass('bw-product-slide-popup-open').css('overflow', 'hidden');
+      $body.addClass('popup-active');
     };
 
     var closePopup = function () {
       $popup.removeClass('active');
-      $('body').removeClass('bw-product-slide-popup-open').css('overflow', '');
+      $body.removeClass('popup-active');
     };
 
     $container
       .find('.bw-product-slide-item img')
       .off('click.bwProductSlide')
       .on('click.bwProductSlide', function () {
+        var title = $(this).attr('alt') || '';
+        $popupTitle.text(title);
         openPopup();
       });
 
     $container
-      .find('.bw-popup-close')
+      .find('.bw-popup-close-btn')
       .off('click.bwProductSlide')
       .on('click.bwProductSlide', function (event) {
         event.preventDefault();
