@@ -113,6 +113,30 @@
       settings.prevArrow = defaults.prevArrow;
       settings.nextArrow = defaults.nextArrow;
 
+      var hasCustomColumnWidth = $slider.is('[data-has-column-width]');
+
+      if (hasCustomColumnWidth) {
+        settings.variableWidth = true;
+
+        if (Array.isArray(settings.responsive)) {
+          settings.responsive = settings.responsive.map(function (entry) {
+            if (!entry || typeof entry !== 'object') {
+              return entry;
+            }
+
+            var responsiveEntry = $.extend(true, {}, entry);
+
+            if (!responsiveEntry.settings || typeof responsiveEntry.settings !== 'object') {
+              responsiveEntry.settings = {};
+            }
+
+            responsiveEntry.settings.variableWidth = true;
+
+            return responsiveEntry;
+          });
+        }
+      }
+
       var $count = $container.find('.bw-product-slide-count .current');
       var totalSlides = $slider.children().length;
       $container.find('.bw-product-slide-count .total').text(totalSlides);
