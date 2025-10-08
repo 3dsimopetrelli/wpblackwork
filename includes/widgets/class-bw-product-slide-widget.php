@@ -143,7 +143,9 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
                 }
 
                 $slides[] = [
-                    'image' => $image_url,
+                    'image' => [
+                        'url' => $image_url,
+                    ],
                     'title' => get_the_title( $post_id ),
                 ];
             }
@@ -157,6 +159,7 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
         }
 
         $total_slides = count( $slides );
+        $product_title = ! empty( $slides ) ? $slides[0]['title'] : '';
         $wrapper_style  = '--bw-product-slide-gap:' . $gap . 'px;';
         if ( $image_height > 0 ) {
             $wrapper_style .= '--bw-product-slide-image-height:' . $image_height . 'px;';
@@ -178,7 +181,7 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
             >
                 <?php foreach ( $slides as $index => $slide ) : ?>
                     <div class="bw-product-slide-item" data-index="<?php echo esc_attr( $index + 1 ); ?>">
-                        <img src="<?php echo esc_url( $slide['image'] ); ?>" alt="<?php echo esc_attr( $slide['title'] ); ?>" style="<?php echo esc_attr( $image_style ); ?>">
+                        <img src="<?php echo esc_url( $slide['image']['url'] ); ?>" alt="<?php echo esc_attr( $slide['title'] ); ?>" style="<?php echo esc_attr( $image_style ); ?>">
                     </div>
                 <?php endforeach; ?>
             </div>
@@ -195,13 +198,25 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
                     </button>
                 </div>
             </div>
-            <div class="bw-product-slide-popup" aria-hidden="true">
-                <button class="bw-popup-close" type="button" aria-label="<?php esc_attr_e( 'Chiudi popup', 'bw-elementor-widgets' ); ?>">
-                    <img src="<?php echo esc_url( BW_MEW_URL . 'assets/img/close.svg' ); ?>" alt="<?php esc_attr_e( 'Chiudi', 'bw-elementor-widgets' ); ?>">
-                </button>
+            <!-- POPUP FULLSCREEN -->
+            <div class="bw-product-slide-popup">
+                <div class="bw-product-slide-popup-header">
+                    <div class="bw-popup-title"><?php echo esc_html( $product_title ); ?></div>
+                    <div class="bw-popup-close">
+                        <button class="bw-popup-close-btn" aria-label="Close">
+                            <svg class="close-icon" viewBox="0 0 40 40" width="50" height="50">
+                                <line x1="10" y1="10" x2="30" y2="30"></line>
+                                <line x1="30" y1="10" x2="10" y2="30"></line>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
                 <div class="bw-popup-content">
                     <?php foreach ( $slides as $slide ) : ?>
-                        <img src="<?php echo esc_url( $slide['image'] ); ?>" alt="<?php echo esc_attr( $slide['title'] ); ?>" class="bw-popup-img">
+                        <img src="<?php echo esc_url( $slide['image']['url'] ); ?>"
+                             alt="<?php echo esc_attr( $slide['title'] ); ?>"
+                             class="bw-popup-img">
                     <?php endforeach; ?>
                 </div>
             </div>

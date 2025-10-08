@@ -77,19 +77,21 @@
     opacity: 0.7;
 }
 
-/* POPUP FULLSCREEN */
+/* =============================
+   POPUP FULLSCREEN STYLE
+   ============================= */
+
 .bw-product-slide-popup {
     position: fixed;
     inset: 0;
-    background: rgba(255, 255, 255, 0.98);
+    background: #ffffff;
     display: none;
-    justify-content: center;
-    align-items: flex-start;
+    flex-direction: column;
+    align-items: center;
     overflow-y: auto;
     z-index: 9999;
     opacity: 0;
     transition: opacity 0.4s ease;
-    padding: 60px 0;
 }
 
 .bw-product-slide-popup.active {
@@ -97,32 +99,86 @@
     opacity: 1;
 }
 
-.bw-popup-close {
-    position: fixed;
-    top: 20px;
-    right: 30px;
-    background: none;
-    border: none;
-    cursor: pointer;
+/* Header (titolo + X) */
+.bw-product-slide-popup-header {
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fff;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+    padding: 20px 40px;
     z-index: 10000;
 }
 
-.bw-popup-close img {
-    width: 24px;
-    height: 24px;
+.bw-popup-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #000;
+    font-family: 'Inter', sans-serif;
 }
 
+.bw-popup-close-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease;
+}
+
+.bw-popup-close-btn:hover {
+    transform: scale(1.1);
+}
+
+.bw-popup-close-btn .close-icon {
+    stroke: #000;
+    stroke-width: 2;
+    fill: none;
+}
+
+/* Contenuto immagini */
 .bw-popup-content {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 40px;
-    width: min(1800px, 100%);
+    justify-content: flex-start;
+    padding: 60px 0;
+    gap: 25px;
+    width: 100%;
 }
 
 .bw-popup-content img {
     width: 100%;
+    max-width: 1800px;
     height: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+/* Fade effect body scroll lock */
+body.popup-active {
+    overflow: hidden;
+}
+
+@media (max-width: 768px) {
+    .bw-popup-title {
+        font-size: 16px;
+    }
+    .bw-popup-close-btn .close-icon {
+        width: 36px;
+        height: 36px;
+    }
+    .bw-popup-content {
+        padding: 40px 0;
+        gap: 20px;
+    }
 }
 
 .bw-product-slide-placeholder {
