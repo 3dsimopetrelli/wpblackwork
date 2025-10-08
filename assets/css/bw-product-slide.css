@@ -54,10 +54,20 @@
 .bw-product-slide-item img {
     width: 100%;
     max-width: 100%;
+    display: block;
     height: auto;
-    max-height: var(--bw-product-slide-image-height);
     border-radius: 8px;
     box-shadow: 0 20px 45px rgba(0, 0, 0, 0.08);
+}
+
+.bw-product-slide-wrapper[data-image-crop="true"] .bw-product-slide-item img {
+    height: var(--bw-product-slide-image-height, auto);
+    max-height: none;
+}
+
+.bw-product-slide-wrapper[data-image-crop="false"] .bw-product-slide-item img {
+    height: auto;
+    max-height: var(--bw-product-slide-image-height, none);
 }
 
 /* UI ELEMENTS */
