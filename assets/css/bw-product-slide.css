@@ -1,7 +1,7 @@
 .bw-product-slide {
     position: relative;
-    background: #fafafa;
-    overflow: hidden;
+    background: transparent;
+    overflow: visible;
     --bw-product-slide-arrow-bottom: 20px;
     --bw-product-slide-arrows-right: 15px;
     --bw-product-slide-arrows-gap: 16px;
@@ -27,6 +27,7 @@
     display: flex;
     width: 100%;
     justify-content: center;
+    align-items: flex-start;
 }
 
 .bw-product-slide-wrapper .slick-list {
@@ -36,7 +37,7 @@
 .bw-product-slide-item {
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
     padding: 0;
     margin: 0 calc(var(--bw-product-slide-gap) / 2);
     width: var(--bw-product-slide-column-width, var(--bw-column-width, auto));
@@ -46,7 +47,9 @@
 }
 
 .bw-product-slide-item img {
+    width: 100%;
     max-width: 100%;
+    height: auto;
     max-height: var(--bw-product-slide-image-height);
     border-radius: 8px;
     box-shadow: 0 20px 45px rgba(0, 0, 0, 0.08);
