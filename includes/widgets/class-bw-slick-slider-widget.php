@@ -651,50 +651,6 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
 
         $this->end_controls_section();
 
-        $this->start_controls_section(
-            'section_view_buttons',
-            [
-                'label' => __( 'View Buttons', 'bw-elementor-widgets' ),
-                'tab'   => Controls_Manager::TAB_CONTENT,
-            ]
-        );
-
-        $this->add_control(
-            'view_buttons_enable',
-            [
-                'label'        => __( 'Enable Buttons', 'bw-elementor-widgets' ),
-                'type'         => Controls_Manager::SWITCHER,
-                'label_on'     => __( 'On', 'bw-elementor-widgets' ),
-                'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
-                'return_value' => 'yes',
-                'default'      => 'yes',
-            ]
-        );
-
-        $this->add_responsive_control(
-            'view_buttons_padding',
-            [
-                'label'      => __( 'Buttons Padding', 'bw-elementor-widgets' ),
-                'type'       => Controls_Manager::DIMENSIONS,
-                'size_units' => [ 'px', 'em', '%' ],
-                'default'    => [
-                    'top'    => 16,
-                    'right'  => 16,
-                    'bottom' => 16,
-                    'left'   => 16,
-                    'unit'   => 'px',
-                ],
-                'selectors'  => [
-                    '{{WRAPPER}} .bw-ss__overlay' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-                ],
-                'condition'  => [
-                    'view_buttons_enable' => 'yes',
-                ],
-            ]
-        );
-
-        $this->end_controls_section();
-
         $this->start_controls_section( 'overlay_buttons_section', [
             'label' => __( 'Overlay Buttons', 'bw-elementor-widgets' ),
             'tab'   => Controls_Manager::TAB_STYLE,
@@ -703,12 +659,9 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
         $this->add_group_control( Group_Control_Typography::get_type(), [
             'name'      => 'overlay_buttons_typography',
             'selector'  => '{{WRAPPER}} .bw-slick-slider .bw-ss__btn',
-            'condition' => [ 'view_buttons_enable' => 'yes' ],
         ] );
 
-        $this->start_controls_tabs( 'overlay_buttons_color_tabs', [
-            'condition' => [ 'view_buttons_enable' => 'yes' ],
-        ] );
+        $this->start_controls_tabs( 'overlay_buttons_color_tabs' );
 
         $this->start_controls_tab( 'overlay_buttons_color_normal', [
             'label' => __( 'Normal', 'bw-elementor-widgets' ),
@@ -769,7 +722,6 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
             'selectors' => [
                 '{{WRAPPER}} .bw-slick-slider' => '--bw-overlay-buttons-radius: {{SIZE}}{{UNIT}};',
             ],
-            'condition' => [ 'view_buttons_enable' => 'yes' ],
         ] );
 
         $this->add_responsive_control( 'overlay_buttons_padding_vertical', [
@@ -781,7 +733,6 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
             'selectors' => [
                 '{{WRAPPER}} .bw-slick-slider' => '--bw-overlay-buttons-padding-y: {{SIZE}}{{UNIT}};',
             ],
-            'condition' => [ 'view_buttons_enable' => 'yes' ],
         ] );
 
         $this->add_responsive_control( 'overlay_buttons_padding_horizontal', [
@@ -793,7 +744,6 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
             'selectors' => [
                 '{{WRAPPER}} .bw-slick-slider' => '--bw-overlay-buttons-padding-x: {{SIZE}}{{UNIT}};',
             ],
-            'condition' => [ 'view_buttons_enable' => 'yes' ],
         ] );
 
         $this->end_controls_section();
@@ -801,9 +751,6 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
 
     protected function render() {
         $settings            = $this->get_settings_for_display();
-        $view_buttons_enabled = isset( $settings['view_buttons_enable'] )
-            ? ( 'yes' === $settings['view_buttons_enable'] )
-            : ( isset( $settings['overlay_buttons_enable'] ) ? 'yes' === $settings['overlay_buttons_enable'] : true );
         $content_type        = isset( $settings['content_type'] ) ? sanitize_key( $settings['content_type'] ) : 'post';
         $available_post_types = $this->get_post_type_options();
         if ( empty( $available_post_types ) ) {
@@ -990,7 +937,7 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
                                 <?php else : ?>
                                     <span class="bw-slick-item__image-placeholder" aria-hidden="true"></span>
                                 <?php endif; ?>
-                                <?php if ( $thumbnail_html && $view_buttons_enabled ) : ?>
+                                <?php if ( $thumbnail_html ) : ?>
                                     <div class="overlay-buttons bw-ss__overlay has-buttons">
                                         <div class="bw-ss__buttons<?php echo $has_add_to_cart ? ' bw-ss__buttons--double' : ''; ?>">
                                             <a class="overlay-button overlay-button--view bw-ss__btn bw-view-btn" href="<?php echo esc_url( $permalink ); ?>">

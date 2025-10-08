@@ -39,7 +39,6 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
         $this->register_layout_controls();
         $this->register_image_controls();
         $this->register_slider_controls();
-        $this->register_button_controls();
         $this->register_style_controls();
     }
 
@@ -147,19 +146,6 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
                 'px' => [ 'min' => 0, 'max' => 120, 'step' => 1 ],
             ],
             'default' => [ 'size' => 24, 'unit' => 'px' ],
-        ] );
-
-        $this->add_responsive_control( 'side_padding', [
-            'label'      => __( 'Side Padding', 'bw-elementor-widgets' ),
-            'type'       => Controls_Manager::DIMENSIONS,
-            'allowed_dimensions' => [ 'left', 'right' ],
-            'size_units' => [ 'px', '%', 'em' ],
-            'default'    => [
-                'left' => 50,
-                'right' => 50,
-                'unit' => 'px',
-                'isLinked' => false,
-            ],
         ] );
 
         $this->end_controls_section();
@@ -362,126 +348,6 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
             'fields'      => $repeater->get_controls(),
             'title_field' => __( 'Breakpoint: {{{ breakpoint }}}px', 'bw-elementor-widgets' ),
         ] );
-
-        $this->end_controls_section();
-    }
-
-    private function register_button_controls() {
-        $this->start_controls_section( 'view_button_section', [
-            'label' => __( 'View Buttons', 'bw-elementor-widgets' ),
-        ] );
-
-        $this->add_control( 'view_button_text', [
-            'label'       => __( 'Testo bottone', 'bw-elementor-widgets' ),
-            'type'        => Controls_Manager::TEXT,
-            'default'     => __( 'View Collection', 'bw-elementor-widgets' ),
-            'placeholder' => __( 'View Collection', 'bw-elementor-widgets' ),
-        ] );
-
-        $this->add_control(
-            'button_color',
-            [
-                'label'   => __( 'Colore principale pulsante', 'bw' ),
-                'type'    => Controls_Manager::COLOR,
-                'default' => '#80FD03',
-                'selectors' => [
-                    '{{WRAPPER}}' => '--btn-bg: {{VALUE}}; --arrow-bg: {{VALUE}};',
-                ],
-            ]
-        );
-
-        $this->add_control(
-            'button_text_color',
-            [
-                'label'   => __( 'Colore testo pulsante', 'bw' ),
-                'type'    => Controls_Manager::COLOR,
-                'default' => '#000000',
-                'selectors' => [
-                    '{{WRAPPER}}' => '--btn-color: {{VALUE}};',
-                ],
-            ]
-        );
-
-        $this->add_control(
-            'button_border_color',
-            [
-                'label'   => __( 'Colore bordo pulsante', 'bw' ),
-                'type'    => Controls_Manager::COLOR,
-                'default' => '#000000',
-                'selectors' => [
-                    '{{WRAPPER}}' => '--btn-border-color: {{VALUE}}; --arrow-border-color: {{VALUE}};',
-                ],
-            ]
-        );
-
-        $this->add_responsive_control(
-            'button_border_width',
-            [
-                'label' => __( 'Spessore bordo (px)', 'bw' ),
-                'type'  => Controls_Manager::SLIDER,
-                'size_units' => [ 'px' ],
-                'range' => [
-                    'px' => [ 'min' => 0, 'max' => 10 ],
-                ],
-                'default' => [ 'size' => 1, 'unit' => 'px' ],
-                'selectors' => [
-                    '{{WRAPPER}}' => '--btn-border-width: {{SIZE}}{{UNIT}}; --arrow-border-width: {{SIZE}}{{UNIT}};',
-                ],
-            ]
-        );
-
-        $this->add_responsive_control(
-            'arrow_margin',
-            [
-                'label' => __( 'Margini sfera freccia', 'bw' ),
-                'type'  => Controls_Manager::DIMENSIONS,
-                'size_units' => [ 'px', '%' ],
-                'default' => [
-                    'top' => 0,
-                    'right' => 0,
-                    'bottom' => 0,
-                    'left' => 0,
-                    'unit' => 'px',
-                    'isLinked' => true,
-                ],
-                'selectors' => [
-                    '{{WRAPPER}}' => '--arrow-margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-                ],
-            ]
-        );
-
-        $this->add_responsive_control(
-            'arrow_size',
-            [
-                'label' => __( 'Dimensione sfera freccia', 'bw' ),
-                'type'  => Controls_Manager::SLIDER,
-                'range' => [ 'px' => [ 'min' => 20, 'max' => 100 ] ],
-                'default' => [ 'size' => 46, 'unit' => 'px' ],
-                'selectors' => [
-                    '{{WRAPPER}}' => '--arrow-size: {{SIZE}}{{UNIT}};',
-                ],
-            ]
-        );
-
-        $this->add_responsive_control(
-            'button_padding',
-            [
-                'label' => __( 'Padding pulsante testo', 'bw' ),
-                'type'  => Controls_Manager::DIMENSIONS,
-                'size_units' => [ 'px' ],
-                'default' => [
-                    'top' => 14,
-                    'right' => 32,
-                    'bottom' => 14,
-                    'left' => 32,
-                    'unit' => 'px',
-                    'isLinked' => false,
-                ],
-                'selectors' => [
-                    '{{WRAPPER}}' => '--btn-padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-                ],
-            ]
-        );
 
         $this->end_controls_section();
     }
@@ -909,17 +775,8 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
         $query = new \WP_Query( $query_args );
 
         $border_radius_value = $this->format_dimensions( isset( $settings['border_radius'] ) ? $settings['border_radius'] : [] );
-        $side_padding_value  = $this->format_side_padding( isset( $settings['side_padding'] ) ? $settings['side_padding'] : [] );
-        $content_style_parts = [];
-
-        $base_content_style = $this->build_content_style( $side_padding_value );
-        if ( $base_content_style ) {
-            $content_style_parts[] = $base_content_style;
-        }
-
-        $content_style = trim( implode( ' ', $content_style_parts ) );
         $object_fit          = $image_crop ? 'cover' : 'contain';
-        $button_text         = ! empty( $settings['view_button_text'] ) ? $settings['view_button_text'] : __( 'View Collection', 'bw-elementor-widgets' );
+        $button_text         = __( 'View Collection', 'bw-elementor-widgets' );
         ?>
         <div
             class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $wrapper_classes ) ) ); ?>"
@@ -974,7 +831,7 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
                                     <img src="<?php echo esc_url( $image_url ); ?>" alt="<?php echo esc_attr( $title ); ?>" class="bw-slide-showcase-image" style="<?php echo $this->build_image_style( $image_height, $object_fit ); ?>">
                                 <?php endif; ?>
                             </div>
-                            <div class="bw-slide-showcase-content content"<?php echo $content_style ? ' style="' . esc_attr( $content_style ) . '"' : ''; ?>>
+                            <div class="bw-slide-showcase-content content">
                                 <div class="bw-slide-showcase-title-section">
                                     <h1><?php echo esc_html( $title ); ?></h1>
                                     <?php if ( $subtitle ) : ?>
@@ -1268,36 +1125,6 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
         }
 
         return trim( sprintf( '%s %s %s %s', $top, $right, $bottom, $left ) );
-    }
-
-    private function format_side_padding( $dimensions ) {
-        if ( empty( $dimensions ) || ! is_array( $dimensions ) ) {
-            return '';
-        }
-
-        $unit = $this->sanitize_dimension_unit( isset( $dimensions['unit'] ) ? $dimensions['unit'] : '' );
-        $left = isset( $dimensions['left'] ) && '' !== $dimensions['left'] ? $dimensions['left'] . $unit : '';
-        $right = isset( $dimensions['right'] ) && '' !== $dimensions['right'] ? $dimensions['right'] . $unit : '';
-
-        $styles = [];
-        if ( $left ) {
-            $styles[] = 'padding-left: ' . $left . ';';
-        }
-        if ( $right ) {
-            $styles[] = 'padding-right: ' . $right . ';';
-        }
-
-        return implode( ' ', $styles );
-    }
-
-    private function build_content_style( $side_padding ) {
-        $styles = [];
-
-        if ( $side_padding ) {
-            $styles[] = trim( $side_padding );
-        }
-
-        return implode( ' ', $styles );
     }
 
     private function build_image_style( $image_height, $object_fit ) {
