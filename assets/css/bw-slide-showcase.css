@@ -190,15 +190,10 @@
     white-space: nowrap;
 }
 
-.bw-slide-showcase-button-container:hover .bw-slide-showcase-arrow-btn {
-    transform: translateX(-2px) scale(1.05);
-}
-
 .bw-slide-showcase-button-container:hover .bw-slide-showcase-text-btn {
     transform: translateX(2px);
 }
 
-.bw-slide-showcase-arrow-btn:hover,
 .bw-slide-showcase-text-btn:hover {
     background-color: #9FFF32;
 }
