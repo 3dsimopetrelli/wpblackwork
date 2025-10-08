@@ -200,27 +200,6 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
             ],
         ] );
 
-        $this->add_control( 'image_mask', [
-            'label'        => __( 'Maschera nera', 'bw-elementor-widgets' ),
-            'type'         => Controls_Manager::SWITCHER,
-            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
-            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
-            'return_value' => 'yes',
-            'default'      => 'yes',
-        ] );
-
-        $this->add_control( 'image_mask_opacity', [
-            'label'       => __( 'Opacità maschera', 'bw-elementor-widgets' ),
-            'type'        => Controls_Manager::NUMBER,
-            'min'         => 0,
-            'max'         => 1,
-            'step'        => 0.05,
-            'default'     => 0.6,
-            'condition'   => [
-                'image_mask' => 'yes',
-            ],
-        ] );
-
         $this->end_controls_section();
     }
 
@@ -826,10 +805,6 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
         $column_width_data  = $this->get_slider_value_with_unit( $settings, 'column_width', null, 'px' );
         $column_width       = isset( $column_width_data['size'] ) ? $column_width_data['size'] : null;
         $column_width_unit  = isset( $column_width_data['unit'] ) ? $column_width_data['unit'] : 'px';
-        $mask_enabled       = ! isset( $settings['image_mask'] ) || 'yes' === $settings['image_mask'];
-        $mask_opacity_value = isset( $settings['image_mask_opacity'] ) ? (float) $settings['image_mask_opacity'] : 0.6;
-        $mask_opacity       = max( 0, min( 1, $mask_opacity_value ) );
-
         $available_post_types = $this->get_post_type_options();
         if ( empty( $available_post_types ) ) {
             $available_post_types = [ 'post' => __( 'Post', 'bw-elementor-widgets' ) ];
@@ -997,9 +972,6 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
                             <div class="bw-slide-showcase-media">
                                 <?php if ( $image_url ) : ?>
                                     <img src="<?php echo esc_url( $image_url ); ?>" alt="<?php echo esc_attr( $title ); ?>" class="bw-slide-showcase-image" style="<?php echo $this->build_image_style( $image_height, $object_fit ); ?>">
-                                <?php endif; ?>
-                                <?php if ( $mask_enabled ) : ?>
-                                    <div class="bw-slide-showcase-overlay" style="opacity: <?php echo esc_attr( $mask_opacity ); ?>;"></div>
                                 <?php endif; ?>
                             </div>
                             <div class="bw-slide-showcase-content content"<?php echo $content_style ? ' style="' . esc_attr( $content_style ) . '"' : ''; ?>>
