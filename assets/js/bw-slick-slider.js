@@ -375,7 +375,12 @@
     initSlickSlider($(document));
   });
 
-  $(window).on('elementor/frontend/init', function () {
+  var hooksRegistered = false;
+  var registerElementorHooks = function () {
+    if (hooksRegistered) {
+      return;
+    }
+
     if (
       typeof elementorFrontend === 'undefined' ||
       !elementorFrontend.hooks ||
@@ -383,6 +388,8 @@
     ) {
       return;
     }
+
+    hooksRegistered = true;
 
     var widgetsToInit = [
       'frontend/element_ready/bw-slick-slider.default',
@@ -394,5 +401,8 @@
         initSlickSlider($scope);
       });
     });
-  });
+  };
+
+  registerElementorHooks();
+  $(window).on('elementor/frontend/init', registerElementorHooks);
 })(jQuery);
