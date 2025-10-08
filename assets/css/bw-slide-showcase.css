@@ -1,5 +1,6 @@
 .bw-slide-showcase-slider {
     --bw-slide-showcase-column-width: auto;
+    --bw-column-width: auto;
 }
 
 .bw-slide-showcase-slider * {
@@ -15,11 +16,17 @@
 .bw-slide-showcase-slider .slick-slide {
     height: auto;
     padding: 0 calc(var(--bw-slide-showcase-gap, var(--bw-gap, 0px)) / 2);
+    max-width: var(--bw-slide-showcase-column-width, var(--bw-column-width, 100%));
+}
+
+.bw-slide-showcase-slider[data-has-column-width="true"] .slick-slide {
+    width: var(--bw-slide-showcase-column-width, var(--bw-column-width, auto));
+    max-width: none;
 }
 
 .bw-slide-showcase-slider .bw-slide-showcase-slide {
-    width: var(--bw-slide-showcase-column-width, var(--bw-column-width, auto));
-    max-width: var(--bw-slide-showcase-column-width, var(--bw-column-width, 100%));
+    width: 100%;
+    max-width: 100%;
     flex: 0 0 auto;
 }
 

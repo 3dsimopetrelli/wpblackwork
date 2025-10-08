@@ -751,9 +751,11 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
         $wrapper_style .= '--bw-gap:' . $gap . 'px;';
         $wrapper_style .= '--bw-slide-showcase-columns:' . $columns . ';';
         $wrapper_style .= '--bw-columns:' . $columns . ';';
+        $has_custom_column_width = false;
         if ( null !== $column_width && '' !== $column_width && (float) $column_width > 0 ) {
-            $wrapper_style .= '--bw-slide-showcase-column-width:' . $column_width . $column_width_unit . ';';
-            $wrapper_style .= '--bw-column-width:' . $column_width . $column_width_unit . ';';
+            $wrapper_style          .= '--bw-slide-showcase-column-width:' . $column_width . $column_width_unit . ';';
+            $wrapper_style          .= '--bw-column-width:' . $column_width . $column_width_unit . ';';
+            $has_custom_column_width = true;
         } else {
             $wrapper_style .= '--bw-slide-showcase-column-width:auto;';
             $wrapper_style .= '--bw-column-width:auto;';
@@ -781,6 +783,9 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
         <div
             class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $wrapper_classes ) ) ); ?>"
             data-columns="<?php echo esc_attr( $columns ); ?>"
+            <?php if ( $has_custom_column_width ) : ?>
+                data-has-column-width="true"
+            <?php endif; ?>
             <?php if ( $slider_settings_json ) : ?>
                 data-slider-settings="<?php echo $slider_settings_json; ?>"
             <?php endif; ?>
