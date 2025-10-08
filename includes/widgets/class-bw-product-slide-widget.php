@@ -38,6 +38,88 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
 
     protected function register_controls() {
         parent::register_controls();
+
+        $sections_to_remove = [
+            'title_style_section',
+            'subtitle_style_section',
+            'info_style_section',
+            'badge_style_section',
+            'button_style_section',
+        ];
+
+        foreach ( $sections_to_remove as $section_id ) {
+            $this->remove_control( $section_id );
+        }
+
+        $this->update_control(
+            'arrows_color',
+            [
+                'selectors' => [
+                    '{{WRAPPER}} .bw-product-slide .bw-product-slide-arrows .bw-prev img, {{WRAPPER}} .bw-product-slide .bw-product-slide-arrows .bw-next img' => 'filter: brightness(0) saturate(100%) invert(0%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(0) contrast(100%) drop-shadow(0 0 0 {{VALUE}});',
+                ],
+            ]
+        );
+
+        $this->update_control(
+            'arrows_size',
+            [
+                'default'   => [
+                    'size' => 40,
+                    'unit' => 'px',
+                ],
+                'selectors' => [
+                    '{{WRAPPER}} .bw-product-slide .bw-product-slide-arrows button img' => 'width: {{SIZE}}{{UNIT}}; height: auto;',
+                ],
+            ]
+        );
+
+        $this->update_control(
+            'arrows_padding',
+            [
+                'selectors' => [
+                    '{{WRAPPER}} .bw-product-slide .bw-product-slide-arrows button' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->update_control(
+            'arrows_vertical_offset',
+            [
+                'default'   => [
+                    'size' => 20,
+                    'unit' => 'px',
+                ],
+                'selectors' => [
+                    '{{WRAPPER}} .bw-product-slide' => '--bw-product-slide-arrow-bottom: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->update_control(
+            'arrows_prev_horizontal_offset',
+            [
+                'default'   => [
+                    'size' => 16,
+                    'unit' => 'px',
+                ],
+                'selectors' => [
+                    '{{WRAPPER}} .bw-product-slide' => '--bw-product-slide-arrows-gap: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->update_control(
+            'arrows_next_horizontal_offset',
+            [
+                'default'   => [
+                    'size' => 15,
+                    'unit' => 'px',
+                ],
+                'selectors' => [
+                    '{{WRAPPER}} .bw-product-slide' => '--bw-product-slide-arrows-right: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
     }
 
     protected function render() {
