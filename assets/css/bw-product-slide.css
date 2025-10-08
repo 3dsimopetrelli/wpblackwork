@@ -46,6 +46,11 @@
     cursor: pointer;
 }
 
+.bw-product-slide-wrapper[data-has-column-width="true"] .slick-slide {
+    width: var(--bw-product-slide-column-width, var(--bw-column-width, auto));
+    max-width: none;
+}
+
 .bw-product-slide-item img {
     width: 100%;
     max-width: 100%;
