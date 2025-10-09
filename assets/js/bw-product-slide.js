@@ -76,6 +76,64 @@
       });
   };
 
+  var markImageAsLoaded = function ($image) {
+    window.requestAnimationFrame(function () {
+      $image.addClass('bw-loaded');
+    });
+  };
+
+  var prepareSliderImages = function ($slider) {
+    if (!$slider || !$slider.length) {
+      return;
+    }
+
+    var $images = $slider.find('.bw-product-slide-item img');
+
+    if (!$images.length) {
+      return;
+    }
+
+    $images.each(function () {
+      var $image = $(this);
+      var imageElement = this;
+
+      if (!$image.attr('loading')) {
+        $image.attr('loading', 'lazy');
+      }
+
+      if (!$image.attr('decoding')) {
+        $image.attr('decoding', 'async');
+      }
+
+      if (!$image.hasClass('bw-fade-image')) {
+        $image.addClass('bw-fade-image');
+      }
+
+      if (imageElement.complete && imageElement.naturalWidth > 0) {
+        markImageAsLoaded($image);
+        return;
+      }
+
+      if ($image.hasClass('bw-loaded')) {
+        return;
+      }
+
+      $image.off('load.bwProductSlideFade error.bwProductSlideFade');
+
+      var handleLoad = function () {
+        markImageAsLoaded($image);
+        $image.off('error.bwProductSlideFade');
+      };
+
+      $image
+        .one('load.bwProductSlideFade', handleLoad)
+        .one('error.bwProductSlideFade', function () {
+          markImageAsLoaded($image);
+          $image.off('load.bwProductSlideFade');
+        });
+    });
+  };
+
   var refreshSliderImages = function ($slider) {
     if (!$slider || !$slider.length) {
       return;
@@ -247,6 +305,23 @@
 
         $count.text(index + 1);
       };
+
+      $slider
+        .removeClass('bw-slider-ready')
+        .addClass('bw-enable-fade');
+
+      prepareSliderImages($slider);
+
+      var onSliderReady = function () {
+        window.requestAnimationFrame(function () {
+          $slider.addClass('bw-slider-ready');
+          prepareSliderImages($slider);
+        });
+      };
+
+      $slider
+        .off('init.bwProductSlideReady reInit.bwProductSlideReady')
+        .on('init.bwProductSlideReady reInit.bwProductSlideReady', onSliderReady);
 
       $slider.on('init.bwProductSlide reInit.bwProductSlide afterChange.bwProductSlide', updateCounter);
       $slider.slick(settings);
