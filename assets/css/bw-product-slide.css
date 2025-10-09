@@ -5,12 +5,23 @@
     --bw-product-slide-arrow-bottom: 20px;
     --bw-product-slide-arrows-right: 15px;
     --bw-product-slide-arrows-gap: 16px;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+.bw-product-slide.bw-slider-loading {
+    opacity: 0;
+    pointer-events: none;
 }
 
 .bw-product-slide-wrapper {
     --bw-product-slide-gap: 0px;
     --bw-product-slide-image-height: auto;
     --bw-product-slide-column-width: auto;
+}
+
+.bw-product-slide-wrapper {
+    min-height: var(--bw-product-slide-image-height, auto);
 }
 
 .bw-product-slide-wrapper .slick-track {
