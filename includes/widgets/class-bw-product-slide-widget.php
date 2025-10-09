@@ -56,6 +56,7 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
             [
                 'selectors' => [
                     '{{WRAPPER}} .bw-product-slide-wrapper' => '--bw-product-slide-column-width: {{SIZE}}{{UNIT}}; --bw-column-width: {{SIZE}}{{UNIT}};',
+                    '{{WRAPPER}} .bw-product-slide-item'     => '--bw-slide-width: {{SIZE}}{{UNIT}};',
                 ],
             ]
         );
@@ -264,10 +265,12 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
         if ( null !== $column_width ) {
             $wrapper_style         .= '--bw-product-slide-column-width:' . $column_width . $column_unit . ';';
             $wrapper_style         .= '--bw-column-width:' . $column_width . $column_unit . ';';
+            $wrapper_style         .= '--bw-slide-width:' . $column_width . $column_unit . ';';
             $has_custom_column_width = true;
         } else {
             $wrapper_style .= '--bw-product-slide-column-width:auto;';
             $wrapper_style .= '--bw-column-width:auto;';
+            $wrapper_style .= '--bw-slide-width:auto;';
         }
 
         $object_fit  = $image_crop ? 'cover' : 'contain';
