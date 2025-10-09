@@ -37,7 +37,7 @@
 .bw-product-slide-item {
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
     padding: 0;
     margin: 0 calc(var(--bw-product-slide-gap) / 2);
     width: var(--bw-slide-width, var(--bw-product-slide-column-width, var(--bw-column-width, auto)));
@@ -53,9 +53,9 @@
 
 .bw-product-slide-item img {
     display: block;
-    width: 100% !important;
-    height: auto !important;
-    max-width: none !important;
+    width: 100%;
+    height: auto;
+    max-width: none;
     border-radius: 8px;
     box-shadow: 0 20px 45px rgba(0, 0, 0, 0.08);
     object-fit: contain;
