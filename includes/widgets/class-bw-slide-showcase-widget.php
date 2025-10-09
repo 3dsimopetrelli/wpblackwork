@@ -813,8 +813,11 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
                         $subtitle = wp_trim_words( wp_strip_all_tags( get_the_content( null, false, $post_id ) ), 20 );
                     }
 
-                    $image_url = '';
-                    if ( has_post_thumbnail( $post_id ) ) {
+                    $image_url            = '';
+                    $meta_showcase_image  = get_post_meta( $post_id, '_product_showcase_image', true );
+                    if ( $meta_showcase_image ) {
+                        $image_url = esc_url_raw( $meta_showcase_image );
+                    } elseif ( has_post_thumbnail( $post_id ) ) {
                         $image_url = get_the_post_thumbnail_url( $post_id, 'large' );
                     }
 

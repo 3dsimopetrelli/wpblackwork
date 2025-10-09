@@ -1,7 +1,7 @@
 <?php
 /**
  * Images Showcase Metabox
- * Aggiunge un metabox per gestire un’immagine e descrizione dedicate alle Showcase Slides.
+ * Aggiunge un metabox per gestire un’immagine dedicata alle Showcase Slides.
  * Autore: GPT Agent
  */
 
@@ -32,8 +32,7 @@ add_action( 'add_meta_boxes', 'bw_add_images_showcase_metabox' );
 function bw_render_images_showcase_metabox( $post ) {
     wp_nonce_field( 'bw_save_images_showcase', 'bw_images_showcase_nonce' );
 
-    $showcase_image       = get_post_meta( $post->ID, '_product_showcase_image', true );
-    $showcase_description = get_post_meta( $post->ID, '_product_showcase_description', true );
+    $showcase_image = get_post_meta( $post->ID, '_product_showcase_image', true );
 
     if ( function_exists( 'wp_enqueue_media' ) ) {
         wp_enqueue_media();
@@ -47,10 +46,6 @@ function bw_render_images_showcase_metabox( $post ) {
         <input type="hidden" id="bw_showcase_image" name="bw_showcase_image" value="<?php echo esc_attr( $showcase_image ); ?>">
         <button type="button" class="button bw-upload-image"><?php esc_html_e( 'Scegli immagine', 'bw' ); ?></button>
         <button type="button" class="button bw-remove-image"><?php esc_html_e( 'Rimuovi', 'bw' ); ?></button>
-    </p>
-    <p>
-        <label for="bw_showcase_description"><strong><?php esc_html_e( 'Descrizione immagine:', 'bw' ); ?></strong></label><br>
-        <textarea id="bw_showcase_description" name="bw_showcase_description" rows="3" style="width:100%;" placeholder="<?php esc_attr_e( 'Es. Anteprima mockup principale', 'bw' ); ?>"><?php echo esc_textarea( $showcase_description ); ?></textarea>
     </p>
     <?php
     bw_print_showcase_metabox_script();
@@ -137,10 +132,8 @@ function bw_save_images_showcase_metabox( $post_id ) {
         return;
     }
 
-    $showcase_image       = isset( $_POST['bw_showcase_image'] ) ? esc_url_raw( wp_unslash( $_POST['bw_showcase_image'] ) ) : '';
-    $showcase_description = isset( $_POST['bw_showcase_description'] ) ? sanitize_text_field( wp_unslash( $_POST['bw_showcase_description'] ) ) : '';
+    $showcase_image = isset( $_POST['bw_showcase_image'] ) ? esc_url_raw( wp_unslash( $_POST['bw_showcase_image'] ) ) : '';
 
     update_post_meta( $post_id, '_product_showcase_image', $showcase_image );
-    update_post_meta( $post_id, '_product_showcase_description', $showcase_description );
 }
 add_action( 'save_post', 'bw_save_images_showcase_metabox' );
