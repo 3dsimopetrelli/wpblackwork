@@ -212,10 +212,12 @@
 
 .bw-popup-img {
     display: block;
-    width: 100%;
-    max-width: 1800px;
+    width: 90%;
+    max-width: 1770px;
     height: auto;
-    margin: 0 auto 25px auto;
+    margin: 0 5% 25px;
+    padding: 0 15px;
+    box-sizing: border-box;
     object-fit: contain;
 }
 
@@ -241,7 +243,8 @@ body.popup-active {
     }
     .bw-popup-img {
         max-width: 95%;
-        margin-bottom: 20px;
+        margin: 0 5% 20px;
+        padding: 0 15px;
     }
 }
 
