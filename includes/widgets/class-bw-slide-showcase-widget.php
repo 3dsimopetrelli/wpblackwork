@@ -826,6 +826,11 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
                     $meta_formats      = get_post_meta( $post_id, '_product_formats', true );
                     $meta_button_text  = get_post_meta( $post_id, '_product_button_text', true );
                     $meta_button_link  = get_post_meta( $post_id, '_product_button_link', true );
+                    $meta_color_value  = get_post_meta( $post_id, '_product_color', true );
+                    $meta_color        = sanitize_hex_color( $meta_color_value );
+                    if ( empty( $meta_color ) ) {
+                        $meta_color = '#ffffff';
+                    }
 
                     $btn_url = $permalink;
                     if ( ! empty( $meta_button_link ) ) {
@@ -839,9 +844,22 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
 
                     $link_attrs = '';
 
+                    $item_styles = [];
+                    if ( $border_radius_value ) {
+                        $item_styles[] = 'border-radius: ' . $border_radius_value . ';';
+                    }
+                    if ( ! empty( $meta_color ) ) {
+                        $item_styles[] = '--bw-slide-showcase-text-color: ' . $meta_color . ';';
+                    }
+
+                    $item_style_attr = '';
+                    if ( ! empty( $item_styles ) ) {
+                        $item_style_attr = ' style="' . esc_attr( implode( ' ', $item_styles ) ) . '"';
+                    }
+
                     ?>
                     <div class="bw-slide-showcase-slide">
-                        <div class="bw-slide-showcase-item"<?php if ( $border_radius_value ) : ?> style="border-radius: <?php echo esc_attr( $border_radius_value ); ?>;"<?php endif; ?>>
+                        <div class="bw-slide-showcase-item"<?php echo $item_style_attr; ?>>
                             <div class="bw-slide-showcase-media">
                                 <?php if ( $image_url ) : ?>
                                     <img src="<?php echo esc_url( $image_url ); ?>" alt="<?php echo esc_attr( $title ); ?>" class="bw-slide-showcase-image" style="<?php echo $this->build_image_style( $image_height, $object_fit ); ?>">
