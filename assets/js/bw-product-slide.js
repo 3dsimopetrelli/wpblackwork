@@ -76,6 +76,88 @@
       });
   };
 
+  var refreshSliderImages = function ($slider) {
+    if (!$slider || !$slider.length) {
+      return;
+    }
+
+    $slider.find('.bw-product-slide-item img').css({
+      width: '100%',
+      'max-width': 'none',
+      height: 'auto',
+    });
+
+    if ($slider.hasClass('slick-initialized')) {
+      $slider.slick('setPosition');
+    }
+  };
+
+  var unbindResponsiveUpdates = function ($slider) {
+    if (!$slider || !$slider.length) {
+      return;
+    }
+
+    var previousResizeEvent = $slider.data('bwResizeEvent');
+    if (previousResizeEvent) {
+      $(window).off(previousResizeEvent);
+      $slider.removeData('bwResizeEvent');
+    }
+
+    var previousEditorHandler = $slider.data('bwEditorChangeHandler');
+    if (
+      previousEditorHandler &&
+      window.elementor &&
+      elementor.channels &&
+      elementor.channels.editor &&
+      typeof elementor.channels.editor.off === 'function'
+    ) {
+      elementor.channels.editor.off('change', previousEditorHandler);
+      $slider.removeData('bwEditorChangeHandler');
+    }
+
+    if (previousResizeEvent || previousEditorHandler) {
+      $slider.removeData('bwResponsiveBound');
+    }
+  };
+
+  var bindResponsiveUpdates = function ($slider) {
+    if (!$slider || !$slider.length) {
+      return;
+    }
+
+    unbindResponsiveUpdates($slider);
+
+    var resizeEvent = 'resize.bwProductSlide-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+
+    var refreshImages = function () {
+      refreshSliderImages($slider);
+    };
+
+    $(window).on(resizeEvent, refreshImages);
+    $slider.data('bwResizeEvent', resizeEvent);
+
+    if (
+      window.elementorFrontend &&
+      elementorFrontend.isEditMode() &&
+      window.elementor &&
+      elementor.channels &&
+      elementor.channels.editor &&
+      typeof elementor.channels.editor.on === 'function'
+    ) {
+      var editorHandler = function (panel) {
+        if (panel && panel.changed && Object.prototype.hasOwnProperty.call(panel.changed, 'column_width')) {
+          setTimeout(refreshImages, 200);
+        }
+      };
+
+      elementor.channels.editor.on('change', editorHandler);
+      $slider.data('bwEditorChangeHandler', editorHandler);
+    }
+
+    refreshImages();
+    $slider.data('bwResponsiveBound', true);
+  };
+
   var initProductSlide = function ($scope) {
     var $containers = $scope.find('.bw-product-slide');
 
@@ -90,6 +172,8 @@
       if (!$slider.length || !$slider.children().length) {
         return;
       }
+
+      unbindResponsiveUpdates($slider);
 
       if ($slider.hasClass('slick-initialized')) {
         $slider.slick('unslick');
@@ -155,6 +239,9 @@
 
       $slider.on('init.bwProductSlide reInit.bwProductSlide afterChange.bwProductSlide', updateCounter);
       $slider.slick(settings);
+
+      refreshSliderImages($slider);
+      bindResponsiveUpdates($slider);
 
       if (settings.arrows === false) {
         $container.find('.bw-product-slide-arrows').hide();
