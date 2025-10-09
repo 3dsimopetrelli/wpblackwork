@@ -157,10 +157,16 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
         ] );
 
         $this->add_control( 'image_height', [
-            'label'   => __( 'Altezza immagini (px)', 'bw-elementor-widgets' ),
-            'type'    => Controls_Manager::NUMBER,
-            'min'     => 0,
-            'default' => 420,
+            'label'      => __( 'Altezza immagini', 'bw-elementor-widgets' ),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => [ 'px' ],
+            'range'      => [
+                'px' => [ 'min' => 0, 'max' => 1200, 'step' => 1 ],
+            ],
+            'default'    => [
+                'size' => 420,
+                'unit' => 'px',
+            ],
         ] );
 
         $this->add_control( 'image_crop', [
@@ -661,7 +667,9 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
         $settings           = $this->get_settings_for_display();
         $columns            = isset( $settings['columns'] ) ? max( 1, absint( $settings['columns'] ) ) : 1;
         $gap                = isset( $settings['gap']['size'] ) ? max( 0, absint( $settings['gap']['size'] ) ) : 0;
-        $image_height       = isset( $settings['image_height'] ) ? max( 0, absint( $settings['image_height'] ) ) : 0;
+        $image_height_data  = $this->get_slider_value_with_unit( $settings, 'image_height', 420, 'px' );
+        $image_height       = isset( $image_height_data['size'] ) ? max( 0, (float) $image_height_data['size'] ) : 0;
+        $image_height_unit  = isset( $image_height_data['unit'] ) ? $image_height_data['unit'] : 'px';
         $image_crop         = isset( $settings['image_crop'] ) && 'yes' === $settings['image_crop'];
         $include_ids        = isset( $settings['include_ids'] ) ? $this->parse_ids( $settings['include_ids'] ) : [];
         $post_type          = isset( $settings['post_type'] ) ? sanitize_key( $settings['post_type'] ) : 'product';
@@ -762,8 +770,8 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
         }
 
         if ( $image_height > 0 ) {
-            $wrapper_style .= '--bw-slide-showcase-image-height:' . $image_height . 'px;';
-            $wrapper_style .= '--bw-image-height:' . $image_height . 'px;';
+            $wrapper_style .= '--bw-slide-showcase-image-height:' . $image_height . $image_height_unit . ';';
+            $wrapper_style .= '--bw-image-height:' . $image_height . $image_height_unit . ';';
         } else {
             $wrapper_style .= '--bw-slide-showcase-image-height:auto;';
             $wrapper_style .= '--bw-image-height:auto;';
@@ -920,7 +928,7 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
         wp_reset_postdata();
     }
 
-    private function get_slider_value_with_unit( $settings, $control_id, $default_size = null, $default_unit = 'px' ) {
+    protected function get_slider_value_with_unit( $settings, $control_id, $default_size = null, $default_unit = 'px' ) {
         if ( ! isset( $settings[ $control_id ] ) ) {
             return [
                 'size' => $default_size,
