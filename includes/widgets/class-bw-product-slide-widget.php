@@ -137,7 +137,7 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
         $columns       = isset( $settings['columns'] ) ? max( 1, absint( $settings['columns'] ) ) : 1;
         $gap                  = isset( $settings['gap']['size'] ) ? max( 0, absint( $settings['gap']['size'] ) ) : 0;
         $image_height_data    = $this->get_slider_value_with_unit( $settings, 'image_height', 420, 'px' );
-        $image_height         = isset( $image_height_data['size'] ) ? max( 0, (float) $image_height_data['size'] ) : 0;
+        $image_height_value   = isset( $image_height_data['size'] ) ? max( 0, (float) $image_height_data['size'] ) : 0;
         $image_height_unit    = isset( $image_height_data['unit'] ) ? $image_height_data['unit'] : 'px';
         $image_crop    = isset( $settings['image_crop'] ) && 'yes' === $settings['image_crop'];
         $include_ids   = isset( $settings['include_ids'] ) ? $this->parse_ids( $settings['include_ids'] ) : [];
@@ -246,7 +246,7 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
 
                 $image_url    = $image_src[0];
                 $image_width  = isset( $image_src[1] ) ? (int) $image_src[1] : 0;
-                $image_height = isset( $image_src[2] ) ? (int) $image_src[2] : 0;
+                $raw_image_height = isset( $image_src[2] ) ? (int) $image_src[2] : 0;
 
                 if ( ! $image_url ) {
                     continue;
@@ -256,7 +256,7 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
                     'image' => [
                         'url' => $image_url,
                         'width' => $image_width,
-                        'height' => $image_height,
+                        'height' => $raw_image_height,
                         'srcset' => wp_get_attachment_image_srcset( $thumbnail_id, 'large' ),
                         'sizes' => wp_get_attachment_image_sizes( $thumbnail_id, 'large' ),
                     ],
@@ -275,8 +275,8 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
         $total_slides = count( $slides );
         $product_title = ! empty( $slides ) ? $slides[0]['title'] : '';
         $wrapper_style  = '--bw-product-slide-gap:' . $gap . 'px;';
-        if ( $image_height > 0 ) {
-            $wrapper_style .= '--bw-product-slide-image-height:' . $image_height . $image_height_unit . ';';
+        if ( $image_height_value > 0 ) {
+            $wrapper_style .= '--bw-product-slide-image-height:' . $image_height_value . $image_height_unit . ';';
         } else {
             $wrapper_style .= '--bw-product-slide-image-height:auto;';
         }
