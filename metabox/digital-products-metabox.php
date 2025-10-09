@@ -39,6 +39,7 @@ function bw_render_digital_products_metabox( $post ) {
     $product_formats      = get_post_meta( $post->ID, '_product_formats', true );
     $product_button_text  = get_post_meta( $post->ID, '_product_button_text', true );
     $product_button_link  = get_post_meta( $post->ID, '_product_button_link', true );
+    $product_color        = get_post_meta( $post->ID, '_product_color', true );
     ?>
     <p>
         <label for="bw_product_size_mb"><?php esc_html_e( 'File Size (MB)', 'bw' ); ?></label>
@@ -62,6 +63,10 @@ function bw_render_digital_products_metabox( $post ) {
     <p>
         <label for="bw_product_button_link"><?php esc_html_e( 'Button Link (URL)', 'bw' ); ?></label>
         <input type="url" id="bw_product_button_link" name="bw_product_button_link" value="<?php echo esc_attr( $product_button_link ); ?>" style="width:100%;" />
+    </p>
+    <p>
+        <label for="bw_product_color"><?php esc_html_e( 'Colore', 'bw' ); ?></label>
+        <input type="color" id="bw_product_color" name="bw_product_color" value="<?php echo esc_attr( $product_color ? $product_color : '#000000' ); ?>" style="width:100%;" />
     </p>
     <?php
 }
@@ -98,12 +103,14 @@ function bw_save_digital_products( $post_id ) {
     $product_formats      = isset( $_POST['bw_product_formats'] ) ? sanitize_text_field( wp_unslash( $_POST['bw_product_formats'] ) ) : '';
     $product_button_text  = isset( $_POST['bw_product_button_text'] ) ? sanitize_text_field( wp_unslash( $_POST['bw_product_button_text'] ) ) : '';
     $product_button_link  = isset( $_POST['bw_product_button_link'] ) ? esc_url_raw( wp_unslash( $_POST['bw_product_button_link'] ) ) : '';
+    $product_color        = isset( $_POST['bw_product_color'] ) ? sanitize_hex_color( wp_unslash( $_POST['bw_product_color'] ) ) : '';
 
     update_post_meta( $post_id, '_product_size_mb', $product_size_mb );
     update_post_meta( $post_id, '_product_assets_count', $product_assets_count );
     update_post_meta( $post_id, '_product_formats', $product_formats );
     update_post_meta( $post_id, '_product_button_text', $product_button_text );
     update_post_meta( $post_id, '_product_button_link', $product_button_link );
+    update_post_meta( $post_id, '_product_color', $product_color );
 }
 add_action( 'save_post', 'bw_save_digital_products' );
 
