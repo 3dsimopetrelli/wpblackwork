@@ -34,6 +34,8 @@ require_once __DIR__ . '/includes/class-bw-widget-loader.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/product-types/product-types-init.php';
 // Metabox per prodotti digitali
 require_once plugin_dir_path( __FILE__ ) . 'metabox/digital-products-metabox.php';
+// Metabox Images Showcase
+require_once plugin_dir_path( __FILE__ ) . 'metabox/images-showcase-metabox.php';
 
 add_action('elementor/frontend/after_enqueue_scripts', 'bw_enqueue_slick_slider_assets');
 add_action('elementor/editor/after_enqueue_scripts', 'bw_enqueue_slick_slider_assets');
