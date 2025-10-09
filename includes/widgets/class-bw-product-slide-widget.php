@@ -311,7 +311,7 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
                 </div>
             </div>
             <!-- POPUP FULLSCREEN -->
-            <div class="bw-product-slide-popup">
+            <div class="bw-product-slide-popup" hidden aria-hidden="true">
                 <div class="bw-product-slide-popup-header">
                     <div class="bw-popup-title"><?php echo esc_html( $product_title ); ?></div>
                     <div class="bw-popup-close">
