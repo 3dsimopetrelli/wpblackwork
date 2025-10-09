@@ -66,7 +66,7 @@ function bw_render_digital_products_metabox( $post ) {
     </p>
     <p>
         <label for="bw_product_color"><?php esc_html_e( 'Colore', 'bw' ); ?></label>
-        <input type="color" id="bw_product_color" name="bw_product_color" value="<?php echo esc_attr( $product_color ? $product_color : '#000000' ); ?>" style="width:100%;" />
+        <input type="color" id="bw_product_color" name="bw_product_color" value="<?php echo esc_attr( $product_color ? $product_color : '#ffffff' ); ?>" style="width:100%;" />
     </p>
     <?php
 }
