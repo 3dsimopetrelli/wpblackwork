@@ -58,8 +58,8 @@
     max-width: none;
     border-radius: 8px;
     box-shadow: 0 20px 45px rgba(0, 0, 0, 0.08);
-    object-fit: contain;
-    object-position: top center;
+    object-fit: cover;
+    object-position: center;
     transition: width 0.3s ease;
 }
 
