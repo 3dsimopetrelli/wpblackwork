@@ -133,18 +133,22 @@
     position: fixed;
     inset: 0;
     background: #ffffff;
-    display: none;
+    display: flex;
     flex-direction: column;
     align-items: center;
     overflow-y: auto;
     z-index: 9999;
     opacity: 0;
-    transition: opacity 0.4s ease;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.45s ease, visibility 0s linear 0.45s;
 }
 
 .bw-product-slide-popup.active {
-    display: flex;
     opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transition: opacity 0.45s ease, visibility 0s linear 0s;
 }
 
 .bw-product-slide-popup-header {
@@ -223,6 +227,24 @@
 
 .bw-popup-img:last-child {
     margin-bottom: 0;
+}
+
+.bw-product-slide-wrapper.bw-enable-fade .slick-slide {
+    opacity: 0;
+    transition: opacity 0.45s ease;
+}
+
+.bw-product-slide-wrapper.bw-enable-fade.bw-slider-ready .slick-slide.slick-active {
+    opacity: 1;
+}
+
+.bw-product-slide-wrapper .bw-product-slide-item img.bw-fade-image {
+    opacity: 0;
+    transition: opacity 0.45s ease;
+}
+
+.bw-product-slide-wrapper .bw-product-slide-item img.bw-fade-image.bw-loaded {
+    opacity: 1;
 }
 
 /* Fade effect body scroll lock */
