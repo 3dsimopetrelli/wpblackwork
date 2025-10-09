@@ -260,6 +260,12 @@
       $slider.removeData('bwEditorChangeHandler');
     }
 
+    var previousObserver = $slider.data('bwMutationObserver');
+    if (previousObserver && typeof previousObserver.disconnect === 'function') {
+      previousObserver.disconnect();
+      $slider.removeData('bwMutationObserver');
+    }
+
     if (previousResizeEvent || previousEditorHandler) {
       $slider.removeData('bwResponsiveBound');
     }
@@ -290,13 +296,65 @@
       typeof elementor.channels.editor.on === 'function'
     ) {
       var editorHandler = function (panel) {
-        if (panel && panel.changed && Object.prototype.hasOwnProperty.call(panel.changed, 'column_width')) {
+        if (!panel || !panel.changed) {
+          return;
+        }
+
+        var changedKeys = Object.keys(panel.changed);
+        var shouldRefresh = changedKeys.some(function (key) {
+          if (typeof key !== 'string') {
+            return false;
+          }
+
+          return (
+            key.indexOf('column_width') !== -1 ||
+            key.indexOf('image_height') !== -1 ||
+            key.indexOf('image_crop') !== -1
+          );
+        });
+
+        if (shouldRefresh) {
           setTimeout(refreshImages, 200);
         }
       };
 
       elementor.channels.editor.on('change', editorHandler);
       $slider.data('bwEditorChangeHandler', editorHandler);
+    }
+
+    if (typeof window.MutationObserver === 'function') {
+      var sliderElement = $slider.get(0);
+
+      if (sliderElement) {
+        var observer = new MutationObserver(function (mutations) {
+          var shouldRefresh = mutations.some(function (mutation) {
+            if (!mutation || mutation.type !== 'attributes') {
+              return false;
+            }
+
+            if (mutation.attributeName === 'style') {
+              return true;
+            }
+
+            if (mutation.attributeName === 'data-image-crop') {
+              return true;
+            }
+
+            return false;
+          });
+
+          if (shouldRefresh) {
+            refreshImages();
+          }
+        });
+
+        observer.observe(sliderElement, {
+          attributes: true,
+          attributeFilter: ['style', 'data-image-crop'],
+        });
+
+        $slider.data('bwMutationObserver', observer);
+      }
     }
 
     refreshImages();
