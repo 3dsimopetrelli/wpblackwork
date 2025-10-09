@@ -81,10 +81,21 @@
       return;
     }
 
-    $slider.find('.bw-product-slide-item img').css({
-      width: '100%',
-      'max-width': 'none',
-      height: 'auto',
+    var $images = $slider.find('.bw-product-slide-item img');
+
+    if (!$images.length) {
+      return;
+    }
+
+    $images.each(function () {
+      var $image = $(this);
+
+      $image.css({
+        width: '100%',
+        'max-width': 'none',
+        height: '',
+        'max-height': '',
+      });
     });
 
     if ($slider.hasClass('slick-initialized')) {
