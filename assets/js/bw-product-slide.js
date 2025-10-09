@@ -34,14 +34,58 @@
     var $body = $('body');
     var $popupTitle = $popup.find('.bw-popup-title');
 
+    var hideTimeoutId = null;
+
+    var clearHideTimeout = function () {
+      if (hideTimeoutId !== null) {
+        window.clearTimeout(hideTimeoutId);
+        hideTimeoutId = null;
+      }
+    };
+
+    var ensurePopupHidden = function () {
+      clearHideTimeout();
+      $popup.attr('aria-hidden', 'true');
+      $popup.attr('hidden', 'hidden');
+    };
+
+    var onPopupTransitionEnd = function (event) {
+      if (event.target !== $popup.get(0)) {
+        return;
+      }
+
+      ensurePopupHidden();
+      $popup.off('transitionend.bwProductSlidePopup', onPopupTransitionEnd);
+    };
+
     var openPopup = function () {
-      $popup.addClass('active');
-      $body.addClass('popup-active');
+      clearHideTimeout();
+      $popup.off('transitionend.bwProductSlidePopup', onPopupTransitionEnd);
+
+      if ($popup.attr('hidden')) {
+        $popup.removeAttr('hidden');
+      }
+
+      $popup.attr('aria-hidden', 'false');
+
+      window.requestAnimationFrame(function () {
+        $popup.addClass('active');
+        $body.addClass('popup-active');
+      });
     };
 
     var closePopup = function () {
       $popup.removeClass('active');
       $body.removeClass('popup-active');
+
+      $popup
+        .off('transitionend.bwProductSlidePopup', onPopupTransitionEnd)
+        .on('transitionend.bwProductSlidePopup', onPopupTransitionEnd);
+
+      hideTimeoutId = window.setTimeout(function () {
+        ensurePopupHidden();
+        $popup.off('transitionend.bwProductSlidePopup', onPopupTransitionEnd);
+      }, 600);
     };
 
     $container
