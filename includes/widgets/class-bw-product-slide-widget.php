@@ -231,8 +231,22 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
         if ( $query->have_posts() ) {
             while ( $query->have_posts() ) {
                 $query->the_post();
-                $post_id   = get_the_ID();
-                $image_url = has_post_thumbnail( $post_id ) ? get_the_post_thumbnail_url( $post_id, 'large' ) : '';
+                $post_id      = get_the_ID();
+                $thumbnail_id = get_post_thumbnail_id( $post_id );
+
+                if ( ! $thumbnail_id ) {
+                    continue;
+                }
+
+                $image_src = wp_get_attachment_image_src( $thumbnail_id, 'large' );
+
+                if ( ! $image_src || empty( $image_src[0] ) ) {
+                    continue;
+                }
+
+                $image_url    = $image_src[0];
+                $image_width  = isset( $image_src[1] ) ? (int) $image_src[1] : 0;
+                $image_height = isset( $image_src[2] ) ? (int) $image_src[2] : 0;
 
                 if ( ! $image_url ) {
                     continue;
@@ -241,6 +255,10 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
                 $slides[] = [
                     'image' => [
                         'url' => $image_url,
+                        'width' => $image_width,
+                        'height' => $image_height,
+                        'srcset' => wp_get_attachment_image_srcset( $thumbnail_id, 'large' ),
+                        'sizes' => wp_get_attachment_image_sizes( $thumbnail_id, 'large' ),
                     ],
                     'title' => get_the_title( $post_id ),
                 ];
@@ -292,8 +310,44 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
                 style="<?php echo esc_attr( $wrapper_style ); ?>"
             >
                 <?php foreach ( $slides as $index => $slide ) : ?>
+                    <?php
+                    $image_attributes = [
+                        'src'           => $slide['image']['url'],
+                        'alt'           => $slide['title'],
+                        'style'         => $image_style,
+                        'class'         => 'bw-slide-image bw-fade-image',
+                        'decoding'      => 'async',
+                        'loading'       => 0 === $index ? 'eager' : 'lazy',
+                        'fetchpriority' => 0 === $index ? 'high' : 'low',
+                    ];
+
+                    if ( ! empty( $slide['image']['width'] ) ) {
+                        $image_attributes['width'] = (int) $slide['image']['width'];
+                    }
+
+                    if ( ! empty( $slide['image']['height'] ) ) {
+                        $image_attributes['height'] = (int) $slide['image']['height'];
+                    }
+
+                    if ( ! empty( $slide['image']['srcset'] ) ) {
+                        $image_attributes['srcset'] = $slide['image']['srcset'];
+                    }
+
+                    if ( ! empty( $slide['image']['sizes'] ) ) {
+                        $image_attributes['sizes'] = $slide['image']['sizes'];
+                    }
+
+                    $image_attribute_strings = [];
+                    foreach ( $image_attributes as $attribute => $value ) {
+                        $image_attribute_strings[] = sprintf(
+                            '%1$s="%2$s"',
+                            esc_attr( $attribute ),
+                            esc_attr( (string) $value )
+                        );
+                    }
+                    ?>
                     <div class="bw-product-slide-item" data-index="<?php echo esc_attr( $index + 1 ); ?>">
-                        <img src="<?php echo esc_url( $slide['image']['url'] ); ?>" alt="<?php echo esc_attr( $slide['title'] ); ?>" style="<?php echo esc_attr( $image_style ); ?>">
+                        <img <?php echo implode( ' ', $image_attribute_strings ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
                     </div>
                 <?php endforeach; ?>
             </div>
@@ -326,9 +380,42 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
 
                 <div class="bw-popup-content">
                     <?php foreach ( $slides as $slide ) : ?>
-                        <img src="<?php echo esc_url( $slide['image']['url'] ); ?>"
-                             alt="<?php echo esc_attr( $slide['title'] ); ?>"
-                             class="bw-popup-img">
+                        <?php
+                        $popup_attributes = [
+                            'src'           => $slide['image']['url'],
+                            'alt'           => $slide['title'],
+                            'class'         => 'bw-popup-img',
+                            'decoding'      => 'async',
+                            'loading'       => 'lazy',
+                            'fetchpriority' => 'low',
+                        ];
+
+                        if ( ! empty( $slide['image']['width'] ) ) {
+                            $popup_attributes['width'] = (int) $slide['image']['width'];
+                        }
+
+                        if ( ! empty( $slide['image']['height'] ) ) {
+                            $popup_attributes['height'] = (int) $slide['image']['height'];
+                        }
+
+                        if ( ! empty( $slide['image']['srcset'] ) ) {
+                            $popup_attributes['srcset'] = $slide['image']['srcset'];
+                        }
+
+                        if ( ! empty( $slide['image']['sizes'] ) ) {
+                            $popup_attributes['sizes'] = $slide['image']['sizes'];
+                        }
+
+                        $popup_attribute_strings = [];
+                        foreach ( $popup_attributes as $attribute => $value ) {
+                            $popup_attribute_strings[] = sprintf(
+                                '%1$s="%2$s"',
+                                esc_attr( $attribute ),
+                                esc_attr( (string) $value )
+                            );
+                        }
+                        ?>
+                        <img <?php echo implode( ' ', $popup_attribute_strings ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
                     <?php endforeach; ?>
                 </div>
             </div>
