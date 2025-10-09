@@ -510,6 +510,6 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
         $allowed_fits = [ 'cover', 'contain', 'fill', 'none', 'scale-down' ];
         $fit_value    = in_array( $object_fit, $allowed_fits, true ) ? $object_fit : 'cover';
 
-        return 'object-fit: ' . $fit_value . ';';
+        return 'object-fit: ' . $fit_value . '; object-position: top center;';
     }
 }
