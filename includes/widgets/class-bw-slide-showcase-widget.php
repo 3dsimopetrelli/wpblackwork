@@ -148,6 +148,30 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
             'default' => [ 'size' => 24, 'unit' => 'px' ],
         ] );
 
+        $this->add_control( 'layout_settings_heading', [
+            'label'     => __( 'Settings', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::HEADING,
+            'separator' => 'before',
+        ] );
+
+        $this->add_responsive_control( 'column_padding', [
+            'label'      => __( 'Padding colonna', 'bw-elementor-widgets' ),
+            'type'       => Controls_Manager::DIMENSIONS,
+            'size_units' => [ 'px', '%', 'em', 'rem' ],
+            'selectors'  => [
+                '{{WRAPPER}} .bw-slide-showcase-item' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+            ],
+        ] );
+
+        $this->add_responsive_control( 'image_padding', [
+            'label'      => __( 'Padding immagine', 'bw-elementor-widgets' ),
+            'type'       => Controls_Manager::DIMENSIONS,
+            'size_units' => [ 'px', '%', 'em', 'rem' ],
+            'selectors'  => [
+                '{{WRAPPER}} .bw-slide-showcase-media' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+            ],
+        ] );
+
         $this->end_controls_section();
     }
 
