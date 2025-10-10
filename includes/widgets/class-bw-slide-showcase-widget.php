@@ -437,6 +437,22 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
 
         $this->end_controls_section();
 
+        $this->start_controls_section( 'content_style_section', [
+            'label' => __( 'Colonna (immagine)', 'bw-elementor-widgets' ),
+            'tab'   => Controls_Manager::TAB_STYLE,
+        ] );
+
+        $this->add_responsive_control( 'content_padding', [
+            'label'      => __( 'Padding', 'bw-elementor-widgets' ),
+            'type'       => Controls_Manager::DIMENSIONS,
+            'size_units' => [ 'px', '%', 'em', 'rem' ],
+            'selectors'  => [
+                '{{WRAPPER}} .bw-slide-showcase-content' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+            ],
+        ] );
+
+        $this->end_controls_section();
+
         $this->start_controls_section( 'badge_style_section', [
             'label' => __( 'Badge', 'bw-elementor-widgets' ),
             'tab'   => Controls_Manager::TAB_STYLE,
@@ -850,6 +866,7 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
                     }
                     if ( ! empty( $meta_color ) ) {
                         $item_styles[] = '--bw-slide-showcase-text-color: ' . $meta_color . ';';
+                        $item_styles[] = '--bw-slide-showcase-badge-border-color: ' . $meta_color . ';';
                     }
 
                     $item_style_attr = '';
