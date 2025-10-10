@@ -41,6 +41,7 @@
     border-radius: 16px;
     overflow: hidden;
     box-shadow: none;
+    box-sizing: border-box;
 }
 
 .bw-slide-showcase-media {
@@ -48,6 +49,7 @@
     inset: 0;
     overflow: hidden;
     border-radius: inherit;
+    box-sizing: border-box;
 }
 
 .bw-slide-showcase-image {
