@@ -862,7 +862,8 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
                         $image_url = get_the_post_thumbnail_url( $post_id, 'large' );
                     }
 
-                    $showcase_title       = trim( (string) get_post_meta( $post_id, '_bw_showcase_title', true ) );
+                    $showcase_title_meta  = trim( (string) get_post_meta( $post_id, '_bw_showcase_title', true ) );
+                    $showcase_title       = '' !== $showcase_title_meta ? $showcase_title_meta : $product_title;
                     $showcase_description = trim( (string) get_post_meta( $post_id, '_bw_showcase_description', true ) );
 
                     $meta_assets_count = get_post_meta( $post_id, '_product_assets_count', true );
@@ -972,10 +973,12 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
                                 </div>
                             <?php endif; ?>
 
-                            <a href="<?php echo esc_url( $btn_url ); ?>" class="bw-slide-showcase-view-btn"<?php echo $link_attrs; ?>>
-                                <span class="bw-slide-showcase-arrow">&rsaquo;</span>
-                                <?php echo esc_html( $button_text_value ); ?>
-                            </a>
+                            <div class="bw-slide-showcase-cta">
+                                <span class="bw-slide-showcase-arrow" aria-hidden="true">&rsaquo;</span>
+                                <a href="<?php echo esc_url( $btn_url ); ?>" class="bw-slide-showcase-view-btn"<?php echo $link_attrs; ?>>
+                                    <?php echo esc_html( $button_text_value ); ?>
+                                </a>
+                            </div>
                         </div>
                     </div>
                 <?php endwhile; ?>

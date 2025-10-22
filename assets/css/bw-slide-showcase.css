@@ -146,15 +146,20 @@
     line-height: 1;
 }
 
-.bw-slide-showcase-view-btn {
+.bw-slide-showcase-cta {
     position: absolute;
     bottom: 50px;
     right: 50px;
     z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.bw-slide-showcase-view-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
     padding: 14px 32px;
     background: #80FD03;
     color: #000000;
@@ -183,7 +188,7 @@
     border-radius: 50%;
     font-size: 1rem;
     color: #000000;
-    background: transparent;
+    background: #80FD03;
     flex-shrink: 0;
 }
 
@@ -222,11 +227,15 @@
         gap: 12px;
     }
 
+    .bw-slide-showcase-cta {
+        bottom: 20px;
+        right: 20px;
+        gap: 10px;
+    }
+
     .bw-slide-showcase-view-btn {
         font-size: 0.95rem;
         padding: 12px 24px;
-        bottom: 20px;
-        right: 20px;
     }
 
     .bw-slide-showcase-arrow {
