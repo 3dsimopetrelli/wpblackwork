@@ -2,11 +2,19 @@
 use Elementor\Controls_Manager;
 use Elementor\Widget_Base;
 
+if ( ! class_exists( 'Widget_Bw_Section_Super_Fullwid_Base', false ) ) {
+    if ( class_exists( '\\Elementor\\Widget_Nested_Base' ) ) {
+        abstract class Widget_Bw_Section_Super_Fullwid_Base extends \Elementor\Widget_Nested_Base {}
+    } else {
+        abstract class Widget_Bw_Section_Super_Fullwid_Base extends Widget_Base {}
+    }
+}
+
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-class Widget_Bw_Section_Super_Fullwid extends Widget_Base {
+class Widget_Bw_Section_Super_Fullwid extends Widget_Bw_Section_Super_Fullwid_Base {
 
     public function get_name() {
         return 'bw-section-super-fullwid';
@@ -151,24 +159,23 @@ class Widget_Bw_Section_Super_Fullwid extends Widget_Base {
     }
 
     protected function render() {
-        $settings          = $this->get_settings_for_display();
-        $is_fullheight     = ! empty( $settings['section_fullheight'] ) && 'yes' === $settings['section_fullheight'];
-        $section_classes   = [ 'bw-section-super-fullwid' ];
-        $inner_content     = '';
+        $settings        = $this->get_settings_for_display();
+        $is_fullheight   = ! empty( $settings['section_fullheight'] ) && 'yes' === $settings['section_fullheight'];
+        $section_classes = [ 'bw-section-super-fullwid' ];
 
         if ( $is_fullheight ) {
             $section_classes[] = 'bw-section-fullheight';
-        }
-
-        if ( method_exists( $this, 'get_content' ) ) {
-            $inner_content = $this->get_content();
         }
 
         $section_class_attr = implode( ' ', array_map( 'sanitize_html_class', $section_classes ) );
 
         echo '<section class="' . esc_attr( $section_class_attr ) . '">';
         echo '<div class="bw-section-super-inner">';
-        echo $inner_content;
+        if ( method_exists( $this, 'render_children' ) ) {
+            $this->render_children();
+        } elseif ( method_exists( $this, 'get_content' ) ) {
+            echo $this->get_content();
+        }
         echo '</div>';
         echo '</section>';
     }
