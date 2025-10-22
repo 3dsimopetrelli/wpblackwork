@@ -972,9 +972,9 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
                                 </div>
                             <?php endif; ?>
 
-                            <a href="<?php echo esc_url( $btn_url ); ?>" class="view-btn"<?php echo $link_attrs; ?>>
-                                <span class="view-btn__label"><?php echo esc_html( $button_text_value ); ?></span>
-                                <img src="<?php echo esc_url( BW_MEW_URL . 'assets/img/button_arrow.svg' ); ?>" alt="" class="view-btn__icon" />
+                            <a href="<?php echo esc_url( $btn_url ); ?>" class="bw-slide-showcase-view-btn"<?php echo $link_attrs; ?>>
+                                <span class="bw-slide-showcase-arrow">&rsaquo;</span>
+                                <?php echo esc_html( $button_text_value ); ?>
                             </a>
                         </div>
                     </div>
