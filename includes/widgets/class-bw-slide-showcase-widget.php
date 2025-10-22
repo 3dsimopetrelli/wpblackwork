@@ -158,8 +158,16 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
             'label'      => __( 'Padding colonna', 'bw-elementor-widgets' ),
             'type'       => Controls_Manager::DIMENSIONS,
             'size_units' => [ 'px', '%', 'em', 'rem' ],
+            'default'    => [
+                'top'    => 50,
+                'right'  => 50,
+                'bottom' => 50,
+                'left'   => 50,
+                'unit'   => 'px',
+                'isLinked' => true,
+            ],
             'selectors'  => [
-                '{{WRAPPER}} .bw-slide-showcase-item' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                '{{WRAPPER}} .bw-slide-showcase-item' => '--bw-slide-showcase-padding-top: {{TOP}}{{UNIT}}; --bw-slide-showcase-padding-right: {{RIGHT}}{{UNIT}}; --bw-slide-showcase-padding-bottom: {{BOTTOM}}{{UNIT}}; --bw-slide-showcase-padding-left: {{LEFT}}{{UNIT}};',
             ],
         ] );
 
