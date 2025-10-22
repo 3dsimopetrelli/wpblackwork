@@ -400,13 +400,13 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
             'label'     => __( 'Colore', 'bw-elementor-widgets' ),
             'type'      => Controls_Manager::COLOR,
             'selectors' => [
-                '{{WRAPPER}} .bw-slide-showcase-title-section h1' => 'color: {{VALUE}};',
+                '{{WRAPPER}} .bw-slide-showcase-content .bw-title' => 'color: {{VALUE}};',
             ],
         ] );
 
         $this->add_group_control( Group_Control_Typography::get_type(), [
             'name'     => 'title_typography',
-            'selector' => '{{WRAPPER}} .bw-slide-showcase-title-section h1',
+            'selector' => '{{WRAPPER}} .bw-slide-showcase-content .bw-title',
         ] );
 
         $this->add_responsive_control( 'title_padding', [
@@ -414,7 +414,7 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
             'type'       => Controls_Manager::DIMENSIONS,
             'size_units' => [ 'px', '%', 'em', 'rem' ],
             'selectors'  => [
-                '{{WRAPPER}} .bw-slide-showcase-title-section h1' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                '{{WRAPPER}} .bw-slide-showcase-content .bw-title' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
             ],
         ] );
 
@@ -429,13 +429,13 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
             'label'     => __( 'Colore', 'bw-elementor-widgets' ),
             'type'      => Controls_Manager::COLOR,
             'selectors' => [
-                '{{WRAPPER}} .bw-slide-showcase-title-section p' => 'color: {{VALUE}};',
+                '{{WRAPPER}} .bw-slide-showcase-content .bw-subtitle' => 'color: {{VALUE}};',
             ],
         ] );
 
         $this->add_group_control( Group_Control_Typography::get_type(), [
             'name'     => 'subtitle_typography',
-            'selector' => '{{WRAPPER}} .bw-slide-showcase-title-section p',
+            'selector' => '{{WRAPPER}} .bw-slide-showcase-content .bw-subtitle',
         ] );
 
         $this->add_responsive_control( 'subtitle_padding', [
@@ -443,7 +443,7 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
             'type'       => Controls_Manager::DIMENSIONS,
             'size_units' => [ 'px', '%', 'em', 'rem' ],
             'selectors'  => [
-                '{{WRAPPER}} .bw-slide-showcase-title-section p' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                '{{WRAPPER}} .bw-slide-showcase-content .bw-subtitle' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
             ],
         ] );
 
