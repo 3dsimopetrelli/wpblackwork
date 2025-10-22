@@ -844,22 +844,26 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
                 while ( $query->have_posts() ) :
                     $query->the_post();
 
-                    $post_id   = get_the_ID();
-                    $permalink = get_permalink( $post_id );
-                    $title     = get_the_title( $post_id );
-                    $subtitle  = get_the_excerpt( $post_id );
-
-                    if ( empty( $subtitle ) ) {
-                        $subtitle = wp_trim_words( wp_strip_all_tags( get_the_content( null, false, $post_id ) ), 20 );
+                    $post_id        = get_the_ID();
+                    $permalink      = get_permalink( $post_id );
+                    $product_title  = get_the_title( $post_id );
+                    $image_url      = '';
+                    $showcase_image = get_post_meta( $post_id, '_bw_showcase_image', true );
+                    if ( empty( $showcase_image ) ) {
+                        $legacy_image = get_post_meta( $post_id, '_product_showcase_image', true );
+                        if ( $legacy_image ) {
+                            $showcase_image = $legacy_image;
+                        }
                     }
 
-                    $image_url            = '';
-                    $meta_showcase_image  = get_post_meta( $post_id, '_product_showcase_image', true );
-                    if ( $meta_showcase_image ) {
-                        $image_url = esc_url_raw( $meta_showcase_image );
+                    if ( $showcase_image ) {
+                        $image_url = esc_url_raw( $showcase_image );
                     } elseif ( has_post_thumbnail( $post_id ) ) {
                         $image_url = get_the_post_thumbnail_url( $post_id, 'large' );
                     }
+
+                    $showcase_title       = trim( (string) get_post_meta( $post_id, '_bw_showcase_title', true ) );
+                    $showcase_description = trim( (string) get_post_meta( $post_id, '_bw_showcase_description', true ) );
 
                     $meta_assets_count = get_post_meta( $post_id, '_product_assets_count', true );
                     $meta_size_mb      = get_post_meta( $post_id, '_product_size_mb', true );
@@ -898,83 +902,80 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
                         $item_style_attr = ' style="' . esc_attr( implode( ' ', $item_styles ) ) . '"';
                     }
 
+                    $assets_display = '';
+                    if ( '' !== $meta_assets_count ) {
+                        $assets_number = absint( $meta_assets_count );
+                        if ( $assets_number > 0 ) {
+                            $assets_label   = _n( 'Asset', 'Assets', $assets_number, 'bw-elementor-widgets' );
+                            $assets_display = sprintf( '%d %s', $assets_number, $assets_label );
+                        }
+                    }
+
+                    $size_display = '';
+                    if ( '' !== $meta_size_mb ) {
+                        $size_display = trim( wp_strip_all_tags( $meta_size_mb ) );
+                        if ( '' !== $size_display && ! preg_match( '/[a-zA-Z]/', $size_display ) ) {
+                            $size_display .= 'MB';
+                        }
+                    }
+
+                    $format_badges = [];
+                    if ( '' !== $meta_formats ) {
+                        $raw_formats = explode( ',', $meta_formats );
+                        foreach ( $raw_formats as $format ) {
+                            $format = trim( wp_strip_all_tags( $format ) );
+                            if ( '' !== $format ) {
+                                $format_badges[] = $format;
+                            }
+                        }
+                    }
+
                     ?>
                     <div class="bw-slide-showcase-slide">
                         <div class="bw-slide-showcase-item"<?php echo $item_style_attr; ?>>
                             <div class="bw-slide-showcase-media">
                                 <?php if ( $image_url ) : ?>
-                                    <img src="<?php echo esc_url( $image_url ); ?>" alt="<?php echo esc_attr( $title ); ?>" class="bw-slide-showcase-image" style="<?php echo $this->build_image_style( $image_height, $object_fit ); ?>">
+                                    <img src="<?php echo esc_url( $image_url ); ?>" alt="<?php echo esc_attr( $product_title ); ?>" class="bw-slide-showcase-image" style="<?php echo $this->build_image_style( $image_height, $object_fit ); ?>">
                                 <?php endif; ?>
                             </div>
-                            <div class="bw-slide-showcase-content content">
-                                <div class="bw-slide-showcase-title-section">
-                                    <h1><?php echo esc_html( $title ); ?></h1>
-                                    <?php if ( $subtitle ) : ?>
-                                        <p><?php echo esc_html( $subtitle ); ?></p>
+
+                            <?php if ( $showcase_title || $showcase_description ) : ?>
+                                <div class="bw-slide-showcase-content">
+                                    <?php if ( $showcase_title ) : ?>
+                                        <h2 class="bw-title"><?php echo esc_html( $showcase_title ); ?></h2>
+                                    <?php endif; ?>
+                                    <?php if ( $showcase_description ) : ?>
+                                        <p class="bw-subtitle"><?php echo esc_html( $showcase_description ); ?></p>
                                     <?php endif; ?>
                                 </div>
-                                <div class="bw-slide-showcase-bottom-section">
-                                    <?php
-                                    $assets_display = '';
-                                    if ( '' !== $meta_assets_count ) {
-                                        $assets_number = absint( $meta_assets_count );
-                                        if ( $assets_number > 0 ) {
-                                            $assets_label   = _n( 'Asset', 'Assets', $assets_number, 'bw-elementor-widgets' );
-                                            $assets_display = sprintf( '%d %s', $assets_number, $assets_label );
-                                        }
-                                    }
+                            <?php endif; ?>
 
-                                    $size_display = '';
-                                    if ( '' !== $meta_size_mb ) {
-                                        $size_display = trim( wp_strip_all_tags( $meta_size_mb ) );
-                                        if ( '' !== $size_display && ! preg_match( '/[a-zA-Z]/', $size_display ) ) {
-                                            $size_display .= 'MB';
-                                        }
-                                    }
-
-                                    $format_badges = [];
-                                    if ( '' !== $meta_formats ) {
-                                        $raw_formats = explode( ',', $meta_formats );
-                                        foreach ( $raw_formats as $format ) {
-                                            $format = trim( wp_strip_all_tags( $format ) );
-                                            if ( '' !== $format ) {
-                                                $format_badges[] = $format;
-                                            }
-                                        }
-                                    }
-
-                                    if ( $assets_display || $size_display || ! empty( $format_badges ) ) :
-                                        ?>
-                                        <div class="bw-slide-showcase-info">
-                                            <?php if ( $assets_display ) : ?>
-                                                <div class="bw-slide-showcase-info-item pwslideshowkeyinfoitem">
-                                                    <span class="pwslideshowkeyinfoitem__value"><?php echo esc_html( $assets_display ); ?></span>
-                                                </div>
-                                            <?php endif; ?>
-                                            <?php if ( $size_display ) : ?>
-                                                <div class="bw-slide-showcase-info-item pwslideshowkeyinfoitem">
-                                                    <span class="pwslideshowkeyinfoitem__value"><?php echo esc_html( $size_display ); ?></span>
-                                                </div>
-                                            <?php endif; ?>
-                                            <?php if ( ! empty( $format_badges ) ) : ?>
-                                                <div class="bw-slide-showcase-badges">
-                                                    <?php foreach ( $format_badges as $format_badge ) : ?>
-                                                        <span class="bw-slide-showcase-badge"><?php echo esc_html( $format_badge ); ?></span>
-                                                    <?php endforeach; ?>
-                                                </div>
-                                            <?php endif; ?>
+                            <?php if ( $assets_display || $size_display || ! empty( $format_badges ) ) : ?>
+                                <div class="bw-slide-showcase-info">
+                                    <?php if ( $assets_display ) : ?>
+                                        <div class="bw-slide-showcase-info-item pwslideshowkeyinfoitem">
+                                            <span class="pwslideshowkeyinfoitem__value"><?php echo esc_html( $assets_display ); ?></span>
                                         </div>
                                     <?php endif; ?>
-                                    <div class="bw-slide-showcase-button-container">
-                                        <button class="bw-slide-showcase-arrow-btn" aria-label="Go">
-                                            <img src="<?php echo BW_MEW_URL . 'assets/img/button_arrow.svg'; ?>" alt="arrow">
-                                        </button>
-                                        <a href="<?php echo esc_url( $btn_url ); ?>" class="bw-slide-showcase-text-btn"<?php echo $link_attrs; ?>>
-                                            <?php echo esc_html( $button_text_value ); ?>
-                                        </a>
-                                    </div>
+                                    <?php if ( $size_display ) : ?>
+                                        <div class="bw-slide-showcase-info-item pwslideshowkeyinfoitem">
+                                            <span class="pwslideshowkeyinfoitem__value"><?php echo esc_html( $size_display ); ?></span>
+                                        </div>
+                                    <?php endif; ?>
+                                    <?php if ( ! empty( $format_badges ) ) : ?>
+                                        <div class="bw-slide-showcase-badges">
+                                            <?php foreach ( $format_badges as $format_badge ) : ?>
+                                                <span class="bw-slide-showcase-badge"><?php echo esc_html( $format_badge ); ?></span>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    <?php endif; ?>
                                 </div>
-                            </div>
+                            <?php endif; ?>
+
+                            <a href="<?php echo esc_url( $btn_url ); ?>" class="view-btn"<?php echo $link_attrs; ?>>
+                                <span class="view-btn__label"><?php echo esc_html( $button_text_value ); ?></span>
+                                <img src="<?php echo esc_url( BW_MEW_URL . 'assets/img/button_arrow.svg' ); ?>" alt="" class="view-btn__icon" />
+                            </a>
                         </div>
                     </div>
                 <?php endwhile; ?>

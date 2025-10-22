@@ -66,39 +66,39 @@
 
 .bw-slide-showcase-content {
     position: absolute;
-    inset: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    color: var(--bw-slide-showcase-text-color, white);
-    z-index: 1;
+    top: 50px;
+    left: 50px;
+    right: 50px;
+    max-width: 600px;
+    color: var(--bw-slide-showcase-text-color, #ffffff);
+    z-index: 2;
 }
 
-.bw-slide-showcase-title-section h1 {
-    font-size: 3.5rem;
+.bw-slide-showcase-item .bw-title {
+    font-size: 48px;
     font-weight: 700;
+    color: var(--bw-slide-showcase-text-color, #ffffff);
+    line-height: 1.1;
     margin-bottom: 10px;
-    letter-spacing: -1px;
 }
 
-.bw-slide-showcase-title-section p {
-    font-size: 1rem;
+.bw-slide-showcase-item .bw-subtitle {
+    font-size: 18px;
+    font-weight: 400;
+    color: var(--bw-slide-showcase-text-color, #ffffff);
     opacity: 0.9;
-    font-weight: 300;
-}
-
-.bw-slide-showcase-bottom-section {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
+    margin-bottom: 20px;
 }
 
 .bw-slide-showcase-info {
+    position: absolute;
+    left: 50px;
+    bottom: 50px;
     display: flex;
     align-items: center;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     gap: 16px;
+    z-index: 2;
 }
 
 .pwslideshowkeyinfoitem {
@@ -113,12 +113,17 @@
     white-space: nowrap;
 }
 
+.bw-slide-showcase-info-item,
+.bw-slide-showcase-badge {
+    color: var(--bw-slide-showcase-text-color, #ffffff);
+}
+
 .bw-slide-showcase-info-item {
     display: flex;
     align-items: center;
-    font-size: 0.9rem;
-    font-weight: 500;
-    line-height: 1;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.2;
     margin: 0;
 }
 
@@ -130,91 +135,45 @@
 }
 
 .bw-slide-showcase-badge {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     padding: 4px 12px;
-    border: 1px solid var(--bw-slide-showcase-badge-border-color, rgba(255, 255, 255, 0.5));
+    border: 1px solid var(--bw-slide-showcase-badge-border-color, rgba(255, 255, 255, 0.6));
     border-radius: 20px;
-    font-size: 0.75rem;
+    font-size: 12px;
     text-transform: uppercase;
     line-height: 1;
 }
 
-/* =============================
-   MODERN BUTTON (dual style)
-   ============================= */
-
-.bw-slide-showcase-button-container {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    position: relative;
-    z-index: 5;
-}
-
-.bw-slide-showcase-arrow-btn {
-    width: var(--arrow-size, 46px);
-    height: var(--arrow-size, 46px);
-    background-color: var(--arrow-bg, #80FD03);
-    border: var(--arrow-border-width, 1px) solid var(--arrow-border-color, #000);
-    border-radius: 50%;
-    display: flex;
+.view-btn {
+    font-size: 24px;
+    font-weight: 600;
+    color: #000000;
+    background-color: #80FD03;
+    border: 1px solid #000000;
+    border-radius: 50px;
+    padding: 14px 32px;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    flex-shrink: 0;
-    margin: var(--arrow-margin, 0);
-}
-
-.bw-slide-showcase-arrow-btn img,
-.bw-slide-showcase-arrow-btn svg {
-    width: 20px;
-    height: 20px;
-    display: block;
-    stroke: var(--arrow-icon-color, #000);
-    stroke-width: 2.5;
-    fill: none;
-}
-
-.bw-slide-showcase-text-btn {
-    background-color: var(--btn-bg, #80FD03);
-    color: var(--btn-color, #000);
-    border: var(--btn-border-width, 1px) solid var(--btn-border-color, #000);
-    padding: var(--btn-padding, 14px 32px);
-    border-radius: 25px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
+    gap: 10px;
     text-decoration: none;
-    white-space: nowrap;
+    transition: all 0.3s ease;
+    position: absolute;
+    bottom: 50px;
+    right: 50px;
+    z-index: 2;
 }
 
-.bw-slide-showcase-button-container:hover .bw-slide-showcase-text-btn {
-    transform: translateX(2px);
-}
-
-.bw-slide-showcase-text-btn:hover {
+.view-btn:hover {
     background-color: #9FFF32;
 }
 
-@media (max-width: 768px) {
-    .bw-slide-showcase-title-section h1 {
-        font-size: 2rem;
-    }
-    .bw-slide-showcase-content {
-        top: 30px;
-        left: 30px;
-        right: 30px;
-        bottom: 30px;
-    }
-    .bw-slide-showcase-bottom-section {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 20px;
-    }
+.view-btn__icon {
+    width: 24px;
+    height: auto;
+    display: block;
 }
 
 .bw-slide-showcase-placeholder {
@@ -228,4 +187,38 @@
     background: rgba(0, 0, 0, 0.05);
     border-radius: 8px;
     font-size: 1rem;
+}
+
+@media (max-width: 768px) {
+    .bw-slide-showcase-content {
+        top: 30px;
+        left: 20px;
+        right: 20px;
+        max-width: none;
+    }
+
+    .bw-slide-showcase-item .bw-title {
+        font-size: 28px;
+    }
+
+    .bw-slide-showcase-item .bw-subtitle {
+        font-size: 16px;
+    }
+
+    .bw-slide-showcase-info {
+        left: 20px;
+        bottom: 100px;
+        gap: 12px;
+    }
+
+    .view-btn {
+        font-size: 20px;
+        padding: 12px 24px;
+        bottom: 20px;
+        right: 20px;
+    }
+
+    .view-btn__icon {
+        width: 20px;
+    }
 }
