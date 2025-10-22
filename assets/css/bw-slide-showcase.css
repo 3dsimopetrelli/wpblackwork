@@ -146,34 +146,45 @@
     line-height: 1;
 }
 
-.view-btn {
-    font-size: 24px;
-    font-weight: 600;
-    color: #000000;
-    background-color: #80FD03;
-    border: 1px solid #000000;
-    border-radius: 50px;
-    padding: 14px 32px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    text-decoration: none;
-    transition: all 0.3s ease;
+.bw-slide-showcase-view-btn {
     position: absolute;
     bottom: 50px;
     right: 50px;
     z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px 32px;
+    background: #80FD03;
+    color: #000000;
+    border: 1px solid #000000;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.3s ease, filter 0.3s ease;
 }
 
-.view-btn:hover {
-    background-color: #9FFF32;
+.bw-slide-showcase-view-btn:hover {
+    background: #9FFF32;
+    filter: brightness(1.05);
 }
 
-.view-btn__icon {
+.bw-slide-showcase-arrow {
     width: 24px;
-    height: auto;
-    display: block;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #000000;
+    border-radius: 50%;
+    font-size: 1rem;
+    color: #000000;
+    background: transparent;
+    flex-shrink: 0;
 }
 
 .bw-slide-showcase-placeholder {
@@ -211,14 +222,16 @@
         gap: 12px;
     }
 
-    .view-btn {
-        font-size: 20px;
+    .bw-slide-showcase-view-btn {
+        font-size: 0.95rem;
         padding: 12px 24px;
         bottom: 20px;
         right: 20px;
     }
 
-    .view-btn__icon {
+    .bw-slide-showcase-arrow {
         width: 20px;
+        height: 20px;
+        font-size: 0.9rem;
     }
 }
