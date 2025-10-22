@@ -974,7 +974,10 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
                             <?php endif; ?>
 
                             <div class="bw-slide-showcase-cta">
-                                <span class="bw-slide-showcase-arrow" aria-hidden="true">&rsaquo;</span>
+                                <a href="<?php echo esc_url( $btn_url ); ?>" class="bw-slide-showcase-arrow"<?php echo $link_attrs; ?>
+                                    aria-label="<?php echo esc_attr( $button_text_value ); ?>">
+                                    <span aria-hidden="true">&rsaquo;</span>
+                                </a>
                                 <a href="<?php echo esc_url( $btn_url ); ?>" class="bw-slide-showcase-view-btn"<?php echo $link_attrs; ?>>
                                     <?php echo esc_html( $button_text_value ); ?>
                                 </a>

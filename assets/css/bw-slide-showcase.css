@@ -179,8 +179,6 @@
 }
 
 .bw-slide-showcase-arrow {
-    width: 24px;
-    height: 24px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -190,6 +188,22 @@
     color: #000000;
     background: #80FD03;
     flex-shrink: 0;
+    text-decoration: none;
+    transition: background 0.3s ease, filter 0.3s ease;
+    width: calc(1rem + 28px);
+    height: calc(1rem + 28px);
+}
+
+.bw-slide-showcase-arrow span {
+    font-size: 1.5em;
+    line-height: 1;
+}
+
+.bw-slide-showcase-arrow:hover,
+.bw-slide-showcase-arrow:focus,
+.bw-slide-showcase-arrow:focus-visible {
+    background: #9FFF32;
+    filter: brightness(1.05);
 }
 
 .bw-slide-showcase-placeholder {
@@ -239,8 +253,7 @@
     }
 
     .bw-slide-showcase-arrow {
-        width: 20px;
-        height: 20px;
-        font-size: 0.9rem;
+        width: calc(1rem + 24px);
+        height: calc(1rem + 24px);
     }
 }
