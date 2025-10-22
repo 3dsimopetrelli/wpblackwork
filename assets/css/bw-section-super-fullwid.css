@@ -1,0 +1,50 @@
+.bw-section-super-fullwid {
+    position: relative;
+    width: 100vw;
+    left: 50%;
+    transform: translateX(-50%);
+    overflow: visible;
+    margin: 0;
+    padding: var(--bw-section-padding, 80px 0);
+    box-sizing: border-box;
+    background-color: var(--bw-section-bg, transparent);
+    z-index: var(--bw-section-z, 1);
+}
+
+.bw-section-super-inner {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    overflow: visible;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: stretch;
+}
+
+.bw-section-super-fullwid.bw-section-fullheight {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bw-section-super-fullwid.bw-section-fullheight .bw-section-super-inner {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.elementor .bw-section-super-fullwid .elementor-container {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    max-width: none !important;
+}
+
+@media (max-width: 768px) {
+    .bw-section-super-fullwid {
+        --bw-section-padding: 40px 0;
+    }
+}
