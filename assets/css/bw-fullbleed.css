@@ -1,0 +1,25 @@
+/* Sezione edge-to-edge (oltre il contenitore/padding pagina) */
+.bw-fullbleed {
+  position: relative;
+  left: 50vw;                 /* porta l'origine al centro viewport */
+  right: 50vw;
+  margin-left: -50vw;         /* estendi a sinistra fino al bordo finestra */
+  margin-right: -50vw;        /* estendi a destra fino al bordo finestra */
+  width: 100vw;               /* larghezza reale = larghezza finestra */
+  max-width: 100vw;
+  overflow: visible;          /* evita che contenuti vengano tagliati ai lati */
+}
+
+/* rimuovi padding laterale del contenitore interno di Elementor */
+.bw-fullbleed > .elementor-container,
+.bw-fullbleed .elementor-container {
+  max-width: 100% !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+/* opzionale: se compare scrollbar orizzontale per elementi “sporgenti” */
+html,
+body {
+  overflow-x: hidden;
+}
