@@ -86,14 +86,14 @@ function bw_enqueue_slick_slider_assets() {
         $product_slide_version
     );
 
-    $fullbleed_css_file = __DIR__ . '/assets/css/bw-fullbleed.css';
-    $fullbleed_version  = file_exists( $fullbleed_css_file ) ? filemtime( $fullbleed_css_file ) : '1.0.0';
+    $bw_custom_class_css_file = __DIR__ . '/assets/css/bw-custom-class.css';
+    $custom_class_version  = file_exists( $bw_custom_class_css_file ) ? filemtime( $bw_custom_class_css_file ) : '1.0.0';
 
     wp_enqueue_style(
         'bw-fullbleed-style',
-        plugin_dir_url(__FILE__) . 'assets/css/bw-fullbleed.css',
+        plugin_dir_url(__FILE__) . 'assets/css/bw-custom-class.css',
         [],
-        $fullbleed_version
+        $custom_class_version
     );
 
     wp_enqueue_script(

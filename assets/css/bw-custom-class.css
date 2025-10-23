@@ -1,0 +1,62 @@
+
+/* ==========================================================
+   BW FULL SECTION
+   Sezione edge-to-edge a larghezza piena compatibile con Elementor
+   ========================================================== */
+   
+ .bw-full-section {
+  position: relative !important;
+  width: 100vw !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  max-width: 100vw !important;
+  box-sizing: border-box !important;
+  overflow: visible !important;
+}
+
+/* Sovrascrive i contenitori interni che impongono rientri */
+.bw-full-section > .elementor-container,
+.bw-full-section > .e-con,
+.bw-full-section .elementor-container,
+.bw-full-section .e-con {
+  max-width: none !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+/* In caso tema imponga wrapper più esterno */
+.bw-full-section .site-content,
+.bw-full-section #content,
+.bw-full-section .elementor-inner {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+
+/* Supporto per sezioni con contenuti video o immagini di sfondo */
+.bw-full-section::before,
+.bw-full-section::after {
+  content: "";
+  display: block;
+}
+
+/* Variante opzionale: se vuoi forzare anche la rimozione del padding globale Elementor */
+.elementor .bw-full-section.elementor-section {
+  --padding-left: 0 !important;
+  --padding-right: 0 !important;
+}
+
+/* Responsive check */
+@media (max-width: 768px) {
+  .bw-full-section {
+    width: 100vw !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+  }
+}
