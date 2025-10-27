@@ -318,6 +318,27 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
             'default'      => 'yes',
         ] );
 
+        $this->add_control(
+            'custom_cursor_svg',
+            [
+                'label'       => __( 'Custom Cursor SVG', 'bw' ),
+                'type'        => Controls_Manager::MEDIA,
+                'media_types' => [ 'image', 'svg' ],
+                'description' => __( 'Upload a custom SVG to use as cursor while dragging the slide. Leave empty to use default hand cursor.', 'bw' ),
+            ]
+        );
+
+        $this->add_control(
+            'cursor_hotspot',
+            [
+                'label'       => __( 'Cursor Hotspot (x,y)', 'bw' ),
+                'type'        => Controls_Manager::TEXT,
+                'default'     => '16 16',
+                'description' => __( 'Adjust the cursor anchor point (x y in px).', 'bw' ),
+                'condition'   => [ 'custom_cursor_svg[url]!' => '' ],
+            ]
+        );
+
         $repeater = new Repeater();
         $repeater->add_control( 'breakpoint', [
             'label'   => __( 'Breakpoint (px)', 'bw-elementor-widgets' ),
@@ -727,6 +748,16 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
         $column_width_data  = $this->get_slider_value_with_unit( $settings, 'column_width', null, 'px' );
         $column_width       = isset( $column_width_data['size'] ) ? $column_width_data['size'] : null;
         $column_width_unit  = isset( $column_width_data['unit'] ) ? $column_width_data['unit'] : 'px';
+        $cursor_svg         = ! empty( $settings['custom_cursor_svg']['url'] ) ? esc_url_raw( $settings['custom_cursor_svg']['url'] ) : '';
+        $cursor_hotspot     = '16 16';
+        if ( $cursor_svg && ! empty( $settings['cursor_hotspot'] ) ) {
+            $hotspot_values = preg_split( '/\s+/', sanitize_text_field( $settings['cursor_hotspot'] ) );
+            if ( is_array( $hotspot_values ) && count( $hotspot_values ) >= 2 ) {
+                $hotspot_x = is_numeric( $hotspot_values[0] ) ? absint( $hotspot_values[0] ) : 16;
+                $hotspot_y = is_numeric( $hotspot_values[1] ) ? absint( $hotspot_values[1] ) : 16;
+                $cursor_hotspot = $hotspot_x . ' ' . $hotspot_y;
+            }
+        }
         $available_post_types = $this->get_post_type_options();
         if ( empty( $available_post_types ) ) {
             $available_post_types = [ 'post' => __( 'Post', 'bw-elementor-widgets' ) ];
@@ -823,6 +854,12 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
         } else {
             $wrapper_style .= '--bw-slide-showcase-image-height:auto;';
             $wrapper_style .= '--bw-image-height:auto;';
+        }
+
+        if ( $cursor_svg ) {
+            $wrapper_style .= 'cursor: url(\'' . $cursor_svg . '\') ' . $cursor_hotspot . ', grab;';
+        } else {
+            $wrapper_style .= 'cursor: grab;';
         }
 
         $slider_settings_json = ! empty( $slider_settings ) ? wp_json_encode( $slider_settings ) : '';
