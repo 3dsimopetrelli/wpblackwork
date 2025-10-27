@@ -12,11 +12,27 @@
   --bw-overlay-buttons-radius: 12px;
   --bw-overlay-buttons-padding-y: 12px;
   --bw-overlay-buttons-padding-x: 16px;
+  cursor: -webkit-grab;
   cursor: grab;
 }
 
 .bw-slick-slider:active,
 .bw-slick-slider.slick-dragging {
+  cursor: -webkit-grabbing !important;
+  cursor: grabbing !important;
+}
+
+.bw-slick-slider .slick-list,
+.bw-slick-slider .slick-track {
+  cursor: -webkit-grab;
+  cursor: grab;
+}
+
+.bw-slick-slider .slick-list:active,
+.bw-slick-slider .slick-list.slick-dragging,
+.bw-slick-slider .slick-track:active,
+.bw-slick-slider .slick-track.slick-dragging {
+  cursor: -webkit-grabbing !important;
   cursor: grabbing !important;
 }
 
