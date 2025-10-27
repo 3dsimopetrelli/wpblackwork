@@ -857,8 +857,11 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
         }
 
         if ( $cursor_svg ) {
-            $wrapper_style .= 'cursor: url(\'' . $cursor_svg . '\') ' . $cursor_hotspot . ', grab;';
+            $custom_cursor = 'cursor: url(\'' . $cursor_svg . '\') ' . $cursor_hotspot . ', ';
+            $wrapper_style .= $custom_cursor . '-webkit-grab;';
+            $wrapper_style .= $custom_cursor . 'grab;';
         } else {
+            $wrapper_style .= 'cursor: -webkit-grab;';
             $wrapper_style .= 'cursor: grab;';
         }
 
