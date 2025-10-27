@@ -933,10 +933,32 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
                         $excerpt = '<p>' . $excerpt . '</p>';
                     }
 
-                    $thumbnail_html = '';
+                    $thumbnail_html   = '';
+                    $hover_image_html = '';
+
                     if ( has_post_thumbnail( $post_id ) ) {
-                        $thumbnail_args = [ 'loading' => 'lazy' ];
+                        $thumbnail_args = [
+                            'loading' => 'lazy',
+                            'class'   => 'bw-slider-main',
+                        ];
+
                         $thumbnail_html = get_the_post_thumbnail( $post_id, 'large', $thumbnail_args );
+                    }
+
+                    if ( 'product' === $content_type ) {
+                        $hover_image_id = (int) get_post_meta( $post_id, '_bw_slider_hover_image', true );
+
+                        if ( $hover_image_id ) {
+                            $hover_image_html = wp_get_attachment_image(
+                                $hover_image_id,
+                                'large',
+                                false,
+                                [
+                                    'class'   => 'bw-slider-hover',
+                                    'loading' => 'lazy',
+                                ]
+                            );
+                        }
                     }
 
                     $price_html = '';
@@ -981,7 +1003,12 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
                                 <div class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $media_classes ) ) ); ?>">
                                     <?php if ( $thumbnail_html ) : ?>
                                         <a class="bw-slick-item__media-link bw-ss__media-link" href="<?php echo esc_url( $permalink ); ?>">
-                                            <?php echo wp_kses_post( $thumbnail_html ); ?>
+                                            <div class="bw-slick-slider-image<?php echo $hover_image_html ? ' bw-slick-slider-image--has-hover' : ''; ?>">
+                                                <?php echo wp_kses_post( $thumbnail_html ); ?>
+                                                <?php if ( $hover_image_html ) : ?>
+                                                    <?php echo wp_kses_post( $hover_image_html ); ?>
+                                                <?php endif; ?>
+                                            </div>
                                         </a>
                                     <?php else : ?>
                                         <span class="bw-slick-item__image-placeholder" aria-hidden="true"></span>
