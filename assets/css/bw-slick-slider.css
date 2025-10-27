@@ -346,3 +346,30 @@
   font-style: italic;
   color: #777;
 }
+
+.bw-slick-slider .bw-slick-slider-image {
+  position: relative;
+  overflow: hidden;
+}
+
+.bw-slick-slider .bw-slick-slider-image--has-hover .bw-slider-main,
+.bw-slick-slider .bw-slick-slider-image--has-hover .bw-slider-hover {
+  transition: opacity 0.35s ease;
+}
+
+.bw-slick-slider .bw-slick-slider-image--has-hover .bw-slider-hover {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.bw-slick-slider .bw-ss__media:hover .bw-slick-slider-image--has-hover .bw-slider-hover,
+.bw-slick-slider .bw-ss__media:focus-within .bw-slick-slider-image--has-hover .bw-slider-hover {
+  opacity: 1;
+}
+
+.bw-slick-slider .bw-ss__media:hover .bw-slick-slider-image--has-hover .bw-slider-main,
+.bw-slick-slider .bw-ss__media:focus-within .bw-slick-slider-image--has-hover .bw-slider-main {
+  opacity: 0;
+}

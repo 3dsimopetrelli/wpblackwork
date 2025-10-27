@@ -7,6 +7,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 require_once plugin_dir_path( __FILE__ ) . 'class-bw-product-type-digital.php';
 require_once plugin_dir_path( __FILE__ ) . 'class-bw-product-type-book.php';
 require_once plugin_dir_path( __FILE__ ) . 'class-bw-product-type-print.php';
+require_once plugin_dir_path( __FILE__ ) . 'class-bw-product-slider-metabox.php';
 
 // Personalizzazione tabs prodotto per i digital asset.
 add_filter( 'woocommerce_product_data_tabs', function( $tabs ) {
