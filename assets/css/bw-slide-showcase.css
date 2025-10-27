@@ -1,11 +1,27 @@
 .bw-slide-showcase-slider {
     --bw-slide-showcase-column-width: auto;
     --bw-column-width: auto;
+    cursor: -webkit-grab;
     cursor: grab;
 }
 
 .bw-slide-showcase-slider:active,
 .bw-slide-showcase-slider.slick-dragging {
+    cursor: -webkit-grabbing !important;
+    cursor: grabbing !important;
+}
+
+.bw-slide-showcase-slider .slick-list,
+.bw-slide-showcase-slider .slick-track {
+    cursor: -webkit-grab;
+    cursor: grab;
+}
+
+.bw-slide-showcase-slider .slick-list:active,
+.bw-slide-showcase-slider .slick-list.slick-dragging,
+.bw-slide-showcase-slider .slick-track:active,
+.bw-slide-showcase-slider .slick-track.slick-dragging {
+    cursor: -webkit-grabbing !important;
     cursor: grabbing !important;
 }
 
