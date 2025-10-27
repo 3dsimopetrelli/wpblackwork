@@ -59,11 +59,14 @@ function bw_enqueue_slick_slider_assets() {
         true
     );
 
+    $slick_slider_css_file = __DIR__ . '/assets/css/bw-slick-slider.css';
+    $slick_slider_version  = file_exists( $slick_slider_css_file ) ? filemtime( $slick_slider_css_file ) : '1.0.0';
+
     wp_enqueue_style(
         'bw-slick-slider-style',
         plugin_dir_url(__FILE__) . 'assets/css/bw-slick-slider.css',
         [],
-        '1.0.0'
+        $slick_slider_version
     );
 
     $showcase_css_file = __DIR__ . '/assets/css/bw-slide-showcase.css';
