@@ -217,6 +217,18 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
             'type'  => Controls_Manager::HEADING,
         ] );
 
+        $this->add_control(
+            'title_color',
+            [
+                'label' => __( 'Titolo - Colore', 'bw' ),
+                'type'  => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .bw-slider-title' => 'color: {{VALUE}};',
+                ],
+                'default' => '#080808',
+            ]
+        );
+
         $this->add_group_control( Group_Control_Typography::get_type(), [
             'name'     => 'title_typography',
             'selector' => '{{WRAPPER}} .bw-slick-slider .bw-slick-title',
@@ -252,6 +264,18 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
             'separator' => 'before',
         ] );
 
+        $this->add_control(
+            'description_color',
+            [
+                'label' => __( 'Descrizione - Colore', 'bw' ),
+                'type'  => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .bw-slider-description' => 'color: {{VALUE}};',
+                ],
+                'default' => '#080808',
+            ]
+        );
+
         $this->add_group_control( Group_Control_Typography::get_type(), [
             'name'     => 'description_typography',
             'selector' => '{{WRAPPER}} .bw-slick-slider .bw-slick-description',
@@ -286,6 +310,18 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
             'type'  => Controls_Manager::HEADING,
             'separator' => 'before',
         ] );
+
+        $this->add_control(
+            'price_color',
+            [
+                'label' => __( 'Prezzo - Colore', 'bw' ),
+                'type'  => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .bw-slider-price' => 'color: {{VALUE}};',
+                ],
+                'default' => '#080808',
+            ]
+        );
 
         $this->add_group_control( Group_Control_Typography::get_type(), [
             'name'     => 'price_typography',
@@ -481,6 +517,18 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
             'return_value' => 'yes',
             'default'      => 'yes',
         ] );
+
+        $this->add_control(
+            'image_container_bg',
+            [
+                'label' => __( 'Background contenitore immagine', 'bw' ),
+                'type'  => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .bw-slick-slider .bw-slider-image-container' => 'background-color: {{VALUE}};',
+                ],
+                'default' => 'transparent',
+            ]
+        );
 
         $this->add_responsive_control( 'image_border_radius', [
             'label'      => __( 'Border Radius', 'bw-elementor-widgets' ),
@@ -929,43 +977,45 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
                                 $media_classes[] = 'bw-slick-item__image--placeholder';
                             }
                             ?>
-                            <div class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $media_classes ) ) ); ?>">
-                                <?php if ( $thumbnail_html ) : ?>
-                                    <a class="bw-slick-item__media-link bw-ss__media-link" href="<?php echo esc_url( $permalink ); ?>">
-                                        <?php echo wp_kses_post( $thumbnail_html ); ?>
-                                    </a>
-                                <?php else : ?>
-                                    <span class="bw-slick-item__image-placeholder" aria-hidden="true"></span>
-                                <?php endif; ?>
-                                <?php if ( $thumbnail_html ) : ?>
-                                    <div class="overlay-buttons bw-ss__overlay has-buttons">
-                                        <div class="bw-ss__buttons<?php echo $has_add_to_cart ? ' bw-ss__buttons--double' : ''; ?>">
-                                            <a class="overlay-button overlay-button--view bw-ss__btn bw-view-btn" href="<?php echo esc_url( $permalink ); ?>">
-                                                <span class="overlay-button__label"><?php esc_html_e( 'View Product', 'bw-elementor-widgets' ); ?></span>
-                                            </a>
-                                            <?php if ( $has_add_to_cart && $add_to_cart_url ) : ?>
-                                                <a class="overlay-button overlay-button--cart bw-ss__btn bw-btn-addtocart" href="<?php echo esc_url( $add_to_cart_url ); ?>">
-                                                    <span class="overlay-button__label"><?php esc_html_e( 'Add to Cart', 'bw-elementor-widgets' ); ?></span>
+                            <div class="bw-slider-image-container">
+                                <div class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $media_classes ) ) ); ?>">
+                                    <?php if ( $thumbnail_html ) : ?>
+                                        <a class="bw-slick-item__media-link bw-ss__media-link" href="<?php echo esc_url( $permalink ); ?>">
+                                            <?php echo wp_kses_post( $thumbnail_html ); ?>
+                                        </a>
+                                    <?php else : ?>
+                                        <span class="bw-slick-item__image-placeholder" aria-hidden="true"></span>
+                                    <?php endif; ?>
+                                    <?php if ( $thumbnail_html ) : ?>
+                                        <div class="overlay-buttons bw-ss__overlay has-buttons">
+                                            <div class="bw-ss__buttons<?php echo $has_add_to_cart ? ' bw-ss__buttons--double' : ''; ?>">
+                                                <a class="overlay-button overlay-button--view bw-ss__btn bw-view-btn" href="<?php echo esc_url( $permalink ); ?>">
+                                                    <span class="overlay-button__label"><?php esc_html_e( 'View Product', 'bw-elementor-widgets' ); ?></span>
                                                 </a>
-                                            <?php endif; ?>
+                                                <?php if ( $has_add_to_cart && $add_to_cart_url ) : ?>
+                                                    <a class="overlay-button overlay-button--cart bw-ss__btn bw-btn-addtocart" href="<?php echo esc_url( $add_to_cart_url ); ?>">
+                                                        <span class="overlay-button__label"><?php esc_html_e( 'Add to Cart', 'bw-elementor-widgets' ); ?></span>
+                                                    </a>
+                                                <?php endif; ?>
+                                            </div>
                                         </div>
-                                    </div>
-                                <?php endif; ?>
+                                    <?php endif; ?>
+                                </div>
                             </div>
 
-                            <div class="bw-slick-item__content bw-ss__content">
-                                <h3 class="bw-slick-item__title bw-slick-title">
+                            <div class="bw-slick-item__content bw-ss__content bw-slider-content">
+                                <h3 class="bw-slick-item__title bw-slick-title bw-slider-title">
                                     <a href="<?php echo esc_url( $permalink ); ?>">
                                         <?php echo esc_html( $title ); ?>
                                     </a>
                                 </h3>
 
                                 <?php if ( ! empty( $excerpt ) ) : ?>
-                                    <div class="bw-slick-item__excerpt bw-slick-description"><?php echo wp_kses_post( $excerpt ); ?></div>
+                                    <div class="bw-slick-item__excerpt bw-slick-description bw-slider-description"><?php echo wp_kses_post( $excerpt ); ?></div>
                                 <?php endif; ?>
 
                                 <?php if ( $price_html ) : ?>
-                                    <div class="bw-slick-item__price price bw-slick-price"><?php echo wp_kses_post( $price_html ); ?></div>
+                                    <div class="bw-slick-item__price price bw-slick-price bw-slider-price"><?php echo wp_kses_post( $price_html ); ?></div>
                                 <?php endif; ?>
                             </div>
                         </div>
