@@ -1,6 +1,12 @@
 .bw-slide-showcase-slider {
     --bw-slide-showcase-column-width: auto;
     --bw-column-width: auto;
+    cursor: grab;
+}
+
+.bw-slide-showcase-slider:active,
+.bw-slide-showcase-slider.slick-dragging {
+    cursor: grabbing !important;
 }
 
 .bw-slide-showcase-slider * {
