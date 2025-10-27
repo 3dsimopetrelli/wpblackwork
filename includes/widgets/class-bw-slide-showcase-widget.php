@@ -857,6 +857,7 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
                     $product_title  = get_the_title( $post_id );
                     $image_url      = '';
                     $showcase_image = get_post_meta( $post_id, '_bw_showcase_image', true );
+                    $image_id       = 0;
                     if ( empty( $showcase_image ) ) {
                         $legacy_image = get_post_meta( $post_id, '_product_showcase_image', true );
                         if ( $legacy_image ) {
@@ -865,8 +866,19 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
                     }
 
                     if ( $showcase_image ) {
-                        $image_url = esc_url_raw( $showcase_image );
-                    } elseif ( has_post_thumbnail( $post_id ) ) {
+                        if ( is_numeric( $showcase_image ) ) {
+                            $image_id  = absint( $showcase_image );
+                            $image_url = wp_get_attachment_url( $image_id );
+                        } else {
+                            $image_url = esc_url_raw( $showcase_image );
+                        }
+                    }
+
+                    if ( ! $image_url && $image_id ) {
+                        $image_url = wp_get_attachment_url( $image_id );
+                    }
+
+                    if ( ! $image_url && has_post_thumbnail( $post_id ) ) {
                         $image_url = get_the_post_thumbnail_url( $post_id, 'large' );
                     }
 
@@ -874,12 +886,26 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
                     $showcase_title       = '' !== $showcase_title_meta ? $showcase_title_meta : $product_title;
                     $showcase_description = trim( (string) get_post_meta( $post_id, '_bw_showcase_description', true ) );
 
-                    $meta_assets_count = get_post_meta( $post_id, '_product_assets_count', true );
-                    $meta_size_mb      = get_post_meta( $post_id, '_product_size_mb', true );
-                    $meta_formats      = get_post_meta( $post_id, '_product_formats', true );
+                    $meta_assets_count = get_post_meta( $post_id, '_bw_assets_count', true );
+                    if ( '' === $meta_assets_count ) {
+                        $meta_assets_count = get_post_meta( $post_id, '_product_assets_count', true );
+                    }
+
+                    $meta_size_mb = get_post_meta( $post_id, '_bw_file_size', true );
+                    if ( '' === $meta_size_mb ) {
+                        $meta_size_mb = get_post_meta( $post_id, '_product_size_mb', true );
+                    }
+
+                    $meta_formats = get_post_meta( $post_id, '_bw_formats', true );
+                    if ( '' === $meta_formats ) {
+                        $meta_formats = get_post_meta( $post_id, '_product_formats', true );
+                    }
                     $meta_button_text  = get_post_meta( $post_id, '_product_button_text', true );
                     $meta_button_link  = get_post_meta( $post_id, '_product_button_link', true );
-                    $meta_color_value  = get_post_meta( $post_id, '_product_color', true );
+                    $meta_color_value  = get_post_meta( $post_id, '_bw_texts_color', true );
+                    if ( empty( $meta_color_value ) ) {
+                        $meta_color_value = get_post_meta( $post_id, '_product_color', true );
+                    }
                     $meta_color        = sanitize_hex_color( $meta_color_value );
                     if ( empty( $meta_color ) ) {
                         $meta_color = '#ffffff';
