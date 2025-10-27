@@ -16,11 +16,11 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 function bw_add_digital_products_metabox() {
     add_meta_box(
-        'bw-digital-products-metabox',
-        __( 'Metabox Digital Products', 'bw' ),
+        'bw_digital_products',
+        __( 'Metabox Slide Showcase', 'bw' ),
         'bw_render_digital_products_metabox',
         'product',
-        'side',
+        'normal',
         'default'
     );
 }
@@ -34,35 +34,91 @@ add_action( 'add_meta_boxes', 'bw_add_digital_products_metabox' );
 function bw_render_digital_products_metabox( $post ) {
     wp_nonce_field( 'bw_save_digital_products', 'bw_digital_products_nonce' );
 
-    $showcase_image       = get_post_meta( $post->ID, '_bw_showcase_image', true );
+    $showcase_image = get_post_meta( $post->ID, '_bw_showcase_image', true );
     if ( empty( $showcase_image ) ) {
         $legacy_showcase_image = get_post_meta( $post->ID, '_product_showcase_image', true );
         if ( $legacy_showcase_image ) {
             $showcase_image = $legacy_showcase_image;
         }
     }
+
+    $image_id  = 0;
+    $image_url = '';
+    if ( $showcase_image ) {
+        if ( is_numeric( $showcase_image ) ) {
+            $image_id  = absint( $showcase_image );
+            $image_url = wp_get_attachment_url( $image_id );
+        } else {
+            $image_url     = esc_url_raw( $showcase_image );
+            $maybe_image_id = attachment_url_to_postid( $showcase_image );
+            if ( $maybe_image_id ) {
+                $image_id = $maybe_image_id;
+            }
+        }
+    }
+
     $showcase_title       = get_post_meta( $post->ID, '_bw_showcase_title', true );
     $showcase_description = get_post_meta( $post->ID, '_bw_showcase_description', true );
-    $product_size_mb      = get_post_meta( $post->ID, '_product_size_mb', true );
-    $product_assets_count = get_post_meta( $post->ID, '_product_assets_count', true );
-    $product_formats      = get_post_meta( $post->ID, '_product_formats', true );
-    $product_button_text  = get_post_meta( $post->ID, '_product_button_text', true );
-    $product_button_link  = get_post_meta( $post->ID, '_product_button_link', true );
-    $product_color        = get_post_meta( $post->ID, '_product_color', true );
+    $product_type         = get_post_meta( $post->ID, '_bw_product_type', true );
+    if ( ! in_array( $product_type, array( 'digital', 'physical' ), true ) ) {
+        $product_type = 'digital';
+    }
+
+    $file_size      = get_post_meta( $post->ID, '_bw_file_size', true );
+    $assets_count   = get_post_meta( $post->ID, '_bw_assets_count', true );
+    $formats        = get_post_meta( $post->ID, '_bw_formats', true );
+    $info_1         = get_post_meta( $post->ID, '_bw_info_1', true );
+    $info_2         = get_post_meta( $post->ID, '_bw_info_2', true );
+    $product_button_text = get_post_meta( $post->ID, '_product_button_text', true );
+    $product_button_link = get_post_meta( $post->ID, '_product_button_link', true );
+    $texts_color         = get_post_meta( $post->ID, '_bw_texts_color', true );
+
+    if ( '' === $file_size ) {
+        $file_size = get_post_meta( $post->ID, '_product_size_mb', true );
+    }
+
+    if ( '' === $assets_count ) {
+        $assets_count = get_post_meta( $post->ID, '_product_assets_count', true );
+    }
+
+    if ( '' === $formats ) {
+        $formats = get_post_meta( $post->ID, '_product_formats', true );
+    }
+
+    if ( '' === $texts_color ) {
+        $texts_color = get_post_meta( $post->ID, '_product_color', true );
+    }
 
     if ( function_exists( 'wp_enqueue_media' ) ) {
         wp_enqueue_media();
     }
 
-    $preview_style = $showcase_image ? 'display:block;' : 'display:none;';
+    $preview_style = ( $image_id || $image_url ) ? 'display:block;' : 'display:none;';
     ?>
     <div class="bw-digital-products-showcase-field">
         <label><strong><?php esc_html_e( 'Showcase Image', 'bw' ); ?></strong></label><br>
-        <img id="bw_showcase_image_preview" src="<?php echo esc_url( $showcase_image ); ?>" style="max-width:100%;margin-top:6px;<?php echo esc_attr( $preview_style ); ?>">
+        <div id="bw_showcase_image_preview" style="margin-top:6px;<?php echo esc_attr( $preview_style ); ?>">
+            <?php
+            if ( $image_id ) {
+                echo wp_get_attachment_image( $image_id, array( 120, 120 ), false, array(
+                    'style' => 'border-radius:6px;width:120px;height:120px;object-fit:cover;',
+                ) );
+            } elseif ( $image_url ) {
+                echo "<img src=\"" . esc_url( $image_url ) . "\" style=\"border-radius:6px;width:120px;height:120px;object-fit:cover;\" alt=\"\" />";
+            }
+            ?>
+        </div>
         <input type="hidden" id="bw_showcase_image" name="bw_showcase_image" value="<?php echo esc_attr( $showcase_image ); ?>">
         <button type="button" class="button bw-upload-image"><?php esc_html_e( 'Scegli immagine', 'bw' ); ?></button>
         <button type="button" class="button bw-remove-image"><?php esc_html_e( 'Rimuovi', 'bw' ); ?></button>
     </div>
+    <p>
+        <label for="bw_product_type"><strong><?php esc_html_e( 'Product Type', 'bw' ); ?></strong></label><br>
+        <select name="bw_product_type" id="bw_product_type" style="min-width:200px;">
+            <option value="digital" <?php selected( $product_type, 'digital' ); ?>><?php esc_html_e( 'Digital product', 'bw' ); ?></option>
+            <option value="physical" <?php selected( $product_type, 'physical' ); ?>><?php esc_html_e( 'Physical product', 'bw' ); ?></option>
+        </select>
+    </p>
     <p>
         <label for="bw_showcase_title"><?php esc_html_e( 'Showcase Title', 'bw' ); ?></label>
         <input type="text" id="bw_showcase_title" name="bw_showcase_title" value="<?php echo esc_attr( $showcase_title ); ?>" style="width:100%;" />
@@ -71,21 +127,33 @@ function bw_render_digital_products_metabox( $post ) {
         <label for="bw_showcase_description"><?php esc_html_e( 'Showcase Description', 'bw' ); ?></label>
         <textarea id="bw_showcase_description" name="bw_showcase_description" rows="4" style="width:100%;"><?php echo esc_textarea( $showcase_description ); ?></textarea>
     </p>
-    <p>
-        <label for="bw_product_size_mb"><?php esc_html_e( 'File Size (MB)', 'bw' ); ?></label>
-        <input type="text" id="bw_product_size_mb" name="bw_product_size_mb" value="<?php echo esc_attr( $product_size_mb ); ?>" style="width:100%;" />
-    </p>
-    <p>
-        <label for="bw_product_assets_count"><?php esc_html_e( 'Assets Count', 'bw' ); ?></label>
-        <input type="number" id="bw_product_assets_count" name="bw_product_assets_count" value="<?php echo esc_attr( $product_assets_count ); ?>" style="width:100%;" />
-    </p>
-    <p>
-        <label for="bw_product_formats"><?php esc_html_e( 'Formats (comma separated)', 'bw' ); ?></label>
-        <input type="text" id="bw_product_formats" name="bw_product_formats" value="<?php echo esc_attr( $product_formats ); ?>" style="width:100%;" />
-        <small style="color:#777;display:block;margin-top:4px;">
-            <?php esc_html_e( 'Inserisci i formati separati da una virgola (es. SVG, PSD, PNG)', 'bw' ); ?>
-        </small>
-    </p>
+    <div class="bw-digital-fields">
+        <p>
+            <label for="bw_file_size"><?php esc_html_e( 'File Size (MB)', 'bw' ); ?></label>
+            <input type="text" id="bw_file_size" name="bw_file_size" value="<?php echo esc_attr( $file_size ); ?>" style="width:100%;" />
+        </p>
+        <p>
+            <label for="bw_assets_count"><?php esc_html_e( 'Assets Count', 'bw' ); ?></label>
+            <input type="number" id="bw_assets_count" name="bw_assets_count" value="<?php echo esc_attr( $assets_count ); ?>" style="width:100%;" />
+        </p>
+        <p>
+            <label for="bw_formats"><?php esc_html_e( 'Formats (comma separated)', 'bw' ); ?></label>
+            <input type="text" id="bw_formats" name="bw_formats" value="<?php echo esc_attr( $formats ); ?>" style="width:100%;" />
+            <small style="color:#777;display:block;margin-top:4px;">
+                <?php esc_html_e( 'Inserisci i formati separati da una virgola (es. SVG, PSD, PNG)', 'bw' ); ?>
+            </small>
+        </p>
+    </div>
+    <div class="bw-physical-fields">
+        <p>
+            <label for="bw_info_1"><?php esc_html_e( 'Info 1', 'bw' ); ?></label>
+            <input type="text" id="bw_info_1" name="bw_info_1" value="<?php echo esc_attr( $info_1 ); ?>" style="width:100%;" />
+        </p>
+        <p>
+            <label for="bw_info_2"><?php esc_html_e( 'Info 2', 'bw' ); ?></label>
+            <input type="text" id="bw_info_2" name="bw_info_2" value="<?php echo esc_attr( $info_2 ); ?>" style="width:100%;" />
+        </p>
+    </div>
     <p>
         <label for="bw_product_button_text"><?php esc_html_e( 'Button Text', 'bw' ); ?></label>
         <input type="text" id="bw_product_button_text" name="bw_product_button_text" value="<?php echo esc_attr( $product_button_text ); ?>" style="width:100%;" />
@@ -95,9 +163,43 @@ function bw_render_digital_products_metabox( $post ) {
         <input type="url" id="bw_product_button_link" name="bw_product_button_link" value="<?php echo esc_attr( $product_button_link ); ?>" style="width:100%;" />
     </p>
     <p>
-        <label for="bw_product_color"><?php esc_html_e( 'Colore', 'bw' ); ?></label>
-        <input type="color" id="bw_product_color" name="bw_product_color" value="<?php echo esc_attr( $product_color ? $product_color : '#ffffff' ); ?>" style="width:100%;" />
+        <label for="bw_texts_color"><?php esc_html_e( 'Texts color', 'bw' ); ?></label>
+        <input type="color" id="bw_texts_color" name="bw_texts_color" value="<?php echo esc_attr( $texts_color ? $texts_color : '#ffffff' ); ?>" style="width:100%;" />
     </p>
+    <script>
+    (function(){
+      function initBwProductTypeToggle() {
+        var select = document.querySelector('#bw_product_type');
+        var digitalFields = document.querySelectorAll('.bw-digital-fields');
+        var physicalFields = document.querySelectorAll('.bw-physical-fields');
+
+        function toggleFields() {
+          if (!select) {
+            return;
+          }
+
+          if (select.value === 'digital') {
+            digitalFields.forEach(function(el){ el.style.display = 'block'; });
+            physicalFields.forEach(function(el){ el.style.display = 'none'; });
+          } else {
+            digitalFields.forEach(function(el){ el.style.display = 'none'; });
+            physicalFields.forEach(function(el){ el.style.display = 'block'; });
+          }
+        }
+
+        if (select) {
+          select.addEventListener('change', toggleFields);
+          toggleFields();
+        }
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initBwProductTypeToggle);
+      } else {
+        initBwProductTypeToggle();
+      }
+    })();
+    </script>
     <?php
     bw_render_showcase_image_field_script();
 }
@@ -126,28 +228,55 @@ function bw_save_digital_products( $post_id ) {
     }
 
     // Sanitize and save each field.
-    $product_size_mb      = isset( $_POST['bw_product_size_mb'] ) ? sanitize_text_field( wp_unslash( $_POST['bw_product_size_mb'] ) ) : '';
-    $product_assets_count = '';
-    if ( isset( $_POST['bw_product_assets_count'] ) && '' !== $_POST['bw_product_assets_count'] ) {
-        $product_assets_count = intval( wp_unslash( $_POST['bw_product_assets_count'] ) );
+    $product_type = isset( $_POST['bw_product_type'] ) ? sanitize_text_field( wp_unslash( $_POST['bw_product_type'] ) ) : 'digital';
+    if ( ! in_array( $product_type, array( 'digital', 'physical' ), true ) ) {
+        $product_type = 'digital';
     }
-    $product_formats      = isset( $_POST['bw_product_formats'] ) ? sanitize_text_field( wp_unslash( $_POST['bw_product_formats'] ) ) : '';
-    $product_button_text  = isset( $_POST['bw_product_button_text'] ) ? sanitize_text_field( wp_unslash( $_POST['bw_product_button_text'] ) ) : '';
-    $product_button_link  = isset( $_POST['bw_product_button_link'] ) ? esc_url_raw( wp_unslash( $_POST['bw_product_button_link'] ) ) : '';
-    $product_color        = isset( $_POST['bw_product_color'] ) ? sanitize_hex_color( wp_unslash( $_POST['bw_product_color'] ) ) : '';
-    $showcase_image       = isset( $_POST['bw_showcase_image'] ) ? esc_url_raw( wp_unslash( $_POST['bw_showcase_image'] ) ) : '';
+
+    $file_size    = isset( $_POST['bw_file_size'] ) ? sanitize_text_field( wp_unslash( $_POST['bw_file_size'] ) ) : '';
+    $assets_count = '';
+    if ( isset( $_POST['bw_assets_count'] ) && '' !== $_POST['bw_assets_count'] ) {
+        $assets_count = absint( wp_unslash( $_POST['bw_assets_count'] ) );
+    }
+    $formats       = isset( $_POST['bw_formats'] ) ? sanitize_text_field( wp_unslash( $_POST['bw_formats'] ) ) : '';
+    $info_1        = isset( $_POST['bw_info_1'] ) ? sanitize_text_field( wp_unslash( $_POST['bw_info_1'] ) ) : '';
+    $info_2        = isset( $_POST['bw_info_2'] ) ? sanitize_text_field( wp_unslash( $_POST['bw_info_2'] ) ) : '';
+    $product_button_text = isset( $_POST['bw_product_button_text'] ) ? sanitize_text_field( wp_unslash( $_POST['bw_product_button_text'] ) ) : '';
+    $product_button_link = isset( $_POST['bw_product_button_link'] ) ? esc_url_raw( wp_unslash( $_POST['bw_product_button_link'] ) ) : '';
+    $texts_color_raw     = isset( $_POST['bw_texts_color'] ) ? wp_unslash( $_POST['bw_texts_color'] ) : '';
+    $texts_color         = $texts_color_raw ? sanitize_hex_color( $texts_color_raw ) : '';
+
+    $showcase_image_value = isset( $_POST['bw_showcase_image'] ) ? wp_unslash( $_POST['bw_showcase_image'] ) : '';
+    $showcase_image       = '';
+    if ( '' !== $showcase_image_value ) {
+        if ( is_numeric( $showcase_image_value ) ) {
+            $showcase_image = absint( $showcase_image_value );
+        } else {
+            $showcase_image = esc_url_raw( $showcase_image_value );
+        }
+    }
+
     $showcase_title       = isset( $_POST['bw_showcase_title'] ) ? sanitize_text_field( wp_unslash( $_POST['bw_showcase_title'] ) ) : '';
     $showcase_description = isset( $_POST['bw_showcase_description'] ) ? sanitize_textarea_field( wp_unslash( $_POST['bw_showcase_description'] ) ) : '';
 
-    update_post_meta( $post_id, '_product_size_mb', $product_size_mb );
-    update_post_meta( $post_id, '_product_assets_count', $product_assets_count );
-    update_post_meta( $post_id, '_product_formats', $product_formats );
+    update_post_meta( $post_id, '_bw_product_type', $product_type );
+    update_post_meta( $post_id, '_bw_file_size', $file_size );
+    update_post_meta( $post_id, '_bw_assets_count', $assets_count );
+    update_post_meta( $post_id, '_bw_formats', $formats );
+    update_post_meta( $post_id, '_bw_info_1', $info_1 );
+    update_post_meta( $post_id, '_bw_info_2', $info_2 );
+    update_post_meta( $post_id, '_bw_texts_color', $texts_color );
     update_post_meta( $post_id, '_product_button_text', $product_button_text );
     update_post_meta( $post_id, '_product_button_link', $product_button_link );
-    update_post_meta( $post_id, '_product_color', $product_color );
     update_post_meta( $post_id, '_bw_showcase_image', $showcase_image );
     update_post_meta( $post_id, '_bw_showcase_title', $showcase_title );
     update_post_meta( $post_id, '_bw_showcase_description', $showcase_description );
+
+    // Legacy compatibility.
+    update_post_meta( $post_id, '_product_size_mb', $file_size );
+    update_post_meta( $post_id, '_product_assets_count', $assets_count );
+    update_post_meta( $post_id, '_product_formats', $formats );
+    update_post_meta( $post_id, '_product_color', $texts_color );
 }
 add_action( 'save_post', 'bw_save_digital_products' );
 
@@ -170,7 +299,7 @@ function bw_render_showcase_image_field_script() {
             function resetPreview( container ) {
                 container.find( '#bw_showcase_image' ).val( '' );
                 container.find( '#bw_showcase_image_preview' )
-                    .attr( 'src', '' )
+                    .empty()
                     .hide();
             }
 
@@ -189,10 +318,20 @@ function bw_render_showcase_image_field_script() {
 
                 frame.on( 'select', function() {
                     var attachment = frame.state().get( 'selection' ).first().toJSON();
+                    var imageStyle = 'border-radius:6px;width:120px;height:120px;object-fit:cover;';
+                    var previewUrl = attachment.url;
 
-                    $container.find( '#bw_showcase_image' ).val( attachment.url );
+                    if ( attachment.sizes ) {
+                        if ( attachment.sizes.thumbnail ) {
+                            previewUrl = attachment.sizes.thumbnail.url;
+                        } else if ( attachment.sizes.medium ) {
+                            previewUrl = attachment.sizes.medium.url;
+                        }
+                    }
+
+                    $container.find( '#bw_showcase_image' ).val( attachment.id ? attachment.id : attachment.url );
                     $container.find( '#bw_showcase_image_preview' )
-                        .attr( 'src', attachment.url )
+                        .html( '<img src="' + previewUrl + '" style="' + imageStyle + '" alt="" />' )
                         .show();
                 });
 
