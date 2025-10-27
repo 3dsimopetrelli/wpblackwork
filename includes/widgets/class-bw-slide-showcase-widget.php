@@ -900,6 +900,13 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
                     if ( '' === $meta_formats ) {
                         $meta_formats = get_post_meta( $post_id, '_product_formats', true );
                     }
+                    $meta_product_type_raw = get_post_meta( $post_id, '_bw_product_type', true );
+                    $product_type_value    = sanitize_key( $meta_product_type_raw );
+                    if ( ! in_array( $product_type_value, [ 'digital', 'physical' ], true ) ) {
+                        $product_type_value = 'digital';
+                    }
+                    $meta_info_1_raw = get_post_meta( $post_id, '_bw_info_1', true );
+                    $meta_info_2_raw = get_post_meta( $post_id, '_bw_info_2', true );
                     $meta_button_text  = get_post_meta( $post_id, '_product_button_text', true );
                     $meta_button_link  = get_post_meta( $post_id, '_product_button_link', true );
                     $meta_color_value  = get_post_meta( $post_id, '_bw_texts_color', true );
@@ -965,6 +972,13 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
                         }
                     }
 
+                    $info_1_display   = '' !== $meta_info_1_raw ? trim( wp_strip_all_tags( $meta_info_1_raw ) ) : '';
+                    $info_2_display   = '' !== $meta_info_2_raw ? trim( wp_strip_all_tags( $meta_info_2_raw ) ) : '';
+                    $has_digital_info = ( 'digital' === $product_type_value ) && ( $assets_display || $size_display || ! empty( $format_badges ) );
+                    $has_physical_info = ( 'physical' === $product_type_value ) && ( '' !== $info_1_display || '' !== $info_2_display );
+                    $has_bottom_info   = $has_digital_info || $has_physical_info;
+                    $has_cta           = ! empty( $btn_url ) && ! empty( $button_text_value );
+
                     ?>
                     <div class="bw-slide-showcase-slide">
                         <div class="bw-slide-showcase-item"<?php echo $item_style_attr; ?>>
@@ -985,37 +999,50 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
                                 </div>
                             <?php endif; ?>
 
-                            <?php if ( $assets_display || $size_display || ! empty( $format_badges ) ) : ?>
-                                <div class="bw-slide-showcase-info">
-                                    <?php if ( $assets_display ) : ?>
-                                        <div class="bw-slide-showcase-info-item pwslideshowkeyinfoitem">
-                                            <span class="pwslideshowkeyinfoitem__value"><?php echo esc_html( $assets_display ); ?></span>
+                            <?php if ( $has_bottom_info || $has_cta ) : ?>
+                                <div class="bw-slide-showcase-bottom-section" style="color: <?php echo esc_attr( $meta_color ); ?>;">
+                                    <?php if ( $has_bottom_info ) : ?>
+                                        <div class="bw-slide-showcase-info">
+                                            <?php if ( 'digital' === $product_type_value ) : ?>
+                                                <?php if ( $assets_display ) : ?>
+                                                    <div class="bw-slide-showcase-info-item"><?php echo esc_html( $assets_display ); ?></div>
+                                                <?php endif; ?>
+                                                <?php if ( $size_display ) : ?>
+                                                    <div class="bw-slide-showcase-info-item"><?php echo esc_html( $size_display ); ?></div>
+                                                <?php endif; ?>
+                                                <?php if ( ! empty( $format_badges ) ) : ?>
+                                                    <div class="bw-slide-showcase-badges">
+                                                        <?php foreach ( $format_badges as $format_badge ) : ?>
+                                                            <span class="bw-slide-showcase-badge"><?php echo esc_html( $format_badge ); ?></span>
+                                                        <?php endforeach; ?>
+                                                    </div>
+                                                <?php endif; ?>
+                                            <?php elseif ( 'physical' === $product_type_value ) : ?>
+                                                <div class="bw-slide-showcase-physical">
+                                                    <?php if ( '' !== $info_1_display ) : ?>
+                                                        <div class="bw-slide-showcase-info-item"><?php echo esc_html( $info_1_display ); ?></div>
+                                                    <?php endif; ?>
+                                                    <?php if ( '' !== $info_2_display ) : ?>
+                                                        <div class="bw-slide-showcase-info-item"><?php echo esc_html( $info_2_display ); ?></div>
+                                                    <?php endif; ?>
+                                                </div>
+                                            <?php endif; ?>
                                         </div>
                                     <?php endif; ?>
-                                    <?php if ( $size_display ) : ?>
-                                        <div class="bw-slide-showcase-info-item pwslideshowkeyinfoitem">
-                                            <span class="pwslideshowkeyinfoitem__value"><?php echo esc_html( $size_display ); ?></span>
-                                        </div>
-                                    <?php endif; ?>
-                                    <?php if ( ! empty( $format_badges ) ) : ?>
-                                        <div class="bw-slide-showcase-badges">
-                                            <?php foreach ( $format_badges as $format_badge ) : ?>
-                                                <span class="bw-slide-showcase-badge"><?php echo esc_html( $format_badge ); ?></span>
-                                            <?php endforeach; ?>
+
+                                    <?php if ( $has_cta ) : ?>
+                                        <div class="bw-slide-showcase-cta">
+                                            <a href="<?php echo esc_url( $btn_url ); ?>" class="bw-slide-showcase-arrow"<?php echo $link_attrs; ?>
+                                                aria-label="<?php echo esc_attr( $button_text_value ); ?>">
+                                                <span aria-hidden="true">&rsaquo;</span>
+                                            </a>
+                                            <a href="<?php echo esc_url( $btn_url ); ?>" class="bw-slide-showcase-view-btn"<?php echo $link_attrs; ?>>
+                                                <?php echo esc_html( $button_text_value ); ?>
+                                            </a>
                                         </div>
                                     <?php endif; ?>
                                 </div>
                             <?php endif; ?>
-
-                            <div class="bw-slide-showcase-cta">
-                                <a href="<?php echo esc_url( $btn_url ); ?>" class="bw-slide-showcase-arrow"<?php echo $link_attrs; ?>
-                                    aria-label="<?php echo esc_attr( $button_text_value ); ?>">
-                                    <span aria-hidden="true">&rsaquo;</span>
-                                </a>
-                                <a href="<?php echo esc_url( $btn_url ); ?>" class="bw-slide-showcase-view-btn"<?php echo $link_attrs; ?>>
-                                    <?php echo esc_html( $button_text_value ); ?>
-                                </a>
-                            </div>
                         </div>
                     </div>
                 <?php endwhile; ?>
