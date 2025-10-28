@@ -207,6 +207,28 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
 
         $this->end_controls_section();
 
+        $this->start_controls_section(
+            'section_style_text_box',
+            [
+                'label' => __( 'Contenitore Testi', 'bw' ),
+                'tab'   => Controls_Manager::TAB_STYLE,
+            ]
+        );
+
+        $this->add_control(
+            'text_box_background_color',
+            [
+                'label'     => __( 'Background contenitore testi', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .bw-slick-slider-text-box' => 'background-color: {{VALUE}};',
+                ],
+                'default' => 'transparent',
+            ]
+        );
+
+        $this->end_controls_section();
+
         $this->start_controls_section( 'typography_section', [
             'label' => __( 'Typography', 'bw-elementor-widgets' ),
             'tab'   => Controls_Manager::TAB_STYLE,
@@ -1030,7 +1052,7 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
                                 </div>
                             </div>
 
-                            <div class="bw-slick-item__content bw-ss__content bw-slider-content">
+                            <div class="bw-slick-item__content bw-ss__content bw-slider-content bw-slick-slider-text-box">
                                 <h3 class="bw-slick-item__title bw-slick-title bw-slider-title">
                                     <a href="<?php echo esc_url( $permalink ); ?>">
                                         <?php echo esc_html( $title ); ?>
