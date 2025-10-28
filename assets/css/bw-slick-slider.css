@@ -57,7 +57,7 @@
 }
 
 .bw-slick-slider .bw-slick-item__inner {
-  background: #fff;
+  background: transparent;
   display: flex;
   flex-direction: column;
   height: 100%;
