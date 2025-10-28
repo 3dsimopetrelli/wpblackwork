@@ -132,11 +132,14 @@ function bw_enqueue_slick_slider_assets() {
 }
 
 function bw_enqueue_slick_slider_admin_script() {
+    $admin_js_file     = __DIR__ . '/assets/js/bw-slick-slider-admin.js';
+    $admin_js_version  = file_exists( $admin_js_file ) ? filemtime( $admin_js_file ) : '1.0.0';
+
     wp_enqueue_script(
         'bw-slick-slider-admin',
         plugin_dir_url(__FILE__) . 'assets/js/bw-slick-slider-admin.js',
         ['jquery'],
-        '1.0.0',
+        $admin_js_version,
         true
     );
 
