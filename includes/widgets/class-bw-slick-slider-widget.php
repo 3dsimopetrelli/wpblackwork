@@ -1042,12 +1042,12 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
                                     <?php endif; ?>
                                     <?php if ( $thumbnail_html ) : ?>
                                         <div class="overlay-buttons bw-ss__overlay has-buttons">
-                                            <div class="bw-ss__buttons<?php echo $has_add_to_cart ? ' bw-ss__buttons--double' : ''; ?>">
-                                                <a class="overlay-button overlay-button--view bw-ss__btn bw-view-btn" href="<?php echo esc_url( $permalink ); ?>">
+                                            <div class="bw-ss__buttons bw-slide-buttons<?php echo $has_add_to_cart ? ' bw-ss__buttons--double' : ''; ?>">
+                                                <a class="overlay-button overlay-button--view bw-ss__btn bw-view-btn bw-slide-button" href="<?php echo esc_url( $permalink ); ?>">
                                                     <span class="overlay-button__label"><?php esc_html_e( 'View Product', 'bw-elementor-widgets' ); ?></span>
                                                 </a>
                                                 <?php if ( $has_add_to_cart && $add_to_cart_url ) : ?>
-                                                    <a class="overlay-button overlay-button--cart bw-ss__btn bw-btn-addtocart" href="<?php echo esc_url( $add_to_cart_url ); ?>">
+                                                    <a class="overlay-button overlay-button--cart bw-ss__btn bw-btn-addtocart bw-slide-button" href="<?php echo esc_url( $add_to_cart_url ); ?>">
                                                         <span class="overlay-button__label"><?php esc_html_e( 'Add to Cart', 'bw-elementor-widgets' ); ?></span>
                                                     </a>
                                                 <?php endif; ?>
