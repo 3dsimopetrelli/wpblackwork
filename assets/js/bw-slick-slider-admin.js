@@ -93,54 +93,77 @@
         return 'any';
     }
 
+    function withSelect2(callback, attempt) {
+        if (!ajaxUrl) {
+            return;
+        }
+
+        if (typeof attempt === 'undefined') {
+            attempt = 0;
+        }
+
+        if (typeof $.fn.select2 === 'function') {
+            callback();
+            return;
+        }
+
+        if (attempt > 10) {
+            return;
+        }
+
+        setTimeout(function () {
+            withSelect2(callback, attempt + 1);
+        }, 150);
+    }
+
     function initializeSpecificPostsSelect($context) {
-        if (!ajaxUrl || typeof $.fn.select2 !== 'function') {
-            return;
-        }
+        var runInitialization = function () {
+            var $elements = $context && $context.length ? $context.find(selectors.specificPosts) : $(selectors.specificPosts);
 
-        var $elements = $context && $context.length ? $context.find(selectors.specificPosts) : $(selectors.specificPosts);
-
-        $elements = $elements.filter(function () {
-            var $element = $(this);
-            return !$element.hasClass('bw-specific-posts-initialized') && !$element.hasClass('select2-hidden-accessible');
-        });
-
-        if (!$elements.length) {
-            return;
-        }
-
-        $elements.each(function () {
-            var $select = $(this);
-
-            $select.addClass('bw-specific-posts-initialized');
-
-            $select.select2({
-                width: '100%',
-                allowClear: true,
-                placeholder: $select.attr('placeholder') || '',
-                ajax: {
-                    url: ajaxUrl,
-                    dataType: 'json',
-                    delay: 250,
-                    data: function (params) {
-                        return {
-                            action: 'bw_search_posts',
-                            q: params.term || '',
-                            post_type: getPostTypeValue($context)
-                        };
-                    },
-                    processResults: function (data) {
-                        if (data && data.results) {
-                            return { results: data.results };
-                        }
-
-                        return { results: [] };
-                    },
-                    cache: true
-                },
-                minimumInputLength: 2
+            $elements = $elements.filter(function () {
+                var $element = $(this);
+                return !$element.hasClass('bw-specific-posts-initialized') && !$element.hasClass('select2-hidden-accessible');
             });
-        });
+
+            if (!$elements.length) {
+                return;
+            }
+
+            $elements.each(function () {
+                var $select = $(this);
+
+                $select.addClass('bw-specific-posts-initialized');
+
+                $select.select2({
+                    width: '100%',
+                    allowClear: true,
+                    placeholder: $select.attr('placeholder') || '',
+                    ajax: {
+                        url: ajaxUrl,
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            return {
+                                action: 'bw_search_posts',
+                                q: params.term || '',
+                                post_type: getPostTypeValue($context)
+                            };
+                        },
+                        processResults: function (data) {
+                            if (data && data.results) {
+                                return { results: data.results };
+                            }
+
+                            return { results: [] };
+                        },
+                        cache: true
+                    },
+                    minimumInputLength: 2
+                });
+            });
+        };
+
+        withSelect2(runInitialization);
     }
 
     function fetchChildCategories(parentId, callback) {
@@ -183,9 +206,41 @@
         });
     }
 
-    function initializePanel(panel, model, view) {
+    function getPanelContext(panel, view) {
+        if (panel && panel.$el) {
+            return panel.$el;
+        }
+
+        if (view && view.$el) {
+            return view.$el;
+        }
+
+        return $();
+    }
+
+    function setupPanelControls($context, parentId, childValues) {
+        var $childSelect = $context.find(selectors.child).first();
+
+        if ($childSelect.length) {
+            if (parentId) {
+                fetchChildCategories(parentId, function (options) {
+                    populateChildSelect($childSelect, options, childValues);
+                });
+            } else {
+                resetChildSelect($childSelect);
+            }
+        }
+
+        initializeSpecificPostsSelect($context);
+    }
+
+    function initializePanel(panel, model, view, attempt) {
         if (!model || model.get('widgetType') !== 'bw-slick-slider') {
             return;
+        }
+
+        if (typeof attempt === 'undefined') {
+            attempt = 0;
         }
 
         var parentId = getSettingValue(model, 'product_cat_parent');
@@ -195,26 +250,22 @@
             childValues = childValues ? [childValues] : [];
         }
 
-        setTimeout(function () {
-            var $context = panel && panel.$el ? panel.$el : (view && view.$el ? view.$el : $());
-            var $parentSelect = $context.find(selectors.parent).first();
-            var $childSelect = $context.find(selectors.child).first();
+        var $context = getPanelContext(panel, view);
 
-            if (!$childSelect.length) {
-                initializeSpecificPostsSelect($context);
+        if (!$context.length || (!$context.find(selectors.parent).length && !$context.find(selectors.child).length)) {
+            if (attempt > 10) {
+                initializeSpecificPostsSelect($(document));
                 return;
             }
 
-            if (parentId) {
-                fetchChildCategories(parentId, function (options) {
-                    populateChildSelect($childSelect, options, childValues);
-                });
-            } else {
-                resetChildSelect($childSelect);
-            }
+            setTimeout(function () {
+                initializePanel(panel, model, view, attempt + 1);
+            }, 150);
 
-            initializeSpecificPostsSelect($context);
-        }, 100);
+            return;
+        }
+
+        setupPanelControls($context, parentId, childValues);
     }
 
     $(document).on('change', selectors.parent, handleParentChange);
