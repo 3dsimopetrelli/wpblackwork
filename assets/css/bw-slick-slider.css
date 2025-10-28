@@ -28,6 +28,15 @@
   cursor: grab;
 }
 
+.bw-slick-slider .slick-list {
+  touch-action: pan-y;
+}
+
+.bw-slick-slider .slick-track {
+  will-change: transform;
+  transition-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1) !important;
+}
+
 .bw-slick-slider .slick-list:active,
 .bw-slick-slider .slick-list.slick-dragging,
 .bw-slick-slider .slick-track:active,
