@@ -4,6 +4,7 @@
     var settings = window.bwSlickSliderAdmin || {};
     var ajaxUrl = settings.ajaxUrl || window.ajaxurl || '';
     var nonce = settings.nonce || '';
+    var postsNonce = settings.postsNonce || '';
 
     var selectors = {
         parent: 'select[data-setting="product_cat_parent"]',
@@ -27,6 +28,27 @@
         }
 
         return '';
+    }
+
+    function normalizeIds(value) {
+        if (Array.isArray(value)) {
+            return value
+                .map(function (item) { return String(item); })
+                .filter(function (item) { return item !== ''; });
+        }
+
+        if (typeof value === 'number') {
+            return [String(value)];
+        }
+
+        if (typeof value === 'string') {
+            return value
+                .split(',')
+                .map(function (item) { return item.trim(); })
+                .filter(function (item) { return item !== ''; });
+        }
+
+        return [];
     }
 
     function getChildSelect($parentSelect) {
@@ -76,6 +98,48 @@
         $childSelect.trigger('change');
     }
 
+    function applySelectedPostsOptions($select, options, selectedIds) {
+        if (!$select.length) {
+            return;
+        }
+
+        var selected = Array.isArray(selectedIds) ? selectedIds.map(String) : [];
+
+        if (!selected.length) {
+            return;
+        }
+
+        var existing = {};
+
+        $select.find('option').each(function () {
+            var $option = $(this);
+            existing[String($option.attr('value'))] = $option;
+        });
+
+        selected.forEach(function (id) {
+            var value = String(id);
+            var label = options && (options[value] || options[id]) ? (options[value] || options[id]) : value;
+
+            if (existing[value]) {
+                existing[value].prop('selected', true);
+
+                if (label !== value) {
+                    existing[value].text(label);
+                }
+            } else {
+                var $option = $('<option></option>')
+                    .attr('value', value)
+                    .text(label)
+                    .prop('selected', true);
+
+                $select.append($option);
+                existing[value] = $option;
+            }
+        });
+
+        $select.val(selected);
+    }
+
     function getPostTypeValue($context) {
         var $postTypeSelect;
 
@@ -91,6 +155,30 @@
         }
 
         return 'any';
+    }
+
+    function fetchPostsByIds(ids, postType, callback) {
+        if (!ajaxUrl || !postsNonce || !Array.isArray(ids) || !ids.length) {
+            callback({});
+            return;
+        }
+
+        $.post(ajaxUrl, {
+            action: 'bw_get_posts_by_ids',
+            ids: ids,
+            post_type: postType || 'any',
+            nonce: postsNonce
+        })
+            .done(function (response) {
+                if (response && response.success && response.data) {
+                    callback(response.data);
+                } else {
+                    callback({});
+                }
+            })
+            .fail(function () {
+                callback({});
+            });
     }
 
     function withSelect2(callback, attempt) {
@@ -116,13 +204,20 @@
         }, 150);
     }
 
-    function initializeSpecificPostsSelect($context) {
+    function initializeSpecificPostsSelect($context, model) {
+        var savedIds = model ? normalizeIds(getSettingValue(model, 'specific_posts')) : [];
+        var modelPostType = model ? getSettingValue(model, 'content_type') : '';
+        var initialPostType = modelPostType ? modelPostType : getPostTypeValue($context);
+
         var runInitialization = function () {
             var $elements = $context && $context.length ? $context.find(selectors.specificPosts) : $(selectors.specificPosts);
 
             $elements = $elements.filter(function () {
                 var $element = $(this);
-                return !$element.hasClass('bw-specific-posts-initialized') && !$element.hasClass('select2-hidden-accessible');
+
+                return !$element.hasClass('bw-specific-posts-initialized') &&
+                    !$element.hasClass('select2-hidden-accessible') &&
+                    !$element.data('bwSpecificPostsInitializing');
             });
 
             if (!$elements.length) {
@@ -132,34 +227,48 @@
             $elements.each(function () {
                 var $select = $(this);
 
-                $select.addClass('bw-specific-posts-initialized');
+                $select.data('bwSpecificPostsInitializing', true);
 
-                $select.select2({
-                    width: '100%',
-                    allowClear: true,
-                    placeholder: $select.attr('placeholder') || '',
-                    ajax: {
-                        url: ajaxUrl,
-                        dataType: 'json',
-                        delay: 250,
-                        data: function (params) {
-                            return {
-                                action: 'bw_search_posts',
-                                q: params.term || '',
-                                post_type: getPostTypeValue($context)
-                            };
-                        },
-                        processResults: function (data) {
-                            if (data && data.results) {
-                                return { results: data.results };
-                            }
+                var initializeSelect2 = function () {
+                    $select.select2({
+                        width: '100%',
+                        allowClear: true,
+                        placeholder: $select.attr('placeholder') || '',
+                        ajax: {
+                            url: ajaxUrl,
+                            dataType: 'json',
+                            delay: 250,
+                            data: function (params) {
+                                return {
+                                    action: 'bw_search_posts',
+                                    q: params.term || '',
+                                    post_type: getPostTypeValue($context)
+                                };
+                            },
+                            processResults: function (data) {
+                                if (data && data.results) {
+                                    return { results: data.results };
+                                }
 
-                            return { results: [] };
+                                return { results: [] };
+                            },
+                            cache: true
                         },
-                        cache: true
-                    },
-                    minimumInputLength: 2
-                });
+                        minimumInputLength: 2
+                    });
+
+                    $select.removeData('bwSpecificPostsInitializing');
+                    $select.addClass('bw-specific-posts-initialized');
+                };
+
+                if (savedIds.length) {
+                    fetchPostsByIds(savedIds, initialPostType || 'any', function (options) {
+                        applySelectedPostsOptions($select, options, savedIds);
+                        initializeSelect2();
+                    });
+                } else {
+                    initializeSelect2();
+                }
             });
         };
 
@@ -218,7 +327,7 @@
         return $();
     }
 
-    function setupPanelControls($context, parentId, childValues) {
+    function setupPanelControls($context, parentId, childValues, model) {
         var $childSelect = $context.find(selectors.child).first();
 
         if ($childSelect.length) {
@@ -231,7 +340,7 @@
             }
         }
 
-        initializeSpecificPostsSelect($context);
+        initializeSpecificPostsSelect($context, model);
     }
 
     function initializePanel(panel, model, view, attempt) {
@@ -254,7 +363,7 @@
 
         if (!$context.length || (!$context.find(selectors.parent).length && !$context.find(selectors.child).length)) {
             if (attempt > 10) {
-                initializeSpecificPostsSelect($(document));
+                initializeSpecificPostsSelect($(document), model);
                 return;
             }
 
@@ -265,7 +374,7 @@
             return;
         }
 
-        setupPanelControls($context, parentId, childValues);
+        setupPanelControls($context, parentId, childValues, model);
     }
 
     $(document).on('change', selectors.parent, handleParentChange);

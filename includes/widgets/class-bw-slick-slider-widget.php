@@ -54,15 +54,6 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
             'default' => $default_post_type,
         ] );
 
-        $selected_specific_posts = $this->get_settings( 'specific_posts' );
-        if ( ! empty( $selected_specific_posts ) && ! is_array( $selected_specific_posts ) ) {
-            $selected_specific_posts = [ $selected_specific_posts ];
-        }
-
-        $specific_posts_options = ! empty( $selected_specific_posts )
-            ? $this->get_specific_posts_options( $selected_specific_posts )
-            : [];
-
         $this->add_control(
             'specific_posts',
             [
@@ -70,7 +61,7 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
                 'type'        => Controls_Manager::SELECT2,
                 'label_block' => true,
                 'multiple'    => true,
-                'options'     => $specific_posts_options,
+                'options'     => [],
                 'description' => __( 'Cerca e seleziona post o prodotti specifici per titolo', 'bw' ),
                 'render_type' => 'none',
                 'autocomplete' => [
@@ -1203,36 +1194,6 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
         }
 
         asort( $options );
-
-        return $options;
-    }
-
-    private function get_specific_posts_options( $ids ) {
-        $ids = array_filter( array_map( 'absint', (array) $ids ) );
-
-        if ( empty( $ids ) ) {
-            return [];
-        }
-
-        $posts = get_posts(
-            [
-                'post_type'      => 'any',
-                'post__in'       => $ids,
-                'posts_per_page' => -1,
-                'orderby'        => 'post__in',
-                'post_status'    => 'publish',
-            ]
-        );
-
-        if ( empty( $posts ) ) {
-            return [];
-        }
-
-        $options = [];
-
-        foreach ( $posts as $post ) {
-            $options[ $post->ID ] = get_the_title( $post );
-        }
 
         return $options;
     }
