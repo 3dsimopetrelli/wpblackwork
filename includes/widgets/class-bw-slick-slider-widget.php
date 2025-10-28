@@ -516,6 +516,7 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
                 'size' => 420,
                 'unit' => 'px',
             ],
+            'render_type' => 'template',
             'selectors'  => [
                 '{{WRAPPER}} .bw-slick-slider' => '--bw-image-height: {{SIZE}}{{UNIT}};',
             ],
