@@ -10,8 +10,10 @@
   --bw-overlay-buttons-color: #000000;
   --bw-overlay-buttons-color-hover: #000000;
   --bw-overlay-buttons-radius: 12px;
-  --bw-overlay-buttons-padding-y: 12px;
-  --bw-overlay-buttons-padding-x: 16px;
+  --bw-overlay-buttons-padding-top: 12px;
+  --bw-overlay-buttons-padding-right: 16px;
+  --bw-overlay-buttons-padding-bottom: 12px;
+  --bw-overlay-buttons-padding-left: 16px;
   cursor: -webkit-grab;
   cursor: grab;
 }
@@ -162,7 +164,8 @@
   align-items: center;
   width: 100%;
   flex: 1 1 100%;
-  padding: var(--bw-overlay-buttons-padding-y) var(--bw-overlay-buttons-padding-x);
+  padding: var(--bw-overlay-buttons-padding-top) var(--bw-overlay-buttons-padding-right)
+    var(--bw-overlay-buttons-padding-bottom) var(--bw-overlay-buttons-padding-left);
   background: var(--bw-overlay-buttons-background);
   color: var(--bw-overlay-buttons-color);
   border: none;
