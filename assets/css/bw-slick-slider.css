@@ -237,6 +237,7 @@
 
 .bw-slick-slider .bw-slider-image-container {
   background: transparent;
+  overflow: hidden;
 }
 
 .bw-slick-slider .bw-slider-title,
