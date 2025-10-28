@@ -205,6 +205,18 @@
             });
     }
 
+    function getSelect2Plugin() {
+        if (typeof $.fn.select2 === 'function') {
+            return 'select2';
+        }
+
+        if (typeof $.fn.selectWoo === 'function') {
+            return 'selectWoo';
+        }
+
+        return '';
+    }
+
     function withSelect2(callback, attempt) {
         if (typeof attempt === 'undefined') {
             attempt = 0;
@@ -222,8 +234,10 @@
             return;
         }
 
-        if (typeof $.fn.select2 === 'function') {
-            callback();
+        var plugin = getSelect2Plugin();
+
+        if (plugin) {
+            callback(plugin);
             return;
         }
 
@@ -241,7 +255,7 @@
         var modelPostType = model ? getSettingValue(model, 'content_type') : '';
         var initialPostType = modelPostType ? modelPostType : getPostTypeValue($context);
 
-        var runInitialization = function () {
+        var runInitialization = function (selectPlugin) {
             var $elements = $context && $context.length ? $context.find(selectors.specificPosts) : $(selectors.specificPosts);
 
             $elements = $elements.filter(function () {
@@ -263,7 +277,12 @@
 
                 var initializeSelect2 = function () {
                     ensureAjaxUrl();
-                    $select.select2({
+                    if (!selectPlugin || typeof $select[selectPlugin] !== 'function') {
+                        $select.removeData('bwSpecificPostsInitializing');
+                        return;
+                    }
+
+                    $select[selectPlugin]({
                         width: '100%',
                         allowClear: true,
                         placeholder: $select.attr('placeholder') || '',
