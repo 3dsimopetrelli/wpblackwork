@@ -65,10 +65,10 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
                 'description' => __( 'Cerca e seleziona post o prodotti specifici per titolo', 'bw' ),
                 'render_type' => 'none',
                 'autocomplete' => [
-                    'object' => 'post',
+                    'object'  => 'post',
                     'display' => 'detailed',
                     'query'   => [
-                        'post_type'      => 'any',
+                        'post_type'      => $post_type_keys,
                         'posts_per_page' => 10,
                     ],
                 ],
@@ -122,22 +122,6 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
                     'product_cat_parent!' => '',
                 ],
                 'description' => __( 'Seleziona una o più sottocategorie della categoria padre scelta.', 'bw' ),
-            ]
-        );
-
-        $this->add_control(
-            'product_type',
-            [
-                'label'     => __( 'Product Type', 'bw' ),
-                'type'      => Controls_Manager::SELECT,
-                'options'   => [
-                    ''               => __( 'All', 'bw' ),
-                    'digital_asset'  => __( 'Digital Assets', 'bw' ),
-                    'book'           => __( 'Books', 'bw' ),
-                    'print'          => __( 'Prints', 'bw' ),
-                ],
-                'default'   => '',
-                'condition' => [ 'content_type' => 'product' ],
             ]
         );
 
@@ -866,7 +850,6 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
         $specific_posts = isset( $settings['specific_posts'] )
             ? array_filter( array_map( 'absint', (array) $settings['specific_posts'] ) )
             : [];
-        $product_type  = isset( $settings['product_type'] ) ? sanitize_key( $settings['product_type'] ) : '';
         $product_categories = isset( $settings['product_categories'] )
             ? array_filter( array_map( 'absint', (array) $settings['product_categories'] ) )
             : [];
@@ -909,14 +892,6 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
                         'taxonomy' => 'product_cat',
                         'field'    => 'term_id',
                         'terms'    => [ $product_cat_parent ],
-                    ];
-                }
-
-                if ( ! empty( $product_type ) ) {
-                    $tax_query[] = [
-                        'taxonomy' => 'product_type',
-                        'field'    => 'slug',
-                        'terms'    => $product_type,
                     ];
                 }
 
