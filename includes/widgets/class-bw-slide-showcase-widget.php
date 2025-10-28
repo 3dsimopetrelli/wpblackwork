@@ -562,6 +562,22 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
             ],
         ] );
 
+        $this->add_responsive_control( 'button_border_radius', [
+            'label'      => __( 'Border Radius', 'bw-elementor-widgets' ),
+            'type'       => Controls_Manager::DIMENSIONS,
+            'size_units' => [ 'px', '%' ],
+            'default'    => [
+                'top'    => 8,
+                'right'  => 8,
+                'bottom' => 8,
+                'left'   => 8,
+                'unit'   => 'px',
+            ],
+            'selectors'  => [
+                '{{WRAPPER}} .bw-slide-showcase-view-btn' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+            ],
+        ] );
+
         $this->start_controls_tabs( 'button_style_tabs' );
 
         $this->start_controls_tab( 'button_style_normal', [
