@@ -187,6 +187,47 @@
   border-left: 1px solid rgba(0, 0, 0, 0.1);
 }
 
+.bw-slick-slider .bw-slide-buttons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  gap: 0;
+}
+
+.bw-slick-slider .bw-slide-button {
+  flex: 1;
+  text-align: center;
+  padding: 14px 0;
+  font-size: 16px;
+  font-weight: 500;
+  background: var(--bw-overlay-buttons-background, #fff);
+  color: var(--bw-overlay-buttons-color, #080808);
+  border: 1px solid #080808;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 0;
+}
+
+.bw-slick-slider .bw-slide-button + .bw-slide-button {
+  border-left: none;
+}
+
+.bw-slick-slider .bw-slide-button:hover {
+  background: var(--bw-overlay-buttons-background-hover, #080808);
+  color: var(--bw-overlay-buttons-color-hover, #fff);
+}
+
+.bw-slick-slider .bw-slide-button:first-child {
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+}
+
+.bw-slick-slider .bw-slide-button:last-child {
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
 .bw-slick-slider .overlay-button__label {
   position: relative;
   display: inline-block;
