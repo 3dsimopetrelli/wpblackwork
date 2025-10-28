@@ -7,7 +7,9 @@
 
     var selectors = {
         parent: 'select[data-setting="product_cat_parent"]',
-        child: 'select[data-setting="product_cat_child"]'
+        child: 'select[data-setting="product_cat_child"]',
+        specificPosts: 'select[data-setting="specific_posts"]',
+        postType: 'select[data-setting="content_type"]'
     };
 
     function getSettingValue(model, setting) {
@@ -74,6 +76,73 @@
         $childSelect.trigger('change');
     }
 
+    function getPostTypeValue($context) {
+        var $postTypeSelect;
+
+        if ($context && $context.length) {
+            $postTypeSelect = $context.find(selectors.postType).first();
+        } else {
+            $postTypeSelect = $(selectors.postType).first();
+        }
+
+        if ($postTypeSelect && $postTypeSelect.length) {
+            var value = $postTypeSelect.val();
+            return value ? value : 'any';
+        }
+
+        return 'any';
+    }
+
+    function initializeSpecificPostsSelect($context) {
+        if (!ajaxUrl || typeof $.fn.select2 !== 'function') {
+            return;
+        }
+
+        var $elements = $context && $context.length ? $context.find(selectors.specificPosts) : $(selectors.specificPosts);
+
+        $elements = $elements.filter(function () {
+            var $element = $(this);
+            return !$element.hasClass('bw-specific-posts-initialized') && !$element.hasClass('select2-hidden-accessible');
+        });
+
+        if (!$elements.length) {
+            return;
+        }
+
+        $elements.each(function () {
+            var $select = $(this);
+
+            $select.addClass('bw-specific-posts-initialized');
+
+            $select.select2({
+                width: '100%',
+                allowClear: true,
+                placeholder: $select.attr('placeholder') || '',
+                ajax: {
+                    url: ajaxUrl,
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            action: 'bw_search_posts',
+                            q: params.term || '',
+                            post_type: getPostTypeValue($context)
+                        };
+                    },
+                    processResults: function (data) {
+                        if (data && data.results) {
+                            return { results: data.results };
+                        }
+
+                        return { results: [] };
+                    },
+                    cache: true
+                },
+                minimumInputLength: 2
+            });
+        });
+    }
+
     function fetchChildCategories(parentId, callback) {
         if (!ajaxUrl) {
             callback({});
@@ -132,6 +201,7 @@
             var $childSelect = $context.find(selectors.child).first();
 
             if (!$childSelect.length) {
+                initializeSpecificPostsSelect($context);
                 return;
             }
 
@@ -142,6 +212,8 @@
             } else {
                 resetChildSelect($childSelect);
             }
+
+            initializeSpecificPostsSelect($context);
         }, 100);
     }
 
@@ -154,6 +226,8 @@
                 $child.prop('disabled', !$child.val());
             }
         });
+
+        initializeSpecificPostsSelect($(document));
     });
 
     $(window).on('elementor:init', function () {

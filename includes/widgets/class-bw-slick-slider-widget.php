@@ -54,6 +54,36 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
             'default' => $default_post_type,
         ] );
 
+        $selected_specific_posts = $this->get_settings( 'specific_posts' );
+        if ( ! empty( $selected_specific_posts ) && ! is_array( $selected_specific_posts ) ) {
+            $selected_specific_posts = [ $selected_specific_posts ];
+        }
+
+        $specific_posts_options = ! empty( $selected_specific_posts )
+            ? $this->get_specific_posts_options( $selected_specific_posts )
+            : [];
+
+        $this->add_control(
+            'specific_posts',
+            [
+                'label'       => __( 'Post specifici', 'bw' ),
+                'type'        => Controls_Manager::SELECT2,
+                'label_block' => true,
+                'multiple'    => true,
+                'options'     => $specific_posts_options,
+                'description' => __( 'Cerca e seleziona post o prodotti specifici per titolo', 'bw' ),
+                'render_type' => 'none',
+                'autocomplete' => [
+                    'object' => 'post',
+                    'display' => 'detailed',
+                    'query'   => [
+                        'post_type'      => 'any',
+                        'posts_per_page' => 10,
+                    ],
+                ],
+            ]
+        );
+
         $this->add_control( 'post_categories', [
             'label'       => __( 'Categoria', 'bw-elementor-widgets' ),
             'type'        => Controls_Manager::SELECT2,
@@ -842,6 +872,9 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
         $column_width_unit = isset( $column_width_data['unit'] ) ? $column_width_data['unit'] : 'px';
         $image_crop    = isset( $settings['image_crop'] ) && 'yes' === $settings['image_crop'];
         $include_ids   = isset( $settings['include_ids'] ) ? $this->parse_ids( $settings['include_ids'] ) : [];
+        $specific_posts = isset( $settings['specific_posts'] )
+            ? array_filter( array_map( 'absint', (array) $settings['specific_posts'] ) )
+            : [];
         $product_type  = isset( $settings['product_type'] ) ? sanitize_key( $settings['product_type'] ) : '';
         $product_categories = isset( $settings['product_categories'] )
             ? array_filter( array_map( 'absint', (array) $settings['product_categories'] ) )
@@ -856,49 +889,54 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
             'post_status'    => 'publish',
         ];
 
-        if ( ! empty( $include_ids ) ) {
-            $query_args['post__in'] = $include_ids;
+        if ( ! empty( $specific_posts ) ) {
+            $query_args['post__in'] = $specific_posts;
             $query_args['orderby']  = 'post__in';
-        }
-
-        if ( 'product' === $content_type ) {
-            $tax_query    = [];
-
-            if ( ! empty( $product_categories ) ) {
-                $tax_query[] = [
-                    'taxonomy' => 'product_cat',
-                    'field'    => 'term_id',
-                    'terms'    => $product_categories,
-                ];
-            } elseif ( ! empty( $product_cat_child ) ) {
-                $tax_query[] = [
-                    'taxonomy' => 'product_cat',
-                    'field'    => 'term_id',
-                    'terms'    => $product_cat_child,
-                ];
-            } elseif ( $product_cat_parent > 0 ) {
-                $tax_query[] = [
-                    'taxonomy' => 'product_cat',
-                    'field'    => 'term_id',
-                    'terms'    => [ $product_cat_parent ],
-                ];
+        } else {
+            if ( ! empty( $include_ids ) ) {
+                $query_args['post__in'] = $include_ids;
+                $query_args['orderby']  = 'post__in';
             }
 
-            if ( ! empty( $product_type ) ) {
-                $tax_query[] = [
-                    'taxonomy' => 'product_type',
-                    'field'    => 'slug',
-                    'terms'    => $product_type,
-                ];
-            }
+            if ( 'product' === $content_type ) {
+                $tax_query = [];
 
-            if ( ! empty( $tax_query ) ) {
-                $query_args['tax_query'] = $tax_query;
-            }
-        } elseif ( 'post' === $content_type ) {
-            $category_ids = isset( $settings['post_categories'] ) ? array_filter( array_map( 'absint', (array) $settings['post_categories'] ) ) : [];
-            if ( ! empty( $category_ids ) ) {
-                $query_args['category__in'] = $category_ids;
+                if ( ! empty( $product_categories ) ) {
+                    $tax_query[] = [
+                        'taxonomy' => 'product_cat',
+                        'field'    => 'term_id',
+                        'terms'    => $product_categories,
+                    ];
+                } elseif ( ! empty( $product_cat_child ) ) {
+                    $tax_query[] = [
+                        'taxonomy' => 'product_cat',
+                        'field'    => 'term_id',
+                        'terms'    => $product_cat_child,
+                    ];
+                } elseif ( $product_cat_parent > 0 ) {
+                    $tax_query[] = [
+                        'taxonomy' => 'product_cat',
+                        'field'    => 'term_id',
+                        'terms'    => [ $product_cat_parent ],
+                    ];
+                }
+
+                if ( ! empty( $product_type ) ) {
+                    $tax_query[] = [
+                        'taxonomy' => 'product_type',
+                        'field'    => 'slug',
+                        'terms'    => $product_type,
+                    ];
+                }
+
+                if ( ! empty( $tax_query ) ) {
+                    $query_args['tax_query'] = $tax_query;
+                }
+            } elseif ( 'post' === $content_type ) {
+                $category_ids = isset( $settings['post_categories'] ) ? array_filter( array_map( 'absint', (array) $settings['post_categories'] ) ) : [];
+                if ( ! empty( $category_ids ) ) {
+                    $query_args['category__in'] = $category_ids;
+                }
             }
         }
 
@@ -1165,6 +1203,36 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
         }
 
         asort( $options );
+
+        return $options;
+    }
+
+    private function get_specific_posts_options( $ids ) {
+        $ids = array_filter( array_map( 'absint', (array) $ids ) );
+
+        if ( empty( $ids ) ) {
+            return [];
+        }
+
+        $posts = get_posts(
+            [
+                'post_type'      => 'any',
+                'post__in'       => $ids,
+                'posts_per_page' => -1,
+                'orderby'        => 'post__in',
+                'post_status'    => 'publish',
+            ]
+        );
+
+        if ( empty( $posts ) ) {
+            return [];
+        }
+
+        $options = [];
+
+        foreach ( $posts as $post ) {
+            $options[ $post->ID ] = get_the_title( $post );
+        }
 
         return $options;
     }
