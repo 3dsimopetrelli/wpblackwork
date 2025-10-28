@@ -18,6 +18,29 @@ if ( ! function_exists( 'bw_user_can_manage_content' ) ) {
     }
 }
 
+if ( ! function_exists( 'bw_get_selectable_post_statuses' ) ) {
+    /**
+     * Retrieve the list of post statuses that can be selected via AJAX controls.
+     *
+     * @param string $post_type Optional post type slug.
+     *
+     * @return array<int,string>
+     */
+    function bw_get_selectable_post_statuses( $post_type = '' ) {
+        $statuses = [ 'publish', 'future', 'draft', 'pending', 'private' ];
+
+        /**
+         * Filter the list of selectable post statuses for AJAX powered controls.
+         *
+         * @since 1.0.0
+         *
+         * @param array<int,string> $statuses  Post status slugs.
+         * @param string            $post_type Post type slug.
+         */
+        return apply_filters( 'bw_selectable_post_statuses', $statuses, $post_type );
+    }
+}
+
 if ( ! function_exists( 'bw_get_product_categories_options' ) ) {
     /**
      * Retrieve all WooCommerce product categories.
@@ -139,7 +162,7 @@ if ( ! function_exists( 'bw_get_posts_titles_by_ids' ) ) {
             'post__in'       => $ids,
             'posts_per_page' => -1,
             'orderby'        => 'post__in',
-            'post_status'    => 'publish',
+            'post_status'    => bw_get_selectable_post_statuses( $post_type ),
         ];
 
         if ( 'any' !== $post_type && post_type_exists( $post_type ) ) {
@@ -229,7 +252,7 @@ if ( ! function_exists( 'bw_search_posts' ) ) {
                 'post_type'      => ! empty( $post_type ) ? $post_type : 'any',
                 's'              => $term,
                 'posts_per_page' => 20,
-                'post_status'    => 'publish',
+                'post_status'    => bw_get_selectable_post_statuses( $post_type ),
                 'orderby'        => 'date',
                 'order'          => 'DESC',
             ]
