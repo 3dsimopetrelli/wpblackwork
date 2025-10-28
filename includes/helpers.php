@@ -12,9 +12,31 @@ if ( ! function_exists( 'bw_user_can_manage_content' ) ) {
      * @return bool
      */
     function bw_user_can_manage_content() {
-        return current_user_can( 'edit_posts' )
-            || current_user_can( 'edit_products' )
-            || current_user_can( 'manage_options' );
+        $capabilities = [
+            'manage_options',
+            'edit_posts',
+            'edit_pages',
+            'edit_products',
+            'elementor_edit_posts',
+        ];
+
+        $can_manage = false;
+
+        foreach ( $capabilities as $capability ) {
+            if ( current_user_can( $capability ) ) {
+                $can_manage = true;
+                break;
+            }
+        }
+
+        /**
+         * Filter whether the current user can manage Elementor widget content.
+         *
+         * @since 1.0.0
+         *
+         * @param bool $can_manage Whether the user can manage widget content.
+         */
+        return (bool) apply_filters( 'bw_user_can_manage_content', $can_manage );
     }
 }
 
