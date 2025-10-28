@@ -103,6 +103,96 @@ if ( ! function_exists( 'bw_ajax_get_child_categories' ) ) {
 
 add_action( 'wp_ajax_bw_get_child_categories', 'bw_ajax_get_child_categories' );
 
+if ( ! function_exists( 'bw_get_posts_titles_by_ids' ) ) {
+    /**
+     * Retrieve post titles keyed by ID preserving the provided order.
+     *
+     * @param array<int|string> $ids       Post IDs to fetch.
+     * @param string            $post_type Optional post type filter.
+     *
+     * @return array<int,string>
+     */
+    function bw_get_posts_titles_by_ids( $ids, $post_type = 'any' ) {
+        $ids = array_values( array_unique( array_filter( array_map( 'absint', (array) $ids ) ) ) );
+
+        if ( empty( $ids ) ) {
+            return [];
+        }
+
+        $query_args = [
+            'post_type'      => 'any',
+            'post__in'       => $ids,
+            'posts_per_page' => -1,
+            'orderby'        => 'post__in',
+            'post_status'    => 'publish',
+        ];
+
+        if ( 'any' !== $post_type && post_type_exists( $post_type ) ) {
+            $query_args['post_type'] = $post_type;
+        }
+
+        $posts = get_posts( $query_args );
+
+        if ( empty( $posts ) ) {
+            return [];
+        }
+
+        $titles = [];
+
+        foreach ( $posts as $post ) {
+            $titles[ $post->ID ] = get_the_title( $post );
+        }
+
+        $ordered = [];
+
+        foreach ( $ids as $id ) {
+            if ( isset( $titles[ $id ] ) ) {
+                $ordered[ $id ] = $titles[ $id ];
+            }
+        }
+
+        foreach ( $titles as $id => $title ) {
+            if ( ! isset( $ordered[ $id ] ) ) {
+                $ordered[ $id ] = $title;
+            }
+        }
+
+        return $ordered;
+    }
+}
+
+if ( ! function_exists( 'bw_ajax_get_posts_by_ids' ) ) {
+    /**
+     * AJAX callback to fetch post titles by ID for Select2 controls.
+     */
+    function bw_ajax_get_posts_by_ids() {
+        if ( ! current_user_can( 'edit_posts' ) ) {
+            wp_send_json_error();
+        }
+
+        check_ajax_referer( 'bw_get_posts_by_ids', 'nonce' );
+
+        $ids_param = isset( $_POST['ids'] ) ? wp_unslash( $_POST['ids'] ) : [];
+        $post_type = isset( $_POST['post_type'] ) ? sanitize_text_field( wp_unslash( $_POST['post_type'] ) ) : 'any';
+
+        if ( ! is_array( $ids_param ) ) {
+            $ids_param = array_filter( array_map( 'trim', explode( ',', (string) $ids_param ) ) );
+        }
+
+        $ids = array_filter( array_map( 'absint', $ids_param ) );
+
+        if ( empty( $ids ) ) {
+            wp_send_json_success( [] );
+        }
+
+        $posts = bw_get_posts_titles_by_ids( $ids, $post_type );
+
+        wp_send_json_success( $posts );
+    }
+}
+
+add_action( 'wp_ajax_bw_get_posts_by_ids', 'bw_ajax_get_posts_by_ids' );
+
 if ( ! function_exists( 'bw_search_posts' ) ) {
     /**
      * AJAX callback to search posts by title for Select2 controls.
