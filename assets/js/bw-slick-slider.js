@@ -40,6 +40,33 @@
     return isNaN(parsed) ? (typeof fallback === 'number' ? fallback : 0) : parsed;
   };
 
+  var normalizeFloat = function (value, fallback) {
+    var parsed = parseFloat(value);
+    if (isNaN(parsed)) {
+      return typeof fallback === 'number' ? fallback : 0;
+    }
+
+    return parsed;
+  };
+
+  var clamp = function (value, min, max) {
+    if (typeof value !== 'number' || isNaN(value)) {
+      return min;
+    }
+
+    if (value < min) {
+      return min;
+    }
+
+    if (value > max) {
+      return max;
+    }
+
+    return value;
+  };
+
+  var DEFAULT_DRAG_SMOOTHNESS = 60;
+
   var normalizeResponsive = function (responsive) {
     if (!Array.isArray(responsive)) {
       return undefined;
@@ -186,6 +213,48 @@
     }
 
     settings.responsive = normalizeResponsive(settings.responsive);
+
+    var dragSmoothness = DEFAULT_DRAG_SMOOTHNESS;
+
+    if (typeof settings.dragSmoothness !== 'undefined') {
+      dragSmoothness = clamp(
+        normalizeFloat(settings.dragSmoothness, DEFAULT_DRAG_SMOOTHNESS),
+        0,
+        100
+      );
+    }
+
+    settings.dragSmoothness = dragSmoothness;
+
+    var smoothFactor = dragSmoothness / 100;
+    var minThreshold = 2;
+    var maxThreshold = 20;
+    settings.touchThreshold = Math.max(
+      1,
+      Math.round(
+        maxThreshold - (maxThreshold - minThreshold) * smoothFactor
+      )
+    );
+
+    var minFriction = 0.05;
+    var maxFriction = 0.45;
+    settings.edgeFriction = parseFloat(
+      (minFriction + (maxFriction - minFriction) * smoothFactor).toFixed(3)
+    );
+
+    settings.swipeToSlide = true;
+
+    if (typeof settings.touchMove === 'undefined') {
+      settings.touchMove = true;
+    }
+
+    if (typeof settings.cssEase === 'undefined') {
+      settings.cssEase = 'cubic-bezier(0.22, 0.61, 0.36, 1)';
+    }
+
+    settings.waitForAnimate = false;
+
+    delete settings.dragSmoothness;
 
     return settings;
   };

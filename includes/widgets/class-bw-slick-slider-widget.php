@@ -613,6 +613,21 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
             'default' => 500,
         ] );
 
+        $this->add_control(
+            'drag_smoothness',
+            [
+                'label'       => __( 'Fluidità Drag', 'bw-elementor-widgets' ),
+                'type'        => Controls_Manager::SLIDER,
+                'size_units'  => [ 'px' ],
+                'range'       => [
+                    'px' => [ 'min' => 0, 'max' => 100, 'step' => 1 ],
+                ],
+                'default'     => [ 'size' => 60, 'unit' => 'px' ],
+                'description' => __( 'Regola la fluidità del trascinamento manuale: valori più alti rendono il drag più morbido.', 'bw-elementor-widgets' ),
+                'render_type' => 'template',
+            ]
+        );
+
         $this->add_control( 'arrows', [
             'label'        => __( 'Arrows', 'bw-elementor-widgets' ),
             'type'         => Controls_Manager::SWITCHER,
@@ -1231,6 +1246,8 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
             'pauseOnHover'    => isset( $settings['pause_on_hover'] ) ? 'yes' === $settings['pause_on_hover'] : true,
         ];
 
+        $slider_settings['dragSmoothness'] = $this->get_drag_smoothness_value( $settings );
+
         $slider_settings['slidesToScroll'] = max( 1, min( $slider_settings['slidesToScroll'], $columns ) );
 
         $responsive = [];
@@ -1292,6 +1309,32 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
         }
 
         return $slider_settings;
+    }
+
+    private function get_drag_smoothness_value( $settings ) {
+        $default = 60.0;
+
+        if ( ! isset( $settings['drag_smoothness'] ) ) {
+            return $default;
+        }
+
+        $value = $settings['drag_smoothness'];
+
+        if ( is_array( $value ) ) {
+            $value = isset( $value['size'] ) ? $value['size'] : null;
+        }
+
+        if ( null === $value || '' === $value ) {
+            return $default;
+        }
+
+        $number = is_numeric( $value ) ? (float) $value : $default;
+
+        if ( ! is_finite( $number ) ) {
+            $number = $default;
+        }
+
+        return max( 0, min( 100, $number ) );
     }
 
     private function get_price_markup( $post_id ) {
