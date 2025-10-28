@@ -805,6 +805,23 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
 
         $this->end_controls_tabs();
 
+        $this->add_responsive_control( 'overlay_buttons_border_radius', [
+            'label'      => __( 'Border Radius', 'bw-elementor-widgets' ),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => [ 'px', '%' ],
+            'range'      => [
+                'px' => [ 'min' => 0, 'max' => 200 ],
+                '%'  => [ 'min' => 0, 'max' => 50 ],
+            ],
+            'default'    => [
+                'size' => 8,
+                'unit' => 'px',
+            ],
+            'selectors'  => [
+                '{{WRAPPER}} .bw-slick-slider' => '--bw-overlay-buttons-radius: {{SIZE}}{{UNIT}};',
+            ],
+        ] );
+
         $this->add_responsive_control( 'overlay_buttons_padding', [
             'label'      => __( 'Padding', 'bw-elementor-widgets' ),
             'type'       => Controls_Manager::DIMENSIONS,
