@@ -805,36 +805,20 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
 
         $this->end_controls_tabs();
 
-        $this->add_responsive_control( 'overlay_buttons_border_radius', [
-            'label'     => __( 'Border Radius', 'bw-elementor-widgets' ),
-            'type'      => Controls_Manager::SLIDER,
-            'size_units'=> [ 'px' ],
-            'range'     => [ 'px' => [ 'min' => 0, 'max' => 60, 'step' => 1 ] ],
-            'default'   => [ 'size' => 12, 'unit' => 'px' ],
-            'selectors' => [
-                '{{WRAPPER}} .bw-slick-slider' => '--bw-overlay-buttons-radius: {{SIZE}}{{UNIT}};',
+        $this->add_responsive_control( 'overlay_buttons_padding', [
+            'label'      => __( 'Padding', 'bw-elementor-widgets' ),
+            'type'       => Controls_Manager::DIMENSIONS,
+            'size_units' => [ 'px' ],
+            'default'    => [
+                'top'    => 12,
+                'right'  => 16,
+                'bottom' => 12,
+                'left'   => 16,
+                'unit'   => 'px',
             ],
-        ] );
-
-        $this->add_responsive_control( 'overlay_buttons_padding_vertical', [
-            'label'     => __( 'Vertical Padding', 'bw-elementor-widgets' ),
-            'type'      => Controls_Manager::SLIDER,
-            'size_units'=> [ 'px' ],
-            'range'     => [ 'px' => [ 'min' => 0, 'max' => 60, 'step' => 1 ] ],
-            'default'   => [ 'size' => 12, 'unit' => 'px' ],
-            'selectors' => [
-                '{{WRAPPER}} .bw-slick-slider' => '--bw-overlay-buttons-padding-y: {{SIZE}}{{UNIT}};',
-            ],
-        ] );
-
-        $this->add_responsive_control( 'overlay_buttons_padding_horizontal', [
-            'label'     => __( 'Horizontal Padding', 'bw-elementor-widgets' ),
-            'type'      => Controls_Manager::SLIDER,
-            'size_units'=> [ 'px' ],
-            'range'     => [ 'px' => [ 'min' => 0, 'max' => 80, 'step' => 1 ] ],
-            'default'   => [ 'size' => 16, 'unit' => 'px' ],
-            'selectors' => [
-                '{{WRAPPER}} .bw-slick-slider' => '--bw-overlay-buttons-padding-x: {{SIZE}}{{UNIT}};',
+            'selectors'  => [
+                '{{WRAPPER}} .bw-slick-slider' => '--bw-overlay-buttons-padding-top: {{TOP}}{{UNIT}}; --bw-overlay-buttons-padding-right: {{RIGHT}}{{UNIT}}; --bw-overlay-buttons-padding-bottom: {{BOTTOM}}{{UNIT}}; --bw-overlay-buttons-padding-left: {{LEFT}}{{UNIT}};',
+                '{{WRAPPER}} .bw-slick-slider .bw-ss__btn' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
             ],
         ] );
 
