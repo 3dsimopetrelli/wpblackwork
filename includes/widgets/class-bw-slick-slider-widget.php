@@ -557,6 +557,7 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
             'type'       => Controls_Manager::DIMENSIONS,
             'size_units' => [ 'px', '%', 'em' ],
             'selectors'  => [
+                '{{WRAPPER}} .bw-slick-slider .bw-slider-image-container' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 '{{WRAPPER}} .bw-ss__media'   => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 '{{WRAPPER}} .bw-ss__media img' => 'border-radius: inherit;',
                 '{{WRAPPER}} .bw-ss__overlay' => 'border-radius: inherit;',
