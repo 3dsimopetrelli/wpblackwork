@@ -3,6 +3,21 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+if ( ! function_exists( 'bw_user_can_manage_content' ) ) {
+    /**
+     * Determine if the current user can manage content within Elementor widgets.
+     *
+     * Allows roles that manage posts or WooCommerce products to execute AJAX callbacks.
+     *
+     * @return bool
+     */
+    function bw_user_can_manage_content() {
+        return current_user_can( 'edit_posts' )
+            || current_user_can( 'edit_products' )
+            || current_user_can( 'manage_options' );
+    }
+}
+
 if ( ! function_exists( 'bw_get_product_categories_options' ) ) {
     /**
      * Retrieve all WooCommerce product categories.
@@ -67,7 +82,7 @@ if ( ! function_exists( 'bw_ajax_get_child_categories' ) ) {
      * AJAX callback to fetch child categories for a given parent category.
      */
     function bw_ajax_get_child_categories() {
-        if ( ! current_user_can( 'edit_posts' ) ) {
+        if ( ! bw_user_can_manage_content() ) {
             wp_send_json_error();
         }
 
@@ -166,7 +181,7 @@ if ( ! function_exists( 'bw_ajax_get_posts_by_ids' ) ) {
      * AJAX callback to fetch post titles by ID for Select2 controls.
      */
     function bw_ajax_get_posts_by_ids() {
-        if ( ! current_user_can( 'edit_posts' ) ) {
+        if ( ! bw_user_can_manage_content() ) {
             wp_send_json_error();
         }
 
@@ -198,7 +213,7 @@ if ( ! function_exists( 'bw_search_posts' ) ) {
      * AJAX callback to search posts by title for Select2 controls.
      */
     function bw_search_posts() {
-        if ( ! current_user_can( 'edit_posts' ) ) {
+        if ( ! bw_user_can_manage_content() ) {
             wp_die();
         }
 
