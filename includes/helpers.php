@@ -237,11 +237,16 @@ if ( ! function_exists( 'bw_search_posts' ) ) {
      */
     function bw_search_posts() {
         if ( ! bw_user_can_manage_content() ) {
-            wp_die();
+            wp_send_json_error( [ 'message' => __( 'Unauthorized request', 'bw-elementor-widgets' ) ], 403 );
         }
 
-        $term      = isset( $_GET['q'] ) ? sanitize_text_field( wp_unslash( $_GET['q'] ) ) : '';
-        $post_type = isset( $_GET['post_type'] ) ? sanitize_text_field( wp_unslash( $_GET['post_type'] ) ) : 'any';
+        if ( ! check_ajax_referer( 'bw_search_posts', 'nonce', false ) ) {
+            wp_send_json_error( [ 'message' => __( 'Invalid nonce', 'bw-elementor-widgets' ) ], 400 );
+        }
+
+        $request   = wp_unslash( $_REQUEST );
+        $term      = isset( $request['q'] ) ? sanitize_text_field( $request['q'] ) : '';
+        $post_type = isset( $request['post_type'] ) ? sanitize_text_field( $request['post_type'] ) : 'any';
 
         if ( ! empty( $post_type ) && 'any' !== $post_type && ! post_type_exists( $post_type ) ) {
             $post_type = 'any';

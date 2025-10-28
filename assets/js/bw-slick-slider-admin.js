@@ -5,6 +5,7 @@
     var ajaxUrl = settings.ajaxUrl || window.ajaxurl || '';
     var nonce = settings.nonce || '';
     var postsNonce = settings.postsNonce || '';
+    var searchNonce = settings.searchNonce || '';
 
     var selectors = {
         parent: 'select[data-setting="product_cat_parent"]',
@@ -237,12 +238,14 @@
                         ajax: {
                             url: ajaxUrl,
                             dataType: 'json',
+                            type: 'POST',
                             delay: 250,
                             data: function (params) {
                                 return {
                                     action: 'bw_search_posts',
                                     q: params.term || '',
-                                    post_type: getPostTypeValue($context)
+                                    post_type: getPostTypeValue($context),
+                                    nonce: searchNonce
                                 };
                             },
                             processResults: function (data) {

@@ -150,6 +150,7 @@ function bw_enqueue_slick_slider_admin_script() {
             'ajaxUrl' => admin_url('admin-ajax.php'),
             'nonce'   => wp_create_nonce('bw_get_child_categories'),
             'postsNonce' => wp_create_nonce('bw_get_posts_by_ids'),
+            'searchNonce' => wp_create_nonce('bw_search_posts'),
         ]
     );
 }
