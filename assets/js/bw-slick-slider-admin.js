@@ -2,9 +2,30 @@
     'use strict';
 
     var settings = window.bwSlickSliderAdmin || {};
-    var ajaxUrl = settings.ajaxUrl || window.ajaxurl || '';
+    var ajaxUrl = '';
     var nonce = settings.nonce || '';
     var postsNonce = settings.postsNonce || '';
+
+    function resolveAjaxUrl() {
+        if (settings.ajaxUrl) {
+            return settings.ajaxUrl;
+        }
+
+        if (typeof window.ajaxurl !== 'undefined' && window.ajaxurl) {
+            return window.ajaxurl;
+        }
+
+        if (window.elementorCommon && window.elementorCommon.config && window.elementorCommon.config.ajaxurl) {
+            return window.elementorCommon.config.ajaxurl;
+        }
+
+        return '';
+    }
+
+    function ensureAjaxUrl() {
+        ajaxUrl = resolveAjaxUrl();
+        return ajaxUrl;
+    }
 
     var selectors = {
         parent: 'select[data-setting="product_cat_parent"]',
@@ -12,6 +33,8 @@
         specificPosts: 'select[data-setting="specific_posts"]',
         postType: 'select[data-setting="content_type"]'
     };
+
+    ensureAjaxUrl();
 
     function getSettingValue(model, setting) {
         if (!model) {
@@ -158,7 +181,7 @@
     }
 
     function fetchPostsByIds(ids, postType, callback) {
-        if (!ajaxUrl || !postsNonce || !Array.isArray(ids) || !ids.length) {
+        if (!ensureAjaxUrl() || !postsNonce || !Array.isArray(ids) || !ids.length) {
             callback({});
             return;
         }
@@ -182,12 +205,20 @@
     }
 
     function withSelect2(callback, attempt) {
-        if (!ajaxUrl) {
-            return;
-        }
-
         if (typeof attempt === 'undefined') {
             attempt = 0;
+        }
+
+        if (!ensureAjaxUrl()) {
+            if (attempt > 10) {
+                return;
+            }
+
+            setTimeout(function () {
+                withSelect2(callback, attempt + 1);
+            }, 150);
+
+            return;
         }
 
         if (typeof $.fn.select2 === 'function') {
@@ -230,6 +261,7 @@
                 $select.data('bwSpecificPostsInitializing', true);
 
                 var initializeSelect2 = function () {
+                    ensureAjaxUrl();
                     $select.select2({
                         width: '100%',
                         allowClear: true,
@@ -276,7 +308,7 @@
     }
 
     function fetchChildCategories(parentId, callback) {
-        if (!ajaxUrl) {
+        if (!ensureAjaxUrl()) {
             callback({});
             return;
         }
