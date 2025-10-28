@@ -372,7 +372,13 @@
   };
 
   $(function () {
-    initSlickSlider($(document));
+    if (
+      typeof elementorFrontend === 'undefined' ||
+      typeof elementorFrontend.isEditMode !== 'function' ||
+      !elementorFrontend.isEditMode()
+    ) {
+      initSlickSlider($(document));
+    }
   });
 
   var hooksRegistered = false;
