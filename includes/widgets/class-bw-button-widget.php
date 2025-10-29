@@ -52,7 +52,7 @@ class Widget_Bw_Button extends Widget_Base {
                 'placeholder' => __( 'Insert button text', 'bw-elementor-widgets' ),
                 'label_block' => true,
                 'dynamic'     => [ 'active' => true ],
-                'render_type' => 'ui',
+                'render_type' => 'template',
             ]
         );
 
@@ -67,7 +67,7 @@ class Widget_Bw_Button extends Widget_Base {
                 ],
                 'show_external' => false,
                 'dynamic'     => [ 'active' => true ],
-                'render_type' => 'ui',
+                'render_type' => 'template',
             ]
         );
 
@@ -80,7 +80,7 @@ class Widget_Bw_Button extends Widget_Base {
                 'label_off'    => __( 'No', 'bw-elementor-widgets' ),
                 'return_value' => 'yes',
                 'default'      => '',
-                'render_type'  => 'ui',
+                'render_type'  => 'template',
             ]
         );
 
@@ -274,6 +274,21 @@ class Widget_Bw_Button extends Widget_Base {
                     'default' => __( 'Freccia predefinita', 'bw-elementor-widgets' ),
                     'custom'  => __( 'SVG personalizzato', 'bw-elementor-widgets' ),
                 ],
+                'render_type' => 'template',
+            ]
+        );
+
+        $this->add_control(
+            'button_custom_svg_media',
+            [
+                'label'       => __( 'File SVG personalizzato', 'bw-elementor-widgets' ),
+                'type'        => Controls_Manager::MEDIA,
+                'media_type'  => 'image',
+                'mime_types'  => 'svg',
+                'condition'   => [
+                    'button_icon_type' => 'custom',
+                ],
+                'render_type' => 'template',
             ]
         );
 
@@ -287,6 +302,7 @@ class Widget_Bw_Button extends Widget_Base {
                 'condition'   => [
                     'button_icon_type' => 'custom',
                 ],
+                'render_type' => 'template',
             ]
         );
 
@@ -442,16 +458,7 @@ class Widget_Bw_Button extends Widget_Base {
         }
 
         $label        = ! empty( $settings['button_text'] ) ? $settings['button_text'] : __( 'The Workflow', 'bw-elementor-widgets' );
-        $icon_type    = ! empty( $settings['button_icon_type'] ) ? $settings['button_icon_type'] : 'default';
-        $icon_content = '&#8250;';
-
-        if ( 'custom' === $icon_type && ! empty( $settings['button_custom_svg'] ) ) {
-            $sanitized_svg = $this->sanitize_custom_svg_markup( $settings['button_custom_svg'] );
-
-            if ( $sanitized_svg ) {
-                $icon_content = $sanitized_svg;
-            }
-        }
+        $icon_content = $this->get_icon_content( $settings );
         ?>
         <a <?php echo $this->get_render_attribute_string( 'button' ); ?>>
             <span class="bw-button__icon"><?php echo wp_kses_post( $icon_content ); ?></span>
@@ -486,16 +493,164 @@ class Widget_Bw_Button extends Widget_Base {
         var label = settings.button_text ? settings.button_text : '<?php echo esc_js( __( 'The Workflow', 'bw-elementor-widgets' ) ); ?>';
         var iconType = settings.button_icon_type ? settings.button_icon_type : 'default';
         var iconMarkup = '&#8250;';
+        var customSvgMarkup = settings.button_custom_svg ? settings.button_custom_svg : '';
 
-        if ( iconType === 'custom' && settings.button_custom_svg ) {
-            iconMarkup = settings.button_custom_svg;
+        if (
+            customSvgMarkup &&
+            window.elementorCommon &&
+            elementorCommon.helpers &&
+            elementorCommon.helpers.sanitizeSVG
+        ) {
+            customSvgMarkup = elementorCommon.helpers.sanitizeSVG( customSvgMarkup );
         }
+        var customSvgMedia = settings.button_custom_svg_media ? settings.button_custom_svg_media : null;
+        var hasCustomSvgMedia = customSvgMedia && customSvgMedia.url;
+        var svgMediaUrl = '';
+
+        if ( hasCustomSvgMedia ) {
+            svgMediaUrl = customSvgMedia.url;
+
+            if (
+                window.elementorCommon &&
+                elementorCommon.helpers &&
+                ( elementorCommon.helpers.sanitizeURL || elementorCommon.helpers.sanitizeUrl )
+            ) {
+                svgMediaUrl = ( elementorCommon.helpers.sanitizeURL || elementorCommon.helpers.sanitizeUrl )( svgMediaUrl );
+            } else if (
+                window.elementor &&
+                elementor.helpers &&
+                ( elementor.helpers.sanitizeURL || elementor.helpers.sanitizeUrl )
+            ) {
+                svgMediaUrl = ( elementor.helpers.sanitizeURL || elementor.helpers.sanitizeUrl )( svgMediaUrl );
+            }
+        }
+
+        var shouldFetchSvgFromMedia = iconType === 'custom' && hasCustomSvgMedia;
+
+        if ( iconType === 'custom' ) {
+            if ( shouldFetchSvgFromMedia ) {
+                iconMarkup = '';
+            } else if ( customSvgMarkup ) {
+                iconMarkup = customSvgMarkup;
+            }
+        }
+
+        var iconWrapperId = 'bw-button-icon-' + view.getID();
         #>
         <a class="bw-button" href="{{ link }}" <# if ( openInNewWindow ) { #>target="_blank" rel="noopener noreferrer"<# } #>>
-            <span class="bw-button__icon">{{{ iconMarkup }}}</span>
+            <span class="bw-button__icon" id="{{ iconWrapperId }}" <# if ( shouldFetchSvgFromMedia && svgMediaUrl ) { #>data-bw-svg-url="{{ svgMediaUrl }}"<# } #>>{{{ iconMarkup }}}</span>
             <span class="bw-button__label">{{{ _.escape( label ) }}}</span>
         </a>
+        <# if ( shouldFetchSvgFromMedia && svgMediaUrl ) { #>
+        <script>
+            ( function( $ ) {
+                if ( typeof fetch === 'undefined' ) {
+                    return;
+                }
+
+                var $target = $( '#{{ iconWrapperId }}' );
+
+                if ( window.elementor && elementor.$previewContents && elementor.$previewContents.length ) {
+                    $target = elementor.$previewContents.find( '#{{ iconWrapperId }}' );
+                }
+
+                if ( ! $target.length ) {
+                    return;
+                }
+
+                var target = $target.get( 0 );
+
+                if ( target.dataset.bwSvgLoading === 'yes' ) {
+                    return;
+                }
+
+                target.dataset.bwSvgLoading = 'yes';
+
+                fetch( '{{ svgMediaUrl }}', { credentials: 'omit' } )
+                    .then( function( response ) {
+                        if ( ! response.ok ) {
+                            throw new Error( 'Network response was not ok' );
+                        }
+
+                        return response.text();
+                    } )
+                    .then( function( svgText ) {
+                        if (
+                            window.elementorCommon &&
+                            elementorCommon.helpers &&
+                            elementorCommon.helpers.sanitizeSVG
+                        ) {
+                            svgText = elementorCommon.helpers.sanitizeSVG( svgText );
+                        }
+
+                        target.innerHTML = svgText;
+                        target.dataset.bwSvgLoading = 'loaded';
+                    } )
+                    .catch( function() {
+                        target.innerHTML = '';
+                        target.dataset.bwSvgLoading = 'error';
+                    } );
+            } )( jQuery );
+        </script>
+        <# } #>
         <?php
+    }
+
+    private function get_icon_content( array $settings ) {
+        $default_icon = '&#8250;';
+        $icon_type    = ! empty( $settings['button_icon_type'] ) ? $settings['button_icon_type'] : 'default';
+
+        if ( 'custom' !== $icon_type ) {
+            return $default_icon;
+        }
+
+        if ( ! empty( $settings['button_custom_svg_media'] ) ) {
+            $media_markup = $this->get_svg_markup_from_media( $settings['button_custom_svg_media'] );
+
+            if ( $media_markup ) {
+                return $media_markup;
+            }
+        }
+
+        if ( ! empty( $settings['button_custom_svg'] ) ) {
+            $sanitized_svg = $this->sanitize_custom_svg_markup( $settings['button_custom_svg'] );
+
+            if ( $sanitized_svg ) {
+                return $sanitized_svg;
+            }
+        }
+
+        return $default_icon;
+    }
+
+    private function get_svg_markup_from_media( $media ) {
+        if ( empty( $media ) || ! is_array( $media ) ) {
+            return '';
+        }
+
+        $markup = '';
+
+        if ( ! empty( $media['id'] ) ) {
+            $file_path = get_attached_file( $media['id'] );
+
+            if ( $file_path && file_exists( $file_path ) ) {
+                $markup = file_get_contents( $file_path ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+            }
+        }
+
+        if ( ! $markup && ! empty( $media['url'] ) ) {
+            $response = wp_remote_get( esc_url_raw( $media['url'] ) );
+
+            if ( ! is_wp_error( $response ) ) {
+                $markup = wp_remote_retrieve_body( $response );
+            }
+        }
+
+        if ( empty( $markup ) ) {
+            return '';
+        }
+
+        return $this->sanitize_custom_svg_markup( $markup );
     }
 
     private function sanitize_custom_svg_markup( $svg_markup ) {
