@@ -449,12 +449,46 @@ class Widget_Bw_Button extends Widget_Base {
 
         $this->add_render_attribute( 'button', 'class', 'bw-button' );
 
-        $url = ! empty( $settings['button_link']['url'] ) ? $settings['button_link']['url'] : '#';
-        $this->add_render_attribute( 'button', 'href', esc_url( $url ) );
+        $link_settings = isset( $settings['button_link'] ) ? $settings['button_link'] : [];
+        $link_url      = '#';
+        $has_link_attributes = false;
+
+        if ( is_array( $link_settings ) && ! empty( $link_settings['url'] ) ) {
+            $link_url            = $link_settings['url'];
+            $this->add_link_attributes( 'button', $link_settings );
+            $has_link_attributes = true;
+        } elseif ( is_string( $link_settings ) ) {
+            $link_settings = trim( $link_settings );
+
+            if ( '' !== $link_settings ) {
+                $link_url = $link_settings;
+            }
+        }
+
+        if ( ! $has_link_attributes ) {
+            $this->add_render_attribute( 'button', 'href', esc_url( $link_url ) );
+        }
 
         if ( ! empty( $settings['button_new_window'] ) && 'yes' === $settings['button_new_window'] ) {
-            $this->add_render_attribute( 'button', 'target', '_blank' );
-            $this->add_render_attribute( 'button', 'rel', 'noopener noreferrer' );
+            if ( method_exists( $this, 'set_render_attribute' ) ) {
+                $this->set_render_attribute( 'button', 'target', '_blank' );
+            } else {
+                $this->add_render_attribute( 'button', 'target', '_blank' );
+            }
+
+            $rel_values = [ 'noopener', 'noreferrer' ];
+
+            $existing_rel = [];
+
+            if ( isset( $this->render_attributes['button']['rel'] ) ) {
+                $existing_rel = (array) $this->render_attributes['button']['rel'];
+            }
+
+            foreach ( $rel_values as $rel_value ) {
+                if ( ! in_array( $rel_value, $existing_rel, true ) ) {
+                    $this->add_render_attribute( 'button', 'rel', $rel_value );
+                }
+            }
         }
 
         $label        = ! empty( $settings['button_text'] ) ? $settings['button_text'] : __( 'The Workflow', 'bw-elementor-widgets' );
@@ -474,6 +508,22 @@ class Widget_Bw_Button extends Widget_Base {
 
         if ( settings.button_link && settings.button_link.url ) {
             link = settings.button_link.url;
+
+            if (
+                window.elementorCommon &&
+                elementorCommon.helpers &&
+                ( elementorCommon.helpers.sanitizeURL || elementorCommon.helpers.sanitizeUrl )
+            ) {
+                link = ( elementorCommon.helpers.sanitizeURL || elementorCommon.helpers.sanitizeUrl )( link );
+            } else if (
+                window.elementor &&
+                elementor.helpers &&
+                ( elementor.helpers.sanitizeURL || elementor.helpers.sanitizeUrl )
+            ) {
+                link = ( elementor.helpers.sanitizeURL || elementor.helpers.sanitizeUrl )( link );
+            }
+        } else if ( typeof settings.button_link === 'string' && settings.button_link.trim() !== '' ) {
+            link = settings.button_link;
 
             if (
                 window.elementorCommon &&
