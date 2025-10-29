@@ -506,38 +506,49 @@ class Widget_Bw_Button extends Widget_Base {
         <#
         var link = '#';
 
+        var elementorCommonHelpers = ( window.elementorCommon && window.elementorCommon.helpers ) ? window.elementorCommon.helpers : null;
+        var elementorHelpers = ( window.elementor && window.elementor.helpers ) ? window.elementor.helpers : null;
+
+        var sanitizeUrl = function( url ) {
+            if ( ! url ) {
+                return url;
+            }
+
+            if ( elementorCommonHelpers && ( elementorCommonHelpers.sanitizeURL || elementorCommonHelpers.sanitizeUrl ) ) {
+                var commonSanitize = elementorCommonHelpers.sanitizeURL || elementorCommonHelpers.sanitizeUrl;
+
+                if ( 'function' === typeof commonSanitize ) {
+                    return commonSanitize( url );
+                }
+            }
+
+            if ( elementorHelpers && ( elementorHelpers.sanitizeURL || elementorHelpers.sanitizeUrl ) ) {
+                var legacySanitize = elementorHelpers.sanitizeURL || elementorHelpers.sanitizeUrl;
+
+                if ( 'function' === typeof legacySanitize ) {
+                    return legacySanitize( url );
+                }
+            }
+
+            return url;
+        };
+
+        var sanitizeSvg = function( svgMarkup ) {
+            if ( ! svgMarkup || 'string' !== typeof svgMarkup ) {
+                return svgMarkup;
+            }
+
+            if ( elementorCommonHelpers && elementorCommonHelpers.sanitizeSVG && 'function' === typeof elementorCommonHelpers.sanitizeSVG ) {
+                return elementorCommonHelpers.sanitizeSVG( svgMarkup );
+            }
+
+            return svgMarkup;
+        };
+
         if ( settings.button_link && settings.button_link.url ) {
-            link = settings.button_link.url;
-
-            if (
-                window.elementorCommon &&
-                elementorCommon.helpers &&
-                ( elementorCommon.helpers.sanitizeURL || elementorCommon.helpers.sanitizeUrl )
-            ) {
-                link = ( elementorCommon.helpers.sanitizeURL || elementorCommon.helpers.sanitizeUrl )( link );
-            } else if (
-                window.elementor &&
-                elementor.helpers &&
-                ( elementor.helpers.sanitizeURL || elementor.helpers.sanitizeUrl )
-            ) {
-                link = ( elementor.helpers.sanitizeURL || elementor.helpers.sanitizeUrl )( link );
-            }
+            link = sanitizeUrl( settings.button_link.url );
         } else if ( typeof settings.button_link === 'string' && settings.button_link.trim() !== '' ) {
-            link = settings.button_link;
-
-            if (
-                window.elementorCommon &&
-                elementorCommon.helpers &&
-                ( elementorCommon.helpers.sanitizeURL || elementorCommon.helpers.sanitizeUrl )
-            ) {
-                link = ( elementorCommon.helpers.sanitizeURL || elementorCommon.helpers.sanitizeUrl )( link );
-            } else if (
-                window.elementor &&
-                elementor.helpers &&
-                ( elementor.helpers.sanitizeURL || elementor.helpers.sanitizeUrl )
-            ) {
-                link = ( elementor.helpers.sanitizeURL || elementor.helpers.sanitizeUrl )( link );
-            }
+            link = sanitizeUrl( settings.button_link );
         }
         var openInNewWindow = settings.button_new_window && settings.button_new_window === 'yes';
         var label = settings.button_text ? settings.button_text : '<?php echo esc_js( __( 'The Workflow', 'bw-elementor-widgets' ) ); ?>';
@@ -545,34 +556,13 @@ class Widget_Bw_Button extends Widget_Base {
         var iconMarkup = '&#8250;';
         var customSvgMarkup = settings.button_custom_svg ? settings.button_custom_svg : '';
 
-        if (
-            customSvgMarkup &&
-            window.elementorCommon &&
-            elementorCommon.helpers &&
-            elementorCommon.helpers.sanitizeSVG
-        ) {
-            customSvgMarkup = elementorCommon.helpers.sanitizeSVG( customSvgMarkup );
-        }
+        customSvgMarkup = sanitizeSvg( customSvgMarkup );
         var customSvgMedia = settings.button_custom_svg_media ? settings.button_custom_svg_media : null;
         var hasCustomSvgMedia = customSvgMedia && customSvgMedia.url;
         var svgMediaUrl = '';
 
         if ( hasCustomSvgMedia ) {
-            svgMediaUrl = customSvgMedia.url;
-
-            if (
-                window.elementorCommon &&
-                elementorCommon.helpers &&
-                ( elementorCommon.helpers.sanitizeURL || elementorCommon.helpers.sanitizeUrl )
-            ) {
-                svgMediaUrl = ( elementorCommon.helpers.sanitizeURL || elementorCommon.helpers.sanitizeUrl )( svgMediaUrl );
-            } else if (
-                window.elementor &&
-                elementor.helpers &&
-                ( elementor.helpers.sanitizeURL || elementor.helpers.sanitizeUrl )
-            ) {
-                svgMediaUrl = ( elementor.helpers.sanitizeURL || elementor.helpers.sanitizeUrl )( svgMediaUrl );
-            }
+            svgMediaUrl = sanitizeUrl( customSvgMedia.url );
         }
 
         var shouldFetchSvgFromMedia = iconType === 'custom' && hasCustomSvgMedia;
@@ -611,8 +601,12 @@ class Widget_Bw_Button extends Widget_Base {
 
                 var $target = $( '#{{ iconWrapperId }}' );
 
-                if ( window.elementor && elementor.$previewContents && elementor.$previewContents.length ) {
-                    $target = elementor.$previewContents.find( '#{{ iconWrapperId }}' );
+                if (
+                    window.elementor &&
+                    window.elementor.$previewContents &&
+                    window.elementor.$previewContents.length
+                ) {
+                    $target = window.elementor.$previewContents.find( '#{{ iconWrapperId }}' );
                 }
 
                 if ( ! $target.length ) {
@@ -636,12 +630,16 @@ class Widget_Bw_Button extends Widget_Base {
                         return response.text();
                     } )
                     .then( function( svgText ) {
+                        var inlineCommonHelpers = ( window.elementorCommon && window.elementorCommon.helpers )
+                            ? window.elementorCommon.helpers
+                            : null;
+
                         if (
-                            window.elementorCommon &&
-                            elementorCommon.helpers &&
-                            elementorCommon.helpers.sanitizeSVG
+                            inlineCommonHelpers &&
+                            inlineCommonHelpers.sanitizeSVG &&
+                            'function' === typeof inlineCommonHelpers.sanitizeSVG
                         ) {
-                            svgText = elementorCommon.helpers.sanitizeSVG( svgText );
+                            svgText = inlineCommonHelpers.sanitizeSVG( svgText );
                         }
 
                         target.innerHTML = svgText;
