@@ -535,7 +535,18 @@ class Widget_Bw_Button extends Widget_Base {
             }
         }
 
-        var iconWrapperId = 'bw-button-icon-' + view.getID();
+        var iconWrapperIdBase = 'bw-button-icon';
+        var iconWrapperId = iconWrapperIdBase;
+
+        if ( typeof view !== 'undefined' && view && typeof view.getID === 'function' ) {
+            iconWrapperId = iconWrapperIdBase + '-' + view.getID();
+        } else if ( settings && settings._element_id ) {
+            iconWrapperId = iconWrapperIdBase + '-' + settings._element_id;
+        } else if ( settings && settings._id ) {
+            iconWrapperId = iconWrapperIdBase + '-' + settings._id;
+        } else {
+            iconWrapperId = iconWrapperIdBase + '-' + ( Math.random().toString( 36 ).slice( 2, 11 ) );
+        }
         #>
         <a class="bw-button" href="{{ link }}" <# if ( openInNewWindow ) { #>target="_blank" rel="noopener noreferrer"<# } #>>
             <span class="bw-button__icon" id="{{ iconWrapperId }}" <# if ( shouldFetchSvgFromMedia && svgMediaUrl ) { #>data-bw-svg-url="{{ svgMediaUrl }}"<# } #>>{{{ iconMarkup }}}</span>
