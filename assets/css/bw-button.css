@@ -1,21 +1,30 @@
 .bw-button {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.75em;
-    border-radius: 999px;
-    padding: 0.55em 1.6em 0.55em 0.9em;
-    border: 2px solid currentColor;
-    background-color: #7eff00;
-    color: #111;
-    font-weight: 600;
-    font-size: 1rem;
-    line-height: 1.25;
-    text-decoration: none;
-    transition: all 0.3s ease;
     --bw-button-hover-bg: #65d800;
     --bw-button-hover-border: currentColor;
     --bw-button-hover-text: #111;
     --bw-button-hover-icon: #111;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75em;
+    font-weight: 600;
+    font-size: 1rem;
+    line-height: 1.25;
+    color: #111;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.bw-button__label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    flex-shrink: 0;
+    border-radius: 999px;
+    padding: 0.55em 1.6em 0.55em 0.9em;
+    border: 2px solid currentColor;
+    background-color: #7eff00;
+    color: inherit;
+    transition: inherit;
 }
 
 .bw-button__icon {
@@ -24,15 +33,16 @@
     justify-content: center;
     width: 2.2em;
     height: 2.2em;
+    flex-shrink: 0;
     border-radius: 999px;
     border: 2px solid currentColor;
-    background-color: inherit;
+    background-color: transparent;
     font-size: 1.1em;
     line-height: 1;
     transition: inherit;
 }
 
-.bw-button:hover {
+.bw-button:hover .bw-button__label {
     background: var(--bw-button-hover-bg, #65d800);
     border-color: var(--bw-button-hover-border, currentColor);
     color: var(--bw-button-hover-text, #111);
@@ -40,5 +50,6 @@
 
 .bw-button:hover .bw-button__icon {
     color: var(--bw-button-hover-icon, #111);
+    border-color: var(--bw-button-hover-border, currentColor);
     background-color: var(--bw-button-hover-bg, #65d800);
 }
