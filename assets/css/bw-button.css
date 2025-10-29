@@ -1,0 +1,29 @@
+.bw-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border-radius: 999px;
+    padding: 0.6em 1.2em;
+    border: 1px solid transparent;
+    transition: all 0.3s ease;
+    --bw-button-hover-bg: inherit;
+    --bw-button-hover-border: currentColor;
+    --bw-button-hover-text: inherit;
+    --bw-button-hover-icon: inherit;
+}
+
+.bw-button__icon {
+    font-size: 1.2em;
+    line-height: 1;
+    transition: inherit;
+}
+
+.bw-button:hover {
+    background: var(--bw-button-hover-bg, inherit);
+    border-color: var(--bw-button-hover-border, currentColor);
+    color: var(--bw-button-hover-text, inherit);
+}
+
+.bw-button:hover .bw-button__icon {
+    color: var(--bw-button-hover-icon, inherit);
+}

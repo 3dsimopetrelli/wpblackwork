@@ -42,6 +42,7 @@ add_action('elementor/editor/after_enqueue_scripts', 'bw_enqueue_slick_slider_as
 add_action('elementor/preview/enqueue_scripts', 'bw_enqueue_slick_slider_assets');
 add_action('elementor/editor/after_enqueue_scripts', 'bw_enqueue_slick_slider_admin_script');
 add_action('init', 'bw_register_divider_style');
+add_action('init', 'bw_register_button_style');
 
 function bw_enqueue_slick_slider_assets() {
     wp_enqueue_style(
@@ -162,6 +163,18 @@ function bw_register_divider_style() {
     wp_register_style(
         'bw-divider-style',
         plugin_dir_url(__FILE__) . 'assets/css/bw-divider.css',
+        [],
+        $version
+    );
+}
+
+function bw_register_button_style() {
+    $css_file = __DIR__ . '/assets/css/bw-button.css';
+    $version  = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
+
+    wp_register_style(
+        'bw-button-style',
+        plugin_dir_url(__FILE__) . 'assets/css/bw-button.css',
         [],
         $version
     );
