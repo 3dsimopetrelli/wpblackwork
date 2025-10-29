@@ -441,8 +441,7 @@ class Widget_Bw_Button extends Widget_Base {
             $this->add_render_attribute( 'button', 'rel', 'noopener noreferrer' );
         }
 
-        $label = ! empty( $settings['button_text'] ) ? $settings['button_text'] : __( 'The Workflow', 'bw-elementor-widgets' );
-        ?>
+        $label        = ! empty( $settings['button_text'] ) ? $settings['button_text'] : __( 'The Workflow', 'bw-elementor-widgets' );
         $icon_type    = ! empty( $settings['button_icon_type'] ) ? $settings['button_icon_type'] : 'default';
         $icon_content = '&#8250;';
 
@@ -455,7 +454,7 @@ class Widget_Bw_Button extends Widget_Base {
         }
         ?>
         <a <?php echo $this->get_render_attribute_string( 'button' ); ?>>
-            <span class="bw-button__icon"><?php echo $icon_content; ?></span>
+            <span class="bw-button__icon"><?php echo wp_kses_post( $icon_content ); ?></span>
             <span class="bw-button__label"><?php echo esc_html( $label ); ?></span>
         </a>
         <?php
