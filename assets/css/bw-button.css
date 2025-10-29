@@ -1,15 +1,17 @@
 .bw-button {
-    --bw-button-hover-bg: #65d800;
-    --bw-button-hover-border: currentColor;
-    --bw-button-hover-text: #111;
-    --bw-button-hover-icon: #111;
+    --bw-button-label-hover-bg: #80fd03;
+    --bw-button-label-hover-border: #080808;
+    --bw-button-label-hover-color: #080808;
+    --bw-button-icon-hover-color: #080808;
+    --bw-button-icon-hover-bg: #80fd03;
+    --bw-button-icon-hover-border: #080808;
     display: inline-flex;
     align-items: center;
     gap: 0.75em;
     font-weight: 600;
     font-size: 1rem;
     line-height: 1.25;
-    color: #111;
+    color: #080808;
     text-decoration: none;
     transition: all 0.3s ease;
 }
@@ -21,9 +23,9 @@
     flex-shrink: 0;
     border-radius: 999px;
     padding: 0.55em 1.6em 0.55em 0.9em;
-    border: 2px solid currentColor;
-    background-color: #7eff00;
-    color: inherit;
+    border: 1px solid #080808;
+    background-color: #80fd03;
+    color: #080808;
     transition: inherit;
 }
 
@@ -31,25 +33,33 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 2.2em;
-    height: 2.2em;
     flex-shrink: 0;
     border-radius: 999px;
-    border: 2px solid currentColor;
-    background-color: transparent;
-    font-size: 1.1em;
+    border: 1px solid #080808;
+    background-color: #80fd03;
+    color: #080808;
+    font-size: 30px;
+    padding: 0.45em;
     line-height: 1;
     transition: inherit;
 }
 
+.bw-button__icon svg {
+    width: 1em;
+    height: 1em;
+    display: block;
+    fill: currentColor;
+    stroke: currentColor;
+}
+
 .bw-button:hover .bw-button__label {
-    background: var(--bw-button-hover-bg, #65d800);
-    border-color: var(--bw-button-hover-border, currentColor);
-    color: var(--bw-button-hover-text, #111);
+    background: var(--bw-button-label-hover-bg, #80fd03);
+    border-color: var(--bw-button-label-hover-border, #080808);
+    color: var(--bw-button-label-hover-color, #080808);
 }
 
 .bw-button:hover .bw-button__icon {
-    color: var(--bw-button-hover-icon, #111);
-    border-color: var(--bw-button-hover-border, currentColor);
-    background-color: var(--bw-button-hover-bg, #65d800);
+    color: var(--bw-button-icon-hover-color, #080808);
+    border-color: var(--bw-button-icon-hover-border, #080808);
+    background-color: var(--bw-button-icon-hover-bg, #80fd03);
 }
