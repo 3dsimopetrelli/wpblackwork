@@ -295,7 +295,25 @@ class Widget_Bw_Button extends Widget_Base {
     protected function content_template() {
         ?>
         <#
-        var link = settings.button_link && settings.button_link.url ? elementor.helpers.sanitizeURL( settings.button_link.url ) : '#';
+        var link = '#';
+
+        if ( settings.button_link && settings.button_link.url ) {
+            link = settings.button_link.url;
+
+            if (
+                window.elementorCommon &&
+                elementorCommon.helpers &&
+                ( elementorCommon.helpers.sanitizeURL || elementorCommon.helpers.sanitizeUrl )
+            ) {
+                link = ( elementorCommon.helpers.sanitizeURL || elementorCommon.helpers.sanitizeUrl )( link );
+            } else if (
+                window.elementor &&
+                elementor.helpers &&
+                ( elementor.helpers.sanitizeURL || elementor.helpers.sanitizeUrl )
+            ) {
+                link = ( elementor.helpers.sanitizeURL || elementor.helpers.sanitizeUrl )( link );
+            }
+        }
         var openInNewWindow = settings.button_new_window && settings.button_new_window === 'yes';
         var label = settings.button_text ? settings.button_text : '<?php echo esc_js( __( 'The Workflow', 'bw-elementor-widgets' ) ); ?>';
         #>
