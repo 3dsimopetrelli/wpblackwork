@@ -311,7 +311,7 @@ class Widget_Bw_Button extends Widget_Base {
         $url = ! empty( $settings['button_link']['url'] ) ? $settings['button_link']['url'] : '#';
         $this->add_render_attribute( 'button', 'href', esc_url( $url ) );
 
-        if ( 'yes' === $settings['button_new_window'] ) {
+        if ( ! empty( $settings['button_new_window'] ) && 'yes' === $settings['button_new_window'] ) {
             $this->add_render_attribute( 'button', 'target', '_blank' );
             $this->add_render_attribute( 'button', 'rel', 'noopener noreferrer' );
         }
@@ -328,8 +328,8 @@ class Widget_Bw_Button extends Widget_Base {
     protected function content_template() {
         ?>
         <#
-        var link = settings.button_link.url ? elementor.helpers.sanitizeURL( settings.button_link.url ) : '#';
-        var openInNewWindow = settings.button_new_window === 'yes';
+        var link = settings.button_link && settings.button_link.url ? elementor.helpers.sanitizeURL( settings.button_link.url ) : '#';
+        var openInNewWindow = settings.button_new_window && settings.button_new_window === 'yes';
         var label = settings.button_text ? settings.button_text : '<?php echo esc_js( __( 'The Workflow', 'bw-elementor-widgets' ) ); ?>';
         #>
         <a class="bw-button" href="{{ link }}" <# if ( openInNewWindow ) { #>target="_blank" rel="noopener noreferrer"<# } #>>

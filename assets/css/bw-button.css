@@ -1,29 +1,44 @@
 .bw-button {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 0.75em;
     border-radius: 999px;
-    padding: 0.6em 1.2em;
-    border: 1px solid transparent;
+    padding: 0.55em 1.6em 0.55em 0.9em;
+    border: 2px solid currentColor;
+    background-color: #7eff00;
+    color: #111;
+    font-weight: 600;
+    font-size: 1rem;
+    line-height: 1.25;
+    text-decoration: none;
     transition: all 0.3s ease;
-    --bw-button-hover-bg: inherit;
+    --bw-button-hover-bg: #65d800;
     --bw-button-hover-border: currentColor;
-    --bw-button-hover-text: inherit;
-    --bw-button-hover-icon: inherit;
+    --bw-button-hover-text: #111;
+    --bw-button-hover-icon: #111;
 }
 
 .bw-button__icon {
-    font-size: 1.2em;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.2em;
+    height: 2.2em;
+    border-radius: 999px;
+    border: 2px solid currentColor;
+    background-color: inherit;
+    font-size: 1.1em;
     line-height: 1;
     transition: inherit;
 }
 
 .bw-button:hover {
-    background: var(--bw-button-hover-bg, inherit);
+    background: var(--bw-button-hover-bg, #65d800);
     border-color: var(--bw-button-hover-border, currentColor);
-    color: var(--bw-button-hover-text, inherit);
+    color: var(--bw-button-hover-text, #111);
 }
 
 .bw-button:hover .bw-button__icon {
-    color: var(--bw-button-hover-icon, inherit);
+    color: var(--bw-button-hover-icon, #111);
+    background-color: var(--bw-button-hover-bg, #65d800);
 }
