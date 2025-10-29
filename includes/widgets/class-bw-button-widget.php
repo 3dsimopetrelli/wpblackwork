@@ -111,7 +111,7 @@ class Widget_Bw_Button extends Widget_Base {
                 'label'     => __( 'Background Color', 'bw-elementor-widgets' ),
                 'type'      => Controls_Manager::COLOR,
                 'selectors' => [
-                    '{{WRAPPER}} .bw-button' => 'background-color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-button__label' => 'background-color: {{VALUE}};',
                 ],
             ]
         );
@@ -122,18 +122,8 @@ class Widget_Bw_Button extends Widget_Base {
                 'label'     => __( 'Text Color', 'bw-elementor-widgets' ),
                 'type'      => Controls_Manager::COLOR,
                 'selectors' => [
-                    '{{WRAPPER}} .bw-button, {{WRAPPER}} .bw-button .bw-button__label' => 'color: {{VALUE}};',
-                ],
-            ]
-        );
-
-        $this->add_control(
-            'button_border_color',
-            [
-                'label'     => __( 'Border Color', 'bw-elementor-widgets' ),
-                'type'      => Controls_Manager::COLOR,
-                'selectors' => [
-                    '{{WRAPPER}} .bw-button' => 'border-color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-button' => 'color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-button__label' => 'color: {{VALUE}};',
                 ],
             ]
         );
@@ -144,7 +134,7 @@ class Widget_Bw_Button extends Widget_Base {
                 'label'     => __( 'Icon Color', 'bw-elementor-widgets' ),
                 'type'      => Controls_Manager::COLOR,
                 'selectors' => [
-                    '{{WRAPPER}} .bw-button__icon' => 'color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-button__icon' => 'color: {{VALUE}}; border-color: {{VALUE}};',
                 ],
             ]
         );
@@ -206,34 +196,11 @@ class Widget_Bw_Button extends Widget_Base {
 
         $this->end_controls_tabs();
 
-        $this->add_control(
-            'button_border_width',
-            [
-                'label'   => __( 'Border Width', 'bw-elementor-widgets' ),
-                'type'    => Controls_Manager::SLIDER,
-                'default' => [
-                    'size' => 1,
-                    'unit' => 'px',
-                ],
-                'range'   => [
-                    'px' => [
-                        'min' => 0,
-                        'max' => 10,
-                        'step' => 1,
-                    ],
-                ],
-                'size_units' => [ 'px' ],
-                'selectors' => [
-                    '{{WRAPPER}} .bw-button' => 'border-width: {{SIZE}}{{UNIT}};',
-                ],
-            ]
-        );
-
         $this->add_group_control(
             Group_Control_Border::get_type(),
             [
                 'name'     => 'button_border',
-                'selector' => '{{WRAPPER}} .bw-button',
+                'selector' => '{{WRAPPER}} .bw-button__label',
             ]
         );
 
@@ -251,7 +218,7 @@ class Widget_Bw_Button extends Widget_Base {
                     'unit'   => 'px',
                 ],
                 'selectors'  => [
-                    '{{WRAPPER}} .bw-button' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                    '{{WRAPPER}} .bw-button__label' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
             ]
         );
@@ -295,7 +262,7 @@ class Widget_Bw_Button extends Widget_Base {
                 'type'       => Controls_Manager::DIMENSIONS,
                 'size_units' => [ 'px', 'em', 'rem' ],
                 'selectors'  => [
-                    '{{WRAPPER}} .bw-button' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                    '{{WRAPPER}} .bw-button__label' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
             ]
         );
