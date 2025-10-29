@@ -698,10 +698,55 @@ class Widget_Bw_Button extends Widget_Base {
         }
 
         if ( ! $markup && ! empty( $media['url'] ) ) {
-            $response = wp_remote_get( esc_url_raw( $media['url'] ) );
+            $url = esc_url_raw( $media['url'] );
 
-            if ( ! is_wp_error( $response ) ) {
+            if ( $url && wp_http_validate_url( $url ) ) {
+                $transient_key = 'bw_button_svg_' . md5( $url );
+                $cached_markup = get_transient( $transient_key );
+
+                if ( false !== $cached_markup ) {
+                    return $cached_markup;
+                }
+
+                $response = wp_safe_remote_get(
+                    $url,
+                    [
+                        'timeout'           => 3,
+                        'redirection'       => 2,
+                        'reject_unsafe_urls' => true,
+                        'headers'           => [
+                            'Accept' => 'image/svg+xml',
+                        ],
+                    ]
+                );
+
+                if ( is_wp_error( $response ) ) {
+                    set_transient( $transient_key, '', HOUR_IN_SECONDS );
+                    return '';
+                }
+
+                if ( 200 !== (int) wp_remote_retrieve_response_code( $response ) ) {
+                    set_transient( $transient_key, '', HOUR_IN_SECONDS );
+                    return '';
+                }
+
                 $markup = wp_remote_retrieve_body( $response );
+
+                if ( empty( $markup ) ) {
+                    set_transient( $transient_key, '', HOUR_IN_SECONDS );
+                    return '';
+                }
+
+                $markup = $this->sanitize_custom_svg_markup( $markup );
+
+                if ( '' === $markup ) {
+                    set_transient( $transient_key, '', HOUR_IN_SECONDS );
+                    return '';
+                }
+
+                set_transient( $transient_key, $markup, DAY_IN_SECONDS );
+
+                return $markup;
             }
         }
 
