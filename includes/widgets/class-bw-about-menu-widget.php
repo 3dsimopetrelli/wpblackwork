@@ -235,7 +235,7 @@ class BW_About_Menu_Widget extends Widget_Base {
                     'unit' => 'px',
                 ],
                 'selectors'   => [
-                    '{{WRAPPER}} .bw-about-menu'        => '--spotlight-width: {{SIZE}}{{UNIT}};',
+                    '{{WRAPPER}} .bw-about-menu'        => '--spotlight-size: {{SIZE}}{{UNIT}};',
                     '{{WRAPPER}} .bw-about-menu::before' => 'width: {{SIZE}}{{UNIT}};',
                 ],
                 'render_type' => 'ui',
@@ -271,7 +271,7 @@ class BW_About_Menu_Widget extends Widget_Base {
                 'default'     => '#80FD03',
                 'selectors'   => [
                     '{{WRAPPER}} .bw-about-menu'        => '--spotlight-color: {{VALUE}};',
-                    '{{WRAPPER}} .bw-about-menu::before' => 'background: radial-gradient(circle at center, {{VALUE}} var(--spotlight-strength, 40%), rgba(128,253,3,0) 70%);',
+                    '{{WRAPPER}} .bw-about-menu::before' => 'background: radial-gradient(circle at center, {{VALUE}} 0%, transparent var(--spotlight-strength, 70%));',
                 ],
                 'render_type' => 'ui',
             ]
@@ -287,10 +287,11 @@ class BW_About_Menu_Widget extends Widget_Base {
                     'max' => 100,
                 ],
                 'default'     => [
-                    'size' => 40,
+                    'size' => 70,
                 ],
                 'selectors'   => [
-                    '{{WRAPPER}} .bw-about-menu' => '--spotlight-strength: {{SIZE}}%;',
+                    '{{WRAPPER}} .bw-about-menu'        => '--spotlight-strength: {{SIZE}}%;',
+                    '{{WRAPPER}} .bw-about-menu::before' => 'background: radial-gradient(circle at center, var(--spotlight-color, #80FD03) 0%, transparent {{SIZE}}%);',
                 ],
                 'render_type' => 'ui',
             ]
@@ -309,7 +310,7 @@ class BW_About_Menu_Widget extends Widget_Base {
                 'default'   => [ 'size' => 0.6 ],
                 'selectors' => [
                     '{{WRAPPER}} .bw-about-menu'        => '--spotlight-speed: {{SIZE}}s;',
-                    '{{WRAPPER}} .bw-about-menu::before' => 'transition-duration: {{SIZE}}s;',
+                    '{{WRAPPER}} .bw-about-menu::before' => 'transition: transform {{SIZE}}s ease-in-out, opacity 0.3s ease;',
                 ],
                 'render_type' => 'ui', // aggiornamento live in anteprima Elementor
             ]

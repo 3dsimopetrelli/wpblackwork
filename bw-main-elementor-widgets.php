@@ -44,6 +44,8 @@ add_action('elementor/editor/after_enqueue_scripts', 'bw_enqueue_slick_slider_ad
 add_action('init', 'bw_register_divider_style');
 add_action( 'init', 'bw_register_button_widget_assets' );
 add_action( 'init', 'bw_register_about_menu_widget_assets' );
+add_action( 'elementor/frontend/after_register_scripts', 'bw_enqueue_about_menu_widget_assets' );
+add_action( 'elementor/editor/after_enqueue_scripts', 'bw_enqueue_about_menu_widget_assets' );
 
 function bw_enqueue_slick_slider_assets() {
     wp_enqueue_style(
@@ -212,6 +214,20 @@ function bw_register_about_menu_widget_assets() {
             filemtime( $js_file ),
             true
         );
+    }
+}
+
+function bw_enqueue_about_menu_widget_assets() {
+    if ( ! wp_style_is( 'bw-about-menu-style', 'registered' ) || ! wp_script_is( 'bw-about-menu-script', 'registered' ) ) {
+        bw_register_about_menu_widget_assets();
+    }
+
+    if ( wp_style_is( 'bw-about-menu-style', 'registered' ) ) {
+        wp_enqueue_style( 'bw-about-menu-style' );
+    }
+
+    if ( wp_script_is( 'bw-about-menu-script', 'registered' ) ) {
+        wp_enqueue_script( 'bw-about-menu-script' );
     }
 }
 
