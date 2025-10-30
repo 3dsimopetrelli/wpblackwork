@@ -327,7 +327,7 @@ class BW_About_Menu_Widget extends Widget_Base {
         }
 
         $this->current_menu_for_filter = $menu_id;
-        add_filter( 'nav_menu_link_attributes', [ $this, 'add_link_attributes' ], 10, 3 );
+        add_filter( 'nav_menu_link_attributes', [ $this, 'filter_nav_menu_link_attributes' ], 10, 3 );
 
         $menu = wp_nav_menu(
             [
@@ -340,7 +340,7 @@ class BW_About_Menu_Widget extends Widget_Base {
             ]
         );
 
-        remove_filter( 'nav_menu_link_attributes', [ $this, 'add_link_attributes' ], 10 );
+        remove_filter( 'nav_menu_link_attributes', [ $this, 'filter_nav_menu_link_attributes' ], 10 );
         $this->current_menu_for_filter = null;
 
         if ( empty( $menu ) ) {
@@ -376,7 +376,7 @@ class BW_About_Menu_Widget extends Widget_Base {
      *
      * @return array
      */
-    public function add_link_attributes( $atts, $item, $args ) {
+    public function filter_nav_menu_link_attributes( $atts, $item, $args ) {
         if ( empty( $this->current_menu_for_filter ) ) {
             return $atts;
         }
