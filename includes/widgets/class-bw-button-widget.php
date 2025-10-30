@@ -426,12 +426,14 @@ class BW_Button_Widget extends Widget_Base {
 
         $icon_markup = $this->get_icon_markup( $settings );
 
+        $label_markup = sprintf( '<span class="bw-button__label">%s</span>', esc_html( $text ) );
+
         echo sprintf(
-            '<%1$s %2$s>%3$s<span class="bw-button__label">%4$s</span></%1$s>',
+            '<%1$s %2$s>%3$s%4$s</%1$s>',
             esc_attr( $tag ),
             $this->get_render_attribute_string( 'button' ),
             $icon_markup,
-            esc_html( $text )
+            $label_markup
         );
     }
 
@@ -458,7 +460,10 @@ class BW_Button_Widget extends Widget_Base {
             $icon_html = $this->get_default_arrow_svg();
         }
 
-        return sprintf( '<span class="bw-button__icon">%s</span>', $icon_html );
+        return sprintf(
+            '<span class="bw-button__icon-wrap"><span class="bw-button__icon">%s</span></span>',
+            $icon_html
+        );
     }
 
     private function get_default_arrow_svg() {
