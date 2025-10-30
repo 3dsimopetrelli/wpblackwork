@@ -45,6 +45,18 @@
             return;
         }
 
+        const readSpotlightSize = () => {
+            const computedStyles = window.getComputedStyle(list);
+            const sizeValue = computedStyles.getPropertyValue('--spotlight-size').trim();
+            const parsedSize = parseFloat(sizeValue);
+
+            if (!Number.isNaN(parsedSize) && parsedSize > 0) {
+                return parsedSize;
+            }
+
+            return 80;
+        };
+
         const updateSpotlight = (target) => {
             if (!target) {
                 list.style.setProperty('--spotlight-visible', '0');
@@ -53,10 +65,10 @@
 
             const itemRect = target.getBoundingClientRect();
             const listRect = list.getBoundingClientRect();
-            const center = itemRect.left - listRect.left + itemRect.width / 2;
+            const spotlightSize = readSpotlightSize();
+            const offsetX = itemRect.left - listRect.left + itemRect.width / 2 - spotlightSize / 2;
 
-            list.style.setProperty('--spotlight-dynamic-size', `${itemRect.width}px`);
-            list.style.setProperty('--spotlight-x', `${center}px`);
+            list.style.setProperty('--spotlight-x', `${offsetX}px`);
             list.style.setProperty('--spotlight-visible', '1');
         };
 

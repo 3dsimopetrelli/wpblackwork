@@ -294,6 +294,25 @@ class BW_About_Menu_Widget extends Widget_Base {
             ]
         );
 
+        $this->add_control(
+            'spotlight_transition_speed',
+            [
+                'label' => __( 'Spotlight Transition Speed', 'bw' ),
+                'type'  => Controls_Manager::SLIDER,
+                'range' => [
+                    'min'  => 0.1,
+                    'max'  => 3,
+                    'step' => 0.1,
+                ],
+                'default'   => [ 'size' => 0.6 ],
+                'selectors' => [
+                    '{{WRAPPER}} .bw-about-menu__list'       => '--spotlight-speed: {{SIZE}}s;',
+                    '{{WRAPPER}} .bw-about-menu__list::before' => 'transition-duration: {{SIZE}}s;',
+                ],
+                'render_type' => 'ui', // aggiornamento live in anteprima Elementor
+            ]
+        );
+
         $this->end_controls_section();
     }
 
@@ -360,31 +379,6 @@ class BW_About_Menu_Widget extends Widget_Base {
                     '{{WRAPPER}} .bw-about-menu__list .menu-item:hover > .bw-about-menu__link' => 'color: {{VALUE}};',
                     '{{WRAPPER}} .bw-about-menu__list .menu-item:focus-within > .bw-about-menu__link' => 'color: {{VALUE}};',
                 ],
-                'render_type' => 'ui',
-            ]
-        );
-
-        $this->add_control(
-            'spotlight_transition_speed',
-            [
-                'label'      => __( 'Spotlight Transition Speed', 'bw' ),
-                'type'       => Controls_Manager::SLIDER,
-                'size_units' => [ 's' ],
-                'range'      => [
-                    's' => [
-                        'min' => 0.1,
-                        'max' => 2,
-                        'step' => 0.05,
-                    ],
-                ],
-                'default'    => [
-                    'size' => 0.5,
-                    'unit' => 's',
-                ],
-                'selectors'  => [
-                    '{{WRAPPER}} .bw-about-menu__list' => '--spotlight-move-duration: {{SIZE}}{{UNIT}};',
-                ],
-                'description' => __( 'Adjust the movement speed of the spotlight.', 'bw' ),
                 'render_type' => 'ui',
             ]
         );
