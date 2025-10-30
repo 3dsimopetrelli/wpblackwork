@@ -315,30 +315,14 @@ class BW_Button_Widget extends Widget_Base {
         );
 
         $this->add_control(
-            'icon_color',
-            [
-                'label'     => __( 'Icon Color', 'bw' ),
-                'type'      => Controls_Manager::COLOR,
-                'default'   => '#080808',
-                'selectors' => [
-                    // Live preview: update both icon color and SVG fill.
-                    '{{WRAPPER}} .bw-button__icon' => 'color: {{VALUE}};',
-                    '{{WRAPPER}} .bw-button__icon svg path' => 'fill: {{VALUE}};',
-                ],
-                'render_type' => 'ui',
-            ]
-        );
-
-        $this->add_control(
             'icon_background_color',
             [
                 'label'     => __( 'Icon Background', 'bw' ),
                 'type'      => Controls_Manager::COLOR,
                 'default'   => '#80FD03',
                 'selectors' => [
-                    // Live preview: update both wrap and icon backgrounds.
+                    // Live preview: update the icon wrapper background instantly.
                     '{{WRAPPER}} .bw-button__icon-wrap' => 'background-color: {{VALUE}};',
-                    '{{WRAPPER}} .bw-button__icon'      => 'background-color: {{VALUE}};',
                 ],
                 'render_type' => 'ui',
             ]
@@ -347,13 +331,12 @@ class BW_Button_Widget extends Widget_Base {
         $this->add_control(
             'icon_border_color',
             [
-                'label'     => __( 'Icon Border', 'bw' ),
+                'label'     => __( 'Icon Border Color', 'bw' ),
                 'type'      => Controls_Manager::COLOR,
                 'default'   => '#080808',
                 'selectors' => [
-                    // Live preview: update both wrap and icon border colors.
+                    // Live preview: update the icon wrapper border color instantly.
                     '{{WRAPPER}} .bw-button__icon-wrap' => 'border-color: {{VALUE}};',
-                    '{{WRAPPER}} .bw-button__icon'      => 'border-color: {{VALUE}};',
                 ],
                 'render_type' => 'ui',
             ]
@@ -369,30 +352,14 @@ class BW_Button_Widget extends Widget_Base {
         );
 
         $this->add_control(
-            'icon_color_hover',
-            [
-                'label'     => __( 'Icon Color', 'bw' ),
-                'type'      => Controls_Manager::COLOR,
-                'default'   => '#080808',
-                'selectors' => [
-                    // Live preview: update both icon color and SVG fill on hover.
-                    '{{WRAPPER}} .bw-button:hover .bw-button__icon, {{WRAPPER}} .bw-button:focus .bw-button__icon' => 'color: {{VALUE}};',
-                    '{{WRAPPER}} .bw-button:hover .bw-button__icon svg path, {{WRAPPER}} .bw-button:focus .bw-button__icon svg path' => 'fill: {{VALUE}};',
-                ],
-                'render_type' => 'ui',
-            ]
-        );
-
-        $this->add_control(
             'icon_background_color_hover',
             [
                 'label'     => __( 'Icon Background', 'bw' ),
                 'type'      => Controls_Manager::COLOR,
                 'default'   => '#80FD03',
                 'selectors' => [
-                    // Live preview: update both wrap and icon backgrounds on hover.
+                    // Live preview: update the icon wrapper background instantly on hover/focus.
                     '{{WRAPPER}} .bw-button:hover .bw-button__icon-wrap, {{WRAPPER}} .bw-button:focus .bw-button__icon-wrap' => 'background-color: {{VALUE}};',
-                    '{{WRAPPER}} .bw-button:hover .bw-button__icon, {{WRAPPER}} .bw-button:focus .bw-button__icon' => 'background-color: {{VALUE}};',
                 ],
                 'render_type' => 'ui',
             ]
@@ -401,13 +368,12 @@ class BW_Button_Widget extends Widget_Base {
         $this->add_control(
             'icon_border_color_hover',
             [
-                'label'     => __( 'Icon Border', 'bw' ),
+                'label'     => __( 'Icon Border Color', 'bw' ),
                 'type'      => Controls_Manager::COLOR,
                 'default'   => '#080808',
                 'selectors' => [
-                    // Live preview: update both wrap and icon border colors on hover.
+                    // Live preview: update the icon wrapper border color instantly on hover/focus.
                     '{{WRAPPER}} .bw-button:hover .bw-button__icon-wrap, {{WRAPPER}} .bw-button:focus .bw-button__icon-wrap' => 'border-color: {{VALUE}};',
-                    '{{WRAPPER}} .bw-button:hover .bw-button__icon, {{WRAPPER}} .bw-button:focus .bw-button__icon' => 'border-color: {{VALUE}};',
                 ],
                 'render_type' => 'ui',
             ]
@@ -415,6 +381,24 @@ class BW_Button_Widget extends Widget_Base {
 
         $this->end_controls_tab();
         $this->end_controls_tabs();
+
+        // Icon border radius control to fine-tune the circular wrapper shape.
+        $this->add_responsive_control(
+            'icon_border_radius',
+            [
+                'label' => __( 'Icon Border Radius', 'bw' ),
+                'type' => Controls_Manager::SLIDER,
+                'range' => [
+                    'px' => [ 'min' => 0, 'max' => 100 ],
+                    '%'  => [ 'min' => 0, 'max' => 100 ],
+                ],
+                'default' => [ 'unit' => '%', 'size' => 50 ],
+                'selectors' => [
+                    '{{WRAPPER}} .bw-button__icon-wrap' => 'border-radius: {{SIZE}}{{UNIT}};',
+                ],
+                'render_type' => 'ui',
+            ]
+        );
 
         $this->add_control(
             'icon_size',
@@ -452,6 +436,20 @@ class BW_Button_Widget extends Widget_Base {
                     // Live preview: update both wrap and icon paddings.
                     '{{WRAPPER}} .bw-button__icon-wrap' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                     '{{WRAPPER}} .bw-button__icon'      => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+                'render_type' => 'ui',
+            ]
+        );
+
+        // Icon margin control to control the wrapper spacing around the button label.
+        $this->add_responsive_control(
+            'icon_margin',
+            [
+                'label' => __( 'Icon Margin', 'bw' ),
+                'type' => Controls_Manager::DIMENSIONS,
+                'size_units' => [ 'px', 'em', '%' ],
+                'selectors' => [
+                    '{{WRAPPER}} .bw-button__icon-wrap' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
                 'render_type' => 'ui',
             ]
