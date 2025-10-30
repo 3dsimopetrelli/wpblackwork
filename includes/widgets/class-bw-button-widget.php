@@ -59,6 +59,8 @@ class BW_Button_Widget extends Widget_Base {
                 'default'     => __( 'The Workflow', 'bw' ),
                 'placeholder' => __( 'Enter button text', 'bw' ),
                 'label_block' => true,
+                // Live preview: re-render template when the text changes.
+                'render_type' => 'template',
             ]
         );
 
@@ -69,6 +71,8 @@ class BW_Button_Widget extends Widget_Base {
                 'type'        => Controls_Manager::URL,
                 'placeholder' => __( 'https://your-link.com', 'bw' ),
                 'dynamic'     => [ 'active' => true ],
+                // Live preview: re-render template when the link target changes.
+                'render_type' => 'template',
             ]
         );
 
@@ -99,6 +103,8 @@ class BW_Button_Widget extends Widget_Base {
                     '{{WRAPPER}} .bw-button'       => 'color: {{VALUE}};',
                     '{{WRAPPER}} .bw-button__label' => 'color: {{VALUE}};',
                 ],
+                // Live preview: update colors instantly.
+                'render_type' => 'ui',
             ]
         );
 
@@ -109,8 +115,10 @@ class BW_Button_Widget extends Widget_Base {
                 'type'      => Controls_Manager::COLOR,
                 'default'   => '#80FD03',
                 'selectors' => [
-                    '{{WRAPPER}} .bw-button' => '--bw-button-bg: {{VALUE}};',
+                    // Live preview: directly style the label background.
+                    '{{WRAPPER}} .bw-button__label' => 'background-color: {{VALUE}};',
                 ],
+                'render_type' => 'ui',
             ]
         );
 
@@ -121,8 +129,10 @@ class BW_Button_Widget extends Widget_Base {
                 'type'      => Controls_Manager::COLOR,
                 'default'   => '#080808',
                 'selectors' => [
-                    '{{WRAPPER}} .bw-button' => '--bw-button-border-color: {{VALUE}};',
+                    // Live preview: directly style the label border color.
+                    '{{WRAPPER}} .bw-button__label' => 'border-color: {{VALUE}};',
                 ],
+                'render_type' => 'ui',
             ]
         );
 
@@ -145,6 +155,8 @@ class BW_Button_Widget extends Widget_Base {
                     '{{WRAPPER}} .bw-button:hover, {{WRAPPER}} .bw-button:focus'        => 'color: {{VALUE}};',
                     '{{WRAPPER}} .bw-button:hover .bw-button__label, {{WRAPPER}} .bw-button:focus .bw-button__label' => 'color: {{VALUE}};',
                 ],
+                // Live preview: update hover colors instantly.
+                'render_type' => 'ui',
             ]
         );
 
@@ -155,8 +167,10 @@ class BW_Button_Widget extends Widget_Base {
                 'type'      => Controls_Manager::COLOR,
                 'default'   => '#80FD03',
                 'selectors' => [
-                    '{{WRAPPER}} .bw-button' => '--bw-button-bg-hover: {{VALUE}};',
+                    // Live preview: directly style the label background on hover.
+                    '{{WRAPPER}} .bw-button:hover .bw-button__label, {{WRAPPER}} .bw-button:focus .bw-button__label' => 'background-color: {{VALUE}};',
                 ],
+                'render_type' => 'ui',
             ]
         );
 
@@ -167,8 +181,10 @@ class BW_Button_Widget extends Widget_Base {
                 'type'      => Controls_Manager::COLOR,
                 'default'   => '#080808',
                 'selectors' => [
-                    '{{WRAPPER}} .bw-button' => '--bw-button-border-color-hover: {{VALUE}};',
+                    // Live preview: directly style the label border color on hover.
+                    '{{WRAPPER}} .bw-button:hover .bw-button__label, {{WRAPPER}} .bw-button:focus .bw-button__label' => 'border-color: {{VALUE}};',
                 ],
+                'render_type' => 'ui',
             ]
         );
 
@@ -186,8 +202,10 @@ class BW_Button_Widget extends Widget_Base {
                 ],
                 'default'    => [ 'size' => 1, 'unit' => 'px' ],
                 'selectors'  => [
-                    '{{WRAPPER}} .bw-button' => '--bw-button-border-width: {{SIZE}}{{UNIT}};',
+                    // Live preview: directly style the label border width.
+                    '{{WRAPPER}} .bw-button__label' => 'border-width: {{SIZE}}{{UNIT}};',
                 ],
+                'render_type' => 'ui',
             ]
         );
 
@@ -202,8 +220,10 @@ class BW_Button_Widget extends Widget_Base {
                 ],
                 'default'    => [ 'size' => 999, 'unit' => 'px' ],
                 'selectors'  => [
-                    '{{WRAPPER}} .bw-button' => '--bw-button-border-radius: {{SIZE}}{{UNIT}};',
+                    // Live preview: directly style the label border radius.
+                    '{{WRAPPER}} .bw-button__label' => 'border-radius: {{SIZE}}{{UNIT}};',
                 ],
+                'render_type' => 'ui',
             ]
         );
 
@@ -221,8 +241,10 @@ class BW_Button_Widget extends Widget_Base {
                     'unit'   => 'px',
                 ],
                 'selectors'  => [
-                    '{{WRAPPER}} .bw-button' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                    // Live preview: directly style the label padding.
+                    '{{WRAPPER}} .bw-button__label' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
+                'render_type' => 'ui',
             ]
         );
 
@@ -254,6 +276,8 @@ class BW_Button_Widget extends Widget_Base {
                     '{{WRAPPER}}' => 'text-align: {{VALUE}};',
                 ],
                 'toggle'       => false,
+                // Live preview: update alignment instantly.
+                'render_type'  => 'ui',
             ]
         );
 
@@ -276,6 +300,8 @@ class BW_Button_Widget extends Widget_Base {
                 'type'        => Controls_Manager::MEDIA,
                 'media_types' => [ 'svg' ],
                 'description' => __( 'Upload a custom SVG to replace the default arrow.', 'bw' ),
+                // Live preview: re-render template when the icon changes.
+                'render_type' => 'template',
             ]
         );
 
@@ -295,8 +321,11 @@ class BW_Button_Widget extends Widget_Base {
                 'type'      => Controls_Manager::COLOR,
                 'default'   => '#080808',
                 'selectors' => [
+                    // Live preview: update both icon color and SVG fill.
                     '{{WRAPPER}} .bw-button__icon' => 'color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-button__icon svg path' => 'fill: {{VALUE}};',
                 ],
+                'render_type' => 'ui',
             ]
         );
 
@@ -307,8 +336,11 @@ class BW_Button_Widget extends Widget_Base {
                 'type'      => Controls_Manager::COLOR,
                 'default'   => '#80FD03',
                 'selectors' => [
-                    '{{WRAPPER}} .bw-button__icon' => 'background-color: {{VALUE}};',
+                    // Live preview: update both wrap and icon backgrounds.
+                    '{{WRAPPER}} .bw-button__icon-wrap' => 'background-color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-button__icon'      => 'background-color: {{VALUE}};',
                 ],
+                'render_type' => 'ui',
             ]
         );
 
@@ -319,8 +351,11 @@ class BW_Button_Widget extends Widget_Base {
                 'type'      => Controls_Manager::COLOR,
                 'default'   => '#080808',
                 'selectors' => [
-                    '{{WRAPPER}} .bw-button__icon' => 'border-color: {{VALUE}};',
+                    // Live preview: update both wrap and icon border colors.
+                    '{{WRAPPER}} .bw-button__icon-wrap' => 'border-color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-button__icon'      => 'border-color: {{VALUE}};',
                 ],
+                'render_type' => 'ui',
             ]
         );
 
@@ -340,8 +375,11 @@ class BW_Button_Widget extends Widget_Base {
                 'type'      => Controls_Manager::COLOR,
                 'default'   => '#080808',
                 'selectors' => [
+                    // Live preview: update both icon color and SVG fill on hover.
                     '{{WRAPPER}} .bw-button:hover .bw-button__icon, {{WRAPPER}} .bw-button:focus .bw-button__icon' => 'color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-button:hover .bw-button__icon svg path, {{WRAPPER}} .bw-button:focus .bw-button__icon svg path' => 'fill: {{VALUE}};',
                 ],
+                'render_type' => 'ui',
             ]
         );
 
@@ -352,8 +390,11 @@ class BW_Button_Widget extends Widget_Base {
                 'type'      => Controls_Manager::COLOR,
                 'default'   => '#80FD03',
                 'selectors' => [
+                    // Live preview: update both wrap and icon backgrounds on hover.
+                    '{{WRAPPER}} .bw-button:hover .bw-button__icon-wrap, {{WRAPPER}} .bw-button:focus .bw-button__icon-wrap' => 'background-color: {{VALUE}};',
                     '{{WRAPPER}} .bw-button:hover .bw-button__icon, {{WRAPPER}} .bw-button:focus .bw-button__icon' => 'background-color: {{VALUE}};',
                 ],
+                'render_type' => 'ui',
             ]
         );
 
@@ -364,8 +405,11 @@ class BW_Button_Widget extends Widget_Base {
                 'type'      => Controls_Manager::COLOR,
                 'default'   => '#080808',
                 'selectors' => [
+                    // Live preview: update both wrap and icon border colors on hover.
+                    '{{WRAPPER}} .bw-button:hover .bw-button__icon-wrap, {{WRAPPER}} .bw-button:focus .bw-button__icon-wrap' => 'border-color: {{VALUE}};',
                     '{{WRAPPER}} .bw-button:hover .bw-button__icon, {{WRAPPER}} .bw-button:focus .bw-button__icon' => 'border-color: {{VALUE}};',
                 ],
+                'render_type' => 'ui',
             ]
         );
 
@@ -383,8 +427,11 @@ class BW_Button_Widget extends Widget_Base {
                 ],
                 'default'    => [ 'size' => 30, 'unit' => 'px' ],
                 'selectors'  => [
-                    '{{WRAPPER}} .bw-button__icon' => 'width: {{SIZE}}{{UNIT}}; height: {{SIZE}}{{UNIT}};',
+                    // Live preview: update both wrap and icon sizes.
+                    '{{WRAPPER}} .bw-button__icon-wrap' => 'width: {{SIZE}}{{UNIT}}; height: {{SIZE}}{{UNIT}};',
+                    '{{WRAPPER}} .bw-button__icon'      => 'width: {{SIZE}}{{UNIT}}; height: {{SIZE}}{{UNIT}};',
                 ],
+                'render_type' => 'ui',
             ]
         );
 
@@ -402,8 +449,11 @@ class BW_Button_Widget extends Widget_Base {
                     'unit'   => 'px',
                 ],
                 'selectors'  => [
-                    '{{WRAPPER}} .bw-button__icon' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                    // Live preview: update both wrap and icon paddings.
+                    '{{WRAPPER}} .bw-button__icon-wrap' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                    '{{WRAPPER}} .bw-button__icon'      => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
+                'render_type' => 'ui',
             ]
         );
 
