@@ -109,7 +109,7 @@ class BW_Button_Widget extends Widget_Base {
                 'type'      => Controls_Manager::COLOR,
                 'default'   => '#80FD03',
                 'selectors' => [
-                    '{{WRAPPER}} .bw-button' => 'background-color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-button' => '--bw-button-bg: {{VALUE}};',
                 ],
             ]
         );
@@ -121,7 +121,7 @@ class BW_Button_Widget extends Widget_Base {
                 'type'      => Controls_Manager::COLOR,
                 'default'   => '#080808',
                 'selectors' => [
-                    '{{WRAPPER}} .bw-button' => 'border-color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-button' => '--bw-button-border-color: {{VALUE}};',
                 ],
             ]
         );
@@ -155,7 +155,7 @@ class BW_Button_Widget extends Widget_Base {
                 'type'      => Controls_Manager::COLOR,
                 'default'   => '#80FD03',
                 'selectors' => [
-                    '{{WRAPPER}} .bw-button:hover, {{WRAPPER}} .bw-button:focus' => 'background-color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-button' => '--bw-button-bg-hover: {{VALUE}};',
                 ],
             ]
         );
@@ -167,7 +167,7 @@ class BW_Button_Widget extends Widget_Base {
                 'type'      => Controls_Manager::COLOR,
                 'default'   => '#080808',
                 'selectors' => [
-                    '{{WRAPPER}} .bw-button:hover, {{WRAPPER}} .bw-button:focus' => 'border-color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-button' => '--bw-button-border-color-hover: {{VALUE}};',
                 ],
             ]
         );
@@ -186,7 +186,7 @@ class BW_Button_Widget extends Widget_Base {
                 ],
                 'default'    => [ 'size' => 1, 'unit' => 'px' ],
                 'selectors'  => [
-                    '{{WRAPPER}} .bw-button' => 'border-width: {{SIZE}}{{UNIT}};',
+                    '{{WRAPPER}} .bw-button' => '--bw-button-border-width: {{SIZE}}{{UNIT}};',
                 ],
             ]
         );
@@ -202,7 +202,7 @@ class BW_Button_Widget extends Widget_Base {
                 ],
                 'default'    => [ 'size' => 999, 'unit' => 'px' ],
                 'selectors'  => [
-                    '{{WRAPPER}} .bw-button' => 'border-radius: {{SIZE}}{{UNIT}};',
+                    '{{WRAPPER}} .bw-button' => '--bw-button-border-radius: {{SIZE}}{{UNIT}};',
                 ],
             ]
         );
