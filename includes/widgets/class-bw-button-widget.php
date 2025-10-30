@@ -1,6 +1,7 @@
 <?php
 use Elementor\Controls_Manager;
 use Elementor\Group_Control_Typography;
+use Elementor\Plugin;
 use Elementor\Widget_Base;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -415,7 +416,13 @@ class BW_Button_Widget extends Widget_Base {
             ? $settings['button_text']
             : __( 'The Workflow', 'bw' );
 
+        $style_data = $this->prepare_button_style_data( $settings );
+        $style_vars = isset( $style_data['inline'] ) ? $style_data['inline'] : '';
+
         $this->add_render_attribute( 'button', 'class', 'bw-button' );
+        if ( ! empty( $style_vars ) ) {
+            $this->add_render_attribute( 'button', 'style', $style_vars );
+        }
 
         $tag = 'div';
 
@@ -435,6 +442,218 @@ class BW_Button_Widget extends Widget_Base {
             $icon_markup,
             $label_markup
         );
+
+        if ( ! empty( $style_data['responsive'] ) ) {
+            $this->print_responsive_style_variables( $style_data['responsive'] );
+        }
+    }
+
+    private function prepare_button_style_data( array $settings ) {
+        $background_normal = isset( $settings['button_background_color'] ) && '' !== $settings['button_background_color']
+            ? $settings['button_background_color']
+            : '#80FD03';
+
+        $background_hover = isset( $settings['button_background_color_hover'] ) && '' !== $settings['button_background_color_hover']
+            ? $settings['button_background_color_hover']
+            : $background_normal;
+
+        $border_normal = isset( $settings['button_border_color'] ) && '' !== $settings['button_border_color']
+            ? $settings['button_border_color']
+            : '#080808';
+
+        $border_hover = isset( $settings['button_border_color_hover'] ) && '' !== $settings['button_border_color_hover']
+            ? $settings['button_border_color_hover']
+            : $border_normal;
+
+        $border_width = $this->format_slider_value( isset( $settings['button_border_width'] ) ? $settings['button_border_width'] : null, '1px' );
+        $border_radius = $this->format_slider_value( isset( $settings['button_border_radius'] ) ? $settings['button_border_radius'] : null, '999px' );
+
+        $padding        = isset( $settings['button_padding'] ) && is_array( $settings['button_padding'] ) ? $settings['button_padding'] : [];
+        $padding_top    = $this->format_dimension_value( $padding, 'top', '12px' );
+        $padding_right  = $this->format_dimension_value( $padding, 'right', '26px' );
+        $padding_bottom = $this->format_dimension_value( $padding, 'bottom', '12px' );
+        $padding_left   = $this->format_dimension_value( $padding, 'left', '26px' );
+
+        $inline_variables = [
+            '--bw-button-bg'             => $background_normal,
+            '--bw-button-bg-hover'       => $background_hover,
+            '--bw-button-border-color'   => $border_normal,
+            '--bw-button-border-color-hover' => $border_hover,
+            '--bw-button-border-width'   => $border_width,
+            '--bw-button-border-radius'  => $border_radius,
+            '--bw-button-padding-top'    => $padding_top,
+            '--bw-button-padding-right'  => $padding_right,
+            '--bw-button-padding-bottom' => $padding_bottom,
+            '--bw-button-padding-left'   => $padding_left,
+        ];
+
+        $style_parts = [];
+
+        foreach ( $inline_variables as $var => $value ) {
+            if ( '' === $value ) {
+                continue;
+            }
+            $style_parts[] = sprintf( '%s:%s', $var, esc_attr( $value ) );
+        }
+
+        $responsive_variables = [];
+
+        foreach ( [ 'tablet', 'mobile' ] as $device ) {
+            $device_variables = [];
+
+            $border_radius_device = $this->format_slider_value(
+                isset( $settings[ 'button_border_radius_' . $device ] ) ? $settings[ 'button_border_radius_' . $device ] : null,
+                ''
+            );
+
+            if ( '' !== $border_radius_device ) {
+                $device_variables['--bw-button-border-radius'] = $border_radius_device;
+            }
+
+            $padding_device = isset( $settings[ 'button_padding_' . $device ] ) && is_array( $settings[ 'button_padding_' . $device ] )
+                ? $settings[ 'button_padding_' . $device ]
+                : [];
+
+            $padding_top_device    = $this->format_dimension_value( $padding_device, 'top', '' );
+            $padding_right_device  = $this->format_dimension_value( $padding_device, 'right', '' );
+            $padding_bottom_device = $this->format_dimension_value( $padding_device, 'bottom', '' );
+            $padding_left_device   = $this->format_dimension_value( $padding_device, 'left', '' );
+
+            if ( '' !== $padding_top_device ) {
+                $device_variables['--bw-button-padding-top'] = $padding_top_device;
+            }
+            if ( '' !== $padding_right_device ) {
+                $device_variables['--bw-button-padding-right'] = $padding_right_device;
+            }
+            if ( '' !== $padding_bottom_device ) {
+                $device_variables['--bw-button-padding-bottom'] = $padding_bottom_device;
+            }
+            if ( '' !== $padding_left_device ) {
+                $device_variables['--bw-button-padding-left'] = $padding_left_device;
+            }
+
+            if ( ! empty( $device_variables ) ) {
+                $responsive_variables[ $device ] = $device_variables;
+            }
+        }
+
+        $inline_style = implode( ';', $style_parts );
+
+        if ( '' !== $inline_style ) {
+            $inline_style .= ';';
+        }
+
+        return [
+            'inline'      => $inline_style,
+            'responsive'  => $responsive_variables,
+        ];
+    }
+
+    private function format_slider_value( $value, $default ) {
+        if ( empty( $value ) || ! is_array( $value ) ) {
+            return $default;
+        }
+
+        $size = isset( $value['size'] ) ? $value['size'] : '';
+        if ( '' === $size && 0 !== $size ) {
+            return $default;
+        }
+
+        $unit = isset( $value['unit'] ) && '' !== $value['unit'] ? $value['unit'] : 'px';
+
+        return $size . $unit;
+    }
+
+    private function format_dimension_value( array $dimensions, $side, $default ) {
+        $unit = isset( $dimensions['unit'] ) && '' !== $dimensions['unit'] ? $dimensions['unit'] : 'px';
+
+        if ( isset( $dimensions[ $side ] ) && '' !== $dimensions[ $side ] && null !== $dimensions[ $side ] ) {
+            return $dimensions[ $side ] . $unit;
+        }
+
+        return $default;
+    }
+
+    private function print_responsive_style_variables( array $responsive_variables ) {
+        if ( empty( $responsive_variables ) ) {
+            return;
+        }
+
+        $breakpoints = $this->get_breakpoints_config();
+
+        if ( empty( $breakpoints ) ) {
+            return;
+        }
+
+        $css_rules = '';
+        $element_id = $this->get_id();
+
+        foreach ( $responsive_variables as $device => $variables ) {
+            if ( empty( $variables ) || ! isset( $breakpoints[ $device ] ) ) {
+                continue;
+            }
+
+            $media_query = $breakpoints[ $device ];
+
+            if ( empty( $media_query ) ) {
+                continue;
+            }
+
+            $declarations = [];
+
+            foreach ( $variables as $var => $value ) {
+                $declarations[] = sprintf( '%s:%s', $var, esc_attr( $value ) );
+            }
+
+            if ( empty( $declarations ) ) {
+                continue;
+            }
+
+            $css_rules .= sprintf(
+                '@media %1$s { .elementor-element-%2$s .bw-button{%3$s} }',
+                esc_html( $media_query ),
+                esc_attr( $element_id ),
+                implode( ';', $declarations )
+            );
+        }
+
+        if ( '' !== $css_rules ) {
+            echo '<style>' . wp_strip_all_tags( $css_rules ) . '</style>';
+        }
+    }
+
+    private function get_breakpoints_config() {
+        $config = [];
+
+        if ( class_exists( '\\Elementor\\Plugin' ) && isset( Plugin::$instance ) && isset( Plugin::$instance->breakpoints ) ) {
+            $breakpoints = Plugin::$instance->breakpoints->get_breakpoints();
+
+            if ( is_array( $breakpoints ) ) {
+                foreach ( [ 'tablet', 'mobile' ] as $device ) {
+                    if ( isset( $breakpoints[ $device ] ) ) {
+                        $breakpoint = $breakpoints[ $device ];
+
+                        if ( is_object( $breakpoint ) && method_exists( $breakpoint, 'get_value' ) && method_exists( $breakpoint, 'get_direction' ) ) {
+                            $value     = $breakpoint->get_value();
+                            $direction = $breakpoint->get_direction();
+
+                            if ( $value ) {
+                                $config[ $device ] = sprintf( '(%s-width: %dpx)', esc_attr( $direction ), (int) $value );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if ( empty( $config ) ) {
+            $config = [
+                'tablet' => '(max-width: 1024px)',
+                'mobile' => '(max-width: 767px)',
+            ];
+        }
+
+        return $config;
     }
 
     private function get_icon_markup( array $settings ) {

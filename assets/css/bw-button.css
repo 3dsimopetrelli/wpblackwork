@@ -1,17 +1,27 @@
 .bw-button {
+    --bw-button-gap: 12px;
+    --bw-button-bg: #80fd03;
+    --bw-button-bg-hover: var(--bw-button-bg);
+    --bw-button-border-color: #080808;
+    --bw-button-border-color-hover: var(--bw-button-border-color);
+    --bw-button-border-width: 1px;
+    --bw-button-border-radius: 999px;
+    --bw-button-padding-top: 12px;
+    --bw-button-padding-right: 26px;
+    --bw-button-padding-bottom: 12px;
+    --bw-button-padding-left: 26px;
     display: inline-flex;
     align-items: center;
-    gap: 12px;
-    background-color: #80fd03;
-    border: 1px solid #080808;
-    border-radius: 999px;
+    gap: var(--bw-button-gap);
     color: #080808;
     font-size: 24px;
     font-weight: 500;
     line-height: 1;
-    padding: 12px 26px;
     text-decoration: none;
     transition: all 0.3s ease;
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
     overflow: visible;
 }
 
@@ -23,6 +33,13 @@
 .bw-button__label {
     color: inherit;
     line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--bw-button-bg);
+    border: var(--bw-button-border-width) solid var(--bw-button-border-color);
+    border-radius: var(--bw-button-border-radius);
+    padding: var(--bw-button-padding-top) var(--bw-button-padding-right) var(--bw-button-padding-bottom) var(--bw-button-padding-left);
 }
 
 .bw-button__icon-wrap {
@@ -30,7 +47,6 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    transform: translateX(calc(-100% - 12px));
     transition: inherit;
 }
 
@@ -48,6 +64,12 @@
     box-sizing: border-box;
     flex-shrink: 0;
     transition: inherit;
+}
+
+.bw-button:hover .bw-button__label,
+.bw-button:focus .bw-button__label {
+    background-color: var(--bw-button-bg-hover);
+    border-color: var(--bw-button-border-color-hover);
 }
 
 .bw-button__icon svg,
