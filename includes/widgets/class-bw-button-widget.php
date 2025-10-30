@@ -465,8 +465,8 @@ class BW_Button_Widget extends Widget_Base {
             ? $settings['button_border_color_hover']
             : $border_normal;
 
-        $border_width = $this->format_slider_value( isset( $settings['button_border_width'] ) ? $settings['button_border_width'] : null, '1px' );
-        $border_radius = $this->format_slider_value( isset( $settings['button_border_radius'] ) ? $settings['button_border_radius'] : null, '999px' );
+        $border_width = $this->format_slider_value( isset( $settings['button_border_width'] ) ? $settings['button_border_width'] : null, '1px', false );
+        $border_radius = $this->format_slider_value( isset( $settings['button_border_radius'] ) ? $settings['button_border_radius'] : null, '999px', false );
 
         $padding        = isset( $settings['button_padding'] ) && is_array( $settings['button_padding'] ) ? $settings['button_padding'] : [];
         $padding_top    = $this->format_dimension_value( $padding, 'top', '12px' );
@@ -503,7 +503,8 @@ class BW_Button_Widget extends Widget_Base {
 
             $border_radius_device = $this->format_slider_value(
                 isset( $settings[ 'button_border_radius_' . $device ] ) ? $settings[ 'button_border_radius_' . $device ] : null,
-                ''
+                '',
+                false
             );
 
             if ( '' !== $border_radius_device ) {
@@ -549,14 +550,14 @@ class BW_Button_Widget extends Widget_Base {
         ];
     }
 
-    private function format_slider_value( $value, $default ) {
+    private function format_slider_value( $value, $default, $use_default_when_empty = true ) {
         if ( empty( $value ) || ! is_array( $value ) ) {
-            return $default;
+            return $use_default_when_empty ? $default : '';
         }
 
         $size = isset( $value['size'] ) ? $value['size'] : '';
         if ( '' === $size && 0 !== $size ) {
-            return $default;
+            return $use_default_when_empty ? $default : '';
         }
 
         $unit = isset( $value['unit'] ) && '' !== $value['unit'] ? $value['unit'] : 'px';
