@@ -1,7 +1,7 @@
 .bw-about-menu {
     position: relative;
     z-index: 0;
-    display: inline-flex;
+    display: flex;
     justify-content: center;
     align-items: center;
     padding: 8px 16px;
@@ -9,8 +9,9 @@
     border-radius: var(--border-radius, 999px);
     background: var(--menu-bg, transparent);
     overflow: hidden;
-    width: auto;
+    width: var(--bw-about-menu-width, fit-content);
     max-width: 100%;
+    margin-inline: auto;
     transition: border-color 0.3s ease, background-color 0.3s ease;
     --spotlight-x: 0px;
     --spotlight-size: 120px;
@@ -52,6 +53,7 @@
     position: relative;
     z-index: 1;
     min-height: 100%;
+    width: max-content;
 }
 
 .bw-about-menu__list .menu-item {

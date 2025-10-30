@@ -45,6 +45,43 @@
             return;
         }
 
+        const parseSize = (value) => {
+            const parsed = parseFloat(value);
+
+            if (Number.isNaN(parsed)) {
+                return 0;
+            }
+
+            return parsed;
+        };
+
+        const updateMenuWidth = (callback) => {
+            window.requestAnimationFrame(() => {
+                const listWidth = Math.ceil(list.scrollWidth);
+
+                if (!listWidth) {
+                    menu.style.removeProperty('--bw-about-menu-width');
+                    if (typeof callback === 'function') {
+                        callback();
+                    }
+                    return;
+                }
+
+                const menuStyles = window.getComputedStyle(menu);
+                const paddingLeft = parseSize(menuStyles.paddingLeft);
+                const paddingRight = parseSize(menuStyles.paddingRight);
+                const borderLeft = parseSize(menuStyles.borderLeftWidth);
+                const borderRight = parseSize(menuStyles.borderRightWidth);
+                const totalWidth = listWidth + paddingLeft + paddingRight + borderLeft + borderRight;
+
+                menu.style.setProperty('--bw-about-menu-width', `${totalWidth}px`);
+
+                if (typeof callback === 'function') {
+                    callback();
+                }
+            });
+        };
+
         const readSpotlightSize = () => {
             const menuStyle = window.getComputedStyle(menu);
             const fromVar = menuStyle.getPropertyValue('--spotlight-size').trim();
@@ -95,7 +132,9 @@
         };
 
         let activeItem = getInitialItem();
-        updateSpotlight(activeItem);
+        updateMenuWidth(() => {
+            updateSpotlight(activeItem);
+        });
 
         const handleEnter = (event) => {
             const targetItem = event.currentTarget.closest('.menu-item');
@@ -159,9 +198,11 @@
         list.addEventListener('mouseleave', handleLeave);
 
         const handleResize = () => {
-            if (activeItem && document.body.contains(activeItem)) {
-                updateSpotlight(activeItem);
-            }
+            updateMenuWidth(() => {
+                if (activeItem && document.body.contains(activeItem)) {
+                    updateSpotlight(activeItem);
+                }
+            });
         };
 
         let resizeObserver = null;
@@ -176,9 +217,11 @@
 
         if ('MutationObserver' in window) {
             mutationObserver = new MutationObserver(() => {
-                if (activeItem && document.body.contains(activeItem)) {
-                    updateSpotlight(activeItem);
-                }
+                updateMenuWidth(() => {
+                    if (activeItem && document.body.contains(activeItem)) {
+                        updateSpotlight(activeItem);
+                    }
+                });
             });
 
             mutationObserver.observe(root, { attributes: true, attributeFilter: ['style', 'class'] });
@@ -202,6 +245,7 @@
             }
             window.removeEventListener('resize', handleResize);
             menu.style.removeProperty('--spotlight-x');
+            menu.style.removeProperty('--bw-about-menu-width');
         }, { once: true });
     };
 
