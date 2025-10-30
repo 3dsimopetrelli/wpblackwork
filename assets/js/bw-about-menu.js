@@ -32,95 +32,123 @@
             return;
         }
 
-        const container = root.querySelector('.bw-about-menu');
+        const menu = root.querySelector('.bw-about-menu');
         const list = root.querySelector('.bw-about-menu__list');
 
-        if (!container || !list) {
+        if (!menu || !list) {
             return;
         }
 
-        const items = Array.from(list.querySelectorAll('.menu-item > a, .menu-item > .bw-about-menu__link'));
+        const menuItems = Array.from(list.querySelectorAll('.menu-item'));
 
-        if (!items.length) {
+        if (!menuItems.length) {
             return;
         }
 
-        const readSpotlightSize = () => {
-            const computedStyles = window.getComputedStyle(list);
-            const sizeValue = computedStyles.getPropertyValue('--spotlight-size').trim();
-            const parsedSize = parseFloat(sizeValue);
+        const readSpotlightWidth = () => {
+            const pseudoStyles = window.getComputedStyle(menu, '::before');
+            const widthValue = pseudoStyles.getPropertyValue('width').trim();
+            const parsedWidth = parseFloat(widthValue);
 
-            if (!Number.isNaN(parsedSize) && parsedSize > 0) {
-                return parsedSize;
+            if (!Number.isNaN(parsedWidth) && parsedWidth > 0) {
+                return parsedWidth;
             }
 
-            return 80;
+            return 120;
         };
 
-        const updateSpotlight = (target) => {
-            if (!target) {
-                list.style.setProperty('--spotlight-visible', '0');
+        const updateSpotlight = (menuItem) => {
+            if (!menuItem) {
                 return;
             }
 
-            const itemRect = target.getBoundingClientRect();
-            const listRect = list.getBoundingClientRect();
-            const spotlightSize = readSpotlightSize();
-            const offsetX = itemRect.left - listRect.left + itemRect.width / 2 - spotlightSize / 2;
+            const itemRect = menuItem.getBoundingClientRect();
+            const menuRect = menu.getBoundingClientRect();
+            const spotlightWidth = readSpotlightWidth();
+            const centeredOffset = itemRect.left - menuRect.left + (itemRect.width / 2) - (spotlightWidth / 2);
+            const maxOffset = Math.max(0, menu.clientWidth - spotlightWidth);
+            const clampedOffset = Math.max(0, Math.min(centeredOffset, maxOffset));
 
-            list.style.setProperty('--spotlight-x', `${offsetX}px`);
-            list.style.setProperty('--spotlight-visible', '1');
+            menu.style.setProperty('--spotlight-x', `${clampedOffset}px`);
         };
 
-        const getInitialTarget = () => {
-            const current = list.querySelector('.current-menu-item > a, .current-menu-item > .bw-about-menu__link');
-            if (current) {
+        const getInitialItem = () => {
+            const current = list.querySelector('.current-menu-item');
+
+            if (current instanceof HTMLElement) {
                 return current;
             }
 
-            return items[0];
+            return menuItems[0];
         };
 
-        let activeTarget = getInitialTarget();
-        updateSpotlight(activeTarget);
+        let activeItem = getInitialItem();
+        updateSpotlight(activeItem);
 
         const handleEnter = (event) => {
-            activeTarget = event.currentTarget;
-            updateSpotlight(activeTarget);
+            const targetItem = event.currentTarget.closest('.menu-item');
+
+            if (!targetItem) {
+                return;
+            }
+
+            activeItem = targetItem;
+            updateSpotlight(activeItem);
         };
 
         const handleLeave = () => {
-            updateSpotlight(activeTarget);
+            updateSpotlight(activeItem);
         };
 
         const handleFocus = (event) => {
-            activeTarget = event.currentTarget;
-            updateSpotlight(activeTarget);
+            const targetItem = event.currentTarget.closest('.menu-item');
+
+            if (!targetItem) {
+                return;
+            }
+
+            activeItem = targetItem;
+            updateSpotlight(activeItem);
         };
 
         const handleBlur = () => {
             window.requestAnimationFrame(() => {
                 const focused = root.querySelector('.menu-item > a:focus, .menu-item > .bw-about-menu__link:focus');
                 if (!focused) {
-                    updateSpotlight(activeTarget);
+                    updateSpotlight(activeItem);
                 }
             });
         };
 
-        items.forEach((item) => {
-            if (!item.classList.contains('bw-about-menu__link')) {
-                item.classList.add('bw-about-menu__link');
+        const interactiveItems = menuItems.reduce((accumulator, menuItem) => {
+            const link = menuItem.querySelector('a, .bw-about-menu__link');
+
+            if (link instanceof HTMLElement) {
+                if (!link.classList.contains('bw-about-menu__link')) {
+                    link.classList.add('bw-about-menu__link');
+                }
+
+                link.addEventListener('mouseenter', handleEnter);
+                link.addEventListener('focus', handleFocus);
+                link.addEventListener('blur', handleBlur);
+                accumulator.push(link);
             }
-            item.addEventListener('mouseenter', handleEnter);
-            item.addEventListener('focus', handleFocus);
-            item.addEventListener('blur', handleBlur);
-        });
+
+            return accumulator;
+        }, []);
+
+        if (!interactiveItems.length) {
+            root.addEventListener('bw-about-menu-destroy', () => {
+                menu.style.removeProperty('--spotlight-x');
+            }, { once: true });
+            return;
+        }
 
         list.addEventListener('mouseleave', handleLeave);
 
         const handleResize = () => {
-            if (activeTarget && document.body.contains(activeTarget)) {
-                updateSpotlight(activeTarget);
+            if (activeItem && document.body.contains(activeItem)) {
+                updateSpotlight(activeItem);
             }
         };
 
@@ -128,13 +156,14 @@
 
         if ('ResizeObserver' in window) {
             resizeObserver = new ResizeObserver(handleResize);
+            resizeObserver.observe(menu);
             resizeObserver.observe(list);
         }
 
         window.addEventListener('resize', handleResize);
 
         root.addEventListener('bw-about-menu-destroy', () => {
-            items.forEach((item) => {
+            interactiveItems.forEach((item) => {
                 item.removeEventListener('mouseenter', handleEnter);
                 item.removeEventListener('focus', handleFocus);
                 item.removeEventListener('blur', handleBlur);
@@ -144,7 +173,7 @@
                 resizeObserver.disconnect();
             }
             window.removeEventListener('resize', handleResize);
-            list.style.setProperty('--spotlight-visible', '0');
+            menu.style.removeProperty('--spotlight-x');
         }, { once: true });
     };
 
