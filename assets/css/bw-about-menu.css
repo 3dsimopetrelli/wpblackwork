@@ -8,16 +8,36 @@
     position: relative;
     overflow: hidden;
     transition: border-color 0.3s ease, background-color 0.3s ease;
+    --spotlight-x: 0px;
+    --spotlight-width: 120px;
+    --spotlight-opacity: 0.4;
+    --spotlight-color: #80fd03;
+    --spotlight-strength: 40%;
+    --spotlight-speed: 0.6s;
+}
+
+.bw-about-menu::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: var(--spotlight-width, 120px);
+    background: radial-gradient(
+        circle at center,
+        var(--spotlight-color, #80fd03) 0%,
+        rgba(128, 253, 3, 0) var(--spotlight-strength, 40%)
+    );
+    opacity: var(--spotlight-opacity, 0.4);
+    border-radius: inherit;
+    transform: translateX(var(--spotlight-x, 0px));
+    transition: transform var(--spotlight-speed, 0.6s) ease-in-out, width 0.3s ease, opacity 0.3s ease;
+    z-index: 0;
+    pointer-events: none;
+    mix-blend-mode: screen;
 }
 
 .bw-about-menu__list {
-    --spotlight-x: 0px;
-    --spotlight-opacity: 0.4;
-    --spotlight-visible: 0;
-    --spotlight-color: rgba(128, 253, 3, 0.4);
-    --spotlight-strength: 40%;
-    --spotlight-size: 80px;
-    --spotlight-speed: 0.6s;
     display: flex;
     align-items: center;
     gap: 40px;
@@ -27,23 +47,6 @@
     position: relative;
     z-index: 1;
     min-height: 100%;
-}
-
-.bw-about-menu__list::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: var(--spotlight-size, 80px);
-    height: 100%; /* ✅ ora copre tutta la barra */
-    transform: translateX(var(--spotlight-x, 0));
-    background: radial-gradient(circle,
-        var(--spotlight-color, rgba(128, 253, 3, 0.4)) var(--spotlight-strength, 40%),
-        rgba(128, 253, 3, 0) 70%);
-    opacity: calc(var(--spotlight-opacity, 0.4) * var(--spotlight-visible, 0));
-    transition: transform var(--spotlight-speed, 0.6s) ease-in-out, width 0.3s ease, opacity 0.3s ease;
-    pointer-events: none;
-    z-index: 1;
 }
 
 .bw-about-menu__list .menu-item {

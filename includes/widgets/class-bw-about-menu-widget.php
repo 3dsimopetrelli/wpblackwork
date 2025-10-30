@@ -231,11 +231,12 @@ class BW_About_Menu_Widget extends Widget_Base {
                     ],
                 ],
                 'default'     => [
-                    'size' => 80,
+                    'size' => 120,
                     'unit' => 'px',
                 ],
                 'selectors'   => [
-                    '{{WRAPPER}} .bw-about-menu__list' => '--spotlight-size: {{SIZE}}{{UNIT}};',
+                    '{{WRAPPER}} .bw-about-menu'        => '--spotlight-width: {{SIZE}}{{UNIT}};',
+                    '{{WRAPPER}} .bw-about-menu::before' => 'width: {{SIZE}}{{UNIT}};',
                 ],
                 'render_type' => 'ui',
             ]
@@ -255,7 +256,8 @@ class BW_About_Menu_Widget extends Widget_Base {
                     'size' => 0.4,
                 ],
                 'selectors'   => [
-                    '{{WRAPPER}} .bw-about-menu__list' => '--spotlight-opacity: {{SIZE}};',
+                    '{{WRAPPER}} .bw-about-menu'        => '--spotlight-opacity: {{SIZE}};',
+                    '{{WRAPPER}} .bw-about-menu::before' => 'opacity: {{SIZE}};',
                 ],
                 'render_type' => 'ui',
             ]
@@ -268,8 +270,8 @@ class BW_About_Menu_Widget extends Widget_Base {
                 'type'        => Controls_Manager::COLOR,
                 'default'     => '#80FD03',
                 'selectors'   => [
-                    '{{WRAPPER}} .bw-about-menu__list' => '--spotlight-color: {{VALUE}};',
-                    '{{WRAPPER}} .bw-about-menu__list::before' => 'background: radial-gradient(circle, {{VALUE}} var(--spotlight-strength, 40%), rgba(128,253,3,0) 70%);',
+                    '{{WRAPPER}} .bw-about-menu'        => '--spotlight-color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-about-menu::before' => 'background: radial-gradient(circle at center, {{VALUE}} var(--spotlight-strength, 40%), rgba(128,253,3,0) 70%);',
                 ],
                 'render_type' => 'ui',
             ]
@@ -288,7 +290,7 @@ class BW_About_Menu_Widget extends Widget_Base {
                     'size' => 40,
                 ],
                 'selectors'   => [
-                    '{{WRAPPER}} .bw-about-menu__list' => '--spotlight-strength: {{SIZE}}%;',
+                    '{{WRAPPER}} .bw-about-menu' => '--spotlight-strength: {{SIZE}}%;',
                 ],
                 'render_type' => 'ui',
             ]
@@ -306,8 +308,8 @@ class BW_About_Menu_Widget extends Widget_Base {
                 ],
                 'default'   => [ 'size' => 0.6 ],
                 'selectors' => [
-                    '{{WRAPPER}} .bw-about-menu__list'       => '--spotlight-speed: {{SIZE}}s;',
-                    '{{WRAPPER}} .bw-about-menu__list::before' => 'transition-duration: {{SIZE}}s;',
+                    '{{WRAPPER}} .bw-about-menu'        => '--spotlight-speed: {{SIZE}}s;',
+                    '{{WRAPPER}} .bw-about-menu::before' => 'transition-duration: {{SIZE}}s;',
                 ],
                 'render_type' => 'ui', // aggiornamento live in anteprima Elementor
             ]
