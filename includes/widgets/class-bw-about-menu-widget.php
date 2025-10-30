@@ -50,6 +50,7 @@ class BW_About_Menu_Widget extends Widget_Base {
     protected function register_controls() {
         $this->register_content_controls();
         $this->register_style_container_controls();
+        $this->register_style_spotlight_controls();
         $this->register_style_items_controls();
     }
 
@@ -209,6 +210,93 @@ class BW_About_Menu_Widget extends Widget_Base {
         $this->end_controls_section();
     }
 
+    private function register_style_spotlight_controls() {
+        $this->start_controls_section(
+            'section_spotlight_style',
+            [
+                'label' => __( 'Spotlight Effect', 'bw' ),
+                'tab'   => Controls_Manager::TAB_STYLE,
+            ]
+        );
+
+        $this->add_control(
+            'spotlight_size',
+            [
+                'label'       => __( 'Spotlight Size', 'bw' ),
+                'type'        => Controls_Manager::SLIDER,
+                'range'       => [
+                    'px' => [
+                        'min' => 20,
+                        'max' => 400,
+                    ],
+                ],
+                'default'     => [
+                    'size' => 80,
+                    'unit' => 'px',
+                ],
+                'selectors'   => [
+                    '{{WRAPPER}} .bw-about-menu__list' => '--spotlight-size: {{SIZE}}{{UNIT}};',
+                ],
+                'render_type' => 'ui',
+            ]
+        );
+
+        $this->add_control(
+            'spotlight_opacity',
+            [
+                'label'       => __( 'Spotlight Opacity', 'bw' ),
+                'type'        => Controls_Manager::SLIDER,
+                'range'       => [
+                    'min'  => 0,
+                    'max'  => 1,
+                    'step' => 0.05,
+                ],
+                'default'     => [
+                    'size' => 0.4,
+                ],
+                'selectors'   => [
+                    '{{WRAPPER}} .bw-about-menu__list' => '--spotlight-opacity: {{SIZE}};',
+                ],
+                'render_type' => 'ui',
+            ]
+        );
+
+        $this->add_control(
+            'spotlight_color',
+            [
+                'label'       => __( 'Spotlight Color', 'bw' ),
+                'type'        => Controls_Manager::COLOR,
+                'default'     => '#80FD03',
+                'selectors'   => [
+                    '{{WRAPPER}} .bw-about-menu__list' => '--spotlight-color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-about-menu__list::before' => 'background: radial-gradient(circle, {{VALUE}} var(--spotlight-strength, 40%), rgba(128,253,3,0) 70%);',
+                ],
+                'render_type' => 'ui',
+            ]
+        );
+
+        $this->add_control(
+            'spotlight_strength',
+            [
+                'label'       => __( 'Spotlight Strength', 'bw' ),
+                'type'        => Controls_Manager::SLIDER,
+                'range'       => [
+                    'min' => 0,
+                    'max' => 100,
+                ],
+                'default'     => [
+                    'size' => 40,
+                ],
+                'selectors'   => [
+                    '{{WRAPPER}} .bw-about-menu__list' => '--spotlight-strength: {{SIZE}}%;',
+                ],
+                'render_type' => 'ui',
+            ]
+        );
+
+        $this->end_controls_section();
+    }
+
     private function register_style_items_controls() {
         $this->start_controls_section(
             'section_style_items',
@@ -271,19 +359,6 @@ class BW_About_Menu_Widget extends Widget_Base {
                 'selectors' => [
                     '{{WRAPPER}} .bw-about-menu__list .menu-item:hover > .bw-about-menu__link' => 'color: {{VALUE}};',
                     '{{WRAPPER}} .bw-about-menu__list .menu-item:focus-within > .bw-about-menu__link' => 'color: {{VALUE}};',
-                ],
-                'render_type' => 'ui',
-            ]
-        );
-
-        $this->add_control(
-            'spotlight_color',
-            [
-                'label'     => __( 'Spotlight Color', 'bw' ),
-                'type'      => Controls_Manager::COLOR,
-                'default'   => '#80FD03',
-                'selectors' => [
-                    '{{WRAPPER}} .bw-about-menu__list::before' => 'background: radial-gradient(circle, {{VALUE}}66 0%, {{VALUE}}00 70%);',
                 ],
                 'render_type' => 'ui',
             ]
