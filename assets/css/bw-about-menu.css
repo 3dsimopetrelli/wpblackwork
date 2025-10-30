@@ -9,7 +9,7 @@
     border-radius: var(--border-radius, 999px);
     background: var(--menu-bg, transparent);
     overflow: hidden;
-    width: var(--bw-about-menu-width, fit-content);
+    width: min(var(--bw-about-menu-width, max-content), 100%);
     max-width: 100%;
     margin-inline: auto;
     transition: border-color 0.3s ease, background-color 0.3s ease;
