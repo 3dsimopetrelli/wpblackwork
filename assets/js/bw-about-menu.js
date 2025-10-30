@@ -39,13 +39,24 @@
             return;
         }
 
-        const menuItems = Array.from(list.querySelectorAll('.menu-item'));
+        const menuItems = Array.from(menu.querySelectorAll('.menu-item'));
 
         if (!menuItems.length) {
             return;
         }
 
-        const readSpotlightWidth = () => {
+        const readSpotlightSize = () => {
+            const menuStyle = window.getComputedStyle(menu);
+            const fromVar = menuStyle.getPropertyValue('--spotlight-size').trim();
+
+            if (fromVar) {
+                const parsedFromVar = parseFloat(fromVar);
+
+                if (!Number.isNaN(parsedFromVar) && parsedFromVar > 0) {
+                    return parsedFromVar;
+                }
+            }
+
             const pseudoStyles = window.getComputedStyle(menu, '::before');
             const widthValue = pseudoStyles.getPropertyValue('width').trim();
             const parsedWidth = parseFloat(widthValue);
@@ -64,9 +75,10 @@
 
             const itemRect = menuItem.getBoundingClientRect();
             const menuRect = menu.getBoundingClientRect();
-            const spotlightWidth = readSpotlightWidth();
+            const spotlightWidth = readSpotlightSize();
             const centeredOffset = itemRect.left - menuRect.left + (itemRect.width / 2) - (spotlightWidth / 2);
-            const maxOffset = Math.max(0, menu.clientWidth - spotlightWidth);
+            const menuWidth = Math.max(menu.clientWidth, menuRect.width);
+            const maxOffset = Math.max(0, menuWidth - spotlightWidth);
             const clampedOffset = Math.max(0, Math.min(centeredOffset, maxOffset));
 
             menu.style.setProperty('--spotlight-x', `${clampedOffset}px`);
@@ -160,6 +172,19 @@
             resizeObserver.observe(list);
         }
 
+        let mutationObserver = null;
+
+        if ('MutationObserver' in window) {
+            mutationObserver = new MutationObserver(() => {
+                if (activeItem && document.body.contains(activeItem)) {
+                    updateSpotlight(activeItem);
+                }
+            });
+
+            mutationObserver.observe(root, { attributes: true, attributeFilter: ['style', 'class'] });
+            mutationObserver.observe(menu, { attributes: true, attributeFilter: ['style', 'class'] });
+        }
+
         window.addEventListener('resize', handleResize);
 
         root.addEventListener('bw-about-menu-destroy', () => {
@@ -171,6 +196,9 @@
             list.removeEventListener('mouseleave', handleLeave);
             if (resizeObserver) {
                 resizeObserver.disconnect();
+            }
+            if (mutationObserver) {
+                mutationObserver.disconnect();
             }
             window.removeEventListener('resize', handleResize);
             menu.style.removeProperty('--spotlight-x');
