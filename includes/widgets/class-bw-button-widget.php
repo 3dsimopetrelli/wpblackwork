@@ -395,6 +395,7 @@ class BW_Button_Widget extends Widget_Base {
                 'default' => [ 'unit' => '%', 'size' => 50 ],
                 'selectors' => [
                     '{{WRAPPER}} .bw-button__icon-wrap' => 'border-radius: {{SIZE}}{{UNIT}};',
+                    '{{WRAPPER}} .bw-button__icon'      => 'border-radius: {{SIZE}}{{UNIT}};',
                 ],
                 'render_type' => 'ui',
             ]
