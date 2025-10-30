@@ -16,8 +16,8 @@
     --spotlight-visible: 0;
     --spotlight-color: rgba(128, 253, 3, 0.4);
     --spotlight-strength: 40%;
-    --spotlight-move-duration: 0.5s;
-    --spotlight-dynamic-size: 80px;
+    --spotlight-size: 80px;
+    --spotlight-speed: 0.6s;
     display: flex;
     align-items: center;
     gap: 40px;
@@ -32,14 +32,16 @@
 .bw-about-menu__list::before {
     content: "";
     position: absolute;
-    top: 50%;
+    top: 0;
     left: 0;
-    width: var(--spotlight-size, var(--spotlight-dynamic-size, 80px));
-    height: 100%;
-    transform: translateX(calc(var(--spotlight-x, 0px) - var(--spotlight-size, var(--spotlight-dynamic-size, 80px)) / 2)) translateY(-50%);
-    background: radial-gradient(circle, var(--spotlight-color, rgba(128, 253, 3, 0.4)) var(--spotlight-strength, 40%), rgba(128, 253, 3, 0) 70%);
+    width: var(--spotlight-size, 80px);
+    height: 100%; /* ✅ ora copre tutta la barra */
+    transform: translateX(var(--spotlight-x, 0));
+    background: radial-gradient(circle,
+        var(--spotlight-color, rgba(128, 253, 3, 0.4)) var(--spotlight-strength, 40%),
+        rgba(128, 253, 3, 0) 70%);
     opacity: calc(var(--spotlight-opacity, 0.4) * var(--spotlight-visible, 0));
-    transition: transform var(--spotlight-move-duration, 0.5s) ease-in-out, width 0.3s ease, opacity 0.3s ease;
+    transition: transform var(--spotlight-speed, 0.6s) ease-in-out, width 0.3s ease, opacity 0.3s ease;
     pointer-events: none;
     z-index: 1;
 }
