@@ -1,7 +1,7 @@
 .bw-button {
     display: inline-flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     background-color: #80fd03;
     border: 1px solid #080808;
     border-radius: 999px;
@@ -12,6 +12,7 @@
     padding: 12px 26px;
     text-decoration: none;
     transition: all 0.3s ease;
+    overflow: visible;
 }
 
 .bw-button:hover,
@@ -22,6 +23,15 @@
 .bw-button__label {
     color: inherit;
     line-height: 1;
+}
+
+.bw-button__icon-wrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transform: translateX(calc(-100% - 12px));
+    transition: inherit;
 }
 
 .bw-button__icon {
