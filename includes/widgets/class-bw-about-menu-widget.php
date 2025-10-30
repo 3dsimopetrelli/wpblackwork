@@ -184,29 +184,6 @@ class BW_About_Menu_Widget extends Widget_Base {
             ]
         );
 
-        $this->add_responsive_control(
-            'container_gap',
-            [
-                'label'      => __( 'Items Gap', 'bw' ),
-                'type'       => Controls_Manager::SLIDER,
-                'size_units' => [ 'px', 'em' ],
-                'range'      => [
-                    'px' => [
-                        'min' => 0,
-                        'max' => 120,
-                    ],
-                    'em' => [
-                        'min' => 0,
-                        'max' => 6,
-                    ],
-                ],
-                'selectors'  => [
-                    '{{WRAPPER}} .bw-about-menu__list' => 'gap: {{SIZE}}{{UNIT}};',
-                ],
-                'render_type' => 'ui',
-            ]
-        );
-
         $this->end_controls_section();
     }
 
@@ -354,20 +331,27 @@ class BW_About_Menu_Widget extends Widget_Base {
             [
                 'label'      => __( 'Spacing', 'bw' ),
                 'type'       => Controls_Manager::SLIDER,
-                'size_units' => [ 'px', 'em' ],
+                'size_units' => [ 'px', '%', 'em' ],
                 'range'      => [
                     'px' => [
                         'min' => 0,
                         'max' => 120,
+                    ],
+                    '%'  => [
+                        'min' => 0,
+                        'max' => 10,
                     ],
                     'em' => [
                         'min' => 0,
                         'max' => 6,
                     ],
                 ],
+                'default'    => [
+                    'unit' => 'px',
+                    'size' => 40,
+                ],
                 'selectors'  => [
-                    '{{WRAPPER}} .bw-about-menu__list .menu-item' => 'margin-right: {{SIZE}}{{UNIT}};',
-                    '{{WRAPPER}} .bw-about-menu__list .menu-item:last-child' => 'margin-right: 0;',
+                    '{{WRAPPER}} .bw-about-menu__list' => 'gap: {{SIZE}}{{UNIT}};',
                 ],
                 'render_type' => 'ui',
             ]
