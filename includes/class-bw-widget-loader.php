@@ -46,13 +46,20 @@ class BW_Widget_Loader {
         $files = glob( __DIR__ . '/widgets/class-bw-*-widget.php' ) ?: [];
         foreach ( $files as $file ) {
             require_once $file;
-            $class_name = $this->get_class_from_file( $file );
+            $class_names = $this->get_classes_from_file( $file );
 
-            if ( ! $class_name || ! class_exists( $class_name ) ) {
+            if ( empty( $class_names ) ) {
                 continue;
             }
 
-            $this->register_widget_with_manager( $widgets_manager, $class_name );
+            foreach ( $class_names as $class_name ) {
+                if ( ! class_exists( $class_name ) ) {
+                    continue;
+                }
+
+                $this->register_widget_with_manager( $widgets_manager, $class_name );
+                break;
+            }
         }
 
         $this->widgets_registered = true;
@@ -71,11 +78,11 @@ class BW_Widget_Loader {
         }
     }
 
-    private function get_class_from_file( $file ) {
+    private function get_classes_from_file( $file ) {
         $basename = basename( $file );
 
         if ( ! preg_match( '/^class-(.+)-widget\.php$/', $basename, $matches ) ) {
-            return '';
+            return [];
         }
 
         $parts = array_filter( explode( '-', $matches[1] ) );
@@ -84,10 +91,25 @@ class BW_Widget_Loader {
         }, $parts );
 
         if ( empty( $parts ) ) {
-            return '';
+            return [];
         }
 
-        return 'Widget_' . implode( '_', $parts );
+        $class_candidates   = [];
+        $base_name          = implode( '_', $parts );
+        $class_candidates[] = 'Widget_' . $base_name;
+
+        $parts_without_prefix = $parts;
+
+        if ( ! empty( $parts_without_prefix ) && 'Bw' === $parts_without_prefix[0] ) {
+            array_shift( $parts_without_prefix );
+        }
+
+        if ( ! empty( $parts_without_prefix ) ) {
+            $prefixed_base       = implode( '_', $parts_without_prefix );
+            $class_candidates[]  = 'BW_' . $prefixed_base . '_Widget';
+        }
+
+        return array_unique( $class_candidates );
     }
 }
 

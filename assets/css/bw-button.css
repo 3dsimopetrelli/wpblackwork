@@ -1,0 +1,64 @@
+.bw-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background-color: #80fd03;
+    border: 1px solid #080808;
+    border-radius: 999px;
+    color: #080808;
+    font-size: 24px;
+    font-weight: 500;
+    line-height: 1;
+    padding: 12px 26px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.bw-button:hover,
+.bw-button:focus {
+    text-decoration: none;
+}
+
+.bw-button__label {
+    color: inherit;
+    line-height: 1;
+}
+
+.bw-button__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #80fd03;
+    border: 1px solid #080808;
+    border-radius: 50%;
+    color: #080808;
+    width: 30px;
+    height: 30px;
+    padding: 4px;
+    box-sizing: border-box;
+    flex-shrink: 0;
+    transition: inherit;
+}
+
+.bw-button__icon svg,
+.bw-button__icon img,
+.bw-button__icon span {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.bw-button__icon svg {
+    fill: currentColor;
+    stroke: currentColor;
+}
+
+.bw-button__icon img {
+    object-fit: contain;
+}
+
+.bw-button__icon span {
+    font-size: 16px;
+    line-height: 1;
+    text-align: center;
+}

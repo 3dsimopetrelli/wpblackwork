@@ -1,0 +1,504 @@
+<?php
+use Elementor\Controls_Manager;
+use Elementor\Group_Control_Typography;
+use Elementor\Widget_Base;
+
+if ( ! defined( 'ABSPATH' ) ) {
+    exit;
+}
+
+class BW_Button_Widget extends Widget_Base {
+    public function get_name() {
+        return 'bw-button';
+    }
+
+    public function get_title() {
+        return __( 'BW Button', 'bw' );
+    }
+
+    public function get_icon() {
+        return 'eicon-button';
+    }
+
+    public function get_categories() {
+        return [ 'blackwork' ];
+    }
+
+    public function get_style_depends() {
+        if ( ! wp_style_is( 'bw-button-style', 'registered' ) && function_exists( 'bw_register_button_widget_assets' ) ) {
+            bw_register_button_widget_assets();
+        }
+
+        return [ 'bw-button-style' ];
+    }
+
+    public function get_script_depends() {
+        return wp_script_is( 'bw-button-script', 'registered' ) ? [ 'bw-button-script' ] : [];
+    }
+
+    protected function register_controls() {
+        $this->register_text_controls();
+        $this->register_icon_controls();
+    }
+
+    private function register_text_controls() {
+        $this->start_controls_section(
+            'section_text_style',
+            [
+                'label' => __( 'Style Text Button', 'bw' ),
+                'tab'   => Controls_Manager::TAB_STYLE,
+            ]
+        );
+
+        $this->add_control(
+            'button_text',
+            [
+                'label'       => __( 'Text', 'bw' ),
+                'type'        => Controls_Manager::TEXT,
+                'default'     => __( 'The Workflow', 'bw' ),
+                'placeholder' => __( 'Enter button text', 'bw' ),
+                'label_block' => true,
+            ]
+        );
+
+        $this->add_control(
+            'button_link',
+            [
+                'label'       => __( 'Link', 'bw' ),
+                'type'        => Controls_Manager::URL,
+                'placeholder' => __( 'https://your-link.com', 'bw' ),
+                'dynamic'     => [ 'active' => true ],
+            ]
+        );
+
+        $this->add_group_control(
+            Group_Control_Typography::get_type(),
+            [
+                'name'     => 'button_typography',
+                'selector' => '{{WRAPPER}} .bw-button__label',
+            ]
+        );
+
+        $this->start_controls_tabs( 'tabs_button_colors' );
+
+        $this->start_controls_tab(
+            'tab_button_colors_normal',
+            [
+                'label' => __( 'Normal', 'bw' ),
+            ]
+        );
+
+        $this->add_control(
+            'button_text_color',
+            [
+                'label'     => __( 'Text Color', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#080808',
+                'selectors' => [
+                    '{{WRAPPER}} .bw-button'       => 'color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-button__label' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'button_background_color',
+            [
+                'label'     => __( 'Background Color', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#80FD03',
+                'selectors' => [
+                    '{{WRAPPER}} .bw-button' => 'background-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'button_border_color',
+            [
+                'label'     => __( 'Border Color', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#080808',
+                'selectors' => [
+                    '{{WRAPPER}} .bw-button' => 'border-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->end_controls_tab();
+
+        $this->start_controls_tab(
+            'tab_button_colors_hover',
+            [
+                'label' => __( 'Hover', 'bw' ),
+            ]
+        );
+
+        $this->add_control(
+            'button_text_color_hover',
+            [
+                'label'     => __( 'Text Color', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#080808',
+                'selectors' => [
+                    '{{WRAPPER}} .bw-button:hover, {{WRAPPER}} .bw-button:focus'        => 'color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-button:hover .bw-button__label, {{WRAPPER}} .bw-button:focus .bw-button__label' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'button_background_color_hover',
+            [
+                'label'     => __( 'Background Color', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#80FD03',
+                'selectors' => [
+                    '{{WRAPPER}} .bw-button:hover, {{WRAPPER}} .bw-button:focus' => 'background-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'button_border_color_hover',
+            [
+                'label'     => __( 'Border Color', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#080808',
+                'selectors' => [
+                    '{{WRAPPER}} .bw-button:hover, {{WRAPPER}} .bw-button:focus' => 'border-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->end_controls_tab();
+        $this->end_controls_tabs();
+
+        $this->add_control(
+            'button_border_width',
+            [
+                'label'      => __( 'Border Width', 'bw' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px' ],
+                'range'      => [
+                    'px' => [ 'min' => 0, 'max' => 10, 'step' => 1 ],
+                ],
+                'default'    => [ 'size' => 1, 'unit' => 'px' ],
+                'selectors'  => [
+                    '{{WRAPPER}} .bw-button' => 'border-width: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'button_border_radius',
+            [
+                'label'      => __( 'Border Radius', 'bw' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px' ],
+                'range'      => [
+                    'px' => [ 'min' => 0, 'max' => 1000, 'step' => 1 ],
+                ],
+                'default'    => [ 'size' => 999, 'unit' => 'px' ],
+                'selectors'  => [
+                    '{{WRAPPER}} .bw-button' => 'border-radius: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'button_padding',
+            [
+                'label'      => __( 'Padding', 'bw' ),
+                'type'       => Controls_Manager::DIMENSIONS,
+                'size_units' => [ 'px', 'em', '%' ],
+                'default'    => [
+                    'top'    => 12,
+                    'right'  => 26,
+                    'bottom' => 12,
+                    'left'   => 26,
+                    'unit'   => 'px',
+                ],
+                'selectors'  => [
+                    '{{WRAPPER}} .bw-button' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'button_alignment',
+            [
+                'label'        => __( 'Alignment', 'bw' ),
+                'type'         => Controls_Manager::CHOOSE,
+                'options'      => [
+                    'left'   => [
+                        'title' => __( 'Left', 'bw' ),
+                        'icon'  => 'eicon-text-align-left',
+                    ],
+                    'center' => [
+                        'title' => __( 'Center', 'bw' ),
+                        'icon'  => 'eicon-text-align-center',
+                    ],
+                    'right'  => [
+                        'title' => __( 'Right', 'bw' ),
+                        'icon'  => 'eicon-text-align-right',
+                    ],
+                    'justify' => [
+                        'title' => __( 'Justify', 'bw' ),
+                        'icon'  => 'eicon-text-align-justify',
+                    ],
+                ],
+                'default'      => 'left',
+                'selectors'    => [
+                    '{{WRAPPER}}' => 'text-align: {{VALUE}};',
+                ],
+                'toggle'       => false,
+            ]
+        );
+
+        $this->end_controls_section();
+    }
+
+    private function register_icon_controls() {
+        $this->start_controls_section(
+            'section_icon_style',
+            [
+                'label' => __( 'Style Icon Button', 'bw' ),
+                'tab'   => Controls_Manager::TAB_STYLE,
+            ]
+        );
+
+        $this->add_control(
+            'custom_icon',
+            [
+                'label'       => __( 'Custom SVG', 'bw' ),
+                'type'        => Controls_Manager::MEDIA,
+                'media_types' => [ 'svg' ],
+                'description' => __( 'Upload a custom SVG to replace the default arrow.', 'bw' ),
+            ]
+        );
+
+        $this->start_controls_tabs( 'tabs_icon_colors' );
+
+        $this->start_controls_tab(
+            'tab_icon_normal',
+            [
+                'label' => __( 'Normal', 'bw' ),
+            ]
+        );
+
+        $this->add_control(
+            'icon_color',
+            [
+                'label'     => __( 'Icon Color', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#080808',
+                'selectors' => [
+                    '{{WRAPPER}} .bw-button__icon' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'icon_background_color',
+            [
+                'label'     => __( 'Icon Background', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#80FD03',
+                'selectors' => [
+                    '{{WRAPPER}} .bw-button__icon' => 'background-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'icon_border_color',
+            [
+                'label'     => __( 'Icon Border', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#080808',
+                'selectors' => [
+                    '{{WRAPPER}} .bw-button__icon' => 'border-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->end_controls_tab();
+
+        $this->start_controls_tab(
+            'tab_icon_hover',
+            [
+                'label' => __( 'Hover', 'bw' ),
+            ]
+        );
+
+        $this->add_control(
+            'icon_color_hover',
+            [
+                'label'     => __( 'Icon Color', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#080808',
+                'selectors' => [
+                    '{{WRAPPER}} .bw-button:hover .bw-button__icon, {{WRAPPER}} .bw-button:focus .bw-button__icon' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'icon_background_color_hover',
+            [
+                'label'     => __( 'Icon Background', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#80FD03',
+                'selectors' => [
+                    '{{WRAPPER}} .bw-button:hover .bw-button__icon, {{WRAPPER}} .bw-button:focus .bw-button__icon' => 'background-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'icon_border_color_hover',
+            [
+                'label'     => __( 'Icon Border', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#080808',
+                'selectors' => [
+                    '{{WRAPPER}} .bw-button:hover .bw-button__icon, {{WRAPPER}} .bw-button:focus .bw-button__icon' => 'border-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->end_controls_tab();
+        $this->end_controls_tabs();
+
+        $this->add_control(
+            'icon_size',
+            [
+                'label'      => __( 'Icon Size', 'bw' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px' ],
+                'range'      => [
+                    'px' => [ 'min' => 10, 'max' => 200 ],
+                ],
+                'default'    => [ 'size' => 30, 'unit' => 'px' ],
+                'selectors'  => [
+                    '{{WRAPPER}} .bw-button__icon' => 'width: {{SIZE}}{{UNIT}}; height: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'icon_padding',
+            [
+                'label'      => __( 'Icon Padding', 'bw' ),
+                'type'       => Controls_Manager::DIMENSIONS,
+                'size_units' => [ 'px', 'em', '%' ],
+                'default'    => [
+                    'top'    => 4,
+                    'right'  => 4,
+                    'bottom' => 4,
+                    'left'   => 4,
+                    'unit'   => 'px',
+                ],
+                'selectors'  => [
+                    '{{WRAPPER}} .bw-button__icon' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->end_controls_section();
+    }
+
+    protected function render() {
+        $settings = $this->get_settings_for_display();
+        $text     = isset( $settings['button_text'] ) && '' !== trim( $settings['button_text'] )
+            ? $settings['button_text']
+            : __( 'The Workflow', 'bw' );
+
+        $this->add_render_attribute( 'button', 'class', 'bw-button' );
+
+        $tag = 'div';
+
+        if ( ! empty( $settings['button_link']['url'] ) ) {
+            $tag = 'a';
+            $this->add_link_attributes( 'button', $settings['button_link'] );
+        }
+
+        $icon_markup = $this->get_icon_markup( $settings );
+
+        echo sprintf(
+            '<%1$s %2$s>%3$s<span class="bw-button__label">%4$s</span></%1$s>',
+            esc_attr( $tag ),
+            $this->get_render_attribute_string( 'button' ),
+            $icon_markup,
+            esc_html( $text )
+        );
+    }
+
+    private function get_icon_markup( array $settings ) {
+        $custom_icon = isset( $settings['custom_icon'] ) ? (array) $settings['custom_icon'] : [];
+        $icon_html   = '';
+
+        if ( ! empty( $custom_icon['id'] ) ) {
+            $path = get_attached_file( $custom_icon['id'] );
+            if ( $path && file_exists( $path ) ) {
+                $icon_html = $this->sanitize_svg( file_get_contents( $path ) );
+            }
+        }
+
+        if ( empty( $icon_html ) && ! empty( $custom_icon['url'] ) ) {
+            $response = wp_safe_remote_get( $custom_icon['url'] );
+
+            if ( ! is_wp_error( $response ) ) {
+                $icon_html = $this->sanitize_svg( wp_remote_retrieve_body( $response ) );
+            }
+        }
+
+        if ( empty( $icon_html ) ) {
+            $icon_html = $this->get_default_arrow_svg();
+        }
+
+        return sprintf( '<span class="bw-button__icon">%s</span>', $icon_html );
+    }
+
+    private function get_default_arrow_svg() {
+        return '<svg class="bw-button__icon-default" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    }
+
+    private function sanitize_svg( $svg_content ) {
+        if ( empty( $svg_content ) || is_wp_error( $svg_content ) ) {
+            return '';
+        }
+
+        $allowed_tags = [
+            'svg'    => [
+                'class'       => true,
+                'xmlns'       => true,
+                'width'       => true,
+                'height'      => true,
+                'viewbox'     => true,
+                'aria-hidden' => true,
+                'role'        => true,
+                'focusable'   => true,
+                'fill'        => true,
+                'stroke'      => true,
+                'stroke-width' => true,
+                'stroke-linecap' => true,
+                'stroke-linejoin' => true,
+                'preserveaspectratio' => true,
+            ],
+            'g'      => [ 'fill' => true, 'stroke' => true, 'stroke-width' => true, 'stroke-linecap' => true, 'stroke-linejoin' => true, 'class' => true ],
+            'path'   => [ 'd' => true, 'fill' => true, 'stroke' => true, 'stroke-width' => true, 'stroke-linecap' => true, 'stroke-linejoin' => true, 'class' => true ],
+            'circle' => [ 'cx' => true, 'cy' => true, 'r' => true, 'fill' => true, 'stroke' => true, 'stroke-width' => true, 'class' => true ],
+            'ellipse'=> [ 'cx' => true, 'cy' => true, 'rx' => true, 'ry' => true, 'fill' => true, 'stroke' => true, 'stroke-width' => true, 'class' => true ],
+            'rect'   => [ 'x' => true, 'y' => true, 'width' => true, 'height' => true, 'rx' => true, 'ry' => true, 'fill' => true, 'stroke' => true, 'stroke-width' => true, 'class' => true ],
+            'polygon'=> [ 'points' => true, 'fill' => true, 'stroke' => true, 'stroke-width' => true, 'class' => true ],
+            'polyline'=> [ 'points' => true, 'fill' => true, 'stroke' => true, 'stroke-width' => true, 'class' => true ],
+            'line'   => [ 'x1' => true, 'y1' => true, 'x2' => true, 'y2' => true, 'stroke' => true, 'stroke-width' => true, 'class' => true ],
+            'title'  => [],
+            'desc'   => [],
+        ];
+
+        return wp_kses( $svg_content, $allowed_tags );
+    }
+}
