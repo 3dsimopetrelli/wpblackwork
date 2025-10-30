@@ -1,8 +1,6 @@
 (function() {
     'use strict';
 
-    const SPOTLIGHT_OPACITY_ACTIVE = 1;
-
     const getDomElement = (scope) => {
         if (!scope) {
             return null;
@@ -49,17 +47,17 @@
 
         const updateSpotlight = (target) => {
             if (!target) {
-                list.style.setProperty('--spotlight-opacity', '0');
+                list.style.setProperty('--spotlight-visible', '0');
                 return;
             }
 
             const itemRect = target.getBoundingClientRect();
             const listRect = list.getBoundingClientRect();
-            const offset = itemRect.left - listRect.left;
+            const center = itemRect.left - listRect.left + itemRect.width / 2;
 
-            list.style.setProperty('--spotlight-x', `${offset}px`);
-            list.style.setProperty('--spotlight-width', `${itemRect.width}px`);
-            list.style.setProperty('--spotlight-opacity', `${SPOTLIGHT_OPACITY_ACTIVE}`);
+            list.style.setProperty('--spotlight-dynamic-size', `${itemRect.width}px`);
+            list.style.setProperty('--spotlight-x', `${center}px`);
+            list.style.setProperty('--spotlight-visible', '1');
         };
 
         const getInitialTarget = () => {
@@ -134,6 +132,7 @@
                 resizeObserver.disconnect();
             }
             window.removeEventListener('resize', handleResize);
+            list.style.setProperty('--spotlight-visible', '0');
         }, { once: true });
     };
 

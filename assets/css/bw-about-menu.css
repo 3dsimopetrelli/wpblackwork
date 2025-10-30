@@ -12,9 +12,12 @@
 
 .bw-about-menu__list {
     --spotlight-x: 0px;
-    --spotlight-width: 0px;
-    --spotlight-opacity: 0;
+    --spotlight-opacity: 0.4;
+    --spotlight-visible: 0;
+    --spotlight-color: rgba(128, 253, 3, 0.4);
+    --spotlight-strength: 40%;
     --spotlight-move-duration: 0.5s;
+    --spotlight-dynamic-size: 80px;
     display: flex;
     align-items: center;
     gap: 40px;
@@ -31,19 +34,14 @@
     position: absolute;
     top: 50%;
     left: 0;
-    width: var(--spotlight-width, 80px);
-    height: 160%;
-    transform: translateX(var(--spotlight-x, 0)) translateY(-50%);
-    background: radial-gradient(circle, rgba(128, 253, 3, 0.4) 0%, rgba(128, 253, 3, 0) 70%);
-    transition: transform var(--spotlight-move-duration, 0.5s) ease-in-out, width 0.3s ease-in-out, opacity 0.3s ease-in-out;
-    opacity: var(--spotlight-opacity, 0);
+    width: var(--spotlight-size, var(--spotlight-dynamic-size, 80px));
+    height: 100%;
+    transform: translateX(calc(var(--spotlight-x, 0px) - var(--spotlight-size, var(--spotlight-dynamic-size, 80px)) / 2)) translateY(-50%);
+    background: radial-gradient(circle, var(--spotlight-color, rgba(128, 253, 3, 0.4)) var(--spotlight-strength, 40%), rgba(128, 253, 3, 0) 70%);
+    opacity: calc(var(--spotlight-opacity, 0.4) * var(--spotlight-visible, 0));
+    transition: transform var(--spotlight-move-duration, 0.5s) ease-in-out, width 0.3s ease, opacity 0.3s ease;
     pointer-events: none;
-    z-index: 0;
-}
-
-.bw-about-menu__list:hover::before,
-.bw-about-menu__list:focus-within::before {
-    opacity: var(--spotlight-opacity, 1);
+    z-index: 1;
 }
 
 .bw-about-menu__list .menu-item {
