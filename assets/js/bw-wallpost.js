@@ -103,6 +103,7 @@
 
         var gutterData = getGutterValue($grid);
         var instance = $grid.data('masonry');
+        var isEditor = isElementorEditor();
 
         if (instance && !forceReinit) {
             withImagesLoaded($grid, function () {
@@ -137,6 +138,7 @@
         }
 
         var initializeMasonry = function () {
+            // Destroy existing instance completely
             destroyGridInstance($grid);
 
             var data = getGutterValue($grid);
@@ -147,26 +149,65 @@
             });
             $grid.addClass('bw-wallpost-initialized');
 
+            var masonryInstance = $grid.data('masonry');
+
+            // Reload items to ensure all elements are recognized
+            if (masonryInstance && typeof masonryInstance.reloadItems === 'function') {
+                masonryInstance.reloadItems();
+            }
+
+            // Force layout immediately
+            if (masonryInstance && typeof masonryInstance.layout === 'function') {
+                masonryInstance.layout();
+            }
+
             // Update height immediately after initialization
             updateGridHeight($grid);
 
-            // Force initial layout and height update after short delay
-            setTimeout(function() {
-                var masonryInstance = $grid.data('masonry');
-                if (masonryInstance && typeof masonryInstance.layout === 'function') {
-                    masonryInstance.layout();
-                    updateGridHeight($grid);
-                }
-            }, 100);
+            // Additional layouts for editor mode
+            if (isEditor) {
+                // Second layout pass at 100ms
+                setTimeout(function() {
+                    var instance = $grid.data('masonry');
+                    if (instance && typeof instance.reloadItems === 'function') {
+                        instance.reloadItems();
+                    }
+                    if (instance && typeof instance.layout === 'function') {
+                        instance.layout();
+                        updateGridHeight($grid);
+                    }
+                }, 100);
 
-            // Additional layout and height update for editor
-            setTimeout(function() {
-                var masonryInstance = $grid.data('masonry');
-                if (masonryInstance && typeof masonryInstance.layout === 'function') {
-                    masonryInstance.layout();
-                    updateGridHeight($grid);
-                }
-            }, 300);
+                // Third layout pass at 300ms
+                setTimeout(function() {
+                    var instance = $grid.data('masonry');
+                    if (instance && typeof instance.reloadItems === 'function') {
+                        instance.reloadItems();
+                    }
+                    if (instance && typeof instance.layout === 'function') {
+                        instance.layout();
+                        updateGridHeight($grid);
+                    }
+                }, 300);
+
+                // Final layout pass at 500ms
+                setTimeout(function() {
+                    var instance = $grid.data('masonry');
+                    if (instance && typeof instance.layout === 'function') {
+                        instance.layout();
+                        updateGridHeight($grid);
+                    }
+                }, 500);
+            } else {
+                // Frontend: fewer layout passes
+                setTimeout(function() {
+                    var instance = $grid.data('masonry');
+                    if (instance && typeof instance.layout === 'function') {
+                        instance.layout();
+                        updateGridHeight($grid);
+                    }
+                }, 100);
+            }
         };
 
         withImagesLoaded($grid, initializeMasonry);
@@ -382,32 +423,35 @@
                         clearTimeout(this.layoutTimeout);
                     }
 
-                    // Delay layout to allow DOM updates
+                    // Determine if we need a full reinit
+                    var needsFullReinit = settingKey && (
+                        settingKey.indexOf('columns') !== -1 ||
+                        settingKey.indexOf('posts_per_page') !== -1 ||
+                        settingKey.indexOf('column_gap') !== -1
+                    );
+
+                    // Increased delay to allow DOM updates to complete
+                    var initialDelay = needsFullReinit ? 200 : 100;
+
                     this.layoutTimeout = setTimeout(function () {
                         $grid.each(function () {
                             var $thisGrid = $(this);
 
-                            // Force reinit for structural changes
-                            var forceReinit = settingKey && (
-                                settingKey.indexOf('columns') !== -1 ||
-                                settingKey.indexOf('posts_per_page') !== -1 ||
-                                settingKey.indexOf('column_gap') !== -1
-                            );
+                            if (needsFullReinit) {
+                                // For structural changes: destroy and reinitialize completely
+                                destroyGridInstance($thisGrid);
 
-                            layoutGrid($thisGrid, forceReinit);
-
-                            // Additional layout after a longer delay for images
-                            setTimeout(function() {
+                                // Wait a bit more to ensure DOM is fully updated
+                                setTimeout(function() {
+                                    // Force complete reinitialization
+                                    layoutGrid($thisGrid, true);
+                                }, 50);
+                            } else {
+                                // For minor changes: just update layout
                                 layoutGrid($thisGrid, false);
-                                updateGridHeight($thisGrid);
-                            }, 300);
-
-                            // Final height update
-                            setTimeout(function() {
-                                updateGridHeight($thisGrid);
-                            }, 500);
+                            }
                         });
-                    }, 100);
+                    }, initialDelay);
                 },
 
                 onDestroy: function () {
