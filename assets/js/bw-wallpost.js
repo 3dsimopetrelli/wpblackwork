@@ -43,6 +43,34 @@
         callback();
     }
 
+    function updateGridHeight($grid) {
+        if (!$grid || !$grid.length) {
+            return;
+        }
+
+        var instance = $grid.data('masonry');
+        if (!instance) {
+            return;
+        }
+
+        // Calculate the height based on positioned items
+        var maxHeight = 0;
+        var $items = $grid.find('.bw-wallpost-item');
+
+        $items.each(function() {
+            var $item = $(this);
+            var itemBottom = $item.position().top + $item.outerHeight(true);
+            if (itemBottom > maxHeight) {
+                maxHeight = itemBottom;
+            }
+        });
+
+        // Set explicit height on the container
+        if (maxHeight > 0) {
+            $grid.css('height', maxHeight + 'px');
+        }
+    }
+
     function destroyGridInstance($grid) {
         if (!$grid || !$grid.length) {
             return;
@@ -86,12 +114,24 @@
 
                 instance.layout();
 
-                // Force height recalculation
+                // Update container height immediately
+                updateGridHeight($grid);
+
+                // Force height recalculation after delay
                 setTimeout(function() {
                     if (instance && typeof instance.layout === 'function') {
                         instance.layout();
+                        updateGridHeight($grid);
                     }
                 }, 100);
+
+                // Additional check for editor mode
+                setTimeout(function() {
+                    if (instance && typeof instance.layout === 'function') {
+                        instance.layout();
+                        updateGridHeight($grid);
+                    }
+                }, 300);
             });
             return;
         }
@@ -107,13 +147,26 @@
             });
             $grid.addClass('bw-wallpost-initialized');
 
-            // Force initial layout after short delay
+            // Update height immediately after initialization
+            updateGridHeight($grid);
+
+            // Force initial layout and height update after short delay
             setTimeout(function() {
                 var masonryInstance = $grid.data('masonry');
                 if (masonryInstance && typeof masonryInstance.layout === 'function') {
                     masonryInstance.layout();
+                    updateGridHeight($grid);
                 }
             }, 100);
+
+            // Additional layout and height update for editor
+            setTimeout(function() {
+                var masonryInstance = $grid.data('masonry');
+                if (masonryInstance && typeof masonryInstance.layout === 'function') {
+                    masonryInstance.layout();
+                    updateGridHeight($grid);
+                }
+            }, 300);
         };
 
         withImagesLoaded($grid, initializeMasonry);
@@ -205,10 +258,16 @@
         observeDocument();
     });
 
+    var resizeTimeout;
     $(window).on('resize', function () {
-        $('.bw-wallpost-grid.bw-wallpost-initialized').each(function () {
-            layoutGrid($(this));
-        });
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(function() {
+            $('.bw-wallpost-grid.bw-wallpost-initialized').each(function () {
+                var $grid = $(this);
+                layoutGrid($grid);
+                updateGridHeight($grid);
+            });
+        }, 150);
     });
 
     function observeGrid($grid) {
@@ -340,7 +399,13 @@
                             // Additional layout after a longer delay for images
                             setTimeout(function() {
                                 layoutGrid($thisGrid, false);
+                                updateGridHeight($thisGrid);
                             }, 300);
+
+                            // Final height update
+                            setTimeout(function() {
+                                updateGridHeight($thisGrid);
+                            }, 500);
                         });
                     }, 100);
                 },
@@ -400,6 +465,21 @@
     registerElementorHooks();
     $(window).on('elementor/frontend/init', registerElementorHooks);
 
+    // Handle elementor/frontend/after_load event
+    $(window).on('elementor/frontend/after_load', function() {
+        setTimeout(function() {
+            $('.bw-wallpost-grid').each(function() {
+                var $grid = $(this);
+                if ($grid.hasClass('bw-wallpost-initialized')) {
+                    layoutGrid($grid, false);
+                    updateGridHeight($grid);
+                } else {
+                    initGrid($grid);
+                }
+            });
+        }, 100);
+    });
+
     // Additional support for Elementor editor
     if (typeof elementor !== 'undefined') {
         // Listen to Elementor preview loaded event
@@ -428,7 +508,9 @@
             clearTimeout(editorResizeTimeout);
             editorResizeTimeout = setTimeout(function() {
                 $('.bw-wallpost-grid.bw-wallpost-initialized').each(function () {
-                    layoutGrid($(this), false);
+                    var $grid = $(this);
+                    layoutGrid($grid, false);
+                    updateGridHeight($grid);
                 });
             }, 150);
         });
@@ -446,6 +528,9 @@
                             var $grid = $(this);
                             if (!$grid.hasClass('bw-wallpost-initialized')) {
                                 initGrid($grid);
+                            } else {
+                                // Update height for already initialized grids
+                                updateGridHeight($grid);
                             }
                         });
                     }
@@ -455,5 +540,16 @@
             // Check periodically in editor
             setInterval(checkAndInitEditor, 2000);
         }
+
+        // Force height update on scroll/resize in editor
+        var editorScrollTimeout;
+        $(window).on('scroll.bwWallpost', function() {
+            clearTimeout(editorScrollTimeout);
+            editorScrollTimeout = setTimeout(function() {
+                $('.bw-wallpost-grid.bw-wallpost-initialized').each(function () {
+                    updateGridHeight($(this));
+                });
+            }, 100);
+        });
     }
 })(jQuery);
