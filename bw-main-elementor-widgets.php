@@ -44,6 +44,7 @@ add_action('elementor/editor/after_enqueue_scripts', 'bw_enqueue_slick_slider_ad
 add_action('init', 'bw_register_divider_style');
 add_action( 'init', 'bw_register_button_widget_assets' );
 add_action( 'init', 'bw_register_about_menu_widget_assets' );
+add_action( 'init', 'bw_register_wallpost_widget_assets' );
 add_action( 'elementor/frontend/after_register_scripts', 'bw_enqueue_about_menu_widget_assets' );
 add_action( 'elementor/editor/after_enqueue_scripts', 'bw_enqueue_about_menu_widget_assets' );
 
@@ -215,6 +216,29 @@ function bw_register_about_menu_widget_assets() {
             true
         );
     }
+}
+
+function bw_register_wallpost_widget_assets() {
+    $css_file     = __DIR__ . '/assets/css/bw-wallpost.css';
+    $css_version  = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
+
+    wp_register_style(
+        'bw-wallpost-style',
+        plugin_dir_url( __FILE__ ) . 'assets/css/bw-wallpost.css',
+        [],
+        $css_version
+    );
+
+    $js_file    = __DIR__ . '/assets/js/bw-wallpost.js';
+    $js_version = file_exists( $js_file ) ? filemtime( $js_file ) : '1.0.0';
+
+    wp_register_script(
+        'bw-wallpost-js',
+        plugin_dir_url( __FILE__ ) . 'assets/js/bw-wallpost.js',
+        [ 'jquery', 'imagesloaded', 'masonry' ],
+        $js_version,
+        true
+    );
 }
 
 function bw_enqueue_about_menu_widget_assets() {
