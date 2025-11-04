@@ -28,6 +28,21 @@
         };
     }
 
+    function withImagesLoaded($grid, callback) {
+        if (typeof callback !== 'function') {
+            return;
+        }
+
+        if (typeof $grid.imagesLoaded === 'function') {
+            $grid.imagesLoaded(function () {
+                callback();
+            });
+            return;
+        }
+
+        callback();
+    }
+
     function layoutGrid($grid) {
         if (typeof $.fn.masonry !== 'function') {
             return;
@@ -37,8 +52,15 @@
         var instance = $grid.data('masonry');
 
         if (instance) {
-            instance.options.gutter = gutterData.value;
-            instance.layout();
+            withImagesLoaded($grid, function () {
+                instance.options.gutter = gutterData.value;
+
+                if (typeof instance.reloadItems === 'function') {
+                    instance.reloadItems();
+                }
+
+                instance.layout();
+            });
             return;
         }
 
@@ -52,13 +74,7 @@
             $grid.addClass('bw-wallpost-initialized');
         };
 
-        if (typeof $grid.imagesLoaded === 'function') {
-            $grid.imagesLoaded(function () {
-                initializeMasonry();
-            });
-        } else {
-            initializeMasonry();
-        }
+        withImagesLoaded($grid, initializeMasonry);
     }
 
     function initWallpost($scope) {
@@ -71,6 +87,7 @@
         $grids.each(function () {
             var $grid = $(this);
             layoutGrid($grid);
+            observeGrid($grid);
         });
     }
 
@@ -87,6 +104,68 @@
             layoutGrid($(this));
         });
     });
+
+    function observeGrid($grid) {
+        if (typeof window.MutationObserver === 'undefined') {
+            return;
+        }
+
+        if (!$grid.length || $grid.data('bwWallpostObserver')) {
+            return;
+        }
+
+        var observer = new window.MutationObserver(function (mutations) {
+            if (!$grid.length || !$.contains(document, $grid[0])) {
+                observer.disconnect();
+                $grid.removeData('bwWallpostObserver');
+                return;
+            }
+
+            var shouldRelayout = false;
+
+            mutations.forEach(function (mutation) {
+                if (shouldRelayout) {
+                    return;
+                }
+
+                if (mutation.type === 'childList' && (mutation.addedNodes.length || mutation.removedNodes.length)) {
+                    shouldRelayout = true;
+                    return;
+                }
+
+                if (mutation.type === 'attributes') {
+                    if (
+                        mutation.attributeName === 'data-gutter-size' ||
+                        mutation.attributeName === 'data-gutter-unit' ||
+                        mutation.attributeName === 'style'
+                    ) {
+                        shouldRelayout = true;
+                    }
+                }
+            });
+
+            if (shouldRelayout) {
+                layoutGrid($grid);
+            }
+        });
+
+        observer.observe($grid[0], {
+            childList: true,
+            subtree: false,
+            attributes: true,
+            attributeFilter: ['data-gutter-size', 'data-gutter-unit']
+        });
+
+        var wrapper = $grid.closest('.bw-wallpost');
+        if (wrapper.length) {
+            observer.observe(wrapper[0], {
+                attributes: true,
+                attributeFilter: ['style']
+            });
+        }
+
+        $grid.data('bwWallpostObserver', observer);
+    }
 
     var hooksRegistered = false;
 
