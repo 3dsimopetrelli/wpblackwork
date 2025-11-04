@@ -282,3 +282,50 @@ body.elementor-editor-active .bw-wallpost-item {
   height: 0;
   visibility: hidden;
 }
+
+/* Loading overlay for Elementor editor */
+.bw-wallpost--loading {
+  position: relative;
+}
+
+.bw-wallpost--loading::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.bw-wallpost--loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 40px;
+  height: 40px;
+  margin: -20px 0 0 -20px;
+  border: 3px solid rgba(0, 0, 0, 0.1);
+  border-top-color: rgba(0, 0, 0, 0.6);
+  border-radius: 50%;
+  z-index: 1001;
+  animation: bw-wallpost-spin 0.8s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes bw-wallpost-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Ensure loading overlay is visible in Elementor editor */
+.elementor-editor-active .bw-wallpost--loading::before,
+.elementor-edit-mode .bw-wallpost--loading::before,
+.elementor-editor-active .bw-wallpost--loading::after,
+.elementor-edit-mode .bw-wallpost--loading::after {
+  display: block;
+}
