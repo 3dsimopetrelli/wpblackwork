@@ -43,7 +43,7 @@
         callback();
     }
 
-    function layoutGrid($grid) {
+    function layoutGrid($grid, forceReinit) {
         if (typeof $.fn.masonry !== 'function') {
             return;
         }
@@ -51,7 +51,7 @@
         var gutterData = getGutterValue($grid);
         var instance = $grid.data('masonry');
 
-        if (instance) {
+        if (instance && !forceReinit) {
             withImagesLoaded($grid, function () {
                 instance.options.gutter = gutterData.value;
 
@@ -65,6 +65,10 @@
         }
 
         var initializeMasonry = function () {
+            if (typeof $grid.masonry === 'function' && $grid.data('masonry')) {
+                $grid.masonry('destroy');
+            }
+
             var data = getGutterValue($grid);
             $grid.masonry({
                 itemSelector: '.bw-wallpost-item',
@@ -82,12 +86,19 @@
             return;
         }
 
-        layoutGrid($grid);
+        layoutGrid($grid, true);
         observeGrid($grid);
     }
 
     function initWallpost($scope) {
-        var $grids = $scope.find('.bw-wallpost-grid');
+        var $context = $scope && $scope.length ? $scope : $(document);
+        var $grids = $();
+
+        if ($context.hasClass('bw-wallpost-grid')) {
+            $grids = $grids.add($context);
+        }
+
+        $grids = $grids.add($context.find('.bw-wallpost-grid'));
 
         if (!$grids.length) {
             return;
@@ -149,10 +160,6 @@
             childList: true,
             subtree: true,
         });
-    }
-
-    function initMasonry($scope) {
-        initWallpost($scope);
     }
 
     $(function () {
@@ -244,8 +251,13 @@
         }
 
         hooksRegistered = true;
-        elementorFrontend.hooks.addAction('frontend/element_ready/bw-wallpost.default', initMasonry);
-        observeDocument();
+
+        var initElementorWallpost = function ($scope) {
+            initWallpost($scope);
+        };
+
+        elementorFrontend.hooks.addAction('frontend/element_ready/bw-wallpost.default', initElementorWallpost);
+        elementorFrontend.hooks.addAction('frontend/element_ready/bw-wallpost-widget.default', initElementorWallpost);
     }
 
     registerElementorHooks();
