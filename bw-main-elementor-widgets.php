@@ -45,6 +45,10 @@ add_action('init', 'bw_register_divider_style');
 add_action( 'init', 'bw_register_button_widget_assets' );
 add_action( 'init', 'bw_register_about_menu_widget_assets' );
 add_action( 'init', 'bw_register_wallpost_widget_assets' );
+add_action( 'elementor/frontend/after_register_scripts', 'bw_register_wallpost_widget_assets' );
+add_action( 'elementor/frontend/after_register_styles', 'bw_register_wallpost_widget_assets' );
+add_action( 'elementor/frontend/after_enqueue_scripts', 'bw_enqueue_wallpost_widget_assets' );
+add_action( 'elementor/editor/after_enqueue_scripts', 'bw_enqueue_wallpost_widget_assets' );
 add_action( 'elementor/frontend/after_register_scripts', 'bw_enqueue_about_menu_widget_assets' );
 add_action( 'elementor/editor/after_enqueue_scripts', 'bw_enqueue_about_menu_widget_assets' );
 
@@ -239,6 +243,20 @@ function bw_register_wallpost_widget_assets() {
         $js_version,
         true
     );
+}
+
+function bw_enqueue_wallpost_widget_assets() {
+    if ( ! wp_style_is( 'bw-wallpost-style', 'registered' ) || ! wp_script_is( 'bw-wallpost-js', 'registered' ) ) {
+        bw_register_wallpost_widget_assets();
+    }
+
+    if ( wp_style_is( 'bw-wallpost-style', 'registered' ) ) {
+        wp_enqueue_style( 'bw-wallpost-style' );
+    }
+
+    if ( wp_script_is( 'bw-wallpost-js', 'registered' ) ) {
+        wp_enqueue_script( 'bw-wallpost-js' );
+    }
 }
 
 function bw_enqueue_about_menu_widget_assets() {
