@@ -493,17 +493,28 @@
 
                         if (isColumnsChange && settings.columns) {
                             $grid.attr('data-columns', settings.columns);
+
+                            // Update CSS variable for columns immediately
+                            var $wrapper = this.$element.find('.bw-wallpost');
+                            if ($wrapper.length) {
+                                $wrapper[0].style.setProperty('--bw-wallpost-columns', settings.columns);
+                            }
                         }
                     }
 
                     // posts_per_page needs longer delay as widget is re-rendered server-side
-                    var initialDelay = isPostsChange ? 400 : (needsFullReinit ? 150 : 100);
+                    var initialDelay = isPostsChange ? 500 : (needsFullReinit ? 150 : 100);
 
                     this.layoutTimeout = setTimeout(function () {
                         // Re-find the grid in case the widget was re-rendered
                         var $currentGrid = self.$element.find('.bw-wallpost-grid');
 
                         if (!$currentGrid.length) {
+                            return;
+                        }
+
+                        // Verify that the grid is actually in the DOM
+                        if (!$.contains(document.documentElement, $currentGrid[0])) {
                             return;
                         }
 
@@ -516,9 +527,14 @@
                                 removeGridObserver($thisGrid);
 
                                 // Wait for DOM to be ready, especially for posts_per_page
-                                var reinitDelay = isPostsChange ? 100 : 30;
+                                var reinitDelay = isPostsChange ? 150 : 30;
 
                                 setTimeout(function() {
+                                    // Verify grid is still in DOM
+                                    if (!$.contains(document.documentElement, $thisGrid[0])) {
+                                        return;
+                                    }
+
                                     // Force complete reinitialization
                                     initGrid($thisGrid);
 
@@ -528,18 +544,33 @@
                                         if ($wrapper.length) {
                                             $wrapper.removeClass('bw-wallpost--loading');
                                         }
-                                    }, 300);
+                                    }, 400);
 
-                                    // Additional layout pass for posts_per_page
+                                    // Additional layout passes for posts_per_page to handle image loading
                                     if (isPostsChange) {
+                                        // First pass after 200ms
                                         setTimeout(function() {
                                             var instance = $thisGrid.data('masonry');
-                                            if (instance && typeof instance.layout === 'function') {
+                                            if (instance && typeof instance.reloadItems === 'function') {
                                                 instance.reloadItems();
+                                            }
+                                            if (instance && typeof instance.layout === 'function') {
                                                 instance.layout();
                                                 updateGridHeight($thisGrid);
                                             }
                                         }, 200);
+
+                                        // Second pass after 500ms for slower loading images
+                                        setTimeout(function() {
+                                            var instance = $thisGrid.data('masonry');
+                                            if (instance && typeof instance.reloadItems === 'function') {
+                                                instance.reloadItems();
+                                            }
+                                            if (instance && typeof instance.layout === 'function') {
+                                                instance.layout();
+                                                updateGridHeight($thisGrid);
+                                            }
+                                        }, 500);
                                     }
                                 }, reinitDelay);
                             } else {
