@@ -7,8 +7,11 @@
 
         // Try to read from CSS variable first (for Elementor editor live updates)
         var $wrapper = $grid.closest('.bw-wallpost');
-        if ($wrapper.length) {
-            var cssGap = $wrapper.css('--bw-wallpost-gap');
+        if ($wrapper.length && $wrapper[0]) {
+            // Use getComputedStyle instead of jQuery .css() for reliable CSS variable reading
+            var computedStyle = window.getComputedStyle($wrapper[0]);
+            var cssGap = computedStyle.getPropertyValue('--bw-wallpost-gap');
+
             if (cssGap && cssGap !== '') {
                 // Parse the CSS value (e.g., "24px" or "2%")
                 var matches = cssGap.trim().match(/^([\d.]+)([a-z%]*)$/i);
