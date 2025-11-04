@@ -74,6 +74,10 @@
         });
     }
 
+    function initMasonry($scope) {
+        initWallpost($scope);
+    }
+
     $(window).on('load', function () {
         initWallpost($(document));
     });
@@ -84,9 +88,11 @@
         });
     });
 
-    if (window.elementorFrontend && window.elementorFrontend.hooks) {
-        elementorFrontend.hooks.addAction('frontend/element_ready/bw-wallpost.default', function ($scope) {
-            initWallpost($scope);
-        });
-    }
+    $(window).on('elementor/frontend/init', function () {
+        if (!window.elementorFrontend || !elementorFrontend.hooks) {
+            return;
+        }
+
+        elementorFrontend.hooks.addAction('frontend/element_ready/bw-wallpost-widget.default', initMasonry);
+    });
 })(jQuery);
