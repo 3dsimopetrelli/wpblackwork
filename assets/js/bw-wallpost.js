@@ -78,7 +78,7 @@
         initWallpost($scope);
     }
 
-    $(window).on('load', function () {
+    $(function () {
         initWallpost($(document));
     });
 
@@ -88,11 +88,25 @@
         });
     });
 
-    $(window).on('elementor/frontend/init', function () {
-        if (!window.elementorFrontend || !elementorFrontend.hooks) {
+    var hooksRegistered = false;
+
+    function registerElementorHooks() {
+        if (hooksRegistered) {
             return;
         }
 
+        if (
+            typeof elementorFrontend === 'undefined' ||
+            !elementorFrontend.hooks ||
+            typeof elementorFrontend.hooks.addAction !== 'function'
+        ) {
+            return;
+        }
+
+        hooksRegistered = true;
         elementorFrontend.hooks.addAction('frontend/element_ready/bw-wallpost.default', initMasonry);
-    });
+    }
+
+    registerElementorHooks();
+    $(window).on('elementor/frontend/init', registerElementorHooks);
 })(jQuery);
