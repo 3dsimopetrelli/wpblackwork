@@ -5,6 +5,25 @@
         var size = parseFloat($grid.data('gutter-size'));
         var unit = $grid.data('gutter-unit');
 
+        // Try to read from CSS variable first (for Elementor editor live updates)
+        var $wrapper = $grid.closest('.bw-wallpost');
+        if ($wrapper.length) {
+            var cssGap = $wrapper.css('--bw-wallpost-gap');
+            if (cssGap && cssGap !== '') {
+                // Parse the CSS value (e.g., "24px" or "2%")
+                var matches = cssGap.trim().match(/^([\d.]+)([a-z%]*)$/i);
+                if (matches) {
+                    var cssSize = parseFloat(matches[1]);
+                    var cssUnit = matches[2] || 'px';
+
+                    if (!isNaN(cssSize)) {
+                        size = cssSize;
+                        unit = cssUnit;
+                    }
+                }
+            }
+        }
+
         if (isNaN(size)) {
             size = 0;
         }
@@ -423,29 +442,51 @@
                         clearTimeout(this.layoutTimeout);
                     }
 
-                    // Determine if we need a full reinit
-                    var needsFullReinit = settingKey && (
-                        settingKey.indexOf('columns') !== -1 ||
-                        settingKey.indexOf('posts_per_page') !== -1 ||
-                        settingKey.indexOf('column_gap') !== -1
-                    );
+                    // Determine the type of change
+                    var isPostsChange = settingKey && settingKey.indexOf('posts_per_page') !== -1;
+                    var isColumnsChange = settingKey && settingKey.indexOf('columns') !== -1;
+                    var isGapChange = settingKey && settingKey.indexOf('column_gap') !== -1;
 
-                    // Increased delay to allow DOM updates to complete
-                    var initialDelay = needsFullReinit ? 200 : 100;
+                    var needsFullReinit = isPostsChange || isColumnsChange || isGapChange;
+
+                    // posts_per_page needs longer delay as widget is re-rendered server-side
+                    var initialDelay = isPostsChange ? 400 : (needsFullReinit ? 200 : 100);
 
                     this.layoutTimeout = setTimeout(function () {
-                        $grid.each(function () {
+                        // Re-find the grid in case the widget was re-rendered
+                        var $currentGrid = self.$element.find('.bw-wallpost-grid');
+
+                        if (!$currentGrid.length) {
+                            return;
+                        }
+
+                        $currentGrid.each(function () {
                             var $thisGrid = $(this);
 
                             if (needsFullReinit) {
                                 // For structural changes: destroy and reinitialize completely
                                 destroyGridInstance($thisGrid);
+                                removeGridObserver($thisGrid);
 
-                                // Wait a bit more to ensure DOM is fully updated
+                                // Wait for DOM to be ready, especially for posts_per_page
+                                var reinitDelay = isPostsChange ? 100 : 50;
+
                                 setTimeout(function() {
                                     // Force complete reinitialization
-                                    layoutGrid($thisGrid, true);
-                                }, 50);
+                                    initGrid($thisGrid);
+
+                                    // Additional layout pass for posts_per_page
+                                    if (isPostsChange) {
+                                        setTimeout(function() {
+                                            var instance = $thisGrid.data('masonry');
+                                            if (instance && typeof instance.layout === 'function') {
+                                                instance.reloadItems();
+                                                instance.layout();
+                                                updateGridHeight($thisGrid);
+                                            }
+                                        }, 200);
+                                    }
+                                }, reinitDelay);
                             } else {
                                 // For minor changes: just update layout
                                 layoutGrid($thisGrid, false);
