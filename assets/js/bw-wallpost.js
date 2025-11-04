@@ -43,6 +43,31 @@
         callback();
     }
 
+    function destroyGridInstance($grid) {
+        if (!$grid || !$grid.length) {
+            return;
+        }
+
+        if (typeof $.fn.masonry === 'function' && $grid.data('masonry')) {
+            $grid.masonry('destroy');
+        }
+
+        $grid.removeClass('bw-wallpost-initialized');
+    }
+
+    function removeGridObserver($grid) {
+        if (!$grid || !$grid.length) {
+            return;
+        }
+
+        var observer = $grid.data('bwWallpostObserver');
+        if (observer && typeof observer.disconnect === 'function') {
+            observer.disconnect();
+        }
+
+        $grid.removeData('bwWallpostObserver');
+    }
+
     function layoutGrid($grid, forceReinit) {
         if (typeof $.fn.masonry !== 'function') {
             return;
@@ -65,9 +90,7 @@
         }
 
         var initializeMasonry = function () {
-            if (typeof $grid.masonry === 'function' && $grid.data('masonry')) {
-                $grid.masonry('destroy');
-            }
+            destroyGridInstance($grid);
 
             var data = getGutterValue($grid);
             $grid.masonry({
@@ -190,6 +213,7 @@
             }
 
             var shouldRelayout = false;
+            var shouldForceReinit = false;
 
             mutations.forEach(function (mutation) {
                 if (shouldRelayout) {
@@ -204,16 +228,25 @@
                 if (mutation.type === 'attributes') {
                     if (
                         mutation.attributeName === 'data-gutter-size' ||
-                        mutation.attributeName === 'data-gutter-unit' ||
-                        mutation.attributeName === 'style'
+                        mutation.attributeName === 'data-gutter-unit'
                     ) {
                         shouldRelayout = true;
+                    }
+
+                    if (mutation.attributeName === 'data-columns') {
+                        shouldRelayout = true;
+                        shouldForceReinit = true;
+                    }
+
+                    if (mutation.attributeName === 'style') {
+                        shouldRelayout = true;
+                        shouldForceReinit = true;
                     }
                 }
             });
 
             if (shouldRelayout) {
-                layoutGrid($grid);
+                layoutGrid($grid, shouldForceReinit);
             }
         });
 
@@ -221,7 +254,7 @@
             childList: true,
             subtree: false,
             attributes: true,
-            attributeFilter: ['data-gutter-size', 'data-gutter-unit']
+            attributeFilter: ['data-gutter-size', 'data-gutter-unit', 'data-columns']
         });
 
         var wrapper = $grid.closest('.bw-wallpost');
@@ -236,6 +269,66 @@
     }
 
     var hooksRegistered = false;
+    var WallpostHandlerClass;
+
+    function addElementorHandler($scope) {
+        if (!WallpostHandlerClass) {
+            if (
+                typeof elementorModules === 'undefined' ||
+                !elementorModules.frontend ||
+                !elementorModules.frontend.handlers ||
+                !elementorModules.frontend.handlers.Base
+            ) {
+                initWallpost($scope);
+                return;
+            }
+
+            WallpostHandlerClass = elementorModules.frontend.handlers.Base.extend({
+                onInit: function () {
+                    elementorModules.frontend.handlers.Base.prototype.onInit.apply(this, arguments);
+
+                    initWallpost(this.$element);
+                },
+
+                onElementChange: function () {
+                    var $grid = this.$element.find('.bw-wallpost-grid');
+
+                    if (!$grid.length) {
+                        return;
+                    }
+
+                    $grid.each(function () {
+                        layoutGrid($(this), true);
+                    });
+                },
+
+                onDestroy: function () {
+                    var $grid = this.$element.find('.bw-wallpost-grid');
+
+                    if ($grid.length) {
+                        $grid.each(function () {
+                            var $thisGrid = $(this);
+                            removeGridObserver($thisGrid);
+                            destroyGridInstance($thisGrid);
+                        });
+                    }
+
+                    elementorModules.frontend.handlers.Base.prototype.onDestroy.apply(this, arguments);
+                }
+            });
+        }
+
+        if (
+            WallpostHandlerClass &&
+            elementorFrontend.elementsHandler &&
+            typeof elementorFrontend.elementsHandler.addHandler === 'function'
+        ) {
+            elementorFrontend.elementsHandler.addHandler(WallpostHandlerClass, { $element: $scope });
+            return;
+        }
+
+        initWallpost($scope);
+    }
 
     function registerElementorHooks() {
         if (hooksRegistered) {
@@ -252,12 +345,8 @@
 
         hooksRegistered = true;
 
-        var initElementorWallpost = function ($scope) {
-            initWallpost($scope);
-        };
-
-        elementorFrontend.hooks.addAction('frontend/element_ready/bw-wallpost.default', initElementorWallpost);
-        elementorFrontend.hooks.addAction('frontend/element_ready/bw-wallpost-widget.default', initElementorWallpost);
+        elementorFrontend.hooks.addAction('frontend/element_ready/bw-wallpost.default', addElementorHandler);
+        elementorFrontend.hooks.addAction('frontend/element_ready/bw-wallpost-widget.default', addElementorHandler);
     }
 
     registerElementorHooks();
