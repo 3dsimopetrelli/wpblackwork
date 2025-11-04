@@ -17,6 +17,7 @@
 
 .bw-wallpost-grid {
   margin: 0 calc(var(--bw-wallpost-gap) / -2);
+  overflow: visible;
 }
 
 .bw-wallpost-item {
@@ -263,6 +264,14 @@ body.elementor-editor-active .bw-wallpost-item {
 .bw-wallpost-grid.bw-wallpost-initialized {
   position: relative;
   min-height: 200px;
+  transition: height 0.3s ease;
+}
+
+/* Force proper height calculation in Elementor editor */
+.elementor-editor-active .bw-wallpost-grid.bw-wallpost-initialized,
+.elementor-edit-mode .bw-wallpost-grid.bw-wallpost-initialized {
+  display: block;
+  overflow: visible;
 }
 
 /* Prevent content overlap */
