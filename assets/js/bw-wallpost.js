@@ -77,6 +77,15 @@
         withImagesLoaded($grid, initializeMasonry);
     }
 
+    function initGrid($grid) {
+        if (!$grid || !$grid.length) {
+            return;
+        }
+
+        layoutGrid($grid);
+        observeGrid($grid);
+    }
+
     function initWallpost($scope) {
         var $grids = $scope.find('.bw-wallpost-grid');
 
@@ -85,9 +94,60 @@
         }
 
         $grids.each(function () {
-            var $grid = $(this);
-            layoutGrid($grid);
-            observeGrid($grid);
+            initGrid($(this));
+        });
+    }
+
+    var documentObserver;
+
+    function observeDocument() {
+        if (typeof window.MutationObserver === 'undefined' || documentObserver) {
+            return;
+        }
+
+        if (!document.body) {
+            return;
+        }
+
+        documentObserver = new window.MutationObserver(function (mutations) {
+            var $gridsToInit = $();
+
+            mutations.forEach(function (mutation) {
+                if (!mutation.addedNodes || !mutation.addedNodes.length) {
+                    return;
+                }
+
+                $(mutation.addedNodes).each(function () {
+                    if (!this || this.nodeType !== 1) {
+                        return;
+                    }
+
+                    var $node = $(this);
+
+                    if ($node.hasClass('bw-wallpost-grid')) {
+                        $gridsToInit = $gridsToInit.add($node);
+                    }
+
+                    $gridsToInit = $gridsToInit.add($node.find('.bw-wallpost-grid'));
+                });
+            });
+
+            if (!$gridsToInit.length) {
+                return;
+            }
+
+            $gridsToInit.each(function () {
+                var $grid = $(this);
+
+                if ($grid.length && $.contains(document.documentElement, $grid[0])) {
+                    initGrid($grid);
+                }
+            });
+        });
+
+        documentObserver.observe(document.body, {
+            childList: true,
+            subtree: true,
         });
     }
 
@@ -97,6 +157,7 @@
 
     $(function () {
         initWallpost($(document));
+        observeDocument();
     });
 
     $(window).on('resize', function () {
@@ -184,6 +245,7 @@
 
         hooksRegistered = true;
         elementorFrontend.hooks.addAction('frontend/element_ready/bw-wallpost.default', initMasonry);
+        observeDocument();
     }
 
     registerElementorHooks();
