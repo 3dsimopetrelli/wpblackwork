@@ -93,6 +93,6 @@
             return;
         }
 
-        elementorFrontend.hooks.addAction('frontend/element_ready/bw-wallpost-widget.default', initMasonry);
+        elementorFrontend.hooks.addAction('frontend/element_ready/bw-wallpost.default', initMasonry);
     });
 })(jQuery);
