@@ -123,6 +123,11 @@
             return;
         }
 
+        // Force browser reflow to ensure CSS changes are applied
+        if (forceReinit && $grid[0]) {
+            void $grid[0].offsetHeight;
+        }
+
         var gutterData = getGutterValue($grid);
         var instance = $grid.data('masonry');
         var isEditor = isElementorEditor();
@@ -342,6 +347,7 @@
             return;
         }
 
+        var relayoutTimeout;
         var observer = new window.MutationObserver(function (mutations) {
             if (!$grid.length || !$.contains(document, $grid[0])) {
                 observer.disconnect();
@@ -353,10 +359,6 @@
             var shouldForceReinit = false;
 
             mutations.forEach(function (mutation) {
-                if (shouldRelayout) {
-                    return;
-                }
-
                 if (mutation.type === 'childList' && (mutation.addedNodes.length || mutation.removedNodes.length)) {
                     shouldRelayout = true;
                     return;
@@ -368,6 +370,7 @@
                         mutation.attributeName === 'data-gutter-unit'
                     ) {
                         shouldRelayout = true;
+                        shouldForceReinit = true;
                     }
 
                     if (mutation.attributeName === 'data-columns') {
@@ -383,7 +386,17 @@
             });
 
             if (shouldRelayout) {
-                layoutGrid($grid, shouldForceReinit);
+                // Clear previous timeout to debounce multiple rapid changes
+                if (relayoutTimeout) {
+                    clearTimeout(relayoutTimeout);
+                }
+
+                // In Elementor editor, use shorter delay for immediate feedback
+                var delay = isElementorEditor() ? 50 : 100;
+
+                relayoutTimeout = setTimeout(function() {
+                    layoutGrid($grid, shouldForceReinit);
+                }, delay);
             }
         });
 
@@ -452,8 +465,39 @@
 
                     var needsFullReinit = isPostsChange || isColumnsChange || isGapChange;
 
+                    // Show loading overlay for visual feedback
+                    if (needsFullReinit) {
+                        var $wrapper = this.$element.find('.bw-wallpost');
+                        if ($wrapper.length) {
+                            $wrapper.addClass('bw-wallpost--loading');
+                        }
+                    }
+
+                    // For gap and columns changes, update attributes immediately
+                    if (isGapChange || isColumnsChange) {
+                        var settings = this.getElementSettings();
+
+                        if (isGapChange && settings.column_gap) {
+                            var gapSize = settings.column_gap.size || 24;
+                            var gapUnit = settings.column_gap.unit || 'px';
+
+                            $grid.attr('data-gutter-size', gapSize);
+                            $grid.attr('data-gutter-unit', gapUnit);
+
+                            // Update CSS variable immediately
+                            var $wrapper = this.$element.find('.bw-wallpost');
+                            if ($wrapper.length) {
+                                $wrapper[0].style.setProperty('--bw-wallpost-gap', gapSize + gapUnit);
+                            }
+                        }
+
+                        if (isColumnsChange && settings.columns) {
+                            $grid.attr('data-columns', settings.columns);
+                        }
+                    }
+
                     // posts_per_page needs longer delay as widget is re-rendered server-side
-                    var initialDelay = isPostsChange ? 400 : (needsFullReinit ? 200 : 100);
+                    var initialDelay = isPostsChange ? 400 : (needsFullReinit ? 150 : 100);
 
                     this.layoutTimeout = setTimeout(function () {
                         // Re-find the grid in case the widget was re-rendered
@@ -472,11 +516,19 @@
                                 removeGridObserver($thisGrid);
 
                                 // Wait for DOM to be ready, especially for posts_per_page
-                                var reinitDelay = isPostsChange ? 100 : 50;
+                                var reinitDelay = isPostsChange ? 100 : 30;
 
                                 setTimeout(function() {
                                     // Force complete reinitialization
                                     initGrid($thisGrid);
+
+                                    // Remove loading overlay after initialization
+                                    setTimeout(function() {
+                                        var $wrapper = self.$element.find('.bw-wallpost');
+                                        if ($wrapper.length) {
+                                            $wrapper.removeClass('bw-wallpost--loading');
+                                        }
+                                    }, 300);
 
                                     // Additional layout pass for posts_per_page
                                     if (isPostsChange) {
@@ -493,6 +545,14 @@
                             } else {
                                 // For minor changes: just update layout
                                 layoutGrid($thisGrid, false);
+
+                                // Remove loading overlay
+                                setTimeout(function() {
+                                    var $wrapper = self.$element.find('.bw-wallpost');
+                                    if ($wrapper.length) {
+                                        $wrapper.removeClass('bw-wallpost--loading');
+                                    }
+                                }, 200);
                             }
                         });
                     }, initialDelay);
