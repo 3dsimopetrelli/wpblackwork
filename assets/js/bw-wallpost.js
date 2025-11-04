@@ -85,6 +85,13 @@
                 }
 
                 instance.layout();
+
+                // Force height recalculation
+                setTimeout(function() {
+                    if (instance && typeof instance.layout === 'function') {
+                        instance.layout();
+                    }
+                }, 100);
             });
             return;
         }
@@ -99,6 +106,14 @@
                 gutter: data.value
             });
             $grid.addClass('bw-wallpost-initialized');
+
+            // Force initial layout after short delay
+            setTimeout(function() {
+                var masonryInstance = $grid.data('masonry');
+                if (masonryInstance && typeof masonryInstance.layout === 'function') {
+                    masonryInstance.layout();
+                }
+            }, 100);
         };
 
         withImagesLoaded($grid, initializeMasonry);
@@ -287,23 +302,56 @@
                 onInit: function () {
                     elementorModules.frontend.handlers.Base.prototype.onInit.apply(this, arguments);
 
-                    initWallpost(this.$element);
+                    var self = this;
+
+                    // Initialize with delay to ensure DOM is ready
+                    setTimeout(function() {
+                        initWallpost(self.$element);
+                    }, 50);
                 },
 
-                onElementChange: function () {
+                onElementChange: function (settingKey) {
+                    var self = this;
                     var $grid = this.$element.find('.bw-wallpost-grid');
 
                     if (!$grid.length) {
                         return;
                     }
 
-                    $grid.each(function () {
-                        layoutGrid($(this), true);
-                    });
+                    // Clear any pending timeout
+                    if (this.layoutTimeout) {
+                        clearTimeout(this.layoutTimeout);
+                    }
+
+                    // Delay layout to allow DOM updates
+                    this.layoutTimeout = setTimeout(function () {
+                        $grid.each(function () {
+                            var $thisGrid = $(this);
+
+                            // Force reinit for structural changes
+                            var forceReinit = settingKey && (
+                                settingKey.indexOf('columns') !== -1 ||
+                                settingKey.indexOf('posts_per_page') !== -1 ||
+                                settingKey.indexOf('column_gap') !== -1
+                            );
+
+                            layoutGrid($thisGrid, forceReinit);
+
+                            // Additional layout after a longer delay for images
+                            setTimeout(function() {
+                                layoutGrid($thisGrid, false);
+                            }, 300);
+                        });
+                    }, 100);
                 },
 
                 onDestroy: function () {
                     var $grid = this.$element.find('.bw-wallpost-grid');
+
+                    // Clear any pending timeout
+                    if (this.layoutTimeout) {
+                        clearTimeout(this.layoutTimeout);
+                    }
 
                     if ($grid.length) {
                         $grid.each(function () {
@@ -351,4 +399,61 @@
 
     registerElementorHooks();
     $(window).on('elementor/frontend/init', registerElementorHooks);
+
+    // Additional support for Elementor editor
+    if (typeof elementor !== 'undefined') {
+        // Listen to Elementor preview loaded event
+        elementor.on('preview:loaded', function() {
+            var $previewContents = elementor.$previewContents;
+
+            if ($previewContents && $previewContents.length) {
+                initWallpost($previewContents);
+            }
+        });
+    }
+
+    // Detect if we're in Elementor editor
+    function isElementorEditor() {
+        return (typeof elementorFrontend !== 'undefined' &&
+                elementorFrontend.isEditMode &&
+                elementorFrontend.isEditMode()) ||
+               (typeof elementor !== 'undefined');
+    }
+
+    // Enhanced initialization for editor
+    if (isElementorEditor()) {
+        // Re-layout on window resize with debouncing for editor
+        var editorResizeTimeout;
+        $(window).off('resize.bwWallpost').on('resize.bwWallpost', function () {
+            clearTimeout(editorResizeTimeout);
+            editorResizeTimeout = setTimeout(function() {
+                $('.bw-wallpost-grid.bw-wallpost-initialized').each(function () {
+                    layoutGrid($(this), false);
+                });
+            }, 150);
+        });
+
+        // Additional observer for editor iframe changes
+        if (typeof window.MutationObserver !== 'undefined') {
+            var checkAndInitEditor = function() {
+                var $editorWindow = elementorFrontend && elementorFrontend.getElements &&
+                                   elementorFrontend.getElements('$window');
+
+                if ($editorWindow && $editorWindow.length) {
+                    var editorDoc = $editorWindow[0].document;
+                    if (editorDoc) {
+                        $(editorDoc).find('.bw-wallpost-grid').each(function() {
+                            var $grid = $(this);
+                            if (!$grid.hasClass('bw-wallpost-initialized')) {
+                                initGrid($grid);
+                            }
+                        });
+                    }
+                }
+            };
+
+            // Check periodically in editor
+            setInterval(checkAndInitEditor, 2000);
+        }
+    }
 })(jQuery);

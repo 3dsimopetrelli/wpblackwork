@@ -229,3 +229,47 @@
     --bw-wallpost-columns: 1;
   }
 }
+
+/* Elementor Editor Specific Styles */
+.elementor-editor-active .bw-wallpost-grid,
+.elementor-edit-mode .bw-wallpost-grid {
+  min-height: 100px;
+}
+
+/* Ensure items don't collapse to full width in editor */
+.elementor-editor-active .bw-wallpost-item,
+.elementor-edit-mode .bw-wallpost-item {
+  float: left;
+}
+
+/* Force proper sizing in Elementor editor iframe */
+.elementor-editor-active .bw-wallpost-item,
+.elementor-edit-mode .bw-wallpost-item,
+.elementor .bw-wallpost-item,
+body.elementor-editor-active .bw-wallpost-item {
+  width: calc(
+    (
+      100% - (max(var(--bw-wallpost-columns), 1) - 1) * var(--bw-wallpost-gap)
+    ) / max(var(--bw-wallpost-columns), 1)
+  ) !important;
+  max-width: calc(
+    (
+      100% - (max(var(--bw-wallpost-columns), 1) - 1) * var(--bw-wallpost-gap)
+    ) / max(var(--bw-wallpost-columns), 1)
+  ) !important;
+}
+
+/* Ensure grid container maintains proper height */
+.bw-wallpost-grid.bw-wallpost-initialized {
+  position: relative;
+  min-height: 200px;
+}
+
+/* Prevent content overlap */
+.bw-wallpost-grid:after {
+  content: '';
+  display: block;
+  clear: both;
+  height: 0;
+  visibility: hidden;
+}
