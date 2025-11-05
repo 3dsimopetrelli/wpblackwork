@@ -32,7 +32,21 @@
                 columns = $grid.data('columns') || 4;
         }
 
-        return parseInt(columns);
+        // Try to read from CSS variable first (for Elementor editor live updates)
+        var $wrapper = $grid.closest('.bw-wallpost');
+        if ($wrapper.length && $wrapper[0]) {
+            var computedStyle = window.getComputedStyle($wrapper[0]);
+            var cssColumns = computedStyle.getPropertyValue('--bw-wallpost-columns');
+
+            if (cssColumns && cssColumns !== '') {
+                var parsedColumns = parseInt(cssColumns.trim());
+                if (!isNaN(parsedColumns) && parsedColumns > 0) {
+                    columns = parsedColumns;
+                }
+            }
+        }
+
+        return parseInt(columns) || 1;
     }
 
     function getGutterValue($grid) {
@@ -178,8 +192,21 @@
         }
 
         var gutterData = getGutterValue($grid);
+        var columnsCount = getColumns($grid);
         var instance = $grid.data('masonry');
         var isEditor = isElementorEditor();
+
+        // Check if we need to force reinit due to CSS variable changes
+        var lastColumns = $grid.data('bw-last-columns');
+        var lastGutter = $grid.data('bw-last-gutter');
+
+        if (instance && (lastColumns !== columnsCount || lastGutter !== gutterData.value)) {
+            forceReinit = true;
+        }
+
+        // Store current values for next comparison
+        $grid.data('bw-last-columns', columnsCount);
+        $grid.data('bw-last-gutter', gutterData.value);
 
         if (instance && !forceReinit) {
             withImagesLoaded($grid, function () {
@@ -387,12 +414,13 @@
             $('.bw-wallpost-grid.bw-wallpost-initialized').each(function () {
                 var $grid = $(this);
 
-                // If device breakpoint changed, force full reinit
-                if (deviceChanged) {
-                    layoutGrid($grid, true);
-                } else {
-                    layoutGrid($grid, false);
+                // Force browser reflow to ensure CSS media queries are applied
+                if (deviceChanged && $grid[0]) {
+                    void $grid[0].offsetHeight;
                 }
+
+                // Always force reinit when device changes to ensure CSS variables are re-read
+                layoutGrid($grid, deviceChanged);
 
                 updateGridHeight($grid);
             });

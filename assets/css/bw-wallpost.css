@@ -352,12 +352,6 @@
   clear: both;
 }
 
-@media (max-width: 767px) {
-  .bw-wallpost {
-    --bw-wallpost-columns: 1;
-  }
-}
-
 /* Elementor Editor Specific Styles */
 .elementor-editor-active .bw-wallpost-grid,
 .elementor-edit-mode .bw-wallpost-grid {
