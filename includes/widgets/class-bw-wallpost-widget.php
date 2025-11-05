@@ -287,6 +287,18 @@ class BW_WallPost_Widget extends Widget_Base {
             'condition' => [ 'image_toggle' => 'yes' ],
         ] );
 
+        $this->add_control( 'image_background_color', [
+            'label'       => __( 'Background Immagine', 'bw-elementor-widgets' ),
+            'type'        => Controls_Manager::COLOR,
+            'default'     => 'transparent',
+            'description' => __( 'Colore di sfondo per immagini PNG con trasparenze', 'bw-elementor-widgets' ),
+            'selectors'   => [
+                '{{WRAPPER}} .bw-wallpost-media' => 'background-color: {{VALUE}};',
+                '{{WRAPPER}} .bw-wallpost-image' => 'background-color: {{VALUE}};',
+            ],
+            'condition'   => [ 'image_toggle' => 'yes' ],
+        ] );
+
         $this->end_controls_section();
 
         // Sezione: Hover Effect
