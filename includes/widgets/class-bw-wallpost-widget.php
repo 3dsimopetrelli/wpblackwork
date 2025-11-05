@@ -103,7 +103,7 @@ class BW_WallPost_Widget extends Widget_Base {
             'min'     => -1,
             'max'     => 100,
             'step'    => 1,
-            'default' => 6,
+            'default' => 12,
         ] );
 
         $column_options = [];
@@ -115,7 +115,7 @@ class BW_WallPost_Widget extends Widget_Base {
             'label'   => __( 'Colonne', 'bw-elementor-widgets' ),
             'type'    => Controls_Manager::SELECT,
             'options' => $column_options,
-            'default' => '3',
+            'default' => '4',
         ] );
 
         $this->add_control( 'column_gap', [
@@ -126,7 +126,7 @@ class BW_WallPost_Widget extends Widget_Base {
                 'px' => [ 'min' => 0, 'max' => 80, 'step' => 1 ],
                 '%'  => [ 'min' => 0, 'max' => 10, 'step' => 0.5 ],
             ],
-            'default'    => [ 'size' => 24, 'unit' => 'px' ],
+            'default'    => [ 'size' => 15, 'unit' => 'px' ],
             'selectors'  => [
                 '{{WRAPPER}} .bw-wallpost' => '--bw-wallpost-gap: {{SIZE}}{{UNIT}};',
             ],
@@ -201,7 +201,7 @@ class BW_WallPost_Widget extends Widget_Base {
                 '%'  => [ 'min' => 10, 'max' => 200, 'step' => 1 ],
             ],
             'default'    => [
-                'size' => 300,
+                'size' => 625,
                 'unit' => 'px',
             ],
             'selectors'  => [
@@ -214,6 +214,14 @@ class BW_WallPost_Widget extends Widget_Base {
             'label'      => __( 'Image Border Radius', 'bw-elementor-widgets' ),
             'type'       => Controls_Manager::DIMENSIONS,
             'size_units' => [ 'px', '%', 'em' ],
+            'default'    => [
+                'top'      => '8',
+                'right'    => '8',
+                'bottom'   => '8',
+                'left'     => '8',
+                'unit'     => 'px',
+                'isLinked' => true,
+            ],
             'selectors'  => [
                 '{{WRAPPER}} .bw-wallpost-media'   => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 '{{WRAPPER}} .bw-wallpost-media img' => 'border-radius: inherit;',
@@ -296,6 +304,14 @@ class BW_WallPost_Widget extends Widget_Base {
         $this->add_group_control( Group_Control_Typography::get_type(), [
             'name'     => 'title_typography',
             'selector' => '{{WRAPPER}} .bw-wallpost .bw-wallpost-title',
+            'fields_options' => [
+                'font_size' => [
+                    'default' => [
+                        'size' => 14,
+                        'unit' => 'px',
+                    ],
+                ],
+            ],
         ] );
 
         $this->add_responsive_control( 'title_margin_top', [
@@ -339,6 +355,14 @@ class BW_WallPost_Widget extends Widget_Base {
         $this->add_group_control( Group_Control_Typography::get_type(), [
             'name'     => 'description_typography',
             'selector' => '{{WRAPPER}} .bw-wallpost .bw-wallpost-description',
+            'fields_options' => [
+                'font_size' => [
+                    'default' => [
+                        'size' => 14,
+                        'unit' => 'px',
+                    ],
+                ],
+            ],
         ] );
 
         $this->add_responsive_control( 'description_margin_top', [
@@ -382,6 +406,14 @@ class BW_WallPost_Widget extends Widget_Base {
         $this->add_group_control( Group_Control_Typography::get_type(), [
             'name'     => 'price_typography',
             'selector' => '{{WRAPPER}} .bw-wallpost .bw-wallpost-price',
+            'fields_options' => [
+                'font_size' => [
+                    'default' => [
+                        'size' => 14,
+                        'unit' => 'px',
+                    ],
+                ],
+            ],
         ] );
 
         $this->add_responsive_control( 'price_margin_top', [
@@ -437,6 +469,7 @@ class BW_WallPost_Widget extends Widget_Base {
         $this->add_control( 'overlay_buttons_background_color', [
             'label'     => __( 'Colore sfondo', 'bw-elementor-widgets' ),
             'type'      => Controls_Manager::COLOR,
+            'default'   => '#FFFFFF',
             'selectors' => [
                 '{{WRAPPER}} .bw-wallpost' => '--bw-wallpost-overlay-buttons-background: {{VALUE}};',
             ],
@@ -459,6 +492,7 @@ class BW_WallPost_Widget extends Widget_Base {
         $this->add_control( 'overlay_buttons_background_color_hover', [
             'label'     => __( 'Colore sfondo (hover)', 'bw-elementor-widgets' ),
             'type'      => Controls_Manager::COLOR,
+            'default'   => '#80FD03',
             'selectors' => [
                 '{{WRAPPER}} .bw-wallpost' => '--bw-wallpost-overlay-buttons-background-hover: {{VALUE}};',
             ],
@@ -476,6 +510,10 @@ class BW_WallPost_Widget extends Widget_Base {
                 'px' => [ 'min' => 0, 'max' => 200 ],
                 '%'  => [ 'min' => 0, 'max' => 50 ],
             ],
+            'default'    => [
+                'size' => 8,
+                'unit' => 'px',
+            ],
             'selectors'  => [
                 '{{WRAPPER}} .bw-wallpost' => '--bw-wallpost-overlay-buttons-radius: {{SIZE}}{{UNIT}};',
             ],
@@ -485,6 +523,14 @@ class BW_WallPost_Widget extends Widget_Base {
             'label'      => __( 'Padding pulsanti', 'bw-elementor-widgets' ),
             'type'       => Controls_Manager::DIMENSIONS,
             'size_units' => [ 'px', '%', 'em', 'rem' ],
+            'default'    => [
+                'top'      => '13',
+                'right'    => '10',
+                'bottom'   => '13',
+                'left'     => '10',
+                'unit'     => 'px',
+                'isLinked' => false,
+            ],
             'selectors'  => [
                 '{{WRAPPER}} .bw-wallpost' => '--bw-wallpost-overlay-buttons-padding-top: {{TOP}}{{UNIT}}; --bw-wallpost-overlay-buttons-padding-right: {{RIGHT}}{{UNIT}}; --bw-wallpost-overlay-buttons-padding-bottom: {{BOTTOM}}{{UNIT}}; --bw-wallpost-overlay-buttons-padding-left: {{LEFT}}{{UNIT}};',
             ],
