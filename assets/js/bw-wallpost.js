@@ -1,124 +1,71 @@
 (function ($) {
     'use strict';
 
+    console.log('🚀 BW WallPost Masonry: Custom responsive system loaded');
+
     /**
-     * Get current device breakpoint
+     * Get current device breakpoint using custom breakpoints
+     * @param {jQuery} $grid - The grid element
      * @returns {string} 'mobile', 'tablet', or 'desktop'
      */
-    function getCurrentDevice() {
-        var width = window.innerWidth;
-        if (width < 768) return 'mobile';
-        if (width < 1025) return 'tablet';
+    function getCurrentDevice($grid) {
+        var width = window.innerWidth || $(window).width();
+
+        // Read custom breakpoints from data attributes
+        var tabletMin = parseInt($grid.attr('data-breakpoint-tablet-min')) || 768;
+        var tabletMax = parseInt($grid.attr('data-breakpoint-tablet-max')) || 1024;
+        var mobileMax = parseInt($grid.attr('data-breakpoint-mobile-max')) || 767;
+
+        console.log('🔍 Screen width:', width + 'px', '| Breakpoints - Mobile: <=' + mobileMax + ', Tablet: ' + tabletMin + '-' + tabletMax);
+
+        if (width <= mobileMax) {
+            return 'mobile';
+        } else if (width >= tabletMin && width <= tabletMax) {
+            return 'tablet';
+        }
         return 'desktop';
     }
 
     /**
      * Get number of columns for current device
      * @param {jQuery} $grid - The grid element
+     * @param {string} device - Device type (mobile, tablet, desktop)
      * @returns {number} Number of columns
      */
-    function getColumns($grid) {
-        var device = getCurrentDevice();
-        var columns;
+    function getColumns($grid, device) {
+        var attr = 'data-columns-' + device;
+        var columns = parseInt($grid.attr(attr));
 
-        switch(device) {
-            case 'mobile':
-                columns = $grid.data('columns-mobile') || 1;
-                break;
-            case 'tablet':
-                columns = $grid.data('columns-tablet') || 2;
-                break;
-            default:
-                columns = $grid.data('columns') || 4;
+        console.log('📊 Columns for', device + ':', columns, '(from ' + attr + ')');
+
+        // Fallback if attribute is missing
+        if (!columns || isNaN(columns)) {
+            columns = device === 'mobile' ? 1 : (device === 'tablet' ? 2 : 4);
+            console.log('⚠️ Using fallback columns:', columns);
         }
 
-        // Try to read from CSS variable (for Elementor editor live updates)
-        // Force a reflow first to ensure computed styles are current
-        var $wrapper = $grid.closest('.bw-wallpost');
-        if ($wrapper.length && $wrapper[0]) {
-            // Force reflow to ensure media queries have been applied
-            void $wrapper[0].offsetHeight;
-
-            var computedStyle = window.getComputedStyle($wrapper[0]);
-            var cssColumns = computedStyle.getPropertyValue('--bw-wallpost-columns');
-
-            if (cssColumns && cssColumns !== '') {
-                var parsedColumns = parseInt(cssColumns.trim());
-                if (!isNaN(parsedColumns) && parsedColumns > 0) {
-                    columns = parsedColumns;
-                }
-            }
-        }
-
-        return parseInt(columns) || 1;
+        return columns;
     }
 
-    function getGutterValue($grid) {
-        var device = getCurrentDevice();
-        var size, unit;
+    /**
+     * Get gutter/gap value for current device
+     * @param {jQuery} $grid - The grid element
+     * @param {string} device - Device type (mobile, tablet, desktop)
+     * @returns {number} Gap size in pixels
+     */
+    function getGutterValue($grid, device) {
+        var attr = 'data-gap-' + device;
+        var gap = parseInt($grid.attr(attr));
 
-        // Get responsive gutter values based on device
-        switch(device) {
-            case 'mobile':
-                size = parseFloat($grid.data('gutter-mobile'));
-                unit = 'px';
-                break;
-            case 'tablet':
-                size = parseFloat($grid.data('gutter-tablet'));
-                unit = 'px';
-                break;
-            default:
-                size = parseFloat($grid.data('gutter-size'));
-                unit = $grid.data('gutter-unit') || 'px';
+        console.log('📏 Gap for', device + ':', gap + 'px', '(from ' + attr + ')');
+
+        // Fallback if attribute is missing
+        if (!gap || isNaN(gap)) {
+            gap = 15;
+            console.log('⚠️ Using fallback gap:', gap + 'px');
         }
 
-        // Try to read from CSS variable (for Elementor editor live updates)
-        // Force a reflow first to ensure computed styles are current
-        var $wrapper = $grid.closest('.bw-wallpost');
-        if ($wrapper.length && $wrapper[0]) {
-            // Force reflow to ensure media queries have been applied
-            void $wrapper[0].offsetHeight;
-
-            // Use getComputedStyle to read current CSS variable
-            var computedStyle = window.getComputedStyle($wrapper[0]);
-            var cssGap = computedStyle.getPropertyValue('--bw-wallpost-gap');
-
-            if (cssGap && cssGap !== '') {
-                // Parse the CSS value (e.g., "24px" or "2%")
-                var matches = cssGap.trim().match(/^([\d.]+)([a-z%]*)$/i);
-                if (matches) {
-                    var cssSize = parseFloat(matches[1]);
-                    var cssUnit = matches[2] || 'px';
-
-                    if (!isNaN(cssSize)) {
-                        size = cssSize;
-                        unit = cssUnit;
-                    }
-                }
-            }
-        }
-
-        if (isNaN(size)) {
-            size = 0;
-        }
-
-        if ('%' !== unit && 'px' !== unit) {
-            unit = 'px';
-        }
-
-        if ('%' === unit) {
-            return {
-                value: ($grid.innerWidth() * size) / 100,
-                unit: unit,
-                size: size
-            };
-        }
-
-        return {
-            value: size,
-            unit: unit,
-            size: size
-        };
+        return gap;
     }
 
     /**
@@ -130,31 +77,34 @@
             return;
         }
 
-        var columnsCount = getColumns($grid);
-        var gutterData = getGutterValue($grid);
+        var device = getCurrentDevice($grid);
+        var columnsCount = getColumns($grid, device);
+        var gap = getGutterValue($grid, device);
         var $items = $grid.find('.bw-wallpost-item');
 
         if (!$items.length) {
             return;
         }
 
-        // Calculate width percentage for each item
-        // Formula: (100 / columns)%
-        var widthPercent = (100 / columnsCount);
+        console.log('📐 Setting item widths - Device:', device, '| Columns:', columnsCount, '| Gap:', gap + 'px');
+
+        // Calculate item width
+        var containerWidth = $grid.width();
+        var totalGap = gap * (columnsCount - 1);
+        var itemWidth = (containerWidth - totalGap) / columnsCount;
+
+        console.log('📐 Container:', containerWidth + 'px | Total gap:', totalGap + 'px | Item width:', itemWidth.toFixed(2) + 'px');
 
         // Apply width to all items
         $items.each(function() {
             var $item = $(this);
-            // Set width as percentage for Masonry percentPosition to work correctly
-            $item.css('width', widthPercent + '%');
+            $item.css({
+                'width': itemWidth + 'px',
+                'margin-bottom': gap + 'px'
+            });
         });
 
-        // Update CSS variables on wrapper to keep them in sync
-        var $wrapper = $grid.closest('.bw-wallpost');
-        if ($wrapper.length && $wrapper[0]) {
-            $wrapper[0].style.setProperty('--bw-wallpost-columns', columnsCount);
-            $wrapper[0].style.setProperty('--bw-wallpost-gap', gutterData.size + gutterData.unit);
-        }
+        console.log('✅ Item widths set for', $items.length, 'items');
     }
 
     function withImagesLoaded($grid, callback) {
@@ -235,29 +185,35 @@
             void $grid[0].offsetHeight;
         }
 
-        var gutterData = getGutterValue($grid);
-        var columnsCount = getColumns($grid);
+        var device = getCurrentDevice($grid);
+        var columnsCount = getColumns($grid, device);
+        var gap = getGutterValue($grid, device);
         var instance = $grid.data('masonry');
         var isEditor = isElementorEditor();
+
+        console.log('🔧 Layout Grid - Device:', device, '| Columns:', columnsCount, '| Gap:', gap + 'px | Force reinit:', !!forceReinit);
 
         // Check if we need to force reinit due to column or gutter changes
         var lastColumns = $grid.data('bw-last-columns');
         var lastGutter = $grid.data('bw-last-gutter');
+        var lastDevice = $grid.data('bw-last-device');
 
-        if (instance && (lastColumns !== columnsCount || lastGutter !== gutterData.value)) {
+        if (instance && (lastColumns !== columnsCount || lastGutter !== gap || lastDevice !== device)) {
             forceReinit = true;
+            console.log('🔄 Forcing reinit due to changes - Old:', lastDevice, lastColumns, lastGutter, '| New:', device, columnsCount, gap);
         }
 
         // Store current values for next comparison
         $grid.data('bw-last-columns', columnsCount);
-        $grid.data('bw-last-gutter', gutterData.value);
+        $grid.data('bw-last-gutter', gap);
+        $grid.data('bw-last-device', device);
 
         if (instance && !forceReinit) {
             // Update item widths first
             setItemWidths($grid);
 
             withImagesLoaded($grid, function () {
-                instance.options.gutter = gutterData.value;
+                instance.options.gutter = gap;
 
                 if (typeof instance.reloadItems === 'function') {
                     instance.reloadItems();
@@ -284,31 +240,31 @@
                     }
                 }, 300);
             });
+            console.log('✅ Layout updated (no reinit)');
             return;
         }
 
         var initializeMasonry = function () {
+            console.log('🚀 Initializing Masonry...');
+
             // Destroy existing instance completely
             destroyGridInstance($grid);
 
             // CRITICAL: Set item widths BEFORE initializing Masonry
             setItemWidths($grid);
 
-            var data = getGutterValue($grid);
             var $items = $grid.find('.bw-wallpost-item');
-            var columnWidth = $items.length > 0 ? $items[0] : null;
 
-            // Initialize Masonry with columnWidth for proper layout
+            // Initialize Masonry
             var masonryOptions = {
                 itemSelector: '.bw-wallpost-item',
-                percentPosition: true,
-                gutter: data.value
+                percentPosition: false,
+                gutter: gap,
+                horizontalOrder: true,
+                transitionDuration: '0.3s'
             };
 
-            // Use first item as columnWidth reference
-            if (columnWidth) {
-                masonryOptions.columnWidth = columnWidth;
-            }
+            console.log('📦 Masonry options:', masonryOptions);
 
             $grid.masonry(masonryOptions);
             $grid.addClass('bw-wallpost-initialized');
@@ -464,26 +420,25 @@
     });
 
     var resizeTimeout;
-    var lastDevice = getCurrentDevice();
+    var lastDeviceByGrid = {};
 
     $(window).on('resize', function () {
         clearTimeout(resizeTimeout);
         resizeTimeout = setTimeout(function() {
-            var currentDevice = getCurrentDevice();
-            var deviceChanged = currentDevice !== lastDevice;
+            console.log('📱 Window resized');
 
             $('.bw-wallpost-grid.bw-wallpost-initialized').each(function () {
                 var $grid = $(this);
+                var gridId = $grid.attr('id') || $grid.index();
+                var currentDevice = getCurrentDevice($grid);
+                var previousDevice = lastDeviceByGrid[gridId];
+                var deviceChanged = currentDevice !== previousDevice;
+
+                console.log('📱 Grid ' + gridId + ' - Device:', previousDevice, '→', currentDevice, '| Changed:', deviceChanged);
 
                 // Force browser reflow to ensure CSS media queries are applied
                 if (deviceChanged && $grid[0]) {
                     void $grid[0].offsetHeight;
-
-                    // Update wrapper to force CSS variable recalculation
-                    var $wrapper = $grid.closest('.bw-wallpost');
-                    if ($wrapper.length && $wrapper[0]) {
-                        void $wrapper[0].offsetHeight;
-                    }
                 }
 
                 // CRITICAL: Update item widths based on new device breakpoint
@@ -493,9 +448,9 @@
                 layoutGrid($grid, deviceChanged);
 
                 updateGridHeight($grid);
-            });
 
-            lastDevice = currentDevice;
+                lastDeviceByGrid[gridId] = currentDevice;
+            });
         }, 150);
     });
 
@@ -527,22 +482,19 @@
 
                 if (mutation.type === 'attributes') {
                     if (
-                        mutation.attributeName === 'data-gutter-size' ||
-                        mutation.attributeName === 'data-gutter-unit' ||
-                        mutation.attributeName === 'data-gutter-tablet' ||
-                        mutation.attributeName === 'data-gutter-mobile'
-                    ) {
-                        shouldRelayout = true;
-                        shouldForceReinit = true;
-                    }
-
-                    if (
-                        mutation.attributeName === 'data-columns' ||
+                        mutation.attributeName === 'data-gap-desktop' ||
+                        mutation.attributeName === 'data-gap-tablet' ||
+                        mutation.attributeName === 'data-gap-mobile' ||
+                        mutation.attributeName === 'data-columns-desktop' ||
                         mutation.attributeName === 'data-columns-tablet' ||
-                        mutation.attributeName === 'data-columns-mobile'
+                        mutation.attributeName === 'data-columns-mobile' ||
+                        mutation.attributeName === 'data-breakpoint-tablet-min' ||
+                        mutation.attributeName === 'data-breakpoint-tablet-max' ||
+                        mutation.attributeName === 'data-breakpoint-mobile-max'
                     ) {
                         shouldRelayout = true;
                         shouldForceReinit = true;
+                        console.log('🔍 Attribute changed:', mutation.attributeName, '- will relayout');
                     }
 
                     if (mutation.attributeName === 'style') {
@@ -572,13 +524,15 @@
             subtree: false,
             attributes: true,
             attributeFilter: [
-                'data-gutter-size',
-                'data-gutter-unit',
-                'data-gutter-tablet',
-                'data-gutter-mobile',
-                'data-columns',
+                'data-gap-desktop',
+                'data-gap-tablet',
+                'data-gap-mobile',
+                'data-columns-desktop',
                 'data-columns-tablet',
-                'data-columns-mobile'
+                'data-columns-mobile',
+                'data-breakpoint-tablet-min',
+                'data-breakpoint-tablet-max',
+                'data-breakpoint-mobile-max'
             ]
         });
 
@@ -751,44 +705,34 @@
                     if (isGapChange || isColumnsChange) {
                         var settings = this.getElementSettings();
 
+                        console.log('⚙️ Settings changed:', settingKey, settings);
+
                         if (isGapChange) {
                             // Desktop gap
-                            if (settings.gap) {
-                                var gapSize = settings.gap.size || 15;
-                                var gapUnit = settings.gap.unit || 'px';
-                                $grid.attr('data-gutter-size', gapSize);
-                                $grid.attr('data-gutter-unit', gapUnit);
-
-                                // Update CSS variable immediately
-                                var $wrapper = this.$element.find('.bw-wallpost');
-                                if ($wrapper.length) {
-                                    $wrapper[0].style.setProperty('--bw-wallpost-gap', gapSize + gapUnit);
-                                }
+                            if (settings.gap_desktop) {
+                                var gapDesktopSize = settings.gap_desktop.size || 15;
+                                $grid.attr('data-gap-desktop', gapDesktopSize);
                             }
 
                             // Tablet gap
                             if (settings.gap_tablet) {
                                 var gapTabletSize = settings.gap_tablet.size || 10;
-                                $grid.attr('data-gutter-tablet', gapTabletSize);
+                                $grid.attr('data-gap-tablet', gapTabletSize);
                             }
 
                             // Mobile gap
                             if (settings.gap_mobile) {
                                 var gapMobileSize = settings.gap_mobile.size || 10;
-                                $grid.attr('data-gutter-mobile', gapMobileSize);
+                                $grid.attr('data-gap-mobile', gapMobileSize);
                             }
+
+                            console.log('✅ Gap attributes updated');
                         }
 
                         if (isColumnsChange) {
                             // Desktop columns
-                            if (settings.columns) {
-                                $grid.attr('data-columns', settings.columns);
-
-                                // Update CSS variable for columns immediately
-                                var $wrapper = this.$element.find('.bw-wallpost');
-                                if ($wrapper.length) {
-                                    $wrapper[0].style.setProperty('--bw-wallpost-columns', settings.columns);
-                                }
+                            if (settings.columns_desktop) {
+                                $grid.attr('data-columns-desktop', settings.columns_desktop);
                             }
 
                             // Tablet columns
@@ -800,6 +744,8 @@
                             if (settings.columns_mobile) {
                                 $grid.attr('data-columns-mobile', settings.columns_mobile);
                             }
+
+                            console.log('✅ Columns attributes updated');
                         }
                     }
 
@@ -833,9 +779,11 @@
 
                                 // Console log for debugging
                                 if (typeof console !== 'undefined' && console.log) {
+                                    var device = getCurrentDevice($readyGrid);
                                     console.log('BW WallPost: Reinitializing grid', {
                                         items: $items.length,
-                                        columns: $readyGrid.attr('data-columns')
+                                        device: device,
+                                        columns: $readyGrid.attr('data-columns-' + device)
                                     });
                                 }
 
