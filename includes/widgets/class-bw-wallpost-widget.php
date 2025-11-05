@@ -132,38 +132,6 @@ class BW_WallPost_Widget extends Widget_Base {
             'default' => 12,
         ] );
 
-        $column_options = [];
-        foreach ( range( 2, 6 ) as $column ) {
-            $column_options[ $column ] = (string) $column;
-        }
-
-        $this->add_responsive_control( 'columns', [
-            'label'          => __( 'Numero Colonne', 'bw-elementor-widgets' ),
-            'type'           => Controls_Manager::SELECT,
-            'options'        => array_merge( [ '1' => '1' ], $column_options ),
-            'default'        => '4',
-            'tablet_default' => '2',
-            'mobile_default' => '1',
-            'selectors'      => [
-                '{{WRAPPER}} .bw-wallpost' => '--bw-wallpost-columns: {{VALUE}};',
-            ],
-        ] );
-
-        $this->add_responsive_control( 'gap', [
-            'label'          => __( 'Gap tra Colonne', 'bw-elementor-widgets' ),
-            'type'           => Controls_Manager::SLIDER,
-            'size_units'     => [ 'px' ],
-            'range'          => [
-                'px' => [ 'min' => 0, 'max' => 100, 'step' => 1 ],
-            ],
-            'default'        => [ 'size' => 15, 'unit' => 'px' ],
-            'tablet_default' => [ 'size' => 10, 'unit' => 'px' ],
-            'mobile_default' => [ 'size' => 10, 'unit' => 'px' ],
-            'selectors'      => [
-                '{{WRAPPER}} .bw-wallpost' => '--bw-wallpost-gap: {{SIZE}}{{UNIT}};',
-            ],
-        ] );
-
         $this->add_responsive_control( 'margin_top', [
             'label'      => __( 'Margine superiore', 'bw-elementor-widgets' ),
             'type'       => Controls_Manager::SLIDER,
@@ -187,6 +155,193 @@ class BW_WallPost_Widget extends Widget_Base {
             ],
             'selectors'  => [
                 '{{WRAPPER}} .bw-wallpost' => 'margin-bottom: {{SIZE}}{{UNIT}};',
+            ],
+        ] );
+
+        $this->end_controls_section();
+
+        // ===============================================
+        // SEZIONE: Layout Desktop (default)
+        // ===============================================
+        $this->start_controls_section( 'section_layout_desktop', [
+            'label' => __( 'Layout Desktop', 'bw-elementor-widgets' ),
+            'tab'   => Controls_Manager::TAB_CONTENT,
+        ] );
+
+        $this->add_control( 'columns_desktop', [
+            'label'   => __( 'Numero Colonne Desktop', 'bw-elementor-widgets' ),
+            'type'    => Controls_Manager::SELECT,
+            'default' => '4',
+            'options' => [
+                '1' => '1',
+                '2' => '2',
+                '3' => '3',
+                '4' => '4',
+                '5' => '5',
+                '6' => '6',
+            ],
+        ] );
+
+        $this->add_control( 'gap_desktop', [
+            'label'   => __( 'Gap Colonne Desktop', 'bw-elementor-widgets' ),
+            'type'    => Controls_Manager::SLIDER,
+            'default' => [
+                'size' => 15,
+                'unit' => 'px',
+            ],
+            'range'   => [
+                'px' => [
+                    'min' => 0,
+                    'max' => 100,
+                ],
+            ],
+        ] );
+
+        $this->add_control( 'image_height_desktop', [
+            'label'   => __( 'Altezza Immagine Desktop', 'bw-elementor-widgets' ),
+            'type'    => Controls_Manager::SLIDER,
+            'default' => [
+                'size' => 625,
+                'unit' => 'px',
+            ],
+            'range'   => [
+                'px' => [
+                    'min' => 100,
+                    'max' => 1000,
+                ],
+            ],
+        ] );
+
+        $this->end_controls_section();
+
+        // ===============================================
+        // SEZIONE: Responsive Settings
+        // ===============================================
+        $this->start_controls_section( 'section_responsive', [
+            'label' => __( 'Responsive', 'bw-elementor-widgets' ),
+            'tab'   => Controls_Manager::TAB_CONTENT,
+        ] );
+
+        // --- TABLET SETTINGS ---
+        $this->add_control( 'heading_tablet', [
+            'label'     => __( 'Impostazioni Tablet', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::HEADING,
+            'separator' => 'before',
+        ] );
+
+        $this->add_control( 'breakpoint_tablet_min', [
+            'label'       => __( 'Larghezza Minima Tablet (px)', 'bw-elementor-widgets' ),
+            'type'        => Controls_Manager::NUMBER,
+            'default'     => 768,
+            'min'         => 600,
+            'max'         => 1200,
+            'description' => __( 'Dispositivi con larghezza >= a questo valore saranno considerati tablet', 'bw-elementor-widgets' ),
+        ] );
+
+        $this->add_control( 'breakpoint_tablet_max', [
+            'label'       => __( 'Larghezza Massima Tablet (px)', 'bw-elementor-widgets' ),
+            'type'        => Controls_Manager::NUMBER,
+            'default'     => 1024,
+            'min'         => 768,
+            'max'         => 1400,
+            'description' => __( 'Dispositivi con larghezza <= a questo valore saranno considerati tablet', 'bw-elementor-widgets' ),
+        ] );
+
+        $this->add_control( 'columns_tablet', [
+            'label'   => __( 'Numero Colonne Tablet', 'bw-elementor-widgets' ),
+            'type'    => Controls_Manager::SELECT,
+            'default' => '2',
+            'options' => [
+                '1' => '1',
+                '2' => '2',
+                '3' => '3',
+                '4' => '4',
+            ],
+        ] );
+
+        $this->add_control( 'gap_tablet', [
+            'label'   => __( 'Gap Colonne Tablet', 'bw-elementor-widgets' ),
+            'type'    => Controls_Manager::SLIDER,
+            'default' => [
+                'size' => 10,
+                'unit' => 'px',
+            ],
+            'range'   => [
+                'px' => [
+                    'min' => 0,
+                    'max' => 100,
+                ],
+            ],
+        ] );
+
+        $this->add_control( 'image_height_tablet', [
+            'label'   => __( 'Altezza Immagine Tablet', 'bw-elementor-widgets' ),
+            'type'    => Controls_Manager::SLIDER,
+            'default' => [
+                'size' => 400,
+                'unit' => 'px',
+            ],
+            'range'   => [
+                'px' => [
+                    'min' => 100,
+                    'max' => 800,
+                ],
+            ],
+        ] );
+
+        // --- MOBILE SETTINGS ---
+        $this->add_control( 'heading_mobile', [
+            'label'     => __( 'Impostazioni Mobile', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::HEADING,
+            'separator' => 'before',
+        ] );
+
+        $this->add_control( 'breakpoint_mobile_max', [
+            'label'       => __( 'Larghezza Massima Mobile (px)', 'bw-elementor-widgets' ),
+            'type'        => Controls_Manager::NUMBER,
+            'default'     => 767,
+            'min'         => 320,
+            'max'         => 900,
+            'description' => __( 'Dispositivi con larghezza <= a questo valore saranno considerati mobile', 'bw-elementor-widgets' ),
+        ] );
+
+        $this->add_control( 'columns_mobile', [
+            'label'   => __( 'Numero Colonne Mobile', 'bw-elementor-widgets' ),
+            'type'    => Controls_Manager::SELECT,
+            'default' => '1',
+            'options' => [
+                '1' => '1',
+                '2' => '2',
+            ],
+        ] );
+
+        $this->add_control( 'gap_mobile', [
+            'label'   => __( 'Gap Colonne Mobile', 'bw-elementor-widgets' ),
+            'type'    => Controls_Manager::SLIDER,
+            'default' => [
+                'size' => 10,
+                'unit' => 'px',
+            ],
+            'range'   => [
+                'px' => [
+                    'min' => 0,
+                    'max' => 50,
+                ],
+            ],
+        ] );
+
+        $this->add_control( 'image_height_mobile', [
+            'label'   => __( 'Altezza Immagine Mobile', 'bw-elementor-widgets' ),
+            'type'    => Controls_Manager::SLIDER,
+            'default' => [
+                'size' => 300,
+                'unit' => 'px',
+            ],
+            'range'   => [
+                'px' => [
+                    'min' => 150,
+                    'max' => 600,
+                ],
             ],
         ] );
 
@@ -223,32 +378,6 @@ class BW_WallPost_Widget extends Widget_Base {
             'condition' => [ 'image_toggle' => 'yes' ],
         ] );
 
-        $this->add_responsive_control( 'image_height', [
-            'label'          => __( 'Altezza Immagine', 'bw-elementor-widgets' ),
-            'type'           => Controls_Manager::SLIDER,
-            'size_units'     => [ 'px', 'vh', '%' ],
-            'range'          => [
-                'px' => [ 'min' => 100, 'max' => 1000, 'step' => 10 ],
-                'vh' => [ 'min' => 10, 'max' => 100, 'step' => 1 ],
-                '%'  => [ 'min' => 10, 'max' => 200, 'step' => 5 ],
-            ],
-            'default'        => [
-                'size' => 625,
-                'unit' => 'px',
-            ],
-            'tablet_default' => [
-                'size' => 400,
-                'unit' => 'px',
-            ],
-            'mobile_default' => [
-                'size' => 300,
-                'unit' => 'px',
-            ],
-            'selectors'      => [
-                '{{WRAPPER}} .bw-wallpost' => '--bw-wallpost-image-height: {{SIZE}}{{UNIT}};',
-            ],
-            'condition'      => [ 'image_toggle' => 'yes' ],
-        ] );
 
         $this->add_responsive_control( 'image_border_radius', [
             'label'      => __( 'Image Border Radius', 'bw-elementor-widgets' ),
@@ -610,35 +739,41 @@ class BW_WallPost_Widget extends Widget_Base {
             $posts_per_page = -1;
         }
 
-        // Get responsive columns values
-        $columns_desktop = isset( $settings['columns'] ) ? max( 1, absint( $settings['columns'] ) ) : 4;
+        // Get desktop values
+        $columns_desktop = isset( $settings['columns_desktop'] ) ? max( 1, absint( $settings['columns_desktop'] ) ) : 4;
         $columns_desktop = max( 1, min( 6, $columns_desktop ) );
-        $columns_tablet  = isset( $settings['columns_tablet'] ) ? max( 1, absint( $settings['columns_tablet'] ) ) : 2;
-        $columns_tablet  = max( 1, min( 6, $columns_tablet ) );
-        $columns_mobile  = isset( $settings['columns_mobile'] ) ? max( 1, absint( $settings['columns_mobile'] ) ) : 1;
-        $columns_mobile  = max( 1, min( 6, $columns_mobile ) );
-
-        // Get responsive gap values
-        $gap_desktop_data = $this->get_slider_value_with_unit( $settings, 'gap', 15, 'px' );
+        $gap_desktop_data = $this->get_slider_value_with_unit( $settings, 'gap_desktop', 15, 'px' );
         $gap_desktop_size = isset( $gap_desktop_data['size'] ) ? (float) $gap_desktop_data['size'] : 15;
-        $gap_desktop_unit = isset( $gap_desktop_data['unit'] ) && $gap_desktop_data['unit'] ? $gap_desktop_data['unit'] : 'px';
         if ( ! is_finite( $gap_desktop_size ) ) {
             $gap_desktop_size = 15;
         }
+        $image_height_desktop_data = $this->get_slider_value_with_unit( $settings, 'image_height_desktop', 625, 'px' );
+        $image_height_desktop = isset( $image_height_desktop_data['size'] ) ? (float) $image_height_desktop_data['size'] : 625;
 
+        // Get tablet values
+        $breakpoint_tablet_min = isset( $settings['breakpoint_tablet_min'] ) ? absint( $settings['breakpoint_tablet_min'] ) : 768;
+        $breakpoint_tablet_max = isset( $settings['breakpoint_tablet_max'] ) ? absint( $settings['breakpoint_tablet_max'] ) : 1024;
+        $columns_tablet  = isset( $settings['columns_tablet'] ) ? max( 1, absint( $settings['columns_tablet'] ) ) : 2;
+        $columns_tablet  = max( 1, min( 4, $columns_tablet ) );
         $gap_tablet_data = $this->get_slider_value_with_unit( $settings, 'gap_tablet', 10, 'px' );
         $gap_tablet_size = isset( $gap_tablet_data['size'] ) ? (float) $gap_tablet_data['size'] : 10;
-        $gap_tablet_unit = isset( $gap_tablet_data['unit'] ) && $gap_tablet_data['unit'] ? $gap_tablet_data['unit'] : 'px';
         if ( ! is_finite( $gap_tablet_size ) ) {
             $gap_tablet_size = 10;
         }
+        $image_height_tablet_data = $this->get_slider_value_with_unit( $settings, 'image_height_tablet', 400, 'px' );
+        $image_height_tablet = isset( $image_height_tablet_data['size'] ) ? (float) $image_height_tablet_data['size'] : 400;
 
+        // Get mobile values
+        $breakpoint_mobile_max = isset( $settings['breakpoint_mobile_max'] ) ? absint( $settings['breakpoint_mobile_max'] ) : 767;
+        $columns_mobile  = isset( $settings['columns_mobile'] ) ? max( 1, absint( $settings['columns_mobile'] ) ) : 1;
+        $columns_mobile  = max( 1, min( 2, $columns_mobile ) );
         $gap_mobile_data = $this->get_slider_value_with_unit( $settings, 'gap_mobile', 10, 'px' );
         $gap_mobile_size = isset( $gap_mobile_data['size'] ) ? (float) $gap_mobile_data['size'] : 10;
-        $gap_mobile_unit = isset( $gap_mobile_data['unit'] ) && $gap_mobile_data['unit'] ? $gap_mobile_data['unit'] : 'px';
         if ( ! is_finite( $gap_mobile_size ) ) {
             $gap_mobile_size = 10;
         }
+        $image_height_mobile_data = $this->get_slider_value_with_unit( $settings, 'image_height_mobile', 300, 'px' );
+        $image_height_mobile = isset( $image_height_mobile_data['size'] ) ? (float) $image_height_mobile_data['size'] : 300;
 
         // Nuovi controlli immagine
         $image_toggle    = isset( $settings['image_toggle'] ) && 'yes' === $settings['image_toggle'];
@@ -707,17 +842,19 @@ class BW_WallPost_Widget extends Widget_Base {
 
         $wrapper_classes = [ 'bw-wallpost' ];
         $wrapper_style   = '--bw-wallpost-columns:' . $columns_desktop . ';';
-        $wrapper_style  .= '--bw-wallpost-gap:' . $gap_desktop_size . $gap_desktop_unit . ';';
+        $wrapper_style  .= '--bw-wallpost-gap:' . $gap_desktop_size . 'px;';
 
         $grid_attributes = [
-            'class'                => 'bw-wallpost-grid',
-            'data-columns'         => $columns_desktop,
-            'data-columns-tablet'  => $columns_tablet,
-            'data-columns-mobile'  => $columns_mobile,
-            'data-gutter-size'     => $gap_desktop_size,
-            'data-gutter-unit'     => $gap_desktop_unit,
-            'data-gutter-tablet'   => $gap_tablet_size,
-            'data-gutter-mobile'   => $gap_mobile_size,
+            'class'                       => 'bw-wallpost-grid',
+            'data-columns-desktop'        => $columns_desktop,
+            'data-gap-desktop'            => $gap_desktop_size,
+            'data-breakpoint-tablet-min'  => $breakpoint_tablet_min,
+            'data-breakpoint-tablet-max'  => $breakpoint_tablet_max,
+            'data-columns-tablet'         => $columns_tablet,
+            'data-gap-tablet'             => $gap_tablet_size,
+            'data-breakpoint-mobile-max'  => $breakpoint_mobile_max,
+            'data-columns-mobile'         => $columns_mobile,
+            'data-gap-mobile'             => $gap_mobile_size,
         ];
 
         $grid_attr_html = '';
@@ -877,6 +1014,35 @@ class BW_WallPost_Widget extends Widget_Base {
                 <?php endif; ?>
             </div>
         </div>
+
+        <style>
+            /* Mobile */
+            @media (max-width: <?php echo esc_attr( $breakpoint_mobile_max ); ?>px) {
+                .elementor-element-<?php echo esc_attr( $this->get_id() ); ?> .bw-wallpost-media img,
+                .elementor-element-<?php echo esc_attr( $this->get_id() ); ?> .bw-ss__media img,
+                .elementor-element-<?php echo esc_attr( $this->get_id() ); ?> .bw-slick-item__image img {
+                    height: <?php echo esc_attr( $image_height_mobile ); ?>px !important;
+                }
+            }
+
+            /* Tablet */
+            @media (min-width: <?php echo esc_attr( $breakpoint_tablet_min ); ?>px) and (max-width: <?php echo esc_attr( $breakpoint_tablet_max ); ?>px) {
+                .elementor-element-<?php echo esc_attr( $this->get_id() ); ?> .bw-wallpost-media img,
+                .elementor-element-<?php echo esc_attr( $this->get_id() ); ?> .bw-ss__media img,
+                .elementor-element-<?php echo esc_attr( $this->get_id() ); ?> .bw-slick-item__image img {
+                    height: <?php echo esc_attr( $image_height_tablet ); ?>px !important;
+                }
+            }
+
+            /* Desktop */
+            @media (min-width: <?php echo esc_attr( $breakpoint_tablet_max + 1 ); ?>px) {
+                .elementor-element-<?php echo esc_attr( $this->get_id() ); ?> .bw-wallpost-media img,
+                .elementor-element-<?php echo esc_attr( $this->get_id() ); ?> .bw-ss__media img,
+                .elementor-element-<?php echo esc_attr( $this->get_id() ); ?> .bw-slick-item__image img {
+                    height: <?php echo esc_attr( $image_height_desktop ); ?>px !important;
+                }
+            }
+        </style>
         <?php
         wp_reset_postdata();
     }
