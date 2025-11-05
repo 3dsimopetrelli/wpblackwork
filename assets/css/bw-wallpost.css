@@ -1,19 +1,19 @@
 .bw-wallpost {
   position: relative;
   width: 100%;
-  --bw-wallpost-columns: 3;
-  --bw-wallpost-gap: 24px;
-  --bw-wallpost-image-height: 300px;
+  --bw-wallpost-columns: 4;
+  --bw-wallpost-gap: 15px;
+  --bw-wallpost-image-height: 625px;
   --bw-wallpost-hover-opacity: 0.7;
   --bw-wallpost-overlay-buttons-background: #ffffff;
-  --bw-wallpost-overlay-buttons-background-hover: #f5f5f5;
+  --bw-wallpost-overlay-buttons-background-hover: #80FD03;
   --bw-wallpost-overlay-buttons-color: #000000;
   --bw-wallpost-overlay-buttons-color-hover: #000000;
   --bw-wallpost-overlay-buttons-radius: 8px;
-  --bw-wallpost-overlay-buttons-padding-top: 12px;
-  --bw-wallpost-overlay-buttons-padding-right: 16px;
-  --bw-wallpost-overlay-buttons-padding-bottom: 12px;
-  --bw-wallpost-overlay-buttons-padding-left: 16px;
+  --bw-wallpost-overlay-buttons-padding-top: 13px;
+  --bw-wallpost-overlay-buttons-padding-right: 10px;
+  --bw-wallpost-overlay-buttons-padding-bottom: 13px;
+  --bw-wallpost-overlay-buttons-padding-left: 10px;
   box-sizing: border-box;
 }
 
@@ -164,7 +164,8 @@
 
 /* Bottoni identici a BW Slick Slider */
 .bw-wallpost-overlay-button,
-.bw-wallpost .overlay-button {
+.bw-wallpost .overlay-button,
+.bw-wallpost .bw-slide-button {
   position: relative;
   display: inline-flex;
   justify-content: center;
@@ -175,7 +176,7 @@
     var(--bw-wallpost-overlay-buttons-padding-bottom) var(--bw-wallpost-overlay-buttons-padding-left);
   background: var(--bw-wallpost-overlay-buttons-background);
   color: var(--bw-wallpost-overlay-buttons-color);
-  border: none;
+  border: 1px solid #080808;
   border-radius: 0;
   font-weight: 500;
   text-decoration: none;
@@ -188,19 +189,22 @@
 }
 
 .bw-wallpost-overlay-button:first-child,
-.bw-wallpost .overlay-button:first-child {
+.bw-wallpost .overlay-button:first-child,
+.bw-wallpost .bw-slide-button:first-child {
   border-top-left-radius: var(--bw-wallpost-overlay-buttons-radius);
   border-bottom-left-radius: var(--bw-wallpost-overlay-buttons-radius);
 }
 
 .bw-wallpost-overlay-button:last-child,
-.bw-wallpost .overlay-button:last-child {
+.bw-wallpost .overlay-button:last-child,
+.bw-wallpost .bw-slide-button:last-child {
   border-top-right-radius: var(--bw-wallpost-overlay-buttons-radius);
   border-bottom-right-radius: var(--bw-wallpost-overlay-buttons-radius);
 }
 
 .bw-wallpost-overlay-button + .bw-wallpost-overlay-button,
-.bw-wallpost .overlay-button + .overlay-button {
+.bw-wallpost .overlay-button + .overlay-button,
+.bw-wallpost .bw-slide-button + .bw-slide-button {
   border-left: 1px solid rgba(0, 0, 0, 0.1);
 }
 
@@ -227,7 +231,9 @@
 .bw-wallpost-overlay-button:hover,
 .bw-wallpost-overlay-button:focus,
 .bw-wallpost .overlay-button:hover,
-.bw-wallpost .overlay-button:focus {
+.bw-wallpost .overlay-button:focus,
+.bw-wallpost .bw-slide-button:hover,
+.bw-wallpost .bw-slide-button:focus {
   background: var(--bw-wallpost-overlay-buttons-background-hover);
   color: var(--bw-wallpost-overlay-buttons-color-hover);
 }
