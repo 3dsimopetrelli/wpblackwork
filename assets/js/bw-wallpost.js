@@ -32,9 +32,13 @@
                 columns = $grid.data('columns') || 4;
         }
 
-        // Try to read from CSS variable first (for Elementor editor live updates)
+        // Try to read from CSS variable (for Elementor editor live updates)
+        // Force a reflow first to ensure computed styles are current
         var $wrapper = $grid.closest('.bw-wallpost');
         if ($wrapper.length && $wrapper[0]) {
+            // Force reflow to ensure media queries have been applied
+            void $wrapper[0].offsetHeight;
+
             var computedStyle = window.getComputedStyle($wrapper[0]);
             var cssColumns = computedStyle.getPropertyValue('--bw-wallpost-columns');
 
@@ -68,10 +72,14 @@
                 unit = $grid.data('gutter-unit') || 'px';
         }
 
-        // Try to read from CSS variable first (for Elementor editor live updates)
+        // Try to read from CSS variable (for Elementor editor live updates)
+        // Force a reflow first to ensure computed styles are current
         var $wrapper = $grid.closest('.bw-wallpost');
         if ($wrapper.length && $wrapper[0]) {
-            // Use getComputedStyle instead of jQuery .css() for reliable CSS variable reading
+            // Force reflow to ensure media queries have been applied
+            void $wrapper[0].offsetHeight;
+
+            // Use getComputedStyle to read current CSS variable
             var computedStyle = window.getComputedStyle($wrapper[0]);
             var cssGap = computedStyle.getPropertyValue('--bw-wallpost-gap');
 
@@ -111,6 +119,42 @@
             unit: unit,
             size: size
         };
+    }
+
+    /**
+     * Calculate and set item widths based on columns
+     * This ensures Masonry calculates layout correctly
+     */
+    function setItemWidths($grid) {
+        if (!$grid || !$grid.length) {
+            return;
+        }
+
+        var columnsCount = getColumns($grid);
+        var gutterData = getGutterValue($grid);
+        var $items = $grid.find('.bw-wallpost-item');
+
+        if (!$items.length) {
+            return;
+        }
+
+        // Calculate width percentage for each item
+        // Formula: (100 / columns)%
+        var widthPercent = (100 / columnsCount);
+
+        // Apply width to all items
+        $items.each(function() {
+            var $item = $(this);
+            // Set width as percentage for Masonry percentPosition to work correctly
+            $item.css('width', widthPercent + '%');
+        });
+
+        // Update CSS variables on wrapper to keep them in sync
+        var $wrapper = $grid.closest('.bw-wallpost');
+        if ($wrapper.length && $wrapper[0]) {
+            $wrapper[0].style.setProperty('--bw-wallpost-columns', columnsCount);
+            $wrapper[0].style.setProperty('--bw-wallpost-gap', gutterData.size + gutterData.unit);
+        }
     }
 
     function withImagesLoaded($grid, callback) {
@@ -196,7 +240,7 @@
         var instance = $grid.data('masonry');
         var isEditor = isElementorEditor();
 
-        // Check if we need to force reinit due to CSS variable changes
+        // Check if we need to force reinit due to column or gutter changes
         var lastColumns = $grid.data('bw-last-columns');
         var lastGutter = $grid.data('bw-last-gutter');
 
@@ -209,6 +253,9 @@
         $grid.data('bw-last-gutter', gutterData.value);
 
         if (instance && !forceReinit) {
+            // Update item widths first
+            setItemWidths($grid);
+
             withImagesLoaded($grid, function () {
                 instance.options.gutter = gutterData.value;
 
@@ -244,12 +291,26 @@
             // Destroy existing instance completely
             destroyGridInstance($grid);
 
+            // CRITICAL: Set item widths BEFORE initializing Masonry
+            setItemWidths($grid);
+
             var data = getGutterValue($grid);
-            $grid.masonry({
+            var $items = $grid.find('.bw-wallpost-item');
+            var columnWidth = $items.length > 0 ? $items[0] : null;
+
+            // Initialize Masonry with columnWidth for proper layout
+            var masonryOptions = {
                 itemSelector: '.bw-wallpost-item',
                 percentPosition: true,
                 gutter: data.value
-            });
+            };
+
+            // Use first item as columnWidth reference
+            if (columnWidth) {
+                masonryOptions.columnWidth = columnWidth;
+            }
+
+            $grid.masonry(masonryOptions);
             $grid.addClass('bw-wallpost-initialized');
 
             var masonryInstance = $grid.data('masonry');
@@ -417,9 +478,18 @@
                 // Force browser reflow to ensure CSS media queries are applied
                 if (deviceChanged && $grid[0]) {
                     void $grid[0].offsetHeight;
+
+                    // Update wrapper to force CSS variable recalculation
+                    var $wrapper = $grid.closest('.bw-wallpost');
+                    if ($wrapper.length && $wrapper[0]) {
+                        void $wrapper[0].offsetHeight;
+                    }
                 }
 
-                // Always force reinit when device changes to ensure CSS variables are re-read
+                // CRITICAL: Update item widths based on new device breakpoint
+                setItemWidths($grid);
+
+                // Force complete reinit when device changes to ensure proper column layout
                 layoutGrid($grid, deviceChanged);
 
                 updateGridHeight($grid);
@@ -919,6 +989,8 @@
             editorResizeTimeout = setTimeout(function() {
                 $('.bw-wallpost-grid.bw-wallpost-initialized').each(function () {
                     var $grid = $(this);
+                    // Update item widths before layout
+                    setItemWidths($grid);
                     layoutGrid($grid, false);
                     updateGridHeight($grid);
                 });
