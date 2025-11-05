@@ -23,11 +23,8 @@
 }
 
 .bw-wallpost-item {
-  width: calc(
-    (
-      100% - (max(var(--bw-wallpost-columns), 1) - 1) * var(--bw-wallpost-gap)
-    ) / max(var(--bw-wallpost-columns), 1)
-  );
+  /* Width is set dynamically by JavaScript based on columns */
+  /* This ensures Masonry calculates layout correctly for all devices */
   padding: calc(var(--bw-wallpost-gap) / 2);
   box-sizing: border-box;
 }
@@ -364,21 +361,13 @@
   float: left;
 }
 
-/* Force proper sizing in Elementor editor iframe */
+/* Width is now set dynamically by JavaScript for all contexts */
+/* This ensures consistent behavior between editor and frontend */
 .elementor-editor-active .bw-wallpost-item,
 .elementor-edit-mode .bw-wallpost-item,
 .elementor .bw-wallpost-item,
 body.elementor-editor-active .bw-wallpost-item {
-  width: calc(
-    (
-      100% - (max(var(--bw-wallpost-columns), 1) - 1) * var(--bw-wallpost-gap)
-    ) / max(var(--bw-wallpost-columns), 1)
-  ) !important;
-  max-width: calc(
-    (
-      100% - (max(var(--bw-wallpost-columns), 1) - 1) * var(--bw-wallpost-gap)
-    ) / max(var(--bw-wallpost-columns), 1)
-  ) !important;
+  /* JavaScript handles width calculation */
 }
 
 /* Ensure grid container maintains proper height */
