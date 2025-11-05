@@ -36,6 +36,7 @@ class BW_WallPost_Widget extends Widget_Base {
     protected function register_controls() {
         $this->register_query_controls();
         $this->register_layout_controls();
+        $this->register_image_controls();
         $this->register_style_controls();
     }
 
@@ -155,6 +156,119 @@ class BW_WallPost_Widget extends Widget_Base {
             'selectors'  => [
                 '{{WRAPPER}} .bw-wallpost' => 'margin-bottom: {{SIZE}}{{UNIT}};',
             ],
+        ] );
+
+        $this->end_controls_section();
+    }
+
+    private function register_image_controls() {
+        // Sezione: Image Settings
+        $this->start_controls_section( 'image_section', [
+            'label' => __( 'Image Settings', 'bw-elementor-widgets' ),
+        ] );
+
+        $this->add_control( 'image_toggle', [
+            'label'        => __( 'Show Featured Image', 'bw-elementor-widgets' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
+            'label_off'    => __( 'No', 'bw-elementor-widgets' ),
+            'return_value' => 'yes',
+            'default'      => 'yes',
+            'description'  => __( 'Mostra/nascondi l\'immagine in evidenza', 'bw-elementor-widgets' ),
+        ] );
+
+        $this->add_control( 'image_size', [
+            'label'   => __( 'Image Size', 'bw-elementor-widgets' ),
+            'type'    => Controls_Manager::SELECT,
+            'options' => [
+                'thumbnail'    => __( 'Thumbnail', 'bw-elementor-widgets' ),
+                'medium'       => __( 'Medium', 'bw-elementor-widgets' ),
+                'medium_large' => __( 'Medium Large', 'bw-elementor-widgets' ),
+                'large'        => __( 'Large', 'bw-elementor-widgets' ),
+                'full'         => __( 'Full', 'bw-elementor-widgets' ),
+            ],
+            'default'   => 'large',
+            'condition' => [ 'image_toggle' => 'yes' ],
+        ] );
+
+        $this->add_responsive_control( 'image_height', [
+            'label'      => __( 'Image Height', 'bw-elementor-widgets' ),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => [ 'px', 'vh', '%' ],
+            'range'      => [
+                'px' => [ 'min' => 100, 'max' => 800, 'step' => 1 ],
+                'vh' => [ 'min' => 10, 'max' => 100, 'step' => 1 ],
+                '%'  => [ 'min' => 10, 'max' => 200, 'step' => 1 ],
+            ],
+            'default'    => [
+                'size' => 300,
+                'unit' => 'px',
+            ],
+            'selectors'  => [
+                '{{WRAPPER}} .bw-wallpost' => '--bw-wallpost-image-height: {{SIZE}}{{UNIT}};',
+            ],
+            'condition' => [ 'image_toggle' => 'yes' ],
+        ] );
+
+        $this->add_responsive_control( 'image_border_radius', [
+            'label'      => __( 'Image Border Radius', 'bw-elementor-widgets' ),
+            'type'       => Controls_Manager::DIMENSIONS,
+            'size_units' => [ 'px', '%', 'em' ],
+            'selectors'  => [
+                '{{WRAPPER}} .bw-wallpost-media'   => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                '{{WRAPPER}} .bw-wallpost-media img' => 'border-radius: inherit;',
+                '{{WRAPPER}} .bw-wallpost-overlay' => 'border-radius: inherit;',
+                '{{WRAPPER}} .bw-wallpost-image'   => 'border-radius: inherit;',
+            ],
+            'condition' => [ 'image_toggle' => 'yes' ],
+        ] );
+
+        $this->add_control( 'image_object_fit', [
+            'label'   => __( 'Image Object Fit', 'bw-elementor-widgets' ),
+            'type'    => Controls_Manager::SELECT,
+            'options' => [
+                'cover'   => __( 'Cover', 'bw-elementor-widgets' ),
+                'contain' => __( 'Contain', 'bw-elementor-widgets' ),
+                'fill'    => __( 'Fill', 'bw-elementor-widgets' ),
+                'none'    => __( 'None', 'bw-elementor-widgets' ),
+            ],
+            'default'   => 'cover',
+            'selectors' => [
+                '{{WRAPPER}} .bw-wallpost-media img' => 'object-fit: {{VALUE}};',
+            ],
+            'condition' => [ 'image_toggle' => 'yes' ],
+        ] );
+
+        $this->end_controls_section();
+
+        // Sezione: Hover Effect
+        $this->start_controls_section( 'hover_section', [
+            'label' => __( 'Hover Effect', 'bw-elementor-widgets' ),
+        ] );
+
+        $this->add_control( 'hover_effect', [
+            'label'        => __( 'Enable Hover Effect', 'bw-elementor-widgets' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
+            'label_off'    => __( 'No', 'bw-elementor-widgets' ),
+            'return_value' => 'yes',
+            'default'      => 'yes',
+            'description'  => __( 'Attiva effetto fade al passaggio del mouse', 'bw-elementor-widgets' ),
+        ] );
+
+        $this->add_control( 'hover_opacity', [
+            'label'   => __( 'Hover Opacity', 'bw-elementor-widgets' ),
+            'type'    => Controls_Manager::SLIDER,
+            'range'   => [
+                'px' => [ 'min' => 0, 'max' => 1, 'step' => 0.1 ],
+            ],
+            'default' => [
+                'size' => 0.7,
+            ],
+            'selectors' => [
+                '{{WRAPPER}} .bw-wallpost' => '--bw-wallpost-hover-opacity: {{SIZE}};',
+            ],
+            'condition' => [ 'hover_effect' => 'yes' ],
         ] );
 
         $this->end_controls_section();
@@ -408,6 +522,11 @@ class BW_WallPost_Widget extends Widget_Base {
             $gap_size = 0;
         }
 
+        // Nuovi controlli immagine
+        $image_toggle    = isset( $settings['image_toggle'] ) && 'yes' === $settings['image_toggle'];
+        $image_size      = isset( $settings['image_size'] ) ? $settings['image_size'] : 'large';
+        $hover_effect    = isset( $settings['hover_effect'] ) && 'yes' === $settings['hover_effect'];
+
         $include_ids = isset( $settings['specific_ids'] ) ? $this->parse_ids( $settings['specific_ids'] ) : [];
 
         $parent_category = isset( $settings['parent_category'] ) ? absint( $settings['parent_category'] ) : 0;
@@ -490,26 +609,26 @@ class BW_WallPost_Widget extends Widget_Base {
 
                         $thumbnail_html = '';
 
-                        if ( has_post_thumbnail( $post_id ) ) {
+                        if ( $image_toggle && has_post_thumbnail( $post_id ) ) {
                             $thumbnail_args = [
                                 'loading' => 'lazy',
-                                'class'   => 'bw-wallpost-image-main',
+                                'class'   => 'bw-slider-main',
                             ];
 
-                            $thumbnail_html = get_the_post_thumbnail( $post_id, 'large', $thumbnail_args );
+                            $thumbnail_html = get_the_post_thumbnail( $post_id, $image_size, $thumbnail_args );
                         }
 
                         $hover_image_html = '';
-                        if ( 'product' === $post_type ) {
+                        if ( $hover_effect && 'product' === $post_type ) {
                             $hover_image_id = (int) get_post_meta( $post_id, '_bw_slider_hover_image', true );
 
                             if ( $hover_image_id ) {
                                 $hover_image_html = wp_get_attachment_image(
                                     $hover_image_id,
-                                    'large',
+                                    $image_size,
                                     false,
                                     [
-                                        'class'   => 'bw-wallpost-image-hover',
+                                        'class'   => 'bw-slider-hover',
                                         'loading' => 'lazy',
                                     ]
                                 );
@@ -550,19 +669,20 @@ class BW_WallPost_Widget extends Widget_Base {
                             ? esc_html__( 'View Product', 'bw-elementor-widgets' )
                             : esc_html__( 'Read More', 'bw-elementor-widgets' );
                         ?>
-                        <article <?php post_class( 'bw-wallpost-item' ); ?>>
-                            <div class="bw-wallpost-card">
-                                <div class="bw-wallpost-media-wrapper">
+                        <article <?php post_class( 'bw-wallpost-item bw-slick-item' ); ?>>
+                            <div class="bw-wallpost-card bw-slick-item__inner bw-ss__card">
+                                <div class="bw-slider-image-container">
                                     <?php
-                                    $media_classes = [ 'bw-wallpost-media' ];
+                                    $media_classes = [ 'bw-wallpost-media', 'bw-slick-item__image', 'bw-ss__media' ];
                                     if ( ! $thumbnail_html ) {
                                         $media_classes[] = 'bw-wallpost-media--placeholder';
+                                        $media_classes[] = 'bw-slick-item__image--placeholder';
                                     }
                                     ?>
                                     <div class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $media_classes ) ) ); ?>">
                                         <?php if ( $thumbnail_html ) : ?>
-                                            <a class="bw-wallpost-media-link" href="<?php echo esc_url( $permalink ); ?>">
-                                                <div class="bw-wallpost-image<?php echo $hover_image_html ? ' bw-wallpost-image--has-hover' : ''; ?>">
+                                            <a class="bw-wallpost-media-link bw-slick-item__media-link bw-ss__media-link" href="<?php echo esc_url( $permalink ); ?>">
+                                                <div class="bw-wallpost-image bw-slick-slider-image<?php echo $hover_image_html ? ' bw-wallpost-image--has-hover bw-slick-slider-image--has-hover' : ''; ?>">
                                                     <?php echo wp_kses_post( $thumbnail_html ); ?>
                                                     <?php if ( $hover_image_html ) : ?>
                                                         <?php echo wp_kses_post( $hover_image_html ); ?>
@@ -570,37 +690,37 @@ class BW_WallPost_Widget extends Widget_Base {
                                                 </div>
                                             </a>
 
-                                            <div class="bw-wallpost-overlay">
-                                                <div class="bw-wallpost-overlay-buttons<?php echo $has_add_to_cart ? ' bw-wallpost-overlay-buttons--double' : ''; ?>">
-                                                    <a class="bw-wallpost-overlay-button bw-wallpost-overlay-button--view" href="<?php echo esc_url( $permalink ); ?>">
-                                                        <span class="bw-wallpost-overlay-button__label"><?php echo $view_label; ?></span>
+                                            <div class="bw-wallpost-overlay overlay-buttons bw-ss__overlay has-buttons">
+                                                <div class="bw-wallpost-overlay-buttons bw-ss__buttons bw-slide-buttons<?php echo $has_add_to_cart ? ' bw-wallpost-overlay-buttons--double bw-ss__buttons--double' : ''; ?>">
+                                                    <a class="bw-wallpost-overlay-button overlay-button overlay-button--view bw-ss__btn bw-view-btn bw-slide-button" href="<?php echo esc_url( $permalink ); ?>">
+                                                        <span class="bw-wallpost-overlay-button__label overlay-button__label"><?php echo $view_label; ?></span>
                                                     </a>
                                                     <?php if ( 'product' === $post_type && $has_add_to_cart && $add_to_cart_url ) : ?>
-                                                        <a class="bw-wallpost-overlay-button bw-wallpost-overlay-button--cart" href="<?php echo esc_url( $add_to_cart_url ); ?>">
-                                                            <span class="bw-wallpost-overlay-button__label"><?php esc_html_e( 'Add to Cart', 'bw-elementor-widgets' ); ?></span>
+                                                        <a class="bw-wallpost-overlay-button overlay-button overlay-button--cart bw-ss__btn bw-btn-addtocart bw-slide-button" href="<?php echo esc_url( $add_to_cart_url ); ?>">
+                                                            <span class="bw-wallpost-overlay-button__label overlay-button__label"><?php esc_html_e( 'Add to Cart', 'bw-elementor-widgets' ); ?></span>
                                                         </a>
                                                     <?php endif; ?>
                                                 </div>
                                             </div>
                                         <?php else : ?>
-                                            <span class="bw-wallpost-image-placeholder" aria-hidden="true"></span>
+                                            <span class="bw-wallpost-image-placeholder bw-slick-item__image-placeholder" aria-hidden="true"></span>
                                         <?php endif; ?>
                                     </div>
                                 </div>
 
-                                <div class="bw-wallpost-content">
-                                    <h3 class="bw-wallpost-title">
+                                <div class="bw-wallpost-content bw-slick-item__content bw-ss__content bw-slider-content bw-slick-slider-text-box">
+                                    <h3 class="bw-wallpost-title bw-slick-item__title bw-slick-title bw-slider-title">
                                         <a href="<?php echo esc_url( $permalink ); ?>">
                                             <?php echo esc_html( $title ); ?>
                                         </a>
                                     </h3>
 
                                     <?php if ( ! empty( $excerpt ) ) : ?>
-                                        <div class="bw-wallpost-description"><?php echo wp_kses_post( $excerpt ); ?></div>
+                                        <div class="bw-wallpost-description bw-slick-item__excerpt bw-slick-description bw-slider-description"><?php echo wp_kses_post( $excerpt ); ?></div>
                                     <?php endif; ?>
 
                                     <?php if ( $price_html ) : ?>
-                                        <div class="bw-wallpost-price"><?php echo wp_kses_post( $price_html ); ?></div>
+                                        <div class="bw-wallpost-price bw-slick-item__price price bw-slick-price bw-slider-price"><?php echo wp_kses_post( $price_html ); ?></div>
                                     <?php endif; ?>
                                 </div>
                             </div>

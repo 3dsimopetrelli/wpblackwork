@@ -3,6 +3,8 @@
   width: 100%;
   --bw-wallpost-columns: 3;
   --bw-wallpost-gap: 24px;
+  --bw-wallpost-image-height: 300px;
+  --bw-wallpost-hover-opacity: 0.7;
   --bw-wallpost-overlay-buttons-background: #ffffff;
   --bw-wallpost-overlay-buttons-background-hover: #f5f5f5;
   --bw-wallpost-overlay-buttons-color: #000000;
@@ -41,56 +43,67 @@
   position: relative;
 }
 
-.bw-wallpost-media {
+.bw-wallpost-media,
+.bw-wallpost .bw-ss__media {
   position: relative;
   overflow: hidden;
   border-radius: inherit;
 }
 
-.bw-wallpost-image {
+.bw-wallpost-image,
+.bw-wallpost .bw-slick-slider-image {
   position: relative;
+  overflow: hidden;
 }
 
-.bw-wallpost-image--has-hover .bw-wallpost-image-hover,
-.bw-wallpost-image--has-hover .bw-wallpost-image-main {
-  transition: opacity 0.3s ease, transform 0.3s ease;
+/* Stili immagine identici a BW Slick Slider */
+.bw-wallpost .bw-slick-slider-image--has-hover .bw-slider-main,
+.bw-wallpost .bw-slick-slider-image--has-hover .bw-slider-hover {
+  display: block;
+  width: 100%;
+  transition: opacity 0.35s ease;
 }
 
-.bw-wallpost-image--has-hover .bw-wallpost-image-hover {
+.bw-wallpost .bw-slick-slider-image--has-hover .bw-slider-hover {
   position: absolute;
   inset: 0;
   opacity: 0;
-  transform: scale(1.02);
+  pointer-events: none;
+  z-index: 1;
 }
 
-.bw-wallpost-image--has-hover .bw-wallpost-image-main {
-  display: block;
+.bw-wallpost .bw-slick-slider-image--has-hover .bw-slider-main {
+  position: relative;
+  z-index: 0;
+}
+
+.bw-wallpost .bw-ss__media:hover .bw-slick-slider-image--has-hover .bw-slider-hover,
+.bw-wallpost .bw-ss__media:focus-within .bw-slick-slider-image--has-hover .bw-slider-hover {
   opacity: 1;
 }
 
-.bw-wallpost-media:hover .bw-wallpost-image--has-hover .bw-wallpost-image-hover,
-.bw-wallpost-media:focus-within .bw-wallpost-image--has-hover .bw-wallpost-image-hover {
-  opacity: 1;
-  transform: scale(1);
-}
-
-.bw-wallpost-media:hover .bw-wallpost-image--has-hover .bw-wallpost-image-main,
-.bw-wallpost-media:focus-within .bw-wallpost-image--has-hover .bw-wallpost-image-main {
+.bw-wallpost .bw-ss__media:hover .bw-slick-slider-image--has-hover .bw-slider-main,
+.bw-wallpost .bw-ss__media:focus-within .bw-slick-slider-image--has-hover .bw-slider-main {
   opacity: 0;
 }
 
-.bw-wallpost-media--placeholder {
+.bw-wallpost-media--placeholder,
+.bw-wallpost .bw-slick-item__image--placeholder {
   background: #f4f4f4;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.bw-wallpost-media img {
+.bw-wallpost-media img,
+.bw-wallpost .bw-ss__media img,
+.bw-wallpost .bw-slick-item__image img {
   display: block;
   width: 100%;
-  height: auto;
+  height: var(--bw-wallpost-image-height);
   object-fit: cover;
+  transition: none;
+  transform: none;
   border-radius: inherit;
 }
 
@@ -107,7 +120,10 @@
   );
 }
 
-.bw-wallpost-overlay {
+/* Overlay identico a BW Slick Slider */
+.bw-wallpost-overlay,
+.bw-wallpost .overlay-buttons,
+.bw-wallpost .bw-ss__overlay {
   position: absolute;
   inset: 0;
   display: flex;
@@ -116,102 +132,207 @@
   opacity: 0;
   transform: translateY(10px);
   transition: opacity 0.25s ease, transform 0.25s ease;
-  pointer-events: none;
-  padding: 16px;
   z-index: 2;
+  pointer-events: none;
   box-sizing: border-box;
+  padding: 16px;
+  border-radius: inherit;
 }
 
-.bw-wallpost-media:hover .bw-wallpost-overlay,
-.bw-wallpost-media:focus-within .bw-wallpost-overlay,
-.bw-wallpost-overlay:hover,
-.bw-wallpost-overlay:focus-within {
+.bw-wallpost .bw-ss__media:hover .bw-ss__overlay,
+.bw-wallpost .bw-ss__media:focus-within .bw-ss__overlay,
+.bw-wallpost .bw-ss__overlay:hover,
+.bw-wallpost .bw-ss__overlay:focus-within {
   opacity: 1;
   transform: translateY(0);
   pointer-events: auto;
 }
 
-.bw-wallpost-overlay-buttons {
+.bw-wallpost-overlay-buttons,
+.bw-wallpost .bw-ss__buttons {
   display: flex;
   width: 100%;
   gap: 0;
+  pointer-events: auto;
 }
 
-.bw-wallpost-overlay-buttons--double .bw-wallpost-overlay-button {
-  width: 50%;
+.bw-wallpost-overlay-buttons--double .bw-wallpost-overlay-button,
+.bw-wallpost .bw-ss__buttons--double .overlay-button {
   flex: 1 1 50%;
+  width: 50%;
 }
 
-.bw-wallpost-overlay-button {
+/* Bottoni identici a BW Slick Slider */
+.bw-wallpost-overlay-button,
+.bw-wallpost .overlay-button {
+  position: relative;
   display: inline-flex;
   justify-content: center;
   align-items: center;
-  flex: 1 1 100%;
   width: 100%;
-  padding: var(--bw-wallpost-overlay-buttons-padding-top)
-    var(--bw-wallpost-overlay-buttons-padding-right)
-    var(--bw-wallpost-overlay-buttons-padding-bottom)
-    var(--bw-wallpost-overlay-buttons-padding-left);
+  flex: 1 1 100%;
+  padding: var(--bw-wallpost-overlay-buttons-padding-top) var(--bw-wallpost-overlay-buttons-padding-right)
+    var(--bw-wallpost-overlay-buttons-padding-bottom) var(--bw-wallpost-overlay-buttons-padding-left);
   background: var(--bw-wallpost-overlay-buttons-background);
   color: var(--bw-wallpost-overlay-buttons-color);
-  text-decoration: none;
   border: none;
+  border-radius: 0;
+  font-weight: 500;
+  text-decoration: none;
+  overflow: visible;
   transition: background 0.3s ease, color 0.3s ease;
 }
 
-.bw-wallpost-overlay-button:first-child {
+.bw-wallpost .bw-btn-addtocart {
+  text-decoration: none;
+}
+
+.bw-wallpost-overlay-button:first-child,
+.bw-wallpost .overlay-button:first-child {
   border-top-left-radius: var(--bw-wallpost-overlay-buttons-radius);
   border-bottom-left-radius: var(--bw-wallpost-overlay-buttons-radius);
 }
 
-.bw-wallpost-overlay-button:last-child {
+.bw-wallpost-overlay-button:last-child,
+.bw-wallpost .overlay-button:last-child {
   border-top-right-radius: var(--bw-wallpost-overlay-buttons-radius);
   border-bottom-right-radius: var(--bw-wallpost-overlay-buttons-radius);
 }
 
-.bw-wallpost-overlay-button + .bw-wallpost-overlay-button {
+.bw-wallpost-overlay-button + .bw-wallpost-overlay-button,
+.bw-wallpost .overlay-button + .overlay-button {
   border-left: 1px solid rgba(0, 0, 0, 0.1);
 }
 
+/* Label con underline effect */
+.bw-wallpost .overlay-button__label {
+  position: relative;
+  display: inline-block;
+  line-height: 1.2;
+}
+
+.bw-wallpost .overlay-button__label::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -0.35em;
+  width: 100%;
+  height: 2px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease;
+}
+
 .bw-wallpost-overlay-button:hover,
-.bw-wallpost-overlay-button:focus {
+.bw-wallpost-overlay-button:focus,
+.bw-wallpost .overlay-button:hover,
+.bw-wallpost .overlay-button:focus {
   background: var(--bw-wallpost-overlay-buttons-background-hover);
   color: var(--bw-wallpost-overlay-buttons-color-hover);
 }
 
-.bw-wallpost-content {
-  padding-top: 20px;
+.bw-wallpost .overlay-button:hover .overlay-button__label::after,
+.bw-wallpost .overlay-button:focus .overlay-button__label::after {
+  transform: scaleX(1);
 }
 
-.bw-wallpost-title {
+/* Contenitore immagine identico a BW Slick Slider */
+.bw-wallpost .bw-slider-image-container {
+  background: transparent;
+  overflow: hidden;
+}
+
+.bw-wallpost .bw-slick-item__inner,
+.bw-wallpost .bw-ss__card {
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* Contenuto testuale identico a BW Slick Slider */
+.bw-wallpost-content,
+.bw-wallpost .bw-slick-item__content {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.bw-wallpost .bw-slick-slider-text-box {
+  background-color: transparent;
+  padding: 15px;
+  box-sizing: border-box;
+  transition: background-color 0.3s ease;
+}
+
+.bw-wallpost-title,
+.bw-wallpost .bw-slick-item__title,
+.bw-wallpost .bw-slick-title {
   margin: 0;
-  font-size: 1.25rem;
+  font-size: 18px;
+  line-height: 1.4;
 }
 
-.bw-wallpost-title a {
+.bw-wallpost-title a,
+.bw-wallpost .bw-slick-item__title a {
   text-decoration: none;
   color: inherit;
 }
 
-.bw-wallpost-description {
-  margin-top: 12px;
-  margin-bottom: 12px;
+.bw-wallpost-title a:hover,
+.bw-wallpost-title a:focus,
+.bw-wallpost .bw-slick-item__title a:hover,
+.bw-wallpost .bw-slick-item__title a:focus {
+  text-decoration: underline;
+}
+
+.bw-wallpost-description,
+.bw-wallpost .bw-slick-item__excerpt,
+.bw-wallpost .bw-slick-description {
+  color: #080808;
+  font-size: 18px;
+  line-height: 1.4;
+  font-weight: 400;
+}
+
+.bw-wallpost-description p,
+.bw-wallpost .bw-slick-item__excerpt p,
+.bw-wallpost .bw-slick-description p {
+  margin: 0;
+}
+
+.bw-wallpost-price,
+.bw-wallpost .bw-slick-item__price,
+.bw-wallpost .bw-slick-price {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  font-weight: 400;
   color: #080808;
 }
 
-.bw-wallpost-price {
-  margin-top: 12px;
-  font-weight: 600;
+.bw-wallpost-price .price-original,
+.bw-wallpost .bw-slick-item__price .price-original {
+  color: rgba(17, 17, 17, 0.55);
+  text-decoration: line-through;
 }
 
-.bw-wallpost-price .price-original {
-  margin-right: 8px;
-  opacity: 0.6;
+.bw-wallpost-price .price-original del,
+.bw-wallpost .bw-slick-item__price .price-original del {
+  text-decoration: inherit;
 }
 
-.bw-wallpost-price .price-sale {
-  color: inherit;
-  font-weight: 700;
+.bw-wallpost-price .price-sale,
+.bw-wallpost .bw-slick-item__price .price-sale {
+  color: #080808;
+}
+
+.bw-wallpost-price .price-regular,
+.bw-wallpost .bw-slick-item__price .price-regular {
+  color: #080808;
 }
 
 .bw-wallpost-placeholder {
