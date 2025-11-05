@@ -421,6 +421,64 @@
     var hooksRegistered = false;
     var WallpostHandlerClass;
 
+    /**
+     * Waits for the grid to be ready with all items loaded before proceeding
+     * Uses intelligent polling to detect when Elementor has finished re-rendering
+     *
+     * @param {jQuery} $element - The widget element
+     * @param {Function} callback - Called when grid is ready
+     * @param {number} maxAttempts - Maximum polling attempts
+     */
+    function waitForGridReady($element, callback, maxAttempts) {
+        maxAttempts = maxAttempts || 20; // 20 attempts = 2 seconds max
+        var attempts = 0;
+        var lastItemCount = -1;
+        var stableCount = 0;
+
+        var pollInterval = setInterval(function() {
+            attempts++;
+
+            var $currentGrid = $element.find('.bw-wallpost-grid');
+
+            // Check if grid exists and is in DOM
+            if (!$currentGrid.length || !$.contains(document.documentElement, $currentGrid[0])) {
+                if (attempts >= maxAttempts) {
+                    clearInterval(pollInterval);
+                    return;
+                }
+                return;
+            }
+
+            var $items = $currentGrid.find('.bw-wallpost-item');
+            var currentItemCount = $items.length;
+
+            // Check if item count is stable (hasn't changed in 2 consecutive checks)
+            if (currentItemCount === lastItemCount && currentItemCount > 0) {
+                stableCount++;
+
+                // If count is stable for 2 checks, consider it ready
+                if (stableCount >= 2) {
+                    clearInterval(pollInterval);
+                    callback($currentGrid, $items);
+                    return;
+                }
+            } else {
+                stableCount = 0;
+            }
+
+            lastItemCount = currentItemCount;
+
+            // Timeout after max attempts
+            if (attempts >= maxAttempts) {
+                clearInterval(pollInterval);
+                // Even if not perfectly stable, proceed if we have items
+                if (currentItemCount > 0 && $currentGrid.length) {
+                    callback($currentGrid, $items);
+                }
+            }
+        }, 100); // Check every 100ms
+    }
+
     function addElementorHandler($scope) {
         if (!WallpostHandlerClass) {
             if (
@@ -502,80 +560,73 @@
                         }
                     }
 
-                    // posts_per_page needs longer delay as widget is re-rendered server-side
-                    var initialDelay = isPostsChange ? 500 : (needsFullReinit ? 150 : 100);
+                    // Destroy existing instance immediately to prevent conflicts
+                    if (needsFullReinit) {
+                        destroyGridInstance($grid);
+                        removeGridObserver($grid);
+                    }
 
+                    /**
+                     * IMPROVED: Instead of fixed delays, use intelligent polling
+                     * to wait for Elementor to finish re-rendering the widget
+                     */
                     this.layoutTimeout = setTimeout(function () {
-                        // Re-find the grid in case the widget was re-rendered
-                        var $currentGrid = self.$element.find('.bw-wallpost-grid');
+                        if (needsFullReinit) {
+                            // Use polling to wait for grid to be ready with all items loaded
+                            waitForGridReady(self.$element, function($readyGrid, $items) {
+                                // Double-check grid is still in DOM
+                                if (!$.contains(document.documentElement, $readyGrid[0])) {
+                                    return;
+                                }
 
-                        if (!$currentGrid.length) {
-                            return;
-                        }
+                                // CRITICAL: Destroy any existing instance before reinit
+                                destroyGridInstance($readyGrid);
+                                removeGridObserver($readyGrid);
 
-                        // Verify that the grid is actually in the DOM
-                        if (!$.contains(document.documentElement, $currentGrid[0])) {
-                            return;
-                        }
+                                // Force browser reflow to ensure clean state
+                                void $readyGrid[0].offsetHeight;
 
-                        $currentGrid.each(function () {
-                            var $thisGrid = $(this);
+                                // Now reinitialize with fresh DOM
+                                initGrid($readyGrid);
 
-                            if (needsFullReinit) {
-                                // For structural changes: destroy and reinitialize completely
-                                destroyGridInstance($thisGrid);
-                                removeGridObserver($thisGrid);
-
-                                // Wait for DOM to be ready, especially for posts_per_page
-                                var reinitDelay = isPostsChange ? 150 : 30;
-
+                                // Remove loading overlay after successful initialization
                                 setTimeout(function() {
-                                    // Verify grid is still in DOM
-                                    if (!$.contains(document.documentElement, $thisGrid[0])) {
-                                        return;
+                                    var $wrapper = self.$element.find('.bw-wallpost');
+                                    if ($wrapper.length) {
+                                        $wrapper.removeClass('bw-wallpost--loading');
                                     }
+                                }, 300);
 
-                                    // Force complete reinitialization
-                                    initGrid($thisGrid);
-
-                                    // Remove loading overlay after initialization
-                                    setTimeout(function() {
-                                        var $wrapper = self.$element.find('.bw-wallpost');
-                                        if ($wrapper.length) {
-                                            $wrapper.removeClass('bw-wallpost--loading');
-                                        }
-                                    }, 400);
-
-                                    // Additional layout passes for posts_per_page to handle image loading
-                                    if (isPostsChange) {
-                                        // First pass after 200ms
-                                        setTimeout(function() {
-                                            var instance = $thisGrid.data('masonry');
-                                            if (instance && typeof instance.reloadItems === 'function') {
-                                                instance.reloadItems();
-                                            }
-                                            if (instance && typeof instance.layout === 'function') {
-                                                instance.layout();
-                                                updateGridHeight($thisGrid);
-                                            }
-                                        }, 200);
-
-                                        // Second pass after 500ms for slower loading images
-                                        setTimeout(function() {
-                                            var instance = $thisGrid.data('masonry');
-                                            if (instance && typeof instance.reloadItems === 'function') {
-                                                instance.reloadItems();
-                                            }
-                                            if (instance && typeof instance.layout === 'function') {
-                                                instance.layout();
-                                                updateGridHeight($thisGrid);
-                                            }
-                                        }, 500);
+                                // Additional layout passes to handle image loading
+                                // These ensure masonry properly positions items as images load
+                                setTimeout(function() {
+                                    var instance = $readyGrid.data('masonry');
+                                    if (instance && typeof instance.reloadItems === 'function') {
+                                        instance.reloadItems();
                                     }
-                                }, reinitDelay);
-                            } else {
-                                // For minor changes: just update layout
-                                layoutGrid($thisGrid, false);
+                                    if (instance && typeof instance.layout === 'function') {
+                                        instance.layout();
+                                        updateGridHeight($readyGrid);
+                                    }
+                                }, 400);
+
+                                // Final pass for any slow-loading images
+                                setTimeout(function() {
+                                    var instance = $readyGrid.data('masonry');
+                                    if (instance && typeof instance.reloadItems === 'function') {
+                                        instance.reloadItems();
+                                    }
+                                    if (instance && typeof instance.layout === 'function') {
+                                        instance.layout();
+                                        updateGridHeight($readyGrid);
+                                    }
+                                }, 800);
+                            }, isPostsChange ? 30 : 20); // More attempts for posts changes
+                        } else {
+                            // For minor changes: just update layout
+                            var $currentGrid = self.$element.find('.bw-wallpost-grid');
+                            if ($currentGrid.length) {
+                                layoutGrid($currentGrid, false);
 
                                 // Remove loading overlay
                                 setTimeout(function() {
@@ -585,8 +636,8 @@
                                     }
                                 }, 200);
                             }
-                        });
-                    }, initialDelay);
+                        }
+                    }, isPostsChange ? 300 : 100); // Initial delay before starting polling
                 },
 
                 onDestroy: function () {
