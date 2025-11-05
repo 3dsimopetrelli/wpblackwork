@@ -1,9 +1,58 @@
 (function ($) {
     'use strict';
 
+    /**
+     * Get current device breakpoint
+     * @returns {string} 'mobile', 'tablet', or 'desktop'
+     */
+    function getCurrentDevice() {
+        var width = window.innerWidth;
+        if (width < 768) return 'mobile';
+        if (width < 1025) return 'tablet';
+        return 'desktop';
+    }
+
+    /**
+     * Get number of columns for current device
+     * @param {jQuery} $grid - The grid element
+     * @returns {number} Number of columns
+     */
+    function getColumns($grid) {
+        var device = getCurrentDevice();
+        var columns;
+
+        switch(device) {
+            case 'mobile':
+                columns = $grid.data('columns-mobile') || 1;
+                break;
+            case 'tablet':
+                columns = $grid.data('columns-tablet') || 2;
+                break;
+            default:
+                columns = $grid.data('columns') || 4;
+        }
+
+        return parseInt(columns);
+    }
+
     function getGutterValue($grid) {
-        var size = parseFloat($grid.data('gutter-size'));
-        var unit = $grid.data('gutter-unit');
+        var device = getCurrentDevice();
+        var size, unit;
+
+        // Get responsive gutter values based on device
+        switch(device) {
+            case 'mobile':
+                size = parseFloat($grid.data('gutter-mobile'));
+                unit = 'px';
+                break;
+            case 'tablet':
+                size = parseFloat($grid.data('gutter-tablet'));
+                unit = 'px';
+                break;
+            default:
+                size = parseFloat($grid.data('gutter-size'));
+                unit = $grid.data('gutter-unit') || 'px';
+        }
 
         // Try to read from CSS variable first (for Elementor editor live updates)
         var $wrapper = $grid.closest('.bw-wallpost');
@@ -327,14 +376,28 @@
     });
 
     var resizeTimeout;
+    var lastDevice = getCurrentDevice();
+
     $(window).on('resize', function () {
         clearTimeout(resizeTimeout);
         resizeTimeout = setTimeout(function() {
+            var currentDevice = getCurrentDevice();
+            var deviceChanged = currentDevice !== lastDevice;
+
             $('.bw-wallpost-grid.bw-wallpost-initialized').each(function () {
                 var $grid = $(this);
-                layoutGrid($grid);
+
+                // If device breakpoint changed, force full reinit
+                if (deviceChanged) {
+                    layoutGrid($grid, true);
+                } else {
+                    layoutGrid($grid, false);
+                }
+
                 updateGridHeight($grid);
             });
+
+            lastDevice = currentDevice;
         }, 150);
     });
 
@@ -367,13 +430,19 @@
                 if (mutation.type === 'attributes') {
                     if (
                         mutation.attributeName === 'data-gutter-size' ||
-                        mutation.attributeName === 'data-gutter-unit'
+                        mutation.attributeName === 'data-gutter-unit' ||
+                        mutation.attributeName === 'data-gutter-tablet' ||
+                        mutation.attributeName === 'data-gutter-mobile'
                     ) {
                         shouldRelayout = true;
                         shouldForceReinit = true;
                     }
 
-                    if (mutation.attributeName === 'data-columns') {
+                    if (
+                        mutation.attributeName === 'data-columns' ||
+                        mutation.attributeName === 'data-columns-tablet' ||
+                        mutation.attributeName === 'data-columns-mobile'
+                    ) {
                         shouldRelayout = true;
                         shouldForceReinit = true;
                     }
@@ -404,7 +473,15 @@
             childList: true,
             subtree: false,
             attributes: true,
-            attributeFilter: ['data-gutter-size', 'data-gutter-unit', 'data-columns']
+            attributeFilter: [
+                'data-gutter-size',
+                'data-gutter-unit',
+                'data-gutter-tablet',
+                'data-gutter-mobile',
+                'data-columns',
+                'data-columns-tablet',
+                'data-columns-mobile'
+            ]
         });
 
         var wrapper = $grid.closest('.bw-wallpost');
@@ -544,10 +621,10 @@
                         clearTimeout(this.layoutTimeout);
                     }
 
-                    // IMPROVEMENT: Detect more control types including new order_by
+                    // IMPROVEMENT: Detect more control types including new order_by and responsive controls
                     var isPostsChange = settingKey && settingKey.indexOf('posts_per_page') !== -1;
                     var isColumnsChange = settingKey && settingKey.indexOf('columns') !== -1;
-                    var isGapChange = settingKey && settingKey.indexOf('column_gap') !== -1;
+                    var isGapChange = settingKey && settingKey.indexOf('gap') !== -1;
                     var isOrderChange = settingKey && (settingKey.indexOf('order_by') !== -1 || settingKey.indexOf('order') !== -1);
 
                     var needsFullReinit = isPostsChange || isColumnsChange || isGapChange || isOrderChange;
@@ -558,7 +635,9 @@
                             settingKey: settingKey,
                             needsFullReinit: needsFullReinit,
                             isPostsChange: isPostsChange,
-                            isOrderChange: isOrderChange
+                            isOrderChange: isOrderChange,
+                            isColumnsChange: isColumnsChange,
+                            isGapChange: isGapChange
                         });
                     }
 
@@ -574,27 +653,54 @@
                     if (isGapChange || isColumnsChange) {
                         var settings = this.getElementSettings();
 
-                        if (isGapChange && settings.column_gap) {
-                            var gapSize = settings.column_gap.size || 24;
-                            var gapUnit = settings.column_gap.unit || 'px';
+                        if (isGapChange) {
+                            // Desktop gap
+                            if (settings.gap) {
+                                var gapSize = settings.gap.size || 15;
+                                var gapUnit = settings.gap.unit || 'px';
+                                $grid.attr('data-gutter-size', gapSize);
+                                $grid.attr('data-gutter-unit', gapUnit);
 
-                            $grid.attr('data-gutter-size', gapSize);
-                            $grid.attr('data-gutter-unit', gapUnit);
+                                // Update CSS variable immediately
+                                var $wrapper = this.$element.find('.bw-wallpost');
+                                if ($wrapper.length) {
+                                    $wrapper[0].style.setProperty('--bw-wallpost-gap', gapSize + gapUnit);
+                                }
+                            }
 
-                            // Update CSS variable immediately
-                            var $wrapper = this.$element.find('.bw-wallpost');
-                            if ($wrapper.length) {
-                                $wrapper[0].style.setProperty('--bw-wallpost-gap', gapSize + gapUnit);
+                            // Tablet gap
+                            if (settings.gap_tablet) {
+                                var gapTabletSize = settings.gap_tablet.size || 10;
+                                $grid.attr('data-gutter-tablet', gapTabletSize);
+                            }
+
+                            // Mobile gap
+                            if (settings.gap_mobile) {
+                                var gapMobileSize = settings.gap_mobile.size || 10;
+                                $grid.attr('data-gutter-mobile', gapMobileSize);
                             }
                         }
 
-                        if (isColumnsChange && settings.columns) {
-                            $grid.attr('data-columns', settings.columns);
+                        if (isColumnsChange) {
+                            // Desktop columns
+                            if (settings.columns) {
+                                $grid.attr('data-columns', settings.columns);
 
-                            // Update CSS variable for columns immediately
-                            var $wrapper = this.$element.find('.bw-wallpost');
-                            if ($wrapper.length) {
-                                $wrapper[0].style.setProperty('--bw-wallpost-columns', settings.columns);
+                                // Update CSS variable for columns immediately
+                                var $wrapper = this.$element.find('.bw-wallpost');
+                                if ($wrapper.length) {
+                                    $wrapper[0].style.setProperty('--bw-wallpost-columns', settings.columns);
+                                }
+                            }
+
+                            // Tablet columns
+                            if (settings.columns_tablet) {
+                                $grid.attr('data-columns-tablet', settings.columns_tablet);
+                            }
+
+                            // Mobile columns
+                            if (settings.columns_mobile) {
+                                $grid.attr('data-columns-mobile', settings.columns_mobile);
                             }
                         }
                     }
