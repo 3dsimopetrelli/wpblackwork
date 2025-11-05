@@ -89,6 +89,32 @@ class BW_WallPost_Widget extends Widget_Base {
             'description' => __( 'Inserisci gli ID separati da virgola.', 'bw-elementor-widgets' ),
         ] );
 
+        $this->add_control( 'order_by', [
+            'label'   => __( 'Ordina per', 'bw-elementor-widgets' ),
+            'type'    => Controls_Manager::SELECT,
+            'default' => 'date',
+            'options' => [
+                'date'     => __( 'Data pubblicazione', 'bw-elementor-widgets' ),
+                'modified' => __( 'Data modifica', 'bw-elementor-widgets' ),
+                'title'    => __( 'Titolo', 'bw-elementor-widgets' ),
+                'rand'     => __( 'Casuale', 'bw-elementor-widgets' ),
+                'ID'       => __( 'ID', 'bw-elementor-widgets' ),
+            ],
+        ] );
+
+        $this->add_control( 'order', [
+            'label'     => __( 'Direzione ordinamento', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::SELECT,
+            'default'   => 'DESC',
+            'options'   => [
+                'ASC'  => __( 'Crescente (A → Z, 1 → 9, vecchio → nuovo)', 'bw-elementor-widgets' ),
+                'DESC' => __( 'Decrescente (Z → A, 9 → 1, nuovo → vecchio)', 'bw-elementor-widgets' ),
+            ],
+            'condition' => [
+                'order_by!' => 'rand', // Nascondi quando ordinamento è casuale
+            ],
+        ] );
+
         $this->end_controls_section();
     }
 
@@ -578,10 +604,32 @@ class BW_WallPost_Widget extends Widget_Base {
         $parent_category = isset( $settings['parent_category'] ) ? absint( $settings['parent_category'] ) : 0;
         $subcategories   = isset( $settings['subcategory'] ) ? array_filter( array_map( 'absint', (array) $settings['subcategory'] ) ) : [];
 
+        // Get ordering settings
+        $order_by = isset( $settings['order_by'] ) ? sanitize_key( $settings['order_by'] ) : 'date';
+        $order    = isset( $settings['order'] ) ? strtoupper( sanitize_key( $settings['order'] ) ) : 'DESC';
+
+        // Validate order_by
+        $valid_order_by = [ 'date', 'modified', 'title', 'rand', 'ID' ];
+        if ( ! in_array( $order_by, $valid_order_by, true ) ) {
+            $order_by = 'date';
+        }
+
+        // Validate order
+        if ( ! in_array( $order, [ 'ASC', 'DESC' ], true ) ) {
+            $order = 'DESC';
+        }
+
+        // For random order, ignore ASC/DESC
+        if ( 'rand' === $order_by ) {
+            $order = 'ASC'; // Doesn't matter for rand, but WP_Query expects it
+        }
+
         $query_args = [
             'post_type'      => $post_type,
             'posts_per_page' => $posts_per_page > 0 ? $posts_per_page : -1,
             'post_status'    => 'publish',
+            'orderby'        => $order_by,
+            'order'          => $order,
         ];
 
         if ( ! empty( $include_ids ) ) {

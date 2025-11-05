@@ -423,17 +423,38 @@
 
     /**
      * Waits for the grid to be ready with all items loaded before proceeding
-     * Uses intelligent polling to detect when Elementor has finished re-rendering
+     * IMPROVED: Uses intelligent polling + MutationObserver to detect when Elementor has finished re-rendering
      *
      * @param {jQuery} $element - The widget element
      * @param {Function} callback - Called when grid is ready
      * @param {number} maxAttempts - Maximum polling attempts
      */
     function waitForGridReady($element, callback, maxAttempts) {
-        maxAttempts = maxAttempts || 20; // 20 attempts = 2 seconds max
+        maxAttempts = maxAttempts || 30; // 30 attempts = 3 seconds max
         var attempts = 0;
         var lastItemCount = -1;
         var stableCount = 0;
+        var mutationDetected = false;
+
+        // IMPROVEMENT 1: Use MutationObserver to detect DOM changes
+        var observer = null;
+        if (typeof window.MutationObserver !== 'undefined' && $element[0]) {
+            observer = new window.MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    // Detect if Elementor is modifying the widget content
+                    if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                        mutationDetected = true;
+                        // Reset stability counter when DOM changes
+                        stableCount = 0;
+                    }
+                });
+            });
+
+            observer.observe($element[0], {
+                childList: true,
+                subtree: true
+            });
+        }
 
         var pollInterval = setInterval(function() {
             attempts++;
@@ -443,6 +464,7 @@
             // Check if grid exists and is in DOM
             if (!$currentGrid.length || !$.contains(document.documentElement, $currentGrid[0])) {
                 if (attempts >= maxAttempts) {
+                    if (observer) observer.disconnect();
                     clearInterval(pollInterval);
                     return;
                 }
@@ -452,12 +474,15 @@
             var $items = $currentGrid.find('.bw-wallpost-item');
             var currentItemCount = $items.length;
 
-            // Check if item count is stable (hasn't changed in 2 consecutive checks)
-            if (currentItemCount === lastItemCount && currentItemCount > 0) {
+            // IMPROVEMENT 2: Only consider stable if mutations have stopped AND count is stable
+            var isCountStable = currentItemCount === lastItemCount && currentItemCount > 0;
+
+            if (isCountStable) {
                 stableCount++;
 
-                // If count is stable for 2 checks, consider it ready
-                if (stableCount >= 2) {
+                // IMPROVEMENT 3: Require 3 stable checks (300ms) to ensure Elementor finished
+                if (stableCount >= 3 && !mutationDetected) {
+                    if (observer) observer.disconnect();
                     clearInterval(pollInterval);
                     callback($currentGrid, $items);
                     return;
@@ -466,10 +491,13 @@
                 stableCount = 0;
             }
 
+            // Reset mutation flag after checking
+            mutationDetected = false;
             lastItemCount = currentItemCount;
 
             // Timeout after max attempts
             if (attempts >= maxAttempts) {
+                if (observer) observer.disconnect();
                 clearInterval(pollInterval);
                 // Even if not perfectly stable, proceed if we have items
                 if (currentItemCount > 0 && $currentGrid.length) {
@@ -516,12 +544,23 @@
                         clearTimeout(this.layoutTimeout);
                     }
 
-                    // Determine the type of change
+                    // IMPROVEMENT: Detect more control types including new order_by
                     var isPostsChange = settingKey && settingKey.indexOf('posts_per_page') !== -1;
                     var isColumnsChange = settingKey && settingKey.indexOf('columns') !== -1;
                     var isGapChange = settingKey && settingKey.indexOf('column_gap') !== -1;
+                    var isOrderChange = settingKey && (settingKey.indexOf('order_by') !== -1 || settingKey.indexOf('order') !== -1);
 
-                    var needsFullReinit = isPostsChange || isColumnsChange || isGapChange;
+                    var needsFullReinit = isPostsChange || isColumnsChange || isGapChange || isOrderChange;
+
+                    // Console log for debugging (can be removed later)
+                    if (typeof console !== 'undefined' && console.log) {
+                        console.log('BW WallPost: onElementChange triggered', {
+                            settingKey: settingKey,
+                            needsFullReinit: needsFullReinit,
+                            isPostsChange: isPostsChange,
+                            isOrderChange: isOrderChange
+                        });
+                    }
 
                     // Show loading overlay for visual feedback
                     if (needsFullReinit) {
@@ -567,9 +606,11 @@
                     }
 
                     /**
-                     * IMPROVED: Instead of fixed delays, use intelligent polling
-                     * to wait for Elementor to finish re-rendering the widget
+                     * IMPROVED: Wait longer for posts/order changes as they trigger Ajax
                      */
+                    var initialDelay = isPostsChange || isOrderChange ? 400 : 150;
+                    var maxAttempts = isPostsChange || isOrderChange ? 35 : 25;
+
                     this.layoutTimeout = setTimeout(function () {
                         if (needsFullReinit) {
                             // Use polling to wait for grid to be ready with all items loaded
@@ -586,6 +627,14 @@
                                 // Force browser reflow to ensure clean state
                                 void $readyGrid[0].offsetHeight;
 
+                                // Console log for debugging
+                                if (typeof console !== 'undefined' && console.log) {
+                                    console.log('BW WallPost: Reinitializing grid', {
+                                        items: $items.length,
+                                        columns: $readyGrid.attr('data-columns')
+                                    });
+                                }
+
                                 // Now reinitialize with fresh DOM
                                 initGrid($readyGrid);
 
@@ -595,33 +644,30 @@
                                     if ($wrapper.length) {
                                         $wrapper.removeClass('bw-wallpost--loading');
                                     }
-                                }, 300);
-
-                                // Additional layout passes to handle image loading
-                                // These ensure masonry properly positions items as images load
-                                setTimeout(function() {
-                                    var instance = $readyGrid.data('masonry');
-                                    if (instance && typeof instance.reloadItems === 'function') {
-                                        instance.reloadItems();
-                                    }
-                                    if (instance && typeof instance.layout === 'function') {
-                                        instance.layout();
-                                        updateGridHeight($readyGrid);
-                                    }
                                 }, 400);
 
-                                // Final pass for any slow-loading images
+                                // IMPROVEMENT: More aggressive layout passes
+                                var layoutPasses = [200, 400, 700, 1000];
+                                layoutPasses.forEach(function(delay) {
+                                    setTimeout(function() {
+                                        var instance = $readyGrid.data('masonry');
+                                        if (instance && typeof instance.reloadItems === 'function') {
+                                            instance.reloadItems();
+                                        }
+                                        if (instance && typeof instance.layout === 'function') {
+                                            instance.layout();
+                                            updateGridHeight($readyGrid);
+                                        }
+                                    }, delay);
+                                });
+
+                                // Console log when complete
                                 setTimeout(function() {
-                                    var instance = $readyGrid.data('masonry');
-                                    if (instance && typeof instance.reloadItems === 'function') {
-                                        instance.reloadItems();
+                                    if (typeof console !== 'undefined' && console.log) {
+                                        console.log('BW WallPost: Layout complete');
                                     }
-                                    if (instance && typeof instance.layout === 'function') {
-                                        instance.layout();
-                                        updateGridHeight($readyGrid);
-                                    }
-                                }, 800);
-                            }, isPostsChange ? 30 : 20); // More attempts for posts changes
+                                }, 1100);
+                            }, maxAttempts);
                         } else {
                             // For minor changes: just update layout
                             var $currentGrid = self.$element.find('.bw-wallpost-grid');
@@ -637,7 +683,7 @@
                                 }, 200);
                             }
                         }
-                    }, isPostsChange ? 300 : 100); // Initial delay before starting polling
+                    }, initialDelay);
                 },
 
                 onDestroy: function () {
