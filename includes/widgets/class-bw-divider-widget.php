@@ -146,6 +146,16 @@ class Widget_Bw_Divider extends Widget_Base {
             ],
         ] );
 
+        $this->add_control( 'swap_icons', [
+            'label' => __( 'Swap Icons Position', 'bw-elementor-widgets' ),
+            'type' => Controls_Manager::SWITCHER,
+            'label_on' => __( 'Yes', 'bw-elementor-widgets' ),
+            'label_off' => __( 'No', 'bw-elementor-widgets' ),
+            'return_value' => 'yes',
+            'default' => '',
+            'description' => __( 'Swap the position of left and right icons', 'bw-elementor-widgets' ),
+        ] );
+
         $this->end_controls_section();
     }
 
@@ -159,6 +169,13 @@ class Widget_Bw_Divider extends Widget_Base {
         $right = ! empty( $settings['right_svg']['url'] )
             ? $settings['right_svg']['url']
             : BW_MEW_URL . 'assets/img/img-divider-2.svg';
+
+        // Swap icons if the swap_icons setting is enabled
+        if ( 'yes' === $settings['swap_icons'] ) {
+            $temp  = $left;
+            $left  = $right;
+            $right = $temp;
+        }
 
         $this->add_render_attribute( 'divider', 'class', 'bw-divider' );
 
