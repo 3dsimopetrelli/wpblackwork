@@ -95,7 +95,7 @@ class BW_About_Menu_Widget extends Widget_Base {
                 ],
                 'default'      => 'center',
                 'selectors'    => [
-                    '{{WRAPPER}} .bw-about-menu'       => 'justify-content: {{VALUE}};',
+                    '{{WRAPPER}}'                      => 'display: flex; justify-content: {{VALUE}};',
                     '{{WRAPPER}} .bw-about-menu__list' => 'justify-content: {{VALUE}};',
                 ],
                 'toggle'       => true,

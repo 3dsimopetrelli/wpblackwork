@@ -57,25 +57,6 @@
 
         const updateMenuWidth = (callback) => {
             window.requestAnimationFrame(() => {
-                const listWidth = Math.ceil(list.scrollWidth);
-
-                if (!listWidth) {
-                    menu.style.removeProperty('--bw-about-menu-width');
-                    if (typeof callback === 'function') {
-                        callback();
-                    }
-                    return;
-                }
-
-                const menuStyles = window.getComputedStyle(menu);
-                const paddingLeft = parseSize(menuStyles.paddingLeft);
-                const paddingRight = parseSize(menuStyles.paddingRight);
-                const borderLeft = parseSize(menuStyles.borderLeftWidth);
-                const borderRight = parseSize(menuStyles.borderRightWidth);
-                const totalWidth = listWidth + paddingLeft + paddingRight + borderLeft + borderRight;
-
-                menu.style.setProperty('--bw-about-menu-width', `${totalWidth}px`);
-
                 if (typeof callback === 'function') {
                     callback();
                 }
@@ -245,7 +226,6 @@
             }
             window.removeEventListener('resize', handleResize);
             menu.style.removeProperty('--spotlight-x');
-            menu.style.removeProperty('--bw-about-menu-width');
         }, { once: true });
     };
 

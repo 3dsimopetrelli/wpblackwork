@@ -1,17 +1,15 @@
 .bw-about-menu {
     position: relative;
     z-index: 0;
-    display: flex;
-    justify-content: center;
+    display: inline-flex;
     align-items: center;
     padding: 8px 16px;
     border: 1px solid var(--border-color, #080808);
     border-radius: var(--border-radius, 999px);
     background: var(--menu-bg, transparent);
     overflow: hidden;
-    width: min(var(--bw-about-menu-width, max-content), 100%);
+    width: max-content;
     max-width: 100%;
-    margin-inline: auto;
     transition: border-color 0.3s ease, background-color 0.3s ease;
     --spotlight-x: 0px;
     --spotlight-size: 120px;
