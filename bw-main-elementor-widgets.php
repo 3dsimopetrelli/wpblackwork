@@ -275,6 +275,11 @@ function bw_enqueue_about_menu_widget_assets() {
 }
 
 function bw_enqueue_smart_header_assets() {
+    // Non caricare nell'admin di WordPress
+    if ( is_admin() ) {
+        return;
+    }
+
     // Non caricare nell'editor di Elementor
     if ( defined( 'ELEMENTOR_VERSION' ) && \Elementor\Plugin::$instance->preview->is_preview_mode() ) {
         return;
@@ -282,7 +287,7 @@ function bw_enqueue_smart_header_assets() {
 
     // Registra e carica CSS
     $css_file = __DIR__ . '/assets/css/bw-smart-header.css';
-    $css_version = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
+    $css_version = file_exists( $css_file ) ? filemtime( $css_file ) : '2.0.0';
 
     wp_enqueue_style(
         'bw-smart-header-style',
@@ -293,14 +298,29 @@ function bw_enqueue_smart_header_assets() {
 
     // Registra e carica JavaScript
     $js_file = __DIR__ . '/assets/js/bw-smart-header.js';
-    $js_version = file_exists( $js_file ) ? filemtime( $js_file ) : '1.0.0';
+    $js_version = file_exists( $js_file ) ? filemtime( $js_file ) : '2.0.0';
 
     wp_enqueue_script(
         'bw-smart-header-script',
         plugin_dir_url( __FILE__ ) . 'assets/js/bw-smart-header.js',
         [ 'jquery' ],
         $js_version,
-        true
+        true // Carica nel footer
+    );
+
+    // Passa configurazione al JavaScript tramite wp_localize_script
+    wp_localize_script(
+        'bw-smart-header-script',
+        'bwSmartHeaderConfig',
+        [
+            'scrollDownThreshold' => 100,  // Pixel prima di nascondere header (scroll giù)
+            'scrollUpThreshold'   => 0,    // IMMEDIATO (anche 1px verso l'alto)
+            'scrollDelta'         => 1,    // Sensibilità rilevamento scroll
+            'blurThreshold'       => 50,   // Pixel prima di attivare blur
+            'throttleDelay'       => 16,   // ~60fps
+            'headerSelector'      => '.smart-header',
+            'debug'               => false // Imposta true per debug in console
+        ]
     );
 }
 

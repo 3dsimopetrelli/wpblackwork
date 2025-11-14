@@ -1,9 +1,32 @@
 /**
  * ============================================================================
- * SMART HEADER - CSS
- * Sistema intelligente per header Elementor con scroll detection
+ * SMART HEADER - SCROLL ANIMATION SYSTEM
+ * Sistema intelligente per header Elementor con animazioni fluide
  * ============================================================================
  */
+
+/* ============================================================================
+   KEYFRAME ANIMATIONS
+   ============================================================================ */
+
+/**
+ * Animazione slideDown - Usata quando l'header riappare scrollando verso l'alto
+ * L'header scivola verso il basso con fade in
+ */
+@keyframes slideDown {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* ============================================================================
+   BASE STYLES
+   ============================================================================ */
 
 /**
  * Stile base per l'header smart
@@ -20,11 +43,8 @@
     /* Z-index alto per stare sopra tutto */
     z-index: 9999 !important;
 
-    /* Background iniziale semi-trasparente */
-    background-color: rgba(255, 255, 255, 0.95) !important;
-
-    /* Transizione smooth per tutte le proprietà */
-    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    /* Transizione smooth per il nascondimento */
+    transition: transform 0.4s ease-in-out,
                 background-color 0.3s ease,
                 backdrop-filter 0.3s ease,
                 box-shadow 0.3s ease !important;
@@ -33,59 +53,72 @@
     will-change: transform;
     transform: translateZ(0);
     backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
 
     /* Assicura che il contenuto sia sopra il blur */
     isolation: isolate;
 }
 
+/* ============================================================================
+   STATI VISIBILITÀ
+   ============================================================================ */
+
 /**
  * Stato nascosto - Header scivola verso l'alto
- * Applicato quando l'utente scrolla giù
+ * Applicato quando l'utente scrolla giù oltre 100px
  */
-.smart-header.hide {
+.smart-header.hidden {
     transform: translateY(-100%) !important;
 }
 
 /**
- * Stato visibile - Header in posizione normale
- * Applicato quando l'utente scrolla su
+ * Stato visibile - Header riappare con animazione slideDown
+ * Applicato quando l'utente scrolla su (anche solo 1px)
  */
-.smart-header.show {
+.smart-header.visible {
     transform: translateY(0) !important;
+    animation: slideDown 0.3s ease-out;
 }
 
+/* ============================================================================
+   BLUR EFFECT
+   ============================================================================ */
+
 /**
- * Stato scrollato - Effetto blur e shadow
- * Applicato dopo 50px di scroll
+ * Stato scrollato - Effetto blur attivo dopo 50px di scroll
+ * Applicato quando menu è visibile dopo scroll
  */
 .smart-header.scrolled {
-    /* Background più trasparente per vedere il blur */
-    background-color: rgba(255, 255, 255, 0.85) !important;
+    /* Background con variabile CSS --gray o fallback */
+    background-color: hsl(var(--gray, 0 0% 20%) / 60%) !important;
 
     /* Effetto blur del contenuto sottostante */
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px); /* Safari */
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px) !important;
 
     /* Box shadow sottile ed elegante */
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08) !important;
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1) !important;
 }
 
 /**
  * Fallback per browser che non supportano backdrop-filter
- * Principalmente Safari vecchi e alcuni browser mobile
  */
-@supports not (backdrop-filter: blur(12px)) {
+@supports not (backdrop-filter: blur(20px)) {
     .smart-header.scrolled {
-        background-color: rgba(255, 255, 255, 0.98) !important;
+        background-color: hsl(var(--gray, 0 0% 20%) / 85%) !important;
     }
 }
+
+/* ============================================================================
+   BODY COMPENSATION
+   ============================================================================ */
 
 /**
  * Padding del body per compensare l'header fisso
  * NON applicato nell'editor di Elementor
  */
 body:not(.elementor-editor-active) {
-    padding-top: var(--smart-header-height, 100px);
+    padding-top: 100px;
 }
 
 /**
@@ -97,29 +130,36 @@ body.elementor-editor-active {
 }
 
 /**
- * Previeni sovrapposizione nell'editor
+ * Previeni sovrapposizione e animazioni nell'editor
  */
 .elementor-editor-active .smart-header {
     position: relative !important;
     transform: none !important;
+    animation: none !important;
 }
 
 /* ============================================================================
-   VARIANTE DARK THEME (OPZIONALE)
+   PERFORMANCE OPTIMIZATIONS
    ============================================================================ */
 
-.smart-header.dark-theme {
-    background-color: rgba(0, 0, 0, 0.85) !important;
+/**
+ * GPU Acceleration - Cross browser
+ */
+.smart-header {
+    -webkit-transform: translateZ(0);
+    -moz-transform: translateZ(0);
+    -ms-transform: translateZ(0);
+    -o-transform: translateZ(0);
 }
 
-.smart-header.dark-theme.scrolled {
-    background-color: rgba(0, 0, 0, 0.9) !important;
-    box-shadow: 0 4px 30px rgba(255, 255, 255, 0.08) !important;
-}
-
-@supports not (backdrop-filter: blur(12px)) {
-    .smart-header.dark-theme.scrolled {
-        background-color: rgba(0, 0, 0, 0.95) !important;
+/**
+ * Riduce le animazioni per utenti con preferenze di riduzione movimento
+ * Accessibilità - rispetta le preferenze del sistema operativo
+ */
+@media (prefers-reduced-motion: reduce) {
+    .smart-header {
+        transition: none !important;
+        animation: none !important;
     }
 }
 
@@ -127,13 +167,21 @@ body.elementor-editor-active {
    RESPONSIVE - MOBILE
    ============================================================================ */
 
+/**
+ * Ottimizzazioni per dispositivi mobili
+ */
 @media (max-width: 768px) {
     .smart-header {
         /* Transizione leggermente più veloce su mobile */
-        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        transition: transform 0.3s ease-in-out,
                     background-color 0.3s ease,
                     backdrop-filter 0.3s ease,
                     box-shadow 0.3s ease !important;
+    }
+
+    .smart-header.visible {
+        /* Animazione più rapida su mobile */
+        animation: slideDown 0.25s ease-out;
     }
 }
 
@@ -149,24 +197,22 @@ body.elementor-editor-active {
 }
 
 /* ============================================================================
-   PERFORMANCE E ACCESSIBILITÀ
+   VARIANTE DARK THEME (OPZIONALE)
    ============================================================================ */
 
-/**
- * Riduce le animazioni per utenti con preferenze di riduzione movimento
- */
-@media (prefers-reduced-motion: reduce) {
-    .smart-header {
-        transition: none !important;
-    }
+.smart-header.dark-theme {
+    background-color: rgba(0, 0, 0, 0.85) !important;
 }
 
-/**
- * Assicura compatibilità cross-browser
- */
-.smart-header {
-    -webkit-transform: translateZ(0);
-    -moz-transform: translateZ(0);
-    -ms-transform: translateZ(0);
-    -o-transform: translateZ(0);
+.smart-header.dark-theme.scrolled {
+    background-color: hsl(0 0% 10% / 60%) !important;
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px) !important;
+    box-shadow: 0 2px 20px rgba(255, 255, 255, 0.08) !important;
+}
+
+@supports not (backdrop-filter: blur(20px)) {
+    .smart-header.dark-theme.scrolled {
+        background-color: rgba(0, 0, 0, 0.95) !important;
+    }
 }
