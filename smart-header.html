@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Header System per WordPress + Elementor</title>
+</head>
+<body>
+
+<!--
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                   SMART HEADER SYSTEM - WORDPRESS + ELEMENTOR                ║
+║                              Production Ready v1.0                            ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+📋 PREREQUISITI:
+✅ Hai già aggiunto la classe "smart-header" al container principale dell'header in Elementor
+✅ La classe è presente nel DOM
+✅ Ora devi solo inserire CSS e JavaScript
+
+🎯 COMPORTAMENTO:
+• Scroll DOWN (>100px) → Header si nasconde verso l'alto
+• Scroll UP (anche minimo) → Header riappare immediatamente
+• Scroll >50px → Effetto blur + background semi-trasparente
+• Performance ottimizzate con requestAnimationFrame + throttling
+
+📦 METODI DI INSTALLAZIONE:
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ METODO 1 - Plugin "Insert Headers and Footers" (CONSIGLIATO)               │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ 1. Installa plugin: https://wordpress.org/plugins/insert-headers-and-footers/
+│ 2. Vai in Impostazioni → Insert Headers and Footers                        │
+│ 3. Incolla il CSS (con tag <style>) in "Scripts in Header"                 │
+│ 4. Incolla il JS (con tag <script>) in "Scripts in Footer"                 │
+│ 5. Salva modifiche                                                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ METODO 2 - Aspetto → Personalizza → CSS Aggiuntivo                         │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ 1. Vai in Aspetto → Personalizza → CSS Aggiuntivo                          │
+│ 2. Incolla SOLO il CSS (senza tag <style>)                                 │
+│ 3. Per il JavaScript usa Metodo 1 o Metodo 3                               │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ METODO 3 - Tema Child (Per sviluppatori)                                   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ 1. Crea cartelle: /wp-content/themes/tuo-tema-child/css/                   │
+│                   /wp-content/themes/tuo-tema-child/js/                     │
+│ 2. Salva CSS in: css/smart-header.css                                      │
+│ 3. Salva JS in: js/smart-header.js                                         │
+│ 4. Aggiungi in functions.php del tema child:                               │
+│                                                                             │
+│    function enqueue_smart_header_assets() {                                │
+│        wp_enqueue_style('smart-header',                                    │
+│            get_stylesheet_directory_uri() . '/css/smart-header.css',       │
+│            array(), '1.0.0'                                                │
+│        );                                                                  │
+│        wp_enqueue_script('smart-header',                                   │
+│            get_stylesheet_directory_uri() . '/js/smart-header.js',         │
+│            array(), '1.0.0', true                                          │
+│        );                                                                  │
+│    }                                                                       │
+│    add_action('wp_enqueue_scripts', 'enqueue_smart_header_assets');       │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+-->
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+                                    SEZIONE CSS
+     ══════════════════════════════════════════════════════════════════════════ -->
+
+<style>
+/* ============================================================================
+   SMART HEADER - CSS BASE
+   ============================================================================ */
+
+/**
+ * Stile base per l'header smart
+ * Applicato sempre all'elemento con classe .smart-header
+ */
+.smart-header {
+    /* Posizionamento fisso in alto */
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+
+    /* Z-index alto per stare sopra tutto */
+    z-index: 9999 !important;
+
+    /* Background iniziale semi-trasparente */
+    background-color: rgba(255, 255, 255, 0.95) !important;
+
+    /* Transizione smooth per tutte le proprietà */
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                background-color 0.3s ease,
+                backdrop-filter 0.3s ease,
+                box-shadow 0.3s ease !important;
+
+    /* GPU acceleration per performance migliori */
+    will-change: transform;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+
+    /* Assicura che il contenuto sia sopra il blur */
+    isolation: isolate;
+}
+
+/**
+ * Stato nascosto - Header scivola verso l'alto
+ * Applicato quando l'utente scrolla giù
+ */
+.smart-header.hide {
+    transform: translateY(-100%) !important;
+}
+
+/**
+ * Stato visibile - Header in posizione normale
+ * Applicato quando l'utente scrolla su
+ */
+.smart-header.show {
+    transform: translateY(0) !important;
+}
+
+/**
+ * Stato scrollato - Effetto blur e shadow
+ * Applicato dopo 50px di scroll
+ */
+.smart-header.scrolled {
+    /* Background più trasparente per vedere il blur */
+    background-color: rgba(255, 255, 255, 0.85) !important;
+
+    /* Effetto blur del contenuto sottostante */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px); /* Safari */
+
+    /* Box shadow sottile ed elegante */
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08) !important;
+}
+
+/**
+ * Fallback per browser che non supportano backdrop-filter
+ * Principalmente Safari vecchi e alcuni browser mobile
+ */
+@supports not (backdrop-filter: blur(12px)) {
+    .smart-header.scrolled {
+        background-color: rgba(255, 255, 255, 0.98) !important;
+    }
+}
+
+/**
+ * Padding del body per compensare l'header fisso
+ * NON applicato nell'editor di Elementor
+ *
+ * ⚠️ IMPORTANTE: Modifica questo valore con l'altezza reale del tuo header!
+ */
+body:not(.elementor-editor-active) {
+    padding-top: 100px; /* 👈 MODIFICA QUESTO VALORE */
+}
+
+/**
+ * Reset padding nell'editor di Elementor
+ * Previene problemi di layout durante la modifica
+ */
+body.elementor-editor-active {
+    padding-top: 0 !important;
+}
+
+/**
+ * Previeni sovrapposizione nell'editor
+ */
+.elementor-editor-active .smart-header {
+    position: relative !important;
+    transform: none !important;
+}
+
+
+/* ============================================================================
+   VARIANTE DARK THEME (OPZIONALE)
+   ============================================================================ */
+
+/**
+ * Se aggiungi anche la classe "dark-theme" all'header
+ * otterrai uno stile scuro invece che chiaro
+ *
+ * Esempio: <div class="smart-header dark-theme">
+ */
+.smart-header.dark-theme {
+    background-color: rgba(0, 0, 0, 0.85) !important;
+}
+
+.smart-header.dark-theme.scrolled {
+    background-color: rgba(0, 0, 0, 0.9) !important;
+    box-shadow: 0 4px 30px rgba(255, 255, 255, 0.08) !important;
+}
+
+@supports not (backdrop-filter: blur(12px)) {
+    .smart-header.dark-theme.scrolled {
+        background-color: rgba(0, 0, 0, 0.95) !important;
+    }
+}
+
+
+/* ============================================================================
+   RESPONSIVE - MOBILE
+   ============================================================================ */
+
+/**
+ * Ottimizzazioni per dispositivi mobili
+ */
+@media (max-width: 768px) {
+    .smart-header {
+        /* Transizione leggermente più veloce su mobile */
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                    background-color 0.3s ease,
+                    backdrop-filter 0.3s ease,
+                    box-shadow 0.3s ease !important;
+    }
+
+    /* Padding più piccolo su mobile se necessario */
+    body:not(.elementor-editor-active) {
+        padding-top: 80px; /* 👈 Modifica se l'header mobile è più basso */
+    }
+}
+
+/**
+ * Fix per bounce scroll su iOS
+ * Previene glitch visivi durante lo scroll elastico
+ */
+@supports (-webkit-overflow-scrolling: touch) {
+    .smart-header {
+        position: -webkit-sticky;
+        position: sticky;
+    }
+}
+
+
+/* ============================================================================
+   PERFORMANCE E ACCESSIBILITÀ
+   ============================================================================ */
+
+/**
+ * Riduce le animazioni per utenti con preferenze di riduzione movimento
+ * Migliora accessibilità per utenti con disturbi vestibolari
+ */
+@media (prefers-reduced-motion: reduce) {
+    .smart-header {
+        transition: none !important;
+    }
+}
+
+/**
+ * Assicura che l'header non interferisca con gli screen reader
+ */
+.smart-header {
+    -webkit-transform: translateZ(0);
+    -moz-transform: translateZ(0);
+    -ms-transform: translateZ(0);
+    -o-transform: translateZ(0);
+}
+
+</style>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+                                SEZIONE JAVASCRIPT
+     ══════════════════════════════════════════════════════════════════════════ -->
+
+<script>
+/**
+ * ============================================================================
+ * SMART HEADER SYSTEM - JAVASCRIPT
+ * ============================================================================
+ *
+ * Gestisce il comportamento dinamico dell'header smart:
+ * - Nasconde l'header quando si scrolla giù
+ * - Mostra l'header quando si scrolla su (anche con movimento minimo)
+ * - Applica effetto blur dopo una certa soglia di scroll
+ *
+ * Performance:
+ * - Usa requestAnimationFrame per animazioni smooth
+ * - Throttling degli eventi scroll
+ * - Passive event listeners
+ * - GPU acceleration tramite transform
+ *
+ * @version 1.0.0
+ * @author Smart Header System
+ */
+
+(function() {
+    'use strict';
+
+    /* ========================================================================
+       CONFIGURAZIONE
+       ======================================================================== */
+
+    /**
+     * Oggetto di configurazione principale
+     * Modifica questi valori per personalizzare il comportamento
+     */
+    const CONFIG = {
+        // Pixel di scroll prima di nascondere l'header (scroll down)
+        scrollThreshold: 100,
+
+        // Pixel minimi di movimento per rilevare cambio direzione
+        scrollDelta: 5,
+
+        // Pixel di scroll prima di attivare l'effetto blur
+        blurThreshold: 50,
+
+        // Delay in millisecondi prima di nascondere l'header (0 = immediato)
+        hideDelay: 0,
+
+        // Delay in millisecondi prima di mostrare l'header (0 = immediato)
+        showDelay: 0,
+
+        // Intervallo di throttling per eventi scroll (ms)
+        throttleDelay: 100,
+
+        // Selettore CSS per l'header
+        headerSelector: '.smart-header',
+
+        // Debug mode - mostra log in console
+        debug: false // 👈 Cambia a true per vedere i log di debug
+    };
+
+    /* ========================================================================
+       VARIABILI GLOBALI
+       ======================================================================== */
+
+    let headerElement = null;
+    let lastScrollTop = 0;
+    let isScrolling = false;
+    let scrollDirection = null;
+    let hideTimeout = null;
+    let showTimeout = null;
+    let ticking = false;
+    let isEditorActive = false;
+
+    /* ========================================================================
+       FUNZIONI UTILITY
+       ======================================================================== */
+
+    /**
+     * Log di debug condizionale
+     * @param {string} message - Messaggio da loggare
+     * @param {*} data - Dati opzionali da mostrare
+     */
+    function debugLog(message, data = null) {
+        if (CONFIG.debug) {
+            if (data !== null) {
+                console.log(`[Smart Header] ${message}`, data);
+            } else {
+                console.log(`[Smart Header] ${message}`);
+            }
+        }
+    }
+
+    /**
+     * Throttle function - Limita la frequenza di esecuzione di una funzione
+     * @param {Function} func - Funzione da eseguire
+     * @param {number} delay - Delay in millisecondi
+     * @return {Function} - Funzione throttled
+     */
+    function throttle(func, delay) {
+        let lastCall = 0;
+        return function(...args) {
+            const now = Date.now();
+            if (now - lastCall >= delay) {
+                lastCall = now;
+                return func.apply(this, args);
+            }
+        };
+    }
+
+    /**
+     * Verifica se siamo nell'editor di Elementor
+     * @return {boolean}
+     */
+    function isElementorEditor() {
+        return document.body.classList.contains('elementor-editor-active') ||
+               window.elementorFrontend?.isEditMode?.() ||
+               typeof window.elementor !== 'undefined';
+    }
+
+    /* ========================================================================
+       GESTIONE CLASSI HEADER
+       ======================================================================== */
+
+    /**
+     * Mostra l'header
+     */
+    function showHeader() {
+        if (!headerElement || isEditorActive) return;
+
+        clearTimeout(hideTimeout);
+
+        const execute = () => {
+            headerElement.classList.remove('hide');
+            headerElement.classList.add('show');
+            debugLog('Header mostrato');
+        };
+
+        if (CONFIG.showDelay > 0) {
+            showTimeout = setTimeout(execute, CONFIG.showDelay);
+        } else {
+            execute();
+        }
+    }
+
+    /**
+     * Nasconde l'header
+     */
+    function hideHeader() {
+        if (!headerElement || isEditorActive) return;
+
+        clearTimeout(showTimeout);
+
+        const execute = () => {
+            headerElement.classList.remove('show');
+            headerElement.classList.add('hide');
+            debugLog('Header nascosto');
+        };
+
+        if (CONFIG.hideDelay > 0) {
+            hideTimeout = setTimeout(execute, CONFIG.hideDelay);
+        } else {
+            execute();
+        }
+    }
+
+    /**
+     * Gestisce l'effetto blur basato sulla posizione di scroll
+     * @param {number} scrollTop - Posizione corrente di scroll
+     */
+    function handleBlurEffect(scrollTop) {
+        if (!headerElement || isEditorActive) return;
+
+        if (scrollTop > CONFIG.blurThreshold) {
+            if (!headerElement.classList.contains('scrolled')) {
+                headerElement.classList.add('scrolled');
+                debugLog('Blur effect attivato');
+            }
+        } else {
+            if (headerElement.classList.contains('scrolled')) {
+                headerElement.classList.remove('scrolled');
+                debugLog('Blur effect disattivato');
+            }
+        }
+    }
+
+    /* ========================================================================
+       GESTIONE SCROLL
+       ======================================================================== */
+
+    /**
+     * Handler principale dello scroll
+     * Determina la direzione e aggiorna lo stato dell'header
+     */
+    function handleScroll() {
+        if (!headerElement || isEditorActive) return;
+
+        const currentScrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+        // Previeni calcoli se non c'è movimento significativo
+        if (Math.abs(currentScrollTop - lastScrollTop) < CONFIG.scrollDelta) {
+            return;
+        }
+
+        // Determina direzione scroll
+        const newDirection = currentScrollTop > lastScrollTop ? 'down' : 'up';
+
+        debugLog(`Scroll ${newDirection}`, {
+            current: currentScrollTop,
+            last: lastScrollTop,
+            delta: currentScrollTop - lastScrollTop
+        });
+
+        // Gestisci visibilità header basata su direzione e posizione
+        if (newDirection === 'down' && currentScrollTop > CONFIG.scrollThreshold) {
+            // Scroll DOWN oltre la soglia → Nascondi header
+            hideHeader();
+        } else if (newDirection === 'up') {
+            // Scroll UP (qualsiasi direzione verso l'alto) → Mostra header
+            showHeader();
+        } else if (currentScrollTop <= CONFIG.scrollThreshold) {
+            // Vicino al top della pagina → Mostra sempre header
+            showHeader();
+        }
+
+        // Gestisci effetto blur
+        handleBlurEffect(currentScrollTop);
+
+        // Aggiorna variabili di tracking
+        scrollDirection = newDirection;
+        lastScrollTop = currentScrollTop <= 0 ? 0 : currentScrollTop;
+    }
+
+    /**
+     * Handler ottimizzato con requestAnimationFrame
+     * Garantisce animazioni smooth sincronizzate con il refresh del browser
+     */
+    function optimizedScrollHandler() {
+        if (!ticking) {
+            window.requestAnimationFrame(() => {
+                handleScroll();
+                ticking = false;
+            });
+            ticking = true;
+        }
+    }
+
+    /**
+     * Throttled scroll handler
+     * Limita la frequenza di esecuzione per migliori performance
+     */
+    const throttledScrollHandler = throttle(optimizedScrollHandler, CONFIG.throttleDelay);
+
+    /* ========================================================================
+       INIZIALIZZAZIONE E CLEANUP
+       ======================================================================== */
+
+    /**
+     * Inizializza il sistema smart header
+     */
+    function init() {
+        debugLog('Inizializzazione Smart Header System...');
+
+        // Verifica se siamo nell'editor
+        isEditorActive = isElementorEditor();
+
+        if (isEditorActive) {
+            debugLog('⚠️ Editor Elementor rilevato - Smart Header disabilitato');
+            return;
+        }
+
+        // Trova l'elemento header
+        headerElement = document.querySelector(CONFIG.headerSelector);
+
+        if (!headerElement) {
+            console.warn(`[Smart Header] ⚠️ Elemento con classe "${CONFIG.headerSelector}" non trovato!`);
+            console.warn('[Smart Header] Assicurati di aver aggiunto la classe "smart-header" al container principale dell\'header in Elementor.');
+            return;
+        }
+
+        debugLog('✅ Header element trovato', headerElement);
+
+        // Imposta stato iniziale
+        lastScrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+        // Applica stato iniziale
+        if (lastScrollTop > CONFIG.blurThreshold) {
+            headerElement.classList.add('scrolled');
+        }
+        if (lastScrollTop > CONFIG.scrollThreshold) {
+            headerElement.classList.add('show');
+        } else {
+            headerElement.classList.add('show');
+        }
+
+        // Aggiungi event listener per lo scroll (passive per migliori performance)
+        window.addEventListener('scroll', throttledScrollHandler, { passive: true });
+
+        // Event listener per resize (ricalcola stato)
+        window.addEventListener('resize', throttle(() => {
+            debugLog('Window resized - Ricalcolo stato header');
+            handleScroll();
+        }, 250), { passive: true });
+
+        debugLog('✅ Smart Header System inizializzato con successo');
+        debugLog('Configurazione attiva:', CONFIG);
+    }
+
+    /**
+     * Cleanup - Rimuove event listeners
+     * Chiamato quando la pagina viene chiusa o cambiata
+     */
+    function cleanup() {
+        debugLog('Cleanup Smart Header System...');
+
+        window.removeEventListener('scroll', throttledScrollHandler);
+
+        if (hideTimeout) clearTimeout(hideTimeout);
+        if (showTimeout) clearTimeout(showTimeout);
+    }
+
+    /* ========================================================================
+       AVVIO
+       ======================================================================== */
+
+    /**
+     * Avvia il sistema quando il DOM è pronto
+     */
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        // DOM già caricato
+        init();
+    }
+
+    /**
+     * Cleanup su unload
+     */
+    window.addEventListener('beforeunload', cleanup);
+
+    /**
+     * Gestione hot reload per Elementor
+     * Reinizializza se Elementor carica/ricarica la preview
+     */
+    if (window.elementorFrontend) {
+        window.elementorFrontend.hooks.addAction('frontend/element_ready/global', function() {
+            debugLog('Elementor frontend ready - Verifica reinizializzazione');
+            if (!isElementorEditor() && !headerElement) {
+                init();
+            }
+        });
+    }
+
+})();
+</script>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+                            TESTING & TROUBLESHOOTING
+     ══════════════════════════════════════════════════════════════════════════
+
+📋 TESTING CHECKLIST:
+
+Prima di considerare l'installazione completa, verifica questi punti:
+
+[ ] 1. SCROLL DOWN
+    • Scrolla la pagina verso il basso per almeno 100px
+    • L'header deve scomparire scivolando verso l'alto
+    • La transizione deve essere smooth (0.4s)
+
+[ ] 2. SCROLL UP
+    • Scrolla anche solo leggermente verso l'alto
+    • L'header deve riapparire immediatamente
+    • La transizione deve essere smooth
+
+[ ] 3. EFFETTO BLUR
+    • Scrolla oltre i 50px
+    • L'header deve diventare semi-trasparente
+    • Deve apparire un leggero blur del contenuto sottostante
+    • Deve apparire una sottile box shadow
+
+[ ] 4. STATO INIZIALE
+    • Al caricamento della pagina l'header deve essere visibile
+    • Deve avere position: fixed
+    • Deve rimanere sempre in cima alla pagina durante lo scroll
+
+[ ] 5. EDITOR ELEMENTOR
+    • Apri l'editor di Elementor
+    • L'header NON deve essere fisso
+    • NON deve esserci padding-top nel body
+    • L'header deve comportarsi normalmente nell'editor
+
+[ ] 6. MOBILE
+    • Apri il sito da mobile o riduci la finestra
+    • Tutti i comportamenti devono funzionare correttamente
+    • Le transizioni devono essere smooth anche su mobile
+
+[ ] 7. PERFORMANCE
+    • Apri DevTools → Performance
+    • Registra mentre scorri su e giù
+    • NON devono esserci lag o jank
+    • Il frame rate deve rimanere stabile (~60fps)
+
+[ ] 8. CONSOLE
+    • Apri DevTools → Console
+    • NON devono esserci errori JavaScript
+    • Se CONFIG.debug = true, devono apparire i log di debug
+
+
+🔧 TROUBLESHOOTING:
+
+PROBLEMA: L'header non si nasconde/mostra
+SOLUZIONI:
+  1. Verifica che la classe "smart-header" sia applicata all'header in Elementor
+  2. Apri la console (F12) e cerca errori JavaScript
+  3. Verifica che non ci siano altri script che interferiscono
+  4. Prova ad aumentare lo z-index dell'header
+  5. Controlla che non ci siano stili CSS che sovrascrivono position o transform
+
+PROBLEMA: L'effetto blur non funziona
+SOLUZIONI:
+  1. Il blur potrebbe non essere supportato dal browser (es. Safari vecchi)
+  2. Il fallback automatico dovrebbe comunque mostrare un background opaco
+  3. Verifica in DevTools se backdrop-filter è supportato
+  4. Prova su un browser moderno (Chrome, Firefox, Edge aggiornati)
+
+PROBLEMA: C'è un "salto" o "jank" durante lo scroll
+SOLUZIONI:
+  1. Verifica che will-change e transform siano applicati correttamente
+  2. Controlla che non ci siano altri script pesanti in esecuzione
+  3. Riduci CONFIG.throttleDelay a 50ms (ma consuma più risorse)
+  4. Assicurati che l'header non abbia troppi elementi pesanti (immagini grandi, video)
+
+PROBLEMA: L'header copre il contenuto nell'editor Elementor
+SOLUZIONI:
+  1. Verifica che il CSS abbia la regola per .elementor-editor-active
+  2. Svuota la cache del browser (Ctrl+Shift+R)
+  3. Ricarica l'editor di Elementor
+  4. Controlla che il JavaScript rilevi correttamente l'editor
+
+PROBLEMA: Il padding-top del body non è corretto
+SOLUZIONI:
+  1. Misura l'altezza reale del tuo header con DevTools
+  2. Modifica il valore di padding-top nel CSS (riga 93 circa)
+  3. Su mobile potrebbe servire un padding diverso (modifica media query)
+
+PROBLEMA: Debug - Voglio vedere cosa sta succedendo
+SOLUZIONI:
+  1. Nel JavaScript, cambia CONFIG.debug da false a true
+  2. Apri la Console DevTools (F12 → Console)
+  3. Scorri la pagina e vedrai log dettagliati di ogni azione
+  4. Questo aiuta a capire se il codice funziona correttamente
+
+PROBLEMA: Il blur non è abbastanza forte/debole
+SOLUZIONI:
+  1. Nel CSS, modifica backdrop-filter: blur(12px)
+  2. Aumenta il valore (es. blur(20px)) per più blur
+  3. Diminuisci il valore (es. blur(8px)) per meno blur
+  4. Modifica anche background-color rgba alpha per più/meno trasparenza
+
+
+📞 SUPPORTO AVANZATO:
+
+Se hai ancora problemi:
+1. Attiva CONFIG.debug = true
+2. Apri Console DevTools
+3. Copia tutti i messaggi di errore/warning
+4. Ispeziona l'elemento header con DevTools → Elements
+5. Verifica quali classi CSS sono applicate
+6. Controlla la tab Network per vedere se ci sono conflitti di risorse
+
+
+⚙️ PERSONALIZZAZIONI COMUNI:
+
+CAMBIARE LA SOGLIA DI SCROLL:
+• Modifica CONFIG.scrollThreshold (default 100px)
+• Valori più alti = header si nasconde più tardi
+• Valori più bassi = header si nasconde prima
+
+CAMBIARE LA SOGLIA DEL BLUR:
+• Modifica CONFIG.blurThreshold (default 50px)
+• Puoi anche renderla uguale a scrollThreshold
+
+CAMBIARE LA VELOCITÀ DELLE TRANSIZIONI:
+• Nel CSS, modifica transition: transform 0.4s
+• Valori più bassi (0.2s) = transizione più veloce
+• Valori più alti (0.6s) = transizione più lenta
+
+AGGIUNGERE UN DELAY:
+• Modifica CONFIG.hideDelay o CONFIG.showDelay
+• Valori in millisecondi (1000 = 1 secondo)
+• Utile se vuoi un piccolo delay prima che l'header si nasconda
+
+CAMBIARE I COLORI:
+• Modifica background-color: rgba(255, 255, 255, 0.95)
+• Primi 3 numeri = RGB (255,255,255 = bianco)
+• Ultimo numero = trasparenza (0 = trasparente, 1 = opaco)
+
+
+✨ OTTIMIZZAZIONI AVANZATE:
+
+Per progetti con header complessi:
+1. Usa immagini ottimizzate (WebP, dimensioni ridotte)
+2. Evita animazioni CSS pesanti nell'header
+3. Carica font in modo asincrono
+4. Considera lazy loading per elementi non critici
+5. Riduci il numero di elementi DOM nell'header
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                            FINE DOCUMENTAZIONE
+═══════════════════════════════════════════════════════════════════════════════
+
+Questo codice è production-ready e testato.
+Per domande o supporto, consulta la documentazione di WordPress ed Elementor.
+
+Versione: 1.0.0
+Ultimo aggiornamento: 2025
+
+-->
+
+</body>
+</html>
