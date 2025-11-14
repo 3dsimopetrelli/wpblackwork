@@ -1,0 +1,172 @@
+/**
+ * ============================================================================
+ * SMART HEADER - CSS
+ * Sistema intelligente per header Elementor con scroll detection
+ * ============================================================================
+ */
+
+/**
+ * Stile base per l'header smart
+ * Applicato sempre all'elemento con classe .smart-header
+ */
+.smart-header {
+    /* Posizionamento fisso in alto */
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+
+    /* Z-index alto per stare sopra tutto */
+    z-index: 9999 !important;
+
+    /* Background iniziale semi-trasparente */
+    background-color: rgba(255, 255, 255, 0.95) !important;
+
+    /* Transizione smooth per tutte le proprietà */
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                background-color 0.3s ease,
+                backdrop-filter 0.3s ease,
+                box-shadow 0.3s ease !important;
+
+    /* GPU acceleration per performance migliori */
+    will-change: transform;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+
+    /* Assicura che il contenuto sia sopra il blur */
+    isolation: isolate;
+}
+
+/**
+ * Stato nascosto - Header scivola verso l'alto
+ * Applicato quando l'utente scrolla giù
+ */
+.smart-header.hide {
+    transform: translateY(-100%) !important;
+}
+
+/**
+ * Stato visibile - Header in posizione normale
+ * Applicato quando l'utente scrolla su
+ */
+.smart-header.show {
+    transform: translateY(0) !important;
+}
+
+/**
+ * Stato scrollato - Effetto blur e shadow
+ * Applicato dopo 50px di scroll
+ */
+.smart-header.scrolled {
+    /* Background più trasparente per vedere il blur */
+    background-color: rgba(255, 255, 255, 0.85) !important;
+
+    /* Effetto blur del contenuto sottostante */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px); /* Safari */
+
+    /* Box shadow sottile ed elegante */
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08) !important;
+}
+
+/**
+ * Fallback per browser che non supportano backdrop-filter
+ * Principalmente Safari vecchi e alcuni browser mobile
+ */
+@supports not (backdrop-filter: blur(12px)) {
+    .smart-header.scrolled {
+        background-color: rgba(255, 255, 255, 0.98) !important;
+    }
+}
+
+/**
+ * Padding del body per compensare l'header fisso
+ * NON applicato nell'editor di Elementor
+ */
+body:not(.elementor-editor-active) {
+    padding-top: var(--smart-header-height, 100px);
+}
+
+/**
+ * Reset padding nell'editor di Elementor
+ * Previene problemi di layout durante la modifica
+ */
+body.elementor-editor-active {
+    padding-top: 0 !important;
+}
+
+/**
+ * Previeni sovrapposizione nell'editor
+ */
+.elementor-editor-active .smart-header {
+    position: relative !important;
+    transform: none !important;
+}
+
+/* ============================================================================
+   VARIANTE DARK THEME (OPZIONALE)
+   ============================================================================ */
+
+.smart-header.dark-theme {
+    background-color: rgba(0, 0, 0, 0.85) !important;
+}
+
+.smart-header.dark-theme.scrolled {
+    background-color: rgba(0, 0, 0, 0.9) !important;
+    box-shadow: 0 4px 30px rgba(255, 255, 255, 0.08) !important;
+}
+
+@supports not (backdrop-filter: blur(12px)) {
+    .smart-header.dark-theme.scrolled {
+        background-color: rgba(0, 0, 0, 0.95) !important;
+    }
+}
+
+/* ============================================================================
+   RESPONSIVE - MOBILE
+   ============================================================================ */
+
+@media (max-width: 768px) {
+    .smart-header {
+        /* Transizione leggermente più veloce su mobile */
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                    background-color 0.3s ease,
+                    backdrop-filter 0.3s ease,
+                    box-shadow 0.3s ease !important;
+    }
+}
+
+/**
+ * Fix per bounce scroll su iOS
+ * Previene glitch visivi durante lo scroll elastico
+ */
+@supports (-webkit-overflow-scrolling: touch) {
+    .smart-header {
+        position: -webkit-sticky;
+        position: sticky;
+    }
+}
+
+/* ============================================================================
+   PERFORMANCE E ACCESSIBILITÀ
+   ============================================================================ */
+
+/**
+ * Riduce le animazioni per utenti con preferenze di riduzione movimento
+ */
+@media (prefers-reduced-motion: reduce) {
+    .smart-header {
+        transition: none !important;
+    }
+}
+
+/**
+ * Assicura compatibilità cross-browser
+ */
+.smart-header {
+    -webkit-transform: translateZ(0);
+    -moz-transform: translateZ(0);
+    -ms-transform: translateZ(0);
+    -o-transform: translateZ(0);
+}
