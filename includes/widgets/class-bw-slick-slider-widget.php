@@ -656,12 +656,22 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
             'default'      => 'yes',
         ] );
 
+        $this->end_controls_section();
+
+        // Nuova sezione Responsive Slider
+        $this->start_controls_section( 'responsive_slider_section', [
+            'label' => __( 'Responsive Slider', 'bw-elementor-widgets' ),
+        ] );
+
         $repeater = new Repeater();
+
         $repeater->add_control( 'breakpoint', [
-            'label'   => __( 'Breakpoint (px)', 'bw-elementor-widgets' ),
-            'type'    => Controls_Manager::NUMBER,
-            'min'     => 320,
-            'default' => 1024,
+            'label'       => __( 'Breakpoint (px)', 'bw-elementor-widgets' ),
+            'type'        => Controls_Manager::NUMBER,
+            'min'         => 320,
+            'max'         => 2560,
+            'default'     => 768,
+            'description' => __( 'Larghezza massima dello schermo per questo breakpoint (max-width)', 'bw-elementor-widgets' ),
         ] );
 
         $repeater->add_control( 'slides_to_show', [
@@ -682,7 +692,7 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
             'label'        => __( 'Infinite', 'bw-elementor-widgets' ),
             'type'         => Controls_Manager::SWITCHER,
             'return_value' => 'yes',
-            'default'      => '',
+            'default'      => 'yes',
         ] );
 
         $repeater->add_control( 'responsive_dots', [
@@ -714,10 +724,43 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
         ] );
 
         $this->add_control( 'responsive', [
-            'label'       => __( 'Responsive', 'bw-elementor-widgets' ),
+            'label'       => __( 'Breakpoints Responsive', 'bw-elementor-widgets' ),
             'type'        => Controls_Manager::REPEATER,
             'fields'      => $repeater->get_controls(),
-            'title_field' => __( 'Breakpoint: {{breakpoint}}px', 'bw-elementor-widgets' ),
+            'title_field' => __( 'Breakpoint: {{breakpoint}}px - {{slides_to_show}} slides', 'bw-elementor-widgets' ),
+            'default'     => [
+                [
+                    'breakpoint'               => 1024,
+                    'slides_to_show'           => '3',
+                    'slides_to_scroll'         => 1,
+                    'responsive_infinite'      => 'yes',
+                    'responsive_dots'          => '',
+                    'responsive_arrows'        => 'yes',
+                    'responsive_center_mode'   => '',
+                    'responsive_variable_width' => '',
+                ],
+                [
+                    'breakpoint'               => 768,
+                    'slides_to_show'           => '2',
+                    'slides_to_scroll'         => 1,
+                    'responsive_infinite'      => 'yes',
+                    'responsive_dots'          => '',
+                    'responsive_arrows'        => 'yes',
+                    'responsive_center_mode'   => '',
+                    'responsive_variable_width' => '',
+                ],
+                [
+                    'breakpoint'               => 480,
+                    'slides_to_show'           => '2',
+                    'slides_to_scroll'         => 1,
+                    'responsive_infinite'      => 'yes',
+                    'responsive_dots'          => '',
+                    'responsive_arrows'        => '',
+                    'responsive_center_mode'   => '',
+                    'responsive_variable_width' => '',
+                ],
+            ],
+            'description' => __( 'Configura i breakpoint per adattare lo slider a diverse dimensioni dello schermo. I breakpoint vengono applicati con max-width.', 'bw-elementor-widgets' ),
         ] );
 
         $this->end_controls_section();
