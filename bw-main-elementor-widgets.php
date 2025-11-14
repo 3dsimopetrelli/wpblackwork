@@ -51,6 +51,7 @@ add_action( 'elementor/frontend/after_enqueue_scripts', 'bw_enqueue_wallpost_wid
 add_action( 'elementor/editor/after_enqueue_scripts', 'bw_enqueue_wallpost_widget_assets' );
 add_action( 'elementor/frontend/after_register_scripts', 'bw_enqueue_about_menu_widget_assets' );
 add_action( 'elementor/editor/after_enqueue_scripts', 'bw_enqueue_about_menu_widget_assets' );
+add_action( 'wp_enqueue_scripts', 'bw_enqueue_smart_header_assets' );
 
 function bw_enqueue_slick_slider_assets() {
     wp_enqueue_style(
@@ -271,6 +272,36 @@ function bw_enqueue_about_menu_widget_assets() {
     if ( wp_script_is( 'bw-about-menu-script', 'registered' ) ) {
         wp_enqueue_script( 'bw-about-menu-script' );
     }
+}
+
+function bw_enqueue_smart_header_assets() {
+    // Non caricare nell'editor di Elementor
+    if ( defined( 'ELEMENTOR_VERSION' ) && \Elementor\Plugin::$instance->preview->is_preview_mode() ) {
+        return;
+    }
+
+    // Registra e carica CSS
+    $css_file = __DIR__ . '/assets/css/bw-smart-header.css';
+    $css_version = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
+
+    wp_enqueue_style(
+        'bw-smart-header-style',
+        plugin_dir_url( __FILE__ ) . 'assets/css/bw-smart-header.css',
+        [],
+        $css_version
+    );
+
+    // Registra e carica JavaScript
+    $js_file = __DIR__ . '/assets/js/bw-smart-header.js';
+    $js_version = file_exists( $js_file ) ? filemtime( $js_file ) : '1.0.0';
+
+    wp_enqueue_script(
+        'bw-smart-header-script',
+        plugin_dir_url( __FILE__ ) . 'assets/js/bw-smart-header.js',
+        [ 'jquery' ],
+        $js_version,
+        true
+    );
 }
 
 // Aggiungi categoria personalizzata "Black Work Widgets"
