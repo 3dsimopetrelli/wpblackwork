@@ -723,6 +723,17 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
             'default'      => '',
         ] );
 
+        $repeater->add_control( 'responsive_height', [
+            'label'       => __( 'Altezza Post', 'bw-elementor-widgets' ),
+            'type'        => Controls_Manager::SLIDER,
+            'size_units'  => [ 'px', '%' ],
+            'range'       => [
+                'px' => [ 'min' => 0, 'max' => 1200, 'step' => 1 ],
+                '%'  => [ 'min' => 0, 'max' => 100, 'step' => 1 ],
+            ],
+            'description' => __( 'Imposta l\'altezza dei post per questo breakpoint. Lascia vuoto per usare l\'altezza predefinita.', 'bw-elementor-widgets' ),
+        ] );
+
         $this->add_control( 'responsive', [
             'label'       => __( 'Breakpoints Responsive', 'bw-elementor-widgets' ),
             'type'        => Controls_Manager::REPEATER,
@@ -1304,6 +1315,30 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
 
                 if ( isset( $item['responsive_variable_width'] ) ) {
                     $item_settings['variableWidth'] = 'yes' === $item['responsive_variable_width'];
+                }
+
+                if ( isset( $item['responsive_height'] ) && ! empty( $item['responsive_height'] ) ) {
+                    $height_data = $item['responsive_height'];
+                    $height_size = null;
+                    $height_unit = 'px';
+
+                    if ( is_array( $height_data ) ) {
+                        if ( isset( $height_data['size'] ) && '' !== $height_data['size'] ) {
+                            $height_size = $height_data['size'];
+                        }
+                        if ( isset( $height_data['unit'] ) && '' !== $height_data['unit'] ) {
+                            $height_unit = $height_data['unit'];
+                        }
+                    } elseif ( is_numeric( $height_data ) ) {
+                        $height_size = $height_data;
+                    }
+
+                    if ( null !== $height_size && '' !== $height_size ) {
+                        $item_settings['responsiveHeight'] = [
+                            'size' => (float) $height_size,
+                            'unit' => $height_unit,
+                        ];
+                    }
                 }
 
                 if ( isset( $item_settings['slidesToShow'], $item_settings['slidesToScroll'] ) ) {

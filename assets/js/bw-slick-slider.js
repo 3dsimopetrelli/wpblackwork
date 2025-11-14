@@ -126,6 +126,20 @@
           );
         }
 
+        if (typeof settings.responsiveHeight !== 'undefined') {
+          var heightData = settings.responsiveHeight;
+          if (heightData && typeof heightData === 'object') {
+            var size = normalizeFloat(heightData.size, null);
+            var unit = (heightData.unit || 'px').toString();
+            if (size !== null && size >= 0) {
+              normalizedSettings.responsiveHeight = {
+                size: size,
+                unit: unit
+              };
+            }
+          }
+        }
+
         if (
           typeof normalizedSettings.slidesToShow !== 'undefined' &&
           typeof normalizedSettings.slidesToScroll !== 'undefined'
@@ -331,10 +345,79 @@
 
     $currentSlider.slick(settings);
 
+    // Funzione per applicare l'altezza responsive
+    var applyResponsiveHeight = function (event, slick, currentBreakpoint) {
+      if (!settings.responsive || !Array.isArray(settings.responsive)) {
+        return;
+      }
+
+      var heightToApply = null;
+
+      // Se currentBreakpoint è undefined, cerchiamo il breakpoint corrente basato sulla larghezza della finestra
+      if (typeof currentBreakpoint === 'undefined') {
+        var windowWidth = $(window).width();
+        // Ordina i breakpoint dal più piccolo al più grande
+        var sortedBreakpoints = settings.responsive
+          .slice()
+          .sort(function (a, b) {
+            return a.breakpoint - b.breakpoint;
+          });
+
+        // Trova il breakpoint attivo
+        for (var i = 0; i < sortedBreakpoints.length; i++) {
+          var bp = sortedBreakpoints[i];
+          if (windowWidth <= bp.breakpoint && bp.settings.responsiveHeight) {
+            heightToApply = bp.settings.responsiveHeight;
+            break;
+          }
+        }
+      } else {
+        // Trova il breakpoint corrispondente
+        for (var j = 0; j < settings.responsive.length; j++) {
+          var responsiveItem = settings.responsive[j];
+          if (
+            responsiveItem.breakpoint === currentBreakpoint &&
+            responsiveItem.settings.responsiveHeight
+          ) {
+            heightToApply = responsiveItem.settings.responsiveHeight;
+            break;
+          }
+        }
+      }
+
+      // Applica l'altezza se trovata
+      if (heightToApply && heightToApply.size >= 0) {
+        $currentSlider.css(
+          '--bw-image-height',
+          heightToApply.size + heightToApply.unit
+        );
+      }
+    };
+
+    // Applica l'altezza all'inizializzazione
+    applyResponsiveHeight(null, null, undefined);
+
+    // Ascolta i cambiamenti di breakpoint
+    $currentSlider.on('breakpoint', applyResponsiveHeight);
+
+    // Nell'editor Elementor, aggiungi anche listener per resize
     if (
       typeof elementorFrontend !== 'undefined' &&
       elementorFrontend.isEditMode()
     ) {
+      var resizeTimeout;
+      var handleResize = function () {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(function () {
+          applyResponsiveHeight(null, null, undefined);
+        }, 100);
+      };
+
+      $(window).on('resize.bwSlickSlider', handleResize);
+
+      // Salva il riferimento per poter rimuovere il listener se necessario
+      $currentSlider.data('bwResizeHandler', handleResize);
+
       setTimeout(function () {
         if ($currentSlider.hasClass('slick-initialized')) {
           $currentSlider.slick('setPosition');
