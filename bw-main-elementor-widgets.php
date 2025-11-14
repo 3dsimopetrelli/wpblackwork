@@ -52,6 +52,13 @@ add_action( 'elementor/editor/after_enqueue_scripts', 'bw_enqueue_wallpost_widge
 add_action( 'elementor/frontend/after_register_scripts', 'bw_enqueue_about_menu_widget_assets' );
 add_action( 'elementor/editor/after_enqueue_scripts', 'bw_enqueue_about_menu_widget_assets' );
 
+// Smart Header System
+add_action( 'init', 'bw_register_smart_header_assets' );
+add_action( 'wp_enqueue_scripts', 'bw_enqueue_smart_header_assets' );
+add_action( 'elementor/frontend/after_enqueue_scripts', 'bw_enqueue_smart_header_assets' );
+add_action( 'elementor/preview/enqueue_scripts', 'bw_enqueue_smart_header_assets' );
+add_action( 'elementor/editor/after_enqueue_scripts', 'bw_enqueue_smart_header_assets' );
+
 function bw_enqueue_slick_slider_assets() {
     wp_enqueue_style(
         'slick-css',
@@ -283,3 +290,53 @@ add_action( 'elementor/elements/categories_registered', function( $elements_mana
         ]
     );
 } );
+
+/**
+ * Registra gli asset del Smart Header System
+ * Chiamato su hook 'init' per registrare CSS e JS
+ */
+function bw_register_smart_header_assets() {
+    // Registra CSS Smart Header
+    $css_file = __DIR__ . '/assets/css/bw-smart-header.css';
+    $css_version = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
+
+    wp_register_style(
+        'bw-smart-header-style',
+        plugin_dir_url( __FILE__ ) . 'assets/css/bw-smart-header.css',
+        [],
+        $css_version
+    );
+
+    // Registra JavaScript Smart Header
+    $js_file = __DIR__ . '/assets/js/bw-smart-header.js';
+    $js_version = file_exists( $js_file ) ? filemtime( $js_file ) : '1.0.0';
+
+    wp_register_script(
+        'bw-smart-header-script',
+        plugin_dir_url( __FILE__ ) . 'assets/js/bw-smart-header.js',
+        [], // No dependencies - vanilla JS
+        $js_version,
+        true // Load in footer
+    );
+}
+
+/**
+ * Carica (enqueue) gli asset del Smart Header System
+ * Chiamato su vari hook per assicurare il caricamento in frontend, editor e preview
+ */
+function bw_enqueue_smart_header_assets() {
+    // Assicurati che gli asset siano registrati
+    if ( ! wp_style_is( 'bw-smart-header-style', 'registered' ) || ! wp_script_is( 'bw-smart-header-script', 'registered' ) ) {
+        bw_register_smart_header_assets();
+    }
+
+    // Carica CSS
+    if ( wp_style_is( 'bw-smart-header-style', 'registered' ) ) {
+        wp_enqueue_style( 'bw-smart-header-style' );
+    }
+
+    // Carica JavaScript
+    if ( wp_script_is( 'bw-smart-header-script', 'registered' ) ) {
+        wp_enqueue_script( 'bw-smart-header-script' );
+    }
+}

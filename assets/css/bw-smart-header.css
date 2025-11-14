@@ -1,0 +1,213 @@
+/**
+ * ============================================================================
+ * BW SMART HEADER - CSS
+ * ============================================================================
+ *
+ * Sistema smart header per WordPress + Elementor
+ * Aggiungi la classe "SmartAdder" al container principale dell'header in Elementor
+ *
+ * Comportamento:
+ * - Scroll DOWN >100px → Header si nasconde verso l'alto
+ * - Scroll UP (anche minimo) → Header riappare immediatamente
+ * - Scroll >50px → Effetto blur + background semi-trasparente
+ *
+ * @version 1.0.0
+ */
+
+/* ============================================================================
+   STILE BASE SMART HEADER
+   ============================================================================ */
+
+/**
+ * Stile base per l'header smart
+ * Applicato sempre all'elemento con classe .SmartAdder
+ */
+.SmartAdder {
+    /* Posizionamento fisso in alto */
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+
+    /* Z-index alto per stare sopra tutto */
+    z-index: 9999 !important;
+
+    /* Background iniziale semi-trasparente */
+    background-color: rgba(255, 255, 255, 0.95) !important;
+
+    /* Transizione smooth per tutte le proprietà */
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                background-color 0.3s ease,
+                backdrop-filter 0.3s ease,
+                box-shadow 0.3s ease !important;
+
+    /* GPU acceleration per performance migliori */
+    will-change: transform;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+
+    /* Assicura che il contenuto sia sopra il blur */
+    isolation: isolate;
+}
+
+/**
+ * Stato nascosto - Header scivola verso l'alto
+ * Applicato quando l'utente scrolla giù
+ */
+.SmartAdder.hide {
+    transform: translateY(-100%) !important;
+}
+
+/**
+ * Stato visibile - Header in posizione normale
+ * Applicato quando l'utente scrolla su
+ */
+.SmartAdder.show {
+    transform: translateY(0) !important;
+}
+
+/**
+ * Stato scrollato - Effetto blur e shadow
+ * Applicato dopo 50px di scroll
+ */
+.SmartAdder.scrolled {
+    /* Background più trasparente per vedere il blur */
+    background-color: rgba(255, 255, 255, 0.85) !important;
+
+    /* Effetto blur del contenuto sottostante */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px); /* Safari */
+
+    /* Box shadow sottile ed elegante */
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08) !important;
+}
+
+/**
+ * Fallback per browser che non supportano backdrop-filter
+ * Principalmente Safari vecchi e alcuni browser mobile
+ */
+@supports not (backdrop-filter: blur(12px)) {
+    .SmartAdder.scrolled {
+        background-color: rgba(255, 255, 255, 0.98) !important;
+    }
+}
+
+/**
+ * Padding del body per compensare l'header fisso
+ * NON applicato nell'editor di Elementor
+ *
+ * ⚠️ IMPORTANTE: Modifica questo valore con l'altezza reale del tuo header!
+ */
+body:not(.elementor-editor-active) {
+    padding-top: 100px; /* 👈 MODIFICA QUESTO VALORE */
+}
+
+/**
+ * Reset padding nell'editor di Elementor
+ * Previene problemi di layout durante la modifica
+ */
+body.elementor-editor-active {
+    padding-top: 0 !important;
+}
+
+/**
+ * Nell'editor di Elementor mantieni position fixed
+ * per vedere l'anteprima corretta
+ */
+.elementor-editor-active .SmartAdder {
+    /* Mantieni fixed anche in editor per anteprima corretta */
+    position: fixed !important;
+}
+
+/**
+ * Nell'anteprima di Elementor (iframe) mantieni tutto funzionante
+ */
+.elementor-preview .SmartAdder {
+    position: fixed !important;
+}
+
+
+/* ============================================================================
+   VARIANTE DARK THEME (OPZIONALE)
+   ============================================================================ */
+
+/**
+ * Se aggiungi anche la classe "dark-theme" all'header
+ * otterrai uno stile scuro invece che chiaro
+ *
+ * Esempio: aggiungi entrambe le classi "SmartAdder dark-theme"
+ */
+.SmartAdder.dark-theme {
+    background-color: rgba(0, 0, 0, 0.85) !important;
+}
+
+.SmartAdder.dark-theme.scrolled {
+    background-color: rgba(0, 0, 0, 0.9) !important;
+    box-shadow: 0 4px 30px rgba(255, 255, 255, 0.08) !important;
+}
+
+@supports not (backdrop-filter: blur(12px)) {
+    .SmartAdder.dark-theme.scrolled {
+        background-color: rgba(0, 0, 0, 0.95) !important;
+    }
+}
+
+
+/* ============================================================================
+   RESPONSIVE - MOBILE
+   ============================================================================ */
+
+/**
+ * Ottimizzazioni per dispositivi mobili
+ */
+@media (max-width: 768px) {
+    .SmartAdder {
+        /* Transizione leggermente più veloce su mobile */
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                    background-color 0.3s ease,
+                    backdrop-filter 0.3s ease,
+                    box-shadow 0.3s ease !important;
+    }
+
+    /* Padding più piccolo su mobile se necessario */
+    body:not(.elementor-editor-active) {
+        padding-top: 80px; /* 👈 Modifica se l'header mobile è più basso */
+    }
+}
+
+/**
+ * Fix per bounce scroll su iOS
+ * Previene glitch visivi durante lo scroll elastico
+ */
+@supports (-webkit-overflow-scrolling: touch) {
+    .SmartAdder {
+        position: -webkit-sticky;
+        position: sticky;
+    }
+}
+
+
+/* ============================================================================
+   PERFORMANCE E ACCESSIBILITÀ
+   ============================================================================ */
+
+/**
+ * Riduce le animazioni per utenti con preferenze di riduzione movimento
+ * Migliora accessibilità per utenti con disturbi vestibolari
+ */
+@media (prefers-reduced-motion: reduce) {
+    .SmartAdder {
+        transition: none !important;
+    }
+}
+
+/**
+ * Assicura che l'header non interferisca con gli screen reader
+ */
+.SmartAdder {
+    -webkit-transform: translateZ(0);
+    -moz-transform: translateZ(0);
+    -ms-transform: translateZ(0);
+    -o-transform: translateZ(0);
+}
