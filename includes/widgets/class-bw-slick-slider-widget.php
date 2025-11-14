@@ -118,7 +118,7 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
         ] );
 
         $column_options = [];
-        foreach ( range( 2, 7 ) as $column ) {
+        foreach ( range( 1, 7 ) as $column ) {
             $column_options[ $column ] = (string) $column;
         }
 
