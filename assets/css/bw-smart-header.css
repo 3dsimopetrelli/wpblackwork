@@ -10,17 +10,10 @@
    ============================================================================ */
 
 /**
- * Animazione slideDown - Usata quando l'header riappare scrollando verso l'alto
- * L'header scivola verso il basso senza fade (solo movimento)
+ * NOTA: L'animazione slideDown è stata rimossa.
+ * Ora utilizziamo solo la transition CSS per gestire sia scroll up che scroll down.
+ * Questo garantisce un'animazione speculare e fluida in entrambe le direzioni.
  */
-@keyframes slideDown {
-    from {
-        transform: translateY(-100%);
-    }
-    to {
-        transform: translateY(0);
-    }
-}
 
 /* ============================================================================
    BASE STYLES
@@ -33,7 +26,8 @@
 .smart-header {
     /* Posizionamento fisso in alto */
     position: fixed !important;
-    top: 0 !important;
+    /* Usa CSS variable per l'offset della WP Admin Bar */
+    top: var(--wp-admin-bar-height, 0) !important;
     left: 0 !important;
     right: 0 !important;
     width: 100% !important;
@@ -41,11 +35,12 @@
     /* Z-index alto per stare sopra tutto */
     z-index: 9999 !important;
 
-    /* Transizione smooth per il nascondimento */
+    /* Transizione smooth per il nascondimento/apparizione */
     transition: transform 0.4s ease-in-out,
                 background-color 0.3s ease,
                 backdrop-filter 0.3s ease,
-                box-shadow 0.3s ease !important;
+                box-shadow 0.3s ease,
+                top 0.2s ease !important;
 
     /* GPU acceleration per performance migliori */
     will-change: transform;
@@ -70,12 +65,12 @@
 }
 
 /**
- * Stato visibile - Header riappare con animazione slideDown
+ * Stato visibile - Header riappare con transition speculare
  * Applicato quando l'utente scrolla su (anche solo 1px)
+ * La transition nella classe base gestisce automaticamente l'animazione
  */
 .smart-header.visible {
     transform: translateY(0) !important;
-    animation: slideDown 0.3s ease-out;
 }
 
 /* ============================================================================
@@ -172,12 +167,8 @@ body.elementor-editor-active {
         transition: transform 0.3s ease-in-out,
                     background-color 0.3s ease,
                     backdrop-filter 0.3s ease,
-                    box-shadow 0.3s ease !important;
-    }
-
-    .smart-header.visible {
-        /* Animazione più rapida su mobile */
-        animation: slideDown 0.25s ease-out;
+                    box-shadow 0.3s ease,
+                    top 0.2s ease !important;
     }
 }
 
