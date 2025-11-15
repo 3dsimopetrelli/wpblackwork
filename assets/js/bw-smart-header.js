@@ -62,6 +62,7 @@
     let scrollDirection = null;
     let ticking = false;
     let isEditorActive = false;
+    let adminBarHeight = 0;
 
     /* ========================================================================
        FUNZIONI UTILITY
@@ -104,6 +105,27 @@
                 typeof window.elementorFrontend.isEditMode === 'function' &&
                 window.elementorFrontend.isEditMode()) ||
                typeof window.elementor !== 'undefined';
+    }
+
+    /**
+     * Calcola e applica l'offset per la WordPress admin bar
+     */
+    function calculateAdminBarOffset() {
+        const adminBar = $('#wpadminbar');
+
+        if (adminBar.length && adminBar.is(':visible')) {
+            adminBarHeight = adminBar.outerHeight() || 0;
+            debugLog('WordPress admin bar rilevata', { height: adminBarHeight + 'px' });
+        } else {
+            adminBarHeight = 0;
+            debugLog('WordPress admin bar non presente');
+        }
+
+        // Applica l'offset al top dell'header
+        if (headerElement && headerElement.length) {
+            headerElement.css('top', adminBarHeight + 'px');
+            debugLog('Offset applicato all\'header', { top: adminBarHeight + 'px' });
+        }
     }
 
     /* ========================================================================
@@ -271,6 +293,9 @@
         // Header sempre visibile all'inizio
         headerElement.addClass('visible');
 
+        // Calcola e applica offset per WordPress admin bar
+        calculateAdminBarOffset();
+
         // ====================================================================
         // EVENT LISTENERS con opzione PASSIVE per performance
         // ====================================================================
@@ -282,6 +307,7 @@
         // Resize event con throttle e passive
         const throttledResizeHandler = throttle(function() {
             debugLog('Window resized - Ricalcolo stato');
+            calculateAdminBarOffset(); // Ricalcola offset admin bar su resize
             handleScroll();
         }, 250);
 
