@@ -11,16 +11,14 @@
 
 /**
  * Animazione slideDown - Usata quando l'header riappare scrollando verso l'alto
- * L'header scivola verso il basso con fade in
+ * L'header scivola verso il basso senza fade (solo movimento)
  */
 @keyframes slideDown {
     from {
-        transform: translateY(-20px);
-        opacity: 0;
+        transform: translateY(-100%);
     }
     to {
         transform: translateY(0);
-        opacity: 1;
     }
 }
 
@@ -89,10 +87,7 @@
  * Applicato quando menu è visibile dopo scroll
  */
 .smart-header.scrolled {
-    /* Background con variabile CSS --gray o fallback */
-    background-color: hsl(var(--gray, 0 0% 20%) / 60%) !important;
-
-    /* Effetto blur del contenuto sottostante */
+    /* Effetto blur del contenuto sottostante (nessun background grigio) */
     -webkit-backdrop-filter: blur(20px);
     backdrop-filter: blur(20px) !important;
 
@@ -102,10 +97,11 @@
 
 /**
  * Fallback per browser che non supportano backdrop-filter
+ * Usa un background trasparente minimale per leggibilità
  */
 @supports not (backdrop-filter: blur(20px)) {
     .smart-header.scrolled {
-        background-color: hsl(var(--gray, 0 0% 20%) / 85%) !important;
+        background-color: rgba(255, 255, 255, 0.1) !important;
     }
 }
 
@@ -200,12 +196,8 @@ body.elementor-editor-active {
    VARIANTE DARK THEME (OPZIONALE)
    ============================================================================ */
 
-.smart-header.dark-theme {
-    background-color: rgba(0, 0, 0, 0.85) !important;
-}
-
 .smart-header.dark-theme.scrolled {
-    background-color: hsl(0 0% 10% / 60%) !important;
+    /* Solo blur trasparente, nessun background grigio */
     -webkit-backdrop-filter: blur(20px);
     backdrop-filter: blur(20px) !important;
     box-shadow: 0 2px 20px rgba(255, 255, 255, 0.08) !important;
@@ -213,6 +205,6 @@ body.elementor-editor-active {
 
 @supports not (backdrop-filter: blur(20px)) {
     .smart-header.dark-theme.scrolled {
-        background-color: rgba(0, 0, 0, 0.95) !important;
+        background-color: rgba(0, 0, 0, 0.1) !important;
     }
 }
