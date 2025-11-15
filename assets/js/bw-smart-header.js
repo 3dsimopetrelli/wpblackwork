@@ -7,14 +7,17 @@
  * - Nasconde l'header quando si scrolla giù oltre 100px
  * - Mostra l'header IMMEDIATAMENTE quando si scrolla su (anche 1px)
  * - Applica effetto blur dopo 50px di scroll
+ * - Calcola automaticamente offset WordPress Admin Bar
+ * - Animazioni speculari per scroll up/down usando CSS transitions
  *
  * Performance:
  * - requestAnimationFrame per ottimizzazione
  * - Throttle per limitare chiamate
  * - Passive event listeners
  * - GPU acceleration via CSS
+ * - CSS variables per offset dinamici
  *
- * @version 2.0.0
+ * @version 2.1.0
  */
 
 (function($) {
@@ -109,6 +112,7 @@
 
     /**
      * Calcola e applica l'offset per la WordPress admin bar
+     * Usa CSS variable per permettere transizioni smooth
      */
     function calculateAdminBarOffset() {
         const adminBar = $('#wpadminbar');
@@ -121,11 +125,9 @@
             debugLog('WordPress admin bar non presente');
         }
 
-        // Applica l'offset al top dell'header
-        if (headerElement && headerElement.length) {
-            headerElement.css('top', adminBarHeight + 'px');
-            debugLog('Offset applicato all\'header', { top: adminBarHeight + 'px' });
-        }
+        // Applica l'offset usando CSS variable
+        document.documentElement.style.setProperty('--wp-admin-bar-height', adminBarHeight + 'px');
+        debugLog('CSS variable impostata', { '--wp-admin-bar-height': adminBarHeight + 'px' });
     }
 
     /* ========================================================================
@@ -367,7 +369,7 @@
 
     // Esponi API globale per debugging in console
     window.bwSmartHeader = {
-        version: '2.0.0',
+        version: '2.1.0',
         config: CONFIG,
         show: showHeader,
         hide: hideHeader,
@@ -377,9 +379,11 @@
                 direction: scrollDirection,
                 isVisible: headerElement ? headerElement.hasClass('visible') : null,
                 isHidden: headerElement ? headerElement.hasClass('hidden') : null,
-                hasBlur: headerElement ? headerElement.hasClass('scrolled') : null
+                hasBlur: headerElement ? headerElement.hasClass('scrolled') : null,
+                adminBarHeight: adminBarHeight
             };
-        }
+        },
+        recalculateAdminBar: calculateAdminBarOffset
     };
 
 })(jQuery);
