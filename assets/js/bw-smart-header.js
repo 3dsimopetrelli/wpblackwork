@@ -1,14 +1,20 @@
 /**
  * ============================================================================
- * SMART HEADER SYSTEM - JAVASCRIPT
+ * SMART HEADER SCROLL ANIMATION SYSTEM
  * ============================================================================
  *
- * Gestisce il comportamento dinamico dell'header smart:
- * - Nasconde l'header quando si scrolla giù
- * - Mostra l'header quando si scrolla su
- * - Applica effetto blur dopo una certa soglia di scroll
+ * Gestisce il comportamento dinamico dell'header smart con animazioni fluide:
+ * - Nasconde l'header quando si scrolla giù oltre 100px
+ * - Mostra l'header IMMEDIATAMENTE quando si scrolla su (anche 1px)
+ * - Applica effetto blur dopo 50px di scroll
  *
- * @version 1.0.0
+ * Performance:
+ * - requestAnimationFrame per ottimizzazione
+ * - Throttle per limitare chiamate
+ * - Passive event listeners
+ * - GPU acceleration via CSS
+ *
+ * @version 2.0.0
  */
 
 (function($) {
@@ -18,24 +24,22 @@
        CONFIGURAZIONE
        ======================================================================== */
 
-    const CONFIG = {
-        // Pixel di scroll prima di nascondere l'header
-        scrollThreshold: 100,
+    // Configurazione di default - può essere sovrascritto da wp_localize_script
+    const DEFAULT_CONFIG = {
+        // Pixel di scroll prima di nascondere l'header (scroll DOWN)
+        scrollDownThreshold: 100,
+
+        // Threshold scroll UP - IMMEDIATO (anche 1px)
+        scrollUpThreshold: 0,
 
         // Pixel minimi di movimento per rilevare cambio direzione
-        scrollDelta: 5,
+        scrollDelta: 1,
 
         // Pixel di scroll prima di attivare l'effetto blur
         blurThreshold: 50,
 
-        // Delay in millisecondi prima di nascondere l'header
-        hideDelay: 0,
-
-        // Delay in millisecondi prima di mostrare l'header
-        showDelay: 0,
-
         // Intervallo di throttling per eventi scroll (ms)
-        throttleDelay: 100,
+        throttleDelay: 16, // ~60fps
 
         // Selettore CSS per l'header
         headerSelector: '.smart-header',
@@ -44,6 +48,11 @@
         debug: false
     };
 
+    // Merge con configurazione da WordPress (se presente)
+    const CONFIG = typeof bwSmartHeaderConfig !== 'undefined'
+        ? Object.assign({}, DEFAULT_CONFIG, bwSmartHeaderConfig)
+        : DEFAULT_CONFIG;
+
     /* ========================================================================
        VARIABILI GLOBALI
        ======================================================================== */
@@ -51,8 +60,6 @@
     let headerElement = null;
     let lastScrollTop = 0;
     let scrollDirection = null;
-    let hideTimeout = null;
-    let showTimeout = null;
     let ticking = false;
     let isEditorActive = false;
 
@@ -65,16 +72,17 @@
      */
     function debugLog(message, data = null) {
         if (CONFIG.debug) {
+            const logMessage = '[Smart Header] ' + message;
             if (data !== null) {
-                console.log('[Smart Header] ' + message, data);
+                console.log(logMessage, data);
             } else {
-                console.log('[Smart Header] ' + message);
+                console.log(logMessage);
             }
         }
     }
 
     /**
-     * Throttle function
+     * Throttle function - limita la frequenza di esecuzione
      */
     function throttle(func, delay) {
         let lastCall = 0;
@@ -103,49 +111,32 @@
        ======================================================================== */
 
     /**
-     * Mostra l'header
+     * Mostra l'header con animazione slideDown
      */
     function showHeader() {
         if (!headerElement || isEditorActive) return;
 
-        clearTimeout(hideTimeout);
+        headerElement.removeClass('hidden');
+        headerElement.addClass('visible');
 
-        const execute = function() {
-            headerElement.removeClass('hide');
-            headerElement.addClass('show');
-            debugLog('Header mostrato');
-        };
-
-        if (CONFIG.showDelay > 0) {
-            showTimeout = setTimeout(execute, CONFIG.showDelay);
-        } else {
-            execute();
-        }
+        debugLog('Header mostrato (visible)');
     }
 
     /**
-     * Nasconde l'header
+     * Nasconde l'header con slide verso l'alto
      */
     function hideHeader() {
         if (!headerElement || isEditorActive) return;
 
-        clearTimeout(showTimeout);
+        headerElement.removeClass('visible');
+        headerElement.addClass('hidden');
 
-        const execute = function() {
-            headerElement.removeClass('show');
-            headerElement.addClass('hide');
-            debugLog('Header nascosto');
-        };
-
-        if (CONFIG.hideDelay > 0) {
-            hideTimeout = setTimeout(execute, CONFIG.hideDelay);
-        } else {
-            execute();
-        }
+        debugLog('Header nascosto (hidden)');
     }
 
     /**
      * Gestisce l'effetto blur basato sulla posizione di scroll
+     * Attivo dopo 50px di scroll
      */
     function handleBlurEffect(scrollTop) {
         if (!headerElement || isEditorActive) return;
@@ -153,25 +144,14 @@
         if (scrollTop > CONFIG.blurThreshold) {
             if (!headerElement.hasClass('scrolled')) {
                 headerElement.addClass('scrolled');
-                debugLog('Blur effect attivato');
+                debugLog('Blur effect attivato', { scrollTop });
             }
         } else {
             if (headerElement.hasClass('scrolled')) {
                 headerElement.removeClass('scrolled');
-                debugLog('Blur effect disattivato');
+                debugLog('Blur effect disattivato', { scrollTop });
             }
         }
-    }
-
-    /**
-     * Calcola l'altezza dell'header e aggiorna CSS variable
-     */
-    function updateHeaderHeight() {
-        if (!headerElement) return;
-
-        const headerHeight = headerElement.outerHeight();
-        $('html').css('--smart-header-height', headerHeight + 'px');
-        debugLog('Header height aggiornato', headerHeight);
     }
 
     /* ========================================================================
@@ -179,12 +159,12 @@
        ======================================================================== */
 
     /**
-     * Handler principale dello scroll
+     * Handler principale dello scroll con logica ottimizzata
      */
     function handleScroll() {
         if (!headerElement || isEditorActive) return;
 
-        const currentScrollTop = $(window).scrollTop();
+        const currentScrollTop = Math.max(0, $(window).scrollTop());
 
         // Previeni calcoli se non c'è movimento significativo
         if (Math.abs(currentScrollTop - lastScrollTop) < CONFIG.scrollDelta) {
@@ -200,28 +180,36 @@
             delta: currentScrollTop - lastScrollTop
         });
 
-        // Gestisci visibilità header basata su direzione e posizione
-        if (newDirection === 'down' && currentScrollTop > CONFIG.scrollThreshold) {
-            // Scroll DOWN oltre la soglia → Nascondi header
-            hideHeader();
-        } else if (newDirection === 'up') {
-            // Scroll UP → Mostra header
+        // ====================================================================
+        // LOGICA PRINCIPALE:
+        // ====================================================================
+
+        if (newDirection === 'up') {
+            // SCROLL UP → Mostra IMMEDIATAMENTE (anche 1px)
             showHeader();
-        } else if (currentScrollTop <= CONFIG.scrollThreshold) {
-            // Vicino al top → Mostra sempre header
-            showHeader();
+
+        } else if (newDirection === 'down') {
+            // SCROLL DOWN
+            if (currentScrollTop > CONFIG.scrollDownThreshold) {
+                // Oltre 100px → Nascondi header
+                hideHeader();
+            } else {
+                // Sotto 100px → Mostra header
+                showHeader();
+            }
         }
 
-        // Gestisci effetto blur
+        // Gestisci effetto blur (attivo dopo 50px)
         handleBlurEffect(currentScrollTop);
 
         // Aggiorna variabili di tracking
         scrollDirection = newDirection;
-        lastScrollTop = currentScrollTop <= 0 ? 0 : currentScrollTop;
+        lastScrollTop = currentScrollTop;
     }
 
     /**
      * Handler ottimizzato con requestAnimationFrame
+     * Garantisce performance fluide a 60fps
      */
     function optimizedScrollHandler() {
         if (!ticking) {
@@ -234,7 +222,7 @@
     }
 
     /**
-     * Throttled scroll handler
+     * Throttled scroll handler per limitare le chiamate
      */
     const throttledScrollHandler = throttle(optimizedScrollHandler, CONFIG.throttleDelay);
 
@@ -246,13 +234,15 @@
      * Inizializza il sistema smart header
      */
     function init() {
-        debugLog('Inizializzazione Smart Header System...');
+        debugLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        debugLog('Inizializzazione Smart Header Scroll System');
+        debugLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
         // Verifica se siamo nell'editor
         isEditorActive = isElementorEditor();
 
         if (isEditorActive) {
-            debugLog('⚠️ Editor Elementor rilevato - Smart Header disabilitato');
+            debugLog('⚠️  Editor Elementor rilevato - Smart Header disabilitato');
             return;
         }
 
@@ -260,49 +250,58 @@
         headerElement = $(CONFIG.headerSelector);
 
         if (!headerElement.length) {
-            console.warn('[Smart Header] ⚠️ Elemento con classe "' + CONFIG.headerSelector + '" non trovato!');
-            console.warn('[Smart Header] Assicurati di aver aggiunto la classe "smart-header" al container principale dell\'header in Elementor.');
+            console.warn('[Smart Header] ⚠️  Elemento "' + CONFIG.headerSelector + '" non trovato!');
+            console.warn('[Smart Header] Aggiungi la classe "smart-header" al container dell\'header in Elementor.');
             return;
         }
 
-        debugLog('✅ Header element trovato', headerElement);
+        debugLog('✅ Header element trovato', {
+            selector: CONFIG.headerSelector,
+            height: headerElement.outerHeight() + 'px'
+        });
 
         // Imposta stato iniziale
-        lastScrollTop = $(window).scrollTop();
-
-        // Calcola altezza header
-        updateHeaderHeight();
+        lastScrollTop = Math.max(0, $(window).scrollTop());
 
         // Applica stato iniziale
         if (lastScrollTop > CONFIG.blurThreshold) {
             headerElement.addClass('scrolled');
         }
-        headerElement.addClass('show');
 
-        // Event listener per lo scroll
-        $(window).on('scroll', throttledScrollHandler);
+        // Header sempre visibile all'inizio
+        headerElement.addClass('visible');
 
-        // Event listener per resize
-        $(window).on('resize', throttle(function() {
-            debugLog('Window resized - Ricalcolo stato header');
-            updateHeaderHeight();
+        // ====================================================================
+        // EVENT LISTENERS con opzione PASSIVE per performance
+        // ====================================================================
+
+        // Scroll event con passive listener
+        window.addEventListener('scroll', throttledScrollHandler, { passive: true });
+        debugLog('✅ Scroll event listener registrato (passive)');
+
+        // Resize event con throttle e passive
+        const throttledResizeHandler = throttle(function() {
+            debugLog('Window resized - Ricalcolo stato');
             handleScroll();
-        }, 250));
+        }, 250);
 
-        debugLog('✅ Smart Header System inizializzato con successo');
+        window.addEventListener('resize', throttledResizeHandler, { passive: true });
+        debugLog('✅ Resize event listener registrato (passive)');
+
+        debugLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        debugLog('✅ Sistema inizializzato con successo');
+        debugLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         debugLog('Configurazione attiva:', CONFIG);
     }
 
     /**
-     * Cleanup
+     * Cleanup delle risorse
      */
     function cleanup() {
         debugLog('Cleanup Smart Header System...');
 
-        $(window).off('scroll', throttledScrollHandler);
-
-        if (hideTimeout) clearTimeout(hideTimeout);
-        if (showTimeout) clearTimeout(showTimeout);
+        window.removeEventListener('scroll', throttledScrollHandler);
+        window.removeEventListener('resize', throttledScrollHandler);
     }
 
     /* ========================================================================
@@ -313,7 +312,8 @@
      * Avvia quando jQuery e DOM sono pronti
      */
     $(document).ready(function() {
-        init();
+        // Piccolo delay per assicurarsi che Elementor sia completamente caricato
+        setTimeout(init, 100);
     });
 
     /**
@@ -322,17 +322,38 @@
     $(window).on('beforeunload', cleanup);
 
     /**
-     * Gestione Elementor frontend
+     * Gestione Elementor frontend (se presente)
      */
     if (typeof window.elementorFrontend !== 'undefined') {
         $(window).on('elementor/frontend/init', function() {
-            debugLog('Elementor frontend init');
+            debugLog('Elementor frontend init event');
             setTimeout(function() {
                 if (!isElementorEditor() && !headerElement) {
                     init();
                 }
-            }, 100);
+            }, 150);
         });
     }
+
+    /* ========================================================================
+       API PUBBLICA (opzionale - per debugging)
+       ======================================================================== */
+
+    // Esponi API globale per debugging in console
+    window.bwSmartHeader = {
+        version: '2.0.0',
+        config: CONFIG,
+        show: showHeader,
+        hide: hideHeader,
+        getState: function() {
+            return {
+                scrollTop: lastScrollTop,
+                direction: scrollDirection,
+                isVisible: headerElement ? headerElement.hasClass('visible') : null,
+                isHidden: headerElement ? headerElement.hasClass('hidden') : null,
+                hasBlur: headerElement ? headerElement.hasClass('scrolled') : null
+            };
+        }
+    };
 
 })(jQuery);
