@@ -50,6 +50,11 @@
 }
 
 /* BW Search Overlay */
+/*
+ * L'overlay viene automaticamente spostato nel body via JavaScript
+ * per garantire che non sia vincolato da contenitori parent (es. navigation)
+ * e possa sempre aprirsi in fullscreen.
+ */
 .bw-search-overlay {
     position: fixed;
     top: 0;
