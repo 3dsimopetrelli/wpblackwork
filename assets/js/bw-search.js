@@ -16,7 +16,26 @@
 
             this.isOpen = false;
 
+            // Move overlay to body to ensure it's not constrained by parent containers
+            this.moveOverlayToBody();
+
             this.init();
+        }
+
+        /**
+         * Sposta l'overlay nel body per evitare vincoli di posizionamento
+         * dal contenitore padre (es. navigation con overflow hidden)
+         */
+        moveOverlayToBody() {
+            if (this.$overlay.length && this.$overlay.parent()[0].tagName !== 'BODY') {
+                // Aggiungi un attributo data per identificare a quale widget appartiene
+                const widgetId = 'bw-search-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+                this.$overlay.attr('data-widget-id', widgetId);
+                this.$element.attr('data-widget-id', widgetId);
+
+                // Sposta l'overlay nel body
+                this.$overlay.appendTo('body');
+            }
         }
 
         init() {
@@ -104,6 +123,28 @@
             setTimeout(() => {
                 this.closeOverlay();
             }, 100);
+        }
+
+        /**
+         * Cleanup quando il widget viene distrutto
+         */
+        destroy() {
+            // Remove overlay from body if it was moved there
+            if (this.$overlay.length && this.$overlay.parent()[0].tagName === 'BODY') {
+                this.$overlay.remove();
+            }
+
+            // Remove event listeners
+            this.$button.off('click');
+            this.$closeButton.off('click');
+            this.$overlay.off('click');
+            this.$form.off('submit');
+            $(document).off('keydown', this.onKeyDown);
+
+            // Remove body class if active
+            if (this.isOpen) {
+                $('body').removeClass('bw-search-overlay-active');
+            }
         }
     }
 
