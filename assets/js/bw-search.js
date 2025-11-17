@@ -215,8 +215,138 @@
                     new BWSearchWidget($scope[0]);
                     $scope.data('bw-search-initialized', true);
                 }
+
+                // Live update in Elementor editor
+                if (typeof elementor !== 'undefined') {
+                    setupLiveUpdate($scope);
+                }
             });
         }
     });
+
+    /**
+     * Setup live update for Elementor editor
+     */
+    function setupLiveUpdate($scope) {
+        const widgetId = $scope.data('id');
+        if (!widgetId) return;
+
+        const $overlay = $('body').find('.bw-search-overlay[data-widget-id="' + widgetId + '"]');
+        if (!$overlay.length) {
+            // Fallback to overlay inside scope
+            $overlay = $scope.find('.bw-search-overlay');
+        }
+
+        // Helper to update element text
+        const updateText = (selector, value) => {
+            const $el = $overlay.find(selector);
+            if ($el.length) {
+                if ($el.is('input')) {
+                    $el.attr('placeholder', value);
+                } else {
+                    $el.text(value);
+                }
+            }
+        };
+
+        // Helper to toggle element visibility
+        const toggleElement = (selector, show) => {
+            const $el = $overlay.find(selector);
+            if ($el.length) {
+                if (show) {
+                    $el.show();
+                } else {
+                    $el.hide();
+                }
+            }
+        };
+
+        // Helper to update categories
+        const updateCategories = (categoryIds) => {
+            const $filters = $overlay.find('.bw-search-overlay__filters');
+
+            if (!categoryIds || categoryIds.length === 0) {
+                $filters.parent().hide();
+                return;
+            }
+
+            // Show filters container
+            $filters.parent().show();
+
+            // Get all current category buttons
+            const $currentButtons = $filters.find('.bw-category-filter');
+            const currentIds = $currentButtons.map(function() {
+                return $(this).data('category-id').toString();
+            }).get();
+
+            // Check if order has changed
+            const idsChanged = JSON.stringify(categoryIds) !== JSON.stringify(currentIds);
+
+            if (idsChanged) {
+                // Reorder buttons according to new categoryIds
+                const $newButtons = [];
+                categoryIds.forEach(id => {
+                    const $btn = $currentButtons.filter('[data-category-id="' + id + '"]');
+                    if ($btn.length) {
+                        $newButtons.push($btn[0]);
+                    }
+                });
+
+                // Clear and re-append in new order
+                $filters.empty();
+                $newButtons.forEach(btn => {
+                    $filters.append(btn);
+                });
+            }
+        };
+
+        // Listen to Elementor settings changes
+        elementor.channels.editor.on('change', function(controlView) {
+            const elementView = controlView.container.view;
+
+            // Check if this is our widget
+            if (elementView.model.id !== widgetId) {
+                return;
+            }
+
+            const controlName = controlView.model.get('name');
+            const value = elementView.model.getSetting(controlName);
+
+            switch (controlName) {
+                case 'popup_header_text':
+                    updateText('.bw-search-overlay__title', value);
+                    break;
+
+                case 'popup_placeholder':
+                    updateText('.bw-search-overlay__input', value);
+                    break;
+
+                case 'popup_hint_text':
+                    updateText('.bw-search-overlay__hint', value);
+                    break;
+
+                case 'show_header_text':
+                    toggleElement('.bw-search-overlay__title', value === 'yes');
+                    break;
+
+                case 'show_hint_text':
+                    toggleElement('.bw-search-overlay__hint', value === 'yes');
+                    break;
+
+                case 'category_ids':
+                    updateCategories(value);
+                    break;
+
+                case 'enable_category_filters':
+                    const categoryIds = elementView.model.getSetting('category_ids');
+                    if (value === 'yes' && categoryIds && categoryIds.length > 0) {
+                        $overlay.find('.bw-search-overlay__filters').parent().show();
+                    } else {
+                        $overlay.find('.bw-search-overlay__filters').parent().hide();
+                    }
+                    break;
+            }
+        });
+    }
 
 })(jQuery);

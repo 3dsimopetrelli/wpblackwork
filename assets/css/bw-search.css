@@ -85,7 +85,7 @@
     position: relative;
     width: 100%;
     min-height: 100%;
-    padding: 40px 20px;
+    padding: 40px 2%;
     box-sizing: border-box;
 }
 
@@ -142,7 +142,7 @@
 
 /* Input Section */
 .bw-search-overlay__form {
-    margin-bottom: 20px;
+    /* No margin, content flows naturally */
 }
 
 .bw-search-overlay__input-wrapper {
@@ -176,7 +176,7 @@
 .bw-search-overlay__hint {
     font-size: 16px;
     color: #808080;
-    margin: 16px 0 0 0;
+    margin: 16px 0 24px 0;
     text-align: left;
     line-height: 1.5;
 }
@@ -204,7 +204,7 @@
     }
 
     .bw-search-overlay__container {
-        padding: 20px 16px;
+        padding: 20px 2%;
     }
 }
 

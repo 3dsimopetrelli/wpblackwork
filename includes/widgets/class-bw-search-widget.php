@@ -79,6 +79,18 @@ class BW_Search_Widget extends Widget_Base {
         );
 
         $this->add_control(
+            'show_header_text',
+            [
+                'label'        => __( 'Show Header Text', 'bw' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'label_on'     => __( 'Yes', 'bw' ),
+                'label_off'    => __( 'No', 'bw' ),
+                'return_value' => 'yes',
+                'default'      => 'yes',
+            ]
+        );
+
+        $this->add_control(
             'popup_header_text',
             [
                 'label'       => __( 'Header Text', 'bw' ),
@@ -86,6 +98,9 @@ class BW_Search_Widget extends Widget_Base {
                 'default'     => __( "Type what you're looking for", 'bw' ),
                 'placeholder' => __( 'Enter header text', 'bw' ),
                 'label_block' => true,
+                'condition'   => [
+                    'show_header_text' => 'yes',
+                ],
             ]
         );
 
@@ -101,6 +116,18 @@ class BW_Search_Widget extends Widget_Base {
         );
 
         $this->add_control(
+            'show_hint_text',
+            [
+                'label'        => __( 'Show Hint Text', 'bw' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'label_on'     => __( 'Yes', 'bw' ),
+                'label_off'    => __( 'No', 'bw' ),
+                'return_value' => 'yes',
+                'default'      => 'yes',
+            ]
+        );
+
+        $this->add_control(
             'popup_hint_text',
             [
                 'label'       => __( 'Hint Text', 'bw' ),
@@ -108,6 +135,9 @@ class BW_Search_Widget extends Widget_Base {
                 'default'     => __( 'Hit enter to search or ESC to close', 'bw' ),
                 'placeholder' => __( 'Enter hint text', 'bw' ),
                 'label_block' => true,
+                'condition'   => [
+                    'show_hint_text' => 'yes',
+                ],
             ]
         );
 
@@ -908,6 +938,10 @@ class BW_Search_Widget extends Widget_Base {
     }
 
     private function render_search_overlay( $settings ) {
+        // Get show/hide settings
+        $show_header_text = isset( $settings['show_header_text'] ) && 'yes' === $settings['show_header_text'];
+        $show_hint_text = isset( $settings['show_hint_text'] ) && 'yes' === $settings['show_hint_text'];
+
         // Get custom texts
         $header_text = isset( $settings['popup_header_text'] ) && '' !== trim( $settings['popup_header_text'] )
             ? $settings['popup_header_text']
@@ -933,21 +967,36 @@ class BW_Search_Widget extends Widget_Base {
 
             if ( ! empty( $category_ids ) ) {
                 // Get specific categories by ID
-                $categories = get_terms([
+                $categories_raw = get_terms([
                     'taxonomy'   => 'product_cat',
                     'include'    => $category_ids,
                     'hide_empty' => false,
                 ]);
+
+                // Preserve the order from category_ids
+                if ( ! is_wp_error( $categories_raw ) && ! empty( $categories_raw ) ) {
+                    $categories = [];
+                    foreach ( $category_ids as $cat_id ) {
+                        foreach ( $categories_raw as $cat ) {
+                            if ( $cat->term_id == $cat_id ) {
+                                $categories[] = $cat;
+                                break;
+                            }
+                        }
+                    }
+                } else {
+                    $categories = [];
+                }
             } else {
                 // Get all categories
                 $categories = get_terms([
                     'taxonomy'   => 'product_cat',
                     'hide_empty' => false,
                 ]);
-            }
 
-            if ( is_wp_error( $categories ) ) {
-                $categories = [];
+                if ( is_wp_error( $categories ) ) {
+                    $categories = [];
+                }
             }
         }
 
@@ -964,7 +1013,9 @@ class BW_Search_Widget extends Widget_Base {
                 </button>
 
                 <div class="bw-search-overlay__content">
-                    <h2 class="bw-search-overlay__title"><?php echo esc_html( $header_text ); ?></h2>
+                    <?php if ( $show_header_text ) : ?>
+                        <h2 class="bw-search-overlay__title" data-setting="popup_header_text"><?php echo esc_html( $header_text ); ?></h2>
+                    <?php endif; ?>
 
                     <form class="bw-search-overlay__form" role="search" method="get" action="<?php echo esc_url( home_url( '/' ) ); ?>">
                         <div class="bw-search-overlay__input-wrapper">
@@ -973,13 +1024,18 @@ class BW_Search_Widget extends Widget_Base {
                                 name="s"
                                 class="bw-search-overlay__input"
                                 placeholder="<?php echo esc_attr( $placeholder ); ?>"
+                                data-setting="popup_placeholder"
                                 aria-label="<?php esc_attr_e( 'Search', 'bw' ); ?>"
                                 autocomplete="off"
                             />
                         </div>
 
+                        <?php if ( $show_hint_text ) : ?>
+                            <p class="bw-search-overlay__hint" data-setting="popup_hint_text"><?php echo esc_html( $hint_text ); ?></p>
+                        <?php endif; ?>
+
                         <?php if ( $enable_filters && ! empty( $categories ) ) : ?>
-                            <div class="bw-search-overlay__filters">
+                            <div class="bw-search-overlay__filters" data-setting="category_ids">
                                 <?php foreach ( $categories as $category ) : ?>
                                     <button
                                         type="button"
@@ -994,8 +1050,6 @@ class BW_Search_Widget extends Widget_Base {
                             <input type="hidden" name="product_cat" class="bw-selected-category" value="" />
                         <?php endif; ?>
                     </form>
-
-                    <p class="bw-search-overlay__hint"><?php echo esc_html( $hint_text ); ?></p>
                 </div>
             </div>
         </div>
