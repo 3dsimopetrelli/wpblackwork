@@ -13,11 +13,13 @@
             this.$closeButton = this.$overlay.find('.bw-search-overlay__close');
             this.$input = this.$overlay.find('.bw-search-overlay__input');
             this.$form = this.$overlay.find('.bw-search-overlay__form');
+            this.$filtersContainer = this.$overlay.find('.bw-search-overlay__filters');
             this.$categoryFilters = this.$overlay.find('.bw-category-filter');
             this.$selectedCategoryInput = this.$overlay.find('.bw-selected-category');
 
             this.isOpen = false;
-            this.selectedCategory = null;
+            this.selectedCategories = [];
+            this.multiSelectEnabled = this.$filtersContainer.data('multi-select') === 'yes';
 
             // Move overlay to body to ensure it's not constrained by parent containers
             this.moveOverlayToBody();
@@ -153,25 +155,45 @@
             const $clickedButton = $(e.currentTarget);
             const categorySlug = $clickedButton.data('category-slug');
 
-            // If clicking the already active button, deactivate it
-            if ($clickedButton.hasClass('is-active')) {
-                this.clearCategoryFilter();
+            if (this.multiSelectEnabled) {
+                // Multi-selection mode
+                if ($clickedButton.hasClass('is-active')) {
+                    // Remove from selection
+                    $clickedButton.removeClass('is-active');
+                    const index = this.selectedCategories.indexOf(categorySlug);
+                    if (index > -1) {
+                        this.selectedCategories.splice(index, 1);
+                    }
+                } else {
+                    // Add to selection
+                    $clickedButton.addClass('is-active');
+                    this.selectedCategories.push(categorySlug);
+                }
+
+                // Update hidden input with comma-separated values
+                this.$selectedCategoryInput.val(this.selectedCategories.join(','));
             } else {
-                // Remove active class from all buttons
-                this.$categoryFilters.removeClass('is-active');
+                // Single selection mode
+                if ($clickedButton.hasClass('is-active')) {
+                    // Deactivate if already active
+                    this.clearCategoryFilter();
+                } else {
+                    // Remove active class from all buttons
+                    this.$categoryFilters.removeClass('is-active');
 
-                // Add active class to clicked button
-                $clickedButton.addClass('is-active');
+                    // Add active class to clicked button
+                    $clickedButton.addClass('is-active');
 
-                // Update hidden input
-                this.selectedCategory = categorySlug;
-                this.$selectedCategoryInput.val(categorySlug);
+                    // Update selection
+                    this.selectedCategories = [categorySlug];
+                    this.$selectedCategoryInput.val(categorySlug);
+                }
             }
         }
 
         clearCategoryFilter() {
             this.$categoryFilters.removeClass('is-active');
-            this.selectedCategory = null;
+            this.selectedCategories = [];
             this.$selectedCategoryInput.val('');
         }
 
