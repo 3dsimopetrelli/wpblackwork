@@ -28,7 +28,6 @@
             this.multiSelectEnabled = this.$filtersContainer.data('multi-select') === 'yes';
             this.searchTimeout = null;
             this.ajaxRequest = null;
-            this.masonryInstance = null;
 
             // Move overlay to body to ensure it's not constrained by parent containers
             this.moveOverlayToBody();
@@ -289,7 +288,7 @@
         }
 
         /**
-         * Renderizza i risultati con layout masonry
+         * Renderizza i risultati con layout CSS Grid
          */
         renderResults(products, message) {
             // Nascondi messaggio
@@ -301,12 +300,6 @@
                 this.$resultsGrid.empty();
                 this.$resultsContainer.addClass('is-visible');
                 return;
-            }
-
-            // Distruggi istanza masonry precedente se esiste
-            if (this.masonryInstance) {
-                this.masonryInstance.destroy();
-                this.masonryInstance = null;
             }
 
             // Svuota il grid
@@ -333,17 +326,6 @@
 
             // Mostra il container dei risultati con fade-in
             this.$resultsContainer.addClass('is-visible');
-
-            // Inizializza masonry dopo che le immagini sono caricate
-            this.$resultsGrid.imagesLoaded(() => {
-                this.masonryInstance = this.$resultsGrid.masonry({
-                    itemSelector: '.bw-product-card',
-                    columnWidth: '.bw-product-card',
-                    percentPosition: true,
-                    transitionDuration: '0.3s',
-                    gutter: 20
-                });
-            });
         }
 
         /**
@@ -375,12 +357,6 @@
             this.$resultsContainer.removeClass('is-visible');
             this.$resultsGrid.empty();
             this.$resultsMessage.hide().text('');
-
-            // Distruggi istanza masonry se esiste
-            if (this.masonryInstance) {
-                this.masonryInstance.destroy();
-                this.masonryInstance = null;
-            }
         }
 
         /**
