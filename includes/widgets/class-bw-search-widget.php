@@ -521,6 +521,25 @@ class BW_Search_Widget extends Widget_Base {
         );
 
         $this->add_control(
+            'popup_input_enable_border',
+            [
+                'label'        => __( 'Enable Input Border', 'bw' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'label_on'     => __( 'Yes', 'bw' ),
+                'label_off'    => __( 'No', 'bw' ),
+                'return_value' => 'yes',
+                'default'      => 'yes',
+                'separator'    => 'before',
+                'selectors_dictionary' => [
+                    '' => 'border-bottom-width: 0 !important;',
+                ],
+                'selectors' => [
+                    '{{WRAPPER}} .bw-search-overlay__input-wrapper, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__input-wrapper' => '{{VALUE}}',
+                ],
+            ]
+        );
+
+        $this->add_control(
             'popup_input_border_color',
             [
                 'label'     => __( 'Input Border Color', 'bw' ),
@@ -528,6 +547,9 @@ class BW_Search_Widget extends Widget_Base {
                 'default'   => '#080808',
                 'selectors' => [
                     '{{WRAPPER}} .bw-search-overlay__input-wrapper, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__input-wrapper' => 'border-bottom-color: {{VALUE}};',
+                ],
+                'condition' => [
+                    'popup_input_enable_border' => 'yes',
                 ],
             ]
         );
@@ -545,42 +567,52 @@ class BW_Search_Widget extends Widget_Base {
                 'selectors'  => [
                     '{{WRAPPER}} .bw-search-overlay__input-wrapper, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__input-wrapper' => 'border-bottom-width: {{SIZE}}{{UNIT}};',
                 ],
+                'condition' => [
+                    'popup_input_enable_border' => 'yes',
+                ],
             ]
         );
 
         $this->add_responsive_control(
-            'popup_input_padding_left',
+            'popup_input_padding',
             [
-                'label'      => __( 'Input Padding Left', 'bw' ),
-                'type'       => Controls_Manager::SLIDER,
-                'size_units' => [ 'px', '%' ],
-                'range'      => [
-                    'px' => [ 'min' => 0, 'max' => 100, 'step' => 1 ],
-                    '%'  => [ 'min' => 0, 'max' => 20, 'step' => 0.5 ],
+                'label'      => __( 'Input Padding', 'bw' ),
+                'type'       => Controls_Manager::DIMENSIONS,
+                'size_units' => [ 'px', '%', 'em' ],
+                'default'    => [
+                    'top'    => 0,
+                    'right'  => 2,
+                    'bottom' => 0,
+                    'left'   => 2,
+                    'unit'   => '%',
+                    'isLinked' => false,
                 ],
-                'default'    => [ 'size' => 2, 'unit' => '%' ],
                 'selectors'  => [
-                    '{{WRAPPER}} .bw-search-overlay__input-wrapper, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__input-wrapper' => 'padding-left: {{SIZE}}{{UNIT}};',
+                    '{{WRAPPER}} .bw-search-overlay__input-wrapper, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__input-wrapper' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
-                'description' => __( 'Adjust horizontal spacing inside the search input container', 'bw' ),
+                'description' => __( 'Adjust padding inside the search input container. Use this to control spacing and achieve full-width layouts.', 'bw' ),
+                'separator'   => 'before',
             ]
         );
 
         $this->add_responsive_control(
-            'popup_input_padding_right',
+            'popup_input_margin',
             [
-                'label'      => __( 'Input Padding Right', 'bw' ),
-                'type'       => Controls_Manager::SLIDER,
-                'size_units' => [ 'px', '%' ],
-                'range'      => [
-                    'px' => [ 'min' => 0, 'max' => 100, 'step' => 1 ],
-                    '%'  => [ 'min' => 0, 'max' => 20, 'step' => 0.5 ],
+                'label'      => __( 'Input Margin', 'bw' ),
+                'type'       => Controls_Manager::DIMENSIONS,
+                'size_units' => [ 'px', '%', 'em' ],
+                'default'    => [
+                    'top'    => 0,
+                    'right'  => 0,
+                    'bottom' => 0,
+                    'left'   => 0,
+                    'unit'   => 'px',
+                    'isLinked' => true,
                 ],
-                'default'    => [ 'size' => 2, 'unit' => '%' ],
                 'selectors'  => [
-                    '{{WRAPPER}} .bw-search-overlay__input-wrapper, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__input-wrapper' => 'padding-right: {{SIZE}}{{UNIT}};',
+                    '{{WRAPPER}} .bw-search-overlay__input-wrapper, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__input-wrapper' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
-                'description' => __( 'Adjust horizontal spacing inside the search input container', 'bw' ),
+                'description' => __( 'Adjust margin around the search input container to align it with other elements like the hint text.', 'bw' ),
             ]
         );
 
@@ -963,6 +995,34 @@ class BW_Search_Widget extends Widget_Base {
                 'selectors'  => [
                     '{{WRAPPER}} .bw-category-filter, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-category-filter' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'category_buttons_alignment',
+            [
+                'label'        => __( 'Buttons Alignment', 'bw' ),
+                'type'         => Controls_Manager::CHOOSE,
+                'options'      => [
+                    'left'   => [
+                        'title' => __( 'Left', 'bw' ),
+                        'icon'  => 'eicon-text-align-left',
+                    ],
+                    'center' => [
+                        'title' => __( 'Center', 'bw' ),
+                        'icon'  => 'eicon-text-align-center',
+                    ],
+                    'right'  => [
+                        'title' => __( 'Right', 'bw' ),
+                        'icon'  => 'eicon-text-align-right',
+                    ],
+                ],
+                'default'      => 'left',
+                'selectors'    => [
+                    '{{WRAPPER}} .bw-search-overlay__filters, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__filters' => 'text-align: {{VALUE}};',
+                ],
+                'separator'    => 'before',
+                'toggle'       => false,
             ]
         );
 
