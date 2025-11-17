@@ -13,8 +13,11 @@
             this.$closeButton = this.$overlay.find('.bw-search-overlay__close');
             this.$input = this.$overlay.find('.bw-search-overlay__input');
             this.$form = this.$overlay.find('.bw-search-overlay__form');
+            this.$categoryFilters = this.$overlay.find('.bw-category-filter');
+            this.$selectedCategoryInput = this.$overlay.find('.bw-selected-category');
 
             this.isOpen = false;
+            this.selectedCategory = null;
 
             // Move overlay to body to ensure it's not constrained by parent containers
             this.moveOverlayToBody();
@@ -44,6 +47,7 @@
             this.$closeButton.on('click', this.closeOverlay.bind(this));
             this.$overlay.on('click', this.onOverlayClick.bind(this));
             this.$form.on('submit', this.onFormSubmit.bind(this));
+            this.$categoryFilters.on('click', this.onCategoryFilterClick.bind(this));
 
             // Keyboard events
             $(document).on('keydown', this.onKeyDown.bind(this));
@@ -89,8 +93,9 @@
             // Allow body scroll
             $('body').removeClass('bw-search-overlay-active');
 
-            // Clear input
+            // Clear input and filters
             this.$input.val('');
+            this.clearCategoryFilter();
         }
 
         onOverlayClick(e) {
@@ -125,6 +130,33 @@
             }, 100);
         }
 
+        onCategoryFilterClick(e) {
+            e.preventDefault();
+            const $clickedButton = $(e.currentTarget);
+            const categorySlug = $clickedButton.data('category-slug');
+
+            // If clicking the already active button, deactivate it
+            if ($clickedButton.hasClass('is-active')) {
+                this.clearCategoryFilter();
+            } else {
+                // Remove active class from all buttons
+                this.$categoryFilters.removeClass('is-active');
+
+                // Add active class to clicked button
+                $clickedButton.addClass('is-active');
+
+                // Update hidden input
+                this.selectedCategory = categorySlug;
+                this.$selectedCategoryInput.val(categorySlug);
+            }
+        }
+
+        clearCategoryFilter() {
+            this.$categoryFilters.removeClass('is-active');
+            this.selectedCategory = null;
+            this.$selectedCategoryInput.val('');
+        }
+
         /**
          * Cleanup quando il widget viene distrutto
          */
@@ -139,6 +171,7 @@
             this.$closeButton.off('click');
             this.$overlay.off('click');
             this.$form.off('submit');
+            this.$categoryFilters.off('click');
             $(document).off('keydown', this.onKeyDown);
 
             // Remove body class if active

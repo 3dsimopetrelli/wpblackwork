@@ -47,10 +47,11 @@ class BW_Search_Widget extends Widget_Base {
     }
 
     private function register_content_controls() {
+        // Button Settings
         $this->start_controls_section(
             'section_content',
             [
-                'label' => __( 'Settings', 'bw' ),
+                'label' => __( 'Button Settings', 'bw' ),
                 'tab'   => Controls_Manager::TAB_CONTENT,
             ]
         );
@@ -63,6 +64,87 @@ class BW_Search_Widget extends Widget_Base {
                 'default'     => __( 'Search', 'bw' ),
                 'placeholder' => __( 'Enter button label', 'bw' ),
                 'label_block' => true,
+            ]
+        );
+
+        $this->end_controls_section();
+
+        // Popup Content Settings
+        $this->start_controls_section(
+            'section_popup_content',
+            [
+                'label' => __( 'Popup Content', 'bw' ),
+                'tab'   => Controls_Manager::TAB_CONTENT,
+            ]
+        );
+
+        $this->add_control(
+            'popup_header_text',
+            [
+                'label'       => __( 'Header Text', 'bw' ),
+                'type'        => Controls_Manager::TEXT,
+                'default'     => __( "Type what you're looking for", 'bw' ),
+                'placeholder' => __( 'Enter header text', 'bw' ),
+                'label_block' => true,
+            ]
+        );
+
+        $this->add_control(
+            'popup_placeholder',
+            [
+                'label'       => __( 'Search Placeholder', 'bw' ),
+                'type'        => Controls_Manager::TEXT,
+                'default'     => __( 'Type...', 'bw' ),
+                'placeholder' => __( 'Enter placeholder text', 'bw' ),
+                'label_block' => true,
+            ]
+        );
+
+        $this->add_control(
+            'popup_hint_text',
+            [
+                'label'       => __( 'Hint Text', 'bw' ),
+                'type'        => Controls_Manager::TEXT,
+                'default'     => __( 'Hit enter to search or ESC to close', 'bw' ),
+                'placeholder' => __( 'Enter hint text', 'bw' ),
+                'label_block' => true,
+            ]
+        );
+
+        $this->end_controls_section();
+
+        // Category Filters Settings
+        $this->start_controls_section(
+            'section_category_filters',
+            [
+                'label' => __( 'Category Filters', 'bw' ),
+                'tab'   => Controls_Manager::TAB_CONTENT,
+            ]
+        );
+
+        $this->add_control(
+            'enable_category_filters',
+            [
+                'label'        => __( 'Enable Category Filters', 'bw' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'label_on'     => __( 'Yes', 'bw' ),
+                'label_off'    => __( 'No', 'bw' ),
+                'return_value' => 'yes',
+                'default'      => 'no',
+            ]
+        );
+
+        $this->add_control(
+            'category_ids',
+            [
+                'label'       => __( 'Category IDs', 'bw' ),
+                'type'        => Controls_Manager::TEXT,
+                'placeholder' => __( 'e.g., 12, 15, 23 (leave empty for all categories)', 'bw' ),
+                'description' => __( 'Enter comma-separated category IDs. Leave empty to show all categories.', 'bw' ),
+                'label_block' => true,
+                'condition'   => [
+                    'enable_category_filters' => 'yes',
+                ],
             ]
         );
 
@@ -264,6 +346,528 @@ class BW_Search_Widget extends Widget_Base {
         );
 
         $this->end_controls_section();
+
+        // Popup Style Section
+        $this->start_controls_section(
+            'section_popup_style',
+            [
+                'label' => __( 'Popup Style', 'bw' ),
+                'tab'   => Controls_Manager::TAB_STYLE,
+            ]
+        );
+
+        $this->add_control(
+            'popup_background_color',
+            [
+                'label'     => __( 'Background Color', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#FFFFFF',
+                'selectors' => [
+                    'body .bw-search-overlay[data-widget-id="{{ID}}"]' => 'background-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'popup_padding',
+            [
+                'label'      => __( 'Padding', 'bw' ),
+                'type'       => Controls_Manager::DIMENSIONS,
+                'size_units' => [ 'px', 'em', '%' ],
+                'default'    => [
+                    'top'    => 40,
+                    'right'  => 20,
+                    'bottom' => 40,
+                    'left'   => 20,
+                    'unit'   => 'px',
+                ],
+                'selectors'  => [
+                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__container' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'heading_popup_header',
+            [
+                'label'     => __( 'Header Typography', 'bw' ),
+                'type'      => Controls_Manager::HEADING,
+                'separator' => 'before',
+            ]
+        );
+
+        $this->add_group_control(
+            Group_Control_Typography::get_type(),
+            [
+                'name'     => 'popup_header_typography',
+                'selector' => 'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__title',
+            ]
+        );
+
+        $this->add_control(
+            'popup_header_color',
+            [
+                'label'     => __( 'Header Color', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#000000',
+                'selectors' => [
+                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__title' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'heading_popup_input',
+            [
+                'label'     => __( 'Search Input', 'bw' ),
+                'type'      => Controls_Manager::HEADING,
+                'separator' => 'before',
+            ]
+        );
+
+        $this->add_group_control(
+            Group_Control_Typography::get_type(),
+            [
+                'name'     => 'popup_input_typography',
+                'selector' => 'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__input',
+            ]
+        );
+
+        $this->add_control(
+            'popup_input_color',
+            [
+                'label'     => __( 'Input Text Color', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#080808',
+                'selectors' => [
+                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__input' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'popup_input_placeholder_color',
+            [
+                'label'     => __( 'Placeholder Color', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#C0C0C0',
+                'selectors' => [
+                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__input::placeholder' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'popup_input_border_color',
+            [
+                'label'     => __( 'Input Border Color', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#080808',
+                'selectors' => [
+                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__input-wrapper' => 'border-bottom-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'popup_input_border_width',
+            [
+                'label'      => __( 'Input Border Width', 'bw' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px' ],
+                'range'      => [
+                    'px' => [ 'min' => 0, 'max' => 10, 'step' => 1 ],
+                ],
+                'default'    => [ 'size' => 1, 'unit' => 'px' ],
+                'selectors'  => [
+                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__input-wrapper' => 'border-bottom-width: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'heading_popup_hint',
+            [
+                'label'     => __( 'Hint Text', 'bw' ),
+                'type'      => Controls_Manager::HEADING,
+                'separator' => 'before',
+            ]
+        );
+
+        $this->add_group_control(
+            Group_Control_Typography::get_type(),
+            [
+                'name'     => 'popup_hint_typography',
+                'selector' => 'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__hint',
+            ]
+        );
+
+        $this->add_control(
+            'popup_hint_color',
+            [
+                'label'     => __( 'Hint Color', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#606060',
+                'selectors' => [
+                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__hint' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'heading_close_button',
+            [
+                'label'     => __( 'Close Button', 'bw' ),
+                'type'      => Controls_Manager::HEADING,
+                'separator' => 'before',
+            ]
+        );
+
+        $this->add_control(
+            'close_button_color',
+            [
+                'label'     => __( 'Icon Color', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#080808',
+                'selectors' => [
+                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__close' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'close_button_background',
+            [
+                'label'     => __( 'Background Color', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => 'transparent',
+                'selectors' => [
+                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__close' => 'background-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'close_button_border_color',
+            [
+                'label'     => __( 'Border Color', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#000000',
+                'selectors' => [
+                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__close' => 'border-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'close_button_border_width',
+            [
+                'label'      => __( 'Border Width', 'bw' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px' ],
+                'range'      => [
+                    'px' => [ 'min' => 0, 'max' => 5, 'step' => 1 ],
+                ],
+                'default'    => [ 'size' => 1, 'unit' => 'px' ],
+                'selectors'  => [
+                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__close' => 'border-width: {{SIZE}}{{UNIT}}; border-style: solid;',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'close_button_border_radius',
+            [
+                'label'      => __( 'Border Radius', 'bw' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px', '%' ],
+                'range'      => [
+                    'px' => [ 'min' => 0, 'max' => 100, 'step' => 1 ],
+                    '%'  => [ 'min' => 0, 'max' => 100 ],
+                ],
+                'default'    => [ 'size' => 50, 'unit' => '%' ],
+                'selectors'  => [
+                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__close' => 'border-radius: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->start_controls_tabs( 'tabs_close_button_hover' );
+
+        $this->start_controls_tab(
+            'tab_close_button_hover',
+            [
+                'label' => __( 'Hover', 'bw' ),
+            ]
+        );
+
+        $this->add_control(
+            'close_button_color_hover',
+            [
+                'label'     => __( 'Icon Color', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'selectors' => [
+                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__close:hover' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'close_button_background_hover',
+            [
+                'label'     => __( 'Background Color', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#E8E8E8',
+                'selectors' => [
+                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__close:hover' => 'background-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'close_button_border_color_hover',
+            [
+                'label'     => __( 'Border Color', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'selectors' => [
+                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__close:hover' => 'border-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->end_controls_tab();
+        $this->end_controls_tabs();
+
+        $this->end_controls_section();
+
+        // Category Buttons Style Section
+        $this->start_controls_section(
+            'section_category_buttons_style',
+            [
+                'label'     => __( 'Category Buttons Style', 'bw' ),
+                'tab'       => Controls_Manager::TAB_STYLE,
+                'condition' => [
+                    'enable_category_filters' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_group_control(
+            Group_Control_Typography::get_type(),
+            [
+                'name'     => 'category_button_typography',
+                'selector' => 'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-category-filter',
+            ]
+        );
+
+        $this->start_controls_tabs( 'tabs_category_button_colors' );
+
+        $this->start_controls_tab(
+            'tab_category_button_normal',
+            [
+                'label' => __( 'Normal', 'bw' ),
+            ]
+        );
+
+        $this->add_control(
+            'category_button_text_color',
+            [
+                'label'     => __( 'Text Color', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#000000',
+                'selectors' => [
+                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-category-filter' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'category_button_background_color',
+            [
+                'label'     => __( 'Background Color', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#FFFFFF',
+                'selectors' => [
+                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-category-filter' => 'background-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'category_button_border_color',
+            [
+                'label'     => __( 'Border Color', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#000000',
+                'selectors' => [
+                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-category-filter' => 'border-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->end_controls_tab();
+
+        $this->start_controls_tab(
+            'tab_category_button_hover',
+            [
+                'label' => __( 'Hover', 'bw' ),
+            ]
+        );
+
+        $this->add_control(
+            'category_button_text_color_hover',
+            [
+                'label'     => __( 'Text Color', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'selectors' => [
+                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-category-filter:hover' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'category_button_background_color_hover',
+            [
+                'label'     => __( 'Background Color', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'selectors' => [
+                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-category-filter:hover' => 'background-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'category_button_border_color_hover',
+            [
+                'label'     => __( 'Border Color', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'selectors' => [
+                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-category-filter:hover' => 'border-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->end_controls_tab();
+
+        $this->start_controls_tab(
+            'tab_category_button_active',
+            [
+                'label' => __( 'Active', 'bw' ),
+            ]
+        );
+
+        $this->add_control(
+            'category_button_text_color_active',
+            [
+                'label'     => __( 'Text Color', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#FFFFFF',
+                'selectors' => [
+                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-category-filter.is-active' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'category_button_background_color_active',
+            [
+                'label'     => __( 'Background Color', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#000000',
+                'selectors' => [
+                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-category-filter.is-active' => 'background-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'category_button_border_color_active',
+            [
+                'label'     => __( 'Border Color', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#000000',
+                'selectors' => [
+                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-category-filter.is-active' => 'border-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->end_controls_tab();
+        $this->end_controls_tabs();
+
+        $this->add_control(
+            'category_button_border_width',
+            [
+                'label'      => __( 'Border Width', 'bw' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px' ],
+                'range'      => [
+                    'px' => [ 'min' => 0, 'max' => 5, 'step' => 1 ],
+                ],
+                'default'    => [ 'size' => 1, 'unit' => 'px' ],
+                'selectors'  => [
+                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-category-filter' => 'border-width: {{SIZE}}{{UNIT}};',
+                ],
+                'separator'  => 'before',
+            ]
+        );
+
+        $this->add_responsive_control(
+            'category_button_border_radius',
+            [
+                'label'      => __( 'Border Radius', 'bw' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px', '%' ],
+                'range'      => [
+                    'px' => [ 'min' => 0, 'max' => 50, 'step' => 1 ],
+                    '%'  => [ 'min' => 0, 'max' => 100 ],
+                ],
+                'default'    => [ 'size' => 4, 'unit' => 'px' ],
+                'selectors'  => [
+                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-category-filter' => 'border-radius: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'category_button_padding',
+            [
+                'label'      => __( 'Padding', 'bw' ),
+                'type'       => Controls_Manager::DIMENSIONS,
+                'size_units' => [ 'px', 'em', '%' ],
+                'default'    => [
+                    'top'    => 10,
+                    'right'  => 20,
+                    'bottom' => 10,
+                    'left'   => 20,
+                    'unit'   => 'px',
+                ],
+                'selectors'  => [
+                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-category-filter' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'category_button_margin',
+            [
+                'label'      => __( 'Margin', 'bw' ),
+                'type'       => Controls_Manager::DIMENSIONS,
+                'size_units' => [ 'px', 'em', '%' ],
+                'default'    => [
+                    'top'    => 0,
+                    'right'  => 8,
+                    'bottom' => 8,
+                    'left'   => 0,
+                    'unit'   => 'px',
+                ],
+                'selectors'  => [
+                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-category-filter' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->end_controls_section();
     }
 
     protected function render() {
@@ -285,12 +889,56 @@ class BW_Search_Widget extends Widget_Base {
         );
 
         // Render overlay
-        $this->render_search_overlay();
+        $this->render_search_overlay( $settings );
     }
 
-    private function render_search_overlay() {
+    private function render_search_overlay( $settings ) {
+        // Get custom texts
+        $header_text = isset( $settings['popup_header_text'] ) && '' !== trim( $settings['popup_header_text'] )
+            ? $settings['popup_header_text']
+            : __( "Type what you're looking for", 'bw' );
+
+        $placeholder = isset( $settings['popup_placeholder'] ) && '' !== trim( $settings['popup_placeholder'] )
+            ? $settings['popup_placeholder']
+            : __( 'Type...', 'bw' );
+
+        $hint_text = isset( $settings['popup_hint_text'] ) && '' !== trim( $settings['popup_hint_text'] )
+            ? $settings['popup_hint_text']
+            : __( 'Hit enter to search or ESC to close', 'bw' );
+
+        // Category filters
+        $enable_filters = isset( $settings['enable_category_filters'] ) && 'yes' === $settings['enable_category_filters'];
+        $categories = [];
+
+        if ( $enable_filters ) {
+            $category_ids = isset( $settings['category_ids'] ) && '' !== trim( $settings['category_ids'] )
+                ? array_map( 'trim', explode( ',', $settings['category_ids'] ) )
+                : [];
+
+            if ( ! empty( $category_ids ) ) {
+                // Get specific categories by ID
+                $categories = get_terms([
+                    'taxonomy'   => 'product_cat',
+                    'include'    => $category_ids,
+                    'hide_empty' => false,
+                ]);
+            } else {
+                // Get all categories
+                $categories = get_terms([
+                    'taxonomy'   => 'product_cat',
+                    'hide_empty' => false,
+                ]);
+            }
+
+            if ( is_wp_error( $categories ) ) {
+                $categories = [];
+            }
+        }
+
+        // Widget ID for CSS targeting
+        $widget_id = $this->get_id();
         ?>
-        <div class="bw-search-overlay" role="dialog" aria-modal="true" aria-label="<?php esc_attr_e( 'Search', 'bw' ); ?>">
+        <div class="bw-search-overlay" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" role="dialog" aria-modal="true" aria-label="<?php esc_attr_e( 'Search', 'bw' ); ?>">
             <div class="bw-search-overlay__container">
                 <button class="bw-search-overlay__close" type="button" aria-label="<?php esc_attr_e( 'Close search', 'bw' ); ?>">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -300,7 +948,7 @@ class BW_Search_Widget extends Widget_Base {
                 </button>
 
                 <div class="bw-search-overlay__content">
-                    <h2 class="bw-search-overlay__title"><?php esc_html_e( "Type what you're looking for", 'bw' ); ?></h2>
+                    <h2 class="bw-search-overlay__title"><?php echo esc_html( $header_text ); ?></h2>
 
                     <form class="bw-search-overlay__form" role="search" method="get" action="<?php echo esc_url( home_url( '/' ) ); ?>">
                         <div class="bw-search-overlay__input-wrapper">
@@ -308,14 +956,30 @@ class BW_Search_Widget extends Widget_Base {
                                 type="search"
                                 name="s"
                                 class="bw-search-overlay__input"
-                                placeholder=""
+                                placeholder="<?php echo esc_attr( $placeholder ); ?>"
                                 aria-label="<?php esc_attr_e( 'Search', 'bw' ); ?>"
                                 autocomplete="off"
                             />
                         </div>
+
+                        <?php if ( $enable_filters && ! empty( $categories ) ) : ?>
+                            <div class="bw-search-overlay__filters">
+                                <?php foreach ( $categories as $category ) : ?>
+                                    <button
+                                        type="button"
+                                        class="bw-category-filter"
+                                        data-category-id="<?php echo esc_attr( $category->term_id ); ?>"
+                                        data-category-slug="<?php echo esc_attr( $category->slug ); ?>"
+                                    >
+                                        <?php echo esc_html( $category->name ); ?>
+                                    </button>
+                                <?php endforeach; ?>
+                            </div>
+                            <input type="hidden" name="product_cat" class="bw-selected-category" value="" />
+                        <?php endif; ?>
                     </form>
 
-                    <p class="bw-search-overlay__hint"><?php esc_html_e( 'Hit enter to search or ESC to close', 'bw' ); ?></p>
+                    <p class="bw-search-overlay__hint"><?php echo esc_html( $hint_text ); ?></p>
                 </div>
             </div>
         </div>
