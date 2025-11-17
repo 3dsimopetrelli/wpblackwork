@@ -54,6 +54,9 @@
             this.$form.on('submit', this.onFormSubmit.bind(this));
             this.$categoryFilters.on('click', this.onCategoryFilterClick.bind(this));
 
+            // Input event for placeholder fade
+            this.$input.on('input', this.onInputChange.bind(this));
+
             // Keyboard events
             $(document).on('keydown', this.onKeyDown.bind(this));
         }
@@ -99,8 +102,18 @@
             $('body').removeClass('bw-search-overlay-active');
 
             // Clear input and filters
-            this.$input.val('');
+            this.$input.val('').removeClass('has-content');
             this.clearCategoryFilter();
+        }
+
+        onInputChange(e) {
+            // Toggle 'has-content' class based on input value
+            // This enables smooth fade-out of placeholder when typing
+            if (this.$input.val().length > 0) {
+                this.$input.addClass('has-content');
+            } else {
+                this.$input.removeClass('has-content');
+            }
         }
 
         onOverlayClick(e) {
@@ -177,6 +190,7 @@
             this.$overlay.off('click');
             this.$form.off('submit');
             this.$categoryFilters.off('click');
+            this.$input.off('input');
             $(document).off('keydown', this.onKeyDown);
 
             // Remove body class if active

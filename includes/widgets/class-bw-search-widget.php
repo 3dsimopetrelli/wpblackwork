@@ -185,7 +185,7 @@ class BW_Search_Widget extends Widget_Base {
                 'multiple'    => true,
                 'options'     => $categories_options,
                 'default'     => [],
-                'description' => __( 'Select categories to show in filters. Leave empty to show all categories.', 'bw' ),
+                'description' => __( '<strong>How it works:</strong><br>• <strong>Select categories:</strong> Only selected categories will appear as filter buttons in the search popup<br>• <strong>When a category is selected during search:</strong> Results will be filtered to show only products from that category<br>• <strong>When no category is selected during search:</strong> All products will be shown in search results<br>• <strong>Leave empty:</strong> All available categories will appear as filter buttons<br><br><em>Note: You can add unlimited categories - there is no maximum limit.</em>', 'bw' ),
                 'label_block' => true,
                 'condition'   => [
                     'enable_category_filters' => 'yes',
@@ -432,6 +432,24 @@ class BW_Search_Widget extends Widget_Base {
             ]
         );
 
+        $this->add_responsive_control(
+            'popup_content_width',
+            [
+                'label'      => __( 'Content Container Width', 'bw' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px', '%' ],
+                'range'      => [
+                    'px' => [ 'min' => 300, 'max' => 2000, 'step' => 10 ],
+                    '%'  => [ 'min' => 10, 'max' => 100, 'step' => 1 ],
+                ],
+                'default'    => [ 'size' => 900, 'unit' => 'px' ],
+                'selectors'  => [
+                    '{{WRAPPER}} .bw-search-overlay__content, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__content' => 'max-width: {{SIZE}}{{UNIT}};',
+                ],
+                'description' => __( 'Adjust the maximum width of the popup content container', 'bw' ),
+            ]
+        );
+
         $this->add_control(
             'heading_popup_header',
             [
@@ -527,6 +545,42 @@ class BW_Search_Widget extends Widget_Base {
                 'selectors'  => [
                     '{{WRAPPER}} .bw-search-overlay__input-wrapper, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__input-wrapper' => 'border-bottom-width: {{SIZE}}{{UNIT}};',
                 ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'popup_input_padding_left',
+            [
+                'label'      => __( 'Input Padding Left', 'bw' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px', '%' ],
+                'range'      => [
+                    'px' => [ 'min' => 0, 'max' => 100, 'step' => 1 ],
+                    '%'  => [ 'min' => 0, 'max' => 20, 'step' => 0.5 ],
+                ],
+                'default'    => [ 'size' => 2, 'unit' => '%' ],
+                'selectors'  => [
+                    '{{WRAPPER}} .bw-search-overlay__input-wrapper, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__input-wrapper' => 'padding-left: {{SIZE}}{{UNIT}};',
+                ],
+                'description' => __( 'Adjust horizontal spacing inside the search input container', 'bw' ),
+            ]
+        );
+
+        $this->add_responsive_control(
+            'popup_input_padding_right',
+            [
+                'label'      => __( 'Input Padding Right', 'bw' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px', '%' ],
+                'range'      => [
+                    'px' => [ 'min' => 0, 'max' => 100, 'step' => 1 ],
+                    '%'  => [ 'min' => 0, 'max' => 20, 'step' => 0.5 ],
+                ],
+                'default'    => [ 'size' => 2, 'unit' => '%' ],
+                'selectors'  => [
+                    '{{WRAPPER}} .bw-search-overlay__input-wrapper, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__input-wrapper' => 'padding-right: {{SIZE}}{{UNIT}};',
+                ],
+                'description' => __( 'Adjust horizontal spacing inside the search input container', 'bw' ),
             ]
         );
 
