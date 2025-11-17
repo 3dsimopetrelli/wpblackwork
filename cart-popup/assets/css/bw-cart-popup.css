@@ -1,0 +1,714 @@
+/**
+ * BW Cart Pop-Up Styles
+ *
+ * CSS completo per il pannello cart pop-up laterale
+ * Completamente personalizzabile e commentato per sezioni
+ *
+ * @package BW_Cart_Popup
+ * @version 1.0.0
+ *
+ * INDICE:
+ * 1. OVERLAY
+ * 2. PANNELLO PRINCIPALE
+ * 3. HEADER DEL PANNELLO
+ * 4. ICONE (Carrello e Chiusura)
+ * 5. CONTENUTO CARRELLO
+ * 6. PRODOTTI NEL CARRELLO
+ * 7. DIVIDER
+ * 8. SEZIONE PROMO CODE
+ * 9. TOTALI
+ * 10. FOOTER E PULSANTI
+ * 11. TRANSIZIONI E ANIMAZIONI
+ * 12. UTILITIES
+ * 13. RESPONSIVE
+ */
+
+
+/* ========================================================================
+   1. OVERLAY
+   ======================================================================== */
+
+/**
+ * Overlay scuro che copre la pagina quando il pannello è aperto
+ * Personalizzabile: colore e opacità tramite admin panel
+ */
+.bw-cart-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Default: nero 50% opacità */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    z-index: 9998; /* Sotto al pannello */
+}
+
+.bw-cart-popup-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+
+/* ========================================================================
+   2. PANNELLO PRINCIPALE
+   ======================================================================== */
+
+/**
+ * Pannello laterale che scorre da destra verso sinistra
+ * Personalizzabile: larghezza, colore sfondo tramite admin panel
+ */
+.bw-cart-popup-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 400px; /* Default: 400px, modificabile da admin */
+    max-width: 100%;
+    height: 100vh;
+    background-color: #ffffff; /* Default: bianco, modificabile da admin */
+    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.15);
+    transform: translateX(100%); /* Nascosto fuori schermo a destra */
+    transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    z-index: 9999; /* Sopra all'overlay */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.bw-cart-popup-panel.active {
+    transform: translateX(0); /* Scorre dentro lo schermo */
+}
+
+
+/* ========================================================================
+   3. HEADER DEL PANNELLO
+   ======================================================================== */
+
+/**
+ * Header superiore con icona carrello, titolo e pulsante chiusura
+ * Personalizzabile: colori, tipografia, padding
+ */
+.bw-cart-popup-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px;
+    border-bottom: 1px solid #e5e5e5;
+    background-color: #ffffff;
+    flex-shrink: 0; /* Non si riduce con lo scroll */
+}
+
+.bw-cart-popup-header-icon {
+    display: flex;
+    align-items: center;
+    margin-right: 12px;
+}
+
+.bw-cart-popup-title {
+    flex: 1;
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #000000;
+    letter-spacing: -0.01em;
+}
+
+
+/* ========================================================================
+   4. ICONE (Carrello e Chiusura)
+   ======================================================================== */
+
+/**
+ * Icone carrello e chiusura (X)
+ * COMPLETAMENTE PERSONALIZZABILI tramite CSS custom dall'admin panel
+ * Esempio: background-image: url('path/to/icon.svg');
+ */
+
+/* Icona Carrello */
+.bw-cart-icon {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='9' cy='21' r='1'/%3E%3Ccircle cx='20' cy='21' r='1'/%3E%3Cpath d='M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6'/%3E%3C/svg%3E");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    /* Personalizza qui tramite admin panel o CSS custom */
+}
+
+/* Icona Chiusura (X) */
+.bw-close-icon {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='18' y1='6' x2='6' y2='18'/%3E%3Cline x1='6' y1='6' x2='18' y2='18'/%3E%3C/svg%3E");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    /* Personalizza qui tramite admin panel o CSS custom */
+}
+
+/* Pulsante Chiusura */
+.bw-cart-popup-close {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.2s ease;
+    border-radius: 4px;
+}
+
+.bw-cart-popup-close:hover {
+    opacity: 0.7;
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+
+/* ========================================================================
+   5. CONTENUTO CARRELLO
+   ======================================================================== */
+
+/**
+ * Contenitore scrollabile per prodotti, promo code e totali
+ * Personalizzabile: padding, colori, altezze
+ */
+.bw-cart-popup-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    background-color: #fafafa;
+}
+
+/* Scrollbar personalizzata (Chrome, Safari, Edge) */
+.bw-cart-popup-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.bw-cart-popup-content::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.bw-cart-popup-content::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.bw-cart-popup-content::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+
+/* ========================================================================
+   6. PRODOTTI NEL CARRELLO
+   ======================================================================== */
+
+/**
+ * Lista prodotti nel carrello con immagini, dettagli, quantità e rimozione
+ * Personalizzabile: layout, dimensioni, colori, tipografia
+ */
+.bw-cart-popup-items {
+    margin-bottom: 20px;
+}
+
+/* Singolo prodotto */
+.bw-cart-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 15px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    position: relative;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.2s ease;
+}
+
+.bw-cart-item:hover {
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* Immagine prodotto */
+.bw-cart-item-image {
+    width: 60px;
+    height: 60px;
+    flex-shrink: 0;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid #e5e5e5;
+}
+
+.bw-cart-item-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Dettagli prodotto */
+.bw-cart-item-details {
+    flex: 1;
+    min-width: 0; /* Previene overflow */
+}
+
+.bw-cart-item-name {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.bw-cart-item-name a {
+    color: #000000;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.bw-cart-item-name a:hover {
+    color: #007bff;
+}
+
+/* Meta informazioni (quantità e prezzo) */
+.bw-cart-item-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+/* Quantità */
+.bw-cart-item-quantity-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.bw-cart-item-quantity-wrapper label {
+    font-size: 12px;
+    color: #666666;
+    margin: 0;
+}
+
+.bw-cart-item-quantity {
+    width: 50px;
+    padding: 4px 6px;
+    border: 1px solid #d5d5d5;
+    border-radius: 4px;
+    font-size: 13px;
+    text-align: center;
+}
+
+/* Prezzo */
+.bw-cart-item-price {
+    font-size: 14px;
+    font-weight: 600;
+    color: #000000;
+}
+
+/* Pulsante rimozione */
+.bw-cart-item-remove {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    line-height: 1;
+    color: #999999;
+    padding: 4px 8px;
+    transition: color 0.2s ease;
+}
+
+.bw-cart-item-remove:hover {
+    color: #ff0000;
+}
+
+/* Carrello vuoto */
+.bw-cart-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: #999999;
+    font-size: 15px;
+}
+
+
+/* ========================================================================
+   7. DIVIDER
+   ======================================================================== */
+
+/**
+ * Linea divisoria tra prodotti e sezione promo/totali
+ * Personalizzabile: colore, altezza, margini
+ */
+.bw-cart-popup-divider {
+    height: 1px;
+    background-color: #d5d5d5;
+    margin: 20px 0;
+}
+
+
+/* ========================================================================
+   8. SEZIONE PROMO CODE
+   ======================================================================== */
+
+/**
+ * Box per inserire il codice promozionale con effetto fade
+ * Personalizzabile: colori, dimensioni, padding, animazioni
+ */
+.bw-cart-popup-promo {
+    margin-bottom: 20px;
+}
+
+/* Trigger "Click here" */
+.bw-cart-popup-promo-trigger {
+    text-align: center;
+    font-size: 14px;
+    color: #666666;
+    margin: 0 0 10px 0;
+}
+
+.bw-promo-link {
+    color: #007bff;
+    text-decoration: underline;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.bw-promo-link:hover {
+    color: #0056b3;
+}
+
+/* Box promo code */
+.bw-cart-popup-promo-box {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding: 15px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    border: 1px solid #d5d5d5;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Input promo code */
+.bw-promo-input {
+    flex: 1;
+    padding: 10px 12px;
+    border: 1px solid #d5d5d5;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: border-color 0.2s ease;
+}
+
+.bw-promo-input:focus {
+    outline: none;
+    border-color: #007bff;
+}
+
+/* Pulsante Apply */
+.bw-promo-apply {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    white-space: nowrap;
+}
+
+.bw-promo-apply:hover {
+    background-color: #0056b3;
+}
+
+.bw-promo-apply:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+/* Messaggio promo */
+.bw-promo-message {
+    display: none;
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    text-align: center;
+}
+
+.bw-promo-message.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.bw-promo-message.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+
+/* ========================================================================
+   9. TOTALI
+   ======================================================================== */
+
+/**
+ * Sezione totali: subtotal, discount, VAT, total
+ * Personalizzabile: colori, dimensioni font, spaziature
+ */
+.bw-cart-popup-totals {
+    background-color: #ffffff;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Singola riga totale */
+.bw-cart-popup-totals > div {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    font-size: 14px;
+}
+
+.bw-cart-popup-totals > div:not(:last-child) {
+    border-bottom: 1px solid #f0f0f0;
+}
+
+/* Label */
+.bw-cart-popup-totals .label {
+    color: #666666;
+    font-weight: 500;
+}
+
+/* Value */
+.bw-cart-popup-totals .value {
+    font-weight: 600;
+    color: #000000;
+}
+
+/* Discount */
+.bw-cart-popup-discount .value {
+    color: #28a745; /* Verde per sconto */
+}
+
+/* Total (più grande e evidenziato) */
+.bw-cart-popup-total {
+    padding-top: 12px !important;
+}
+
+.bw-cart-popup-total .label,
+.bw-cart-popup-total .value {
+    font-size: 16px;
+    font-weight: 700;
+}
+
+
+/* ========================================================================
+   10. FOOTER E PULSANTI
+   ======================================================================== */
+
+/**
+ * Footer con pulsanti "Proceed to checkout" e "Continue shopping"
+ * Personalizzabile: colori, dimensioni, tipografia tramite admin panel
+ */
+.bw-cart-popup-footer {
+    padding: 20px;
+    border-top: 1px solid #e5e5e5;
+    background-color: #ffffff;
+    flex-shrink: 0; /* Non si riduce con lo scroll */
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Pulsante Proceed to Checkout */
+.bw-cart-popup-checkout {
+    display: block;
+    width: 100%;
+    padding: 14px 20px;
+    background-color: #28a745; /* Verde, modificabile da admin */
+    color: #000000 !important; /* Testo nero come richiesto */
+    text-align: center;
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 6px;
+    transition: opacity 0.2s ease, transform 0.1s ease;
+    border: none;
+}
+
+.bw-cart-popup-checkout:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+.bw-cart-popup-checkout:active {
+    transform: translateY(0);
+}
+
+/* Pulsante Continue Shopping */
+.bw-cart-popup-continue {
+    display: block;
+    width: 100%;
+    padding: 12px 20px;
+    background-color: #6c757d; /* Grigio, modificabile da admin */
+    color: #ffffff !important;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.bw-cart-popup-continue:hover {
+    opacity: 0.9;
+}
+
+
+/* ========================================================================
+   11. TRANSIZIONI E ANIMAZIONI
+   ======================================================================== */
+
+/**
+ * Animazioni smooth per apertura/chiusura e interazioni
+ * Personalizzabile: durata, easing, effetti
+ */
+
+/* Fade in per promo box */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Slide in da destra per il pannello */
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+    }
+    to {
+        transform: translateX(0);
+    }
+}
+
+/* Slide out verso destra per il pannello */
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(100%);
+    }
+}
+
+
+/* ========================================================================
+   12. UTILITIES
+   ======================================================================== */
+
+/**
+ * Classi di utilità
+ */
+
+/* Blocca scroll del body quando il pannello è aperto */
+body.bw-cart-popup-no-scroll {
+    overflow: hidden;
+}
+
+/* Loading state */
+.bw-cart-popup-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    color: #999999;
+}
+
+.bw-cart-popup-loading::after {
+    content: "";
+    width: 30px;
+    height: 30px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+
+/* ========================================================================
+   13. RESPONSIVE
+   ======================================================================== */
+
+/**
+ * Adattamenti per mobile e tablet
+ */
+
+/* Tablet */
+@media (max-width: 768px) {
+    .bw-cart-popup-panel {
+        width: 90%;
+        max-width: 400px;
+    }
+
+    .bw-cart-popup-header {
+        padding: 16px;
+    }
+
+    .bw-cart-popup-content {
+        padding: 16px;
+    }
+
+    .bw-cart-popup-footer {
+        padding: 16px;
+    }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+    .bw-cart-popup-panel {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .bw-cart-popup-title {
+        font-size: 16px;
+    }
+
+    .bw-cart-item {
+        padding: 12px;
+    }
+
+    .bw-cart-item-image {
+        width: 50px;
+        height: 50px;
+    }
+
+    .bw-cart-popup-checkout,
+    .bw-cart-popup-continue {
+        font-size: 14px;
+        padding: 12px 16px;
+    }
+}
