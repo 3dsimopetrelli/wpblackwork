@@ -212,3 +212,66 @@
 body.bw-search-overlay-active {
     overflow: hidden;
 }
+
+/* Category Filters */
+.bw-search-overlay__filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 24px;
+    justify-content: center;
+}
+
+.bw-category-filter {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: 400;
+    color: #000000;
+    background-color: #FFFFFF;
+    border: 1px solid #000000;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    line-height: 1.4;
+    font-family: inherit;
+}
+
+.bw-category-filter:hover {
+    opacity: 0.8;
+}
+
+.bw-category-filter.is-active {
+    color: #FFFFFF;
+    background-color: #000000;
+    border-color: #000000;
+}
+
+.bw-category-filter:focus {
+    outline: 2px solid #080808;
+    outline-offset: 2px;
+}
+
+/* Placeholder fade-out animation */
+.bw-search-overlay__input::placeholder {
+    transition: opacity 0.3s ease;
+}
+
+.bw-search-overlay__input:focus::placeholder {
+    opacity: 0;
+}
+
+/* Responsive for filters */
+@media (max-width: 768px) {
+    .bw-search-overlay__filters {
+        margin-top: 20px;
+        gap: 6px;
+    }
+
+    .bw-category-filter {
+        padding: 8px 16px;
+        font-size: 14px;
+    }
+}
