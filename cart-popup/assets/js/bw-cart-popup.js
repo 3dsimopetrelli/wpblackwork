@@ -418,4 +418,7 @@
         BW_CartPopup.init();
     });
 
+    // Esponi globalmente per permettere l'integrazione con altri widget
+    window.BW_CartPopup = BW_CartPopup;
+
 })(jQuery);

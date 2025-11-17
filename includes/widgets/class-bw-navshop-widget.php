@@ -81,6 +81,20 @@ class BW_Navshop_Widget extends Widget_Base {
         );
 
         $this->add_control(
+            'use_cart_popup',
+            [
+                'label'        => __( 'Usa Cart Pop-Up', 'bw' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'label_on'     => __( 'ON', 'bw' ),
+                'label_off'    => __( 'OFF', 'bw' ),
+                'return_value' => 'yes',
+                'default'      => 'no',
+                'description'  => __( 'Se è ON, il pulsante Cart attiva l\'animazione Cart Pop-Up', 'bw' ),
+                'render_type'  => 'template',
+            ]
+        );
+
+        $this->add_control(
             'account_text',
             [
                 'label'       => __( 'Account Text', 'bw' ),
@@ -265,6 +279,13 @@ class BW_Navshop_Widget extends Widget_Base {
             : '/my-account/';
 
         $reverse_order = isset( $settings['reverse_order'] ) && 'yes' === $settings['reverse_order'];
+        $use_cart_popup = isset( $settings['use_cart_popup'] ) && 'yes' === $settings['use_cart_popup'];
+
+        // Attributi per il link del cart
+        $cart_attrs = '';
+        if ( $use_cart_popup ) {
+            $cart_attrs = ' data-use-popup="yes"';
+        }
 
         ?>
         <div class="bw-navshop">
@@ -272,11 +293,11 @@ class BW_Navshop_Widget extends Widget_Base {
                 <a href="<?php echo esc_url( $account_link ); ?>" class="bw-navshop__item bw-navshop__account">
                     <?php echo esc_html( $account_text ); ?>
                 </a>
-                <a href="<?php echo esc_url( $cart_link ); ?>" class="bw-navshop__item bw-navshop__cart">
+                <a href="<?php echo esc_url( $cart_link ); ?>" class="bw-navshop__item bw-navshop__cart"<?php echo $cart_attrs; ?>>
                     <?php echo esc_html( $cart_text ); ?>
                 </a>
             <?php else : ?>
-                <a href="<?php echo esc_url( $cart_link ); ?>" class="bw-navshop__item bw-navshop__cart">
+                <a href="<?php echo esc_url( $cart_link ); ?>" class="bw-navshop__item bw-navshop__cart"<?php echo $cart_attrs; ?>>
                     <?php echo esc_html( $cart_text ); ?>
                 </a>
                 <a href="<?php echo esc_url( $account_link ); ?>" class="bw-navshop__item bw-navshop__account">
