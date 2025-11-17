@@ -193,6 +193,22 @@ class BW_Search_Widget extends Widget_Base {
             ]
         );
 
+        $this->add_control(
+            'enable_multi_category_selection',
+            [
+                'label'        => __( 'Enable Multi-Category Selection', 'bw' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'label_on'     => __( 'Yes', 'bw' ),
+                'label_off'    => __( 'No', 'bw' ),
+                'return_value' => 'yes',
+                'default'      => 'no',
+                'description'  => __( 'When enabled, users can select multiple categories simultaneously. When disabled, only one category can be selected at a time.', 'bw' ),
+                'condition'   => [
+                    'enable_category_filters' => 'yes',
+                ],
+            ]
+        );
+
         $this->end_controls_section();
     }
 
@@ -521,15 +537,24 @@ class BW_Search_Widget extends Widget_Base {
         );
 
         $this->add_control(
+            'heading_divider_border',
+            [
+                'label'     => __( 'Divider Border', 'bw' ),
+                'type'      => Controls_Manager::HEADING,
+                'separator' => 'before',
+                'description' => __( 'The divider border separates the input field from the hint text below.', 'bw' ),
+            ]
+        );
+
+        $this->add_control(
             'popup_input_enable_border',
             [
-                'label'        => __( 'Enable Input Border', 'bw' ),
+                'label'        => __( 'Enable Divider Border', 'bw' ),
                 'type'         => Controls_Manager::SWITCHER,
                 'label_on'     => __( 'Yes', 'bw' ),
                 'label_off'    => __( 'No', 'bw' ),
                 'return_value' => 'yes',
                 'default'      => 'yes',
-                'separator'    => 'before',
                 'selectors_dictionary' => [
                     '' => 'border-bottom-width: 0 !important;',
                 ],
@@ -542,7 +567,7 @@ class BW_Search_Widget extends Widget_Base {
         $this->add_control(
             'popup_input_border_color',
             [
-                'label'     => __( 'Input Border Color', 'bw' ),
+                'label'     => __( 'Divider Color', 'bw' ),
                 'type'      => Controls_Manager::COLOR,
                 'default'   => '#080808',
                 'selectors' => [
@@ -557,7 +582,7 @@ class BW_Search_Widget extends Widget_Base {
         $this->add_control(
             'popup_input_border_width',
             [
-                'label'      => __( 'Input Border Width', 'bw' ),
+                'label'      => __( 'Divider Thickness', 'bw' ),
                 'type'       => Controls_Manager::SLIDER,
                 'size_units' => [ 'px' ],
                 'range'      => [
@@ -566,6 +591,27 @@ class BW_Search_Widget extends Widget_Base {
                 'default'    => [ 'size' => 1, 'unit' => 'px' ],
                 'selectors'  => [
                     '{{WRAPPER}} .bw-search-overlay__input-wrapper, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__input-wrapper' => 'border-bottom-width: {{SIZE}}{{UNIT}};',
+                ],
+                'condition' => [
+                    'popup_input_enable_border' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'popup_input_border_style',
+            [
+                'label'     => __( 'Divider Style', 'bw' ),
+                'type'      => Controls_Manager::SELECT,
+                'default'   => 'solid',
+                'options'   => [
+                    'solid'  => __( 'Solid', 'bw' ),
+                    'dashed' => __( 'Dashed', 'bw' ),
+                    'dotted' => __( 'Dotted', 'bw' ),
+                    'double' => __( 'Double', 'bw' ),
+                ],
+                'selectors' => [
+                    '{{WRAPPER}} .bw-search-overlay__input-wrapper, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__input-wrapper' => 'border-bottom-style: {{VALUE}};',
                 ],
                 'condition' => [
                     'popup_input_enable_border' => 'yes',
@@ -613,6 +659,82 @@ class BW_Search_Widget extends Widget_Base {
                     '{{WRAPPER}} .bw-search-overlay__input-wrapper, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__input-wrapper' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
                 'description' => __( 'Adjust margin around the search input container to align it with other elements like the hint text.', 'bw' ),
+            ]
+        );
+
+        $this->add_control(
+            'heading_input_container_border',
+            [
+                'label'     => __( 'Input Container Border', 'bw' ),
+                'type'      => Controls_Manager::HEADING,
+                'separator' => 'before',
+            ]
+        );
+
+        $this->add_control(
+            'popup_input_container_border',
+            [
+                'label'        => __( 'Enable Container Border', 'bw' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'label_on'     => __( 'Yes', 'bw' ),
+                'label_off'    => __( 'No', 'bw' ),
+                'return_value' => 'yes',
+                'default'      => 'no',
+                'description'  => __( 'Add a border around the entire search input container (not just the bottom divider).', 'bw' ),
+            ]
+        );
+
+        $this->add_control(
+            'popup_input_container_border_color',
+            [
+                'label'     => __( 'Container Border Color', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#080808',
+                'selectors' => [
+                    '{{WRAPPER}} .bw-search-overlay__input-wrapper, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__input-wrapper' => 'border-color: {{VALUE}};',
+                ],
+                'condition' => [
+                    'popup_input_container_border' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'popup_input_container_border_width',
+            [
+                'label'      => __( 'Container Border Width', 'bw' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px' ],
+                'range'      => [
+                    'px' => [ 'min' => 0, 'max' => 10, 'step' => 1 ],
+                ],
+                'default'    => [ 'size' => 1, 'unit' => 'px' ],
+                'selectors'  => [
+                    '{{WRAPPER}} .bw-search-overlay__input-wrapper, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__input-wrapper' => 'border-width: {{SIZE}}{{UNIT}}; border-style: solid;',
+                ],
+                'condition' => [
+                    'popup_input_container_border' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'popup_input_container_border_radius',
+            [
+                'label'      => __( 'Container Border Radius', 'bw' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px', '%' ],
+                'range'      => [
+                    'px' => [ 'min' => 0, 'max' => 50, 'step' => 1 ],
+                    '%'  => [ 'min' => 0, 'max' => 100 ],
+                ],
+                'default'    => [ 'size' => 0, 'unit' => 'px' ],
+                'selectors'  => [
+                    '{{WRAPPER}} .bw-search-overlay__input-wrapper, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__input-wrapper' => 'border-radius: {{SIZE}}{{UNIT}};',
+                ],
+                'condition' => [
+                    'popup_input_container_border' => 'yes',
+                ],
             ]
         );
 
@@ -1004,7 +1126,7 @@ class BW_Search_Widget extends Widget_Base {
                 'label'        => __( 'Buttons Alignment', 'bw' ),
                 'type'         => Controls_Manager::CHOOSE,
                 'options'      => [
-                    'left'   => [
+                    'flex-start'   => [
                         'title' => __( 'Left', 'bw' ),
                         'icon'  => 'eicon-text-align-left',
                     ],
@@ -1012,14 +1134,14 @@ class BW_Search_Widget extends Widget_Base {
                         'title' => __( 'Center', 'bw' ),
                         'icon'  => 'eicon-text-align-center',
                     ],
-                    'right'  => [
+                    'flex-end'  => [
                         'title' => __( 'Right', 'bw' ),
                         'icon'  => 'eicon-text-align-right',
                     ],
                 ],
-                'default'      => 'left',
+                'default'      => 'flex-start',
                 'selectors'    => [
-                    '{{WRAPPER}} .bw-search-overlay__filters, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__filters' => 'text-align: {{VALUE}};',
+                    '{{WRAPPER}} .bw-search-overlay__filters, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__filters' => 'justify-content: {{VALUE}};',
                 ],
                 'separator'    => 'before',
                 'toggle'       => false,
@@ -1071,6 +1193,7 @@ class BW_Search_Widget extends Widget_Base {
 
         // Category filters
         $enable_filters = isset( $settings['enable_category_filters'] ) && 'yes' === $settings['enable_category_filters'];
+        $enable_multi_select = isset( $settings['enable_multi_category_selection'] ) && 'yes' === $settings['enable_multi_category_selection'];
         $categories = [];
 
         if ( $enable_filters ) {
@@ -1149,7 +1272,7 @@ class BW_Search_Widget extends Widget_Base {
                         <?php endif; ?>
 
                         <?php if ( $enable_filters && ! empty( $categories ) ) : ?>
-                            <div class="bw-search-overlay__filters" data-setting="category_ids">
+                            <div class="bw-search-overlay__filters" data-setting="category_ids" data-multi-select="<?php echo $enable_multi_select ? 'yes' : 'no'; ?>">
                                 <?php foreach ( $categories as $category ) : ?>
                                     <button
                                         type="button"
