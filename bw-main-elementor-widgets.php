@@ -50,6 +50,11 @@ add_action( 'elementor/frontend/after_register_scripts', 'bw_register_search_wid
 add_action( 'elementor/frontend/after_register_styles', 'bw_register_search_widget_assets' );
 add_action( 'elementor/frontend/after_enqueue_scripts', 'bw_enqueue_search_widget_assets' );
 add_action( 'elementor/editor/after_enqueue_scripts', 'bw_enqueue_search_widget_assets' );
+add_action( 'init', 'bw_register_navshop_widget_assets' );
+add_action( 'elementor/frontend/after_register_scripts', 'bw_register_navshop_widget_assets' );
+add_action( 'elementor/frontend/after_register_styles', 'bw_register_navshop_widget_assets' );
+add_action( 'elementor/frontend/after_enqueue_scripts', 'bw_enqueue_navshop_widget_assets' );
+add_action( 'elementor/editor/after_enqueue_scripts', 'bw_enqueue_navshop_widget_assets' );
 add_action( 'elementor/frontend/after_register_scripts', 'bw_register_wallpost_widget_assets' );
 add_action( 'elementor/frontend/after_register_styles', 'bw_register_wallpost_widget_assets' );
 add_action( 'elementor/frontend/after_enqueue_scripts', 'bw_enqueue_wallpost_widget_assets' );
@@ -323,6 +328,43 @@ function bw_enqueue_about_menu_widget_assets() {
 
     if ( wp_script_is( 'bw-about-menu-script', 'registered' ) ) {
         wp_enqueue_script( 'bw-about-menu-script' );
+    }
+}
+
+function bw_register_navshop_widget_assets() {
+    $css_file = __DIR__ . '/assets/css/bw-navshop.css';
+    $css_version = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
+
+    wp_register_style(
+        'bw-navshop-style',
+        plugin_dir_url( __FILE__ ) . 'assets/css/bw-navshop.css',
+        [],
+        $css_version
+    );
+
+    $js_file = __DIR__ . '/assets/js/bw-navshop.js';
+    $js_version = file_exists( $js_file ) ? filemtime( $js_file ) : '1.0.0';
+
+    wp_register_script(
+        'bw-navshop-script',
+        plugin_dir_url( __FILE__ ) . 'assets/js/bw-navshop.js',
+        [ 'jquery' ],
+        $js_version,
+        true
+    );
+}
+
+function bw_enqueue_navshop_widget_assets() {
+    if ( ! wp_style_is( 'bw-navshop-style', 'registered' ) || ! wp_script_is( 'bw-navshop-script', 'registered' ) ) {
+        bw_register_navshop_widget_assets();
+    }
+
+    if ( wp_style_is( 'bw-navshop-style', 'registered' ) ) {
+        wp_enqueue_style( 'bw-navshop-style' );
+    }
+
+    if ( wp_script_is( 'bw-navshop-script', 'registered' ) ) {
+        wp_enqueue_script( 'bw-navshop-script' );
     }
 }
 
