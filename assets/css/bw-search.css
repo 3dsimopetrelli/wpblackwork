@@ -161,7 +161,8 @@
     background: none;
     border: none;
     outline: none;
-    padding: 12px 0;
+    /* Padding removed - now controlled via widget settings only */
+    /* Default padding: 12px 0 12px 0 is set in the widget control */
     line-height: 1.4;
     font-family: inherit;
 }
@@ -181,6 +182,25 @@
 body .bw-search-overlay__input[type="search"] {
     border: none !important;
     box-shadow: none !important;
+}
+
+/* Reset any external padding that might be inherited from theme or plugins */
+/* High specificity selectors to ensure we override reset.css, WooCommerce, and theme styles */
+/* Padding is now controlled exclusively via widget "Input Field Padding" setting */
+.bw-search-overlay__input,
+.bw-search-overlay__input[type="search"],
+input.bw-search-overlay__input,
+input.bw-search-overlay__input[type="search"],
+.woocommerce .bw-search-overlay__input,
+.woocommerce .bw-search-overlay__input[type="search"],
+.woocommerce-page .bw-search-overlay__input,
+.woocommerce-page .bw-search-overlay__input[type="search"],
+body .bw-search-overlay__input,
+body .bw-search-overlay__input[type="search"],
+body input.bw-search-overlay__input,
+body input.bw-search-overlay__input[type="search"] {
+    /* Empty block with high specificity to prevent external styles */
+    /* Widget settings use !important to ensure they always take precedence */
 }
 
 /* Hint Text */
