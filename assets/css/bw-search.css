@@ -149,6 +149,8 @@
     position: relative;
     border-bottom: 2px solid #080808;
     padding-bottom: 12px;
+    padding-left: 2%;
+    padding-right: 2%;
 }
 
 .bw-search-overlay__input {
@@ -254,13 +256,20 @@ body.bw-search-overlay-active {
     outline-offset: 2px;
 }
 
-/* Placeholder fade-out animation */
+/* Placeholder fade-out animation - controlled by JavaScript */
 .bw-search-overlay__input::placeholder {
+    opacity: 1;
     transition: opacity 0.3s ease;
 }
 
-.bw-search-overlay__input:focus::placeholder {
+/* Class added by JS when user starts typing */
+.bw-search-overlay__input.has-content::placeholder {
     opacity: 0;
+}
+
+/* Ensure caret is always visible */
+.bw-search-overlay__input {
+    caret-color: auto;
 }
 
 /* Responsive for filters */
