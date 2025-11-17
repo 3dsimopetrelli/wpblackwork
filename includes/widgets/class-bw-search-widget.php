@@ -571,7 +571,7 @@ class BW_Search_Widget extends Widget_Base {
                 'type'      => Controls_Manager::COLOR,
                 'default'   => '#080808',
                 'selectors' => [
-                    '{{WRAPPER}} .bw-search-overlay__input-wrapper, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__input-wrapper' => 'border-bottom-color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-search-overlay__input-wrapper, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__input-wrapper' => 'border-bottom-color: {{VALUE}} !important;',
                 ],
                 'condition' => [
                     'popup_input_enable_border' => 'yes',
@@ -590,7 +590,7 @@ class BW_Search_Widget extends Widget_Base {
                 ],
                 'default'    => [ 'size' => 1, 'unit' => 'px' ],
                 'selectors'  => [
-                    '{{WRAPPER}} .bw-search-overlay__input-wrapper, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__input-wrapper' => 'border-bottom-width: {{SIZE}}{{UNIT}};',
+                    '{{WRAPPER}} .bw-search-overlay__input-wrapper, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__input-wrapper' => 'border-bottom-width: {{SIZE}}{{UNIT}} !important;',
                 ],
                 'condition' => [
                     'popup_input_enable_border' => 'yes',
@@ -611,7 +611,7 @@ class BW_Search_Widget extends Widget_Base {
                     'double' => __( 'Double', 'bw' ),
                 ],
                 'selectors' => [
-                    '{{WRAPPER}} .bw-search-overlay__input-wrapper, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__input-wrapper' => 'border-bottom-style: {{VALUE}};',
+                    '{{WRAPPER}} .bw-search-overlay__input-wrapper, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__input-wrapper' => 'border-bottom-style: {{VALUE}} !important;',
                 ],
                 'condition' => [
                     'popup_input_enable_border' => 'yes',
@@ -659,6 +659,28 @@ class BW_Search_Widget extends Widget_Base {
                     '{{WRAPPER}} .bw-search-overlay__input-wrapper, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__input-wrapper' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
                 'description' => __( 'Adjust margin around the search input container to align it with other elements like the hint text.', 'bw' ),
+            ]
+        );
+
+        $this->add_responsive_control(
+            'popup_input_field_padding',
+            [
+                'label'      => __( 'Input Field Padding', 'bw' ),
+                'type'       => Controls_Manager::DIMENSIONS,
+                'size_units' => [ 'px', '%', 'em', 'rem' ],
+                'default'    => [
+                    'top'    => 12,
+                    'right'  => 0,
+                    'bottom' => 12,
+                    'left'   => 0,
+                    'unit'   => 'px',
+                    'isLinked' => false,
+                ],
+                'selectors'  => [
+                    '{{WRAPPER}} .bw-search-overlay__input, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__input' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
+                ],
+                'description' => __( 'Control the internal padding of the input field itself. This affects both the typed text and placeholder. The !important flag ensures this overrides any default styles from reset.css or WooCommerce.', 'bw' ),
+                'separator'   => 'before',
             ]
         );
 
@@ -710,7 +732,7 @@ class BW_Search_Widget extends Widget_Base {
                 ],
                 'default'    => [ 'size' => 1, 'unit' => 'px' ],
                 'selectors'  => [
-                    '{{WRAPPER}} .bw-search-overlay__input-wrapper, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__input-wrapper' => 'border-width: {{SIZE}}{{UNIT}}; border-style: solid;',
+                    '{{WRAPPER}} .bw-search-overlay__input-wrapper, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__input-wrapper' => 'border-top-width: {{SIZE}}{{UNIT}}; border-left-width: {{SIZE}}{{UNIT}}; border-right-width: {{SIZE}}{{UNIT}}; border-bottom-width: {{SIZE}}{{UNIT}}; border-style: solid;',
                 ],
                 'condition' => [
                     'popup_input_container_border' => 'yes',
