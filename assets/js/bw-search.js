@@ -17,9 +17,18 @@
             this.$categoryFilters = this.$overlay.find('.bw-category-filter');
             this.$selectedCategoryInput = this.$overlay.find('.bw-selected-category');
 
+            // Live search elements
+            this.$resultsContainer = this.$overlay.find('.bw-search-results');
+            this.$resultsGrid = this.$overlay.find('.bw-search-results__grid');
+            this.$resultsMessage = this.$overlay.find('.bw-search-results__message');
+            this.$resultsLoading = this.$overlay.find('.bw-search-results__loading');
+
             this.isOpen = false;
             this.selectedCategories = [];
             this.multiSelectEnabled = this.$filtersContainer.data('multi-select') === 'yes';
+            this.searchTimeout = null;
+            this.ajaxRequest = null;
+            this.masonryInstance = null;
 
             // Move overlay to body to ensure it's not constrained by parent containers
             this.moveOverlayToBody();
@@ -106,6 +115,9 @@
             // Clear input and filters
             this.$input.val('').removeClass('has-content');
             this.clearCategoryFilter();
+
+            // Hide search results
+            this.hideResults();
         }
 
         onInputChange(e) {
@@ -116,6 +128,9 @@
             } else {
                 this.$input.removeClass('has-content');
             }
+
+            // Trigger live search with debounce
+            this.debounceLiveSearch();
         }
 
         onOverlayClick(e) {
@@ -189,12 +204,197 @@
                     this.$selectedCategoryInput.val(categorySlug);
                 }
             }
+
+            // Trigger live search when category filter changes
+            this.debounceLiveSearch();
         }
 
         clearCategoryFilter() {
             this.$categoryFilters.removeClass('is-active');
             this.selectedCategories = [];
             this.$selectedCategoryInput.val('');
+        }
+
+        /**
+         * Debounce per la ricerca live (attende 300ms dopo l'ultima digitazione)
+         */
+        debounceLiveSearch() {
+            // Cancella il timeout precedente
+            if (this.searchTimeout) {
+                clearTimeout(this.searchTimeout);
+            }
+
+            // Cancella la richiesta AJAX precedente se ancora in corso
+            if (this.ajaxRequest) {
+                this.ajaxRequest.abort();
+            }
+
+            const searchTerm = this.$input.val().trim();
+
+            // Se il campo è vuoto, nascondi i risultati
+            if (searchTerm.length === 0) {
+                this.hideResults();
+                return;
+            }
+
+            // Se il termine è troppo corto, mostra un messaggio
+            if (searchTerm.length < 2) {
+                this.hideResults();
+                return;
+            }
+
+            // Mostra il loading
+            this.showLoading();
+
+            // Imposta un nuovo timeout
+            this.searchTimeout = setTimeout(() => {
+                this.performLiveSearch(searchTerm);
+            }, 300);
+        }
+
+        /**
+         * Esegue la ricerca AJAX
+         */
+        performLiveSearch(searchTerm) {
+            // Prepara i dati per la richiesta
+            const data = {
+                action: 'bw_live_search_products',
+                nonce: bwSearchAjax.nonce,
+                search_term: searchTerm,
+                categories: this.selectedCategories
+            };
+
+            // Esegui la richiesta AJAX
+            this.ajaxRequest = $.ajax({
+                url: bwSearchAjax.ajaxUrl,
+                type: 'POST',
+                data: data,
+                success: (response) => {
+                    if (response.success) {
+                        this.renderResults(response.data.products, response.data.message);
+                    } else {
+                        this.showMessage('Errore durante la ricerca');
+                    }
+                },
+                error: (xhr, status, error) => {
+                    if (status !== 'abort') {
+                        this.showMessage('Errore di connessione');
+                    }
+                },
+                complete: () => {
+                    this.hideLoading();
+                    this.ajaxRequest = null;
+                }
+            });
+        }
+
+        /**
+         * Renderizza i risultati con layout masonry
+         */
+        renderResults(products, message) {
+            // Nascondi messaggio
+            this.$resultsMessage.hide().text('');
+
+            // Se non ci sono prodotti, mostra messaggio
+            if (products.length === 0) {
+                this.showMessage(message || 'Nessun prodotto trovato');
+                this.$resultsGrid.empty();
+                this.$resultsContainer.addClass('is-visible');
+                return;
+            }
+
+            // Distruggi istanza masonry precedente se esiste
+            if (this.masonryInstance) {
+                this.masonryInstance.destroy();
+                this.masonryInstance = null;
+            }
+
+            // Svuota il grid
+            this.$resultsGrid.empty();
+
+            // Crea gli elementi HTML per i prodotti
+            products.forEach((product, index) => {
+                const $productCard = $(`
+                    <div class="bw-product-card" style="animation-delay: ${index * 0.05}s;">
+                        <a href="${product.permalink}" class="bw-product-card__link">
+                            <div class="bw-product-card__image">
+                                <img src="${product.image_url}" alt="${this.escapeHtml(product.title)}" loading="lazy">
+                            </div>
+                            <div class="bw-product-card__info">
+                                <h3 class="bw-product-card__title">${this.escapeHtml(product.title)}</h3>
+                                <div class="bw-product-card__price">${product.price_html}</div>
+                            </div>
+                        </a>
+                    </div>
+                `);
+
+                this.$resultsGrid.append($productCard);
+            });
+
+            // Mostra il container dei risultati con fade-in
+            this.$resultsContainer.addClass('is-visible');
+
+            // Inizializza masonry dopo che le immagini sono caricate
+            this.$resultsGrid.imagesLoaded(() => {
+                this.masonryInstance = this.$resultsGrid.masonry({
+                    itemSelector: '.bw-product-card',
+                    columnWidth: '.bw-product-card',
+                    percentPosition: true,
+                    transitionDuration: '0.3s',
+                    gutter: 20
+                });
+            });
+        }
+
+        /**
+         * Mostra il loading spinner
+         */
+        showLoading() {
+            this.$resultsLoading.addClass('is-visible');
+        }
+
+        /**
+         * Nascondi il loading spinner
+         */
+        hideLoading() {
+            this.$resultsLoading.removeClass('is-visible');
+        }
+
+        /**
+         * Mostra un messaggio
+         */
+        showMessage(message) {
+            this.$resultsMessage.text(message).show();
+            this.$resultsContainer.addClass('is-visible');
+        }
+
+        /**
+         * Nascondi i risultati
+         */
+        hideResults() {
+            this.$resultsContainer.removeClass('is-visible');
+            this.$resultsGrid.empty();
+            this.$resultsMessage.hide().text('');
+
+            // Distruggi istanza masonry se esiste
+            if (this.masonryInstance) {
+                this.masonryInstance.destroy();
+                this.masonryInstance = null;
+            }
+        }
+
+        /**
+         * Escape HTML per prevenire XSS
+         */
+        escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, (m) => map[m]);
         }
 
         /**

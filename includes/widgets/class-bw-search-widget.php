@@ -1308,6 +1308,15 @@ class BW_Search_Widget extends Widget_Base {
                             </div>
                             <input type="hidden" name="product_cat" class="bw-selected-category" value="" />
                         <?php endif; ?>
+
+                        <!-- Live Search Results Container -->
+                        <div class="bw-search-results">
+                            <div class="bw-search-results__grid"></div>
+                            <div class="bw-search-results__message"></div>
+                            <div class="bw-search-results__loading">
+                                <div class="bw-search-loading-spinner"></div>
+                            </div>
+                        </div>
                     </form>
                 </div>
             </div>
