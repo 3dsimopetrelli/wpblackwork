@@ -1,0 +1,215 @@
+/* BW NavShop Widget Styles */
+
+.bw-navshop {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.bw-navshop__item {
+    cursor: pointer;
+    text-decoration: none;
+    transition: color 0.3s ease;
+    display: inline-block;
+}
+
+.bw-navshop__item:focus {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+}
+
+/* Account Panel Overlay */
+.bw-navshop-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 9998;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.bw-navshop-overlay.is-active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Account Panel */
+.bw-navshop-panel {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    height: 100%;
+    width: 400px;
+    max-width: 90vw;
+    background-color: #FFFFFF;
+    z-index: 9999;
+    overflow-y: auto;
+    transition: right 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+}
+
+.bw-navshop-panel.is-active {
+    right: 0;
+}
+
+.bw-navshop-panel__content {
+    padding: 40px 30px;
+    position: relative;
+}
+
+/* Close Button */
+.bw-navshop-panel__close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    background: transparent;
+    border: 1px solid #000000;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    z-index: 10;
+    padding: 0;
+}
+
+.bw-navshop-panel__close svg {
+    width: 20px;
+    height: 20px;
+    color: #000000;
+    transition: color 0.3s ease;
+}
+
+.bw-navshop-panel__close:hover {
+    background-color: #000000;
+    transform: rotate(90deg);
+}
+
+.bw-navshop-panel__close:hover svg {
+    color: #FFFFFF;
+}
+
+.bw-navshop-panel__close:focus {
+    outline: 2px solid #000000;
+    outline-offset: 2px;
+}
+
+/* Panel Navigation */
+.bw-navshop-panel__nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.bw-navshop-panel__nav li {
+    margin-bottom: 15px;
+}
+
+.bw-navshop-panel__nav a {
+    display: block;
+    padding: 12px 15px;
+    text-decoration: none;
+    color: #000000;
+    border: 1px solid #E0E0E0;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.bw-navshop-panel__nav a:hover {
+    background-color: #F5F5F5;
+    border-color: #000000;
+}
+
+/* WooCommerce Login Form Styling */
+.bw-navshop-panel__content .woocommerce-form-login {
+    padding: 0;
+    border: none;
+}
+
+.bw-navshop-panel__content .woocommerce-form-login .form-row {
+    margin-bottom: 20px;
+}
+
+.bw-navshop-panel__content .woocommerce-form-login label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.bw-navshop-panel__content .woocommerce-form-login input[type="text"],
+.bw-navshop-panel__content .woocommerce-form-login input[type="password"] {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #E0E0E0;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.bw-navshop-panel__content .woocommerce-form-login input[type="text"]:focus,
+.bw-navshop-panel__content .woocommerce-form-login input[type="password"]:focus {
+    outline: none;
+    border-color: #000000;
+}
+
+.bw-navshop-panel__content .woocommerce-form-login .button {
+    width: 100%;
+    padding: 12px;
+    background-color: #000000;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+}
+
+.bw-navshop-panel__content .woocommerce-form-login .button:hover {
+    background-color: #333333;
+}
+
+.bw-navshop-panel__content .woocommerce-form-login .lost_password {
+    margin-top: 15px;
+    text-align: center;
+}
+
+.bw-navshop-panel__content .woocommerce-form-login .lost_password a {
+    color: #666666;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.bw-navshop-panel__content .woocommerce-form-login .lost_password a:hover {
+    color: #000000;
+    text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .bw-navshop-panel {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .bw-navshop-panel__content {
+        padding: 30px 20px;
+    }
+}
+
+/* Elementor Editor Compatibility */
+.elementor-editor-active .bw-navshop-overlay,
+.elementor-editor-active .bw-navshop-panel {
+    display: none !important;
+}
+
+/* Prevent body scroll when panel is open */
+body.bw-navshop-panel-open {
+    overflow: hidden;
+}
