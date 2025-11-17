@@ -31,10 +31,15 @@
          */
         moveOverlayToBody() {
             if (this.$overlay.length && this.$overlay.parent()[0].tagName !== 'BODY') {
-                // Aggiungi un attributo data per identificare a quale widget appartiene
-                const widgetId = 'bw-search-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
-                this.$overlay.attr('data-widget-id', widgetId);
-                this.$element.attr('data-widget-id', widgetId);
+                // Preserva l'ID del widget Elementor se esiste già
+                const existingWidgetId = this.$overlay.attr('data-widget-id');
+
+                if (!existingWidgetId) {
+                    // Solo se non esiste, genera un nuovo ID
+                    const widgetId = 'bw-search-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+                    this.$overlay.attr('data-widget-id', widgetId);
+                    this.$element.attr('data-widget-id', widgetId);
+                }
 
                 // Sposta l'overlay nel body
                 this.$overlay.appendTo('body');
