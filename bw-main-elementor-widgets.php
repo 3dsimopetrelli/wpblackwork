@@ -24,6 +24,11 @@ if ( file_exists( plugin_dir_path( __FILE__ ) . 'BW_coming_soon/bw-coming-soon.p
     require_once plugin_dir_path( __FILE__ ) . 'BW_coming_soon/bw-coming-soon.php';
 }
 
+// Includi il modulo BW Cart Pop-Up
+if ( file_exists( plugin_dir_path( __FILE__ ) . 'cart-popup/cart-popup.php' ) ) {
+    require_once plugin_dir_path( __FILE__ ) . 'cart-popup/cart-popup.php';
+}
+
 
 // Helper functions
 require_once __DIR__ . '/includes/helpers.php';
