@@ -134,13 +134,28 @@ class BW_Search_Widget extends Widget_Base {
             ]
         );
 
+        // Get all product categories for the dropdown
+        $categories_options = [];
+        $categories_list    = get_terms([
+            'taxonomy'   => 'product_cat',
+            'hide_empty' => false,
+        ]);
+
+        if ( ! is_wp_error( $categories_list ) && ! empty( $categories_list ) ) {
+            foreach ( $categories_list as $cat ) {
+                $categories_options[ $cat->term_id ] = $cat->name;
+            }
+        }
+
         $this->add_control(
             'category_ids',
             [
-                'label'       => __( 'Category IDs', 'bw' ),
-                'type'        => Controls_Manager::TEXT,
-                'placeholder' => __( 'e.g., 12, 15, 23 (leave empty for all categories)', 'bw' ),
-                'description' => __( 'Enter comma-separated category IDs. Leave empty to show all categories.', 'bw' ),
+                'label'       => __( 'Select Categories', 'bw' ),
+                'type'        => Controls_Manager::SELECT2,
+                'multiple'    => true,
+                'options'     => $categories_options,
+                'default'     => [],
+                'description' => __( 'Select categories to show in filters. Leave empty to show all categories.', 'bw' ),
                 'label_block' => true,
                 'condition'   => [
                     'enable_category_filters' => 'yes',
@@ -363,7 +378,7 @@ class BW_Search_Widget extends Widget_Base {
                 'type'      => Controls_Manager::COLOR,
                 'default'   => '#FFFFFF',
                 'selectors' => [
-                    'body .bw-search-overlay[data-widget-id="{{ID}}"]' => 'background-color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-search-overlay, body .bw-search-overlay[data-widget-id="{{ID}}"]' => 'background-color: {{VALUE}};',
                 ],
             ]
         );
@@ -382,7 +397,7 @@ class BW_Search_Widget extends Widget_Base {
                     'unit'   => 'px',
                 ],
                 'selectors'  => [
-                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__container' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                    '{{WRAPPER}} .bw-search-overlay__container, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__container' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
             ]
         );
@@ -400,7 +415,7 @@ class BW_Search_Widget extends Widget_Base {
             Group_Control_Typography::get_type(),
             [
                 'name'     => 'popup_header_typography',
-                'selector' => 'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__title',
+                'selector' => '{{WRAPPER}} .bw-search-overlay__title, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__title',
             ]
         );
 
@@ -411,7 +426,7 @@ class BW_Search_Widget extends Widget_Base {
                 'type'      => Controls_Manager::COLOR,
                 'default'   => '#000000',
                 'selectors' => [
-                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__title' => 'color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-search-overlay__title, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__title' => 'color: {{VALUE}};',
                 ],
             ]
         );
@@ -429,7 +444,7 @@ class BW_Search_Widget extends Widget_Base {
             Group_Control_Typography::get_type(),
             [
                 'name'     => 'popup_input_typography',
-                'selector' => 'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__input',
+                'selector' => '{{WRAPPER}} .bw-search-overlay__input, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__input',
             ]
         );
 
@@ -440,7 +455,7 @@ class BW_Search_Widget extends Widget_Base {
                 'type'      => Controls_Manager::COLOR,
                 'default'   => '#080808',
                 'selectors' => [
-                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__input' => 'color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-search-overlay__input, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__input' => 'color: {{VALUE}};',
                 ],
             ]
         );
@@ -452,7 +467,7 @@ class BW_Search_Widget extends Widget_Base {
                 'type'      => Controls_Manager::COLOR,
                 'default'   => '#C0C0C0',
                 'selectors' => [
-                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__input::placeholder' => 'color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-search-overlay__input::placeholder, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__input::placeholder' => 'color: {{VALUE}};',
                 ],
             ]
         );
@@ -464,7 +479,7 @@ class BW_Search_Widget extends Widget_Base {
                 'type'      => Controls_Manager::COLOR,
                 'default'   => '#080808',
                 'selectors' => [
-                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__input-wrapper' => 'border-bottom-color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-search-overlay__input-wrapper, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__input-wrapper' => 'border-bottom-color: {{VALUE}};',
                 ],
             ]
         );
@@ -480,7 +495,7 @@ class BW_Search_Widget extends Widget_Base {
                 ],
                 'default'    => [ 'size' => 1, 'unit' => 'px' ],
                 'selectors'  => [
-                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__input-wrapper' => 'border-bottom-width: {{SIZE}}{{UNIT}};',
+                    '{{WRAPPER}} .bw-search-overlay__input-wrapper, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__input-wrapper' => 'border-bottom-width: {{SIZE}}{{UNIT}};',
                 ],
             ]
         );
@@ -498,7 +513,7 @@ class BW_Search_Widget extends Widget_Base {
             Group_Control_Typography::get_type(),
             [
                 'name'     => 'popup_hint_typography',
-                'selector' => 'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__hint',
+                'selector' => '{{WRAPPER}} .bw-search-overlay__hint, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__hint',
             ]
         );
 
@@ -509,7 +524,7 @@ class BW_Search_Widget extends Widget_Base {
                 'type'      => Controls_Manager::COLOR,
                 'default'   => '#606060',
                 'selectors' => [
-                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__hint' => 'color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-search-overlay__hint, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__hint' => 'color: {{VALUE}};',
                 ],
             ]
         );
@@ -530,7 +545,7 @@ class BW_Search_Widget extends Widget_Base {
                 'type'      => Controls_Manager::COLOR,
                 'default'   => '#080808',
                 'selectors' => [
-                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__close' => 'color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-search-overlay__close, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__close' => 'color: {{VALUE}};',
                 ],
             ]
         );
@@ -542,7 +557,7 @@ class BW_Search_Widget extends Widget_Base {
                 'type'      => Controls_Manager::COLOR,
                 'default'   => 'transparent',
                 'selectors' => [
-                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__close' => 'background-color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-search-overlay__close, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__close' => 'background-color: {{VALUE}};',
                 ],
             ]
         );
@@ -554,7 +569,7 @@ class BW_Search_Widget extends Widget_Base {
                 'type'      => Controls_Manager::COLOR,
                 'default'   => '#000000',
                 'selectors' => [
-                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__close' => 'border-color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-search-overlay__close, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__close' => 'border-color: {{VALUE}};',
                 ],
             ]
         );
@@ -570,7 +585,7 @@ class BW_Search_Widget extends Widget_Base {
                 ],
                 'default'    => [ 'size' => 1, 'unit' => 'px' ],
                 'selectors'  => [
-                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__close' => 'border-width: {{SIZE}}{{UNIT}}; border-style: solid;',
+                    '{{WRAPPER}} .bw-search-overlay__close, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__close' => 'border-width: {{SIZE}}{{UNIT}}; border-style: solid;',
                 ],
             ]
         );
@@ -587,7 +602,7 @@ class BW_Search_Widget extends Widget_Base {
                 ],
                 'default'    => [ 'size' => 50, 'unit' => '%' ],
                 'selectors'  => [
-                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__close' => 'border-radius: {{SIZE}}{{UNIT}};',
+                    '{{WRAPPER}} .bw-search-overlay__close, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__close' => 'border-radius: {{SIZE}}{{UNIT}};',
                 ],
             ]
         );
@@ -607,7 +622,7 @@ class BW_Search_Widget extends Widget_Base {
                 'label'     => __( 'Icon Color', 'bw' ),
                 'type'      => Controls_Manager::COLOR,
                 'selectors' => [
-                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__close:hover' => 'color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-search-overlay__close:hover, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__close:hover' => 'color: {{VALUE}};',
                 ],
             ]
         );
@@ -619,7 +634,7 @@ class BW_Search_Widget extends Widget_Base {
                 'type'      => Controls_Manager::COLOR,
                 'default'   => '#E8E8E8',
                 'selectors' => [
-                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__close:hover' => 'background-color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-search-overlay__close:hover, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__close:hover' => 'background-color: {{VALUE}};',
                 ],
             ]
         );
@@ -630,7 +645,7 @@ class BW_Search_Widget extends Widget_Base {
                 'label'     => __( 'Border Color', 'bw' ),
                 'type'      => Controls_Manager::COLOR,
                 'selectors' => [
-                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__close:hover' => 'border-color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-search-overlay__close:hover, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-search-overlay__close:hover' => 'border-color: {{VALUE}};',
                 ],
             ]
         );
@@ -656,7 +671,7 @@ class BW_Search_Widget extends Widget_Base {
             Group_Control_Typography::get_type(),
             [
                 'name'     => 'category_button_typography',
-                'selector' => 'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-category-filter',
+                'selector' => '{{WRAPPER}} .bw-category-filter, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-category-filter',
             ]
         );
 
@@ -676,7 +691,7 @@ class BW_Search_Widget extends Widget_Base {
                 'type'      => Controls_Manager::COLOR,
                 'default'   => '#000000',
                 'selectors' => [
-                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-category-filter' => 'color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-category-filter, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-category-filter' => 'color: {{VALUE}};',
                 ],
             ]
         );
@@ -688,7 +703,7 @@ class BW_Search_Widget extends Widget_Base {
                 'type'      => Controls_Manager::COLOR,
                 'default'   => '#FFFFFF',
                 'selectors' => [
-                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-category-filter' => 'background-color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-category-filter, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-category-filter' => 'background-color: {{VALUE}};',
                 ],
             ]
         );
@@ -700,7 +715,7 @@ class BW_Search_Widget extends Widget_Base {
                 'type'      => Controls_Manager::COLOR,
                 'default'   => '#000000',
                 'selectors' => [
-                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-category-filter' => 'border-color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-category-filter, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-category-filter' => 'border-color: {{VALUE}};',
                 ],
             ]
         );
@@ -720,7 +735,7 @@ class BW_Search_Widget extends Widget_Base {
                 'label'     => __( 'Text Color', 'bw' ),
                 'type'      => Controls_Manager::COLOR,
                 'selectors' => [
-                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-category-filter:hover' => 'color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-category-filter:hover, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-category-filter:hover' => 'color: {{VALUE}};',
                 ],
             ]
         );
@@ -731,7 +746,7 @@ class BW_Search_Widget extends Widget_Base {
                 'label'     => __( 'Background Color', 'bw' ),
                 'type'      => Controls_Manager::COLOR,
                 'selectors' => [
-                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-category-filter:hover' => 'background-color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-category-filter:hover, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-category-filter:hover' => 'background-color: {{VALUE}};',
                 ],
             ]
         );
@@ -742,7 +757,7 @@ class BW_Search_Widget extends Widget_Base {
                 'label'     => __( 'Border Color', 'bw' ),
                 'type'      => Controls_Manager::COLOR,
                 'selectors' => [
-                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-category-filter:hover' => 'border-color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-category-filter:hover, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-category-filter:hover' => 'border-color: {{VALUE}};',
                 ],
             ]
         );
@@ -763,7 +778,7 @@ class BW_Search_Widget extends Widget_Base {
                 'type'      => Controls_Manager::COLOR,
                 'default'   => '#FFFFFF',
                 'selectors' => [
-                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-category-filter.is-active' => 'color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-category-filter.is-active, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-category-filter.is-active' => 'color: {{VALUE}};',
                 ],
             ]
         );
@@ -775,7 +790,7 @@ class BW_Search_Widget extends Widget_Base {
                 'type'      => Controls_Manager::COLOR,
                 'default'   => '#000000',
                 'selectors' => [
-                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-category-filter.is-active' => 'background-color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-category-filter.is-active, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-category-filter.is-active' => 'background-color: {{VALUE}};',
                 ],
             ]
         );
@@ -787,7 +802,7 @@ class BW_Search_Widget extends Widget_Base {
                 'type'      => Controls_Manager::COLOR,
                 'default'   => '#000000',
                 'selectors' => [
-                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-category-filter.is-active' => 'border-color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-category-filter.is-active, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-category-filter.is-active' => 'border-color: {{VALUE}};',
                 ],
             ]
         );
@@ -806,7 +821,7 @@ class BW_Search_Widget extends Widget_Base {
                 ],
                 'default'    => [ 'size' => 1, 'unit' => 'px' ],
                 'selectors'  => [
-                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-category-filter' => 'border-width: {{SIZE}}{{UNIT}};',
+                    '{{WRAPPER}} .bw-category-filter, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-category-filter' => 'border-width: {{SIZE}}{{UNIT}};',
                 ],
                 'separator'  => 'before',
             ]
@@ -824,7 +839,7 @@ class BW_Search_Widget extends Widget_Base {
                 ],
                 'default'    => [ 'size' => 4, 'unit' => 'px' ],
                 'selectors'  => [
-                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-category-filter' => 'border-radius: {{SIZE}}{{UNIT}};',
+                    '{{WRAPPER}} .bw-category-filter, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-category-filter' => 'border-radius: {{SIZE}}{{UNIT}};',
                 ],
             ]
         );
@@ -843,7 +858,7 @@ class BW_Search_Widget extends Widget_Base {
                     'unit'   => 'px',
                 ],
                 'selectors'  => [
-                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-category-filter' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                    '{{WRAPPER}} .bw-category-filter, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-category-filter' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
             ]
         );
@@ -862,7 +877,7 @@ class BW_Search_Widget extends Widget_Base {
                     'unit'   => 'px',
                 ],
                 'selectors'  => [
-                    'body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-category-filter' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                    '{{WRAPPER}} .bw-category-filter, body .bw-search-overlay[data-widget-id="{{ID}}"] .bw-category-filter' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
             ]
         );
@@ -911,8 +926,9 @@ class BW_Search_Widget extends Widget_Base {
         $categories = [];
 
         if ( $enable_filters ) {
-            $category_ids = isset( $settings['category_ids'] ) && '' !== trim( $settings['category_ids'] )
-                ? array_map( 'trim', explode( ',', $settings['category_ids'] ) )
+            // category_ids is now an array from SELECT2 control
+            $category_ids = isset( $settings['category_ids'] ) && is_array( $settings['category_ids'] ) && ! empty( $settings['category_ids'] )
+                ? $settings['category_ids']
                 : [];
 
             if ( ! empty( $category_ids ) ) {
