@@ -16,6 +16,9 @@
         $overlay: null,
         $panel: null,
         $itemsContainer: null,
+        $emptyState: null,
+        $fullContent: null,
+        $footer: null,
         $promoBox: null,
         $promoTrigger: null,
         $promoMessage: null,
@@ -40,6 +43,9 @@
             this.$overlay = $('#bw-cart-popup-overlay');
             this.$panel = $('#bw-cart-popup-panel');
             this.$itemsContainer = $('.bw-cart-popup-items');
+            this.$emptyState = $('.bw-cart-popup-empty-state');
+            this.$fullContent = $('.bw-cart-popup-content');
+            this.$footer = $('.bw-cart-popup-footer');
             this.$promoBox = $('.bw-cart-popup-promo-box');
             this.$promoTrigger = $('.bw-promo-link');
             this.$promoMessage = $('.bw-promo-message');
@@ -213,11 +219,15 @@
          * Renderizza i prodotti nel carrello
          */
         renderCartItems: function(data) {
+            // Se il carrello è vuoto, mostra il layout vuoto
             if (data.empty || !data.items || data.items.length === 0) {
-                this.$itemsContainer.html('<p class="bw-cart-empty">Your cart is empty</p>');
+                this.showEmptyState();
                 this.updateBadge(0);
                 return;
             }
+
+            // Se il carrello ha prodotti, mostra il layout pieno
+            this.showFullState();
 
             let html = '';
 
@@ -244,6 +254,30 @@
 
             this.$itemsContainer.html(html);
             this.updateBadge(data.items.length);
+        },
+
+        /**
+         * Mostra lo stato carrello vuoto
+         */
+        showEmptyState: function() {
+            // Nascondi contenuto pieno e footer
+            this.$fullContent.hide();
+            this.$footer.hide();
+
+            // Mostra stato vuoto
+            this.$emptyState.fadeIn(300);
+        },
+
+        /**
+         * Mostra lo stato carrello pieno
+         */
+        showFullState: function() {
+            // Nascondi stato vuoto
+            this.$emptyState.hide();
+
+            // Mostra contenuto pieno e footer
+            this.$fullContent.fadeIn(300);
+            this.$footer.fadeIn(300);
         },
 
         /**
