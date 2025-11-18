@@ -30,6 +30,12 @@ function bw_cart_popup_render_panel() {
     $continue_text = get_option('bw_cart_popup_continue_text', 'Continue shopping');
     $additional_svg = get_option('bw_cart_popup_additional_svg', '');
     $svg_black = get_option('bw_cart_popup_svg_black', 0);
+    $return_shop_url = get_option('bw_cart_popup_return_shop_url', '');
+
+    // Determina l'URL di ritorno allo shop
+    if (empty($return_shop_url)) {
+        $return_shop_url = home_url('/shop/');
+    }
 
     ?>
     <!-- BW Cart Pop-Up -->
@@ -44,6 +50,21 @@ function bw_cart_popup_render_panel() {
             <button class="bw-cart-popup-close" aria-label="Close cart">
                 <span class="bw-close-icon"></span>
             </button>
+        </div>
+
+        <!-- Layout Carrello Vuoto -->
+        <div class="bw-cart-popup-empty-state" style="display: none;">
+            <div class="bw-cart-empty-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="9" cy="21" r="1"/>
+                    <circle cx="20" cy="21" r="1"/>
+                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                </svg>
+            </div>
+            <p class="bw-cart-empty-text">Your cart is currently empty</p>
+            <a href="<?php echo esc_url($return_shop_url); ?>" class="bw-cart-popup-return-shop elementor-button elementor-button-link elementor-size-md">
+                Return to Shop
+            </a>
         </div>
 
         <!-- Contenuto del carrello -->
@@ -130,13 +151,43 @@ function bw_cart_popup_dynamic_css() {
         return;
     }
 
-    // Recupera le impostazioni
+    // Recupera le impostazioni generali
     $panel_width = get_option('bw_cart_popup_panel_width', 400);
     $overlay_color = get_option('bw_cart_popup_overlay_color', '#000000');
     $overlay_opacity = get_option('bw_cart_popup_overlay_opacity', 0.5);
     $panel_bg = get_option('bw_cart_popup_panel_bg', '#ffffff');
-    $checkout_color = get_option('bw_cart_popup_checkout_color', '#28a745');
-    $continue_color = get_option('bw_cart_popup_continue_color', '#6c757d');
+
+    // Proceed to Checkout button settings
+    $checkout_bg = get_option('bw_cart_popup_checkout_bg', '#28a745');
+    $checkout_bg_hover = get_option('bw_cart_popup_checkout_bg_hover', '#218838');
+    $checkout_text_color = get_option('bw_cart_popup_checkout_text_color', '#ffffff');
+    $checkout_text_hover = get_option('bw_cart_popup_checkout_text_hover', '#ffffff');
+    $checkout_font_size = get_option('bw_cart_popup_checkout_font_size', 14);
+    $checkout_border_radius = get_option('bw_cart_popup_checkout_border_radius', 6);
+    $checkout_border_enabled = get_option('bw_cart_popup_checkout_border_enabled', 0);
+    $checkout_border_width = get_option('bw_cart_popup_checkout_border_width', 1);
+    $checkout_border_style = get_option('bw_cart_popup_checkout_border_style', 'solid');
+    $checkout_border_color = get_option('bw_cart_popup_checkout_border_color', '#28a745');
+    $checkout_padding_top = get_option('bw_cart_popup_checkout_padding_top', 12);
+    $checkout_padding_right = get_option('bw_cart_popup_checkout_padding_right', 20);
+    $checkout_padding_bottom = get_option('bw_cart_popup_checkout_padding_bottom', 12);
+    $checkout_padding_left = get_option('bw_cart_popup_checkout_padding_left', 20);
+
+    // Continue Shopping button settings
+    $continue_bg = get_option('bw_cart_popup_continue_bg', '#6c757d');
+    $continue_bg_hover = get_option('bw_cart_popup_continue_bg_hover', '#5a6268');
+    $continue_text_color = get_option('bw_cart_popup_continue_text_color', '#ffffff');
+    $continue_text_hover = get_option('bw_cart_popup_continue_text_hover', '#ffffff');
+    $continue_font_size = get_option('bw_cart_popup_continue_font_size', 14);
+    $continue_border_radius = get_option('bw_cart_popup_continue_border_radius', 6);
+    $continue_border_enabled = get_option('bw_cart_popup_continue_border_enabled', 0);
+    $continue_border_width = get_option('bw_cart_popup_continue_border_width', 1);
+    $continue_border_style = get_option('bw_cart_popup_continue_border_style', 'solid');
+    $continue_border_color = get_option('bw_cart_popup_continue_border_color', '#6c757d');
+    $continue_padding_top = get_option('bw_cart_popup_continue_padding_top', 12);
+    $continue_padding_right = get_option('bw_cart_popup_continue_padding_right', 20);
+    $continue_padding_bottom = get_option('bw_cart_popup_continue_padding_bottom', 12);
+    $continue_padding_left = get_option('bw_cart_popup_continue_padding_left', 20);
 
     // Converti colore hex in rgba per l'overlay
     $overlay_rgb = bw_cart_popup_hex_to_rgb($overlay_color);
@@ -156,9 +207,46 @@ function bw_cart_popup_dynamic_css() {
             background-color: <?php echo esc_attr($panel_bg); ?>;
         }
 
-        /* Pulsante Continue Shopping */
+        /* === PROCEED TO CHECKOUT BUTTON === */
+        .bw-cart-popup-checkout,
+        .bw-cart-popup-return-shop {
+            background-color: <?php echo esc_attr($checkout_bg); ?> !important;
+            color: <?php echo esc_attr($checkout_text_color); ?> !important;
+            font-size: <?php echo esc_attr($checkout_font_size); ?>px !important;
+            border-radius: <?php echo esc_attr($checkout_border_radius); ?>px !important;
+            padding: <?php echo esc_attr($checkout_padding_top); ?>px <?php echo esc_attr($checkout_padding_right); ?>px <?php echo esc_attr($checkout_padding_bottom); ?>px <?php echo esc_attr($checkout_padding_left); ?>px !important;
+            <?php if ($checkout_border_enabled): ?>
+            border: <?php echo esc_attr($checkout_border_width); ?>px <?php echo esc_attr($checkout_border_style); ?> <?php echo esc_attr($checkout_border_color); ?> !important;
+            <?php else: ?>
+            border: none !important;
+            <?php endif; ?>
+        }
+
+        .bw-cart-popup-checkout:hover,
+        .bw-cart-popup-return-shop:hover {
+            background-color: <?php echo esc_attr($checkout_bg_hover); ?> !important;
+            color: <?php echo esc_attr($checkout_text_hover); ?> !important;
+            opacity: 1 !important;
+        }
+
+        /* === CONTINUE SHOPPING BUTTON === */
         .bw-cart-popup-continue {
-            background-color: <?php echo esc_attr($continue_color); ?> !important;
+            background-color: <?php echo esc_attr($continue_bg); ?> !important;
+            color: <?php echo esc_attr($continue_text_color); ?> !important;
+            font-size: <?php echo esc_attr($continue_font_size); ?>px !important;
+            border-radius: <?php echo esc_attr($continue_border_radius); ?>px !important;
+            padding: <?php echo esc_attr($continue_padding_top); ?>px <?php echo esc_attr($continue_padding_right); ?>px <?php echo esc_attr($continue_padding_bottom); ?>px <?php echo esc_attr($continue_padding_left); ?>px !important;
+            <?php if ($continue_border_enabled): ?>
+            border: <?php echo esc_attr($continue_border_width); ?>px <?php echo esc_attr($continue_border_style); ?> <?php echo esc_attr($continue_border_color); ?> !important;
+            <?php else: ?>
+            border: none !important;
+            <?php endif; ?>
+        }
+
+        .bw-cart-popup-continue:hover {
+            background-color: <?php echo esc_attr($continue_bg_hover); ?> !important;
+            color: <?php echo esc_attr($continue_text_hover); ?> !important;
+            opacity: 1 !important;
         }
     </style>
     <?php
