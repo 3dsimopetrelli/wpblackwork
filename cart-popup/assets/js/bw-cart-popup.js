@@ -35,11 +35,6 @@
          * Inizializzazione
          */
         init: function() {
-            // Verifica se la funzionalità è attiva
-            if (!bwCartPopupConfig.settings.active) {
-                return;
-            }
-
             // Inizializza elementi DOM
             this.$overlay = $('#bw-cart-popup-overlay');
             this.$panel = $('#bw-cart-popup-panel');
@@ -58,8 +53,13 @@
             // Bind eventi
             this.bindEvents();
 
-            // Intercetta pulsanti "Add to Cart"
-            this.interceptAddToCart();
+            // Intercetta pulsanti "Add to Cart" globali se l'opzione è attiva
+            if (bwCartPopupConfig.settings.active && bwCartPopupConfig.settings.slide_animation) {
+                this.interceptAddToCart();
+            }
+
+            // Intercetta pulsanti dei widget con data attribute (sempre attivo per i widget)
+            this.interceptWidgetAddToCart();
 
             console.log('BW Cart Pop-Up initialized');
         },
@@ -168,6 +168,37 @@
 
             // Note: I prodotti variabili (Variable Products) sono già supportati perché
             // WooCommerce triggera l'evento 'added_to_cart' anche per loro dopo la selezione delle varianti
+        },
+
+        /**
+         * Intercetta i pulsanti "Add to Cart" dei widget con data attribute
+         */
+        interceptWidgetAddToCart: function() {
+            const self = this;
+
+            // Intercetta i pulsanti Add to Cart dei widget che hanno l'opzione cart popup attiva
+            $(document).on('click', '.bw-btn-addtocart[data-open-cart-popup="1"]', function(e) {
+                const $btn = $(this);
+                const href = $btn.attr('href');
+
+                // Se il link contiene 'add-to-cart', previeni il comportamento default
+                if (href && href.indexOf('add-to-cart') !== -1) {
+                    e.preventDefault();
+
+                    // Estrai l'ID del prodotto dall'URL
+                    const urlParams = new URLSearchParams(href.split('?')[1] || '');
+                    const productId = urlParams.get('add-to-cart');
+
+                    if (productId) {
+                        // Aggiungi prodotto via AJAX e apri il popup
+                        self.addToCartAjax(productId, 1, $btn);
+                    }
+                } else {
+                    // Se non è un link add-to-cart diretto (es. prodotto variabile),
+                    // lascia che il link funzioni normalmente e vai alla pagina prodotto
+                    // Non preveniamo il default in questo caso
+                }
+            });
         },
 
         /**

@@ -111,6 +111,19 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
             'description' => __( 'Inserisci gli ID separati da virgola.', 'bw-elementor-widgets' ),
         ] );
 
+        // Opzione per aprire cart pop-up su Add to Cart
+        $this->add_control( 'open_cart_popup', [
+            'label'        => __( 'Apri cart pop-up su Add to Cart', 'bw-elementor-widgets' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'label_on'     => __( 'S\u00EC', 'bw-elementor-widgets' ),
+            'label_off'    => __( 'No', 'bw-elementor-widgets' ),
+            'return_value' => 'yes',
+            'default'      => '',
+            'separator'    => 'before',
+            'description'  => __( 'Se attivo, quando l\'utente clicca su Add to Cart dal BW Slick Slider, si apre il cart pop-up senza ricaricare la pagina. Se disattivo, il pulsante segue il comportamento standard e porta alla pagina del carrello.', 'bw-elementor-widgets' ),
+            'condition'    => [ 'content_type' => 'product' ],
+        ] );
+
         $this->end_controls_section();
 
         $this->start_controls_section( 'layout_section', [
@@ -903,6 +916,7 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
         $product_cat_parent = isset( $settings['product_cat_parent'] ) ? absint( $settings['product_cat_parent'] ) : 0;
         $product_cat_child  = isset( $settings['product_cat_child'] ) ? array_filter( array_map( 'absint', (array) $settings['product_cat_child'] ) ) : [];
         $slides_scroll = isset( $settings['slides_to_scroll'] ) ? max( 1, absint( $settings['slides_to_scroll'] ) ) : 1;
+        $open_cart_popup = isset( $settings['open_cart_popup'] ) && 'yes' === $settings['open_cart_popup'];
 
         $query_args = [
             'post_type'      => $content_type,
@@ -1089,7 +1103,7 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
                                                     <span class="overlay-button__label"><?php esc_html_e( 'View Product', 'bw-elementor-widgets' ); ?></span>
                                                 </a>
                                                 <?php if ( $has_add_to_cart && $add_to_cart_url ) : ?>
-                                                    <a class="overlay-button overlay-button--cart bw-ss__btn bw-btn-addtocart bw-slide-button" href="<?php echo esc_url( $add_to_cart_url ); ?>">
+                                                    <a class="overlay-button overlay-button--cart bw-ss__btn bw-btn-addtocart bw-slide-button" href="<?php echo esc_url( $add_to_cart_url ); ?>"<?php echo $open_cart_popup ? ' data-open-cart-popup="1"' : ''; ?>>
                                                         <span class="overlay-button__label"><?php esc_html_e( 'Add to Cart', 'bw-elementor-widgets' ); ?></span>
                                                     </a>
                                                 <?php endif; ?>

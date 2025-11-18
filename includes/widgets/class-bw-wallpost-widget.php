@@ -115,6 +115,19 @@ class BW_WallPost_Widget extends Widget_Base {
             ],
         ] );
 
+        // Opzione per aprire cart pop-up su Add to Cart
+        $this->add_control( 'open_cart_popup', [
+            'label'        => __( 'Apri cart pop-up su Add to Cart', 'bw-elementor-widgets' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'label_on'     => __( 'S\u00EC', 'bw-elementor-widgets' ),
+            'label_off'    => __( 'No', 'bw-elementor-widgets' ),
+            'return_value' => 'yes',
+            'default'      => '',
+            'separator'    => 'before',
+            'description'  => __( 'Se attivo, il pulsante Add to Cart del BW Wall Post apre il cart pop-up dopo l\'aggiunta al carrello. Se disattivo, il pulsante porta direttamente alla pagina del carrello.', 'bw-elementor-widgets' ),
+            'condition'    => [ 'post_type' => 'product' ],
+        ] );
+
         $this->end_controls_section();
     }
 
@@ -779,6 +792,7 @@ class BW_WallPost_Widget extends Widget_Base {
         $image_toggle    = isset( $settings['image_toggle'] ) && 'yes' === $settings['image_toggle'];
         $image_size      = isset( $settings['image_size'] ) ? $settings['image_size'] : 'large';
         $hover_effect    = isset( $settings['hover_effect'] ) && 'yes' === $settings['hover_effect'];
+        $open_cart_popup = isset( $settings['open_cart_popup'] ) && 'yes' === $settings['open_cart_popup'];
 
         $include_ids = isset( $settings['specific_ids'] ) ? $this->parse_ids( $settings['specific_ids'] ) : [];
 
@@ -977,7 +991,7 @@ class BW_WallPost_Widget extends Widget_Base {
                                                         <span class="bw-wallpost-overlay-button__label overlay-button__label"><?php echo $view_label; ?></span>
                                                     </a>
                                                     <?php if ( 'product' === $post_type && $has_add_to_cart && $add_to_cart_url ) : ?>
-                                                        <a class="bw-wallpost-overlay-button overlay-button overlay-button--cart bw-ss__btn bw-btn-addtocart bw-slide-button" href="<?php echo esc_url( $add_to_cart_url ); ?>">
+                                                        <a class="bw-wallpost-overlay-button overlay-button overlay-button--cart bw-ss__btn bw-btn-addtocart bw-slide-button" href="<?php echo esc_url( $add_to_cart_url ); ?>"<?php echo $open_cart_popup ? ' data-open-cart-popup="1"' : ''; ?>>
                                                             <span class="bw-wallpost-overlay-button__label overlay-button__label"><?php esc_html_e( 'Add to Cart', 'bw-elementor-widgets' ); ?></span>
                                                         </a>
                                                     <?php endif; ?>
