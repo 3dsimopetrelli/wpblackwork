@@ -285,8 +285,10 @@ function bw_cart_popup_dynamic_css() {
         }
 
         /* === PADDING PER CART ICON SVG === */
-        .bw-cart-popup-custom-svg svg {
-            padding: <?php echo esc_attr($cart_icon_padding_top); ?>px <?php echo esc_attr($cart_icon_padding_right); ?>px <?php echo esc_attr($cart_icon_padding_bottom); ?>px <?php echo esc_attr($cart_icon_padding_left); ?>px;
+        /* Applicato sia all'icona custom che a quella default */
+        .bw-cart-popup-custom-svg svg,
+        .bw-cart-icon {
+            padding: <?php echo esc_attr($cart_icon_padding_top); ?>px <?php echo esc_attr($cart_icon_padding_right); ?>px <?php echo esc_attr($cart_icon_padding_bottom); ?>px <?php echo esc_attr($cart_icon_padding_left); ?>px !important;
         }
 
         /* === PADDING PER EMPTY CART SVG === */
