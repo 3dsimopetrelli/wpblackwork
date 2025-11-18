@@ -193,6 +193,9 @@ function bw_cart_popup_save_settings() {
     // Toggle ON/OFF
     update_option('bw_cart_popup_active', isset($_POST['bw_cart_popup_active']) ? 1 : 0);
 
+    // Slide-in animation ON/OFF
+    update_option('bw_cart_popup_slide_animation', isset($_POST['bw_cart_popup_slide_animation']) ? 1 : 0);
+
     // Larghezza pannello (percentuale)
     $panel_width = isset($_POST['bw_cart_popup_panel_width']) ? intval($_POST['bw_cart_popup_panel_width']) : 400;
     update_option('bw_cart_popup_panel_width', $panel_width);
@@ -520,6 +523,19 @@ function bw_cart_popup_settings_page() {
                         <label class="switch">
                             <input type="checkbox" id="bw_cart_popup_active" name="bw_cart_popup_active" value="1" <?php checked(1, $active); ?> />
                             <span class="description">Quando attivo, i pulsanti "Add to Cart" apriranno il pannello slide-in invece di andare alla pagina carrello.</span>
+                        </label>
+                    </td>
+                </tr>
+
+                <!-- Slide-in Animation ON/OFF -->
+                <tr>
+                    <th scope="row">
+                        <label for="bw_cart_popup_slide_animation">Slide-in animation (cart open)</label>
+                    </th>
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox" id="bw_cart_popup_slide_animation" name="bw_cart_popup_slide_animation" value="1" <?php checked(1, get_option('bw_cart_popup_slide_animation', 1)); ?> />
+                            <span class="description">Quando attivo, il cart pop-up si apre automaticamente con slide-in da destra ogni volta che un prodotto viene aggiunto al carrello.</span>
                         </label>
                     </td>
                 </tr>

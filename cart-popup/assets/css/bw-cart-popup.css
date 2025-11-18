@@ -411,6 +411,11 @@
 
 /* Box promo code */
 .bw-cart-popup-promo-box {
+    margin-bottom: 10px;
+}
+
+/* Wrapper per input e pulsante */
+.bw-promo-input-wrapper {
     display: flex;
     gap: 8px;
     align-items: center;
@@ -459,7 +464,7 @@
 /* Messaggio promo */
 .bw-promo-message {
     display: none;
-    margin-top: 10px;
+    width: 100%;
     padding: 10px 12px;
     border-radius: 4px;
     font-size: 13px;

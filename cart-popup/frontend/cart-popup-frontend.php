@@ -105,10 +105,12 @@ function bw_cart_popup_render_panel() {
                     Have a promo code? <a href="#" class="bw-promo-link">Click here.</a>
                 </p>
                 <div class="bw-cart-popup-promo-box" style="display: none;">
-                    <input type="text" class="bw-promo-input" placeholder="Enter promo code" />
-                    <button class="bw-promo-apply">Apply</button>
-                    <div class="bw-promo-message"></div>
+                    <div class="bw-promo-input-wrapper">
+                        <input type="text" class="bw-promo-input" placeholder="Enter promo code" />
+                        <button class="bw-promo-apply">Apply</button>
+                    </div>
                 </div>
+                <div class="bw-promo-message"></div>
             </div>
 
             <!-- Totali -->
