@@ -13,13 +13,10 @@ if (!defined('ABSPATH')) {
 
 /**
  * Aggiungi il markup HTML del cart pop-up nel footer
+ * NOTA: Il markup viene sempre renderizzato perché è necessario anche per i widget
+ * (anche se l'opzione globale cart popup è disattivata)
  */
 function bw_cart_popup_render_panel() {
-    // Verifica se la funzionalità è attiva
-    if (!get_option('bw_cart_popup_active', 0)) {
-        return;
-    }
-
     // Verifica se WooCommerce è attivo
     if (!class_exists('WooCommerce')) {
         return;
@@ -169,10 +166,12 @@ add_action('wp_footer', 'bw_cart_popup_render_panel');
 
 /**
  * Aggiungi CSS dinamico per le impostazioni configurabili
+ * NOTA: Il CSS viene sempre renderizzato perché è necessario anche per i widget
+ * (anche se l'opzione globale cart popup è disattivata)
  */
 function bw_cart_popup_dynamic_css() {
-    // Verifica se la funzionalità è attiva
-    if (!get_option('bw_cart_popup_active', 0)) {
+    // Verifica se WooCommerce è attivo
+    if (!class_exists('WooCommerce')) {
         return;
     }
 

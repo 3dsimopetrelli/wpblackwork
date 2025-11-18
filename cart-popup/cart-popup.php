@@ -88,13 +88,10 @@ add_action('wp_enqueue_scripts', 'bw_cart_popup_register_assets');
 
 /**
  * Carica gli assets del Cart Pop-Up nel frontend
+ * NOTA: Gli assets vengono sempre caricati perché sono necessari anche per i widget
+ * (anche se l'opzione globale cart popup è disattivata)
  */
 function bw_cart_popup_enqueue_assets() {
-    // Verifica se la funzionalità è attiva
-    if (!get_option('bw_cart_popup_active', 0)) {
-        return;
-    }
-
     // Verifica se WooCommerce è attivo
     if (!class_exists('WooCommerce')) {
         return;
