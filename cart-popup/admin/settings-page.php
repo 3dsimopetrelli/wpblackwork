@@ -244,18 +244,18 @@ function bw_cart_popup_save_settings() {
     // Opzione per colorare SVG di nero
     update_option('bw_cart_popup_svg_black', isset($_POST['bw_cart_popup_svg_black']) ? 1 : 0);
 
-    // Padding per Cart Icon SVG
-    $cart_icon_padding_top = isset($_POST['bw_cart_popup_cart_icon_padding_top']) ? intval($_POST['bw_cart_popup_cart_icon_padding_top']) : 0;
-    update_option('bw_cart_popup_cart_icon_padding_top', $cart_icon_padding_top);
+    // Margin per Cart Icon SVG
+    $cart_icon_margin_top = isset($_POST['bw_cart_popup_cart_icon_margin_top']) ? intval($_POST['bw_cart_popup_cart_icon_margin_top']) : 0;
+    update_option('bw_cart_popup_cart_icon_margin_top', $cart_icon_margin_top);
 
-    $cart_icon_padding_right = isset($_POST['bw_cart_popup_cart_icon_padding_right']) ? intval($_POST['bw_cart_popup_cart_icon_padding_right']) : 0;
-    update_option('bw_cart_popup_cart_icon_padding_right', $cart_icon_padding_right);
+    $cart_icon_margin_right = isset($_POST['bw_cart_popup_cart_icon_margin_right']) ? intval($_POST['bw_cart_popup_cart_icon_margin_right']) : 0;
+    update_option('bw_cart_popup_cart_icon_margin_right', $cart_icon_margin_right);
 
-    $cart_icon_padding_bottom = isset($_POST['bw_cart_popup_cart_icon_padding_bottom']) ? intval($_POST['bw_cart_popup_cart_icon_padding_bottom']) : 0;
-    update_option('bw_cart_popup_cart_icon_padding_bottom', $cart_icon_padding_bottom);
+    $cart_icon_margin_bottom = isset($_POST['bw_cart_popup_cart_icon_margin_bottom']) ? intval($_POST['bw_cart_popup_cart_icon_margin_bottom']) : 0;
+    update_option('bw_cart_popup_cart_icon_margin_bottom', $cart_icon_margin_bottom);
 
-    $cart_icon_padding_left = isset($_POST['bw_cart_popup_cart_icon_padding_left']) ? intval($_POST['bw_cart_popup_cart_icon_padding_left']) : 0;
-    update_option('bw_cart_popup_cart_icon_padding_left', $cart_icon_padding_left);
+    $cart_icon_margin_left = isset($_POST['bw_cart_popup_cart_icon_margin_left']) ? intval($_POST['bw_cart_popup_cart_icon_margin_left']) : 0;
+    update_option('bw_cart_popup_cart_icon_margin_left', $cart_icon_margin_left);
 
     // Padding per Empty Cart SVG
     $empty_cart_padding_top = isset($_POST['bw_cart_popup_empty_cart_padding_top']) ? intval($_POST['bw_cart_popup_empty_cart_padding_top']) : 0;
@@ -415,11 +415,11 @@ function bw_cart_popup_settings_page() {
     $empty_cart_svg = get_option('bw_cart_popup_empty_cart_svg', '');
     $svg_black = get_option('bw_cart_popup_svg_black', 0);
 
-    // Padding per Cart Icon SVG
-    $cart_icon_padding_top = get_option('bw_cart_popup_cart_icon_padding_top', 0);
-    $cart_icon_padding_right = get_option('bw_cart_popup_cart_icon_padding_right', 0);
-    $cart_icon_padding_bottom = get_option('bw_cart_popup_cart_icon_padding_bottom', 0);
-    $cart_icon_padding_left = get_option('bw_cart_popup_cart_icon_padding_left', 0);
+    // Margin per Cart Icon SVG
+    $cart_icon_margin_top = get_option('bw_cart_popup_cart_icon_margin_top', 0);
+    $cart_icon_margin_right = get_option('bw_cart_popup_cart_icon_margin_right', 0);
+    $cart_icon_margin_bottom = get_option('bw_cart_popup_cart_icon_margin_bottom', 0);
+    $cart_icon_margin_left = get_option('bw_cart_popup_cart_icon_margin_left', 0);
 
     // Padding per Empty Cart SVG
     $empty_cart_padding_top = get_option('bw_cart_popup_empty_cart_padding_top', 0);
@@ -920,31 +920,31 @@ function bw_cart_popup_settings_page() {
                     </td>
                 </tr>
 
-                <!-- Padding per Cart Icon SVG -->
+                <!-- Margin per Cart Icon SVG -->
                 <tr>
                     <th scope="row">
-                        <label>Padding Cart Icon SVG (px)</label>
+                        <label>Margin Cart Icon SVG (px)</label>
                     </th>
                     <td>
                         <div class="bw-padding-grid">
                             <div class="bw-padding-field">
-                                <input type="number" id="bw_cart_popup_cart_icon_padding_top" name="bw_cart_popup_cart_icon_padding_top" value="<?php echo esc_attr($cart_icon_padding_top); ?>" min="0" max="100" class="small-text" />
-                                <label for="bw_cart_popup_cart_icon_padding_top">Top</label>
+                                <input type="number" id="bw_cart_popup_cart_icon_margin_top" name="bw_cart_popup_cart_icon_margin_top" value="<?php echo esc_attr($cart_icon_margin_top); ?>" min="0" max="100" class="small-text" />
+                                <label for="bw_cart_popup_cart_icon_margin_top">Top</label>
                             </div>
                             <div class="bw-padding-field">
-                                <input type="number" id="bw_cart_popup_cart_icon_padding_right" name="bw_cart_popup_cart_icon_padding_right" value="<?php echo esc_attr($cart_icon_padding_right); ?>" min="0" max="100" class="small-text" />
-                                <label for="bw_cart_popup_cart_icon_padding_right">Right</label>
+                                <input type="number" id="bw_cart_popup_cart_icon_margin_right" name="bw_cart_popup_cart_icon_margin_right" value="<?php echo esc_attr($cart_icon_margin_right); ?>" min="0" max="100" class="small-text" />
+                                <label for="bw_cart_popup_cart_icon_margin_right">Right</label>
                             </div>
                             <div class="bw-padding-field">
-                                <input type="number" id="bw_cart_popup_cart_icon_padding_bottom" name="bw_cart_popup_cart_icon_padding_bottom" value="<?php echo esc_attr($cart_icon_padding_bottom); ?>" min="0" max="100" class="small-text" />
-                                <label for="bw_cart_popup_cart_icon_padding_bottom">Bottom</label>
+                                <input type="number" id="bw_cart_popup_cart_icon_margin_bottom" name="bw_cart_popup_cart_icon_margin_bottom" value="<?php echo esc_attr($cart_icon_margin_bottom); ?>" min="0" max="100" class="small-text" />
+                                <label for="bw_cart_popup_cart_icon_margin_bottom">Bottom</label>
                             </div>
                             <div class="bw-padding-field">
-                                <input type="number" id="bw_cart_popup_cart_icon_padding_left" name="bw_cart_popup_cart_icon_padding_left" value="<?php echo esc_attr($cart_icon_padding_left); ?>" min="0" max="100" class="small-text" />
-                                <label for="bw_cart_popup_cart_icon_padding_left">Left</label>
+                                <input type="number" id="bw_cart_popup_cart_icon_margin_left" name="bw_cart_popup_cart_icon_margin_left" value="<?php echo esc_attr($cart_icon_margin_left); ?>" min="0" max="100" class="small-text" />
+                                <label for="bw_cart_popup_cart_icon_margin_left">Left</label>
                             </div>
                         </div>
-                        <p class="description">Imposta il padding per l'icona SVG del carrello</p>
+                        <p class="description">Imposta il margin per l'icona SVG del carrello</p>
                     </td>
                 </tr>
 
