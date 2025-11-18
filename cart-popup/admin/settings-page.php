@@ -78,6 +78,10 @@ function bw_cart_popup_save_settings() {
     $additional_svg = isset($_POST['bw_cart_popup_additional_svg']) ? wp_kses_post($_POST['bw_cart_popup_additional_svg']) : '';
     update_option('bw_cart_popup_additional_svg', $additional_svg);
 
+    // Empty Cart SVG personalizzato
+    $empty_cart_svg = isset($_POST['bw_cart_popup_empty_cart_svg']) ? wp_kses_post($_POST['bw_cart_popup_empty_cart_svg']) : '';
+    update_option('bw_cart_popup_empty_cart_svg', $empty_cart_svg);
+
     // Opzione per colorare SVG di nero
     update_option('bw_cart_popup_svg_black', isset($_POST['bw_cart_popup_svg_black']) ? 1 : 0);
 
@@ -432,7 +436,7 @@ function bw_cart_popup_settings_page() {
                 </tr>
 
                 <!-- Border Width -->
-                <tr>
+                <tr class="bw-checkout-border-field">
                     <th scope="row">
                         <label for="bw_cart_popup_checkout_border_width">Spessore Bordo (px)</label>
                     </th>
@@ -443,7 +447,7 @@ function bw_cart_popup_settings_page() {
                 </tr>
 
                 <!-- Border Style -->
-                <tr>
+                <tr class="bw-checkout-border-field">
                     <th scope="row">
                         <label for="bw_cart_popup_checkout_border_style">Stile Bordo</label>
                     </th>
@@ -459,7 +463,7 @@ function bw_cart_popup_settings_page() {
                 </tr>
 
                 <!-- Border Color -->
-                <tr>
+                <tr class="bw-checkout-border-field">
                     <th scope="row">
                         <label for="bw_cart_popup_checkout_border_color">Colore Bordo</label>
                     </th>
@@ -469,47 +473,31 @@ function bw_cart_popup_settings_page() {
                     </td>
                 </tr>
 
-                <!-- Padding Top -->
+                <!-- Padding (Layout Compatto) -->
                 <tr>
                     <th scope="row">
-                        <label for="bw_cart_popup_checkout_padding_top">Padding Top (px)</label>
+                        <label>Padding (px)</label>
                     </th>
                     <td>
-                        <input type="number" id="bw_cart_popup_checkout_padding_top" name="bw_cart_popup_checkout_padding_top" value="<?php echo esc_attr($checkout_padding_top); ?>" min="0" max="50" class="small-text" />
-                        <p class="description">Padding superiore in pixel</p>
-                    </td>
-                </tr>
-
-                <!-- Padding Right -->
-                <tr>
-                    <th scope="row">
-                        <label for="bw_cart_popup_checkout_padding_right">Padding Right (px)</label>
-                    </th>
-                    <td>
-                        <input type="number" id="bw_cart_popup_checkout_padding_right" name="bw_cart_popup_checkout_padding_right" value="<?php echo esc_attr($checkout_padding_right); ?>" min="0" max="50" class="small-text" />
-                        <p class="description">Padding destro in pixel</p>
-                    </td>
-                </tr>
-
-                <!-- Padding Bottom -->
-                <tr>
-                    <th scope="row">
-                        <label for="bw_cart_popup_checkout_padding_bottom">Padding Bottom (px)</label>
-                    </th>
-                    <td>
-                        <input type="number" id="bw_cart_popup_checkout_padding_bottom" name="bw_cart_popup_checkout_padding_bottom" value="<?php echo esc_attr($checkout_padding_bottom); ?>" min="0" max="50" class="small-text" />
-                        <p class="description">Padding inferiore in pixel</p>
-                    </td>
-                </tr>
-
-                <!-- Padding Left -->
-                <tr>
-                    <th scope="row">
-                        <label for="bw_cart_popup_checkout_padding_left">Padding Left (px)</label>
-                    </th>
-                    <td>
-                        <input type="number" id="bw_cart_popup_checkout_padding_left" name="bw_cart_popup_checkout_padding_left" value="<?php echo esc_attr($checkout_padding_left); ?>" min="0" max="50" class="small-text" />
-                        <p class="description">Padding sinistro in pixel</p>
+                        <div class="bw-padding-grid">
+                            <div class="bw-padding-field">
+                                <input type="number" id="bw_cart_popup_checkout_padding_top" name="bw_cart_popup_checkout_padding_top" value="<?php echo esc_attr($checkout_padding_top); ?>" min="0" max="50" class="small-text" />
+                                <label for="bw_cart_popup_checkout_padding_top">Top</label>
+                            </div>
+                            <div class="bw-padding-field">
+                                <input type="number" id="bw_cart_popup_checkout_padding_right" name="bw_cart_popup_checkout_padding_right" value="<?php echo esc_attr($checkout_padding_right); ?>" min="0" max="50" class="small-text" />
+                                <label for="bw_cart_popup_checkout_padding_right">Right</label>
+                            </div>
+                            <div class="bw-padding-field">
+                                <input type="number" id="bw_cart_popup_checkout_padding_bottom" name="bw_cart_popup_checkout_padding_bottom" value="<?php echo esc_attr($checkout_padding_bottom); ?>" min="0" max="50" class="small-text" />
+                                <label for="bw_cart_popup_checkout_padding_bottom">Bottom</label>
+                            </div>
+                            <div class="bw-padding-field">
+                                <input type="number" id="bw_cart_popup_checkout_padding_left" name="bw_cart_popup_checkout_padding_left" value="<?php echo esc_attr($checkout_padding_left); ?>" min="0" max="50" class="small-text" />
+                                <label for="bw_cart_popup_checkout_padding_left">Left</label>
+                            </div>
+                        </div>
+                        <p class="description">Imposta il padding per ogni lato del pulsante</p>
                     </td>
                 </tr>
 
@@ -609,7 +597,7 @@ function bw_cart_popup_settings_page() {
                 </tr>
 
                 <!-- Border Width -->
-                <tr>
+                <tr class="bw-continue-border-field">
                     <th scope="row">
                         <label for="bw_cart_popup_continue_border_width">Spessore Bordo (px)</label>
                     </th>
@@ -620,7 +608,7 @@ function bw_cart_popup_settings_page() {
                 </tr>
 
                 <!-- Border Style -->
-                <tr>
+                <tr class="bw-continue-border-field">
                     <th scope="row">
                         <label for="bw_cart_popup_continue_border_style">Stile Bordo</label>
                     </th>
@@ -636,7 +624,7 @@ function bw_cart_popup_settings_page() {
                 </tr>
 
                 <!-- Border Color -->
-                <tr>
+                <tr class="bw-continue-border-field">
                     <th scope="row">
                         <label for="bw_cart_popup_continue_border_color">Colore Bordo</label>
                     </th>
@@ -646,47 +634,31 @@ function bw_cart_popup_settings_page() {
                     </td>
                 </tr>
 
-                <!-- Padding Top -->
+                <!-- Padding (Layout Compatto) -->
                 <tr>
                     <th scope="row">
-                        <label for="bw_cart_popup_continue_padding_top">Padding Top (px)</label>
+                        <label>Padding (px)</label>
                     </th>
                     <td>
-                        <input type="number" id="bw_cart_popup_continue_padding_top" name="bw_cart_popup_continue_padding_top" value="<?php echo esc_attr($continue_padding_top); ?>" min="0" max="50" class="small-text" />
-                        <p class="description">Padding superiore in pixel</p>
-                    </td>
-                </tr>
-
-                <!-- Padding Right -->
-                <tr>
-                    <th scope="row">
-                        <label for="bw_cart_popup_continue_padding_right">Padding Right (px)</label>
-                    </th>
-                    <td>
-                        <input type="number" id="bw_cart_popup_continue_padding_right" name="bw_cart_popup_continue_padding_right" value="<?php echo esc_attr($continue_padding_right); ?>" min="0" max="50" class="small-text" />
-                        <p class="description">Padding destro in pixel</p>
-                    </td>
-                </tr>
-
-                <!-- Padding Bottom -->
-                <tr>
-                    <th scope="row">
-                        <label for="bw_cart_popup_continue_padding_bottom">Padding Bottom (px)</label>
-                    </th>
-                    <td>
-                        <input type="number" id="bw_cart_popup_continue_padding_bottom" name="bw_cart_popup_continue_padding_bottom" value="<?php echo esc_attr($continue_padding_bottom); ?>" min="0" max="50" class="small-text" />
-                        <p class="description">Padding inferiore in pixel</p>
-                    </td>
-                </tr>
-
-                <!-- Padding Left -->
-                <tr>
-                    <th scope="row">
-                        <label for="bw_cart_popup_continue_padding_left">Padding Left (px)</label>
-                    </th>
-                    <td>
-                        <input type="number" id="bw_cart_popup_continue_padding_left" name="bw_cart_popup_continue_padding_left" value="<?php echo esc_attr($continue_padding_left); ?>" min="0" max="50" class="small-text" />
-                        <p class="description">Padding sinistro in pixel</p>
+                        <div class="bw-padding-grid">
+                            <div class="bw-padding-field">
+                                <input type="number" id="bw_cart_popup_continue_padding_top" name="bw_cart_popup_continue_padding_top" value="<?php echo esc_attr($continue_padding_top); ?>" min="0" max="50" class="small-text" />
+                                <label for="bw_cart_popup_continue_padding_top">Top</label>
+                            </div>
+                            <div class="bw-padding-field">
+                                <input type="number" id="bw_cart_popup_continue_padding_right" name="bw_cart_popup_continue_padding_right" value="<?php echo esc_attr($continue_padding_right); ?>" min="0" max="50" class="small-text" />
+                                <label for="bw_cart_popup_continue_padding_right">Right</label>
+                            </div>
+                            <div class="bw-padding-field">
+                                <input type="number" id="bw_cart_popup_continue_padding_bottom" name="bw_cart_popup_continue_padding_bottom" value="<?php echo esc_attr($continue_padding_bottom); ?>" min="0" max="50" class="small-text" />
+                                <label for="bw_cart_popup_continue_padding_bottom">Bottom</label>
+                            </div>
+                            <div class="bw-padding-field">
+                                <input type="number" id="bw_cart_popup_continue_padding_left" name="bw_cart_popup_continue_padding_left" value="<?php echo esc_attr($continue_padding_left); ?>" min="0" max="50" class="small-text" />
+                                <label for="bw_cart_popup_continue_padding_left">Left</label>
+                            </div>
+                        </div>
+                        <p class="description">Imposta il padding per ogni lato del pulsante</p>
                     </td>
                 </tr>
 
@@ -718,11 +690,22 @@ function bw_cart_popup_settings_page() {
                 <!-- SVG Aggiuntivo -->
                 <tr>
                     <th scope="row">
-                        <label for="bw_cart_popup_additional_svg">Cart Pop-Up Additional SVG</label>
+                        <label for="bw_cart_popup_additional_svg">Cart Pop-Up SVG Icon</label>
                     </th>
                     <td>
                         <textarea id="bw_cart_popup_additional_svg" name="bw_cart_popup_additional_svg" rows="8" class="large-text code"><?php echo esc_textarea($additional_svg); ?></textarea>
                         <p class="description">Incolla qui il codice SVG completo da visualizzare nel Cart Pop-Up. Esempio: &lt;svg xmlns="http://www.w3.org/2000/svg"...&gt;...&lt;/svg&gt;</p>
+                    </td>
+                </tr>
+
+                <!-- Empty Cart SVG (Custom) -->
+                <tr>
+                    <th scope="row">
+                        <label for="bw_cart_popup_empty_cart_svg">Empty Cart SVG (Custom)</label>
+                    </th>
+                    <td>
+                        <textarea id="bw_cart_popup_empty_cart_svg" name="bw_cart_popup_empty_cart_svg" rows="8" class="large-text code"><?php echo esc_textarea(get_option('bw_cart_popup_empty_cart_svg', '')); ?></textarea>
+                        <p class="description">Incolla qui il codice SVG personalizzato per l'icona del carrello vuoto. Se vuoto, verrà usata l'icona di default.</p>
                     </td>
                 </tr>
 
@@ -776,6 +759,50 @@ function bw_cart_popup_settings_page() {
         .card li {
             margin-bottom: 10px;
         }
+
+        /* Layout compatto per padding */
+        .bw-padding-grid {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .bw-padding-field {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .bw-padding-field input {
+            margin-bottom: 5px;
+        }
+        .bw-padding-field label {
+            font-size: 12px;
+            color: #666;
+            font-weight: 500;
+        }
     </style>
+
+    <script>
+        jQuery(document).ready(function($) {
+            // Toggle visibilità campi bordo per Checkout button
+            function toggleCheckoutBorderFields() {
+                const isEnabled = $('#bw_cart_popup_checkout_border_enabled').is(':checked');
+                $('.bw-checkout-border-field').toggle(isEnabled);
+            }
+
+            // Toggle visibilità campi bordo per Continue button
+            function toggleContinueBorderFields() {
+                const isEnabled = $('#bw_cart_popup_continue_border_enabled').is(':checked');
+                $('.bw-continue-border-field').toggle(isEnabled);
+            }
+
+            // Inizializza stato al caricamento pagina
+            toggleCheckoutBorderFields();
+            toggleContinueBorderFields();
+
+            // Listener per checkbox
+            $('#bw_cart_popup_checkout_border_enabled').on('change', toggleCheckoutBorderFields);
+            $('#bw_cart_popup_continue_border_enabled').on('change', toggleContinueBorderFields);
+        });
+    </script>
     <?php
 }
