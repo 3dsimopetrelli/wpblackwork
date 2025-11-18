@@ -53,7 +53,12 @@
             // Bind eventi
             this.bindEvents();
 
-            // Intercetta pulsanti "Add to Cart" globali se l'opzione è attiva
+            // Registra listener per evento WooCommerce 'added_to_cart'
+            // IMPORTANTE: Questo deve essere sempre registrato per supportare sia
+            // i pulsanti globali che i widget
+            this.listenToAddedToCart();
+
+            // Intercetta pulsanti "Add to Cart" globali se l'opzione slide_animation è attiva
             if (bwCartPopupConfig.settings.active && bwCartPopupConfig.settings.slide_animation) {
                 this.interceptAddToCart();
             }
@@ -117,26 +122,38 @@
         },
 
         /**
-         * Intercetta i pulsanti "Add to Cart"
+         * Registra listener per evento WooCommerce 'added_to_cart'
+         * Questo listener viene sempre registrato per garantire che il cart popup
+         * si apra quando un prodotto viene aggiunto al carrello
+         */
+        listenToAddedToCart: function() {
+            const self = this;
+
+            // Intercetta l'evento WooCommerce 'added_to_cart' (dopo aggiunta al carrello)
+            // Questo evento viene triggerato da WooCommerce per tutti i tipi di Add to Cart
+            $(document.body).on('added_to_cart', function(event, fragments, cart_hash, $button) {
+                // Controlla se il pulsante che ha triggerato l'evento ha data-open-cart-popup="1"
+                // (significa che è un widget con l'opzione attiva)
+                const isWidgetWithPopup = $button && $button.attr('data-open-cart-popup') === '1';
+
+                // Apri il popup se:
+                // - L'opzione slide_animation è attiva (pulsanti globali), OPPURE
+                // - Il pulsante è un widget con l'opzione cart popup attiva
+                if (bwCartPopupConfig.settings.slide_animation || isWidgetWithPopup) {
+                    self.openPanel();
+                    console.log('Product added to cart, opening cart popup');
+                }
+            });
+        },
+
+        /**
+         * Intercetta i pulsanti "Add to Cart" standard di WooCommerce
+         * Questa funzione viene chiamata solo se l'opzione "slide_animation" è attiva
          */
         interceptAddToCart: function() {
             const self = this;
 
-            // Controlla se lo slide-in animation è attivo
-            if (!bwCartPopupConfig.settings.slide_animation) {
-                return;
-            }
-
-            // 1. Intercetta l'evento WooCommerce 'added_to_cart' (dopo aggiunta al carrello)
-            // Questo evento viene triggerato da WooCommerce per tutti i tipi di Add to Cart (AJAX, form variabili, ecc.)
-            $(document.body).on('added_to_cart', function(event, fragments, cart_hash, $button) {
-                // Apri il pannello con slide-in animation
-                self.openPanel();
-
-                console.log('Product added to cart, opening popup with slide-in animation');
-            });
-
-            // 2. Previeni il redirect per pulsanti non-AJAX e convertili in chiamate AJAX
+            // 1. Previeni il redirect per pulsanti non-AJAX e convertili in chiamate AJAX
             // Alcuni temi o configurazioni potrebbero avere pulsanti "Add to Cart" come link diretti
             $(document).on('click', 'a.add_to_cart_button', function(e) {
                 const $btn = $(this);
@@ -158,7 +175,7 @@
                 }
             });
 
-            // 3. Intercetta il link "View Cart" che appare dopo l'aggiunta di un prodotto
+            // 2. Intercetta il link "View Cart" che appare dopo l'aggiunta di un prodotto
             // WooCommerce aggiunge dinamicamente questo link accanto al pulsante "Add to Cart"
             $(document).on('click', '.added_to_cart', function(e) {
                 e.preventDefault();
