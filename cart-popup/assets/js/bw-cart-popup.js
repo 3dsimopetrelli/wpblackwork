@@ -25,6 +25,7 @@
         $closeBtn: null,
         $continueBtn: null,
         $cartBadge: null,
+        $loadingState: null,
 
         // Stato
         isOpen: false,
@@ -52,6 +53,7 @@
             this.$closeBtn = $('.bw-cart-popup-close');
             this.$continueBtn = $('.bw-cart-popup-continue');
             this.$cartBadge = $('.bw-cart-badge');
+            this.$loadingState = $('.bw-cart-popup-loading');
 
             // Bind eventi
             this.bindEvents();
@@ -75,12 +77,6 @@
 
             // Chiudi pannello al click sul pulsante X
             this.$closeBtn.on('click', function(e) {
-                e.preventDefault();
-                self.closePanel();
-            });
-
-            // Chiudi pannello al click su "Continue shopping"
-            this.$continueBtn.on('click', function(e) {
                 e.preventDefault();
                 self.closePanel();
             });
@@ -186,10 +182,30 @@
         },
 
         /**
+         * Mostra il loading state
+         */
+        showLoading: function() {
+            this.$loadingState.fadeIn(150);
+            this.$emptyState.hide();
+            this.$fullContent.hide();
+            this.$footer.hide();
+        },
+
+        /**
+         * Nascondi il loading state
+         */
+        hideLoading: function() {
+            this.$loadingState.fadeOut(150);
+        },
+
+        /**
          * Carica il contenuto del carrello
          */
         loadCartContents: function() {
             const self = this;
+
+            // Mostra loading state
+            this.showLoading();
 
             $.ajax({
                 url: bwCartPopupConfig.ajaxUrl,
@@ -203,14 +219,21 @@
                         self.renderCartItems(response.data);
                         self.updateTotals(response.data);
                         self.isLoading = false;
+
+                        // Nascondi loading con un leggero delay per evitare flickering
+                        setTimeout(function() {
+                            self.hideLoading();
+                        }, 200);
                     } else {
                         console.error('Failed to load cart contents');
                         self.isLoading = false;
+                        self.hideLoading();
                     }
                 },
                 error: function() {
                     console.error('AJAX error loading cart contents');
                     self.isLoading = false;
+                    self.hideLoading();
                 }
             });
         },

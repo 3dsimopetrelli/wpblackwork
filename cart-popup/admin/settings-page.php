@@ -12,6 +12,157 @@ if (!defined('ABSPATH')) {
 }
 
 /**
+ * Sanitizza l'SVG permettendo tutti i tag e attributi SVG necessari
+ */
+function bw_cart_popup_sanitize_svg($svg) {
+    // Permetti tutti i tag e attributi SVG comuni
+    $allowed_tags = [
+        'svg' => [
+            'xmlns' => true,
+            'viewbox' => true,
+            'width' => true,
+            'height' => true,
+            'fill' => true,
+            'stroke' => true,
+            'stroke-width' => true,
+            'stroke-linecap' => true,
+            'stroke-linejoin' => true,
+            'class' => true,
+            'id' => true,
+            'style' => true,
+            'preserveaspectratio' => true,
+            'aria-hidden' => true,
+            'role' => true,
+        ],
+        'path' => [
+            'd' => true,
+            'fill' => true,
+            'stroke' => true,
+            'stroke-width' => true,
+            'stroke-linecap' => true,
+            'stroke-linejoin' => true,
+            'class' => true,
+            'id' => true,
+            'style' => true,
+            'opacity' => true,
+            'transform' => true,
+        ],
+        'circle' => [
+            'cx' => true,
+            'cy' => true,
+            'r' => true,
+            'fill' => true,
+            'stroke' => true,
+            'stroke-width' => true,
+            'class' => true,
+            'id' => true,
+            'style' => true,
+            'opacity' => true,
+            'transform' => true,
+        ],
+        'rect' => [
+            'x' => true,
+            'y' => true,
+            'width' => true,
+            'height' => true,
+            'rx' => true,
+            'ry' => true,
+            'fill' => true,
+            'stroke' => true,
+            'stroke-width' => true,
+            'class' => true,
+            'id' => true,
+            'style' => true,
+            'opacity' => true,
+            'transform' => true,
+        ],
+        'polygon' => [
+            'points' => true,
+            'fill' => true,
+            'stroke' => true,
+            'stroke-width' => true,
+            'class' => true,
+            'id' => true,
+            'style' => true,
+            'opacity' => true,
+            'transform' => true,
+        ],
+        'polyline' => [
+            'points' => true,
+            'fill' => true,
+            'stroke' => true,
+            'stroke-width' => true,
+            'class' => true,
+            'id' => true,
+            'style' => true,
+            'opacity' => true,
+            'transform' => true,
+        ],
+        'ellipse' => [
+            'cx' => true,
+            'cy' => true,
+            'rx' => true,
+            'ry' => true,
+            'fill' => true,
+            'stroke' => true,
+            'stroke-width' => true,
+            'class' => true,
+            'id' => true,
+            'style' => true,
+            'opacity' => true,
+            'transform' => true,
+        ],
+        'line' => [
+            'x1' => true,
+            'y1' => true,
+            'x2' => true,
+            'y2' => true,
+            'stroke' => true,
+            'stroke-width' => true,
+            'class' => true,
+            'id' => true,
+            'style' => true,
+            'opacity' => true,
+            'transform' => true,
+        ],
+        'g' => [
+            'fill' => true,
+            'stroke' => true,
+            'stroke-width' => true,
+            'class' => true,
+            'id' => true,
+            'style' => true,
+            'opacity' => true,
+            'transform' => true,
+        ],
+        'defs' => true,
+        'clippath' => [
+            'id' => true,
+        ],
+        'lineargradient' => [
+            'id' => true,
+            'x1' => true,
+            'y1' => true,
+            'x2' => true,
+            'y2' => true,
+        ],
+        'radialgradient' => [
+            'id' => true,
+            'cx' => true,
+            'cy' => true,
+            'r' => true,
+        ],
+        'stop' => [
+            'offset' => true,
+            'stop-color' => true,
+            'stop-opacity' => true,
+        ],
+    ];
+
+    return wp_kses($svg, $allowed_tags);
+}
+
+/**
  * Aggiungi la pagina di menu nel pannello admin
  */
 function bw_cart_popup_admin_menu() {
@@ -62,6 +213,10 @@ function bw_cart_popup_save_settings() {
     $checkout_text = isset($_POST['bw_cart_popup_checkout_text']) ? sanitize_text_field($_POST['bw_cart_popup_checkout_text']) : 'Proceed to checkout';
     update_option('bw_cart_popup_checkout_text', $checkout_text);
 
+    // Link personalizzato checkout
+    $checkout_url = isset($_POST['bw_cart_popup_checkout_url']) ? esc_url_raw($_POST['bw_cart_popup_checkout_url']) : '';
+    update_option('bw_cart_popup_checkout_url', $checkout_url);
+
     // Colore pulsante checkout
     $checkout_color = isset($_POST['bw_cart_popup_checkout_color']) ? sanitize_hex_color($_POST['bw_cart_popup_checkout_color']) : '#28a745';
     update_option('bw_cart_popup_checkout_color', $checkout_color);
@@ -70,20 +225,50 @@ function bw_cart_popup_save_settings() {
     $continue_text = isset($_POST['bw_cart_popup_continue_text']) ? sanitize_text_field($_POST['bw_cart_popup_continue_text']) : 'Continue shopping';
     update_option('bw_cart_popup_continue_text', $continue_text);
 
+    // Link personalizzato continue shopping
+    $continue_url = isset($_POST['bw_cart_popup_continue_url']) ? esc_url_raw($_POST['bw_cart_popup_continue_url']) : '';
+    update_option('bw_cart_popup_continue_url', $continue_url);
+
     // Colore pulsante continue shopping
     $continue_color = isset($_POST['bw_cart_popup_continue_color']) ? sanitize_hex_color($_POST['bw_cart_popup_continue_color']) : '#6c757d';
     update_option('bw_cart_popup_continue_color', $continue_color);
 
-    // SVG personalizzato per Cart Pop-Up
-    $additional_svg = isset($_POST['bw_cart_popup_additional_svg']) ? wp_kses_post($_POST['bw_cart_popup_additional_svg']) : '';
+    // SVG personalizzato per Cart Pop-Up (usa sanitize_textarea per preservare SVG)
+    $additional_svg = isset($_POST['bw_cart_popup_additional_svg']) ? bw_cart_popup_sanitize_svg($_POST['bw_cart_popup_additional_svg']) : '';
     update_option('bw_cart_popup_additional_svg', $additional_svg);
 
-    // Empty Cart SVG personalizzato
-    $empty_cart_svg = isset($_POST['bw_cart_popup_empty_cart_svg']) ? wp_kses_post($_POST['bw_cart_popup_empty_cart_svg']) : '';
+    // Empty Cart SVG personalizzato (usa sanitize_textarea per preservare SVG)
+    $empty_cart_svg = isset($_POST['bw_cart_popup_empty_cart_svg']) ? bw_cart_popup_sanitize_svg($_POST['bw_cart_popup_empty_cart_svg']) : '';
     update_option('bw_cart_popup_empty_cart_svg', $empty_cart_svg);
 
     // Opzione per colorare SVG di nero
     update_option('bw_cart_popup_svg_black', isset($_POST['bw_cart_popup_svg_black']) ? 1 : 0);
+
+    // Padding per Cart Icon SVG
+    $cart_icon_padding_top = isset($_POST['bw_cart_popup_cart_icon_padding_top']) ? intval($_POST['bw_cart_popup_cart_icon_padding_top']) : 0;
+    update_option('bw_cart_popup_cart_icon_padding_top', $cart_icon_padding_top);
+
+    $cart_icon_padding_right = isset($_POST['bw_cart_popup_cart_icon_padding_right']) ? intval($_POST['bw_cart_popup_cart_icon_padding_right']) : 0;
+    update_option('bw_cart_popup_cart_icon_padding_right', $cart_icon_padding_right);
+
+    $cart_icon_padding_bottom = isset($_POST['bw_cart_popup_cart_icon_padding_bottom']) ? intval($_POST['bw_cart_popup_cart_icon_padding_bottom']) : 0;
+    update_option('bw_cart_popup_cart_icon_padding_bottom', $cart_icon_padding_bottom);
+
+    $cart_icon_padding_left = isset($_POST['bw_cart_popup_cart_icon_padding_left']) ? intval($_POST['bw_cart_popup_cart_icon_padding_left']) : 0;
+    update_option('bw_cart_popup_cart_icon_padding_left', $cart_icon_padding_left);
+
+    // Padding per Empty Cart SVG
+    $empty_cart_padding_top = isset($_POST['bw_cart_popup_empty_cart_padding_top']) ? intval($_POST['bw_cart_popup_empty_cart_padding_top']) : 0;
+    update_option('bw_cart_popup_empty_cart_padding_top', $empty_cart_padding_top);
+
+    $empty_cart_padding_right = isset($_POST['bw_cart_popup_empty_cart_padding_right']) ? intval($_POST['bw_cart_popup_empty_cart_padding_right']) : 0;
+    update_option('bw_cart_popup_empty_cart_padding_right', $empty_cart_padding_right);
+
+    $empty_cart_padding_bottom = isset($_POST['bw_cart_popup_empty_cart_padding_bottom']) ? intval($_POST['bw_cart_popup_empty_cart_padding_bottom']) : 0;
+    update_option('bw_cart_popup_empty_cart_padding_bottom', $empty_cart_padding_bottom);
+
+    $empty_cart_padding_left = isset($_POST['bw_cart_popup_empty_cart_padding_left']) ? intval($_POST['bw_cart_popup_empty_cart_padding_left']) : 0;
+    update_option('bw_cart_popup_empty_cart_padding_left', $empty_cart_padding_left);
 
     // === PROCEED TO CHECKOUT BUTTON SETTINGS ===
     // Background color
@@ -221,11 +406,26 @@ function bw_cart_popup_settings_page() {
     $overlay_opacity = get_option('bw_cart_popup_overlay_opacity', 0.5);
     $panel_bg = get_option('bw_cart_popup_panel_bg', '#ffffff');
     $checkout_text = get_option('bw_cart_popup_checkout_text', 'Proceed to checkout');
+    $checkout_url = get_option('bw_cart_popup_checkout_url', '');
     $checkout_color = get_option('bw_cart_popup_checkout_color', '#28a745');
     $continue_text = get_option('bw_cart_popup_continue_text', 'Continue shopping');
+    $continue_url = get_option('bw_cart_popup_continue_url', '');
     $continue_color = get_option('bw_cart_popup_continue_color', '#6c757d');
     $additional_svg = get_option('bw_cart_popup_additional_svg', '');
+    $empty_cart_svg = get_option('bw_cart_popup_empty_cart_svg', '');
     $svg_black = get_option('bw_cart_popup_svg_black', 0);
+
+    // Padding per Cart Icon SVG
+    $cart_icon_padding_top = get_option('bw_cart_popup_cart_icon_padding_top', 0);
+    $cart_icon_padding_right = get_option('bw_cart_popup_cart_icon_padding_right', 0);
+    $cart_icon_padding_bottom = get_option('bw_cart_popup_cart_icon_padding_bottom', 0);
+    $cart_icon_padding_left = get_option('bw_cart_popup_cart_icon_padding_left', 0);
+
+    // Padding per Empty Cart SVG
+    $empty_cart_padding_top = get_option('bw_cart_popup_empty_cart_padding_top', 0);
+    $empty_cart_padding_right = get_option('bw_cart_popup_empty_cart_padding_right', 0);
+    $empty_cart_padding_bottom = get_option('bw_cart_popup_empty_cart_padding_bottom', 0);
+    $empty_cart_padding_left = get_option('bw_cart_popup_empty_cart_padding_left', 0);
 
     // Proceed to Checkout button settings
     $checkout_bg = get_option('bw_cart_popup_checkout_bg', '#28a745');
@@ -355,6 +555,17 @@ function bw_cart_popup_settings_page() {
                     <td>
                         <input type="text" id="bw_cart_popup_checkout_text" name="bw_cart_popup_checkout_text" value="<?php echo esc_attr($checkout_text); ?>" class="regular-text" />
                         <p class="description">Testo del pulsante (default: "Proceed to checkout")</p>
+                    </td>
+                </tr>
+
+                <!-- Link Personalizzato -->
+                <tr>
+                    <th scope="row">
+                        <label for="bw_cart_popup_checkout_url">Link Personalizzato</label>
+                    </th>
+                    <td>
+                        <input type="url" id="bw_cart_popup_checkout_url" name="bw_cart_popup_checkout_url" value="<?php echo esc_attr($checkout_url); ?>" class="regular-text" placeholder="/checkout/" />
+                        <p class="description">URL personalizzato per il pulsante Checkout (lascia vuoto per usare /checkout/ di default)</p>
                     </td>
                 </tr>
 
@@ -516,6 +727,17 @@ function bw_cart_popup_settings_page() {
                     <td>
                         <input type="text" id="bw_cart_popup_continue_text" name="bw_cart_popup_continue_text" value="<?php echo esc_attr($continue_text); ?>" class="regular-text" />
                         <p class="description">Testo del pulsante (default: "Continue shopping")</p>
+                    </td>
+                </tr>
+
+                <!-- Link Personalizzato -->
+                <tr>
+                    <th scope="row">
+                        <label for="bw_cart_popup_continue_url">Link Personalizzato</label>
+                    </th>
+                    <td>
+                        <input type="url" id="bw_cart_popup_continue_url" name="bw_cart_popup_continue_url" value="<?php echo esc_attr($continue_url); ?>" class="regular-text" placeholder="/shop/" />
+                        <p class="description">URL personalizzato per il pulsante Continue Shopping (lascia vuoto per usare /shop/ di default)</p>
                     </td>
                 </tr>
 
@@ -690,11 +912,39 @@ function bw_cart_popup_settings_page() {
                 <!-- SVG Aggiuntivo -->
                 <tr>
                     <th scope="row">
-                        <label for="bw_cart_popup_additional_svg">Cart Pop-Up SVG Icon</label>
+                        <label for="bw_cart_popup_additional_svg">Cart Pop-Up SVG Icon (Custom)</label>
                     </th>
                     <td>
                         <textarea id="bw_cart_popup_additional_svg" name="bw_cart_popup_additional_svg" rows="8" class="large-text code"><?php echo esc_textarea($additional_svg); ?></textarea>
                         <p class="description">Incolla qui il codice SVG completo da visualizzare nel Cart Pop-Up. Esempio: &lt;svg xmlns="http://www.w3.org/2000/svg"...&gt;...&lt;/svg&gt;</p>
+                    </td>
+                </tr>
+
+                <!-- Padding per Cart Icon SVG -->
+                <tr>
+                    <th scope="row">
+                        <label>Padding Cart Icon SVG (px)</label>
+                    </th>
+                    <td>
+                        <div class="bw-padding-grid">
+                            <div class="bw-padding-field">
+                                <input type="number" id="bw_cart_popup_cart_icon_padding_top" name="bw_cart_popup_cart_icon_padding_top" value="<?php echo esc_attr($cart_icon_padding_top); ?>" min="0" max="100" class="small-text" />
+                                <label for="bw_cart_popup_cart_icon_padding_top">Top</label>
+                            </div>
+                            <div class="bw-padding-field">
+                                <input type="number" id="bw_cart_popup_cart_icon_padding_right" name="bw_cart_popup_cart_icon_padding_right" value="<?php echo esc_attr($cart_icon_padding_right); ?>" min="0" max="100" class="small-text" />
+                                <label for="bw_cart_popup_cart_icon_padding_right">Right</label>
+                            </div>
+                            <div class="bw-padding-field">
+                                <input type="number" id="bw_cart_popup_cart_icon_padding_bottom" name="bw_cart_popup_cart_icon_padding_bottom" value="<?php echo esc_attr($cart_icon_padding_bottom); ?>" min="0" max="100" class="small-text" />
+                                <label for="bw_cart_popup_cart_icon_padding_bottom">Bottom</label>
+                            </div>
+                            <div class="bw-padding-field">
+                                <input type="number" id="bw_cart_popup_cart_icon_padding_left" name="bw_cart_popup_cart_icon_padding_left" value="<?php echo esc_attr($cart_icon_padding_left); ?>" min="0" max="100" class="small-text" />
+                                <label for="bw_cart_popup_cart_icon_padding_left">Left</label>
+                            </div>
+                        </div>
+                        <p class="description">Imposta il padding per l'icona SVG del carrello</p>
                     </td>
                 </tr>
 
@@ -704,8 +954,36 @@ function bw_cart_popup_settings_page() {
                         <label for="bw_cart_popup_empty_cart_svg">Empty Cart SVG (Custom)</label>
                     </th>
                     <td>
-                        <textarea id="bw_cart_popup_empty_cart_svg" name="bw_cart_popup_empty_cart_svg" rows="8" class="large-text code"><?php echo esc_textarea(get_option('bw_cart_popup_empty_cart_svg', '')); ?></textarea>
+                        <textarea id="bw_cart_popup_empty_cart_svg" name="bw_cart_popup_empty_cart_svg" rows="8" class="large-text code"><?php echo esc_textarea($empty_cart_svg); ?></textarea>
                         <p class="description">Incolla qui il codice SVG personalizzato per l'icona del carrello vuoto. Se vuoto, verrà usata l'icona di default.</p>
+                    </td>
+                </tr>
+
+                <!-- Padding per Empty Cart SVG -->
+                <tr>
+                    <th scope="row">
+                        <label>Padding Empty Cart SVG (px)</label>
+                    </th>
+                    <td>
+                        <div class="bw-padding-grid">
+                            <div class="bw-padding-field">
+                                <input type="number" id="bw_cart_popup_empty_cart_padding_top" name="bw_cart_popup_empty_cart_padding_top" value="<?php echo esc_attr($empty_cart_padding_top); ?>" min="0" max="100" class="small-text" />
+                                <label for="bw_cart_popup_empty_cart_padding_top">Top</label>
+                            </div>
+                            <div class="bw-padding-field">
+                                <input type="number" id="bw_cart_popup_empty_cart_padding_right" name="bw_cart_popup_empty_cart_padding_right" value="<?php echo esc_attr($empty_cart_padding_right); ?>" min="0" max="100" class="small-text" />
+                                <label for="bw_cart_popup_empty_cart_padding_right">Right</label>
+                            </div>
+                            <div class="bw-padding-field">
+                                <input type="number" id="bw_cart_popup_empty_cart_padding_bottom" name="bw_cart_popup_empty_cart_padding_bottom" value="<?php echo esc_attr($empty_cart_padding_bottom); ?>" min="0" max="100" class="small-text" />
+                                <label for="bw_cart_popup_empty_cart_padding_bottom">Bottom</label>
+                            </div>
+                            <div class="bw-padding-field">
+                                <input type="number" id="bw_cart_popup_empty_cart_padding_left" name="bw_cart_popup_empty_cart_padding_left" value="<?php echo esc_attr($empty_cart_padding_left); ?>" min="0" max="100" class="small-text" />
+                                <label for="bw_cart_popup_empty_cart_padding_left">Left</label>
+                            </div>
+                        </div>
+                        <p class="description">Imposta il padding per l'icona SVG del carrello vuoto</p>
                     </td>
                 </tr>
 
