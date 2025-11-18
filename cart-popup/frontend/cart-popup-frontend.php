@@ -180,11 +180,11 @@ function bw_cart_popup_dynamic_css() {
     $overlay_opacity = get_option('bw_cart_popup_overlay_opacity', 0.5);
     $panel_bg = get_option('bw_cart_popup_panel_bg', '#ffffff');
 
-    // Padding per Cart Icon SVG
-    $cart_icon_padding_top = get_option('bw_cart_popup_cart_icon_padding_top', 0);
-    $cart_icon_padding_right = get_option('bw_cart_popup_cart_icon_padding_right', 0);
-    $cart_icon_padding_bottom = get_option('bw_cart_popup_cart_icon_padding_bottom', 0);
-    $cart_icon_padding_left = get_option('bw_cart_popup_cart_icon_padding_left', 0);
+    // Margin per Cart Icon SVG
+    $cart_icon_margin_top = get_option('bw_cart_popup_cart_icon_margin_top', 0);
+    $cart_icon_margin_right = get_option('bw_cart_popup_cart_icon_margin_right', 0);
+    $cart_icon_margin_bottom = get_option('bw_cart_popup_cart_icon_margin_bottom', 0);
+    $cart_icon_margin_left = get_option('bw_cart_popup_cart_icon_margin_left', 0);
 
     // Padding per Empty Cart SVG
     $empty_cart_padding_top = get_option('bw_cart_popup_empty_cart_padding_top', 0);
@@ -284,11 +284,41 @@ function bw_cart_popup_dynamic_css() {
             opacity: 1 !important;
         }
 
-        /* === PADDING PER CART ICON SVG === */
+        /* === MARGIN PER CART ICON SVG === */
         /* Applicato sia all'icona custom che a quella default */
         .bw-cart-popup-custom-svg svg,
         .bw-cart-icon {
-            padding: <?php echo esc_attr($cart_icon_padding_top); ?>px <?php echo esc_attr($cart_icon_padding_right); ?>px <?php echo esc_attr($cart_icon_padding_bottom); ?>px <?php echo esc_attr($cart_icon_padding_left); ?>px !important;
+            margin: <?php echo esc_attr($cart_icon_margin_top); ?>px <?php echo esc_attr($cart_icon_margin_right); ?>px <?php echo esc_attr($cart_icon_margin_bottom); ?>px <?php echo esc_attr($cart_icon_margin_left); ?>px !important;
+        }
+
+        /* === APPLY PROMO CODE BUTTON - USA STILE CHECKOUT === */
+        /* Forza lo stile del pulsante checkout sul pulsante apply promo solo nel cart popup */
+        .bw-cart-popup-panel .bw-promo-apply {
+            background-color: <?php echo esc_attr($checkout_bg); ?> !important;
+            color: <?php echo esc_attr($checkout_text_color); ?> !important;
+            font-size: <?php echo esc_attr($checkout_font_size); ?>px !important;
+            border-radius: <?php echo esc_attr($checkout_border_radius); ?>px !important;
+            padding: <?php echo esc_attr($checkout_padding_top); ?>px <?php echo esc_attr($checkout_padding_right); ?>px <?php echo esc_attr($checkout_padding_bottom); ?>px <?php echo esc_attr($checkout_padding_left); ?>px !important;
+            <?php if ($checkout_border_enabled): ?>
+            border: <?php echo esc_attr($checkout_border_width); ?>px <?php echo esc_attr($checkout_border_style); ?> <?php echo esc_attr($checkout_border_color); ?> !important;
+            <?php else: ?>
+            border: none !important;
+            <?php endif; ?>
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .bw-cart-popup-panel .bw-promo-apply:hover {
+            background-color: <?php echo esc_attr($checkout_bg_hover); ?> !important;
+            color: <?php echo esc_attr($checkout_text_hover); ?> !important;
+            opacity: 1 !important;
+        }
+
+        .bw-cart-popup-panel .bw-promo-apply:disabled {
+            background-color: #cccccc !important;
+            cursor: not-allowed;
         }
 
         /* === PADDING PER EMPTY CART SVG === */
