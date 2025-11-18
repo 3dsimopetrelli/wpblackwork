@@ -27,13 +27,25 @@ function bw_cart_popup_render_panel() {
 
     // Recupera le impostazioni
     $checkout_text = get_option('bw_cart_popup_checkout_text', 'Proceed to checkout');
+    $checkout_url = get_option('bw_cart_popup_checkout_url', '');
     $continue_text = get_option('bw_cart_popup_continue_text', 'Continue shopping');
+    $continue_url = get_option('bw_cart_popup_continue_url', '');
     $additional_svg = get_option('bw_cart_popup_additional_svg', '');
     $empty_cart_svg = get_option('bw_cart_popup_empty_cart_svg', '');
     $svg_black = get_option('bw_cart_popup_svg_black', 0);
     $return_shop_url = get_option('bw_cart_popup_return_shop_url', '');
 
-    // Determina l'URL di ritorno allo shop
+    // Determina l'URL per il checkout
+    if (empty($checkout_url)) {
+        $checkout_url = wc_get_checkout_url();
+    }
+
+    // Determina l'URL per continue shopping
+    if (empty($continue_url)) {
+        $continue_url = home_url('/shop/');
+    }
+
+    // Determina l'URL di ritorno allo shop (per empty cart)
     if (empty($return_shop_url)) {
         $return_shop_url = home_url('/shop/');
     }
@@ -42,6 +54,12 @@ function bw_cart_popup_render_panel() {
     <!-- BW Cart Pop-Up -->
     <div id="bw-cart-popup-overlay" class="bw-cart-popup-overlay"></div>
     <div id="bw-cart-popup-panel" class="bw-cart-popup-panel">
+        <!-- Loading State -->
+        <div class="bw-cart-popup-loading" style="display: none;">
+            <div class="bw-cart-spinner"></div>
+            <p>Loading cart...</p>
+        </div>
+
         <!-- Header del pannello -->
         <div class="bw-cart-popup-header">
             <div class="bw-cart-popup-header-icon">
@@ -116,12 +134,12 @@ function bw_cart_popup_render_panel() {
 
         <!-- Footer con pulsanti -->
         <div class="bw-cart-popup-footer">
-            <a href="<?php echo esc_url(wc_get_checkout_url()); ?>" class="bw-cart-popup-checkout elementor-button elementor-button-link elementor-size-md">
+            <a href="<?php echo esc_url($checkout_url); ?>" class="bw-cart-popup-checkout elementor-button elementor-button-link elementor-size-md">
                 <?php echo esc_html($checkout_text); ?>
             </a>
-            <button class="bw-cart-popup-continue">
+            <a href="<?php echo esc_url($continue_url); ?>" class="bw-cart-popup-continue">
                 <?php echo esc_html($continue_text); ?>
-            </button>
+            </a>
         </div>
 
         <?php if (!empty($additional_svg)): ?>
@@ -161,6 +179,18 @@ function bw_cart_popup_dynamic_css() {
     $overlay_color = get_option('bw_cart_popup_overlay_color', '#000000');
     $overlay_opacity = get_option('bw_cart_popup_overlay_opacity', 0.5);
     $panel_bg = get_option('bw_cart_popup_panel_bg', '#ffffff');
+
+    // Padding per Cart Icon SVG
+    $cart_icon_padding_top = get_option('bw_cart_popup_cart_icon_padding_top', 0);
+    $cart_icon_padding_right = get_option('bw_cart_popup_cart_icon_padding_right', 0);
+    $cart_icon_padding_bottom = get_option('bw_cart_popup_cart_icon_padding_bottom', 0);
+    $cart_icon_padding_left = get_option('bw_cart_popup_cart_icon_padding_left', 0);
+
+    // Padding per Empty Cart SVG
+    $empty_cart_padding_top = get_option('bw_cart_popup_empty_cart_padding_top', 0);
+    $empty_cart_padding_right = get_option('bw_cart_popup_empty_cart_padding_right', 0);
+    $empty_cart_padding_bottom = get_option('bw_cart_popup_empty_cart_padding_bottom', 0);
+    $empty_cart_padding_left = get_option('bw_cart_popup_empty_cart_padding_left', 0);
 
     // Proceed to Checkout button settings
     $checkout_bg = get_option('bw_cart_popup_checkout_bg', '#28a745');
@@ -252,6 +282,16 @@ function bw_cart_popup_dynamic_css() {
             background-color: <?php echo esc_attr($continue_bg_hover); ?> !important;
             color: <?php echo esc_attr($continue_text_hover); ?> !important;
             opacity: 1 !important;
+        }
+
+        /* === PADDING PER CART ICON SVG === */
+        .bw-cart-popup-custom-svg svg {
+            padding: <?php echo esc_attr($cart_icon_padding_top); ?>px <?php echo esc_attr($cart_icon_padding_right); ?>px <?php echo esc_attr($cart_icon_padding_bottom); ?>px <?php echo esc_attr($cart_icon_padding_left); ?>px;
+        }
+
+        /* === PADDING PER EMPTY CART SVG === */
+        .bw-cart-empty-icon svg {
+            padding: <?php echo esc_attr($empty_cart_padding_top); ?>px <?php echo esc_attr($empty_cart_padding_right); ?>px <?php echo esc_attr($empty_cart_padding_bottom); ?>px <?php echo esc_attr($empty_cart_padding_left); ?>px;
         }
     </style>
     <?php
