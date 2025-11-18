@@ -62,6 +62,7 @@ function bw_cart_popup_register_assets() {
     // Localizza script per AJAX e configurazioni
     $cart_popup_settings = [
         'active' => get_option('bw_cart_popup_active', 0),
+        'slide_animation' => get_option('bw_cart_popup_slide_animation', 1),
         'panel_width' => get_option('bw_cart_popup_panel_width', 400),
         'overlay_color' => get_option('bw_cart_popup_overlay_color', '#000000'),
         'overlay_opacity' => get_option('bw_cart_popup_overlay_opacity', 0.5),

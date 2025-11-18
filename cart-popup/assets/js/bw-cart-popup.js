@@ -124,13 +124,16 @@
 
             // Intercetta il comportamento standard di WooCommerce
             $(document.body).on('added_to_cart', function(event, fragments, cart_hash, $button) {
-                // Previeni redirect alla pagina carrello
-                event.preventDefault();
+                // Controlla se lo slide-in animation è attivo
+                if (bwCartPopupConfig.settings.slide_animation) {
+                    // Previeni redirect alla pagina carrello
+                    event.preventDefault();
 
-                // Apri il pannello
-                self.openPanel();
+                    // Apri il pannello con slide-in animation
+                    self.openPanel();
 
-                console.log('Product added to cart, opening popup');
+                    console.log('Product added to cart, opening popup with slide-in animation');
+                }
             });
         },
 
@@ -383,15 +386,34 @@
          * Mostra messaggio promo code
          */
         showPromoMessage: function(message, type) {
+            const self = this;
+            const $inputWrapper = $('.bw-promo-input-wrapper');
+
             this.$promoMessage
                 .removeClass('success error')
                 .addClass(type)
-                .html(message)
-                .fadeIn(200);
+                .html(message);
 
-            setTimeout(() => {
-                this.$promoMessage.fadeOut(200);
-            }, 4000);
+            if (type === 'error') {
+                // Per errori: nascondi input/pulsante, mostra messaggio full width
+                $inputWrapper.fadeOut(300, function() {
+                    self.$promoMessage.fadeIn(300);
+                });
+
+                // Dopo 2.5 secondi, nascondi messaggio e rimostra input/pulsante
+                setTimeout(() => {
+                    self.$promoMessage.fadeOut(300, function() {
+                        $inputWrapper.fadeIn(300);
+                    });
+                }, 2500);
+            } else {
+                // Per successo: mostra messaggio normalmente (sotto input/pulsante)
+                this.$promoMessage.fadeIn(200);
+
+                setTimeout(() => {
+                    this.$promoMessage.fadeOut(200);
+                }, 3000);
+            }
         },
 
         /**
