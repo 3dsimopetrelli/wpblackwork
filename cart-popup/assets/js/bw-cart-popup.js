@@ -122,17 +122,84 @@
         interceptAddToCart: function() {
             const self = this;
 
-            // Intercetta il comportamento standard di WooCommerce
+            // Controlla se lo slide-in animation è attivo
+            if (!bwCartPopupConfig.settings.slide_animation) {
+                return;
+            }
+
+            // 1. Intercetta l'evento WooCommerce 'added_to_cart' (dopo aggiunta al carrello)
+            // Questo evento viene triggerato da WooCommerce per tutti i tipi di Add to Cart (AJAX, form variabili, ecc.)
             $(document.body).on('added_to_cart', function(event, fragments, cart_hash, $button) {
-                // Controlla se lo slide-in animation è attivo
-                if (bwCartPopupConfig.settings.slide_animation) {
-                    // Previeni redirect alla pagina carrello
-                    event.preventDefault();
+                // Apri il pannello con slide-in animation
+                self.openPanel();
 
-                    // Apri il pannello con slide-in animation
-                    self.openPanel();
+                console.log('Product added to cart, opening popup with slide-in animation');
+            });
 
-                    console.log('Product added to cart, opening popup with slide-in animation');
+            // 2. Previeni il redirect per pulsanti non-AJAX e convertili in chiamate AJAX
+            // Alcuni temi o configurazioni potrebbero avere pulsanti "Add to Cart" come link diretti
+            $(document).on('click', 'a.add_to_cart_button', function(e) {
+                const $btn = $(this);
+
+                // Se il pulsante ha un href che contiene 'add-to-cart' e non è AJAX
+                if ($btn.attr('href') && $btn.attr('href').indexOf('add-to-cart') !== -1) {
+                    // Se non è già un pulsante AJAX, previeni il comportamento default e usa AJAX
+                    if (!$btn.hasClass('ajax_add_to_cart')) {
+                        e.preventDefault();
+
+                        // Ottieni l'ID del prodotto
+                        const productId = $btn.data('product_id') || $btn.attr('data-product_id');
+
+                        if (productId) {
+                            // Aggiungi prodotto via AJAX (triggerà poi l'evento 'added_to_cart')
+                            self.addToCartAjax(productId, 1, $btn);
+                        }
+                    }
+                }
+            });
+
+            // 3. Intercetta il link "View Cart" che appare dopo l'aggiunta di un prodotto
+            // WooCommerce aggiunge dinamicamente questo link accanto al pulsante "Add to Cart"
+            $(document).on('click', '.added_to_cart', function(e) {
+                e.preventDefault();
+                self.openPanel();
+                console.log('View Cart link clicked, opening popup instead');
+            });
+
+            // Note: I prodotti variabili (Variable Products) sono già supportati perché
+            // WooCommerce triggera l'evento 'added_to_cart' anche per loro dopo la selezione delle varianti
+        },
+
+        /**
+         * Aggiungi prodotto al carrello via AJAX
+         */
+        addToCartAjax: function(productId, quantity, $button) {
+            const self = this;
+
+            // Disabilita il pulsante durante il caricamento
+            $button.addClass('loading');
+
+            $.ajax({
+                url: bwCartPopupConfig.wc_ajax_url.replace('%%endpoint%%', 'add_to_cart'),
+                type: 'POST',
+                data: {
+                    product_id: productId,
+                    quantity: quantity
+                },
+                success: function(response) {
+                    if (response.error && response.product_url) {
+                        window.location = response.product_url;
+                        return;
+                    }
+
+                    // Trigger evento WooCommerce per aggiornare i fragments
+                    $(document.body).trigger('added_to_cart', [response.fragments, response.cart_hash, $button]);
+
+                    $button.removeClass('loading');
+                },
+                error: function() {
+                    console.error('Error adding product to cart');
+                    $button.removeClass('loading');
                 }
             });
         },
