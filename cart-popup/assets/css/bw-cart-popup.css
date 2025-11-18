@@ -573,11 +573,11 @@
     color: #ffffff !important;
     text-align: center;
     font-size: 14px;
-    font-weight: 500;
     border-radius: 6px;
     border: none;
     cursor: pointer;
     transition: opacity 0.2s ease;
+    text-decoration: none;
 }
 
 .bw-cart-popup-continue:hover {
