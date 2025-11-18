@@ -29,6 +29,7 @@ function bw_cart_popup_render_panel() {
     $checkout_text = get_option('bw_cart_popup_checkout_text', 'Proceed to checkout');
     $continue_text = get_option('bw_cart_popup_continue_text', 'Continue shopping');
     $additional_svg = get_option('bw_cart_popup_additional_svg', '');
+    $empty_cart_svg = get_option('bw_cart_popup_empty_cart_svg', '');
     $svg_black = get_option('bw_cart_popup_svg_black', 0);
     $return_shop_url = get_option('bw_cart_popup_return_shop_url', '');
 
@@ -55,11 +56,15 @@ function bw_cart_popup_render_panel() {
         <!-- Layout Carrello Vuoto -->
         <div class="bw-cart-popup-empty-state" style="display: none;">
             <div class="bw-cart-empty-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="9" cy="21" r="1"/>
-                    <circle cx="20" cy="21" r="1"/>
-                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-                </svg>
+                <?php if (!empty($empty_cart_svg)): ?>
+                    <?php echo $empty_cart_svg; ?>
+                <?php else: ?>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="9" cy="21" r="1"/>
+                        <circle cx="20" cy="21" r="1"/>
+                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                    </svg>
+                <?php endif; ?>
             </div>
             <p class="bw-cart-empty-text">Your cart is currently empty</p>
             <a href="<?php echo esc_url($return_shop_url); ?>" class="bw-cart-popup-return-shop elementor-button elementor-button-link elementor-size-md">
