@@ -21,6 +21,7 @@
         $promoMessage: null,
         $closeBtn: null,
         $continueBtn: null,
+        $cartBadge: null,
 
         // Stato
         isOpen: false,
@@ -44,6 +45,7 @@
             this.$promoMessage = $('.bw-promo-message');
             this.$closeBtn = $('.bw-cart-popup-close');
             this.$continueBtn = $('.bw-cart-popup-continue');
+            this.$cartBadge = $('.bw-cart-badge');
 
             // Bind eventi
             this.bindEvents();
@@ -213,6 +215,7 @@
         renderCartItems: function(data) {
             if (data.empty || !data.items || data.items.length === 0) {
                 this.$itemsContainer.html('<p class="bw-cart-empty">Your cart is empty</p>');
+                this.updateBadge(0);
                 return;
             }
 
@@ -240,6 +243,7 @@
             });
 
             this.$itemsContainer.html(html);
+            this.updateBadge(data.items.length);
         },
 
         /**
@@ -394,6 +398,15 @@
                     console.error('AJAX error updating quantity');
                 }
             });
+        },
+
+        /**
+         * Aggiorna il badge con il numero di prodotti
+         */
+        updateBadge: function(count) {
+            if (this.$cartBadge && this.$cartBadge.length) {
+                this.$cartBadge.text(count);
+            }
         }
     };
 
