@@ -28,6 +28,8 @@ function bw_cart_popup_render_panel() {
     // Recupera le impostazioni
     $checkout_text = get_option('bw_cart_popup_checkout_text', 'Proceed to checkout');
     $continue_text = get_option('bw_cart_popup_continue_text', 'Continue shopping');
+    $additional_svg = get_option('bw_cart_popup_additional_svg', '');
+    $svg_black = get_option('bw_cart_popup_svg_black', 0);
 
     ?>
     <!-- BW Cart Pop-Up -->
@@ -37,8 +39,8 @@ function bw_cart_popup_render_panel() {
         <div class="bw-cart-popup-header">
             <div class="bw-cart-popup-header-icon">
                 <span class="bw-cart-icon"></span>
+                <span class="bw-cart-badge">0</span>
             </div>
-            <h3 class="bw-cart-popup-title">Your Cart</h3>
             <button class="bw-cart-popup-close" aria-label="Close cart">
                 <span class="bw-close-icon"></span>
             </button>
@@ -95,6 +97,25 @@ function bw_cart_popup_render_panel() {
                 <?php echo esc_html($continue_text); ?>
             </button>
         </div>
+
+        <?php if (!empty($additional_svg)): ?>
+        <!-- SVG Personalizzato -->
+        <div class="bw-cart-popup-custom-svg">
+            <?php
+            // Processa l'SVG per applicare fill nero se richiesto
+            $svg_output = $additional_svg;
+            if ($svg_black) {
+                // Applica fill: #000 su tutti i tag path, circle, rect, polygon, etc.
+                $svg_output = preg_replace('/<path([^>]*)>/i', '<path$1 style="fill: #000;">', $svg_output);
+                $svg_output = preg_replace('/<circle([^>]*)>/i', '<circle$1 style="fill: #000;">', $svg_output);
+                $svg_output = preg_replace('/<rect([^>]*)>/i', '<rect$1 style="fill: #000;">', $svg_output);
+                $svg_output = preg_replace('/<polygon([^>]*)>/i', '<polygon$1 style="fill: #000;">', $svg_output);
+                $svg_output = preg_replace('/<ellipse([^>]*)>/i', '<ellipse$1 style="fill: #000;">', $svg_output);
+            }
+            echo $svg_output;
+            ?>
+        </div>
+        <?php endif; ?>
     </div>
     <?php
 }
@@ -116,8 +137,6 @@ function bw_cart_popup_dynamic_css() {
     $panel_bg = get_option('bw_cart_popup_panel_bg', '#ffffff');
     $checkout_color = get_option('bw_cart_popup_checkout_color', '#28a745');
     $continue_color = get_option('bw_cart_popup_continue_color', '#6c757d');
-    $cart_icon_css = get_option('bw_cart_popup_cart_icon_css', '');
-    $close_icon_css = get_option('bw_cart_popup_close_icon_css', '');
 
     // Converti colore hex in rgba per l'overlay
     $overlay_rgb = bw_cart_popup_hex_to_rgb($overlay_color);
@@ -141,20 +160,6 @@ function bw_cart_popup_dynamic_css() {
         .bw-cart-popup-continue {
             background-color: <?php echo esc_attr($continue_color); ?> !important;
         }
-
-        <?php if (!empty($cart_icon_css)): ?>
-        /* CSS Personalizzato Icona Carrello */
-        .bw-cart-icon {
-            <?php echo $cart_icon_css; ?>
-        }
-        <?php endif; ?>
-
-        <?php if (!empty($close_icon_css)): ?>
-        /* CSS Personalizzato Icona Chiusura */
-        .bw-close-icon {
-            <?php echo $close_icon_css; ?>
-        }
-        <?php endif; ?>
     </style>
     <?php
 }

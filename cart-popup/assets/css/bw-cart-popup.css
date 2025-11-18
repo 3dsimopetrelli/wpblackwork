@@ -103,6 +103,26 @@
     display: flex;
     align-items: center;
     margin-right: 12px;
+    position: relative;
+}
+
+/* Badge con numero prodotti */
+.bw-cart-badge {
+    position: absolute;
+    top: -8px;
+    right: -12px;
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    font-size: 12px;
+    font-weight: 600;
+    min-width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 6px;
+    line-height: 1;
 }
 
 .bw-cart-popup-title {
@@ -150,14 +170,16 @@
 
 /* Pulsante Chiusura */
 .bw-cart-popup-close {
-    background: transparent;
-    border: none;
+    background: transparent !important;
+    border: none !important;
     cursor: pointer;
     padding: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: opacity 0.2s ease;
+    box-shadow: none !important;
+    outline: none !important;
 }
 
 .bw-cart-popup-close:hover {
@@ -334,14 +356,14 @@
 }
 
 .bw-promo-link {
-    color: #007bff;
+    color: #000000 !important;
     text-decoration: underline;
     cursor: pointer;
     transition: color 0.2s ease;
 }
 
 .bw-promo-link:hover {
-    color: #0056b3;
+    color: #28a745 !important;
 }
 
 /* Box promo code */
@@ -571,6 +593,23 @@
 /**
  * Classi di utilità
  */
+
+/* SVG Personalizzato */
+.bw-cart-popup-custom-svg {
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #FFFFFF;
+}
+
+.bw-cart-popup-custom-svg svg {
+    width: auto !important;
+    height: auto !important;
+    max-width: 100% !important;
+    max-height: 200px !important;
+    display: block;
+}
 
 /* Blocca scroll del body quando il pannello è aperto */
 body.bw-cart-popup-no-scroll {

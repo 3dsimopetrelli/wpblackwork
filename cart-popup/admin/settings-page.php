@@ -74,13 +74,12 @@ function bw_cart_popup_save_settings() {
     $continue_color = isset($_POST['bw_cart_popup_continue_color']) ? sanitize_hex_color($_POST['bw_cart_popup_continue_color']) : '#6c757d';
     update_option('bw_cart_popup_continue_color', $continue_color);
 
-    // CSS personalizzato per icona carrello
-    $cart_icon_css = isset($_POST['bw_cart_popup_cart_icon_css']) ? wp_kses_post($_POST['bw_cart_popup_cart_icon_css']) : '';
-    update_option('bw_cart_popup_cart_icon_css', $cart_icon_css);
+    // SVG personalizzato per Cart Pop-Up
+    $additional_svg = isset($_POST['bw_cart_popup_additional_svg']) ? wp_kses_post($_POST['bw_cart_popup_additional_svg']) : '';
+    update_option('bw_cart_popup_additional_svg', $additional_svg);
 
-    // CSS personalizzato per icona chiusura
-    $close_icon_css = isset($_POST['bw_cart_popup_close_icon_css']) ? wp_kses_post($_POST['bw_cart_popup_close_icon_css']) : '';
-    update_option('bw_cart_popup_close_icon_css', $close_icon_css);
+    // Opzione per colorare SVG di nero
+    update_option('bw_cart_popup_svg_black', isset($_POST['bw_cart_popup_svg_black']) ? 1 : 0);
 
     return true;
 }
@@ -110,8 +109,8 @@ function bw_cart_popup_settings_page() {
     $checkout_color = get_option('bw_cart_popup_checkout_color', '#28a745');
     $continue_text = get_option('bw_cart_popup_continue_text', 'Continue shopping');
     $continue_color = get_option('bw_cart_popup_continue_color', '#6c757d');
-    $cart_icon_css = get_option('bw_cart_popup_cart_icon_css', '');
-    $close_icon_css = get_option('bw_cart_popup_close_icon_css', '');
+    $additional_svg = get_option('bw_cart_popup_additional_svg', '');
+    $svg_black = get_option('bw_cart_popup_svg_black', 0);
 
     ?>
     <div class="wrap">
@@ -235,32 +234,34 @@ function bw_cart_popup_settings_page() {
                     </td>
                 </tr>
 
-                <!-- Sezione CSS Personalizzato -->
+                <!-- Sezione SVG Personalizzato -->
                 <tr>
                     <th colspan="2">
-                        <h2>CSS Personalizzato Icone</h2>
+                        <h2>SVG Personalizzato</h2>
                     </th>
                 </tr>
 
-                <!-- CSS Icona Carrello -->
+                <!-- SVG Aggiuntivo -->
                 <tr>
                     <th scope="row">
-                        <label for="bw_cart_popup_cart_icon_css">CSS Icona Carrello</label>
+                        <label for="bw_cart_popup_additional_svg">Cart Pop-Up Additional SVG</label>
                     </th>
                     <td>
-                        <textarea id="bw_cart_popup_cart_icon_css" name="bw_cart_popup_cart_icon_css" rows="5" class="large-text code"><?php echo esc_textarea($cart_icon_css); ?></textarea>
-                        <p class="description">CSS personalizzato per sostituire l'icona del carrello. Esempio: background-image: url('path/to/icon.svg');</p>
+                        <textarea id="bw_cart_popup_additional_svg" name="bw_cart_popup_additional_svg" rows="8" class="large-text code"><?php echo esc_textarea($additional_svg); ?></textarea>
+                        <p class="description">Incolla qui il codice SVG completo da visualizzare nel Cart Pop-Up. Esempio: &lt;svg xmlns="http://www.w3.org/2000/svg"...&gt;...&lt;/svg&gt;</p>
                     </td>
                 </tr>
 
-                <!-- CSS Icona Chiusura -->
+                <!-- Opzione colore nero SVG -->
                 <tr>
                     <th scope="row">
-                        <label for="bw_cart_popup_close_icon_css">CSS Icona Chiusura (X)</label>
+                        <label for="bw_cart_popup_svg_black">Colora SVG di Nero</label>
                     </th>
                     <td>
-                        <textarea id="bw_cart_popup_close_icon_css" name="bw_cart_popup_close_icon_css" rows="5" class="large-text code"><?php echo esc_textarea($close_icon_css); ?></textarea>
-                        <p class="description">CSS personalizzato per sostituire l'icona di chiusura. Esempio: background-image: url('path/to/icon.svg');</p>
+                        <label class="switch">
+                            <input type="checkbox" id="bw_cart_popup_svg_black" name="bw_cart_popup_svg_black" value="1" <?php checked(1, $svg_black); ?> />
+                            <span class="description">Applica automaticamente fill: #000 su tutti i path dell'SVG</span>
+                        </label>
                     </td>
                 </tr>
             </table>
