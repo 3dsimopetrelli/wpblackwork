@@ -66,7 +66,7 @@
     width: 400px; /* Default: 400px, modificabile da admin */
     max-width: 100%;
     height: 100vh;
-    background-color: #ffffff; /* Default: bianco, modificabile da admin */
+    background-color: #FFFFFF; /* Bianco puro */
     box-shadow: -2px 0 10px rgba(0, 0, 0, 0.15);
     transform: translateX(100%); /* Nascosto fuori schermo a destra */
     transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -95,7 +95,7 @@
     justify-content: space-between;
     padding: 20px;
     border-bottom: 1px solid #e5e5e5;
-    background-color: #ffffff;
+    background-color: #FFFFFF;
     flex-shrink: 0; /* Non si riduce con lo scroll */
 }
 
@@ -137,16 +137,15 @@
     /* Personalizza qui tramite admin panel o CSS custom */
 }
 
-/* Icona Chiusura (X) */
+/* Icona Chiusura (X) - Doppia dimensione e nera */
 .bw-close-icon {
     display: inline-block;
-    width: 20px;
-    height: 20px;
+    width: 40px;
+    height: 40px;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='18' y1='6' x2='6' y2='18'/%3E%3Cline x1='6' y1='6' x2='18' y2='18'/%3E%3C/svg%3E");
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
-    /* Personalizza qui tramite admin panel o CSS custom */
 }
 
 /* Pulsante Chiusura */
@@ -154,17 +153,15 @@
     background: transparent;
     border: none;
     cursor: pointer;
-    padding: 8px;
+    padding: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: opacity 0.2s ease;
-    border-radius: 4px;
 }
 
 .bw-cart-popup-close:hover {
     opacity: 0.7;
-    background-color: rgba(0, 0, 0, 0.05);
 }
 
 
@@ -180,7 +177,7 @@
     flex: 1;
     overflow-y: auto;
     padding: 20px;
-    background-color: #fafafa;
+    background-color: #FFFFFF;
 }
 
 /* Scrollbar personalizzata (Chrome, Safari, Edge) */
@@ -224,12 +221,6 @@
     border-radius: 8px;
     margin-bottom: 12px;
     position: relative;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    transition: box-shadow 0.2s ease;
-}
-
-.bw-cart-item:hover {
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 /* Immagine prodotto */
@@ -255,7 +246,7 @@
 }
 
 .bw-cart-item-name {
-    margin: 0 0 8px 0;
+    margin: 0 0 6px 0;
     font-size: 14px;
     font-weight: 600;
     line-height: 1.3;
@@ -271,42 +262,12 @@
     color: #007bff;
 }
 
-/* Meta informazioni (quantità e prezzo) */
-.bw-cart-item-meta {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    margin-top: 8px;
-}
-
-/* Quantità */
-.bw-cart-item-quantity-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.bw-cart-item-quantity-wrapper label {
-    font-size: 12px;
-    color: #666666;
-    margin: 0;
-}
-
-.bw-cart-item-quantity {
-    width: 50px;
-    padding: 4px 6px;
-    border: 1px solid #d5d5d5;
-    border-radius: 4px;
-    font-size: 13px;
-    text-align: center;
-}
-
-/* Prezzo */
+/* Prezzo (posizionato sotto il titolo) */
 .bw-cart-item-price {
     font-size: 14px;
     font-weight: 600;
     color: #000000;
+    margin-top: 4px;
 }
 
 /* Pulsante rimozione */
@@ -317,15 +278,15 @@
     background: transparent;
     border: none;
     cursor: pointer;
-    font-size: 20px;
+    font-size: 18px;
     line-height: 1;
-    color: #999999;
-    padding: 4px 8px;
-    transition: color 0.2s ease;
+    color: #999;
+    padding: 4px;
+    transition: opacity 0.2s ease;
 }
 
 .bw-cart-item-remove:hover {
-    color: #ff0000;
+    opacity: 0.7;
 }
 
 /* Carrello vuoto */
@@ -525,36 +486,19 @@
 .bw-cart-popup-footer {
     padding: 20px;
     border-top: 1px solid #e5e5e5;
-    background-color: #ffffff;
+    background-color: #FFFFFF;
     flex-shrink: 0; /* Non si riduce con lo scroll */
     display: flex;
     flex-direction: column;
     gap: 12px;
 }
 
-/* Pulsante Proceed to Checkout */
+/* Pulsante Proceed to Checkout - Stile Elementor */
 .bw-cart-popup-checkout {
     display: block;
     width: 100%;
-    padding: 14px 20px;
-    background-color: #28a745; /* Verde, modificabile da admin */
-    color: #000000 !important; /* Testo nero come richiesto */
     text-align: center;
     text-decoration: none;
-    font-size: 15px;
-    font-weight: 600;
-    border-radius: 6px;
-    transition: opacity 0.2s ease, transform 0.1s ease;
-    border: none;
-}
-
-.bw-cart-popup-checkout:hover {
-    opacity: 0.9;
-    transform: translateY(-1px);
-}
-
-.bw-cart-popup-checkout:active {
-    transform: translateY(0);
 }
 
 /* Pulsante Continue Shopping */

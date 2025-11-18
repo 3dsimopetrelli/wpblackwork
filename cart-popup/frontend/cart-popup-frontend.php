@@ -88,7 +88,7 @@ function bw_cart_popup_render_panel() {
 
         <!-- Footer con pulsanti -->
         <div class="bw-cart-popup-footer">
-            <a href="<?php echo esc_url(wc_get_checkout_url()); ?>" class="bw-cart-popup-checkout">
+            <a href="<?php echo esc_url(wc_get_checkout_url()); ?>" class="bw-cart-popup-checkout elementor-button elementor-button-link elementor-size-md">
                 <?php echo esc_html($checkout_text); ?>
             </a>
             <button class="bw-cart-popup-continue">
@@ -135,11 +135,6 @@ function bw_cart_popup_dynamic_css() {
         .bw-cart-popup-panel {
             width: <?php echo esc_attr($panel_width); ?>px;
             background-color: <?php echo esc_attr($panel_bg); ?>;
-        }
-
-        /* Pulsante Checkout */
-        .bw-cart-popup-checkout {
-            background-color: <?php echo esc_attr($checkout_color); ?> !important;
         }
 
         /* Pulsante Continue Shopping */

@@ -104,13 +104,6 @@
                 self.removeItem(cartItemKey);
             });
 
-            // Aggiorna quantità
-            this.$itemsContainer.on('change', '.bw-cart-item-quantity', function() {
-                const cartItemKey = $(this).data('cart-item-key');
-                const quantity = parseInt($(this).val());
-                self.updateQuantity(cartItemKey, quantity);
-            });
-
             // Chiudi con ESC
             $(document).on('keyup', function(e) {
                 if (e.key === 'Escape' && self.isOpen) {
@@ -235,17 +228,8 @@
                             <h4 class="bw-cart-item-name">
                                 <a href="${item.permalink}">${item.name}</a>
                             </h4>
-                            <div class="bw-cart-item-meta">
-                                <div class="bw-cart-item-quantity-wrapper">
-                                    <label>Qty:</label>
-                                    <input type="number" class="bw-cart-item-quantity"
-                                           value="${item.quantity}"
-                                           min="1"
-                                           data-cart-item-key="${item.key}" />
-                                </div>
-                                <div class="bw-cart-item-price">
-                                    ${item.subtotal}
-                                </div>
+                            <div class="bw-cart-item-price">
+                                ${item.price}
                             </div>
                         </div>
                         <button class="bw-cart-item-remove" data-cart-item-key="${item.key}" aria-label="Remove item">
