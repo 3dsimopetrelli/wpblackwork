@@ -31,6 +31,7 @@
 /**
  * Overlay scuro che copre la pagina quando il pannello è aperto
  * Personalizzabile: colore e opacità tramite admin panel
+ * Z-index: 100000 - Posizionato sopra al widget BW Search (z-index: 99999)
  */
 .bw-cart-popup-overlay {
     position: fixed;
@@ -42,7 +43,7 @@
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.3s ease, visibility 0.3s ease;
-    z-index: 9998; /* Sotto al pannello */
+    z-index: 100000; /* Sopra al widget BW Search */
 }
 
 .bw-cart-popup-overlay.active {
@@ -58,6 +59,7 @@
 /**
  * Pannello laterale che scorre da destra verso sinistra
  * Personalizzabile: larghezza, colore sfondo tramite admin panel
+ * Z-index: 100001 - Sopra all'overlay del cart popup
  */
 .bw-cart-popup-panel {
     position: fixed;
@@ -70,7 +72,7 @@
     box-shadow: -2px 0 10px rgba(0, 0, 0, 0.15);
     transform: translateX(100%); /* Nascosto fuori schermo a destra */
     transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-    z-index: 9999; /* Sopra all'overlay */
+    z-index: 100001; /* Sopra all'overlay del cart popup */
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -424,11 +426,6 @@
     border-radius: 4px;
     font-size: 14px;
     transition: border-color 0.2s ease;
-}
-
-/* Forza padding a zero solo per il cart popup */
-.bw-cart-popup-panel .bw-promo-input {
-    padding: 0 !important;
 }
 
 .bw-promo-input:focus {

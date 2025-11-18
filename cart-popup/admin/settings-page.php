@@ -376,6 +376,32 @@ function bw_cart_popup_save_settings() {
     $continue_padding_left = isset($_POST['bw_cart_popup_continue_padding_left']) ? intval($_POST['bw_cart_popup_continue_padding_left']) : 20;
     update_option('bw_cart_popup_continue_padding_left', $continue_padding_left);
 
+    // === PROMO CODE SECTION ===
+    // Promo code section label
+    $promo_section_label = isset($_POST['bw_cart_popup_promo_section_label']) ? sanitize_text_field($_POST['bw_cart_popup_promo_section_label']) : 'Promo code section';
+    update_option('bw_cart_popup_promo_section_label', $promo_section_label);
+
+    // Promo input padding
+    $promo_input_padding_top = isset($_POST['bw_cart_popup_promo_input_padding_top']) ? intval($_POST['bw_cart_popup_promo_input_padding_top']) : 10;
+    update_option('bw_cart_popup_promo_input_padding_top', $promo_input_padding_top);
+
+    $promo_input_padding_right = isset($_POST['bw_cart_popup_promo_input_padding_right']) ? intval($_POST['bw_cart_popup_promo_input_padding_right']) : 12;
+    update_option('bw_cart_popup_promo_input_padding_right', $promo_input_padding_right);
+
+    $promo_input_padding_bottom = isset($_POST['bw_cart_popup_promo_input_padding_bottom']) ? intval($_POST['bw_cart_popup_promo_input_padding_bottom']) : 10;
+    update_option('bw_cart_popup_promo_input_padding_bottom', $promo_input_padding_bottom);
+
+    $promo_input_padding_left = isset($_POST['bw_cart_popup_promo_input_padding_left']) ? intval($_POST['bw_cart_popup_promo_input_padding_left']) : 12;
+    update_option('bw_cart_popup_promo_input_padding_left', $promo_input_padding_left);
+
+    // Promo input placeholder font size
+    $promo_placeholder_font_size = isset($_POST['bw_cart_popup_promo_placeholder_font_size']) ? intval($_POST['bw_cart_popup_promo_placeholder_font_size']) : 14;
+    update_option('bw_cart_popup_promo_placeholder_font_size', $promo_placeholder_font_size);
+
+    // Apply button font weight
+    $apply_button_font_weight = isset($_POST['bw_cart_popup_apply_button_font_weight']) ? sanitize_text_field($_POST['bw_cart_popup_apply_button_font_weight']) : 'normal';
+    update_option('bw_cart_popup_apply_button_font_weight', $apply_button_font_weight);
+
     // === EMPTY CART SETTINGS ===
     // Return to shop link
     $return_shop_url = isset($_POST['bw_cart_popup_return_shop_url']) ? esc_url_raw($_POST['bw_cart_popup_return_shop_url']) : '';
@@ -461,6 +487,15 @@ function bw_cart_popup_settings_page() {
 
     // Empty cart settings
     $return_shop_url = get_option('bw_cart_popup_return_shop_url', '');
+
+    // Promo code section settings
+    $promo_section_label = get_option('bw_cart_popup_promo_section_label', 'Promo code section');
+    $promo_input_padding_top = get_option('bw_cart_popup_promo_input_padding_top', 10);
+    $promo_input_padding_right = get_option('bw_cart_popup_promo_input_padding_right', 12);
+    $promo_input_padding_bottom = get_option('bw_cart_popup_promo_input_padding_bottom', 10);
+    $promo_input_padding_left = get_option('bw_cart_popup_promo_input_padding_left', 12);
+    $promo_placeholder_font_size = get_option('bw_cart_popup_promo_placeholder_font_size', 14);
+    $apply_button_font_weight = get_option('bw_cart_popup_apply_button_font_weight', 'normal');
 
     ?>
     <div class="wrap">
@@ -881,6 +916,79 @@ function bw_cart_popup_settings_page() {
                             </div>
                         </div>
                         <p class="description">Imposta il padding per ogni lato del pulsante</p>
+                    </td>
+                </tr>
+
+                <!-- === PROMO CODE SECTION === -->
+                <tr>
+                    <th colspan="2">
+                        <hr style="margin: 30px 0 20px 0; border: none; border-top: 2px solid #ddd;">
+                        <h2 style="margin: 20px 0 10px 0;">Promo Code Section</h2>
+                    </th>
+                </tr>
+
+                <!-- Section Label -->
+                <tr>
+                    <th scope="row">
+                        <label for="bw_cart_popup_promo_section_label">Section Label</label>
+                    </th>
+                    <td>
+                        <input type="text" id="bw_cart_popup_promo_section_label" name="bw_cart_popup_promo_section_label" value="<?php echo esc_attr($promo_section_label); ?>" class="regular-text" />
+                        <p class="description">Label per la sezione promo code (default: "Promo code section")</p>
+                    </td>
+                </tr>
+
+                <!-- Promo Input Padding -->
+                <tr>
+                    <th scope="row">
+                        <label>Input "Enter promo code" Padding (px)</label>
+                    </th>
+                    <td>
+                        <div class="bw-padding-grid">
+                            <div class="bw-padding-field">
+                                <input type="number" id="bw_cart_popup_promo_input_padding_top" name="bw_cart_popup_promo_input_padding_top" value="<?php echo esc_attr($promo_input_padding_top); ?>" min="0" max="100" class="small-text" />
+                                <label for="bw_cart_popup_promo_input_padding_top">Top</label>
+                            </div>
+                            <div class="bw-padding-field">
+                                <input type="number" id="bw_cart_popup_promo_input_padding_right" name="bw_cart_popup_promo_input_padding_right" value="<?php echo esc_attr($promo_input_padding_right); ?>" min="0" max="100" class="small-text" />
+                                <label for="bw_cart_popup_promo_input_padding_right">Right</label>
+                            </div>
+                            <div class="bw-padding-field">
+                                <input type="number" id="bw_cart_popup_promo_input_padding_bottom" name="bw_cart_popup_promo_input_padding_bottom" value="<?php echo esc_attr($promo_input_padding_bottom); ?>" min="0" max="100" class="small-text" />
+                                <label for="bw_cart_popup_promo_input_padding_bottom">Bottom</label>
+                            </div>
+                            <div class="bw-padding-field">
+                                <input type="number" id="bw_cart_popup_promo_input_padding_left" name="bw_cart_popup_promo_input_padding_left" value="<?php echo esc_attr($promo_input_padding_left); ?>" min="0" max="100" class="small-text" />
+                                <label for="bw_cart_popup_promo_input_padding_left">Left</label>
+                            </div>
+                        </div>
+                        <p class="description">Padding dell'input del promo code (tutti i 4 valori in linea)</p>
+                    </td>
+                </tr>
+
+                <!-- Placeholder Font Size -->
+                <tr>
+                    <th scope="row">
+                        <label for="bw_cart_popup_promo_placeholder_font_size">Placeholder Font Size (px)</label>
+                    </th>
+                    <td>
+                        <input type="number" id="bw_cart_popup_promo_placeholder_font_size" name="bw_cart_popup_promo_placeholder_font_size" value="<?php echo esc_attr($promo_placeholder_font_size); ?>" min="8" max="30" class="small-text" />
+                        <p class="description">Dimensione del font del placeholder dell'input "Enter promo code" (solo placeholder, non il testo digitato)</p>
+                    </td>
+                </tr>
+
+                <!-- Apply Button Font Weight -->
+                <tr>
+                    <th scope="row">
+                        <label for="bw_cart_popup_apply_button_font_weight">Apply Button Font Weight</label>
+                    </th>
+                    <td>
+                        <select id="bw_cart_popup_apply_button_font_weight" name="bw_cart_popup_apply_button_font_weight">
+                            <option value="normal" <?php selected($apply_button_font_weight, 'normal'); ?>>Normal</option>
+                            <option value="600" <?php selected($apply_button_font_weight, '600'); ?>>Semi-bold (600)</option>
+                            <option value="bold" <?php selected($apply_button_font_weight, 'bold'); ?>>Bold</option>
+                        </select>
+                        <p class="description">Font weight del pulsante "Apply" (default: normal)</p>
                     </td>
                 </tr>
 

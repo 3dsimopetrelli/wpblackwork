@@ -192,6 +192,14 @@ function bw_cart_popup_dynamic_css() {
     $empty_cart_padding_bottom = get_option('bw_cart_popup_empty_cart_padding_bottom', 0);
     $empty_cart_padding_left = get_option('bw_cart_popup_empty_cart_padding_left', 0);
 
+    // Promo code section settings
+    $promo_input_padding_top = get_option('bw_cart_popup_promo_input_padding_top', 10);
+    $promo_input_padding_right = get_option('bw_cart_popup_promo_input_padding_right', 12);
+    $promo_input_padding_bottom = get_option('bw_cart_popup_promo_input_padding_bottom', 10);
+    $promo_input_padding_left = get_option('bw_cart_popup_promo_input_padding_left', 12);
+    $promo_placeholder_font_size = get_option('bw_cart_popup_promo_placeholder_font_size', 14);
+    $apply_button_font_weight = get_option('bw_cart_popup_apply_button_font_weight', 'normal');
+
     // Proceed to Checkout button settings
     $checkout_bg = get_option('bw_cart_popup_checkout_bg', '#28a745');
     $checkout_bg_hover = get_option('bw_cart_popup_checkout_bg_hover', '#218838');
@@ -304,7 +312,7 @@ function bw_cart_popup_dynamic_css() {
             <?php else: ?>
             border: none !important;
             <?php endif; ?>
-            font-weight: 600;
+            font-weight: <?php echo esc_attr($apply_button_font_weight); ?> !important;
             cursor: pointer;
             transition: background-color 0.2s ease;
             white-space: nowrap;
@@ -319,6 +327,17 @@ function bw_cart_popup_dynamic_css() {
         .bw-cart-popup-panel .bw-promo-apply:disabled {
             background-color: #cccccc !important;
             cursor: not-allowed;
+        }
+
+        /* === PROMO CODE INPUT SETTINGS === */
+        /* Padding per input promo code */
+        .bw-cart-popup-panel .bw-promo-input {
+            padding: <?php echo esc_attr($promo_input_padding_top); ?>px <?php echo esc_attr($promo_input_padding_right); ?>px <?php echo esc_attr($promo_input_padding_bottom); ?>px <?php echo esc_attr($promo_input_padding_left); ?>px !important;
+        }
+
+        /* Font size placeholder input promo code */
+        .bw-cart-popup-panel .bw-promo-input::placeholder {
+            font-size: <?php echo esc_attr($promo_placeholder_font_size); ?>px;
         }
 
         /* === PADDING PER EMPTY CART SVG === */
