@@ -25,6 +25,7 @@
         $closeBtn: null,
         $continueBtn: null,
         $cartBadge: null,
+        $cartIconContainer: null,
         $loadingState: null,
         $notification: null,
 
@@ -50,6 +51,7 @@
             this.$closeBtn = $('.bw-cart-popup-close');
             this.$continueBtn = $('.bw-cart-popup-continue');
             this.$cartBadge = $('.bw-cart-badge');
+            this.$cartIconContainer = $('.bw-cart-popup-header-icon');
             this.$loadingState = $('.bw-cart-popup-loading');
             this.$notification = $('.bw-cart-popup-notification');
 
@@ -339,12 +341,15 @@
 
         /**
          * Carica il contenuto del carrello
+         * @param {boolean} skipLoading - Se true, non mostra il loading state
          */
-        loadCartContents: function() {
+        loadCartContents: function(skipLoading) {
             const self = this;
 
-            // Mostra loading state
-            this.showLoading();
+            // Mostra loading state solo se non è richiesto di saltarlo
+            if (!skipLoading) {
+                this.showLoading();
+            }
 
             $.ajax({
                 url: bwCartPopupConfig.ajaxUrl,
@@ -360,19 +365,25 @@
                         self.isLoading = false;
 
                         // Nascondi loading con un leggero delay per evitare flickering
-                        setTimeout(function() {
-                            self.hideLoading();
-                        }, 200);
+                        if (!skipLoading) {
+                            setTimeout(function() {
+                                self.hideLoading();
+                            }, 200);
+                        }
                     } else {
                         console.error('Failed to load cart contents');
                         self.isLoading = false;
-                        self.hideLoading();
+                        if (!skipLoading) {
+                            self.hideLoading();
+                        }
                     }
                 },
                 error: function() {
                     console.error('AJAX error loading cart contents');
                     self.isLoading = false;
-                    self.hideLoading();
+                    if (!skipLoading) {
+                        self.hideLoading();
+                    }
                 }
             });
         },
@@ -426,6 +437,9 @@
             this.$fullContent.hide();
             this.$footer.hide();
 
+            // Nascondi icona carrello e badge quando il carrello è vuoto
+            this.$cartIconContainer.addClass('hidden');
+
             // Mostra stato vuoto
             this.$emptyState.fadeIn(300);
         },
@@ -436,6 +450,9 @@
         showFullState: function() {
             // Nascondi stato vuoto
             this.$emptyState.hide();
+
+            // Mostra icona carrello e badge quando il carrello ha prodotti
+            this.$cartIconContainer.removeClass('hidden');
 
             // Mostra contenuto pieno e footer
             this.$fullContent.fadeIn(300);
@@ -554,6 +571,7 @@
 
         /**
          * Rimuovi prodotto con animazione fluida
+         * Mostra "Product removed" per 0.5 secondi mentre aggiorna in background
          */
         removeItem: function(cartItemKey) {
             const self = this;
@@ -580,7 +598,7 @@
             setTimeout(function() {
                 const itemHeight = $item.outerHeight();
 
-                // Crea il box placeholder "Product removed"
+                // Crea il box placeholder "Product removed" (o "Prodotto rimosso" se in italiano)
                 const $placeholder = $('<div class="bw-cart-item-removed-placeholder" style="height: ' + itemHeight + 'px;">' +
                     '<span>Product removed</span>' +
                     '</div>');
@@ -602,16 +620,18 @@
                             // Aggiorna anche il mini-cart di WooCommerce
                             $(document.body).trigger('wc_fragment_refresh');
 
-                            // 4. Dopo 2 secondi, fade-out del placeholder e ricarica il contenuto
+                            // 4. Dopo 0.5 secondi (500ms), fade-out del placeholder e ricarica il contenuto
+                            // Durante questi 0.5 secondi, l'aggiornamento avviene in background
                             setTimeout(function() {
                                 $placeholder.addClass('fade-out');
 
                                 setTimeout(function() {
                                     $placeholder.remove();
-                                    // Ricarica il contenuto del carrello
-                                    self.loadCartContents();
+                                    // Ricarica il contenuto del carrello senza mostrare il loading spinner
+                                    // (skipLoading = true) per evitare il flash del loading
+                                    self.loadCartContents(true);
                                 }, 300);
-                            }, 2000);
+                            }, 500); // Cambiato da 2000ms a 500ms (0.5 secondi)
                         } else {
                             console.error('Failed to remove item');
                             // In caso di errore, ricarica comunque il carrello
@@ -661,10 +681,20 @@
 
         /**
          * Aggiorna il badge con il numero di prodotti
+         * Nasconde l'icona carrello + badge quando count = 0
          */
         updateBadge: function(count) {
             if (this.$cartBadge && this.$cartBadge.length) {
                 this.$cartBadge.text(count);
+            }
+
+            // Mostra/nascondi l'icona carrello in base al numero di prodotti
+            if (this.$cartIconContainer && this.$cartIconContainer.length) {
+                if (count > 0) {
+                    this.$cartIconContainer.removeClass('hidden');
+                } else {
+                    this.$cartIconContainer.addClass('hidden');
+                }
             }
         },
 

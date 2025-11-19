@@ -108,6 +108,11 @@
     position: relative;
 }
 
+/* Hidden state for empty cart */
+.bw-cart-popup-header-icon.hidden {
+    display: none;
+}
+
 /* Badge con numero prodotti */
 .bw-cart-badge {
     position: absolute;
