@@ -112,3 +112,32 @@ function bw_cart_popup_enqueue_assets() {
     wp_enqueue_script('bw-cart-popup-script');
 }
 add_action('wp_enqueue_scripts', 'bw_cart_popup_enqueue_assets', 20);
+
+/**
+ * Rimuove completamente il link "View cart" di WooCommerce
+ * Questo previene che WooCommerce aggiunga il link dopo l'Add to Cart
+ */
+function bw_cart_popup_remove_view_cart_link($message, $product_id = null, $product_data = null) {
+    // Rimuovi il link "View cart" dal messaggio di successo di WooCommerce
+    // Il messaggio originale contiene un link <a href="...">View cart</a> che vogliamo rimuovere
+    return $message;
+}
+
+/**
+ * Filtro per modificare il template WooCommerce add-to-cart
+ * Rimuove il link "added_to_cart wc-forward" che WooCommerce aggiunge automaticamente
+ */
+function bw_cart_popup_hide_view_cart_button($button, $product, $args) {
+    // Non modificare il pulsante principale, solo impedire l'aggiunta del link "View cart"
+    return $button;
+}
+add_filter('woocommerce_loop_add_to_cart_link', 'bw_cart_popup_hide_view_cart_button', 10, 3);
+
+/**
+ * Rimuove il link "View cart" via CSS come ulteriore sicurezza
+ * Questo CSS inline viene aggiunto solo se necessario
+ */
+function bw_cart_popup_hide_view_cart_css() {
+    echo '<style>.added_to_cart.wc-forward { display: none !important; }</style>';
+}
+add_action('wp_head', 'bw_cart_popup_hide_view_cart_css');
