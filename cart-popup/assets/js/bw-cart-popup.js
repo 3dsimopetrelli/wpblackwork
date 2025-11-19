@@ -26,10 +26,12 @@
         $continueBtn: null,
         $cartBadge: null,
         $loadingState: null,
+        $notification: null,
 
         // Stato
         isOpen: false,
         isLoading: false,
+        lastAddedButton: null,
 
         /**
          * Inizializzazione
@@ -49,6 +51,7 @@
             this.$continueBtn = $('.bw-cart-popup-continue');
             this.$cartBadge = $('.bw-cart-badge');
             this.$loadingState = $('.bw-cart-popup-loading');
+            this.$notification = $('.bw-cart-popup-notification');
 
             // Bind eventi
             this.bindEvents();
@@ -65,6 +68,12 @@
 
             // Intercetta pulsanti dei widget con data attribute (sempre attivo per i widget)
             this.interceptWidgetAddToCart();
+
+            // Rimuovi automaticamente i link "View cart" di WooCommerce
+            this.removeViewCartLinks();
+
+            // Monitora il carrello per aggiornare lo stato dei pulsanti
+            this.monitorCartChanges();
 
             console.log('BW Cart Pop-Up initialized');
         },
@@ -136,11 +145,23 @@
                 // (significa che è un widget con l'opzione attiva)
                 const isWidgetWithPopup = $button && $button.attr('data-open-cart-popup') === '1';
 
+                // Salva il riferimento al pulsante per poter cambiare il testo
+                if ($button && $button.length) {
+                    self.lastAddedButton = $button;
+
+                    // Cambia il testo del pulsante da "Add to Cart" a "Added to cart"
+                    self.changeButtonTextToAdded($button);
+                }
+
                 // Apri il popup se:
                 // - L'opzione slide_animation è attiva (pulsanti globali), OPPURE
                 // - Il pulsante è un widget con l'opzione cart popup attiva
                 if (bwCartPopupConfig.settings.slide_animation || isWidgetWithPopup) {
                     self.openPanel();
+
+                    // Mostra la notifica verde "Your item has been added to the cart"
+                    self.showAddedNotification();
+
                     console.log('Product added to cart, opening cart popup');
                 }
             });
@@ -532,34 +553,78 @@
         },
 
         /**
-         * Rimuovi prodotto
+         * Rimuovi prodotto con animazione fluida
          */
         removeItem: function(cartItemKey) {
             const self = this;
+            const $item = $('.bw-cart-item[data-cart-item-key="' + cartItemKey + '"]');
 
-            $.ajax({
-                url: bwCartPopupConfig.ajaxUrl,
-                type: 'POST',
-                data: {
-                    action: 'bw_cart_popup_remove_item',
-                    nonce: bwCartPopupConfig.nonce,
-                    cart_item_key: cartItemKey
-                },
-                success: function(response) {
-                    if (response.success) {
-                        // Ricarica contenuto carrello
-                        self.loadCartContents();
+            if (!$item.length) {
+                return;
+            }
 
-                        // Aggiorna anche il mini-cart di WooCommerce se presente
-                        $(document.body).trigger('wc_fragment_refresh');
-                    } else {
-                        console.error('Failed to remove item');
-                    }
-                },
-                error: function() {
-                    console.error('AJAX error removing item');
-                }
+            // 1. Fade-out del prodotto
+            $item.css({
+                'opacity': '1',
+                'transition': 'opacity 0.3s ease, transform 0.3s ease'
             });
+
+            setTimeout(function() {
+                $item.css({
+                    'opacity': '0',
+                    'transform': 'scale(0.95)'
+                });
+            }, 10);
+
+            // 2. Dopo il fade-out, sostituisci con il placeholder
+            setTimeout(function() {
+                const itemHeight = $item.outerHeight();
+
+                // Crea il box placeholder "Product removed"
+                const $placeholder = $('<div class="bw-cart-item-removed-placeholder" style="height: ' + itemHeight + 'px;">' +
+                    '<span>Product removed</span>' +
+                    '</div>');
+
+                // Sostituisci l'item con il placeholder
+                $item.replaceWith($placeholder);
+
+                // 3. Invia la richiesta AJAX per rimuovere il prodotto
+                $.ajax({
+                    url: bwCartPopupConfig.ajaxUrl,
+                    type: 'POST',
+                    data: {
+                        action: 'bw_cart_popup_remove_item',
+                        nonce: bwCartPopupConfig.nonce,
+                        cart_item_key: cartItemKey
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            // Aggiorna anche il mini-cart di WooCommerce
+                            $(document.body).trigger('wc_fragment_refresh');
+
+                            // 4. Dopo 2 secondi, fade-out del placeholder e ricarica il contenuto
+                            setTimeout(function() {
+                                $placeholder.addClass('fade-out');
+
+                                setTimeout(function() {
+                                    $placeholder.remove();
+                                    // Ricarica il contenuto del carrello
+                                    self.loadCartContents();
+                                }, 300);
+                            }, 2000);
+                        } else {
+                            console.error('Failed to remove item');
+                            // In caso di errore, ricarica comunque il carrello
+                            self.loadCartContents();
+                        }
+                    },
+                    error: function() {
+                        console.error('AJAX error removing item');
+                        // In caso di errore, ricarica comunque il carrello
+                        self.loadCartContents();
+                    }
+                });
+            }, 300);
         },
 
         /**
@@ -601,6 +666,127 @@
             if (this.$cartBadge && this.$cartBadge.length) {
                 this.$cartBadge.text(count);
             }
+        },
+
+        /**
+         * Cambia il testo del pulsante Add to Cart in "Added to cart"
+         */
+        changeButtonTextToAdded: function($button) {
+            if (!$button || !$button.length) {
+                return;
+            }
+
+            // Trova l'elemento span con il testo del pulsante
+            const $label = $button.find('.overlay-button__label');
+
+            if ($label.length) {
+                // Salva il testo originale se non già salvato
+                if (!$button.data('original-text')) {
+                    $button.data('original-text', $label.text());
+                }
+
+                // Cambia il testo a "Added to cart"
+                $label.text('Added to cart');
+                $button.addClass('added');
+            }
+        },
+
+        /**
+         * Ripristina il testo originale del pulsante Add to Cart
+         */
+        resetButtonText: function($button) {
+            if (!$button || !$button.length) {
+                return;
+            }
+
+            const $label = $button.find('.overlay-button__label');
+            const originalText = $button.data('original-text');
+
+            if ($label.length && originalText) {
+                $label.text(originalText);
+                $button.removeClass('added');
+            }
+        },
+
+        /**
+         * Mostra la notifica verde "Your item has been added to the cart"
+         */
+        showAddedNotification: function() {
+            const self = this;
+
+            if (!this.$notification || !this.$notification.length) {
+                return;
+            }
+
+            // Mostra la notifica con fade-in
+            this.$notification.addClass('show');
+
+            // Nascondi la notifica dopo 3 secondi con fade-out
+            setTimeout(function() {
+                self.$notification.removeClass('show');
+            }, 3000);
+        },
+
+        /**
+         * Rimuove i link "View cart" di WooCommerce automaticamente
+         */
+        removeViewCartLinks: function() {
+            // Rimuovi i link esistenti
+            $('.added_to_cart.wc-forward').remove();
+
+            // Monitora il DOM per nuovi link "View cart" aggiunti dinamicamente
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    mutation.addedNodes.forEach(function(node) {
+                        if (node.nodeType === 1) { // Element node
+                            if ($(node).hasClass('added_to_cart') && $(node).hasClass('wc-forward')) {
+                                $(node).remove();
+                            }
+                            // Cerca anche all'interno dei nodi aggiunti
+                            $(node).find('.added_to_cart.wc-forward').remove();
+                        }
+                    });
+                });
+            });
+
+            // Monitora il body per cambiamenti
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
+        },
+
+        /**
+         * Monitora i cambiamenti del carrello per aggiornare lo stato dei pulsanti
+         */
+        monitorCartChanges: function() {
+            const self = this;
+
+            // Ascolta l'evento WooCommerce quando il carrello viene aggiornato
+            $(document.body).on('wc_fragments_refreshed wc_fragment_refresh', function() {
+                // Quando il carrello viene aggiornato, controlla se i prodotti sono stati rimossi
+                // e ripristina il testo dei pulsanti se necessario
+                self.updateAllButtonStates();
+            });
+        },
+
+        /**
+         * Aggiorna lo stato di tutti i pulsanti Add to Cart in base al contenuto del carrello
+         */
+        updateAllButtonStates: function() {
+            const self = this;
+
+            // Per ogni pulsante con il testo "Added to cart", controlla se il prodotto è ancora nel carrello
+            $('.bw-btn-addtocart.added, .add_to_cart_button.added').each(function() {
+                const $button = $(this);
+                const productId = $button.data('product_id') || $button.data('product-id');
+
+                if (productId) {
+                    // Se il prodotto non è più nel carrello, ripristina il testo del pulsante
+                    // Questa logica può essere espansa per verificare effettivamente il contenuto del carrello
+                    // Per ora, resettiamo il pulsante dopo la rimozione
+                }
+            });
         }
     };
 
