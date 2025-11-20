@@ -93,6 +93,18 @@
     animation-fill-mode: forwards;
 }
 
+/* IMPORTANTE: Le slide clonate da Slick (per il loop infinito) devono animarsi correttamente */
+.bw-slide-showcase-slider.bw-slide-showcase--initialized .slick-cloned.bw-slide-showcase-slide.bw-slide-visible {
+    animation-duration: var(--bw-loading-animation-duration, 500ms);
+    animation-timing-function: var(--bw-loading-animation-easing, ease-out);
+    animation-fill-mode: forwards;
+}
+
+/* Smooth transition per le slide durante la navigazione */
+.bw-slide-showcase-slider .slick-slide {
+    transition: opacity 0.3s ease-in-out;
+}
+
 /* Animazione: Fade Only - SOLO per slide visibili */
 .bw-slide-showcase-slider[data-loading-animation-type="fade"].bw-slide-showcase--initialized .bw-slide-showcase-slide.bw-slide-visible {
     animation-name: bwSlideShowcaseFade;
@@ -199,20 +211,23 @@
     display: block;
     border-radius: inherit;
     opacity: 0;
-    transition: opacity 0.3s ease-in-out;
-}
-
-.bw-slide-showcase-image[loading="lazy"] {
+    transition: opacity 0.4s ease-in-out;
     will-change: opacity;
 }
 
+/* Immagine visibile dopo il caricamento */
 .bw-slide-showcase-image.loaded,
-.bw-slide-showcase-image:not([loading="lazy"]) {
+.bw-slide-showcase-image[src]:not([src=""]) {
     opacity: 1;
 }
 
-/* Assicura che le immagini siano visibili dopo il caricamento */
-.slick-initialized .bw-slide-showcase-image {
+/* Assicura che le immagini siano visibili dopo il caricamento nello slider */
+.slick-initialized .bw-slide-showcase-image[src]:not([src=""]) {
+    opacity: 1;
+}
+
+/* Immagini nelle slide attive sono sempre visibili */
+.slick-active .bw-slide-showcase-image.loaded {
     opacity: 1;
 }
 

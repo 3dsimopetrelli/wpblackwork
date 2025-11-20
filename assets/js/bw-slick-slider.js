@@ -384,8 +384,14 @@
         'img/arrow-d.svg" alt="next"></button>';
     }
 
+    // Abilita lazy loading di Slick per le immagini
+    settings.lazyLoad = 'ondemand'; // Carica immagini solo quando necessario
+
     // Listener per evento init di Slick per gestire il fade-in
     $currentSlider.one('init', function(event, slick) {
+      // Precarica le immagini delle slide inizialmente visibili + 1 slide adiacente
+      preloadVisibleSlides(slick);
+
       // FADE-IN: Rimuovi loading e aggiungi initialized per mostrare lo slider con fade-in
       setTimeout(function() {
         $currentSlider.removeClass('bw-slide-showcase--loading');
@@ -395,20 +401,102 @@
 
     $currentSlider.slick(settings);
 
-    // Gestione lazy loading per le immagini
-    $currentSlider.find('img[loading="lazy"]').each(function () {
-      var $img = $(this);
-      if (this.complete) {
-        $img.addClass('loaded');
+    // Funzione per precaricare le slide visibili e adiacenti
+    var preloadVisibleSlides = function(slick) {
+      if (!slick || !slick.$slides) return;
+
+      var currentIndex = slick.currentSlide;
+      var slidesToShow = slick.options.slidesToShow || 1;
+
+      // Indici da precaricare: slide correnti + 1 prima + 1 dopo
+      var indicesToPreload = [];
+      for (var i = currentIndex - 1; i <= currentIndex + slidesToShow; i++) {
+        indicesToPreload.push(i);
+      }
+
+      // Precarica le immagini
+      indicesToPreload.forEach(function(index) {
+        var $slide = $(slick.$slides[index]);
+        if ($slide.length) {
+          loadSlideImage($slide);
+        }
+      });
+    };
+
+    // Funzione per caricare l'immagine di una slide
+    var loadSlideImage = function($slide) {
+      var $img = $slide.find('img[data-lazy]');
+      if ($img.length && !$img.attr('src')) {
+        var lazySrc = $img.attr('data-lazy');
+        if (lazySrc) {
+          // Crea un nuovo oggetto Image per precaricare
+          var img = new Image();
+          img.onload = function() {
+            $img.attr('src', lazySrc);
+            $img.addClass('loaded');
+            $img.removeAttr('data-lazy');
+          };
+          img.onerror = function() {
+            // In caso di errore, imposta comunque il src per mostrare il broken image placeholder
+            $img.attr('src', lazySrc);
+            $img.removeAttr('data-lazy');
+          };
+          img.src = lazySrc;
+        }
+      }
+    };
+
+    // GESTIONE EVENTI SLICK PER NAVIGAZIONE E LOOP
+    // Questi eventi gestiscono il preloading e le animazioni durante la navigazione
+    $currentSlider.on('beforeChange', function(event, slick, currentSlide, nextSlide) {
+      // Prima di cambiare slide, rimuovi la classe di animazione dalle slide che escono
+      var $currentSlideElement = $(slick.$slides[currentSlide]);
+      $currentSlideElement.removeClass('bw-slide-visible bw-slide-animating');
+    });
+
+    $currentSlider.on('afterChange', function(event, slick, currentSlide) {
+      // Dopo il cambio slide, precarica le immagini adiacenti
+      preloadVisibleSlides(slick);
+
+      // Gestisci l'animazione della slide corrente
+      var $currentSlideElement = $(slick.$slides[currentSlide]);
+      var $img = $currentSlideElement.find('img');
+
+      // Aspetta che l'immagine sia caricata prima di animare
+      if ($img.length && $img.attr('src')) {
+        if ($img[0].complete) {
+          // Immagine già caricata, anima subito
+          triggerSlideAnimation($currentSlideElement);
+        } else {
+          // Attendi il caricamento dell'immagine
+          $img.one('load', function() {
+            triggerSlideAnimation($currentSlideElement);
+          });
+          // Fallback: se l'immagine impiega troppo, anima comunque dopo 500ms
+          setTimeout(function() {
+            if (!$currentSlideElement.hasClass('bw-slide-visible')) {
+              triggerSlideAnimation($currentSlideElement);
+            }
+          }, 500);
+        }
       } else {
-        $img.on('load', function () {
-          $img.addClass('loaded');
-        });
+        // Nessuna immagine o immagine non ancora caricata, anima comunque
+        triggerSlideAnimation($currentSlideElement);
       }
     });
 
-    // NUOVA FUNZIONALITÀ: IntersectionObserver per animazioni e lazy loading avanzato
-    // Le slide vengono animate solo quando entrano nel viewport
+    // Funzione per triggerare l'animazione di una slide
+    var triggerSlideAnimation = function($slide) {
+      if (!$slide.hasClass('bw-slide-visible')) {
+        // Forza un reflow per riavviare l'animazione CSS
+        $slide.removeClass('bw-slide-visible bw-slide-animating');
+        void $slide[0].offsetWidth; // Force reflow
+        $slide.addClass('bw-slide-visible bw-slide-animating');
+      }
+    };
+
+    // NUOVA FUNZIONALITÀ: IntersectionObserver per animazioni iniziali
+    // Le slide vengono animate quando entrano nel viewport LA PRIMA VOLTA
     if (typeof IntersectionObserver !== 'undefined') {
       var observerOptions = {
         root: null,
@@ -421,19 +509,35 @@
           if (entry.isIntersecting) {
             var $slide = $(entry.target);
 
-            // Aggiungi classe per triggare l'animazione
-            $slide.addClass('bw-slide-visible');
+            // Carica l'immagine se non ancora caricata
+            loadSlideImage($slide);
 
-            // Carica immagini lazy se presenti
-            $slide.find('img[loading="lazy"]').each(function() {
-              var $img = $(this);
-              if (!$img.hasClass('loaded') && this.complete) {
-                $img.addClass('loaded');
+            // Aggiungi classe per triggare l'animazione solo se l'immagine è pronta
+            var $img = $slide.find('img');
+            if ($img.length && $img.attr('src')) {
+              if ($img[0].complete) {
+                $slide.addClass('bw-slide-visible');
+              } else {
+                $img.one('load', function() {
+                  $slide.addClass('bw-slide-visible');
+                });
               }
-            });
+            } else {
+              $slide.addClass('bw-slide-visible');
+            }
 
-            // Smetti di osservare questa slide dopo la prima animazione
-            slideObserver.unobserve(entry.target);
+            // NON smettere di osservare - permettiamo alle slide di ri-animarsi
+            // quando tornano nel viewport (utile per loop infiniti)
+          } else {
+            // Quando la slide esce dal viewport, rimuovi la classe di animazione
+            // Questo permette alla slide di ri-animarsi quando torna visibile
+            var $slide = $(entry.target);
+            // Aspetta che l'animazione finisca prima di rimuovere la classe
+            setTimeout(function() {
+              if (!entry.isIntersecting) {
+                $slide.removeClass('bw-slide-visible');
+              }
+            }, 600); // Tempo maggiore della durata dell'animazione
           }
         });
       }, observerOptions);

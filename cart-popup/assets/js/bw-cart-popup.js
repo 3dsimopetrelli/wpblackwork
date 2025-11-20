@@ -279,12 +279,18 @@
          * Apri il pannello
          */
         openPanel: function() {
-            // CORREZIONE: Non aprire il cart popup in Elementor editor
+            // CORREZIONE: Non aprire il cart popup in Elementor editor o preview
             // Questo previene che il popup si apra quando si clicca Publish/Update
-            if (typeof elementorFrontend !== 'undefined' &&
+            // Controlliamo sia elementorFrontend che le classi body
+            var isElementorEditor = (typeof elementorFrontend !== 'undefined' &&
                 typeof elementorFrontend.isEditMode === 'function' &&
-                elementorFrontend.isEditMode()) {
-                console.log('Cart popup non aperto: siamo in Elementor editor');
+                elementorFrontend.isEditMode());
+
+            var hasEditorClass = $('body').hasClass('elementor-editor-active') ||
+                $('body').hasClass('elementor-editor-preview');
+
+            if (isElementorEditor || hasEditorClass) {
+                console.log('Cart popup non aperto: siamo in Elementor editor/preview');
                 return;
             }
 
