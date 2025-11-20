@@ -1116,6 +1116,9 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
         $loading_animation_mode     = isset( $settings['loading_animation_mode'] ) && 'yes' === $settings['loading_animation_mode'];
         $loading_animation_stagger  = isset( $settings['loading_animation_stagger_delay']['size'] ) ? max( 0, absint( $settings['loading_animation_stagger_delay']['size'] ) ) : 50;
 
+        // Genera CSS responsive per i breakpoints
+        $responsive_css = $this->generate_responsive_breakpoints_css( $settings );
+
         $query = new \WP_Query( $query_args );
 
         $border_radius_value = $this->format_dimensions( isset( $settings['border_radius'] ) ? $settings['border_radius'] : [] );
@@ -1125,6 +1128,11 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
         <!-- BW Slide Showcase con sistema di animazioni configurabili -->
         <!-- I data-loading-animation-* sono letti dal JavaScript (bw-slick-slider.js) -->
         <!-- e applicati tramite CSS (bw-slide-showcase.css) -->
+        <?php if ( ! empty( $responsive_css ) ) : ?>
+            <style>
+                <?php echo $responsive_css; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+            </style>
+        <?php endif; ?>
         <div
             class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $wrapper_classes ) ) ); ?>"
             data-columns="<?php echo esc_attr( $columns ); ?>"
@@ -1636,5 +1644,113 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
         $unit = is_string( $unit ) ? strtolower( trim( $unit ) ) : '';
 
         return in_array( $unit, $allowed, true ) ? $unit : $fallback;
+    }
+
+    /**
+     * Genera CSS responsive per i breakpoints
+     *
+     * Questo metodo genera media query CSS per applicare larghezza e altezza
+     * delle colonne in base ai breakpoints definiti nella sezione "Responsive Slide".
+     *
+     * @param array $settings Settings del widget
+     * @return string CSS generato
+     */
+    private function generate_responsive_breakpoints_css( $settings ) {
+        // Verifica se ci sono breakpoints responsive configurati
+        $responsive_slides = isset( $settings['responsive_slides'] ) && is_array( $settings['responsive_slides'] )
+            ? $settings['responsive_slides']
+            : [];
+
+        if ( empty( $responsive_slides ) ) {
+            return '';
+        }
+
+        // Genera un ID univoco per questo widget
+        $widget_id = $this->get_id();
+        $selector  = '.elementor-element-' . $widget_id . ' .bw-slide-showcase-slider';
+
+        $css = '';
+
+        // Ordina i breakpoints dal più grande al più piccolo per una corretta cascata CSS
+        usort( $responsive_slides, function( $a, $b ) {
+            $bp_a = isset( $a['breakpoint'] ) ? absint( $a['breakpoint'] ) : 0;
+            $bp_b = isset( $b['breakpoint'] ) ? absint( $b['breakpoint'] ) : 0;
+            return $bp_b - $bp_a; // Ordine decrescente
+        } );
+
+        foreach ( $responsive_slides as $item ) {
+            // Verifica che il breakpoint sia valido
+            if ( empty( $item['breakpoint'] ) ) {
+                continue;
+            }
+
+            $breakpoint = absint( $item['breakpoint'] );
+            if ( $breakpoint <= 0 ) {
+                continue;
+            }
+
+            $rules = [];
+
+            // Larghezza colonna responsive
+            if ( isset( $item['responsive_width'] ) && ! empty( $item['responsive_width'] ) ) {
+                $width_data = $item['responsive_width'];
+                $width_size = null;
+                $width_unit = 'px';
+
+                if ( is_array( $width_data ) ) {
+                    if ( isset( $width_data['size'] ) && '' !== $width_data['size'] ) {
+                        $width_size = $width_data['size'];
+                    }
+                    if ( isset( $width_data['unit'] ) && '' !== $width_data['unit'] ) {
+                        $width_unit = $width_data['unit'];
+                    }
+                } elseif ( is_numeric( $width_data ) ) {
+                    $width_size = $width_data;
+                }
+
+                if ( null !== $width_size && '' !== $width_size && (float) $width_size > 0 ) {
+                    $width_value = (float) $width_size . $width_unit;
+                    $rules[]     = '--bw-slide-showcase-column-width: ' . $width_value . ';';
+                    $rules[]     = '--bw-column-width: ' . $width_value . ';';
+                }
+            }
+
+            // Altezza colonna responsive
+            if ( isset( $item['responsive_height'] ) && ! empty( $item['responsive_height'] ) ) {
+                $height_data = $item['responsive_height'];
+                $height_size = null;
+                $height_unit = 'px';
+
+                if ( is_array( $height_data ) ) {
+                    if ( isset( $height_data['size'] ) && '' !== $height_data['size'] ) {
+                        $height_size = $height_data['size'];
+                    }
+                    if ( isset( $height_data['unit'] ) && '' !== $height_data['unit'] ) {
+                        $height_unit = $height_data['unit'];
+                    }
+                } elseif ( is_numeric( $height_data ) ) {
+                    $height_size = $height_data;
+                }
+
+                if ( null !== $height_size && '' !== $height_size && (float) $height_size >= 0 ) {
+                    $height_value = (float) $height_size . $height_unit;
+                    $rules[]      = '--bw-slide-showcase-image-height: ' . $height_value . ';';
+                    $rules[]      = '--bw-image-height: ' . $height_value . ';';
+                }
+            }
+
+            // Se ci sono regole da applicare, genera la media query
+            if ( ! empty( $rules ) ) {
+                $css .= '@media (max-width: ' . $breakpoint . 'px) {' . "\n";
+                $css .= '    ' . $selector . ' {' . "\n";
+                foreach ( $rules as $rule ) {
+                    $css .= '        ' . $rule . "\n";
+                }
+                $css .= '    }' . "\n";
+                $css .= '}' . "\n";
+            }
+        }
+
+        return $css;
     }
 }
