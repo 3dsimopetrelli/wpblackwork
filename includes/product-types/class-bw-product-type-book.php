@@ -4,7 +4,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-if ( class_exists( 'WC_Product_Simple' ) && ! class_exists( 'WC_Product_Book' ) ) {
+if ( class_exists( 'WC_Product_Variable' ) && ! class_exists( 'WC_Product_Book' ) ) {
 
 /**
  * WC_Product_Book Class
@@ -15,9 +15,10 @@ if ( class_exists( 'WC_Product_Simple' ) && ! class_exists( 'WC_Product_Book' ) 
  * - Prodotto fisico (NON virtual)
  * - Prodotto da spedire (ha campi di peso, dimensioni, classe di spedizione)
  * - NON scaricabile (NON downloadable)
- * - Mostra tutti i tab: General, Inventory, Shipping, Linked Products, Attributes, Advanced
+ * - Supporta variazioni (estende WC_Product_Variable)
+ * - Mostra tutti i tab: General, Inventory, Shipping, Linked Products, Attributes, Variations, Advanced
  */
-class WC_Product_Book extends WC_Product_Simple {
+class WC_Product_Book extends WC_Product_Variable {
 
     /**
      * Product type identifier.
