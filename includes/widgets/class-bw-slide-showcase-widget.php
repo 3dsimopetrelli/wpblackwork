@@ -123,19 +123,20 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
             'default' => '1',
         ] );
 
+        // NOTA: Solo 'px' supportato per evitare problemi di layout con Slick variableWidth.
+        // Le percentuali causano calcoli errati e le colonne vanno in wrapping verticale.
         $this->add_responsive_control( 'column_width', [
             'label'      => __( 'Larghezza colonna', 'bw-elementor-widgets' ),
             'type'       => Controls_Manager::SLIDER,
-            'size_units' => [ 'px', '%' ],
+            'size_units' => [ 'px' ],
             'range'      => [
                 'px' => [ 'min' => 100, 'max' => 1200, 'step' => 1 ],
-                '%'  => [ 'min' => 10, 'max' => 100, 'step' => 1 ],
             ],
             'render_type' => 'template',
             'selectors'  => [
                 '{{WRAPPER}} .bw-slide-showcase-slider' => '--bw-slide-showcase-column-width: {{SIZE}}{{UNIT}}; --bw-column-width: {{SIZE}}{{UNIT}};',
             ],
-            'description' => __( 'Imposta la larghezza massima degli elementi della vetrina.', 'bw-elementor-widgets' ),
+            'description' => __( 'Imposta la larghezza massima degli elementi della vetrina (solo px).', 'bw-elementor-widgets' ),
         ] );
 
         $this->add_control( 'gap', [
