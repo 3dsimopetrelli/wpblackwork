@@ -393,18 +393,34 @@
       preloadVisibleSlides(slick);
 
       // FADE-IN: Rimuovi loading e aggiungi initialized per mostrare lo slider con fade-in
-      // RIMOSSO setTimeout per applicazione immediata
       $currentSlider.removeClass('bw-slide-showcase--loading');
       $currentSlider.addClass('bw-slide-showcase--initialized');
 
-      // FIX CRITICO: Aggiungi IMMEDIATAMENTE la classe bw-slide-visible alle slide inizialmente visibili
-      // per garantire che siano visibili subito dopo l'inizializzazione
-      $currentSlider.find('.slick-active .bw-slide-showcase-slide').each(function() {
-        var $slide = $(this);
-        loadSlideImage($slide);
-        // Aggiungi una classe permanente per le slide iniziali
-        $slide.addClass('bw-slide-visible bw-slide-initial');
-      });
+      // FIX CRITICO: Usa setTimeout per assicurarsi che Slick abbia completato l'inizializzazione
+      // e che le classi .slick-active siano state applicate prima di cercare le slide
+      setTimeout(function() {
+        // Trova tutte le slide all'interno degli elementi slick-active
+        var $initialSlides = $currentSlider.find('.slick-slide.slick-active').find('.bw-slide-showcase-slide');
+
+        // Se non ne trova nessuna con il selettore sopra, prova un selettore alternativo
+        if (!$initialSlides.length) {
+          $initialSlides = $currentSlider.find('.slick-active .bw-slide-showcase-slide');
+        }
+
+        // Se ancora non ne trova, seleziona le prime N slide basandoci su slidesToShow
+        if (!$initialSlides.length) {
+          var slidesToShow = slick.options.slidesToShow || 1;
+          $initialSlides = $currentSlider.find('.bw-slide-showcase-slide').slice(0, slidesToShow);
+        }
+
+        // Aggiungi le classi alle slide trovate
+        $initialSlides.each(function() {
+          var $slide = $(this);
+          loadSlideImage($slide);
+          // Aggiungi una classe permanente per le slide iniziali
+          $slide.addClass('bw-slide-visible bw-slide-initial');
+        });
+      }, 50); // Piccolo ritardo per assicurarsi che Slick abbia completato
     });
 
     $currentSlider.slick(settings);
