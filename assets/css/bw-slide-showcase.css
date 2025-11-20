@@ -75,57 +75,64 @@
 }
 
 /* SLIDE ANIMATIONS: Sistema flessibile per diverse animazioni di loading */
+/* Le slide iniziano invisibili */
 .bw-slide-showcase-slider:not(.bw-slide-showcase--initialized) .bw-slide-showcase-slide {
     opacity: 0;
 }
 
+/* CORREZIONE: Le slide rimangono invisibili fino a quando non entrano nel viewport */
+/* Questo previene che le animazioni partano per slide non ancora visibili */
 .bw-slide-showcase-slider.bw-slide-showcase--initialized .bw-slide-showcase-slide {
     opacity: 0;
+}
+
+/* Le animazioni partono SOLO quando la slide entra nel viewport (classe bw-slide-visible) */
+.bw-slide-showcase-slider.bw-slide-showcase--initialized .bw-slide-showcase-slide.bw-slide-visible {
     animation-duration: var(--bw-loading-animation-duration, 500ms);
     animation-timing-function: var(--bw-loading-animation-easing, ease-out);
     animation-fill-mode: forwards;
 }
 
-/* Animazione: Fade Only */
-.bw-slide-showcase-slider[data-loading-animation-type="fade"].bw-slide-showcase--initialized .bw-slide-showcase-slide {
+/* Animazione: Fade Only - SOLO per slide visibili */
+.bw-slide-showcase-slider[data-loading-animation-type="fade"].bw-slide-showcase--initialized .bw-slide-showcase-slide.bw-slide-visible {
     animation-name: bwSlideShowcaseFade;
 }
 
-/* Animazione: Fade + Entrata da Sinistra */
-.bw-slide-showcase-slider[data-loading-animation-type="fade-left"].bw-slide-showcase--initialized .bw-slide-showcase-slide {
+/* Animazione: Fade + Entrata da Sinistra - SOLO per slide visibili */
+.bw-slide-showcase-slider[data-loading-animation-type="fade-left"].bw-slide-showcase--initialized .bw-slide-showcase-slide.bw-slide-visible {
     animation-name: bwSlideShowcaseFadeLeft;
 }
 
-/* Animazione: Fade + Entrata da Destra */
-.bw-slide-showcase-slider[data-loading-animation-type="fade-right"].bw-slide-showcase--initialized .bw-slide-showcase-slide {
+/* Animazione: Fade + Entrata da Destra - SOLO per slide visibili */
+.bw-slide-showcase-slider[data-loading-animation-type="fade-right"].bw-slide-showcase--initialized .bw-slide-showcase-slide.bw-slide-visible {
     animation-name: bwSlideShowcaseFadeRight;
 }
 
-/* Modalità Sequenziale: Stagger con ritardi progressivi */
-.bw-slide-showcase-slider[data-loading-animation-mode="sequential"].bw-slide-showcase--initialized .bw-slide-showcase-slide:nth-child(1) {
+/* Modalità Sequenziale: Stagger con ritardi progressivi - SOLO per slide visibili */
+.bw-slide-showcase-slider[data-loading-animation-mode="sequential"].bw-slide-showcase--initialized .bw-slide-showcase-slide.bw-slide-visible:nth-child(1) {
     animation-delay: calc(var(--bw-loading-animation-stagger, 50ms) * 1);
 }
-.bw-slide-showcase-slider[data-loading-animation-mode="sequential"].bw-slide-showcase--initialized .bw-slide-showcase-slide:nth-child(2) {
+.bw-slide-showcase-slider[data-loading-animation-mode="sequential"].bw-slide-showcase--initialized .bw-slide-showcase-slide.bw-slide-visible:nth-child(2) {
     animation-delay: calc(var(--bw-loading-animation-stagger, 50ms) * 2);
 }
-.bw-slide-showcase-slider[data-loading-animation-mode="sequential"].bw-slide-showcase--initialized .bw-slide-showcase-slide:nth-child(3) {
+.bw-slide-showcase-slider[data-loading-animation-mode="sequential"].bw-slide-showcase--initialized .bw-slide-showcase-slide.bw-slide-visible:nth-child(3) {
     animation-delay: calc(var(--bw-loading-animation-stagger, 50ms) * 3);
 }
-.bw-slide-showcase-slider[data-loading-animation-mode="sequential"].bw-slide-showcase--initialized .bw-slide-showcase-slide:nth-child(4) {
+.bw-slide-showcase-slider[data-loading-animation-mode="sequential"].bw-slide-showcase--initialized .bw-slide-showcase-slide.bw-slide-visible:nth-child(4) {
     animation-delay: calc(var(--bw-loading-animation-stagger, 50ms) * 4);
 }
-.bw-slide-showcase-slider[data-loading-animation-mode="sequential"].bw-slide-showcase--initialized .bw-slide-showcase-slide:nth-child(5) {
+.bw-slide-showcase-slider[data-loading-animation-mode="sequential"].bw-slide-showcase--initialized .bw-slide-showcase-slide.bw-slide-visible:nth-child(5) {
     animation-delay: calc(var(--bw-loading-animation-stagger, 50ms) * 5);
 }
-.bw-slide-showcase-slider[data-loading-animation-mode="sequential"].bw-slide-showcase--initialized .bw-slide-showcase-slide:nth-child(6) {
+.bw-slide-showcase-slider[data-loading-animation-mode="sequential"].bw-slide-showcase--initialized .bw-slide-showcase-slide.bw-slide-visible:nth-child(6) {
     animation-delay: calc(var(--bw-loading-animation-stagger, 50ms) * 6);
 }
-.bw-slide-showcase-slider[data-loading-animation-mode="sequential"].bw-slide-showcase--initialized .bw-slide-showcase-slide:nth-child(n+7) {
+.bw-slide-showcase-slider[data-loading-animation-mode="sequential"].bw-slide-showcase--initialized .bw-slide-showcase-slide.bw-slide-visible:nth-child(n+7) {
     animation-delay: calc(var(--bw-loading-animation-stagger, 50ms) * 6);
 }
 
-/* Modalità Simultanea: Nessun ritardo */
-.bw-slide-showcase-slider[data-loading-animation-mode="simultaneous"].bw-slide-showcase--initialized .bw-slide-showcase-slide {
+/* Modalità Simultanea: Nessun ritardo - SOLO per slide visibili */
+.bw-slide-showcase-slider[data-loading-animation-mode="simultaneous"].bw-slide-showcase--initialized .bw-slide-showcase-slide.bw-slide-visible {
     animation-delay: 0s;
 }
 
