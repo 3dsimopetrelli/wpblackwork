@@ -396,6 +396,14 @@
       setTimeout(function() {
         $currentSlider.removeClass('bw-slide-showcase--loading');
         $currentSlider.addClass('bw-slide-showcase--initialized');
+
+        // FIX: Aggiungi immediatamente la classe bw-slide-visible alle slide inizialmente visibili
+        // per garantire che siano visibili subito dopo l'inizializzazione
+        $currentSlider.find('.slick-active .bw-slide-showcase-slide').each(function() {
+          var $slide = $(this);
+          loadSlideImage($slide);
+          $slide.addClass('bw-slide-visible');
+        });
       }, 50); // Piccolo delay per garantire che Slick abbia completato il setup
     });
 
