@@ -54,6 +54,11 @@ add_filter( 'woocommerce_product_data_tabs', function( $tabs ) {
         $tabs['attribute']['class'][] = 'show_if_book';
     }
 
+    // Mostra Variations per Books
+    if ( isset( $tabs['variations'] ) ) {
+        $tabs['variations']['class'][] = 'show_if_book';
+    }
+
     // PRINTS: Mostra tutti i tab per prodotti fisici (incluso Shipping)
     $tabs['general']['class'][]   = 'show_if_print';
     $tabs['inventory']['class'][] = 'show_if_print';
@@ -74,6 +79,11 @@ add_filter( 'woocommerce_product_data_tabs', function( $tabs ) {
         $tabs['attribute']['class'][] = 'show_if_print';
     }
 
+    // Mostra Variations per Prints
+    if ( isset( $tabs['variations'] ) ) {
+        $tabs['variations']['class'][] = 'show_if_print';
+    }
+
     return $tabs;
 } );
 
@@ -90,6 +100,43 @@ add_action( 'admin_footer', function() {
                 $('#variable_product_options').addClass('show_if_digital_asset');
                 $('.options_group.show_if_downloadable').addClass('show_if_digital_asset');
                 $('.show_if_downloadable').addClass('show_if_digital_asset');
+
+                // BOOKS: Attivare i pannelli variabili (prodotto fisico con variazioni)
+                $('.options_group.show_if_variable').addClass('show_if_book');
+                $('#variable_product_options').addClass('show_if_book');
+
+                // PRINTS: Attivare i pannelli variabili (prodotto fisico con variazioni)
+                $('.options_group.show_if_variable').addClass('show_if_print');
+                $('#variable_product_options').addClass('show_if_print');
+
+                // Abilita il checkbox "Used for variations" per tutti i product types variabili
+                // Questo è gestito nativamente da WooCommerce per prodotti variabili, ma
+                // assicuriamoci che sia visibile per i nostri custom product types
+                function enableVariationsCheckbox() {
+                    var productType = $('#product-type').val();
+                    if (productType === 'digital_asset' || productType === 'book' || productType === 'print') {
+                        // Mostra il checkbox "Used for variations" negli attributi
+                        $('.enable_variation').closest('label').show();
+                        $('.enable_variation').closest('.woocommerce_attribute').find('.enable_variation').show();
+                    }
+                }
+
+                // Esegui al caricamento e quando cambia il product type
+                enableVariationsCheckbox();
+                $('#product-type').on('change', enableVariationsCheckbox);
+
+                // Osserva quando vengono aggiunti nuovi attributi e abilita il checkbox
+                // per i product types variabili
+                var attributesContainer = $('.product_attributes');
+                if (attributesContainer.length) {
+                    var observer = new MutationObserver(function(mutations) {
+                        enableVariationsCheckbox();
+                    });
+                    observer.observe(attributesContainer[0], {
+                        childList: true,
+                        subtree: true
+                    });
+                }
 
                 // BOOKS: Nascondere completamente i campi downloadable (prodotto fisico)
                 $('#product-type').on('change', function() {
@@ -162,6 +209,12 @@ add_action( 'init', 'bw_register_custom_product_types' );
  * - Books siano sempre virtual=no e downloadable=no
  * - Prints siano sempre virtual=no e downloadable=no
  *
+ * IMPORTANTE: Gli attributi (_product_attributes) sono SEMPRE specifici del prodotto.
+ * Ogni prodotto ha il proprio set di attributi salvato nel suo meta _product_attributes.
+ * Se vedi gli stessi attributi su prodotti diversi, probabilmente stai usando attributi
+ * globali di WooCommerce (creati in Prodotti > Attributi) che sono disponibili per tutti
+ * i prodotti ma devono essere selezionati manualmente per ogni prodotto.
+ *
  * @param int    $post_id Product ID.
  * @param WP_Post $post    Post object.
  */
@@ -185,6 +238,9 @@ function bw_force_product_type_meta_values( $post_id, $post ) {
             delete_post_meta( $post_id, '_downloadable_files' );
             break;
     }
+
+    // Gli attributi sono gestiti da WooCommerce e salvati correttamente per ogni prodotto.
+    // Non c'è bisogno di forzare nulla qui - ogni prodotto ha il proprio meta _product_attributes.
 }
 
 /**
