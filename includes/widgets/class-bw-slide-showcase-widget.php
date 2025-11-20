@@ -1273,7 +1273,7 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
                         <div class="bw-slide-showcase-item"<?php echo $item_style_attr; ?>>
                             <div class="bw-slide-showcase-media">
                                 <?php if ( $image_url ) : ?>
-                                    <img src="<?php echo esc_url( $image_url ); ?>" alt="<?php echo esc_attr( $product_title ); ?>" class="bw-slide-showcase-image" loading="lazy" style="<?php echo $this->build_image_style( $image_height, $object_fit ); ?>">
+                                    <img data-lazy="<?php echo esc_url( $image_url ); ?>" alt="<?php echo esc_attr( $product_title ); ?>" class="bw-slide-showcase-image" style="<?php echo $this->build_image_style( $image_height, $object_fit ); ?>">
                                 <?php endif; ?>
                             </div>
 
