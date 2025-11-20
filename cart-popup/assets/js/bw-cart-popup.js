@@ -279,6 +279,15 @@
          * Apri il pannello
          */
         openPanel: function() {
+            // CORREZIONE: Non aprire il cart popup in Elementor editor
+            // Questo previene che il popup si apra quando si clicca Publish/Update
+            if (typeof elementorFrontend !== 'undefined' &&
+                typeof elementorFrontend.isEditMode === 'function' &&
+                elementorFrontend.isEditMode()) {
+                console.log('Cart popup non aperto: siamo in Elementor editor');
+                return;
+            }
+
             if (this.isOpen || this.isLoading) {
                 return;
             }

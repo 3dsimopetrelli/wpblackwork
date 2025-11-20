@@ -407,6 +407,46 @@
       }
     });
 
+    // NUOVA FUNZIONALITÀ: IntersectionObserver per animazioni e lazy loading avanzato
+    // Le slide vengono animate solo quando entrano nel viewport
+    if (typeof IntersectionObserver !== 'undefined') {
+      var observerOptions = {
+        root: null,
+        rootMargin: '50px', // Inizia ad animare 50px prima che la slide entri nel viewport
+        threshold: 0.1 // Anima quando almeno il 10% della slide è visibile
+      };
+
+      var slideObserver = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) {
+            var $slide = $(entry.target);
+
+            // Aggiungi classe per triggare l'animazione
+            $slide.addClass('bw-slide-visible');
+
+            // Carica immagini lazy se presenti
+            $slide.find('img[loading="lazy"]').each(function() {
+              var $img = $(this);
+              if (!$img.hasClass('loaded') && this.complete) {
+                $img.addClass('loaded');
+              }
+            });
+
+            // Smetti di osservare questa slide dopo la prima animazione
+            slideObserver.unobserve(entry.target);
+          }
+        });
+      }, observerOptions);
+
+      // Osserva tutte le slide
+      $currentSlider.find('.bw-slide-showcase-slide').each(function() {
+        slideObserver.observe(this);
+      });
+
+      // Salva il riferimento all'observer per cleanup successivo
+      $currentSlider.data('slideObserver', slideObserver);
+    }
+
     // Funzione per applicare larghezza e altezza responsive
     var applyResponsiveDimensions = function (event, slick, currentBreakpoint) {
       if (!settings.responsive || !Array.isArray(settings.responsive)) {
@@ -456,19 +496,25 @@
       }
 
       // Applica la larghezza se trovata
+      // CORREZIONE: Applica sia --bw-column-width che --bw-slide-showcase-column-width
+      // per garantire che i breakpoints funzionino correttamente
       if (widthToApply && widthToApply.size >= 0) {
-        $currentSlider.css(
-          '--bw-column-width',
-          widthToApply.size + widthToApply.unit
-        );
+        var widthValue = widthToApply.size + widthToApply.unit;
+        $currentSlider.css({
+          '--bw-column-width': widthValue,
+          '--bw-slide-showcase-column-width': widthValue
+        });
       }
 
       // Applica l'altezza se trovata
+      // CORREZIONE: Applica sia --bw-image-height che --bw-slide-showcase-image-height
+      // per garantire che i breakpoints funzionino correttamente
       if (heightToApply && heightToApply.size >= 0) {
-        $currentSlider.css(
-          '--bw-image-height',
-          heightToApply.size + heightToApply.unit
-        );
+        var heightValue = heightToApply.size + heightToApply.unit;
+        $currentSlider.css({
+          '--bw-image-height': heightValue,
+          '--bw-slide-showcase-image-height': heightValue
+        });
       }
     };
 
