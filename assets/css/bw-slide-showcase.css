@@ -3,6 +3,7 @@
     --bw-column-width: auto;
     cursor: -webkit-grab;
     cursor: grab;
+    box-sizing: border-box;
 }
 
 .bw-slide-showcase-slider:active,
@@ -77,6 +78,7 @@
     overflow: hidden;
     border-radius: inherit;
     box-sizing: border-box;
+    background: rgba(0, 0, 0, 0.05);
 }
 
 .bw-slide-showcase-image {
@@ -85,6 +87,22 @@
     object-fit: cover;
     display: block;
     border-radius: inherit;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.bw-slide-showcase-image[loading="lazy"] {
+    will-change: opacity;
+}
+
+.bw-slide-showcase-image.loaded,
+.bw-slide-showcase-image:not([loading="lazy"]) {
+    opacity: 1;
+}
+
+/* Assicura che le immagini siano visibili dopo il caricamento */
+.slick-initialized .bw-slide-showcase-image {
+    opacity: 1;
 }
 
 .bw-slide-showcase--no-crop .bw-slide-showcase-image {

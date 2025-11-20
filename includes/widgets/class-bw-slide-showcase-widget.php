@@ -148,6 +148,22 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
             'default' => [ 'size' => 24, 'unit' => 'px' ],
         ] );
 
+        $this->add_responsive_control( 'left_offset', [
+            'label'       => __( 'Left Offset', 'bw-elementor-widgets' ),
+            'type'        => Controls_Manager::SLIDER,
+            'size_units'  => [ 'px', '%' ],
+            'range'       => [
+                'px' => [ 'min' => 0, 'max' => 200, 'step' => 1 ],
+                '%'  => [ 'min' => 0, 'max' => 30, 'step' => 1 ],
+            ],
+            'default'     => [ 'size' => 30, 'unit' => 'px' ],
+            'render_type' => 'template',
+            'selectors'   => [
+                '{{WRAPPER}} .bw-slide-showcase-slider' => 'padding-left: {{SIZE}}{{UNIT}};',
+            ],
+            'description' => __( 'Distanza dal bordo sinistro dello schermo. Default: 30px', 'bw-elementor-widgets' ),
+        ] );
+
         $this->add_control( 'layout_settings_heading', [
             'label'     => __( 'Settings', 'bw-elementor-widgets' ),
             'type'      => Controls_Manager::HEADING,
@@ -188,16 +204,22 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
             'label' => __( 'Immagini', 'bw-elementor-widgets' ),
         ] );
 
-        $this->add_control( 'image_height', [
+        $this->add_responsive_control( 'image_height', [
             'label'      => __( 'Altezza immagini', 'bw-elementor-widgets' ),
             'type'       => Controls_Manager::SLIDER,
-            'size_units' => [ 'px' ],
+            'size_units' => [ 'px', '%', 'vh' ],
             'range'      => [
                 'px' => [ 'min' => 0, 'max' => 1200, 'step' => 1 ],
+                '%'  => [ 'min' => 0, 'max' => 100, 'step' => 1 ],
+                'vh' => [ 'min' => 0, 'max' => 100, 'step' => 1 ],
             ],
             'default'    => [
                 'size' => 420,
                 'unit' => 'px',
+            ],
+            'render_type' => 'template',
+            'selectors'  => [
+                '{{WRAPPER}} .bw-slide-showcase-slider' => '--bw-slide-showcase-image-height: {{SIZE}}{{UNIT}}; --bw-image-height: {{SIZE}}{{UNIT}};',
             ],
         ] );
 
@@ -406,6 +428,125 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
             'type'        => Controls_Manager::REPEATER,
             'fields'      => $repeater->get_controls(),
             'title_field' => __( 'Breakpoint: {{{ breakpoint }}}px', 'bw-elementor-widgets' ),
+        ] );
+
+        $this->end_controls_section();
+
+        // Nuova sezione Responsive Slide
+        $this->start_controls_section( 'responsive_slide_section', [
+            'label' => __( 'Responsive Slide', 'bw-elementor-widgets' ),
+        ] );
+
+        $responsive_repeater = new Repeater();
+
+        $responsive_repeater->add_control( 'breakpoint', [
+            'label'       => __( 'Breakpoint (px)', 'bw-elementor-widgets' ),
+            'type'        => Controls_Manager::NUMBER,
+            'min'         => 320,
+            'max'         => 2560,
+            'default'     => 768,
+            'description' => __( 'Larghezza massima dello schermo per questo breakpoint (max-width)', 'bw-elementor-widgets' ),
+        ] );
+
+        $responsive_repeater->add_control( 'slides_to_show', [
+            'label'   => __( 'Slides To Show', 'bw-elementor-widgets' ),
+            'type'    => Controls_Manager::SELECT,
+            'options' => $column_options,
+            'default' => '1',
+        ] );
+
+        $responsive_repeater->add_control( 'slides_to_scroll', [
+            'label'   => __( 'Slides To Scroll', 'bw-elementor-widgets' ),
+            'type'    => Controls_Manager::NUMBER,
+            'min'     => 1,
+            'default' => 1,
+        ] );
+
+        $responsive_repeater->add_control( 'responsive_infinite', [
+            'label'        => __( 'Infinite', 'bw-elementor-widgets' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'return_value' => 'yes',
+            'default'      => 'yes',
+        ] );
+
+        $responsive_repeater->add_control( 'responsive_dots', [
+            'label'        => __( 'Dots', 'bw-elementor-widgets' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'return_value' => 'yes',
+            'default'      => '',
+        ] );
+
+        $responsive_repeater->add_control( 'responsive_arrows', [
+            'label'        => __( 'Arrows', 'bw-elementor-widgets' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'return_value' => 'yes',
+            'default'      => 'yes',
+        ] );
+
+        $responsive_repeater->add_control( 'responsive_center_mode', [
+            'label'        => __( 'Center Mode', 'bw-elementor-widgets' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'return_value' => 'yes',
+            'default'      => '',
+        ] );
+
+        $responsive_repeater->add_control( 'responsive_variable_width', [
+            'label'        => __( 'Variable Width', 'bw-elementor-widgets' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'return_value' => 'yes',
+            'default'      => '',
+        ] );
+
+        $responsive_repeater->add_control( 'responsive_height', [
+            'label'       => __( 'Altezza Immagine', 'bw-elementor-widgets' ),
+            'type'        => Controls_Manager::SLIDER,
+            'size_units'  => [ 'px', '%', 'vh' ],
+            'range'       => [
+                'px' => [ 'min' => 0, 'max' => 1200, 'step' => 1 ],
+                '%'  => [ 'min' => 0, 'max' => 100, 'step' => 1 ],
+                'vh' => [ 'min' => 0, 'max' => 100, 'step' => 1 ],
+            ],
+            'description' => __( 'Imposta l\'altezza delle immagini per questo breakpoint. Lascia vuoto per usare l\'altezza predefinita.', 'bw-elementor-widgets' ),
+        ] );
+
+        $this->add_control( 'responsive_slides', [
+            'label'       => __( 'Breakpoints Responsive', 'bw-elementor-widgets' ),
+            'type'        => Controls_Manager::REPEATER,
+            'fields'      => $responsive_repeater->get_controls(),
+            'title_field' => __( 'Breakpoint: {{breakpoint}}px - {{slides_to_show}} slides', 'bw-elementor-widgets' ),
+            'default'     => [
+                [
+                    'breakpoint'                => 1024,
+                    'slides_to_show'            => '1',
+                    'slides_to_scroll'          => 1,
+                    'responsive_infinite'       => 'yes',
+                    'responsive_dots'           => '',
+                    'responsive_arrows'         => 'yes',
+                    'responsive_center_mode'    => '',
+                    'responsive_variable_width' => '',
+                ],
+                [
+                    'breakpoint'                => 768,
+                    'slides_to_show'            => '1',
+                    'slides_to_scroll'          => 1,
+                    'responsive_infinite'       => 'yes',
+                    'responsive_dots'           => '',
+                    'responsive_arrows'         => 'yes',
+                    'responsive_center_mode'    => '',
+                    'responsive_variable_width' => '',
+                ],
+                [
+                    'breakpoint'                => 480,
+                    'slides_to_show'            => '1',
+                    'slides_to_scroll'          => 1,
+                    'responsive_infinite'       => 'yes',
+                    'responsive_dots'           => '',
+                    'responsive_arrows'         => '',
+                    'responsive_center_mode'    => '',
+                    'responsive_variable_width' => '',
+                ],
+            ],
+            'description' => __( 'Configura i breakpoint per adattare lo slider a diverse dimensioni dello schermo. I breakpoint vengono applicati con max-width.', 'bw-elementor-widgets' ),
         ] );
 
         $this->end_controls_section();
@@ -1040,7 +1181,7 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
                         <div class="bw-slide-showcase-item"<?php echo $item_style_attr; ?>>
                             <div class="bw-slide-showcase-media">
                                 <?php if ( $image_url ) : ?>
-                                    <img src="<?php echo esc_url( $image_url ); ?>" alt="<?php echo esc_attr( $product_title ); ?>" class="bw-slide-showcase-image" style="<?php echo $this->build_image_style( $image_height, $object_fit ); ?>">
+                                    <img src="<?php echo esc_url( $image_url ); ?>" alt="<?php echo esc_attr( $product_title ); ?>" class="bw-slide-showcase-image" loading="lazy" style="<?php echo $this->build_image_style( $image_height, $object_fit ); ?>">
                                 <?php endif; ?>
                             </div>
 
@@ -1237,8 +1378,14 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
         $slider_settings['slidesToScroll'] = max( 1, min( $slider_settings['slidesToScroll'], $columns ) );
 
         $responsive = [];
-        if ( ! empty( $settings['responsive'] ) && is_array( $settings['responsive'] ) ) {
-            foreach ( $settings['responsive'] as $item ) {
+
+        // Supporta sia i nuovi 'responsive_slides' che i vecchi 'responsive' per retrocompatibilità
+        $responsive_source = ! empty( $settings['responsive_slides'] ) && is_array( $settings['responsive_slides'] )
+            ? $settings['responsive_slides']
+            : ( ! empty( $settings['responsive'] ) && is_array( $settings['responsive'] ) ? $settings['responsive'] : [] );
+
+        if ( ! empty( $responsive_source ) ) {
+            foreach ( $responsive_source as $item ) {
                 if ( empty( $item['breakpoint'] ) ) {
                     continue;
                 }
@@ -1275,6 +1422,31 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
 
                 if ( isset( $item['responsive_variable_width'] ) ) {
                     $item_settings['variableWidth'] = 'yes' === $item['responsive_variable_width'];
+                }
+
+                // Supporto per altezza responsive
+                if ( isset( $item['responsive_height'] ) && ! empty( $item['responsive_height'] ) ) {
+                    $height_data = $item['responsive_height'];
+                    $height_size = null;
+                    $height_unit = 'px';
+
+                    if ( is_array( $height_data ) ) {
+                        if ( isset( $height_data['size'] ) && '' !== $height_data['size'] ) {
+                            $height_size = $height_data['size'];
+                        }
+                        if ( isset( $height_data['unit'] ) && '' !== $height_data['unit'] ) {
+                            $height_unit = $height_data['unit'];
+                        }
+                    } elseif ( is_numeric( $height_data ) ) {
+                        $height_size = $height_data;
+                    }
+
+                    if ( null !== $height_size && '' !== $height_size ) {
+                        $item_settings['responsiveHeight'] = [
+                            'size' => (float) $height_size,
+                            'unit' => $height_unit,
+                        ];
+                    }
                 }
 
                 if ( isset( $item_settings['slidesToShow'], $item_settings['slidesToScroll'] ) ) {
