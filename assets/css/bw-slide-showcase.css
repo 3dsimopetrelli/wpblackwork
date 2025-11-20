@@ -93,6 +93,11 @@
     animation-fill-mode: forwards;
 }
 
+/* FIX CRITICO: Le slide iniziali devono essere SEMPRE visibili */
+.bw-slide-showcase-slider.bw-slide-showcase--initialized .bw-slide-showcase-slide.bw-slide-initial {
+    opacity: 1 !important;
+}
+
 /* IMPORTANTE: Le slide clonate da Slick (per il loop infinito) devono animarsi correttamente */
 .bw-slide-showcase-slider.bw-slide-showcase--initialized .slick-cloned.bw-slide-showcase-slide.bw-slide-visible {
     animation-duration: var(--bw-loading-animation-duration, 500ms);
