@@ -434,37 +434,6 @@
       });
     };
 
-    // Listener per evento init di Slick - con animazioni configurabili
-    $currentSlider.one('init', function(event, slick) {
-      // Marca lo slider come inizializzato
-      $currentSlider.addClass('bw-slide-showcase--initialized');
-
-      // Carica immediatamente tutte le immagini visibili
-      loadAllVisibleImages($currentSlider);
-
-      // Leggi impostazioni animazione
-      var animSettings = getAnimationSettings($currentSlider);
-
-      // Anima le slide visibili al caricamento iniziale
-      var $visibleSlides = $currentSlider.find('.slick-slide.slick-active .bw-slide-showcase-slide');
-      if ($visibleSlides.length > 0) {
-        animateSlides($currentSlider, $visibleSlides, animSettings);
-      }
-    });
-
-    // Listener per cambio slide - anima le nuove slide in ingresso
-    $currentSlider.on('afterChange', function(event, slick, currentSlide) {
-      var animSettings = getAnimationSettings($currentSlider);
-
-      // Anima solo le slide attualmente visibili (attive)
-      var $visibleSlides = $currentSlider.find('.slick-slide.slick-active .bw-slide-showcase-slide').not('.bw-animated');
-      if ($visibleSlides.length > 0) {
-        animateSlides($currentSlider, $visibleSlides, animSettings);
-      }
-    });
-
-    $currentSlider.slick(settings);
-
     // Funzione per applicare larghezza e altezza responsive
     var applyResponsiveDimensions = function (event, slick, currentBreakpoint) {
       if (!settings.responsive || !Array.isArray(settings.responsive)) {
@@ -473,6 +442,7 @@
 
       var widthToApply = null;
       var heightToApply = null;
+      var dimensionsChanged = false;
 
       // Se currentBreakpoint è undefined, cerchiamo il breakpoint corrente basato sulla larghezza della finestra
       if (typeof currentBreakpoint === 'undefined') {
@@ -522,6 +492,7 @@
           '--bw-column-width': widthValue,
           '--bw-slide-showcase-column-width': widthValue
         });
+        dimensionsChanged = true;
       }
 
       // Applica l'altezza se trovata
@@ -533,14 +504,59 @@
           '--bw-image-height': heightValue,
           '--bw-slide-showcase-image-height': heightValue
         });
+        dimensionsChanged = true;
+      }
+
+      // Se le dimensioni sono cambiate e lo slider è inizializzato, aggiorna la posizione
+      if (dimensionsChanged && $currentSlider.hasClass('slick-initialized')) {
+        // Usa setTimeout per dare tempo al browser di applicare i nuovi CSS
+        setTimeout(function() {
+          if ($currentSlider.hasClass('slick-initialized')) {
+            $currentSlider.slick('setPosition');
+          }
+        }, 50);
       }
     };
 
-    // Applica le dimensioni all'inizializzazione
-    applyResponsiveDimensions(null, null, undefined);
+    // Listener per evento init di Slick - gestisce animazioni e dimensioni responsive
+    $currentSlider.one('init', function(event, slick) {
+      // Marca lo slider come inizializzato
+      $currentSlider.addClass('bw-slide-showcase--initialized');
+
+      // Carica immediatamente tutte le immagini visibili
+      loadAllVisibleImages($currentSlider);
+
+      // Leggi impostazioni animazione
+      var animSettings = getAnimationSettings($currentSlider);
+
+      // Anima le slide visibili al caricamento iniziale
+      var $visibleSlides = $currentSlider.find('.slick-slide.slick-active .bw-slide-showcase-slide');
+      if ($visibleSlides.length > 0) {
+        animateSlides($currentSlider, $visibleSlides, animSettings);
+      }
+
+      // Applica le dimensioni responsive dopo l'inizializzazione
+      setTimeout(function() {
+        applyResponsiveDimensions(null, null, undefined);
+      }, 100);
+    });
+
+    // Listener per cambio slide - anima le nuove slide in ingresso
+    $currentSlider.on('afterChange', function(event, slick, currentSlide) {
+      var animSettings = getAnimationSettings($currentSlider);
+
+      // Anima solo le slide attualmente visibili (attive)
+      var $visibleSlides = $currentSlider.find('.slick-slide.slick-active .bw-slide-showcase-slide').not('.bw-animated');
+      if ($visibleSlides.length > 0) {
+        animateSlides($currentSlider, $visibleSlides, animSettings);
+      }
+    });
 
     // Ascolta i cambiamenti di breakpoint
     $currentSlider.on('breakpoint', applyResponsiveDimensions);
+
+    // Inizializza Slick
+    $currentSlider.slick(settings);
 
     // Nell'editor Elementor, aggiungi anche listener per resize
     if (
