@@ -314,6 +314,10 @@
       return;
     }
 
+    // FADE-IN: Aggiungi classe loading per nascondere flickering durante l'inizializzazione
+    $currentSlider.addClass('bw-slide-showcase--loading');
+    $currentSlider.removeClass('bw-slide-showcase--initialized');
+
     var columnWidthInfo = getColumnWidthInfo($currentSlider);
 
     if ($currentSlider.hasClass('slick-initialized')) {
@@ -342,6 +346,15 @@
         assetsUrl +
         'img/arrow-d.svg" alt="next"></button>';
     }
+
+    // Listener per evento init di Slick per gestire il fade-in
+    $currentSlider.one('init', function(event, slick) {
+      // FADE-IN: Rimuovi loading e aggiungi initialized per mostrare lo slider con fade-in
+      setTimeout(function() {
+        $currentSlider.removeClass('bw-slide-showcase--loading');
+        $currentSlider.addClass('bw-slide-showcase--initialized');
+      }, 50); // Piccolo delay per garantire che Slick abbia completato il setup
+    });
 
     $currentSlider.slick(settings);
 
