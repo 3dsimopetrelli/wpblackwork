@@ -345,6 +345,18 @@
 
     $currentSlider.slick(settings);
 
+    // Gestione lazy loading per le immagini
+    $currentSlider.find('img[loading="lazy"]').each(function () {
+      var $img = $(this);
+      if (this.complete) {
+        $img.addClass('loaded');
+      } else {
+        $img.on('load', function () {
+          $img.addClass('loaded');
+        });
+      }
+    });
+
     // Funzione per applicare l'altezza responsive
     var applyResponsiveHeight = function (event, slick, currentBreakpoint) {
       if (!settings.responsive || !Array.isArray(settings.responsive)) {
