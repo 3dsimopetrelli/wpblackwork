@@ -126,6 +126,20 @@
           );
         }
 
+        if (typeof settings.responsiveWidth !== 'undefined') {
+          var widthData = settings.responsiveWidth;
+          if (widthData && typeof widthData === 'object') {
+            var size = normalizeFloat(widthData.size, null);
+            var unit = (widthData.unit || 'px').toString();
+            if (size !== null && size >= 0) {
+              normalizedSettings.responsiveWidth = {
+                size: size,
+                unit: unit
+              };
+            }
+          }
+        }
+
         if (typeof settings.responsiveHeight !== 'undefined') {
           var heightData = settings.responsiveHeight;
           if (heightData && typeof heightData === 'object') {
@@ -318,6 +332,29 @@
     $currentSlider.addClass('bw-slide-showcase--loading');
     $currentSlider.removeClass('bw-slide-showcase--initialized');
 
+    // Applica le impostazioni di animazione dai data attributes
+    var animationType = $currentSlider.attr('data-loading-animation-type') || 'fade';
+    var animationEasing = $currentSlider.attr('data-loading-animation-easing') || 'ease-out';
+    var animationDuration = parseInt($currentSlider.attr('data-loading-animation-duration'), 10) || 500;
+    var animationStagger = parseInt($currentSlider.attr('data-loading-animation-stagger'), 10) || 50;
+
+    // Mappa gli easing CSS estesi
+    var easingMap = {
+      'ease-in-quad': 'cubic-bezier(0.55, 0.085, 0.68, 0.53)',
+      'ease-out-quad': 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+      'ease-in-cubic': 'cubic-bezier(0.55, 0.055, 0.675, 0.19)',
+      'ease-out-cubic': 'cubic-bezier(0.215, 0.61, 0.355, 1)'
+    };
+
+    var finalEasing = easingMap[animationEasing] || animationEasing;
+
+    // Applica le CSS custom properties
+    $currentSlider.css({
+      '--bw-loading-animation-duration': animationDuration + 'ms',
+      '--bw-loading-animation-easing': finalEasing,
+      '--bw-loading-animation-stagger': animationStagger + 'ms'
+    });
+
     var columnWidthInfo = getColumnWidthInfo($currentSlider);
 
     if ($currentSlider.hasClass('slick-initialized')) {
@@ -370,12 +407,13 @@
       }
     });
 
-    // Funzione per applicare l'altezza responsive
-    var applyResponsiveHeight = function (event, slick, currentBreakpoint) {
+    // Funzione per applicare larghezza e altezza responsive
+    var applyResponsiveDimensions = function (event, slick, currentBreakpoint) {
       if (!settings.responsive || !Array.isArray(settings.responsive)) {
         return;
       }
 
+      var widthToApply = null;
       var heightToApply = null;
 
       // Se currentBreakpoint è undefined, cerchiamo il breakpoint corrente basato sulla larghezza della finestra
@@ -391,8 +429,13 @@
         // Trova il breakpoint attivo
         for (var i = 0; i < sortedBreakpoints.length; i++) {
           var bp = sortedBreakpoints[i];
-          if (windowWidth <= bp.breakpoint && bp.settings.responsiveHeight) {
-            heightToApply = bp.settings.responsiveHeight;
+          if (windowWidth <= bp.breakpoint) {
+            if (bp.settings.responsiveWidth) {
+              widthToApply = bp.settings.responsiveWidth;
+            }
+            if (bp.settings.responsiveHeight) {
+              heightToApply = bp.settings.responsiveHeight;
+            }
             break;
           }
         }
@@ -400,14 +443,24 @@
         // Trova il breakpoint corrispondente
         for (var j = 0; j < settings.responsive.length; j++) {
           var responsiveItem = settings.responsive[j];
-          if (
-            responsiveItem.breakpoint === currentBreakpoint &&
-            responsiveItem.settings.responsiveHeight
-          ) {
-            heightToApply = responsiveItem.settings.responsiveHeight;
+          if (responsiveItem.breakpoint === currentBreakpoint) {
+            if (responsiveItem.settings.responsiveWidth) {
+              widthToApply = responsiveItem.settings.responsiveWidth;
+            }
+            if (responsiveItem.settings.responsiveHeight) {
+              heightToApply = responsiveItem.settings.responsiveHeight;
+            }
             break;
           }
         }
+      }
+
+      // Applica la larghezza se trovata
+      if (widthToApply && widthToApply.size >= 0) {
+        $currentSlider.css(
+          '--bw-column-width',
+          widthToApply.size + widthToApply.unit
+        );
       }
 
       // Applica l'altezza se trovata
@@ -419,11 +472,11 @@
       }
     };
 
-    // Applica l'altezza all'inizializzazione
-    applyResponsiveHeight(null, null, undefined);
+    // Applica le dimensioni all'inizializzazione
+    applyResponsiveDimensions(null, null, undefined);
 
     // Ascolta i cambiamenti di breakpoint
-    $currentSlider.on('breakpoint', applyResponsiveHeight);
+    $currentSlider.on('breakpoint', applyResponsiveDimensions);
 
     // Nell'editor Elementor, aggiungi anche listener per resize
     if (
@@ -434,7 +487,7 @@
       var handleResize = function () {
         clearTimeout(resizeTimeout);
         resizeTimeout = setTimeout(function () {
-          applyResponsiveHeight(null, null, undefined);
+          applyResponsiveDimensions(null, null, undefined);
         }, 100);
       };
 
