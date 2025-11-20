@@ -393,18 +393,18 @@
       preloadVisibleSlides(slick);
 
       // FADE-IN: Rimuovi loading e aggiungi initialized per mostrare lo slider con fade-in
-      setTimeout(function() {
-        $currentSlider.removeClass('bw-slide-showcase--loading');
-        $currentSlider.addClass('bw-slide-showcase--initialized');
+      // RIMOSSO setTimeout per applicazione immediata
+      $currentSlider.removeClass('bw-slide-showcase--loading');
+      $currentSlider.addClass('bw-slide-showcase--initialized');
 
-        // FIX: Aggiungi immediatamente la classe bw-slide-visible alle slide inizialmente visibili
-        // per garantire che siano visibili subito dopo l'inizializzazione
-        $currentSlider.find('.slick-active .bw-slide-showcase-slide').each(function() {
-          var $slide = $(this);
-          loadSlideImage($slide);
-          $slide.addClass('bw-slide-visible');
-        });
-      }, 50); // Piccolo delay per garantire che Slick abbia completato il setup
+      // FIX CRITICO: Aggiungi IMMEDIATAMENTE la classe bw-slide-visible alle slide inizialmente visibili
+      // per garantire che siano visibili subito dopo l'inizializzazione
+      $currentSlider.find('.slick-active .bw-slide-showcase-slide').each(function() {
+        var $slide = $(this);
+        loadSlideImage($slide);
+        // Aggiungi una classe permanente per le slide iniziali
+        $slide.addClass('bw-slide-visible bw-slide-initial');
+      });
     });
 
     $currentSlider.slick(settings);
@@ -538,11 +538,17 @@
             // quando tornano nel viewport (utile per loop infiniti)
           } else {
             // Quando la slide esce dal viewport, rimuovi la classe di animazione
-            // Questo permette alla slide di ri-animarsi quando torna visibile
+            // IMPORTANTE: Non rimuovere mai la classe dalle slide iniziali (bw-slide-initial)
             var $slide = $(entry.target);
-            // Aspetta che l'animazione finisca prima di rimuovere la classe
+
+            // NON rimuovere bw-slide-visible dalle slide iniziali
+            if ($slide.hasClass('bw-slide-initial')) {
+              return;
+            }
+
+            // Per le altre slide, aspetta che l'animazione finisca prima di rimuovere la classe
             setTimeout(function() {
-              if (!entry.isIntersecting) {
+              if (!entry.isIntersecting && !$slide.hasClass('bw-slide-initial')) {
                 $slide.removeClass('bw-slide-visible');
               }
             }, 600); // Tempo maggiore della durata dell'animazione
