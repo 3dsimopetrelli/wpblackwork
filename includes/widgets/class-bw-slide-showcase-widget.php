@@ -125,7 +125,7 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
 
         // NOTA: Solo 'px' supportato per evitare problemi di layout con Slick variableWidth.
         // Le percentuali causano calcoli errati e le colonne vanno in wrapping verticale.
-        $this->add_responsive_control( 'column_width', [
+        $this->add_control( 'column_width', [
             'label'      => __( 'Larghezza colonna', 'bw-elementor-widgets' ),
             'type'       => Controls_Manager::SLIDER,
             'size_units' => [ 'px' ],
@@ -136,7 +136,27 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
             'selectors'  => [
                 '{{WRAPPER}} .bw-slide-showcase-slider' => '--bw-slide-showcase-column-width: {{SIZE}}{{UNIT}}; --bw-column-width: {{SIZE}}{{UNIT}};',
             ],
-            'description' => __( 'Imposta la larghezza massima degli elementi della vetrina (solo px).', 'bw-elementor-widgets' ),
+            'description' => __( 'Imposta la larghezza base degli elementi della vetrina (solo px). Valori responsive vanno impostati nei breakpoints.', 'bw-elementor-widgets' ),
+        ] );
+
+        $this->add_control( 'image_height', [
+            'label'      => __( 'Altezza colonna', 'bw-elementor-widgets' ),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => [ 'px', '%', 'vh' ],
+            'range'      => [
+                'px' => [ 'min' => 0, 'max' => 1200, 'step' => 1 ],
+                '%'  => [ 'min' => 0, 'max' => 100, 'step' => 1 ],
+                'vh' => [ 'min' => 0, 'max' => 100, 'step' => 1 ],
+            ],
+            'default'    => [
+                'size' => 420,
+                'unit' => 'px',
+            ],
+            'render_type' => 'template',
+            'selectors'  => [
+                '{{WRAPPER}} .bw-slide-showcase-slider' => '--bw-slide-showcase-image-height: {{SIZE}}{{UNIT}}; --bw-image-height: {{SIZE}}{{UNIT}};',
+            ],
+            'description' => __( 'Imposta l\'altezza base delle colonne. Valori responsive vanno impostati nei breakpoints.', 'bw-elementor-widgets' ),
         ] );
 
         $this->add_control( 'gap', [
@@ -203,25 +223,6 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
     private function register_image_controls() {
         $this->start_controls_section( 'images_section', [
             'label' => __( 'Immagini', 'bw-elementor-widgets' ),
-        ] );
-
-        $this->add_responsive_control( 'image_height', [
-            'label'      => __( 'Altezza immagini', 'bw-elementor-widgets' ),
-            'type'       => Controls_Manager::SLIDER,
-            'size_units' => [ 'px', '%', 'vh' ],
-            'range'      => [
-                'px' => [ 'min' => 0, 'max' => 1200, 'step' => 1 ],
-                '%'  => [ 'min' => 0, 'max' => 100, 'step' => 1 ],
-                'vh' => [ 'min' => 0, 'max' => 100, 'step' => 1 ],
-            ],
-            'default'    => [
-                'size' => 420,
-                'unit' => 'px',
-            ],
-            'render_type' => 'template',
-            'selectors'  => [
-                '{{WRAPPER}} .bw-slide-showcase-slider' => '--bw-slide-showcase-image-height: {{SIZE}}{{UNIT}}; --bw-image-height: {{SIZE}}{{UNIT}};',
-            ],
         ] );
 
         $this->add_control( 'image_crop', [
@@ -498,8 +499,18 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
             'default'      => '',
         ] );
 
+        $responsive_repeater->add_control( 'responsive_width', [
+            'label'       => __( 'Larghezza Colonna', 'bw-elementor-widgets' ),
+            'type'        => Controls_Manager::SLIDER,
+            'size_units'  => [ 'px' ],
+            'range'       => [
+                'px' => [ 'min' => 100, 'max' => 1200, 'step' => 1 ],
+            ],
+            'description' => __( 'Imposta la larghezza delle colonne per questo breakpoint. Lascia vuoto per usare la larghezza predefinita.', 'bw-elementor-widgets' ),
+        ] );
+
         $responsive_repeater->add_control( 'responsive_height', [
-            'label'       => __( 'Altezza Immagine', 'bw-elementor-widgets' ),
+            'label'       => __( 'Altezza Colonna', 'bw-elementor-widgets' ),
             'type'        => Controls_Manager::SLIDER,
             'size_units'  => [ 'px', '%', 'vh' ],
             'range'       => [
@@ -507,7 +518,7 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
                 '%'  => [ 'min' => 0, 'max' => 100, 'step' => 1 ],
                 'vh' => [ 'min' => 0, 'max' => 100, 'step' => 1 ],
             ],
-            'description' => __( 'Imposta l\'altezza delle immagini per questo breakpoint. Lascia vuoto per usare l\'altezza predefinita.', 'bw-elementor-widgets' ),
+            'description' => __( 'Imposta l\'altezza delle colonne per questo breakpoint. Lascia vuoto per usare l\'altezza predefinita.', 'bw-elementor-widgets' ),
         ] );
 
         $this->add_control( 'responsive_slides', [
@@ -548,6 +559,74 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
                 ],
             ],
             'description' => __( 'Configura i breakpoint per adattare lo slider a diverse dimensioni dello schermo. I breakpoint vengono applicati con max-width.', 'bw-elementor-widgets' ),
+        ] );
+
+        $this->end_controls_section();
+
+        // Nuova sezione Animation Slide Loading
+        $this->start_controls_section( 'animation_loading_section', [
+            'label' => __( 'Animation Slide Loading', 'bw-elementor-widgets' ),
+        ] );
+
+        $this->add_control( 'loading_animation_type', [
+            'label'   => __( 'Tipo Animazione', 'bw-elementor-widgets' ),
+            'type'    => Controls_Manager::SELECT,
+            'options' => [
+                'fade'       => __( 'Fade Only', 'bw-elementor-widgets' ),
+                'fade-left'  => __( 'Fade + Entrata da Sinistra', 'bw-elementor-widgets' ),
+                'fade-right' => __( 'Fade + Entrata da Destra', 'bw-elementor-widgets' ),
+            ],
+            'default' => 'fade',
+            'description' => __( 'Seleziona il tipo di animazione per il caricamento delle slide.', 'bw-elementor-widgets' ),
+        ] );
+
+        $this->add_control( 'loading_animation_easing', [
+            'label'   => __( 'Easing Animazione', 'bw-elementor-widgets' ),
+            'type'    => Controls_Manager::SELECT,
+            'options' => [
+                'linear'        => __( 'Linear', 'bw-elementor-widgets' ),
+                'ease'          => __( 'Ease', 'bw-elementor-widgets' ),
+                'ease-in'       => __( 'Ease In', 'bw-elementor-widgets' ),
+                'ease-out'      => __( 'Ease Out', 'bw-elementor-widgets' ),
+                'ease-in-out'   => __( 'Ease In Out', 'bw-elementor-widgets' ),
+                'ease-in-quad'  => __( 'Ease In Quad', 'bw-elementor-widgets' ),
+                'ease-out-quad' => __( 'Ease Out Quad', 'bw-elementor-widgets' ),
+                'ease-in-cubic' => __( 'Ease In Cubic', 'bw-elementor-widgets' ),
+                'ease-out-cubic'=> __( 'Ease Out Cubic', 'bw-elementor-widgets' ),
+            ],
+            'default' => 'ease-out',
+            'description' => __( 'Seleziona la curva di easing per l\'animazione.', 'bw-elementor-widgets' ),
+        ] );
+
+        $this->add_control( 'loading_animation_duration', [
+            'label'   => __( 'Durata Animazione (ms)', 'bw-elementor-widgets' ),
+            'type'    => Controls_Manager::SLIDER,
+            'range'   => [
+                'px' => [ 'min' => 100, 'max' => 2000, 'step' => 50 ],
+            ],
+            'default' => [ 'size' => 500, 'unit' => 'px' ],
+            'description' => __( 'Durata dell\'animazione in millisecondi.', 'bw-elementor-widgets' ),
+        ] );
+
+        $this->add_control( 'loading_animation_mode', [
+            'label'        => __( 'Animazione Sequenziale (Matrioska)', 'bw-elementor-widgets' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
+            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
+            'return_value' => 'yes',
+            'default'      => 'yes',
+            'description'  => __( 'Se attivo, le slide appariranno una dopo l\'altra con un leggero ritardo. Se disattivo, appariranno tutte insieme.', 'bw-elementor-widgets' ),
+        ] );
+
+        $this->add_control( 'loading_animation_stagger_delay', [
+            'label'     => __( 'Ritardo tra Slide (ms)', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::SLIDER,
+            'range'     => [
+                'px' => [ 'min' => 0, 'max' => 500, 'step' => 10 ],
+            ],
+            'default'   => [ 'size' => 50, 'unit' => 'px' ],
+            'condition' => [ 'loading_animation_mode' => 'yes' ],
+            'description' => __( 'Ritardo tra l\'apparizione di ogni slide quando l\'animazione sequenziale è attiva.', 'bw-elementor-widgets' ),
         ] );
 
         $this->end_controls_section();
@@ -1028,6 +1107,13 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
             $slider_settings_json = htmlspecialchars( $slider_settings_json, ENT_QUOTES, 'UTF-8' );
         }
 
+        // Impostazioni animazione loading
+        $loading_animation_type     = isset( $settings['loading_animation_type'] ) ? sanitize_key( $settings['loading_animation_type'] ) : 'fade';
+        $loading_animation_easing   = isset( $settings['loading_animation_easing'] ) ? sanitize_key( $settings['loading_animation_easing'] ) : 'ease-out';
+        $loading_animation_duration = isset( $settings['loading_animation_duration']['size'] ) ? max( 100, absint( $settings['loading_animation_duration']['size'] ) ) : 500;
+        $loading_animation_mode     = isset( $settings['loading_animation_mode'] ) && 'yes' === $settings['loading_animation_mode'];
+        $loading_animation_stagger  = isset( $settings['loading_animation_stagger_delay']['size'] ) ? max( 0, absint( $settings['loading_animation_stagger_delay']['size'] ) ) : 50;
+
         $query = new \WP_Query( $query_args );
 
         $border_radius_value = $this->format_dimensions( isset( $settings['border_radius'] ) ? $settings['border_radius'] : [] );
@@ -1043,6 +1129,11 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
             <?php if ( $slider_settings_json ) : ?>
                 data-slider-settings="<?php echo $slider_settings_json; ?>"
             <?php endif; ?>
+            data-loading-animation-type="<?php echo esc_attr( $loading_animation_type ); ?>"
+            data-loading-animation-easing="<?php echo esc_attr( $loading_animation_easing ); ?>"
+            data-loading-animation-duration="<?php echo esc_attr( $loading_animation_duration ); ?>"
+            data-loading-animation-mode="<?php echo esc_attr( $loading_animation_mode ? 'sequential' : 'simultaneous' ); ?>"
+            data-loading-animation-stagger="<?php echo esc_attr( $loading_animation_stagger ); ?>"
             style="<?php echo esc_attr( $wrapper_style ); ?>"
         >
             <?php if ( $query->have_posts() ) : ?>
@@ -1423,6 +1514,31 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
 
                 if ( isset( $item['responsive_variable_width'] ) ) {
                     $item_settings['variableWidth'] = 'yes' === $item['responsive_variable_width'];
+                }
+
+                // Supporto per larghezza responsive
+                if ( isset( $item['responsive_width'] ) && ! empty( $item['responsive_width'] ) ) {
+                    $width_data = $item['responsive_width'];
+                    $width_size = null;
+                    $width_unit = 'px';
+
+                    if ( is_array( $width_data ) ) {
+                        if ( isset( $width_data['size'] ) && '' !== $width_data['size'] ) {
+                            $width_size = $width_data['size'];
+                        }
+                        if ( isset( $width_data['unit'] ) && '' !== $width_data['unit'] ) {
+                            $width_unit = $width_data['unit'];
+                        }
+                    } elseif ( is_numeric( $width_data ) ) {
+                        $width_size = $width_data;
+                    }
+
+                    if ( null !== $width_size && '' !== $width_size ) {
+                        $item_settings['responsiveWidth'] = [
+                            'size' => (float) $width_size,
+                            'unit' => $width_unit,
+                        ];
+                    }
                 }
 
                 // Supporto per altezza responsive
