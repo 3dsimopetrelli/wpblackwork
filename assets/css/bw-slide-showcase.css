@@ -1,4 +1,4 @@
-/* FADE-IN: Sistema per eliminare flickering all'inizializzazione */
+/* SISTEMA SEMPLIFICATO: Slider sempre visibile, senza flickering */
 .bw-slide-showcase-slider {
     --bw-slide-showcase-column-width: auto;
     --bw-column-width: auto;
@@ -8,19 +8,14 @@
     cursor: -webkit-grab;
     cursor: grab;
     box-sizing: border-box;
-    opacity: 0;
-    transition: opacity 0.4s ease-in-out;
+    opacity: 1;
+    visibility: visible;
 }
 
-/* Slider visibile dopo l'inizializzazione */
+/* Slider sempre visibile, nessuna animazione di fade-in del container */
 .bw-slide-showcase-slider.bw-slide-showcase--initialized {
     opacity: 1;
-}
-
-/* Nasconde lo slider durante il caricamento per evitare flickering */
-.bw-slide-showcase-slider.bw-slide-showcase--loading {
-    opacity: 0;
-    visibility: hidden;
+    visibility: visible;
 }
 
 .bw-slide-showcase-slider:active,
@@ -74,42 +69,17 @@
     height: 100%;
 }
 
-/* SLIDE ANIMATIONS: Sistema flessibile per diverse animazioni di loading */
-/* Le slide iniziano invisibili */
-.bw-slide-showcase-slider:not(.bw-slide-showcase--initialized) .bw-slide-showcase-slide {
-    opacity: 0;
+/* SISTEMA SEMPLIFICATO: Tutte le slide sono sempre visibili */
+/* Rimuoviamo la complessità delle animazioni che causano problemi di visibilità */
+.bw-slide-showcase-slider .bw-slide-showcase-slide {
+    opacity: 1 !important;
+    visibility: visible !important;
 }
 
-/* CORREZIONE: Le slide rimangono invisibili fino a quando non entrano nel viewport */
-/* Questo previene che le animazioni partano per slide non ancora visibili */
+/* Assicura che tutte le slide siano visibili in ogni stato */
 .bw-slide-showcase-slider.bw-slide-showcase--initialized .bw-slide-showcase-slide {
-    opacity: 0;
-}
-
-/* Le animazioni partono SOLO quando la slide entra nel viewport (classe bw-slide-visible) */
-.bw-slide-showcase-slider.bw-slide-showcase--initialized .bw-slide-showcase-slide.bw-slide-visible {
-    animation-duration: var(--bw-loading-animation-duration, 500ms);
-    animation-timing-function: var(--bw-loading-animation-easing, ease-out);
-    animation-fill-mode: forwards;
-}
-
-/* FIX CRITICO: Le slide iniziali devono essere SEMPRE visibili */
-.bw-slide-showcase-slider.bw-slide-showcase--initialized .bw-slide-showcase-slide.bw-slide-initial {
     opacity: 1 !important;
-}
-
-/* FALLBACK CRITICO: Le slide all'interno di .slick-active devono essere sempre visibili */
-/* Questo garantisce che anche se il JavaScript non aggiunge le classi correttamente, */
-/* le slide visibili nello slider siano comunque mostrate */
-.bw-slide-showcase-slider.bw-slide-showcase--initialized .slick-active .bw-slide-showcase-slide {
-    opacity: 1 !important;
-}
-
-/* IMPORTANTE: Le slide clonate da Slick (per il loop infinito) devono animarsi correttamente */
-.bw-slide-showcase-slider.bw-slide-showcase--initialized .slick-cloned.bw-slide-showcase-slide.bw-slide-visible {
-    animation-duration: var(--bw-loading-animation-duration, 500ms);
-    animation-timing-function: var(--bw-loading-animation-easing, ease-out);
-    animation-fill-mode: forwards;
+    visibility: visible !important;
 }
 
 /* Smooth transition per le slide durante la navigazione */
@@ -117,48 +87,9 @@
     transition: opacity 0.3s ease-in-out;
 }
 
-/* Animazione: Fade Only - SOLO per slide visibili */
-.bw-slide-showcase-slider[data-loading-animation-type="fade"].bw-slide-showcase--initialized .bw-slide-showcase-slide.bw-slide-visible {
-    animation-name: bwSlideShowcaseFade;
-}
-
-/* Animazione: Fade + Entrata da Sinistra - SOLO per slide visibili */
-.bw-slide-showcase-slider[data-loading-animation-type="fade-left"].bw-slide-showcase--initialized .bw-slide-showcase-slide.bw-slide-visible {
-    animation-name: bwSlideShowcaseFadeLeft;
-}
-
-/* Animazione: Fade + Entrata da Destra - SOLO per slide visibili */
-.bw-slide-showcase-slider[data-loading-animation-type="fade-right"].bw-slide-showcase--initialized .bw-slide-showcase-slide.bw-slide-visible {
-    animation-name: bwSlideShowcaseFadeRight;
-}
-
-/* Modalità Sequenziale: Stagger con ritardi progressivi - SOLO per slide visibili */
-.bw-slide-showcase-slider[data-loading-animation-mode="sequential"].bw-slide-showcase--initialized .bw-slide-showcase-slide.bw-slide-visible:nth-child(1) {
-    animation-delay: calc(var(--bw-loading-animation-stagger, 50ms) * 1);
-}
-.bw-slide-showcase-slider[data-loading-animation-mode="sequential"].bw-slide-showcase--initialized .bw-slide-showcase-slide.bw-slide-visible:nth-child(2) {
-    animation-delay: calc(var(--bw-loading-animation-stagger, 50ms) * 2);
-}
-.bw-slide-showcase-slider[data-loading-animation-mode="sequential"].bw-slide-showcase--initialized .bw-slide-showcase-slide.bw-slide-visible:nth-child(3) {
-    animation-delay: calc(var(--bw-loading-animation-stagger, 50ms) * 3);
-}
-.bw-slide-showcase-slider[data-loading-animation-mode="sequential"].bw-slide-showcase--initialized .bw-slide-showcase-slide.bw-slide-visible:nth-child(4) {
-    animation-delay: calc(var(--bw-loading-animation-stagger, 50ms) * 4);
-}
-.bw-slide-showcase-slider[data-loading-animation-mode="sequential"].bw-slide-showcase--initialized .bw-slide-showcase-slide.bw-slide-visible:nth-child(5) {
-    animation-delay: calc(var(--bw-loading-animation-stagger, 50ms) * 5);
-}
-.bw-slide-showcase-slider[data-loading-animation-mode="sequential"].bw-slide-showcase--initialized .bw-slide-showcase-slide.bw-slide-visible:nth-child(6) {
-    animation-delay: calc(var(--bw-loading-animation-stagger, 50ms) * 6);
-}
-.bw-slide-showcase-slider[data-loading-animation-mode="sequential"].bw-slide-showcase--initialized .bw-slide-showcase-slide.bw-slide-visible:nth-child(n+7) {
-    animation-delay: calc(var(--bw-loading-animation-stagger, 50ms) * 6);
-}
-
-/* Modalità Simultanea: Nessun ritardo - SOLO per slide visibili */
-.bw-slide-showcase-slider[data-loading-animation-mode="simultaneous"].bw-slide-showcase--initialized .bw-slide-showcase-slide.bw-slide-visible {
-    animation-delay: 0s;
-}
+/* ANIMAZIONI DISABILITATE per garantire visibilità immediata */
+/* Le regole di animazione sono state rimosse per evitare problemi di visibilità */
+/* I keyframes sono mantenuti per compatibilità futura */
 
 /* Keyframes per diverse animazioni */
 @keyframes bwSlideShowcaseFade {

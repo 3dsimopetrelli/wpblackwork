@@ -328,32 +328,8 @@
       return;
     }
 
-    // FADE-IN: Aggiungi classe loading per nascondere flickering durante l'inizializzazione
-    $currentSlider.addClass('bw-slide-showcase--loading');
-    $currentSlider.removeClass('bw-slide-showcase--initialized');
-
-    // Applica le impostazioni di animazione dai data attributes
-    var animationType = $currentSlider.attr('data-loading-animation-type') || 'fade';
-    var animationEasing = $currentSlider.attr('data-loading-animation-easing') || 'ease-out';
-    var animationDuration = parseInt($currentSlider.attr('data-loading-animation-duration'), 10) || 500;
-    var animationStagger = parseInt($currentSlider.attr('data-loading-animation-stagger'), 10) || 50;
-
-    // Mappa gli easing CSS estesi
-    var easingMap = {
-      'ease-in-quad': 'cubic-bezier(0.55, 0.085, 0.68, 0.53)',
-      'ease-out-quad': 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-      'ease-in-cubic': 'cubic-bezier(0.55, 0.055, 0.675, 0.19)',
-      'ease-out-cubic': 'cubic-bezier(0.215, 0.61, 0.355, 1)'
-    };
-
-    var finalEasing = easingMap[animationEasing] || animationEasing;
-
-    // Applica le CSS custom properties
-    $currentSlider.css({
-      '--bw-loading-animation-duration': animationDuration + 'ms',
-      '--bw-loading-animation-easing': finalEasing,
-      '--bw-loading-animation-stagger': animationStagger + 'ms'
-    });
+    // SISTEMA SEMPLIFICATO: Nessuna gestione complessa di animazioni
+    // Lo slider è sempre visibile
 
     var columnWidthInfo = getColumnWidthInfo($currentSlider);
 
@@ -384,202 +360,36 @@
         'img/arrow-d.svg" alt="next"></button>';
     }
 
-    // Abilita lazy loading di Slick per le immagini
-    settings.lazyLoad = 'ondemand'; // Carica immagini solo quando necessario
+    // SISTEMA SEMPLIFICATO: Caricamento immediato delle immagini
+    // Non usiamo lazy loading per evitare problemi di visibilità
+    settings.lazyLoad = 'progressive'; // Carica tutte le immagini progressivamente
 
-    // Listener per evento init di Slick per gestire il fade-in
+    // Listener per evento init di Slick - gestione semplificata
     $currentSlider.one('init', function(event, slick) {
-      // Precarica le immagini delle slide inizialmente visibili + 1 slide adiacente
-      preloadVisibleSlides(slick);
-
-      // FADE-IN: Rimuovi loading e aggiungi initialized per mostrare lo slider con fade-in
-      $currentSlider.removeClass('bw-slide-showcase--loading');
+      // Marca lo slider come inizializzato
       $currentSlider.addClass('bw-slide-showcase--initialized');
 
-      // FIX CRITICO: Usa setTimeout per assicurarsi che Slick abbia completato l'inizializzazione
-      // e che le classi .slick-active siano state applicate prima di cercare le slide
-      setTimeout(function() {
-        // Trova tutte le slide all'interno degli elementi slick-active
-        var $initialSlides = $currentSlider.find('.slick-slide.slick-active').find('.bw-slide-showcase-slide');
-
-        // Se non ne trova nessuna con il selettore sopra, prova un selettore alternativo
-        if (!$initialSlides.length) {
-          $initialSlides = $currentSlider.find('.slick-active .bw-slide-showcase-slide');
-        }
-
-        // Se ancora non ne trova, seleziona le prime N slide basandoci su slidesToShow
-        if (!$initialSlides.length) {
-          var slidesToShow = slick.options.slidesToShow || 1;
-          $initialSlides = $currentSlider.find('.bw-slide-showcase-slide').slice(0, slidesToShow);
-        }
-
-        // Aggiungi le classi alle slide trovate
-        $initialSlides.each(function() {
-          var $slide = $(this);
-          loadSlideImage($slide);
-          // Aggiungi una classe permanente per le slide iniziali
-          $slide.addClass('bw-slide-visible bw-slide-initial');
-        });
-      }, 50); // Piccolo ritardo per assicurarsi che Slick abbia completato
+      // Carica immediatamente tutte le immagini visibili
+      loadAllVisibleImages($currentSlider);
     });
 
     $currentSlider.slick(settings);
 
-    // Funzione per precaricare le slide visibili e adiacenti
-    var preloadVisibleSlides = function(slick) {
-      if (!slick || !slick.$slides) return;
-
-      var currentIndex = slick.currentSlide;
-      var slidesToShow = slick.options.slidesToShow || 1;
-
-      // Indici da precaricare: slide correnti + 1 prima + 1 dopo
-      var indicesToPreload = [];
-      for (var i = currentIndex - 1; i <= currentIndex + slidesToShow; i++) {
-        indicesToPreload.push(i);
-      }
-
-      // Precarica le immagini
-      indicesToPreload.forEach(function(index) {
-        var $slide = $(slick.$slides[index]);
-        if ($slide.length) {
-          loadSlideImage($slide);
-        }
-      });
-    };
-
-    // Funzione per caricare l'immagine di una slide
-    var loadSlideImage = function($slide) {
-      var $img = $slide.find('img[data-lazy]');
-      if ($img.length && !$img.attr('src')) {
+    // Funzione semplificata per caricare tutte le immagini visibili
+    var loadAllVisibleImages = function($slider) {
+      $slider.find('img[data-lazy]').each(function() {
+        var $img = $(this);
         var lazySrc = $img.attr('data-lazy');
-        if (lazySrc) {
-          // Crea un nuovo oggetto Image per precaricare
-          var img = new Image();
-          img.onload = function() {
-            $img.attr('src', lazySrc);
-            $img.addClass('loaded');
-            $img.removeAttr('data-lazy');
-          };
-          img.onerror = function() {
-            // In caso di errore, imposta comunque il src per mostrare il broken image placeholder
-            $img.attr('src', lazySrc);
-            $img.removeAttr('data-lazy');
-          };
-          img.src = lazySrc;
+        if (lazySrc && !$img.attr('src')) {
+          $img.attr('src', lazySrc);
+          $img.addClass('loaded');
+          $img.removeAttr('data-lazy');
         }
-      }
-    };
-
-    // GESTIONE EVENTI SLICK PER NAVIGAZIONE E LOOP
-    // Questi eventi gestiscono il preloading e le animazioni durante la navigazione
-    $currentSlider.on('beforeChange', function(event, slick, currentSlide, nextSlide) {
-      // Prima di cambiare slide, rimuovi la classe di animazione dalle slide che escono
-      var $currentSlideElement = $(slick.$slides[currentSlide]);
-      $currentSlideElement.removeClass('bw-slide-visible bw-slide-animating');
-    });
-
-    $currentSlider.on('afterChange', function(event, slick, currentSlide) {
-      // Dopo il cambio slide, precarica le immagini adiacenti
-      preloadVisibleSlides(slick);
-
-      // Gestisci l'animazione della slide corrente
-      var $currentSlideElement = $(slick.$slides[currentSlide]);
-      var $img = $currentSlideElement.find('img');
-
-      // Aspetta che l'immagine sia caricata prima di animare
-      if ($img.length && $img.attr('src')) {
-        if ($img[0].complete) {
-          // Immagine già caricata, anima subito
-          triggerSlideAnimation($currentSlideElement);
-        } else {
-          // Attendi il caricamento dell'immagine
-          $img.one('load', function() {
-            triggerSlideAnimation($currentSlideElement);
-          });
-          // Fallback: se l'immagine impiega troppo, anima comunque dopo 500ms
-          setTimeout(function() {
-            if (!$currentSlideElement.hasClass('bw-slide-visible')) {
-              triggerSlideAnimation($currentSlideElement);
-            }
-          }, 500);
-        }
-      } else {
-        // Nessuna immagine o immagine non ancora caricata, anima comunque
-        triggerSlideAnimation($currentSlideElement);
-      }
-    });
-
-    // Funzione per triggerare l'animazione di una slide
-    var triggerSlideAnimation = function($slide) {
-      if (!$slide.hasClass('bw-slide-visible')) {
-        // Forza un reflow per riavviare l'animazione CSS
-        $slide.removeClass('bw-slide-visible bw-slide-animating');
-        void $slide[0].offsetWidth; // Force reflow
-        $slide.addClass('bw-slide-visible bw-slide-animating');
-      }
-    };
-
-    // NUOVA FUNZIONALITÀ: IntersectionObserver per animazioni iniziali
-    // Le slide vengono animate quando entrano nel viewport LA PRIMA VOLTA
-    if (typeof IntersectionObserver !== 'undefined') {
-      var observerOptions = {
-        root: null,
-        rootMargin: '50px', // Inizia ad animare 50px prima che la slide entri nel viewport
-        threshold: 0.1 // Anima quando almeno il 10% della slide è visibile
-      };
-
-      var slideObserver = new IntersectionObserver(function(entries) {
-        entries.forEach(function(entry) {
-          if (entry.isIntersecting) {
-            var $slide = $(entry.target);
-
-            // Carica l'immagine se non ancora caricata
-            loadSlideImage($slide);
-
-            // Aggiungi classe per triggare l'animazione solo se l'immagine è pronta
-            var $img = $slide.find('img');
-            if ($img.length && $img.attr('src')) {
-              if ($img[0].complete) {
-                $slide.addClass('bw-slide-visible');
-              } else {
-                $img.one('load', function() {
-                  $slide.addClass('bw-slide-visible');
-                });
-              }
-            } else {
-              $slide.addClass('bw-slide-visible');
-            }
-
-            // NON smettere di osservare - permettiamo alle slide di ri-animarsi
-            // quando tornano nel viewport (utile per loop infiniti)
-          } else {
-            // Quando la slide esce dal viewport, rimuovi la classe di animazione
-            // IMPORTANTE: Non rimuovere mai la classe dalle slide iniziali (bw-slide-initial)
-            var $slide = $(entry.target);
-
-            // NON rimuovere bw-slide-visible dalle slide iniziali
-            if ($slide.hasClass('bw-slide-initial')) {
-              return;
-            }
-
-            // Per le altre slide, aspetta che l'animazione finisca prima di rimuovere la classe
-            setTimeout(function() {
-              if (!entry.isIntersecting && !$slide.hasClass('bw-slide-initial')) {
-                $slide.removeClass('bw-slide-visible');
-              }
-            }, 600); // Tempo maggiore della durata dell'animazione
-          }
-        });
-      }, observerOptions);
-
-      // Osserva tutte le slide
-      $currentSlider.find('.bw-slide-showcase-slide').each(function() {
-        slideObserver.observe(this);
       });
+    };
 
-      // Salva il riferimento all'observer per cleanup successivo
-      $currentSlider.data('slideObserver', slideObserver);
-    }
+    // SISTEMA SEMPLIFICATO: Nessuna gestione complessa di animazioni o preloading
+    // Le immagini sono caricate tutte all'inizio e le slide sono sempre visibili
 
     // Funzione per applicare larghezza e altezza responsive
     var applyResponsiveDimensions = function (event, slick, currentBreakpoint) {
