@@ -563,7 +563,8 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
 
         $this->end_controls_section();
 
-        // Nuova sezione Animation Slide Loading
+        // Sezione Animation Slide Loading
+        // Tutti i parametri sono collegati al JavaScript (bw-slick-slider.js) e CSS (bw-slide-showcase.css)
         $this->start_controls_section( 'animation_loading_section', [
             'label' => __( 'Animation Slide Loading', 'bw-elementor-widgets' ),
         ] );
@@ -1107,7 +1108,8 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
             $slider_settings_json = htmlspecialchars( $slider_settings_json, ENT_QUOTES, 'UTF-8' );
         }
 
-        // Impostazioni animazione loading
+        // Impostazioni animazione loading (da sezione "Animation Slide Loading")
+        // Questi parametri vengono passati come data-attributes e letti dal JavaScript
         $loading_animation_type     = isset( $settings['loading_animation_type'] ) ? sanitize_key( $settings['loading_animation_type'] ) : 'fade';
         $loading_animation_easing   = isset( $settings['loading_animation_easing'] ) ? sanitize_key( $settings['loading_animation_easing'] ) : 'ease-out';
         $loading_animation_duration = isset( $settings['loading_animation_duration']['size'] ) ? max( 100, absint( $settings['loading_animation_duration']['size'] ) ) : 500;
@@ -1120,6 +1122,9 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
         $object_fit          = $image_crop ? 'cover' : 'contain';
         $button_text         = __( 'View Collection', 'bw-elementor-widgets' );
         ?>
+        <!-- BW Slide Showcase con sistema di animazioni configurabili -->
+        <!-- I data-loading-animation-* sono letti dal JavaScript (bw-slick-slider.js) -->
+        <!-- e applicati tramite CSS (bw-slide-showcase.css) -->
         <div
             class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $wrapper_classes ) ) ); ?>"
             data-columns="<?php echo esc_attr( $columns ); ?>"
