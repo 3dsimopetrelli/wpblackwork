@@ -10,11 +10,15 @@ require_once plugin_dir_path( __FILE__ ) . 'class-bw-product-type-print.php';
 require_once plugin_dir_path( __FILE__ ) . 'class-bw-product-slider-metabox.php';
 
 /**
- * Personalizzazione tabs Product Data per i tipi di prodotto personalizzati.
+ * Personalizzazione tabs Product Data SOLO per i tipi di prodotto CUSTOM.
  *
- * - Digital Assets: prodotto virtuale scaricabile (mostra tutti i tab tranne Shipping)
- * - Books: prodotto fisico da spedire (mostra tutti i tab incluso Shipping, nasconde campi downloadable)
- * - Prints: prodotto fisico da spedire (mostra tutti i tab incluso Shipping, nasconde campi downloadable)
+ * IMPORTANTE: Questo filtro NON modifica i product type standard di WooCommerce
+ * (Simple, Grouped, External, Variable). Aggiunge solo le classi show_if_* per
+ * i custom product types, lasciando intatte tutte le funzionalità standard.
+ *
+ * - Digital Assets: prodotto virtuale scaricabile con variazioni
+ * - Books: prodotto fisico da spedire con variazioni
+ * - Prints: prodotto fisico da spedire con variazioni
  */
 add_filter( 'woocommerce_product_data_tabs', function( $tabs ) {
     // DIGITAL ASSETS: Mostra tutti i tab per prodotti virtual/downloadable
@@ -85,16 +89,24 @@ add_filter( 'woocommerce_product_data_tabs', function( $tabs ) {
     }
 
     return $tabs;
-} );
+}, 10, 1 );
 
 /**
  * JavaScript per gestire correttamente i campi e le opzioni dei product types personalizzati.
+ *
+ * IMPORTANTE: Questo JavaScript NON modifica il comportamento dei product type standard
+ * di WooCommerce. Gestisce SOLO i custom product types: DigitalAssets, Books, Prints.
  */
 add_action( 'admin_footer', function() {
     global $pagenow, $post;
     if ( $pagenow === 'post.php' && get_post_type( $post ) === 'product' ) : ?>
         <script type="text/javascript">
             jQuery(document).ready(function($){
+                /**
+                 * STEP 1: Aggiungi le classi show_if_* per abilitare i pannelli variabili
+                 * per i nostri custom product types.
+                 */
+
                 // DIGITAL ASSETS: Attivare i pannelli variabili e i campi downloadable
                 $('.options_group.show_if_variable').addClass('show_if_digital_asset');
                 $('#variable_product_options').addClass('show_if_digital_asset');
@@ -109,78 +121,93 @@ add_action( 'admin_footer', function() {
                 $('.options_group.show_if_variable').addClass('show_if_print');
                 $('#variable_product_options').addClass('show_if_print');
 
-                // Abilita il checkbox "Used for variations" per tutti i product types variabili
-                // Questo è gestito nativamente da WooCommerce per prodotti variabili, ma
-                // assicuriamoci che sia visibile per i nostri custom product types
+                /**
+                 * STEP 2: Abilita il checkbox "Used for variations" negli attributi.
+                 *
+                 * Questo è fondamentale per permettere la creazione di variazioni.
+                 * Il checkbox è normalmente mostrato solo per product type "variable",
+                 * ma noi dobbiamo mostrarlo anche per i nostri custom product types.
+                 */
                 function enableVariationsCheckbox() {
                     var productType = $('#product-type').val();
+
+                    // Abilita per i nostri custom product types
                     if (productType === 'digital_asset' || productType === 'book' || productType === 'print') {
-                        // Mostra il checkbox "Used for variations" negli attributi
-                        $('.enable_variation').closest('label').show();
-                        $('.enable_variation').closest('.woocommerce_attribute').find('.enable_variation').show();
+                        // Trova tutti gli attributi e mostra il checkbox "Used for variations"
+                        $('.woocommerce_attribute').each(function() {
+                            var $attribute = $(this);
+
+                            // Mostra il wrapper del checkbox "enable_variation"
+                            $attribute.find('.enable_variation').parent().show();
+
+                            // Mostra anche la label "Visible on the product page"
+                            $attribute.find('.enable_variation').parent().prev('label').show();
+                        });
+
+                        // Mostra anche i controlli nella barra degli attributi
+                        $('.toolbar .variation_actions').show();
                     }
                 }
 
-                // Esegui al caricamento e quando cambia il product type
+                // Esegui al caricamento della pagina
                 enableVariationsCheckbox();
-                $('#product-type').on('change', enableVariationsCheckbox);
+
+                // Esegui quando cambia il product type
+                $('#product-type').on('change', function() {
+                    enableVariationsCheckbox();
+                });
 
                 // Osserva quando vengono aggiunti nuovi attributi e abilita il checkbox
-                // per i product types variabili
                 var attributesContainer = $('.product_attributes');
                 if (attributesContainer.length) {
                     var observer = new MutationObserver(function(mutations) {
-                        enableVariationsCheckbox();
+                        // Ritarda leggermente per dare tempo a WooCommerce di renderizzare l'attributo
+                        setTimeout(function() {
+                            enableVariationsCheckbox();
+                        }, 100);
                     });
+
                     observer.observe(attributesContainer[0], {
                         childList: true,
                         subtree: true
                     });
                 }
 
-                // BOOKS: Nascondere completamente i campi downloadable (prodotto fisico)
-                $('#product-type').on('change', function() {
-                    var selected = $(this).val();
+                /**
+                 * STEP 3: Gestisci la visibilità dei campi downloadable/virtual
+                 * in base al product type.
+                 */
+                function handleDownloadableFields() {
+                    var productType = $('#product-type').val();
 
-                    if (selected === 'book') {
-                        // Nascondi tutti i campi downloadable per Books
+                    if (productType === 'book' || productType === 'print') {
+                        // BOOKS & PRINTS: Nascondere completamente i campi downloadable (prodotti fisici)
                         $('.show_if_downloadable').hide();
                         $('._downloadable_files_field').hide();
                         $('#_downloadable').prop('checked', false).closest('.form-field').hide();
                         $('#_virtual').prop('checked', false).closest('.form-field').hide();
                     }
-
-                    if (selected === 'print') {
-                        // Nascondi tutti i campi downloadable per Prints
-                        $('.show_if_downloadable').hide();
-                        $('._downloadable_files_field').hide();
-                        $('#_downloadable').prop('checked', false).closest('.form-field').hide();
-                        $('#_virtual').prop('checked', false).closest('.form-field').hide();
-                    }
-
-                    if (selected === 'digital_asset') {
-                        // Mostra i campi downloadable per Digital Assets
+                    else if (productType === 'digital_asset') {
+                        // DIGITAL ASSETS: Mostrare i campi downloadable
                         $('.show_if_downloadable').show();
                         $('._downloadable_files_field').show();
+
                         // Nascondi i checkbox virtual/downloadable perché sono sempre true
+                        // (gestiti automaticamente dalla classe del prodotto)
                         $('#_downloadable').closest('.form-field').hide();
                         $('#_virtual').closest('.form-field').hide();
                     }
-                }).trigger('change');
-
-                // Esegui anche al caricamento della pagina per prodotti esistenti
-                var currentProductType = $('#product-type').val();
-                if (currentProductType === 'book' || currentProductType === 'print') {
-                    $('.show_if_downloadable').hide();
-                    $('._downloadable_files_field').hide();
-                    $('#_downloadable').prop('checked', false).closest('.form-field').hide();
-                    $('#_virtual').prop('checked', false).closest('.form-field').hide();
-                } else if (currentProductType === 'digital_asset') {
-                    $('.show_if_downloadable').show();
-                    $('._downloadable_files_field').show();
-                    $('#_downloadable').closest('.form-field').hide();
-                    $('#_virtual').closest('.form-field').hide();
+                    // Per tutti gli altri product types (standard WooCommerce),
+                    // non facciamo nulla - lasciamo il comportamento predefinito
                 }
+
+                // Esegui al caricamento della pagina
+                handleDownloadableFields();
+
+                // Esegui quando cambia il product type
+                $('#product-type').on('change', function() {
+                    handleDownloadableFields();
+                });
             });
         </script>
     <?php endif;
@@ -202,18 +229,19 @@ function bw_register_custom_product_types() {
 add_action( 'init', 'bw_register_custom_product_types' );
 
 /**
- * Forza i valori corretti per _virtual e _downloadable in base al product type.
+ * Forza i valori corretti per _virtual e _downloadable SOLO per i custom product types.
  *
- * Questo garantisce che:
- * - Digital Assets siano sempre virtual=yes e downloadable=yes
- * - Books siano sempre virtual=no e downloadable=no
- * - Prints siano sempre virtual=no e downloadable=no
+ * IMPORTANTE: Questa funzione agisce SOLO sui custom product types (DigitalAssets, Books, Prints).
+ * I product type standard di WooCommerce (Simple, Grouped, External, Variable) NON sono modificati.
  *
- * IMPORTANTE: Gli attributi (_product_attributes) sono SEMPRE specifici del prodotto.
- * Ogni prodotto ha il proprio set di attributi salvato nel suo meta _product_attributes.
- * Se vedi gli stessi attributi su prodotti diversi, probabilmente stai usando attributi
- * globali di WooCommerce (creati in Prodotti > Attributi) che sono disponibili per tutti
- * i prodotti ma devono essere selezionati manualmente per ogni prodotto.
+ * Garantisce che:
+ * - Digital Assets: virtual=yes, downloadable=yes (prodotto digitale scaricabile)
+ * - Books: virtual=no, downloadable=no (prodotto fisico da spedire)
+ * - Prints: virtual=no, downloadable=no (prodotto fisico da spedire)
+ *
+ * NOTA sugli attributi: Gli attributi (_product_attributes) sono sempre specifici del prodotto.
+ * Ogni prodotto ha il proprio set di attributi salvato nel meta _product_attributes.
+ * Le variazioni sono create correttamente per ogni prodotto in base ai suoi attributi.
  *
  * @param int    $post_id Product ID.
  * @param WP_Post $post    Post object.
@@ -222,6 +250,7 @@ function bw_force_product_type_meta_values( $post_id, $post ) {
     // Ottieni il product type salvato
     $product_type = empty( $_POST['product-type'] ) ? 'simple' : sanitize_text_field( $_POST['product-type'] );
 
+    // Applica le modifiche SOLO ai custom product types
     switch ( $product_type ) {
         case 'digital_asset':
             // Digital Assets: sempre virtual e downloadable
@@ -237,10 +266,10 @@ function bw_force_product_type_meta_values( $post_id, $post ) {
             // Rimuovi eventuali file downloadable che potrebbero essere stati salvati erroneamente
             delete_post_meta( $post_id, '_downloadable_files' );
             break;
-    }
 
-    // Gli attributi sono gestiti da WooCommerce e salvati correttamente per ogni prodotto.
-    // Non c'è bisogno di forzare nulla qui - ogni prodotto ha il proprio meta _product_attributes.
+        // I product type standard WooCommerce (simple, grouped, external, variable)
+        // non vengono toccati - mantengono il comportamento predefinito di WooCommerce
+    }
 }
 
 /**
