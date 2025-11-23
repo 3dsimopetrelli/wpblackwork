@@ -15,10 +15,22 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-// Include product type classes
-require_once __DIR__ . '/class-wc-product-digitalassets.php';
-require_once __DIR__ . '/class-wc-product-books.php';
-require_once __DIR__ . '/class-wc-product-prints.php';
+/**
+ * Load custom product type classes after WooCommerce is loaded.
+ * This ensures WC_Product_Variable and WC_Product_Simple classes are available.
+ */
+function bw_load_custom_product_type_classes() {
+	// Check if WooCommerce is active and loaded
+	if ( ! class_exists( 'WooCommerce' ) ) {
+		return;
+	}
+
+	// Include product type classes only after WooCommerce is ready
+	require_once __DIR__ . '/class-wc-product-digitalassets.php';
+	require_once __DIR__ . '/class-wc-product-books.php';
+	require_once __DIR__ . '/class-wc-product-prints.php';
+}
+add_action( 'woocommerce_loaded', 'bw_load_custom_product_type_classes', 10 );
 
 /**
  * Register custom product types with WooCommerce.
