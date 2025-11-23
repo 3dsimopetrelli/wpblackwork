@@ -35,8 +35,8 @@ require_once __DIR__ . '/includes/helpers.php';
 
 // Loader dei widget
 require_once __DIR__ . '/includes/class-bw-widget-loader.php';
-// Tipi di prodotto personalizzati per WooCommerce
-require_once plugin_dir_path( __FILE__ ) . 'includes/product-types/product-types-init.php';
+// Tipi di prodotto personalizzati per WooCommerce - DISATTIVATO: Rimosso per tornare ai product type standard WooCommerce
+// require_once plugin_dir_path( __FILE__ ) . 'includes/product-types/product-types-init.php';
 // Metabox per prodotti digitali
 require_once plugin_dir_path( __FILE__ ) . 'metabox/digital-products-metabox.php';
 // Metabox Images Showcase
