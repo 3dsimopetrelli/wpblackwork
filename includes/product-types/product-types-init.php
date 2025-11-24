@@ -84,6 +84,54 @@ function bw_register_custom_product_types( $classname, $product_type, $post_type
 add_filter( 'woocommerce_product_class', 'bw_register_custom_product_types', 10, 4 );
 
 /**
+ * Capture posted product type and persist both taxonomy and meta.
+ *
+ * WooCommerce normally saves the taxonomy term, but custom types can be
+ * discarded if something strips the term or the type is not registered yet.
+ * By handling the raw post value early we guarantee the chosen custom type
+ * remains attached to the product.
+ *
+ * @param int     $post_id Product ID.
+ * @param WP_Post $post    Post object.
+ */
+function bw_save_posted_product_type( $post_id, $post ) {
+        // Only for products edited in admin with a posted product type value.
+        if ( 'product' !== $post->post_type || empty( $_POST['product-type'] ) ) {
+                return;
+        }
+
+        // Skip autosaves and unauthorised updates.
+        if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || ! current_user_can( 'edit_post', $post_id ) ) {
+                return;
+        }
+
+        $posted_type  = sanitize_title( wp_unslash( $_POST['product-type'] ) );
+        $custom_types = array( 'digitalassets', 'books', 'prints' );
+
+        if ( ! in_array( $posted_type, $custom_types, true ) ) {
+                return;
+        }
+
+        // Ensure the taxonomy term exists and is assigned.
+        if ( ! term_exists( $posted_type, 'product_type' ) ) {
+                wp_insert_term( $posted_type, 'product_type' );
+        }
+
+        wp_set_object_terms( $post_id, $posted_type, 'product_type', false );
+        update_post_meta( $post_id, '_product_type', $posted_type );
+
+        // Apply consistent flags for each type.
+        if ( 'digitalassets' === $posted_type ) {
+                update_post_meta( $post_id, '_virtual', 'yes' );
+                update_post_meta( $post_id, '_downloadable', 'yes' );
+        } else {
+                update_post_meta( $post_id, '_virtual', 'no' );
+                update_post_meta( $post_id, '_downloadable', 'no' );
+        }
+}
+add_action( 'save_post_product', 'bw_save_posted_product_type', 5, 2 );
+
+/**
  * Save product type as post meta when product is saved.
  * This ensures the product type is persisted correctly and remains after updates.
  *
