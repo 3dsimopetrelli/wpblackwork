@@ -618,20 +618,32 @@ add_action( 'wp_ajax_nopriv_bw_fpw_get_subcategories', 'bw_fpw_get_subcategories
 function bw_fpw_get_subcategories() {
     check_ajax_referer( 'bw_fpw_nonce', 'nonce' );
 
-    $category_id = isset( $_POST['category_id'] ) ? absint( $_POST['category_id'] ) : 0;
-    $post_type   = isset( $_POST['post_type'] ) ? sanitize_key( $_POST['post_type'] ) : 'product';
-
-    if ( ! $category_id ) {
-        wp_send_json_error( [ 'message' => 'Invalid category ID' ] );
-    }
+    $raw_category_id = isset( $_POST['category_id'] ) ? sanitize_text_field( wp_unslash( $_POST['category_id'] ) ) : '';
+    $category_id     = 'all' === $raw_category_id ? 'all' : absint( $raw_category_id );
+    $post_type       = isset( $_POST['post_type'] ) ? sanitize_key( $_POST['post_type'] ) : 'product';
 
     $taxonomy = 'product' === $post_type ? 'product_cat' : 'category';
 
-    $subcategories = get_terms( [
-        'taxonomy'   => $taxonomy,
-        'hide_empty' => true,
-        'parent'     => $category_id,
-    ] );
+    $subcategories = get_terms(
+        [
+            'taxonomy'   => $taxonomy,
+            'hide_empty' => true,
+            'parent'     => 'all' === $category_id ? 0 : $category_id,
+        ]
+    );
+
+    if ( 'all' === $category_id && ! is_wp_error( $subcategories ) ) {
+        $subcategories = array_filter(
+            $subcategories,
+            static function ( $term ) {
+                return (int) $term->parent > 0;
+            }
+        );
+    }
+
+    if ( empty( $category_id ) && 'all' !== $category_id ) {
+        wp_send_json_error( [ 'message' => 'Invalid category ID' ] );
+    }
 
     if ( is_wp_error( $subcategories ) ) {
         wp_send_json_error( [ 'message' => $subcategories->get_error_message() ] );

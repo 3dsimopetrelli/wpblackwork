@@ -240,6 +240,11 @@
         var $grid = $('.bw-fpw-grid[data-widget-id="' + widgetId + '"]');
         var postType = $grid.attr('data-post-type') || 'product';
         var $filters = $container.closest('.bw-fpw-filters');
+        var $subcatRow = $filters.find('.bw-fpw-filter-subcategories');
+
+        if ($container.length) {
+            $container.empty();
+        }
 
         console.log('📂 Loading subcategories for category:', categoryId);
 
@@ -265,17 +270,22 @@
                     });
 
                     $container.html(html);
-
-                    // Show subcategories section
-                    $filters.find('.bw-fpw-filter-subcategories').slideDown(300);
+                    if ($subcatRow.length) {
+                        $subcatRow.show();
+                    }
                 } else {
                     $container.html('<p class="bw-fpw-no-subcats">No subcategories found</p>');
-                    $filters.find('.bw-fpw-filter-subcategories').slideUp(300);
+                    if ($subcatRow.length) {
+                        $subcatRow.show();
+                    }
                 }
             },
             error: function() {
                 console.error('❌ Error loading subcategories');
                 $container.html('<p class="bw-fpw-error">Error loading subcategories</p>');
+                if ($subcatRow.length) {
+                    $subcatRow.show();
+                }
             }
         });
     }
@@ -445,17 +455,8 @@
 
             console.log('📁 Category selected:', categoryId);
 
-            if (categoryId === 'all') {
-                // Hide subcategories section
-                if ($subcatContainer.length) {
-                    $subcatContainer.empty();
-                }
-                $subcatRow.slideUp(300);
-            } else {
-                // Load subcategories
-                if ($subcatContainer.length) {
-                    loadSubcategories(categoryId, $subcatContainer, widgetId);
-                }
+            if ($subcatContainer.length) {
+                loadSubcategories(categoryId, $subcatContainer, widgetId);
             }
 
             if ($tagOptions.length) {

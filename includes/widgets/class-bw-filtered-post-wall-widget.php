@@ -160,6 +160,12 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             ],
         ] );
 
+        $this->start_controls_tabs( 'filter_option_color_tabs' );
+
+        $this->start_controls_tab( 'filter_option_color_tab', [
+            'label' => __( 'Default', 'bw-elementor-widgets' ),
+        ] );
+
         $this->add_control( 'filter_option_color', [
             'label'     => __( 'Options Color', 'bw-elementor-widgets' ),
             'type'      => Controls_Manager::COLOR,
@@ -168,6 +174,25 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
                 '{{WRAPPER}} .bw-fpw-filter-option' => 'color: {{VALUE}};',
             ],
         ] );
+
+        $this->end_controls_tab();
+
+        $this->start_controls_tab( 'filter_option_color_hover_tab', [
+            'label' => __( 'Hover', 'bw-elementor-widgets' ),
+        ] );
+
+        $this->add_control( 'filter_option_hover_color', [
+            'label'     => __( 'Hover Color', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::COLOR,
+            'default'   => '#000000',
+            'selectors' => [
+                '{{WRAPPER}} .bw-fpw-filter-option:hover, {{WRAPPER}} .bw-fpw-filter-option.active' => 'color: {{VALUE}};',
+            ],
+        ] );
+
+        $this->end_controls_tab();
+
+        $this->end_controls_tabs();
 
         $this->add_group_control( Group_Control_Typography::get_type(), [
             'name'           => 'filter_option_typography',
@@ -194,10 +219,19 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
         $this->add_control( 'filter_box_background', [
             'label'     => __( 'Background Color', 'bw-elementor-widgets' ),
             'type'      => Controls_Manager::COLOR,
-            'default'   => '#ffffff',
+            'default'   => 'transparent',
             'selectors' => [
                 '{{WRAPPER}} .bw-fpw-filters' => 'background-color: {{VALUE}};',
             ],
+        ] );
+
+        $this->add_control( 'filter_box_border', [
+            'label'        => __( 'Show Border', 'bw-elementor-widgets' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
+            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
+            'return_value' => 'yes',
+            'default'      => 'no',
         ] );
 
         $this->add_responsive_control( 'filter_box_radius', [
@@ -210,15 +244,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'selectors'  => [
                 '{{WRAPPER}} .bw-fpw-filters' => 'border-radius: {{SIZE}}{{UNIT}};',
             ],
-        ] );
-
-        $this->add_control( 'filter_box_border', [
-            'label'        => __( 'Show Border', 'bw-elementor-widgets' ),
-            'type'         => Controls_Manager::SWITCHER,
-            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
-            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
-            'return_value' => 'yes',
-            'default'      => 'no',
+            'condition'  => [ 'filter_box_border' => 'yes' ],
         ] );
 
         $this->add_responsive_control( 'filter_box_border_width', [
@@ -990,6 +1016,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             : [];
 
         $tags = $show_tags ? $this->get_related_tags( $post_type, 'all', [] ) : [];
+        $initial_subcategories = $show_subcategories ? $this->get_subcategories_data( $post_type, 'all' ) : [];
         ?>
         <div class="bw-fpw-filters" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
             <div class="bw-fpw-filter-rows">
@@ -1023,10 +1050,15 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
                 <?php endif; ?>
 
                 <?php if ( $show_subcategories ) : ?>
-                    <div class="bw-fpw-filter-row bw-fpw-filter-row--subcategories bw-fpw-filter-subcategories" style="display: none;">
+                    <div class="bw-fpw-filter-row bw-fpw-filter-row--subcategories bw-fpw-filter-subcategories">
                         <h3 class="bw-fpw-filter-label"><?php echo esc_html( $subcategories_title ); ?></h3>
                         <div class="bw-fpw-filter-options bw-fpw-subcategories-container">
-                            <!-- Subcategories will be loaded via AJAX -->
+                            <?php foreach ( $initial_subcategories as $subcategory ) : ?>
+                                <button class="bw-fpw-filter-option bw-fpw-subcat-button" data-subcategory="<?php echo esc_attr( $subcategory['term_id'] ); ?>">
+                                    <span class="bw-fpw-option-label"><?php echo esc_html( $subcategory['name'] ); ?></span>
+                                    <span class="bw-fpw-option-count">(<?php echo esc_html( $subcategory['count'] ); ?>)</span>
+                                </button>
+                            <?php endforeach; ?>
                         </div>
                     </div>
                 <?php endif; ?>
@@ -1506,6 +1538,46 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
         $query = new WP_Query( $query_args );
 
         return $query->posts;
+    }
+
+    private function get_subcategories_data( $post_type, $category = 'all' ) {
+        $taxonomy = 'product' === $post_type ? 'product_cat' : 'category';
+
+        $args = [
+            'taxonomy'   => $taxonomy,
+            'hide_empty' => true,
+        ];
+
+        if ( 'all' !== $category && ! empty( $category ) && absint( $category ) > 0 ) {
+            $args['parent'] = absint( $category );
+        }
+
+        $terms = get_terms( $args );
+
+        if ( is_wp_error( $terms ) || empty( $terms ) ) {
+            return [];
+        }
+
+        if ( 'all' === $category ) {
+            $terms = array_filter(
+                $terms,
+                static function ( $term ) {
+                    return (int) $term->parent > 0;
+                }
+            );
+        }
+
+        $results = [];
+
+        foreach ( $terms as $term ) {
+            $results[] = [
+                'term_id' => (int) $term->term_id,
+                'name'    => $term->name,
+                'count'   => (int) $term->count,
+            ];
+        }
+
+        return $results;
     }
 
     private function collect_terms_from_posts( $taxonomy, array $post_ids ) {

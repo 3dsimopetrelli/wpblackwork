@@ -17,6 +17,8 @@
   --bw-fpw-overlay-buttons-padding-right: 10px;
   --bw-fpw-overlay-buttons-padding-bottom: 13px;
   --bw-fpw-overlay-buttons-padding-left: 10px;
+  --bw-fpw-filter-color: #000000;
+  --bw-fpw-filter-hover-color: #000000;
   box-sizing: border-box;
 }
 
@@ -26,7 +28,7 @@
 .bw-fpw-filters {
   margin-bottom: 40px;
   padding: 20px 0;
-  background: #ffffff;
+  background: transparent;
   border-radius: 0;
   border: none;
 }
@@ -54,7 +56,9 @@
 .bw-fpw-filter-options {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px 14px;
+  gap: 0;
+  row-gap: 6px;
+  align-items: center;
 }
 
 .bw-fpw-filter-option {
@@ -64,11 +68,10 @@
   margin: 0;
   font-size: 14px;
   font-weight: 400;
-  color: #000000;
+  color: var(--bw-fpw-filter-color, #000000);
   cursor: pointer;
   line-height: 1.6;
   position: relative;
-  transition: color 0.2s ease;
 }
 
 .bw-fpw-filter-option:focus {
@@ -77,24 +80,18 @@
 }
 
 .bw-fpw-filter-option:not(:last-child)::after {
-  content: ',';
-  padding-left: 6px;
+  content: ', ';
   color: currentColor;
 }
 
 .bw-fpw-filter-option:hover,
 .bw-fpw-filter-option.active {
-  color: #000000;
-  font-weight: 600;
+  color: var(--bw-fpw-filter-hover-color, var(--bw-fpw-filter-color, #000000));
 }
 
 .bw-fpw-option-count {
   color: #9b9b9b;
   margin-left: 4px;
-}
-
-.bw-fpw-filter-subcategories {
-  display: none;
 }
 
 /* Loading state for filters */
