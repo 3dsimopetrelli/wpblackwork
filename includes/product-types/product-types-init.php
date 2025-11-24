@@ -112,99 +112,38 @@ function bw_custom_product_tabs( $tabs ) {
 add_filter( 'woocommerce_product_data_tabs', 'bw_custom_product_tabs', 10, 1 );
 
 /**
- * Show variations tab for Digital Assets and Prints.
- *
- * @param bool   $show Whether to show variations tab.
- * @param string $product_type Current product type.
- * @return bool
- */
-function bw_show_variations_tab( $show, $product_type ) {
-	if ( in_array( $product_type, array( 'digitalassets', 'prints' ), true ) ) {
-		return true;
-	}
-	return $show;
-}
-add_filter( 'woocommerce_product_type_supports', 'bw_product_type_supports', 10, 2 );
-
-/**
- * Define what features each custom product type supports.
- *
- * @param bool   $supports Whether the product type supports the feature.
- * @param string $feature Feature name.
- * @param WC_Product $product Product object (optional).
- * @return bool
- */
-function bw_product_type_supports( $supports, $feature ) {
-	global $post, $product_object;
-
-	// Get product type
-	$product_type = '';
-	if ( $product_object && is_object( $product_object ) ) {
-		$product_type = $product_object->get_type();
-	} elseif ( $post ) {
-		$product_type = get_post_meta( $post->ID, '_product_type', true );
-	}
-
-	// Digital Assets and Prints support same features as Variable Product
-	if ( in_array( $product_type, array( 'digitalassets', 'prints' ), true ) ) {
-		// Support all variable product features
-		if ( in_array( $feature, array( 'ajax_add_to_cart' ), true ) ) {
-			return false; // Variable products don't support ajax add to cart
-		}
-		return true;
-	}
-
-	// Books support same features as Simple Product
-	if ( 'books' === $product_type ) {
-		// Support all simple product features
-		return true;
-	}
-
-	return $supports;
-}
-
-/**
- * Add custom product types to the list of variable product types.
- * This ensures variations work correctly for Digital Assets and Prints.
- *
- * @param array $types Variable product types.
- * @return array
- */
-function bw_add_variable_product_types( $types ) {
-	$types[] = 'digitalassets';
-	$types[] = 'prints';
-	return $types;
-}
-add_filter( 'woocommerce_product_type_query', 'bw_variable_product_type_query', 10, 3 );
-
-/**
  * Handle product type queries for custom types.
  *
- * @param bool   $is_type Whether product is of the queried type.
- * @param string $type Product type being queried.
- * @param WC_Product $product Product object.
- * @return bool
+ * This filter allows overriding the product type returned by WooCommerce.
+ * The woocommerce_product_type_query filter passes 2 parameters:
+ * - $override: false by default, or a string to override the product type
+ * - $product_id: the ID of the product being queried
+ *
+ * If we return false, WooCommerce will use its normal logic.
+ * If we return a string, WooCommerce will use that as the product type.
+ *
+ * @param bool|string $override False by default, or product type string.
+ * @param int         $product_id Product ID.
+ * @return bool|string
  */
-function bw_variable_product_type_query( $is_type, $type, $product ) {
-	// Ensure we have a valid product object
-	if ( ! is_object( $product ) || ! method_exists( $product, 'get_type' ) ) {
-		return $is_type;
+function bw_variable_product_type_query( $override, $product_id ) {
+	// If already overridden by another filter, respect that
+	if ( false !== $override ) {
+		return $override;
 	}
 
-	$product_type = $product->get_type();
+	// Get the product type meta
+	$product_type = get_post_meta( $product_id, '_product_type', true );
 
-	// Digital Assets and Prints are treated as variable products
-	if ( 'variable' === $type && in_array( $product_type, array( 'digitalassets', 'prints' ), true ) ) {
-		return true;
+	// If it's one of our custom types, return it
+	if ( in_array( $product_type, array( 'digitalassets', 'prints', 'books' ), true ) ) {
+		return $product_type;
 	}
 
-	// Books is treated as simple product
-	if ( 'simple' === $type && 'books' === $product_type ) {
-		return true;
-	}
-
-	return $is_type;
+	// Otherwise, let WooCommerce handle it normally
+	return $override;
 }
+add_filter( 'woocommerce_product_type_query', 'bw_variable_product_type_query', 10, 2 );
 
 /**
  * Show/hide product options for custom product types.
