@@ -760,12 +760,19 @@ function bw_fpw_filter_posts() {
             $thumbnail_html = '';
 
             if ( $image_toggle && has_post_thumbnail( $post_id ) ) {
-                $thumbnail_args = [
-                    'loading' => 'eager',
-                    'class'   => 'bw-slider-main',
-                ];
+                $thumbnail_id = get_post_thumbnail_id( $post_id );
 
-                $thumbnail_html = get_the_post_thumbnail( $post_id, $image_size, $thumbnail_args );
+                if ( $thumbnail_id ) {
+                    $thumbnail_html = wp_get_attachment_image(
+                        $thumbnail_id,
+                        $image_size,
+                        false,
+                        [
+                            'loading' => 'eager',
+                            'class'   => 'bw-slider-main',
+                        ]
+                    );
+                }
             }
 
             $hover_image_html = '';
