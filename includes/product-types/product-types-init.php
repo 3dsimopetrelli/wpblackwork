@@ -27,14 +27,14 @@ function bw_get_product_type( $product_id ) {
 		return '';
 	}
 
-	// First, try to get from taxonomy (WooCommerce native method)
-	$terms = get_the_terms( $product_id, 'product_type' );
-	if ( $terms && ! is_wp_error( $terms ) ) {
-		$term = current( $terms );
-		if ( $term && isset( $term->name ) ) {
-			return $term->name;
-		}
-	}
+        // First, try to get from taxonomy (WooCommerce native method)
+        $terms = get_the_terms( $product_id, 'product_type' );
+        if ( $terms && ! is_wp_error( $terms ) ) {
+                $term = current( $terms );
+                if ( $term && isset( $term->slug ) ) {
+                        return $term->slug;
+                }
+        }
 
 	// Fallback to post meta for backward compatibility
 	$product_type = get_post_meta( $product_id, '_product_type', true );
