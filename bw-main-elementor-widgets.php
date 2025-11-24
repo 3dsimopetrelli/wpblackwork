@@ -650,6 +650,130 @@ function bw_fpw_get_subcategories() {
     wp_send_json_success( $result );
 }
 
+function bw_fpw_get_filtered_post_ids_for_tags( $post_type, $category, $subcategories ) {
+    $taxonomy  = 'product' === $post_type ? 'product_cat' : 'category';
+    $tax_query = [];
+
+    if ( 'all' !== $category && absint( $category ) > 0 ) {
+        if ( ! empty( $subcategories ) ) {
+            $tax_query[] = [
+                'taxonomy' => $taxonomy,
+                'field'    => 'term_id',
+                'terms'    => $subcategories,
+            ];
+        } else {
+            $tax_query[] = [
+                'taxonomy' => $taxonomy,
+                'field'    => 'term_id',
+                'terms'    => [ absint( $category ) ],
+            ];
+        }
+    }
+
+    $query_args = [
+        'post_type'      => $post_type,
+        'post_status'    => 'publish',
+        'posts_per_page' => -1,
+        'fields'         => 'ids',
+        'tax_query'      => $tax_query,
+    ];
+
+    $query = new WP_Query( $query_args );
+
+    return $query->posts;
+}
+
+function bw_fpw_collect_tags_from_posts( $taxonomy, $post_ids ) {
+    if ( empty( $post_ids ) ) {
+        return [];
+    }
+
+    $results = [];
+
+    foreach ( $post_ids as $post_id ) {
+        $terms = wp_get_object_terms( $post_id, $taxonomy );
+
+        if ( empty( $terms ) || is_wp_error( $terms ) ) {
+            continue;
+        }
+
+        foreach ( $terms as $term ) {
+            $term_id = (int) $term->term_id;
+
+            if ( ! isset( $results[ $term_id ] ) ) {
+                $results[ $term_id ] = [
+                    'term_id' => $term_id,
+                    'name'    => $term->name,
+                    'count'   => 0,
+                ];
+            }
+
+            $results[ $term_id ]['count']++;
+        }
+    }
+
+    usort(
+        $results,
+        static function ( $a, $b ) {
+            return strcmp( $a['name'], $b['name'] );
+        }
+    );
+
+    return array_values( $results );
+}
+
+function bw_fpw_get_related_tags_data( $post_type, $category = 'all', $subcategories = [] ) {
+    $tag_taxonomy = 'product' === $post_type ? 'product_tag' : 'post_tag';
+
+    if ( 'all' === $category || empty( $category ) ) {
+        $terms = get_terms(
+            [
+                'taxonomy'   => $tag_taxonomy,
+                'hide_empty' => true,
+            ]
+        );
+
+        if ( empty( $terms ) || is_wp_error( $terms ) ) {
+            return [];
+        }
+
+        $results = [];
+
+        foreach ( $terms as $term ) {
+            $results[] = [
+                'term_id' => (int) $term->term_id,
+                'name'    => $term->name,
+                'count'   => (int) $term->count,
+            ];
+        }
+
+        return $results;
+    }
+
+    $post_ids = bw_fpw_get_filtered_post_ids_for_tags( $post_type, $category, $subcategories );
+
+    return bw_fpw_collect_tags_from_posts( $tag_taxonomy, $post_ids );
+}
+
+function bw_fpw_render_tag_markup( $tags ) {
+    if ( empty( $tags ) ) {
+        return '';
+    }
+
+    ob_start();
+
+    foreach ( $tags as $tag ) {
+        ?>
+        <button class="bw-fpw-filter-option bw-fpw-tag-button" data-tag="<?php echo esc_attr( $tag['term_id'] ); ?>">
+            <span class="bw-fpw-option-label"><?php echo esc_html( $tag['name'] ); ?></span>
+            <span class="bw-fpw-option-count">(<?php echo esc_html( $tag['count'] ); ?>)</span>
+        </button>
+        <?php
+    }
+
+    return ob_get_clean();
+}
+
 /**
  * Handler AJAX per filtrare i post
  */
@@ -901,8 +1025,13 @@ function bw_fpw_filter_posts() {
 
     $html = ob_get_clean();
 
+    $related_tags  = bw_fpw_get_related_tags_data( $post_type, $category, $subcategories );
+    $available_tags = wp_list_pluck( $related_tags, 'term_id' );
+
     wp_send_json_success( [
-        'html' => $html,
+        'html'            => $html,
+        'tags_html'       => bw_fpw_render_tag_markup( $related_tags ),
+        'available_tags'  => $available_tags,
     ] );
 }
 
