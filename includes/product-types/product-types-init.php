@@ -114,7 +114,7 @@ function bw_save_product_type_meta( $post_id, $post ) {
 		update_post_meta( $post_id, '_product_type', $product_type );
 	}
 }
-add_action( 'save_post_product', 'bw_save_product_type_meta', 10, 2 );
+add_action( 'save_post_product', 'bw_save_product_type_meta', 20, 2 );
 
 /**
  * Sync product type when set via taxonomy.
@@ -140,6 +140,46 @@ function bw_sync_product_type_on_term_set( $object_id, $terms, $tt_ids, $taxonom
 	}
 }
 add_action( 'set_object_terms', 'bw_sync_product_type_on_term_set', 10, 4 );
+
+/**
+ * Force save custom product type after WooCommerce saves the product.
+ * This hook runs after WooCommerce's save_post handler to ensure custom types are preserved.
+ *
+ * @param int        $product_id Product ID.
+ * @param WC_Product $product Product object.
+ * @param bool       $update Whether this is an update or new product.
+ */
+function bw_force_save_custom_product_type( $product_id, $product, $update ) {
+	// Get the current product type from taxonomy
+	$product_type = bw_get_product_type( $product_id );
+
+	// If it's one of our custom types, ensure it stays that way
+	if ( in_array( $product_type, array( 'digitalassets', 'books', 'prints' ), true ) ) {
+		// Get current terms
+		$terms = wp_get_object_terms( $product_id, 'product_type', array( 'fields' => 'slugs' ) );
+
+		// If the term was removed or changed, restore it
+		if ( empty( $terms ) || ! in_array( $product_type, $terms, true ) ) {
+			wp_set_object_terms( $product_id, $product_type, 'product_type', false );
+		}
+
+		// Also ensure the meta is set
+		update_post_meta( $product_id, '_product_type', $product_type );
+
+		// Set appropriate flags based on product type
+		if ( 'digitalassets' === $product_type ) {
+			update_post_meta( $product_id, '_virtual', 'yes' );
+			update_post_meta( $product_id, '_downloadable', 'yes' );
+		} elseif ( 'books' === $product_type ) {
+			update_post_meta( $product_id, '_virtual', 'no' );
+			update_post_meta( $product_id, '_downloadable', 'no' );
+		} elseif ( 'prints' === $product_type ) {
+			update_post_meta( $product_id, '_virtual', 'no' );
+			update_post_meta( $product_id, '_downloadable', 'no' );
+		}
+	}
+}
+add_action( 'woocommerce_update_product', 'bw_force_save_custom_product_type', 999, 3 );
 
 /**
  * Add custom product types to the product type dropdown.
@@ -516,3 +556,118 @@ function bw_register_custom_product_types_for_filtering() {
 	}
 }
 add_action( 'init', 'bw_register_custom_product_types_for_filtering', 20 );
+
+/**
+ * Add Product Type column to WooCommerce products list.
+ *
+ * @param array $columns Existing columns.
+ * @return array Modified columns.
+ */
+function bw_add_product_type_column( $columns ) {
+	// Insert the Product Type column after the Name column
+	$new_columns = array();
+	foreach ( $columns as $key => $value ) {
+		$new_columns[ $key ] = $value;
+		if ( 'name' === $key ) {
+			$new_columns['product_type'] = __( 'Product Type', 'bw' );
+		}
+	}
+	return $new_columns;
+}
+add_filter( 'manage_edit-product_columns', 'bw_add_product_type_column', 15 );
+
+/**
+ * Populate the Product Type column with product data.
+ *
+ * @param string $column Column name.
+ * @param int    $post_id Product ID.
+ */
+function bw_populate_product_type_column( $column, $post_id ) {
+	if ( 'product_type' === $column ) {
+		$product_type = bw_get_product_type( $post_id );
+
+		// Map product type slugs to display names
+		$type_labels = array(
+			'simple'        => __( 'Simple', 'bw' ),
+			'variable'      => __( 'Variable', 'bw' ),
+			'grouped'       => __( 'Grouped', 'bw' ),
+			'external'      => __( 'External', 'bw' ),
+			'digitalassets' => __( 'Digital Assets', 'bw' ),
+			'books'         => __( 'Books', 'bw' ),
+			'prints'        => __( 'Prints', 'bw' ),
+		);
+
+		// Get the display name, or use the slug if not mapped
+		$display_name = isset( $type_labels[ $product_type ] ) ? $type_labels[ $product_type ] : ucfirst( $product_type );
+
+		// Add a badge style for custom types
+		$badge_class = '';
+		if ( in_array( $product_type, array( 'digitalassets', 'books', 'prints' ), true ) ) {
+			$badge_class = 'bw-custom-type';
+		}
+
+		echo '<span class="product-type-badge ' . esc_attr( $badge_class ) . '">' . esc_html( $display_name ) . '</span>';
+	}
+}
+add_action( 'manage_product_posts_custom_column', 'bw_populate_product_type_column', 10, 2 );
+
+/**
+ * Make the Product Type column sortable.
+ *
+ * @param array $columns Sortable columns.
+ * @return array Modified sortable columns.
+ */
+function bw_make_product_type_column_sortable( $columns ) {
+	$columns['product_type'] = 'product_type';
+	return $columns;
+}
+add_filter( 'manage_edit-product_sortable_columns', 'bw_make_product_type_column_sortable' );
+
+/**
+ * Handle sorting by product type.
+ *
+ * @param WP_Query $query The WordPress query object.
+ */
+function bw_product_type_column_orderby( $query ) {
+	if ( ! is_admin() || ! $query->is_main_query() ) {
+		return;
+	}
+
+	$orderby = $query->get( 'orderby' );
+
+	if ( 'product_type' === $orderby ) {
+		$query->set( 'orderby', 'meta_value' );
+		$query->set( 'meta_key', '_product_type' );
+	}
+}
+add_action( 'pre_get_posts', 'bw_product_type_column_orderby' );
+
+/**
+ * Add CSS styling for the Product Type column.
+ */
+function bw_product_type_column_styles() {
+	$screen = get_current_screen();
+	if ( $screen && 'edit-product' === $screen->id ) {
+		?>
+		<style>
+			.column-product_type {
+				width: 150px;
+			}
+			.product-type-badge {
+				display: inline-block;
+				padding: 3px 8px;
+				border-radius: 3px;
+				background-color: #f0f0f0;
+				font-size: 12px;
+				font-weight: 500;
+			}
+			.product-type-badge.bw-custom-type {
+				background-color: #d4edda;
+				color: #155724;
+				border: 1px solid #c3e6cb;
+			}
+		</style>
+		<?php
+	}
+}
+add_action( 'admin_head', 'bw_product_type_column_styles' );
