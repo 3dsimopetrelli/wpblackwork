@@ -12,15 +12,20 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * Registra la pagina Blackwork Site sotto Settings
+ * Registra la pagina Blackwork Site come voce principale nella sidebar
  */
 function bw_site_settings_menu() {
-    add_options_page(
+    // SVG icona cerchio verde pieno
+    $icon_svg = 'data:image/svg+xml;base64,' . base64_encode('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><circle cx="10" cy="10" r="10" fill="#80FD03"/></svg>');
+
+    add_menu_page(
         'Blackwork Site',           // Page title
         'Blackwork Site',           // Menu title
         'manage_options',           // Capability
         'blackwork-site-settings',  // Menu slug
-        'bw_site_settings_page'     // Callback function
+        'bw_site_settings_page',    // Callback function
+        $icon_svg,                  // Icon (cerchio verde #80FD03)
+        30                          // Position (dopo Comments)
     );
 }
 add_action('admin_menu', 'bw_site_settings_menu');
@@ -29,8 +34,8 @@ add_action('admin_menu', 'bw_site_settings_menu');
  * Carica gli assets per la pagina admin
  */
 function bw_site_settings_admin_assets($hook) {
-    // Carica solo nella nostra pagina
-    if ($hook !== 'settings_page_blackwork-site-settings') {
+    // Carica solo nella nostra pagina (toplevel perché è un menu principale)
+    if ($hook !== 'toplevel_page_blackwork-site-settings') {
         return;
     }
 
