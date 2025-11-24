@@ -460,8 +460,9 @@ function bw_live_search_products() {
     check_ajax_referer( 'bw_search_nonce', 'nonce' );
 
     // Ottieni parametri dalla richiesta
-    $search_term = isset( $_POST['search_term'] ) ? sanitize_text_field( $_POST['search_term'] ) : '';
-    $categories  = isset( $_POST['categories'] ) ? array_map( 'sanitize_text_field', $_POST['categories'] ) : [];
+    $search_term  = isset( $_POST['search_term'] ) ? sanitize_text_field( $_POST['search_term'] ) : '';
+    $categories   = isset( $_POST['categories'] ) ? array_map( 'sanitize_text_field', $_POST['categories'] ) : [];
+    $product_type = isset( $_POST['product_type'] ) ? sanitize_text_field( $_POST['product_type'] ) : '';
 
     // Se il termine di ricerca è troppo corto, restituisci risultati vuoti
     if ( strlen( $search_term ) < 2 ) {
@@ -479,15 +480,34 @@ function bw_live_search_products() {
         's'              => $search_term,
     ];
 
+    // Prepara tax_query per filtri
+    $tax_query = [];
+
     // Aggiungi filtro per categorie se specificato
     if ( ! empty( $categories ) ) {
-        $args['tax_query'] = [
-            [
-                'taxonomy' => 'product_cat',
-                'field'    => 'slug',
-                'terms'    => $categories,
-            ],
+        $tax_query[] = [
+            'taxonomy' => 'product_cat',
+            'field'    => 'slug',
+            'terms'    => $categories,
         ];
+    }
+
+    // Aggiungi filtro per product type se specificato (include tipi personalizzati)
+    if ( ! empty( $product_type ) && in_array( $product_type, [ 'simple', 'variable', 'grouped', 'external', 'digitalassets', 'books', 'prints' ], true ) ) {
+        $tax_query[] = [
+            'taxonomy' => 'product_type',
+            'field'    => 'slug',
+            'terms'    => $product_type,
+        ];
+    }
+
+    // Aggiungi tax_query agli args se non è vuoto
+    if ( ! empty( $tax_query ) ) {
+        // Se c'è più di un filtro, specifica la relazione AND
+        if ( count( $tax_query ) > 1 ) {
+            $tax_query['relation'] = 'AND';
+        }
+        $args['tax_query'] = $tax_query;
     }
 
     // Esegui la query
