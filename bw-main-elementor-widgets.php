@@ -760,12 +760,30 @@ function bw_fpw_filter_posts() {
             $thumbnail_html = '';
 
             if ( $image_toggle && has_post_thumbnail( $post_id ) ) {
-                $thumbnail_args = [
-                    'loading' => 'eager',
-                    'class'   => 'bw-slider-main',
-                ];
+                $thumbnail_id = get_post_thumbnail_id( $post_id );
 
-                $thumbnail_html = get_the_post_thumbnail( $post_id, $image_size, $thumbnail_args );
+                if ( $thumbnail_id ) {
+                    $image_data = wp_get_attachment_image_src( $thumbnail_id, $image_size );
+
+                    if ( $image_data && isset( $image_data[0] ) ) {
+                        $image_url = $image_data[0];
+                        $image_width = isset( $image_data[1] ) ? $image_data[1] : '';
+                        $image_height = isset( $image_data[2] ) ? $image_data[2] : '';
+                        $image_alt = get_post_meta( $thumbnail_id, '_wp_attachment_image_alt', true );
+
+                        if ( empty( $image_alt ) ) {
+                            $image_alt = get_the_title( $post_id );
+                        }
+
+                        $thumbnail_html = sprintf(
+                            '<img src="%s" alt="%s" class="bw-slider-main" loading="eager"%s%s />',
+                            esc_url( $image_url ),
+                            esc_attr( $image_alt ),
+                            $image_width ? ' width="' . esc_attr( $image_width ) . '"' : '',
+                            $image_height ? ' height="' . esc_attr( $image_height ) . '"' : ''
+                        );
+                    }
+                }
             }
 
             $hover_image_html = '';
@@ -773,15 +791,26 @@ function bw_fpw_filter_posts() {
                 $hover_image_id = (int) get_post_meta( $post_id, '_bw_slider_hover_image', true );
 
                 if ( $hover_image_id ) {
-                    $hover_image_html = wp_get_attachment_image(
-                        $hover_image_id,
-                        $image_size,
-                        false,
-                        [
-                            'class'   => 'bw-slider-hover',
-                            'loading' => 'eager',
-                        ]
-                    );
+                    $hover_image_data = wp_get_attachment_image_src( $hover_image_id, $image_size );
+
+                    if ( $hover_image_data && isset( $hover_image_data[0] ) ) {
+                        $hover_image_url = $hover_image_data[0];
+                        $hover_image_width = isset( $hover_image_data[1] ) ? $hover_image_data[1] : '';
+                        $hover_image_height = isset( $hover_image_data[2] ) ? $hover_image_data[2] : '';
+                        $hover_image_alt = get_post_meta( $hover_image_id, '_wp_attachment_image_alt', true );
+
+                        if ( empty( $hover_image_alt ) ) {
+                            $hover_image_alt = get_the_title( $post_id ) . ' - Hover';
+                        }
+
+                        $hover_image_html = sprintf(
+                            '<img src="%s" alt="%s" class="bw-slider-hover" loading="eager"%s%s />',
+                            esc_url( $hover_image_url ),
+                            esc_attr( $hover_image_alt ),
+                            $hover_image_width ? ' width="' . esc_attr( $hover_image_width ) . '"' : '',
+                            $hover_image_height ? ' height="' . esc_attr( $hover_image_height ) . '"' : ''
+                        );
+                    }
                 }
             }
 
