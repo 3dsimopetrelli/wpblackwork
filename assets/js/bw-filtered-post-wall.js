@@ -290,10 +290,10 @@
 
         var state = filterState[widgetId];
         var postType = $grid.attr('data-post-type') || 'product';
-        var imageToggle = $grid.attr('data-image-toggle') === 'yes';
+        var imageToggle = $grid.attr('data-image-toggle') || 'no';
         var imageSize = $grid.attr('data-image-size') || 'large';
-        var hoverEffect = $grid.attr('data-hover-effect') === 'yes';
-        var openCartPopup = $grid.attr('data-open-cart-popup') === 'yes';
+        var hoverEffect = $grid.attr('data-hover-effect') || 'no';
+        var openCartPopup = $grid.attr('data-open-cart-popup') || 'no';
         var orderBy = $grid.attr('data-order-by') || 'date';
         var order = $grid.attr('data-order') || 'DESC';
 
