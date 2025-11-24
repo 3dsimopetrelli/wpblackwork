@@ -664,10 +664,16 @@ function bw_fpw_filter_posts() {
     $category       = isset( $_POST['category'] ) ? sanitize_text_field( $_POST['category'] ) : 'all';
     $subcategories  = isset( $_POST['subcategories'] ) ? array_map( 'absint', (array) $_POST['subcategories'] ) : [];
     $tags           = isset( $_POST['tags'] ) ? array_map( 'absint', (array) $_POST['tags'] ) : [];
-    $image_toggle   = isset( $_POST['image_toggle'] ) && 'yes' === $_POST['image_toggle'];
+    $image_toggle   = isset( $_POST['image_toggle'] )
+        ? filter_var( wp_unslash( $_POST['image_toggle'] ), FILTER_VALIDATE_BOOLEAN )
+        : false;
     $image_size     = isset( $_POST['image_size'] ) ? sanitize_text_field( $_POST['image_size'] ) : 'large';
-    $hover_effect   = isset( $_POST['hover_effect'] ) && 'yes' === $_POST['hover_effect'];
-    $open_cart_popup = isset( $_POST['open_cart_popup'] ) && 'yes' === $_POST['open_cart_popup'];
+    $hover_effect   = isset( $_POST['hover_effect'] )
+        ? filter_var( wp_unslash( $_POST['hover_effect'] ), FILTER_VALIDATE_BOOLEAN )
+        : false;
+    $open_cart_popup = isset( $_POST['open_cart_popup'] )
+        ? filter_var( wp_unslash( $_POST['open_cart_popup'] ), FILTER_VALIDATE_BOOLEAN )
+        : false;
     $order_by       = isset( $_POST['order_by'] ) ? sanitize_key( $_POST['order_by'] ) : 'date';
     $order          = isset( $_POST['order'] ) ? strtoupper( sanitize_key( $_POST['order'] ) ) : 'DESC';
 
