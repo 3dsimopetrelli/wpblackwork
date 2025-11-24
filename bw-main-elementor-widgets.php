@@ -761,7 +761,7 @@ function bw_fpw_filter_posts() {
 
             if ( $image_toggle && has_post_thumbnail( $post_id ) ) {
                 $thumbnail_args = [
-                    'loading' => 'lazy',
+                    'loading' => 'eager',
                     'class'   => 'bw-slider-main',
                 ];
 
@@ -779,7 +779,7 @@ function bw_fpw_filter_posts() {
                         false,
                         [
                             'class'   => 'bw-slider-hover',
-                            'loading' => 'lazy',
+                            'loading' => 'eager',
                         ]
                     );
                 }
