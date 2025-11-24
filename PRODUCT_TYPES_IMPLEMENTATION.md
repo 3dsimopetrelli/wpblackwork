@@ -26,7 +26,7 @@ The following product types work **exactly as in vanilla WooCommerce** with **NO
 
 ### Custom Product Types (WITH CUSTOMIZATIONS)
 
-#### 1. Digital Assets (`digital_asset`)
+#### 1. Digital Assets (`digitalassets`)
 
 **Behavior:** Virtual + Downloadable product with variation support
 
@@ -51,7 +51,7 @@ The following product types work **exactly as in vanilla WooCommerce** with **NO
 
 ---
 
-#### 2. Books (`book`)
+#### 2. Homebook (`books`)
 
 **Behavior:** Physical product with shipping and variation support
 
@@ -77,7 +77,7 @@ The following product types work **exactly as in vanilla WooCommerce** with **NO
 
 ---
 
-#### 3. Prints (`print`)
+#### 3. Print (`prints`)
 
 **Behavior:** Physical product with shipping and variation support (same as Books)
 
