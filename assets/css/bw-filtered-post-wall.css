@@ -64,11 +64,12 @@
 .bw-fpw-filter-option {
   background: none;
   border: none;
+  border-radius: 0;
   padding: 0;
   margin: 0;
   font-size: 14px;
   font-weight: 400;
-  color: var(--bw-fpw-filter-color, #000000);
+  color: #000000;
   cursor: pointer;
   line-height: 1.6;
   position: relative;
@@ -86,7 +87,7 @@
 
 .bw-fpw-filter-option:hover,
 .bw-fpw-filter-option.active {
-  color: var(--bw-fpw-filter-hover-color, var(--bw-fpw-filter-color, #000000));
+  color: #000000;
 }
 
 .bw-fpw-option-count {
