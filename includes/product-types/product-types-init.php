@@ -175,7 +175,7 @@ function bw_add_variable_product_types( $types ) {
 	$types[] = 'prints';
 	return $types;
 }
-add_filter( 'woocommerce_product_type_query', 'bw_variable_product_type_query', 10, 2 );
+add_filter( 'woocommerce_product_type_query', 'bw_variable_product_type_query', 10, 3 );
 
 /**
  * Handle product type queries for custom types.
@@ -185,14 +185,9 @@ add_filter( 'woocommerce_product_type_query', 'bw_variable_product_type_query', 
  * @param WC_Product $product Product object.
  * @return bool
  */
-function bw_variable_product_type_query( $is_type, $type ) {
-	global $product, $post;
-
-	if ( ! $product && $post ) {
-		$product = wc_get_product( $post->ID );
-	}
-
-	if ( ! $product ) {
+function bw_variable_product_type_query( $is_type, $type, $product ) {
+	// Ensure we have a valid product object
+	if ( ! is_object( $product ) || ! method_exists( $product, 'get_type' ) ) {
 		return $is_type;
 	}
 
