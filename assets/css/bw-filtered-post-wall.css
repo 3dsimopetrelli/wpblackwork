@@ -192,15 +192,15 @@
   overflow: hidden;
 }
 
-/* Hover image effect */
-.bw-fpw .bw-slick-slider-image--has-hover .bw-slider-main,
-.bw-fpw .bw-slick-slider-image--has-hover .bw-slider-hover {
+/* Stili immagine identici a BW WallPost */
+.bw-filtered-post-wall .bw-slick-slider-image--has-hover .bw-slider-main,
+.bw-filtered-post-wall .bw-slick-slider-image--has-hover .bw-slider-hover {
   display: block;
   width: 100%;
   transition: opacity 0.35s ease;
 }
 
-.bw-fpw .bw-slick-slider-image--has-hover .bw-slider-hover {
+.bw-filtered-post-wall .bw-slick-slider-image--has-hover .bw-slider-hover {
   position: absolute;
   inset: 0;
   opacity: 0;
@@ -208,18 +208,18 @@
   z-index: 1;
 }
 
-.bw-fpw .bw-slick-slider-image--has-hover .bw-slider-main {
+.bw-filtered-post-wall .bw-slick-slider-image--has-hover .bw-slider-main {
   position: relative;
   z-index: 0;
 }
 
-.bw-fpw-media:hover .bw-slick-slider-image--has-hover .bw-slider-hover,
-.bw-fpw-media:focus-within .bw-slick-slider-image--has-hover .bw-slider-hover {
+.bw-filtered-post-wall .bw-fpw-media:hover .bw-slick-slider-image--has-hover .bw-slider-hover,
+.bw-filtered-post-wall .bw-fpw-media:focus-within .bw-slick-slider-image--has-hover .bw-slider-hover {
   opacity: 1;
 }
 
-.bw-fpw-media:hover .bw-slick-slider-image--has-hover .bw-slider-main,
-.bw-fpw-media:focus-within .bw-slick-slider-image--has-hover .bw-slider-main {
+.bw-filtered-post-wall .bw-fpw-media:hover .bw-slick-slider-image--has-hover .bw-slider-main,
+.bw-filtered-post-wall .bw-fpw-media:focus-within .bw-slick-slider-image--has-hover .bw-slider-main {
   opacity: 0;
 }
 
@@ -254,10 +254,10 @@
 }
 
 /* ============================================
-   OVERLAY & BUTTONS
+   OVERLAY & BUTTONS (Identici a BW WallPost)
    ============================================ */
-.bw-fpw-overlay,
-.bw-fpw .overlay-buttons {
+.bw-filtered-post-wall .bw-fpw-overlay,
+.bw-filtered-post-wall .overlay-buttons {
   position: absolute;
   inset: 0;
   display: flex;
@@ -273,29 +273,33 @@
   border-radius: inherit;
 }
 
-.bw-fpw-media:hover .bw-fpw-overlay,
-.bw-fpw-media:focus-within .bw-fpw-overlay,
-.bw-fpw-overlay:hover,
-.bw-fpw-overlay:focus-within {
+.bw-filtered-post-wall .bw-fpw-media:hover .bw-fpw-overlay,
+.bw-filtered-post-wall .bw-fpw-media:focus-within .bw-fpw-overlay,
+.bw-filtered-post-wall .bw-fpw-media:hover .overlay-buttons,
+.bw-filtered-post-wall .bw-fpw-media:focus-within .overlay-buttons,
+.bw-filtered-post-wall .bw-fpw-overlay:hover,
+.bw-filtered-post-wall .bw-fpw-overlay:focus-within {
   opacity: 1;
   transform: translateY(0);
   pointer-events: auto;
 }
 
-.bw-fpw-overlay-buttons {
+.bw-filtered-post-wall .bw-fpw-overlay-buttons {
   display: flex;
   width: 100%;
   gap: 0;
   pointer-events: auto;
 }
 
-.bw-fpw-overlay-buttons--double .bw-fpw-overlay-button {
+.bw-filtered-post-wall .bw-fpw-overlay-buttons--double .bw-fpw-overlay-button,
+.bw-filtered-post-wall .bw-fpw-overlay-buttons--double .overlay-button {
   flex: 1 1 50%;
   width: 50%;
 }
 
-.bw-fpw-overlay-button,
-.bw-fpw .overlay-button {
+/* Bottoni identici a BW WallPost */
+.bw-filtered-post-wall .bw-fpw-overlay-button,
+.bw-filtered-post-wall .overlay-button {
   position: relative;
   display: inline-flex;
   justify-content: center;
@@ -314,31 +318,31 @@
   transition: background 0.3s ease, color 0.3s ease;
 }
 
-.bw-fpw-overlay-button:first-child,
-.bw-fpw .overlay-button:first-child {
+.bw-filtered-post-wall .bw-fpw-overlay-button:first-child,
+.bw-filtered-post-wall .overlay-button:first-child {
   border-top-left-radius: var(--bw-fpw-overlay-buttons-radius);
   border-bottom-left-radius: var(--bw-fpw-overlay-buttons-radius);
 }
 
-.bw-fpw-overlay-button:last-child,
-.bw-fpw .overlay-button:last-child {
+.bw-filtered-post-wall .bw-fpw-overlay-button:last-child,
+.bw-filtered-post-wall .overlay-button:last-child {
   border-top-right-radius: var(--bw-fpw-overlay-buttons-radius);
   border-bottom-right-radius: var(--bw-fpw-overlay-buttons-radius);
 }
 
-.bw-fpw-overlay-button + .bw-fpw-overlay-button,
-.bw-fpw .overlay-button + .overlay-button {
+.bw-filtered-post-wall .bw-fpw-overlay-button + .bw-fpw-overlay-button,
+.bw-filtered-post-wall .overlay-button + .overlay-button {
   border-left: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-/* Label with underline effect */
-.bw-fpw .overlay-button__label {
+/* Label con underline effect */
+.bw-filtered-post-wall .overlay-button__label {
   position: relative;
   display: inline-block;
   line-height: 1.2;
 }
 
-.bw-fpw .overlay-button__label::after {
+.bw-filtered-post-wall .overlay-button__label::after {
   content: "";
   position: absolute;
   left: 0;
@@ -351,16 +355,18 @@
   transition: transform 0.3s ease;
 }
 
-.bw-fpw-overlay-button:hover,
-.bw-fpw-overlay-button:focus,
-.bw-fpw .overlay-button:hover,
-.bw-fpw .overlay-button:focus {
+.bw-filtered-post-wall .bw-fpw-overlay-button:hover,
+.bw-filtered-post-wall .bw-fpw-overlay-button:focus,
+.bw-filtered-post-wall .overlay-button:hover,
+.bw-filtered-post-wall .overlay-button:focus {
   background: var(--bw-fpw-overlay-buttons-background-hover);
   color: var(--bw-fpw-overlay-buttons-color-hover);
 }
 
-.bw-fpw .overlay-button:hover .overlay-button__label::after,
-.bw-fpw .overlay-button:focus .overlay-button__label::after {
+.bw-filtered-post-wall .overlay-button:hover .overlay-button__label::after,
+.bw-filtered-post-wall .overlay-button:focus .overlay-button__label::after,
+.bw-filtered-post-wall .bw-fpw-overlay-button:hover .overlay-button__label::after,
+.bw-filtered-post-wall .bw-fpw-overlay-button:focus .overlay-button__label::after {
   transform: scaleX(1);
 }
 

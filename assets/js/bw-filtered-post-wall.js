@@ -329,29 +329,44 @@
                     // Replace grid content
                     $grid.html(response.data.html);
 
-                    // Reinitialize masonry after content is loaded
-                    setTimeout(function() {
+                    // CRITICAL: Wait for images to load before reinitializing masonry
+                    withImagesLoaded($grid, function() {
+                        console.log('📸 Images loaded, reinitializing grid');
+
+                        // Reinitialize masonry after images are loaded
                         initGrid($grid);
 
-                        // Additional layout passes
+                        // Additional layout passes for stability
                         setTimeout(function() {
-                            layoutGrid($grid, false);
+                            var instance = $grid.data('masonry');
+                            if (instance && typeof instance.layout === 'function') {
+                                instance.layout();
+                                updateGridHeight($grid);
+                            }
                         }, 200);
 
                         setTimeout(function() {
-                            layoutGrid($grid, false);
+                            var instance = $grid.data('masonry');
+                            if (instance && typeof instance.layout === 'function') {
+                                instance.layout();
+                                updateGridHeight($grid);
+                            }
                         }, 500);
-                    }, 100);
+
+                        // Remove loading state after images loaded
+                        $wrapper.removeClass('bw-filtered-post-wall--loading');
+                        $filters.removeClass('loading');
+                    });
 
                     console.log('✅ Posts filtered successfully');
                 } else {
                     console.error('❌ Filter response error:', response);
                     $grid.html('<div class="bw-fpw-placeholder">No posts found.</div>');
-                }
 
-                // Remove loading state
-                $wrapper.removeClass('bw-filtered-post-wall--loading');
-                $filters.removeClass('loading');
+                    // Remove loading state
+                    $wrapper.removeClass('bw-filtered-post-wall--loading');
+                    $filters.removeClass('loading');
+                }
             },
             error: function(xhr, status, error) {
                 console.error('❌ AJAX error:', error);
