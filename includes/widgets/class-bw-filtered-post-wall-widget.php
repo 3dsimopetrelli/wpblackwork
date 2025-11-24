@@ -56,6 +56,16 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'description'  => __( 'Mostra/nascondi i filtri di categoria e tag', 'bw-elementor-widgets' ),
         ] );
 
+        $this->add_control( 'show_categories', [
+            'label'        => __( 'Show Categories', 'bw-elementor-widgets' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
+            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
+            'return_value' => 'yes',
+            'default'      => 'yes',
+            'condition'    => [ 'show_filters' => 'yes' ],
+        ] );
+
         $this->add_control( 'filter_categories_title', [
             'label'       => __( 'Categories Title', 'bw-elementor-widgets' ),
             'type'        => Controls_Manager::TEXT,
@@ -63,11 +73,48 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'condition'   => [ 'show_filters' => 'yes' ],
         ] );
 
+        $this->add_control( 'show_subcategories', [
+            'label'        => __( 'Show Subcategories', 'bw-elementor-widgets' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
+            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
+            'return_value' => 'yes',
+            'default'      => 'yes',
+            'condition'    => [ 'show_filters' => 'yes' ],
+        ] );
+
+        $this->add_control( 'filter_subcategories_title', [
+            'label'       => __( 'Subcategories Title', 'bw-elementor-widgets' ),
+            'type'        => Controls_Manager::TEXT,
+            'default'     => __( 'Subcategories', 'bw-elementor-widgets' ),
+            'condition'   => [ 'show_filters' => 'yes', 'show_subcategories' => 'yes' ],
+        ] );
+
+        $this->add_control( 'show_tags', [
+            'label'        => __( 'Show Tags', 'bw-elementor-widgets' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
+            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
+            'return_value' => 'yes',
+            'default'      => 'yes',
+            'condition'    => [ 'show_filters' => 'yes' ],
+        ] );
+
         $this->add_control( 'filter_tags_title', [
             'label'       => __( 'Tags Title', 'bw-elementor-widgets' ),
             'type'        => Controls_Manager::TEXT,
             'default'     => __( 'Tags', 'bw-elementor-widgets' ),
-            'condition'   => [ 'show_filters' => 'yes' ],
+            'condition'   => [ 'show_filters' => 'yes', 'show_tags' => 'yes' ],
+        ] );
+
+        $this->add_control( 'show_all_button', [
+            'label'        => __( 'Show “All” Option', 'bw-elementor-widgets' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
+            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
+            'return_value' => 'yes',
+            'default'      => 'yes',
+            'condition'    => [ 'show_filters' => 'yes' ],
         ] );
 
         $this->add_control( 'filter_position', [
@@ -91,70 +138,114 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'condition' => [ 'show_filters' => 'yes' ],
         ] );
 
-        $this->add_control( 'filter_title_color', [
+        $this->add_control( 'filter_label_color', [
             'label'     => __( 'Title Color', 'bw-elementor-widgets' ),
             'type'      => Controls_Manager::COLOR,
             'default'   => '#000000',
             'selectors' => [
-                '{{WRAPPER}} .bw-fpw-filter-title' => 'color: {{VALUE}};',
+                '{{WRAPPER}} .bw-fpw-filter-label' => 'color: {{VALUE}};',
             ],
         ] );
 
         $this->add_group_control( Group_Control_Typography::get_type(), [
-            'name'     => 'filter_title_typography',
-            'selector' => '{{WRAPPER}} .bw-fpw-filter-title',
+            'name'           => 'filter_label_typography',
+            'selector'       => '{{WRAPPER}} .bw-fpw-filter-label',
+            'fields_options' => [
+                'font_size' => [
+                    'default' => [
+                        'size' => 14,
+                        'unit' => 'px',
+                    ],
+                ],
+            ],
         ] );
 
-        $this->add_control( 'filter_button_color', [
-            'label'     => __( 'Button Text Color', 'bw-elementor-widgets' ),
+        $this->add_control( 'filter_option_color', [
+            'label'     => __( 'Options Color', 'bw-elementor-widgets' ),
             'type'      => Controls_Manager::COLOR,
             'default'   => '#000000',
             'selectors' => [
-                '{{WRAPPER}} .bw-fpw-filter-button' => 'color: {{VALUE}};',
+                '{{WRAPPER}} .bw-fpw-filter-option' => 'color: {{VALUE}};',
             ],
         ] );
 
-        $this->add_control( 'filter_button_bg', [
-            'label'     => __( 'Button Background', 'bw-elementor-widgets' ),
+        $this->add_group_control( Group_Control_Typography::get_type(), [
+            'name'           => 'filter_option_typography',
+            'selector'       => '{{WRAPPER}} .bw-fpw-filter-option',
+            'fields_options' => [
+                'font_size' => [
+                    'default' => [
+                        'size' => 14,
+                        'unit' => 'px',
+                    ],
+                ],
+            ],
+        ] );
+
+        $this->add_control( 'filter_count_color', [
+            'label'     => __( 'Count Color', 'bw-elementor-widgets' ),
             'type'      => Controls_Manager::COLOR,
-            'default'   => '#f0f0f0',
+            'default'   => '#9b9b9b',
             'selectors' => [
-                '{{WRAPPER}} .bw-fpw-filter-button' => 'background-color: {{VALUE}};',
+                '{{WRAPPER}} .bw-fpw-option-count' => 'color: {{VALUE}};',
             ],
         ] );
 
-        $this->add_control( 'filter_button_active_color', [
-            'label'     => __( 'Button Active Text Color', 'bw-elementor-widgets' ),
+        $this->add_control( 'filter_box_background', [
+            'label'     => __( 'Background Color', 'bw-elementor-widgets' ),
             'type'      => Controls_Manager::COLOR,
             'default'   => '#ffffff',
             'selectors' => [
-                '{{WRAPPER}} .bw-fpw-filter-button.active' => 'color: {{VALUE}};',
+                '{{WRAPPER}} .bw-fpw-filters' => 'background-color: {{VALUE}};',
             ],
         ] );
 
-        $this->add_control( 'filter_button_active_bg', [
-            'label'     => __( 'Button Active Background', 'bw-elementor-widgets' ),
-            'type'      => Controls_Manager::COLOR,
-            'default'   => '#80FD03',
-            'selectors' => [
-                '{{WRAPPER}} .bw-fpw-filter-button.active' => 'background-color: {{VALUE}};',
-            ],
-        ] );
-
-        $this->add_responsive_control( 'filter_button_border_radius', [
-            'label'      => __( 'Button Border Radius', 'bw-elementor-widgets' ),
+        $this->add_responsive_control( 'filter_box_radius', [
+            'label'      => __( 'Border Radius', 'bw-elementor-widgets' ),
             'type'       => Controls_Manager::SLIDER,
             'size_units' => [ 'px', '%' ],
             'range'      => [
                 'px' => [ 'min' => 0, 'max' => 50 ],
             ],
+            'selectors'  => [
+                '{{WRAPPER}} .bw-fpw-filters' => 'border-radius: {{SIZE}}{{UNIT}};',
+            ],
+        ] );
+
+        $this->add_control( 'filter_box_border', [
+            'label'        => __( 'Show Border', 'bw-elementor-widgets' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
+            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
+            'return_value' => 'yes',
+            'default'      => 'no',
+        ] );
+
+        $this->add_responsive_control( 'filter_box_border_width', [
+            'label'      => __( 'Border Width', 'bw-elementor-widgets' ),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => [ 'px' ],
+            'range'      => [
+                'px' => [ 'min' => 0, 'max' => 10 ],
+            ],
             'default'    => [
-                'size' => 5,
+                'size' => 1,
                 'unit' => 'px',
             ],
             'selectors'  => [
-                '{{WRAPPER}} .bw-fpw-filter-button' => 'border-radius: {{SIZE}}{{UNIT}};',
+                '{{WRAPPER}} .bw-fpw-filters' => 'border-width: {{SIZE}}{{UNIT}};',
             ],
+            'condition'  => [ 'filter_box_border' => 'yes' ],
+        ] );
+
+        $this->add_control( 'filter_box_border_color', [
+            'label'     => __( 'Border Color', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::COLOR,
+            'default'   => '#e0e0e0',
+            'selectors' => [
+                '{{WRAPPER}} .bw-fpw-filters' => 'border-color: {{VALUE}}; border-style: solid;',
+            ],
+            'condition' => [ 'filter_box_border' => 'yes' ],
         ] );
 
         $this->end_controls_section();
@@ -879,67 +970,80 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
 
     private function render_filters( $settings, $widget_id ) {
         $post_type = isset( $settings['post_type'] ) ? sanitize_key( $settings['post_type'] ) : 'product';
-        $categories_title = isset( $settings['filter_categories_title'] ) ? $settings['filter_categories_title'] : __( 'Categories', 'bw-elementor-widgets' );
-        $tags_title = isset( $settings['filter_tags_title'] ) ? $settings['filter_tags_title'] : __( 'Tags', 'bw-elementor-widgets' );
+        $categories_title      = isset( $settings['filter_categories_title'] ) ? $settings['filter_categories_title'] : __( 'Categories', 'bw-elementor-widgets' );
+        $subcategories_title   = isset( $settings['filter_subcategories_title'] ) ? $settings['filter_subcategories_title'] : __( 'Subcategories', 'bw-elementor-widgets' );
+        $tags_title            = isset( $settings['filter_tags_title'] ) ? $settings['filter_tags_title'] : __( 'Tags', 'bw-elementor-widgets' );
+        $show_categories       = isset( $settings['show_categories'] ) ? 'yes' === $settings['show_categories'] : true;
+        $show_subcategories    = isset( $settings['show_subcategories'] ) ? 'yes' === $settings['show_subcategories'] : true;
+        $show_tags             = isset( $settings['show_tags'] ) ? 'yes' === $settings['show_tags'] : true;
+        $show_all_button       = isset( $settings['show_all_button'] ) ? 'yes' === $settings['show_all_button'] : true;
 
-        $taxonomy = 'product' === $post_type ? 'product_cat' : 'category';
-        $tag_taxonomy = 'product' === $post_type ? 'product_tag' : 'post_tag';
+        $taxonomy     = 'product' === $post_type ? 'product_cat' : 'category';
+        $parent_terms = $show_categories
+            ? get_terms(
+                [
+                    'taxonomy'   => $taxonomy,
+                    'hide_empty' => true,
+                    'parent'     => 0,
+                ]
+            )
+            : [];
 
-        // Get parent categories (those without parents)
-        $parent_categories = get_terms( [
-            'taxonomy'   => $taxonomy,
-            'hide_empty' => true,
-            'parent'     => 0,
-        ] );
-
-        // Get all tags
-        $tags = get_terms( [
-            'taxonomy'   => $tag_taxonomy,
-            'hide_empty' => true,
-        ] );
-
+        $tags = $show_tags ? $this->get_related_tags( $post_type, 'all', [] ) : [];
         ?>
         <div class="bw-fpw-filters" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
-            <!-- Categories Section -->
-            <div class="bw-fpw-filter-section bw-fpw-filter-categories">
-                <h3 class="bw-fpw-filter-title"><?php echo esc_html( $categories_title ); ?></h3>
-                <div class="bw-fpw-filter-buttons">
-                    <button class="bw-fpw-filter-button bw-fpw-cat-button active" data-category="all">
-                        <?php esc_html_e( 'All', 'bw-elementor-widgets' ); ?>
-                    </button>
-                    <?php if ( ! empty( $parent_categories ) && ! is_wp_error( $parent_categories ) ) : ?>
-                        <?php foreach ( $parent_categories as $category ) : ?>
-                            <button class="bw-fpw-filter-button bw-fpw-cat-button" data-category="<?php echo esc_attr( $category->term_id ); ?>">
-                                <?php echo esc_html( $category->name ); ?>
-                            </button>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                </div>
-            </div>
+            <div class="bw-fpw-filter-rows">
+                <?php if ( $show_categories ) : ?>
+                    <div class="bw-fpw-filter-row bw-fpw-filter-row--categories">
+                        <h3 class="bw-fpw-filter-label"><?php echo esc_html( $categories_title ); ?></h3>
+                        <div class="bw-fpw-filter-options bw-fpw-filter-options--categories">
+                            <?php if ( $show_all_button ) : ?>
+                                <button class="bw-fpw-filter-option bw-fpw-cat-button active" data-category="all">
+                                    <span class="bw-fpw-option-label"><?php esc_html_e( 'All', 'bw-elementor-widgets' ); ?></span>
+                                    <span class="bw-fpw-option-count">(<?php echo esc_html( $this->get_total_post_count( $post_type ) ); ?>)</span>
+                                </button>
+                            <?php endif; ?>
+                            <?php if ( ! empty( $parent_terms ) && ! is_wp_error( $parent_terms ) ) : ?>
+                                <?php
+                                $has_active_category = $show_all_button;
+                                foreach ( $parent_terms as $category ) :
+                                    $is_active = ! $has_active_category;
+                                    if ( $is_active ) {
+                                        $has_active_category = true;
+                                    }
+                                    ?>
+                                    <button class="bw-fpw-filter-option bw-fpw-cat-button<?php echo $is_active ? ' active' : ''; ?>" data-category="<?php echo esc_attr( $category->term_id ); ?>">
+                                        <span class="bw-fpw-option-label"><?php echo esc_html( $category->name ); ?></span>
+                                        <span class="bw-fpw-option-count">(<?php echo esc_html( $category->count ); ?>)</span>
+                                    </button>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                <?php endif; ?>
 
-            <!-- Subcategories Section (shown when category selected) -->
-            <div class="bw-fpw-filter-section bw-fpw-filter-subcategories" style="display: none;">
-                <h4 class="bw-fpw-filter-subtitle"><?php esc_html_e( 'Subcategories', 'bw-elementor-widgets' ); ?></h4>
-                <div class="bw-fpw-filter-buttons bw-fpw-subcategories-container">
-                    <!-- Subcategories will be loaded via AJAX -->
-                </div>
-            </div>
+                <?php if ( $show_subcategories ) : ?>
+                    <div class="bw-fpw-filter-row bw-fpw-filter-row--subcategories bw-fpw-filter-subcategories" style="display: none;">
+                        <h3 class="bw-fpw-filter-label"><?php echo esc_html( $subcategories_title ); ?></h3>
+                        <div class="bw-fpw-filter-options bw-fpw-subcategories-container">
+                            <!-- Subcategories will be loaded via AJAX -->
+                        </div>
+                    </div>
+                <?php endif; ?>
 
-            <!-- Tags Section -->
-            <div class="bw-fpw-filter-section bw-fpw-filter-tags">
-                <h3 class="bw-fpw-filter-title"><?php echo esc_html( $tags_title ); ?></h3>
-                <div class="bw-fpw-filter-buttons">
-                    <?php if ( ! empty( $tags ) && ! is_wp_error( $tags ) ) : ?>
-                        <?php foreach ( $tags as $tag ) : ?>
-                            <?php
-                            $count = $tag->count;
-                            ?>
-                            <button class="bw-fpw-filter-button bw-fpw-tag-button" data-tag="<?php echo esc_attr( $tag->term_id ); ?>">
-                                <?php echo esc_html( $tag->name ); ?> (<?php echo esc_html( $count ); ?>)
-                            </button>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                </div>
+                <?php if ( $show_tags && ! empty( $tags ) ) : ?>
+                    <div class="bw-fpw-filter-row bw-fpw-filter-row--tags bw-fpw-filter-tags">
+                        <h3 class="bw-fpw-filter-label"><?php echo esc_html( $tags_title ); ?></h3>
+                        <div class="bw-fpw-filter-options bw-fpw-tag-options">
+                            <?php foreach ( $tags as $tag ) : ?>
+                                <button class="bw-fpw-filter-option bw-fpw-tag-button" data-tag="<?php echo esc_attr( $tag['term_id'] ); ?>">
+                                    <span class="bw-fpw-option-label"><?php echo esc_html( $tag['name'] ); ?></span>
+                                    <span class="bw-fpw-option-count">(<?php echo esc_html( $tag['count'] ); ?>)</span>
+                                </button>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
         <?php
@@ -1358,6 +1462,122 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
         asort( $options );
 
         return $options;
+    }
+
+    private function get_total_post_count( $post_type ) {
+        $counts = wp_count_posts( $post_type );
+
+        if ( $counts && isset( $counts->publish ) ) {
+            return (int) $counts->publish;
+        }
+
+        return 0;
+    }
+
+    private function get_filtered_post_ids( $post_type, $category, array $subcategories ) {
+        $taxonomy = 'product' === $post_type ? 'product_cat' : 'category';
+
+        $tax_query = [];
+
+        if ( 'all' !== $category && absint( $category ) > 0 ) {
+            if ( ! empty( $subcategories ) ) {
+                $tax_query[] = [
+                    'taxonomy' => $taxonomy,
+                    'field'    => 'term_id',
+                    'terms'    => $subcategories,
+                ];
+            } else {
+                $tax_query[] = [
+                    'taxonomy' => $taxonomy,
+                    'field'    => 'term_id',
+                    'terms'    => [ absint( $category ) ],
+                ];
+            }
+        }
+
+        $query_args = [
+            'post_type'      => $post_type,
+            'post_status'    => 'publish',
+            'posts_per_page' => -1,
+            'fields'         => 'ids',
+            'tax_query'      => $tax_query,
+        ];
+
+        $query = new WP_Query( $query_args );
+
+        return $query->posts;
+    }
+
+    private function collect_terms_from_posts( $taxonomy, array $post_ids ) {
+        if ( empty( $post_ids ) ) {
+            return [];
+        }
+
+        $terms_map = [];
+
+        foreach ( $post_ids as $post_id ) {
+            $terms = wp_get_object_terms( $post_id, $taxonomy );
+
+            if ( empty( $terms ) || is_wp_error( $terms ) ) {
+                continue;
+            }
+
+            foreach ( $terms as $term ) {
+                $term_id = (int) $term->term_id;
+
+                if ( ! isset( $terms_map[ $term_id ] ) ) {
+                    $terms_map[ $term_id ] = [
+                        'term_id' => $term_id,
+                        'name'    => $term->name,
+                        'count'   => 0,
+                    ];
+                }
+
+                $terms_map[ $term_id ]['count']++;
+            }
+        }
+
+        usort(
+            $terms_map,
+            static function ( $a, $b ) {
+                return strcmp( $a['name'], $b['name'] );
+            }
+        );
+
+        return $terms_map;
+    }
+
+    private function get_related_tags( $post_type, $category = 'all', array $subcategories = [] ) {
+        $tag_taxonomy = 'product' === $post_type ? 'product_tag' : 'post_tag';
+
+        if ( 'all' === $category || empty( $category ) ) {
+            $terms = get_terms(
+                [
+                    'taxonomy'   => $tag_taxonomy,
+                    'hide_empty' => true,
+                ]
+            );
+
+            if ( empty( $terms ) || is_wp_error( $terms ) ) {
+                return [];
+            }
+
+            $results = [];
+
+            foreach ( $terms as $term ) {
+                $results[] = [
+                    'term_id' => (int) $term->term_id,
+                    'name'    => $term->name,
+                    'count'   => (int) $term->count,
+                ];
+            }
+
+            return $results;
+        }
+
+        $post_ids = $this->get_filtered_post_ids( $post_type, $category, $subcategories );
+
+        return $this->collect_terms_from_posts( $tag_taxonomy, $post_ids );
     }
 
     private function parse_ids( $ids_string ) {

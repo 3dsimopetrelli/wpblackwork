@@ -239,6 +239,7 @@
     function loadSubcategories(categoryId, $container, widgetId) {
         var $grid = $('.bw-fpw-grid[data-widget-id="' + widgetId + '"]');
         var postType = $grid.attr('data-post-type') || 'product';
+        var $filters = $container.closest('.bw-fpw-filters');
 
         console.log('📂 Loading subcategories for category:', categoryId);
 
@@ -257,18 +258,19 @@
                     var html = '';
 
                     $.each(subcats, function(index, subcat) {
-                        html += '<button class="bw-fpw-filter-button bw-fpw-subcat-button" data-subcategory="' + subcat.term_id + '">';
-                        html += subcat.name + ' (' + subcat.count + ')';
+                        html += '<button class="bw-fpw-filter-option bw-fpw-subcat-button" data-subcategory="' + subcat.term_id + '">';
+                        html += '<span class="bw-fpw-option-label">' + subcat.name + '</span>';
+                        html += '<span class="bw-fpw-option-count">(' + subcat.count + ')</span>';
                         html += '</button>';
                     });
 
                     $container.html(html);
 
                     // Show subcategories section
-                    $('.bw-fpw-filter-subcategories').slideDown(300);
+                    $filters.find('.bw-fpw-filter-subcategories').slideDown(300);
                 } else {
                     $container.html('<p class="bw-fpw-no-subcats">No subcategories found</p>');
-                    $('.bw-fpw-filter-subcategories').slideUp(300);
+                    $filters.find('.bw-fpw-filter-subcategories').slideUp(300);
                 }
             },
             error: function() {
@@ -329,6 +331,41 @@
                     // Replace grid content
                     $grid.html(response.data.html);
 
+                    if (typeof response.data.tags_html !== 'undefined') {
+                        var $tagRow = $filters.find('.bw-fpw-filter-row--tags');
+                        var $tagOptions = $filters.find('.bw-fpw-tag-options');
+
+                        if ($tagRow.length && $tagOptions.length) {
+                            var availableTags = Array.isArray(response.data.available_tags) ? response.data.available_tags.map(function(tag){ return parseInt(tag); }) : [];
+
+                            if (availableTags.length) {
+                                filterState[widgetId].tags = filterState[widgetId].tags.filter(function(tag){
+                                    return availableTags.indexOf(tag) > -1;
+                                });
+                            }
+
+                            if (response.data.tags_html) {
+                                $tagOptions.html(response.data.tags_html);
+                                $tagRow.show();
+
+                                if (filterState[widgetId].tags.length) {
+                                    $tagOptions.find('.bw-fpw-tag-button').each(function(){
+                                        var $tagButton = $(this);
+                                        var tagId = parseInt($tagButton.attr('data-tag'));
+
+                                        if (filterState[widgetId].tags.indexOf(tagId) > -1) {
+                                            $tagButton.addClass('active');
+                                        }
+                                    });
+                                }
+                            } else {
+                                filterState[widgetId].tags = [];
+                                $tagOptions.empty();
+                                $tagRow.hide();
+                            }
+                        }
+                    }
+
                     // CRITICAL: Wait for images to load before reinitializing masonry
                     withImagesLoaded($grid, function() {
                         console.log('📸 Images loaded, reinitializing grid');
@@ -385,6 +422,9 @@
             var $filters = $button.closest('.bw-fpw-filters');
             var widgetId = $filters.attr('data-widget-id');
             var categoryId = $button.attr('data-category');
+            var $subcatRow = $filters.find('.bw-fpw-filter-subcategories');
+            var $subcatContainer = $filters.find('.bw-fpw-subcategories-container');
+            var $tagOptions = $filters.find('.bw-fpw-tag-options');
 
             initFilterState(widgetId);
 
@@ -395,6 +435,10 @@
             // Update filter state
             filterState[widgetId].category = categoryId;
             filterState[widgetId].subcategories = [];
+            filterState[widgetId].tags = [];
+
+            // Reset tag visual state
+            $filters.find('.bw-fpw-tag-button').removeClass('active');
 
             // Clear subcategory active states
             $filters.find('.bw-fpw-subcat-button').removeClass('active');
@@ -403,11 +447,19 @@
 
             if (categoryId === 'all') {
                 // Hide subcategories section
-                $('.bw-fpw-filter-subcategories').slideUp(300);
+                if ($subcatContainer.length) {
+                    $subcatContainer.empty();
+                }
+                $subcatRow.slideUp(300);
             } else {
                 // Load subcategories
-                var $subcatContainer = $filters.find('.bw-fpw-subcategories-container');
-                loadSubcategories(categoryId, $subcatContainer, widgetId);
+                if ($subcatContainer.length) {
+                    loadSubcategories(categoryId, $subcatContainer, widgetId);
+                }
+            }
+
+            if ($tagOptions.length) {
+                $tagOptions.empty();
             }
 
             // Filter posts
@@ -498,6 +550,32 @@
             var widgetId = $grid.attr('data-widget-id');
 
             initFilterState(widgetId);
+            var $filters = $('.bw-fpw-filters[data-widget-id="' + widgetId + '"]');
+
+            if ($filters.length) {
+                var $activeCategory = $filters.find('.bw-fpw-cat-button.active').first();
+                if ($activeCategory.length) {
+                    filterState[widgetId].category = $activeCategory.attr('data-category') || 'all';
+                }
+
+                var initialSubcats = [];
+                $filters.find('.bw-fpw-subcat-button.active').each(function(){
+                    var id = parseInt($(this).attr('data-subcategory'));
+                    if (!isNaN(id)) {
+                        initialSubcats.push(id);
+                    }
+                });
+                filterState[widgetId].subcategories = initialSubcats;
+
+                var initialTags = [];
+                $filters.find('.bw-fpw-tag-button.active').each(function(){
+                    var id = parseInt($(this).attr('data-tag'));
+                    if (!isNaN(id)) {
+                        initialTags.push(id);
+                    }
+                });
+                filterState[widgetId].tags = initialTags;
+            }
             initGrid($grid);
         });
     }
