@@ -3,6 +3,11 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+/**
+ * NOTA: Questa registrazione è stata disabilitata perché il menu è ora unificato
+ * nella pagina "Blackwork Site" sotto Settings
+ */
+/*
 function bw_coming_soon_menu() {
     add_menu_page(
         'BW Coming Soon',
@@ -15,6 +20,7 @@ function bw_coming_soon_menu() {
     );
 }
 add_action('admin_menu', 'bw_coming_soon_menu');
+*/
 
 function bw_coming_soon_settings_page() {
     if (isset($_POST['bw_coming_soon_toggle'])) {
