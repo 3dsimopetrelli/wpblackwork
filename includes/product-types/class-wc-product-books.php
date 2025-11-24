@@ -21,12 +21,18 @@ if ( ! defined( 'ABSPATH' ) ) {
 class WC_Product_Books extends WC_Product_Simple {
 
 	/**
+	 * Product type.
+	 *
+	 * @var string
+	 */
+	protected $product_type = 'books';
+
+	/**
 	 * Initialize the product type.
 	 *
 	 * @param mixed $product Product object or ID.
 	 */
 	public function __construct( $product = 0 ) {
-		$this->product_type = 'books';
 		parent::__construct( $product );
 	}
 
