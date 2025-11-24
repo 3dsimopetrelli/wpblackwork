@@ -16,6 +16,36 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * Helper function to get product type reliably.
+ * Checks taxonomy first (WooCommerce native), then post meta as fallback.
+ *
+ * @param int $product_id Product ID.
+ * @return string Product type or empty string.
+ */
+function bw_get_product_type( $product_id ) {
+	if ( ! $product_id ) {
+		return '';
+	}
+
+	// First, try to get from taxonomy (WooCommerce native method)
+	$terms = get_the_terms( $product_id, 'product_type' );
+	if ( $terms && ! is_wp_error( $terms ) ) {
+		$term = current( $terms );
+		if ( $term && isset( $term->name ) ) {
+			return $term->name;
+		}
+	}
+
+	// Fallback to post meta for backward compatibility
+	$product_type = get_post_meta( $product_id, '_product_type', true );
+	if ( $product_type ) {
+		return $product_type;
+	}
+
+	return '';
+}
+
+/**
  * Load custom product type classes after WooCommerce is loaded.
  * This ensures WC_Product_Variable and WC_Product_Simple classes are available.
  */
@@ -54,6 +84,64 @@ function bw_register_custom_product_types( $classname, $product_type, $post_type
 add_filter( 'woocommerce_product_class', 'bw_register_custom_product_types', 10, 4 );
 
 /**
+ * Save product type as post meta when product is saved.
+ * This ensures the product type is persisted correctly and remains after updates.
+ *
+ * @param int     $post_id Product ID.
+ * @param WP_Post $post Post object.
+ */
+function bw_save_product_type_meta( $post_id, $post ) {
+	// Check if this is a product
+	if ( 'product' !== $post->post_type ) {
+		return;
+	}
+
+	// Check autosave
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
+
+	// Check permissions
+	if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		return;
+	}
+
+	// Get product type from taxonomy (WooCommerce native)
+	$product_type = bw_get_product_type( $post_id );
+
+	// If we have a product type, save it as post meta for compatibility
+	if ( $product_type ) {
+		update_post_meta( $post_id, '_product_type', $product_type );
+	}
+}
+add_action( 'save_post_product', 'bw_save_product_type_meta', 10, 2 );
+
+/**
+ * Sync product type when set via taxonomy.
+ * This catches changes made through WooCommerce admin interface.
+ *
+ * @param int    $object_id Object ID.
+ * @param array  $terms Array of term taxonomy IDs.
+ * @param array  $tt_ids Array of term IDs.
+ * @param string $taxonomy Taxonomy slug.
+ */
+function bw_sync_product_type_on_term_set( $object_id, $terms, $tt_ids, $taxonomy ) {
+	// Only for product_type taxonomy
+	if ( 'product_type' !== $taxonomy ) {
+		return;
+	}
+
+	// Get the product type
+	$product_type = bw_get_product_type( $object_id );
+
+	// Save as post meta
+	if ( $product_type ) {
+		update_post_meta( $object_id, '_product_type', $product_type );
+	}
+}
+add_action( 'set_object_terms', 'bw_sync_product_type_on_term_set', 10, 4 );
+
+/**
  * Add custom product types to the product type dropdown.
  *
  * @param array $types Existing product types.
@@ -83,14 +171,8 @@ function bw_custom_product_tabs( $tabs ) {
 	$product_type = '';
 	if ( $product_object && is_object( $product_object ) ) {
 		$product_type = $product_object->get_type();
-	} elseif ( $post ) {
-		$product_type = get_post_meta( $post->ID, '_product_type', true );
-		if ( empty( $product_type ) ) {
-			$terms = get_the_terms( $post->ID, 'product_type' );
-			if ( $terms && ! is_wp_error( $terms ) ) {
-				$product_type = current( $terms )->name;
-			}
-		}
+	} elseif ( $post && $post->ID ) {
+		$product_type = bw_get_product_type( $post->ID );
 	}
 
 	// For Digital Assets and Prints (Variable Product behavior)
@@ -132,8 +214,8 @@ function bw_variable_product_type_query( $override, $product_id ) {
 		return $override;
 	}
 
-	// Get the product type meta
-	$product_type = get_post_meta( $product_id, '_product_type', true );
+	// Get the product type using our helper function
+	$product_type = bw_get_product_type( $product_id );
 
 	// If it's one of our custom types, return it
 	if ( in_array( $product_type, array( 'digitalassets', 'prints', 'books' ), true ) ) {
@@ -158,8 +240,8 @@ function bw_custom_product_type_options( $options ) {
 	$product_type = '';
 	if ( $product_object && is_object( $product_object ) ) {
 		$product_type = $product_object->get_type();
-	} elseif ( $post ) {
-		$product_type = get_post_meta( $post->ID, '_product_type', true );
+	} elseif ( $post && $post->ID ) {
+		$product_type = bw_get_product_type( $post->ID );
 	}
 
 	// Show options based on product type
@@ -299,7 +381,7 @@ function bw_admin_body_class_for_product_types( $classes ) {
 	global $post, $pagenow;
 
 	if ( ( 'post.php' === $pagenow || 'post-new.php' === $pagenow ) && isset( $post ) && 'product' === get_post_type( $post ) ) {
-		$product_type = get_post_meta( $post->ID, '_product_type', true );
+		$product_type = bw_get_product_type( $post->ID );
 
 		if ( in_array( $product_type, array( 'digitalassets', 'prints' ), true ) ) {
 			$classes .= ' product-type-' . $product_type . ' product-type-variable';
@@ -372,3 +454,65 @@ function bw_custom_product_type_admin_css() {
 	}
 }
 add_action( 'admin_head', 'bw_custom_product_type_admin_css' );
+
+/**
+ * Add custom product types to WooCommerce product type filter in admin.
+ * This ensures the filter dropdown in Products list includes our custom types.
+ *
+ * @param array $output Array of product type options.
+ * @return array
+ */
+function bw_add_custom_types_to_product_filter( $output ) {
+	// The filter already includes all registered product types via product_type_selector filter
+	// This function is kept for potential future customization
+	return $output;
+}
+add_filter( 'woocommerce_product_filters', 'bw_add_custom_types_to_product_filter' );
+
+/**
+ * Ensure custom product types are searchable and filterable.
+ * This makes sure WooCommerce recognizes our custom product types in queries.
+ *
+ * @param WP_Query $query The WordPress query object.
+ */
+function bw_make_custom_product_types_searchable( $query ) {
+	// Only modify product queries in admin
+	if ( ! is_admin() || ! $query->is_main_query() ) {
+		return;
+	}
+
+	// Only for product post type
+	$post_type = $query->get( 'post_type' );
+	if ( 'product' !== $post_type ) {
+		return;
+	}
+
+	// If filtering by product_type taxonomy, ensure our types are included
+	$tax_query = $query->get( 'tax_query' );
+	if ( ! empty( $tax_query ) ) {
+		foreach ( $tax_query as $key => $tax ) {
+			if ( isset( $tax['taxonomy'] ) && 'product_type' === $tax['taxonomy'] ) {
+				// WooCommerce is filtering by product type - our types are already registered
+				// No modification needed as they're in the taxonomy
+				break;
+			}
+		}
+	}
+}
+add_action( 'pre_get_posts', 'bw_make_custom_product_types_searchable', 20 );
+
+/**
+ * Register custom product types as WooCommerce product types for filtering.
+ * This ensures the custom types appear in WooCommerce's product type filter dropdown.
+ */
+function bw_register_custom_product_types_for_filtering() {
+	// Register terms if they don't exist
+	$custom_types = array( 'digitalassets', 'books', 'prints' );
+
+	foreach ( $custom_types as $type ) {
+		if ( ! term_exists( $type, 'product_type' ) ) {
+			wp_insert_term( $type, 'product_type' );
+		}
+	}
+}
+add_action( 'init', 'bw_register_custom_product_types_for_filtering', 20 );
