@@ -624,13 +624,16 @@ function bw_fpw_get_subcategories() {
 
     $taxonomy = 'product' === $post_type ? 'product_cat' : 'category';
 
-    $subcategories = get_terms(
-        [
-            'taxonomy'   => $taxonomy,
-            'hide_empty' => true,
-            'parent'     => 'all' === $category_id ? 0 : $category_id,
-        ]
-    );
+    $get_terms_args = [
+        'taxonomy'   => $taxonomy,
+        'hide_empty' => true,
+    ];
+
+    if ( 'all' !== $category_id ) {
+        $get_terms_args['parent'] = $category_id;
+    }
+
+    $subcategories = get_terms( $get_terms_args );
 
     if ( 'all' === $category_id && ! is_wp_error( $subcategories ) ) {
         $subcategories = array_filter(
