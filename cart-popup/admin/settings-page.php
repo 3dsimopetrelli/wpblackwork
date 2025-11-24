@@ -164,7 +164,10 @@ function bw_cart_popup_sanitize_svg($svg) {
 
 /**
  * Aggiungi la pagina di menu nel pannello admin
+ * NOTA: Questa registrazione è stata disabilitata perché il menu è ora unificato
+ * nella pagina "Blackwork Site" sotto Settings
  */
+/*
 function bw_cart_popup_admin_menu() {
     add_menu_page(
         'Cart Pop-Up Settings',
@@ -177,6 +180,7 @@ function bw_cart_popup_admin_menu() {
     );
 }
 add_action('admin_menu', 'bw_cart_popup_admin_menu');
+*/
 
 /**
  * Salva le impostazioni del Cart Pop-Up

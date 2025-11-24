@@ -1,0 +1,129 @@
+/**
+ * Blackwork Site Settings - Admin Page Styles
+ * Stile minimale e pulito per la pagina unificata
+ */
+
+/* Tab Navigation */
+.nav-tab-wrapper {
+    margin: 20px 0;
+    border-bottom: 1px solid #ccd0d4;
+}
+
+.nav-tab {
+    font-size: 14px;
+    padding: 10px 15px;
+    text-decoration: none;
+    border: 1px solid transparent;
+    border-bottom: none;
+    background: #f6f7f7;
+    color: #555;
+    transition: all 0.2s ease;
+}
+
+.nav-tab:hover {
+    background: #fff;
+    color: #000;
+}
+
+.nav-tab-active {
+    background: #fff;
+    border-color: #ccd0d4;
+    color: #000;
+    font-weight: 600;
+    border-bottom: 1px solid #fff;
+    margin-bottom: -1px;
+}
+
+/* Tab Content */
+.tab-content {
+    background: #fff;
+    padding: 20px;
+    border: 1px solid #ccd0d4;
+    border-top: none;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+}
+
+/* Form Table Improvements */
+.tab-content .form-table th {
+    padding: 20px 10px 20px 0;
+    vertical-align: top;
+}
+
+.tab-content .form-table td {
+    padding: 15px 10px;
+}
+
+/* Card Style */
+.tab-content .card {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    padding: 20px;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+    margin-top: 20px;
+}
+
+.tab-content .card h2 {
+    margin-top: 0;
+}
+
+.tab-content .card ul {
+    list-style: disc;
+    padding-left: 20px;
+}
+
+.tab-content .card li {
+    margin-bottom: 10px;
+}
+
+/* Padding Grid Layout */
+.bw-padding-grid {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.bw-padding-field {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.bw-padding-field input {
+    margin-bottom: 5px;
+}
+
+.bw-padding-field label {
+    font-size: 12px;
+    color: #666;
+    font-weight: 500;
+}
+
+/* Switch Toggle Style */
+.switch input {
+    margin-right: 10px;
+}
+
+/* Success Notice in Tab */
+.tab-content .notice {
+    margin: 0 0 20px 0;
+}
+
+/* Section Headers */
+.tab-content h2 {
+    font-size: 20px;
+    margin: 30px 0 15px 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.tab-content h3 {
+    font-size: 16px;
+    margin: 20px 0 10px 0;
+    color: #23282d;
+}
+
+/* Submit Button */
+.tab-content .submit {
+    padding: 0;
+    margin: 20px 0 0 0;
+}
