@@ -35,14 +35,22 @@ require_once __DIR__ . '/includes/helpers.php';
 
 // Loader dei widget
 require_once __DIR__ . '/includes/class-bw-widget-loader.php';
-// Tipi di prodotto personalizzati per WooCommerce (Digital Assets, Books, Prints)
-require_once plugin_dir_path( __FILE__ ) . 'includes/product-types/product-types-init.php';
-// Metabox per prodotti digitali
-require_once plugin_dir_path( __FILE__ ) . 'metabox/digital-products-metabox.php';
-// Metabox Images Showcase
-require_once plugin_dir_path( __FILE__ ) . 'metabox/images-showcase-metabox.php';
-// Campo URL completo per categorie prodotto
-require_once plugin_dir_path( __FILE__ ) . 'includes/category-url-field.php';
+
+/**
+ * Initialize plugin components at the 'init' action to ensure proper translation loading.
+ * This prevents WordPress 6.7.0+ warnings about translations being loaded too early.
+ */
+function bw_initialize_plugin_components() {
+	// Tipi di prodotto personalizzati per WooCommerce (Digital Assets, Books, Prints)
+	require_once plugin_dir_path( __FILE__ ) . 'includes/product-types/product-types-init.php';
+	// Metabox per prodotti digitali
+	require_once plugin_dir_path( __FILE__ ) . 'metabox/digital-products-metabox.php';
+	// Metabox Images Showcase
+	require_once plugin_dir_path( __FILE__ ) . 'metabox/images-showcase-metabox.php';
+	// Campo URL completo per categorie prodotto
+	require_once plugin_dir_path( __FILE__ ) . 'includes/category-url-field.php';
+}
+add_action( 'init', 'bw_initialize_plugin_components', 5 );
 
 add_action('elementor/frontend/after_enqueue_scripts', 'bw_enqueue_slick_slider_assets');
 add_action('elementor/editor/after_enqueue_scripts', 'bw_enqueue_slick_slider_assets');
