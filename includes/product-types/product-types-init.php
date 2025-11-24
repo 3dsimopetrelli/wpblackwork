@@ -602,7 +602,7 @@ add_filter( 'woocommerce_product_filters', 'bw_add_custom_types_to_product_filte
 
 /**
  * Ensure custom product types are searchable and filterable.
- * This makes sure WooCommerce recognizes our custom product types in queries.
+ * Syncs product type from meta to taxonomy when filtering to ensure products appear in results.
  *
  * @param WP_Query $query The WordPress query object.
  */
@@ -618,19 +618,72 @@ function bw_make_custom_product_types_searchable( $query ) {
 		return;
 	}
 
-	// If filtering by product_type taxonomy, ensure our types are included
-	$tax_query = $query->get( 'tax_query' );
-	if ( ! empty( $tax_query ) ) {
-		foreach ( $tax_query as $key => $tax ) {
-			if ( isset( $tax['taxonomy'] ) && 'product_type' === $tax['taxonomy'] ) {
-				// WooCommerce is filtering by product type - our types are already registered
-				// No modification needed as they're in the taxonomy
-				break;
-			}
-		}
+	// Check if filtering by product_type via GET parameter
+	$product_type_filter = isset( $_GET['product_type'] ) ? sanitize_text_field( wp_unslash( $_GET['product_type'] ) ) : '';
+
+	if ( ! $product_type_filter ) {
+		return;
 	}
+
+	$custom_types = array( 'digitalassets', 'books', 'prints' );
+
+	// Only handle our custom types
+	if ( ! in_array( $product_type_filter, $custom_types, true ) ) {
+		return;
+	}
+
+	// Sync products that have the meta but not the taxonomy term
+	// This is done once per filter request to ensure the filter works
+	bw_sync_product_type_meta_to_taxonomy( $product_type_filter );
 }
 add_action( 'pre_get_posts', 'bw_make_custom_product_types_searchable', 20 );
+
+/**
+ * Sync products that have _product_type meta but not the taxonomy term.
+ * This ensures the WooCommerce filter works correctly.
+ *
+ * @param string $product_type The product type to sync.
+ */
+function bw_sync_product_type_meta_to_taxonomy( $product_type ) {
+	global $wpdb;
+
+	// Find products that have the meta but not the taxonomy term
+	$sql = $wpdb->prepare(
+		"SELECT p.ID
+		FROM {$wpdb->posts} p
+		INNER JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id
+		WHERE p.post_type = 'product'
+		AND pm.meta_key = '_product_type'
+		AND pm.meta_value = %s
+		AND p.ID NOT IN (
+			SELECT object_id
+			FROM {$wpdb->term_relationships} tr
+			INNER JOIN {$wpdb->term_taxonomy} tt ON tr.term_taxonomy_id = tt.term_taxonomy_id
+			INNER JOIN {$wpdb->terms} t ON tt.term_id = t.term_id
+			WHERE tt.taxonomy = 'product_type'
+			AND t.slug = %s
+		)
+		LIMIT 100",
+		$product_type,
+		$product_type
+	);
+
+	$product_ids = $wpdb->get_col( $sql );
+
+	// Sync each product
+	foreach ( $product_ids as $product_id ) {
+		// Ensure the term exists
+		if ( ! term_exists( $product_type, 'product_type' ) ) {
+			wp_insert_term( $product_type, 'product_type' );
+		}
+
+		// Set the taxonomy term
+		wp_set_object_terms( $product_id, $product_type, 'product_type', false );
+
+		// Clear caches
+		clean_post_cache( $product_id );
+	}
+}
 
 /**
  * Register custom product types as WooCommerce product types for filtering.
