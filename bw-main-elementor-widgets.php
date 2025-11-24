@@ -81,6 +81,11 @@ add_action( 'elementor/frontend/after_enqueue_scripts', 'bw_enqueue_wallpost_wid
 add_action( 'elementor/editor/after_enqueue_scripts', 'bw_enqueue_wallpost_widget_assets' );
 add_action( 'elementor/frontend/after_register_scripts', 'bw_enqueue_about_menu_widget_assets' );
 add_action( 'elementor/editor/after_enqueue_scripts', 'bw_enqueue_about_menu_widget_assets' );
+add_action( 'init', 'bw_register_filtered_post_wall_widget_assets' );
+add_action( 'elementor/frontend/after_register_scripts', 'bw_register_filtered_post_wall_widget_assets' );
+add_action( 'elementor/frontend/after_register_styles', 'bw_register_filtered_post_wall_widget_assets' );
+add_action( 'elementor/frontend/after_enqueue_scripts', 'bw_enqueue_filtered_post_wall_widget_assets' );
+add_action( 'elementor/editor/after_enqueue_scripts', 'bw_enqueue_filtered_post_wall_widget_assets' );
 add_action( 'wp_enqueue_scripts', 'bw_enqueue_smart_header_assets' );
 
 function bw_enqueue_slick_slider_assets() {
@@ -388,6 +393,53 @@ function bw_enqueue_navshop_widget_assets() {
     }
 }
 
+function bw_register_filtered_post_wall_widget_assets() {
+    $css_file     = __DIR__ . '/assets/css/bw-filtered-post-wall.css';
+    $css_version  = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
+
+    wp_register_style(
+        'bw-filtered-post-wall-style',
+        plugin_dir_url( __FILE__ ) . 'assets/css/bw-filtered-post-wall.css',
+        [],
+        $css_version
+    );
+
+    $js_file    = __DIR__ . '/assets/js/bw-filtered-post-wall.js';
+    $js_version = file_exists( $js_file ) ? filemtime( $js_file ) : '1.0.0';
+
+    wp_register_script(
+        'bw-filtered-post-wall-js',
+        plugin_dir_url( __FILE__ ) . 'assets/js/bw-filtered-post-wall.js',
+        [ 'jquery', 'imagesloaded', 'masonry' ],
+        $js_version,
+        true
+    );
+
+    // Localize script per AJAX
+    wp_localize_script(
+        'bw-filtered-post-wall-js',
+        'bwFilteredPostWallAjax',
+        [
+            'ajaxurl' => admin_url( 'admin-ajax.php' ),
+            'nonce'   => wp_create_nonce( 'bw_fpw_nonce' ),
+        ]
+    );
+}
+
+function bw_enqueue_filtered_post_wall_widget_assets() {
+    if ( ! wp_style_is( 'bw-filtered-post-wall-style', 'registered' ) || ! wp_script_is( 'bw-filtered-post-wall-js', 'registered' ) ) {
+        bw_register_filtered_post_wall_widget_assets();
+    }
+
+    if ( wp_style_is( 'bw-filtered-post-wall-style', 'registered' ) ) {
+        wp_enqueue_style( 'bw-filtered-post-wall-style' );
+    }
+
+    if ( wp_script_is( 'bw-filtered-post-wall-js', 'registered' ) ) {
+        wp_enqueue_script( 'bw-filtered-post-wall-js' );
+    }
+}
+
 function bw_enqueue_smart_header_assets() {
     // Non caricare nell'admin di WordPress
     if ( is_admin() ) {
@@ -555,4 +607,342 @@ function bw_live_search_products() {
         'products' => $products,
         'message'  => empty( $products ) ? __( 'Nessun prodotto trovato', 'bw' ) : '',
     ] );
+}
+
+/**
+ * Handler AJAX per ottenere le subcategorie di una categoria
+ */
+add_action( 'wp_ajax_bw_fpw_get_subcategories', 'bw_fpw_get_subcategories' );
+add_action( 'wp_ajax_nopriv_bw_fpw_get_subcategories', 'bw_fpw_get_subcategories' );
+
+function bw_fpw_get_subcategories() {
+    check_ajax_referer( 'bw_fpw_nonce', 'nonce' );
+
+    $category_id = isset( $_POST['category_id'] ) ? absint( $_POST['category_id'] ) : 0;
+    $post_type   = isset( $_POST['post_type'] ) ? sanitize_key( $_POST['post_type'] ) : 'product';
+
+    if ( ! $category_id ) {
+        wp_send_json_error( [ 'message' => 'Invalid category ID' ] );
+    }
+
+    $taxonomy = 'product' === $post_type ? 'product_cat' : 'category';
+
+    $subcategories = get_terms( [
+        'taxonomy'   => $taxonomy,
+        'hide_empty' => true,
+        'parent'     => $category_id,
+    ] );
+
+    if ( is_wp_error( $subcategories ) ) {
+        wp_send_json_error( [ 'message' => $subcategories->get_error_message() ] );
+    }
+
+    $result = [];
+
+    foreach ( $subcategories as $subcat ) {
+        $result[] = [
+            'term_id' => $subcat->term_id,
+            'name'    => $subcat->name,
+            'count'   => $subcat->count,
+        ];
+    }
+
+    wp_send_json_success( $result );
+}
+
+/**
+ * Handler AJAX per filtrare i post
+ */
+add_action( 'wp_ajax_bw_fpw_filter_posts', 'bw_fpw_filter_posts' );
+add_action( 'wp_ajax_nopriv_bw_fpw_filter_posts', 'bw_fpw_filter_posts' );
+
+function bw_fpw_filter_posts() {
+    check_ajax_referer( 'bw_fpw_nonce', 'nonce' );
+
+    $widget_id      = isset( $_POST['widget_id'] ) ? sanitize_text_field( $_POST['widget_id'] ) : '';
+    $post_type      = isset( $_POST['post_type'] ) ? sanitize_key( $_POST['post_type'] ) : 'product';
+    $category       = isset( $_POST['category'] ) ? sanitize_text_field( $_POST['category'] ) : 'all';
+    $subcategories  = isset( $_POST['subcategories'] ) ? array_map( 'absint', (array) $_POST['subcategories'] ) : [];
+    $tags           = isset( $_POST['tags'] ) ? array_map( 'absint', (array) $_POST['tags'] ) : [];
+    $image_toggle   = isset( $_POST['image_toggle'] ) && 'yes' === $_POST['image_toggle'];
+    $image_size     = isset( $_POST['image_size'] ) ? sanitize_text_field( $_POST['image_size'] ) : 'large';
+    $hover_effect   = isset( $_POST['hover_effect'] ) && 'yes' === $_POST['hover_effect'];
+    $open_cart_popup = isset( $_POST['open_cart_popup'] ) && 'yes' === $_POST['open_cart_popup'];
+    $order_by       = isset( $_POST['order_by'] ) ? sanitize_key( $_POST['order_by'] ) : 'date';
+    $order          = isset( $_POST['order'] ) ? strtoupper( sanitize_key( $_POST['order'] ) ) : 'DESC';
+
+    // Validate order_by
+    $valid_order_by = [ 'date', 'modified', 'title', 'rand', 'ID' ];
+    if ( ! in_array( $order_by, $valid_order_by, true ) ) {
+        $order_by = 'date';
+    }
+
+    // Validate order
+    if ( ! in_array( $order, [ 'ASC', 'DESC' ], true ) ) {
+        $order = 'DESC';
+    }
+
+    // For random order, ignore ASC/DESC
+    if ( 'rand' === $order_by ) {
+        $order = 'ASC';
+    }
+
+    $taxonomy     = 'product' === $post_type ? 'product_cat' : 'category';
+    $tag_taxonomy = 'product' === $post_type ? 'product_tag' : 'post_tag';
+
+    $query_args = [
+        'post_type'      => $post_type,
+        'posts_per_page' => -1,
+        'post_status'    => 'publish',
+        'orderby'        => $order_by,
+        'order'          => $order,
+    ];
+
+    $tax_query = [];
+
+    // Category filter
+    if ( 'all' !== $category && absint( $category ) > 0 ) {
+        if ( ! empty( $subcategories ) ) {
+            // Filter by subcategories
+            $tax_query[] = [
+                'taxonomy' => $taxonomy,
+                'field'    => 'term_id',
+                'terms'    => $subcategories,
+            ];
+        } else {
+            // Filter by parent category
+            $tax_query[] = [
+                'taxonomy' => $taxonomy,
+                'field'    => 'term_id',
+                'terms'    => [ absint( $category ) ],
+            ];
+        }
+    }
+
+    // Tags filter
+    if ( ! empty( $tags ) ) {
+        $tax_query[] = [
+            'taxonomy' => $tag_taxonomy,
+            'field'    => 'term_id',
+            'terms'    => $tags,
+        ];
+    }
+
+    // Add tax_query if not empty
+    if ( ! empty( $tax_query ) ) {
+        if ( count( $tax_query ) > 1 ) {
+            $tax_query['relation'] = 'AND';
+        }
+        $query_args['tax_query'] = $tax_query;
+    }
+
+    $query = new WP_Query( $query_args );
+
+    ob_start();
+
+    if ( $query->have_posts() ) {
+        while ( $query->have_posts() ) {
+            $query->the_post();
+
+            $post_id   = get_the_ID();
+            $permalink = get_permalink( $post_id );
+            $title     = get_the_title( $post_id );
+            $excerpt   = get_the_excerpt( $post_id );
+
+            if ( empty( $excerpt ) ) {
+                $excerpt = wp_trim_words( wp_strip_all_tags( get_the_content( null, false, $post_id ) ), 30 );
+            }
+
+            if ( ! empty( $excerpt ) && false === strpos( $excerpt, '<p' ) ) {
+                $excerpt = '<p>' . $excerpt . '</p>';
+            }
+
+            $thumbnail_html = '';
+
+            if ( $image_toggle && has_post_thumbnail( $post_id ) ) {
+                $thumbnail_args = [
+                    'loading' => 'lazy',
+                    'class'   => 'bw-slider-main',
+                ];
+
+                $thumbnail_html = get_the_post_thumbnail( $post_id, $image_size, $thumbnail_args );
+            }
+
+            $hover_image_html = '';
+            if ( $hover_effect && 'product' === $post_type ) {
+                $hover_image_id = (int) get_post_meta( $post_id, '_bw_slider_hover_image', true );
+
+                if ( $hover_image_id ) {
+                    $hover_image_html = wp_get_attachment_image(
+                        $hover_image_id,
+                        $image_size,
+                        false,
+                        [
+                            'class'   => 'bw-slider-hover',
+                            'loading' => 'lazy',
+                        ]
+                    );
+                }
+            }
+
+            $price_html     = '';
+            $has_add_to_cart = false;
+            $add_to_cart_url = '';
+
+            if ( 'product' === $post_type ) {
+                $price_html = bw_fpw_get_price_markup( $post_id );
+
+                if ( function_exists( 'wc_get_product' ) ) {
+                    $product = wc_get_product( $post_id );
+
+                    if ( $product ) {
+                        if ( $product->is_type( 'variable' ) ) {
+                            $add_to_cart_url = $permalink;
+                        } else {
+                            $cart_url = function_exists( 'wc_get_cart_url' ) ? wc_get_cart_url() : '';
+
+                            if ( $cart_url ) {
+                                $add_to_cart_url = add_query_arg( 'add-to-cart', $product->get_id(), $cart_url );
+                            }
+                        }
+
+                        if ( ! $add_to_cart_url ) {
+                            $add_to_cart_url = $permalink;
+                        }
+
+                        $has_add_to_cart = true;
+                    }
+                }
+            }
+
+            $view_label = 'product' === $post_type
+                ? esc_html__( 'View Product', 'bw-elementor-widgets' )
+                : esc_html__( 'Read More', 'bw-elementor-widgets' );
+            ?>
+            <article <?php post_class( 'bw-fpw-item' ); ?>>
+                <div class="bw-fpw-card">
+                    <div class="bw-slider-image-container">
+                        <?php
+                        $media_classes = [ 'bw-fpw-media' ];
+                        if ( ! $thumbnail_html ) {
+                            $media_classes[] = 'bw-fpw-media--placeholder';
+                        }
+                        ?>
+                        <div class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $media_classes ) ) ); ?>">
+                            <?php if ( $thumbnail_html ) : ?>
+                                <a class="bw-fpw-media-link" href="<?php echo esc_url( $permalink ); ?>">
+                                    <div class="bw-fpw-image bw-slick-slider-image<?php echo $hover_image_html ? ' bw-fpw-image--has-hover bw-slick-slider-image--has-hover' : ''; ?>">
+                                        <?php echo wp_kses_post( $thumbnail_html ); ?>
+                                        <?php if ( $hover_image_html ) : ?>
+                                            <?php echo wp_kses_post( $hover_image_html ); ?>
+                                        <?php endif; ?>
+                                    </div>
+                                </a>
+
+                                <div class="bw-fpw-overlay overlay-buttons has-buttons">
+                                    <div class="bw-fpw-overlay-buttons<?php echo $has_add_to_cart ? ' bw-fpw-overlay-buttons--double' : ''; ?>">
+                                        <a class="bw-fpw-overlay-button overlay-button overlay-button--view" href="<?php echo esc_url( $permalink ); ?>">
+                                            <span class="bw-fpw-overlay-button__label overlay-button__label"><?php echo $view_label; ?></span>
+                                        </a>
+                                        <?php if ( 'product' === $post_type && $has_add_to_cart && $add_to_cart_url ) : ?>
+                                            <a class="bw-fpw-overlay-button overlay-button overlay-button--cart" href="<?php echo esc_url( $add_to_cart_url ); ?>"<?php echo $open_cart_popup ? ' data-open-cart-popup="1"' : ''; ?>>
+                                                <span class="bw-fpw-overlay-button__label overlay-button__label"><?php esc_html_e( 'Add to Cart', 'bw-elementor-widgets' ); ?></span>
+                                            </a>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            <?php else : ?>
+                                <span class="bw-fpw-image-placeholder" aria-hidden="true"></span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <div class="bw-fpw-content bw-slider-content">
+                        <h3 class="bw-fpw-title">
+                            <a href="<?php echo esc_url( $permalink ); ?>">
+                                <?php echo esc_html( $title ); ?>
+                            </a>
+                        </h3>
+
+                        <?php if ( ! empty( $excerpt ) ) : ?>
+                            <div class="bw-fpw-description"><?php echo wp_kses_post( $excerpt ); ?></div>
+                        <?php endif; ?>
+
+                        <?php if ( $price_html ) : ?>
+                            <div class="bw-fpw-price price"><?php echo wp_kses_post( $price_html ); ?></div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </article>
+            <?php
+        }
+    } else {
+        ?>
+        <div class="bw-fpw-placeholder">
+            <?php esc_html_e( 'Nessun contenuto disponibile.', 'bw-elementor-widgets' ); ?>
+        </div>
+        <?php
+    }
+
+    wp_reset_postdata();
+
+    $html = ob_get_clean();
+
+    wp_send_json_success( [
+        'html' => $html,
+    ] );
+}
+
+/**
+ * Helper function per ottenere il markup del prezzo
+ */
+function bw_fpw_get_price_markup( $post_id ) {
+    if ( ! $post_id ) {
+        return '';
+    }
+
+    $format_price = static function ( $value ) {
+        if ( '' === $value || null === $value ) {
+            return '';
+        }
+
+        if ( function_exists( 'wc_price' ) && is_numeric( $value ) ) {
+            return wc_price( $value );
+        }
+
+        if ( is_numeric( $value ) ) {
+            $value = number_format_i18n( (float) $value, 2 );
+        }
+
+        return esc_html( $value );
+    };
+
+    if ( function_exists( 'wc_get_product' ) ) {
+        $product = wc_get_product( $post_id );
+        if ( $product ) {
+            $price_html = $product->get_price_html();
+            if ( ! empty( $price_html ) ) {
+                return $price_html;
+            }
+
+            $regular_price = $product->get_regular_price();
+            $sale_price    = $product->get_sale_price();
+            $current_price = $product->get_price();
+
+            $regular_markup = $format_price( $regular_price );
+            $sale_markup    = $format_price( $sale_price );
+            $current_markup = $format_price( $current_price );
+
+            if ( $sale_markup && $regular_markup && $sale_markup !== $regular_markup ) {
+                return '<span class="price-original"><del>' . $regular_markup . '</del></span>' .
+                    '<span class="price-sale">' . $sale_markup . '</span>';
+            }
+
+            if ( $current_markup ) {
+                return '<span class="price-regular">' . $current_markup . '</span>';
+            }
+        }
+    }
+
+    return '';
 }
