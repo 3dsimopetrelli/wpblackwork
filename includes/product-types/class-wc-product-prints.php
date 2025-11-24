@@ -61,10 +61,11 @@ class WC_Product_Prints extends WC_Product_Variable {
 	 * Get available variations for this variable product.
 	 * Override to ensure we always return an array, never null.
 	 *
+	 * @param string $return Optional. Type of return value. Default 'array'.
 	 * @return array
 	 */
-	public function get_available_variations() {
-		$variations = parent::get_available_variations();
+	public function get_available_variations( $return = 'array' ) {
+		$variations = parent::get_available_variations( $return );
 		return is_array( $variations ) ? $variations : array();
 	}
 
