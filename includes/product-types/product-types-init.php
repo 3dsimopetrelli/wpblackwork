@@ -147,9 +147,9 @@ add_action( 'set_object_terms', 'bw_sync_product_type_on_term_set', 10, 4 );
  *
  * @param int        $product_id Product ID.
  * @param WC_Product $product Product object.
- * @param bool       $update Whether this is an update or new product.
+ * @param bool       $update Whether this is an update or new product (optional, defaults to true).
  */
-function bw_force_save_custom_product_type( $product_id, $product, $update ) {
+function bw_force_save_custom_product_type( $product_id, $product, $update = true ) {
 	// Get the current product type from taxonomy
 	$product_type = bw_get_product_type( $product_id );
 
