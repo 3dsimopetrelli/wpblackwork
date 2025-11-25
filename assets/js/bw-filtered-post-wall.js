@@ -596,16 +596,13 @@
             var $panel = $group.find('.bw-fpw-mobile-dropdown-panel');
             var isOpen = $group.hasClass('is-open');
 
+            // Toggle class - CSS handles the animation
+            $group.toggleClass('is-open');
+
             if (isOpen) {
-                $group.removeClass('is-open');
-                $panel.stop(true, true).slideUp(200, function() {
-                    $panel.attr('aria-hidden', 'true');
-                });
+                $panel.attr('aria-hidden', 'true');
             } else {
-                $group.addClass('is-open');
-                $panel.stop(true, true).slideDown(200, function() {
-                    $panel.attr('aria-hidden', 'false');
-                });
+                $panel.attr('aria-hidden', 'false');
             }
         });
     }

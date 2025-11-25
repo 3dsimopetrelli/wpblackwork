@@ -637,6 +637,36 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'condition' => [ 'filter_box_border' => 'yes' ],
         ] );
 
+        // Filter Select - Active State Styling
+        $this->add_control( 'filter_select_heading', [
+            'label'     => __( 'Filter Select', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::HEADING,
+            'separator' => 'before',
+            'description' => __( 'Stile per evidenziare i filtri attivi (Categoria, Subcategory, Tag selezionati)', 'bw-elementor-widgets' ),
+        ] );
+
+        $this->add_control( 'filter_select_style', [
+            'label'   => __( 'Highlight Style', 'bw-elementor-widgets' ),
+            'type'    => Controls_Manager::SELECT,
+            'options' => [
+                'none'      => __( 'None', 'bw-elementor-widgets' ),
+                'underline' => __( 'Underscore', 'bw-elementor-widgets' ),
+                'bold'      => __( 'Bold', 'bw-elementor-widgets' ),
+                'color'     => __( 'Custom Color', 'bw-elementor-widgets' ),
+            ],
+            'default' => 'none',
+        ] );
+
+        $this->add_control( 'filter_select_color', [
+            'label'     => __( 'Active Filter Color', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::COLOR,
+            'default'   => '#000000',
+            'selectors' => [
+                '{{WRAPPER}} .bw-fpw-filter-option.active .bw-fpw-option-label' => 'color: {{VALUE}};',
+            ],
+            'condition' => [ 'filter_select_style' => 'color' ],
+        ] );
+
         $this->end_controls_section();
     }
 
@@ -1348,7 +1378,14 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
 
     private function render_wrapper_start( $settings ) {
         $filter_position = isset( $settings['filter_position'] ) ? $settings['filter_position'] : 'top';
+        $filter_select_style = isset( $settings['filter_select_style'] ) ? $settings['filter_select_style'] : 'none';
         $wrapper_classes = [ 'bw-filtered-post-wall-wrapper', 'bw-fpw-layout-' . $filter_position ];
+
+        // Add filter select style class
+        if ( 'none' !== $filter_select_style ) {
+            $wrapper_classes[] = 'bw-fpw-select-' . $filter_select_style;
+        }
+
         $responsive_breakpoint = isset( $settings['filter_responsive_breakpoint'] ) ? absint( $settings['filter_responsive_breakpoint'] ) : 900;
 
         echo '<div class="' . esc_attr( implode( ' ', $wrapper_classes ) ) . '" data-filter-breakpoint="' . esc_attr( $responsive_breakpoint ) . '">';
@@ -1413,7 +1450,8 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
                                 <div class="bw-fpw-mobile-dropdown-options bw-fpw-filter-options bw-fpw-filter-options--categories" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
                                     <?php if ( $show_all_button ) : ?>
                                         <button class="bw-fpw-filter-option bw-fpw-cat-button active" data-category="all">
-                                            <span class="bw-fpw-option-label"><?php echo esc_html( $this->format_filter_label( __( 'All', 'bw-elementor-widgets' ), $this->get_total_post_count( $post_type ) ) ); ?></span>
+                                            <span class="bw-fpw-option-label"><?php echo esc_html( __( 'All', 'bw-elementor-widgets' ) ); ?></span>
+                                            <span class="bw-fpw-option-count">(<?php echo esc_html( $this->get_total_post_count( $post_type ) ); ?>)</span>
                                         </button>
                                     <?php endif; ?>
 
@@ -1427,7 +1465,8 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
                                             }
                                             ?>
                                             <button class="bw-fpw-filter-option bw-fpw-cat-button<?php echo $is_active ? ' active' : ''; ?>" data-category="<?php echo esc_attr( $category->term_id ); ?>">
-                                                <span class="bw-fpw-option-label"><?php echo esc_html( $this->format_filter_label( $category->name, $category->count ) ); ?></span>
+                                                <span class="bw-fpw-option-label"><?php echo esc_html( $category->name ); ?></span>
+                                                <span class="bw-fpw-option-count">(<?php echo esc_html( $category->count ); ?>)</span>
                                             </button>
                                         <?php endforeach; ?>
                                     <?php endif; ?>
@@ -1446,7 +1485,8 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
                                 <div class="bw-fpw-mobile-dropdown-options bw-fpw-filter-options bw-fpw-subcategories-container" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
                                     <?php foreach ( $initial_subcategories as $subcategory ) : ?>
                                         <button class="bw-fpw-filter-option bw-fpw-subcat-button" data-subcategory="<?php echo esc_attr( $subcategory['term_id'] ); ?>">
-                                            <span class="bw-fpw-option-label"><?php echo esc_html( $this->format_filter_label( $subcategory['name'], $subcategory['count'] ) ); ?></span>
+                                            <span class="bw-fpw-option-label"><?php echo esc_html( $subcategory['name'] ); ?></span>
+                                            <span class="bw-fpw-option-count">(<?php echo esc_html( $subcategory['count'] ); ?>)</span>
                                         </button>
                                     <?php endforeach; ?>
                                 </div>
@@ -1464,7 +1504,8 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
                                 <div class="bw-fpw-mobile-dropdown-options bw-fpw-filter-options bw-fpw-tag-options" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
                                     <?php foreach ( $tags as $tag ) : ?>
                                         <button class="bw-fpw-filter-option bw-fpw-tag-button" data-tag="<?php echo esc_attr( $tag['term_id'] ); ?>">
-                                            <span class="bw-fpw-option-label"><?php echo esc_html( $this->format_filter_label( $tag['name'], $tag['count'] ) ); ?></span>
+                                            <span class="bw-fpw-option-label"><?php echo esc_html( $tag['name'] ); ?></span>
+                                            <span class="bw-fpw-option-count">(<?php echo esc_html( $tag['count'] ); ?>)</span>
                                         </button>
                                     <?php endforeach; ?>
                                 </div>
@@ -1487,7 +1528,8 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
                         <div class="bw-fpw-filter-options bw-fpw-filter-options--categories" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
                             <?php if ( $show_all_button ) : ?>
                                 <button class="bw-fpw-filter-option bw-fpw-cat-button active" data-category="all">
-                                    <span class="bw-fpw-option-label"><?php echo esc_html( $this->format_filter_label( __( 'All', 'bw-elementor-widgets' ), $this->get_total_post_count( $post_type ) ) ); ?></span>
+                                    <span class="bw-fpw-option-label"><?php echo esc_html( __( 'All', 'bw-elementor-widgets' ) ); ?></span>
+                                    <span class="bw-fpw-option-count">(<?php echo esc_html( $this->get_total_post_count( $post_type ) ); ?>)</span>
                                 </button>
                             <?php endif; ?>
                             <?php if ( ! empty( $parent_terms ) && ! is_wp_error( $parent_terms ) ) : ?>
@@ -1500,7 +1542,8 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
                                     }
                                     ?>
                                     <button class="bw-fpw-filter-option bw-fpw-cat-button<?php echo $is_active ? ' active' : ''; ?>" data-category="<?php echo esc_attr( $category->term_id ); ?>">
-                                        <span class="bw-fpw-option-label"><?php echo esc_html( $this->format_filter_label( $category->name, $category->count ) ); ?></span>
+                                        <span class="bw-fpw-option-label"><?php echo esc_html( $category->name ); ?></span>
+                                        <span class="bw-fpw-option-count">(<?php echo esc_html( $category->count ); ?>)</span>
                                     </button>
                                 <?php endforeach; ?>
                             <?php endif; ?>
@@ -1514,7 +1557,8 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
                         <div class="bw-fpw-filter-options bw-fpw-subcategories-container" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
                             <?php foreach ( $initial_subcategories as $subcategory ) : ?>
                                 <button class="bw-fpw-filter-option bw-fpw-subcat-button" data-subcategory="<?php echo esc_attr( $subcategory['term_id'] ); ?>">
-                                    <span class="bw-fpw-option-label"><?php echo esc_html( $this->format_filter_label( $subcategory['name'], $subcategory['count'] ) ); ?></span>
+                                    <span class="bw-fpw-option-label"><?php echo esc_html( $subcategory['name'] ); ?></span>
+                                    <span class="bw-fpw-option-count">(<?php echo esc_html( $subcategory['count'] ); ?>)</span>
                                 </button>
                             <?php endforeach; ?>
                         </div>
@@ -1527,7 +1571,8 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
                         <div class="bw-fpw-filter-options bw-fpw-tag-options" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
                             <?php foreach ( $tags as $tag ) : ?>
                                 <button class="bw-fpw-filter-option bw-fpw-tag-button" data-tag="<?php echo esc_attr( $tag['term_id'] ); ?>">
-                                    <span class="bw-fpw-option-label"><?php echo esc_html( $this->format_filter_label( $tag['name'], $tag['count'] ) ); ?></span>
+                                    <span class="bw-fpw-option-label"><?php echo esc_html( $tag['name'] ); ?></span>
+                                    <span class="bw-fpw-option-count">(<?php echo esc_html( $tag['count'] ); ?>)</span>
                                 </button>
                             <?php endforeach; ?>
                         </div>
