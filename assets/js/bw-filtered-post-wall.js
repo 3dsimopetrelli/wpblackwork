@@ -241,6 +241,8 @@
         var postType = $grid.attr('data-post-type') || 'product';
         var $filters = $container.closest('.bw-fpw-filters');
         var $subcatRow = $filters.find('.bw-fpw-filter-subcategories');
+        var hasPostsAttr = $filters.attr('data-has-posts');
+        var hasPosts = typeof hasPostsAttr === 'undefined' ? true : hasPostsAttr === '1';
 
         if ($container.length) {
             $container.empty();
@@ -271,12 +273,17 @@
 
                     $container.html(html);
                     if ($subcatRow.length) {
-                        $subcatRow.show();
+                        var hasButtons = $container.find('.bw-fpw-subcat-button').length > 0;
+                        if (hasPosts && hasButtons) {
+                            $subcatRow.show();
+                        } else {
+                            $subcatRow.hide();
+                        }
                     }
                 } else {
                     $container.html('<p class="bw-fpw-no-subcats">No subcategories found</p>');
                     if ($subcatRow.length) {
-                        $subcatRow.show();
+                        $subcatRow.hide();
                     }
                 }
             },
@@ -284,7 +291,11 @@
                 console.error('❌ Error loading subcategories');
                 $container.html('<p class="bw-fpw-error">Error loading subcategories</p>');
                 if ($subcatRow.length) {
-                    $subcatRow.show();
+                    if (hasPosts) {
+                        $subcatRow.show();
+                    } else {
+                        $subcatRow.hide();
+                    }
                 }
             }
         });
@@ -338,8 +349,21 @@
             },
             success: function(response) {
                 if (response.success && response.data) {
+                    var hasPosts = !!response.data.has_posts;
+                    $filters.attr('data-has-posts', hasPosts ? '1' : '0');
+
                     // Replace grid content
                     $grid.html(response.data.html);
+
+                    var $subcatRow = $filters.find('.bw-fpw-filter-row--subcategories');
+
+                    if ($subcatRow.length) {
+                        if (!hasPosts) {
+                            $subcatRow.hide();
+                        } else if ($subcatRow.find('.bw-fpw-subcat-button').length) {
+                            $subcatRow.show();
+                        }
+                    }
 
                     if (typeof response.data.tags_html !== 'undefined') {
                         var $tagRow = $filters.find('.bw-fpw-filter-row--tags');
@@ -354,7 +378,11 @@
                                 });
                             }
 
-                            if (response.data.tags_html) {
+                            if (!hasPosts) {
+                                filterState[widgetId].tags = [];
+                                $tagOptions.empty();
+                                $tagRow.hide();
+                            } else if (response.data.tags_html) {
                                 $tagOptions.html(response.data.tags_html);
                                 $tagRow.show();
 
@@ -413,6 +441,8 @@
                     // Remove loading state
                     $wrapper.removeClass('bw-filtered-post-wall--loading');
                     $filters.removeClass('loading');
+                    $filters.attr('data-has-posts', '0');
+                    $filters.find('.bw-fpw-filter-row--subcategories, .bw-fpw-filter-row--tags').hide();
                 }
             },
             error: function(xhr, status, error) {
@@ -420,6 +450,8 @@
                 $grid.html('<div class="bw-fpw-placeholder">Error loading posts.</div>');
                 $wrapper.removeClass('bw-filtered-post-wall--loading');
                 $filters.removeClass('loading');
+                $filters.attr('data-has-posts', '0');
+                $filters.find('.bw-fpw-filter-row--subcategories, .bw-fpw-filter-row--tags').hide();
             }
         });
     }

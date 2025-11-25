@@ -883,9 +883,11 @@ function bw_fpw_filter_posts() {
 
     $query = new WP_Query( $query_args );
 
+    $has_posts = $query->have_posts();
+
     ob_start();
 
-    if ( $query->have_posts() ) {
+    if ( $has_posts ) {
         while ( $query->have_posts() ) {
             $query->the_post();
 
@@ -1047,6 +1049,7 @@ function bw_fpw_filter_posts() {
         'html'            => $html,
         'tags_html'       => bw_fpw_render_tag_markup( $related_tags ),
         'available_tags'  => $available_tags,
+        'has_posts'       => $has_posts,
     ] );
 }
 
