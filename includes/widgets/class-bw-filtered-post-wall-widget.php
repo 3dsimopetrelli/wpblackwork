@@ -221,8 +221,16 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
         ] );
 
         $this->add_group_control( Group_Control_Typography::get_type(), [
-            'name'     => 'responsive_dropdown_button_typography',
-            'selector' => '{{WRAPPER}} .bw-fpw-mobile-dropdown-options .bw-fpw-filter-option',
+            'name'           => 'responsive_dropdown_button_typography',
+            'selector'       => '{{WRAPPER}} .bw-fpw-mobile-dropdown-options .bw-fpw-filter-option',
+            'fields_options' => [
+                'font_size' => [
+                    'default' => [
+                        'size' => 18,
+                        'unit' => 'px',
+                    ],
+                ],
+            ],
         ] );
 
         $this->add_control( 'responsive_dropdown_button_background', [
@@ -422,7 +430,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'fields_options' => [
                 'font_size' => [
                     'default' => [
-                        'size' => 14,
+                        'size' => 18,
                         'unit' => 'px',
                     ],
                 ],
@@ -469,7 +477,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'fields_options' => [
                 'font_size' => [
                     'default' => [
-                        'size' => 14,
+                        'size' => 18,
                         'unit' => 'px',
                     ],
                 ],

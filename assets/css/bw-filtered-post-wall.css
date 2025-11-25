@@ -63,7 +63,7 @@
 }
 
 .bw-fpw-filter-label {
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 600;
   color: #000000;
   margin: 0;
@@ -79,21 +79,33 @@
 }
 
 .bw-fpw-filter-option {
+  /* Reset global button styles - must override .elementor-kit-7 button */
+  all: unset;
+
+  /* Re-apply widget-specific styles */
+  display: inline-block;
   background: none !important;
   border: none !important;
   border-radius: 0 !important;
-  padding: 0;
-  margin: 0;
-  font-size: 18px;
-  font-weight: 400;
+  padding: 0 !important;
+  margin: 0 !important;
+  font-size: 18px !important;
+  font-weight: 400 !important;
+  font-family: inherit !important;
   color: #000000;
   cursor: pointer;
-  line-height: 1.6;
+  line-height: 1.6 !important;
   position: relative;
-  box-shadow: none;
+  box-shadow: none !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  text-align: left;
+  vertical-align: baseline;
+  text-decoration: none !important;
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
+  box-sizing: border-box;
 }
 
 .bw-fpw-filter-option:focus {
@@ -219,15 +231,29 @@
 }
 
 .bw-fpw-mobile-filter-button {
+  /* Reset global button styles - must override .elementor-kit-7 button */
+  all: unset;
+
+  /* Re-apply widget-specific styles */
   width: 100%;
-  padding: 12px 16px;
-  text-align: center;
-  font-size: 18px;
-  line-height: 1.5;
-  background: #ffffff;
-  border: 1px solid #000000;
-  border-radius: 6px;
+  padding: 12px 16px !important;
+  text-align: center !important;
+  font-size: 18px !important;
+  line-height: 1.5 !important;
+  font-family: inherit !important;
+  font-weight: normal !important;
+  background: #ffffff !important;
+  border: 1px solid #000000 !important;
+  border-radius: 6px !important;
   cursor: pointer;
+  box-shadow: none !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  text-decoration: none !important;
+  color: inherit;
+  margin: 0 !important;
+  display: block;
+  box-sizing: border-box;
 }
 
 .bw-fpw-mobile-filter-button--borderless {
@@ -277,13 +303,27 @@
 }
 
 .bw-fpw-mobile-filter-close {
-  background: none;
-  border: none;
+  /* Reset global button styles - must override .elementor-kit-7 button */
+  all: unset;
+
+  /* Re-apply widget-specific styles */
+  background: none !important;
+  border: none !important;
+  border-radius: 0 !important;
   color: var(--bw-fpw-mobile-close-color);
-  font-size: var(--bw-fpw-mobile-close-size);
+  font-size: var(--bw-fpw-mobile-close-size) !important;
   cursor: pointer;
-  line-height: 1;
-  padding: 0;
+  line-height: 1 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  box-shadow: none !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  text-decoration: none !important;
+  font-weight: normal !important;
+  font-family: inherit !important;
+  display: inline-block;
+  box-sizing: border-box;
 }
 
 .bw-fpw-mobile-filter-panel__body {
@@ -300,16 +340,31 @@
 }
 
 .bw-fpw-mobile-dropdown-toggle {
+  /* Reset global button styles - must override .elementor-kit-7 button */
+  all: unset;
+
+  /* Re-apply widget-specific styles */
   width: 100%;
-  padding: 8px 0;
-  background: none;
-  border: none;
+  padding: 8px 0 !important;
+  background: none !important;
+  border: none !important;
+  border-radius: 0 !important;
   display: flex;
   align-items: center;
   justify-content: space-between;
   cursor: pointer;
-  font-size: 18px;
-  font-weight: 500;
+  font-size: 18px !important;
+  font-weight: 500 !important;
+  font-family: inherit !important;
+  line-height: 1.5 !important;
+  color: inherit;
+  box-shadow: none !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  text-align: left;
+  text-decoration: none !important;
+  margin: 0 !important;
+  box-sizing: border-box;
 }
 
 .bw-fpw-mobile-dropdown-icon {
@@ -355,21 +410,35 @@
 }
 
 .bw-fpw-mobile-dropdown-options .bw-fpw-filter-option {
+  /* Reset global button styles - must override .elementor-kit-7 button */
+  all: unset;
+
+  /* Re-apply widget-specific styles for mobile buttons */
   width: 100%;
-  text-align: left;
-  padding: 10px 4px;
-  border: none;
-  margin: 0;
+  text-align: left !important;
+  padding: 10px 4px !important;
+  border: none !important;
+  margin: 0 !important;
   display: flex;
   align-items: center;
   justify-content: flex-start;
   gap: 0;
-  background: var(--bw-fpw-mobile-button-bg);
+  font-size: 18px !important;
+  font-weight: 400 !important;
+  font-family: inherit !important;
+  line-height: 1.6 !important;
+  background: var(--bw-fpw-mobile-button-bg) !important;
   color: var(--bw-fpw-mobile-button-color);
-  border-style: var(--bw-fpw-mobile-button-border-style);
-  border-color: var(--bw-fpw-mobile-button-border-color);
-  border-width: var(--bw-fpw-mobile-button-border-width);
-  border-radius: var(--bw-fpw-mobile-button-radius);
+  border-style: var(--bw-fpw-mobile-button-border-style) !important;
+  border-color: var(--bw-fpw-mobile-button-border-color) !important;
+  border-width: var(--bw-fpw-mobile-button-border-width) !important;
+  border-radius: var(--bw-fpw-mobile-button-radius) !important;
+  box-shadow: none !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  text-decoration: none !important;
+  cursor: pointer;
+  box-sizing: border-box;
   transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
 }
 
@@ -402,14 +471,29 @@
 }
 
 .bw-fpw-mobile-apply {
+  /* Reset global button styles - must override .elementor-kit-7 button */
+  all: unset;
+
+  /* Re-apply widget-specific styles */
   width: 100%;
-  padding: 12px 18px;
-  border: none;
-  background: #111111;
-  color: #ffffff;
-  font-size: 18px;
+  padding: 12px 18px !important;
+  border: none !important;
+  border-radius: 4px !important;
+  background: #111111 !important;
+  color: #ffffff !important;
+  font-size: 18px !important;
+  font-weight: normal !important;
+  font-family: inherit !important;
+  line-height: 1.5 !important;
   cursor: pointer;
-  border-radius: 4px;
+  text-align: center;
+  box-shadow: none !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  text-decoration: none !important;
+  margin: 0 !important;
+  display: block;
+  box-sizing: border-box;
 }
 
 .bw-fpw-mobile-apply:focus {
