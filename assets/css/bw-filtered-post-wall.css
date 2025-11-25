@@ -98,7 +98,6 @@
 
 .bw-fpw-filter-option:focus {
   outline: none;
-  text-decoration: underline;
 }
 
 .bw-fpw-filter-option::after {
@@ -118,6 +117,10 @@
 
 /* Filter Select Styles - Active State Highlighting */
 .bw-fpw-select-underline .bw-fpw-filter-option.active .bw-fpw-option-label {
+  text-decoration: underline;
+}
+
+.bw-fpw-select-underline .bw-fpw-filter-option:focus {
   text-decoration: underline;
 }
 
