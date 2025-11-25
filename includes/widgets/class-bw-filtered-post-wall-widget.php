@@ -35,10 +35,94 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
 
     protected function register_controls() {
         $this->register_filter_controls();
+        $this->register_responsive_filter_controls();
         $this->register_query_controls();
         $this->register_layout_controls();
         $this->register_image_controls();
         $this->register_style_controls();
+    }
+
+    private function register_responsive_filter_controls() {
+        $this->start_controls_section( 'responsive_filter_section', [
+            'label' => __( 'Responsive Filter', 'bw-elementor-widgets' ),
+            'tab'   => Controls_Manager::TAB_CONTENT,
+            'condition' => [ 'show_filters' => 'yes' ],
+        ] );
+
+        $this->add_control( 'filter_responsive_breakpoint', [
+            'label'       => __( 'Breakpoint (px)', 'bw-elementor-widgets' ),
+            'type'        => Controls_Manager::NUMBER,
+            'default'     => 900,
+            'min'         => 320,
+            'description' => __( 'Sotto questo breakpoint i filtri diventano responsive.', 'bw-elementor-widgets' ),
+        ] );
+
+        $this->add_control( 'responsive_filter_heading', [
+            'label'     => __( 'Filters Button', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::HEADING,
+            'separator' => 'before',
+        ] );
+
+        $this->add_group_control( Group_Control_Typography::get_type(), [
+            'name'     => 'responsive_filter_button_typography',
+            'selector' => '{{WRAPPER}} .bw-fpw-mobile-filter-button',
+        ] );
+
+        $this->add_control( 'responsive_filter_button_background', [
+            'label'     => __( 'Background', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::COLOR,
+            'default'   => '#ffffff',
+            'selectors' => [
+                '{{WRAPPER}} .bw-fpw-mobile-filter-button' => 'background-color: {{VALUE}};',
+            ],
+        ] );
+
+        $this->add_control( 'responsive_filter_button_border', [
+            'label'        => __( 'Border', 'bw-elementor-widgets' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
+            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
+            'return_value' => 'yes',
+            'default'      => 'yes',
+        ] );
+
+        $this->add_control( 'responsive_filter_button_border_color', [
+            'label'     => __( 'Border Color', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::COLOR,
+            'default'   => '#000000',
+            'selectors' => [
+                '{{WRAPPER}} .bw-fpw-mobile-filter-button' => 'border-color: {{VALUE}};',
+            ],
+            'condition' => [ 'responsive_filter_button_border' => 'yes' ],
+        ] );
+
+        $this->add_responsive_control( 'responsive_filter_button_border_width', [
+            'label'      => __( 'Border Width', 'bw-elementor-widgets' ),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => [ 'px' ],
+            'range'      => [ 'px' => [ 'min' => 0, 'max' => 10 ] ],
+            'default'    => [ 'size' => 1, 'unit' => 'px' ],
+            'selectors'  => [
+                '{{WRAPPER}} .bw-fpw-mobile-filter-button' => 'border-width: {{SIZE}}{{UNIT}};',
+            ],
+            'condition'  => [ 'responsive_filter_button_border' => 'yes' ],
+        ] );
+
+        $this->add_responsive_control( 'responsive_filter_button_radius', [
+            'label'      => __( 'Border Radius', 'bw-elementor-widgets' ),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => [ 'px', '%' ],
+            'range'      => [
+                'px' => [ 'min' => 0, 'max' => 50 ],
+                '%'  => [ 'min' => 0, 'max' => 100 ],
+            ],
+            'selectors'  => [
+                '{{WRAPPER}} .bw-fpw-mobile-filter-button' => 'border-radius: {{SIZE}}{{UNIT}};',
+            ],
+            'condition'  => [ 'responsive_filter_button_border' => 'yes' ],
+        ] );
+
+        $this->end_controls_section();
     }
 
     private function register_filter_controls() {
@@ -986,8 +1070,9 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
     private function render_wrapper_start( $settings ) {
         $filter_position = isset( $settings['filter_position'] ) ? $settings['filter_position'] : 'top';
         $wrapper_classes = [ 'bw-filtered-post-wall-wrapper', 'bw-fpw-layout-' . $filter_position ];
+        $responsive_breakpoint = isset( $settings['filter_responsive_breakpoint'] ) ? absint( $settings['filter_responsive_breakpoint'] ) : 900;
 
-        echo '<div class="' . esc_attr( implode( ' ', $wrapper_classes ) ) . '">';
+        echo '<div class="' . esc_attr( implode( ' ', $wrapper_classes ) ) . '" data-filter-breakpoint="' . esc_attr( $responsive_breakpoint ) . '">';
     }
 
     private function render_wrapper_end( $settings ) {
@@ -1017,13 +1102,114 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
 
         $tags = $show_tags ? $this->get_related_tags( $post_type, 'all', [] ) : [];
         $initial_subcategories = $show_subcategories ? $this->get_subcategories_data( $post_type, 'all' ) : [];
+
+        $mobile_panel_title   = __( 'Filter products', 'bw-elementor-widgets' );
+        $mobile_filters_title = __( 'Filters', 'bw-elementor-widgets' );
+        $mobile_show_results  = __( 'Show results', 'bw-elementor-widgets' );
+        $mobile_button_border = isset( $settings['responsive_filter_button_border'] ) ? 'yes' === $settings['responsive_filter_button_border'] : true;
+        $mobile_button_classes = [ 'bw-fpw-mobile-filter-button' ];
+
+        if ( ! $mobile_button_border ) {
+            $mobile_button_classes[] = 'bw-fpw-mobile-filter-button--borderless';
+        }
         ?>
+
+        <div class="bw-fpw-mobile-filter" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+            <button class="<?php echo esc_attr( implode( ' ', $mobile_button_classes ) ); ?>" type="button"><?php echo esc_html( $mobile_filters_title ); ?></button>
+
+            <div class="bw-fpw-mobile-filter-panel" aria-hidden="true">
+                <div class="bw-fpw-mobile-filter-panel__header">
+                    <span class="bw-fpw-mobile-filter-panel__title"><?php echo esc_html( $mobile_panel_title ); ?></span>
+                    <button class="bw-fpw-mobile-filter-close" type="button" aria-label="<?php esc_attr_e( 'Close filters', 'bw-elementor-widgets' ); ?>">&times;</button>
+                </div>
+
+                <div class="bw-fpw-mobile-filter-panel__body">
+                    <?php if ( $show_categories ) : ?>
+                        <div class="bw-fpw-mobile-filter-group bw-fpw-mobile-filter-group--categories" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+                            <button class="bw-fpw-mobile-dropdown-toggle" type="button">
+                                <span class="bw-fpw-mobile-dropdown-label"><?php echo esc_html( $categories_title ); ?></span>
+                                <span class="bw-fpw-mobile-dropdown-icon"></span>
+                            </button>
+                            <div class="bw-fpw-mobile-dropdown-panel">
+                                <div class="bw-fpw-mobile-dropdown-options bw-fpw-filter-options bw-fpw-filter-options--categories" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+                                    <?php if ( $show_all_button ) : ?>
+                                        <button class="bw-fpw-filter-option bw-fpw-cat-button active" data-category="all">
+                                            <span class="bw-fpw-option-label"><?php esc_html_e( 'All', 'bw-elementor-widgets' ); ?></span>
+                                            <span class="bw-fpw-option-count">(<?php echo esc_html( $this->get_total_post_count( $post_type ) ); ?>)</span>
+                                        </button>
+                                    <?php endif; ?>
+
+                                    <?php if ( ! empty( $parent_terms ) && ! is_wp_error( $parent_terms ) ) : ?>
+                                        <?php
+                                        $has_active_category = $show_all_button;
+                                        foreach ( $parent_terms as $category ) :
+                                            $is_active = ! $has_active_category;
+                                            if ( $is_active ) {
+                                                $has_active_category = true;
+                                            }
+                                            ?>
+                                            <button class="bw-fpw-filter-option bw-fpw-cat-button<?php echo $is_active ? ' active' : ''; ?>" data-category="<?php echo esc_attr( $category->term_id ); ?>">
+                                                <span class="bw-fpw-option-label"><?php echo esc_html( $category->name ); ?></span>
+                                                <span class="bw-fpw-option-count">(<?php echo esc_html( $category->count ); ?>)</span>
+                                            </button>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if ( $show_subcategories ) : ?>
+                        <div class="bw-fpw-mobile-filter-group bw-fpw-mobile-filter-group--subcategories" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+                            <button class="bw-fpw-mobile-dropdown-toggle" type="button">
+                                <span class="bw-fpw-mobile-dropdown-label"><?php echo esc_html( $subcategories_title ); ?></span>
+                                <span class="bw-fpw-mobile-dropdown-icon"></span>
+                            </button>
+                            <div class="bw-fpw-mobile-dropdown-panel">
+                                <div class="bw-fpw-mobile-dropdown-options bw-fpw-filter-options bw-fpw-subcategories-container" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+                                    <?php foreach ( $initial_subcategories as $subcategory ) : ?>
+                                        <button class="bw-fpw-filter-option bw-fpw-subcat-button" data-subcategory="<?php echo esc_attr( $subcategory['term_id'] ); ?>">
+                                            <span class="bw-fpw-option-label"><?php echo esc_html( $subcategory['name'] ); ?></span>
+                                            <span class="bw-fpw-option-count">(<?php echo esc_html( $subcategory['count'] ); ?>)</span>
+                                        </button>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if ( $show_tags && ! empty( $tags ) ) : ?>
+                        <div class="bw-fpw-mobile-filter-group bw-fpw-mobile-filter-group--tags" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+                            <button class="bw-fpw-mobile-dropdown-toggle" type="button">
+                                <span class="bw-fpw-mobile-dropdown-label"><?php echo esc_html( $tags_title ); ?></span>
+                                <span class="bw-fpw-mobile-dropdown-icon"></span>
+                            </button>
+                            <div class="bw-fpw-mobile-dropdown-panel">
+                                <div class="bw-fpw-mobile-dropdown-options bw-fpw-filter-options bw-fpw-tag-options" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+                                    <?php foreach ( $tags as $tag ) : ?>
+                                        <button class="bw-fpw-filter-option bw-fpw-tag-button" data-tag="<?php echo esc_attr( $tag['term_id'] ); ?>">
+                                            <span class="bw-fpw-option-label"><?php echo esc_html( $tag['name'] ); ?></span>
+                                            <span class="bw-fpw-option-count">(<?php echo esc_html( $tag['count'] ); ?>)</span>
+                                        </button>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+                </div>
+
+                <div class="bw-fpw-mobile-filter-panel__footer">
+                    <button class="bw-fpw-mobile-apply" type="button"><?php echo esc_html( $mobile_show_results ); ?></button>
+                </div>
+            </div>
+        </div>
+
         <div class="bw-fpw-filters" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
             <div class="bw-fpw-filter-rows">
                 <?php if ( $show_categories ) : ?>
-                    <div class="bw-fpw-filter-row bw-fpw-filter-row--categories">
+                    <div class="bw-fpw-filter-row bw-fpw-filter-row--categories" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
                         <h3 class="bw-fpw-filter-label"><?php echo esc_html( $categories_title ); ?></h3>
-                        <div class="bw-fpw-filter-options bw-fpw-filter-options--categories">
+                        <div class="bw-fpw-filter-options bw-fpw-filter-options--categories" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
                             <?php if ( $show_all_button ) : ?>
                                 <button class="bw-fpw-filter-option bw-fpw-cat-button active" data-category="all">
                                     <span class="bw-fpw-option-label"><?php esc_html_e( 'All', 'bw-elementor-widgets' ); ?></span>
@@ -1050,9 +1236,9 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
                 <?php endif; ?>
 
                 <?php if ( $show_subcategories ) : ?>
-                    <div class="bw-fpw-filter-row bw-fpw-filter-row--subcategories bw-fpw-filter-subcategories">
+                    <div class="bw-fpw-filter-row bw-fpw-filter-row--subcategories bw-fpw-filter-subcategories" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
                         <h3 class="bw-fpw-filter-label"><?php echo esc_html( $subcategories_title ); ?></h3>
-                        <div class="bw-fpw-filter-options bw-fpw-subcategories-container">
+                        <div class="bw-fpw-filter-options bw-fpw-subcategories-container" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
                             <?php foreach ( $initial_subcategories as $subcategory ) : ?>
                                 <button class="bw-fpw-filter-option bw-fpw-subcat-button" data-subcategory="<?php echo esc_attr( $subcategory['term_id'] ); ?>">
                                     <span class="bw-fpw-option-label"><?php echo esc_html( $subcategory['name'] ); ?></span>
@@ -1064,9 +1250,9 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
                 <?php endif; ?>
 
                 <?php if ( $show_tags && ! empty( $tags ) ) : ?>
-                    <div class="bw-fpw-filter-row bw-fpw-filter-row--tags bw-fpw-filter-tags">
+                    <div class="bw-fpw-filter-row bw-fpw-filter-row--tags bw-fpw-filter-tags" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
                         <h3 class="bw-fpw-filter-label"><?php echo esc_html( $tags_title ); ?></h3>
-                        <div class="bw-fpw-filter-options bw-fpw-tag-options">
+                        <div class="bw-fpw-filter-options bw-fpw-tag-options" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
                             <?php foreach ( $tags as $tag ) : ?>
                                 <button class="bw-fpw-filter-option bw-fpw-tag-button" data-tag="<?php echo esc_attr( $tag['term_id'] ); ?>">
                                     <span class="bw-fpw-option-label"><?php echo esc_html( $tag['name'] ); ?></span>

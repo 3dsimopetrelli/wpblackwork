@@ -236,16 +236,17 @@
         }
     }
 
-    function loadSubcategories(categoryId, $container, widgetId) {
+    function loadSubcategories(categoryId, widgetId) {
         var $grid = $('.bw-fpw-grid[data-widget-id="' + widgetId + '"]');
         var postType = $grid.attr('data-post-type') || 'product';
-        var $filters = $container.closest('.bw-fpw-filters');
-        var $subcatRow = $filters.find('.bw-fpw-filter-subcategories');
+        var $filters = $('.bw-fpw-filters[data-widget-id="' + widgetId + '"]');
+        var $subcatRow = $('.bw-fpw-filter-subcategories[data-widget-id="' + widgetId + '"]');
+        var $subcatContainers = $('.bw-fpw-subcategories-container[data-widget-id="' + widgetId + '"]');
         var hasPostsAttr = $filters.attr('data-has-posts');
         var hasPosts = typeof hasPostsAttr === 'undefined' ? true : hasPostsAttr === '1';
 
-        if ($container.length) {
-            $container.empty();
+        if ($subcatContainers.length) {
+            $subcatContainers.empty();
         }
 
         console.log('📂 Loading subcategories for category:', categoryId);
@@ -271,9 +272,11 @@
                         html += '</button>';
                     });
 
-                    $container.html(html);
+                    $subcatContainers.each(function() {
+                        $(this).html(html);
+                    });
                     if ($subcatRow.length) {
-                        var hasButtons = $container.find('.bw-fpw-subcat-button').length > 0;
+                        var hasButtons = $subcatContainers.find('.bw-fpw-subcat-button').length > 0;
                         if (hasPosts && hasButtons) {
                             $subcatRow.show();
                         } else {
@@ -281,7 +284,7 @@
                         }
                     }
                 } else {
-                    $container.html('<p class="bw-fpw-no-subcats">No subcategories found</p>');
+                    $subcatContainers.html('<p class="bw-fpw-no-subcats">No subcategories found</p>');
                     if ($subcatRow.length) {
                         $subcatRow.hide();
                     }
@@ -289,7 +292,7 @@
             },
             error: function() {
                 console.error('❌ Error loading subcategories');
-                $container.html('<p class="bw-fpw-error">Error loading subcategories</p>');
+                $subcatContainers.html('<p class="bw-fpw-error">Error loading subcategories</p>');
                 if ($subcatRow.length) {
                     if (hasPosts) {
                         $subcatRow.show();
@@ -355,19 +358,20 @@
                     // Replace grid content
                     $grid.html(response.data.html);
 
-                    var $subcatRow = $filters.find('.bw-fpw-filter-row--subcategories');
+                    var $subcatRow = $('.bw-fpw-filter-row--subcategories[data-widget-id="' + widgetId + '"]');
+                    var $subcatOptions = $('.bw-fpw-subcategories-container[data-widget-id="' + widgetId + '"]');
 
                     if ($subcatRow.length) {
                         if (!hasPosts) {
                             $subcatRow.hide();
-                        } else if ($subcatRow.find('.bw-fpw-subcat-button').length) {
+                        } else if ($subcatOptions.find('.bw-fpw-subcat-button').length) {
                             $subcatRow.show();
                         }
                     }
 
                     if (typeof response.data.tags_html !== 'undefined') {
-                        var $tagRow = $filters.find('.bw-fpw-filter-row--tags');
-                        var $tagOptions = $filters.find('.bw-fpw-tag-options');
+                        var $tagRow = $('.bw-fpw-filter-row--tags[data-widget-id="' + widgetId + '"]');
+                        var $tagOptions = $('.bw-fpw-tag-options[data-widget-id="' + widgetId + '"]');
 
                         if ($tagRow.length && $tagOptions.length) {
                             var availableTags = Array.isArray(response.data.available_tags) ? response.data.available_tags.map(function(tag){ return parseInt(tag); }) : [];
@@ -383,7 +387,9 @@
                                 $tagOptions.empty();
                                 $tagRow.hide();
                             } else if (response.data.tags_html) {
-                                $tagOptions.html(response.data.tags_html);
+                                $tagOptions.each(function() {
+                                    $(this).html(response.data.tags_html);
+                                });
                                 $tagRow.show();
 
                                 if (filterState[widgetId].tags.length) {
@@ -442,7 +448,7 @@
                     $wrapper.removeClass('bw-filtered-post-wall--loading');
                     $filters.removeClass('loading');
                     $filters.attr('data-has-posts', '0');
-                    $filters.find('.bw-fpw-filter-row--subcategories, .bw-fpw-filter-row--tags').hide();
+                    $('.bw-fpw-filter-row--subcategories[data-widget-id="' + widgetId + '"], .bw-fpw-filter-row--tags[data-widget-id="' + widgetId + '"]').hide();
                 }
             },
             error: function(xhr, status, error) {
@@ -451,7 +457,7 @@
                 $wrapper.removeClass('bw-filtered-post-wall--loading');
                 $filters.removeClass('loading');
                 $filters.attr('data-has-posts', '0');
-                $filters.find('.bw-fpw-filter-row--subcategories, .bw-fpw-filter-row--tags').hide();
+                $('.bw-fpw-filter-row--subcategories[data-widget-id="' + widgetId + '"], .bw-fpw-filter-row--tags[data-widget-id="' + widgetId + '"]').hide();
             }
         });
     }
@@ -461,17 +467,19 @@
             e.preventDefault();
 
             var $button = $(this);
-            var $filters = $button.closest('.bw-fpw-filters');
-            var widgetId = $filters.attr('data-widget-id');
+            var widgetId = $button.closest('[data-widget-id]').attr('data-widget-id');
+            var $filters = $('.bw-fpw-filters[data-widget-id="' + widgetId + '"]');
             var categoryId = $button.attr('data-category');
-            var $subcatRow = $filters.find('.bw-fpw-filter-subcategories');
-            var $subcatContainer = $filters.find('.bw-fpw-subcategories-container');
-            var $tagOptions = $filters.find('.bw-fpw-tag-options');
+            var $subcatRow = $('.bw-fpw-filter-subcategories[data-widget-id="' + widgetId + '"]');
+            var $subcatContainer = $('.bw-fpw-subcategories-container[data-widget-id="' + widgetId + '"]');
+            var $tagOptions = $('.bw-fpw-tag-options[data-widget-id="' + widgetId + '"]');
 
             initFilterState(widgetId);
 
             // Update active state
-            $filters.find('.bw-fpw-cat-button').removeClass('active');
+            $('.bw-fpw-cat-button').filter(function(){
+                return $(this).closest('[data-widget-id]').attr('data-widget-id') === widgetId;
+            }).removeClass('active');
             $button.addClass('active');
 
             // Update filter state
@@ -480,15 +488,19 @@
             filterState[widgetId].tags = [];
 
             // Reset tag visual state
-            $filters.find('.bw-fpw-tag-button').removeClass('active');
+            $('.bw-fpw-tag-button').filter(function(){
+                return $(this).closest('[data-widget-id]').attr('data-widget-id') === widgetId;
+            }).removeClass('active');
 
             // Clear subcategory active states
-            $filters.find('.bw-fpw-subcat-button').removeClass('active');
+            $('.bw-fpw-subcat-button').filter(function(){
+                return $(this).closest('[data-widget-id]').attr('data-widget-id') === widgetId;
+            }).removeClass('active');
 
             console.log('📁 Category selected:', categoryId);
 
             if ($subcatContainer.length) {
-                loadSubcategories(categoryId, $subcatContainer, widgetId);
+                loadSubcategories(categoryId, widgetId);
             }
 
             if ($tagOptions.length) {
@@ -504,8 +516,7 @@
             e.preventDefault();
 
             var $button = $(this);
-            var $filters = $button.closest('.bw-fpw-filters');
-            var widgetId = $filters.attr('data-widget-id');
+            var widgetId = $button.closest('[data-widget-id]').attr('data-widget-id');
             var subcatId = parseInt($button.attr('data-subcategory'));
 
             initFilterState(widgetId);
@@ -534,8 +545,7 @@
             e.preventDefault();
 
             var $button = $(this);
-            var $filters = $button.closest('.bw-fpw-filters');
-            var widgetId = $filters.attr('data-widget-id');
+            var widgetId = $button.closest('[data-widget-id]').attr('data-widget-id');
             var tagId = parseInt($button.attr('data-tag'));
 
             initFilterState(widgetId);
@@ -557,6 +567,67 @@
 
             // Filter posts
             filterPosts(widgetId);
+        });
+
+        $(document).on('click', '.bw-fpw-mobile-filter-button', function(e) {
+            e.preventDefault();
+
+            var widgetId = $(this).closest('.bw-fpw-mobile-filter').attr('data-widget-id');
+            openMobilePanel(widgetId);
+        });
+
+        $(document).on('click', '.bw-fpw-mobile-filter-close', function(e) {
+            e.preventDefault();
+
+            var widgetId = $(this).closest('.bw-fpw-mobile-filter').attr('data-widget-id');
+            closeMobilePanel(widgetId);
+        });
+
+        $(document).on('click', '.bw-fpw-mobile-apply', function(e) {
+            e.preventDefault();
+
+            var widgetId = $(this).closest('.bw-fpw-mobile-filter').attr('data-widget-id');
+            filterPosts(widgetId);
+            closeMobilePanel(widgetId);
+        });
+
+        $(document).on('click', '.bw-fpw-mobile-dropdown-toggle', function() {
+            $(this).closest('.bw-fpw-mobile-filter-group').toggleClass('is-open');
+        });
+    }
+
+    function openMobilePanel(widgetId) {
+        var $panel = $('.bw-fpw-mobile-filter[data-widget-id="' + widgetId + '"] .bw-fpw-mobile-filter-panel');
+        var $wrapper = $panel.closest('.bw-filtered-post-wall-wrapper');
+
+        if ($panel.length) {
+            $wrapper.addClass('bw-fpw-mobile-panel-open');
+            $panel.attr('aria-hidden', 'false');
+        }
+    }
+
+    function closeMobilePanel(widgetId) {
+        var $panel = $('.bw-fpw-mobile-filter[data-widget-id="' + widgetId + '"] .bw-fpw-mobile-filter-panel');
+        var $wrapper = $panel.closest('.bw-filtered-post-wall-wrapper');
+
+        if ($panel.length) {
+            $wrapper.removeClass('bw-fpw-mobile-panel-open');
+            $panel.attr('aria-hidden', 'true');
+        }
+    }
+
+    function toggleResponsiveFilters() {
+        $('.bw-filtered-post-wall-wrapper').each(function() {
+            var $wrapper = $(this);
+            var breakpoint = parseInt($wrapper.attr('data-filter-breakpoint')) || 900;
+            var width = window.innerWidth || $(window).width();
+
+            if (width < breakpoint) {
+                $wrapper.addClass('bw-fpw-mobile-filters-enabled');
+            } else {
+                $wrapper.removeClass('bw-fpw-mobile-filters-enabled bw-fpw-mobile-panel-open');
+                $wrapper.find('.bw-fpw-mobile-filter-panel').attr('aria-hidden', 'true');
+            }
         });
     }
 
@@ -616,6 +687,15 @@
     $(function () {
         initWidget($(document));
         initFilters();
+        toggleResponsiveFilters();
+
+        var resizeTimer;
+        $(window).on('resize orientationchange', function() {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(function() {
+                toggleResponsiveFilters();
+            }, 150);
+        });
     });
 
     // Window resize handler
