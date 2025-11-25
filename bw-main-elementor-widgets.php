@@ -780,8 +780,7 @@ function bw_fpw_render_tag_markup( $tags ) {
     foreach ( $tags as $tag ) {
         ?>
         <button class="bw-fpw-filter-option bw-fpw-tag-button" data-tag="<?php echo esc_attr( $tag['term_id'] ); ?>">
-            <span class="bw-fpw-option-label"><?php echo esc_html( $tag['name'] ); ?></span>
-            <span class="bw-fpw-option-count">(<?php echo esc_html( $tag['count'] ); ?>)</span>
+            <span class="bw-fpw-option-label"><?php echo esc_html( $tag['name'] ); ?></span> <span class="bw-fpw-option-count">(<?php echo esc_html( $tag['count'] ); ?>)</span>
         </button>
         <?php
     }
