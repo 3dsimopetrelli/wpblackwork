@@ -116,6 +116,49 @@
   margin-left: 4px;
 }
 
+/* Filter Select Styles - Active State Highlighting */
+.bw-fpw-select-underline .bw-fpw-filter-option.active .bw-fpw-option-label {
+  text-decoration: underline;
+}
+
+.bw-fpw-select-bold .bw-fpw-filter-option.active .bw-fpw-option-label {
+  font-weight: 700;
+}
+
+/* Color is handled by Elementor control selectors */
+
+/* Smooth animations for subcategories and tags appearing/disappearing */
+.bw-fpw-filter-row--subcategories,
+.bw-fpw-filter-row--tags {
+  transition: opacity 0.3s ease, max-height 0.3s ease;
+}
+
+.bw-fpw-filter-row--subcategories .bw-fpw-filter-options,
+.bw-fpw-filter-row--tags .bw-fpw-filter-options {
+  transition: opacity 0.25s ease;
+}
+
+/* Smooth fade-in for filter options */
+.bw-fpw-filter-option {
+  transition: color 0.2s ease, opacity 0.2s ease;
+}
+
+.bw-fpw-subcategories-container,
+.bw-fpw-tag-options {
+  animation: bw-fpw-fade-in 0.35s ease;
+}
+
+@keyframes bw-fpw-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Loading state for filters */
 .bw-fpw-filters.loading {
   opacity: 0.6;
@@ -282,6 +325,22 @@
   display: none;
   border-top: none;
   overflow: hidden;
+}
+
+.bw-fpw-mobile-filter-group.is-open .bw-fpw-mobile-dropdown-panel {
+  display: block;
+  animation: bw-fpw-dropdown-open 0.3s ease forwards;
+}
+
+@keyframes bw-fpw-dropdown-open {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 1000px;
+  }
 }
 
 .bw-fpw-mobile-dropdown-options {
