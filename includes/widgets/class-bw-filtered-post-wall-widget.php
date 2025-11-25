@@ -485,6 +485,100 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             ],
         ] );
 
+        $this->add_control( 'filter_spacing_heading', [
+            'label'     => __( 'Spacing', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::HEADING,
+            'separator' => 'before',
+        ] );
+
+        $this->add_responsive_control( 'categories_title_margin_bottom', [
+            'label'      => __( 'Categories Title – Margin Bottom', 'bw-elementor-widgets' ),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => [ 'px', 'em', 'rem' ],
+            'range'      => [
+                'px'  => [ 'min' => -50, 'max' => 200 ],
+                'em'  => [ 'min' => -5, 'max' => 12 ],
+                'rem' => [ 'min' => -5, 'max' => 12 ],
+            ],
+            'selectors'  => [
+                '{{WRAPPER}} .bw-fpw-filter-row--categories .bw-fpw-filter-label' => 'margin-bottom: {{SIZE}}{{UNIT}};',
+            ],
+        ] );
+
+        $this->add_responsive_control( 'categories_list_margin_bottom', [
+            'label'      => __( 'Categories – Margin Bottom', 'bw-elementor-widgets' ),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => [ 'px', 'em', 'rem' ],
+            'range'      => [
+                'px'  => [ 'min' => -50, 'max' => 200 ],
+                'em'  => [ 'min' => -5, 'max' => 12 ],
+                'rem' => [ 'min' => -5, 'max' => 12 ],
+            ],
+            'selectors'  => [
+                '{{WRAPPER}} .bw-fpw-filter-row--categories .bw-fpw-filter-options' => 'margin-bottom: {{SIZE}}{{UNIT}};',
+            ],
+        ] );
+
+        $this->add_responsive_control( 'subcategories_title_margin_bottom', [
+            'label'      => __( 'Subcategories Title – Margin Bottom', 'bw-elementor-widgets' ),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => [ 'px', 'em', 'rem' ],
+            'range'      => [
+                'px'  => [ 'min' => -50, 'max' => 200 ],
+                'em'  => [ 'min' => -5, 'max' => 12 ],
+                'rem' => [ 'min' => -5, 'max' => 12 ],
+            ],
+            'selectors'  => [
+                '{{WRAPPER}} .bw-fpw-filter-row--subcategories .bw-fpw-filter-label' => 'margin-bottom: {{SIZE}}{{UNIT}};',
+            ],
+            'condition'  => [ 'show_subcategories' => 'yes' ],
+        ] );
+
+        $this->add_responsive_control( 'subcategories_list_margin_bottom', [
+            'label'      => __( 'Subcategories – Margin Bottom', 'bw-elementor-widgets' ),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => [ 'px', 'em', 'rem' ],
+            'range'      => [
+                'px'  => [ 'min' => -50, 'max' => 200 ],
+                'em'  => [ 'min' => -5, 'max' => 12 ],
+                'rem' => [ 'min' => -5, 'max' => 12 ],
+            ],
+            'selectors'  => [
+                '{{WRAPPER}} .bw-fpw-filter-row--subcategories .bw-fpw-filter-options' => 'margin-bottom: {{SIZE}}{{UNIT}};',
+            ],
+            'condition'  => [ 'show_subcategories' => 'yes' ],
+        ] );
+
+        $this->add_responsive_control( 'tags_title_margin_bottom', [
+            'label'      => __( 'Tags Title – Margin Bottom', 'bw-elementor-widgets' ),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => [ 'px', 'em', 'rem' ],
+            'range'      => [
+                'px'  => [ 'min' => -50, 'max' => 200 ],
+                'em'  => [ 'min' => -5, 'max' => 12 ],
+                'rem' => [ 'min' => -5, 'max' => 12 ],
+            ],
+            'selectors'  => [
+                '{{WRAPPER}} .bw-fpw-filter-row--tags .bw-fpw-filter-label' => 'margin-bottom: {{SIZE}}{{UNIT}};',
+            ],
+            'condition'  => [ 'show_tags' => 'yes' ],
+        ] );
+
+        $this->add_responsive_control( 'tags_list_margin_bottom', [
+            'label'      => __( 'Tags – Margin Bottom', 'bw-elementor-widgets' ),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => [ 'px', 'em', 'rem' ],
+            'range'      => [
+                'px'  => [ 'min' => -50, 'max' => 200 ],
+                'em'  => [ 'min' => -5, 'max' => 12 ],
+                'rem' => [ 'min' => -5, 'max' => 12 ],
+            ],
+            'selectors'  => [
+                '{{WRAPPER}} .bw-fpw-filter-row--tags .bw-fpw-filter-options' => 'margin-bottom: {{SIZE}}{{UNIT}};',
+            ],
+            'condition'  => [ 'show_tags' => 'yes' ],
+        ] );
+
         $this->add_control( 'filter_box_background', [
             'label'     => __( 'Background Color', 'bw-elementor-widgets' ),
             'type'      => Controls_Manager::COLOR,
@@ -2018,7 +2112,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
     private function format_filter_label( $name, $count ) {
         $count = is_numeric( $count ) ? (int) $count : $count;
 
-        return trim( sprintf( '%s (%s),', $name, $count ) );
+        return trim( sprintf( '%s (%s)', $name, $count ) );
     }
 
     private function parse_ids( $ids_string ) {
