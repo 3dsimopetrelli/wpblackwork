@@ -101,7 +101,7 @@
   text-decoration: underline;
 }
 
-.bw-fpw-filter-option:not(:last-child)::after {
+.bw-fpw-filter-option::after {
   content: ', ';
   color: currentColor;
 }
@@ -310,8 +310,8 @@
   transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
 }
 
-.bw-fpw-mobile-dropdown-options .bw-fpw-filter-option:not(:last-child)::after {
-  content: none;
+.bw-fpw-mobile-dropdown-options .bw-fpw-filter-option::after {
+  content: ', ';
 }
 
 .bw-fpw-mobile-dropdown-options .bw-fpw-option-label {
