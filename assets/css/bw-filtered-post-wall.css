@@ -115,6 +115,7 @@
 .bw-fpw-filter-option::after {
   content: ',';
   color: currentColor;
+  margin-left: -0.1em;
   margin-right: 0.25em;
 }
 
