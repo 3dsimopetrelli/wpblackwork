@@ -62,9 +62,9 @@
 }
 
 .bw-fpw-filter-option {
-  background: none;
-  border: none;
-  border-radius: 0;
+  background: none !important;
+  border: none !important;
+  border-radius: 0 !important;
   padding: 0;
   margin: 0;
   font-size: 14px;
@@ -73,6 +73,10 @@
   cursor: pointer;
   line-height: 1.6;
   position: relative;
+  box-shadow: none;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
 }
 
 .bw-fpw-filter-option:focus {
