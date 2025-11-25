@@ -245,8 +245,12 @@
         var hasPostsAttr = $filters.attr('data-has-posts');
         var hasPosts = typeof hasPostsAttr === 'undefined' ? true : hasPostsAttr === '1';
 
+        // Fade out before clearing
         if ($subcatContainers.length) {
-            $subcatContainers.empty();
+            $subcatContainers.css('opacity', '0');
+            setTimeout(function() {
+                $subcatContainers.empty();
+            }, 150);
         }
 
         console.log('📂 Loading subcategories for category:', categoryId);
@@ -273,12 +277,20 @@
                     });
 
                     $subcatContainers.each(function() {
-                        $(this).html(html);
+                        var $container = $(this);
+                        $container.html(html);
+                        // Fade in after content is loaded
+                        setTimeout(function() {
+                            $container.css('opacity', '1');
+                        }, 50);
                     });
                     if ($subcatRow.length) {
                         var hasButtons = $subcatContainers.find('.bw-fpw-subcat-button').length > 0;
                         if (hasPosts && hasButtons) {
-                            $subcatRow.show();
+                            $subcatRow.css('opacity', '0').show();
+                            setTimeout(function() {
+                                $subcatRow.css('opacity', '1');
+                            }, 50);
                         } else {
                             $subcatRow.hide();
                         }
@@ -324,6 +336,9 @@
         var order = $grid.attr('data-order') || 'DESC';
 
         console.log('🔍 Filtering posts:', state);
+
+        // Fade out grid before filtering
+        $grid.css('opacity', '0');
 
         // Show loading state
         $wrapper.addClass('bw-filtered-post-wall--loading');
@@ -384,28 +399,42 @@
 
                             if (!hasPosts) {
                                 filterState[widgetId].tags = [];
-                                $tagOptions.empty();
-                                $tagRow.hide();
+                                $tagOptions.css('opacity', '0');
+                                setTimeout(function() {
+                                    $tagOptions.empty();
+                                    $tagRow.hide();
+                                }, 150);
                             } else if (response.data.tags_html) {
-                                $tagOptions.each(function() {
-                                    $(this).html(response.data.tags_html);
-                                });
-                                $tagRow.show();
-
-                                if (filterState[widgetId].tags.length) {
-                                    $tagOptions.find('.bw-fpw-tag-button').each(function(){
-                                        var $tagButton = $(this);
-                                        var tagId = parseInt($tagButton.attr('data-tag'));
-
-                                        if (filterState[widgetId].tags.indexOf(tagId) > -1) {
-                                            $tagButton.addClass('active');
-                                        }
+                                $tagOptions.css('opacity', '0');
+                                setTimeout(function() {
+                                    $tagOptions.each(function() {
+                                        $(this).html(response.data.tags_html);
                                     });
-                                }
+                                    $tagRow.css('opacity', '0').show();
+
+                                    setTimeout(function() {
+                                        $tagOptions.css('opacity', '1');
+                                        $tagRow.css('opacity', '1');
+                                    }, 50);
+
+                                    if (filterState[widgetId].tags.length) {
+                                        $tagOptions.find('.bw-fpw-tag-button').each(function(){
+                                            var $tagButton = $(this);
+                                            var tagId = parseInt($tagButton.attr('data-tag'));
+
+                                            if (filterState[widgetId].tags.indexOf(tagId) > -1) {
+                                                $tagButton.addClass('active');
+                                            }
+                                        });
+                                    }
+                                }, 150);
                             } else {
                                 filterState[widgetId].tags = [];
-                                $tagOptions.empty();
-                                $tagRow.hide();
+                                $tagOptions.css('opacity', '0');
+                                setTimeout(function() {
+                                    $tagOptions.empty();
+                                    $tagRow.hide();
+                                }, 150);
                             }
                         }
                     }
@@ -416,6 +445,11 @@
 
                         // Reinitialize masonry after images are loaded
                         initGrid($grid);
+
+                        // Fade in grid after initialization
+                        setTimeout(function() {
+                            $grid.css('opacity', '1');
+                        }, 100);
 
                         // Additional layout passes for stability
                         setTimeout(function() {

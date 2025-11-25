@@ -645,16 +645,34 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'description' => __( 'Stile per evidenziare i filtri attivi (Categoria, Subcategory, Tag selezionati)', 'bw-elementor-widgets' ),
         ] );
 
-        $this->add_control( 'filter_select_style', [
-            'label'   => __( 'Highlight Style', 'bw-elementor-widgets' ),
-            'type'    => Controls_Manager::SELECT,
-            'options' => [
-                'none'      => __( 'None', 'bw-elementor-widgets' ),
-                'underline' => __( 'Underscore', 'bw-elementor-widgets' ),
-                'bold'      => __( 'Bold', 'bw-elementor-widgets' ),
-                'color'     => __( 'Custom Color', 'bw-elementor-widgets' ),
-            ],
-            'default' => 'none',
+        $this->add_control( 'filter_select_bold', [
+            'label'        => __( 'Bold', 'bw-elementor-widgets' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
+            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
+            'return_value' => 'yes',
+            'default'      => 'no',
+            'description'  => __( 'Applica grassetto ai filtri attivi', 'bw-elementor-widgets' ),
+        ] );
+
+        $this->add_control( 'filter_select_underline', [
+            'label'        => __( 'Underscore', 'bw-elementor-widgets' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
+            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
+            'return_value' => 'yes',
+            'default'      => 'no',
+            'description'  => __( 'Sottolinea i filtri attivi', 'bw-elementor-widgets' ),
+        ] );
+
+        $this->add_control( 'filter_select_custom_color', [
+            'label'        => __( 'Custom Color', 'bw-elementor-widgets' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
+            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
+            'return_value' => 'yes',
+            'default'      => 'no',
+            'description'  => __( 'Usa un colore personalizzato per i filtri attivi', 'bw-elementor-widgets' ),
         ] );
 
         $this->add_control( 'filter_select_color', [
@@ -664,7 +682,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'selectors' => [
                 '{{WRAPPER}} .bw-fpw-filter-option.active .bw-fpw-option-label' => 'color: {{VALUE}};',
             ],
-            'condition' => [ 'filter_select_style' => 'color' ],
+            'condition' => [ 'filter_select_custom_color' => 'yes' ],
         ] );
 
         $this->end_controls_section();
@@ -1378,12 +1396,17 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
 
     private function render_wrapper_start( $settings ) {
         $filter_position = isset( $settings['filter_position'] ) ? $settings['filter_position'] : 'top';
-        $filter_select_style = isset( $settings['filter_select_style'] ) ? $settings['filter_select_style'] : 'none';
         $wrapper_classes = [ 'bw-filtered-post-wall-wrapper', 'bw-fpw-layout-' . $filter_position ];
 
-        // Add filter select style class
-        if ( 'none' !== $filter_select_style ) {
-            $wrapper_classes[] = 'bw-fpw-select-' . $filter_select_style;
+        // Add filter select style classes (multiple can be active)
+        if ( isset( $settings['filter_select_bold'] ) && 'yes' === $settings['filter_select_bold'] ) {
+            $wrapper_classes[] = 'bw-fpw-select-bold';
+        }
+        if ( isset( $settings['filter_select_underline'] ) && 'yes' === $settings['filter_select_underline'] ) {
+            $wrapper_classes[] = 'bw-fpw-select-underline';
+        }
+        if ( isset( $settings['filter_select_custom_color'] ) && 'yes' === $settings['filter_select_custom_color'] ) {
+            $wrapper_classes[] = 'bw-fpw-select-custom-color';
         }
 
         $responsive_breakpoint = isset( $settings['filter_responsive_breakpoint'] ) ? absint( $settings['filter_responsive_breakpoint'] ) : 900;
