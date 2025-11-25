@@ -123,6 +123,167 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
         ] );
 
         $this->end_controls_section();
+
+        $this->start_controls_section( 'responsive_filter_panel_style', [
+            'label'     => __( 'Responsive Filter Panel', 'bw-elementor-widgets' ),
+            'tab'       => Controls_Manager::TAB_STYLE,
+            'condition' => [ 'show_filters' => 'yes' ],
+        ] );
+
+        $this->add_control( 'responsive_filter_panel_header_heading', [
+            'label'     => __( 'Header “Filter products”', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::HEADING,
+        ] );
+
+        $this->add_group_control( Group_Control_Typography::get_type(), [
+            'name'     => 'responsive_filter_panel_header_typography',
+            'selector' => '{{WRAPPER}} .bw-fpw-mobile-filter-panel__title',
+        ] );
+
+        $this->add_responsive_control( 'responsive_filter_panel_header_alignment', [
+            'label'   => __( 'Text Align', 'bw-elementor-widgets' ),
+            'type'    => Controls_Manager::CHOOSE,
+            'options' => [
+                'left'   => [
+                    'title' => __( 'Left', 'bw-elementor-widgets' ),
+                    'icon'  => 'eicon-text-align-left',
+                ],
+                'center' => [
+                    'title' => __( 'Center', 'bw-elementor-widgets' ),
+                    'icon'  => 'eicon-text-align-center',
+                ],
+                'right'  => [
+                    'title' => __( 'Right', 'bw-elementor-widgets' ),
+                    'icon'  => 'eicon-text-align-right',
+                ],
+            ],
+            'default'   => 'left',
+            'selectors' => [
+                '{{WRAPPER}} .bw-fpw-mobile-filter-panel__title' => 'text-align: {{VALUE}};',
+            ],
+        ] );
+
+        $this->add_control( 'responsive_filter_panel_header_background', [
+            'label'     => __( 'Header Background', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::COLOR,
+            'default'   => '#f7f7f7',
+            'selectors' => [
+                '{{WRAPPER}} .bw-fpw-mobile-filter-panel__header' => 'background-color: {{VALUE}};',
+            ],
+        ] );
+
+        $this->add_control( 'responsive_filter_panel_close_heading', [
+            'label'     => __( 'Close Button (X)', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::HEADING,
+            'separator' => 'before',
+        ] );
+
+        $this->add_control( 'responsive_filter_panel_close_color', [
+            'label'     => __( 'Color', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::COLOR,
+            'default'   => '#000000',
+            'selectors' => [
+                '{{WRAPPER}} .bw-fpw-mobile-filter-close' => 'color: {{VALUE}};',
+            ],
+        ] );
+
+        $this->add_responsive_control( 'responsive_filter_panel_close_size', [
+            'label'      => __( 'Size', 'bw-elementor-widgets' ),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => [ 'px', 'em', 'rem' ],
+            'range'      => [
+                'px' => [ 'min' => 8, 'max' => 48 ],
+                'em' => [ 'min' => 0.5, 'max' => 3 ],
+                'rem' => [ 'min' => 0.5, 'max' => 3 ],
+            ],
+            'default'    => [
+                'size' => 20,
+                'unit' => 'px',
+            ],
+            'selectors'  => [
+                '{{WRAPPER}} .bw-fpw-mobile-filter-close' => 'font-size: {{SIZE}}{{UNIT}};',
+            ],
+        ] );
+
+        $this->end_controls_section();
+
+        $this->start_controls_section( 'responsive_filter_buttons_style', [
+            'label'     => __( 'Style bottoni responsive', 'bw-elementor-widgets' ),
+            'tab'       => Controls_Manager::TAB_STYLE,
+            'condition' => [ 'show_filters' => 'yes' ],
+        ] );
+
+        $this->add_control( 'responsive_dropdown_button_background', [
+            'label'     => __( 'Background', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => [
+                '{{WRAPPER}} .bw-fpw-mobile-dropdown-options .bw-fpw-filter-option' => 'background-color: {{VALUE}};',
+            ],
+        ] );
+
+        $this->add_control( 'responsive_dropdown_button_color', [
+            'label'     => __( 'Text Color', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => [
+                '{{WRAPPER}} .bw-fpw-mobile-dropdown-options .bw-fpw-filter-option' => 'color: {{VALUE}};',
+                '{{WRAPPER}} .bw-fpw-mobile-dropdown-options .bw-fpw-option-count'  => 'color: {{VALUE}};',
+            ],
+        ] );
+
+        $this->add_control( 'responsive_dropdown_button_color_hover', [
+            'label'     => __( 'Text Color Hover', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => [
+                '{{WRAPPER}} .bw-fpw-mobile-dropdown-options .bw-fpw-filter-option:hover' => 'color: {{VALUE}};',
+                '{{WRAPPER}} .bw-fpw-mobile-dropdown-options .bw-fpw-filter-option:hover .bw-fpw-option-count' => 'color: {{VALUE}};',
+            ],
+        ] );
+
+        $this->add_control( 'responsive_dropdown_button_border', [
+            'label'        => __( 'Border', 'bw-elementor-widgets' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
+            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
+            'return_value' => 'yes',
+            'default'      => 'no',
+        ] );
+
+        $this->add_control( 'responsive_dropdown_button_border_color', [
+            'label'     => __( 'Border Color', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => [
+                '{{WRAPPER}} .bw-fpw-mobile-dropdown-options .bw-fpw-filter-option' => 'border-color: {{VALUE}};',
+            ],
+            'condition' => [ 'responsive_dropdown_button_border' => 'yes' ],
+        ] );
+
+        $this->add_responsive_control( 'responsive_dropdown_button_border_width', [
+            'label'      => __( 'Border Width', 'bw-elementor-widgets' ),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => [ 'px' ],
+            'range'      => [ 'px' => [ 'min' => 0, 'max' => 10 ] ],
+            'default'    => [ 'size' => 0, 'unit' => 'px' ],
+            'selectors'  => [
+                '{{WRAPPER}} .bw-fpw-mobile-dropdown-options .bw-fpw-filter-option' => 'border-width: {{SIZE}}{{UNIT}};',
+            ],
+            'condition'  => [ 'responsive_dropdown_button_border' => 'yes' ],
+        ] );
+
+        $this->add_responsive_control( 'responsive_dropdown_button_border_radius', [
+            'label'      => __( 'Border Radius', 'bw-elementor-widgets' ),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => [ 'px', '%' ],
+            'range'      => [
+                'px' => [ 'min' => 0, 'max' => 50 ],
+                '%'  => [ 'min' => 0, 'max' => 100 ],
+            ],
+            'selectors'  => [
+                '{{WRAPPER}} .bw-fpw-mobile-dropdown-options .bw-fpw-filter-option' => 'border-radius: {{SIZE}}{{UNIT}};',
+            ],
+            'condition'  => [ 'responsive_dropdown_button_border' => 'yes' ],
+        ] );
+
+        $this->end_controls_section();
     }
 
     private function register_filter_controls() {
@@ -1130,7 +1291,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
                                 <span class="bw-fpw-mobile-dropdown-label"><?php echo esc_html( $categories_title ); ?></span>
                                 <span class="bw-fpw-mobile-dropdown-icon"></span>
                             </button>
-                            <div class="bw-fpw-mobile-dropdown-panel">
+                            <div class="bw-fpw-mobile-dropdown-panel" aria-hidden="true">
                                 <div class="bw-fpw-mobile-dropdown-options bw-fpw-filter-options bw-fpw-filter-options--categories" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
                                     <?php if ( $show_all_button ) : ?>
                                         <button class="bw-fpw-filter-option bw-fpw-cat-button active" data-category="all">
@@ -1165,7 +1326,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
                                 <span class="bw-fpw-mobile-dropdown-label"><?php echo esc_html( $subcategories_title ); ?></span>
                                 <span class="bw-fpw-mobile-dropdown-icon"></span>
                             </button>
-                            <div class="bw-fpw-mobile-dropdown-panel">
+                            <div class="bw-fpw-mobile-dropdown-panel" aria-hidden="true">
                                 <div class="bw-fpw-mobile-dropdown-options bw-fpw-filter-options bw-fpw-subcategories-container" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
                                     <?php foreach ( $initial_subcategories as $subcategory ) : ?>
                                         <button class="bw-fpw-filter-option bw-fpw-subcat-button" data-subcategory="<?php echo esc_attr( $subcategory['term_id'] ); ?>">
@@ -1184,7 +1345,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
                                 <span class="bw-fpw-mobile-dropdown-label"><?php echo esc_html( $tags_title ); ?></span>
                                 <span class="bw-fpw-mobile-dropdown-icon"></span>
                             </button>
-                            <div class="bw-fpw-mobile-dropdown-panel">
+                            <div class="bw-fpw-mobile-dropdown-panel" aria-hidden="true">
                                 <div class="bw-fpw-mobile-dropdown-options bw-fpw-filter-options bw-fpw-tag-options" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
                                     <?php foreach ( $tags as $tag ) : ?>
                                         <button class="bw-fpw-filter-option bw-fpw-tag-button" data-tag="<?php echo esc_attr( $tag['term_id'] ); ?>">
