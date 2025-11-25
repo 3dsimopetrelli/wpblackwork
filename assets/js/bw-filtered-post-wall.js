@@ -592,7 +592,21 @@
         });
 
         $(document).on('click', '.bw-fpw-mobile-dropdown-toggle', function() {
-            $(this).closest('.bw-fpw-mobile-filter-group').toggleClass('is-open');
+            var $group = $(this).closest('.bw-fpw-mobile-filter-group');
+            var $panel = $group.find('.bw-fpw-mobile-dropdown-panel');
+            var isOpen = $group.hasClass('is-open');
+
+            if (isOpen) {
+                $group.removeClass('is-open');
+                $panel.stop(true, true).slideUp(200, function() {
+                    $panel.attr('aria-hidden', 'true');
+                });
+            } else {
+                $group.addClass('is-open');
+                $panel.stop(true, true).slideDown(200, function() {
+                    $panel.attr('aria-hidden', 'false');
+                });
+            }
         });
     }
 
