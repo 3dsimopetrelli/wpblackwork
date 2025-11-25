@@ -374,7 +374,7 @@
 }
 
 .bw-fpw-mobile-dropdown-options .bw-fpw-filter-option::after {
-  content: ', ';
+  content: '';
 }
 
 .bw-fpw-mobile-dropdown-options .bw-fpw-option-label {

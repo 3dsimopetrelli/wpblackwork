@@ -271,7 +271,7 @@
 
                     $.each(subcats, function(index, subcat) {
                         html += '<button class="bw-fpw-filter-option bw-fpw-subcat-button" data-subcategory="' + subcat.term_id + '">';
-                        html += '<span class="bw-fpw-option-label">' + subcat.name + '</span>';
+                        html += '<span class="bw-fpw-option-label">' + subcat.name + '</span> ';
                         html += '<span class="bw-fpw-option-count">(' + subcat.count + ')</span>';
                         html += '</button>';
                     });
