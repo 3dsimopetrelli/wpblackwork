@@ -260,26 +260,29 @@
   width: 100%;
   padding: 12px 16px !important;
   text-align: center !important;
-  font-size: 18px !important;
-  line-height: 1.5 !important;
-  font-family: inherit !important;
-  font-weight: normal !important;
-  background: #ffffff !important;
-  border: 1px solid #000000 !important;
-  border-radius: 6px !important;
+  /* Typography controlled by Elementor */
+  font-size: 18px;
+  line-height: 1.5;
+  font-family: inherit;
+  font-weight: normal;
+  color: #000000;
+  /* Background and border controlled by Elementor */
+  background: #ffffff;
+  border: 1px solid #000000;
+  border-radius: 6px;
   cursor: pointer;
   box-shadow: none !important;
-  text-transform: none !important;
-  letter-spacing: normal !important;
+  text-transform: none;
+  letter-spacing: normal;
   text-decoration: none !important;
-  color: inherit;
   margin: 0 !important;
   display: block;
   box-sizing: border-box;
 }
 
 .bw-fpw-mobile-filter-button--borderless {
-  border: none;
+  border: none !important;
+  border-style: none !important;
 }
 
 .bw-fpw-mobile-filter-panel {
