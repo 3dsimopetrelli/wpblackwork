@@ -181,14 +181,14 @@
 /* Smooth fade animations for subcategories and tags appearing/disappearing */
 .bw-fpw-filter-row--subcategories,
 .bw-fpw-filter-row--tags {
-  transition: opacity 0.35s ease;
+  transition: opacity 0.35s ease, transform 0.35s ease;
 }
 
 .bw-fpw-filter-row--subcategories .bw-fpw-filter-label,
 .bw-fpw-filter-row--tags .bw-fpw-filter-label,
 .bw-fpw-filter-row--subcategories .bw-fpw-filter-options,
 .bw-fpw-filter-row--tags .bw-fpw-filter-options {
-  transition: opacity 0.35s ease;
+  transition: opacity 0.35s ease, transform 0.35s ease;
 }
 
 /* Smooth fade-in for filter options */
@@ -196,10 +196,15 @@
   transition: color 0.2s ease, opacity 0.2s ease, font-weight 0.2s ease, text-decoration 0.2s ease;
 }
 
+/* Fade + slide down animation for filter containers */
 .bw-fpw-subcategories-container,
 .bw-fpw-tag-options {
-  animation: bw-fpw-fade-in 0.4s ease;
-  transition: opacity 0.35s ease;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.bw-fpw-subcategories-container.bw-fpw-animating,
+.bw-fpw-tag-options.bw-fpw-animating {
+  animation: bw-fpw-fade-slide-down 0.4s ease forwards;
 }
 
 @keyframes bw-fpw-fade-in {
@@ -208,6 +213,17 @@
   }
   to {
     opacity: 1;
+  }
+}
+
+@keyframes bw-fpw-fade-slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -664,6 +680,15 @@
 .bw-fpw-item {
   padding: calc(var(--bw-fpw-gap) / 2);
   box-sizing: border-box;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+/* Staggered fade-in animation for posts */
+.bw-fpw-item.bw-fpw-item--visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .bw-fpw-card {
@@ -998,6 +1023,7 @@ body.elementor-editor-active .bw-fpw-item {
    ============================================ */
 .bw-filtered-post-wall--loading {
   position: relative;
+  min-height: 400px;
 }
 
 .bw-filtered-post-wall--loading::before {
@@ -1007,9 +1033,11 @@ body.elementor-editor-active .bw-fpw-item {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(2px);
   z-index: 1000;
   pointer-events: none;
+  animation: bw-fpw-fade-in-overlay 0.2s ease forwards;
 }
 
 .bw-filtered-post-wall--loading::after {
@@ -1017,20 +1045,29 @@ body.elementor-editor-active .bw-fpw-item {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 40px;
-  height: 40px;
-  margin: -20px 0 0 -20px;
-  border: 3px solid rgba(0, 0, 0, 0.1);
-  border-top-color: rgba(0, 0, 0, 0.6);
+  width: 48px;
+  height: 48px;
+  margin: -24px 0 0 -24px;
+  border: 3px solid rgba(0, 0, 0, 0.08);
+  border-top-color: rgba(0, 0, 0, 0.5);
   border-radius: 50%;
   z-index: 1001;
-  animation: bw-fpw-spin 0.8s linear infinite;
+  animation: bw-fpw-spin 0.8s linear infinite, bw-fpw-fade-in 0.2s ease forwards;
   pointer-events: none;
 }
 
 @keyframes bw-fpw-spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes bw-fpw-fade-in-overlay {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
 

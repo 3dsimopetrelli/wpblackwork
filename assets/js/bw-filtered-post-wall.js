@@ -257,7 +257,7 @@
 
         // Fade out before clearing
         if ($subcatContainers.length) {
-            $subcatContainers.css('opacity', '0');
+            $subcatContainers.removeClass('bw-fpw-animating').css('opacity', '0');
             setTimeout(function() {
                 $subcatContainers.empty();
             }, 150);
@@ -289,9 +289,9 @@
                     $subcatContainers.each(function() {
                         var $container = $(this);
                         $container.html(html);
-                        // Fade in after content is loaded
+                        // Trigger fade + slide animation
                         setTimeout(function() {
-                            $container.css('opacity', '1');
+                            $container.addClass('bw-fpw-animating').css('opacity', '1');
                         }, 50);
                     });
                     if ($subcatRow.length) {
@@ -349,7 +349,7 @@
 
         // Fade out before clearing
         if ($tagContainers.length) {
-            $tagContainers.css('opacity', '0');
+            $tagContainers.removeClass('bw-fpw-animating').css('opacity', '0');
             setTimeout(function() {
                 $tagContainers.empty();
             }, 150);
@@ -382,9 +382,9 @@
                     $tagContainers.each(function() {
                         var $container = $(this);
                         $container.html(html);
-                        // Fade in after content is loaded
+                        // Trigger fade + slide animation
                         setTimeout(function() {
-                            $container.css('opacity', '1');
+                            $container.addClass('bw-fpw-animating').css('opacity', '1');
                         }, 50);
                     });
 
@@ -463,6 +463,33 @@
                 $mobileTagGroup.find('.bw-fpw-mobile-dropdown-panel').attr('aria-hidden', 'true');
             }
         }
+    }
+
+    function animatePostsStaggered($grid) {
+        if (!$grid || !$grid.length) {
+            return;
+        }
+
+        var $items = $grid.find('.bw-fpw-item');
+
+        if (!$items.length) {
+            return;
+        }
+
+        // Reset all items to invisible state first
+        $items.removeClass('bw-fpw-item--visible');
+
+        // Apply staggered fade-in with delay
+        $items.each(function(index) {
+            var $item = $(this);
+            var delay = index * 80; // 80ms delay between each item
+
+            setTimeout(function() {
+                $item.addClass('bw-fpw-item--visible');
+            }, delay);
+        });
+
+        console.log('✨ Staggered animation applied to', $items.length, 'posts');
     }
 
     function filterPosts(widgetId) {
@@ -548,13 +575,13 @@
 
                             if (!hasPosts) {
                                 filterState[widgetId].tags = [];
-                                $tagOptions.css('opacity', '0');
+                                $tagOptions.removeClass('bw-fpw-animating').css('opacity', '0');
                                 setTimeout(function() {
                                     $tagOptions.empty();
                                     $tagRow.hide();
                                 }, 150);
                             } else if (response.data.tags_html) {
-                                $tagOptions.css('opacity', '0');
+                                $tagOptions.removeClass('bw-fpw-animating').css('opacity', '0');
                                 setTimeout(function() {
                                     $tagOptions.each(function() {
                                         $(this).html(response.data.tags_html);
@@ -562,7 +589,7 @@
                                     $tagRow.css('opacity', '0').show();
 
                                     setTimeout(function() {
-                                        $tagOptions.css('opacity', '1');
+                                        $tagOptions.addClass('bw-fpw-animating').css('opacity', '1');
                                         $tagRow.css('opacity', '1');
                                     }, 50);
 
@@ -592,7 +619,7 @@
                                 }, 150);
                             } else {
                                 filterState[widgetId].tags = [];
-                                $tagOptions.css('opacity', '0');
+                                $tagOptions.removeClass('bw-fpw-animating').css('opacity', '0');
                                 setTimeout(function() {
                                     $tagOptions.empty();
                                     $tagRow.hide();
@@ -608,9 +635,12 @@
                         // Reinitialize masonry after images are loaded
                         initGrid($grid);
 
-                        // Fade in grid after initialization
+                        // Fade in grid and apply staggered animation to posts
                         setTimeout(function() {
                             $grid.css('opacity', '1');
+
+                            // Apply staggered fade-in animation to posts
+                            animatePostsStaggered($grid);
                         }, 100);
 
                         // Additional layout passes for stability
@@ -1000,6 +1030,13 @@
                 filterState[widgetId].tags = initialTags;
             }
             initGrid($grid);
+
+            // Apply staggered animation on initial load
+            withImagesLoaded($grid, function() {
+                setTimeout(function() {
+                    animatePostsStaggered($grid);
+                }, 100);
+            });
         });
     }
 
