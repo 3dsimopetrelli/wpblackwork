@@ -228,17 +228,75 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             ],
         ] );
 
-        $this->end_controls_section();
+        $this->add_responsive_control( 'responsive_filter_panel_close_top', [
+            'label'      => __( 'Top Position', 'bw-elementor-widgets' ),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => [ 'px', '%' ],
+            'range'      => [
+                'px' => [ 'min' => 0, 'max' => 100 ],
+                '%'  => [ 'min' => 0, 'max' => 100 ],
+            ],
+            'default'    => [
+                'size' => 50,
+                'unit' => '%',
+            ],
+            'selectors'  => [
+                '{{WRAPPER}} .bw-filtered-post-wall-wrapper' => '--bw-fpw-mobile-close-top: {{SIZE}}{{UNIT}};',
+            ],
+        ] );
 
-        $this->start_controls_section( 'responsive_filter_panel_dropdown_title_style', [
+        $this->add_responsive_control( 'responsive_filter_panel_close_right', [
+            'label'      => __( 'Right Position', 'bw-elementor-widgets' ),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => [ 'px', '%' ],
+            'range'      => [
+                'px' => [ 'min' => 0, 'max' => 100 ],
+                '%'  => [ 'min' => 0, 'max' => 100 ],
+            ],
+            'default'    => [
+                'size' => 16,
+                'unit' => 'px',
+            ],
+            'selectors'  => [
+                '{{WRAPPER}} .bw-filtered-post-wall-wrapper' => '--bw-fpw-mobile-close-right: {{SIZE}}{{UNIT}};',
+            ],
+        ] );
+
+        $this->add_responsive_control( 'responsive_filter_panel_close_left', [
+            'label'      => __( 'Left Position', 'bw-elementor-widgets' ),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => [ 'px', '%' ],
+            'range'      => [
+                'px' => [ 'min' => 0, 'max' => 100 ],
+                '%'  => [ 'min' => 0, 'max' => 100 ],
+            ],
+            'selectors'  => [
+                '{{WRAPPER}} .bw-filtered-post-wall-wrapper' => '--bw-fpw-mobile-close-left: {{SIZE}}{{UNIT}};',
+            ],
+        ] );
+
+        $this->add_responsive_control( 'responsive_filter_panel_close_bottom', [
+            'label'      => __( 'Bottom Position', 'bw-elementor-widgets' ),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => [ 'px', '%' ],
+            'range'      => [
+                'px' => [ 'min' => 0, 'max' => 100 ],
+                '%'  => [ 'min' => 0, 'max' => 100 ],
+            ],
+            'selectors'  => [
+                '{{WRAPPER}} .bw-filtered-post-wall-wrapper' => '--bw-fpw-mobile-close-bottom: {{SIZE}}{{UNIT}};',
+            ],
+        ] );
+
+        $this->add_control( 'responsive_filter_panel_dropdown_title_heading', [
             'label'     => __( 'Drop Down Title', 'bw-elementor-widgets' ),
-            'tab'       => Controls_Manager::TAB_STYLE,
-            'condition' => [ 'show_filters' => 'yes' ],
+            'type'      => Controls_Manager::HEADING,
+            'separator' => 'before',
         ] );
 
         $this->add_group_control( Group_Control_Typography::get_type(), [
             'name'     => 'responsive_dropdown_title_typography',
-            'selector' => '{{WRAPPER}} .bw-fpw-mobile-dropdown-label',
+            'selector' => '{{WRAPPER}} .bw-fpw-mobile-dropdown-toggle, {{WRAPPER}} .bw-fpw-mobile-dropdown-label',
         ] );
 
         $this->add_control( 'responsive_dropdown_title_color', [
@@ -246,6 +304,8 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'type'      => Controls_Manager::COLOR,
             'selectors' => [
                 '{{WRAPPER}} .bw-filtered-post-wall-wrapper' => '--bw-fpw-mobile-dropdown-title-color: {{VALUE}};',
+                '{{WRAPPER}} .bw-fpw-mobile-dropdown-toggle, {{WRAPPER}} .bw-fpw-mobile-dropdown-label' => 'color: {{VALUE}} !important;',
+                '{{WRAPPER}} .bw-fpw-mobile-dropdown-icon' => 'border-color: {{VALUE}} !important;',
             ],
         ] );
 
@@ -254,6 +314,26 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'type'      => Controls_Manager::COLOR,
             'selectors' => [
                 '{{WRAPPER}} .bw-filtered-post-wall-wrapper' => '--bw-fpw-mobile-dropdown-title-hover-color: {{VALUE}};',
+                '{{WRAPPER}} .bw-fpw-mobile-dropdown-toggle:hover, {{WRAPPER}} .bw-fpw-mobile-dropdown-toggle:focus, {{WRAPPER}} .bw-fpw-mobile-dropdown-toggle:hover .bw-fpw-mobile-dropdown-label, {{WRAPPER}} .bw-fpw-mobile-dropdown-toggle:focus .bw-fpw-mobile-dropdown-label' => 'color: {{VALUE}} !important;',
+                '{{WRAPPER}} .bw-fpw-mobile-dropdown-toggle:hover .bw-fpw-mobile-dropdown-icon, {{WRAPPER}} .bw-fpw-mobile-dropdown-toggle:focus .bw-fpw-mobile-dropdown-icon' => 'border-color: {{VALUE}} !important;',
+            ],
+        ] );
+
+        $this->add_responsive_control( 'responsive_dropdown_title_margin', [
+            'label'      => __( 'Margin', 'bw-elementor-widgets' ),
+            'type'       => Controls_Manager::DIMENSIONS,
+            'size_units' => [ 'px', 'em', 'rem' ],
+            'selectors'  => [
+                '{{WRAPPER}} .bw-fpw-mobile-dropdown-toggle' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+            ],
+        ] );
+
+        $this->add_responsive_control( 'responsive_dropdown_title_padding', [
+            'label'      => __( 'Padding', 'bw-elementor-widgets' ),
+            'type'       => Controls_Manager::DIMENSIONS,
+            'size_units' => [ 'px', 'em', 'rem' ],
+            'selectors'  => [
+                '{{WRAPPER}} .bw-fpw-mobile-dropdown-toggle' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
             ],
         ] );
 
@@ -316,17 +396,15 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'condition'  => [ 'responsive_dropdown_toggle_border' => 'yes' ],
         ] );
 
-        $this->end_controls_section();
-
-        $this->start_controls_section( 'responsive_filter_buttons_style', [
+        $this->add_control( 'responsive_filter_panel_dropdown_results_heading', [
             'label'     => __( 'Drop Down Results', 'bw-elementor-widgets' ),
-            'tab'       => Controls_Manager::TAB_STYLE,
-            'condition' => [ 'show_filters' => 'yes' ],
+            'type'      => Controls_Manager::HEADING,
+            'separator' => 'before',
         ] );
 
         $this->add_group_control( Group_Control_Typography::get_type(), [
             'name'           => 'responsive_dropdown_button_typography',
-            'selector'       => '{{WRAPPER}} .bw-fpw-mobile-dropdown-options .bw-fpw-filter-option',
+            'selector'       => '{{WRAPPER}} .bw-fpw-mobile-dropdown-options .bw-fpw-filter-option, {{WRAPPER}} .bw-fpw-mobile-dropdown-options .bw-fpw-option-label, {{WRAPPER}} .bw-fpw-mobile-dropdown-options .bw-fpw-option-count',
             'fields_options' => [
                 'font_size' => [
                     'default' => [
@@ -334,6 +412,24 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
                         'unit' => 'px',
                     ],
                 ],
+            ],
+        ] );
+
+        $this->add_control( 'responsive_dropdown_button_color', [
+            'label'     => __( 'Text Color', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => [
+                '{{WRAPPER}} .bw-filtered-post-wall-wrapper' => '--bw-fpw-mobile-button-color: {{VALUE}};',
+                '{{WRAPPER}} .bw-fpw-mobile-dropdown-options .bw-fpw-filter-option, {{WRAPPER}} .bw-fpw-mobile-dropdown-options .bw-fpw-option-label, {{WRAPPER}} .bw-fpw-mobile-dropdown-options .bw-fpw-option-count' => 'color: {{VALUE}} !important;',
+            ],
+        ] );
+
+        $this->add_control( 'responsive_dropdown_button_color_hover', [
+            'label'     => __( 'Text Color Hover', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => [
+                '{{WRAPPER}} .bw-filtered-post-wall-wrapper' => '--bw-fpw-mobile-button-hover-color: {{VALUE}};',
+                '{{WRAPPER}} .bw-fpw-mobile-dropdown-options .bw-fpw-filter-option:hover, {{WRAPPER}} .bw-fpw-mobile-dropdown-options .bw-fpw-filter-option:focus, {{WRAPPER}} .bw-fpw-mobile-dropdown-options .bw-fpw-filter-option:hover .bw-fpw-option-label, {{WRAPPER}} .bw-fpw-mobile-dropdown-options .bw-fpw-filter-option:focus .bw-fpw-option-label, {{WRAPPER}} .bw-fpw-mobile-dropdown-options .bw-fpw-filter-option:hover .bw-fpw-option-count, {{WRAPPER}} .bw-fpw-mobile-dropdown-options .bw-fpw-filter-option:focus .bw-fpw-option-count' => 'color: {{VALUE}} !important;',
             ],
         ] );
 
@@ -354,81 +450,6 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
                 '{{WRAPPER}} .bw-filtered-post-wall-wrapper' => '--bw-fpw-mobile-button-bg: {{VALUE}};',
             ],
         ] );
-
-        $this->add_control( 'responsive_dropdown_button_color', [
-            'label'     => __( 'Text Color', 'bw-elementor-widgets' ),
-            'type'      => Controls_Manager::COLOR,
-            'selectors' => [
-                '{{WRAPPER}} .bw-filtered-post-wall-wrapper' => '--bw-fpw-mobile-button-color: {{VALUE}};',
-            ],
-        ] );
-
-        $this->add_control( 'responsive_dropdown_button_color_hover', [
-            'label'     => __( 'Text Color Hover', 'bw-elementor-widgets' ),
-            'type'      => Controls_Manager::COLOR,
-            'selectors' => [
-                '{{WRAPPER}} .bw-filtered-post-wall-wrapper' => '--bw-fpw-mobile-button-hover-color: {{VALUE}};',
-            ],
-        ] );
-
-        $this->add_control( 'responsive_dropdown_button_border', [
-            'label'        => __( 'Border', 'bw-elementor-widgets' ),
-            'type'         => Controls_Manager::SWITCHER,
-            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
-            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
-            'return_value' => 'yes',
-            'default'      => 'no',
-        ] );
-
-        $this->add_control( 'responsive_dropdown_button_border_style', [
-            'label'     => __( 'Border Style', 'bw-elementor-widgets' ),
-            'type'      => Controls_Manager::SELECT,
-            'options'   => [
-                'solid' => __( 'Solid', 'bw-elementor-widgets' ),
-            ],
-            'default'   => 'solid',
-            'condition' => [ 'responsive_dropdown_button_border' => 'yes' ],
-            'selectors' => [
-                '{{WRAPPER}} .bw-filtered-post-wall-wrapper' => '--bw-fpw-mobile-button-border-style: {{VALUE}};',
-            ],
-        ] );
-
-        $this->add_control( 'responsive_dropdown_button_border_color', [
-            'label'     => __( 'Border Color', 'bw-elementor-widgets' ),
-            'type'      => Controls_Manager::COLOR,
-            'default'   => '#000000',
-            'selectors' => [
-                '{{WRAPPER}} .bw-filtered-post-wall-wrapper' => '--bw-fpw-mobile-button-border-color: {{VALUE}};',
-            ],
-            'condition' => [ 'responsive_dropdown_button_border' => 'yes' ],
-        ] );
-
-        $this->add_responsive_control( 'responsive_dropdown_button_border_width', [
-            'label'      => __( 'Border Width', 'bw-elementor-widgets' ),
-            'type'       => Controls_Manager::SLIDER,
-            'size_units' => [ 'px' ],
-            'range'      => [ 'px' => [ 'min' => 0, 'max' => 10 ] ],
-            'default'    => [ 'size' => 1, 'unit' => 'px' ],
-            'selectors'  => [
-                '{{WRAPPER}} .bw-filtered-post-wall-wrapper' => '--bw-fpw-mobile-button-border-width: {{SIZE}}{{UNIT}};',
-            ],
-            'condition'  => [ 'responsive_dropdown_button_border' => 'yes' ],
-        ] );
-
-        $this->add_responsive_control( 'responsive_dropdown_button_border_radius', [
-            'label'      => __( 'Border Radius', 'bw-elementor-widgets' ),
-            'type'       => Controls_Manager::SLIDER,
-            'size_units' => [ 'px', '%' ],
-            'range'      => [
-                'px' => [ 'min' => 0, 'max' => 50 ],
-                '%'  => [ 'min' => 0, 'max' => 100 ],
-            ],
-            'selectors'  => [
-                '{{WRAPPER}} .bw-filtered-post-wall-wrapper' => '--bw-fpw-mobile-button-radius: {{SIZE}}{{UNIT}};',
-            ],
-            'condition'  => [ 'responsive_dropdown_button_border' => 'yes' ],
-        ] );
-
         $this->end_controls_section();
     }
 
