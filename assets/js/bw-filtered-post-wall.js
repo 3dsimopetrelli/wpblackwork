@@ -496,6 +496,11 @@
         });
     }
 
+    function isInMobileMode(widgetId) {
+        var $wrapper = $('.bw-fpw-filters[data-widget-id="' + widgetId + '"]').closest('.bw-filtered-post-wall-wrapper');
+        return $wrapper.hasClass('bw-fpw-mobile-filters-enabled');
+    }
+
     function initFilters() {
         $(document).on('click', '.bw-fpw-cat-button', function(e) {
             e.preventDefault();
@@ -541,8 +546,11 @@
                 $tagOptions.empty();
             }
 
-            // Filter posts
-            filterPosts(widgetId);
+            // Filter posts only if NOT in mobile mode
+            // In mobile mode, wait for "Show Results" button click
+            if (!isInMobileMode(widgetId)) {
+                filterPosts(widgetId);
+            }
         });
 
         // Subcategory filter
@@ -570,8 +578,11 @@
 
             console.log('📂 Subcategories selected:', subcats);
 
-            // Filter posts
-            filterPosts(widgetId);
+            // Filter posts only if NOT in mobile mode
+            // In mobile mode, wait for "Show Results" button click
+            if (!isInMobileMode(widgetId)) {
+                filterPosts(widgetId);
+            }
         });
 
         // Tag filter
@@ -599,8 +610,11 @@
 
             console.log('🏷️ Tags selected:', tags);
 
-            // Filter posts
-            filterPosts(widgetId);
+            // Filter posts only if NOT in mobile mode
+            // In mobile mode, wait for "Show Results" button click
+            if (!isInMobileMode(widgetId)) {
+                filterPosts(widgetId);
+            }
         });
 
         $(document).on('click', '.bw-fpw-mobile-filter-button', function(e) {
