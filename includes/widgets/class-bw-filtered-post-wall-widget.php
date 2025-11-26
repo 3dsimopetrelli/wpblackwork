@@ -63,10 +63,82 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'separator' => 'before',
         ] );
 
+        // Icon Controls
+        $this->add_control( 'responsive_filter_button_show_icon', [
+            'label'        => __( 'Show Icon', 'bw-elementor-widgets' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
+            'label_off'    => __( 'No', 'bw-elementor-widgets' ),
+            'return_value' => 'yes',
+            'default'      => 'yes',
+        ] );
+
+        $this->add_control( 'responsive_filter_button_custom_icon', [
+            'label'       => __( 'Custom Icon (SVG)', 'bw-elementor-widgets' ),
+            'type'        => Controls_Manager::MEDIA,
+            'media_types' => [ 'image/svg+xml' ],
+            'description' => __( 'Upload a custom SVG icon. Leave empty to use the default filter icon.', 'bw-elementor-widgets' ),
+            'condition'   => [ 'responsive_filter_button_show_icon' => 'yes' ],
+        ] );
+
+        $this->add_responsive_control( 'responsive_filter_button_icon_size', [
+            'label'      => __( 'Icon Size', 'bw-elementor-widgets' ),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => [ 'px' ],
+            'range'      => [ 'px' => [ 'min' => 10, 'max' => 50 ] ],
+            'default'    => [ 'size' => 16, 'unit' => 'px' ],
+            'selectors'  => [
+                '{{WRAPPER}} .bw-fpw-mobile-filter-button-icon' => 'width: {{SIZE}}{{UNIT}}; height: {{SIZE}}{{UNIT}};',
+            ],
+            'condition'  => [ 'responsive_filter_button_show_icon' => 'yes' ],
+        ] );
+
+        $this->add_responsive_control( 'responsive_filter_button_icon_spacing', [
+            'label'      => __( 'Icon Spacing', 'bw-elementor-widgets' ),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => [ 'px' ],
+            'range'      => [ 'px' => [ 'min' => 0, 'max' => 30 ] ],
+            'default'    => [ 'size' => 8, 'unit' => 'px' ],
+            'selectors'  => [
+                '{{WRAPPER}} .bw-fpw-mobile-filter-button-icon' => 'margin-right: {{SIZE}}{{UNIT}};',
+            ],
+            'condition'  => [ 'responsive_filter_button_show_icon' => 'yes' ],
+        ] );
+
+        // Typography
         $this->add_group_control( Group_Control_Typography::get_type(), [
             'name'     => 'responsive_filter_button_typography',
             'selector' => '{{WRAPPER}} .bw-fpw-mobile-filter-button',
         ] );
+
+        // Padding
+        $this->add_responsive_control( 'responsive_filter_button_padding', [
+            'label'      => __( 'Padding', 'bw-elementor-widgets' ),
+            'type'       => Controls_Manager::DIMENSIONS,
+            'size_units' => [ 'px', 'em', '%' ],
+            'default'    => [
+                'top'      => 12,
+                'right'    => 16,
+                'bottom'   => 12,
+                'left'     => 16,
+                'unit'     => 'px',
+                'isLinked' => false,
+            ],
+            'selectors'  => [
+                '{{WRAPPER}} .bw-fpw-mobile-filter-button' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
+            ],
+        ] );
+
+        // Background and Text Color Tabs
+        $this->start_controls_tabs( 'responsive_filter_button_style_tabs' );
+
+        // Normal Tab
+        $this->start_controls_tab(
+            'responsive_filter_button_normal_tab',
+            [
+                'label' => __( 'Normal', 'bw-elementor-widgets' ),
+            ]
+        );
 
         $this->add_control( 'responsive_filter_button_background', [
             'label'     => __( 'Background', 'bw-elementor-widgets' ),
@@ -77,13 +149,13 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             ],
         ] );
 
-        $this->add_control( 'responsive_filter_button_border', [
-            'label'        => __( 'Border', 'bw-elementor-widgets' ),
-            'type'         => Controls_Manager::SWITCHER,
-            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
-            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
-            'return_value' => 'yes',
-            'default'      => 'yes',
+        $this->add_control( 'responsive_filter_button_text_color', [
+            'label'     => __( 'Text Color', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::COLOR,
+            'default'   => '#000000',
+            'selectors' => [
+                '{{WRAPPER}} .bw-fpw-mobile-filter-button' => 'color: {{VALUE}};',
+            ],
         ] );
 
         $this->add_control( 'responsive_filter_button_border_color', [
@@ -94,6 +166,56 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
                 '{{WRAPPER}} .bw-fpw-mobile-filter-button' => 'border-color: {{VALUE}};',
             ],
             'condition' => [ 'responsive_filter_button_border' => 'yes' ],
+        ] );
+
+        $this->end_controls_tab();
+
+        // Hover Tab
+        $this->start_controls_tab(
+            'responsive_filter_button_hover_tab',
+            [
+                'label' => __( 'Hover', 'bw-elementor-widgets' ),
+            ]
+        );
+
+        $this->add_control( 'responsive_filter_button_background_hover', [
+            'label'     => __( 'Background', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => [
+                '{{WRAPPER}} .bw-fpw-mobile-filter-button:hover' => 'background-color: {{VALUE}};',
+            ],
+        ] );
+
+        $this->add_control( 'responsive_filter_button_text_color_hover', [
+            'label'     => __( 'Text Color', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => [
+                '{{WRAPPER}} .bw-fpw-mobile-filter-button:hover' => 'color: {{VALUE}};',
+            ],
+        ] );
+
+        $this->add_control( 'responsive_filter_button_border_color_hover', [
+            'label'     => __( 'Border Color', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => [
+                '{{WRAPPER}} .bw-fpw-mobile-filter-button:hover' => 'border-color: {{VALUE}};',
+            ],
+            'condition' => [ 'responsive_filter_button_border' => 'yes' ],
+        ] );
+
+        $this->end_controls_tab();
+
+        $this->end_controls_tabs();
+
+        // Border Controls
+        $this->add_control( 'responsive_filter_button_border', [
+            'label'        => __( 'Border', 'bw-elementor-widgets' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
+            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
+            'return_value' => 'yes',
+            'default'      => 'yes',
+            'separator'    => 'before',
         ] );
 
         $this->add_responsive_control( 'responsive_filter_button_border_width', [
@@ -1611,10 +1733,31 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
         if ( ! $mobile_button_border ) {
             $mobile_button_classes[] = 'bw-fpw-mobile-filter-button--borderless';
         }
+
+        // Icon logic
+        $show_icon = isset( $settings['responsive_filter_button_show_icon'] ) && 'yes' === $settings['responsive_filter_button_show_icon'];
+        $icon_html = '';
+
+        if ( $show_icon ) {
+            // Check for custom SVG
+            if ( ! empty( $settings['responsive_filter_button_custom_icon']['url'] ) ) {
+                $icon_html = '<img src="' . esc_url( $settings['responsive_filter_button_custom_icon']['url'] ) . '" class="bw-fpw-mobile-filter-button-icon" alt="" />';
+            } else {
+                // Default filter icon (SVG inline)
+                $icon_html = '<svg class="bw-fpw-mobile-filter-button-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 7H21M6 12H18M9 17H15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+            }
+        }
         ?>
 
         <div class="bw-fpw-mobile-filter" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
-            <button class="<?php echo esc_attr( implode( ' ', $mobile_button_classes ) ); ?>" type="button"><?php echo esc_html( $mobile_filters_title ); ?></button>
+            <button class="<?php echo esc_attr( implode( ' ', $mobile_button_classes ) ); ?>" type="button">
+                <?php
+                if ( $show_icon ) {
+                    echo $icon_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+                }
+                echo esc_html( $mobile_filters_title );
+                ?>
+            </button>
 
             <div class="bw-fpw-mobile-filter-panel" aria-hidden="true">
                 <div class="bw-fpw-mobile-filter-panel__header">
