@@ -115,8 +115,13 @@
 .bw-fpw-filter-option::after {
   content: ',';
   color: currentColor;
-  margin-left: -0.1em;
-  margin-right: 0.25em;
+  margin-left: -0.4em;
+  margin-right: 0.40em;
+}
+
+.bw-fpw-filter-option:last-child::after {
+  content: '';
+  margin: 0;
 }
 
 .bw-fpw-filter-option:hover,
