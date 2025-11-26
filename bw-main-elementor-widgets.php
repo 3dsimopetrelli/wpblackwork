@@ -665,6 +665,31 @@ function bw_fpw_get_subcategories() {
     wp_send_json_success( $result );
 }
 
+/**
+ * Handler AJAX per ottenere i tag di una categoria
+ */
+add_action( 'wp_ajax_bw_fpw_get_tags', 'bw_fpw_get_tags' );
+add_action( 'wp_ajax_nopriv_bw_fpw_get_tags', 'bw_fpw_get_tags' );
+
+function bw_fpw_get_tags() {
+    check_ajax_referer( 'bw_fpw_nonce', 'nonce' );
+
+    $raw_category_id = isset( $_POST['category_id'] ) ? sanitize_text_field( wp_unslash( $_POST['category_id'] ) ) : '';
+    $category_id     = 'all' === $raw_category_id ? 'all' : absint( $raw_category_id );
+    $post_type       = isset( $_POST['post_type'] ) ? sanitize_key( $_POST['post_type'] ) : 'product';
+    $subcategories   = isset( $_POST['subcategories'] ) ? array_map( 'absint', (array) $_POST['subcategories'] ) : [];
+
+    // Get tags using existing helper function
+    $tags = bw_fpw_get_related_tags_data( $post_type, $category_id, $subcategories );
+
+    if ( empty( $tags ) ) {
+        wp_send_json_success( [] );
+        return;
+    }
+
+    wp_send_json_success( $tags );
+}
+
 function bw_fpw_get_filtered_post_ids_for_tags( $post_type, $category, $subcategories ) {
     $taxonomy  = 'product' === $post_type ? 'product_cat' : 'category';
     $tax_query = [];

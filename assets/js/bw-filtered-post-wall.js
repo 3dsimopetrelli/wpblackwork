@@ -328,6 +328,110 @@
         });
     }
 
+    function loadTags(categoryId, widgetId, subcategories, autoOpenMobile) {
+        var $grid = $('.bw-fpw-grid[data-widget-id="' + widgetId + '"]');
+        var postType = $grid.attr('data-post-type') || 'product';
+        var $filters = $('.bw-fpw-filters[data-widget-id="' + widgetId + '"]');
+        var $tagRow = $('.bw-fpw-filter-row--tags[data-widget-id="' + widgetId + '"]');
+        var $tagContainers = $('.bw-fpw-tag-options[data-widget-id="' + widgetId + '"]');
+        var hasPostsAttr = $filters.attr('data-has-posts');
+        var hasPosts = typeof hasPostsAttr === 'undefined' ? true : hasPostsAttr === '1';
+        var isMobile = isInMobileMode(widgetId);
+
+        // Fade out before clearing
+        if ($tagContainers.length) {
+            $tagContainers.css('opacity', '0');
+            setTimeout(function() {
+                $tagContainers.empty();
+            }, 150);
+        }
+
+        console.log('🏷️ Loading tags for category:', categoryId);
+
+        $.ajax({
+            url: bwFilteredPostWallAjax.ajaxurl,
+            type: 'POST',
+            data: {
+                action: 'bw_fpw_get_tags',
+                category_id: categoryId,
+                post_type: postType,
+                subcategories: subcategories || [],
+                nonce: bwFilteredPostWallAjax.nonce
+            },
+            success: function(response) {
+                if (response.success && response.data && response.data.length > 0) {
+                    var tags = response.data;
+                    var html = '';
+
+                    $.each(tags, function(index, tag) {
+                        html += '<button class="bw-fpw-filter-option bw-fpw-tag-button" data-tag="' + tag.term_id + '">';
+                        html += '<span class="bw-fpw-option-label">' + tag.name + '</span> ';
+                        html += '<span class="bw-fpw-option-count">(' + tag.count + ')</span>';
+                        html += '</button>';
+                    });
+
+                    $tagContainers.each(function() {
+                        var $container = $(this);
+                        $container.html(html);
+                        // Fade in after content is loaded
+                        setTimeout(function() {
+                            $container.css('opacity', '1');
+                        }, 50);
+                    });
+
+                    if ($tagRow.length) {
+                        var hasButtons = $tagContainers.find('.bw-fpw-tag-button').length > 0;
+                        if (hasPosts && hasButtons) {
+                            $tagRow.css('opacity', '0').show();
+                            setTimeout(function() {
+                                $tagRow.css('opacity', '1');
+                            }, 50);
+                        } else {
+                            $tagRow.hide();
+                        }
+                    }
+
+                    // Auto-open tags dropdown in mobile mode
+                    if (isMobile && autoOpenMobile && tags.length > 0) {
+                        var $mobileTagGroup = $('.bw-fpw-mobile-filter-group--tags[data-widget-id="' + widgetId + '"]');
+                        if ($mobileTagGroup.length && !$mobileTagGroup.hasClass('is-open')) {
+                            setTimeout(function() {
+                                $mobileTagGroup.addClass('is-open');
+                                $mobileTagGroup.find('.bw-fpw-mobile-dropdown-panel').attr('aria-hidden', 'false');
+                            }, 400);
+                        }
+                    }
+                } else {
+                    // No tags found - hide the tag row and close dropdown
+                    $tagContainers.html('');
+                    if ($tagRow.length) {
+                        $tagRow.hide();
+                    }
+
+                    // Close tags dropdown in mobile if no tags available
+                    if (isMobile) {
+                        var $mobileTagGroup = $('.bw-fpw-mobile-filter-group--tags[data-widget-id="' + widgetId + '"]');
+                        if ($mobileTagGroup.length) {
+                            $mobileTagGroup.removeClass('is-open');
+                            $mobileTagGroup.find('.bw-fpw-mobile-dropdown-panel').attr('aria-hidden', 'true');
+                        }
+                    }
+                }
+            },
+            error: function() {
+                console.error('❌ Error loading tags');
+                $tagContainers.html('<p class="bw-fpw-error">Error loading tags</p>');
+                if ($tagRow.length) {
+                    if (hasPosts) {
+                        $tagRow.show();
+                    } else {
+                        $tagRow.hide();
+                    }
+                }
+            }
+        });
+    }
+
     function loadAndOpenTagsInMobile(categoryId, widgetId) {
         var $mobileTagGroup = $('.bw-fpw-mobile-filter-group--tags[data-widget-id="' + widgetId + '"]');
         var $tagOptions = $('.bw-fpw-tag-options[data-widget-id="' + widgetId + '"]');
@@ -601,13 +705,10 @@
                 }
             }
 
+            // Load tags for the selected category
             if ($tagOptions.length) {
-                $tagOptions.empty();
-            }
-
-            // In mobile mode, auto-open tags dropdown if tags are available
-            if (isMobileMode) {
-                loadAndOpenTagsInMobile(categoryId, widgetId);
+                // Load tags via AJAX, auto-open in mobile mode
+                loadTags(categoryId, widgetId, [], isMobileMode);
             }
 
             // Filter posts only if NOT in mobile mode
@@ -642,9 +743,19 @@
 
             console.log('📂 Subcategories selected:', subcats);
 
+            // Reload tags based on category and selected subcategories
+            var currentCategory = filterState[widgetId].category;
+            var $tagOptions = $('.bw-fpw-tag-options[data-widget-id="' + widgetId + '"]');
+            var isMobileMode = isInMobileMode(widgetId);
+
+            if ($tagOptions.length && currentCategory) {
+                // Load tags via AJAX, auto-open in mobile mode
+                loadTags(currentCategory, widgetId, subcats, isMobileMode);
+            }
+
             // Filter posts only if NOT in mobile mode
             // In mobile mode, wait for "Show Results" button click
-            if (!isInMobileMode(widgetId)) {
+            if (!isMobileMode) {
                 filterPosts(widgetId);
             }
         });
