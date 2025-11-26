@@ -147,7 +147,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'default'   => '#ffffff',
             'selectors' => [
                 '{{WRAPPER}} .bw-fpw-mobile-filter-button' => 'background-color: {{VALUE}};',
-                '{{WRAPPER}}.bw-fpw-apply-style-to-show-results .bw-fpw-mobile-apply' => 'background-color: {{VALUE}};',
+                '{{WRAPPER}}.bw-fpw-apply-style-to-show-results .bw-fpw-mobile-apply' => 'background-color: {{VALUE}} !important;',
             ],
         ] );
 
@@ -157,7 +157,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'default'   => '#000000',
             'selectors' => [
                 '{{WRAPPER}} .bw-fpw-mobile-filter-button' => 'color: {{VALUE}};',
-                '{{WRAPPER}}.bw-fpw-apply-style-to-show-results .bw-fpw-mobile-apply' => 'color: {{VALUE}};',
+                '{{WRAPPER}}.bw-fpw-apply-style-to-show-results .bw-fpw-mobile-apply' => 'color: {{VALUE}} !important;',
             ],
         ] );
 
@@ -167,7 +167,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'default'   => '#000000',
             'selectors' => [
                 '{{WRAPPER}} .bw-fpw-mobile-filter-button' => 'border-color: {{VALUE}};',
-                '{{WRAPPER}}.bw-fpw-apply-style-to-show-results .bw-fpw-mobile-apply' => 'border-color: {{VALUE}};',
+                '{{WRAPPER}}.bw-fpw-apply-style-to-show-results .bw-fpw-mobile-apply' => 'border-color: {{VALUE}} !important;',
             ],
             'condition' => [ 'responsive_filter_button_border' => 'yes' ],
         ] );
@@ -187,7 +187,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'type'      => Controls_Manager::COLOR,
             'selectors' => [
                 '{{WRAPPER}} .bw-fpw-mobile-filter-button:hover' => 'background-color: {{VALUE}};',
-                '{{WRAPPER}}.bw-fpw-apply-style-to-show-results .bw-fpw-mobile-apply:hover' => 'background-color: {{VALUE}};',
+                '{{WRAPPER}}.bw-fpw-apply-style-to-show-results .bw-fpw-mobile-apply:hover' => 'background-color: {{VALUE}} !important;',
             ],
         ] );
 
@@ -196,7 +196,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'type'      => Controls_Manager::COLOR,
             'selectors' => [
                 '{{WRAPPER}} .bw-fpw-mobile-filter-button:hover' => 'color: {{VALUE}};',
-                '{{WRAPPER}}.bw-fpw-apply-style-to-show-results .bw-fpw-mobile-apply:hover' => 'color: {{VALUE}};',
+                '{{WRAPPER}}.bw-fpw-apply-style-to-show-results .bw-fpw-mobile-apply:hover' => 'color: {{VALUE}} !important;',
             ],
         ] );
 
@@ -205,7 +205,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'type'      => Controls_Manager::COLOR,
             'selectors' => [
                 '{{WRAPPER}} .bw-fpw-mobile-filter-button:hover' => 'border-color: {{VALUE}};',
-                '{{WRAPPER}}.bw-fpw-apply-style-to-show-results .bw-fpw-mobile-apply:hover' => 'border-color: {{VALUE}};',
+                '{{WRAPPER}}.bw-fpw-apply-style-to-show-results .bw-fpw-mobile-apply:hover' => 'border-color: {{VALUE}} !important;',
             ],
             'condition' => [ 'responsive_filter_button_border' => 'yes' ],
         ] );
@@ -240,7 +240,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'default'    => [ 'size' => 1, 'unit' => 'px' ],
             'selectors'  => [
                 '{{WRAPPER}} .bw-fpw-mobile-filter-button' => 'border-width: {{SIZE}}{{UNIT}}; border-style: solid;',
-                '{{WRAPPER}}.bw-fpw-apply-style-to-show-results .bw-fpw-mobile-apply' => 'border-width: {{SIZE}}{{UNIT}}; border-style: solid;',
+                '{{WRAPPER}}.bw-fpw-apply-style-to-show-results .bw-fpw-mobile-apply' => 'border-width: {{SIZE}}{{UNIT}} !important; border-style: solid !important;',
             ],
             'condition'  => [ 'responsive_filter_button_border' => 'yes' ],
         ] );
