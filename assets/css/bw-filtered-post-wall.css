@@ -20,6 +20,7 @@
   --bw-fpw-filter-hover-color: #000000;
   --bw-fpw-mobile-header-bg: transparent;
   --bw-fpw-mobile-header-title-color: #000000;
+  --bw-fpw-mobile-header-padding: 0;
   --bw-fpw-mobile-header-align: left;
   --bw-fpw-mobile-close-color: #000000;
   --bw-fpw-mobile-close-size: 20px;
@@ -31,6 +32,14 @@
   --bw-fpw-mobile-button-border-width: 0;
   --bw-fpw-mobile-button-border-style: none;
   --bw-fpw-mobile-button-radius: 0;
+  --bw-fpw-mobile-dropdown-title-color: inherit;
+  --bw-fpw-mobile-dropdown-title-hover-color: inherit;
+  --bw-fpw-mobile-dropdown-toggle-bg: transparent;
+  --bw-fpw-mobile-dropdown-toggle-border-style: none;
+  --bw-fpw-mobile-dropdown-toggle-border-color: transparent;
+  --bw-fpw-mobile-dropdown-toggle-border-width: 0;
+  --bw-fpw-mobile-dropdown-toggle-border-radius: 0;
+  --bw-fpw-mobile-option-padding: 10px 4px;
 }
 
 .bw-filtered-post-wall {
@@ -284,9 +293,10 @@
 }
 
 .bw-fpw-mobile-filter-panel__header {
+  position: relative;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   padding: 14px 16px;
   font-size: 18px;
   font-weight: 600;
@@ -295,12 +305,18 @@
 }
 
 .bw-fpw-mobile-filter-panel__title {
-  display: inline-block;
-  flex: 1;
-  text-align: var(--bw-fpw-mobile-header-align);
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: left;
   color: var(--bw-fpw-mobile-header-title-color);
   background: none;
   border: none;
+  padding: var(--bw-fpw-mobile-header-padding, 0);
+  pointer-events: none;
+  box-sizing: border-box;
 }
 
 .bw-fpw-mobile-filter-panel__body,
@@ -316,7 +332,7 @@
   background: none !important;
   border: none !important;
   border-radius: 0 !important;
-  color: var(--bw-fpw-mobile-close-color);
+  color: var(--bw-fpw-mobile-close-color, #000000);
   font-size: var(--bw-fpw-mobile-close-size) !important;
   cursor: pointer;
   line-height: 1 !important;
@@ -330,6 +346,11 @@
   font-family: inherit !important;
   display: inline-block;
   box-sizing: border-box;
+}
+
+.bw-fpw-mobile-filter-close:hover,
+.bw-fpw-mobile-filter-close:focus {
+  color: var(--bw-fpw-mobile-close-color);
 }
 
 .bw-fpw-mobile-filter-panel__body {
@@ -363,7 +384,7 @@
   font-weight: 500 !important;
   font-family: inherit !important;
   line-height: 1.5 !important;
-  color: inherit;
+  color: var(--bw-fpw-mobile-dropdown-title-color);
   box-shadow: none !important;
   text-transform: none !important;
   letter-spacing: normal !important;
@@ -371,15 +392,31 @@
   text-decoration: none !important;
   margin: 0 !important;
   box-sizing: border-box;
+  background: var(--bw-fpw-mobile-dropdown-toggle-bg);
+  border-style: var(--bw-fpw-mobile-dropdown-toggle-border-style, none);
+  border-color: var(--bw-fpw-mobile-dropdown-toggle-border-color);
+  border-width: var(--bw-fpw-mobile-dropdown-toggle-border-width);
+  border-radius: var(--bw-fpw-mobile-dropdown-toggle-border-radius);
+  padding: 8px 0 !important;
+}
+
+.bw-fpw-mobile-dropdown-toggle:hover,
+.bw-fpw-mobile-dropdown-toggle:focus {
+  color: var(--bw-fpw-mobile-dropdown-title-hover-color, var(--bw-fpw-mobile-dropdown-title-color));
 }
 
 .bw-fpw-mobile-dropdown-icon {
   width: 10px;
   height: 10px;
-  border-left: 2px solid #444;
-  border-bottom: 2px solid #444;
+  border-left: 2px solid var(--bw-fpw-mobile-dropdown-title-color);
+  border-bottom: 2px solid var(--bw-fpw-mobile-dropdown-title-color);
   transform: rotate(-45deg);
   transition: transform 0.2s ease;
+}
+
+.bw-fpw-mobile-dropdown-toggle:hover .bw-fpw-mobile-dropdown-icon,
+.bw-fpw-mobile-dropdown-toggle:focus .bw-fpw-mobile-dropdown-icon {
+  border-color: var(--bw-fpw-mobile-dropdown-title-hover-color, var(--bw-fpw-mobile-dropdown-title-color));
 }
 
 .bw-fpw-mobile-filter-group.is-open .bw-fpw-mobile-dropdown-icon {
@@ -422,7 +459,7 @@
   /* Re-apply widget-specific styles for mobile buttons */
   width: 100%;
   text-align: left !important;
-  padding: 10px 4px !important;
+  padding: var(--bw-fpw-mobile-option-padding, 10px 4px) !important;
   border: none !important;
   margin: 0 !important;
   display: flex;
