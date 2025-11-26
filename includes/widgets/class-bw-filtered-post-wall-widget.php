@@ -2015,7 +2015,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
                         </div>
                     <?php endif; ?>
 
-                    <?php if ( $show_tags && ! empty( $tags ) ) : ?>
+                    <?php if ( $show_tags ) : ?>
                         <div class="bw-fpw-mobile-filter-group bw-fpw-mobile-filter-group--tags" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
                             <button class="bw-fpw-mobile-dropdown-toggle" type="button">
                                 <span class="bw-fpw-mobile-dropdown-label"><?php echo esc_html( $tags_title ); ?></span>
@@ -2023,11 +2023,13 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
                             </button>
                             <div class="bw-fpw-mobile-dropdown-panel" aria-hidden="true">
                                 <div class="bw-fpw-mobile-dropdown-options bw-fpw-filter-options bw-fpw-tag-options" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
-                                    <?php foreach ( $tags as $tag ) : ?>
-                                        <button class="bw-fpw-filter-option bw-fpw-tag-button" data-tag="<?php echo esc_attr( $tag['term_id'] ); ?>">
-                                            <span class="bw-fpw-option-label"><?php echo esc_html( $tag['name'] ); ?></span> <span class="bw-fpw-option-count">(<?php echo esc_html( $tag['count'] ); ?>)</span>
-                                        </button>
-                                    <?php endforeach; ?>
+                                    <?php if ( ! empty( $tags ) ) : ?>
+                                        <?php foreach ( $tags as $tag ) : ?>
+                                            <button class="bw-fpw-filter-option bw-fpw-tag-button" data-tag="<?php echo esc_attr( $tag['term_id'] ); ?>">
+                                                <span class="bw-fpw-option-label"><?php echo esc_html( $tag['name'] ); ?></span> <span class="bw-fpw-option-count">(<?php echo esc_html( $tag['count'] ); ?>)</span>
+                                            </button>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
