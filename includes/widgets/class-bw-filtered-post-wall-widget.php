@@ -1148,7 +1148,8 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'type'      => Controls_Manager::COLOR,
             'default'   => '#000000',
             'selectors' => [
-                '{{WRAPPER}} .bw-fpw-filter-option.active .bw-fpw-option-label' => 'color: {{VALUE}};',
+                '{{WRAPPER}} .bw-fpw-filter-option.active .bw-fpw-option-label' => 'color: {{VALUE}} !important;',
+                '{{WRAPPER}} .bw-fpw-mobile-dropdown-options .bw-fpw-filter-option.active .bw-fpw-option-label' => 'color: {{VALUE}} !important;',
             ],
             'condition' => [ 'filter_select_custom_color' => 'yes' ],
         ] );

@@ -236,7 +236,7 @@
         }
     }
 
-    function loadSubcategories(categoryId, widgetId) {
+    function loadSubcategories(categoryId, widgetId, autoOpenMobile) {
         var $grid = $('.bw-fpw-grid[data-widget-id="' + widgetId + '"]');
         var postType = $grid.attr('data-post-type') || 'product';
         var $filters = $('.bw-fpw-filters[data-widget-id="' + widgetId + '"]');
@@ -244,6 +244,7 @@
         var $subcatContainers = $('.bw-fpw-subcategories-container[data-widget-id="' + widgetId + '"]');
         var hasPostsAttr = $filters.attr('data-has-posts');
         var hasPosts = typeof hasPostsAttr === 'undefined' ? true : hasPostsAttr === '1';
+        var isMobile = isInMobileMode(widgetId);
 
         // Fade out before clearing
         if ($subcatContainers.length) {
@@ -295,6 +296,17 @@
                             $subcatRow.hide();
                         }
                     }
+
+                    // Auto-open subcategories dropdown in mobile mode
+                    if (isMobile && autoOpenMobile && subcats.length > 0) {
+                        var $mobileSubcatGroup = $('.bw-fpw-mobile-filter-group--subcategories[data-widget-id="' + widgetId + '"]');
+                        if ($mobileSubcatGroup.length && !$mobileSubcatGroup.hasClass('is-open')) {
+                            setTimeout(function() {
+                                $mobileSubcatGroup.addClass('is-open');
+                                $mobileSubcatGroup.find('.bw-fpw-mobile-dropdown-panel').attr('aria-hidden', 'false');
+                            }, 200);
+                        }
+                    }
                 } else {
                     $subcatContainers.html('<p class="bw-fpw-no-subcats">No subcategories found</p>');
                     if ($subcatRow.length) {
@@ -314,6 +326,30 @@
                 }
             }
         });
+    }
+
+    function loadAndOpenTagsInMobile(categoryId, widgetId) {
+        var $mobileTagGroup = $('.bw-fpw-mobile-filter-group--tags[data-widget-id="' + widgetId + '"]');
+        var $tagOptions = $('.bw-fpw-tag-options[data-widget-id="' + widgetId + '"]');
+
+        // Check if tags are available in the mobile panel
+        if ($mobileTagGroup.length && $tagOptions.length) {
+            var hasTags = $tagOptions.find('.bw-fpw-tag-button').length > 0;
+
+            if (hasTags) {
+                // Auto-open tags dropdown in mobile
+                setTimeout(function() {
+                    if (!$mobileTagGroup.hasClass('is-open')) {
+                        $mobileTagGroup.addClass('is-open');
+                        $mobileTagGroup.find('.bw-fpw-mobile-dropdown-panel').attr('aria-hidden', 'false');
+                    }
+                }, 300);
+            } else {
+                // Close tags dropdown if no tags available
+                $mobileTagGroup.removeClass('is-open');
+                $mobileTagGroup.find('.bw-fpw-mobile-dropdown-panel').attr('aria-hidden', 'true');
+            }
+        }
     }
 
     function filterPosts(widgetId) {
@@ -427,6 +463,19 @@
                                             }
                                         });
                                     }
+
+                                    // Auto-open tags dropdown in mobile mode after loading
+                                    if (isInMobileMode(widgetId)) {
+                                        var $mobileTagGroup = $('.bw-fpw-mobile-filter-group--tags[data-widget-id="' + widgetId + '"]');
+                                        if ($mobileTagGroup.length && $tagOptions.find('.bw-fpw-tag-button').length > 0) {
+                                            setTimeout(function() {
+                                                if (!$mobileTagGroup.hasClass('is-open')) {
+                                                    $mobileTagGroup.addClass('is-open');
+                                                    $mobileTagGroup.find('.bw-fpw-mobile-dropdown-panel').attr('aria-hidden', 'false');
+                                                }
+                                            }, 100);
+                                        }
+                                    }
                                 }, 150);
                             } else {
                                 filterState[widgetId].tags = [];
@@ -538,17 +587,32 @@
 
             console.log('📁 Category selected:', categoryId);
 
+            var isMobileMode = isInMobileMode(widgetId);
+
             if ($subcatContainer.length) {
-                loadSubcategories(categoryId, widgetId);
+                // Auto-open subcategories dropdown in mobile when selecting a category
+                loadSubcategories(categoryId, widgetId, isMobileMode);
+            } else if (isMobileMode) {
+                // Close subcategories dropdown if no subcategories available
+                var $mobileSubcatGroup = $('.bw-fpw-mobile-filter-group--subcategories[data-widget-id="' + widgetId + '"]');
+                if ($mobileSubcatGroup.length) {
+                    $mobileSubcatGroup.removeClass('is-open');
+                    $mobileSubcatGroup.find('.bw-fpw-mobile-dropdown-panel').attr('aria-hidden', 'true');
+                }
             }
 
             if ($tagOptions.length) {
                 $tagOptions.empty();
             }
 
+            // In mobile mode, auto-open tags dropdown if tags are available
+            if (isMobileMode) {
+                loadAndOpenTagsInMobile(categoryId, widgetId);
+            }
+
             // Filter posts only if NOT in mobile mode
             // In mobile mode, wait for "Show Results" button click
-            if (!isInMobileMode(widgetId)) {
+            if (!isMobileMode) {
                 filterPosts(widgetId);
             }
         });
