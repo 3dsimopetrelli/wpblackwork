@@ -1916,14 +1916,20 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
         $tags = $show_tags ? $this->get_related_tags( $post_type, 'all', [] ) : [];
         $initial_subcategories = $show_subcategories ? $this->get_subcategories_data( $post_type, 'all' ) : [];
 
-        $mobile_panel_title   = __( 'Filter products', 'bw-elementor-widgets' );
-        $mobile_filters_title = __( 'Filters', 'bw-elementor-widgets' );
-        $mobile_show_results  = __( 'Show results', 'bw-elementor-widgets' );
-        $mobile_button_border = isset( $settings['responsive_filter_button_border'] ) ? 'yes' === $settings['responsive_filter_button_border'] : true;
+        $mobile_panel_title    = __( 'Filter products', 'bw-elementor-widgets' );
+        $mobile_filters_title  = __( 'Filters', 'bw-elementor-widgets' );
+        $mobile_show_results   = __( 'Show results', 'bw-elementor-widgets' );
+        $mobile_button_border  = isset( $settings['responsive_filter_button_border'] ) ? 'yes' === $settings['responsive_filter_button_border'] : true;
         $mobile_button_classes = [ 'bw-fpw-mobile-filter-button' ];
+        $apply_button_classes  = [ 'bw-fpw-mobile-apply' ];
 
         if ( ! $mobile_button_border ) {
             $mobile_button_classes[] = 'bw-fpw-mobile-filter-button--borderless';
+            $apply_button_classes[]  = 'bw-fpw-mobile-filter-button--borderless';
+        }
+
+        if ( isset( $settings['apply_style_to_show_results'] ) && 'yes' === $settings['apply_style_to_show_results'] ) {
+            $apply_button_classes[] = 'bw-fpw-mobile-filter-button';
         }
 
         // Icon logic
@@ -2029,7 +2035,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
                 </div>
 
                 <div class="bw-fpw-mobile-filter-panel__footer">
-                    <button class="bw-fpw-mobile-apply" type="button"><?php echo esc_html( $mobile_show_results ); ?></button>
+                    <button class="<?php echo esc_attr( implode( ' ', $apply_button_classes ) ); ?>" type="button"><?php echo esc_html( $mobile_show_results ); ?></button>
                 </div>
             </div>
         </div>
