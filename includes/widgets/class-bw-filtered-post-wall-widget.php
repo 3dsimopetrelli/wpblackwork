@@ -297,8 +297,8 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'separator' => 'before',
         ] );
 
-        $this->add_responsive_control( 'responsive_dropdowns_margin_top', [
-            'label'      => __( 'Margin Top (Dropdown Container)', 'bw-elementor-widgets' ),
+        $this->add_responsive_control( 'responsive_dropdowns_padding_top', [
+            'label'      => __( 'Padding Top (Dropdown Container)', 'bw-elementor-widgets' ),
             'type'       => Controls_Manager::SLIDER,
             'size_units' => [ 'px', 'em', 'rem' ],
             'range'      => [
@@ -307,7 +307,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
                 'rem' => [ 'min' => -10, 'max' => 20 ],
             ],
             'selectors'  => [
-                '{{WRAPPER}} .bw-filtered-post-wall-wrapper' => '--bw-fpw-mobile-dropdowns-margin-top: {{SIZE}}{{UNIT}};',
+                '{{WRAPPER}} .bw-filtered-post-wall-wrapper' => '--bw-fpw-mobile-dropdowns-padding-top: {{SIZE}}{{UNIT}};',
             ],
         ] );
 
@@ -341,7 +341,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'type'       => Controls_Manager::DIMENSIONS,
             'size_units' => [ 'px', 'em', 'rem' ],
             'selectors'  => [
-                '{{WRAPPER}} .bw-fpw-mobile-dropdown-toggle' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                '{{WRAPPER}} .bw-filtered-post-wall-wrapper' => '--bw-fpw-mobile-dropdown-title-margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
             ],
         ] );
 
@@ -350,7 +350,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'type'       => Controls_Manager::DIMENSIONS,
             'size_units' => [ 'px', 'em', 'rem' ],
             'selectors'  => [
-                '{{WRAPPER}} .bw-fpw-mobile-dropdown-toggle' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
+                '{{WRAPPER}} .bw-filtered-post-wall-wrapper' => '--bw-fpw-mobile-dropdown-title-padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
             ],
         ] );
 
