@@ -272,28 +272,16 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'description'  => __( 'When ON, the Show Results button will use the same typography, colors, background, border, and padding as the Filters Button.', 'bw-elementor-widgets' ),
         ] );
 
-        $this->end_controls_section();
-
-        // Show Results Button Dedicated Controls (when not using same style as Filters Button)
-        $this->start_controls_section( 'show_results_button_style', [
-            'label'     => __( 'Show Results Button Style', 'bw-elementor-widgets' ),
-            'tab'       => Controls_Manager::TAB_STYLE,
-            'condition' => [
-                'show_filters'                 => 'yes',
-                'apply_style_to_show_results!' => 'yes',
-            ],
-        ] );
-
-        // Typography
+        // Show Results specific style (visible when not using Filters Button style)
         $this->add_group_control( Group_Control_Typography::get_type(), [
-            'name'     => 'show_results_button_typography',
-            'label'    => __( 'Typography', 'bw-elementor-widgets' ),
-            'selector' => '{{WRAPPER}}:not(.bw-fpw-apply-style-to-show-results) .bw-fpw-mobile-apply',
+            'name'      => 'show_results_button_typography',
+            'label'     => __( 'Typography – Show Results', 'bw-elementor-widgets' ),
+            'selector'  => '{{WRAPPER}}:not(.bw-fpw-apply-style-to-show-results) .bw-fpw-mobile-apply',
+            'condition' => [ 'apply_style_to_show_results!' => 'yes' ],
         ] );
 
-        // Padding
         $this->add_responsive_control( 'show_results_button_padding', [
-            'label'      => __( 'Padding', 'bw-elementor-widgets' ),
+            'label'      => __( 'Padding – Show Results', 'bw-elementor-widgets' ),
             'type'       => Controls_Manager::DIMENSIONS,
             'size_units' => [ 'px', 'em', '%' ],
             'default'    => [
@@ -307,8 +295,22 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'selectors'  => [
                 '{{WRAPPER}}:not(.bw-fpw-apply-style-to-show-results) .bw-fpw-mobile-apply' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
             ],
+            'condition'  => [ 'apply_style_to_show_results!' => 'yes' ],
         ] );
 
+        $this->end_controls_section();
+
+        // Show Results Button Dedicated Controls (when not using same style as Filters Button)
+        $this->start_controls_section( 'show_results_button_style', [
+            'label'     => __( 'Show Results Button Style', 'bw-elementor-widgets' ),
+            'tab'       => Controls_Manager::TAB_STYLE,
+            'condition' => [
+                'show_filters'                 => 'yes',
+                'apply_style_to_show_results!' => 'yes',
+            ],
+        ] );
+
+        // Typography
         // Background and Text Color Tabs
         $this->start_controls_tabs( 'show_results_button_style_tabs' );
 
