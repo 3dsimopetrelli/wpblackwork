@@ -793,6 +793,28 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'description'  => __( 'Mostra/nascondi i filtri di categoria e tag', 'bw-elementor-widgets' ),
         ] );
 
+        // Get product categories for the dropdown
+        $category_options = [ 'all' => __( 'All Categories', 'bw-elementor-widgets' ) ];
+        $product_categories = get_terms( [
+            'taxonomy'   => 'product_cat',
+            'hide_empty' => false,
+            'parent'     => 0, // Only top-level categories
+        ] );
+        if ( ! is_wp_error( $product_categories ) && ! empty( $product_categories ) ) {
+            foreach ( $product_categories as $category ) {
+                $category_options[ $category->term_id ] = $category->name;
+            }
+        }
+
+        $this->add_control( 'default_category', [
+            'label'       => __( 'Default Category', 'bw-elementor-widgets' ),
+            'type'        => Controls_Manager::SELECT,
+            'options'     => $category_options,
+            'default'     => 'all',
+            'description' => __( 'Limit the widget to a specific category. When selected, only subcategories and tags from this category will be shown.', 'bw-elementor-widgets' ),
+            'condition'   => [ 'show_filters' => 'yes' ],
+        ] );
+
         $this->add_control( 'show_categories', [
             'label'        => __( 'Show Categories', 'bw-elementor-widgets' ),
             'type'         => Controls_Manager::SWITCHER,
@@ -1902,19 +1924,41 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
         $show_tags             = isset( $settings['show_tags'] ) ? 'yes' === $settings['show_tags'] : true;
         $show_all_button       = isset( $settings['show_all_button'] ) ? 'yes' === $settings['show_all_button'] : true;
 
-        $taxonomy     = 'product' === $post_type ? 'product_cat' : 'category';
-        $parent_terms = $show_categories
-            ? get_terms(
-                [
-                    'taxonomy'   => $taxonomy,
-                    'hide_empty' => true,
-                    'parent'     => 0,
-                ]
-            )
-            : [];
+        // Get default category setting
+        $default_category = isset( $settings['default_category'] ) && 'all' !== $settings['default_category']
+            ? absint( $settings['default_category'] )
+            : 'all';
 
-        $tags = $show_tags ? $this->get_related_tags( $post_type, 'all', [] ) : [];
-        $initial_subcategories = $show_subcategories ? $this->get_subcategories_data( $post_type, 'all' ) : [];
+        $taxonomy     = 'product' === $post_type ? 'product_cat' : 'category';
+
+        // If a default category is set, only show that category or hide categories
+        if ( 'all' !== $default_category ) {
+            // When default category is set, hide the category filter or show only that one
+            $parent_terms = $show_categories
+                ? get_terms(
+                    [
+                        'taxonomy'   => $taxonomy,
+                        'hide_empty' => true,
+                        'include'    => [ $default_category ],
+                    ]
+                )
+                : [];
+        } else {
+            $parent_terms = $show_categories
+                ? get_terms(
+                    [
+                        'taxonomy'   => $taxonomy,
+                        'hide_empty' => true,
+                        'parent'     => 0,
+                    ]
+                )
+                : [];
+        }
+
+        // Load initial subcategories and tags based on default category
+        $initial_category = 'all' !== $default_category ? $default_category : 'all';
+        $tags = $show_tags ? $this->get_related_tags( $post_type, $initial_category, [] ) : [];
+        $initial_subcategories = $show_subcategories ? $this->get_subcategories_data( $post_type, $initial_category ) : [];
 
         $mobile_panel_title    = __( 'Filter products', 'bw-elementor-widgets' );
         $mobile_filters_title  = __( 'Filters', 'bw-elementor-widgets' );
@@ -1947,7 +1991,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
         }
         ?>
 
-        <div class="bw-fpw-mobile-filter" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+        <div class="bw-fpw-mobile-filter" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-default-category="<?php echo esc_attr( $default_category ); ?>">
             <button class="<?php echo esc_attr( implode( ' ', $mobile_button_classes ) ); ?>" type="button">
                 <?php
                 if ( $show_icon ) {
@@ -1972,7 +2016,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
                             </button>
                             <div class="bw-fpw-mobile-dropdown-panel" aria-hidden="true">
                                 <div class="bw-fpw-mobile-dropdown-options bw-fpw-filter-options bw-fpw-filter-options--categories" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
-                                    <?php if ( $show_all_button ) : ?>
+                                    <?php if ( $show_all_button && 'all' === $default_category ) : ?>
                                         <button class="bw-fpw-filter-option bw-fpw-cat-button active" data-category="all">
                                             <span class="bw-fpw-option-label"><?php echo esc_html( __( 'All', 'bw-elementor-widgets' ) ); ?></span> <span class="bw-fpw-option-count">(<?php echo esc_html( $this->get_total_post_count( $post_type ) ); ?>)</span>
                                         </button>
@@ -1980,9 +2024,10 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
 
                                     <?php if ( ! empty( $parent_terms ) && ! is_wp_error( $parent_terms ) ) : ?>
                                         <?php
-                                        $has_active_category = $show_all_button;
+                                        // Mark default category as active, or first category if no default
+                                        $has_active_category = $show_all_button && 'all' === $default_category;
                                         foreach ( $parent_terms as $category ) :
-                                            $is_active = ! $has_active_category;
+                                            $is_active = ( 'all' !== $default_category && $category->term_id === $default_category ) || ( ! $has_active_category );
                                             if ( $is_active ) {
                                                 $has_active_category = true;
                                             }
@@ -2042,22 +2087,23 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             </div>
         </div>
 
-        <div class="bw-fpw-filters" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+        <div class="bw-fpw-filters" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-default-category="<?php echo esc_attr( $default_category ); ?>">
             <div class="bw-fpw-filter-rows">
                 <?php if ( $show_categories ) : ?>
                     <div class="bw-fpw-filter-row bw-fpw-filter-row--categories" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
                         <h3 class="bw-fpw-filter-label"><?php echo esc_html( $categories_title ); ?></h3>
                         <div class="bw-fpw-filter-options bw-fpw-filter-options--categories" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
-                            <?php if ( $show_all_button ) : ?>
+                            <?php if ( $show_all_button && 'all' === $default_category ) : ?>
                                 <button class="bw-fpw-filter-option bw-fpw-cat-button active" data-category="all">
                                     <span class="bw-fpw-option-label"><?php echo esc_html( __( 'All', 'bw-elementor-widgets' ) ); ?></span> <span class="bw-fpw-option-count">(<?php echo esc_html( $this->get_total_post_count( $post_type ) ); ?>)</span>
                                 </button>
                             <?php endif; ?>
                             <?php if ( ! empty( $parent_terms ) && ! is_wp_error( $parent_terms ) ) : ?>
                                 <?php
-                                $has_active_category = $show_all_button;
+                                // Mark default category as active, or first category if no default
+                                $has_active_category = $show_all_button && 'all' === $default_category;
                                 foreach ( $parent_terms as $category ) :
-                                    $is_active = ! $has_active_category;
+                                    $is_active = ( 'all' !== $default_category && $category->term_id === $default_category ) || ( ! $has_active_category );
                                     if ( $is_active ) {
                                         $has_active_category = true;
                                     }
@@ -2166,6 +2212,11 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
         $parent_category = isset( $settings['parent_category'] ) ? absint( $settings['parent_category'] ) : 0;
         $subcategories   = isset( $settings['subcategory'] ) ? array_filter( array_map( 'absint', (array) $settings['subcategory'] ) ) : [];
 
+        // Get default category setting for filtering
+        $default_category = isset( $settings['default_category'] ) && 'all' !== $settings['default_category']
+            ? absint( $settings['default_category'] )
+            : 0;
+
         // Get ordering settings
         $order_by = isset( $settings['order_by'] ) ? sanitize_key( $settings['order_by'] ) : 'date';
         $order    = isset( $settings['order'] ) ? strtoupper( sanitize_key( $settings['order'] ) ) : 'DESC';
@@ -2202,7 +2253,14 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
         if ( 'product' === $post_type ) {
             $tax_query = [];
 
-            if ( ! empty( $subcategories ) ) {
+            // If default category is set, filter by it
+            if ( $default_category > 0 ) {
+                $tax_query[] = [
+                    'taxonomy' => 'product_cat',
+                    'field'    => 'term_id',
+                    'terms'    => [ $default_category ],
+                ];
+            } elseif ( ! empty( $subcategories ) ) {
                 $tax_query[] = [
                     'taxonomy' => 'product_cat',
                     'field'    => 'term_id',
