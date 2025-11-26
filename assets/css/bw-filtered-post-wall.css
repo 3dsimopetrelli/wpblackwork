@@ -150,6 +150,7 @@
 }
 
 /* Filter Select Styles - Active State Highlighting */
+/* Desktop filters */
 .bw-fpw-select-underline .bw-fpw-filter-option.active .bw-fpw-option-label {
   text-decoration: underline;
 }
@@ -160,6 +161,19 @@
 
 .bw-fpw-select-bold .bw-fpw-filter-option.active .bw-fpw-option-label {
   font-weight: 700;
+}
+
+/* Mobile filters - Apply same styles to mobile dropdown options */
+.bw-fpw-select-bold .bw-fpw-mobile-dropdown-options .bw-fpw-filter-option.active .bw-fpw-option-label {
+  font-weight: 700 !important;
+}
+
+.bw-fpw-select-underline .bw-fpw-mobile-dropdown-options .bw-fpw-filter-option.active .bw-fpw-option-label {
+  text-decoration: underline !important;
+}
+
+.bw-fpw-select-underline .bw-fpw-mobile-dropdown-options .bw-fpw-filter-option:focus .bw-fpw-option-label {
+  text-decoration: underline !important;
 }
 
 /* Color is handled by Elementor control selectors */
