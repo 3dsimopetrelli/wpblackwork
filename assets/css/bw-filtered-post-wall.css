@@ -1072,3 +1072,34 @@ body.elementor-editor-active .bw-fpw-item {
   opacity: 1;
   transform: scale(1);
 }
+
+/* ============================================
+   EMPTY STATE (NO CONTENT AVAILABLE)
+   ============================================ */
+.bw-fpw-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  min-height: 300px;
+}
+
+.bw-fpw-empty-message {
+  font-size: 18px;
+  font-weight: 500;
+  color: #666666;
+  margin: 0 0 24px 0;
+}
+
+.bw-fpw-reset-filters {
+  /* Elementor button class will handle most styling */
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.bw-fpw-reset-filters:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+}

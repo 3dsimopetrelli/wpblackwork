@@ -638,7 +638,11 @@
                     console.log('✅ Posts filtered successfully');
                 } else {
                     console.error('❌ Filter response error:', response);
-                    $grid.html('<div class="bw-fpw-placeholder">No posts found.</div>');
+                    var emptyStateHtml = '<div class="bw-fpw-empty-state">';
+                    emptyStateHtml += '<p class="bw-fpw-empty-message">No content available</p>';
+                    emptyStateHtml += '<button class="elementor-button bw-fpw-reset-filters" data-widget-id="' + widgetId + '">RESET FILTERS</button>';
+                    emptyStateHtml += '</div>';
+                    $grid.html(emptyStateHtml);
 
                     // Remove loading state
                     $wrapper.removeClass('bw-filtered-post-wall--loading');
@@ -836,6 +840,78 @@
             } else {
                 $panel.attr('aria-hidden', 'false');
             }
+        });
+
+        // Reset filters button
+        $(document).on('click', '.bw-fpw-reset-filters', function(e) {
+            e.preventDefault();
+
+            var $button = $(this);
+            var widgetId = $button.attr('data-widget-id');
+
+            if (!widgetId) {
+                console.error('❌ Widget ID not found for reset button');
+                return;
+            }
+
+            initFilterState(widgetId);
+
+            console.log('🔄 Resetting filters for widget:', widgetId);
+
+            // Get default category from filters
+            var $filters = $('.bw-fpw-filters[data-widget-id="' + widgetId + '"]');
+            var defaultCategory = $filters.attr('data-default-category') || 'all';
+
+            // Reset filter state
+            filterState[widgetId] = {
+                category: defaultCategory,
+                subcategories: [],
+                tags: []
+            };
+
+            // Reset all category buttons
+            $('.bw-fpw-cat-button').filter(function(){
+                return $(this).closest('[data-widget-id]').attr('data-widget-id') === widgetId;
+            }).removeClass('active');
+
+            // Activate the default category button
+            var $defaultCatButton = $('.bw-fpw-cat-button[data-category="' + defaultCategory + '"]').filter(function(){
+                return $(this).closest('[data-widget-id]').attr('data-widget-id') === widgetId;
+            });
+            $defaultCatButton.addClass('active');
+
+            // Reset all subcategory buttons
+            $('.bw-fpw-subcat-button').filter(function(){
+                return $(this).closest('[data-widget-id]').attr('data-widget-id') === widgetId;
+            }).removeClass('active');
+
+            // Reset all tag buttons
+            $('.bw-fpw-tag-button').filter(function(){
+                return $(this).closest('[data-widget-id]').attr('data-widget-id') === widgetId;
+            }).removeClass('active');
+
+            // Close mobile panel if open
+            var isMobile = isInMobileMode(widgetId);
+            if (isMobile) {
+                closeMobilePanel(widgetId);
+            }
+
+            // Reload subcategories if default category is not 'all'
+            var $subcatContainer = $('.bw-fpw-subcategories-container[data-widget-id="' + widgetId + '"]');
+            if ($subcatContainer.length && defaultCategory !== 'all') {
+                loadSubcategories(defaultCategory, widgetId, false);
+            }
+
+            // Reload tags if default category is not 'all'
+            var $tagOptions = $('.bw-fpw-tag-options[data-widget-id="' + widgetId + '"]');
+            if ($tagOptions.length && defaultCategory !== 'all') {
+                loadTags(defaultCategory, widgetId, [], false);
+            }
+
+            // Filter posts to show initial state
+            filterPosts(widgetId);
+
+            console.log('✅ Filters reset successfully');
         });
     }
 

@@ -1056,8 +1056,11 @@ function bw_fpw_filter_posts() {
         }
     } else {
         ?>
-        <div class="bw-fpw-placeholder">
-            <?php esc_html_e( 'Nessun contenuto disponibile.', 'bw-elementor-widgets' ); ?>
+        <div class="bw-fpw-empty-state">
+            <p class="bw-fpw-empty-message"><?php esc_html_e( 'No content available', 'bw-elementor-widgets' ); ?></p>
+            <button class="elementor-button bw-fpw-reset-filters" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+                <?php esc_html_e( 'RESET FILTERS', 'bw-elementor-widgets' ); ?>
+            </button>
         </div>
         <?php
     }
