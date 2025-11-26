@@ -257,6 +257,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
                 '{{WRAPPER}} .bw-fpw-mobile-filter-button' => 'border-radius: {{SIZE}}{{UNIT}} !important;',
                 '{{WRAPPER}}.bw-fpw-apply-style-to-show-results .bw-fpw-mobile-apply' => 'border-radius: {{SIZE}}{{UNIT}} !important;',
             ],
+            'condition'  => [ 'responsive_filter_button_border' => 'yes' ],
         ] );
 
         // Apply same style to Show Results button
@@ -395,8 +396,11 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'return_value' => 'yes',
             'default'      => 'no',
             'separator'    => 'before',
+            'selectors_dictionary' => [
+                '' => 'border: none !important;',
+            ],
             'selectors'    => [
-                '{{WRAPPER}}:not(.bw-fpw-apply-style-to-show-results) .bw-fpw-mobile-apply' => 'border: none !important;',
+                '{{WRAPPER}}:not(.bw-fpw-apply-style-to-show-results) .bw-fpw-mobile-apply' => '{{VALUE}}',
             ],
         ] );
 
@@ -424,6 +428,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'selectors'  => [
                 '{{WRAPPER}}:not(.bw-fpw-apply-style-to-show-results) .bw-fpw-mobile-apply' => 'border-radius: {{SIZE}}{{UNIT}} !important;',
             ],
+            'condition'  => [ 'show_results_button_border' => 'yes' ],
         ] );
 
         $this->end_controls_section();
