@@ -283,6 +283,35 @@
   transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
+.bw-fpw-apply-style-to-show-results .bw-fpw-mobile-apply.bw-fpw-mobile-filter-button {
+  /* Reset global button styles - must override .elementor-kit-7 button */
+  all: unset;
+
+  /* Match Filters Button base layout */
+  width: 100%;
+  text-align: center !important;
+  font-size: 18px;
+  line-height: 1.5;
+  font-family: inherit;
+  font-weight: normal;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  cursor: pointer;
+  box-shadow: none !important;
+  text-transform: none;
+  letter-spacing: normal;
+  text-decoration: none !important;
+  margin: 0 !important;
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+.bw-fpw-apply-style-to-show-results .bw-fpw-mobile-apply.bw-fpw-mobile-filter-button:focus {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
 .bw-fpw-mobile-filter-button-icon {
   display: inline-block;
   flex-shrink: 0;
