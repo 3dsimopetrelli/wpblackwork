@@ -133,11 +133,13 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
         $this->add_control( 'responsive_filter_panel_header_settings_heading', [
             'label'     => __( 'Header Settings', 'bw-elementor-widgets' ),
             'type'      => Controls_Manager::HEADING,
+            'separator' => 'before',
         ] );
 
         $this->add_control( 'responsive_filter_panel_header_heading', [
             'label'     => __( 'Header “Filter products”', 'bw-elementor-widgets' ),
             'type'      => Controls_Manager::HEADING,
+            'separator' => 'before',
         ] );
 
         $this->add_group_control( Group_Control_Typography::get_type(), [
@@ -173,6 +175,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'default'   => 'left',
             'selectors' => [
                 '{{WRAPPER}} .bw-fpw-mobile-filter-panel__title' => 'text-align: {{VALUE}};',
+                '{{WRAPPER}} .bw-filtered-post-wall-wrapper'     => '--bw-fpw-mobile-header-align: {{VALUE}};',
             ],
         ] );
 
@@ -206,7 +209,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'default'   => '#000000',
             'selectors' => [
                 '{{WRAPPER}} .bw-filtered-post-wall-wrapper' => '--bw-fpw-mobile-close-color: {{VALUE}};',
-                '{{WRAPPER}} .bw-fpw-mobile-filter-close' => 'color: {{VALUE}};',
+                '{{WRAPPER}} .bw-fpw-mobile-filter-close'    => 'color: {{VALUE}} !important;',
             ],
         ] );
 
@@ -292,6 +295,20 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'label'     => __( 'Drop Down Title', 'bw-elementor-widgets' ),
             'type'      => Controls_Manager::HEADING,
             'separator' => 'before',
+        ] );
+
+        $this->add_responsive_control( 'responsive_dropdowns_margin_top', [
+            'label'      => __( 'Margin Top (Dropdown Container)', 'bw-elementor-widgets' ),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => [ 'px', 'em', 'rem' ],
+            'range'      => [
+                'px'  => [ 'min' => -100, 'max' => 200 ],
+                'em'  => [ 'min' => -10, 'max' => 20 ],
+                'rem' => [ 'min' => -10, 'max' => 20 ],
+            ],
+            'selectors'  => [
+                '{{WRAPPER}} .bw-filtered-post-wall-wrapper' => '--bw-fpw-mobile-dropdowns-margin-top: {{SIZE}}{{UNIT}};',
+            ],
         ] );
 
         $this->add_group_control( Group_Control_Typography::get_type(), [
