@@ -58,7 +58,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
         ] );
 
         $this->add_control( 'responsive_filter_heading', [
-            'label'     => __( 'Filters Button', 'bw-elementor-widgets' ),
+            'label'     => __( 'Filters Button (Style Filters & Show Results)', 'bw-elementor-widgets' ),
             'type'      => Controls_Manager::HEADING,
             'separator' => 'before',
         ] );
@@ -108,7 +108,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
         // Typography
         $this->add_group_control( Group_Control_Typography::get_type(), [
             'name'     => 'responsive_filter_button_typography',
-            'selector' => '{{WRAPPER}} .bw-fpw-mobile-filter-button',
+            'selector' => '{{WRAPPER}} .bw-fpw-mobile-filter-button, {{WRAPPER}}.bw-fpw-apply-style-to-show-results .bw-fpw-mobile-apply',
         ] );
 
         // Padding
@@ -126,6 +126,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             ],
             'selectors'  => [
                 '{{WRAPPER}} .bw-fpw-mobile-filter-button' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
+                '{{WRAPPER}}.bw-fpw-apply-style-to-show-results .bw-fpw-mobile-apply' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
             ],
         ] );
 
@@ -146,6 +147,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'default'   => '#ffffff',
             'selectors' => [
                 '{{WRAPPER}} .bw-fpw-mobile-filter-button' => 'background-color: {{VALUE}};',
+                '{{WRAPPER}}.bw-fpw-apply-style-to-show-results .bw-fpw-mobile-apply' => 'background-color: {{VALUE}};',
             ],
         ] );
 
@@ -155,6 +157,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'default'   => '#000000',
             'selectors' => [
                 '{{WRAPPER}} .bw-fpw-mobile-filter-button' => 'color: {{VALUE}};',
+                '{{WRAPPER}}.bw-fpw-apply-style-to-show-results .bw-fpw-mobile-apply' => 'color: {{VALUE}};',
             ],
         ] );
 
@@ -164,6 +167,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'default'   => '#000000',
             'selectors' => [
                 '{{WRAPPER}} .bw-fpw-mobile-filter-button' => 'border-color: {{VALUE}};',
+                '{{WRAPPER}}.bw-fpw-apply-style-to-show-results .bw-fpw-mobile-apply' => 'border-color: {{VALUE}};',
             ],
             'condition' => [ 'responsive_filter_button_border' => 'yes' ],
         ] );
@@ -183,6 +187,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'type'      => Controls_Manager::COLOR,
             'selectors' => [
                 '{{WRAPPER}} .bw-fpw-mobile-filter-button:hover' => 'background-color: {{VALUE}};',
+                '{{WRAPPER}}.bw-fpw-apply-style-to-show-results .bw-fpw-mobile-apply:hover' => 'background-color: {{VALUE}};',
             ],
         ] );
 
@@ -191,6 +196,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'type'      => Controls_Manager::COLOR,
             'selectors' => [
                 '{{WRAPPER}} .bw-fpw-mobile-filter-button:hover' => 'color: {{VALUE}};',
+                '{{WRAPPER}}.bw-fpw-apply-style-to-show-results .bw-fpw-mobile-apply:hover' => 'color: {{VALUE}};',
             ],
         ] );
 
@@ -199,6 +205,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'type'      => Controls_Manager::COLOR,
             'selectors' => [
                 '{{WRAPPER}} .bw-fpw-mobile-filter-button:hover' => 'border-color: {{VALUE}};',
+                '{{WRAPPER}}.bw-fpw-apply-style-to-show-results .bw-fpw-mobile-apply:hover' => 'border-color: {{VALUE}};',
             ],
             'condition' => [ 'responsive_filter_button_border' => 'yes' ],
         ] );
@@ -226,6 +233,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'default'    => [ 'size' => 1, 'unit' => 'px' ],
             'selectors'  => [
                 '{{WRAPPER}} .bw-fpw-mobile-filter-button' => 'border-width: {{SIZE}}{{UNIT}}; border-style: solid;',
+                '{{WRAPPER}}.bw-fpw-apply-style-to-show-results .bw-fpw-mobile-apply' => 'border-width: {{SIZE}}{{UNIT}}; border-style: solid;',
             ],
             'condition'  => [ 'responsive_filter_button_border' => 'yes' ],
         ] );
@@ -240,8 +248,21 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             ],
             'selectors'  => [
                 '{{WRAPPER}} .bw-fpw-mobile-filter-button' => 'border-radius: {{SIZE}}{{UNIT}};',
+                '{{WRAPPER}}.bw-fpw-apply-style-to-show-results .bw-fpw-mobile-apply' => 'border-radius: {{SIZE}}{{UNIT}};',
             ],
             'condition'  => [ 'responsive_filter_button_border' => 'yes' ],
+        ] );
+
+        // Apply same style to Show Results button
+        $this->add_control( 'apply_style_to_show_results', [
+            'label'        => __( 'Apply same style to Show Results', 'bw-elementor-widgets' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'label_on'     => __( 'ON', 'bw-elementor-widgets' ),
+            'label_off'    => __( 'OFF', 'bw-elementor-widgets' ),
+            'return_value' => 'yes',
+            'default'      => 'no',
+            'separator'    => 'before',
+            'description'  => __( 'When ON, the Show Results button will use the same typography, colors, background, border, and padding as the Filters Button.', 'bw-elementor-widgets' ),
         ] );
 
         $this->end_controls_section();
@@ -1689,6 +1710,11 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
         }
         if ( isset( $settings['filter_select_custom_color'] ) && 'yes' === $settings['filter_select_custom_color'] ) {
             $wrapper_classes[] = 'bw-fpw-select-custom-color';
+        }
+
+        // Add class when Show Results button should use same style as Filters button
+        if ( isset( $settings['apply_style_to_show_results'] ) && 'yes' === $settings['apply_style_to_show_results'] ) {
+            $wrapper_classes[] = 'bw-fpw-apply-style-to-show-results';
         }
 
         $responsive_breakpoint = isset( $settings['filter_responsive_breakpoint'] ) ? absint( $settings['filter_responsive_breakpoint'] ) : 900;
