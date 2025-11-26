@@ -228,8 +228,17 @@
 
     function initFilterState(widgetId) {
         if (!filterState[widgetId]) {
+            // Check if there's a default category set
+            var $filters = $('.bw-fpw-filters[data-widget-id="' + widgetId + '"]');
+            var defaultCategory = $filters.attr('data-default-category');
+            var initialCategory = 'all';
+
+            if (defaultCategory && defaultCategory !== 'all') {
+                initialCategory = defaultCategory;
+            }
+
             filterState[widgetId] = {
-                category: 'all',
+                category: initialCategory,
                 subcategories: [],
                 tags: []
             };
