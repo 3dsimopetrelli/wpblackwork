@@ -548,30 +548,32 @@
   /* Reset global button styles - must override .elementor-kit-7 button */
   all: unset;
 
-  /* Re-apply widget-specific styles */
+  /* Re-apply only structural styles - visual styles come from Elementor controls */
   width: 100%;
-  padding: 12px 18px !important;
-  border: none !important;
-  border-radius: 4px !important;
-  background: #111111 !important;
-  color: #ffffff !important;
-  font-size: 18px !important;
-  font-weight: normal !important;
-  font-family: inherit !important;
-  line-height: 1.5 !important;
   cursor: pointer;
   text-align: center;
-  box-shadow: none !important;
-  text-transform: none !important;
-  letter-spacing: normal !important;
-  text-decoration: none !important;
-  margin: 0 !important;
   display: block;
   box-sizing: border-box;
+  margin: 0 !important;
+
+  /* Default fallback styles (will be overridden by Elementor controls) */
+  padding: 12px 18px;
+  border-radius: 4px;
+  background: #111111;
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: normal;
+  font-family: inherit;
+  line-height: 1.5;
+  box-shadow: none;
+  text-transform: none;
+  letter-spacing: normal;
+  text-decoration: none;
+  border: none;
 }
 
 .bw-fpw-mobile-apply:focus {
-  outline: 2px solid #111111;
+  outline: 2px solid currentColor;
   outline-offset: 2px;
 }
 

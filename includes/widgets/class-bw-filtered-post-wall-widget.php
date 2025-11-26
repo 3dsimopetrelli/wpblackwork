@@ -223,6 +223,13 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'return_value' => 'yes',
             'default'      => 'yes',
             'separator'    => 'before',
+            'selectors_dictionary' => [
+                '' => 'border: none !important;',
+            ],
+            'selectors'    => [
+                '{{WRAPPER}} .bw-fpw-mobile-filter-button' => '{{VALUE}}',
+                '{{WRAPPER}}.bw-fpw-apply-style-to-show-results .bw-fpw-mobile-apply' => '{{VALUE}}',
+            ],
         ] );
 
         $this->add_responsive_control( 'responsive_filter_button_border_width', [
@@ -247,10 +254,9 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
                 '%'  => [ 'min' => 0, 'max' => 100 ],
             ],
             'selectors'  => [
-                '{{WRAPPER}} .bw-fpw-mobile-filter-button' => 'border-radius: {{SIZE}}{{UNIT}};',
-                '{{WRAPPER}}.bw-fpw-apply-style-to-show-results .bw-fpw-mobile-apply' => 'border-radius: {{SIZE}}{{UNIT}};',
+                '{{WRAPPER}} .bw-fpw-mobile-filter-button' => 'border-radius: {{SIZE}}{{UNIT}} !important;',
+                '{{WRAPPER}}.bw-fpw-apply-style-to-show-results .bw-fpw-mobile-apply' => 'border-radius: {{SIZE}}{{UNIT}} !important;',
             ],
-            'condition'  => [ 'responsive_filter_button_border' => 'yes' ],
         ] );
 
         // Apply same style to Show Results button
@@ -263,6 +269,161 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'default'      => 'no',
             'separator'    => 'before',
             'description'  => __( 'When ON, the Show Results button will use the same typography, colors, background, border, and padding as the Filters Button.', 'bw-elementor-widgets' ),
+        ] );
+
+        $this->end_controls_section();
+
+        // Show Results Button Dedicated Controls (when not using same style as Filters Button)
+        $this->start_controls_section( 'show_results_button_style', [
+            'label'     => __( 'Show Results Button Style', 'bw-elementor-widgets' ),
+            'tab'       => Controls_Manager::TAB_STYLE,
+            'condition' => [
+                'show_filters'                 => 'yes',
+                'apply_style_to_show_results!' => 'yes',
+            ],
+        ] );
+
+        // Typography
+        $this->add_group_control( Group_Control_Typography::get_type(), [
+            'name'     => 'show_results_button_typography',
+            'label'    => __( 'Typography', 'bw-elementor-widgets' ),
+            'selector' => '{{WRAPPER}}:not(.bw-fpw-apply-style-to-show-results) .bw-fpw-mobile-apply',
+        ] );
+
+        // Padding
+        $this->add_responsive_control( 'show_results_button_padding', [
+            'label'      => __( 'Padding', 'bw-elementor-widgets' ),
+            'type'       => Controls_Manager::DIMENSIONS,
+            'size_units' => [ 'px', 'em', '%' ],
+            'default'    => [
+                'top'      => 12,
+                'right'    => 18,
+                'bottom'   => 12,
+                'left'     => 18,
+                'unit'     => 'px',
+                'isLinked' => false,
+            ],
+            'selectors'  => [
+                '{{WRAPPER}}:not(.bw-fpw-apply-style-to-show-results) .bw-fpw-mobile-apply' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
+            ],
+        ] );
+
+        // Background and Text Color Tabs
+        $this->start_controls_tabs( 'show_results_button_style_tabs' );
+
+        // Normal Tab
+        $this->start_controls_tab(
+            'show_results_button_normal_tab',
+            [
+                'label' => __( 'Normal', 'bw-elementor-widgets' ),
+            ]
+        );
+
+        $this->add_control( 'show_results_button_background', [
+            'label'     => __( 'Background', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::COLOR,
+            'default'   => '#111111',
+            'selectors' => [
+                '{{WRAPPER}}:not(.bw-fpw-apply-style-to-show-results) .bw-fpw-mobile-apply' => 'background-color: {{VALUE}} !important;',
+            ],
+        ] );
+
+        $this->add_control( 'show_results_button_text_color', [
+            'label'     => __( 'Text Color', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::COLOR,
+            'default'   => '#ffffff',
+            'selectors' => [
+                '{{WRAPPER}}:not(.bw-fpw-apply-style-to-show-results) .bw-fpw-mobile-apply' => 'color: {{VALUE}} !important;',
+            ],
+        ] );
+
+        $this->add_control( 'show_results_button_border_color', [
+            'label'     => __( 'Border Color', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::COLOR,
+            'default'   => '#111111',
+            'selectors' => [
+                '{{WRAPPER}}:not(.bw-fpw-apply-style-to-show-results) .bw-fpw-mobile-apply' => 'border-color: {{VALUE}} !important;',
+            ],
+            'condition' => [ 'show_results_button_border' => 'yes' ],
+        ] );
+
+        $this->end_controls_tab();
+
+        // Hover Tab
+        $this->start_controls_tab(
+            'show_results_button_hover_tab',
+            [
+                'label' => __( 'Hover', 'bw-elementor-widgets' ),
+            ]
+        );
+
+        $this->add_control( 'show_results_button_background_hover', [
+            'label'     => __( 'Background', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => [
+                '{{WRAPPER}}:not(.bw-fpw-apply-style-to-show-results) .bw-fpw-mobile-apply:hover' => 'background-color: {{VALUE}} !important;',
+            ],
+        ] );
+
+        $this->add_control( 'show_results_button_text_color_hover', [
+            'label'     => __( 'Text Color', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => [
+                '{{WRAPPER}}:not(.bw-fpw-apply-style-to-show-results) .bw-fpw-mobile-apply:hover' => 'color: {{VALUE}} !important;',
+            ],
+        ] );
+
+        $this->add_control( 'show_results_button_border_color_hover', [
+            'label'     => __( 'Border Color', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => [
+                '{{WRAPPER}}:not(.bw-fpw-apply-style-to-show-results) .bw-fpw-mobile-apply:hover' => 'border-color: {{VALUE}} !important;',
+            ],
+            'condition' => [ 'show_results_button_border' => 'yes' ],
+        ] );
+
+        $this->end_controls_tab();
+
+        $this->end_controls_tabs();
+
+        // Border Controls
+        $this->add_control( 'show_results_button_border', [
+            'label'        => __( 'Border', 'bw-elementor-widgets' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
+            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
+            'return_value' => 'yes',
+            'default'      => 'no',
+            'separator'    => 'before',
+            'selectors'    => [
+                '{{WRAPPER}}:not(.bw-fpw-apply-style-to-show-results) .bw-fpw-mobile-apply' => 'border: none !important;',
+            ],
+        ] );
+
+        $this->add_responsive_control( 'show_results_button_border_width', [
+            'label'      => __( 'Border Width', 'bw-elementor-widgets' ),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => [ 'px' ],
+            'range'      => [ 'px' => [ 'min' => 0, 'max' => 10 ] ],
+            'default'    => [ 'size' => 1, 'unit' => 'px' ],
+            'selectors'  => [
+                '{{WRAPPER}}:not(.bw-fpw-apply-style-to-show-results) .bw-fpw-mobile-apply' => 'border-width: {{SIZE}}{{UNIT}} !important; border-style: solid !important;',
+            ],
+            'condition'  => [ 'show_results_button_border' => 'yes' ],
+        ] );
+
+        $this->add_responsive_control( 'show_results_button_radius', [
+            'label'      => __( 'Border Radius', 'bw-elementor-widgets' ),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => [ 'px', '%' ],
+            'range'      => [
+                'px' => [ 'min' => 0, 'max' => 50 ],
+                '%'  => [ 'min' => 0, 'max' => 100 ],
+            ],
+            'default'    => [ 'size' => 4, 'unit' => 'px' ],
+            'selectors'  => [
+                '{{WRAPPER}}:not(.bw-fpw-apply-style-to-show-results) .bw-fpw-mobile-apply' => 'border-radius: {{SIZE}}{{UNIT}} !important;',
+            ],
         ] );
 
         $this->end_controls_section();
