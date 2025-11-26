@@ -298,29 +298,15 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'condition'  => [ 'apply_style_to_show_results!' => 'yes' ],
         ] );
 
-        $this->end_controls_section();
-
-        // Show Results Button Dedicated Controls (when not using same style as Filters Button)
-        $this->start_controls_section( 'show_results_button_style', [
-            'label'     => __( 'Show Results Button Style', 'bw-elementor-widgets' ),
-            'tab'       => Controls_Manager::TAB_STYLE,
-            'condition' => [
-                'show_filters'                 => 'yes',
-                'apply_style_to_show_results!' => 'yes',
-            ],
-        ] );
-
-        // Typography
-        // Background and Text Color Tabs
-        $this->start_controls_tabs( 'show_results_button_style_tabs' );
-
-        // Normal Tab
-        $this->start_controls_tab(
-            'show_results_button_normal_tab',
+        // Show Results dedicated colors and border (when not applying Filters Button style)
+        $this->start_controls_tabs(
+            'show_results_button_color_tabs',
             [
-                'label' => __( 'Normal', 'bw-elementor-widgets' ),
+                'condition' => [ 'apply_style_to_show_results!' => 'yes' ],
             ]
         );
+
+        $this->start_controls_tab( 'show_results_button_color_normal_tab', [ 'label' => __( 'Normal', 'bw-elementor-widgets' ) ] );
 
         $this->add_control( 'show_results_button_background', [
             'label'     => __( 'Background', 'bw-elementor-widgets' ),
@@ -329,6 +315,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'selectors' => [
                 '{{WRAPPER}}:not(.bw-fpw-apply-style-to-show-results) .bw-fpw-mobile-apply' => 'background-color: {{VALUE}} !important;',
             ],
+            'condition' => [ 'apply_style_to_show_results!' => 'yes' ],
         ] );
 
         $this->add_control( 'show_results_button_text_color', [
@@ -338,6 +325,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'selectors' => [
                 '{{WRAPPER}}:not(.bw-fpw-apply-style-to-show-results) .bw-fpw-mobile-apply' => 'color: {{VALUE}} !important;',
             ],
+            'condition' => [ 'apply_style_to_show_results!' => 'yes' ],
         ] );
 
         $this->add_control( 'show_results_button_border_color', [
@@ -347,18 +335,15 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'selectors' => [
                 '{{WRAPPER}}:not(.bw-fpw-apply-style-to-show-results) .bw-fpw-mobile-apply' => 'border-color: {{VALUE}} !important;',
             ],
-            'condition' => [ 'show_results_button_border' => 'yes' ],
+            'condition' => [
+                'apply_style_to_show_results!' => 'yes',
+                'show_results_button_border'    => 'yes',
+            ],
         ] );
 
         $this->end_controls_tab();
 
-        // Hover Tab
-        $this->start_controls_tab(
-            'show_results_button_hover_tab',
-            [
-                'label' => __( 'Hover', 'bw-elementor-widgets' ),
-            ]
-        );
+        $this->start_controls_tab( 'show_results_button_color_hover_tab', [ 'label' => __( 'Hover', 'bw-elementor-widgets' ) ] );
 
         $this->add_control( 'show_results_button_background_hover', [
             'label'     => __( 'Background', 'bw-elementor-widgets' ),
@@ -366,6 +351,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'selectors' => [
                 '{{WRAPPER}}:not(.bw-fpw-apply-style-to-show-results) .bw-fpw-mobile-apply:hover' => 'background-color: {{VALUE}} !important;',
             ],
+            'condition' => [ 'apply_style_to_show_results!' => 'yes' ],
         ] );
 
         $this->add_control( 'show_results_button_text_color_hover', [
@@ -374,6 +360,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'selectors' => [
                 '{{WRAPPER}}:not(.bw-fpw-apply-style-to-show-results) .bw-fpw-mobile-apply:hover' => 'color: {{VALUE}} !important;',
             ],
+            'condition' => [ 'apply_style_to_show_results!' => 'yes' ],
         ] );
 
         $this->add_control( 'show_results_button_border_color_hover', [
@@ -382,7 +369,10 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'selectors' => [
                 '{{WRAPPER}}:not(.bw-fpw-apply-style-to-show-results) .bw-fpw-mobile-apply:hover' => 'border-color: {{VALUE}} !important;',
             ],
-            'condition' => [ 'show_results_button_border' => 'yes' ],
+            'condition' => [
+                'apply_style_to_show_results!' => 'yes',
+                'show_results_button_border'    => 'yes',
+            ],
         ] );
 
         $this->end_controls_tab();
@@ -404,6 +394,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'selectors'    => [
                 '{{WRAPPER}}:not(.bw-fpw-apply-style-to-show-results) .bw-fpw-mobile-apply' => '{{VALUE}}',
             ],
+            'condition'    => [ 'apply_style_to_show_results!' => 'yes' ],
         ] );
 
         $this->add_responsive_control( 'show_results_button_border_width', [
@@ -415,7 +406,10 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'selectors'  => [
                 '{{WRAPPER}}:not(.bw-fpw-apply-style-to-show-results) .bw-fpw-mobile-apply' => 'border-width: {{SIZE}}{{UNIT}} !important; border-style: solid !important;',
             ],
-            'condition'  => [ 'show_results_button_border' => 'yes' ],
+            'condition'  => [
+                'apply_style_to_show_results!' => 'yes',
+                'show_results_button_border'    => 'yes',
+            ],
         ] );
 
         $this->add_responsive_control( 'show_results_button_radius', [
@@ -430,7 +424,10 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'selectors'  => [
                 '{{WRAPPER}}:not(.bw-fpw-apply-style-to-show-results) .bw-fpw-mobile-apply' => 'border-radius: {{SIZE}}{{UNIT}} !important;',
             ],
-            'condition'  => [ 'show_results_button_border' => 'yes' ],
+            'condition'  => [
+                'apply_style_to_show_results!' => 'yes',
+                'show_results_button_border'    => 'yes',
+            ],
         ] );
 
         $this->end_controls_section();

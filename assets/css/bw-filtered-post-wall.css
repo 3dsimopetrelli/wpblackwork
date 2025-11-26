@@ -580,10 +580,15 @@
   /* Re-apply only structural styles - visual styles come from Elementor controls */
   width: 100%;
   cursor: pointer;
-  text-align: center;
-  display: block;
+  text-align: center !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   box-sizing: border-box;
   margin: 0 !important;
+
+  white-space: normal;
+  word-break: break-word;
 
   /* Default fallback styles (will be overridden by Elementor controls) */
   padding: 12px 18px;
