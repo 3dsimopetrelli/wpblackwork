@@ -103,7 +103,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'range'      => [ 'px' => [ 'min' => 0, 'max' => 10 ] ],
             'default'    => [ 'size' => 1, 'unit' => 'px' ],
             'selectors'  => [
-                '{{WRAPPER}} .bw-fpw-mobile-filter-button' => 'border-width: {{SIZE}}{{UNIT}};',
+                '{{WRAPPER}} .bw-fpw-mobile-filter-button' => 'border-width: {{SIZE}}{{UNIT}}; border-style: solid;',
             ],
             'condition'  => [ 'responsive_filter_button_border' => 'yes' ],
         ] );
