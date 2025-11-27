@@ -92,6 +92,10 @@ if ( class_exists( '\Elementor\Core\DynamicTags\Tag' ) && class_exists( '\Elemen
                 $post_id = (int) $GLOBALS['post']->ID;
             }
 
+            if ( ! $post_id && isset( $GLOBALS['product'] ) && $GLOBALS['product'] instanceof \WC_Product ) {
+                $post_id = $GLOBALS['product']->get_id();
+            }
+
             if ( class_exists( '\Elementor\Plugin' ) ) {
                 $plugin = \Elementor\Plugin::instance();
 
