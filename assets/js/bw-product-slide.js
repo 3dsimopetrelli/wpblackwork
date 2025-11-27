@@ -541,6 +541,10 @@
       }
 
       $slider.off('.bwProductSlide');
+      $slider.off('.bwProductSlideArrows');
+
+      // Rimuovi event listener di resize per le frecce
+      $(window).off('resize.bwProductSlideArrows-' + $container.data('arrowsResizeEvent'));
 
       var defaults = {
         slidesToShow: 1,
@@ -640,11 +644,50 @@
       refreshSliderImages($slider);
       bindResponsiveUpdates($slider, settings);
 
-      if (settings.arrows === false) {
-        $container.find('.bw-product-slide-arrows').hide();
-      } else {
-        $container.find('.bw-product-slide-arrows').show();
-      }
+      // Funzione per aggiornare la visibilità delle frecce in base al breakpoint
+      var updateArrowsVisibility = function () {
+        var showArrows = settings.arrows !== false;
+        var windowWidth = $(window).width();
+
+        // Controlla se c'è una configurazione responsive per le frecce
+        if (Array.isArray(settings.responsive)) {
+          // Ordina i breakpoint in modo crescente
+          var sortedBreakpoints = settings.responsive
+            .slice()
+            .sort(function (a, b) {
+              return a.breakpoint - b.breakpoint;
+            });
+
+          // Trova il breakpoint più vicino che si applica alla viewport corrente
+          for (var i = 0; i < sortedBreakpoints.length; i++) {
+            var bp = sortedBreakpoints[i];
+            if (windowWidth <= bp.breakpoint && bp.settings && typeof bp.settings.arrows !== 'undefined') {
+              showArrows = bp.settings.arrows !== false;
+              break;
+            }
+          }
+        }
+
+        // Mostra/nascondi le frecce
+        if (showArrows) {
+          $container.find('.bw-product-slide-arrows').show();
+        } else {
+          $container.find('.bw-product-slide-arrows').hide();
+        }
+      };
+
+      // Applica la visibilità delle frecce all'inizializzazione
+      updateArrowsVisibility();
+
+      // Aggiorna la visibilità delle frecce quando cambia il breakpoint
+      $slider.on('breakpoint.bwProductSlideArrows', function () {
+        updateArrowsVisibility();
+      });
+
+      // Aggiorna la visibilità delle frecce al resize (per sicurezza)
+      var arrowsResizeEventId = Date.now();
+      $container.data('arrowsResizeEvent', arrowsResizeEventId);
+      $(window).on('resize.bwProductSlideArrows-' + arrowsResizeEventId, updateArrowsVisibility);
 
       var updateSlideCountVisibility = function () {
         var showSlideCount = String($container.attr('data-show-slide-count')) === 'true';
