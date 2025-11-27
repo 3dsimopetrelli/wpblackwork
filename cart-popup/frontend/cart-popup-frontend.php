@@ -63,7 +63,7 @@ function bw_cart_popup_render_panel() {
                 <span class="bw-cart-icon"></span>
                 <span class="bw-cart-badge">0</span>
             </div>
-            <button class="bw-cart-popup-close" aria-label="Close cart">
+            <button type="button" class="bw-cart-popup-close" aria-label="Close cart">
                 <span class="bw-close-icon"></span>
             </button>
         </div>
