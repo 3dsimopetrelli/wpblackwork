@@ -154,6 +154,20 @@
           }
         }
 
+        if (typeof settings.responsiveGap !== 'undefined') {
+          var gapData = settings.responsiveGap;
+          if (gapData && typeof gapData === 'object') {
+            var size = normalizeFloat(gapData.size, null);
+            var unit = (gapData.unit || 'px').toString();
+            if (size !== null && size >= 0) {
+              normalizedSettings.responsiveGap = {
+                size: size,
+                unit: unit
+              };
+            }
+          }
+        }
+
         if (
           typeof normalizedSettings.slidesToShow !== 'undefined' &&
           typeof normalizedSettings.slidesToScroll !== 'undefined'
@@ -373,7 +387,7 @@
       });
     };
 
-    // Funzione per applicare larghezza e altezza responsive
+    // Funzione per applicare larghezza, altezza e gap responsive
     var applyResponsiveDimensions = function (event, slick, currentBreakpoint) {
       if (!settings.responsive || !Array.isArray(settings.responsive)) {
         return;
@@ -381,6 +395,7 @@
 
       var widthToApply = null;
       var heightToApply = null;
+      var gapToApply = null;
       var dimensionsChanged = false;
 
       // Se currentBreakpoint è undefined, cerchiamo il breakpoint corrente basato sulla larghezza della finestra
@@ -403,6 +418,9 @@
             if (bp.settings.responsiveHeight) {
               heightToApply = bp.settings.responsiveHeight;
             }
+            if (bp.settings.responsiveGap) {
+              gapToApply = bp.settings.responsiveGap;
+            }
             break;
           }
         }
@@ -417,6 +435,9 @@
             if (responsiveItem.settings.responsiveHeight) {
               heightToApply = responsiveItem.settings.responsiveHeight;
             }
+            if (responsiveItem.settings.responsiveGap) {
+              gapToApply = responsiveItem.settings.responsiveGap;
+            }
             break;
           }
         }
@@ -429,7 +450,9 @@
         var widthValue = widthToApply.size + widthToApply.unit;
         $currentSlider.css({
           '--bw-column-width': widthValue,
-          '--bw-slide-showcase-column-width': widthValue
+          '--bw-slide-showcase-column-width': widthValue,
+          '--bw-product-slide-column-width': widthValue,
+          '--bw-slide-width': widthValue
         });
         dimensionsChanged = true;
       }
@@ -441,7 +464,19 @@
         var heightValue = heightToApply.size + heightToApply.unit;
         $currentSlider.css({
           '--bw-image-height': heightValue,
-          '--bw-slide-showcase-image-height': heightValue
+          '--bw-slide-showcase-image-height': heightValue,
+          '--bw-product-slide-image-height': heightValue
+        });
+        dimensionsChanged = true;
+      }
+
+      // Applica il gap se trovato
+      if (gapToApply && gapToApply.size >= 0) {
+        var gapValue = gapToApply.size + gapToApply.unit;
+        $currentSlider.css({
+          '--bw-gap': gapValue,
+          '--bw-slide-showcase-gap': gapValue,
+          '--bw-product-slide-gap': gapValue
         });
         dimensionsChanged = true;
       }
