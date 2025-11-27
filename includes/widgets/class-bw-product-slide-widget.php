@@ -56,6 +56,42 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
         $this->remove_control( 'product_type' );
         $this->remove_control( 'include_ids' );
 
+        // Aggiunge divider e testo di avvertimento nella sezione Layout
+        $this->add_control(
+            'layout_warning_divider',
+            [
+                'type' => Controls_Manager::DIVIDER,
+            ],
+            [
+                'position' => [
+                    'type'  => 'control',
+                    'at'    => 'after',
+                    'of'    => 'columns',
+                    'index' => 'layout_section',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'layout_warning_text',
+            [
+                'type'            => Controls_Manager::RAW_HTML,
+                'raw'             => '<div style="padding: 15px; background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; color: #856404; font-weight: 600; font-size: 13px; line-height: 1.5;">' .
+                    '<div style="font-size: 14px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">⚠️ IMPORTANTE</div>' .
+                    '<div style="font-weight: 500;">Per gestire correttamente la slide (larghezza colonna, altezza colonna e spazio tra colonne) lasciare i valori qui sotto a <strong>0</strong> e usare la sezione <strong>Responsive Slider</strong> con i relativi <strong>Breakpoint</strong>.</div>' .
+                    '</div>',
+                'content_classes' => 'elementor-panel-alert elementor-panel-alert-warning',
+            ],
+            [
+                'position' => [
+                    'type'  => 'control',
+                    'at'    => 'after',
+                    'of'    => 'layout_warning_divider',
+                    'index' => 'layout_section',
+                ],
+            ]
+        );
+
         // Pulizia Layout: rimuove controlli non necessari
         $this->remove_control( 'left_offset' );
         $this->remove_control( 'column_padding' );
