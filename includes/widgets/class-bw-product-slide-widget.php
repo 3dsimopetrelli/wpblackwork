@@ -101,15 +101,42 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
         // Aggiunge la nuova sezione Animation simplificata
         $this->register_animation_controls();
 
-        // Fix Border Radius per le immagini
-        $this->update_responsive_control(
+        // Rimuove il controllo border_radius del parent (senza selettori)
+        $this->remove_control( 'border_radius' );
+
+        // Ricrea il controllo border_radius con i selettori corretti per il frontend
+        $this->add_responsive_control(
             'border_radius',
             [
-                'selectors' => [
-                    '{{WRAPPER}} .bw-product-slide-item img' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                'label'      => __( 'Border Radius', 'bw-elementor-widgets' ),
+                'type'       => Controls_Manager::DIMENSIONS,
+                'size_units' => [ 'px', '%', 'em' ],
+                'default'    => [
+                    'top'      => 16,
+                    'right'    => 16,
+                    'bottom'   => 16,
+                    'left'     => 16,
+                    'unit'     => 'px',
+                    'isLinked' => true,
+                ],
+                'selectors'  => [
+                    '{{WRAPPER}} .bw-product-slide-item img' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
+                ],
+            ],
+            [
+                'position' => [
+                    'type' => 'section',
+                    'at'   => 'end',
+                    'of'   => 'images_section',
                 ],
             ]
         );
+
+        // Rimuove la sezione "Colonna (immagine)" del parent
+        $this->remove_control( 'content_style_section' );
+
+        // Aggiunge la nuova sezione "Slide Style"
+        $this->register_slide_style_controls();
 
         // Aggiunge controllo Loop ON/OFF
         $this->add_control(
@@ -233,6 +260,33 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
                 ],
             ]
         );
+    }
+
+    /**
+     * Registra la sezione Slide Style con Background Color
+     */
+    private function register_slide_style_controls() {
+        $this->start_controls_section(
+            'slide_style_section',
+            [
+                'label' => __( 'Slide Style', 'bw-elementor-widgets' ),
+                'tab'   => Controls_Manager::TAB_STYLE,
+            ]
+        );
+
+        $this->add_control(
+            'slide_background_color',
+            [
+                'label'     => __( 'Background Color', 'bw-elementor-widgets' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '',
+                'selectors' => [
+                    '{{WRAPPER}} .bw-product-slide-item' => 'background-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->end_controls_section();
     }
 
     protected function render() {
