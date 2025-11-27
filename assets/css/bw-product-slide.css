@@ -256,14 +256,8 @@
     margin-bottom: 0;
 }
 
-.bw-product-slide-wrapper.bw-enable-fade .slick-slide {
-    opacity: 0;
-    transition: opacity 0.45s ease;
-}
-
-.bw-product-slide-wrapper.bw-enable-fade.bw-slider-ready .slick-slide.slick-active {
-    opacity: 1;
-}
+/* Fade sulle slide rimosso per evitare glitch durante il loop infinito */
+/* Il fade viene applicato solo alle immagini durante il caricamento */
 
 .bw-product-slide-wrapper.bw-enable-fade .bw-product-slide-item img.bw-fade-image {
     opacity: 0;
