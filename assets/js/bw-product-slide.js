@@ -125,7 +125,7 @@
         openPopup();
       });
 
-    $container
+    $popup
       .find('.bw-popup-close-btn')
       .off('click.bwProductSlide')
       .on('click.bwProductSlide', function (event) {
