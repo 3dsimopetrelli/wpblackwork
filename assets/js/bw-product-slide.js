@@ -141,21 +141,43 @@
     var popupOpenOnClick = String($container.attr('data-popup-open-on-click')) === 'true';
 
     if (popupOpenOnClick) {
+      // Use event delegation to handle clicks on all images (including cloned slides)
       $container
-        .find('.bw-product-slide-item img')
-        .off('click.bwProductSlide')
-        .on('click.bwProductSlide', function () {
+        .off('click.bwProductSlide', '.bw-product-slide-item img')
+        .on('click.bwProductSlide', '.bw-product-slide-item img', function () {
           var title = $(this).attr('alt') || '';
-          var $slideItem = $(this).closest('.bw-product-slide-item');
-          var slideIndex = parseInt($slideItem.attr('data-index'), 10) || 1;
-          var imageIndex = slideIndex - 1; // Convert to 0-based index
+
+          // Find the closest .slick-slide element to get the correct index
+          var $slickSlide = $(this).closest('.slick-slide');
+          var imageIndex = 0;
+
+          if ($slickSlide.length && $slickSlide.attr('data-slick-index')) {
+            // Use data-slick-index added by Slick (handles cloned slides correctly)
+            var slickIndex = parseInt($slickSlide.attr('data-slick-index'), 10);
+
+            // Get the slider element to check total slides
+            var $slider = $container.find('.bw-product-slide-wrapper');
+            if ($slider.length && $slider.hasClass('slick-initialized')) {
+              var slideCount = $slider.slick('getSlick').slideCount;
+
+              // Normalize the index for cloned slides (handles negative indices)
+              imageIndex = ((slickIndex % slideCount) + slideCount) % slideCount;
+            } else {
+              imageIndex = slickIndex >= 0 ? slickIndex : 0;
+            }
+          } else {
+            // Fallback to data-index if slick-slide is not found (shouldn't happen)
+            var $slideItem = $(this).closest('.bw-product-slide-item');
+            var slideIndex = parseInt($slideItem.attr('data-index'), 10) || 1;
+            imageIndex = slideIndex - 1; // Convert to 0-based index
+          }
 
           $popupTitle.text(title);
           openPopup(imageIndex);
         });
     } else {
       // Remove click handlers if popup should not open on click
-      $container.find('.bw-product-slide-item img').off('click.bwProductSlide');
+      $container.off('click.bwProductSlide', '.bw-product-slide-item img');
     }
 
     $popup
