@@ -92,8 +92,14 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
         // Aggiunge controlli style per il popup
         $this->register_popup_style_controls();
 
+        // Rimuove la sezione Animation Slide Loading del parent
+        $this->remove_control( 'animation_loading_section' );
+
         // Aggiunge la sezione Responsive Slider
         $this->register_responsive_slider_controls();
+
+        // Aggiunge la nuova sezione Animation simplificata
+        $this->register_animation_controls();
 
         // Fix Border Radius per le immagini
         $this->update_responsive_control(
@@ -122,6 +128,28 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
                     'type' => 'section',
                     'at'   => 'start',
                     'of'   => 'slider_section',
+                ],
+            ]
+        );
+
+        // Aggiunge controllo Show Slide Count ON/OFF
+        $this->add_control(
+            'show_slide_count',
+            [
+                'label'        => __( 'Show Slide Count', 'bw-elementor-widgets' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'label_on'     => __( 'On', 'bw-elementor-widgets' ),
+                'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
+                'return_value' => 'yes',
+                'default'      => 'yes',
+                'description'  => __( 'Mostra o nasconde il contatore delle slide (es. "1/5").', 'bw-elementor-widgets' ),
+            ],
+            [
+                'position' => [
+                    'type'  => 'control',
+                    'at'    => 'after',
+                    'of'    => 'loop',
+                    'index' => 'slider_section',
                 ],
             ]
         );
@@ -220,6 +248,8 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
         $column_width  = $this->get_column_width_value( $settings );
         $column_unit   = $this->get_column_width_unit( $settings );
         $use_product_gallery = isset( $settings['use_product_gallery'] ) && 'yes' === $settings['use_product_gallery'];
+        $animation_fade = isset( $settings['animation_fade'] ) && 'yes' === $settings['animation_fade'];
+        $show_slide_count = isset( $settings['show_slide_count'] ) && 'yes' === $settings['show_slide_count'];
 
         $available_post_types = $this->get_post_type_options();
         if ( empty( $available_post_types ) ) {
@@ -371,11 +401,12 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
         $object_fit  = $image_crop ? 'cover' : 'contain';
         $image_style = $this->build_image_style( $object_fit );
         ?>
-        <div class="bw-product-slide">
+        <div class="bw-product-slide" data-show-slide-count="<?php echo esc_attr( $show_slide_count ? 'true' : 'false' ); ?>">
             <div
                 class="bw-product-slide-wrapper slick-slider"
                 data-columns="<?php echo esc_attr( $columns ); ?>"
                 data-image-crop="<?php echo esc_attr( $image_crop ? 'true' : 'false' ); ?>"
+                data-animation-fade="<?php echo esc_attr( $animation_fade ? 'true' : 'false' ); ?>"
                 <?php if ( $has_custom_column_width ) : ?>
                     data-has-column-width="true"
                 <?php endif; ?>
@@ -659,6 +690,10 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
                     $item_settings['variableWidth'] = 'yes' === $item['responsive_variable_width'];
                 }
 
+                if ( isset( $item['responsive_show_slide_count'] ) ) {
+                    $item_settings['showSlideCount'] = 'yes' === $item['responsive_show_slide_count'];
+                }
+
                 if ( isset( $item_settings['slidesToShow'], $item_settings['slidesToScroll'] ) ) {
                     $item_settings['slidesToScroll'] = min( $item_settings['slidesToScroll'], $item_settings['slidesToShow'] );
                 }
@@ -899,6 +934,17 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
             ]
         );
 
+        $repeater->add_control(
+            'responsive_show_slide_count',
+            [
+                'label'        => __( 'Show Slide Count', 'bw-elementor-widgets' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'return_value' => 'yes',
+                'default'      => '',
+                'description'  => __( 'Mostra o nasconde il contatore delle slide per questo breakpoint.', 'bw-elementor-widgets' ),
+            ]
+        );
+
         $this->add_control(
             'responsive',
             [
@@ -906,6 +952,33 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
                 'type'        => Controls_Manager::REPEATER,
                 'fields'      => $repeater->get_controls(),
                 'title_field' => __( 'Breakpoint: {{{ breakpoint }}}px', 'bw-elementor-widgets' ),
+            ]
+        );
+
+        $this->end_controls_section();
+    }
+
+    /**
+     * Registra la sezione Animation Slide Loading semplificata
+     */
+    private function register_animation_controls() {
+        $this->start_controls_section(
+            'animation_loading_section',
+            [
+                'label' => __( 'Animation Slide Loading', 'bw-elementor-widgets' ),
+            ]
+        );
+
+        $this->add_control(
+            'animation_fade',
+            [
+                'label'        => __( 'Animation Fade', 'bw-elementor-widgets' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'label_on'     => __( 'On', 'bw-elementor-widgets' ),
+                'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
+                'return_value' => 'yes',
+                'default'      => 'yes',
+                'description'  => __( 'Quando attivo, le immagini delle slide appaiono con un effetto fade morbido durante il caricamento.', 'bw-elementor-widgets' ),
             ]
         );
 

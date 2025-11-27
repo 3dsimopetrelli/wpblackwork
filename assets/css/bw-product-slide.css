@@ -265,13 +265,18 @@
     opacity: 1;
 }
 
-.bw-product-slide-wrapper .bw-product-slide-item img.bw-fade-image {
+.bw-product-slide-wrapper.bw-enable-fade .bw-product-slide-item img.bw-fade-image {
     opacity: 0;
     transition: opacity 0.45s ease;
 }
 
-.bw-product-slide-wrapper .bw-product-slide-item img.bw-fade-image.bw-loaded {
+.bw-product-slide-wrapper.bw-enable-fade .bw-product-slide-item img.bw-fade-image.bw-loaded {
     opacity: 1;
+}
+
+.bw-product-slide-wrapper:not(.bw-enable-fade) .bw-product-slide-item img.bw-fade-image {
+    opacity: 1;
+    transition: none;
 }
 
 /* Fade effect body scroll lock */
