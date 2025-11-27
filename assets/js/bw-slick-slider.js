@@ -328,9 +328,6 @@
       return;
     }
 
-    // SISTEMA SEMPLIFICATO: Nessuna gestione complessa di animazioni
-    // Lo slider è sempre visibile
-
     var columnWidthInfo = getColumnWidthInfo($currentSlider);
 
     if ($currentSlider.hasClass('slick-initialized')) {
@@ -373,64 +370,6 @@
           $img.addClass('loaded');
           $img.removeAttr('data-lazy');
         }
-      });
-    };
-
-    /**
-     * Sistema di animazioni configurabili per BW Slide Showcase
-     *
-     * Legge i parametri dal pannello "Animation Slide Loading" di Elementor
-     * e li applica alle slide durante il caricamento e il cambio slide.
-     *
-     * Parametri supportati:
-     * - type: fade, fade-left, fade-right
-     * - easing: linear, ease, ease-in, ease-out, ease-in-out, ease-in-quad,
-     *           ease-out-quad, ease-in-cubic, ease-out-cubic
-     * - duration: durata in ms
-     * - mode: sequential (matrioska) o simultaneous (tutte insieme)
-     * - stagger: ritardo tra le slide in modalità sequential
-     */
-    var getAnimationSettings = function($slider) {
-      return {
-        type: $slider.attr('data-loading-animation-type') || 'fade',
-        easing: $slider.attr('data-loading-animation-easing') || 'ease-out',
-        duration: normalizeInteger($slider.attr('data-loading-animation-duration'), 500),
-        mode: $slider.attr('data-loading-animation-mode') || 'simultaneous',
-        stagger: normalizeInteger($slider.attr('data-loading-animation-stagger'), 50)
-      };
-    };
-
-    // Funzione per applicare animazione alle slide
-    var animateSlides = function($slider, $slides, animSettings) {
-      if (!$slides || !$slides.length) {
-        return;
-      }
-
-      // Applica CSS custom properties al container
-      $slider.css({
-        '--bw-loading-animation-duration': animSettings.duration + 'ms',
-        '--bw-loading-animation-easing': animSettings.easing,
-        '--bw-loading-animation-stagger': animSettings.stagger + 'ms'
-      });
-
-      var isSequential = animSettings.mode === 'sequential';
-
-      $slides.each(function(index) {
-        var $slide = $(this);
-        var delay = isSequential ? (index * animSettings.stagger) : 0;
-
-        // Rimuovi classi precedenti
-        $slide.removeClass('bw-animating bw-animated');
-
-        setTimeout(function() {
-          // Aggiungi classe per animazione
-          $slide.addClass('bw-animating');
-
-          // Rimuovi classe animating e aggiungi animated dopo la durata
-          setTimeout(function() {
-            $slide.removeClass('bw-animating').addClass('bw-animated');
-          }, animSettings.duration);
-        }, delay);
       });
     };
 
@@ -518,7 +457,7 @@
       }
     };
 
-    // Listener per evento init di Slick - gestisce animazioni e dimensioni responsive
+    // Listener per evento init di Slick - gestisce dimensioni responsive
     $currentSlider.one('init', function(event, slick) {
       // Marca lo slider come inizializzato
       $currentSlider.addClass('bw-slide-showcase--initialized');
@@ -526,30 +465,10 @@
       // Carica immediatamente tutte le immagini visibili
       loadAllVisibleImages($currentSlider);
 
-      // Leggi impostazioni animazione
-      var animSettings = getAnimationSettings($currentSlider);
-
-      // Anima le slide visibili al caricamento iniziale
-      var $visibleSlides = $currentSlider.find('.slick-slide.slick-active .bw-slide-showcase-slide');
-      if ($visibleSlides.length > 0) {
-        animateSlides($currentSlider, $visibleSlides, animSettings);
-      }
-
       // Applica le dimensioni responsive dopo l'inizializzazione
       setTimeout(function() {
         applyResponsiveDimensions(null, null, undefined);
       }, 100);
-    });
-
-    // Listener per cambio slide - anima le nuove slide in ingresso
-    $currentSlider.on('afterChange', function(event, slick, currentSlide) {
-      var animSettings = getAnimationSettings($currentSlider);
-
-      // Anima solo le slide attualmente visibili (attive)
-      var $visibleSlides = $currentSlider.find('.slick-slide.slick-active .bw-slide-showcase-slide').not('.bw-animated');
-      if ($visibleSlides.length > 0) {
-        animateSlides($currentSlider, $visibleSlides, animSettings);
-      }
     });
 
     // Ascolta i cambiamenti di breakpoint

@@ -408,75 +408,6 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
         ] );
 
         $this->end_controls_section();
-
-        // Sezione Animation Slide Loading
-        // Tutti i parametri sono collegati al JavaScript (bw-slick-slider.js) e CSS (bw-slide-showcase.css)
-        $this->start_controls_section( 'animation_loading_section', [
-            'label' => __( 'Animation Slide Loading', 'bw-elementor-widgets' ),
-        ] );
-
-        $this->add_control( 'loading_animation_type', [
-            'label'   => __( 'Tipo Animazione', 'bw-elementor-widgets' ),
-            'type'    => Controls_Manager::SELECT,
-            'options' => [
-                'fade'       => __( 'Fade Only', 'bw-elementor-widgets' ),
-                'fade-left'  => __( 'Fade + Entrata da Sinistra', 'bw-elementor-widgets' ),
-                'fade-right' => __( 'Fade + Entrata da Destra', 'bw-elementor-widgets' ),
-            ],
-            'default' => 'fade',
-            'description' => __( 'Seleziona il tipo di animazione per il caricamento delle slide.', 'bw-elementor-widgets' ),
-        ] );
-
-        $this->add_control( 'loading_animation_easing', [
-            'label'   => __( 'Easing Animazione', 'bw-elementor-widgets' ),
-            'type'    => Controls_Manager::SELECT,
-            'options' => [
-                'linear'        => __( 'Linear', 'bw-elementor-widgets' ),
-                'ease'          => __( 'Ease', 'bw-elementor-widgets' ),
-                'ease-in'       => __( 'Ease In', 'bw-elementor-widgets' ),
-                'ease-out'      => __( 'Ease Out', 'bw-elementor-widgets' ),
-                'ease-in-out'   => __( 'Ease In Out', 'bw-elementor-widgets' ),
-                'ease-in-quad'  => __( 'Ease In Quad', 'bw-elementor-widgets' ),
-                'ease-out-quad' => __( 'Ease Out Quad', 'bw-elementor-widgets' ),
-                'ease-in-cubic' => __( 'Ease In Cubic', 'bw-elementor-widgets' ),
-                'ease-out-cubic'=> __( 'Ease Out Cubic', 'bw-elementor-widgets' ),
-            ],
-            'default' => 'ease-out',
-            'description' => __( 'Seleziona la curva di easing per l\'animazione.', 'bw-elementor-widgets' ),
-        ] );
-
-        $this->add_control( 'loading_animation_duration', [
-            'label'   => __( 'Durata Animazione (ms)', 'bw-elementor-widgets' ),
-            'type'    => Controls_Manager::SLIDER,
-            'range'   => [
-                'px' => [ 'min' => 100, 'max' => 2000, 'step' => 50 ],
-            ],
-            'default' => [ 'size' => 500, 'unit' => 'px' ],
-            'description' => __( 'Durata dell\'animazione in millisecondi.', 'bw-elementor-widgets' ),
-        ] );
-
-        $this->add_control( 'loading_animation_mode', [
-            'label'        => __( 'Animazione Sequenziale (Matrioska)', 'bw-elementor-widgets' ),
-            'type'         => Controls_Manager::SWITCHER,
-            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
-            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
-            'return_value' => 'yes',
-            'default'      => 'yes',
-            'description'  => __( 'Se attivo, le slide appariranno una dopo l\'altra con un leggero ritardo. Se disattivo, appariranno tutte insieme.', 'bw-elementor-widgets' ),
-        ] );
-
-        $this->add_control( 'loading_animation_stagger_delay', [
-            'label'     => __( 'Ritardo tra Slide (ms)', 'bw-elementor-widgets' ),
-            'type'      => Controls_Manager::SLIDER,
-            'range'     => [
-                'px' => [ 'min' => 0, 'max' => 500, 'step' => 10 ],
-            ],
-            'default'   => [ 'size' => 50, 'unit' => 'px' ],
-            'condition' => [ 'loading_animation_mode' => 'yes' ],
-            'description' => __( 'Ritardo tra l\'apparizione di ogni slide quando l\'animazione sequenziale è attiva.', 'bw-elementor-widgets' ),
-        ] );
-
-        $this->end_controls_section();
     }
 
     private function register_style_controls() {
@@ -936,23 +867,12 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
             $slider_settings_json = htmlspecialchars( $slider_settings_json, ENT_QUOTES, 'UTF-8' );
         }
 
-        // Impostazioni animazione loading (da sezione "Animation Slide Loading")
-        // Questi parametri vengono passati come data-attributes e letti dal JavaScript
-        $loading_animation_type     = isset( $settings['loading_animation_type'] ) ? sanitize_key( $settings['loading_animation_type'] ) : 'fade';
-        $loading_animation_easing   = isset( $settings['loading_animation_easing'] ) ? sanitize_key( $settings['loading_animation_easing'] ) : 'ease-out';
-        $loading_animation_duration = isset( $settings['loading_animation_duration']['size'] ) ? max( 100, absint( $settings['loading_animation_duration']['size'] ) ) : 500;
-        $loading_animation_mode     = isset( $settings['loading_animation_mode'] ) && 'yes' === $settings['loading_animation_mode'];
-        $loading_animation_stagger  = isset( $settings['loading_animation_stagger_delay']['size'] ) ? max( 0, absint( $settings['loading_animation_stagger_delay']['size'] ) ) : 50;
-
         $query = new \WP_Query( $query_args );
 
         $border_radius_value = $this->format_dimensions( isset( $settings['border_radius'] ) ? $settings['border_radius'] : [] );
         $object_fit          = $image_crop ? 'cover' : 'contain';
         $button_text         = __( 'View Collection', 'bw-elementor-widgets' );
         ?>
-        <!-- BW Slide Showcase con sistema di animazioni configurabili -->
-        <!-- I data-loading-animation-* sono letti dal JavaScript (bw-slick-slider.js) -->
-        <!-- e applicati tramite CSS (bw-slide-showcase.css) -->
         <div
             class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $wrapper_classes ) ) ); ?>"
             data-columns="<?php echo esc_attr( $columns ); ?>"
@@ -962,11 +882,6 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
             <?php if ( $slider_settings_json ) : ?>
                 data-slider-settings="<?php echo $slider_settings_json; ?>"
             <?php endif; ?>
-            data-loading-animation-type="<?php echo esc_attr( $loading_animation_type ); ?>"
-            data-loading-animation-easing="<?php echo esc_attr( $loading_animation_easing ); ?>"
-            data-loading-animation-duration="<?php echo esc_attr( $loading_animation_duration ); ?>"
-            data-loading-animation-mode="<?php echo esc_attr( $loading_animation_mode ? 'sequential' : 'simultaneous' ); ?>"
-            data-loading-animation-stagger="<?php echo esc_attr( $loading_animation_stagger ); ?>"
             style="<?php echo esc_attr( $wrapper_style ); ?>"
         >
             <?php if ( $query->have_posts() ) : ?>
