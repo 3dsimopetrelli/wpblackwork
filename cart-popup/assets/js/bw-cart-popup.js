@@ -92,7 +92,8 @@
             });
 
             // Chiudi pannello al click sul pulsante X
-            this.$closeBtn.on('click', function(e) {
+            // Usa un listener delegato per coprire eventuali re-render del markup
+            $(document).on('click', '.bw-cart-popup-close', function(e) {
                 e.preventDefault();
                 self.closePanel();
             });
