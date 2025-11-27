@@ -51,6 +51,28 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
             $this->remove_control( $section_id );
         }
 
+        // Pulizia Query: rimuove opzioni Product Type non necessarie
+        $this->update_control(
+            'product_type',
+            [
+                'options' => [
+                    ''         => __( 'All', 'bw' ),
+                    'simple'   => __( 'Simple', 'bw' ),
+                    'variable' => __( 'Variable', 'bw' ),
+                    'grouped'  => __( 'Grouped', 'bw' ),
+                    'external' => __( 'External', 'bw' ),
+                    'on_sale'  => __( 'On Sale', 'bw' ),
+                    'featured' => __( 'Featured', 'bw' ),
+                ],
+            ]
+        );
+
+        // Aggiunge switch per Product Gallery
+        $this->register_product_gallery_control();
+
+        // Aggiunge controlli style per il popup
+        $this->register_popup_style_controls();
+
         $this->update_responsive_control(
             'column_width',
             [
@@ -147,6 +169,7 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
         $slides_scroll = isset( $settings['slides_to_scroll'] ) ? max( 1, absint( $settings['slides_to_scroll'] ) ) : 1;
         $column_width  = $this->get_column_width_value( $settings );
         $column_unit   = $this->get_column_width_unit( $settings );
+        $use_product_gallery = isset( $settings['use_product_gallery'] ) && 'yes' === $settings['use_product_gallery'];
 
         $available_post_types = $this->get_post_type_options();
         if ( empty( $available_post_types ) ) {
@@ -225,47 +248,104 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
             $slider_settings_json = htmlspecialchars( $slider_settings_json, ENT_QUOTES, 'UTF-8' );
         }
 
-        $query  = new \WP_Query( $query_args );
         $slides = [];
 
-        if ( $query->have_posts() ) {
-            while ( $query->have_posts() ) {
-                $query->the_post();
-                $post_id      = get_the_ID();
-                $thumbnail_id = get_post_thumbnail_id( $post_id );
+        // Se "Use Product Gallery" è attivo, usa le immagini della gallery del prodotto corrente
+        if ( $use_product_gallery && function_exists( 'wc_get_product' ) && is_product() ) {
+            global $post;
+            $product_id = $post ? $post->ID : 0;
 
-                if ( ! $thumbnail_id ) {
-                    continue;
+            if ( $product_id > 0 ) {
+                $product = wc_get_product( $product_id );
+
+                if ( $product ) {
+                    $product_title = $product->get_name();
+                    $image_ids     = [];
+
+                    // Aggiungi la featured image come prima immagine
+                    $featured_image_id = $product->get_image_id();
+                    if ( $featured_image_id ) {
+                        $image_ids[] = $featured_image_id;
+                    }
+
+                    // Aggiungi le gallery images
+                    $gallery_image_ids = $product->get_gallery_image_ids();
+                    if ( ! empty( $gallery_image_ids ) && is_array( $gallery_image_ids ) ) {
+                        $image_ids = array_merge( $image_ids, $gallery_image_ids );
+                    }
+
+                    // Costruisci l'array slides dalle immagini della gallery
+                    foreach ( $image_ids as $image_id ) {
+                        $image_src = wp_get_attachment_image_src( $image_id, 'large' );
+
+                        if ( ! $image_src || empty( $image_src[0] ) ) {
+                            continue;
+                        }
+
+                        $image_url        = $image_src[0];
+                        $image_width      = isset( $image_src[1] ) ? (int) $image_src[1] : 0;
+                        $raw_image_height = isset( $image_src[2] ) ? (int) $image_src[2] : 0;
+
+                        if ( ! $image_url ) {
+                            continue;
+                        }
+
+                        $slides[] = [
+                            'image' => [
+                                'url'    => $image_url,
+                                'width'  => $image_width,
+                                'height' => $raw_image_height,
+                                'srcset' => wp_get_attachment_image_srcset( $image_id, 'large' ),
+                                'sizes'  => wp_get_attachment_image_sizes( $image_id, 'large' ),
+                            ],
+                            'title' => $product_title,
+                        ];
+                    }
                 }
-
-                $image_src = wp_get_attachment_image_src( $thumbnail_id, 'large' );
-
-                if ( ! $image_src || empty( $image_src[0] ) ) {
-                    continue;
-                }
-
-                $image_url    = $image_src[0];
-                $image_width  = isset( $image_src[1] ) ? (int) $image_src[1] : 0;
-                $raw_image_height = isset( $image_src[2] ) ? (int) $image_src[2] : 0;
-
-                if ( ! $image_url ) {
-                    continue;
-                }
-
-                $slides[] = [
-                    'image' => [
-                        'url' => $image_url,
-                        'width' => $image_width,
-                        'height' => $raw_image_height,
-                        'srcset' => wp_get_attachment_image_srcset( $thumbnail_id, 'large' ),
-                        'sizes' => wp_get_attachment_image_sizes( $thumbnail_id, 'large' ),
-                    ],
-                    'title' => get_the_title( $post_id ),
-                ];
             }
-        }
+        } else {
+            // Logica normale: usa la query per ottenere i prodotti
+            $query = new \WP_Query( $query_args );
 
-        wp_reset_postdata();
+            if ( $query->have_posts() ) {
+                while ( $query->have_posts() ) {
+                    $query->the_post();
+                    $post_id      = get_the_ID();
+                    $thumbnail_id = get_post_thumbnail_id( $post_id );
+
+                    if ( ! $thumbnail_id ) {
+                        continue;
+                    }
+
+                    $image_src = wp_get_attachment_image_src( $thumbnail_id, 'large' );
+
+                    if ( ! $image_src || empty( $image_src[0] ) ) {
+                        continue;
+                    }
+
+                    $image_url        = $image_src[0];
+                    $image_width      = isset( $image_src[1] ) ? (int) $image_src[1] : 0;
+                    $raw_image_height = isset( $image_src[2] ) ? (int) $image_src[2] : 0;
+
+                    if ( ! $image_url ) {
+                        continue;
+                    }
+
+                    $slides[] = [
+                        'image' => [
+                            'url'    => $image_url,
+                            'width'  => $image_width,
+                            'height' => $raw_image_height,
+                            'srcset' => wp_get_attachment_image_srcset( $thumbnail_id, 'large' ),
+                            'sizes'  => wp_get_attachment_image_sizes( $thumbnail_id, 'large' ),
+                        ],
+                        'title' => get_the_title( $post_id ),
+                    ];
+                }
+            }
+
+            wp_reset_postdata();
+        }
 
         if ( empty( $slides ) ) {
             echo '<div class="bw-product-slide-placeholder">' . esc_html__( 'Nessun prodotto trovato.', 'bw-elementor-widgets' ) . '</div>';
@@ -600,5 +680,164 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
         $fit_value    = in_array( $object_fit, $allowed_fits, true ) ? $object_fit : 'cover';
 
         return 'object-fit: ' . $fit_value . '; object-position: top center;';
+    }
+
+    /**
+     * Registra il controllo per usare la Product Gallery del Single Product
+     */
+    private function register_product_gallery_control() {
+        $this->start_controls_section(
+            'product_gallery_section',
+            [
+                'label' => __( 'Product Gallery', 'bw-elementor-widgets' ),
+            ]
+        );
+
+        $this->add_control(
+            'use_product_gallery',
+            [
+                'label'        => __( 'Use Product Gallery Images', 'bw-elementor-widgets' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
+                'label_off'    => __( 'No', 'bw-elementor-widgets' ),
+                'return_value' => 'yes',
+                'default'      => '',
+                'description'  => __( 'When enabled, the slider will use the product gallery images from the current single product page. Query settings will be ignored.', 'bw-elementor-widgets' ),
+            ]
+        );
+
+        $this->end_controls_section();
+    }
+
+    /**
+     * Registra i controlli style per il popup
+     */
+    private function register_popup_style_controls() {
+        // Close Button Style
+        $this->start_controls_section(
+            'popup_close_button_style',
+            [
+                'label' => __( 'Popup Close Button', 'bw-elementor-widgets' ),
+                'tab'   => Controls_Manager::TAB_STYLE,
+            ]
+        );
+
+        $this->add_control(
+            'popup_close_color',
+            [
+                'label'     => __( 'Color', 'bw-elementor-widgets' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#000000',
+                'selectors' => [
+                    '{{WRAPPER}} .bw-popup-close-btn .close-icon' => 'stroke: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'popup_close_color_hover',
+            [
+                'label'     => __( 'Hover Color', 'bw-elementor-widgets' ),
+                'type'      => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .bw-popup-close-btn:hover .close-icon, {{WRAPPER}} .bw-popup-close-btn:focus .close-icon' => 'stroke: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'popup_close_size',
+            [
+                'label'      => __( 'Size', 'bw-elementor-widgets' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px' ],
+                'range'      => [
+                    'px' => [ 'min' => 20, 'max' => 100, 'step' => 1 ],
+                ],
+                'default'    => [
+                    'size' => 50,
+                    'unit' => 'px',
+                ],
+                'selectors'  => [
+                    '{{WRAPPER}} .bw-popup-close-btn .close-icon' => 'width: {{SIZE}}{{UNIT}}; height: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->end_controls_section();
+
+        // Popup Title Style
+        $this->start_controls_section(
+            'popup_title_style',
+            [
+                'label' => __( 'Popup Title', 'bw-elementor-widgets' ),
+                'tab'   => Controls_Manager::TAB_STYLE,
+            ]
+        );
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Typography::get_type(),
+            [
+                'name'     => 'popup_title_typography',
+                'selector' => '{{WRAPPER}} .bw-popup-title',
+            ]
+        );
+
+        $this->add_control(
+            'popup_title_color',
+            [
+                'label'     => __( 'Color', 'bw-elementor-widgets' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#000000',
+                'selectors' => [
+                    '{{WRAPPER}} .bw-popup-title' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->end_controls_section();
+
+        // Popup Header Style
+        $this->start_controls_section(
+            'popup_header_style',
+            [
+                'label' => __( 'Popup Header', 'bw-elementor-widgets' ),
+                'tab'   => Controls_Manager::TAB_STYLE,
+            ]
+        );
+
+        $this->add_responsive_control(
+            'popup_header_padding',
+            [
+                'label'      => __( 'Padding', 'bw-elementor-widgets' ),
+                'type'       => Controls_Manager::DIMENSIONS,
+                'size_units' => [ 'px', '%', 'em', 'rem' ],
+                'default'    => [
+                    'top'      => 20,
+                    'right'    => 40,
+                    'bottom'   => 20,
+                    'left'     => 40,
+                    'unit'     => 'px',
+                    'isLinked' => false,
+                ],
+                'selectors'  => [
+                    '{{WRAPPER}} .bw-product-slide-popup-header' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'popup_header_background',
+            [
+                'label'     => __( 'Background Color', 'bw-elementor-widgets' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#ffffff',
+                'selectors' => [
+                    '{{WRAPPER}} .bw-product-slide-popup-header' => 'background-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->end_controls_section();
     }
 }
