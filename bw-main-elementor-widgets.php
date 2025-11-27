@@ -100,6 +100,11 @@ add_action( 'elementor/frontend/after_register_scripts', 'bw_register_filtered_p
 add_action( 'elementor/frontend/after_register_styles', 'bw_register_filtered_post_wall_widget_assets' );
 add_action( 'elementor/frontend/after_enqueue_scripts', 'bw_enqueue_filtered_post_wall_widget_assets' );
 add_action( 'elementor/editor/after_enqueue_scripts', 'bw_enqueue_filtered_post_wall_widget_assets' );
+add_action( 'init', 'bw_register_animated_banner_widget_assets' );
+add_action( 'elementor/frontend/after_register_scripts', 'bw_register_animated_banner_widget_assets' );
+add_action( 'elementor/frontend/after_register_styles', 'bw_register_animated_banner_widget_assets' );
+add_action( 'elementor/frontend/after_enqueue_scripts', 'bw_enqueue_animated_banner_widget_assets' );
+add_action( 'elementor/editor/after_enqueue_scripts', 'bw_enqueue_animated_banner_widget_assets' );
 add_action( 'wp_enqueue_scripts', 'bw_enqueue_smart_header_assets' );
 
 function bw_enqueue_slick_slider_assets() {
@@ -502,6 +507,43 @@ function bw_enqueue_smart_header_assets() {
             'debug'               => false // Imposta true per debug in console
         ]
     );
+}
+
+function bw_register_animated_banner_widget_assets() {
+    $css_file = __DIR__ . '/assets/css/bw-animated-banner.css';
+    $css_version = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
+
+    wp_register_style(
+        'bw-animated-banner-style',
+        plugin_dir_url( __FILE__ ) . 'assets/css/bw-animated-banner.css',
+        [],
+        $css_version
+    );
+
+    $js_file = __DIR__ . '/assets/js/bw-animated-banner.js';
+    $js_version = file_exists( $js_file ) ? filemtime( $js_file ) : '1.0.0';
+
+    wp_register_script(
+        'bw-animated-banner-script',
+        plugin_dir_url( __FILE__ ) . 'assets/js/bw-animated-banner.js',
+        [ 'jquery' ],
+        $js_version,
+        true
+    );
+}
+
+function bw_enqueue_animated_banner_widget_assets() {
+    if ( ! wp_style_is( 'bw-animated-banner-style', 'registered' ) || ! wp_script_is( 'bw-animated-banner-script', 'registered' ) ) {
+        bw_register_animated_banner_widget_assets();
+    }
+
+    if ( wp_style_is( 'bw-animated-banner-style', 'registered' ) ) {
+        wp_enqueue_style( 'bw-animated-banner-style' );
+    }
+
+    if ( wp_script_is( 'bw-animated-banner-script', 'registered' ) ) {
+        wp_enqueue_script( 'bw-animated-banner-script' );
+    }
 }
 
 // Aggiungi categoria personalizzata "Black Work Widgets"
