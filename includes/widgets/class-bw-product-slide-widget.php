@@ -89,6 +89,9 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
             ]
         );
 
+        // Aggiunge la sezione Pop-up Settings
+        $this->register_popup_settings_controls();
+
         // Aggiunge controlli style per il popup
         $this->register_popup_style_controls();
 
@@ -304,6 +307,7 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
         $use_product_gallery = isset( $settings['use_product_gallery'] ) && 'yes' === $settings['use_product_gallery'];
         $animation_fade = isset( $settings['animation_fade'] ) && 'yes' === $settings['animation_fade'];
         $show_slide_count = isset( $settings['show_slide_count'] ) && 'yes' === $settings['show_slide_count'];
+        $popup_open_on_click = isset( $settings['popup_open_on_image_click'] ) && 'yes' === $settings['popup_open_on_image_click'];
 
         $available_post_types = $this->get_post_type_options();
         if ( empty( $available_post_types ) ) {
@@ -460,6 +464,7 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
             class="bw-product-slide"
             data-show-slide-count="<?php echo esc_attr( $show_slide_count ? 'true' : 'false' ); ?>"
             data-popup-id="<?php echo esc_attr( $popup_id ); ?>"
+            data-popup-open-on-click="<?php echo esc_attr( $popup_open_on_click ? 'true' : 'false' ); ?>"
         >
             <div
                 class="bw-product-slide-wrapper slick-slider"
@@ -810,6 +815,33 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
         }
 
         return $slider_settings;
+    }
+
+    /**
+     * Registra la sezione Pop-up Settings
+     */
+    private function register_popup_settings_controls() {
+        $this->start_controls_section(
+            'popup_settings_section',
+            [
+                'label' => __( 'Pop-up Settings', 'bw-elementor-widgets' ),
+            ]
+        );
+
+        $this->add_control(
+            'popup_open_on_image_click',
+            [
+                'label'        => __( 'Open popup on select image', 'bw-elementor-widgets' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'label_on'     => __( 'On', 'bw-elementor-widgets' ),
+                'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
+                'return_value' => 'yes',
+                'default'      => 'yes',
+                'description'  => __( 'When enabled, clicking on a slide image will open the popup starting from that specific image. When disabled, images will not open the popup.', 'bw-elementor-widgets' ),
+            ]
+        );
+
+        $this->end_controls_section();
     }
 
     /**
