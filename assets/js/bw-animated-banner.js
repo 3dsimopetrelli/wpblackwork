@@ -1,6 +1,6 @@
 /**
  * BW Animated Banner Widget JavaScript
- * Handles pause on hover functionality
+ * Handles pause on hover functionality and Elementor editor support
  */
 
 (function($) {
@@ -20,22 +20,25 @@
             return;
         }
 
+        // Remove old event handlers to prevent duplicates
+        $banner.off('mouseenter.bwbanner mouseleave.bwbanner focusin.bwbanner focusout.bwbanner');
+
         // Pause animation on hover
-        $banner.on('mouseenter', function() {
+        $banner.on('mouseenter.bwbanner', function() {
             $banner.addClass('paused');
         });
 
         // Resume animation on mouse leave
-        $banner.on('mouseleave', function() {
+        $banner.on('mouseleave.bwbanner', function() {
             $banner.removeClass('paused');
         });
 
         // Handle focus for accessibility
-        $banner.on('focusin', function() {
+        $banner.on('focusin.bwbanner', function() {
             $banner.addClass('paused');
         });
 
-        $banner.on('focusout', function() {
+        $banner.on('focusout.bwbanner', function() {
             $banner.removeClass('paused');
         });
 
@@ -57,21 +60,39 @@
     }
 
     /**
-     * Initialize when document is ready
+     * Initialize when document is ready (for frontend)
      */
     $(document).ready(function() {
         initAllBanners();
     });
 
     /**
-     * Re-initialize when Elementor preview updates
+     * Elementor Frontend & Editor Support
      */
-    if (typeof elementorFrontend !== 'undefined') {
-        $(window).on('elementor/frontend/init', function() {
-            elementorFrontend.hooks.addAction('frontend/element_ready/bw-animated-banner.default', function($scope) {
-                var $banner = $scope.find('.bw-animated-banner');
-                initAnimatedBanner($banner);
-            });
+    $(window).on('elementor/frontend/init', function() {
+        // Hook for when widget is ready (works in both frontend and editor)
+        elementorFrontend.hooks.addAction('frontend/element_ready/bw-animated-banner.default', function($scope) {
+            var $banner = $scope.find('.bw-animated-banner');
+            initAnimatedBanner($banner);
+        });
+    });
+
+    /**
+     * Additional support for Elementor Editor
+     * This ensures the widget works when settings are changed in the editor
+     */
+    if (typeof elementor !== 'undefined') {
+        // Listen for when the editor panel is opened/changed
+        elementor.hooks.addAction('panel/open_editor/widget', function(panel, model, view) {
+            if (model.get('widgetType') === 'bw-animated-banner') {
+                // Re-initialize after a short delay to ensure DOM is updated
+                setTimeout(function() {
+                    var $banner = $('#elementor-preview-iframe').contents().find('[data-id="' + model.id + '"]').find('.bw-animated-banner');
+                    if ($banner.length) {
+                        initAnimatedBanner($banner);
+                    }
+                }, 100);
+            }
         });
     }
 
