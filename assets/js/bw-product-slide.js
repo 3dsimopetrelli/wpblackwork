@@ -97,6 +97,12 @@
 
       $popup.attr('aria-hidden', 'false');
 
+      // Reset scroll position prima di aprire il popup
+      var popupElement = $popup.get(0);
+      if (popupElement) {
+        popupElement.scrollTop = 0;
+      }
+
       window.requestAnimationFrame(function () {
         $popup.addClass('active');
         $body.addClass('popup-active');
@@ -109,11 +115,16 @@
             if ($targetImage.length) {
               // Use setTimeout to ensure the popup is fully visible before scrolling
               setTimeout(function () {
-                var popupElement = $popup.get(0);
                 if (popupElement) {
+                  // Reimposta nuovamente a 0 per sicurezza prima di calcolare la nuova posizione
+                  popupElement.scrollTop = 0;
+
+                  // Calcola l'offset dell'immagine target rispetto al contenuto del popup
                   var imageOffset = $targetImage.offset().top;
                   var popupOffset = $popup.offset().top;
                   var scrollTop = imageOffset - popupOffset;
+
+                  // Imposta la posizione di scroll
                   popupElement.scrollTop = scrollTop;
                 }
               }, 50);
@@ -126,6 +137,12 @@
     var closePopup = function () {
       $popup.removeClass('active');
       $body.removeClass('popup-active');
+
+      // Reset scroll position quando si chiude il popup
+      var popupElement = $popup.get(0);
+      if (popupElement) {
+        popupElement.scrollTop = 0;
+      }
 
       $popup
         .off('transitionend.bwProductSlidePopup', onPopupTransitionEnd)
