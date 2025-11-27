@@ -26,12 +26,40 @@
   };
 
   var bindPopup = function ($container) {
+    var $body = $('body');
+    var popupId = $container.attr('data-popup-id');
+
+    if (!popupId) {
+      popupId = 'bw-product-slide-popup-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+      $container.attr('data-popup-id', popupId);
+    }
+
     var $popup = $container.find('.bw-product-slide-popup');
+
+    if (!$popup.length) {
+      $popup = $body.children('#' + popupId);
+    }
+
     if (!$popup.length) {
       return;
     }
 
-    var $body = $('body');
+    if (!$popup.attr('id')) {
+      $popup.attr('id', popupId);
+    }
+
+    var $popupInBody = $body.children('#' + popupId);
+
+    if ($popupInBody.length && !$popupInBody.is($popup)) {
+      $popup.remove();
+      $popup = $popupInBody;
+    }
+
+    if (!$popup.parent().is($body)) {
+      $popup.detach();
+      $body.append($popup);
+    }
+
     var $popupTitle = $popup.find('.bw-popup-title');
 
     var hideTimeoutId = null;

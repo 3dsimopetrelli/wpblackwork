@@ -431,8 +431,9 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
             return;
         }
 
-        $total_slides = count( $slides );
+        $total_slides  = count( $slides );
         $product_title = ! empty( $slides ) ? $slides[0]['title'] : '';
+        $popup_id      = 'bw-product-slide-popup-' . uniqid();
         $wrapper_style  = '--bw-product-slide-gap:' . $gap . 'px;';
         if ( $image_height_value > 0 ) {
             $wrapper_style .= '--bw-product-slide-image-height:' . $image_height_value . $image_height_unit . ';';
@@ -455,7 +456,11 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
         $object_fit  = $image_crop ? 'cover' : 'contain';
         $image_style = $this->build_image_style( $object_fit );
         ?>
-        <div class="bw-product-slide" data-show-slide-count="<?php echo esc_attr( $show_slide_count ? 'true' : 'false' ); ?>">
+        <div
+            class="bw-product-slide"
+            data-show-slide-count="<?php echo esc_attr( $show_slide_count ? 'true' : 'false' ); ?>"
+            data-popup-id="<?php echo esc_attr( $popup_id ); ?>"
+        >
             <div
                 class="bw-product-slide-wrapper slick-slider"
                 data-columns="<?php echo esc_attr( $columns ); ?>"
@@ -525,7 +530,7 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
                 </div>
             </div>
             <!-- POPUP FULLSCREEN -->
-            <div class="bw-product-slide-popup" hidden aria-hidden="true">
+            <div id="<?php echo esc_attr( $popup_id ); ?>" class="bw-product-slide-popup" hidden aria-hidden="true">
                 <div class="bw-product-slide-popup-header">
                     <div class="bw-popup-title"><?php echo esc_html( $product_title ); ?></div>
                     <div class="bw-popup-close">
