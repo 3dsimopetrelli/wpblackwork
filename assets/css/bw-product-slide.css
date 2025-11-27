@@ -183,23 +183,40 @@
     font-family: 'Inter', sans-serif;
 }
 
-.bw-popup-close-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+/* Close Button: selettore specifico per evitare ereditarietà da Elementor kit */
+.bw-product-slide-popup .bw-popup-close .bw-popup-close-btn {
+    background: none !important;
+    border: none !important;
+    cursor: pointer !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: inherit !important;
+    font-size: inherit !important;
+    font-family: inherit !important;
+    font-weight: normal !important;
+    line-height: 1 !important;
+    text-align: center !important;
+    text-decoration: none !important;
+    text-transform: none !important;
+    letter-spacing: normal !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    transition: none !important;
 }
 
-.bw-popup-close-btn:hover,
-.bw-popup-close-btn:focus,
-.bw-popup-close-btn:focus-visible {
-    background: none;
-    border: none;
-    outline: none;
-    box-shadow: none;
+.bw-product-slide-popup .bw-popup-close .bw-popup-close-btn:hover,
+.bw-product-slide-popup .bw-popup-close .bw-popup-close-btn:focus,
+.bw-product-slide-popup .bw-popup-close .bw-popup-close-btn:focus-visible,
+.bw-product-slide-popup .bw-popup-close .bw-popup-close-btn:active {
+    background: none !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    color: inherit !important;
+    transform: none !important;
 }
 
 .bw-popup-close-btn:hover .close-icon,

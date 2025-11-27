@@ -60,6 +60,13 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
         $this->remove_control( 'left_offset' );
         $this->remove_control( 'column_padding' );
         $this->remove_control( 'image_padding' );
+        $this->remove_control( 'layout_settings_heading' );
+
+        // Pulizia Slider Settings: rimuove il controllo Infinite (sostituito con Loop)
+        $this->remove_control( 'infinite' );
+
+        // Rimuove il controllo responsive originale (verrà ricreato in una sezione dedicata)
+        $this->remove_control( 'responsive' );
 
         // Aggiunge il controllo Use Product Gallery nella sezione Query
         $this->add_control(
@@ -84,6 +91,9 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
 
         // Aggiunge controlli style per il popup
         $this->register_popup_style_controls();
+
+        // Aggiunge la sezione Responsive Slider
+        $this->register_responsive_slider_controls();
 
         // Fix Border Radius per le immagini
         $this->update_responsive_control(
@@ -633,10 +643,6 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
                     $item_settings['slidesToScroll'] = max( 1, absint( $item['slides_to_scroll'] ) );
                 }
 
-                if ( isset( $item['responsive_infinite'] ) ) {
-                    $item_settings['infinite'] = 'yes' === $item['responsive_infinite'];
-                }
-
                 if ( isset( $item['responsive_dots'] ) ) {
                     $item_settings['dots'] = 'yes' === $item['responsive_dots'];
                 }
@@ -799,6 +805,107 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
                 'selectors' => [
                     '{{WRAPPER}} .bw-product-slide-popup-header' => 'background-color: {{VALUE}};',
                 ],
+            ]
+        );
+
+        $this->end_controls_section();
+    }
+
+    /**
+     * Registra la sezione Responsive Slider con il repeater senza Infinite ON/OFF
+     */
+    private function register_responsive_slider_controls() {
+        $this->start_controls_section(
+            'responsive_slider_section',
+            [
+                'label' => __( 'Responsive Slider', 'bw-elementor-widgets' ),
+            ]
+        );
+
+        $repeater = new Repeater();
+
+        $repeater->add_control(
+            'breakpoint',
+            [
+                'label'   => __( 'Breakpoint (px)', 'bw-elementor-widgets' ),
+                'type'    => Controls_Manager::NUMBER,
+                'min'     => 320,
+                'default' => 1024,
+            ]
+        );
+
+        $column_options = [];
+        foreach ( range( 1, 6 ) as $column ) {
+            $column_options[ $column ] = (string) $column;
+        }
+
+        $repeater->add_control(
+            'slides_to_show',
+            [
+                'label'   => __( 'Slides To Show', 'bw-elementor-widgets' ),
+                'type'    => Controls_Manager::SELECT,
+                'options' => $column_options,
+                'default' => '1',
+            ]
+        );
+
+        $repeater->add_control(
+            'slides_to_scroll',
+            [
+                'label'   => __( 'Slides To Scroll', 'bw-elementor-widgets' ),
+                'type'    => Controls_Manager::NUMBER,
+                'min'     => 1,
+                'default' => 1,
+            ]
+        );
+
+        $repeater->add_control(
+            'responsive_dots',
+            [
+                'label'        => __( 'Dots', 'bw-elementor-widgets' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'return_value' => 'yes',
+                'default'      => '',
+            ]
+        );
+
+        $repeater->add_control(
+            'responsive_arrows',
+            [
+                'label'        => __( 'Arrows', 'bw-elementor-widgets' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'return_value' => 'yes',
+                'default'      => 'yes',
+            ]
+        );
+
+        $repeater->add_control(
+            'responsive_center_mode',
+            [
+                'label'        => __( 'Center Mode', 'bw-elementor-widgets' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'return_value' => 'yes',
+                'default'      => '',
+            ]
+        );
+
+        $repeater->add_control(
+            'responsive_variable_width',
+            [
+                'label'        => __( 'Variable Width', 'bw-elementor-widgets' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'return_value' => 'yes',
+                'default'      => '',
+            ]
+        );
+
+        $this->add_control(
+            'responsive',
+            [
+                'label'       => __( 'Responsive', 'bw-elementor-widgets' ),
+                'type'        => Controls_Manager::REPEATER,
+                'fields'      => $repeater->get_controls(),
+                'title_field' => __( 'Breakpoint: {{{ breakpoint }}}px', 'bw-elementor-widgets' ),
             ]
         );
 
