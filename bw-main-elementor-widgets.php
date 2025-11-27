@@ -48,10 +48,12 @@ require_once __DIR__ . '/includes/class-bw-widget-loader.php';
 function bw_initialize_plugin_components() {
 	// Tipi di prodotto personalizzati per WooCommerce (Digital Assets, Books, Prints)
 	require_once plugin_dir_path( __FILE__ ) . 'includes/product-types/product-types-init.php';
-	// Metabox per prodotti digitali
-	require_once plugin_dir_path( __FILE__ ) . 'metabox/digital-products-metabox.php';
-	// Metabox Images Showcase
-	require_once plugin_dir_path( __FILE__ ) . 'metabox/images-showcase-metabox.php';
+        // Metabox per prodotti digitali
+        require_once plugin_dir_path( __FILE__ ) . 'metabox/digital-products-metabox.php';
+        // Metabox Bibliographic Details
+        require_once plugin_dir_path( __FILE__ ) . 'metabox/bibliographic-details-metabox.php';
+        // Metabox Images Showcase
+        require_once plugin_dir_path( __FILE__ ) . 'metabox/images-showcase-metabox.php';
 	// Campo URL completo per categorie prodotto
 	require_once plugin_dir_path( __FILE__ ) . 'includes/category-url-field.php';
 }
