@@ -61,8 +61,26 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
         $this->remove_control( 'column_padding' );
         $this->remove_control( 'image_padding' );
 
-        // Aggiunge switch per Product Gallery
-        $this->register_product_gallery_control();
+        // Aggiunge il controllo Use Product Gallery nella sezione Query
+        $this->add_control(
+            'use_product_gallery',
+            [
+                'label'        => __( 'Use Product Gallery Images', 'bw-elementor-widgets' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
+                'label_off'    => __( 'No', 'bw-elementor-widgets' ),
+                'return_value' => 'yes',
+                'default'      => '',
+                'description'  => __( 'When enabled, the slider will use the product gallery images from the current single product page. Query settings will be ignored.', 'bw-elementor-widgets' ),
+            ],
+            [
+                'position' => [
+                    'type' => 'section',
+                    'at'   => 'start',
+                    'of'   => 'query_section',
+                ],
+            ]
+        );
 
         // Aggiunge controlli style per il popup
         $this->register_popup_style_controls();
@@ -585,7 +603,6 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
             'speed'          => isset( $settings['speed'] ) ? max( 100, absint( $settings['speed'] ) ) : 500,
             'arrows'         => isset( $settings['arrows'] ) ? 'yes' === $settings['arrows'] : true,
             'dots'           => isset( $settings['dots'] ) && 'yes' === $settings['dots'],
-            'fade'           => isset( $settings['fade'] ) && 'yes' === $settings['fade'],
             'centerMode'     => isset( $settings['center_mode'] ) && 'yes' === $settings['center_mode'],
             'variableWidth'  => isset( $settings['variable_width'] ) && 'yes' === $settings['variable_width'],
             'adaptiveHeight' => isset( $settings['adaptive_height'] ) && 'yes' === $settings['adaptive_height'],
@@ -654,33 +671,6 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
         }
 
         return $slider_settings;
-    }
-
-    /**
-     * Registra il controllo per usare la Product Gallery del Single Product
-     */
-    private function register_product_gallery_control() {
-        $this->start_controls_section(
-            'product_gallery_section',
-            [
-                'label' => __( 'Product Gallery', 'bw-elementor-widgets' ),
-            ]
-        );
-
-        $this->add_control(
-            'use_product_gallery',
-            [
-                'label'        => __( 'Use Product Gallery Images', 'bw-elementor-widgets' ),
-                'type'         => Controls_Manager::SWITCHER,
-                'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
-                'label_off'    => __( 'No', 'bw-elementor-widgets' ),
-                'return_value' => 'yes',
-                'default'      => '',
-                'description'  => __( 'When enabled, the slider will use the product gallery images from the current single product page. Query settings will be ignored.', 'bw-elementor-widgets' ),
-            ]
-        );
-
-        $this->end_controls_section();
     }
 
     /**
