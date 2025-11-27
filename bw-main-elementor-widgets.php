@@ -38,6 +38,16 @@ if ( file_exists( plugin_dir_path( __FILE__ ) . 'admin/class-blackwork-site-sett
 // Helper functions
 require_once __DIR__ . '/includes/helpers.php';
 
+// Elementor Dynamic Tags
+function bw_load_elementor_dynamic_tags() {
+    $artist_tag_file = __DIR__ . '/includes/dynamic-tags/class-bw-artist-name-tag.php';
+
+    if ( file_exists( $artist_tag_file ) ) {
+        require_once $artist_tag_file;
+    }
+}
+add_action( 'elementor/init', 'bw_load_elementor_dynamic_tags' );
+
 // Loader dei widget
 require_once __DIR__ . '/includes/class-bw-widget-loader.php';
 
@@ -54,8 +64,10 @@ function bw_initialize_plugin_components() {
         require_once plugin_dir_path( __FILE__ ) . 'metabox/bibliographic-details-metabox.php';
         // Metabox Images Showcase
         require_once plugin_dir_path( __FILE__ ) . 'metabox/images-showcase-metabox.php';
-	// Campo URL completo per categorie prodotto
-	require_once plugin_dir_path( __FILE__ ) . 'includes/category-url-field.php';
+        // Metabox Artist Name
+        require_once plugin_dir_path( __FILE__ ) . 'metabox/artist-name-metabox.php';
+        // Campo URL completo per categorie prodotto
+        require_once plugin_dir_path( __FILE__ ) . 'includes/category-url-field.php';
 }
 add_action( 'init', 'bw_initialize_plugin_components', 5 );
 
