@@ -51,27 +51,52 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
             $this->remove_control( $section_id );
         }
 
-        // Pulizia Query: rimuove opzioni Product Type non necessarie
-        $this->update_control(
-            'product_type',
-            [
-                'options' => [
-                    ''         => __( 'All', 'bw' ),
-                    'simple'   => __( 'Simple', 'bw' ),
-                    'variable' => __( 'Variable', 'bw' ),
-                    'grouped'  => __( 'Grouped', 'bw' ),
-                    'external' => __( 'External', 'bw' ),
-                    'on_sale'  => __( 'On Sale', 'bw' ),
-                    'featured' => __( 'Featured', 'bw' ),
-                ],
-            ]
-        );
+        // Pulizia Query: rimuove controlli non necessari
+        $this->remove_control( 'product_cat_parent' );
+        $this->remove_control( 'product_type' );
+        $this->remove_control( 'include_ids' );
+
+        // Pulizia Layout: rimuove controlli non necessari
+        $this->remove_control( 'left_offset' );
+        $this->remove_control( 'column_padding' );
+        $this->remove_control( 'image_padding' );
 
         // Aggiunge switch per Product Gallery
         $this->register_product_gallery_control();
 
         // Aggiunge controlli style per il popup
         $this->register_popup_style_controls();
+
+        // Fix Border Radius per le immagini
+        $this->update_responsive_control(
+            'border_radius',
+            [
+                'selectors' => [
+                    '{{WRAPPER}} .bw-product-slide-item img' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        // Aggiunge controllo Loop ON/OFF
+        $this->add_control(
+            'loop',
+            [
+                'label'        => __( 'Loop', 'bw-elementor-widgets' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'label_on'     => __( 'On', 'bw-elementor-widgets' ),
+                'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
+                'return_value' => 'yes',
+                'default'      => 'yes',
+                'description'  => __( 'Abilita o disabilita il loop infinito dello slider.', 'bw-elementor-widgets' ),
+            ],
+            [
+                'position' => [
+                    'type' => 'section',
+                    'at'   => 'start',
+                    'of'   => 'slider_section',
+                ],
+            ]
+        );
 
         $this->update_responsive_control(
             'column_width',
@@ -162,10 +187,7 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
         $image_height_value   = isset( $image_height_data['size'] ) ? max( 0, (float) $image_height_data['size'] ) : 0;
         $image_height_unit    = isset( $image_height_data['unit'] ) ? $image_height_data['unit'] : 'px';
         $image_crop    = isset( $settings['image_crop'] ) && 'yes' === $settings['image_crop'];
-        $include_ids   = isset( $settings['include_ids'] ) ? $this->parse_ids( $settings['include_ids'] ) : [];
         $post_type     = isset( $settings['post_type'] ) ? sanitize_key( $settings['post_type'] ) : 'product';
-        $product_type  = isset( $settings['product_type'] ) ? sanitize_key( $settings['product_type'] ) : '';
-        $product_cat   = isset( $settings['product_cat_parent'] ) ? absint( $settings['product_cat_parent'] ) : 0;
         $slides_scroll = isset( $settings['slides_to_scroll'] ) ? max( 1, absint( $settings['slides_to_scroll'] ) ) : 1;
         $column_width  = $this->get_column_width_value( $settings );
         $column_unit   = $this->get_column_width_unit( $settings );
@@ -186,61 +208,6 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
             'posts_per_page' => -1,
             'post_status'    => 'publish',
         ];
-
-        if ( ! empty( $include_ids ) ) {
-            $query_args['post__in'] = $include_ids;
-            $query_args['orderby']  = 'post__in';
-        }
-
-        if ( 'product' === $post_type ) {
-            $tax_query = [];
-
-            if ( $product_cat > 0 ) {
-                $tax_query[] = [
-                    'taxonomy' => 'product_cat',
-                    'field'    => 'term_id',
-                    'terms'    => [ $product_cat ],
-                ];
-            }
-
-            if ( in_array( $product_type, [ 'simple', 'variable', 'grouped', 'external' ], true ) ) {
-                $tax_query[] = [
-                    'taxonomy' => 'product_type',
-                    'field'    => 'slug',
-                    'terms'    => [ $product_type ],
-                ];
-            } elseif ( 'featured' === $product_type ) {
-                $tax_query[] = [
-                    'taxonomy' => 'product_visibility',
-                    'field'    => 'slug',
-                    'terms'    => [ 'featured' ],
-                ];
-            } elseif ( 'on_sale' === $product_type ) {
-                if ( function_exists( 'wc_get_product_ids_on_sale' ) ) {
-                    $sale_ids = wc_get_product_ids_on_sale();
-                    $sale_ids = array_map( 'absint', (array) $sale_ids );
-                    $sale_ids = array_filter( $sale_ids );
-
-                    if ( ! empty( $sale_ids ) ) {
-                        if ( isset( $query_args['post__in'] ) ) {
-                            $query_args['post__in'] = array_values( array_intersect( $query_args['post__in'], $sale_ids ) );
-                        } else {
-                            $query_args['post__in'] = $sale_ids;
-                        }
-                    } else {
-                        $query_args['post__in'] = [ 0 ];
-                    }
-                }
-            }
-
-            if ( ! empty( $tax_query ) ) {
-                $query_args['tax_query'] = $tax_query;
-            }
-        }
-
-        if ( isset( $query_args['post__in'] ) && empty( $query_args['post__in'] ) ) {
-            $query_args['post__in'] = [ 0 ];
-        }
 
         $slider_settings      = $this->prepare_slider_settings( $settings, $columns, $slides_scroll );
         $slider_settings_json = ! empty( $slider_settings ) ? wp_json_encode( $slider_settings ) : '';
@@ -680,6 +647,94 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
         $fit_value    = in_array( $object_fit, $allowed_fits, true ) ? $object_fit : 'cover';
 
         return 'object-fit: ' . $fit_value . '; object-position: top center;';
+    }
+
+    /**
+     * Prepara le impostazioni dello slider, sovrascrivendo il metodo parent
+     * per aggiungere il supporto al controllo Loop personalizzato
+     */
+    private function prepare_slider_settings( $settings, $columns, $slides_scroll ) {
+        // Usa il controllo 'loop' invece di 'infinite'
+        $loop_enabled = isset( $settings['loop'] ) && 'yes' === $settings['loop'];
+
+        $slider_settings = [
+            'infinite'       => $loop_enabled,
+            'slidesToShow'   => $columns,
+            'slidesToScroll' => $slides_scroll,
+            'autoplay'       => isset( $settings['autoplay'] ) && 'yes' === $settings['autoplay'],
+            'autoplaySpeed'  => isset( $settings['autoplay_speed'] ) ? max( 100, absint( $settings['autoplay_speed'] ) ) : 3000,
+            'speed'          => isset( $settings['speed'] ) ? max( 100, absint( $settings['speed'] ) ) : 500,
+            'arrows'         => isset( $settings['arrows'] ) ? 'yes' === $settings['arrows'] : true,
+            'dots'           => isset( $settings['dots'] ) && 'yes' === $settings['dots'],
+            'fade'           => isset( $settings['fade'] ) && 'yes' === $settings['fade'],
+            'centerMode'     => isset( $settings['center_mode'] ) && 'yes' === $settings['center_mode'],
+            'variableWidth'  => isset( $settings['variable_width'] ) && 'yes' === $settings['variable_width'],
+            'adaptiveHeight' => isset( $settings['adaptive_height'] ) && 'yes' === $settings['adaptive_height'],
+            'pauseOnHover'   => isset( $settings['pause_on_hover'] ) ? 'yes' === $settings['pause_on_hover'] : true,
+        ];
+
+        $slider_settings['slidesToScroll'] = max( 1, min( $slider_settings['slidesToScroll'], $columns ) );
+
+        $responsive = [];
+        if ( ! empty( $settings['responsive'] ) && is_array( $settings['responsive'] ) ) {
+            foreach ( $settings['responsive'] as $item ) {
+                if ( empty( $item['breakpoint'] ) ) {
+                    continue;
+                }
+
+                $breakpoint = absint( $item['breakpoint'] );
+                if ( $breakpoint <= 0 ) {
+                    continue;
+                }
+
+                $item_settings = [];
+
+                if ( ! empty( $item['slides_to_show'] ) ) {
+                    $item_settings['slidesToShow'] = max( 1, absint( $item['slides_to_show'] ) );
+                }
+
+                if ( ! empty( $item['slides_to_scroll'] ) ) {
+                    $item_settings['slidesToScroll'] = max( 1, absint( $item['slides_to_scroll'] ) );
+                }
+
+                if ( isset( $item['responsive_infinite'] ) ) {
+                    $item_settings['infinite'] = 'yes' === $item['responsive_infinite'];
+                }
+
+                if ( isset( $item['responsive_dots'] ) ) {
+                    $item_settings['dots'] = 'yes' === $item['responsive_dots'];
+                }
+
+                if ( isset( $item['responsive_arrows'] ) ) {
+                    $item_settings['arrows'] = 'yes' === $item['responsive_arrows'];
+                }
+
+                if ( isset( $item['responsive_center_mode'] ) ) {
+                    $item_settings['centerMode'] = 'yes' === $item['responsive_center_mode'];
+                }
+
+                if ( isset( $item['responsive_variable_width'] ) ) {
+                    $item_settings['variableWidth'] = 'yes' === $item['responsive_variable_width'];
+                }
+
+                if ( isset( $item_settings['slidesToShow'], $item_settings['slidesToScroll'] ) ) {
+                    $item_settings['slidesToScroll'] = min( $item_settings['slidesToScroll'], $item_settings['slidesToShow'] );
+                }
+
+                if ( ! empty( $item_settings ) ) {
+                    $responsive[] = [
+                        'breakpoint' => $breakpoint,
+                        'settings'   => $item_settings,
+                    ];
+                }
+            }
+        }
+
+        if ( ! empty( $responsive ) ) {
+            $slider_settings['responsive'] = $responsive;
+        }
+
+        return $slider_settings;
     }
 
     /**
