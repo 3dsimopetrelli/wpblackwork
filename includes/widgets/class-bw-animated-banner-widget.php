@@ -259,7 +259,7 @@ class BW_Animated_Banner_Widget extends Widget_Base {
 
         if ( content ) {
         #>
-        <div class="bw-animated-banner" data-speed="{{ scrollSpeed }}">
+        <div class="bw-animated-banner" data-speed="{{ scrollSpeed }}" data-widget-id="{{ view.model.id }}">
             <div class="bw-animated-banner__track" style="animation-duration: {{ animationDuration }}s;">
                 <div class="bw-animated-banner__content bw-animated-banner__item">{{{ content }}}</div>
                 <div class="bw-animated-banner__content bw-animated-banner__item" aria-hidden="true">{{{ content }}}</div>
