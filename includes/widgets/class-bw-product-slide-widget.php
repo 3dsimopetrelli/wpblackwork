@@ -694,6 +694,45 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
                     $item_settings['showSlideCount'] = 'yes' === $item['responsive_show_slide_count'];
                 }
 
+                // Gestione Column Width responsive
+                if ( ! empty( $item['responsive_column_width'] ) && is_array( $item['responsive_column_width'] ) ) {
+                    $width_size = isset( $item['responsive_column_width']['size'] ) ? $item['responsive_column_width']['size'] : null;
+                    $width_unit = isset( $item['responsive_column_width']['unit'] ) ? $item['responsive_column_width']['unit'] : 'px';
+
+                    if ( null !== $width_size && '' !== $width_size ) {
+                        $item_settings['responsiveWidth'] = [
+                            'size' => (float) $width_size,
+                            'unit' => $width_unit,
+                        ];
+                    }
+                }
+
+                // Gestione Column Height responsive
+                if ( ! empty( $item['responsive_column_height'] ) && is_array( $item['responsive_column_height'] ) ) {
+                    $height_size = isset( $item['responsive_column_height']['size'] ) ? $item['responsive_column_height']['size'] : null;
+                    $height_unit = isset( $item['responsive_column_height']['unit'] ) ? $item['responsive_column_height']['unit'] : 'px';
+
+                    if ( null !== $height_size && '' !== $height_size ) {
+                        $item_settings['responsiveHeight'] = [
+                            'size' => (float) $height_size,
+                            'unit' => $height_unit,
+                        ];
+                    }
+                }
+
+                // Gestione Column Gap responsive
+                if ( ! empty( $item['responsive_column_gap'] ) && is_array( $item['responsive_column_gap'] ) ) {
+                    $gap_size = isset( $item['responsive_column_gap']['size'] ) ? $item['responsive_column_gap']['size'] : null;
+                    $gap_unit = isset( $item['responsive_column_gap']['unit'] ) ? $item['responsive_column_gap']['unit'] : 'px';
+
+                    if ( null !== $gap_size && '' !== $gap_size ) {
+                        $item_settings['responsiveGap'] = [
+                            'size' => (float) $gap_size,
+                            'unit' => $gap_unit,
+                        ];
+                    }
+                }
+
                 if ( isset( $item_settings['slidesToShow'], $item_settings['slidesToScroll'] ) ) {
                     $item_settings['slidesToScroll'] = min( $item_settings['slidesToScroll'], $item_settings['slidesToShow'] );
                 }
@@ -942,6 +981,60 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
                 'return_value' => 'yes',
                 'default'      => '',
                 'description'  => __( 'Mostra o nasconde il contatore delle slide per questo breakpoint.', 'bw-elementor-widgets' ),
+            ]
+        );
+
+        $repeater->add_control(
+            'responsive_column_width',
+            [
+                'label'      => __( 'Column Width', 'bw-elementor-widgets' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px', '%', 'vw' ],
+                'range'      => [
+                    'px' => [ 'min' => 0, 'max' => 2000, 'step' => 1 ],
+                    '%'  => [ 'min' => 0, 'max' => 100, 'step' => 1 ],
+                    'vw' => [ 'min' => 0, 'max' => 100, 'step' => 1 ],
+                ],
+                'default'    => [
+                    'size' => '',
+                    'unit' => 'px',
+                ],
+                'description' => __( 'Larghezza delle colonne per questo breakpoint. Lascia vuoto per usare il valore globale.', 'bw-elementor-widgets' ),
+            ]
+        );
+
+        $repeater->add_control(
+            'responsive_column_height',
+            [
+                'label'      => __( 'Column Height', 'bw-elementor-widgets' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px', 'vh' ],
+                'range'      => [
+                    'px' => [ 'min' => 0, 'max' => 2000, 'step' => 1 ],
+                    'vh' => [ 'min' => 0, 'max' => 100, 'step' => 1 ],
+                ],
+                'default'    => [
+                    'size' => '',
+                    'unit' => 'px',
+                ],
+                'description' => __( 'Altezza delle colonne per questo breakpoint. Lascia vuoto per usare il valore globale.', 'bw-elementor-widgets' ),
+            ]
+        );
+
+        $repeater->add_control(
+            'responsive_column_gap',
+            [
+                'label'      => __( 'Column Gap / Space Between Columns', 'bw-elementor-widgets' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px' ],
+                'range'      => [
+                    'px' => [ 'min' => 0, 'max' => 200, 'step' => 1 ],
+                ],
+                'default'    => [
+                    'size' => '',
+                    'unit' => 'px',
+                ],
+                'description' => __( 'Spazio tra le colonne per questo breakpoint. Lascia vuoto per usare il valore globale.', 'bw-elementor-widgets' ),
             ]
         );
 

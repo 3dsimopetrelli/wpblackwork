@@ -237,6 +237,70 @@
     }
   };
 
+  var applyResponsiveDimensions = function ($slider, settings) {
+    if (!$slider || !$slider.length || !settings) {
+      return;
+    }
+
+    if (!settings.responsive || !Array.isArray(settings.responsive)) {
+      return;
+    }
+
+    var windowWidth = $(window).width();
+    var sortedBreakpoints = settings.responsive
+      .slice()
+      .sort(function (a, b) {
+        return a.breakpoint - b.breakpoint;
+      });
+
+    var widthToApply = null;
+    var heightToApply = null;
+    var gapToApply = null;
+
+    for (var i = 0; i < sortedBreakpoints.length; i++) {
+      var bp = sortedBreakpoints[i];
+      if (windowWidth <= bp.breakpoint) {
+        if (bp.settings && bp.settings.responsiveWidth) {
+          widthToApply = bp.settings.responsiveWidth;
+        }
+        if (bp.settings && bp.settings.responsiveHeight) {
+          heightToApply = bp.settings.responsiveHeight;
+        }
+        if (bp.settings && bp.settings.responsiveGap) {
+          gapToApply = bp.settings.responsiveGap;
+        }
+        break;
+      }
+    }
+
+    if (widthToApply && widthToApply.size >= 0) {
+      var widthValue = widthToApply.size + widthToApply.unit;
+      $slider.css({
+        '--bw-product-slide-column-width': widthValue,
+        '--bw-column-width': widthValue,
+        '--bw-slide-width': widthValue
+      });
+    }
+
+    if (heightToApply && heightToApply.size >= 0) {
+      var heightValue = heightToApply.size + heightToApply.unit;
+      $slider.css('--bw-product-slide-image-height', heightValue);
+    }
+
+    if (gapToApply && gapToApply.size >= 0) {
+      var gapValue = gapToApply.size + gapToApply.unit;
+      $slider.css('--bw-product-slide-gap', gapValue);
+    }
+
+    if ($slider.hasClass('slick-initialized')) {
+      setTimeout(function () {
+        if ($slider.hasClass('slick-initialized')) {
+          $slider.slick('setPosition');
+        }
+      }, 50);
+    }
+  };
+
   var unbindResponsiveUpdates = function ($slider) {
     if (!$slider || !$slider.length) {
       return;
@@ -271,7 +335,7 @@
     }
   };
 
-  var bindResponsiveUpdates = function ($slider) {
+  var bindResponsiveUpdates = function ($slider, settings) {
     if (!$slider || !$slider.length) {
       return;
     }
@@ -284,7 +348,16 @@
       refreshSliderImages($slider);
     };
 
-    $(window).on(resizeEvent, refreshImages);
+    var applyDimensions = function () {
+      applyResponsiveDimensions($slider, settings);
+    };
+
+    var refreshAll = function () {
+      refreshImages();
+      applyDimensions();
+    };
+
+    $(window).on(resizeEvent, refreshAll);
     $slider.data('bwResizeEvent', resizeEvent);
 
     if (
@@ -309,12 +382,14 @@
           return (
             key.indexOf('column_width') !== -1 ||
             key.indexOf('image_height') !== -1 ||
-            key.indexOf('image_crop') !== -1
+            key.indexOf('image_crop') !== -1 ||
+            key.indexOf('gap') !== -1 ||
+            key.indexOf('responsive') !== -1
           );
         });
 
         if (shouldRefresh) {
-          setTimeout(refreshImages, 200);
+          setTimeout(refreshAll, 200);
         }
       };
 
@@ -344,7 +419,7 @@
           });
 
           if (shouldRefresh) {
-            refreshImages();
+            refreshAll();
           }
         });
 
@@ -357,7 +432,7 @@
       }
     }
 
-    refreshImages();
+    refreshAll();
     $slider.data('bwResponsiveBound', true);
   };
 
@@ -466,10 +541,21 @@
         .on('init.bwProductSlideReady reInit.bwProductSlideReady', onSliderReady);
 
       $slider.on('init.bwProductSlide reInit.bwProductSlide afterChange.bwProductSlide', updateCounter);
+
+      // Applica dimensioni responsive all'inizializzazione
+      $slider.on('init.bwProductSlide', function () {
+        applyResponsiveDimensions($slider, settings);
+      });
+
+      // Applica dimensioni responsive quando cambia il breakpoint
+      $slider.on('breakpoint.bwProductSlide', function () {
+        applyResponsiveDimensions($slider, settings);
+      });
+
       $slider.slick(settings);
 
       refreshSliderImages($slider);
-      bindResponsiveUpdates($slider);
+      bindResponsiveUpdates($slider, settings);
 
       if (settings.arrows === false) {
         $container.find('.bw-product-slide-arrows').hide();
