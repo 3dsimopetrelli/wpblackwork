@@ -57,6 +57,10 @@
     cursor: pointer;
 }
 
+.bw-product-slide[data-popup-open-on-click="false"] .bw-product-slide-item {
+    cursor: default;
+}
+
 .bw-product-slide-wrapper[data-has-column-width="true"] .slick-slide {
     width: var(--bw-slide-width, var(--bw-product-slide-column-width, var(--bw-column-width, auto)));
     max-width: none;

@@ -61,6 +61,7 @@
     }
 
     var $popupTitle = $popup.find('.bw-popup-title');
+    var $popupContent = $popup.find('.bw-popup-content');
 
     var hideTimeoutId = null;
 
@@ -86,7 +87,7 @@
       $popup.off('transitionend.bwProductSlidePopup', onPopupTransitionEnd);
     };
 
-    var openPopup = function () {
+    var openPopup = function (imageIndex) {
       clearHideTimeout();
       $popup.off('transitionend.bwProductSlidePopup', onPopupTransitionEnd);
 
@@ -99,6 +100,26 @@
       window.requestAnimationFrame(function () {
         $popup.addClass('active');
         $body.addClass('popup-active');
+
+        // Scroll to the specific image if imageIndex is provided
+        if (typeof imageIndex === 'number' && imageIndex >= 0) {
+          var $images = $popupContent.find('img');
+          if ($images.length > imageIndex) {
+            var $targetImage = $images.eq(imageIndex);
+            if ($targetImage.length) {
+              // Use setTimeout to ensure the popup is fully visible before scrolling
+              setTimeout(function () {
+                var popupElement = $popup.get(0);
+                if (popupElement) {
+                  var imageOffset = $targetImage.offset().top;
+                  var popupOffset = $popup.offset().top;
+                  var scrollTop = imageOffset - popupOffset;
+                  popupElement.scrollTop = scrollTop;
+                }
+              }, 50);
+            }
+          }
+        }
       });
     };
 
@@ -116,14 +137,26 @@
       }, 600);
     };
 
-    $container
-      .find('.bw-product-slide-item img')
-      .off('click.bwProductSlide')
-      .on('click.bwProductSlide', function () {
-        var title = $(this).attr('alt') || '';
-        $popupTitle.text(title);
-        openPopup();
-      });
+    // Check if popup should open on image click
+    var popupOpenOnClick = String($container.attr('data-popup-open-on-click')) === 'true';
+
+    if (popupOpenOnClick) {
+      $container
+        .find('.bw-product-slide-item img')
+        .off('click.bwProductSlide')
+        .on('click.bwProductSlide', function () {
+          var title = $(this).attr('alt') || '';
+          var $slideItem = $(this).closest('.bw-product-slide-item');
+          var slideIndex = parseInt($slideItem.attr('data-index'), 10) || 1;
+          var imageIndex = slideIndex - 1; // Convert to 0-based index
+
+          $popupTitle.text(title);
+          openPopup(imageIndex);
+        });
+    } else {
+      // Remove click handlers if popup should not open on click
+      $container.find('.bw-product-slide-item img').off('click.bwProductSlide');
+    }
 
     $popup
       .find('.bw-popup-close-btn')
