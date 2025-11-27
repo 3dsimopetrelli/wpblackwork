@@ -118,7 +118,7 @@ if ( class_exists( '\Elementor\Core\DynamicTags\Tag' ) && class_exists( '\Elemen
                 if ( $document && method_exists( $document, 'get_main_id' ) ) {
                     $document_id = (int) $document->get_main_id();
 
-                    if ( $document_id ) {
+                    if ( $document_id && ! $post_id ) {
                         $post_id = $document_id;
                     }
                 }
