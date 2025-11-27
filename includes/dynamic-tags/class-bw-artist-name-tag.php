@@ -95,8 +95,14 @@ if ( class_exists( '\Elementor\Core\DynamicTags\Tag' ) && class_exists( '\Elemen
             if ( class_exists( '\Elementor\Plugin' ) ) {
                 $plugin = \Elementor\Plugin::instance();
 
-                if ( isset( $plugin->editor ) && $plugin->editor->is_edit_mode() ) {
-                    $editor_post_id = $plugin->editor->get_current_post_id();
+                if ( isset( $plugin->editor ) && method_exists( $plugin->editor, 'is_edit_mode' ) && $plugin->editor->is_edit_mode() ) {
+                    $editor_post_id = null;
+
+                    if ( method_exists( $plugin->editor, 'get_post_id' ) ) {
+                        $editor_post_id = $plugin->editor->get_post_id();
+                    } elseif ( method_exists( $plugin->editor, 'get_current_post_id' ) ) {
+                        $editor_post_id = $plugin->editor->get_current_post_id();
+                    }
 
                     if ( $editor_post_id ) {
                         $post_id = (int) $editor_post_id;
