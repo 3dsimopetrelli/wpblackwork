@@ -66,7 +66,24 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
                 'type'        => Controls_Manager::TEXT,
                 'placeholder' => __( 'Enter product ID', 'bw-elementor-widgets' ),
                 'description' => __( 'Enter the ID of the product to display.', 'bw-elementor-widgets' ),
-                'condition'   => [ 'post_type' => 'product' ],
+                'condition'   => [
+                    'post_type' => 'product',
+                    'use_metabox_product!' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'use_metabox_product',
+            [
+                'label'        => __( 'Usa prodotto da Metabox Slide Showcase', 'bw-elementor-widgets' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'label_on'     => __( 'ON', 'bw-elementor-widgets' ),
+                'label_off'    => __( 'OFF', 'bw-elementor-widgets' ),
+                'return_value' => 'yes',
+                'default'      => '',
+                'description'  => __( 'Quando attivo, il widget userà il prodotto selezionato nel Metabox Slide Showcase del prodotto corrente.', 'bw-elementor-widgets' ),
+                'condition'    => [ 'post_type' => 'product' ],
             ]
         );
 
@@ -141,6 +158,19 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
             ],
         ] );
 
+        $this->add_control( 'horizontal_column_gap', [
+            'label'      => __( 'Gap orizzontale tra colonne (px)', 'bw-elementor-widgets' ),
+            'type'       => Controls_Manager::SLIDER,
+            'range'      => [
+                'px' => [ 'min' => 0, 'max' => 100, 'step' => 1 ],
+            ],
+            'default'    => [ 'size' => 0, 'unit' => 'px' ],
+            'selectors'  => [
+                '{{WRAPPER}} .bw-static-showcase-container' => 'gap: {{SIZE}}{{UNIT}};',
+            ],
+            'description' => __( 'Controlla lo spazio tra l\'immagine principale (sinistra) e la colonna destra.', 'bw-elementor-widgets' ),
+        ] );
+
         $this->end_controls_section();
     }
 
@@ -159,7 +189,7 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
         ] );
 
         $this->add_responsive_control( 'border_radius', [
-            'label'      => __( 'Border Radius', 'bw-elementor-widgets' ),
+            'label'      => __( 'Border Radius Container', 'bw-elementor-widgets' ),
             'type'       => Controls_Manager::DIMENSIONS,
             'size_units' => [ 'px', '%', 'em' ],
             'default'    => [
@@ -173,6 +203,25 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
             'selectors' => [
                 '{{WRAPPER}} .bw-static-showcase-container' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
             ],
+        ] );
+
+        $this->add_responsive_control( 'images_border_radius', [
+            'label'       => __( 'Border Radius Immagini', 'bw-elementor-widgets' ),
+            'type'        => Controls_Manager::DIMENSIONS,
+            'size_units'  => [ 'px', '%', 'em' ],
+            'default'     => [
+                'top'      => 0,
+                'right'    => 0,
+                'bottom'   => 0,
+                'left'     => 0,
+                'unit'     => 'px',
+                'isLinked' => true,
+            ],
+            'selectors'   => [
+                '{{WRAPPER}} .bw-slide-showcase-image' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                '{{WRAPPER}} .bw-static-showcase-right-image img' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+            ],
+            'description' => __( 'Applica lo stesso border radius a tutte e tre le immagini del widget.', 'bw-elementor-widgets' ),
         ] );
 
         $this->end_controls_section();
@@ -406,7 +455,23 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
     protected function render() {
         $settings   = $this->get_settings_for_display();
         $post_type  = isset( $settings['post_type'] ) ? sanitize_key( $settings['post_type'] ) : 'product';
-        $product_id = isset( $settings['product_id'] ) ? absint( $settings['product_id'] ) : 0;
+        $use_metabox_product = isset( $settings['use_metabox_product'] ) && 'yes' === $settings['use_metabox_product'];
+
+        // Determine product ID
+        $product_id = 0;
+        if ( $use_metabox_product ) {
+            // Get the current post ID (the product being viewed/edited)
+            $current_post_id = get_the_ID();
+            if ( $current_post_id && 'product' === get_post_type( $current_post_id ) ) {
+                // Read the linked product from the metabox
+                $linked_product = get_post_meta( $current_post_id, '_bw_showcase_linked_product', true );
+                $product_id = $linked_product ? absint( $linked_product ) : 0;
+            }
+        } else {
+            // Use the manually entered product ID
+            $product_id = isset( $settings['product_id'] ) ? absint( $settings['product_id'] ) : 0;
+        }
+
         $image_crop = isset( $settings['image_crop'] ) && 'yes' === $settings['image_crop'];
 
         if ( ! $product_id ) {
