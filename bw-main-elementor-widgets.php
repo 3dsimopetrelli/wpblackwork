@@ -678,6 +678,15 @@ function bw_fpw_get_subcategories() {
     $category_id     = 'all' === $raw_category_id ? 'all' : absint( $raw_category_id );
     $post_type       = isset( $_POST['post_type'] ) ? sanitize_key( $_POST['post_type'] ) : 'product';
 
+    // PERFORMANCE: Check transient cache first (5 minutes)
+    $transient_key = 'bw_fpw_subcats_' . $post_type . '_' . $category_id;
+    $cached_result = get_transient( $transient_key );
+
+    if ( false !== $cached_result ) {
+        wp_send_json_success( $cached_result );
+        return;
+    }
+
     $taxonomy = 'product' === $post_type ? 'product_cat' : 'category';
 
     $get_terms_args = [
@@ -718,6 +727,9 @@ function bw_fpw_get_subcategories() {
         ];
     }
 
+    // PERFORMANCE: Cache result for 5 minutes
+    set_transient( $transient_key, $result, 5 * MINUTE_IN_SECONDS );
+
     wp_send_json_success( $result );
 }
 
@@ -735,13 +747,28 @@ function bw_fpw_get_tags() {
     $post_type       = isset( $_POST['post_type'] ) ? sanitize_key( $_POST['post_type'] ) : 'product';
     $subcategories   = isset( $_POST['subcategories'] ) ? array_map( 'absint', (array) $_POST['subcategories'] ) : [];
 
+    // PERFORMANCE: Check transient cache first (5 minutes)
+    $subcats_hash  = md5( wp_json_encode( $subcategories ) );
+    $transient_key = 'bw_fpw_tags_' . $post_type . '_' . $category_id . '_' . $subcats_hash;
+    $cached_result = get_transient( $transient_key );
+
+    if ( false !== $cached_result ) {
+        wp_send_json_success( $cached_result );
+        return;
+    }
+
     // Get tags using existing helper function
     $tags = bw_fpw_get_related_tags_data( $post_type, $category_id, $subcategories );
 
     if ( empty( $tags ) ) {
+        // Cache empty result too to avoid repeated queries
+        set_transient( $transient_key, [], 5 * MINUTE_IN_SECONDS );
         wp_send_json_success( [] );
         return;
     }
+
+    // PERFORMANCE: Cache result for 5 minutes
+    set_transient( $transient_key, $tags, 5 * MINUTE_IN_SECONDS );
 
     wp_send_json_success( $tags );
 }
@@ -907,9 +934,39 @@ function bw_fpw_filter_posts() {
         $order = 'DESC';
     }
 
-    // For random order, ignore ASC/DESC
+    // For random order, ignore ASC/DESC and skip caching
+    $skip_cache = false;
     if ( 'rand' === $order_by ) {
         $order = 'ASC';
+        $skip_cache = true; // Don't cache random results
+    }
+
+    // PERFORMANCE: Check transient cache first (3 minutes)
+    // Skip cache for random order
+    if ( ! $skip_cache ) {
+        $cache_key_parts = [
+            'bw_fpw_filter',
+            $widget_id,
+            $post_type,
+            $category,
+            md5( wp_json_encode( $subcategories ) ),
+            md5( wp_json_encode( $tags ) ),
+            $image_toggle ? '1' : '0',
+            $image_size,
+            $hover_effect ? '1' : '0',
+            $open_cart_popup ? '1' : '0',
+            $order_by,
+            $order,
+        ];
+        $transient_key = implode( '_', $cache_key_parts );
+        $transient_key = substr( $transient_key, 0, 172 ); // WordPress transient key max length
+
+        $cached_result = get_transient( $transient_key );
+
+        if ( false !== $cached_result ) {
+            wp_send_json_success( $cached_result );
+            return;
+        }
     }
 
     $taxonomy     = 'product' === $post_type ? 'product_cat' : 'category';
@@ -1128,12 +1185,19 @@ function bw_fpw_filter_posts() {
     $related_tags  = bw_fpw_get_related_tags_data( $post_type, $category, $subcategories );
     $available_tags = wp_list_pluck( $related_tags, 'term_id' );
 
-    wp_send_json_success( [
+    $response_data = [
         'html'            => $html,
         'tags_html'       => bw_fpw_render_tag_markup( $related_tags ),
         'available_tags'  => $available_tags,
         'has_posts'       => $has_posts,
-    ] );
+    ];
+
+    // PERFORMANCE: Cache result for 3 minutes (skip random order)
+    if ( ! $skip_cache && isset( $transient_key ) ) {
+        set_transient( $transient_key, $response_data, 3 * MINUTE_IN_SECONDS );
+    }
+
+    wp_send_json_success( $response_data );
 }
 
 /**
