@@ -254,6 +254,18 @@ class BW_Add_To_Cart_Widget extends Widget_Base {
         );
 
         $this->add_responsive_control(
+            'button_width_switch',
+            [
+                'label'        => __( 'Use Button Width (%)', 'bw' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'label_on'     => __( 'On', 'bw' ),
+                'label_off'    => __( 'Off', 'bw' ),
+                'return_value' => 'yes',
+                'default'      => 'yes',
+            ]
+        );
+
+        $this->add_responsive_control(
             'button_width',
             [
                 'label'      => __( 'Button Width (%)', 'bw' ),
@@ -266,6 +278,7 @@ class BW_Add_To_Cart_Widget extends Widget_Base {
                 'selectors'  => [
                     '{{WRAPPER}} .bw-add-to-cart-button' => 'width: {{SIZE}}{{UNIT}};',
                 ],
+                'condition'  => [ 'button_width_switch' => 'yes' ],
             ]
         );
 
