@@ -78,6 +78,21 @@ class BW_Add_To_Cart_Widget extends Widget_Base {
             [
                 'name'     => 'button_typography',
                 'selector' => '{{WRAPPER}} .bw-add-to-cart-button',
+                'fields_options' => [
+                    'typography' => [ 'default' => 'yes' ],
+                    'font_size'  => [
+                        'default' => [
+                            'size' => 24,
+                            'unit' => 'px',
+                        ],
+                    ],
+                    'line_height' => [
+                        'default' => [
+                            'size' => 24,
+                            'unit' => 'px',
+                        ],
+                    ],
+                ],
             ]
         );
 
@@ -95,7 +110,7 @@ class BW_Add_To_Cart_Widget extends Widget_Base {
             [
                 'label'     => __( 'Text Color', 'bw' ),
                 'type'      => Controls_Manager::COLOR,
-                'default'   => '#FFFFFF',
+                'default'   => '#000000',
                 'selectors' => [
                     '{{WRAPPER}} .bw-add-to-cart-button' => 'color: {{VALUE}};',
                 ],
@@ -107,7 +122,7 @@ class BW_Add_To_Cart_Widget extends Widget_Base {
             [
                 'label'     => __( 'Background Color', 'bw' ),
                 'type'      => Controls_Manager::COLOR,
-                'default'   => '#6EC1E4',
+                'default'   => '#80FD03',
                 'selectors' => [
                     '{{WRAPPER}} .bw-add-to-cart-button' => 'background-color: {{VALUE}};',
                 ],
@@ -119,6 +134,7 @@ class BW_Add_To_Cart_Widget extends Widget_Base {
             [
                 'label'     => __( 'Border Color', 'bw' ),
                 'type'      => Controls_Manager::COLOR,
+                'default'   => '#000000',
                 'selectors' => [
                     '{{WRAPPER}} .bw-add-to-cart-button' => 'border-color: {{VALUE}};',
                 ],
@@ -210,7 +226,7 @@ class BW_Add_To_Cart_Widget extends Widget_Base {
                 'type'       => Controls_Manager::SLIDER,
                 'size_units' => [ 'px' ],
                 'range'      => [ 'px' => [ 'min' => 0, 'max' => 100 ] ],
-                'default'    => [ 'size' => 4, 'unit' => 'px' ],
+                'default'    => [ 'size' => 100, 'unit' => 'px' ],
                 'selectors'  => [
                     '{{WRAPPER}} .bw-add-to-cart-button' => 'border-radius: {{SIZE}}{{UNIT}};',
                 ],
@@ -225,14 +241,30 @@ class BW_Add_To_Cart_Widget extends Widget_Base {
                 'type'       => Controls_Manager::DIMENSIONS,
                 'size_units' => [ 'px', 'em', '%' ],
                 'default'    => [
-                    'top'    => 12,
-                    'right'  => 24,
-                    'bottom' => 12,
-                    'left'   => 24,
+                    'top'    => 15,
+                    'right'  => 25,
+                    'bottom' => 15,
+                    'left'   => 25,
                     'unit'   => 'px',
                 ],
                 'selectors'  => [
                     '{{WRAPPER}} .bw-add-to-cart-button' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'button_width',
+            [
+                'label'      => __( 'Button Width (%)', 'bw' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ '%' ],
+                'range'      => [
+                    '%' => [ 'min' => 1, 'max' => 100 ],
+                ],
+                'default'    => [ 'size' => 100, 'unit' => '%' ],
+                'selectors'  => [
+                    '{{WRAPPER}} .bw-add-to-cart-button' => 'width: {{SIZE}}{{UNIT}};',
                 ],
             ]
         );
