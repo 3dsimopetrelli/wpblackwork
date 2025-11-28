@@ -106,6 +106,8 @@ add_action( 'elementor/frontend/after_register_styles', 'bw_register_animated_ba
 add_action( 'elementor/frontend/after_enqueue_scripts', 'bw_enqueue_animated_banner_widget_assets' );
 add_action( 'elementor/editor/after_enqueue_scripts', 'bw_enqueue_animated_banner_widget_assets' );
 add_action( 'wp_enqueue_scripts', 'bw_enqueue_smart_header_assets' );
+add_action( 'init', 'bw_register_static_showcase_widget_assets' );
+add_action( 'elementor/frontend/after_register_styles', 'bw_register_static_showcase_widget_assets' );
 
 function bw_enqueue_slick_slider_assets() {
     wp_enqueue_style(
@@ -544,6 +546,18 @@ function bw_enqueue_animated_banner_widget_assets() {
     if ( wp_script_is( 'bw-animated-banner-script', 'registered' ) ) {
         wp_enqueue_script( 'bw-animated-banner-script' );
     }
+}
+
+function bw_register_static_showcase_widget_assets() {
+    $css_file = __DIR__ . '/assets/css/bw-static-showcase.css';
+    $css_version = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
+
+    wp_register_style(
+        'bw-static-showcase-style',
+        plugin_dir_url( __FILE__ ) . 'assets/css/bw-static-showcase.css',
+        [],
+        $css_version
+    );
 }
 
 // Aggiungi categoria personalizzata "Black Work Widgets"
