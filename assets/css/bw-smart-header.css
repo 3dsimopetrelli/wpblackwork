@@ -39,7 +39,6 @@
     transition: transform 0.4s ease-in-out,
                 background-color 0.3s ease,
                 backdrop-filter 0.3s ease,
-                box-shadow 0.3s ease,
                 top 0.2s ease !important;
 
     /* GPU acceleration per performance migliori */
@@ -78,13 +77,12 @@
    ============================================================================ */
 
 /**
- * Stato scrollato - Box shadow attivo dopo 50px di scroll
+ * Stato scrollato - dopo 50px di scroll
  * Applicato quando menu è visibile dopo scroll
  * NOTA: Il blur è stato spostato nella classe dedicata .smart-header-menu-blur
  */
 .smart-header.scrolled {
-    /* Box shadow sottile ed elegante */
-    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1) !important;
+    /* Shadow rimossa */
 }
 
 /**
@@ -111,9 +109,6 @@
     /* Espansione "capsula" - padding oltre il contenuto */
     padding: 10px !important;
 
-    /* Box shadow per profondità */
-    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1) !important;
-
     /* Mantieni bordi arrotondati se presenti */
     border-radius: inherit;
 
@@ -124,8 +119,7 @@
 
     /* Transizione smooth per compatibilità con animazioni header */
     transition: backdrop-filter 0.3s ease,
-                padding 0.3s ease,
-                box-shadow 0.3s ease;
+                padding 0.3s ease;
 
     /* Previeni overflow orizzontale */
     max-width: 100%;
@@ -147,7 +141,7 @@
  * Variante per tema scuro (opzionale)
  */
 .smart-header.dark-theme .smart-header-menu-blur {
-    box-shadow: 0 2px 20px rgba(255, 255, 255, 0.08) !important;
+    /* Shadow rimossa */
 }
 
 @supports not (backdrop-filter: blur(20px)) {
@@ -243,7 +237,6 @@ body.elementor-editor-active {
         transition: transform 0.3s ease-in-out,
                     background-color 0.3s ease,
                     backdrop-filter 0.3s ease,
-                    box-shadow 0.3s ease,
                     top 0.2s ease !important;
     }
 }
@@ -264,6 +257,5 @@ body.elementor-editor-active {
    ============================================================================ */
 
 .smart-header.dark-theme.scrolled {
-    /* Box shadow per dark theme */
-    box-shadow: 0 2px 20px rgba(255, 255, 255, 0.08) !important;
+    /* Shadow rimossa */
 }
