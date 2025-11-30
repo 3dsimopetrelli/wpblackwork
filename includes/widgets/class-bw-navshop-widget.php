@@ -247,8 +247,13 @@ class BW_Navshop_Widget extends Widget_Base {
                     ],
                 ],
                 'default'      => 'left',
+                'selectors_dictionary' => [
+                    'left'   => 'flex-start',
+                    'center' => 'center',
+                    'right'  => 'flex-end',
+                ],
                 'selectors'    => [
-                    '{{WRAPPER}} .bw-navshop' => 'text-align: {{VALUE}};',
+                    '{{WRAPPER}} .bw-navshop' => 'justify-content: {{VALUE}};',
                 ],
                 'toggle'       => false,
                 'render_type'  => 'ui',

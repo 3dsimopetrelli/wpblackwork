@@ -1,9 +1,11 @@
 /* BW NavShop Widget Styles */
 
-.bw-navshop {
-    display: inline-flex;
+.elementor-widget-bw-navshop .bw-navshop {
+    display: flex;
     align-items: center;
     flex-wrap: wrap;
+    width: 100%;
+    justify-content: flex-start;
 }
 
 .bw-navshop__item {
