@@ -118,7 +118,14 @@
      */
     function calculateAnimatedBannerHeight() {
         // Cerca il banner animato che precede lo smart-header
-        animatedBannerElement = $('.bw-animated-banner').first();
+        if (headerElement && headerElement.length) {
+            animatedBannerElement = headerElement.prevAll('.bw-animated-banner').first();
+        }
+
+        // Fallback: primo banner presente nel DOM
+        if (!animatedBannerElement || !animatedBannerElement.length) {
+            animatedBannerElement = $('.bw-animated-banner').first();
+        }
 
         if (animatedBannerElement.length && animatedBannerElement.is(':visible')) {
             animatedBannerHeight = animatedBannerElement.outerHeight() || 0;
@@ -154,6 +161,17 @@
     }
 
     /**
+     * Restituisce l'altezza totale (header + banner)
+     */
+    function getTotalHeaderHeight() {
+        const headerHeight = headerElement && headerElement.length
+            ? (headerElement.outerHeight() || 0)
+            : 0;
+
+        return headerHeight + animatedBannerHeight;
+    }
+
+    /**
      * Calcola e applica tutti gli offset (admin bar + animated banner)
      * Aggiorna anche il padding del body dinamicamente
      */
@@ -167,14 +185,16 @@
 
         // Calcola il padding del body (header height + offsets)
         if (headerElement && headerElement.length) {
-            const headerHeight = headerElement.outerHeight() || 0;
-            const totalBodyPadding = totalTopOffset + headerHeight;
+            const totalHeaderHeight = getTotalHeaderHeight();
+            const totalBodyPadding = adminBarHeight + totalHeaderHeight;
+
             document.documentElement.style.setProperty('--smart-header-body-padding', totalBodyPadding + 'px');
+            document.documentElement.style.setProperty('--smart-header-total-height', totalHeaderHeight + 'px');
 
             debugLog('Offset totali calcolati', {
                 adminBar: adminBarHeight + 'px',
                 banner: animatedBannerHeight + 'px',
-                header: headerHeight + 'px',
+                header: totalHeaderHeight + 'px',
                 totalTop: totalTopOffset + 'px',
                 bodyPadding: totalBodyPadding + 'px'
             });
@@ -367,6 +387,13 @@
         window.addEventListener('resize', throttledResizeHandler, { passive: true });
         debugLog('✅ Resize event listener registrato (passive)');
 
+        // Ricalcola su window load per includere asset caricati dopo DOM ready
+        $(window).on('load', function() {
+            debugLog('Window load - Ricalcolo offset');
+            calculateAllOffsets();
+            handleScroll();
+        });
+
         debugLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         debugLog('✅ Sistema inizializzato con successo');
         debugLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -409,6 +436,9 @@
             setTimeout(function() {
                 if (!isElementorEditor() && !headerElement) {
                     init();
+                } else if (headerElement && headerElement.length) {
+                    calculateAllOffsets();
+                    handleScroll();
                 }
             }, 150);
         });
