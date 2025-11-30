@@ -78,25 +78,100 @@
    ============================================================================ */
 
 /**
- * Stato scrollato - Effetto blur attivo dopo 50px di scroll
+ * Stato scrollato - Box shadow attivo dopo 50px di scroll
  * Applicato quando menu è visibile dopo scroll
+ * NOTA: Il blur è stato spostato nella classe dedicata .smart-header-menu-blur
  */
 .smart-header.scrolled {
-    /* Effetto blur del contenuto sottostante (nessun background grigio) */
-    -webkit-backdrop-filter: blur(20px);
-    backdrop-filter: blur(20px) !important;
-
     /* Box shadow sottile ed elegante */
     box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1) !important;
 }
 
 /**
+ * Classe dedicata al blur per la colonna menu dello SmartHeader
+ * Applica effetto blur al contenitore del menu con espansione "capsula"
+ *
+ * USO: Aggiungi questa classe manualmente alla colonna/container del menu in Elementor
+ *
+ * CARATTERISTICHE:
+ * - Effetto blur trasparente al posto del background solido
+ * - Espansione di 10px oltre il contenuto per effetto "capsula"
+ * - Mantiene bordi arrotondati esistenti
+ * - Compatibile con animazioni SmartHeader
+ * - Responsive senza causare overflow orizzontale
+ */
+.smart-header-menu-blur {
+    /* Effetto blur del contenuto sottostante */
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px) !important;
+
+    /* Rimuovi background solido se presente */
+    background-color: transparent !important;
+
+    /* Espansione "capsula" - padding oltre il contenuto */
+    padding: 10px !important;
+
+    /* Box shadow per profondità */
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1) !important;
+
+    /* Mantieni bordi arrotondati se presenti */
+    border-radius: inherit;
+
+    /* Assicura che il contenuto sia sopra il blur */
+    position: relative;
+    z-index: 1;
+    isolation: isolate;
+
+    /* Transizione smooth per compatibilità con animazioni header */
+    transition: backdrop-filter 0.3s ease,
+                padding 0.3s ease,
+                box-shadow 0.3s ease;
+
+    /* Previeni overflow orizzontale */
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: visible;
+}
+
+/**
  * Fallback per browser che non supportano backdrop-filter
- * Usa un background trasparente minimale per leggibilità
+ * Usa un background semi-trasparente per garantire leggibilità
  */
 @supports not (backdrop-filter: blur(20px)) {
-    .smart-header.scrolled {
-        background-color: rgba(255, 255, 255, 0.1) !important;
+    .smart-header-menu-blur {
+        background-color: rgba(255, 255, 255, 0.15) !important;
+    }
+}
+
+/**
+ * Variante per tema scuro (opzionale)
+ */
+.smart-header.dark-theme .smart-header-menu-blur {
+    box-shadow: 0 2px 20px rgba(255, 255, 255, 0.08) !important;
+}
+
+@supports not (backdrop-filter: blur(20px)) {
+    .smart-header.dark-theme .smart-header-menu-blur {
+        background-color: rgba(0, 0, 0, 0.15) !important;
+    }
+}
+
+/**
+ * Ottimizzazioni responsive per mobile
+ * Padding leggermente ridotto su schermi piccoli
+ */
+@media (max-width: 768px) {
+    .smart-header-menu-blur {
+        padding: 8px !important;
+    }
+}
+
+/**
+ * Riduzione animazioni per utenti con preferenze accessibilità
+ */
+@media (prefers-reduced-motion: reduce) {
+    .smart-header-menu-blur {
+        transition: none !important;
     }
 }
 
@@ -189,14 +264,6 @@ body.elementor-editor-active {
    ============================================================================ */
 
 .smart-header.dark-theme.scrolled {
-    /* Solo blur trasparente, nessun background grigio */
-    -webkit-backdrop-filter: blur(20px);
-    backdrop-filter: blur(20px) !important;
+    /* Box shadow per dark theme */
     box-shadow: 0 2px 20px rgba(255, 255, 255, 0.08) !important;
-}
-
-@supports not (backdrop-filter: blur(20px)) {
-    .smart-header.dark-theme.scrolled {
-        background-color: rgba(0, 0, 0, 0.1) !important;
-    }
 }
