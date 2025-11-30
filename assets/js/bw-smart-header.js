@@ -9,6 +9,7 @@
  * - Applica effetto blur dopo 50px di scroll
  * - Calcola automaticamente offset WordPress Admin Bar
  * - Animazioni speculari per scroll up/down usando CSS transitions
+ * - Rilevamento automatico zone scure per cambio colore testo/logo
  *
  * Performance:
  * - requestAnimationFrame per ottimizzazione
@@ -16,8 +17,9 @@
  * - Passive event listeners
  * - GPU acceleration via CSS
  * - CSS variables per offset dinamici
+ * - IntersectionObserver per rilevamento zone scure
  *
- * @version 2.1.0
+ * @version 2.2.0
  */
 
 (function($) {
@@ -70,6 +72,12 @@
     let animatedBannerElement = null;
     let bannerInsideHeader = false;
     let bannerAffectsHeaderFlow = false;
+
+    // Dark Zone Detection
+    let darkZoneObserver = null;
+    let darkZones = [];
+    let isOnDarkZone = false;
+    let currentDarkZone = null;
 
     /* ========================================================================
        FUNZIONI UTILITY
@@ -284,6 +292,129 @@
     }
 
     /* ========================================================================
+       DARK ZONE DETECTION
+       ======================================================================== */
+
+    /**
+     * Verifica se lo SmartHeader sta attraversando una dark zone
+     * Controlla se il rettangolo dello header (fisso in alto) interseca
+     * il rettangolo di una dark zone
+     */
+    function checkDarkZoneOverlap() {
+        if (!headerElement || !headerElement.length || isEditorActive) return;
+
+        const headerRect = headerElement[0].getBoundingClientRect();
+        const headerTop = headerRect.top;
+        const headerBottom = headerRect.bottom;
+        const headerHeight = headerRect.height;
+
+        let overlappingZone = null;
+        let maxOverlap = 0;
+
+        // Controlla ogni dark zone
+        darkZones.forEach(zone => {
+            const zoneRect = zone.getBoundingClientRect();
+            const zoneTop = zoneRect.top;
+            const zoneBottom = zoneRect.bottom;
+
+            // Calcola se c'è overlap
+            // L'header è fixed in top, quindi verifichiamo se la dark zone
+            // passa attraverso la posizione dell'header
+            const isOverlapping = (
+                zoneTop < headerBottom &&
+                zoneBottom > headerTop
+            );
+
+            if (isOverlapping) {
+                // Calcola la percentuale di overlap
+                const overlapTop = Math.max(headerTop, zoneTop);
+                const overlapBottom = Math.min(headerBottom, zoneBottom);
+                const overlapHeight = overlapBottom - overlapTop;
+                const overlapPercentage = (overlapHeight / headerHeight) * 100;
+
+                // Tiene traccia della zona con maggior overlap
+                if (overlapPercentage > maxOverlap) {
+                    maxOverlap = overlapPercentage;
+                    overlappingZone = zone;
+                }
+            }
+        });
+
+        // Soglia minima di overlap per attivare il cambio (30% dell'header deve essere sopra la dark zone)
+        const overlapThreshold = 30;
+        const shouldBeOnDark = overlappingZone !== null && maxOverlap >= overlapThreshold;
+
+        // Aggiorna lo stato solo se cambiato
+        if (shouldBeOnDark !== isOnDarkZone) {
+            isOnDarkZone = shouldBeOnDark;
+            currentDarkZone = overlappingZone;
+
+            if (isOnDarkZone) {
+                headerElement.addClass('smart-header--on-dark');
+                debugLog('SmartHeader entrato in dark zone', {
+                    overlapPercentage: maxOverlap.toFixed(2) + '%'
+                });
+            } else {
+                headerElement.removeClass('smart-header--on-dark');
+                debugLog('SmartHeader uscito da dark zone');
+            }
+        }
+    }
+
+    /**
+     * Inizializza il sistema di rilevamento dark zones
+     * Usa IntersectionObserver per performance ottimali
+     */
+    function initDarkZoneDetection() {
+        // Trova tutte le dark zones
+        darkZones = Array.from(document.querySelectorAll('.smart-header-dark-zone'));
+
+        if (darkZones.length === 0) {
+            debugLog('Nessuna dark zone trovata (.smart-header-dark-zone)');
+            return;
+        }
+
+        debugLog('Dark zones trovate', { count: darkZones.length });
+
+        // Usa IntersectionObserver per rilevare quando le zone entrano/escono dal viewport
+        // Questo ottimizza le performance controllando solo le zone visibili
+        const observerOptions = {
+            root: null, // viewport
+            rootMargin: '0px',
+            threshold: [0, 0.1, 0.25, 0.5, 0.75, 1.0] // Multiple thresholds per precisione
+        };
+
+        darkZoneObserver = new IntersectionObserver((entries) => {
+            // Controlla overlap quando una zona diventa visibile o cambia visibilità
+            entries.forEach(entry => {
+                if (entry.isIntersecting || entry.intersectionRatio > 0) {
+                    // La zona è almeno parzialmente visibile, controlla overlap
+                    checkDarkZoneOverlap();
+                }
+            });
+        }, observerOptions);
+
+        // Osserva tutte le dark zones
+        darkZones.forEach(zone => {
+            darkZoneObserver.observe(zone);
+        });
+
+        // Controllo iniziale
+        checkDarkZoneOverlap();
+
+        debugLog('✅ Dark zone detection inizializzato');
+    }
+
+    /**
+     * Handler ottimizzato per il controllo delle dark zones durante lo scroll
+     */
+    function handleDarkZoneScroll() {
+        if (!headerElement || isEditorActive || darkZones.length === 0) return;
+
+        checkDarkZoneOverlap();
+    }
+
+    /* ========================================================================
        GESTIONE SCROLL
        ======================================================================== */
 
@@ -336,6 +467,9 @@
 
         // Gestisci effetto blur usando soglia dinamica
         handleBlurEffect(currentScrollTop, dynamicBlurThreshold);
+
+        // Gestisci rilevamento dark zones
+        handleDarkZoneScroll();
 
         // Aggiorna variabili di tracking
         scrollDirection = newDirection;
@@ -412,6 +546,9 @@
         // Calcola e applica tutti gli offset (admin bar + animated banner)
         calculateAllOffsets();
 
+        // Inizializza rilevamento dark zones
+        initDarkZoneDetection();
+
         // ====================================================================
         // EVENT LISTENERS con opzione PASSIVE per performance
         // ====================================================================
@@ -425,6 +562,7 @@
             debugLog('Window resized - Ricalcolo stato');
             calculateAllOffsets(); // Ricalcola tutti gli offset su resize
             handleScroll();
+            checkDarkZoneOverlap(); // Ricalcola dark zone overlap su resize
         }, 250);
 
         window.addEventListener('resize', throttledResizeHandler, { passive: true });
@@ -435,6 +573,7 @@
             debugLog('Window load - Ricalcolo offset');
             calculateAllOffsets();
             handleScroll();
+            checkDarkZoneOverlap();
         });
 
         debugLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -451,6 +590,12 @@
 
         window.removeEventListener('scroll', throttledScrollHandler);
         window.removeEventListener('resize', throttledScrollHandler);
+
+        // Disconnetti observer dark zones
+        if (darkZoneObserver) {
+            darkZoneObserver.disconnect();
+            darkZoneObserver = null;
+        }
     }
 
     /* ========================================================================
@@ -493,7 +638,7 @@
 
     // Esponi API globale per debugging in console
     window.bwSmartHeader = {
-        version: '2.2.0',
+        version: '2.3.0',
         config: CONFIG,
         show: showHeader,
         hide: hideHeader,
@@ -506,11 +651,17 @@
                 hasBlur: headerElement ? headerElement.hasClass('scrolled') : null,
                 adminBarHeight: adminBarHeight,
                 animatedBannerHeight: animatedBannerHeight,
-                totalTopOffset: adminBarHeight + (bannerInsideHeader ? 0 : animatedBannerHeight)
+                totalTopOffset: adminBarHeight + (bannerInsideHeader ? 0 : animatedBannerHeight),
+                isOnDarkZone: isOnDarkZone,
+                darkZonesCount: darkZones.length
             };
         },
         recalculateAdminBar: calculateAdminBarOffset,
-        recalculateAllOffsets: calculateAllOffsets
+        recalculateAllOffsets: calculateAllOffsets,
+        recheckDarkZones: checkDarkZoneOverlap,
+        getDarkZones: function() {
+            return darkZones;
+        }
     };
 
 })(jQuery);
