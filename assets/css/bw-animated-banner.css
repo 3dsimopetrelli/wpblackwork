@@ -1,6 +1,6 @@
 /**
  * BW Animated Banner Widget Styles
- * Posizionato fisso in alto, sopra lo smart-header
+ * Inserito all'interno dello smart-header, sopra la navigazione
  */
 
 /* Rimuovi qualsiasi proprietà dai wrapper Elementor che interferisce con position: fixed */
@@ -44,24 +44,21 @@ body:not(.elementor-editor-active) .elementor-top-section {
 }
 
 .bw-animated-banner {
-    /* Posizionamento fisso in alto della pagina */
-    position: fixed !important;
-    top: var(--wp-admin-bar-height, 0) !important;
-    left: 0 !important;
-    right: 0 !important;
+    /* Partecipa al flusso del .smart-header */
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
     width: 100% !important;
 
-    /* Z-index più alto dello smart-header per stare sopra */
-    z-index: 9999 !important;
+    /* Garantisce che il banner resti sopra la navigation nello stesso container */
+    z-index: 1 !important;
 
     overflow: hidden;
     background-color: #B5FF2B;
     min-height: 60px;
     display: flex;
     align-items: center;
-
-    /* Transizione smooth per il top quando cambia l'admin bar */
-    transition: top 0.2s ease;
 }
 
 .bw-animated-banner__track {
