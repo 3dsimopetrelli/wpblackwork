@@ -68,6 +68,8 @@
     let adminBarHeight = 0;
     let animatedBannerHeight = 0;
     let animatedBannerElement = null;
+    let bannerInsideHeader = false;
+    let bannerAffectsHeaderFlow = false;
 
     /* ========================================================================
        FUNZIONI UTILITY
@@ -114,12 +116,21 @@
 
     /**
      * Calcola l'altezza del BW Animated Banner se presente
-     * Il banner deve essere posizionato PRIMA dello smart-header nel DOM
+     * Il banner può essere posizionato DENTRO il container .smart-header (sopra la navigazione)
+     * oppure immediatamente prima nel DOM. In entrambi i casi deve essere
+     * considerato come parte dell'altezza totale dello smart header.
      */
     function calculateAnimatedBannerHeight() {
-        // Cerca il banner animato che precede lo smart-header
+        bannerInsideHeader = false;
+        bannerAffectsHeaderFlow = false;
+
+        // Cerca prima dentro lo smart-header, poi come fratello precedente
         if (headerElement && headerElement.length) {
-            animatedBannerElement = headerElement.prevAll('.bw-animated-banner').first();
+            animatedBannerElement = headerElement.find('.bw-animated-banner').first();
+
+            if (!animatedBannerElement.length) {
+                animatedBannerElement = headerElement.prevAll('.bw-animated-banner').first();
+            }
         }
 
         // Fallback: primo banner presente nel DOM
@@ -128,8 +139,24 @@
         }
 
         if (animatedBannerElement.length && animatedBannerElement.is(':visible')) {
+            const bannerNode = animatedBannerElement.get(0);
+            const computedStyle = window.getComputedStyle(bannerNode);
+            const bannerPosition = computedStyle.getPropertyValue('position');
+
             animatedBannerHeight = animatedBannerElement.outerHeight() || 0;
-            debugLog('BW Animated Banner rilevato', { height: animatedBannerHeight + 'px' });
+
+            bannerInsideHeader = headerElement && headerElement.length
+                ? headerElement.has(animatedBannerElement).length > 0
+                : false;
+
+            bannerAffectsHeaderFlow = bannerInsideHeader && bannerPosition !== 'fixed' && bannerPosition !== 'absolute';
+
+            debugLog('BW Animated Banner rilevato', {
+                height: animatedBannerHeight + 'px',
+                insideHeader: bannerInsideHeader,
+                affectsFlow: bannerAffectsHeaderFlow,
+                position: bannerPosition
+            });
         } else {
             animatedBannerHeight = 0;
             debugLog('BW Animated Banner non presente');
@@ -168,6 +195,11 @@
             ? (headerElement.outerHeight() || 0)
             : 0;
 
+        // Se il banner è dentro il container e partecipa al flusso, l'altezza è già inclusa
+        if (bannerAffectsHeaderFlow) {
+            return headerHeight;
+        }
+
         return headerHeight + animatedBannerHeight;
     }
 
@@ -180,7 +212,8 @@
         calculateAnimatedBannerHeight();
 
         // Calcola l'offset totale per lo smart-header
-        const totalTopOffset = adminBarHeight + animatedBannerHeight;
+        // Se il banner è DENTRO lo smart-header, non va aggiunto come offset separato
+        const totalTopOffset = adminBarHeight + (bannerInsideHeader ? 0 : animatedBannerHeight);
         document.documentElement.style.setProperty('--smart-header-top-offset', totalTopOffset + 'px');
 
         // Calcola il padding del body (header height + offsets)
