@@ -253,6 +253,153 @@ body.elementor-editor-active {
 }
 
 /* ============================================================================
+   DARK ZONE DETECTION SYSTEM
+   ============================================================================ */
+
+/**
+ * CLASSE MARKER PER SEZIONI SCURE
+ * Applica questa classe alle sezioni/container con sfondo scuro
+ * Lo SmartHeader rileverà automaticamente quando passa sopra queste zone
+ */
+.smart-header-dark-zone {
+    /* Questa classe è solo un marker per il JavaScript */
+    /* Non applica stili visivi - serve solo per il rilevamento */
+    position: relative; /* Assicura che getBoundingClientRect() funzioni correttamente */
+}
+
+/**
+ * CLASSE REATTIVA PER TESTO E ELEMENTI
+ * Applica questa classe agli elementi dello SmartHeader che devono cambiare colore:
+ * - Voci di menu navigation
+ * - Logo SVG
+ * - Widget BW NavShop
+ * - Qualsiasi testo che deve diventare chiaro su sfondo scuro
+ */
+.smart-header-reactive-text {
+    /* Colore di default (testo scuro su sfondo chiaro) */
+    color: inherit;
+
+    /* Transizione fluida per il cambio colore */
+    transition: color 0.3s ease,
+                fill 0.3s ease,
+                stroke 0.3s ease,
+                opacity 0.3s ease;
+}
+
+/**
+ * Supporto SVG - Logo e icone
+ * Assicura che gli elementi SVG ereditino il colore corrente
+ */
+.smart-header-reactive-text svg,
+.smart-header-reactive-text svg path,
+.smart-header-reactive-text svg circle,
+.smart-header-reactive-text svg rect,
+.smart-header-reactive-text svg polygon,
+.smart-header-reactive-text svg polyline,
+.smart-header-reactive-text svg line {
+    fill: currentColor;
+    stroke: currentColor;
+    transition: fill 0.3s ease, stroke 0.3s ease;
+}
+
+/**
+ * STATO: SmartHeader su zona scura
+ * Quando lo SmartHeader passa sopra una sezione con .smart-header-dark-zone,
+ * tutti gli elementi con .smart-header-reactive-text diventano chiari
+ */
+.smart-header--on-dark .smart-header-reactive-text {
+    color: #ffffff !important; /* Testo bianco su sfondo scuro */
+}
+
+/**
+ * Variante con opacità ridotta per elementi secondari
+ * Applica classe aggiuntiva .smart-header-reactive-text--secondary
+ */
+.smart-header--on-dark .smart-header-reactive-text.smart-header-reactive-text--secondary {
+    color: rgba(255, 255, 255, 0.8) !important;
+}
+
+/**
+ * SVG su zona scura
+ */
+.smart-header--on-dark .smart-header-reactive-text svg,
+.smart-header--on-dark .smart-header-reactive-text svg path,
+.smart-header--on-dark .smart-header-reactive-text svg circle,
+.smart-header--on-dark .smart-header-reactive-text svg rect,
+.smart-header--on-dark .smart-header-reactive-text svg polygon,
+.smart-header--on-dark .smart-header-reactive-text svg polyline,
+.smart-header--on-dark .smart-header-reactive-text svg line {
+    fill: #ffffff !important;
+    stroke: #ffffff !important;
+}
+
+/**
+ * Supporto per Elementor Navigation Menu
+ * Gli elementi di menu Elementor hanno selettori specifici
+ */
+.smart-header--on-dark .smart-header-reactive-text .elementor-nav-menu--main .elementor-item,
+.smart-header--on-dark .smart-header-reactive-text.elementor-nav-menu--main .elementor-item,
+.smart-header--on-dark .elementor-nav-menu--main.smart-header-reactive-text .elementor-item {
+    color: #ffffff !important;
+}
+
+.smart-header--on-dark .smart-header-reactive-text .elementor-nav-menu--main .elementor-item:hover,
+.smart-header--on-dark .smart-header-reactive-text.elementor-nav-menu--main .elementor-item:hover,
+.smart-header--on-dark .elementor-nav-menu--main.smart-header-reactive-text .elementor-item:hover {
+    color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/**
+ * Supporto per Widget BW NavShop
+ */
+.smart-header--on-dark .smart-header-reactive-text .bw-navshop__item,
+.smart-header--on-dark .bw-navshop.smart-header-reactive-text .bw-navshop__item {
+    color: #ffffff !important;
+}
+
+.smart-header--on-dark .smart-header-reactive-text .bw-navshop__item:hover,
+.smart-header--on-dark .bw-navshop.smart-header-reactive-text .bw-navshop__item:hover {
+    color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/**
+ * Performance - GPU acceleration per transizioni fluide
+ */
+.smart-header-reactive-text {
+    will-change: color;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+/**
+ * Accessibilità - Riduzione animazioni
+ */
+@media (prefers-reduced-motion: reduce) {
+    .smart-header-reactive-text {
+        transition: none !important;
+    }
+
+    .smart-header-reactive-text svg,
+    .smart-header-reactive-text svg * {
+        transition: none !important;
+    }
+}
+
+/**
+ * Responsive - Mobile
+ * Su mobile manteniamo le stesse regole ma assicuriamo performance ottimali
+ */
+@media (max-width: 768px) {
+    .smart-header-reactive-text {
+        /* Transizioni leggermente più veloci su mobile */
+        transition: color 0.25s ease,
+                    fill 0.25s ease,
+                    stroke 0.25s ease;
+    }
+}
+
+/* ============================================================================
    VARIANTE DARK THEME (OPZIONALE)
    ============================================================================ */
 
