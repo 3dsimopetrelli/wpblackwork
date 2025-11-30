@@ -124,13 +124,9 @@
         bannerInsideHeader = false;
         bannerAffectsHeaderFlow = false;
 
-        // Cerca prima dentro lo smart-header, poi come fratello precedente
+        // Cerca prima dentro lo smart-header
         if (headerElement && headerElement.length) {
             animatedBannerElement = headerElement.find('.bw-animated-banner').first();
-
-            if (!animatedBannerElement.length) {
-                animatedBannerElement = headerElement.prevAll('.bw-animated-banner').first();
-            }
         }
 
         // Fallback: primo banner presente nel DOM
@@ -159,6 +155,8 @@
             });
         } else {
             animatedBannerHeight = 0;
+            bannerInsideHeader = false;
+            bannerAffectsHeaderFlow = false;
             debugLog('BW Animated Banner non presente');
         }
 
@@ -194,6 +192,9 @@
         const headerHeight = headerElement && headerElement.length
             ? (headerElement.outerHeight() || 0)
             : 0;
+
+        // Aggiorna dinamicamente lo stato del banner per avere misure sempre correnti
+        calculateAnimatedBannerHeight();
 
         // Se il banner è dentro il container e partecipa al flusso, l'altezza è già inclusa
         if (bannerAffectsHeaderFlow) {
@@ -266,18 +267,18 @@
      * Gestisce l'effetto blur basato sulla posizione di scroll
      * Attivo dopo 50px di scroll
      */
-    function handleBlurEffect(scrollTop) {
+    function handleBlurEffect(scrollTop, dynamicThreshold = CONFIG.blurThreshold) {
         if (!headerElement || isEditorActive) return;
 
-        if (scrollTop > CONFIG.blurThreshold) {
+        if (scrollTop > dynamicThreshold) {
             if (!headerElement.hasClass('scrolled')) {
                 headerElement.addClass('scrolled');
-                debugLog('Blur effect attivato', { scrollTop });
+                debugLog('Blur effect attivato', { scrollTop, threshold: dynamicThreshold });
             }
         } else {
             if (headerElement.hasClass('scrolled')) {
                 headerElement.removeClass('scrolled');
-                debugLog('Blur effect disattivato', { scrollTop });
+                debugLog('Blur effect disattivato', { scrollTop, threshold: dynamicThreshold });
             }
         }
     }
@@ -293,6 +294,7 @@
         if (!headerElement || isEditorActive) return;
 
         const currentScrollTop = Math.max(0, $(window).scrollTop());
+        const totalHeaderHeight = getTotalHeaderHeight();
 
         // Previeni calcoli se non c'è movimento significativo
         if (Math.abs(currentScrollTop - lastScrollTop) < CONFIG.scrollDelta) {
@@ -301,11 +303,16 @@
 
         // Determina direzione scroll
         const newDirection = currentScrollTop > lastScrollTop ? 'down' : 'up';
+        const dynamicScrollDownThreshold = Math.max(CONFIG.scrollDownThreshold, totalHeaderHeight);
+        const dynamicBlurThreshold = Math.max(CONFIG.blurThreshold, Math.round(totalHeaderHeight * 0.5));
 
         debugLog('Scroll ' + newDirection, {
             current: currentScrollTop,
             last: lastScrollTop,
-            delta: currentScrollTop - lastScrollTop
+            delta: currentScrollTop - lastScrollTop,
+            headerHeight: totalHeaderHeight,
+            scrollDownThreshold: dynamicScrollDownThreshold,
+            blurThreshold: dynamicBlurThreshold
         });
 
         // ====================================================================
@@ -318,17 +325,17 @@
 
         } else if (newDirection === 'down') {
             // SCROLL DOWN
-            if (currentScrollTop > CONFIG.scrollDownThreshold) {
-                // Oltre 100px → Nascondi header
+            if (currentScrollTop > dynamicScrollDownThreshold) {
+                // Oltre l'altezza totale dell'header → Nascondi
                 hideHeader();
             } else {
-                // Sotto 100px → Mostra header
+                // Sotto soglia dinamica → Mostra header
                 showHeader();
             }
         }
 
-        // Gestisci effetto blur (attivo dopo 50px)
-        handleBlurEffect(currentScrollTop);
+        // Gestisci effetto blur usando soglia dinamica
+        handleBlurEffect(currentScrollTop, dynamicBlurThreshold);
 
         // Aggiorna variabili di tracking
         scrollDirection = newDirection;
@@ -391,8 +398,11 @@
         // Imposta stato iniziale
         lastScrollTop = Math.max(0, $(window).scrollTop());
 
-        // Applica stato iniziale
-        if (lastScrollTop > CONFIG.blurThreshold) {
+        // Applica stato iniziale basato sull'altezza reale dell'header
+        const initialHeaderHeight = getTotalHeaderHeight();
+        const initialBlurThreshold = Math.max(CONFIG.blurThreshold, Math.round(initialHeaderHeight * 0.5));
+
+        if (lastScrollTop > initialBlurThreshold) {
             headerElement.addClass('scrolled');
         }
 
@@ -496,7 +506,7 @@
                 hasBlur: headerElement ? headerElement.hasClass('scrolled') : null,
                 adminBarHeight: adminBarHeight,
                 animatedBannerHeight: animatedBannerHeight,
-                totalTopOffset: adminBarHeight + animatedBannerHeight
+                totalTopOffset: adminBarHeight + (bannerInsideHeader ? 0 : animatedBannerHeight)
             };
         },
         recalculateAdminBar: calculateAdminBarOffset,
