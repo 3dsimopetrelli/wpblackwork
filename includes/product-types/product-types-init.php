@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /**
  * Helper function to get product type reliably.
- * Checks taxonomy first (WooCommerce native), then post meta as fallback.
+ * Prefers stored meta and falls back to taxonomy for resilience.
  *
  * @param int $product_id Product ID.
  * @return string Product type or empty string.
@@ -61,6 +61,24 @@ function bw_load_custom_product_type_classes() {
 	require_once __DIR__ . '/class-wc-product-prints.php';
 }
 add_action( 'woocommerce_loaded', 'bw_load_custom_product_type_classes', 10 );
+
+/**
+ * Make WooCommerce aware of custom product types.
+ *
+ * Without registering here, WooCommerce can downgrade the type to "simple"
+ * during save, which removes the custom product data.
+ *
+ * @param array $types Registered product types.
+ * @return array
+ */
+function bw_register_product_types( $types ) {
+        $types['digitalassets'] = __( 'Digital Assets', 'bw' );
+        $types['books']         = __( 'Homebook', 'bw' );
+        $types['prints']        = __( 'Print', 'bw' );
+
+        return $types;
+}
+add_filter( 'woocommerce_product_types', 'bw_register_product_types' );
 
 /**
  * Register custom product types with WooCommerce.
