@@ -9,7 +9,14 @@
  * - Applica effetto blur dopo 50px di scroll
  * - Calcola automaticamente offset WordPress Admin Bar
  * - Animazioni speculari per scroll up/down usando CSS transitions
- * - Rilevamento automatico zone scure per cambio colore testo/logo
+ * - Rilevamento AUTOMATICO zone scure per cambio colore testo/logo
+ *
+ * Dark Zone Detection (AUTOMATICO):
+ * - Analisi automatica del colore di sfondo di ogni sezione
+ * - Calcolo luminosità usando formula W3C (brightness)
+ * - Supporto per colori RGB, RGBA, HEX, gradient
+ * - Soglia personalizzabile (default 128/255)
+ * - Compatibilità con classe manuale .smart-header-dark-zone
  *
  * Performance:
  * - requestAnimationFrame per ottimizzazione
@@ -19,7 +26,7 @@
  * - CSS variables per offset dinamici
  * - IntersectionObserver per rilevamento zone scure
  *
- * @version 2.2.0
+ * @version 2.4.0
  */
 
 (function($) {
@@ -296,6 +303,183 @@
        ======================================================================== */
 
     /**
+     * Converte un colore RGB/RGBA in valori numerici
+     * @param {string} color - Colore in formato rgb(r,g,b) o rgba(r,g,b,a)
+     * @returns {object|null} - {r, g, b, a} o null se non valido
+     */
+    function parseColor(color) {
+        if (!color || color === 'transparent' || color === 'rgba(0, 0, 0, 0)') {
+            return null;
+        }
+
+        // Match rgb(r, g, b) o rgba(r, g, b, a)
+        const rgbaMatch = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
+        if (rgbaMatch) {
+            return {
+                r: parseInt(rgbaMatch[1], 10),
+                g: parseInt(rgbaMatch[2], 10),
+                b: parseInt(rgbaMatch[3], 10),
+                a: rgbaMatch[4] ? parseFloat(rgbaMatch[4]) : 1
+            };
+        }
+
+        // Match colori esadecimali #RRGGBB o #RGB
+        const hexMatch = color.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
+        if (hexMatch) {
+            let hex = hexMatch[1];
+            if (hex.length === 3) {
+                hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+            }
+            return {
+                r: parseInt(hex.substr(0, 2), 16),
+                g: parseInt(hex.substr(2, 2), 16),
+                b: parseInt(hex.substr(4, 2), 16),
+                a: 1
+            };
+        }
+
+        return null;
+    }
+
+    /**
+     * Calcola la luminosità percepita di un colore usando la formula W3C
+     * https://www.w3.org/TR/AERT/#color-contrast
+     * @param {object} color - {r, g, b, a}
+     * @returns {number} - Valore 0-255 (0 = nero, 255 = bianco)
+     */
+    function getColorBrightness(color) {
+        if (!color) return 255; // Default: chiaro
+
+        // Formula W3C per luminosità percepita
+        // Brightness = (R * 299 + G * 587 + B * 114) / 1000
+        const brightness = (color.r * 299 + color.g * 587 + color.b * 114) / 1000;
+        return brightness;
+    }
+
+    /**
+     * Determina se un colore è "scuro"
+     * @param {object} color - {r, g, b, a}
+     * @param {number} threshold - Soglia luminosità (0-255, default 128)
+     * @returns {boolean} - true se scuro
+     */
+    function isColorDark(color, threshold = 128) {
+        if (!color) return false;
+
+        // Se il colore ha opacità molto bassa, non considerarlo scuro
+        if (color.a < 0.5) return false;
+
+        const brightness = getColorBrightness(color);
+        return brightness < threshold;
+    }
+
+    /**
+     * Ottiene il colore di sfondo effettivo di un elemento
+     * Risale la catena dei parent se l'elemento ha background trasparente
+     * @param {HTMLElement} element - Elemento da analizzare
+     * @returns {object|null} - {r, g, b, a} o null
+     */
+    function getEffectiveBackgroundColor(element) {
+        let current = element;
+        let maxDepth = 10; // Limita la ricerca a 10 livelli parent
+        let depth = 0;
+
+        while (current && depth < maxDepth) {
+            const computedStyle = window.getComputedStyle(current);
+            const bgColor = computedStyle.backgroundColor;
+            const parsed = parseColor(bgColor);
+
+            // Se troviamo un colore opaco, lo restituiamo
+            if (parsed && parsed.a > 0.5) {
+                return parsed;
+            }
+
+            // Controlla anche background-image (gradient scuri)
+            const bgImage = computedStyle.backgroundImage;
+            if (bgImage && bgImage !== 'none') {
+                // Cerca gradient scuri
+                if (bgImage.includes('gradient')) {
+                    // Estrae il primo colore dal gradient
+                    const gradientColorMatch = bgImage.match(/rgba?\([^)]+\)/);
+                    if (gradientColorMatch) {
+                        const gradientColor = parseColor(gradientColorMatch[0]);
+                        if (gradientColor && gradientColor.a > 0.5) {
+                            return gradientColor;
+                        }
+                    }
+                }
+            }
+
+            // Sale al parent
+            current = current.parentElement;
+            depth++;
+        }
+
+        // Default: sfondo chiaro (bianco)
+        return { r: 255, g: 255, b: 255, a: 1 };
+    }
+
+    /**
+     * Scansiona automaticamente il DOM per trovare sezioni con background scuro
+     * Cerca sezioni Elementor e altri container comuni
+     */
+    function autoDetectDarkSections() {
+        const sections = [];
+
+        // Selettori per sezioni Elementor e container comuni
+        const selectors = [
+            '.elementor-section',
+            '.elementor-container',
+            'section',
+            '[data-elementor-type]',
+            '.wp-block-cover',
+            '.entry-content > div',
+            'main > section',
+            'main > div'
+        ];
+
+        // Cerca tutte le sezioni
+        const allSections = document.querySelectorAll(selectors.join(', '));
+
+        debugLog('Scansione automatica sezioni', {
+            totalFound: allSections.length
+        });
+
+        allSections.forEach(section => {
+            // Salta lo SmartHeader stesso
+            if (section.classList.contains('smart-header') ||
+                section.closest('.smart-header')) {
+                return;
+            }
+
+            // Salta sezioni troppo piccole (probabilmente non sezioni principali)
+            const rect = section.getBoundingClientRect();
+            if (rect.height < 100) {
+                return;
+            }
+
+            // Ottieni il colore di sfondo effettivo
+            const bgColor = getEffectiveBackgroundColor(section);
+
+            // Verifica se è scuro (soglia 128 - metà dello spettro)
+            if (isColorDark(bgColor, 128)) {
+                sections.push(section);
+
+                debugLog('Sezione scura rilevata automaticamente', {
+                    element: section.tagName + (section.className ? '.' + section.className.split(' ')[0] : ''),
+                    color: `rgb(${bgColor.r}, ${bgColor.g}, ${bgColor.b})`,
+                    brightness: getColorBrightness(bgColor).toFixed(2)
+                });
+            }
+        });
+
+        debugLog('Rilevamento automatico completato', {
+            darkSectionsFound: sections.length
+        });
+
+        return sections;
+    }
+
+    /**
      * Verifica se lo SmartHeader sta attraversando una dark zone
      * Controlla se il rettangolo dello header (fisso in alto) interseca
      * il rettangolo di una dark zone
@@ -364,17 +548,35 @@
     /**
      * Inizializza il sistema di rilevamento dark zones
      * Usa IntersectionObserver per performance ottimali
+     * MODALITÀ AUTOMATICA: Rileva automaticamente sezioni con background scuro
      */
     function initDarkZoneDetection() {
-        // Trova tutte le dark zones
-        darkZones = Array.from(document.querySelectorAll('.smart-header-dark-zone'));
+        // PRIORITÀ 1: Cerca sezioni con classe manuale .smart-header-dark-zone
+        const manualDarkZones = Array.from(document.querySelectorAll('.smart-header-dark-zone'));
+
+        // PRIORITÀ 2: Rilevamento automatico sezioni scure
+        const autoDarkZones = autoDetectDarkSections();
+
+        // Combina entrambe (rimuovi duplicati)
+        const allDarkZones = [...manualDarkZones];
+        autoDarkZones.forEach(zone => {
+            if (!manualDarkZones.includes(zone)) {
+                allDarkZones.push(zone);
+            }
+        });
+
+        darkZones = allDarkZones;
 
         if (darkZones.length === 0) {
-            debugLog('Nessuna dark zone trovata (.smart-header-dark-zone)');
+            debugLog('⚠️  Nessuna dark zone trovata (né manuale né automatica)');
             return;
         }
 
-        debugLog('Dark zones trovate', { count: darkZones.length });
+        debugLog('✅ Dark zones rilevate', {
+            total: darkZones.length,
+            manual: manualDarkZones.length,
+            auto: autoDarkZones.length
+        });
 
         // Usa IntersectionObserver per rilevare quando le zone entrano/escono dal viewport
         // Questo ottimizza le performance controllando solo le zone visibili
@@ -638,7 +840,7 @@
 
     // Esponi API globale per debugging in console
     window.bwSmartHeader = {
-        version: '2.3.0',
+        version: '2.4.0',
         config: CONFIG,
         show: showHeader,
         hide: hideHeader,
