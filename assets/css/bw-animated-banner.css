@@ -1,15 +1,27 @@
 /**
  * BW Animated Banner Widget Styles
+ * Posizionato fisso in alto, sopra lo smart-header
  */
 
 .bw-animated-banner {
-    position: relative;
+    /* Posizionamento fisso in alto della pagina */
+    position: fixed;
+    top: var(--wp-admin-bar-height, 0);
+    left: 0;
+    right: 0;
     width: 100%;
+
+    /* Z-index più alto dello smart-header per stare sopra */
+    z-index: 9999;
+
     overflow: hidden;
     background-color: #B5FF2B;
     min-height: 60px;
     display: flex;
     align-items: center;
+
+    /* Transizione smooth per il top quando cambia l'admin bar */
+    transition: top 0.2s ease;
 }
 
 .bw-animated-banner__track {
@@ -61,6 +73,12 @@
 }
 
 /* Elementor editor styles */
+.elementor-editor-active .bw-animated-banner {
+    /* Posizionamento relativo nell'editor per facilitare la modifica */
+    position: relative !important;
+    top: auto !important;
+}
+
 .elementor-editor-active .bw-animated-banner__track {
     animation-play-state: running;
 }

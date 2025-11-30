@@ -26,14 +26,14 @@
 .smart-header {
     /* Posizionamento fisso in alto */
     position: fixed !important;
-    /* Usa CSS variable per l'offset della WP Admin Bar */
-    top: var(--wp-admin-bar-height, 0) !important;
+    /* Usa CSS variable per l'offset totale (WP Admin Bar + Animated Banner) */
+    top: var(--smart-header-top-offset, var(--wp-admin-bar-height, 0)) !important;
     left: 0 !important;
     right: 0 !important;
     width: 100% !important;
 
-    /* Z-index alto per stare sopra tutto */
-    z-index: 9999 !important;
+    /* Z-index alto per stare sopra tutto (ma sotto il banner se presente) */
+    z-index: 9998 !important;
 
     /* Transizione smooth per il nascondimento/apparizione */
     transition: transform 0.4s ease-in-out,
@@ -105,11 +105,12 @@
    ============================================================================ */
 
 /**
- * Padding del body per compensare l'header fisso
+ * Padding del body per compensare l'header fisso + animated banner
  * NON applicato nell'editor di Elementor
+ * Usa CSS variable calcolata dinamicamente da JavaScript
  */
 body:not(.elementor-editor-active) {
-    padding-top: 100px;
+    padding-top: var(--smart-header-body-padding, 100px);
 }
 
 /**

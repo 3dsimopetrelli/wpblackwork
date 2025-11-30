@@ -66,6 +66,8 @@
     let ticking = false;
     let isEditorActive = false;
     let adminBarHeight = 0;
+    let animatedBannerHeight = 0;
+    let animatedBannerElement = null;
 
     /* ========================================================================
        FUNZIONI UTILITY
@@ -111,6 +113,27 @@
     }
 
     /**
+     * Calcola l'altezza del BW Animated Banner se presente
+     * Il banner deve essere posizionato PRIMA dello smart-header nel DOM
+     */
+    function calculateAnimatedBannerHeight() {
+        // Cerca il banner animato che precede lo smart-header
+        animatedBannerElement = $('.bw-animated-banner').first();
+
+        if (animatedBannerElement.length && animatedBannerElement.is(':visible')) {
+            animatedBannerHeight = animatedBannerElement.outerHeight() || 0;
+            debugLog('BW Animated Banner rilevato', { height: animatedBannerHeight + 'px' });
+        } else {
+            animatedBannerHeight = 0;
+            debugLog('BW Animated Banner non presente');
+        }
+
+        // Applica l'altezza usando CSS variable
+        document.documentElement.style.setProperty('--animated-banner-height', animatedBannerHeight + 'px');
+        debugLog('CSS variable impostata', { '--animated-banner-height': animatedBannerHeight + 'px' });
+    }
+
+    /**
      * Calcola e applica l'offset per la WordPress admin bar
      * Usa CSS variable per permettere transizioni smooth
      */
@@ -128,6 +151,34 @@
         // Applica l'offset usando CSS variable
         document.documentElement.style.setProperty('--wp-admin-bar-height', adminBarHeight + 'px');
         debugLog('CSS variable impostata', { '--wp-admin-bar-height': adminBarHeight + 'px' });
+    }
+
+    /**
+     * Calcola e applica tutti gli offset (admin bar + animated banner)
+     * Aggiorna anche il padding del body dinamicamente
+     */
+    function calculateAllOffsets() {
+        calculateAdminBarOffset();
+        calculateAnimatedBannerHeight();
+
+        // Calcola l'offset totale per lo smart-header
+        const totalTopOffset = adminBarHeight + animatedBannerHeight;
+        document.documentElement.style.setProperty('--smart-header-top-offset', totalTopOffset + 'px');
+
+        // Calcola il padding del body (header height + offsets)
+        if (headerElement && headerElement.length) {
+            const headerHeight = headerElement.outerHeight() || 0;
+            const totalBodyPadding = totalTopOffset + headerHeight;
+            document.documentElement.style.setProperty('--smart-header-body-padding', totalBodyPadding + 'px');
+
+            debugLog('Offset totali calcolati', {
+                adminBar: adminBarHeight + 'px',
+                banner: animatedBannerHeight + 'px',
+                header: headerHeight + 'px',
+                totalTop: totalTopOffset + 'px',
+                bodyPadding: totalBodyPadding + 'px'
+            });
+        }
     }
 
     /* ========================================================================
@@ -295,8 +346,8 @@
         // Header sempre visibile all'inizio
         headerElement.addClass('visible');
 
-        // Calcola e applica offset per WordPress admin bar
-        calculateAdminBarOffset();
+        // Calcola e applica tutti gli offset (admin bar + animated banner)
+        calculateAllOffsets();
 
         // ====================================================================
         // EVENT LISTENERS con opzione PASSIVE per performance
@@ -309,7 +360,7 @@
         // Resize event con throttle e passive
         const throttledResizeHandler = throttle(function() {
             debugLog('Window resized - Ricalcolo stato');
-            calculateAdminBarOffset(); // Ricalcola offset admin bar su resize
+            calculateAllOffsets(); // Ricalcola tutti gli offset su resize
             handleScroll();
         }, 250);
 
@@ -369,7 +420,7 @@
 
     // Esponi API globale per debugging in console
     window.bwSmartHeader = {
-        version: '2.1.0',
+        version: '2.2.0',
         config: CONFIG,
         show: showHeader,
         hide: hideHeader,
@@ -380,10 +431,13 @@
                 isVisible: headerElement ? headerElement.hasClass('visible') : null,
                 isHidden: headerElement ? headerElement.hasClass('hidden') : null,
                 hasBlur: headerElement ? headerElement.hasClass('scrolled') : null,
-                adminBarHeight: adminBarHeight
+                adminBarHeight: adminBarHeight,
+                animatedBannerHeight: animatedBannerHeight,
+                totalTopOffset: adminBarHeight + animatedBannerHeight
             };
         },
-        recalculateAdminBar: calculateAdminBarOffset
+        recalculateAdminBar: calculateAdminBarOffset,
+        recalculateAllOffsets: calculateAllOffsets
     };
 
 })(jQuery);
