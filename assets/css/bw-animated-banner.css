@@ -3,6 +3,46 @@
  * Posizionato fisso in alto, sopra lo smart-header
  */
 
+/* Rimuovi qualsiasi proprietà dai wrapper Elementor che interferisce con position: fixed */
+.elementor-widget-bw-animated-banner {
+    position: static !important;
+    transform: none !important;
+    filter: none !important;
+    perspective: none !important;
+    will-change: auto !important;
+    contain: none !important;
+}
+
+.elementor-widget-bw-animated-banner > .elementor-widget-container {
+    position: static !important;
+    transform: none !important;
+    filter: none !important;
+    perspective: none !important;
+    overflow: visible !important;
+}
+
+/* Assicura che la sezione Elementor che contiene il banner non interferisca */
+.elementor-section:has(.bw-animated-banner),
+.elementor-container:has(.bw-animated-banner),
+.elementor-column:has(.bw-animated-banner) {
+    position: static !important;
+    transform: none !important;
+    filter: none !important;
+    perspective: none !important;
+    overflow: visible !important;
+}
+
+/* Fallback per browser che non supportano :has() - applica a tutte le sezioni che hanno il widget */
+.elementor-element.elementor-widget-bw-animated-banner .elementor-widget-wrap,
+.elementor-element.elementor-widget-bw-animated-banner ~ .elementor-element {
+    transform: none !important;
+}
+
+/* Forza il reset di qualsiasi parent che potrebbe interferire */
+body:not(.elementor-editor-active) .elementor-top-section {
+    transform: none !important;
+}
+
 .bw-animated-banner {
     /* Posizionamento fisso in alto della pagina */
     position: fixed !important;
