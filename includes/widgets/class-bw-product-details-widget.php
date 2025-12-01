@@ -227,6 +227,18 @@ class Widget_Bw_Product_Details extends Widget_Base {
         ] );
 
         $this->end_controls_section();
+
+        $this->start_controls_section( 'section_style_assets', [
+            'label' => __( 'Assets Typography', 'bw' ),
+            'tab'   => Controls_Manager::TAB_STYLE,
+        ] );
+
+        $this->add_group_control( Group_Control_Typography::get_type(), [
+            'name'     => 'assets_typography',
+            'selector' => '{{WRAPPER}} .bw-biblio-row--assets .bw-biblio-label--assets, {{WRAPPER}} .bw-biblio-row--assets .bw-biblio-value--assets-list',
+        ] );
+
+        $this->end_controls_section();
     }
 
     protected function render() {
@@ -319,10 +331,6 @@ class Widget_Bw_Product_Details extends Widget_Base {
             }
 
             echo '  <div class="bw-biblio-section">';
-
-            if ( ! empty( $section['subtitle'] ) ) {
-                echo '    <div class="bw-biblio-section-subtitle">' . esc_html( $section['subtitle'] ) . '</div>';
-            }
 
             echo '    <div class="bw-biblio-table">';
 
