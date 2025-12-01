@@ -270,7 +270,7 @@ function bw_register_downloadable_save_handlers() {
         $custom_types = array( 'digital_assets', 'books', 'prints' );
 
         foreach ( $custom_types as $type ) {
-                add_action( 'woocommerce_process_product_meta_' . $type, 'WC_Meta_Box_Product_Data::save', 10, 1 );
+                add_action( 'woocommerce_process_product_meta_' . $type, 'WC_Meta_Box_Product_Data::save', 10, 2 );
         }
 }
 add_action( 'init', 'bw_register_downloadable_save_handlers' );
