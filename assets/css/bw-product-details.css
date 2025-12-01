@@ -9,6 +9,29 @@
     font-weight: 600;
 }
 
+.bw-biblio-section {
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    padding: 12px;
+}
+
+.bw-biblio-section + .bw-biblio-section {
+    margin-top: 12px;
+}
+
+.bw-biblio-section-title {
+    margin: 0 0 8px;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.bw-biblio-section-subtitle {
+    margin: 0 0 12px;
+    font-weight: 600;
+    color: #606060;
+    font-size: 13px;
+}
+
 .bw-biblio-table {
     width: 100%;
     border-collapse: collapse;
@@ -32,4 +55,5 @@
 
 .bw-biblio-value {
     text-align: left;
+    white-space: pre-wrap;
 }
