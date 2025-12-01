@@ -83,6 +83,9 @@ add_filter( 'woocommerce_product_class', 'bw_register_custom_product_types', 10,
 /**
  * Register custom product types as taxonomy terms.
  * This ensures the types are available for filtering and queries.
+ *
+ * Priority 5 ensures this runs early in init, right after WooCommerce
+ * registers the product_type taxonomy (which happens on init priority 0-4).
  */
 function bw_register_custom_product_type_terms() {
 	// Only run if WooCommerce is active
@@ -98,7 +101,7 @@ function bw_register_custom_product_type_terms() {
 		}
 	}
 }
-add_action( 'init', 'bw_register_custom_product_type_terms', 20 );
+add_action( 'init', 'bw_register_custom_product_type_terms', 5 );
 
 /**
  * Add support for product type options (virtual, downloadable).
@@ -270,22 +273,40 @@ add_action( 'woocommerce_product_data_panels', 'bw_custom_product_data_panels' )
  * Ensure the product type is saved correctly and not overwritten.
  * This prevents the type from reverting to 'simple' after save.
  *
- * Priority 20 ensures this runs AFTER WooCommerce's core save handlers (priority 10),
- * preventing race conditions where WooCommerce might overwrite our custom type.
+ * Uses save_post_product hook with priority 999 to run AFTER all WooCommerce
+ * save handlers, ensuring our custom product type is the final value saved.
  *
  * @param int $post_id Product ID.
  */
 function bw_save_custom_product_type( $post_id ) {
+	// Prevent infinite loops
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
+
 	// Verify this is a product
 	if ( 'product' !== get_post_type( $post_id ) ) {
 		return;
 	}
 
+	// Check permissions
+	if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		return;
+	}
+
+	// Verify WooCommerce nonce (if it exists in the request)
+	// phpcs:ignore WordPress.Security.NonceVerification.Missing
+	if ( isset( $_POST['woocommerce_meta_nonce'] ) && ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['woocommerce_meta_nonce'] ) ), 'woocommerce_save_data' ) ) {
+		return;
+	}
+
 	// Check if we have a product type in the POST data
+	// phpcs:ignore WordPress.Security.NonceVerification.Missing
 	if ( ! isset( $_POST['product-type'] ) ) {
 		return;
 	}
 
+	// phpcs:ignore WordPress.Security.NonceVerification.Missing
 	$product_type = sanitize_text_field( wp_unslash( $_POST['product-type'] ) );
 	$custom_types = array( 'digital_assets', 'books', 'prints' );
 
@@ -294,16 +315,23 @@ function bw_save_custom_product_type( $post_id ) {
 		return;
 	}
 
+	// Remove this hook temporarily to prevent infinite loops
+	remove_action( 'save_post_product', 'bw_save_custom_product_type', 999 );
+
 	// Set the product type taxonomy term
 	wp_set_object_terms( $post_id, $product_type, 'product_type', false );
 
 	// Also store meta to keep WC_Product_Factory in sync for custom slugs
 	update_post_meta( $post_id, '_product_type', $product_type );
 
-	// Clear product cache
+	// Clear product cache to ensure fresh data on next load
 	wc_delete_product_transients( $post_id );
+	clean_post_cache( $post_id );
+
+	// Re-add the hook
+	add_action( 'save_post_product', 'bw_save_custom_product_type', 999 );
 }
-add_action( 'woocommerce_process_product_meta', 'bw_save_custom_product_type', 20, 1 );
+add_action( 'save_post_product', 'bw_save_custom_product_type', 999 );
 
 /**
  * Downloadable files support for custom product types.
