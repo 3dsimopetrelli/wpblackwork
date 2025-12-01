@@ -2,10 +2,8 @@
 /**
  * Prints Product Type
  *
- * Custom product type that extends Variable Product to support all features:
- * - Price, inventory, shipping, tax
- * - Attributes, variations
- * - All standard product tabs and options
+ * Custom product type that extends Simple Product so it mirrors WooCommerce's
+ * default behaviour while keeping its own product type slug.
  *
  * @package BWElementorWidgets
  * @since 1.0.0
@@ -18,14 +16,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Prints Product Class
  *
- * Extends WC_Product_Variable to inherit all Variable product functionality:
- * - Price, inventory, shipping, tax
- * - Attributes, linked products, variations
- * - All standard product tabs and options
- *
- * Only difference: returns 'prints' as product type for filtering.
+ * Extends WC_Product_Simple to inherit native WooCommerce behaviour for pricing
+ * and inventory while only changing the product type identifier used for
+ * filtering.
  */
-class BW_Product_Prints extends WC_Product_Variable {
+class BW_Product_Prints extends WC_Product_Simple {
 
 	/**
 	 * Get the product type.
