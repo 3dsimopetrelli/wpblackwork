@@ -3,17 +3,17 @@
  * Custom Product Types Initialization
  *
  * Registers and configures custom WooCommerce product types:
- * - Digital Assets (Variable Product with custom type)
- * - Books (Variable Product with custom type)
- * - Prints (Variable Product with custom type)
+ * - Digital Assets (Simple Product with custom type)
+ * - Books (Simple Product with custom type)
+ * - Prints (Simple Product with custom type)
  *
- * All three types extend WC_Product_Variable and inherit all Variable product features:
+ * All three types extend WC_Product_Simple and inherit core simple product features:
  * - General tab: Price, Sale price, Tax options
  * - Inventory tab: Stock management
  * - Shipping tab: Weight, dimensions
  * - Linked products: Upsells, cross-sells
- * - Attributes: Product attributes for variations
- * - Variations: Full variation support with individual pricing and stock
+ * - Attributes: Product attributes
+ * - Variations: UI can be enabled through show_if classes if needed
  * - Advanced tab: Purchase note, menu order, reviews
  *
  * They only differ in their type slug for filtering and custom queries.
@@ -177,40 +177,39 @@ add_filter( 'woocommerce_product_data_tabs', 'bw_custom_product_data_tabs', 10, 
  * This ensures the General price fields are visible.
  */
 function bw_custom_product_data_panels() {
-	global $post;
+        global $post;
 
-	// Only run on product edit screen
-	if ( ! $post || 'product' !== $post->post_type ) {
-		return;
-	}
+        // Only run on product edit screen
+        if ( ! $post || 'product' !== $post->post_type ) {
+                return;
+        }
 
-	$product = wc_get_product( $post->ID );
-	if ( ! $product ) {
-		return;
-	}
+        $custom_types = array( 'digital_assets', 'books', 'prints' );
+        ?>
+        <script type="text/javascript">
+                jQuery(function($) {
+                        const customTypes = <?php echo wp_json_encode( $custom_types ); ?>;
 
-	$product_type = $product->get_type();
-	$custom_types = array( 'digital_assets', 'books', 'prints' );
+                        function extendShowIfClasses() {
+                                customTypes.forEach(function(type) {
+                                        // Mirror Simple/Variable visibility rules for custom types
+                                        $('.show_if_simple, .show_if_variable').addClass('show_if_' + type);
+                                        $('.hide_if_simple, .hide_if_variable').addClass('hide_if_' + type);
 
-	// Add CSS to show/hide fields for our custom types
-	if ( in_array( $product_type, $custom_types, true ) ) {
-		?>
-		<script type="text/javascript">
-			jQuery(document).ready(function($) {
-				// Show all fields for our custom types
-				$('.show_if_<?php echo esc_js( $product_type ); ?>').show();
-				$('.hide_if_<?php echo esc_js( $product_type ); ?>').hide();
+                                        $('#general_product_data, #inventory_product_data, #shipping_product_data, #linked_product_data, #product_attributes, #advanced_product_data, #product_variation_data, #variable_product_options').addClass('show_if_' + type);
+                                        $('.options_group.pricing').addClass('show_if_' + type);
 
-				// Show pricing fields in General tab
-				$('.options_group.pricing').addClass('show_if_<?php echo esc_js( $product_type ); ?>').show();
+                                        $('.product_data_tabs li.general_options, .product_data_tabs li.inventory_options, .product_data_tabs li.shipping_options, .product_data_tabs li.linked_product_options, .product_data_tabs li.attribute_options, .product_data_tabs li.variations_options, .product_data_tabs li.advanced_options').addClass('show_if_' + type);
+                                });
+                        }
 
-				// Show variations tab and UI
-				$('#variable_product_options').addClass('show_if_<?php echo esc_js( $product_type ); ?>').show();
-				$('.woocommerce_variation').show();
-			});
-		</script>
-		<?php
-	}
+                        extendShowIfClasses();
+
+                        // Trigger WooCommerce UI refresh to respect the new classes
+                        $('select#product-type').trigger('change');
+                });
+        </script>
+        <?php
 }
 add_action( 'woocommerce_product_data_panels', 'bw_custom_product_data_panels' );
 
@@ -231,19 +230,22 @@ function bw_save_custom_product_type( $post_id ) {
 		return;
 	}
 
-	$product_type = sanitize_text_field( $_POST['product-type'] );
-	$custom_types = array( 'digital_assets', 'books', 'prints' );
+        $product_type = sanitize_text_field( wp_unslash( $_POST['product-type'] ) );
+        $custom_types = array( 'digital_assets', 'books', 'prints' );
 
-	// Only process our custom types
-	if ( ! in_array( $product_type, $custom_types, true ) ) {
-		return;
-	}
+        // Only process our custom types
+        if ( ! in_array( $product_type, $custom_types, true ) ) {
+                return;
+        }
 
-	// Set the product type taxonomy term
-	wp_set_object_terms( $post_id, $product_type, 'product_type', false );
+        // Set the product type taxonomy term
+        wp_set_object_terms( $post_id, $product_type, 'product_type', false );
 
-	// Clear product cache
-	wc_delete_product_transients( $post_id );
+        // Also store meta to keep WC_Product_Factory in sync for custom slugs
+        update_post_meta( $post_id, '_product_type', $product_type );
+
+        // Clear product cache
+        wc_delete_product_transients( $post_id );
 }
 add_action( 'woocommerce_process_product_meta', 'bw_save_custom_product_type', 10, 1 );
 
