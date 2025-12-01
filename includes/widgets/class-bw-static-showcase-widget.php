@@ -103,7 +103,7 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
                 'type'        => Controls_Manager::TEXT,
                 'default'     => '',
                 'placeholder' => __( 'Inserisci il testo della label...', 'bw-elementor-widgets' ),
-                'description' => __( 'Testo da visualizzare sopra l\'immagine principale. Se lasciato vuoto, verrà usata la Showcase Label del Metabox Slide Showcase (se presente).', 'bw-elementor-widgets' ),
+                'description' => __( 'Testo da visualizzare sopra l\'immagine principale. Lascia vuoto per non mostrare alcuna label.', 'bw-elementor-widgets' ),
                 'dynamic'     => [
                     'active' => true,
                 ],
@@ -620,20 +620,9 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
         $showcase_title       = '' !== $showcase_title_meta ? $showcase_title_meta : $product_title;
         $showcase_description = trim( (string) get_post_meta( $product_id, '_bw_showcase_description', true ) );
 
-        // Showcase Label logic: widget has priority, metabox acts as fallback (when enabled)
-        $showcase_label_enabled = get_post_meta( $product_id, '_bw_showcase_label_enabled', true );
-        $showcase_label_meta    = trim( (string) get_post_meta( $product_id, '_bw_showcase_label', true ) );
-        $showcase_label_widget  = isset( $settings['showcase_label_text'] ) ? trim( (string) $settings['showcase_label_text'] ) : '';
-
-        $showcase_label = '';
-        if ( '' !== $showcase_label_widget ) {
-            // Priority 1: Widget value
-            $showcase_label = $showcase_label_widget;
-        } elseif ( 'yes' === $showcase_label_enabled && '' !== $showcase_label_meta ) {
-            // Priority 2: Metabox value (only when enabled and not empty)
-            $showcase_label = $showcase_label_meta;
-        }
-        // Priority 3: If both empty, $showcase_label remains empty
+        // Showcase Label logic: render only when the widget field is filled
+        $showcase_label_widget = isset( $settings['showcase_label_text'] ) ? trim( (string) $settings['showcase_label_text'] ) : '';
+        $showcase_label        = '' !== $showcase_label_widget ? $showcase_label_widget : '';
 
         $meta_assets_count = get_post_meta( $product_id, '_bw_assets_count', true );
         if ( '' === $meta_assets_count ) {

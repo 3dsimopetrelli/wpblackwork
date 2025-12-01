@@ -98,111 +98,181 @@ function bw_render_digital_products_metabox( $post ) {
 
     $preview_style = ( $image_id || $image_url ) ? 'display:block;' : 'display:none;';
     ?>
-    <div class="bw-digital-products-showcase-field">
-        <label><strong><?php esc_html_e( 'Showcase Image', 'bw' ); ?></strong></label><br>
-        <div id="bw_showcase_image_preview" style="margin-top:6px;<?php echo esc_attr( $preview_style ); ?>">
-            <?php
-            if ( $image_id ) {
-                echo wp_get_attachment_image( $image_id, array( 120, 120 ), false, array(
-                    'style' => 'border-radius:6px;width:120px;height:120px;object-fit:cover;',
-                ) );
-            } elseif ( $image_url ) {
-                echo "<img src=\"" . esc_url( $image_url ) . "\" style=\"border-radius:6px;width:120px;height:120px;object-fit:cover;\" alt=\"\" />";
-            }
-            ?>
+    <style>
+        .bw-metabox-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .bw-metabox-section {
+            background: #fff;
+            border: 1px solid #e2e4e7;
+            border-radius: 6px;
+            padding: 16px;
+        }
+        .bw-metabox-section h3 {
+            margin: 0 0 12px;
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            color: #1d2327;
+        }
+        .bw-metabox-section p {
+            margin: 0 0 12px;
+        }
+        .bw-metabox-section label {
+            font-weight: 600;
+        }
+        .bw-metabox-field-group {
+            margin-bottom: 12px;
+        }
+        .bw-metabox-field-group:last-child {
+            margin-bottom: 0;
+        }
+        .bw-field-description {
+            display: block;
+            color: #50575e;
+            margin-top: 4px;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+        .bw-digital-products-showcase-field {
+            margin-bottom: 8px;
+        }
+        .bw-metabox-section .select2-container {
+            min-width: 260px;
+        }
+        .bw-metabox-inline-info {
+            color: #50575e;
+            font-size: 12px;
+            margin: 0 0 12px;
+        }
+    </style>
+    <div class="bw-metabox-wrapper">
+        <div class="bw-metabox-section">
+            <h3><?php esc_html_e( 'Impostazioni generali', 'bw' ); ?></h3>
+            <div class="bw-metabox-field-group">
+                <label for="bw_product_type"><strong><?php esc_html_e( 'Product Type', 'bw' ); ?></strong></label><br>
+                <select name="bw_product_type" id="bw_product_type" style="min-width:200px;">
+                    <option value="digital" <?php selected( $product_type, 'digital' ); ?>><?php esc_html_e( 'Digital product', 'bw' ); ?></option>
+                    <option value="physical" <?php selected( $product_type, 'physical' ); ?>><?php esc_html_e( 'Physical product', 'bw' ); ?></option>
+                </select>
+                <span class="bw-field-description"><?php esc_html_e( 'Scegli se mostrare i campi dedicati ai prodotti digitali o fisici: il metabox si aggiorna automaticamente.', 'bw' ); ?></span>
+            </div>
+            <div class="bw-metabox-field-group">
+                <label for="bw_texts_color"><?php esc_html_e( 'Texts color', 'bw' ); ?></label><br>
+                <input type="color" id="bw_texts_color" name="bw_texts_color" value="<?php echo esc_attr( $texts_color ? $texts_color : '#ffffff' ); ?>" style="width:100%;max-width:240px;" />
+                <span class="bw-field-description"><?php esc_html_e( 'Colore usato per testi e badge nel widget BW Static Showcase.', 'bw' ); ?></span>
+            </div>
         </div>
-        <input type="hidden" id="bw_showcase_image" name="bw_showcase_image" value="<?php echo esc_attr( $showcase_image ); ?>">
-        <button type="button" class="button bw-upload-image"><?php esc_html_e( 'Scegli immagine', 'bw' ); ?></button>
-        <button type="button" class="button bw-remove-image"><?php esc_html_e( 'Rimuovi', 'bw' ); ?></button>
+
+        <div class="bw-metabox-section">
+            <h3><?php esc_html_e( 'Immagini', 'bw' ); ?></h3>
+            <p class="bw-metabox-inline-info"><?php esc_html_e( 'Immagine principale utilizzata nel BW Static Showcase.', 'bw' ); ?></p>
+            <div class="bw-digital-products-showcase-field">
+                <label><strong><?php esc_html_e( 'Showcase Image', 'bw' ); ?></strong></label><br>
+                <div id="bw_showcase_image_preview" style="margin-top:6px;<?php echo esc_attr( $preview_style ); ?>">
+                    <?php
+                    if ( $image_id ) {
+                        echo wp_get_attachment_image( $image_id, array( 120, 120 ), false, array(
+                            'style' => 'border-radius:6px;width:120px;height:120px;object-fit:cover;',
+                        ) );
+                    } elseif ( $image_url ) {
+                        echo "<img src=\"" . esc_url( $image_url ) . "\" style=\"border-radius:6px;width:120px;height:120px;object-fit:cover;\" alt=\"\" />";
+                    }
+                    ?>
+                </div>
+                <input type="hidden" id="bw_showcase_image" name="bw_showcase_image" value="<?php echo esc_attr( $showcase_image ); ?>">
+                <button type="button" class="button bw-upload-image"><?php esc_html_e( 'Scegli immagine', 'bw' ); ?></button>
+                <button type="button" class="button bw-remove-image"><?php esc_html_e( 'Rimuovi', 'bw' ); ?></button>
+            </div>
+        </div>
+
+        <div class="bw-metabox-section">
+            <h3><?php esc_html_e( 'Contenuti Static Showcase', 'bw' ); ?></h3>
+            <div class="bw-metabox-field-group">
+                <label for="bw_showcase_title"><?php esc_html_e( 'Showcase Title', 'bw' ); ?></label>
+                <input type="text" id="bw_showcase_title" name="bw_showcase_title" value="<?php echo esc_attr( $showcase_title ); ?>" style="width:100%;" />
+            </div>
+            <div class="bw-metabox-field-group">
+                <label for="bw_showcase_description"><?php esc_html_e( 'Showcase Description', 'bw' ); ?></label>
+                <textarea id="bw_showcase_description" name="bw_showcase_description" rows="4" style="width:100%;"><?php echo esc_textarea( $showcase_description ); ?></textarea>
+            </div>
+        </div>
+
+        <div class="bw-metabox-section bw-digital-fields">
+            <h3><?php esc_html_e( 'Dati digitali', 'bw' ); ?></h3>
+            <div class="bw-metabox-field-group">
+                <label for="bw_file_size"><?php esc_html_e( 'File Size (MB)', 'bw' ); ?></label>
+                <input type="text" id="bw_file_size" name="bw_file_size" value="<?php echo esc_attr( $file_size ); ?>" style="width:100%;" />
+            </div>
+            <div class="bw-metabox-field-group">
+                <label for="bw_assets_count"><?php esc_html_e( 'Assets Count', 'bw' ); ?></label>
+                <input type="number" id="bw_assets_count" name="bw_assets_count" value="<?php echo esc_attr( $assets_count ); ?>" style="width:100%;" />
+            </div>
+            <div class="bw-metabox-field-group">
+                <label for="bw_formats"><?php esc_html_e( 'Formats (comma separated)', 'bw' ); ?></label>
+                <input type="text" id="bw_formats" name="bw_formats" value="<?php echo esc_attr( $formats ); ?>" style="width:100%;" />
+                <span class="bw-field-description"><?php esc_html_e( 'Inserisci i formati separati da una virgola (es. SVG, PSD, PNG).', 'bw' ); ?></span>
+            </div>
+        </div>
+
+        <div class="bw-metabox-section bw-physical-fields">
+            <h3><?php esc_html_e( 'Dati prodotto fisico', 'bw' ); ?></h3>
+            <div class="bw-metabox-field-group">
+                <label for="bw_info_1"><?php esc_html_e( 'Info 1', 'bw' ); ?></label>
+                <input type="text" id="bw_info_1" name="bw_info_1" value="<?php echo esc_attr( $info_1 ); ?>" style="width:100%;" />
+            </div>
+            <div class="bw-metabox-field-group">
+                <label for="bw_info_2"><?php esc_html_e( 'Info 2', 'bw' ); ?></label>
+                <input type="text" id="bw_info_2" name="bw_info_2" value="<?php echo esc_attr( $info_2 ); ?>" style="width:100%;" />
+            </div>
+        </div>
+
+        <div class="bw-metabox-section">
+            <h3><?php esc_html_e( 'Call to Action', 'bw' ); ?></h3>
+            <div class="bw-metabox-field-group">
+                <label for="bw_product_button_text"><?php esc_html_e( 'Button Text', 'bw' ); ?></label>
+                <input type="text" id="bw_product_button_text" name="bw_product_button_text" value="<?php echo esc_attr( $product_button_text ); ?>" style="width:100%;" />
+            </div>
+            <div class="bw-metabox-field-group">
+                <label for="bw_product_button_link"><?php esc_html_e( 'Button Link (URL)', 'bw' ); ?></label>
+                <input type="url" id="bw_product_button_link" name="bw_product_button_link" value="<?php echo esc_attr( $product_button_link ); ?>" style="width:100%;" />
+            </div>
+        </div>
+
+        <div class="bw-metabox-section">
+            <h3><?php esc_html_e( 'Static Showcase', 'bw' ); ?></h3>
+            <div class="bw-metabox-field-group">
+                <label for="bw_showcase_label_enabled">
+                    <input type="checkbox" id="bw_showcase_label_enabled" name="bw_showcase_label_enabled" value="yes" <?php checked( $showcase_label_enabled, 'yes' ); ?> />
+                    <strong><?php esc_html_e( 'Abilita Label Showcase personalizzata', 'bw' ); ?></strong>
+                </label>
+                <span class="bw-field-description"><?php esc_html_e( 'Salva una label di riferimento per il widget BW Static Showcase. La label appare nel widget solo quando il campo Showcase Label del widget è compilato.', 'bw' ); ?></span>
+            </div>
+            <div class="bw-metabox-field-group">
+                <label for="bw_showcase_label"><?php esc_html_e( 'Showcase Label', 'bw' ); ?></label>
+                <input type="text" id="bw_showcase_label" name="bw_showcase_label" value="<?php echo esc_attr( $showcase_label ); ?>" style="width:100%;" />
+                <span class="bw-field-description"><?php esc_html_e( 'Usa questo testo come label suggerita per il widget BW Static Showcase.', 'bw' ); ?></span>
+            </div>
+            <div class="bw-metabox-field-group">
+                <label for="bw_showcase_linked_product"><strong><?php esc_html_e( 'Prodotto collegato per Showcase', 'bw' ); ?></strong></label><br>
+                <select name="bw_showcase_linked_product" id="bw_showcase_linked_product" class="bw-product-search-select" style="width:100%;">
+                    <option value=""><?php esc_html_e( 'Nessun prodotto selezionato', 'bw' ); ?></option>
+                    <?php
+                    if ( $showcase_linked_product ) {
+                        $linked_product = get_post( $showcase_linked_product );
+                        if ( $linked_product && 'product' === $linked_product->post_type ) {
+                            echo '<option value=\"' . esc_attr( $showcase_linked_product ) . '\" selected=\"selected\">' . esc_html( $linked_product->post_title ) . '</option>';
+                        }
+                    }
+                    ?>
+                </select>
+                <span class="bw-field-description"><?php esc_html_e( 'Seleziona il prodotto mostrato dal widget quando abiliti l'opzione "Usa prodotto da Metabox Slide Showcase".', 'bw' ); ?></span>
+            </div>
+        </div>
     </div>
-    <p>
-        <label for="bw_showcase_label_enabled">
-            <input type="checkbox" id="bw_showcase_label_enabled" name="bw_showcase_label_enabled" value="yes" <?php checked( $showcase_label_enabled, 'yes' ); ?> />
-            <strong><?php esc_html_e( 'Abilita Label Showcase personalizzata', 'bw' ); ?></strong>
-        </label>
-        <br>
-        <small style="color:#777;display:block;margin-top:4px;">
-            <?php esc_html_e( 'Quando attivo, questo campo diventa la Showcase Label solo se il widget BW Static Showcase non ne ha una.', 'bw' ); ?>
-        </small>
-    </p>
-    <p>
-        <label for="bw_showcase_label"><?php esc_html_e( 'Showcase Label', 'bw' ); ?></label>
-        <input type="text" id="bw_showcase_label" name="bw_showcase_label" value="<?php echo esc_attr( $showcase_label ); ?>" style="width:100%;" />
-        <small style="color:#777;display:block;margin-top:4px;">
-            <?php esc_html_e( 'Testo da visualizzare sopra l\'immagine principale nello showcase. Usato come fallback quando il campo nel widget è vuoto e il toggle sopra è attivo.', 'bw' ); ?>
-        </small>
-    </p>
-    <p>
-        <label for="bw_showcase_linked_product"><strong><?php esc_html_e( 'Prodotto collegato per Showcase', 'bw' ); ?></strong></label><br>
-        <select name="bw_showcase_linked_product" id="bw_showcase_linked_product" class="bw-product-search-select" style="width:100%;">
-            <option value=""><?php esc_html_e( 'Nessun prodotto selezionato', 'bw' ); ?></option>
-            <?php
-            if ( $showcase_linked_product ) {
-                $linked_product = get_post( $showcase_linked_product );
-                if ( $linked_product && 'product' === $linked_product->post_type ) {
-                    echo '<option value="' . esc_attr( $showcase_linked_product ) . '" selected="selected">' . esc_html( $linked_product->post_title ) . '</option>';
-                }
-            }
-            ?>
-        </select>
-        <small style="color:#777;display:block;margin-top:4px;">
-            <?php esc_html_e( 'Seleziona un prodotto da mostrare nel widget BW Static Showcase quando lo switch "Usa prodotto da Metabox" è attivo.', 'bw' ); ?>
-        </small>
-    </p>
-    <p>
-        <label for="bw_product_type"><strong><?php esc_html_e( 'Product Type', 'bw' ); ?></strong></label><br>
-        <select name="bw_product_type" id="bw_product_type" style="min-width:200px;">
-            <option value="digital" <?php selected( $product_type, 'digital' ); ?>><?php esc_html_e( 'Digital product', 'bw' ); ?></option>
-            <option value="physical" <?php selected( $product_type, 'physical' ); ?>><?php esc_html_e( 'Physical product', 'bw' ); ?></option>
-        </select>
-    </p>
-    <p>
-        <label for="bw_showcase_title"><?php esc_html_e( 'Showcase Title', 'bw' ); ?></label>
-        <input type="text" id="bw_showcase_title" name="bw_showcase_title" value="<?php echo esc_attr( $showcase_title ); ?>" style="width:100%;" />
-    </p>
-    <p>
-        <label for="bw_showcase_description"><?php esc_html_e( 'Showcase Description', 'bw' ); ?></label>
-        <textarea id="bw_showcase_description" name="bw_showcase_description" rows="4" style="width:100%;"><?php echo esc_textarea( $showcase_description ); ?></textarea>
-    </p>
-    <div class="bw-digital-fields">
-        <p>
-            <label for="bw_file_size"><?php esc_html_e( 'File Size (MB)', 'bw' ); ?></label>
-            <input type="text" id="bw_file_size" name="bw_file_size" value="<?php echo esc_attr( $file_size ); ?>" style="width:100%;" />
-        </p>
-        <p>
-            <label for="bw_assets_count"><?php esc_html_e( 'Assets Count', 'bw' ); ?></label>
-            <input type="number" id="bw_assets_count" name="bw_assets_count" value="<?php echo esc_attr( $assets_count ); ?>" style="width:100%;" />
-        </p>
-        <p>
-            <label for="bw_formats"><?php esc_html_e( 'Formats (comma separated)', 'bw' ); ?></label>
-            <input type="text" id="bw_formats" name="bw_formats" value="<?php echo esc_attr( $formats ); ?>" style="width:100%;" />
-            <small style="color:#777;display:block;margin-top:4px;">
-                <?php esc_html_e( 'Inserisci i formati separati da una virgola (es. SVG, PSD, PNG)', 'bw' ); ?>
-            </small>
-        </p>
-    </div>
-    <div class="bw-physical-fields">
-        <p>
-            <label for="bw_info_1"><?php esc_html_e( 'Info 1', 'bw' ); ?></label>
-            <input type="text" id="bw_info_1" name="bw_info_1" value="<?php echo esc_attr( $info_1 ); ?>" style="width:100%;" />
-        </p>
-        <p>
-            <label for="bw_info_2"><?php esc_html_e( 'Info 2', 'bw' ); ?></label>
-            <input type="text" id="bw_info_2" name="bw_info_2" value="<?php echo esc_attr( $info_2 ); ?>" style="width:100%;" />
-        </p>
-    </div>
-    <p>
-        <label for="bw_product_button_text"><?php esc_html_e( 'Button Text', 'bw' ); ?></label>
-        <input type="text" id="bw_product_button_text" name="bw_product_button_text" value="<?php echo esc_attr( $product_button_text ); ?>" style="width:100%;" />
-    </p>
-    <p>
-        <label for="bw_product_button_link"><?php esc_html_e( 'Button Link (URL)', 'bw' ); ?></label>
-        <input type="url" id="bw_product_button_link" name="bw_product_button_link" value="<?php echo esc_attr( $product_button_link ); ?>" style="width:100%;" />
-    </p>
-    <p>
-        <label for="bw_texts_color"><?php esc_html_e( 'Texts color', 'bw' ); ?></label>
-        <input type="color" id="bw_texts_color" name="bw_texts_color" value="<?php echo esc_attr( $texts_color ? $texts_color : '#ffffff' ); ?>" style="width:100%;" />
-    </p>
     <script>
     (function(){
       function initBwProductTypeToggle() {
