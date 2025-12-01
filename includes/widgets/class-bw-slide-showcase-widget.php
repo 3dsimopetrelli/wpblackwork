@@ -83,16 +83,16 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
                 'label'     => __( 'Product Type', 'bw' ),
                 'type'      => Controls_Manager::SELECT,
                 'options'   => [
-                    ''             => __( 'All', 'bw' ),
-                    'simple'       => __( 'Simple', 'bw' ),
-                    'variable'     => __( 'Variable', 'bw' ),
-                    'grouped'      => __( 'Grouped', 'bw' ),
-                    'external'     => __( 'External', 'bw' ),
-                    'digitalassets' => __( 'Digital Assets', 'bw' ),
-                    'books'        => __( 'Books', 'bw' ),
-                    'prints'       => __( 'Prints', 'bw' ),
-                    'on_sale'      => __( 'On Sale', 'bw' ),
-                    'featured'     => __( 'Featured', 'bw' ),
+                    ''              => __( 'All', 'bw' ),
+                    'simple'        => __( 'Simple', 'bw' ),
+                    'variable'      => __( 'Variable', 'bw' ),
+                    'grouped'       => __( 'Grouped', 'bw' ),
+                    'external'      => __( 'External', 'bw' ),
+                    'digital_assets' => __( 'Digital Assets', 'bw' ),
+                    'books'         => __( 'Books', 'bw' ),
+                    'prints'        => __( 'Prints', 'bw' ),
+                    'on_sale'       => __( 'On Sale', 'bw' ),
+                    'featured'      => __( 'Featured', 'bw' ),
                 ],
                 'default'   => '',
                 'condition' => [ 'post_type' => 'product' ],
@@ -795,7 +795,7 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
             }
 
             // Supporto per product types standard e personalizzati (Digital Assets, Books, Prints)
-            if ( in_array( $product_type, [ 'simple', 'variable', 'grouped', 'external', 'digitalassets', 'books', 'prints' ], true ) ) {
+            if ( in_array( $product_type, [ 'simple', 'variable', 'grouped', 'external', 'digital_assets', 'books', 'prints' ], true ) ) {
                 $tax_query[] = [
                     'taxonomy' => 'product_type',
                     'field'    => 'slug',
