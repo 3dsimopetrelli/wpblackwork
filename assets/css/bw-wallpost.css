@@ -55,10 +55,11 @@
 }
 
 /* Link invisibile che copre l'intera area dell'immagine */
+/* Z-index aumentato per essere sopra entrambe le immagini (main e hover) */
 .bw-wallpost-image-link-overlay {
   position: absolute;
   inset: 0;
-  z-index: 1;
+  z-index: 10;
   display: block;
   cursor: pointer;
 }
@@ -128,6 +129,7 @@
 }
 
 /* Overlay identico a BW Slick Slider */
+/* Z-index aumentato per essere sopra il link overlay dell'immagine */
 .bw-wallpost-overlay,
 .bw-wallpost .overlay-buttons,
 .bw-wallpost .bw-ss__overlay {
@@ -139,7 +141,7 @@
   opacity: 0;
   transform: translateY(10px);
   transition: opacity 0.25s ease, transform 0.25s ease;
-  z-index: 2;
+  z-index: 15;
   pointer-events: none;
   box-sizing: border-box;
   padding: 16px;
@@ -162,7 +164,7 @@
   gap: 0;
   pointer-events: auto;
   position: relative;
-  z-index: 3;
+  z-index: 20;
 }
 
 .bw-wallpost-overlay-buttons--double .bw-wallpost-overlay-button,
