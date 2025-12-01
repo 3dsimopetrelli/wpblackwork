@@ -269,7 +269,7 @@ function bw_render_digital_products_metabox( $post ) {
                     }
                     ?>
                 </select>
-                <span class="bw-field-description"><?php esc_html_e( 'Seleziona il prodotto mostrato dal widget quando abiliti l'opzione "Usa prodotto da Metabox Slide Showcase".', 'bw' ); ?></span>
+                <span class="bw-field-description"><?php esc_html_e( 'Seleziona il prodotto mostrato dal widget quando abiliti l\'opzione "Usa prodotto da Metabox Slide Showcase".', 'bw' ); ?></span>
             </div>
         </div>
     </div>
