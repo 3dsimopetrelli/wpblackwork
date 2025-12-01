@@ -732,14 +732,14 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
         }
 
         ?>
+        <?php if ( '' !== $showcase_label ) : ?>
+            <div class="bw-showcase-label">
+                <?php echo esc_html( $showcase_label ); ?>
+            </div>
+        <?php endif; ?>
+
         <div class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $container_classes ) ) ); ?>"<?php echo $container_style_attr; ?>>
             <div class="bw-static-showcase-left">
-                <?php if ( '' !== $showcase_label ) : ?>
-                    <div class="bw-showcase-label">
-                        <?php echo esc_html( $showcase_label ); ?>
-                    </div>
-                <?php endif; ?>
-
                 <?php if ( $image_url ) : ?>
                     <div class="bw-slide-showcase-media">
                         <img src="<?php echo esc_url( $image_url ); ?>" alt="<?php echo esc_attr( $product_title ); ?>" class="bw-slide-showcase-image" style="<?php echo $this->build_image_style( $object_fit ); ?>">
