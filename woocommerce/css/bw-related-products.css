@@ -1,0 +1,54 @@
+.bw-related-products {
+  --bw-wallpost-columns: 3;
+  --bw-wallpost-gap: 24px;
+  --bw-wallpost-image-height: 625px;
+}
+
+.bw-related-products__title {
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0 0 24px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.bw-related-products-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--bw-wallpost-columns), minmax(0, 1fr));
+  gap: var(--bw-wallpost-gap);
+  margin: 0;
+}
+
+.bw-related-products .bw-wallpost-item {
+  padding: 0;
+  width: auto;
+}
+
+.bw-related-products .bw-wallpost-card {
+  height: 100%;
+}
+
+/* Ensure overlays and image radius remain consistent */
+.bw-related-products .bw-wallpost-media,
+.bw-related-products .bw-wallpost .bw-ss__media {
+  border-radius: 12px;
+}
+
+/* Responsive columns */
+@media (max-width: 1199px) {
+  .bw-related-products {
+    --bw-wallpost-columns: 2;
+  }
+}
+
+@media (max-width: 767px) {
+  .bw-related-products {
+    --bw-wallpost-columns: 1;
+    --bw-wallpost-gap: 18px;
+  }
+
+  .bw-related-products__title {
+    font-size: 20px;
+    margin-bottom: 18px;
+  }
+}

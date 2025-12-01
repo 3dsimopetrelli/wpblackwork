@@ -38,6 +38,9 @@ if ( file_exists( plugin_dir_path( __FILE__ ) . 'admin/class-blackwork-site-sett
 // Helper functions
 require_once __DIR__ . '/includes/helpers.php';
 
+// WooCommerce overrides
+require_once __DIR__ . '/woocommerce/woocommerce-init.php';
+
 // Elementor Dynamic Tags
 function bw_load_elementor_dynamic_tags() {
     $artist_tag_file = __DIR__ . '/includes/dynamic-tags/class-bw-artist-name-tag.php';
