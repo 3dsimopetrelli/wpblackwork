@@ -2,8 +2,10 @@
 /**
  * Books Product Type
  *
- * Custom product type that extends Simple Product with all its features.
- * Has a different type slug for filtering and custom queries.
+ * Custom product type that extends Variable Product to support all features:
+ * - Price, inventory, shipping, tax
+ * - Attributes, variations
+ * - All standard product tabs and options
  *
  * @package BWElementorWidgets
  * @since 1.0.0
@@ -16,14 +18,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Books Product Class
  *
- * Extends WC_Product_Simple to inherit all Simple product functionality:
+ * Extends WC_Product_Variable to inherit all Variable product functionality:
  * - Price, inventory, shipping, tax
- * - Attributes, linked products
+ * - Attributes, linked products, variations
  * - All standard product tabs and options
  *
  * Only difference: returns 'books' as product type for filtering.
  */
-class BW_Product_Books extends WC_Product_Simple {
+class BW_Product_Books extends WC_Product_Variable {
 
 	/**
 	 * Get the product type.
