@@ -111,6 +111,8 @@ add_action( 'elementor/editor/after_enqueue_scripts', 'bw_enqueue_animated_banne
 add_action( 'wp_enqueue_scripts', 'bw_enqueue_smart_header_assets' );
 add_action( 'init', 'bw_register_static_showcase_widget_assets' );
 add_action( 'elementor/frontend/after_register_styles', 'bw_register_static_showcase_widget_assets' );
+add_action( 'init', 'bw_register_related_products_widget_assets' );
+add_action( 'elementor/frontend/after_register_styles', 'bw_register_related_products_widget_assets' );
 
 function bw_enqueue_slick_slider_assets() {
     wp_enqueue_style(
@@ -302,6 +304,22 @@ function bw_register_wallpost_widget_assets() {
         [ 'jquery', 'imagesloaded', 'masonry' ],
         $js_version,
         true
+    );
+}
+
+function bw_register_related_products_widget_assets() {
+    if ( function_exists( 'bw_register_wallpost_widget_assets' ) ) {
+        bw_register_wallpost_widget_assets();
+    }
+
+    $css_file    = __DIR__ . '/woocommerce/css/bw-related-products.css';
+    $css_version = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
+
+    wp_register_style(
+        'bw-related-products-style',
+        plugin_dir_url( __FILE__ ) . 'woocommerce/css/bw-related-products.css',
+        [ 'bw-wallpost-style' ],
+        $css_version
     );
 }
 
