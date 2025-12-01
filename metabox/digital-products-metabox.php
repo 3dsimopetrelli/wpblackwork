@@ -116,6 +116,40 @@ function bw_render_digital_products_metabox( $post ) {
         <button type="button" class="button bw-remove-image"><?php esc_html_e( 'Rimuovi', 'bw' ); ?></button>
     </div>
     <p>
+        <label for="bw_showcase_label_enabled">
+            <input type="checkbox" id="bw_showcase_label_enabled" name="bw_showcase_label_enabled" value="yes" <?php checked( $showcase_label_enabled, 'yes' ); ?> />
+            <strong><?php esc_html_e( 'Abilita Label Showcase personalizzata', 'bw' ); ?></strong>
+        </label>
+        <br>
+        <small style="color:#777;display:block;margin-top:4px;">
+            <?php esc_html_e( 'Quando attivo, questo campo diventa la Showcase Label solo se il widget BW Static Showcase non ne ha una.', 'bw' ); ?>
+        </small>
+    </p>
+    <p>
+        <label for="bw_showcase_label"><?php esc_html_e( 'Showcase Label', 'bw' ); ?></label>
+        <input type="text" id="bw_showcase_label" name="bw_showcase_label" value="<?php echo esc_attr( $showcase_label ); ?>" style="width:100%;" />
+        <small style="color:#777;display:block;margin-top:4px;">
+            <?php esc_html_e( 'Testo da visualizzare sopra l\'immagine principale nello showcase. Usato come fallback quando il campo nel widget è vuoto e il toggle sopra è attivo.', 'bw' ); ?>
+        </small>
+    </p>
+    <p>
+        <label for="bw_showcase_linked_product"><strong><?php esc_html_e( 'Prodotto collegato per Showcase', 'bw' ); ?></strong></label><br>
+        <select name="bw_showcase_linked_product" id="bw_showcase_linked_product" class="bw-product-search-select" style="width:100%;">
+            <option value=""><?php esc_html_e( 'Nessun prodotto selezionato', 'bw' ); ?></option>
+            <?php
+            if ( $showcase_linked_product ) {
+                $linked_product = get_post( $showcase_linked_product );
+                if ( $linked_product && 'product' === $linked_product->post_type ) {
+                    echo '<option value="' . esc_attr( $showcase_linked_product ) . '" selected="selected">' . esc_html( $linked_product->post_title ) . '</option>';
+                }
+            }
+            ?>
+        </select>
+        <small style="color:#777;display:block;margin-top:4px;">
+            <?php esc_html_e( 'Seleziona un prodotto da mostrare nel widget BW Static Showcase quando lo switch "Usa prodotto da Metabox" è attivo.', 'bw' ); ?>
+        </small>
+    </p>
+    <p>
         <label for="bw_product_type"><strong><?php esc_html_e( 'Product Type', 'bw' ); ?></strong></label><br>
         <select name="bw_product_type" id="bw_product_type" style="min-width:200px;">
             <option value="digital" <?php selected( $product_type, 'digital' ); ?>><?php esc_html_e( 'Digital product', 'bw' ); ?></option>
@@ -129,23 +163,6 @@ function bw_render_digital_products_metabox( $post ) {
     <p>
         <label for="bw_showcase_description"><?php esc_html_e( 'Showcase Description', 'bw' ); ?></label>
         <textarea id="bw_showcase_description" name="bw_showcase_description" rows="4" style="width:100%;"><?php echo esc_textarea( $showcase_description ); ?></textarea>
-    </p>
-    <p>
-        <label for="bw_showcase_label_enabled">
-            <input type="checkbox" id="bw_showcase_label_enabled" name="bw_showcase_label_enabled" value="yes" <?php checked( $showcase_label_enabled, 'yes' ); ?> />
-            <strong><?php esc_html_e( 'Abilita Label Showcase personalizzata', 'bw' ); ?></strong>
-        </label>
-        <br>
-        <small style="color:#777;display:block;margin-top:4px;">
-            <?php esc_html_e( 'Se attivato, la label sotto avrà priorità su quella impostata nel widget BW Static Showcase.', 'bw' ); ?>
-        </small>
-    </p>
-    <p>
-        <label for="bw_showcase_label"><?php esc_html_e( 'Showcase Label', 'bw' ); ?></label>
-        <input type="text" id="bw_showcase_label" name="bw_showcase_label" value="<?php echo esc_attr( $showcase_label ); ?>" style="width:100%;" />
-        <small style="color:#777;display:block;margin-top:4px;">
-            <?php esc_html_e( 'Testo da visualizzare sopra l\'immagine principale nello showcase. Visibile solo se il toggle sopra è attivo.', 'bw' ); ?>
-        </small>
     </p>
     <div class="bw-digital-fields">
         <p>
@@ -185,23 +202,6 @@ function bw_render_digital_products_metabox( $post ) {
     <p>
         <label for="bw_texts_color"><?php esc_html_e( 'Texts color', 'bw' ); ?></label>
         <input type="color" id="bw_texts_color" name="bw_texts_color" value="<?php echo esc_attr( $texts_color ? $texts_color : '#ffffff' ); ?>" style="width:100%;" />
-    </p>
-    <p>
-        <label for="bw_showcase_linked_product"><strong><?php esc_html_e( 'Prodotto collegato per Showcase', 'bw' ); ?></strong></label><br>
-        <select name="bw_showcase_linked_product" id="bw_showcase_linked_product" class="bw-product-search-select" style="width:100%;">
-            <option value=""><?php esc_html_e( 'Nessun prodotto selezionato', 'bw' ); ?></option>
-            <?php
-            if ( $showcase_linked_product ) {
-                $linked_product = get_post( $showcase_linked_product );
-                if ( $linked_product && 'product' === $linked_product->post_type ) {
-                    echo '<option value="' . esc_attr( $showcase_linked_product ) . '" selected="selected">' . esc_html( $linked_product->post_title ) . '</option>';
-                }
-            }
-            ?>
-        </select>
-        <small style="color:#777;display:block;margin-top:4px;">
-            <?php esc_html_e( 'Seleziona un prodotto da mostrare nel widget BW Static Showcase quando lo switch "Usa prodotto da Metabox" è attivo.', 'bw' ); ?>
-        </small>
     </p>
     <script>
     (function(){

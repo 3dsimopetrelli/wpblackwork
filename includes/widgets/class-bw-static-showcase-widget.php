@@ -103,7 +103,7 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
                 'type'        => Controls_Manager::TEXT,
                 'default'     => '',
                 'placeholder' => __( 'Inserisci il testo della label...', 'bw-elementor-widgets' ),
-                'description' => __( 'Testo da visualizzare sopra l\'immagine principale. Può essere sovrascritto dal Metabox Slide Showcase.', 'bw-elementor-widgets' ),
+                'description' => __( 'Testo da visualizzare sopra l\'immagine principale. Se lasciato vuoto, verrà usata la Showcase Label del Metabox Slide Showcase (se presente).', 'bw-elementor-widgets' ),
                 'dynamic'     => [
                     'active' => true,
                 ],
@@ -483,7 +483,7 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
         $this->add_control( 'showcase_label_color', [
             'label'     => __( 'Colore', 'bw-elementor-widgets' ),
             'type'      => Controls_Manager::COLOR,
-            'default'   => '#ffffff',
+            'default'   => '#000000',
             'selectors' => [
                 '{{WRAPPER}} .bw-showcase-label' => 'color: {{VALUE}};',
             ],
@@ -492,6 +492,11 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
         $this->add_group_control( Group_Control_Typography::get_type(), [
             'name'     => 'showcase_label_typography',
             'label'    => __( 'Tipografia', 'bw-elementor-widgets' ),
+            'default'  => [
+                'typography' => 'custom',
+                'font_size'  => [ 'size' => 28, 'unit' => 'px' ],
+                'line_height'=> [ 'size' => 32, 'unit' => 'px' ],
+            ],
             'selector' => '{{WRAPPER}} .bw-showcase-label',
         ] );
 
@@ -502,7 +507,7 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
             'default'    => [
                 'top'    => 0,
                 'right'  => 0,
-                'bottom' => 10,
+                'bottom' => 30,
                 'left'   => 0,
                 'unit'   => 'px',
                 'isLinked' => false,
@@ -615,18 +620,18 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
         $showcase_title       = '' !== $showcase_title_meta ? $showcase_title_meta : $product_title;
         $showcase_description = trim( (string) get_post_meta( $product_id, '_bw_showcase_description', true ) );
 
-        // Showcase Label logic: metabox has priority over widget settings
+        // Showcase Label logic: widget has priority, metabox acts as fallback (when enabled)
         $showcase_label_enabled = get_post_meta( $product_id, '_bw_showcase_label_enabled', true );
         $showcase_label_meta    = trim( (string) get_post_meta( $product_id, '_bw_showcase_label', true ) );
         $showcase_label_widget  = isset( $settings['showcase_label_text'] ) ? trim( (string) $settings['showcase_label_text'] ) : '';
 
         $showcase_label = '';
-        if ( 'yes' === $showcase_label_enabled && '' !== $showcase_label_meta ) {
-            // Priority 1: Metabox value (if enabled and not empty)
-            $showcase_label = $showcase_label_meta;
-        } elseif ( '' !== $showcase_label_widget ) {
-            // Priority 2: Widget value
+        if ( '' !== $showcase_label_widget ) {
+            // Priority 1: Widget value
             $showcase_label = $showcase_label_widget;
+        } elseif ( 'yes' === $showcase_label_enabled && '' !== $showcase_label_meta ) {
+            // Priority 2: Metabox value (only when enabled and not empty)
+            $showcase_label = $showcase_label_meta;
         }
         // Priority 3: If both empty, $showcase_label remains empty
 
