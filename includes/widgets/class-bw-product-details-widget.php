@@ -7,13 +7,13 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-class Widget_Bw_Bibliographic_Details extends Widget_Base {
+class Widget_Bw_Product_Details extends Widget_Base {
     public function get_name() {
-        return 'bw-bibliographic-details';
+        return 'bw-product-details-table';
     }
 
     public function get_title() {
-        return __( 'BW Bibliographic Details', 'bw' );
+        return __( 'BW Product Details Table', 'bw' );
     }
 
     public function get_icon() {
@@ -25,22 +25,35 @@ class Widget_Bw_Bibliographic_Details extends Widget_Base {
     }
 
     public function get_style_depends() {
-        if ( ! wp_style_is( 'bw-bibliographic-details-style', 'registered' ) ) {
+        if ( ! wp_style_is( 'bw-product-details-style', 'registered' ) ) {
             $this->register_style();
         }
 
-        return [ 'bw-bibliographic-details-style' ];
+        return [ 'bw-product-details-style' ];
     }
 
     protected function register_controls() {
+        $this->start_controls_section( 'section_content', [
+            'label' => __( 'Content', 'bw' ),
+        ] );
+
+        $this->add_control( 'table_title', [
+            'label'       => __( 'Table Title', 'bw' ),
+            'type'        => Controls_Manager::TEXT,
+            'placeholder' => __( 'Product Details', 'bw' ),
+            'default'     => __( 'Product Details', 'bw' ),
+        ] );
+
+        $this->end_controls_section();
+
         $this->start_controls_section( 'section_style_box', [
             'label' => __( 'Box Style', 'bw' ),
             'tab'   => Controls_Manager::TAB_STYLE,
         ] );
 
         $this->add_control( 'box_border_color', [
-            'label' => __( 'Border Color', 'bw' ),
-            'type'  => Controls_Manager::COLOR,
+            'label'   => __( 'Border Color', 'bw' ),
+            'type'    => Controls_Manager::COLOR,
             'default' => '#000000',
             'selectors' => [
                 '{{WRAPPER}} .bw-biblio-widget' => 'border-color: {{VALUE}};',
@@ -104,6 +117,22 @@ class Widget_Bw_Bibliographic_Details extends Widget_Base {
             'type'  => Controls_Manager::COLOR,
             'selectors' => [
                 '{{WRAPPER}} .bw-biblio-title' => 'color: {{VALUE}};',
+            ],
+        ] );
+
+        $this->add_responsive_control( 'title_padding', [
+            'label' => __( 'Padding', 'bw' ),
+            'type'  => Controls_Manager::DIMENSIONS,
+            'size_units' => [ 'px', '%' ],
+            'default' => [
+                'top' => 0,
+                'right' => 0,
+                'bottom' => 0,
+                'left' => 0,
+                'unit' => 'px',
+            ],
+            'selectors' => [
+                '{{WRAPPER}} .bw-biblio-title' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
             ],
         ] );
 
@@ -217,11 +246,21 @@ class Widget_Bw_Bibliographic_Details extends Widget_Base {
             $product_id = $product->get_id();
         }
 
-        $fields = function_exists( 'bw_get_bibliographic_fields' )
-            ? array_merge(
-                bw_get_bibliographic_fields(),
-                function_exists( 'bw_get_prints_bibliographic_fields' ) ? bw_get_prints_bibliographic_fields() : []
-            )
+        $digital_fields = function_exists( 'bw_get_digital_product_fields' )
+            ? bw_get_digital_product_fields()
+            : [
+                '_digital_total_assets' => __( 'Total Assets', 'bw' ),
+                '_digital_assets_list'  => __( 'Assets List', 'bw' ),
+                '_digital_file_size'    => __( 'File size', 'bw' ),
+                '_digital_formats'      => __( 'Formats included', 'bw' ),
+                '_digital_source'       => __( 'Source', 'bw' ),
+                '_digital_publisher'    => __( 'Publisher', 'bw' ),
+                '_digital_year'         => __( 'Year', 'bw' ),
+                '_digital_technique'    => __( 'Technique', 'bw' ),
+            ];
+
+        $book_fields = function_exists( 'bw_get_bibliographic_fields' )
+            ? bw_get_bibliographic_fields()
             : [
                 '_bw_biblio_title'     => __( 'Title', 'bw' ),
                 '_bw_biblio_author'    => __( 'Author', 'bw' ),
@@ -233,20 +272,79 @@ class Widget_Bw_Bibliographic_Details extends Widget_Base {
                 '_bw_biblio_edition'   => __( 'Edition', 'bw' ),
                 '_bw_biblio_condition' => __( 'Condition', 'bw' ),
                 '_bw_biblio_location'  => __( 'Location', 'bw' ),
-                '_print_artist'        => __( 'Artist', 'bw' ),
-                '_print_publisher'     => __( 'Publisher', 'bw' ),
-                '_print_year'          => __( 'Year', 'bw' ),
-                '_print_technique'     => __( 'Technique', 'bw' ),
-                '_print_material'      => __( 'Material', 'bw' ),
-                '_print_plate_size'    => __( 'Plate Size', 'bw' ),
-                '_print_condition'     => __( 'Condition', 'bw' ),
             ];
+
+        $print_fields = function_exists( 'bw_get_prints_bibliographic_fields' )
+            ? bw_get_prints_bibliographic_fields()
+            : [
+                '_print_artist'     => __( 'Artist', 'bw' ),
+                '_print_publisher'  => __( 'Publisher', 'bw' ),
+                '_print_year'       => __( 'Year', 'bw' ),
+                '_print_technique'  => __( 'Technique', 'bw' ),
+                '_print_material'   => __( 'Material', 'bw' ),
+                '_print_plate_size' => __( 'Plate Size', 'bw' ),
+                '_print_condition'  => __( 'Condition', 'bw' ),
+            ];
+
+        $sections = [
+            [
+                'title'   => __( 'Digital Product Details', 'bw' ),
+                'subtitle'=> __( 'Collection content', 'bw' ),
+                'fields'  => $digital_fields,
+            ],
+            [
+                'title'  => __( 'Prints – Bibliographic details', 'bw' ),
+                'fields' => $print_fields,
+            ],
+            [
+                'title'  => __( 'Books – Bibliographic details', 'bw' ),
+                'fields' => $book_fields,
+            ],
+        ];
 
         $this->add_render_attribute( 'wrapper', 'class', 'bw-biblio-widget' );
 
         echo '<div ' . $this->get_render_attribute_string( 'wrapper' ) . '>';
-        echo '  <div class="bw-biblio-title">' . esc_html__( 'Bibliographic details', 'bw' ) . '</div>';
-        echo '  <div class="bw-biblio-table">';
+
+        $settings    = $this->get_settings_for_display();
+        $table_title = isset( $settings['table_title'] ) && '' !== $settings['table_title'] ? $settings['table_title'] : __( 'Product Details', 'bw' );
+
+        echo '  <div class="bw-biblio-title">' . esc_html( $table_title ) . '</div>';
+
+        foreach ( $sections as $section ) {
+            $rows = $this->get_section_rows( $product_id, $section['fields'] );
+
+            if ( empty( $rows ) ) {
+                continue;
+            }
+
+            echo '  <div class="bw-biblio-section">';
+            echo '    <div class="bw-biblio-section-title">' . esc_html( $section['title'] ) . '</div>';
+
+            if ( ! empty( $section['subtitle'] ) ) {
+                echo '    <div class="bw-biblio-section-subtitle">' . esc_html( $section['subtitle'] ) . '</div>';
+            }
+
+            echo '    <div class="bw-biblio-table">';
+
+            foreach ( $rows as $row ) {
+                $value = '_digital_assets_list' === $row['meta'] ? nl2br( esc_html( $row['value'] ) ) : esc_html( $row['value'] );
+
+                echo '      <div class="bw-biblio-row">';
+                echo '        <div class="bw-biblio-label">' . esc_html( $row['label'] ) . '</div>';
+                echo '        <div class="bw-biblio-value">' . $value . '</div>';
+                echo '      </div>';
+            }
+
+            echo '    </div>';
+            echo '  </div>';
+        }
+
+        echo '</div>';
+    }
+
+    private function get_section_rows( $product_id, $fields ) {
+        $rows = [];
 
         foreach ( $fields as $meta_key => $label ) {
             $value = get_post_meta( $product_id, $meta_key, true );
@@ -255,23 +353,23 @@ class Widget_Bw_Bibliographic_Details extends Widget_Base {
                 continue;
             }
 
-            echo '    <div class="bw-biblio-row">';
-            echo '      <div class="bw-biblio-label">' . esc_html( $label ) . '</div>';
-            echo '      <div class="bw-biblio-value">' . esc_html( $value ) . '</div>';
-            echo '    </div>';
+            $rows[] = [
+                'meta'  => $meta_key,
+                'label' => $label,
+                'value' => $value,
+            ];
         }
 
-        echo '  </div>';
-        echo '</div>';
+        return $rows;
     }
 
     private function register_style() {
-        $css_relative_path = 'assets/css/bw-bibliographic-details.css';
+        $css_relative_path = 'assets/css/bw-product-details.css';
         $css_file          = $this->get_asset_path( $css_relative_path );
         $version           = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
 
         wp_register_style(
-            'bw-bibliographic-details-style',
+            'bw-product-details-style',
             $this->get_asset_url( $css_relative_path ),
             [],
             $version
