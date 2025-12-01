@@ -59,6 +59,8 @@ function bw_render_digital_products_metabox( $post ) {
 
     $showcase_title       = get_post_meta( $post->ID, '_bw_showcase_title', true );
     $showcase_description = get_post_meta( $post->ID, '_bw_showcase_description', true );
+    $showcase_label_enabled = get_post_meta( $post->ID, '_bw_showcase_label_enabled', true );
+    $showcase_label       = get_post_meta( $post->ID, '_bw_showcase_label', true );
     $product_type         = get_post_meta( $post->ID, '_bw_product_type', true );
     if ( ! in_array( $product_type, array( 'digital', 'physical' ), true ) ) {
         $product_type = 'digital';
@@ -127,6 +129,23 @@ function bw_render_digital_products_metabox( $post ) {
     <p>
         <label for="bw_showcase_description"><?php esc_html_e( 'Showcase Description', 'bw' ); ?></label>
         <textarea id="bw_showcase_description" name="bw_showcase_description" rows="4" style="width:100%;"><?php echo esc_textarea( $showcase_description ); ?></textarea>
+    </p>
+    <p>
+        <label for="bw_showcase_label_enabled">
+            <input type="checkbox" id="bw_showcase_label_enabled" name="bw_showcase_label_enabled" value="yes" <?php checked( $showcase_label_enabled, 'yes' ); ?> />
+            <strong><?php esc_html_e( 'Abilita Label Showcase personalizzata', 'bw' ); ?></strong>
+        </label>
+        <br>
+        <small style="color:#777;display:block;margin-top:4px;">
+            <?php esc_html_e( 'Se attivato, la label sotto avrà priorità su quella impostata nel widget BW Static Showcase.', 'bw' ); ?>
+        </small>
+    </p>
+    <p>
+        <label for="bw_showcase_label"><?php esc_html_e( 'Showcase Label', 'bw' ); ?></label>
+        <input type="text" id="bw_showcase_label" name="bw_showcase_label" value="<?php echo esc_attr( $showcase_label ); ?>" style="width:100%;" />
+        <small style="color:#777;display:block;margin-top:4px;">
+            <?php esc_html_e( 'Testo da visualizzare sopra l\'immagine principale nello showcase. Visibile solo se il toggle sopra è attivo.', 'bw' ); ?>
+        </small>
     </p>
     <div class="bw-digital-fields">
         <p>
@@ -307,6 +326,8 @@ function bw_save_digital_products( $post_id ) {
 
     $showcase_title       = isset( $_POST['bw_showcase_title'] ) ? sanitize_text_field( wp_unslash( $_POST['bw_showcase_title'] ) ) : '';
     $showcase_description = isset( $_POST['bw_showcase_description'] ) ? sanitize_textarea_field( wp_unslash( $_POST['bw_showcase_description'] ) ) : '';
+    $showcase_label_enabled = isset( $_POST['bw_showcase_label_enabled'] ) && 'yes' === $_POST['bw_showcase_label_enabled'] ? 'yes' : '';
+    $showcase_label       = isset( $_POST['bw_showcase_label'] ) ? sanitize_text_field( wp_unslash( $_POST['bw_showcase_label'] ) ) : '';
     $showcase_linked_product = isset( $_POST['bw_showcase_linked_product'] ) ? absint( wp_unslash( $_POST['bw_showcase_linked_product'] ) ) : 0;
 
     update_post_meta( $post_id, '_bw_product_type', $product_type );
@@ -321,6 +342,8 @@ function bw_save_digital_products( $post_id ) {
     update_post_meta( $post_id, '_bw_showcase_image', $showcase_image );
     update_post_meta( $post_id, '_bw_showcase_title', $showcase_title );
     update_post_meta( $post_id, '_bw_showcase_description', $showcase_description );
+    update_post_meta( $post_id, '_bw_showcase_label_enabled', $showcase_label_enabled );
+    update_post_meta( $post_id, '_bw_showcase_label', $showcase_label );
     update_post_meta( $post_id, '_bw_showcase_linked_product', $showcase_linked_product );
 
     // Legacy compatibility.
