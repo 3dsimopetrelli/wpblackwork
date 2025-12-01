@@ -51,6 +51,16 @@
 .bw-wallpost .bw-slick-slider-image {
   position: relative;
   overflow: hidden;
+  z-index: 0;
+}
+
+/* Link invisibile che copre l'intera area dell'immagine */
+.bw-wallpost-image-link-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: block;
+  cursor: pointer;
 }
 
 /* Stili immagine identici a BW Slick Slider */
@@ -151,6 +161,8 @@
   width: 100%;
   gap: 0;
   pointer-events: auto;
+  position: relative;
+  z-index: 3;
 }
 
 .bw-wallpost-overlay-buttons--double .bw-wallpost-overlay-button,

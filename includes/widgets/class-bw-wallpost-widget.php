@@ -976,14 +976,15 @@ class BW_WallPost_Widget extends Widget_Base {
                                     ?>
                                     <div class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $media_classes ) ) ); ?>">
                                         <?php if ( $thumbnail_html ) : ?>
-                                            <a class="bw-wallpost-media-link bw-slick-item__media-link bw-ss__media-link" href="<?php echo esc_url( $permalink ); ?>">
-                                                <div class="bw-wallpost-image bw-slick-slider-image<?php echo $hover_image_html ? ' bw-wallpost-image--has-hover bw-slick-slider-image--has-hover' : ''; ?>">
-                                                    <?php echo wp_kses_post( $thumbnail_html ); ?>
-                                                    <?php if ( $hover_image_html ) : ?>
-                                                        <?php echo wp_kses_post( $hover_image_html ); ?>
-                                                    <?php endif; ?>
-                                                </div>
-                                            </a>
+                                            <div class="bw-wallpost-image bw-slick-slider-image<?php echo $hover_image_html ? ' bw-wallpost-image--has-hover bw-slick-slider-image--has-hover' : ''; ?>">
+                                                <?php echo wp_kses_post( $thumbnail_html ); ?>
+                                                <?php if ( $hover_image_html ) : ?>
+                                                    <?php echo wp_kses_post( $hover_image_html ); ?>
+                                                <?php endif; ?>
+                                            </div>
+
+                                            <!-- Link invisibile che copre l'intera area dell'immagine -->
+                                            <a class="bw-wallpost-image-link-overlay" href="<?php echo esc_url( $permalink ); ?>" aria-label="<?php echo esc_attr( $title ); ?>"></a>
 
                                             <div class="bw-wallpost-overlay overlay-buttons bw-ss__overlay has-buttons">
                                                 <div class="bw-wallpost-overlay-buttons bw-ss__buttons bw-slide-buttons<?php echo $has_add_to_cart ? ' bw-wallpost-overlay-buttons--double bw-ss__buttons--double' : ''; ?>">
