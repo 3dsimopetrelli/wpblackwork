@@ -1,35 +1,27 @@
 .bw-biblio-widget {
-    border: 1px solid #000;
-    border-radius: 8px;
-    padding: 16px;
+    padding: 0;
 }
 
 .bw-biblio-title {
-    margin: 0 0 12px;
+    margin: 0 0 16px;
     font-weight: 600;
 }
 
 .bw-biblio-section {
-    border: 1px solid #e5e5e5;
-    border-radius: 8px;
-    padding: 12px;
+    border: none;
+    border-radius: 0;
+    padding: 0;
 }
 
 .bw-biblio-section + .bw-biblio-section {
-    margin-top: 12px;
-}
-
-.bw-biblio-section-title {
-    margin: 0 0 8px;
-    font-weight: 700;
-    font-size: 14px;
+    margin-top: 16px;
 }
 
 .bw-biblio-section-subtitle {
     margin: 0 0 12px;
-    font-weight: 600;
-    color: #606060;
-    font-size: 13px;
+    font-weight: 700;
+    color: #000;
+    font-size: 14px;
 }
 
 .bw-biblio-table {
@@ -42,11 +34,11 @@
     grid-template-columns: 1fr 1fr;
     gap: 8px;
     align-items: start;
-    padding: 8px 0;
+    padding: 12px 0;
 }
 
 .bw-biblio-row:not(:last-child) {
-    border-bottom: 1px solid #d9d9d9;
+    border-bottom: 1px solid #000;
 }
 
 .bw-biblio-label {
@@ -54,6 +46,41 @@
 }
 
 .bw-biblio-value {
-    text-align: left;
+    text-align: right;
     white-space: pre-wrap;
+}
+
+.bw-biblio-row--assets {
+    gap: 12px;
+}
+
+.bw-biblio-label--assets {
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.2;
+    text-align: left;
+}
+
+.bw-biblio-value--assets-list {
+    line-height: 1.5;
+    text-align: left;
+}
+
+.bw-biblio-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.bw-biblio-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border: 1px solid #000;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    line-height: 1.2;
 }
