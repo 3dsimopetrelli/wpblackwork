@@ -196,15 +196,67 @@ function bw_custom_product_data_panels() {
                                         $('.show_if_simple, .show_if_variable').addClass('show_if_' + type);
                                         $('.hide_if_simple, .hide_if_variable').addClass('hide_if_' + type);
 
+                                        // Add show_if classes to major product data sections
                                         $('#general_product_data, #inventory_product_data, #shipping_product_data, #linked_product_data, #product_attributes, #advanced_product_data, #product_variation_data, #variable_product_options').addClass('show_if_' + type);
+
+                                        // Ensure pricing and downloadable options are visible
                                         $('.options_group.pricing').addClass('show_if_' + type);
                                         $('.options_group.show_if_downloadable').addClass('show_if_' + type);
 
+                                        // Also add to individual downloadable fields and their wrappers
+                                        $('.show_if_downloadable').addClass('show_if_' + type);
+
+                                        // Ensure hide_if_downloadable also gets the custom type class
+                                        $('.hide_if_downloadable').addClass('hide_if_' + type);
+
+                                        // Ensure all tabs are visible for custom types
                                         $('.product_data_tabs li.general_options, .product_data_tabs li.inventory_options, .product_data_tabs li.shipping_options, .product_data_tabs li.linked_product_options, .product_data_tabs li.attribute_options, .product_data_tabs li.variations_options, .product_data_tabs li.advanced_options').addClass('show_if_' + type);
                                 });
                         }
 
+                        // Initial application of classes
                         extendShowIfClasses();
+
+                        // Re-apply classes when downloadable/virtual checkboxes change
+                        // This ensures dynamically added fields get the correct classes
+                        $('#_downloadable, #_virtual').on('change', function() {
+                                // Small delay to let WooCommerce add/remove DOM elements first
+                                setTimeout(function() {
+                                        extendShowIfClasses();
+                                        $('select#product-type').trigger('change');
+                                }, 50);
+                        });
+
+                        // Watch for DOM changes to catch any dynamically added elements
+                        // This is a robust fallback for any fields WooCommerce adds dynamically
+                        const observer = new MutationObserver(function(mutations) {
+                                let shouldReapply = false;
+                                mutations.forEach(function(mutation) {
+                                        if (mutation.addedNodes.length > 0) {
+                                                mutation.addedNodes.forEach(function(node) {
+                                                        if (node.nodeType === 1 && (
+                                                                $(node).hasClass('show_if_simple') ||
+                                                                $(node).hasClass('show_if_variable') ||
+                                                                $(node).find('.show_if_simple, .show_if_variable').length > 0
+                                                        )) {
+                                                                shouldReapply = true;
+                                                        }
+                                                });
+                                        }
+                                });
+                                if (shouldReapply) {
+                                        extendShowIfClasses();
+                                }
+                        });
+
+                        // Observe the product data panel for changes
+                        const targetNode = document.getElementById('woocommerce-product-data');
+                        if (targetNode) {
+                                observer.observe(targetNode, {
+                                        childList: true,
+                                        subtree: true
+                                });
+                        }
 
                         // Trigger WooCommerce UI refresh to respect the new classes
                         $('select#product-type').trigger('change');
