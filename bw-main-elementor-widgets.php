@@ -69,6 +69,8 @@ function bw_initialize_plugin_components() {
         require_once plugin_dir_path( __FILE__ ) . 'metabox/images-showcase-metabox.php';
         // Metabox Artist Name
         require_once plugin_dir_path( __FILE__ ) . 'metabox/artist-name-metabox.php';
+        // Metabox Product Slider
+        require_once plugin_dir_path( __FILE__ ) . 'includes/product-types/class-bw-product-slider-metabox.php';
         // Campo URL completo per categorie prodotto
         require_once plugin_dir_path( __FILE__ ) . 'includes/category-url-field.php';
 }
