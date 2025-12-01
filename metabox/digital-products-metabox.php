@@ -444,7 +444,7 @@ function bw_save_digital_products( $post_id ) {
     update_post_meta( $post_id, '_product_formats', $formats );
     update_post_meta( $post_id, '_product_color', $texts_color );
 }
-add_action( 'save_post', 'bw_save_digital_products' );
+add_action( 'save_post_product', 'bw_save_digital_products' );
 
 /**
  * Print the JavaScript required for the showcase media uploader.
