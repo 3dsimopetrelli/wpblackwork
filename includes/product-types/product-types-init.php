@@ -269,15 +269,23 @@ function bw_register_downloadable_save_handlers() {
 
 	$custom_types = array( 'digital_assets', 'books', 'prints' );
 	
-	// Wrapper to avoid fatal errors when WooCommerce fires the action with a
-	// single argument (post ID). WooCommerce core expects two parameters
-	// ($post_id, $post) for WC_Meta_Box_Product_Data::save(), but the
-	// custom product type hooks only pass the post ID. By providing a default
-	// null value for the second parameter we maintain compatibility with both
-	// call signatures.
-	$handler = static function( $post_id, $post = null ) {
-		WC_Meta_Box_Product_Data::save( $post_id, $post );
-		};
+        // Wrapper to avoid fatal errors when WooCommerce fires the action with a
+        // single argument (post ID). WooCommerce core expects two parameters
+        // ($post_id, $post) for WC_Meta_Box_Product_Data::save(), but the
+        // custom product type hooks only pass the post ID. Fetch the post
+        // object when it's missing so the handler always receives both
+        // arguments.
+        $handler = static function( $post_id, $post = null ) {
+                if ( ! $post instanceof WP_Post ) {
+                        $post = get_post( $post_id );
+                }
+
+                if ( ! $post ) {
+                        return;
+                }
+
+                WC_Meta_Box_Product_Data::save( $post_id, $post );
+        };
 	
 	foreach ( $custom_types as $type ) {
 		add_action( 'woocommerce_process_product_meta_' . $type, $handler, 10, 2 );
