@@ -217,18 +217,30 @@ class Widget_Bw_Bibliographic_Details extends Widget_Base {
             $product_id = $product->get_id();
         }
 
-        $fields = function_exists( 'bw_get_bibliographic_fields' ) ? bw_get_bibliographic_fields() : [
-            '_bw_biblio_title'     => __( 'Title', 'bw' ),
-            '_bw_biblio_author'    => __( 'Author', 'bw' ),
-            '_bw_biblio_publisher' => __( 'Publisher', 'bw' ),
-            '_bw_biblio_year'      => __( 'Year', 'bw' ),
-            '_bw_biblio_language'  => __( 'Language', 'bw' ),
-            '_bw_biblio_binding'   => __( 'Binding', 'bw' ),
-            '_bw_biblio_pages'     => __( 'Pages', 'bw' ),
-            '_bw_biblio_edition'   => __( 'Edition', 'bw' ),
-            '_bw_biblio_condition' => __( 'Condition', 'bw' ),
-            '_bw_biblio_location'  => __( 'Location', 'bw' ),
-        ];
+        $fields = function_exists( 'bw_get_bibliographic_fields' )
+            ? array_merge(
+                bw_get_bibliographic_fields(),
+                function_exists( 'bw_get_prints_bibliographic_fields' ) ? bw_get_prints_bibliographic_fields() : []
+            )
+            : [
+                '_bw_biblio_title'     => __( 'Title', 'bw' ),
+                '_bw_biblio_author'    => __( 'Author', 'bw' ),
+                '_bw_biblio_publisher' => __( 'Publisher', 'bw' ),
+                '_bw_biblio_year'      => __( 'Year', 'bw' ),
+                '_bw_biblio_language'  => __( 'Language', 'bw' ),
+                '_bw_biblio_binding'   => __( 'Binding', 'bw' ),
+                '_bw_biblio_pages'     => __( 'Pages', 'bw' ),
+                '_bw_biblio_edition'   => __( 'Edition', 'bw' ),
+                '_bw_biblio_condition' => __( 'Condition', 'bw' ),
+                '_bw_biblio_location'  => __( 'Location', 'bw' ),
+                '_print_artist'        => __( 'Artist', 'bw' ),
+                '_print_publisher'     => __( 'Publisher', 'bw' ),
+                '_print_year'          => __( 'Year', 'bw' ),
+                '_print_technique'     => __( 'Technique', 'bw' ),
+                '_print_material'      => __( 'Material', 'bw' ),
+                '_print_plate_size'    => __( 'Plate Size', 'bw' ),
+                '_print_condition'     => __( 'Condition', 'bw' ),
+            ];
 
         $this->add_render_attribute( 'wrapper', 'class', 'bw-biblio-widget' );
 

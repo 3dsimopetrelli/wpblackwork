@@ -30,6 +30,23 @@ function bw_get_bibliographic_fields() {
 }
 
 /**
+ * List of bibliographic fields for prints.
+ *
+ * @return array<string, string> Key is the meta key, value is the label.
+ */
+function bw_get_prints_bibliographic_fields() {
+    return [
+        '_print_artist'     => __( 'Artist', 'bw' ),
+        '_print_publisher'  => __( 'Publisher', 'bw' ),
+        '_print_year'       => __( 'Year', 'bw' ),
+        '_print_technique'  => __( 'Technique', 'bw' ),
+        '_print_material'   => __( 'Material', 'bw' ),
+        '_print_plate_size' => __( 'Plate Size', 'bw' ),
+        '_print_condition'  => __( 'Condition', 'bw' ),
+    ];
+}
+
+/**
  * Register the Bibliographic Details metabox.
  */
 function bw_add_bibliographic_details_metabox() {
@@ -52,7 +69,8 @@ add_action( 'add_meta_boxes', 'bw_add_bibliographic_details_metabox' );
 function bw_render_bibliographic_details_metabox( $post ) {
     wp_nonce_field( 'bw_save_bibliographic_details', 'bw_bibliographic_details_nonce' );
 
-    $fields = bw_get_bibliographic_fields();
+    $book_fields  = bw_get_bibliographic_fields();
+    $print_fields = bw_get_prints_bibliographic_fields();
     ?>
     <style>
         .bw-biblio-metabox-table {
@@ -76,27 +94,68 @@ function bw_render_bibliographic_details_metabox( $post ) {
             width: 100%;
             box-sizing: border-box;
         }
+        .bw-biblio-section {
+            border: 1px solid #dcdcde;
+            border-radius: 6px;
+            padding: 12px;
+            margin-top: 12px;
+        }
+        .bw-biblio-section:first-of-type {
+            margin-top: 0;
+        }
+        .bw-biblio-section-title {
+            margin: 0 0 10px;
+            font-size: 14px;
+            font-weight: 600;
+        }
     </style>
-    <table class="bw-biblio-metabox-table">
-        <tbody>
-        <?php foreach ( $fields as $meta_key => $label ) :
-            $value = get_post_meta( $post->ID, $meta_key, true );
-            ?>
-            <tr>
-                <th scope="row"><label for="<?php echo esc_attr( $meta_key ); ?>"><?php echo esc_html( $label ); ?></label></th>
-                <td>
-                    <input
-                        type="text"
-                        id="<?php echo esc_attr( $meta_key ); ?>"
-                        name="<?php echo esc_attr( $meta_key ); ?>"
-                        value="<?php echo esc_attr( $value ); ?>"
-                        class="bw-biblio-metabox-input"
-                    />
-                </td>
-            </tr>
-        <?php endforeach; ?>
-        </tbody>
-    </table>
+    <div class="bw-biblio-section bw-biblio-section-books">
+        <h4 class="bw-biblio-section-title"><?php esc_html_e( 'Books – Bibliographic details', 'bw' ); ?></h4>
+        <table class="bw-biblio-metabox-table">
+            <tbody>
+            <?php foreach ( $book_fields as $meta_key => $label ) :
+                $value = get_post_meta( $post->ID, $meta_key, true );
+                ?>
+                <tr>
+                    <th scope="row"><label for="<?php echo esc_attr( $meta_key ); ?>"><?php echo esc_html( $label ); ?></label></th>
+                    <td>
+                        <input
+                            type="text"
+                            id="<?php echo esc_attr( $meta_key ); ?>"
+                            name="<?php echo esc_attr( $meta_key ); ?>"
+                            value="<?php echo esc_attr( $value ); ?>"
+                            class="bw-biblio-metabox-input"
+                        />
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="bw-biblio-section bw-biblio-section-prints">
+        <h4 class="bw-biblio-section-title"><?php esc_html_e( 'Prints – Bibliographic details', 'bw' ); ?></h4>
+        <table class="bw-biblio-metabox-table">
+            <tbody>
+            <?php foreach ( $print_fields as $meta_key => $label ) :
+                $value = get_post_meta( $post->ID, $meta_key, true );
+                ?>
+                <tr>
+                    <th scope="row"><label for="<?php echo esc_attr( $meta_key ); ?>"><?php echo esc_html( $label ); ?></label></th>
+                    <td>
+                        <input
+                            type="text"
+                            id="<?php echo esc_attr( $meta_key ); ?>"
+                            name="<?php echo esc_attr( $meta_key ); ?>"
+                            value="<?php echo esc_attr( $value ); ?>"
+                            class="bw-biblio-metabox-input"
+                        />
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
     <?php
 }
 
@@ -122,7 +181,7 @@ function bw_save_bibliographic_details_metabox( $post_id ) {
         return;
     }
 
-    $fields = bw_get_bibliographic_fields();
+    $fields = array_merge( bw_get_bibliographic_fields(), bw_get_prints_bibliographic_fields() );
 
     foreach ( $fields as $meta_key => $label ) {
         $raw_value = isset( $_POST[ $meta_key ] ) ? wp_unslash( $_POST[ $meta_key ] ) : '';
