@@ -288,16 +288,16 @@ class Widget_Bw_Product_Details extends Widget_Base {
 
         $sections = [
             [
-                'title'   => __( 'Digital Product Details', 'bw' ),
+                'id'      => 'digital',
                 'subtitle'=> __( 'Collection content', 'bw' ),
                 'fields'  => $digital_fields,
             ],
             [
-                'title'  => __( 'Prints – Bibliographic details', 'bw' ),
+                'id'     => 'prints',
                 'fields' => $print_fields,
             ],
             [
-                'title'  => __( 'Books – Bibliographic details', 'bw' ),
+                'id'     => 'books',
                 'fields' => $book_fields,
             ],
         ];
@@ -319,7 +319,6 @@ class Widget_Bw_Product_Details extends Widget_Base {
             }
 
             echo '  <div class="bw-biblio-section">';
-            echo '    <div class="bw-biblio-section-title">' . esc_html( $section['title'] ) . '</div>';
 
             if ( ! empty( $section['subtitle'] ) ) {
                 echo '    <div class="bw-biblio-section-subtitle">' . esc_html( $section['subtitle'] ) . '</div>';
@@ -327,8 +326,27 @@ class Widget_Bw_Product_Details extends Widget_Base {
 
             echo '    <div class="bw-biblio-table">';
 
+            if ( 'digital' === $section['id'] ) {
+                $total_assets_row = $this->pull_row_by_meta( $rows, '_digital_total_assets' );
+                $assets_list_row  = $this->pull_row_by_meta( $rows, '_digital_assets_list' );
+
+                if ( $total_assets_row || $assets_list_row ) {
+                    $total_assets_value = $total_assets_row ? esc_html( $total_assets_row['value'] ) : '';
+                    $assets_list_value  = $assets_list_row ? nl2br( esc_html( $assets_list_row['value'] ) ) : '';
+
+                    echo '      <div class="bw-biblio-row bw-biblio-row--assets">';
+                    echo '        <div class="bw-biblio-label bw-biblio-label--assets">' . $total_assets_value . '</div>';
+                    echo '        <div class="bw-biblio-value bw-biblio-value--assets-list">' . $assets_list_value . '</div>';
+                    echo '      </div>';
+                }
+            }
+
             foreach ( $rows as $row ) {
-                $value = '_digital_assets_list' === $row['meta'] ? nl2br( esc_html( $row['value'] ) ) : esc_html( $row['value'] );
+                $value = esc_html( $row['value'] );
+
+                if ( '_digital_formats' === $row['meta'] ) {
+                    $value = $this->render_formats_pills( $row['value'] );
+                }
 
                 echo '      <div class="bw-biblio-row">';
                 echo '        <div class="bw-biblio-label">' . esc_html( $row['label'] ) . '</div>';
@@ -361,6 +379,35 @@ class Widget_Bw_Product_Details extends Widget_Base {
         }
 
         return $rows;
+    }
+
+    private function pull_row_by_meta( &$rows, $meta_key ) {
+        foreach ( $rows as $index => $row ) {
+            if ( $meta_key === $row['meta'] ) {
+                unset( $rows[ $index ] );
+
+                return $row;
+            }
+        }
+
+        return null;
+    }
+
+    private function render_formats_pills( $value ) {
+        $formats = array_filter( array_map( 'trim', explode( ',', $value ) ) );
+
+        if ( empty( $formats ) ) {
+            return '';
+        }
+
+        $pills = array_map(
+            static function ( $format ) {
+                return '<span class="bw-biblio-pill">' . esc_html( strtoupper( $format ) ) . '</span>';
+            },
+            $formats
+        );
+
+        return '<div class="bw-biblio-pills">' . implode( '', $pills ) . '</div>';
     }
 
     private function register_style() {
