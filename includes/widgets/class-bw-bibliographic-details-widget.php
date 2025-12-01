@@ -217,17 +217,17 @@ class Widget_Bw_Bibliographic_Details extends Widget_Base {
             $product_id = $product->get_id();
         }
 
-        $fields = [
-            'Title'     => '_bw_biblio_title',
-            'Author'    => '_bw_biblio_author',
-            'Publisher' => '_bw_biblio_publisher',
-            'Year'      => '_bw_biblio_year',
-            'Language'  => '_bw_biblio_language',
-            'Binding'   => '_bw_biblio_binding',
-            'Pages'     => '_bw_biblio_pages',
-            'Edition'   => '_bw_biblio_edition',
-            'Condition' => '_bw_biblio_condition',
-            'Location'  => '_bw_biblio_location',
+        $fields = function_exists( 'bw_get_bibliographic_fields' ) ? bw_get_bibliographic_fields() : [
+            '_bw_biblio_title'     => __( 'Title', 'bw' ),
+            '_bw_biblio_author'    => __( 'Author', 'bw' ),
+            '_bw_biblio_publisher' => __( 'Publisher', 'bw' ),
+            '_bw_biblio_year'      => __( 'Year', 'bw' ),
+            '_bw_biblio_language'  => __( 'Language', 'bw' ),
+            '_bw_biblio_binding'   => __( 'Binding', 'bw' ),
+            '_bw_biblio_pages'     => __( 'Pages', 'bw' ),
+            '_bw_biblio_edition'   => __( 'Edition', 'bw' ),
+            '_bw_biblio_condition' => __( 'Condition', 'bw' ),
+            '_bw_biblio_location'  => __( 'Location', 'bw' ),
         ];
 
         $this->add_render_attribute( 'wrapper', 'class', 'bw-biblio-widget' );
@@ -236,8 +236,12 @@ class Widget_Bw_Bibliographic_Details extends Widget_Base {
         echo '  <div class="bw-biblio-title">' . esc_html__( 'Bibliographic details', 'bw' ) . '</div>';
         echo '  <div class="bw-biblio-table">';
 
-        foreach ( $fields as $label => $meta_key ) {
+        foreach ( $fields as $meta_key => $label ) {
             $value = get_post_meta( $product_id, $meta_key, true );
+
+            if ( '' === $value ) {
+                continue;
+            }
 
             echo '    <div class="bw-biblio-row">';
             echo '      <div class="bw-biblio-label">' . esc_html( $label ) . '</div>';
