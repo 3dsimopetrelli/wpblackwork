@@ -636,7 +636,7 @@ function bw_live_search_products() {
     }
 
     // Aggiungi filtro per product type se specificato (include tipi personalizzati)
-    if ( ! empty( $product_type ) && in_array( $product_type, [ 'simple', 'variable', 'grouped', 'external', 'digitalassets', 'books', 'prints' ], true ) ) {
+    if ( ! empty( $product_type ) && in_array( $product_type, [ 'simple', 'variable', 'grouped', 'external', 'digital_assets', 'books', 'prints' ], true ) ) {
         $tax_query[] = [
             'taxonomy' => 'product_type',
             'field'    => 'slug',
