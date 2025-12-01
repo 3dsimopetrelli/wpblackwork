@@ -806,7 +806,6 @@
 .bw-filtered-post-wall .bw-fpw-overlay:focus-within {
   opacity: 1;
   transform: translateY(0);
-  pointer-events: auto;
 }
 
 .bw-filtered-post-wall .bw-fpw-overlay-buttons {
