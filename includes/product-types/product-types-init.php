@@ -198,6 +198,7 @@ function bw_custom_product_data_panels() {
 
                                         $('#general_product_data, #inventory_product_data, #shipping_product_data, #linked_product_data, #product_attributes, #advanced_product_data, #product_variation_data, #variable_product_options').addClass('show_if_' + type);
                                         $('.options_group.pricing').addClass('show_if_' + type);
+                                        $('.options_group.show_if_downloadable').addClass('show_if_' + type);
 
                                         $('.product_data_tabs li.general_options, .product_data_tabs li.inventory_options, .product_data_tabs li.shipping_options, .product_data_tabs li.linked_product_options, .product_data_tabs li.attribute_options, .product_data_tabs li.variations_options, .product_data_tabs li.advanced_options').addClass('show_if_' + type);
                                 });
@@ -248,6 +249,31 @@ function bw_save_custom_product_type( $post_id ) {
         wc_delete_product_transients( $post_id );
 }
 add_action( 'woocommerce_process_product_meta', 'bw_save_custom_product_type', 10, 1 );
+
+/**
+ * Ensure downloadable assets are saved for custom product types.
+ *
+ * WooCommerce core hooks downloadable file saving to product-type specific
+ * actions (e.g. `woocommerce_process_product_meta_simple`). Our custom
+ * product types need the same handler so that `_downloadable_files`,
+ * `_download_limit`, `_download_expiry`, and related meta persist.
+ */
+function bw_register_downloadable_save_handlers() {
+        if ( ! class_exists( 'WC_Meta_Box_Product_Data' ) && defined( 'WC_ABSPATH' ) ) {
+                include_once WC_ABSPATH . 'includes/admin/meta-boxes/class-wc-meta-box-product-data.php';
+        }
+
+        if ( ! class_exists( 'WC_Meta_Box_Product_Data' ) ) {
+                return;
+        }
+
+        $custom_types = array( 'digital_assets', 'books', 'prints' );
+
+        foreach ( $custom_types as $type ) {
+                add_action( 'woocommerce_process_product_meta_' . $type, 'WC_Meta_Box_Product_Data::save_downloadable_files', 10, 1 );
+        }
+}
+add_action( 'init', 'bw_register_downloadable_save_handlers' );
 
 /**
  * Restore the Product Type column in the products list if it's been removed.
