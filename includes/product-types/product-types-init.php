@@ -3,11 +3,19 @@
  * Custom Product Types Initialization
  *
  * Registers and configures custom WooCommerce product types:
- * - Digital Assets (Simple Product with custom type)
- * - Books (Simple Product with custom type)
- * - Prints (Simple Product with custom type)
+ * - Digital Assets (Variable Product with custom type)
+ * - Books (Variable Product with custom type)
+ * - Prints (Variable Product with custom type)
  *
- * All three types extend WC_Product_Simple and inherit all Simple product features.
+ * All three types extend WC_Product_Variable and inherit all Variable product features:
+ * - General tab: Price, Sale price, Tax options
+ * - Inventory tab: Stock management
+ * - Shipping tab: Weight, dimensions
+ * - Linked products: Upsells, cross-sells
+ * - Attributes: Product attributes for variations
+ * - Variations: Full variation support with individual pricing and stock
+ * - Advanced tab: Purchase note, menu order, reviews
+ *
  * They only differ in their type slug for filtering and custom queries.
  *
  * @package BWElementorWidgets
@@ -91,3 +99,213 @@ function bw_register_custom_product_type_terms() {
 	}
 }
 add_action( 'init', 'bw_register_custom_product_type_terms', 20 );
+
+/**
+ * Add support for product type options (virtual, downloadable).
+ * This shows checkboxes in the General tab for our custom product types.
+ *
+ * @param array $options Existing product type options.
+ * @return array Modified options.
+ */
+function bw_add_custom_product_type_options( $options ) {
+	// Add virtual and downloadable support for our custom types
+	if ( isset( $options['virtual'] ) ) {
+		$options['virtual']['wrapper_class'] .= ' show_if_digital_assets show_if_books show_if_prints';
+	}
+	if ( isset( $options['downloadable'] ) ) {
+		$options['downloadable']['wrapper_class'] .= ' show_if_digital_assets show_if_books show_if_prints';
+	}
+
+	return $options;
+}
+add_filter( 'product_type_options', 'bw_add_custom_product_type_options' );
+
+/**
+ * Show/hide product data tabs for custom product types.
+ * Ensures all necessary tabs are visible.
+ *
+ * @param array $tabs Product data tabs.
+ * @return array Modified tabs.
+ */
+function bw_custom_product_data_tabs( $tabs ) {
+	// Make sure our custom types show all the same tabs as variable products
+	$custom_types = array( 'digital_assets', 'books', 'prints' );
+
+	foreach ( $custom_types as $type ) {
+		// General tab - always visible
+		if ( isset( $tabs['general'] ) ) {
+			$tabs['general']['class'][] = 'show_if_' . $type;
+		}
+
+		// Inventory tab
+		if ( isset( $tabs['inventory'] ) ) {
+			$tabs['inventory']['class'][] = 'show_if_' . $type;
+		}
+
+		// Shipping tab
+		if ( isset( $tabs['shipping'] ) ) {
+			$tabs['shipping']['class'][] = 'show_if_' . $type;
+		}
+
+		// Linked products tab
+		if ( isset( $tabs['linked_product'] ) ) {
+			$tabs['linked_product']['class'][] = 'show_if_' . $type;
+		}
+
+		// Attributes tab
+		if ( isset( $tabs['attribute'] ) ) {
+			$tabs['attribute']['class'][] = 'show_if_' . $type;
+		}
+
+		// Variations tab
+		if ( isset( $tabs['variations'] ) ) {
+			$tabs['variations']['class'][] = 'show_if_' . $type;
+		}
+
+		// Advanced tab
+		if ( isset( $tabs['advanced'] ) ) {
+			$tabs['advanced']['class'][] = 'show_if_' . $type;
+		}
+	}
+
+	return $tabs;
+}
+add_filter( 'woocommerce_product_data_tabs', 'bw_custom_product_data_tabs', 10, 1 );
+
+/**
+ * Show product data panels for custom product types.
+ * This ensures the General price fields are visible.
+ */
+function bw_custom_product_data_panels() {
+	global $post;
+
+	// Only run on product edit screen
+	if ( ! $post || 'product' !== $post->post_type ) {
+		return;
+	}
+
+	$product = wc_get_product( $post->ID );
+	if ( ! $product ) {
+		return;
+	}
+
+	$product_type = $product->get_type();
+	$custom_types = array( 'digital_assets', 'books', 'prints' );
+
+	// Add CSS to show/hide fields for our custom types
+	if ( in_array( $product_type, $custom_types, true ) ) {
+		?>
+		<script type="text/javascript">
+			jQuery(document).ready(function($) {
+				// Show all fields for our custom types
+				$('.show_if_<?php echo esc_js( $product_type ); ?>').show();
+				$('.hide_if_<?php echo esc_js( $product_type ); ?>').hide();
+
+				// Show pricing fields in General tab
+				$('.options_group.pricing').addClass('show_if_<?php echo esc_js( $product_type ); ?>').show();
+
+				// Show variations tab and UI
+				$('#variable_product_options').addClass('show_if_<?php echo esc_js( $product_type ); ?>').show();
+				$('.woocommerce_variation').show();
+			});
+		</script>
+		<?php
+	}
+}
+add_action( 'woocommerce_product_data_panels', 'bw_custom_product_data_panels' );
+
+/**
+ * Ensure the product type is saved correctly and not overwritten.
+ * This prevents the type from reverting to 'simple' after save.
+ *
+ * @param int $post_id Product ID.
+ */
+function bw_save_custom_product_type( $post_id ) {
+	// Verify this is a product
+	if ( 'product' !== get_post_type( $post_id ) ) {
+		return;
+	}
+
+	// Check if we have a product type in the POST data
+	if ( ! isset( $_POST['product-type'] ) ) {
+		return;
+	}
+
+	$product_type = sanitize_text_field( $_POST['product-type'] );
+	$custom_types = array( 'digital_assets', 'books', 'prints' );
+
+	// Only process our custom types
+	if ( ! in_array( $product_type, $custom_types, true ) ) {
+		return;
+	}
+
+	// Set the product type taxonomy term
+	wp_set_object_terms( $post_id, $product_type, 'product_type', false );
+
+	// Clear product cache
+	wc_delete_product_transients( $post_id );
+}
+add_action( 'woocommerce_process_product_meta', 'bw_save_custom_product_type', 10, 1 );
+
+/**
+ * Restore the Product Type column in the products list if it's been removed.
+ * This ensures the column is visible in the admin product list.
+ *
+ * @param array $columns Existing columns.
+ * @return array Modified columns.
+ */
+function bw_restore_product_type_column( $columns ) {
+	// Check if the product_type column exists
+	if ( ! isset( $columns['product_type'] ) ) {
+		// Add it after the name column
+		$new_columns = array();
+		foreach ( $columns as $key => $value ) {
+			$new_columns[ $key ] = $value;
+			if ( 'name' === $key ) {
+				$new_columns['product_type'] = __( 'Type', 'woocommerce' );
+			}
+		}
+		return $new_columns;
+	}
+
+	return $columns;
+}
+add_filter( 'manage_edit-product_columns', 'bw_restore_product_type_column', 20 );
+
+/**
+ * Display the product type in the product list column.
+ * Shows the human-readable name for our custom types.
+ *
+ * @param string $column_name Column name.
+ * @param int    $post_id     Product ID.
+ */
+function bw_display_product_type_column( $column_name, $post_id ) {
+	if ( 'product_type' !== $column_name ) {
+		return;
+	}
+
+	$product = wc_get_product( $post_id );
+	if ( ! $product ) {
+		return;
+	}
+
+	$product_type = $product->get_type();
+
+	// Map our custom types to readable names
+	$type_labels = array(
+		'digital_assets' => __( 'Digital Assets', 'bw' ),
+		'books'          => __( 'Books', 'bw' ),
+		'prints'         => __( 'Prints', 'bw' ),
+		'simple'         => __( 'Simple product', 'woocommerce' ),
+		'variable'       => __( 'Variable product', 'woocommerce' ),
+		'grouped'        => __( 'Grouped product', 'woocommerce' ),
+		'external'       => __( 'External/Affiliate product', 'woocommerce' ),
+	);
+
+	if ( isset( $type_labels[ $product_type ] ) ) {
+		echo esc_html( $type_labels[ $product_type ] );
+	} else {
+		echo esc_html( ucfirst( $product_type ) );
+	}
+}
+add_action( 'manage_product_posts_custom_column', 'bw_display_product_type_column', 10, 2 );
