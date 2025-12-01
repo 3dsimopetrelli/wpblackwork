@@ -616,13 +616,16 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
         }
 
         // Metabox data
-        $showcase_title_meta  = trim( (string) get_post_meta( $product_id, '_bw_showcase_title', true ) );
-        $showcase_title       = '' !== $showcase_title_meta ? $showcase_title_meta : $product_title;
-        $showcase_description = trim( (string) get_post_meta( $product_id, '_bw_showcase_description', true ) );
+        $showcase_title_meta        = trim( (string) get_post_meta( $product_id, '_bw_showcase_title', true ) );
+        $showcase_title             = '' !== $showcase_title_meta ? $showcase_title_meta : $product_title;
+        $showcase_description       = trim( (string) get_post_meta( $product_id, '_bw_showcase_description', true ) );
+        $showcase_label_enabled_raw = get_post_meta( $product_id, '_bw_showcase_label_enabled', true );
+        $showcase_label_meta        = trim( (string) get_post_meta( $product_id, '_bw_showcase_label', true ) );
 
-        // Showcase Label logic: render only when the widget field is filled
+        // Showcase Label logic: metabox (when enabled and not empty) has priority over widget field
         $showcase_label_widget = isset( $settings['showcase_label_text'] ) ? trim( (string) $settings['showcase_label_text'] ) : '';
-        $showcase_label        = '' !== $showcase_label_widget ? $showcase_label_widget : '';
+        $use_metabox_label     = ( 'yes' === $showcase_label_enabled_raw ) && '' !== $showcase_label_meta;
+        $showcase_label        = $use_metabox_label ? $showcase_label_meta : $showcase_label_widget;
 
         $meta_assets_count = get_post_meta( $product_id, '_bw_assets_count', true );
         if ( '' === $meta_assets_count ) {

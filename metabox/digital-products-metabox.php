@@ -300,10 +300,32 @@ function bw_render_digital_products_metabox( $post ) {
         }
       }
 
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initBwProductTypeToggle);
-      } else {
+      function initBwShowcaseLabelToggle() {
+        var checkbox = document.querySelector('#bw_showcase_label_enabled');
+        var labelField = document.querySelector('#bw_showcase_label');
+        var labelWrapper = labelField ? labelField.closest('.bw-metabox-field-group') : null;
+
+        if (!checkbox || !labelWrapper) {
+          return;
+        }
+
+        function toggleLabelField() {
+          labelWrapper.style.display = checkbox.checked ? 'block' : 'none';
+        }
+
+        checkbox.addEventListener('change', toggleLabelField);
+        toggleLabelField();
+      }
+
+      function initMetaboxUI() {
         initBwProductTypeToggle();
+        initBwShowcaseLabelToggle();
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initMetaboxUI);
+      } else {
+        initMetaboxUI();
       }
     })();
 
