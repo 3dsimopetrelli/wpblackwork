@@ -381,16 +381,10 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
                     $product_title = $product->get_name();
                     $image_ids     = [];
 
-                    // Aggiungi la featured image come prima immagine
-                    $featured_image_id = $product->get_image_id();
-                    if ( $featured_image_id ) {
-                        $image_ids[] = $featured_image_id;
-                    }
-
-                    // Aggiungi le gallery images
+                    // Aggiungi solo le gallery images (esclusa la featured image)
                     $gallery_image_ids = $product->get_gallery_image_ids();
                     if ( ! empty( $gallery_image_ids ) && is_array( $gallery_image_ids ) ) {
-                        $image_ids = array_merge( $image_ids, $gallery_image_ids );
+                        $image_ids = $gallery_image_ids;
                     }
 
                     // Costruisci l'array slides dalle immagini della gallery
