@@ -40,40 +40,7 @@ class BW_Price_Variation_Widget extends Widget_Base {
 	}
 
 	private function register_content_controls() {
-		$this->start_controls_section(
-			'section_content',
-			[
-				'label' => __( 'Content', 'bw' ),
-				'tab'   => Controls_Manager::TAB_CONTENT,
-			]
-		);
-
-		$this->add_control(
-			'show_vat_text',
-			[
-				'label'        => __( 'Show "incl. VAT" Text', 'bw' ),
-				'type'         => Controls_Manager::SWITCHER,
-				'label_on'     => __( 'Yes', 'bw' ),
-				'label_off'    => __( 'No', 'bw' ),
-				'return_value' => 'yes',
-				'default'      => 'yes',
-			]
-		);
-
-		$this->add_control(
-			'vat_text',
-			[
-				'label'       => __( 'VAT Text', 'bw' ),
-				'type'        => Controls_Manager::TEXT,
-				'default'     => __( 'incl. VAT', 'bw' ),
-				'placeholder' => __( 'Enter VAT text', 'bw' ),
-				'condition'   => [
-					'show_vat_text' => 'yes',
-				],
-			]
-		);
-
-		$this->end_controls_section();
+		// No content controls needed for this widget
 	}
 
 	private function register_style_controls() {
@@ -98,7 +65,7 @@ class BW_Price_Variation_Widget extends Widget_Base {
 				],
 				'default'   => 'left',
 				'selectors' => [
-					'{{WRAPPER}} .bw-price-variation__price-wrapper' => 'text-align: {{VALUE}};',
+					'{{WRAPPER}} .bw-price-variation__price-wrapper' => 'justify-content: {{VALUE}};',
 				],
 			]
 		);
@@ -120,27 +87,6 @@ class BW_Price_Variation_Widget extends Widget_Base {
 				'default'   => '#000000',
 				'selectors' => [
 					'{{WRAPPER}} .bw-price-variation__price' => 'color: {{VALUE}};',
-				],
-			]
-		);
-
-		$this->add_group_control(
-			Group_Control_Typography::get_type(),
-			[
-				'name'     => 'vat_typography',
-				'label'    => __( 'VAT Text Typography', 'bw' ),
-				'selector' => '{{WRAPPER}} .bw-price-variation__vat',
-			]
-		);
-
-		$this->add_control(
-			'vat_color',
-			[
-				'label'     => __( 'VAT Text Color', 'bw' ),
-				'type'      => Controls_Manager::COLOR,
-				'default'   => '#666666',
-				'selectors' => [
-					'{{WRAPPER}} .bw-price-variation__vat' => 'color: {{VALUE}};',
 				],
 			]
 		);
@@ -468,64 +414,6 @@ class BW_Price_Variation_Widget extends Widget_Base {
 			]
 		);
 
-		$this->add_control(
-			'heading_label_style',
-			[
-				'label'     => __( 'Labels (Left Column)', 'bw' ),
-				'type'      => Controls_Manager::HEADING,
-				'separator' => 'before',
-			]
-		);
-
-		$this->add_group_control(
-			Group_Control_Typography::get_type(),
-			[
-				'name'     => 'box_label_typography',
-				'selector' => '{{WRAPPER}} .bw-price-variation__license-box strong, {{WRAPPER}} .bw-price-variation__license-box b',
-			]
-		);
-
-		$this->add_control(
-			'box_label_color',
-			[
-				'label'     => __( 'Label Color', 'bw' ),
-				'type'      => Controls_Manager::COLOR,
-				'default'   => '#000000',
-				'selectors' => [
-					'{{WRAPPER}} .bw-price-variation__license-box strong, {{WRAPPER}} .bw-price-variation__license-box b' => 'color: {{VALUE}};',
-				],
-			]
-		);
-
-		$this->add_control(
-			'heading_value_style',
-			[
-				'label'     => __( 'Values (Right Column)', 'bw' ),
-				'type'      => Controls_Manager::HEADING,
-				'separator' => 'before',
-			]
-		);
-
-		$this->add_group_control(
-			Group_Control_Typography::get_type(),
-			[
-				'name'     => 'box_value_typography',
-				'selector' => '{{WRAPPER}} .bw-price-variation__license-box',
-			]
-		);
-
-		$this->add_control(
-			'box_value_color',
-			[
-				'label'     => __( 'Value Color', 'bw' ),
-				'type'      => Controls_Manager::COLOR,
-				'default'   => '#333333',
-				'selectors' => [
-					'{{WRAPPER}} .bw-price-variation__license-box' => 'color: {{VALUE}};',
-				],
-			]
-		);
-
 		$this->end_controls_section();
 	}
 
@@ -542,10 +430,6 @@ class BW_Price_Variation_Widget extends Widget_Base {
 		}
 
 		$settings = $this->get_settings_for_display();
-		$show_vat = isset( $settings['show_vat_text'] ) && 'yes' === $settings['show_vat_text'];
-		$vat_text = isset( $settings['vat_text'] ) && '' !== trim( $settings['vat_text'] )
-			? $settings['vat_text']
-			: __( 'incl. VAT', 'bw' );
 
 		$available_variations = $product->get_available_variations();
 
@@ -589,9 +473,6 @@ class BW_Price_Variation_Widget extends Widget_Base {
 				<span class="bw-price-variation__price" data-default-price="<?php echo esc_attr( $default_price ); ?>">
 					<?php echo wc_price( $default_price ); ?>
 				</span>
-				<?php if ( $show_vat ) : ?>
-					<span class="bw-price-variation__vat"><?php echo esc_html( $vat_text ); ?></span>
-				<?php endif; ?>
 			</div>
 
 			<!-- Variation Buttons -->

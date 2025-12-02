@@ -25,13 +25,13 @@
 				$buttons.removeClass('active');
 				$button.addClass('active');
 
-				// Update price display
+				// Update price display with fade animation
 				if (price && typeof woocommerce_price_format !== 'undefined') {
-					updatePriceDisplay($priceDisplay, price);
+					updatePriceDisplayWithFade($priceDisplay, price);
 				}
 
-				// Load and display license HTML
-				loadVariationLicenseHTML(variationId, $licenseBox);
+				// Load and display license HTML with fade animation
+				loadVariationLicenseHTMLWithFade(variationId, $licenseBox);
 
 				// Trigger custom event for other scripts (e.g., WooCommerce variations)
 				$widget.trigger('bw_price_variation_changed', {
@@ -75,6 +75,21 @@
 	}
 
 	/**
+	 * Update price display with fade animation
+	 */
+	function updatePriceDisplayWithFade($priceDisplay, price) {
+		// Fade out
+		$priceDisplay.css('opacity', '0');
+
+		// Update price after fade out (200ms)
+		setTimeout(function() {
+			updatePriceDisplay($priceDisplay, price);
+			// Fade in
+			$priceDisplay.css('opacity', '1');
+		}, 200);
+	}
+
+	/**
 	 * Load variation license HTML via AJAX
 	 */
 	function loadVariationLicenseHTML(variationId, $licenseBox) {
@@ -107,6 +122,52 @@
 				// On error, hide the box
 				$licenseBox.hide().html('');
 			}
+		});
+	}
+
+	/**
+	 * Load variation license HTML via AJAX with fade animation
+	 */
+	function loadVariationLicenseHTMLWithFade(variationId, $licenseBox) {
+		if (!variationId) {
+			$licenseBox.fadeOut(200, function() {
+				$(this).html('');
+			});
+			return;
+		}
+
+		// Fade out current content
+		$licenseBox.fadeOut(200, function() {
+			// Show loading state
+			$licenseBox.html('<p>Loading...</p>').fadeIn(200);
+
+			// Make AJAX request to get variation meta
+			$.ajax({
+				url: bwPriceVariation.ajaxUrl,
+				type: 'POST',
+				data: {
+					action: 'bw_get_variation_license_html',
+					variation_id: variationId,
+					nonce: bwPriceVariation.nonce
+				},
+				success: function(response) {
+					// Fade out loading, then fade in new content
+					$licenseBox.fadeOut(200, function() {
+						if (response.success && response.data.html) {
+							$licenseBox.html(response.data.html).fadeIn(200);
+						} else {
+							// No HTML content, hide the box
+							$licenseBox.html('');
+						}
+					});
+				},
+				error: function() {
+					// On error, hide the box
+					$licenseBox.fadeOut(200, function() {
+						$(this).html('');
+					});
+				}
+			});
 		});
 	}
 
