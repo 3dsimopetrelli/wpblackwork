@@ -26,7 +26,7 @@
 				$button.addClass('active');
 
 				// Update price display with fade animation
-				if (price && typeof woocommerce_price_format !== 'undefined') {
+				if (price) {
 					updatePriceDisplayWithFade($priceDisplay, price);
 				}
 
@@ -98,9 +98,6 @@
 			return;
 		}
 
-		// Show loading state
-		$licenseBox.html('<p>Loading...</p>').show();
-
 		// Make AJAX request to get variation meta
 		$.ajax({
 			url: bwPriceVariation.ajaxUrl,
@@ -138,9 +135,6 @@
 
 		// Fade out current content
 		$licenseBox.fadeOut(200, function() {
-			// Show loading state
-			$licenseBox.html('<p>Loading...</p>').fadeIn(200);
-
 			// Make AJAX request to get variation meta
 			$.ajax({
 				url: bwPriceVariation.ajaxUrl,
@@ -151,21 +145,16 @@
 					nonce: bwPriceVariation.nonce
 				},
 				success: function(response) {
-					// Fade out loading, then fade in new content
-					$licenseBox.fadeOut(200, function() {
-						if (response.success && response.data.html) {
-							$licenseBox.html(response.data.html).fadeIn(200);
-						} else {
-							// No HTML content, hide the box
-							$licenseBox.html('');
-						}
-					});
+					if (response.success && response.data.html) {
+						$licenseBox.html(response.data.html).fadeIn(200);
+					} else {
+						// No HTML content, keep box hidden
+						$licenseBox.html('');
+					}
 				},
 				error: function() {
-					// On error, hide the box
-					$licenseBox.fadeOut(200, function() {
-						$(this).html('');
-					});
+					// On error, keep box hidden
+					$licenseBox.html('');
 				}
 			});
 		});
