@@ -279,57 +279,80 @@ add_action( 'woocommerce_product_data_panels', 'bw_custom_product_data_panels' )
  * @param int $post_id Product ID.
  */
 function bw_save_custom_product_type( $post_id ) {
+	// DEBUG: Log function entry
+	error_log( 'BW DEBUG: bw_save_custom_product_type called for post_id: ' . $post_id );
+
 	// Prevent infinite loops
 	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		error_log( 'BW DEBUG: Exiting - DOING_AUTOSAVE' );
 		return;
 	}
 
 	// Verify this is a product
 	if ( 'product' !== get_post_type( $post_id ) ) {
+		error_log( 'BW DEBUG: Exiting - Not a product, type is: ' . get_post_type( $post_id ) );
 		return;
 	}
 
 	// Check permissions
 	if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		error_log( 'BW DEBUG: Exiting - No edit permission' );
 		return;
 	}
+
+	// DEBUG: Check POST data
+	// phpcs:ignore WordPress.Security.NonceVerification.Missing
+	error_log( 'BW DEBUG: $_POST keys: ' . implode( ', ', array_keys( $_POST ) ) );
+	// phpcs:ignore WordPress.Security.NonceVerification.Missing
+	error_log( 'BW DEBUG: product-type value: ' . ( isset( $_POST['product-type'] ) ? $_POST['product-type'] : 'NOT SET' ) );
 
 	// Verify WooCommerce nonce (if it exists in the request)
 	// phpcs:ignore WordPress.Security.NonceVerification.Missing
 	if ( isset( $_POST['woocommerce_meta_nonce'] ) && ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['woocommerce_meta_nonce'] ) ), 'woocommerce_save_data' ) ) {
+		error_log( 'BW DEBUG: Exiting - Nonce verification failed' );
 		return;
 	}
 
 	// Check if we have a product type in the POST data
 	// phpcs:ignore WordPress.Security.NonceVerification.Missing
 	if ( ! isset( $_POST['product-type'] ) ) {
+		error_log( 'BW DEBUG: Exiting - product-type not in POST' );
 		return;
 	}
 
 	// phpcs:ignore WordPress.Security.NonceVerification.Missing
 	$product_type = sanitize_text_field( wp_unslash( $_POST['product-type'] ) );
+	error_log( 'BW DEBUG: Sanitized product_type: ' . $product_type );
+
 	$custom_types = array( 'digital_assets', 'books', 'prints' );
 
 	// Only process our custom types
 	if ( ! in_array( $product_type, $custom_types, true ) ) {
+		error_log( 'BW DEBUG: Exiting - Not a custom type: ' . $product_type );
 		return;
 	}
+
+	error_log( 'BW DEBUG: Processing custom type: ' . $product_type );
 
 	// Remove this hook temporarily to prevent infinite loops
 	remove_action( 'save_post_product', 'bw_save_custom_product_type', 999 );
 
 	// Set the product type taxonomy term
-	wp_set_object_terms( $post_id, $product_type, 'product_type', false );
+	$term_result = wp_set_object_terms( $post_id, $product_type, 'product_type', false );
+	error_log( 'BW DEBUG: wp_set_object_terms result: ' . print_r( $term_result, true ) );
 
 	// Also store meta to keep WC_Product_Factory in sync for custom slugs
 	update_post_meta( $post_id, '_product_type', $product_type );
+	error_log( 'BW DEBUG: update_post_meta _product_type to: ' . $product_type );
 
 	// Clear product cache to ensure fresh data on next load
 	wc_delete_product_transients( $post_id );
 	clean_post_cache( $post_id );
+	error_log( 'BW DEBUG: Cleared caches' );
 
 	// Re-add the hook
 	add_action( 'save_post_product', 'bw_save_custom_product_type', 999 );
+	error_log( 'BW DEBUG: Function completed successfully' );
 }
 add_action( 'save_post_product', 'bw_save_custom_product_type', 999 );
 
