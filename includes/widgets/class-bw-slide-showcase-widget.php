@@ -88,9 +88,6 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
                     'variable'      => __( 'Variable', 'bw' ),
                     'grouped'       => __( 'Grouped', 'bw' ),
                     'external'      => __( 'External', 'bw' ),
-                    'digital_assets' => __( 'Digital Assets', 'bw' ),
-                    'books'         => __( 'Books', 'bw' ),
-                    'prints'        => __( 'Prints', 'bw' ),
                     'on_sale'       => __( 'On Sale', 'bw' ),
                     'featured'      => __( 'Featured', 'bw' ),
                 ],
@@ -794,8 +791,8 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
                 ];
             }
 
-            // Supporto per product types standard e personalizzati (Digital Assets, Books, Prints)
-            if ( in_array( $product_type, [ 'simple', 'variable', 'grouped', 'external', 'digital_assets', 'books', 'prints' ], true ) ) {
+            // Supporto per product types standard WooCommerce
+            if ( in_array( $product_type, [ 'simple', 'variable', 'grouped', 'external' ], true ) ) {
                 $tax_query[] = [
                     'taxonomy' => 'product_type',
                     'field'    => 'slug',

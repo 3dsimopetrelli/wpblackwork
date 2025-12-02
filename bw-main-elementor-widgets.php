@@ -59,12 +59,10 @@ require_once __DIR__ . '/includes/class-bw-widget-loader.php';
  * This prevents WordPress 6.7.0+ warnings about translations being loaded too early.
  */
 function bw_initialize_plugin_components() {
-	// Tipi di prodotto personalizzati per WooCommerce (Digital Assets, Books, Prints)
+	// Product Type column display
 	require_once plugin_dir_path( __FILE__ ) . 'includes/product-types/product-types-init.php';
         // Metabox per prodotti digitali
         require_once plugin_dir_path( __FILE__ ) . 'metabox/digital-products-metabox.php';
-        // Metabox Bibliographic Details
-        require_once plugin_dir_path( __FILE__ ) . 'metabox/bibliographic-details-metabox.php';
         // Metabox Images Showcase
         require_once plugin_dir_path( __FILE__ ) . 'metabox/images-showcase-metabox.php';
         // Metabox Artist Name
@@ -637,8 +635,8 @@ function bw_live_search_products() {
         ];
     }
 
-    // Aggiungi filtro per product type se specificato (include tipi personalizzati)
-    if ( ! empty( $product_type ) && in_array( $product_type, [ 'simple', 'variable', 'grouped', 'external', 'digital_assets', 'books', 'prints' ], true ) ) {
+    // Aggiungi filtro per product type se specificato (solo tipi standard WooCommerce)
+    if ( ! empty( $product_type ) && in_array( $product_type, [ 'simple', 'variable', 'grouped', 'external' ], true ) ) {
         $tax_query[] = [
             'taxonomy' => 'product_type',
             'field'    => 'slug',
