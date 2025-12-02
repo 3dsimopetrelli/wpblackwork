@@ -19,19 +19,13 @@
 	font-weight: 700;
 	line-height: 1.2;
 	color: #000000;
+	transition: opacity 0.2s ease-in-out;
 }
 
 .bw-price-variation__price .woocommerce-Price-amount {
 	font-size: inherit;
 	font-weight: inherit;
 	color: inherit;
-}
-
-.bw-price-variation__vat {
-	font-size: 14px;
-	font-weight: 400;
-	color: #666666;
-	line-height: 1.4;
 }
 
 /* Variation Buttons */
