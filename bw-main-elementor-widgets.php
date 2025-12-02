@@ -71,6 +71,8 @@ function bw_initialize_plugin_components() {
         require_once plugin_dir_path( __FILE__ ) . 'includes/product-types/class-bw-product-slider-metabox.php';
         // Campo URL completo per categorie prodotto
         require_once plugin_dir_path( __FILE__ ) . 'includes/category-url-field.php';
+        // Metabox Variation License HTML
+        require_once plugin_dir_path( __FILE__ ) . 'metabox/variation-license-html-field.php';
 }
 add_action( 'init', 'bw_initialize_plugin_components', 5 );
 
@@ -113,6 +115,9 @@ add_action( 'init', 'bw_register_static_showcase_widget_assets' );
 add_action( 'elementor/frontend/after_register_styles', 'bw_register_static_showcase_widget_assets' );
 add_action( 'init', 'bw_register_related_products_widget_assets' );
 add_action( 'elementor/frontend/after_register_styles', 'bw_register_related_products_widget_assets' );
+add_action( 'init', 'bw_register_price_variation_widget_assets' );
+add_action( 'elementor/frontend/after_register_styles', 'bw_register_price_variation_widget_assets' );
+add_action( 'elementor/frontend/after_register_scripts', 'bw_register_price_variation_widget_assets' );
 
 function bw_enqueue_slick_slider_assets() {
     wp_enqueue_style(
@@ -578,6 +583,39 @@ function bw_register_static_showcase_widget_assets() {
         plugin_dir_url( __FILE__ ) . 'assets/css/bw-static-showcase.css',
         [],
         $css_version
+    );
+}
+
+function bw_register_price_variation_widget_assets() {
+    $css_file = __DIR__ . '/assets/css/bw-price-variation.css';
+    $css_version = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
+
+    wp_register_style(
+        'bw-price-variation-style',
+        plugin_dir_url( __FILE__ ) . 'assets/css/bw-price-variation.css',
+        [],
+        $css_version
+    );
+
+    $js_file = __DIR__ . '/assets/js/bw-price-variation.js';
+    $js_version = file_exists( $js_file ) ? filemtime( $js_file ) : '1.0.0';
+
+    wp_register_script(
+        'bw-price-variation-script',
+        plugin_dir_url( __FILE__ ) . 'assets/js/bw-price-variation.js',
+        [ 'jquery' ],
+        $js_version,
+        true
+    );
+
+    // Localize script for AJAX
+    wp_localize_script(
+        'bw-price-variation-script',
+        'bwPriceVariation',
+        [
+            'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+            'nonce'   => wp_create_nonce( 'bw_price_variation_nonce' ),
+        ]
     );
 }
 
