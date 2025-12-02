@@ -264,7 +264,11 @@ function bw_render_digital_products_metabox( $post ) {
                     if ( $showcase_linked_product ) {
                         $linked_product = get_post( $showcase_linked_product );
                         if ( $linked_product && 'product' === $linked_product->post_type ) {
-                            echo '<option value=\"' . esc_attr( $showcase_linked_product ) . '\" selected=\"selected\">' . esc_html( $linked_product->post_title ) . '</option>';
+                            ?>
+                            <option value="<?php echo esc_attr( $showcase_linked_product ); ?>" <?php selected( $showcase_linked_product, $showcase_linked_product ); ?>>
+                                <?php echo esc_html( $linked_product->post_title ); ?>
+                            </option>
+                            <?php
                         }
                     }
                     ?>
@@ -420,7 +424,6 @@ function bw_save_digital_products( $post_id ) {
     $showcase_description = isset( $_POST['bw_showcase_description'] ) ? sanitize_textarea_field( wp_unslash( $_POST['bw_showcase_description'] ) ) : '';
     $showcase_label_enabled = isset( $_POST['bw_showcase_label_enabled'] ) && 'yes' === $_POST['bw_showcase_label_enabled'] ? 'yes' : '';
     $showcase_label       = isset( $_POST['bw_showcase_label'] ) ? sanitize_text_field( wp_unslash( $_POST['bw_showcase_label'] ) ) : '';
-    $showcase_linked_product = isset( $_POST['bw_showcase_linked_product'] ) ? absint( wp_unslash( $_POST['bw_showcase_linked_product'] ) ) : 0;
 
     update_post_meta( $post_id, '_bw_product_type', $product_type );
     update_post_meta( $post_id, '_bw_file_size', $file_size );
@@ -436,7 +439,12 @@ function bw_save_digital_products( $post_id ) {
     update_post_meta( $post_id, '_bw_showcase_description', $showcase_description );
     update_post_meta( $post_id, '_bw_showcase_label_enabled', $showcase_label_enabled );
     update_post_meta( $post_id, '_bw_showcase_label', $showcase_label );
-    update_post_meta( $post_id, '_bw_showcase_linked_product', $showcase_linked_product );
+
+    // Save showcase_linked_product only if present in $_POST to avoid overwriting with 0
+    if ( isset( $_POST['bw_showcase_linked_product'] ) ) {
+        $showcase_linked_product = absint( wp_unslash( $_POST['bw_showcase_linked_product'] ) );
+        update_post_meta( $post_id, '_bw_showcase_linked_product', $showcase_linked_product );
+    }
 
     // Legacy compatibility.
     update_post_meta( $post_id, '_product_size_mb', $file_size );
