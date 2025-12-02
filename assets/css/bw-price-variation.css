@@ -1,0 +1,158 @@
+/**
+ * BW Price Variation Widget Styles
+ */
+
+.bw-price-variation {
+	width: 100%;
+}
+
+/* Price Display */
+.bw-price-variation__price-wrapper {
+	display: flex;
+	align-items: baseline;
+	gap: 10px;
+	flex-wrap: wrap;
+}
+
+.bw-price-variation__price {
+	font-size: 48px;
+	font-weight: 700;
+	line-height: 1.2;
+	color: #000000;
+}
+
+.bw-price-variation__price .woocommerce-Price-amount {
+	font-size: inherit;
+	font-weight: inherit;
+	color: inherit;
+}
+
+.bw-price-variation__vat {
+	font-size: 14px;
+	font-weight: 400;
+	color: #666666;
+	line-height: 1.4;
+}
+
+/* Variation Buttons */
+.bw-price-variation__variations {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	align-items: center;
+}
+
+.bw-price-variation__variation-button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 12px 24px;
+	font-size: 16px;
+	font-weight: 500;
+	line-height: 1.4;
+	color: #000000;
+	background-color: #ffffff;
+	border: 1px solid #000000;
+	border-radius: 50px;
+	cursor: pointer;
+	transition: all 0.3s ease;
+	white-space: nowrap;
+}
+
+.bw-price-variation__variation-button:hover,
+.bw-price-variation__variation-button.active {
+	color: #ffffff;
+	background-color: #000000;
+	border-color: #000000;
+}
+
+.bw-price-variation__variation-button:focus {
+	outline: 2px solid #000000;
+	outline-offset: 2px;
+}
+
+/* License Box */
+.bw-price-variation__license-box {
+	padding: 20px;
+	border: 1px solid #e0e0e0;
+	border-radius: 8px;
+	background-color: #ffffff;
+	margin-top: 20px;
+	line-height: 1.6;
+}
+
+.bw-price-variation__license-box.hidden {
+	display: none !important;
+}
+
+/* License Box Typography */
+.bw-price-variation__license-box p {
+	margin: 0 0 12px 0;
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	gap: 20px;
+}
+
+.bw-price-variation__license-box p:last-child {
+	margin-bottom: 0;
+}
+
+.bw-price-variation__license-box strong,
+.bw-price-variation__license-box b {
+	font-weight: 600;
+	color: #000000;
+	flex-shrink: 0;
+	min-width: 150px;
+}
+
+.bw-price-variation__license-box a {
+	color: #0066cc;
+	text-decoration: underline;
+	transition: color 0.2s ease;
+}
+
+.bw-price-variation__license-box a:hover {
+	color: #004499;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+	.bw-price-variation__price {
+		font-size: 36px;
+	}
+
+	.bw-price-variation__variation-button {
+		font-size: 14px;
+		padding: 10px 20px;
+	}
+
+	.bw-price-variation__license-box p {
+		flex-direction: column;
+		gap: 8px;
+	}
+
+	.bw-price-variation__license-box strong,
+	.bw-price-variation__license-box b {
+		min-width: auto;
+	}
+}
+
+@media (max-width: 480px) {
+	.bw-price-variation__price {
+		font-size: 32px;
+	}
+
+	.bw-price-variation__variations {
+		gap: 8px;
+	}
+
+	.bw-price-variation__variation-button {
+		font-size: 13px;
+		padding: 8px 16px;
+	}
+
+	.bw-price-variation__license-box {
+		padding: 16px;
+	}
+}
