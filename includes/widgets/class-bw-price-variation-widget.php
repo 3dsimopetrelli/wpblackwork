@@ -40,7 +40,56 @@ class BW_Price_Variation_Widget extends Widget_Base {
 	}
 
 	private function register_content_controls() {
-		// No content controls needed for this widget
+		$this->start_controls_section(
+			'section_add_to_cart_content',
+			[
+				'label' => __( 'Add To Cart', 'bw' ),
+				'tab'   => Controls_Manager::TAB_CONTENT,
+			]
+		);
+
+		$this->add_control(
+			'show_add_to_cart',
+			[
+				'label'        => __( 'Show Add To Cart Button', 'bw' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => __( 'Yes', 'bw' ),
+				'label_off'    => __( 'No', 'bw' ),
+				'return_value' => 'yes',
+				'default'      => 'yes',
+			]
+		);
+
+		$this->add_control(
+			'open_cart_popup',
+			[
+				'label'        => __( 'Open Cart Pop Up', 'bw' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => __( 'On', 'bw' ),
+				'label_off'    => __( 'Off', 'bw' ),
+				'return_value' => 'yes',
+				'default'      => 'yes',
+				'condition'    => [
+					'show_add_to_cart' => 'yes',
+				],
+			]
+		);
+
+		$this->add_control(
+			'add_to_cart_button_text',
+			[
+				'label'       => __( 'Button Text', 'bw' ),
+				'type'        => Controls_Manager::TEXT,
+				'default'     => __( 'Add to Cart', 'bw' ),
+				'placeholder' => __( 'Enter button text', 'bw' ),
+				'label_block' => true,
+				'condition'   => [
+					'show_add_to_cart' => 'yes',
+				],
+			]
+		);
+
+		$this->end_controls_section();
 	}
 
 	private function register_style_controls() {
@@ -125,6 +174,23 @@ class BW_Price_Variation_Widget extends Widget_Base {
 			[
 				'name'     => 'button_typography',
 				'selector' => '{{WRAPPER}} .bw-price-variation__variation-button',
+			]
+		);
+
+		$this->add_responsive_control(
+			'variation_buttons_alignment',
+			[
+				'label'   => __( 'Alignment', 'bw' ),
+				'type'    => Controls_Manager::CHOOSE,
+				'options' => [
+					'flex-start' => [ 'title' => __( 'Left', 'bw' ), 'icon' => 'eicon-text-align-left' ],
+					'center'     => [ 'title' => __( 'Center', 'bw' ), 'icon' => 'eicon-text-align-center' ],
+					'flex-end'   => [ 'title' => __( 'Right', 'bw' ), 'icon' => 'eicon-text-align-right' ],
+				],
+				'default'   => 'flex-start',
+				'selectors' => [
+					'{{WRAPPER}} .bw-price-variation__variations' => 'justify-content: {{VALUE}};',
+				],
 			]
 		);
 
@@ -415,6 +481,265 @@ class BW_Price_Variation_Widget extends Widget_Base {
 		);
 
 		$this->end_controls_section();
+
+		// Add To Cart Button Style
+		$this->start_controls_section(
+			'section_add_to_cart_style',
+			[
+				'label'     => __( 'Add To Cart Button', 'bw' ),
+				'tab'       => Controls_Manager::TAB_STYLE,
+				'condition' => [
+					'show_add_to_cart' => 'yes',
+				],
+			]
+		);
+
+		$this->add_group_control(
+			Group_Control_Typography::get_type(),
+			[
+				'name'           => 'add_to_cart_button_typography',
+				'selector'       => '{{WRAPPER}} .bw-add-to-cart-button',
+				'fields_options' => [
+					'typography'  => [ 'default' => 'yes' ],
+					'font_size'   => [
+						'default' => [
+							'size' => 24,
+							'unit' => 'px',
+						],
+					],
+					'line_height' => [
+						'default' => [
+							'size' => 24,
+							'unit' => 'px',
+						],
+					],
+				],
+			]
+		);
+
+		$this->start_controls_tabs( 'tabs_add_to_cart_button_colors' );
+
+		$this->start_controls_tab(
+			'tab_add_to_cart_button_normal',
+			[
+				'label' => __( 'Normal', 'bw' ),
+			]
+		);
+
+		$this->add_control(
+			'add_to_cart_button_text_color',
+			[
+				'label'     => __( 'Text Color', 'bw' ),
+				'type'      => Controls_Manager::COLOR,
+				'default'   => '#000000',
+				'selectors' => [
+					'{{WRAPPER}} .bw-add-to-cart-button' => 'color: {{VALUE}};',
+				],
+			]
+		);
+
+		$this->add_control(
+			'add_to_cart_button_background_color',
+			[
+				'label'     => __( 'Background Color', 'bw' ),
+				'type'      => Controls_Manager::COLOR,
+				'default'   => '#80FD03',
+				'selectors' => [
+					'{{WRAPPER}} .bw-add-to-cart-button' => 'background-color: {{VALUE}};',
+				],
+			]
+		);
+
+		$this->add_control(
+			'add_to_cart_button_border_color',
+			[
+				'label'     => __( 'Border Color', 'bw' ),
+				'type'      => Controls_Manager::COLOR,
+				'default'   => '#000000',
+				'selectors' => [
+					'{{WRAPPER}} .bw-add-to-cart-button' => 'border-color: {{VALUE}};',
+				],
+				'condition' => [ 'add_to_cart_button_border_switch' => 'yes' ],
+			]
+		);
+
+		$this->end_controls_tab();
+
+		$this->start_controls_tab(
+			'tab_add_to_cart_button_hover',
+			[
+				'label' => __( 'Hover', 'bw' ),
+			]
+		);
+
+		$this->add_control(
+			'add_to_cart_button_text_color_hover',
+			[
+				'label'     => __( 'Text Color', 'bw' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => [
+					'{{WRAPPER}} .bw-add-to-cart-button:hover, {{WRAPPER}} .bw-add-to-cart-button:focus' => 'color: {{VALUE}};',
+				],
+			]
+		);
+
+		$this->add_control(
+			'add_to_cart_button_background_color_hover',
+			[
+				'label'     => __( 'Background Color', 'bw' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => [
+					'{{WRAPPER}} .bw-add-to-cart-button:hover, {{WRAPPER}} .bw-add-to-cart-button:focus' => 'background-color: {{VALUE}};',
+				],
+			]
+		);
+
+		$this->add_control(
+			'add_to_cart_button_border_color_hover',
+			[
+				'label'     => __( 'Border Color', 'bw' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => [
+					'{{WRAPPER}} .bw-add-to-cart-button:hover, {{WRAPPER}} .bw-add-to-cart-button:focus' => 'border-color: {{VALUE}};',
+				],
+				'condition' => [ 'add_to_cart_button_border_switch' => 'yes' ],
+			]
+		);
+
+		$this->end_controls_tab();
+
+		$this->end_controls_tabs();
+
+		$this->add_control(
+			'add_to_cart_button_border_switch',
+			[
+				'label'        => __( 'Border', 'bw' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => __( 'On', 'bw' ),
+				'label_off'    => __( 'Off', 'bw' ),
+				'return_value' => 'yes',
+				'default'      => 'yes',
+				'separator'    => 'before',
+			]
+		);
+
+		$this->add_control(
+			'add_to_cart_button_border_width',
+			[
+				'label'      => __( 'Border Width', 'bw' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => [ 'px' ],
+				'range'      => [
+					'px' => [ 'min' => 0, 'max' => 10 ],
+				],
+				'default'    => [ 'size' => 1, 'unit' => 'px' ],
+				'selectors'  => [
+					'{{WRAPPER}} .bw-add-to-cart-button' => 'border-width: {{SIZE}}{{UNIT}}; border-style: solid;',
+				],
+				'condition'  => [ 'add_to_cart_button_border_switch' => 'yes' ],
+			]
+		);
+
+		$this->add_control(
+			'add_to_cart_button_border_radius',
+			[
+				'label'      => __( 'Border Radius', 'bw' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => [ 'px' ],
+				'range'      => [ 'px' => [ 'min' => 0, 'max' => 100 ] ],
+				'default'    => [ 'size' => 100, 'unit' => 'px' ],
+				'selectors'  => [
+					'{{WRAPPER}} .bw-add-to-cart-button' => 'border-radius: {{SIZE}}{{UNIT}};',
+				],
+				'condition'  => [ 'add_to_cart_button_border_switch' => 'yes' ],
+			]
+		);
+
+		$this->add_responsive_control(
+			'add_to_cart_button_padding',
+			[
+				'label'      => __( 'Padding', 'bw' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => [ 'px', 'em', '%' ],
+				'default'    => [
+					'top'    => 15,
+					'right'  => 25,
+					'bottom' => 15,
+					'left'   => 25,
+					'unit'   => 'px',
+				],
+				'selectors'  => [
+					'{{WRAPPER}} .bw-add-to-cart-button' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->add_responsive_control(
+			'add_to_cart_button_margin',
+			[
+				'label'      => __( 'Margin', 'bw' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => [ 'px', 'em', '%' ],
+				'default'    => [
+					'top'    => 20,
+					'right'  => 0,
+					'bottom' => 0,
+					'left'   => 0,
+					'unit'   => 'px',
+				],
+				'selectors'  => [
+					'{{WRAPPER}} .bw-add-to-cart-wrapper' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->add_responsive_control(
+			'add_to_cart_button_width_switch',
+			[
+				'label'        => __( 'Use Button Width (%)', 'bw' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => __( 'On', 'bw' ),
+				'label_off'    => __( 'Off', 'bw' ),
+				'return_value' => 'yes',
+				'default'      => 'yes',
+			]
+		);
+
+		$this->add_responsive_control(
+			'add_to_cart_button_width',
+			[
+				'label'      => __( 'Button Width (%)', 'bw' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => [ '%' ],
+				'range'      => [
+					'%' => [ 'min' => 1, 'max' => 100 ],
+				],
+				'default'    => [ 'size' => 100, 'unit' => '%' ],
+				'selectors'  => [
+					'{{WRAPPER}} .bw-add-to-cart-button' => 'width: {{SIZE}}{{UNIT}};',
+				],
+				'condition'  => [ 'add_to_cart_button_width_switch' => 'yes' ],
+			]
+		);
+
+		$this->add_responsive_control(
+			'add_to_cart_button_alignment',
+			[
+				'label'   => __( 'Alignment', 'bw' ),
+				'type'    => Controls_Manager::CHOOSE,
+				'options' => [
+					'left'   => [ 'title' => __( 'Left', 'bw' ), 'icon' => 'eicon-text-align-left' ],
+					'center' => [ 'title' => __( 'Center', 'bw' ), 'icon' => 'eicon-text-align-center' ],
+					'right'  => [ 'title' => __( 'Right', 'bw' ), 'icon' => 'eicon-text-align-right' ],
+				],
+				'default'   => 'left',
+				'selectors' => [
+					'{{WRAPPER}} .bw-add-to-cart-wrapper' => 'text-align: {{VALUE}};',
+				],
+			]
+		);
+
+		$this->end_controls_section();
 	}
 
 	protected function render() {
@@ -524,6 +849,63 @@ class BW_Price_Variation_Widget extends Widget_Base {
 
 			<!-- License Box (will be populated by JS) -->
 			<div class="bw-price-variation__license-box" style="display: none;"></div>
+
+			<!-- Add To Cart Button -->
+			<?php if ( isset( $settings['show_add_to_cart'] ) && 'yes' === $settings['show_add_to_cart'] ) : ?>
+				<?php
+				$open_cart_popup = isset( $settings['open_cart_popup'] ) && 'yes' === $settings['open_cart_popup'];
+				$button_text     = isset( $settings['add_to_cart_button_text'] ) && '' !== trim( $settings['add_to_cart_button_text'] )
+					? $settings['add_to_cart_button_text']
+					: __( 'Add to Cart', 'bw' );
+
+				$classes = [
+					'bw-add-to-cart-button',
+					'elementor-button',
+					'elementor-button-link',
+					'elementor-size-md',
+					'product_type_variation',
+					'add_to_cart_button',
+					'ajax_add_to_cart',
+				];
+
+				if ( ! $product->is_in_stock() ) {
+					$classes[] = 'disabled';
+				}
+
+				if ( $open_cart_popup ) {
+					$classes[] = 'bw-btn-addtocart';
+				}
+
+				// Use the default variation ID for initial state
+				$variation_product = wc_get_product( $default_variation_id );
+				if ( ! $variation_product ) {
+					$variation_product = $product;
+				}
+
+				$attributes = [
+					'href'               => esc_url( add_query_arg( 'variation_id', $default_variation_id, $product->add_to_cart_url() ) ),
+					'data-quantity'      => 1,
+					'data-product_id'    => $product->get_id(),
+					'data-variation_id'  => $default_variation_id,
+					'data-product_sku'   => $variation_product->get_sku(),
+					'rel'                => 'nofollow',
+					'class'              => implode( ' ', array_filter( $classes ) ),
+				];
+
+				if ( $open_cart_popup ) {
+					$attributes['data-open-cart-popup'] = '1';
+				}
+				?>
+				<div class="bw-add-to-cart-wrapper">
+					<a <?php
+					foreach ( $attributes as $key => $value ) {
+						if ( is_string( $value ) || is_numeric( $value ) ) {
+							echo esc_attr( $key ) . '="' . esc_attr( $value ) . '" ';
+						}
+					}
+					?>><?php echo esc_html( $button_text ); ?></a>
+				</div>
+			<?php endif; ?>
 		</div>
 		<?php
 	}
