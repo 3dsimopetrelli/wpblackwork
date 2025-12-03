@@ -802,7 +802,7 @@ class BW_Price_Variation_Widget extends Widget_Base {
 
 			<!-- Variation Buttons -->
 			<?php if ( ! empty( $main_attribute_values ) ) : ?>
-				<div class="bw-price-variation__variations" style="border-style: <?php echo esc_attr( $border_style ); ?>;">
+				<div class="bw-price-variation__variations">
 					<?php foreach ( $main_attribute_values as $index => $attribute_value ) : ?>
 						<?php
 						// Find variation ID for this attribute value
