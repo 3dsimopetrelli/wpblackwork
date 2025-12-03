@@ -20,12 +20,16 @@
 	line-height: 1.2;
 	color: #000000;
 	transition: opacity 0.2s ease-in-out;
+	display: inline-block;
 }
 
-.bw-price-variation__price .woocommerce-Price-amount {
+.bw-price-variation__price .woocommerce-Price-amount,
+.bw-price-variation__price .amount,
+.bw-price-variation__price .woocommerce-Price-currencySymbol {
 	font-size: inherit;
 	font-weight: inherit;
 	color: inherit;
+	line-height: inherit;
 }
 
 /* Variation Buttons */
