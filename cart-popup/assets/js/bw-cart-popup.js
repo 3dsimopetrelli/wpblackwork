@@ -226,13 +226,29 @@
                 if (href && href.indexOf('add-to-cart') !== -1) {
                     e.preventDefault();
 
-                    // Estrai l'ID del prodotto dall'URL
+                    // Estrai parametri dall'URL
                     const urlParams = new URLSearchParams(href.split('?')[1] || '');
                     const productId = urlParams.get('add-to-cart');
+                    const variationId = urlParams.get('variation_id') || $btn.attr('data-variation_id') || 0;
+
+                    // Estrai tutti i parametri degli attributi (es. attribute_pa_license)
+                    const extraParams = {};
+
+                    // Se c'è una variation_id, aggiungi gli attributi della variation
+                    if (variationId) {
+                        extraParams.variation_id = variationId;
+
+                        // Cerca tutti gli attributi nell'URL (quelli che iniziano con 'attribute_')
+                        for (const [key, value] of urlParams.entries()) {
+                            if (key.startsWith('attribute_')) {
+                                extraParams[key] = value;
+                            }
+                        }
+                    }
 
                     if (productId) {
                         // Aggiungi prodotto via AJAX e apri il popup
-                        self.addToCartAjax(productId, 1, $btn);
+                        self.addToCartAjax(productId, 1, $btn, extraParams);
                     }
                 } else {
                     // Se non è un link add-to-cart diretto (es. prodotto variabile),
@@ -244,20 +260,32 @@
 
         /**
          * Aggiungi prodotto al carrello via AJAX
+         * @param {number} productId - ID del prodotto
+         * @param {number} quantity - Quantità
+         * @param {object} $button - jQuery button element
+         * @param {object} extraParams - Parametri extra (variation_id, attributi, ecc.)
          */
-        addToCartAjax: function(productId, quantity, $button) {
+        addToCartAjax: function(productId, quantity, $button, extraParams) {
             const self = this;
 
             // Disabilita il pulsante durante il caricamento
             $button.addClass('loading');
 
+            // Prepara i dati per la chiamata AJAX
+            const ajaxData = {
+                product_id: productId,
+                quantity: quantity
+            };
+
+            // Aggiungi parametri extra se presenti (variation_id, attributi)
+            if (extraParams && typeof extraParams === 'object') {
+                Object.assign(ajaxData, extraParams);
+            }
+
             $.ajax({
                 url: bwCartPopupConfig.wc_ajax_url.replace('%%endpoint%%', 'add_to_cart'),
                 type: 'POST',
-                data: {
-                    product_id: productId,
-                    quantity: quantity
-                },
+                data: ajaxData,
                 success: function(response) {
                     if (response.error && response.product_url) {
                         window.location = response.product_url;
