@@ -764,20 +764,24 @@ class BW_Price_Variation_Widget extends Widget_Base {
 
 		// Get the default variation or the first one
 		$default_variation_id = 0;
-		$default_price = '';
+                $default_price = '';
+                $default_variation_attributes = [];
 
 		foreach ( $available_variations as $variation ) {
 			if ( $variation['is_in_stock'] ) {
 				$default_variation_id = $variation['variation_id'];
 				$default_price = $variation['display_price'];
-				break;
-			}
-		}
+                                $default_variation_attributes = $variation['attributes'];
+
+                                break;
+                        }
+                }
 
 		if ( ! $default_variation_id && ! empty( $available_variations ) ) {
 			$default_variation_id = $available_variations[0]['variation_id'];
-			$default_price = $available_variations[0]['display_price'];
-		}
+                        $default_price                = $available_variations[0]['display_price'];
+                        $default_variation_attributes = $available_variations[0]['attributes'];
+                }
 
 		// Get attributes for variations
 		$attributes = $product->get_variation_attributes();
@@ -808,7 +812,8 @@ class BW_Price_Variation_Widget extends Widget_Base {
 						// Find variation ID for this attribute value
 						$variation_id = 0;
 						$variation_price = 0;
-						$variation_data = null;
+                                                $variation_data = null;
+                                                $variation_price_html = '';
 
 						// Create the attribute key - WooCommerce uses lowercase and replaces spaces with dashes
 						$attribute_key = 'attribute_' . sanitize_title( $main_attribute_name );
@@ -824,9 +829,13 @@ class BW_Price_Variation_Widget extends Widget_Base {
 								if ( strtolower( $variation_attr_value ) === strtolower( $attribute_value ) ||
 								     $variation_attr_value === '' ) {
 									$variation_id = $variation['variation_id'];
-									$variation_price = $variation['display_price'];
-									$variation_data = $variation;
-									break;
+                                                                        $variation_price = $variation['display_price'];
+                                                                        $variation_price_html = $variation['price_html'];
+                                                                        if ( empty( $variation_price_html ) ) {
+                                                                                $variation_price_html = wc_price( $variation_price );
+                                                                        }
+                                                                        $variation_data = $variation;
+                                                                        break;
 								}
 							}
 						}
@@ -844,10 +853,11 @@ class BW_Price_Variation_Widget extends Widget_Base {
 						<button
 							class="bw-price-variation__variation-button <?php echo esc_attr( $is_active ); ?>"
 							data-variation-id="<?php echo esc_attr( $variation_id ); ?>"
-							data-price="<?php echo esc_attr( $variation_price ); ?>"
-							data-sku="<?php echo esc_attr( $variation_sku ); ?>"
-							data-attributes="<?php echo esc_attr( wp_json_encode( $variation_data['attributes'] ) ); ?>"
-							style="border-style: <?php echo esc_attr( $border_style ); ?>;"
+                                                        data-price="<?php echo esc_attr( $variation_price ); ?>"
+                                                        data-price-html="<?php echo esc_attr( wp_kses_post( $variation_price_html ) ); ?>"
+                                                        data-sku="<?php echo esc_attr( $variation_sku ); ?>"
+                                                        data-attributes="<?php echo esc_attr( wp_json_encode( $variation_data['attributes'] ) ); ?>"
+                                                        style="border-style: <?php echo esc_attr( $border_style ); ?>;"
 						>
 							<?php echo esc_html( $attribute_value ); ?>
 						</button>
@@ -891,14 +901,15 @@ class BW_Price_Variation_Widget extends Widget_Base {
 				}
 
 				$attributes = [
-					'href'               => esc_url( add_query_arg( 'variation_id', $default_variation_id, $product->add_to_cart_url() ) ),
-					'data-quantity'      => 1,
-					'data-product_id'    => $product->get_id(),
-					'data-variation_id'  => $default_variation_id,
-					'data-product_sku'   => $variation_product->get_sku(),
-					'rel'                => 'nofollow',
-					'class'              => implode( ' ', array_filter( $classes ) ),
-				];
+                                        'href'               => esc_url( add_query_arg( 'variation_id', $default_variation_id, $product->add_to_cart_url() ) ),
+                                        'data-quantity'      => 1,
+                                        'data-product_id'    => $product->get_id(),
+                                        'data-variation_id'  => $default_variation_id,
+                                        'data-variation'     => wp_json_encode( $default_variation_attributes ),
+                                        'data-product_sku'   => $variation_product->get_sku(),
+                                        'rel'                => 'nofollow',
+                                        'class'              => implode( ' ', array_filter( $classes ) ),
+                                ];
 
 				if ( $open_cart_popup ) {
 					$attributes['data-open-cart-popup'] = '1';
