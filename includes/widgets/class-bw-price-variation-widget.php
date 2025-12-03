@@ -651,7 +651,6 @@ class BW_Price_Variation_Widget extends Widget_Base {
 				'selectors'  => [
 					'{{WRAPPER}} .bw-add-to-cart-button' => 'border-radius: {{SIZE}}{{UNIT}};',
 				],
-				'condition'  => [ 'add_to_cart_button_border_switch' => 'yes' ],
 			]
 		);
 
