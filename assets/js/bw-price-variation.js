@@ -22,6 +22,8 @@
 				const $button = $(this);
 				const variationId = $button.data('variation-id');
 				const price = $button.data('price');
+				const sku = $button.data('sku');
+				const attributes = $button.data('attributes');
 
 				// Update active state
 				$buttons.removeClass('active');
@@ -37,13 +39,15 @@
 
 				// Update Add To Cart button for selected variation
 				if ($addToCartButton.length && variationId) {
-					updateAddToCartButton($addToCartButton, productId, variationId);
+					updateAddToCartButton($addToCartButton, productId, variationId, sku, attributes);
 				}
 
 				// Trigger custom event for other scripts (e.g., WooCommerce variations)
 				$widget.trigger('bw_price_variation_changed', {
 					variationId: variationId,
-					price: price
+					price: price,
+					sku: sku,
+					attributes: attributes
 				});
 			});
 
@@ -61,23 +65,29 @@
 	 */
 	function updatePriceDisplay($priceDisplay, price) {
 		// Use WooCommerce price format if available
-		if (typeof accounting !== 'undefined' && typeof woocommerce_price_format !== 'undefined') {
-			// Format only the number without currency symbol
-			const formattedNumber = accounting.formatNumber(
-				price,
-				woocommerce_price_format.decimals,
-				woocommerce_price_format.thousand_separator,
-				woocommerce_price_format.decimal_separator
-			);
+		if (typeof bwPriceVariation !== 'undefined' && typeof bwPriceVariation.priceFormat !== 'undefined') {
+			const priceFormat = bwPriceVariation.priceFormat;
+
+			// Format the number
+			let formattedNumber = parseFloat(price).toFixed(priceFormat.decimals);
+
+			// Add thousand separator
+			if (priceFormat.thousand_separator) {
+				const parts = formattedNumber.split('.');
+				parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, priceFormat.thousand_separator);
+				formattedNumber = parts.join(priceFormat.decimal_separator);
+			} else if (priceFormat.decimal_separator !== '.') {
+				formattedNumber = formattedNumber.replace('.', priceFormat.decimal_separator);
+			}
 
 			// Build price HTML with currency symbol in correct position
-			const priceHTML = woocommerce_price_format.format
-				.replace('%1$s', '<span class="woocommerce-Price-currencySymbol">' + woocommerce_price_format.symbol + '</span>')
+			const priceHTML = priceFormat.format
+				.replace('%1$s', '<span class="woocommerce-Price-currencySymbol">' + priceFormat.symbol + '</span>')
 				.replace('%2$s', formattedNumber);
 
 			$priceDisplay.html('<span class="woocommerce-Price-amount amount">' + priceHTML + '</span>');
 		} else {
-			// Fallback: simple price display
+			// Fallback: simple price display with currency symbol
 			$priceDisplay.html('<span class="woocommerce-Price-amount amount">' + price + '</span>');
 		}
 	}
@@ -100,24 +110,37 @@
 	/**
 	 * Update Add To Cart button for selected variation
 	 */
-	function updateAddToCartButton($button, productId, variationId) {
+	function updateAddToCartButton($button, productId, variationId, sku, attributes) {
 		if (!$button.length || !variationId) {
 			return;
 		}
 
-		// Update data-variation_id attribute
+		// Update data attributes
 		$button.attr('data-variation_id', variationId);
+		$button.attr('data-product_sku', sku || '');
 
 		// Update href to include variation_id parameter
 		const baseUrl = $button.attr('href');
 		if (baseUrl) {
-			// Remove old variation_id parameter if exists
+			// Remove old query parameters
 			let newUrl = baseUrl.split('?')[0];
 
-			// Add variation_id parameter
-			newUrl = newUrl + '?variation_id=' + variationId + '&add-to-cart=' + productId;
+			// Build query parameters
+			const params = new URLSearchParams({
+				'add-to-cart': productId,
+				'variation_id': variationId
+			});
 
-			$button.attr('href', newUrl);
+			// Add variation attributes to query string
+			if (attributes && typeof attributes === 'object') {
+				for (const key in attributes) {
+					if (attributes.hasOwnProperty(key)) {
+						params.append(key, attributes[key]);
+					}
+				}
+			}
+
+			$button.attr('href', newUrl + '?' + params.toString());
 		}
 
 		// Remove 'added' class if it exists (from previous add to cart)

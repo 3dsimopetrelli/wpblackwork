@@ -808,6 +808,7 @@ class BW_Price_Variation_Widget extends Widget_Base {
 						// Find variation ID for this attribute value
 						$variation_id = 0;
 						$variation_price = 0;
+						$variation_data = null;
 
 						// Create the attribute key - WooCommerce uses lowercase and replaces spaces with dashes
 						$attribute_key = 'attribute_' . sanitize_title( $main_attribute_name );
@@ -824,6 +825,7 @@ class BW_Price_Variation_Widget extends Widget_Base {
 								     $variation_attr_value === '' ) {
 									$variation_id = $variation['variation_id'];
 									$variation_price = $variation['display_price'];
+									$variation_data = $variation;
 									break;
 								}
 							}
@@ -833,12 +835,18 @@ class BW_Price_Variation_Widget extends Widget_Base {
 							continue;
 						}
 
+						// Get variation product for SKU
+						$variation_product = wc_get_product( $variation_id );
+						$variation_sku = $variation_product ? $variation_product->get_sku() : '';
+
 						$is_active = ( $index === 0 ) ? 'active' : '';
 						?>
 						<button
 							class="bw-price-variation__variation-button <?php echo esc_attr( $is_active ); ?>"
 							data-variation-id="<?php echo esc_attr( $variation_id ); ?>"
 							data-price="<?php echo esc_attr( $variation_price ); ?>"
+							data-sku="<?php echo esc_attr( $variation_sku ); ?>"
+							data-attributes="<?php echo esc_attr( wp_json_encode( $variation_data['attributes'] ) ); ?>"
 							style="border-style: <?php echo esc_attr( $border_style ); ?>;"
 						>
 							<?php echo esc_html( $attribute_value ); ?>

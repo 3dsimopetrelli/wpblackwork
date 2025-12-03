@@ -615,6 +615,13 @@ function bw_register_price_variation_widget_assets() {
         [
             'ajaxUrl' => admin_url( 'admin-ajax.php' ),
             'nonce'   => wp_create_nonce( 'bw_price_variation_nonce' ),
+            'priceFormat' => [
+                'symbol'             => html_entity_decode( get_woocommerce_currency_symbol() ),
+                'decimals'           => wc_get_price_decimals(),
+                'decimal_separator'  => wc_get_price_decimal_separator(),
+                'thousand_separator' => wc_get_price_thousand_separator(),
+                'format'             => html_entity_decode( get_woocommerce_price_format() ),
+            ],
         ]
     );
 }
