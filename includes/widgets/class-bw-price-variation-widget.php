@@ -124,7 +124,7 @@ class BW_Price_Variation_Widget extends Widget_Base {
 			[
 				'name'     => 'price_typography',
 				'label'    => __( 'Price Typography', 'bw' ),
-				'selector' => '{{WRAPPER}} .bw-price-variation__price',
+				'selector' => '{{WRAPPER}} .bw-price-variation__price, {{WRAPPER}} .bw-price-variation__price .woocommerce-Price-amount, {{WRAPPER}} .bw-price-variation__price .amount',
 			]
 		);
 
@@ -135,7 +135,7 @@ class BW_Price_Variation_Widget extends Widget_Base {
 				'type'      => Controls_Manager::COLOR,
 				'default'   => '#000000',
 				'selectors' => [
-					'{{WRAPPER}} .bw-price-variation__price' => 'color: {{VALUE}};',
+					'{{WRAPPER}} .bw-price-variation__price, {{WRAPPER}} .bw-price-variation__price .woocommerce-Price-amount, {{WRAPPER}} .bw-price-variation__price .woocommerce-Price-currencySymbol' => 'color: {{VALUE}};',
 				],
 			]
 		);
@@ -881,9 +881,9 @@ class BW_Price_Variation_Widget extends Widget_Base {
 					'elementor-button',
 					'elementor-button-link',
 					'elementor-size-md',
-					'product_type_variation',
-					'add_to_cart_button',
-					'ajax_add_to_cart',
+					'single_add_to_cart_button',
+					'button',
+					'alt',
 				];
 
 				if ( ! $product->is_in_stock() ) {
@@ -900,8 +900,22 @@ class BW_Price_Variation_Widget extends Widget_Base {
 					$variation_product = $product;
 				}
 
+				// Build proper add to cart URL for variations
+				$add_to_cart_url = wc_get_cart_url();
+				$url_params = [
+					'add-to-cart' => $product->get_id(),
+					'variation_id' => $default_variation_id,
+				];
+
+				// Add variation attributes to URL
+				if ( ! empty( $default_variation_attributes ) ) {
+					$url_params = array_merge( $url_params, $default_variation_attributes );
+				}
+
+				$add_to_cart_url = add_query_arg( $url_params, $add_to_cart_url );
+
 				$attributes = [
-                                        'href'               => esc_url( add_query_arg( 'variation_id', $default_variation_id, $product->add_to_cart_url() ) ),
+                                        'href'               => esc_url( $add_to_cart_url ),
                                         'data-quantity'      => 1,
                                         'data-product_id'    => $product->get_id(),
                                         'data-variation_id'  => $default_variation_id,

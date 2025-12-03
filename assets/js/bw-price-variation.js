@@ -78,8 +78,15 @@
 	 * Update price display with formatted price
 	 */
         function updatePriceDisplay($priceDisplay, price, priceHtml) {
-                if (priceHtml) {
+                // If priceHtml is provided and not empty, use it
+                if (priceHtml && priceHtml.trim() !== '') {
                         $priceDisplay.html(priceHtml);
+                        return;
+                }
+
+                // Validate price value
+                if (!hasPriceValue(price)) {
+                        console.warn('BW Price Variation: Invalid price value', price);
                         return;
                 }
 
@@ -106,8 +113,15 @@
 
 			$priceDisplay.html('<span class="woocommerce-Price-amount amount">' + priceHTML + '</span>');
 		} else {
-			// Fallback: simple price display with currency symbol
-			$priceDisplay.html('<span class="woocommerce-Price-amount amount">' + price + '</span>');
+			// Fallback: If bwPriceVariation is not available (e.g., in Elementor editor)
+                        // Try to get currency symbol from existing price display
+                        const existingCurrency = $priceDisplay.find('.woocommerce-Price-currencySymbol').text();
+                        const currencySymbol = existingCurrency || '€'; // Default to Euro if not found
+
+                        const formattedPrice = parseFloat(price).toFixed(2);
+                        $priceDisplay.html('<span class="woocommerce-Price-amount amount">' +
+                                '<span class="woocommerce-Price-currencySymbol">' + currencySymbol + '</span>' +
+                                formattedPrice + '</span>');
 		}
 	}
 
@@ -146,7 +160,11 @@
                 $button.attr('data-product_sku', sku || '');
                 $button.attr('data-product_id', productId);
                 $button.attr('data-variation', JSON.stringify(normalizedAttributes || {}));
+                $button.attr('data-quantity', 1);
                 $button.data('variation', normalizedAttributes || {});
+                $button.data('variation_id', variationId);
+                $button.data('product_id', productId);
+                $button.data('quantity', 1);
 
                 // Update href to include variation_id parameter
                 const baseUrl = $button.data('original-href') || $button.attr('href');
@@ -268,10 +286,80 @@
 	}
 
 	/**
+	 * Handle Add to Cart button click for variations
+	 */
+	function handleAddToCartClick($button) {
+		// If the button has the cart popup class, let that handler take care of it
+		if ($button.hasClass('bw-btn-addtocart')) {
+			return true; // Continue with default behavior (cart popup will handle it)
+		}
+
+		// Otherwise, handle it with standard WooCommerce AJAX
+		const variationId = $button.attr('data-variation_id') || $button.data('variation_id');
+		const productId = $button.attr('data-product_id') || $button.data('product_id');
+		const quantity = $button.attr('data-quantity') || $button.data('quantity') || 1;
+		const variation = $button.data('variation') || {};
+
+		if (!variationId || !productId) {
+			console.error('BW Price Variation: Missing product or variation ID');
+			return false;
+		}
+
+		// Add to cart via AJAX
+		const data = {
+			action: 'woocommerce_add_to_cart',
+			product_id: productId,
+			variation_id: variationId,
+			quantity: quantity,
+			variation: variation
+		};
+
+		$.post(bwPriceVariation.ajaxUrl, data, function(response) {
+			if (response && response.error) {
+				console.error('BW Price Variation: Add to cart failed', response);
+				// Fallback: redirect to product page
+				window.location.href = $button.attr('href');
+			} else {
+				// Trigger WooCommerce fragments refresh
+				$(document.body).trigger('wc_fragment_refresh');
+				$(document.body).trigger('added_to_cart', [response.fragments, response.cart_hash, $button]);
+
+				// Add 'added' class for visual feedback
+				$button.addClass('added');
+			}
+		}).fail(function() {
+			// On error, redirect to cart URL with parameters
+			window.location.href = $button.attr('href');
+		});
+
+		return false; // Prevent default link behavior
+	}
+
+	/**
 	 * Initialize on document ready
 	 */
 	$(document).ready(function() {
 		initPriceVariation();
+
+		// Handle Add to Cart button clicks
+		$(document).on('click', '.bw-add-to-cart-button', function(e) {
+			const $button = $(this);
+
+			// Skip if button is disabled
+			if ($button.hasClass('disabled')) {
+				e.preventDefault();
+				return false;
+			}
+
+			// Let the cart popup handler take care of it if enabled
+			if ($button.hasClass('bw-btn-addtocart')) {
+				return true;
+			}
+
+			// Handle with our custom handler
+			e.preventDefault();
+			return handleAddToCartClick($button);
+		});
 	});
 
 	/**
