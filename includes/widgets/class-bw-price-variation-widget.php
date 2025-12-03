@@ -763,24 +763,39 @@ class BW_Price_Variation_Widget extends Widget_Base {
 		}
 
 		// Get the default variation or the first one
-		$default_variation_id = 0;
-                $default_price = '';
+                $default_variation_id         = 0;
+                $default_price                = null;
+                $default_price_html           = '';
                 $default_variation_attributes = [];
 
 		foreach ( $available_variations as $variation ) {
 			if ( $variation['is_in_stock'] ) {
-				$default_variation_id = $variation['variation_id'];
-				$default_price = $variation['display_price'];
+                                $default_variation_id         = $variation['variation_id'];
+                                $default_price                = $variation['display_price'];
+                                $default_price_html           = ! empty( $variation['price_html'] ) ? $variation['price_html'] : wc_price( $variation['display_price'] );
                                 $default_variation_attributes = $variation['attributes'];
 
                                 break;
                         }
                 }
 
-		if ( ! $default_variation_id && ! empty( $available_variations ) ) {
-			$default_variation_id = $available_variations[0]['variation_id'];
+                if ( ! $default_variation_id && ! empty( $available_variations ) ) {
+                        $default_variation_id         = $available_variations[0]['variation_id'];
                         $default_price                = $available_variations[0]['display_price'];
+                        $default_price_html           = ! empty( $available_variations[0]['price_html'] ) ? $available_variations[0]['price_html'] : wc_price( $available_variations[0]['display_price'] );
                         $default_variation_attributes = $available_variations[0]['attributes'];
+                }
+
+                if ( null === $default_price || '' === $default_price ) {
+                        $default_price = $product->get_price();
+                }
+
+                if ( '' === $default_price_html ) {
+                        $default_price_html = $product->get_price_html();
+                }
+
+                if ( '' === $default_price_html ) {
+                        $default_price_html = wc_price( $default_price );
                 }
 
 		// Get attributes for variations
@@ -799,10 +814,10 @@ class BW_Price_Variation_Widget extends Widget_Base {
 		<div class="bw-price-variation" data-product-id="<?php echo esc_attr( $product->get_id() ); ?>">
 			<!-- Price Display -->
 			<div class="bw-price-variation__price-wrapper">
-				<span class="bw-price-variation__price" data-default-price="<?php echo esc_attr( $default_price ); ?>">
-					<?php echo wc_price( $default_price ); ?>
-				</span>
-			</div>
+                                <span class="bw-price-variation__price" data-default-price="<?php echo esc_attr( $default_price ); ?>">
+                                        <?php echo wp_kses_post( $default_price_html ); ?>
+                                </span>
+                        </div>
 
 			<!-- Variation Buttons -->
 			<?php if ( ! empty( $main_attribute_values ) ) : ?>
@@ -810,9 +825,9 @@ class BW_Price_Variation_Widget extends Widget_Base {
 					<?php foreach ( $main_attribute_values as $index => $attribute_value ) : ?>
 						<?php
 						// Find variation ID for this attribute value
-						$variation_id = 0;
-						$variation_price = 0;
-                                                $variation_data = null;
+                                                $variation_id         = 0;
+                                                $variation_price      = null;
+                                                $variation_data       = null;
                                                 $variation_price_html = '';
 
 						// Create the attribute key - WooCommerce uses lowercase and replaces spaces with dashes
@@ -836,13 +851,18 @@ class BW_Price_Variation_Widget extends Widget_Base {
                                                                         }
                                                                         $variation_data = $variation;
                                                                         break;
-								}
-							}
-						}
+                                                                }
+                                                        }
+                                                }
 
-						if ( ! $variation_id || ! $variation_price ) {
-							continue;
-						}
+                                                if ( ! $variation_id ) {
+                                                        continue;
+                                                }
+
+                                                if ( null === $variation_price || '' === $variation_price ) {
+                                                        $variation_object = wc_get_product( $variation_id );
+                                                        $variation_price  = $variation_object ? wc_get_price_to_display( $variation_object ) : 0;
+                                                }
 
 						// Get variation product for SKU
 						$variation_product = wc_get_product( $variation_id );
