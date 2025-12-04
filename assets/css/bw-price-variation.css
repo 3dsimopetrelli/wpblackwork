@@ -69,6 +69,25 @@
 	outline-offset: 2px;
 }
 
+/* Out of Stock Variation Buttons */
+.bw-price-variation__variation-button.out-of-stock,
+.bw-price-variation__variation-button:disabled {
+	opacity: 0.4;
+	cursor: not-allowed;
+	pointer-events: none;
+	text-decoration: line-through;
+	background-color: #f5f5f5;
+	color: #999999;
+	border-color: #cccccc;
+}
+
+.bw-price-variation__variation-button.out-of-stock:hover,
+.bw-price-variation__variation-button:disabled:hover {
+	background-color: #f5f5f5;
+	color: #999999;
+	border-color: #cccccc;
+}
+
 /* License Box */
 .bw-price-variation__license-box {
 	padding: 20px;

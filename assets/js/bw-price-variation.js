@@ -167,10 +167,22 @@
                         'data-selected-variation-id': variation.id,
                 });
 
+                // Handle stock status - disable button if out of stock
+                if (variation.is_in_stock === false) {
+                        $button.addClass('disabled').attr('aria-disabled', 'true');
+                } else {
+                        $button.removeClass('disabled').attr('aria-disabled', 'false');
+                }
+
+                // Build the proper URL with variation parameters
                 if (baseHref) {
+                        // Parse the base URL to extract the product permalink
                         const url = new URL(baseHref, window.location.origin);
+
+                        // Clear old params and set new ones
                         url.searchParams.set('add-to-cart', productId);
                         url.searchParams.set('variation_id', variation.id);
+                        url.searchParams.set('quantity', 1);
 
                         if (variation.attributes && typeof variation.attributes === 'object') {
                                 Object.entries(variation.attributes).forEach(function(entry) {
