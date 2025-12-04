@@ -755,146 +755,118 @@ class BW_Price_Variation_Widget extends Widget_Base {
 
 		$settings = $this->get_settings_for_display();
 
-		$available_variations = $product->get_available_variations();
+                $available_variations = $product->get_available_variations();
 
-		if ( empty( $available_variations ) ) {
-			return;
-		}
+                if ( empty( $available_variations ) ) {
+                        return;
+                }
 
-		// Get the default variation or the first one
-                $default_variation_id         = 0;
-                $default_price                = null;
-                $default_price_html           = '';
-                $default_variation_attributes = [];
+                // Build a normalized list of variations with price details and attributes
+                $variations_data = [];
+                foreach ( $available_variations as $variation ) {
+                        $variation_id   = $variation['variation_id'];
+                        $variation_obj  = wc_get_product( $variation_id );
+                        $price_value    = isset( $variation['display_price'] ) ? $variation['display_price'] : wc_get_price_to_display( $variation_obj );
+                        $price_html     = ! empty( $variation['price_html'] ) ? $variation['price_html'] : wc_price( $price_value );
+                        $attributes_set = isset( $variation['attributes'] ) ? $variation['attributes'] : [];
 
-		foreach ( $available_variations as $variation ) {
-			if ( $variation['is_in_stock'] ) {
-                                $default_variation_id         = $variation['variation_id'];
-                                $default_price                = $variation['display_price'];
-                                $default_price_html           = ! empty( $variation['price_html'] ) ? $variation['price_html'] : wc_price( $variation['display_price'] );
-                                $default_variation_attributes = $variation['attributes'];
+                        $variations_data[] = [
+                                'id'         => $variation_id,
+                                'price'      => $price_value,
+                                'price_html' => $price_html,
+                                'sku'        => $variation_obj ? $variation_obj->get_sku() : '',
+                                'attributes' => $attributes_set,
+                                'label'      => $variation_obj ? $variation_obj->get_attribute_summary() : '',
+                        ];
+                }
 
+                // Pick the first in-stock variation as default, otherwise the first available
+                $default_variation       = null;
+                $default_variation_attrs = [];
+
+                foreach ( $variations_data as $variation ) {
+                        if ( $variation && $variation['id'] ) {
+                                $default_variation = $variation;
                                 break;
                         }
                 }
 
-                if ( ! $default_variation_id && ! empty( $available_variations ) ) {
-                        $default_variation_id         = $available_variations[0]['variation_id'];
-                        $default_price                = $available_variations[0]['display_price'];
-                        $default_price_html           = ! empty( $available_variations[0]['price_html'] ) ? $available_variations[0]['price_html'] : wc_price( $available_variations[0]['display_price'] );
-                        $default_variation_attributes = $available_variations[0]['attributes'];
+                if ( ! $default_variation ) {
+                        return;
                 }
 
-                if ( null === $default_price || '' === $default_price ) {
-                        $default_price = wc_get_price_to_display( $product );
+                if ( empty( $default_variation['price_html'] ) ) {
+                        $default_variation['price_html'] = wc_price( $default_variation['price'] );
                 }
 
-                if ( '' === $default_price_html ) {
-                        $default_price_html = $product->get_price_html();
-                }
+                $default_variation_attrs = isset( $default_variation['attributes'] ) ? $default_variation['attributes'] : [];
 
-                if ( '' === $default_price_html ) {
-                        $default_price_html = wc_price( $default_price );
-                }
-                // Final safeguard to avoid empty price output
-                if ( '' === $default_price_html ) {
-                        $default_price_html = wc_price( wc_get_price_to_display( $product ) );
-                }
+                // Get attributes for variations
+                $attributes            = $product->get_variation_attributes();
+                $main_attribute_name   = '';
+                $main_attribute_values = [];
 
-		// Get attributes for variations
-		$attributes = $product->get_variation_attributes();
-		$main_attribute_name = '';
-		$main_attribute_values = [];
-
-		if ( ! empty( $attributes ) ) {
-			// Get the first attribute as "main" attribute
-			$main_attribute_name = array_key_first( $attributes );
-			$main_attribute_values = $attributes[ $main_attribute_name ];
-		}
+                if ( ! empty( $attributes ) ) {
+                        // Get the first attribute as "main" attribute
+                        $main_attribute_name   = array_key_first( $attributes );
+                        $main_attribute_values = $attributes[ $main_attribute_name ];
+                }
 
 		$border_style = isset( $settings['button_border_switch'] ) && 'yes' === $settings['button_border_switch'] ? 'solid' : 'none';
 		?>
-		<div class="bw-price-variation" data-product-id="<?php echo esc_attr( $product->get_id() ); ?>">
-			<!-- Price Display -->
+                <?php
+                $default_variation_id   = $default_variation['id'];
+                $default_price          = $default_variation['price'];
+                $default_price_html     = $default_variation['price_html'];
+                $default_price_html_raw = wp_kses_post( $default_price_html );
+                ?>
+                <div
+                        class="bw-price-variation"
+                        data-product-id="<?php echo esc_attr( $product->get_id() ); ?>"
+                        data-variations="<?php echo esc_attr( wp_json_encode( $variations_data ) ); ?>"
+                >
+                        <!-- Price Display -->
                         <div class="bw-price-variation__price-wrapper">
                                 <span
                                         class="bw-price-variation__price"
                                         data-default-price="<?php echo esc_attr( $default_price ); ?>"
-                                        data-default-price-html="<?php echo esc_attr( wp_kses_post( $default_price_html ) ); ?>"
+                                        data-default-price-html="<?php echo esc_attr( $default_price_html_raw ); ?>"
                                 >
-                                        <?php echo wp_kses_post( $default_price_html ); ?>
+                                        <?php echo $default_price_html_raw; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                                 </span>
                         </div>
 
-			<!-- Variation Buttons -->
-			<?php if ( ! empty( $main_attribute_values ) ) : ?>
-				<div class="bw-price-variation__variations">
-					<?php foreach ( $main_attribute_values as $index => $attribute_value ) : ?>
-						<?php
-						// Find variation ID for this attribute value
-                                                $variation_id         = 0;
-                                                $variation_price      = null;
-                                                $variation_data       = null;
-                                                $variation_price_html = '';
-
-						// Create the attribute key - WooCommerce uses lowercase and replaces spaces with dashes
-						$attribute_key = 'attribute_' . sanitize_title( $main_attribute_name );
-
-						foreach ( $available_variations as $variation ) {
-							$variation_attributes = $variation['attributes'];
-
-							// Check if this variation matches the attribute value
-							if ( isset( $variation_attributes[ $attribute_key ] ) ) {
-								$variation_attr_value = $variation_attributes[ $attribute_key ];
-
-								// Match if values are equal, or if variation has "any" (empty string)
-								if ( strtolower( $variation_attr_value ) === strtolower( $attribute_value ) ||
-								     $variation_attr_value === '' ) {
-									$variation_id = $variation['variation_id'];
-                                                                        $variation_price = $variation['display_price'];
-                                                                        $variation_price_html = $variation['price_html'];
-                                                                        if ( empty( $variation_price_html ) ) {
-                                                                                $variation_price_html = wc_price( $variation_price );
-                                                                        }
-                                                                        $variation_data = $variation;
-                                                                        break;
-                                                                }
+                        <!-- Variation Buttons -->
+                        <?php if ( ! empty( $main_attribute_values ) ) : ?>
+                                <?php $attribute_key = 'attribute_' . sanitize_title( $main_attribute_name ); ?>
+                                <div class="bw-price-variation__variations">
+                                        <?php foreach ( $main_attribute_values as $index => $attribute_value ) : ?>
+                                                <?php
+                                                // Locate the variation data that matches the current attribute value.
+                                                $matched_variation = null;
+                                                foreach ( $variations_data as $variation_entry ) {
+                                                        if ( isset( $variation_entry['attributes'][ $attribute_key ] ) && strtolower( $variation_entry['attributes'][ $attribute_key ] ) === strtolower( $attribute_value ) ) {
+                                                                $matched_variation = $variation_entry;
+                                                                break;
                                                         }
                                                 }
 
-                                                if ( ! $variation_id ) {
+                                                if ( ! $matched_variation ) {
                                                         continue;
                                                 }
 
-                                                if ( null === $variation_price || '' === $variation_price ) {
-                                                        $variation_object = wc_get_product( $variation_id );
-                                                        $variation_price  = $variation_object ? wc_get_price_to_display( $variation_object ) : 0;
-                                                }
-
-                                                if ( '' === $variation_price_html ) {
-                                                        $variation_price_html = wc_price( $variation_price );
-                                                }
-
-						// Get variation product for SKU
-						$variation_product = wc_get_product( $variation_id );
-						$variation_sku = $variation_product ? $variation_product->get_sku() : '';
-
-						$is_active = ( $index === 0 ) ? 'active' : '';
-						?>
-						<button
-							class="bw-price-variation__variation-button <?php echo esc_attr( $is_active ); ?>"
-							data-variation-id="<?php echo esc_attr( $variation_id ); ?>"
-                                                        data-price="<?php echo esc_attr( $variation_price ); ?>"
-                                                        data-price-html="<?php echo esc_attr( wp_kses_post( $variation_price_html ) ); ?>"
-                                                        data-sku="<?php echo esc_attr( $variation_sku ); ?>"
-                                                        data-attributes="<?php echo esc_attr( wp_json_encode( $variation_data['attributes'] ) ); ?>"
+                                                $is_active = ( $default_variation_id === $matched_variation['id'] ) ? 'active' : '';
+                                                ?>
+                                                <button
+                                                        class="bw-price-variation__variation-button <?php echo esc_attr( $is_active ); ?>"
+                                                        data-variation='<?php echo esc_attr( wp_json_encode( $matched_variation ) ); ?>'
                                                         style="border-style: <?php echo esc_attr( $border_style ); ?>;"
-						>
-							<?php echo esc_html( $attribute_value ); ?>
-						</button>
-					<?php endforeach; ?>
-				</div>
-			<?php endif; ?>
+                                                >
+                                                        <?php echo esc_html( $attribute_value ); ?>
+                                                </button>
+                                        <?php endforeach; ?>
+                                </div>
+                        <?php endif; ?>
 
 			<!-- License Box (will be populated by JS) -->
 			<div class="bw-price-variation__license-box" style="display: none;"></div>
@@ -927,31 +899,34 @@ class BW_Price_Variation_Widget extends Widget_Base {
 
 				// Use the default variation ID for initial state
 				$variation_product = wc_get_product( $default_variation_id );
-				if ( ! $variation_product ) {
-					$variation_product = $product;
-				}
+                                if ( ! $variation_product ) {
+                                        $variation_product = $product;
+                                }
 
-				// Build proper add to cart URL for variations
-				$add_to_cart_url = wc_get_cart_url();
-				$url_params = [
-					'add-to-cart' => $product->get_id(),
-					'variation_id' => $default_variation_id,
-				];
+                                // Build proper add to cart URL for variations
+                                $add_to_cart_url = wc_get_cart_url();
+                                $url_params = [
+                                        'add-to-cart'   => $product->get_id(),
+                                        'variation_id'  => $default_variation_id,
+                                        'variation_price' => $default_price,
+                                ];
 
-				// Add variation attributes to URL
-				if ( ! empty( $default_variation_attributes ) ) {
-					$url_params = array_merge( $url_params, $default_variation_attributes );
-				}
+                                // Add variation attributes to URL
+                                if ( ! empty( $default_variation_attrs ) ) {
+                                        $url_params = array_merge( $url_params, $default_variation_attrs );
+                                }
 
-				$add_to_cart_url = add_query_arg( $url_params, $add_to_cart_url );
+                                $add_to_cart_url = add_query_arg( $url_params, $add_to_cart_url );
 
-				$attributes = [
+                                $attributes = [
                                         'href'               => esc_url( $add_to_cart_url ),
                                         'data-quantity'      => 1,
                                         'data-product_id'    => $product->get_id(),
                                         'data-variation_id'  => $default_variation_id,
-                                        'data-variation'     => wp_json_encode( $default_variation_attributes ),
+                                        'data-variation'     => wp_json_encode( $default_variation_attrs ),
                                         'data-product_sku'   => $variation_product->get_sku(),
+                                        'data-variation-price' => $default_price,
+                                        'data-variation-price-html' => wp_kses_post( $default_price_html ),
                                         'rel'                => 'nofollow',
                                         'class'              => implode( ' ', array_filter( $classes ) ),
                                 ];

@@ -11,61 +11,76 @@
 	function initPriceVariation() {
 		$('.bw-price-variation').each(function() {
 			const $widget = $(this);
-			const $priceDisplay = $widget.find('.bw-price-variation__price');
+                        const $priceDisplay = $widget.find('.bw-price-variation__price');
                         const $buttons = $widget.find('.bw-price-variation__variation-button');
                         const $licenseBox = $widget.find('.bw-price-variation__license-box');
                         const $addToCartButton = $widget.find('.bw-add-to-cart-button');
                         const productId = $widget.data('product-id');
 
-			// Handle button clicks
+                        // Handle button clicks
                         $buttons.on('click', function() {
                                 const $button = $(this);
-                                const variationId = $button.data('variation-id');
-                                const price = $button.data('price');
-                                const priceHtml = $button.data('price-html');
-                                const sku = $button.data('sku');
-                                const attributes = normalizeAttributes($button.data('attributes'));
+                                const variationData = normalizeVariationData($button.data('variation'));
+
+                                if (!variationData || !variationData.id) {
+                                        return;
+                                }
 
                                 // Update active state
                                 $buttons.removeClass('active');
                                 $button.addClass('active');
 
                                 // Update price display with fade animation
-                                updatePriceDisplayWithFade($priceDisplay, price, priceHtml);
+                                updatePriceDisplayWithFade($priceDisplay, variationData.price, variationData.price_html);
 
                                 // Load and display license HTML with fade animation
-                                loadVariationLicenseHTMLWithFade(variationId, $licenseBox);
+                                loadVariationLicenseHTMLWithFade(variationData.id, $licenseBox);
 
                                 // Update Add To Cart button for selected variation
-                                if ($addToCartButton.length && variationId) {
-                                        updateAddToCartButton($addToCartButton, productId, variationId, sku, attributes);
+                                if ($addToCartButton.length && variationData.id) {
+                                        updateAddToCartButton(
+                                                $addToCartButton,
+                                                productId,
+                                                variationData.id,
+                                                variationData.sku,
+                                                variationData.attributes,
+                                                variationData.price,
+                                                variationData.price_html
+                                        );
                                 }
 
                                 // Trigger custom event for other scripts (e.g., WooCommerce variations)
                                 $widget.trigger('bw_price_variation_changed', {
-                                        variationId: variationId,
-                                        price: price,
-                                        priceHtml: priceHtml,
-                                        sku: sku,
-                                        attributes: attributes
+                                        variationId: variationData.id,
+                                        price: variationData.price,
+                                        priceHtml: variationData.price_html,
+                                        sku: variationData.sku,
+                                        attributes: variationData.attributes
                                 });
                         });
 
                         // Load initial license box (for the first active variation)
                         const $activeButton = $buttons.filter('.active').first();
                         if ($activeButton.length) {
-                                const initialVariationId = $activeButton.data('variation-id');
-                                const initialAttributes = normalizeAttributes($activeButton.data('attributes'));
-                                const initialPrice = $activeButton.data('price');
-                                const initialPriceHtml = $activeButton.data('price-html');
+                                const initialVariation = normalizeVariationData($activeButton.data('variation'));
 
-                                loadVariationLicenseHTML(initialVariationId, $licenseBox);
+                                if (initialVariation && initialVariation.id) {
+                                        loadVariationLicenseHTML(initialVariation.id, $licenseBox);
 
-                                if ($addToCartButton.length && initialVariationId) {
-                                        updateAddToCartButton($addToCartButton, productId, initialVariationId, $activeButton.data('sku'), initialAttributes);
+                                        if ($addToCartButton.length) {
+                                                updateAddToCartButton(
+                                                        $addToCartButton,
+                                                        productId,
+                                                        initialVariation.id,
+                                                        initialVariation.sku,
+                                                        initialVariation.attributes,
+                                                        initialVariation.price,
+                                                        initialVariation.price_html
+                                                );
+                                        }
+
+                                        updatePriceDisplay($priceDisplay, initialVariation.price, initialVariation.price_html);
                                 }
-
-                                updatePriceDisplay($priceDisplay, initialPrice, initialPriceHtml);
                         }
                 });
         }
@@ -151,7 +166,7 @@
 	/**
 	 * Update Add To Cart button for selected variation
 	 */
-        function updateAddToCartButton($button, productId, variationId, sku, attributes) {
+        function updateAddToCartButton($button, productId, variationId, sku, attributes, price, priceHtml) {
                 if (!$button.length || !variationId) {
                         return;
                 }
@@ -169,10 +184,14 @@
                 $button.attr('data-product_id', productId);
                 $button.attr('data-variation', JSON.stringify(normalizedAttributes || {}));
                 $button.attr('data-quantity', 1);
+                $button.attr('data-variation-price', price || '');
+                $button.attr('data-variation-price-html', priceHtml || '');
                 $button.data('variation', normalizedAttributes || {});
                 $button.data('variation_id', variationId);
                 $button.data('product_id', productId);
                 $button.data('quantity', 1);
+                $button.data('variation_price', price || '');
+                $button.data('variation_price_html', priceHtml || '');
 
                 // Update href to include variation_id parameter
                 const baseUrl = $button.data('original-href') || $button.attr('href');
@@ -198,8 +217,39 @@
 			$button.attr('href', newUrl + '?' + params.toString());
 		}
 
-		// Remove 'added' class if it exists (from previous add to cart)
+                // Remove 'added' class if it exists (from previous add to cart)
                 $button.removeClass('added');
+        }
+
+        function normalizeVariationData(rawVariation) {
+                if (!rawVariation) {
+                        return null;
+                }
+
+                let parsed = rawVariation;
+
+                if (typeof rawVariation === 'string') {
+                        try {
+                                parsed = JSON.parse(rawVariation);
+                        } catch (e) {
+                                return null;
+                        }
+                }
+
+                if (typeof parsed !== 'object') {
+                        return null;
+                }
+
+                const attributes = normalizeAttributes(parsed.attributes || parsed.variation || {});
+                const priceValue = hasPriceValue(parsed.price) ? parsed.price : parsed.display_price;
+
+                return {
+                        id: parsed.id || parsed.variation_id || parsed.variationId || null,
+                        price: priceValue,
+                        price_html: parsed.price_html || parsed.priceHtml || '',
+                        sku: parsed.sku || '',
+                        attributes: attributes
+                };
         }
 
         function normalizeAttributes(attributes) {
