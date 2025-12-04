@@ -38,6 +38,9 @@ if ( file_exists( plugin_dir_path( __FILE__ ) . 'admin/class-blackwork-site-sett
 // Helper functions
 require_once __DIR__ . '/includes/helpers.php';
 
+// Product Card Renderer - Centralized card rendering
+require_once __DIR__ . '/includes/woocommerce-overrides/class-bw-product-card-renderer.php';
+
 // WooCommerce overrides
 require_once __DIR__ . '/woocommerce/woocommerce-init.php';
 
@@ -315,22 +318,40 @@ function bw_register_wallpost_widget_assets() {
 }
 
 function bw_register_related_products_widget_assets() {
-    $css_file    = __DIR__ . '/woocommerce/css/bw-related-products.css';
+    // Register product card CSS (shared)
+    $product_card_css_file    = __DIR__ . '/assets/css/bw-product-card.css';
+    $product_card_css_version = file_exists( $product_card_css_file ) ? filemtime( $product_card_css_file ) : '1.0.0';
+
+    wp_register_style(
+        'bw-product-card-style',
+        plugin_dir_url( __FILE__ ) . 'assets/css/bw-product-card.css',
+        [],
+        $product_card_css_version
+    );
+
+    // Register related products widget CSS
+    $css_file    = __DIR__ . '/assets/css/bw-related-products.css';
     $css_version = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
 
     wp_register_style(
         'bw-related-products-style',
-        plugin_dir_url( __FILE__ ) . 'woocommerce/css/bw-related-products.css',
-        [],
+        plugin_dir_url( __FILE__ ) . 'assets/css/bw-related-products.css',
+        [ 'bw-product-card-style' ], // Dipende dal CSS delle card
         $css_version
     );
 }
 
 function bw_enqueue_related_products_widget_assets() {
-    if ( ! wp_style_is( 'bw-related-products-style', 'registered' ) ) {
+    if ( ! wp_style_is( 'bw-product-card-style', 'registered' ) || ! wp_style_is( 'bw-related-products-style', 'registered' ) ) {
         bw_register_related_products_widget_assets();
     }
 
+    // Enqueue product card CSS first (dependency)
+    if ( wp_style_is( 'bw-product-card-style', 'registered' ) ) {
+        wp_enqueue_style( 'bw-product-card-style' );
+    }
+
+    // Then enqueue related products CSS
     if ( wp_style_is( 'bw-related-products-style', 'registered' ) ) {
         wp_enqueue_style( 'bw-related-products-style' );
     }

@@ -1,0 +1,347 @@
+/**
+ * BW Product Card - Centralizzato stile per le card prodotto
+ * Basato su BW Wallpost, utilizzato per widget e override WooCommerce
+ */
+
+/* ===================================
+   Card Container
+   =================================== */
+.bw-product-card-item {
+  box-sizing: border-box;
+}
+
+.bw-product-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: transparent;
+}
+
+/* ===================================
+   Image Section
+   =================================== */
+.bw-product-card .bw-slider-image-container {
+  background: transparent;
+  overflow: hidden;
+  position: relative;
+}
+
+.bw-product-card .bw-wallpost-media,
+.bw-product-card .bw-ss__media {
+  position: relative;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+.bw-product-card .bw-wallpost-image,
+.bw-product-card .bw-slick-slider-image {
+  position: relative;
+  overflow: hidden;
+  z-index: 0;
+}
+
+/* Link invisibile che copre l'intera area dell'immagine */
+.bw-product-card .bw-wallpost-image-link-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: block;
+  cursor: pointer;
+}
+
+/* Hover Effect - Fade tra immagini */
+.bw-product-card .bw-slick-slider-image--has-hover .bw-slider-main,
+.bw-product-card .bw-slick-slider-image--has-hover .bw-slider-hover {
+  display: block;
+  width: 100%;
+  transition: opacity 0.35s ease;
+}
+
+.bw-product-card .bw-slick-slider-image--has-hover .bw-slider-hover {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.bw-product-card .bw-slick-slider-image--has-hover .bw-slider-main {
+  position: relative;
+  z-index: 0;
+}
+
+.bw-product-card .bw-ss__media:hover .bw-slick-slider-image--has-hover .bw-slider-hover,
+.bw-product-card .bw-ss__media:focus-within .bw-slick-slider-image--has-hover .bw-slider-hover {
+  opacity: 1;
+}
+
+.bw-product-card .bw-ss__media:hover .bw-slick-slider-image--has-hover .bw-slider-main,
+.bw-product-card .bw-ss__media:focus-within .bw-slick-slider-image--has-hover .bw-slider-main {
+  opacity: 0;
+}
+
+/* Placeholder per immagini mancanti */
+.bw-product-card .bw-wallpost-media--placeholder,
+.bw-product-card .bw-slick-item__image--placeholder {
+  background: #f4f4f4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bw-product-card .bw-wallpost-media img,
+.bw-product-card .bw-ss__media img,
+.bw-product-card .bw-slick-item__image img {
+  display: block;
+  width: 100%;
+  object-fit: cover;
+  transition: none;
+  transform: none;
+  border-radius: inherit;
+}
+
+.bw-product-card .bw-wallpost-image-placeholder {
+  display: block;
+  width: 100%;
+  padding-bottom: 65%;
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(0, 0, 0, 0.04),
+    rgba(0, 0, 0, 0.04) 10px,
+    rgba(0, 0, 0, 0.08) 10px,
+    rgba(0, 0, 0, 0.08) 20px
+  );
+}
+
+/* ===================================
+   Overlay & Buttons
+   =================================== */
+.bw-product-card .bw-wallpost-overlay,
+.bw-product-card .overlay-buttons,
+.bw-product-card .bw-ss__overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  z-index: 15;
+  pointer-events: none;
+  box-sizing: border-box;
+  padding: 16px;
+  border-radius: inherit;
+}
+
+.bw-product-card .bw-ss__media:hover .bw-ss__overlay,
+.bw-product-card .bw-ss__media:focus-within .bw-ss__overlay,
+.bw-product-card .bw-ss__overlay:hover,
+.bw-product-card .bw-ss__overlay:focus-within {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.bw-product-card .bw-wallpost-overlay-buttons,
+.bw-product-card .bw-ss__buttons {
+  display: flex;
+  width: 100%;
+  gap: 0;
+  pointer-events: auto;
+  position: relative;
+  z-index: 20;
+}
+
+.bw-product-card .bw-wallpost-overlay-buttons--double .bw-wallpost-overlay-button,
+.bw-product-card .bw-ss__buttons--double .overlay-button {
+  flex: 1 1 50%;
+  width: 50%;
+}
+
+/* Button Styles */
+.bw-product-card .bw-wallpost-overlay-button,
+.bw-product-card .overlay-button,
+.bw-product-card .bw-slide-button {
+  position: relative;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  flex: 1 1 100%;
+  padding: var(--bw-card-overlay-buttons-padding-top, 13px)
+           var(--bw-card-overlay-buttons-padding-right, 10px)
+           var(--bw-card-overlay-buttons-padding-bottom, 13px)
+           var(--bw-card-overlay-buttons-padding-left, 10px);
+  background: var(--bw-card-overlay-buttons-background, #FFFFFF);
+  color: var(--bw-card-overlay-buttons-color, #000000);
+  border: 1px solid #080808;
+  border-radius: 0;
+  font-weight: 500;
+  text-decoration: none;
+  overflow: visible;
+  transition: background 0.3s ease, color 0.3s ease;
+  cursor: pointer;
+}
+
+.bw-product-card .bw-btn-addtocart {
+  text-decoration: none;
+}
+
+.bw-product-card .bw-wallpost-overlay-button:first-child,
+.bw-product-card .overlay-button:first-child,
+.bw-product-card .bw-slide-button:first-child {
+  border-top-left-radius: var(--bw-card-overlay-buttons-radius, 8px);
+  border-bottom-left-radius: var(--bw-card-overlay-buttons-radius, 8px);
+}
+
+.bw-product-card .bw-wallpost-overlay-button:last-child,
+.bw-product-card .overlay-button:last-child,
+.bw-product-card .bw-slide-button:last-child {
+  border-top-right-radius: var(--bw-card-overlay-buttons-radius, 8px);
+  border-bottom-right-radius: var(--bw-card-overlay-buttons-radius, 8px);
+}
+
+.bw-product-card .bw-wallpost-overlay-button + .bw-wallpost-overlay-button,
+.bw-product-card .overlay-button + .overlay-button,
+.bw-product-card .bw-slide-button + .bw-slide-button {
+  border-left: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Label con underline effect */
+.bw-product-card .overlay-button__label,
+.bw-product-card .bw-wallpost-overlay-button__label {
+  position: relative;
+  display: inline-block;
+  line-height: 1.2;
+}
+
+.bw-product-card .overlay-button__label::after,
+.bw-product-card .bw-wallpost-overlay-button__label::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -0.35em;
+  width: 100%;
+  height: 2px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease;
+}
+
+.bw-product-card .bw-wallpost-overlay-button:hover,
+.bw-product-card .bw-wallpost-overlay-button:focus,
+.bw-product-card .overlay-button:hover,
+.bw-product-card .overlay-button:focus,
+.bw-product-card .bw-slide-button:hover,
+.bw-product-card .bw-slide-button:focus {
+  background: var(--bw-card-overlay-buttons-background-hover, #80FD03);
+  color: var(--bw-card-overlay-buttons-color-hover, #000000);
+}
+
+.bw-product-card .overlay-button:hover .overlay-button__label::after,
+.bw-product-card .overlay-button:focus .overlay-button__label::after,
+.bw-product-card .bw-wallpost-overlay-button:hover .bw-wallpost-overlay-button__label::after,
+.bw-product-card .bw-wallpost-overlay-button:focus .bw-wallpost-overlay-button__label::after {
+  transform: scaleX(1);
+}
+
+/* ===================================
+   Content Section
+   =================================== */
+.bw-product-card .bw-wallpost-content,
+.bw-product-card .bw-slick-item__content {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.bw-product-card .bw-slick-slider-text-box {
+  background-color: transparent;
+  padding: 15px;
+  box-sizing: border-box;
+  transition: background-color 0.3s ease;
+}
+
+/* Title */
+.bw-product-card .bw-wallpost-title,
+.bw-product-card .bw-slick-item__title,
+.bw-product-card .bw-slick-title {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.4;
+  color: var(--bw-card-title-color, #080808);
+}
+
+.bw-product-card .bw-wallpost-title a,
+.bw-product-card .bw-slick-item__title a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.bw-product-card .bw-wallpost-title a:hover,
+.bw-product-card .bw-wallpost-title a:focus,
+.bw-product-card .bw-slick-item__title a:hover,
+.bw-product-card .bw-slick-item__title a:focus {
+  text-decoration: underline;
+}
+
+/* Description */
+.bw-product-card .bw-wallpost-description,
+.bw-product-card .bw-slick-item__excerpt,
+.bw-product-card .bw-slick-description {
+  color: var(--bw-card-description-color, #080808);
+  font-size: 14px;
+  line-height: 1.4;
+  font-weight: 400;
+}
+
+.bw-product-card .bw-wallpost-description p,
+.bw-product-card .bw-slick-item__excerpt p,
+.bw-product-card .bw-slick-description p {
+  margin: 0;
+}
+
+/* Price */
+.bw-product-card .bw-wallpost-price,
+.bw-product-card .bw-slick-item__price,
+.bw-product-card .bw-slick-price {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  font-weight: 400;
+  color: var(--bw-card-price-color, #080808);
+}
+
+.bw-product-card .bw-wallpost-price .price-original,
+.bw-product-card .bw-slick-item__price .price-original {
+  color: rgba(17, 17, 17, 0.55);
+  text-decoration: line-through;
+}
+
+.bw-product-card .bw-wallpost-price .price-original del,
+.bw-product-card .bw-slick-item__price .price-original del {
+  text-decoration: inherit;
+}
+
+.bw-product-card .bw-wallpost-price .price-sale,
+.bw-product-card .bw-slick-item__price .price-sale {
+  color: var(--bw-card-price-color, #080808);
+}
+
+.bw-product-card .bw-wallpost-price .price-regular,
+.bw-product-card .bw-slick-item__price .price-regular {
+  color: var(--bw-card-price-color, #080808);
+}
+
+/* WooCommerce Price Styles */
+.bw-product-card .price del {
+  opacity: 0.55;
+}
+
+.bw-product-card .price ins {
+  text-decoration: none;
+  font-weight: inherit;
+}
