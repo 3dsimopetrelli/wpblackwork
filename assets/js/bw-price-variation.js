@@ -382,23 +382,34 @@
                         });
                 });
 
-                $widget.on('click', '.bw-add-to-cart-button', function(e) {
-                        const $btn = $(this);
+                // Use direct event listener with capture phase to intercept before other handlers
+                if ($addToCartButton.length) {
+                        const addToCartBtn = $addToCartButton[0];
 
-                        console.log('BW Price Variation: Add to cart button clicked', {
-                                hasDisabledClass: $btn.hasClass('disabled'),
-                                activeVariation: activeVariation
-                        });
+                        addToCartBtn.addEventListener('click', function(e) {
+                                console.log('BW Price Variation: Add to cart button clicked (capture phase)', {
+                                        hasDisabledClass: $(this).hasClass('disabled'),
+                                        activeVariation: activeVariation
+                                });
 
-                        if ($btn.hasClass('disabled')) {
-                                console.log('BW Price Variation: Button is disabled, ignoring');
+                                if ($(this).hasClass('disabled')) {
+                                        console.log('BW Price Variation: Button is disabled, ignoring');
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        return false;
+                                }
+
                                 e.preventDefault();
-                                return;
-                        }
+                                e.stopImmediatePropagation();
+                                handleAddToCart($(this), productId, activeVariation);
+                        }, true); // true = capture phase
+                }
 
+                // Keep jQuery handler as fallback
+                $widget.on('click', '.bw-add-to-cart-button', function(e) {
+                        console.log('BW Price Variation: Add to cart button clicked (bubble phase - fallback)');
                         e.preventDefault();
                         e.stopImmediatePropagation();
-                        handleAddToCart($btn, productId, activeVariation);
                 });
         }
 
