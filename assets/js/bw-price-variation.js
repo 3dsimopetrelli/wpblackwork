@@ -247,20 +247,30 @@
 
                 // Add variation attributes to the payload with proper keys
                 if (variation.attributes && typeof variation.attributes === 'object') {
-                        Object.assign(payload, variation.attributes);
+                        // Flatten attributes directly into payload
+                        Object.keys(variation.attributes).forEach(function(key) {
+                                payload[key] = variation.attributes[key];
+                        });
+                }
+
+                // Add nonce if available for security
+                if (typeof bwPriceVariation !== 'undefined' && bwPriceVariation.nonce) {
+                        payload.security = bwPriceVariation.nonce;
                 }
 
                 // Determine the AJAX URL
                 let ajaxUrl = null;
+                let useAdminAjax = false;
 
                 // First try to use WooCommerce's wc-ajax endpoint (preferred for variations)
                 if (typeof wc_add_to_cart_params !== 'undefined' && wc_add_to_cart_params.wc_ajax_url) {
                         ajaxUrl = wc_add_to_cart_params.wc_ajax_url.replace('%%endpoint%%', 'add_to_cart');
                 }
-                // Fallback to standard WordPress AJAX
+                // Fallback to standard WordPress AJAX with action parameter
                 else if (typeof bwPriceVariation !== 'undefined' && bwPriceVariation.ajaxUrl) {
                         ajaxUrl = bwPriceVariation.ajaxUrl;
                         payload.action = 'woocommerce_add_to_cart';
+                        useAdminAjax = true;
                 }
                 // Last resort: use the href URL (non-AJAX)
                 else {
@@ -269,26 +279,44 @@
                         return;
                 }
 
-                console.log('BW Price Variation: Adding to cart', {url: ajaxUrl, payload: payload});
+                console.log('BW Price Variation: Adding to cart', {
+                        url: ajaxUrl,
+                        useAdminAjax: useAdminAjax,
+                        payload: payload,
+                        variation: variation
+                });
 
                 $button.addClass('loading');
                 $(document.body).trigger('adding_to_cart', [$button, payload]);
 
                 $.post(ajaxUrl, payload)
                         .done(function(response) {
-                                console.log('BW Price Variation: Add to cart response', response);
+                                console.log('BW Price Variation: Add to cart response', {
+                                        response: response,
+                                        hasError: response && response.error,
+                                        productUrl: response && response.product_url
+                                });
 
+                                // Check for error response from WooCommerce
                                 if (response && response.error && response.product_url) {
+                                        console.warn('BW Price Variation: WooCommerce returned error, redirecting to product page');
                                         window.location.href = response.product_url;
                                         return;
                                 }
 
+                                // Success!
                                 $button.removeClass('added').addClass('added');
                                 $(document.body).trigger('added_to_cart', [response.fragments || {}, response.cart_hash || '', $button]);
                         })
                         .fail(function(jqXHR, textStatus, errorThrown) {
-                                console.error('BW Price Variation: AJAX failed', {status: textStatus, error: errorThrown});
+                                console.error('BW Price Variation: AJAX request failed', {
+                                        status: textStatus,
+                                        error: errorThrown,
+                                        responseText: jqXHR.responseText,
+                                        statusCode: jqXHR.status
+                                });
                                 // Fallback to href URL on error
+                                console.log('BW Price Variation: Falling back to href redirect');
                                 window.location.href = $button.attr('href');
                         })
                         .always(function() {
