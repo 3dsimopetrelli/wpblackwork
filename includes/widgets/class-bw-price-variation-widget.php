@@ -40,6 +40,30 @@ class BW_Price_Variation_Widget extends Widget_Base {
 	}
 
 	private function register_content_controls() {
+		// Product Selection Section
+		$this->start_controls_section(
+			'section_product_selection',
+			[
+				'label' => __( 'Product', 'bw' ),
+				'tab'   => Controls_Manager::TAB_CONTENT,
+			]
+		);
+
+		$this->add_control(
+			'product_id',
+			[
+				'label'       => __( 'Product ID', 'bw' ),
+				'type'        => Controls_Manager::TEXT,
+				'default'     => '',
+				'placeholder' => __( 'Leave empty to use current product', 'bw' ),
+				'description' => __( 'Enter the ID of a variable product. Leave empty to automatically use the current product (only works on single product pages).', 'bw' ),
+				'label_block' => true,
+			]
+		);
+
+		$this->end_controls_section();
+
+		// Add To Cart Section
 		$this->start_controls_section(
 			'section_add_to_cart_content',
 			[
@@ -746,14 +770,40 @@ class BW_Price_Variation_Widget extends Widget_Base {
 			return;
 		}
 
-		global $product;
-		$product = wc_get_product( get_the_ID() );
+		$settings = $this->get_settings_for_display();
 
-		if ( ! $product || ! $product->is_type( 'variable' ) ) {
+		// Get product ID from settings or current context
+		$product_id = '';
+		if ( ! empty( $settings['product_id'] ) ) {
+			// Use manually specified product ID
+			$product_id = intval( $settings['product_id'] );
+		} else {
+			// Fallback to current product (single product page)
+			$product_id = get_the_ID();
+		}
+
+		// Get the product
+		global $product;
+		$product = wc_get_product( $product_id );
+
+		// Validate product exists and is variable type
+		if ( ! $product ) {
+			if ( \Elementor\Plugin::$instance->editor->is_edit_mode() ) {
+				echo '<div class="elementor-alert elementor-alert-warning">';
+				echo esc_html__( 'BW Price Variation: Product not found. Please enter a valid Product ID or use this widget on a single product page.', 'bw' );
+				echo '</div>';
+			}
 			return;
 		}
 
-		$settings = $this->get_settings_for_display();
+		if ( ! $product->is_type( 'variable' ) ) {
+			if ( \Elementor\Plugin::$instance->editor->is_edit_mode() ) {
+				echo '<div class="elementor-alert elementor-alert-warning">';
+				echo esc_html__( 'BW Price Variation: This widget only works with Variable products. Current product type: ', 'bw' ) . esc_html( $product->get_type() );
+				echo '</div>';
+			}
+			return;
+		}
 
                 $available_variations = $product->get_available_variations();
 
