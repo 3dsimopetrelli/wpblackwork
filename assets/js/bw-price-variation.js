@@ -18,34 +18,32 @@
                         const productId = $widget.data('product-id');
 
 			// Handle button clicks
-			$buttons.on('click', function() {
-				const $button = $(this);
+                        $buttons.on('click', function() {
+                                const $button = $(this);
                                 const variationId = $button.data('variation-id');
                                 const price = $button.data('price');
                                 const priceHtml = $button.data('price-html');
                                 const sku = $button.data('sku');
                                 const attributes = normalizeAttributes($button.data('attributes'));
 
-				// Update active state
-				$buttons.removeClass('active');
-				$button.addClass('active');
+                                // Update active state
+                                $buttons.removeClass('active');
+                                $button.addClass('active');
 
-				// Update price display with fade animation
-                                if (hasPriceValue(price) || priceHtml) {
-                                        updatePriceDisplayWithFade($priceDisplay, price, priceHtml);
-                                }
+                                // Update price display with fade animation
+                                updatePriceDisplayWithFade($priceDisplay, price, priceHtml);
 
-				// Load and display license HTML with fade animation
-				loadVariationLicenseHTMLWithFade(variationId, $licenseBox);
+                                // Load and display license HTML with fade animation
+                                loadVariationLicenseHTMLWithFade(variationId, $licenseBox);
 
-				// Update Add To Cart button for selected variation
+                                // Update Add To Cart button for selected variation
                                 if ($addToCartButton.length && variationId) {
                                         updateAddToCartButton($addToCartButton, productId, variationId, sku, attributes);
                                 }
 
-				// Trigger custom event for other scripts (e.g., WooCommerce variations)
-				$widget.trigger('bw_price_variation_changed', {
-					variationId: variationId,
+                                // Trigger custom event for other scripts (e.g., WooCommerce variations)
+                                $widget.trigger('bw_price_variation_changed', {
+                                        variationId: variationId,
                                         price: price,
                                         priceHtml: priceHtml,
                                         sku: sku,
@@ -67,9 +65,7 @@
                                         updateAddToCartButton($addToCartButton, productId, initialVariationId, $activeButton.data('sku'), initialAttributes);
                                 }
 
-                                if (hasPriceValue(initialPrice) || initialPriceHtml) {
-                                        updatePriceDisplay($priceDisplay, initialPrice, initialPriceHtml);
-                                }
+                                updatePriceDisplay($priceDisplay, initialPrice, initialPriceHtml);
                         }
                 });
         }
@@ -78,16 +74,28 @@
 	 * Update price display with formatted price
 	 */
         function updatePriceDisplay($priceDisplay, price, priceHtml) {
+                const defaultPrice = $priceDisplay.data('default-price');
+                const defaultPriceHtml = $priceDisplay.data('default-price-html');
+
                 // If priceHtml is provided and not empty, use it
-                if (priceHtml && priceHtml.trim() !== '') {
+                if (priceHtml && String(priceHtml).trim() !== '') {
                         $priceDisplay.html(priceHtml);
                         return;
                 }
 
-                // Validate price value
+                // Validate price value, otherwise fall back to default price/html
                 if (!hasPriceValue(price)) {
-                        console.warn('BW Price Variation: Invalid price value', price);
-                        return;
+                        if (defaultPriceHtml && String(defaultPriceHtml).trim() !== '') {
+                                $priceDisplay.html(defaultPriceHtml);
+                                return;
+                        }
+
+                        if (!hasPriceValue(defaultPrice)) {
+                                console.warn('BW Price Variation: Invalid price value', price);
+                                return;
+                        }
+
+                        price = defaultPrice;
                 }
 
                 // Use WooCommerce price format if available
