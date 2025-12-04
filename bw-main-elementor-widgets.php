@@ -129,6 +129,9 @@ add_action( 'elementor/editor/after_enqueue_scripts', 'bw_enqueue_related_produc
 add_action( 'init', 'bw_register_price_variation_widget_assets' );
 add_action( 'elementor/frontend/after_register_styles', 'bw_register_price_variation_widget_assets' );
 add_action( 'elementor/frontend/after_register_scripts', 'bw_register_price_variation_widget_assets' );
+add_action( 'init', 'bw_register_add_to_cart_variation_widget_assets' );
+add_action( 'elementor/frontend/after_register_styles', 'bw_register_add_to_cart_variation_widget_assets' );
+add_action( 'elementor/frontend/after_register_scripts', 'bw_register_add_to_cart_variation_widget_assets' );
 
 function bw_enqueue_slick_slider_assets() {
     wp_enqueue_style(
@@ -618,6 +621,29 @@ function bw_register_static_showcase_widget_assets() {
         plugin_dir_url( __FILE__ ) . 'assets/css/bw-static-showcase.css',
         [],
         $css_version
+    );
+}
+
+function bw_register_add_to_cart_variation_widget_assets() {
+    $css_file    = __DIR__ . '/assets/css/bw-add-to-cart-variation.css';
+    $css_version = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
+
+    wp_register_style(
+        'bw-add-to-cart-variation-style',
+        plugin_dir_url( __FILE__ ) . 'assets/css/bw-add-to-cart-variation.css',
+        [],
+        $css_version
+    );
+
+    $js_file    = __DIR__ . '/assets/js/bw-add-to-cart-variation.js';
+    $js_version = file_exists( $js_file ) ? filemtime( $js_file ) : '1.0.0';
+
+    wp_register_script(
+        'bw-add-to-cart-variation-script',
+        plugin_dir_url( __FILE__ ) . 'assets/js/bw-add-to-cart-variation.js',
+        [ 'jquery', 'wc-add-to-cart-variation' ],
+        $js_version,
+        true
     );
 }
 
