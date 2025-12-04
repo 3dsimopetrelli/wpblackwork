@@ -12,6 +12,35 @@
   letter-spacing: 0.08em;
 }
 
+.bw-related-products__titles {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.bw-related-products__item {
+  margin: 0;
+}
+
+.bw-related-products__name {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.bw-related-products__name a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.bw-related-products__name a:hover,
+.bw-related-products__name a:focus-visible {
+  text-decoration: underline;
+}
+
 .bw-related-products-grid {
   display: grid;
   grid-template-columns: repeat(var(--bw-wallpost-columns), minmax(0, 1fr));
