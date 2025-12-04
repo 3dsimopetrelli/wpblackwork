@@ -860,16 +860,25 @@ class BW_Price_Variation_Widget extends Widget_Base {
                                                 }
 
                                                 $is_active = ( $default_variation_id === $matched_variation['id'] ) ? 'active' : '';
+                                                $is_out_of_stock = ! $matched_variation['is_in_stock'];
+                                                $button_classes = 'bw-price-variation__variation-button ' . $is_active;
+                                                if ( $is_out_of_stock ) {
+                                                        $button_classes .= ' out-of-stock';
+                                                }
                                                 ?>
                                                 <button
-                                                        class="bw-price-variation__variation-button <?php echo esc_attr( $is_active ); ?>"
+                                                        class="<?php echo esc_attr( trim( $button_classes ) ); ?>"
                                                         data-variation-id="<?php echo esc_attr( $matched_variation['id'] ); ?>"
                                                         data-variation='<?php echo esc_attr( wp_json_encode( $matched_variation ) ); ?>'
                                                         style="border-style: <?php echo esc_attr( $border_style ); ?>;"
                                                         type="button"
                                                         aria-pressed="<?php echo esc_attr( 'active' === $is_active ? 'true' : 'false' ); ?>"
+                                                        <?php echo $is_out_of_stock ? 'disabled aria-disabled="true"' : ''; ?>
                                                 >
                                                         <?php echo esc_html( $attribute_value ); ?>
+                                                        <?php if ( $is_out_of_stock ) : ?>
+                                                                <span class="out-of-stock-label" style="display: none;"><?php esc_html_e( '(Out of stock)', 'bw' ); ?></span>
+                                                        <?php endif; ?>
                                                 </button>
                                         <?php endforeach; ?>
                                 </div>
@@ -896,7 +905,14 @@ class BW_Price_Variation_Widget extends Widget_Base {
 					'alt',
 				];
 
-				if ( ! $product->is_in_stock() ) {
+				// Use the default variation ID for initial state
+				$variation_product = wc_get_product( $default_variation_id );
+                                if ( ! $variation_product ) {
+                                        $variation_product = $product;
+                                }
+
+				// Check stock for the specific variation, not just the parent product
+				if ( ! $variation_product->is_in_stock() ) {
 					$classes[] = 'disabled';
 				}
 
@@ -904,18 +920,13 @@ class BW_Price_Variation_Widget extends Widget_Base {
 					$classes[] = 'bw-btn-addtocart';
 				}
 
-				// Use the default variation ID for initial state
-				$variation_product = wc_get_product( $default_variation_id );
-                                if ( ! $variation_product ) {
-                                        $variation_product = $product;
-                                }
-
                                 // Build proper add to cart URL for variations
-                                $add_to_cart_url = wc_get_cart_url();
+                                // Use the product permalink as base URL for proper WooCommerce handling
+                                $add_to_cart_url = $product->get_permalink();
                                 $url_params = [
                                         'add-to-cart'   => $product->get_id(),
                                         'variation_id'  => $default_variation_id,
-                                        'variation_price' => $default_price,
+                                        'quantity'      => 1,
                                 ];
 
                                 // Add variation attributes to URL
