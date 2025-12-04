@@ -59,7 +59,6 @@ function bw_render_digital_products_metabox( $post ) {
 
     $showcase_title       = get_post_meta( $post->ID, '_bw_showcase_title', true );
     $showcase_description = get_post_meta( $post->ID, '_bw_showcase_description', true );
-    $showcase_label_enabled = get_post_meta( $post->ID, '_bw_showcase_label_enabled', true );
     $showcase_label       = get_post_meta( $post->ID, '_bw_showcase_label', true );
     $product_type         = get_post_meta( $post->ID, '_bw_product_type', true );
     if ( ! in_array( $product_type, array( 'digital', 'physical' ), true ) ) {
@@ -245,13 +244,6 @@ function bw_render_digital_products_metabox( $post ) {
         <div class="bw-metabox-section">
             <h3><?php esc_html_e( 'Static Showcase', 'bw' ); ?></h3>
             <div class="bw-metabox-field-group">
-                <label for="bw_showcase_label_enabled">
-                    <input type="checkbox" id="bw_showcase_label_enabled" name="bw_showcase_label_enabled" value="yes" <?php checked( $showcase_label_enabled, 'yes' ); ?> />
-                    <strong><?php esc_html_e( 'Abilita Label Showcase personalizzata', 'bw' ); ?></strong>
-                </label>
-                <span class="bw-field-description"><?php esc_html_e( 'Salva una label di riferimento per il widget BW Static Showcase. La label appare nel widget solo quando il campo Showcase Label del widget è compilato.', 'bw' ); ?></span>
-            </div>
-            <div class="bw-metabox-field-group">
                 <label for="bw_showcase_label"><?php esc_html_e( 'Showcase Label', 'bw' ); ?></label>
                 <input type="text" id="bw_showcase_label" name="bw_showcase_label" value="<?php echo esc_attr( $showcase_label ); ?>" style="width:100%;" />
                 <span class="bw-field-description"><?php esc_html_e( 'Usa questo testo come label suggerita per il widget BW Static Showcase.', 'bw' ); ?></span>
@@ -304,26 +296,8 @@ function bw_render_digital_products_metabox( $post ) {
         }
       }
 
-      function initBwShowcaseLabelToggle() {
-        var checkbox = document.querySelector('#bw_showcase_label_enabled');
-        var labelField = document.querySelector('#bw_showcase_label');
-        var labelWrapper = labelField ? labelField.closest('.bw-metabox-field-group') : null;
-
-        if (!checkbox || !labelWrapper) {
-          return;
-        }
-
-        function toggleLabelField() {
-          labelWrapper.style.display = checkbox.checked ? 'block' : 'none';
-        }
-
-        checkbox.addEventListener('change', toggleLabelField);
-        toggleLabelField();
-      }
-
       function initMetaboxUI() {
         initBwProductTypeToggle();
-        initBwShowcaseLabelToggle();
       }
 
       if (document.readyState === 'loading') {
@@ -422,7 +396,6 @@ function bw_save_digital_products( $post_id ) {
 
     $showcase_title       = isset( $_POST['bw_showcase_title'] ) ? sanitize_text_field( wp_unslash( $_POST['bw_showcase_title'] ) ) : '';
     $showcase_description = isset( $_POST['bw_showcase_description'] ) ? sanitize_textarea_field( wp_unslash( $_POST['bw_showcase_description'] ) ) : '';
-    $showcase_label_enabled = isset( $_POST['bw_showcase_label_enabled'] ) && 'yes' === $_POST['bw_showcase_label_enabled'] ? 'yes' : '';
     $showcase_label       = isset( $_POST['bw_showcase_label'] ) ? sanitize_text_field( wp_unslash( $_POST['bw_showcase_label'] ) ) : '';
 
     update_post_meta( $post_id, '_bw_product_type', $product_type );
@@ -437,7 +410,6 @@ function bw_save_digital_products( $post_id ) {
     update_post_meta( $post_id, '_bw_showcase_image', $showcase_image );
     update_post_meta( $post_id, '_bw_showcase_title', $showcase_title );
     update_post_meta( $post_id, '_bw_showcase_description', $showcase_description );
-    update_post_meta( $post_id, '_bw_showcase_label_enabled', $showcase_label_enabled );
     update_post_meta( $post_id, '_bw_showcase_label', $showcase_label );
 
     // Save showcase_linked_product only if present in $_POST to avoid overwriting with 0

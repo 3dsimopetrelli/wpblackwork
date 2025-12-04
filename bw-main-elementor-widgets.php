@@ -51,6 +51,12 @@ function bw_load_elementor_dynamic_tags() {
     if ( file_exists( $artist_tag_file ) ) {
         require_once $artist_tag_file;
     }
+
+    $showcase_label_tag_file = __DIR__ . '/includes/dynamic-tags/class-bw-showcase-label-tag.php';
+
+    if ( file_exists( $showcase_label_tag_file ) ) {
+        require_once $showcase_label_tag_file;
+    }
 }
 add_action( 'elementor/init', 'bw_load_elementor_dynamic_tags' );
 
