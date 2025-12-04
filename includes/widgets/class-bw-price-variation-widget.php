@@ -769,14 +769,17 @@ class BW_Price_Variation_Widget extends Widget_Base {
                         $price_value    = isset( $variation['display_price'] ) ? $variation['display_price'] : wc_get_price_to_display( $variation_obj );
                         $price_html     = ! empty( $variation['price_html'] ) ? $variation['price_html'] : wc_price( $price_value );
                         $attributes_set = isset( $variation['attributes'] ) ? $variation['attributes'] : [];
+                        $license_html   = get_post_meta( $variation_id, '_bw_variation_license_html', true );
 
                         $variations_data[] = [
-                                'id'         => $variation_id,
-                                'price'      => $price_value,
-                                'price_html' => $price_html,
-                                'sku'        => $variation_obj ? $variation_obj->get_sku() : '',
-                                'attributes' => $attributes_set,
-                                'label'      => $variation_obj ? $variation_obj->get_attribute_summary() : '',
+                                'id'            => $variation_id,
+                                'price'         => $price_value,
+                                'price_html'    => $price_html,
+                                'sku'           => $variation_obj ? $variation_obj->get_sku() : '',
+                                'attributes'    => $attributes_set,
+                                'label'         => $variation_obj ? $variation_obj->get_attribute_summary() : '',
+                                'license_html'  => $license_html ? wp_kses_post( $license_html ) : '',
+                                'is_in_stock'   => $variation_obj ? $variation_obj->is_in_stock() : true,
                         ];
                 }
 
@@ -824,6 +827,7 @@ class BW_Price_Variation_Widget extends Widget_Base {
                         class="bw-price-variation"
                         data-product-id="<?php echo esc_attr( $product->get_id() ); ?>"
                         data-variations="<?php echo esc_attr( wp_json_encode( $variations_data ) ); ?>"
+                        data-default-variation-id="<?php echo esc_attr( $default_variation_id ); ?>"
                 >
                         <!-- Price Display -->
                         <div class="bw-price-variation__price-wrapper">
@@ -859,8 +863,11 @@ class BW_Price_Variation_Widget extends Widget_Base {
                                                 ?>
                                                 <button
                                                         class="bw-price-variation__variation-button <?php echo esc_attr( $is_active ); ?>"
+                                                        data-variation-id="<?php echo esc_attr( $matched_variation['id'] ); ?>"
                                                         data-variation='<?php echo esc_attr( wp_json_encode( $matched_variation ) ); ?>'
                                                         style="border-style: <?php echo esc_attr( $border_style ); ?>;"
+                                                        type="button"
+                                                        aria-pressed="<?php echo esc_attr( 'active' === $is_active ? 'true' : 'false' ); ?>"
                                                 >
                                                         <?php echo esc_html( $attribute_value ); ?>
                                                 </button>
@@ -875,9 +882,9 @@ class BW_Price_Variation_Widget extends Widget_Base {
 			<?php if ( isset( $settings['show_add_to_cart'] ) && 'yes' === $settings['show_add_to_cart'] ) : ?>
 				<?php
 				$open_cart_popup = isset( $settings['open_cart_popup'] ) && 'yes' === $settings['open_cart_popup'];
-				$button_text     = isset( $settings['add_to_cart_button_text'] ) && '' !== trim( $settings['add_to_cart_button_text'] )
-					? $settings['add_to_cart_button_text']
-					: __( 'Add to Cart', 'bw' );
+                                $button_text     = isset( $settings['add_to_cart_button_text'] ) && '' !== trim( $settings['add_to_cart_button_text'] )
+                                        ? $settings['add_to_cart_button_text']
+                                        : __( 'Add to Cart', 'bw' );
 
 				$classes = [
 					'bw-add-to-cart-button',
@@ -919,16 +926,17 @@ class BW_Price_Variation_Widget extends Widget_Base {
                                 $add_to_cart_url = add_query_arg( $url_params, $add_to_cart_url );
 
                                 $attributes = [
-                                        'href'               => esc_url( $add_to_cart_url ),
-                                        'data-quantity'      => 1,
-                                        'data-product_id'    => $product->get_id(),
-                                        'data-variation_id'  => $default_variation_id,
-                                        'data-variation'     => wp_json_encode( $default_variation_attrs ),
-                                        'data-product_sku'   => $variation_product->get_sku(),
+                                        'href'                 => esc_url( $add_to_cart_url ),
+                                        'data-quantity'        => 1,
+                                        'data-product_id'      => $product->get_id(),
+                                        'data-variation_id'    => $default_variation_id,
+                                        'data-variation'       => wp_json_encode( $default_variation_attrs ),
+                                        'data-product_sku'     => $variation_product->get_sku(),
                                         'data-variation-price' => $default_price,
                                         'data-variation-price-html' => wp_kses_post( $default_price_html ),
-                                        'rel'                => 'nofollow',
-                                        'class'              => implode( ' ', array_filter( $classes ) ),
+                                        'rel'                  => 'nofollow',
+                                        'class'                => implode( ' ', array_filter( $classes ) ),
+                                        'data-selected-variation-id' => $default_variation_id,
                                 ];
 
 				if ( $open_cart_popup ) {
