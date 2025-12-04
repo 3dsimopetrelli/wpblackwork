@@ -218,14 +218,59 @@ class BW_Related_Products_Widget extends Widget_Base {
         return $query->posts;
     }
 
-    protected function render() {
-        if ( ! function_exists( 'wc_get_related_products' ) || ! is_product() ) {
-            return;
+    /**
+     * Try to resolve the current product context.
+     *
+     * The widget normally relies on the global $product set on single product
+     * pages, but Elementor's editor preview does not always flag the request
+     * as a product view. In that case we fall back to the queried object ID or
+     * the currently edited post ID so the widget can still render something in
+     * the editor.
+     *
+     * @return WC_Product|null
+     */
+    protected function get_current_product() {
+        if ( ! function_exists( 'wc_get_product' ) ) {
+            return null;
         }
 
         global $product;
 
-        if ( empty( $product ) || ! $product instanceof WC_Product ) {
+        if ( $product instanceof WC_Product ) {
+            return $product;
+        }
+
+        $queried_id = get_queried_object_id();
+        if ( $queried_id ) {
+            $maybe_product = wc_get_product( $queried_id );
+            if ( $maybe_product instanceof WC_Product ) {
+                return $maybe_product;
+            }
+        }
+
+        if ( class_exists( '\\Elementor\\Plugin' ) && \Elementor\Plugin::$instance->editor->is_edit_mode() ) {
+            $editor_product = wc_get_product( get_the_ID() );
+            if ( $editor_product instanceof WC_Product ) {
+                return $editor_product;
+            }
+        }
+
+        return null;
+    }
+
+    protected function render() {
+        if ( ! function_exists( 'wc_get_related_products' ) ) {
+            return;
+        }
+
+        $product = $this->get_current_product();
+
+        if ( ! $product instanceof WC_Product ) {
+            if ( class_exists( '\\Elementor\\Plugin' ) && \Elementor\Plugin::$instance->editor->is_edit_mode() ) {
+                echo '<div class="bw-related-products-widget bw-related-products-empty">';
+                echo '<p>' . esc_html__( 'Seleziona un prodotto in anteprima per mostrare i correlati.', 'bw-elementor-widgets' ) . '</p>';
+                echo '</div>';
+            }
             return;
         }
 
@@ -257,13 +302,13 @@ class BW_Related_Products_Widget extends Widget_Base {
         $image_height = absint( apply_filters( 'bw_mew_related_products_image_height', 625 ) );
 
         echo '<div class="bw-related-products-widget">';
-        echo '<section class="related products bw-related-products bw-wallpost" style="--bw-wallpost-columns: ' . esc_attr( $columns ) . '; --bw-wallpost-gap: ' . esc_attr( $gap ) . 'px; --bw-wallpost-image-height: ' . esc_attr( $image_height ) . 'px;">';
+        echo '<section class="related products bw-related-products" style="--bw-wallpost-columns: ' . esc_attr( $columns ) . '; --bw-wallpost-gap: ' . esc_attr( $gap ) . 'px; --bw-wallpost-image-height: ' . esc_attr( $image_height ) . 'px;">';
 
         if ( $heading ) {
             echo '<h2 class="bw-related-products__title">' . esc_html( $heading ) . '</h2>';
         }
 
-        echo '<div class="bw-related-products-grid bw-wallpost-grid">';
+        echo '<ul class="bw-related-products__titles">';
 
         foreach ( $related_product_ids as $related_product_id ) {
             $related_product = wc_get_product( $related_product_id );
@@ -272,107 +317,15 @@ class BW_Related_Products_Widget extends Widget_Base {
                 continue;
             }
 
-            $permalink     = $related_product->get_permalink();
-            $title         = $related_product->get_name();
-            $short_desc    = $related_product->get_short_description();
-            $excerpt       = $short_desc ? wp_trim_words( wp_strip_all_tags( $short_desc ), 30 ) : '';
-            $thumbnail_id  = $related_product->get_image_id();
-            $thumbnail_html = $thumbnail_id ? wp_get_attachment_image( $thumbnail_id, 'woocommerce_thumbnail', false, [ 'class' => 'bw-slider-main', 'loading' => 'lazy' ] ) : '';
+            $permalink = $related_product->get_permalink();
+            $title     = $related_product->get_name();
 
-            $gallery_ids      = $related_product->get_gallery_image_ids();
-            $hover_image_id   = $gallery_ids ? reset( $gallery_ids ) : 0;
-            $hover_image_html = $hover_image_id ? wp_get_attachment_image( $hover_image_id, 'woocommerce_thumbnail', false, [ 'class' => 'bw-slider-hover', 'loading' => 'lazy' ] ) : '';
-
-            $price_html      = $related_product->get_price_html();
-            $add_to_cart_url = '';
-            $has_add_to_cart = true;
-
-            if ( $related_product->is_type( 'variable' ) ) {
-                $add_to_cart_url = $permalink;
-            } else {
-                $cart_url = function_exists( 'wc_get_cart_url' ) ? wc_get_cart_url() : '';
-
-                if ( $cart_url && $related_product->is_purchasable() && $related_product->is_in_stock() ) {
-                    $add_to_cart_url = add_query_arg( 'add-to-cart', $related_product_id, $cart_url );
-                }
-            }
-
-            if ( ! $add_to_cart_url ) {
-                $add_to_cart_url = $permalink;
-                $has_add_to_cart = false;
-            }
-
-            $badge_html = '';
-
-            if ( $related_product->is_on_sale() ) {
-                $badge_html = '<span class="onsale">' . esc_html__( 'Sale!', 'woocommerce' ) . '</span>';
-            }
-
-            ?>
-            <article <?php wc_product_class( 'bw-wallpost-item bw-slick-item', $related_product ); ?>>
-                <div class="bw-wallpost-card bw-slick-item__inner bw-ss__card">
-                    <div class="bw-slider-image-container">
-                        <?php
-                        $media_classes = [ 'bw-wallpost-media', 'bw-slick-item__image', 'bw-ss__media' ];
-                        if ( ! $thumbnail_html ) {
-                            $media_classes[] = 'bw-wallpost-media--placeholder';
-                            $media_classes[] = 'bw-slick-item__image--placeholder';
-                        }
-                        ?>
-                        <div class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $media_classes ) ) ); ?>">
-                            <?php if ( $badge_html ) : ?>
-                                <div class="bw-related-products__badge"><?php echo wp_kses_post( $badge_html ); ?></div>
-                            <?php endif; ?>
-
-                            <?php if ( $thumbnail_html ) : ?>
-                                <a class="bw-wallpost-media-link bw-slick-item__media-link bw-ss__media-link" href="<?php echo esc_url( $permalink ); ?>">
-                                    <div class="bw-wallpost-image bw-slick-slider-image<?php echo $hover_image_html ? ' bw-wallpost-image--has-hover bw-slick-slider-image--has-hover' : ''; ?>">
-                                        <?php echo wp_kses_post( $thumbnail_html ); ?>
-                                        <?php if ( $hover_image_html ) : ?>
-                                            <?php echo wp_kses_post( $hover_image_html ); ?>
-                                        <?php endif; ?>
-                                    </div>
-                                </a>
-
-                                <div class="bw-wallpost-overlay overlay-buttons bw-ss__overlay has-buttons">
-                                    <div class="bw-wallpost-overlay-buttons bw-ss__buttons bw-slide-buttons<?php echo $has_add_to_cart ? ' bw-wallpost-overlay-buttons--double bw-ss__buttons--double' : ''; ?>">
-                                        <a class="bw-wallpost-overlay-button overlay-button overlay-button--view bw-ss__btn bw-view-btn bw-slide-button" href="<?php echo esc_url( $permalink ); ?>">
-                                            <span class="bw-wallpost-overlay-button__label overlay-button__label"><?php esc_html_e( 'View Product', 'bw-elementor-widgets' ); ?></span>
-                                        </a>
-                                        <?php if ( $has_add_to_cart && $add_to_cart_url ) : ?>
-                                            <a class="bw-wallpost-overlay-button overlay-button overlay-button--cart bw-ss__btn bw-btn-addtocart bw-slide-button" href="<?php echo esc_url( $add_to_cart_url ); ?>" data-open-cart-popup="1">
-                                                <span class="bw-wallpost-overlay-button__label overlay-button__label"><?php esc_html_e( 'Add to Cart', 'bw-elementor-widgets' ); ?></span>
-                                            </a>
-                                        <?php endif; ?>
-                                    </div>
-                                </div>
-                            <?php else : ?>
-                                <span class="bw-wallpost-image-placeholder bw-slick-item__image-placeholder" aria-hidden="true"></span>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-
-                    <div class="bw-wallpost-content bw-slick-item__content bw-ss__content bw-slider-content bw-slick-slider-text-box">
-                        <h3 class="bw-wallpost-title bw-slick-item__title bw-slick-title bw-slider-title">
-                            <a href="<?php echo esc_url( $permalink ); ?>">
-                                <?php echo esc_html( $title ); ?>
-                            </a>
-                        </h3>
-
-                        <?php if ( $excerpt ) : ?>
-                            <div class="bw-wallpost-description bw-slick-item__excerpt bw-slick-description bw-slider-description"><?php echo wp_kses_post( $excerpt ); ?></div>
-                        <?php endif; ?>
-
-                        <?php if ( $price_html ) : ?>
-                            <div class="bw-wallpost-price bw-slick-item__price price bw-slick-price bw-slider-price"><?php echo wp_kses_post( $price_html ); ?></div>
-                        <?php endif; ?>
-                    </div>
-                </div>
-            </article>
-            <?php
+            echo '<li class="bw-related-products__item">';
+            echo '<h3 class="bw-related-products__name"><a href="' . esc_url( $permalink ) . '">' . esc_html( $title ) . '</a></h3>';
+            echo '</li>';
         }
 
-        echo '</div>';
+        echo '</ul>';
         echo '</section>';
         echo '</div>';
     }
