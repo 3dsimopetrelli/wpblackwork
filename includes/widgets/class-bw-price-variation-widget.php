@@ -873,12 +873,9 @@ class BW_Price_Variation_Widget extends Widget_Base {
                                                         style="border-style: <?php echo esc_attr( $border_style ); ?>;"
                                                         type="button"
                                                         aria-pressed="<?php echo esc_attr( 'active' === $is_active ? 'true' : 'false' ); ?>"
-                                                        <?php echo $is_out_of_stock ? 'disabled aria-disabled="true"' : ''; ?>
+                                                        aria-disabled="<?php echo esc_attr( $is_out_of_stock ? 'true' : 'false' ); ?>"
                                                 >
                                                         <?php echo esc_html( $attribute_value ); ?>
-                                                        <?php if ( $is_out_of_stock ) : ?>
-                                                                <span class="out-of-stock-label" style="display: none;"><?php esc_html_e( '(Out of stock)', 'bw' ); ?></span>
-                                                        <?php endif; ?>
                                                 </button>
                                         <?php endforeach; ?>
                                 </div>
