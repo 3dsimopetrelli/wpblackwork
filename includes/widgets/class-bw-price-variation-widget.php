@@ -786,7 +786,7 @@ class BW_Price_Variation_Widget extends Widget_Base {
                 }
 
                 if ( null === $default_price || '' === $default_price ) {
-                        $default_price = $product->get_price();
+                        $default_price = wc_get_price_to_display( $product );
                 }
 
                 if ( '' === $default_price_html ) {
@@ -795,6 +795,10 @@ class BW_Price_Variation_Widget extends Widget_Base {
 
                 if ( '' === $default_price_html ) {
                         $default_price_html = wc_price( $default_price );
+                }
+                // Final safeguard to avoid empty price output
+                if ( '' === $default_price_html ) {
+                        $default_price_html = wc_price( wc_get_price_to_display( $product ) );
                 }
 
 		// Get attributes for variations
@@ -812,8 +816,12 @@ class BW_Price_Variation_Widget extends Widget_Base {
 		?>
 		<div class="bw-price-variation" data-product-id="<?php echo esc_attr( $product->get_id() ); ?>">
 			<!-- Price Display -->
-			<div class="bw-price-variation__price-wrapper">
-                                <span class="bw-price-variation__price" data-default-price="<?php echo esc_attr( $default_price ); ?>">
+                        <div class="bw-price-variation__price-wrapper">
+                                <span
+                                        class="bw-price-variation__price"
+                                        data-default-price="<?php echo esc_attr( $default_price ); ?>"
+                                        data-default-price-html="<?php echo esc_attr( wp_kses_post( $default_price_html ) ); ?>"
+                                >
                                         <?php echo wp_kses_post( $default_price_html ); ?>
                                 </span>
                         </div>
@@ -861,6 +869,10 @@ class BW_Price_Variation_Widget extends Widget_Base {
                                                 if ( null === $variation_price || '' === $variation_price ) {
                                                         $variation_object = wc_get_product( $variation_id );
                                                         $variation_price  = $variation_object ? wc_get_price_to_display( $variation_object ) : 0;
+                                                }
+
+                                                if ( '' === $variation_price_html ) {
+                                                        $variation_price_html = wc_price( $variation_price );
                                                 }
 
 						// Get variation product for SKU
