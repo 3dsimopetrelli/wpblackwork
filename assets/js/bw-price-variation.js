@@ -1,432 +1,354 @@
 /**
- * BW Price Variation Widget JavaScript
+ * BW Price Variation Widget
+ * Ricostruito per sfruttare gli hook WooCommerce e il cart popup.
  */
 
 (function($) {
-	'use strict';
+        'use strict';
 
-	/**
-	 * Initialize Price Variation Widget
-	 */
-	function initPriceVariation() {
-		$('.bw-price-variation').each(function() {
-			const $widget = $(this);
-                        const $priceDisplay = $widget.find('.bw-price-variation__price');
-                        const $buttons = $widget.find('.bw-price-variation__variation-button');
-                        const $licenseBox = $widget.find('.bw-price-variation__license-box');
-                        const $addToCartButton = $widget.find('.bw-add-to-cart-button');
-                        const productId = $widget.data('product-id');
+        /**
+         * Parse variations array from data attribute.
+         * @param {string|Array} raw
+         * @returns {Array}
+         */
+        function parseVariations(raw) {
+                if (Array.isArray(raw)) {
+                        return raw;
+                }
 
-                        // Handle button clicks
-                        $buttons.on('click', function() {
-                                const $button = $(this);
-                                const variationData = normalizeVariationData($button.data('variation'));
+                if (!raw) {
+                        return [];
+                }
 
-                                if (!variationData || !variationData.id) {
+                try {
+                        return JSON.parse(raw);
+                } catch (e) {
+                        return [];
+                }
+        }
+
+        /**
+         * Create a variation map indexed by ID.
+         * @param {Array} variations
+         * @returns {Object}
+         */
+        function buildVariationMap(variations) {
+                return variations.reduce(function(map, variation) {
+                        if (variation && variation.id) {
+                                map[variation.id] = variation;
+                        }
+                        return map;
+                }, {});
+        }
+
+        /**
+         * Format a numeric price using WooCommerce settings when price HTML is missing.
+         * @param {*} price
+         * @returns {string}
+         */
+        function formatPriceFromNumber(price) {
+                if (price === undefined || price === null || price === '') {
+                        return '';
+                }
+
+                if (typeof bwPriceVariation !== 'undefined' && bwPriceVariation.priceFormat) {
+                        const format = bwPriceVariation.priceFormat;
+                        const decimals = typeof format.decimals === 'number' ? format.decimals : 2;
+                        let formatted = parseFloat(price).toFixed(decimals);
+
+                        if (format.thousand_separator) {
+                                const parts = formatted.split('.');
+                                parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, format.thousand_separator);
+                                formatted = parts.join(format.decimal_separator || ',');
+                        } else if (format.decimal_separator && format.decimal_separator !== '.') {
+                                formatted = formatted.replace('.', format.decimal_separator);
+                        }
+
+                        const priceHTML = format.format
+                                .replace('%1$s', '<span class="woocommerce-Price-currencySymbol">' + format.symbol + '</span>')
+                                .replace('%2$s', formatted);
+
+                        return '<span class="woocommerce-Price-amount amount">' + priceHTML + '</span>';
+                }
+
+                return '<span class="woocommerce-Price-amount amount">' + price + '</span>';
+        }
+
+        /**
+         * Update the price display area.
+         * @param {jQuery} $priceDisplay
+         * @param {Object} variation
+         */
+        function updatePrice($priceDisplay, variation) {
+                const defaultPriceHtml = $priceDisplay.data('default-price-html');
+                const defaultPrice = $priceDisplay.data('default-price');
+                const newHtml = variation && variation.price_html ? variation.price_html : '';
+
+                if (newHtml) {
+                        $priceDisplay.html(newHtml);
+                        return;
+                }
+
+                if (variation && variation.price !== undefined && variation.price !== null && variation.price !== '') {
+                        $priceDisplay.html(formatPriceFromNumber(variation.price));
+                        return;
+                }
+
+                if (defaultPriceHtml) {
+                        $priceDisplay.html(defaultPriceHtml);
+                        return;
+                }
+
+                if (defaultPrice || defaultPrice === 0 || defaultPrice === '0') {
+                        $priceDisplay.html(formatPriceFromNumber(defaultPrice));
+                }
+        }
+
+        /**
+         * Update the license/terms box.
+         * @param {jQuery} $licenseBox
+         * @param {Object} variation
+         */
+        function updateLicenseBox($licenseBox, variation) {
+                if (!variation || !variation.license_html) {
+                        $licenseBox.stop(true, true).fadeOut(150, function() {
+                                $(this).empty();
+                        });
+                        return;
+                }
+
+                $licenseBox.stop(true, true);
+
+                if ($licenseBox.is(':visible')) {
+                        $licenseBox.fadeOut(100, function() {
+                                $(this).html(variation.license_html).fadeIn(150);
+                        });
+                } else {
+                        $licenseBox.html(variation.license_html).fadeIn(150);
+                }
+        }
+
+        /**
+         * Update button active state.
+         * @param {jQuery} $buttons
+         * @param {number} activeId
+         */
+        function updateActiveButton($buttons, activeId) {
+                $buttons.removeClass('active').attr('aria-pressed', 'false');
+                const $active = $buttons.filter('[data-variation-id="' + activeId + '"]').first();
+                if ($active.length) {
+                        $active.addClass('active').attr('aria-pressed', 'true');
+                }
+        }
+
+        /**
+         * Update Add to Cart button attributes and URL for the selected variation.
+         * @param {jQuery} $button
+         * @param {number} productId
+         * @param {Object} variation
+         */
+        function updateAddToCartButton($button, productId, variation) {
+                if (!$button.length || !variation) {
+                        return;
+                }
+
+                const baseHref = $button.data('originalHref') || $button.attr('href');
+                if (baseHref && !$button.data('originalHref')) {
+                        $button.data('originalHref', baseHref);
+                }
+
+                $button.attr({
+                        'data-product_id': productId,
+                        'data-variation_id': variation.id,
+                        'data-variation': JSON.stringify(variation.attributes || {}),
+                        'data-product_sku': variation.sku || '',
+                        'data-variation-price': variation.price || '',
+                        'data-variation-price-html': variation.price_html || '',
+                        'data-selected-variation-id': variation.id,
+                });
+
+                if (baseHref) {
+                        const url = new URL(baseHref, window.location.origin);
+                        url.searchParams.set('add-to-cart', productId);
+                        url.searchParams.set('variation_id', variation.id);
+
+                        if (variation.attributes && typeof variation.attributes === 'object') {
+                                Object.entries(variation.attributes).forEach(function(entry) {
+                                        const key = entry[0];
+                                        const value = entry[1];
+                                        if (value !== undefined && value !== null) {
+                                                url.searchParams.set(key, value);
+                                        }
+                                });
+                        }
+
+                        $button.attr('href', url.toString());
+                }
+        }
+
+        /**
+         * Pick the variation to use as default.
+         * @param {jQuery} $widget
+         * @param {Array} variations
+         * @param {Object} variationMap
+         * @returns {Object|null}
+         */
+        function resolveDefaultVariation($widget, variations, variationMap) {
+                const preferredId = parseInt($widget.data('default-variation-id'), 10);
+                if (preferredId && variationMap[preferredId]) {
+                        return variationMap[preferredId];
+                }
+
+                const $activeButton = $widget.find('.bw-price-variation__variation-button.active').first();
+                const activeId = $activeButton.data('variation-id');
+                if (activeId && variationMap[activeId]) {
+                        return variationMap[activeId];
+                }
+
+                const firstInStock = variations.find(function(variation) {
+                        return variation && variation.is_in_stock;
+                });
+
+                return firstInStock || variations[0] || null;
+        }
+
+        /**
+         * Handle Add to Cart through WooCommerce AJAX endpoint.
+         * @param {jQuery} $button
+         * @param {number} productId
+         * @param {Object} variation
+         */
+        function handleAddToCart($button, productId, variation) {
+                if (!$button.length || !productId || !variation || !variation.id) {
+                        return;
+                }
+
+                const quantity = parseInt($button.attr('data-quantity') || $button.data('quantity') || 1, 10) || 1;
+                const payload = {
+                        product_id: productId,
+                        variation_id: variation.id,
+                        quantity: quantity,
+                        variation: variation.attributes || {},
+                };
+
+                let ajaxUrl = null;
+
+                if (typeof wc_add_to_cart_params !== 'undefined' && wc_add_to_cart_params.wc_ajax_url) {
+                        ajaxUrl = wc_add_to_cart_params.wc_ajax_url.replace('%%endpoint%%', 'add_to_cart');
+                } else if (typeof bwPriceVariation !== 'undefined' && bwPriceVariation.ajaxUrl) {
+                        ajaxUrl = bwPriceVariation.ajaxUrl + '?action=woocommerce_add_to_cart';
+                }
+
+                if (!ajaxUrl) {
+                        window.location.href = $button.attr('href');
+                        return;
+                }
+
+                $button.addClass('loading');
+                $(document.body).trigger('adding_to_cart', [$button, payload]);
+
+                $.post(ajaxUrl, payload)
+                        .done(function(response) {
+                                if (response && response.error && response.product_url) {
+                                        window.location.href = response.product_url;
                                         return;
                                 }
 
-                                // Update active state
-                                $buttons.removeClass('active');
-                                $button.addClass('active');
-
-                                // Update price display with fade animation
-                                updatePriceDisplayWithFade($priceDisplay, variationData.price, variationData.price_html);
-
-                                // Load and display license HTML with fade animation
-                                loadVariationLicenseHTMLWithFade(variationData.id, $licenseBox);
-
-                                // Update Add To Cart button for selected variation
-                                if ($addToCartButton.length && variationData.id) {
-                                        updateAddToCartButton(
-                                                $addToCartButton,
-                                                productId,
-                                                variationData.id,
-                                                variationData.sku,
-                                                variationData.attributes,
-                                                variationData.price,
-                                                variationData.price_html
-                                        );
-                                }
-
-                                // Trigger custom event for other scripts (e.g., WooCommerce variations)
-                                $widget.trigger('bw_price_variation_changed', {
-                                        variationId: variationData.id,
-                                        price: variationData.price,
-                                        priceHtml: variationData.price_html,
-                                        sku: variationData.sku,
-                                        attributes: variationData.attributes
-                                });
+                                $button.removeClass('added').addClass('added');
+                                $(document.body).trigger('added_to_cart', [response.fragments || {}, response.cart_hash || '', $button]);
+                        })
+                        .fail(function() {
+                                window.location.href = $button.attr('href');
+                        })
+                        .always(function() {
+                                $button.removeClass('loading');
                         });
+        }
 
-                        // Load initial license box (for the first active variation)
-                        const $activeButton = $buttons.filter('.active').first();
-                        if ($activeButton.length) {
-                                const initialVariation = normalizeVariationData($activeButton.data('variation'));
+        /**
+         * Initialize a single widget instance.
+         * @param {jQuery} $widget
+         */
+        function initPriceVariationWidget($widget) {
+                if (!$widget || !$widget.length) {
+                        return;
+                }
 
-                                if (initialVariation && initialVariation.id) {
-                                        loadVariationLicenseHTML(initialVariation.id, $licenseBox);
+                const variations = parseVariations($widget.data('variations'));
+                if (!variations.length) {
+                        return;
+                }
 
-                                        if ($addToCartButton.length) {
-                                                updateAddToCartButton(
-                                                        $addToCartButton,
-                                                        productId,
-                                                        initialVariation.id,
-                                                        initialVariation.sku,
-                                                        initialVariation.attributes,
-                                                        initialVariation.price,
-                                                        initialVariation.price_html
-                                                );
-                                        }
+                const variationMap = buildVariationMap(variations);
+                const productId = $widget.data('product-id');
+                const $priceDisplay = $widget.find('.bw-price-variation__price');
+                const $licenseBox = $widget.find('.bw-price-variation__license-box');
+                const $buttons = $widget.find('.bw-price-variation__variation-button');
+                const $addToCartButton = $widget.find('.bw-add-to-cart-button');
 
-                                        updatePriceDisplay($priceDisplay, initialVariation.price, initialVariation.price_html);
-                                }
+                let activeVariation = resolveDefaultVariation($widget, variations, variationMap);
+
+                if (activeVariation) {
+                        updateActiveButton($buttons, activeVariation.id);
+                        updatePrice($priceDisplay, activeVariation);
+                        updateLicenseBox($licenseBox, activeVariation);
+                        updateAddToCartButton($addToCartButton, productId, activeVariation);
+                }
+
+                $buttons.on('click', function(e) {
+                        e.preventDefault();
+                        const buttonVariationId = $(this).data('variation-id');
+                        const parsedVariation = $(this).data('variation');
+                        const variationFromMap = variationMap[buttonVariationId];
+                        const selectedVariation = variationFromMap || parsedVariation || null;
+
+                        if (!selectedVariation || !selectedVariation.id) {
+                                return;
                         }
+
+                        activeVariation = selectedVariation;
+
+                        updateActiveButton($buttons, selectedVariation.id);
+                        updatePrice($priceDisplay, selectedVariation);
+                        updateLicenseBox($licenseBox, selectedVariation);
+                        updateAddToCartButton($addToCartButton, productId, selectedVariation);
+
+                        $widget.trigger('bw_price_variation_changed', {
+                                variationId: selectedVariation.id,
+                                price: selectedVariation.price,
+                                priceHtml: selectedVariation.price_html,
+                                sku: selectedVariation.sku,
+                                attributes: selectedVariation.attributes,
+                        });
+                });
+
+                $widget.on('click', '.bw-add-to-cart-button', function(e) {
+                        const $btn = $(this);
+                        if ($btn.hasClass('disabled')) {
+                                e.preventDefault();
+                                return;
+                        }
+
+                        e.preventDefault();
+                        e.stopImmediatePropagation();
+                        handleAddToCart($btn, productId, activeVariation);
                 });
         }
 
-	/**
-	 * Update price display with formatted price
-	 */
-        function updatePriceDisplay($priceDisplay, price, priceHtml) {
-                const defaultPrice = $priceDisplay.data('default-price');
-                const defaultPriceHtml = $priceDisplay.data('default-price-html');
+        $(document).ready(function() {
+                $('.bw-price-variation').each(function() {
+                        initPriceVariationWidget($(this));
+                });
+        });
 
-                // If priceHtml is provided and not empty, use it
-                if (priceHtml && String(priceHtml).trim() !== '') {
-                        $priceDisplay.html(priceHtml);
-                        return;
-                }
-
-                // Validate price value, otherwise fall back to default price/html
-                if (!hasPriceValue(price)) {
-                        if (defaultPriceHtml && String(defaultPriceHtml).trim() !== '') {
-                                $priceDisplay.html(defaultPriceHtml);
-                                return;
-                        }
-
-                        if (!hasPriceValue(defaultPrice)) {
-                                console.warn('BW Price Variation: Invalid price value', price);
-                                return;
-                        }
-
-                        price = defaultPrice;
-                }
-
-                // Use WooCommerce price format if available
-                if (typeof bwPriceVariation !== 'undefined' && typeof bwPriceVariation.priceFormat !== 'undefined') {
-                        const priceFormat = bwPriceVariation.priceFormat;
-
-			// Format the number
-			let formattedNumber = parseFloat(price).toFixed(priceFormat.decimals);
-
-			// Add thousand separator
-			if (priceFormat.thousand_separator) {
-				const parts = formattedNumber.split('.');
-				parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, priceFormat.thousand_separator);
-				formattedNumber = parts.join(priceFormat.decimal_separator);
-			} else if (priceFormat.decimal_separator !== '.') {
-				formattedNumber = formattedNumber.replace('.', priceFormat.decimal_separator);
-			}
-
-			// Build price HTML with currency symbol in correct position
-			const priceHTML = priceFormat.format
-				.replace('%1$s', '<span class="woocommerce-Price-currencySymbol">' + priceFormat.symbol + '</span>')
-				.replace('%2$s', formattedNumber);
-
-			$priceDisplay.html('<span class="woocommerce-Price-amount amount">' + priceHTML + '</span>');
-		} else {
-			// Fallback: If bwPriceVariation is not available (e.g., in Elementor editor)
-                        // Try to get currency symbol from existing price display
-                        const existingCurrency = $priceDisplay.find('.woocommerce-Price-currencySymbol').text();
-                        const currencySymbol = existingCurrency || '€'; // Default to Euro if not found
-
-                        const formattedPrice = parseFloat(price).toFixed(2);
-                        $priceDisplay.html('<span class="woocommerce-Price-amount amount">' +
-                                '<span class="woocommerce-Price-currencySymbol">' + currencySymbol + '</span>' +
-                                formattedPrice + '</span>');
-		}
-	}
-
-	/**
-	 * Update price display with fade animation
-	 */
-        function updatePriceDisplayWithFade($priceDisplay, price, priceHtml) {
-                // Fade out
-                $priceDisplay.css('opacity', '0');
-
-                // Update price after fade out (200ms)
-                setTimeout(function() {
-                        updatePriceDisplay($priceDisplay, price, priceHtml);
-                        // Fade in
-                        $priceDisplay.css('opacity', '1');
-                }, 200);
-        }
-
-	/**
-	 * Update Add To Cart button for selected variation
-	 */
-        function updateAddToCartButton($button, productId, variationId, sku, attributes, price, priceHtml) {
-                if (!$button.length || !variationId) {
-                        return;
-                }
-
-                const normalizedAttributes = normalizeAttributes(attributes);
-
-                // Cache the original href to avoid stacking query strings
-                if (!$button.data('original-href')) {
-                        $button.data('original-href', $button.attr('href'));
-                }
-
-                // Update data attributes
-                $button.attr('data-variation_id', variationId);
-                $button.attr('data-product_sku', sku || '');
-                $button.attr('data-product_id', productId);
-                $button.attr('data-variation', JSON.stringify(normalizedAttributes || {}));
-                $button.attr('data-quantity', 1);
-                $button.attr('data-variation-price', price || '');
-                $button.attr('data-variation-price-html', priceHtml || '');
-                $button.data('variation', normalizedAttributes || {});
-                $button.data('variation_id', variationId);
-                $button.data('product_id', productId);
-                $button.data('quantity', 1);
-                $button.data('variation_price', price || '');
-                $button.data('variation_price_html', priceHtml || '');
-
-                // Update href to include variation_id parameter
-                const baseUrl = $button.data('original-href') || $button.attr('href');
-                if (baseUrl) {
-                        // Remove old query parameters
-                        let newUrl = baseUrl.split('?')[0];
-
-			// Build query parameters
-			const params = new URLSearchParams({
-				'add-to-cart': productId,
-				'variation_id': variationId
-			});
-
-			// Add variation attributes to query string
-                        if (normalizedAttributes && typeof normalizedAttributes === 'object') {
-                                for (const key in normalizedAttributes) {
-                                        if (Object.prototype.hasOwnProperty.call(normalizedAttributes, key)) {
-                                                params.append(key, normalizedAttributes[key]);
-                                        }
+        $(window).on('elementor/frontend/init', function() {
+                if (typeof elementorFrontend !== 'undefined' && elementorFrontend.hooks) {
+                        elementorFrontend.hooks.addAction('frontend/element_ready/bw-price-variation.default', function($scope) {
+                                const $widget = $scope.find('.bw-price-variation');
+                                if ($widget.length) {
+                                        initPriceVariationWidget($widget);
                                 }
-                        }
-
-			$button.attr('href', newUrl + '?' + params.toString());
-		}
-
-                // Remove 'added' class if it exists (from previous add to cart)
-                $button.removeClass('added');
-        }
-
-        function normalizeVariationData(rawVariation) {
-                if (!rawVariation) {
-                        return null;
+                        });
                 }
-
-                let parsed = rawVariation;
-
-                if (typeof rawVariation === 'string') {
-                        try {
-                                parsed = JSON.parse(rawVariation);
-                        } catch (e) {
-                                return null;
-                        }
-                }
-
-                if (typeof parsed !== 'object') {
-                        return null;
-                }
-
-                const attributes = normalizeAttributes(parsed.attributes || parsed.variation || {});
-                const priceValue = hasPriceValue(parsed.price) ? parsed.price : parsed.display_price;
-
-                return {
-                        id: parsed.id || parsed.variation_id || parsed.variationId || null,
-                        price: priceValue,
-                        price_html: parsed.price_html || parsed.priceHtml || '',
-                        sku: parsed.sku || '',
-                        attributes: attributes
-                };
-        }
-
-        function normalizeAttributes(attributes) {
-                if (!attributes) {
-                        return {};
-                }
-
-                if (typeof attributes === 'string') {
-                        try {
-                                return JSON.parse(attributes);
-                        } catch (e) {
-                                return {};
-                        }
-                }
-
-                return attributes;
-        }
-
-        function hasPriceValue(price) {
-                return price === 0 || price === '0' || (price !== undefined && price !== null && price !== '');
-        }
-
-	/**
-	 * Load variation license HTML via AJAX
-	 */
-	function loadVariationLicenseHTML(variationId, $licenseBox) {
-		if (!variationId) {
-			$licenseBox.hide().html('');
-			return;
-		}
-
-		// Make AJAX request to get variation meta
-		$.ajax({
-			url: bwPriceVariation.ajaxUrl,
-			type: 'POST',
-			data: {
-				action: 'bw_get_variation_license_html',
-				variation_id: variationId,
-				nonce: bwPriceVariation.nonce
-			},
-			success: function(response) {
-				if (response.success && response.data.html) {
-					$licenseBox.html(response.data.html).show();
-				} else {
-					// No HTML content, hide the box
-					$licenseBox.hide().html('');
-				}
-			},
-			error: function() {
-				// On error, hide the box
-				$licenseBox.hide().html('');
-			}
-		});
-	}
-
-	/**
-	 * Load variation license HTML via AJAX with fade animation
-	 */
-	function loadVariationLicenseHTMLWithFade(variationId, $licenseBox) {
-		if (!variationId) {
-			$licenseBox.fadeOut(200, function() {
-				$(this).html('');
-			});
-			return;
-		}
-
-		// Fade out current content
-		$licenseBox.fadeOut(200, function() {
-			// Make AJAX request to get variation meta
-			$.ajax({
-				url: bwPriceVariation.ajaxUrl,
-				type: 'POST',
-				data: {
-					action: 'bw_get_variation_license_html',
-					variation_id: variationId,
-					nonce: bwPriceVariation.nonce
-				},
-				success: function(response) {
-					if (response.success && response.data.html) {
-						$licenseBox.html(response.data.html).fadeIn(200);
-					} else {
-						// No HTML content, keep box hidden
-						$licenseBox.html('');
-					}
-				},
-				error: function() {
-					// On error, keep box hidden
-					$licenseBox.html('');
-				}
-			});
-		});
-	}
-
-	/**
-	 * Handle Add to Cart button click for variations
-	 */
-	function handleAddToCartClick($button) {
-		// If the button has the cart popup class, let that handler take care of it
-		if ($button.hasClass('bw-btn-addtocart')) {
-			return true; // Continue with default behavior (cart popup will handle it)
-		}
-
-		// Otherwise, handle it with standard WooCommerce AJAX
-		const variationId = $button.attr('data-variation_id') || $button.data('variation_id');
-		const productId = $button.attr('data-product_id') || $button.data('product_id');
-		const quantity = $button.attr('data-quantity') || $button.data('quantity') || 1;
-		const variation = $button.data('variation') || {};
-
-		if (!variationId || !productId) {
-			console.error('BW Price Variation: Missing product or variation ID');
-			return false;
-		}
-
-		// Add to cart via AJAX
-		const data = {
-			action: 'woocommerce_add_to_cart',
-			product_id: productId,
-			variation_id: variationId,
-			quantity: quantity,
-			variation: variation
-		};
-
-		$.post(bwPriceVariation.ajaxUrl, data, function(response) {
-			if (response && response.error) {
-				console.error('BW Price Variation: Add to cart failed', response);
-				// Fallback: redirect to product page
-				window.location.href = $button.attr('href');
-			} else {
-				// Trigger WooCommerce fragments refresh
-				$(document.body).trigger('wc_fragment_refresh');
-				$(document.body).trigger('added_to_cart', [response.fragments, response.cart_hash, $button]);
-
-				// Add 'added' class for visual feedback
-				$button.addClass('added');
-			}
-		}).fail(function() {
-			// On error, redirect to cart URL with parameters
-			window.location.href = $button.attr('href');
-		});
-
-		return false; // Prevent default link behavior
-	}
-
-	/**
-	 * Initialize on document ready
-	 */
-	$(document).ready(function() {
-		initPriceVariation();
-
-		// Handle Add to Cart button clicks
-		$(document).on('click', '.bw-add-to-cart-button', function(e) {
-			const $button = $(this);
-
-			// Skip if button is disabled
-			if ($button.hasClass('disabled')) {
-				e.preventDefault();
-				return false;
-			}
-
-			// Let the cart popup handler take care of it if enabled
-			if ($button.hasClass('bw-btn-addtocart')) {
-				return true;
-			}
-
-			// Handle with our custom handler
-			e.preventDefault();
-			return handleAddToCartClick($button);
-		});
-	});
-
-	/**
-	 * Reinitialize for Elementor editor
-	 */
-	$(window).on('elementor/frontend/init', function() {
-		elementorFrontend.hooks.addAction('frontend/element_ready/bw-price-variation.default', function($scope) {
-			initPriceVariation();
-		});
-	});
-
+        });
 })(jQuery);
