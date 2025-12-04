@@ -115,6 +115,8 @@ add_action( 'init', 'bw_register_static_showcase_widget_assets' );
 add_action( 'elementor/frontend/after_register_styles', 'bw_register_static_showcase_widget_assets' );
 add_action( 'init', 'bw_register_related_products_widget_assets' );
 add_action( 'elementor/frontend/after_register_styles', 'bw_register_related_products_widget_assets' );
+add_action( 'elementor/frontend/after_enqueue_scripts', 'bw_enqueue_related_products_widget_assets' );
+add_action( 'elementor/editor/after_enqueue_scripts', 'bw_enqueue_related_products_widget_assets' );
 add_action( 'init', 'bw_register_price_variation_widget_assets' );
 add_action( 'elementor/frontend/after_register_styles', 'bw_register_price_variation_widget_assets' );
 add_action( 'elementor/frontend/after_register_scripts', 'bw_register_price_variation_widget_assets' );
@@ -326,6 +328,24 @@ function bw_register_related_products_widget_assets() {
         [ 'bw-wallpost-style' ],
         $css_version
     );
+}
+
+function bw_enqueue_related_products_widget_assets() {
+    if ( ! wp_style_is( 'bw-wallpost-style', 'registered' ) ) {
+        bw_register_wallpost_widget_assets();
+    }
+
+    if ( ! wp_style_is( 'bw-related-products-style', 'registered' ) ) {
+        bw_register_related_products_widget_assets();
+    }
+
+    if ( wp_style_is( 'bw-wallpost-style', 'registered' ) ) {
+        wp_enqueue_style( 'bw-wallpost-style' );
+    }
+
+    if ( wp_style_is( 'bw-related-products-style', 'registered' ) ) {
+        wp_enqueue_style( 'bw-related-products-style' );
+    }
 }
 
 function bw_register_search_widget_assets() {
