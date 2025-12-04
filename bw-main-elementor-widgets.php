@@ -315,32 +315,20 @@ function bw_register_wallpost_widget_assets() {
 }
 
 function bw_register_related_products_widget_assets() {
-    if ( function_exists( 'bw_register_wallpost_widget_assets' ) ) {
-        bw_register_wallpost_widget_assets();
-    }
-
     $css_file    = __DIR__ . '/woocommerce/css/bw-related-products.css';
     $css_version = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
 
     wp_register_style(
         'bw-related-products-style',
         plugin_dir_url( __FILE__ ) . 'woocommerce/css/bw-related-products.css',
-        [ 'bw-wallpost-style' ],
+        [],
         $css_version
     );
 }
 
 function bw_enqueue_related_products_widget_assets() {
-    if ( ! wp_style_is( 'bw-wallpost-style', 'registered' ) ) {
-        bw_register_wallpost_widget_assets();
-    }
-
     if ( ! wp_style_is( 'bw-related-products-style', 'registered' ) ) {
         bw_register_related_products_widget_assets();
-    }
-
-    if ( wp_style_is( 'bw-wallpost-style', 'registered' ) ) {
-        wp_enqueue_style( 'bw-wallpost-style' );
     }
 
     if ( wp_style_is( 'bw-related-products-style', 'registered' ) ) {
