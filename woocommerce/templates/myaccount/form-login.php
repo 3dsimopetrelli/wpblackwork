@@ -27,14 +27,13 @@ $generate_username    = 'yes' === get_option( 'woocommerce_registration_generate
 $generate_password    = 'yes' === get_option( 'woocommerce_registration_generate_password' );
 ?>
 
-<?php do_action( 'woocommerce_before_customer_login_form' ); ?>
-
 <div class="bw-account-login-page">
     <div class="bw-account-login">
         <div class="bw-account-login__media" <?php if ( $login_image ) : ?>style="background-image: url('<?php echo esc_url( $login_image ); ?>');"<?php endif; ?>></div>
         <div class="bw-account-login__content-wrapper">
             <div class="bw-account-login__content">
-                <?php woocommerce_output_all_notices(); ?>
+                <?php do_action( 'woocommerce_before_customer_login_form' ); ?>
+                <?php wc_print_notices(); ?>
 
             <?php if ( $logo ) : ?>
                 <div class="bw-account-login__logo">
@@ -66,12 +65,12 @@ $generate_password    = 'yes' === get_option( 'woocommerce_registration_generate
 
                 <?php do_action( 'woocommerce_login_form' ); ?>
 
-            <p class="form-row bw-account-login__controls">
-                <label class="woocommerce-form__label woocommerce-form__label-for-checkbox woocommerce-form-login__rememberme bw-account-login__remember">
-                    <input class="woocommerce-form__input woocommerce-form__input-checkbox" name="rememberme" type="checkbox" id="rememberme" value="forever" /> <span><?php esc_html_e( 'Remember me', 'woocommerce' ); ?></span>
-                </label>
-                <a class="bw-account-login__lost-password" href="<?php echo esc_url( $lost_password_url ); ?>"><?php esc_html_e( 'Lost your password?', 'woocommerce' ); ?></a>
-            </p>
+                <p class="form-row bw-account-login__controls">
+                    <label class="woocommerce-form__label woocommerce-form__label-for-checkbox woocommerce-form-login__rememberme bw-account-login__remember">
+                        <input class="woocommerce-form__input woocommerce-form__input-checkbox" name="rememberme" type="checkbox" id="rememberme" value="forever" /> <span><?php esc_html_e( 'Remember me', 'woocommerce' ); ?></span>
+                    </label>
+                    <a class="bw-account-login__lost-password" href="<?php echo esc_url( $lost_password_url ); ?>"><?php esc_html_e( 'Lost your password?', 'woocommerce' ); ?></a>
+                </p>
 
                 <p class="form-row">
                     <input type="hidden" name="redirect" value="<?php echo esc_url( apply_filters( 'woocommerce_login_redirect', wc_get_page_permalink( 'myaccount' ) ) ); ?>" />
@@ -131,9 +130,8 @@ $generate_password    = 'yes' === get_option( 'woocommerce_registration_generate
                 <a href="<?php echo esc_url( $back_url ); ?>"><?php echo esc_html( $back_text ); ?> <span aria-hidden="true">→</span></a>
             </div>
 
-            <?php do_action( 'woocommerce_after_customer_login_form' ); ?>
+                <?php do_action( 'woocommerce_after_customer_login_form' ); ?>
+            </div>
         </div>
     </div>
-</div>
-
 </div>
