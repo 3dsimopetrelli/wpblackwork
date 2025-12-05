@@ -127,3 +127,13 @@
     padding: 0;
     margin: 20px 0 0 0;
 }
+
+/* Redirects repeater */
+.bw-redirects-table .bw-redirect-actions {
+    vertical-align: top;
+    width: 140px;
+}
+
+.bw-redirects-table .bw-redirect-actions .button-link-delete {
+    margin-top: 8px;
+}
