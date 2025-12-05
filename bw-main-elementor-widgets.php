@@ -29,11 +29,6 @@ if ( file_exists( plugin_dir_path( __FILE__ ) . 'cart-popup/cart-popup.php' ) ) 
     require_once plugin_dir_path( __FILE__ ) . 'cart-popup/cart-popup.php';
 }
 
-// Includi il modulo BW Account Page
-if ( file_exists( plugin_dir_path( __FILE__ ) . 'account-page/account-page.php' ) ) {
-    require_once plugin_dir_path( __FILE__ ) . 'account-page/account-page.php';
-}
-
 // Includi la pagina unificata Blackwork Site Settings
 if ( file_exists( plugin_dir_path( __FILE__ ) . 'admin/class-blackwork-site-settings.php' ) ) {
     require_once plugin_dir_path( __FILE__ ) . 'admin/class-blackwork-site-settings.php';
