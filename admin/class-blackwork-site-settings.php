@@ -111,32 +111,50 @@ function bw_site_render_account_page_tab() {
     if (isset($_POST['bw_account_page_submit'])) {
         check_admin_referer('bw_account_page_save', 'bw_account_page_nonce');
 
-        $login_image = isset($_POST['bw_account_login_image']) ? esc_url_raw($_POST['bw_account_login_image']) : '';
-        $logo        = isset($_POST['bw_account_logo']) ? esc_url_raw($_POST['bw_account_logo']) : '';
-        $facebook    = isset($_POST['bw_account_facebook']) ? 1 : 0;
-        $google      = isset($_POST['bw_account_google']) ? 1 : 0;
-        $description = isset($_POST['bw_account_description']) ? wp_kses_post($_POST['bw_account_description']) : '';
-        $back_text   = isset($_POST['bw_account_back_text']) ? sanitize_text_field($_POST['bw_account_back_text']) : 'go back to store';
-        $back_url    = isset($_POST['bw_account_back_url']) ? esc_url_raw($_POST['bw_account_back_url']) : '';
+        $login_image          = isset($_POST['bw_account_login_image']) ? esc_url_raw($_POST['bw_account_login_image']) : '';
+        $logo                 = isset($_POST['bw_account_logo']) ? esc_url_raw($_POST['bw_account_logo']) : '';
+        $facebook             = isset($_POST['bw_account_facebook']) ? 1 : 0;
+        $google               = isset($_POST['bw_account_google']) ? 1 : 0;
+        $facebook_app_id      = isset($_POST['bw_account_facebook_app_id']) ? sanitize_text_field($_POST['bw_account_facebook_app_id']) : '';
+        $facebook_app_secret  = isset($_POST['bw_account_facebook_app_secret']) ? sanitize_text_field($_POST['bw_account_facebook_app_secret']) : '';
+        $google_client_id     = isset($_POST['bw_account_google_client_id']) ? sanitize_text_field($_POST['bw_account_google_client_id']) : '';
+        $google_client_secret = isset($_POST['bw_account_google_client_secret']) ? sanitize_text_field($_POST['bw_account_google_client_secret']) : '';
+        $description          = isset($_POST['bw_account_description']) ? wp_kses_post($_POST['bw_account_description']) : '';
+        $back_text            = isset($_POST['bw_account_back_text']) ? sanitize_text_field($_POST['bw_account_back_text']) : 'go back to store';
+        $back_url             = isset($_POST['bw_account_back_url']) ? esc_url_raw($_POST['bw_account_back_url']) : '';
+        $passwordless_url     = isset($_POST['bw_account_passwordless_url']) ? esc_url_raw($_POST['bw_account_passwordless_url']) : '';
 
         update_option('bw_account_login_image', $login_image);
         update_option('bw_account_logo', $logo);
         update_option('bw_account_facebook', $facebook);
         update_option('bw_account_google', $google);
+        update_option('bw_account_facebook_app_id', $facebook_app_id);
+        update_option('bw_account_facebook_app_secret', $facebook_app_secret);
+        update_option('bw_account_google_client_id', $google_client_id);
+        update_option('bw_account_google_client_secret', $google_client_secret);
         update_option('bw_account_description', $description);
         update_option('bw_account_back_text', $back_text);
         update_option('bw_account_back_url', $back_url);
+        update_option('bw_account_passwordless_url', $passwordless_url);
 
         $saved = true;
     }
 
-    $login_image = get_option('bw_account_login_image', '');
-    $logo        = get_option('bw_account_logo', '');
-    $facebook    = (int) get_option('bw_account_facebook', 0);
-    $google      = (int) get_option('bw_account_google', 0);
-    $description = get_option('bw_account_description', '');
-    $back_text   = get_option('bw_account_back_text', 'go back to store');
-    $back_url    = get_option('bw_account_back_url', '');
+    $login_image          = get_option('bw_account_login_image', '');
+    $logo                 = get_option('bw_account_logo', '');
+    $facebook             = (int) get_option('bw_account_facebook', 0);
+    $google               = (int) get_option('bw_account_google', 0);
+    $facebook_app_id      = get_option('bw_account_facebook_app_id', '');
+    $facebook_app_secret  = get_option('bw_account_facebook_app_secret', '');
+    $google_client_id     = get_option('bw_account_google_client_id', '');
+    $google_client_secret = get_option('bw_account_google_client_secret', '');
+    $description          = get_option('bw_account_description', '');
+    $back_text            = get_option('bw_account_back_text', 'go back to store');
+    $back_url             = get_option('bw_account_back_url', '');
+    $passwordless_url     = get_option('bw_account_passwordless_url', '');
+
+    $facebook_redirect = function_exists('bw_mew_get_social_redirect_uri') ? bw_mew_get_social_redirect_uri('facebook') : add_query_arg('bw_social_login_callback', 'facebook', wc_get_page_permalink('myaccount'));
+    $google_redirect   = function_exists('bw_mew_get_social_redirect_uri') ? bw_mew_get_social_redirect_uri('google') : add_query_arg('bw_social_login_callback', 'google', wc_get_page_permalink('myaccount'));
     ?>
     <?php if ($saved): ?>
         <div class="notice notice-success is-dismissible">
@@ -192,6 +210,52 @@ function bw_site_render_account_page_tab() {
             </tr>
             <tr>
                 <th scope="row">
+                    <label for="bw_account_facebook_app_id">Facebook App ID</label>
+                </th>
+                <td>
+                    <input type="text" id="bw_account_facebook_app_id" name="bw_account_facebook_app_id" value="<?php echo esc_attr($facebook_app_id); ?>" class="regular-text" />
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_account_facebook_app_secret">Facebook App Secret</label>
+                </th>
+                <td>
+                    <input type="text" id="bw_account_facebook_app_secret" name="bw_account_facebook_app_secret" value="<?php echo esc_attr($facebook_app_secret); ?>" class="regular-text" />
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">Facebook Redirect URI</th>
+                <td>
+                    <input type="text" readonly class="regular-text" value="<?php echo esc_url($facebook_redirect); ?>" />
+                    <p class="description">Usa questo URL nel pannello Facebook per configurare il redirect dell'app.</p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_account_google_client_id">Google Client ID</label>
+                </th>
+                <td>
+                    <input type="text" id="bw_account_google_client_id" name="bw_account_google_client_id" value="<?php echo esc_attr($google_client_id); ?>" class="regular-text" />
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_account_google_client_secret">Google Client Secret</label>
+                </th>
+                <td>
+                    <input type="text" id="bw_account_google_client_secret" name="bw_account_google_client_secret" value="<?php echo esc_attr($google_client_secret); ?>" class="regular-text" />
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">Google Redirect URI</th>
+                <td>
+                    <input type="text" readonly class="regular-text" value="<?php echo esc_url($google_redirect); ?>" />
+                    <p class="description">Configura questo indirizzo tra gli URI autorizzati della console Google.</p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
                     <label for="bw_account_back_text">Testo link "Go back to store"</label>
                 </th>
                 <td>
@@ -206,6 +270,15 @@ function bw_site_render_account_page_tab() {
                 <td>
                     <input type="url" id="bw_account_back_url" name="bw_account_back_url" value="<?php echo esc_attr($back_url); ?>" class="regular-text" placeholder="<?php echo esc_url(home_url('/')); ?>" />
                     <p class="description">Lascia vuoto per usare l'home URL del sito.</p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_account_passwordless_url">URL "Log in Without Password"</label>
+                </th>
+                <td>
+                    <input type="url" id="bw_account_passwordless_url" name="bw_account_passwordless_url" value="<?php echo esc_attr($passwordless_url); ?>" class="regular-text" placeholder="<?php echo esc_url(wp_login_url()); ?>" />
+                    <p class="description">Imposta il link da usare per il login senza password o magic link.</p>
                 </td>
             </tr>
         </table>

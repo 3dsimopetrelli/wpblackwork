@@ -14,10 +14,14 @@ $login_image = get_option( 'bw_account_login_image', '' );
 $logo        = get_option( 'bw_account_logo', '' );
 $facebook    = (int) get_option( 'bw_account_facebook', 0 );
 $google      = (int) get_option( 'bw_account_google', 0 );
+$passwordless_url = function_exists( 'bw_mew_get_passwordless_url' ) ? bw_mew_get_passwordless_url() : '';
+$facebook_url = ( $facebook && function_exists( 'bw_mew_get_social_login_url' ) ) ? bw_mew_get_social_login_url( 'facebook' ) : '';
+$google_url   = ( $google && function_exists( 'bw_mew_get_social_login_url' ) ) ? bw_mew_get_social_login_url( 'google' ) : '';
 $description = get_option( 'bw_account_description', '' );
 $back_text   = get_option( 'bw_account_back_text', 'go back to store' );
 $back_url    = get_option( 'bw_account_back_url', '' );
 $back_url    = $back_url ? $back_url : home_url( '/' );
+$lost_password_url = wc_get_endpoint_url( 'lost-password', '', wc_get_page_permalink( 'myaccount' ) );
 ?>
 
 <?php do_action( 'woocommerce_before_customer_login_form' ); ?>
@@ -37,16 +41,16 @@ $back_url    = $back_url ? $back_url : home_url( '/' );
             <div class="bw-account-login__social">
                 <span class="bw-account-login__social-label"><?php esc_html_e( 'Log in with', 'woocommerce' ); ?></span>
                 <div class="bw-account-login__social-links">
-                    <?php if ( $facebook ) : ?>
-                        <a class="bw-account-login__social-button bw-account-login__social-button--facebook" href="#" data-social-provider="facebook"><?php esc_html_e( 'Facebook', 'woocommerce' ); ?></a>
+                    <?php if ( $facebook && $facebook_url ) : ?>
+                        <a class="bw-account-login__social-button bw-account-login__social-button--facebook" href="<?php echo esc_url( $facebook_url ); ?>" data-social-provider="facebook"><?php esc_html_e( 'Facebook', 'woocommerce' ); ?></a>
                     <?php endif; ?>
-                    <?php if ( $google ) : ?>
-                        <a class="bw-account-login__social-button bw-account-login__social-button--google" href="#" data-social-provider="google"><?php esc_html_e( 'Google', 'woocommerce' ); ?></a>
+                    <?php if ( $google && $google_url ) : ?>
+                        <a class="bw-account-login__social-button bw-account-login__social-button--google" href="<?php echo esc_url( $google_url ); ?>" data-social-provider="google"><?php esc_html_e( 'Google', 'woocommerce' ); ?></a>
                     <?php endif; ?>
                 </div>
             </div>
 
-            <form class="woocommerce-form woocommerce-form-login login bw-account-login__form" method="post">
+            <form class="woocommerce-form woocommerce-form-login login bw-account-login__form" method="post" action="<?php echo esc_url( wc_get_page_permalink( 'myaccount' ) ); ?>">
                 <?php do_action( 'woocommerce_login_form_start' ); ?>
 
                 <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide">
@@ -58,12 +62,12 @@ $back_url    = $back_url ? $back_url : home_url( '/' );
 
                 <?php do_action( 'woocommerce_login_form' ); ?>
 
-                <p class="form-row bw-account-login__controls">
-                    <label class="woocommerce-form__label woocommerce-form__label-for-checkbox woocommerce-form-login__rememberme bw-account-login__remember">
-                        <input class="woocommerce-form__input woocommerce-form__input-checkbox" name="rememberme" type="checkbox" id="rememberme" value="forever" /> <span><?php esc_html_e( 'Remember me', 'woocommerce' ); ?></span>
-                    </label>
-                    <a class="bw-account-login__lost-password" href="<?php echo esc_url( wp_lostpassword_url() ); ?>"><?php esc_html_e( 'Lost your password?', 'woocommerce' ); ?></a>
-                </p>
+            <p class="form-row bw-account-login__controls">
+                <label class="woocommerce-form__label woocommerce-form__label-for-checkbox woocommerce-form-login__rememberme bw-account-login__remember">
+                    <input class="woocommerce-form__input woocommerce-form__input-checkbox" name="rememberme" type="checkbox" id="rememberme" value="forever" /> <span><?php esc_html_e( 'Remember me', 'woocommerce' ); ?></span>
+                </label>
+                <a class="bw-account-login__lost-password" href="<?php echo esc_url( $lost_password_url ); ?>"><?php esc_html_e( 'Lost your password?', 'woocommerce' ); ?></a>
+            </p>
 
                 <p class="form-row">
                     <input type="hidden" name="redirect" value="<?php echo esc_url( apply_filters( 'woocommerce_login_redirect', wc_get_page_permalink( 'myaccount' ) ) ); ?>" />
@@ -74,7 +78,9 @@ $back_url    = $back_url ? $back_url : home_url( '/' );
                 <?php do_action( 'woocommerce_login_form_end' ); ?>
             </form>
 
-            <a class="bw-account-login__passwordless" href="#" data-login-method="passwordless"><?php esc_html_e( 'Log in Without Password', 'woocommerce' ); ?></a>
+            <?php if ( $passwordless_url ) : ?>
+                <a class="bw-account-login__passwordless" href="<?php echo esc_url( $passwordless_url ); ?>" data-login-method="passwordless"><?php esc_html_e( 'Log in Without Password', 'woocommerce' ); ?></a>
+            <?php endif; ?>
 
             <?php if ( $description ) : ?>
                 <div class="bw-account-login__description"><?php echo wpautop( wp_kses_post( $description ) ); ?></div>
