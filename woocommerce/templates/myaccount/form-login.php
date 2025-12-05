@@ -53,7 +53,7 @@ $active_tab           = ( $registration_enabled && ( ( isset( $_GET['action'] ) 
                     </div>
 
                     <div class="bw-account-auth__panels">
-                        <div class="bw-account-auth__panel <?php echo 'login' === $active_tab ? 'is-active is-visible' : ''; ?>" data-bw-auth-panel="login" style="<?php echo 'login' === $active_tab ? 'display: block;' : ''; ?>">
+                        <div class="bw-account-auth__panel <?php echo 'login' === $active_tab ? 'is-active is-visible' : ''; ?>" data-bw-auth-panel="login">
                             <?php if ( $has_google || $has_facebook ) : ?>
                                 <div class="bw-account-login__social-row">
                                     <?php if ( $has_google ) : ?>
@@ -119,7 +119,7 @@ $active_tab           = ( $registration_enabled && ( ( isset( $_GET['action'] ) 
                         </div>
 
                         <?php if ( $registration_enabled ) : ?>
-                            <div class="bw-account-auth__panel <?php echo 'register' === $active_tab ? 'is-active is-visible' : ''; ?>" data-bw-auth-panel="register" style="<?php echo 'register' === $active_tab ? 'display: block;' : ''; ?>">
+                            <div class="bw-account-auth__panel <?php echo 'register' === $active_tab ? 'is-active is-visible' : ''; ?>" data-bw-auth-panel="register">
                                 <form method="post" class="woocommerce-form woocommerce-form-register register bw-account-login__form" action="<?php echo esc_url( wc_get_page_permalink( 'myaccount' ) ); ?>" <?php do_action( 'woocommerce_register_form_tag' ); ?>>
                                     <?php do_action( 'woocommerce_register_form_start' ); ?>
 
