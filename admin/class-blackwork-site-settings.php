@@ -50,6 +50,17 @@ function bw_site_settings_admin_assets($hook) {
     // JavaScript per la pagina admin (se necessario)
     wp_enqueue_script('jquery');
     wp_enqueue_media();
+
+    $redirects_script_path = BW_MEW_PATH . 'admin/js/bw-redirects.js';
+    $redirects_version     = file_exists($redirects_script_path) ? filemtime($redirects_script_path) : '1.0.0';
+
+    wp_enqueue_script(
+        'bw-redirects-admin',
+        BW_MEW_URL . 'admin/js/bw-redirects.js',
+        ['jquery'],
+        $redirects_version,
+        true
+    );
 }
 add_action('admin_enqueue_scripts', 'bw_site_settings_admin_assets');
 
@@ -83,6 +94,10 @@ function bw_site_settings_page() {
                class="nav-tab <?php echo $active_tab === 'account-page' ? 'nav-tab-active' : ''; ?>">
                 Account Page
             </a>
+            <a href="?page=blackwork-site-settings&tab=redirect"
+               class="nav-tab <?php echo $active_tab === 'redirect' ? 'nav-tab-active' : ''; ?>">
+                Redirect
+            </a>
         </nav>
 
         <!-- Tab Content -->
@@ -95,6 +110,8 @@ function bw_site_settings_page() {
                 bw_site_render_coming_soon_tab();
             } elseif ($active_tab === 'account-page') {
                 bw_site_render_account_page_tab();
+            } elseif ($active_tab === 'redirect') {
+                bw_site_render_redirect_tab();
             }
             ?>
         </div>
@@ -1094,6 +1111,134 @@ function bw_site_render_cart_popup_tab() {
             $('#bw_cart_popup_continue_border_enabled').on('change', toggleContinueBorderFields);
         });
     </script>
+    <?php
+}
+
+/**
+ * Renderizza il tab Redirect.
+ */
+function bw_site_render_redirect_tab() {
+    $saved = false;
+
+    if (isset($_POST['bw_redirects_submit'])) {
+        if (!current_user_can('manage_options')) {
+            return;
+        }
+
+        check_admin_referer('bw_redirects_save', 'bw_redirects_nonce');
+
+        $redirects_input = isset($_POST['bw_redirects']) && is_array($_POST['bw_redirects']) ? $_POST['bw_redirects'] : [];
+        $sanitized       = [];
+
+        foreach ($redirects_input as $redirect) {
+            $target_raw       = isset($redirect['target_url']) ? $redirect['target_url'] : '';
+            $source_raw       = isset($redirect['source_url']) ? $redirect['source_url'] : '';
+            $target           = esc_url_raw($target_raw);
+            $normalized_source = bw_normalize_redirect_path($source_raw);
+
+            if ('' === $target || '' === $normalized_source) {
+                continue;
+            }
+
+            $sanitized[] = [
+                'source' => $normalized_source,
+                'target' => $target,
+            ];
+        }
+
+        update_option('bw_redirects', $sanitized);
+        $saved = true;
+    }
+
+    $redirects = get_option('bw_redirects', []);
+
+    if (!is_array($redirects)) {
+        $redirects = [];
+    }
+
+    if (empty($redirects)) {
+        $redirects[] = [
+            'source' => '',
+            'target' => '',
+        ];
+    }
+
+    $next_index = count($redirects);
+    ?>
+
+    <?php if ($saved): ?>
+        <div class="notice notice-success is-dismissible">
+            <p><strong>Redirect salvati con successo!</strong></p>
+        </div>
+    <?php endif; ?>
+
+    <form method="post" action="">
+        <?php wp_nonce_field('bw_redirects_save', 'bw_redirects_nonce'); ?>
+
+        <table class="form-table bw-redirects-table" role="presentation">
+            <thead>
+                <tr>
+                    <th scope="col">Link d'arrivo</th>
+                    <th scope="col">Link di redirect</th>
+                    <th scope="col">Azioni</th>
+                </tr>
+            </thead>
+            <tbody id="bw-redirects-rows" data-next-index="<?php echo esc_attr($next_index); ?>">
+                <?php foreach ($redirects as $index => $redirect) :
+                    $target = isset($redirect['target']) ? $redirect['target'] : '';
+                    $source = isset($redirect['source']) ? $redirect['source'] : '';
+                    ?>
+                    <tr class="bw-redirect-row">
+                        <td>
+                            <label>
+                                Inserisci il link d'arrivo
+                                <input type="text" name="bw_redirects[<?php echo esc_attr($index); ?>][target_url]" value="<?php echo esc_attr($target); ?>" class="regular-text" placeholder="https://esempio.com/pagina" />
+                            </label>
+                            <p class="description">URL assoluto verso cui reindirizzare l'utente.</p>
+                        </td>
+                        <td>
+                            <label>
+                                Inserisci il link di redirect
+                                <input type="text" name="bw_redirects[<?php echo esc_attr($index); ?>][source_url]" value="<?php echo esc_attr($source); ?>" class="regular-text" placeholder="/promo/black-friday" />
+                            </label>
+                            <p class="description">Accetta un path relativo (es. /promo) o un URL completo.</p>
+                        </td>
+                        <td class="bw-redirect-actions">
+                            <button type="button" class="button button-link-delete bw-remove-redirect">Rimuovi</button>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+
+        <p>
+            <button type="button" class="button" id="bw-add-redirect">Aggiungi redirect</button>
+        </p>
+
+        <script type="text/html" id="bw-redirect-row-template">
+            <tr class="bw-redirect-row">
+                <td>
+                    <label>
+                        Inserisci il link d'arrivo
+                        <input type="text" name="bw_redirects[__index__][target_url]" value="" class="regular-text" placeholder="https://esempio.com/pagina" />
+                    </label>
+                    <p class="description">URL assoluto verso cui reindirizzare l'utente.</p>
+                </td>
+                <td>
+                    <label>
+                        Inserisci il link di redirect
+                        <input type="text" name="bw_redirects[__index__][source_url]" value="" class="regular-text" placeholder="/promo/black-friday" />
+                    </label>
+                    <p class="description">Accetta un path relativo (es. /promo) o un URL completo.</p>
+                </td>
+                <td class="bw-redirect-actions">
+                    <button type="button" class="button button-link-delete bw-remove-redirect">Rimuovi</button>
+                </td>
+            </tr>
+        </script>
+
+        <?php submit_button('Salva redirect', 'primary', 'bw_redirects_submit'); ?>
+    </form>
     <?php
 }
 

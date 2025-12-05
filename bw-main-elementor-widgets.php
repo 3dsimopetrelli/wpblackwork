@@ -18,6 +18,11 @@ if ( ! defined( 'BW_MEW_PATH' ) ) {
     define( 'BW_MEW_PATH', plugin_dir_path( __FILE__ ) );
 }
 
+// Gestione redirect personalizzati
+if ( file_exists( plugin_dir_path( __FILE__ ) . 'includes/class-bw-redirects.php' ) ) {
+    require_once plugin_dir_path( __FILE__ ) . 'includes/class-bw-redirects.php';
+}
+
 
 // Includi il modulo BW Coming Soon
 if ( file_exists( plugin_dir_path( __FILE__ ) . 'BW_coming_soon/bw-coming-soon.php' ) ) {
