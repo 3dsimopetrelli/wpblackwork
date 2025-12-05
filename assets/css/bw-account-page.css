@@ -16,6 +16,12 @@
     padding: 0;
 }
 
+body.woocommerce-account .bw-account-login-page .elementor-top-section,
+body.woocommerce-account .bw-account-login-page .elementor-section {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+}
+
 .bw-account-login {
     display: flex;
     min-height: 100vh;
@@ -187,6 +193,24 @@
 
 .bw-account-login__description p {
     margin: 0 0 8px;
+}
+
+.bw-account-register {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid #ededed;
+}
+
+.bw-account-register__title {
+    margin: 0 0 18px;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.bw-account-login__note {
+    margin: 0 0 16px;
+    color: #6f6f6f;
+    font-size: 14px;
 }
 
 .bw-account-login__back {
