@@ -1,3 +1,21 @@
+.bw-account-login-only header,
+.bw-account-login-only .site-header,
+.bw-account-login-only footer,
+.bw-account-login-only .site-footer,
+.bw-account-login-only .woocommerce-breadcrumb,
+.bw-account-login-only .page-title,
+.bw-account-login-only .entry-title {
+    display: none !important;
+}
+
+.bw-account-login-only .site-content,
+.bw-account-login-only .content-area,
+.bw-account-login-only .site-main,
+.bw-account-login-only .entry-content {
+    margin: 0;
+    padding: 0;
+}
+
 .bw-account-login {
     display: flex;
     min-height: 100vh;
