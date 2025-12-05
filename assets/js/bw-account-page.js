@@ -27,18 +27,18 @@
 
                 if (isTarget) {
                     panel.classList.add('is-visible');
-                    panel.style.display = 'block';
                     panel.setAttribute('aria-hidden', 'false');
                     requestAnimationFrame(function () {
-                        panel.classList.add('is-active');
+                        requestAnimationFrame(function () {
+                            panel.classList.add('is-active');
+                        });
                     });
                 } else {
                     panel.classList.remove('is-active');
                     panel.setAttribute('aria-hidden', 'true');
                     setTimeout(function () {
                         panel.classList.remove('is-visible');
-                        panel.style.display = 'none';
-                    }, fadeDuration);
+                    }, 300);
                 }
             });
         };

@@ -99,44 +99,48 @@ body.woocommerce-account.bw-account-login-only:not(.elementor-editor-active) .bw
     background: none;
     border: none;
     border-radius: 0;
-    padding: 0 0 8px;
+    padding: 0;
     font-size: 35px;
     line-height: 1.1;
     font-weight: 700;
-    color: #d0d0d0;
-    border-bottom: 3px solid transparent;
+    color: #000;
     cursor: pointer;
-    transition: color 0.2s ease, border-color 0.2s ease;
+    transition: color 0.3s ease;
 }
 
 .bw-account-auth__tab.is-active {
-    color: #000;
-    border-color: #000;
+    color: #999999;
 }
 
 .bw-account-auth__tabs--single .bw-account-auth__tab {
     color: #000;
-    border-color: transparent;
     cursor: default;
 }
 
 .bw-account-auth__panels {
     position: relative;
+    min-height: 400px;
 }
 
-
 .bw-account-auth__panel {
-    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
     opacity: 0;
-    transition: opacity 0.2s ease;
+    transform: translateY(20px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
 }
 
 .bw-account-auth__panel.is-visible {
-    display: block;
+    position: relative;
 }
 
 .bw-account-auth__panel.is-active {
     opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
 }
 
 .bw-account-login__social-row {
