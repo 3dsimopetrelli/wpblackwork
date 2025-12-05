@@ -1030,12 +1030,15 @@ function bw_site_render_cart_popup_tab() {
 function bw_site_render_coming_soon_tab() {
     // Salva le impostazioni se il form è stato inviato
     $saved = false;
-    if (isset($_POST['bw_coming_soon_toggle'])) {
-        update_option('bw_coming_soon_active', $_POST['bw_coming_soon_toggle'] === '1' ? 1 : 0);
+    if (isset($_POST['bw_coming_soon_submit'])) {
+        check_admin_referer('bw_coming_soon_save', 'bw_coming_soon_nonce');
+
+        $active_value = isset($_POST['bw_coming_soon_toggle']) ? 1 : 0;
+        update_option('bw_coming_soon_active', $active_value);
         $saved = true;
     }
 
-    $active = get_option('bw_coming_soon_active');
+    $active = (int) get_option('bw_coming_soon_active', 0);
     ?>
     <?php if ($saved): ?>
         <div class="notice notice-success is-dismissible">
@@ -1044,6 +1047,7 @@ function bw_site_render_coming_soon_tab() {
     <?php endif; ?>
 
     <form method="post" action="">
+        <?php wp_nonce_field('bw_coming_soon_save', 'bw_coming_soon_nonce'); ?>
         <table class="form-table" role="presentation">
             <tr>
                 <th scope="row">
@@ -1056,7 +1060,7 @@ function bw_site_render_coming_soon_tab() {
             </tr>
         </table>
 
-        <?php submit_button('Salva impostazioni', 'primary'); ?>
+        <?php submit_button('Salva impostazioni', 'primary', 'bw_coming_soon_submit'); ?>
     </form>
     <?php
 }
