@@ -88,21 +88,23 @@ body.woocommerce-account.bw-account-login-only:not(.elementor-editor-active) .bw
 }
 
 .bw-account-auth__tabs {
-    display: inline-flex;
+    display: flex;
     gap: 26px;
     margin-bottom: 26px;
     align-items: center;
+    justify-content: center;
 }
 
 .bw-account-auth__tab {
     background: none;
     border: none;
-    padding: 0 4px 8px;
-    font-size: 32px;
+    border-radius: 0;
+    padding: 0 0 8px;
+    font-size: 35px;
     line-height: 1.1;
     font-weight: 700;
-    color: #b8b8b8;
-    border-bottom: 4px solid transparent;
+    color: #d0d0d0;
+    border-bottom: 3px solid transparent;
     cursor: pointer;
     transition: color 0.2s ease, border-color 0.2s ease;
 }
@@ -121,6 +123,7 @@ body.woocommerce-account.bw-account-login-only:not(.elementor-editor-active) .bw
 .bw-account-auth__panels {
     position: relative;
 }
+
 
 .bw-account-auth__panel {
     display: none;
@@ -156,7 +159,7 @@ body.woocommerce-account.bw-account-login-only:not(.elementor-editor-active) .bw
     text-decoration: none;
     font-size: 14px;
     font-weight: 600;
-    transition: background 0.25s ease, transform 0.2s ease;
+    transition: background 0.3s ease, background-color 0.3s ease, transform 0.2s ease;
 }
 
 .bw-account-login__social-button:hover,
@@ -167,11 +170,13 @@ body.woocommerce-account.bw-account-login-only:not(.elementor-editor-active) .bw
 .bw-account-login__social-button--google:hover,
 .bw-account-login__social-button--google:focus-visible {
     background: linear-gradient(135deg, #ea4335 0%, #fbbc05 25%, #34a853 50%, #4285f4 75%, #ea4335 100%);
+    color: #fff !important;
 }
 
 .bw-account-login__social-button--facebook:hover,
 .bw-account-login__social-button--facebook:focus-visible {
     background: #1877f2;
+    color: #fff !important;
 }
 
 .bw-account-login__social-icon {
