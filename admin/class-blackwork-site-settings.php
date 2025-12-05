@@ -78,6 +78,10 @@ function bw_site_settings_page() {
                class="nav-tab <?php echo $active_tab === 'bw-coming-soon' ? 'nav-tab-active' : ''; ?>">
                 BW Coming Soon
             </a>
+            <a href="?page=blackwork-site-settings&tab=account-page"
+               class="nav-tab <?php echo $active_tab === 'account-page' ? 'nav-tab-active' : ''; ?>">
+                Account Page
+            </a>
         </nav>
 
         <!-- Tab Content -->
@@ -88,6 +92,8 @@ function bw_site_settings_page() {
                 bw_site_render_cart_popup_tab();
             } elseif ($active_tab === 'bw-coming-soon') {
                 bw_site_render_coming_soon_tab();
+            } elseif ($active_tab === 'account-page') {
+                bw_site_render_account_page_tab();
             }
             ?>
         </div>
@@ -916,5 +922,233 @@ function bw_site_render_coming_soon_tab() {
 
         <?php submit_button('Salva impostazioni', 'primary'); ?>
     </form>
+    <?php
+}
+
+/**
+ * Renderizza il tab Account Page
+ */
+function bw_site_render_account_page_tab() {
+    // Abilita il media uploader
+    wp_enqueue_media();
+
+    // Salva le impostazioni se il form è stato inviato
+    $saved = false;
+    if (isset($_POST['bw_account_page_submit'])) {
+        check_admin_referer('bw_account_page_save', 'bw_account_page_nonce');
+
+        update_option('bw_account_page_login_image', sanitize_text_field($_POST['bw_account_page_login_image'] ?? ''));
+        update_option('bw_account_page_logo', sanitize_text_field($_POST['bw_account_page_logo'] ?? ''));
+        update_option('bw_account_page_facebook_login', isset($_POST['bw_account_page_facebook_login']) ? 1 : 0);
+        update_option('bw_account_page_google_login', isset($_POST['bw_account_page_google_login']) ? 1 : 0);
+        update_option('bw_account_page_description', wp_kses_post($_POST['bw_account_page_description'] ?? ''));
+        update_option('bw_account_page_back_text', sanitize_text_field($_POST['bw_account_page_back_text'] ?? 'go back to store'));
+        update_option('bw_account_page_back_url', esc_url_raw($_POST['bw_account_page_back_url'] ?? ''));
+
+        $saved = true;
+    }
+
+    // Recupera le impostazioni correnti
+    $login_image = get_option('bw_account_page_login_image', '');
+    $logo = get_option('bw_account_page_logo', '');
+    $facebook_login = get_option('bw_account_page_facebook_login', 0);
+    $google_login = get_option('bw_account_page_google_login', 0);
+    $description = get_option('bw_account_page_description', 'Enter your email and we\'ll send you a login code');
+    $back_text = get_option('bw_account_page_back_text', 'go back to store');
+    $back_url = get_option('bw_account_page_back_url', '');
+
+    ?>
+    <?php if ($saved): ?>
+        <div class="notice notice-success is-dismissible">
+            <p><strong>Impostazioni Account Page salvate con successo!</strong></p>
+        </div>
+    <?php endif; ?>
+
+    <form method="post" action="">
+        <?php wp_nonce_field('bw_account_page_save', 'bw_account_page_nonce'); ?>
+
+        <table class="form-table" role="presentation">
+            <!-- Login Image (Cover) -->
+            <tr>
+                <th scope="row">
+                    <label for="bw_account_page_login_image">Login Image (Cover)</label>
+                </th>
+                <td>
+                    <div class="bw-media-upload-wrapper">
+                        <input type="hidden" id="bw_account_page_login_image" name="bw_account_page_login_image" value="<?php echo esc_attr($login_image); ?>" />
+                        <button type="button" class="button bw-media-upload-button" data-target="bw_account_page_login_image" data-preview="bw_account_page_login_image_preview">
+                            <?php echo $login_image ? 'Cambia Immagine' : 'Seleziona Immagine'; ?>
+                        </button>
+                        <button type="button" class="button bw-media-remove-button" data-target="bw_account_page_login_image" data-preview="bw_account_page_login_image_preview" style="<?php echo $login_image ? '' : 'display:none;'; ?>">
+                            Rimuovi Immagine
+                        </button>
+                        <div id="bw_account_page_login_image_preview" class="bw-media-preview">
+                            <?php if ($login_image): ?>
+                                <img src="<?php echo esc_url($login_image); ?>" style="max-width: 300px; height: auto; margin-top: 10px;" />
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    <p class="description">Grande immagine mostrata nella metà sinistra della pagina (full height cover)</p>
+                </td>
+            </tr>
+
+            <!-- Logo -->
+            <tr>
+                <th scope="row">
+                    <label for="bw_account_page_logo">Logo</label>
+                </th>
+                <td>
+                    <div class="bw-media-upload-wrapper">
+                        <input type="hidden" id="bw_account_page_logo" name="bw_account_page_logo" value="<?php echo esc_attr($logo); ?>" />
+                        <button type="button" class="button bw-media-upload-button" data-target="bw_account_page_logo" data-preview="bw_account_page_logo_preview">
+                            <?php echo $logo ? 'Cambia Logo' : 'Seleziona Logo'; ?>
+                        </button>
+                        <button type="button" class="button bw-media-remove-button" data-target="bw_account_page_logo" data-preview="bw_account_page_logo_preview" style="<?php echo $logo ? '' : 'display:none;'; ?>">
+                            Rimuovi Logo
+                        </button>
+                        <div id="bw_account_page_logo_preview" class="bw-media-preview">
+                            <?php if ($logo): ?>
+                                <img src="<?php echo esc_url($logo); ?>" style="max-width: 200px; height: auto; margin-top: 10px;" />
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    <p class="description">Logo mostrato nella parte destra, sopra il form di login</p>
+                </td>
+            </tr>
+
+            <!-- Sezione Social Login -->
+            <tr>
+                <th colspan="2">
+                    <h3 style="margin: 20px 0 10px 0;">Social Login Options</h3>
+                </th>
+            </tr>
+
+            <!-- Facebook Login Toggle -->
+            <tr>
+                <th scope="row">
+                    <label for="bw_account_page_facebook_login">Enable Facebook Login</label>
+                </th>
+                <td>
+                    <label class="switch">
+                        <input type="checkbox" id="bw_account_page_facebook_login" name="bw_account_page_facebook_login" value="1" <?php checked(1, $facebook_login); ?> />
+                        <span class="description">Se attivo, mostra il pulsante "Facebook" nel form di login</span>
+                    </label>
+                </td>
+            </tr>
+
+            <!-- Google Login Toggle -->
+            <tr>
+                <th scope="row">
+                    <label for="bw_account_page_google_login">Enable Google Login</label>
+                </th>
+                <td>
+                    <label class="switch">
+                        <input type="checkbox" id="bw_account_page_google_login" name="bw_account_page_google_login" value="1" <?php checked(1, $google_login); ?> />
+                        <span class="description">Se attivo, mostra il pulsante "Google" nel form di login</span>
+                    </label>
+                </td>
+            </tr>
+
+            <!-- Testo Descrizione -->
+            <tr>
+                <th scope="row">
+                    <label for="bw_account_page_description">Testo Descrizione sotto "Log in Without Password"</label>
+                </th>
+                <td>
+                    <textarea id="bw_account_page_description" name="bw_account_page_description" rows="4" class="large-text"><?php echo esc_textarea($description); ?></textarea>
+                    <p class="description">Piccolo paragrafo di testo sotto il pulsante "Log in Without Password"</p>
+                </td>
+            </tr>
+
+            <!-- Go Back to Store Text -->
+            <tr>
+                <th scope="row">
+                    <label for="bw_account_page_back_text">Testo Link "Go back to store"</label>
+                </th>
+                <td>
+                    <input type="text" id="bw_account_page_back_text" name="bw_account_page_back_text" value="<?php echo esc_attr($back_text); ?>" class="regular-text" />
+                    <p class="description">Label del link in fondo alla pagina (default: "go back to store")</p>
+                </td>
+            </tr>
+
+            <!-- Go Back to Store URL -->
+            <tr>
+                <th scope="row">
+                    <label for="bw_account_page_back_url">URL "Go back to store"</label>
+                </th>
+                <td>
+                    <input type="url" id="bw_account_page_back_url" name="bw_account_page_back_url" value="<?php echo esc_attr($back_url); ?>" class="regular-text" placeholder="<?php echo esc_url(home_url('/')); ?>" />
+                    <p class="description">URL del link (lascia vuoto per usare l'home URL del sito)</p>
+                </td>
+            </tr>
+        </table>
+
+        <?php submit_button('Salva Impostazioni Account Page', 'primary', 'bw_account_page_submit'); ?>
+    </form>
+
+    <!-- JavaScript per Media Uploader -->
+    <script>
+        jQuery(document).ready(function($) {
+            // Media Uploader per immagini
+            $('.bw-media-upload-button').on('click', function(e) {
+                e.preventDefault();
+
+                const button = $(this);
+                const targetId = button.data('target');
+                const previewId = button.data('preview');
+                const targetInput = $('#' + targetId);
+                const previewDiv = $('#' + previewId);
+                const removeButton = button.siblings('.bw-media-remove-button');
+
+                // Apri il media uploader
+                const mediaUploader = wp.media({
+                    title: 'Seleziona Immagine',
+                    button: {
+                        text: 'Usa questa immagine'
+                    },
+                    multiple: false
+                });
+
+                mediaUploader.on('select', function() {
+                    const attachment = mediaUploader.state().get('selection').first().toJSON();
+                    targetInput.val(attachment.url);
+                    previewDiv.html('<img src="' + attachment.url + '" style="max-width: 300px; height: auto; margin-top: 10px;" />');
+                    button.text('Cambia ' + (targetId.includes('logo') ? 'Logo' : 'Immagine'));
+                    removeButton.show();
+                });
+
+                mediaUploader.open();
+            });
+
+            // Rimuovi immagine
+            $('.bw-media-remove-button').on('click', function(e) {
+                e.preventDefault();
+
+                const button = $(this);
+                const targetId = button.data('target');
+                const previewId = button.data('preview');
+                const targetInput = $('#' + targetId);
+                const previewDiv = $('#' + previewId);
+                const uploadButton = button.siblings('.bw-media-upload-button');
+
+                targetInput.val('');
+                previewDiv.html('');
+                uploadButton.text('Seleziona ' + (targetId.includes('logo') ? 'Logo' : 'Immagine'));
+                button.hide();
+            });
+        });
+    </script>
+
+    <style>
+        .bw-media-upload-wrapper {
+            margin-bottom: 10px;
+        }
+        .bw-media-preview {
+            margin-top: 10px;
+        }
+        .bw-media-remove-button {
+            margin-left: 10px;
+        }
+    </style>
     <?php
 }
