@@ -1127,21 +1127,22 @@ function bw_site_render_redirect_tab() {
 
         check_admin_referer('bw_redirects_save', 'bw_redirects_nonce');
 
-        $redirects_input = isset($_POST['bw_redirects']) && is_array($_POST['bw_redirects']) ? $_POST['bw_redirects'] : [];
+        $redirects_input = isset($_POST['bw_redirects']) && is_array($_POST['bw_redirects']) ? wp_unslash($_POST['bw_redirects']) : [];
         $sanitized       = [];
 
         foreach ($redirects_input as $redirect) {
-            $target_raw       = isset($redirect['target_url']) ? $redirect['target_url'] : '';
-            $source_raw       = isset($redirect['source_url']) ? $redirect['source_url'] : '';
-            $target           = esc_url_raw($target_raw);
+            $target_raw        = isset($redirect['target_url']) ? trim((string) $redirect['target_url']) : '';
+            $source_raw        = isset($redirect['source_url']) ? trim((string) $redirect['source_url']) : '';
+            $target            = esc_url_raw($target_raw);
             $normalized_source = bw_normalize_redirect_path($source_raw);
+            $source_to_store   = '' !== $source_raw ? sanitize_text_field($source_raw) : '';
 
             if ('' === $target || '' === $normalized_source) {
                 continue;
             }
 
             $sanitized[] = [
-                'source' => $normalized_source,
+                'source' => $source_to_store,
                 'target' => $target,
             ];
         }
