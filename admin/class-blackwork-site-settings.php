@@ -49,7 +49,6 @@ function bw_site_settings_admin_assets($hook) {
 
     // JavaScript per la pagina admin (se necessario)
     wp_enqueue_script('jquery');
-    wp_enqueue_media();
 }
 add_action('admin_enqueue_scripts', 'bw_site_settings_admin_assets');
 
@@ -79,10 +78,6 @@ function bw_site_settings_page() {
                class="nav-tab <?php echo $active_tab === 'bw-coming-soon' ? 'nav-tab-active' : ''; ?>">
                 BW Coming Soon
             </a>
-            <a href="?page=blackwork-site-settings&tab=account-page"
-               class="nav-tab <?php echo $active_tab === 'account-page' ? 'nav-tab-active' : ''; ?>">
-                Account Page
-            </a>
         </nav>
 
         <!-- Tab Content -->
@@ -93,147 +88,10 @@ function bw_site_settings_page() {
                 bw_site_render_cart_popup_tab();
             } elseif ($active_tab === 'bw-coming-soon') {
                 bw_site_render_coming_soon_tab();
-            } elseif ($active_tab === 'account-page') {
-                bw_site_render_account_page_tab();
             }
             ?>
         </div>
     </div>
-    <?php
-}
-
-/**
- * Renderizza il tab Account Page
- */
-function bw_site_render_account_page_tab() {
-    $saved = false;
-
-    if (isset($_POST['bw_account_page_submit'])) {
-        check_admin_referer('bw_account_page_save', 'bw_account_page_nonce');
-
-        $login_image = isset($_POST['bw_account_login_image']) ? esc_url_raw($_POST['bw_account_login_image']) : '';
-        $logo        = isset($_POST['bw_account_logo']) ? esc_url_raw($_POST['bw_account_logo']) : '';
-        $facebook    = isset($_POST['bw_account_facebook']) ? 1 : 0;
-        $google      = isset($_POST['bw_account_google']) ? 1 : 0;
-        $description = isset($_POST['bw_account_description']) ? wp_kses_post($_POST['bw_account_description']) : '';
-        $back_text   = isset($_POST['bw_account_back_text']) ? sanitize_text_field($_POST['bw_account_back_text']) : 'go back to store';
-        $back_url    = isset($_POST['bw_account_back_url']) ? esc_url_raw($_POST['bw_account_back_url']) : '';
-
-        update_option('bw_account_login_image', $login_image);
-        update_option('bw_account_logo', $logo);
-        update_option('bw_account_facebook', $facebook);
-        update_option('bw_account_google', $google);
-        update_option('bw_account_description', $description);
-        update_option('bw_account_back_text', $back_text);
-        update_option('bw_account_back_url', $back_url);
-
-        $saved = true;
-    }
-
-    $login_image = get_option('bw_account_login_image', '');
-    $logo        = get_option('bw_account_logo', '');
-    $facebook    = (int) get_option('bw_account_facebook', 0);
-    $google      = (int) get_option('bw_account_google', 0);
-    $description = get_option('bw_account_description', '');
-    $back_text   = get_option('bw_account_back_text', 'go back to store');
-    $back_url    = get_option('bw_account_back_url', '');
-    ?>
-    <?php if ($saved): ?>
-        <div class="notice notice-success is-dismissible">
-            <p><strong>Impostazioni salvate con successo!</strong></p>
-        </div>
-    <?php endif; ?>
-
-    <form method="post" action="">
-        <?php wp_nonce_field('bw_account_page_save', 'bw_account_page_nonce'); ?>
-
-        <table class="form-table" role="presentation">
-            <tr>
-                <th scope="row">
-                    <label for="bw_account_login_image">Login Image (cover)</label>
-                </th>
-                <td>
-                    <input type="text" id="bw_account_login_image" name="bw_account_login_image" value="<?php echo esc_attr($login_image); ?>" class="regular-text" />
-                    <button type="button" class="button bw-media-upload" data-target="#bw_account_login_image">Seleziona immagine</button>
-                    <p class="description">Immagine di copertina mostrata nella metà sinistra.</p>
-                </td>
-            </tr>
-            <tr>
-                <th scope="row">
-                    <label for="bw_account_logo">Logo</label>
-                </th>
-                <td>
-                    <input type="text" id="bw_account_logo" name="bw_account_logo" value="<?php echo esc_attr($logo); ?>" class="regular-text" />
-                    <button type="button" class="button bw-media-upload" data-target="#bw_account_logo">Seleziona logo</button>
-                    <p class="description">Logo mostrato sopra il form di login.</p>
-                </td>
-            </tr>
-            <tr>
-                <th scope="row">Social login toggle</th>
-                <td>
-                    <label style="display:block; margin-bottom:8px;">
-                        <input type="checkbox" id="bw_account_facebook" name="bw_account_facebook" value="1" <?php checked(1, $facebook); ?> />
-                        Enable Facebook Login
-                    </label>
-                    <label style="display:block;">
-                        <input type="checkbox" id="bw_account_google" name="bw_account_google" value="1" <?php checked(1, $google); ?> />
-                        Enable Google Login
-                    </label>
-                </td>
-            </tr>
-            <tr>
-                <th scope="row">
-                    <label for="bw_account_description">Testo descrizione</label>
-                </th>
-                <td>
-                    <textarea id="bw_account_description" name="bw_account_description" rows="4" class="large-text"><?php echo esc_textarea($description); ?></textarea>
-                    <p class="description">Paragrafo mostrato sotto il pulsante "Log in Without Password".</p>
-                </td>
-            </tr>
-            <tr>
-                <th scope="row">
-                    <label for="bw_account_back_text">Testo link "Go back to store"</label>
-                </th>
-                <td>
-                    <input type="text" id="bw_account_back_text" name="bw_account_back_text" value="<?php echo esc_attr($back_text); ?>" class="regular-text" placeholder="go back to store" />
-                    <p class="description">Testo mostrato in fondo al layout di login.</p>
-                </td>
-            </tr>
-            <tr>
-                <th scope="row">
-                    <label for="bw_account_back_url">URL link "Go back to store"</label>
-                </th>
-                <td>
-                    <input type="url" id="bw_account_back_url" name="bw_account_back_url" value="<?php echo esc_attr($back_url); ?>" class="regular-text" placeholder="<?php echo esc_url(home_url('/')); ?>" />
-                    <p class="description">Lascia vuoto per usare l'home URL del sito.</p>
-                </td>
-            </tr>
-        </table>
-
-        <?php submit_button('Salva impostazioni', 'primary', 'bw_account_page_submit'); ?>
-    </form>
-
-    <script>
-        jQuery(document).ready(function($) {
-            $('.bw-media-upload').on('click', function(e) {
-                e.preventDefault();
-
-                const targetInput = $(this).data('target');
-                const frame = wp.media({
-                    title: 'Seleziona immagine',
-                    button: { text: 'Usa questa immagine' },
-                    multiple: false
-                });
-
-                frame.on('select', function() {
-                    const attachment = frame.state().get('selection').first().toJSON();
-                    $(targetInput).val(attachment.url);
-                });
-
-                frame.open();
-            });
-        });
-    </script>
     <?php
 }
 
