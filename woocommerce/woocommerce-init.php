@@ -74,13 +74,23 @@ function bw_mew_enqueue_account_page_assets() {
     }
 
     $css_file = BW_MEW_PATH . 'assets/css/bw-account-page.css';
-    $version  = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
+    $css_version  = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
+    $js_file      = BW_MEW_PATH . 'assets/js/bw-account-page.js';
+    $js_version   = file_exists( $js_file ) ? filemtime( $js_file ) : '1.0.0';
 
     wp_enqueue_style(
         'bw-account-page',
         BW_MEW_URL . 'assets/css/bw-account-page.css',
         [],
-        $version
+        $css_version
+    );
+
+    wp_enqueue_script(
+        'bw-account-page',
+        BW_MEW_URL . 'assets/js/bw-account-page.js',
+        [],
+        $js_version,
+        true
     );
 }
 
