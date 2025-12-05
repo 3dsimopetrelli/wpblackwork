@@ -435,5 +435,5 @@ function bw_mew_get_passwordless_url() {
         return esc_url( $url );
     }
 
-    return wc_get_endpoint_url( 'lost-password', '', wc_get_page_permalink( 'myaccount' ) );
+    return '';
 }
