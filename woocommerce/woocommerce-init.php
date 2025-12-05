@@ -13,7 +13,6 @@ function bw_mew_initialize_woocommerce_overrides() {
 
     add_filter( 'woocommerce_locate_template', 'bw_mew_locate_template', 1, 3 );
     add_action( 'wp_enqueue_scripts', 'bw_mew_enqueue_related_products_assets', 30 );
-    add_action( 'wp_enqueue_scripts', 'bw_mew_enqueue_account_page_assets', 20 );
 }
 add_action( 'plugins_loaded', 'bw_mew_initialize_woocommerce_overrides' );
 
@@ -59,25 +58,6 @@ function bw_mew_enqueue_related_products_assets() {
         'bw-related-products-style',
         plugin_dir_url( __FILE__ ) . 'css/bw-related-products.css',
         [ 'bw-wallpost-style' ],
-        $version
-    );
-}
-
-/**
- * Enqueue assets for the custom account/login layout.
- */
-function bw_mew_enqueue_account_page_assets() {
-    if ( ! function_exists( 'is_account_page' ) || ! is_account_page() || is_user_logged_in() ) {
-        return;
-    }
-
-    $css_file = BW_MEW_PATH . 'assets/css/bw-account-page.css';
-    $version  = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
-
-    wp_enqueue_style(
-        'bw-account-page',
-        BW_MEW_URL . 'assets/css/bw-account-page.css',
-        [],
         $version
     );
 }
