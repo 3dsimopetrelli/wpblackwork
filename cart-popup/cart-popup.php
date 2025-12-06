@@ -80,6 +80,8 @@ function bw_cart_popup_register_assets() {
             'ajaxUrl' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('bw_cart_popup_nonce'),
             'settings' => $cart_popup_settings,
+            // Checkout URL for explicit redirects from the popup button
+            'checkoutUrl' => wc_get_checkout_url(),
             'wc_ajax_url' => WC_AJAX::get_endpoint('%%endpoint%%'),
         ]
     );

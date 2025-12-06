@@ -98,6 +98,16 @@
                 self.closePanel();
             });
 
+            // Forza sempre il redirect verso la pagina checkout quando si clicca sul pulsante verde
+            $(document).on('click', '.bw-cart-popup-checkout', function(e) {
+                const checkoutUrl = (bwCartPopupConfig && bwCartPopupConfig.checkoutUrl) || $(this).attr('href');
+
+                if (checkoutUrl) {
+                    e.preventDefault();
+                    window.location.href = checkoutUrl;
+                }
+            });
+
             // Toggle promo code box
             this.$promoTrigger.on('click', function(e) {
                 e.preventDefault();
