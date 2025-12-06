@@ -24,18 +24,15 @@ function bw_cart_popup_render_panel() {
 
     // Recupera le impostazioni
     $checkout_text = get_option('bw_cart_popup_checkout_text', 'Proceed to checkout');
-    $checkout_url = get_option('bw_cart_popup_checkout_url', '');
+    // Forza l'URL del pulsante principale verso il checkout standard di WooCommerce
+    // per garantire un comportamento coerente in ogni contesto.
+    $checkout_url = wc_get_checkout_url();
     $continue_text = get_option('bw_cart_popup_continue_text', 'Continue shopping');
     $continue_url = get_option('bw_cart_popup_continue_url', '');
     $additional_svg = get_option('bw_cart_popup_additional_svg', '');
     $empty_cart_svg = get_option('bw_cart_popup_empty_cart_svg', '');
     $svg_black = get_option('bw_cart_popup_svg_black', 0);
     $return_shop_url = get_option('bw_cart_popup_return_shop_url', '');
-
-    // Determina l'URL per il checkout
-    if (empty($checkout_url)) {
-        $checkout_url = wc_get_checkout_url();
-    }
 
     // Determina l'URL per continue shopping
     if (empty($continue_url)) {
