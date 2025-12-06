@@ -11,6 +11,12 @@ function bw_mew_initialize_woocommerce_overrides() {
         return;
     }
 
+    $my_account_file = BW_MEW_PATH . 'includes/woocommerce-overrides/class-bw-my-account.php';
+
+    if ( file_exists( $my_account_file ) ) {
+        require_once $my_account_file;
+    }
+
     add_filter( 'woocommerce_locate_template', 'bw_mew_locate_template', 1, 3 );
     add_action( 'wp_enqueue_scripts', 'bw_mew_enqueue_related_products_assets', 30 );
     add_action( 'wp_enqueue_scripts', 'bw_mew_enqueue_account_page_assets', 20 );
