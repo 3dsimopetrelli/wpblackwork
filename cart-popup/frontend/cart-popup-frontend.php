@@ -126,10 +126,7 @@ function bw_cart_popup_render_panel() {
                     <span class="label">Discount:</span>
                     <span class="value" data-discount="0">-€0.00</span>
                 </div>
-                <div class="bw-cart-popup-vat">
-                    <span class="label">VAT:</span>
-                    <span class="value" data-tax="0">€0.00</span>
-                </div>
+                <!-- RIMOSSO: Campo VAT non necessario -->
                 <div class="bw-cart-popup-total">
                     <span class="label">Total:</span>
                     <span class="value" data-total="0">€0.00</span>
