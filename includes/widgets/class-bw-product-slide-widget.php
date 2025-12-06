@@ -345,7 +345,7 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
         $show_slide_count = isset( $settings['show_slide_count'] ) && 'yes' === $settings['show_slide_count'];
         $popup_open_on_click = isset( $settings['popup_open_on_image_click'] ) && 'yes' === $settings['popup_open_on_image_click'];
 
-        $available_post_types = $this->get_post_type_options();
+        $available_post_types = BW_Widget_Helper::get_post_type_options();
         if ( empty( $available_post_types ) ) {
             $available_post_types = [ 'post' => __( 'Post', 'bw-elementor-widgets' ) ];
         }
@@ -656,63 +656,10 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
         return $unit;
     }
 
-    private function parse_ids( $ids_string ) {
-        if ( empty( $ids_string ) ) {
-            return [];
-        }
-
-        $parts = array_filter( array_map( 'trim', explode( ',', $ids_string ) ) );
-        $ids   = [];
-
-        foreach ( $parts as $part ) {
-            if ( is_numeric( $part ) ) {
-                $ids[] = (int) $part;
-            }
-        }
-
-        return array_unique( $ids );
-    }
-
-    private function get_post_type_options() {
-        $post_types = get_post_types(
-            [
-                'public' => true,
-            ],
-            'objects'
-        );
-
-        $options = [];
-
-        if ( empty( $post_types ) || ! is_array( $post_types ) ) {
-            return $options;
-        }
-
-        foreach ( $post_types as $post_type ) {
-            if ( ! isset( $post_type->name ) ) {
-                continue;
-            }
-
-            if ( 'attachment' === $post_type->name ) {
-                continue;
-            }
-
-            $label = '';
-
-            if ( isset( $post_type->labels->singular_name ) && '' !== $post_type->labels->singular_name ) {
-                $label = $post_type->labels->singular_name;
-            } elseif ( isset( $post_type->label ) && '' !== $post_type->label ) {
-                $label = $post_type->label;
-            } else {
-                $label = ucfirst( $post_type->name );
-            }
-
-            $options[ $post_type->name ] = $label;
-        }
-
-        asort( $options );
-
-        return $options;
-    }
+    /**
+     * Methods parse_ids() and get_post_type_options() have been moved to BW_Widget_Helper class.
+     * Use BW_Widget_Helper::method_name() instead.
+     */
 
     private function build_image_style( $object_fit ) {
         $allowed_fits = [ 'cover', 'contain', 'fill', 'none', 'scale-down' ];

@@ -43,6 +43,9 @@ if ( file_exists( plugin_dir_path( __FILE__ ) . 'admin/class-blackwork-site-sett
 // Helper functions
 require_once __DIR__ . '/includes/helpers.php';
 
+// Widget helper class - Shared utility methods for widgets
+require_once __DIR__ . '/includes/class-bw-widget-helper.php';
+
 // Product Card Renderer - Centralized card rendering
 require_once __DIR__ . '/includes/woocommerce-overrides/class-bw-product-card-renderer.php';
 
