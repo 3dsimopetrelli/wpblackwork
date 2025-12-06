@@ -24,9 +24,9 @@ function bw_cart_popup_render_panel() {
 
     // Recupera le impostazioni
     $checkout_text = get_option('bw_cart_popup_checkout_text', 'Proceed to checkout');
-    // Forza l'URL del pulsante principale verso il checkout standard di WooCommerce
-    // per garantire un comportamento coerente in ogni contesto.
-    $checkout_url = wc_get_checkout_url();
+    // FORZATO: Usa sempre /checkout/ invece di wc_get_checkout_url()
+    // perché wc_get_checkout_url() potrebbe essere configurato male nelle impostazioni WooCommerce
+    $checkout_url = home_url('/checkout/');
     $cart_url = wc_get_cart_url();
     $continue_text = get_option('bw_cart_popup_continue_text', 'Continue shopping');
     $continue_url = get_option('bw_cart_popup_continue_url', '');
