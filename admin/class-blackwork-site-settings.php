@@ -94,6 +94,10 @@ function bw_site_settings_page() {
                class="nav-tab <?php echo $active_tab === 'account-page' ? 'nav-tab-active' : ''; ?>">
                 Account Page
             </a>
+            <a href="?page=blackwork-site-settings&tab=my-account-page"
+               class="nav-tab <?php echo $active_tab === 'my-account-page' ? 'nav-tab-active' : ''; ?>">
+                My Account Page
+            </a>
             <a href="?page=blackwork-site-settings&tab=redirect"
                class="nav-tab <?php echo $active_tab === 'redirect' ? 'nav-tab-active' : ''; ?>">
                 Redirect
@@ -110,6 +114,8 @@ function bw_site_settings_page() {
                 bw_site_render_coming_soon_tab();
             } elseif ($active_tab === 'account-page') {
                 bw_site_render_account_page_tab();
+            } elseif ($active_tab === 'my-account-page') {
+                bw_site_render_my_account_front_tab();
             } elseif ($active_tab === 'redirect') {
                 bw_site_render_redirect_tab();
             }
@@ -324,6 +330,62 @@ function bw_site_render_account_page_tab() {
             });
         });
     </script>
+    <?php
+}
+
+/**
+ * Render the My Account front-end customization tab.
+ */
+function bw_site_render_my_account_front_tab() {
+    $saved = false;
+
+    if ( isset( $_POST['bw_myaccount_content_submit'] ) ) {
+        check_admin_referer( 'bw_myaccount_front_save', 'bw_myaccount_front_nonce' );
+
+        $black_box_text = isset( $_POST['bw_myaccount_black_box_text'] )
+            ? wp_kses_post( wp_unslash( $_POST['bw_myaccount_black_box_text'] ) )
+            : '';
+
+        update_option( 'bw_myaccount_black_box_text', $black_box_text );
+
+        $saved = true;
+    }
+
+    $black_box_text = get_option(
+        'bw_myaccount_black_box_text',
+        __( 'Your mockups will always be here, available to download. Please enjoy them!', 'bw' )
+    );
+    ?>
+    <?php if ( $saved ) : ?>
+        <div class="notice notice-success is-dismissible">
+            <p><strong><?php esc_html_e( 'Impostazioni salvate con successo!', 'bw' ); ?></strong></p>
+        </div>
+    <?php endif; ?>
+
+    <form method="post" action="">
+        <?php wp_nonce_field( 'bw_myaccount_front_save', 'bw_myaccount_front_nonce' ); ?>
+
+        <table class="form-table" role="presentation">
+            <tr>
+                <th scope="row">
+                    <label for="bw_myaccount_black_box_text"><?php esc_html_e( 'Testo Box Nero (My Account)', 'bw' ); ?></label>
+                </th>
+                <td>
+                    <textarea
+                        id="bw_myaccount_black_box_text"
+                        name="bw_myaccount_black_box_text"
+                        rows="6"
+                        class="large-text"
+                    ><?php echo esc_textarea( $black_box_text ); ?></textarea>
+                    <p class="description">
+                        <?php esc_html_e( 'Contenuto mostrato nel box nero in alto alla dashboard My Account. Puoi utilizzare HTML semplice; il testo verrà sanificato.', 'bw' ); ?>
+                    </p>
+                </td>
+            </tr>
+        </table>
+
+        <?php submit_button( __( 'Salva impostazioni', 'bw' ), 'primary', 'bw_myaccount_content_submit' ); ?>
+    </form>
     <?php
 }
 
