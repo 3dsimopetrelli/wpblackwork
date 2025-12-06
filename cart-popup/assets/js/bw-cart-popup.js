@@ -175,15 +175,18 @@
 
         /**
          * Aggiorna l'anchor del checkout con l'URL corretto da WooCommerce
+         * FORZA SEMPRE l'uso di wc_get_checkout_url() ignorando qualsiasi valore presente nell'HTML
          */
         ensureCheckoutLink: function() {
-            const checkoutUrl = this.getCheckoutUrl();
+            // Usa SEMPRE il checkout URL da WooCommerce passato dal PHP
+            const checkoutUrl = (bwCartPopupConfig && bwCartPopupConfig.checkoutUrl) || '/checkout/';
 
-            if (checkoutUrl) {
-                $('.bw-cart-popup-checkout')
-                    .attr('href', checkoutUrl)
-                    .data('checkout-url', checkoutUrl);
-            }
+            // FORZA il checkout URL sul pulsante, sovrascrivendo qualsiasi valore errato
+            $('.bw-cart-popup-checkout')
+                .attr('href', checkoutUrl)
+                .data('checkout-url', checkoutUrl);
+
+            console.log('Checkout button forced to:', checkoutUrl);
         },
 
         /**
@@ -385,6 +388,9 @@
 
             this.isOpen = true;
             this.isLoading = true;
+
+            // FORZA il checkout URL corretto prima di aprire il popup
+            this.ensureCheckoutLink();
 
             // Aggiungi classe active per animazione
             this.$overlay.addClass('active');
