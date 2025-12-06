@@ -28,6 +28,17 @@ require_once BW_CART_POPUP_PATH . 'admin/settings-page.php';
 require_once BW_CART_POPUP_PATH . 'frontend/cart-popup-frontend.php';
 
 /**
+ * Cleanup: Rimuove l'opzione obsoleta bw_cart_popup_checkout_url
+ * Questa opzione è stata rimossa per garantire che il pulsante checkout
+ * porti sempre alla pagina di checkout WooCommerce standard
+ */
+function bw_cart_popup_cleanup_obsolete_options() {
+    // Elimina l'opzione obsoleta se esiste
+    delete_option('bw_cart_popup_checkout_url');
+}
+add_action('admin_init', 'bw_cart_popup_cleanup_obsolete_options');
+
+/**
  * Registra e carica gli assets del Cart Pop-Up
  */
 function bw_cart_popup_register_assets() {

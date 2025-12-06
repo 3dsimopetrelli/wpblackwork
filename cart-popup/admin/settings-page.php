@@ -220,9 +220,8 @@ function bw_cart_popup_save_settings() {
     $checkout_text = isset($_POST['bw_cart_popup_checkout_text']) ? sanitize_text_field($_POST['bw_cart_popup_checkout_text']) : 'Proceed to checkout';
     update_option('bw_cart_popup_checkout_text', $checkout_text);
 
-    // Link personalizzato checkout
-    $checkout_url = isset($_POST['bw_cart_popup_checkout_url']) ? esc_url_raw($_POST['bw_cart_popup_checkout_url']) : '';
-    update_option('bw_cart_popup_checkout_url', $checkout_url);
+    // RIMOSSO: Link personalizzato checkout - ora si usa sempre wc_get_checkout_url()
+    // per garantire che il pulsante porti sempre alla pagina di checkout WooCommerce
 
     // Colore pulsante checkout
     $checkout_color = isset($_POST['bw_cart_popup_checkout_color']) ? sanitize_hex_color($_POST['bw_cart_popup_checkout_color']) : '#28a745';
@@ -439,7 +438,7 @@ function bw_cart_popup_settings_page() {
     $overlay_opacity = get_option('bw_cart_popup_overlay_opacity', 0.5);
     $panel_bg = get_option('bw_cart_popup_panel_bg', '#ffffff');
     $checkout_text = get_option('bw_cart_popup_checkout_text', 'Proceed to checkout');
-    $checkout_url = get_option('bw_cart_popup_checkout_url', '');
+    // RIMOSSO: checkout_url personalizzato - si usa sempre wc_get_checkout_url()
     $checkout_color = get_option('bw_cart_popup_checkout_color', '#28a745');
     $continue_text = get_option('bw_cart_popup_continue_text', 'Continue shopping');
     $continue_url = get_option('bw_cart_popup_continue_url', '');
@@ -613,16 +612,7 @@ function bw_cart_popup_settings_page() {
                     </td>
                 </tr>
 
-                <!-- Link Personalizzato -->
-                <tr>
-                    <th scope="row">
-                        <label for="bw_cart_popup_checkout_url">Link Personalizzato</label>
-                    </th>
-                    <td>
-                        <input type="url" id="bw_cart_popup_checkout_url" name="bw_cart_popup_checkout_url" value="<?php echo esc_attr($checkout_url); ?>" class="regular-text" placeholder="/checkout/" />
-                        <p class="description">URL personalizzato per il pulsante Checkout (lascia vuoto per usare /checkout/ di default)</p>
-                    </td>
-                </tr>
+                <!-- RIMOSSO: Link Personalizzato - Il pulsante usa sempre wc_get_checkout_url() per garantire che punti alla checkout page di WooCommerce -->
 
                 <!-- Background Color -->
                 <tr>
