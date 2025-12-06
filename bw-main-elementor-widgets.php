@@ -264,51 +264,11 @@ function bw_register_divider_style() {
 }
 
 function bw_register_button_widget_assets() {
-    $css_file = __DIR__ . '/assets/css/bw-button.css';
-    $css_version = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
-
-    wp_register_style(
-        'bw-button-style',
-        plugin_dir_url( __FILE__ ) . 'assets/css/bw-button.css',
-        [],
-        $css_version
-    );
-
-    $js_file = __DIR__ . '/assets/js/bw-button.js';
-
-    if ( file_exists( $js_file ) ) {
-        wp_register_script(
-            'bw-button-script',
-            plugin_dir_url( __FILE__ ) . 'assets/js/bw-button.js',
-            [ 'jquery' ],
-            filemtime( $js_file ),
-            true
-        );
-    }
+    bw_register_widget_assets( 'button' );
 }
 
 function bw_register_about_menu_widget_assets() {
-    $css_file = __DIR__ . '/assets/css/bw-about-menu.css';
-    $css_version = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
-
-    wp_register_style(
-        'bw-about-menu-style',
-        plugin_dir_url( __FILE__ ) . 'assets/css/bw-about-menu.css',
-        [],
-        $css_version
-    );
-
-    $js_file = __DIR__ . '/assets/js/bw-about-menu.js';
-
-    if ( file_exists( $js_file ) ) {
-        wp_register_script(
-            'bw-about-menu-script',
-            plugin_dir_url( __FILE__ ) . 'assets/js/bw-about-menu.js',
-            [],
-            filemtime( $js_file ),
-            true
-        );
-    }
+    bw_register_widget_assets( 'about-menu', [] );
 }
 
 function bw_register_wallpost_widget_assets() {
@@ -450,26 +410,7 @@ function bw_enqueue_about_menu_widget_assets() {
 }
 
 function bw_register_navshop_widget_assets() {
-    $css_file = __DIR__ . '/assets/css/bw-navshop.css';
-    $css_version = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
-
-    wp_register_style(
-        'bw-navshop-style',
-        plugin_dir_url( __FILE__ ) . 'assets/css/bw-navshop.css',
-        [],
-        $css_version
-    );
-
-    $js_file = __DIR__ . '/assets/js/bw-navshop.js';
-    $js_version = file_exists( $js_file ) ? filemtime( $js_file ) : '1.0.0';
-
-    wp_register_script(
-        'bw-navshop-script',
-        plugin_dir_url( __FILE__ ) . 'assets/js/bw-navshop.js',
-        [ 'jquery' ],
-        $js_version,
-        true
-    );
+    bw_register_widget_assets( 'navshop' );
 }
 
 function bw_enqueue_navshop_widget_assets() {
