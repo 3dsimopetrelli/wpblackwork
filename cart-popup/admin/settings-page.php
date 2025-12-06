@@ -1176,29 +1176,7 @@ function bw_cart_popup_settings_page() {
             font-weight: 500;
         }
     </style>
-
-    <script>
-        jQuery(document).ready(function($) {
-            // Toggle visibilità campi bordo per Checkout button
-            function toggleCheckoutBorderFields() {
-                const isEnabled = $('#bw_cart_popup_checkout_border_enabled').is(':checked');
-                $('.bw-checkout-border-field').toggle(isEnabled);
-            }
-
-            // Toggle visibilità campi bordo per Continue button
-            function toggleContinueBorderFields() {
-                const isEnabled = $('#bw_cart_popup_continue_border_enabled').is(':checked');
-                $('.bw-continue-border-field').toggle(isEnabled);
-            }
-
-            // Inizializza stato al caricamento pagina
-            toggleCheckoutBorderFields();
-            toggleContinueBorderFields();
-
-            // Listener per checkbox
-            $('#bw_cart_popup_checkout_border_enabled').on('change', toggleCheckoutBorderFields);
-            $('#bw_cart_popup_continue_border_enabled').on('change', toggleContinueBorderFields);
-        });
-    </script>
     <?php
+    // JavaScript for border toggle is now loaded via bw-border-toggle-admin.js
+    // (enqueued in bw_site_settings_admin_assets hook in class-blackwork-site-settings.php)
 }
