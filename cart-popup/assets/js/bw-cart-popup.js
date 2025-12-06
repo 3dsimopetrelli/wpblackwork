@@ -58,6 +58,9 @@
             // Bind eventi
             this.bindEvents();
 
+            // Garantisce che l'anchor del checkout punti sempre alla URL WooCommerce corretta
+            this.ensureCheckoutLink();
+
             // Registra listener per evento WooCommerce 'added_to_cart'
             // IMPORTANTE: Questo deve essere sempre registrato per supportare sia
             // i pulsanti globali che i widget
@@ -144,6 +147,46 @@
         },
 
         /**
+         * Recupera l'URL di checkout seguendo le API WooCommerce e i fallback HTML
+         */
+        getCheckoutUrl: function() {
+            const config = (typeof bwCartPopupConfig !== 'undefined') ? bwCartPopupConfig : {};
+            const $button = $('.bw-cart-popup-checkout');
+
+            const checkoutFromConfig = config.checkoutUrl;
+            const checkoutFromData = $button.data('checkout-url');
+            const checkoutFromHref = $button.attr('href');
+            const cartFallback = config.cartUrl || $button.data('cart-url');
+
+            if (checkoutFromConfig) {
+                return checkoutFromConfig;
+            }
+
+            if (checkoutFromData) {
+                return checkoutFromData;
+            }
+
+            if (checkoutFromHref) {
+                return checkoutFromHref;
+            }
+
+            return cartFallback || null;
+        },
+
+        /**
+         * Aggiorna l'anchor del checkout con l'URL corretto da WooCommerce
+         */
+        ensureCheckoutLink: function() {
+            const checkoutUrl = this.getCheckoutUrl();
+
+            if (checkoutUrl) {
+                $('.bw-cart-popup-checkout')
+                    .attr('href', checkoutUrl)
+                    .data('checkout-url', checkoutUrl);
+            }
+        },
+
+        /**
          * Registra listener per evento WooCommerce 'added_to_cart'
          * Questo listener viene sempre registrato per garantire che il cart popup
          * si apra quando un prodotto viene aggiunto al carrello
@@ -174,6 +217,9 @@
 
                     // Mostra la notifica verde "Your item has been added to the cart"
                     self.showAddedNotification();
+
+                    // Aggiorna eventuali href del checkout in caso di markup rimpiazzato da frammenti WooCommerce
+                    self.ensureCheckoutLink();
 
                     console.log('Product added to cart, opening cart popup');
                 }

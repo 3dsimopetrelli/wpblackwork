@@ -27,6 +27,7 @@ function bw_cart_popup_render_panel() {
     // Forza l'URL del pulsante principale verso il checkout standard di WooCommerce
     // per garantire un comportamento coerente in ogni contesto.
     $checkout_url = wc_get_checkout_url();
+    $cart_url = wc_get_cart_url();
     $continue_text = get_option('bw_cart_popup_continue_text', 'Continue shopping');
     $continue_url = get_option('bw_cart_popup_continue_url', '');
     $additional_svg = get_option('bw_cart_popup_additional_svg', '');
@@ -138,7 +139,7 @@ function bw_cart_popup_render_panel() {
 
         <!-- Footer con pulsanti -->
         <div class="bw-cart-popup-footer">
-            <a href="<?php echo esc_url($checkout_url); ?>" class="bw-cart-popup-checkout elementor-button elementor-button-link elementor-size-md">
+            <a href="<?php echo esc_url($checkout_url); ?>" data-checkout-url="<?php echo esc_url($checkout_url); ?>" data-cart-url="<?php echo esc_url($cart_url); ?>" class="bw-cart-popup-checkout elementor-button elementor-button-link elementor-size-md">
                 <?php echo esc_html($checkout_text); ?>
             </a>
             <a href="<?php echo esc_url($continue_url); ?>" class="bw-cart-popup-continue">
