@@ -269,3 +269,88 @@ if ( ! function_exists( 'bw_register_widget_assets' ) ) {
         }
     }
 }
+
+if ( ! function_exists( 'bw_get_safe_product_permalink' ) ) {
+    /**
+     * Get a safe permalink for a product, with validation to prevent errors.
+     *
+     * This function ensures that:
+     * - The post ID is valid
+     * - The permalink is not empty
+     * - The permalink doesn't incorrectly point to the home page
+     * - Returns a fallback to shop page if permalink is invalid
+     *
+     * @param int|\WC_Product|null $post_id Product ID or WC_Product object.
+     *
+     * @return string Safe permalink URL.
+     */
+    function bw_get_safe_product_permalink( $post_id = null ) {
+        // Handle WC_Product objects
+        if ( $post_id instanceof \WC_Product ) {
+            try {
+                $permalink = $post_id->get_permalink();
+                if ( ! empty( $permalink ) && filter_var( $permalink, FILTER_VALIDATE_URL ) ) {
+                    return esc_url( $permalink );
+                }
+            } catch ( \Exception $e ) {
+                // Silently handle errors and continue to fallback
+            }
+
+            $post_id = $post_id->get_id();
+        }
+
+        // Validate post ID
+        $post_id = absint( $post_id );
+        if ( $post_id <= 0 ) {
+            return bw_get_fallback_url();
+        }
+
+        // Check if post exists and is published
+        $post = get_post( $post_id );
+        if ( ! $post || $post->post_status !== 'publish' ) {
+            return bw_get_fallback_url();
+        }
+
+        // Get permalink
+        $permalink = get_permalink( $post_id );
+
+        // Validate permalink
+        if ( empty( $permalink ) || ! filter_var( $permalink, FILTER_VALIDATE_URL ) ) {
+            return bw_get_fallback_url();
+        }
+
+        // Check if permalink incorrectly points to home page
+        // (This can happen with permalink issues)
+        $home_url = trailingslashit( home_url() );
+        $permalink_path = wp_parse_url( $permalink, PHP_URL_PATH );
+        $home_path = wp_parse_url( $home_url, PHP_URL_PATH );
+
+        // If permalink path is the same as home path, it's probably wrong
+        // (unless the product IS actually the front page, which is unlikely)
+        if ( $permalink_path === $home_path && get_option( 'page_on_front' ) != $post_id ) {
+            return bw_get_fallback_url();
+        }
+
+        return esc_url( $permalink );
+    }
+}
+
+if ( ! function_exists( 'bw_get_fallback_url' ) ) {
+    /**
+     * Get a fallback URL when product permalink is invalid.
+     *
+     * @return string Fallback URL (shop page or home).
+     */
+    function bw_get_fallback_url() {
+        // Try to get shop page URL
+        if ( function_exists( 'wc_get_page_permalink' ) ) {
+            $shop_url = wc_get_page_permalink( 'shop' );
+            if ( ! empty( $shop_url ) && filter_var( $shop_url, FILTER_VALIDATE_URL ) ) {
+                return esc_url( $shop_url );
+            }
+        }
+
+        // Fallback to home
+        return esc_url( home_url( '/' ) );
+    }
+}
