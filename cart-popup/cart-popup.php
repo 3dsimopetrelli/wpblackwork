@@ -94,6 +94,7 @@ function bw_cart_popup_register_assets() {
             // FORZATO: Usa sempre /checkout/ invece di wc_get_checkout_url()
             // perché wc_get_checkout_url() potrebbe essere configurato male
             'checkoutUrl' => home_url('/checkout/'),
+            'shopUrl' => function_exists('wc_get_page_permalink') ? wc_get_page_permalink('shop') : home_url('/shop/'),
             'wc_ajax_url' => WC_AJAX::get_endpoint('%%endpoint%%'),
         ]
     );

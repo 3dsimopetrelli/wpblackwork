@@ -357,19 +357,32 @@
                 type: 'POST',
                 data: ajaxData,
                 success: function(response) {
-                    if (response.error && response.product_url) {
-                        window.location = response.product_url;
+                    // Gestisci errori WooCommerce (anche se HTTP status è 200)
+                    if (response.error) {
+                        // Se c'è un product_url, è un prodotto variabile che richiede selezione
+                        if (response.product_url) {
+                            window.location = response.product_url;
+                            return;
+                        }
+
+                        // Altrimenti mostra il modal di errore
+                        $button.removeClass('loading');
+                        self.showErrorModal(response.error);
                         return;
                     }
 
-                    // Trigger evento WooCommerce per aggiornare i fragments
+                    // Success: trigger evento WooCommerce per aggiornare i fragments
                     $(document.body).trigger('added_to_cart', [response.fragments, response.cart_hash, $button]);
 
                     $button.removeClass('loading');
                 },
-                error: function() {
-                    console.error('Error adding product to cart');
+                error: function(xhr, status, errorThrown) {
+                    console.error('Error adding product to cart:', status, errorThrown);
                     $button.removeClass('loading');
+
+                    // Mostra messaggio di errore generico
+                    const errorMessage = 'Unable to add product to cart. Please try again.';
+                    self.showErrorModal(errorMessage);
                 }
             });
         },
@@ -985,6 +998,168 @@
                     // Per ora, resettiamo il pulsante dopo la rimozione
                 }
             });
+        },
+
+        /**
+         * Mostra modal di errore con overlay
+         * @param {string} errorMessage - Messaggio di errore da mostrare
+         */
+        showErrorModal: function(errorMessage) {
+            const self = this;
+
+            // Rimuovi eventuali modal esistenti
+            $('.bw-cart-error-modal-overlay').remove();
+
+            // URL della pagina shop WooCommerce
+            const shopUrl = (bwCartPopupConfig && bwCartPopupConfig.shopUrl) || '/shop/';
+
+            // Crea l'overlay e il modal
+            const modalHtml = `
+                <div class="bw-cart-error-modal-overlay" style="
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background-color: rgba(0, 0, 0, 0.7);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 999999;
+                    opacity: 0;
+                    transition: opacity 0.3s ease;
+                ">
+                    <div class="bw-cart-error-modal" style="
+                        background: #fff;
+                        border-radius: 8px;
+                        padding: 40px 30px 30px;
+                        max-width: 500px;
+                        width: 90%;
+                        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+                        position: relative;
+                        transform: scale(0.9);
+                        transition: transform 0.3s ease;
+                    ">
+                        <div class="bw-cart-error-modal__content" style="
+                            text-align: center;
+                            margin-bottom: 25px;
+                        ">
+                            <div class="bw-cart-error-modal__icon" style="
+                                width: 60px;
+                                height: 60px;
+                                margin: 0 auto 20px;
+                                background-color: #e74c3c;
+                                border-radius: 50%;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                font-size: 32px;
+                                color: #fff;
+                            ">⚠</div>
+                            <div class="bw-cart-error-modal__message" style="
+                                font-size: 16px;
+                                line-height: 1.6;
+                                color: #333;
+                                margin-bottom: 10px;
+                            ">${errorMessage}</div>
+                        </div>
+                        <div class="bw-cart-error-modal__actions" style="
+                            display: flex;
+                            gap: 10px;
+                            justify-content: center;
+                        ">
+                            <button class="bw-cart-error-modal__btn bw-cart-error-modal__btn--shop" style="
+                                background-color: #80FD03;
+                                color: #000;
+                                border: none;
+                                padding: 12px 30px;
+                                border-radius: 4px;
+                                font-size: 14px;
+                                font-weight: 600;
+                                cursor: pointer;
+                                transition: all 0.3s ease;
+                            ">Return to Shop</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Aggiungi al body
+            $('body').append(modalHtml);
+
+            const $modalOverlay = $('.bw-cart-error-modal-overlay');
+            const $modal = $('.bw-cart-error-modal');
+
+            // Blocca scroll body
+            $('body').addClass('bw-cart-popup-no-scroll');
+
+            // Animazione fade-in
+            setTimeout(function() {
+                $modalOverlay.css('opacity', '1');
+                $modal.css('transform', 'scale(1)');
+            }, 10);
+
+            // Gestisci click sul pulsante "Return to Shop"
+            $modalOverlay.on('click', '.bw-cart-error-modal__btn--shop', function(e) {
+                e.preventDefault();
+                window.location.href = shopUrl;
+            });
+
+            // Chiudi modal al click sull'overlay (opzionale)
+            $modalOverlay.on('click', function(e) {
+                if ($(e.target).hasClass('bw-cart-error-modal-overlay')) {
+                    self.closeErrorModal();
+                }
+            });
+
+            // Chiudi con ESC
+            $(document).on('keyup.bwCartErrorModal', function(e) {
+                if (e.key === 'Escape') {
+                    self.closeErrorModal();
+                }
+            });
+
+            // Aggiungi effetto hover ai pulsanti
+            const hoverStyles = `
+                <style id="bw-cart-error-modal-styles">
+                    .bw-cart-error-modal__btn--shop:hover {
+                        background-color: #6ee002 !important;
+                        transform: translateY(-2px);
+                        box-shadow: 0 4px 12px rgba(128, 253, 3, 0.3);
+                    }
+                    .bw-cart-error-modal__btn--shop:active {
+                        transform: translateY(0);
+                    }
+                </style>
+            `;
+
+            if (!$('#bw-cart-error-modal-styles').length) {
+                $('head').append(hoverStyles);
+            }
+        },
+
+        /**
+         * Chiudi modal di errore
+         */
+        closeErrorModal: function() {
+            const $modalOverlay = $('.bw-cart-error-modal-overlay');
+
+            if (!$modalOverlay.length) {
+                return;
+            }
+
+            // Animazione fade-out
+            $modalOverlay.css('opacity', '0');
+            $modalOverlay.find('.bw-cart-error-modal').css('transform', 'scale(0.9)');
+
+            // Rimuovi dopo l'animazione
+            setTimeout(function() {
+                $modalOverlay.remove();
+                $('body').removeClass('bw-cart-popup-no-scroll');
+            }, 300);
+
+            // Rimuovi listener ESC
+            $(document).off('keyup.bwCartErrorModal');
         }
     };
 
