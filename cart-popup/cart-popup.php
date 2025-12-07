@@ -100,6 +100,7 @@ function bw_cart_popup_register_assets() {
             // perché wc_get_checkout_url() potrebbe essere configurato male
             'checkoutUrl' => home_url('/checkout/'),
             'shopUrl' => function_exists('wc_get_page_permalink') ? wc_get_page_permalink('shop') : home_url('/shop/'),
+            'cartUrl' => function_exists('wc_get_cart_url') ? wc_get_cart_url() : home_url('/cart/'),
             'wc_ajax_url' => $wc_ajax_url,
         ]
     );

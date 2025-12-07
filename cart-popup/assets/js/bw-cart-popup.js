@@ -343,6 +343,8 @@
 
             // Prepara i dati per la chiamata AJAX
             const ajaxData = {
+                action: 'bw_cart_popup_add_to_cart',
+                nonce: bwCartPopupConfig.nonce,
                 product_id: productId,
                 quantity: quantity
             };
@@ -353,28 +355,33 @@
             }
 
             $.ajax({
-                url: bwCartPopupConfig.wc_ajax_url.replace('%%endpoint%%', 'add_to_cart'),
+                url: bwCartPopupConfig.ajaxUrl,
                 type: 'POST',
                 data: ajaxData,
                 success: function(response) {
-                    // Gestisci errori WooCommerce (anche se HTTP status è 200)
-                    if (response.error) {
-                        // Se c'è un product_url, è un prodotto variabile che richiede selezione
-                        if (response.product_url) {
-                            window.location = response.product_url;
-                            return;
-                        }
+                    const payload = response && response.data ? response.data : response;
 
-                        // Altrimenti mostra il modal di errore
+                    if (payload && payload.status === 'already_in_cart') {
                         $button.removeClass('loading');
-                        self.showErrorModal(response.error);
+                        self.showAlreadyInCartModal(payload.message, payload.cart_url);
                         return;
                     }
 
-                    // Success: trigger evento WooCommerce per aggiornare i fragments
-                    $(document.body).trigger('added_to_cart', [response.fragments, response.cart_hash, $button]);
+                    if (response && response.success === false) {
+                        const message = payload && payload.message ? payload.message : 'Unable to add product to cart. Please try again.';
+                        $button.removeClass('loading');
+                        self.showErrorModal(message);
+                        return;
+                    }
+
+                    if (payload && payload.fragments) {
+                        $(document.body).trigger('added_to_cart', [payload.fragments, payload.cart_hash, $button]);
+                        $button.removeClass('loading');
+                        return;
+                    }
 
                     $button.removeClass('loading');
+                    self.showErrorModal('Unable to add product to cart. Please try again.');
                 },
                 error: function(xhr, status, errorThrown) {
                     console.error('Error adding product to cart:', status, errorThrown);
@@ -998,6 +1005,168 @@
                     // Per ora, resettiamo il pulsante dopo la rimozione
                 }
             });
+        },
+
+        /**
+         * Mostra pop-up dedicato quando il prodotto è già nel carrello
+         * @param {string} message - Messaggio da mostrare
+         * @param {string} cartUrl - URL del carrello
+         */
+        showAlreadyInCartModal: function(message, cartUrl) {
+            const self = this;
+            const safeMessage = message || 'This product is already in your cart.';
+            const targetCartUrl = cartUrl || (bwCartPopupConfig && bwCartPopupConfig.cartUrl) || '/cart/';
+            const shopUrl = (bwCartPopupConfig && bwCartPopupConfig.shopUrl) || '/shop/';
+
+            $('.bw-cart-already-modal-overlay').remove();
+
+            const modalHtml = `
+                <div class="bw-cart-already-modal-overlay" style="
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background-color: rgba(0, 0, 0, 0.7);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 999999;
+                    opacity: 0;
+                    transition: opacity 0.3s ease;
+                ">
+                    <div class="bw-cart-already-modal" style="
+                        background: #fff;
+                        border-radius: 10px;
+                        padding: 36px 32px 28px;
+                        max-width: 520px;
+                        width: 90%;
+                        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+                        position: relative;
+                        transform: scale(0.9);
+                        transition: transform 0.3s ease;
+                    ">
+                        <div class="bw-cart-already-modal__content" style="text-align: center; margin-bottom: 24px;">
+                            <div class="bw-cart-already-modal__icon" style="
+                                width: 64px;
+                                height: 64px;
+                                margin: 0 auto 18px;
+                                background-color: #f8f8f8;
+                                border-radius: 50%;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                font-size: 30px;
+                                color: #000;
+                            ">🛒</div>
+                            <div class="bw-cart-already-modal__message" style="
+                                font-size: 16px;
+                                line-height: 1.6;
+                                color: #333;
+                                margin-bottom: 6px;
+                            "></div>
+                            <div class="bw-cart-already-modal__hint" style="
+                                font-size: 14px;
+                                color: #666;
+                            ">This item is sold individually.</div>
+                        </div>
+                        <div class="bw-cart-already-modal__actions" style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                            <button class="bw-cart-already-modal__btn bw-cart-already-modal__btn--cart" style="
+                                background-color: #111;
+                                color: #fff;
+                                border: none;
+                                padding: 12px 26px;
+                                border-radius: 6px;
+                                font-size: 14px;
+                                font-weight: 700;
+                                cursor: pointer;
+                                transition: all 0.3s ease;
+                            ">Vai al carrello</button>
+                            <button class="bw-cart-already-modal__btn bw-cart-already-modal__btn--continue" style="
+                                background-color: #f4f4f4;
+                                color: #000;
+                                border: 1px solid #e0e0e0;
+                                padding: 12px 26px;
+                                border-radius: 6px;
+                                font-size: 14px;
+                                font-weight: 700;
+                                cursor: pointer;
+                                transition: all 0.3s ease;
+                            ">Continua lo shopping</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            $('body').append(modalHtml);
+
+            const $modalOverlay = $('.bw-cart-already-modal-overlay');
+            const $modal = $('.bw-cart-already-modal');
+
+            $modal.find('.bw-cart-already-modal__message').text(safeMessage);
+
+            $('body').addClass('bw-cart-popup-no-scroll');
+
+            setTimeout(function() {
+                $modalOverlay.css('opacity', '1');
+                $modal.css('transform', 'scale(1)');
+            }, 10);
+
+            $modalOverlay.on('click', '.bw-cart-already-modal__btn--cart', function(e) {
+                e.preventDefault();
+                window.location.href = targetCartUrl;
+            });
+
+            $modalOverlay.on('click', '.bw-cart-already-modal__btn--continue', function(e) {
+                e.preventDefault();
+                self.closeAlreadyInCartModal();
+                window.location.href = shopUrl;
+            });
+
+            $modalOverlay.on('click', function(e) {
+                if ($(e.target).hasClass('bw-cart-already-modal-overlay')) {
+                    self.closeAlreadyInCartModal();
+                }
+            });
+
+            $(document).on('keyup.bwCartAlreadyModal', function(e) {
+                if (e.key === 'Escape') {
+                    self.closeAlreadyInCartModal();
+                }
+            });
+
+            const hoverStyles = `
+                <style id="bw-cart-already-modal-styles">
+                    .bw-cart-already-modal__btn--cart:hover { background-color: #000; color: #fff; transform: translateY(-1px); }
+                    .bw-cart-already-modal__btn--continue:hover { background-color: #e9e9e9; transform: translateY(-1px); }
+                    .bw-cart-already-modal__btn:active { transform: translateY(0); }
+                </style>
+            `;
+
+            if (!$('#bw-cart-already-modal-styles').length) {
+                $('head').append(hoverStyles);
+            }
+        },
+
+        /**
+         * Chiudi il pop-up dedicato già nel carrello
+         */
+        closeAlreadyInCartModal: function() {
+            const $modalOverlay = $('.bw-cart-already-modal-overlay');
+
+            if (!$modalOverlay.length) {
+                return;
+            }
+
+            $modalOverlay.css('opacity', '0');
+            $modalOverlay.find('.bw-cart-already-modal').css('transform', 'scale(0.9)');
+
+            setTimeout(function() {
+                $modalOverlay.remove();
+                $('body').removeClass('bw-cart-popup-no-scroll');
+            }, 300);
+
+            $(document).off('keyup.bwCartAlreadyModal');
         },
 
         /**
