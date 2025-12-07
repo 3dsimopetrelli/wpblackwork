@@ -580,9 +580,6 @@
                 $('.bw-cart-popup-discount').hide();
             }
 
-            // VAT
-            $('.bw-cart-popup-vat .value').html(data.tax).attr('data-tax', data.tax_raw);
-
             // Total
             $('.bw-cart-popup-total .value').html(data.total).attr('data-total', data.total_raw);
         },
