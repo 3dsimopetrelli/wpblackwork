@@ -12,6 +12,31 @@ if (!defined('ABSPATH')) {
 }
 
 /**
+ * Safely retrieve WooCommerce cart instance.
+ *
+ * @return WC_Cart|null
+ */
+function bw_cart_popup_get_cart_instance() {
+    if ( ! function_exists( 'WC' ) ) {
+        return null;
+    }
+
+    $wc = WC();
+
+    if ( ! $wc || ! isset( $wc->cart ) ) {
+        return null;
+    }
+
+    $cart = $wc->cart;
+
+    if ( ! $cart || ! class_exists( 'WC_Cart' ) || ! $cart instanceof WC_Cart ) {
+        return null;
+    }
+
+    return $cart;
+}
+
+/**
  * Aggiungi il markup HTML del cart pop-up nel footer
  * NOTA: Il markup viene sempre renderizzato perché è necessario anche per i widget
  * (anche se l'opzione globale cart popup è disattivata)
@@ -384,7 +409,11 @@ function bw_cart_popup_get_cart_contents() {
         wp_send_json_error(['message' => 'WooCommerce not active']);
     }
 
-    $cart = WC()->cart;
+    $cart = bw_cart_popup_get_cart_instance();
+
+    if ( ! $cart ) {
+        wp_send_json_error(['message' => 'Cart not initialized']);
+    }
     $cart_items = [];
     $subtotal = 0;
     $discount = 0;
@@ -451,13 +480,17 @@ function bw_cart_popup_apply_coupon() {
         wp_send_json_error(['message' => 'Please enter a coupon code']);
     }
 
-    $result = WC()->cart->apply_coupon($coupon_code);
+    $cart = bw_cart_popup_get_cart_instance();
+
+    if ( ! $cart ) {
+        wp_send_json_error(['message' => 'Cart not initialized']);
+    }
+
+    $result = $cart->apply_coupon($coupon_code);
 
     if ($result) {
         // Ricalcola i totali
-        WC()->cart->calculate_totals();
-
-        $cart = WC()->cart;
+        $cart->calculate_totals();
         $subtotal = $cart->get_subtotal();
         $discount = $cart->get_discount_total();
         $tax = $cart->get_total_tax();
@@ -516,13 +549,17 @@ function bw_cart_popup_remove_coupon() {
         wp_send_json_error(['message' => 'Please provide a coupon code']);
     }
 
-    $result = WC()->cart->remove_coupon($coupon_code);
+    $cart = bw_cart_popup_get_cart_instance();
+
+    if ( ! $cart ) {
+        wp_send_json_error(['message' => 'Cart not initialized']);
+    }
+
+    $result = $cart->remove_coupon($coupon_code);
 
     if ($result) {
         // Ricalcola i totali
-        WC()->cart->calculate_totals();
-
-        $cart = WC()->cart;
+        $cart->calculate_totals();
         $subtotal = $cart->get_subtotal();
         $discount = $cart->get_discount_total();
         $tax = $cart->get_total_tax();
@@ -564,11 +601,17 @@ function bw_cart_popup_remove_item() {
         wp_send_json_error(['message' => 'Invalid cart item']);
     }
 
-    $result = WC()->cart->remove_cart_item($cart_item_key);
+    $cart = bw_cart_popup_get_cart_instance();
+
+    if ( ! $cart ) {
+        wp_send_json_error(['message' => 'Cart not initialized']);
+    }
+
+    $result = $cart->remove_cart_item($cart_item_key);
 
     if ($result) {
         // Ricalcola i totali
-        WC()->cart->calculate_totals();
+        $cart->calculate_totals();
 
         wp_send_json_success(['message' => 'Item removed from cart']);
     } else {
@@ -588,6 +631,12 @@ function bw_cart_popup_update_quantity() {
         wp_send_json_error(['message' => 'WooCommerce not active']);
     }
 
+    $cart = bw_cart_popup_get_cart_instance();
+
+    if ( ! $cart ) {
+        wp_send_json_error(['message' => 'Cart not initialized']);
+    }
+
     $cart_item_key = isset($_POST['cart_item_key']) ? sanitize_text_field($_POST['cart_item_key']) : '';
     $quantity = isset($_POST['quantity']) ? intval($_POST['quantity']) : 1;
 
@@ -597,14 +646,14 @@ function bw_cart_popup_update_quantity() {
 
     if ($quantity == 0) {
         // Rimuovi il prodotto se la quantità è 0
-        WC()->cart->remove_cart_item($cart_item_key);
+        $cart->remove_cart_item($cart_item_key);
     } else {
         // Aggiorna la quantità
-        WC()->cart->set_quantity($cart_item_key, $quantity);
+        $cart->set_quantity($cart_item_key, $quantity);
     }
 
     // Ricalcola i totali
-    WC()->cart->calculate_totals();
+    $cart->calculate_totals();
 
     wp_send_json_success(['message' => 'Quantity updated']);
 }

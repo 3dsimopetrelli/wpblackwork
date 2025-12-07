@@ -84,6 +84,11 @@ function bw_cart_popup_register_assets() {
         'continue_btn_color' => get_option('bw_cart_popup_continue_color', '#6c757d'),
     ];
 
+    $wc_ajax_url = admin_url('admin-ajax.php');
+    if ( class_exists( 'WC_AJAX' ) && method_exists( 'WC_AJAX', 'get_endpoint' ) ) {
+        $wc_ajax_url = WC_AJAX::get_endpoint('%%endpoint%%');
+    }
+
     wp_localize_script(
         'bw-cart-popup-script',
         'bwCartPopupConfig',
@@ -95,7 +100,7 @@ function bw_cart_popup_register_assets() {
             // perché wc_get_checkout_url() potrebbe essere configurato male
             'checkoutUrl' => home_url('/checkout/'),
             'shopUrl' => function_exists('wc_get_page_permalink') ? wc_get_page_permalink('shop') : home_url('/shop/'),
-            'wc_ajax_url' => WC_AJAX::get_endpoint('%%endpoint%%'),
+            'wc_ajax_url' => $wc_ajax_url,
         ]
     );
 }
