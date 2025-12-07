@@ -106,6 +106,9 @@ function bw_cart_popup_render_panel() {
             <div class="bw-cart-popup-promo">
                 <p class="bw-cart-popup-promo-trigger">
                     Have a promo code? <a href="#" class="bw-promo-link">Click here.</a>
+                    <span class="bw-promo-remove-wrapper" style="display: none;">
+                        <a href="#" class="bw-promo-remove-link">Remove coupon</a>
+                    </span>
                 </p>
                 <div class="bw-cart-popup-promo-box" style="display: none;">
                     <div class="bw-promo-input-wrapper">
@@ -412,6 +415,9 @@ function bw_cart_popup_get_cart_contents() {
         $total = $cart->get_total('');
     }
 
+    // Ottieni i coupon applicati
+    $applied_coupons = $cart->get_applied_coupons();
+
     wp_send_json_success([
         'items' => $cart_items,
         'subtotal' => wc_price($subtotal),
@@ -423,6 +429,7 @@ function bw_cart_popup_get_cart_contents() {
         'total' => wc_price($total),
         'total_raw' => $total,
         'empty' => $cart->is_empty(),
+        'applied_coupons' => $applied_coupons,
     ]);
 }
 add_action('wp_ajax_bw_cart_popup_get_contents', 'bw_cart_popup_get_cart_contents');
@@ -455,6 +462,7 @@ function bw_cart_popup_apply_coupon() {
         $discount = $cart->get_discount_total();
         $tax = $cart->get_total_tax();
         $total = $cart->get_total('');
+        $applied_coupons = $cart->get_applied_coupons();
 
         wp_send_json_success([
             'message' => 'Coupon applied successfully!',
@@ -466,6 +474,7 @@ function bw_cart_popup_apply_coupon() {
             'tax_raw' => $tax,
             'total' => wc_price($total),
             'total_raw' => $total,
+            'applied_coupons' => $applied_coupons,
         ]);
     } else {
         // Ottieni il messaggio di errore di WooCommerce
@@ -478,6 +487,54 @@ function bw_cart_popup_apply_coupon() {
 }
 add_action('wp_ajax_bw_cart_popup_apply_coupon', 'bw_cart_popup_apply_coupon');
 add_action('wp_ajax_nopriv_bw_cart_popup_apply_coupon', 'bw_cart_popup_apply_coupon');
+
+/**
+ * AJAX: Rimuovi coupon
+ */
+function bw_cart_popup_remove_coupon() {
+    check_ajax_referer('bw_cart_popup_nonce', 'nonce');
+
+    if (!class_exists('WooCommerce')) {
+        wp_send_json_error(['message' => 'WooCommerce not active']);
+    }
+
+    $coupon_code = isset($_POST['coupon_code']) ? sanitize_text_field($_POST['coupon_code']) : '';
+
+    if (empty($coupon_code)) {
+        wp_send_json_error(['message' => 'Please provide a coupon code']);
+    }
+
+    $result = WC()->cart->remove_coupon($coupon_code);
+
+    if ($result) {
+        // Ricalcola i totali
+        WC()->cart->calculate_totals();
+
+        $cart = WC()->cart;
+        $subtotal = $cart->get_subtotal();
+        $discount = $cart->get_discount_total();
+        $tax = $cart->get_total_tax();
+        $total = $cart->get_total('');
+        $applied_coupons = $cart->get_applied_coupons();
+
+        wp_send_json_success([
+            'message' => 'Coupon removed successfully!',
+            'subtotal' => wc_price($subtotal),
+            'subtotal_raw' => $subtotal,
+            'discount' => wc_price($discount),
+            'discount_raw' => $discount,
+            'tax' => wc_price($tax),
+            'tax_raw' => $tax,
+            'total' => wc_price($total),
+            'total_raw' => $total,
+            'applied_coupons' => $applied_coupons,
+        ]);
+    } else {
+        wp_send_json_error(['message' => 'Failed to remove coupon']);
+    }
+}
+add_action('wp_ajax_bw_cart_popup_remove_coupon', 'bw_cart_popup_remove_coupon');
+add_action('wp_ajax_nopriv_bw_cart_popup_remove_coupon', 'bw_cart_popup_remove_coupon');
 
 /**
  * AJAX: Rimuovi prodotto dal carrello
