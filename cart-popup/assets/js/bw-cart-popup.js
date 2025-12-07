@@ -22,6 +22,8 @@
         $promoBox: null,
         $promoTrigger: null,
         $promoMessage: null,
+        $promoRemoveWrapper: null,
+        $promoRemoveLink: null,
         $closeBtn: null,
         $continueBtn: null,
         $cartBadge: null,
@@ -33,6 +35,7 @@
         isOpen: false,
         isLoading: false,
         lastAddedButton: null,
+        appliedCoupons: [],
 
         /**
          * Inizializzazione
@@ -48,6 +51,8 @@
             this.$promoBox = $('.bw-cart-popup-promo-box');
             this.$promoTrigger = $('.bw-promo-link');
             this.$promoMessage = $('.bw-promo-message');
+            this.$promoRemoveWrapper = $('.bw-promo-remove-wrapper');
+            this.$promoRemoveLink = $('.bw-promo-remove-link');
             this.$closeBtn = $('.bw-cart-popup-close');
             this.$continueBtn = $('.bw-cart-popup-continue');
             this.$cartBadge = $('.bw-cart-badge');
@@ -129,6 +134,12 @@
                     e.preventDefault();
                     self.applyCoupon();
                 }
+            });
+
+            // Rimuovi coupon
+            this.$promoRemoveLink.on('click', function(e) {
+                e.preventDefault();
+                self.removeCoupon();
             });
 
             // Rimuovi prodotto dal carrello
@@ -468,6 +479,7 @@
                     if (response.success) {
                         self.renderCartItems(response.data);
                         self.updateTotals(response.data);
+                        self.updateCouponDisplay(response.data.applied_coupons || []);
                         self.isLoading = false;
 
                         // Nascondi loading con un leggero delay per evitare flickering
@@ -624,6 +636,7 @@
                     if (response.success) {
                         self.showPromoMessage(response.data.message, 'success');
                         self.updateTotals(response.data);
+                        self.updateCouponDisplay(response.data.applied_coupons || []);
                         $('.bw-promo-input').val('');
                     } else {
                         self.showPromoMessage(response.data.message, 'error');
@@ -634,6 +647,58 @@
                 error: function() {
                     self.showPromoMessage('Error applying coupon', 'error');
                     $applyBtn.prop('disabled', false).text('Apply');
+                }
+            });
+        },
+
+        /**
+         * Aggiorna il display del coupon (mostra/nascondi link "Remove coupon")
+         */
+        updateCouponDisplay: function(appliedCoupons) {
+            this.appliedCoupons = appliedCoupons || [];
+
+            if (this.appliedCoupons.length > 0) {
+                // Se ci sono coupon applicati, mostra il link "Remove coupon"
+                this.$promoRemoveWrapper.fadeIn(200);
+            } else {
+                // Se non ci sono coupon applicati, nascondi il link "Remove coupon"
+                this.$promoRemoveWrapper.fadeOut(200);
+            }
+        },
+
+        /**
+         * Rimuovi coupon
+         */
+        removeCoupon: function() {
+            const self = this;
+
+            // Ottieni il primo coupon applicato (in questo caso assumiamo ci sia solo un coupon)
+            if (!this.appliedCoupons || this.appliedCoupons.length === 0) {
+                this.showPromoMessage('No coupon to remove', 'error');
+                return;
+            }
+
+            const couponCode = this.appliedCoupons[0];
+
+            $.ajax({
+                url: bwCartPopupConfig.ajaxUrl,
+                type: 'POST',
+                data: {
+                    action: 'bw_cart_popup_remove_coupon',
+                    nonce: bwCartPopupConfig.nonce,
+                    coupon_code: couponCode
+                },
+                success: function(response) {
+                    if (response.success) {
+                        self.showPromoMessage(response.data.message, 'success');
+                        self.updateTotals(response.data);
+                        self.updateCouponDisplay(response.data.applied_coupons || []);
+                    } else {
+                        self.showPromoMessage(response.data.message, 'error');
+                    }
+                },
+                error: function() {
+                    self.showPromoMessage('Error removing coupon', 'error');
                 }
             });
         },
