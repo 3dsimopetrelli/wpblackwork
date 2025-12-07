@@ -479,7 +479,19 @@ function bw_cart_popup_apply_coupon() {
     } else {
         // Ottieni il messaggio di errore di WooCommerce
         $error_messages = wc_get_notices('error');
-        $message = !empty($error_messages) ? strip_tags($error_messages[0]['notice']) : 'Invalid coupon code';
+        $message = 'Invalid coupon code';
+
+        // Gestione robusta degli errori WooCommerce
+        if (!empty($error_messages) && is_array($error_messages)) {
+            // WooCommerce può restituire diversi formati di notice
+            $first_error = reset($error_messages);
+            if (is_array($first_error) && isset($first_error['notice'])) {
+                $message = wp_strip_all_tags($first_error['notice']);
+            } elseif (is_string($first_error)) {
+                $message = wp_strip_all_tags($first_error);
+            }
+        }
+
         wc_clear_notices();
 
         wp_send_json_error(['message' => $message]);
