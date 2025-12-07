@@ -332,7 +332,7 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
         $settings      = $this->get_settings_for_display();
         $columns       = isset( $settings['columns'] ) ? max( 1, absint( $settings['columns'] ) ) : 1;
         $gap                  = isset( $settings['gap']['size'] ) ? max( 0, absint( $settings['gap']['size'] ) ) : 0;
-        $image_height_data    = $this->get_slider_value_with_unit( $settings, 'image_height', 420, 'px' );
+        $image_height_data    = BW_Widget_Helper::get_slider_value_with_unit( $settings, 'image_height', 420, 'px' );
         $image_height_value   = isset( $image_height_data['size'] ) ? max( 0, (float) $image_height_data['size'] ) : 0;
         $image_height_unit    = isset( $image_height_data['unit'] ) ? $image_height_data['unit'] : 'px';
         $image_crop    = isset( $settings['image_crop'] ) && 'yes' === $settings['image_crop'];
