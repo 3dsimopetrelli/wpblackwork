@@ -602,6 +602,19 @@
       $(window).off('resize.bwProductSlideDots-' + $container.data('dotsResizeEvent'));
       $(window).off('resize.bwProductSlideCount-' + $container.data('slideCountResizeEvent'));
 
+      // Rimuovi listener dell'editor per i controlli
+      var previousControlsHandler = $slider.data('bwControlsEditorHandler');
+      if (
+        previousControlsHandler &&
+        window.elementor &&
+        elementor.channels &&
+        elementor.channels.editor &&
+        typeof elementor.channels.editor.off === 'function'
+      ) {
+        elementor.channels.editor.off('change', previousControlsHandler);
+        $slider.removeData('bwControlsEditorHandler');
+      }
+
       var defaults = {
         slidesToShow: 1,
         slidesToScroll: 1,
@@ -865,6 +878,64 @@
       var slideCountResizeEventId = Date.now();
       $container.data('slideCountResizeEvent', slideCountResizeEventId);
       $(window).on('resize.bwProductSlideCount-' + slideCountResizeEventId, updateSlideCountVisibility);
+
+      // Listener per l'editor di Elementor - aggiorna i controlli quando cambiano le impostazioni
+      if (
+        window.elementorFrontend &&
+        elementorFrontend.isEditMode() &&
+        window.elementor &&
+        elementor.channels &&
+        elementor.channels.editor &&
+        typeof elementor.channels.editor.on === 'function'
+      ) {
+        var controlsEditorHandler = function (panel) {
+          if (!panel || !panel.changed) {
+            return;
+          }
+
+          var changedKeys = Object.keys(panel.changed);
+          var shouldUpdateControls = changedKeys.some(function (key) {
+            if (typeof key !== 'string') {
+              return false;
+            }
+
+            return (
+              key.indexOf('responsive') !== -1 ||
+              key.indexOf('arrows') !== -1 ||
+              key.indexOf('dots') !== -1 ||
+              key.indexOf('show_slide_count') !== -1
+            );
+          });
+
+          if (shouldUpdateControls) {
+            // Ricarica le impostazioni dello slider
+            var newSettings = buildSettings({
+              slidesToShow: 1,
+              slidesToScroll: 1,
+              arrows: true,
+              dots: false,
+              infinite: true,
+              speed: 600,
+              fade: false,
+              prevArrow: $container.find('.bw-prev'),
+              nextArrow: $container.find('.bw-next'),
+            }, parseSettings($slider));
+
+            // Aggiorna le settings locali
+            settings = newSettings;
+
+            // Aggiorna tutti i controlli
+            setTimeout(function () {
+              updateArrowsVisibility();
+              updateDotsVisibility();
+              updateSlideCountVisibility();
+            }, 100);
+          }
+        };
+
+        elementor.channels.editor.on('change', controlsEditorHandler);
+        $slider.data('bwControlsEditorHandler', controlsEditorHandler);
+      }
 
       bindPopup($container);
     });
