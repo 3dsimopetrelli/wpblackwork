@@ -16,6 +16,31 @@
     align-items: flex-start;
 }
 
+@media (min-width: 960px) {
+    /* Fallback layout using native WooCommerce wrappers to preserve AJAX-ready structure */
+    form.checkout.woocommerce-checkout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 420px;
+        gap: 32px;
+        align-items: flex-start;
+    }
+
+    form.checkout.woocommerce-checkout #customer_details,
+    form.checkout.woocommerce-checkout .col2-set {
+        grid-column: 1;
+    }
+
+    form.checkout.woocommerce-checkout #order_review,
+    form.checkout.woocommerce-checkout .woocommerce-checkout-review-order {
+        grid-column: 2;
+    }
+
+    form.checkout.woocommerce-checkout #order_review {
+        position: sticky;
+        top: 20px;
+    }
+}
+
 .bw-checkout-left {
     background: var(--bw-checkout-left-bg);
     padding: 24px;
