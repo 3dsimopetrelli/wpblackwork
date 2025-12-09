@@ -908,28 +908,29 @@
           });
 
           if (shouldUpdateControls) {
-            // Ricarica le impostazioni dello slider
-            var newSettings = buildSettings({
-              slidesToShow: 1,
-              slidesToScroll: 1,
-              arrows: true,
-              dots: false,
-              infinite: true,
-              speed: 600,
-              fade: false,
-              prevArrow: $container.find('.bw-prev'),
-              nextArrow: $container.find('.bw-next'),
-            }, parseSettings($slider));
-
-            // Aggiorna le settings locali
-            settings = newSettings;
-
-            // Aggiorna tutti i controlli
+            // Attendi che Elementor aggiorni il DOM
             setTimeout(function () {
+              // Ricarica le impostazioni dal DOM aggiornato
+              var newSettings = buildSettings({
+                slidesToShow: 1,
+                slidesToScroll: 1,
+                arrows: true,
+                dots: false,
+                infinite: true,
+                speed: 600,
+                fade: false,
+                prevArrow: $container.find('.bw-prev'),
+                nextArrow: $container.find('.bw-next'),
+              }, parseSettings($slider));
+
+              // Aggiorna le settings locali
+              settings.responsive = newSettings.responsive || [];
+
+              // Forza l'aggiornamento immediato di tutti i controlli con le nuove settings
               updateArrowsVisibility();
               updateDotsVisibility();
               updateSlideCountVisibility();
-            }, 100);
+            }, 250);
           }
         };
 
