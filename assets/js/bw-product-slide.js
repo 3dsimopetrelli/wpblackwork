@@ -602,6 +602,19 @@
       $(window).off('resize.bwProductSlideDots-' + $container.data('dotsResizeEvent'));
       $(window).off('resize.bwProductSlideCount-' + $container.data('slideCountResizeEvent'));
 
+      // Rimuovi listener dell'editor per i controlli
+      var previousControlsHandler = $slider.data('bwControlsEditorHandler');
+      if (
+        previousControlsHandler &&
+        window.elementor &&
+        elementor.channels &&
+        elementor.channels.editor &&
+        typeof elementor.channels.editor.off === 'function'
+      ) {
+        elementor.channels.editor.off('change', previousControlsHandler);
+        $slider.removeData('bwControlsEditorHandler');
+      }
+
       var defaults = {
         slidesToShow: 1,
         slidesToScroll: 1,
@@ -718,20 +731,28 @@
 
         // Controlla se c'è una configurazione responsive per le frecce
         if (Array.isArray(settings.responsive)) {
-          // Ordina i breakpoint in modo DECRESCENTE
+          // Ordina i breakpoint dal più piccolo al più grande
           var sortedBreakpoints = settings.responsive
             .slice()
             .sort(function (a, b) {
-              return b.breakpoint - a.breakpoint;
+              return a.breakpoint - b.breakpoint;
             });
 
-          // Trova il breakpoint più grande che è <= alla viewport corrente
-          for (var i = 0; i < sortedBreakpoints.length; i++) {
+          // Trova il breakpoint più piccolo che è >= alla viewport (max-width logic)
+          // Parti dal più grande e scendi verso il più piccolo
+          var matchedBreakpoint = null;
+          for (var i = sortedBreakpoints.length - 1; i >= 0; i--) {
             var bp = sortedBreakpoints[i];
-            if (bp.breakpoint <= windowWidth && bp.settings && typeof bp.settings.arrows !== 'undefined') {
-              showArrows = bp.settings.arrows !== false;
-              break;
+            if (windowWidth <= bp.breakpoint) {
+              matchedBreakpoint = bp;
+            } else {
+              break; // Smetti di cercare, i successivi sono più piccoli
             }
+          }
+
+          // Applica le impostazioni del breakpoint trovato
+          if (matchedBreakpoint && matchedBreakpoint.settings && typeof matchedBreakpoint.settings.arrows !== 'undefined') {
+            showArrows = matchedBreakpoint.settings.arrows !== false;
           }
         }
 
@@ -763,20 +784,27 @@
 
         // Controlla se c'è una configurazione responsive per i dots
         if (Array.isArray(settings.responsive)) {
-          // Ordina i breakpoint in modo DECRESCENTE
+          // Ordina i breakpoint dal più piccolo al più grande
           var sortedBreakpoints = settings.responsive
             .slice()
             .sort(function (a, b) {
-              return b.breakpoint - a.breakpoint;
+              return a.breakpoint - b.breakpoint;
             });
 
-          // Trova il breakpoint più grande che è <= alla viewport corrente
-          for (var i = 0; i < sortedBreakpoints.length; i++) {
+          // Trova il breakpoint più piccolo che è >= alla viewport (max-width logic)
+          var matchedBreakpoint = null;
+          for (var i = sortedBreakpoints.length - 1; i >= 0; i--) {
             var bp = sortedBreakpoints[i];
-            if (bp.breakpoint <= windowWidth && bp.settings && typeof bp.settings.dots !== 'undefined') {
-              showDots = bp.settings.dots !== false;
+            if (windowWidth <= bp.breakpoint) {
+              matchedBreakpoint = bp;
+            } else {
               break;
             }
+          }
+
+          // Applica le impostazioni del breakpoint trovato
+          if (matchedBreakpoint && matchedBreakpoint.settings && typeof matchedBreakpoint.settings.dots !== 'undefined') {
+            showDots = matchedBreakpoint.settings.dots !== false;
           }
         }
 
@@ -806,20 +834,27 @@
 
         // Controlla se c'è una configurazione responsive per showSlideCount
         if (Array.isArray(settings.responsive)) {
-          // Ordina i breakpoint in modo DECRESCENTE
+          // Ordina i breakpoint dal più piccolo al più grande
           var sortedBreakpoints = settings.responsive
             .slice()
             .sort(function (a, b) {
-              return b.breakpoint - a.breakpoint;
+              return a.breakpoint - b.breakpoint;
             });
 
-          // Trova il breakpoint più grande che è <= alla viewport corrente
-          for (var i = 0; i < sortedBreakpoints.length; i++) {
+          // Trova il breakpoint più piccolo che è >= alla viewport (max-width logic)
+          var matchedBreakpoint = null;
+          for (var i = sortedBreakpoints.length - 1; i >= 0; i--) {
             var bp = sortedBreakpoints[i];
-            if (bp.breakpoint <= windowWidth && bp.settings && typeof bp.settings.showSlideCount !== 'undefined') {
-              showSlideCount = bp.settings.showSlideCount;
+            if (windowWidth <= bp.breakpoint) {
+              matchedBreakpoint = bp;
+            } else {
               break;
             }
+          }
+
+          // Applica le impostazioni del breakpoint trovato
+          if (matchedBreakpoint && matchedBreakpoint.settings && typeof matchedBreakpoint.settings.showSlideCount !== 'undefined') {
+            showSlideCount = matchedBreakpoint.settings.showSlideCount;
           }
         }
 
@@ -843,6 +878,64 @@
       var slideCountResizeEventId = Date.now();
       $container.data('slideCountResizeEvent', slideCountResizeEventId);
       $(window).on('resize.bwProductSlideCount-' + slideCountResizeEventId, updateSlideCountVisibility);
+
+      // Listener per l'editor di Elementor - aggiorna i controlli quando cambiano le impostazioni
+      if (
+        window.elementorFrontend &&
+        elementorFrontend.isEditMode() &&
+        window.elementor &&
+        elementor.channels &&
+        elementor.channels.editor &&
+        typeof elementor.channels.editor.on === 'function'
+      ) {
+        var controlsEditorHandler = function (panel) {
+          if (!panel || !panel.changed) {
+            return;
+          }
+
+          var changedKeys = Object.keys(panel.changed);
+          var shouldUpdateControls = changedKeys.some(function (key) {
+            if (typeof key !== 'string') {
+              return false;
+            }
+
+            return (
+              key.indexOf('responsive') !== -1 ||
+              key.indexOf('arrows') !== -1 ||
+              key.indexOf('dots') !== -1 ||
+              key.indexOf('show_slide_count') !== -1
+            );
+          });
+
+          if (shouldUpdateControls) {
+            // Ricarica le impostazioni dello slider
+            var newSettings = buildSettings({
+              slidesToShow: 1,
+              slidesToScroll: 1,
+              arrows: true,
+              dots: false,
+              infinite: true,
+              speed: 600,
+              fade: false,
+              prevArrow: $container.find('.bw-prev'),
+              nextArrow: $container.find('.bw-next'),
+            }, parseSettings($slider));
+
+            // Aggiorna le settings locali
+            settings = newSettings;
+
+            // Aggiorna tutti i controlli
+            setTimeout(function () {
+              updateArrowsVisibility();
+              updateDotsVisibility();
+              updateSlideCountVisibility();
+            }, 100);
+          }
+        };
+
+        elementor.channels.editor.on('change', controlsEditorHandler);
+        $slider.data('bwControlsEditorHandler', controlsEditorHandler);
+      }
 
       bindPopup($container);
     });
