@@ -111,6 +111,7 @@ function bw_mew_enqueue_checkout_assets() {
     }
 
     $css_file = BW_MEW_PATH . 'assets/css/bw-checkout.css';
+    $js_file  = BW_MEW_PATH . 'assets/js/bw-checkout.js';
     $version  = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
     $settings = bw_mew_get_checkout_settings();
 
@@ -120,6 +121,17 @@ function bw_mew_enqueue_checkout_assets() {
         [],
         $version
     );
+
+    if ( file_exists( $js_file ) ) {
+        $js_version = filemtime( $js_file );
+        wp_enqueue_script(
+            'bw-checkout',
+            BW_MEW_URL . 'assets/js/bw-checkout.js',
+            [ 'jquery' ],
+            $js_version,
+            true
+        );
+    }
 
     $inline_styles = '.bw-checkout-form{--bw-checkout-left-bg:' . esc_attr( $settings['left_bg'] ) . ';--bw-checkout-right-bg:' . esc_attr( $settings['right_bg'] ) . ';--bw-checkout-border-color:' . esc_attr( $settings['border_color'] ) . ';}';
 
