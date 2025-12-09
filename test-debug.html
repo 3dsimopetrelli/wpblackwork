@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Test</title>
+</head>
+<body>
+    <h1>Apri la console per vedere il debug</h1>
+    <script>
+        // Simula i dati che dovrebbero arrivare dal PHP
+        var testSettings = {
+            responsive: [
+                {
+                    breakpoint: 2000,
+                    settings: {
+                        arrows: false,  // OFF in Elementor
+                        dots: false,
+                        showSlideCount: false
+                    }
+                }
+            ]
+        };
+        
+        console.log('Test settings:', JSON.stringify(testSettings, null, 2));
+        
+        // Test della logica di matching
+        var windowWidth = 1920; // Viewport corrente
+        console.log('Window width:', windowWidth);
+        
+        var sortedBreakpoints = testSettings.responsive.slice().sort(function(a, b) {
+            return a.breakpoint - b.breakpoint;
+        });
+        
+        var matchedBreakpoint = null;
+        for (var i = sortedBreakpoints.length - 1; i >= 0; i--) {
+            var bp = sortedBreakpoints[i];
+            console.log('Checking breakpoint:', bp.breakpoint, 'vs', windowWidth);
+            if (windowWidth <= bp.breakpoint) {
+                matchedBreakpoint = bp;
+                console.log('MATCHED!');
+            } else {
+                console.log('NOT matched, breaking');
+                break;
+            }
+        }
+        
+        if (matchedBreakpoint) {
+            console.log('Final matched breakpoint:', matchedBreakpoint);
+            console.log('Arrows should be:', matchedBreakpoint.settings.arrows);
+            console.log('ShowSlideCount should be:', matchedBreakpoint.settings.showSlideCount);
+        } else {
+            console.log('No breakpoint matched - using defaults');
+        }
+    </script>
+</body>
+</html>

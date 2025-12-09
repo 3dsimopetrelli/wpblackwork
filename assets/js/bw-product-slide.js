@@ -602,19 +602,6 @@
       $(window).off('resize.bwProductSlideDots-' + $container.data('dotsResizeEvent'));
       $(window).off('resize.bwProductSlideCount-' + $container.data('slideCountResizeEvent'));
 
-      // Rimuovi listener dell'editor per i controlli
-      var previousControlsHandler = $slider.data('bwControlsEditorHandler');
-      if (
-        previousControlsHandler &&
-        window.elementor &&
-        elementor.channels &&
-        elementor.channels.editor &&
-        typeof elementor.channels.editor.off === 'function'
-      ) {
-        elementor.channels.editor.off('change', previousControlsHandler);
-        $slider.removeData('bwControlsEditorHandler');
-      }
-
       var defaults = {
         slidesToShow: 1,
         slidesToScroll: 1,
@@ -729,6 +716,9 @@
         var showArrows = settings.arrows !== false;
         var windowWidth = $(window).width();
 
+        console.log('[BW Arrows] Window width:', windowWidth);
+        console.log('[BW Arrows] Settings.responsive:', settings.responsive);
+
         // Controlla se c'è una configurazione responsive per le frecce
         if (Array.isArray(settings.responsive)) {
           // Ordina i breakpoint dal più piccolo al più grande
@@ -743,6 +733,7 @@
           var matchedBreakpoint = null;
           for (var i = sortedBreakpoints.length - 1; i >= 0; i--) {
             var bp = sortedBreakpoints[i];
+            console.log('[BW Arrows] Checking BP:', bp.breakpoint, 'windowWidth <= bp.breakpoint:', windowWidth <= bp.breakpoint);
             if (windowWidth <= bp.breakpoint) {
               matchedBreakpoint = bp;
             } else {
@@ -750,11 +741,16 @@
             }
           }
 
+          console.log('[BW Arrows] Matched breakpoint:', matchedBreakpoint);
+
           // Applica le impostazioni del breakpoint trovato
           if (matchedBreakpoint && matchedBreakpoint.settings && typeof matchedBreakpoint.settings.arrows !== 'undefined') {
             showArrows = matchedBreakpoint.settings.arrows !== false;
+            console.log('[BW Arrows] From breakpoint - arrows value:', matchedBreakpoint.settings.arrows, 'showArrows:', showArrows);
           }
         }
+
+        console.log('[BW Arrows] Final showArrows:', showArrows);
 
         // Mostra/nascondi le frecce
         if (showArrows) {
@@ -832,6 +828,10 @@
         var showSlideCount = String($container.attr('data-show-slide-count')) === 'true';
         var windowWidth = $(window).width();
 
+        console.log('[BW SlideCount] Window width:', windowWidth);
+        console.log('[BW SlideCount] Initial value from data-show-slide-count:', showSlideCount);
+        console.log('[BW SlideCount] Settings.responsive:', settings.responsive);
+
         // Controlla se c'è una configurazione responsive per showSlideCount
         if (Array.isArray(settings.responsive)) {
           // Ordina i breakpoint dal più piccolo al più grande
@@ -845,6 +845,7 @@
           var matchedBreakpoint = null;
           for (var i = sortedBreakpoints.length - 1; i >= 0; i--) {
             var bp = sortedBreakpoints[i];
+            console.log('[BW SlideCount] Checking BP:', bp.breakpoint, 'windowWidth <= bp.breakpoint:', windowWidth <= bp.breakpoint);
             if (windowWidth <= bp.breakpoint) {
               matchedBreakpoint = bp;
             } else {
@@ -852,11 +853,16 @@
             }
           }
 
+          console.log('[BW SlideCount] Matched breakpoint:', matchedBreakpoint);
+
           // Applica le impostazioni del breakpoint trovato
           if (matchedBreakpoint && matchedBreakpoint.settings && typeof matchedBreakpoint.settings.showSlideCount !== 'undefined') {
             showSlideCount = matchedBreakpoint.settings.showSlideCount;
+            console.log('[BW SlideCount] From breakpoint - showSlideCount value:', matchedBreakpoint.settings.showSlideCount);
           }
         }
+
+        console.log('[BW SlideCount] Final showSlideCount:', showSlideCount);
 
         // Mostra/nascondi il contatore slide
         if (showSlideCount) {
@@ -878,56 +884,6 @@
       var slideCountResizeEventId = Date.now();
       $container.data('slideCountResizeEvent', slideCountResizeEventId);
       $(window).on('resize.bwProductSlideCount-' + slideCountResizeEventId, updateSlideCountVisibility);
-
-      // Listener per l'editor di Elementor - aggiorna i controlli quando cambiano le impostazioni
-      if (
-        window.elementorFrontend &&
-        elementorFrontend.isEditMode() &&
-        window.elementor &&
-        elementor.channels &&
-        elementor.channels.editor &&
-        typeof elementor.channels.editor.on === 'function'
-      ) {
-        var controlsEditorHandler = function (panel) {
-          if (!panel || !panel.changed) {
-            return;
-          }
-
-          var changedKeys = Object.keys(panel.changed);
-          var shouldUpdateControls = changedKeys.some(function (key) {
-            if (typeof key !== 'string') {
-              return false;
-            }
-
-            return (
-              key.indexOf('responsive') !== -1 ||
-              key.indexOf('arrows') !== -1 ||
-              key.indexOf('dots') !== -1 ||
-              key.indexOf('show_slide_count') !== -1
-            );
-          });
-
-          if (shouldUpdateControls) {
-            // Forza re-render completo del widget in editor mode
-            setTimeout(function () {
-              // Trova l'elemento widget di Elementor
-              var $widget = $container.closest('.elementor-element');
-              if ($widget.length && window.elementor) {
-                var widgetId = $widget.data('id');
-                if (widgetId) {
-                  // Forza refresh del widget
-                  elementor.channels.editor.trigger('refresh:preview', {
-                    force: true
-                  });
-                }
-              }
-            }, 100);
-          }
-        };
-
-        elementor.channels.editor.on('change', controlsEditorHandler);
-        $slider.data('bwControlsEditorHandler', controlsEditorHandler);
-      }
 
       bindPopup($container);
     });
