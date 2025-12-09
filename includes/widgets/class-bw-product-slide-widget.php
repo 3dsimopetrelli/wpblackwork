@@ -700,13 +700,11 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
                     $item_settings['slidesToScroll'] = max( 1, absint( $item['slides_to_scroll'] ) );
                 }
 
-                if ( isset( $item['responsive_arrows'] ) ) {
-                    $item_settings['arrows'] = 'yes' === $item['responsive_arrows'];
-                }
+                // Aggiungi sempre arrows (anche se OFF/non impostato)
+                $item_settings['arrows'] = isset( $item['responsive_arrows'] ) && 'yes' === $item['responsive_arrows'];
 
-                if ( isset( $item['responsive_dots'] ) ) {
-                    $item_settings['dots'] = 'yes' === $item['responsive_dots'];
-                }
+                // Aggiungi sempre dots (anche se OFF/non impostato)
+                $item_settings['dots'] = isset( $item['responsive_dots'] ) && 'yes' === $item['responsive_dots'];
 
                 if ( isset( $item['responsive_center_mode'] ) ) {
                     $item_settings['centerMode'] = 'yes' === $item['responsive_center_mode'];
@@ -716,9 +714,8 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
                     $item_settings['variableWidth'] = 'yes' === $item['responsive_variable_width'];
                 }
 
-                if ( isset( $item['responsive_show_slide_count'] ) ) {
-                    $item_settings['showSlideCount'] = 'yes' === $item['responsive_show_slide_count'];
-                }
+                // Aggiungi sempre showSlideCount (anche se OFF/non impostato)
+                $item_settings['showSlideCount'] = isset( $item['responsive_show_slide_count'] ) && 'yes' === $item['responsive_show_slide_count'];
 
                 // Gestione Column Width responsive
                 if ( ! empty( $item['responsive_column_width'] ) && is_array( $item['responsive_column_width'] ) ) {
