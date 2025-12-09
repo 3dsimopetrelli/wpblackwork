@@ -11,89 +11,97 @@ defined( 'ABSPATH' ) || exit;
 $cart_items = WC()->cart->get_cart();
 ?>
 
-<div class="bw-order-summary">
+<div class="bw-order-summary woocommerce-checkout-review-order">
     <div class="bw-order-summary__tab">Nails</div>
+    <div class="bw-order-summary__loader" aria-hidden="true"></div>
 
     <?php do_action( 'woocommerce_review_order_before_cart_contents' ); ?>
 
-    <ul class="bw-review-items">
-        <?php
-        foreach ( $cart_items as $cart_item_key => $cart_item ) {
-            $product        = $cart_item['data'];
-
-            if ( ! $product || ! $product->exists() || 0 >= $cart_item['quantity'] || ! apply_filters( 'woocommerce_checkout_cart_item_visible', true, $cart_item, $cart_item_key ) ) {
-                continue;
-            }
-
-            $product_permalink = apply_filters( 'woocommerce_cart_item_permalink', $product->is_visible() ? $product->get_permalink( $cart_item ) : '', $cart_item, $cart_item_key );
-            $thumbnail         = apply_filters( 'woocommerce_cart_item_thumbnail', $product->get_image( 'woocommerce_thumbnail' ), $cart_item, $cart_item_key );
-            $product_name      = apply_filters( 'woocommerce_cart_item_name', $product->get_name(), $cart_item, $cart_item_key );
-            $product_price     = apply_filters( 'woocommerce_cart_item_subtotal', WC()->cart->get_product_subtotal( $product, $cart_item['quantity'] ), $cart_item, $cart_item_key );
-            $remove_url        = wc_get_cart_remove_url( $cart_item_key );
-            ?>
-            <li class="bw-review-item" data-cart-item="<?php echo esc_attr( $cart_item_key ); ?>">
-                <div class="bw-review-item__media">
-                    <?php echo $product_permalink ? '<a href="' . esc_url( $product_permalink ) . '">' . $thumbnail . '</a>' : $thumbnail; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-                </div>
-
-                <div class="bw-review-item__content">
-                    <div class="bw-review-item__header">
-                        <div class="bw-review-item__title">
-                            <?php echo wp_kses_post( $product_permalink ? sprintf( '<a href="%s">%s</a>', esc_url( $product_permalink ), $product_name ) : $product_name ); ?>
-                        </div>
-                        <a class="bw-review-item__remove" href="<?php echo esc_url( $remove_url ); ?>" aria-label="<?php esc_attr_e( 'Remove item', 'woocommerce' ); ?>">
-                            &times;
-                        </a>
-                    </div>
-
-                    <div class="bw-review-item__meta">
-                        <?php echo wc_get_formatted_cart_item_data( $cart_item ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-                    </div>
-
-                    <div class="bw-review-item__controls">
-                        <div class="bw-qty-control">
-                            <?php
-                            if ( $product->is_sold_individually() ) {
-                                echo '<span class="bw-qty-static">' . sprintf( /* translators: %s: quantity */ esc_html__( 'Qty: %s', 'woocommerce' ), esc_html( $cart_item['quantity'] ) ) . '</span>';
-                            } else {
-                                $product_quantity = woocommerce_quantity_input( array(
-                                    'input_name'   => "cart[{$cart_item_key}][qty]",
-                                    'input_value'  => $cart_item['quantity'],
-                                    'max_value'    => $product->get_max_purchase_quantity(),
-                                    'min_value'    => 0,
-                                    'product_name' => $product_name,
-                                ), $product, false );
-
-                                echo '<div class="bw-qty-shell">';
-                                echo '<button type="button" class="bw-qty-btn bw-qty-btn--minus" aria-label="' . esc_attr__( 'Reduce quantity', 'woocommerce' ) . '">-</button>';
-                                echo wp_kses( $product_quantity, [
-                                    'input' => [
-                                        'type'          => true,
-                                        'class'         => true,
-                                        'name'          => true,
-                                        'value'         => true,
-                                        'title'         => true,
-                                        'pattern'       => true,
-                                        'inputmode'     => true,
-                                        'min'           => true,
-                                        'max'           => true,
-                                        'step'          => true,
-                                        'aria-labelledby' => true,
-                                    ],
-                                ] );
-                                echo '<button type="button" class="bw-qty-btn bw-qty-btn--plus" aria-label="' . esc_attr__( 'Increase quantity', 'woocommerce' ) . '">+</button>';
-                                echo '</div>';
-                            }
-                            ?>
-                        </div>
-                        <div class="bw-review-item__price"><?php echo wp_kses_post( $product_price ); ?></div>
-                    </div>
-                </div>
-            </li>
+    <table class="shop_table woocommerce-checkout-review-order-table bw-review-table">
+        <tbody>
             <?php
-        }
-        ?>
-    </ul>
+            foreach ( $cart_items as $cart_item_key => $cart_item ) {
+                $product = $cart_item['data'];
+
+                if ( ! $product || ! $product->exists() || 0 >= $cart_item['quantity'] || ! apply_filters( 'woocommerce_checkout_cart_item_visible', true, $cart_item, $cart_item_key ) ) {
+                    continue;
+                }
+
+                $product_permalink = apply_filters( 'woocommerce_cart_item_permalink', $product->is_visible() ? $product->get_permalink( $cart_item ) : '', $cart_item, $cart_item_key );
+                ?>
+                <tr class="cart_item bw-review-item" data-cart-item="<?php echo esc_attr( $cart_item_key ); ?>">
+                    <td class="product-thumbnail">
+                        <div class="bw-review-item__media">
+                            <?php echo $product_permalink ? '<a href="' . esc_url( $product_permalink ) . '">' . apply_filters( 'woocommerce_cart_item_thumbnail', $product->get_image( 'woocommerce_thumbnail' ), $cart_item, $cart_item_key ) . '</a>' : apply_filters( 'woocommerce_cart_item_thumbnail', $product->get_image( 'woocommerce_thumbnail' ), $cart_item, $cart_item_key ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                        </div>
+                    </td>
+
+                    <td class="product-name">
+                        <div class="bw-review-item__content">
+                            <div class="bw-review-item__header">
+                                <div class="bw-review-item__title">
+                                    <?php echo wp_kses_post( apply_filters( 'woocommerce_cart_item_name', $product_permalink ? sprintf( '<a href="%s">%s</a>', esc_url( $product_permalink ), $product->get_name() ) : $product->get_name(), $cart_item, $cart_item_key ) ); ?>
+                                </div>
+                                <?php
+                                $remove_link = apply_filters(
+                                    'woocommerce_cart_item_remove_link',
+                                    sprintf(
+                                        '<a href="%s" class="bw-review-item__remove remove" aria-label="%s" data-product_id="%s" data-cart_item_key="%s" data-product_sku="%s">&times;</a>',
+                                        esc_url( wc_get_cart_remove_url( $cart_item_key ) ),
+                                        esc_attr__( 'Remove this item', 'woocommerce' ),
+                                        esc_attr( $product->get_id() ),
+                                        esc_attr( $cart_item_key ),
+                                        esc_attr( $product->get_sku() )
+                                    ),
+                                    $cart_item_key
+                                );
+                                echo $remove_link; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+                                ?>
+                            </div>
+
+                            <div class="bw-review-item__meta">
+                                <?php echo wc_get_formatted_cart_item_data( $cart_item ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                            </div>
+
+                            <div class="bw-review-item__controls">
+                                <div class="bw-qty-control">
+                                    <?php
+                                    if ( $product->is_sold_individually() ) {
+                                        echo '<span class="bw-qty-static">' . sprintf( /* translators: %s: quantity */ esc_html__( 'Qty: %s', 'woocommerce' ), esc_html( $cart_item['quantity'] ) ) . '</span>';
+                                    } else {
+                                        echo '<div class="bw-qty-shell">';
+                                        echo '<button type="button" class="bw-qty-btn bw-qty-btn--minus" aria-label="' . esc_attr__( 'Reduce quantity', 'woocommerce' ) . '">-</button>';
+                                        echo apply_filters(
+                                            'woocommerce_cart_item_quantity',
+                                            woocommerce_quantity_input(
+                                                [
+                                                    'input_name'   => "cart[{$cart_item_key}][qty]",
+                                                    'input_value'  => $cart_item['quantity'],
+                                                    'max_value'    => $product->get_max_purchase_quantity(),
+                                                    'min_value'    => 0,
+                                                    'product_name' => $product->get_name(),
+                                                ],
+                                                $product,
+                                                false
+                                            ),
+                                            $cart_item_key,
+                                            $cart_item
+                                        );
+                                        echo '<button type="button" class="bw-qty-btn bw-qty-btn--plus" aria-label="' . esc_attr__( 'Increase quantity', 'woocommerce' ) . '">+</button>';
+                                        echo '</div>';
+                                    }
+                                    ?>
+                                </div>
+                                <div class="bw-review-item__price"><?php echo wp_kses_post( apply_filters( 'woocommerce_cart_item_subtotal', WC()->cart->get_product_subtotal( $product, $cart_item['quantity'] ), $cart_item, $cart_item_key ) ); ?></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <?php
+            }
+            ?>
+        </tbody>
+    </table>
 
     <?php do_action( 'woocommerce_review_order_after_cart_contents' ); ?>
 
@@ -101,13 +109,8 @@ $cart_items = WC()->cart->get_cart();
         <?php woocommerce_checkout_coupon_form(); ?>
     </div>
 
-    <div class="bw-review-giftcard">
-        <span class="bw-giftcard__label"><?php esc_html_e( 'Redeem a gift card?', 'bw' ); ?></span>
-        <span class="bw-giftcard__chevron" aria-hidden="true">&#8250;</span>
-    </div>
-
     <div class="bw-review-totals">
-        <table class="bw-review-totals__table">
+        <table class="shop_table bw-review-totals__table">
             <tbody>
                 <tr class="bw-total-row bw-total-row--subtotal">
                     <th scope="row"><?php esc_html_e( 'Subtotal', 'woocommerce' ); ?></th>

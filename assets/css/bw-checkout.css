@@ -85,6 +85,7 @@
 .bw-order-summary {
     background: var(--bw-checkout-right-bg);
     border-radius: 12px;
+    position: relative;
 }
 
 .bw-order-summary__tab {
@@ -100,23 +101,30 @@
     margin-bottom: 16px;
 }
 
-.bw-review-items {
-    list-style: none;
-    margin: 0 0 16px;
-    padding: 0;
-    border-bottom: 1px solid var(--bw-checkout-border-color);
+.bw-review-table {
+    width: 100%;
+    border-collapse: collapse;
+    border-spacing: 0;
+    margin: 0 0 12px;
 }
 
 .bw-review-item {
-    display: grid;
-    grid-template-columns: 96px 1fr;
-    gap: 14px;
-    padding: 12px 0;
     border-top: 1px solid var(--bw-checkout-border-color);
 }
 
 .bw-review-item:first-child {
     border-top: none;
+}
+
+.bw-review-item td {
+    padding: 12px 0;
+    border: none;
+    vertical-align: top;
+}
+
+.bw-review-item .product-thumbnail {
+    width: 110px;
+    padding-right: 14px;
 }
 
 .bw-review-item__media img {
@@ -270,16 +278,6 @@
     padding: 10px 14px;
 }
 
-.bw-review-giftcard {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--bw-checkout-border-color);
-    color: #555;
-    font-weight: 500;
-}
-
 .bw-review-totals {
     margin-top: 12px;
     font-weight: 600;
@@ -312,6 +310,38 @@
     font-size: 16px;
 }
 
+.bw-order-summary__loader {
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 12px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.bw-order-summary__loader::after {
+    content: '';
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 3px solid #ccc;
+    border-top-color: #111;
+    animation: bw-spin 0.8s linear infinite;
+}
+
+.bw-order-summary.is-loading .bw-order-summary__loader {
+    display: flex;
+}
+
+@keyframes bw-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 @media (max-width: 992px) {
     .bw-checkout-grid {
         grid-template-columns: 1fr;
@@ -325,10 +355,6 @@
 
     .bw-checkout-logo {
         text-align: center;
-    }
-
-    .bw-review-item {
-        grid-template-columns: 80px 1fr;
     }
 
     .bw-review-coupon .checkout_coupon {

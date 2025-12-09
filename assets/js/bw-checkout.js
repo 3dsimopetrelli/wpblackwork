@@ -5,6 +5,20 @@
         }
     }
 
+    function setOrderSummaryLoading(isLoading) {
+        var summary = document.querySelector('.bw-order-summary');
+
+        if (!summary) {
+            return;
+        }
+
+        if (isLoading) {
+            summary.classList.add('is-loading');
+        } else {
+            summary.classList.remove('is-loading');
+        }
+    }
+
     function updateQuantity(input, delta) {
         var current = parseFloat(input.value || 0);
         var step = parseFloat(input.getAttribute('step')) || 1;
@@ -43,6 +57,7 @@
 
             var delta = button.classList.contains('bw-qty-btn--minus') ? -1 : 1;
             updateQuantity(input, delta);
+            setOrderSummaryLoading(true);
             return;
         }
 
@@ -57,6 +72,7 @@
             if (qtyInput) {
                 qtyInput.value = 0;
                 qtyInput.dispatchEvent(new Event('change', { bubbles: true }));
+                setOrderSummaryLoading(true);
             } else {
                 window.location.href = remove.getAttribute('href');
             }
@@ -73,5 +89,18 @@
         }
 
         triggerCheckoutUpdate();
+        setOrderSummaryLoading(true);
     });
+
+    if (window.jQuery) {
+        window.jQuery(function ($) {
+            $(document.body)
+                .on('update_checkout applied_coupon removed_coupon wc_cart_emptied', function () {
+                    setOrderSummaryLoading(true);
+                })
+                .on('updated_checkout checkout_error', function () {
+                    setOrderSummaryLoading(false);
+                });
+        });
+    }
 })();
