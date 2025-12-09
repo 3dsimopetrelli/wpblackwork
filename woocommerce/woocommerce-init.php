@@ -24,7 +24,9 @@ function bw_mew_initialize_woocommerce_overrides() {
     add_filter( 'woocommerce_locate_core_template', 'bw_mew_locate_template', 1, 3 );
     add_action( 'template_redirect', 'bw_mew_handle_social_login_requests', 5 );
     add_action( 'template_redirect', 'bw_mew_prepare_account_page_layout', 9 );
+    add_action( 'template_redirect', 'bw_mew_prepare_checkout_layout', 9 );
     add_action( 'woocommerce_review_order_after_payment', 'bw_mew_render_checkout_legal_text', 5 );
+    add_action( 'woocommerce_checkout_update_order_review', 'bw_mew_sync_checkout_cart_quantities', 10, 1 );
 }
 add_action( 'plugins_loaded', 'bw_mew_initialize_woocommerce_overrides' );
 
@@ -163,6 +165,18 @@ function bw_mew_prepare_account_page_layout() {
 }
 
 /**
+ * Move checkout notices inside the left column and keep AJAX updates working.
+ */
+function bw_mew_prepare_checkout_layout() {
+    if ( ! function_exists( 'is_checkout' ) || ! is_checkout() || ( function_exists( 'is_wc_endpoint_url' ) && is_wc_endpoint_url( 'order-received' ) ) ) {
+        return;
+    }
+
+    remove_action( 'woocommerce_before_checkout_form', 'woocommerce_output_all_notices', 10 );
+    add_action( 'bw_checkout_notices', 'woocommerce_output_all_notices', 10 );
+}
+
+/**
  * Handle social login start and callback.
  */
 function bw_mew_handle_social_login_requests() {
@@ -190,6 +204,34 @@ function bw_mew_render_checkout_legal_text() {
     }
 
     echo '<div class="bw-checkout-legal-text">' . wp_kses_post( $settings['legal_text'] ) . '</div>';
+}
+
+/**
+ * Sync cart quantities during checkout AJAX refreshes so totals update immediately.
+ *
+ * @param string $posted_data Serialized form data.
+ */
+function bw_mew_sync_checkout_cart_quantities( $posted_data ) {
+    if ( empty( $posted_data ) || ! WC()->cart ) {
+        return;
+    }
+
+    parse_str( $posted_data, $parsed );
+
+    if ( empty( $parsed['cart'] ) || ! is_array( $parsed['cart'] ) ) {
+        return;
+    }
+
+    foreach ( $parsed['cart'] as $cart_item_key => $values ) {
+        if ( ! isset( $values['qty'] ) ) {
+            continue;
+        }
+
+        $qty = max( 0, wc_stock_amount( wp_unslash( $values['qty'] ) ) );
+        WC()->cart->set_quantity( $cart_item_key, $qty, false );
+    }
+
+    WC()->cart->calculate_totals();
 }
 
 /**

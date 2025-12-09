@@ -36,6 +36,10 @@ if ( ! $checkout->is_registration_enabled() && $checkout->is_registration_requir
                     </div>
                 <?php endif; ?>
 
+                <div class="bw-checkout-notices">
+                    <?php do_action( 'bw_checkout_notices' ); ?>
+                </div>
+
                 <?php if ( $checkout->get_checkout_fields() ) : ?>
                     <?php do_action( 'woocommerce_checkout_before_customer_details' ); ?>
 
@@ -61,7 +65,7 @@ if ( ! $checkout->is_registration_enabled() && $checkout->is_registration_requir
                 <?php do_action( 'woocommerce_checkout_before_order_review' ); ?>
 
                 <div class="woocommerce-checkout-review-order">
-                    <?php wc_get_template( 'checkout/review-order.php', array( 'checkout' => $checkout ) ); ?>
+                    <?php do_action( 'woocommerce_checkout_order_review' ); ?>
                 </div>
 
                 <?php do_action( 'woocommerce_checkout_after_order_review' ); ?>

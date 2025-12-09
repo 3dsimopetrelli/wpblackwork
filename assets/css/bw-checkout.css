@@ -33,6 +33,16 @@
     height: auto;
 }
 
+.bw-checkout-notices {
+    margin-bottom: 16px;
+}
+
+.bw-checkout-notices .woocommerce-error,
+.bw-checkout-notices .woocommerce-message,
+.bw-checkout-notices .woocommerce-info {
+    margin: 0 0 12px;
+}
+
 #customer_details {
     background: var(--bw-checkout-left-bg);
 }
