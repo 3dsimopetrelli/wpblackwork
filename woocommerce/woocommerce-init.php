@@ -20,8 +20,11 @@ function bw_mew_initialize_woocommerce_overrides() {
     add_filter( 'woocommerce_locate_template', 'bw_mew_locate_template', 1, 3 );
     add_action( 'wp_enqueue_scripts', 'bw_mew_enqueue_related_products_assets', 30 );
     add_action( 'wp_enqueue_scripts', 'bw_mew_enqueue_account_page_assets', 20 );
+    add_action( 'wp_enqueue_scripts', 'bw_mew_enqueue_checkout_assets', 20 );
+    add_filter( 'woocommerce_locate_core_template', 'bw_mew_locate_template', 1, 3 );
     add_action( 'template_redirect', 'bw_mew_handle_social_login_requests', 5 );
     add_action( 'template_redirect', 'bw_mew_prepare_account_page_layout', 9 );
+    add_action( 'woocommerce_review_order_after_payment', 'bw_mew_render_checkout_legal_text', 5 );
 }
 add_action( 'plugins_loaded', 'bw_mew_initialize_woocommerce_overrides' );
 
@@ -101,6 +104,42 @@ function bw_mew_enqueue_account_page_assets() {
 }
 
 /**
+ * Enqueue assets for the custom checkout layout and expose colors as CSS variables.
+ */
+function bw_mew_enqueue_checkout_assets() {
+    if ( ! function_exists( 'is_checkout' ) || ! is_checkout() || is_cart() ) {
+        return;
+    }
+
+    $css_file = BW_MEW_PATH . 'assets/css/bw-checkout.css';
+    $js_file  = BW_MEW_PATH . 'assets/js/bw-checkout.js';
+    $version  = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
+    $settings = bw_mew_get_checkout_settings();
+
+    wp_enqueue_style(
+        'bw-checkout',
+        BW_MEW_URL . 'assets/css/bw-checkout.css',
+        [],
+        $version
+    );
+
+    if ( file_exists( $js_file ) ) {
+        $js_version = filemtime( $js_file );
+        wp_enqueue_script(
+            'bw-checkout',
+            BW_MEW_URL . 'assets/js/bw-checkout.js',
+            [ 'jquery' ],
+            $js_version,
+            true
+        );
+    }
+
+    $inline_styles = '.bw-checkout-form{--bw-checkout-left-bg:' . esc_attr( $settings['left_bg'] ) . ';--bw-checkout-right-bg:' . esc_attr( $settings['right_bg'] ) . ';--bw-checkout-border-color:' . esc_attr( $settings['border_color'] ) . ';}';
+
+    wp_add_inline_style( 'bw-checkout', $inline_styles );
+}
+
+/**
  * Add a specific body class and hide theme wrappers on the custom login page.
  */
 function bw_mew_prepare_account_page_layout() {
@@ -141,6 +180,19 @@ function bw_mew_handle_social_login_requests() {
 }
 
 /**
+ * Print the legal text block below the payment methods during checkout.
+ */
+function bw_mew_render_checkout_legal_text() {
+    $settings = bw_mew_get_checkout_settings();
+
+    if ( empty( $settings['legal_text'] ) ) {
+        return;
+    }
+
+    echo '<div class="bw-checkout-legal-text">' . wp_kses_post( $settings['legal_text'] ) . '</div>';
+}
+
+/**
  * Build social login start URL.
  *
  * @param string $provider Social provider key.
@@ -170,6 +222,35 @@ function bw_mew_get_social_redirect_uri( $provider ) {
     }
 
     return add_query_arg( 'bw_social_login_callback', $provider, wc_get_page_permalink( 'myaccount' ) );
+}
+
+/**
+ * Retrieve checkout style and content options.
+ *
+ * @return array{logo:string,left_bg:string,right_bg:string,border_color:string,legal_text:string}
+ */
+function bw_mew_get_checkout_settings() {
+    $defaults = [
+        'logo'         => '',
+        'left_bg'      => '#ffffff',
+        'right_bg'     => '#f7f7f7',
+        'border_color' => '#e0e0e0',
+        'legal_text'   => '',
+    ];
+
+    $settings = [
+        'logo'         => esc_url_raw( get_option( 'bw_checkout_logo', $defaults['logo'] ) ),
+        'left_bg'      => sanitize_hex_color( get_option( 'bw_checkout_left_bg_color', $defaults['left_bg'] ) ),
+        'right_bg'     => sanitize_hex_color( get_option( 'bw_checkout_right_bg_color', $defaults['right_bg'] ) ),
+        'border_color' => sanitize_hex_color( get_option( 'bw_checkout_border_color', $defaults['border_color'] ) ),
+        'legal_text'   => get_option( 'bw_checkout_legal_text', $defaults['legal_text'] ),
+    ];
+
+    $settings['left_bg']      = $settings['left_bg'] ?: $defaults['left_bg'];
+    $settings['right_bg']     = $settings['right_bg'] ?: $defaults['right_bg'];
+    $settings['border_color'] = $settings['border_color'] ?: $defaults['border_color'];
+
+    return $settings;
 }
 
 /**
