@@ -617,7 +617,11 @@
       var hasCustomColumnWidth = $slider.is('[data-has-column-width]');
 
       if (hasCustomColumnWidth) {
-        settings.variableWidth = true;
+        // Solo imposta variableWidth se centerMode non è attivo
+        // perché centerMode + variableWidth possono causare problemi in Slick
+        if (!settings.centerMode) {
+          settings.variableWidth = true;
+        }
 
         if (Array.isArray(settings.responsive)) {
           settings.responsive = settings.responsive.map(function (entry) {
@@ -631,7 +635,14 @@
               responsiveEntry.settings = {};
             }
 
-            responsiveEntry.settings.variableWidth = true;
+            // Solo imposta variableWidth se centerMode non è attivo per questo breakpoint
+            var breakpointCenterMode = responsiveEntry.settings.centerMode !== undefined
+              ? responsiveEntry.settings.centerMode
+              : settings.centerMode;
+
+            if (!breakpointCenterMode) {
+              responsiveEntry.settings.variableWidth = true;
+            }
 
             return responsiveEntry;
           });
