@@ -16,6 +16,7 @@ $settings = function_exists( 'bw_mew_get_checkout_settings' ) ? bw_mew_get_check
 ];
 
 $checkout = WC()->checkout();
+$order_button_text = apply_filters( 'woocommerce_order_button_text', __( 'Place order', 'woocommerce' ) );
 
 do_action( 'woocommerce_before_checkout_form', $checkout );
 
@@ -53,7 +54,13 @@ if ( ! $checkout->is_registration_enabled() && $checkout->is_registration_requir
 
                 <div class="bw-checkout-payment">
                     <h3 class="bw-checkout-section-title"><?php esc_html_e( 'Payment', 'woocommerce' ); ?></h3>
-                    <?php wc_get_template( 'checkout/payment.php', array( 'checkout' => $checkout ) ); ?>
+                    <?php wc_get_template(
+                        'checkout/payment.php',
+                        array(
+                            'checkout'           => $checkout,
+                            'order_button_text'  => $order_button_text,
+                        )
+                    ); ?>
                 </div>
             </div>
 
