@@ -1,49 +1,75 @@
-/* WooCommerce Checkout two-column layout using only CSS */
+/*
+ * WooCommerce Checkout two-column layout using only CSS
+ * Desktop: 58% / 37% float columns with sticky order review
+ * Mobile: stacked columns with sticky disabled
+ */
 
-/* Desktop layout */
-.woocommerce-checkout form.checkout {
-    position: relative;
-}
-
-.woocommerce-checkout form.checkout::after {
-    content: "";
-    display: block;
-    clear: both;
-}
-
-.woocommerce-checkout form.checkout #customer_details {
-    width: 58%;
-    float: left;
-    margin-right: 5%;
-    box-sizing: border-box;
-}
-
+/* Base (mobile-first) layout: stack columns, no sticky */
+.woocommerce-checkout form.checkout #customer_details,
 .woocommerce-checkout form.checkout #order_review,
 .woocommerce-checkout form.checkout #order_review_heading {
-    width: 37%;
-    float: left;
+    width: 100%;
+    float: none;
+    margin: 0;
     box-sizing: border-box;
 }
 
-/* Sticky order review */
 .woocommerce-checkout form.checkout #order_review {
-    position: -webkit-sticky;
-    position: sticky;
-    top: 40px;
+    position: static;
+    top: auto;
 }
 
-/* Mobile layout */
-@media (max-width: 899px) {
-    .woocommerce-checkout form.checkout #customer_details,
-    .woocommerce-checkout form.checkout #order_review,
-    .woocommerce-checkout form.checkout #order_review_heading {
-        float: none;
-        width: 100%;
-        margin-right: 0;
+/* Desktop layout */
+@media (min-width: 900px) {
+    .woocommerce-checkout form.checkout {
+        position: relative;
     }
 
-    .woocommerce-checkout form.checkout #order_review {
-        position: static;
-        top: auto;
+    .woocommerce-checkout form.checkout::after {
+        content: "";
+        display: block;
+        clear: both;
     }
+
+    .woocommerce-checkout form.checkout #customer_details {
+        width: 58%;
+        float: left;
+        margin-right: 5%;
+    }
+
+    .woocommerce-checkout form.checkout #order_review,
+    .woocommerce-checkout form.checkout #order_review_heading {
+        width: 37%;
+        float: left;
+    }
+
+    /* Sticky order review (safe for WooCommerce AJAX) */
+    .woocommerce-checkout form.checkout #order_review {
+        position: -webkit-sticky;
+        position: sticky;
+        top: 40px;
+    }
+}
+
+/* Subtle styling to mirror the reference layout without touching markup */
+.woocommerce-checkout form.checkout #order_review {
+    background: #f6f6f6;
+    padding: 24px;
+    border-radius: 12px;
+    border: 1px solid #e0e0e0;
+}
+
+.woocommerce-checkout form.checkout #order_review table.shop_table {
+    border: none;
+    background: transparent;
+    margin: 0;
+}
+
+.woocommerce-checkout form.checkout #order_review table.shop_table th,
+.woocommerce-checkout form.checkout #order_review table.shop_table td {
+    border: none;
+}
+
+.woocommerce-checkout form.checkout #order_review_heading {
+    margin: 0 0 12px;
 }
