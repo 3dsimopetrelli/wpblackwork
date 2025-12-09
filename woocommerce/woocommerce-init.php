@@ -174,6 +174,9 @@ function bw_mew_prepare_checkout_layout() {
 
     remove_action( 'woocommerce_before_checkout_form', 'woocommerce_output_all_notices', 10 );
     add_action( 'bw_checkout_notices', 'woocommerce_output_all_notices', 10 );
+
+    // Avoid rendering the payment section (and its button) twice by keeping it only in the left column.
+    remove_action( 'woocommerce_checkout_order_review', 'woocommerce_checkout_payment', 20 );
 }
 
 /**
