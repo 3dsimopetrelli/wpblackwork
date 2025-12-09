@@ -15,11 +15,11 @@ $cart_items = WC()->cart->get_cart();
     <div class="bw-order-summary__tab">Nails</div>
     <div class="bw-order-summary__loader" aria-hidden="true"></div>
 
-    <?php do_action( 'woocommerce_review_order_before_cart_contents' ); ?>
-
     <table class="shop_table woocommerce-checkout-review-order-table bw-review-table">
         <tbody>
             <?php
+            do_action( 'woocommerce_review_order_before_cart_contents' );
+
             foreach ( $cart_items as $cart_item_key => $cart_item ) {
                 $product = $cart_item['data'];
 
@@ -99,75 +99,74 @@ $cart_items = WC()->cart->get_cart();
                 </tr>
                 <?php
             }
+
+            do_action( 'woocommerce_review_order_after_cart_contents' );
             ?>
         </tbody>
-    </table>
+        <tfoot>
+            <tr>
+                <td colspan="2">
+                    <div class="bw-review-coupon">
+                        <?php woocommerce_checkout_coupon_form(); ?>
+                    </div>
+                </td>
+            </tr>
 
-    <?php do_action( 'woocommerce_review_order_after_cart_contents' ); ?>
+            <tr class="bw-total-row bw-total-row--subtotal">
+                <th scope="row"><?php esc_html_e( 'Subtotal', 'woocommerce' ); ?></th>
+                <td><?php wc_cart_totals_subtotal_html(); ?></td>
+            </tr>
 
-    <div class="bw-review-coupon">
-        <?php woocommerce_checkout_coupon_form(); ?>
-    </div>
-
-    <div class="bw-review-totals">
-        <table class="shop_table bw-review-totals__table">
-            <tbody>
-                <tr class="bw-total-row bw-total-row--subtotal">
-                    <th scope="row"><?php esc_html_e( 'Subtotal', 'woocommerce' ); ?></th>
-                    <td><?php wc_cart_totals_subtotal_html(); ?></td>
+            <?php foreach ( WC()->cart->get_coupons() as $code => $coupon ) : ?>
+                <tr class="bw-total-row bw-total-row--coupon coupon-<?php echo esc_attr( sanitize_title( $code ) ); ?>">
+                    <th scope="row"><?php wc_cart_totals_coupon_label( $coupon ); ?></th>
+                    <td><?php wc_cart_totals_coupon_html( $coupon ); ?></td>
                 </tr>
+            <?php endforeach; ?>
 
-                <?php foreach ( WC()->cart->get_coupons() as $code => $coupon ) : ?>
-                    <tr class="bw-total-row bw-total-row--coupon coupon-<?php echo esc_attr( sanitize_title( $code ) ); ?>">
-                        <th scope="row"><?php wc_cart_totals_coupon_label( $coupon ); ?></th>
-                        <td><?php wc_cart_totals_coupon_html( $coupon ); ?></td>
-                    </tr>
-                <?php endforeach; ?>
+            <?php if ( WC()->cart->needs_shipping() && WC()->cart->show_shipping() ) : ?>
+                <?php do_action( 'woocommerce_review_order_before_shipping' ); ?>
+                <?php wc_cart_totals_shipping_html(); ?>
+                <?php do_action( 'woocommerce_review_order_after_shipping' ); ?>
+            <?php endif; ?>
 
-                <?php if ( WC()->cart->needs_shipping() && WC()->cart->show_shipping() ) : ?>
-                    <?php do_action( 'woocommerce_review_order_before_shipping' ); ?>
-                    <?php wc_cart_totals_shipping_html(); ?>
-                    <?php do_action( 'woocommerce_review_order_after_shipping' ); ?>
-                <?php endif; ?>
+            <?php foreach ( WC()->cart->get_fees() as $fee ) : ?>
+                <tr class="bw-total-row">
+                    <th scope="row"><?php echo esc_html( $fee->name ); ?></th>
+                    <td><?php wc_cart_totals_fee_html( $fee ); ?></td>
+                </tr>
+            <?php endforeach; ?>
 
-                <?php foreach ( WC()->cart->get_fees() as $fee ) : ?>
-                    <tr class="bw-total-row">
-                        <th scope="row"><?php echo esc_html( $fee->name ); ?></th>
-                        <td><?php wc_cart_totals_fee_html( $fee ); ?></td>
-                    </tr>
-                <?php endforeach; ?>
-
-                <?php
-                if ( wc_tax_enabled() && ! WC()->cart->display_prices_including_tax() ) {
-                    if ( 'itemized' === get_option( 'woocommerce_tax_total_display' ) ) {
-                        foreach ( WC()->cart->get_tax_totals() as $code => $tax ) {
-                            ?>
-                            <tr class="bw-total-row tax-rate-<?php echo esc_attr( sanitize_title( $code ) ); ?>">
-                                <th scope="row"><?php echo esc_html( $tax->label ); ?></th>
-                                <td><?php echo wp_kses_post( $tax->formatted_amount ); ?></td>
-                            </tr>
-                            <?php
-                        }
-                    } else {
+            <?php
+            if ( wc_tax_enabled() && ! WC()->cart->display_prices_including_tax() ) {
+                if ( 'itemized' === get_option( 'woocommerce_tax_total_display' ) ) {
+                    foreach ( WC()->cart->get_tax_totals() as $code => $tax ) {
                         ?>
-                        <tr class="bw-total-row">
-                            <th scope="row"><?php echo esc_html( WC()->countries->tax_or_vat() ); ?></th>
-                            <td><?php wc_cart_totals_taxes_total_html(); ?></td>
+                        <tr class="bw-total-row tax-rate-<?php echo esc_attr( sanitize_title( $code ) ); ?>">
+                            <th scope="row"><?php echo esc_html( $tax->label ); ?></th>
+                            <td><?php echo wp_kses_post( $tax->formatted_amount ); ?></td>
                         </tr>
                         <?php
                     }
+                } else {
+                    ?>
+                    <tr class="bw-total-row">
+                        <th scope="row"><?php echo esc_html( WC()->countries->tax_or_vat() ); ?></th>
+                        <td><?php wc_cart_totals_taxes_total_html(); ?></td>
+                    </tr>
+                    <?php
                 }
-                ?>
+            }
+            ?>
 
-                <?php do_action( 'woocommerce_review_order_before_order_total' ); ?>
+            <?php do_action( 'woocommerce_review_order_before_order_total' ); ?>
 
-                <tr class="bw-total-row bw-total-row--grand order-total">
-                    <th scope="row"><?php esc_html_e( 'Total', 'woocommerce' ); ?></th>
-                    <td><?php wc_cart_totals_order_total_html(); ?></td>
-                </tr>
+            <tr class="bw-total-row bw-total-row--grand order-total">
+                <th scope="row"><?php esc_html_e( 'Total', 'woocommerce' ); ?></th>
+                <td><?php wc_cart_totals_order_total_html(); ?></td>
+            </tr>
 
-                <?php do_action( 'woocommerce_review_order_after_order_total' ); ?>
-            </tbody>
-        </table>
-    </div>
+            <?php do_action( 'woocommerce_review_order_after_order_total' ); ?>
+        </tfoot>
+    </table>
 </div>

@@ -64,14 +64,16 @@ if ( ! $checkout->is_registration_enabled() && $checkout->is_registration_requir
                 </div>
             </div>
 
-            <div class="bw-checkout-right" id="order_review">
-                <?php do_action( 'woocommerce_checkout_before_order_review_heading' ); ?>
+            <?php do_action( 'woocommerce_checkout_before_order_review_heading' ); ?>
 
+            <div class="bw-checkout-order-heading__wrap">
                 <h3 id="order_review_heading" class="bw-checkout-order-heading"><?php esc_html_e( 'Your order', 'woocommerce' ); ?></h3>
+            </div>
 
+            <div class="bw-checkout-right" id="order_review">
                 <?php do_action( 'woocommerce_checkout_before_order_review' ); ?>
 
-                <div class="woocommerce-checkout-review-order">
+                <div id="order_review_inner" class="woocommerce-checkout-review-order">
                     <?php do_action( 'woocommerce_checkout_order_review' ); ?>
                 </div>
 
