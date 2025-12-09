@@ -696,6 +696,30 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
                     $item_settings['slidesToShow'] = max( 1, absint( $item['slides_to_show'] ) );
                 }
 
+                if ( ! empty( $item['slides_to_scroll'] ) ) {
+                    $item_settings['slidesToScroll'] = max( 1, absint( $item['slides_to_scroll'] ) );
+                }
+
+                if ( isset( $item['responsive_arrows'] ) ) {
+                    $item_settings['arrows'] = 'yes' === $item['responsive_arrows'];
+                }
+
+                if ( isset( $item['responsive_dots'] ) ) {
+                    $item_settings['dots'] = 'yes' === $item['responsive_dots'];
+                }
+
+                if ( isset( $item['responsive_center_mode'] ) ) {
+                    $item_settings['centerMode'] = 'yes' === $item['responsive_center_mode'];
+                }
+
+                if ( isset( $item['responsive_variable_width'] ) ) {
+                    $item_settings['variableWidth'] = 'yes' === $item['responsive_variable_width'];
+                }
+
+                if ( isset( $item['responsive_show_slide_count'] ) ) {
+                    $item_settings['showSlideCount'] = 'yes' === $item['responsive_show_slide_count'];
+                }
+
                 // Gestione Column Width responsive
                 if ( ! empty( $item['responsive_column_width'] ) && is_array( $item['responsive_column_width'] ) ) {
                     $width_size = isset( $item['responsive_column_width']['size'] ) ? $item['responsive_column_width']['size'] : null;
@@ -733,6 +757,11 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
                             'unit' => $gap_unit,
                         ];
                     }
+                }
+
+                // Valida slidesToScroll in base a slidesToShow
+                if ( isset( $item_settings['slidesToShow'], $item_settings['slidesToScroll'] ) ) {
+                    $item_settings['slidesToScroll'] = min( $item_settings['slidesToScroll'], $item_settings['slidesToShow'] );
                 }
 
                 if ( ! empty( $item_settings ) ) {
@@ -945,6 +974,67 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
                 'type'    => Controls_Manager::SELECT,
                 'options' => $column_options,
                 'default' => '1',
+            ]
+        );
+
+        $repeater->add_control(
+            'slides_to_scroll',
+            [
+                'label'   => __( 'Slides To Scroll', 'bw-elementor-widgets' ),
+                'type'    => Controls_Manager::NUMBER,
+                'min'     => 1,
+                'default' => 1,
+            ]
+        );
+
+        $repeater->add_control(
+            'responsive_arrows',
+            [
+                'label'        => __( 'Arrows', 'bw-elementor-widgets' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'return_value' => 'yes',
+                'default'      => 'yes',
+            ]
+        );
+
+        $repeater->add_control(
+            'responsive_dots',
+            [
+                'label'        => __( 'Dots', 'bw-elementor-widgets' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'return_value' => 'yes',
+                'default'      => '',
+            ]
+        );
+
+        $repeater->add_control(
+            'responsive_center_mode',
+            [
+                'label'        => __( 'Center Mode', 'bw-elementor-widgets' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'return_value' => 'yes',
+                'default'      => '',
+            ]
+        );
+
+        $repeater->add_control(
+            'responsive_variable_width',
+            [
+                'label'        => __( 'Variable Width', 'bw-elementor-widgets' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'return_value' => 'yes',
+                'default'      => '',
+            ]
+        );
+
+        $repeater->add_control(
+            'responsive_show_slide_count',
+            [
+                'label'        => __( 'Show Slide Count', 'bw-elementor-widgets' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'return_value' => 'yes',
+                'default'      => '',
+                'description'  => __( 'Mostra o nasconde il contatore delle slide per questo breakpoint.', 'bw-elementor-widgets' ),
             ]
         );
 
