@@ -594,9 +594,13 @@
 
       $slider.off('.bwProductSlide');
       $slider.off('.bwProductSlideArrows');
+      $slider.off('.bwProductSlideDots');
+      $slider.off('.bwProductSlideCount');
 
-      // Rimuovi event listener di resize per le frecce
+      // Rimuovi event listener di resize
       $(window).off('resize.bwProductSlideArrows-' + $container.data('arrowsResizeEvent'));
+      $(window).off('resize.bwProductSlideDots-' + $container.data('dotsResizeEvent'));
+      $(window).off('resize.bwProductSlideCount-' + $container.data('slideCountResizeEvent'));
 
       var defaults = {
         slidesToShow: 1,
@@ -714,17 +718,17 @@
 
         // Controlla se c'è una configurazione responsive per le frecce
         if (Array.isArray(settings.responsive)) {
-          // Ordina i breakpoint in modo crescente
+          // Ordina i breakpoint in modo DECRESCENTE
           var sortedBreakpoints = settings.responsive
             .slice()
             .sort(function (a, b) {
-              return a.breakpoint - b.breakpoint;
+              return b.breakpoint - a.breakpoint;
             });
 
-          // Trova il breakpoint più vicino che si applica alla viewport corrente
+          // Trova il breakpoint più grande che è <= alla viewport corrente
           for (var i = 0; i < sortedBreakpoints.length; i++) {
             var bp = sortedBreakpoints[i];
-            if (windowWidth <= bp.breakpoint && bp.settings && typeof bp.settings.arrows !== 'undefined') {
+            if (bp.breakpoint <= windowWidth && bp.settings && typeof bp.settings.arrows !== 'undefined') {
               showArrows = bp.settings.arrows !== false;
               break;
             }
@@ -752,23 +756,74 @@
       $container.data('arrowsResizeEvent', arrowsResizeEventId);
       $(window).on('resize.bwProductSlideArrows-' + arrowsResizeEventId, updateArrowsVisibility);
 
-      var updateSlideCountVisibility = function () {
-        var showSlideCount = String($container.attr('data-show-slide-count')) === 'true';
-        var currentSettings = settings;
+      // Funzione per aggiornare i dots in base al breakpoint
+      var updateDotsVisibility = function () {
+        var showDots = settings.dots !== false;
+        var windowWidth = $(window).width();
 
+        // Controlla se c'è una configurazione responsive per i dots
         if (Array.isArray(settings.responsive)) {
-          var windowWidth = $(window).width();
-          for (var i = 0; i < settings.responsive.length; i++) {
-            var breakpoint = settings.responsive[i];
-            if (windowWidth <= breakpoint.breakpoint && breakpoint.settings) {
-              if (typeof breakpoint.settings.showSlideCount !== 'undefined') {
-                showSlideCount = breakpoint.settings.showSlideCount;
-              }
+          // Ordina i breakpoint in modo DECRESCENTE
+          var sortedBreakpoints = settings.responsive
+            .slice()
+            .sort(function (a, b) {
+              return b.breakpoint - a.breakpoint;
+            });
+
+          // Trova il breakpoint più grande che è <= alla viewport corrente
+          for (var i = 0; i < sortedBreakpoints.length; i++) {
+            var bp = sortedBreakpoints[i];
+            if (bp.breakpoint <= windowWidth && bp.settings && typeof bp.settings.dots !== 'undefined') {
+              showDots = bp.settings.dots !== false;
               break;
             }
           }
         }
 
+        // Aggiorna l'opzione dots di Slick
+        if ($slider.hasClass('slick-initialized')) {
+          $slider.slick('slickSetOption', 'dots', showDots, true);
+        }
+      };
+
+      // Applica i dots all'inizializzazione
+      updateDotsVisibility();
+
+      // Aggiorna i dots quando cambia il breakpoint
+      $slider.on('breakpoint.bwProductSlideDots', function () {
+        updateDotsVisibility();
+      });
+
+      // Aggiorna i dots al resize (per sicurezza)
+      var dotsResizeEventId = Date.now();
+      $container.data('dotsResizeEvent', dotsResizeEventId);
+      $(window).on('resize.bwProductSlideDots-' + dotsResizeEventId, updateDotsVisibility);
+
+      // Funzione per aggiornare la visibilità del contatore slide in base al breakpoint
+      var updateSlideCountVisibility = function () {
+        var showSlideCount = String($container.attr('data-show-slide-count')) === 'true';
+        var windowWidth = $(window).width();
+
+        // Controlla se c'è una configurazione responsive per showSlideCount
+        if (Array.isArray(settings.responsive)) {
+          // Ordina i breakpoint in modo DECRESCENTE
+          var sortedBreakpoints = settings.responsive
+            .slice()
+            .sort(function (a, b) {
+              return b.breakpoint - a.breakpoint;
+            });
+
+          // Trova il breakpoint più grande che è <= alla viewport corrente
+          for (var i = 0; i < sortedBreakpoints.length; i++) {
+            var bp = sortedBreakpoints[i];
+            if (bp.breakpoint <= windowWidth && bp.settings && typeof bp.settings.showSlideCount !== 'undefined') {
+              showSlideCount = bp.settings.showSlideCount;
+              break;
+            }
+          }
+        }
+
+        // Mostra/nascondi il contatore slide
         if (showSlideCount) {
           $container.find('.bw-product-slide-count').show();
         } else {
@@ -776,8 +831,18 @@
         }
       };
 
+      // Applica la visibilità del contatore all'inizializzazione
       updateSlideCountVisibility();
-      $(window).on('resize.bwProductSlideCount-' + Date.now(), updateSlideCountVisibility);
+
+      // Aggiorna la visibilità del contatore quando cambia il breakpoint
+      $slider.on('breakpoint.bwProductSlideCount', function () {
+        updateSlideCountVisibility();
+      });
+
+      // Aggiorna la visibilità del contatore al resize (per sicurezza)
+      var slideCountResizeEventId = Date.now();
+      $container.data('slideCountResizeEvent', slideCountResizeEventId);
+      $(window).on('resize.bwProductSlideCount-' + slideCountResizeEventId, updateSlideCountVisibility);
 
       bindPopup($container);
     });
