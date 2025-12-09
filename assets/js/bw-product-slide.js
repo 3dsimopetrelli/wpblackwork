@@ -908,29 +908,20 @@
           });
 
           if (shouldUpdateControls) {
-            // Attendi che Elementor aggiorni il DOM
+            // Forza re-render completo del widget in editor mode
             setTimeout(function () {
-              // Ricarica le impostazioni dal DOM aggiornato
-              var newSettings = buildSettings({
-                slidesToShow: 1,
-                slidesToScroll: 1,
-                arrows: true,
-                dots: false,
-                infinite: true,
-                speed: 600,
-                fade: false,
-                prevArrow: $container.find('.bw-prev'),
-                nextArrow: $container.find('.bw-next'),
-              }, parseSettings($slider));
-
-              // Aggiorna le settings locali
-              settings.responsive = newSettings.responsive || [];
-
-              // Forza l'aggiornamento immediato di tutti i controlli con le nuove settings
-              updateArrowsVisibility();
-              updateDotsVisibility();
-              updateSlideCountVisibility();
-            }, 250);
+              // Trova l'elemento widget di Elementor
+              var $widget = $container.closest('.elementor-element');
+              if ($widget.length && window.elementor) {
+                var widgetId = $widget.data('id');
+                if (widgetId) {
+                  // Forza refresh del widget
+                  elementor.channels.editor.trigger('refresh:preview', {
+                    force: true
+                  });
+                }
+              }
+            }, 100);
           }
         };
 
