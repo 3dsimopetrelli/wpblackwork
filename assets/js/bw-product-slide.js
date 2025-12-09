@@ -593,19 +593,18 @@
       }
 
       $slider.off('.bwProductSlide');
-      $slider.off('.bwProductSlideArrows');
-
-      // Rimuovi event listener di resize per le frecce
-      $(window).off('resize.bwProductSlideArrows-' + $container.data('arrowsResizeEvent'));
 
       var defaults = {
         slidesToShow: 1,
         slidesToScroll: 1,
-        arrows: true,
+        arrows: false,
         dots: false,
         infinite: true,
         speed: 600,
         fade: false,
+        centerMode: false,
+        variableWidth: false,
+        adaptiveHeight: false,
         prevArrow: $container.find('.bw-prev'),
         nextArrow: $container.find('.bw-next'),
       };
@@ -617,11 +616,7 @@
       var hasCustomColumnWidth = $slider.is('[data-has-column-width]');
 
       if (hasCustomColumnWidth) {
-        // Solo imposta variableWidth se centerMode non è attivo
-        // perché centerMode + variableWidth possono causare problemi in Slick
-        if (!settings.centerMode) {
-          settings.variableWidth = true;
-        }
+        settings.variableWidth = true;
 
         if (Array.isArray(settings.responsive)) {
           settings.responsive = settings.responsive.map(function (entry) {
@@ -635,14 +630,7 @@
               responsiveEntry.settings = {};
             }
 
-            // Solo imposta variableWidth se centerMode non è attivo per questo breakpoint
-            var breakpointCenterMode = responsiveEntry.settings.centerMode !== undefined
-              ? responsiveEntry.settings.centerMode
-              : settings.centerMode;
-
-            if (!breakpointCenterMode) {
-              responsiveEntry.settings.variableWidth = true;
-            }
+            responsiveEntry.settings.variableWidth = true;
 
             return responsiveEntry;
           });
@@ -706,78 +694,6 @@
 
       refreshSliderImages($slider);
       bindResponsiveUpdates($slider, settings);
-
-      // Funzione per aggiornare la visibilità delle frecce in base al breakpoint
-      var updateArrowsVisibility = function () {
-        var showArrows = settings.arrows !== false;
-        var windowWidth = $(window).width();
-
-        // Controlla se c'è una configurazione responsive per le frecce
-        if (Array.isArray(settings.responsive)) {
-          // Ordina i breakpoint in modo crescente
-          var sortedBreakpoints = settings.responsive
-            .slice()
-            .sort(function (a, b) {
-              return a.breakpoint - b.breakpoint;
-            });
-
-          // Trova il breakpoint più vicino che si applica alla viewport corrente
-          for (var i = 0; i < sortedBreakpoints.length; i++) {
-            var bp = sortedBreakpoints[i];
-            if (windowWidth <= bp.breakpoint && bp.settings && typeof bp.settings.arrows !== 'undefined') {
-              showArrows = bp.settings.arrows !== false;
-              break;
-            }
-          }
-        }
-
-        // Mostra/nascondi le frecce
-        if (showArrows) {
-          $container.find('.bw-product-slide-arrows').show();
-        } else {
-          $container.find('.bw-product-slide-arrows').hide();
-        }
-      };
-
-      // Applica la visibilità delle frecce all'inizializzazione
-      updateArrowsVisibility();
-
-      // Aggiorna la visibilità delle frecce quando cambia il breakpoint
-      $slider.on('breakpoint.bwProductSlideArrows', function () {
-        updateArrowsVisibility();
-      });
-
-      // Aggiorna la visibilità delle frecce al resize (per sicurezza)
-      var arrowsResizeEventId = Date.now();
-      $container.data('arrowsResizeEvent', arrowsResizeEventId);
-      $(window).on('resize.bwProductSlideArrows-' + arrowsResizeEventId, updateArrowsVisibility);
-
-      var updateSlideCountVisibility = function () {
-        var showSlideCount = String($container.attr('data-show-slide-count')) === 'true';
-        var currentSettings = settings;
-
-        if (Array.isArray(settings.responsive)) {
-          var windowWidth = $(window).width();
-          for (var i = 0; i < settings.responsive.length; i++) {
-            var breakpoint = settings.responsive[i];
-            if (windowWidth <= breakpoint.breakpoint && breakpoint.settings) {
-              if (typeof breakpoint.settings.showSlideCount !== 'undefined') {
-                showSlideCount = breakpoint.settings.showSlideCount;
-              }
-              break;
-            }
-          }
-        }
-
-        if (showSlideCount) {
-          $container.find('.bw-product-slide-count').show();
-        } else {
-          $container.find('.bw-product-slide-count').hide();
-        }
-      };
-
-      updateSlideCountVisibility();
-      $(window).on('resize.bwProductSlideCount-' + Date.now(), updateSlideCountVisibility);
 
       bindPopup($container);
     });
