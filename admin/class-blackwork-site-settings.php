@@ -47,9 +47,12 @@ function bw_site_settings_admin_assets($hook) {
         '1.0.0'
     );
 
+    wp_enqueue_style('wp-color-picker');
+
     // JavaScript per la pagina admin (se necessario)
     wp_enqueue_script('jquery');
     wp_enqueue_media();
+    wp_enqueue_script('wp-color-picker');
 
     $redirects_script_path = BW_MEW_PATH . 'admin/js/bw-redirects.js';
     $redirects_version     = file_exists($redirects_script_path) ? filemtime($redirects_script_path) : '1.0.0';
@@ -110,6 +113,10 @@ function bw_site_settings_page() {
                class="nav-tab <?php echo $active_tab === 'my-account-page' ? 'nav-tab-active' : ''; ?>">
                 My Account Page
             </a>
+            <a href="?page=blackwork-site-settings&tab=checkout"
+               class="nav-tab <?php echo $active_tab === 'checkout' ? 'nav-tab-active' : ''; ?>">
+                Checkout
+            </a>
             <a href="?page=blackwork-site-settings&tab=redirect"
                class="nav-tab <?php echo $active_tab === 'redirect' ? 'nav-tab-active' : ''; ?>">
                 Redirect
@@ -128,6 +135,8 @@ function bw_site_settings_page() {
                 bw_site_render_account_page_tab();
             } elseif ($active_tab === 'my-account-page') {
                 bw_site_render_my_account_front_tab();
+            } elseif ($active_tab === 'checkout') {
+                bw_site_render_checkout_tab();
             } elseif ($active_tab === 'redirect') {
                 bw_site_render_redirect_tab();
             }
@@ -398,6 +407,128 @@ function bw_site_render_my_account_front_tab() {
 
         <?php submit_button( __( 'Salva impostazioni', 'bw' ), 'primary', 'bw_myaccount_content_submit' ); ?>
     </form>
+    <?php
+}
+
+/**
+ * Render the Checkout customization tab.
+ */
+function bw_site_render_checkout_tab() {
+    $saved = false;
+
+    if ( isset( $_POST['bw_checkout_settings_submit'] ) ) {
+        check_admin_referer( 'bw_checkout_settings_save', 'bw_checkout_settings_nonce' );
+
+        $logo                 = isset( $_POST['bw_checkout_logo'] ) ? esc_url_raw( wp_unslash( $_POST['bw_checkout_logo'] ) ) : '';
+        $left_bg              = isset( $_POST['bw_checkout_left_bg_color'] ) ? sanitize_hex_color( wp_unslash( $_POST['bw_checkout_left_bg_color'] ) ) : '';
+        $right_bg             = isset( $_POST['bw_checkout_right_bg_color'] ) ? sanitize_hex_color( wp_unslash( $_POST['bw_checkout_right_bg_color'] ) ) : '';
+        $border_color         = isset( $_POST['bw_checkout_border_color'] ) ? sanitize_hex_color( wp_unslash( $_POST['bw_checkout_border_color'] ) ) : '';
+        $legal_text           = isset( $_POST['bw_checkout_legal_text'] ) ? wp_kses_post( wp_unslash( $_POST['bw_checkout_legal_text'] ) ) : '';
+
+        $left_bg      = $left_bg ?: '#ffffff';
+        $right_bg     = $right_bg ?: '#f7f7f7';
+        $border_color = $border_color ?: '#e0e0e0';
+
+        update_option( 'bw_checkout_logo', $logo );
+        update_option( 'bw_checkout_left_bg_color', $left_bg );
+        update_option( 'bw_checkout_right_bg_color', $right_bg );
+        update_option( 'bw_checkout_border_color', $border_color );
+        update_option( 'bw_checkout_legal_text', $legal_text );
+
+        $saved = true;
+    }
+
+    $logo         = get_option( 'bw_checkout_logo', '' );
+    $left_bg      = get_option( 'bw_checkout_left_bg_color', '#ffffff' );
+    $right_bg     = get_option( 'bw_checkout_right_bg_color', '#f7f7f7' );
+    $border_color = get_option( 'bw_checkout_border_color', '#e0e0e0' );
+    $legal_text   = get_option( 'bw_checkout_legal_text', '' );
+    ?>
+
+    <?php if ( $saved ) : ?>
+        <div class="notice notice-success is-dismissible">
+            <p><strong>Impostazioni salvate con successo!</strong></p>
+        </div>
+    <?php endif; ?>
+
+    <form method="post" action="">
+        <?php wp_nonce_field( 'bw_checkout_settings_save', 'bw_checkout_settings_nonce' ); ?>
+
+        <table class="form-table" role="presentation">
+            <tr>
+                <th scope="row">
+                    <label for="bw_checkout_logo">Logo Checkout</label>
+                </th>
+                <td>
+                    <input type="text" id="bw_checkout_logo" name="bw_checkout_logo" value="<?php echo esc_attr( $logo ); ?>" class="regular-text" />
+                    <button type="button" class="button bw-media-upload" data-target="#bw_checkout_logo">Seleziona immagine</button>
+                    <p class="description">Logo mostrato sopra il layout di checkout.</p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_checkout_left_bg_color">Background colonna sinistra</label>
+                </th>
+                <td>
+                    <input type="text" id="bw_checkout_left_bg_color" name="bw_checkout_left_bg_color" value="<?php echo esc_attr( $left_bg ); ?>" class="bw-color-picker" data-default-color="#ffffff" />
+                    <p class="description">Colore di sfondo della colonna principale con i campi checkout.</p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_checkout_right_bg_color">Background colonna destra (riepilogo)</label>
+                </th>
+                <td>
+                    <input type="text" id="bw_checkout_right_bg_color" name="bw_checkout_right_bg_color" value="<?php echo esc_attr( $right_bg ); ?>" class="bw-color-picker" data-default-color="#f7f7f7" />
+                    <p class="description">Colore di sfondo del riepilogo ordine sticky.</p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_checkout_border_color">Colore bordi centrali / separatore</label>
+                </th>
+                <td>
+                    <input type="text" id="bw_checkout_border_color" name="bw_checkout_border_color" value="<?php echo esc_attr( $border_color ); ?>" class="bw-color-picker" data-default-color="#e0e0e0" />
+                    <p class="description">Colore del bordo verticale tra le due colonne.</p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_checkout_legal_text">Testo informativo legale</label>
+                </th>
+                <td>
+                    <textarea id="bw_checkout_legal_text" name="bw_checkout_legal_text" rows="6" class="large-text"><?php echo esc_textarea( $legal_text ); ?></textarea>
+                    <p class="description">Testo mostrato sotto i metodi di pagamento; supporta link e HTML consentito.</p>
+                </td>
+            </tr>
+        </table>
+
+        <?php submit_button( 'Salva impostazioni', 'primary', 'bw_checkout_settings_submit' ); ?>
+    </form>
+
+    <script>
+        jQuery(document).ready(function($) {
+            $('.bw-media-upload').on('click', function(e) {
+                e.preventDefault();
+
+                const targetInput = $(this).data('target');
+                const frame = wp.media({
+                    title: 'Seleziona immagine',
+                    button: { text: 'Usa questa immagine' },
+                    multiple: false
+                });
+
+                frame.on('select', function() {
+                    const attachment = frame.state().get('selection').first().toJSON();
+                    $(targetInput).val(attachment.url);
+                });
+
+                frame.open();
+            });
+
+            $('.bw-color-picker').wpColorPicker();
+        });
+    </script>
     <?php
 }
 
