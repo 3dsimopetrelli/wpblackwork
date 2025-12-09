@@ -318,7 +318,7 @@
       var $image = $(this);
       var cssProperties = {
         width: '100%',
-        'max-width': 'none',
+        'max-width': '100%',
       };
 
       if (cropEnabled) {
@@ -356,10 +356,12 @@
     var widthToApply = null;
     var heightToApply = null;
     var gapToApply = null;
+    var breakpointFound = false;
 
     for (var i = 0; i < sortedBreakpoints.length; i++) {
       var bp = sortedBreakpoints[i];
       if (windowWidth <= bp.breakpoint) {
+        breakpointFound = true;
         if (bp.settings && bp.settings.responsiveWidth) {
           widthToApply = bp.settings.responsiveWidth;
         }
@@ -373,24 +375,57 @@
       }
     }
 
-    if (widthToApply && widthToApply.size >= 0) {
-      var widthValue = widthToApply.size + widthToApply.unit;
-      $slider.css({
-        '--bw-product-slide-column-width': widthValue,
-        '--bw-column-width': widthValue,
-        '--bw-slide-width': widthValue
-      });
+    // Se non è stato trovato nessun breakpoint applicabile, resetta ai valori inline originali
+    if (!breakpointFound && sortedBreakpoints.length > 0) {
+      // Mantieni i valori originali dell'attributo style
+      var originalStyle = $slider.attr('style') || '';
+      if (originalStyle) {
+        // Estrai i valori originali dalle variabili CSS
+        var tempDiv = document.createElement('div');
+        tempDiv.setAttribute('style', originalStyle);
+
+        var originalWidth = tempDiv.style.getPropertyValue('--bw-product-slide-column-width');
+        var originalHeight = tempDiv.style.getPropertyValue('--bw-product-slide-image-height');
+        var originalGap = tempDiv.style.getPropertyValue('--bw-product-slide-gap');
+
+        if (originalWidth) {
+          $slider.css({
+            '--bw-product-slide-column-width': originalWidth,
+            '--bw-column-width': originalWidth,
+            '--bw-slide-width': originalWidth
+          });
+        }
+        if (originalHeight) {
+          $slider.css('--bw-product-slide-image-height', originalHeight);
+        }
+        if (originalGap) {
+          $slider.css('--bw-product-slide-gap', originalGap);
+        }
+      }
+    } else {
+      // Applica i valori del breakpoint trovato
+      if (widthToApply && widthToApply.size >= 0) {
+        var widthValue = widthToApply.size + widthToApply.unit;
+        $slider.css({
+          '--bw-product-slide-column-width': widthValue,
+          '--bw-column-width': widthValue,
+          '--bw-slide-width': widthValue
+        });
+      }
+
+      if (heightToApply && heightToApply.size >= 0) {
+        var heightValue = heightToApply.size + heightToApply.unit;
+        $slider.css('--bw-product-slide-image-height', heightValue);
+      }
+
+      if (gapToApply && gapToApply.size >= 0) {
+        var gapValue = gapToApply.size + gapToApply.unit;
+        $slider.css('--bw-product-slide-gap', gapValue);
+      }
     }
 
-    if (heightToApply && heightToApply.size >= 0) {
-      var heightValue = heightToApply.size + heightToApply.unit;
-      $slider.css('--bw-product-slide-image-height', heightValue);
-    }
-
-    if (gapToApply && gapToApply.size >= 0) {
-      var gapValue = gapToApply.size + gapToApply.unit;
-      $slider.css('--bw-product-slide-gap', gapValue);
-    }
+    // Aggiorna le dimensioni delle immagini dopo aver applicato le nuove variabili CSS
+    refreshSliderImages($slider);
 
     if ($slider.hasClass('slick-initialized')) {
       setTimeout(function () {
