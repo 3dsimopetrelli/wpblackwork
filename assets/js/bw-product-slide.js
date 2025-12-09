@@ -718,17 +718,17 @@
 
         // Controlla se c'è una configurazione responsive per le frecce
         if (Array.isArray(settings.responsive)) {
-          // Ordina i breakpoint in modo crescente
+          // Ordina i breakpoint in modo DECRESCENTE
           var sortedBreakpoints = settings.responsive
             .slice()
             .sort(function (a, b) {
-              return a.breakpoint - b.breakpoint;
+              return b.breakpoint - a.breakpoint;
             });
 
-          // Trova il breakpoint più vicino che si applica alla viewport corrente
+          // Trova il breakpoint più grande che è <= alla viewport corrente
           for (var i = 0; i < sortedBreakpoints.length; i++) {
             var bp = sortedBreakpoints[i];
-            if (windowWidth <= bp.breakpoint && bp.settings && typeof bp.settings.arrows !== 'undefined') {
+            if (bp.breakpoint <= windowWidth && bp.settings && typeof bp.settings.arrows !== 'undefined') {
               showArrows = bp.settings.arrows !== false;
               break;
             }
@@ -763,17 +763,17 @@
 
         // Controlla se c'è una configurazione responsive per i dots
         if (Array.isArray(settings.responsive)) {
-          // Ordina i breakpoint in modo crescente
+          // Ordina i breakpoint in modo DECRESCENTE
           var sortedBreakpoints = settings.responsive
             .slice()
             .sort(function (a, b) {
-              return a.breakpoint - b.breakpoint;
+              return b.breakpoint - a.breakpoint;
             });
 
-          // Trova il breakpoint più vicino che si applica alla viewport corrente
+          // Trova il breakpoint più grande che è <= alla viewport corrente
           for (var i = 0; i < sortedBreakpoints.length; i++) {
             var bp = sortedBreakpoints[i];
-            if (windowWidth <= bp.breakpoint && bp.settings && typeof bp.settings.dots !== 'undefined') {
+            if (bp.breakpoint <= windowWidth && bp.settings && typeof bp.settings.dots !== 'undefined') {
               showDots = bp.settings.dots !== false;
               break;
             }
@@ -806,17 +806,17 @@
 
         // Controlla se c'è una configurazione responsive per showSlideCount
         if (Array.isArray(settings.responsive)) {
-          // Ordina i breakpoint in modo crescente
+          // Ordina i breakpoint in modo DECRESCENTE
           var sortedBreakpoints = settings.responsive
             .slice()
             .sort(function (a, b) {
-              return a.breakpoint - b.breakpoint;
+              return b.breakpoint - a.breakpoint;
             });
 
-          // Trova il breakpoint più vicino che si applica alla viewport corrente
+          // Trova il breakpoint più grande che è <= alla viewport corrente
           for (var i = 0; i < sortedBreakpoints.length; i++) {
             var bp = sortedBreakpoints[i];
-            if (windowWidth <= bp.breakpoint && bp.settings && typeof bp.settings.showSlideCount !== 'undefined') {
+            if (bp.breakpoint <= windowWidth && bp.settings && typeof bp.settings.showSlideCount !== 'undefined') {
               showSlideCount = bp.settings.showSlideCount;
               break;
             }
