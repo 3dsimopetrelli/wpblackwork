@@ -139,6 +139,9 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
         // Aggiunge controlli style per il popup
         $this->register_popup_style_controls();
 
+        // Aggiunge la sezione Active Cursors
+        $this->register_active_cursors_controls();
+
         // Rimuove la sezione Animation Slide Loading del parent
         $this->remove_control( 'animation_loading_section' );
 
@@ -455,6 +458,13 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
         $total_slides  = count( $slides );
         $product_title = ! empty( $slides ) ? $slides[0]['title'] : '';
         $popup_id      = 'bw-product-slide-popup-' . uniqid();
+
+        // Active Cursors settings
+        $enable_active_cursors = isset( $settings['enable_active_cursors'] ) && 'yes' === $settings['enable_active_cursors'];
+        $cursor_label_text_color = isset( $settings['cursor_label_text_color'] ) ? $settings['cursor_label_text_color'] : '#000000';
+        $cursor_label_bg_color = isset( $settings['cursor_label_bg_color'] ) ? $settings['cursor_label_bg_color'] : '#80FD03';
+        $cursor_label_follow_delay = isset( $settings['cursor_label_follow_delay'] ) ? max( 0, absint( $settings['cursor_label_follow_delay'] ) ) : 100;
+
         $wrapper_style  = '--bw-product-slide-gap:' . $gap . 'px;';
         if ( $image_height_value > 0 ) {
             $wrapper_style .= '--bw-product-slide-image-height:' . $image_height_value . $image_height_unit . ';';
@@ -482,6 +492,10 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
             data-show-slide-count="<?php echo esc_attr( $show_slide_count ? 'true' : 'false' ); ?>"
             data-popup-id="<?php echo esc_attr( $popup_id ); ?>"
             data-popup-open-on-click="<?php echo esc_attr( $popup_open_on_click ? 'true' : 'false' ); ?>"
+            data-enable-active-cursors="<?php echo esc_attr( $enable_active_cursors ? 'true' : 'false' ); ?>"
+            data-cursor-label-text-color="<?php echo esc_attr( $cursor_label_text_color ); ?>"
+            data-cursor-label-bg-color="<?php echo esc_attr( $cursor_label_bg_color ); ?>"
+            data-cursor-label-follow-delay="<?php echo esc_attr( $cursor_label_follow_delay ); ?>"
         >
             <div
                 class="bw-product-slide-wrapper slick-slider"
@@ -775,6 +789,85 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
         }
 
         return $slider_settings;
+    }
+
+    /**
+     * Registra la sezione Active Cursors
+     */
+    private function register_active_cursors_controls() {
+        $this->start_controls_section(
+            'active_cursors_section',
+            [
+                'label' => __( 'Active Cursors', 'bw-elementor-widgets' ),
+            ]
+        );
+
+        $this->add_control(
+            'enable_active_cursors',
+            [
+                'label'        => __( 'Enable Active Cursors', 'bw-elementor-widgets' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'label_on'     => __( 'On', 'bw-elementor-widgets' ),
+                'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
+                'return_value' => 'yes',
+                'default'      => '',
+                'description'  => __( 'Enable interactive cursor labels (Prev, Zoom, Next) that follow the mouse over each slide.', 'bw-elementor-widgets' ),
+            ]
+        );
+
+        $this->add_control(
+            'cursor_label_text_color',
+            [
+                'label'     => __( 'Label Text Color', 'bw-elementor-widgets' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#000000',
+                'condition' => [
+                    'enable_active_cursors' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'cursor_label_bg_color',
+            [
+                'label'     => __( 'Label Background Color', 'bw-elementor-widgets' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#80FD03',
+                'condition' => [
+                    'enable_active_cursors' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Typography::get_type(),
+            [
+                'name'      => 'cursor_label_typography',
+                'label'     => __( 'Label Typography', 'bw-elementor-widgets' ),
+                'selector'  => '{{WRAPPER}} .bw-cursor-label',
+                'condition' => [
+                    'enable_active_cursors' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'cursor_label_follow_delay',
+            [
+                'label'       => __( 'Label Follow Delay (ms)', 'bw-elementor-widgets' ),
+                'type'        => Controls_Manager::NUMBER,
+                'min'         => 0,
+                'max'         => 500,
+                'step'        => 10,
+                'default'     => 100,
+                'description' => __( 'Delay for the label to follow the cursor (in milliseconds). Lower values = faster response.', 'bw-elementor-widgets' ),
+                'condition'   => [
+                    'enable_active_cursors' => 'yes',
+                ],
+            ]
+        );
+
+        $this->end_controls_section();
     }
 
     /**

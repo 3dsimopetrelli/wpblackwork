@@ -307,6 +307,52 @@ body.popup-active {
     background: #fafafa;
 }
 
+/* =============================
+   ACTIVE CURSORS
+   ============================= */
+
+.bw-cursor-label {
+    position: fixed;
+    padding: 8px 20px;
+    background-color: #80FD03;
+    color: #000000;
+    border-radius: 50px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    pointer-events: none;
+    z-index: 9999;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translate(-50%, -50%);
+    transition: opacity 0.2s ease;
+}
+
+.bw-cursor-label.active {
+    opacity: 1;
+}
+
+.bw-product-slide[data-enable-active-cursors="true"] .bw-product-slide-item {
+    cursor: none;
+}
+
+/* Hide default cursor over slides when active cursors are enabled */
+.bw-product-slide[data-enable-active-cursors="true"] .bw-product-slide-item img {
+    cursor: none;
+}
+
+/* Disable custom cursor on touch devices and small screens */
+@media (max-width: 767px), (pointer: coarse) {
+    .bw-cursor-label {
+        display: none !important;
+    }
+
+    .bw-product-slide[data-enable-active-cursors="true"] .bw-product-slide-item,
+    .bw-product-slide[data-enable-active-cursors="true"] .bw-product-slide-item img {
+        cursor: pointer;
+    }
+}
+
 @media (max-width: 767px) {
     .bw-product-slide {
         --bw-product-slide-arrow-bottom: 16px;
