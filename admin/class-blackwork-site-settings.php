@@ -2005,12 +2005,21 @@ function bw_import_get_mapping_options() {
     }
 
     $meta_fields = bw_import_detect_custom_meta_fields();
+
+    $product_slider_meta = bw_import_product_slider_meta_options($meta_fields);
+    if (!empty($product_slider_meta)) {
+        $options[__('MetaFields', 'bw')] = $product_slider_meta;
+    }
+
     if (!empty($meta_fields)) {
-        $meta_group = [];
-        foreach ($meta_fields as $meta_key) {
-            $meta_group['meta:' . $meta_key] = sprintf(__('Meta: %1$s (%2$s)', 'bw'), bw_import_pretty_meta_label($meta_key), $meta_key);
+        $meta_fields = array_values(array_diff($meta_fields, ['_bw_slider_hover_image']));
+        if (!empty($meta_fields)) {
+            $meta_group = [];
+            foreach ($meta_fields as $meta_key) {
+                $meta_group['meta:' . $meta_key] = sprintf(__('Meta: %1$s (%2$s)', 'bw'), bw_import_pretty_meta_label($meta_key), $meta_key);
+            }
+            $options[__('Custom Meta Fields (Metabox)', 'bw')] = $meta_group;
         }
-        $options[__('Custom Meta Fields (Metabox)', 'bw')] = $meta_group;
     }
 
     return $options;
@@ -2193,6 +2202,25 @@ function bw_import_detect_custom_meta_fields() {
     }
 
     return array_keys($meta_keys);
+}
+
+/**
+ * Restituisce le opzioni di mapping per il meta field dello slider prodotto.
+ *
+ * @param array $detected_meta Meta rilevati automaticamente.
+ *
+ * @return array
+ */
+function bw_import_product_slider_meta_options($detected_meta) {
+    $meta_key = '_bw_slider_hover_image';
+
+    if (!in_array($meta_key, $detected_meta, true)) {
+        $detected_meta[] = $meta_key;
+    }
+
+    return [
+        'meta:' . $meta_key => sprintf(__('Image over (%s)', 'bw'), $meta_key),
+    ];
 }
 
 /**
