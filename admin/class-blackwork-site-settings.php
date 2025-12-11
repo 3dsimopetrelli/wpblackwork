@@ -1535,17 +1535,29 @@ function bw_site_render_import_product_tab() {
                     <tbody>
                     <?php
                     $options = bw_import_get_mapping_options();
+                    $auto_mapping = bw_import_guess_mapping($state['headers'], $options);
+                    $submitted_mapping = [];
+
+                    if (!empty($_POST['bw_import_mapping'])) {
+                        foreach ((array) $_POST['bw_import_mapping'] as $submitted_header => $submitted_value) {
+                            $submitted_mapping[$submitted_header] = sanitize_text_field(wp_unslash($submitted_value));
+                        }
+                    }
+
                     foreach ($state['headers'] as $header) :
+                        $current_value = isset($submitted_mapping[$header])
+                            ? $submitted_mapping[$header]
+                            : (isset($auto_mapping[$header]) ? $auto_mapping[$header] : 'ignore');
                         ?>
                         <tr>
                             <td><strong><?php echo esc_html($header); ?></strong></td>
                             <td>
                                 <select name="bw_import_mapping[<?php echo esc_attr($header); ?>]" style="width:100%;">
-                                    <option value="ignore"><?php esc_html_e('Ignore this column', 'bw'); ?></option>
+                                    <option value="ignore" <?php selected($current_value, 'ignore'); ?>><?php esc_html_e('Ignore this column', 'bw'); ?></option>
                                     <?php foreach ($options as $group_label => $group_options) : ?>
                                         <optgroup label="<?php echo esc_attr($group_label); ?>">
                                             <?php foreach ($group_options as $key => $label) : ?>
-                                                <option value="<?php echo esc_attr($key); ?>"><?php echo esc_html($label); ?></option>
+                                                <option value="<?php echo esc_attr($key); ?>" <?php selected($current_value, $key); ?>><?php echo esc_html($label); ?></option>
                                             <?php endforeach; ?>
                                         </optgroup>
                                     <?php endforeach; ?>
@@ -1846,6 +1858,125 @@ function bw_import_get_mapping_options() {
     }
 
     return $options;
+}
+
+/**
+ * Prova ad effettuare un auto-mapping basato sul nome della colonna.
+ *
+ * @param array $headers  Header del CSV.
+ * @param array $options  Opzioni di mapping organizzate per gruppo.
+ *
+ * @return array
+ */
+function bw_import_guess_mapping($headers, $options) {
+    $flat_options = [];
+    foreach ($options as $group_options) {
+        foreach ($group_options as $key => $label) {
+            $flat_options[$key] = [
+                'normalized_key'   => bw_import_normalize_mapping_key($key),
+                'normalized_label' => bw_import_normalize_string($label),
+            ];
+        }
+    }
+
+    $aliases = bw_import_get_mapping_aliases();
+    $guessed = [];
+
+    foreach ($headers as $header) {
+        $normalized_header = bw_import_normalize_string($header);
+
+        if (isset($aliases[$normalized_header]) && isset($flat_options[$aliases[$normalized_header]])) {
+            $guessed[$header] = $aliases[$normalized_header];
+            continue;
+        }
+
+        foreach ($flat_options as $key => $normalized) {
+            if ($normalized_header === $normalized['normalized_key'] || $normalized_header === $normalized['normalized_label']) {
+                $guessed[$header] = $key;
+                break;
+            }
+        }
+    }
+
+    return $guessed;
+}
+
+/**
+ * Normalizza una stringa per renderla confrontabile.
+ *
+ * @param string $value Valore da normalizzare.
+ *
+ * @return string
+ */
+function bw_import_normalize_string($value) {
+    $value = strtolower((string) $value);
+    $value = preg_replace('/[^a-z0-9]+/', '_', $value);
+    return trim($value, '_');
+}
+
+/**
+ * Normalizza la chiave di mapping.
+ *
+ * @param string $key Chiave di mapping (es. meta:_foo, attribute_color).
+ *
+ * @return string
+ */
+function bw_import_normalize_mapping_key($key) {
+    if (strpos($key, 'meta:') === 0) {
+        $key = substr($key, 5);
+    }
+
+    if (strpos($key, 'attribute_') === 0) {
+        $key = substr($key, strlen('attribute_'));
+    }
+
+    return bw_import_normalize_string($key);
+}
+
+/**
+ * Restituisce alias comuni per gli header del CSV.
+ *
+ * @return array
+ */
+function bw_import_get_mapping_aliases() {
+    $aliases = [
+        'title'             => 'post_title',
+        'product_title'     => 'post_title',
+        'producttitle'      => 'post_title',
+        'name'              => 'post_title',
+        'product_name'      => 'post_title',
+        'slug'              => 'post_name',
+        'status'            => 'post_status',
+        'type'              => 'product_type',
+        'description'       => 'post_content',
+        'long_description'  => 'post_content',
+        'short_description' => 'post_excerpt',
+        'regular_price'     => 'regular_price',
+        'price'             => 'regular_price',
+        'sale_price'        => 'sale_price',
+        'discount_price'    => 'sale_price',
+        'qty'               => 'stock_quantity',
+        'quantity'          => 'stock_quantity',
+        'stock'             => 'stock_quantity',
+        'featured_image'    => 'featured_image',
+        'image'             => 'featured_image',
+        'gallery'           => 'gallery_images',
+        'category'          => 'categories',
+        'categories'        => 'categories',
+        'tag'               => 'tags',
+        'tags'              => 'tags',
+        'upsell'            => 'upsells',
+        'upsells'           => 'upsells',
+        'crosssell'         => 'cross_sells',
+        'cross_sells'       => 'cross_sells',
+    ];
+
+    $normalized_aliases = [];
+    foreach ($aliases as $alias => $target) {
+        $normalized_aliases[bw_import_normalize_string($alias)] = $target;
+    }
+
+    return $normalized_aliases;
 }
 
 /**
