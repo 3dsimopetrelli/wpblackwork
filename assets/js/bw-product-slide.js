@@ -25,76 +25,106 @@
     return settings;
   };
 
+  /**
+   * Active Cursors Implementation
+   * Creates interactive zone-based cursor labels (Prev/Zoom/Next) for product slides
+   */
   var bindActiveCursors = function ($container) {
+    // Check if feature is enabled
     var enableActiveCursors = String($container.attr('data-enable-active-cursors')) === 'true';
-
     if (!enableActiveCursors) {
       return;
     }
 
-    // Disable on touch devices and small screens
+    // Disable on touch devices and small screens for better UX
     var isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
     var isSmallScreen = $(window).width() <= 767;
-
     if (isTouchDevice || isSmallScreen) {
       return;
     }
 
-    var textColor = $container.attr('data-cursor-label-text-color') || '#000000';
-    var bgColor = $container.attr('data-cursor-label-bg-color') || '#80FD03';
-    var followDelay = parseInt($container.attr('data-cursor-label-follow-delay'), 10) || 100;
-    var popupOpenOnClick = String($container.attr('data-popup-open-on-click')) === 'true';
+    // Get settings from data attributes
+    var settings = {
+      textColor: $container.attr('data-cursor-label-text-color') || '#000000',
+      bgColor: $container.attr('data-cursor-label-bg-color') || '#80FD03',
+      followDelay: parseInt($container.attr('data-cursor-label-follow-delay'), 10) || 100,
+      popupEnabled: String($container.attr('data-popup-open-on-click')) === 'true'
+    };
 
-    // Create label element
-    var $label = $('<div class="bw-cursor-label"></div>');
-    $label.css({
-      'background-color': bgColor,
-      'color': textColor
+    // Create and configure cursor label element
+    var $label = $('<div class="bw-cursor-label"></div>').css({
+      'background-color': settings.bgColor,
+      'color': settings.textColor
     });
     $('body').append($label);
 
-    var currentSlide = null;
-    var currentZone = null;
-    var targetX = 0;
-    var targetY = 0;
-    var currentX = 0;
-    var currentY = 0;
-    var animationFrame = null;
+    // State management
+    var state = {
+      currentSlide: null,
+      currentZone: null,
+      targetX: 0,
+      targetY: 0,
+      currentX: 0,
+      currentY: 0,
+      animationFrame: null
+    };
 
-    // Smooth animation using requestAnimationFrame
+    /**
+     * Smooth label animation using requestAnimationFrame
+     * Interpolates between current and target position
+     */
     var animateLabel = function () {
-      var speed = 1 - (followDelay / 500); // Convert delay to speed (0.8 to 1)
+      // Convert follow delay to animation speed (higher delay = slower movement)
+      var speed = 1 - (settings.followDelay / 500);
       speed = Math.max(0.1, Math.min(1, speed));
 
-      currentX += (targetX - currentX) * speed;
-      currentY += (targetY - currentY) * speed;
+      // Lerp (Linear Interpolation) for smooth following
+      state.currentX += (state.targetX - state.currentX) * speed;
+      state.currentY += (state.targetY - state.currentY) * speed;
 
       $label.css({
-        left: currentX + 'px',
-        top: currentY + 'px'
+        left: state.currentX + 'px',
+        top: state.currentY + 'px'
       });
 
-      var distance = Math.sqrt(Math.pow(targetX - currentX, 2) + Math.pow(targetY - currentY, 2));
+      // Continue animation if distance to target is significant
+      var distance = Math.sqrt(
+        Math.pow(state.targetX - state.currentX, 2) +
+        Math.pow(state.targetY - state.currentY, 2)
+      );
 
       if (distance > 0.5) {
-        animationFrame = requestAnimationFrame(animateLabel);
+        state.animationFrame = requestAnimationFrame(animateLabel);
       }
     };
 
+    /**
+     * Start or restart the animation loop
+     */
     var startAnimation = function () {
-      if (animationFrame) {
-        cancelAnimationFrame(animationFrame);
+      if (state.animationFrame) {
+        cancelAnimationFrame(state.animationFrame);
       }
-      animationFrame = requestAnimationFrame(animateLabel);
+      state.animationFrame = requestAnimationFrame(animateLabel);
     };
 
+    /**
+     * Stop the animation loop
+     */
     var stopAnimation = function () {
-      if (animationFrame) {
-        cancelAnimationFrame(animationFrame);
-        animationFrame = null;
+      if (state.animationFrame) {
+        cancelAnimationFrame(state.animationFrame);
+        state.animationFrame = null;
       }
     };
 
+    /**
+     * Determine which zone (left/center/right) the mouse is in
+     * @param {number} mouseX - Mouse X position
+     * @param {number} slideLeft - Slide left offset
+     * @param {number} slideWidth - Slide width
+     * @returns {string} Zone name: 'left', 'center', or 'right'
+     */
     var getZone = function (mouseX, slideLeft, slideWidth) {
       var relativeX = mouseX - slideLeft;
       var percentage = relativeX / slideWidth;
@@ -108,73 +138,85 @@
       }
     };
 
+    /**
+     * Update label text based on current zone
+     * @param {string} zone - Zone name
+     */
     var updateLabel = function (zone) {
-      if (zone === currentZone) {
-        return;
+      if (zone === state.currentZone) {
+        return; // No change needed
       }
 
-      currentZone = zone;
+      state.currentZone = zone;
 
-      switch (zone) {
-        case 'left':
-          $label.text('Prev');
-          break;
-        case 'center':
-          $label.text('Zoom');
-          break;
-        case 'right':
-          $label.text('Next');
-          break;
-      }
+      var labels = {
+        left: 'Prev',
+        center: 'Zoom',
+        right: 'Next'
+      };
+
+      $label.text(labels[zone] || '');
     };
 
-    // Bind events to slides
+    /**
+     * Handle mouse entering a slide
+     */
     $container.on('mouseenter.activeCursors', '.bw-product-slide-item', function (e) {
-      currentSlide = $(this);
+      state.currentSlide = $(this);
       $label.addClass('active');
 
-      var offset = currentSlide.offset();
-      var zone = getZone(e.pageX, offset.left, currentSlide.outerWidth());
+      var offset = state.currentSlide.offset();
+      var zone = getZone(e.pageX, offset.left, state.currentSlide.outerWidth());
       updateLabel(zone);
 
-      targetX = e.pageX;
-      targetY = e.pageY;
-      currentX = e.pageX;
-      currentY = e.pageY;
+      // Initialize position immediately (no animation on first appearance)
+      state.targetX = e.pageX;
+      state.targetY = e.pageY;
+      state.currentX = e.pageX;
+      state.currentY = e.pageY;
 
       $label.css({
-        left: currentX + 'px',
-        top: currentY + 'px'
+        left: state.currentX + 'px',
+        top: state.currentY + 'px'
       });
 
       startAnimation();
     });
 
+    /**
+     * Handle mouse moving over a slide
+     */
     $container.on('mousemove.activeCursors', '.bw-product-slide-item', function (e) {
-      if (!currentSlide) {
+      if (!state.currentSlide) {
         return;
       }
 
-      var offset = currentSlide.offset();
-      var zone = getZone(e.pageX, offset.left, currentSlide.outerWidth());
+      var offset = state.currentSlide.offset();
+      var zone = getZone(e.pageX, offset.left, state.currentSlide.outerWidth());
       updateLabel(zone);
 
-      targetX = e.pageX;
-      targetY = e.pageY;
+      // Update target position for smooth following
+      state.targetX = e.pageX;
+      state.targetY = e.pageY;
 
       startAnimation();
     });
 
+    /**
+     * Handle mouse leaving a slide
+     */
     $container.on('mouseleave.activeCursors', '.bw-product-slide-item', function () {
-      currentSlide = null;
-      currentZone = null;
+      state.currentSlide = null;
+      state.currentZone = null;
       $label.removeClass('active');
       stopAnimation();
     });
 
-    // Click handlers
+    /**
+     * Handle clicks on zones for navigation
+     */
     $container.on('click.activeCursors', '.bw-product-slide-item', function (e) {
-      if (!currentSlide || !currentZone) {
+      if (!state.currentSlide || !state.currentZone) {
         return;
       }
 
@@ -184,35 +226,44 @@
         return;
       }
 
-      switch (currentZone) {
+      // Handle zone-specific actions
+      switch (state.currentZone) {
         case 'left':
           e.preventDefault();
           e.stopPropagation();
           $slider.slick('slickPrev');
           break;
+
         case 'right':
           e.preventDefault();
           e.stopPropagation();
           $slider.slick('slickNext');
           break;
+
         case 'center':
-          // Only handle zoom if popup is enabled
-          if (!popupOpenOnClick) {
+          // Only prevent default if popup is disabled
+          if (!settings.popupEnabled) {
             e.preventDefault();
             e.stopPropagation();
           }
-          // Let the existing popup handler take care of opening
+          // If popup is enabled, let the existing popup handler take over
           break;
       }
     });
 
-    // Cleanup when container is destroyed
+    // Store label reference for cleanup
     $container.data('bwActiveCursorsLabel', $label);
   };
 
+  /**
+   * Cleanup Active Cursors
+   * Removes event listeners and label element
+   */
   var unbindActiveCursors = function ($container) {
+    // Remove all active cursor event listeners
     $container.off('.activeCursors');
 
+    // Remove label element from DOM
     var $label = $container.data('bwActiveCursorsLabel');
     if ($label && $label.length) {
       $label.remove();
