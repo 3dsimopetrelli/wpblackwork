@@ -382,52 +382,67 @@
       }
     }
 
+    // Get original inline style values once for fallback (only when NO breakpoint matches)
+    var originalStyle = $slider.data('bwOriginalStyle');
+    if (!originalStyle) {
+      originalStyle = {
+        width: $slider.get(0).style.getPropertyValue('--bw-product-slide-column-width') || '',
+        height: $slider.get(0).style.getPropertyValue('--bw-product-slide-image-height') || '',
+        gap: $slider.get(0).style.getPropertyValue('--bw-product-slide-gap') || ''
+      };
+      $slider.data('bwOriginalStyle', originalStyle);
+    }
+
     // Se non è stato trovato nessun breakpoint applicabile, resetta ai valori inline originali
     if (!breakpointFound && sortedBreakpoints.length > 0) {
-      // Mantieni i valori originali dell'attributo style
-      var originalStyle = $slider.attr('style') || '';
-      if (originalStyle) {
-        // Estrai i valori originali dalle variabili CSS
-        var tempDiv = document.createElement('div');
-        tempDiv.setAttribute('style', originalStyle);
-
-        var originalWidth = tempDiv.style.getPropertyValue('--bw-product-slide-column-width');
-        var originalHeight = tempDiv.style.getPropertyValue('--bw-product-slide-image-height');
-        var originalGap = tempDiv.style.getPropertyValue('--bw-product-slide-gap');
-
-        if (originalWidth) {
-          $slider.css({
-            '--bw-product-slide-column-width': originalWidth,
-            '--bw-column-width': originalWidth,
-            '--bw-slide-width': originalWidth
-          });
-        }
-        if (originalHeight) {
-          $slider.css('--bw-product-slide-image-height', originalHeight);
-        }
-        if (originalGap) {
-          $slider.css('--bw-product-slide-gap', originalGap);
-        }
+      // Restore original values
+      if (originalStyle.width) {
+        $slider.css({
+          '--bw-product-slide-column-width': originalStyle.width,
+          '--bw-column-width': originalStyle.width,
+          '--bw-slide-width': originalStyle.width
+        });
       }
-    } else {
-      // Applica i valori del breakpoint trovato
-      if (widthToApply && widthToApply.size >= 0) {
+      if (originalStyle.height) {
+        $slider.css('--bw-product-slide-image-height', originalStyle.height);
+      }
+      if (originalStyle.gap) {
+        $slider.css('--bw-product-slide-gap', originalStyle.gap);
+      }
+    } else if (breakpointFound) {
+      // Only apply values if the breakpoint explicitly provides them
+      // If breakpoint doesn't provide a value, clear the CSS variable to let Slick handle it naturally
+
+      if (widthToApply && widthToApply.size !== null && widthToApply.size !== '') {
         var widthValue = widthToApply.size + widthToApply.unit;
         $slider.css({
           '--bw-product-slide-column-width': widthValue,
           '--bw-column-width': widthValue,
           '--bw-slide-width': widthValue
         });
+      } else {
+        // Breakpoint found but no custom width - clear the variable to use auto/natural sizing
+        $slider.css({
+          '--bw-product-slide-column-width': '',
+          '--bw-column-width': '',
+          '--bw-slide-width': ''
+        });
       }
 
-      if (heightToApply && heightToApply.size >= 0) {
+      if (heightToApply && heightToApply.size !== null && heightToApply.size !== '') {
         var heightValue = heightToApply.size + heightToApply.unit;
         $slider.css('--bw-product-slide-image-height', heightValue);
+      } else {
+        // Breakpoint found but no custom height - clear to use auto
+        $slider.css('--bw-product-slide-image-height', '');
       }
 
-      if (gapToApply && gapToApply.size >= 0) {
+      if (gapToApply && gapToApply.size !== null && gapToApply.size !== '') {
         var gapValue = gapToApply.size + gapToApply.unit;
         $slider.css('--bw-product-slide-gap', gapValue);
+      } else {
+        // Breakpoint found but no custom gap - clear to use default
+        $slider.css('--bw-product-slide-gap', '');
       }
     }
 
@@ -492,6 +507,8 @@
     unbindResponsiveUpdates($slider);
 
     var resizeEvent = 'resize.bwProductSlide-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+    var resizeTimeout = null;
+    var isRefreshing = false;
 
     var refreshImages = function () {
       refreshSliderImages($slider);
@@ -502,11 +519,21 @@
     };
 
     var refreshAll = function () {
+      if (isRefreshing) {
+        return; // Prevent concurrent refreshes
+      }
+      isRefreshing = true;
       refreshImages();
       applyDimensions();
+      setTimeout(function () {
+        isRefreshing = false;
+      }, 100);
     };
 
-    $(window).on(resizeEvent, refreshAll);
+    $(window).on(resizeEvent, function () {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(refreshAll, 150);
+    });
     $slider.data('bwResizeEvent', resizeEvent);
 
     if (
@@ -550,6 +577,7 @@
       var sliderElement = $slider.get(0);
 
       if (sliderElement) {
+        var mutationTimeout = null;
         var observer = new MutationObserver(function (mutations) {
           var shouldRefresh = mutations.some(function (mutation) {
             if (!mutation || mutation.type !== 'attributes') {
@@ -567,8 +595,13 @@
             return false;
           });
 
-          if (shouldRefresh) {
-            refreshAll();
+          if (shouldRefresh && !isRefreshing) {
+            clearTimeout(mutationTimeout);
+            mutationTimeout = setTimeout(function () {
+              if (!isRefreshing) {
+                refreshAll();
+              }
+            }, 200);
           }
         });
 
@@ -671,9 +704,23 @@
               ? responsiveEntry.settings.centerMode
               : settings.centerMode;
 
-            if (!breakpointCenterMode) {
-              responsiveEntry.settings.variableWidth = true;
+            // Check if this breakpoint has custom responsive width
+            var hasResponsiveWidth = responsiveEntry.settings.responsiveWidth &&
+                                     responsiveEntry.settings.responsiveWidth.size !== null &&
+                                     responsiveEntry.settings.responsiveWidth.size !== '';
+
+            // Respect user's explicit variableWidth setting, only auto-enable if not set
+            if (typeof responsiveEntry.settings.variableWidth === 'undefined') {
+              // User hasn't explicitly set variableWidth for this breakpoint
+              // Only enable if: (1) has custom width AND (2) centerMode is off
+              if (hasResponsiveWidth && !breakpointCenterMode) {
+                responsiveEntry.settings.variableWidth = true;
+              } else {
+                // No custom width OR centerMode is on → use fixed-width (false)
+                responsiveEntry.settings.variableWidth = false;
+              }
             }
+            // If user explicitly set variableWidth, keep their setting
 
             return responsiveEntry;
           });
