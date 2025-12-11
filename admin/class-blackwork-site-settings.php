@@ -2311,7 +2311,13 @@ function bw_import_save_product_from_row($data) {
         $status = 'updated';
     } else {
         $product_type = !empty($data['product']['type']) ? $data['product']['type'] : 'simple';
-        $product      = wc_get_product_object($product_type);
+
+        try {
+            $product = wc_get_product_object($product_type);
+        } catch (Throwable $exception) {
+            return new WP_Error('bw_import_product_object', $exception->getMessage());
+        }
+
         if (!$product) {
             return new WP_Error('bw_import_product_object', __('Unable to create product object for type.', 'bw'));
         }
@@ -2389,7 +2395,27 @@ function bw_import_save_product_from_row($data) {
     }
 
     if (!empty($data['product']['shipping_class'])) {
-        $product->set_shipping_class($data['product']['shipping_class']);
+        $shipping_class_id = 0;
+
+        if (is_numeric($data['product']['shipping_class'])) {
+            $shipping_class_id = (int) $data['product']['shipping_class'];
+        } else {
+            $existing_shipping_class = term_exists($data['product']['shipping_class'], 'product_shipping_class');
+
+            if ($existing_shipping_class && !is_wp_error($existing_shipping_class)) {
+                $shipping_class_id = (int) $existing_shipping_class['term_id'];
+            } else {
+                $created_shipping_class = wp_insert_term($data['product']['shipping_class'], 'product_shipping_class');
+
+                if ($created_shipping_class && !is_wp_error($created_shipping_class)) {
+                    $shipping_class_id = (int) $created_shipping_class['term_id'];
+                }
+            }
+        }
+
+        if ($shipping_class_id) {
+            $product->set_shipping_class_id($shipping_class_id);
+        }
     }
 
     if (!empty($data['product']['tax_status'])) {
@@ -2400,7 +2426,11 @@ function bw_import_save_product_from_row($data) {
         $product->set_tax_class($data['product']['tax_class']);
     }
 
-    $product_id = $product->save();
+    try {
+        $product_id = $product->save();
+    } catch (Throwable $exception) {
+        return new WP_Error('bw_import_save', $exception->getMessage());
+    }
 
     if (!$product_id) {
         return new WP_Error('bw_import_save', __('Unable to save the product.', 'bw'));
@@ -2437,7 +2467,11 @@ function bw_import_save_product_from_row($data) {
         }
         if (!empty($gallery_ids)) {
             $product->set_gallery_image_ids($gallery_ids);
-            $product->save();
+            try {
+                $product->save();
+            } catch (Throwable $exception) {
+                return new WP_Error('bw_import_save', $exception->getMessage());
+            }
         }
     }
 
@@ -2453,7 +2487,11 @@ function bw_import_save_product_from_row($data) {
         $product->set_cross_sell_ids(bw_import_locate_product_ids($data['cross_sells']));
     }
 
-    $product->save();
+    try {
+        $product->save();
+    } catch (Throwable $exception) {
+        return new WP_Error('bw_import_save', $exception->getMessage());
+    }
 
     return $status;
 }
