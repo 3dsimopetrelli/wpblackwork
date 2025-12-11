@@ -1472,7 +1472,11 @@ function bw_site_render_import_product_tab() {
     }
 
     $notices = [];
-    $state   = bw_import_get_state();
+    if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        bw_import_clear_state();
+    }
+
+    $state = bw_import_get_state();
 
     if (isset($_POST['bw_import_upload_submit'])) {
         $upload_result = bw_import_handle_upload_request();
@@ -1665,7 +1669,7 @@ function bw_import_handle_run_request($state) {
     }
 
     if (empty($state['file_path']) || empty($state['headers'])) {
-        return new WP_Error('bw_import_missing_state', __('Upload a CSV file before running the import.', 'bw'));
+        return new WP_Error('bw_import_missing_state', __('No CSV file is attached. Upload a file before running the import.', 'bw'));
     }
 
     $raw_mapping = isset($_POST['bw_import_mapping']) ? (array) $_POST['bw_import_mapping'] : [];
