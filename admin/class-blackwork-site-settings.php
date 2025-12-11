@@ -1553,6 +1553,54 @@ function bw_site_render_import_product_tab() {
                             <?php endif; ?>
                         </td>
                     </tr>
+                    <tr>
+                        <th><?php esc_html_e('Replaced fields', 'bw'); ?></th>
+                        <td>
+                            <?php
+                            $replaced_count = isset($state['upload_summary']['replaced_count']) ? (int) $state['upload_summary']['replaced_count'] : 0;
+                            if ($replaced_count > 0) :
+                                ?>
+                                <strong><?php echo esc_html(sprintf(__('Replaced headers: %d', 'bw'), $replaced_count)); ?></strong>
+                                <ul style="margin: 4px 0 0 20px;">
+                                    <?php foreach ((array) $state['upload_summary']['replaced'] as $replaced_header) : ?>
+                                        <li><?php echo esc_html($replaced_header); ?></li>
+                                    <?php endforeach; ?>
+                                </ul>
+                            <?php else : ?>
+                                <?php esc_html_e('No empty headers were replaced.', 'bw'); ?>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><?php esc_html_e('Duplicate headers', 'bw'); ?></th>
+                        <td>
+                            <?php
+                            $duplicate_count = isset($state['upload_summary']['duplicate_count']) ? (int) $state['upload_summary']['duplicate_count'] : 0;
+                            $duplicates      = isset($state['upload_summary']['duplicates']) ? (array) $state['upload_summary']['duplicates'] : [];
+                            if ($duplicate_count > 0) :
+                                ?>
+                                <strong><?php echo esc_html(sprintf(__('Duplicated fields: %d', 'bw'), $duplicate_count)); ?></strong>
+                                <ul style="margin: 4px 0 0 20px;">
+                                    <?php foreach ($duplicates as $header => $positions) : ?>
+                                        <li>
+                                            <?php
+                                            echo esc_html(
+                                                sprintf(
+                                                    /* translators: 1: header label, 2: column positions */
+                                                    __('%1$s (columns: %2$s)', 'bw'),
+                                                    $header,
+                                                    implode(', ', array_map('intval', (array) $positions))
+                                                )
+                                            );
+                                            ?>
+                                        </li>
+                                    <?php endforeach; ?>
+                                </ul>
+                            <?php else : ?>
+                                <?php esc_html_e('No duplicate header names detected.', 'bw'); ?>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         <?php endif; ?>
@@ -1687,6 +1735,10 @@ function bw_import_handle_upload_request() {
             'total_fields'  => $summary['total'],
             'loaded_fields' => $summary['loaded'],
             'missing'       => $summary['missing'],
+            'replaced'      => $summary['replaced'],
+            'replaced_count'=> $summary['replaced_count'],
+            'duplicates'    => $summary['duplicates'],
+            'duplicate_count' => $summary['duplicate_count'],
         ],
     ];
 
@@ -1849,14 +1901,33 @@ function bw_import_calculate_header_stats($headers) {
         return '' !== $header;
     });
     $missing_headers  = [];
+    $replaced_headers = [];
+    $duplicates       = [];
+    $header_positions = [];
 
     foreach ($clean_headers as $index => $header) {
         if ('' === $header) {
-            $missing_headers[] = sprintf(
+            $placeholder       = sprintf(
                 /* translators: %d: column index */
                 __('Column %d (missing header name)', 'bw'),
                 (int) $index + 1
             );
+            $missing_headers[]  = $placeholder;
+            $replaced_headers[] = $placeholder;
+            continue;
+        }
+
+        $normalized = strtolower($header);
+        if (!isset($header_positions[$normalized])) {
+            $header_positions[$normalized] = [];
+        }
+
+        $header_positions[$normalized][] = (int) $index + 1;
+    }
+
+    foreach ($header_positions as $header => $positions) {
+        if (count($positions) > 1) {
+            $duplicates[$header] = $positions;
         }
     }
 
@@ -1864,6 +1935,12 @@ function bw_import_calculate_header_stats($headers) {
         'total'   => $total_fields,
         'loaded'  => count($loaded_headers),
         'missing' => $missing_headers,
+        'replaced' => $replaced_headers,
+        'replaced_count' => count($replaced_headers),
+        'duplicates' => $duplicates,
+        'duplicate_count' => array_sum(array_map(static function ($positions) {
+            return max(0, count($positions) - 1);
+        }, $duplicates)),
     ];
 }
 
