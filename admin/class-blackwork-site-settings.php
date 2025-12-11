@@ -1519,6 +1519,13 @@ function bw_site_render_import_product_tab() {
         <form method="post" enctype="multipart/form-data">
             <?php wp_nonce_field('bw_import_upload', 'bw_import_upload_nonce'); ?>
             <input type="file" name="bw_import_csv" accept=".csv" />
+            <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 6px; max-width: 620px;">
+                <strong><?php esc_html_e('Update existing products', 'bw'); ?></strong>
+                <label style="display: flex; gap: 8px; align-items: flex-start;">
+                    <input type="checkbox" name="bw_import_update_existing" value="1" <?php checked(!empty($state['update_existing'])); ?> />
+                    <span><?php esc_html_e('Existing products that match by ID or SKU will be updated. Products that do not exist will be skipped.', 'bw'); ?></span>
+                </label>
+            </div>
             <?php submit_button(__('Upload & Analyze', 'bw'), 'primary', 'bw_import_upload_submit', false); ?>
         </form>
 
@@ -1725,11 +1732,14 @@ function bw_import_handle_upload_request() {
 
     $summary = bw_import_calculate_header_stats($parsed['headers']);
 
+    $update_existing = !empty($_POST['bw_import_update_existing']);
+
     $state = [
         'file_path' => $upload['file'],
         'file_url'  => $upload['url'],
         'headers'   => $parsed['headers'],
         'sample'    => $parsed['rows'],
+        'update_existing' => $update_existing,
         'upload_summary' => [
             'file_name'     => basename($upload['file']),
             'total_fields'  => $summary['total'],
@@ -1785,7 +1795,9 @@ function bw_import_handle_run_request($state) {
         return $parsed;
     }
 
-    $result  = bw_import_process_rows($parsed['headers'], $parsed['rows'], $mapping);
+    $update_existing = !empty($state['update_existing']);
+
+    $result  = bw_import_process_rows($parsed['headers'], $parsed['rows'], $mapping, $update_existing);
     $message = sprintf(
         /* translators: 1: created count, 2: updated count, 3: skipped count */
         __('Import completed. Created: %1$d, Updated: %2$d, Skipped: %3$d', 'bw'),
@@ -2281,7 +2293,7 @@ function bw_import_has_identifier($mapping) {
  *
  * @return array
  */
-function bw_import_process_rows($headers, $rows, $mapping) {
+function bw_import_process_rows($headers, $rows, $mapping, $update_existing = false) {
     $result = [
         'created' => 0,
         'updated' => 0,
@@ -2302,7 +2314,7 @@ function bw_import_process_rows($headers, $rows, $mapping) {
             continue;
         }
 
-        $save_result = bw_import_save_product_from_row($prepared);
+        $save_result = bw_import_save_product_from_row($prepared, $update_existing);
         if (is_wp_error($save_result)) {
             $result['skipped']++;
             $result['errors'][] = sprintf(__('Row %1$d: %2$s', 'bw'), $row_index + 2, $save_result->get_error_message());
@@ -2470,11 +2482,12 @@ function bw_import_explode_list($value) {
 /**
  * Salva un prodotto a partire dai dati di riga.
  *
- * @param array $data Dati preparati.
+ * @param array $data             Dati preparati.
+ * @param bool  $update_existing  Se true, aggiorna solo prodotti già esistenti.
  *
  * @return string|WP_Error
  */
-function bw_import_save_product_from_row($data) {
+function bw_import_save_product_from_row($data, $update_existing = false) {
     $product_id = isset($data['product']['id']) ? absint($data['product']['id']) : 0;
     $sku        = isset($data['product']['sku']) ? $data['product']['sku'] : '';
     $product    = null;
@@ -2494,6 +2507,11 @@ function bw_import_save_product_from_row($data) {
 
     if ($product) {
         $status = 'updated';
+    } elseif ($update_existing) {
+        return new WP_Error(
+            'bw_import_missing_product_match',
+            __('Skipping row because no existing product matches the provided ID or SKU.', 'bw')
+        );
     } else {
         $product_type = !empty($data['product']['type']) ? $data['product']['type'] : 'simple';
 
