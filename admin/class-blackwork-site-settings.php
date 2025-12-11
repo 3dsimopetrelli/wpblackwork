@@ -1522,6 +1522,41 @@ function bw_site_render_import_product_tab() {
             <?php submit_button(__('Upload & Analyze', 'bw'), 'primary', 'bw_import_upload_submit', false); ?>
         </form>
 
+        <?php if (!empty($state['upload_summary'])) : ?>
+            <hr />
+            <h3><?php esc_html_e('Upload summary', 'bw'); ?></h3>
+            <table class="widefat fixed" style="max-width:700px;">
+                <tbody>
+                    <tr>
+                        <th><?php esc_html_e('Uploaded file', 'bw'); ?></th>
+                        <td><?php echo esc_html($state['upload_summary']['file_name']); ?></td>
+                    </tr>
+                    <tr>
+                        <th><?php esc_html_e('Total fields in file', 'bw'); ?></th>
+                        <td><?php echo (int) $state['upload_summary']['total_fields']; ?></td>
+                    </tr>
+                    <tr>
+                        <th><?php esc_html_e('Fields detected', 'bw'); ?></th>
+                        <td><?php echo (int) $state['upload_summary']['loaded_fields']; ?></td>
+                    </tr>
+                    <tr>
+                        <th><?php esc_html_e('Missing field names', 'bw'); ?></th>
+                        <td>
+                            <?php if (!empty($state['upload_summary']['missing'])) : ?>
+                                <ul style="margin: 0; padding-left: 20px;">
+                                    <?php foreach ($state['upload_summary']['missing'] as $missing_header) : ?>
+                                        <li><?php echo esc_html($missing_header); ?></li>
+                                    <?php endforeach; ?>
+                                </ul>
+                            <?php else : ?>
+                                <?php esc_html_e('All fields were loaded successfully.', 'bw'); ?>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        <?php endif; ?>
+
         <?php if (!empty($state['headers'])) : ?>
             <hr />
             <h3><?php esc_html_e('2. Map CSV columns', 'bw'); ?></h3>
@@ -1640,11 +1675,19 @@ function bw_import_handle_upload_request() {
         return $parsed;
     }
 
+    $summary = bw_import_calculate_header_stats($parsed['headers']);
+
     $state = [
         'file_path' => $upload['file'],
         'file_url'  => $upload['url'],
         'headers'   => $parsed['headers'],
         'sample'    => $parsed['rows'],
+        'upload_summary' => [
+            'file_name'     => basename($upload['file']),
+            'total_fields'  => $summary['total'],
+            'loaded_fields' => $summary['loaded'],
+            'missing'       => $summary['missing'],
+        ],
     ];
 
     bw_import_save_state($state);
@@ -1789,6 +1832,38 @@ function bw_import_parse_csv_file($file_path, $max_rows = 0) {
     return [
         'headers' => $headers,
         'rows'    => $rows,
+    ];
+}
+
+/**
+ * Genera un riepilogo dei campi trovati nel CSV caricato.
+ *
+ * @param array $headers Elenco delle intestazioni.
+ *
+ * @return array
+ */
+function bw_import_calculate_header_stats($headers) {
+    $clean_headers    = array_map('trim', (array) $headers);
+    $total_fields     = count($clean_headers);
+    $loaded_headers   = array_filter($clean_headers, static function ($header) {
+        return '' !== $header;
+    });
+    $missing_headers  = [];
+
+    foreach ($clean_headers as $index => $header) {
+        if ('' === $header) {
+            $missing_headers[] = sprintf(
+                /* translators: %d: column index */
+                __('Column %d (missing header name)', 'bw'),
+                (int) $index + 1
+            );
+        }
+    }
+
+    return [
+        'total'   => $total_fields,
+        'loaded'  => count($loaded_headers),
+        'missing' => $missing_headers,
     ];
 }
 
