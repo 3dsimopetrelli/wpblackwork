@@ -778,18 +778,25 @@
         }
       };
 
-      // Applica la visibilità delle frecce all'inizializzazione
+      // Applica la visibilità delle frecce all'inizializzazione e dopo init
+      $slider.on('init.bwProductSlideArrowsInit', function () {
+        setTimeout(updateArrowsVisibility, 50);
+      });
       updateArrowsVisibility();
 
       // Aggiorna la visibilità delle frecce quando cambia il breakpoint
       $slider.on('breakpoint.bwProductSlideArrows', function () {
-        updateArrowsVisibility();
+        setTimeout(updateArrowsVisibility, 50);
       });
 
-      // Aggiorna la visibilità delle frecce al resize (per sicurezza)
+      // Aggiorna la visibilità delle frecce al resize con debounce
       var arrowsResizeEventId = Date.now();
+      var arrowsResizeTimeout = null;
       $container.data('arrowsResizeEvent', arrowsResizeEventId);
-      $(window).on('resize.bwProductSlideArrows-' + arrowsResizeEventId, updateArrowsVisibility);
+      $(window).on('resize.bwProductSlideArrows-' + arrowsResizeEventId, function () {
+        clearTimeout(arrowsResizeTimeout);
+        arrowsResizeTimeout = setTimeout(updateArrowsVisibility, 100);
+      });
 
       // Funzione per aggiornare i dots in base al breakpoint
       var updateDotsVisibility = function () {
@@ -828,18 +835,25 @@
         }
       };
 
-      // Applica i dots all'inizializzazione
+      // Applica i dots all'inizializzazione e dopo init
+      $slider.on('init.bwProductSlideDotsInit', function () {
+        setTimeout(updateDotsVisibility, 50);
+      });
       updateDotsVisibility();
 
       // Aggiorna i dots quando cambia il breakpoint
       $slider.on('breakpoint.bwProductSlideDots', function () {
-        updateDotsVisibility();
+        setTimeout(updateDotsVisibility, 50);
       });
 
-      // Aggiorna i dots al resize (per sicurezza)
+      // Aggiorna i dots al resize con debounce
       var dotsResizeEventId = Date.now();
+      var dotsResizeTimeout = null;
       $container.data('dotsResizeEvent', dotsResizeEventId);
-      $(window).on('resize.bwProductSlideDots-' + dotsResizeEventId, updateDotsVisibility);
+      $(window).on('resize.bwProductSlideDots-' + dotsResizeEventId, function () {
+        clearTimeout(dotsResizeTimeout);
+        dotsResizeTimeout = setTimeout(updateDotsVisibility, 100);
+      });
 
       // Funzione per aggiornare la visibilità del contatore slide in base al breakpoint
       var updateSlideCountVisibility = function () {
@@ -880,18 +894,25 @@
         }
       };
 
-      // Applica la visibilità del contatore all'inizializzazione
+      // Applica la visibilità del contatore all'inizializzazione e dopo init
+      $slider.on('init.bwProductSlideCountInit', function () {
+        setTimeout(updateSlideCountVisibility, 50);
+      });
       updateSlideCountVisibility();
 
       // Aggiorna la visibilità del contatore quando cambia il breakpoint
       $slider.on('breakpoint.bwProductSlideCount', function () {
-        updateSlideCountVisibility();
+        setTimeout(updateSlideCountVisibility, 50);
       });
 
-      // Aggiorna la visibilità del contatore al resize (per sicurezza)
+      // Aggiorna la visibilità del contatore al resize con debounce
       var slideCountResizeEventId = Date.now();
+      var slideCountResizeTimeout = null;
       $container.data('slideCountResizeEvent', slideCountResizeEventId);
-      $(window).on('resize.bwProductSlideCount-' + slideCountResizeEventId, updateSlideCountVisibility);
+      $(window).on('resize.bwProductSlideCount-' + slideCountResizeEventId, function () {
+        clearTimeout(slideCountResizeTimeout);
+        slideCountResizeTimeout = setTimeout(updateSlideCountVisibility, 100);
+      });
 
       // Listener per l'editor di Elementor - aggiorna i controlli quando cambiano le impostazioni
       if (
