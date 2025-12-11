@@ -1855,6 +1855,30 @@ function bw_import_get_mapping_options() {
  */
 function bw_import_detect_custom_meta_fields() {
     $meta_keys  = [];
+
+    $metabox_functions = [
+        'bw_get_bibliographic_fields',
+        'bw_get_prints_bibliographic_fields',
+        'bw_get_digital_product_fields',
+    ];
+
+    foreach ($metabox_functions as $meta_function) {
+        if (!function_exists($meta_function)) {
+            continue;
+        }
+
+        $fields = call_user_func($meta_function);
+        if (empty($fields) || !is_array($fields)) {
+            continue;
+        }
+
+        foreach (array_keys($fields) as $meta_key) {
+            if (strpos($meta_key, '_') === 0) {
+                $meta_keys[$meta_key] = true;
+            }
+        }
+    }
+
     $metaboxdir = trailingslashit(BW_MEW_PATH) . 'metabox/';
 
     if (!is_dir($metaboxdir)) {
