@@ -2166,22 +2166,27 @@ function bw_import_detect_custom_meta_fields() {
         }
     }
 
-    $metaboxdir = trailingslashit(BW_MEW_PATH) . 'metabox/';
+    $meta_directories = [
+        trailingslashit(BW_MEW_PATH) . 'metabox/',
+        trailingslashit(BW_MEW_PATH) . 'includes/product-types/',
+    ];
 
-    if (!is_dir($metaboxdir)) {
-        return $meta_keys;
-    }
-
-    foreach (glob($metaboxdir . '*.php') as $file) {
-        $contents = file_get_contents($file);
-        if (!$contents) {
+    foreach ($meta_directories as $directory) {
+        if (!is_dir($directory)) {
             continue;
         }
 
-        if (preg_match_all("/(?:update_post_meta|add_post_meta|get_post_meta)\s*\(\s*\$[a-zA-Z0-9_\->]+\s*,\s*'([^']+)'/", $contents, $matches)) {
-            foreach ($matches[1] as $meta_key) {
-                if (strpos($meta_key, '_') === 0) {
-                    $meta_keys[$meta_key] = true;
+        foreach (glob($directory . '*.php') as $file) {
+            $contents = file_get_contents($file);
+            if (!$contents) {
+                continue;
+            }
+
+            if (preg_match_all("/(?:update_post_meta|add_post_meta|get_post_meta)\s*\(\s*\$[a-zA-Z0-9_\->]+\s*,\s*'([^']+)'/", $contents, $matches)) {
+                foreach ($matches[1] as $meta_key) {
+                    if (strpos($meta_key, '_') === 0) {
+                        $meta_keys[$meta_key] = true;
+                    }
                 }
             }
         }
