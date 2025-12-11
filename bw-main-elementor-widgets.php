@@ -76,10 +76,12 @@ require_once __DIR__ . '/includes/class-bw-widget-loader.php';
  * This prevents WordPress 6.7.0+ warnings about translations being loaded too early.
  */
 function bw_initialize_plugin_components() {
-	// Product Type column display
-	require_once plugin_dir_path( __FILE__ ) . 'includes/product-types/product-types-init.php';
+        // Product Type column display
+        require_once plugin_dir_path( __FILE__ ) . 'includes/product-types/product-types-init.php';
         // Metabox per prodotti digitali
         require_once plugin_dir_path( __FILE__ ) . 'metabox/digital-products-metabox.php';
+        // Metabox Bibliographic Details
+        require_once plugin_dir_path( __FILE__ ) . 'metabox/bibliographic-details-metabox.php';
         // Metabox Images Showcase
         require_once plugin_dir_path( __FILE__ ) . 'metabox/images-showcase-metabox.php';
         // Metabox Artist Name
