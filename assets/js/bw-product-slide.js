@@ -333,7 +333,14 @@
     });
 
     if ($slider.hasClass('slick-initialized')) {
-      $slider.slick('setPosition');
+      try {
+        var slickInstance = $slider.slick('getSlick');
+        if (slickInstance && typeof slickInstance.setPosition === 'function') {
+          slickInstance.setPosition();
+        }
+      } catch (e) {
+        // Slick not fully initialized yet, skip setPosition
+      }
     }
   };
 
@@ -430,7 +437,14 @@
     if ($slider.hasClass('slick-initialized')) {
       setTimeout(function () {
         if ($slider.hasClass('slick-initialized')) {
-          $slider.slick('setPosition');
+          try {
+            var slickInstance = $slider.slick('getSlick');
+            if (slickInstance && typeof slickInstance.setPosition === 'function') {
+              slickInstance.setPosition();
+            }
+          } catch (e) {
+            // Slick not fully initialized yet, skip setPosition
+          }
         }
       }, 50);
     }

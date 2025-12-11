@@ -330,7 +330,7 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
         $use_product_gallery = isset( $settings['use_product_gallery'] ) && 'yes' === $settings['use_product_gallery'];
         $animation_fade = isset( $settings['animation_fade'] ) && 'yes' === $settings['animation_fade'];
         $show_slide_count = true;
-        $popup_open_on_click = isset( $settings['popup_open_on_image_click'] ) && 'yes' === $settings['popup_open_on_image_click'];
+        $popup_open_on_click = ! isset( $settings['popup_open_on_image_click'] ) || 'yes' === $settings['popup_open_on_image_click'];
 
         $available_post_types = BW_Widget_Helper::get_post_type_options();
         if ( empty( $available_post_types ) ) {
