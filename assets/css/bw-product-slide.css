@@ -309,8 +309,10 @@ body.popup-active {
 
 /* =============================
    ACTIVE CURSORS
+   Interactive zone-based cursor labels (Prev/Zoom/Next)
    ============================= */
 
+/* Cursor label element (pill-shaped floating label) */
 .bw-cursor-label {
     position: fixed;
     padding: 8px 20px;
@@ -326,27 +328,30 @@ body.popup-active {
     opacity: 0;
     transform: translate(-50%, -50%);
     transition: opacity 0.2s ease;
+    will-change: transform, opacity;
 }
 
+/* Active state - label visible when hovering over slide */
 .bw-cursor-label.active {
     opacity: 1;
 }
 
+/* Hide system cursor over slides when active cursors enabled */
 .bw-product-slide[data-enable-active-cursors="true"] .bw-product-slide-item {
     cursor: none;
 }
 
-/* Hide default cursor over slides when active cursors are enabled */
 .bw-product-slide[data-enable-active-cursors="true"] .bw-product-slide-item img {
     cursor: none;
 }
 
-/* Disable custom cursor on touch devices and small screens */
+/* Responsive: Disable on touch devices and small screens */
 @media (max-width: 767px), (pointer: coarse) {
     .bw-cursor-label {
         display: none !important;
     }
 
+    /* Restore default cursor on touch devices */
     .bw-product-slide[data-enable-active-cursors="true"] .bw-product-slide-item,
     .bw-product-slide[data-enable-active-cursors="true"] .bw-product-slide-item img {
         cursor: pointer;
