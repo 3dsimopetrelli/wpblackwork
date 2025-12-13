@@ -893,6 +893,7 @@ class BW_Price_Variation_Widget extends Widget_Base {
                         data-product-id="<?php echo esc_attr( $product->get_id() ); ?>"
                         data-variations="<?php echo esc_attr( wp_json_encode( $variations_data ) ); ?>"
                         data-default-variation-id="<?php echo esc_attr( $default_variation_id ); ?>"
+                        data-product-url="<?php echo esc_url( $product->get_permalink() ); ?>"
                 >
                         <!-- Price Display -->
                         <div class="bw-price-variation__price-wrapper">

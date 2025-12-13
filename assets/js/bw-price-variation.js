@@ -230,7 +230,7 @@
          * @param {number} productId
          * @param {Object} variation
          */
-        function handleAddToCart($button, productId, variation) {
+        function handleAddToCart($button, productId, variation, productUrl) {
                 if (!$button.length || !productId || !variation || !variation.id) {
                         console.error('BW Price Variation: Missing required data', {button: $button.length, productId, variation});
                         return;
@@ -279,7 +279,12 @@
                                 normalized.includes('already in your cart') ||
                                 normalized.includes('already in the cart') ||
                                 normalized.includes('già nel carrello') ||
-                                normalized.includes('venduto singolarmente')
+                                normalized.includes('venduto singolarmente') ||
+                                normalized.includes('solo 1') ||
+                                normalized.includes('solo uno') ||
+                                normalized.includes('only 1') ||
+                                normalized.includes('only one') ||
+                                normalized.includes('non puoi aggiungere')
                         );
                 }
 
@@ -319,12 +324,22 @@
                                         const rawMessage = response.messages || '';
                                         const parsedMessage = rawMessage ? $('<div/>').html(rawMessage).text().trim() : '';
                                         const isSoldIndividually = isSoldIndividuallyMessage(parsedMessage);
+                                        const targetUrl = productUrl || response.product_url || window.location.href;
+
+                                        const returnLabel = (typeof bwPriceVariation !== 'undefined'
+                                                && bwPriceVariation.labels
+                                                && bwPriceVariation.labels.returnToProduct)
+                                                ? bwPriceVariation.labels.returnToProduct
+                                                : 'Return to product';
 
                                         if (window.BW_CartPopup) {
                                                 BW_CartPopup.openPanel();
 
                                                 if (isSoldIndividually && parsedMessage) {
-                                                        BW_CartPopup.showErrorModal(parsedMessage);
+                                                        BW_CartPopup.showErrorModal(parsedMessage, {
+                                                                returnUrl: targetUrl,
+                                                                returnLabel: returnLabel
+                                                        });
                                                 } else if (typeof BW_CartPopup.closeErrorModal === 'function') {
                                                         BW_CartPopup.closeErrorModal();
                                                 }
@@ -448,7 +463,7 @@
 
                                 e.preventDefault();
                                 e.stopImmediatePropagation();
-                                handleAddToCart($(this), productId, activeVariation);
+                                handleAddToCart($(this), productId, activeVariation, $widget.data('product-url'));
                         }, true); // true = capture phase
                 }
 

@@ -1176,14 +1176,17 @@
          * Mostra modal di errore con overlay
          * @param {string} errorMessage - Messaggio di errore da mostrare
          */
-        showErrorModal: function(errorMessage) {
+        showErrorModal: function(errorMessage, options) {
             const self = this;
 
             // Rimuovi eventuali modal esistenti
             $('.bw-cart-error-modal-overlay').remove();
 
             // URL della pagina shop WooCommerce
+            const opts = options || {};
             const shopUrl = (bwCartPopupConfig && bwCartPopupConfig.shopUrl) || '/shop/';
+            const targetUrl = opts.returnUrl || shopUrl;
+            const buttonLabel = opts.returnLabel || 'Return to Shop';
 
             // Crea l'overlay e il modal
             const modalHtml = `
@@ -1250,7 +1253,7 @@
                                 font-weight: 600;
                                 cursor: pointer;
                                 transition: all 0.3s ease;
-                            ">Return to Shop</button>
+                            ">${buttonLabel}</button>
                         </div>
                     </div>
                 </div>
@@ -1274,7 +1277,7 @@
             // Gestisci click sul pulsante "Return to Shop"
             $modalOverlay.on('click', '.bw-cart-error-modal__btn--shop', function(e) {
                 e.preventDefault();
-                window.location.href = shopUrl;
+                window.location.href = targetUrl;
             });
 
             // Chiudi modal al click sull'overlay (opzionale)
