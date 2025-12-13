@@ -25,6 +25,7 @@ function bw_mew_initialize_woocommerce_overrides() {
     add_action( 'template_redirect', 'bw_mew_handle_social_login_requests', 5 );
     add_action( 'template_redirect', 'bw_mew_prepare_account_page_layout', 9 );
     add_action( 'template_redirect', 'bw_mew_prepare_checkout_layout', 9 );
+    add_action( 'template_redirect', 'bw_mew_hide_single_product_notices', 9 );
     add_action( 'woocommerce_review_order_after_payment', 'bw_mew_render_checkout_legal_text', 5 );
     add_action( 'woocommerce_checkout_update_order_review', 'bw_mew_sync_checkout_cart_quantities', 10, 1 );
 }
@@ -177,6 +178,18 @@ function bw_mew_prepare_checkout_layout() {
 
     // Avoid rendering the payment section (and its button) twice by keeping it only in the left column.
     remove_action( 'woocommerce_checkout_order_review', 'woocommerce_checkout_payment', 20 );
+}
+
+/**
+ * Hide the standard WooCommerce notice wrapper on single product pages only.
+ */
+function bw_mew_hide_single_product_notices() {
+    if ( ! function_exists( 'is_product' ) || ! is_product() ) {
+        return;
+    }
+
+    remove_action( 'woocommerce_before_single_product', 'woocommerce_output_all_notices', 10 );
+    remove_action( 'woocommerce_before_single_product_summary', 'woocommerce_output_all_notices', 10 );
 }
 
 /**
