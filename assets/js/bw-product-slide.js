@@ -1,6 +1,34 @@
 (function ($) {
   'use strict';
 
+  /**
+   * BW Product Slide - Slider Initialization & Animation Handler
+   *
+   * ARCHITECTURE NOTE:
+   * This widget loads TWO slider scripts:
+   * 1. bw-slick-slider.js (shared, 700 lines) - Used by other widgets
+   * 2. bw-product-slide.js (this file, 1050+ lines) - Product Slide specific
+   *
+   * For Product Slide, ONLY this file's logic is active:
+   * - initProductSlide() → Full custom initialization
+   * - Popup logic, image fade handling
+   * - Responsive dimension updates
+   * - Arrow/dot/counter visibility control
+   *
+   * The shared slider script (bw-slick-slider.js) remains loaded for:
+   * - Backward compatibility with other widgets
+   * - Shared Slick settings parsing utilities
+   * - Future consolidation (planned refactor)
+   *
+   * RECENT FIXES (2025-12-13):
+   * - ✅ Removed excessive setPosition() calls (was causing stutter)
+   * - ✅ Added waitForAnimate: false (smooth rapid navigation)
+   * - ✅ Consolidated editor change handlers (no more double-refresh)
+   * - ✅ Made setPosition() conditional (only when dimensions change)
+   *
+   * See: docs/2025-12-13-product-slide-vacuum-cleanup-report.md
+   */
+
   var parseSettings = function ($slider) {
     var rawSettings = $slider.attr('data-slider-settings');
     if (!rawSettings) {
@@ -332,16 +360,8 @@
       $image.css(cssProperties);
     });
 
-    if ($slider.hasClass('slick-initialized')) {
-      try {
-        var slickInstance = $slider.slick('getSlick');
-        if (slickInstance && typeof slickInstance.setPosition === 'function') {
-          slickInstance.setPosition();
-        }
-      } catch (e) {
-        // Slick not fully initialized yet, skip setPosition
-      }
-    }
+    // ✅ FIX: Removed setPosition() call - images can update via CSS without full re-layout
+    // This prevents layout thrashing when images refresh during navigation
   };
 
   var applyResponsiveDimensions = function ($slider, settings) {
@@ -449,7 +469,11 @@
     // Aggiorna le dimensioni delle immagini dopo aver applicato le nuove variabili CSS
     refreshSliderImages($slider);
 
-    if ($slider.hasClass('slick-initialized')) {
+    // ✅ FIX: Only call setPosition() if dimensions actually changed
+    // This prevents unnecessary layout recalculations during navigation
+    var dimensionsChanged = breakpointFound && (widthToApply || heightToApply || gapToApply);
+
+    if (dimensionsChanged && $slider.hasClass('slick-initialized')) {
       setTimeout(function () {
         if ($slider.hasClass('slick-initialized')) {
           try {
@@ -544,6 +568,8 @@
       elementor.channels.editor &&
       typeof elementor.channels.editor.on === 'function'
     ) {
+      // ✅ FIX: Handler #1 - Only dimension changes (not control visibility)
+      // Removed 'responsive' to prevent overlap with Handler #2
       var editorHandler = function (panel) {
         if (!panel || !panel.changed) {
           return;
@@ -555,12 +581,13 @@
             return false;
           }
 
+          // Only refresh for dimension-related changes
           return (
             key.indexOf('column_width') !== -1 ||
             key.indexOf('image_height') !== -1 ||
             key.indexOf('image_crop') !== -1 ||
-            key.indexOf('gap') !== -1 ||
-            key.indexOf('responsive') !== -1
+            key.indexOf('gap') !== -1
+            // ❌ REMOVED: key.indexOf('responsive') to prevent double-refresh
           );
         });
 
@@ -677,6 +704,10 @@
       var settings = buildSettings(defaults, parseSettings($slider));
       settings.prevArrow = defaults.prevArrow;
       settings.nextArrow = defaults.nextArrow;
+
+      // ✅ FIX: Add waitForAnimate to allow smooth rapid navigation
+      // Without this, clicking arrows rapidly feels sluggish/blocked
+      settings.waitForAnimate = false;
 
       var hasCustomColumnWidth = $slider.is('[data-has-column-width]');
 
@@ -961,7 +992,8 @@
         slideCountResizeTimeout = setTimeout(updateSlideCountVisibility, 100);
       });
 
-      // Listener per l'editor di Elementor - aggiorna i controlli quando cambiano le impostazioni
+      // ✅ FIX: Handler #2 - Only control visibility changes (not dimensions)
+      // More specific responsive key matching to avoid overlap with Handler #1
       if (
         window.elementorFrontend &&
         elementorFrontend.isEditMode() &&
@@ -981,8 +1013,12 @@
               return false;
             }
 
+            // Only watch control visibility settings (arrows, dots, counter)
+            // NOT dimension settings (width, height, gap) - those are in Handler #1
             return (
-              key.indexOf('responsive') !== -1 ||
+              key.indexOf('responsive_arrows') !== -1 ||
+              key.indexOf('responsive_dots') !== -1 ||
+              key.indexOf('responsive_show_slide_count') !== -1 ||
               key.indexOf('arrows') !== -1 ||
               key.indexOf('dots') !== -1 ||
               key.indexOf('show_slide_count') !== -1
