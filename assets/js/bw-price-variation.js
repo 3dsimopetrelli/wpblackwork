@@ -267,6 +267,22 @@
                         BW_CartPopup.closeErrorModal();
                 }
 
+                function isSoldIndividuallyMessage(message) {
+                        if (!message) {
+                                return false;
+                        }
+
+                        const normalized = message.toLowerCase();
+
+                        return (
+                                normalized.includes('cannot add another') ||
+                                normalized.includes('already in your cart') ||
+                                normalized.includes('already in the cart') ||
+                                normalized.includes('già nel carrello') ||
+                                normalized.includes('venduto singolarmente')
+                        );
+                }
+
                 // Determine the AJAX URL
                 let ajaxUrl = null;
                 let useAdminAjax = false;
@@ -302,11 +318,16 @@
                                 if (isValidationError && !hasFragments) {
                                         const rawMessage = response.messages || '';
                                         const parsedMessage = rawMessage ? $('<div/>').html(rawMessage).text().trim() : '';
-                                        const fallbackMessage = parsedMessage || 'Please choose product options before adding to cart.';
+                                        const isSoldIndividually = isSoldIndividuallyMessage(parsedMessage);
 
                                         if (window.BW_CartPopup) {
                                                 BW_CartPopup.openPanel();
-                                                BW_CartPopup.showErrorModal(fallbackMessage);
+
+                                                if (isSoldIndividually && parsedMessage) {
+                                                        BW_CartPopup.showErrorModal(parsedMessage);
+                                                } else if (typeof BW_CartPopup.closeErrorModal === 'function') {
+                                                        BW_CartPopup.closeErrorModal();
+                                                }
                                         }
 
                                         return;
