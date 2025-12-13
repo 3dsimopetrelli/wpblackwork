@@ -293,8 +293,13 @@
 
                 $.post(ajaxUrl, payload)
                         .done(function(response) {
-                                // WooCommerce signals validation errors with the `error` flag.
-                                if (response && response.error) {
+                                const hasFragments = response && response.fragments;
+                                const isValidationError = response && (response.error || response.result === 'failure');
+
+                                // WooCommerce signals validation errors with the `error` flag. Only treat as error
+                                // when fragments are not present, so a successful add that also returns notices
+                                // does not re-open the validation modal.
+                                if (isValidationError && !hasFragments) {
                                         const rawMessage = response.messages || '';
                                         const parsedMessage = rawMessage ? $('<div/>').html(rawMessage).text().trim() : '';
                                         const fallbackMessage = parsedMessage || 'Please choose product options before adding to cart.';
