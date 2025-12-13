@@ -240,6 +240,7 @@
 
                 // Build the payload in the format WooCommerce expects
                 const payload = {
+                        'add-to-cart': productId,
                         product_id: productId,
                         variation_id: variation.id,
                         quantity: quantity
@@ -247,9 +248,13 @@
 
                 // Add variation attributes to the payload with proper keys
                 if (variation.attributes && typeof variation.attributes === 'object') {
-                        // Flatten attributes directly into payload
+                        // Flatten attributes directly into payload and also pass variation array
+                        payload.variation = {};
+
                         Object.keys(variation.attributes).forEach(function(key) {
-                                payload[key] = variation.attributes[key];
+                                const value = variation.attributes[key];
+                                payload[key] = value;
+                                payload.variation[key] = value;
                         });
                 }
 
