@@ -765,45 +765,95 @@ class BW_Price_Variation_Widget extends Widget_Base {
 		$this->end_controls_section();
 	}
 
-	protected function render() {
-		if ( ! class_exists( 'WooCommerce' ) ) {
-			return;
-		}
+        private function get_product_id_from_settings( $settings ) {
+                if ( ! empty( $settings['product_id'] ) ) {
+                        return intval( $settings['product_id'] );
+                }
 
-		$settings = $this->get_settings_for_display();
+                return get_the_ID();
+        }
 
-		// Get product ID from settings or current context
-		$product_id = '';
-		if ( ! empty( $settings['product_id'] ) ) {
-			// Use manually specified product ID
-			$product_id = intval( $settings['product_id'] );
-		} else {
-			// Fallback to current product (single product page)
-			$product_id = get_the_ID();
-		}
+        private function get_variations_data( $available_variations ) {
+                $variations_data = [];
 
-		// Get the product
-		global $product;
-		$product = wc_get_product( $product_id );
+                foreach ( $available_variations as $variation ) {
+                        $variation_id  = $variation['variation_id'];
+                        $variation_obj = wc_get_product( $variation_id );
+                        $price_value   = isset( $variation['display_price'] ) ? $variation['display_price'] : wc_get_price_to_display( $variation_obj );
+                        $price_html    = ! empty( $variation['price_html'] ) ? $variation['price_html'] : wc_price( $price_value );
+                        $license_html  = get_post_meta( $variation_id, '_bw_variation_license_html', true );
 
-		// Validate product exists and is variable type
-		if ( ! $product ) {
-			if ( \Elementor\Plugin::$instance->editor->is_edit_mode() ) {
-				echo '<div class="elementor-alert elementor-alert-warning">';
-				echo esc_html__( 'BW Price Variation: Product not found. Please enter a valid Product ID or use this widget on a single product page.', 'bw' );
-				echo '</div>';
-			}
-			return;
-		}
+                        $variations_data[] = [
+                                'id'           => $variation_id,
+                                'price'        => $price_value,
+                                'price_html'   => $price_html,
+                                'sku'          => $variation_obj ? $variation_obj->get_sku() : '',
+                                'attributes'   => isset( $variation['attributes'] ) ? $variation['attributes'] : [],
+                                'label'        => $variation_obj ? $variation_obj->get_attribute_summary() : '',
+                                'license_html' => $license_html ? wp_kses_post( $license_html ) : '',
+                                'is_in_stock'  => $variation_obj ? $variation_obj->is_in_stock() : true,
+                        ];
+                }
 
-		if ( ! $product->is_type( 'variable' ) ) {
-			if ( \Elementor\Plugin::$instance->editor->is_edit_mode() ) {
-				echo '<div class="elementor-alert elementor-alert-warning">';
-				echo esc_html__( 'BW Price Variation: This widget only works with Variable products. Current product type: ', 'bw' ) . esc_html( $product->get_type() );
-				echo '</div>';
-			}
-			return;
-		}
+                return $variations_data;
+        }
+
+        private function get_default_variation( $variations_data ) {
+                if ( empty( $variations_data ) ) {
+                        return null;
+                }
+
+                foreach ( $variations_data as $variation ) {
+                        if ( ! empty( $variation['is_in_stock'] ) ) {
+                                return $variation;
+                        }
+                }
+
+                return $variations_data[0];
+        }
+
+        private function get_main_attribute( $attributes ) {
+                if ( empty( $attributes ) ) {
+                        return [ '', [] ];
+                }
+
+                $main_attribute_name = array_key_first( $attributes );
+
+                return [ $main_attribute_name, $attributes[ $main_attribute_name ] ];
+        }
+
+        protected function render() {
+                if ( ! class_exists( 'WooCommerce' ) ) {
+                        return;
+                }
+
+                $settings = $this->get_settings_for_display();
+
+                // Get product ID from settings or current context
+                $product_id = $this->get_product_id_from_settings( $settings );
+
+                // Get the product
+                global $product;
+                $product = wc_get_product( $product_id );
+
+                // Validate product exists and is variable type
+                if ( ! $product ) {
+                        if ( \Elementor\Plugin::$instance->editor->is_edit_mode() ) {
+                                echo '<div class="elementor-alert elementor-alert-warning">';
+                                echo esc_html__( 'BW Price Variation: Product not found. Please enter a valid Product ID or use this widget on a single product page.', 'bw' );
+                                echo '</div>';
+                        }
+                        return;
+                }
+
+                if ( ! $product->is_type( 'variable' ) ) {
+                        if ( \Elementor\Plugin::$instance->editor->is_edit_mode() ) {
+                                echo '<div class="elementor-alert elementor-alert-warning">';
+                                echo esc_html__( 'BW Price Variation: This widget only works with Variable products. Current product type: ', 'bw' ) . esc_html( $product->get_type() );
+                                echo '</div>';
+                        }
+                        return;
+                }
 
                 $available_variations = $product->get_available_variations();
 
@@ -812,37 +862,10 @@ class BW_Price_Variation_Widget extends Widget_Base {
                 }
 
                 // Build a normalized list of variations with price details and attributes
-                $variations_data = [];
-                foreach ( $available_variations as $variation ) {
-                        $variation_id   = $variation['variation_id'];
-                        $variation_obj  = wc_get_product( $variation_id );
-                        $price_value    = isset( $variation['display_price'] ) ? $variation['display_price'] : wc_get_price_to_display( $variation_obj );
-                        $price_html     = ! empty( $variation['price_html'] ) ? $variation['price_html'] : wc_price( $price_value );
-                        $attributes_set = isset( $variation['attributes'] ) ? $variation['attributes'] : [];
-                        $license_html   = get_post_meta( $variation_id, '_bw_variation_license_html', true );
-
-                        $variations_data[] = [
-                                'id'            => $variation_id,
-                                'price'         => $price_value,
-                                'price_html'    => $price_html,
-                                'sku'           => $variation_obj ? $variation_obj->get_sku() : '',
-                                'attributes'    => $attributes_set,
-                                'label'         => $variation_obj ? $variation_obj->get_attribute_summary() : '',
-                                'license_html'  => $license_html ? wp_kses_post( $license_html ) : '',
-                                'is_in_stock'   => $variation_obj ? $variation_obj->is_in_stock() : true,
-                        ];
-                }
+                $variations_data = $this->get_variations_data( $available_variations );
 
                 // Pick the first in-stock variation as default, otherwise the first available
-                $default_variation       = null;
-                $default_variation_attrs = [];
-
-                foreach ( $variations_data as $variation ) {
-                        if ( $variation && $variation['id'] ) {
-                                $default_variation = $variation;
-                                break;
-                        }
-                }
+                $default_variation = $this->get_default_variation( $variations_data );
 
                 if ( ! $default_variation ) {
                         return;
@@ -855,18 +878,10 @@ class BW_Price_Variation_Widget extends Widget_Base {
                 $default_variation_attrs = isset( $default_variation['attributes'] ) ? $default_variation['attributes'] : [];
 
                 // Get attributes for variations
-                $attributes            = $product->get_variation_attributes();
-                $main_attribute_name   = '';
-                $main_attribute_values = [];
+                list( $main_attribute_name, $main_attribute_values ) = $this->get_main_attribute( $product->get_variation_attributes() );
 
-                if ( ! empty( $attributes ) ) {
-                        // Get the first attribute as "main" attribute
-                        $main_attribute_name   = array_key_first( $attributes );
-                        $main_attribute_values = $attributes[ $main_attribute_name ];
-                }
-
-		$border_style = isset( $settings['button_border_switch'] ) && 'yes' === $settings['button_border_switch'] ? 'solid' : 'none';
-		?>
+                $border_style = isset( $settings['button_border_switch'] ) && 'yes' === $settings['button_border_switch'] ? 'solid' : 'none';
+                ?>
                 <?php
                 $default_variation_id   = $default_variation['id'];
                 $default_price          = $default_variation['price'];
@@ -878,6 +893,7 @@ class BW_Price_Variation_Widget extends Widget_Base {
                         data-product-id="<?php echo esc_attr( $product->get_id() ); ?>"
                         data-variations="<?php echo esc_attr( wp_json_encode( $variations_data ) ); ?>"
                         data-default-variation-id="<?php echo esc_attr( $default_variation_id ); ?>"
+                        data-product-url="<?php echo esc_url( $product->get_permalink() ); ?>"
                 >
                         <!-- Price Display -->
                         <div class="bw-price-variation__price-wrapper">
@@ -894,7 +910,7 @@ class BW_Price_Variation_Widget extends Widget_Base {
                         <?php if ( ! empty( $main_attribute_values ) ) : ?>
                                 <?php $attribute_key = 'attribute_' . sanitize_title( $main_attribute_name ); ?>
                                 <div class="bw-price-variation__variations">
-                                        <?php foreach ( $main_attribute_values as $index => $attribute_value ) : ?>
+                                        <?php foreach ( $main_attribute_values as $attribute_value ) : ?>
                                                 <?php
                                                 // Locate the variation data that matches the current attribute value.
                                                 $matched_variation = null;
