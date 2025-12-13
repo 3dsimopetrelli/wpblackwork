@@ -240,6 +240,7 @@
 
                 // Build the payload in the format WooCommerce expects
                 const payload = {
+                        'add-to-cart': productId,
                         product_id: productId,
                         variation_id: variation.id,
                         quantity: quantity
@@ -247,15 +248,23 @@
 
                 // Add variation attributes to the payload with proper keys
                 if (variation.attributes && typeof variation.attributes === 'object') {
-                        // Flatten attributes directly into payload
+                        // Flatten attributes directly into payload and also pass variation array
+                        payload.variation = {};
+
                         Object.keys(variation.attributes).forEach(function(key) {
-                                payload[key] = variation.attributes[key];
+                                const value = variation.attributes[key];
+                                payload[key] = value;
+                                payload.variation[key] = value;
                         });
                 }
 
                 // Add nonce if available for security
                 if (typeof bwPriceVariation !== 'undefined' && bwPriceVariation.nonce) {
                         payload.security = bwPriceVariation.nonce;
+                }
+
+                if (window.BW_CartPopup && typeof BW_CartPopup.closeErrorModal === 'function') {
+                        BW_CartPopup.closeErrorModal();
                 }
 
                 // Determine the AJAX URL
@@ -274,39 +283,45 @@
                 }
                 // Last resort: use the href URL (non-AJAX)
                 else {
-                        console.log('BW Price Variation: No AJAX URL available, using fallback href');
+                        console.warn('BW Price Variation: No AJAX URL available, using fallback href');
                         window.location.href = $button.attr('href');
                         return;
                 }
-
-                console.log('BW Price Variation: Adding to cart', {
-                        url: ajaxUrl,
-                        useAdminAjax: useAdminAjax,
-                        payload: payload,
-                        variation: variation
-                });
 
                 $button.addClass('loading');
                 $(document.body).trigger('adding_to_cart', [$button, payload]);
 
                 $.post(ajaxUrl, payload)
                         .done(function(response) {
-                                console.log('BW Price Variation: Add to cart response', {
-                                        response: response,
-                                        hasError: response && response.error,
-                                        productUrl: response && response.product_url
-                                });
+                                const hasFragments = response && response.fragments;
+                                const isValidationError = response && (response.error || response.result === 'failure');
 
-                                // Check for error response from WooCommerce
-                                if (response && response.error && response.product_url) {
-                                        console.warn('BW Price Variation: WooCommerce returned error, redirecting to product page');
-                                        window.location.href = response.product_url;
+                                // WooCommerce signals validation errors with the `error` flag. Only treat as error
+                                // when fragments are not present, so a successful add that also returns notices
+                                // does not re-open the validation modal.
+                                if (isValidationError && !hasFragments) {
+                                        const rawMessage = response.messages || '';
+                                        const parsedMessage = rawMessage ? $('<div/>').html(rawMessage).text().trim() : '';
+                                        const fallbackMessage = parsedMessage || 'Please choose product options before adding to cart.';
+
+                                        if (window.BW_CartPopup) {
+                                                BW_CartPopup.openPanel();
+                                                BW_CartPopup.showErrorModal(fallbackMessage);
+                                        }
+
                                         return;
                                 }
 
                                 // Success!
                                 $button.removeClass('added').addClass('added');
                                 $(document.body).trigger('added_to_cart', [response.fragments || {}, response.cart_hash || '', $button]);
+
+                                if (window.BW_CartPopup) {
+                                        if (typeof BW_CartPopup.closeErrorModal === 'function') {
+                                                BW_CartPopup.closeErrorModal();
+                                        }
+                                        BW_CartPopup.openPanel();
+                                }
                         })
                         .fail(function(jqXHR, textStatus, errorThrown) {
                                 console.error('BW Price Variation: AJAX request failed', {
@@ -315,9 +330,13 @@
                                         responseText: jqXHR.responseText,
                                         statusCode: jqXHR.status
                                 });
-                                // Fallback to href URL on error
-                                console.log('BW Price Variation: Falling back to href redirect');
-                                window.location.href = $button.attr('href');
+
+                                const errorMessage = 'Unable to add product to cart. Please try again.';
+
+                                if (window.BW_CartPopup) {
+                                        BW_CartPopup.openPanel();
+                                        BW_CartPopup.showErrorModal(errorMessage);
+                                }
                         })
                         .always(function() {
                                 $button.removeClass('loading');
@@ -347,12 +366,6 @@
                 const $buttons = $widget.find('.bw-price-variation__variation-button');
                 const $addToCartButton = $widget.find('.bw-add-to-cart-button');
 
-                console.log('BW Price Variation: Initializing widget', {
-                        productId: productId,
-                        variationsCount: variations.length,
-                        buttonsCount: $buttons.length
-                });
-
                 let activeVariation = resolveDefaultVariation($widget, variations, variationMap);
 
                 if (activeVariation) {
@@ -367,7 +380,6 @@
 
                         // Block clicks on out-of-stock variations
                         if ($(this).hasClass('out-of-stock')) {
-                                console.log('BW Price Variation: Out of stock variation clicked, ignoring');
                                 return false;
                         }
 
@@ -376,11 +388,6 @@
                         const variationFromMap = variationMap[buttonVariationId];
                         const selectedVariation = variationFromMap || parsedVariation || null;
 
-                        console.log('BW Price Variation: Variation button clicked', {
-                                buttonId: buttonVariationId,
-                                hasVariation: !!selectedVariation
-                        });
-
                         if (!selectedVariation || !selectedVariation.id) {
                                 console.error('BW Price Variation: No variation data found for button');
                                 return;
@@ -388,7 +395,6 @@
 
                         // Check if variation is in stock
                         if (selectedVariation.is_in_stock === false) {
-                                console.log('BW Price Variation: Variation is out of stock, ignoring');
                                 return false;
                         }
 
@@ -398,8 +404,6 @@
                         updatePrice($priceDisplay, selectedVariation);
                         updateLicenseBox($licenseBox, selectedVariation);
                         updateAddToCartButton($addToCartButton, productId, selectedVariation);
-
-                        console.log('BW Price Variation: Updated to variation', selectedVariation);
 
                         $widget.trigger('bw_price_variation_changed', {
                                 variationId: selectedVariation.id,
@@ -415,13 +419,7 @@
                         const addToCartBtn = $addToCartButton[0];
 
                         addToCartBtn.addEventListener('click', function(e) {
-                                console.log('BW Price Variation: Add to cart button clicked (capture phase)', {
-                                        hasDisabledClass: $(this).hasClass('disabled'),
-                                        activeVariation: activeVariation
-                                });
-
                                 if ($(this).hasClass('disabled')) {
-                                        console.log('BW Price Variation: Button is disabled, ignoring');
                                         e.preventDefault();
                                         e.stopPropagation();
                                         return false;
@@ -433,12 +431,6 @@
                         }, true); // true = capture phase
                 }
 
-                // Keep jQuery handler as fallback
-                $widget.on('click', '.bw-add-to-cart-button', function(e) {
-                        console.log('BW Price Variation: Add to cart button clicked (bubble phase - fallback)');
-                        e.preventDefault();
-                        e.stopImmediatePropagation();
-                });
         }
 
         $(document).ready(function() {
