@@ -765,23 +765,13 @@
               responsiveEntry.settings = {};
             }
 
-            // ✅ FIX: Preserve drag/swipe settings in all breakpoints
-            // This prevents Slick from resetting these when changing breakpoints
-            if (typeof responsiveEntry.settings.swipe === 'undefined') {
-              responsiveEntry.settings.swipe = true;
-            }
-            if (typeof responsiveEntry.settings.touchMove === 'undefined') {
-              responsiveEntry.settings.touchMove = true;
-            }
-            if (typeof responsiveEntry.settings.draggable === 'undefined') {
-              responsiveEntry.settings.draggable = true;
-            }
-            if (typeof responsiveEntry.settings.swipeToSlide === 'undefined') {
-              responsiveEntry.settings.swipeToSlide = true;
-            }
-            if (typeof responsiveEntry.settings.touchThreshold === 'undefined') {
-              responsiveEntry.settings.touchThreshold = 5;
-            }
+            // ✅ FIX: FORCE drag/swipe settings in all breakpoints (always enabled)
+            // Don't check if undefined - always force to true to prevent old/wrong settings from disabling drag
+            responsiveEntry.settings.swipe = true;
+            responsiveEntry.settings.touchMove = true;
+            responsiveEntry.settings.draggable = true;
+            responsiveEntry.settings.swipeToSlide = true;
+            responsiveEntry.settings.touchThreshold = 5;
 
             // Solo imposta variableWidth se centerMode non è attivo per questo breakpoint
             var breakpointCenterMode = responsiveEntry.settings.centerMode !== undefined
