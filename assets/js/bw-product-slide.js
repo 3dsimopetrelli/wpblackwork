@@ -28,6 +28,8 @@
    * - ✅ Fixed drag/swipe functionality (click handler was blocking drag)
    * - ✅ Added drag detection to prevent popup opening during swipe
    * - ✅ Explicitly enabled Slick drag/swipe settings
+   * - ✅ Removed widget refresh:preview (was causing re-init on resize)
+   * - ✅ Preserved drag/swipe settings in all responsive breakpoints
    *
    * See: docs/2025-12-13-product-slide-vacuum-cleanup-report.md
    */
@@ -801,6 +803,24 @@
               responsiveEntry.settings = {};
             }
 
+            // ✅ FIX: Preserve drag/swipe settings in all breakpoints
+            // This prevents Slick from resetting these when changing breakpoints
+            if (typeof responsiveEntry.settings.swipe === 'undefined') {
+              responsiveEntry.settings.swipe = true;
+            }
+            if (typeof responsiveEntry.settings.touchMove === 'undefined') {
+              responsiveEntry.settings.touchMove = true;
+            }
+            if (typeof responsiveEntry.settings.draggable === 'undefined') {
+              responsiveEntry.settings.draggable = true;
+            }
+            if (typeof responsiveEntry.settings.swipeToSlide === 'undefined') {
+              responsiveEntry.settings.swipeToSlide = true;
+            }
+            if (typeof responsiveEntry.settings.touchThreshold === 'undefined') {
+              responsiveEntry.settings.touchThreshold = 5;
+            }
+
             // Solo imposta variableWidth se centerMode non è attivo per questo breakpoint
             var breakpointCenterMode = responsiveEntry.settings.centerMode !== undefined
               ? responsiveEntry.settings.centerMode
@@ -1064,7 +1084,9 @@
       });
 
       // ✅ FIX: Handler #2 - Only control visibility changes (not dimensions)
-      // More specific responsive key matching to avoid overlap with Handler #1
+      // REMOVED: refresh:preview was causing slider re-initialization and losing drag settings
+      // The update functions (updateArrowsVisibility, updateDotsVisibility, updateSlideCountVisibility)
+      // already handle changes via their own resize listeners, so no need to force widget refresh
       if (
         window.elementorFrontend &&
         elementorFrontend.isEditMode() &&
@@ -1097,19 +1119,12 @@
           });
 
           if (shouldUpdateControls) {
-            // Forza re-render completo del widget in editor mode
+            // ✅ FIX: Just trigger the update functions directly instead of full widget refresh
+            // This preserves slider state and drag/swipe functionality
             setTimeout(function () {
-              // Trova l'elemento widget di Elementor
-              var $widget = $container.closest('.elementor-element');
-              if ($widget.length && window.elementor) {
-                var widgetId = $widget.data('id');
-                if (widgetId) {
-                  // Forza refresh del widget
-                  elementor.channels.editor.trigger('refresh:preview', {
-                    force: true
-                  });
-                }
-              }
+              updateArrowsVisibility();
+              updateDotsVisibility();
+              updateSlideCountVisibility();
             }, 100);
           }
         };
