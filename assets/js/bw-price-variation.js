@@ -289,16 +289,27 @@
 
                 $.post(ajaxUrl, payload)
                         .done(function(response) {
-                                // Check for error response from WooCommerce
-                                if (response && response.error && response.product_url) {
-                                        console.warn('BW Price Variation: WooCommerce returned error, redirecting to product page');
-                                        window.location.href = response.product_url;
+                                // WooCommerce signals validation errors with the `error` flag.
+                                if (response && response.error) {
+                                        const rawMessage = response.messages || '';
+                                        const parsedMessage = rawMessage ? $('<div/>').html(rawMessage).text().trim() : '';
+                                        const fallbackMessage = parsedMessage || 'Please choose product options before adding to cart.';
+
+                                        if (window.BW_CartPopup) {
+                                                BW_CartPopup.openPanel();
+                                                BW_CartPopup.showErrorModal(fallbackMessage);
+                                        }
+
                                         return;
                                 }
 
                                 // Success!
                                 $button.removeClass('added').addClass('added');
                                 $(document.body).trigger('added_to_cart', [response.fragments || {}, response.cart_hash || '', $button]);
+
+                                if (window.BW_CartPopup) {
+                                        BW_CartPopup.openPanel();
+                                }
                         })
                         .fail(function(jqXHR, textStatus, errorThrown) {
                                 console.error('BW Price Variation: AJAX request failed', {
@@ -307,8 +318,13 @@
                                         responseText: jqXHR.responseText,
                                         statusCode: jqXHR.status
                                 });
-                                // Fallback to href URL on error
-                                window.location.href = $button.attr('href');
+
+                                const errorMessage = 'Unable to add product to cart. Please try again.';
+
+                                if (window.BW_CartPopup) {
+                                        BW_CartPopup.openPanel();
+                                        BW_CartPopup.showErrorModal(errorMessage);
+                                }
                         })
                         .always(function() {
                                 $button.removeClass('loading');
