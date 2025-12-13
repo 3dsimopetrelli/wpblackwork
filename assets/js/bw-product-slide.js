@@ -25,6 +25,9 @@
    * - ✅ Added waitForAnimate: false (smooth rapid navigation)
    * - ✅ Consolidated editor change handlers (no more double-refresh)
    * - ✅ Made setPosition() conditional (only when dimensions change)
+   * - ✅ Fixed drag/swipe functionality (click handler was blocking drag)
+   * - ✅ Added drag detection to prevent popup opening during swipe
+   * - ✅ Explicitly enabled Slick drag/swipe settings
    *
    * See: docs/2025-12-13-product-slide-vacuum-cleanup-report.md
    */
@@ -186,10 +189,50 @@
     var popupOpenOnClick = String($container.attr('data-popup-open-on-click')) === 'true';
 
     if (popupOpenOnClick) {
+      // ✅ FIX: Track drag state to prevent popup opening during swipe/drag
+      var isDragging = false;
+      var dragStartX = 0;
+      var dragStartY = 0;
+      var DRAG_THRESHOLD = 5; // pixels - movement beyond this is considered a drag
+
       // Use event delegation to handle clicks on all images (including cloned slides)
       $container
+        .off('mousedown.bwProductSlideDrag touchstart.bwProductSlideDrag', '.bw-product-slide-item img')
+        .on('mousedown.bwProductSlideDrag touchstart.bwProductSlideDrag', '.bw-product-slide-item img', function (e) {
+          isDragging = false;
+          var touch = e.type === 'touchstart' ? e.originalEvent.touches[0] : e;
+          dragStartX = touch.clientX || touch.pageX;
+          dragStartY = touch.clientY || touch.pageY;
+        });
+
+      $container
+        .off('mousemove.bwProductSlideDrag touchmove.bwProductSlideDrag', '.bw-product-slide-item img')
+        .on('mousemove.bwProductSlideDrag touchmove.bwProductSlideDrag', '.bw-product-slide-item img', function (e) {
+          if (dragStartX === 0 && dragStartY === 0) return;
+
+          var touch = e.type === 'touchmove' ? e.originalEvent.touches[0] : e;
+          var currentX = touch.clientX || touch.pageX;
+          var currentY = touch.clientY || touch.pageY;
+          var deltaX = Math.abs(currentX - dragStartX);
+          var deltaY = Math.abs(currentY - dragStartY);
+
+          // If moved beyond threshold, consider it a drag
+          if (deltaX > DRAG_THRESHOLD || deltaY > DRAG_THRESHOLD) {
+            isDragging = true;
+          }
+        });
+
+      $container
         .off('click.bwProductSlide', '.bw-product-slide-item img')
-        .on('click.bwProductSlide', '.bw-product-slide-item img', function () {
+        .on('click.bwProductSlide', '.bw-product-slide-item img', function (e) {
+          // ✅ FIX: Prevent popup if user was dragging the slider
+          if (isDragging) {
+            isDragging = false;
+            dragStartX = 0;
+            dragStartY = 0;
+            return; // Don't open popup if dragging
+          }
+
           var title = $(this).attr('alt') || '';
 
           // Find the closest .slick-slide element to get the correct index
@@ -219,10 +262,30 @@
 
           $popupTitle.text(title);
           openPopup(imageIndex);
+
+          // Reset drag tracking
+          isDragging = false;
+          dragStartX = 0;
+          dragStartY = 0;
+        });
+
+      // Reset drag state on mouse/touch end
+      $container
+        .off('mouseup.bwProductSlideDrag touchend.bwProductSlideDrag')
+        .on('mouseup.bwProductSlideDrag touchend.bwProductSlideDrag', function () {
+          // Small timeout to allow click event to check isDragging state
+          setTimeout(function () {
+            isDragging = false;
+            dragStartX = 0;
+            dragStartY = 0;
+          }, 50);
         });
     } else {
-      // Remove click handlers if popup should not open on click
+      // Remove all handlers if popup should not open on click
       $container.off('click.bwProductSlide', '.bw-product-slide-item img');
+      $container.off('mousedown.bwProductSlideDrag touchstart.bwProductSlideDrag', '.bw-product-slide-item img');
+      $container.off('mousemove.bwProductSlideDrag touchmove.bwProductSlideDrag', '.bw-product-slide-item img');
+      $container.off('mouseup.bwProductSlideDrag touchend.bwProductSlideDrag');
     }
 
     $popup
@@ -708,6 +771,14 @@
       // ✅ FIX: Add waitForAnimate to allow smooth rapid navigation
       // Without this, clicking arrows rapidly feels sluggish/blocked
       settings.waitForAnimate = false;
+
+      // ✅ FIX: Explicitly enable drag/swipe for smooth mouse and touch interactions
+      // These ensure the slider can be dragged/swiped smoothly
+      settings.swipe = true;
+      settings.touchMove = true;
+      settings.draggable = true;
+      settings.swipeToSlide = true;
+      settings.touchThreshold = 5; // Pixels before swipe is triggered (lower = more sensitive)
 
       var hasCustomColumnWidth = $slider.is('[data-has-column-width]');
 
