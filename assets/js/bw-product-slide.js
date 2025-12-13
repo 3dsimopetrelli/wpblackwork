@@ -191,48 +191,19 @@
     var popupOpenOnClick = String($container.attr('data-popup-open-on-click')) === 'true';
 
     if (popupOpenOnClick) {
-      // ✅ FIX: Track drag state to prevent popup opening during swipe/drag
-      var isDragging = false;
-      var dragStartX = 0;
-      var dragStartY = 0;
-      var DRAG_THRESHOLD = 5; // pixels - movement beyond this is considered a drag
+      // ✅ FIX: Use Slick's native drag detection instead of custom handlers
+      // Custom mousedown/mousemove handlers were interfering with Slick's drag functionality
+      // Track if slider recently changed (indicates drag/swipe happened)
+      var sliderRecentlyChanged = false;
+      var sliderChangeTimeout = null;
 
       // Use event delegation to handle clicks on all images (including cloned slides)
       $container
-        .off('mousedown.bwProductSlideDrag touchstart.bwProductSlideDrag', '.bw-product-slide-item img')
-        .on('mousedown.bwProductSlideDrag touchstart.bwProductSlideDrag', '.bw-product-slide-item img', function (e) {
-          isDragging = false;
-          var touch = e.type === 'touchstart' ? e.originalEvent.touches[0] : e;
-          dragStartX = touch.clientX || touch.pageX;
-          dragStartY = touch.clientY || touch.pageY;
-        });
-
-      $container
-        .off('mousemove.bwProductSlideDrag touchmove.bwProductSlideDrag', '.bw-product-slide-item img')
-        .on('mousemove.bwProductSlideDrag touchmove.bwProductSlideDrag', '.bw-product-slide-item img', function (e) {
-          if (dragStartX === 0 && dragStartY === 0) return;
-
-          var touch = e.type === 'touchmove' ? e.originalEvent.touches[0] : e;
-          var currentX = touch.clientX || touch.pageX;
-          var currentY = touch.clientY || touch.pageY;
-          var deltaX = Math.abs(currentX - dragStartX);
-          var deltaY = Math.abs(currentY - dragStartY);
-
-          // If moved beyond threshold, consider it a drag
-          if (deltaX > DRAG_THRESHOLD || deltaY > DRAG_THRESHOLD) {
-            isDragging = true;
-          }
-        });
-
-      $container
         .off('click.bwProductSlide', '.bw-product-slide-item img')
         .on('click.bwProductSlide', '.bw-product-slide-item img', function (e) {
-          // ✅ FIX: Prevent popup if user was dragging the slider
-          if (isDragging) {
-            isDragging = false;
-            dragStartX = 0;
-            dragStartY = 0;
-            return; // Don't open popup if dragging
+          // ✅ FIX: Don't open popup if slider just changed (drag/swipe happened)
+          if (sliderRecentlyChanged) {
+            return; // User was dragging, don't open popup
           }
 
           var title = $(this).attr('alt') || '';
@@ -264,30 +235,21 @@
 
           $popupTitle.text(title);
           openPopup(imageIndex);
-
-          // Reset drag tracking
-          isDragging = false;
-          dragStartX = 0;
-          dragStartY = 0;
         });
 
-      // Reset drag state on mouse/touch end
-      $container
-        .off('mouseup.bwProductSlideDrag touchend.bwProductSlideDrag')
-        .on('mouseup.bwProductSlideDrag touchend.bwProductSlideDrag', function () {
-          // Small timeout to allow click event to check isDragging state
-          setTimeout(function () {
-            isDragging = false;
-            dragStartX = 0;
-            dragStartY = 0;
-          }, 50);
-        });
+      // Track when slider changes (drag/swipe happened)
+      // This will be bound after Slick initialization
+      $container.data('bwPopupSliderChangeHandler', function() {
+        sliderRecentlyChanged = true;
+        clearTimeout(sliderChangeTimeout);
+        sliderChangeTimeout = setTimeout(function() {
+          sliderRecentlyChanged = false;
+        }, 300); // 300ms window after slide change to prevent popup
+      });
     } else {
-      // Remove all handlers if popup should not open on click
+      // Remove handlers if popup should not open on click
       $container.off('click.bwProductSlide', '.bw-product-slide-item img');
-      $container.off('mousedown.bwProductSlideDrag touchstart.bwProductSlideDrag', '.bw-product-slide-item img');
-      $container.off('mousemove.bwProductSlideDrag touchmove.bwProductSlideDrag', '.bw-product-slide-item img');
-      $container.off('mouseup.bwProductSlideDrag touchend.bwProductSlideDrag');
+      $container.removeData('bwPopupSliderChangeHandler');
     }
 
     $popup
@@ -903,6 +865,13 @@
       });
 
       $slider.slick(settings);
+
+      // ✅ FIX: Bind popup drag detection to Slick's beforeChange event
+      // This prevents popup from opening when user drags/swipes
+      var popupChangeHandler = $container.data('bwPopupSliderChangeHandler');
+      if (popupChangeHandler && typeof popupChangeHandler === 'function') {
+        $slider.off('beforeChange.bwPopupDrag').on('beforeChange.bwPopupDrag', popupChangeHandler);
+      }
 
       refreshSliderImages($slider);
       bindResponsiveUpdates($slider, settings);
