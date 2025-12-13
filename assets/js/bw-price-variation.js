@@ -263,6 +263,10 @@
                         payload.security = bwPriceVariation.nonce;
                 }
 
+                if (window.BW_CartPopup && typeof BW_CartPopup.closeErrorModal === 'function') {
+                        BW_CartPopup.closeErrorModal();
+                }
+
                 // Determine the AJAX URL
                 let ajaxUrl = null;
                 let useAdminAjax = false;
@@ -308,6 +312,9 @@
                                 $(document.body).trigger('added_to_cart', [response.fragments || {}, response.cart_hash || '', $button]);
 
                                 if (window.BW_CartPopup) {
+                                        if (typeof BW_CartPopup.closeErrorModal === 'function') {
+                                                BW_CartPopup.closeErrorModal();
+                                        }
                                         BW_CartPopup.openPanel();
                                 }
                         })

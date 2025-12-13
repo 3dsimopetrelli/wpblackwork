@@ -227,6 +227,9 @@
                 // - L'opzione slide_animation è attiva (pulsanti globali), OPPURE
                 // - Il pulsante è un widget con l'opzione cart popup attiva
                 if (bwCartPopupConfig.settings.slide_animation || isWidgetWithPopup) {
+                    if (typeof self.closeErrorModal === 'function') {
+                        self.closeErrorModal();
+                    }
                     self.openPanel();
 
                     // Mostra la notifica verde "Your item has been added to the cart"
