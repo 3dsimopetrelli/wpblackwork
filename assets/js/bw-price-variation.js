@@ -274,29 +274,16 @@
                 }
                 // Last resort: use the href URL (non-AJAX)
                 else {
-                        console.log('BW Price Variation: No AJAX URL available, using fallback href');
+                        console.warn('BW Price Variation: No AJAX URL available, using fallback href');
                         window.location.href = $button.attr('href');
                         return;
                 }
-
-                console.log('BW Price Variation: Adding to cart', {
-                        url: ajaxUrl,
-                        useAdminAjax: useAdminAjax,
-                        payload: payload,
-                        variation: variation
-                });
 
                 $button.addClass('loading');
                 $(document.body).trigger('adding_to_cart', [$button, payload]);
 
                 $.post(ajaxUrl, payload)
                         .done(function(response) {
-                                console.log('BW Price Variation: Add to cart response', {
-                                        response: response,
-                                        hasError: response && response.error,
-                                        productUrl: response && response.product_url
-                                });
-
                                 // Check for error response from WooCommerce
                                 if (response && response.error && response.product_url) {
                                         console.warn('BW Price Variation: WooCommerce returned error, redirecting to product page');
@@ -316,7 +303,6 @@
                                         statusCode: jqXHR.status
                                 });
                                 // Fallback to href URL on error
-                                console.log('BW Price Variation: Falling back to href redirect');
                                 window.location.href = $button.attr('href');
                         })
                         .always(function() {
@@ -347,12 +333,6 @@
                 const $buttons = $widget.find('.bw-price-variation__variation-button');
                 const $addToCartButton = $widget.find('.bw-add-to-cart-button');
 
-                console.log('BW Price Variation: Initializing widget', {
-                        productId: productId,
-                        variationsCount: variations.length,
-                        buttonsCount: $buttons.length
-                });
-
                 let activeVariation = resolveDefaultVariation($widget, variations, variationMap);
 
                 if (activeVariation) {
@@ -367,7 +347,6 @@
 
                         // Block clicks on out-of-stock variations
                         if ($(this).hasClass('out-of-stock')) {
-                                console.log('BW Price Variation: Out of stock variation clicked, ignoring');
                                 return false;
                         }
 
@@ -376,11 +355,6 @@
                         const variationFromMap = variationMap[buttonVariationId];
                         const selectedVariation = variationFromMap || parsedVariation || null;
 
-                        console.log('BW Price Variation: Variation button clicked', {
-                                buttonId: buttonVariationId,
-                                hasVariation: !!selectedVariation
-                        });
-
                         if (!selectedVariation || !selectedVariation.id) {
                                 console.error('BW Price Variation: No variation data found for button');
                                 return;
@@ -388,7 +362,6 @@
 
                         // Check if variation is in stock
                         if (selectedVariation.is_in_stock === false) {
-                                console.log('BW Price Variation: Variation is out of stock, ignoring');
                                 return false;
                         }
 
@@ -398,8 +371,6 @@
                         updatePrice($priceDisplay, selectedVariation);
                         updateLicenseBox($licenseBox, selectedVariation);
                         updateAddToCartButton($addToCartButton, productId, selectedVariation);
-
-                        console.log('BW Price Variation: Updated to variation', selectedVariation);
 
                         $widget.trigger('bw_price_variation_changed', {
                                 variationId: selectedVariation.id,
@@ -415,13 +386,7 @@
                         const addToCartBtn = $addToCartButton[0];
 
                         addToCartBtn.addEventListener('click', function(e) {
-                                console.log('BW Price Variation: Add to cart button clicked (capture phase)', {
-                                        hasDisabledClass: $(this).hasClass('disabled'),
-                                        activeVariation: activeVariation
-                                });
-
                                 if ($(this).hasClass('disabled')) {
-                                        console.log('BW Price Variation: Button is disabled, ignoring');
                                         e.preventDefault();
                                         e.stopPropagation();
                                         return false;
@@ -433,12 +398,6 @@
                         }, true); // true = capture phase
                 }
 
-                // Keep jQuery handler as fallback
-                $widget.on('click', '.bw-add-to-cart-button', function(e) {
-                        console.log('BW Price Variation: Add to cart button clicked (bubble phase - fallback)');
-                        e.preventDefault();
-                        e.stopImmediatePropagation();
-                });
         }
 
         $(document).ready(function() {
