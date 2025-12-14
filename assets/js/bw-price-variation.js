@@ -74,6 +74,10 @@
                 return '<span class="woocommerce-Price-amount amount">' + price + '</span>';
         }
 
+        function closeCartPopupError() {
+                closeCartPopupError();
+        }
+
         /**
          * Update the price display area.
          * @param {jQuery} $priceDisplay
@@ -290,7 +294,6 @@
 
                 // Determine the AJAX URL
                 let ajaxUrl = null;
-                let useAdminAjax = false;
 
                 // First try to use WooCommerce's wc-ajax endpoint (preferred for variations)
                 if (typeof wc_add_to_cart_params !== 'undefined' && wc_add_to_cart_params.wc_ajax_url) {
@@ -300,7 +303,6 @@
                 else if (typeof bwPriceVariation !== 'undefined' && bwPriceVariation.ajaxUrl) {
                         ajaxUrl = bwPriceVariation.ajaxUrl;
                         payload.action = 'woocommerce_add_to_cart';
-                        useAdminAjax = true;
                 }
                 // Last resort: use the href URL (non-AJAX)
                 else {
@@ -340,8 +342,8 @@
                                                                 returnUrl: targetUrl,
                                                                 returnLabel: returnLabel
                                                         });
-                                                } else if (typeof BW_CartPopup.closeErrorModal === 'function') {
-                                                        BW_CartPopup.closeErrorModal();
+                                                } else {
+                                                        closeCartPopupError();
                                                 }
                                         }
 
@@ -353,9 +355,7 @@
                                 $(document.body).trigger('added_to_cart', [response.fragments || {}, response.cart_hash || '', $button]);
 
                                 if (window.BW_CartPopup) {
-                                        if (typeof BW_CartPopup.closeErrorModal === 'function') {
-                                                BW_CartPopup.closeErrorModal();
-                                        }
+                                        closeCartPopupError();
                                         BW_CartPopup.openPanel();
                                 }
                         })

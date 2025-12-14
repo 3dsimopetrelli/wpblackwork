@@ -10,6 +10,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class BW_Price_Variation_Widget extends Widget_Base {
 
+        private function render_editor_notice( $message ) {
+                echo '<div class="elementor-alert elementor-alert-warning">';
+                echo esc_html( $message );
+                echo '</div>';
+        }
+
 	public function get_name() {
 		return 'bw-price-variation';
 	}
@@ -807,6 +813,7 @@ class BW_Price_Variation_Widget extends Widget_Base {
                         if ( ! empty( $variation['is_in_stock'] ) ) {
                                 return $variation;
                         }
+                        return;
                 }
 
                 return $variations_data[0];
@@ -839,18 +846,14 @@ class BW_Price_Variation_Widget extends Widget_Base {
                 // Validate product exists and is variable type
                 if ( ! $product ) {
                         if ( \Elementor\Plugin::$instance->editor->is_edit_mode() ) {
-                                echo '<div class="elementor-alert elementor-alert-warning">';
-                                echo esc_html__( 'BW Price Variation: Product not found. Please enter a valid Product ID or use this widget on a single product page.', 'bw' );
-                                echo '</div>';
+                                $this->render_editor_notice( __( 'BW Price Variation: Product not found. Please enter a valid Product ID or use this widget on a single product page.', 'bw' ) );
                         }
                         return;
                 }
 
                 if ( ! $product->is_type( 'variable' ) ) {
                         if ( \Elementor\Plugin::$instance->editor->is_edit_mode() ) {
-                                echo '<div class="elementor-alert elementor-alert-warning">';
-                                echo esc_html__( 'BW Price Variation: This widget only works with Variable products. Current product type: ', 'bw' ) . esc_html( $product->get_type() );
-                                echo '</div>';
+                                $this->render_editor_notice( esc_html__( 'BW Price Variation: This widget only works with Variable products. Current product type: ', 'bw' ) . esc_html( $product->get_type() ) );
                         }
                         return;
                 }
