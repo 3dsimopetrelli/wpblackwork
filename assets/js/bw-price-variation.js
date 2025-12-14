@@ -75,7 +75,9 @@
         }
 
         function closeCartPopupError() {
-                closeCartPopupError();
+                if (window.BW_CartPopup && typeof BW_CartPopup.closeErrorModal === 'function') {
+                        BW_CartPopup.closeErrorModal();
+                }
         }
 
         /**
@@ -318,16 +320,12 @@
                         .done(function(response) {
                                 const hasFragments = response && response.fragments;
                                 const isValidationError = response && (response.error || response.result === 'failure');
+                                const rawMessage = response && response.messages ? response.messages : '';
+                                const parsedMessage = rawMessage ? $('<div/>').html(rawMessage).text().trim() : '';
+                                const isSoldIndividually = isSoldIndividuallyMessage(parsedMessage);
 
-                                // WooCommerce signals validation errors with the `error` flag. Only treat as error
-                                // when fragments are not present, so a successful add that also returns notices
-                                // does not re-open the validation modal.
-                                if (isValidationError && !hasFragments) {
-                                        const rawMessage = response.messages || '';
-                                        const parsedMessage = rawMessage ? $('<div/>').html(rawMessage).text().trim() : '';
-                                        const isSoldIndividually = isSoldIndividuallyMessage(parsedMessage);
-                                        const targetUrl = productUrl || response.product_url || window.location.href;
-
+                                if (isValidationError) {
+                                        const targetUrl = productUrl || (response && response.product_url) || window.location.href;
                                         const returnLabel = (typeof bwPriceVariation !== 'undefined'
                                                 && bwPriceVariation.labels
                                                 && bwPriceVariation.labels.returnToProduct)
@@ -342,12 +340,14 @@
                                                                 returnUrl: targetUrl,
                                                                 returnLabel: returnLabel
                                                         });
-                                                } else {
+                                                } else if (!hasFragments) {
                                                         closeCartPopupError();
                                                 }
                                         }
 
-                                        return;
+                                        if (isSoldIndividually) {
+                                                return;
+                                        }
                                 }
 
                                 // Success!
@@ -375,7 +375,12 @@
                                 }
                         })
                         .always(function() {
-                                $button.removeClass('loading');
+                                $button.removeClass('loading added');
+
+                                if (!variation || variation.is_in_stock !== false) {
+                                        $button.removeClass('disabled');
+                                        $button.attr('aria-disabled', 'false').removeAttr('disabled');
+                                }
                         });
         }
 

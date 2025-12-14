@@ -816,6 +816,19 @@ class BW_Price_Variation_Widget extends Widget_Base {
                         return;
                 }
 
+                if ( ! $product->is_type( 'variable' ) ) {
+                        if ( \Elementor\Plugin::$instance->editor->is_edit_mode() ) {
+                                $this->render_editor_notice( esc_html__( 'BW Price Variation: This widget only works with Variable products. Current product type: ', 'bw' ) . esc_html( $product->get_type() ) );
+                        }
+                        return;
+                }
+
+                $available_variations = $product->get_available_variations();
+
+                if ( empty( $available_variations ) ) {
+                        return;
+                }
+
                 return $variations_data[0];
         }
 
