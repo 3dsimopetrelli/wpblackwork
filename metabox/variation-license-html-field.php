@@ -2,128 +2,246 @@
 /**
  * Variation License HTML Field
  *
- * Adds a custom HTML textarea field to product variations
- * for storing license terms/conditions HTML
+ * Adds custom table fields to product variations
+ * for storing license terms/conditions entries.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+exit;
 }
 
 /**
- * Add custom field to variation settings
+ * Add custom field to variation settings.
  */
 add_action( 'woocommerce_variation_options_pricing', 'bw_add_variation_license_html_field', 10, 3 );
 
 function bw_add_variation_license_html_field( $loop, $variation_data, $variation ) {
-	$variation_id = $variation->ID;
-	$license_html = get_post_meta( $variation_id, '_bw_variation_license_html', true );
-	?>
-	<div class="form-row form-row-full bw-variation-license-html-wrapper">
-		<label>
-			<?php esc_html_e( 'License Terms HTML', 'bw' ); ?>
-			<?php echo wc_help_tip( __( 'Enter the HTML content for the license terms box. This will be displayed when the variation is selected in the BW Price Variation widget.', 'bw' ) ); ?>
-		</label>
-		<textarea
-			id="bw_variation_license_html_<?php echo esc_attr( $loop ); ?>"
-			name="bw_variation_license_html[<?php echo esc_attr( $loop ); ?>]"
-			class="bw-variation-license-html-field"
-			rows="8"
-			placeholder="<?php esc_attr_e( 'Enter HTML for license terms (e.g., <strong>END PRODUCTS</strong>: Up to 5,000<br><strong>NUMBER PROJECTS</strong>: 1 single project)', 'bw' ); ?>"
-			style="width: 100%; font-family: monospace; font-size: 13px;"
-		><?php echo esc_textarea( $license_html ); ?></textarea>
-		<p class="description">
-			<?php esc_html_e( 'You can use HTML tags like <strong>, <br>, <p>, <a>, etc. This content will appear in the license box below the variation buttons.', 'bw' ); ?>
-		</p>
-	</div>
-	<?php
+$variation_id = $variation->ID;
+$column_one   = bw_get_variation_license_column( $variation_id, '_bw_variation_license_col1' );
+$column_two   = bw_get_variation_license_column( $variation_id, '_bw_variation_license_col2' );
+?>
+<div class="form-row form-row-full bw-variation-license-html-wrapper">
+<label>
+<?php esc_html_e( 'License Terms', 'bw' ); ?>
+<?php echo wc_help_tip( __( 'Populate up to 10 rows per column. These entries replace the old HTML block and will appear in the license box under the variation buttons.', 'bw' ) ); ?>
+</label>
+<p class="description" style="margin-top: 0;">
+<?php esc_html_e( 'Only non-empty rows are displayed on the product.', 'bw' ); ?>
+</p>
+<div class="bw-variation-license-table">
+<div class="bw-variation-license-table__header">
+<span><?php esc_html_e( 'Column 1', 'bw' ); ?></span>
+<span><?php esc_html_e( 'Column 2', 'bw' ); ?></span>
+</div>
+<?php for ( $i = 0; $i < 10; $i++ ) : ?>
+<div class="bw-variation-license-table__row">
+<input
+type="text"
+name="bw_variation_license_col1[<?php echo esc_attr( $loop ); ?>][<?php echo esc_attr( $i ); ?>]"
+value="<?php echo esc_attr( $column_one[ $i ] ); ?>"
+placeholder="<?php printf( esc_attr__( 'Row %d label', 'bw' ), $i + 1 ); ?>"
+class="bw-variation-license-table__input"
+/>
+<input
+type="text"
+name="bw_variation_license_col2[<?php echo esc_attr( $loop ); ?>][<?php echo esc_attr( $i ); ?>]"
+value="<?php echo esc_attr( $column_two[ $i ] ); ?>"
+placeholder="<?php printf( esc_attr__( 'Row %d value', 'bw' ), $i + 1 ); ?>"
+class="bw-variation-license-table__input"
+/>
+</div>
+<?php endfor; ?>
+</div>
+</div>
+<?php
 }
 
 /**
- * Save custom field value
+ * Save custom field value.
  */
 add_action( 'woocommerce_save_product_variation', 'bw_save_variation_license_html_field', 10, 2 );
 
 function bw_save_variation_license_html_field( $variation_id, $i ) {
-	if ( isset( $_POST['bw_variation_license_html'][ $i ] ) ) {
-		$license_html = wp_kses_post( $_POST['bw_variation_license_html'][ $i ] );
-		update_post_meta( $variation_id, '_bw_variation_license_html', $license_html );
-	} else {
-		delete_post_meta( $variation_id, '_bw_variation_license_html' );
-	}
+$col1_values = isset( $_POST['bw_variation_license_col1'][ $i ] ) && is_array( $_POST['bw_variation_license_col1'][ $i ] )
+? array_values( $_POST['bw_variation_license_col1'][ $i ] )
+: [];
+
+$col2_values = isset( $_POST['bw_variation_license_col2'][ $i ] ) && is_array( $_POST['bw_variation_license_col2'][ $i ] )
+? array_values( $_POST['bw_variation_license_col2'][ $i ] )
+: [];
+
+$col1_sanitized = [];
+$col2_sanitized = [];
+
+for ( $index = 0; $index < 10; $index++ ) {
+$col1_sanitized[ $index ] = isset( $col1_values[ $index ] ) ? sanitize_text_field( wp_unslash( $col1_values[ $index ] ) ) : '';
+$col2_sanitized[ $index ] = isset( $col2_values[ $index ] ) ? sanitize_text_field( wp_unslash( $col2_values[ $index ] ) ) : '';
+}
+
+update_post_meta( $variation_id, '_bw_variation_license_col1', $col1_sanitized );
+update_post_meta( $variation_id, '_bw_variation_license_col2', $col2_sanitized );
+
+// Remove the legacy HTML meta to avoid stale content.
+delete_post_meta( $variation_id, '_bw_variation_license_html' );
 }
 
 /**
- * AJAX handler to get variation license HTML
+ * AJAX handler to get variation license HTML.
  */
 add_action( 'wp_ajax_bw_get_variation_license_html', 'bw_get_variation_license_html' );
 add_action( 'wp_ajax_nopriv_bw_get_variation_license_html', 'bw_get_variation_license_html' );
 
 function bw_get_variation_license_html() {
-	// Verify nonce
-	check_ajax_referer( 'bw_price_variation_nonce', 'nonce' );
+// Verify nonce.
+check_ajax_referer( 'bw_price_variation_nonce', 'nonce' );
 
-	$variation_id = isset( $_POST['variation_id'] ) ? absint( $_POST['variation_id'] ) : 0;
+$variation_id = isset( $_POST['variation_id'] ) ? absint( $_POST['variation_id'] ) : 0;
 
-	if ( ! $variation_id ) {
-		wp_send_json_error( [ 'message' => 'Invalid variation ID' ] );
-	}
+if ( ! $variation_id ) {
+wp_send_json_error( [ 'message' => 'Invalid variation ID' ] );
+}
 
-	// Get the license HTML from variation meta
-	$license_html = get_post_meta( $variation_id, '_bw_variation_license_html', true );
+$license_html = bw_get_variation_license_table_html( $variation_id );
 
-	if ( empty( $license_html ) ) {
-		wp_send_json_success( [ 'html' => '' ] );
-	}
-
-	// Return the HTML (already sanitized on save with wp_kses_post)
-	wp_send_json_success( [ 'html' => $license_html ] );
+wp_send_json_success( [ 'html' => $license_html ] );
 }
 
 /**
- * Add CSS for the field in admin
+ * Add CSS for the field in admin.
  */
 add_action( 'admin_head', 'bw_variation_license_html_field_css' );
 
 function bw_variation_license_html_field_css() {
-	global $pagenow, $post_type;
+global $pagenow, $post_type;
 
-	if ( ( $pagenow === 'post.php' || $pagenow === 'post-new.php' ) && $post_type === 'product' ) {
-		?>
-		<style>
-			.bw-variation-license-html-wrapper {
-				padding: 10px 12px;
-				background: #f9f9f9;
-				border: 1px solid #ddd;
-				border-radius: 4px;
-				margin-top: 10px;
-			}
+if ( ( 'post.php' === $pagenow || 'post-new.php' === $pagenow ) && 'product' === $post_type ) {
+?>
+<style>
+.bw-variation-license-html-wrapper {
+padding: 10px 12px;
+background: #f9f9f9;
+border: 1px solid #ddd;
+border-radius: 4px;
+margin-top: 10px;
+}
 
-			.bw-variation-license-html-wrapper label {
-				font-weight: 600;
-				margin-bottom: 8px;
-				display: block;
-			}
+.bw-variation-license-html-wrapper label {
+font-weight: 600;
+margin-bottom: 8px;
+display: block;
+}
 
-			.bw-variation-license-html-field {
-				border: 1px solid #8c8f94;
-				border-radius: 4px;
-				padding: 8px;
-			}
+.bw-variation-license-table {
+display: grid;
+grid-template-columns: 1fr;
+gap: 6px;
+}
 
-			.bw-variation-license-html-field:focus {
-				border-color: #2271b1;
-				outline: 2px solid transparent;
-				box-shadow: 0 0 0 1px #2271b1;
-			}
+.bw-variation-license-table__header {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 10px;
+font-weight: 600;
+color: #000;
+font-size: 13px;
+}
 
-			.bw-variation-license-html-wrapper .description {
-				font-size: 12px;
-				color: #646970;
-				font-style: italic;
-				margin-top: 8px;
-			}
-		</style>
-		<?php
-	}
+.bw-variation-license-table__row {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 10px;
+}
+
+.bw-variation-license-table__input {
+border: 1px solid #8c8f94;
+border-radius: 4px;
+padding: 8px;
+width: 100%;
+box-sizing: border-box;
+}
+
+.bw-variation-license-table__input:focus {
+border-color: #2271b1;
+outline: 2px solid transparent;
+box-shadow: 0 0 0 1px #2271b1;
+}
+
+.bw-variation-license-html-wrapper .description {
+font-size: 12px;
+color: #646970;
+font-style: italic;
+margin-top: 8px;
+}
+</style>
+<?php
+}
+}
+
+/**
+ * Helper to fetch a column of variation license rows with safe defaults.
+ *
+ * @param int    $variation_id Variation ID.
+ * @param string $meta_key     Meta key to read.
+ *
+ * @return array
+ */
+function bw_get_variation_license_column( $variation_id, $meta_key ) {
+$values = get_post_meta( $variation_id, $meta_key, true );
+
+if ( ! is_array( $values ) ) {
+$values = [];
+}
+
+$normalized = [];
+
+for ( $index = 0; $index < 10; $index++ ) {
+$normalized[ $index ] = isset( $values[ $index ] ) ? sanitize_text_field( wp_unslash( $values[ $index ] ) ) : '';
+}
+
+return $normalized;
+}
+
+/**
+ * Build the HTML table for a variation's license terms.
+ *
+ * @param int $variation_id Variation ID.
+ *
+ * @return string
+ */
+function bw_get_variation_license_table_html( $variation_id ) {
+$col1 = bw_get_variation_license_column( $variation_id, '_bw_variation_license_col1' );
+$col2 = bw_get_variation_license_column( $variation_id, '_bw_variation_license_col2' );
+$rows = [];
+
+for ( $index = 0; $index < 10; $index++ ) {
+$left  = isset( $col1[ $index ] ) ? trim( $col1[ $index ] ) : '';
+$right = isset( $col2[ $index ] ) ? trim( $col2[ $index ] ) : '';
+
+if ( '' === $left && '' === $right ) {
+continue;
+}
+
+$rows[] = [
+'left'  => $left,
+'right' => $right,
+];
+}
+
+if ( empty( $rows ) ) {
+return '';
+}
+
+$markup = '<div class="bw-license-table-wrapper"><table class="bw-license-table"><tbody>';
+
+foreach ( $rows as $row ) {
+$markup .= sprintf(
+'<tr><td class="bw-license-table__cell bw-license-table__cell--label">%1$s</td><td class="bw-license-table__cell bw-license-table__cell--value">%2$s</td></tr>',
+esc_html( $row['left'] ),
+esc_html( $row['right'] )
+);
+}
+
+$markup .= '</tbody></table></div>';
+
+return $markup;
 }

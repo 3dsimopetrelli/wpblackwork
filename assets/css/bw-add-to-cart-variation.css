@@ -51,11 +51,31 @@
 }
 
 .bw-add-to-cart-variation__license-box {
-    border: 1px solid #000;
-    border-radius: 12px;
-    padding: 20px;
-    width: 100%;
-    transition: opacity 180ms ease;
+border: 1px solid #000;
+border-radius: 12px;
+padding: 20px;
+width: 100%;
+transition: opacity 180ms ease;
+}
+
+.bw-license-table-wrapper {
+width: 100%;
+}
+
+.bw-license-table {
+width: 100%;
+border-collapse: collapse;
+font-size: 13px;
+color: #000;
+}
+
+.bw-license-table__cell {
+padding: 4px 0;
+vertical-align: top;
+}
+
+.bw-license-table__cell--label {
+font-weight: 600;
 }
 
 .bw-add-to-cart-variation__license-box.is-hidden {
