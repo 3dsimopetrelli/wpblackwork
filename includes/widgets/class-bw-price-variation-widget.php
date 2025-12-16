@@ -606,24 +606,116 @@ class BW_Price_Variation_Widget extends Widget_Base {
 			]
 		);
 
-		$this->add_control(
-			'box_background_color',
-			[
-				'label'     => __( 'Background Color', 'bw' ),
-				'type'      => Controls_Manager::COLOR,
-				'default'   => '#ffffff',
-				'selectors' => [
-					'{{WRAPPER}} .bw-price-variation__license-box' => 'background-color: {{VALUE}};',
-				],
-			]
-		);
+                $this->add_control(
+                        'box_background_color',
+                        [
+                                'label'     => __( 'Background Color', 'bw' ),
+                                'type'      => Controls_Manager::COLOR,
+                                'default'   => '#ffffff',
+                                'selectors' => [
+                                        '{{WRAPPER}} .bw-price-variation__license-box' => 'background-color: {{VALUE}};',
+                                ],
+                        ]
+                );
 
-		$this->end_controls_section();
+                $this->end_controls_section();
 
-		// Add To Cart Button Style
-		$this->start_controls_section(
-			'section_add_to_cart_style',
-			[
+                // License Table Style
+                $this->start_controls_section(
+                        'section_license_table_style',
+                        [
+                                'label' => __( 'License Table', 'bw' ),
+                                'tab'   => Controls_Manager::TAB_STYLE,
+                        ]
+                );
+
+                $this->add_control(
+                        'license_table_borderless',
+                        [
+                                'label'        => __( 'Remove Table Border', 'bw' ),
+                                'type'         => Controls_Manager::SWITCHER,
+                                'label_on'     => __( 'Yes', 'bw' ),
+                                'label_off'    => __( 'No', 'bw' ),
+                                'return_value' => 'yes',
+                                'default'      => 'yes',
+                                'selectors'    => [
+                                        '{{WRAPPER}} .bw-license-table, {{WRAPPER}} .bw-license-table td, {{WRAPPER}} .bw-license-table th' => 'border: none !important; background: #ffffff !important;',
+                                ],
+                        ]
+                );
+
+                $this->add_group_control(
+                        Group_Control_Typography::get_type(),
+                        [
+                                'name'           => 'license_table_col1_typography',
+                                'label'          => __( 'First Column Typography', 'bw' ),
+                                'selector'       => '{{WRAPPER}} .bw-license-table__cell--label',
+                                'fields_options' => [
+                                        'font_size' => [
+                                                'default' => [
+                                                        'size' => 13,
+                                                        'unit' => 'px',
+                                                ],
+                                        ],
+                                ],
+                        ]
+                );
+
+                $this->add_group_control(
+                        Group_Control_Typography::get_type(),
+                        [
+                                'name'           => 'license_table_col2_typography',
+                                'label'          => __( 'Second Column Typography', 'bw' ),
+                                'selector'       => '{{WRAPPER}} .bw-license-table__cell--value',
+                                'fields_options' => [
+                                        'font_size' => [
+                                                'default' => [
+                                                        'size' => 13,
+                                                        'unit' => 'px',
+                                                ],
+                                        ],
+                                ],
+                        ]
+                );
+
+                $this->add_responsive_control(
+                        'license_table_col1_width',
+                        [
+                                'label'      => __( 'First Column Width (%)', 'bw' ),
+                                'type'       => Controls_Manager::SLIDER,
+                                'size_units' => [ '%' ],
+                                'range'      => [
+                                        '%' => [ 'min' => 0, 'max' => 100 ],
+                                ],
+                                'default'    => [ 'size' => 50, 'unit' => '%' ],
+                                'selectors'  => [
+                                        '{{WRAPPER}} .bw-license-table__cell--label' => 'width: {{SIZE}}{{UNIT}};',
+                                ],
+                        ]
+                );
+
+                $this->add_responsive_control(
+                        'license_table_col2_width',
+                        [
+                                'label'      => __( 'Second Column Width (%)', 'bw' ),
+                                'type'       => Controls_Manager::SLIDER,
+                                'size_units' => [ '%' ],
+                                'range'      => [
+                                        '%' => [ 'min' => 0, 'max' => 100 ],
+                                ],
+                                'default'    => [ 'size' => 50, 'unit' => '%' ],
+                                'selectors'  => [
+                                        '{{WRAPPER}} .bw-license-table__cell--value' => 'width: {{SIZE}}{{UNIT}};',
+                                ],
+                        ]
+                );
+
+                $this->end_controls_section();
+
+                // Add To Cart Button Style
+                $this->start_controls_section(
+                        'section_add_to_cart_style',
+                        [
 				'label'     => __( 'Add To Cart Button', 'bw' ),
 				'tab'       => Controls_Manager::TAB_STYLE,
 				'condition' => [

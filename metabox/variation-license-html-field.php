@@ -231,7 +231,7 @@ if ( empty( $rows ) ) {
 return '';
 }
 
-$markup = '<div class="bw-license-table-wrapper"><table class="bw-license-table"><tbody>';
+$markup = '<div class="bw-license-table-wrapper"><table class="bw-license-table bw-license-table--clean"><tbody>';
 
 foreach ( $rows as $row ) {
 $markup .= sprintf(

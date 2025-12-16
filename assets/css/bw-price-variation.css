@@ -109,6 +109,13 @@ font-size: 13px;
 color: #000;
 }
 
+.bw-license-table--clean,
+.bw-license-table--clean td,
+.bw-license-table--clean th {
+border: none !important;
+background: #fff !important;
+}
+
 .bw-license-table__cell {
 padding: 4px 0;
 vertical-align: top;
