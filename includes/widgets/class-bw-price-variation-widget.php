@@ -157,6 +157,20 @@ class BW_Price_Variation_Widget extends Widget_Base {
                 );
 
                 $this->add_control(
+                        'other_payments_empty_text',
+                        [
+                                'label'       => __( 'Empty State Text', 'bw' ),
+                                'type'        => Controls_Manager::TEXT,
+                                'default'     => __( 'Currently there are no alternative payment methods available.', 'bw' ),
+                                'placeholder' => __( 'Enter empty message', 'bw' ),
+                                'label_block' => true,
+                                'condition'   => [
+                                        'show_other_payment_methods' => 'yes',
+                                ],
+                        ]
+                );
+
+                $this->add_control(
                         'show_stripe_payment_request',
                         [
                                 'label'        => __( 'Stripe / Payment Request Buttons', 'bw' ),
@@ -1315,6 +1329,10 @@ class BW_Price_Variation_Widget extends Widget_Base {
                                         ( isset( $settings['show_wc_payments'] ) && 'yes' === $settings['show_wc_payments'] ) ||
                                         ( isset( $settings['show_paypal_buttons'] ) && 'yes' === $settings['show_paypal_buttons'] )
                                 );
+
+                                $empty_text = isset( $settings['other_payments_empty_text'] ) && '' !== trim( $settings['other_payments_empty_text'] )
+                                        ? $settings['other_payments_empty_text']
+                                        : __( 'Currently there are no alternative payment methods available.', 'bw' );
                                 ?>
                                 <div class="bw-other-payments" data-render-wc-hooks="<?php echo esc_attr( $render_wc_after_add_to_cart ? '1' : '0' ); ?>">
                                         <button class="bw-other-payments__toggle" type="button" aria-expanded="false">
@@ -1352,7 +1370,7 @@ class BW_Price_Variation_Widget extends Widget_Base {
                                                 $gateway_content = trim( (string) ob_get_clean() );
 
                                                 if ( '' === $gateway_content ) {
-                                                        echo '<p class="bw-other-payments__empty">' . esc_html__( 'Currently there are no alternative payment methods available.', 'bw' ) . '</p>';
+                                                        echo '<p class="bw-other-payments__empty">' . esc_html( $empty_text ) . '</p>';
                                                 } else {
                                                         echo $gateway_content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
                                                 }
