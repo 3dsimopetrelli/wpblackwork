@@ -1002,6 +1002,7 @@ class BW_Price_Variation_Widget extends Widget_Base {
                         if ( ! empty( $variation['is_in_stock'] ) ) {
                                 return $variation;
                         }
+                        return;
                 }
 
                 return $variations_data[0];
