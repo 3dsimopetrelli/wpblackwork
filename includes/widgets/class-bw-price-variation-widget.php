@@ -639,7 +639,19 @@ class BW_Price_Variation_Widget extends Widget_Base {
                                 'return_value' => 'yes',
                                 'default'      => 'yes',
                                 'selectors'    => [
-                                        '{{WRAPPER}} .bw-license-table, {{WRAPPER}} .bw-license-table td, {{WRAPPER}} .bw-license-table th' => 'border: none !important; background: #ffffff !important;',
+                                        '{{WRAPPER}} .bw-license-table, {{WRAPPER}} .bw-license-table td, {{WRAPPER}} .bw-license-table th' => 'border: none !important;',
+                                ],
+                        ]
+                );
+
+                $this->add_control(
+                        'license_table_background_color',
+                        [
+                                'label'     => __( 'Table Background Color', 'bw' ),
+                                'type'      => Controls_Manager::COLOR,
+                                'default'   => '#ffffff',
+                                'selectors' => [
+                                        '{{WRAPPER}} .bw-license-table, {{WRAPPER}} .bw-license-table td, {{WRAPPER}} .bw-license-table th' => 'background-color: {{VALUE}} !important;',
                                 ],
                         ]
                 );
@@ -661,6 +673,18 @@ class BW_Price_Variation_Widget extends Widget_Base {
                         ]
                 );
 
+                $this->add_control(
+                        'license_table_col1_color',
+                        [
+                                'label'     => __( 'First Column Text Color', 'bw' ),
+                                'type'      => Controls_Manager::COLOR,
+                                'default'   => '#000000',
+                                'selectors' => [
+                                        '{{WRAPPER}} .bw-license-table__cell--label' => 'color: {{VALUE}} !important;',
+                                ],
+                        ]
+                );
+
                 $this->add_group_control(
                         Group_Control_Typography::get_type(),
                         [
@@ -674,6 +698,18 @@ class BW_Price_Variation_Widget extends Widget_Base {
                                                         'unit' => 'px',
                                                 ],
                                         ],
+                                ],
+                        ]
+                );
+
+                $this->add_control(
+                        'license_table_col2_color',
+                        [
+                                'label'     => __( 'Second Column Text Color', 'bw' ),
+                                'type'      => Controls_Manager::COLOR,
+                                'default'   => '#000000',
+                                'selectors' => [
+                                        '{{WRAPPER}} .bw-license-table__cell--value' => 'color: {{VALUE}} !important;',
                                 ],
                         ]
                 );

@@ -73,7 +73,6 @@ color: #000;
 .bw-license-table--clean td,
 .bw-license-table--clean th {
 border: none !important;
-background: #fff !important;
 }
 
 .bw-license-table__cell {
