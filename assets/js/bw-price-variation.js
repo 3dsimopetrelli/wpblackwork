@@ -384,6 +384,44 @@
                         });
         }
 
+        function ensureCartHasItems(force) {
+                if (!window.BW_CartPopup || typeof BW_CartPopup.ensureCartItems !== 'function') {
+                        return null;
+                }
+
+                try {
+                        return BW_CartPopup.ensureCartItems(!!force);
+                } catch (err) {
+                        return null;
+                }
+        }
+
+        function isVariationAlreadyInCart(productId, variationId) {
+                if (!window.BW_CartPopup || typeof BW_CartPopup.hasCartVariation !== 'function') {
+                        return false;
+                }
+
+                return BW_CartPopup.hasCartVariation(productId, variationId);
+        }
+
+        function showAlreadyInCartMessage() {
+                if (!window.BW_CartPopup || typeof BW_CartPopup.showAlreadyInCartModal !== 'function') {
+                        return;
+                }
+
+                const continueHandler = function() {
+                        if (typeof BW_CartPopup.closeAlreadyInCartModal === 'function') {
+                                BW_CartPopup.closeAlreadyInCartModal();
+                        }
+                };
+
+                BW_CartPopup.showAlreadyInCartModal('This product is already in your cart.', null, {
+                        continueUrl: null,
+                        continueLabel: 'Continue shopping',
+                        onContinue: continueHandler,
+                });
+        }
+
         /**
          * Initialize a single widget instance.
          * @param {jQuery} $widget
@@ -474,7 +512,40 @@
 
                                 e.preventDefault();
                                 e.stopImmediatePropagation();
-                                handleAddToCart($(this), productId, activeVariation, $widget.data('product-url'));
+
+                                const $btn = $(this);
+                                const variationForAdd = activeVariation;
+                                const proceedAdd = function() {
+                                        handleAddToCart($btn, productId, variationForAdd, $widget.data('product-url'));
+                                };
+
+                                if (variationForAdd && window.BW_CartPopup) {
+                                        const cartPromise = ensureCartHasItems(true);
+
+                                        if (cartPromise && typeof cartPromise.then === 'function') {
+                                                cartPromise
+                                                        .then(function() {
+                                                                if (isVariationAlreadyInCart(productId, variationForAdd.id)) {
+                                                                        showAlreadyInCartMessage();
+                                                                        return;
+                                                                }
+
+                                                                proceedAdd();
+                                                        })
+                                                        .fail(function() {
+                                                                proceedAdd();
+                                                        });
+
+                                                return;
+                                        }
+
+                                        if (isVariationAlreadyInCart(productId, variationForAdd.id)) {
+                                                showAlreadyInCartMessage();
+                                                return;
+                                        }
+                                }
+
+                                proceedAdd();
                         }, true); // true = capture phase
                 }
 
