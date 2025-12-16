@@ -472,6 +472,31 @@
                         }, true); // true = capture phase
                 }
 
+                const $otherPayments = $widget.find('.bw-other-payments');
+                if ($otherPayments.length) {
+                        const $toggle = $otherPayments.find('.bw-other-payments__toggle');
+                        const $content = $otherPayments.find('.bw-other-payments__content');
+
+                        $toggle.on('click', function(e) {
+                                e.preventDefault();
+
+                                const expanded = $(this).attr('aria-expanded') === 'true';
+                                $(this).attr('aria-expanded', expanded ? 'false' : 'true');
+
+                                if ($content.length) {
+                                        if (expanded) {
+                                                $content.removeClass('is-open').slideUp(200, function() {
+                                                        $content.attr('hidden', true);
+                                                });
+                                        } else {
+                                                $content.attr('hidden', false).slideDown(200, function() {
+                                                        $content.addClass('is-open');
+                                                });
+                                        }
+                                }
+                        });
+                }
+
         }
 
         $(document).ready(function() {

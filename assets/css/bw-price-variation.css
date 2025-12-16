@@ -100,8 +100,8 @@
 
 /* Add To Cart Button */
 .bw-add-to-cart-wrapper {
-	width: 100%;
-	margin-top: 20px;
+        width: 100%;
+        margin-top: 20px;
 }
 
 .bw-add-to-cart-button {
@@ -129,9 +129,46 @@
 }
 
 .bw-add-to-cart-button.disabled {
-	opacity: 0.5;
-	cursor: not-allowed;
-	pointer-events: none;
+        opacity: 0.5;
+        cursor: not-allowed;
+        pointer-events: none;
+}
+
+/* Other Payment Methods */
+.bw-other-payments {
+        width: 100%;
+        margin-top: 12px;
+}
+
+.bw-other-payments__toggle {
+        background: none;
+        border: none;
+        padding: 8px 0;
+        font-size: 16px;
+        font-weight: 600;
+        color: #000000;
+        cursor: pointer;
+        text-decoration: underline;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: color 0.2s ease, opacity 0.2s ease;
+}
+
+.bw-other-payments__toggle:hover,
+.bw-other-payments__toggle:focus {
+        color: #333333;
+        outline: none;
+}
+
+.bw-other-payments__content {
+        margin-top: 10px;
+        padding: 12px 0;
+        display: none;
+}
+
+.bw-other-payments__content.is-open {
+        display: block;
 }
 
 .bw-price-variation__license-box.hidden {
