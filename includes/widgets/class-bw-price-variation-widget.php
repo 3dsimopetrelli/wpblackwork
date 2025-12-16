@@ -1037,7 +1037,7 @@ class BW_Price_Variation_Widget extends Widget_Base {
                                 ],
                                 'default'   => 'flex-start',
                                 'selectors' => [
-                                        '{{WRAPPER}} .bw-other-payments' => 'display: flex; justify-content: {{VALUE}};',
+                                        '{{WRAPPER}} .bw-other-payments' => 'display: flex; flex-direction: column; align-items: {{VALUE}};',
                                 ],
                         ]
                 );
