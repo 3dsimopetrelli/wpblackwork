@@ -394,6 +394,12 @@
                         return;
                 }
 
+                if ($widget.data('bwPvInit')) {
+                        return;
+                }
+
+                $widget.data('bwPvInit', true);
+
                 const variations = parseVariations($widget.data('variations'));
                 if (!variations.length) {
                         console.warn('BW Price Variation: No variations found');
