@@ -559,14 +559,16 @@ function bw_cart_popup_get_cart_contents() {
             $quantity = $cart_item['quantity'];
 
             $cart_items[] = [
-                'key' => $cart_item_key,
-                'product_id' => $product_id,
-                'name' => $product->get_name(),
-                'quantity' => $quantity,
-                'price' => wc_price($product->get_price()),
-                'subtotal' => wc_price($cart_item['line_subtotal']),
-                'image' => $product->get_image('thumbnail'),
-                'permalink' => $product->get_permalink(),
+                'key'          => $cart_item_key,
+                'product_id'   => $product_id,
+                'variation_id' => isset( $cart_item['variation_id'] ) ? (int) $cart_item['variation_id'] : 0,
+                'variation'    => isset( $cart_item['variation'] ) && is_array( $cart_item['variation'] ) ? array_map( 'wc_clean', $cart_item['variation'] ) : [],
+                'name'         => $product->get_name(),
+                'quantity'     => $quantity,
+                'price'        => wc_price( $product->get_price() ),
+                'subtotal'     => wc_price( $cart_item['line_subtotal'] ),
+                'image'        => $product->get_image( 'thumbnail' ),
+                'permalink'    => $product->get_permalink(),
             ];
         }
 

@@ -35,6 +35,7 @@
         isOpen: false,
         isLoading: false,
         lastAddedButton: null,
+        cartItems: [],
         appliedCoupons: [],
 
         /**
@@ -227,6 +228,9 @@
                 // - L'opzione slide_animation è attiva (pulsanti globali), OPPURE
                 // - Il pulsante è un widget con l'opzione cart popup attiva
                 if (bwCartPopupConfig.settings.slide_animation || isWidgetWithPopup) {
+                    if (typeof self.closeErrorModal === 'function') {
+                        self.closeErrorModal();
+                    }
                     self.openPanel();
 
                     // Mostra la notifica verde "Your item has been added to the cart"
@@ -477,52 +481,104 @@
         },
 
         /**
-         * Carica il contenuto del carrello
-         * @param {boolean} skipLoading - Se true, non mostra il loading state
+         * Recupera i dati del carrello con opzioni di rendering
+         * @param {Object} options
+         * @param {boolean} options.render - Se true, aggiorna il DOM con i dati ricevuti
+         * @param {boolean} options.skipLoading - Se true, non mostra il loading state
+         * @returns {Promise}
          */
-        loadCartContents: function(skipLoading) {
+        fetchCartData: function(options) {
             const self = this;
+            const opts = Object.assign({ render: true, skipLoading: false }, options);
 
-            // Mostra loading state solo se non è richiesto di saltarlo
-            if (!skipLoading) {
+            if (!opts.skipLoading) {
                 this.showLoading();
             }
 
-            $.ajax({
+            return $.ajax({
                 url: bwCartPopupConfig.ajaxUrl,
                 type: 'POST',
                 data: {
                     action: 'bw_cart_popup_get_contents',
                     nonce: bwCartPopupConfig.nonce
-                },
-                success: function(response) {
-                    if (response.success) {
-                        self.renderCartItems(response.data);
-                        self.updateTotals(response.data);
-                        self.updateCouponDisplay(response.data.applied_coupons || []);
-                        self.isLoading = false;
+                }
+            })
+                .done(function(response) {
+                    if (response && response.success) {
+                        self.cartItems = (response.data && response.data.items) ? response.data.items : [];
 
-                        // Nascondi loading con un leggero delay per evitare flickering
-                        if (!skipLoading) {
-                            setTimeout(function() {
-                                self.hideLoading();
-                            }, 200);
+                        if (opts.render) {
+                            self.renderCartItems(response.data);
+                            self.updateTotals(response.data);
+                            self.updateCouponDisplay(response.data.applied_coupons || []);
                         }
                     } else {
                         console.error('Failed to load cart contents');
-                        self.isLoading = false;
-                        if (!skipLoading) {
-                            self.hideLoading();
-                        }
                     }
-                },
-                error: function() {
+                })
+                .fail(function() {
                     console.error('AJAX error loading cart contents');
+                })
+                .always(function() {
                     self.isLoading = false;
-                    if (!skipLoading) {
-                        self.hideLoading();
+
+                    if (!opts.skipLoading) {
+                        // Nascondi loading con un leggero delay per evitare flickering
+                        setTimeout(function() {
+                            self.hideLoading();
+                        }, opts.render ? 200 : 0);
                     }
-                }
+                });
+        },
+
+        /**
+         * Carica il contenuto del carrello
+         * @param {boolean} skipLoading - Se true, non mostra il loading state
+         */
+        loadCartContents: function(skipLoading) {
+            return this.fetchCartData({ render: true, skipLoading: !!skipLoading });
+        },
+
+        /**
+         * Garantisce un elenco aggiornato di prodotti nel carrello
+         * @param {boolean} forceRefresh - Se true, forza una chiamata AJAX anche se è presente una cache
+         * @returns {Promise<Array>}
+         */
+        ensureCartItems: function(forceRefresh) {
+            const self = this;
+            const shouldRefresh = forceRefresh || !Array.isArray(self.cartItems);
+
+            if (!shouldRefresh && self.cartItems.length > 0) {
+                return $.Deferred().resolve(self.cartItems).promise();
+            }
+
+            return self.fetchCartData({ render: false, skipLoading: true })
+                .then(function() {
+                    return self.cartItems || [];
+                }, function() {
+                    return [];
+                });
+        },
+
+        /**
+         * Verifica se un prodotto/variazione è già presente nel carrello
+         * @param {number} productId
+         * @param {number} variationId
+         * @returns {boolean}
+         */
+        hasCartVariation: function(productId, variationId) {
+            if (!Array.isArray(this.cartItems)) {
+                return false;
+            }
+
+            const targetProduct = parseInt(productId, 10);
+            const targetVariation = parseInt(variationId, 10);
+
+            return this.cartItems.some(function(item) {
+                const itemProductId = parseInt(item.product_id, 10);
+                const itemVariationId = parseInt(item.variation_id || 0, 10);
+
+                return itemProductId === targetProduct && itemVariationId === targetVariation;
             });
         },
 
@@ -530,6 +586,8 @@
          * Renderizza i prodotti nel carrello
          */
         renderCartItems: function(data) {
+            this.cartItems = (data && Array.isArray(data.items)) ? data.items : [];
+
             // Se il carrello è vuoto, mostra il layout vuoto
             if (data.empty || !data.items || data.items.length === 0) {
                 this.showEmptyState();
@@ -571,6 +629,8 @@
          * Mostra lo stato carrello vuoto
          */
         showEmptyState: function() {
+            this.cartItems = [];
+
             // Nascondi contenuto pieno e footer
             this.$fullContent.hide();
             this.$footer.hide();
@@ -1012,11 +1072,16 @@
          * @param {string} message - Messaggio da mostrare
          * @param {string} cartUrl - URL del carrello
          */
-        showAlreadyInCartModal: function(message, cartUrl) {
+        showAlreadyInCartModal: function(message, cartUrl, options) {
             const self = this;
             const safeMessage = message || 'This product is already in your cart.';
+            const opts = options || {};
             const targetCartUrl = cartUrl || (bwCartPopupConfig && bwCartPopupConfig.cartUrl) || '/cart/';
             const shopUrl = (bwCartPopupConfig && bwCartPopupConfig.shopUrl) || '/shop/';
+            const continueUrl = opts.hasOwnProperty('continueUrl') ? opts.continueUrl : shopUrl;
+            const continueLabel = opts.continueLabel || 'Continue shopping';
+            const cartLabel = opts.cartLabel || 'Vai al carrello';
+            const onContinue = typeof opts.onContinue === 'function' ? opts.onContinue : null;
 
             $('.bw-cart-already-modal-overlay').remove();
 
@@ -1081,7 +1146,7 @@
                                 font-weight: 700;
                                 cursor: pointer;
                                 transition: all 0.3s ease;
-                            ">Vai al carrello</button>
+                            ">${cartLabel}</button>
                             <button class="bw-cart-already-modal__btn bw-cart-already-modal__btn--continue" style="
                                 background-color: #f4f4f4;
                                 color: #000;
@@ -1092,7 +1157,7 @@
                                 font-weight: 700;
                                 cursor: pointer;
                                 transition: all 0.3s ease;
-                            ">Continua lo shopping</button>
+                            ">${continueLabel}</button>
                         </div>
                     </div>
                 </div>
@@ -1120,7 +1185,15 @@
             $modalOverlay.on('click', '.bw-cart-already-modal__btn--continue', function(e) {
                 e.preventDefault();
                 self.closeAlreadyInCartModal();
-                window.location.href = shopUrl;
+
+                if (onContinue) {
+                    onContinue();
+                    return;
+                }
+
+                if (continueUrl) {
+                    window.location.href = continueUrl;
+                }
             });
 
             $modalOverlay.on('click', function(e) {
@@ -1173,14 +1246,17 @@
          * Mostra modal di errore con overlay
          * @param {string} errorMessage - Messaggio di errore da mostrare
          */
-        showErrorModal: function(errorMessage) {
+        showErrorModal: function(errorMessage, options) {
             const self = this;
 
             // Rimuovi eventuali modal esistenti
             $('.bw-cart-error-modal-overlay').remove();
 
             // URL della pagina shop WooCommerce
+            const opts = options || {};
             const shopUrl = (bwCartPopupConfig && bwCartPopupConfig.shopUrl) || '/shop/';
+            const targetUrl = opts.returnUrl || shopUrl;
+            const buttonLabel = opts.returnLabel || 'Return to Shop';
 
             // Crea l'overlay e il modal
             const modalHtml = `
@@ -1247,7 +1323,7 @@
                                 font-weight: 600;
                                 cursor: pointer;
                                 transition: all 0.3s ease;
-                            ">Return to Shop</button>
+                            ">${buttonLabel}</button>
                         </div>
                     </div>
                 </div>
@@ -1271,7 +1347,7 @@
             // Gestisci click sul pulsante "Return to Shop"
             $modalOverlay.on('click', '.bw-cart-error-modal__btn--shop', function(e) {
                 e.preventDefault();
-                window.location.href = shopUrl;
+                window.location.href = targetUrl;
             });
 
             // Chiudi modal al click sull'overlay (opzionale)
