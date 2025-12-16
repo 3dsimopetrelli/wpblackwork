@@ -881,6 +881,10 @@ class BW_Price_Variation_Widget extends Widget_Base {
                         [
                                 'name'     => 'other_payments_typography',
                                 'selector' => '{{WRAPPER}} .bw-other-payments__toggle',
+                                'fields_options' => [
+                                        'typography' => [ 'default' => 'custom' ],
+                                        'font_size'  => [ 'default' => [ 'size' => 10, 'unit' => 'px' ] ],
+                                ],
                         ]
                 );
 
@@ -898,8 +902,33 @@ class BW_Price_Variation_Widget extends Widget_Base {
                         [
                                 'label'     => __( 'Text Color', 'bw' ),
                                 'type'      => Controls_Manager::COLOR,
+                                'default'   => '#000000',
                                 'selectors' => [
-                                        '{{WRAPPER}} .bw-other-payments__toggle' => 'color: {{VALUE}};',
+                                        '{{WRAPPER}} .bw-other-payments__toggle' => 'color: {{VALUE}} !important;',
+                                ],
+                        ]
+                );
+
+                $this->add_control(
+                        'other_payments_background_color',
+                        [
+                                'label'     => __( 'Background Color', 'bw' ),
+                                'type'      => Controls_Manager::COLOR,
+                                'default'   => 'rgba(0,0,0,0)',
+                                'selectors' => [
+                                        '{{WRAPPER}} .bw-other-payments__toggle' => 'background-color: {{VALUE}} !important;',
+                                ],
+                        ]
+                );
+
+                $this->add_control(
+                        'other_payments_border_color',
+                        [
+                                'label'     => __( 'Border Color', 'bw' ),
+                                'type'      => Controls_Manager::COLOR,
+                                'default'   => 'rgba(0,0,0,0)',
+                                'selectors' => [
+                                        '{{WRAPPER}} .bw-other-payments__toggle' => 'border-color: {{VALUE}} !important;',
                                 ],
                         ]
                 );
@@ -918,8 +947,21 @@ class BW_Price_Variation_Widget extends Widget_Base {
                         [
                                 'label'     => __( 'Text Color', 'bw' ),
                                 'type'      => Controls_Manager::COLOR,
+                                'default'   => '#000000',
                                 'selectors' => [
-                                        '{{WRAPPER}} .bw-other-payments__toggle:hover, {{WRAPPER}} .bw-other-payments__toggle:focus' => 'color: {{VALUE}};',
+                                        '{{WRAPPER}} .bw-other-payments__toggle:hover, {{WRAPPER}} .bw-other-payments__toggle:focus' => 'color: {{VALUE}} !important;',
+                                ],
+                        ]
+                );
+
+                $this->add_control(
+                        'other_payments_background_color_hover',
+                        [
+                                'label'     => __( 'Background Color', 'bw' ),
+                                'type'      => Controls_Manager::COLOR,
+                                'default'   => 'rgba(0,0,0,0)',
+                                'selectors' => [
+                                        '{{WRAPPER}} .bw-other-payments__toggle:hover, {{WRAPPER}} .bw-other-payments__toggle:focus' => 'background-color: {{VALUE}} !important;',
                                 ],
                         ]
                 );
@@ -927,6 +969,49 @@ class BW_Price_Variation_Widget extends Widget_Base {
                 $this->end_controls_tab();
 
                 $this->end_controls_tabs();
+
+                $this->add_responsive_control(
+                        'other_payments_border_width',
+                        [
+                                'label'      => __( 'Border Width', 'bw' ),
+                                'type'       => Controls_Manager::SLIDER,
+                                'size_units' => [ 'px' ],
+                                'range'      => [ 'px' => [ 'min' => 0, 'max' => 10 ] ],
+                                'default'    => [ 'size' => 0, 'unit' => 'px' ],
+                                'selectors'  => [
+                                        '{{WRAPPER}} .bw-other-payments__toggle' => 'border-width: {{SIZE}}{{UNIT}} !important;',
+                                ],
+                        ]
+                );
+
+                $this->add_control(
+                        'other_payments_border_style',
+                        [
+                                'label'   => __( 'Border Style', 'bw' ),
+                                'type'    => Controls_Manager::SELECT,
+                                'options' => [
+                                        'none'  => __( 'None', 'bw' ),
+                                        'solid' => __( 'Solid', 'bw' ),
+                                ],
+                                'default'   => 'solid',
+                                'selectors' => [
+                                        '{{WRAPPER}} .bw-other-payments__toggle' => 'border-style: {{VALUE}} !important;',
+                                ],
+                        ]
+                );
+
+                $this->add_responsive_control(
+                        'other_payments_border_radius',
+                        [
+                                'label'      => __( 'Border Radius', 'bw' ),
+                                'type'       => Controls_Manager::DIMENSIONS,
+                                'size_units' => [ 'px', '%' ],
+                                'default'    => [ 'top' => 0, 'right' => 0, 'bottom' => 0, 'left' => 0, 'unit' => 'px' ],
+                                'selectors'  => [
+                                        '{{WRAPPER}} .bw-other-payments__toggle' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
+                                ],
+                        ]
+                );
 
                 $this->add_responsive_control(
                         'other_payments_margin',
@@ -1002,7 +1087,6 @@ class BW_Price_Variation_Widget extends Widget_Base {
                         if ( ! empty( $variation['is_in_stock'] ) ) {
                                 return $variation;
                         }
-                        return;
                 }
 
                 return $variations_data[0];
@@ -1238,6 +1322,8 @@ class BW_Price_Variation_Widget extends Widget_Base {
                                         </button>
                                         <div class="bw-other-payments__content" hidden>
                                                 <?php
+                                                ob_start();
+
                                                 /**
                                                  * Allow custom content to be injected before the gateway buttons.
                                                  */
@@ -1262,6 +1348,14 @@ class BW_Price_Variation_Widget extends Widget_Base {
                                                  * Allow custom content after the gateway buttons.
                                                  */
                                                 do_action( 'bw_price_variation_after_payment_dropdown', $product, $settings );
+
+                                                $gateway_content = trim( (string) ob_get_clean() );
+
+                                                if ( '' === $gateway_content ) {
+                                                        echo '<p class="bw-other-payments__empty">' . esc_html__( 'Currently there are no alternative payment methods available.', 'bw' ) . '</p>';
+                                                } else {
+                                                        echo $gateway_content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+                                                }
                                                 ?>
                                         </div>
                                 </div>
