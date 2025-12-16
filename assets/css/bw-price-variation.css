@@ -90,18 +90,45 @@
 
 /* License Box */
 .bw-price-variation__license-box {
-	padding: 20px;
-	border: 1px solid #e0e0e0;
-	border-radius: 8px;
-	background-color: #ffffff;
-	margin-top: 20px;
-	line-height: 1.6;
+padding: 20px;
+border: 1px solid #e0e0e0;
+border-radius: 8px;
+background-color: #ffffff;
+margin-top: 20px;
+line-height: 1.6;
+}
+
+.bw-license-table-wrapper {
+width: 100%;
+}
+
+.bw-license-table {
+width: 100%;
+border-collapse: collapse;
+font-size: 13px;
+color: #000;
+}
+
+.bw-license-table--clean,
+.bw-license-table--clean td,
+.bw-license-table--clean th {
+border: none !important;
+background: #fff !important;
+}
+
+.bw-license-table__cell {
+padding: 4px 0;
+vertical-align: top;
+}
+
+.bw-license-table__cell--label {
+font-weight: 600;
 }
 
 /* Add To Cart Button */
 .bw-add-to-cart-wrapper {
-	width: 100%;
-	margin-top: 20px;
+        width: 100%;
+        margin-top: 20px;
 }
 
 .bw-add-to-cart-button {
@@ -129,9 +156,59 @@
 }
 
 .bw-add-to-cart-button.disabled {
-	opacity: 0.5;
-	cursor: not-allowed;
-	pointer-events: none;
+        opacity: 0.5;
+        cursor: not-allowed;
+        pointer-events: none;
+}
+
+/* Other Payment Methods */
+.bw-other-payments {
+        width: 100%;
+        margin-top: 12px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+}
+
+.bw-other-payments__toggle {
+        background: transparent !important;
+        border: 0 solid transparent !important;
+        padding: 8px 0;
+        font-size: 10px;
+        font-weight: 400;
+        color: #000000 !important;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: color 0.2s ease, opacity 0.2s ease, background-color 0.2s ease;
+        border-radius: 0 !important;
+}
+
+.bw-other-payments__toggle:hover,
+.bw-other-payments__toggle:focus {
+        color: #000000 !important;
+        background: transparent !important;
+        outline: none;
+}
+
+.bw-other-payments__content {
+        margin-top: 10px;
+        padding: 12px 0;
+        display: none;
+        width: 100%;
+        text-align: center;
+}
+
+.bw-other-payments__content.is-open {
+        display: block;
+}
+
+.bw-other-payments__empty {
+        margin: 0;
+        font-size: 12px;
+        color: #000000;
 }
 
 .bw-price-variation__license-box.hidden {
