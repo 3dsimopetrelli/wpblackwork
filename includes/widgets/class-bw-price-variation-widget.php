@@ -1075,7 +1075,7 @@ class BW_Price_Variation_Widget extends Widget_Base {
                         $variation_obj = wc_get_product( $variation_id );
                         $price_value   = isset( $variation['display_price'] ) ? $variation['display_price'] : wc_get_price_to_display( $variation_obj );
                         $price_html    = ! empty( $variation['price_html'] ) ? $variation['price_html'] : wc_price( $price_value );
-                        $license_html  = get_post_meta( $variation_id, '_bw_variation_license_html', true );
+$license_html  = function_exists( 'bw_get_variation_license_table_html' ) ? bw_get_variation_license_table_html( $variation_id ) : '';
 
                         $variations_data[] = [
                                 'id'           => $variation_id,
@@ -1084,7 +1084,7 @@ class BW_Price_Variation_Widget extends Widget_Base {
                                 'sku'          => $variation_obj ? $variation_obj->get_sku() : '',
                                 'attributes'   => isset( $variation['attributes'] ) ? $variation['attributes'] : [],
                                 'label'        => $variation_obj ? $variation_obj->get_attribute_summary() : '',
-                                'license_html' => $license_html ? wp_kses_post( $license_html ) : '',
+'license_html' => $license_html ? wp_kses_post( $license_html ) : '',
                                 'is_in_stock'  => $variation_obj ? $variation_obj->is_in_stock() : true,
                         ];
                 }
