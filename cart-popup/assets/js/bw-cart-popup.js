@@ -1076,11 +1076,9 @@
             const self = this;
             const safeMessage = message || 'This product is already in your cart.';
             const opts = options || {};
-            const targetCartUrl = cartUrl || (bwCartPopupConfig && bwCartPopupConfig.cartUrl) || '/cart/';
             const shopUrl = (bwCartPopupConfig && bwCartPopupConfig.shopUrl) || '/shop/';
             const continueUrl = opts.hasOwnProperty('continueUrl') ? opts.continueUrl : shopUrl;
             const continueLabel = opts.continueLabel || 'Continue shopping';
-            const cartLabel = opts.cartLabel || 'Vai al carrello';
             const onContinue = typeof opts.onContinue === 'function' ? opts.onContinue : null;
 
             $('.bw-cart-already-modal-overlay').remove();
@@ -1092,7 +1090,7 @@
                     left: 0;
                     width: 100%;
                     height: 100%;
-                    background-color: rgba(0, 0, 0, 0.7);
+                    background-color: rgba(0, 0, 0, 0.35);
                     display: flex;
                     align-items: center;
                     justify-content: center;
@@ -1112,18 +1110,6 @@
                         transition: transform 0.3s ease;
                     ">
                         <div class="bw-cart-already-modal__content" style="text-align: center; margin-bottom: 24px;">
-                            <div class="bw-cart-already-modal__icon" style="
-                                width: 64px;
-                                height: 64px;
-                                margin: 0 auto 18px;
-                                background-color: #f8f8f8;
-                                border-radius: 50%;
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                                font-size: 30px;
-                                color: #000;
-                            ">🛒</div>
                             <div class="bw-cart-already-modal__message" style="
                                 font-size: 16px;
                                 line-height: 1.6;
@@ -1136,17 +1122,6 @@
                             ">This item is sold individually.</div>
                         </div>
                         <div class="bw-cart-already-modal__actions" style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-                            <button class="bw-cart-already-modal__btn bw-cart-already-modal__btn--cart" style="
-                                background-color: #111;
-                                color: #fff;
-                                border: none;
-                                padding: 12px 26px;
-                                border-radius: 6px;
-                                font-size: 14px;
-                                font-weight: 700;
-                                cursor: pointer;
-                                transition: all 0.3s ease;
-                            ">${cartLabel}</button>
                             <button class="bw-cart-already-modal__btn bw-cart-already-modal__btn--continue" style="
                                 background-color: #f4f4f4;
                                 color: #000;
@@ -1176,12 +1151,6 @@
                 $modalOverlay.css('opacity', '1');
                 $modal.css('transform', 'scale(1)');
             }, 10);
-
-            $modalOverlay.on('click', '.bw-cart-already-modal__btn--cart', function(e) {
-                e.preventDefault();
-                window.location.href = targetCartUrl;
-            });
-
             $modalOverlay.on('click', '.bw-cart-already-modal__btn--continue', function(e) {
                 e.preventDefault();
                 self.closeAlreadyInCartModal();
@@ -1210,7 +1179,6 @@
 
             const hoverStyles = `
                 <style id="bw-cart-already-modal-styles">
-                    .bw-cart-already-modal__btn--cart:hover { background-color: #000; color: #fff; transform: translateY(-1px); }
                     .bw-cart-already-modal__btn--continue:hover { background-color: #e9e9e9; transform: translateY(-1px); }
                     .bw-cart-already-modal__btn:active { transform: translateY(0); }
                 </style>
