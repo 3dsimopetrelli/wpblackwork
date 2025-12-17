@@ -58,6 +58,54 @@
     return settings;
   };
 
+  var sortBreakpoints = function (responsive) {
+    if (!Array.isArray(responsive)) {
+      return [];
+    }
+
+    return responsive.slice().sort(function (a, b) {
+      return a.breakpoint - b.breakpoint;
+    });
+  };
+
+  var getMatchedBreakpointSettings = function (sortedBreakpoints, windowWidth) {
+    if (!Array.isArray(sortedBreakpoints) || sortedBreakpoints.length === 0) {
+      return null;
+    }
+
+    var matchedBreakpoint = null;
+
+    for (var i = sortedBreakpoints.length - 1; i >= 0; i--) {
+      var breakpointEntry = sortedBreakpoints[i];
+      if (windowWidth <= breakpointEntry.breakpoint) {
+        matchedBreakpoint = breakpointEntry;
+      } else {
+        break;
+      }
+    }
+
+    return matchedBreakpoint && matchedBreakpoint.settings ? matchedBreakpoint.settings : null;
+  };
+
+  var createResponsiveToggle = function (options) {
+    var settingKey = options.settingKey;
+    var sortedBreakpoints = options.sortedBreakpoints;
+    var getDefaultValue = options.getDefaultValue;
+    var onUpdate = options.onUpdate;
+
+    return function () {
+      var windowWidth = $(window).width();
+      var matchedSettings = getMatchedBreakpointSettings(sortedBreakpoints, windowWidth);
+      var value = typeof getDefaultValue === 'function' ? getDefaultValue() : undefined;
+
+      if (matchedSettings && Object.prototype.hasOwnProperty.call(matchedSettings, settingKey)) {
+        value = matchedSettings[settingKey];
+      }
+
+      onUpdate(value);
+    };
+  };
+
   var bindPopup = function ($container) {
     var $body = $('body');
     var popupId = $container.attr('data-popup-id');
@@ -97,6 +145,7 @@
     var $popupContent = $popup.find('.bw-popup-content');
 
     var hideTimeoutId = null;
+    var popupAlreadyBound = $popup.data('bwPopupBound') === true;
 
     var clearHideTimeout = function () {
       if (hideTimeoutId !== null) {
@@ -252,6 +301,10 @@
       $container.removeData('bwPopupSliderChangeHandler');
     }
 
+    if (popupAlreadyBound) {
+      return;
+    }
+
     $popup
       .find('.bw-popup-close-btn')
       .off('click.bwProductSlide')
@@ -273,6 +326,8 @@
           closePopup();
         }
       });
+
+    $popup.data('bwPopupBound', true);
   };
 
   var markImageAsLoaded = function ($image) {
@@ -550,7 +605,7 @@
     }
   };
 
-  var bindResponsiveUpdates = function ($slider, settings) {
+  var bindResponsiveUpdates = function ($slider, settings, additionalRefreshers) {
     if (!$slider || !$slider.length) {
       return;
     }
@@ -560,6 +615,7 @@
     var resizeEvent = 'resize.bwProductSlide-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
     var resizeTimeout = null;
     var isRefreshing = false;
+    var extraRefreshers = Array.isArray(additionalRefreshers) ? additionalRefreshers : [];
 
     var refreshImages = function () {
       refreshSliderImages($slider);
@@ -576,6 +632,11 @@
       isRefreshing = true;
       refreshImages();
       applyDimensions();
+      extraRefreshers.forEach(function (handler) {
+        if (typeof handler === 'function') {
+          handler();
+        }
+      });
       setTimeout(function () {
         isRefreshing = false;
       }, 100);
@@ -697,11 +758,7 @@
       $slider.off('.bwProductSlideArrows');
       $slider.off('.bwProductSlideDots');
       $slider.off('.bwProductSlideCount');
-
-      // Rimuovi event listener di resize
-      $(window).off('resize.bwProductSlideArrows-' + $container.data('arrowsResizeEvent'));
-      $(window).off('resize.bwProductSlideDots-' + $container.data('dotsResizeEvent'));
-      $(window).off('resize.bwProductSlideCount-' + $container.data('slideCountResizeEvent'));
+      $slider.off('.bwProductSlideControls');
 
       // Rimuovi listener dell'editor per i controlli
       var previousControlsHandler = $slider.data('bwControlsEditorHandler');
@@ -723,6 +780,7 @@
         dots: false,
         infinite: true,
         speed: 600,
+        cssEase: 'ease-in-out',
         fade: false,
         prevArrow: $container.find('.bw-prev'),
         nextArrow: $container.find('.bw-next'),
@@ -801,6 +859,8 @@
         }
       }
 
+      var sortedBreakpoints = sortBreakpoints(settings.responsive);
+
       var $count = $container.find('.bw-product-slide-count .current');
       var totalSlides = $slider.children().length;
       $container.find('.bw-product-slide-count .total').text(totalSlides);
@@ -854,6 +914,68 @@
         applyResponsiveDimensions($slider, settings);
       });
 
+      var updateArrowsVisibility = createResponsiveToggle({
+        settingKey: 'arrows',
+        sortedBreakpoints: sortedBreakpoints,
+        getDefaultValue: function () {
+          return settings.arrows !== false;
+        },
+        onUpdate: function (value) {
+          var showArrows = value !== false;
+          if (showArrows) {
+            $container.find('.bw-product-slide-arrows').show();
+          } else {
+            $container.find('.bw-product-slide-arrows').hide();
+          }
+        },
+      });
+
+      var updateDotsVisibility = createResponsiveToggle({
+        settingKey: 'dots',
+        sortedBreakpoints: sortedBreakpoints,
+        getDefaultValue: function () {
+          return settings.dots !== false;
+        },
+        onUpdate: function (value) {
+          var showDots = value !== false;
+          if ($slider.hasClass('slick-initialized')) {
+            $slider.slick('slickSetOption', 'dots', showDots, true);
+          } else {
+            settings.dots = showDots;
+          }
+        },
+      });
+
+      var updateSlideCountVisibility = createResponsiveToggle({
+        settingKey: 'showSlideCount',
+        sortedBreakpoints: sortedBreakpoints,
+        getDefaultValue: function () {
+          return String($container.attr('data-show-slide-count')) === 'true';
+        },
+        onUpdate: function (value) {
+          var showSlideCount = value !== false;
+          if (showSlideCount) {
+            $container.find('.bw-product-slide-count').show();
+          } else {
+            $container.find('.bw-product-slide-count').hide();
+          }
+        },
+      });
+
+      var runControlUpdates = function () {
+        updateArrowsVisibility();
+        updateDotsVisibility();
+        updateSlideCountVisibility();
+      };
+
+      $slider
+        .off('init.bwProductSlideControls reInit.bwProductSlideControls breakpoint.bwProductSlideControls')
+        .on('init.bwProductSlideControls reInit.bwProductSlideControls breakpoint.bwProductSlideControls', function () {
+        setTimeout(runControlUpdates, 50);
+      });
+
+      runControlUpdates();
+
       $slider.slick(settings);
 
       // ✅ FIX: Bind popup drag detection to Slick's beforeChange event
@@ -864,188 +986,12 @@
       }
 
       refreshSliderImages($slider);
-      bindResponsiveUpdates($slider, settings);
-
-      // Funzione per aggiornare la visibilità delle frecce in base al breakpoint
-      var updateArrowsVisibility = function () {
-        var showArrows = settings.arrows !== false;
-        var windowWidth = $(window).width();
-
-        // Controlla se c'è una configurazione responsive per le frecce
-        if (Array.isArray(settings.responsive)) {
-          // Ordina i breakpoint dal più piccolo al più grande
-          var sortedBreakpoints = settings.responsive
-            .slice()
-            .sort(function (a, b) {
-              return a.breakpoint - b.breakpoint;
-            });
-
-          // Trova il breakpoint più piccolo che è >= alla viewport (max-width logic)
-          // Parti dal più grande e scendi verso il più piccolo
-          var matchedBreakpoint = null;
-          for (var i = sortedBreakpoints.length - 1; i >= 0; i--) {
-            var bp = sortedBreakpoints[i];
-            if (windowWidth <= bp.breakpoint) {
-              matchedBreakpoint = bp;
-            } else {
-              break; // Smetti di cercare, i successivi sono più piccoli
-            }
-          }
-
-          // Applica le impostazioni del breakpoint trovato
-          if (matchedBreakpoint && matchedBreakpoint.settings && typeof matchedBreakpoint.settings.arrows !== 'undefined') {
-            showArrows = matchedBreakpoint.settings.arrows !== false;
-          }
-        }
-
-        // Mostra/nascondi le frecce
-        if (showArrows) {
-          $container.find('.bw-product-slide-arrows').show();
-        } else {
-          $container.find('.bw-product-slide-arrows').hide();
-        }
-      };
-
-      // Applica la visibilità delle frecce all'inizializzazione e dopo init
-      $slider.on('init.bwProductSlideArrowsInit', function () {
-        setTimeout(updateArrowsVisibility, 50);
-      });
-      updateArrowsVisibility();
-
-      // Aggiorna la visibilità delle frecce quando cambia il breakpoint
-      $slider.on('breakpoint.bwProductSlideArrows', function () {
-        setTimeout(updateArrowsVisibility, 50);
-      });
-
-      // Aggiorna la visibilità delle frecce al resize con debounce
-      var arrowsResizeEventId = Date.now();
-      var arrowsResizeTimeout = null;
-      $container.data('arrowsResizeEvent', arrowsResizeEventId);
-      $(window).on('resize.bwProductSlideArrows-' + arrowsResizeEventId, function () {
-        clearTimeout(arrowsResizeTimeout);
-        arrowsResizeTimeout = setTimeout(updateArrowsVisibility, 100);
-      });
-
-      // Funzione per aggiornare i dots in base al breakpoint
-      var updateDotsVisibility = function () {
-        var showDots = settings.dots !== false;
-        var windowWidth = $(window).width();
-
-        // Controlla se c'è una configurazione responsive per i dots
-        if (Array.isArray(settings.responsive)) {
-          // Ordina i breakpoint dal più piccolo al più grande
-          var sortedBreakpoints = settings.responsive
-            .slice()
-            .sort(function (a, b) {
-              return a.breakpoint - b.breakpoint;
-            });
-
-          // Trova il breakpoint più piccolo che è >= alla viewport (max-width logic)
-          var matchedBreakpoint = null;
-          for (var i = sortedBreakpoints.length - 1; i >= 0; i--) {
-            var bp = sortedBreakpoints[i];
-            if (windowWidth <= bp.breakpoint) {
-              matchedBreakpoint = bp;
-            } else {
-              break;
-            }
-          }
-
-          // Applica le impostazioni del breakpoint trovato
-          if (matchedBreakpoint && matchedBreakpoint.settings && typeof matchedBreakpoint.settings.dots !== 'undefined') {
-            showDots = matchedBreakpoint.settings.dots !== false;
-          }
-        }
-
-        // Aggiorna l'opzione dots di Slick
-        if ($slider.hasClass('slick-initialized')) {
-          $slider.slick('slickSetOption', 'dots', showDots, true);
-        }
-      };
-
-      // Applica i dots all'inizializzazione e dopo init
-      $slider.on('init.bwProductSlideDotsInit', function () {
-        setTimeout(updateDotsVisibility, 50);
-      });
-      updateDotsVisibility();
-
-      // Aggiorna i dots quando cambia il breakpoint
-      $slider.on('breakpoint.bwProductSlideDots', function () {
-        setTimeout(updateDotsVisibility, 50);
-      });
-
-      // Aggiorna i dots al resize con debounce
-      var dotsResizeEventId = Date.now();
-      var dotsResizeTimeout = null;
-      $container.data('dotsResizeEvent', dotsResizeEventId);
-      $(window).on('resize.bwProductSlideDots-' + dotsResizeEventId, function () {
-        clearTimeout(dotsResizeTimeout);
-        dotsResizeTimeout = setTimeout(updateDotsVisibility, 100);
-      });
-
-      // Funzione per aggiornare la visibilità del contatore slide in base al breakpoint
-      var updateSlideCountVisibility = function () {
-        var showSlideCount = String($container.attr('data-show-slide-count')) === 'true';
-        var windowWidth = $(window).width();
-
-        // Controlla se c'è una configurazione responsive per showSlideCount
-        if (Array.isArray(settings.responsive)) {
-          // Ordina i breakpoint dal più piccolo al più grande
-          var sortedBreakpoints = settings.responsive
-            .slice()
-            .sort(function (a, b) {
-              return a.breakpoint - b.breakpoint;
-            });
-
-          // Trova il breakpoint più piccolo che è >= alla viewport (max-width logic)
-          var matchedBreakpoint = null;
-          for (var i = sortedBreakpoints.length - 1; i >= 0; i--) {
-            var bp = sortedBreakpoints[i];
-            if (windowWidth <= bp.breakpoint) {
-              matchedBreakpoint = bp;
-            } else {
-              break;
-            }
-          }
-
-          // Applica le impostazioni del breakpoint trovato
-          if (matchedBreakpoint && matchedBreakpoint.settings && typeof matchedBreakpoint.settings.showSlideCount !== 'undefined') {
-            showSlideCount = matchedBreakpoint.settings.showSlideCount;
-          }
-        }
-
-        // Mostra/nascondi il contatore slide
-        if (showSlideCount) {
-          $container.find('.bw-product-slide-count').show();
-        } else {
-          $container.find('.bw-product-slide-count').hide();
-        }
-      };
-
-      // Applica la visibilità del contatore all'inizializzazione e dopo init
-      $slider.on('init.bwProductSlideCountInit', function () {
-        setTimeout(updateSlideCountVisibility, 50);
-      });
-      updateSlideCountVisibility();
-
-      // Aggiorna la visibilità del contatore quando cambia il breakpoint
-      $slider.on('breakpoint.bwProductSlideCount', function () {
-        setTimeout(updateSlideCountVisibility, 50);
-      });
-
-      // Aggiorna la visibilità del contatore al resize con debounce
-      var slideCountResizeEventId = Date.now();
-      var slideCountResizeTimeout = null;
-      $container.data('slideCountResizeEvent', slideCountResizeEventId);
-      $(window).on('resize.bwProductSlideCount-' + slideCountResizeEventId, function () {
-        clearTimeout(slideCountResizeTimeout);
-        slideCountResizeTimeout = setTimeout(updateSlideCountVisibility, 100);
-      });
+      bindResponsiveUpdates($slider, settings, [runControlUpdates]);
 
       // ✅ FIX: Handler #2 - Only control visibility changes (not dimensions)
       // REMOVED: refresh:preview was causing slider re-initialization and losing drag settings
       // The update functions (updateArrowsVisibility, updateDotsVisibility, updateSlideCountVisibility)
-      // already handle changes via their own resize listeners, so no need to force widget refresh
+      // already run through the shared responsive pipeline, so no need to force widget refresh
       if (
         window.elementorFrontend &&
         elementorFrontend.isEditMode() &&
@@ -1081,9 +1027,7 @@
             // ✅ FIX: Just trigger the update functions directly instead of full widget refresh
             // This preserves slider state and drag/swipe functionality
             setTimeout(function () {
-              updateArrowsVisibility();
-              updateDotsVisibility();
-              updateSlideCountVisibility();
+              runControlUpdates();
             }, 100);
           }
         };
