@@ -12,7 +12,6 @@ $cart_items = WC()->cart->get_cart();
 ?>
 
 <div class="bw-order-summary woocommerce-checkout-review-order">
-    <div class="bw-order-summary__tab">Nails</div>
     <div class="bw-order-summary__loader" aria-hidden="true"></div>
 
     <table class="shop_table woocommerce-checkout-review-order-table bw-review-table">
