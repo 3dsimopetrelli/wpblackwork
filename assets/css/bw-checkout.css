@@ -344,49 +344,6 @@
     color: #666;
 }
 
-/* Coupon form */
-.bw-review-coupon {
-    padding: 20px 0;
-    border-bottom: 1px solid var(--bw-checkout-border-color, #e0e0e0);
-}
-
-.bw-review-coupon .checkout_coupon {
-    display: flex;
-    gap: 8px;
-    margin: 0;
-}
-
-.bw-review-coupon .checkout_coupon p {
-    margin: 0;
-    display: flex;
-    gap: 8px;
-    flex: 1;
-}
-
-.bw-review-coupon input[type="text"] {
-    flex: 1;
-    padding: 10px 14px;
-    border: 1px solid var(--bw-checkout-border-color, #e0e0e0);
-    border-radius: 4px;
-    font-size: 14px;
-}
-
-.bw-review-coupon button[type="submit"] {
-    padding: 10px 20px;
-    background: #333;
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-    white-space: nowrap;
-    transition: background 0.2s;
-}
-
-.bw-review-coupon button[type="submit"]:hover {
-    background: #000;
-}
-
 /* Totals rows */
 .bw-total-row th,
 .bw-total-row td {

@@ -103,14 +103,6 @@ $cart_items = WC()->cart->get_cart();
             ?>
         </tbody>
         <tfoot>
-            <tr>
-                <td colspan="2">
-                    <div class="bw-review-coupon">
-                        <?php woocommerce_checkout_coupon_form(); ?>
-                    </div>
-                </td>
-            </tr>
-
             <tr class="bw-total-row bw-total-row--subtotal">
                 <th scope="row"><?php esc_html_e( 'Subtotal', 'woocommerce' ); ?></th>
                 <td><?php wc_cart_totals_subtotal_html(); ?></td>
