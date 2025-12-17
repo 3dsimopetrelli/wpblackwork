@@ -60,18 +60,20 @@
         align-items: start;
     }
 
-    /* Left column */
+    /* Left column - explicitly positioned to span all rows */
     .bw-checkout-left {
         background: var(--bw-checkout-left-bg, #ffffff);
         padding: 0 40px 40px 0;
         margin-bottom: 0;
+        grid-column: 1 / 2;
+        grid-row: 1 / 10;
     }
 
     /* Center separator line */
     .bw-checkout-grid::before {
         content: "";
         grid-column: 2 / 3;
-        grid-row: 1 / 4;
+        grid-row: 1 / 10;
         width: 1px;
         background: var(--bw-checkout-border-color, #e0e0e0);
         height: 100%;
@@ -90,12 +92,13 @@
         grid-column: 3 / 4;
         grid-row: 2 / 3;
         position: sticky;
-        top: 40px;
+        top: 20px;
         padding-left: 40px;
         padding-right: 0;
         background: transparent;
         border: none;
         border-radius: 0;
+        align-self: start;
     }
 
     /* Inner container for right column styling */
