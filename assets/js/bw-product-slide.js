@@ -758,6 +758,7 @@
       $slider.off('.bwProductSlideArrows');
       $slider.off('.bwProductSlideDots');
       $slider.off('.bwProductSlideCount');
+      $slider.off('.bwProductSlideControls');
 
       // Rimuovi listener dell'editor per i controlli
       var previousControlsHandler = $slider.data('bwControlsEditorHandler');
@@ -779,6 +780,7 @@
         dots: false,
         infinite: true,
         speed: 600,
+        cssEase: 'ease-in-out',
         fade: false,
         prevArrow: $container.find('.bw-prev'),
         nextArrow: $container.find('.bw-next'),
@@ -966,7 +968,9 @@
         updateSlideCountVisibility();
       };
 
-      $slider.on('init.bwProductSlideControls reInit.bwProductSlideControls breakpoint.bwProductSlideControls', function () {
+      $slider
+        .off('init.bwProductSlideControls reInit.bwProductSlideControls breakpoint.bwProductSlideControls')
+        .on('init.bwProductSlideControls reInit.bwProductSlideControls breakpoint.bwProductSlideControls', function () {
         setTimeout(runControlUpdates, 50);
       });
 
