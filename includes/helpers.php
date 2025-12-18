@@ -228,3 +228,92 @@ if ( ! function_exists( 'bw_ajax_get_child_categories' ) ) {
 add_action( 'wp_ajax_bw_get_child_categories', 'bw_ajax_get_child_categories' );
 
 // The "Specific Posts" control and related AJAX handlers were removed.
+
+if ( ! function_exists( 'bw_register_widget_assets' ) ) {
+    /**
+     * Register CSS and JS assets for a widget.
+     *
+     * Consolidates the pattern used by all widget asset registration functions.
+     *
+     * @param string $widget_name     Widget name (e.g., 'button', 'wallpost').
+     * @param array  $js_dependencies Optional. JavaScript dependencies. Default ['jquery'].
+     * @param bool   $register_js     Optional. Whether to register JavaScript. Default true.
+     *
+     * @return void
+     */
+    function bw_register_widget_assets( $widget_name, $js_dependencies = [ 'jquery' ], $register_js = true ) {
+        // Register CSS
+        $css_file    = BW_MEW_PATH . "assets/css/bw-{$widget_name}.css";
+        $css_version = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
+
+        wp_register_style(
+            "bw-{$widget_name}-style",
+            BW_MEW_URL . "assets/css/bw-{$widget_name}.css",
+            [],
+            $css_version
+        );
+
+        // Register JavaScript (optional)
+        if ( $register_js ) {
+            $js_file = BW_MEW_PATH . "assets/js/bw-{$widget_name}.js";
+
+            if ( file_exists( $js_file ) ) {
+                wp_register_script(
+                    "bw-{$widget_name}-script",
+                    BW_MEW_URL . "assets/js/bw-{$widget_name}.js",
+                    $js_dependencies,
+                    filemtime( $js_file ),
+                    true
+                );
+            }
+        }
+    }
+}
+
+if ( ! function_exists( 'bw_get_safe_product_permalink' ) ) {
+    /**
+     * Get a safe permalink for a product.
+     *
+     * @param int|\WC_Product|null $post_id Product ID or WC_Product object.
+     *
+     * @return string Safe permalink URL.
+     */
+    function bw_get_safe_product_permalink( $post_id = null ) {
+        try {
+            // Handle WC_Product objects
+            if ( $post_id instanceof \WC_Product ) {
+                return esc_url( $post_id->get_permalink() );
+            }
+
+            // Handle numeric IDs
+            if ( is_numeric( $post_id ) && $post_id > 0 ) {
+                return esc_url( get_permalink( $post_id ) );
+            }
+
+            // Fallback
+            return bw_get_fallback_url();
+        } catch ( \Exception $e ) {
+            return bw_get_fallback_url();
+        }
+    }
+}
+
+if ( ! function_exists( 'bw_get_fallback_url' ) ) {
+    /**
+     * Get a fallback URL when product permalink is invalid.
+     *
+     * @return string Fallback URL (shop page or home).
+     */
+    function bw_get_fallback_url() {
+        // Try to get shop page URL
+        if ( function_exists( 'wc_get_page_permalink' ) ) {
+            $shop_url = wc_get_page_permalink( 'shop' );
+            if ( ! empty( $shop_url ) && filter_var( $shop_url, FILTER_VALIDATE_URL ) ) {
+                return esc_url( $shop_url );
+            }
+        }
+
+        // Fallback to home
+        return esc_url( home_url( '/' ) );
+    }
+}
