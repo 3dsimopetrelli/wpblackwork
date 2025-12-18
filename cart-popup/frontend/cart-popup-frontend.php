@@ -24,18 +24,15 @@ function bw_cart_popup_render_panel() {
 
     // Recupera le impostazioni
     $checkout_text = get_option('bw_cart_popup_checkout_text', 'Proceed to checkout');
-    $checkout_url = get_option('bw_cart_popup_checkout_url', '');
+    // Forza l'URL del pulsante principale verso il checkout standard di WooCommerce
+    // per garantire un comportamento coerente in ogni contesto.
+    $checkout_url = wc_get_checkout_url();
     $continue_text = get_option('bw_cart_popup_continue_text', 'Continue shopping');
     $continue_url = get_option('bw_cart_popup_continue_url', '');
     $additional_svg = get_option('bw_cart_popup_additional_svg', '');
     $empty_cart_svg = get_option('bw_cart_popup_empty_cart_svg', '');
     $svg_black = get_option('bw_cart_popup_svg_black', 0);
     $return_shop_url = get_option('bw_cart_popup_return_shop_url', '');
-
-    // Determina l'URL per il checkout
-    if (empty($checkout_url)) {
-        $checkout_url = wc_get_checkout_url();
-    }
 
     // Determina l'URL per continue shopping
     if (empty($continue_url)) {
@@ -393,6 +390,7 @@ function bw_cart_popup_get_cart_contents() {
     $discount = 0;
     $tax = 0;
     $total = 0;
+    $item_count = 0;
 
     if (!$cart->is_empty()) {
         foreach ($cart->get_cart() as $cart_item_key => $cart_item) {
@@ -416,10 +414,12 @@ function bw_cart_popup_get_cart_contents() {
         $discount = $cart->get_discount_total();
         $tax = $cart->get_total_tax();
         $total = $cart->get_total('');
+        $item_count = $cart->get_cart_contents_count();
     }
 
     wp_send_json_success([
         'items' => $cart_items,
+        'item_count' => $item_count,
         'subtotal' => wc_price($subtotal),
         'subtotal_raw' => $subtotal,
         'discount' => wc_price($discount),

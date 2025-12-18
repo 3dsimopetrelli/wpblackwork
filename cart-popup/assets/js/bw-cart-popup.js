@@ -447,12 +447,17 @@
             this.showFullState();
 
             let html = '';
+            let totalQuantity = 0;
 
             data.items.forEach(function(item) {
+                const parsedQuantity = parseInt(item.quantity, 10);
+                const quantity = Number.isNaN(parsedQuantity) || parsedQuantity < 1 ? 1 : parsedQuantity;
+                totalQuantity += quantity;
                 html += `
                     <div class="bw-cart-item" data-cart-item-key="${item.key}">
                         <div class="bw-cart-item-image">
                             ${item.image}
+                            <span class="bw-cart-item-quantity-badge" aria-label="Quantity in cart">${quantity}</span>
                         </div>
                         <div class="bw-cart-item-details">
                             <h4 class="bw-cart-item-name">
@@ -470,7 +475,8 @@
             });
 
             this.$itemsContainer.html(html);
-            this.updateBadge(data.items.length);
+            const badgeCount = typeof data.item_count !== 'undefined' ? data.item_count : totalQuantity;
+            this.updateBadge(badgeCount || data.items.length);
         },
 
         /**
@@ -724,7 +730,7 @@
         },
 
         /**
-         * Aggiorna il badge con il numero di prodotti
+         * Aggiorna il badge con il numero totale di prodotti
          * Nasconde l'icona carrello + badge quando count = 0
          */
         updateBadge: function(count) {
