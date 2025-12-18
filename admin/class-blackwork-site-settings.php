@@ -426,6 +426,12 @@ function bw_site_render_checkout_tab() {
         check_admin_referer( 'bw_checkout_settings_save', 'bw_checkout_settings_nonce' );
 
         $logo                 = isset( $_POST['bw_checkout_logo'] ) ? esc_url_raw( wp_unslash( $_POST['bw_checkout_logo'] ) ) : '';
+        $logo_width           = isset( $_POST['bw_checkout_logo_width'] ) ? absint( $_POST['bw_checkout_logo_width'] ) : 200;
+        $logo_padding_top     = isset( $_POST['bw_checkout_logo_padding_top'] ) ? absint( $_POST['bw_checkout_logo_padding_top'] ) : 0;
+        $logo_padding_right   = isset( $_POST['bw_checkout_logo_padding_right'] ) ? absint( $_POST['bw_checkout_logo_padding_right'] ) : 0;
+        $logo_padding_bottom  = isset( $_POST['bw_checkout_logo_padding_bottom'] ) ? absint( $_POST['bw_checkout_logo_padding_bottom'] ) : 30;
+        $logo_padding_left    = isset( $_POST['bw_checkout_logo_padding_left'] ) ? absint( $_POST['bw_checkout_logo_padding_left'] ) : 0;
+        $show_order_heading   = isset( $_POST['bw_checkout_show_order_heading'] ) ? '1' : '0';
         $left_bg              = isset( $_POST['bw_checkout_left_bg_color'] ) ? sanitize_hex_color( wp_unslash( $_POST['bw_checkout_left_bg_color'] ) ) : '';
         $right_bg             = isset( $_POST['bw_checkout_right_bg_color'] ) ? sanitize_hex_color( wp_unslash( $_POST['bw_checkout_right_bg_color'] ) ) : '';
         $border_color         = isset( $_POST['bw_checkout_border_color'] ) ? sanitize_hex_color( wp_unslash( $_POST['bw_checkout_border_color'] ) ) : '';
@@ -436,6 +442,12 @@ function bw_site_render_checkout_tab() {
         $border_color = $border_color ?: '#e0e0e0';
 
         update_option( 'bw_checkout_logo', $logo );
+        update_option( 'bw_checkout_logo_width', $logo_width );
+        update_option( 'bw_checkout_logo_padding_top', $logo_padding_top );
+        update_option( 'bw_checkout_logo_padding_right', $logo_padding_right );
+        update_option( 'bw_checkout_logo_padding_bottom', $logo_padding_bottom );
+        update_option( 'bw_checkout_logo_padding_left', $logo_padding_left );
+        update_option( 'bw_checkout_show_order_heading', $show_order_heading );
         update_option( 'bw_checkout_left_bg_color', $left_bg );
         update_option( 'bw_checkout_right_bg_color', $right_bg );
         update_option( 'bw_checkout_border_color', $border_color );
@@ -444,11 +456,17 @@ function bw_site_render_checkout_tab() {
         $saved = true;
     }
 
-    $logo         = get_option( 'bw_checkout_logo', '' );
-    $left_bg      = get_option( 'bw_checkout_left_bg_color', '#ffffff' );
-    $right_bg     = get_option( 'bw_checkout_right_bg_color', '#f7f7f7' );
-    $border_color = get_option( 'bw_checkout_border_color', '#e0e0e0' );
-    $legal_text   = get_option( 'bw_checkout_legal_text', '' );
+    $logo                = get_option( 'bw_checkout_logo', '' );
+    $logo_width          = get_option( 'bw_checkout_logo_width', 200 );
+    $logo_padding_top    = get_option( 'bw_checkout_logo_padding_top', 0 );
+    $logo_padding_right  = get_option( 'bw_checkout_logo_padding_right', 0 );
+    $logo_padding_bottom = get_option( 'bw_checkout_logo_padding_bottom', 30 );
+    $logo_padding_left   = get_option( 'bw_checkout_logo_padding_left', 0 );
+    $show_order_heading  = get_option( 'bw_checkout_show_order_heading', '1' );
+    $left_bg             = get_option( 'bw_checkout_left_bg_color', '#ffffff' );
+    $right_bg            = get_option( 'bw_checkout_right_bg_color', '#f7f7f7' );
+    $border_color        = get_option( 'bw_checkout_border_color', '#e0e0e0' );
+    $legal_text          = get_option( 'bw_checkout_legal_text', '' );
     ?>
 
     <?php if ( $saved ) : ?>
@@ -469,6 +487,49 @@ function bw_site_render_checkout_tab() {
                     <input type="text" id="bw_checkout_logo" name="bw_checkout_logo" value="<?php echo esc_attr( $logo ); ?>" class="regular-text" />
                     <button type="button" class="button bw-media-upload" data-target="#bw_checkout_logo">Seleziona immagine</button>
                     <p class="description">Logo mostrato sopra il layout di checkout.</p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label>Larghezza Logo</label>
+                </th>
+                <td>
+                    <input type="number" name="bw_checkout_logo_width" value="<?php echo esc_attr( $logo_width ); ?>" min="50" max="800" style="width: 100px;" /> px
+                    <p class="description">Larghezza massima del logo (default: 200px).</p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label>Padding Logo</label>
+                </th>
+                <td>
+                    <div style="display: flex; gap: 15px; align-items: center;">
+                        <label style="display: inline-flex; align-items: center; gap: 5px;">
+                            Top: <input type="number" name="bw_checkout_logo_padding_top" value="<?php echo esc_attr( $logo_padding_top ); ?>" min="0" max="200" style="width: 70px;" /> px
+                        </label>
+                        <label style="display: inline-flex; align-items: center; gap: 5px;">
+                            Right: <input type="number" name="bw_checkout_logo_padding_right" value="<?php echo esc_attr( $logo_padding_right ); ?>" min="0" max="200" style="width: 70px;" /> px
+                        </label>
+                        <label style="display: inline-flex; align-items: center; gap: 5px;">
+                            Bottom: <input type="number" name="bw_checkout_logo_padding_bottom" value="<?php echo esc_attr( $logo_padding_bottom ); ?>" min="0" max="200" style="width: 70px;" /> px
+                        </label>
+                        <label style="display: inline-flex; align-items: center; gap: 5px;">
+                            Left: <input type="number" name="bw_checkout_logo_padding_left" value="<?php echo esc_attr( $logo_padding_left ); ?>" min="0" max="200" style="width: 70px;" /> px
+                        </label>
+                    </div>
+                    <p class="description">Spazi intorno al logo (Top, Right, Bottom, Left).</p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_checkout_show_order_heading">Mostra titolo "Your order"</label>
+                </th>
+                <td>
+                    <label style="display: inline-flex; align-items: center; gap: 8px;">
+                        <input type="checkbox" id="bw_checkout_show_order_heading" name="bw_checkout_show_order_heading" value="1" <?php checked( $show_order_heading, '1' ); ?> />
+                        <span style="font-weight: 500;">Attiva</span>
+                    </label>
+                    <p class="description">Mostra o nascondi il titolo "Your order" nella colonna destra.</p>
                 </td>
             </tr>
             <tr>

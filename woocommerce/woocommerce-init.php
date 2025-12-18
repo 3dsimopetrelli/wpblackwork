@@ -292,19 +292,31 @@ function bw_mew_get_social_redirect_uri( $provider ) {
  */
 function bw_mew_get_checkout_settings() {
     $defaults = [
-        'logo'         => '',
-        'left_bg'      => '#ffffff',
-        'right_bg'     => '#f7f7f7',
-        'border_color' => '#e0e0e0',
-        'legal_text'   => '',
+        'logo'                => '',
+        'logo_width'          => 200,
+        'logo_padding_top'    => 0,
+        'logo_padding_right'  => 0,
+        'logo_padding_bottom' => 30,
+        'logo_padding_left'   => 0,
+        'show_order_heading'  => '1',
+        'left_bg'             => '#ffffff',
+        'right_bg'            => '#f7f7f7',
+        'border_color'        => '#e0e0e0',
+        'legal_text'          => '',
     ];
 
     $settings = [
-        'logo'         => esc_url_raw( get_option( 'bw_checkout_logo', $defaults['logo'] ) ),
-        'left_bg'      => sanitize_hex_color( get_option( 'bw_checkout_left_bg_color', $defaults['left_bg'] ) ),
-        'right_bg'     => sanitize_hex_color( get_option( 'bw_checkout_right_bg_color', $defaults['right_bg'] ) ),
-        'border_color' => sanitize_hex_color( get_option( 'bw_checkout_border_color', $defaults['border_color'] ) ),
-        'legal_text'   => get_option( 'bw_checkout_legal_text', $defaults['legal_text'] ),
+        'logo'                => esc_url_raw( get_option( 'bw_checkout_logo', $defaults['logo'] ) ),
+        'logo_width'          => absint( get_option( 'bw_checkout_logo_width', $defaults['logo_width'] ) ),
+        'logo_padding_top'    => absint( get_option( 'bw_checkout_logo_padding_top', $defaults['logo_padding_top'] ) ),
+        'logo_padding_right'  => absint( get_option( 'bw_checkout_logo_padding_right', $defaults['logo_padding_right'] ) ),
+        'logo_padding_bottom' => absint( get_option( 'bw_checkout_logo_padding_bottom', $defaults['logo_padding_bottom'] ) ),
+        'logo_padding_left'   => absint( get_option( 'bw_checkout_logo_padding_left', $defaults['logo_padding_left'] ) ),
+        'show_order_heading'  => get_option( 'bw_checkout_show_order_heading', $defaults['show_order_heading'] ),
+        'left_bg'             => sanitize_hex_color( get_option( 'bw_checkout_left_bg_color', $defaults['left_bg'] ) ),
+        'right_bg'            => sanitize_hex_color( get_option( 'bw_checkout_right_bg_color', $defaults['right_bg'] ) ),
+        'border_color'        => sanitize_hex_color( get_option( 'bw_checkout_border_color', $defaults['border_color'] ) ),
+        'legal_text'          => get_option( 'bw_checkout_legal_text', $defaults['legal_text'] ),
     ];
 
     $settings['left_bg']      = $settings['left_bg'] ?: $defaults['left_bg'];

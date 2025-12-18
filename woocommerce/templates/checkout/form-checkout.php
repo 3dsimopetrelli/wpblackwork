@@ -32,8 +32,8 @@ if ( ! $checkout->is_registration_enabled() && $checkout->is_registration_requir
         <div class="bw-checkout-grid">
             <div class="bw-checkout-left">
                 <?php if ( ! empty( $settings['logo'] ) ) : ?>
-                    <div class="bw-checkout-logo">
-                        <img src="<?php echo esc_url( $settings['logo'] ); ?>" alt="<?php esc_attr_e( 'Checkout logo', 'bw' ); ?>" />
+                    <div class="bw-checkout-logo" style="padding: <?php echo esc_attr( $settings['logo_padding_top'] ); ?>px <?php echo esc_attr( $settings['logo_padding_right'] ); ?>px <?php echo esc_attr( $settings['logo_padding_bottom'] ); ?>px <?php echo esc_attr( $settings['logo_padding_left'] ); ?>px;">
+                        <img src="<?php echo esc_url( $settings['logo'] ); ?>" alt="<?php esc_attr_e( 'Checkout logo', 'bw' ); ?>" style="max-width: <?php echo esc_attr( $settings['logo_width'] ); ?>px;" />
                     </div>
                 <?php endif; ?>
 
@@ -62,9 +62,11 @@ if ( ! $checkout->is_registration_enabled() && $checkout->is_registration_requir
 
             <?php do_action( 'woocommerce_checkout_before_order_review_heading' ); ?>
 
-            <div class="bw-checkout-order-heading__wrap">
-                <h3 id="order_review_heading" class="bw-checkout-order-heading"><?php esc_html_e( 'Your order', 'woocommerce' ); ?></h3>
-            </div>
+            <?php if ( $settings['show_order_heading'] === '1' ) : ?>
+                <div class="bw-checkout-order-heading__wrap">
+                    <h3 id="order_review_heading" class="bw-checkout-order-heading"><?php esc_html_e( 'Your order', 'woocommerce' ); ?></h3>
+                </div>
+            <?php endif; ?>
 
             <div class="bw-checkout-right" id="order_review">
                 <?php do_action( 'woocommerce_checkout_before_order_review' ); ?>
