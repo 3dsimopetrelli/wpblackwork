@@ -42,7 +42,7 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
             'label' => __( 'Query', 'bw-elementor-widgets' ),
         ] );
 
-        $post_type_options = $this->get_post_type_options();
+        $post_type_options = BW_Widget_Helper::get_post_type_options();
         if ( empty( $post_type_options ) ) {
             $post_type_options = [ 'post' => __( 'Post', 'bw-elementor-widgets' ) ];
         }
@@ -824,44 +824,8 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
         return esc_attr( implode( ' ', $styles ) );
     }
 
-    private function get_post_type_options() {
-        $post_types = get_post_types(
-            [
-                'public' => true,
-            ],
-            'objects'
-        );
-
-        $options = [];
-
-        if ( empty( $post_types ) || ! is_array( $post_types ) ) {
-            return $options;
-        }
-
-        foreach ( $post_types as $post_type ) {
-            if ( ! isset( $post_type->name ) ) {
-                continue;
-            }
-
-            if ( 'attachment' === $post_type->name ) {
-                continue;
-            }
-
-            $label = '';
-
-            if ( isset( $post_type->labels->singular_name ) && '' !== $post_type->labels->singular_name ) {
-                $label = $post_type->labels->singular_name;
-            } elseif ( isset( $post_type->label ) && '' !== $post_type->label ) {
-                $label = $post_type->label;
-            } else {
-                $label = ucfirst( $post_type->name );
-            }
-
-            $options[ $post_type->name ] = $label;
-        }
-
-        asort( $options );
-
-        return $options;
-    }
+    /**
+     * Method get_post_type_options() has been moved to BW_Widget_Helper class.
+     * Use BW_Widget_Helper::get_post_type_options() instead.
+     */
 }

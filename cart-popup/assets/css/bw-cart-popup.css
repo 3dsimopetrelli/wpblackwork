@@ -342,6 +342,70 @@
     text-align: center;
 }
 
+.bw-cart-item-quantity-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: #3b1360;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 22px;
+    text-align: center;
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bw-cart-item-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.bw-qty-stepper {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 12px;
+    border: 1px solid #2f2f2f;
+    border-radius: 12px;
+    background: #111111;
+    color: #ffffff;
+    min-width: 110px;
+    justify-content: center;
+}
+
+.bw-qty-btn {
+    background: none;
+    border: none;
+    color: #ffffff;
+    font-size: 18px;
+    line-height: 1;
+    padding: 2px 4px;
+    cursor: pointer;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.bw-qty-btn:hover {
+    color: #cccccc;
+}
+
+.bw-qty-value {
+    font-size: 15px;
+    font-weight: 700;
+    min-width: 14px;
+    text-align: center;
+}
+
 /* Dettagli prodotto */
 .bw-cart-item-details {
     flex: 1;
@@ -517,6 +581,18 @@
 }
 
 .bw-promo-link:hover {
+    color: #28a745 !important;
+}
+
+/* Remove coupon link - stesso stile di Click here */
+.bw-promo-remove-link {
+    color: #000000 !important;
+    text-decoration: underline;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.bw-promo-remove-link:hover {
     color: #28a745 !important;
 }
 
