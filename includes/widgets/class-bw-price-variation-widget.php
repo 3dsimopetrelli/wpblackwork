@@ -1274,6 +1274,7 @@ $license_html  = function_exists( 'bw_get_variation_license_table_html' ) ? bw_g
                         if ( ! empty( $variation['is_in_stock'] ) ) {
                                 return $variation;
                         }
+                        return;
                 }
 
                 return $variations_data[0];
