@@ -193,7 +193,7 @@ function bw_cart_popup_render_panel() {
 
         <!-- Footer con pulsanti -->
         <div class="bw-cart-popup-footer">
-            <a href="<?php echo esc_url($checkout_url); ?>" data-checkout-url="<?php echo esc_url($checkout_url); ?>" data-cart-url="<?php echo esc_url($cart_url); ?>" class="bw-cart-popup-checkout elementor-button elementor-button-link elementor-size-md">
+            <a href="<?php echo esc_url($checkout_url); ?>" class="bw-cart-popup-checkout elementor-button elementor-button-link elementor-size-md" data-base-text="<?php echo esc_attr($checkout_text); ?>">
                 <?php echo esc_html($checkout_text); ?>
             </a>
             <a href="<?php echo esc_url($continue_url); ?>" class="bw-cart-popup-continue">
@@ -559,16 +559,17 @@ function bw_cart_popup_get_cart_contents() {
             $quantity = $cart_item['quantity'];
 
             $cart_items[] = [
-                'key'          => $cart_item_key,
-                'product_id'   => $product_id,
-                'variation_id' => isset( $cart_item['variation_id'] ) ? (int) $cart_item['variation_id'] : 0,
-                'variation'    => isset( $cart_item['variation'] ) && is_array( $cart_item['variation'] ) ? array_map( 'wc_clean', $cart_item['variation'] ) : [],
-                'name'         => $product->get_name(),
-                'quantity'     => $quantity,
-                'price'        => wc_price( $product->get_price() ),
-                'subtotal'     => wc_price( $cart_item['line_subtotal'] ),
-                'image'        => $product->get_image( 'thumbnail' ),
-                'permalink'    => $product->get_permalink(),
+                'key' => $cart_item_key,
+                'product_id' => $product_id,
+                'name' => $product->get_name(),
+                'quantity' => $quantity,
+                'price' => wc_price($product->get_price()),
+                'price_raw' => (float) $product->get_price(),
+                'regular_price' => wc_price($product->get_regular_price()),
+                'regular_price_raw' => (float) $product->get_regular_price(),
+                'subtotal' => wc_price($cart_item['line_subtotal']),
+                'image' => $product->get_image('thumbnail'),
+                'permalink' => $product->get_permalink(),
             ];
         }
 
