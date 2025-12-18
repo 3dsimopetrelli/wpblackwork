@@ -309,13 +309,12 @@
 .bw-qty-stepper {
     display: inline-flex;
     align-items: center;
-    gap: 10px;
-    padding: 4px 10px;
-    border: 1px solid #000000;
-    border-radius: 10px;
+    gap: 8px;
+    padding: 0;
+    border: none;
     background: transparent;
     color: #000000;
-    min-width: 110px;
+    min-width: 80px;
     justify-content: center;
 }
 
@@ -325,7 +324,7 @@
     color: #000000;
     font-size: 12px;
     line-height: 1;
-    padding: 4px 6px;
+    padding: 0;
     cursor: pointer;
     box-shadow: none !important;
     outline: none !important;
@@ -338,7 +337,7 @@
 .bw-qty-value {
     font-size: 12px;
     font-weight: 600;
-    min-width: 12px;
+    min-width: 14px;
     text-align: center;
 }
 
@@ -427,6 +426,18 @@
 .bw-cart-item-remove:hover {
     color: #000000;
     text-decoration-color: #000000;
+}
+
+/* Reset eventuali stili Elementor sui controlli inline del mini-cart */
+.bw-cart-popup-panel .bw-qty-btn,
+.bw-cart-popup-panel .bw-qty-stepper,
+.bw-cart-popup-panel .bw-cart-item-remove {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    font-size: 12px !important;
+    color: inherit;
+    padding: 0;
 }
 
 /* Carrello vuoto (dentro lista prodotti) */
