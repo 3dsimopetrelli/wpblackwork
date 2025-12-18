@@ -10,6 +10,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class BW_Price_Variation_Widget extends Widget_Base {
 
+        private function render_editor_notice( $message ) {
+                echo '<div class="elementor-alert elementor-alert-warning">';
+                echo esc_html( $message );
+                echo '</div>';
+        }
+
 	public function get_name() {
 		return 'bw-price-variation';
 	}
@@ -39,9 +45,9 @@ class BW_Price_Variation_Widget extends Widget_Base {
 		$this->register_style_controls();
 	}
 
-	private function register_content_controls() {
-		// Product Selection Section
-		$this->start_controls_section(
+        private function register_content_controls() {
+                // Product Selection Section
+                $this->start_controls_section(
 			'section_product_selection',
 			[
 				'label' => __( 'Product', 'bw' ),
@@ -61,10 +67,10 @@ class BW_Price_Variation_Widget extends Widget_Base {
 			]
 		);
 
-		$this->end_controls_section();
+                $this->end_controls_section();
 
-		// Add To Cart Section
-		$this->start_controls_section(
+                // Add To Cart Section
+                $this->start_controls_section(
 			'section_add_to_cart_content',
 			[
 				'label' => __( 'Add To Cart', 'bw' ),
@@ -113,10 +119,163 @@ class BW_Price_Variation_Widget extends Widget_Base {
 			]
 		);
 
-		$this->end_controls_section();
-	}
+                $this->end_controls_section();
 
-	private function register_style_controls() {
+                // Other Payment Methods Section
+                $this->start_controls_section(
+                        'section_other_payments',
+                        [
+                                'label' => __( 'Other Payment Methods', 'bw' ),
+                                'tab'   => Controls_Manager::TAB_CONTENT,
+                        ]
+                );
+
+                $this->add_control(
+                        'show_other_payment_methods',
+                        [
+                                'label'        => __( 'Show Other Payment Methods', 'bw' ),
+                                'type'         => Controls_Manager::SWITCHER,
+                                'label_on'     => __( 'Yes', 'bw' ),
+                                'label_off'    => __( 'No', 'bw' ),
+                                'return_value' => 'yes',
+                                'default'      => 'no',
+                        ]
+                );
+
+                $this->add_control(
+                        'other_payments_toggle_text',
+                        [
+                                'label'       => __( 'Toggle Text', 'bw' ),
+                                'type'        => Controls_Manager::TEXT,
+                                'default'     => __( 'Other Payment Methods', 'bw' ),
+                                'placeholder' => __( 'Enter toggle text', 'bw' ),
+                                'label_block' => true,
+                                'condition'   => [
+                                        'show_other_payment_methods' => 'yes',
+                                ],
+                        ]
+                );
+
+                $this->add_control(
+                        'other_payments_empty_text',
+                        [
+                                'label'       => __( 'Empty State Text', 'bw' ),
+                                'type'        => Controls_Manager::TEXT,
+                                'default'     => __( 'Currently there are no alternative payment methods available.', 'bw' ),
+                                'placeholder' => __( 'Enter empty message', 'bw' ),
+                                'label_block' => true,
+                                'condition'   => [
+                                        'show_other_payment_methods' => 'yes',
+                                ],
+                        ]
+                );
+
+                $this->add_control(
+                        'show_stripe_payment_request',
+                        [
+                                'label'        => __( 'Stripe / Payment Request Buttons', 'bw' ),
+                                'type'         => Controls_Manager::SWITCHER,
+                                'label_on'     => __( 'On', 'bw' ),
+                                'label_off'    => __( 'Off', 'bw' ),
+                                'return_value' => 'yes',
+                                'default'      => 'yes',
+                                'condition'    => [
+                                        'show_other_payment_methods' => 'yes',
+                                ],
+                        ]
+                );
+
+                $this->add_control(
+                        'show_wc_payments',
+                        [
+                                'label'        => __( 'WooCommerce Payments Buttons', 'bw' ),
+                                'type'         => Controls_Manager::SWITCHER,
+                                'label_on'     => __( 'On', 'bw' ),
+                                'label_off'    => __( 'Off', 'bw' ),
+                                'return_value' => 'yes',
+                                'default'      => 'yes',
+                                'condition'    => [
+                                        'show_other_payment_methods' => 'yes',
+                                ],
+                        ]
+                );
+
+                $this->add_control(
+                        'show_paypal_buttons',
+                        [
+                                'label'        => __( 'PayPal Buttons', 'bw' ),
+                                'type'         => Controls_Manager::SWITCHER,
+                                'label_on'     => __( 'On', 'bw' ),
+                                'label_off'    => __( 'Off', 'bw' ),
+                                'return_value' => 'yes',
+                                'default'      => 'yes',
+                                'condition'    => [
+                                        'show_other_payment_methods' => 'yes',
+                                ],
+                        ]
+                );
+
+		$this->add_control(
+			'show_woopay_button',
+			[
+				'label'        => __( 'WooPay Button', 'bw' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => __( 'On', 'bw' ),
+				'label_off'    => __( 'Off', 'bw' ),
+				'return_value' => 'yes',
+				'default'      => 'yes',
+				'condition'    => [
+					'show_other_payment_methods' => 'yes',
+				],
+			]
+		);
+
+		$this->add_control(
+			'show_apple_pay_button',
+			[
+				'label'        => __( 'Apple Pay Button', 'bw' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => __( 'On', 'bw' ),
+				'label_off'    => __( 'Off', 'bw' ),
+				'return_value' => 'yes',
+				'default'      => 'yes',
+				'condition'    => [
+					'show_other_payment_methods' => 'yes',
+				],
+			]
+		);
+
+		$this->add_control(
+			'show_google_pay_button',
+			[
+				'label'        => __( 'Google Pay Button', 'bw' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => __( 'On', 'bw' ),
+				'label_off'    => __( 'Off', 'bw' ),
+				'return_value' => 'yes',
+				'default'      => 'yes',
+				'condition'    => [
+					'show_other_payment_methods' => 'yes',
+				],
+			]
+		);
+
+                $this->add_control(
+                        'other_payments_note',
+                        [
+                                'type'            => Controls_Manager::RAW_HTML,
+                                'raw'             => __( 'These buttons reuse the gateway hooks normally displayed after the add to cart button (e.g. Stripe Payment Request, WooCommerce Payments, PayPal). Turn off specific providers if you prefer to hide them in this widget.', 'bw' ),
+                                'content_classes' => 'elementor-panel-alert elementor-panel-alert-info',
+                                'condition'       => [
+                                        'show_other_payment_methods' => 'yes',
+                                ],
+                        ]
+                );
+
+                $this->end_controls_section();
+        }
+
+        private function register_style_controls() {
 		// Price Style
 		$this->start_controls_section(
 			'section_price_style',
@@ -492,24 +651,152 @@ class BW_Price_Variation_Widget extends Widget_Base {
 			]
 		);
 
-		$this->add_control(
-			'box_background_color',
-			[
-				'label'     => __( 'Background Color', 'bw' ),
-				'type'      => Controls_Manager::COLOR,
-				'default'   => '#ffffff',
-				'selectors' => [
-					'{{WRAPPER}} .bw-price-variation__license-box' => 'background-color: {{VALUE}};',
-				],
-			]
-		);
+                $this->add_control(
+                        'box_background_color',
+                        [
+                                'label'     => __( 'Background Color', 'bw' ),
+                                'type'      => Controls_Manager::COLOR,
+                                'default'   => '#ffffff',
+                                'selectors' => [
+                                        '{{WRAPPER}} .bw-price-variation__license-box' => 'background-color: {{VALUE}};',
+                                ],
+                        ]
+                );
 
-		$this->end_controls_section();
+                $this->end_controls_section();
 
-		// Add To Cart Button Style
-		$this->start_controls_section(
-			'section_add_to_cart_style',
-			[
+                // License Table Style
+                $this->start_controls_section(
+                        'section_license_table_style',
+                        [
+                                'label' => __( 'License Table', 'bw' ),
+                                'tab'   => Controls_Manager::TAB_STYLE,
+                        ]
+                );
+
+                $this->add_control(
+                        'license_table_borderless',
+                        [
+                                'label'        => __( 'Remove Table Border', 'bw' ),
+                                'type'         => Controls_Manager::SWITCHER,
+                                'label_on'     => __( 'Yes', 'bw' ),
+                                'label_off'    => __( 'No', 'bw' ),
+                                'return_value' => 'yes',
+                                'default'      => 'yes',
+                                'selectors'    => [
+                                        '{{WRAPPER}} .bw-license-table, {{WRAPPER}} .bw-license-table td, {{WRAPPER}} .bw-license-table th' => 'border: none !important;',
+                                ],
+                        ]
+                );
+
+                $this->add_control(
+                        'license_table_background_color',
+                        [
+                                'label'     => __( 'Table Background Color', 'bw' ),
+                                'type'      => Controls_Manager::COLOR,
+                                'default'   => '#ffffff',
+                                'selectors' => [
+                                        '{{WRAPPER}} .bw-license-table, {{WRAPPER}} .bw-license-table td, {{WRAPPER}} .bw-license-table th' => 'background-color: {{VALUE}} !important;',
+                                ],
+                        ]
+                );
+
+                $this->add_group_control(
+                        Group_Control_Typography::get_type(),
+                        [
+                                'name'           => 'license_table_col1_typography',
+                                'label'          => __( 'First Column Typography', 'bw' ),
+                                'selector'       => '{{WRAPPER}} .bw-license-table__cell--label',
+                                'fields_options' => [
+                                        'font_size' => [
+                                                'default' => [
+                                                        'size' => 13,
+                                                        'unit' => 'px',
+                                                ],
+                                        ],
+                                ],
+                        ]
+                );
+
+                $this->add_control(
+                        'license_table_col1_color',
+                        [
+                                'label'     => __( 'First Column Text Color', 'bw' ),
+                                'type'      => Controls_Manager::COLOR,
+                                'default'   => '#000000',
+                                'selectors' => [
+                                        '{{WRAPPER}} .bw-license-table__cell--label' => 'color: {{VALUE}} !important;',
+                                ],
+                        ]
+                );
+
+                $this->add_group_control(
+                        Group_Control_Typography::get_type(),
+                        [
+                                'name'           => 'license_table_col2_typography',
+                                'label'          => __( 'Second Column Typography', 'bw' ),
+                                'selector'       => '{{WRAPPER}} .bw-license-table__cell--value',
+                                'fields_options' => [
+                                        'font_size' => [
+                                                'default' => [
+                                                        'size' => 13,
+                                                        'unit' => 'px',
+                                                ],
+                                        ],
+                                ],
+                        ]
+                );
+
+                $this->add_control(
+                        'license_table_col2_color',
+                        [
+                                'label'     => __( 'Second Column Text Color', 'bw' ),
+                                'type'      => Controls_Manager::COLOR,
+                                'default'   => '#000000',
+                                'selectors' => [
+                                        '{{WRAPPER}} .bw-license-table__cell--value' => 'color: {{VALUE}} !important;',
+                                ],
+                        ]
+                );
+
+                $this->add_responsive_control(
+                        'license_table_col1_width',
+                        [
+                                'label'      => __( 'First Column Width (%)', 'bw' ),
+                                'type'       => Controls_Manager::SLIDER,
+                                'size_units' => [ '%' ],
+                                'range'      => [
+                                        '%' => [ 'min' => 0, 'max' => 100 ],
+                                ],
+                                'default'    => [ 'size' => 50, 'unit' => '%' ],
+                                'selectors'  => [
+                                        '{{WRAPPER}} .bw-license-table__cell--label' => 'width: {{SIZE}}{{UNIT}};',
+                                ],
+                        ]
+                );
+
+                $this->add_responsive_control(
+                        'license_table_col2_width',
+                        [
+                                'label'      => __( 'Second Column Width (%)', 'bw' ),
+                                'type'       => Controls_Manager::SLIDER,
+                                'size_units' => [ '%' ],
+                                'range'      => [
+                                        '%' => [ 'min' => 0, 'max' => 100 ],
+                                ],
+                                'default'    => [ 'size' => 50, 'unit' => '%' ],
+                                'selectors'  => [
+                                        '{{WRAPPER}} .bw-license-table__cell--value' => 'width: {{SIZE}}{{UNIT}};',
+                                ],
+                        ]
+                );
+
+                $this->end_controls_section();
+
+                // Add To Cart Button Style
+                $this->start_controls_section(
+                        'section_add_to_cart_style',
+                        [
 				'label'     => __( 'Add To Cart Button', 'bw' ),
 				'tab'       => Controls_Manager::TAB_STYLE,
 				'condition' => [
@@ -562,9 +849,9 @@ class BW_Price_Variation_Widget extends Widget_Base {
 			]
 		);
 
-		$this->add_control(
-			'add_to_cart_button_background_color',
-			[
+                $this->add_control(
+                        'add_to_cart_button_background_color',
+                        [
 				'label'     => __( 'Background Color', 'bw' ),
 				'type'      => Controls_Manager::COLOR,
 				'default'   => '#80FD03',
@@ -574,9 +861,9 @@ class BW_Price_Variation_Widget extends Widget_Base {
 			]
 		);
 
-		$this->add_control(
-			'add_to_cart_button_border_color',
-			[
+                $this->add_control(
+                        'add_to_cart_button_border_color',
+                        [
 				'label'     => __( 'Border Color', 'bw' ),
 				'type'      => Controls_Manager::COLOR,
 				'default'   => '#000000',
@@ -587,11 +874,11 @@ class BW_Price_Variation_Widget extends Widget_Base {
 			]
 		);
 
-		$this->end_controls_tab();
+                $this->end_controls_tab();
 
-		$this->start_controls_tab(
-			'tab_add_to_cart_button_hover',
-			[
+                $this->start_controls_tab(
+                        'tab_add_to_cart_button_hover',
+                        [
 				'label' => __( 'Hover', 'bw' ),
 			]
 		);
@@ -745,11 +1032,11 @@ class BW_Price_Variation_Widget extends Widget_Base {
 			]
 		);
 
-		$this->add_responsive_control(
-			'add_to_cart_button_alignment',
-			[
-				'label'   => __( 'Alignment', 'bw' ),
-				'type'    => Controls_Manager::CHOOSE,
+                $this->add_responsive_control(
+                        'add_to_cart_button_alignment',
+                        [
+                                'label'   => __( 'Alignment', 'bw' ),
+                                'type'    => Controls_Manager::CHOOSE,
 				'options' => [
 					'left'   => [ 'title' => __( 'Left', 'bw' ), 'icon' => 'eicon-text-align-left' ],
 					'center' => [ 'title' => __( 'Center', 'bw' ), 'icon' => 'eicon-text-align-center' ],
@@ -758,52 +1045,278 @@ class BW_Price_Variation_Widget extends Widget_Base {
 				'default'   => 'left',
 				'selectors' => [
 					'{{WRAPPER}} .bw-add-to-cart-wrapper' => 'text-align: {{VALUE}};',
-				],
-			]
-		);
+                                ],
+                        ]
+                );
 
-		$this->end_controls_section();
-	}
+                $this->end_controls_section();
 
-	protected function render() {
-		if ( ! class_exists( 'WooCommerce' ) ) {
-			return;
-		}
+                // Other Payment Methods Style
+                $this->start_controls_section(
+                        'section_other_payments_style',
+                        [
+                                'label'     => __( 'Other Payment Methods Toggle', 'bw' ),
+                                'tab'       => Controls_Manager::TAB_STYLE,
+                                'condition' => [
+                                        'show_other_payment_methods' => 'yes',
+                                ],
+                        ]
+                );
 
-		$settings = $this->get_settings_for_display();
+                $this->add_group_control(
+                        Group_Control_Typography::get_type(),
+                        [
+                                'name'     => 'other_payments_typography',
+                                'selector' => '{{WRAPPER}} .bw-other-payments__toggle',
+                                'fields_options' => [
+                                        'typography' => [ 'default' => 'custom' ],
+                                        'font_size'  => [ 'default' => [ 'size' => 10, 'unit' => 'px' ] ],
+                                ],
+                        ]
+                );
 
-		// Get product ID from settings or current context
-		$product_id = '';
-		if ( ! empty( $settings['product_id'] ) ) {
-			// Use manually specified product ID
-			$product_id = intval( $settings['product_id'] );
-		} else {
-			// Fallback to current product (single product page)
-			$product_id = get_the_ID();
-		}
+                $this->start_controls_tabs( 'tabs_other_payments_colors' );
 
-		// Get the product
-		global $product;
-		$product = wc_get_product( $product_id );
+                $this->start_controls_tab(
+                        'tab_other_payments_normal',
+                        [
+                                'label' => __( 'Normal', 'bw' ),
+                        ]
+                );
 
-		// Validate product exists and is variable type
-		if ( ! $product ) {
-			if ( \Elementor\Plugin::$instance->editor->is_edit_mode() ) {
-				echo '<div class="elementor-alert elementor-alert-warning">';
-				echo esc_html__( 'BW Price Variation: Product not found. Please enter a valid Product ID or use this widget on a single product page.', 'bw' );
-				echo '</div>';
-			}
-			return;
-		}
+                $this->add_control(
+                        'other_payments_text_color',
+                        [
+                                'label'     => __( 'Text Color', 'bw' ),
+                                'type'      => Controls_Manager::COLOR,
+                                'default'   => '#000000',
+                                'selectors' => [
+                                        '{{WRAPPER}} .bw-other-payments__toggle' => 'color: {{VALUE}} !important;',
+                                ],
+                        ]
+                );
 
-		if ( ! $product->is_type( 'variable' ) ) {
-			if ( \Elementor\Plugin::$instance->editor->is_edit_mode() ) {
-				echo '<div class="elementor-alert elementor-alert-warning">';
-				echo esc_html__( 'BW Price Variation: This widget only works with Variable products. Current product type: ', 'bw' ) . esc_html( $product->get_type() );
-				echo '</div>';
-			}
-			return;
-		}
+                $this->add_control(
+                        'other_payments_background_color',
+                        [
+                                'label'     => __( 'Background Color', 'bw' ),
+                                'type'      => Controls_Manager::COLOR,
+                                'default'   => 'rgba(0,0,0,0)',
+                                'selectors' => [
+                                        '{{WRAPPER}} .bw-other-payments__toggle' => 'background-color: {{VALUE}} !important;',
+                                ],
+                        ]
+                );
+
+                $this->add_control(
+                        'other_payments_border_color',
+                        [
+                                'label'     => __( 'Border Color', 'bw' ),
+                                'type'      => Controls_Manager::COLOR,
+                                'default'   => 'rgba(0,0,0,0)',
+                                'selectors' => [
+                                        '{{WRAPPER}} .bw-other-payments__toggle' => 'border-color: {{VALUE}} !important;',
+                                ],
+                        ]
+                );
+
+                $this->end_controls_tab();
+
+                $this->start_controls_tab(
+                        'tab_other_payments_hover',
+                        [
+                                'label' => __( 'Hover', 'bw' ),
+                        ]
+                );
+
+                $this->add_control(
+                        'other_payments_text_color_hover',
+                        [
+                                'label'     => __( 'Text Color', 'bw' ),
+                                'type'      => Controls_Manager::COLOR,
+                                'default'   => '#000000',
+                                'selectors' => [
+                                        '{{WRAPPER}} .bw-other-payments__toggle:hover, {{WRAPPER}} .bw-other-payments__toggle:focus' => 'color: {{VALUE}} !important;',
+                                ],
+                        ]
+                );
+
+                $this->add_control(
+                        'other_payments_background_color_hover',
+                        [
+                                'label'     => __( 'Background Color', 'bw' ),
+                                'type'      => Controls_Manager::COLOR,
+                                'default'   => 'rgba(0,0,0,0)',
+                                'selectors' => [
+                                        '{{WRAPPER}} .bw-other-payments__toggle:hover, {{WRAPPER}} .bw-other-payments__toggle:focus' => 'background-color: {{VALUE}} !important;',
+                                ],
+                        ]
+                );
+
+                $this->end_controls_tab();
+
+                $this->end_controls_tabs();
+
+                $this->add_responsive_control(
+                        'other_payments_border_width',
+                        [
+                                'label'      => __( 'Border Width', 'bw' ),
+                                'type'       => Controls_Manager::SLIDER,
+                                'size_units' => [ 'px' ],
+                                'range'      => [ 'px' => [ 'min' => 0, 'max' => 10 ] ],
+                                'default'    => [ 'size' => 0, 'unit' => 'px' ],
+                                'selectors'  => [
+                                        '{{WRAPPER}} .bw-other-payments__toggle' => 'border-width: {{SIZE}}{{UNIT}} !important;',
+                                ],
+                        ]
+                );
+
+                $this->add_control(
+                        'other_payments_border_style',
+                        [
+                                'label'   => __( 'Border Style', 'bw' ),
+                                'type'    => Controls_Manager::SELECT,
+                                'options' => [
+                                        'none'  => __( 'None', 'bw' ),
+                                        'solid' => __( 'Solid', 'bw' ),
+                                ],
+                                'default'   => 'solid',
+                                'selectors' => [
+                                        '{{WRAPPER}} .bw-other-payments__toggle' => 'border-style: {{VALUE}} !important;',
+                                ],
+                        ]
+                );
+
+                $this->add_responsive_control(
+                        'other_payments_border_radius',
+                        [
+                                'label'      => __( 'Border Radius', 'bw' ),
+                                'type'       => Controls_Manager::DIMENSIONS,
+                                'size_units' => [ 'px', '%' ],
+                                'default'    => [ 'top' => 0, 'right' => 0, 'bottom' => 0, 'left' => 0, 'unit' => 'px' ],
+                                'selectors'  => [
+                                        '{{WRAPPER}} .bw-other-payments__toggle' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
+                                ],
+                        ]
+                );
+
+                $this->add_responsive_control(
+                        'other_payments_margin',
+                        [
+                                'label'      => __( 'Margin', 'bw' ),
+                                'type'       => Controls_Manager::DIMENSIONS,
+                                'size_units' => [ 'px', 'em', '%' ],
+                                'selectors'  => [
+                                        '{{WRAPPER}} .bw-other-payments' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                                ],
+                        ]
+                );
+
+                $this->add_responsive_control(
+                        'other_payments_alignment',
+                        [
+                                'label'   => __( 'Alignment', 'bw' ),
+                                'type'    => Controls_Manager::CHOOSE,
+                                'options' => [
+                                        'flex-start' => [ 'title' => __( 'Left', 'bw' ), 'icon' => 'eicon-text-align-left' ],
+                                        'center'     => [ 'title' => __( 'Center', 'bw' ), 'icon' => 'eicon-text-align-center' ],
+                                        'flex-end'   => [ 'title' => __( 'Right', 'bw' ), 'icon' => 'eicon-text-align-right' ],
+                                ],
+                                'default'   => 'flex-start',
+                                'selectors' => [
+                                        '{{WRAPPER}} .bw-other-payments' => 'display: flex; flex-direction: column; align-items: {{VALUE}};',
+                                ],
+                        ]
+                );
+
+                $this->end_controls_section();
+        }
+
+        private function get_product_id_from_settings( $settings ) {
+                if ( ! empty( $settings['product_id'] ) ) {
+                        return intval( $settings['product_id'] );
+                }
+
+                return get_the_ID();
+        }
+
+        private function get_variations_data( $available_variations ) {
+                $variations_data = [];
+
+                foreach ( $available_variations as $variation ) {
+                        $variation_id  = $variation['variation_id'];
+                        $variation_obj = wc_get_product( $variation_id );
+                        $price_value   = isset( $variation['display_price'] ) ? $variation['display_price'] : wc_get_price_to_display( $variation_obj );
+                        $price_html    = ! empty( $variation['price_html'] ) ? $variation['price_html'] : wc_price( $price_value );
+$license_html  = function_exists( 'bw_get_variation_license_table_html' ) ? bw_get_variation_license_table_html( $variation_id ) : '';
+
+                        $variations_data[] = [
+                                'id'           => $variation_id,
+                                'price'        => $price_value,
+                                'price_html'   => $price_html,
+                                'sku'          => $variation_obj ? $variation_obj->get_sku() : '',
+                                'attributes'   => isset( $variation['attributes'] ) ? $variation['attributes'] : [],
+                                'label'        => $variation_obj ? $variation_obj->get_attribute_summary() : '',
+'license_html' => $license_html ? wp_kses_post( $license_html ) : '',
+                                'is_in_stock'  => $variation_obj ? $variation_obj->is_in_stock() : true,
+                        ];
+                }
+
+                return $variations_data;
+        }
+
+        private function get_default_variation( $variations_data ) {
+                if ( empty( $variations_data ) ) {
+                        return null;
+                }
+
+                foreach ( $variations_data as $variation ) {
+                        if ( ! empty( $variation['is_in_stock'] ) ) {
+                                return $variation;
+                        }
+                }
+
+                return $variations_data[0];
+        }
+
+        private function get_main_attribute( $attributes ) {
+                if ( empty( $attributes ) ) {
+                        return [ '', [] ];
+                }
+
+                $main_attribute_name = array_key_first( $attributes );
+
+                return [ $main_attribute_name, $attributes[ $main_attribute_name ] ];
+        }
+
+        protected function render() {
+                if ( ! class_exists( 'WooCommerce' ) ) {
+                        return;
+                }
+
+                $settings = $this->get_settings_for_display();
+
+                // Get product ID from settings or current context
+                $product_id = $this->get_product_id_from_settings( $settings );
+
+                // Get the product
+                global $product;
+                $product = wc_get_product( $product_id );
+
+                // Validate product exists and is variable type
+                if ( ! $product ) {
+                        if ( \Elementor\Plugin::$instance->editor->is_edit_mode() ) {
+                                $this->render_editor_notice( __( 'BW Price Variation: Product not found. Please enter a valid Product ID or use this widget on a single product page.', 'bw' ) );
+                        }
+                        return;
+                }
+
+                if ( ! $product->is_type( 'variable' ) ) {
+                        if ( \Elementor\Plugin::$instance->editor->is_edit_mode() ) {
+                                $this->render_editor_notice( esc_html__( 'BW Price Variation: This widget only works with Variable products. Current product type: ', 'bw' ) . esc_html( $product->get_type() ) );
+                        }
+                        return;
+                }
 
                 $available_variations = $product->get_available_variations();
 
@@ -812,37 +1325,10 @@ class BW_Price_Variation_Widget extends Widget_Base {
                 }
 
                 // Build a normalized list of variations with price details and attributes
-                $variations_data = [];
-                foreach ( $available_variations as $variation ) {
-                        $variation_id   = $variation['variation_id'];
-                        $variation_obj  = wc_get_product( $variation_id );
-                        $price_value    = isset( $variation['display_price'] ) ? $variation['display_price'] : wc_get_price_to_display( $variation_obj );
-                        $price_html     = ! empty( $variation['price_html'] ) ? $variation['price_html'] : wc_price( $price_value );
-                        $attributes_set = isset( $variation['attributes'] ) ? $variation['attributes'] : [];
-                        $license_html   = get_post_meta( $variation_id, '_bw_variation_license_html', true );
-
-                        $variations_data[] = [
-                                'id'            => $variation_id,
-                                'price'         => $price_value,
-                                'price_html'    => $price_html,
-                                'sku'           => $variation_obj ? $variation_obj->get_sku() : '',
-                                'attributes'    => $attributes_set,
-                                'label'         => $variation_obj ? $variation_obj->get_attribute_summary() : '',
-                                'license_html'  => $license_html ? wp_kses_post( $license_html ) : '',
-                                'is_in_stock'   => $variation_obj ? $variation_obj->is_in_stock() : true,
-                        ];
-                }
+                $variations_data = $this->get_variations_data( $available_variations );
 
                 // Pick the first in-stock variation as default, otherwise the first available
-                $default_variation       = null;
-                $default_variation_attrs = [];
-
-                foreach ( $variations_data as $variation ) {
-                        if ( $variation && $variation['id'] ) {
-                                $default_variation = $variation;
-                                break;
-                        }
-                }
+                $default_variation = $this->get_default_variation( $variations_data );
 
                 if ( ! $default_variation ) {
                         return;
@@ -855,18 +1341,10 @@ class BW_Price_Variation_Widget extends Widget_Base {
                 $default_variation_attrs = isset( $default_variation['attributes'] ) ? $default_variation['attributes'] : [];
 
                 // Get attributes for variations
-                $attributes            = $product->get_variation_attributes();
-                $main_attribute_name   = '';
-                $main_attribute_values = [];
+                list( $main_attribute_name, $main_attribute_values ) = $this->get_main_attribute( $product->get_variation_attributes() );
 
-                if ( ! empty( $attributes ) ) {
-                        // Get the first attribute as "main" attribute
-                        $main_attribute_name   = array_key_first( $attributes );
-                        $main_attribute_values = $attributes[ $main_attribute_name ];
-                }
-
-		$border_style = isset( $settings['button_border_switch'] ) && 'yes' === $settings['button_border_switch'] ? 'solid' : 'none';
-		?>
+                $border_style = isset( $settings['button_border_switch'] ) && 'yes' === $settings['button_border_switch'] ? 'solid' : 'none';
+                ?>
                 <?php
                 $default_variation_id   = $default_variation['id'];
                 $default_price          = $default_variation['price'];
@@ -878,6 +1356,7 @@ class BW_Price_Variation_Widget extends Widget_Base {
                         data-product-id="<?php echo esc_attr( $product->get_id() ); ?>"
                         data-variations="<?php echo esc_attr( wp_json_encode( $variations_data ) ); ?>"
                         data-default-variation-id="<?php echo esc_attr( $default_variation_id ); ?>"
+                        data-product-url="<?php echo esc_url( $product->get_permalink() ); ?>"
                 >
                         <!-- Price Display -->
                         <div class="bw-price-variation__price-wrapper">
@@ -894,7 +1373,7 @@ class BW_Price_Variation_Widget extends Widget_Base {
                         <?php if ( ! empty( $main_attribute_values ) ) : ?>
                                 <?php $attribute_key = 'attribute_' . sanitize_title( $main_attribute_name ); ?>
                                 <div class="bw-price-variation__variations">
-                                        <?php foreach ( $main_attribute_values as $index => $attribute_value ) : ?>
+                                        <?php foreach ( $main_attribute_values as $attribute_value ) : ?>
                                                 <?php
                                                 // Locate the variation data that matches the current attribute value.
                                                 $matched_variation = null;
@@ -934,10 +1413,10 @@ class BW_Price_Variation_Widget extends Widget_Base {
 			<!-- License Box (will be populated by JS) -->
 			<div class="bw-price-variation__license-box" style="display: none;"></div>
 
-			<!-- Add To Cart Button -->
-			<?php if ( isset( $settings['show_add_to_cart'] ) && 'yes' === $settings['show_add_to_cart'] ) : ?>
-				<?php
-				$open_cart_popup = isset( $settings['open_cart_popup'] ) && 'yes' === $settings['open_cart_popup'];
+                        <!-- Add To Cart Button -->
+                        <?php if ( isset( $settings['show_add_to_cart'] ) && 'yes' === $settings['show_add_to_cart'] ) : ?>
+                                <?php
+                                $open_cart_popup = isset( $settings['open_cart_popup'] ) && 'yes' === $settings['open_cart_popup'];
                                 $button_text     = isset( $settings['add_to_cart_button_text'] ) && '' !== trim( $settings['add_to_cart_button_text'] )
                                         ? $settings['add_to_cart_button_text']
                                         : __( 'Add to Cart', 'bw' );
@@ -1000,18 +1479,140 @@ class BW_Price_Variation_Widget extends Widget_Base {
 				if ( $open_cart_popup ) {
 					$attributes['data-open-cart-popup'] = '1';
 				}
-				?>
-				<div class="bw-add-to-cart-wrapper">
-					<a <?php
-					foreach ( $attributes as $key => $value ) {
-						if ( is_string( $value ) || is_numeric( $value ) ) {
-							echo esc_attr( $key ) . '="' . esc_attr( $value ) . '" ';
+                                ?>
+                                <div class="bw-add-to-cart-wrapper">
+                                        <a <?php
+                                        foreach ( $attributes as $key => $value ) {
+                                                if ( is_string( $value ) || is_numeric( $value ) ) {
+                                                        echo esc_attr( $key ) . '="' . esc_attr( $value ) . '" ';
+                                                }
+                                        }
+                                        ?>><?php echo esc_html( $button_text ); ?></a>
+                                </div>
+                        <?php endif; ?>
+
+                        <?php if ( isset( $settings['show_other_payment_methods'] ) && 'yes' === $settings['show_other_payment_methods'] ) : ?>
+                                <?php
+                                $other_toggle_text = isset( $settings['other_payments_toggle_text'] ) && '' !== trim( $settings['other_payments_toggle_text'] )
+                                        ? $settings['other_payments_toggle_text']
+                                        : __( 'Other Payment Methods', 'bw' );
+
+                                $render_wc_after_add_to_cart = (
+                                        ( isset( $settings['show_stripe_payment_request'] ) && 'yes' === $settings['show_stripe_payment_request'] ) ||
+                                        ( isset( $settings['show_wc_payments'] ) && 'yes' === $settings['show_wc_payments'] ) ||
+                                        ( isset( $settings['show_paypal_buttons'] ) && 'yes' === $settings['show_paypal_buttons'] ) ||
+					( isset( $settings['show_woopay_button'] ) && 'yes' === $settings['show_woopay_button'] ) ||
+					( isset( $settings['show_apple_pay_button'] ) && 'yes' === $settings['show_apple_pay_button'] ) ||
+					( isset( $settings['show_google_pay_button'] ) && 'yes' === $settings['show_google_pay_button'] )
+                                );
+
+                                $empty_text = isset( $settings['other_payments_empty_text'] ) && '' !== trim( $settings['other_payments_empty_text'] )
+                                        ? $settings['other_payments_empty_text']
+                                        : __( 'Currently there are no alternative payment methods available.', 'bw' );
+                                ?>
+                                <div class="bw-other-payments" data-render-wc-hooks="<?php echo esc_attr( $render_wc_after_add_to_cart ? '1' : '0' ); ?>">
+                                        <button class="bw-other-payments__toggle" type="button" aria-expanded="false">
+                                                <?php echo esc_html( $other_toggle_text ); ?>
+                                        </button>
+                                        <div class="bw-other-payments__content" hidden>
+                                                <?php
+                                                $gateway_blocks = [];
+
+					/**
+					 * Allow custom content to be injected before the gateway buttons.
+					 */
+					ob_start();
+					do_action( 'bw_price_variation_before_payment_dropdown', $product, $settings );
+					$before_dropdown = trim( (string) ob_get_clean() );
+					if ( '' !== $before_dropdown ) {
+						$gateway_blocks[] = $before_dropdown;
+					}
+
+					$render_payment_slot = static function( $action, $class, $product_obj, $widget_settings ) {
+						ob_start();
+						do_action( $action, $product_obj, $widget_settings );
+						$content = trim( (string) ob_get_clean() );
+
+						if ( '' === $content ) {
+							return '';
+						}
+
+						return '<div class="bw-other-payments__slot ' . esc_attr( $class ) . '">' . $content . '</div>';
+					};
+
+					if ( isset( $settings['show_woopay_button'] ) && 'yes' === $settings['show_woopay_button'] ) {
+						$slot = $render_payment_slot( 'bw_price_variation_render_woopay_button', 'bw-other-payments__slot--woopay', $product, $settings );
+
+						if ( '' !== $slot ) {
+							$gateway_blocks[] = $slot;
 						}
 					}
-					?>><?php echo esc_html( $button_text ); ?></a>
-				</div>
-			<?php endif; ?>
-		</div>
-		<?php
-	}
+
+					if ( isset( $settings['show_apple_pay_button'] ) && 'yes' === $settings['show_apple_pay_button'] ) {
+						$slot = $render_payment_slot( 'bw_price_variation_render_apple_pay_button', 'bw-other-payments__slot--apple-pay', $product, $settings );
+
+						if ( '' !== $slot ) {
+							$gateway_blocks[] = $slot;
+						}
+					}
+
+					if ( isset( $settings['show_google_pay_button'] ) && 'yes' === $settings['show_google_pay_button'] ) {
+						$slot = $render_payment_slot( 'bw_price_variation_render_google_pay_button', 'bw-other-payments__slot--google-pay', $product, $settings );
+
+						if ( '' !== $slot ) {
+							$gateway_blocks[] = $slot;
+						}
+					}
+
+					if ( $render_wc_after_add_to_cart ) {
+						/**
+						 * Reuse the standard WooCommerce hook so gateways (Stripe Payment Request,
+						 * WooCommerce Payments, PayPal, etc.) can output their express buttons.
+						 */
+						ob_start();
+						do_action( 'woocommerce_after_add_to_cart_button' );
+						$default_hooks = trim( (string) ob_get_clean() );
+
+						if ( '' !== $default_hooks ) {
+							$gateway_blocks[] = '<div class="bw-other-payments__slot bw-other-payments__slot--wc-hooks">' . $default_hooks . '</div>';
+						}
+					}
+
+					if ( isset( $settings['show_paypal_buttons'] ) && 'yes' === $settings['show_paypal_buttons'] ) {
+						/**
+						 * Dedicated PayPal render hook used by WooCommerce PayPal Payments.
+						 */
+						ob_start();
+						do_action( 'woocommerce_paypal_payments_single_product_renderer' );
+						$paypal_content = trim( (string) ob_get_clean() );
+
+						if ( '' !== $paypal_content ) {
+							$gateway_blocks[] = '<div class="bw-other-payments__slot bw-other-payments__slot--paypal">' . $paypal_content . '</div>';
+						}
+					}
+
+					/**
+					 * Allow custom content after the gateway buttons.
+					 */
+					ob_start();
+					do_action( 'bw_price_variation_after_payment_dropdown', $product, $settings );
+					$after_dropdown = trim( (string) ob_get_clean() );
+					if ( '' !== $after_dropdown ) {
+						$gateway_blocks[] = $after_dropdown;
+					}
+
+					$gateway_content = trim( implode( '', $gateway_blocks ) );
+
+					if ( '' === $gateway_content ) {
+						echo '<p class="bw-other-payments__empty">' . esc_html( $empty_text ) . '</p>';
+					} else {
+						echo '<div class="bw-other-payments__stack">' . $gateway_content . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+					}
+                                                ?>
+                                        </div>
+                                </div>
+                        <?php endif; ?>
+                </div>
+                <?php
+        }
 }
