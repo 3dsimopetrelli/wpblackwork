@@ -49,6 +49,30 @@ body.woocommerce-checkout .woocommerce-info {
     overflow: visible !important;
 }
 
+/* ============================================
+   FORCE ZERO SPACING - Override ALL theme/plugin CSS
+   These rules target specific classes visible in DevTools
+   to eliminate any padding/margin from Elementor, theme, or plugins
+   ============================================ */
+
+/* Force body padding to zero on checkout page */
+body.woocommerce-checkout:not(.elementor-editor-active) {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+/* Force Elementor sections and containers to zero spacing */
+.woocommerce-checkout .elementor-section,
+.woocommerce-checkout .elementor-element,
+.woocommerce-checkout .elementor-element-populated,
+.woocommerce-checkout .elementor-widget-wrap,
+.woocommerce-checkout .elementor-container,
+.woocommerce-checkout .elementor-column,
+.woocommerce-checkout .elementor-widget {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
 /* Reset base spacing */
 .bw-checkout-wrapper {
     max-width: 1400px;
