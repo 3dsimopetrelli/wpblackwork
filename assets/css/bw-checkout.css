@@ -53,7 +53,7 @@ body.woocommerce-checkout .woocommerce-info {
 .bw-checkout-wrapper {
     max-width: 1400px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 0;
 }
 
 .bw-checkout-grid {
@@ -101,7 +101,7 @@ body.woocommerce-checkout .woocommerce-info {
 /* Desktop layout: CSS Grid with center separator */
 @media (min-width: 900px) {
     .bw-checkout-wrapper {
-        padding: 40px 20px;
+        padding: 0;
     }
 
     .bw-checkout-grid {
@@ -114,7 +114,7 @@ body.woocommerce-checkout .woocommerce-info {
     /* Left column - explicitly positioned to span all rows */
     .bw-checkout-left {
         background: var(--bw-checkout-left-bg, #ffffff);
-        padding: 0 40px 40px 0;
+        padding: 0 40px 0 0;
         margin-bottom: 0;
         grid-column: 1 / 2;
         grid-row: 1 / 10;
@@ -196,12 +196,11 @@ body.woocommerce-checkout .woocommerce-info {
 
 /* Logo styling */
 .bw-checkout-logo {
-    margin-bottom: 30px;
+    margin-bottom: 0;
     text-align: center;
 }
 
 .bw-checkout-logo img {
-    max-width: 200px;
     height: auto;
 }
 
