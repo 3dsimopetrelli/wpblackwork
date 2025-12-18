@@ -5,7 +5,7 @@
  * Uses CSS variables for customizable colors
  */
 
-/* Hide all WooCommerce notices on checkout page */
+/* Hide all WooCommerce notices on checkout page - AGGRESSIVE */
 .woocommerce-checkout .woocommerce-notices-wrapper,
 .woocommerce-checkout .woocommerce-message,
 .woocommerce-checkout .woocommerce-error,
@@ -15,8 +15,28 @@
 body.woocommerce-checkout .woocommerce-NoticeGroup,
 body.woocommerce-checkout .woocommerce > .woocommerce-message,
 body.woocommerce-checkout .woocommerce > .woocommerce-error,
-body.woocommerce-checkout .woocommerce > .woocommerce-info {
+body.woocommerce-checkout .woocommerce > .woocommerce-info,
+.woocommerce-checkout form.woocommerce-checkout .woocommerce-message,
+.woocommerce-checkout form.woocommerce-checkout .woocommerce-error,
+.woocommerce-checkout form.woocommerce-checkout .woocommerce-info,
+.woocommerce-checkout .bw-checkout-wrapper .woocommerce-message,
+.woocommerce-checkout .bw-checkout-wrapper .woocommerce-error,
+.woocommerce-checkout .bw-checkout-wrapper .woocommerce-info,
+.woocommerce-checkout .bw-checkout-grid .woocommerce-message,
+.woocommerce-checkout .bw-checkout-grid .woocommerce-error,
+.woocommerce-checkout .bw-checkout-grid .woocommerce-info,
+body.woocommerce-checkout .woocommerce-message,
+body.woocommerce-checkout .woocommerce-error,
+body.woocommerce-checkout .woocommerce-info {
     display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    position: absolute !important;
+    left: -9999px !important;
 }
 
 /* Force coupon form to be visible in order summary */
@@ -38,6 +58,13 @@ body.woocommerce-checkout .woocommerce > .woocommerce-info {
 
 .bw-checkout-grid {
     display: block;
+}
+
+/* Force all direct children of checkout grid to not break layout */
+.bw-checkout-grid > *:not(.bw-checkout-left):not(.bw-checkout-right):not(.bw-checkout-order-heading__wrap) {
+    display: none !important;
+    position: absolute !important;
+    left: -9999px !important;
 }
 
 .bw-checkout-left,
@@ -471,6 +498,30 @@ body.woocommerce-checkout .woocommerce > .woocommerce-info {
 
 .bw-review-coupon button[type="submit"]:hover {
     background: #b8b8b8;
+}
+
+/* Coupon success message */
+.bw-coupon-message {
+    margin-top: 12px;
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    display: none;
+}
+
+.bw-coupon-message.success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+    display: block;
+}
+
+.bw-coupon-message.error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+    display: block;
 }
 
 /* Totals rows */

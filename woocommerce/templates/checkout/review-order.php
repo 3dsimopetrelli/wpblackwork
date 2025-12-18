@@ -103,6 +103,7 @@ $cart_items = WC()->cart->get_cart();
                 <td colspan="2">
                     <div class="bw-review-coupon">
                         <?php woocommerce_checkout_coupon_form(); ?>
+                        <div class="bw-coupon-message" id="bw-coupon-message"></div>
                     </div>
                 </td>
             </tr>

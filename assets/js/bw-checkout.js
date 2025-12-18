@@ -92,15 +92,48 @@
         setOrderSummaryLoading(true);
     });
 
+    function showCouponMessage(message, type) {
+        var messageEl = document.getElementById('bw-coupon-message');
+        if (!messageEl) {
+            return;
+        }
+
+        messageEl.className = 'bw-coupon-message ' + type;
+        messageEl.textContent = message;
+
+        // Auto hide after 5 seconds
+        setTimeout(function() {
+            messageEl.className = 'bw-coupon-message';
+        }, 5000);
+    }
+
     if (window.jQuery) {
         window.jQuery(function ($) {
             $(document.body)
-                .on('update_checkout applied_coupon removed_coupon wc_cart_emptied', function () {
+                .on('update_checkout wc_cart_emptied', function () {
                     setOrderSummaryLoading(true);
+                })
+                .on('applied_coupon', function (event, couponCode) {
+                    setOrderSummaryLoading(true);
+                    showCouponMessage('Coupon code applied successfully', 'success');
+                })
+                .on('removed_coupon', function (event, couponCode) {
+                    setOrderSummaryLoading(true);
+                    showCouponMessage('Coupon code removed', 'success');
                 })
                 .on('updated_checkout checkout_error', function () {
                     setOrderSummaryLoading(false);
                 });
+
+            // Intercept coupon form submission to show custom messages
+            $(document).on('submit', 'form.checkout_coupon', function(e) {
+                var couponInput = $(this).find('input[name="coupon_code"]');
+                if (couponInput.length && !couponInput.val()) {
+                    e.preventDefault();
+                    showCouponMessage('Please enter a coupon code', 'error');
+                    return false;
+                }
+            });
         });
     }
 })();
