@@ -1274,6 +1274,7 @@ $license_html  = function_exists( 'bw_get_variation_license_table_html' ) ? bw_g
                         if ( ! empty( $variation['is_in_stock'] ) ) {
                                 return $variation;
                         }
+                        return;
                 }
 
                 return $variations_data[0];
@@ -1566,15 +1567,23 @@ $license_html  = function_exists( 'bw_get_variation_license_table_html' ) ? bw_g
 
 					if ( $render_wc_after_add_to_cart ) {
 						/**
-						 * Reuse the standard WooCommerce hook so gateways (Stripe Payment Request,
+						 * Reuse the standard WooCommerce hooks so gateways (Stripe Payment Request,
 						 * WooCommerce Payments, PayPal, etc.) can output their express buttons.
 						 */
 						ob_start();
 						do_action( 'woocommerce_after_add_to_cart_button' );
-						$default_hooks = trim( (string) ob_get_clean() );
+						$after_button_hooks = trim( (string) ob_get_clean() );
 
-						if ( '' !== $default_hooks ) {
-							$gateway_blocks[] = '<div class="bw-other-payments__slot bw-other-payments__slot--wc-hooks">' . $default_hooks . '</div>';
+						if ( '' !== $after_button_hooks ) {
+							$gateway_blocks[] = '<div class="bw-other-payments__slot bw-other-payments__slot--wc-hooks">' . $after_button_hooks . '</div>';
+						}
+
+						ob_start();
+						do_action( 'woocommerce_after_add_to_cart_form' );
+						$after_form_hooks = trim( (string) ob_get_clean() );
+
+						if ( '' !== $after_form_hooks ) {
+							$gateway_blocks[] = '<div class="bw-other-payments__slot bw-other-payments__slot--wc-after-form">' . $after_form_hooks . '</div>';
 						}
 					}
 
