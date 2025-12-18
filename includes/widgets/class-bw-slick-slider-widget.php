@@ -39,7 +39,7 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
             'label' => __( 'Query', 'bw-elementor-widgets' ),
         ] );
 
-        $post_type_options = $this->get_post_type_options();
+        $post_type_options = BW_Widget_Helper::get_post_type_options();
         if ( empty( $post_type_options ) ) {
             $post_type_options = [ 'post' => __( 'Post', 'bw-elementor-widgets' ) ];
         }
@@ -891,7 +891,7 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
     protected function render() {
         $settings            = $this->get_settings_for_display();
         $content_type        = isset( $settings['content_type'] ) ? sanitize_key( $settings['content_type'] ) : 'post';
-        $available_post_types = $this->get_post_type_options();
+        $available_post_types = BW_Widget_Helper::get_post_type_options();
         if ( empty( $available_post_types ) ) {
             $available_post_types = [ 'post' => __( 'Post', 'bw-elementor-widgets' ) ];
         }
@@ -902,14 +902,14 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
         }
         $columns       = isset( $settings['columns'] ) ? max( 1, absint( $settings['columns'] ) ) : 3;
         $gap           = isset( $settings['gap']['size'] ) ? max( 0, absint( $settings['gap']['size'] ) ) : 24;
-        $image_height_data = $this->get_slider_value_with_unit( $settings, 'image_height', 420, 'px' );
+        $image_height_data = BW_Widget_Helper::get_slider_value_with_unit( $settings, 'image_height', 420, 'px' );
         $image_height      = isset( $image_height_data['size'] ) ? max( 0, (float) $image_height_data['size'] ) : 0;
         $image_height_unit = isset( $image_height_data['unit'] ) ? $image_height_data['unit'] : 'px';
-        $column_width_data = $this->get_slider_value_with_unit( $settings, 'image_column_width', null, 'px' );
+        $column_width_data = BW_Widget_Helper::get_slider_value_with_unit( $settings, 'image_column_width', null, 'px' );
         $column_width      = isset( $column_width_data['size'] ) ? $column_width_data['size'] : null;
         $column_width_unit = isset( $column_width_data['unit'] ) ? $column_width_data['unit'] : 'px';
         $image_crop    = isset( $settings['image_crop'] ) && 'yes' === $settings['image_crop'];
-        $include_ids   = isset( $settings['include_ids'] ) ? $this->parse_ids( $settings['include_ids'] ) : [];
+        $include_ids   = isset( $settings['include_ids'] ) ? BW_Widget_Helper::parse_ids( $settings['include_ids'] ) : [];
         $product_categories = isset( $settings['product_categories'] )
             ? array_filter( array_map( 'absint', (array) $settings['product_categories'] ) )
             : [];
@@ -1143,108 +1143,11 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
         wp_reset_postdata();
     }
 
-    private function get_slider_value_with_unit( $settings, $control_id, $default_size = null, $default_unit = 'px' ) {
-        if ( ! isset( $settings[ $control_id ] ) ) {
-            return [
-                'size' => $default_size,
-                'unit' => $default_unit,
-            ];
-        }
-
-        $value = $settings[ $control_id ];
-        $size  = null;
-        $unit  = $default_unit;
-
-        if ( is_array( $value ) ) {
-            if ( isset( $value['unit'] ) && '' !== $value['unit'] ) {
-                $unit = $value['unit'];
-            }
-
-            if ( isset( $value['size'] ) && '' !== $value['size'] ) {
-                $size = $value['size'];
-            } elseif ( isset( $value['sizes'] ) && is_array( $value['sizes'] ) ) {
-                foreach ( [ 'desktop', 'tablet', 'mobile' ] as $device ) {
-                    if ( isset( $value['sizes'][ $device ] ) && '' !== $value['sizes'][ $device ] ) {
-                        $size = $value['sizes'][ $device ];
-                        break;
-                    }
-                }
-            }
-        } elseif ( '' !== $value && null !== $value ) {
-            $size = $value;
-        }
-
-        if ( null === $size ) {
-            $size = $default_size;
-        }
-
-        if ( is_numeric( $size ) ) {
-            $size = (float) $size;
-        }
-
-        return [
-            'size' => $size,
-            'unit' => $unit,
-        ];
-    }
-
-    private function get_post_type_options() {
-        $post_types = get_post_types(
-            [
-                'public' => true,
-            ],
-            'objects'
-        );
-
-        $options = [];
-
-        if ( empty( $post_types ) || ! is_array( $post_types ) ) {
-            return $options;
-        }
-
-        foreach ( $post_types as $post_type ) {
-            if ( ! isset( $post_type->name ) ) {
-                continue;
-            }
-
-            if ( 'attachment' === $post_type->name ) {
-                continue;
-            }
-
-            $label = '';
-
-            if ( isset( $post_type->labels->singular_name ) && '' !== $post_type->labels->singular_name ) {
-                $label = $post_type->labels->singular_name;
-            } elseif ( isset( $post_type->label ) && '' !== $post_type->label ) {
-                $label = $post_type->label;
-            } else {
-                $label = ucfirst( $post_type->name );
-            }
-
-            $options[ $post_type->name ] = $label;
-        }
-
-        asort( $options );
-
-        return $options;
-    }
-
-    private function parse_ids( $ids_string ) {
-        if ( empty( $ids_string ) ) {
-            return [];
-        }
-
-        $parts = array_filter( array_map( 'trim', explode( ',', $ids_string ) ) );
-        $ids   = [];
-
-        foreach ( $parts as $part ) {
-            if ( is_numeric( $part ) ) {
-                $ids[] = (int) $part;
-            }
-        }
-
-        return array_unique( $ids );
-    }
+    /**
+     * Methods parse_ids(), get_slider_value_with_unit(), and get_post_type_options()
+     * have been moved to BW_Widget_Helper class to reduce code duplication.
+     * Use BW_Widget_Helper::method_name() instead.
+     */
 
     private function get_taxonomy_terms_options( $taxonomy ) {
         $options = [];
