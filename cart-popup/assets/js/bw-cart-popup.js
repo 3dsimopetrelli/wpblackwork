@@ -1001,7 +1001,8 @@
                 return;
             }
 
-            const suffix = totalFormatted ? ` · ${totalFormatted}` : '';
+            const totalText = totalFormatted ? $('<div>').html(totalFormatted).text().trim() : '';
+            const suffix = totalText ? ` · ${totalText}` : '';
             $cta.text(`${baseText}${suffix}`);
         },
 
