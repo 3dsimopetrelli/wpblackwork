@@ -1184,7 +1184,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'label' => __( 'Query', 'bw-elementor-widgets' ),
         ] );
 
-        $post_type_options = $this->get_post_type_options();
+        $post_type_options = BW_Widget_Helper::get_post_type_options();
         if ( empty( $post_type_options ) ) {
             $post_type_options = [ 'post' => __( 'Post', 'bw-elementor-widgets' ) ];
         }
@@ -2149,7 +2149,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
 
     private function render_posts( $settings, $widget_id ) {
         $post_type         = isset( $settings['post_type'] ) ? sanitize_key( $settings['post_type'] ) : 'post';
-        $available_post_types = $this->get_post_type_options();
+        $available_post_types = BW_Widget_Helper::get_post_type_options();
 
         if ( empty( $available_post_types ) ) {
             $available_post_types = [ 'post' => __( 'Post', 'bw-elementor-widgets' ) ];
@@ -2168,12 +2168,12 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
         // Get layout values
         $columns_desktop = isset( $settings['columns_desktop'] ) ? max( 1, absint( $settings['columns_desktop'] ) ) : 4;
         $columns_desktop = max( 1, min( 6, $columns_desktop ) );
-        $gap_desktop_data = $this->get_slider_value_with_unit( $settings, 'gap_desktop', 15, 'px' );
+        $gap_desktop_data = BW_Widget_Helper::get_slider_value_with_unit( $settings, 'gap_desktop', 15, 'px' );
         $gap_desktop_size = isset( $gap_desktop_data['size'] ) ? (float) $gap_desktop_data['size'] : 15;
         if ( ! is_finite( $gap_desktop_size ) ) {
             $gap_desktop_size = 15;
         }
-        $image_height_desktop_data = $this->get_slider_value_with_unit( $settings, 'image_height_desktop', 625, 'px' );
+        $image_height_desktop_data = BW_Widget_Helper::get_slider_value_with_unit( $settings, 'image_height_desktop', 625, 'px' );
         $image_height_desktop = isset( $image_height_desktop_data['size'] ) ? (float) $image_height_desktop_data['size'] : 625;
 
         // Get tablet values
@@ -2181,24 +2181,24 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
         $breakpoint_tablet_max = isset( $settings['breakpoint_tablet_max'] ) ? absint( $settings['breakpoint_tablet_max'] ) : 1024;
         $columns_tablet  = isset( $settings['columns_tablet'] ) ? max( 1, absint( $settings['columns_tablet'] ) ) : 2;
         $columns_tablet  = max( 1, min( 4, $columns_tablet ) );
-        $gap_tablet_data = $this->get_slider_value_with_unit( $settings, 'gap_tablet', 10, 'px' );
+        $gap_tablet_data = BW_Widget_Helper::get_slider_value_with_unit( $settings, 'gap_tablet', 10, 'px' );
         $gap_tablet_size = isset( $gap_tablet_data['size'] ) ? (float) $gap_tablet_data['size'] : 10;
         if ( ! is_finite( $gap_tablet_size ) ) {
             $gap_tablet_size = 10;
         }
-        $image_height_tablet_data = $this->get_slider_value_with_unit( $settings, 'image_height_tablet', 400, 'px' );
+        $image_height_tablet_data = BW_Widget_Helper::get_slider_value_with_unit( $settings, 'image_height_tablet', 400, 'px' );
         $image_height_tablet = isset( $image_height_tablet_data['size'] ) ? (float) $image_height_tablet_data['size'] : 400;
 
         // Get mobile values
         $breakpoint_mobile_max = isset( $settings['breakpoint_mobile_max'] ) ? absint( $settings['breakpoint_mobile_max'] ) : 767;
         $columns_mobile  = isset( $settings['columns_mobile'] ) ? max( 1, absint( $settings['columns_mobile'] ) ) : 1;
         $columns_mobile  = max( 1, min( 2, $columns_mobile ) );
-        $gap_mobile_data = $this->get_slider_value_with_unit( $settings, 'gap_mobile', 10, 'px' );
+        $gap_mobile_data = BW_Widget_Helper::get_slider_value_with_unit( $settings, 'gap_mobile', 10, 'px' );
         $gap_mobile_size = isset( $gap_mobile_data['size'] ) ? (float) $gap_mobile_data['size'] : 10;
         if ( ! is_finite( $gap_mobile_size ) ) {
             $gap_mobile_size = 10;
         }
-        $image_height_mobile_data = $this->get_slider_value_with_unit( $settings, 'image_height_mobile', 300, 'px' );
+        $image_height_mobile_data = BW_Widget_Helper::get_slider_value_with_unit( $settings, 'image_height_mobile', 300, 'px' );
         $image_height_mobile = isset( $image_height_mobile_data['size'] ) ? (float) $image_height_mobile_data['size'] : 300;
 
         // Image controls
@@ -2207,7 +2207,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
         $hover_effect    = isset( $settings['hover_effect'] ) && 'yes' === $settings['hover_effect'];
         $open_cart_popup = isset( $settings['open_cart_popup'] ) && 'yes' === $settings['open_cart_popup'];
 
-        $include_ids = isset( $settings['specific_ids'] ) ? $this->parse_ids( $settings['specific_ids'] ) : [];
+        $include_ids = isset( $settings['specific_ids'] ) ? BW_Widget_Helper::parse_ids( $settings['specific_ids'] ) : [];
 
         $parent_category = isset( $settings['parent_category'] ) ? absint( $settings['parent_category'] ) : 0;
         $subcategories   = isset( $settings['subcategory'] ) ? array_filter( array_map( 'absint', (array) $settings['subcategory'] ) ) : [];
@@ -2495,87 +2495,11 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
         <?php
     }
 
-    private function get_slider_value_with_unit( $settings, $control_id, $default_size = null, $default_unit = 'px' ) {
-        if ( ! isset( $settings[ $control_id ] ) ) {
-            return [
-                'size' => $default_size,
-                'unit' => $default_unit,
-            ];
-        }
-
-        $value = $settings[ $control_id ];
-        $size  = null;
-        $unit  = $default_unit;
-
-        if ( is_array( $value ) ) {
-            if ( isset( $value['unit'] ) && '' !== $value['unit'] ) {
-                $unit = $value['unit'];
-            }
-
-            if ( isset( $value['size'] ) && '' !== $value['size'] ) {
-                $size = $value['size'];
-            } elseif ( isset( $value['sizes'] ) && is_array( $value['sizes'] ) ) {
-                foreach ( [ 'desktop', 'tablet', 'mobile' ] as $device ) {
-                    if ( isset( $value['sizes'][ $device ] ) && '' !== $value['sizes'][ $device ] ) {
-                        $size = $value['sizes'][ $device ];
-                        break;
-                    }
-                }
-            }
-        } elseif ( '' !== $value && null !== $value ) {
-            $size = $value;
-        }
-
-        if ( null === $size ) {
-            $size = $default_size;
-        }
-
-        if ( is_numeric( $size ) ) {
-            $size = (float) $size;
-        }
-
-        return [
-            'size' => $size,
-            'unit' => $unit,
-        ];
-    }
-
-    private function get_post_type_options() {
-        $post_types = get_post_types(
-            [
-                'public' => true,
-            ],
-            'objects'
-        );
-
-        $options = [];
-
-        if ( empty( $post_types ) || ! is_array( $post_types ) ) {
-            return $options;
-        }
-
-        foreach ( $post_types as $post_type ) {
-            if ( ! isset( $post_type->name ) || 'attachment' === $post_type->name ) {
-                continue;
-            }
-
-            $label = '';
-
-            if ( isset( $post_type->labels->singular_name ) && '' !== $post_type->labels->singular_name ) {
-                $label = $post_type->labels->singular_name;
-            } elseif ( isset( $post_type->label ) && '' !== $post_type->label ) {
-                $label = $post_type->label;
-            } else {
-                $label = ucfirst( $post_type->name );
-            }
-
-            $options[ $post_type->name ] = $label;
-        }
-
-        asort( $options );
-
-        return $options;
-    }
+    /**
+     * Methods parse_ids(), get_slider_value_with_unit(), and get_post_type_options()
+     * have been moved to BW_Widget_Helper class to reduce code duplication.
+     * Use BW_Widget_Helper::method_name() instead.
+     */
 
     private function get_total_post_count( $post_type ) {
         $counts = wp_count_posts( $post_type );
@@ -2737,23 +2661,6 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
         $count = is_numeric( $count ) ? (int) $count : $count;
 
         return trim( sprintf( '%s (%s)', $name, $count ) );
-    }
-
-    private function parse_ids( $ids_string ) {
-        if ( empty( $ids_string ) ) {
-            return [];
-        }
-
-        $parts = array_filter( array_map( 'trim', explode( ',', $ids_string ) ) );
-        $ids   = [];
-
-        foreach ( $parts as $part ) {
-            if ( is_numeric( $part ) ) {
-                $ids[] = (int) $part;
-            }
-        }
-
-        return array_unique( $ids );
     }
 
     private function get_price_markup( $post_id ) {
