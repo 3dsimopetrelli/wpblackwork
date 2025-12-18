@@ -5,6 +5,20 @@
  * Uses CSS variables for customizable colors
  */
 
+/* Hide all WooCommerce notices on checkout page */
+.woocommerce-checkout .woocommerce-notices-wrapper,
+.woocommerce-checkout .woocommerce-message,
+.woocommerce-checkout .woocommerce-error,
+.woocommerce-checkout .woocommerce-info,
+.woocommerce-checkout .wc-block-components-notice-banner,
+.woocommerce-checkout form.checkout::before,
+body.woocommerce-checkout .woocommerce-NoticeGroup,
+body.woocommerce-checkout .woocommerce > .woocommerce-message,
+body.woocommerce-checkout .woocommerce > .woocommerce-error,
+body.woocommerce-checkout .woocommerce > .woocommerce-info {
+    display: none !important;
+}
+
 /* Reset base spacing */
 .bw-checkout-wrapper {
     max-width: 1400px;
