@@ -183,6 +183,10 @@ function bw_cart_popup_render_panel() {
                 <div class="bw-cart-popup-discount" style="display: none;">
                     <span class="label">Discount:</span>
                     <span class="value" data-discount="0">-€0.00</span>
+                    <span class="bw-cart-coupon-label" style="display: none;">
+                        <span class="bw-cart-coupon-icon" aria-hidden="true"></span>
+                        <span class="bw-cart-coupon-code"></span>
+                    </span>
                 </div>
                 <div class="bw-cart-popup-total">
                     <span class="label">Total:</span>
@@ -551,6 +555,7 @@ function bw_cart_popup_get_cart_contents() {
     $tax = 0;
     $total = 0;
     $item_count = 0;
+    $applied_coupons = [];
 
     if (!$cart->is_empty()) {
         foreach ($cart->get_cart() as $cart_item_key => $cart_item) {
@@ -584,6 +589,7 @@ function bw_cart_popup_get_cart_contents() {
         $tax = $cart->get_total_tax();
         $total = $cart->get_total('');
         $item_count = $cart->get_cart_contents_count();
+        $applied_coupons = array_map('sanitize_text_field', $cart->get_applied_coupons());
     }
 
     // Ottieni i coupon applicati
@@ -592,6 +598,7 @@ function bw_cart_popup_get_cart_contents() {
     wp_send_json_success([
         'items' => $cart_items,
         'item_count' => $item_count,
+        'coupons' => $applied_coupons,
         'subtotal' => wc_price($subtotal),
         'subtotal_raw' => $subtotal,
         'discount' => wc_price($discount),

@@ -285,7 +285,7 @@
     height: 22px;
     padding: 0 6px;
     border-radius: 999px;
-    background: #3b1360;
+    background: #000000;
     color: #ffffff;
     font-size: 12px;
     font-weight: 700;
@@ -438,6 +438,27 @@
     font-size: 12px !important;
     color: inherit;
     padding: 0;
+}
+
+/* Coupon label pill */
+.bw-cart-coupon-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #000000;
+    color: #ffffff;
+    border-radius: 12px;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.bw-cart-coupon-label .bw-cart-coupon-icon::before {
+    content: "🏷️";
+    display: inline-block;
+    font-size: 13px;
+    line-height: 1;
 }
 
 /* Carrello vuoto (dentro lista prodotti) */

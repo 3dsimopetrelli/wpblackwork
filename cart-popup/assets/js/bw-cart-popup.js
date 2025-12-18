@@ -713,6 +713,19 @@
                 $('.bw-cart-popup-discount').hide();
             }
 
+            // Coupon label
+            const coupons = Array.isArray(data.coupons) ? data.coupons : [];
+            const $couponLabel = $('.bw-cart-coupon-label');
+            if (coupons.length && $couponLabel.length) {
+                $couponLabel.find('.bw-cart-coupon-code').text(coupons.join(', '));
+                $couponLabel.show();
+            } else if ($couponLabel.length) {
+                $couponLabel.hide();
+            }
+
+            // VAT
+            $('.bw-cart-popup-vat .value').html(data.tax).attr('data-tax', data.tax_raw);
+
             // Total
             $('.bw-cart-popup-total .value').html(data.total).attr('data-total', data.total_raw);
             this.updateCheckoutCta(data.total);
