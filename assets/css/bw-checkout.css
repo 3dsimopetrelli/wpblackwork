@@ -215,8 +215,13 @@ body.woocommerce-checkout .woocommerce > .woocommerce-info {
 
 /* Review items */
 .bw-review-item {
+    position: relative;
     border-bottom: 1px solid var(--bw-checkout-border-color, #e0e0e0);
-    padding: 20px 0 !important;
+    padding: 24px 0 !important;
+}
+
+.bw-review-item:first-child {
+    padding-top: 0 !important;
 }
 
 .bw-review-item:last-child {
@@ -228,8 +233,8 @@ body.woocommerce-checkout .woocommerce > .woocommerce-info {
 }
 
 .bw-review-item__media {
-    width: 80px;
-    height: 80px;
+    width: 100px;
+    height: 100px;
     overflow: hidden;
     border-radius: 8px;
     border: 1px solid var(--bw-checkout-border-color, #e0e0e0);
@@ -242,25 +247,28 @@ body.woocommerce-checkout .woocommerce > .woocommerce-info {
 }
 
 .bw-review-item__content {
-    padding-left: 16px;
+    padding-left: 20px;
+    position: relative;
 }
 
 .bw-review-item__header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 8px;
+    margin-bottom: 16px;
+    padding-right: 30px;
 }
 
 .bw-review-item__title {
     flex: 1;
     font-weight: 600;
-    font-size: 16px;
+    font-size: 17px;
     line-height: 1.4;
+    padding-right: 16px;
 }
 
 .bw-review-item__title a {
-    color: inherit;
+    color: #000;
     text-decoration: none;
 }
 
@@ -268,83 +276,90 @@ body.woocommerce-checkout .woocommerce > .woocommerce-info {
     text-decoration: underline;
 }
 
-.bw-review-item__remove {
-    font-size: 24px;
-    line-height: 1;
-    color: #999;
-    text-decoration: none;
-    padding: 0 0 0 12px;
-    cursor: pointer;
-}
-
-.bw-review-item__remove:hover {
-    color: #333;
-}
-
-.bw-review-item__meta {
-    font-size: 14px;
-    color: #666;
-    margin-bottom: 12px;
-}
-
-.bw-review-item__controls {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 12px;
-}
-
 .bw-review-item__price {
-    font-weight: 600;
-    font-size: 16px;
+    font-weight: 700;
+    font-size: 17px;
+    color: #000;
+    white-space: nowrap;
 }
 
-/* Quantity controls */
-.bw-qty-control {
-    display: inline-block;
-}
-
-.bw-qty-shell {
-    display: inline-flex;
-    align-items: center;
-    border: 1px solid var(--bw-checkout-border-color, #e0e0e0);
-    border-radius: 4px;
-    overflow: hidden;
-}
-
-.bw-qty-btn {
-    width: 32px;
-    height: 32px;
-    border: none;
-    background: #f5f5f5;
-    cursor: pointer;
-    font-size: 16px;
+.bw-review-item__remove {
+    position: absolute;
+    top: 0;
+    right: 0;
+    font-size: 28px;
     line-height: 1;
-    transition: background 0.2s;
+    color: #666;
+    text-decoration: none;
+    padding: 0;
+    cursor: pointer;
+    width: 24px;
+    height: 24px;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
+.bw-review-item__remove:hover {
+    color: #000;
+}
+
+.bw-review-item__controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Quantity controls */
+.bw-qty-control {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.bw-qty-shell {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid #d0d0d0;
+    border-radius: 20px;
+    overflow: hidden;
+    background: #fff;
+}
+
+.bw-qty-btn {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #333;
+}
+
 .bw-qty-btn:hover {
-    background: #e5e5e5;
+    background: #f5f5f5;
 }
 
 .bw-qty-btn:active {
-    background: #d5d5d5;
+    background: #e8e8e8;
 }
 
 .bw-qty-shell input.qty {
-    width: 50px;
-    height: 32px;
+    width: 40px;
+    height: 36px;
     border: none;
-    border-left: 1px solid var(--bw-checkout-border-color, #e0e0e0);
-    border-right: 1px solid var(--bw-checkout-border-color, #e0e0e0);
     text-align: center;
-    font-size: 14px;
+    font-size: 15px;
+    font-weight: 500;
     padding: 0;
     margin: 0;
     -moz-appearance: textfield;
+    background: transparent;
 }
 
 .bw-qty-shell input.qty::-webkit-outer-spin-button,
@@ -358,54 +373,84 @@ body.woocommerce-checkout .woocommerce > .woocommerce-info {
     color: #666;
 }
 
+.bw-qty-edit {
+    padding: 8px 16px;
+    background: transparent;
+    border: 1px solid #d0d0d0;
+    border-radius: 20px;
+    color: #333;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.bw-qty-edit:hover {
+    background: #f5f5f5;
+    border-color: #b0b0b0;
+}
+
 /* Coupon form */
 .bw-review-coupon {
-    padding: 20px 0;
+    padding: 24px 0;
     border-bottom: 1px solid var(--bw-checkout-border-color, #e0e0e0);
 }
 
 .bw-review-coupon .checkout_coupon {
     display: flex;
-    gap: 8px;
+    gap: 12px;
     margin: 0;
 }
 
 .bw-review-coupon .checkout_coupon p {
     margin: 0;
     display: flex;
-    gap: 8px;
+    gap: 12px;
     flex: 1;
 }
 
 .bw-review-coupon input[type="text"] {
     flex: 1;
-    padding: 10px 14px;
-    border: 1px solid var(--bw-checkout-border-color, #e0e0e0);
-    border-radius: 4px;
-    font-size: 14px;
+    padding: 14px 18px;
+    border: 1px solid #d0d0d0;
+    border-radius: 8px;
+    font-size: 15px;
+    background: #fff;
+    transition: border-color 0.2s;
+}
+
+.bw-review-coupon input[type="text"]:focus {
+    outline: none;
+    border-color: #999;
+}
+
+.bw-review-coupon input[type="text"]::placeholder {
+    color: #999;
 }
 
 .bw-review-coupon button[type="submit"] {
-    padding: 10px 20px;
-    background: #333;
+    padding: 14px 32px;
+    background: #d0d0d0;
     color: #fff;
     border: none;
-    border-radius: 4px;
+    border-radius: 8px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 15px;
+    font-weight: 600;
     white-space: nowrap;
     transition: background 0.2s;
 }
 
 .bw-review-coupon button[type="submit"]:hover {
-    background: #000;
+    background: #b8b8b8;
 }
 
 /* Totals rows */
 .bw-total-row th,
 .bw-total-row td {
-    padding: 12px 0 !important;
+    padding: 14px 0 !important;
     font-size: 15px;
+    color: #333;
 }
 
 .bw-total-row th {
@@ -415,23 +460,30 @@ body.woocommerce-checkout .woocommerce > .woocommerce-info {
 
 .bw-total-row td {
     text-align: right;
+    font-weight: 500;
 }
 
 .bw-total-row--subtotal {
     border-top: 1px solid var(--bw-checkout-border-color, #e0e0e0);
+    padding-top: 16px !important;
+}
+
+.bw-total-row--subtotal th,
+.bw-total-row--subtotal td {
+    padding-top: 16px !important;
 }
 
 .bw-total-row--grand {
-    border-top: 2px solid var(--bw-checkout-border-color, #e0e0e0);
-    font-size: 18px !important;
-    font-weight: 700 !important;
+    border-top: 2px solid #333;
+    margin-top: 8px;
 }
 
 .bw-total-row--grand th,
 .bw-total-row--grand td {
-    padding: 16px 0 !important;
-    font-size: 18px;
+    padding: 18px 0 4px 0 !important;
+    font-size: 20px;
     font-weight: 700;
+    color: #000;
 }
 
 .bw-total-row--coupon td {
@@ -452,26 +504,43 @@ body.woocommerce-checkout .woocommerce > .woocommerce-info {
         padding: 16px;
     }
 
+    .bw-review-item {
+        padding: 20px 0 !important;
+    }
+
     .bw-review-item__media {
-        width: 60px;
-        height: 60px;
+        width: 80px;
+        height: 80px;
     }
 
     .bw-review-item__content {
-        padding-left: 12px;
+        padding-left: 14px;
     }
 
     .bw-review-item__title {
-        font-size: 14px;
+        font-size: 15px;
     }
 
-    .bw-review-item__controls {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 12px;
+    .bw-review-item__price {
+        font-size: 15px;
+    }
+
+    .bw-review-item__header {
+        flex-wrap: wrap;
+        padding-right: 28px;
+    }
+
+    .bw-qty-control {
+        flex-wrap: wrap;
     }
 
     .bw-checkout-logo img {
         max-width: 150px;
+    }
+
+    .bw-review-coupon input[type="text"],
+    .bw-review-coupon button[type="submit"] {
+        padding: 12px 16px;
+        font-size: 14px;
     }
 }
