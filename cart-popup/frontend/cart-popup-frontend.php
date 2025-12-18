@@ -80,10 +80,9 @@ function bw_cart_popup_render_panel() {
 
     // Recupera le impostazioni
     $checkout_text = get_option('bw_cart_popup_checkout_text', 'Proceed to checkout');
-    // FORZATO: Usa sempre /checkout/ invece di wc_get_checkout_url()
-    // perché wc_get_checkout_url() potrebbe essere configurato male nelle impostazioni WooCommerce
-    $checkout_url = home_url('/checkout/');
-    $cart_url = wc_get_cart_url();
+    // Forza l'URL del pulsante principale verso il checkout standard di WooCommerce
+    // per garantire un comportamento coerente in ogni contesto.
+    $checkout_url = wc_get_checkout_url();
     $continue_text = get_option('bw_cart_popup_continue_text', 'Continue shopping');
     $continue_url = get_option('bw_cart_popup_continue_url', '');
     $additional_svg = get_option('bw_cart_popup_additional_svg', '');
@@ -551,6 +550,7 @@ function bw_cart_popup_get_cart_contents() {
     $discount = 0;
     $tax = 0;
     $total = 0;
+    $item_count = 0;
 
     if (!$cart->is_empty()) {
         foreach ($cart->get_cart() as $cart_item_key => $cart_item) {
@@ -576,6 +576,7 @@ function bw_cart_popup_get_cart_contents() {
         $discount = $cart->get_discount_total();
         $tax = $cart->get_total_tax();
         $total = $cart->get_total('');
+        $item_count = $cart->get_cart_contents_count();
     }
 
     // Ottieni i coupon applicati
@@ -583,6 +584,7 @@ function bw_cart_popup_get_cart_contents() {
 
     wp_send_json_success([
         'items' => $cart_items,
+        'item_count' => $item_count,
         'subtotal' => wc_price($subtotal),
         'subtotal_raw' => $subtotal,
         'discount' => wc_price($discount),
