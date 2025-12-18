@@ -593,7 +593,7 @@ function bw_cart_popup_get_cart_contents() {
         $tax = $cart->get_total_tax();
         $total = $cart->get_total('');
         $item_count = $cart->get_cart_contents_count();
-        $applied_coupons = array_map('sanitize_text_field', $cart->get_applied_coupons());
+        $applied_coupons = array_map('sanitize_text_field', array_values(array_unique($cart->get_applied_coupons())));
     }
 
     // Ottieni i coupon applicati
@@ -649,7 +649,7 @@ function bw_cart_popup_apply_coupon() {
         $discount = $cart->get_discount_total();
         $tax = $cart->get_total_tax();
         $total = $cart->get_total('');
-        $applied_coupons = $cart->get_applied_coupons();
+        $applied_coupons = array_map('sanitize_text_field', array_values(array_unique($cart->get_applied_coupons())));
 
         wp_send_json_success([
             'message' => 'Coupon applied successfully!',
@@ -661,7 +661,7 @@ function bw_cart_popup_apply_coupon() {
             'tax_raw' => $tax,
             'total' => wc_price($total),
             'total_raw' => $total,
-            'applied_coupons' => $applied_coupons,
+            'coupons' => $applied_coupons,
         ]);
     } else {
         $message = bw_cart_popup_get_first_error_notice( __( 'Invalid coupon code', 'bw' ) );

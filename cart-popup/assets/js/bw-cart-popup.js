@@ -715,12 +715,16 @@
 
             // Coupon label
             const coupons = Array.isArray(data.coupons) ? data.coupons : [];
-            const $couponLabel = $('.bw-cart-coupon-label');
-            if (coupons.length && $couponLabel.length) {
-                $couponLabel.find('.bw-cart-coupon-code').text(coupons.join(', '));
-                $couponLabel.show();
-            } else if ($couponLabel.length) {
-                $couponLabel.hide();
+            const couponCode = coupons.length ? coupons[0] : '';
+            const $couponLabel = $('.bw-cart-coupon-label').first();
+            if ($couponLabel.length) {
+                if (couponCode) {
+                    $couponLabel.find('.bw-cart-coupon-code').text(couponCode);
+                    $couponLabel.show();
+                } else {
+                    $couponLabel.hide();
+                    $couponLabel.find('.bw-cart-coupon-code').text('');
+                }
             }
 
             // VAT
