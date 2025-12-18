@@ -452,6 +452,7 @@
     font-size: 12px;
     font-weight: 600;
     line-height: 1;
+    order: 2;
 }
 
 .bw-cart-coupon-label .bw-cart-coupon-icon::before {
@@ -680,8 +681,20 @@
 }
 
 /* Discount */
+.bw-cart-popup-discount {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.bw-cart-popup-discount .label {
+    font-weight: 500;
+}
+
 .bw-cart-popup-discount .value {
     color: #28a745; /* Verde per sconto */
+    margin-left: auto;
+    order: 3;
 }
 
 /* Total (più grande e evidenziato) */

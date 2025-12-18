@@ -182,6 +182,10 @@ function bw_cart_popup_render_panel() {
                 </div>
                 <div class="bw-cart-popup-discount" style="display: none;">
                     <span class="label">Discount:</span>
+                    <span class="bw-cart-coupon-label" style="display: none;">
+                        <span class="bw-cart-coupon-icon" aria-hidden="true"></span>
+                        <span class="bw-cart-coupon-code"></span>
+                    </span>
                     <span class="value" data-discount="0">-€0.00</span>
                     <span class="bw-cart-coupon-label" style="display: none;">
                         <span class="bw-cart-coupon-icon" aria-hidden="true"></span>
