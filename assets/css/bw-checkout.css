@@ -19,6 +19,16 @@ body.woocommerce-checkout .woocommerce > .woocommerce-info {
     display: none !important;
 }
 
+/* Force coupon form to be visible in order summary */
+.bw-review-coupon .checkout_coupon,
+.bw-review-coupon .woocommerce-form-coupon {
+    display: flex !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    height: auto !important;
+    overflow: visible !important;
+}
+
 /* Reset base spacing */
 .bw-checkout-wrapper {
     max-width: 1400px;
@@ -127,19 +137,34 @@ body.woocommerce-checkout .woocommerce > .woocommerce-info {
 /* Clean table styling for order review */
 .bw-checkout-right table.shop_table {
     border: none;
-    background: transparent;
+    background: #fff !important;
     margin: 0;
     width: 100%;
+}
+
+.bw-checkout-right table.shop_table tbody,
+.bw-checkout-right table.shop_table tfoot {
+    background: #fff !important;
 }
 
 .bw-checkout-right table.shop_table th,
 .bw-checkout-right table.shop_table td {
     border: none;
     padding: 12px 0;
+    background: #fff !important;
+}
+
+.bw-checkout-right table.shop_table tr {
+    background: #fff !important;
 }
 
 .bw-checkout-right .woocommerce-checkout-review-order-table {
     margin: 0;
+    background: #fff !important;
+}
+
+.bw-order-summary {
+    background: #fff !important;
 }
 
 /* Logo styling */
@@ -218,6 +243,7 @@ body.woocommerce-checkout .woocommerce > .woocommerce-info {
     position: relative;
     border-bottom: 1px solid var(--bw-checkout-border-color, #e0e0e0);
     padding: 24px 0 !important;
+    background: #fff !important;
 }
 
 .bw-review-item:first-child {
@@ -230,20 +256,25 @@ body.woocommerce-checkout .woocommerce > .woocommerce-info {
 
 .bw-review-item td {
     vertical-align: top;
+    background: #fff !important;
 }
 
 .bw-review-item__media {
-    width: 100px;
-    height: 100px;
+    width: 120px;
+    height: auto;
     overflow: hidden;
-    border-radius: 8px;
+    border-radius: 12px;
     border: 1px solid var(--bw-checkout-border-color, #e0e0e0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .bw-review-item__media img {
     width: 100%;
-    height: 100%;
-    object-fit: cover;
+    height: auto;
+    object-fit: contain;
+    display: block;
 }
 
 .bw-review-item__content {
@@ -253,18 +284,19 @@ body.woocommerce-checkout .woocommerce > .woocommerce-info {
 
 .bw-review-item__header {
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
     align-items: flex-start;
     margin-bottom: 16px;
-    padding-right: 30px;
+    padding-right: 36px;
+    position: relative;
 }
 
 .bw-review-item__title {
-    flex: 1;
+    width: 100%;
     font-weight: 600;
     font-size: 17px;
     line-height: 1.4;
-    padding-right: 16px;
+    margin-bottom: 8px;
 }
 
 .bw-review-item__title a {
@@ -287,21 +319,25 @@ body.woocommerce-checkout .woocommerce > .woocommerce-info {
     position: absolute;
     top: 0;
     right: 0;
-    font-size: 28px;
+    font-size: 24px;
     line-height: 1;
-    color: #666;
+    color: #000;
     text-decoration: none;
     padding: 0;
     cursor: pointer;
-    width: 24px;
-    height: 24px;
+    width: 28px;
+    height: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s;
+    background: transparent;
 }
 
 .bw-review-item__remove:hover {
-    color: #000;
+    background: #000;
+    color: #fff;
 }
 
 .bw-review-item__controls {
@@ -320,46 +356,55 @@ body.woocommerce-checkout .woocommerce > .woocommerce-info {
 .bw-qty-shell {
     display: inline-flex;
     align-items: center;
-    border: 1px solid #d0d0d0;
-    border-radius: 20px;
-    overflow: hidden;
-    background: #fff;
+    border: none;
+    border-radius: 50px;
+    overflow: visible;
+    background: transparent;
+    gap: 0;
 }
 
 .bw-qty-btn {
-    width: 36px;
-    height: 36px;
-    border: none;
-    background: transparent;
+    width: 48px !important;
+    height: 48px !important;
+    border: none !important;
+    background: #c4ff0d !important;
     cursor: pointer;
-    font-size: 18px;
-    line-height: 1;
-    transition: background 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #333;
+    font-size: 24px !important;
+    font-weight: bold !important;
+    line-height: 1 !important;
+    transition: all 0.2s;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #000 !important;
+    border-radius: 50% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
 }
 
 .bw-qty-btn:hover {
-    background: #f5f5f5;
+    background: #b3e600 !important;
+    transform: scale(1.05);
 }
 
 .bw-qty-btn:active {
-    background: #e8e8e8;
+    background: #9fcc00 !important;
+    transform: scale(0.95);
 }
 
 .bw-qty-shell input.qty {
-    width: 40px;
-    height: 36px;
-    border: none;
-    text-align: center;
-    font-size: 15px;
-    font-weight: 500;
-    padding: 0;
-    margin: 0;
-    -moz-appearance: textfield;
-    background: transparent;
+    width: 50px !important;
+    height: 48px !important;
+    border: none !important;
+    text-align: center !important;
+    font-size: 16px !important;
+    font-weight: 500 !important;
+    padding: 0 8px !important;
+    margin: 0 !important;
+    -moz-appearance: textfield !important;
+    background: transparent !important;
+    color: #000 !important;
 }
 
 .bw-qty-shell input.qty::-webkit-outer-spin-button,
@@ -371,23 +416,6 @@ body.woocommerce-checkout .woocommerce > .woocommerce-info {
 .bw-qty-static {
     font-size: 14px;
     color: #666;
-}
-
-.bw-qty-edit {
-    padding: 8px 16px;
-    background: transparent;
-    border: 1px solid #d0d0d0;
-    border-radius: 20px;
-    color: #333;
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: 500;
-    transition: all 0.2s;
-}
-
-.bw-qty-edit:hover {
-    background: #f5f5f5;
-    border-color: #b0b0b0;
 }
 
 /* Coupon form */
@@ -509,8 +537,8 @@ body.woocommerce-checkout .woocommerce > .woocommerce-info {
     }
 
     .bw-review-item__media {
-        width: 80px;
-        height: 80px;
+        width: 90px;
+        height: auto;
     }
 
     .bw-review-item__content {
@@ -526,12 +554,23 @@ body.woocommerce-checkout .woocommerce > .woocommerce-info {
     }
 
     .bw-review-item__header {
-        flex-wrap: wrap;
-        padding-right: 28px;
+        padding-right: 32px;
     }
 
     .bw-qty-control {
         flex-wrap: wrap;
+    }
+
+    .bw-qty-btn {
+        width: 40px !important;
+        height: 40px !important;
+        font-size: 20px !important;
+    }
+
+    .bw-qty-shell input.qty {
+        width: 40px !important;
+        height: 40px !important;
+        font-size: 14px !important;
     }
 
     .bw-checkout-logo img {
