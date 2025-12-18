@@ -383,6 +383,9 @@ function bw_cart_popup_save_settings() {
     $continue_padding_left = isset($_POST['bw_cart_popup_continue_padding_left']) ? intval($_POST['bw_cart_popup_continue_padding_left']) : 20;
     update_option('bw_cart_popup_continue_padding_left', $continue_padding_left);
 
+    // Quantity badge toggle
+    update_option('bw_cart_popup_show_quantity_badge', isset($_POST['bw_cart_popup_show_quantity_badge']) ? 1 : 0);
+
     // === PROMO CODE SECTION ===
     // Promo code section label
     $promo_section_label = isset($_POST['bw_cart_popup_promo_section_label']) ? sanitize_text_field($_POST['bw_cart_popup_promo_section_label']) : 'Promo code section';
@@ -494,6 +497,7 @@ function bw_cart_popup_settings_page() {
 
     // Empty cart settings
     $return_shop_url = get_option('bw_cart_popup_return_shop_url', '');
+    $show_quantity_badge = get_option('bw_cart_popup_show_quantity_badge', 1);
 
     // Promo code section settings
     $promo_section_label = get_option('bw_cart_popup_promo_section_label', 'Promo code section');
@@ -585,6 +589,19 @@ function bw_cart_popup_settings_page() {
                     <td>
                         <input type="color" id="bw_cart_popup_panel_bg" name="bw_cart_popup_panel_bg" value="<?php echo esc_attr($panel_bg); ?>" />
                         <p class="description">Colore di sfondo del pannello slide-in</p>
+                    </td>
+                </tr>
+
+                <!-- Badge quantità -->
+                <tr>
+                    <th scope="row">
+                        <label for="bw_cart_popup_show_quantity_badge">Mostra badge quantità (thumbnail)</label>
+                    </th>
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox" id="bw_cart_popup_show_quantity_badge" name="bw_cart_popup_show_quantity_badge" value="1" <?php checked(1, $show_quantity_badge); ?> />
+                            <span class="description">Attiva/disattiva il pallino con il numero di pezzi sopra l’immagine prodotto nel cart pop-up.</span>
+                        </label>
                     </td>
                 </tr>
 
