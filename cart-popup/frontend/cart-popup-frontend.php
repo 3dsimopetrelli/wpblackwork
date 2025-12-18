@@ -558,6 +558,9 @@ function bw_cart_popup_get_cart_contents() {
             $product_id = $cart_item['product_id'];
             $quantity = $cart_item['quantity'];
 
+            $price_display = wc_get_price_to_display($product, ['qty' => $quantity]);
+            $regular_price_display = wc_get_price_to_display($product, ['qty' => $quantity, 'price' => $product->get_regular_price()]);
+
             $cart_items[] = [
                 'key' => $cart_item_key,
                 'product_id' => $product_id,
@@ -567,7 +570,10 @@ function bw_cart_popup_get_cart_contents() {
                 'price_raw' => (float) $product->get_price(),
                 'regular_price' => wc_price($product->get_regular_price()),
                 'regular_price_raw' => (float) $product->get_regular_price(),
-                'subtotal' => wc_price($cart_item['line_subtotal']),
+                'subtotal' => wc_price($price_display),
+                'subtotal_raw' => (float) $price_display,
+                'regular_subtotal' => wc_price($regular_price_display),
+                'regular_subtotal_raw' => (float) $regular_price_display,
                 'image' => $product->get_image('thumbnail'),
                 'permalink' => $product->get_permalink(),
             ];

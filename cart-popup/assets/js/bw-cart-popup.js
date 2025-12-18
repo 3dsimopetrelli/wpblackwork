@@ -627,14 +627,15 @@
                 const quantity = Number.isNaN(parsedQuantity) || parsedQuantity < 1 ? 1 : parsedQuantity;
                 totalQuantity += quantity;
 
-                const hasDiscount = item.regular_price_raw && item.regular_price_raw > item.price_raw;
+                const hasDiscount = item.regular_subtotal_raw && item.regular_subtotal_raw > item.subtotal_raw;
+                const showBadge = bwCartPopupConfig.settings.show_quantity_badge !== 0 && bwCartPopupConfig.settings.show_quantity_badge !== '0';
 
                 html += `
                     <div class="bw-cart-item" data-cart-item-key="${item.key}">
                         <div class="bw-cart-item-main">
                             <div class="bw-cart-item-image">
                                 ${item.image}
-                                <span class="bw-cart-item-quantity-badge" aria-label="Quantity in cart">${quantity}</span>
+                                ${showBadge ? `<span class="bw-cart-item-quantity-badge" aria-label="Quantity in cart">${quantity}</span>` : ''}
                             </div>
                             <div class="bw-cart-item-body">
                                 <div class="bw-cart-item-header">
@@ -642,8 +643,8 @@
                                         <a href="${item.permalink}">${item.name}</a>
                                     </h4>
                                     <div class="bw-cart-item-price-block">
-                                        ${hasDiscount ? `<span class="bw-cart-item-price-original">${item.regular_price}</span>` : ''}
-                                        <span class="bw-cart-item-price-current">${item.price}</span>
+                                        ${hasDiscount ? `<span class="bw-cart-item-price-original">${item.regular_subtotal}</span>` : ''}
+                                        <span class="bw-cart-item-price-current">${item.subtotal}</span>
                                     </div>
                                 </div>
                                 <div class="bw-cart-item-actions">

@@ -82,6 +82,7 @@ function bw_cart_popup_register_assets() {
         'checkout_btn_color' => get_option('bw_cart_popup_checkout_color', '#28a745'),
         'continue_btn_text' => get_option('bw_cart_popup_continue_text', 'Continue shopping'),
         'continue_btn_color' => get_option('bw_cart_popup_continue_color', '#6c757d'),
+        'show_quantity_badge' => get_option('bw_cart_popup_show_quantity_badge', 1),
     ];
 
     $wc_ajax_url = admin_url('admin-ajax.php');
