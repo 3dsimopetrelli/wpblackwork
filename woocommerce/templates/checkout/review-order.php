@@ -41,7 +41,6 @@ $cart_items = WC()->cart->get_cart();
                                 <div class="bw-review-item__title">
                                     <?php echo wp_kses_post( apply_filters( 'woocommerce_cart_item_name', $product_permalink ? sprintf( '<a href="%s">%s</a>', esc_url( $product_permalink ), $product->get_name() ) : $product->get_name(), $cart_item, $cart_item_key ) ); ?>
                                 </div>
-                                <div class="bw-review-item__price"><?php echo wp_kses_post( apply_filters( 'woocommerce_cart_item_subtotal', WC()->cart->get_product_subtotal( $product, $cart_item['quantity'] ), $cart_item, $cart_item_key ) ); ?></div>
                                 <?php
                                 $remove_link = apply_filters(
                                     'woocommerce_cart_item_remove_link',
@@ -57,6 +56,7 @@ $cart_items = WC()->cart->get_cart();
                                 );
                                 echo $remove_link; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
                                 ?>
+                                <div class="bw-review-item__price"><?php echo wp_kses_post( apply_filters( 'woocommerce_cart_item_subtotal', WC()->cart->get_product_subtotal( $product, $cart_item['quantity'] ), $cart_item, $cart_item_key ) ); ?></div>
                             </div>
 
                             <div class="bw-review-item__controls">
@@ -85,9 +85,6 @@ $cart_items = WC()->cart->get_cart();
                                         );
                                         echo '<button type="button" class="bw-qty-btn bw-qty-btn--plus" aria-label="' . esc_attr__( 'Increase quantity', 'woocommerce' ) . '">+</button>';
                                         echo '</div>';
-                                        if ( $product_permalink ) {
-                                            echo '<a href="' . esc_url( $product_permalink ) . '" class="bw-qty-edit">' . esc_html__( 'Edit', 'woocommerce' ) . '</a>';
-                                        }
                                     }
                                     ?>
                                 </div>
