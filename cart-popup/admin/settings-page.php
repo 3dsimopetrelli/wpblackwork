@@ -591,15 +591,15 @@ function bw_cart_popup_settings_page() {
                     </td>
                 </tr>
 
-                <!-- Quantity badge toggle -->
+                <!-- Badge quantità -->
                 <tr>
                     <th scope="row">
-                        <label for="bw_cart_popup_show_quantity_badge">Mostra badge quantità sul thumbnail</label>
+                        <label for="bw_cart_popup_show_quantity_badge">Mostra badge quantità (thumbnail)</label>
                     </th>
                     <td>
                         <label class="switch">
                             <input type="checkbox" id="bw_cart_popup_show_quantity_badge" name="bw_cart_popup_show_quantity_badge" value="1" <?php checked(1, $show_quantity_badge); ?> />
-                            <span class="description">Abilita/disabilita il pallino con la quantità sopra l'immagine prodotto nel cart pop-up.</span>
+                            <span class="description">Attiva/disattiva il pallino con il numero di pezzi sopra l’immagine prodotto nel cart pop-up.</span>
                         </label>
                     </td>
                 </tr>
