@@ -438,6 +438,20 @@
     text-decoration-color: #000000;
 }
 
+.bw-sold-individually-label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #dadada;
+    color: #000000;
+    border-radius: 8px;
+    padding: 4px 8px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
 /* Reset eventuali stili Elementor sui controlli inline del mini-cart */
 .bw-cart-popup-panel .bw-qty-btn,
 .bw-cart-popup-panel .bw-cart-item-remove {

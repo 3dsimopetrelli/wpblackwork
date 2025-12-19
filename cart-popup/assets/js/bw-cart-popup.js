@@ -629,6 +629,21 @@
 
                 const hasDiscount = item.regular_subtotal_raw && item.regular_subtotal_raw > item.subtotal_raw;
                 const showBadge = bwCartPopupConfig.settings.show_quantity_badge !== 0 && bwCartPopupConfig.settings.show_quantity_badge !== '0';
+                const isSoldIndividually = item.sold_individually === true || item.sold_individually === '1' || item.sold_individually === 1;
+
+                const actionsMarkup = isSoldIndividually
+                    ? `<div class="bw-cart-item-actions">
+                            <span class="bw-sold-individually-label" aria-label="Sold individually">Sold individually</span>
+                            <button class="bw-cart-item-remove bw-cart-item-remove-text" data-cart-item-key="${item.key}" aria-label="Remove item">Remove</button>
+                       </div>`
+                    : `<div class="bw-cart-item-actions">
+                            <div class="bw-qty-stepper bw-qty-stepper-framed" data-cart-item-key="${item.key}">
+                                <button class="bw-qty-btn" data-delta="-1" aria-label="Decrease quantity">-</button>
+                                <span class="bw-qty-value" aria-live="polite">${quantity}</span>
+                                <button class="bw-qty-btn" data-delta="1" aria-label="Increase quantity">+</button>
+                            </div>
+                            <button class="bw-cart-item-remove bw-cart-item-remove-text" data-cart-item-key="${item.key}" aria-label="Remove item">Remove</button>
+                       </div>`;
 
                 html += `
                     <div class="bw-cart-item" data-cart-item-key="${item.key}">
@@ -643,14 +658,7 @@
                                         <h4 class="bw-cart-item-name">
                                             <a href="${item.permalink}">${item.name}</a>
                                         </h4>
-                                        <div class="bw-cart-item-actions">
-                                            <div class="bw-qty-stepper bw-qty-stepper-framed" data-cart-item-key="${item.key}">
-                                                <button class="bw-qty-btn" data-delta="-1" aria-label="Decrease quantity">-</button>
-                                                <span class="bw-qty-value" aria-live="polite">${quantity}</span>
-                                                <button class="bw-qty-btn" data-delta="1" aria-label="Increase quantity">+</button>
-                                            </div>
-                                            <button class="bw-cart-item-remove bw-cart-item-remove-text" data-cart-item-key="${item.key}" aria-label="Remove item">Remove</button>
-                                        </div>
+                                        ${actionsMarkup}
                                     </div>
                                     <div class="bw-cart-item-price-block">
                                         ${hasDiscount ? `<span class="bw-cart-item-price-original">${item.regular_subtotal}</span>` : ''}

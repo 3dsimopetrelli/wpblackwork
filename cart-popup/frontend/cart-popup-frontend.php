@@ -575,6 +575,7 @@ function bw_cart_popup_get_cart_contents() {
                 'product_id' => $product_id,
                 'name' => $product->get_name(),
                 'quantity' => $quantity,
+                'sold_individually' => (bool) $product->is_sold_individually(),
                 'price' => wc_price($product->get_price()),
                 'price_raw' => (float) $product->get_price(),
                 'regular_price' => wc_price($product->get_regular_price()),
