@@ -460,9 +460,10 @@
 .bw-cart-popup-panel .bw-cart-item .bw-qty-stepper-framed {
     border: 1px solid #000000 !important;
     border-radius: 8px !important;
-    padding: 4px 10px !important;
+    padding: 0px 10px !important;
     background: transparent !important;
     box-shadow: none !important;
+    margin-top: 8px;
 }
 
 /* Coupon label pill */
