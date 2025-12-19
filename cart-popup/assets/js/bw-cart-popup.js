@@ -22,6 +22,8 @@
         $promoBox: null,
         $promoTrigger: null,
         $promoMessage: null,
+        $promoRemoveWrapper: null,
+        $promoRemoveLink: null,
         $closeBtn: null,
         $continueBtn: null,
         $cartBadge: null,
@@ -34,6 +36,8 @@
         isOpen: false,
         isLoading: false,
         lastAddedButton: null,
+        cartItems: [],
+        appliedCoupons: [],
 
         /**
          * Inizializzazione
@@ -49,6 +53,8 @@
             this.$promoBox = $('.bw-cart-popup-promo-box');
             this.$promoTrigger = $('.bw-promo-link');
             this.$promoMessage = $('.bw-promo-message');
+            this.$promoRemoveWrapper = $('.bw-promo-remove-wrapper');
+            this.$promoRemoveLink = $('.bw-promo-remove-link');
             this.$closeBtn = $('.bw-cart-popup-close');
             this.$continueBtn = $('.bw-cart-popup-continue');
             this.$cartBadge = $('.bw-cart-badge');
@@ -59,6 +65,9 @@
 
             // Bind eventi
             this.bindEvents();
+
+            // Garantisce che l'anchor del checkout punti sempre alla URL WooCommerce corretta
+            this.ensureCheckoutLink();
 
             // Registra listener per evento WooCommerce 'added_to_cart'
             // IMPORTANTE: Questo deve essere sempre registrato per supportare sia
@@ -100,6 +109,16 @@
                 self.closePanel();
             });
 
+            // Forza sempre il redirect verso la pagina checkout quando si clicca sul pulsante verde
+            $(document).on('click', '.bw-cart-popup-checkout', function(e) {
+                const checkoutUrl = (bwCartPopupConfig && bwCartPopupConfig.checkoutUrl) || $(this).attr('href');
+
+                if (checkoutUrl) {
+                    e.preventDefault();
+                    window.location.href = checkoutUrl;
+                }
+            });
+
             // Toggle promo code box
             this.$promoTrigger.on('click', function(e) {
                 e.preventDefault();
@@ -118,6 +137,12 @@
                     e.preventDefault();
                     self.applyCoupon();
                 }
+            });
+
+            // Rimuovi coupon
+            this.$promoRemoveLink.on('click', function(e) {
+                e.preventDefault();
+                self.removeCoupon();
             });
 
             // Rimuovi prodotto dal carrello
@@ -155,6 +180,49 @@
         },
 
         /**
+         * Recupera l'URL di checkout seguendo le API WooCommerce e i fallback HTML
+         */
+        getCheckoutUrl: function() {
+            const config = (typeof bwCartPopupConfig !== 'undefined') ? bwCartPopupConfig : {};
+            const $button = $('.bw-cart-popup-checkout');
+
+            const checkoutFromConfig = config.checkoutUrl;
+            const checkoutFromData = $button.data('checkout-url');
+            const checkoutFromHref = $button.attr('href');
+            const cartFallback = config.cartUrl || $button.data('cart-url');
+
+            if (checkoutFromConfig) {
+                return checkoutFromConfig;
+            }
+
+            if (checkoutFromData) {
+                return checkoutFromData;
+            }
+
+            if (checkoutFromHref) {
+                return checkoutFromHref;
+            }
+
+            return cartFallback || null;
+        },
+
+        /**
+         * Aggiorna l'anchor del checkout con l'URL corretto da WooCommerce
+         * FORZA SEMPRE l'uso di wc_get_checkout_url() ignorando qualsiasi valore presente nell'HTML
+         */
+        ensureCheckoutLink: function() {
+            // Usa SEMPRE il checkout URL da WooCommerce passato dal PHP
+            const checkoutUrl = (bwCartPopupConfig && bwCartPopupConfig.checkoutUrl) || '/checkout/';
+
+            // FORZA il checkout URL sul pulsante, sovrascrivendo qualsiasi valore errato
+            $('.bw-cart-popup-checkout')
+                .attr('href', checkoutUrl)
+                .data('checkout-url', checkoutUrl);
+
+            console.log('Checkout button forced to:', checkoutUrl);
+        },
+
+        /**
          * Registra listener per evento WooCommerce 'added_to_cart'
          * Questo listener viene sempre registrato per garantire che il cart popup
          * si apra quando un prodotto viene aggiunto al carrello
@@ -181,10 +249,16 @@
                 // - L'opzione slide_animation è attiva (pulsanti globali), OPPURE
                 // - Il pulsante è un widget con l'opzione cart popup attiva
                 if (bwCartPopupConfig.settings.slide_animation || isWidgetWithPopup) {
+                    if (typeof self.closeErrorModal === 'function') {
+                        self.closeErrorModal();
+                    }
                     self.openPanel();
 
                     // Mostra la notifica verde "Your item has been added to the cart"
                     self.showAddedNotification();
+
+                    // Aggiorna eventuali href del checkout in caso di markup rimpiazzato da frammenti WooCommerce
+                    self.ensureCheckoutLink();
 
                     console.log('Product added to cart, opening cart popup');
                 }
@@ -294,6 +368,8 @@
 
             // Prepara i dati per la chiamata AJAX
             const ajaxData = {
+                action: 'bw_cart_popup_add_to_cart',
+                nonce: bwCartPopupConfig.nonce,
                 product_id: productId,
                 quantity: quantity
             };
@@ -304,23 +380,41 @@
             }
 
             $.ajax({
-                url: bwCartPopupConfig.wc_ajax_url.replace('%%endpoint%%', 'add_to_cart'),
+                url: bwCartPopupConfig.ajaxUrl,
                 type: 'POST',
                 data: ajaxData,
                 success: function(response) {
-                    if (response.error && response.product_url) {
-                        window.location = response.product_url;
+                    const payload = response && response.data ? response.data : response;
+
+                    if (payload && payload.status === 'already_in_cart') {
+                        $button.removeClass('loading');
+                        self.showAlreadyInCartModal(payload.message, payload.cart_url);
                         return;
                     }
 
-                    // Trigger evento WooCommerce per aggiornare i fragments
-                    $(document.body).trigger('added_to_cart', [response.fragments, response.cart_hash, $button]);
+                    if (response && response.success === false) {
+                        const message = payload && payload.message ? payload.message : 'Unable to add product to cart. Please try again.';
+                        $button.removeClass('loading');
+                        self.showErrorModal(message);
+                        return;
+                    }
+
+                    if (payload && payload.fragments) {
+                        $(document.body).trigger('added_to_cart', [payload.fragments, payload.cart_hash, $button]);
+                        $button.removeClass('loading');
+                        return;
+                    }
 
                     $button.removeClass('loading');
+                    self.showErrorModal('Unable to add product to cart. Please try again.');
                 },
-                error: function() {
-                    console.error('Error adding product to cart');
+                error: function(xhr, status, errorThrown) {
+                    console.error('Error adding product to cart:', status, errorThrown);
                     $button.removeClass('loading');
+
+                    // Mostra messaggio di errore generico
+                    const errorMessage = 'Unable to add product to cart. Please try again.';
+                    self.showErrorModal(errorMessage);
                 }
             });
         },
@@ -350,6 +444,9 @@
 
             this.isOpen = true;
             this.isLoading = true;
+
+            // FORZA il checkout URL corretto prima di aprire il popup
+            this.ensureCheckoutLink();
 
             // Aggiungi classe active per animazione
             this.$overlay.addClass('active');
@@ -405,51 +502,104 @@
         },
 
         /**
-         * Carica il contenuto del carrello
-         * @param {boolean} skipLoading - Se true, non mostra il loading state
+         * Recupera i dati del carrello con opzioni di rendering
+         * @param {Object} options
+         * @param {boolean} options.render - Se true, aggiorna il DOM con i dati ricevuti
+         * @param {boolean} options.skipLoading - Se true, non mostra il loading state
+         * @returns {Promise}
          */
-        loadCartContents: function(skipLoading) {
+        fetchCartData: function(options) {
             const self = this;
+            const opts = Object.assign({ render: true, skipLoading: false }, options);
 
-            // Mostra loading state solo se non è richiesto di saltarlo
-            if (!skipLoading) {
+            if (!opts.skipLoading) {
                 this.showLoading();
             }
 
-            $.ajax({
+            return $.ajax({
                 url: bwCartPopupConfig.ajaxUrl,
                 type: 'POST',
                 data: {
                     action: 'bw_cart_popup_get_contents',
                     nonce: bwCartPopupConfig.nonce
-                },
-                success: function(response) {
-                    if (response.success) {
-                        self.renderCartItems(response.data);
-                        self.updateTotals(response.data);
-                        self.isLoading = false;
+                }
+            })
+                .done(function(response) {
+                    if (response && response.success) {
+                        self.cartItems = (response.data && response.data.items) ? response.data.items : [];
 
-                        // Nascondi loading con un leggero delay per evitare flickering
-                        if (!skipLoading) {
-                            setTimeout(function() {
-                                self.hideLoading();
-                            }, 200);
+                        if (opts.render) {
+                            self.renderCartItems(response.data);
+                            self.updateTotals(response.data);
+                            self.updateCouponDisplay(response.data.applied_coupons || []);
                         }
                     } else {
                         console.error('Failed to load cart contents');
-                        self.isLoading = false;
-                        if (!skipLoading) {
-                            self.hideLoading();
-                        }
                     }
-                },
-                error: function() {
+                })
+                .fail(function() {
                     console.error('AJAX error loading cart contents');
+                })
+                .always(function() {
                     self.isLoading = false;
-                    if (!skipLoading) {
-                        self.hideLoading();
+
+                    if (!opts.skipLoading) {
+                        // Nascondi loading con un leggero delay per evitare flickering
+                        setTimeout(function() {
+                            self.hideLoading();
+                        }, opts.render ? 200 : 0);
                     }
-                }
+                });
+        },
+
+        /**
+         * Carica il contenuto del carrello
+         * @param {boolean} skipLoading - Se true, non mostra il loading state
+         */
+        loadCartContents: function(skipLoading) {
+            return this.fetchCartData({ render: true, skipLoading: !!skipLoading });
+        },
+
+        /**
+         * Garantisce un elenco aggiornato di prodotti nel carrello
+         * @param {boolean} forceRefresh - Se true, forza una chiamata AJAX anche se è presente una cache
+         * @returns {Promise<Array>}
+         */
+        ensureCartItems: function(forceRefresh) {
+            const self = this;
+            const shouldRefresh = forceRefresh || !Array.isArray(self.cartItems);
+
+            if (!shouldRefresh && self.cartItems.length > 0) {
+                return $.Deferred().resolve(self.cartItems).promise();
+            }
+
+            return self.fetchCartData({ render: false, skipLoading: true })
+                .then(function() {
+                    return self.cartItems || [];
+                }, function() {
+                    return [];
+                });
+        },
+
+        /**
+         * Verifica se un prodotto/variazione è già presente nel carrello
+         * @param {number} productId
+         * @param {number} variationId
+         * @returns {boolean}
+         */
+        hasCartVariation: function(productId, variationId) {
+            if (!Array.isArray(this.cartItems)) {
+                return false;
+            }
+
+            const targetProduct = parseInt(productId, 10);
+            const targetVariation = parseInt(variationId, 10);
+
+            return this.cartItems.some(function(item) {
+                const itemProductId = parseInt(item.product_id, 10);
+                const itemVariationId = parseInt(item.variation_id || 0, 10);
+
+                return itemProductId === targetProduct && itemVariationId === targetVariation;
             });
         },
 
@@ -457,6 +607,8 @@
          * Renderizza i prodotti nel carrello
          */
         renderCartItems: function(data) {
+            this.cartItems = (data && Array.isArray(data.items)) ? data.items : [];
+
             // Se il carrello è vuoto, mostra il layout vuoto
             if (data.empty || !data.items || data.items.length === 0) {
                 this.showEmptyState();
@@ -528,6 +680,8 @@
          * Mostra lo stato carrello vuoto
          */
         showEmptyState: function() {
+            this.cartItems = [];
+
             // Nascondi contenuto pieno e footer
             this.$fullContent.hide();
             this.$footer.hide();
@@ -631,6 +785,7 @@
                     if (response.success) {
                         self.showPromoMessage(response.data.message, 'success');
                         self.updateTotals(response.data);
+                        self.updateCouponDisplay(response.data.applied_coupons || []);
                         $('.bw-promo-input').val('');
                     } else {
                         self.showPromoMessage(response.data.message, 'error');
@@ -641,6 +796,58 @@
                 error: function() {
                     self.showPromoMessage('Error applying coupon', 'error');
                     $applyBtn.prop('disabled', false).text('Apply');
+                }
+            });
+        },
+
+        /**
+         * Aggiorna il display del coupon (mostra/nascondi link "Remove coupon")
+         */
+        updateCouponDisplay: function(appliedCoupons) {
+            this.appliedCoupons = appliedCoupons || [];
+
+            if (this.appliedCoupons.length > 0) {
+                // Se ci sono coupon applicati, mostra il link "Remove coupon"
+                this.$promoRemoveWrapper.fadeIn(200);
+            } else {
+                // Se non ci sono coupon applicati, nascondi il link "Remove coupon"
+                this.$promoRemoveWrapper.fadeOut(200);
+            }
+        },
+
+        /**
+         * Rimuovi coupon
+         */
+        removeCoupon: function() {
+            const self = this;
+
+            // Ottieni il primo coupon applicato (in questo caso assumiamo ci sia solo un coupon)
+            if (!this.appliedCoupons || this.appliedCoupons.length === 0) {
+                this.showPromoMessage('No coupon to remove', 'error');
+                return;
+            }
+
+            const couponCode = this.appliedCoupons[0];
+
+            $.ajax({
+                url: bwCartPopupConfig.ajaxUrl,
+                type: 'POST',
+                data: {
+                    action: 'bw_cart_popup_remove_coupon',
+                    nonce: bwCartPopupConfig.nonce,
+                    coupon_code: couponCode
+                },
+                success: function(response) {
+                    if (response.success) {
+                        self.showPromoMessage(response.data.message, 'success');
+                        self.updateTotals(response.data);
+                        self.updateCouponDisplay(response.data.applied_coupons || []);
+                    } else {
+                        self.showPromoMessage(response.data.message, 'error');
+                    }
+                },
+                error: function() {
+                    self.showPromoMessage('Error removing coupon', 'error');
                 }
             });
         },
@@ -946,6 +1153,314 @@
                     // Per ora, resettiamo il pulsante dopo la rimozione
                 }
             });
+        },
+
+        /**
+         * Mostra pop-up dedicato quando il prodotto è già nel carrello
+         * @param {string} message - Messaggio da mostrare
+         * @param {string} cartUrl - URL del carrello
+         */
+        showAlreadyInCartModal: function(message, cartUrl, options) {
+            const self = this;
+            const safeMessage = message || 'This product is already in your cart.';
+            const opts = options || {};
+            const shopUrl = (bwCartPopupConfig && bwCartPopupConfig.shopUrl) || '/shop/';
+            const continueUrl = opts.hasOwnProperty('continueUrl') ? opts.continueUrl : shopUrl;
+            const continueLabel = opts.continueLabel || 'Continue shopping';
+            const onContinue = typeof opts.onContinue === 'function' ? opts.onContinue : null;
+
+            $('.bw-cart-already-modal-overlay').remove();
+
+            const modalHtml = `
+                <div class="bw-cart-already-modal-overlay" style="
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background-color: rgba(0, 0, 0, 0.35);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 999999;
+                    opacity: 0;
+                    transition: opacity 0.3s ease;
+                ">
+                    <div class="bw-cart-already-modal" style="
+                        background: #fff;
+                        border-radius: 10px;
+                        padding: 36px 32px 28px;
+                        max-width: 520px;
+                        width: 90%;
+                        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+                        position: relative;
+                        transform: scale(0.9);
+                        transition: transform 0.3s ease;
+                    ">
+                        <div class="bw-cart-already-modal__content" style="text-align: center; margin-bottom: 24px;">
+                            <div class="bw-cart-already-modal__message" style="
+                                font-size: 16px;
+                                line-height: 1.6;
+                                color: #333;
+                                margin-bottom: 6px;
+                            "></div>
+                            <div class="bw-cart-already-modal__hint" style="
+                                font-size: 14px;
+                                color: #666;
+                            ">This item is sold individually.</div>
+                        </div>
+                        <div class="bw-cart-already-modal__actions" style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                            <button class="bw-cart-already-modal__btn bw-cart-already-modal__btn--continue" style="
+                                background-color: #f4f4f4;
+                                color: #000;
+                                border: 1px solid #e0e0e0;
+                                padding: 12px 26px;
+                                border-radius: 6px;
+                                font-size: 14px;
+                                font-weight: 700;
+                                cursor: pointer;
+                                transition: all 0.3s ease;
+                            ">${continueLabel}</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            $('body').append(modalHtml);
+
+            const $modalOverlay = $('.bw-cart-already-modal-overlay');
+            const $modal = $('.bw-cart-already-modal');
+
+            $modal.find('.bw-cart-already-modal__message').text(safeMessage);
+
+            $('body').addClass('bw-cart-popup-no-scroll');
+
+            setTimeout(function() {
+                $modalOverlay.css('opacity', '1');
+                $modal.css('transform', 'scale(1)');
+            }, 10);
+            $modalOverlay.on('click', '.bw-cart-already-modal__btn--continue', function(e) {
+                e.preventDefault();
+                self.closeAlreadyInCartModal();
+
+                if (onContinue) {
+                    onContinue();
+                    return;
+                }
+
+                if (continueUrl) {
+                    window.location.href = continueUrl;
+                }
+            });
+
+            $modalOverlay.on('click', function(e) {
+                if ($(e.target).hasClass('bw-cart-already-modal-overlay')) {
+                    self.closeAlreadyInCartModal();
+                }
+            });
+
+            $(document).on('keyup.bwCartAlreadyModal', function(e) {
+                if (e.key === 'Escape') {
+                    self.closeAlreadyInCartModal();
+                }
+            });
+
+            const hoverStyles = `
+                <style id="bw-cart-already-modal-styles">
+                    .bw-cart-already-modal__btn--continue:hover { background-color: #e9e9e9; transform: translateY(-1px); }
+                    .bw-cart-already-modal__btn:active { transform: translateY(0); }
+                </style>
+            `;
+
+            if (!$('#bw-cart-already-modal-styles').length) {
+                $('head').append(hoverStyles);
+            }
+        },
+
+        /**
+         * Chiudi il pop-up dedicato già nel carrello
+         */
+        closeAlreadyInCartModal: function() {
+            const $modalOverlay = $('.bw-cart-already-modal-overlay');
+
+            if (!$modalOverlay.length) {
+                return;
+            }
+
+            $modalOverlay.css('opacity', '0');
+            $modalOverlay.find('.bw-cart-already-modal').css('transform', 'scale(0.9)');
+
+            setTimeout(function() {
+                $modalOverlay.remove();
+                $('body').removeClass('bw-cart-popup-no-scroll');
+            }, 300);
+
+            $(document).off('keyup.bwCartAlreadyModal');
+        },
+
+        /**
+         * Mostra modal di errore con overlay
+         * @param {string} errorMessage - Messaggio di errore da mostrare
+         */
+        showErrorModal: function(errorMessage, options) {
+            const self = this;
+
+            // Rimuovi eventuali modal esistenti
+            $('.bw-cart-error-modal-overlay').remove();
+
+            // URL della pagina shop WooCommerce
+            const opts = options || {};
+            const shopUrl = (bwCartPopupConfig && bwCartPopupConfig.shopUrl) || '/shop/';
+            const targetUrl = opts.returnUrl || shopUrl;
+            const buttonLabel = opts.returnLabel || 'Return to Shop';
+
+            // Crea l'overlay e il modal
+            const modalHtml = `
+                <div class="bw-cart-error-modal-overlay" style="
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background-color: rgba(0, 0, 0, 0.7);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 999999;
+                    opacity: 0;
+                    transition: opacity 0.3s ease;
+                ">
+                    <div class="bw-cart-error-modal" style="
+                        background: #fff;
+                        border-radius: 8px;
+                        padding: 40px 30px 30px;
+                        max-width: 500px;
+                        width: 90%;
+                        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+                        position: relative;
+                        transform: scale(0.9);
+                        transition: transform 0.3s ease;
+                    ">
+                        <div class="bw-cart-error-modal__content" style="
+                            text-align: center;
+                            margin-bottom: 25px;
+                        ">
+                            <div class="bw-cart-error-modal__icon" style="
+                                width: 60px;
+                                height: 60px;
+                                margin: 0 auto 20px;
+                                background-color: #e74c3c;
+                                border-radius: 50%;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                font-size: 32px;
+                                color: #fff;
+                            ">⚠</div>
+                            <div class="bw-cart-error-modal__message" style="
+                                font-size: 16px;
+                                line-height: 1.6;
+                                color: #333;
+                                margin-bottom: 10px;
+                            ">${errorMessage}</div>
+                        </div>
+                        <div class="bw-cart-error-modal__actions" style="
+                            display: flex;
+                            gap: 10px;
+                            justify-content: center;
+                        ">
+                            <button class="bw-cart-error-modal__btn bw-cart-error-modal__btn--shop" style="
+                                background-color: #80FD03;
+                                color: #000;
+                                border: none;
+                                padding: 12px 30px;
+                                border-radius: 4px;
+                                font-size: 14px;
+                                font-weight: 600;
+                                cursor: pointer;
+                                transition: all 0.3s ease;
+                            ">${buttonLabel}</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Aggiungi al body
+            $('body').append(modalHtml);
+
+            const $modalOverlay = $('.bw-cart-error-modal-overlay');
+            const $modal = $('.bw-cart-error-modal');
+
+            // Blocca scroll body
+            $('body').addClass('bw-cart-popup-no-scroll');
+
+            // Animazione fade-in
+            setTimeout(function() {
+                $modalOverlay.css('opacity', '1');
+                $modal.css('transform', 'scale(1)');
+            }, 10);
+
+            // Gestisci click sul pulsante "Return to Shop"
+            $modalOverlay.on('click', '.bw-cart-error-modal__btn--shop', function(e) {
+                e.preventDefault();
+                window.location.href = targetUrl;
+            });
+
+            // Chiudi modal al click sull'overlay (opzionale)
+            $modalOverlay.on('click', function(e) {
+                if ($(e.target).hasClass('bw-cart-error-modal-overlay')) {
+                    self.closeErrorModal();
+                }
+            });
+
+            // Chiudi con ESC
+            $(document).on('keyup.bwCartErrorModal', function(e) {
+                if (e.key === 'Escape') {
+                    self.closeErrorModal();
+                }
+            });
+
+            // Aggiungi effetto hover ai pulsanti
+            const hoverStyles = `
+                <style id="bw-cart-error-modal-styles">
+                    .bw-cart-error-modal__btn--shop:hover {
+                        background-color: #6ee002 !important;
+                        transform: translateY(-2px);
+                        box-shadow: 0 4px 12px rgba(128, 253, 3, 0.3);
+                    }
+                    .bw-cart-error-modal__btn--shop:active {
+                        transform: translateY(0);
+                    }
+                </style>
+            `;
+
+            if (!$('#bw-cart-error-modal-styles').length) {
+                $('head').append(hoverStyles);
+            }
+        },
+
+        /**
+         * Chiudi modal di errore
+         */
+        closeErrorModal: function() {
+            const $modalOverlay = $('.bw-cart-error-modal-overlay');
+
+            if (!$modalOverlay.length) {
+                return;
+            }
+
+            // Animazione fade-out
+            $modalOverlay.css('opacity', '0');
+            $modalOverlay.find('.bw-cart-error-modal').css('transform', 'scale(0.9)');
+
+            // Rimuovi dopo l'animazione
+            setTimeout(function() {
+                $modalOverlay.remove();
+                $('body').removeClass('bw-cart-popup-no-scroll');
+            }, 300);
+
+            // Rimuovi listener ESC
+            $(document).off('keyup.bwCartErrorModal');
         }
     };
 
