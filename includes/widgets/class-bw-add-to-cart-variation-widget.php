@@ -748,11 +748,11 @@ class BW_Add_To_Cart_Variation_Widget extends Widget_Base {
         $prepared = [];
 
         foreach ( $available_variations as $variation ) {
-            $variation_id  = isset( $variation['variation_id'] ) ? absint( $variation['variation_id'] ) : 0;
-            $variation_obj = $variation_id ? wc_get_product( $variation_id ) : null;
-            $license_html  = $variation_id ? get_post_meta( $variation_id, '_bw_variation_license_html', true ) : '';
+$variation_id  = isset( $variation['variation_id'] ) ? absint( $variation['variation_id'] ) : 0;
+$variation_obj = $variation_id ? wc_get_product( $variation_id ) : null;
+$license_html  = ( $variation_id && function_exists( 'bw_get_variation_license_table_html' ) ) ? bw_get_variation_license_table_html( $variation_id ) : '';
 
-            $variation['bw_license_html'] = $license_html ? wp_kses_post( $license_html ) : '';
+$variation['bw_license_html'] = $license_html ? wp_kses_post( $license_html ) : '';
             if ( empty( $variation['price_html'] ) && $variation_obj ) {
                 $variation['price_html'] = wc_price( $variation_obj->get_price() );
             }
