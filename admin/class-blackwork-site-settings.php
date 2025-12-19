@@ -401,6 +401,7 @@ function bw_site_render_cart_popup_tab() {
 
     // Recupera le impostazioni correnti
     $active = get_option('bw_cart_popup_active', 0);
+    $show_floating_trigger = get_option('bw_cart_popup_show_floating_trigger', 0);
     $panel_width = get_option('bw_cart_popup_panel_width', 400);
     $overlay_color = get_option('bw_cart_popup_overlay_color', '#000000');
     $overlay_opacity = get_option('bw_cart_popup_overlay_opacity', 0.5);
@@ -461,6 +462,7 @@ function bw_site_render_cart_popup_tab() {
 
     // Empty cart settings
     $return_shop_url = get_option('bw_cart_popup_return_shop_url', '');
+    $show_quantity_badge = get_option('bw_cart_popup_show_quantity_badge', 1);
 
     // Promo code section settings
     $promo_section_label = get_option('bw_cart_popup_promo_section_label', 'Promo code section');
@@ -491,6 +493,19 @@ function bw_site_render_cart_popup_tab() {
                     <label class="switch">
                         <input type="checkbox" id="bw_cart_popup_active" name="bw_cart_popup_active" value="1" <?php checked(1, $active); ?> />
                         <span class="description">Quando attivo, i pulsanti "Add to Cart" apriranno il pannello slide-in invece di andare alla pagina carrello.</span>
+                    </label>
+                </td>
+            </tr>
+
+            <!-- Floating cart trigger ON/OFF -->
+            <tr>
+                <th scope="row">
+                    <label for="bw_cart_popup_show_floating_trigger">Mostra pulsante carrello fisso</label>
+                </th>
+                <td>
+                    <label class="switch">
+                        <input type="checkbox" id="bw_cart_popup_show_floating_trigger" name="bw_cart_popup_show_floating_trigger" value="1" <?php checked(1, $show_floating_trigger); ?> />
+                        <span class="description">Attiva l'icona fissa in basso a destra con badge quantità; cliccandola si apre il cart pop-up.</span>
                     </label>
                 </td>
             </tr>
@@ -549,6 +564,19 @@ function bw_site_render_cart_popup_tab() {
                 <td>
                     <input type="color" id="bw_cart_popup_panel_bg" name="bw_cart_popup_panel_bg" value="<?php echo esc_attr($panel_bg); ?>" />
                     <p class="description">Colore di sfondo del pannello slide-in</p>
+                </td>
+            </tr>
+
+            <!-- Badge quantità -->
+            <tr>
+                <th scope="row">
+                    <label for="bw_cart_popup_show_quantity_badge">Mostra badge quantità (thumbnail)</label>
+                </th>
+                <td>
+                    <label class="switch">
+                        <input type="checkbox" id="bw_cart_popup_show_quantity_badge" name="bw_cart_popup_show_quantity_badge" value="1" <?php checked(1, $show_quantity_badge); ?> />
+                        <span class="description">Attiva o disattiva il pallino con il numero di pezzi sopra l’immagine prodotto nel cart pop-up.</span>
+                    </label>
                 </td>
             </tr>
 

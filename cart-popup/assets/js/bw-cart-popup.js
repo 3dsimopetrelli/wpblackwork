@@ -26,8 +26,12 @@
         $continueBtn: null,
         $cartBadge: null,
         $cartIconContainer: null,
+        $floatingTrigger: null,
+        $floatingBadge: null,
         $loadingState: null,
         $notification: null,
+        checkoutBaseText: '',
+        floatingHasItems: false,
 
         // Stato
         isOpen: false,
@@ -52,8 +56,11 @@
             this.$continueBtn = $('.bw-cart-popup-continue');
             this.$cartBadge = $('.bw-cart-badge');
             this.$cartIconContainer = $('.bw-cart-popup-header-icon');
+            this.$floatingTrigger = $('.bw-cart-floating-trigger');
+            this.$floatingBadge = $('.bw-cart-floating-badge');
             this.$loadingState = $('.bw-cart-popup-loading');
             this.$notification = $('.bw-cart-popup-notification');
+            this.checkoutBaseText = this.$footer.find('.bw-cart-popup-checkout').data('base-text') || this.$footer.find('.bw-cart-popup-checkout').text().trim();
 
             // Bind eventi
             this.bindEvents();
@@ -76,6 +83,12 @@
 
             // Monitora il carrello per aggiornare lo stato dei pulsanti
             this.monitorCartChanges();
+
+            // Aggiorna badge e trigger floating se abilitato
+            if (bwCartPopupConfig.settings.show_floating_trigger) {
+                this.setupFloatingTriggerWatcher();
+                this.loadCartContents(true);
+            }
 
             console.log('BW Cart Pop-Up initialized');
         },
@@ -104,11 +117,24 @@
                 self.togglePromoBox();
             });
 
+            // Apertura da pulsante flottante
+            $(document).on('click', '.bw-cart-floating-trigger', function(e) {
+                e.preventDefault();
+                self.openPanel();
+            });
+
             // Applica coupon
             $('.bw-promo-apply').on('click', function(e) {
                 e.preventDefault();
                 self.applyCoupon();
             });
+
+            // Gestione visibilità trigger flottante su scroll
+            if (bwCartPopupConfig.settings.show_floating_trigger) {
+                $(window).on('scroll.bwCartPopup', function() {
+                    self.onFloatingScroll();
+                });
+            }
 
             // Enter per applicare coupon
             $('.bw-promo-input').on('keypress', function(e) {
@@ -123,6 +149,25 @@
                 e.preventDefault();
                 const cartItemKey = $(this).data('cart-item-key');
                 self.removeItem(cartItemKey);
+            });
+
+            // Controlli quantità (+/-)
+            this.$itemsContainer.on('click', '.bw-qty-btn', function(e) {
+                e.preventDefault();
+                const $btn = $(this);
+                const $stepper = $btn.closest('.bw-qty-stepper');
+                const cartItemKey = $stepper.data('cart-item-key');
+                const delta = parseInt($btn.data('delta'), 10);
+                const $value = $stepper.find('.bw-qty-value');
+                const currentQty = parseInt($value.text(), 10) || 1;
+                const newQty = Math.max(currentQty + delta, 0);
+
+                if (typeof cartItemKey === 'undefined') {
+                    return;
+                }
+
+                $value.text(newQty);
+                self.updateQuantity(cartItemKey, newQty);
             });
 
             // Chiudi con ESC
@@ -166,6 +211,11 @@
                     self.showAddedNotification();
 
                     console.log('Product added to cart, opening cart popup');
+                }
+
+                // Aggiorna badge e trigger flottante anche quando il pannello non si apre
+                if (bwCartPopupConfig.settings.show_floating_trigger) {
+                    self.loadCartContents(true);
                 }
             });
         },
@@ -447,30 +497,60 @@
             this.showFullState();
 
             let html = '';
+            let totalQuantity = 0;
 
             data.items.forEach(function(item) {
+                const parsedQuantity = parseInt(item.quantity, 10);
+                const quantity = Number.isNaN(parsedQuantity) || parsedQuantity < 1 ? 1 : parsedQuantity;
+                totalQuantity += quantity;
+
+                const hasDiscount = item.regular_subtotal_raw && item.regular_subtotal_raw > item.subtotal_raw;
+                const showBadge = bwCartPopupConfig.settings.show_quantity_badge !== 0 && bwCartPopupConfig.settings.show_quantity_badge !== '0';
+                const isSoldIndividually = item.sold_individually === true || item.sold_individually === '1' || item.sold_individually === 1;
+
+                const actionsMarkup = isSoldIndividually
+                    ? `<div class="bw-cart-item-actions">
+                            <span class="bw-sold-individually-label" aria-label="Sold individually">Sold individually</span>
+                            <button class="bw-cart-item-remove bw-cart-item-remove-text" data-cart-item-key="${item.key}" aria-label="Remove item">Remove</button>
+                       </div>`
+                    : `<div class="bw-cart-item-actions">
+                            <div class="bw-qty-stepper bw-qty-stepper-framed" data-cart-item-key="${item.key}">
+                                <button class="bw-qty-btn" data-delta="-1" aria-label="Decrease quantity">-</button>
+                                <span class="bw-qty-value" aria-live="polite">${quantity}</span>
+                                <button class="bw-qty-btn" data-delta="1" aria-label="Increase quantity">+</button>
+                            </div>
+                            <button class="bw-cart-item-remove bw-cart-item-remove-text" data-cart-item-key="${item.key}" aria-label="Remove item">Remove</button>
+                       </div>`;
+
                 html += `
                     <div class="bw-cart-item" data-cart-item-key="${item.key}">
-                        <div class="bw-cart-item-image">
-                            ${item.image}
-                        </div>
-                        <div class="bw-cart-item-details">
-                            <h4 class="bw-cart-item-name">
-                                <a href="${item.permalink}">${item.name}</a>
-                            </h4>
-                            <div class="bw-cart-item-price">
-                                ${item.price}
+                        <div class="bw-cart-item-main">
+                            <div class="bw-cart-item-image">
+                                ${item.image}
+                                ${showBadge ? `<span class="bw-cart-item-quantity-badge" aria-label="Quantity in cart">${quantity}</span>` : ''}
+                            </div>
+                            <div class="bw-cart-item-body">
+                                <div class="bw-cart-item-header">
+                                    <div class="bw-cart-item-info">
+                                        <h4 class="bw-cart-item-name">
+                                            <a href="${item.permalink}">${item.name}</a>
+                                        </h4>
+                                        ${actionsMarkup}
+                                    </div>
+                                    <div class="bw-cart-item-price-block">
+                                        ${hasDiscount ? `<span class="bw-cart-item-price-original">${item.regular_subtotal}</span>` : ''}
+                                        <span class="bw-cart-item-price-current">${item.subtotal}</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <button class="bw-cart-item-remove" data-cart-item-key="${item.key}" aria-label="Remove item">
-                            <span>&times;</span>
-                        </button>
                     </div>
                 `;
             });
 
             this.$itemsContainer.html(html);
-            this.updateBadge(data.items.length);
+            const badgeCount = typeof data.item_count !== 'undefined' ? data.item_count : totalQuantity;
+            this.updateBadge(badgeCount || data.items.length);
         },
 
         /**
@@ -518,11 +598,26 @@
                 $('.bw-cart-popup-discount').hide();
             }
 
+            // Coupon label
+            const coupons = Array.isArray(data.coupons) ? data.coupons : [];
+            const couponCode = coupons.length ? coupons[0] : '';
+            const $couponLabel = $('.bw-cart-coupon-label').first();
+            if ($couponLabel.length) {
+                if (couponCode) {
+                    $couponLabel.find('.bw-cart-coupon-code').text(couponCode);
+                    $couponLabel.show();
+                } else {
+                    $couponLabel.hide();
+                    $couponLabel.find('.bw-cart-coupon-code').text('');
+                }
+            }
+
             // VAT
             $('.bw-cart-popup-vat .value').html(data.tax).attr('data-tax', data.tax_raw);
 
             // Total
             $('.bw-cart-popup-total .value').html(data.total).attr('data-total', data.total_raw);
+            this.updateCheckoutCta(data.total);
         },
 
         /**
@@ -724,12 +819,16 @@
         },
 
         /**
-         * Aggiorna il badge con il numero di prodotti
+         * Aggiorna il badge con il numero totale di prodotti
          * Nasconde l'icona carrello + badge quando count = 0
          */
         updateBadge: function(count) {
             if (this.$cartBadge && this.$cartBadge.length) {
                 this.$cartBadge.text(count);
+            }
+
+            if (this.$floatingBadge && this.$floatingBadge.length) {
+                this.$floatingBadge.text(count);
             }
 
             // Mostra/nascondi l'icona carrello in base al numero di prodotti
@@ -740,6 +839,65 @@
                     this.$cartIconContainer.addClass('hidden');
                 }
             }
+
+            this.toggleFloatingTrigger(count);
+        },
+
+        setupFloatingTriggerWatcher: function() {
+            // Inizializza stato iniziale (non visibile finché non si scrolla)
+            this.onFloatingScroll();
+        },
+
+        onFloatingScroll: function() {
+            if (!bwCartPopupConfig.settings.show_floating_trigger || !this.$floatingTrigger || !this.$floatingTrigger.length) {
+                return;
+            }
+
+            if (!this.floatingHasItems) {
+                this.$floatingTrigger.removeClass('is-visible');
+                return;
+            }
+
+            const scrolled = $(window).scrollTop() > 10;
+            if (scrolled) {
+                this.$floatingTrigger.addClass('is-visible');
+            } else {
+                this.$floatingTrigger.removeClass('is-visible');
+            }
+        },
+
+        toggleFloatingTrigger: function(count) {
+            if (!bwCartPopupConfig.settings.show_floating_trigger || !this.$floatingTrigger || !this.$floatingTrigger.length) {
+                return;
+            }
+
+            this.floatingHasItems = count > 0;
+
+            if (this.floatingHasItems) {
+                this.$floatingTrigger.removeClass('hidden');
+                this.onFloatingScroll();
+            } else {
+                this.$floatingTrigger.addClass('hidden').removeClass('is-visible');
+            }
+        },
+
+        /**
+         * Aggiorna il testo del pulsante checkout mostrando il totale
+         */
+        updateCheckoutCta: function(totalFormatted) {
+            const $cta = this.$footer.find('.bw-cart-popup-checkout');
+            if (!$cta.length) {
+                return;
+            }
+
+            const baseText = this.checkoutBaseText || $cta.text().trim();
+            if (!baseText) {
+                return;
+            }
+
+            const totalText = totalFormatted ? $('<div>').html(totalFormatted).text().trim() : '';
+            const suffix = totalText ? ` · ${totalText}` : '';
+            $cta.text(`${baseText}${suffix}`);
         },
 
         /**
