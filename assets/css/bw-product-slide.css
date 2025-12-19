@@ -70,11 +70,10 @@
     display: block;
     width: 100%;
     height: auto;
-    max-width: none;
+    max-width: 100%;
     box-shadow: 0 20px 45px rgba(0, 0, 0, 0.08);
     object-fit: cover;
     object-position: center;
-    transition: width 0.3s ease;
 }
 
 .bw-product-slide-wrapper[data-image-crop="true"] .bw-product-slide-item img {

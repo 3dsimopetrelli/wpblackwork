@@ -59,7 +59,9 @@ class BW_Product_Card_Renderer {
 		$settings = wp_parse_args( $settings, self::$default_settings );
 
 		$post_id    = $product->get_id();
-		$permalink  = $product->get_permalink();
+		$permalink  = function_exists( 'bw_get_safe_product_permalink' )
+			? bw_get_safe_product_permalink( $product )
+			: $product->get_permalink();
 		$title      = $product->get_name();
 		$excerpt    = $product->get_short_description();
 
@@ -114,7 +116,9 @@ class BW_Product_Card_Renderer {
 		}
 
 		$post_id      = $product->get_id();
-		$permalink    = $product->get_permalink();
+		$permalink    = function_exists( 'bw_get_safe_product_permalink' )
+			? bw_get_safe_product_permalink( $product )
+			: $product->get_permalink();
 		$title        = $product->get_name();
 		$image_size   = $settings['image_size'];
 
@@ -193,7 +197,9 @@ class BW_Product_Card_Renderer {
 	 */
 	private static function render_overlay_buttons( $product, $settings ) {
 		$post_id           = $product->get_id();
-		$permalink         = $product->get_permalink();
+		$permalink         = function_exists( 'bw_get_safe_product_permalink' )
+			? bw_get_safe_product_permalink( $product )
+			: $product->get_permalink();
 		$has_add_to_cart   = false;
 		$add_to_cart_url   = '';
 		$open_cart_popup   = $settings['open_cart_popup'];
@@ -243,7 +249,9 @@ class BW_Product_Card_Renderer {
 	 */
 	private static function render_product_content( $product, $settings ) {
 		$post_id   = $product->get_id();
-		$permalink = $product->get_permalink();
+		$permalink = function_exists( 'bw_get_safe_product_permalink' )
+			? bw_get_safe_product_permalink( $product )
+			: $product->get_permalink();
 		$title     = $product->get_name();
 		$excerpt   = '';
 

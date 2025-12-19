@@ -34,7 +34,9 @@ if ( $related_products ) :
                 setup_postdata( $GLOBALS['post'] =& $post_object );
 
                 $product_id     = $related_product->get_id();
-                $permalink      = get_permalink( $product_id );
+                $permalink      = function_exists( 'bw_get_safe_product_permalink' )
+                    ? bw_get_safe_product_permalink( $related_product )
+                    : get_permalink( $product_id );
                 $title          = get_the_title( $product_id );
                 $short_desc     = $related_product->get_short_description();
                 $excerpt        = $short_desc ? wp_trim_words( wp_strip_all_tags( $short_desc ), 30 ) : '';
