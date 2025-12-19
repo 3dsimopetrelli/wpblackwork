@@ -43,6 +43,9 @@ if ( file_exists( plugin_dir_path( __FILE__ ) . 'admin/class-blackwork-site-sett
 // Helper functions
 require_once __DIR__ . '/includes/helpers.php';
 
+// Widget helper class - Shared utility methods for widgets
+require_once __DIR__ . '/includes/class-bw-widget-helper.php';
+
 // Product Card Renderer - Centralized card rendering
 require_once __DIR__ . '/includes/woocommerce-overrides/class-bw-product-card-renderer.php';
 
@@ -73,10 +76,12 @@ require_once __DIR__ . '/includes/class-bw-widget-loader.php';
  * This prevents WordPress 6.7.0+ warnings about translations being loaded too early.
  */
 function bw_initialize_plugin_components() {
-	// Product Type column display
-	require_once plugin_dir_path( __FILE__ ) . 'includes/product-types/product-types-init.php';
+        // Product Type column display
+        require_once plugin_dir_path( __FILE__ ) . 'includes/product-types/product-types-init.php';
         // Metabox per prodotti digitali
         require_once plugin_dir_path( __FILE__ ) . 'metabox/digital-products-metabox.php';
+        // Metabox Bibliographic Details
+        require_once plugin_dir_path( __FILE__ ) . 'metabox/bibliographic-details-metabox.php';
         // Metabox Images Showcase
         require_once plugin_dir_path( __FILE__ ) . 'metabox/images-showcase-metabox.php';
         // Metabox Artist Name
@@ -261,51 +266,11 @@ function bw_register_divider_style() {
 }
 
 function bw_register_button_widget_assets() {
-    $css_file = __DIR__ . '/assets/css/bw-button.css';
-    $css_version = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
-
-    wp_register_style(
-        'bw-button-style',
-        plugin_dir_url( __FILE__ ) . 'assets/css/bw-button.css',
-        [],
-        $css_version
-    );
-
-    $js_file = __DIR__ . '/assets/js/bw-button.js';
-
-    if ( file_exists( $js_file ) ) {
-        wp_register_script(
-            'bw-button-script',
-            plugin_dir_url( __FILE__ ) . 'assets/js/bw-button.js',
-            [ 'jquery' ],
-            filemtime( $js_file ),
-            true
-        );
-    }
+    bw_register_widget_assets( 'button' );
 }
 
 function bw_register_about_menu_widget_assets() {
-    $css_file = __DIR__ . '/assets/css/bw-about-menu.css';
-    $css_version = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
-
-    wp_register_style(
-        'bw-about-menu-style',
-        plugin_dir_url( __FILE__ ) . 'assets/css/bw-about-menu.css',
-        [],
-        $css_version
-    );
-
-    $js_file = __DIR__ . '/assets/js/bw-about-menu.js';
-
-    if ( file_exists( $js_file ) ) {
-        wp_register_script(
-            'bw-about-menu-script',
-            plugin_dir_url( __FILE__ ) . 'assets/js/bw-about-menu.js',
-            [],
-            filemtime( $js_file ),
-            true
-        );
-    }
+    bw_register_widget_assets( 'about-menu', [] );
 }
 
 function bw_register_wallpost_widget_assets() {
@@ -447,26 +412,7 @@ function bw_enqueue_about_menu_widget_assets() {
 }
 
 function bw_register_navshop_widget_assets() {
-    $css_file = __DIR__ . '/assets/css/bw-navshop.css';
-    $css_version = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
-
-    wp_register_style(
-        'bw-navshop-style',
-        plugin_dir_url( __FILE__ ) . 'assets/css/bw-navshop.css',
-        [],
-        $css_version
-    );
-
-    $js_file = __DIR__ . '/assets/js/bw-navshop.js';
-    $js_version = file_exists( $js_file ) ? filemtime( $js_file ) : '1.0.0';
-
-    wp_register_script(
-        'bw-navshop-script',
-        plugin_dir_url( __FILE__ ) . 'assets/js/bw-navshop.js',
-        [ 'jquery' ],
-        $js_version,
-        true
-    );
+    bw_register_widget_assets( 'navshop' );
 }
 
 function bw_enqueue_navshop_widget_assets() {

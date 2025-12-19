@@ -1,6 +1,39 @@
 (function ($) {
   'use strict';
 
+  /**
+   * BW Product Slide - Slider Initialization & Animation Handler
+   *
+   * ARCHITECTURE NOTE:
+   * This widget loads TWO slider scripts:
+   * 1. bw-slick-slider.js (shared, 700 lines) - Used by other widgets
+   * 2. bw-product-slide.js (this file, 1050+ lines) - Product Slide specific
+   *
+   * For Product Slide, ONLY this file's logic is active:
+   * - initProductSlide() → Full custom initialization
+   * - Popup logic, image fade handling
+   * - Responsive dimension updates
+   * - Arrow/dot/counter visibility control
+   *
+   * The shared slider script (bw-slick-slider.js) remains loaded for:
+   * - Backward compatibility with other widgets
+   * - Shared Slick settings parsing utilities
+   * - Future consolidation (planned refactor)
+   *
+   * RECENT FIXES (2025-12-13):
+   * - ✅ Removed excessive setPosition() calls (was causing stutter)
+   * - ✅ Added waitForAnimate: false (smooth rapid navigation)
+   * - ✅ Consolidated editor change handlers (no more double-refresh)
+   * - ✅ Made setPosition() conditional (only when dimensions change)
+   * - ✅ Fixed drag/swipe functionality (click handler was blocking drag)
+   * - ✅ Added drag detection to prevent popup opening during swipe
+   * - ✅ Explicitly enabled Slick drag/swipe settings
+   * - ✅ Removed widget refresh:preview (was causing re-init on resize)
+   * - ✅ Preserved drag/swipe settings in all responsive breakpoints
+   *
+   * See: docs/2025-12-13-product-slide-vacuum-cleanup-report.md
+   */
+
   var parseSettings = function ($slider) {
     var rawSettings = $slider.attr('data-slider-settings');
     if (!rawSettings) {
@@ -23,6 +56,54 @@
     }
 
     return settings;
+  };
+
+  var sortBreakpoints = function (responsive) {
+    if (!Array.isArray(responsive)) {
+      return [];
+    }
+
+    return responsive.slice().sort(function (a, b) {
+      return a.breakpoint - b.breakpoint;
+    });
+  };
+
+  var getMatchedBreakpointSettings = function (sortedBreakpoints, windowWidth) {
+    if (!Array.isArray(sortedBreakpoints) || sortedBreakpoints.length === 0) {
+      return null;
+    }
+
+    var matchedBreakpoint = null;
+
+    for (var i = sortedBreakpoints.length - 1; i >= 0; i--) {
+      var breakpointEntry = sortedBreakpoints[i];
+      if (windowWidth <= breakpointEntry.breakpoint) {
+        matchedBreakpoint = breakpointEntry;
+      } else {
+        break;
+      }
+    }
+
+    return matchedBreakpoint && matchedBreakpoint.settings ? matchedBreakpoint.settings : null;
+  };
+
+  var createResponsiveToggle = function (options) {
+    var settingKey = options.settingKey;
+    var sortedBreakpoints = options.sortedBreakpoints;
+    var getDefaultValue = options.getDefaultValue;
+    var onUpdate = options.onUpdate;
+
+    return function () {
+      var windowWidth = $(window).width();
+      var matchedSettings = getMatchedBreakpointSettings(sortedBreakpoints, windowWidth);
+      var value = typeof getDefaultValue === 'function' ? getDefaultValue() : undefined;
+
+      if (matchedSettings && Object.prototype.hasOwnProperty.call(matchedSettings, settingKey)) {
+        value = matchedSettings[settingKey];
+      }
+
+      onUpdate(value);
+    };
   };
 
   var bindPopup = function ($container) {
@@ -64,6 +145,7 @@
     var $popupContent = $popup.find('.bw-popup-content');
 
     var hideTimeoutId = null;
+    var popupAlreadyBound = $popup.data('bwPopupBound') === true;
 
     var clearHideTimeout = function () {
       if (hideTimeoutId !== null) {
@@ -158,10 +240,21 @@
     var popupOpenOnClick = String($container.attr('data-popup-open-on-click')) === 'true';
 
     if (popupOpenOnClick) {
+      // ✅ FIX: Use Slick's native drag detection instead of custom handlers
+      // Custom mousedown/mousemove handlers were interfering with Slick's drag functionality
+      // Track if slider recently changed (indicates drag/swipe happened)
+      var sliderRecentlyChanged = false;
+      var sliderChangeTimeout = null;
+
       // Use event delegation to handle clicks on all images (including cloned slides)
       $container
         .off('click.bwProductSlide', '.bw-product-slide-item img')
-        .on('click.bwProductSlide', '.bw-product-slide-item img', function () {
+        .on('click.bwProductSlide', '.bw-product-slide-item img', function (e) {
+          // ✅ FIX: Don't open popup if slider just changed (drag/swipe happened)
+          if (sliderRecentlyChanged) {
+            return; // User was dragging, don't open popup
+          }
+
           var title = $(this).attr('alt') || '';
 
           // Find the closest .slick-slide element to get the correct index
@@ -192,9 +285,24 @@
           $popupTitle.text(title);
           openPopup(imageIndex);
         });
+
+      // Track when slider changes (drag/swipe happened)
+      // This will be bound after Slick initialization
+      $container.data('bwPopupSliderChangeHandler', function() {
+        sliderRecentlyChanged = true;
+        clearTimeout(sliderChangeTimeout);
+        sliderChangeTimeout = setTimeout(function() {
+          sliderRecentlyChanged = false;
+        }, 300); // 300ms window after slide change to prevent popup
+      });
     } else {
-      // Remove click handlers if popup should not open on click
+      // Remove handlers if popup should not open on click
       $container.off('click.bwProductSlide', '.bw-product-slide-item img');
+      $container.removeData('bwPopupSliderChangeHandler');
+    }
+
+    if (popupAlreadyBound) {
+      return;
     }
 
     $popup
@@ -218,6 +326,8 @@
           closePopup();
         }
       });
+
+    $popup.data('bwPopupBound', true);
   };
 
   var markImageAsLoaded = function ($image) {
@@ -318,7 +428,7 @@
       var $image = $(this);
       var cssProperties = {
         width: '100%',
-        'max-width': 'none',
+        'max-width': '100%',
       };
 
       if (cropEnabled) {
@@ -332,9 +442,8 @@
       $image.css(cssProperties);
     });
 
-    if ($slider.hasClass('slick-initialized')) {
-      $slider.slick('setPosition');
-    }
+    // ✅ FIX: Removed setPosition() call - images can update via CSS without full re-layout
+    // This prevents layout thrashing when images refresh during navigation
   };
 
   var applyResponsiveDimensions = function ($slider, settings) {
@@ -356,10 +465,12 @@
     var widthToApply = null;
     var heightToApply = null;
     var gapToApply = null;
+    var breakpointFound = false;
 
     for (var i = 0; i < sortedBreakpoints.length; i++) {
       var bp = sortedBreakpoints[i];
       if (windowWidth <= bp.breakpoint) {
+        breakpointFound = true;
         if (bp.settings && bp.settings.responsiveWidth) {
           widthToApply = bp.settings.responsiveWidth;
         }
@@ -373,29 +484,88 @@
       }
     }
 
-    if (widthToApply && widthToApply.size >= 0) {
-      var widthValue = widthToApply.size + widthToApply.unit;
-      $slider.css({
-        '--bw-product-slide-column-width': widthValue,
-        '--bw-column-width': widthValue,
-        '--bw-slide-width': widthValue
-      });
+    // Get original inline style values once for fallback (only when NO breakpoint matches)
+    var originalStyle = $slider.data('bwOriginalStyle');
+    if (!originalStyle) {
+      originalStyle = {
+        width: $slider.get(0).style.getPropertyValue('--bw-product-slide-column-width') || '',
+        height: $slider.get(0).style.getPropertyValue('--bw-product-slide-image-height') || '',
+        gap: $slider.get(0).style.getPropertyValue('--bw-product-slide-gap') || ''
+      };
+      $slider.data('bwOriginalStyle', originalStyle);
     }
 
-    if (heightToApply && heightToApply.size >= 0) {
-      var heightValue = heightToApply.size + heightToApply.unit;
-      $slider.css('--bw-product-slide-image-height', heightValue);
+    // Se non è stato trovato nessun breakpoint applicabile, resetta ai valori inline originali
+    if (!breakpointFound && sortedBreakpoints.length > 0) {
+      // Restore original values
+      if (originalStyle.width) {
+        $slider.css({
+          '--bw-product-slide-column-width': originalStyle.width,
+          '--bw-column-width': originalStyle.width,
+          '--bw-slide-width': originalStyle.width
+        });
+      }
+      if (originalStyle.height) {
+        $slider.css('--bw-product-slide-image-height', originalStyle.height);
+      }
+      if (originalStyle.gap) {
+        $slider.css('--bw-product-slide-gap', originalStyle.gap);
+      }
+    } else if (breakpointFound) {
+      // Only apply values if the breakpoint explicitly provides them
+      // If breakpoint doesn't provide a value, clear the CSS variable to let Slick handle it naturally
+
+      if (widthToApply && widthToApply.size !== null && widthToApply.size !== '') {
+        var widthValue = widthToApply.size + widthToApply.unit;
+        $slider.css({
+          '--bw-product-slide-column-width': widthValue,
+          '--bw-column-width': widthValue,
+          '--bw-slide-width': widthValue
+        });
+      } else {
+        // Breakpoint found but no custom width - clear the variable to use auto/natural sizing
+        $slider.css({
+          '--bw-product-slide-column-width': '',
+          '--bw-column-width': '',
+          '--bw-slide-width': ''
+        });
+      }
+
+      if (heightToApply && heightToApply.size !== null && heightToApply.size !== '') {
+        var heightValue = heightToApply.size + heightToApply.unit;
+        $slider.css('--bw-product-slide-image-height', heightValue);
+      } else {
+        // Breakpoint found but no custom height - clear to use auto
+        $slider.css('--bw-product-slide-image-height', '');
+      }
+
+      if (gapToApply && gapToApply.size !== null && gapToApply.size !== '') {
+        var gapValue = gapToApply.size + gapToApply.unit;
+        $slider.css('--bw-product-slide-gap', gapValue);
+      } else {
+        // Breakpoint found but no custom gap - clear to use default
+        $slider.css('--bw-product-slide-gap', '');
+      }
     }
 
-    if (gapToApply && gapToApply.size >= 0) {
-      var gapValue = gapToApply.size + gapToApply.unit;
-      $slider.css('--bw-product-slide-gap', gapValue);
-    }
+    // Aggiorna le dimensioni delle immagini dopo aver applicato le nuove variabili CSS
+    refreshSliderImages($slider);
 
-    if ($slider.hasClass('slick-initialized')) {
+    // ✅ FIX: Only call setPosition() if dimensions actually changed
+    // This prevents unnecessary layout recalculations during navigation
+    var dimensionsChanged = breakpointFound && (widthToApply || heightToApply || gapToApply);
+
+    if (dimensionsChanged && $slider.hasClass('slick-initialized')) {
       setTimeout(function () {
         if ($slider.hasClass('slick-initialized')) {
-          $slider.slick('setPosition');
+          try {
+            var slickInstance = $slider.slick('getSlick');
+            if (slickInstance && typeof slickInstance.setPosition === 'function') {
+              slickInstance.setPosition();
+            }
+          } catch (e) {
+            // Slick not fully initialized yet, skip setPosition
+          }
         }
       }, 50);
     }
@@ -435,7 +605,7 @@
     }
   };
 
-  var bindResponsiveUpdates = function ($slider, settings) {
+  var bindResponsiveUpdates = function ($slider, settings, additionalRefreshers) {
     if (!$slider || !$slider.length) {
       return;
     }
@@ -443,6 +613,9 @@
     unbindResponsiveUpdates($slider);
 
     var resizeEvent = 'resize.bwProductSlide-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+    var resizeTimeout = null;
+    var isRefreshing = false;
+    var extraRefreshers = Array.isArray(additionalRefreshers) ? additionalRefreshers : [];
 
     var refreshImages = function () {
       refreshSliderImages($slider);
@@ -453,11 +626,26 @@
     };
 
     var refreshAll = function () {
+      if (isRefreshing) {
+        return; // Prevent concurrent refreshes
+      }
+      isRefreshing = true;
       refreshImages();
       applyDimensions();
+      extraRefreshers.forEach(function (handler) {
+        if (typeof handler === 'function') {
+          handler();
+        }
+      });
+      setTimeout(function () {
+        isRefreshing = false;
+      }, 100);
     };
 
-    $(window).on(resizeEvent, refreshAll);
+    $(window).on(resizeEvent, function () {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(refreshAll, 150);
+    });
     $slider.data('bwResizeEvent', resizeEvent);
 
     if (
@@ -468,6 +656,8 @@
       elementor.channels.editor &&
       typeof elementor.channels.editor.on === 'function'
     ) {
+      // ✅ FIX: Handler #1 - Only dimension changes (not control visibility)
+      // Removed 'responsive' to prevent overlap with Handler #2
       var editorHandler = function (panel) {
         if (!panel || !panel.changed) {
           return;
@@ -479,12 +669,13 @@
             return false;
           }
 
+          // Only refresh for dimension-related changes
           return (
             key.indexOf('column_width') !== -1 ||
             key.indexOf('image_height') !== -1 ||
             key.indexOf('image_crop') !== -1 ||
-            key.indexOf('gap') !== -1 ||
-            key.indexOf('responsive') !== -1
+            key.indexOf('gap') !== -1
+            // ❌ REMOVED: key.indexOf('responsive') to prevent double-refresh
           );
         });
 
@@ -501,6 +692,7 @@
       var sliderElement = $slider.get(0);
 
       if (sliderElement) {
+        var mutationTimeout = null;
         var observer = new MutationObserver(function (mutations) {
           var shouldRefresh = mutations.some(function (mutation) {
             if (!mutation || mutation.type !== 'attributes') {
@@ -518,8 +710,13 @@
             return false;
           });
 
-          if (shouldRefresh) {
-            refreshAll();
+          if (shouldRefresh && !isRefreshing) {
+            clearTimeout(mutationTimeout);
+            mutationTimeout = setTimeout(function () {
+              if (!isRefreshing) {
+                refreshAll();
+              }
+            }, 200);
           }
         });
 
@@ -559,9 +756,22 @@
 
       $slider.off('.bwProductSlide');
       $slider.off('.bwProductSlideArrows');
+      $slider.off('.bwProductSlideDots');
+      $slider.off('.bwProductSlideCount');
+      $slider.off('.bwProductSlideControls');
 
-      // Rimuovi event listener di resize per le frecce
-      $(window).off('resize.bwProductSlideArrows-' + $container.data('arrowsResizeEvent'));
+      // Rimuovi listener dell'editor per i controlli
+      var previousControlsHandler = $slider.data('bwControlsEditorHandler');
+      if (
+        previousControlsHandler &&
+        window.elementor &&
+        elementor.channels &&
+        elementor.channels.editor &&
+        typeof elementor.channels.editor.off === 'function'
+      ) {
+        elementor.channels.editor.off('change', previousControlsHandler);
+        $slider.removeData('bwControlsEditorHandler');
+      }
 
       var defaults = {
         slidesToShow: 1,
@@ -570,6 +780,7 @@
         dots: false,
         infinite: true,
         speed: 600,
+        cssEase: 'ease-in-out',
         fade: false,
         prevArrow: $container.find('.bw-prev'),
         nextArrow: $container.find('.bw-next'),
@@ -579,10 +790,26 @@
       settings.prevArrow = defaults.prevArrow;
       settings.nextArrow = defaults.nextArrow;
 
+      // ✅ FIX: Add waitForAnimate to allow smooth rapid navigation
+      // Without this, clicking arrows rapidly feels sluggish/blocked
+      settings.waitForAnimate = false;
+
+      // ✅ FIX: Explicitly enable drag/swipe for smooth mouse and touch interactions
+      // These ensure the slider can be dragged/swiped smoothly
+      settings.swipe = true;
+      settings.touchMove = true;
+      settings.draggable = true;
+      settings.swipeToSlide = true;
+      settings.touchThreshold = 5; // Pixels before swipe is triggered (lower = more sensitive)
+
       var hasCustomColumnWidth = $slider.is('[data-has-column-width]');
 
       if (hasCustomColumnWidth) {
-        settings.variableWidth = true;
+        // Solo imposta variableWidth se centerMode non è attivo
+        // perché centerMode + variableWidth possono causare problemi in Slick
+        if (!settings.centerMode) {
+          settings.variableWidth = true;
+        }
 
         if (Array.isArray(settings.responsive)) {
           settings.responsive = settings.responsive.map(function (entry) {
@@ -596,12 +823,43 @@
               responsiveEntry.settings = {};
             }
 
-            responsiveEntry.settings.variableWidth = true;
+            // ✅ FIX: FORCE drag/swipe settings in all breakpoints (always enabled)
+            // Don't check if undefined - always force to true to prevent old/wrong settings from disabling drag
+            responsiveEntry.settings.swipe = true;
+            responsiveEntry.settings.touchMove = true;
+            responsiveEntry.settings.draggable = true;
+            responsiveEntry.settings.swipeToSlide = true;
+            responsiveEntry.settings.touchThreshold = 5;
+
+            // Solo imposta variableWidth se centerMode non è attivo per questo breakpoint
+            var breakpointCenterMode = responsiveEntry.settings.centerMode !== undefined
+              ? responsiveEntry.settings.centerMode
+              : settings.centerMode;
+
+            // Check if this breakpoint has custom responsive width
+            var hasResponsiveWidth = responsiveEntry.settings.responsiveWidth &&
+                                     responsiveEntry.settings.responsiveWidth.size !== null &&
+                                     responsiveEntry.settings.responsiveWidth.size !== '';
+
+            // Respect user's explicit variableWidth setting, only auto-enable if not set
+            if (typeof responsiveEntry.settings.variableWidth === 'undefined') {
+              // User hasn't explicitly set variableWidth for this breakpoint
+              // Only enable if: (1) has custom width AND (2) centerMode is off
+              if (hasResponsiveWidth && !breakpointCenterMode) {
+                responsiveEntry.settings.variableWidth = true;
+              } else {
+                // No custom width OR centerMode is on → use fixed-width (false)
+                responsiveEntry.settings.variableWidth = false;
+              }
+            }
+            // If user explicitly set variableWidth, keep their setting
 
             return responsiveEntry;
           });
         }
       }
+
+      var sortedBreakpoints = sortBreakpoints(settings.responsive);
 
       var $count = $container.find('.bw-product-slide-count .current');
       var totalSlides = $slider.children().length;
@@ -656,82 +914,127 @@
         applyResponsiveDimensions($slider, settings);
       });
 
-      $slider.slick(settings);
-
-      refreshSliderImages($slider);
-      bindResponsiveUpdates($slider, settings);
-
-      // Funzione per aggiornare la visibilità delle frecce in base al breakpoint
-      var updateArrowsVisibility = function () {
-        var showArrows = settings.arrows !== false;
-        var windowWidth = $(window).width();
-
-        // Controlla se c'è una configurazione responsive per le frecce
-        if (Array.isArray(settings.responsive)) {
-          // Ordina i breakpoint in modo crescente
-          var sortedBreakpoints = settings.responsive
-            .slice()
-            .sort(function (a, b) {
-              return a.breakpoint - b.breakpoint;
-            });
-
-          // Trova il breakpoint più vicino che si applica alla viewport corrente
-          for (var i = 0; i < sortedBreakpoints.length; i++) {
-            var bp = sortedBreakpoints[i];
-            if (windowWidth <= bp.breakpoint && bp.settings && typeof bp.settings.arrows !== 'undefined') {
-              showArrows = bp.settings.arrows !== false;
-              break;
-            }
+      var updateArrowsVisibility = createResponsiveToggle({
+        settingKey: 'arrows',
+        sortedBreakpoints: sortedBreakpoints,
+        getDefaultValue: function () {
+          return settings.arrows !== false;
+        },
+        onUpdate: function (value) {
+          var showArrows = value !== false;
+          if (showArrows) {
+            $container.find('.bw-product-slide-arrows').show();
+          } else {
+            $container.find('.bw-product-slide-arrows').hide();
           }
-        }
-
-        // Mostra/nascondi le frecce
-        if (showArrows) {
-          $container.find('.bw-product-slide-arrows').show();
-        } else {
-          $container.find('.bw-product-slide-arrows').hide();
-        }
-      };
-
-      // Applica la visibilità delle frecce all'inizializzazione
-      updateArrowsVisibility();
-
-      // Aggiorna la visibilità delle frecce quando cambia il breakpoint
-      $slider.on('breakpoint.bwProductSlideArrows', function () {
-        updateArrowsVisibility();
+        },
       });
 
-      // Aggiorna la visibilità delle frecce al resize (per sicurezza)
-      var arrowsResizeEventId = Date.now();
-      $container.data('arrowsResizeEvent', arrowsResizeEventId);
-      $(window).on('resize.bwProductSlideArrows-' + arrowsResizeEventId, updateArrowsVisibility);
-
-      var updateSlideCountVisibility = function () {
-        var showSlideCount = String($container.attr('data-show-slide-count')) === 'true';
-        var currentSettings = settings;
-
-        if (Array.isArray(settings.responsive)) {
-          var windowWidth = $(window).width();
-          for (var i = 0; i < settings.responsive.length; i++) {
-            var breakpoint = settings.responsive[i];
-            if (windowWidth <= breakpoint.breakpoint && breakpoint.settings) {
-              if (typeof breakpoint.settings.showSlideCount !== 'undefined') {
-                showSlideCount = breakpoint.settings.showSlideCount;
-              }
-              break;
-            }
+      var updateDotsVisibility = createResponsiveToggle({
+        settingKey: 'dots',
+        sortedBreakpoints: sortedBreakpoints,
+        getDefaultValue: function () {
+          return settings.dots !== false;
+        },
+        onUpdate: function (value) {
+          var showDots = value !== false;
+          if ($slider.hasClass('slick-initialized')) {
+            $slider.slick('slickSetOption', 'dots', showDots, true);
+          } else {
+            settings.dots = showDots;
           }
-        }
+        },
+      });
 
-        if (showSlideCount) {
-          $container.find('.bw-product-slide-count').show();
-        } else {
-          $container.find('.bw-product-slide-count').hide();
-        }
+      var updateSlideCountVisibility = createResponsiveToggle({
+        settingKey: 'showSlideCount',
+        sortedBreakpoints: sortedBreakpoints,
+        getDefaultValue: function () {
+          return String($container.attr('data-show-slide-count')) === 'true';
+        },
+        onUpdate: function (value) {
+          var showSlideCount = value !== false;
+          if (showSlideCount) {
+            $container.find('.bw-product-slide-count').show();
+          } else {
+            $container.find('.bw-product-slide-count').hide();
+          }
+        },
+      });
+
+      var runControlUpdates = function () {
+        updateArrowsVisibility();
+        updateDotsVisibility();
+        updateSlideCountVisibility();
       };
 
-      updateSlideCountVisibility();
-      $(window).on('resize.bwProductSlideCount-' + Date.now(), updateSlideCountVisibility);
+      $slider
+        .off('init.bwProductSlideControls reInit.bwProductSlideControls breakpoint.bwProductSlideControls')
+        .on('init.bwProductSlideControls reInit.bwProductSlideControls breakpoint.bwProductSlideControls', function () {
+        setTimeout(runControlUpdates, 50);
+      });
+
+      runControlUpdates();
+
+      $slider.slick(settings);
+
+      // ✅ FIX: Bind popup drag detection to Slick's beforeChange event
+      // This prevents popup from opening when user drags/swipes
+      var popupChangeHandler = $container.data('bwPopupSliderChangeHandler');
+      if (popupChangeHandler && typeof popupChangeHandler === 'function') {
+        $slider.off('beforeChange.bwPopupDrag').on('beforeChange.bwPopupDrag', popupChangeHandler);
+      }
+
+      refreshSliderImages($slider);
+      bindResponsiveUpdates($slider, settings, [runControlUpdates]);
+
+      // ✅ FIX: Handler #2 - Only control visibility changes (not dimensions)
+      // REMOVED: refresh:preview was causing slider re-initialization and losing drag settings
+      // The update functions (updateArrowsVisibility, updateDotsVisibility, updateSlideCountVisibility)
+      // already run through the shared responsive pipeline, so no need to force widget refresh
+      if (
+        window.elementorFrontend &&
+        elementorFrontend.isEditMode() &&
+        window.elementor &&
+        elementor.channels &&
+        elementor.channels.editor &&
+        typeof elementor.channels.editor.on === 'function'
+      ) {
+        var controlsEditorHandler = function (panel) {
+          if (!panel || !panel.changed) {
+            return;
+          }
+
+          var changedKeys = Object.keys(panel.changed);
+          var shouldUpdateControls = changedKeys.some(function (key) {
+            if (typeof key !== 'string') {
+              return false;
+            }
+
+            // Only watch control visibility settings (arrows, dots, counter)
+            // NOT dimension settings (width, height, gap) - those are in Handler #1
+            return (
+              key.indexOf('responsive_arrows') !== -1 ||
+              key.indexOf('responsive_dots') !== -1 ||
+              key.indexOf('responsive_show_slide_count') !== -1 ||
+              key.indexOf('arrows') !== -1 ||
+              key.indexOf('dots') !== -1 ||
+              key.indexOf('show_slide_count') !== -1
+            );
+          });
+
+          if (shouldUpdateControls) {
+            // ✅ FIX: Just trigger the update functions directly instead of full widget refresh
+            // This preserves slider state and drag/swipe functionality
+            setTimeout(function () {
+              runControlUpdates();
+            }, 100);
+          }
+        };
+
+        elementor.channels.editor.on('change', controlsEditorHandler);
+        $slider.data('bwControlsEditorHandler', controlsEditorHandler);
+      }
 
       bindPopup($container);
     });
