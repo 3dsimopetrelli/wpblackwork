@@ -639,21 +639,23 @@
                             </div>
                             <div class="bw-cart-item-body">
                                 <div class="bw-cart-item-header">
-                                    <h4 class="bw-cart-item-name">
-                                        <a href="${item.permalink}">${item.name}</a>
-                                    </h4>
+                                    <div class="bw-cart-item-info">
+                                        <h4 class="bw-cart-item-name">
+                                            <a href="${item.permalink}">${item.name}</a>
+                                        </h4>
+                                        <div class="bw-cart-item-actions">
+                                            <div class="bw-qty-stepper bw-qty-stepper-framed" data-cart-item-key="${item.key}">
+                                                <button class="bw-qty-btn" data-delta="-1" aria-label="Decrease quantity">-</button>
+                                                <span class="bw-qty-value" aria-live="polite">${quantity}</span>
+                                                <button class="bw-qty-btn" data-delta="1" aria-label="Increase quantity">+</button>
+                                            </div>
+                                            <button class="bw-cart-item-remove bw-cart-item-remove-text" data-cart-item-key="${item.key}" aria-label="Remove item">Remove</button>
+                                        </div>
+                                    </div>
                                     <div class="bw-cart-item-price-block">
                                         ${hasDiscount ? `<span class="bw-cart-item-price-original">${item.regular_subtotal}</span>` : ''}
                                         <span class="bw-cart-item-price-current">${item.subtotal}</span>
                                     </div>
-                                </div>
-                                <div class="bw-cart-item-actions">
-                                    <div class="bw-qty-stepper" data-cart-item-key="${item.key}">
-                                        <button class="bw-qty-btn" data-delta="-1" aria-label="Decrease quantity">-</button>
-                                        <span class="bw-qty-value" aria-live="polite">${quantity}</span>
-                                        <button class="bw-qty-btn" data-delta="1" aria-label="Increase quantity">+</button>
-                                    </div>
-                                    <button class="bw-cart-item-remove bw-cart-item-remove-text" data-cart-item-key="${item.key}" aria-label="Remove item">Remove</button>
                                 </div>
                             </div>
                         </div>
