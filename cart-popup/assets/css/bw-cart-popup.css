@@ -243,7 +243,7 @@
 /* Singolo prodotto */
 .bw-cart-item {
     display: flex;
-    align-items: flex-start;
+    align-items: stretch;
     gap: 12px;
     padding: 15px;
     background-color: #ffffff;
@@ -252,26 +252,116 @@
     position: relative;
 }
 
+.bw-cart-item-main {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 12px;
+    width: 100%;
+}
+
 /* Immagine prodotto */
 .bw-cart-item-image {
     width: 60px;
     height: 60px;
     flex-shrink: 0;
     border-radius: 6px;
-    overflow: hidden;
+    overflow: visible;
     border: 1px solid #e5e5e5;
+    position: relative;
 }
 
 .bw-cart-item-image img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    border-radius: 6px;
+}
+
+.bw-cart-item-quantity-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: #000000;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 22px;
+    text-align: center;
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+}
+
+.bw-cart-item-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 0;
+}
+
+.bw-qty-stepper {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 10px;
+    border: 1px solid #000000;
+    border-radius: 8px;
+    background: transparent;
+    color: #000000;
+    min-width: 80px;
+    justify-content: center;
+}
+
+.bw-qty-btn {
+    background: none;
+    border: none;
+    color: #000000;
+    font-size: 12px;
+    line-height: 1;
+    padding: 0;
+    cursor: pointer;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.bw-qty-btn:hover {
+    color: #000000;
+}
+
+.bw-qty-value {
+    font-size: 12px;
+    font-weight: 600;
+    min-width: 14px;
+    text-align: center;
 }
 
 /* Dettagli prodotto */
 .bw-cart-item-details {
     flex: 1;
     min-width: 0; /* Previene overflow */
+}
+
+.bw-cart-item-body {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.bw-cart-item-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
 }
 
 .bw-cart-item-name {
@@ -299,28 +389,79 @@
     margin-top: 4px;
 }
 
+.bw-cart-item-price-block {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    align-items: flex-end;
+    min-width: 80px;
+}
+
+.bw-cart-item-price-original {
+    font-size: 13px;
+    color: #8a8a8a;
+    text-decoration: line-through;
+}
+
+.bw-cart-item-price-current {
+    font-size: 15px;
+    font-weight: 700;
+}
+
 /* Pulsante rimozione */
 .bw-cart-item-remove {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: transparent !important;
-    border: none !important;
-    border-radius: 0 !important;
+    background: none;
+    border: none;
+    font-size: 12px;
+    color: #888888;
     cursor: pointer;
-    font-size: 18px;
-    line-height: 1;
-    color: #999;
-    padding: 4px;
-    transition: opacity 0.2s ease;
+    padding: 0 4px;
     box-shadow: none !important;
     outline: none !important;
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    text-underline-offset: 2px;
+    transition: color 0.2s ease, text-decoration-color 0.2s ease;
 }
 
 .bw-cart-item-remove:hover {
-    opacity: 0.7;
+    color: #000000;
+    text-decoration-color: #000000;
+}
+
+/* Reset eventuali stili Elementor sui controlli inline del mini-cart */
+.bw-cart-popup-panel .bw-qty-btn,
+.bw-cart-popup-panel .bw-qty-stepper,
+.bw-cart-popup-panel .bw-cart-item-remove {
     background: transparent !important;
     border: none !important;
+    box-shadow: none !important;
+    font-size: 12px !important;
+    color: inherit;
+    padding: 0;
+}
+
+/* Coupon label pill */
+.bw-cart-coupon-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #000000;
+    color: #ffffff;
+    border-radius: 12px;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+    order: 2;
+}
+
+.bw-cart-coupon-label .bw-cart-coupon-icon::before {
+    content: "🏷️";
+    display: inline-block;
+    font-size: 13px;
+    line-height: 1;
 }
 
 /* Carrello vuoto (dentro lista prodotti) */
@@ -530,8 +671,20 @@
 }
 
 /* Discount */
+.bw-cart-popup-discount {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.bw-cart-popup-discount .label {
+    font-weight: 500;
+}
+
 .bw-cart-popup-discount .value {
     color: #28a745; /* Verde per sconto */
+    margin-left: auto;
+    order: 3;
 }
 
 /* Total (più grande e evidenziato) */
