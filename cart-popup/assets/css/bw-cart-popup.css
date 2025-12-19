@@ -568,6 +568,18 @@
     color: #28a745 !important;
 }
 
+/* Remove coupon link - stesso stile di Click here */
+.bw-promo-remove-link {
+    color: #000000 !important;
+    text-decoration: underline;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.bw-promo-remove-link:hover {
+    color: #28a745 !important;
+}
+
 /* Box promo code */
 .bw-cart-popup-promo-box {
     margin-bottom: 10px;
