@@ -424,6 +424,7 @@
     color: #888888;
     cursor: pointer;
     padding: 0 4px;
+    margin-top: 10px;
     box-shadow: none !important;
     outline: none !important;
     text-decoration: underline;
@@ -453,6 +454,15 @@
     border-radius: 8px !important;
     padding: 4px 10px !important;
     background: transparent !important;
+}
+
+/* Forza il bordo/contorno del selettore quantità con specificità maggiore */
+.bw-cart-popup-panel .bw-cart-item .bw-qty-stepper-framed {
+    border: 1px solid #000000 !important;
+    border-radius: 8px !important;
+    padding: 4px 10px !important;
+    background: transparent !important;
+    box-shadow: none !important;
 }
 
 /* Coupon label pill */
