@@ -304,14 +304,16 @@
     align-items: center;
     gap: 12px;
     flex-wrap: wrap;
+    margin-top: 0;
 }
 
 .bw-qty-stepper {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 0;
-    border: none;
+    padding: 4px 10px;
+    border: 1px solid #000000;
+    border-radius: 8px;
     background: transparent;
     color: #000000;
     min-width: 80px;
@@ -350,7 +352,7 @@
 .bw-cart-item-body {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 6px;
     min-width: 0;
 }
 
