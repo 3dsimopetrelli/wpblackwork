@@ -33,6 +33,7 @@
         $loadingState: null,
         $notification: null,
         checkoutBaseText: '',
+        floatingHasItems: false,
 
         // Stato
         isOpen: false,
@@ -94,6 +95,7 @@
 
             // Aggiorna badge e trigger floating se abilitato
             if (bwCartPopupConfig.settings.show_floating_trigger) {
+                this.setupFloatingTriggerWatcher();
                 this.loadCartContents(true);
             }
 
@@ -145,6 +147,13 @@
                 e.preventDefault();
                 self.applyCoupon();
             });
+
+            // Gestione visibilità trigger flottante su scroll
+            if (bwCartPopupConfig.settings.show_floating_trigger) {
+                $(window).on('scroll.bwCartPopup', function() {
+                    self.onFloatingScroll();
+                });
+            }
 
             // Enter per applicare coupon
             $('.bw-promo-input').on('keypress', function(e) {
@@ -1038,32 +1047,45 @@
                 }
             }
 
-            if (bwCartPopupConfig.settings.show_floating_trigger && this.$floatingTrigger && this.$floatingTrigger.length) {
-                if (count > 0) {
-                    this.$floatingTrigger.removeClass('hidden');
-                } else {
-                    this.$floatingTrigger.addClass('hidden');
-                }
+            this.toggleFloatingTrigger(count);
+        },
+
+        setupFloatingTriggerWatcher: function() {
+            // Inizializza stato iniziale (non visibile finché non si scrolla)
+            this.onFloatingScroll();
+        },
+
+        onFloatingScroll: function() {
+            if (!bwCartPopupConfig.settings.show_floating_trigger || !this.$floatingTrigger || !this.$floatingTrigger.length) {
+                return;
+            }
+
+            if (!this.floatingHasItems) {
+                this.$floatingTrigger.removeClass('is-visible');
+                return;
+            }
+
+            const scrolled = $(window).scrollTop() > 10;
+            if (scrolled) {
+                this.$floatingTrigger.addClass('is-visible');
+            } else {
+                this.$floatingTrigger.removeClass('is-visible');
             }
         },
 
-        /**
-         * Aggiorna il testo del pulsante checkout mostrando il totale
-         */
-        updateCheckoutCta: function(totalFormatted) {
-            const $cta = this.$footer.find('.bw-cart-popup-checkout');
-            if (!$cta.length) {
+        toggleFloatingTrigger: function(count) {
+            if (!bwCartPopupConfig.settings.show_floating_trigger || !this.$floatingTrigger || !this.$floatingTrigger.length) {
                 return;
             }
 
-            const baseText = this.checkoutBaseText || $cta.text().trim();
-            if (!baseText) {
-                return;
-            }
+            this.floatingHasItems = count > 0;
 
-            const totalText = totalFormatted ? $('<div>').html(totalFormatted).text().trim() : '';
-            const suffix = totalText ? ` · ${totalText}` : '';
-            $cta.text(`${baseText}${suffix}`);
+            if (this.floatingHasItems) {
+                this.$floatingTrigger.removeClass('hidden');
+                this.onFloatingScroll();
+            } else {
+                this.$floatingTrigger.addClass('hidden').removeClass('is-visible');
+            }
         },
 
         /**

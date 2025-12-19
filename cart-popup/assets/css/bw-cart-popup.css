@@ -497,7 +497,11 @@
     justify-content: center;
     cursor: pointer;
     z-index: 9998;
-    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(8px);
+    transition: opacity 0.25s ease, transform 0.25s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .bw-cart-floating-trigger:hover {
@@ -508,6 +512,13 @@
 
 .bw-cart-floating-trigger.hidden {
     display: none;
+}
+
+.bw-cart-floating-trigger.is-visible {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0);
 }
 
 .bw-cart-floating-trigger svg {
