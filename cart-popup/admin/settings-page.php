@@ -197,6 +197,9 @@ function bw_cart_popup_save_settings() {
     // Toggle ON/OFF
     update_option('bw_cart_popup_active', isset($_POST['bw_cart_popup_active']) ? 1 : 0);
 
+    // Floating trigger ON/OFF
+    update_option('bw_cart_popup_show_floating_trigger', isset($_POST['bw_cart_popup_show_floating_trigger']) ? 1 : 0);
+
     // Slide-in animation ON/OFF
     update_option('bw_cart_popup_slide_animation', isset($_POST['bw_cart_popup_slide_animation']) ? 1 : 0);
 
@@ -436,6 +439,7 @@ function bw_cart_popup_settings_page() {
 
     // Recupera le impostazioni correnti
     $active = get_option('bw_cart_popup_active', 0);
+    $show_floating_trigger = get_option('bw_cart_popup_show_floating_trigger', 0);
     $panel_width = get_option('bw_cart_popup_panel_width', 400);
     $overlay_color = get_option('bw_cart_popup_overlay_color', '#000000');
     $overlay_opacity = get_option('bw_cart_popup_overlay_opacity', 0.5);
@@ -530,6 +534,19 @@ function bw_cart_popup_settings_page() {
                         <label class="switch">
                             <input type="checkbox" id="bw_cart_popup_active" name="bw_cart_popup_active" value="1" <?php checked(1, $active); ?> />
                             <span class="description">Quando attivo, i pulsanti "Add to Cart" apriranno il pannello slide-in invece di andare alla pagina carrello.</span>
+                        </label>
+                    </td>
+                </tr>
+
+                <!-- Floating cart trigger ON/OFF -->
+                <tr>
+                    <th scope="row">
+                        <label for="bw_cart_popup_show_floating_trigger">Mostra pulsante carrello fisso</label>
+                    </th>
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox" id="bw_cart_popup_show_floating_trigger" name="bw_cart_popup_show_floating_trigger" value="1" <?php checked(1, $show_floating_trigger); ?> />
+                            <span class="description">Abilita l'icona fissa in basso a destra con il numero di prodotti; cliccandola si apre il cart pop-up.</span>
                         </label>
                     </td>
                 </tr>

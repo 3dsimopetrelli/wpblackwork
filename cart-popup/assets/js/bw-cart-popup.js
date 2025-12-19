@@ -28,6 +28,8 @@
         $continueBtn: null,
         $cartBadge: null,
         $cartIconContainer: null,
+        $floatingTrigger: null,
+        $floatingBadge: null,
         $loadingState: null,
         $notification: null,
         checkoutBaseText: '',
@@ -59,6 +61,8 @@
             this.$continueBtn = $('.bw-cart-popup-continue');
             this.$cartBadge = $('.bw-cart-badge');
             this.$cartIconContainer = $('.bw-cart-popup-header-icon');
+            this.$floatingTrigger = $('.bw-cart-floating-trigger');
+            this.$floatingBadge = $('.bw-cart-floating-badge');
             this.$loadingState = $('.bw-cart-popup-loading');
             this.$notification = $('.bw-cart-popup-notification');
             this.checkoutBaseText = this.$footer.find('.bw-cart-popup-checkout').data('base-text') || this.$footer.find('.bw-cart-popup-checkout').text().trim();
@@ -87,6 +91,11 @@
 
             // Monitora il carrello per aggiornare lo stato dei pulsanti
             this.monitorCartChanges();
+
+            // Aggiorna badge e trigger floating se abilitato
+            if (bwCartPopupConfig.settings.show_floating_trigger) {
+                this.loadCartContents(true);
+            }
 
             console.log('BW Cart Pop-Up initialized');
         },
@@ -123,6 +132,12 @@
             this.$promoTrigger.on('click', function(e) {
                 e.preventDefault();
                 self.togglePromoBox();
+            });
+
+            // Apertura da pulsante flottante
+            $(document).on('click', '.bw-cart-floating-trigger', function(e) {
+                e.preventDefault();
+                self.openPanel();
             });
 
             // Applica coupon
@@ -261,6 +276,11 @@
                     self.ensureCheckoutLink();
 
                     console.log('Product added to cart, opening cart popup');
+                }
+
+                // Aggiorna badge e trigger flottante anche quando il pannello non si apre
+                if (bwCartPopupConfig.settings.show_floating_trigger) {
+                    self.loadCartContents(true);
                 }
             });
         },
@@ -1005,6 +1025,10 @@
                 this.$cartBadge.text(count);
             }
 
+            if (this.$floatingBadge && this.$floatingBadge.length) {
+                this.$floatingBadge.text(count);
+            }
+
             // Mostra/nascondi l'icona carrello in base al numero di prodotti
             if (this.$cartIconContainer && this.$cartIconContainer.length) {
                 if (count > 0) {
@@ -1013,6 +1037,33 @@
                     this.$cartIconContainer.addClass('hidden');
                 }
             }
+
+            if (bwCartPopupConfig.settings.show_floating_trigger && this.$floatingTrigger && this.$floatingTrigger.length) {
+                if (count > 0) {
+                    this.$floatingTrigger.removeClass('hidden');
+                } else {
+                    this.$floatingTrigger.addClass('hidden');
+                }
+            }
+        },
+
+        /**
+         * Aggiorna il testo del pulsante checkout mostrando il totale
+         */
+        updateCheckoutCta: function(totalFormatted) {
+            const $cta = this.$footer.find('.bw-cart-popup-checkout');
+            if (!$cta.length) {
+                return;
+            }
+
+            const baseText = this.checkoutBaseText || $cta.text().trim();
+            if (!baseText) {
+                return;
+            }
+
+            const totalText = totalFormatted ? $('<div>').html(totalFormatted).text().trim() : '';
+            const suffix = totalText ? ` · ${totalText}` : '';
+            $cta.text(`${baseText}${suffix}`);
         },
 
         /**

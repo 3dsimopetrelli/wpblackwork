@@ -450,6 +450,7 @@
     font-weight: 600;
     line-height: 1.2;
     white-space: nowrap;
+    margin-top: 10px;
 }
 
 /* Reset eventuali stili Elementor sui controlli inline del mini-cart */
@@ -478,6 +479,60 @@
     background: transparent !important;
     box-shadow: none !important;
     margin-top: 8px;
+}
+
+/* Floating cart trigger */
+.bw-cart-floating-trigger {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    background: #ffffff;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    border: 1px solid #e5e5e5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 9998;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.bw-cart-floating-trigger:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
+    border-color: #d0d0d0;
+}
+
+.bw-cart-floating-trigger.hidden {
+    display: none;
+}
+
+.bw-cart-floating-trigger svg {
+    width: 24px;
+    height: 24px;
+    color: #000000;
+}
+
+.bw-cart-floating-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: 11px;
+    background: #000000;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
 
 /* Coupon label pill */

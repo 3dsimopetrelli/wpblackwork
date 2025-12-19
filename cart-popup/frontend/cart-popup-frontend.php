@@ -85,6 +85,7 @@ function bw_cart_popup_render_panel() {
     $checkout_url = wc_get_checkout_url();
     $continue_text = get_option('bw_cart_popup_continue_text', 'Continue shopping');
     $continue_url = get_option('bw_cart_popup_continue_url', '');
+    $show_floating_trigger = get_option('bw_cart_popup_show_floating_trigger', 0);
     $additional_svg = get_option('bw_cart_popup_additional_svg', '');
     $empty_cart_svg = get_option('bw_cart_popup_empty_cart_svg', '');
     $svg_black = get_option('bw_cart_popup_svg_black', 0);
@@ -228,6 +229,17 @@ function bw_cart_popup_render_panel() {
         </div>
         <?php endif; ?>
     </div>
+    <?php if ($show_floating_trigger): ?>
+        <button type="button" class="bw-cart-floating-trigger hidden" aria-label="Open cart">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M6 6h15l-1.5 9h-12z"></path>
+                <path d="M9 11h6"></path>
+                <circle cx="9" cy="20" r="1"></circle>
+                <circle cx="17" cy="20" r="1"></circle>
+            </svg>
+            <span class="bw-cart-floating-badge">0</span>
+        </button>
+    <?php endif; ?>
     <?php
 }
 add_action('wp_footer', 'bw_cart_popup_render_panel');
