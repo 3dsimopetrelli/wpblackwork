@@ -8,6 +8,16 @@ La pagina checkout è stata completamente ridisegnata con un layout moderno a du
 
 ---
 
+## Sintesi rapida
+
+- **Template checkout**: layout a due colonne con logo personalizzabile e titolo "Your Order" opzionale.
+- **Order review**: card prodotto ridisegnate con pulsante di rimozione, quantità custom e coupon message personalizzato.
+- **Stili CSS**: reset aggressivo di padding/margin/notice, griglia responsive e pulsanti lime green per la quantità.
+- **JavaScript**: gestione +/- quantità e messaggi coupon custom su eventi WooCommerce.
+- **Impostazioni Admin**: controlli per larghezza/padding logo e toggle del titolo riepilogo ordine.
+
+---
+
 ## File Modificati
 
 ### 1. **Template PHP**
