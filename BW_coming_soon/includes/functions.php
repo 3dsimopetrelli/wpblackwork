@@ -37,6 +37,24 @@ function bw_bootstrap_coming_soon() {
     if (bw_is_coming_soon_active()) {
         add_action('template_redirect', 'bw_show_coming_soon');
     }
+
+    // Evita di bloccare backend, API o processi CLI/cron
+    if (
+        is_user_logged_in() ||
+        is_admin() ||
+        (defined('REST_REQUEST') && REST_REQUEST) ||
+        (defined('DOING_CRON') && DOING_CRON) ||
+        (defined('WP_CLI') && WP_CLI)
+    ) {
+        return;
+    }
+
+    // Forza il client a non mettere in cache la pagina di coming soon
+    status_header(503);
+    nocache_headers();
+
+    include plugin_dir_path(__FILE__) . '../public/coming-soon-template.php';
+    exit;
 }
 add_action('init', 'bw_bootstrap_coming_soon');
 
