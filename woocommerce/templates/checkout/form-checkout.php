@@ -13,7 +13,15 @@ $settings = function_exists( 'bw_mew_get_checkout_settings' ) ? bw_mew_get_check
     'right_bg'     => '#f7f7f7',
     'border_color' => '#e0e0e0',
     'legal_text'   => '',
+    'left_width'   => 62,
+    'right_width'  => 38,
 ];
+
+$grid_inline_styles = sprintf(
+    '--bw-checkout-left-col:%d%%; --bw-checkout-right-col:%d%%;',
+    isset( $settings['left_width'] ) ? (int) $settings['left_width'] : 62,
+    isset( $settings['right_width'] ) ? (int) $settings['right_width'] : 38
+);
 
 $checkout = WC()->checkout();
 $order_button_text = apply_filters( 'woocommerce_order_button_text', __( 'Place order', 'woocommerce' ) );
@@ -29,7 +37,7 @@ if ( ! $checkout->is_registration_enabled() && $checkout->is_registration_requir
 
 <form name="checkout" method="post" class="checkout woocommerce-checkout bw-checkout-form" action="<?php echo esc_url( wc_get_checkout_url() ); ?>" enctype="multipart/form-data">
     <div class="bw-checkout-wrapper">
-        <div class="bw-checkout-grid">
+        <div class="bw-checkout-grid" style="<?php echo esc_attr( $grid_inline_styles ); ?>">
             <div class="bw-checkout-left">
                 <?php if ( ! empty( $settings['logo'] ) ) : ?>
                     <div class="bw-checkout-logo" style="padding: <?php echo esc_attr( $settings['logo_padding_top'] ); ?>px <?php echo esc_attr( $settings['logo_padding_right'] ); ?>px <?php echo esc_attr( $settings['logo_padding_bottom'] ); ?>px <?php echo esc_attr( $settings['logo_padding_left'] ); ?>px;">
@@ -49,6 +57,7 @@ if ( ! $checkout->is_registration_enabled() && $checkout->is_registration_requir
                 <?php endif; ?>
 
                 <div class="bw-checkout-payment">
+                    <div class="bw-payment-express-heading" aria-label="<?php esc_attr_e( 'Express checkout options', 'woocommerce' ); ?>"><?php esc_html_e( 'Express checkout', 'woocommerce' ); ?></div>
                     <h3 class="bw-checkout-section-title"><?php esc_html_e( 'Payment', 'woocommerce' ); ?></h3>
                     <?php wc_get_template(
                         'checkout/payment.php',
