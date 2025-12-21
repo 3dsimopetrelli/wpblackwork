@@ -92,6 +92,47 @@
         setOrderSummaryLoading(true);
     });
 
+    function flagExpressPaymentMethods() {
+        var list = document.querySelector('.woocommerce-checkout-payment ul.payment_methods');
+
+        if (!list) {
+            return;
+        }
+
+        var keywords = ['vpay', 'apple', 'gpay', 'google'];
+        var hasExpress = false;
+
+        list.classList.remove('bw-has-express-payments');
+
+        list.querySelectorAll('li').forEach(function (item) {
+            item.classList.remove('bw-express-payment', 'bw-standard-payment');
+
+            var token = ((item.id || '') + ' ' + item.textContent).toLowerCase();
+            var isExpress = keywords.some(function (key) {
+                return token.indexOf(key) !== -1;
+            });
+
+            if (isExpress) {
+                item.classList.add('bw-express-payment');
+                hasExpress = true;
+            } else {
+                item.classList.add('bw-standard-payment');
+            }
+        });
+
+        if (hasExpress) {
+            list.classList.add('bw-has-express-payments');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', flagExpressPaymentMethods);
+
+    if (window.jQuery) {
+        window.jQuery(function ($) {
+            $(document.body).on('updated_checkout payment_method_selected', flagExpressPaymentMethods);
+        });
+    }
+
     function showCouponMessage(message, type) {
         var messageEl = document.getElementById('bw-coupon-message');
         if (!messageEl) {
