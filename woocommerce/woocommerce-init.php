@@ -303,6 +303,8 @@ function bw_mew_get_checkout_settings() {
         'right_bg'            => '#f7f7f7',
         'border_color'        => '#e0e0e0',
         'legal_text'          => '',
+        'left_width'          => 62,
+        'right_width'         => 38,
     ];
 
     $settings = [
@@ -317,11 +319,22 @@ function bw_mew_get_checkout_settings() {
         'right_bg'            => sanitize_hex_color( get_option( 'bw_checkout_right_bg_color', $defaults['right_bg'] ) ),
         'border_color'        => sanitize_hex_color( get_option( 'bw_checkout_border_color', $defaults['border_color'] ) ),
         'legal_text'          => get_option( 'bw_checkout_legal_text', $defaults['legal_text'] ),
+        'left_width'          => absint( get_option( 'bw_checkout_left_width', $defaults['left_width'] ) ),
+        'right_width'         => absint( get_option( 'bw_checkout_right_width', $defaults['right_width'] ) ),
     ];
 
     $settings['left_bg']      = $settings['left_bg'] ?: $defaults['left_bg'];
     $settings['right_bg']     = $settings['right_bg'] ?: $defaults['right_bg'];
     $settings['border_color'] = $settings['border_color'] ?: $defaults['border_color'];
+
+    $settings['left_width']  = min( 90, max( 10, $settings['left_width'] ) );
+    $settings['right_width'] = min( 90, max( 10, $settings['right_width'] ) );
+
+    if ( ( $settings['left_width'] + $settings['right_width'] ) > 100 ) {
+        $total                 = $settings['left_width'] + $settings['right_width'];
+        $settings['left_width']  = (int) round( ( $settings['left_width'] / $total ) * 100 );
+        $settings['right_width'] = 100 - $settings['left_width'];
+    }
 
     return $settings;
 }
