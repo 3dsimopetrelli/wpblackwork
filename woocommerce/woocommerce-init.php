@@ -183,6 +183,32 @@ function bw_mew_prepare_checkout_layout() {
     remove_action( 'woocommerce_checkout_order_review', 'woocommerce_checkout_payment', 20 );
 }
 
+if ( ! function_exists( 'bw_mew_normalize_checkout_column_widths' ) ) {
+    /**
+     * Normalize checkout column widths ensuring sane bounds and total of 100%.
+     *
+     * @param int $left  Desired left column percentage.
+     * @param int $right Desired right column percentage.
+     *
+     * @return array{left:int,right:int}
+     */
+    function bw_mew_normalize_checkout_column_widths( $left, $right ) {
+        $left  = min( 90, max( 10, absint( $left ) ) );
+        $right = min( 90, max( 10, absint( $right ) ) );
+
+        if ( ( $left + $right ) > 100 ) {
+            $total = $left + $right;
+            $left  = (int) round( ( $left / $total ) * 100 );
+            $right = 100 - $left;
+        }
+
+        return [
+            'left'  => $left,
+            'right' => $right,
+        ];
+    }
+}
+
 /**
  * Hide the standard WooCommerce notice wrapper on single product pages only.
  */
@@ -300,8 +326,8 @@ function bw_mew_get_checkout_settings() {
         'logo_padding_left'   => 0,
         'show_order_heading'  => '1',
         'left_bg'             => '#ffffff',
-        'right_bg'            => '#f7f7f7',
-        'border_color'        => '#e0e0e0',
+        'right_bg'            => 'transparent',
+        'border_color'        => '#262626',
         'legal_text'          => '',
         'left_width'          => 62,
         'right_width'         => 38,
@@ -327,13 +353,10 @@ function bw_mew_get_checkout_settings() {
     $settings['right_bg']     = $settings['right_bg'] ?: $defaults['right_bg'];
     $settings['border_color'] = $settings['border_color'] ?: $defaults['border_color'];
 
-    $settings['left_width']  = min( 90, max( 10, $settings['left_width'] ) );
-    $settings['right_width'] = min( 90, max( 10, $settings['right_width'] ) );
-
-    if ( ( $settings['left_width'] + $settings['right_width'] ) > 100 ) {
-        $total                 = $settings['left_width'] + $settings['right_width'];
-        $settings['left_width']  = (int) round( ( $settings['left_width'] / $total ) * 100 );
-        $settings['right_width'] = 100 - $settings['left_width'];
+    if ( function_exists( 'bw_mew_normalize_checkout_column_widths' ) ) {
+        $normalized               = bw_mew_normalize_checkout_column_widths( $settings['left_width'], $settings['right_width'] );
+        $settings['left_width']   = $normalized['left'];
+        $settings['right_width']  = $normalized['right'];
     }
 
     return $settings;

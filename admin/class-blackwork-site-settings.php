@@ -440,8 +440,14 @@ function bw_site_render_checkout_tab() {
         $right_width_percent  = isset( $_POST['bw_checkout_right_width'] ) ? absint( $_POST['bw_checkout_right_width'] ) : 38;
 
         $left_bg      = $left_bg ?: '#ffffff';
-        $right_bg     = $right_bg ?: '#f7f7f7';
-        $border_color = $border_color ?: '#e0e0e0';
+        $right_bg     = $right_bg ?: 'transparent';
+        $border_color = $border_color ?: '#262626';
+
+        if ( function_exists( 'bw_mew_normalize_checkout_column_widths' ) ) {
+            $widths              = bw_mew_normalize_checkout_column_widths( $left_width_percent, $right_width_percent );
+            $left_width_percent  = $widths['left'];
+            $right_width_percent = $widths['right'];
+        }
 
         $left_width_percent  = min( 90, max( 10, $left_width_percent ) );
         $right_width_percent = min( 90, max( 10, $right_width_percent ) );
@@ -477,8 +483,8 @@ function bw_site_render_checkout_tab() {
     $logo_padding_left   = get_option( 'bw_checkout_logo_padding_left', 0 );
     $show_order_heading  = get_option( 'bw_checkout_show_order_heading', '1' );
     $left_bg             = get_option( 'bw_checkout_left_bg_color', '#ffffff' );
-    $right_bg            = get_option( 'bw_checkout_right_bg_color', '#f7f7f7' );
-    $border_color        = get_option( 'bw_checkout_border_color', '#e0e0e0' );
+    $right_bg            = get_option( 'bw_checkout_right_bg_color', 'transparent' );
+    $border_color        = get_option( 'bw_checkout_border_color', '#262626' );
     $legal_text          = get_option( 'bw_checkout_legal_text', '' );
     $left_width_percent  = get_option( 'bw_checkout_left_width', 62 );
     $right_width_percent = get_option( 'bw_checkout_right_width', 38 );
@@ -561,7 +567,7 @@ function bw_site_render_checkout_tab() {
                     <label for="bw_checkout_right_bg_color">Background colonna destra (riepilogo)</label>
                 </th>
                 <td>
-                    <input type="text" id="bw_checkout_right_bg_color" name="bw_checkout_right_bg_color" value="<?php echo esc_attr( $right_bg ); ?>" class="bw-color-picker" data-default-color="#f7f7f7" />
+                    <input type="text" id="bw_checkout_right_bg_color" name="bw_checkout_right_bg_color" value="<?php echo esc_attr( $right_bg ); ?>" class="bw-color-picker" data-default-color="transparent" />
                     <p class="description">Colore di sfondo del riepilogo ordine sticky.</p>
                 </td>
             </tr>
@@ -588,7 +594,7 @@ function bw_site_render_checkout_tab() {
                     <label for="bw_checkout_border_color">Colore bordi centrali / separatore</label>
                 </th>
                 <td>
-                    <input type="text" id="bw_checkout_border_color" name="bw_checkout_border_color" value="<?php echo esc_attr( $border_color ); ?>" class="bw-color-picker" data-default-color="#e0e0e0" />
+                    <input type="text" id="bw_checkout_border_color" name="bw_checkout_border_color" value="<?php echo esc_attr( $border_color ); ?>" class="bw-color-picker" data-default-color="#262626" />
                     <p class="description">Colore del bordo verticale tra le due colonne.</p>
                 </td>
             </tr>

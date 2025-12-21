@@ -39,16 +39,6 @@ body.woocommerce-checkout .woocommerce-info {
     left: -9999px !important;
 }
 
-/* Force coupon form to be visible in order summary */
-.bw-review-coupon .checkout_coupon,
-.bw-review-coupon .woocommerce-form-coupon {
-    display: flex !important;
-    opacity: 1 !important;
-    visibility: visible !important;
-    height: auto !important;
-    overflow: visible !important;
-}
-
 /* ============================================
    FORCE ZERO SPACING - Override ALL theme/plugin CSS
    These rules target specific classes visible in DevTools
@@ -78,6 +68,7 @@ body.woocommerce-checkout:not(.elementor-editor-active) {
     max-width: 980px;
     margin: 0 auto;
     padding: 16px 12px;
+    background: var(--bw-checkout-left-bg, #ffffff);
 }
 
 .bw-checkout-grid {
@@ -138,7 +129,7 @@ body.woocommerce-checkout:not(.elementor-editor-active) {
 }
 
 .bw-checkout-right {
-    background: transparent;
+    background: var(--bw-checkout-right-bg, transparent);
     padding: 0;
     border-radius: 0;
     border: none;
@@ -170,7 +161,7 @@ body.woocommerce-checkout:not(.elementor-editor-active) {
 
     /* Left column - explicitly positioned to span all rows */
     .bw-checkout-left {
-        background: #ffffff;
+        background: var(--bw-checkout-left-bg, #ffffff);
         padding: 0 28px 0 0;
         margin-bottom: 0;
         grid-column: 1 / 2;
@@ -183,7 +174,7 @@ body.woocommerce-checkout:not(.elementor-editor-active) {
         grid-column: 2 / 3;
         grid-row: 1 / 10;
         width: 1px;
-        background: #262626;
+        background: var(--bw-checkout-border-color, #262626);
         height: 100%;
     }
 
@@ -203,7 +194,7 @@ body.woocommerce-checkout:not(.elementor-editor-active) {
         top: 20px;
         padding-left: 28px;
         padding-right: 0;
-        background: transparent;
+        background: var(--bw-checkout-right-bg, transparent);
         border: none;
         border-radius: 0;
         align-self: start;
@@ -211,7 +202,7 @@ body.woocommerce-checkout:not(.elementor-editor-active) {
 
     /* Inner container for right column styling */
     .bw-checkout-right #order_review_inner {
-        background: transparent;
+        background: var(--bw-checkout-right-bg, transparent);
         padding: 0;
         border-radius: 0;
         border: none;
@@ -676,7 +667,7 @@ body.woocommerce-checkout:not(.elementor-editor-active) {
 }
 
 .bw-review-coupon .checkout_coupon {
-    display: flex;
+    display: flex !important;
     gap: 8px;
     margin: 0;
     padding: 0;
@@ -685,6 +676,10 @@ body.woocommerce-checkout:not(.elementor-editor-active) {
     border: none !important;
     background: transparent !important;
     box-shadow: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    height: auto !important;
+    overflow: visible !important;
 }
 
 .bw-review-coupon .checkout_coupon p {
