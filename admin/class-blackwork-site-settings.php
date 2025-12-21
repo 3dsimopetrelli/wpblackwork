@@ -449,6 +449,15 @@ function bw_site_render_checkout_tab() {
             $right_width_percent = $widths['right'];
         }
 
+        $left_width_percent  = min( 90, max( 10, $left_width_percent ) );
+        $right_width_percent = min( 90, max( 10, $right_width_percent ) );
+
+        if ( ( $left_width_percent + $right_width_percent ) > 100 ) {
+            $total               = $left_width_percent + $right_width_percent;
+            $left_width_percent  = (int) round( ( $left_width_percent / $total ) * 100 );
+            $right_width_percent = 100 - $left_width_percent;
+        }
+
         update_option( 'bw_checkout_logo', $logo );
         update_option( 'bw_checkout_logo_width', $logo_width );
         update_option( 'bw_checkout_logo_padding_top', $logo_padding_top );
