@@ -246,6 +246,16 @@ jQuery(document.body).on('applied_coupon', function() {
 </label>
 ```
 
+##### **D) Column Width Controls**
+```php
+<label for="bw_checkout_left_width">Left column (%):</label>
+<input type="number" name="bw_checkout_left_width" min="10" max="90" value="<?php echo esc_attr($left_width_percent); ?>" />
+
+<label for="bw_checkout_right_width">Right column (%):</label>
+<input type="number" name="bw_checkout_right_width" min="10" max="90" value="<?php echo esc_attr($right_width_percent); ?>" />
+```
+*Se la somma supera il 100% viene ridistribuita automaticamente.*
+
 **Default values:**
 ```php
 $defaults = [
@@ -255,6 +265,8 @@ $defaults = [
     'logo_padding_bottom' => 0,
     'logo_padding_left' => 0,
     'show_order_heading' => '1',
+    'left_width' => 62,
+    'right_width' => 38,
 ];
 ```
 
