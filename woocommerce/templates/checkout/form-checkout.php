@@ -49,6 +49,7 @@ if ( ! $checkout->is_registration_enabled() && $checkout->is_registration_requir
                 <?php endif; ?>
 
                 <div class="bw-checkout-payment">
+                    <div class="bw-payment-express-heading" aria-label="<?php esc_attr_e( 'Express checkout options', 'woocommerce' ); ?>"><?php esc_html_e( 'Express checkout', 'woocommerce' ); ?></div>
                     <h3 class="bw-checkout-section-title"><?php esc_html_e( 'Payment', 'woocommerce' ); ?></h3>
                     <?php wc_get_template(
                         'checkout/payment.php',
