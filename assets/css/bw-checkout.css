@@ -374,23 +374,47 @@ body.woocommerce-checkout:not(.elementor-editor-active) {
 }
 
 .woocommerce-checkout-payment ul.payment_methods.bw-has-express-payments {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.woocommerce-checkout-payment ul.payment_methods.bw-has-express-payments::after {
+    content: "OR";
+    order: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #7a7a7a;
+    background: linear-gradient(
+        to right,
+        #dcdcdc 0,
+        #dcdcdc 45%,
+        transparent 45%,
+        transparent 55%,
+        #dcdcdc 55%,
+        #dcdcdc 100%
+    );
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 100% 1px;
+    padding: 4px 0;
 }
 
 .woocommerce-checkout-payment ul.payment_methods.bw-has-express-payments > li {
     margin: 0;
     padding: 10px 12px;
-}
-
-.woocommerce-checkout-payment ul.payment_methods.bw-has-express-payments > li.bw-standard-payment {
-    grid-column: 1 / -1;
-    position: relative;
-    margin-top: 8px;
+    order: 1;
 }
 
 .woocommerce-checkout-payment ul.payment_methods.bw-has-express-payments > li.bw-express-payment {
+    flex: 1 1 calc((100% - 24px) / 3);
+    max-width: calc((100% - 24px) / 3);
     border-color: #d6d6d6;
     background: #ffffff;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
@@ -406,32 +430,40 @@ body.woocommerce-checkout:not(.elementor-editor-active) {
     accent-color: #000;
 }
 
-.woocommerce-checkout-payment ul.payment_methods.bw-has-express-payments > li.bw-standard-payment:first-of-type::before {
-    content: "OR";
-    position: absolute;
-    top: -22px;
-    left: 0;
-    right: 0;
-    text-align: center;
-    color: #7a7a7a;
-    font-size: 12px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+.woocommerce-checkout-payment ul.payment_methods.bw-has-express-payments > li.bw-standard-payment {
+    flex: 1 1 100%;
+    max-width: 100%;
+    position: relative;
+    margin-top: 4px;
+    order: 3;
 }
 
+.woocommerce-checkout-payment ul.payment_methods.bw-has-express-payments > li.bw-standard-payment:first-of-type {
+    margin-top: 12px;
+}
+
+.woocommerce-checkout-payment ul.payment_methods.bw-has-express-payments > li.bw-standard-payment:first-of-type::before,
 .woocommerce-checkout-payment ul.payment_methods.bw-has-express-payments > li.bw-standard-payment:first-of-type::after {
     content: "";
     position: absolute;
-    top: -12px;
     left: 0;
     right: 0;
     height: 1px;
     background: #dcdcdc;
 }
 
+.woocommerce-checkout-payment ul.payment_methods.bw-has-express-payments > li.bw-standard-payment:first-of-type::before {
+    top: -18px;
+}
+
+.woocommerce-checkout-payment ul.payment_methods.bw-has-express-payments > li.bw-standard-payment:first-of-type::after {
+    display: none;
+}
+
 @media (max-width: 899px) {
-    .woocommerce-checkout-payment ul.payment_methods.bw-has-express-payments {
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    .woocommerce-checkout-payment ul.payment_methods.bw-has-express-payments > li.bw-express-payment {
+        flex-basis: 100%;
+        max-width: 100%;
     }
 }
 
