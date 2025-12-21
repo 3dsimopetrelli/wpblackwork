@@ -677,28 +677,33 @@ body.woocommerce-checkout:not(.elementor-editor-active) {
 
 .bw-review-coupon .checkout_coupon {
     display: flex;
-    gap: 10px;
+    gap: 8px;
     margin: 0;
     padding: 0;
     width: 100%;
+    align-items: stretch;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
 }
 
 .bw-review-coupon .checkout_coupon p {
     margin: 0;
     display: flex;
-    gap: 10px;
+    gap: 8px;
     flex: 1;
 }
 
 .bw-review-coupon input[type="text"] {
     flex: 1;
-    padding: 12px 14px;
-    border: 1px solid #cfcfcf;
-    border-radius: 10px;
+    padding: 10px 12px;
+    border: 1px solid #d1d1d3;
+    border-radius: 8px;
     font-size: 14px;
     background: #ffffff;
     color: #3a3a3a;
     transition: border-color 0.2s, box-shadow 0.2s;
+    height: 40px;
 }
 
 .bw-review-coupon input[type="text"]:focus {
@@ -712,21 +717,21 @@ body.woocommerce-checkout:not(.elementor-editor-active) {
 }
 
 .bw-review-coupon button[type="submit"] {
-    padding: 0 20px;
+    padding: 0 16px;
     background: #c6c6c6;
     color: #ffffff;
     border: 1px solid #c6c6c6;
-    border-radius: 10px;
+    border-radius: 8px;
     cursor: pointer;
     font-size: 14px;
     font-weight: 700;
     white-space: nowrap;
     transition: background 0.2s, border-color 0.2s, color 0.2s;
-    min-width: 90px;
+    min-width: 84px;
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 48px;
+    height: 40px;
 }
 
 .bw-review-coupon button[type="submit"]:hover {
@@ -877,13 +882,14 @@ body.woocommerce-checkout:not(.elementor-editor-active) {
     }
 
     .bw-review-coupon input[type="text"] {
-        padding: 12px 14px;
+        padding: 10px 12px;
         font-size: 14px;
+        height: 40px;
     }
 
     .bw-review-coupon button[type="submit"] {
-        padding: 0 18px;
+        padding: 0 14px;
         font-size: 14px;
-        height: 46px;
+        height: 40px;
     }
 }
