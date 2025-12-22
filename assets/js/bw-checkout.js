@@ -103,9 +103,6 @@
         var hasExpress = false;
 
         list.classList.remove('bw-has-express-payments');
-        list.querySelectorAll('.bw-express-divider').forEach(function (divider) {
-            divider.remove();
-        });
 
         list.querySelectorAll('li').forEach(function (item) {
             item.classList.remove('bw-express-payment', 'bw-standard-payment');
@@ -125,25 +122,6 @@
 
         if (hasExpress) {
             list.classList.add('bw-has-express-payments');
-
-            var firstStandard = list.querySelector('li.bw-standard-payment');
-
-            if (firstStandard) {
-                var divider = document.createElement('li');
-                divider.className = 'bw-express-divider';
-                divider.setAttribute('aria-hidden', 'true');
-
-                var inner = document.createElement('div');
-                inner.className = 'bw-express-divider__inner';
-
-                var label = document.createElement('span');
-                label.textContent = 'OR';
-
-                inner.appendChild(label);
-                divider.appendChild(inner);
-
-                list.insertBefore(divider, firstStandard);
-            }
         }
     }
 
