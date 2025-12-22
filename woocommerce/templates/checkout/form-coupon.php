@@ -14,7 +14,7 @@ if ( ! wc_coupons_enabled() ) {
 }
 
 ?>
-<form class="checkout_coupon woocommerce-form-coupon" method="post" style="display:none">
+<form class="checkout_coupon woocommerce-form-coupon" method="post">
 	<div class="bw-coupon-fields">
 		<label for="coupon_code" class="screen-reader-text"><?php esc_html_e( 'Coupon:', 'woocommerce' ); ?></label>
 		<input type="text" name="coupon_code" class="input-text" placeholder="<?php esc_attr_e( 'Enter Coupon Code', 'woocommerce' ); ?>" id="coupon_code" value="" />
