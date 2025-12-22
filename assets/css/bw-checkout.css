@@ -745,11 +745,14 @@ body.woocommerce-checkout .bw-checkout-wrapper .bw-express-divider__inner span {
 }
 
 .bw-review-coupon .checkout_coupon {
+    display: block !important;
     margin: 0 !important;
     padding: 0 !important;
     border: none !important;
     background: transparent !important;
     box-shadow: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
 }
 
 .bw-review-coupon .bw-coupon-fields {
