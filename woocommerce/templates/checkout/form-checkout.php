@@ -23,25 +23,6 @@ $grid_inline_styles = sprintf(
     isset( $settings['right_width'] ) ? (int) $settings['right_width'] : 38
 );
 
-$available_gateways = WC()->payment_gateways()->get_available_payment_gateways();
-$express_gateways   = [];
-$standard_gateways  = [];
-
-foreach ( $available_gateways as $gateway_id => $gateway ) {
-    $token      = strtolower( $gateway_id . ' ' . $gateway->get_title() );
-    $is_express = ( false !== strpos( $token, 'woopay' ) )
-        || ( false !== strpos( $token, 'apple' ) )
-        || ( false !== strpos( $token, 'gpay' ) )
-        || ( false !== strpos( $token, 'google' ) )
-        || ( false !== strpos( $token, 'vpay' ) );
-
-    if ( $is_express ) {
-        $express_gateways[ $gateway_id ] = $gateway;
-    } else {
-        $standard_gateways[ $gateway_id ] = $gateway;
-    }
-}
-
 $checkout = WC()->checkout();
 $order_button_text = apply_filters( 'woocommerce_order_button_text', __( 'Place order', 'woocommerce' ) );
 
@@ -88,54 +69,15 @@ if ( ! $checkout->is_registration_enabled() && $checkout->is_registration_requir
                 <?php endif; ?>
 
                 <div class="bw-checkout-payment">
-                    <?php if ( WC()->cart->needs_payment() && ! empty( $express_gateways ) ) : ?>
-                        <div class="bw-checkout-express">
-                            <div class="bw-checkout-express__title"><?php esc_html_e( 'Express checkout', 'woocommerce' ); ?></div>
-                            <div class="bw-checkout-express__gateway-grid">
-                                <ul class="wc_payment_methods payment_methods methods">
-                                    <?php foreach ( $express_gateways as $gateway ) : ?>
-                                        <?php wc_get_template( 'checkout/payment-method.php', array( 'gateway' => $gateway ) ); ?>
-                                    <?php endforeach; ?>
-                                </ul>
-                            </div>
-                            <div class="bw-checkout-express__or"><span><?php esc_html_e( 'OR', 'woocommerce' ); ?></span></div>
-                        </div>
-                    <?php endif; ?>
-
+                    <div class="bw-payment-express-heading" aria-label="<?php esc_attr_e( 'Express checkout options', 'woocommerce' ); ?>"><?php esc_html_e( 'Express checkout', 'woocommerce' ); ?></div>
                     <h3 class="bw-checkout-section-title"><?php esc_html_e( 'Payment', 'woocommerce' ); ?></h3>
-                    <?php
-                    $standard_gateway_filter = static function() use ( $standard_gateways ) {
-                        return $standard_gateways;
-                    };
-
-                    $no_methods_filter = null;
-
-                    if ( empty( $standard_gateways ) && ! empty( $express_gateways ) ) {
-                        $no_methods_filter = static function() {
-                            return '';
-                        };
-
-                        add_filter( 'woocommerce_no_available_payment_methods_message', $no_methods_filter, 9999 );
-                        add_filter( 'woocommerce_no_available_payment_methods_message_with_link', $no_methods_filter, 9999 );
-                    }
-
-                    add_filter( 'woocommerce_available_payment_gateways', $standard_gateway_filter, 9999 );
-
-                    wc_get_template(
+                    <?php wc_get_template(
                         'checkout/payment.php',
                         array(
                             'checkout'           => $checkout,
                             'order_button_text'  => $order_button_text,
                         )
-                    );
-
-                    remove_filter( 'woocommerce_available_payment_gateways', $standard_gateway_filter, 9999 );
-
-                    if ( null !== $no_methods_filter ) {
-                        remove_filter( 'woocommerce_no_available_payment_methods_message', $no_methods_filter, 9999 );
-                        remove_filter( 'woocommerce_no_available_payment_methods_message_with_link', $no_methods_filter, 9999 );
-                    }
-                    ?>
+                    ); ?>
                 </div>
             </div>
 
