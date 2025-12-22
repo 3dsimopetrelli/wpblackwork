@@ -890,22 +890,23 @@ body.woocommerce-checkout .bw-checkout-wrapper .bw-express-divider__inner span {
 }
 
 .bw-total-row--grand {
-    border-top: 3px solid #000000 !important;
     margin-top: 10px;
-}
-
-.bw-checkout-right table.shop_table tr.bw-total-row--grand,
-.bw-order-summary table tr.bw-total-row--grand,
-table.woocommerce-checkout-review-order-table tr.bw-total-row--grand {
-    border-top: 3px solid #000000 !important;
 }
 
 .bw-total-row--grand th,
 .bw-total-row--grand td {
+    border-top: 3px solid #000000 !important;
     padding: 16px 0 2px 0 !important;
     font-size: 16px;
     font-weight: 700;
     color: #000000;
+}
+
+.bw-checkout-right table.shop_table .bw-total-row--grand th,
+.bw-checkout-right table.shop_table .bw-total-row--grand td,
+.bw-order-summary table .bw-total-row--grand th,
+.bw-order-summary table .bw-total-row--grand td {
+    border-top: 3px solid #000000 !important;
 }
 
 .bw-total-row--coupon td {
