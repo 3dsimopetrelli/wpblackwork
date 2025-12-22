@@ -188,14 +188,52 @@
                     setOrderSummaryLoading(false);
                 });
 
-            // Intercept coupon form submission to show custom messages
+            // Handle coupon form submission via AJAX
             $(document).on('submit', 'form.checkout_coupon', function(e) {
-                var couponInput = $(this).find('input[name="coupon_code"]');
-                if (couponInput.length && !couponInput.val()) {
-                    e.preventDefault();
+                e.preventDefault();
+
+                var $form = $(this);
+                var couponInput = $form.find('input[name="coupon_code"]');
+                var couponCode = couponInput.val().trim();
+
+                // Validation
+                if (!couponCode) {
                     showCouponMessage('Please enter a coupon code', 'error');
                     return false;
                 }
+
+                // Disable submit button
+                var $button = $form.find('button[type="submit"]');
+                $button.prop('disabled', true);
+                setOrderSummaryLoading(true);
+
+                // Apply coupon via AJAX
+                $.ajax({
+                    type: 'POST',
+                    url: wc_checkout_params.wc_ajax_url.toString().replace('%%endpoint%%', 'apply_coupon'),
+                    data: {
+                        security: wc_checkout_params.apply_coupon_nonce,
+                        coupon_code: couponCode
+                    },
+                    success: function(response) {
+                        if (response.error) {
+                            showCouponMessage(response.error, 'error');
+                        } else if (response.success) {
+                            couponInput.val('');
+                            showCouponMessage('Coupon applied successfully', 'success');
+                            $(document.body).trigger('applied_coupon', [couponCode]);
+                            $(document.body).trigger('update_checkout', { update_shipping_method: false });
+                        }
+                    },
+                    error: function() {
+                        showCouponMessage('Error applying coupon. Please try again.', 'error');
+                    },
+                    complete: function() {
+                        $button.prop('disabled', false);
+                    }
+                });
+
+                return false;
             });
         });
     }
