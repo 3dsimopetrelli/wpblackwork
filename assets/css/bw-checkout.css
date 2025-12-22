@@ -373,78 +373,97 @@ body.woocommerce-checkout:not(.elementor-editor-active) {
     color: #1a1a1a;
 }
 
-body.woocommerce-checkout .bw-checkout-wrapper .woocommerce-checkout-payment ul.payment_methods.bw-has-express-payments {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 16px;
-    align-items: stretch;
+.woocommerce-checkout-payment ul.payment_methods.bw-has-express-payments {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
 }
 
-body.woocommerce-checkout .bw-checkout-wrapper .woocommerce-checkout-payment ul.payment_methods.bw-has-express-payments > li {
+.woocommerce-checkout-payment ul.payment_methods.bw-has-express-payments::after {
+    content: "OR";
+    order: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #7a7a7a;
+    background: linear-gradient(
+        to right,
+        #dcdcdc 0,
+        #dcdcdc 45%,
+        transparent 45%,
+        transparent 55%,
+        #dcdcdc 55%,
+        #dcdcdc 100%
+    );
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 100% 1px;
+    padding: 4px 0;
+}
+
+.woocommerce-checkout-payment ul.payment_methods.bw-has-express-payments > li {
     margin: 0;
     padding: 10px 12px;
-    order: 2;
-    grid-column: 1 / -1;
+    order: 1;
 }
 
-body.woocommerce-checkout .bw-checkout-wrapper .woocommerce-checkout-payment ul.payment_methods.bw-has-express-payments > li.bw-express-payment {
-    order: 1;
-    grid-column: auto;
+.woocommerce-checkout-payment ul.payment_methods.bw-has-express-payments > li.bw-express-payment {
+    flex: 1 1 calc((100% - 24px) / 3);
+    max-width: calc((100% - 24px) / 3);
     border-color: #d6d6d6;
     background: #ffffff;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
-body.woocommerce-checkout .bw-checkout-wrapper .woocommerce-checkout-payment ul.payment_methods.bw-has-express-payments > li.bw-express-payment > * {
-    width: 100%;
-}
-
-body.woocommerce-checkout .bw-checkout-wrapper .woocommerce-checkout-payment ul.payment_methods.bw-has-express-payments > li.bw-express-payment label {
+.woocommerce-checkout-payment ul.payment_methods.bw-has-express-payments > li.bw-express-payment label {
     justify-content: center;
     gap: 10px;
     font-weight: 600;
 }
 
-body.woocommerce-checkout .bw-checkout-wrapper .woocommerce-checkout-payment ul.payment_methods.bw-has-express-payments > li.bw-standard-payment {
-    order: 3;
-    grid-column: 1 / -1;
+.woocommerce-checkout-payment ul.payment_methods.bw-has-express-payments > li.bw-express-payment input[type="radio"] {
+    accent-color: #000;
+}
+
+.woocommerce-checkout-payment ul.payment_methods.bw-has-express-payments > li.bw-standard-payment {
+    flex: 1 1 100%;
+    max-width: 100%;
     position: relative;
     margin-top: 4px;
+    order: 3;
 }
 
-body.woocommerce-checkout .bw-checkout-wrapper .woocommerce-checkout-payment ul.payment_methods.bw-has-express-payments > li.bw-express-divider {
-    order: 2;
-    grid-column: 1 / -1;
-    list-style: none;
-    margin: 4px 0 12px;
-    padding: 0;
+.woocommerce-checkout-payment ul.payment_methods.bw-has-express-payments > li.bw-standard-payment:first-of-type {
+    margin-top: 12px;
 }
 
-body.woocommerce-checkout .bw-checkout-wrapper .bw-express-divider__inner {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-}
-
-body.woocommerce-checkout .bw-checkout-wrapper .bw-express-divider__inner::before,
-body.woocommerce-checkout .bw-checkout-wrapper .bw-express-divider__inner::after {
+.woocommerce-checkout-payment ul.payment_methods.bw-has-express-payments > li.bw-standard-payment:first-of-type::before,
+.woocommerce-checkout-payment ul.payment_methods.bw-has-express-payments > li.bw-standard-payment:first-of-type::after {
     content: "";
-    flex: 1;
+    position: absolute;
+    left: 0;
+    right: 0;
     height: 1px;
-    background: #e0e0e0;
+    background: #dcdcdc;
 }
 
-body.woocommerce-checkout .bw-checkout-wrapper .bw-express-divider__inner span {
-    white-space: nowrap;
-    font-size: 12px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: #7a7a7a;
+.woocommerce-checkout-payment ul.payment_methods.bw-has-express-payments > li.bw-standard-payment:first-of-type::before {
+    top: -18px;
+}
+
+.woocommerce-checkout-payment ul.payment_methods.bw-has-express-payments > li.bw-standard-payment:first-of-type::after {
+    display: none;
 }
 
 @media (max-width: 899px) {
-    body.woocommerce-checkout .bw-checkout-wrapper .woocommerce-checkout-payment ul.payment_methods.bw-has-express-payments {
-        grid-template-columns: 1fr;
+    .woocommerce-checkout-payment ul.payment_methods.bw-has-express-payments > li.bw-express-payment {
+        flex-basis: 100%;
+        max-width: 100%;
     }
 }
 
