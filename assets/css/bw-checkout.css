@@ -327,6 +327,20 @@ body.woocommerce-checkout .bw-checkout-wrapper .bw-checkout-express__or span {
     margin-top: 18px;
 }
 
+.bw-checkout-legal {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid var(--bw-checkout-border-color, #262626);
+    font-size: 12px;
+    line-height: 1.6;
+    color: #4a4a4a;
+}
+
+.bw-checkout-legal a {
+    color: inherit;
+    text-decoration: underline;
+}
+
 /* Form fields */
 .bw-checkout-wrapper .form-row {
     margin: 0 0 12px;
@@ -907,19 +921,6 @@ body.woocommerce-checkout .bw-checkout-wrapper .bw-express-divider__inner span {
 @media (max-width: 899px) {
     .bw-checkout-wrapper {
         padding: 20px 10px;
-    }
-
-    .bw-checkout-express {
-        padding: 14px;
-    }
-
-    .bw-checkout-express__buttons {
-        gap: 8px;
-    }
-
-    .bw-express-btn {
-        padding: 10px 8px;
-        font-size: 13px;
     }
 
     .bw-checkout-left {
