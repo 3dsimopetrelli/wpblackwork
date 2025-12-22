@@ -574,21 +574,29 @@ body.woocommerce-checkout .bw-checkout-wrapper .bw-express-divider__inner span {
     overflow: hidden;
     border-radius: 12px;
     border: 1px solid #e1e1e1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    position: relative;
+}
+
+.bw-review-item__media a {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
 }
 
 .bw-review-item__media img {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
     width: 100% !important;
     height: 100% !important;
     max-width: none !important;
     max-height: none !important;
-    min-width: 100%;
-    min-height: 100%;
-    object-fit: cover;
-    object-position: center;
-    display: block;
+    object-fit: cover !important;
+    object-position: center !important;
+    display: block !important;
 }
 
 .bw-review-item__content {

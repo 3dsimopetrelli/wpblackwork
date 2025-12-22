@@ -44,7 +44,7 @@ $thumb_aspect      = $thumb_map[ $thumb_ratio ];
                             <?php
                             $thumbnail_id = $product->get_image_id();
                             if ( $thumbnail_id ) {
-                                $image_url = wp_get_attachment_image_url( $thumbnail_id, 'full' );
+                                $image_url = wp_get_attachment_image_url( $thumbnail_id, 'medium' );
                                 $image_alt = get_post_meta( $thumbnail_id, '_wp_attachment_image_alt', true );
                                 if ( $product_permalink ) {
                                     echo '<a href="' . esc_url( $product_permalink ) . '"><img src="' . esc_url( $image_url ) . '" alt="' . esc_attr( $image_alt ?: $product->get_name() ) . '"></a>';
