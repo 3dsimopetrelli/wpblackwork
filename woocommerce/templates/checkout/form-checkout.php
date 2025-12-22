@@ -31,6 +31,26 @@ if ( ! $checkout->is_registration_enabled() && $checkout->is_registration_requir
                     </div>
                 <?php endif; ?>
 
+                <!-- Express Checkout Section -->
+                <div class="bw-express-checkout">
+                    <h2 class="bw-express-checkout__title"><?php esc_html_e( 'Express checkout', 'bw' ); ?></h2>
+                    <div class="bw-express-checkout__buttons">
+                        <button type="button" class="bw-express-checkout__button bw-express-checkout__button--shop" data-payment-method="shop_pay">
+                            Shop Pay
+                        </button>
+                        <button type="button" class="bw-express-checkout__button bw-express-checkout__button--paypal" data-payment-method="paypal">
+                            PayPal
+                        </button>
+                        <button type="button" class="bw-express-checkout__button bw-express-checkout__button--gpay" data-payment-method="google_pay">
+                            G Pay
+                        </button>
+                    </div>
+                    <div class="bw-express-checkout__divider">
+                        <span class="bw-express-checkout__divider-text"><?php esc_html_e( 'OR', 'bw' ); ?></span>
+                    </div>
+                </div>
+                <!-- End Express Checkout Section -->
+
                 <?php if ( $checkout->get_checkout_fields() ) : ?>
                     <?php do_action( 'woocommerce_checkout_before_customer_details' ); ?>
 
