@@ -332,7 +332,6 @@ function bw_mew_get_checkout_settings() {
         'left_width'          => 62,
         'right_width'         => 38,
         'thumb_ratio'         => 'square',
-        'thumb_width'         => 110,
     ];
 
     $settings = [
@@ -350,27 +349,12 @@ function bw_mew_get_checkout_settings() {
         'left_width'          => absint( get_option( 'bw_checkout_left_width', $defaults['left_width'] ) ),
         'right_width'         => absint( get_option( 'bw_checkout_right_width', $defaults['right_width'] ) ),
         'thumb_ratio'         => sanitize_key( get_option( 'bw_checkout_thumb_ratio', $defaults['thumb_ratio'] ) ),
-        'thumb_width'         => absint( get_option( 'bw_checkout_thumb_width', $defaults['thumb_width'] ) ),
     ];
 
     $settings['left_bg']      = $settings['left_bg'] ?: $defaults['left_bg'];
     $settings['right_bg']     = $settings['right_bg'] ?: $defaults['right_bg'];
     $settings['border_color'] = $settings['border_color'] ?: $defaults['border_color'];
     $settings['thumb_ratio']  = in_array( $settings['thumb_ratio'], [ 'square', 'portrait', 'landscape' ], true ) ? $settings['thumb_ratio'] : $defaults['thumb_ratio'];
-
-    // Validate thumb_width bounds
-    if ( $settings['thumb_width'] < 50 ) {
-        $settings['thumb_width'] = 50;
-    }
-    if ( $settings['thumb_width'] > 300 ) {
-        $settings['thumb_width'] = 300;
-    }
-
-    if ( function_exists( 'bw_mew_normalize_checkout_column_widths' ) ) {
-        $normalized               = bw_mew_normalize_checkout_column_widths( $settings['left_width'], $settings['right_width'] );
-        $settings['left_width']   = $normalized['left'];
-        $settings['right_width']  = $normalized['right'];
-    }
 
     if ( function_exists( 'bw_mew_normalize_checkout_column_widths' ) ) {
         $normalized               = bw_mew_normalize_checkout_column_widths( $settings['left_width'], $settings['right_width'] );

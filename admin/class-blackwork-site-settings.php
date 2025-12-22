@@ -439,18 +439,9 @@ function bw_site_render_checkout_tab() {
         $left_width_percent   = isset( $_POST['bw_checkout_left_width'] ) ? absint( $_POST['bw_checkout_left_width'] ) : 62;
         $right_width_percent  = isset( $_POST['bw_checkout_right_width'] ) ? absint( $_POST['bw_checkout_right_width'] ) : 38;
         $thumb_ratio          = isset( $_POST['bw_checkout_thumb_ratio'] ) ? sanitize_key( wp_unslash( $_POST['bw_checkout_thumb_ratio'] ) ) : 'square';
-        $thumb_width          = isset( $_POST['bw_checkout_thumb_width'] ) ? absint( $_POST['bw_checkout_thumb_width'] ) : 110;
 
         if ( ! in_array( $thumb_ratio, [ 'square', 'portrait', 'landscape' ], true ) ) {
             $thumb_ratio = 'square';
-        }
-
-        // Ensure thumb_width is within reasonable bounds
-        if ( $thumb_width < 50 ) {
-            $thumb_width = 50;
-        }
-        if ( $thumb_width > 300 ) {
-            $thumb_width = 300;
         }
 
         $left_bg      = $left_bg ?: '#ffffff';
@@ -477,7 +468,6 @@ function bw_site_render_checkout_tab() {
         update_option( 'bw_checkout_left_width', $left_width_percent );
         update_option( 'bw_checkout_right_width', $right_width_percent );
         update_option( 'bw_checkout_thumb_ratio', $thumb_ratio );
-        update_option( 'bw_checkout_thumb_width', $thumb_width );
 
         $saved = true;
     }
@@ -496,7 +486,6 @@ function bw_site_render_checkout_tab() {
     $left_width_percent  = get_option( 'bw_checkout_left_width', 62 );
     $right_width_percent = get_option( 'bw_checkout_right_width', 38 );
     $thumb_ratio         = get_option( 'bw_checkout_thumb_ratio', 'square' );
-    $thumb_width         = get_option( 'bw_checkout_thumb_width', 110 );
     ?>
 
     <?php if ( $saved ) : ?>
@@ -609,16 +598,6 @@ function bw_site_render_checkout_tab() {
                         <option value="landscape" <?php selected( $thumb_ratio, 'landscape' ); ?>>Landscape (3:2)</option>
                     </select>
                     <p class="description">Formato proporzioni miniature prodotto nel riepilogo ordine (consigliato per immagini "nails").</p>
-                </td>
-            </tr>
-            <tr>
-                <th scope="row">
-                    <label for="bw_checkout_thumb_width">Tab Nails Width (px)</label>
-                </th>
-                <td>
-                    <input type="number" id="bw_checkout_thumb_width" name="bw_checkout_thumb_width" value="<?php echo esc_attr( $thumb_width ); ?>" min="50" max="300" step="1" style="width: 90px;" />
-                    <span style="margin-left: 5px;">px</span>
-                    <p class="description">Larghezza delle miniature prodotto nel checkout (min: 50px, max: 300px, default: 110px). Le immagini vengono ridimensionate automaticamente mantenendo la qualità.</p>
                 </td>
             </tr>
             <tr>
