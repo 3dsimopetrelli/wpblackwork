@@ -123,7 +123,7 @@ body.woocommerce-checkout:not(.elementor-editor-active) {
 
 /* Mobile-first: stacked layout */
 .bw-checkout-left {
-    background: var(--bw-checkout-left-bg, #ffffff);
+    background: #ffffff;
     padding: 0;
     margin: 0;
 }
@@ -488,6 +488,11 @@ body.woocommerce-checkout .bw-checkout-wrapper .bw-checkout-express__or span {
     background: transparent !important;
 }
 
+.bw-review-item td.product-thumbnail {
+    width: var(--bw-thumb-width, 110px);
+    padding-right: 0 !important;
+}
+
 .bw-review-item__media {
     width: 110px;
     aspect-ratio: var(--bw-thumb-aspect, 1 / 1);
@@ -499,11 +504,27 @@ body.woocommerce-checkout .bw-checkout-wrapper .bw-checkout-express__or span {
     justify-content: center;
 }
 
-.bw-review-item__media img {
+.bw-review-item__media a {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
+}
+
+.bw-review-item__media img {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none !important;
+    max-height: none !important;
+    object-fit: cover !important;
+    object-position: center !important;
+    display: block !important;
 }
 
 .bw-review-item__content {
@@ -662,7 +683,7 @@ body.woocommerce-checkout .bw-checkout-wrapper .bw-checkout-express__or span {
     color: #bdbdbd;
 }
 
-/* Coupon form */
+/* Coupon form - Style matching reference image */
 .bw-review-coupon {
     padding: 0;
     margin: 0;
@@ -812,6 +833,19 @@ body.woocommerce-checkout .bw-checkout-wrapper .bw-checkout-express__or span {
         padding: 20px 10px;
     }
 
+    .bw-checkout-express {
+        padding: 14px;
+    }
+
+    .bw-checkout-express__buttons {
+        gap: 8px;
+    }
+
+    .bw-express-btn {
+        padding: 10px 8px;
+        font-size: 13px;
+    }
+
     .bw-checkout-left {
         padding: 16px;
     }
@@ -822,6 +856,10 @@ body.woocommerce-checkout .bw-checkout-wrapper .bw-checkout-express__or span {
 
     .bw-review-item {
         padding: 20px 0 !important;
+    }
+
+    .bw-review-item td.product-thumbnail {
+        width: calc(var(--bw-thumb-width, 110px) * 0.82);
     }
 
     .bw-review-item__media {

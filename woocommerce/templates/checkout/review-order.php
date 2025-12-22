@@ -40,7 +40,20 @@ $thumb_aspect      = $thumb_map[ $thumb_ratio ];
                 <tr class="cart_item bw-review-item" data-cart-item="<?php echo esc_attr( $cart_item_key ); ?>">
                     <td class="product-thumbnail">
                         <div class="bw-review-item__media">
-                            <?php echo $product_permalink ? '<a href="' . esc_url( $product_permalink ) . '">' . apply_filters( 'woocommerce_cart_item_thumbnail', $product->get_image( 'woocommerce_thumbnail' ), $cart_item, $cart_item_key ) . '</a>' : apply_filters( 'woocommerce_cart_item_thumbnail', $product->get_image( 'woocommerce_thumbnail' ), $cart_item, $cart_item_key ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                            <?php
+                            $thumbnail_id = $product->get_image_id();
+                            if ( $thumbnail_id ) {
+                                $image_url = wp_get_attachment_image_url( $thumbnail_id, 'medium' );
+                                $image_alt = get_post_meta( $thumbnail_id, '_wp_attachment_image_alt', true );
+                                if ( $product_permalink ) {
+                                    echo '<a href="' . esc_url( $product_permalink ) . '"><img src="' . esc_url( $image_url ) . '" alt="' . esc_attr( $image_alt ?: $product->get_name() ) . '"></a>';
+                                } else {
+                                    echo '<img src="' . esc_url( $image_url ) . '" alt="' . esc_attr( $image_alt ?: $product->get_name() ) . '">';
+                                }
+                            } else {
+                                echo wc_placeholder_img();
+                            }
+                            ?>
                         </div>
                     </td>
 

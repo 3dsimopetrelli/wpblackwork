@@ -2974,3 +2974,4 @@ function bw_import_apply_attributes($product_id, $attributes) {
         }
     }
 }
+
