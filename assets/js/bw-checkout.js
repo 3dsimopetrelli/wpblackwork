@@ -1,10 +1,4 @@
 (function () {
-    // Guard against double-execution if script loads multiple times
-    if (window.BWCheckout) {
-        return;
-    }
-    window.BWCheckout = true;
-
     function triggerCheckoutUpdate() {
         if (window.jQuery && window.jQuery(document.body).trigger) {
             window.jQuery(document.body).trigger('update_checkout');
@@ -51,16 +45,6 @@
     }
 
     document.addEventListener('click', function (event) {
-        // Handle express checkout buttons
-        var expressBtn = event.target.closest('.bw-express-checkout__button');
-        if (expressBtn) {
-            var paymentMethod = expressBtn.getAttribute('data-payment-method');
-            // Placeholder for future express checkout integration
-            // Will be integrated with actual payment gateways (Shop Pay, PayPal, Google Pay)
-            console.log('Express checkout clicked:', paymentMethod);
-            return;
-        }
-
         var button = event.target.closest('.bw-qty-btn');
 
         if (button) {
