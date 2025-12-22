@@ -18,9 +18,12 @@ $settings = function_exists( 'bw_mew_get_checkout_settings' ) ? bw_mew_get_check
 ];
 
 $grid_inline_styles = sprintf(
-    '--bw-checkout-left-col:%d%%; --bw-checkout-right-col:%d%%;',
+    '--bw-checkout-left-col:%d%%; --bw-checkout-right-col:%d%%; --bw-checkout-left-bg:%s; --bw-checkout-right-bg:%s; --bw-checkout-border-color:%s;',
     isset( $settings['left_width'] ) ? (int) $settings['left_width'] : 62,
-    isset( $settings['right_width'] ) ? (int) $settings['right_width'] : 38
+    isset( $settings['right_width'] ) ? (int) $settings['right_width'] : 38,
+    isset( $settings['left_bg'] ) ? esc_attr( $settings['left_bg'] ) : '#ffffff',
+    isset( $settings['right_bg'] ) ? esc_attr( $settings['right_bg'] ) : 'transparent',
+    isset( $settings['border_color'] ) ? esc_attr( $settings['border_color'] ) : '#262626'
 );
 
 $available_gateways = WC()->payment_gateways()->get_available_payment_gateways();
@@ -55,7 +58,7 @@ if ( ! $checkout->is_registration_enabled() && $checkout->is_registration_requir
 ?>
 
 <form name="checkout" method="post" class="checkout woocommerce-checkout bw-checkout-form" action="<?php echo esc_url( wc_get_checkout_url() ); ?>" enctype="multipart/form-data">
-    <div class="bw-checkout-wrapper">
+    <div class="bw-checkout-wrapper" style="<?php echo esc_attr( $grid_inline_styles ); ?>">
         <div class="bw-checkout-grid" style="<?php echo esc_attr( $grid_inline_styles ); ?>">
             <div class="bw-checkout-left">
                 <?php if ( ! empty( $settings['logo'] ) ) : ?>
@@ -136,6 +139,12 @@ if ( ! $checkout->is_registration_enabled() && $checkout->is_registration_requir
                         remove_filter( 'woocommerce_no_available_payment_methods_message_with_link', $no_methods_filter, 9999 );
                     }
                     ?>
+
+                    <?php if ( ! empty( $settings['legal_text'] ) ) : ?>
+                        <div class="bw-checkout-legal">
+                            <?php echo wp_kses_post( $settings['legal_text'] ); ?>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
 
