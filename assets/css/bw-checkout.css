@@ -888,17 +888,18 @@ body.woocommerce-checkout .bw-checkout-wrapper .bw-express-divider__inner span {
     color: #bdbdbd;
 }
 
-/* Coupon form */
+/* Coupon form - Style matching reference image */
 .bw-review-coupon {
-    padding: 0;
-    margin: 0;
+    padding: 0 !important;
+    margin: 0 0 24px 0 !important;
+    border-bottom: none;
 }
 
 .bw-review-coupon .checkout_coupon {
     display: flex !important;
     gap: 8px;
-    margin: 0;
-    padding: 0;
+    margin: 0 !important;
+    padding: 0 !important;
     width: 100%;
     align-items: stretch;
     border: none !important;
@@ -919,48 +920,47 @@ body.woocommerce-checkout .bw-checkout-wrapper .bw-express-divider__inner span {
 
 .bw-review-coupon input[type="text"] {
     flex: 1;
-    padding: 10px 12px;
-    border: 1px solid #d1d1d3;
-    border-radius: 8px;
-    font-size: 14px;
-    background: #ffffff;
-    color: #3a3a3a;
-    transition: border-color 0.2s, box-shadow 0.2s;
-    height: 40px;
+    padding: 18px 20px !important;
+    margin: 0 !important;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    font-size: 15px;
+    background: #f8f8f8;
+    color: #666;
+    transition: all 0.2s;
 }
 
 .bw-review-coupon input[type="text"]:focus {
     outline: none;
-    border-color: #bcbcbc;
-    box-shadow: none;
+    border-color: #ccc;
+    background: #fff;
 }
 
 .bw-review-coupon input[type="text"]::placeholder {
-    color: #8a8a8a;
+    color: #999;
+    font-weight: 400;
 }
 
 .bw-review-coupon button[type="submit"] {
-    padding: 0 16px;
-    background: #c6c6c6;
-    color: #ffffff;
-    border: 1px solid #c6c6c6;
-    border-radius: 8px;
+    padding: 18px 36px !important;
+    margin: 0 !important;
+    background: #c0c0c0;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
     cursor: pointer;
     font-size: 14px;
     font-weight: 700;
     white-space: nowrap;
-    transition: background 0.2s, border-color 0.2s, color 0.2s;
-    min-width: 84px;
+    transition: all 0.2s;
+    min-width: 120px;
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 40px;
 }
 
 .bw-review-coupon button[type="submit"]:hover {
-    background: #b3b3b3;
-    border-color: #b3b3b3;
-    color: #ffffff;
+    background: #a8a8a8;
 }
 
 /* Coupon success message */
