@@ -923,19 +923,6 @@ body.woocommerce-checkout .bw-checkout-wrapper .bw-express-divider__inner span {
         padding: 20px 10px;
     }
 
-    .bw-checkout-express {
-        padding: 14px;
-    }
-
-    .bw-checkout-express__buttons {
-        gap: 8px;
-    }
-
-    .bw-express-btn {
-        padding: 10px 8px;
-        font-size: 13px;
-    }
-
     .bw-checkout-left {
         padding: 16px;
     }
