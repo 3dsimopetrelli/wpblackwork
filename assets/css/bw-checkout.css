@@ -128,16 +128,13 @@ body.woocommerce-checkout:not(.elementor-editor-active) {
     margin: 0;
 }
 
-.bw-checkout-right {
+.bw-checkout-right,
+.bw-checkout-order-heading__wrap {
     background: var(--bw-checkout-right-bg, transparent);
     padding: 0;
     border-radius: 0;
     border: none;
-}
-
-.bw-checkout-order-heading__wrap {
     margin: 0;
-    padding: 0;
 }
 
 .bw-checkout-order-heading {
