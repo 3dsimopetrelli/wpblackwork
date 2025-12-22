@@ -436,10 +436,23 @@ function bw_site_render_checkout_tab() {
         $right_bg             = isset( $_POST['bw_checkout_right_bg_color'] ) ? sanitize_hex_color( wp_unslash( $_POST['bw_checkout_right_bg_color'] ) ) : '';
         $border_color         = isset( $_POST['bw_checkout_border_color'] ) ? sanitize_hex_color( wp_unslash( $_POST['bw_checkout_border_color'] ) ) : '';
         $legal_text           = isset( $_POST['bw_checkout_legal_text'] ) ? wp_kses_post( wp_unslash( $_POST['bw_checkout_legal_text'] ) ) : '';
+        $left_width_percent   = isset( $_POST['bw_checkout_left_width'] ) ? absint( $_POST['bw_checkout_left_width'] ) : 62;
+        $right_width_percent  = isset( $_POST['bw_checkout_right_width'] ) ? absint( $_POST['bw_checkout_right_width'] ) : 38;
+        $thumb_ratio          = isset( $_POST['bw_checkout_thumb_ratio'] ) ? sanitize_key( wp_unslash( $_POST['bw_checkout_thumb_ratio'] ) ) : 'square';
+
+        if ( ! in_array( $thumb_ratio, [ 'square', 'portrait', 'landscape' ], true ) ) {
+            $thumb_ratio = 'square';
+        }
 
         $left_bg      = $left_bg ?: '#ffffff';
-        $right_bg     = $right_bg ?: '#f7f7f7';
-        $border_color = $border_color ?: '#e0e0e0';
+        $right_bg     = $right_bg ?: 'transparent';
+        $border_color = $border_color ?: '#262626';
+
+        if ( function_exists( 'bw_mew_normalize_checkout_column_widths' ) ) {
+            $widths              = bw_mew_normalize_checkout_column_widths( $left_width_percent, $right_width_percent );
+            $left_width_percent  = $widths['left'];
+            $right_width_percent = $widths['right'];
+        }
 
         update_option( 'bw_checkout_logo', $logo );
         update_option( 'bw_checkout_logo_width', $logo_width );
@@ -452,6 +465,9 @@ function bw_site_render_checkout_tab() {
         update_option( 'bw_checkout_right_bg_color', $right_bg );
         update_option( 'bw_checkout_border_color', $border_color );
         update_option( 'bw_checkout_legal_text', $legal_text );
+        update_option( 'bw_checkout_left_width', $left_width_percent );
+        update_option( 'bw_checkout_right_width', $right_width_percent );
+        update_option( 'bw_checkout_thumb_ratio', $thumb_ratio );
 
         $saved = true;
     }
@@ -464,9 +480,12 @@ function bw_site_render_checkout_tab() {
     $logo_padding_left   = get_option( 'bw_checkout_logo_padding_left', 0 );
     $show_order_heading  = get_option( 'bw_checkout_show_order_heading', '1' );
     $left_bg             = get_option( 'bw_checkout_left_bg_color', '#ffffff' );
-    $right_bg            = get_option( 'bw_checkout_right_bg_color', '#f7f7f7' );
-    $border_color        = get_option( 'bw_checkout_border_color', '#e0e0e0' );
+    $right_bg            = get_option( 'bw_checkout_right_bg_color', 'transparent' );
+    $border_color        = get_option( 'bw_checkout_border_color', '#262626' );
     $legal_text          = get_option( 'bw_checkout_legal_text', '' );
+    $left_width_percent  = get_option( 'bw_checkout_left_width', 62 );
+    $right_width_percent = get_option( 'bw_checkout_right_width', 38 );
+    $thumb_ratio         = get_option( 'bw_checkout_thumb_ratio', 'square' );
     ?>
 
     <?php if ( $saved ) : ?>
@@ -546,8 +565,39 @@ function bw_site_render_checkout_tab() {
                     <label for="bw_checkout_right_bg_color">Background colonna destra (riepilogo)</label>
                 </th>
                 <td>
-                    <input type="text" id="bw_checkout_right_bg_color" name="bw_checkout_right_bg_color" value="<?php echo esc_attr( $right_bg ); ?>" class="bw-color-picker" data-default-color="#f7f7f7" />
+                    <input type="text" id="bw_checkout_right_bg_color" name="bw_checkout_right_bg_color" value="<?php echo esc_attr( $right_bg ); ?>" class="bw-color-picker" data-default-color="transparent" />
                     <p class="description">Colore di sfondo del riepilogo ordine sticky.</p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_checkout_left_width">Larghezza colonna sinistra (%)</label>
+                </th>
+                <td>
+                    <input type="number" id="bw_checkout_left_width" name="bw_checkout_left_width" value="<?php echo esc_attr( $left_width_percent ); ?>" min="10" max="90" step="1" style="width: 90px;" />
+                    <p class="description">Percentuale dedicata al form (default 62%).</p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_checkout_right_width">Larghezza colonna destra (%)</label>
+                </th>
+                <td>
+                    <input type="number" id="bw_checkout_right_width" name="bw_checkout_right_width" value="<?php echo esc_attr( $right_width_percent ); ?>" min="10" max="90" step="1" style="width: 90px;" />
+                    <p class="description">Percentuale dedicata al riepilogo (default 38%). Se la somma supera il 100%, verrà bilanciata automaticamente.</p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_checkout_thumb_ratio">Order Item Thumbnail Format (Nails)</label>
+                </th>
+                <td>
+                    <select id="bw_checkout_thumb_ratio" name="bw_checkout_thumb_ratio">
+                        <option value="square" <?php selected( $thumb_ratio, 'square' ); ?>>Square (1:1)</option>
+                        <option value="portrait" <?php selected( $thumb_ratio, 'portrait' ); ?>>Portrait (2:3)</option>
+                        <option value="landscape" <?php selected( $thumb_ratio, 'landscape' ); ?>>Landscape (3:2)</option>
+                    </select>
+                    <p class="description">Formato proporzioni miniature prodotto nel riepilogo ordine (consigliato per immagini "nails").</p>
                 </td>
             </tr>
             <tr>
@@ -555,7 +605,7 @@ function bw_site_render_checkout_tab() {
                     <label for="bw_checkout_border_color">Colore bordi centrali / separatore</label>
                 </th>
                 <td>
-                    <input type="text" id="bw_checkout_border_color" name="bw_checkout_border_color" value="<?php echo esc_attr( $border_color ); ?>" class="bw-color-picker" data-default-color="#e0e0e0" />
+                    <input type="text" id="bw_checkout_border_color" name="bw_checkout_border_color" value="<?php echo esc_attr( $border_color ); ?>" class="bw-color-picker" data-default-color="#262626" />
                     <p class="description">Colore del bordo verticale tra le due colonne.</p>
                 </td>
             </tr>
@@ -611,6 +661,7 @@ function bw_site_render_cart_popup_tab() {
 
     // Recupera le impostazioni correnti
     $active = get_option('bw_cart_popup_active', 0);
+    $show_floating_trigger = get_option('bw_cart_popup_show_floating_trigger', 0);
     $panel_width = get_option('bw_cart_popup_panel_width', 400);
     $overlay_color = get_option('bw_cart_popup_overlay_color', '#000000');
     $overlay_opacity = get_option('bw_cart_popup_overlay_opacity', 0.5);
@@ -671,6 +722,7 @@ function bw_site_render_cart_popup_tab() {
 
     // Empty cart settings
     $return_shop_url = get_option('bw_cart_popup_return_shop_url', '');
+    $show_quantity_badge = get_option('bw_cart_popup_show_quantity_badge', 1);
 
     // Promo code section settings
     $promo_section_label = get_option('bw_cart_popup_promo_section_label', 'Promo code section');
@@ -701,6 +753,19 @@ function bw_site_render_cart_popup_tab() {
                     <label class="switch">
                         <input type="checkbox" id="bw_cart_popup_active" name="bw_cart_popup_active" value="1" <?php checked(1, $active); ?> />
                         <span class="description">Quando attivo, i pulsanti "Add to Cart" apriranno il pannello slide-in invece di andare alla pagina carrello.</span>
+                    </label>
+                </td>
+            </tr>
+
+            <!-- Floating cart trigger ON/OFF -->
+            <tr>
+                <th scope="row">
+                    <label for="bw_cart_popup_show_floating_trigger">Mostra pulsante carrello fisso</label>
+                </th>
+                <td>
+                    <label class="switch">
+                        <input type="checkbox" id="bw_cart_popup_show_floating_trigger" name="bw_cart_popup_show_floating_trigger" value="1" <?php checked(1, $show_floating_trigger); ?> />
+                        <span class="description">Attiva l'icona fissa in basso a destra con badge quantità; cliccandola si apre il cart pop-up.</span>
                     </label>
                 </td>
             </tr>
@@ -759,6 +824,19 @@ function bw_site_render_cart_popup_tab() {
                 <td>
                     <input type="color" id="bw_cart_popup_panel_bg" name="bw_cart_popup_panel_bg" value="<?php echo esc_attr($panel_bg); ?>" />
                     <p class="description">Colore di sfondo del pannello slide-in</p>
+                </td>
+            </tr>
+
+            <!-- Badge quantità -->
+            <tr>
+                <th scope="row">
+                    <label for="bw_cart_popup_show_quantity_badge">Mostra badge quantità (thumbnail)</label>
+                </th>
+                <td>
+                    <label class="switch">
+                        <input type="checkbox" id="bw_cart_popup_show_quantity_badge" name="bw_cart_popup_show_quantity_badge" value="1" <?php checked(1, $show_quantity_badge); ?> />
+                        <span class="description">Attiva o disattiva il pallino con il numero di pezzi sopra l’immagine prodotto nel cart pop-up.</span>
+                    </label>
                 </td>
             </tr>
 

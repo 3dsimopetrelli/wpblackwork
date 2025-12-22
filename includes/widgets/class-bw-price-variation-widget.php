@@ -215,6 +215,51 @@ class BW_Price_Variation_Widget extends Widget_Base {
                         ]
                 );
 
+		$this->add_control(
+			'show_woopay_button',
+			[
+				'label'        => __( 'WooPay Button', 'bw' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => __( 'On', 'bw' ),
+				'label_off'    => __( 'Off', 'bw' ),
+				'return_value' => 'yes',
+				'default'      => 'yes',
+				'condition'    => [
+					'show_other_payment_methods' => 'yes',
+				],
+			]
+		);
+
+		$this->add_control(
+			'show_apple_pay_button',
+			[
+				'label'        => __( 'Apple Pay Button', 'bw' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => __( 'On', 'bw' ),
+				'label_off'    => __( 'Off', 'bw' ),
+				'return_value' => 'yes',
+				'default'      => 'yes',
+				'condition'    => [
+					'show_other_payment_methods' => 'yes',
+				],
+			]
+		);
+
+		$this->add_control(
+			'show_google_pay_button',
+			[
+				'label'        => __( 'Google Pay Button', 'bw' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => __( 'On', 'bw' ),
+				'label_off'    => __( 'Off', 'bw' ),
+				'return_value' => 'yes',
+				'default'      => 'yes',
+				'condition'    => [
+					'show_other_payment_methods' => 'yes',
+				],
+			]
+		);
+
                 $this->add_control(
                         'other_payments_note',
                         [
@@ -1229,6 +1274,7 @@ $license_html  = function_exists( 'bw_get_variation_license_table_html' ) ? bw_g
                         if ( ! empty( $variation['is_in_stock'] ) ) {
                                 return $variation;
                         }
+                        return;
                 }
 
                 return $variations_data[0];
@@ -1455,7 +1501,10 @@ $license_html  = function_exists( 'bw_get_variation_license_table_html' ) ? bw_g
                                 $render_wc_after_add_to_cart = (
                                         ( isset( $settings['show_stripe_payment_request'] ) && 'yes' === $settings['show_stripe_payment_request'] ) ||
                                         ( isset( $settings['show_wc_payments'] ) && 'yes' === $settings['show_wc_payments'] ) ||
-                                        ( isset( $settings['show_paypal_buttons'] ) && 'yes' === $settings['show_paypal_buttons'] )
+                                        ( isset( $settings['show_paypal_buttons'] ) && 'yes' === $settings['show_paypal_buttons'] ) ||
+					( isset( $settings['show_woopay_button'] ) && 'yes' === $settings['show_woopay_button'] ) ||
+					( isset( $settings['show_apple_pay_button'] ) && 'yes' === $settings['show_apple_pay_button'] ) ||
+					( isset( $settings['show_google_pay_button'] ) && 'yes' === $settings['show_google_pay_button'] )
                                 );
 
                                 $empty_text = isset( $settings['other_payments_empty_text'] ) && '' !== trim( $settings['other_payments_empty_text'] )
@@ -1468,40 +1517,106 @@ $license_html  = function_exists( 'bw_get_variation_license_table_html' ) ? bw_g
                                         </button>
                                         <div class="bw-other-payments__content" hidden>
                                                 <?php
-                                                ob_start();
+                                                $gateway_blocks = [];
 
-                                                /**
-                                                 * Allow custom content to be injected before the gateway buttons.
-                                                 */
-                                                do_action( 'bw_price_variation_before_payment_dropdown', $product, $settings );
+					/**
+					 * Allow custom content to be injected before the gateway buttons.
+					 */
+					ob_start();
+					do_action( 'bw_price_variation_before_payment_dropdown', $product, $settings );
+					$before_dropdown = trim( (string) ob_get_clean() );
+					if ( '' !== $before_dropdown ) {
+						$gateway_blocks[] = $before_dropdown;
+					}
 
-                                                if ( $render_wc_after_add_to_cart ) {
-                                                        /**
-                                                         * Reuse the standard WooCommerce hook so gateways (Stripe Payment Request,
-                                                         * WooCommerce Payments, PayPal, etc.) can output their express buttons.
-                                                         */
-                                                        do_action( 'woocommerce_after_add_to_cart_button' );
-                                                }
+					$render_payment_slot = static function( $action, $class, $product_obj, $widget_settings ) {
+						ob_start();
+						do_action( $action, $product_obj, $widget_settings );
+						$content = trim( (string) ob_get_clean() );
 
-                                                if ( isset( $settings['show_paypal_buttons'] ) && 'yes' === $settings['show_paypal_buttons'] ) {
-                                                        /**
-                                                         * Dedicated PayPal render hook used by WooCommerce PayPal Payments.
-                                                         */
-                                                        do_action( 'woocommerce_paypal_payments_single_product_renderer' );
-                                                }
+						if ( '' === $content ) {
+							return '';
+						}
 
-                                                /**
-                                                 * Allow custom content after the gateway buttons.
-                                                 */
-                                                do_action( 'bw_price_variation_after_payment_dropdown', $product, $settings );
+						return '<div class="bw-other-payments__slot ' . esc_attr( $class ) . '">' . $content . '</div>';
+					};
 
-                                                $gateway_content = trim( (string) ob_get_clean() );
+					if ( isset( $settings['show_woopay_button'] ) && 'yes' === $settings['show_woopay_button'] ) {
+						$slot = $render_payment_slot( 'bw_price_variation_render_woopay_button', 'bw-other-payments__slot--woopay', $product, $settings );
 
-                                                if ( '' === $gateway_content ) {
-                                                        echo '<p class="bw-other-payments__empty">' . esc_html( $empty_text ) . '</p>';
-                                                } else {
-                                                        echo $gateway_content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-                                                }
+						if ( '' !== $slot ) {
+							$gateway_blocks[] = $slot;
+						}
+					}
+
+					if ( isset( $settings['show_apple_pay_button'] ) && 'yes' === $settings['show_apple_pay_button'] ) {
+						$slot = $render_payment_slot( 'bw_price_variation_render_apple_pay_button', 'bw-other-payments__slot--apple-pay', $product, $settings );
+
+						if ( '' !== $slot ) {
+							$gateway_blocks[] = $slot;
+						}
+					}
+
+					if ( isset( $settings['show_google_pay_button'] ) && 'yes' === $settings['show_google_pay_button'] ) {
+						$slot = $render_payment_slot( 'bw_price_variation_render_google_pay_button', 'bw-other-payments__slot--google-pay', $product, $settings );
+
+						if ( '' !== $slot ) {
+							$gateway_blocks[] = $slot;
+						}
+					}
+
+					if ( $render_wc_after_add_to_cart ) {
+						/**
+						 * Reuse the standard WooCommerce hooks so gateways (Stripe Payment Request,
+						 * WooCommerce Payments, PayPal, etc.) can output their express buttons.
+						 */
+						ob_start();
+						do_action( 'woocommerce_after_add_to_cart_button' );
+						$after_button_hooks = trim( (string) ob_get_clean() );
+
+						if ( '' !== $after_button_hooks ) {
+							$gateway_blocks[] = '<div class="bw-other-payments__slot bw-other-payments__slot--wc-hooks">' . $after_button_hooks . '</div>';
+						}
+
+						ob_start();
+						do_action( 'woocommerce_after_add_to_cart_form' );
+						$after_form_hooks = trim( (string) ob_get_clean() );
+
+						if ( '' !== $after_form_hooks ) {
+							$gateway_blocks[] = '<div class="bw-other-payments__slot bw-other-payments__slot--wc-after-form">' . $after_form_hooks . '</div>';
+						}
+					}
+
+					if ( isset( $settings['show_paypal_buttons'] ) && 'yes' === $settings['show_paypal_buttons'] ) {
+						/**
+						 * Dedicated PayPal render hook used by WooCommerce PayPal Payments.
+						 */
+						ob_start();
+						do_action( 'woocommerce_paypal_payments_single_product_renderer' );
+						$paypal_content = trim( (string) ob_get_clean() );
+
+						if ( '' !== $paypal_content ) {
+							$gateway_blocks[] = '<div class="bw-other-payments__slot bw-other-payments__slot--paypal">' . $paypal_content . '</div>';
+						}
+					}
+
+					/**
+					 * Allow custom content after the gateway buttons.
+					 */
+					ob_start();
+					do_action( 'bw_price_variation_after_payment_dropdown', $product, $settings );
+					$after_dropdown = trim( (string) ob_get_clean() );
+					if ( '' !== $after_dropdown ) {
+						$gateway_blocks[] = $after_dropdown;
+					}
+
+					$gateway_content = trim( implode( '', $gateway_blocks ) );
+
+					if ( '' === $gateway_content ) {
+						echo '<p class="bw-other-payments__empty">' . esc_html( $empty_text ) . '</p>';
+					} else {
+						echo '<div class="bw-other-payments__stack">' . $gateway_content . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+					}
                                                 ?>
                                         </div>
                                 </div>

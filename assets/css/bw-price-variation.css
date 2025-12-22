@@ -204,6 +204,19 @@ font-weight: 600;
         display: block;
 }
 
+.bw-other-payments__stack {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+}
+
+.bw-other-payments__slot {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+}
+
 .bw-other-payments__empty {
         margin: 0;
         font-size: 12px;

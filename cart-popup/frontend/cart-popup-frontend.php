@@ -80,12 +80,12 @@ function bw_cart_popup_render_panel() {
 
     // Recupera le impostazioni
     $checkout_text = get_option('bw_cart_popup_checkout_text', 'Proceed to checkout');
-    // FORZATO: Usa sempre /checkout/ invece di wc_get_checkout_url()
-    // perché wc_get_checkout_url() potrebbe essere configurato male nelle impostazioni WooCommerce
-    $checkout_url = home_url('/checkout/');
-    $cart_url = wc_get_cart_url();
+    // Forza l'URL del pulsante principale verso il checkout standard di WooCommerce
+    // per garantire un comportamento coerente in ogni contesto.
+    $checkout_url = wc_get_checkout_url();
     $continue_text = get_option('bw_cart_popup_continue_text', 'Continue shopping');
     $continue_url = get_option('bw_cart_popup_continue_url', '');
+    $show_floating_trigger = get_option('bw_cart_popup_show_floating_trigger', 0);
     $additional_svg = get_option('bw_cart_popup_additional_svg', '');
     $empty_cart_svg = get_option('bw_cart_popup_empty_cart_svg', '');
     $svg_black = get_option('bw_cart_popup_svg_black', 0);
@@ -183,7 +183,15 @@ function bw_cart_popup_render_panel() {
                 </div>
                 <div class="bw-cart-popup-discount" style="display: none;">
                     <span class="label">Discount:</span>
+                    <span class="bw-cart-coupon-label" style="display: none;">
+                        <span class="bw-cart-coupon-icon" aria-hidden="true"></span>
+                        <span class="bw-cart-coupon-code"></span>
+                    </span>
                     <span class="value" data-discount="0">-€0.00</span>
+                    <span class="bw-cart-coupon-label" style="display: none;">
+                        <span class="bw-cart-coupon-icon" aria-hidden="true"></span>
+                        <span class="bw-cart-coupon-code"></span>
+                    </span>
                 </div>
                 <div class="bw-cart-popup-total">
                     <span class="label">Total:</span>
@@ -194,7 +202,7 @@ function bw_cart_popup_render_panel() {
 
         <!-- Footer con pulsanti -->
         <div class="bw-cart-popup-footer">
-            <a href="<?php echo esc_url($checkout_url); ?>" data-checkout-url="<?php echo esc_url($checkout_url); ?>" data-cart-url="<?php echo esc_url($cart_url); ?>" class="bw-cart-popup-checkout elementor-button elementor-button-link elementor-size-md">
+            <a href="<?php echo esc_url($checkout_url); ?>" class="bw-cart-popup-checkout elementor-button elementor-button-link elementor-size-md" data-base-text="<?php echo esc_attr($checkout_text); ?>">
                 <?php echo esc_html($checkout_text); ?>
             </a>
             <a href="<?php echo esc_url($continue_url); ?>" class="bw-cart-popup-continue">
@@ -221,6 +229,17 @@ function bw_cart_popup_render_panel() {
         </div>
         <?php endif; ?>
     </div>
+    <?php if ($show_floating_trigger): ?>
+        <button type="button" class="bw-cart-floating-trigger hidden" aria-label="Open cart">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M6 6h15l-1.5 9h-12z"></path>
+                <path d="M9 11h6"></path>
+                <circle cx="9" cy="20" r="1"></circle>
+                <circle cx="17" cy="20" r="1"></circle>
+            </svg>
+            <span class="bw-cart-floating-badge">0</span>
+        </button>
+    <?php endif; ?>
     <?php
 }
 add_action('wp_footer', 'bw_cart_popup_render_panel');
@@ -551,6 +570,8 @@ function bw_cart_popup_get_cart_contents() {
     $discount = 0;
     $tax = 0;
     $total = 0;
+    $item_count = 0;
+    $applied_coupons = [];
 
     if (!$cart->is_empty()) {
         foreach ($cart->get_cart() as $cart_item_key => $cart_item) {
@@ -558,17 +579,25 @@ function bw_cart_popup_get_cart_contents() {
             $product_id = $cart_item['product_id'];
             $quantity = $cart_item['quantity'];
 
+            $price_display = wc_get_price_to_display($product, ['qty' => $quantity]);
+            $regular_price_display = wc_get_price_to_display($product, ['qty' => $quantity, 'price' => $product->get_regular_price()]);
+
             $cart_items[] = [
-                'key'          => $cart_item_key,
-                'product_id'   => $product_id,
-                'variation_id' => isset( $cart_item['variation_id'] ) ? (int) $cart_item['variation_id'] : 0,
-                'variation'    => isset( $cart_item['variation'] ) && is_array( $cart_item['variation'] ) ? array_map( 'wc_clean', $cart_item['variation'] ) : [],
-                'name'         => $product->get_name(),
-                'quantity'     => $quantity,
-                'price'        => wc_price( $product->get_price() ),
-                'subtotal'     => wc_price( $cart_item['line_subtotal'] ),
-                'image'        => $product->get_image( 'thumbnail' ),
-                'permalink'    => $product->get_permalink(),
+                'key' => $cart_item_key,
+                'product_id' => $product_id,
+                'name' => $product->get_name(),
+                'quantity' => $quantity,
+                'sold_individually' => (bool) $product->is_sold_individually(),
+                'price' => wc_price($product->get_price()),
+                'price_raw' => (float) $product->get_price(),
+                'regular_price' => wc_price($product->get_regular_price()),
+                'regular_price_raw' => (float) $product->get_regular_price(),
+                'subtotal' => wc_price($price_display),
+                'subtotal_raw' => (float) $price_display,
+                'regular_subtotal' => wc_price($regular_price_display),
+                'regular_subtotal_raw' => (float) $regular_price_display,
+                'image' => $product->get_image('thumbnail'),
+                'permalink' => $product->get_permalink(),
             ];
         }
 
@@ -576,6 +605,8 @@ function bw_cart_popup_get_cart_contents() {
         $discount = $cart->get_discount_total();
         $tax = $cart->get_total_tax();
         $total = $cart->get_total('');
+        $item_count = $cart->get_cart_contents_count();
+        $applied_coupons = array_map('sanitize_text_field', array_values(array_unique($cart->get_applied_coupons())));
     }
 
     // Ottieni i coupon applicati
@@ -583,6 +614,8 @@ function bw_cart_popup_get_cart_contents() {
 
     wp_send_json_success([
         'items' => $cart_items,
+        'item_count' => $item_count,
+        'coupons' => $applied_coupons,
         'subtotal' => wc_price($subtotal),
         'subtotal_raw' => $subtotal,
         'discount' => wc_price($discount),
@@ -629,7 +662,7 @@ function bw_cart_popup_apply_coupon() {
         $discount = $cart->get_discount_total();
         $tax = $cart->get_total_tax();
         $total = $cart->get_total('');
-        $applied_coupons = $cart->get_applied_coupons();
+        $applied_coupons = array_map('sanitize_text_field', array_values(array_unique($cart->get_applied_coupons())));
 
         wp_send_json_success([
             'message' => 'Coupon applied successfully!',
@@ -641,7 +674,7 @@ function bw_cart_popup_apply_coupon() {
             'tax_raw' => $tax,
             'total' => wc_price($total),
             'total_raw' => $total,
-            'applied_coupons' => $applied_coupons,
+            'coupons' => $applied_coupons,
         ]);
     } else {
         $message = bw_cart_popup_get_first_error_notice( __( 'Invalid coupon code', 'bw' ) );

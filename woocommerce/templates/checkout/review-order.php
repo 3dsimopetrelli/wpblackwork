@@ -9,9 +9,18 @@
 defined( 'ABSPATH' ) || exit;
 
 $cart_items = WC()->cart->get_cart();
+$checkout_settings = function_exists( 'bw_mew_get_checkout_settings' ) ? bw_mew_get_checkout_settings() : [];
+$thumb_ratio       = isset( $checkout_settings['thumb_ratio'] ) ? $checkout_settings['thumb_ratio'] : 'square';
+$thumb_map         = [
+    'square'    => '1 / 1',
+    'portrait'  => '2 / 3',
+    'landscape' => '3 / 2',
+];
+$thumb_ratio       = array_key_exists( $thumb_ratio, $thumb_map ) ? $thumb_ratio : 'square';
+$thumb_aspect      = $thumb_map[ $thumb_ratio ];
 ?>
 
-<div class="bw-order-summary woocommerce-checkout-review-order">
+<div class="bw-order-summary woocommerce-checkout-review-order bw-thumb-ratio-<?php echo esc_attr( $thumb_ratio ); ?>" style="--bw-thumb-aspect: <?php echo esc_attr( $thumb_aspect ); ?>;">
     <div class="bw-order-summary__loader" aria-hidden="true"></div>
 
     <table class="shop_table woocommerce-checkout-review-order-table bw-review-table">
