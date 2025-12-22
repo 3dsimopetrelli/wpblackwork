@@ -331,6 +331,7 @@ function bw_mew_get_checkout_settings() {
         'legal_text'          => '',
         'left_width'          => 62,
         'right_width'         => 38,
+        'thumb_ratio'         => 'square',
     ];
 
     $settings = [
@@ -347,11 +348,19 @@ function bw_mew_get_checkout_settings() {
         'legal_text'          => get_option( 'bw_checkout_legal_text', $defaults['legal_text'] ),
         'left_width'          => absint( get_option( 'bw_checkout_left_width', $defaults['left_width'] ) ),
         'right_width'         => absint( get_option( 'bw_checkout_right_width', $defaults['right_width'] ) ),
+        'thumb_ratio'         => sanitize_key( get_option( 'bw_checkout_thumb_ratio', $defaults['thumb_ratio'] ) ),
     ];
 
     $settings['left_bg']      = $settings['left_bg'] ?: $defaults['left_bg'];
     $settings['right_bg']     = $settings['right_bg'] ?: $defaults['right_bg'];
     $settings['border_color'] = $settings['border_color'] ?: $defaults['border_color'];
+    $settings['thumb_ratio']  = in_array( $settings['thumb_ratio'], [ 'square', 'portrait', 'landscape' ], true ) ? $settings['thumb_ratio'] : $defaults['thumb_ratio'];
+
+    if ( function_exists( 'bw_mew_normalize_checkout_column_widths' ) ) {
+        $normalized               = bw_mew_normalize_checkout_column_widths( $settings['left_width'], $settings['right_width'] );
+        $settings['left_width']   = $normalized['left'];
+        $settings['right_width']  = $normalized['right'];
+    }
 
     if ( function_exists( 'bw_mew_normalize_checkout_column_widths' ) ) {
         $normalized               = bw_mew_normalize_checkout_column_widths( $settings['left_width'], $settings['right_width'] );

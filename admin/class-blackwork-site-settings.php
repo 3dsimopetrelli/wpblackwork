@@ -438,6 +438,11 @@ function bw_site_render_checkout_tab() {
         $legal_text           = isset( $_POST['bw_checkout_legal_text'] ) ? wp_kses_post( wp_unslash( $_POST['bw_checkout_legal_text'] ) ) : '';
         $left_width_percent   = isset( $_POST['bw_checkout_left_width'] ) ? absint( $_POST['bw_checkout_left_width'] ) : 62;
         $right_width_percent  = isset( $_POST['bw_checkout_right_width'] ) ? absint( $_POST['bw_checkout_right_width'] ) : 38;
+        $thumb_ratio          = isset( $_POST['bw_checkout_thumb_ratio'] ) ? sanitize_key( wp_unslash( $_POST['bw_checkout_thumb_ratio'] ) ) : 'square';
+
+        if ( ! in_array( $thumb_ratio, [ 'square', 'portrait', 'landscape' ], true ) ) {
+            $thumb_ratio = 'square';
+        }
 
         $left_bg      = $left_bg ?: '#ffffff';
         $right_bg     = $right_bg ?: 'transparent';
@@ -462,6 +467,7 @@ function bw_site_render_checkout_tab() {
         update_option( 'bw_checkout_legal_text', $legal_text );
         update_option( 'bw_checkout_left_width', $left_width_percent );
         update_option( 'bw_checkout_right_width', $right_width_percent );
+        update_option( 'bw_checkout_thumb_ratio', $thumb_ratio );
 
         $saved = true;
     }
@@ -479,6 +485,7 @@ function bw_site_render_checkout_tab() {
     $legal_text          = get_option( 'bw_checkout_legal_text', '' );
     $left_width_percent  = get_option( 'bw_checkout_left_width', 62 );
     $right_width_percent = get_option( 'bw_checkout_right_width', 38 );
+    $thumb_ratio         = get_option( 'bw_checkout_thumb_ratio', 'square' );
     ?>
 
     <?php if ( $saved ) : ?>
@@ -578,6 +585,19 @@ function bw_site_render_checkout_tab() {
                 <td>
                     <input type="number" id="bw_checkout_right_width" name="bw_checkout_right_width" value="<?php echo esc_attr( $right_width_percent ); ?>" min="10" max="90" step="1" style="width: 90px;" />
                     <p class="description">Percentuale dedicata al riepilogo (default 38%). Se la somma supera il 100%, verrà bilanciata automaticamente.</p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_checkout_thumb_ratio">Order Item Thumbnail Format (Nails)</label>
+                </th>
+                <td>
+                    <select id="bw_checkout_thumb_ratio" name="bw_checkout_thumb_ratio">
+                        <option value="square" <?php selected( $thumb_ratio, 'square' ); ?>>Square (1:1)</option>
+                        <option value="portrait" <?php selected( $thumb_ratio, 'portrait' ); ?>>Portrait (2:3)</option>
+                        <option value="landscape" <?php selected( $thumb_ratio, 'landscape' ); ?>>Landscape (3:2)</option>
+                    </select>
+                    <p class="description">Formato proporzioni miniature prodotto nel riepilogo ordine (consigliato per immagini "nails").</p>
                 </td>
             </tr>
             <tr>
