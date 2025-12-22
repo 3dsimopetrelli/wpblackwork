@@ -312,12 +312,13 @@ function bw_mew_get_social_redirect_uri( $provider ) {
 }
 
 /**
- * Retrieve checkout style and content options.
+ * Get checkout default values.
+ * Single source of truth for all checkout defaults.
  *
- * @return array{logo:string,left_bg:string,right_bg:string,border_color:string,legal_text:string}
+ * @return array Associative array of default values.
  */
-function bw_mew_get_checkout_settings() {
-    $defaults = [
+function bw_mew_get_checkout_defaults() {
+    return [
         'logo'                => '',
         'logo_width'          => 200,
         'logo_padding_top'    => 0,
@@ -333,6 +334,18 @@ function bw_mew_get_checkout_settings() {
         'right_width'         => 38,
         'thumb_ratio'         => 'square',
     ];
+}
+
+/**
+ * Retrieve checkout style and content options.
+ *
+ * IMPORTANT: This function uses bw_mew_get_checkout_defaults() for all default values.
+ * Never hardcode defaults elsewhere - always use the defaults function.
+ *
+ * @return array{logo:string,left_bg:string,right_bg:string,border_color:string,legal_text:string,logo_width:int,logo_padding_top:int,logo_padding_right:int,logo_padding_bottom:int,logo_padding_left:int,show_order_heading:string}
+ */
+function bw_mew_get_checkout_settings() {
+    $defaults = bw_mew_get_checkout_defaults();
 
     $settings = [
         'logo'                => esc_url_raw( get_option( 'bw_checkout_logo', $defaults['logo'] ) ),
@@ -636,6 +649,18 @@ function bw_mew_login_or_register_social_user( $email, $name ) {
     wp_set_current_user( $user->ID );
 
     return true;
+}
+
+/**
+ * Get a single checkout setting default value.
+ * Helper function to avoid duplicating defaults across files.
+ *
+ * @param string $key Setting key.
+ * @return mixed Default value for the setting.
+ */
+function bw_mew_get_checkout_default( $key ) {
+    $defaults = bw_mew_get_checkout_defaults();
+    return isset( $defaults[ $key ] ) ? $defaults[ $key ] : null;
 }
 
 /**

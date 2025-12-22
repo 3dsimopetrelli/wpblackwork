@@ -7,41 +7,8 @@
 
 defined( 'ABSPATH' ) || exit;
 
-$settings = function_exists( 'bw_mew_get_checkout_settings' ) ? bw_mew_get_checkout_settings() : [
-    'logo'         => '',
-    'left_bg'      => '#ffffff',
-    'right_bg'     => '#f7f7f7',
-    'border_color' => '#e0e0e0',
-    'legal_text'   => '',
-    'left_width'   => 62,
-    'right_width'  => 38,
-];
-
-$grid_inline_styles = sprintf(
-    '--bw-checkout-left-col:%d%%; --bw-checkout-right-col:%d%%;',
-    isset( $settings['left_width'] ) ? (int) $settings['left_width'] : 62,
-    isset( $settings['right_width'] ) ? (int) $settings['right_width'] : 38
-);
-
-$available_gateways = WC()->payment_gateways()->get_available_payment_gateways();
-$express_gateways   = [];
-$standard_gateways  = [];
-
-foreach ( $available_gateways as $gateway_id => $gateway ) {
-    $token      = strtolower( $gateway_id . ' ' . $gateway->get_title() );
-    $is_express = ( false !== strpos( $token, 'woopay' ) )
-        || ( false !== strpos( $token, 'apple' ) )
-        || ( false !== strpos( $token, 'gpay' ) )
-        || ( false !== strpos( $token, 'google' ) )
-        || ( false !== strpos( $token, 'vpay' ) );
-
-    if ( $is_express ) {
-        $express_gateways[ $gateway_id ] = $gateway;
-    } else {
-        $standard_gateways[ $gateway_id ] = $gateway;
-    }
-}
-
+// Get checkout settings (defaults handled in bw_mew_get_checkout_settings)
+$settings = bw_mew_get_checkout_settings();
 $checkout = WC()->checkout();
 $order_button_text = apply_filters( 'woocommerce_order_button_text', __( 'Place order', 'woocommerce' ) );
 
@@ -64,17 +31,25 @@ if ( ! $checkout->is_registration_enabled() && $checkout->is_registration_requir
                     </div>
                 <?php endif; ?>
 
-                <div class="bw-checkout-express">
-                    <div class="bw-checkout-express__title"><?php esc_html_e( 'Express checkout', 'woocommerce' ); ?></div>
-                    <div class="bw-checkout-express__buttons" role="group" aria-label="<?php esc_attr_e( 'Express checkout options', 'woocommerce' ); ?>">
-                        <button type="button" class="bw-express-btn bw-express-btn--shop"><?php esc_html_e( 'Shop', 'bw' ); ?></button>
-                        <button type="button" class="bw-express-btn bw-express-btn--paypal"><?php esc_html_e( 'PayPal', 'woocommerce' ); ?></button>
-                        <button type="button" class="bw-express-btn bw-express-btn--gpay"><?php esc_html_e( 'G Pay', 'bw' ); ?></button>
+                <!-- Express Checkout Section -->
+                <div class="bw-express-checkout">
+                    <h2 class="bw-express-checkout__title"><?php esc_html_e( 'Express checkout', 'bw' ); ?></h2>
+                    <div class="bw-express-checkout__buttons">
+                        <button type="button" class="bw-express-checkout__button bw-express-checkout__button--shop" data-payment-method="shop_pay">
+                            Shop Pay
+                        </button>
+                        <button type="button" class="bw-express-checkout__button bw-express-checkout__button--paypal" data-payment-method="paypal">
+                            PayPal
+                        </button>
+                        <button type="button" class="bw-express-checkout__button bw-express-checkout__button--gpay" data-payment-method="google_pay">
+                            G Pay
+                        </button>
                     </div>
-                    <div class="bw-checkout-express__divider" role="separator" aria-label="<?php esc_attr_e( 'OR', 'woocommerce' ); ?>">
-                        <span><?php esc_html_e( 'OR', 'woocommerce' ); ?></span>
+                    <div class="bw-express-checkout__divider">
+                        <span class="bw-express-checkout__divider-text"><?php esc_html_e( 'OR', 'bw' ); ?></span>
                     </div>
                 </div>
+                <!-- End Express Checkout Section -->
 
                 <?php if ( $checkout->get_checkout_fields() ) : ?>
                     <?php do_action( 'woocommerce_checkout_before_customer_details' ); ?>
