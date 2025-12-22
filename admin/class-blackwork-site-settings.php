@@ -426,6 +426,7 @@ function bw_site_render_checkout_tab() {
         check_admin_referer( 'bw_checkout_settings_save', 'bw_checkout_settings_nonce' );
 
         $logo                 = isset( $_POST['bw_checkout_logo'] ) ? esc_url_raw( wp_unslash( $_POST['bw_checkout_logo'] ) ) : '';
+        $logo_align           = isset( $_POST['bw_checkout_logo_align'] ) ? sanitize_text_field( wp_unslash( $_POST['bw_checkout_logo_align'] ) ) : 'left';
         $logo_width           = isset( $_POST['bw_checkout_logo_width'] ) ? absint( $_POST['bw_checkout_logo_width'] ) : 200;
         $logo_padding_top     = isset( $_POST['bw_checkout_logo_padding_top'] ) ? absint( $_POST['bw_checkout_logo_padding_top'] ) : 0;
         $logo_padding_right   = isset( $_POST['bw_checkout_logo_padding_right'] ) ? absint( $_POST['bw_checkout_logo_padding_right'] ) : 0;
@@ -434,6 +435,7 @@ function bw_site_render_checkout_tab() {
         $show_order_heading   = isset( $_POST['bw_checkout_show_order_heading'] ) ? '1' : '0';
         $left_bg              = isset( $_POST['bw_checkout_left_bg_color'] ) ? sanitize_hex_color( wp_unslash( $_POST['bw_checkout_left_bg_color'] ) ) : '';
         $right_bg             = isset( $_POST['bw_checkout_right_bg_color'] ) ? sanitize_hex_color( wp_unslash( $_POST['bw_checkout_right_bg_color'] ) ) : '';
+        $right_sticky_top     = isset( $_POST['bw_checkout_right_sticky_top'] ) ? absint( $_POST['bw_checkout_right_sticky_top'] ) : 20;
         $border_color         = isset( $_POST['bw_checkout_border_color'] ) ? sanitize_hex_color( wp_unslash( $_POST['bw_checkout_border_color'] ) ) : '';
         $legal_text           = isset( $_POST['bw_checkout_legal_text'] ) ? wp_kses_post( wp_unslash( $_POST['bw_checkout_legal_text'] ) ) : '';
         $left_width_percent   = isset( $_POST['bw_checkout_left_width'] ) ? absint( $_POST['bw_checkout_left_width'] ) : 62;
@@ -457,6 +459,10 @@ function bw_site_render_checkout_tab() {
         $right_bg     = $right_bg ?: 'transparent';
         $border_color = $border_color ?: '#262626';
 
+        if ( ! in_array( $logo_align, [ 'left', 'center', 'right' ], true ) ) {
+            $logo_align = 'left';
+        }
+
         if ( function_exists( 'bw_mew_normalize_checkout_column_widths' ) ) {
             $widths              = bw_mew_normalize_checkout_column_widths( $left_width_percent, $right_width_percent );
             $left_width_percent  = $widths['left'];
@@ -464,6 +470,7 @@ function bw_site_render_checkout_tab() {
         }
 
         update_option( 'bw_checkout_logo', $logo );
+        update_option( 'bw_checkout_logo_align', $logo_align );
         update_option( 'bw_checkout_logo_width', $logo_width );
         update_option( 'bw_checkout_logo_padding_top', $logo_padding_top );
         update_option( 'bw_checkout_logo_padding_right', $logo_padding_right );
@@ -472,6 +479,7 @@ function bw_site_render_checkout_tab() {
         update_option( 'bw_checkout_show_order_heading', $show_order_heading );
         update_option( 'bw_checkout_left_bg_color', $left_bg );
         update_option( 'bw_checkout_right_bg_color', $right_bg );
+        update_option( 'bw_checkout_right_sticky_top', $right_sticky_top );
         update_option( 'bw_checkout_border_color', $border_color );
         update_option( 'bw_checkout_legal_text', $legal_text );
         update_option( 'bw_checkout_left_width', $left_width_percent );
@@ -483,6 +491,10 @@ function bw_site_render_checkout_tab() {
     }
 
     $logo                = get_option( 'bw_checkout_logo', '' );
+    $logo_align          = get_option( 'bw_checkout_logo_align', 'left' );
+    if ( ! in_array( $logo_align, [ 'left', 'center', 'right' ], true ) ) {
+        $logo_align = 'left';
+    }
     $logo_width          = get_option( 'bw_checkout_logo_width', 200 );
     $logo_padding_top    = get_option( 'bw_checkout_logo_padding_top', 0 );
     $logo_padding_right  = get_option( 'bw_checkout_logo_padding_right', 0 );
@@ -491,6 +503,7 @@ function bw_site_render_checkout_tab() {
     $show_order_heading  = get_option( 'bw_checkout_show_order_heading', '1' );
     $left_bg             = get_option( 'bw_checkout_left_bg_color', '#ffffff' );
     $right_bg            = get_option( 'bw_checkout_right_bg_color', 'transparent' );
+    $right_sticky_top    = get_option( 'bw_checkout_right_sticky_top', 20 );
     $border_color        = get_option( 'bw_checkout_border_color', '#262626' );
     $legal_text          = get_option( 'bw_checkout_legal_text', '' );
     $left_width_percent  = get_option( 'bw_checkout_left_width', 62 );
@@ -517,6 +530,19 @@ function bw_site_render_checkout_tab() {
                     <input type="text" id="bw_checkout_logo" name="bw_checkout_logo" value="<?php echo esc_attr( $logo ); ?>" class="regular-text" />
                     <button type="button" class="button bw-media-upload" data-target="#bw_checkout_logo">Seleziona immagine</button>
                     <p class="description">Logo mostrato sopra il layout di checkout.</p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_checkout_logo_align">Checkout Logo Alignment</label>
+                </th>
+                <td>
+                    <select id="bw_checkout_logo_align" name="bw_checkout_logo_align">
+                        <option value="left" <?php selected( $logo_align, 'left' ); ?>>Left</option>
+                        <option value="center" <?php selected( $logo_align, 'center' ); ?>>Center</option>
+                        <option value="right" <?php selected( $logo_align, 'right' ); ?>>Right</option>
+                    </select>
+                    <p class="description">Posizione orizzontale del logo nel checkout.</p>
                 </td>
             </tr>
             <tr>
@@ -578,6 +604,15 @@ function bw_site_render_checkout_tab() {
                 <td>
                     <input type="text" id="bw_checkout_right_bg_color" name="bw_checkout_right_bg_color" value="<?php echo esc_attr( $right_bg ); ?>" class="bw-color-picker" data-default-color="transparent" />
                     <p class="description">Colore di sfondo del riepilogo ordine sticky.</p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_checkout_right_sticky_top">Right Column Sticky Offset Top (px)</label>
+                </th>
+                <td>
+                    <input type="number" id="bw_checkout_right_sticky_top" name="bw_checkout_right_sticky_top" value="<?php echo esc_attr( absint( $right_sticky_top ) ); ?>" min="0" step="1" style="width: 90px;" />
+                    <p class="description">Controls the top offset for the sticky order summary (right column) on desktop.</p>
                 </td>
             </tr>
             <tr>
