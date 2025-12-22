@@ -435,6 +435,7 @@ function bw_site_render_checkout_tab() {
         $show_order_heading   = isset( $_POST['bw_checkout_show_order_heading'] ) ? '1' : '0';
         $left_bg              = isset( $_POST['bw_checkout_left_bg_color'] ) ? sanitize_hex_color( wp_unslash( $_POST['bw_checkout_left_bg_color'] ) ) : '';
         $right_bg             = isset( $_POST['bw_checkout_right_bg_color'] ) ? sanitize_hex_color( wp_unslash( $_POST['bw_checkout_right_bg_color'] ) ) : '';
+        $right_sticky_top     = isset( $_POST['bw_checkout_right_sticky_top'] ) ? absint( $_POST['bw_checkout_right_sticky_top'] ) : 20;
         $border_color         = isset( $_POST['bw_checkout_border_color'] ) ? sanitize_hex_color( wp_unslash( $_POST['bw_checkout_border_color'] ) ) : '';
         $legal_text           = isset( $_POST['bw_checkout_legal_text'] ) ? wp_kses_post( wp_unslash( $_POST['bw_checkout_legal_text'] ) ) : '';
         $left_width_percent   = isset( $_POST['bw_checkout_left_width'] ) ? absint( $_POST['bw_checkout_left_width'] ) : 62;
@@ -478,6 +479,7 @@ function bw_site_render_checkout_tab() {
         update_option( 'bw_checkout_show_order_heading', $show_order_heading );
         update_option( 'bw_checkout_left_bg_color', $left_bg );
         update_option( 'bw_checkout_right_bg_color', $right_bg );
+        update_option( 'bw_checkout_right_sticky_top', $right_sticky_top );
         update_option( 'bw_checkout_border_color', $border_color );
         update_option( 'bw_checkout_legal_text', $legal_text );
         update_option( 'bw_checkout_left_width', $left_width_percent );
@@ -501,6 +503,7 @@ function bw_site_render_checkout_tab() {
     $show_order_heading  = get_option( 'bw_checkout_show_order_heading', '1' );
     $left_bg             = get_option( 'bw_checkout_left_bg_color', '#ffffff' );
     $right_bg            = get_option( 'bw_checkout_right_bg_color', 'transparent' );
+    $right_sticky_top    = get_option( 'bw_checkout_right_sticky_top', 20 );
     $border_color        = get_option( 'bw_checkout_border_color', '#262626' );
     $legal_text          = get_option( 'bw_checkout_legal_text', '' );
     $left_width_percent  = get_option( 'bw_checkout_left_width', 62 );
@@ -601,6 +604,15 @@ function bw_site_render_checkout_tab() {
                 <td>
                     <input type="text" id="bw_checkout_right_bg_color" name="bw_checkout_right_bg_color" value="<?php echo esc_attr( $right_bg ); ?>" class="bw-color-picker" data-default-color="transparent" />
                     <p class="description">Colore di sfondo del riepilogo ordine sticky.</p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_checkout_right_sticky_top">Right Column Sticky Offset Top (px)</label>
+                </th>
+                <td>
+                    <input type="number" id="bw_checkout_right_sticky_top" name="bw_checkout_right_sticky_top" value="<?php echo esc_attr( absint( $right_sticky_top ) ); ?>" min="0" step="1" style="width: 90px;" />
+                    <p class="description">Controls the top offset for the sticky order summary (right column) on desktop.</p>
                 </td>
             </tr>
             <tr>

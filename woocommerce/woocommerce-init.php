@@ -334,6 +334,7 @@ function bw_mew_get_checkout_settings() {
         'right_width'         => 38,
         'thumb_ratio'         => 'square',
         'thumb_width'         => 110,
+        'right_sticky_top'    => 20,
     ];
 
     $settings = [
@@ -353,6 +354,7 @@ function bw_mew_get_checkout_settings() {
         'right_width'         => absint( get_option( 'bw_checkout_right_width', $defaults['right_width'] ) ),
         'thumb_ratio'         => sanitize_key( get_option( 'bw_checkout_thumb_ratio', $defaults['thumb_ratio'] ) ),
         'thumb_width'         => absint( get_option( 'bw_checkout_thumb_width', $defaults['thumb_width'] ) ),
+        'right_sticky_top'    => absint( get_option( 'bw_checkout_right_sticky_top', $defaults['right_sticky_top'] ) ),
     ];
 
     $settings['logo_align']   = in_array( $settings['logo_align'], [ 'left', 'center', 'right' ], true ) ? $settings['logo_align'] : $defaults['logo_align'];

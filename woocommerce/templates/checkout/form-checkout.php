@@ -19,12 +19,13 @@ $settings = function_exists( 'bw_mew_get_checkout_settings' ) ? bw_mew_get_check
 ];
 
 $grid_inline_styles = sprintf(
-    '--bw-checkout-left-col:%d%%; --bw-checkout-right-col:%d%%; --bw-checkout-left-bg:%s; --bw-checkout-right-bg:%s; --bw-checkout-border-color:%s;',
+    '--bw-checkout-left-col:%d%%; --bw-checkout-right-col:%d%%; --bw-checkout-left-bg:%s; --bw-checkout-right-bg:%s; --bw-checkout-border-color:%s; --bw-checkout-right-sticky-top:%dpx;',
     isset( $settings['left_width'] ) ? (int) $settings['left_width'] : 62,
     isset( $settings['right_width'] ) ? (int) $settings['right_width'] : 38,
     isset( $settings['left_bg'] ) ? esc_attr( $settings['left_bg'] ) : '#ffffff',
     isset( $settings['right_bg'] ) ? esc_attr( $settings['right_bg'] ) : 'transparent',
-    isset( $settings['border_color'] ) ? esc_attr( $settings['border_color'] ) : '#262626'
+    isset( $settings['border_color'] ) ? esc_attr( $settings['border_color'] ) : '#262626',
+    isset( $settings['right_sticky_top'] ) ? absint( $settings['right_sticky_top'] ) : 20
 );
 
 $available_gateways = WC()->payment_gateways()->get_available_payment_gateways();

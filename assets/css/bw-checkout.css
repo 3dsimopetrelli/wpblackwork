@@ -148,8 +148,8 @@ body.woocommerce-checkout:not(.elementor-editor-active) {
 
 /* Desktop layout: CSS Grid with center separator */
 @media (min-width: 900px) {
-    .bw-checkout-wrapper {
-        padding: 24px 12px;
+    body.woocommerce-checkout .bw-checkout-wrapper {
+        padding: 0;
     }
 
     .bw-checkout-grid {
@@ -187,11 +187,11 @@ body.woocommerce-checkout:not(.elementor-editor-active) {
     }
 
     /* Right column - sticky positioned - always starts from row 1 to align to top */
-    .bw-checkout-right {
+    body.woocommerce-checkout .bw-checkout-right {
         grid-column: 3 / 4;
         grid-row: 1 / 3;
         position: sticky;
-        top: 20px;
+        top: var(--bw-checkout-right-sticky-top, 20px);
         padding-left: 28px;
         padding-right: 0;
         background: var(--bw-checkout-right-bg, transparent);
@@ -936,7 +936,7 @@ body.woocommerce-checkout .bw-checkout-wrapper .bw-express-divider__inner span {
 
 /* Mobile responsiveness */
 @media (max-width: 899px) {
-    .bw-checkout-wrapper {
+    body.woocommerce-checkout .bw-checkout-wrapper {
         padding: 20px 10px;
     }
 
