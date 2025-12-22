@@ -618,13 +618,7 @@ function bw_site_render_checkout_tab() {
                 <td>
                     <input type="number" id="bw_checkout_thumb_width" name="bw_checkout_thumb_width" value="<?php echo esc_attr( $thumb_width ); ?>" min="50" max="300" step="1" style="width: 90px;" />
                     <span style="margin-left: 5px;">px</span>
-                    <p class="description">Larghezza delle miniature prodotto nel checkout (min: 50px, max: 300px, default: 110px).</p>
-                    <p style="margin-top: 10px;">
-                        <button type="button" id="bw_regenerate_checkout_thumbs" class="button button-primary" style="background-color: #0073aa;">
-                            <span class="dashicons dashicons-update" style="margin-top: 3px;"></span> Regenerate Checkout Thumbnails
-                        </button>
-                        <span id="bw_regenerate_status" style="margin-left: 10px; display: none;"></span>
-                    </p>
+                    <p class="description">Larghezza delle miniature prodotto nel checkout (min: 50px, max: 300px, default: 110px). Le immagini vengono ridimensionate automaticamente mantenendo la qualità.</p>
                 </td>
             </tr>
             <tr>
@@ -671,48 +665,6 @@ function bw_site_render_checkout_tab() {
             });
 
             $('.bw-color-picker').wpColorPicker();
-
-            // Handle Regenerate Checkout Thumbnails button
-            $('#bw_regenerate_checkout_thumbs').on('click', function(e) {
-                e.preventDefault();
-
-                const $button = $(this);
-                const $status = $('#bw_regenerate_status');
-                const thumbRatio = $('#bw_checkout_thumb_ratio').val();
-                const thumbWidth = $('#bw_checkout_thumb_width').val();
-
-                // Disable button and show loading
-                $button.prop('disabled', true);
-                $status.show().html('<span style="color: #0073aa;">Regenerating thumbnails...</span>');
-
-                // Send AJAX request
-                $.ajax({
-                    url: ajaxurl,
-                    type: 'POST',
-                    data: {
-                        action: 'bw_regenerate_checkout_thumbnails',
-                        nonce: '<?php echo wp_create_nonce( 'bw_regenerate_checkout_thumbs' ); ?>',
-                        thumb_ratio: thumbRatio,
-                        thumb_width: thumbWidth
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            $status.html('<span style="color: #46b450;">✓ ' + response.data.message + '</span>');
-                            setTimeout(function() {
-                                $status.fadeOut();
-                            }, 3000);
-                        } else {
-                            $status.html('<span style="color: #dc3232;">✗ ' + (response.data.message || 'Error') + '</span>');
-                        }
-                    },
-                    error: function() {
-                        $status.html('<span style="color: #dc3232;">✗ AJAX error</span>');
-                    },
-                    complete: function() {
-                        $button.prop('disabled', false);
-                    }
-                });
-            });
         });
     </script>
     <?php
@@ -3044,95 +2996,3 @@ function bw_import_apply_attributes($product_id, $attributes) {
     }
 }
 
-/**
- * AJAX handler for regenerating checkout thumbnails.
- * Only regenerates thumbnails for products in the checkout/cart context.
- */
-function bw_ajax_regenerate_checkout_thumbnails() {
-    // Verify nonce
-    check_ajax_referer( 'bw_regenerate_checkout_thumbs', 'nonce' );
-
-    // Check user permissions
-    if ( ! current_user_can( 'manage_options' ) ) {
-        wp_send_json_error( [ 'message' => 'Insufficient permissions' ] );
-    }
-
-    // Get parameters
-    $thumb_ratio = isset( $_POST['thumb_ratio'] ) ? sanitize_key( $_POST['thumb_ratio'] ) : 'square';
-    $thumb_width = isset( $_POST['thumb_width'] ) ? absint( $_POST['thumb_width'] ) : 110;
-
-    // Validate ratio
-    if ( ! in_array( $thumb_ratio, [ 'square', 'portrait', 'landscape' ], true ) ) {
-        $thumb_ratio = 'square';
-    }
-
-    // Validate width
-    if ( $thumb_width < 50 ) {
-        $thumb_width = 50;
-    }
-    if ( $thumb_width > 300 ) {
-        $thumb_width = 300;
-    }
-
-    // Update options (these will be used by the frontend)
-    update_option( 'bw_checkout_thumb_ratio', $thumb_ratio );
-    update_option( 'bw_checkout_thumb_width', $thumb_width );
-
-    // Get all products
-    $args = [
-        'post_type'      => 'product',
-        'posts_per_page' => -1,
-        'post_status'    => 'publish',
-        'fields'         => 'ids',
-    ];
-
-    $product_ids = get_posts( $args );
-    $regenerated_count = 0;
-
-    if ( ! empty( $product_ids ) ) {
-        foreach ( $product_ids as $product_id ) {
-            // Get the main product image
-            $thumbnail_id = get_post_thumbnail_id( $product_id );
-
-            if ( ! $thumbnail_id ) {
-                continue;
-            }
-
-            // Regenerate thumbnail for woocommerce_thumbnail size
-            // This will use the size registered by WooCommerce
-            $metadata = wp_get_attachment_metadata( $thumbnail_id );
-            if ( $metadata ) {
-                // Delete existing thumbnail size
-                if ( isset( $metadata['sizes']['woocommerce_thumbnail'] ) ) {
-                    $file_path = get_attached_file( $thumbnail_id );
-                    $upload_dir = wp_upload_dir();
-                    $dirname = dirname( $file_path );
-                    
-                    $thumb_file = $dirname . '/' . $metadata['sizes']['woocommerce_thumbnail']['file'];
-                    if ( file_exists( $thumb_file ) ) {
-                        @unlink( $thumb_file );
-                    }
-                }
-
-                // Regenerate the thumbnail
-                require_once( ABSPATH . 'wp-admin/includes/image.php' );
-                $new_metadata = wp_generate_attachment_metadata( $thumbnail_id, get_attached_file( $thumbnail_id ) );
-                if ( ! is_wp_error( $new_metadata ) && ! empty( $new_metadata ) ) {
-                    wp_update_attachment_metadata( $thumbnail_id, $new_metadata );
-                    $regenerated_count++;
-                }
-            }
-        }
-    }
-
-    wp_send_json_success( [
-        'message' => sprintf(
-            'Regenerated %d product thumbnails with format %s (%dpx width)',
-            $regenerated_count,
-            $thumb_ratio,
-            $thumb_width
-        ),
-        'count' => $regenerated_count,
-    ] );
-}
-add_action( 'wp_ajax_bw_regenerate_checkout_thumbnails', 'bw_ajax_regenerate_checkout_thumbnails' );
