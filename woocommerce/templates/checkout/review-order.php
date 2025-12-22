@@ -41,7 +41,7 @@ $thumb_aspect      = $thumb_map[ $thumb_ratio ];
                 <tr class="cart_item bw-review-item" data-cart-item="<?php echo esc_attr( $cart_item_key ); ?>">
                     <td class="product-thumbnail">
                         <div class="bw-review-item__media">
-                            <?php echo $product_permalink ? '<a href="' . esc_url( $product_permalink ) . '">' . apply_filters( 'woocommerce_cart_item_thumbnail', $product->get_image( 'large' ), $cart_item, $cart_item_key ) . '</a>' : apply_filters( 'woocommerce_cart_item_thumbnail', $product->get_image( 'large' ), $cart_item, $cart_item_key ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                            <?php echo $product_permalink ? '<a href="' . esc_url( $product_permalink ) . '">' . apply_filters( 'woocommerce_cart_item_thumbnail', $product->get_image( 'full' ), $cart_item, $cart_item_key ) . '</a>' : apply_filters( 'woocommerce_cart_item_thumbnail', $product->get_image( 'full' ), $cart_item, $cart_item_key ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                         </div>
                     </td>
 

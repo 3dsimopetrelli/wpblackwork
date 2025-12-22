@@ -674,57 +674,58 @@ body.woocommerce-checkout .bw-checkout-wrapper .bw-express-divider__inner span {
 
 .bw-qty-shell {
     display: inline-grid;
-    grid-template-columns: 48px 1fr 48px;
+    grid-template-columns: 36px 1fr 36px;
     align-items: stretch;
-    border: 1px solid #d1d1d3;
-    border-radius: 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 24px;
     overflow: hidden;
     background: #ffffff;
 }
 
 .bw-qty-btn {
     width: 100% !important;
-    height: 44px !important;
+    height: 36px !important;
     border: none !important;
     background: transparent !important;
     cursor: pointer;
-    font-size: 18px !important;
-    font-weight: 600 !important;
+    font-size: 16px !important;
+    font-weight: 500 !important;
     line-height: 1 !important;
     transition: background-color 0.2s, color 0.2s;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    color: #111111 !important;
+    color: #666666 !important;
     padding: 0 !important;
     margin: 0 !important;
     box-shadow: none !important;
 }
 
 .bw-qty-btn:hover {
-    background: #f4f4f4 !important;
+    background: #f8f8f8 !important;
+    color: #111111 !important;
 }
 
 .bw-qty-btn:active {
-    background: #e8e8e8 !important;
+    background: #efefef !important;
 }
 
 .bw-qty-btn--minus {
-    border-right: 1px solid #d1d1d3 !important;
+    border-right: 1px solid #e0e0e0 !important;
 }
 
 .bw-qty-btn--plus {
-    border-left: 1px solid #d1d1d3 !important;
+    border-left: 1px solid #e0e0e0 !important;
 }
 
 .bw-qty-shell input.qty {
-    width: 64px !important;
-    height: 44px !important;
+    width: 48px !important;
+    height: 36px !important;
     border: none !important;
     text-align: center !important;
-    font-size: 14px !important;
-    font-weight: 600 !important;
-    padding: 0 6px !important;
+    font-size: 15px !important;
+    font-weight: 500 !important;
+    padding: 0 4px !important;
     margin: 0 !important;
     -moz-appearance: textfield !important;
     background: transparent !important;
@@ -950,17 +951,17 @@ body.woocommerce-checkout .bw-checkout-wrapper .bw-express-divider__inner span {
     }
 
     .bw-qty-shell {
-        grid-template-columns: 44px 1fr 44px;
+        grid-template-columns: 32px 1fr 32px;
     }
 
     .bw-qty-btn {
-        height: 40px !important;
-        font-size: 18px !important;
+        height: 32px !important;
+        font-size: 15px !important;
     }
 
     .bw-qty-shell input.qty {
-        width: 60px !important;
-        height: 40px !important;
+        width: 42px !important;
+        height: 32px !important;
         font-size: 14px !important;
     }
 
