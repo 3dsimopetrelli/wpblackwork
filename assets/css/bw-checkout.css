@@ -768,7 +768,7 @@ body.woocommerce-checkout .bw-checkout-wrapper .bw-express-divider__inner span {
 }
 
 .bw-review-coupon input[type="text"] {
-    flex: 1;
+    flex: 0 0 70%;
     padding: 18px 20px !important;
     margin: 0 !important;
     border: 1px solid #e0e0e0;
@@ -791,7 +791,8 @@ body.woocommerce-checkout .bw-checkout-wrapper .bw-express-divider__inner span {
 }
 
 .bw-review-coupon button[type="submit"] {
-    padding: 18px 36px !important;
+    flex: 0 0 30%;
+    padding: 18px 20px !important;
     margin: 0 !important;
     background: #c0c0c0;
     color: #fff;
@@ -802,7 +803,6 @@ body.woocommerce-checkout .bw-checkout-wrapper .bw-express-divider__inner span {
     font-weight: 700;
     white-space: nowrap;
     transition: all 0.2s;
-    min-width: 120px;
     display: flex;
     align-items: center;
     justify-content: center;
