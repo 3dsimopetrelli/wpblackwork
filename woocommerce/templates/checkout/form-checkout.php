@@ -8,13 +8,14 @@
 defined( 'ABSPATH' ) || exit;
 
 $settings = function_exists( 'bw_mew_get_checkout_settings' ) ? bw_mew_get_checkout_settings() : [
-    'logo'         => '',
-    'left_bg'      => '#ffffff',
-    'right_bg'     => '#f7f7f7',
+    'logo'        => '',
+    'logo_align'  => 'left',
+    'left_bg'     => '#ffffff',
+    'right_bg'    => '#f7f7f7',
     'border_color' => '#e0e0e0',
-    'legal_text'   => '',
-    'left_width'   => 62,
-    'right_width'  => 38,
+    'legal_text'  => '',
+    'left_width'  => 62,
+    'right_width' => 38,
 ];
 
 $grid_inline_styles = sprintf(
@@ -62,7 +63,7 @@ if ( ! $checkout->is_registration_enabled() && $checkout->is_registration_requir
         <div class="bw-checkout-grid" style="<?php echo esc_attr( $grid_inline_styles ); ?>">
             <div class="bw-checkout-left">
                 <?php if ( ! empty( $settings['logo'] ) ) : ?>
-                    <div class="bw-checkout-logo" style="padding: <?php echo esc_attr( $settings['logo_padding_top'] ); ?>px <?php echo esc_attr( $settings['logo_padding_right'] ); ?>px <?php echo esc_attr( $settings['logo_padding_bottom'] ); ?>px <?php echo esc_attr( $settings['logo_padding_left'] ); ?>px;">
+                    <div class="bw-checkout-logo bw-checkout-logo--<?php echo esc_attr( isset( $settings['logo_align'] ) ? $settings['logo_align'] : 'left' ); ?>" style="padding: <?php echo esc_attr( $settings['logo_padding_top'] ); ?>px <?php echo esc_attr( $settings['logo_padding_right'] ); ?>px <?php echo esc_attr( $settings['logo_padding_bottom'] ); ?>px <?php echo esc_attr( $settings['logo_padding_left'] ); ?>px;">
                         <img src="<?php echo esc_url( $settings['logo'] ); ?>" alt="<?php esc_attr_e( 'Checkout logo', 'bw' ); ?>" style="max-width: <?php echo esc_attr( $settings['logo_width'] ); ?>px;" />
                     </div>
                 <?php endif; ?>
