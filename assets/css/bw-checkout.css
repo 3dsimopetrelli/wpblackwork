@@ -725,20 +725,20 @@ body.woocommerce-checkout .bw-checkout-wrapper .bw-express-divider__inner span {
 
 .bw-qty-btn--minus {
     border-right: 1px solid #d9d9d9 !important;
+    border-radius: 16px 0 0 16px !important;
 }
 
 .bw-qty-btn--plus {
     border-left: 1px solid #d9d9d9 !important;
+    border-radius: 0 16px 16px 0 !important;
 }
 
 .bw-qty-shell input.qty {
     width: 48px !important;
     height: 32px !important;
     border: none !important;
-    border-left: 1px solid #d9d9d9 !important;
-    border-right: 1px solid #d9d9d9 !important;
     text-align: center !important;
-    font-size: 16px !important;
+    font-size: 14px !important;
     font-weight: 400 !important;
     padding: 0 !important;
     margin: 0 !important;
@@ -746,6 +746,7 @@ body.woocommerce-checkout .bw-checkout-wrapper .bw-express-divider__inner span {
     background: transparent !important;
     color: #333333 !important;
     line-height: 32px !important;
+    vertical-align: middle !important;
 }
 
 .bw-qty-shell input.qty::-webkit-outer-spin-button,
@@ -979,7 +980,7 @@ body.woocommerce-checkout .bw-checkout-wrapper .bw-express-divider__inner span {
     .bw-qty-shell input.qty {
         width: 40px !important;
         height: 28px !important;
-        font-size: 14px !important;
+        font-size: 12px !important;
         line-height: 28px !important;
     }
 
