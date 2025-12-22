@@ -332,6 +332,29 @@ body.woocommerce-checkout .bw-checkout-wrapper .bw-checkout-express__or span {
     text-align: center;
 }
 
+body.woocommerce-checkout #wcpay-express-checkout-button-separator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+body.woocommerce-checkout #wcpay-express-checkout-button-separator::before,
+body.woocommerce-checkout #wcpay-express-checkout-button-separator::after {
+    content: "";
+    flex: 1 1 0%;
+    height: 1px;
+    border-top: 1px solid currentColor;
+}
+
+body.woocommerce-checkout #wcpay-express-checkout-button-separator::before {
+    margin-right: 4px;
+}
+
+body.woocommerce-checkout #wcpay-express-checkout-button-separator::after {
+    margin-left: 4px;
+}
+
 /* Section titles */
 .bw-checkout-section-title {
     font-size: 16px;
