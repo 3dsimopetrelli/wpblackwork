@@ -362,6 +362,12 @@ function bw_mew_get_checkout_settings() {
         $settings['right_width']  = $normalized['right'];
     }
 
+    if ( function_exists( 'bw_mew_normalize_checkout_column_widths' ) ) {
+        $normalized               = bw_mew_normalize_checkout_column_widths( $settings['left_width'], $settings['right_width'] );
+        $settings['left_width']   = $normalized['left'];
+        $settings['right_width']  = $normalized['right'];
+    }
+
     return $settings;
 }
 
