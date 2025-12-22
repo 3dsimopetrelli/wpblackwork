@@ -702,9 +702,9 @@ body.woocommerce-checkout .bw-checkout-wrapper .bw-express-divider__inner span {
     border: none !important;
     background: transparent !important;
     cursor: pointer;
-    font-size: 18px !important;
+    font-size: 14px !important;
     font-weight: 400 !important;
-    line-height: 1 !important;
+    line-height: 32px !important;
     transition: background-color 0.15s;
     display: flex !important;
     align-items: center !important;
@@ -974,7 +974,8 @@ body.woocommerce-checkout .bw-checkout-wrapper .bw-express-divider__inner span {
 
     .bw-qty-btn {
         height: 28px !important;
-        font-size: 16px !important;
+        font-size: 12px !important;
+        line-height: 28px !important;
     }
 
     .bw-qty-shell input.qty {
