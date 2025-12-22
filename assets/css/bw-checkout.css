@@ -951,7 +951,7 @@ body.woocommerce-checkout .bw-checkout-wrapper .bw-express-divider__inner span {
 }
 
 .bw-total-row--grand {
-    border-top: 1px solid #d8d8d8;
+    border-top: 3px solid #000000;
     margin-top: 10px;
 }
 
