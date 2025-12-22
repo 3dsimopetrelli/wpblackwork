@@ -1,4 +1,10 @@
 (function () {
+    // Guard against double-execution if script loads multiple times
+    if (window.BWCheckout) {
+        return;
+    }
+    window.BWCheckout = true;
+
     function triggerCheckoutUpdate() {
         if (window.jQuery && window.jQuery(document.body).trigger) {
             window.jQuery(document.body).trigger('update_checkout');
@@ -125,7 +131,8 @@
                     setOrderSummaryLoading(false);
                 });
 
-            // Intercept coupon form submission to show custom messages
+            // Client-side validation for better UX (prevents unnecessary AJAX call)
+            // WooCommerce also validates server-side, but this provides immediate feedback
             $(document).on('submit', 'form.checkout_coupon', function(e) {
                 var couponInput = $(this).find('input[name="coupon_code"]');
                 if (couponInput.length && !couponInput.val()) {

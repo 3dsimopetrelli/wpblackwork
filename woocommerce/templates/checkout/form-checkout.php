@@ -7,14 +7,8 @@
 
 defined( 'ABSPATH' ) || exit;
 
-$settings = function_exists( 'bw_mew_get_checkout_settings' ) ? bw_mew_get_checkout_settings() : [
-    'logo'         => '',
-    'left_bg'      => '#ffffff',
-    'right_bg'     => '#f7f7f7',
-    'border_color' => '#e0e0e0',
-    'legal_text'   => '',
-];
-
+// Get checkout settings (defaults handled in bw_mew_get_checkout_settings)
+$settings = bw_mew_get_checkout_settings();
 $checkout = WC()->checkout();
 $order_button_text = apply_filters( 'woocommerce_order_button_text', __( 'Place order', 'woocommerce' ) );
 
