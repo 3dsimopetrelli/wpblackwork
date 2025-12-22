@@ -123,7 +123,7 @@ body.woocommerce-checkout:not(.elementor-editor-active) {
 
 /* Mobile-first: stacked layout */
 .bw-checkout-left {
-    background: var(--bw-checkout-left-bg, #ffffff);
+    background: #ffffff;
     padding: 0;
     margin: 0;
 }
@@ -872,6 +872,19 @@ body.woocommerce-checkout .bw-checkout-wrapper .bw-express-divider__inner span {
 @media (max-width: 899px) {
     .bw-checkout-wrapper {
         padding: 20px 10px;
+    }
+
+    .bw-checkout-express {
+        padding: 14px;
+    }
+
+    .bw-checkout-express__buttons {
+        gap: 8px;
+    }
+
+    .bw-express-btn {
+        padding: 10px 8px;
+        font-size: 13px;
     }
 
     .bw-checkout-left {
