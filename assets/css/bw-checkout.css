@@ -563,6 +563,11 @@ body.woocommerce-checkout .bw-checkout-wrapper .bw-express-divider__inner span {
     background: transparent !important;
 }
 
+.bw-review-item td.product-thumbnail {
+    width: var(--bw-thumb-width, 110px);
+    padding-right: 0 !important;
+}
+
 .bw-review-item__media {
     width: var(--bw-thumb-width, 110px);
     aspect-ratio: var(--bw-thumb-aspect, 1 / 1);
@@ -913,6 +918,10 @@ body.woocommerce-checkout .bw-checkout-wrapper .bw-express-divider__inner span {
 
     .bw-review-item {
         padding: 20px 0 !important;
+    }
+
+    .bw-review-item td.product-thumbnail {
+        width: calc(var(--bw-thumb-width, 110px) * 0.82);
     }
 
     .bw-review-item__media {
