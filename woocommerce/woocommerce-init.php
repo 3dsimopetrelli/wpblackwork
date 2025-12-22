@@ -314,7 +314,7 @@ function bw_mew_get_social_redirect_uri( $provider ) {
 /**
  * Retrieve checkout style and content options.
  *
- * @return array{logo:string,logo_align:string,left_bg:string,right_bg:string,border_color:string,legal_text:string}
+ * @return array{logo:string,logo_align:string,left_bg:string,right_bg:string,border_color:string,legal_text:string,left_width:int,right_width:int,thumb_ratio:string,thumb_width:int,right_sticky_top:int,right_padding_top:int,right_padding_right:int,right_padding_bottom:int,right_padding_left:int}
  */
 function bw_mew_get_checkout_settings() {
     $defaults = [
@@ -335,6 +335,10 @@ function bw_mew_get_checkout_settings() {
         'thumb_ratio'         => 'square',
         'thumb_width'         => 110,
         'right_sticky_top'    => 20,
+        'right_padding_top'   => 0,
+        'right_padding_right' => 0,
+        'right_padding_bottom'=> 0,
+        'right_padding_left'  => 28,
     ];
 
     $settings = [
@@ -355,6 +359,10 @@ function bw_mew_get_checkout_settings() {
         'thumb_ratio'         => sanitize_key( get_option( 'bw_checkout_thumb_ratio', $defaults['thumb_ratio'] ) ),
         'thumb_width'         => absint( get_option( 'bw_checkout_thumb_width', $defaults['thumb_width'] ) ),
         'right_sticky_top'    => absint( get_option( 'bw_checkout_right_sticky_top', $defaults['right_sticky_top'] ) ),
+        'right_padding_top'   => absint( get_option( 'bw_checkout_right_padding_top', $defaults['right_padding_top'] ) ),
+        'right_padding_right' => absint( get_option( 'bw_checkout_right_padding_right', $defaults['right_padding_right'] ) ),
+        'right_padding_bottom'=> absint( get_option( 'bw_checkout_right_padding_bottom', $defaults['right_padding_bottom'] ) ),
+        'right_padding_left'  => absint( get_option( 'bw_checkout_right_padding_left', $defaults['right_padding_left'] ) ),
     ];
 
     $settings['logo_align']   = in_array( $settings['logo_align'], [ 'left', 'center', 'right' ], true ) ? $settings['logo_align'] : $defaults['logo_align'];

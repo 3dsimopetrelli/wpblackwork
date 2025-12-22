@@ -436,6 +436,10 @@ function bw_site_render_checkout_tab() {
         $left_bg              = isset( $_POST['bw_checkout_left_bg_color'] ) ? sanitize_hex_color( wp_unslash( $_POST['bw_checkout_left_bg_color'] ) ) : '';
         $right_bg             = isset( $_POST['bw_checkout_right_bg_color'] ) ? sanitize_hex_color( wp_unslash( $_POST['bw_checkout_right_bg_color'] ) ) : '';
         $right_sticky_top     = isset( $_POST['bw_checkout_right_sticky_top'] ) ? absint( $_POST['bw_checkout_right_sticky_top'] ) : 20;
+        $right_padding_top    = isset( $_POST['bw_checkout_right_padding_top'] ) ? absint( $_POST['bw_checkout_right_padding_top'] ) : 0;
+        $right_padding_right  = isset( $_POST['bw_checkout_right_padding_right'] ) ? absint( $_POST['bw_checkout_right_padding_right'] ) : 0;
+        $right_padding_bottom = isset( $_POST['bw_checkout_right_padding_bottom'] ) ? absint( $_POST['bw_checkout_right_padding_bottom'] ) : 0;
+        $right_padding_left   = isset( $_POST['bw_checkout_right_padding_left'] ) ? absint( $_POST['bw_checkout_right_padding_left'] ) : 28;
         $border_color         = isset( $_POST['bw_checkout_border_color'] ) ? sanitize_hex_color( wp_unslash( $_POST['bw_checkout_border_color'] ) ) : '';
         $legal_text           = isset( $_POST['bw_checkout_legal_text'] ) ? wp_kses_post( wp_unslash( $_POST['bw_checkout_legal_text'] ) ) : '';
         $left_width_percent   = isset( $_POST['bw_checkout_left_width'] ) ? absint( $_POST['bw_checkout_left_width'] ) : 62;
@@ -480,6 +484,10 @@ function bw_site_render_checkout_tab() {
         update_option( 'bw_checkout_left_bg_color', $left_bg );
         update_option( 'bw_checkout_right_bg_color', $right_bg );
         update_option( 'bw_checkout_right_sticky_top', $right_sticky_top );
+        update_option( 'bw_checkout_right_padding_top', $right_padding_top );
+        update_option( 'bw_checkout_right_padding_right', $right_padding_right );
+        update_option( 'bw_checkout_right_padding_bottom', $right_padding_bottom );
+        update_option( 'bw_checkout_right_padding_left', $right_padding_left );
         update_option( 'bw_checkout_border_color', $border_color );
         update_option( 'bw_checkout_legal_text', $legal_text );
         update_option( 'bw_checkout_left_width', $left_width_percent );
@@ -504,6 +512,10 @@ function bw_site_render_checkout_tab() {
     $left_bg             = get_option( 'bw_checkout_left_bg_color', '#ffffff' );
     $right_bg            = get_option( 'bw_checkout_right_bg_color', 'transparent' );
     $right_sticky_top    = get_option( 'bw_checkout_right_sticky_top', 20 );
+    $right_padding_top   = get_option( 'bw_checkout_right_padding_top', 0 );
+    $right_padding_right = get_option( 'bw_checkout_right_padding_right', 0 );
+    $right_padding_bottom = get_option( 'bw_checkout_right_padding_bottom', 0 );
+    $right_padding_left  = get_option( 'bw_checkout_right_padding_left', 28 );
     $border_color        = get_option( 'bw_checkout_border_color', '#262626' );
     $legal_text          = get_option( 'bw_checkout_legal_text', '' );
     $left_width_percent  = get_option( 'bw_checkout_left_width', 62 );
@@ -631,6 +643,30 @@ function bw_site_render_checkout_tab() {
                 <td>
                     <input type="number" id="bw_checkout_right_width" name="bw_checkout_right_width" value="<?php echo esc_attr( $right_width_percent ); ?>" min="10" max="90" step="1" style="width: 90px;" />
                     <p class="description">Percentuale dedicata al riepilogo (default 38%). Se la somma supera il 100%, verrà bilanciata automaticamente.</p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">Padding colonna destra (px)</th>
+                <td>
+                    <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                        <label for="bw_checkout_right_padding_top" style="display: inline-flex; align-items: center; gap: 6px;">
+                            <span>Top</span>
+                            <input type="number" id="bw_checkout_right_padding_top" name="bw_checkout_right_padding_top" value="<?php echo esc_attr( $right_padding_top ); ?>" min="0" max="200" style="width: 80px;" />
+                        </label>
+                        <label for="bw_checkout_right_padding_right" style="display: inline-flex; align-items: center; gap: 6px;">
+                            <span>Right</span>
+                            <input type="number" id="bw_checkout_right_padding_right" name="bw_checkout_right_padding_right" value="<?php echo esc_attr( $right_padding_right ); ?>" min="0" max="200" style="width: 80px;" />
+                        </label>
+                        <label for="bw_checkout_right_padding_bottom" style="display: inline-flex; align-items: center; gap: 6px;">
+                            <span>Bottom</span>
+                            <input type="number" id="bw_checkout_right_padding_bottom" name="bw_checkout_right_padding_bottom" value="<?php echo esc_attr( $right_padding_bottom ); ?>" min="0" max="200" style="width: 80px;" />
+                        </label>
+                        <label for="bw_checkout_right_padding_left" style="display: inline-flex; align-items: center; gap: 6px;">
+                            <span>Left</span>
+                            <input type="number" id="bw_checkout_right_padding_left" name="bw_checkout_right_padding_left" value="<?php echo esc_attr( $right_padding_left ); ?>" min="0" max="200" style="width: 80px;" />
+                        </label>
+                    </div>
+                    <p class="description">Imposta il padding della colonna destra (riepilogo ordine) su desktop e mobile.</p>
                 </td>
             </tr>
             <tr>
