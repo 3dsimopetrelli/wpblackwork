@@ -951,8 +951,14 @@ body.woocommerce-checkout .bw-checkout-wrapper .bw-express-divider__inner span {
 }
 
 .bw-total-row--grand {
-    border-top: 3px solid #000000;
+    border-top: 3px solid #000000 !important;
     margin-top: 10px;
+}
+
+.bw-checkout-right table.shop_table tr.bw-total-row--grand,
+.bw-order-summary table tr.bw-total-row--grand,
+table.woocommerce-checkout-review-order-table tr.bw-total-row--grand {
+    border-top: 3px solid #000000 !important;
 }
 
 .bw-total-row--grand th,
