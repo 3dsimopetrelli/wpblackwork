@@ -327,6 +327,20 @@ body.woocommerce-checkout .bw-checkout-wrapper .bw-checkout-express__or span {
     margin-top: 18px;
 }
 
+.bw-checkout-legal {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid var(--bw-checkout-border-color, #262626);
+    font-size: 12px;
+    line-height: 1.6;
+    color: #4a4a4a;
+}
+
+.bw-checkout-legal a {
+    color: inherit;
+    text-decoration: underline;
+}
+
 /* Form fields */
 .bw-checkout-wrapper .form-row {
     margin: 0 0 12px;
