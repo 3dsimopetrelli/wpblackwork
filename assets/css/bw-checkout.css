@@ -306,20 +306,30 @@ body.woocommerce-checkout .bw-checkout-wrapper .bw-checkout-express__gateway-gri
 body.woocommerce-checkout .bw-checkout-wrapper .bw-checkout-express__or {
     display: flex;
     align-items: center;
-    gap: 16px;
+    justify-content: center;
     margin-top: 16px;
+    position: relative;
 }
 
 body.woocommerce-checkout .bw-checkout-wrapper .bw-checkout-express__or::before,
 body.woocommerce-checkout .bw-checkout-wrapper .bw-checkout-express__or::after {
     content: "";
-    flex: 1;
+    flex: 1 1 0%;
+    border-top: 1px solid #e0e0e0;
     height: 1px;
-    background: #e0e0e0;
+}
+
+body.woocommerce-checkout .bw-checkout-wrapper .bw-checkout-express__or::before {
+    margin-right: 12px;
+}
+
+body.woocommerce-checkout .bw-checkout-wrapper .bw-checkout-express__or::after {
+    margin-left: 12px;
 }
 
 body.woocommerce-checkout .bw-checkout-wrapper .bw-checkout-express__or span {
     white-space: nowrap;
+    text-align: center;
 }
 
 /* Section titles */
