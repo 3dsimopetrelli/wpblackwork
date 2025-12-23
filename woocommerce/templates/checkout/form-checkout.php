@@ -8,10 +8,12 @@
 defined( 'ABSPATH' ) || exit;
 
 $settings = function_exists( 'bw_mew_get_checkout_settings' ) ? bw_mew_get_checkout_settings() : [
-    'logo'        => '',
-    'logo_align'  => 'left',
-    'left_bg'     => '#ffffff',
-    'right_bg'    => '#f7f7f7',
+    'logo'         => '',
+    'logo_align'   => 'left',
+    'page_bg'      => '#ffffff',
+    'grid_bg'      => '#ffffff',
+    'left_bg'      => '#ffffff',
+    'right_bg'     => '#f7f7f7',
     'border_color' => '#e0e0e0',
     'legal_text'  => '',
     'left_width'  => 62,
@@ -22,6 +24,8 @@ $right_padding_top    = isset( $settings['right_padding_top'] ) ? absint( $setti
 $right_padding_right  = isset( $settings['right_padding_right'] ) ? absint( $settings['right_padding_right'] ) : 0;
 $right_padding_bottom = isset( $settings['right_padding_bottom'] ) ? absint( $settings['right_padding_bottom'] ) : 0;
 $right_padding_left   = isset( $settings['right_padding_left'] ) ? absint( $settings['right_padding_left'] ) : 28;
+$page_bg              = isset( $settings['page_bg'] ) ? esc_attr( $settings['page_bg'] ) : '#ffffff';
+$grid_bg              = isset( $settings['grid_bg'] ) ? esc_attr( $settings['grid_bg'] ) : '#ffffff';
 
 $right_spacing_vars = sprintf(
     '--bw-checkout-right-pad-top:%dpx; --bw-checkout-right-pad-right:%dpx; --bw-checkout-right-pad-bottom:%dpx; --bw-checkout-right-pad-left:%dpx;',
@@ -32,9 +36,11 @@ $right_spacing_vars = sprintf(
 );
 
 $grid_inline_styles = sprintf(
-    '--bw-checkout-left-col:%d%%; --bw-checkout-right-col:%d%%; --bw-checkout-left-bg:%s; --bw-checkout-right-bg:%s; --bw-checkout-border-color:%s; --bw-checkout-right-sticky-top:%dpx; %s',
+    '--bw-checkout-left-col:%d%%; --bw-checkout-right-col:%d%%; --bw-checkout-page-bg:%s; --bw-checkout-grid-bg:%s; --bw-checkout-left-bg:%s; --bw-checkout-right-bg:%s; --bw-checkout-border-color:%s; --bw-checkout-right-sticky-top:%dpx; %s',
     isset( $settings['left_width'] ) ? (int) $settings['left_width'] : 62,
     isset( $settings['right_width'] ) ? (int) $settings['right_width'] : 38,
+    $page_bg,
+    $grid_bg,
     isset( $settings['left_bg'] ) ? esc_attr( $settings['left_bg'] ) : '#ffffff',
     isset( $settings['right_bg'] ) ? esc_attr( $settings['right_bg'] ) : 'transparent',
     isset( $settings['border_color'] ) ? esc_attr( $settings['border_color'] ) : '#262626',
@@ -50,6 +56,12 @@ $right_column_inline_styles = sprintf(
     $right_padding_right,
     $right_padding_bottom,
     $right_padding_left
+);
+
+$page_background_styles = sprintf(
+    'body.woocommerce-checkout{--bw-checkout-page-bg:%1$s; background:%1$s;} body.woocommerce-checkout .bw-checkout-grid{--bw-checkout-grid-bg:%2$s;}',
+    $page_bg,
+    $grid_bg
 );
 
 $available_gateways = WC()->payment_gateways()->get_available_payment_gateways();
@@ -82,6 +94,10 @@ if ( ! $checkout->is_registration_enabled() && $checkout->is_registration_requir
     return;
 }
 ?>
+
+<style id="bw-checkout-page-background">
+    <?php echo esc_html( $page_background_styles ); ?>
+</style>
 
 <form name="checkout" method="post" class="checkout woocommerce-checkout bw-checkout-form" action="<?php echo esc_url( wc_get_checkout_url() ); ?>" enctype="multipart/form-data">
     <div class="bw-checkout-wrapper" style="<?php echo esc_attr( $grid_inline_styles ); ?>">

@@ -314,12 +314,14 @@ function bw_mew_get_social_redirect_uri( $provider ) {
 /**
  * Retrieve checkout style and content options.
  *
- * @return array{logo:string,logo_align:string,left_bg:string,right_bg:string,border_color:string,legal_text:string,left_width:int,right_width:int,thumb_ratio:string,thumb_width:int,right_sticky_top:int,right_padding_top:int,right_padding_right:int,right_padding_bottom:int,right_padding_left:int}
+ * @return array{logo:string,logo_align:string,page_bg:string,grid_bg:string,left_bg:string,right_bg:string,border_color:string,legal_text:string,left_width:int,right_width:int,thumb_ratio:string,thumb_width:int,right_sticky_top:int,right_padding_top:int,right_padding_right:int,right_padding_bottom:int,right_padding_left:int}
  */
 function bw_mew_get_checkout_settings() {
     $defaults = [
         'logo'                => '',
         'logo_align'          => 'left',
+        'page_bg'             => '#ffffff',
+        'grid_bg'             => '#ffffff',
         'logo_width'          => 200,
         'logo_padding_top'    => 0,
         'logo_padding_right'  => 0,
@@ -345,6 +347,8 @@ function bw_mew_get_checkout_settings() {
         'logo'                => esc_url_raw( get_option( 'bw_checkout_logo', $defaults['logo'] ) ),
         'logo_align'          => sanitize_key( get_option( 'bw_checkout_logo_align', $defaults['logo_align'] ) ),
         'logo_width'          => absint( get_option( 'bw_checkout_logo_width', $defaults['logo_width'] ) ),
+        'page_bg'             => sanitize_hex_color( get_option( 'bw_checkout_page_bg_color', $defaults['page_bg'] ) ),
+        'grid_bg'             => sanitize_hex_color( get_option( 'bw_checkout_grid_bg_color', $defaults['grid_bg'] ) ),
         'logo_padding_top'    => absint( get_option( 'bw_checkout_logo_padding_top', $defaults['logo_padding_top'] ) ),
         'logo_padding_right'  => absint( get_option( 'bw_checkout_logo_padding_right', $defaults['logo_padding_right'] ) ),
         'logo_padding_bottom' => absint( get_option( 'bw_checkout_logo_padding_bottom', $defaults['logo_padding_bottom'] ) ),
@@ -366,6 +370,8 @@ function bw_mew_get_checkout_settings() {
     ];
 
     $settings['logo_align']   = in_array( $settings['logo_align'], [ 'left', 'center', 'right' ], true ) ? $settings['logo_align'] : $defaults['logo_align'];
+    $settings['page_bg']      = $settings['page_bg'] ?: $defaults['page_bg'];
+    $settings['grid_bg']      = $settings['grid_bg'] ?: $defaults['grid_bg'];
     $settings['left_bg']      = $settings['left_bg'] ?: $defaults['left_bg'];
     $settings['right_bg']     = $settings['right_bg'] ?: $defaults['right_bg'];
     $settings['border_color'] = $settings['border_color'] ?: $defaults['border_color'];
