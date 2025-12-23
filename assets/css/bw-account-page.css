@@ -16,12 +16,23 @@
     padding: 0;
 }
 
+/* A) Elementor spacing removal - high specificity, scoped to My Account login page */
 body.woocommerce-account.bw-account-login-only:not(.elementor-editor-active) .bw-account-login-page .elementor-top-section,
 body.woocommerce-account.bw-account-login-only:not(.elementor-editor-active) .bw-account-login-page .elementor-section,
 body.woocommerce-account.bw-account-login-only:not(.elementor-editor-active) .bw-account-login-page .elementor,
 body.woocommerce-account.bw-account-login-only:not(.elementor-editor-active) .bw-account-login-page .elementor-section-wrap {
-    margin-top: 0 !important;
-    margin-bottom: 0 !important;
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+/* Override Elementor inner section/column padding */
+body.woocommerce-account.bw-account-login-only:not(.elementor-editor-active) .bw-account-login-page .elementor-inner-section,
+body.woocommerce-account.bw-account-login-only:not(.elementor-editor-active) .bw-account-login-page .elementor-column-gap-default > .elementor-column > .elementor-element-populated,
+body.woocommerce-account.bw-account-login-only:not(.elementor-editor-active) .bw-account-login-page .elementor-widget-wrap {
+    padding-top: 0;
+    padding-bottom: 0;
 }
 
 .bw-account-login-page .woocommerce-notices-wrapper {
@@ -49,13 +60,18 @@ body.woocommerce-account.bw-account-login-only:not(.elementor-editor-active) .bw
     font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
 }
 
+/* C) Background image fix - prevent glitch/jump on tab switch */
 .bw-account-login__media {
     flex: 1;
     background-color: #f2f2f2;
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    min-height: 50vh;
+    min-height: 100vh;
+    transition: none;
+    will-change: auto;
+    backface-visibility: hidden;
+    transform: translateZ(0);
 }
 
 .bw-account-login__content-wrapper {
@@ -95,21 +111,41 @@ body.woocommerce-account.bw-account-login-only:not(.elementor-editor-active) .bw
     justify-content: center;
 }
 
+/* B) Tab typography fix - simple text links, not Elementor buttons */
+body.woocommerce-account.bw-account-login-only .bw-account-auth__tab,
 .bw-account-auth__tab {
-    background: none;
-    border: none;
-    border-radius: 0;
-    padding: 0;
-    font-size: 35px;
-    line-height: 1.1;
-    font-weight: 700;
-    color: #000;
+    background: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 0 0 4px 0 !important;
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+    font-weight: 400 !important;
+    color: #000 !important;
     cursor: pointer;
     transition: color 0.3s ease;
+    position: relative;
+    text-decoration: none !important;
+    text-transform: none !important;
+    box-shadow: none !important;
+    min-height: auto !important;
+    display: inline-block !important;
 }
 
+body.woocommerce-account.bw-account-login-only .bw-account-auth__tab.is-active,
 .bw-account-auth__tab.is-active {
-    color: #999999;
+    color: #777 !important;
+}
+
+body.woocommerce-account.bw-account-login-only .bw-account-auth__tab.is-active::after,
+.bw-account-auth__tab.is-active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: #777;
 }
 
 .bw-account-auth__tabs--single .bw-account-auth__tab {
