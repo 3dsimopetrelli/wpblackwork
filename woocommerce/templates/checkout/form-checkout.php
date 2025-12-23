@@ -16,7 +16,7 @@ $settings = function_exists( 'bw_mew_get_checkout_settings' ) ? bw_mew_get_check
     'legal_text'   => '',
     'left_width'   => 62,
     'right_width'  => 38,
-    'footer_text'  => 'Bendito Mockup. All rights reserved.',
+    'footer_text'  => '',
 ];
 
 $grid_inline_styles = sprintf(
@@ -153,6 +153,18 @@ if ( ! $checkout->is_registration_enabled() && $checkout->is_registration_requir
                         <?php esc_html_e( 'Return to shop', 'woocommerce' ); ?>
                     </a>
                 </div>
+
+                <div class="bw-checkout-footer">
+                    <div class="bw-checkout-footer__content">
+                        <?php
+                        $footer_text = ! empty( $settings['footer_text'] ) ? $settings['footer_text'] : '';
+                        if ( ! empty( $footer_text ) ) {
+                            $current_year = gmdate( 'Y' );
+                            echo '<p>Copyright &copy; ' . esc_html( $current_year ) . ', ' . esc_html( $footer_text ) . '</p>';
+                        }
+                        ?>
+                    </div>
+                </div>
             </div>
 
             <?php do_action( 'woocommerce_checkout_before_order_review_heading' ); ?>
@@ -171,16 +183,6 @@ if ( ! $checkout->is_registration_enabled() && $checkout->is_registration_requir
                 </div>
 
                 <?php do_action( 'woocommerce_checkout_after_order_review' ); ?>
-            </div>
-        </div>
-
-        <div class="bw-checkout-footer">
-            <div class="bw-checkout-footer__content">
-                <?php
-                $footer_text = ! empty( $settings['footer_text'] ) ? $settings['footer_text'] : 'Bendito Mockup. All rights reserved.';
-                $current_year = gmdate( 'Y' );
-                ?>
-                <p>Copyright &copy; <?php echo esc_html( $current_year ); ?>, <?php echo esc_html( $footer_text ); ?></p>
             </div>
         </div>
     </div>
