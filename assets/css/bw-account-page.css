@@ -17,22 +17,27 @@
 }
 
 /* A) Elementor spacing removal - high specificity, scoped to My Account login page */
-body.woocommerce-account.bw-account-login-only:not(.elementor-editor-active) .bw-account-login-page .elementor-top-section,
-body.woocommerce-account.bw-account-login-only:not(.elementor-editor-active) .bw-account-login-page .elementor-section,
-body.woocommerce-account.bw-account-login-only:not(.elementor-editor-active) .bw-account-login-page .elementor,
-body.woocommerce-account.bw-account-login-only:not(.elementor-editor-active) .bw-account-login-page .elementor-section-wrap {
-    margin-top: 0;
-    margin-bottom: 0;
-    padding-top: 0;
-    padding-bottom: 0;
+/* Target ALL Elementor sections on the My Account page, including page-level sections */
+body.woocommerce-account.bw-account-login-only:not(.elementor-editor-active) .elementor-top-section,
+body.woocommerce-account.bw-account-login-only:not(.elementor-editor-active) .elementor-section,
+body.woocommerce-account.bw-account-login-only:not(.elementor-editor-active) .elementor,
+body.woocommerce-account.bw-account-login-only:not(.elementor-editor-active) .elementor-section-wrap,
+body.woocommerce-account.bw-account-login-only:not(.elementor-editor-active) section.elementor-section {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
 }
 
 /* Override Elementor inner section/column padding */
-body.woocommerce-account.bw-account-login-only:not(.elementor-editor-active) .bw-account-login-page .elementor-inner-section,
-body.woocommerce-account.bw-account-login-only:not(.elementor-editor-active) .bw-account-login-page .elementor-column-gap-default > .elementor-column > .elementor-element-populated,
-body.woocommerce-account.bw-account-login-only:not(.elementor-editor-active) .bw-account-login-page .elementor-widget-wrap {
-    padding-top: 0;
-    padding-bottom: 0;
+body.woocommerce-account.bw-account-login-only:not(.elementor-editor-active) .elementor-inner-section,
+body.woocommerce-account.bw-account-login-only:not(.elementor-editor-active) .elementor-column-gap-default > .elementor-column > .elementor-element-populated,
+body.woocommerce-account.bw-account-login-only:not(.elementor-editor-active) .elementor-widget-wrap,
+body.woocommerce-account.bw-account-login-only:not(.elementor-editor-active) .elementor-container {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
 }
 
 .bw-account-login-page .woocommerce-notices-wrapper {
@@ -57,30 +62,37 @@ body.woocommerce-account.bw-account-login-only:not(.elementor-editor-active) .bw
 .bw-account-login {
     display: flex;
     min-height: 100vh;
+    height: 100vh;
     font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+    position: relative;
+    overflow: hidden;
 }
 
 /* C) Background image fix - prevent glitch/jump on tab switch */
 .bw-account-login__media {
-    flex: 1;
+    flex: 1 0 50%;
     background-color: #f2f2f2;
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    min-height: 100vh;
-    transition: none;
+    height: 100vh;
+    position: relative;
+    transition: none !important;
     will-change: auto;
     backface-visibility: hidden;
     transform: translateZ(0);
 }
 
 .bw-account-login__content-wrapper {
-    flex: 1;
+    flex: 1 0 50%;
     background: #ffffff;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 60px 40px;
+    height: 100vh;
+    overflow-y: auto;
+    position: relative;
 }
 
 .bw-account-login__content {
@@ -155,11 +167,12 @@ body.woocommerce-account.bw-account-login-only .bw-account-auth__tab.is-active::
 
 .bw-account-auth__panels {
     position: relative;
-    min-height: 400px;
+    min-height: 450px;
 }
 
 .bw-account-auth__panel {
-    position: absolute;
+    /* Keep ALL panels absolutely positioned to prevent layout shifts */
+    position: absolute !important;
     top: 0;
     left: 0;
     right: 0;
@@ -167,16 +180,20 @@ body.woocommerce-account.bw-account-login-only .bw-account-auth__tab.is-active::
     transform: translateY(20px);
     transition: opacity 0.3s ease, transform 0.3s ease;
     pointer-events: none;
+    visibility: hidden;
 }
 
 .bw-account-auth__panel.is-visible {
-    position: relative;
+    /* Keep absolute positioning even when visible */
+    position: absolute !important;
+    visibility: visible;
 }
 
 .bw-account-auth__panel.is-active {
     opacity: 1;
     transform: translateY(0);
     pointer-events: auto;
+    visibility: visible;
 }
 
 .bw-account-login__social-row {
