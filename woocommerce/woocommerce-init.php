@@ -31,6 +31,8 @@ function bw_mew_initialize_woocommerce_overrides() {
     add_action( 'template_redirect', 'bw_mew_prepare_checkout_layout', 9 );
     add_action( 'template_redirect', 'bw_mew_hide_single_product_notices', 9 );
     add_action( 'woocommerce_checkout_update_order_review', 'bw_mew_sync_checkout_cart_quantities', 10, 1 );
+    add_action( 'wp_ajax_bw_remove_coupon', 'bw_mew_ajax_remove_coupon' );
+    add_action( 'wp_ajax_nopriv_bw_remove_coupon', 'bw_mew_ajax_remove_coupon' );
 }
 add_action( 'plugins_loaded', 'bw_mew_initialize_woocommerce_overrides' );
 
@@ -144,6 +146,15 @@ function bw_mew_enqueue_checkout_assets() {
             $dependencies,
             $js_version,
             true
+        );
+
+        wp_localize_script(
+            'bw-checkout',
+            'bwCheckoutParams',
+            array(
+                'ajax_url' => admin_url( 'admin-ajax.php' ),
+                'nonce'    => wp_create_nonce( 'bw-checkout-nonce' ),
+            )
         );
     }
 
@@ -485,4 +496,28 @@ function bw_mew_get_passwordless_url() {
     }
 
     return '';
+}
+
+/**
+ * AJAX handler to remove coupon from cart.
+ */
+function bw_mew_ajax_remove_coupon() {
+    check_ajax_referer( 'bw-checkout-nonce', 'nonce' );
+
+    $coupon_code = isset( $_POST['coupon'] ) ? sanitize_text_field( wp_unslash( $_POST['coupon'] ) ) : '';
+
+    if ( empty( $coupon_code ) ) {
+        wp_send_json_error( array( 'message' => __( 'Invalid coupon code.', 'woocommerce' ) ) );
+    }
+
+    if ( ! WC()->cart->remove_coupon( $coupon_code ) ) {
+        wp_send_json_error( array( 'message' => __( 'Coupon could not be removed.', 'woocommerce' ) ) );
+    }
+
+    // Calculate totals after removing coupon
+    WC()->cart->calculate_totals();
+
+    wp_send_json_success( array(
+        'message' => __( 'Coupon removed successfully.', 'woocommerce' ),
+    ) );
 }
