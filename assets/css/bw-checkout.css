@@ -264,30 +264,20 @@ body.woocommerce-checkout .bw-checkout-right #order_review_inner {
     background: transparent !important;
 }
 
-.bw-checkout-right table.shop_table .bw-total-row--coupon {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: nowrap;
-}
-
-.bw-checkout-right table.shop_table .bw-total-row--coupon th,
-.bw-checkout-right table.shop_table .bw-total-row--coupon td {
+.bw-checkout-right table.shop_table tfoot .bw-total-row--coupon th,
+.bw-checkout-right table.shop_table tfoot .bw-total-row--coupon td {
     padding: 10px 0;
+    vertical-align: middle;
 }
 
-.bw-checkout-right table.shop_table .bw-total-row--coupon th {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
+.bw-checkout-right table.shop_table tfoot .bw-total-row--coupon th {
+    display: table-cell;
     white-space: nowrap;
 }
 
-.bw-checkout-right table.shop_table .bw-total-row--coupon td {
-    display: inline-flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 10px;
+.bw-checkout-right table.shop_table tfoot .bw-total-row--coupon td {
+    display: table-cell;
+    text-align: right;
     white-space: nowrap;
 }
 
@@ -315,6 +305,14 @@ body.woocommerce-checkout .bw-checkout-right #order_review_inner {
     display: inline-flex;
     align-items: center;
     gap: 10px;
+}
+
+.bw-checkout-right table.shop_table tfoot .bw-total-row--coupon .bw-coupon-label {
+    display: inline-block;
+    font-size: 14px;
+    font-weight: 500;
+    color: #111111;
+    margin-right: 8px;
 }
 
 .bw-checkout-right table.shop_table tr {
