@@ -80,59 +80,12 @@
             return;
         }
 
-        // Handle coupon removal via AJAX
+        // Handle coupon removal - set loading state but let WooCommerce handle the removal
         var couponRemove = event.target.closest('.woocommerce-remove-coupon');
 
         if (couponRemove) {
-            event.preventDefault();
-            event.stopPropagation();
-
-            var couponCode = couponRemove.getAttribute('data-coupon');
-
-            if (!couponCode || !window.jQuery) {
-                return;
-            }
-
             setOrderSummaryLoading(true);
-
-            var $ = window.jQuery;
-            var data = {
-                security: wc_checkout_params.remove_coupon_nonce,
-                coupon: couponCode
-            };
-
-            $.ajax({
-                type: 'POST',
-                url: wc_checkout_params.wc_ajax_url.toString().replace('%%endpoint%%', 'remove_coupon'),
-                data: data,
-                success: function (response) {
-                    if (response && !response.error) {
-                        // Trigger removed_coupon event and manually update fragments
-                        $(document.body).trigger('removed_coupon', [couponCode]);
-
-                        // Update checkout fragments if provided in response
-                        if (response.fragments) {
-                            $.each(response.fragments, function (key, value) {
-                                $(key).replaceWith(value);
-                            });
-                        }
-
-                        setOrderSummaryLoading(false);
-                    } else {
-                        setOrderSummaryLoading(false);
-                        if (response && response.error) {
-                            showCouponMessage(response.error, 'error');
-                        } else {
-                            showCouponMessage('Error removing coupon', 'error');
-                        }
-                    }
-                },
-                error: function () {
-                    setOrderSummaryLoading(false);
-                    showCouponMessage('Error removing coupon', 'error');
-                }
-            });
-
+            // Let the default WooCommerce handler or link work
             return;
         }
     });
