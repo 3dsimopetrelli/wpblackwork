@@ -758,11 +758,17 @@ body.woocommerce-checkout .bw-checkout-wrapper .bw-express-divider__inner span {
 .bw-review-item td {
     vertical-align: top;
     background: transparent !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
 }
 
 .bw-review-item td.product-thumbnail {
     width: var(--bw-thumb-width, 110px);
     padding-right: 0 !important;
+}
+
+.bw-review-item td.product-name {
+    padding-left: 0 !important;
 }
 
 .bw-review-item__media {
@@ -1060,64 +1066,43 @@ body.woocommerce-checkout .bw-checkout-wrapper .bw-express-divider__inner span {
 }
 
 /* Applied coupon styling */
-.bw-coupon-applied {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    padding: 8px 0;
+.bw-total-row--coupon th {
+    text-align: left;
 }
 
-.bw-coupon-applied__left {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.bw-coupon-applied__icon {
-    width: 16px;
-    height: 16px;
-    flex-shrink: 0;
-    color: #27ae60;
-}
-
-.bw-coupon-applied__label {
+.bw-coupon-label {
     font-size: 14px;
     font-weight: 500;
     color: #111111;
+    margin-right: 8px;
 }
 
-.bw-coupon-applied__code {
-    font-size: 14px;
+.bw-coupon-code {
+    display: inline-block;
+    font-size: 12px;
     font-weight: 700;
-    color: #111111;
-    background: #f0f0f0;
-    padding: 2px 8px;
-    border-radius: 4px;
+    color: #ffffff;
+    background: #000000;
+    padding: 4px 12px;
+    border-radius: 50px;
 }
 
-.bw-coupon-applied__right {
-    display: flex;
-    align-items: center;
-    gap: 12px;
+/* Override WooCommerce coupon amount styling */
+.bw-total-row--coupon td {
+    color: #27ae60 !important;
+    font-weight: 700 !important;
 }
 
-.bw-coupon-applied__amount {
-    font-size: 14px;
-    font-weight: 700;
-    color: #27ae60;
-}
-
-.bw-coupon-applied__remove {
-    font-size: 13px;
+.bw-total-row--coupon .woocommerce-remove-coupon {
+    margin-left: 12px;
     color: #666666;
     text-decoration: none;
-    transition: color 0.2s;
+    font-size: 13px;
+    font-weight: 400;
 }
 
-.bw-coupon-applied__remove:hover {
+.bw-total-row--coupon .woocommerce-remove-coupon:hover {
     color: #d32f2f;
-    text-decoration: none;
 }
 
 /* Totals rows */
