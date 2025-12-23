@@ -107,8 +107,17 @@
                 data: data,
                 success: function (response) {
                     if (response && !response.error) {
-                        // Only trigger update_checkout - WooCommerce will handle the rest
-                        triggerCheckoutUpdate();
+                        // Trigger removed_coupon event and manually update fragments
+                        $(document.body).trigger('removed_coupon', [couponCode]);
+
+                        // Update checkout fragments if provided in response
+                        if (response.fragments) {
+                            $.each(response.fragments, function (key, value) {
+                                $(key).replaceWith(value);
+                            });
+                        }
+
+                        setOrderSummaryLoading(false);
                     } else {
                         setOrderSummaryLoading(false);
                         if (response && response.error) {
