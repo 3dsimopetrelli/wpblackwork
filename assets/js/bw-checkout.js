@@ -79,6 +79,39 @@
 
             return;
         }
+
+        // Handle coupon removal via AJAX
+        var couponRemove = event.target.closest('.woocommerce-remove-coupon');
+
+        if (couponRemove) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            var couponCode = couponRemove.getAttribute('data-coupon');
+            var removeUrl = couponRemove.getAttribute('href');
+
+            if (!couponCode || !removeUrl || !window.jQuery) {
+                return;
+            }
+
+            setOrderSummaryLoading(true);
+
+            var $ = window.jQuery;
+
+            // Use the direct URL to remove the coupon, then trigger checkout update
+            $.get(removeUrl, function () {
+                // Wait a moment to ensure session is updated
+                setTimeout(function () {
+                    $(document.body).trigger('update_checkout');
+                    $(document.body).trigger('removed_coupon', [couponCode]);
+                }, 100);
+            }).fail(function () {
+                setOrderSummaryLoading(false);
+                showCouponMessage('Error removing coupon', 'error');
+            });
+
+            return;
+        }
     });
 
     document.addEventListener('change', function (event) {
@@ -181,7 +214,7 @@
                     showCouponMessage('Coupon code applied successfully', 'success');
                 })
                 .on('removed_coupon', function (event, couponCode) {
-                    setOrderSummaryLoading(true);
+                    // Don't set loading here - it's already handled by AJAX call
                     showCouponMessage('Coupon code removed', 'success');
                 })
                 .on('updated_checkout checkout_error', function () {
