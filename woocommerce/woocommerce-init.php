@@ -113,7 +113,7 @@ function bw_mew_enqueue_account_page_assets() {
  * Enqueue assets for the custom checkout layout and expose colors as CSS variables.
  */
 function bw_mew_enqueue_checkout_assets() {
-    if ( ! function_exists( 'is_checkout' ) || ! is_checkout() || is_cart() ) {
+    if ( ! bw_mew_is_checkout_request() ) {
         return;
     }
 
@@ -179,7 +179,7 @@ function bw_mew_prepare_account_page_layout() {
  * Hide checkout notices and prepare layout.
  */
 function bw_mew_prepare_checkout_layout() {
-    if ( ! function_exists( 'is_checkout' ) || ! is_checkout() || ( function_exists( 'is_wc_endpoint_url' ) && is_wc_endpoint_url( 'order-received' ) ) ) {
+    if ( ! bw_mew_is_checkout_request() || ( function_exists( 'is_wc_endpoint_url' ) && is_wc_endpoint_url( 'order-received' ) ) ) {
         return;
     }
 
@@ -191,6 +191,30 @@ function bw_mew_prepare_checkout_layout() {
 
     // Avoid rendering the payment section (and its button) twice by keeping it only in the left column.
     remove_action( 'woocommerce_checkout_order_review', 'woocommerce_checkout_payment', 20 );
+}
+
+/**
+ * Check if the current request should be treated as checkout.
+ *
+ * @return bool
+ */
+function bw_mew_is_checkout_request() {
+    if ( function_exists( 'is_checkout' ) && is_checkout() && ! is_cart() ) {
+        return true;
+    }
+
+    if ( function_exists( 'is_page' ) ) {
+        $checkout_page_id = function_exists( 'wc_get_page_id' ) ? wc_get_page_id( 'checkout' ) : 0;
+        if ( $checkout_page_id && is_page( $checkout_page_id ) ) {
+            return true;
+        }
+    }
+
+    if ( ! empty( $_POST['apply_coupon'] ) || ! empty( $_POST['woocommerce-apply-coupon-nonce'] ) ) {
+        return true;
+    }
+
+    return false;
 }
 
 if ( ! function_exists( 'bw_mew_normalize_checkout_column_widths' ) ) {
