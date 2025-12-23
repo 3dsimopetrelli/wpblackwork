@@ -29,11 +29,12 @@ $page_bg              = isset( $settings['page_bg'] ) ? esc_attr( $settings['pag
 $grid_bg              = isset( $settings['grid_bg'] ) ? esc_attr( $settings['grid_bg'] ) : '#ffffff';
 
 $right_spacing_vars = sprintf(
-    '--bw-checkout-right-pad-top:%dpx; --bw-checkout-right-pad-right:%dpx; --bw-checkout-right-pad-bottom:%dpx; --bw-checkout-right-pad-left:%dpx;',
+    '--bw-checkout-right-pad-top:%1$dpx; --bw-checkout-right-pad-right:%2$dpx; --bw-checkout-right-pad-bottom:%3$dpx; --bw-checkout-right-pad-left:%4$dpx; --bw-checkout-right-sticky-top:%5$dpx;',
     $right_padding_top,
     $right_padding_right,
     $right_padding_bottom,
-    $right_padding_left
+    $right_padding_left,
+    $right_sticky_top
 );
 
 $grid_inline_styles = sprintf(
