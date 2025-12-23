@@ -29,7 +29,6 @@ function bw_mew_initialize_woocommerce_overrides() {
     add_filter( 'woocommerce_locate_core_template', 'bw_mew_locate_template', 1, 3 );
     add_action( 'template_redirect', 'bw_mew_prepare_account_page_layout', 9 );
     add_action( 'template_redirect', 'bw_mew_prepare_checkout_layout', 9 );
-    add_action( 'template_redirect', 'bw_mew_handle_checkout_coupon_actions', 8 );
     add_action( 'template_redirect', 'bw_mew_hide_single_product_notices', 9 );
     add_action( 'woocommerce_checkout_update_order_review', 'bw_mew_sync_checkout_cart_quantities', 10, 1 );
 }
@@ -192,30 +191,6 @@ function bw_mew_prepare_checkout_layout() {
 
     // Avoid rendering the payment section (and its button) twice by keeping it only in the left column.
     remove_action( 'woocommerce_checkout_order_review', 'woocommerce_checkout_payment', 20 );
-}
-
-/**
- * Handle non-AJAX coupon removal on the checkout page.
- */
-function bw_mew_handle_checkout_coupon_actions() {
-    if ( ! bw_mew_is_checkout_request() || ! WC()->cart ) {
-        return;
-    }
-
-    if ( empty( $_GET['remove_coupon'] ) ) {
-        return;
-    }
-
-    $coupon_code = wc_format_coupon_code( wp_unslash( $_GET['remove_coupon'] ) );
-    if ( '' === $coupon_code ) {
-        return;
-    }
-
-    $nonce = isset( $_GET['_wpnonce'] ) ? wp_unslash( $_GET['_wpnonce'] ) : '';
-    if ( $nonce && wp_verify_nonce( $nonce, 'woocommerce-remove-coupon' ) ) {
-        WC()->cart->remove_coupon( $coupon_code );
-        WC()->cart->calculate_totals();
-    }
 }
 
 /**
