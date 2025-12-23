@@ -433,6 +433,8 @@ function bw_site_render_checkout_tab() {
         $logo_padding_bottom  = isset( $_POST['bw_checkout_logo_padding_bottom'] ) ? absint( $_POST['bw_checkout_logo_padding_bottom'] ) : 30;
         $logo_padding_left    = isset( $_POST['bw_checkout_logo_padding_left'] ) ? absint( $_POST['bw_checkout_logo_padding_left'] ) : 0;
         $show_order_heading   = isset( $_POST['bw_checkout_show_order_heading'] ) ? '1' : '0';
+        $page_bg              = isset( $_POST['bw_checkout_page_bg'] ) ? sanitize_hex_color( wp_unslash( $_POST['bw_checkout_page_bg'] ) ) : '';
+        $grid_bg              = isset( $_POST['bw_checkout_grid_bg'] ) ? sanitize_hex_color( wp_unslash( $_POST['bw_checkout_grid_bg'] ) ) : '';
         $left_bg              = isset( $_POST['bw_checkout_left_bg_color'] ) ? sanitize_hex_color( wp_unslash( $_POST['bw_checkout_left_bg_color'] ) ) : '';
         $right_bg             = isset( $_POST['bw_checkout_right_bg_color'] ) ? sanitize_hex_color( wp_unslash( $_POST['bw_checkout_right_bg_color'] ) ) : '';
         $right_sticky_top     = isset( $_POST['bw_checkout_right_sticky_top'] ) ? absint( $_POST['bw_checkout_right_sticky_top'] ) : 20;
@@ -460,6 +462,8 @@ function bw_site_render_checkout_tab() {
             $thumb_width = 300;
         }
 
+        $page_bg      = $page_bg ?: '#ffffff';
+        $grid_bg      = $grid_bg ?: '#ffffff';
         $left_bg      = $left_bg ?: '#ffffff';
         $right_bg     = $right_bg ?: 'transparent';
         $border_color = $border_color ?: '#262626';
@@ -482,6 +486,8 @@ function bw_site_render_checkout_tab() {
         update_option( 'bw_checkout_logo_padding_bottom', $logo_padding_bottom );
         update_option( 'bw_checkout_logo_padding_left', $logo_padding_left );
         update_option( 'bw_checkout_show_order_heading', $show_order_heading );
+        update_option( 'bw_checkout_page_bg', $page_bg );
+        update_option( 'bw_checkout_grid_bg', $grid_bg );
         update_option( 'bw_checkout_left_bg_color', $left_bg );
         update_option( 'bw_checkout_right_bg_color', $right_bg );
         update_option( 'bw_checkout_right_sticky_top', $right_sticky_top );
@@ -511,6 +517,8 @@ function bw_site_render_checkout_tab() {
     $logo_padding_bottom = get_option( 'bw_checkout_logo_padding_bottom', 30 );
     $logo_padding_left   = get_option( 'bw_checkout_logo_padding_left', 0 );
     $show_order_heading  = get_option( 'bw_checkout_show_order_heading', '1' );
+    $page_bg             = get_option( 'bw_checkout_page_bg', get_option( 'bw_checkout_page_bg_color', '#ffffff' ) );
+    $grid_bg             = get_option( 'bw_checkout_grid_bg', get_option( 'bw_checkout_grid_bg_color', '#ffffff' ) );
     $left_bg             = get_option( 'bw_checkout_left_bg_color', '#ffffff' );
     $right_bg            = get_option( 'bw_checkout_right_bg_color', 'transparent' );
     $right_sticky_top    = get_option( 'bw_checkout_right_sticky_top', 20 );
@@ -601,6 +609,30 @@ function bw_site_render_checkout_tab() {
                         <span style="font-weight: 500;">Attiva</span>
                     </label>
                     <p class="description">Mostra o nascondi il titolo "Your order" nella colonna destra.</p>
+                </td>
+            </tr>
+            <tr class="bw-section-break">
+                <th scope="row" colspan="2" style="padding-bottom:0;">
+                    <h3 style="margin:0;">Colori di sfondo checkout</h3>
+                    <p class="description" style="margin-top:6px;">Gestisci il colore della pagina e del contenitore griglia per evitare stacchi visivi tra le colonne.</p>
+                </th>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_checkout_page_bg">Checkout Page Background</label>
+                </th>
+                <td>
+                    <input type="text" id="bw_checkout_page_bg" name="bw_checkout_page_bg" value="<?php echo esc_attr( $page_bg ); ?>" class="bw-color-picker" data-default-color="#ffffff" />
+                    <p class="description">Colore di sfondo della pagina checkout (body/wrapper).</p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_checkout_grid_bg">Checkout Grid Background</label>
+                </th>
+                <td>
+                    <input type="text" id="bw_checkout_grid_bg" name="bw_checkout_grid_bg" value="<?php echo esc_attr( $grid_bg ); ?>" class="bw-color-picker" data-default-color="#ffffff" />
+                    <p class="description">Colore di sfondo del contenitore griglia checkout (.bw-checkout-grid).</p>
                 </td>
             </tr>
             <tr>

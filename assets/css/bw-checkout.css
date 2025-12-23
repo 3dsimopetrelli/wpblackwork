@@ -51,6 +51,10 @@ body.woocommerce-checkout:not(.elementor-editor-active) {
     padding-bottom: 0 !important;
 }
 
+body.woocommerce-checkout {
+    background: var(--bw-checkout-page-bg, #ffffff);
+}
+
 /* Force Elementor sections and containers to zero spacing */
 .woocommerce-checkout .elementor-section,
 .woocommerce-checkout .elementor-element,
@@ -68,13 +72,14 @@ body.woocommerce-checkout:not(.elementor-editor-active) {
     max-width: 980px;
     margin: 0 auto;
     padding: 16px 12px;
-    background: var(--bw-checkout-left-bg, #ffffff);
+    background: var(--bw-checkout-page-bg, #ffffff);
 }
 
 .bw-checkout-grid {
     display: block;
     --bw-checkout-left-col: 62%;
     --bw-checkout-right-col: 38%;
+    background: var(--bw-checkout-grid-bg, var(--bw-checkout-left-bg, #ffffff));
 }
 
 /* Force all direct children of checkout grid to not break layout */
