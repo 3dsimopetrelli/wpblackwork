@@ -24,6 +24,7 @@ $right_padding_top    = isset( $settings['right_padding_top'] ) ? absint( $setti
 $right_padding_right  = isset( $settings['right_padding_right'] ) ? absint( $settings['right_padding_right'] ) : 0;
 $right_padding_bottom = isset( $settings['right_padding_bottom'] ) ? absint( $settings['right_padding_bottom'] ) : 0;
 $right_padding_left   = isset( $settings['right_padding_left'] ) ? absint( $settings['right_padding_left'] ) : 28;
+$right_sticky_top     = isset( $settings['right_sticky_top'] ) ? absint( $settings['right_sticky_top'] ) : 20;
 $page_bg              = isset( $settings['page_bg'] ) ? esc_attr( $settings['page_bg'] ) : '#ffffff';
 $grid_bg              = isset( $settings['grid_bg'] ) ? esc_attr( $settings['grid_bg'] ) : '#ffffff';
 
@@ -44,18 +45,19 @@ $grid_inline_styles = sprintf(
     isset( $settings['left_bg'] ) ? esc_attr( $settings['left_bg'] ) : '#ffffff',
     isset( $settings['right_bg'] ) ? esc_attr( $settings['right_bg'] ) : 'transparent',
     isset( $settings['border_color'] ) ? esc_attr( $settings['border_color'] ) : '#262626',
-    isset( $settings['right_sticky_top'] ) ? absint( $settings['right_sticky_top'] ) : 20,
+    $right_sticky_top,
     $right_spacing_vars
 );
 
 $right_column_inline_styles = sprintf(
-    '%s background:%s; padding:%dpx %dpx %dpx %dpx;',
+    '%s background:%s; padding:%dpx %dpx %dpx %dpx; top:%dpx;',
     $right_spacing_vars,
     isset( $settings['right_bg'] ) ? esc_attr( $settings['right_bg'] ) : 'transparent',
     $right_padding_top,
     $right_padding_right,
     $right_padding_bottom,
-    $right_padding_left
+    $right_padding_left,
+    $right_sticky_top
 );
 
 $page_background_styles = sprintf(

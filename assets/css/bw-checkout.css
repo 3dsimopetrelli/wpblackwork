@@ -178,24 +178,9 @@ body.woocommerce-checkout .bw-checkout-right #order_review_inner {
         content: "";
         position: absolute;
         top: 0;
-        right: calc(-1 * ((100vw - 100%) / 2));
+        left: var(--bw-checkout-left-col, 62%);
         height: 100%;
-        width: max(
-            50vw,
-            calc(((100vw - 100%) / 2) + var(--bw-checkout-right-col, 38%))
-        );
-        background: var(--bw-checkout-right-bg, transparent);
-        z-index: 0;
-        pointer-events: none;
-    }
-
-    body.woocommerce-checkout .bw-checkout-grid::after {
-        content: "";
-        position: absolute;
-        top: 0;
-        right: 0;
-        height: 100%;
-        width: max(50vw, calc(100% - var(--bw-checkout-left-col, 62%)));
+        width: calc(100vw + (100% - var(--bw-checkout-left-col, 62%)));
         background: var(--bw-checkout-right-bg, transparent);
         z-index: 0;
         pointer-events: none;
