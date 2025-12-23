@@ -163,6 +163,9 @@ function bw_site_render_account_page_tab() {
 
         $login_image          = isset($_POST['bw_account_login_image']) ? esc_url_raw($_POST['bw_account_login_image']) : '';
         $logo                 = isset($_POST['bw_account_logo']) ? esc_url_raw($_POST['bw_account_logo']) : '';
+        $logo_width           = isset($_POST['bw_account_logo_width']) ? absint($_POST['bw_account_logo_width']) : 180;
+        $logo_padding_top     = isset($_POST['bw_account_logo_padding_top']) ? absint($_POST['bw_account_logo_padding_top']) : 0;
+        $logo_padding_bottom  = isset($_POST['bw_account_logo_padding_bottom']) ? absint($_POST['bw_account_logo_padding_bottom']) : 30;
         $facebook             = isset($_POST['bw_account_facebook']) ? 1 : 0;
         $google               = isset($_POST['bw_account_google']) ? 1 : 0;
         $facebook_app_id      = isset($_POST['bw_account_facebook_app_id']) ? sanitize_text_field($_POST['bw_account_facebook_app_id']) : '';
@@ -176,6 +179,9 @@ function bw_site_render_account_page_tab() {
 
         update_option('bw_account_login_image', $login_image);
         update_option('bw_account_logo', $logo);
+        update_option('bw_account_logo_width', $logo_width);
+        update_option('bw_account_logo_padding_top', $logo_padding_top);
+        update_option('bw_account_logo_padding_bottom', $logo_padding_bottom);
         update_option('bw_account_facebook', $facebook);
         update_option('bw_account_google', $google);
         update_option('bw_account_facebook_app_id', $facebook_app_id);
@@ -197,6 +203,9 @@ function bw_site_render_account_page_tab() {
 
     $login_image          = get_option('bw_account_login_image', '');
     $logo                 = get_option('bw_account_logo', '');
+    $logo_width           = (int) get_option('bw_account_logo_width', 180);
+    $logo_padding_top     = (int) get_option('bw_account_logo_padding_top', 0);
+    $logo_padding_bottom  = (int) get_option('bw_account_logo_padding_bottom', 30);
     $facebook             = (int) get_option('bw_account_facebook', 0);
     $google               = (int) get_option('bw_account_google', 0);
     $facebook_app_id      = get_option('bw_account_facebook_app_id', '');
@@ -239,6 +248,33 @@ function bw_site_render_account_page_tab() {
                     <input type="text" id="bw_account_logo" name="bw_account_logo" value="<?php echo esc_attr($logo); ?>" class="regular-text" />
                     <button type="button" class="button bw-media-upload" data-target="#bw_account_logo">Seleziona logo</button>
                     <p class="description">Logo mostrato sopra il form di login.</p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_account_logo_width">Larghezza logo (px)</label>
+                </th>
+                <td>
+                    <input type="number" id="bw_account_logo_width" name="bw_account_logo_width" value="<?php echo esc_attr($logo_width); ?>" min="50" max="500" step="1" class="small-text" />
+                    <p class="description">Larghezza massima del logo in pixel. Default: 180px</p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_account_logo_padding_top">Padding top logo (px)</label>
+                </th>
+                <td>
+                    <input type="number" id="bw_account_logo_padding_top" name="bw_account_logo_padding_top" value="<?php echo esc_attr($logo_padding_top); ?>" min="0" max="100" step="1" class="small-text" />
+                    <p class="description">Spazio sopra il logo in pixel. Default: 0px</p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_account_logo_padding_bottom">Padding bottom logo (px)</label>
+                </th>
+                <td>
+                    <input type="number" id="bw_account_logo_padding_bottom" name="bw_account_logo_padding_bottom" value="<?php echo esc_attr($logo_padding_bottom); ?>" min="0" max="100" step="1" class="small-text" />
+                    <p class="description">Spazio sotto il logo in pixel. Default: 30px</p>
                 </td>
             </tr>
             <tr>
