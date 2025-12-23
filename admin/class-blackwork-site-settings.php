@@ -187,6 +187,11 @@ function bw_site_render_account_page_tab() {
         update_option('bw_account_back_url', $back_url);
         update_option('bw_account_passwordless_url', $passwordless_url);
 
+        // Clear social login settings cache.
+        if (class_exists('BW_Social_Login')) {
+            BW_Social_Login::clear_cache();
+        }
+
         $saved = true;
     }
 
@@ -258,6 +263,59 @@ function bw_site_render_account_page_tab() {
                     <p class="description">Paragrafo mostrato sotto il pulsante "Log in Without Password".</p>
                 </td>
             </tr>
+
+            <!-- Facebook Setup Instructions -->
+            <tr>
+                <td colspan="2" style="padding: 20px 0 10px 0;">
+                    <details class="bw-oauth-help-accordion" style="background: #f0f6fc; border: 1px solid #0969da; border-radius: 6px; padding: 12px; margin-bottom: 10px;">
+                        <summary style="cursor: pointer; font-weight: 600; color: #0969da; font-size: 14px; user-select: none;">
+                            📘 Come ottenere Facebook App ID e Secret
+                        </summary>
+                        <div style="padding: 12px 0 0 0; color: #1f2328; line-height: 1.6;">
+                            <p style="margin: 0 0 12px 0;"><strong>Segui questi passi:</strong></p>
+                            <ol style="margin: 0 0 12px 20px; padding: 0;">
+                                <li style="margin-bottom: 8px;">
+                                    <strong>Vai alla console Facebook Developers:</strong><br>
+                                    <a href="https://developers.facebook.com/apps/" target="_blank" rel="noopener" style="color: #0969da; text-decoration: none; font-weight: 500;">
+                                        🔗 https://developers.facebook.com/apps/
+                                    </a>
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <strong>Clicca su "Crea un'app"</strong> (Create App)
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <strong>Seleziona tipo:</strong> "Consumatore" (Consumer)
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <strong>Compila:</strong> Nome app e email di contatto
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <strong>Aggiungi il prodotto "Facebook Login"</strong>
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <strong>Vai su Impostazioni > Di base</strong> per trovare:
+                                    <ul style="margin: 4px 0 0 20px;">
+                                        <li><code style="background: #eff1f3; padding: 2px 6px; border-radius: 3px; font-family: monospace;">ID app</code> → Copia in "Facebook App ID" sotto</li>
+                                        <li><code style="background: #eff1f3; padding: 2px 6px; border-radius: 3px; font-family: monospace;">Chiave segreta dell'app</code> → Clicca "Mostra", copia in "Facebook App Secret" sotto</li>
+                                    </ul>
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <strong>Configura Redirect URI:</strong><br>
+                                    Vai su <strong>Facebook Login > Impostazioni</strong><br>
+                                    Nel campo "Valid OAuth Redirect URIs" incolla l'URL dal campo <strong>"Facebook Redirect URI"</strong> sotto
+                                </li>
+                                <li style="margin-bottom: 0;">
+                                    <strong style="color: #d1242f;">⚠️ IMPORTANTE:</strong> Pubblica l'app (passa da "Development" a "Live" in Impostazioni > Di base)
+                                </li>
+                            </ol>
+                            <p style="margin: 12px 0 0 0; padding: 10px; background: #fff8c5; border-left: 3px solid #9a6700; border-radius: 3px; font-size: 13px;">
+                                💡 <strong>Tip:</strong> Tieni aperta la console Facebook in un'altra tab mentre compili i campi sotto.
+                            </p>
+                        </div>
+                    </details>
+                </td>
+            </tr>
+
             <tr>
                 <th scope="row">
                     <label for="bw_account_facebook_app_id">Facebook App ID</label>
@@ -278,9 +336,69 @@ function bw_site_render_account_page_tab() {
                 <th scope="row">Facebook Redirect URI</th>
                 <td>
                     <input type="text" readonly class="regular-text" value="<?php echo esc_url($facebook_redirect); ?>" />
-                    <p class="description">Usa questo URL nel pannello Facebook per configurare il redirect dell'app.</p>
+                    <p class="description"><?php esc_html_e('Use this URL in the Facebook app panel to configure the redirect URI.', 'bw'); ?></p>
                 </td>
             </tr>
+
+            <!-- Google Setup Instructions -->
+            <tr>
+                <td colspan="2" style="padding: 20px 0 10px 0;">
+                    <details class="bw-oauth-help-accordion" style="background: #f0f6fc; border: 1px solid #0969da; border-radius: 6px; padding: 12px; margin-bottom: 10px;">
+                        <summary style="cursor: pointer; font-weight: 600; color: #0969da; font-size: 14px; user-select: none;">
+                            📗 Come ottenere Google Client ID e Secret
+                        </summary>
+                        <div style="padding: 12px 0 0 0; color: #1f2328; line-height: 1.6;">
+                            <p style="margin: 0 0 12px 0;"><strong>Segui questi passi:</strong></p>
+                            <ol style="margin: 0 0 12px 20px; padding: 0;">
+                                <li style="margin-bottom: 8px;">
+                                    <strong>Vai alla Google Cloud Console:</strong><br>
+                                    <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener" style="color: #0969da; text-decoration: none; font-weight: 500;">
+                                        🔗 https://console.cloud.google.com/apis/credentials
+                                    </a>
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <strong>Crea un nuovo progetto</strong> (se non ne hai già uno)<br>
+                                    Clicca sul menu progetti in alto e poi "Nuovo progetto"
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <strong>Configura schermata consenso OAuth:</strong><br>
+                                    <a href="https://console.cloud.google.com/apis/credentials/consent" target="_blank" rel="noopener" style="color: #0969da; text-decoration: none;">
+                                        🔗 Vai alla schermata consenso
+                                    </a><br>
+                                    Seleziona "Esterno" (External) e compila i campi obbligatori
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <strong>Crea credenziali OAuth 2.0:</strong>
+                                    <ul style="margin: 4px 0 0 20px;">
+                                        <li>Clicca "+ Crea credenziali" > "ID client OAuth"</li>
+                                        <li>Tipo: "Applicazione web" (Web application)</li>
+                                        <li>Nome: "BlackWork Login" (o un nome a tua scelta)</li>
+                                    </ul>
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <strong>Configura Redirect URI:</strong><br>
+                                    Nella sezione "URI di reindirizzamento autorizzati":<br>
+                                    Clicca "+ Aggiungi URI" e incolla l'URL dal campo <strong>"Google Redirect URI"</strong> sotto
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <strong>Clicca "Crea"</strong> e copia le credenziali:
+                                    <ul style="margin: 4px 0 0 20px;">
+                                        <li><code style="background: #eff1f3; padding: 2px 6px; border-radius: 3px; font-family: monospace;">ID client</code> → Copia in "Google Client ID" sotto</li>
+                                        <li><code style="background: #eff1f3; padding: 2px 6px; border-radius: 3px; font-family: monospace;">Segreto client</code> → Copia in "Google Client Secret" sotto</li>
+                                    </ul>
+                                </li>
+                                <li style="margin-bottom: 0;">
+                                    <strong style="color: #d1242f;">⚠️ IMPORTANTE:</strong> Pubblica l'app OAuth (passa da "Testing" a "Production" nella schermata consenso)
+                                </li>
+                            </ol>
+                            <p style="margin: 12px 0 0 0; padding: 10px; background: #fff8c5; border-left: 3px solid #9a6700; border-radius: 3px; font-size: 13px;">
+                                💡 <strong>Tip:</strong> Tieni aperta la console Google in un'altra tab mentre compili i campi sotto.
+                            </p>
+                        </div>
+                    </details>
+                </td>
+            </tr>
+
             <tr>
                 <th scope="row">
                     <label for="bw_account_google_client_id">Google Client ID</label>
@@ -301,7 +419,7 @@ function bw_site_render_account_page_tab() {
                 <th scope="row">Google Redirect URI</th>
                 <td>
                     <input type="text" readonly class="regular-text" value="<?php echo esc_url($google_redirect); ?>" />
-                    <p class="description">Configura questo indirizzo tra gli URI autorizzati della console Google.</p>
+                    <p class="description"><?php esc_html_e('Configure this URL in the authorized redirect URIs in the Google Cloud Console.', 'bw'); ?></p>
                 </td>
             </tr>
             <tr>
@@ -450,6 +568,7 @@ function bw_site_render_checkout_tab() {
         $right_width_percent  = isset( $_POST['bw_checkout_right_width'] ) ? absint( $_POST['bw_checkout_right_width'] ) : 38;
         $thumb_ratio          = isset( $_POST['bw_checkout_thumb_ratio'] ) ? sanitize_key( wp_unslash( $_POST['bw_checkout_thumb_ratio'] ) ) : 'square';
         $thumb_width          = isset( $_POST['bw_checkout_thumb_width'] ) ? absint( $_POST['bw_checkout_thumb_width'] ) : 110;
+        $footer_text          = isset( $_POST['bw_checkout_footer_text'] ) ? sanitize_text_field( wp_unslash( $_POST['bw_checkout_footer_text'] ) ) : '';
 
         if ( ! in_array( $thumb_ratio, [ 'square', 'portrait', 'landscape' ], true ) ) {
             $thumb_ratio = 'square';
@@ -504,6 +623,7 @@ function bw_site_render_checkout_tab() {
         update_option( 'bw_checkout_right_width', $right_width_percent );
         update_option( 'bw_checkout_thumb_ratio', $thumb_ratio );
         update_option( 'bw_checkout_thumb_width', $thumb_width );
+        update_option( 'bw_checkout_footer_text', $footer_text );
 
         $saved = true;
     }
@@ -536,6 +656,7 @@ function bw_site_render_checkout_tab() {
     $right_width_percent = get_option( 'bw_checkout_right_width', 38 );
     $thumb_ratio         = get_option( 'bw_checkout_thumb_ratio', 'square' );
     $thumb_width         = get_option( 'bw_checkout_thumb_width', 110 );
+    $footer_text         = get_option( 'bw_checkout_footer_text', '' );
     ?>
 
     <?php if ( $saved ) : ?>
