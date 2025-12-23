@@ -264,6 +264,13 @@ body.woocommerce-checkout .bw-checkout-right #order_review_inner {
     background: transparent !important;
 }
 
+.bw-checkout-right table.shop_table .bw-total-row--coupon {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: nowrap;
+}
+
 .bw-checkout-right table.shop_table .bw-total-row--coupon th,
 .bw-checkout-right table.shop_table .bw-total-row--coupon td {
     padding: 10px 0;
