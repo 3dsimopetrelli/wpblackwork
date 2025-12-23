@@ -51,13 +51,14 @@ $grid_inline_styles = sprintf(
 );
 
 $right_column_inline_styles = sprintf(
-    '%s background:%s; padding:%dpx %dpx %dpx %dpx; top:%dpx;',
+    '%s background:%s; padding:%dpx %dpx %dpx %dpx; top:%dpx; margin-top:%dpx;',
     $right_spacing_vars,
     isset( $settings['right_bg'] ) ? esc_attr( $settings['right_bg'] ) : 'transparent',
     $right_padding_top,
     $right_padding_right,
     $right_padding_bottom,
     $right_padding_left,
+    $right_sticky_top,
     $right_sticky_top
 );
 
@@ -184,7 +185,7 @@ if ( ! $checkout->is_registration_enabled() && $checkout->is_registration_requir
             <?php do_action( 'woocommerce_checkout_before_order_review_heading' ); ?>
 
             <?php if ( $settings['show_order_heading'] === '1' ) : ?>
-                <div class="bw-checkout-order-heading__wrap" style="<?php echo esc_attr( $right_spacing_vars ); ?>">
+                <div class="bw-checkout-order-heading__wrap" style="<?php echo esc_attr( $right_spacing_vars . ' margin-top:' . $right_sticky_top . 'px;' ); ?>">
                     <h3 id="order_review_heading" class="bw-checkout-order-heading"><?php esc_html_e( 'Your order', 'woocommerce' ); ?></h3>
                 </div>
             <?php endif; ?>
