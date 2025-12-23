@@ -427,8 +427,6 @@ body.woocommerce-checkout #wcpay-express-checkout-button-separator::after {
 
 body.woocommerce-checkout .bw-checkout-left-footer {
     margin-top: 18px;
-    padding-top: 14px;
-    border-top: 1px solid var(--bw-checkout-border-color, #262626);
     display: flex;
     flex-direction: column;
     gap: 0;
@@ -462,6 +460,9 @@ body.woocommerce-checkout .bw-checkout-copyright {
     line-height: 1.4;
     color: #4a4a4a;
     margin: 25px 0 30px;
+    padding-top: 12px;
+    border-top: 1px solid var(--bw-checkout-border-color, #262626);
+    width: 100%;
 }
 
 /* Form fields */
