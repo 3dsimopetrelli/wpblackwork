@@ -106,13 +106,15 @@
                 url: wc_checkout_params.wc_ajax_url.toString().replace('%%endpoint%%', 'remove_coupon'),
                 data: data,
                 success: function (response) {
-                    if (response && response.fragments) {
-                        $(document.body).trigger('removed_coupon', [couponCode]);
+                    if (response && !response.error) {
+                        // Only trigger update_checkout - WooCommerce will handle the rest
                         triggerCheckoutUpdate();
                     } else {
                         setOrderSummaryLoading(false);
                         if (response && response.error) {
                             showCouponMessage(response.error, 'error');
+                        } else {
+                            showCouponMessage('Error removing coupon', 'error');
                         }
                     }
                 },
@@ -226,7 +228,7 @@
                     showCouponMessage('Coupon code applied successfully', 'success');
                 })
                 .on('removed_coupon', function (event, couponCode) {
-                    setOrderSummaryLoading(true);
+                    // Don't set loading here - it's already handled by AJAX call
                     showCouponMessage('Coupon code removed', 'success');
                 })
                 .on('updated_checkout checkout_error', function () {
