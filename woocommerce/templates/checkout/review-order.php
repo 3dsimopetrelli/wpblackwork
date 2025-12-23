@@ -138,8 +138,22 @@ $thumb_aspect      = $thumb_map[ $thumb_ratio ];
 
             <?php foreach ( WC()->cart->get_coupons() as $code => $coupon ) : ?>
                 <tr class="bw-total-row bw-total-row--coupon coupon-<?php echo esc_attr( sanitize_title( $code ) ); ?>">
-                    <th scope="row"><?php wc_cart_totals_coupon_label( $coupon ); ?></th>
-                    <td><?php wc_cart_totals_coupon_html( $coupon ); ?></td>
+                    <td colspan="2">
+                        <div class="bw-coupon-applied">
+                            <div class="bw-coupon-applied__left">
+                                <svg class="bw-coupon-applied__icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M14 2L8.5 1L3 2V6.5C3 10.5 5.5 13.5 8.5 15C11.5 13.5 14 10.5 14 6.5V2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M8.5 1V15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                </svg>
+                                <span class="bw-coupon-applied__label"><?php esc_html_e( 'Coupon:', 'woocommerce' ); ?></span>
+                                <span class="bw-coupon-applied__code"><?php echo esc_html( $code ); ?></span>
+                            </div>
+                            <div class="bw-coupon-applied__right">
+                                <span class="bw-coupon-applied__amount">-<?php wc_cart_totals_coupon_html( $coupon ); ?></span>
+                                <a href="<?php echo esc_url( add_query_arg( 'remove_coupon', rawurlencode( $code ), wc_get_cart_url() ) ); ?>" class="bw-coupon-applied__remove" aria-label="<?php echo esc_attr( sprintf( __( 'Remove %s coupon', 'woocommerce' ), $code ) ); ?>">[<?php esc_html_e( 'Remove', 'woocommerce' ); ?>]</a>
+                            </div>
+                        </div>
+                    </td>
                 </tr>
             <?php endforeach; ?>
 

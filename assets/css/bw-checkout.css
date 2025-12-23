@@ -677,7 +677,7 @@ body.woocommerce-checkout .bw-checkout-wrapper .bw-express-divider__inner span {
     display: flex;
     align-items: flex-start;
     gap: 12px;
-    margin-bottom: 12px;
+    margin-bottom: 8px;
     padding-right: 32px;
     position: relative;
 }
@@ -929,6 +929,67 @@ body.woocommerce-checkout .bw-checkout-wrapper .bw-express-divider__inner span {
     color: #721c24;
     border: 1px solid #f5c6cb;
     display: block;
+}
+
+/* Applied coupon styling */
+.bw-coupon-applied {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 8px 0;
+}
+
+.bw-coupon-applied__left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.bw-coupon-applied__icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    color: #27ae60;
+}
+
+.bw-coupon-applied__label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #111111;
+}
+
+.bw-coupon-applied__code {
+    font-size: 14px;
+    font-weight: 700;
+    color: #111111;
+    background: #f0f0f0;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.bw-coupon-applied__right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.bw-coupon-applied__amount {
+    font-size: 14px;
+    font-weight: 700;
+    color: #27ae60;
+}
+
+.bw-coupon-applied__remove {
+    font-size: 13px;
+    color: #666666;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.bw-coupon-applied__remove:hover {
+    color: #d32f2f;
+    text-decoration: none;
 }
 
 /* Totals rows */
