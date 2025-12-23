@@ -187,6 +187,11 @@ function bw_site_render_account_page_tab() {
         update_option('bw_account_back_url', $back_url);
         update_option('bw_account_passwordless_url', $passwordless_url);
 
+        // Clear social login settings cache.
+        if (class_exists('BW_Social_Login')) {
+            BW_Social_Login::clear_cache();
+        }
+
         $saved = true;
     }
 
@@ -278,7 +283,7 @@ function bw_site_render_account_page_tab() {
                 <th scope="row">Facebook Redirect URI</th>
                 <td>
                     <input type="text" readonly class="regular-text" value="<?php echo esc_url($facebook_redirect); ?>" />
-                    <p class="description">Usa questo URL nel pannello Facebook per configurare il redirect dell'app.</p>
+                    <p class="description"><?php esc_html_e('Use this URL in the Facebook app panel to configure the redirect URI.', 'bw'); ?></p>
                 </td>
             </tr>
             <tr>
@@ -301,7 +306,7 @@ function bw_site_render_account_page_tab() {
                 <th scope="row">Google Redirect URI</th>
                 <td>
                     <input type="text" readonly class="regular-text" value="<?php echo esc_url($google_redirect); ?>" />
-                    <p class="description">Configura questo indirizzo tra gli URI autorizzati della console Google.</p>
+                    <p class="description"><?php esc_html_e('Configure this URL in the authorized redirect URIs in the Google Cloud Console.', 'bw'); ?></p>
                 </td>
             </tr>
             <tr>
@@ -448,6 +453,7 @@ function bw_site_render_checkout_tab() {
         $right_width_percent  = isset( $_POST['bw_checkout_right_width'] ) ? absint( $_POST['bw_checkout_right_width'] ) : 38;
         $thumb_ratio          = isset( $_POST['bw_checkout_thumb_ratio'] ) ? sanitize_key( wp_unslash( $_POST['bw_checkout_thumb_ratio'] ) ) : 'square';
         $thumb_width          = isset( $_POST['bw_checkout_thumb_width'] ) ? absint( $_POST['bw_checkout_thumb_width'] ) : 110;
+        $footer_text          = isset( $_POST['bw_checkout_footer_text'] ) ? sanitize_text_field( wp_unslash( $_POST['bw_checkout_footer_text'] ) ) : '';
 
         if ( ! in_array( $thumb_ratio, [ 'square', 'portrait', 'landscape' ], true ) ) {
             $thumb_ratio = 'square';
@@ -500,6 +506,7 @@ function bw_site_render_checkout_tab() {
         update_option( 'bw_checkout_right_width', $right_width_percent );
         update_option( 'bw_checkout_thumb_ratio', $thumb_ratio );
         update_option( 'bw_checkout_thumb_width', $thumb_width );
+        update_option( 'bw_checkout_footer_text', $footer_text );
 
         $saved = true;
     }
@@ -530,6 +537,7 @@ function bw_site_render_checkout_tab() {
     $right_width_percent = get_option( 'bw_checkout_right_width', 38 );
     $thumb_ratio         = get_option( 'bw_checkout_thumb_ratio', 'square' );
     $thumb_width         = get_option( 'bw_checkout_thumb_width', 110 );
+    $footer_text         = get_option( 'bw_checkout_footer_text', '' );
     ?>
 
     <?php if ( $saved ) : ?>
@@ -740,6 +748,15 @@ function bw_site_render_checkout_tab() {
                 <td>
                     <textarea id="bw_checkout_legal_text" name="bw_checkout_legal_text" rows="6" class="large-text"><?php echo esc_textarea( $legal_text ); ?></textarea>
                     <p class="description">Testo mostrato sotto i metodi di pagamento; supporta link e HTML consentito.</p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_checkout_footer_text">Testo footer Copyright</label>
+                </th>
+                <td>
+                    <input type="text" id="bw_checkout_footer_text" name="bw_checkout_footer_text" value="<?php echo esc_attr( $footer_text ); ?>" class="regular-text" />
+                    <p class="description">Testo mostrato nel footer del checkout accanto a "Copyright © 2025,". Es: "Bendito Mockup. All rights reserved."</p>
                 </td>
             </tr>
         </table>

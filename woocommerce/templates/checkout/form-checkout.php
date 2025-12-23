@@ -15,9 +15,9 @@ $settings = function_exists( 'bw_mew_get_checkout_settings' ) ? bw_mew_get_check
     'left_bg'      => '#ffffff',
     'right_bg'     => '#f7f7f7',
     'border_color' => '#e0e0e0',
-    'legal_text'   => '',
-    'left_width'   => 62,
-    'right_width'  => 38,
+    'legal_text'  => '',
+    'left_width'  => 62,
+    'right_width' => 38,
 ];
 
 $right_padding_top    = isset( $settings['right_padding_top'] ) ? absint( $settings['right_padding_top'] ) : 0;
