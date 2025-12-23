@@ -188,8 +188,12 @@
                     setOrderSummaryLoading(false);
                 });
 
-            // Handle coupon form submission via AJAX
+            // Handle coupon form submission via AJAX when WooCommerce params are present.
             $(document).on('submit', 'form.checkout_coupon', function(e) {
+                if (!window.wc_checkout_params || !wc_checkout_params.wc_ajax_url || !wc_checkout_params.apply_coupon_nonce) {
+                    return true;
+                }
+
                 e.preventDefault();
 
                 var $form = $(this);
