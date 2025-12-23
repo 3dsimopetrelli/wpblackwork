@@ -371,7 +371,6 @@ body.woocommerce-checkout #wcpay-express-checkout-button-separator {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 12px;
     width: 100%;
     text-align: center;
 }
@@ -386,11 +385,25 @@ body.woocommerce-checkout #wcpay-express-checkout-button-separator::after {
 }
 
 body.woocommerce-checkout #wcpay-express-checkout-button-separator::before {
-    margin-right: 4px;
+    margin-right: 0;
 }
 
 body.woocommerce-checkout #wcpay-express-checkout-button-separator::after {
-    margin-left: 4px;
+    margin-left: 0;
+}
+
+body.woocommerce-checkout .wcpay-express-checkout-wrapper {
+    position: relative;
+}
+
+body.woocommerce-checkout .wcpay-express-checkout-wrapper::before {
+    content: "Express checkout";
+    display: block;
+    width: 100%;
+    text-align: center;
+    font-size: 14px;
+    color: #000;
+    margin-bottom: 10px;
 }
 
 /* Section titles */
