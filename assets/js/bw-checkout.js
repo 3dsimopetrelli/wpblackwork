@@ -79,6 +79,51 @@
 
             return;
         }
+
+        // Handle coupon removal via AJAX
+        var couponRemove = event.target.closest('.woocommerce-remove-coupon');
+
+        if (couponRemove) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            var couponCode = couponRemove.getAttribute('data-coupon');
+
+            if (!couponCode || !window.jQuery) {
+                return;
+            }
+
+            setOrderSummaryLoading(true);
+
+            var $ = window.jQuery;
+            var data = {
+                security: wc_checkout_params.remove_coupon_nonce,
+                coupon: couponCode
+            };
+
+            $.ajax({
+                type: 'POST',
+                url: wc_checkout_params.wc_ajax_url.toString().replace('%%endpoint%%', 'remove_coupon'),
+                data: data,
+                success: function (response) {
+                    if (response && response.fragments) {
+                        $(document.body).trigger('removed_coupon', [couponCode]);
+                        triggerCheckoutUpdate();
+                    } else {
+                        setOrderSummaryLoading(false);
+                        if (response && response.error) {
+                            showCouponMessage(response.error, 'error');
+                        }
+                    }
+                },
+                error: function () {
+                    setOrderSummaryLoading(false);
+                    showCouponMessage('Error removing coupon', 'error');
+                }
+            });
+
+            return;
+        }
     });
 
     document.addEventListener('change', function (event) {
