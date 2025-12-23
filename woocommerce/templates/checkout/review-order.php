@@ -140,10 +140,15 @@ $thumb_aspect      = $thumb_map[ $thumb_ratio ];
                 <tr class="bw-total-row bw-total-row--coupon cart-discount coupon-<?php echo esc_attr( sanitize_title( $code ) ); ?>">
                     <th scope="row">
                         <span class="bw-coupon-label"><?php esc_html_e( 'Coupon:', 'woocommerce' ); ?></span>
-                        <span class="bw-coupon-code"><?php echo esc_html( $code ); ?></span>
+                        <span class="bw-coupon-chip">
+                            <span class="bw-coupon-chip__icon"></span>
+                            <?php echo esc_html( $code ); ?>
+                        </span>
                     </th>
                     <td data-title="<?php echo esc_attr( wc_cart_totals_coupon_label( $coupon, false ) ); ?>">
-                        <?php wc_cart_totals_coupon_html( $coupon ); ?>
+                        <span class="bw-coupon-value">
+                            <?php wc_cart_totals_coupon_html( $coupon ); ?>
+                        </span>
                     </td>
                 </tr>
             <?php endforeach; ?>
