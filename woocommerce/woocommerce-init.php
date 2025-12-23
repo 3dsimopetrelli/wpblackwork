@@ -334,11 +334,7 @@ function bw_mew_get_checkout_settings() {
         'right_width'         => 38,
         'thumb_ratio'         => 'square',
         'thumb_width'         => 110,
-        'right_sticky_top'    => 20,
-        'right_padding_top'   => 0,
-        'right_padding_right' => 0,
-        'right_padding_bottom'=> 0,
-        'right_padding_left'  => 28,
+        'footer_text'         => 'Bendito Mockup. All rights reserved.',
     ];
 
     $settings = [
@@ -358,11 +354,7 @@ function bw_mew_get_checkout_settings() {
         'right_width'         => absint( get_option( 'bw_checkout_right_width', $defaults['right_width'] ) ),
         'thumb_ratio'         => sanitize_key( get_option( 'bw_checkout_thumb_ratio', $defaults['thumb_ratio'] ) ),
         'thumb_width'         => absint( get_option( 'bw_checkout_thumb_width', $defaults['thumb_width'] ) ),
-        'right_sticky_top'    => absint( get_option( 'bw_checkout_right_sticky_top', $defaults['right_sticky_top'] ) ),
-        'right_padding_top'   => absint( get_option( 'bw_checkout_right_padding_top', $defaults['right_padding_top'] ) ),
-        'right_padding_right' => absint( get_option( 'bw_checkout_right_padding_right', $defaults['right_padding_right'] ) ),
-        'right_padding_bottom'=> absint( get_option( 'bw_checkout_right_padding_bottom', $defaults['right_padding_bottom'] ) ),
-        'right_padding_left'  => absint( get_option( 'bw_checkout_right_padding_left', $defaults['right_padding_left'] ) ),
+        'footer_text'         => sanitize_text_field( get_option( 'bw_checkout_footer_text', $defaults['footer_text'] ) ),
     ];
 
     $settings['logo_align']   = in_array( $settings['logo_align'], [ 'left', 'center', 'right' ], true ) ? $settings['logo_align'] : $defaults['logo_align'];
