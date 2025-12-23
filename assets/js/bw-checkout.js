@@ -80,12 +80,46 @@
             return;
         }
 
-        // Handle coupon removal - set loading state but let WooCommerce handle the removal
+        // Handle coupon removal via AJAX
         var couponRemove = event.target.closest('.woocommerce-remove-coupon');
 
         if (couponRemove) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            var couponCode = couponRemove.getAttribute('data-coupon');
+
+            if (!couponCode || !window.jQuery) {
+                return;
+            }
+
             setOrderSummaryLoading(true);
-            // Let the default WooCommerce handler or link work
+
+            var $ = window.jQuery;
+
+            // Use WooCommerce's AJAX endpoint to remove the coupon
+            $.ajax({
+                type: 'POST',
+                url: wc_checkout_params.wc_ajax_url.toString().replace('%%endpoint%%', 'remove_coupon'),
+                data: {
+                    security: wc_checkout_params.remove_coupon_nonce,
+                    coupon: couponCode
+                },
+                success: function (response) {
+                    // Trigger checkout update to refresh the order review
+                    $(document.body).trigger('update_checkout');
+
+                    // Show success or error message
+                    if (response && response.error) {
+                        showCouponMessage(response.error, 'error');
+                    }
+                },
+                error: function () {
+                    setOrderSummaryLoading(false);
+                    showCouponMessage('Error removing coupon', 'error');
+                }
+            });
+
             return;
         }
     });
