@@ -264,20 +264,23 @@ body.woocommerce-checkout .bw-checkout-right #order_review_inner {
     background: transparent !important;
 }
 
-.bw-checkout-right table.shop_table tfoot .bw-total-row--coupon th,
-.bw-checkout-right table.shop_table tfoot .bw-total-row--coupon td {
+.bw-checkout-right table.shop_table .bw-total-row--coupon th,
+.bw-checkout-right table.shop_table .bw-total-row--coupon td {
     padding: 10px 0;
-    vertical-align: middle;
 }
 
-.bw-checkout-right table.shop_table tfoot .bw-total-row--coupon th {
-    display: table-cell;
+.bw-checkout-right table.shop_table .bw-total-row--coupon th {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
     white-space: nowrap;
 }
 
-.bw-checkout-right table.shop_table tfoot .bw-total-row--coupon td {
-    display: table-cell;
-    text-align: right;
+.bw-checkout-right table.shop_table .bw-total-row--coupon td {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
     white-space: nowrap;
 }
 
@@ -286,9 +289,9 @@ body.woocommerce-checkout .bw-checkout-right #order_review_inner {
     align-items: center;
     gap: 8px;
     padding: 4px 10px;
-    background: #e8e8e8;
+    background: #000;
     border-radius: 999px;
-    color: #000;
+    color: #fff;
     font-size: 12px;
     line-height: 1;
 }
@@ -307,14 +310,6 @@ body.woocommerce-checkout .bw-checkout-right #order_review_inner {
     gap: 10px;
 }
 
-.bw-checkout-right table.shop_table tfoot .bw-total-row--coupon .bw-coupon-label {
-    display: inline-block;
-    font-size: 14px;
-    font-weight: 500;
-    color: #111111;
-    margin-right: 8px;
-}
-
 .bw-checkout-right table.shop_table tr {
     background: transparent !important;
 }
@@ -326,6 +321,11 @@ body.woocommerce-checkout .bw-checkout-right #order_review_inner {
 
 .bw-order-summary {
     background: transparent !important;
+}
+
+.bw-review-table {
+    border-collapse: separate;
+    border-spacing: 0 10px;
 }
 
 /* Logo styling */
@@ -748,7 +748,7 @@ body.woocommerce-checkout .bw-checkout-wrapper .bw-express-divider__inner span {
 .bw-review-item {
     position: relative;
     border-bottom: 1px solid #e1e1e1;
-    padding: 18px 0 !important;
+    padding: 18px 0 10px !important;
     background: transparent !important;
 }
 
@@ -767,17 +767,15 @@ body.woocommerce-checkout .bw-checkout-wrapper .bw-express-divider__inner span {
     padding-bottom: 0 !important;
 }
 
-.bw-review-item td.product-thumbnail {
+body.woocommerce-checkout .bw-checkout-right .bw-review-table td.product-thumbnail {
     width: var(--bw-thumb-width, 110px);
+    max-width: var(--bw-thumb-width, 110px);
     padding-right: 0 !important;
 }
 
-.bw-review-item td.product-name {
-    padding-left: 0 !important;
-}
-
-.bw-review-item__media {
+body.woocommerce-checkout .bw-checkout-right .bw-review-item__media {
     width: var(--bw-thumb-width, 110px);
+    max-width: var(--bw-thumb-width, 110px);
     aspect-ratio: var(--bw-thumb-aspect, 1 / 1);
     overflow: hidden;
     border-radius: 12px;
@@ -794,7 +792,7 @@ body.woocommerce-checkout .bw-checkout-wrapper .bw-express-divider__inner span {
     display: block;
 }
 
-.bw-review-item__media img {
+body.woocommerce-checkout .bw-checkout-right .bw-review-item__media img {
     position: absolute !important;
     top: 0 !important;
     left: 0 !important;
