@@ -13,24 +13,43 @@ $settings = function_exists( 'bw_mew_get_checkout_settings' ) ? bw_mew_get_check
     'left_bg'     => '#ffffff',
     'right_bg'    => '#f7f7f7',
     'border_color' => '#e0e0e0',
-    'legal_text'   => '',
-    'left_width'   => 62,
-    'right_width'  => 38,
-    'footer_text'  => '',
+    'legal_text'  => '',
+    'left_width'  => 62,
+    'right_width' => 38,
 ];
 
+$right_padding_top    = isset( $settings['right_padding_top'] ) ? absint( $settings['right_padding_top'] ) : 0;
+$right_padding_right  = isset( $settings['right_padding_right'] ) ? absint( $settings['right_padding_right'] ) : 0;
+$right_padding_bottom = isset( $settings['right_padding_bottom'] ) ? absint( $settings['right_padding_bottom'] ) : 0;
+$right_padding_left   = isset( $settings['right_padding_left'] ) ? absint( $settings['right_padding_left'] ) : 28;
+
+$right_spacing_vars = sprintf(
+    '--bw-checkout-right-pad-top:%dpx; --bw-checkout-right-pad-right:%dpx; --bw-checkout-right-pad-bottom:%dpx; --bw-checkout-right-pad-left:%dpx;',
+    $right_padding_top,
+    $right_padding_right,
+    $right_padding_bottom,
+    $right_padding_left
+);
+
 $grid_inline_styles = sprintf(
-    '--bw-checkout-left-col:%d%%; --bw-checkout-right-col:%d%%; --bw-checkout-left-bg:%s; --bw-checkout-right-bg:%s; --bw-checkout-border-color:%s; --bw-checkout-right-sticky-top:%dpx; --bw-checkout-right-pad-top:%dpx; --bw-checkout-right-pad-right:%dpx; --bw-checkout-right-pad-bottom:%dpx; --bw-checkout-right-pad-left:%dpx;',
+    '--bw-checkout-left-col:%d%%; --bw-checkout-right-col:%d%%; --bw-checkout-left-bg:%s; --bw-checkout-right-bg:%s; --bw-checkout-border-color:%s; --bw-checkout-right-sticky-top:%dpx; %s',
     isset( $settings['left_width'] ) ? (int) $settings['left_width'] : 62,
     isset( $settings['right_width'] ) ? (int) $settings['right_width'] : 38,
     isset( $settings['left_bg'] ) ? esc_attr( $settings['left_bg'] ) : '#ffffff',
     isset( $settings['right_bg'] ) ? esc_attr( $settings['right_bg'] ) : 'transparent',
     isset( $settings['border_color'] ) ? esc_attr( $settings['border_color'] ) : '#262626',
     isset( $settings['right_sticky_top'] ) ? absint( $settings['right_sticky_top'] ) : 20,
-    isset( $settings['right_padding_top'] ) ? absint( $settings['right_padding_top'] ) : 0,
-    isset( $settings['right_padding_right'] ) ? absint( $settings['right_padding_right'] ) : 0,
-    isset( $settings['right_padding_bottom'] ) ? absint( $settings['right_padding_bottom'] ) : 0,
-    isset( $settings['right_padding_left'] ) ? absint( $settings['right_padding_left'] ) : 28
+    $right_spacing_vars
+);
+
+$right_column_inline_styles = sprintf(
+    '%s background:%s; padding:%dpx %dpx %dpx %dpx;',
+    $right_spacing_vars,
+    isset( $settings['right_bg'] ) ? esc_attr( $settings['right_bg'] ) : 'transparent',
+    $right_padding_top,
+    $right_padding_right,
+    $right_padding_bottom,
+    $right_padding_left
 );
 
 $available_gateways = WC()->payment_gateways()->get_available_payment_gateways();
@@ -141,41 +160,17 @@ if ( ! $checkout->is_registration_enabled() && $checkout->is_registration_requir
                         </div>
                     <?php endif; ?>
                 </div>
-
-                <?php
-                $shop_url = function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( 'shop' ) : home_url( '/shop/' );
-                ?>
-                <div class="bw-checkout-return-to-shop">
-                    <a href="<?php echo esc_url( $shop_url ); ?>" class="bw-return-to-shop-btn">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M15 8H1M1 8L8 1M1 8L8 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        <?php esc_html_e( 'Return to shop', 'woocommerce' ); ?>
-                    </a>
-                </div>
-
-                <div class="bw-checkout-footer">
-                    <div class="bw-checkout-footer__content">
-                        <?php
-                        $footer_text = ! empty( $settings['footer_text'] ) ? $settings['footer_text'] : '';
-                        if ( ! empty( $footer_text ) ) {
-                            $current_year = gmdate( 'Y' );
-                            echo '<p>Copyright &copy; ' . esc_html( $current_year ) . ', ' . esc_html( $footer_text ) . '</p>';
-                        }
-                        ?>
-                    </div>
-                </div>
             </div>
 
             <?php do_action( 'woocommerce_checkout_before_order_review_heading' ); ?>
 
             <?php if ( $settings['show_order_heading'] === '1' ) : ?>
-                <div class="bw-checkout-order-heading__wrap">
+                <div class="bw-checkout-order-heading__wrap" style="<?php echo esc_attr( $right_spacing_vars ); ?>">
                     <h3 id="order_review_heading" class="bw-checkout-order-heading"><?php esc_html_e( 'Your order', 'woocommerce' ); ?></h3>
                 </div>
             <?php endif; ?>
 
-            <div class="bw-checkout-right" id="order_review">
+            <div class="bw-checkout-right" id="order_review" style="<?php echo esc_attr( $right_column_inline_styles ); ?>">
                 <?php do_action( 'woocommerce_checkout_before_order_review' ); ?>
 
                 <div id="order_review_inner" class="woocommerce-checkout-review-order">
