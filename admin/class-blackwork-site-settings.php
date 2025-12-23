@@ -163,6 +163,9 @@ function bw_site_render_account_page_tab() {
 
         $login_image          = isset($_POST['bw_account_login_image']) ? esc_url_raw($_POST['bw_account_login_image']) : '';
         $logo                 = isset($_POST['bw_account_logo']) ? esc_url_raw($_POST['bw_account_logo']) : '';
+        $logo_width           = isset($_POST['bw_account_logo_width']) ? absint($_POST['bw_account_logo_width']) : 180;
+        $logo_padding_top     = isset($_POST['bw_account_logo_padding_top']) ? absint($_POST['bw_account_logo_padding_top']) : 0;
+        $logo_padding_bottom  = isset($_POST['bw_account_logo_padding_bottom']) ? absint($_POST['bw_account_logo_padding_bottom']) : 30;
         $facebook             = isset($_POST['bw_account_facebook']) ? 1 : 0;
         $google               = isset($_POST['bw_account_google']) ? 1 : 0;
         $facebook_app_id      = isset($_POST['bw_account_facebook_app_id']) ? sanitize_text_field($_POST['bw_account_facebook_app_id']) : '';
@@ -176,6 +179,9 @@ function bw_site_render_account_page_tab() {
 
         update_option('bw_account_login_image', $login_image);
         update_option('bw_account_logo', $logo);
+        update_option('bw_account_logo_width', $logo_width);
+        update_option('bw_account_logo_padding_top', $logo_padding_top);
+        update_option('bw_account_logo_padding_bottom', $logo_padding_bottom);
         update_option('bw_account_facebook', $facebook);
         update_option('bw_account_google', $google);
         update_option('bw_account_facebook_app_id', $facebook_app_id);
@@ -187,11 +193,19 @@ function bw_site_render_account_page_tab() {
         update_option('bw_account_back_url', $back_url);
         update_option('bw_account_passwordless_url', $passwordless_url);
 
+        // Clear social login settings cache.
+        if (class_exists('BW_Social_Login')) {
+            BW_Social_Login::clear_cache();
+        }
+
         $saved = true;
     }
 
     $login_image          = get_option('bw_account_login_image', '');
     $logo                 = get_option('bw_account_logo', '');
+    $logo_width           = (int) get_option('bw_account_logo_width', 180);
+    $logo_padding_top     = (int) get_option('bw_account_logo_padding_top', 0);
+    $logo_padding_bottom  = (int) get_option('bw_account_logo_padding_bottom', 30);
     $facebook             = (int) get_option('bw_account_facebook', 0);
     $google               = (int) get_option('bw_account_google', 0);
     $facebook_app_id      = get_option('bw_account_facebook_app_id', '');
@@ -237,6 +251,33 @@ function bw_site_render_account_page_tab() {
                 </td>
             </tr>
             <tr>
+                <th scope="row">
+                    <label for="bw_account_logo_width">Larghezza logo (px)</label>
+                </th>
+                <td>
+                    <input type="number" id="bw_account_logo_width" name="bw_account_logo_width" value="<?php echo esc_attr($logo_width); ?>" min="50" max="500" step="1" class="small-text" />
+                    <p class="description">Larghezza massima del logo in pixel. Default: 180px</p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_account_logo_padding_top">Padding top logo (px)</label>
+                </th>
+                <td>
+                    <input type="number" id="bw_account_logo_padding_top" name="bw_account_logo_padding_top" value="<?php echo esc_attr($logo_padding_top); ?>" min="0" max="100" step="1" class="small-text" />
+                    <p class="description">Spazio sopra il logo in pixel. Default: 0px</p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_account_logo_padding_bottom">Padding bottom logo (px)</label>
+                </th>
+                <td>
+                    <input type="number" id="bw_account_logo_padding_bottom" name="bw_account_logo_padding_bottom" value="<?php echo esc_attr($logo_padding_bottom); ?>" min="0" max="100" step="1" class="small-text" />
+                    <p class="description">Spazio sotto il logo in pixel. Default: 30px</p>
+                </td>
+            </tr>
+            <tr>
                 <th scope="row">Social login toggle</th>
                 <td>
                     <label style="display:block; margin-bottom:8px;">
@@ -258,6 +299,59 @@ function bw_site_render_account_page_tab() {
                     <p class="description">Paragrafo mostrato sotto il pulsante "Log in Without Password".</p>
                 </td>
             </tr>
+
+            <!-- Facebook Setup Instructions -->
+            <tr>
+                <td colspan="2" style="padding: 20px 0 10px 0;">
+                    <details class="bw-oauth-help-accordion" style="background: #f0f6fc; border: 1px solid #0969da; border-radius: 6px; padding: 12px; margin-bottom: 10px;">
+                        <summary style="cursor: pointer; font-weight: 600; color: #0969da; font-size: 14px; user-select: none;">
+                            📘 Come ottenere Facebook App ID e Secret
+                        </summary>
+                        <div style="padding: 12px 0 0 0; color: #1f2328; line-height: 1.6;">
+                            <p style="margin: 0 0 12px 0;"><strong>Segui questi passi:</strong></p>
+                            <ol style="margin: 0 0 12px 20px; padding: 0;">
+                                <li style="margin-bottom: 8px;">
+                                    <strong>Vai alla console Facebook Developers:</strong><br>
+                                    <a href="https://developers.facebook.com/apps/" target="_blank" rel="noopener" style="color: #0969da; text-decoration: none; font-weight: 500;">
+                                        🔗 https://developers.facebook.com/apps/
+                                    </a>
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <strong>Clicca su "Crea un'app"</strong> (Create App)
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <strong>Seleziona tipo:</strong> "Consumatore" (Consumer)
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <strong>Compila:</strong> Nome app e email di contatto
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <strong>Aggiungi il prodotto "Facebook Login"</strong>
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <strong>Vai su Impostazioni > Di base</strong> per trovare:
+                                    <ul style="margin: 4px 0 0 20px;">
+                                        <li><code style="background: #eff1f3; padding: 2px 6px; border-radius: 3px; font-family: monospace;">ID app</code> → Copia in "Facebook App ID" sotto</li>
+                                        <li><code style="background: #eff1f3; padding: 2px 6px; border-radius: 3px; font-family: monospace;">Chiave segreta dell'app</code> → Clicca "Mostra", copia in "Facebook App Secret" sotto</li>
+                                    </ul>
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <strong>Configura Redirect URI:</strong><br>
+                                    Vai su <strong>Facebook Login > Impostazioni</strong><br>
+                                    Nel campo "Valid OAuth Redirect URIs" incolla l'URL dal campo <strong>"Facebook Redirect URI"</strong> sotto
+                                </li>
+                                <li style="margin-bottom: 0;">
+                                    <strong style="color: #d1242f;">⚠️ IMPORTANTE:</strong> Pubblica l'app (passa da "Development" a "Live" in Impostazioni > Di base)
+                                </li>
+                            </ol>
+                            <p style="margin: 12px 0 0 0; padding: 10px; background: #fff8c5; border-left: 3px solid #9a6700; border-radius: 3px; font-size: 13px;">
+                                💡 <strong>Tip:</strong> Tieni aperta la console Facebook in un'altra tab mentre compili i campi sotto.
+                            </p>
+                        </div>
+                    </details>
+                </td>
+            </tr>
+
             <tr>
                 <th scope="row">
                     <label for="bw_account_facebook_app_id">Facebook App ID</label>
@@ -278,9 +372,69 @@ function bw_site_render_account_page_tab() {
                 <th scope="row">Facebook Redirect URI</th>
                 <td>
                     <input type="text" readonly class="regular-text" value="<?php echo esc_url($facebook_redirect); ?>" />
-                    <p class="description">Usa questo URL nel pannello Facebook per configurare il redirect dell'app.</p>
+                    <p class="description"><?php esc_html_e('Use this URL in the Facebook app panel to configure the redirect URI.', 'bw'); ?></p>
                 </td>
             </tr>
+
+            <!-- Google Setup Instructions -->
+            <tr>
+                <td colspan="2" style="padding: 20px 0 10px 0;">
+                    <details class="bw-oauth-help-accordion" style="background: #f0f6fc; border: 1px solid #0969da; border-radius: 6px; padding: 12px; margin-bottom: 10px;">
+                        <summary style="cursor: pointer; font-weight: 600; color: #0969da; font-size: 14px; user-select: none;">
+                            📗 Come ottenere Google Client ID e Secret
+                        </summary>
+                        <div style="padding: 12px 0 0 0; color: #1f2328; line-height: 1.6;">
+                            <p style="margin: 0 0 12px 0;"><strong>Segui questi passi:</strong></p>
+                            <ol style="margin: 0 0 12px 20px; padding: 0;">
+                                <li style="margin-bottom: 8px;">
+                                    <strong>Vai alla Google Cloud Console:</strong><br>
+                                    <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener" style="color: #0969da; text-decoration: none; font-weight: 500;">
+                                        🔗 https://console.cloud.google.com/apis/credentials
+                                    </a>
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <strong>Crea un nuovo progetto</strong> (se non ne hai già uno)<br>
+                                    Clicca sul menu progetti in alto e poi "Nuovo progetto"
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <strong>Configura schermata consenso OAuth:</strong><br>
+                                    <a href="https://console.cloud.google.com/apis/credentials/consent" target="_blank" rel="noopener" style="color: #0969da; text-decoration: none;">
+                                        🔗 Vai alla schermata consenso
+                                    </a><br>
+                                    Seleziona "Esterno" (External) e compila i campi obbligatori
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <strong>Crea credenziali OAuth 2.0:</strong>
+                                    <ul style="margin: 4px 0 0 20px;">
+                                        <li>Clicca "+ Crea credenziali" > "ID client OAuth"</li>
+                                        <li>Tipo: "Applicazione web" (Web application)</li>
+                                        <li>Nome: "BlackWork Login" (o un nome a tua scelta)</li>
+                                    </ul>
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <strong>Configura Redirect URI:</strong><br>
+                                    Nella sezione "URI di reindirizzamento autorizzati":<br>
+                                    Clicca "+ Aggiungi URI" e incolla l'URL dal campo <strong>"Google Redirect URI"</strong> sotto
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <strong>Clicca "Crea"</strong> e copia le credenziali:
+                                    <ul style="margin: 4px 0 0 20px;">
+                                        <li><code style="background: #eff1f3; padding: 2px 6px; border-radius: 3px; font-family: monospace;">ID client</code> → Copia in "Google Client ID" sotto</li>
+                                        <li><code style="background: #eff1f3; padding: 2px 6px; border-radius: 3px; font-family: monospace;">Segreto client</code> → Copia in "Google Client Secret" sotto</li>
+                                    </ul>
+                                </li>
+                                <li style="margin-bottom: 0;">
+                                    <strong style="color: #d1242f;">⚠️ IMPORTANTE:</strong> Pubblica l'app OAuth (passa da "Testing" a "Production" nella schermata consenso)
+                                </li>
+                            </ol>
+                            <p style="margin: 12px 0 0 0; padding: 10px; background: #fff8c5; border-left: 3px solid #9a6700; border-radius: 3px; font-size: 13px;">
+                                💡 <strong>Tip:</strong> Tieni aperta la console Google in un'altra tab mentre compili i campi sotto.
+                            </p>
+                        </div>
+                    </details>
+                </td>
+            </tr>
+
             <tr>
                 <th scope="row">
                     <label for="bw_account_google_client_id">Google Client ID</label>
@@ -301,7 +455,7 @@ function bw_site_render_account_page_tab() {
                 <th scope="row">Google Redirect URI</th>
                 <td>
                     <input type="text" readonly class="regular-text" value="<?php echo esc_url($google_redirect); ?>" />
-                    <p class="description">Configura questo indirizzo tra gli URI autorizzati della console Google.</p>
+                    <p class="description"><?php esc_html_e('Configure this URL in the authorized redirect URIs in the Google Cloud Console.', 'bw'); ?></p>
                 </td>
             </tr>
             <tr>
@@ -433,6 +587,8 @@ function bw_site_render_checkout_tab() {
         $logo_padding_bottom  = isset( $_POST['bw_checkout_logo_padding_bottom'] ) ? absint( $_POST['bw_checkout_logo_padding_bottom'] ) : 30;
         $logo_padding_left    = isset( $_POST['bw_checkout_logo_padding_left'] ) ? absint( $_POST['bw_checkout_logo_padding_left'] ) : 0;
         $show_order_heading   = isset( $_POST['bw_checkout_show_order_heading'] ) ? '1' : '0';
+        $page_bg              = isset( $_POST['bw_checkout_page_bg'] ) ? sanitize_hex_color( wp_unslash( $_POST['bw_checkout_page_bg'] ) ) : '';
+        $grid_bg              = isset( $_POST['bw_checkout_grid_bg'] ) ? sanitize_hex_color( wp_unslash( $_POST['bw_checkout_grid_bg'] ) ) : '';
         $left_bg              = isset( $_POST['bw_checkout_left_bg_color'] ) ? sanitize_hex_color( wp_unslash( $_POST['bw_checkout_left_bg_color'] ) ) : '';
         $right_bg             = isset( $_POST['bw_checkout_right_bg_color'] ) ? sanitize_hex_color( wp_unslash( $_POST['bw_checkout_right_bg_color'] ) ) : '';
         $right_sticky_top     = isset( $_POST['bw_checkout_right_sticky_top'] ) ? absint( $_POST['bw_checkout_right_sticky_top'] ) : 20;
@@ -442,6 +598,8 @@ function bw_site_render_checkout_tab() {
         $right_padding_left   = isset( $_POST['bw_checkout_right_padding_left'] ) ? absint( $_POST['bw_checkout_right_padding_left'] ) : 28;
         $border_color         = isset( $_POST['bw_checkout_border_color'] ) ? sanitize_hex_color( wp_unslash( $_POST['bw_checkout_border_color'] ) ) : '';
         $legal_text           = isset( $_POST['bw_checkout_legal_text'] ) ? wp_kses_post( wp_unslash( $_POST['bw_checkout_legal_text'] ) ) : '';
+        $footer_copyright     = isset( $_POST['bw_checkout_footer_copyright_text'] ) ? wp_kses_post( wp_unslash( $_POST['bw_checkout_footer_copyright_text'] ) ) : '';
+        $show_return_to_shop  = isset( $_POST['bw_checkout_show_return_to_shop'] ) ? '1' : '0';
         $left_width_percent   = isset( $_POST['bw_checkout_left_width'] ) ? absint( $_POST['bw_checkout_left_width'] ) : 62;
         $right_width_percent  = isset( $_POST['bw_checkout_right_width'] ) ? absint( $_POST['bw_checkout_right_width'] ) : 38;
         $thumb_ratio          = isset( $_POST['bw_checkout_thumb_ratio'] ) ? sanitize_key( wp_unslash( $_POST['bw_checkout_thumb_ratio'] ) ) : 'square';
@@ -460,6 +618,8 @@ function bw_site_render_checkout_tab() {
             $thumb_width = 300;
         }
 
+        $page_bg      = $page_bg ?: '#ffffff';
+        $grid_bg      = $grid_bg ?: '#ffffff';
         $left_bg      = $left_bg ?: '#ffffff';
         $right_bg     = $right_bg ?: 'transparent';
         $border_color = $border_color ?: '#262626';
@@ -482,6 +642,8 @@ function bw_site_render_checkout_tab() {
         update_option( 'bw_checkout_logo_padding_bottom', $logo_padding_bottom );
         update_option( 'bw_checkout_logo_padding_left', $logo_padding_left );
         update_option( 'bw_checkout_show_order_heading', $show_order_heading );
+        update_option( 'bw_checkout_page_bg', $page_bg );
+        update_option( 'bw_checkout_grid_bg', $grid_bg );
         update_option( 'bw_checkout_left_bg_color', $left_bg );
         update_option( 'bw_checkout_right_bg_color', $right_bg );
         update_option( 'bw_checkout_right_sticky_top', $right_sticky_top );
@@ -491,6 +653,8 @@ function bw_site_render_checkout_tab() {
         update_option( 'bw_checkout_right_padding_left', $right_padding_left );
         update_option( 'bw_checkout_border_color', $border_color );
         update_option( 'bw_checkout_legal_text', $legal_text );
+        update_option( 'bw_checkout_footer_copyright_text', $footer_copyright );
+        update_option( 'bw_checkout_show_return_to_shop', $show_return_to_shop );
         update_option( 'bw_checkout_left_width', $left_width_percent );
         update_option( 'bw_checkout_right_width', $right_width_percent );
         update_option( 'bw_checkout_thumb_ratio', $thumb_ratio );
@@ -511,6 +675,8 @@ function bw_site_render_checkout_tab() {
     $logo_padding_bottom = get_option( 'bw_checkout_logo_padding_bottom', 30 );
     $logo_padding_left   = get_option( 'bw_checkout_logo_padding_left', 0 );
     $show_order_heading  = get_option( 'bw_checkout_show_order_heading', '1' );
+    $page_bg             = get_option( 'bw_checkout_page_bg', get_option( 'bw_checkout_page_bg_color', '#ffffff' ) );
+    $grid_bg             = get_option( 'bw_checkout_grid_bg', get_option( 'bw_checkout_grid_bg_color', '#ffffff' ) );
     $left_bg             = get_option( 'bw_checkout_left_bg_color', '#ffffff' );
     $right_bg            = get_option( 'bw_checkout_right_bg_color', 'transparent' );
     $right_sticky_top    = get_option( 'bw_checkout_right_sticky_top', 20 );
@@ -518,6 +684,8 @@ function bw_site_render_checkout_tab() {
     $right_padding_right = get_option( 'bw_checkout_right_padding_right', 0 );
     $right_padding_bottom = get_option( 'bw_checkout_right_padding_bottom', 0 );
     $right_padding_left  = get_option( 'bw_checkout_right_padding_left', 28 );
+    $footer_copyright    = get_option( 'bw_checkout_footer_copyright_text', '' );
+    $show_return_to_shop = get_option( 'bw_checkout_show_return_to_shop', '1' );
     $border_color        = get_option( 'bw_checkout_border_color', '#262626' );
     $legal_text          = get_option( 'bw_checkout_legal_text', '' );
     $left_width_percent  = get_option( 'bw_checkout_left_width', 62 );
@@ -601,6 +769,30 @@ function bw_site_render_checkout_tab() {
                         <span style="font-weight: 500;">Attiva</span>
                     </label>
                     <p class="description">Mostra o nascondi il titolo "Your order" nella colonna destra.</p>
+                </td>
+            </tr>
+            <tr class="bw-section-break">
+                <th scope="row" colspan="2" style="padding-bottom:0;">
+                    <h3 style="margin:0;">Colori di sfondo checkout</h3>
+                    <p class="description" style="margin-top:6px;">Gestisci il colore della pagina e del contenitore griglia per evitare stacchi visivi tra le colonne.</p>
+                </th>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_checkout_page_bg">Checkout Page Background</label>
+                </th>
+                <td>
+                    <input type="text" id="bw_checkout_page_bg" name="bw_checkout_page_bg" value="<?php echo esc_attr( $page_bg ); ?>" class="bw-color-picker" data-default-color="#ffffff" />
+                    <p class="description">Colore di sfondo della pagina checkout (body/wrapper).</p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_checkout_grid_bg">Checkout Grid Background</label>
+                </th>
+                <td>
+                    <input type="text" id="bw_checkout_grid_bg" name="bw_checkout_grid_bg" value="<?php echo esc_attr( $grid_bg ); ?>" class="bw-color-picker" data-default-color="#ffffff" />
+                    <p class="description">Colore di sfondo del contenitore griglia checkout (.bw-checkout-grid).</p>
                 </td>
             </tr>
             <tr>
@@ -715,11 +907,20 @@ function bw_site_render_checkout_tab() {
             </tr>
             <tr>
                 <th scope="row">
-                    <label for="bw_checkout_footer_text">Testo footer Copyright</label>
+                    <label for="bw_checkout_footer_copyright_text">Text of Footer Copyright</label>
                 </th>
                 <td>
-                    <input type="text" id="bw_checkout_footer_text" name="bw_checkout_footer_text" value="<?php echo esc_attr( $footer_text ); ?>" class="regular-text" />
-                    <p class="description">Testo mostrato nel footer del checkout accanto a "Copyright © 2025,". Es: "Bendito Mockup. All rights reserved."</p>
+                    <textarea id="bw_checkout_footer_copyright_text" name="bw_checkout_footer_copyright_text" rows="3" class="large-text"><?php echo esc_textarea( $footer_copyright ); ?></textarea>
+                    <p class="description">Testo mostrato nel footer della colonna sinistra; viene preceduto da "Copyright © {anno},".</p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">Mostra link "Return to shop"</th>
+                <td>
+                    <label class="switch">
+                        <input type="checkbox" id="bw_checkout_show_return_to_shop" name="bw_checkout_show_return_to_shop" value="1" <?php checked( '1', $show_return_to_shop ); ?> />
+                        <span class="description">Attiva o disattiva il link di ritorno allo shop nel footer della colonna sinistra.</span>
+                    </label>
                 </td>
             </tr>
         </table>
