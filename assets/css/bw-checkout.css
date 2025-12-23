@@ -431,7 +431,9 @@ body.woocommerce-checkout .bw-checkout-left-footer {
     border-top: 1px solid var(--bw-checkout-border-color, #262626);
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 0;
+    align-items: center;
+    text-align: center;
 }
 
 body.woocommerce-checkout .bw-checkout-return-to-shop {
@@ -441,6 +443,7 @@ body.woocommerce-checkout .bw-checkout-return-to-shop {
     text-decoration: none;
     font-weight: 600;
     color: #111111;
+    justify-content: center;
 }
 
 body.woocommerce-checkout .bw-checkout-return-to-shop::before {
@@ -458,6 +461,7 @@ body.woocommerce-checkout .bw-checkout-copyright {
     font-size: 12px;
     line-height: 1.4;
     color: #4a4a4a;
+    margin: 25px 0 30px;
 }
 
 /* Form fields */
