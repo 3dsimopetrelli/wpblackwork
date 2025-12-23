@@ -170,6 +170,23 @@ body.woocommerce-checkout .bw-checkout-right #order_review_inner {
         grid-template-columns: minmax(0, var(--bw-checkout-left-col)) 1px minmax(0, var(--bw-checkout-right-col));
         gap: 0;
         align-items: start;
+        overflow: visible;
+        z-index: 0;
+    }
+
+    body.woocommerce-checkout .bw-checkout-grid::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: calc(-1 * ((100vw - 100%) / 2));
+        height: 100%;
+        width: max(
+            50vw,
+            calc(((100vw - 100%) / 2) + var(--bw-checkout-right-col, 38%))
+        );
+        background: var(--bw-checkout-right-bg, transparent);
+        z-index: 0;
+        pointer-events: none;
     }
 
     body.woocommerce-checkout .bw-checkout-grid::after {
