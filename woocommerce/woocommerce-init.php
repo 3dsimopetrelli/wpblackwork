@@ -130,10 +130,11 @@ function bw_mew_enqueue_checkout_assets() {
     );
 
     if ( file_exists( $js_file ) ) {
-        $js_version  = filemtime( $js_file );
+        $js_version   = filemtime( $js_file );
         $dependencies = [ 'jquery' ];
 
         if ( wp_script_is( 'wc-checkout', 'registered' ) ) {
+            wp_enqueue_script( 'wc-checkout' );
             $dependencies[] = 'wc-checkout';
         }
 
