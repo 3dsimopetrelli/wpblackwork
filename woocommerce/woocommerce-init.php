@@ -31,7 +31,6 @@ function bw_mew_initialize_woocommerce_overrides() {
     add_action( 'template_redirect', 'bw_mew_prepare_checkout_layout', 9 );
     add_action( 'template_redirect', 'bw_mew_hide_single_product_notices', 9 );
     add_action( 'woocommerce_checkout_update_order_review', 'bw_mew_sync_checkout_cart_quantities', 10, 1 );
-    add_action( 'woocommerce_removed_coupon', 'bw_mew_persist_removed_coupon', 10, 1 );
 }
 add_action( 'plugins_loaded', 'bw_mew_initialize_woocommerce_overrides' );
 
@@ -301,24 +300,6 @@ function bw_mew_sync_checkout_cart_quantities( $posted_data ) {
     }
 
     WC()->cart->calculate_totals();
-}
-
-/**
- * Persist coupon removals to the session to avoid them reappearing on refresh.
- *
- * @param string $coupon_code Removed coupon code.
- */
-function bw_mew_persist_removed_coupon( $coupon_code ) {
-    if ( ! WC()->cart ) {
-        return;
-    }
-
-    if ( $coupon_code && WC()->cart->has_discount( $coupon_code ) ) {
-        WC()->cart->remove_coupon( $coupon_code );
-    }
-
-    WC()->cart->calculate_totals();
-    WC()->cart->set_session();
 }
 
 /**
