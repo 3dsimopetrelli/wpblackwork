@@ -88,8 +88,9 @@
             event.stopPropagation();
 
             var couponCode = couponRemove.getAttribute('data-coupon');
+            var removeUrl = couponRemove.getAttribute('href');
 
-            if (!couponCode || !window.jQuery) {
+            if (!couponCode || !removeUrl || !window.jQuery) {
                 return;
             }
 
@@ -97,27 +98,16 @@
 
             var $ = window.jQuery;
 
-            // Use WooCommerce's AJAX endpoint to remove the coupon
-            $.ajax({
-                type: 'POST',
-                url: wc_checkout_params.wc_ajax_url.toString().replace('%%endpoint%%', 'remove_coupon'),
-                data: {
-                    security: wc_checkout_params.remove_coupon_nonce,
-                    coupon: couponCode
-                },
-                success: function (response) {
-                    // Trigger checkout update to refresh the order review
+            // Use the direct URL to remove the coupon, then trigger checkout update
+            $.get(removeUrl, function () {
+                // Wait a moment to ensure session is updated
+                setTimeout(function () {
                     $(document.body).trigger('update_checkout');
-
-                    // Show success or error message
-                    if (response && response.error) {
-                        showCouponMessage(response.error, 'error');
-                    }
-                },
-                error: function () {
-                    setOrderSummaryLoading(false);
-                    showCouponMessage('Error removing coupon', 'error');
-                }
+                    $(document.body).trigger('removed_coupon', [couponCode]);
+                }, 100);
+            }).fail(function () {
+                setOrderSummaryLoading(false);
+                showCouponMessage('Error removing coupon', 'error');
             });
 
             return;
