@@ -334,7 +334,7 @@ function bw_mew_get_checkout_settings() {
         'right_width'         => 38,
         'thumb_ratio'         => 'square',
         'thumb_width'         => 110,
-        'footer_text'         => 'Bendito Mockup. All rights reserved.',
+        'footer_text'         => '',
     ];
 
     $settings = [

@@ -446,7 +446,7 @@ function bw_site_render_checkout_tab() {
         $right_width_percent  = isset( $_POST['bw_checkout_right_width'] ) ? absint( $_POST['bw_checkout_right_width'] ) : 38;
         $thumb_ratio          = isset( $_POST['bw_checkout_thumb_ratio'] ) ? sanitize_key( wp_unslash( $_POST['bw_checkout_thumb_ratio'] ) ) : 'square';
         $thumb_width          = isset( $_POST['bw_checkout_thumb_width'] ) ? absint( $_POST['bw_checkout_thumb_width'] ) : 110;
-        $footer_text          = isset( $_POST['bw_checkout_footer_text'] ) ? sanitize_text_field( wp_unslash( $_POST['bw_checkout_footer_text'] ) ) : 'Bendito Mockup. All rights reserved.';
+        $footer_text          = isset( $_POST['bw_checkout_footer_text'] ) ? sanitize_text_field( wp_unslash( $_POST['bw_checkout_footer_text'] ) ) : '';
 
         if ( ! in_array( $thumb_ratio, [ 'square', 'portrait', 'landscape' ], true ) ) {
             $thumb_ratio = 'square';
@@ -524,7 +524,7 @@ function bw_site_render_checkout_tab() {
     $right_width_percent = get_option( 'bw_checkout_right_width', 38 );
     $thumb_ratio         = get_option( 'bw_checkout_thumb_ratio', 'square' );
     $thumb_width         = get_option( 'bw_checkout_thumb_width', 110 );
-    $footer_text         = get_option( 'bw_checkout_footer_text', 'Bendito Mockup. All rights reserved.' );
+    $footer_text         = get_option( 'bw_checkout_footer_text', '' );
     ?>
 
     <?php if ( $saved ) : ?>
