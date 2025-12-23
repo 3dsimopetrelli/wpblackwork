@@ -13,10 +13,9 @@ $settings = function_exists( 'bw_mew_get_checkout_settings' ) ? bw_mew_get_check
     'left_bg'     => '#ffffff',
     'right_bg'    => '#f7f7f7',
     'border_color' => '#e0e0e0',
-    'legal_text'   => '',
-    'left_width'   => 62,
-    'right_width'  => 38,
-    'footer_text'  => 'Bendito Mockup. All rights reserved.',
+    'legal_text'  => '',
+    'left_width'  => 62,
+    'right_width' => 38,
 ];
 
 $grid_inline_styles = sprintf(
@@ -140,18 +139,6 @@ if ( ! $checkout->is_registration_enabled() && $checkout->is_registration_requir
                             <?php echo wp_kses_post( $settings['legal_text'] ); ?>
                         </div>
                     <?php endif; ?>
-                </div>
-
-                <?php
-                $shop_url = function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( 'shop' ) : home_url( '/shop/' );
-                ?>
-                <div class="bw-checkout-return-to-shop">
-                    <a href="<?php echo esc_url( $shop_url ); ?>" class="bw-return-to-shop-btn">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M15 8H1M1 8L8 1M1 8L8 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        <?php esc_html_e( 'Return to shop', 'woocommerce' ); ?>
-                    </a>
                 </div>
             </div>
 

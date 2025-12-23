@@ -989,12 +989,12 @@ body.woocommerce-checkout .bw-checkout-wrapper .bw-express-divider__inner span {
         padding: 20px 10px;
     }
 
-    .bw-checkout-left {
+    body.woocommerce-checkout .bw-checkout-left {
         padding: 16px;
     }
 
-    .bw-checkout-right {
-        padding: 16px;
+    body.woocommerce-checkout .bw-checkout-right {
+        padding: var(--bw-checkout-right-pad-top, 0px) var(--bw-checkout-right-pad-right, 0px) var(--bw-checkout-right-pad-bottom, 0px) var(--bw-checkout-right-pad-left, 0px);
     }
 
     .bw-review-item {
