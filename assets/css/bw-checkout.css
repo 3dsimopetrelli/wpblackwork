@@ -289,9 +289,9 @@ body.woocommerce-checkout .bw-checkout-right #order_review_inner {
     align-items: center;
     gap: 8px;
     padding: 4px 10px;
-    background: #000;
+    background: #e8e8e8;
     border-radius: 999px;
-    color: #fff;
+    color: #000;
     font-size: 12px;
     line-height: 1;
 }
