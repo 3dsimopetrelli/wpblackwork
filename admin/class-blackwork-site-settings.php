@@ -637,6 +637,24 @@ function bw_site_render_checkout_tab() {
             </tr>
             <tr>
                 <th scope="row">
+                    <label for="bw_checkout_page_bg">Checkout Page Background</label>
+                </th>
+                <td>
+                    <input type="text" id="bw_checkout_page_bg" name="bw_checkout_page_bg" value="<?php echo esc_attr( $page_bg ); ?>" class="bw-color-picker" data-default-color="#ffffff" />
+                    <p class="description">Colore di sfondo della pagina checkout (body/wrapper).</p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_checkout_grid_bg">Checkout Grid Background</label>
+                </th>
+                <td>
+                    <input type="text" id="bw_checkout_grid_bg" name="bw_checkout_grid_bg" value="<?php echo esc_attr( $grid_bg ); ?>" class="bw-color-picker" data-default-color="#ffffff" />
+                    <p class="description">Colore di sfondo del contenitore griglia checkout.</p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
                     <label for="bw_checkout_left_bg_color">Background colonna sinistra</label>
                 </th>
                 <td>
