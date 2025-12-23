@@ -10,10 +10,13 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit; // Exit if accessed directly.
 }
 
-$login_image = get_option( 'bw_account_login_image', '' );
-$logo        = get_option( 'bw_account_logo', '' );
-$facebook    = (int) get_option( 'bw_account_facebook', 0 );
-$google      = (int) get_option( 'bw_account_google', 0 );
+$login_image         = get_option( 'bw_account_login_image', '' );
+$logo                = get_option( 'bw_account_logo', '' );
+$logo_width          = (int) get_option( 'bw_account_logo_width', 180 );
+$logo_padding_top    = (int) get_option( 'bw_account_logo_padding_top', 0 );
+$logo_padding_bottom = (int) get_option( 'bw_account_logo_padding_bottom', 30 );
+$facebook            = (int) get_option( 'bw_account_facebook', 0 );
+$google              = (int) get_option( 'bw_account_google', 0 );
 $passwordless_url    = function_exists( 'bw_mew_get_passwordless_url' ) ? bw_mew_get_passwordless_url() : '';
 $facebook_url        = ( $facebook && function_exists( 'bw_mew_get_social_login_url' ) ) ? bw_mew_get_social_login_url( 'facebook' ) : '';
 $google_url          = ( $google && function_exists( 'bw_mew_get_social_login_url' ) ) ? bw_mew_get_social_login_url( 'google' ) : '';
@@ -39,8 +42,8 @@ $active_tab           = ( $registration_enabled && ( ( isset( $_GET['action'] ) 
                 <?php wc_print_notices(); ?>
 
                 <?php if ( $logo ) : ?>
-                    <div class="bw-account-login__logo">
-                        <img src="<?php echo esc_url( $logo ); ?>" alt="<?php esc_attr_e( 'Account logo', 'bw' ); ?>" />
+                    <div class="bw-account-login__logo" style="padding-top: <?php echo absint( $logo_padding_top ); ?>px; padding-bottom: <?php echo absint( $logo_padding_bottom ); ?>px;">
+                        <img src="<?php echo esc_url( $logo ); ?>" alt="<?php esc_attr_e( 'Account logo', 'bw' ); ?>" style="max-width: <?php echo absint( $logo_width ); ?>px;" />
                     </div>
                 <?php endif; ?>
 
