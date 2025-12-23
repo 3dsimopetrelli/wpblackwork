@@ -160,5 +160,15 @@ if ( ! $checkout->is_registration_enabled() && $checkout->is_registration_requir
                 <?php do_action( 'woocommerce_checkout_after_order_review' ); ?>
             </div>
         </div>
+
+        <div class="bw-checkout-footer">
+            <div class="bw-checkout-footer__content">
+                <?php
+                $footer_text = ! empty( $settings['footer_text'] ) ? $settings['footer_text'] : 'Bendito Mockup. All rights reserved.';
+                $current_year = gmdate( 'Y' );
+                ?>
+                <p>Copyright &copy; <?php echo esc_html( $current_year ); ?>, <?php echo esc_html( $footer_text ); ?></p>
+            </div>
+        </div>
     </div>
 </form>
