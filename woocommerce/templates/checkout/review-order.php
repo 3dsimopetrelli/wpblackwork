@@ -137,19 +137,21 @@ $thumb_aspect      = $thumb_map[ $thumb_ratio ];
             </tr>
 
             <?php foreach ( WC()->cart->get_coupons() as $code => $coupon ) : ?>
-                <tr class="bw-total-row bw-total-row--coupon cart-discount coupon-<?php echo esc_attr( sanitize_title( $code ) ); ?>">
+                <tr class="bw-total-row bw-total-row--coupon coupon-<?php echo esc_attr( sanitize_title( $code ) ); ?>">
                     <th scope="row">
-                        <span class="bw-coupon-label"><?php esc_html_e( 'Coupon:', 'woocommerce' ); ?></span>
+                        <span class="bw-coupon-title"><?php esc_html_e( 'Coupon:', 'woocommerce' ); ?></span>
                         <span class="bw-coupon-chip">
-                            <span class="bw-coupon-chip__icon"></span>
-                            <?php echo esc_html( $code ); ?>
+                            <span class="bw-coupon-chip__icon" aria-hidden="true"></span>
+                            <span class="bw-coupon-chip__text"><?php echo esc_html( $code ); ?></span>
                         </span>
                     </th>
-                    <td data-title="<?php echo esc_attr( wc_cart_totals_coupon_label( $coupon, false ) ); ?>">
-                        <span class="bw-coupon-value">
-                            <?php echo wc_price( -WC()->cart->get_coupon_discount_amount( $code ) ); ?>
-                            <a href="<?php echo esc_url( add_query_arg( 'remove_coupon', rawurlencode( $code ), wc_get_cart_url() ) ); ?>" class="woocommerce-remove-coupon" data-coupon="<?php echo esc_attr( $code ); ?>" aria-label="<?php esc_attr_e( 'Remove coupon', 'woocommerce' ); ?>"><?php esc_html_e( '[Remove]', 'woocommerce' ); ?></a>
-                        </span>
+                    <td>
+                        <?php
+                        ob_start();
+                        wc_cart_totals_coupon_html( $coupon );
+                        $coupon_html = ob_get_clean();
+                        echo '<span class="bw-coupon-value">' . $coupon_html . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+                        ?>
                     </td>
                 </tr>
             <?php endforeach; ?>
