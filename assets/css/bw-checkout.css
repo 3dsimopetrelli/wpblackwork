@@ -264,6 +264,52 @@ body.woocommerce-checkout .bw-checkout-right #order_review_inner {
     background: transparent !important;
 }
 
+.bw-checkout-right table.shop_table .bw-total-row--coupon th,
+.bw-checkout-right table.shop_table .bw-total-row--coupon td {
+    padding: 10px 0;
+}
+
+.bw-checkout-right table.shop_table .bw-total-row--coupon th {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    white-space: nowrap;
+}
+
+.bw-checkout-right table.shop_table .bw-total-row--coupon td {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    white-space: nowrap;
+}
+
+.bw-checkout-right table.shop_table .bw-total-row--coupon .bw-coupon-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 10px;
+    background: #000;
+    border-radius: 999px;
+    color: #fff;
+    font-size: 12px;
+    line-height: 1;
+}
+
+.bw-checkout-right table.shop_table .bw-total-row--coupon .bw-coupon-chip__icon {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #fff;
+}
+
+.bw-checkout-right table.shop_table .bw-total-row--coupon .bw-coupon-value {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
 .bw-checkout-right table.shop_table tr {
     background: transparent !important;
 }
