@@ -26,7 +26,6 @@ function bw_mew_initialize_woocommerce_overrides() {
     add_action( 'template_redirect', 'bw_mew_prepare_account_page_layout', 9 );
     add_action( 'template_redirect', 'bw_mew_prepare_checkout_layout', 9 );
     add_action( 'template_redirect', 'bw_mew_hide_single_product_notices', 9 );
-    add_action( 'woocommerce_review_order_after_payment', 'bw_mew_render_checkout_legal_text', 5 );
     add_action( 'woocommerce_checkout_update_order_review', 'bw_mew_sync_checkout_cart_quantities', 10, 1 );
 }
 add_action( 'plugins_loaded', 'bw_mew_initialize_woocommerce_overrides' );
@@ -110,7 +109,7 @@ function bw_mew_enqueue_account_page_assets() {
  * Enqueue assets for the custom checkout layout and expose colors as CSS variables.
  */
 function bw_mew_enqueue_checkout_assets() {
-    if ( ! function_exists( 'is_checkout' ) || ! is_checkout() || is_cart() ) {
+    if ( ! bw_mew_is_checkout_request() ) {
         return;
     }
 
@@ -127,11 +126,18 @@ function bw_mew_enqueue_checkout_assets() {
     );
 
     if ( file_exists( $js_file ) ) {
-        $js_version = filemtime( $js_file );
+        $js_version   = filemtime( $js_file );
+        $dependencies = [ 'jquery' ];
+
+        if ( wp_script_is( 'wc-checkout', 'registered' ) ) {
+            wp_enqueue_script( 'wc-checkout' );
+            $dependencies[] = 'wc-checkout';
+        }
+
         wp_enqueue_script(
             'bw-checkout',
             BW_MEW_URL . 'assets/js/bw-checkout.js',
-            [ 'jquery' ],
+            $dependencies,
             $js_version,
             true
         );
@@ -169,7 +175,7 @@ function bw_mew_prepare_account_page_layout() {
  * Hide checkout notices and prepare layout.
  */
 function bw_mew_prepare_checkout_layout() {
-    if ( ! function_exists( 'is_checkout' ) || ! is_checkout() || ( function_exists( 'is_wc_endpoint_url' ) && is_wc_endpoint_url( 'order-received' ) ) ) {
+    if ( ! bw_mew_is_checkout_request() || ( function_exists( 'is_wc_endpoint_url' ) && is_wc_endpoint_url( 'order-received' ) ) ) {
         return;
     }
 
@@ -181,6 +187,30 @@ function bw_mew_prepare_checkout_layout() {
 
     // Avoid rendering the payment section (and its button) twice by keeping it only in the left column.
     remove_action( 'woocommerce_checkout_order_review', 'woocommerce_checkout_payment', 20 );
+}
+
+/**
+ * Check if the current request should be treated as checkout.
+ *
+ * @return bool
+ */
+function bw_mew_is_checkout_request() {
+    if ( function_exists( 'is_checkout' ) && is_checkout() && ! is_cart() ) {
+        return true;
+    }
+
+    if ( function_exists( 'is_page' ) ) {
+        $checkout_page_id = function_exists( 'wc_get_page_id' ) ? wc_get_page_id( 'checkout' ) : 0;
+        if ( $checkout_page_id && is_page( $checkout_page_id ) ) {
+            return true;
+        }
+    }
+
+    if ( ! empty( $_POST['apply_coupon'] ) || ! empty( $_POST['woocommerce-apply-coupon-nonce'] ) ) {
+        return true;
+    }
+
+    return false;
 }
 
 if ( ! function_exists( 'bw_mew_normalize_checkout_column_widths' ) ) {
@@ -236,19 +266,6 @@ function bw_mew_handle_social_login_requests() {
     if ( isset( $_GET['bw_social_login_callback'] ) ) {
         bw_mew_process_social_login_callback( sanitize_key( wp_unslash( $_GET['bw_social_login_callback'] ) ) );
     }
-}
-
-/**
- * Print the legal text block below the payment methods during checkout.
- */
-function bw_mew_render_checkout_legal_text() {
-    $settings = bw_mew_get_checkout_settings();
-
-    if ( empty( $settings['legal_text'] ) ) {
-        return;
-    }
-
-    echo '<div class="bw-checkout-legal-text">' . wp_kses_post( $settings['legal_text'] ) . '</div>';
 }
 
 /**
@@ -314,11 +331,14 @@ function bw_mew_get_social_redirect_uri( $provider ) {
 /**
  * Retrieve checkout style and content options.
  *
- * @return array{logo:string,left_bg:string,right_bg:string,border_color:string,legal_text:string}
+ * @return array{logo:string,logo_align:string,page_bg:string,grid_bg:string,left_bg:string,right_bg:string,border_color:string,legal_text:string,left_width:int,right_width:int,thumb_ratio:string,thumb_width:int,right_sticky_top:int,right_padding_top:int,right_padding_right:int,right_padding_bottom:int,right_padding_left:int,footer_copyright:string,show_return_to_shop:string}
  */
 function bw_mew_get_checkout_settings() {
     $defaults = [
         'logo'                => '',
+        'logo_align'          => 'left',
+        'page_bg'             => '#ffffff',
+        'grid_bg'             => '#ffffff',
         'logo_width'          => 200,
         'logo_padding_top'    => 0,
         'logo_padding_right'  => 0,
@@ -333,11 +353,21 @@ function bw_mew_get_checkout_settings() {
         'right_width'         => 38,
         'thumb_ratio'         => 'square',
         'thumb_width'         => 110,
+        'right_sticky_top'    => 20,
+        'right_padding_top'   => 0,
+        'right_padding_right' => 0,
+        'right_padding_bottom'=> 0,
+        'right_padding_left'  => 28,
+        'footer_copyright'    => '',
+        'show_return_to_shop' => '1',
     ];
 
     $settings = [
         'logo'                => esc_url_raw( get_option( 'bw_checkout_logo', $defaults['logo'] ) ),
+        'logo_align'          => sanitize_key( get_option( 'bw_checkout_logo_align', $defaults['logo_align'] ) ),
         'logo_width'          => absint( get_option( 'bw_checkout_logo_width', $defaults['logo_width'] ) ),
+        'page_bg'             => sanitize_hex_color( get_option( 'bw_checkout_page_bg', get_option( 'bw_checkout_page_bg_color', $defaults['page_bg'] ) ) ),
+        'grid_bg'             => sanitize_hex_color( get_option( 'bw_checkout_grid_bg', get_option( 'bw_checkout_grid_bg_color', $defaults['grid_bg'] ) ) ),
         'logo_padding_top'    => absint( get_option( 'bw_checkout_logo_padding_top', $defaults['logo_padding_top'] ) ),
         'logo_padding_right'  => absint( get_option( 'bw_checkout_logo_padding_right', $defaults['logo_padding_right'] ) ),
         'logo_padding_bottom' => absint( get_option( 'bw_checkout_logo_padding_bottom', $defaults['logo_padding_bottom'] ) ),
@@ -351,8 +381,18 @@ function bw_mew_get_checkout_settings() {
         'right_width'         => absint( get_option( 'bw_checkout_right_width', $defaults['right_width'] ) ),
         'thumb_ratio'         => sanitize_key( get_option( 'bw_checkout_thumb_ratio', $defaults['thumb_ratio'] ) ),
         'thumb_width'         => absint( get_option( 'bw_checkout_thumb_width', $defaults['thumb_width'] ) ),
+        'right_sticky_top'    => absint( get_option( 'bw_checkout_right_sticky_top', $defaults['right_sticky_top'] ) ),
+        'right_padding_top'   => absint( get_option( 'bw_checkout_right_padding_top', $defaults['right_padding_top'] ) ),
+        'right_padding_right' => absint( get_option( 'bw_checkout_right_padding_right', $defaults['right_padding_right'] ) ),
+        'right_padding_bottom'=> absint( get_option( 'bw_checkout_right_padding_bottom', $defaults['right_padding_bottom'] ) ),
+        'right_padding_left'  => absint( get_option( 'bw_checkout_right_padding_left', $defaults['right_padding_left'] ) ),
+        'footer_copyright'    => get_option( 'bw_checkout_footer_copyright_text', $defaults['footer_copyright'] ),
+        'show_return_to_shop' => get_option( 'bw_checkout_show_return_to_shop', $defaults['show_return_to_shop'] ),
     ];
 
+    $settings['logo_align']   = in_array( $settings['logo_align'], [ 'left', 'center', 'right' ], true ) ? $settings['logo_align'] : $defaults['logo_align'];
+    $settings['page_bg']      = $settings['page_bg'] ?: $defaults['page_bg'];
+    $settings['grid_bg']      = $settings['grid_bg'] ?: $defaults['grid_bg'];
     $settings['left_bg']      = $settings['left_bg'] ?: $defaults['left_bg'];
     $settings['right_bg']     = $settings['right_bg'] ?: $defaults['right_bg'];
     $settings['border_color'] = $settings['border_color'] ?: $defaults['border_color'];
@@ -377,6 +417,9 @@ function bw_mew_get_checkout_settings() {
         $settings['left_width']   = $normalized['left'];
         $settings['right_width']  = $normalized['right'];
     }
+
+    $settings['footer_copyright']    = wp_kses_post( $settings['footer_copyright'] );
+    $settings['show_return_to_shop'] = '1' === (string) $settings['show_return_to_shop'] ? '1' : '0';
 
     return $settings;
 }

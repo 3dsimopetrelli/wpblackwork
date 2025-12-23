@@ -138,8 +138,21 @@ $thumb_aspect      = $thumb_map[ $thumb_ratio ];
 
             <?php foreach ( WC()->cart->get_coupons() as $code => $coupon ) : ?>
                 <tr class="bw-total-row bw-total-row--coupon coupon-<?php echo esc_attr( sanitize_title( $code ) ); ?>">
-                    <th scope="row"><?php wc_cart_totals_coupon_label( $coupon ); ?></th>
-                    <td><?php wc_cart_totals_coupon_html( $coupon ); ?></td>
+                    <th scope="row">
+                        <span class="bw-coupon-title"><?php esc_html_e( 'Coupon:', 'woocommerce' ); ?></span>
+                        <span class="bw-coupon-chip">
+                            <span class="bw-coupon-chip__icon" aria-hidden="true"></span>
+                            <span class="bw-coupon-chip__text"><?php echo esc_html( $code ); ?></span>
+                        </span>
+                    </th>
+                    <td>
+                        <?php
+                        ob_start();
+                        wc_cart_totals_coupon_html( $coupon );
+                        $coupon_html = ob_get_clean();
+                        echo '<span class="bw-coupon-value">' . $coupon_html . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+                        ?>
+                    </td>
                 </tr>
             <?php endforeach; ?>
 
