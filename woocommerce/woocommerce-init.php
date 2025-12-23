@@ -333,6 +333,7 @@ function bw_mew_get_checkout_settings() {
         'right_width'         => 38,
         'thumb_ratio'         => 'square',
         'thumb_width'         => 110,
+        'footer_text'         => 'Bendito Mockup. All rights reserved.',
     ];
 
     $settings = [
@@ -351,6 +352,7 @@ function bw_mew_get_checkout_settings() {
         'right_width'         => absint( get_option( 'bw_checkout_right_width', $defaults['right_width'] ) ),
         'thumb_ratio'         => sanitize_key( get_option( 'bw_checkout_thumb_ratio', $defaults['thumb_ratio'] ) ),
         'thumb_width'         => absint( get_option( 'bw_checkout_thumb_width', $defaults['thumb_width'] ) ),
+        'footer_text'         => sanitize_text_field( get_option( 'bw_checkout_footer_text', $defaults['footer_text'] ) ),
     ];
 
     $settings['left_bg']      = $settings['left_bg'] ?: $defaults['left_bg'];

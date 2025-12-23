@@ -440,6 +440,7 @@ function bw_site_render_checkout_tab() {
         $right_width_percent  = isset( $_POST['bw_checkout_right_width'] ) ? absint( $_POST['bw_checkout_right_width'] ) : 38;
         $thumb_ratio          = isset( $_POST['bw_checkout_thumb_ratio'] ) ? sanitize_key( wp_unslash( $_POST['bw_checkout_thumb_ratio'] ) ) : 'square';
         $thumb_width          = isset( $_POST['bw_checkout_thumb_width'] ) ? absint( $_POST['bw_checkout_thumb_width'] ) : 110;
+        $footer_text          = isset( $_POST['bw_checkout_footer_text'] ) ? sanitize_text_field( wp_unslash( $_POST['bw_checkout_footer_text'] ) ) : 'Bendito Mockup. All rights reserved.';
 
         if ( ! in_array( $thumb_ratio, [ 'square', 'portrait', 'landscape' ], true ) ) {
             $thumb_ratio = 'square';
@@ -478,6 +479,7 @@ function bw_site_render_checkout_tab() {
         update_option( 'bw_checkout_right_width', $right_width_percent );
         update_option( 'bw_checkout_thumb_ratio', $thumb_ratio );
         update_option( 'bw_checkout_thumb_width', $thumb_width );
+        update_option( 'bw_checkout_footer_text', $footer_text );
 
         $saved = true;
     }
@@ -497,6 +499,7 @@ function bw_site_render_checkout_tab() {
     $right_width_percent = get_option( 'bw_checkout_right_width', 38 );
     $thumb_ratio         = get_option( 'bw_checkout_thumb_ratio', 'square' );
     $thumb_width         = get_option( 'bw_checkout_thumb_width', 110 );
+    $footer_text         = get_option( 'bw_checkout_footer_text', 'Bendito Mockup. All rights reserved.' );
     ?>
 
     <?php if ( $saved ) : ?>
@@ -637,6 +640,15 @@ function bw_site_render_checkout_tab() {
                 <td>
                     <textarea id="bw_checkout_legal_text" name="bw_checkout_legal_text" rows="6" class="large-text"><?php echo esc_textarea( $legal_text ); ?></textarea>
                     <p class="description">Testo mostrato sotto i metodi di pagamento; supporta link e HTML consentito.</p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_checkout_footer_text">Testo footer Copyright</label>
+                </th>
+                <td>
+                    <input type="text" id="bw_checkout_footer_text" name="bw_checkout_footer_text" value="<?php echo esc_attr( $footer_text ); ?>" class="regular-text" />
+                    <p class="description">Testo mostrato nel footer del checkout accanto a "Copyright © 2025,". Es: "Bendito Mockup. All rights reserved."</p>
                 </td>
             </tr>
         </table>

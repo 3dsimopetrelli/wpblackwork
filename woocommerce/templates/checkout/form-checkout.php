@@ -15,6 +15,7 @@ $settings = function_exists( 'bw_mew_get_checkout_settings' ) ? bw_mew_get_check
     'legal_text'   => '',
     'left_width'   => 62,
     'right_width'  => 38,
+    'footer_text'  => 'Bendito Mockup. All rights reserved.',
 ];
 
 $grid_inline_styles = sprintf(
@@ -137,6 +138,18 @@ if ( ! $checkout->is_registration_enabled() && $checkout->is_registration_requir
                     }
                     ?>
                 </div>
+
+                <?php
+                $shop_url = function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( 'shop' ) : home_url( '/shop/' );
+                ?>
+                <div class="bw-checkout-return-to-shop">
+                    <a href="<?php echo esc_url( $shop_url ); ?>" class="bw-return-to-shop-btn">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M15 8H1M1 8L8 1M1 8L8 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <?php esc_html_e( 'Return to shop', 'woocommerce' ); ?>
+                    </a>
+                </div>
             </div>
 
             <?php do_action( 'woocommerce_checkout_before_order_review_heading' ); ?>
@@ -155,6 +168,16 @@ if ( ! $checkout->is_registration_enabled() && $checkout->is_registration_requir
                 </div>
 
                 <?php do_action( 'woocommerce_checkout_after_order_review' ); ?>
+            </div>
+        </div>
+
+        <div class="bw-checkout-footer">
+            <div class="bw-checkout-footer__content">
+                <?php
+                $footer_text = ! empty( $settings['footer_text'] ) ? $settings['footer_text'] : 'Bendito Mockup. All rights reserved.';
+                $current_year = gmdate( 'Y' );
+                ?>
+                <p>Copyright &copy; <?php echo esc_html( $current_year ); ?>, <?php echo esc_html( $footer_text ); ?></p>
             </div>
         </div>
     </div>
