@@ -15,9 +15,11 @@ $settings = function_exists( 'bw_mew_get_checkout_settings' ) ? bw_mew_get_check
     'left_bg'      => '#ffffff',
     'right_bg'     => '#f7f7f7',
     'border_color' => '#e0e0e0',
-    'legal_text'  => '',
-    'left_width'  => 62,
-    'right_width' => 38,
+    'legal_text'   => '',
+    'footer_copyright' => '',
+    'show_return_to_shop' => '1',
+    'left_width'   => 62,
+    'right_width'  => 38,
 ];
 
 $right_padding_top    = isset( $settings['right_padding_top'] ) ? absint( $settings['right_padding_top'] ) : 0;
@@ -177,6 +179,34 @@ if ( ! $checkout->is_registration_enabled() && $checkout->is_registration_requir
                     <?php if ( ! empty( $settings['legal_text'] ) ) : ?>
                         <div class="bw-checkout-legal">
                             <?php echo wp_kses_post( $settings['legal_text'] ); ?>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php
+                    $show_return_link = ! empty( $settings['show_return_to_shop'] ) && '0' !== (string) $settings['show_return_to_shop'];
+                    $footer_copy      = isset( $settings['footer_copyright'] ) ? $settings['footer_copyright'] : '';
+                    $shop_url         = wc_get_page_permalink( 'shop' );
+                    ?>
+
+                    <?php if ( ( $show_return_link && $shop_url ) || ! empty( $footer_copy ) ) : ?>
+                        <div class="bw-checkout-left-footer">
+                            <?php if ( $show_return_link && $shop_url ) : ?>
+                                <a class="bw-checkout-return-to-shop" href="<?php echo esc_url( $shop_url ); ?>">
+                                    <?php esc_html_e( 'Return to shop', 'woocommerce' ); ?>
+                                </a>
+                            <?php endif; ?>
+
+                            <?php if ( ! empty( $footer_copy ) ) : ?>
+                                <div class="bw-checkout-copyright">
+                                    <?php
+                                    printf(
+                                        'Copyright © %1$s, %2$s',
+                                        esc_html( date( 'Y' ) ),
+                                        wp_kses_post( $footer_copy )
+                                    );
+                                    ?>
+                                </div>
+                            <?php endif; ?>
                         </div>
                     <?php endif; ?>
                 </div>

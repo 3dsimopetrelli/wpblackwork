@@ -562,6 +562,8 @@ function bw_site_render_checkout_tab() {
         $right_padding_left   = isset( $_POST['bw_checkout_right_padding_left'] ) ? absint( $_POST['bw_checkout_right_padding_left'] ) : 28;
         $border_color         = isset( $_POST['bw_checkout_border_color'] ) ? sanitize_hex_color( wp_unslash( $_POST['bw_checkout_border_color'] ) ) : '';
         $legal_text           = isset( $_POST['bw_checkout_legal_text'] ) ? wp_kses_post( wp_unslash( $_POST['bw_checkout_legal_text'] ) ) : '';
+        $footer_copyright     = isset( $_POST['bw_checkout_footer_copyright_text'] ) ? wp_kses_post( wp_unslash( $_POST['bw_checkout_footer_copyright_text'] ) ) : '';
+        $show_return_to_shop  = isset( $_POST['bw_checkout_show_return_to_shop'] ) ? '1' : '0';
         $left_width_percent   = isset( $_POST['bw_checkout_left_width'] ) ? absint( $_POST['bw_checkout_left_width'] ) : 62;
         $right_width_percent  = isset( $_POST['bw_checkout_right_width'] ) ? absint( $_POST['bw_checkout_right_width'] ) : 38;
         $thumb_ratio          = isset( $_POST['bw_checkout_thumb_ratio'] ) ? sanitize_key( wp_unslash( $_POST['bw_checkout_thumb_ratio'] ) ) : 'square';
@@ -615,6 +617,8 @@ function bw_site_render_checkout_tab() {
         update_option( 'bw_checkout_right_padding_left', $right_padding_left );
         update_option( 'bw_checkout_border_color', $border_color );
         update_option( 'bw_checkout_legal_text', $legal_text );
+        update_option( 'bw_checkout_footer_copyright_text', $footer_copyright );
+        update_option( 'bw_checkout_show_return_to_shop', $show_return_to_shop );
         update_option( 'bw_checkout_left_width', $left_width_percent );
         update_option( 'bw_checkout_right_width', $right_width_percent );
         update_option( 'bw_checkout_thumb_ratio', $thumb_ratio );
@@ -644,6 +648,8 @@ function bw_site_render_checkout_tab() {
     $right_padding_right = get_option( 'bw_checkout_right_padding_right', 0 );
     $right_padding_bottom = get_option( 'bw_checkout_right_padding_bottom', 0 );
     $right_padding_left  = get_option( 'bw_checkout_right_padding_left', 28 );
+    $footer_copyright    = get_option( 'bw_checkout_footer_copyright_text', '' );
+    $show_return_to_shop = get_option( 'bw_checkout_show_return_to_shop', '1' );
     $border_color        = get_option( 'bw_checkout_border_color', '#262626' );
     $legal_text          = get_option( 'bw_checkout_legal_text', '' );
     $left_width_percent  = get_option( 'bw_checkout_left_width', 62 );
@@ -865,11 +871,20 @@ function bw_site_render_checkout_tab() {
             </tr>
             <tr>
                 <th scope="row">
-                    <label for="bw_checkout_footer_text">Testo footer Copyright</label>
+                    <label for="bw_checkout_footer_copyright_text">Text of Footer Copyright</label>
                 </th>
                 <td>
-                    <input type="text" id="bw_checkout_footer_text" name="bw_checkout_footer_text" value="<?php echo esc_attr( $footer_text ); ?>" class="regular-text" />
-                    <p class="description">Testo mostrato nel footer del checkout accanto a "Copyright © 2025,". Es: "Bendito Mockup. All rights reserved."</p>
+                    <textarea id="bw_checkout_footer_copyright_text" name="bw_checkout_footer_copyright_text" rows="3" class="large-text"><?php echo esc_textarea( $footer_copyright ); ?></textarea>
+                    <p class="description">Testo mostrato nel footer della colonna sinistra; viene preceduto da "Copyright © {anno},".</p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">Mostra link "Return to shop"</th>
+                <td>
+                    <label class="switch">
+                        <input type="checkbox" id="bw_checkout_show_return_to_shop" name="bw_checkout_show_return_to_shop" value="1" <?php checked( '1', $show_return_to_shop ); ?> />
+                        <span class="description">Attiva o disattiva il link di ritorno allo shop nel footer della colonna sinistra.</span>
+                    </label>
                 </td>
             </tr>
         </table>

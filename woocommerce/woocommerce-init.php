@@ -230,8 +230,17 @@ function bw_mew_hide_single_product_notices() {
  * @deprecated Use BW_Social_Login class instead.
  */
 function bw_mew_handle_social_login_requests() {
-    // This function is deprecated and no longer used.
-    // Social login is now handled by the BW_Social_Login class.
+    if ( ! function_exists( 'is_account_page' ) || ! is_account_page() ) {
+        return;
+    }
+
+    if ( isset( $_GET['bw_social_login'] ) ) {
+        bw_mew_social_login_redirect( sanitize_key( wp_unslash( $_GET['bw_social_login'] ) ) );
+    }
+
+    if ( isset( $_GET['bw_social_login_callback'] ) ) {
+        bw_mew_process_social_login_callback( sanitize_key( wp_unslash( $_GET['bw_social_login_callback'] ) ) );
+    }
 }
 
 /**
@@ -293,7 +302,7 @@ function bw_mew_get_social_redirect_uri( $provider ) {
 /**
  * Retrieve checkout style and content options.
  *
- * @return array{logo:string,logo_align:string,page_bg:string,grid_bg:string,left_bg:string,right_bg:string,border_color:string,legal_text:string,left_width:int,right_width:int,thumb_ratio:string,thumb_width:int,right_sticky_top:int,right_padding_top:int,right_padding_right:int,right_padding_bottom:int,right_padding_left:int}
+ * @return array{logo:string,logo_align:string,page_bg:string,grid_bg:string,left_bg:string,right_bg:string,border_color:string,legal_text:string,left_width:int,right_width:int,thumb_ratio:string,thumb_width:int,right_sticky_top:int,right_padding_top:int,right_padding_right:int,right_padding_bottom:int,right_padding_left:int,footer_copyright:string,show_return_to_shop:string}
  */
 function bw_mew_get_checkout_settings() {
     $defaults = [
@@ -320,6 +329,8 @@ function bw_mew_get_checkout_settings() {
         'right_padding_right' => 0,
         'right_padding_bottom'=> 0,
         'right_padding_left'  => 28,
+        'footer_copyright'    => '',
+        'show_return_to_shop' => '1',
     ];
 
     $settings = [
@@ -346,6 +357,8 @@ function bw_mew_get_checkout_settings() {
         'right_padding_right' => absint( get_option( 'bw_checkout_right_padding_right', $defaults['right_padding_right'] ) ),
         'right_padding_bottom'=> absint( get_option( 'bw_checkout_right_padding_bottom', $defaults['right_padding_bottom'] ) ),
         'right_padding_left'  => absint( get_option( 'bw_checkout_right_padding_left', $defaults['right_padding_left'] ) ),
+        'footer_copyright'    => get_option( 'bw_checkout_footer_copyright_text', $defaults['footer_copyright'] ),
+        'show_return_to_shop' => get_option( 'bw_checkout_show_return_to_shop', $defaults['show_return_to_shop'] ),
     ];
 
     $settings['logo_align']   = in_array( $settings['logo_align'], [ 'left', 'center', 'right' ], true ) ? $settings['logo_align'] : $defaults['logo_align'];
@@ -375,6 +388,9 @@ function bw_mew_get_checkout_settings() {
         $settings['left_width']   = $normalized['left'];
         $settings['right_width']  = $normalized['right'];
     }
+
+    $settings['footer_copyright']    = wp_kses_post( $settings['footer_copyright'] );
+    $settings['show_return_to_shop'] = '1' === (string) $settings['show_return_to_shop'] ? '1' : '0';
 
     return $settings;
 }
