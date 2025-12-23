@@ -297,8 +297,14 @@ body.woocommerce-account.bw-account-login-only .bw-account-auth__tab.is-active::
 }
 
 .bw-account-login__lost-password {
+    background: none;
+    border: none;
+    padding: 0;
     color: #6f6f6f;
     text-decoration: none;
+    cursor: pointer;
+    font-size: 13px;
+    transition: text-decoration 0.2s ease;
 }
 
 .bw-account-login__lost-password:hover,
@@ -354,6 +360,28 @@ body.woocommerce-account.bw-account-login-only .bw-account-auth__tab.is-active::
     margin: 0 0 12px;
     color: #6f6f6f;
     font-size: 14px;
+}
+
+.bw-account-login__back-to-login {
+    margin-top: 16px;
+    text-align: center;
+}
+
+.bw-account-login__back-link {
+    background: none;
+    border: none;
+    padding: 0;
+    color: #6f6f6f;
+    text-decoration: none;
+    cursor: pointer;
+    font-size: 14px;
+    transition: color 0.2s ease;
+}
+
+.bw-account-login__back-link:hover,
+.bw-account-login__back-link:focus-visible {
+    color: #000;
+    text-decoration: underline;
 }
 
 .bw-account-login__description {
