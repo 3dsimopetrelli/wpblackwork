@@ -187,6 +187,11 @@ function bw_site_render_account_page_tab() {
         update_option('bw_account_back_url', $back_url);
         update_option('bw_account_passwordless_url', $passwordless_url);
 
+        // Clear social login settings cache.
+        if (class_exists('BW_Social_Login')) {
+            BW_Social_Login::clear_cache();
+        }
+
         $saved = true;
     }
 
@@ -278,7 +283,7 @@ function bw_site_render_account_page_tab() {
                 <th scope="row">Facebook Redirect URI</th>
                 <td>
                     <input type="text" readonly class="regular-text" value="<?php echo esc_url($facebook_redirect); ?>" />
-                    <p class="description">Usa questo URL nel pannello Facebook per configurare il redirect dell'app.</p>
+                    <p class="description"><?php esc_html_e('Use this URL in the Facebook app panel to configure the redirect URI.', 'bw'); ?></p>
                 </td>
             </tr>
             <tr>
@@ -301,7 +306,7 @@ function bw_site_render_account_page_tab() {
                 <th scope="row">Google Redirect URI</th>
                 <td>
                     <input type="text" readonly class="regular-text" value="<?php echo esc_url($google_redirect); ?>" />
-                    <p class="description">Configura questo indirizzo tra gli URI autorizzati della console Google.</p>
+                    <p class="description"><?php esc_html_e('Configure this URL in the authorized redirect URIs in the Google Cloud Console.', 'bw'); ?></p>
                 </td>
             </tr>
             <tr>
