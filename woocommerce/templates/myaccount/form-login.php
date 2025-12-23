@@ -10,10 +10,13 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit; // Exit if accessed directly.
 }
 
-$login_image = get_option( 'bw_account_login_image', '' );
-$logo        = get_option( 'bw_account_logo', '' );
-$facebook    = (int) get_option( 'bw_account_facebook', 0 );
-$google      = (int) get_option( 'bw_account_google', 0 );
+$login_image         = get_option( 'bw_account_login_image', '' );
+$logo                = get_option( 'bw_account_logo', '' );
+$logo_width          = (int) get_option( 'bw_account_logo_width', 180 );
+$logo_padding_top    = (int) get_option( 'bw_account_logo_padding_top', 0 );
+$logo_padding_bottom = (int) get_option( 'bw_account_logo_padding_bottom', 30 );
+$facebook            = (int) get_option( 'bw_account_facebook', 0 );
+$google              = (int) get_option( 'bw_account_google', 0 );
 $passwordless_url    = function_exists( 'bw_mew_get_passwordless_url' ) ? bw_mew_get_passwordless_url() : '';
 $facebook_url        = ( $facebook && function_exists( 'bw_mew_get_social_login_url' ) ) ? bw_mew_get_social_login_url( 'facebook' ) : '';
 $google_url          = ( $google && function_exists( 'bw_mew_get_social_login_url' ) ) ? bw_mew_get_social_login_url( 'google' ) : '';
@@ -27,7 +30,7 @@ $lost_password_url   = wc_lostpassword_url();
 $registration_enabled = 'yes' === get_option( 'woocommerce_enable_myaccount_registration' );
 $generate_username    = 'yes' === get_option( 'woocommerce_registration_generate_username' );
 $generate_password    = 'yes' === get_option( 'woocommerce_registration_generate_password' );
-$active_tab           = ( $registration_enabled && ( ( isset( $_GET['action'] ) && 'register' === sanitize_key( wp_unslash( $_GET['action'] ) ) ) || isset( $_POST['register'] ) ) ) ? 'register' : 'login';
+$active_tab           = ( isset( $_GET['action'] ) && 'lostpassword' === sanitize_key( wp_unslash( $_GET['action'] ) ) ) ? 'lostpassword' : ( ( $registration_enabled && ( ( isset( $_GET['action'] ) && 'register' === sanitize_key( wp_unslash( $_GET['action'] ) ) ) || isset( $_POST['register'] ) ) ) ? 'register' : 'login' );
 ?>
 
 <div class="bw-account-login-page">
@@ -39,8 +42,8 @@ $active_tab           = ( $registration_enabled && ( ( isset( $_GET['action'] ) 
                 <?php wc_print_notices(); ?>
 
                 <?php if ( $logo ) : ?>
-                    <div class="bw-account-login__logo">
-                        <img src="<?php echo esc_url( $logo ); ?>" alt="<?php esc_attr_e( 'Account logo', 'bw' ); ?>" />
+                    <div class="bw-account-login__logo" style="padding-top: <?php echo absint( $logo_padding_top ); ?>px; padding-bottom: <?php echo absint( $logo_padding_bottom ); ?>px;">
+                        <img src="<?php echo esc_url( $logo ); ?>" alt="<?php esc_attr_e( 'Account logo', 'bw' ); ?>" style="max-width: <?php echo absint( $logo_width ); ?>px;" />
                     </div>
                 <?php endif; ?>
 
@@ -101,7 +104,7 @@ $active_tab           = ( $registration_enabled && ( ( isset( $_GET['action'] ) 
                                     <label class="woocommerce-form__label woocommerce-form__label-for-checkbox woocommerce-form-login__rememberme bw-account-login__remember">
                                         <input class="woocommerce-form__input woocommerce-form__input-checkbox" name="rememberme" type="checkbox" id="rememberme" value="forever" /> <span><?php esc_html_e( 'Remember me', 'woocommerce' ); ?></span>
                                     </label>
-                                    <a class="bw-account-login__lost-password" href="<?php echo esc_url( $lost_password_url ); ?>"><?php esc_html_e( 'Lost your password?', 'woocommerce' ); ?></a>
+                                    <button type="button" class="bw-account-login__lost-password" data-bw-auth-tab="lostpassword"><?php esc_html_e( 'Lost your password?', 'woocommerce' ); ?></button>
                                 </p>
 
                                 <p class="form-row bw-account-login__actions">
@@ -155,6 +158,29 @@ $active_tab           = ( $registration_enabled && ( ( isset( $_GET['action'] ) 
                                 </form>
                             </div>
                         <?php endif; ?>
+
+                        <div class="bw-account-auth__panel <?php echo 'lostpassword' === $active_tab ? 'is-active is-visible' : ''; ?>" data-bw-auth-panel="lostpassword">
+                            <form method="post" class="woocommerce-ResetPassword lost_reset_password bw-account-login__form" action="<?php echo esc_url( wc_lostpassword_url() ); ?>">
+                                <p class="bw-account-login__note"><?php esc_html_e( 'Lost your password? Please enter your username or email address. You will receive a link to create a new password via email.', 'woocommerce' ); ?></p>
+
+                                <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide bw-account-login__field">
+                                    <label for="user_login"><?php esc_html_e( 'Username or email', 'woocommerce' ); ?> <span class="required">*</span></label>
+                                    <input class="woocommerce-Input woocommerce-Input--text input-text" type="text" name="user_login" id="user_login" autocomplete="username" />
+                                </p>
+
+                                <?php do_action( 'woocommerce_lostpassword_form' ); ?>
+
+                                <p class="woocommerce-form-row form-row bw-account-login__actions">
+                                    <input type="hidden" name="wc_reset_password" value="true" />
+                                    <?php wp_nonce_field( 'lost_password', 'woocommerce-lost-password-nonce' ); ?>
+                                    <button type="submit" class="woocommerce-Button button bw-account-login__submit" value="<?php esc_attr_e( 'Reset password', 'woocommerce' ); ?>"><?php esc_html_e( 'Reset password', 'woocommerce' ); ?></button>
+                                </p>
+
+                                <p class="bw-account-login__back-to-login">
+                                    <button type="button" class="bw-account-login__back-link" data-bw-auth-tab="login">← <?php esc_html_e( 'Back to login', 'woocommerce' ); ?></button>
+                                </p>
+                            </form>
+                        </div>
                     </div>
                 </div>
 
