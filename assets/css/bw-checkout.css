@@ -75,11 +75,12 @@ body.woocommerce-checkout {
     background: var(--bw-checkout-page-bg, #ffffff);
 }
 
-.bw-checkout-grid {
+body.woocommerce-checkout .bw-checkout-grid {
     display: block;
     --bw-checkout-left-col: 62%;
     --bw-checkout-right-col: 38%;
     background: var(--bw-checkout-grid-bg, var(--bw-checkout-left-bg, #ffffff));
+    position: relative;
 }
 
 /* Force all direct children of checkout grid to not break layout */
@@ -164,30 +165,46 @@ body.woocommerce-checkout .bw-checkout-right #order_review_inner {
         padding: 0;
     }
 
-    .bw-checkout-grid {
+    body.woocommerce-checkout .bw-checkout-grid {
         display: grid;
         grid-template-columns: minmax(0, var(--bw-checkout-left-col)) 1px minmax(0, var(--bw-checkout-right-col));
         gap: 0;
         align-items: start;
     }
 
+    body.woocommerce-checkout .bw-checkout-grid::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: 0;
+        height: 100%;
+        width: max(50vw, calc(100% - var(--bw-checkout-left-col, 62%)));
+        background: var(--bw-checkout-right-bg, transparent);
+        z-index: 0;
+        pointer-events: none;
+    }
+
     /* Left column - explicitly positioned to span all rows */
-    .bw-checkout-left {
+    body.woocommerce-checkout .bw-checkout-left {
         background: var(--bw-checkout-left-bg, #ffffff);
         padding: 0 28px 0 0;
         margin-bottom: 0;
         grid-column: 1 / 2;
         grid-row: 1 / 10;
+        position: relative;
+        z-index: 1;
     }
 
     /* Center separator line */
-    .bw-checkout-grid::before {
+    body.woocommerce-checkout .bw-checkout-grid::before {
         content: "";
         grid-column: 2 / 3;
         grid-row: 1 / 10;
         width: 1px;
         background: var(--bw-checkout-border-color, #262626);
         height: 100%;
+        position: relative;
+        z-index: 1;
     }
 
     /* Right column heading - positioned above right column */
@@ -196,6 +213,8 @@ body.woocommerce-checkout .bw-checkout-right #order_review_inner {
         grid-row: 1 / 2;
         padding-left: var(--bw-checkout-right-pad-left, 28px);
         margin-bottom: 16px;
+        position: relative;
+        z-index: 1;
     }
 
     /* Right column - sticky positioned - always starts from row 1 to align to top */
@@ -209,6 +228,7 @@ body.woocommerce-checkout .bw-checkout-right #order_review_inner {
         border: none;
         border-radius: 0;
         align-self: start;
+        z-index: 1;
     }
 
     /* Inner container for right column styling */
