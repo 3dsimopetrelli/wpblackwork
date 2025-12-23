@@ -30,7 +30,6 @@ function bw_mew_initialize_woocommerce_overrides() {
     add_action( 'template_redirect', 'bw_mew_prepare_account_page_layout', 9 );
     add_action( 'template_redirect', 'bw_mew_prepare_checkout_layout', 9 );
     add_action( 'template_redirect', 'bw_mew_hide_single_product_notices', 9 );
-    add_action( 'woocommerce_review_order_after_payment', 'bw_mew_render_checkout_legal_text', 5 );
     add_action( 'woocommerce_checkout_update_order_review', 'bw_mew_sync_checkout_cart_quantities', 10, 1 );
 }
 add_action( 'plugins_loaded', 'bw_mew_initialize_woocommerce_overrides' );
@@ -233,19 +232,6 @@ function bw_mew_hide_single_product_notices() {
 function bw_mew_handle_social_login_requests() {
     // This function is deprecated and no longer used.
     // Social login is now handled by the BW_Social_Login class.
-}
-
-/**
- * Print the legal text block below the payment methods during checkout.
- */
-function bw_mew_render_checkout_legal_text() {
-    $settings = bw_mew_get_checkout_settings();
-
-    if ( empty( $settings['legal_text'] ) ) {
-        return;
-    }
-
-    echo '<div class="bw-checkout-legal-text">' . wp_kses_post( $settings['legal_text'] ) . '</div>';
 }
 
 /**
