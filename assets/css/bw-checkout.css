@@ -219,12 +219,11 @@ body.woocommerce-checkout .bw-checkout-right #order_review_inner {
         z-index: 1;
     }
 
-    /* Right column - sticky positioned - always starts from row 1 to align to top */
+    /* Right column - sticky behavior managed by JavaScript */
     body.woocommerce-checkout .bw-checkout-right {
         grid-column: 3 / 4;
         grid-row: 1 / 3;
-        position: sticky;
-        top: var(--bw-checkout-right-sticky-top, 20px);
+        position: relative;
         margin-top: var(--bw-checkout-right-margin-top, 0px);
         padding: var(--bw-checkout-right-pad-top, 0px) var(--bw-checkout-right-pad-right, 0px) var(--bw-checkout-right-pad-bottom, 0px) var(--bw-checkout-right-pad-left, 28px);
         background: var(--bw-checkout-right-bg, transparent);
