@@ -758,7 +758,7 @@ body.woocommerce-checkout .bw-checkout-right table.shop_table tbody .bw-review-i
 }
 
 body.woocommerce-checkout .bw-checkout-right table.shop_table tbody .bw-review-item:last-child td {
-    padding-bottom: 0;
+    padding-bottom: 15px;
 }
 
 body.woocommerce-checkout .bw-checkout-right table.shop_table tbody .bw-review-item td.product-thumbnail {
@@ -857,16 +857,14 @@ body.woocommerce-checkout .bw-checkout-right .bw-review-item__remove {
 
 /* Text Remove button next to quantity */
 body.woocommerce-checkout .bw-checkout-right .bw-review-item__remove-text {
-    font-size: 14px;
-    color: #111111;
+    font-size: 11px;
+    color: #999999;
     text-decoration: none;
-    transition: color 0.2s;
     cursor: pointer;
     white-space: nowrap;
 }
 
 body.woocommerce-checkout .bw-checkout-right .bw-review-item__remove-text:hover {
-    color: #7e3cfd;
     text-decoration: underline;
 }
 
@@ -886,7 +884,7 @@ body.woocommerce-checkout .bw-checkout-right .bw-review-item__controls {
 .bw-qty-shell {
     display: inline-grid;
     grid-template-columns: 30px 40px 30px;
-    align-items: stretch;
+    align-items: center;
     border: 1px solid #d9d9d9;
     border-radius: 16px;
     overflow: hidden;
@@ -1210,7 +1208,11 @@ body.woocommerce-checkout .bw-checkout-right .bw-review-item__controls {
     }
 
     body.woocommerce-checkout .bw-checkout-right .bw-review-item__remove-text {
-        font-size: 13px;
+        font-size: 11px;
+    }
+
+    body.woocommerce-checkout .bw-checkout-right table.shop_table tbody .bw-review-item:last-child td {
+        padding-bottom: 12px;
     }
 
     .bw-qty-control {
