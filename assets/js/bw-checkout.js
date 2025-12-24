@@ -249,9 +249,8 @@
             return;
         }
 
-        // Get CSS variables
+        // Get CSS variable for sticky offset
         var style = window.getComputedStyle(rightColumn);
-        var marginTop = parseInt(style.getPropertyValue('--bw-checkout-right-margin-top')) || 0;
         var stickyTop = parseInt(style.getPropertyValue('--bw-checkout-right-sticky-top')) || 20;
 
         var initialOffset = null;
@@ -268,7 +267,6 @@
                 rightColumn.style.top = '';
                 rightColumn.style.left = '';
                 rightColumn.style.width = '';
-                rightColumn.style.marginTop = '';
                 if (placeholder && placeholder.parentNode) {
                     placeholder.parentNode.removeChild(placeholder);
                     placeholder = null;
@@ -282,14 +280,13 @@
             resetSticky();
 
             var rect = rightColumn.getBoundingClientRect();
-            var parentRect = parent.getBoundingClientRect();
-            initialOffset = rect.top + window.pageYOffset - marginTop;
+            // Calculate where the column starts relative to the document
+            initialOffset = rect.top + window.pageYOffset;
 
             return {
                 elementTop: rect.top,
                 elementLeft: rect.left,
-                elementWidth: rect.width,
-                parentLeft: parentRect.left
+                elementWidth: rect.width
             };
         }
 
@@ -301,11 +298,12 @@
             }
 
             if (initialOffset === null) {
-                var offsets = calculateOffsets();
+                calculateOffsets();
             }
 
             var scrollY = window.pageYOffset;
-            var threshold = initialOffset + marginTop - stickyTop;
+            // When we scroll past the column's initial position minus the sticky offset, make it sticky
+            var threshold = initialOffset - stickyTop;
 
             if (scrollY >= threshold && !isSticky) {
                 // Make it sticky
@@ -324,7 +322,6 @@
                 rightColumn.style.top = stickyTop + 'px';
                 rightColumn.style.left = rect.left + 'px';
                 rightColumn.style.width = rect.width + 'px';
-                rightColumn.style.marginTop = '0';
 
             } else if (scrollY < threshold && isSticky) {
                 // Return to normal
@@ -343,7 +340,7 @@
             // Recalculate on desktop resize
             initialOffset = null;
             if (isSticky) {
-                var offsets = calculateOffsets();
+                calculateOffsets();
                 setTimeout(onScroll, 0);
             }
         }
