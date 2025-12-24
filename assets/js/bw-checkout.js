@@ -61,7 +61,7 @@
             return;
         }
 
-        var remove = event.target.closest('.bw-review-item__remove');
+        var remove = event.target.closest('.bw-review-item__remove, .bw-review-item__remove-text');
 
         if (remove) {
             event.preventDefault();
