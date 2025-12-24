@@ -504,20 +504,43 @@ function bw_mew_get_passwordless_url() {
 function bw_mew_ajax_remove_coupon() {
     check_ajax_referer( 'bw-checkout-nonce', 'nonce' );
 
+    if ( ! class_exists( 'WooCommerce' ) || ! WC()->cart ) {
+        wp_send_json_error( array( 'message' => __( 'Cart not available.', 'woocommerce' ) ) );
+    }
+
     $coupon_code = isset( $_POST['coupon'] ) ? sanitize_text_field( wp_unslash( $_POST['coupon'] ) ) : '';
 
     if ( empty( $coupon_code ) ) {
         wp_send_json_error( array( 'message' => __( 'Invalid coupon code.', 'woocommerce' ) ) );
     }
 
-    if ( ! WC()->cart->remove_coupon( $coupon_code ) ) {
+    // Verify the coupon is actually applied before attempting removal
+    $applied_coupons = WC()->cart->get_applied_coupons();
+    if ( ! in_array( strtolower( $coupon_code ), array_map( 'strtolower', $applied_coupons ), true ) ) {
+        wp_send_json_error( array( 'message' => __( 'Coupon is not applied.', 'woocommerce' ) ) );
+    }
+
+    // Remove the coupon
+    $removed = WC()->cart->remove_coupon( $coupon_code );
+
+    if ( ! $removed ) {
         wp_send_json_error( array( 'message' => __( 'Coupon could not be removed.', 'woocommerce' ) ) );
     }
 
     // Calculate totals after removing coupon
     WC()->cart->calculate_totals();
 
+    // CRITICAL: Persist the cart session so the coupon removal is saved
+    if ( WC()->session ) {
+        WC()->cart->persistent_cart_update();
+        WC()->session->save_data();
+    }
+
+    // Clear any cart-related caches
+    wc_clear_notices();
+
     wp_send_json_success( array(
-        'message' => __( 'Coupon removed successfully.', 'woocommerce' ),
+        'message'         => __( 'Coupon removed successfully.', 'woocommerce' ),
+        'applied_coupons' => WC()->cart->get_applied_coupons(),
     ) );
 }
