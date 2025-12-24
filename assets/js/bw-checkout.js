@@ -234,4 +234,132 @@
 
         });
     }
+
+    // Custom sticky behavior for right column
+    function initCustomSticky() {
+        var rightColumn = document.querySelector('.bw-checkout-right');
+        if (!rightColumn) {
+            return;
+        }
+
+        var parent = rightColumn.parentElement;
+        if (!parent) {
+            return;
+        }
+
+        // Get CSS variables
+        var style = window.getComputedStyle(rightColumn);
+        var marginTop = parseInt(style.getPropertyValue('--bw-checkout-right-margin-top')) || 0;
+        var stickyTop = parseInt(style.getPropertyValue('--bw-checkout-right-sticky-top')) || 20;
+
+        var initialOffset = null;
+        var isSticky = false;
+        var placeholder = null;
+
+        function calculateOffsets() {
+            // Reset to get accurate measurements
+            if (isSticky) {
+                rightColumn.style.position = '';
+                rightColumn.style.top = '';
+                rightColumn.style.left = '';
+                rightColumn.style.width = '';
+                rightColumn.style.marginTop = '';
+                if (placeholder && placeholder.parentNode) {
+                    placeholder.parentNode.removeChild(placeholder);
+                    placeholder = null;
+                }
+                isSticky = false;
+            }
+
+            var rect = rightColumn.getBoundingClientRect();
+            var parentRect = parent.getBoundingClientRect();
+            initialOffset = rect.top + window.pageYOffset - marginTop;
+
+            return {
+                elementTop: rect.top,
+                elementLeft: rect.left,
+                elementWidth: rect.width,
+                parentLeft: parentRect.left
+            };
+        }
+
+        function onScroll() {
+            if (initialOffset === null) {
+                var offsets = calculateOffsets();
+            }
+
+            var scrollY = window.pageYOffset;
+            var threshold = initialOffset + marginTop - stickyTop;
+
+            if (scrollY >= threshold && !isSticky) {
+                // Make it sticky
+                isSticky = true;
+
+                // Create placeholder to maintain layout
+                if (!placeholder) {
+                    placeholder = document.createElement('div');
+                    placeholder.style.height = rightColumn.offsetHeight + 'px';
+                    placeholder.style.width = rightColumn.offsetWidth + 'px';
+                    parent.insertBefore(placeholder, rightColumn);
+                }
+
+                var rect = rightColumn.getBoundingClientRect();
+                rightColumn.style.position = 'fixed';
+                rightColumn.style.top = stickyTop + 'px';
+                rightColumn.style.left = rect.left + 'px';
+                rightColumn.style.width = rect.width + 'px';
+                rightColumn.style.marginTop = '0';
+
+            } else if (scrollY < threshold && isSticky) {
+                // Return to normal
+                isSticky = false;
+                rightColumn.style.position = '';
+                rightColumn.style.top = '';
+                rightColumn.style.left = '';
+                rightColumn.style.width = '';
+                rightColumn.style.marginTop = '';
+
+                if (placeholder && placeholder.parentNode) {
+                    placeholder.parentNode.removeChild(placeholder);
+                    placeholder = null;
+                }
+            }
+        }
+
+        function onResize() {
+            initialOffset = null;
+            if (isSticky) {
+                var offsets = calculateOffsets();
+                setTimeout(onScroll, 0);
+            }
+        }
+
+        // Initialize on load
+        setTimeout(function() {
+            calculateOffsets();
+            onScroll();
+        }, 100);
+
+        // Listen to scroll and resize
+        window.addEventListener('scroll', onScroll, { passive: true });
+        window.addEventListener('resize', onResize);
+
+        // Re-calculate on checkout update
+        if (window.jQuery) {
+            window.jQuery(document.body).on('updated_checkout', function() {
+                setTimeout(function() {
+                    initialOffset = null;
+                    calculateOffsets();
+                    onScroll();
+                }, 500);
+            });
+        }
+    }
+
+    // Initialize custom sticky
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initCustomSticky);
+    } else {
+        initCustomSticky();
+    }
 })();

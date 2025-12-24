@@ -55,9 +55,13 @@ $grid_inline_styles = sprintf(
 );
 
 $right_column_inline_styles = sprintf(
-    '%s background:%s;',
+    '%s background:%s; padding:%dpx %dpx %dpx %dpx;',
     $right_spacing_vars,
-    isset( $settings['right_bg'] ) ? esc_attr( $settings['right_bg'] ) : 'transparent'
+    isset( $settings['right_bg'] ) ? esc_attr( $settings['right_bg'] ) : 'transparent',
+    $right_padding_top,
+    $right_padding_right,
+    $right_padding_bottom,
+    $right_padding_left
 );
 
 $page_background_styles = sprintf(
