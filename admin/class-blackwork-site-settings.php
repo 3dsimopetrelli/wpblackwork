@@ -661,8 +661,16 @@ function bw_site_render_checkout_tab() {
         update_option( 'bw_checkout_thumb_width', $thumb_width );
         update_option( 'bw_checkout_footer_text', $footer_text );
 
-        $saved = true;
+        // Redirect to the same tab to prevent losing tab state
+        wp_safe_redirect( add_query_arg( array(
+            'page' => 'blackwork-site-settings',
+            'tab'  => 'checkout',
+            'saved' => '1'
+        ), admin_url( 'admin.php' ) ) );
+        exit;
     }
+
+    $saved = isset( $_GET['saved'] ) && $_GET['saved'] === '1';
 
     $logo                = get_option( 'bw_checkout_logo', '' );
     $logo_align          = get_option( 'bw_checkout_logo_align', 'left' );
