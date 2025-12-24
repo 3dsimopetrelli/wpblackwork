@@ -88,9 +88,8 @@
             event.stopPropagation();
 
             var couponCode = couponRemove.getAttribute('data-coupon');
-            var removeUrl = couponRemove.getAttribute('href');
 
-            if (!couponCode || !removeUrl || !window.jQuery) {
+            if (!couponCode || !window.jQuery || !window.bwCheckoutParams) {
                 return;
             }
 
@@ -98,16 +97,28 @@
 
             var $ = window.jQuery;
 
-            // Use the direct URL to remove the coupon, then trigger checkout update
-            $.get(removeUrl, function () {
-                // Wait a moment to ensure session is updated
-                setTimeout(function () {
-                    $(document.body).trigger('update_checkout');
-                    $(document.body).trigger('removed_coupon', [couponCode]);
-                }, 100);
-            }).fail(function () {
-                setOrderSummaryLoading(false);
-                showCouponMessage('Error removing coupon', 'error');
+            // Use our custom AJAX endpoint to remove the coupon
+            $.ajax({
+                type: 'POST',
+                url: bwCheckoutParams.ajax_url,
+                data: {
+                    action: 'bw_remove_coupon',
+                    nonce: bwCheckoutParams.nonce,
+                    coupon: couponCode
+                },
+                success: function (response) {
+                    if (response.success) {
+                        // Trigger checkout update to refresh totals
+                        $(document.body).trigger('update_checkout');
+                    } else {
+                        setOrderSummaryLoading(false);
+                        showCouponMessage(response.data.message || 'Error removing coupon', 'error');
+                    }
+                },
+                error: function () {
+                    setOrderSummaryLoading(false);
+                    showCouponMessage('Error removing coupon', 'error');
+                }
             });
 
             return;
