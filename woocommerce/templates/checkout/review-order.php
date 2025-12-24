@@ -86,7 +86,7 @@ $thumb_aspect      = $thumb_map[ $thumb_ratio ];
                                 <div class="bw-qty-control">
                                     <?php
                                     if ( $product->is_sold_individually() ) {
-                                        echo '<span class="bw-qty-static">' . sprintf( /* translators: %s: quantity */ esc_html__( 'Qty: %s', 'woocommerce' ), esc_html( $cart_item['quantity'] ) ) . '</span>';
+                                        echo '<span class="bw-qty-badge">' . esc_html__( 'Sold individually', 'woocommerce' ) . '</span>';
                                     } else {
                                         echo '<div class="bw-qty-shell">';
                                         echo '<button type="button" class="bw-qty-btn bw-qty-btn--minus" aria-label="' . esc_attr__( 'Reduce quantity', 'woocommerce' ) . '">-</button>';
@@ -111,16 +111,14 @@ $thumb_aspect      = $thumb_map[ $thumb_ratio ];
                                     }
                                     ?>
                                 </div>
-                                <?php if ( ! $product->is_sold_individually() ) : ?>
-                                    <a href="<?php echo esc_url( wc_get_cart_remove_url( $cart_item_key ) ); ?>"
-                                       class="bw-review-item__remove-text remove"
-                                       aria-label="<?php esc_attr_e( 'Remove this item', 'woocommerce' ); ?>"
-                                       data-product_id="<?php echo esc_attr( $product->get_id() ); ?>"
-                                       data-cart_item_key="<?php echo esc_attr( $cart_item_key ); ?>"
-                                       data-product_sku="<?php echo esc_attr( $product->get_sku() ); ?>">
-                                        <?php esc_html_e( 'Remove', 'woocommerce' ); ?>
-                                    </a>
-                                <?php endif; ?>
+                                <a href="<?php echo esc_url( wc_get_cart_remove_url( $cart_item_key ) ); ?>"
+                                   class="bw-review-item__remove-text remove"
+                                   aria-label="<?php esc_attr_e( 'Remove this item', 'woocommerce' ); ?>"
+                                   data-product_id="<?php echo esc_attr( $product->get_id() ); ?>"
+                                   data-cart_item_key="<?php echo esc_attr( $cart_item_key ); ?>"
+                                   data-product_sku="<?php echo esc_attr( $product->get_sku() ); ?>">
+                                    <?php esc_html_e( 'Remove', 'woocommerce' ); ?>
+                                </a>
                             </div>
                         </div>
                     </td>
