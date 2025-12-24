@@ -268,7 +268,7 @@
                 rightColumn.style.top = '';
                 rightColumn.style.left = '';
                 rightColumn.style.width = '';
-                rightColumn.style.marginTop = '';
+                rightColumn.style.marginTop = marginTop + 'px'; // Restore original margin-top
                 if (placeholder && placeholder.parentNode) {
                     placeholder.parentNode.removeChild(placeholder);
                     placeholder = null;
