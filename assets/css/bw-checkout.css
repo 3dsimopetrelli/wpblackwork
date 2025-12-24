@@ -936,11 +936,8 @@ body.woocommerce-checkout .bw-checkout-right .bw-review-item__controls {
     -moz-appearance: textfield !important;
     background: transparent !important;
     color: #333333 !important;
-    line-height: 1 !important;
+    line-height: 32px !important;
     vertical-align: middle !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
 }
 
 .bw-qty-shell input.qty::-webkit-outer-spin-button,
@@ -958,10 +955,11 @@ body.woocommerce-checkout .bw-checkout-right .bw-review-item__controls {
 body.woocommerce-checkout .bw-checkout-right .bw-qty-badge {
     display: inline-block;
     padding: 6px 12px;
-    background: #f5f5f5;
+    background: #e0e0e0;
     border-radius: 16px;
     font-size: 11px;
-    color: #666666;
+    color: #000000;
+    font-weight: 500;
     white-space: nowrap;
 }
 
