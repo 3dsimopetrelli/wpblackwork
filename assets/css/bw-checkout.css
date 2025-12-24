@@ -954,12 +954,12 @@ body.woocommerce-checkout .bw-checkout-right .bw-review-item__controls {
 /* Sold individually badge */
 body.woocommerce-checkout .bw-checkout-right .bw-qty-badge {
     display: inline-block;
-    padding: 6px 12px;
+    padding: 3px 12px;
     background: #e0e0e0;
-    border-radius: 16px;
+    border-radius: 10px;
     font-size: 11px;
     color: #000000;
-    font-weight: 500;
+    font-weight: 700;
     white-space: nowrap;
 }
 
