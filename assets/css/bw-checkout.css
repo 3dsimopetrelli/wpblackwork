@@ -758,7 +758,7 @@ body.woocommerce-checkout .bw-checkout-right table.shop_table tbody .bw-review-i
 }
 
 body.woocommerce-checkout .bw-checkout-right table.shop_table tbody .bw-review-item:last-child td {
-    padding-bottom: 15px;
+    padding-bottom: 25px;
 }
 
 body.woocommerce-checkout .bw-checkout-right table.shop_table tbody .bw-review-item td.product-thumbnail {
@@ -952,6 +952,17 @@ body.woocommerce-checkout .bw-checkout-right .bw-review-item__controls {
 .bw-qty-static {
     font-size: 13px;
     color: #bdbdbd;
+}
+
+/* Sold individually badge */
+body.woocommerce-checkout .bw-checkout-right .bw-qty-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    background: #f5f5f5;
+    border-radius: 16px;
+    font-size: 11px;
+    color: #666666;
+    white-space: nowrap;
 }
 
 /* Coupon form - Style matching reference image */
@@ -1210,7 +1221,7 @@ body.woocommerce-checkout .bw-checkout-right .bw-review-item__controls {
     }
 
     body.woocommerce-checkout .bw-checkout-right table.shop_table tbody .bw-review-item:last-child td {
-        padding-bottom: 15px;
+        padding-bottom: 25px;
     }
 
     .bw-qty-control {
