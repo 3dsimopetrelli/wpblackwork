@@ -224,7 +224,6 @@ body.woocommerce-checkout .bw-checkout-right #order_review_inner {
         grid-column: 3 / 4;
         grid-row: 1 / 3;
         position: relative;
-        margin-top: var(--bw-checkout-right-margin-top, 0px);
         padding: var(--bw-checkout-right-pad-top, 0px) var(--bw-checkout-right-pad-right, 0px) var(--bw-checkout-right-pad-bottom, 0px) var(--bw-checkout-right-pad-left, 28px);
         background: var(--bw-checkout-right-bg, transparent);
         border: none;
