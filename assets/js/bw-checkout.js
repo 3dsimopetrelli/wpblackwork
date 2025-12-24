@@ -235,8 +235,10 @@
         });
     }
 
-    // Custom sticky behavior for right column
+    // Custom sticky behavior for right column (desktop only)
     function initCustomSticky() {
+        var BREAKPOINT = 900; // Match CSS @media breakpoint
+
         var rightColumn = document.querySelector('.bw-checkout-right');
         if (!rightColumn) {
             return;
@@ -256,8 +258,11 @@
         var isSticky = false;
         var placeholder = null;
 
-        function calculateOffsets() {
-            // Reset to get accurate measurements
+        function isDesktop() {
+            return window.innerWidth >= BREAKPOINT;
+        }
+
+        function resetSticky() {
             if (isSticky) {
                 rightColumn.style.position = '';
                 rightColumn.style.top = '';
@@ -270,6 +275,11 @@
                 }
                 isSticky = false;
             }
+        }
+
+        function calculateOffsets() {
+            // Reset to get accurate measurements
+            resetSticky();
 
             var rect = rightColumn.getBoundingClientRect();
             var parentRect = parent.getBoundingClientRect();
@@ -284,6 +294,12 @@
         }
 
         function onScroll() {
+            // Only apply sticky on desktop
+            if (!isDesktop()) {
+                resetSticky();
+                return;
+            }
+
             if (initialOffset === null) {
                 var offsets = calculateOffsets();
             }
@@ -312,21 +328,19 @@
 
             } else if (scrollY < threshold && isSticky) {
                 // Return to normal
-                isSticky = false;
-                rightColumn.style.position = '';
-                rightColumn.style.top = '';
-                rightColumn.style.left = '';
-                rightColumn.style.width = '';
-                rightColumn.style.marginTop = '';
-
-                if (placeholder && placeholder.parentNode) {
-                    placeholder.parentNode.removeChild(placeholder);
-                    placeholder = null;
-                }
+                resetSticky();
             }
         }
 
         function onResize() {
+            // Reset sticky if switching to mobile
+            if (!isDesktop()) {
+                resetSticky();
+                initialOffset = null;
+                return;
+            }
+
+            // Recalculate on desktop resize
             initialOffset = null;
             if (isSticky) {
                 var offsets = calculateOffsets();
