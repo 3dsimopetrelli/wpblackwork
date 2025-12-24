@@ -249,9 +249,10 @@
             return;
         }
 
-        // Get CSS variable for sticky offset
+        // Get CSS variables
         var style = window.getComputedStyle(rightColumn);
         var stickyTop = parseInt(style.getPropertyValue('--bw-checkout-right-sticky-top')) || 20;
+        var marginTop = parseInt(style.getPropertyValue('--bw-checkout-right-margin-top')) || 0;
 
         var initialOffset = null;
         var isSticky = false;
@@ -267,6 +268,7 @@
                 rightColumn.style.top = '';
                 rightColumn.style.left = '';
                 rightColumn.style.width = '';
+                rightColumn.style.marginTop = '';
                 if (placeholder && placeholder.parentNode) {
                     placeholder.parentNode.removeChild(placeholder);
                     placeholder = null;
@@ -322,6 +324,7 @@
                 rightColumn.style.top = stickyTop + 'px';
                 rightColumn.style.left = rect.left + 'px';
                 rightColumn.style.width = rect.width + 'px';
+                rightColumn.style.marginTop = '0';
 
             } else if (scrollY < threshold && isSticky) {
                 // Return to normal

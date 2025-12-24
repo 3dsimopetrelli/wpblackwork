@@ -592,6 +592,7 @@ function bw_site_render_checkout_tab() {
         $left_bg              = isset( $_POST['bw_checkout_left_bg_color'] ) ? sanitize_hex_color( wp_unslash( $_POST['bw_checkout_left_bg_color'] ) ) : '';
         $right_bg             = isset( $_POST['bw_checkout_right_bg_color'] ) ? sanitize_hex_color( wp_unslash( $_POST['bw_checkout_right_bg_color'] ) ) : '';
         $right_sticky_top     = isset( $_POST['bw_checkout_right_sticky_top'] ) ? absint( $_POST['bw_checkout_right_sticky_top'] ) : 20;
+        $right_margin_top     = isset( $_POST['bw_checkout_right_margin_top'] ) ? absint( $_POST['bw_checkout_right_margin_top'] ) : 0;
         $right_padding_top    = isset( $_POST['bw_checkout_right_padding_top'] ) ? absint( $_POST['bw_checkout_right_padding_top'] ) : 0;
         $right_padding_right  = isset( $_POST['bw_checkout_right_padding_right'] ) ? absint( $_POST['bw_checkout_right_padding_right'] ) : 0;
         $right_padding_bottom = isset( $_POST['bw_checkout_right_padding_bottom'] ) ? absint( $_POST['bw_checkout_right_padding_bottom'] ) : 0;
@@ -647,6 +648,7 @@ function bw_site_render_checkout_tab() {
         update_option( 'bw_checkout_left_bg_color', $left_bg );
         update_option( 'bw_checkout_right_bg_color', $right_bg );
         update_option( 'bw_checkout_right_sticky_top', $right_sticky_top );
+        update_option( 'bw_checkout_right_margin_top', $right_margin_top );
         update_option( 'bw_checkout_right_padding_top', $right_padding_top );
         update_option( 'bw_checkout_right_padding_right', $right_padding_right );
         update_option( 'bw_checkout_right_padding_bottom', $right_padding_bottom );
@@ -688,6 +690,7 @@ function bw_site_render_checkout_tab() {
     $left_bg             = get_option( 'bw_checkout_left_bg_color', '#ffffff' );
     $right_bg            = get_option( 'bw_checkout_right_bg_color', 'transparent' );
     $right_sticky_top    = get_option( 'bw_checkout_right_sticky_top', 20 );
+    $right_margin_top    = get_option( 'bw_checkout_right_margin_top', 0 );
     $right_padding_top   = get_option( 'bw_checkout_right_padding_top', 0 );
     $right_padding_right = get_option( 'bw_checkout_right_padding_right', 0 );
     $right_padding_bottom = get_option( 'bw_checkout_right_padding_bottom', 0 );
@@ -827,7 +830,16 @@ function bw_site_render_checkout_tab() {
                 </th>
                 <td>
                     <input type="number" id="bw_checkout_right_sticky_top" name="bw_checkout_right_sticky_top" value="<?php echo esc_attr( absint( $right_sticky_top ) ); ?>" min="0" step="1" style="width: 90px;" />
-                    <p class="description">Controls the top offset for the sticky order summary (right column) on desktop.</p>
+                    <p class="description">Distance from top when column becomes sticky during scroll.</p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_checkout_right_margin_top">Right Column Margin Top (px)</label>
+                </th>
+                <td>
+                    <input type="number" id="bw_checkout_right_margin_top" name="bw_checkout_right_margin_top" value="<?php echo esc_attr( absint( $right_margin_top ) ); ?>" min="0" step="1" style="width: 90px;" />
+                    <p class="description">Initial top margin to align the column with the form (e.g., 150px to lower it).</p>
                 </td>
             </tr>
             <tr>

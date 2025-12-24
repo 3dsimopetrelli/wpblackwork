@@ -27,16 +27,18 @@ $right_padding_right  = isset( $settings['right_padding_right'] ) ? absint( $set
 $right_padding_bottom = isset( $settings['right_padding_bottom'] ) ? absint( $settings['right_padding_bottom'] ) : 0;
 $right_padding_left   = isset( $settings['right_padding_left'] ) ? absint( $settings['right_padding_left'] ) : 28;
 $right_sticky_top     = isset( $settings['right_sticky_top'] ) ? absint( $settings['right_sticky_top'] ) : 20;
+$right_margin_top     = isset( $settings['right_margin_top'] ) ? absint( $settings['right_margin_top'] ) : 0;
 $page_bg              = isset( $settings['page_bg'] ) ? esc_attr( $settings['page_bg'] ) : '#ffffff';
 $grid_bg              = isset( $settings['grid_bg'] ) ? esc_attr( $settings['grid_bg'] ) : '#ffffff';
 
 $right_spacing_vars = sprintf(
-    '--bw-checkout-right-pad-top:%1$dpx; --bw-checkout-right-pad-right:%2$dpx; --bw-checkout-right-pad-bottom:%3$dpx; --bw-checkout-right-pad-left:%4$dpx; --bw-checkout-right-sticky-top:%5$dpx;',
+    '--bw-checkout-right-pad-top:%1$dpx; --bw-checkout-right-pad-right:%2$dpx; --bw-checkout-right-pad-bottom:%3$dpx; --bw-checkout-right-pad-left:%4$dpx; --bw-checkout-right-sticky-top:%5$dpx; --bw-checkout-right-margin-top:%6$dpx;',
     $right_padding_top,
     $right_padding_right,
     $right_padding_bottom,
     $right_padding_left,
-    $right_sticky_top
+    $right_sticky_top,
+    $right_margin_top
 );
 
 $grid_inline_styles = sprintf(
