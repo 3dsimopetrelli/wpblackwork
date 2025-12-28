@@ -951,17 +951,24 @@ body.woocommerce-checkout .bw-checkout-right .bw-review-item__controls {
 
 /* Quantity controls - CHECKOUT SPECIFIC OVERRIDES */
 body.woocommerce-checkout .bw-checkout-right .bw-qty-shell {
+    display: inline-grid !important;
+    grid-template-columns: 25px 35px 25px !important;
     border: 1px solid #000000 !important;
     border-radius: 10px !important;
-    height: 34px !important;
+    height: 29px !important;
     background: #ffffff !important;
+    align-items: center !important;
 }
 
 body.woocommerce-checkout .bw-checkout-right .bw-qty-btn {
-    height: 34px !important;
+    height: 29px !important;
     font-size: 16px !important;
     color: #000000 !important;
     font-weight: 400 !important;
+    line-height: 29px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 }
 
 body.woocommerce-checkout .bw-checkout-right .bw-qty-btn:hover {
@@ -969,18 +976,19 @@ body.woocommerce-checkout .bw-checkout-right .bw-qty-btn:hover {
 }
 
 body.woocommerce-checkout .bw-checkout-right .bw-qty-btn--minus {
-    border-right: 1px solid #000000 !important;
+    border-right: none !important;
     border-radius: 10px 0 0 10px !important;
 }
 
 body.woocommerce-checkout .bw-checkout-right .bw-qty-btn--plus {
-    border-left: 1px solid #000000 !important;
+    border-left: none !important;
     border-radius: 0 10px 10px 0 !important;
 }
 
 body.woocommerce-checkout .bw-checkout-right .bw-qty-shell input.qty {
-    height: 34px !important;
-    line-height: 34px !important;
+    width: 35px !important;
+    height: 29px !important;
+    line-height: 29px !important;
     font-size: 14px !important;
     color: #000000 !important;
     font-weight: 400 !important;
