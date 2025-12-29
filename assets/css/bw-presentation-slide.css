@@ -1,0 +1,394 @@
+/**
+ * BW Presentation Slide Widget Styles
+ * Supports horizontal slider and vertical elevator layouts with popup
+ */
+
+/* ========================================
+   WRAPPER & COMMON
+   ======================================== */
+.bw-ps-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.bw-ps-image {
+    position: relative;
+    overflow: hidden;
+}
+
+.bw-ps-image img {
+    display: block;
+    width: 100%;
+    height: auto;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.bw-ps-image-clickable {
+    cursor: pointer;
+}
+
+/* ========================================
+   HORIZONTAL LAYOUT
+   ======================================== */
+.bw-ps-horizontal {
+    position: relative;
+    width: 100%;
+}
+
+.bw-ps-slider-horizontal {
+    width: 100%;
+}
+
+.bw-ps-slide {
+    padding: 10px;
+    outline: none;
+}
+
+/* Arrows Container - Bottom Right */
+.bw-ps-arrows-container {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    gap: 10px;
+    z-index: 10;
+}
+
+.bw-ps-arrow {
+    background: transparent;
+    border: none;
+    color: #000;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 10px;
+    transition: opacity 0.3s ease;
+    user-select: none;
+}
+
+.bw-ps-arrow:hover {
+    opacity: 0.7;
+}
+
+.bw-ps-arrow:focus {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+}
+
+/* Slick active slide center mode */
+.bw-ps-slider-horizontal.slick-initialized .slick-slide {
+    opacity: 0.6;
+    transition: opacity 0.3s ease;
+}
+
+.bw-ps-slider-horizontal.slick-initialized .slick-slide.slick-active {
+    opacity: 1;
+}
+
+.bw-ps-slider-horizontal.slick-initialized .slick-slide.slick-center {
+    opacity: 1;
+}
+
+/* ========================================
+   VERTICAL LAYOUT - DESKTOP
+   ======================================== */
+.bw-ps-vertical {
+    display: flex;
+    gap: 20px;
+    width: 100%;
+}
+
+.bw-ps-thumbnails {
+    flex: 0 0 150px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow-y: auto;
+    max-height: 800px;
+}
+
+.bw-ps-thumb {
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.bw-ps-thumb:hover,
+.bw-ps-thumb.active {
+    opacity: 1;
+    border-color: #000;
+}
+
+.bw-ps-thumb img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.bw-ps-main-images {
+    flex: 1;
+    overflow-y: auto;
+    max-height: 800px;
+    scroll-behavior: smooth;
+}
+
+.bw-ps-main-image {
+    margin-bottom: 20px;
+}
+
+.bw-ps-main-image:last-child {
+    margin-bottom: 0;
+}
+
+/* Vertical Responsive Layout (Mobile/Tablet) */
+.bw-ps-vertical-responsive {
+    width: 100%;
+}
+
+.bw-ps-slider-main {
+    margin-bottom: 15px;
+}
+
+.bw-ps-slide-main {
+    outline: none;
+}
+
+.bw-ps-slider-thumbs {
+    margin: 0 auto;
+}
+
+.bw-ps-slide-thumb {
+    padding: 5px;
+    cursor: pointer;
+    outline: none;
+    opacity: 0.6;
+    transition: opacity 0.3s ease;
+}
+
+.bw-ps-slide-thumb.slick-current {
+    opacity: 1;
+}
+
+.bw-ps-slide-thumb img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+/* ========================================
+   POPUP / MODAL
+   ======================================== */
+.bw-ps-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    z-index: 99999;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    overflow-y: auto;
+}
+
+.bw-ps-popup-overlay.active {
+    opacity: 1;
+}
+
+.bw-ps-popup {
+    position: relative;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    background: #fff;
+    min-height: 100vh;
+}
+
+.bw-ps-popup-header {
+    position: sticky;
+    top: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 30px;
+    background-color: #fff;
+    border-bottom: 1px solid #eee;
+    z-index: 10;
+}
+
+.bw-ps-popup-title {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+    color: #000;
+}
+
+.bw-ps-popup-close {
+    background: transparent;
+    border: none;
+    font-size: 32px;
+    line-height: 1;
+    cursor: pointer;
+    color: #000;
+    transition: color 0.3s ease;
+    padding: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bw-ps-popup-close:hover {
+    color: #666;
+}
+
+.bw-ps-popup-body {
+    padding: 40px 30px;
+}
+
+.bw-ps-popup-image {
+    margin-bottom: 40px;
+    text-align: center;
+}
+
+.bw-ps-popup-image:last-child {
+    margin-bottom: 0;
+}
+
+.bw-ps-popup-image img {
+    max-width: min(2000px, 100%);
+    width: 100%;
+    height: auto;
+    display: inline-block;
+}
+
+/* ========================================
+   CUSTOM CURSOR
+   ======================================== */
+.bw-ps-custom-cursor {
+    position: fixed;
+    pointer-events: none;
+    z-index: 99998;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    transform: translate(-50%, -50%) scale(0);
+    transition: transform 0.2s ease, opacity 0.2s ease;
+    opacity: 0;
+}
+
+.bw-ps-custom-cursor.active {
+    display: flex;
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.bw-ps-custom-cursor.zoom {
+    background-color: rgba(0, 0, 0, 0.8);
+}
+
+.bw-ps-custom-cursor.prev::before {
+    content: '←';
+    font-size: 24px;
+}
+
+.bw-ps-custom-cursor.next::before {
+    content: '→';
+    font-size: 24px;
+}
+
+/* Hide system cursor when custom cursor is active */
+.bw-ps-hide-cursor {
+    cursor: none !important;
+}
+
+.bw-ps-hide-cursor * {
+    cursor: none !important;
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+@media (max-width: 1024px) {
+    /* Hide desktop vertical layout */
+    .bw-ps-vertical .bw-ps-thumbnails,
+    .bw-ps-vertical .bw-ps-main-images {
+        display: none;
+    }
+
+    /* Show responsive slider layout */
+    .bw-ps-vertical .bw-ps-vertical-responsive {
+        display: block !important;
+    }
+
+    .bw-ps-popup-header {
+        padding: 15px 20px;
+    }
+
+    .bw-ps-popup-title {
+        font-size: 18px;
+    }
+
+    .bw-ps-popup-body {
+        padding: 20px 15px;
+    }
+}
+
+@media (max-width: 768px) {
+    .bw-ps-arrows-container {
+        bottom: 10px;
+        right: 10px;
+    }
+
+    .bw-ps-arrow {
+        font-size: 20px;
+        padding: 8px;
+    }
+
+    .bw-ps-popup-image {
+        margin-bottom: 20px;
+    }
+
+    /* Disable custom cursor on mobile */
+    .bw-ps-custom-cursor {
+        display: none !important;
+    }
+}
+
+/* ========================================
+   LOADING STATE
+   ======================================== */
+.bw-ps-wrapper.loading {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+/* ========================================
+   ACCESSIBILITY
+   ======================================== */
+.bw-ps-wrapper *:focus-visible {
+    outline: 2px solid #0073aa;
+    outline-offset: 2px;
+}
+
+/* Screen reader only */
+.bw-ps-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
