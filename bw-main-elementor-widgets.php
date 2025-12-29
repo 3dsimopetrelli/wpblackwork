@@ -142,6 +142,11 @@ add_action( 'elementor/frontend/after_register_scripts', 'bw_register_price_vari
 add_action( 'init', 'bw_register_add_to_cart_variation_widget_assets' );
 add_action( 'elementor/frontend/after_register_styles', 'bw_register_add_to_cart_variation_widget_assets' );
 add_action( 'elementor/frontend/after_register_scripts', 'bw_register_add_to_cart_variation_widget_assets' );
+add_action( 'init', 'bw_register_presentation_slide_widget_assets' );
+add_action( 'elementor/frontend/after_register_styles', 'bw_register_presentation_slide_widget_assets' );
+add_action( 'elementor/frontend/after_register_scripts', 'bw_register_presentation_slide_widget_assets' );
+add_action( 'elementor/frontend/after_enqueue_scripts', 'bw_enqueue_presentation_slide_widget_assets' );
+add_action( 'elementor/editor/after_enqueue_scripts', 'bw_enqueue_presentation_slide_widget_assets' );
 
 function bw_enqueue_slick_slider_assets() {
     wp_enqueue_style(
@@ -636,6 +641,43 @@ function bw_register_price_variation_widget_assets() {
             ],
         ]
     );
+}
+
+function bw_register_presentation_slide_widget_assets() {
+    $css_file = __DIR__ . '/assets/css/bw-presentation-slide.css';
+    $css_version = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
+
+    wp_register_style(
+        'bw-presentation-slide-style',
+        plugin_dir_url( __FILE__ ) . 'assets/css/bw-presentation-slide.css',
+        [],
+        $css_version
+    );
+
+    $js_file = __DIR__ . '/assets/js/bw-presentation-slide.js';
+    $js_version = file_exists( $js_file ) ? filemtime( $js_file ) : '1.0.0';
+
+    wp_register_script(
+        'bw-presentation-slide-script',
+        plugin_dir_url( __FILE__ ) . 'assets/js/bw-presentation-slide.js',
+        [ 'jquery', 'slick-js' ],
+        $js_version,
+        true
+    );
+}
+
+function bw_enqueue_presentation_slide_widget_assets() {
+    if ( ! wp_style_is( 'bw-presentation-slide-style', 'registered' ) || ! wp_script_is( 'bw-presentation-slide-script', 'registered' ) ) {
+        bw_register_presentation_slide_widget_assets();
+    }
+
+    if ( wp_style_is( 'bw-presentation-slide-style', 'registered' ) ) {
+        wp_enqueue_style( 'bw-presentation-slide-style' );
+    }
+
+    if ( wp_script_is( 'bw-presentation-slide-script', 'registered' ) ) {
+        wp_enqueue_script( 'bw-presentation-slide-script' );
+    }
 }
 
 // Aggiungi categoria personalizzata "Black Work Widgets"

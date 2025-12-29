@@ -1,0 +1,1110 @@
+<?php
+use Elementor\Controls_Manager;
+use Elementor\Group_Control_Typography;
+use Elementor\Repeater;
+use Elementor\Widget_Base;
+use Elementor\Core\Kits\Documents\Tabs\Global_Colors;
+use Elementor\Core\Kits\Documents\Tabs\Global_Typography;
+
+if ( ! defined( 'ABSPATH' ) ) {
+    exit;
+}
+
+/**
+ * BW Presentation Slide Widget
+ *
+ * Horizontal carousel or vertical elevator layout with popup functionality
+ * and custom cursor support.
+ */
+class BW_Presentation_Slide_Widget extends Widget_Base {
+
+    public function get_name() {
+        return 'bw-presentation-slide';
+    }
+
+    public function get_title() {
+        return __( 'BW Presentation Slide', 'bw-elementor-widgets' );
+    }
+
+    public function get_icon() {
+        return 'eicon-gallery-grid';
+    }
+
+    public function get_categories() {
+        return [ 'blackwork' ];
+    }
+
+    public function get_script_depends() {
+        return [ 'slick-js', 'bw-presentation-slide-script' ];
+    }
+
+    public function get_style_depends() {
+        return [ 'slick-css', 'bw-presentation-slide-style' ];
+    }
+
+    protected function register_controls() {
+        // Content → General Section
+        $this->start_controls_section(
+            'section_general',
+            [
+                'label' => __( 'General', 'bw-elementor-widgets' ),
+            ]
+        );
+
+        $this->add_control(
+            'layout_mode',
+            [
+                'label'   => __( 'Layout Mode', 'bw-elementor-widgets' ),
+                'type'    => Controls_Manager::SELECT,
+                'options' => [
+                    'horizontal' => __( 'Horizontal', 'bw-elementor-widgets' ),
+                    'vertical'   => __( 'Vertical', 'bw-elementor-widgets' ),
+                ],
+                'default' => 'horizontal',
+            ]
+        );
+
+        $this->add_control(
+            'images_source',
+            [
+                'label'   => __( 'Images Source', 'bw-elementor-widgets' ),
+                'type'    => Controls_Manager::SELECT,
+                'options' => [
+                    'custom' => __( 'Custom Gallery', 'bw-elementor-widgets' ),
+                    'query'  => __( 'Query (Product Gallery)', 'bw-elementor-widgets' ),
+                ],
+                'default' => 'custom',
+            ]
+        );
+
+        $this->add_control(
+            'gallery',
+            [
+                'label'      => __( 'Add Images', 'bw-elementor-widgets' ),
+                'type'       => Controls_Manager::GALLERY,
+                'default'    => [],
+                'show_label' => false,
+                'condition'  => [
+                    'images_source' => 'custom',
+                ],
+            ]
+        );
+
+        $this->end_controls_section();
+
+        // Content → Query Section
+        $this->start_controls_section(
+            'section_query',
+            [
+                'label'     => __( 'Query', 'bw-elementor-widgets' ),
+                'condition' => [
+                    'images_source' => 'query',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'use_product_gallery',
+            [
+                'label'        => __( 'Use Product Gallery Images', 'bw-elementor-widgets' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
+                'label_off'    => __( 'No', 'bw-elementor-widgets' ),
+                'return_value' => 'yes',
+                'default'      => 'yes',
+            ]
+        );
+
+        $this->add_control(
+            'query_post_type',
+            [
+                'label'   => __( 'Post Type', 'bw-elementor-widgets' ),
+                'type'    => Controls_Manager::SELECT,
+                'options' => [
+                    'product' => __( 'Product', 'bw-elementor-widgets' ),
+                ],
+                'default' => 'product',
+            ]
+        );
+
+        $this->end_controls_section();
+
+        // Slider → General (Horizontal)
+        $this->start_controls_section(
+            'section_slider_general',
+            [
+                'label'     => __( 'Slider Settings', 'bw-elementor-widgets' ),
+                'condition' => [
+                    'layout_mode' => 'horizontal',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'infinite_loop',
+            [
+                'label'        => __( 'Infinite Loop', 'bw-elementor-widgets' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
+                'label_off'    => __( 'No', 'bw-elementor-widgets' ),
+                'return_value' => 'yes',
+                'default'      => 'yes',
+            ]
+        );
+
+        $this->add_control(
+            'autoplay',
+            [
+                'label'        => __( 'Autoplay', 'bw-elementor-widgets' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
+                'label_off'    => __( 'No', 'bw-elementor-widgets' ),
+                'return_value' => 'yes',
+                'default'      => '',
+            ]
+        );
+
+        $this->add_control(
+            'autoplay_speed',
+            [
+                'label'     => __( 'Autoplay Speed (ms)', 'bw-elementor-widgets' ),
+                'type'      => Controls_Manager::NUMBER,
+                'default'   => 3000,
+                'min'       => 1000,
+                'max'       => 10000,
+                'step'      => 500,
+                'condition' => [
+                    'autoplay' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'transition_speed',
+            [
+                'label'   => __( 'Transition Speed (ms)', 'bw-elementor-widgets' ),
+                'type'    => Controls_Manager::NUMBER,
+                'default' => 500,
+                'min'     => 100,
+                'max'     => 3000,
+                'step'    => 100,
+            ]
+        );
+
+        $this->add_control(
+            'pause_on_hover',
+            [
+                'label'        => __( 'Pause on Hover', 'bw-elementor-widgets' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
+                'label_off'    => __( 'No', 'bw-elementor-widgets' ),
+                'return_value' => 'yes',
+                'default'      => 'yes',
+                'condition'    => [
+                    'autoplay' => 'yes',
+                ],
+            ]
+        );
+
+        $this->end_controls_section();
+
+        // Slider → Navigation (Horizontal)
+        $this->start_controls_section(
+            'section_navigation',
+            [
+                'label'     => __( 'Navigation', 'bw-elementor-widgets' ),
+                'condition' => [
+                    'layout_mode' => 'horizontal',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'show_arrows',
+            [
+                'label'        => __( 'Show Arrows', 'bw-elementor-widgets' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
+                'label_off'    => __( 'No', 'bw-elementor-widgets' ),
+                'return_value' => 'yes',
+                'default'      => 'yes',
+            ]
+        );
+
+        $this->add_control(
+            'arrow_color',
+            [
+                'label'     => __( 'Arrow Color', 'bw-elementor-widgets' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#000000',
+                'selectors' => [
+                    '{{WRAPPER}} .bw-ps-arrow' => 'color: {{VALUE}};',
+                ],
+                'condition' => [
+                    'show_arrows' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'arrow_size',
+            [
+                'label'      => __( 'Arrow Size', 'bw-elementor-widgets' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px' ],
+                'range'      => [
+                    'px' => [
+                        'min'  => 10,
+                        'max'  => 100,
+                        'step' => 1,
+                    ],
+                ],
+                'default'    => [
+                    'size' => 24,
+                    'unit' => 'px',
+                ],
+                'selectors'  => [
+                    '{{WRAPPER}} .bw-ps-arrow' => 'font-size: {{SIZE}}{{UNIT}};',
+                ],
+                'condition'  => [
+                    'show_arrows' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'arrow_padding',
+            [
+                'label'      => __( 'Arrow Padding', 'bw-elementor-widgets' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px' ],
+                'range'      => [
+                    'px' => [
+                        'min'  => 0,
+                        'max'  => 50,
+                        'step' => 1,
+                    ],
+                ],
+                'default'    => [
+                    'size' => 10,
+                    'unit' => 'px',
+                ],
+                'selectors'  => [
+                    '{{WRAPPER}} .bw-ps-arrow' => 'padding: {{SIZE}}{{UNIT}};',
+                ],
+                'condition'  => [
+                    'show_arrows' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'arrows_vertical_offset',
+            [
+                'label'      => __( 'Vertical Offset from Bottom', 'bw-elementor-widgets' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px' ],
+                'range'      => [
+                    'px' => [
+                        'min'  => 0,
+                        'max'  => 200,
+                        'step' => 1,
+                    ],
+                ],
+                'default'    => [
+                    'size' => 20,
+                    'unit' => 'px',
+                ],
+                'selectors'  => [
+                    '{{WRAPPER}} .bw-ps-arrows-container' => 'bottom: {{SIZE}}{{UNIT}};',
+                ],
+                'condition'  => [
+                    'show_arrows' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'prev_offset',
+            [
+                'label'      => __( 'Prev Arrow Right Offset', 'bw-elementor-widgets' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px' ],
+                'range'      => [
+                    'px' => [
+                        'min'  => 0,
+                        'max'  => 200,
+                        'step' => 1,
+                    ],
+                ],
+                'default'    => [
+                    'size' => 60,
+                    'unit' => 'px',
+                ],
+                'selectors'  => [
+                    '{{WRAPPER}} .bw-ps-arrow-prev' => 'right: {{SIZE}}{{UNIT}};',
+                ],
+                'condition'  => [
+                    'show_arrows' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'next_offset',
+            [
+                'label'      => __( 'Next Arrow Right Offset', 'bw-elementor-widgets' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px' ],
+                'range'      => [
+                    'px' => [
+                        'min'  => 0,
+                        'max'  => 200,
+                        'step' => 1,
+                    ],
+                ],
+                'default'    => [
+                    'size' => 20,
+                    'unit' => 'px',
+                ],
+                'selectors'  => [
+                    '{{WRAPPER}} .bw-ps-arrow-next' => 'right: {{SIZE}}{{UNIT}};',
+                ],
+                'condition'  => [
+                    'show_arrows' => 'yes',
+                ],
+            ]
+        );
+
+        $this->end_controls_section();
+
+        // Slider → Breakpoints (Horizontal)
+        $this->start_controls_section(
+            'section_breakpoints',
+            [
+                'label'     => __( 'Responsive Breakpoints', 'bw-elementor-widgets' ),
+                'condition' => [
+                    'layout_mode' => 'horizontal',
+                ],
+            ]
+        );
+
+        $repeater = new Repeater();
+
+        $repeater->add_control(
+            'breakpoint',
+            [
+                'label'   => __( 'Breakpoint (px)', 'bw-elementor-widgets' ),
+                'type'    => Controls_Manager::NUMBER,
+                'default' => 1024,
+            ]
+        );
+
+        $repeater->add_control(
+            'slides_to_show',
+            [
+                'label'   => __( 'Slides to Show', 'bw-elementor-widgets' ),
+                'type'    => Controls_Manager::NUMBER,
+                'default' => 1,
+                'min'     => 1,
+                'max'     => 10,
+            ]
+        );
+
+        $repeater->add_control(
+            'slides_to_scroll',
+            [
+                'label'   => __( 'Slides to Scroll', 'bw-elementor-widgets' ),
+                'type'    => Controls_Manager::NUMBER,
+                'default' => 1,
+                'min'     => 1,
+                'max'     => 10,
+            ]
+        );
+
+        $repeater->add_control(
+            'show_arrows_bp',
+            [
+                'label'        => __( 'Show Arrows', 'bw-elementor-widgets' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
+                'label_off'    => __( 'No', 'bw-elementor-widgets' ),
+                'return_value' => 'yes',
+                'default'      => 'yes',
+            ]
+        );
+
+        $repeater->add_control(
+            'center_mode',
+            [
+                'label'        => __( 'Center Mode', 'bw-elementor-widgets' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
+                'label_off'    => __( 'No', 'bw-elementor-widgets' ),
+                'return_value' => 'yes',
+                'default'      => '',
+            ]
+        );
+
+        $repeater->add_control(
+            'variable_width',
+            [
+                'label'        => __( 'Variable Width', 'bw-elementor-widgets' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
+                'label_off'    => __( 'No', 'bw-elementor-widgets' ),
+                'return_value' => 'yes',
+                'default'      => '',
+            ]
+        );
+
+        $this->add_control(
+            'breakpoints',
+            [
+                'label'       => __( 'Breakpoints', 'bw-elementor-widgets' ),
+                'type'        => Controls_Manager::REPEATER,
+                'fields'      => $repeater->get_controls(),
+                'default'     => [
+                    [
+                        'breakpoint'       => 1024,
+                        'slides_to_show'   => 3,
+                        'slides_to_scroll' => 1,
+                        'show_arrows_bp'   => 'yes',
+                    ],
+                    [
+                        'breakpoint'       => 768,
+                        'slides_to_show'   => 1,
+                        'slides_to_scroll' => 1,
+                        'show_arrows_bp'   => 'yes',
+                        'center_mode'      => 'yes',
+                    ],
+                ],
+                'title_field' => 'Breakpoint: {{{ breakpoint }}}px',
+            ]
+        );
+
+        $this->end_controls_section();
+
+        // Vertical → Desktop
+        $this->start_controls_section(
+            'section_vertical_desktop',
+            [
+                'label'     => __( 'Vertical Desktop', 'bw-elementor-widgets' ),
+                'condition' => [
+                    'layout_mode' => 'vertical',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'enable_thumbnails',
+            [
+                'label'        => __( 'Enable Thumbnails', 'bw-elementor-widgets' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
+                'label_off'    => __( 'No', 'bw-elementor-widgets' ),
+                'return_value' => 'yes',
+                'default'      => 'yes',
+            ]
+        );
+
+        $this->add_control(
+            'smooth_scroll',
+            [
+                'label'        => __( 'Smooth Scroll (Elevator)', 'bw-elementor-widgets' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
+                'label_off'    => __( 'No', 'bw-elementor-widgets' ),
+                'return_value' => 'yes',
+                'default'      => 'yes',
+            ]
+        );
+
+        $this->end_controls_section();
+
+        // Vertical → Responsive
+        $this->start_controls_section(
+            'section_vertical_responsive',
+            [
+                'label'     => __( 'Vertical Responsive', 'bw-elementor-widgets' ),
+                'condition' => [
+                    'layout_mode' => 'vertical',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'enable_responsive_mode',
+            [
+                'label'        => __( 'Enable Responsive Mode', 'bw-elementor-widgets' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
+                'label_off'    => __( 'No', 'bw-elementor-widgets' ),
+                'return_value' => 'yes',
+                'default'      => 'yes',
+                'description'  => __( 'Switch to Slick slider layout on mobile/tablet', 'bw-elementor-widgets' ),
+            ]
+        );
+
+        $this->add_control(
+            'responsive_breakpoint',
+            [
+                'label'     => __( 'Breakpoint (px)', 'bw-elementor-widgets' ),
+                'type'      => Controls_Manager::NUMBER,
+                'default'   => 1024,
+                'min'       => 320,
+                'max'       => 1920,
+                'condition' => [
+                    'enable_responsive_mode' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'thumbs_slides_to_show',
+            [
+                'label'     => __( 'Thumbnails Slides to Show', 'bw-elementor-widgets' ),
+                'type'      => Controls_Manager::NUMBER,
+                'default'   => 4,
+                'min'       => 2,
+                'max'       => 10,
+                'condition' => [
+                    'enable_responsive_mode' => 'yes',
+                ],
+            ]
+        );
+
+        $this->end_controls_section();
+
+        // Popup Settings
+        $this->start_controls_section(
+            'section_popup',
+            [
+                'label' => __( 'Popup Settings', 'bw-elementor-widgets' ),
+            ]
+        );
+
+        $this->add_control(
+            'enable_popup',
+            [
+                'label'        => __( 'Enable Popup', 'bw-elementor-widgets' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
+                'label_off'    => __( 'No', 'bw-elementor-widgets' ),
+                'return_value' => 'yes',
+                'default'      => 'yes',
+            ]
+        );
+
+        $this->add_control(
+            'popup_max_width',
+            [
+                'label'      => __( 'Max Image Width (px)', 'bw-elementor-widgets' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px' ],
+                'range'      => [
+                    'px' => [
+                        'min'  => 800,
+                        'max'  => 3000,
+                        'step' => 100,
+                    ],
+                ],
+                'default'    => [
+                    'size' => 2000,
+                    'unit' => 'px',
+                ],
+                'selectors'  => [
+                    '{{WRAPPER}} .bw-ps-popup-image' => 'max-width: {{SIZE}}{{UNIT}};',
+                ],
+                'condition'  => [
+                    'enable_popup' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'popup_header_padding',
+            [
+                'label'      => __( 'Header Padding', 'bw-elementor-widgets' ),
+                'type'       => Controls_Manager::DIMENSIONS,
+                'size_units' => [ 'px', 'em', 'rem' ],
+                'selectors'  => [
+                    '{{WRAPPER}} .bw-ps-popup-header' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+                'condition'  => [
+                    'enable_popup' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'popup_header_bg',
+            [
+                'label'     => __( 'Header Background', 'bw-elementor-widgets' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#ffffff',
+                'selectors' => [
+                    '{{WRAPPER}} .bw-ps-popup-header' => 'background-color: {{VALUE}};',
+                ],
+                'condition' => [
+                    'enable_popup' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'popup_title_text',
+            [
+                'label'     => __( 'Popup Title', 'bw-elementor-widgets' ),
+                'type'      => Controls_Manager::TEXT,
+                'default'   => __( 'Gallery', 'bw-elementor-widgets' ),
+                'condition' => [
+                    'enable_popup' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_group_control(
+            Group_Control_Typography::get_type(),
+            [
+                'name'      => 'popup_title_typography',
+                'selector'  => '{{WRAPPER}} .bw-ps-popup-title',
+                'condition' => [
+                    'enable_popup' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'popup_title_color',
+            [
+                'label'     => __( 'Title Color', 'bw-elementor-widgets' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#000000',
+                'selectors' => [
+                    '{{WRAPPER}} .bw-ps-popup-title' => 'color: {{VALUE}};',
+                ],
+                'condition' => [
+                    'enable_popup' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'popup_close_color',
+            [
+                'label'     => __( 'Close Button Color', 'bw-elementor-widgets' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#000000',
+                'selectors' => [
+                    '{{WRAPPER}} .bw-ps-popup-close' => 'color: {{VALUE}};',
+                ],
+                'condition' => [
+                    'enable_popup' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'popup_close_hover_color',
+            [
+                'label'     => __( 'Close Button Hover Color', 'bw-elementor-widgets' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#666666',
+                'selectors' => [
+                    '{{WRAPPER}} .bw-ps-popup-close:hover' => 'color: {{VALUE}};',
+                ],
+                'condition' => [
+                    'enable_popup' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'popup_close_size',
+            [
+                'label'      => __( 'Close Button Size', 'bw-elementor-widgets' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px' ],
+                'range'      => [
+                    'px' => [
+                        'min'  => 16,
+                        'max'  => 60,
+                        'step' => 1,
+                    ],
+                ],
+                'default'    => [
+                    'size' => 24,
+                    'unit' => 'px',
+                ],
+                'selectors'  => [
+                    '{{WRAPPER}} .bw-ps-popup-close' => 'font-size: {{SIZE}}{{UNIT}};',
+                ],
+                'condition'  => [
+                    'enable_popup' => 'yes',
+                ],
+            ]
+        );
+
+        $this->end_controls_section();
+
+        // Style → Images
+        $this->start_controls_section(
+            'section_style_images',
+            [
+                'label' => __( 'Images', 'bw-elementor-widgets' ),
+                'tab'   => Controls_Manager::TAB_STYLE,
+            ]
+        );
+
+        $this->add_responsive_control(
+            'image_border_radius',
+            [
+                'label'      => __( 'Border Radius', 'bw-elementor-widgets' ),
+                'type'       => Controls_Manager::DIMENSIONS,
+                'size_units' => [ 'px', '%' ],
+                'selectors'  => [
+                    '{{WRAPPER}} .bw-ps-image img' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->end_controls_section();
+
+        // Custom Cursor
+        $this->start_controls_section(
+            'section_cursor',
+            [
+                'label' => __( 'Custom Cursor', 'bw-elementor-widgets' ),
+            ]
+        );
+
+        $this->add_control(
+            'enable_custom_cursor',
+            [
+                'label'        => __( 'Enable Custom Cursor', 'bw-elementor-widgets' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
+                'label_off'    => __( 'No', 'bw-elementor-widgets' ),
+                'return_value' => 'yes',
+                'default'      => 'yes',
+            ]
+        );
+
+        $this->add_control(
+            'hide_system_cursor',
+            [
+                'label'        => __( 'Hide System Cursor', 'bw-elementor-widgets' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
+                'label_off'    => __( 'No', 'bw-elementor-widgets' ),
+                'return_value' => 'yes',
+                'default'      => 'yes',
+                'condition'    => [
+                    'enable_custom_cursor' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'cursor_zoom_text',
+            [
+                'label'     => __( 'Zoom Text', 'bw-elementor-widgets' ),
+                'type'      => Controls_Manager::TEXT,
+                'default'   => __( 'ZOOM', 'bw-elementor-widgets' ),
+                'condition' => [
+                    'enable_custom_cursor' => 'yes',
+                ],
+            ]
+        );
+
+        $this->end_controls_section();
+    }
+
+    protected function render() {
+        $settings = $this->get_settings_for_display();
+        $widget_id = $this->get_id();
+
+        // Get images based on source
+        $images = $this->get_images_for_render( $settings );
+
+        if ( empty( $images ) ) {
+            echo '<p>' . esc_html__( 'No images available.', 'bw-elementor-widgets' ) . '</p>';
+            return;
+        }
+
+        // Build configuration for JavaScript
+        $config = [
+            'widgetId'             => $widget_id,
+            'layoutMode'           => $settings['layout_mode'],
+            'enablePopup'          => $settings['enable_popup'] === 'yes',
+            'enableCustomCursor'   => $settings['enable_custom_cursor'] === 'yes',
+            'hideSystemCursor'     => $settings['hide_system_cursor'] === 'yes',
+            'cursorZoomText'       => $settings['cursor_zoom_text'],
+            'popupTitle'           => $settings['popup_title_text'],
+            'horizontal'           => [
+                'infinite'         => $settings['infinite_loop'] === 'yes',
+                'autoplay'         => $settings['autoplay'] === 'yes',
+                'autoplaySpeed'    => absint( $settings['autoplay_speed'] ),
+                'speed'            => absint( $settings['transition_speed'] ),
+                'pauseOnHover'     => $settings['pause_on_hover'] === 'yes',
+                'arrows'           => $settings['show_arrows'] === 'yes',
+                'responsive'       => $this->build_responsive_config( $settings ),
+            ],
+            'vertical'             => [
+                'enableThumbnails'    => $settings['enable_thumbnails'] === 'yes',
+                'smoothScroll'        => $settings['smooth_scroll'] === 'yes',
+                'enableResponsive'    => $settings['enable_responsive_mode'] === 'yes',
+                'responsiveBreakpoint' => absint( $settings['responsive_breakpoint'] ),
+                'thumbsSlidesToShow'  => absint( $settings['thumbs_slides_to_show'] ),
+            ],
+        ];
+
+        $this->add_render_attribute( 'wrapper', [
+            'class'               => 'bw-ps-wrapper',
+            'data-widget-id'      => $widget_id,
+            'data-layout-mode'    => $settings['layout_mode'],
+            'data-config'         => wp_json_encode( $config ),
+        ] );
+
+        ?>
+        <div <?php echo $this->get_render_attribute_string( 'wrapper' ); ?>>
+            <?php
+            if ( $settings['layout_mode'] === 'horizontal' ) {
+                $this->render_horizontal_layout( $images, $settings );
+            } else {
+                $this->render_vertical_layout( $images, $settings );
+            }
+
+            if ( $settings['enable_popup'] === 'yes' ) {
+                $this->render_popup_modal( $images, $settings );
+            }
+            ?>
+        </div>
+        <?php
+    }
+
+    /**
+     * Get images for rendering based on source
+     */
+    protected function get_images_for_render( $settings ) {
+        $images = [];
+
+        if ( $settings['images_source'] === 'custom' && ! empty( $settings['gallery'] ) ) {
+            foreach ( $settings['gallery'] as $image ) {
+                $images[] = [
+                    'id'  => $image['id'],
+                    'url' => $image['url'],
+                ];
+            }
+        } elseif ( $settings['images_source'] === 'query' && $settings['use_product_gallery'] === 'yes' ) {
+            // Get current product gallery images
+            global $product;
+            if ( $product && is_a( $product, 'WC_Product' ) ) {
+                $attachment_ids = $product->get_gallery_image_ids();
+
+                // Include featured image as first
+                $featured_id = $product->get_image_id();
+                if ( $featured_id ) {
+                    array_unshift( $attachment_ids, $featured_id );
+                }
+
+                foreach ( $attachment_ids as $attachment_id ) {
+                    $images[] = [
+                        'id'  => $attachment_id,
+                        'url' => wp_get_attachment_url( $attachment_id ),
+                    ];
+                }
+            }
+        }
+
+        return $images;
+    }
+
+    /**
+     * Render horizontal layout
+     */
+    protected function render_horizontal_layout( $images, $settings ) {
+        ?>
+        <div class="bw-ps-horizontal">
+            <div class="bw-ps-slider-horizontal">
+                <?php foreach ( $images as $index => $image ) : ?>
+                    <div class="bw-ps-slide" data-bw-index="<?php echo esc_attr( $index ); ?>" data-attachment-id="<?php echo esc_attr( $image['id'] ); ?>">
+                        <div class="bw-ps-image bw-ps-image-clickable">
+                            <?php
+                            echo wp_get_attachment_image(
+                                $image['id'],
+                                'full',
+                                false,
+                                [
+                                    'loading'  => 'lazy',
+                                    'decoding' => 'async',
+                                ]
+                            );
+                            ?>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+
+            <?php if ( $settings['show_arrows'] === 'yes' ) : ?>
+                <div class="bw-ps-arrows-container">
+                    <button class="bw-ps-arrow bw-ps-arrow-prev" aria-label="<?php esc_attr_e( 'Previous', 'bw-elementor-widgets' ); ?>">
+                        ←
+                    </button>
+                    <button class="bw-ps-arrow bw-ps-arrow-next" aria-label="<?php esc_attr_e( 'Next', 'bw-elementor-widgets' ); ?>">
+                        →
+                    </button>
+                </div>
+            <?php endif; ?>
+        </div>
+        <?php
+    }
+
+    /**
+     * Render vertical layout
+     */
+    protected function render_vertical_layout( $images, $settings ) {
+        ?>
+        <div class="bw-ps-vertical">
+            <?php if ( $settings['enable_thumbnails'] === 'yes' ) : ?>
+                <div class="bw-ps-thumbnails">
+                    <?php foreach ( $images as $index => $image ) : ?>
+                        <div class="bw-ps-thumb" data-index="<?php echo esc_attr( $index ); ?>">
+                            <?php
+                            echo wp_get_attachment_image(
+                                $image['id'],
+                                'medium',
+                                false,
+                                [
+                                    'loading'  => 'lazy',
+                                    'decoding' => 'async',
+                                ]
+                            );
+                            ?>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+
+            <div class="bw-ps-main-images">
+                <?php foreach ( $images as $index => $image ) : ?>
+                    <div class="bw-ps-main-image" data-bw-index="<?php echo esc_attr( $index ); ?>" data-attachment-id="<?php echo esc_attr( $image['id'] ); ?>">
+                        <div class="bw-ps-image bw-ps-image-clickable">
+                            <?php
+                            echo wp_get_attachment_image(
+                                $image['id'],
+                                'full',
+                                false,
+                                [
+                                    'loading'  => 'lazy',
+                                    'decoding' => 'async',
+                                ]
+                            );
+                            ?>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+
+            <!-- Responsive Slick layout (hidden on desktop) -->
+            <div class="bw-ps-vertical-responsive" style="display: none;">
+                <div class="bw-ps-slider-main">
+                    <?php foreach ( $images as $index => $image ) : ?>
+                        <div class="bw-ps-slide-main" data-bw-index="<?php echo esc_attr( $index ); ?>">
+                            <?php
+                            echo wp_get_attachment_image(
+                                $image['id'],
+                                'full',
+                                false,
+                                [
+                                    'loading'  => 'lazy',
+                                    'decoding' => 'async',
+                                ]
+                            );
+                            ?>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+
+                <div class="bw-ps-slider-thumbs">
+                    <?php foreach ( $images as $index => $image ) : ?>
+                        <div class="bw-ps-slide-thumb">
+                            <?php
+                            echo wp_get_attachment_image(
+                                $image['id'],
+                                'thumbnail',
+                                false,
+                                [
+                                    'loading'  => 'lazy',
+                                    'decoding' => 'async',
+                                ]
+                            );
+                            ?>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </div>
+        <?php
+    }
+
+    /**
+     * Render popup modal
+     */
+    protected function render_popup_modal( $images, $settings ) {
+        ?>
+        <div class="bw-ps-popup-overlay" style="display: none;">
+            <div class="bw-ps-popup">
+                <div class="bw-ps-popup-header">
+                    <h3 class="bw-ps-popup-title"><?php echo esc_html( $settings['popup_title_text'] ); ?></h3>
+                    <button class="bw-ps-popup-close" aria-label="<?php esc_attr_e( 'Close', 'bw-elementor-widgets' ); ?>">
+                        ×
+                    </button>
+                </div>
+                <div class="bw-ps-popup-body">
+                    <?php foreach ( $images as $index => $image ) : ?>
+                        <div class="bw-ps-popup-image" data-index="<?php echo esc_attr( $index ); ?>">
+                            <?php
+                            echo wp_get_attachment_image(
+                                $image['id'],
+                                'full',
+                                false,
+                                [
+                                    'loading'  => 'lazy',
+                                    'decoding' => 'async',
+                                ]
+                            );
+                            ?>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </div>
+        <?php
+    }
+
+    /**
+     * Build responsive configuration for Slick
+     */
+    protected function build_responsive_config( $settings ) {
+        $responsive = [];
+
+        if ( ! empty( $settings['breakpoints'] ) ) {
+            foreach ( $settings['breakpoints'] as $breakpoint ) {
+                $responsive[] = [
+                    'breakpoint'  => absint( $breakpoint['breakpoint'] ),
+                    'settings'    => [
+                        'slidesToShow'   => absint( $breakpoint['slides_to_show'] ),
+                        'slidesToScroll' => absint( $breakpoint['slides_to_scroll'] ),
+                        'arrows'         => $breakpoint['show_arrows_bp'] === 'yes',
+                        'centerMode'     => $breakpoint['center_mode'] === 'yes',
+                        'variableWidth'  => $breakpoint['variable_width'] === 'yes',
+                    ],
+                ];
+            }
+        }
+
+        return $responsive;
+    }
+}
