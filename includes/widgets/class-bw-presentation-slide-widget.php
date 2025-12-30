@@ -307,6 +307,24 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
                 'label_off'    => __( 'No', 'bw-elementor-widgets' ),
                 'return_value' => 'yes',
                 'default'      => '',
+                'description'  => __( 'Use original image width', 'bw-elementor-widgets' ),
+            ]
+        );
+
+        $repeater->add_control(
+            'slide_width',
+            [
+                'label'       => __( 'Slide Width (px)', 'bw-elementor-widgets' ),
+                'type'        => Controls_Manager::NUMBER,
+                'default'     => '',
+                'min'         => 100,
+                'max'         => 2000,
+                'step'        => 10,
+                'placeholder' => __( 'Auto', 'bw-elementor-widgets' ),
+                'description' => __( 'Set fixed width for slides (leave empty for auto)', 'bw-elementor-widgets' ),
+                'condition'   => [
+                    'variable_width!' => 'yes',
+                ],
             ]
         );
 
@@ -500,6 +518,26 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
                 'condition'  => [
                     'layout_mode' => 'horizontal',
                 ],
+            ]
+        );
+
+        $this->add_control(
+            'image_size',
+            [
+                'label'       => __( 'Image Size', 'bw-elementor-widgets' ),
+                'type'        => Controls_Manager::SELECT,
+                'default'     => 'full',
+                'options'     => [
+                    'thumbnail'    => __( 'Thumbnail', 'bw-elementor-widgets' ),
+                    'medium'       => __( 'Medium', 'bw-elementor-widgets' ),
+                    'medium_large' => __( 'Medium Large', 'bw-elementor-widgets' ),
+                    'large'        => __( 'Large', 'bw-elementor-widgets' ),
+                    'full'         => __( 'Full Size', 'bw-elementor-widgets' ),
+                ],
+                'condition'   => [
+                    'layout_mode' => 'horizontal',
+                ],
+                'description' => __( 'Select WordPress image size for gallery images', 'bw-elementor-widgets' ),
             ]
         );
 
@@ -1129,6 +1167,9 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
      * Render horizontal layout
      */
     protected function render_horizontal_layout( $images, $settings ) {
+        // Get image size from settings
+        $image_size = ! empty( $settings['image_size'] ) ? $settings['image_size'] : 'full';
+
         ?>
         <div class="bw-ps-horizontal">
             <div class="bw-ps-slider-horizontal">
@@ -1138,7 +1179,7 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
                             <?php
                             echo wp_get_attachment_image(
                                 $image['id'],
-                                'full',
+                                $image_size,
                                 false,
                                 [
                                     'loading'  => 'lazy',
@@ -1294,7 +1335,7 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
 
         if ( ! empty( $settings['breakpoints'] ) ) {
             foreach ( $settings['breakpoints'] as $breakpoint ) {
-                $responsive[] = [
+                $config = [
                     'breakpoint'       => absint( $breakpoint['breakpoint'] ),
                     'showArrows'       => $breakpoint['show_arrows'] === 'yes',
                     'settings'         => [
@@ -1306,6 +1347,13 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
                         'variableWidth'  => $breakpoint['variable_width'] === 'yes',
                     ],
                 ];
+
+                // Add slide width if specified and variable width is off
+                if ( ! empty( $breakpoint['slide_width'] ) && $breakpoint['variable_width'] !== 'yes' ) {
+                    $config['slideWidth'] = absint( $breakpoint['slide_width'] );
+                }
+
+                $responsive[] = $config;
             }
         }
 

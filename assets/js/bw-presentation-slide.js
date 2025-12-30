@@ -91,6 +91,9 @@
             // Custom arrows navigation - show/hide based on breakpoints
             this.initArrowsVisibility();
 
+            // Apply slide width based on breakpoints
+            this.initSlideWidths();
+
             // Click on center slide opens popup
             $slider.on('click', '.slick-slide.slick-center .bw-ps-image-clickable', (e) => {
                 const index = parseInt($(e.currentTarget).closest('.bw-ps-slide').data('bw-index'), 10);
@@ -162,6 +165,49 @@
                 $arrows.css('display', 'flex');
             } else {
                 $arrows.css('display', 'none');
+            }
+        }
+
+        /**
+         * Initialize slide widths based on breakpoints
+         */
+        initSlideWidths() {
+            // Initial check
+            this.updateSlideWidths();
+
+            // Update on window resize
+            $(window).on(`resize.bwps-width-${this.widgetId}`, () => {
+                this.updateSlideWidths();
+            });
+        }
+
+        /**
+         * Update slide widths based on current breakpoint
+         */
+        updateSlideWidths() {
+            const windowWidth = $(window).width();
+            const breakpoints = this.config.horizontal.responsive || [];
+            const $slides = this.$wrapper.find('.bw-ps-slide');
+
+            let slideWidth = null;
+
+            // Check breakpoints from largest to smallest
+            const sortedBreakpoints = [...breakpoints].sort((a, b) => b.breakpoint - a.breakpoint);
+
+            for (const bp of sortedBreakpoints) {
+                if (windowWidth <= bp.breakpoint) {
+                    if (bp.slideWidth) {
+                        slideWidth = bp.slideWidth;
+                        break;
+                    }
+                }
+            }
+
+            // Apply or remove width
+            if (slideWidth) {
+                $slides.css('width', slideWidth + 'px');
+            } else {
+                $slides.css('width', '');
             }
         }
 
@@ -500,6 +546,7 @@
             // Remove event listeners
             $(document).off(`keydown.bwps-${this.widgetId}`);
             $(window).off(`resize.bwps-${this.widgetId}`);
+            $(window).off(`resize.bwps-width-${this.widgetId}`);
             this.$wrapper.off();
 
             // Remove custom cursor
