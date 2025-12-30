@@ -57,23 +57,50 @@
 }
 
 .bw-ps-arrow {
-    background: transparent;
-    border: none;
+    /* Reset Elementor button styles */
+    background: none !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+
+    /* Custom styles */
     color: #000;
     font-size: 24px;
     cursor: pointer;
     padding: 10px;
     transition: opacity 0.3s ease;
     user-select: none;
+
+    /* Reset other potential Elementor styles */
+    border-radius: 0;
+    text-shadow: none;
+    font-weight: normal;
+    line-height: 1;
+    text-decoration: none;
 }
 
 .bw-ps-arrow:hover {
     opacity: 0.7;
+    background: none !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
 }
 
 .bw-ps-arrow:focus {
     outline: 2px solid currentColor;
     outline-offset: 2px;
+    background: none !important;
+    background-color: transparent !important;
+    border: none !important;
+}
+
+.bw-ps-arrow:active {
+    background: none !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
 }
 
 /* Slick active slide center mode */
@@ -226,8 +253,14 @@
 }
 
 .bw-ps-popup-close {
-    background: transparent;
-    border: none;
+    /* Reset Elementor button styles */
+    background: none !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+
+    /* Custom styles */
     font-size: 32px;
     line-height: 1;
     cursor: pointer;
@@ -239,10 +272,35 @@
     display: flex;
     align-items: center;
     justify-content: center;
+
+    /* Reset other potential Elementor styles */
+    border-radius: 0;
+    text-shadow: none;
+    font-weight: normal;
+    text-decoration: none;
 }
 
 .bw-ps-popup-close:hover {
     color: #666;
+    background: none !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.bw-ps-popup-close:focus {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+    background: none !important;
+    background-color: transparent !important;
+    border: none !important;
+}
+
+.bw-ps-popup-close:active {
+    background: none !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
 }
 
 .bw-ps-popup-body {
