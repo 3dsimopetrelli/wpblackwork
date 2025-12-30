@@ -464,6 +464,32 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
             ]
         );
 
+        $this->add_responsive_control(
+            'slides_spacing',
+            [
+                'label'      => __( 'Spacing Between Slides', 'bw-elementor-widgets' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px' ],
+                'range'      => [
+                    'px' => [
+                        'min'  => 0,
+                        'max'  => 100,
+                        'step' => 1,
+                    ],
+                ],
+                'default'    => [
+                    'size' => 10,
+                    'unit' => 'px',
+                ],
+                'selectors'  => [
+                    '{{WRAPPER}} .bw-ps-slide' => 'padding-left: {{SIZE}}{{UNIT}}; padding-right: {{SIZE}}{{UNIT}};',
+                ],
+                'condition'  => [
+                    'layout_mode' => 'horizontal',
+                ],
+            ]
+        );
+
         $this->end_controls_section();
 
         // Style → Navigation (Horizontal)
