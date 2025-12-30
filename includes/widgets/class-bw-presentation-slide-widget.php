@@ -911,6 +911,43 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
 
         $this->end_controls_section();
 
+        // Style → Vertical Thumbnails
+        $this->start_controls_section(
+            'section_style_vertical_thumbs',
+            [
+                'label'     => __( 'Vertical Thumbnails', 'bw-elementor-widgets' ),
+                'tab'       => Controls_Manager::TAB_STYLE,
+                'condition' => [
+                    'layout_mode' => 'vertical',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'thumbnails_width',
+            [
+                'label'      => __( 'Thumbnails Width', 'bw-elementor-widgets' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px' ],
+                'range'      => [
+                    'px' => [
+                        'min'  => 80,
+                        'max'  => 400,
+                        'step' => 10,
+                    ],
+                ],
+                'default'    => [
+                    'size' => 150,
+                    'unit' => 'px',
+                ],
+                'selectors'  => [
+                    '{{WRAPPER}} .bw-ps-thumbnails' => 'flex: 0 0 {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->end_controls_section();
+
         // Style → Custom Cursor
         $this->start_controls_section(
             'section_style_cursor',
