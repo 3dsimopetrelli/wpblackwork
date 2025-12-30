@@ -104,6 +104,40 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
         );
 
         $this->add_control(
+            'slides_to_show',
+            [
+                'label'   => __( 'Slides to Show (Desktop)', 'bw-elementor-widgets' ),
+                'type'    => Controls_Manager::NUMBER,
+                'default' => 1,
+                'min'     => 1,
+                'max'     => 10,
+            ]
+        );
+
+        $this->add_control(
+            'slides_to_scroll',
+            [
+                'label'   => __( 'Slides to Scroll (Desktop)', 'bw-elementor-widgets' ),
+                'type'    => Controls_Manager::NUMBER,
+                'default' => 1,
+                'min'     => 1,
+                'max'     => 10,
+            ]
+        );
+
+        $this->add_control(
+            'center_mode',
+            [
+                'label'        => __( 'Center Mode', 'bw-elementor-widgets' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
+                'label_off'    => __( 'No', 'bw-elementor-widgets' ),
+                'return_value' => 'yes',
+                'default'      => 'yes',
+            ]
+        );
+
+        $this->add_control(
             'infinite_loop',
             [
                 'label'        => __( 'Infinite Loop', 'bw-elementor-widgets' ),
@@ -216,6 +250,30 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
         );
 
         $repeater->add_control(
+            'show_arrows',
+            [
+                'label'        => __( 'Show Arrows', 'bw-elementor-widgets' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
+                'label_off'    => __( 'No', 'bw-elementor-widgets' ),
+                'return_value' => 'yes',
+                'default'      => 'yes',
+            ]
+        );
+
+        $repeater->add_control(
+            'show_dots',
+            [
+                'label'        => __( 'Show Dots', 'bw-elementor-widgets' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
+                'label_off'    => __( 'No', 'bw-elementor-widgets' ),
+                'return_value' => 'yes',
+                'default'      => '',
+            ]
+        );
+
+        $repeater->add_control(
             'center_mode',
             [
                 'label'        => __( 'Center Mode', 'bw-elementor-widgets' ),
@@ -250,11 +308,15 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
                         'breakpoint'       => 1024,
                         'slides_to_show'   => 3,
                         'slides_to_scroll' => 1,
+                        'show_arrows'      => 'yes',
+                        'show_dots'        => '',
                     ],
                     [
                         'breakpoint'       => 768,
                         'slides_to_show'   => 1,
                         'slides_to_scroll' => 1,
+                        'show_arrows'      => '',
+                        'show_dots'        => 'yes',
                         'center_mode'      => 'yes',
                     ],
                 ],
@@ -545,6 +607,104 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
 
         $this->end_controls_section();
 
+        // Style → Dots
+        $this->start_controls_section(
+            'section_style_dots',
+            [
+                'label'     => __( 'Dots', 'bw-elementor-widgets' ),
+                'tab'       => Controls_Manager::TAB_STYLE,
+                'condition' => [
+                    'layout_mode' => 'horizontal',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'dots_color',
+            [
+                'label'     => __( 'Dots Color', 'bw-elementor-widgets' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => 'rgba(0, 0, 0, 0.3)',
+                'selectors' => [
+                    '{{WRAPPER}} .slick-dots li button' => 'background-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'dots_active_color',
+            [
+                'label'     => __( 'Active Dot Color', 'bw-elementor-widgets' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#000000',
+                'selectors' => [
+                    '{{WRAPPER}} .slick-dots li.slick-active button' => 'background-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'dots_size',
+            [
+                'label'      => __( 'Dots Size', 'bw-elementor-widgets' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px' ],
+                'range'      => [
+                    'px' => [
+                        'min'  => 4,
+                        'max'  => 30,
+                        'step' => 1,
+                    ],
+                ],
+                'default'    => [
+                    'size' => 10,
+                    'unit' => 'px',
+                ],
+                'selectors'  => [
+                    '{{WRAPPER}} .slick-dots li button' => 'width: {{SIZE}}{{UNIT}}; height: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'dots_position',
+            [
+                'label'   => __( 'Position', 'bw-elementor-widgets' ),
+                'type'    => Controls_Manager::SELECT,
+                'options' => [
+                    'left'   => __( 'Left', 'bw-elementor-widgets' ),
+                    'center' => __( 'Center', 'bw-elementor-widgets' ),
+                    'right'  => __( 'Right', 'bw-elementor-widgets' ),
+                ],
+                'default' => 'center',
+            ]
+        );
+
+        $this->add_control(
+            'dots_vertical_offset',
+            [
+                'label'      => __( 'Vertical Offset from Bottom', 'bw-elementor-widgets' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px' ],
+                'range'      => [
+                    'px' => [
+                        'min'  => -50,
+                        'max'  => 100,
+                        'step' => 1,
+                    ],
+                ],
+                'default'    => [
+                    'size' => -25,
+                    'unit' => 'px',
+                ],
+                'selectors'  => [
+                    '{{WRAPPER}} .slick-dots' => 'bottom: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->end_controls_section();
+
         // Style → Popup
         $this->start_controls_section(
             'section_style_popup',
@@ -787,13 +947,16 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
             'hideSystemCursor'     => $settings['hide_system_cursor'] === 'yes',
             'cursorZoomText'       => $settings['cursor_zoom_text'],
             'popupTitle'           => $popup_title,
+            'dotsPosition'         => $settings['dots_position'] ?? 'center',
             'horizontal'           => [
                 'infinite'         => $settings['infinite_loop'] === 'yes',
                 'autoplay'         => $settings['autoplay'] === 'yes',
                 'autoplaySpeed'    => absint( $settings['autoplay_speed'] ),
                 'speed'            => absint( $settings['transition_speed'] ),
                 'pauseOnHover'     => $settings['pause_on_hover'] === 'yes',
-                'arrows'           => true, // Always true, arrows always shown
+                'slidesToShow'     => absint( $settings['slides_to_show'] ),
+                'slidesToScroll'   => absint( $settings['slides_to_scroll'] ),
+                'centerMode'       => $settings['center_mode'] === 'yes',
                 'responsive'       => $this->build_responsive_config( $settings ),
             ],
             'vertical'             => [
@@ -810,6 +973,7 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
             'data-widget-id'      => $widget_id,
             'data-layout-mode'    => $settings['layout_mode'],
             'data-config'         => wp_json_encode( $config ),
+            'data-dots-position'  => $settings['dots_position'] ?? 'center',
         ] );
 
         ?>
@@ -1054,11 +1218,13 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
         if ( ! empty( $settings['breakpoints'] ) ) {
             foreach ( $settings['breakpoints'] as $breakpoint ) {
                 $responsive[] = [
-                    'breakpoint'  => absint( $breakpoint['breakpoint'] ),
-                    'settings'    => [
+                    'breakpoint'       => absint( $breakpoint['breakpoint'] ),
+                    'showArrows'       => $breakpoint['show_arrows'] === 'yes',
+                    'settings'         => [
                         'slidesToShow'   => absint( $breakpoint['slides_to_show'] ),
                         'slidesToScroll' => absint( $breakpoint['slides_to_scroll'] ),
-                        'arrows'         => true, // Always true
+                        'arrows'         => false, // Always false, we use custom arrows
+                        'dots'           => $breakpoint['show_dots'] === 'yes',
                         'centerMode'     => $breakpoint['center_mode'] === 'yes',
                         'variableWidth'  => $breakpoint['variable_width'] === 'yes',
                     ],

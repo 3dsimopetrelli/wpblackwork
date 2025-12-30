@@ -376,6 +376,67 @@
 }
 
 /* ========================================
+   DOTS POSITIONING
+   ======================================== */
+.bw-ps-wrapper .slick-dots {
+    position: absolute;
+    bottom: -25px;
+    left: 0;
+    right: 0;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    text-align: center;
+    z-index: 10;
+}
+
+.bw-ps-wrapper .slick-dots.bw-ps-dots-left {
+    text-align: left;
+    padding-left: 20px;
+}
+
+.bw-ps-wrapper .slick-dots.bw-ps-dots-center {
+    text-align: center;
+}
+
+.bw-ps-wrapper .slick-dots.bw-ps-dots-right {
+    text-align: right;
+    padding-right: 20px;
+}
+
+.bw-ps-wrapper .slick-dots li {
+    display: inline-block;
+    margin: 0 5px;
+}
+
+.bw-ps-wrapper .slick-dots li button {
+    border: none;
+    background: #000;
+    color: transparent;
+    cursor: pointer;
+    display: block;
+    height: 10px;
+    width: 10px;
+    border-radius: 50%;
+    padding: 0;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.bw-ps-wrapper .slick-dots li button:before {
+    content: '';
+}
+
+.bw-ps-wrapper .slick-dots li.slick-active button {
+    background: #000;
+    opacity: 1;
+}
+
+.bw-ps-wrapper .slick-dots li button:hover {
+    opacity: 0.7;
+}
+
+/* ========================================
    RESPONSIVE
    ======================================== */
 @media (max-width: 1024px) {
