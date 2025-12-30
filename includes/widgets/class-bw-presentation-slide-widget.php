@@ -607,11 +607,11 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
 
         $this->end_controls_section();
 
-        // Style → Dots
+        // Style → Dots (Pagination)
         $this->start_controls_section(
             'section_style_dots',
             [
-                'label'     => __( 'Dots', 'bw-elementor-widgets' ),
+                'label'     => __( 'Dots (Pagination)', 'bw-elementor-widgets' ),
                 'tab'       => Controls_Manager::TAB_STYLE,
                 'condition' => [
                     'layout_mode' => 'horizontal',

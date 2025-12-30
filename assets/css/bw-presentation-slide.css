@@ -465,7 +465,9 @@
 }
 
 @media (max-width: 768px) {
+    /* Hide arrows by default on mobile - JavaScript will show them if breakpoint has show_arrows enabled */
     .bw-ps-arrows-container {
+        display: none !important;
         bottom: 10px;
         right: 10px;
     }
