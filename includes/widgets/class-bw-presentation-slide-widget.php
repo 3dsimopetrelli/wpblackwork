@@ -528,16 +528,42 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
                 'type'        => Controls_Manager::SELECT,
                 'default'     => 'full',
                 'options'     => [
-                    'thumbnail'    => __( 'Thumbnail', 'bw-elementor-widgets' ),
-                    'medium'       => __( 'Medium', 'bw-elementor-widgets' ),
-                    'medium_large' => __( 'Medium Large', 'bw-elementor-widgets' ),
-                    'large'        => __( 'Large', 'bw-elementor-widgets' ),
-                    'full'         => __( 'Full Size', 'bw-elementor-widgets' ),
+                    'thumbnail'      => __( 'Thumbnail (150×150)', 'bw-elementor-widgets' ),
+                    'medium'         => __( 'Medium (300×300)', 'bw-elementor-widgets' ),
+                    'medium_large'   => __( 'Medium Large (768×auto)', 'bw-elementor-widgets' ),
+                    'large'          => __( 'Large (1024×1024)', 'bw-elementor-widgets' ),
+                    'custom_1200'    => __( 'Custom (1200×auto)', 'bw-elementor-widgets' ),
+                    'custom_1500'    => __( 'Custom (1500×auto)', 'bw-elementor-widgets' ),
+                    'full'           => __( 'Full Size (Original)', 'bw-elementor-widgets' ),
                 ],
                 'condition'   => [
                     'layout_mode' => 'horizontal',
                 ],
-                'description' => __( 'Select WordPress image size for gallery images', 'bw-elementor-widgets' ),
+                'description' => __( 'Select image size for gallery slides', 'bw-elementor-widgets' ),
+            ]
+        );
+
+        $this->add_control(
+            'popup_image_size',
+            [
+                'label'       => __( 'Popup Image Size', 'bw-elementor-widgets' ),
+                'type'        => Controls_Manager::SELECT,
+                'default'     => 'full',
+                'options'     => [
+                    'thumbnail'      => __( 'Thumbnail (150×150)', 'bw-elementor-widgets' ),
+                    'medium'         => __( 'Medium (300×300)', 'bw-elementor-widgets' ),
+                    'medium_large'   => __( 'Medium Large (768×auto)', 'bw-elementor-widgets' ),
+                    'large'          => __( 'Large (1024×1024)', 'bw-elementor-widgets' ),
+                    'custom_1200'    => __( 'Custom (1200×auto)', 'bw-elementor-widgets' ),
+                    'custom_1500'    => __( 'Custom (1500×auto)', 'bw-elementor-widgets' ),
+                    'custom_2000'    => __( 'Custom (2000×auto)', 'bw-elementor-widgets' ),
+                    'full'           => __( 'Full Size (Original)', 'bw-elementor-widgets' ),
+                ],
+                'condition'   => [
+                    'layout_mode' => 'horizontal',
+                    'enable_popup' => 'yes',
+                ],
+                'description' => __( 'Select image size for popup gallery', 'bw-elementor-widgets' ),
             ]
         );
 
@@ -1164,11 +1190,29 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
     }
 
     /**
+     * Get image size for wp_get_attachment_image
+     * Converts custom sizes to array format [width, height]
+     */
+    protected function get_image_size( $size_setting ) {
+        switch ( $size_setting ) {
+            case 'custom_1200':
+                return [ 1200, 0 ]; // 1200×auto
+            case 'custom_1500':
+                return [ 1500, 0 ]; // 1500×auto
+            case 'custom_2000':
+                return [ 2000, 0 ]; // 2000×auto
+            default:
+                return $size_setting; // WordPress default sizes
+        }
+    }
+
+    /**
      * Render horizontal layout
      */
     protected function render_horizontal_layout( $images, $settings ) {
         // Get image size from settings
-        $image_size = ! empty( $settings['image_size'] ) ? $settings['image_size'] : 'full';
+        $image_size_setting = ! empty( $settings['image_size'] ) ? $settings['image_size'] : 'full';
+        $image_size = $this->get_image_size( $image_size_setting );
 
         ?>
         <div class="bw-ps-horizontal">
@@ -1296,6 +1340,10 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
      * Render popup modal
      */
     protected function render_popup_modal( $images, $settings, $popup_title ) {
+        // Get popup image size from settings
+        $popup_image_size_setting = ! empty( $settings['popup_image_size'] ) ? $settings['popup_image_size'] : 'full';
+        $popup_image_size = $this->get_image_size( $popup_image_size_setting );
+
         ?>
         <div class="bw-ps-popup-overlay" style="display: none;">
             <div class="bw-ps-popup">
@@ -1311,7 +1359,7 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
                             <?php
                             echo wp_get_attachment_image(
                                 $image['id'],
-                                'full',
+                                $popup_image_size,
                                 false,
                                 [
                                     'loading'  => 'lazy',
