@@ -62,6 +62,9 @@
                 $slider.slick('unslick');
             }
 
+            // Build responsive breakpoints config
+            const responsive = this.config.horizontal.responsive || [];
+
             const slickConfig = {
                 infinite: this.config.horizontal.infinite,
                 autoplay: this.config.horizontal.autoplay,
@@ -70,29 +73,22 @@
                 pauseOnHover: this.config.horizontal.pauseOnHover,
                 arrows: false, // We use custom arrows
                 dots: false,
-                slidesToShow: 1,
-                slidesToScroll: 1,
-                centerMode: true,
-                centerPadding: '25%',
+                slidesToShow: this.config.horizontal.slidesToShow,
+                slidesToScroll: this.config.horizontal.slidesToScroll,
+                centerMode: this.config.horizontal.centerMode,
+                centerPadding: this.config.horizontal.centerMode ? '25%' : '0',
                 focusOnSelect: true,
-                responsive: this.config.horizontal.responsive || []
+                responsive: responsive
             };
 
             $slider.slick(slickConfig);
             this.slickInstances.push($slider);
 
-            // Custom arrows navigation
-            if (this.config.horizontal.arrows) {
-                this.$wrapper.find('.bw-ps-arrow-prev').on('click', (e) => {
-                    e.preventDefault();
-                    $slider.slick('slickPrev');
-                });
+            // Apply dots position class
+            this.applyDotsPosition();
 
-                this.$wrapper.find('.bw-ps-arrow-next').on('click', (e) => {
-                    e.preventDefault();
-                    $slider.slick('slickNext');
-                });
-            }
+            // Custom arrows navigation - show/hide based on breakpoints
+            this.initArrowsVisibility();
 
             // Click on center slide opens popup
             $slider.on('click', '.slick-slide.slick-center .bw-ps-image-clickable', (e) => {
@@ -101,6 +97,91 @@
                     this.openModal(index);
                 }
             });
+
+            // Click on any active slide if center mode is off
+            if (!this.config.horizontal.centerMode) {
+                $slider.on('click', '.slick-slide.slick-active .bw-ps-image-clickable', (e) => {
+                    const index = parseInt($(e.currentTarget).closest('.bw-ps-slide').data('bw-index'), 10);
+                    if (!isNaN(index) && this.config.enablePopup) {
+                        this.openModal(index);
+                    }
+                });
+            }
+        }
+
+        /**
+         * Initialize arrows visibility based on breakpoints
+         */
+        initArrowsVisibility() {
+            const $arrows = this.$wrapper.find('.bw-ps-arrows-container');
+            const breakpoints = this.config.horizontal.responsive || [];
+
+            // Initial check
+            this.updateArrowsVisibility();
+
+            // Update on window resize
+            $(window).on(`resize.bwps-${this.widgetId}`, () => {
+                this.updateArrowsVisibility();
+            });
+
+            // Custom arrows click events
+            this.$wrapper.find('.bw-ps-arrow-prev').on('click', (e) => {
+                e.preventDefault();
+                this.$wrapper.find('.bw-ps-slider-horizontal').slick('slickPrev');
+            });
+
+            this.$wrapper.find('.bw-ps-arrow-next').on('click', (e) => {
+                e.preventDefault();
+                this.$wrapper.find('.bw-ps-slider-horizontal').slick('slickNext');
+            });
+        }
+
+        /**
+         * Update arrows visibility based on current breakpoint
+         */
+        updateArrowsVisibility() {
+            const windowWidth = $(window).width();
+            const breakpoints = this.config.horizontal.responsive || [];
+            const $arrows = this.$wrapper.find('.bw-ps-arrows-container');
+
+            let showArrows = true; // Desktop default (always show)
+
+            // Check breakpoints from largest to smallest
+            const sortedBreakpoints = [...breakpoints].sort((a, b) => b.breakpoint - a.breakpoint);
+
+            for (const bp of sortedBreakpoints) {
+                if (windowWidth <= bp.breakpoint) {
+                    // Use the showArrows property we added in PHP
+                    showArrows = bp.showArrows === true;
+                    break; // Use the first matching breakpoint
+                }
+            }
+
+            if (showArrows) {
+                $arrows.css('display', 'flex');
+            } else {
+                $arrows.css('display', 'none');
+            }
+        }
+
+        /**
+         * Apply dots position class
+         */
+        applyDotsPosition() {
+            const position = this.config.dotsPosition || 'center';
+            const $dots = this.$wrapper.find('.slick-dots');
+
+            if ($dots.length) {
+                $dots.addClass(`bw-ps-dots-${position}`);
+            }
+
+            // Check after Slick init
+            setTimeout(() => {
+                const $dotsAfter = this.$wrapper.find('.slick-dots');
+                if ($dotsAfter.length) {
+                    $dotsAfter.addClass(`bw-ps-dots-${position}`);
+                }
+            }, 100);
         }
 
         /**
@@ -416,6 +497,7 @@
 
             // Remove event listeners
             $(document).off(`keydown.bwps-${this.widgetId}`);
+            $(window).off(`resize.bwps-${this.widgetId}`);
             this.$wrapper.off();
 
             // Remove custom cursor
