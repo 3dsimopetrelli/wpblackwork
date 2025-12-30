@@ -71,13 +71,13 @@
                 autoplaySpeed: this.config.horizontal.autoplaySpeed,
                 speed: this.config.horizontal.speed,
                 pauseOnHover: this.config.horizontal.pauseOnHover,
-                adaptiveHeight: this.config.horizontal.adaptiveHeight,
+                adaptiveHeight: true, // Default enabled
                 arrows: false, // We use custom arrows
                 dots: false,
-                slidesToShow: this.config.horizontal.slidesToShow,
-                slidesToScroll: this.config.horizontal.slidesToScroll,
-                centerMode: this.config.horizontal.centerMode,
-                centerPadding: this.config.horizontal.centerMode ? '25%' : '0',
+                slidesToShow: 1, // Default value - overridden by breakpoints
+                slidesToScroll: 1, // Default value - overridden by breakpoints
+                centerMode: false, // Default value - overridden by breakpoints
+                centerPadding: '0',
                 focusOnSelect: true,
                 responsive: responsive
             };

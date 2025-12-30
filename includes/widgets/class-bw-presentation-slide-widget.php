@@ -104,40 +104,6 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
         );
 
         $this->add_control(
-            'slides_to_show',
-            [
-                'label'   => __( 'Slides to Show (Desktop)', 'bw-elementor-widgets' ),
-                'type'    => Controls_Manager::NUMBER,
-                'default' => 1,
-                'min'     => 1,
-                'max'     => 10,
-            ]
-        );
-
-        $this->add_control(
-            'slides_to_scroll',
-            [
-                'label'   => __( 'Slides to Scroll (Desktop)', 'bw-elementor-widgets' ),
-                'type'    => Controls_Manager::NUMBER,
-                'default' => 1,
-                'min'     => 1,
-                'max'     => 10,
-            ]
-        );
-
-        $this->add_control(
-            'center_mode',
-            [
-                'label'        => __( 'Center Mode', 'bw-elementor-widgets' ),
-                'type'         => Controls_Manager::SWITCHER,
-                'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
-                'label_off'    => __( 'No', 'bw-elementor-widgets' ),
-                'return_value' => 'yes',
-                'default'      => 'yes',
-            ]
-        );
-
-        $this->add_control(
             'infinite_loop',
             [
                 'label'        => __( 'Infinite Loop', 'bw-elementor-widgets' ),
@@ -200,19 +166,6 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
                 'condition'    => [
                     'autoplay' => 'yes',
                 ],
-            ]
-        );
-
-        $this->add_control(
-            'adaptive_height',
-            [
-                'label'        => __( 'Adaptive Height', 'bw-elementor-widgets' ),
-                'type'         => Controls_Manager::SWITCHER,
-                'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
-                'label_off'    => __( 'No', 'bw-elementor-widgets' ),
-                'return_value' => 'yes',
-                'default'      => 'yes',
-                'description'  => __( 'Automatically adjust slider height to current slide', 'bw-elementor-widgets' ),
             ]
         );
 
@@ -1094,10 +1047,6 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
                 'autoplaySpeed'    => absint( $settings['autoplay_speed'] ),
                 'speed'            => absint( $settings['transition_speed'] ),
                 'pauseOnHover'     => $settings['pause_on_hover'] === 'yes',
-                'adaptiveHeight'   => $settings['adaptive_height'] === 'yes',
-                'slidesToShow'     => absint( $settings['slides_to_show'] ),
-                'slidesToScroll'   => absint( $settings['slides_to_scroll'] ),
-                'centerMode'       => $settings['center_mode'] === 'yes',
                 'responsive'       => $this->build_responsive_config( $settings ),
             ],
             'vertical'             => [
