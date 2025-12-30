@@ -71,6 +71,7 @@
                 autoplaySpeed: this.config.horizontal.autoplaySpeed,
                 speed: this.config.horizontal.speed,
                 pauseOnHover: this.config.horizontal.pauseOnHover,
+                adaptiveHeight: this.config.horizontal.adaptiveHeight,
                 arrows: false, // We use custom arrows
                 dots: false,
                 slidesToShow: this.config.horizontal.slidesToShow,
