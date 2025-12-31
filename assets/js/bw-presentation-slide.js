@@ -94,6 +94,9 @@
             // Apply slide width based on breakpoints
             this.initSlideWidths();
 
+            // Apply image height mode based on breakpoints
+            this.initImageHeightControls();
+
             // Click on center slide opens popup
             $slider.on('click', '.slick-slide.slick-center .bw-ps-image-clickable', (e) => {
                 const index = parseInt($(e.currentTarget).closest('.bw-ps-slide').data('bw-index'), 10);
@@ -182,6 +185,17 @@
         }
 
         /**
+         * Initialize image height settings based on breakpoints
+         */
+        initImageHeightControls() {
+            this.updateImageHeightControls();
+
+            $(window).on(`resize.bwps-height-${this.widgetId}`, () => {
+                this.updateImageHeightControls();
+            });
+        }
+
+        /**
          * Update slide widths based on current breakpoint
          */
         updateSlideWidths() {
@@ -208,6 +222,52 @@
                 $slides.css('width', slideWidth + 'px');
             } else {
                 $slides.css('width', '');
+            }
+        }
+
+        /**
+         * Update image height mode and dimensions based on current breakpoint
+         */
+        updateImageHeightControls() {
+            const windowWidth = $(window).width();
+            const breakpoints = this.config.horizontal.responsive || [];
+            const $horizontal = this.$wrapper.find('.bw-ps-horizontal');
+            const $images = this.$wrapper.find('.bw-ps-image img');
+
+            let heightMode = 'auto';
+            let imageHeight = null;
+            let imageWidth = null;
+
+            const sortedBreakpoints = [...breakpoints].sort((a, b) => b.breakpoint - a.breakpoint);
+
+            for (const bp of sortedBreakpoints) {
+                if (windowWidth <= bp.breakpoint) {
+                    if (bp.imageHeightMode) {
+                        heightMode = bp.imageHeightMode;
+                    }
+                    if (bp.imageHeight) {
+                        imageHeight = bp.imageHeight;
+                    }
+                    if (bp.imageWidth) {
+                        imageWidth = bp.imageWidth;
+                    }
+                    break;
+                }
+            }
+
+            const heightClasses = ['bw-ps-height-auto', 'bw-ps-height-fixed', 'bw-ps-height-contain', 'bw-ps-height-cover'];
+            $horizontal.removeClass(heightClasses.join(' ')).addClass(`bw-ps-height-${heightMode}`);
+
+            if (heightMode !== 'auto' && imageHeight && imageHeight.size !== null && imageHeight.unit) {
+                $images.css('height', `${imageHeight.size}${imageHeight.unit}`);
+            } else {
+                $images.css('height', '');
+            }
+
+            if ((heightMode === 'contain' || heightMode === 'cover') && imageWidth && imageWidth.size !== null && imageWidth.unit) {
+                $images.css('width', `${imageWidth.size}${imageWidth.unit}`);
+            } else {
+                $images.css('width', '');
             }
         }
 
@@ -417,8 +477,7 @@
          */
         openModal(startIndex) {
             const $overlay = this.$wrapper.find('.bw-ps-popup-overlay');
-            const $body = $overlay.find('.bw-ps-popup-body');
-            const $targetImage = $body.find('.bw-ps-popup-image').eq(startIndex);
+            const $targetImage = $overlay.find('.bw-ps-popup-image').eq(startIndex);
 
             if ($overlay.length === 0 || $targetImage.length === 0) return;
 
@@ -431,10 +490,18 @@
             $('body').css('overflow', 'hidden');
 
             // Scroll to target image
-            setTimeout(() => {
-                const targetOffset = $targetImage.position().top;
-                $body.scrollTop(targetOffset);
-            }, 50);
+            const scrollToTarget = () => {
+                const headerHeight = $overlay.find('.bw-ps-popup-header').outerHeight() || 0;
+                const overlayTop = $overlay[0].getBoundingClientRect().top;
+                const targetTop = $targetImage[0].getBoundingClientRect().top;
+                const delta = targetTop - overlayTop - headerHeight;
+                $overlay.scrollTop($overlay.scrollTop() + delta);
+            };
+
+            requestAnimationFrame(() => {
+                scrollToTarget();
+                setTimeout(scrollToTarget, 150);
+            });
         }
 
         /**
@@ -547,6 +614,7 @@
             $(document).off(`keydown.bwps-${this.widgetId}`);
             $(window).off(`resize.bwps-${this.widgetId}`);
             $(window).off(`resize.bwps-width-${this.widgetId}`);
+            $(window).off(`resize.bwps-height-${this.widgetId}`);
             this.$wrapper.off();
 
             // Remove custom cursor
