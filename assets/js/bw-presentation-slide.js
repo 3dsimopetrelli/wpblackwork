@@ -457,6 +457,8 @@
             if (!$overlay.parent().is('body')) {
                 $overlay.appendTo('body');
             }
+            $overlay.attr('data-bw-ps-widget-id', this.widgetId);
+            this.$popupOverlay = $overlay;
 
             // Close button click
             $closeBtn.off('click').on('click', () => this.closeModal());
@@ -480,7 +482,7 @@
          * Open Modal at Specific Index
          */
         openModal(startIndex) {
-            const $overlay = this.$wrapper.find('.bw-ps-popup-overlay');
+            const $overlay = this.$popupOverlay || $(`.bw-ps-popup-overlay[data-bw-ps-widget-id="${this.widgetId}"]`);
             const $targetImage = $overlay.find('.bw-ps-popup-image').eq(startIndex);
 
             if ($overlay.length === 0 || $targetImage.length === 0) return;
@@ -512,7 +514,7 @@
          * Close Modal
          */
         closeModal() {
-            const $overlay = this.$wrapper.find('.bw-ps-popup-overlay');
+            const $overlay = this.$popupOverlay || $(`.bw-ps-popup-overlay[data-bw-ps-widget-id="${this.widgetId}"]`);
 
             $overlay.removeClass('active').fadeOut(300);
             $('body').css('overflow', '');
