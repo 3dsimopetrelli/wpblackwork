@@ -477,8 +477,7 @@
          */
         openModal(startIndex) {
             const $overlay = this.$wrapper.find('.bw-ps-popup-overlay');
-            const $body = $overlay.find('.bw-ps-popup-body');
-            const $targetImage = $body.find('.bw-ps-popup-image').eq(startIndex);
+            const $targetImage = $overlay.find('.bw-ps-popup-image').eq(startIndex);
 
             if ($overlay.length === 0 || $targetImage.length === 0) return;
 
@@ -492,13 +491,16 @@
 
             // Scroll to target image
             const scrollToTarget = () => {
-                const targetOffset = $targetImage[0].offsetTop;
-                $body.scrollTop(targetOffset);
+                const headerHeight = $overlay.find('.bw-ps-popup-header').outerHeight() || 0;
+                const overlayTop = $overlay[0].getBoundingClientRect().top;
+                const targetTop = $targetImage[0].getBoundingClientRect().top;
+                const delta = targetTop - overlayTop - headerHeight;
+                $overlay.scrollTop($overlay.scrollTop() + delta);
             };
 
             requestAnimationFrame(() => {
                 scrollToTarget();
-                setTimeout(scrollToTarget, 100);
+                setTimeout(scrollToTarget, 150);
             });
         }
 
