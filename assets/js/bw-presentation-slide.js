@@ -64,6 +64,7 @@
 
             // Build responsive breakpoints config
             const responsive = this.config.horizontal.responsive || [];
+            this.sortedBreakpoints = [...responsive].sort((a, b) => b.breakpoint - a.breakpoint);
 
             const slickConfig = {
                 infinite: this.config.horizontal.infinite,
@@ -94,6 +95,9 @@
             // Apply slide width based on breakpoints
             this.initSlideWidths();
 
+            // Apply image height mode based on breakpoints
+            this.initImageHeightControls();
+
             // Click on center slide opens popup
             $slider.on('click', '.slick-slide.slick-center .bw-ps-image-clickable', (e) => {
                 const index = parseInt($(e.currentTarget).closest('.bw-ps-slide').data('bw-index'), 10);
@@ -117,9 +121,6 @@
          * Initialize arrows visibility based on breakpoints
          */
         initArrowsVisibility() {
-            const $arrows = this.$wrapper.find('.bw-ps-arrows-container');
-            const breakpoints = this.config.horizontal.responsive || [];
-
             // Initial check
             this.updateArrowsVisibility();
 
@@ -145,14 +146,12 @@
          */
         updateArrowsVisibility() {
             const windowWidth = $(window).width();
-            const breakpoints = this.config.horizontal.responsive || [];
             const $arrows = this.$wrapper.find('.bw-ps-arrows-container');
+            const sortedBreakpoints = this.sortedBreakpoints || [];
 
             let showArrows = true; // Desktop default (always show)
 
             // Check breakpoints from largest to smallest
-            const sortedBreakpoints = [...breakpoints].sort((a, b) => b.breakpoint - a.breakpoint);
-
             for (const bp of sortedBreakpoints) {
                 if (windowWidth <= bp.breakpoint) {
                     // Use the showArrows property we added in PHP
@@ -182,18 +181,27 @@
         }
 
         /**
+         * Initialize image height settings based on breakpoints
+         */
+        initImageHeightControls() {
+            this.updateImageHeightControls();
+
+            $(window).on(`resize.bwps-height-${this.widgetId}`, () => {
+                this.updateImageHeightControls();
+            });
+        }
+
+        /**
          * Update slide widths based on current breakpoint
          */
         updateSlideWidths() {
             const windowWidth = $(window).width();
-            const breakpoints = this.config.horizontal.responsive || [];
             const $slides = this.$wrapper.find('.bw-ps-slide');
+            const sortedBreakpoints = this.sortedBreakpoints || [];
 
             let slideWidth = null;
 
             // Check breakpoints from largest to smallest
-            const sortedBreakpoints = [...breakpoints].sort((a, b) => b.breakpoint - a.breakpoint);
-
             for (const bp of sortedBreakpoints) {
                 if (windowWidth <= bp.breakpoint) {
                     if (bp.slideWidth) {
@@ -208,6 +216,50 @@
                 $slides.css('width', slideWidth + 'px');
             } else {
                 $slides.css('width', '');
+            }
+        }
+
+        /**
+         * Update image height mode and dimensions based on current breakpoint
+         */
+        updateImageHeightControls() {
+            const windowWidth = $(window).width();
+            const $horizontal = this.$wrapper.find('.bw-ps-horizontal');
+            const $images = this.$wrapper.find('.bw-ps-image img');
+            const sortedBreakpoints = this.sortedBreakpoints || [];
+
+            let heightMode = 'auto';
+            let imageHeight = null;
+            let imageWidth = null;
+
+            for (const bp of sortedBreakpoints) {
+                if (windowWidth <= bp.breakpoint) {
+                    if (bp.imageHeightMode) {
+                        heightMode = bp.imageHeightMode;
+                    }
+                    if (bp.imageHeight) {
+                        imageHeight = bp.imageHeight;
+                    }
+                    if (bp.imageWidth) {
+                        imageWidth = bp.imageWidth;
+                    }
+                    break;
+                }
+            }
+
+            const heightClasses = ['bw-ps-height-auto', 'bw-ps-height-fixed', 'bw-ps-height-contain', 'bw-ps-height-cover'];
+            $horizontal.removeClass(heightClasses.join(' ')).addClass(`bw-ps-height-${heightMode}`);
+
+            if (heightMode !== 'auto' && imageHeight && imageHeight.size !== null && imageHeight.unit) {
+                $images.css('height', `${imageHeight.size}${imageHeight.unit}`);
+            } else {
+                $images.css('height', '');
+            }
+
+            if ((heightMode === 'contain' || heightMode === 'cover') && imageWidth && imageWidth.size !== null && imageWidth.unit) {
+                $images.css('width', `${imageWidth.size}${imageWidth.unit}`);
+            } else {
+                $images.css('width', '');
             }
         }
 
@@ -239,7 +291,7 @@
 
             if (this.config.vertical.enableResponsive) {
                 this.handleVerticalResponsive(breakpoint);
-                $(window).on('resize', () => this.handleVerticalResponsive(breakpoint));
+                $(window).on(`resize.bwps-vertical-${this.widgetId}`, () => this.handleVerticalResponsive(breakpoint));
             } else {
                 this.initVerticalDesktop();
             }
@@ -394,6 +446,12 @@
 
             if ($overlay.length === 0) return;
 
+            if (!$overlay.parent().is('body')) {
+                $overlay.appendTo('body');
+            }
+            $overlay.attr('data-bw-ps-widget-id', this.widgetId);
+            this.$popupOverlay = $overlay;
+
             // Close button click
             $closeBtn.off('click').on('click', () => this.closeModal());
 
@@ -416,9 +474,8 @@
          * Open Modal at Specific Index
          */
         openModal(startIndex) {
-            const $overlay = this.$wrapper.find('.bw-ps-popup-overlay');
-            const $body = $overlay.find('.bw-ps-popup-body');
-            const $targetImage = $body.find('.bw-ps-popup-image').eq(startIndex);
+            const $overlay = this.$popupOverlay || $(`.bw-ps-popup-overlay[data-bw-ps-widget-id="${this.widgetId}"]`);
+            const $targetImage = $overlay.find('.bw-ps-popup-image').eq(startIndex);
 
             if ($overlay.length === 0 || $targetImage.length === 0) return;
 
@@ -431,17 +488,25 @@
             $('body').css('overflow', 'hidden');
 
             // Scroll to target image
-            setTimeout(() => {
-                const targetOffset = $targetImage.position().top;
-                $body.scrollTop(targetOffset);
-            }, 50);
+            const scrollToTarget = () => {
+                const headerHeight = $overlay.find('.bw-ps-popup-header').outerHeight() || 0;
+                const overlayTop = $overlay[0].getBoundingClientRect().top;
+                const targetTop = $targetImage[0].getBoundingClientRect().top;
+                const delta = targetTop - overlayTop - headerHeight;
+                $overlay.scrollTop($overlay.scrollTop() + delta);
+            };
+
+            requestAnimationFrame(() => {
+                scrollToTarget();
+                setTimeout(scrollToTarget, 150);
+            });
         }
 
         /**
          * Close Modal
          */
         closeModal() {
-            const $overlay = this.$wrapper.find('.bw-ps-popup-overlay');
+            const $overlay = this.$popupOverlay || $(`.bw-ps-popup-overlay[data-bw-ps-widget-id="${this.widgetId}"]`);
 
             $overlay.removeClass('active').fadeOut(300);
             $('body').css('overflow', '');
@@ -547,6 +612,8 @@
             $(document).off(`keydown.bwps-${this.widgetId}`);
             $(window).off(`resize.bwps-${this.widgetId}`);
             $(window).off(`resize.bwps-width-${this.widgetId}`);
+            $(window).off(`resize.bwps-height-${this.widgetId}`);
+            $(window).off(`resize.bwps-vertical-${this.widgetId}`);
             this.$wrapper.off();
 
             // Remove custom cursor
@@ -564,7 +631,6 @@
     function initWidgets() {
         $('.bw-ps-wrapper').each(function () {
             const $wrapper = $(this);
-            const widgetId = $wrapper.data('widget-id');
 
             // Avoid duplicate initialization
             if ($wrapper.data('bw-ps-instance')) {
