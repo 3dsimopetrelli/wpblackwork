@@ -64,6 +64,7 @@
 
             // Build responsive breakpoints config
             const responsive = this.config.horizontal.responsive || [];
+            this.sortedBreakpoints = [...responsive].sort((a, b) => b.breakpoint - a.breakpoint);
 
             const slickConfig = {
                 infinite: this.config.horizontal.infinite,
@@ -120,9 +121,6 @@
          * Initialize arrows visibility based on breakpoints
          */
         initArrowsVisibility() {
-            const $arrows = this.$wrapper.find('.bw-ps-arrows-container');
-            const breakpoints = this.config.horizontal.responsive || [];
-
             // Initial check
             this.updateArrowsVisibility();
 
@@ -148,14 +146,12 @@
          */
         updateArrowsVisibility() {
             const windowWidth = $(window).width();
-            const breakpoints = this.config.horizontal.responsive || [];
             const $arrows = this.$wrapper.find('.bw-ps-arrows-container');
+            const sortedBreakpoints = this.sortedBreakpoints || [];
 
             let showArrows = true; // Desktop default (always show)
 
             // Check breakpoints from largest to smallest
-            const sortedBreakpoints = [...breakpoints].sort((a, b) => b.breakpoint - a.breakpoint);
-
             for (const bp of sortedBreakpoints) {
                 if (windowWidth <= bp.breakpoint) {
                     // Use the showArrows property we added in PHP
@@ -200,14 +196,12 @@
          */
         updateSlideWidths() {
             const windowWidth = $(window).width();
-            const breakpoints = this.config.horizontal.responsive || [];
             const $slides = this.$wrapper.find('.bw-ps-slide');
+            const sortedBreakpoints = this.sortedBreakpoints || [];
 
             let slideWidth = null;
 
             // Check breakpoints from largest to smallest
-            const sortedBreakpoints = [...breakpoints].sort((a, b) => b.breakpoint - a.breakpoint);
-
             for (const bp of sortedBreakpoints) {
                 if (windowWidth <= bp.breakpoint) {
                     if (bp.slideWidth) {
@@ -230,15 +224,13 @@
          */
         updateImageHeightControls() {
             const windowWidth = $(window).width();
-            const breakpoints = this.config.horizontal.responsive || [];
             const $horizontal = this.$wrapper.find('.bw-ps-horizontal');
             const $images = this.$wrapper.find('.bw-ps-image img');
+            const sortedBreakpoints = this.sortedBreakpoints || [];
 
             let heightMode = 'auto';
             let imageHeight = null;
             let imageWidth = null;
-
-            const sortedBreakpoints = [...breakpoints].sort((a, b) => b.breakpoint - a.breakpoint);
 
             for (const bp of sortedBreakpoints) {
                 if (windowWidth <= bp.breakpoint) {
@@ -299,7 +291,7 @@
 
             if (this.config.vertical.enableResponsive) {
                 this.handleVerticalResponsive(breakpoint);
-                $(window).on('resize', () => this.handleVerticalResponsive(breakpoint));
+                $(window).on(`resize.bwps-vertical-${this.widgetId}`, () => this.handleVerticalResponsive(breakpoint));
             } else {
                 this.initVerticalDesktop();
             }
@@ -621,6 +613,7 @@
             $(window).off(`resize.bwps-${this.widgetId}`);
             $(window).off(`resize.bwps-width-${this.widgetId}`);
             $(window).off(`resize.bwps-height-${this.widgetId}`);
+            $(window).off(`resize.bwps-vertical-${this.widgetId}`);
             this.$wrapper.off();
 
             // Remove custom cursor
@@ -638,7 +631,6 @@
     function initWidgets() {
         $('.bw-ps-wrapper').each(function () {
             const $wrapper = $(this);
-            const widgetId = $wrapper.data('widget-id');
 
             // Avoid duplicate initialization
             if ($wrapper.data('bw-ps-instance')) {
