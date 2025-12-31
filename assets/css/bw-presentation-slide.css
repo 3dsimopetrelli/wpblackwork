@@ -118,6 +118,31 @@
 }
 
 /* ========================================
+   IMAGE HEIGHT MODES
+   ======================================== */
+
+/* Fixed Height Mode - Height fixed, width auto (maintains aspect ratio) */
+.bw-ps-horizontal.bw-ps-height-fixed .bw-ps-image img {
+    width: auto;
+    max-width: none;
+    /* height is set by Elementor control */
+}
+
+/* Contain Mode - Fit image within fixed dimensions */
+.bw-ps-horizontal.bw-ps-height-contain .bw-ps-image img {
+    object-fit: contain;
+    object-position: center;
+    /* width and height are set by Elementor controls */
+}
+
+/* Cover Mode - Fill fixed dimensions (may crop) */
+.bw-ps-horizontal.bw-ps-height-cover .bw-ps-image img {
+    object-fit: cover;
+    object-position: center;
+    /* width and height are set by Elementor controls */
+}
+
+/* ========================================
    VERTICAL LAYOUT - DESKTOP
    ======================================== */
 .bw-ps-vertical {

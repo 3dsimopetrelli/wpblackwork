@@ -520,6 +520,101 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
             ]
         );
 
+        $this->add_control(
+            'image_height_heading',
+            [
+                'label'     => __( 'Image Height Settings', 'bw-elementor-widgets' ),
+                'type'      => Controls_Manager::HEADING,
+                'separator' => 'before',
+                'condition' => [
+                    'layout_mode' => 'horizontal',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'image_height_mode',
+            [
+                'label'       => __( 'Height Mode', 'bw-elementor-widgets' ),
+                'type'        => Controls_Manager::SELECT,
+                'default'     => 'auto',
+                'options'     => [
+                    'auto'        => __( 'Auto (Original)', 'bw-elementor-widgets' ),
+                    'fixed'       => __( 'Fixed Height (Width Auto)', 'bw-elementor-widgets' ),
+                    'contain'     => __( 'Contain (Fixed Dimensions)', 'bw-elementor-widgets' ),
+                    'cover'       => __( 'Cover (Fixed Dimensions)', 'bw-elementor-widgets' ),
+                ],
+                'condition'   => [
+                    'layout_mode' => 'horizontal',
+                ],
+                'description' => __( 'Control how images adapt to uniform height', 'bw-elementor-widgets' ),
+            ]
+        );
+
+        $this->add_responsive_control(
+            'image_height',
+            [
+                'label'      => __( 'Image Height', 'bw-elementor-widgets' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px', 'vh' ],
+                'range'      => [
+                    'px' => [
+                        'min'  => 100,
+                        'max'  => 1500,
+                        'step' => 10,
+                    ],
+                    'vh' => [
+                        'min'  => 10,
+                        'max'  => 100,
+                        'step' => 1,
+                    ],
+                ],
+                'default'    => [
+                    'size' => 600,
+                    'unit' => 'px',
+                ],
+                'selectors'  => [
+                    '{{WRAPPER}} .bw-ps-image img' => 'height: {{SIZE}}{{UNIT}};',
+                ],
+                'condition'  => [
+                    'layout_mode' => 'horizontal',
+                    'image_height_mode!' => 'auto',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'image_width',
+            [
+                'label'      => __( 'Image Width', 'bw-elementor-widgets' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px', '%' ],
+                'range'      => [
+                    'px' => [
+                        'min'  => 100,
+                        'max'  => 2000,
+                        'step' => 10,
+                    ],
+                    '%' => [
+                        'min'  => 10,
+                        'max'  => 100,
+                        'step' => 1,
+                    ],
+                ],
+                'default'    => [
+                    'size' => 100,
+                    'unit' => '%',
+                ],
+                'selectors'  => [
+                    '{{WRAPPER}} .bw-ps-image img' => 'width: {{SIZE}}{{UNIT}};',
+                ],
+                'condition'  => [
+                    'layout_mode' => 'horizontal',
+                    'image_height_mode' => [ 'contain', 'cover' ],
+                ],
+            ]
+        );
+
         $this->end_controls_section();
 
         // Style → Navigation (Horizontal)
@@ -1163,8 +1258,12 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
         $image_size_setting = ! empty( $settings['image_size'] ) ? $settings['image_size'] : 'full';
         $image_size = $this->get_image_size( $image_size_setting );
 
+        // Get image height mode
+        $height_mode = ! empty( $settings['image_height_mode'] ) ? $settings['image_height_mode'] : 'auto';
+        $height_class = 'bw-ps-height-' . $height_mode;
+
         ?>
-        <div class="bw-ps-horizontal">
+        <div class="bw-ps-horizontal <?php echo esc_attr( $height_class ); ?>">
             <div class="bw-ps-slider-horizontal">
                 <?php foreach ( $images as $index => $image ) : ?>
                     <div class="bw-ps-slide" data-bw-index="<?php echo esc_attr( $index ); ?>" data-attachment-id="<?php echo esc_attr( $image['id'] ); ?>">
