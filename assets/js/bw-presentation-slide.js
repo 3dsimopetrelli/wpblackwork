@@ -94,6 +94,9 @@
             // Apply slide width based on breakpoints
             this.initSlideWidths();
 
+            // Apply image height mode based on breakpoints
+            this.initImageHeights();
+
             // Click on center slide opens popup
             $slider.on('click', '.slick-slide.slick-center .bw-ps-image-clickable', (e) => {
                 const index = parseInt($(e.currentTarget).closest('.bw-ps-slide').data('bw-index'), 10);
@@ -208,6 +211,65 @@
                 $slides.css('width', slideWidth + 'px');
             } else {
                 $slides.css('width', '');
+            }
+        }
+
+        /**
+         * Initialize image heights based on breakpoints
+         */
+        initImageHeights() {
+            // Initial check
+            this.updateImageHeights();
+
+            // Update on window resize
+            $(window).on(`resize.bwps-height-${this.widgetId}`, () => {
+                this.updateImageHeights();
+            });
+        }
+
+        /**
+         * Update image heights based on current breakpoint
+         */
+        updateImageHeights() {
+            const windowWidth = $(window).width();
+            const breakpoints = this.config.horizontal.responsive || [];
+            const $horizontal = this.$wrapper.find('.bw-ps-horizontal');
+            const $images = this.$wrapper.find('.bw-ps-image img');
+
+            let heightMode = 'auto';
+            let imageHeight = null;
+            let imageWidth = null;
+
+            // Check breakpoints from largest to smallest
+            const sortedBreakpoints = [...breakpoints].sort((a, b) => b.breakpoint - a.breakpoint);
+
+            for (const bp of sortedBreakpoints) {
+                if (windowWidth <= bp.breakpoint) {
+                    heightMode = bp.imageHeightMode || 'auto';
+                    imageHeight = bp.imageHeight || null;
+                    imageWidth = bp.imageWidth || null;
+                    break;
+                }
+            }
+
+            // Remove all height mode classes
+            $horizontal.removeClass('bw-ps-height-auto bw-ps-height-fixed bw-ps-height-contain bw-ps-height-cover');
+
+            // Add current mode class
+            $horizontal.addClass(`bw-ps-height-${heightMode}`);
+
+            // Apply inline styles for height and width based on mode
+            if (heightMode !== 'auto' && imageHeight) {
+                $images.css('height', imageHeight + 'px');
+            } else {
+                $images.css('height', '');
+            }
+
+            if ((heightMode === 'contain' || heightMode === 'cover') && imageWidth) {
+                $images.css('width', imageWidth + 'px');
+            } else if (heightMode === 'fixed') {
+                // Fixed mode: width is auto
+                $images.css('width', '');
             }
         }
 
@@ -547,6 +609,7 @@
             $(document).off(`keydown.bwps-${this.widgetId}`);
             $(window).off(`resize.bwps-${this.widgetId}`);
             $(window).off(`resize.bwps-width-${this.widgetId}`);
+            $(window).off(`resize.bwps-height-${this.widgetId}`);
             this.$wrapper.off();
 
             // Remove custom cursor
