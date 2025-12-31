@@ -491,10 +491,15 @@
             $('body').css('overflow', 'hidden');
 
             // Scroll to target image
-            setTimeout(() => {
-                const targetOffset = $targetImage.position().top;
+            const scrollToTarget = () => {
+                const targetOffset = $targetImage[0].offsetTop;
                 $body.scrollTop(targetOffset);
-            }, 50);
+            };
+
+            requestAnimationFrame(() => {
+                scrollToTarget();
+                setTimeout(scrollToTarget, 100);
+            });
         }
 
         /**
