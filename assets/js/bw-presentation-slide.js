@@ -454,6 +454,10 @@
 
             if ($overlay.length === 0) return;
 
+            if (!$overlay.parent().is('body')) {
+                $overlay.appendTo('body');
+            }
+
             // Close button click
             $closeBtn.off('click').on('click', () => this.closeModal());
 
