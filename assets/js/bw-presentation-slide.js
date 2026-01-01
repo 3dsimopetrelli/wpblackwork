@@ -560,6 +560,18 @@
             const $wrapper = this.$wrapper;
             const $cursor = this.customCursor;
             const zoomText = this.config.cursorZoomText || 'ZOOM';
+            let currentX = 0;
+            let currentY = 0;
+            let targetX = 0;
+            let targetY = 0;
+            const ease = 0.15;
+
+            const animateCursor = () => {
+                currentX += (targetX - currentX) * ease;
+                currentY += (targetY - currentY) * ease;
+                $cursor.css('transform', `translate3d(${currentX}px, ${currentY}px, 0)`);
+                this.cursorRafId = requestAnimationFrame(animateCursor);
+            };
 
             // Hide system cursor if enabled
             if (this.config.hideSystemCursor) {
@@ -568,10 +580,13 @@
 
             // Track mouse movement
             $wrapper.off('mousemove').on('mousemove', (e) => {
-                const x = e.clientX;
-                const y = e.clientY;
-                $cursor.css({ left: x + 'px', top: y + 'px' });
+                targetX = e.clientX;
+                targetY = e.clientY;
             });
+
+            if (!this.cursorRafId) {
+                this.cursorRafId = requestAnimationFrame(animateCursor);
+            }
 
             // Horizontal layout cursor states
             if (this.layoutMode === 'horizontal') {
@@ -677,6 +692,11 @@
             // Remove custom cursor
             if (this.customCursor) {
                 this.customCursor.removeClass('active');
+            }
+
+            if (this.cursorRafId) {
+                cancelAnimationFrame(this.cursorRafId);
+                this.cursorRafId = null;
             }
 
             this.initialized = false;
