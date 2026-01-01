@@ -146,12 +146,18 @@
             $images.each(function () {
                 const $img = $(this);
                 $img.addClass('bw-ps-fade');
+                $img.attr('loading', 'eager');
                 if (this.complete && this.naturalWidth > 0) {
                     $img.addClass('is-loaded');
                 } else {
                     $img.one('load', function () {
                         $(this).addClass('is-loaded');
                     });
+                    setTimeout(() => {
+                        if (!$img.hasClass('is-loaded')) {
+                            $img.addClass('is-loaded');
+                        }
+                    }, 500);
                 }
             });
         }
@@ -617,6 +623,32 @@
                     cursorState.initialized = true;
                 }
             });
+
+            const animateCursor = () => {
+                const ease = 0.18;
+                cursorState.currentX += (cursorState.targetX - cursorState.currentX) * ease;
+                cursorState.currentY += (cursorState.targetY - cursorState.currentY) * ease;
+                $cursor.css({
+                    left: `${cursorState.currentX}px`,
+                    top: `${cursorState.currentY}px`
+                });
+                cursorState.rafId = requestAnimationFrame(animateCursor);
+            };
+
+            if (cursorState.rafId) {
+                cancelAnimationFrame(cursorState.rafId);
+            }
+            $cursor.css({
+                borderWidth,
+                borderColor,
+                color: arrowColor,
+                '--bw-ps-cursor-bg': backgroundColorRgba,
+                '--bw-site-blur': blurStrength,
+                '--bw-ps-arrow-size': arrowSize,
+                '--bw-ps-zoom-size': zoomTextSize
+            });
+            animateCursor();
+            this.cursorState = cursorState;
 
             const animateCursor = () => {
                 const ease = 0.18;
