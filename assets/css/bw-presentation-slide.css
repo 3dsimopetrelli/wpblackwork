@@ -36,14 +36,6 @@
     opacity: 1;
 }
 
-.bw-ps-image img.bw-ps-fade {
-    opacity: 0;
-}
-
-.bw-ps-image img.bw-ps-fade.is-loaded {
-    opacity: 1;
-}
-
 .bw-ps-image-clickable {
     cursor: pointer;
 }
