@@ -21,6 +21,11 @@
     width: 100%;
     height: auto;
     transition: opacity 0.3s ease, transform 0.3s ease;
+    opacity: 0;
+}
+
+.bw-ps-image img.is-loaded {
+    opacity: 1;
 }
 
 .bw-ps-image img.bw-ps-fade {
