@@ -358,8 +358,6 @@
    CUSTOM CURSOR
    ======================================== */
 .bw-ps-custom-cursor {
-    --cursor-x: 0px;
-    --cursor-y: 0px;
     --cursor-scale: 0;
     position: fixed;
     pointer-events: none;
@@ -376,8 +374,7 @@
     font-size: 12px;
     font-weight: 600;
     letter-spacing: 1px;
-    transform: translate3d(var(--cursor-x), var(--cursor-y), 0)
-        translate(-50%, -50%) scale(var(--cursor-scale));
+    transform: translate(-50%, -50%) scale(var(--cursor-scale));
     transition: transform 0.2s ease, opacity 0.2s ease;
     opacity: 0;
     backdrop-filter: blur(var(--bw-site-blur, 12px));
