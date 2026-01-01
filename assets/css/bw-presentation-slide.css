@@ -23,6 +23,14 @@
     transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
+.bw-ps-image img.bw-ps-fade {
+    opacity: 0;
+}
+
+.bw-ps-image img.bw-ps-fade.is-loaded {
+    opacity: 1;
+}
+
 .bw-ps-image-clickable {
     cursor: pointer;
 }
@@ -235,12 +243,11 @@
    ======================================== */
 .bw-ps-popup-overlay {
     position: fixed;
-    top: 0;
-    left: 0;
+    inset: 0;
     width: 100%;
     height: 100%;
     background-color: rgba(255, 255, 255, 0.95);
-    z-index: 99999;
+    z-index: 2147483647;
     opacity: 0;
     transition: opacity 0.3s ease;
     overflow-y: auto;
@@ -253,8 +260,8 @@
 .bw-ps-popup {
     position: relative;
     width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
+    max-width: none;
+    margin: 0;
     background: #fff;
     min-height: 100vh;
 }
@@ -262,6 +269,7 @@
 .bw-ps-popup-header {
     position: sticky;
     top: 0;
+    width: 100%;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -353,6 +361,10 @@
    CUSTOM CURSOR
    ======================================== */
 .bw-ps-custom-cursor {
+    --cursor-scale: 0;
+    --bw-ps-arrow-size: 24px;
+    --bw-ps-zoom-size: 12px;
+    --bw-ps-cursor-bg: rgba(255, 255, 255, 0.6);
     position: fixed;
     pointer-events: none;
     z-index: 99998;
@@ -362,34 +374,38 @@
     width: 80px;
     height: 80px;
     border-radius: 50%;
-    background-color: rgba(0, 0, 0, 0.8);
-    color: #fff;
+    background-color: var(--bw-ps-cursor-bg);
+    border: 2px solid #000;
+    color: #000;
     font-size: 12px;
     font-weight: 600;
     letter-spacing: 1px;
-    transform: translate(-50%, -50%) scale(0);
+    transform: translate(-50%, -50%) scale(var(--cursor-scale));
     transition: transform 0.2s ease, opacity 0.2s ease;
     opacity: 0;
+    backdrop-filter: blur(var(--bw-site-blur, 12px));
+    -webkit-backdrop-filter: blur(var(--bw-site-blur, 12px));
+    will-change: transform;
 }
 
 .bw-ps-custom-cursor.active {
     display: flex;
     opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
+    --cursor-scale: 1;
 }
 
 .bw-ps-custom-cursor.zoom {
-    background-color: rgba(0, 0, 0, 0.8);
+    font-size: var(--bw-ps-zoom-size);
 }
 
 .bw-ps-custom-cursor.prev::before {
     content: '←';
-    font-size: 24px;
+    font-size: var(--bw-ps-arrow-size);
 }
 
 .bw-ps-custom-cursor.next::before {
     content: '→';
-    font-size: 24px;
+    font-size: var(--bw-ps-arrow-size);
 }
 
 /* Hide system cursor when custom cursor is active */
