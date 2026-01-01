@@ -635,7 +635,7 @@
                 borderWidth,
                 borderColor,
                 color: arrowColor,
-                backgroundColor: backgroundColorRgba,
+                '--bw-ps-cursor-bg': backgroundColorRgba,
                 '--bw-site-blur': blurStrength,
                 '--bw-ps-arrow-size': arrowSize,
                 '--bw-ps-zoom-size': zoomTextSize
