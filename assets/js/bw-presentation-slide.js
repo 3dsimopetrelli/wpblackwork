@@ -570,6 +570,14 @@
             const $wrapper = this.$wrapper;
             const $cursor = this.customCursor;
             const zoomText = this.config.cursorZoomText || 'ZOOM';
+            const cursorState = {
+                currentX: 0,
+                currentY: 0,
+                targetX: 0,
+                targetY: 0,
+                initialized: false,
+                rafId: null
+            };
 
             // Hide system cursor if enabled
             if (this.config.hideSystemCursor) {
@@ -578,10 +586,32 @@
 
             // Track mouse movement
             $wrapper.off('mousemove').on('mousemove', (e) => {
-                const x = e.clientX;
-                const y = e.clientY;
-                $cursor.css({ left: x + 'px', top: y + 'px' });
+                cursorState.targetX = e.clientX;
+                cursorState.targetY = e.clientY;
+
+                if (!cursorState.initialized) {
+                    cursorState.currentX = cursorState.targetX;
+                    cursorState.currentY = cursorState.targetY;
+                    cursorState.initialized = true;
+                }
             });
+
+            const animateCursor = () => {
+                const ease = 0.18;
+                cursorState.currentX += (cursorState.targetX - cursorState.currentX) * ease;
+                cursorState.currentY += (cursorState.targetY - cursorState.currentY) * ease;
+                $cursor.css({
+                    '--cursor-x': `${cursorState.currentX}px`,
+                    '--cursor-y': `${cursorState.currentY}px`
+                });
+                cursorState.rafId = requestAnimationFrame(animateCursor);
+            };
+
+            if (cursorState.rafId) {
+                cancelAnimationFrame(cursorState.rafId);
+            }
+            animateCursor();
+            this.cursorState = cursorState;
 
             // Horizontal layout cursor states
             if (this.layoutMode === 'horizontal') {
@@ -687,6 +717,10 @@
             // Remove custom cursor
             if (this.customCursor) {
                 this.customCursor.removeClass('active');
+            }
+            if (this.cursorState && this.cursorState.rafId) {
+                cancelAnimationFrame(this.cursorState.rafId);
+                this.cursorState.rafId = null;
             }
 
             this.initialized = false;
