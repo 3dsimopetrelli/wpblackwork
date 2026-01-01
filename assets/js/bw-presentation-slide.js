@@ -575,19 +575,7 @@
 
             // Horizontal layout cursor states
             if (this.layoutMode === 'horizontal') {
-                const $arrows = $wrapper.find('.bw-ps-arrow-prev, .bw-ps-arrow-next');
                 const $slider = $wrapper.find('.bw-ps-slider-horizontal');
-
-                // Arrows hover
-                $arrows.off('mouseenter').on('mouseenter', function () {
-                    const isPrev = $(this).hasClass('bw-ps-arrow-prev');
-                    $cursor.removeClass('zoom next prev').addClass(isPrev ? 'prev' : 'next').addClass('active');
-                    $cursor.text('');
-                });
-
-                $arrows.off('mouseleave').on('mouseleave', () => {
-                    $cursor.removeClass('active prev next');
-                });
 
                 // Center slide hover (zoom)
                 $slider.off('mouseenter', '.slick-slide.slick-center .bw-ps-image-clickable')
