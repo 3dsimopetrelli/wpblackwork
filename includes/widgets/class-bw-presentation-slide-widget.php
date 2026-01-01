@@ -1095,6 +1095,18 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
         );
 
         $this->add_control(
+            'cursor_border_heading',
+            [
+                'label'     => __( 'Border', 'bw-elementor-widgets' ),
+                'type'      => Controls_Manager::HEADING,
+                'separator' => 'before',
+                'condition' => [
+                    'enable_custom_cursor' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
             'cursor_border_width',
             [
                 'label'      => __( 'Border Width', 'bw-elementor-widgets' ),
@@ -1130,6 +1142,52 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
         );
 
         $this->add_control(
+            'cursor_background_heading',
+            [
+                'label'     => __( 'Background', 'bw-elementor-widgets' ),
+                'type'      => Controls_Manager::HEADING,
+                'separator' => 'before',
+                'condition' => [
+                    'enable_custom_cursor' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'cursor_background_color',
+            [
+                'label'     => __( 'Background Color', 'bw-elementor-widgets' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#ffffff',
+                'condition' => [
+                    'enable_custom_cursor' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'cursor_background_opacity',
+            [
+                'label'      => __( 'Background Opacity', 'bw-elementor-widgets' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ '' ],
+                'range'      => [
+                    '' => [
+                        'min'  => 0,
+                        'max'  => 1,
+                        'step' => 0.05,
+                    ],
+                ],
+                'default'    => [
+                    'size' => 0.6,
+                ],
+                'condition'  => [
+                    'enable_custom_cursor' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
             'cursor_blur_strength',
             [
                 'label'      => __( 'Background Blur (px)', 'bw-elementor-widgets' ),
@@ -1147,6 +1205,18 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
                     'unit' => 'px',
                 ],
                 'condition'  => [
+                    'enable_custom_cursor' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'cursor_arrows_heading',
+            [
+                'label'     => __( 'Arrows', 'bw-elementor-widgets' ),
+                'type'      => Controls_Manager::HEADING,
+                'separator' => 'before',
+                'condition' => [
                     'enable_custom_cursor' => 'yes',
                 ],
             ]
@@ -1180,40 +1250,6 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
                 'default'    => [
                     'size' => 24,
                     'unit' => 'px',
-                ],
-                'condition'  => [
-                    'enable_custom_cursor' => 'yes',
-                ],
-            ]
-        );
-
-        $this->add_control(
-            'cursor_background_color',
-            [
-                'label'     => __( 'Background Color', 'bw-elementor-widgets' ),
-                'type'      => Controls_Manager::COLOR,
-                'default'   => '#ffffff',
-                'condition' => [
-                    'enable_custom_cursor' => 'yes',
-                ],
-            ]
-        );
-
-        $this->add_control(
-            'cursor_background_opacity',
-            [
-                'label'      => __( 'Background Opacity', 'bw-elementor-widgets' ),
-                'type'       => Controls_Manager::SLIDER,
-                'size_units' => [ '' ],
-                'range'      => [
-                    '' => [
-                        'min'  => 0,
-                        'max'  => 1,
-                        'step' => 0.05,
-                    ],
-                ],
-                'default'    => [
-                    'size' => 0.6,
                 ],
                 'condition'  => [
                     'enable_custom_cursor' => 'yes',

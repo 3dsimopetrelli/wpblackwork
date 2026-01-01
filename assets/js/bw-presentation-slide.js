@@ -582,8 +582,9 @@
                 ? `${this.config.cursorArrowSize}px`
                 : '24px';
             const backgroundColor = this.config.cursorBackgroundColor || '#ffffff';
-            const backgroundOpacity = Number.isFinite(this.config.cursorBackgroundOpacity)
-                ? Math.min(Math.max(this.config.cursorBackgroundOpacity, 0), 1)
+            const parsedOpacity = parseFloat(this.config.cursorBackgroundOpacity);
+            const backgroundOpacity = Number.isFinite(parsedOpacity)
+                ? Math.min(Math.max(parsedOpacity, 0), 1)
                 : 0.6;
             const backgroundColorRgba = this.hexToRgba(backgroundColor, backgroundOpacity);
             const cursorState = {
