@@ -62,6 +62,8 @@
                 $slider.slick('unslick');
             }
 
+            this.$wrapper.addClass('loading');
+
             // Build responsive breakpoints config
             const responsive = this.config.horizontal.responsive || [];
             this.sortedBreakpoints = [...responsive].sort((a, b) => b.breakpoint - a.breakpoint);
@@ -82,6 +84,11 @@
                 focusOnSelect: true,
                 responsive: responsive
             };
+
+            $slider.one('init', () => {
+                this.$wrapper.removeClass('loading');
+                this.initImageFade($slider);
+            });
 
             $slider.slick(slickConfig);
             this.slickInstances.push($slider);
@@ -115,6 +122,27 @@
                     }
                 });
             }
+        }
+
+        /**
+         * Initialize image fade-in when loaded
+         */
+        initImageFade($container) {
+            const $images = $container.find('img');
+            if ($images.length === 0) {
+                return;
+            }
+
+            $images.each(function () {
+                const $img = $(this);
+                if (this.complete && this.naturalWidth > 0) {
+                    $img.addClass('is-loaded');
+                } else {
+                    $img.one('load', function () {
+                        $(this).addClass('is-loaded');
+                    });
+                }
+            });
         }
 
         /**
@@ -329,6 +357,9 @@
 
             if ($thumbnails.length === 0 || $mainImageElements.length === 0) return;
 
+            this.initImageFade($thumbnails);
+            this.initImageFade($mainImages);
+
             // Thumbnail click - scroll to corresponding main image
             $thumbnails.find('.bw-ps-thumb').off('click').on('click', (e) => {
                 const index = parseInt($(e.currentTarget).data('index'), 10);
@@ -412,6 +443,8 @@
             });
 
             this.slickInstances.push($sliderMain, $sliderThumbs);
+            this.initImageFade($sliderMain);
+            this.initImageFade($sliderThumbs);
 
             // Click on main slide opens popup
             $sliderMain.on('click', '.bw-ps-slide-main', (e) => {
@@ -451,6 +484,7 @@
             }
             $overlay.attr('data-bw-ps-widget-id', this.widgetId);
             this.$popupOverlay = $overlay;
+            this.initImageFade($overlay);
 
             // Close button click
             $closeBtn.off('click').on('click', () => this.closeModal());
