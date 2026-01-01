@@ -617,16 +617,32 @@
             if (this.layoutMode === 'horizontal') {
                 const $slider = $wrapper.find('.bw-ps-slider-horizontal');
 
-                // Center slide hover (zoom)
-                $slider.off('mouseenter', '.slick-slide.slick-center .bw-ps-image-clickable')
-                    .on('mouseenter', '.slick-slide.slick-center .bw-ps-image-clickable', () => {
-                        $cursor.removeClass('prev next').addClass('zoom active');
-                        $cursor.text(zoomText);
+                $slider.off('mouseenter', '.slick-slide.slick-active .bw-ps-image-clickable')
+                    .on('mouseenter', '.slick-slide.slick-active .bw-ps-image-clickable', function () {
+                        const $slide = $(this).closest('.slick-slide');
+                        const $center = $slider.find('.slick-slide.slick-center');
+                        const slideIndex = parseInt($slide.attr('data-slick-index'), 10);
+                        const centerIndex = parseInt($center.attr('data-slick-index'), 10);
+
+                        $cursor.removeClass('zoom prev next');
+
+                        if ($slide.hasClass('slick-center')) {
+                            $cursor.addClass('zoom active').text(zoomText);
+                            return;
+                        }
+
+                        if (!isNaN(slideIndex) && !isNaN(centerIndex)) {
+                            $cursor.addClass(slideIndex < centerIndex ? 'prev' : 'next');
+                        } else {
+                            $cursor.addClass('next');
+                        }
+
+                        $cursor.addClass('active').text('');
                     });
 
-                $slider.off('mouseleave', '.slick-slide.slick-center .bw-ps-image-clickable')
-                    .on('mouseleave', '.slick-slide.slick-center .bw-ps-image-clickable', () => {
-                        $cursor.removeClass('active zoom');
+                $slider.off('mouseleave', '.slick-slide.slick-active .bw-ps-image-clickable')
+                    .on('mouseleave', '.slick-slide.slick-active .bw-ps-image-clickable', () => {
+                        $cursor.removeClass('active zoom prev next');
                         $cursor.text('');
                     });
 
