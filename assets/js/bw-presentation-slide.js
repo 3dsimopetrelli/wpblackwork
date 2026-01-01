@@ -109,13 +109,15 @@
             $slider.on('click', '.slick-slide.slick-active .bw-ps-image-clickable', (e) => {
                 const $slide = $(e.currentTarget).closest('.slick-slide');
                 const index = parseInt($slide.data('bw-index'), 10);
+                const $cursor = this.customCursor || $('.bw-ps-custom-cursor');
+                const isZoomCursor = $cursor.length && $cursor.hasClass('zoom');
 
                 if (isNaN(index)) {
                     return;
                 }
 
                 if (this.config.enableCustomCursor) {
-                    if ($slide.hasClass('slick-center')) {
+                    if ($slide.hasClass('slick-center') && isZoomCursor) {
                         if (this.config.enablePopup) {
                             this.openModal(index);
                         }
