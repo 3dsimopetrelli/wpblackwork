@@ -359,6 +359,7 @@
    ======================================== */
 .bw-ps-custom-cursor {
     --cursor-scale: 0;
+    --bw-ps-arrow-size: 24px;
     position: fixed;
     pointer-events: none;
     z-index: 99998;
@@ -394,12 +395,12 @@
 
 .bw-ps-custom-cursor.prev::before {
     content: '←';
-    font-size: 24px;
+    font-size: var(--bw-ps-arrow-size);
 }
 
 .bw-ps-custom-cursor.next::before {
     content: '→';
-    font-size: 24px;
+    font-size: var(--bw-ps-arrow-size);
 }
 
 /* Hide system cursor when custom cursor is active */

@@ -570,6 +570,17 @@
             const $wrapper = this.$wrapper;
             const $cursor = this.customCursor;
             const zoomText = this.config.cursorZoomText || 'ZOOM';
+            const borderWidth = Number.isFinite(this.config.cursorBorderWidth)
+                ? `${this.config.cursorBorderWidth}px`
+                : '2px';
+            const borderColor = this.config.cursorBorderColor || '#000';
+            const blurStrength = Number.isFinite(this.config.cursorBlur)
+                ? `${this.config.cursorBlur}px`
+                : '12px';
+            const arrowColor = this.config.cursorArrowColor || '#000';
+            const arrowSize = Number.isFinite(this.config.cursorArrowSize)
+                ? `${this.config.cursorArrowSize}px`
+                : '24px';
             const cursorState = {
                 currentX: 0,
                 currentY: 0,
@@ -610,6 +621,13 @@
             if (cursorState.rafId) {
                 cancelAnimationFrame(cursorState.rafId);
             }
+            $cursor.css({
+                borderWidth,
+                borderColor,
+                color: arrowColor,
+                '--bw-site-blur': blurStrength,
+                '--bw-ps-arrow-size': arrowSize
+            });
             animateCursor();
             this.cursorState = cursorState;
 

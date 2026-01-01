@@ -1094,6 +1094,99 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
             ]
         );
 
+        $this->add_control(
+            'cursor_border_width',
+            [
+                'label'      => __( 'Border Width', 'bw-elementor-widgets' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px' ],
+                'range'      => [
+                    'px' => [
+                        'min'  => 0,
+                        'max'  => 10,
+                        'step' => 1,
+                    ],
+                ],
+                'default'    => [
+                    'size' => 2,
+                    'unit' => 'px',
+                ],
+                'condition'  => [
+                    'enable_custom_cursor' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'cursor_border_color',
+            [
+                'label'     => __( 'Border Color', 'bw-elementor-widgets' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#000000',
+                'condition' => [
+                    'enable_custom_cursor' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'cursor_blur_strength',
+            [
+                'label'      => __( 'Background Blur (px)', 'bw-elementor-widgets' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px' ],
+                'range'      => [
+                    'px' => [
+                        'min'  => 0,
+                        'max'  => 30,
+                        'step' => 1,
+                    ],
+                ],
+                'default'    => [
+                    'size' => 12,
+                    'unit' => 'px',
+                ],
+                'condition'  => [
+                    'enable_custom_cursor' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'cursor_arrow_color',
+            [
+                'label'     => __( 'Arrow Color', 'bw-elementor-widgets' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#000000',
+                'condition' => [
+                    'enable_custom_cursor' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'cursor_arrow_size',
+            [
+                'label'      => __( 'Arrow Size', 'bw-elementor-widgets' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px' ],
+                'range'      => [
+                    'px' => [
+                        'min'  => 10,
+                        'max'  => 48,
+                        'step' => 1,
+                    ],
+                ],
+                'default'    => [
+                    'size' => 24,
+                    'unit' => 'px',
+                ],
+                'condition'  => [
+                    'enable_custom_cursor' => 'yes',
+                ],
+            ]
+        );
+
         $this->end_controls_section();
     }
 
@@ -1120,6 +1213,11 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
             'enableCustomCursor'   => $settings['enable_custom_cursor'] === 'yes',
             'hideSystemCursor'     => $settings['hide_system_cursor'] === 'yes',
             'cursorZoomText'       => $settings['cursor_zoom_text'],
+            'cursorBorderWidth'    => $settings['cursor_border_width']['size'] ?? 2,
+            'cursorBorderColor'    => $settings['cursor_border_color'] ?? '#000000',
+            'cursorBlur'           => $settings['cursor_blur_strength']['size'] ?? 12,
+            'cursorArrowColor'     => $settings['cursor_arrow_color'] ?? '#000000',
+            'cursorArrowSize'      => $settings['cursor_arrow_size']['size'] ?? 24,
             'popupTitle'           => $popup_title,
             'dotsPosition'         => $settings['dots_position'] ?? 'center',
             'horizontal'           => [
