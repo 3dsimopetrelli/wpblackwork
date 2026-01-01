@@ -62,8 +62,11 @@
                 $slider.slick('unslick');
             }
 
+            this.$wrapper.addClass('loading');
+
             // Build responsive breakpoints config
             const responsive = this.config.horizontal.responsive || [];
+            this.sortedBreakpoints = [...responsive].sort((a, b) => b.breakpoint - a.breakpoint);
 
             const slickConfig = {
                 infinite: this.config.horizontal.infinite,
@@ -82,6 +85,11 @@
                 responsive: responsive
             };
 
+            $slider.one('init', () => {
+                this.$wrapper.removeClass('loading');
+                this.initImageFade($slider);
+            });
+
             $slider.slick(slickConfig);
             this.slickInstances.push($slider);
 
@@ -94,32 +102,63 @@
             // Apply slide width based on breakpoints
             this.initSlideWidths();
 
-            // Click on center slide opens popup
-            $slider.on('click', '.slick-slide.slick-center .bw-ps-image-clickable', (e) => {
-                const index = parseInt($(e.currentTarget).closest('.bw-ps-slide').data('bw-index'), 10);
-                if (!isNaN(index) && this.config.enablePopup) {
+            // Apply image height mode based on breakpoints
+            this.initImageHeightControls();
+
+            // Click behavior: center opens popup with custom cursor, side slides only navigate
+            $slider.on('click', '.slick-slide.slick-active .bw-ps-image-clickable', (e) => {
+                const $slide = $(e.currentTarget).closest('.slick-slide');
+                const index = parseInt($slide.data('bw-index'), 10);
+                const $cursor = this.customCursor || $('.bw-ps-custom-cursor');
+                const isZoomCursor = $cursor.length && $cursor.hasClass('zoom');
+
+                if (isNaN(index)) {
+                    return;
+                }
+
+                if (this.config.enableCustomCursor) {
+                    if ($slide.hasClass('slick-center') && isZoomCursor) {
+                        if (this.config.enablePopup) {
+                            this.openModal(index);
+                        }
+                        return;
+                    }
+
+                    $slider.slick('slickGoTo', index);
+                    return;
+                }
+
+                if (this.config.enablePopup) {
                     this.openModal(index);
                 }
             });
+        }
 
-            // Click on any active slide if center mode is off
-            if (!this.config.horizontal.centerMode) {
-                $slider.on('click', '.slick-slide.slick-active .bw-ps-image-clickable', (e) => {
-                    const index = parseInt($(e.currentTarget).closest('.bw-ps-slide').data('bw-index'), 10);
-                    if (!isNaN(index) && this.config.enablePopup) {
-                        this.openModal(index);
-                    }
-                });
+        /**
+         * Initialize image fade-in when loaded
+         */
+        initImageFade($container) {
+            const $images = $container.find('img');
+            if ($images.length === 0) {
+                return;
             }
+
+            $images.each(function () {
+                const $img = $(this);
+                if (this.complete && this.naturalWidth > 0) {
+                    $img.addClass('is-loaded');
+                } else {
+                    $img.one('load', function () {
+                        $(this).addClass('is-loaded');
+                    });
+                }
+            });
         }
 
         /**
          * Initialize arrows visibility based on breakpoints
          */
         initArrowsVisibility() {
-            const $arrows = this.$wrapper.find('.bw-ps-arrows-container');
-            const breakpoints = this.config.horizontal.responsive || [];
-
             // Initial check
             this.updateArrowsVisibility();
 
@@ -145,14 +184,12 @@
          */
         updateArrowsVisibility() {
             const windowWidth = $(window).width();
-            const breakpoints = this.config.horizontal.responsive || [];
             const $arrows = this.$wrapper.find('.bw-ps-arrows-container');
+            const sortedBreakpoints = this.sortedBreakpoints || [];
 
             let showArrows = true; // Desktop default (always show)
 
             // Check breakpoints from largest to smallest
-            const sortedBreakpoints = [...breakpoints].sort((a, b) => b.breakpoint - a.breakpoint);
-
             for (const bp of sortedBreakpoints) {
                 if (windowWidth <= bp.breakpoint) {
                     // Use the showArrows property we added in PHP
@@ -182,18 +219,27 @@
         }
 
         /**
+         * Initialize image height settings based on breakpoints
+         */
+        initImageHeightControls() {
+            this.updateImageHeightControls();
+
+            $(window).on(`resize.bwps-height-${this.widgetId}`, () => {
+                this.updateImageHeightControls();
+            });
+        }
+
+        /**
          * Update slide widths based on current breakpoint
          */
         updateSlideWidths() {
             const windowWidth = $(window).width();
-            const breakpoints = this.config.horizontal.responsive || [];
             const $slides = this.$wrapper.find('.bw-ps-slide');
+            const sortedBreakpoints = this.sortedBreakpoints || [];
 
             let slideWidth = null;
 
             // Check breakpoints from largest to smallest
-            const sortedBreakpoints = [...breakpoints].sort((a, b) => b.breakpoint - a.breakpoint);
-
             for (const bp of sortedBreakpoints) {
                 if (windowWidth <= bp.breakpoint) {
                     if (bp.slideWidth) {
@@ -208,6 +254,50 @@
                 $slides.css('width', slideWidth + 'px');
             } else {
                 $slides.css('width', '');
+            }
+        }
+
+        /**
+         * Update image height mode and dimensions based on current breakpoint
+         */
+        updateImageHeightControls() {
+            const windowWidth = $(window).width();
+            const $horizontal = this.$wrapper.find('.bw-ps-horizontal');
+            const $images = this.$wrapper.find('.bw-ps-image img');
+            const sortedBreakpoints = this.sortedBreakpoints || [];
+
+            let heightMode = 'auto';
+            let imageHeight = null;
+            let imageWidth = null;
+
+            for (const bp of sortedBreakpoints) {
+                if (windowWidth <= bp.breakpoint) {
+                    if (bp.imageHeightMode) {
+                        heightMode = bp.imageHeightMode;
+                    }
+                    if (bp.imageHeight) {
+                        imageHeight = bp.imageHeight;
+                    }
+                    if (bp.imageWidth) {
+                        imageWidth = bp.imageWidth;
+                    }
+                    break;
+                }
+            }
+
+            const heightClasses = ['bw-ps-height-auto', 'bw-ps-height-fixed', 'bw-ps-height-contain', 'bw-ps-height-cover'];
+            $horizontal.removeClass(heightClasses.join(' ')).addClass(`bw-ps-height-${heightMode}`);
+
+            if (heightMode !== 'auto' && imageHeight && imageHeight.size !== null && imageHeight.unit) {
+                $images.css('height', `${imageHeight.size}${imageHeight.unit}`);
+            } else {
+                $images.css('height', '');
+            }
+
+            if ((heightMode === 'contain' || heightMode === 'cover') && imageWidth && imageWidth.size !== null && imageWidth.unit) {
+                $images.css('width', `${imageWidth.size}${imageWidth.unit}`);
+            } else {
+                $images.css('width', '');
             }
         }
 
@@ -239,7 +329,7 @@
 
             if (this.config.vertical.enableResponsive) {
                 this.handleVerticalResponsive(breakpoint);
-                $(window).on('resize', () => this.handleVerticalResponsive(breakpoint));
+                $(window).on(`resize.bwps-vertical-${this.widgetId}`, () => this.handleVerticalResponsive(breakpoint));
             } else {
                 this.initVerticalDesktop();
             }
@@ -276,6 +366,9 @@
             const $mainImageElements = $mainImages.find('.bw-ps-main-image');
 
             if ($thumbnails.length === 0 || $mainImageElements.length === 0) return;
+
+            this.initImageFade($thumbnails);
+            this.initImageFade($mainImages);
 
             // Thumbnail click - scroll to corresponding main image
             $thumbnails.find('.bw-ps-thumb').off('click').on('click', (e) => {
@@ -360,6 +453,8 @@
             });
 
             this.slickInstances.push($sliderMain, $sliderThumbs);
+            this.initImageFade($sliderMain);
+            this.initImageFade($sliderThumbs);
 
             // Click on main slide opens popup
             $sliderMain.on('click', '.bw-ps-slide-main', (e) => {
@@ -394,6 +489,13 @@
 
             if ($overlay.length === 0) return;
 
+            if (!$overlay.parent().is('body')) {
+                $overlay.appendTo('body');
+            }
+            $overlay.attr('data-bw-ps-widget-id', this.widgetId);
+            this.$popupOverlay = $overlay;
+            this.initImageFade($overlay);
+
             // Close button click
             $closeBtn.off('click').on('click', () => this.closeModal());
 
@@ -416,9 +518,8 @@
          * Open Modal at Specific Index
          */
         openModal(startIndex) {
-            const $overlay = this.$wrapper.find('.bw-ps-popup-overlay');
-            const $body = $overlay.find('.bw-ps-popup-body');
-            const $targetImage = $body.find('.bw-ps-popup-image').eq(startIndex);
+            const $overlay = this.$popupOverlay || $(`.bw-ps-popup-overlay[data-bw-ps-widget-id="${this.widgetId}"]`);
+            const $targetImage = $overlay.find('.bw-ps-popup-image').eq(startIndex);
 
             if ($overlay.length === 0 || $targetImage.length === 0) return;
 
@@ -431,17 +532,25 @@
             $('body').css('overflow', 'hidden');
 
             // Scroll to target image
-            setTimeout(() => {
-                const targetOffset = $targetImage.position().top;
-                $body.scrollTop(targetOffset);
-            }, 50);
+            const scrollToTarget = () => {
+                const headerHeight = $overlay.find('.bw-ps-popup-header').outerHeight() || 0;
+                const overlayTop = $overlay[0].getBoundingClientRect().top;
+                const targetTop = $targetImage[0].getBoundingClientRect().top;
+                const delta = targetTop - overlayTop - headerHeight;
+                $overlay.scrollTop($overlay.scrollTop() + delta);
+            };
+
+            requestAnimationFrame(() => {
+                scrollToTarget();
+                setTimeout(scrollToTarget, 150);
+            });
         }
 
         /**
          * Close Modal
          */
         closeModal() {
-            const $overlay = this.$wrapper.find('.bw-ps-popup-overlay');
+            const $overlay = this.$popupOverlay || $(`.bw-ps-popup-overlay[data-bw-ps-widget-id="${this.widgetId}"]`);
 
             $overlay.removeClass('active').fadeOut(300);
             $('body').css('overflow', '');
@@ -461,6 +570,35 @@
             const $wrapper = this.$wrapper;
             const $cursor = this.customCursor;
             const zoomText = this.config.cursorZoomText || 'ZOOM';
+            const zoomTextSize = Number.isFinite(this.config.cursorZoomTextSize)
+                ? `${this.config.cursorZoomTextSize}px`
+                : '12px';
+            const borderWidth = Number.isFinite(this.config.cursorBorderWidth)
+                ? `${this.config.cursorBorderWidth}px`
+                : '2px';
+            const borderColor = this.config.cursorBorderColor || '#000';
+            const parsedBlur = parseFloat(this.config.cursorBlur);
+            const blurStrength = Number.isFinite(parsedBlur)
+                ? `${parsedBlur}px`
+                : '12px';
+            const arrowColor = this.config.cursorArrowColor || '#000';
+            const arrowSize = Number.isFinite(this.config.cursorArrowSize)
+                ? `${this.config.cursorArrowSize}px`
+                : '24px';
+            const backgroundColor = this.config.cursorBackgroundColor || '#ffffff';
+            const parsedOpacity = parseFloat(this.config.cursorBackgroundOpacity);
+            const backgroundOpacity = Number.isFinite(parsedOpacity)
+                ? Math.min(Math.max(parsedOpacity, 0), 1)
+                : 0.6;
+            const backgroundColorRgba = this.hexToRgba(backgroundColor, backgroundOpacity);
+            const cursorState = {
+                currentX: 0,
+                currentY: 0,
+                targetX: 0,
+                targetY: 0,
+                initialized: false,
+                rafId: null
+            };
 
             // Hide system cursor if enabled
             if (this.config.hideSystemCursor) {
@@ -469,37 +607,72 @@
 
             // Track mouse movement
             $wrapper.off('mousemove').on('mousemove', (e) => {
-                const x = e.clientX;
-                const y = e.clientY;
-                $cursor.css({ left: x + 'px', top: y + 'px' });
+                cursorState.targetX = e.clientX;
+                cursorState.targetY = e.clientY;
+
+                if (!cursorState.initialized) {
+                    cursorState.currentX = cursorState.targetX;
+                    cursorState.currentY = cursorState.targetY;
+                    cursorState.initialized = true;
+                }
             });
+
+            const animateCursor = () => {
+                const ease = 0.18;
+                cursorState.currentX += (cursorState.targetX - cursorState.currentX) * ease;
+                cursorState.currentY += (cursorState.targetY - cursorState.currentY) * ease;
+                $cursor.css({
+                    left: `${cursorState.currentX}px`,
+                    top: `${cursorState.currentY}px`
+                });
+                cursorState.rafId = requestAnimationFrame(animateCursor);
+            };
+
+            if (cursorState.rafId) {
+                cancelAnimationFrame(cursorState.rafId);
+            }
+            $cursor.css({
+                borderWidth,
+                borderColor,
+                color: arrowColor,
+                backgroundColor: backgroundColorRgba,
+                '--bw-site-blur': blurStrength,
+                '--bw-ps-arrow-size': arrowSize,
+                '--bw-ps-zoom-size': zoomTextSize
+            });
+            animateCursor();
+            this.cursorState = cursorState;
 
             // Horizontal layout cursor states
             if (this.layoutMode === 'horizontal') {
-                const $arrows = $wrapper.find('.bw-ps-arrow-prev, .bw-ps-arrow-next');
                 const $slider = $wrapper.find('.bw-ps-slider-horizontal');
 
-                // Arrows hover
-                $arrows.off('mouseenter').on('mouseenter', function () {
-                    const isPrev = $(this).hasClass('bw-ps-arrow-prev');
-                    $cursor.removeClass('zoom next prev').addClass(isPrev ? 'prev' : 'next').addClass('active');
-                    $cursor.text('');
-                });
+                $slider.off('mouseenter', '.slick-slide.slick-active .bw-ps-image-clickable')
+                    .on('mouseenter', '.slick-slide.slick-active .bw-ps-image-clickable', function () {
+                        const $slide = $(this).closest('.slick-slide');
+                        const $center = $slider.find('.slick-slide.slick-center');
+                        const slideIndex = parseInt($slide.attr('data-slick-index'), 10);
+                        const centerIndex = parseInt($center.attr('data-slick-index'), 10);
 
-                $arrows.off('mouseleave').on('mouseleave', () => {
-                    $cursor.removeClass('active prev next');
-                });
+                        $cursor.removeClass('zoom prev next');
 
-                // Center slide hover (zoom)
-                $slider.off('mouseenter', '.slick-slide.slick-center .bw-ps-image-clickable')
-                    .on('mouseenter', '.slick-slide.slick-center .bw-ps-image-clickable', () => {
-                        $cursor.removeClass('prev next').addClass('zoom active');
-                        $cursor.text(zoomText);
+                        if ($slide.hasClass('slick-center')) {
+                            $cursor.addClass('zoom active').text(zoomText);
+                            return;
+                        }
+
+                        if (!isNaN(slideIndex) && !isNaN(centerIndex)) {
+                            $cursor.addClass(slideIndex < centerIndex ? 'prev' : 'next');
+                        } else {
+                            $cursor.addClass('next');
+                        }
+
+                        $cursor.addClass('active').text('');
                     });
 
-                $slider.off('mouseleave', '.slick-slide.slick-center .bw-ps-image-clickable')
-                    .on('mouseleave', '.slick-slide.slick-center .bw-ps-image-clickable', () => {
-                        $cursor.removeClass('active zoom');
+                $slider.off('mouseleave', '.slick-slide.slick-active .bw-ps-image-clickable')
+                    .on('mouseleave', '.slick-slide.slick-active .bw-ps-image-clickable', () => {
+                        $cursor.removeClass('active zoom prev next');
                         $cursor.text('');
                     });
             }
@@ -526,6 +699,34 @@
         }
 
         /**
+         * Convert hex color to rgba string
+         */
+        hexToRgba(hex, alpha) {
+            if (!hex || typeof hex !== 'string') {
+                return `rgba(255, 255, 255, ${alpha})`;
+            }
+
+            let normalized = hex.replace('#', '').trim();
+            if (normalized.length === 3) {
+                normalized = normalized.split('').map((char) => char + char).join('');
+            }
+
+            if (normalized.length !== 6) {
+                return `rgba(255, 255, 255, ${alpha})`;
+            }
+
+            const r = parseInt(normalized.slice(0, 2), 16);
+            const g = parseInt(normalized.slice(2, 4), 16);
+            const b = parseInt(normalized.slice(4, 6), 16);
+
+            if ([r, g, b].some((value) => Number.isNaN(value))) {
+                return `rgba(255, 255, 255, ${alpha})`;
+            }
+
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        }
+
+        /**
          * Check if device is touch-enabled
          */
         isTouchDevice() {
@@ -547,11 +748,17 @@
             $(document).off(`keydown.bwps-${this.widgetId}`);
             $(window).off(`resize.bwps-${this.widgetId}`);
             $(window).off(`resize.bwps-width-${this.widgetId}`);
+            $(window).off(`resize.bwps-height-${this.widgetId}`);
+            $(window).off(`resize.bwps-vertical-${this.widgetId}`);
             this.$wrapper.off();
 
             // Remove custom cursor
             if (this.customCursor) {
                 this.customCursor.removeClass('active');
+            }
+            if (this.cursorState && this.cursorState.rafId) {
+                cancelAnimationFrame(this.cursorState.rafId);
+                this.cursorState.rafId = null;
             }
 
             this.initialized = false;
@@ -564,7 +771,6 @@
     function initWidgets() {
         $('.bw-ps-wrapper').each(function () {
             const $wrapper = $(this);
-            const widgetId = $wrapper.data('widget-id');
 
             // Avoid duplicate initialization
             if ($wrapper.data('bw-ps-instance')) {
