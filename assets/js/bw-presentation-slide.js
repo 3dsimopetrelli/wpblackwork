@@ -105,7 +105,7 @@
             // Apply image height mode based on breakpoints
             this.initImageHeightControls();
 
-            // Click behavior: center opens popup, side slides only navigate
+            // Click behavior: center opens popup with custom cursor, side slides only navigate
             $slider.on('click', '.slick-slide.slick-active .bw-ps-image-clickable', (e) => {
                 const $slide = $(e.currentTarget).closest('.slick-slide');
                 const index = parseInt($slide.data('bw-index'), 10);
@@ -114,34 +114,20 @@
                     return;
                 }
 
-                if ($slide.hasClass('slick-center')) {
-                    if (this.config.enablePopup) {
-                        this.openModal(index);
+                if (this.config.enableCustomCursor) {
+                    if ($slide.hasClass('slick-center')) {
+                        if (this.config.enablePopup) {
+                            this.openModal(index);
+                        }
+                        return;
                     }
+
+                    $slider.slick('slickGoTo', index);
                     return;
                 }
 
-                $slider.slick('slickGoTo', index);
-            });
-        }
-
-        /**
-         * Initialize image fade-in when loaded
-         */
-        initImageFade($container) {
-            const $images = $container.find('img');
-            if ($images.length === 0) {
-                return;
-            }
-
-            $images.each(function () {
-                const $img = $(this);
-                if (this.complete && this.naturalWidth > 0) {
-                    $img.addClass('is-loaded');
-                } else {
-                    $img.one('load', function () {
-                        $(this).addClass('is-loaded');
-                    });
+                if (this.config.enablePopup) {
+                    this.openModal(index);
                 }
             });
         }
