@@ -590,7 +590,7 @@
             const backgroundOpacity = Number.isFinite(parsedOpacity)
                 ? Math.min(Math.max(parsedOpacity, 0), 1)
                 : 0.6;
-            const backgroundColorRgba = this.toRgba(backgroundColor, backgroundOpacity);
+            const backgroundColorRgba = this.hexToRgba(backgroundColor, backgroundOpacity);
             const cursorState = {
                 currentX: 0,
                 currentY: 0,
@@ -616,32 +616,6 @@
                     cursorState.initialized = true;
                 }
             });
-
-            const animateCursor = () => {
-                const ease = 0.18;
-                cursorState.currentX += (cursorState.targetX - cursorState.currentX) * ease;
-                cursorState.currentY += (cursorState.targetY - cursorState.currentY) * ease;
-                $cursor.css({
-                    left: `${cursorState.currentX}px`,
-                    top: `${cursorState.currentY}px`
-                });
-                cursorState.rafId = requestAnimationFrame(animateCursor);
-            };
-
-            if (cursorState.rafId) {
-                cancelAnimationFrame(cursorState.rafId);
-            }
-            $cursor.css({
-                borderWidth,
-                borderColor,
-                color: arrowColor,
-                '--bw-ps-cursor-bg': backgroundColorRgba,
-                '--bw-site-blur': blurStrength,
-                '--bw-ps-arrow-size': arrowSize,
-                '--bw-ps-zoom-size': zoomTextSize
-            });
-            animateCursor();
-            this.cursorState = cursorState;
 
             const animateCursor = () => {
                 const ease = 0.18;
@@ -727,38 +701,12 @@
         /**
          * Convert hex color to rgba string
          */
-        toRgba(color, alpha) {
-            if (!color || typeof color !== 'string') {
+        hexToRgba(hex, alpha) {
+            if (!hex || typeof hex !== 'string') {
                 return `rgba(255, 255, 255, ${alpha})`;
             }
 
-            const trimmed = color.trim();
-
-            if (trimmed.startsWith('rgba')) {
-                const values = trimmed.replace(/rgba\\(|\\)/g, '').split(',').map((val) => val.trim());
-                if (values.length >= 3) {
-                    const r = parseFloat(values[0]);
-                    const g = parseFloat(values[1]);
-                    const b = parseFloat(values[2]);
-                    if ([r, g, b].every((value) => Number.isFinite(value))) {
-                        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-                    }
-                }
-            }
-
-            if (trimmed.startsWith('rgb')) {
-                const values = trimmed.replace(/rgb\\(|\\)/g, '').split(',').map((val) => val.trim());
-                if (values.length >= 3) {
-                    const r = parseFloat(values[0]);
-                    const g = parseFloat(values[1]);
-                    const b = parseFloat(values[2]);
-                    if ([r, g, b].every((value) => Number.isFinite(value))) {
-                        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-                    }
-                }
-            }
-
-            let normalized = trimmed.replace('#', '');
+            let normalized = hex.replace('#', '').trim();
             if (normalized.length === 3) {
                 normalized = normalized.split('').map((char) => char + char).join('');
             }
