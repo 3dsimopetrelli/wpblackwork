@@ -1095,6 +1095,28 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
         );
 
         $this->add_control(
+            'cursor_zoom_text_size',
+            [
+                'label'      => __( 'Zoom Text Size', 'bw-elementor-widgets' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px' ],
+                'range'      => [
+                    'px' => [
+                        'min'  => 8,
+                        'max'  => 30,
+                        'step' => 1,
+                    ],
+                ],
+                'default'    => [
+                    'size' => 12,
+                    'unit' => 'px',
+                ],
+                'condition'  => [
+                    'enable_custom_cursor' => 'yes',
+                ],
+            ]
+        );
+        $this->add_control(
             'cursor_border_heading',
             [
                 'label'     => __( 'Border', 'bw-elementor-widgets' ),
@@ -1283,6 +1305,7 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
             'enableCustomCursor'   => $settings['enable_custom_cursor'] === 'yes',
             'hideSystemCursor'     => $settings['hide_system_cursor'] === 'yes',
             'cursorZoomText'       => $settings['cursor_zoom_text'],
+            'cursorZoomTextSize'   => $settings['cursor_zoom_text_size']['size'] ?? 12,
             'cursorBorderWidth'    => $settings['cursor_border_width']['size'] ?? 2,
             'cursorBorderColor'    => $settings['cursor_border_color'] ?? '#000000',
             'cursorBlur'           => $settings['cursor_blur_strength']['size'] ?? 12,

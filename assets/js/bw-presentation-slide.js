@@ -570,12 +570,16 @@
             const $wrapper = this.$wrapper;
             const $cursor = this.customCursor;
             const zoomText = this.config.cursorZoomText || 'ZOOM';
+            const zoomTextSize = Number.isFinite(this.config.cursorZoomTextSize)
+                ? `${this.config.cursorZoomTextSize}px`
+                : '12px';
             const borderWidth = Number.isFinite(this.config.cursorBorderWidth)
                 ? `${this.config.cursorBorderWidth}px`
                 : '2px';
             const borderColor = this.config.cursorBorderColor || '#000';
-            const blurStrength = Number.isFinite(this.config.cursorBlur)
-                ? `${this.config.cursorBlur}px`
+            const parsedBlur = parseFloat(this.config.cursorBlur);
+            const blurStrength = Number.isFinite(parsedBlur)
+                ? `${parsedBlur}px`
                 : '12px';
             const arrowColor = this.config.cursorArrowColor || '#000';
             const arrowSize = Number.isFinite(this.config.cursorArrowSize)
@@ -633,7 +637,8 @@
                 color: arrowColor,
                 backgroundColor: backgroundColorRgba,
                 '--bw-site-blur': blurStrength,
-                '--bw-ps-arrow-size': arrowSize
+                '--bw-ps-arrow-size': arrowSize,
+                '--bw-ps-zoom-size': zoomTextSize
             });
             animateCursor();
             this.cursorState = cursorState;
