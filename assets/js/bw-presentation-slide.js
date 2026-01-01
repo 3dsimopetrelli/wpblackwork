@@ -597,6 +597,42 @@
                         $cursor.removeClass('active zoom');
                         $cursor.text('');
                     });
+
+                $slider.off('mouseenter', '.slick-slide.slick-active .bw-ps-image-clickable')
+                    .on('mouseenter', '.slick-slide.slick-active .bw-ps-image-clickable', (e) => {
+                        const $slide = $(e.currentTarget).closest('.slick-slide');
+                        if ($slide.hasClass('slick-center')) {
+                            return;
+                        }
+
+                        const $centerSlide = $slider.find('.slick-slide.slick-center').first();
+                        if ($centerSlide.length === 0) {
+                            return;
+                        }
+
+                        const slideIndex = parseInt($slide.data('slick-index'), 10);
+                        const centerIndex = parseInt($centerSlide.data('slick-index'), 10);
+                        const useDomOrder = Number.isNaN(slideIndex) || Number.isNaN(centerIndex);
+                        const isPrev = useDomOrder
+                            ? $slide.index() < $centerSlide.index()
+                            : slideIndex < centerIndex;
+
+                        $cursor.removeClass('zoom prev next')
+                            .addClass(isPrev ? 'prev' : 'next')
+                            .addClass('active')
+                            .text('');
+                    });
+
+                $slider.off('mouseleave', '.slick-slide.slick-active .bw-ps-image-clickable')
+                    .on('mouseleave', '.slick-slide.slick-active .bw-ps-image-clickable', (e) => {
+                        const $slide = $(e.currentTarget).closest('.slick-slide');
+                        if ($slide.hasClass('slick-center')) {
+                            return;
+                        }
+
+                        $cursor.removeClass('active prev next');
+                        $cursor.text('');
+                    });
             }
 
             // Vertical layout cursor states (desktop only)
