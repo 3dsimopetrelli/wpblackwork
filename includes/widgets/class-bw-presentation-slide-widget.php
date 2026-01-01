@@ -1187,6 +1187,40 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
             ]
         );
 
+        $this->add_control(
+            'cursor_background_color',
+            [
+                'label'     => __( 'Background Color', 'bw-elementor-widgets' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#ffffff',
+                'condition' => [
+                    'enable_custom_cursor' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'cursor_background_opacity',
+            [
+                'label'      => __( 'Background Opacity', 'bw-elementor-widgets' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ '' ],
+                'range'      => [
+                    '' => [
+                        'min'  => 0,
+                        'max'  => 1,
+                        'step' => 0.05,
+                    ],
+                ],
+                'default'    => [
+                    'size' => 0.6,
+                ],
+                'condition'  => [
+                    'enable_custom_cursor' => 'yes',
+                ],
+            ]
+        );
+
         $this->end_controls_section();
     }
 
@@ -1218,6 +1252,8 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
             'cursorBlur'           => $settings['cursor_blur_strength']['size'] ?? 12,
             'cursorArrowColor'     => $settings['cursor_arrow_color'] ?? '#000000',
             'cursorArrowSize'      => $settings['cursor_arrow_size']['size'] ?? 24,
+            'cursorBackgroundColor' => $settings['cursor_background_color'] ?? '#ffffff',
+            'cursorBackgroundOpacity' => $settings['cursor_background_opacity']['size'] ?? 0.6,
             'popupTitle'           => $popup_title,
             'dotsPosition'         => $settings['dots_position'] ?? 'center',
             'horizontal'           => [

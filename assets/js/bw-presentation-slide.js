@@ -581,6 +581,11 @@
             const arrowSize = Number.isFinite(this.config.cursorArrowSize)
                 ? `${this.config.cursorArrowSize}px`
                 : '24px';
+            const backgroundColor = this.config.cursorBackgroundColor || '#ffffff';
+            const backgroundOpacity = Number.isFinite(this.config.cursorBackgroundOpacity)
+                ? Math.min(Math.max(this.config.cursorBackgroundOpacity, 0), 1)
+                : 0.6;
+            const backgroundColorRgba = this.hexToRgba(backgroundColor, backgroundOpacity);
             const cursorState = {
                 currentX: 0,
                 currentY: 0,
@@ -625,6 +630,7 @@
                 borderWidth,
                 borderColor,
                 color: arrowColor,
+                backgroundColor: backgroundColorRgba,
                 '--bw-site-blur': blurStrength,
                 '--bw-ps-arrow-size': arrowSize
             });
@@ -684,6 +690,34 @@
             $wrapper.off('mouseleave.cursor').on('mouseleave.cursor', () => {
                 $cursor.removeClass('active');
             });
+        }
+
+        /**
+         * Convert hex color to rgba string
+         */
+        hexToRgba(hex, alpha) {
+            if (!hex || typeof hex !== 'string') {
+                return `rgba(255, 255, 255, ${alpha})`;
+            }
+
+            let normalized = hex.replace('#', '').trim();
+            if (normalized.length === 3) {
+                normalized = normalized.split('').map((char) => char + char).join('');
+            }
+
+            if (normalized.length !== 6) {
+                return `rgba(255, 255, 255, ${alpha})`;
+            }
+
+            const r = parseInt(normalized.slice(0, 2), 16);
+            const g = parseInt(normalized.slice(2, 4), 16);
+            const b = parseInt(normalized.slice(4, 6), 16);
+
+            if ([r, g, b].some((value) => Number.isNaN(value))) {
+                return `rgba(255, 255, 255, ${alpha})`;
+            }
+
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
         }
 
         /**
