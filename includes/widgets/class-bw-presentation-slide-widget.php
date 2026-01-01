@@ -281,6 +281,87 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
             ]
         );
 
+        $repeater->add_control(
+            'image_height_heading',
+            [
+                'label'     => __( 'Image Height Settings', 'bw-elementor-widgets' ),
+                'type'      => Controls_Manager::HEADING,
+                'separator' => 'before',
+            ]
+        );
+
+        $repeater->add_control(
+            'image_height_mode',
+            [
+                'label'       => __( 'Height Mode', 'bw-elementor-widgets' ),
+                'type'        => Controls_Manager::SELECT,
+                'default'     => 'auto',
+                'options'     => [
+                    'auto'        => __( 'Auto (Original)', 'bw-elementor-widgets' ),
+                    'fixed'       => __( 'Fixed Height (Width Auto)', 'bw-elementor-widgets' ),
+                    'contain'     => __( 'Contain (Fixed Dimensions)', 'bw-elementor-widgets' ),
+                    'cover'       => __( 'Cover (Fixed Dimensions)', 'bw-elementor-widgets' ),
+                ],
+                'description' => __( 'Control how images adapt to uniform height', 'bw-elementor-widgets' ),
+            ]
+        );
+
+        $repeater->add_control(
+            'image_height',
+            [
+                'label'      => __( 'Image Height', 'bw-elementor-widgets' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px', 'vh' ],
+                'range'      => [
+                    'px' => [
+                        'min'  => 100,
+                        'max'  => 1500,
+                        'step' => 10,
+                    ],
+                    'vh' => [
+                        'min'  => 10,
+                        'max'  => 100,
+                        'step' => 1,
+                    ],
+                ],
+                'default'    => [
+                    'size' => 600,
+                    'unit' => 'px',
+                ],
+                'condition'  => [
+                    'image_height_mode!' => 'auto',
+                ],
+            ]
+        );
+
+        $repeater->add_control(
+            'image_width',
+            [
+                'label'      => __( 'Image Width', 'bw-elementor-widgets' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px', '%' ],
+                'range'      => [
+                    'px' => [
+                        'min'  => 100,
+                        'max'  => 2000,
+                        'step' => 10,
+                    ],
+                    '%' => [
+                        'min'  => 10,
+                        'max'  => 100,
+                        'step' => 1,
+                    ],
+                ],
+                'default'    => [
+                    'size' => 100,
+                    'unit' => '%',
+                ],
+                'condition'  => [
+                    'image_height_mode' => [ 'contain', 'cover' ],
+                ],
+            ]
+        );
+
         $this->add_control(
             'breakpoints',
             [
@@ -517,101 +598,6 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
                     'enable_popup' => 'yes',
                 ],
                 'description' => __( 'Select image size for popup gallery', 'bw-elementor-widgets' ),
-            ]
-        );
-
-        $this->add_control(
-            'image_height_heading',
-            [
-                'label'     => __( 'Image Height Settings', 'bw-elementor-widgets' ),
-                'type'      => Controls_Manager::HEADING,
-                'separator' => 'before',
-                'condition' => [
-                    'layout_mode' => 'horizontal',
-                ],
-            ]
-        );
-
-        $this->add_control(
-            'image_height_mode',
-            [
-                'label'       => __( 'Height Mode', 'bw-elementor-widgets' ),
-                'type'        => Controls_Manager::SELECT,
-                'default'     => 'auto',
-                'options'     => [
-                    'auto'        => __( 'Auto (Original)', 'bw-elementor-widgets' ),
-                    'fixed'       => __( 'Fixed Height (Width Auto)', 'bw-elementor-widgets' ),
-                    'contain'     => __( 'Contain (Fixed Dimensions)', 'bw-elementor-widgets' ),
-                    'cover'       => __( 'Cover (Fixed Dimensions)', 'bw-elementor-widgets' ),
-                ],
-                'condition'   => [
-                    'layout_mode' => 'horizontal',
-                ],
-                'description' => __( 'Control how images adapt to uniform height', 'bw-elementor-widgets' ),
-            ]
-        );
-
-        $this->add_responsive_control(
-            'image_height',
-            [
-                'label'      => __( 'Image Height', 'bw-elementor-widgets' ),
-                'type'       => Controls_Manager::SLIDER,
-                'size_units' => [ 'px', 'vh' ],
-                'range'      => [
-                    'px' => [
-                        'min'  => 100,
-                        'max'  => 1500,
-                        'step' => 10,
-                    ],
-                    'vh' => [
-                        'min'  => 10,
-                        'max'  => 100,
-                        'step' => 1,
-                    ],
-                ],
-                'default'    => [
-                    'size' => 600,
-                    'unit' => 'px',
-                ],
-                'selectors'  => [
-                    '{{WRAPPER}} .bw-ps-image img' => 'height: {{SIZE}}{{UNIT}};',
-                ],
-                'condition'  => [
-                    'layout_mode' => 'horizontal',
-                    'image_height_mode!' => 'auto',
-                ],
-            ]
-        );
-
-        $this->add_responsive_control(
-            'image_width',
-            [
-                'label'      => __( 'Image Width', 'bw-elementor-widgets' ),
-                'type'       => Controls_Manager::SLIDER,
-                'size_units' => [ 'px', '%' ],
-                'range'      => [
-                    'px' => [
-                        'min'  => 100,
-                        'max'  => 2000,
-                        'step' => 10,
-                    ],
-                    '%' => [
-                        'min'  => 10,
-                        'max'  => 100,
-                        'step' => 1,
-                    ],
-                ],
-                'default'    => [
-                    'size' => 100,
-                    'unit' => '%',
-                ],
-                'selectors'  => [
-                    '{{WRAPPER}} .bw-ps-image img' => 'width: {{SIZE}}{{UNIT}};',
-                ],
-                'condition'  => [
-                    'layout_mode' => 'horizontal',
-                    'image_height_mode' => [ 'contain', 'cover' ],
-                ],
             ]
         );
 
@@ -1108,6 +1094,169 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
             ]
         );
 
+        $this->add_control(
+            'cursor_border_heading',
+            [
+                'label'     => __( 'Border', 'bw-elementor-widgets' ),
+                'type'      => Controls_Manager::HEADING,
+                'separator' => 'before',
+                'condition' => [
+                    'enable_custom_cursor' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'cursor_border_width',
+            [
+                'label'      => __( 'Border Width', 'bw-elementor-widgets' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px' ],
+                'range'      => [
+                    'px' => [
+                        'min'  => 0,
+                        'max'  => 10,
+                        'step' => 1,
+                    ],
+                ],
+                'default'    => [
+                    'size' => 2,
+                    'unit' => 'px',
+                ],
+                'condition'  => [
+                    'enable_custom_cursor' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'cursor_border_color',
+            [
+                'label'     => __( 'Border Color', 'bw-elementor-widgets' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#000000',
+                'condition' => [
+                    'enable_custom_cursor' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'cursor_background_heading',
+            [
+                'label'     => __( 'Background', 'bw-elementor-widgets' ),
+                'type'      => Controls_Manager::HEADING,
+                'separator' => 'before',
+                'condition' => [
+                    'enable_custom_cursor' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'cursor_background_color',
+            [
+                'label'     => __( 'Background Color', 'bw-elementor-widgets' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#ffffff',
+                'condition' => [
+                    'enable_custom_cursor' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'cursor_background_opacity',
+            [
+                'label'      => __( 'Background Opacity', 'bw-elementor-widgets' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ '' ],
+                'range'      => [
+                    '' => [
+                        'min'  => 0,
+                        'max'  => 1,
+                        'step' => 0.05,
+                    ],
+                ],
+                'default'    => [
+                    'size' => 0.6,
+                ],
+                'condition'  => [
+                    'enable_custom_cursor' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'cursor_blur_strength',
+            [
+                'label'      => __( 'Background Blur (px)', 'bw-elementor-widgets' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px' ],
+                'range'      => [
+                    'px' => [
+                        'min'  => 0,
+                        'max'  => 30,
+                        'step' => 1,
+                    ],
+                ],
+                'default'    => [
+                    'size' => 12,
+                    'unit' => 'px',
+                ],
+                'condition'  => [
+                    'enable_custom_cursor' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'cursor_arrows_heading',
+            [
+                'label'     => __( 'Arrows', 'bw-elementor-widgets' ),
+                'type'      => Controls_Manager::HEADING,
+                'separator' => 'before',
+                'condition' => [
+                    'enable_custom_cursor' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'cursor_arrow_color',
+            [
+                'label'     => __( 'Arrow Color', 'bw-elementor-widgets' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#000000',
+                'condition' => [
+                    'enable_custom_cursor' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'cursor_arrow_size',
+            [
+                'label'      => __( 'Arrow Size', 'bw-elementor-widgets' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px' ],
+                'range'      => [
+                    'px' => [
+                        'min'  => 10,
+                        'max'  => 48,
+                        'step' => 1,
+                    ],
+                ],
+                'default'    => [
+                    'size' => 24,
+                    'unit' => 'px',
+                ],
+                'condition'  => [
+                    'enable_custom_cursor' => 'yes',
+                ],
+            ]
+        );
+
         $this->end_controls_section();
     }
 
@@ -1134,6 +1283,13 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
             'enableCustomCursor'   => $settings['enable_custom_cursor'] === 'yes',
             'hideSystemCursor'     => $settings['hide_system_cursor'] === 'yes',
             'cursorZoomText'       => $settings['cursor_zoom_text'],
+            'cursorBorderWidth'    => $settings['cursor_border_width']['size'] ?? 2,
+            'cursorBorderColor'    => $settings['cursor_border_color'] ?? '#000000',
+            'cursorBlur'           => $settings['cursor_blur_strength']['size'] ?? 12,
+            'cursorArrowColor'     => $settings['cursor_arrow_color'] ?? '#000000',
+            'cursorArrowSize'      => $settings['cursor_arrow_size']['size'] ?? 24,
+            'cursorBackgroundColor' => $settings['cursor_background_color'] ?? '#ffffff',
+            'cursorBackgroundOpacity' => $settings['cursor_background_opacity']['size'] ?? 0.6,
             'popupTitle'           => $popup_title,
             'dotsPosition'         => $settings['dots_position'] ?? 'center',
             'horizontal'           => [
@@ -1258,12 +1414,8 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
         $image_size_setting = ! empty( $settings['image_size'] ) ? $settings['image_size'] : 'full';
         $image_size = $this->get_image_size( $image_size_setting );
 
-        // Get image height mode
-        $height_mode = ! empty( $settings['image_height_mode'] ) ? $settings['image_height_mode'] : 'auto';
-        $height_class = 'bw-ps-height-' . $height_mode;
-
         ?>
-        <div class="bw-ps-horizontal <?php echo esc_attr( $height_class ); ?>">
+        <div class="bw-ps-horizontal">
             <div class="bw-ps-slider-horizontal">
                 <?php foreach ( $images as $index => $image ) : ?>
                     <div class="bw-ps-slide" data-bw-index="<?php echo esc_attr( $index ); ?>" data-attachment-id="<?php echo esc_attr( $image['id'] ); ?>">
@@ -1431,9 +1583,28 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
 
         if ( ! empty( $settings['breakpoints'] ) ) {
             foreach ( $settings['breakpoints'] as $breakpoint ) {
+                $image_height = null;
+                if ( ! empty( $breakpoint['image_height'] ) && isset( $breakpoint['image_height']['size'] ) ) {
+                    $image_height = [
+                        'size' => (float) $breakpoint['image_height']['size'],
+                        'unit' => $breakpoint['image_height']['unit'] ?? 'px',
+                    ];
+                }
+
+                $image_width = null;
+                if ( ! empty( $breakpoint['image_width'] ) && isset( $breakpoint['image_width']['size'] ) ) {
+                    $image_width = [
+                        'size' => (float) $breakpoint['image_width']['size'],
+                        'unit' => $breakpoint['image_width']['unit'] ?? 'px',
+                    ];
+                }
+
                 $config = [
                     'breakpoint'       => absint( $breakpoint['breakpoint'] ),
                     'showArrows'       => $breakpoint['show_arrows'] === 'yes',
+                    'imageHeightMode'  => $breakpoint['image_height_mode'] ?? 'auto',
+                    'imageHeight'      => $image_height,
+                    'imageWidth'       => $image_width,
                     'settings'         => [
                         'slidesToShow'   => absint( $breakpoint['slides_to_show'] ),
                         'slidesToScroll' => absint( $breakpoint['slides_to_scroll'] ),
