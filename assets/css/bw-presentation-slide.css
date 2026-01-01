@@ -21,6 +21,11 @@
     width: 100%;
     height: auto;
     transition: opacity 0.3s ease, transform 0.3s ease;
+    opacity: 0;
+}
+
+.bw-ps-image img.is-loaded {
+    opacity: 1;
 }
 
 .bw-ps-image-clickable {
@@ -235,12 +240,11 @@
    ======================================== */
 .bw-ps-popup-overlay {
     position: fixed;
-    top: 0;
-    left: 0;
+    inset: 0;
     width: 100%;
     height: 100%;
     background-color: rgba(255, 255, 255, 0.95);
-    z-index: 99999;
+    z-index: 2147483647;
     opacity: 0;
     transition: opacity 0.3s ease;
     overflow-y: auto;
@@ -253,8 +257,8 @@
 .bw-ps-popup {
     position: relative;
     width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
+    max-width: none;
+    margin: 0;
     background: #fff;
     min-height: 100vh;
 }
@@ -262,6 +266,7 @@
 .bw-ps-popup-header {
     position: sticky;
     top: 0;
+    width: 100%;
     display: flex;
     justify-content: space-between;
     align-items: center;
