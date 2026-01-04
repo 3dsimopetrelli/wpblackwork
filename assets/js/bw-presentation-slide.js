@@ -570,57 +570,34 @@
             const $wrapper = this.$wrapper;
             const $cursor = this.customCursor;
             const zoomText = this.config.cursorZoomText || 'ZOOM';
-            let currentX = 0;
-            let currentY = 0;
-            let targetX = 0;
-            let targetY = 0;
-            let hasPosition = false;
-            const ease = 0.15;
-            const cursorBackgroundColor = this.config.cursorBackgroundColor || '#000000';
-            const cursorBackgroundOpacity = parseFloat(this.config.cursorBackgroundOpacity);
-            const cursorBackgroundBlur = parseFloat(this.config.cursorBackgroundBlur);
-            const normalizedOpacity = Number.isNaN(cursorBackgroundOpacity) ? 0.8 : cursorBackgroundOpacity;
-            const normalizedBlur = Number.isNaN(cursorBackgroundBlur) ? 0 : cursorBackgroundBlur;
-
-            const toRgba = (color, opacity) => {
-                if (typeof color !== 'string' || color.trim() === '') {
-                    return `rgba(0, 0, 0, ${opacity})`;
-                }
-
-                if (color.startsWith('rgba')) {
-                    return color;
-                }
-
-                if (color.startsWith('rgb')) {
-                    const values = color.replace(/[^\d,]/g, '').split(',').map(Number);
-                    if (values.length >= 3) {
-                        return `rgba(${values[0]}, ${values[1]}, ${values[2]}, ${opacity})`;
-                    }
-                }
-
-                const hex = color.replace('#', '');
-                const hexValue = hex.length === 3
-                    ? hex.split('').map((char) => char + char).join('')
-                    : hex;
-                const intValue = parseInt(hexValue, 16);
-                if (Number.isNaN(intValue)) {
-                    return `rgba(0, 0, 0, ${opacity})`;
-                }
-
-                const r = (intValue >> 16) & 255;
-                const g = (intValue >> 8) & 255;
-                const b = intValue & 255;
-                return `rgba(${r}, ${g}, ${b}, ${opacity})`;
-            };
-
-            const animateCursor = () => {
-                currentX += (targetX - currentX) * ease;
-                currentY += (targetY - currentY) * ease;
-                $cursor.css({
-                    '--bw-ps-cursor-x': `${currentX}px`,
-                    '--bw-ps-cursor-y': `${currentY}px`
-                });
-                this.cursorRafId = requestAnimationFrame(animateCursor);
+            const zoomTextSize = Number.isFinite(this.config.cursorZoomTextSize)
+                ? `${this.config.cursorZoomTextSize}px`
+                : '12px';
+            const borderWidth = Number.isFinite(this.config.cursorBorderWidth)
+                ? `${this.config.cursorBorderWidth}px`
+                : '2px';
+            const borderColor = this.config.cursorBorderColor || '#000';
+            const parsedBlur = parseFloat(this.config.cursorBlur);
+            const blurStrength = Number.isFinite(parsedBlur)
+                ? `${parsedBlur}px`
+                : '12px';
+            const arrowColor = this.config.cursorArrowColor || '#000';
+            const arrowSize = Number.isFinite(this.config.cursorArrowSize)
+                ? `${this.config.cursorArrowSize}px`
+                : '24px';
+            const backgroundColor = this.config.cursorBackgroundColor || '#ffffff';
+            const parsedOpacity = parseFloat(this.config.cursorBackgroundOpacity);
+            const backgroundOpacity = Number.isFinite(parsedOpacity)
+                ? Math.min(Math.max(parsedOpacity, 0), 1)
+                : 0.6;
+            const backgroundColorRgba = this.hexToRgba(backgroundColor, backgroundOpacity);
+            const cursorState = {
+                currentX: 0,
+                currentY: 0,
+                targetX: 0,
+                targetY: 0,
+                initialized: false,
+                rafId: null
             };
 
             // Hide system cursor if enabled
@@ -628,27 +605,43 @@
                 $wrapper.addClass('bw-ps-hide-cursor');
             }
 
-            $cursor.css({
-                '--bw-ps-cursor-bg': toRgba(cursorBackgroundColor, normalizedOpacity),
-                '--bw-ps-cursor-blur': `${Math.max(0, normalizedBlur)}px`
-            });
-
             // Track mouse movement
             $wrapper.off('mousemove').on('mousemove', (e) => {
-                targetX = e.clientX;
-                targetY = e.clientY;
-                if (!hasPosition) {
-                    currentX = targetX;
-                    currentY = targetY;
-                    hasPosition = true;
+                cursorState.targetX = e.clientX;
+                cursorState.targetY = e.clientY;
+
+                if (!cursorState.initialized) {
+                    cursorState.currentX = cursorState.targetX;
+                    cursorState.currentY = cursorState.targetY;
+                    cursorState.initialized = true;
                 }
+            });
+
+            const animateCursor = () => {
+                const ease = 0.18;
+                cursorState.currentX += (cursorState.targetX - cursorState.currentX) * ease;
+                cursorState.currentY += (cursorState.targetY - cursorState.currentY) * ease;
+                $cursor.css({
+                    left: `${cursorState.currentX}px`,
+                    top: `${cursorState.currentY}px`
+                });
+                cursorState.rafId = requestAnimationFrame(animateCursor);
+            };
+
+            if (cursorState.rafId) {
+                cancelAnimationFrame(cursorState.rafId);
+            }
+            $cursor.css({
+                borderWidth,
+                borderColor,
+                color: arrowColor,
+                '--bw-ps-cursor-bg': backgroundColorRgba,
+                '--bw-site-blur': blurStrength,
+                '--bw-ps-arrow-size': arrowSize,
+                '--bw-ps-zoom-size': zoomTextSize
             });
             animateCursor();
             this.cursorState = cursorState;
-
-            if (!this.cursorRafId) {
-                this.cursorRafId = requestAnimationFrame(animateCursor);
-            }
 
             // Horizontal layout cursor states
             if (this.layoutMode === 'horizontal') {
@@ -766,11 +759,6 @@
             if (this.cursorState && this.cursorState.rafId) {
                 cancelAnimationFrame(this.cursorState.rafId);
                 this.cursorState.rafId = null;
-            }
-
-            if (this.cursorRafId) {
-                cancelAnimationFrame(this.cursorRafId);
-                this.cursorRafId = null;
             }
 
             this.initialized = false;

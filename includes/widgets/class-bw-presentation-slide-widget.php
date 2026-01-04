@@ -1095,11 +1095,92 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
         );
 
         $this->add_control(
+            'cursor_zoom_text_size',
+            [
+                'label'      => __( 'Zoom Text Size', 'bw-elementor-widgets' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px' ],
+                'range'      => [
+                    'px' => [
+                        'min'  => 8,
+                        'max'  => 30,
+                        'step' => 1,
+                    ],
+                ],
+                'default'    => [
+                    'size' => 12,
+                    'unit' => 'px',
+                ],
+                'condition'  => [
+                    'enable_custom_cursor' => 'yes',
+                ],
+            ]
+        );
+        $this->add_control(
+            'cursor_border_heading',
+            [
+                'label'     => __( 'Border', 'bw-elementor-widgets' ),
+                'type'      => Controls_Manager::HEADING,
+                'separator' => 'before',
+                'condition' => [
+                    'enable_custom_cursor' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'cursor_border_width',
+            [
+                'label'      => __( 'Border Width', 'bw-elementor-widgets' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px' ],
+                'range'      => [
+                    'px' => [
+                        'min'  => 0,
+                        'max'  => 10,
+                        'step' => 1,
+                    ],
+                ],
+                'default'    => [
+                    'size' => 2,
+                    'unit' => 'px',
+                ],
+                'condition'  => [
+                    'enable_custom_cursor' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'cursor_border_color',
+            [
+                'label'     => __( 'Border Color', 'bw-elementor-widgets' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#000000',
+                'condition' => [
+                    'enable_custom_cursor' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'cursor_background_heading',
+            [
+                'label'     => __( 'Background', 'bw-elementor-widgets' ),
+                'type'      => Controls_Manager::HEADING,
+                'separator' => 'before',
+                'condition' => [
+                    'enable_custom_cursor' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
             'cursor_background_color',
             [
                 'label'     => __( 'Background Color', 'bw-elementor-widgets' ),
                 'type'      => Controls_Manager::COLOR,
-                'default'   => '#000000',
+                'default'   => '#ffffff',
                 'condition' => [
                     'enable_custom_cursor' => 'yes',
                 ],
@@ -1120,7 +1201,7 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
                     ],
                 ],
                 'default'    => [
-                    'size' => 0.8,
+                    'size' => 0.6,
                 ],
                 'condition'  => [
                     'enable_custom_cursor' => 'yes',
@@ -1129,20 +1210,67 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
         );
 
         $this->add_control(
-            'cursor_background_blur',
+            'cursor_blur_strength',
             [
-                'label'      => __( 'Background Blur', 'bw-elementor-widgets' ),
+                'label'      => __( 'Background Blur (px)', 'bw-elementor-widgets' ),
                 'type'       => Controls_Manager::SLIDER,
                 'size_units' => [ 'px' ],
                 'range'      => [
                     'px' => [
                         'min'  => 0,
-                        'max'  => 40,
+                        'max'  => 30,
                         'step' => 1,
                     ],
                 ],
                 'default'    => [
-                    'size' => 20,
+                    'size' => 12,
+                    'unit' => 'px',
+                ],
+                'condition'  => [
+                    'enable_custom_cursor' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'cursor_arrows_heading',
+            [
+                'label'     => __( 'Arrows', 'bw-elementor-widgets' ),
+                'type'      => Controls_Manager::HEADING,
+                'separator' => 'before',
+                'condition' => [
+                    'enable_custom_cursor' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'cursor_arrow_color',
+            [
+                'label'     => __( 'Arrow Color', 'bw-elementor-widgets' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#000000',
+                'condition' => [
+                    'enable_custom_cursor' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'cursor_arrow_size',
+            [
+                'label'      => __( 'Arrow Size', 'bw-elementor-widgets' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px' ],
+                'range'      => [
+                    'px' => [
+                        'min'  => 10,
+                        'max'  => 48,
+                        'step' => 1,
+                    ],
+                ],
+                'default'    => [
+                    'size' => 24,
                     'unit' => 'px',
                 ],
                 'condition'  => [
@@ -1177,9 +1305,14 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
             'enableCustomCursor'   => $settings['enable_custom_cursor'] === 'yes',
             'hideSystemCursor'     => $settings['hide_system_cursor'] === 'yes',
             'cursorZoomText'       => $settings['cursor_zoom_text'],
-            'cursorBackgroundColor' => $settings['cursor_background_color'] ?? '#000000',
-            'cursorBackgroundOpacity' => $settings['cursor_background_opacity']['size'] ?? 0.8,
-            'cursorBackgroundBlur' => $settings['cursor_background_blur']['size'] ?? 20,
+            'cursorZoomTextSize'   => $settings['cursor_zoom_text_size']['size'] ?? 12,
+            'cursorBorderWidth'    => $settings['cursor_border_width']['size'] ?? 2,
+            'cursorBorderColor'    => $settings['cursor_border_color'] ?? '#000000',
+            'cursorBlur'           => $settings['cursor_blur_strength']['size'] ?? 12,
+            'cursorArrowColor'     => $settings['cursor_arrow_color'] ?? '#000000',
+            'cursorArrowSize'      => $settings['cursor_arrow_size']['size'] ?? 24,
+            'cursorBackgroundColor' => $settings['cursor_background_color'] ?? '#ffffff',
+            'cursorBackgroundOpacity' => $settings['cursor_background_opacity']['size'] ?? 0.6,
             'popupTitle'           => $popup_title,
             'dotsPosition'         => $settings['dots_position'] ?? 'center',
             'horizontal'           => [
