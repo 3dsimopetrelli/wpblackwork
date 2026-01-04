@@ -50,12 +50,12 @@ if ( ! wp_doing_ajax() ) {
 								if ( strpos( $gateway_type, 'stripe' ) !== false ||
 								     strpos( $gateway_type, 'card' ) !== false ||
 								     strpos( $gateway_type, 'credit' ) !== false ) {
-									// Use colored card brand icons from reliable CDN
-									$icon_html = '<img src="https://logo.clearbit.com/visa.com" alt="Visa" />';
-									$icon_html .= '<img src="https://logo.clearbit.com/mastercard.com" alt="Mastercard" />';
-									$icon_html .= '<img src="https://logo.clearbit.com/maestro.com" alt="Maestro" />';
-									$icon_html .= '<img src="https://logo.clearbit.com/americanexpress.com" alt="American Express" />';
-									$icon_html .= '<img src="https://logo.clearbit.com/discover.com" alt="Discover" />';
+									// Use colored card brand icons from vectorlogo.zone CDN
+									$icon_html = '<img src="https://www.vectorlogo.zone/logos/visa/visa-icon.svg" alt="Visa" />';
+									$icon_html .= '<img src="https://www.vectorlogo.zone/logos/mastercard/mastercard-icon.svg" alt="Mastercard" />';
+									$icon_html .= '<img src="https://cdn.jsdelivr.net/npm/simple-icons@v10/icons/maestro.svg" alt="Maestro" />';
+									$icon_html .= '<img src="https://www.vectorlogo.zone/logos/americanexpress/americanexpress-icon.svg" alt="American Express" />';
+									$icon_html .= '<img src="https://cdn.jsdelivr.net/npm/simple-icons@v10/icons/discover.svg" alt="Discover" />';
 								}
 
 								if ( $icon_html ) :
