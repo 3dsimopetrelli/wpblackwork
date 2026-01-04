@@ -41,11 +41,41 @@ if ( ! wp_doing_ajax() ) {
 								<span class="bw-payment-method__title">
 									<?php echo wp_kses_post( $gateway->get_title() ); ?>
 								</span>
-								<?php if ( $gateway->get_icon() ) : ?>
-									<span class="bw-payment-method__icons">
-										<?php echo wp_kses_post( $gateway->get_icon() ); ?>
-									</span>
-								<?php endif; ?>
+								<?php
+								// Process payment gateway icons
+								$icon_html = $gateway->get_icon();
+								if ( $icon_html ) :
+									// Extract all <img> tags from the icon HTML
+									preg_match_all( '/<img[^>]+>/i', $icon_html, $matches );
+									$icon_images = $matches[0] ?? [];
+									$total_icons = count( $icon_images );
+
+									if ( $total_icons > 0 ) :
+										$max_visible = 3; // Show max 3 icons
+										$visible_icons = array_slice( $icon_images, 0, $max_visible );
+										$remaining_icons = array_slice( $icon_images, $max_visible );
+										$remaining_count = count( $remaining_icons );
+										?>
+										<span class="bw-payment-method__icons">
+											<?php foreach ( $visible_icons as $icon ) : ?>
+												<span class="bw-payment-icon"><?php echo wp_kses_post( $icon ); ?></span>
+											<?php endforeach; ?>
+
+											<?php if ( $remaining_count > 0 ) : ?>
+												<span class="bw-payment-icon bw-payment-icon--more" data-tooltip-id="tooltip-<?php echo $gateway_id; ?>">
+													<span class="bw-payment-icon__badge">+<?php echo $remaining_count; ?></span>
+													<span class="bw-payment-icon__tooltip" id="tooltip-<?php echo $gateway_id; ?>">
+														<?php foreach ( $remaining_icons as $icon ) : ?>
+															<span class="bw-payment-icon"><?php echo wp_kses_post( $icon ); ?></span>
+														<?php endforeach; ?>
+													</span>
+												</span>
+											<?php endif; ?>
+										</span>
+										<?php
+									endif;
+								endif;
+								?>
 							</label>
 						</div>
 

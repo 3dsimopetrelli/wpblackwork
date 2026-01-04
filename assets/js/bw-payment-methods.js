@@ -226,4 +226,73 @@
         }
     });
 
+    /**
+     * Handle payment icons tooltip visibility
+     * Keeps tooltip open when hovering over it
+     */
+    function initPaymentIconsTooltips() {
+        var moreIcons = document.querySelectorAll('.bw-payment-icon--more');
+
+        moreIcons.forEach(function (moreIcon) {
+            var tooltip = moreIcon.querySelector('.bw-payment-icon__tooltip');
+            var hideTimeout;
+
+            if (!tooltip) {
+                return;
+            }
+
+            // Show tooltip on hover over badge
+            moreIcon.addEventListener('mouseenter', function () {
+                clearTimeout(hideTimeout);
+                tooltip.style.display = 'flex';
+            });
+
+            // Keep tooltip open when hovering over tooltip itself
+            tooltip.addEventListener('mouseenter', function () {
+                clearTimeout(hideTimeout);
+                tooltip.style.display = 'flex';
+            });
+
+            // Hide tooltip with delay when leaving badge
+            moreIcon.addEventListener('mouseleave', function (event) {
+                // Check if we're moving to the tooltip
+                if (!tooltip.contains(event.relatedTarget)) {
+                    hideTimeout = setTimeout(function () {
+                        tooltip.style.display = 'none';
+                    }, 100);
+                }
+            });
+
+            // Hide tooltip when leaving tooltip
+            tooltip.addEventListener('mouseleave', function () {
+                hideTimeout = setTimeout(function () {
+                    tooltip.style.display = 'none';
+                }, 100);
+            });
+
+            // Hide tooltip on click outside
+            document.addEventListener('click', function (event) {
+                if (!moreIcon.contains(event.target)) {
+                    tooltip.style.display = 'none';
+                }
+            });
+        });
+    }
+
+    // Initialize tooltips on load
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initPaymentIconsTooltips);
+    } else {
+        initPaymentIconsTooltips();
+    }
+
+    // Re-initialize tooltips on checkout update
+    if (window.jQuery) {
+        window.jQuery(document.body).on('updated_checkout', function () {
+            setTimeout(function () {
+                initPaymentIconsTooltips();
+            }, 100);
+        });
+    }
+
 })();
