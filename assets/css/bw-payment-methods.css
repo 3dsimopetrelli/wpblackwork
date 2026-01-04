@@ -46,27 +46,32 @@ ul.bw-payment-methods {
 }
 
 /* Active/Selected state - Pure black header like image */
-.bw-payment-method:has(input[type="radio"]:checked) {
-    border-color: #000000;
-    border-width: 2px;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.15);
+.bw-payment-method:has(input[type="radio"]:checked),
+.bw-payment-method.is-selected {
+    border-color: #000000 !important;
+    border-width: 2px !important;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.15) !important;
 }
 
-.bw-payment-method:has(input[type="radio"]:checked) .bw-payment-method__header {
-    border-bottom: solid black 2px;
+.bw-payment-method:has(input[type="radio"]:checked) .bw-payment-method__header,
+.bw-payment-method.is-selected .bw-payment-method__header {
+    background: #000000 !important;
 }
 
-.bw-payment-method:has(input[type="radio"]:checked) .bw-payment-method__title {
-    color: #000000;
+.bw-payment-method:has(input[type="radio"]:checked) .bw-payment-method__title,
+.bw-payment-method.is-selected .bw-payment-method__title {
+    color: #ffffff !important;
 }
 
-.bw-payment-method:has(input[type="radio"]:checked) .bw-payment-method__header input[type="radio"] {
-    border-color: #ffffff;
-    background: #000000;
+.bw-payment-method:has(input[type="radio"]:checked) .bw-payment-method__header input[type="radio"],
+.bw-payment-method.is-selected .bw-payment-method__header input[type="radio"] {
+    border-color: #ffffff !important;
+    background: #000000 !important;
 }
 
-.bw-payment-method:has(input[type="radio"]:checked) .bw-payment-method__header input[type="radio"]::after {
-    background: #ffffff;
+.bw-payment-method:has(input[type="radio"]:checked) .bw-payment-method__header input[type="radio"]::after,
+.bw-payment-method.is-selected .bw-payment-method__header input[type="radio"]::after {
+    background: #ffffff !important;
 }
 
 /* ============================================
@@ -168,13 +173,10 @@ ul.bw-payment-methods {
 }
 
 .bw-payment-icon img {
-    height: 24px;
+    height: 28px;
     width: auto;
     display: block;
-    border-radius: 4px;
-    background: #ffffff;
-    padding: 4px 6px;
-    border: 1px solid #e5e7eb;
+    /* Removed: borders, background, padding - icons now display clean and colored */
 }
 
 /* "+N" badge for remaining icons */
@@ -260,8 +262,8 @@ ul.bw-payment-methods {
 
 .bw-payment-icon__tooltip .bw-payment-icon img {
     height: 28px;
-    border: 1px solid #e5e7eb;
-    border-radius: 4px;
+    width: auto;
+    /* Removed borders - clean colored icons */
 }
 
 /* ============================================
@@ -273,22 +275,23 @@ ul.bw-payment-methods {
     background: #f9fafb;
     border-top: 1px solid transparent;
     overflow: hidden;
-    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-                border-color 0.3s ease,
-                padding 0.3s ease;
+    transition: max-height 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                border-color 0.35s ease,
+                padding 0.35s ease;
     padding: 0;
 }
 
 .bw-payment-method__content.is-open {
-    max-height: 1000px;
+    max-height: 1500px;
     border-top-color: #e5e7eb;
 }
 
 .bw-payment-method__inner {
     padding: 24px 20px;
     opacity: 0;
-    transform: translateY(-10px);
-    transition: opacity 0.3s ease 0.1s, transform 0.3s ease 0.1s;
+    transform: translateY(-8px);
+    transition: opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.15s,
+                transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.15s;
 }
 
 .bw-payment-method__content.is-open .bw-payment-method__inner {
@@ -348,15 +351,11 @@ ul.bw-payment-methods {
 }
 
 .bw-payment-method__fields .form-row {
-    margin-bottom: 14px;
+    margin-bottom: 16px;
 }
 
 .bw-payment-method__fields label {
-    display: block;
-    margin-bottom: 6px;
-    font-size: 13px;
-    font-weight: 600;
-    color: #374151;
+    display: none; /* Hide labels like in reference image */
 }
 
 .bw-payment-method__fields input[type="text"],
@@ -366,13 +365,27 @@ ul.bw-payment-methods {
 .bw-payment-method__fields select,
 .bw-payment-method__fields textarea {
     width: 100%;
-    padding: 10px 14px;
+    padding: 16px 18px;
     border: 1px solid #d1d5db;
-    border-radius: 6px;
-    font-size: 14px;
+    border-radius: 8px;
+    font-size: 15px;
     color: #1f2937;
     background: #ffffff;
-    transition: all 0.2s ease;
+    transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.bw-payment-method__fields input::placeholder,
+.bw-payment-method__fields select::placeholder,
+.bw-payment-method__fields textarea::placeholder {
+    color: #9ca3af;
+    font-weight: 400;
+}
+
+.bw-payment-method__fields input:hover,
+.bw-payment-method__fields select:hover,
+.bw-payment-method__fields textarea:hover {
+    border-color: #9ca3af;
 }
 
 .bw-payment-method__fields input:focus,
@@ -380,7 +393,7 @@ ul.bw-payment-methods {
 .bw-payment-method__fields textarea:focus {
     outline: none;
     border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
 /* ============================================
@@ -527,17 +540,23 @@ ul.bw-payment-methods {
 
 .wc-stripe-elements-field,
 .wc-stripe-iban-element-field {
-    padding: 10px 14px;
+    padding: 16px 18px;
     border: 1px solid #d1d5db;
-    border-radius: 6px;
+    border-radius: 8px;
     background: #ffffff;
-    transition: all 0.2s ease;
+    transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.wc-stripe-elements-field:hover,
+.wc-stripe-iban-element-field:hover {
+    border-color: #9ca3af;
 }
 
 .wc-stripe-elements-field:focus-within,
 .wc-stripe-iban-element-field:focus-within {
     border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
 /* ============================================
