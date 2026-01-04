@@ -136,68 +136,7 @@
         setOrderSummaryLoading(true);
     });
 
-    function flagExpressPaymentMethods() {
-        var list = document.querySelector('.woocommerce-checkout-payment ul.payment_methods');
-
-        if (!list) {
-            return;
-        }
-
-        var keywords = ['vpay', 'apple', 'gpay', 'google'];
-        var hasExpress = false;
-
-        list.classList.remove('bw-has-express-payments');
-        list.querySelectorAll('.bw-express-divider').forEach(function (divider) {
-            divider.remove();
-        });
-
-        list.querySelectorAll('li').forEach(function (item) {
-            item.classList.remove('bw-express-payment', 'bw-standard-payment');
-
-            var token = ((item.id || '') + ' ' + item.textContent).toLowerCase();
-            var isExpress = keywords.some(function (key) {
-                return token.indexOf(key) !== -1;
-            });
-
-            if (isExpress) {
-                item.classList.add('bw-express-payment');
-                hasExpress = true;
-            } else {
-                item.classList.add('bw-standard-payment');
-            }
-        });
-
-        if (hasExpress) {
-            list.classList.add('bw-has-express-payments');
-
-            var firstStandard = list.querySelector('li.bw-standard-payment');
-
-            if (firstStandard) {
-                var divider = document.createElement('li');
-                divider.className = 'bw-express-divider';
-                divider.setAttribute('aria-hidden', 'true');
-
-                var inner = document.createElement('div');
-                inner.className = 'bw-express-divider__inner';
-
-                var label = document.createElement('span');
-                label.textContent = 'OR';
-
-                inner.appendChild(label);
-                divider.appendChild(inner);
-
-                list.insertBefore(divider, firstStandard);
-            }
-        }
-    }
-
-    document.addEventListener('DOMContentLoaded', flagExpressPaymentMethods);
-
-    if (window.jQuery) {
-        window.jQuery(function ($) {
-            $(document.body).on('updated_checkout payment_method_selected', flagExpressPaymentMethods);
-        });
-    }
+    // Payment methods accordion logic moved to bw-payment-methods.js
 
     function showCouponMessage(message, type) {
         var messageEl = document.getElementById('bw-coupon-message');

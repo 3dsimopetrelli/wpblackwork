@@ -1,0 +1,597 @@
+/**
+ * BW Payment Methods - Shopify-style Accordion
+ *
+ * Clean, modern accordion design for WooCommerce checkout payment methods
+ * Fully compatible with Stripe, PayPal, and all WooCommerce payment gateways
+ */
+
+/* ============================================
+   Payment Methods Container
+   ============================================ */
+
+.woocommerce-checkout-payment {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+ul.bw-payment-methods {
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 0 0 24px 0 !important;
+}
+
+/* ============================================
+   Individual Payment Method (Accordion Item)
+   ============================================ */
+
+.bw-payment-method {
+    background: #ffffff;
+    border: 2px solid #d1d5db;
+    border-radius: 8px;
+    margin: 0 0 12px 0;
+    transition: all 0.2s ease;
+    overflow: hidden;
+    position: relative;
+}
+
+.bw-payment-method:last-child {
+    margin-bottom: 0;
+}
+
+/* Hover state */
+.bw-payment-method:hover {
+    border-color: #9ca3af;
+}
+
+/* Active/Selected state */
+.bw-payment-method:has(input[type="radio"]:checked) {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 1px #3b82f6;
+}
+
+/* ============================================
+   Payment Method Header (Radio + Label)
+   ============================================ */
+
+.bw-payment-method__header {
+    display: flex;
+    align-items: center;
+    padding: 16px 18px;
+    cursor: pointer;
+    position: relative;
+    gap: 12px;
+}
+
+.bw-payment-method__header input[type="radio"] {
+    /* Custom radio button */
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    border: 2px solid #d1d5db;
+    border-radius: 50%;
+    margin: 0;
+    padding: 0;
+    cursor: pointer;
+    position: relative;
+    background: #ffffff;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.bw-payment-method__header input[type="radio"]:hover {
+    border-color: #3b82f6;
+}
+
+.bw-payment-method__header input[type="radio"]:checked {
+    border-color: #3b82f6;
+    border-width: 6px;
+    background: #ffffff;
+}
+
+.bw-payment-method__header input[type="radio"]:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Label */
+.bw-payment-method__label {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    cursor: pointer;
+    margin: 0 !important;
+    font-size: 15px;
+    font-weight: 500;
+    color: #1f2937;
+}
+
+.bw-payment-method__title {
+    flex: 1;
+    font-size: 15px;
+    font-weight: 500;
+    color: #1f2937;
+}
+
+.bw-payment-method__icons {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+/* Individual payment icon wrapper */
+.bw-payment-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.bw-payment-icon img {
+    height: 24px;
+    width: auto;
+    display: block;
+    border-radius: 3px;
+    background: #ffffff;
+}
+
+/* "+N" badge for remaining icons */
+.bw-payment-icon--more {
+    position: relative;
+    cursor: pointer;
+}
+
+.bw-payment-icon__badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 24px;
+    padding: 0 8px;
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+    transition: all 0.2s ease;
+}
+
+.bw-payment-icon--more:hover .bw-payment-icon__badge {
+    background: #e5e7eb;
+    border-color: #9ca3af;
+    color: #374151;
+}
+
+/* Tooltip with remaining card icons */
+.bw-payment-icon__tooltip {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 1000;
+    display: none;
+    min-width: 120px;
+    padding: 10px;
+    background: #ffffff;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    gap: 6px;
+    flex-wrap: wrap;
+    animation: bw-tooltip-fade-in 0.2s ease-out;
+}
+
+/* Arrow pointing up */
+.bw-payment-icon__tooltip::before {
+    content: "";
+    position: absolute;
+    top: -6px;
+    right: 10px;
+    width: 12px;
+    height: 12px;
+    background: #ffffff;
+    border-left: 1px solid #d1d5db;
+    border-top: 1px solid #d1d5db;
+    transform: rotate(45deg);
+}
+
+.bw-payment-icon--more:hover .bw-payment-icon__tooltip,
+.bw-payment-icon__tooltip:hover {
+    display: flex;
+}
+
+@keyframes bw-tooltip-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Icons inside tooltip */
+.bw-payment-icon__tooltip .bw-payment-icon {
+    display: inline-flex;
+}
+
+.bw-payment-icon__tooltip .bw-payment-icon img {
+    height: 28px;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+}
+
+/* ============================================
+   Payment Method Content (Accordion Body)
+   ============================================ */
+
+.bw-payment-method__content {
+    display: none;
+    background: #f9fafb;
+    border-top: 1px solid #e5e7eb;
+    padding: 0;
+    overflow: hidden;
+    animation: bw-accordion-open 0.3s ease-out;
+}
+
+.bw-payment-method__content[style*="display: block"],
+.bw-payment-method__content[style*="display:block"] {
+    display: block !important;
+}
+
+.bw-payment-method__inner {
+    padding: 20px 18px;
+}
+
+@keyframes bw-accordion-open {
+    from {
+        opacity: 0;
+        max-height: 0;
+    }
+    to {
+        opacity: 1;
+        max-height: 500px;
+    }
+}
+
+/* ============================================
+   Selected Indicator (for methods without fields)
+   ============================================ */
+
+.bw-payment-method__selected-indicator {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    padding: 12px 16px;
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #065f46;
+}
+
+.bw-payment-check-icon {
+    flex-shrink: 0;
+}
+
+/* ============================================
+   Payment Method Description
+   ============================================ */
+
+.bw-payment-method__description {
+    margin: 0 0 16px 0;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #4b5563;
+}
+
+.bw-payment-method__description p {
+    margin: 0 0 10px 0;
+    font-size: 14px;
+    color: #4b5563;
+}
+
+.bw-payment-method__description p:last-child {
+    margin-bottom: 0;
+}
+
+/* ============================================
+   Payment Method Fields (Stripe, etc.)
+   ============================================ */
+
+.bw-payment-method__fields {
+    margin-top: 16px;
+}
+
+.bw-payment-method__fields .form-row {
+    margin-bottom: 14px;
+}
+
+.bw-payment-method__fields label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.bw-payment-method__fields input[type="text"],
+.bw-payment-method__fields input[type="email"],
+.bw-payment-method__fields input[type="tel"],
+.bw-payment-method__fields input[type="number"],
+.bw-payment-method__fields select,
+.bw-payment-method__fields textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    color: #1f2937;
+    background: #ffffff;
+    transition: all 0.2s ease;
+}
+
+.bw-payment-method__fields input:focus,
+.bw-payment-method__fields select:focus,
+.bw-payment-method__fields textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* ============================================
+   Instruction Text
+   ============================================ */
+
+.bw-payment-method__instruction {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #6b7280;
+}
+
+/* ============================================
+   Place Order Button (Dynamic Shopify-style)
+   ============================================ */
+
+.bw-place-order-btn {
+    width: 100%;
+    padding: 16px 24px !important;
+    background: #3b82f6 !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 8px !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    margin-top: 20px;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.bw-place-order-btn:hover {
+    background: #2563eb !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+    transform: translateY(-1px);
+}
+
+.bw-place-order-btn:active {
+    background: #1d4ed8 !important;
+    transform: translateY(0);
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+}
+
+.bw-place-order-btn:disabled {
+    background: #9ca3af !important;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.bw-place-order-btn__text {
+    display: inline-block;
+    transition: all 0.2s ease;
+}
+
+/* Loading state */
+.bw-place-order-btn.processing {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.bw-place-order-btn.processing::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: 20px;
+    width: 16px;
+    height: 16px;
+    margin-top: -8px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: bw-btn-spin 0.6s linear infinite;
+}
+
+@keyframes bw-btn-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ============================================
+   Terms & Conditions
+   ============================================ */
+
+.woocommerce-terms-and-conditions-wrapper {
+    margin: 20px 0;
+}
+
+.woocommerce-checkout-payment .woocommerce-privacy-policy-text,
+.woocommerce-checkout-payment .woocommerce-terms-and-conditions-wrapper p {
+    font-size: 13px;
+    line-height: 1.6;
+    color: #6b7280;
+    margin: 0 0 10px 0;
+}
+
+.woocommerce-checkout-payment .woocommerce-terms-and-conditions-checkbox-text {
+    font-size: 13px;
+    color: #374151;
+}
+
+.woocommerce-checkout-payment input[type="checkbox"] {
+    margin-right: 8px;
+}
+
+/* ============================================
+   Error Messages
+   ============================================ */
+
+.woocommerce-checkout-payment .woocommerce-error,
+.woocommerce-checkout-payment .woocommerce-message,
+.woocommerce-checkout-payment .woocommerce-info {
+    margin: 0 0 16px 0;
+    padding: 14px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.woocommerce-checkout-payment .woocommerce-error {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+}
+
+.woocommerce-checkout-payment .woocommerce-message {
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    color: #065f46;
+}
+
+.woocommerce-checkout-payment .woocommerce-info {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    color: #1e40af;
+}
+
+/* ============================================
+   Stripe Elements Customization
+   ============================================ */
+
+.wc-stripe-elements-field,
+.wc-stripe-iban-element-field {
+    padding: 10px 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: #ffffff;
+    transition: all 0.2s ease;
+}
+
+.wc-stripe-elements-field:focus-within,
+.wc-stripe-iban-element-field:focus-within {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* ============================================
+   PayPal Button Customization
+   ============================================ */
+
+.bw-payment-method .paypal-buttons {
+    margin-top: 16px;
+}
+
+/* ============================================
+   Mobile Responsive
+   ============================================ */
+
+@media (max-width: 768px) {
+    .bw-payment-method {
+        border-radius: 6px;
+        margin-bottom: 10px;
+    }
+
+    .bw-payment-method__header {
+        padding: 14px 16px;
+        gap: 10px;
+    }
+
+    .bw-payment-method__label {
+        font-size: 14px;
+    }
+
+    .bw-payment-method__title {
+        font-size: 14px;
+    }
+
+    .bw-payment-method__icons {
+        gap: 3px;
+    }
+
+    .bw-payment-icon img {
+        height: 20px;
+    }
+
+    .bw-payment-icon__badge {
+        min-width: 28px;
+        height: 20px;
+        padding: 0 6px;
+        font-size: 11px;
+    }
+
+    .bw-payment-icon__tooltip {
+        top: calc(100% + 6px);
+        right: -8px;
+        min-width: 100px;
+        padding: 8px;
+        gap: 4px;
+    }
+
+    .bw-payment-icon__tooltip .bw-payment-icon img {
+        height: 24px;
+    }
+
+    .bw-payment-method__inner {
+        padding: 16px;
+    }
+
+    .bw-place-order-btn {
+        padding: 14px 20px !important;
+        font-size: 15px !important;
+    }
+}
+
+/* ============================================
+   Accessibility
+   ============================================ */
+
+.bw-payment-method__header:focus-within {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+/* Screen reader only */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
