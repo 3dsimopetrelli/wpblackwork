@@ -161,6 +161,29 @@ function bw_mew_enqueue_checkout_assets() {
     $inline_styles = '.bw-checkout-form{--bw-checkout-left-bg:' . esc_attr( $settings['left_bg'] ) . ';--bw-checkout-right-bg:' . esc_attr( $settings['right_bg'] ) . ';--bw-checkout-border-color:' . esc_attr( $settings['border_color'] ) . ';}';
 
     wp_add_inline_style( 'bw-checkout', $inline_styles );
+
+    // Enqueue payment methods assets (Shopify-style accordion)
+    $payment_css_file = BW_MEW_PATH . 'assets/css/bw-payment-methods.css';
+    $payment_js_file  = BW_MEW_PATH . 'assets/js/bw-payment-methods.js';
+
+    if ( file_exists( $payment_css_file ) ) {
+        wp_enqueue_style(
+            'bw-payment-methods',
+            BW_MEW_URL . 'assets/css/bw-payment-methods.css',
+            [ 'bw-checkout' ],
+            filemtime( $payment_css_file )
+        );
+    }
+
+    if ( file_exists( $payment_js_file ) ) {
+        wp_enqueue_script(
+            'bw-payment-methods',
+            BW_MEW_URL . 'assets/js/bw-payment-methods.js',
+            [ 'jquery', 'wc-checkout' ],
+            filemtime( $payment_js_file ),
+            true
+        );
+    }
 }
 
 /**
