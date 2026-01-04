@@ -46,6 +46,14 @@
     padding: 0;
 }
 
+body.woocommerce-account .entry-title {
+    text-align: left;
+    font-size: 104px;
+    line-height: 200px;
+    letter-spacing: -5px;
+    font-weight: 400;
+}
+
 .bw-account-dashboard .bw-account-hero {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
