@@ -105,23 +105,33 @@
             // Apply image height mode based on breakpoints
             this.initImageHeightControls();
 
-            // Click on center slide opens popup
-            $slider.on('click', '.slick-slide.slick-center .bw-ps-image-clickable', (e) => {
-                const index = parseInt($(e.currentTarget).closest('.bw-ps-slide').data('bw-index'), 10);
-                if (!isNaN(index) && this.config.enablePopup) {
+            // Click behavior: center opens popup with custom cursor, side slides only navigate
+            $slider.on('click', '.slick-slide.slick-active .bw-ps-image-clickable', (e) => {
+                const $slide = $(e.currentTarget).closest('.slick-slide');
+                const index = parseInt($slide.data('bw-index'), 10);
+                const $cursor = this.customCursor || $('.bw-ps-custom-cursor');
+                const isZoomCursor = $cursor.length && $cursor.hasClass('zoom');
+
+                if (isNaN(index)) {
+                    return;
+                }
+
+                if (this.config.enableCustomCursor) {
+                    if ($slide.hasClass('slick-center') && isZoomCursor) {
+                        if (this.config.enablePopup) {
+                            this.openModal(index);
+                        }
+                        return;
+                    }
+
+                    $slider.slick('slickGoTo', index);
+                    return;
+                }
+
+                if (this.config.enablePopup) {
                     this.openModal(index);
                 }
             });
-
-            // Click on any active slide if center mode is off
-            if (!this.config.horizontal.centerMode) {
-                $slider.on('click', '.slick-slide.slick-active .bw-ps-image-clickable', (e) => {
-                    const index = parseInt($(e.currentTarget).closest('.bw-ps-slide').data('bw-index'), 10);
-                    if (!isNaN(index) && this.config.enablePopup) {
-                        this.openModal(index);
-                    }
-                });
-            }
         }
 
         /**
@@ -633,6 +643,8 @@
                     hasPosition = true;
                 }
             });
+            animateCursor();
+            this.cursorState = cursorState;
 
             if (!this.cursorRafId) {
                 this.cursorRafId = requestAnimationFrame(animateCursor);
@@ -640,30 +652,34 @@
 
             // Horizontal layout cursor states
             if (this.layoutMode === 'horizontal') {
-                const $arrows = $wrapper.find('.bw-ps-arrow-prev, .bw-ps-arrow-next');
                 const $slider = $wrapper.find('.bw-ps-slider-horizontal');
 
-                // Arrows hover
-                $arrows.off('mouseenter').on('mouseenter', function () {
-                    const isPrev = $(this).hasClass('bw-ps-arrow-prev');
-                    $cursor.removeClass('zoom next prev').addClass(isPrev ? 'prev' : 'next').addClass('active');
-                    $cursor.text('');
-                });
+                $slider.off('mouseenter', '.slick-slide.slick-active .bw-ps-image-clickable')
+                    .on('mouseenter', '.slick-slide.slick-active .bw-ps-image-clickable', function () {
+                        const $slide = $(this).closest('.slick-slide');
+                        const $center = $slider.find('.slick-slide.slick-center');
+                        const slideIndex = parseInt($slide.attr('data-slick-index'), 10);
+                        const centerIndex = parseInt($center.attr('data-slick-index'), 10);
 
-                $arrows.off('mouseleave').on('mouseleave', () => {
-                    $cursor.removeClass('active prev next');
-                });
+                        $cursor.removeClass('zoom prev next');
 
-                // Center slide hover (zoom)
-                $slider.off('mouseenter', '.slick-slide.slick-center .bw-ps-image-clickable')
-                    .on('mouseenter', '.slick-slide.slick-center .bw-ps-image-clickable', () => {
-                        $cursor.removeClass('prev next').addClass('zoom active');
-                        $cursor.text(zoomText);
+                        if ($slide.hasClass('slick-center')) {
+                            $cursor.addClass('zoom active').text(zoomText);
+                            return;
+                        }
+
+                        if (!isNaN(slideIndex) && !isNaN(centerIndex)) {
+                            $cursor.addClass(slideIndex < centerIndex ? 'prev' : 'next');
+                        } else {
+                            $cursor.addClass('next');
+                        }
+
+                        $cursor.addClass('active').text('');
                     });
 
-                $slider.off('mouseleave', '.slick-slide.slick-center .bw-ps-image-clickable')
-                    .on('mouseleave', '.slick-slide.slick-center .bw-ps-image-clickable', () => {
-                        $cursor.removeClass('active zoom');
+                $slider.off('mouseleave', '.slick-slide.slick-active .bw-ps-image-clickable')
+                    .on('mouseleave', '.slick-slide.slick-active .bw-ps-image-clickable', () => {
+                        $cursor.removeClass('active zoom prev next');
                         $cursor.text('');
                     });
             }
@@ -687,6 +703,34 @@
             $wrapper.off('mouseleave.cursor').on('mouseleave.cursor', () => {
                 $cursor.removeClass('active');
             });
+        }
+
+        /**
+         * Convert hex color to rgba string
+         */
+        hexToRgba(hex, alpha) {
+            if (!hex || typeof hex !== 'string') {
+                return `rgba(255, 255, 255, ${alpha})`;
+            }
+
+            let normalized = hex.replace('#', '').trim();
+            if (normalized.length === 3) {
+                normalized = normalized.split('').map((char) => char + char).join('');
+            }
+
+            if (normalized.length !== 6) {
+                return `rgba(255, 255, 255, ${alpha})`;
+            }
+
+            const r = parseInt(normalized.slice(0, 2), 16);
+            const g = parseInt(normalized.slice(2, 4), 16);
+            const b = parseInt(normalized.slice(4, 6), 16);
+
+            if ([r, g, b].some((value) => Number.isNaN(value))) {
+                return `rgba(255, 255, 255, ${alpha})`;
+            }
+
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
         }
 
         /**
@@ -718,6 +762,10 @@
             // Remove custom cursor
             if (this.customCursor) {
                 this.customCursor.removeClass('active');
+            }
+            if (this.cursorState && this.cursorState.rafId) {
+                cancelAnimationFrame(this.cursorState.rafId);
+                this.cursorState.rafId = null;
             }
 
             if (this.cursorRafId) {

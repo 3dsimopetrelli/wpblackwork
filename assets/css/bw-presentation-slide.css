@@ -382,6 +382,9 @@
     transform: translate3d(var(--bw-ps-cursor-x), var(--bw-ps-cursor-y), 0) translate(-50%, -50%) scale(var(--bw-ps-cursor-scale));
     transition: transform 0.2s ease, opacity 0.2s ease;
     opacity: 0;
+    backdrop-filter: blur(var(--bw-site-blur, 12px));
+    -webkit-backdrop-filter: blur(var(--bw-site-blur, 12px));
+    will-change: transform;
 }
 
 .bw-ps-custom-cursor.active {
@@ -391,17 +394,17 @@
 }
 
 .bw-ps-custom-cursor.zoom {
-    background-color: rgba(0, 0, 0, 0.8);
+    font-size: var(--bw-ps-zoom-size);
 }
 
 .bw-ps-custom-cursor.prev::before {
     content: '←';
-    font-size: 24px;
+    font-size: var(--bw-ps-arrow-size);
 }
 
 .bw-ps-custom-cursor.next::before {
     content: '→';
-    font-size: 24px;
+    font-size: var(--bw-ps-arrow-size);
 }
 
 /* Hide system cursor when custom cursor is active */
