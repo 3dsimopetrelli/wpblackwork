@@ -21,4 +21,17 @@
     margin: 7px auto 0;
     border-radius: 50%;
     background: #80FD03;
+    position: relative;
+}
+
+#adminmenu #toplevel_page_blackwork-site-settings .wp-menu-image::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 2px;
+    height: 2px;
+    border-radius: 50%;
+    background: #000;
+    transform: translate(-50%, -50%);
 }
