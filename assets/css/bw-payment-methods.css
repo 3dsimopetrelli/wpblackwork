@@ -45,9 +45,10 @@ ul.bw-payment-methods {
     border-color: #d1d5db;
 }
 
-/* Active/Selected state - Dark header like Shopify */
+/* Active/Selected state - Dark header with thick black border like Shopify */
 .bw-payment-method:has(input[type="radio"]:checked) {
     border-color: #1f2937;
+    border-width: 2px;
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
 }
 
@@ -61,6 +62,10 @@ ul.bw-payment-methods {
 
 .bw-payment-method:has(input[type="radio"]:checked) .bw-payment-method__header input[type="radio"] {
     border-color: #ffffff;
+    background: #1f2937;
+}
+
+.bw-payment-method:has(input[type="radio"]:checked) .bw-payment-method__header input[type="radio"]::after {
     background: #ffffff;
 }
 
