@@ -1094,6 +1094,63 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
             ]
         );
 
+        $this->add_control(
+            'cursor_background_color',
+            [
+                'label'     => __( 'Background Color', 'bw-elementor-widgets' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#000000',
+                'condition' => [
+                    'enable_custom_cursor' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'cursor_background_opacity',
+            [
+                'label'      => __( 'Background Opacity', 'bw-elementor-widgets' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ '' ],
+                'range'      => [
+                    '' => [
+                        'min'  => 0,
+                        'max'  => 1,
+                        'step' => 0.05,
+                    ],
+                ],
+                'default'    => [
+                    'size' => 0.8,
+                ],
+                'condition'  => [
+                    'enable_custom_cursor' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'cursor_background_blur',
+            [
+                'label'      => __( 'Background Blur', 'bw-elementor-widgets' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px' ],
+                'range'      => [
+                    'px' => [
+                        'min'  => 0,
+                        'max'  => 40,
+                        'step' => 1,
+                    ],
+                ],
+                'default'    => [
+                    'size' => 20,
+                    'unit' => 'px',
+                ],
+                'condition'  => [
+                    'enable_custom_cursor' => 'yes',
+                ],
+            ]
+        );
+
         $this->end_controls_section();
     }
 
@@ -1120,6 +1177,9 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
             'enableCustomCursor'   => $settings['enable_custom_cursor'] === 'yes',
             'hideSystemCursor'     => $settings['hide_system_cursor'] === 'yes',
             'cursorZoomText'       => $settings['cursor_zoom_text'],
+            'cursorBackgroundColor' => $settings['cursor_background_color'] ?? '#000000',
+            'cursorBackgroundOpacity' => $settings['cursor_background_opacity']['size'] ?? 0.8,
+            'cursorBackgroundBlur' => $settings['cursor_background_blur']['size'] ?? 20,
             'popupTitle'           => $popup_title,
             'dotsPosition'         => $settings['dots_position'] ?? 'center',
             'horizontal'           => [

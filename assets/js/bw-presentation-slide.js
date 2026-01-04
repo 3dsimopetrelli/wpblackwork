@@ -560,18 +560,83 @@
             const $wrapper = this.$wrapper;
             const $cursor = this.customCursor;
             const zoomText = this.config.cursorZoomText || 'ZOOM';
+            let currentX = 0;
+            let currentY = 0;
+            let targetX = 0;
+            let targetY = 0;
+            let hasPosition = false;
+            const ease = 0.15;
+            const cursorBackgroundColor = this.config.cursorBackgroundColor || '#000000';
+            const cursorBackgroundOpacity = parseFloat(this.config.cursorBackgroundOpacity);
+            const cursorBackgroundBlur = parseFloat(this.config.cursorBackgroundBlur);
+            const normalizedOpacity = Number.isNaN(cursorBackgroundOpacity) ? 0.8 : cursorBackgroundOpacity;
+            const normalizedBlur = Number.isNaN(cursorBackgroundBlur) ? 0 : cursorBackgroundBlur;
+
+            const toRgba = (color, opacity) => {
+                if (typeof color !== 'string' || color.trim() === '') {
+                    return `rgba(0, 0, 0, ${opacity})`;
+                }
+
+                if (color.startsWith('rgba')) {
+                    return color;
+                }
+
+                if (color.startsWith('rgb')) {
+                    const values = color.replace(/[^\d,]/g, '').split(',').map(Number);
+                    if (values.length >= 3) {
+                        return `rgba(${values[0]}, ${values[1]}, ${values[2]}, ${opacity})`;
+                    }
+                }
+
+                const hex = color.replace('#', '');
+                const hexValue = hex.length === 3
+                    ? hex.split('').map((char) => char + char).join('')
+                    : hex;
+                const intValue = parseInt(hexValue, 16);
+                if (Number.isNaN(intValue)) {
+                    return `rgba(0, 0, 0, ${opacity})`;
+                }
+
+                const r = (intValue >> 16) & 255;
+                const g = (intValue >> 8) & 255;
+                const b = intValue & 255;
+                return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+            };
+
+            const animateCursor = () => {
+                currentX += (targetX - currentX) * ease;
+                currentY += (targetY - currentY) * ease;
+                $cursor.css({
+                    '--bw-ps-cursor-x': `${currentX}px`,
+                    '--bw-ps-cursor-y': `${currentY}px`
+                });
+                this.cursorRafId = requestAnimationFrame(animateCursor);
+            };
 
             // Hide system cursor if enabled
             if (this.config.hideSystemCursor) {
                 $wrapper.addClass('bw-ps-hide-cursor');
             }
 
+            $cursor.css({
+                '--bw-ps-cursor-bg': toRgba(cursorBackgroundColor, normalizedOpacity),
+                '--bw-ps-cursor-blur': `${Math.max(0, normalizedBlur)}px`
+            });
+
             // Track mouse movement
             $wrapper.off('mousemove').on('mousemove', (e) => {
-                const x = e.clientX;
-                const y = e.clientY;
-                $cursor.css({ left: x + 'px', top: y + 'px' });
+                targetX = e.clientX;
+                targetY = e.clientY;
+                if (!hasPosition) {
+                    currentX = targetX;
+                    currentY = targetY;
+                    hasPosition = true;
+                }
             });
+
+            if (!this.cursorRafId) {
+                this.cursorRafId = requestAnimationFrame(animateCursor);
+            }
 
             // Horizontal layout cursor states
             if (this.layoutMode === 'horizontal') {
@@ -653,6 +718,11 @@
             // Remove custom cursor
             if (this.customCursor) {
                 this.customCursor.removeClass('active');
+            }
+
+            if (this.cursorRafId) {
+                cancelAnimationFrame(this.cursorRafId);
+                this.cursorRafId = null;
             }
 
             this.initialized = false;

@@ -358,6 +358,11 @@
    CUSTOM CURSOR
    ======================================== */
 .bw-ps-custom-cursor {
+    --bw-ps-cursor-x: 0px;
+    --bw-ps-cursor-y: 0px;
+    --bw-ps-cursor-scale: 0;
+    --bw-ps-cursor-bg: rgba(0, 0, 0, 0.8);
+    --bw-ps-cursor-blur: 0px;
     position: fixed;
     pointer-events: none;
     z-index: 99998;
@@ -367,12 +372,14 @@
     width: 80px;
     height: 80px;
     border-radius: 50%;
-    background-color: rgba(0, 0, 0, 0.8);
+    background-color: var(--bw-ps-cursor-bg);
+    -webkit-backdrop-filter: blur(var(--bw-ps-cursor-blur));
+    backdrop-filter: blur(var(--bw-ps-cursor-blur));
     color: #fff;
     font-size: 12px;
     font-weight: 600;
     letter-spacing: 1px;
-    transform: translate(-50%, -50%) scale(0);
+    transform: translate3d(var(--bw-ps-cursor-x), var(--bw-ps-cursor-y), 0) translate(-50%, -50%) scale(var(--bw-ps-cursor-scale));
     transition: transform 0.2s ease, opacity 0.2s ease;
     opacity: 0;
 }
@@ -380,7 +387,7 @@
 .bw-ps-custom-cursor.active {
     display: flex;
     opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
+    --bw-ps-cursor-scale: 1;
 }
 
 .bw-ps-custom-cursor.zoom {
