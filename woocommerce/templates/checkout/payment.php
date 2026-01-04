@@ -44,6 +44,23 @@ if ( ! wp_doing_ajax() ) {
 								<?php
 								// Process payment gateway icons
 								$icon_html = $gateway->get_icon();
+
+								// Fallback: Add default card icons for gateways that don't provide them
+								if ( empty( $icon_html ) || ! preg_match( '/<img/', $icon_html ) ) {
+									$gateway_type = strtolower( $gateway_id );
+
+									// Add default card brand icons for card/stripe gateways
+									if ( strpos( $gateway_type, 'stripe' ) !== false ||
+									     strpos( $gateway_type, 'card' ) !== false ||
+									     strpos( $gateway_type, 'credit' ) !== false ) {
+										$icon_html = '<img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/visa.svg" alt="Visa" style="height:24px;width:auto;" />';
+										$icon_html .= '<img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/mastercard.svg" alt="Mastercard" style="height:24px;width:auto;" />';
+										$icon_html .= '<img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/americanexpress.svg" alt="Amex" style="height:24px;width:auto;" />';
+										$icon_html .= '<img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/discover.svg" alt="Discover" style="height:24px;width:auto;" />';
+										$icon_html .= '<img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/dinersclub.svg" alt="Diners" style="height:24px;width:auto;" />';
+									}
+								}
+
 								if ( $icon_html ) :
 									// Extract all <img> tags from the icon HTML
 									preg_match_all( '/<img[^>]+>/i', $icon_html, $matches );
