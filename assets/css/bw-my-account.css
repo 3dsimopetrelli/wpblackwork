@@ -46,17 +46,17 @@
     padding: 0;
 }
 
-body.woocommerce-account:not(.bw-account-login-only) .site-main .entry-header .entry-title,
-body.woocommerce-account:not(.bw-account-login-only) .site-main .page-title,
-body.woocommerce-account:not(.bw-account-login-only) .bw-account-content .page-title,
-body.woocommerce-account:not(.bw-account-login-only) .elementor .elementor-widget-theme-post-title .elementor-heading-title,
-body.woocommerce-account:not(.bw-account-login-only) .elementor .elementor-widget-container .elementor-heading-title,
-body.woocommerce-account:not(.bw-account-login-only) .page-header .page-title {
-    text-align: left !important;
-    font-size: 104px !important;
-    line-height: 200px !important;
-    letter-spacing: -5px !important;
-    font-weight: 400 !important;
+body.woocommerce-account:not(.bw-account-login-only) .entry-header .entry-title {
+    display: none;
+}
+
+body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw-account-title {
+    margin: 0 0 24px;
+    text-align: left;
+    font-size: 104px;
+    line-height: 200px;
+    letter-spacing: -5px;
+    font-weight: 400;
 }
 
 .bw-account-dashboard .bw-account-hero {
