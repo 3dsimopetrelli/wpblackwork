@@ -50,11 +50,12 @@ if ( ! wp_doing_ajax() ) {
 								if ( strpos( $gateway_type, 'stripe' ) !== false ||
 								     strpos( $gateway_type, 'card' ) !== false ||
 								     strpos( $gateway_type, 'credit' ) !== false ) {
-									$icon_html = '<img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/visa.svg" alt="Visa" style="height:24px;width:auto;" />';
-									$icon_html .= '<img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/mastercard.svg" alt="Mastercard" style="height:24px;width:auto;" />';
-									$icon_html .= '<img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/americanexpress.svg" alt="Amex" style="height:24px;width:auto;" />';
-									$icon_html .= '<img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/discover.svg" alt="Discover" style="height:24px;width:auto;" />';
-									$icon_html .= '<img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/dinersclub.svg" alt="Diners" style="height:24px;width:auto;" />';
+									// Use colored card brand icons
+									$icon_html = '<img src="https://cdn.worldvectorlogo.com/logos/visa-logo.svg" alt="Visa" style="height:24px;width:auto;" />';
+									$icon_html .= '<img src="https://cdn.worldvectorlogo.com/logos/maestro-1.svg" alt="Maestro" style="height:24px;width:auto;" />';
+									$icon_html .= '<img src="https://cdn.worldvectorlogo.com/logos/mastercard-2.svg" alt="Mastercard" style="height:24px;width:auto;" />';
+									$icon_html .= '<img src="https://cdn.worldvectorlogo.com/logos/american-express-2.svg" alt="Amex" style="height:24px;width:auto;" />';
+									$icon_html .= '<img src="https://cdn.worldvectorlogo.com/logos/discover-1.svg" alt="Discover" style="height:24px;width:auto;" />';
 								}
 
 								if ( $icon_html ) :
