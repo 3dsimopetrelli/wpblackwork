@@ -22,15 +22,16 @@
     border-radius: 50%;
     background: #80FD03;
     position: relative;
+    border: solid black 2px;
 }
 
 #adminmenu #toplevel_page_blackwork-site-settings .wp-menu-image::after {
     content: "";
     position: absolute;
-    top: 50%;
+    top: 54%;
     left: 50%;
-    width: 2px;
-    height: 2px;
+    width: 4px;
+    height: 4px;
     border-radius: 50%;
     background: #000;
     transform: translate(-50%, -50%);
