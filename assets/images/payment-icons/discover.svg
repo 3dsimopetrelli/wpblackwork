@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 32" width="48" height="32">
+  <rect width="48" height="32" rx="4" fill="#F0F0F0"/>
+  <path d="M0 16h48v12c0 2.2-1.8 4-4 4H4c-2.2 0-4-1.8-4-4V16z" fill="#FF6000"/>
+  <text x="8" y="14" font-family="Arial, sans-serif" font-size="6" font-weight="bold" fill="#000">DISCOVER</text>
+  <circle cx="38" cy="24" r="5" fill="#FFF" opacity="0.9"/>
+</svg>
