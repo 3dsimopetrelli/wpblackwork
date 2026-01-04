@@ -45,15 +45,15 @@ ul.bw-payment-methods {
     border-color: #d1d5db;
 }
 
-/* Active/Selected state - Dark header with thick black border like Shopify */
+/* Active/Selected state - Pure black header like image */
 .bw-payment-method:has(input[type="radio"]:checked) {
-    border-color: #1f2937;
+    border-color: #000000;
     border-width: 2px;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.15);
 }
 
 .bw-payment-method:has(input[type="radio"]:checked) .bw-payment-method__header {
-    background: #1f2937;
+    background: #000000;
 }
 
 .bw-payment-method:has(input[type="radio"]:checked) .bw-payment-method__title {
@@ -62,7 +62,7 @@ ul.bw-payment-methods {
 
 .bw-payment-method:has(input[type="radio"]:checked) .bw-payment-method__header input[type="radio"] {
     border-color: #ffffff;
-    background: #1f2937;
+    background: #000000;
 }
 
 .bw-payment-method:has(input[type="radio"]:checked) .bw-payment-method__header input[type="radio"]::after {
@@ -109,8 +109,8 @@ ul.bw-payment-methods {
 
 /* Checked state - filled circle with white dot */
 .bw-payment-method__header input[type="radio"]:checked {
-    border-color: #1f2937;
-    background: #1f2937;
+    border-color: #000000;
+    background: #000000;
     border-width: 2px;
 }
 
@@ -171,8 +171,10 @@ ul.bw-payment-methods {
     height: 24px;
     width: auto;
     display: block;
-    border-radius: 3px;
+    border-radius: 4px;
     background: #ffffff;
+    padding: 4px 6px;
+    border: 1px solid #e5e7eb;
 }
 
 /* "+N" badge for remaining icons */
@@ -185,22 +187,22 @@ ul.bw-payment-methods {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 32px;
-    height: 24px;
-    padding: 0 8px;
-    background: #f3f4f6;
-    border: 1px solid #d1d5db;
+    min-width: 40px;
+    height: 32px;
+    padding: 4px 10px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
     border-radius: 4px;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 600;
-    color: #6b7280;
+    color: #1f2937;
     transition: all 0.2s ease;
 }
 
 .bw-payment-icon--more:hover .bw-payment-icon__badge {
-    background: #e5e7eb;
-    border-color: #9ca3af;
-    color: #374151;
+    background: #f9fafb;
+    border-color: #d1d5db;
+    color: #111827;
 }
 
 /* Tooltip with remaining card icons */
