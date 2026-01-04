@@ -46,10 +46,6 @@
     padding: 0;
 }
 
-body.woocommerce-account:not(.bw-account-login-only) .entry-header .entry-title {
-    display: none;
-}
-
 body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw-account-title {
     margin: 0 0 24px;
     text-align: left;
