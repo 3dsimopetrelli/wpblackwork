@@ -46,27 +46,32 @@ ul.bw-payment-methods {
 }
 
 /* Active/Selected state - Pure black header like image */
-.bw-payment-method:has(input[type="radio"]:checked) {
-    border-color: #000000;
-    border-width: 2px;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.15);
+.bw-payment-method:has(input[type="radio"]:checked),
+.bw-payment-method.is-selected {
+    border-color: #000000 !important;
+    border-width: 2px !important;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.15) !important;
 }
 
-.bw-payment-method:has(input[type="radio"]:checked) .bw-payment-method__header {
-    background: #000000;
+.bw-payment-method:has(input[type="radio"]:checked) .bw-payment-method__header,
+.bw-payment-method.is-selected .bw-payment-method__header {
+    background: #000000 !important;
 }
 
-.bw-payment-method:has(input[type="radio"]:checked) .bw-payment-method__title {
-    color: #ffffff;
+.bw-payment-method:has(input[type="radio"]:checked) .bw-payment-method__title,
+.bw-payment-method.is-selected .bw-payment-method__title {
+    color: #ffffff !important;
 }
 
-.bw-payment-method:has(input[type="radio"]:checked) .bw-payment-method__header input[type="radio"] {
-    border-color: #ffffff;
-    background: #000000;
+.bw-payment-method:has(input[type="radio"]:checked) .bw-payment-method__header input[type="radio"],
+.bw-payment-method.is-selected .bw-payment-method__header input[type="radio"] {
+    border-color: #ffffff !important;
+    background: #000000 !important;
 }
 
-.bw-payment-method:has(input[type="radio"]:checked) .bw-payment-method__header input[type="radio"]::after {
-    background: #ffffff;
+.bw-payment-method:has(input[type="radio"]:checked) .bw-payment-method__header input[type="radio"]::after,
+.bw-payment-method.is-selected .bw-payment-method__header input[type="radio"]::after {
+    background: #ffffff !important;
 }
 
 /* ============================================
