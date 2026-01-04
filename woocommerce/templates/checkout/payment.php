@@ -16,6 +16,9 @@ if ( ! wp_doing_ajax() ) {
 }
 ?>
 <div id="payment" class="woocommerce-checkout-payment">
+	<h2 class="bw-payment-section-title"><?php esc_html_e( 'Payment', 'woocommerce' ); ?></h2>
+	<p class="bw-payment-section-subtitle"><?php esc_html_e( 'All transactions are secure and encrypted.', 'woocommerce' ); ?></p>
+
 	<?php if ( WC()->cart->needs_payment() ) : ?>
 		<ul class="bw-payment-methods wc_payment_methods payment_methods methods">
 			<?php
