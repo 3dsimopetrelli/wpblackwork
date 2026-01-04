@@ -28,8 +28,7 @@
 #adminmenu #toplevel_page_blackwork-site-settings .wp-menu-image::after {
     content: "";
     position: absolute;
-    top: 54%;
-    left: 50%;
+    top: 55%;
     width: 4px;
     height: 4px;
     border-radius: 50%;
