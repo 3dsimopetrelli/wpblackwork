@@ -101,7 +101,14 @@ if ( ! wp_doing_ajax() ) {
 										</div>
 									<?php endif; ?>
 
-									<?php if ( $gateway->has_fields() ) : ?>
+									<?php
+									// Always call payment_fields() for card/stripe gateways even if has_fields() is false
+									$is_card_gateway = ( strpos( $gateway_type, 'stripe' ) !== false ||
+									                      strpos( $gateway_type, 'card' ) !== false ||
+									                      strpos( $gateway_type, 'credit' ) !== false );
+
+									if ( $gateway->has_fields() || $is_card_gateway ) :
+										?>
 										<div class="bw-payment-method__fields">
 											<?php $gateway->payment_fields(); ?>
 										</div>
