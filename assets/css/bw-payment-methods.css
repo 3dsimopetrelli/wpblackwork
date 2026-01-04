@@ -6,6 +6,26 @@
  */
 
 /* ============================================
+   Payment Section Title & Subtitle
+   ============================================ */
+
+.bw-payment-section-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #000000;
+    margin: 0 0 8px 0;
+    line-height: 1.2;
+}
+
+.bw-payment-section-subtitle {
+    font-size: 15px;
+    font-weight: 400;
+    color: #6b7280;
+    margin: 0 0 20px 0;
+    line-height: 1.4;
+}
+
+/* ============================================
    Payment Methods Container
    ============================================ */
 
@@ -46,27 +66,32 @@ ul.bw-payment-methods {
 }
 
 /* Active/Selected state - Pure black header like image */
-.bw-payment-method:has(input[type="radio"]:checked) {
-    border-color: #000000;
-    border-width: 2px;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.15);
+.bw-payment-method:has(input[type="radio"]:checked),
+.bw-payment-method.is-selected {
+    border-color: #000000 !important;
+    border-width: 2px !important;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.15) !important;
 }
 
-.bw-payment-method:has(input[type="radio"]:checked) .bw-payment-method__header {
-    border-bottom: solid black 2px;
+.bw-payment-method:has(input[type="radio"]:checked) .bw-payment-method__header,
+.bw-payment-method.is-selected .bw-payment-method__header {
+    background: #000000 !important;
 }
 
-.bw-payment-method:has(input[type="radio"]:checked) .bw-payment-method__title {
-    color: #000000;
+.bw-payment-method:has(input[type="radio"]:checked) .bw-payment-method__title,
+.bw-payment-method.is-selected .bw-payment-method__title {
+    color: #ffffff !important;
 }
 
-.bw-payment-method:has(input[type="radio"]:checked) .bw-payment-method__header input[type="radio"] {
-    border-color: #ffffff;
-    background: #000000;
+.bw-payment-method:has(input[type="radio"]:checked) .bw-payment-method__header input[type="radio"],
+.bw-payment-method.is-selected .bw-payment-method__header input[type="radio"] {
+    border-color: #ffffff !important;
+    background: #000000 !important;
 }
 
-.bw-payment-method:has(input[type="radio"]:checked) .bw-payment-method__header input[type="radio"]::after {
-    background: #ffffff;
+.bw-payment-method:has(input[type="radio"]:checked) .bw-payment-method__header input[type="radio"]::after,
+.bw-payment-method.is-selected .bw-payment-method__header input[type="radio"]::after {
+    background: #ffffff !important;
 }
 
 /* ============================================
@@ -168,13 +193,10 @@ ul.bw-payment-methods {
 }
 
 .bw-payment-icon img {
-    height: 24px;
+    height: 28px;
     width: auto;
     display: block;
-    border-radius: 4px;
-    background: #ffffff;
-    padding: 4px 6px;
-    border: 1px solid #e5e7eb;
+    /* Removed: borders, background, padding - icons now display clean and colored */
 }
 
 /* "+N" badge for remaining icons */
@@ -205,35 +227,35 @@ ul.bw-payment-methods {
     color: #111827;
 }
 
-/* Tooltip with remaining card icons */
+/* Tooltip with remaining card icons - BLACK STYLE like reference */
 .bw-payment-icon__tooltip {
     position: absolute;
-    top: calc(100% + 8px);
+    top: auto;
+    bottom: calc(100% + 12px);
     right: 0;
     z-index: 1000;
     display: none;
-    min-width: 120px;
-    padding: 10px;
-    background: #ffffff;
-    border: 1px solid #d1d5db;
+    min-width: 100px;
+    padding: 10px 12px;
+    background: #000000;
+    border: 1px solid #000000;
     border-radius: 8px;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    gap: 6px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+    gap: 8px;
     flex-wrap: wrap;
     animation: bw-tooltip-fade-in 0.2s ease-out;
 }
 
-/* Arrow pointing up */
+/* Arrow pointing down (tooltip above the badge) */
 .bw-payment-icon__tooltip::before {
     content: "";
     position: absolute;
-    top: -6px;
-    right: 10px;
+    bottom: -6px;
+    right: 14px;
     width: 12px;
     height: 12px;
-    background: #ffffff;
-    border-left: 1px solid #d1d5db;
-    border-top: 1px solid #d1d5db;
+    background: #000000;
+    border: none;
     transform: rotate(45deg);
 }
 
@@ -260,8 +282,8 @@ ul.bw-payment-methods {
 
 .bw-payment-icon__tooltip .bw-payment-icon img {
     height: 28px;
-    border: 1px solid #e5e7eb;
-    border-radius: 4px;
+    width: auto;
+    /* Removed borders - clean colored icons */
 }
 
 /* ============================================
@@ -273,22 +295,23 @@ ul.bw-payment-methods {
     background: #f9fafb;
     border-top: 1px solid transparent;
     overflow: hidden;
-    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-                border-color 0.3s ease,
-                padding 0.3s ease;
+    transition: max-height 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                border-color 0.35s ease,
+                padding 0.35s ease;
     padding: 0;
 }
 
 .bw-payment-method__content.is-open {
-    max-height: 1000px;
+    max-height: 1500px;
     border-top-color: #e5e7eb;
 }
 
 .bw-payment-method__inner {
     padding: 24px 20px;
     opacity: 0;
-    transform: translateY(-10px);
-    transition: opacity 0.3s ease 0.1s, transform 0.3s ease 0.1s;
+    transform: translateY(-8px);
+    transition: opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.15s,
+                transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.15s;
 }
 
 .bw-payment-method__content.is-open .bw-payment-method__inner {
@@ -348,15 +371,17 @@ ul.bw-payment-methods {
 }
 
 .bw-payment-method__fields .form-row {
-    margin-bottom: 14px;
+    margin-bottom: 16px;
 }
 
 .bw-payment-method__fields label {
-    display: block;
-    margin-bottom: 6px;
-    font-size: 13px;
-    font-weight: 600;
-    color: #374151;
+    display: none; /* Hide labels like in reference image */
+}
+
+/* Input field wrapper for icons */
+.bw-payment-field-wrapper {
+    position: relative;
+    width: 100%;
 }
 
 .bw-payment-method__fields input[type="text"],
@@ -366,13 +391,65 @@ ul.bw-payment-methods {
 .bw-payment-method__fields select,
 .bw-payment-method__fields textarea {
     width: 100%;
-    padding: 10px 14px;
+    padding: 16px 18px;
     border: 1px solid #d1d5db;
-    border-radius: 6px;
-    font-size: 14px;
+    border-radius: 8px;
+    font-size: 15px;
     color: #1f2937;
     background: #ffffff;
-    transition: all 0.2s ease;
+    transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    box-sizing: border-box;
+}
+
+/* Input with icon - add extra padding right */
+.bw-payment-field-wrapper input[type="text"].bw-has-icon,
+.bw-payment-field-wrapper input[type="tel"].bw-has-icon,
+.bw-payment-field-wrapper input[type="number"].bw-has-icon {
+    padding-right: 48px;
+}
+
+/* Field icon styling */
+.bw-payment-field-icon {
+    position: absolute;
+    right: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6b7280;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bw-payment-field-icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* Two-column layout for Expiration + Security code */
+.bw-payment-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.bw-payment-row .form-row {
+    margin-bottom: 0;
+}
+
+.bw-payment-method__fields input::placeholder,
+.bw-payment-method__fields select::placeholder,
+.bw-payment-method__fields textarea::placeholder {
+    color: #9ca3af;
+    font-weight: 400;
+}
+
+.bw-payment-method__fields input:hover,
+.bw-payment-method__fields select:hover,
+.bw-payment-method__fields textarea:hover {
+    border-color: #9ca3af;
 }
 
 .bw-payment-method__fields input:focus,
@@ -380,7 +457,62 @@ ul.bw-payment-methods {
 .bw-payment-method__fields textarea:focus {
     outline: none;
     border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* Custom checkbox styling */
+.bw-payment-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 20px 0;
+    cursor: pointer;
+}
+
+.bw-payment-checkbox input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    border: 2px solid #d1d5db;
+    border-radius: 4px;
+    margin: 0;
+    cursor: pointer;
+    position: relative;
+    background: #ffffff;
+    transition: all 0.2s ease;
+}
+
+.bw-payment-checkbox input[type="checkbox"]:hover {
+    border-color: #9ca3af;
+}
+
+.bw-payment-checkbox input[type="checkbox"]:checked {
+    background: #000000;
+    border-color: #000000;
+}
+
+.bw-payment-checkbox input[type="checkbox"]:checked::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 6px;
+    width: 4px;
+    height: 9px;
+    border: solid #ffffff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.bw-payment-checkbox label {
+    display: block !important;
+    font-size: 15px;
+    font-weight: 400;
+    color: #1f2937;
+    cursor: pointer;
+    margin: 0;
 }
 
 /* ============================================
@@ -527,17 +659,23 @@ ul.bw-payment-methods {
 
 .wc-stripe-elements-field,
 .wc-stripe-iban-element-field {
-    padding: 10px 14px;
+    padding: 16px 18px;
     border: 1px solid #d1d5db;
-    border-radius: 6px;
+    border-radius: 8px;
     background: #ffffff;
-    transition: all 0.2s ease;
+    transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.wc-stripe-elements-field:hover,
+.wc-stripe-iban-element-field:hover {
+    border-color: #9ca3af;
 }
 
 .wc-stripe-elements-field:focus-within,
 .wc-stripe-iban-element-field:focus-within {
     border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
 /* ============================================
@@ -549,10 +687,47 @@ ul.bw-payment-methods {
 }
 
 /* ============================================
+   Remember Me Section
+   ============================================ */
+
+.bw-remember-section {
+    margin-top: 32px;
+    padding: 0;
+}
+
+.bw-remember-section__title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #000000;
+    margin: 0 0 16px 0;
+    line-height: 1.2;
+}
+
+.bw-remember-section__box {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 20px;
+}
+
+.bw-remember-section__box .bw-payment-checkbox {
+    margin: 0;
+}
+
+/* ============================================
    Mobile Responsive
    ============================================ */
 
 @media (max-width: 768px) {
+    .bw-payment-section-title {
+        font-size: 24px;
+    }
+
+    .bw-payment-section-subtitle {
+        font-size: 14px;
+        margin-bottom: 16px;
+    }
+
     .bw-payment-method {
         border-radius: 6px;
         margin-bottom: 10px;
@@ -587,7 +762,7 @@ ul.bw-payment-methods {
     }
 
     .bw-payment-icon__tooltip {
-        top: calc(100% + 6px);
+        bottom: calc(100% + 8px);
         right: -8px;
         min-width: 100px;
         padding: 8px;
@@ -599,6 +774,30 @@ ul.bw-payment-methods {
     }
 
     .bw-payment-method__inner {
+        padding: 16px;
+    }
+
+    .bw-payment-row {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .bw-payment-method__fields input[type="text"],
+    .bw-payment-method__fields input[type="email"],
+    .bw-payment-method__fields input[type="tel"],
+    .bw-payment-method__fields input[type="number"] {
+        font-size: 16px; /* Prevent zoom on iOS */
+    }
+
+    .bw-payment-checkbox label {
+        font-size: 14px;
+    }
+
+    .bw-remember-section__title {
+        font-size: 20px;
+    }
+
+    .bw-remember-section__box {
         padding: 16px;
     }
 

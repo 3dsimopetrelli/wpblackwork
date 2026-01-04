@@ -21,6 +21,9 @@ if ( ! is_user_logged_in() ) {
 }
 ?>
 <div class="bw-account-layout">
+    <header class="bw-account-page-header">
+        <h1 class="bw-account-title"><?php echo esc_html( get_the_title() ); ?></h1>
+    </header>
     <aside class="bw-account-navigation">
         <?php do_action( 'woocommerce_before_account_navigation' ); ?>
         <?php wc_get_template( 'myaccount/navigation.php' ); ?>
