@@ -31,6 +31,22 @@ function bw_site_settings_menu() {
 add_action('admin_menu', 'bw_site_settings_menu');
 
 /**
+ * Carica lo stile per l'icona del menu admin (globale).
+ */
+function bw_site_settings_admin_menu_icon_styles() {
+    $menu_style_path = BW_MEW_PATH . 'admin/css/blackwork-site-menu.css';
+    $menu_style_version = file_exists($menu_style_path) ? filemtime($menu_style_path) : '1.0.0';
+
+    wp_enqueue_style(
+        'bw-site-settings-admin-menu',
+        BW_MEW_URL . 'admin/css/blackwork-site-menu.css',
+        [],
+        $menu_style_version
+    );
+}
+add_action('admin_enqueue_scripts', 'bw_site_settings_admin_menu_icon_styles');
+
+/**
  * Carica gli assets per la pagina admin
  */
 function bw_site_settings_admin_assets($hook) {
@@ -3299,4 +3315,3 @@ function bw_import_apply_attributes($product_id, $attributes) {
         }
     }
 }
-
