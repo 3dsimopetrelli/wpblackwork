@@ -45,18 +45,21 @@
             return;
         }
 
-        // Close all payment boxes
+        // Close all payment boxes with smooth animation
         var allBoxes = paymentContainer.querySelectorAll('.bw-payment-method__content');
         allBoxes.forEach(function (box) {
-            box.style.display = 'none';
+            box.classList.remove('is-open');
         });
 
-        // Open the selected payment box
+        // Open the selected payment box with smooth animation
         var selectedMethod = radio.closest('.bw-payment-method');
         if (selectedMethod) {
             var contentBox = selectedMethod.querySelector('.bw-payment-method__content');
             if (contentBox) {
-                contentBox.style.display = 'block';
+                // Small delay to ensure smooth animation
+                setTimeout(function () {
+                    contentBox.classList.add('is-open');
+                }, 10);
             }
         }
 

@@ -28,10 +28,10 @@ ul.bw-payment-methods {
 
 .bw-payment-method {
     background: #ffffff;
-    border: 2px solid #d1d5db;
+    border: 1px solid #e5e7eb;
     border-radius: 8px;
-    margin: 0 0 12px 0;
-    transition: all 0.2s ease;
+    margin: 0 0 8px 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     overflow: hidden;
     position: relative;
 }
@@ -42,13 +42,26 @@ ul.bw-payment-methods {
 
 /* Hover state */
 .bw-payment-method:hover {
-    border-color: #9ca3af;
+    border-color: #d1d5db;
 }
 
-/* Active/Selected state */
+/* Active/Selected state - Dark header like Shopify */
 .bw-payment-method:has(input[type="radio"]:checked) {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 1px #3b82f6;
+    border-color: #1f2937;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.bw-payment-method:has(input[type="radio"]:checked) .bw-payment-method__header {
+    background: #1f2937;
+}
+
+.bw-payment-method:has(input[type="radio"]:checked) .bw-payment-method__title {
+    color: #ffffff;
+}
+
+.bw-payment-method:has(input[type="radio"]:checked) .bw-payment-method__header input[type="radio"] {
+    border-color: #ffffff;
+    background: #ffffff;
 }
 
 /* ============================================
@@ -58,14 +71,16 @@ ul.bw-payment-methods {
 .bw-payment-method__header {
     display: flex;
     align-items: center;
-    padding: 16px 18px;
+    padding: 18px 20px;
     cursor: pointer;
     position: relative;
-    gap: 12px;
+    gap: 14px;
+    background: #ffffff;
+    transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s ease;
 }
 
 .bw-payment-method__header input[type="radio"] {
-    /* Custom radio button */
+    /* Custom radio button - Shopify style */
     appearance: none;
     -webkit-appearance: none;
     -moz-appearance: none;
@@ -79,23 +94,36 @@ ul.bw-payment-methods {
     cursor: pointer;
     position: relative;
     background: #ffffff;
-    transition: all 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     flex-shrink: 0;
 }
 
 .bw-payment-method__header input[type="radio"]:hover {
-    border-color: #3b82f6;
+    border-color: #9ca3af;
 }
 
+/* Checked state - filled circle with white dot */
 .bw-payment-method__header input[type="radio"]:checked {
-    border-color: #3b82f6;
-    border-width: 6px;
+    border-color: #1f2937;
+    background: #1f2937;
+    border-width: 2px;
+}
+
+.bw-payment-method__header input[type="radio"]:checked::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 6px;
+    height: 6px;
     background: #ffffff;
+    border-radius: 50%;
 }
 
 .bw-payment-method__header input[type="radio"]:focus {
     outline: none;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    box-shadow: 0 0 0 3px rgba(31, 41, 55, 0.1);
 }
 
 /* Label */
@@ -234,32 +262,31 @@ ul.bw-payment-methods {
    ============================================ */
 
 .bw-payment-method__content {
-    display: none;
+    max-height: 0;
     background: #f9fafb;
-    border-top: 1px solid #e5e7eb;
-    padding: 0;
+    border-top: 1px solid transparent;
     overflow: hidden;
-    animation: bw-accordion-open 0.3s ease-out;
+    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                border-color 0.3s ease,
+                padding 0.3s ease;
+    padding: 0;
 }
 
-.bw-payment-method__content[style*="display: block"],
-.bw-payment-method__content[style*="display:block"] {
-    display: block !important;
+.bw-payment-method__content.is-open {
+    max-height: 1000px;
+    border-top-color: #e5e7eb;
 }
 
 .bw-payment-method__inner {
-    padding: 20px 18px;
+    padding: 24px 20px;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease 0.1s, transform 0.3s ease 0.1s;
 }
 
-@keyframes bw-accordion-open {
-    from {
-        opacity: 0;
-        max-height: 0;
-    }
-    to {
-        opacity: 1;
-        max-height: 500px;
-    }
+.bw-payment-method__content.is-open .bw-payment-method__inner {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 /* ============================================

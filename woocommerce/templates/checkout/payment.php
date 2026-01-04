@@ -93,7 +93,7 @@ if ( ! wp_doing_ajax() ) {
 						</div>
 
 						<?php if ( $gateway->has_fields() || $gateway->get_description() ) : ?>
-							<div class="bw-payment-method__content payment_box payment_method_<?php echo $gateway_id; ?>" <?php echo $gateway_count === 1 ? 'style="display:block;"' : 'style="display:none;"'; ?>>
+							<div class="bw-payment-method__content payment_box payment_method_<?php echo $gateway_id; ?> <?php echo $gateway_count === 1 ? 'is-open' : ''; ?>">
 								<div class="bw-payment-method__inner">
 									<?php if ( $gateway->get_description() ) : ?>
 										<div class="bw-payment-method__description">
@@ -116,7 +116,7 @@ if ( ! wp_doing_ajax() ) {
 								</div>
 							</div>
 						<?php else : ?>
-							<div class="bw-payment-method__content payment_box payment_method_<?php echo $gateway_id; ?>" <?php echo $gateway_count === 1 ? 'style="display:block;"' : 'style="display:none;"'; ?>>
+							<div class="bw-payment-method__content payment_box payment_method_<?php echo $gateway_id; ?> <?php echo $gateway_count === 1 ? 'is-open' : ''; ?>">
 								<div class="bw-payment-method__inner">
 									<div class="bw-payment-method__selected-indicator">
 										<svg class="bw-payment-check-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
