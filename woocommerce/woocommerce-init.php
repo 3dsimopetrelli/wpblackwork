@@ -210,18 +210,6 @@ function bw_mew_prepare_account_page_layout() {
 }
 
 /**
- * Hide the default page title on logged-in account pages.
- */
-function bw_mew_hide_logged_in_account_title() {
-    if ( ! function_exists( 'is_account_page' ) || ! is_account_page() || ! is_user_logged_in() ) {
-        return;
-    }
-
-    add_filter( 'woocommerce_show_page_title', '__return_false' );
-}
-add_action( 'template_redirect', 'bw_mew_hide_logged_in_account_title', 9 );
-
-/**
  * Hide checkout notices and prepare layout.
  */
 function bw_mew_prepare_checkout_layout() {
