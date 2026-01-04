@@ -48,10 +48,7 @@
 
 body.woocommerce-account:not(.bw-account-login-only) .site-main .entry-header .entry-title,
 body.woocommerce-account:not(.bw-account-login-only) .site-main .page-title,
-body.woocommerce-account:not(.bw-account-login-only) .bw-account-content .page-title,
-body.woocommerce-account:not(.bw-account-login-only) .elementor .elementor-widget-theme-post-title .elementor-heading-title,
-body.woocommerce-account:not(.bw-account-login-only) .elementor .elementor-widget-container .elementor-heading-title,
-body.woocommerce-account:not(.bw-account-login-only) .page-header .page-title {
+body.woocommerce-account:not(.bw-account-login-only) .bw-account-content .page-title {
     text-align: left !important;
     font-size: 104px !important;
     line-height: 200px !important;
