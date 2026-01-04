@@ -57,7 +57,7 @@ ul.bw-payment-methods {
 }
 
 .bw-payment-method:has(input[type="radio"]:checked) .bw-payment-method__title {
-    color: #ffffff;
+    color: #000000;
 }
 
 .bw-payment-method:has(input[type="radio"]:checked) .bw-payment-method__header input[type="radio"] {
