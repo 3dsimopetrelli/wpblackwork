@@ -593,6 +593,25 @@ function bw_mew_render_checkout_header() {
 }
 
 /**
+ * Render custom express checkout divider with perfect continuous lines.
+ * Replaces the default WCPay separator with a cleaner implementation.
+ */
+function bw_mew_render_express_divider() {
+    if ( ! function_exists( 'is_checkout' ) || ! is_checkout() ) {
+        return;
+    }
+
+    // Check if WCPay express checkout separator exists in the page
+    // If it does, our CSS will hide it and show this custom one instead
+    ?>
+    <div class="bw-express-divider">
+        <span>OR</span>
+    </div>
+    <?php
+}
+add_action( 'woocommerce_checkout_before_customer_details', 'bw_mew_render_express_divider', 100 );
+
+/**
  * AJAX handler to remove coupon from cart.
  */
 function bw_mew_ajax_remove_coupon() {
