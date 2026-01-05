@@ -15,21 +15,26 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @return array
  */
 function bw_mew_filter_account_menu_items( $items ) {
-    $order          = [ 'dashboard', 'downloads', 'coupons', 'edit-account', 'customer-logout' ];
+    $order          = [ 'dashboard', 'downloads', 'orders', 'edit-account', 'customer-logout' ];
     $filtered_items = [];
 
     foreach ( $order as $endpoint ) {
-        if ( isset( $items[ $endpoint ] ) ) {
-            $label = $items[ $endpoint ];
+        if ( 'orders' === $endpoint ) {
+            $label = __( 'My purchases', 'bw' );
+        } else {
+            if ( ! isset( $items[ $endpoint ] ) ) {
+                continue;
+            }
 
+            $label = $items[ $endpoint ];
             if ( 'edit-account' === $endpoint ) {
                 $label = __( 'settings', 'bw' );
             } elseif ( 'customer-logout' === $endpoint ) {
                 $label = __( 'logout', 'bw' );
             }
-
-            $filtered_items[ $endpoint ] = $label;
         }
+
+        $filtered_items[ $endpoint ] = $label;
     }
 
     return $filtered_items;
@@ -143,4 +148,3 @@ function bw_mew_get_customer_coupons() {
 
     return $available;
 }
-

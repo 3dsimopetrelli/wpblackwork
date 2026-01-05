@@ -18,7 +18,21 @@ $address     = $countries->get_address_fields( get_user_meta( $customer_id, 'bil
 /**
  * Hook: woocommerce_before_edit_account_form.
  */
-do_action( 'woocommerce_before_edit_account_form' );
+$before_form_output = '';
+
+if ( has_action( 'woocommerce_before_edit_account_form' ) ) {
+    ob_start();
+    do_action( 'woocommerce_before_edit_account_form' );
+    $before_form_output = (string) ob_get_clean();
+
+    $account_details_heading = wp_kses_post( __( 'Account details', 'woocommerce' ) );
+    $heading_pattern         = '/<h[1-6][^>]*>\s*' . preg_quote( $account_details_heading, '/' ) . '\s*<\/h[1-6]>/i';
+
+    if ( $before_form_output ) {
+        $before_form_output = preg_replace( $heading_pattern, '', $before_form_output );
+        echo $before_form_output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+    }
+}
 ?>
 <div class="bw-settings">
     <header class="bw-page-header">
@@ -28,6 +42,7 @@ do_action( 'woocommerce_before_edit_account_form' );
             <button class="bw-tab" type="button" data-target="#bw-tab-billing" aria-selected="false"><?php esc_html_e( 'Billing & Payments', 'bw' ); ?></button>
         </div>
     </header>
+    <h2 class="screen-reader-text"><?php esc_html_e( 'Account details', 'woocommerce' ); ?></h2>
 
     <div class="bw-tab-panels">
         <div class="bw-tab-panel is-active" id="bw-tab-profile">
