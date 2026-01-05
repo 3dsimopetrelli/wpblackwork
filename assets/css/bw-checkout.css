@@ -868,8 +868,7 @@ body.woocommerce-checkout .bw-checkout-right .bw-qty-control {
 
 /* Quantity shell - rounded container */
 body.woocommerce-checkout .bw-checkout-right .bw-qty-shell {
-    display: inline-grid;
-    grid-template-columns: 24px 32px 24px;
+    display: inline-flex;
     align-items: center;
     height: 25px;
     border: 1px solid #000000;
@@ -880,7 +879,8 @@ body.woocommerce-checkout .bw-checkout-right .bw-qty-shell {
 
 /* Quantity buttons - minus and plus */
 body.woocommerce-checkout .bw-checkout-right .bw-qty-btn {
-    width: 100%;
+    width: 24px;
+    min-width: 24px;
     height: 25px;
     border: none;
     background: transparent;
@@ -892,9 +892,7 @@ body.woocommerce-checkout .bw-checkout-right .bw-qty-btn {
     padding: 0 !important;
     margin: 0 !important;
     box-shadow: none !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
+    flex-shrink: 0;
     transition: background-color 0.15s ease;
 }
 
@@ -919,18 +917,19 @@ body.woocommerce-checkout .bw-checkout-right .bw-qty-btn--plus {
 /* Quantity input field */
 body.woocommerce-checkout .bw-checkout-right .bw-qty-shell input.qty {
     width: 32px;
+    min-width: 32px;
     height: 25px;
     border: none;
     text-align: center;
     font-size: 13px;
     font-weight: 400;
-    line-height: 25px;
+    line-height: 1;
     color: #000000;
     background: transparent;
     padding: 0;
     margin: 0;
     -moz-appearance: textfield;
-    vertical-align: middle;
+    flex-shrink: 0;
 }
 
 body.woocommerce-checkout .bw-checkout-right .bw-qty-shell input.qty::-webkit-outer-spin-button,
@@ -1224,22 +1223,16 @@ body.woocommerce-checkout .bw-checkout-right .bw-qty-badge {
         flex-wrap: wrap;
     }
 
-    body.woocommerce-checkout .bw-checkout-right .bw-qty-shell {
-        grid-template-columns: 22px 30px 22px;
-        height: 25px;
-    }
-
-    body.woocommerce-checkout .bw-checkout-right .bw-order-summary table.shop_table tbody .bw-review-item td.product-name .bw-review-item__content .bw-review-item__controls .bw-qty-control .bw-qty-shell .bw-qty-btn {
-        height: 25px !important;
+    body.woocommerce-checkout .bw-checkout-right .bw-qty-btn {
+        width: 22px;
+        min-width: 22px;
         font-size: 13px !important;
-        line-height: 1 !important;
     }
 
     body.woocommerce-checkout .bw-checkout-right .bw-qty-shell input.qty {
         width: 30px;
-        height: 25px;
+        min-width: 30px;
         font-size: 12px;
-        line-height: 25px;
     }
 
     .bw-checkout-logo img {
