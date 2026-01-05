@@ -832,19 +832,20 @@ body.woocommerce-checkout .bw-checkout-right .bw-review-item__remove {
     display: none;
 }
 
-/* Remove text button - aligned with quantity controls */
-body.woocommerce-checkout .bw-checkout-right .bw-review-item__controls a.bw-review-item__remove-text.remove {
-    font-size: 11px;
-    color: #999999;
-    text-decoration: none;
+/* Remove text button - Override WooCommerce default red color with high specificity */
+body.woocommerce-checkout .bw-checkout-right .bw-order-summary table.shop_table tbody .bw-review-item td.product-name .bw-review-item__content .bw-review-item__controls a.bw-review-item__remove-text.remove {
+    font-size: 11px !important;
+    color: #999999 !important;
+    text-decoration: none !important;
     cursor: pointer;
     white-space: nowrap;
-    background: transparent;
+    background: transparent !important;
 }
 
-body.woocommerce-checkout .bw-checkout-right .bw-review-item__controls a.bw-review-item__remove-text.remove:hover {
-    color: #999999;
-    text-decoration: underline;
+body.woocommerce-checkout .bw-checkout-right .bw-order-summary table.shop_table tbody .bw-review-item td.product-name .bw-review-item__content .bw-review-item__controls a.bw-review-item__remove-text.remove:hover {
+    color: #999999 !important;
+    text-decoration: underline !important;
+    background: transparent !important;
 }
 
 /* ============================================
