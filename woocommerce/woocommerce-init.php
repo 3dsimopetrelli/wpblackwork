@@ -29,6 +29,7 @@ function bw_mew_initialize_woocommerce_overrides() {
     add_filter( 'woocommerce_locate_core_template', 'bw_mew_locate_template', 1, 3 );
     add_action( 'template_redirect', 'bw_mew_prepare_account_page_layout', 9 );
     add_action( 'template_redirect', 'bw_mew_prepare_checkout_layout', 9 );
+    add_action( 'template_redirect', 'bw_mew_prepare_theme_title_bypass', 8 );
     add_action( 'template_redirect', 'bw_mew_hide_single_product_notices', 9 );
     add_action( 'woocommerce_checkout_update_order_review', 'bw_mew_sync_checkout_cart_quantities', 10, 1 );
     add_action( 'wp_ajax_bw_remove_coupon', 'bw_mew_ajax_remove_coupon' );
@@ -207,6 +208,137 @@ function bw_mew_prepare_account_page_layout() {
             wp_add_inline_style( 'bw-account-page', $css );
         }
     }, 25 );
+}
+
+/**
+ * Hide the default page title on logged-in account pages.
+ */
+function bw_mew_hide_logged_in_account_title() {
+    if ( ! function_exists( 'is_account_page' ) || ! is_account_page() || ! is_user_logged_in() ) {
+        return;
+    }
+
+    add_filter( 'woocommerce_show_page_title', '__return_false' );
+}
+add_action( 'template_redirect', 'bw_mew_hide_logged_in_account_title', 9 );
+
+/**
+ * Determine whether the theme title bypass is enabled for a context.
+ *
+ * @param string $context Context key (account|checkout).
+ *
+ * @return bool
+ */
+function bw_mew_is_theme_title_bypass_enabled( $context ) {
+    $enabled = false;
+
+    if ( 'account' === $context ) {
+        $enabled = function_exists( 'is_account_page' ) && is_account_page() && is_user_logged_in();
+    } elseif ( 'checkout' === $context ) {
+        $enabled = bw_mew_is_checkout_request()
+            && ( ! function_exists( 'is_wc_endpoint_url' ) || ! is_wc_endpoint_url( 'order-received' ) );
+    }
+
+    return (bool) apply_filters( 'bw_mew_enable_theme_title_bypass', $enabled, $context );
+}
+
+/**
+ * Prepare theme title bypass helpers on account/checkout pages.
+ */
+function bw_mew_prepare_theme_title_bypass() {
+    if ( ! bw_mew_is_theme_title_bypass_enabled( 'account' ) && ! bw_mew_is_theme_title_bypass_enabled( 'checkout' ) ) {
+        return;
+    }
+
+    add_filter( 'body_class', 'bw_mew_add_theme_title_bypass_class' );
+    add_filter( 'the_title', 'bw_mew_filter_theme_page_title', 10, 2 );
+    add_action( 'wp_enqueue_scripts', 'bw_mew_dequeue_theme_title_styles', 100 );
+    add_action( 'wp_enqueue_scripts', 'bw_mew_enqueue_theme_title_bypass_css', 100 );
+}
+
+/**
+ * Add a body class for the theme title bypass scope.
+ *
+ * @param array $classes Body classes.
+ *
+ * @return array
+ */
+function bw_mew_add_theme_title_bypass_class( $classes ) {
+    if ( bw_mew_is_theme_title_bypass_enabled( 'account' ) || bw_mew_is_theme_title_bypass_enabled( 'checkout' ) ) {
+        $classes[] = 'bw-theme-title-bypass';
+    }
+
+    return $classes;
+}
+
+/**
+ * Remove theme-rendered page titles on targeted pages.
+ *
+ * @param string $title Current title.
+ * @param int    $post_id Post ID.
+ *
+ * @return string
+ */
+function bw_mew_filter_theme_page_title( $title, $post_id ) {
+    if ( is_admin() || ! in_the_loop() || ! is_main_query() || ! is_page() ) {
+        return $title;
+    }
+
+    if ( ! bw_mew_is_theme_title_bypass_enabled( 'account' ) && ! bw_mew_is_theme_title_bypass_enabled( 'checkout' ) ) {
+        return $title;
+    }
+
+    if ( (int) $post_id !== (int) get_queried_object_id() ) {
+        return $title;
+    }
+
+    return '';
+}
+
+/**
+ * Dequeue parent theme title styles on targeted pages.
+ */
+function bw_mew_dequeue_theme_title_styles() {
+    if ( ! bw_mew_is_theme_title_bypass_enabled( 'account' ) && ! bw_mew_is_theme_title_bypass_enabled( 'checkout' ) ) {
+        return;
+    }
+
+    $handles = (array) apply_filters( 'bw_mew_theme_title_bypass_handles', [], [
+        'account'  => bw_mew_is_theme_title_bypass_enabled( 'account' ),
+        'checkout' => bw_mew_is_theme_title_bypass_enabled( 'checkout' ),
+    ] );
+
+    foreach ( $handles as $handle ) {
+        if ( ! is_string( $handle ) || '' === $handle ) {
+            continue;
+        }
+
+        wp_dequeue_style( $handle );
+        wp_deregister_style( $handle );
+    }
+}
+
+/**
+ * Add scoped reset styles to neutralize theme title CSS on targeted pages.
+ */
+function bw_mew_enqueue_theme_title_bypass_css() {
+    if ( ! bw_mew_is_theme_title_bypass_enabled( 'account' ) && ! bw_mew_is_theme_title_bypass_enabled( 'checkout' ) ) {
+        return;
+    }
+
+    $css = '.bw-theme-title-bypass .page-header .entry-title,'
+        . '.bw-theme-title-bypass .entry-header .entry-title,'
+        . '.bw-theme-title-bypass .page-title{'
+        . 'font-size:inherit;line-height:inherit;letter-spacing:normal;'
+        . 'text-align:inherit;font-weight:inherit;}';
+
+    if ( bw_mew_is_theme_title_bypass_enabled( 'account' ) && wp_style_is( 'bw-my-account', 'enqueued' ) ) {
+        wp_add_inline_style( 'bw-my-account', $css );
+    }
+
+    if ( bw_mew_is_theme_title_bypass_enabled( 'checkout' ) && wp_style_is( 'bw-checkout', 'enqueued' ) ) {
+        wp_add_inline_style( 'bw-checkout', $css );
+    }
 }
 
 /**

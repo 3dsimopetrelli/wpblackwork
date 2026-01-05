@@ -28,6 +28,9 @@ if ( ! is_user_logged_in() ) {
     </aside>
 
     <div class="bw-account-content" id="bw-account-content">
+        <header class="bw-account-page-header">
+            <h1 class="bw-account-title"><?php echo esc_html( get_the_title() ); ?></h1>
+        </header>
         <?php do_action( 'woocommerce_account_content' ); ?>
     </div>
 </div>
