@@ -6,12 +6,22 @@
     padding: 24px 0;
 }
 
+.bw-account-page-header {
+    grid-column: 1 / -1;
+}
+
 .bw-account-navigation {
     position: sticky;
     top: 32px;
 }
 
-.woocommerce-MyAccount-navigation ul {
+body.woocommerce-account .woocommerce-MyAccount-navigation {
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+}
+
+body.woocommerce-account .woocommerce-MyAccount-navigation ul {
     list-style: none;
     margin: 0;
     padding: 0;
@@ -20,20 +30,32 @@
     gap: 8px;
 }
 
-.woocommerce-MyAccount-navigation li a {
+body.woocommerce-account .woocommerce-MyAccount-navigation li {
+    margin: 0;
+}
+
+body.woocommerce-account .woocommerce-MyAccount-navigation li a {
     display: flex;
     align-items: center;
     gap: 12px;
     padding: 10px 12px;
-    border-radius: 8px;
+    border-radius: 0;
     text-decoration: none;
     color: #1f1f1f;
-    background: #f6f6f6;
+    background: transparent;
+    border-left: 3px solid transparent;
 }
 
-.woocommerce-MyAccount-navigation li.is-active a {
-    background: #000;
-    color: #fff;
+body.woocommerce-account .woocommerce-MyAccount-navigation li a:hover,
+body.woocommerce-account .woocommerce-MyAccount-navigation li a:focus {
+    background: #f4f4f4;
+    color: #1f1f1f;
+}
+
+body.woocommerce-account .woocommerce-MyAccount-navigation li.is-active a {
+    color: #000;
+    font-weight: 600;
+    border-left-color: #000;
 }
 
 .bw-account-icon svg {
