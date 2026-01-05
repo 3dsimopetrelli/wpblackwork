@@ -631,7 +631,101 @@ function bw_mew_get_passwordless_url() {
 }
 
 /**
+ * Render minimal checkout header with logo and cart icon.
+ */
+function bw_mew_render_checkout_header() {
+    if ( ! function_exists( 'is_checkout' ) || ! is_checkout() ) {
+        return;
+    }
+
+    // Get checkout settings
+    $settings = bw_mew_get_checkout_settings();
+    $logo_align = ! empty( $settings['logo_align'] ) ? $settings['logo_align'] : 'center';
+    $logo_width = ! empty( $settings['logo_width'] ) ? absint( $settings['logo_width'] ) : 200;
+    $logo_padding_top = isset( $settings['logo_padding_top'] ) ? absint( $settings['logo_padding_top'] ) : 0;
+    $logo_padding_right = isset( $settings['logo_padding_right'] ) ? absint( $settings['logo_padding_right'] ) : 0;
+    $logo_padding_bottom = isset( $settings['logo_padding_bottom'] ) ? absint( $settings['logo_padding_bottom'] ) : 0;
+    $logo_padding_left = isset( $settings['logo_padding_left'] ) ? absint( $settings['logo_padding_left'] ) : 0;
+
+    // Get logo - prefer theme custom logo, fallback to checkout settings logo
+    $logo_url = '';
+    $home_url = home_url( '/' );
+
+    if ( function_exists( 'has_custom_logo' ) && has_custom_logo() ) {
+        $custom_logo_id = get_theme_mod( 'custom_logo' );
+        if ( $custom_logo_id ) {
+            $logo_data = wp_get_attachment_image_src( $custom_logo_id, 'full' );
+            if ( $logo_data ) {
+                $logo_url = $logo_data[0];
+            }
+        }
+    }
+
+    // Fallback to checkout settings logo if theme logo not available
+    if ( empty( $logo_url ) ) {
+        $logo_url = ! empty( $settings['logo'] ) ? $settings['logo'] : '';
+    }
+
+    // Get cart URL
+    $cart_url = function_exists( 'wc_get_cart_url' ) ? wc_get_cart_url() : home_url( '/cart/' );
+
+    // Build inline styles for logo
+    $logo_styles = sprintf(
+        'max-width: %dpx; padding: %dpx %dpx %dpx %dpx;',
+        $logo_width,
+        $logo_padding_top,
+        $logo_padding_right,
+        $logo_padding_bottom,
+        $logo_padding_left
+    );
+
+    // Render header only if we have a logo
+    if ( ! empty( $logo_url ) ) :
+        ?>
+        <div class="bw-minimal-checkout-header">
+            <div class="bw-minimal-checkout-header__inner bw-minimal-checkout-header__inner--<?php echo esc_attr( $logo_align ); ?>">
+                <a href="<?php echo esc_url( $home_url ); ?>" class="bw-minimal-checkout-header__logo" style="<?php echo esc_attr( $logo_styles ); ?>">
+                    <img src="<?php echo esc_url( $logo_url ); ?>" alt="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>" />
+                </a>
+                <a href="<?php echo esc_url( $cart_url ); ?>" class="bw-minimal-checkout-header__cart" aria-label="<?php esc_attr_e( 'View cart', 'woocommerce' ); ?>">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="4" y="6" width="16" height="14" rx="2" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                        <path d="M8 6V5C8 3.34315 9.34315 2 11 2H13C14.6569 2 16 3.34315 16 5V6" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+        <?php
+    endif;
+}
+
+/**
+ * Render custom express checkout divider with perfect continuous lines.
+ * Replaces the default WCPay separator with a cleaner implementation.
+ */
+function bw_mew_render_express_divider() {
+    if ( ! function_exists( 'is_checkout' ) || ! is_checkout() ) {
+        return;
+    }
+
+    // Check if WCPay express checkout separator exists in the page
+    // If it does, our CSS will hide it and show this custom one instead
+    ?>
+    <div class="bw-express-divider">
+        <span>OR</span>
+    </div>
+    <?php
+}
+add_action( 'woocommerce_checkout_before_customer_details', 'bw_mew_render_express_divider', 100 );
+
+/**
  * AJAX handler to remove coupon from cart.
+ *
+ * FIX: This handler now properly synchronizes with WooCommerce's checkout refresh mechanism
+ * to prevent the coupon from re-applying after removal. The key changes:
+ * 1. Force WC session commit BEFORE responding to ensure session persistence
+ * 2. Trigger WooCommerce's 'removed_coupon' action for proper event integration
+ * 3. Return hash to help client detect if cart state changed
  */
 function bw_mew_ajax_remove_coupon() {
     check_ajax_referer( 'bw-checkout-nonce', 'nonce' );
@@ -652,7 +746,7 @@ function bw_mew_ajax_remove_coupon() {
         wp_send_json_error( array( 'message' => __( 'Coupon is not applied.', 'woocommerce' ) ) );
     }
 
-    // Remove the coupon
+    // Remove the coupon using WooCommerce's standard method
     $removed = WC()->cart->remove_coupon( $coupon_code );
 
     if ( ! $removed ) {
@@ -662,17 +756,35 @@ function bw_mew_ajax_remove_coupon() {
     // Calculate totals after removing coupon
     WC()->cart->calculate_totals();
 
-    // CRITICAL: Persist the cart session so the coupon removal is saved
+    // CRITICAL FIX: Force immediate session persistence with multiple safety checks
+    // This ensures the coupon removal is saved BEFORE the checkout fragment refresh reads the session
     if ( WC()->session ) {
+        // Save cart data to session immediately
         WC()->cart->persistent_cart_update();
+
+        // Force session data write to database/storage
+        WC()->session->save_data();
+
+        // Additional safety: set the cart session explicitly
+        WC()->session->set( 'cart', serialize( WC()->cart->get_cart_for_session() ) );
+        WC()->session->set( 'applied_coupons', WC()->cart->get_applied_coupons() );
+        WC()->session->set( 'coupon_discount_totals', WC()->cart->get_coupon_discount_totals() );
+        WC()->session->set( 'coupon_discount_tax_totals', WC()->cart->get_coupon_discount_tax_totals() );
+
+        // Force one more save to commit all the above
         WC()->session->save_data();
     }
 
-    // Clear any cart-related caches
+    // Clear any cart-related caches that might cause stale data
     wc_clear_notices();
+
+    // Trigger WooCommerce's standard removed_coupon action for proper event integration
+    // This allows other plugins/code to react to coupon removal
+    do_action( 'woocommerce_removed_coupon', $coupon_code );
 
     wp_send_json_success( array(
         'message'         => __( 'Coupon removed successfully.', 'woocommerce' ),
         'applied_coupons' => WC()->cart->get_applied_coupons(),
+        'cart_hash'       => WC()->cart->get_cart_hash(), // Return hash to verify state change
     ) );
 }

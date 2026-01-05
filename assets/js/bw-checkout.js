@@ -97,7 +97,9 @@
 
             var $ = window.jQuery;
 
-            // Use our custom AJAX endpoint to remove the coupon
+            // RADICAL FIX: Remove coupon server-side, wait for confirmation, then do a FULL PAGE RELOAD
+            // This is the most reliable way to ensure session persistence without race conditions
+            // The page reload guarantees that the checkout fragments are generated with the updated session
             $.ajax({
                 type: 'POST',
                 url: bwCheckoutParams.ajax_url,
@@ -108,8 +110,9 @@
                 },
                 success: function (response) {
                     if (response.success) {
-                        // Trigger checkout update to refresh totals
-                        $(document.body).trigger('update_checkout');
+                        // Instead of trying to update fragments via AJAX, just reload the page
+                        // This is the most reliable approach and matches standard WooCommerce cart behavior
+                        window.location.reload();
                     } else {
                         setOrderSummaryLoading(false);
                         showCouponMessage(response.data.message || 'Error removing coupon', 'error');
@@ -164,10 +167,15 @@
                     showCouponMessage('Coupon code applied successfully', 'success');
                 })
                 .on('removed_coupon', function (event, couponCode) {
-                    // Don't set loading here - it's already handled by AJAX call
-                    showCouponMessage('Coupon code removed', 'success');
+                    // FIX: Don't set loading or show message here - it's already handled by our custom AJAX call
+                    // This event is triggered by our custom handler for integration with WooCommerce ecosystem
+                    // Just ensure loading state is set (in case called from elsewhere)
+                    setOrderSummaryLoading(true);
                 })
-                .on('updated_checkout checkout_error', function () {
+                .on('updated_checkout', function () {
+                    setOrderSummaryLoading(false);
+                })
+                .on('checkout_error', function () {
                     setOrderSummaryLoading(false);
                 });
 

@@ -45,15 +45,23 @@
             return;
         }
 
+        // Remove selected class from all payment methods
+        var allMethods = paymentContainer.querySelectorAll('.bw-payment-method');
+        allMethods.forEach(function (method) {
+            method.classList.remove('is-selected');
+        });
+
         // Close all payment boxes with smooth animation
         var allBoxes = paymentContainer.querySelectorAll('.bw-payment-method__content');
         allBoxes.forEach(function (box) {
             box.classList.remove('is-open');
         });
 
-        // Open the selected payment box with smooth animation
+        // Add selected class to current method (for browsers that don't support :has())
         var selectedMethod = radio.closest('.bw-payment-method');
         if (selectedMethod) {
+            selectedMethod.classList.add('is-selected');
+
             var contentBox = selectedMethod.querySelector('.bw-payment-method__content');
             if (contentBox) {
                 // Small delay to ensure smooth animation
