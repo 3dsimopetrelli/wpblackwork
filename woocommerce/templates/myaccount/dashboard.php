@@ -24,18 +24,23 @@ $shop_url       = wc_get_page_permalink( 'shop' );
         <div class="bw-hero-box bw-hero-welcome">
             <p class="bw-hero-label"><?php esc_html_e( 'WELCOME TO YOUR DASHBOARD', 'bw' ); ?></p>
             <h2 class="bw-hero-title"><?php echo esc_html( $display_name ); ?></h2>
-            <p class="bw-hero-description">
-                <?php esc_html_e( 'Here you have quick access to your', 'bw' ); ?>
-                <a href="<?php echo esc_url( $orders_url ); ?>"><?php esc_html_e( 'invoices', 'bw' ); ?></a>
-                <?php esc_html_e( 'and your', 'bw' ); ?>
-                <a href="<?php echo esc_url( $account_url ); ?>"><?php esc_html_e( 'data', 'bw' ); ?></a>.
-                <?php esc_html_e( 'You can also', 'bw' ); ?>
-                <a href="<?php echo esc_url( $shop_url ); ?>"><?php esc_html_e( 'continue shopping', 'bw' ); ?></a>
-            </p>
+            <div class="bw-hero-footer">
+                <p class="bw-hero-description">
+                    <?php esc_html_e( 'Here you have quick access to your', 'bw' ); ?>
+                    <a href="<?php echo esc_url( $orders_url ); ?>"><?php esc_html_e( 'invoices', 'bw' ); ?></a>
+                    <?php esc_html_e( 'and your', 'bw' ); ?>
+                    <a href="<?php echo esc_url( $account_url ); ?>"><?php esc_html_e( 'data', 'bw' ); ?></a>.
+                    <?php esc_html_e( 'You can also', 'bw' ); ?>
+                    <a href="<?php echo esc_url( $shop_url ); ?>"><?php esc_html_e( 'continue shopping', 'bw' ); ?></a>
+                </p>
+            </div>
         </div>
         <div class="bw-hero-box bw-hero-message">
             <p class="bw-hero-label"><?php esc_html_e( 'HEY', 'bw' ); ?></p>
             <div class="bw-hero-body"><?php echo wp_kses_post( wpautop( $black_box_text ) ); ?></div>
+            <div class="bw-hero-footer">
+                <a class="bw-hero-link" href="<?php echo esc_url( $orders_url ); ?>"><?php esc_html_e( 'MY PURCHASES', 'bw' ); ?></a>
+            </div>
         </div>
     </div>
 
