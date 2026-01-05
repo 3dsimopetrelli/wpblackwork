@@ -10,34 +10,83 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-$downloads = wc_get_customer_available_downloads();
+$customer_id = get_current_user_id();
+$downloads   = wc_get_customer_available_downloads( $customer_id );
+
+if ( ! is_array( $downloads ) ) {
+    $downloads = [];
+}
 ?>
 <div class="bw-downloads">
-    <header class="bw-page-header">
-        <h2><?php esc_html_e( 'My purchases', 'bw' ); ?></h2>
-        <div class="bw-tab-switcher" role="tablist">
-            <button class="bw-tab is-active" type="button" role="tab" aria-selected="true"><?php esc_html_e( 'Downloads', 'bw' ); ?></button>
-            <button class="bw-tab" type="button" role="tab" aria-selected="false" disabled><?php esc_html_e( 'Invoices', 'bw' ); ?></button>
-        </div>
-    </header>
-
     <?php if ( $downloads ) : ?>
-        <ul class="bw-download-list">
+        <div class="bw-download-list">
             <?php foreach ( $downloads as $download ) :
-                $product   = wc_get_product( $download['product_id'] );
-                $thumbnail = $product ? $product->get_image( 'thumbnail' ) : wc_placeholder_img( 'thumbnail' );
+                if ( is_array( $download ) ) {
+                    $download_item = $download;
+                } elseif ( is_object( $download ) ) {
+                    $download_item = (array) $download;
+                } else {
+                    $download_item = [];
+                }
+
+                $product_id   = isset( $download_item['product_id'] ) ? absint( $download_item['product_id'] ) : 0;
+                $download_url = ! empty( $download_item['download_url'] ) ? (string) $download_item['download_url'] : '';
+
+                $product       = $product_id ? wc_get_product( $product_id ) : null;
+                $product_name  = $product ? $product->get_name() : '';
+                $download_name = $product_name;
+
+                if ( ! $download_name && ! empty( $download_item['product_name'] ) ) {
+                    $download_name = (string) $download_item['product_name'];
+                }
+
+                if ( ! $download_name && ! empty( $download_item['download_name'] ) ) {
+                    $download_name = (string) $download_item['download_name'];
+                }
+
+                if ( ! $download_name ) {
+                    $download_name = __( 'Product', 'bw' );
+                }
+
+                if ( $product && $product->get_image_id() ) {
+                    $thumbnail = $product->get_image( 'thumbnail', [ 'class' => 'bw-download-thumb-img' ] );
+                } else {
+                    $thumbnail = function_exists( 'wc_placeholder_img' )
+                        ? wc_placeholder_img( 'thumbnail' )
+                        : '<div class="bw-download-thumb-placeholder"></div>';
+                }
+
+                if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+                    if ( empty( $download_item ) || ! $download_url ) {
+                        error_log( '[BW Downloads] malformed item keys: ' . implode( ',', array_keys( $download_item ) ) );
+                    }
+                }
                 ?>
-                <li class="bw-download-row">
-                    <span class="bw-download-thumb"><?php echo wp_kses_post( $thumbnail ); ?></span>
-                    <span class="bw-download-name"><?php echo esc_html( $download['product_name'] ); ?></span>
-                    <a class="bw-download-button" href="<?php echo esc_url( $download['download_url'] ); ?>">
-                        <span class="bw-download-icon" aria-hidden="true">⬇</span>
-                        <?php esc_html_e( 'download', 'bw' ); ?>
-                    </a>
-                </li>
+                <div class="bw-download-row">
+                    <div class="bw-download-thumb"><?php echo wp_kses_post( $thumbnail ); ?></div>
+                    <div class="bw-download-title"><?php echo esc_html( $download_name ); ?></div>
+                    <div class="bw-download-action">
+                        <?php if ( $download_url ) : ?>
+                            <a class="bw-download-button" href="<?php echo esc_url( $download_url ); ?>" download>
+                                <span class="bw-download-icon" aria-hidden="true">
+                                    <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M10 2v10" stroke="currentColor" stroke-width="2"/>
+                                        <path d="M5 8l5 5 5-5" stroke="currentColor" stroke-width="2" fill="none"/>
+                                        <path d="M3 15h14v3H3z" fill="currentColor"/>
+                                    </svg>
+                                </span>
+                                <span><?php esc_html_e( 'Download', 'bw' ); ?></span>
+                            </a>
+                        <?php else : ?>
+                            <span class="bw-download-unavailable" aria-disabled="true">
+                                <?php esc_html_e( 'Unavailable', 'bw' ); ?>
+                            </span>
+                        <?php endif; ?>
+                    </div>
+                </div>
             <?php endforeach; ?>
-        </ul>
+        </div>
     <?php else : ?>
-        <p class="bw-empty-state"><?php esc_html_e( 'No downloads available yet.', 'bw' ); ?></p>
+        <p class="bw-downloads-empty"><?php esc_html_e( 'No downloads available.', 'bw' ); ?></p>
     <?php endif; ?>
 </div>
