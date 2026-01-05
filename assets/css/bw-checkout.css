@@ -791,9 +791,7 @@ body.woocommerce-checkout .bw-checkout-right table.shop_table tbody .bw-review-i
 }
 
 body.woocommerce-checkout .bw-checkout-right table.shop_table tbody .bw-review-item td.product-thumbnail {
-    width: var(--bw-thumb-width, 110px) !important;
-    min-width: var(--bw-thumb-width, 110px) !important;
-    max-width: var(--bw-thumb-width, 110px) !important;
+    /* Width is controlled by inline styles in template - DO NOT override here */
     padding-right: 10px !important;
     padding-bottom: 15px !important;
 }
@@ -804,10 +802,7 @@ body.woocommerce-checkout .bw-checkout-right table.shop_table tbody .bw-review-i
 }
 
 body.woocommerce-checkout .bw-checkout-right .bw-review-item__media {
-    width: var(--bw-thumb-width, 110px) !important;
-    min-width: var(--bw-thumb-width, 110px) !important;
-    max-width: var(--bw-thumb-width, 110px) !important;
-    aspect-ratio: var(--bw-thumb-aspect, 1 / 1) !important;
+    /* Width and aspect-ratio are controlled by inline styles in template - DO NOT override here */
     overflow: hidden;
     border-radius: 12px;
     border: 1px solid #e1e1e1;
@@ -1225,9 +1220,7 @@ body.woocommerce-checkout .bw-checkout-right .bw-qty-badge {
     }
 
     body.woocommerce-checkout .bw-checkout-right table.shop_table tbody .bw-review-item td.product-thumbnail {
-        width: calc(var(--bw-thumb-width, 110px) * 0.82) !important;
-        min-width: calc(var(--bw-thumb-width, 110px) * 0.82) !important;
-        max-width: calc(var(--bw-thumb-width, 110px) * 0.82) !important;
+        /* Width is controlled by inline styles in template - DO NOT override here */
         padding-right: 8px !important;
         padding-bottom: 12px !important;
     }
@@ -1245,10 +1238,7 @@ body.woocommerce-checkout .bw-checkout-right .bw-qty-badge {
     }
 
     body.woocommerce-checkout .bw-checkout-right .bw-review-item__media {
-        width: calc(var(--bw-thumb-width, 110px) * 0.82) !important;
-        min-width: calc(var(--bw-thumb-width, 110px) * 0.82) !important;
-        max-width: calc(var(--bw-thumb-width, 110px) * 0.82) !important;
-        aspect-ratio: var(--bw-thumb-aspect, 1 / 1) !important;
+        /* Width and aspect-ratio are controlled by inline styles in template - DO NOT override here */
     }
 
     body.woocommerce-checkout .bw-checkout-right .bw-review-item__content {
