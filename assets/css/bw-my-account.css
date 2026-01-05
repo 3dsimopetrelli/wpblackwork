@@ -260,6 +260,89 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
     color: #666;
 }
 
+.bw-download-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.bw-download-row {
+    display: grid;
+    grid-template-columns: 56px 1fr auto;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.bw-download-row:last-child {
+    border-bottom: none;
+}
+
+.bw-download-thumb img {
+    width: 56px;
+    height: 56px;
+    object-fit: cover;
+    border-radius: 8px;
+    display: block;
+}
+
+.bw-download-title {
+    font-size: 16px;
+    font-weight: 500;
+    color: #111;
+}
+
+.bw-download-action {
+    justify-self: end;
+}
+
+.bw-download-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    background: #000;
+    color: #fff;
+    text-decoration: none;
+    border: none;
+}
+
+.bw-download-button.is-disabled {
+    background: #d5d5d5;
+    color: #666;
+    cursor: not-allowed;
+}
+
+.bw-downloads-empty {
+    margin: 8px 0;
+    color: #666;
+}
+
+@media (max-width: 640px) {
+    .bw-download-row {
+        grid-template-columns: 48px 1fr;
+        grid-template-areas:
+            "thumb title"
+            "button button";
+        align-items: start;
+    }
+
+    .bw-download-thumb {
+        grid-area: thumb;
+    }
+
+    .bw-download-title {
+        grid-area: title;
+    }
+
+    .bw-download-action {
+        grid-area: button;
+        justify-self: start;
+    }
+}
+
 .bw-downloads,
 .bw-coupons,
 .bw-settings {
