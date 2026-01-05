@@ -110,9 +110,10 @@
                 },
                 success: function (response) {
                     if (response.success) {
-                        // Instead of trying to update fragments via AJAX, just reload the page
-                        // This is the most reliable approach and matches standard WooCommerce cart behavior
-                        window.location.reload();
+                        // CRITICAL: Use redirect instead of reload() to prevent POST replay
+                        // window.location.reload() can replay the last POST (coupon application)
+                        // Redirect to same page forces a fresh GET request without POST data
+                        window.location.href = window.location.pathname + window.location.search;
                     } else {
                         setOrderSummaryLoading(false);
                         showCouponMessage(response.data.message || 'Error removing coupon', 'error');
