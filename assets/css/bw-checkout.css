@@ -542,9 +542,36 @@ body.woocommerce-checkout #wcpay-express-checkout-button-separator {
     border: 0 !important;
 }
 
-/* Hide custom OR divider */
+/* Custom OR divider - Two continuous lines with centered OR */
 .bw-express-divider {
-    display: none !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin: 20px 0;
+}
+
+.bw-express-divider::before,
+.bw-express-divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: #cccccc;
+}
+
+.bw-express-divider::before {
+    margin-right: 16px;
+}
+
+.bw-express-divider::after {
+    margin-left: 16px;
+}
+
+.bw-express-divider span {
+    font-size: 14px;
+    font-weight: 400;
+    color: #666666;
+    line-height: 1;
 }
 
 /* Express checkout buttons - Two columns at 50% width */
