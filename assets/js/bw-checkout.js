@@ -97,10 +97,9 @@
 
             var $ = window.jQuery;
 
-            // FIX: Use our custom AJAX endpoint to remove the coupon with proper timing
-            // The key fix is adding a delay before triggering update_checkout to ensure
-            // the session is fully persisted on the server before WooCommerce's checkout
-            // refresh reads it. This prevents the race condition where the coupon re-applies.
+            // RADICAL FIX: Remove coupon server-side, wait for confirmation, then do a FULL PAGE RELOAD
+            // This is the most reliable way to ensure session persistence without race conditions
+            // The page reload guarantees that the checkout fragments are generated with the updated session
             $.ajax({
                 type: 'POST',
                 url: bwCheckoutParams.ajax_url,
@@ -111,16 +110,9 @@
                 },
                 success: function (response) {
                     if (response.success) {
-                        // Trigger WooCommerce's standard removed_coupon event for proper integration
-                        $(document.body).trigger('removed_coupon', [couponCode]);
-
-                        // CRITICAL FIX: Add a 150ms delay before triggering checkout update
-                        // This ensures the PHP session save has fully committed to database/storage
-                        // before WooCommerce's AJAX handler reads the session during fragment refresh
-                        setTimeout(function() {
-                            // Trigger checkout update to refresh totals and fragments
-                            $(document.body).trigger('update_checkout');
-                        }, 150);
+                        // Instead of trying to update fragments via AJAX, just reload the page
+                        // This is the most reliable approach and matches standard WooCommerce cart behavior
+                        window.location.reload();
                     } else {
                         setOrderSummaryLoading(false);
                         showCouponMessage(response.data.message || 'Error removing coupon', 'error');
