@@ -21,10 +21,10 @@ $thumb_ratio       = array_key_exists( $thumb_ratio, $thumb_map ) ? $thumb_ratio
 $thumb_aspect      = $thumb_map[ $thumb_ratio ];
 ?>
 
-<div class="bw-order-summary woocommerce-checkout-review-order bw-thumb-ratio-<?php echo esc_attr( $thumb_ratio ); ?>" style="--bw-thumb-aspect: <?php echo esc_attr( $thumb_aspect ); ?>; --bw-thumb-width: <?php echo esc_attr( $thumb_width ); ?>px;">
+<div class="bw-order-summary woocommerce-checkout-review-order bw-thumb-ratio-<?php echo esc_attr( $thumb_ratio ); ?>">
     <div class="bw-order-summary__loader" aria-hidden="true"></div>
 
-    <table class="shop_table woocommerce-checkout-review-order-table bw-review-table">
+    <table class="shop_table woocommerce-checkout-review-order-table bw-review-table" style="--bw-thumb-aspect: <?php echo esc_attr( $thumb_aspect ); ?>; --bw-thumb-width: <?php echo esc_attr( $thumb_width ); ?>px;">
         <tbody>
             <?php
             do_action( 'woocommerce_review_order_before_cart_contents' );
