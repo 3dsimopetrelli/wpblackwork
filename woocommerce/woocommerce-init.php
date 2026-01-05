@@ -613,6 +613,12 @@ add_action( 'woocommerce_checkout_before_customer_details', 'bw_mew_render_expre
 
 /**
  * AJAX handler to remove coupon from cart.
+ *
+ * FIX: This handler now properly synchronizes with WooCommerce's checkout refresh mechanism
+ * to prevent the coupon from re-applying after removal. The key changes:
+ * 1. Force WC session commit BEFORE responding to ensure session persistence
+ * 2. Trigger WooCommerce's 'removed_coupon' action for proper event integration
+ * 3. Return hash to help client detect if cart state changed
  */
 function bw_mew_ajax_remove_coupon() {
     check_ajax_referer( 'bw-checkout-nonce', 'nonce' );
@@ -633,7 +639,7 @@ function bw_mew_ajax_remove_coupon() {
         wp_send_json_error( array( 'message' => __( 'Coupon is not applied.', 'woocommerce' ) ) );
     }
 
-    // Remove the coupon
+    // Remove the coupon using WooCommerce's standard method
     $removed = WC()->cart->remove_coupon( $coupon_code );
 
     if ( ! $removed ) {
@@ -643,17 +649,35 @@ function bw_mew_ajax_remove_coupon() {
     // Calculate totals after removing coupon
     WC()->cart->calculate_totals();
 
-    // CRITICAL: Persist the cart session so the coupon removal is saved
+    // CRITICAL FIX: Force immediate session persistence with multiple safety checks
+    // This ensures the coupon removal is saved BEFORE the checkout fragment refresh reads the session
     if ( WC()->session ) {
+        // Save cart data to session immediately
         WC()->cart->persistent_cart_update();
+
+        // Force session data write to database/storage
+        WC()->session->save_data();
+
+        // Additional safety: set the cart session explicitly
+        WC()->session->set( 'cart', serialize( WC()->cart->get_cart_for_session() ) );
+        WC()->session->set( 'applied_coupons', WC()->cart->get_applied_coupons() );
+        WC()->session->set( 'coupon_discount_totals', WC()->cart->get_coupon_discount_totals() );
+        WC()->session->set( 'coupon_discount_tax_totals', WC()->cart->get_coupon_discount_tax_totals() );
+
+        // Force one more save to commit all the above
         WC()->session->save_data();
     }
 
-    // Clear any cart-related caches
+    // Clear any cart-related caches that might cause stale data
     wc_clear_notices();
+
+    // Trigger WooCommerce's standard removed_coupon action for proper event integration
+    // This allows other plugins/code to react to coupon removal
+    do_action( 'woocommerce_removed_coupon', $coupon_code );
 
     wp_send_json_success( array(
         'message'         => __( 'Coupon removed successfully.', 'woocommerce' ),
         'applied_coupons' => WC()->cart->get_applied_coupons(),
+        'cart_hash'       => WC()->cart->get_cart_hash(), // Return hash to verify state change
     ) );
 }
