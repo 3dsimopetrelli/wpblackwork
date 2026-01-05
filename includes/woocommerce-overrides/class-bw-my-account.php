@@ -15,14 +15,12 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @return array
  */
 function bw_mew_filter_account_menu_items( $items ) {
-    $order          = [ 'dashboard', 'downloads', 'orders', 'invoices', 'edit-account', 'customer-logout' ];
+    $order          = [ 'dashboard', 'downloads', 'orders', 'edit-account', 'customer-logout' ];
     $filtered_items = [];
 
     foreach ( $order as $endpoint ) {
         if ( 'orders' === $endpoint ) {
             $label = __( 'My purchases', 'bw' );
-        } elseif ( 'invoices' === $endpoint ) {
-            $label = __( 'Invoices', 'bw' );
         } else {
             if ( ! isset( $items[ $endpoint ] ) ) {
                 continue;
