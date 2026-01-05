@@ -46,7 +46,8 @@
     padding: 0;
 }
 
-body.woocommerce-account .entry-title {
+body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw-account-title {
+    margin: 0 0 24px;
     text-align: left;
     font-size: 104px;
     line-height: 200px;
@@ -310,23 +311,4 @@ body.woocommerce-account .entry-title {
 
 .bw-tab-panels .bw-tab-panel.is-active {
     display: block;
-}
-
-@media (max-width: 960px) {
-    .bw-account-layout {
-        grid-template-columns: 1fr;
-    }
-
-    .bw-account-navigation {
-        position: relative;
-    }
-
-    .woocommerce-MyAccount-navigation ul {
-        flex-direction: row;
-        flex-wrap: wrap;
-    }
-
-    .woocommerce-MyAccount-navigation li {
-        flex: 1 1 45%;
-    }
 }
