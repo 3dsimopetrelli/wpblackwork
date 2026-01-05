@@ -156,7 +156,7 @@ $thumb_aspect      = $thumb_map[ $thumb_ratio ];
                     <td data-title="<?php echo esc_attr( wc_cart_totals_coupon_label( $coupon, false ) ); ?>">
                         <span class="bw-coupon-value">
                             <?php echo wc_price( -WC()->cart->get_coupon_discount_amount( $code ) ); ?>
-                            <a href="<?php echo esc_url( add_query_arg( 'remove_coupon', rawurlencode( $code ), wc_get_cart_url() ) ); ?>" class="woocommerce-remove-coupon" data-coupon="<?php echo esc_attr( $code ); ?>" aria-label="<?php esc_attr_e( 'Remove coupon', 'woocommerce' ); ?>"><?php esc_html_e( '[Remove]', 'woocommerce' ); ?></a>
+                            <a href="<?php echo esc_url( wp_nonce_url( add_query_arg( 'remove_coupon', rawurlencode( $code ) ), 'remove_coupon' ) ); ?>" class="woocommerce-remove-coupon" data-coupon="<?php echo esc_attr( $code ); ?>" aria-label="<?php esc_attr_e( 'Remove coupon', 'woocommerce' ); ?>"><?php esc_html_e( '[Remove]', 'woocommerce' ); ?></a>
                         </span>
                     </td>
                 </tr>
