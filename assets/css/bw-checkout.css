@@ -194,7 +194,6 @@ body.woocommerce-checkout .bw-checkout-grid {
     --bw-checkout-right-col: 38%;
     background: var(--bw-checkout-grid-bg, var(--bw-checkout-left-bg, #ffffff));
     position: relative;
-    padding-top: 40px;
 }
 
 /* Force all direct children of checkout grid to not break layout */
@@ -303,7 +302,7 @@ body.woocommerce-checkout .bw-checkout-right #order_review_inner {
     /* Left column - explicitly positioned to span all rows */
     body.woocommerce-checkout .bw-checkout-left {
         background: var(--bw-checkout-left-bg, #ffffff);
-        padding: 0 28px 0 0;
+        padding: 35px 28px 0 0;
         margin-bottom: 0;
         grid-column: 1 / 2;
         grid-row: 1 / 10;
