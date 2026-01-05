@@ -835,11 +835,14 @@ body.woocommerce-checkout .bw-checkout-right .bw-review-item__remove {
 /* Remove text button - Override WooCommerce default red color with high specificity */
 body.woocommerce-checkout .bw-checkout-right .bw-order-summary table.shop_table tbody .bw-review-item td.product-name .bw-review-item__content .bw-review-item__controls a.bw-review-item__remove-text.remove {
     font-size: 11px !important;
+    line-height: 25px !important;
     color: #999999 !important;
     text-decoration: none !important;
     cursor: pointer;
     white-space: nowrap;
     background: transparent !important;
+    vertical-align: middle;
+    display: inline-block;
 }
 
 body.woocommerce-checkout .bw-checkout-right .bw-order-summary table.shop_table tbody .bw-review-item td.product-name .bw-review-item__content .bw-review-item__controls a.bw-review-item__remove-text.remove:hover {
