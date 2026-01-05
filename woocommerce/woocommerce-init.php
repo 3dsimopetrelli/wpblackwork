@@ -251,7 +251,6 @@ function bw_mew_prepare_theme_title_bypass() {
     }
 
     add_filter( 'body_class', 'bw_mew_add_theme_title_bypass_class' );
-    add_filter( 'the_title', 'bw_mew_filter_theme_page_title', 10, 2 );
     add_action( 'wp_enqueue_scripts', 'bw_mew_dequeue_theme_title_styles', 100 );
     add_action( 'wp_enqueue_scripts', 'bw_mew_enqueue_theme_title_bypass_css', 100 );
 }
@@ -269,30 +268,6 @@ function bw_mew_add_theme_title_bypass_class( $classes ) {
     }
 
     return $classes;
-}
-
-/**
- * Remove theme-rendered page titles on targeted pages.
- *
- * @param string $title Current title.
- * @param int    $post_id Post ID.
- *
- * @return string
- */
-function bw_mew_filter_theme_page_title( $title, $post_id ) {
-    if ( is_admin() || ! in_the_loop() || ! is_main_query() || ! is_page() ) {
-        return $title;
-    }
-
-    if ( ! bw_mew_is_theme_title_bypass_enabled( 'account' ) && ! bw_mew_is_theme_title_bypass_enabled( 'checkout' ) ) {
-        return $title;
-    }
-
-    if ( (int) $post_id !== (int) get_queried_object_id() ) {
-        return $title;
-    }
-
-    return '';
 }
 
 /**

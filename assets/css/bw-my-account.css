@@ -47,12 +47,29 @@
 }
 
 body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw-account-title {
+    display: block;
     margin: 0 0 24px;
     text-align: left;
     font-size: 104px;
     line-height: 200px;
     letter-spacing: -5px;
     font-weight: 400;
+}
+
+@media (max-width: 1024px) {
+    body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw-account-title {
+        font-size: 72px;
+        line-height: 120px;
+        letter-spacing: -3px;
+    }
+}
+
+@media (max-width: 640px) {
+    body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw-account-title {
+        font-size: 48px;
+        line-height: 64px;
+        letter-spacing: -2px;
+    }
 }
 
 .bw-account-dashboard .bw-account-hero {
