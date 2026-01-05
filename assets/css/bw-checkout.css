@@ -70,9 +70,7 @@ body.woocommerce-checkout:not(.elementor-editor-active) .entry-title {
 
 .bw-minimal-checkout-header__logo img {
     height: auto;
-    max-height: 40px;
     width: auto;
-    max-width: 200px;
     display: block;
 }
 
@@ -86,17 +84,14 @@ body.woocommerce-checkout:not(.elementor-editor-active) .entry-title {
     justify-content: center;
     width: 44px;
     height: 44px;
-    border: 1.5px solid #000000;
-    border-radius: 8px;
     text-decoration: none;
     color: #000000;
     transition: all 0.2s ease;
-    background: #ffffff;
+    background: transparent;
 }
 
 .bw-minimal-checkout-header__cart:hover {
-    background: #f5f5f5;
-    border-color: #333333;
+    opacity: 0.7;
 }
 
 .bw-minimal-checkout-header__cart svg {
@@ -109,11 +104,6 @@ body.woocommerce-checkout:not(.elementor-editor-active) .entry-title {
 @media (max-width: 768px) {
     .bw-minimal-checkout-header__inner {
         padding: 16px 12px;
-    }
-
-    .bw-minimal-checkout-header__logo img {
-        max-height: 32px;
-        max-width: 160px;
     }
 
     .bw-minimal-checkout-header__cart {

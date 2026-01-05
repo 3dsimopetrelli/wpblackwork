@@ -531,9 +531,14 @@ function bw_mew_render_checkout_header() {
         return;
     }
 
-    // Get checkout settings for logo alignment
+    // Get checkout settings
     $settings = bw_mew_get_checkout_settings();
     $logo_align = ! empty( $settings['logo_align'] ) ? $settings['logo_align'] : 'center';
+    $logo_width = ! empty( $settings['logo_width'] ) ? absint( $settings['logo_width'] ) : 200;
+    $logo_padding_top = isset( $settings['logo_padding_top'] ) ? absint( $settings['logo_padding_top'] ) : 0;
+    $logo_padding_right = isset( $settings['logo_padding_right'] ) ? absint( $settings['logo_padding_right'] ) : 0;
+    $logo_padding_bottom = isset( $settings['logo_padding_bottom'] ) ? absint( $settings['logo_padding_bottom'] ) : 0;
+    $logo_padding_left = isset( $settings['logo_padding_left'] ) ? absint( $settings['logo_padding_left'] ) : 0;
 
     // Get logo - prefer theme custom logo, fallback to checkout settings logo
     $logo_url = '';
@@ -557,12 +562,22 @@ function bw_mew_render_checkout_header() {
     // Get cart URL
     $cart_url = function_exists( 'wc_get_cart_url' ) ? wc_get_cart_url() : home_url( '/cart/' );
 
+    // Build inline styles for logo
+    $logo_styles = sprintf(
+        'max-width: %dpx; padding: %dpx %dpx %dpx %dpx;',
+        $logo_width,
+        $logo_padding_top,
+        $logo_padding_right,
+        $logo_padding_bottom,
+        $logo_padding_left
+    );
+
     // Render header only if we have a logo
     if ( ! empty( $logo_url ) ) :
         ?>
         <div class="bw-minimal-checkout-header">
             <div class="bw-minimal-checkout-header__inner bw-minimal-checkout-header__inner--<?php echo esc_attr( $logo_align ); ?>">
-                <a href="<?php echo esc_url( $home_url ); ?>" class="bw-minimal-checkout-header__logo">
+                <a href="<?php echo esc_url( $home_url ); ?>" class="bw-minimal-checkout-header__logo" style="<?php echo esc_attr( $logo_styles ); ?>">
                     <img src="<?php echo esc_url( $logo_url ); ?>" alt="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>" />
                 </a>
                 <a href="<?php echo esc_url( $cart_url ); ?>" class="bw-minimal-checkout-header__cart" aria-label="<?php esc_attr_e( 'View cart', 'woocommerce' ); ?>">
