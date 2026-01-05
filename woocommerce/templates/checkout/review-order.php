@@ -39,8 +39,8 @@ $thumb_aspect      = $thumb_map[ $thumb_ratio ];
                 $product_permalink = apply_filters( 'woocommerce_cart_item_permalink', $product->is_visible() ? $product->get_permalink( $cart_item ) : '', $cart_item, $cart_item_key );
                 ?>
                 <tr class="cart_item bw-review-item" data-cart-item="<?php echo esc_attr( $cart_item_key ); ?>">
-                    <td class="product-thumbnail" style="width: <?php echo esc_attr( $thumb_width ); ?>px !important; min-width: <?php echo esc_attr( $thumb_width ); ?>px !important; max-width: <?php echo esc_attr( $thumb_width ); ?>px !important; padding-right: 10px !important;">
-                        <div class="bw-review-item__media" style="width: <?php echo esc_attr( $thumb_width ); ?>px !important; aspect-ratio: <?php echo esc_attr( $thumb_aspect ); ?> !important;">
+                    <td class="product-thumbnail" style="width: <?php echo esc_attr( $thumb_width ); ?>px; min-width: <?php echo esc_attr( $thumb_width ); ?>px; max-width: <?php echo esc_attr( $thumb_width ); ?>px; padding-right: 10px; padding-bottom: 15px;">
+                        <div class="bw-review-item__media" style="width: <?php echo esc_attr( $thumb_width ); ?>px; aspect-ratio: <?php echo esc_attr( $thumb_aspect ); ?>;">
                             <?php
                             $thumbnail_id = $product->get_image_id();
                             if ( $thumbnail_id ) {

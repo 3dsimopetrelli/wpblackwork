@@ -791,9 +791,7 @@ body.woocommerce-checkout .bw-checkout-right table.shop_table tbody .bw-review-i
 }
 
 body.woocommerce-checkout .bw-checkout-right table.shop_table tbody .bw-review-item td.product-thumbnail {
-    /* Width is controlled by inline styles in template - DO NOT override here */
-    padding-right: 10px !important;
-    padding-bottom: 15px !important;
+    /* ALL dimensions and spacing controlled by inline styles in template - DO NOT add any CSS here */
 }
 
 body.woocommerce-checkout .bw-checkout-right table.shop_table tbody .bw-review-item td.product-name {
@@ -1220,9 +1218,7 @@ body.woocommerce-checkout .bw-checkout-right .bw-qty-badge {
     }
 
     body.woocommerce-checkout .bw-checkout-right table.shop_table tbody .bw-review-item td.product-thumbnail {
-        /* Width is controlled by inline styles in template - DO NOT override here */
-        padding-right: 8px !important;
-        padding-bottom: 12px !important;
+        /* ALL dimensions and spacing controlled by inline styles in template - DO NOT add any CSS here */
     }
 
     body.woocommerce-checkout .bw-checkout-right table.shop_table tbody .bw-review-item:last-child td.product-thumbnail {
