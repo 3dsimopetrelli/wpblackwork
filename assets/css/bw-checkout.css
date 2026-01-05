@@ -791,9 +791,11 @@ body.woocommerce-checkout .bw-checkout-right table.shop_table tbody .bw-review-i
 }
 
 body.woocommerce-checkout .bw-checkout-right table.shop_table tbody .bw-review-item td.product-thumbnail {
-    width: var(--bw-thumb-width, 110px);
-    padding-right: 10px;
-    padding-bottom: 15px;
+    width: var(--bw-thumb-width, 110px) !important;
+    min-width: var(--bw-thumb-width, 110px) !important;
+    max-width: var(--bw-thumb-width, 110px) !important;
+    padding-right: 10px !important;
+    padding-bottom: 15px !important;
 }
 
 body.woocommerce-checkout .bw-checkout-right table.shop_table tbody .bw-review-item td.product-name {
@@ -802,8 +804,10 @@ body.woocommerce-checkout .bw-checkout-right table.shop_table tbody .bw-review-i
 }
 
 body.woocommerce-checkout .bw-checkout-right .bw-review-item__media {
-    width: var(--bw-thumb-width, 110px);
-    aspect-ratio: var(--bw-thumb-aspect, 1 / 1);
+    width: var(--bw-thumb-width, 110px) !important;
+    min-width: var(--bw-thumb-width, 110px) !important;
+    max-width: var(--bw-thumb-width, 110px) !important;
+    aspect-ratio: var(--bw-thumb-aspect, 1 / 1) !important;
     overflow: hidden;
     border-radius: 12px;
     border: 1px solid #e1e1e1;
@@ -1221,9 +1225,11 @@ body.woocommerce-checkout .bw-checkout-right .bw-qty-badge {
     }
 
     body.woocommerce-checkout .bw-checkout-right table.shop_table tbody .bw-review-item td.product-thumbnail {
-        width: calc(var(--bw-thumb-width, 110px) * 0.82);
-        padding-right: 8px;
-        padding-bottom: 12px;
+        width: calc(var(--bw-thumb-width, 110px) * 0.82) !important;
+        min-width: calc(var(--bw-thumb-width, 110px) * 0.82) !important;
+        max-width: calc(var(--bw-thumb-width, 110px) * 0.82) !important;
+        padding-right: 8px !important;
+        padding-bottom: 12px !important;
     }
 
     body.woocommerce-checkout .bw-checkout-right table.shop_table tbody .bw-review-item:last-child td.product-thumbnail {
@@ -1239,8 +1245,10 @@ body.woocommerce-checkout .bw-checkout-right .bw-qty-badge {
     }
 
     body.woocommerce-checkout .bw-checkout-right .bw-review-item__media {
-        width: calc(var(--bw-thumb-width, 110px) * 0.82);
-        aspect-ratio: var(--bw-thumb-aspect, 1 / 1);
+        width: calc(var(--bw-thumb-width, 110px) * 0.82) !important;
+        min-width: calc(var(--bw-thumb-width, 110px) * 0.82) !important;
+        max-width: calc(var(--bw-thumb-width, 110px) * 0.82) !important;
+        aspect-ratio: var(--bw-thumb-aspect, 1 / 1) !important;
     }
 
     body.woocommerce-checkout .bw-checkout-right .bw-review-item__content {
