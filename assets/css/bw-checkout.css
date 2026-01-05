@@ -5,6 +5,108 @@
  * Uses CSS variables for customizable colors
  */
 
+/* ============================================
+   MINIMAL CHECKOUT HEADER
+   ============================================ */
+
+/* Hide default theme header and footer on checkout page */
+body.woocommerce-checkout:not(.elementor-editor-active) header,
+body.woocommerce-checkout:not(.elementor-editor-active) .site-header,
+body.woocommerce-checkout:not(.elementor-editor-active) footer,
+body.woocommerce-checkout:not(.elementor-editor-active) .site-footer,
+body.woocommerce-checkout:not(.elementor-editor-active) .woocommerce-breadcrumb,
+body.woocommerce-checkout:not(.elementor-editor-active) .page-title,
+body.woocommerce-checkout:not(.elementor-editor-active) .entry-title {
+    display: none !important;
+}
+
+/* Minimal checkout header */
+.bw-minimal-checkout-header {
+    position: relative;
+    width: 100%;
+    background: #ffffff;
+    border-bottom: 1px solid #e0e0e0;
+    z-index: 100;
+}
+
+.bw-minimal-checkout-header__inner {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 20px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.bw-minimal-checkout-header__logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    margin: 0 auto;
+}
+
+.bw-minimal-checkout-header__logo img {
+    height: auto;
+    max-height: 40px;
+    width: auto;
+    max-width: 200px;
+    display: block;
+}
+
+.bw-minimal-checkout-header__cart {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border: 1.5px solid #000000;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #000000;
+    transition: all 0.2s ease;
+    background: #ffffff;
+}
+
+.bw-minimal-checkout-header__cart:hover {
+    background: #f5f5f5;
+    border-color: #333333;
+}
+
+.bw-minimal-checkout-header__cart svg {
+    width: 24px;
+    height: 24px;
+    display: block;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .bw-minimal-checkout-header__inner {
+        padding: 16px 12px;
+    }
+
+    .bw-minimal-checkout-header__logo img {
+        max-height: 32px;
+        max-width: 160px;
+    }
+
+    .bw-minimal-checkout-header__cart {
+        width: 40px;
+        height: 40px;
+        right: 12px;
+    }
+
+    .bw-minimal-checkout-header__cart svg {
+        width: 20px;
+        height: 20px;
+    }
+}
+
 /* Hide all WooCommerce notices on checkout page - AGGRESSIVE */
 .woocommerce-checkout .woocommerce-notices-wrapper,
 .woocommerce-checkout .woocommerce-message,
@@ -71,7 +173,7 @@ body.woocommerce-checkout {
 .bw-checkout-wrapper {
     max-width: 980px;
     margin: 0 auto;
-    padding: 16px 12px;
+    padding: 0 12px 16px 12px;
     background: var(--bw-checkout-page-bg, #ffffff);
 }
 
@@ -81,6 +183,7 @@ body.woocommerce-checkout .bw-checkout-grid {
     --bw-checkout-right-col: 38%;
     background: var(--bw-checkout-grid-bg, var(--bw-checkout-left-bg, #ffffff));
     position: relative;
+    padding-top: 40px;
 }
 
 /* Force all direct children of checkout grid to not break layout */
@@ -162,7 +265,7 @@ body.woocommerce-checkout .bw-checkout-right #order_review_inner {
 /* Desktop layout: CSS Grid with center separator */
 @media (min-width: 900px) {
     body.woocommerce-checkout .bw-checkout-wrapper {
-        padding: 0;
+        padding: 0 0 16px 0;
     }
 
     body.woocommerce-checkout .bw-checkout-grid {
@@ -1076,7 +1179,11 @@ body.woocommerce-checkout .bw-checkout-right .bw-qty-badge {
 /* Mobile responsiveness */
 @media (max-width: 899px) {
     body.woocommerce-checkout .bw-checkout-wrapper {
-        padding: 20px 10px;
+        padding: 0 10px 20px 10px;
+    }
+
+    body.woocommerce-checkout .bw-checkout-grid {
+        padding-top: 24px;
     }
 
     body.woocommerce-checkout .bw-checkout-left {

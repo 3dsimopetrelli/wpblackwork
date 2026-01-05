@@ -524,6 +524,57 @@ function bw_mew_get_passwordless_url() {
 }
 
 /**
+ * Render minimal checkout header with centered logo and cart icon.
+ */
+function bw_mew_render_checkout_header() {
+    if ( ! function_exists( 'is_checkout' ) || ! is_checkout() ) {
+        return;
+    }
+
+    // Get logo - prefer theme custom logo, fallback to checkout settings logo
+    $logo_url = '';
+    $home_url = home_url( '/' );
+
+    if ( function_exists( 'has_custom_logo' ) && has_custom_logo() ) {
+        $custom_logo_id = get_theme_mod( 'custom_logo' );
+        if ( $custom_logo_id ) {
+            $logo_data = wp_get_attachment_image_src( $custom_logo_id, 'full' );
+            if ( $logo_data ) {
+                $logo_url = $logo_data[0];
+            }
+        }
+    }
+
+    // Fallback to checkout settings logo if theme logo not available
+    if ( empty( $logo_url ) ) {
+        $settings = bw_mew_get_checkout_settings();
+        $logo_url = ! empty( $settings['logo'] ) ? $settings['logo'] : '';
+    }
+
+    // Get cart URL
+    $cart_url = function_exists( 'wc_get_cart_url' ) ? wc_get_cart_url() : home_url( '/cart/' );
+
+    // Render header only if we have a logo
+    if ( ! empty( $logo_url ) ) :
+        ?>
+        <div class="bw-minimal-checkout-header">
+            <div class="bw-minimal-checkout-header__inner">
+                <a href="<?php echo esc_url( $home_url ); ?>" class="bw-minimal-checkout-header__logo">
+                    <img src="<?php echo esc_url( $logo_url ); ?>" alt="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>" />
+                </a>
+                <a href="<?php echo esc_url( $cart_url ); ?>" class="bw-minimal-checkout-header__cart" aria-label="<?php esc_attr_e( 'View cart', 'woocommerce' ); ?>">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="4" y="6" width="16" height="14" rx="2" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                        <path d="M8 6V5C8 3.34315 9.34315 2 11 2H13C14.6569 2 16 3.34315 16 5V6" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+        <?php
+    endif;
+}
+
+/**
  * AJAX handler to remove coupon from cart.
  */
 function bw_mew_ajax_remove_coupon() {
