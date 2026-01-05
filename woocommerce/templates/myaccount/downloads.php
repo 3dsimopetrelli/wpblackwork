@@ -10,7 +10,8 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-$downloads = wc_get_customer_available_downloads();
+$customer_id = get_current_user_id();
+$downloads   = wc_get_customer_available_downloads( $customer_id );
 
 if ( ! is_array( $downloads ) ) {
     $downloads = [];
@@ -29,13 +30,7 @@ if ( ! is_array( $downloads ) ) {
                 }
 
                 $product_id   = isset( $download_item['product_id'] ) ? absint( $download_item['product_id'] ) : 0;
-                $download_url = '';
-
-                if ( ! empty( $download_item['download_url'] ) ) {
-                    $download_url = $download_item['download_url'];
-                } elseif ( ! empty( $download_item['file'] ) ) {
-                    $download_url = $download_item['file'];
-                }
+                $download_url = ! empty( $download_item['download_url'] ) ? (string) $download_item['download_url'] : '';
 
                 $product       = $product_id ? wc_get_product( $product_id ) : null;
                 $product_name  = $product ? $product->get_name() : '';
@@ -53,7 +48,13 @@ if ( ! is_array( $downloads ) ) {
                     $download_name = __( 'Product', 'bw' );
                 }
 
-                $thumbnail = $product ? $product->get_image( 'thumbnail' ) : wc_placeholder_img( 'thumbnail' );
+                if ( $product && $product->get_image_id() ) {
+                    $thumbnail = $product->get_image( 'thumbnail', [ 'class' => 'bw-download-thumb-img' ] );
+                } else {
+                    $thumbnail = function_exists( 'wc_placeholder_img' )
+                        ? wc_placeholder_img( 'thumbnail' )
+                        : '<div class="bw-download-thumb-placeholder"></div>';
+                }
 
                 if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
                     if ( empty( $download_item ) || ! $download_url ) {
@@ -74,10 +75,10 @@ if ( ! is_array( $downloads ) ) {
                                         <path d="M3 15h14v3H3z" fill="currentColor"/>
                                     </svg>
                                 </span>
-                                <?php esc_html_e( 'Download', 'bw' ); ?>
+                                <span><?php esc_html_e( 'Download', 'bw' ); ?></span>
                             </a>
                         <?php else : ?>
-                            <span class="bw-download-button is-disabled" aria-disabled="true">
+                            <span class="bw-download-unavailable" aria-disabled="true">
                                 <?php esc_html_e( 'Unavailable', 'bw' ); ?>
                             </span>
                         <?php endif; ?>

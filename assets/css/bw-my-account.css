@@ -287,6 +287,13 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
     display: block;
 }
 
+.bw-download-thumb-placeholder {
+    width: 56px;
+    height: 56px;
+    border-radius: 8px;
+    background: #eaeaea;
+}
+
 .bw-download-title {
     font-size: 16px;
     font-weight: 500;
@@ -309,7 +316,11 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
     border: none;
 }
 
-.bw-download-button.is-disabled {
+.bw-download-unavailable {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 14px;
+    border-radius: 8px;
     background: #d5d5d5;
     color: #666;
     cursor: not-allowed;
@@ -320,7 +331,7 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
     color: #666;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
     .bw-download-row {
         grid-template-columns: 48px 1fr;
         grid-template-areas:
