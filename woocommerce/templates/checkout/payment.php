@@ -16,6 +16,9 @@ if ( ! wp_doing_ajax() ) {
 }
 ?>
 <div id="payment" class="woocommerce-checkout-payment">
+	<h2 class="bw-payment-section-title"><?php esc_html_e( 'Payment', 'woocommerce' ); ?></h2>
+	<p class="bw-payment-section-subtitle"><?php esc_html_e( 'All transactions are secure and encrypted.', 'woocommerce' ); ?></p>
+
 	<?php if ( WC()->cart->needs_payment() ) : ?>
 		<ul class="bw-payment-methods wc_payment_methods payment_methods methods">
 			<?php
@@ -50,12 +53,13 @@ if ( ! wp_doing_ajax() ) {
 								if ( strpos( $gateway_type, 'stripe' ) !== false ||
 								     strpos( $gateway_type, 'card' ) !== false ||
 								     strpos( $gateway_type, 'credit' ) !== false ) {
-									// Use colored card brand icons
-									$icon_html = '<img src="https://cdn.worldvectorlogo.com/logos/visa-logo.svg" alt="Visa" style="height:24px;width:auto;" />';
-									$icon_html .= '<img src="https://cdn.worldvectorlogo.com/logos/maestro-1.svg" alt="Maestro" style="height:24px;width:auto;" />';
-									$icon_html .= '<img src="https://cdn.worldvectorlogo.com/logos/mastercard-2.svg" alt="Mastercard" style="height:24px;width:auto;" />';
-									$icon_html .= '<img src="https://cdn.worldvectorlogo.com/logos/american-express-2.svg" alt="Amex" style="height:24px;width:auto;" />';
-									$icon_html .= '<img src="https://cdn.worldvectorlogo.com/logos/discover-1.svg" alt="Discover" style="height:24px;width:auto;" />';
+									// Use local colored card brand icons
+									$icons_url = BW_MEW_URL . 'assets/images/payment-icons/';
+									$icon_html = '<img src="' . $icons_url . 'visa.svg" alt="Visa" />';
+									$icon_html .= '<img src="' . $icons_url . 'mastercard.svg" alt="Mastercard" />';
+									$icon_html .= '<img src="' . $icons_url . 'maestro.svg" alt="Maestro" />';
+									$icon_html .= '<img src="' . $icons_url . 'amex.svg" alt="American Express" />';
+									$icon_html .= '<img src="' . $icons_url . 'discover.svg" alt="Discover" />';
 								}
 
 								if ( $icon_html ) :

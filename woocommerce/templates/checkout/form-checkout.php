@@ -87,15 +87,17 @@ if ( ! $checkout->is_registration_enabled() && $checkout->is_registration_requir
     <?php echo esc_html( $page_background_styles ); ?>
 </style>
 
+<?php
+// Render minimal checkout header
+if ( function_exists( 'bw_mew_render_checkout_header' ) ) {
+    bw_mew_render_checkout_header();
+}
+?>
+
 <form name="checkout" method="post" class="checkout woocommerce-checkout bw-checkout-form" action="<?php echo esc_url( wc_get_checkout_url() ); ?>" enctype="multipart/form-data">
     <div class="bw-checkout-wrapper" style="<?php echo esc_attr( $grid_inline_styles ); ?>">
         <div class="bw-checkout-grid" style="<?php echo esc_attr( $grid_inline_styles ); ?>">
             <div class="bw-checkout-left">
-                <?php if ( ! empty( $settings['logo'] ) ) : ?>
-                    <div class="bw-checkout-logo bw-checkout-logo--<?php echo esc_attr( isset( $settings['logo_align'] ) ? $settings['logo_align'] : 'left' ); ?>" style="padding: <?php echo esc_attr( $settings['logo_padding_top'] ); ?>px <?php echo esc_attr( $settings['logo_padding_right'] ); ?>px <?php echo esc_attr( $settings['logo_padding_bottom'] ); ?>px <?php echo esc_attr( $settings['logo_padding_left'] ); ?>px;">
-                        <img src="<?php echo esc_url( $settings['logo'] ); ?>" alt="<?php esc_attr_e( 'Checkout logo', 'bw' ); ?>" style="max-width: <?php echo esc_attr( $settings['logo_width'] ); ?>px;" />
-                    </div>
-                <?php endif; ?>
 
                 <?php if ( $checkout->get_checkout_fields() ) : ?>
                     <?php do_action( 'woocommerce_checkout_before_customer_details' ); ?>
