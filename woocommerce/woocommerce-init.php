@@ -34,8 +34,37 @@ function bw_mew_initialize_woocommerce_overrides() {
     add_action( 'woocommerce_checkout_update_order_review', 'bw_mew_sync_checkout_cart_quantities', 10, 1 );
     add_action( 'wp_ajax_bw_remove_coupon', 'bw_mew_ajax_remove_coupon' );
     add_action( 'wp_ajax_nopriv_bw_remove_coupon', 'bw_mew_ajax_remove_coupon' );
+    add_filter( 'the_title', 'bw_mew_filter_account_page_title', 10, 2 );
 }
 add_action( 'plugins_loaded', 'bw_mew_initialize_woocommerce_overrides' );
+
+/**
+ * Remove the theme-rendered page title on WooCommerce account pages.
+ *
+ * @param string $title   The post title.
+ * @param int    $post_id Post ID.
+ *
+ * @return string
+ */
+function bw_mew_filter_account_page_title( $title, $post_id ) {
+    if ( is_admin() ) {
+        return $title;
+    }
+
+    if ( ! function_exists( 'is_account_page' ) || ! is_account_page() ) {
+        return $title;
+    }
+
+    if ( ! is_main_query() || ! in_the_loop() ) {
+        return $title;
+    }
+
+    if ( ! is_singular() ) {
+        return $title;
+    }
+
+    return '';
+}
 
 /**
  * Force WooCommerce to use plugin templates before theme overrides.
