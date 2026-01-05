@@ -840,11 +840,10 @@ body.woocommerce-checkout .bw-checkout-right .bw-review-item__controls a.bw-revi
     cursor: pointer;
     white-space: nowrap;
     background: transparent;
-    line-height: 25px;
 }
 
 body.woocommerce-checkout .bw-checkout-right .bw-review-item__controls a.bw-review-item__remove-text.remove:hover {
-    color: #666666;
+    color: #999999;
     text-decoration: underline;
 }
 
