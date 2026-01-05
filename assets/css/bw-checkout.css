@@ -529,29 +529,49 @@ body.woocommerce-checkout .bw-checkout-wrapper .bw-checkout-express__or span {
     text-align: center;
 }
 
+/* Hide original WCPay separator (keep in DOM for plugin compatibility) */
 body.woocommerce-checkout #wcpay-express-checkout-button-separator {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+/* Custom perfect divider - Two continuous lines with centered OR */
+.bw-express-divider {
     display: flex;
     align-items: center;
     justify-content: center;
     width: 100%;
-    text-align: center;
+    margin: 20px 0;
 }
 
-body.woocommerce-checkout #wcpay-express-checkout-button-separator::before,
-body.woocommerce-checkout #wcpay-express-checkout-button-separator::after {
+.bw-express-divider::before,
+.bw-express-divider::after {
     content: "";
-    display: block;
-    flex: 1 1 0%;
+    flex: 1;
     height: 1px;
-    background: currentColor;
+    background: #cccccc;
 }
 
-body.woocommerce-checkout #wcpay-express-checkout-button-separator::before {
-    margin-right: 0;
+.bw-express-divider::before {
+    margin-right: 16px;
 }
 
-body.woocommerce-checkout #wcpay-express-checkout-button-separator::after {
-    margin-left: 0;
+.bw-express-divider::after {
+    margin-left: 16px;
+}
+
+.bw-express-divider span {
+    font-size: 14px;
+    font-weight: 400;
+    color: #666666;
+    line-height: 1;
 }
 
 body.woocommerce-checkout .wcpay-express-checkout-wrapper {
