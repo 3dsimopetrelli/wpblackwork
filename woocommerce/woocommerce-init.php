@@ -524,12 +524,16 @@ function bw_mew_get_passwordless_url() {
 }
 
 /**
- * Render minimal checkout header with centered logo and cart icon.
+ * Render minimal checkout header with logo and cart icon.
  */
 function bw_mew_render_checkout_header() {
     if ( ! function_exists( 'is_checkout' ) || ! is_checkout() ) {
         return;
     }
+
+    // Get checkout settings for logo alignment
+    $settings = bw_mew_get_checkout_settings();
+    $logo_align = ! empty( $settings['logo_align'] ) ? $settings['logo_align'] : 'center';
 
     // Get logo - prefer theme custom logo, fallback to checkout settings logo
     $logo_url = '';
@@ -547,7 +551,6 @@ function bw_mew_render_checkout_header() {
 
     // Fallback to checkout settings logo if theme logo not available
     if ( empty( $logo_url ) ) {
-        $settings = bw_mew_get_checkout_settings();
         $logo_url = ! empty( $settings['logo'] ) ? $settings['logo'] : '';
     }
 
@@ -558,7 +561,7 @@ function bw_mew_render_checkout_header() {
     if ( ! empty( $logo_url ) ) :
         ?>
         <div class="bw-minimal-checkout-header">
-            <div class="bw-minimal-checkout-header__inner">
+            <div class="bw-minimal-checkout-header__inner bw-minimal-checkout-header__inner--<?php echo esc_attr( $logo_align ); ?>">
                 <a href="<?php echo esc_url( $home_url ); ?>" class="bw-minimal-checkout-header__logo">
                     <img src="<?php echo esc_url( $logo_url ); ?>" alt="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>" />
                 </a>
