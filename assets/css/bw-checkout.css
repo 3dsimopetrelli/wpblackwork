@@ -581,10 +581,22 @@ body.woocommerce-checkout #wc-stripe-express-checkout-element {
     grid-template-columns: 1fr 1fr !important;
     gap: 12px !important;
     width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
 }
 
 body.woocommerce-checkout #wc-stripe-express-checkout-element > div {
     width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+}
+
+body.woocommerce-checkout #wc-stripe-express-checkout-element iframe,
+body.woocommerce-checkout #wc-stripe-express-checkout-element > div > div {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
 }
 
 body.woocommerce-checkout .wcpay-express-checkout-wrapper {
