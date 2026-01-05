@@ -1229,27 +1229,27 @@ body.woocommerce-checkout .bw-checkout-right .bw-order-summary table.shop_table 
         padding-bottom: 25px;
     }
 
-    /* Mobile quantity controls - maintain 25px height */
-    body.woocommerce-checkout .bw-checkout-right .bw-qty-control {
+    /* Mobile quantity controls - maintain 25px height with high specificity */
+    body.woocommerce-checkout .bw-checkout-right .bw-order-summary table.shop_table tbody .bw-review-item td.product-name .bw-review-item__content .bw-review-item__controls .bw-qty-control {
         flex-wrap: wrap;
     }
 
-    body.woocommerce-checkout .bw-checkout-right .bw-qty-shell {
-        grid-template-columns: 22px 30px 22px;
-        height: 25px;
+    body.woocommerce-checkout .bw-checkout-right .bw-order-summary table.shop_table tbody .bw-review-item td.product-name .bw-review-item__content .bw-review-item__controls .bw-qty-control .bw-qty-shell {
+        grid-template-columns: 22px 30px 22px !important;
+        height: 25px !important;
     }
 
-    body.woocommerce-checkout .bw-checkout-right .bw-qty-btn {
-        height: 25px;
-        font-size: 13px;
-        line-height: 25px;
+    body.woocommerce-checkout .bw-checkout-right .bw-order-summary table.shop_table tbody .bw-review-item td.product-name .bw-review-item__content .bw-review-item__controls .bw-qty-control .bw-qty-shell .bw-qty-btn {
+        height: 25px !important;
+        font-size: 13px !important;
+        line-height: 25px !important;
     }
 
-    body.woocommerce-checkout .bw-checkout-right .bw-qty-shell input.qty {
-        width: 30px;
-        height: 25px;
-        font-size: 12px;
-        line-height: 25px;
+    body.woocommerce-checkout .bw-checkout-right .bw-order-summary table.shop_table tbody .bw-review-item td.product-name .bw-review-item__content .bw-review-item__controls .bw-qty-control .bw-qty-shell input.qty {
+        width: 30px !important;
+        height: 25px !important;
+        font-size: 12px !important;
+        line-height: 25px !important;
     }
 
     .bw-checkout-logo img {
