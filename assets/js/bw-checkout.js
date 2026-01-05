@@ -97,7 +97,10 @@
 
             var $ = window.jQuery;
 
-            // Use our custom AJAX endpoint to remove the coupon
+            // FIX: Use our custom AJAX endpoint to remove the coupon with proper timing
+            // The key fix is adding a delay before triggering update_checkout to ensure
+            // the session is fully persisted on the server before WooCommerce's checkout
+            // refresh reads it. This prevents the race condition where the coupon re-applies.
             $.ajax({
                 type: 'POST',
                 url: bwCheckoutParams.ajax_url,
@@ -108,8 +111,16 @@
                 },
                 success: function (response) {
                     if (response.success) {
-                        // Trigger checkout update to refresh totals
-                        $(document.body).trigger('update_checkout');
+                        // Trigger WooCommerce's standard removed_coupon event for proper integration
+                        $(document.body).trigger('removed_coupon', [couponCode]);
+
+                        // CRITICAL FIX: Add a 150ms delay before triggering checkout update
+                        // This ensures the PHP session save has fully committed to database/storage
+                        // before WooCommerce's AJAX handler reads the session during fragment refresh
+                        setTimeout(function() {
+                            // Trigger checkout update to refresh totals and fragments
+                            $(document.body).trigger('update_checkout');
+                        }, 150);
                     } else {
                         setOrderSummaryLoading(false);
                         showCouponMessage(response.data.message || 'Error removing coupon', 'error');
@@ -164,10 +175,15 @@
                     showCouponMessage('Coupon code applied successfully', 'success');
                 })
                 .on('removed_coupon', function (event, couponCode) {
-                    // Don't set loading here - it's already handled by AJAX call
-                    showCouponMessage('Coupon code removed', 'success');
+                    // FIX: Don't set loading or show message here - it's already handled by our custom AJAX call
+                    // This event is triggered by our custom handler for integration with WooCommerce ecosystem
+                    // Just ensure loading state is set (in case called from elsewhere)
+                    setOrderSummaryLoading(true);
                 })
-                .on('updated_checkout checkout_error', function () {
+                .on('updated_checkout', function () {
+                    setOrderSummaryLoading(false);
+                })
+                .on('checkout_error', function () {
                     setOrderSummaryLoading(false);
                 });
 
