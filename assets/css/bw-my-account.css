@@ -6,12 +6,22 @@
     padding: 24px 0;
 }
 
+.bw-account-page-header {
+    grid-column: 1 / -1;
+}
+
 .bw-account-navigation {
     position: sticky;
     top: 32px;
 }
 
-.woocommerce-MyAccount-navigation ul {
+body.woocommerce-account .woocommerce-MyAccount-navigation {
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+}
+
+body.woocommerce-account .woocommerce-MyAccount-navigation ul {
     list-style: none;
     margin: 0;
     padding: 0;
@@ -20,20 +30,32 @@
     gap: 8px;
 }
 
-.woocommerce-MyAccount-navigation li a {
+body.woocommerce-account .woocommerce-MyAccount-navigation li {
+    margin: 0;
+}
+
+body.woocommerce-account .woocommerce-MyAccount-navigation li a {
     display: flex;
     align-items: center;
     gap: 12px;
     padding: 10px 12px;
-    border-radius: 8px;
+    border-radius: 0;
     text-decoration: none;
     color: #1f1f1f;
-    background: #f6f6f6;
+    background: transparent;
+    border-left: 3px solid transparent;
 }
 
-.woocommerce-MyAccount-navigation li.is-active a {
-    background: #000;
-    color: #fff;
+body.woocommerce-account .woocommerce-MyAccount-navigation li a:hover,
+body.woocommerce-account .woocommerce-MyAccount-navigation li a:focus {
+    background: #f4f4f4;
+    color: #1f1f1f;
+}
+
+body.woocommerce-account .woocommerce-MyAccount-navigation li.is-active a {
+    color: #000;
+    font-weight: 600;
+    border-left-color: #000;
 }
 
 .bw-account-icon svg {
@@ -74,7 +96,7 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
 
 .bw-account-dashboard .bw-account-hero {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: 2fr 3fr;
     gap: 16px;
     margin-bottom: 24px;
 }
@@ -82,7 +104,9 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
 .bw-hero-box {
     border-radius: 12px;
     padding: 20px;
-    min-height: 180px;
+    min-height: 270px;
+    display: flex;
+    flex-direction: column;
 }
 
 .bw-hero-welcome {
@@ -113,9 +137,32 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
     line-height: 1.5;
 }
 
+.bw-hero-footer {
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 2px solid #e5e5e5;
+}
+
+.bw-hero-link {
+    display: inline-flex;
+    align-items: center;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 13px;
+    font-weight: 600;
+    color: inherit;
+    text-decoration: none;
+}
+
 .bw-hero-description a {
     color: inherit;
     font-weight: 600;
+}
+
+@media (max-width: 768px) {
+    .bw-account-dashboard .bw-account-hero {
+        grid-template-columns: 1fr;
+    }
 }
 
 .bw-dashboard-section {
