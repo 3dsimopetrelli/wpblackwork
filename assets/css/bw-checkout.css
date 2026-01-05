@@ -898,7 +898,7 @@ body.woocommerce-checkout .bw-checkout-right .bw-order-summary table.shop_table 
     cursor: pointer;
     font-size: 14px !important;
     font-weight: 400 !important;
-    line-height: 25px !important;
+    line-height: 1 !important;
     color: #000000 !important;
     padding: 0 !important;
     margin: 0 !important;
@@ -1245,7 +1245,7 @@ body.woocommerce-checkout .bw-checkout-right .bw-order-summary table.shop_table 
     body.woocommerce-checkout .bw-checkout-right .bw-order-summary table.shop_table tbody .bw-review-item td.product-name .bw-review-item__content .bw-review-item__controls .bw-qty-control .bw-qty-shell .bw-qty-btn {
         height: 25px !important;
         font-size: 13px !important;
-        line-height: 25px !important;
+        line-height: 1 !important;
     }
 
     body.woocommerce-checkout .bw-checkout-right .bw-order-summary table.shop_table tbody .bw-review-item td.product-name .bw-review-item__content .bw-review-item__controls .bw-qty-control .bw-qty-shell input.qty {
