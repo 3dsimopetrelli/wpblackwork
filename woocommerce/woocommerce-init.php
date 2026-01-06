@@ -37,6 +37,7 @@ function bw_mew_initialize_woocommerce_overrides() {
     add_filter( 'the_title', 'bw_mew_filter_account_page_title', 10, 2 );
     add_filter( 'woocommerce_available_payment_gateways', 'bw_mew_hide_paypal_advanced_card_processing' );
     add_filter( 'wc_stripe_elements_options', 'bw_mew_customize_stripe_elements_style' );
+    add_filter( 'wc_stripe_upe_params', 'bw_mew_customize_stripe_upe_appearance' );
 }
 add_action( 'plugins_loaded', 'bw_mew_initialize_woocommerce_overrides' );
 
@@ -894,4 +895,54 @@ function bw_mew_customize_stripe_elements_style( $options ) {
     );
 
     return $options;
+}
+
+/**
+ * Customize Stripe UPE (Unified Payment Element) appearance.
+ * This filter modifies the JavaScript params passed to Stripe UPE iframe.
+ *
+ * @param array $params UPE initialization params.
+ * @return array Modified params with custom appearance.
+ */
+function bw_mew_customize_stripe_upe_appearance( $params ) {
+    // Add appearance configuration to UPE params
+    $params['appearance'] = array(
+        'theme' => 'flat',
+        'variables' => array(
+            'colorPrimary' => '#000000',
+            'colorBackground' => '#ffffff',
+            'colorText' => '#1f2937',
+            'colorDanger' => '#991b1b',
+            'colorSuccess' => '#27ae60',
+            'fontFamily' => '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+            'fontSizeBase' => '15px',
+            'fontWeightNormal' => '400',
+            'fontWeightMedium' => '500',
+            'borderRadius' => '8px',
+            'spacingUnit' => '4px',
+        ),
+        'rules' => array(
+            '.Input' => array(
+                'border' => '1px solid #d1d5db',
+                'boxShadow' => '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+                'padding' => '16px 18px',
+            ),
+            '.Input:hover' => array(
+                'borderColor' => '#9ca3af',
+            ),
+            '.Input:focus' => array(
+                'borderColor' => '#3b82f6',
+                'boxShadow' => '0 0 0 3px rgba(59, 130, 246, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+            ),
+            '.Input--invalid' => array(
+                'borderColor' => '#fecaca',
+                'backgroundColor' => '#fef2f2',
+            ),
+            '.Label' => array(
+                'display' => 'none',
+            ),
+        ),
+    );
+
+    return $params;
 }
