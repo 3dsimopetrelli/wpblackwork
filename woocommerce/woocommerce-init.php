@@ -35,6 +35,7 @@ function bw_mew_initialize_woocommerce_overrides() {
     add_action( 'wp_ajax_bw_remove_coupon', 'bw_mew_ajax_remove_coupon' );
     add_action( 'wp_ajax_nopriv_bw_remove_coupon', 'bw_mew_ajax_remove_coupon' );
     add_filter( 'the_title', 'bw_mew_filter_account_page_title', 10, 2 );
+    add_filter( 'woocommerce_available_payment_gateways', 'bw_mew_hide_paypal_advanced_card_processing' );
 }
 add_action( 'plugins_loaded', 'bw_mew_initialize_woocommerce_overrides' );
 
@@ -212,6 +213,19 @@ function bw_mew_enqueue_checkout_assets() {
             [ 'jquery', 'wc-checkout' ],
             filemtime( $payment_js_file ),
             true
+        );
+    }
+
+    // Enqueue Stripe Elements custom styling (Shopify style)
+    $stripe_style_js_file = BW_MEW_PATH . 'assets/js/bw-stripe-elements-style.js';
+
+    if ( file_exists( $stripe_style_js_file ) ) {
+        wp_enqueue_script(
+            'bw-stripe-elements-style',
+            BW_MEW_URL . 'assets/js/bw-stripe-elements-style.js',
+            [ 'jquery' ], // Load early, before Stripe initializes
+            filemtime( $stripe_style_js_file ),
+            false // Load in header to intercept Stripe initialization
         );
     }
 }
@@ -816,4 +830,28 @@ function bw_mew_ajax_remove_coupon() {
         'applied_coupons' => WC()->cart->get_applied_coupons(),
         'cart_hash'       => WC()->cart->get_cart_hash(), // Return hash to verify state change
     ) );
+}
+
+/**
+ * Hide PayPal Advanced Card Processing gateway (duplicate of Stripe).
+ * We use Stripe for all card payments.
+ *
+ * @param array $available_gateways Available payment gateways.
+ * @return array Filtered payment gateways.
+ */
+function bw_mew_hide_paypal_advanced_card_processing( $available_gateways ) {
+    if ( ! is_admin() && is_checkout() ) {
+        // Remove PayPal Advanced Card Processing (ppcp-credit-card-gateway)
+        // This is a duplicate of Stripe and causes confusion
+        if ( isset( $available_gateways['ppcp-credit-card-gateway'] ) ) {
+            unset( $available_gateways['ppcp-credit-card-gateway'] );
+        }
+
+        // Also remove WooCommerce Payments if present (another duplicate)
+        if ( isset( $available_gateways['woocommerce_payments'] ) ) {
+            unset( $available_gateways['woocommerce_payments'] );
+        }
+    }
+
+    return $available_gateways;
 }

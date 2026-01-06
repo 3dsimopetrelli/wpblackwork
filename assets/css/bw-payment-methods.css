@@ -145,7 +145,7 @@ body.woocommerce-checkout .bw-payment-method {
 	border-radius: var(--bw-pm-radius-md);
 	margin: 0 0 var(--bw-pm-spacing-sm) 0;
 	transition: all var(--bw-pm-transition-smooth);
-	overflow: hidden;
+	overflow: visible;
 	position: relative;
 }
 
