@@ -142,8 +142,9 @@ body.woocommerce-checkout ul.bw-payment-methods {
 body.woocommerce-checkout .bw-payment-method {
 	background: var(--bw-pm-bg);
 	border: 1px solid var(--bw-pm-border);
-	border-radius: var(--bw-pm-radius-md);
-	margin: 0 0 var(--bw-pm-spacing-sm) 0;
+	border-radius: 0;
+	margin: 0;
+	margin-top: -1px;
 	transition: all var(--bw-pm-transition-smooth);
 	overflow: hidden;
 	position: relative;
@@ -156,8 +157,20 @@ body.woocommerce-checkout .bw-payment-method::after {
 	content: none !important;
 }
 
+/* First payment method - round top corners */
+body.woocommerce-checkout .bw-payment-method:first-child {
+	border-radius: 8px 8px 0 0;
+	margin-top: 0;
+}
+
+/* Last payment method - round bottom corners */
 body.woocommerce-checkout .bw-payment-method:last-child {
-	margin-bottom: 0;
+	border-radius: 0 0 8px 8px;
+}
+
+/* If there's only one payment method - round all corners */
+body.woocommerce-checkout .bw-payment-method:first-child:last-child {
+	border-radius: 8px;
 }
 
 /* State: Hover */
@@ -202,13 +215,15 @@ body.woocommerce-checkout .bw-payment-method.is-selected .bw-payment-method__hea
 body.woocommerce-checkout .bw-payment-method__header {
 	display: flex;
 	align-items: center;
-	padding: 18px 20px;
+	padding: 16px 20px;
+	min-height: 55px;
+	max-height: 55px;
 	cursor: pointer;
 	position: relative;
 	gap: 14px;
 	background: var(--bw-pm-bg);
 	transition: background-color var(--bw-pm-transition-smooth), color var(--bw-pm-transition-base);
-	border-radius: var(--bw-pm-radius-md) var(--bw-pm-radius-md) 0 0;
+	border-radius: 0;
 }
 
 /* Remove any ::before or ::after from payment header */
@@ -418,7 +433,7 @@ body.woocommerce-checkout .bw-payment-method__content {
 	            border-color 0.35s ease;
 	padding: 0;
 	margin: 0;
-	border-radius: 0 0 var(--bw-pm-radius-md) var(--bw-pm-radius-md);
+	border-radius: 0;
 }
 
 /* Panel State: Open */
