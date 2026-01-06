@@ -166,6 +166,12 @@ body.woocommerce-checkout .bw-payment-method:first-child {
 /* Last payment method - round bottom corners */
 body.woocommerce-checkout .bw-payment-method:last-child {
 	border-radius: 0 0 8px 8px;
+	overflow: hidden;
+}
+
+/* Last payment method header should also have bottom rounded corners if no content */
+body.woocommerce-checkout .bw-payment-method:last-child .bw-payment-method__header {
+	border-radius: 0 0 8px 8px;
 }
 
 /* If there's only one payment method - round all corners */
@@ -216,8 +222,10 @@ body.woocommerce-checkout .bw-payment-method__header {
 	display: flex;
 	align-items: center;
 	padding: 16px 20px;
+	height: 55px;
 	min-height: 55px;
 	max-height: 55px;
+	box-sizing: border-box;
 	cursor: pointer;
 	position: relative;
 	gap: 14px;
