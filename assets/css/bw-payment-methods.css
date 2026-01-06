@@ -844,6 +844,26 @@ body.woocommerce-checkout .bw-payment-method__fields .wc-stripe-upe-element .__P
 	margin: 0;
 }
 
+/* Remove any ::before pseudo-element from payment box */
+body.woocommerce-checkout .bw-payment-method__content.payment_box::before,
+body.woocommerce-checkout .payment_box.payment_method_stripe::before {
+	display: none !important;
+	content: none !important;
+}
+
+/* Specific selectors to hide Stripe UPE Card header and icon */
+body.woocommerce-checkout .payment_method_stripe .wc-stripe-upe-element {
+	position: relative;
+	min-height: 200px;
+}
+
+/* Hide the Card header by clipping the top portion of the iframe */
+body.woocommerce-checkout .payment_method_stripe .wc-stripe-upe-element iframe {
+	position: relative;
+	top: -70px;
+	margin-bottom: -70px;
+}
+
 /* ============================================
    PAYPAL BUTTON
    Specificity: (0,1,2)
