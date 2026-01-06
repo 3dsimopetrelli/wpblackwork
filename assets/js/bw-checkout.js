@@ -324,4 +324,52 @@
     } else {
         initCustomSticky();
     }
+
+    // Floating label for coupon input
+    function initFloatingLabel() {
+        var couponInput = document.getElementById('coupon_code');
+        var wrapper = couponInput ? couponInput.closest('.bw-coupon-input-wrapper') : null;
+
+        if (!couponInput || !wrapper) {
+            return;
+        }
+
+        function updateHasValue() {
+            if (couponInput.value.trim() !== '') {
+                wrapper.classList.add('has-value');
+            } else {
+                wrapper.classList.remove('has-value');
+            }
+        }
+
+        // Check on input
+        couponInput.addEventListener('input', updateHasValue);
+
+        // Check on page load (in case of browser autofill)
+        updateHasValue();
+
+        // Re-check after WooCommerce checkout update
+        if (window.jQuery) {
+            window.jQuery(document.body).on('updated_checkout', function() {
+                var newCouponInput = document.getElementById('coupon_code');
+                var newWrapper = newCouponInput ? newCouponInput.closest('.bw-coupon-input-wrapper') : null;
+
+                if (newCouponInput && newWrapper) {
+                    couponInput = newCouponInput;
+                    wrapper = newWrapper;
+
+                    // Re-attach listener to new element
+                    couponInput.addEventListener('input', updateHasValue);
+                    updateHasValue();
+                }
+            });
+        }
+    }
+
+    // Initialize floating label
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initFloatingLabel);
+    } else {
+        initFloatingLabel();
+    }
 })();
