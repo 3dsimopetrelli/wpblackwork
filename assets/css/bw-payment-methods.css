@@ -145,8 +145,15 @@ body.woocommerce-checkout .bw-payment-method {
 	border-radius: var(--bw-pm-radius-md);
 	margin: 0 0 var(--bw-pm-spacing-sm) 0;
 	transition: all var(--bw-pm-transition-smooth);
-	overflow: visible;
+	overflow: hidden;
 	position: relative;
+}
+
+/* Remove any ::before or ::after from payment method that could break borders */
+body.woocommerce-checkout .bw-payment-method::before,
+body.woocommerce-checkout .bw-payment-method::after {
+	display: none !important;
+	content: none !important;
 }
 
 body.woocommerce-checkout .bw-payment-method:last-child {
@@ -201,6 +208,14 @@ body.woocommerce-checkout .bw-payment-method__header {
 	gap: 14px;
 	background: var(--bw-pm-bg);
 	transition: background-color var(--bw-pm-transition-smooth), color var(--bw-pm-transition-base);
+	border-radius: var(--bw-pm-radius-md) var(--bw-pm-radius-md) 0 0;
+}
+
+/* Remove any ::before or ::after from payment header */
+body.woocommerce-checkout .bw-payment-method__header::before,
+body.woocommerce-checkout .bw-payment-method__header::after {
+	display: none !important;
+	content: none !important;
 }
 
 /* Radio Button */
