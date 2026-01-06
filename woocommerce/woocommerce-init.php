@@ -215,6 +215,19 @@ function bw_mew_enqueue_checkout_assets() {
             true
         );
     }
+
+    // Enqueue Stripe Elements custom styling (Shopify style)
+    $stripe_style_js_file = BW_MEW_PATH . 'assets/js/bw-stripe-elements-style.js';
+
+    if ( file_exists( $stripe_style_js_file ) ) {
+        wp_enqueue_script(
+            'bw-stripe-elements-style',
+            BW_MEW_URL . 'assets/js/bw-stripe-elements-style.js',
+            [ 'jquery' ], // Load early, before Stripe initializes
+            filemtime( $stripe_style_js_file ),
+            false // Load in header to intercept Stripe initialization
+        );
+    }
 }
 
 /**
