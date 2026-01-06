@@ -1041,13 +1041,15 @@ body.woocommerce-checkout .bw-checkout-right .bw-qty-badge {
 
 .bw-review-coupon input[type="text"]:focus {
     outline: none;
-    border-color: #ccc;
+    border: 2px solid #000 !important;
     background: #fff;
+    padding: 13px 17px !important; /* Reduced by 1px to compensate for 2px border (was 14px 18px with 1px border) */
 }
 
 .bw-review-coupon input[type="text"]::placeholder {
     color: #999;
     font-weight: 400;
+    font-size: 13px;
 }
 
 .bw-review-coupon button[type="submit"],
