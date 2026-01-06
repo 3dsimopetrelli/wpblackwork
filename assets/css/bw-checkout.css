@@ -1152,6 +1152,7 @@ body.woocommerce-checkout .bw-checkout-right .bw-qty-badge {
     font-size: 13px;
     font-weight: 600;
     display: none;
+    transition: opacity 0.3s ease-in-out;
 }
 
 .bw-review-coupon .bw-coupon-message.success,

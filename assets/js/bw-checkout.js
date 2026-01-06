@@ -142,19 +142,75 @@
 
     // Payment methods accordion logic moved to bw-payment-methods.js
 
+    // Store active message to persist through checkout updates
+    var activeCouponMessage = null;
+    var messageTimer = null;
+
     function showCouponMessage(message, type) {
         var messageEl = document.getElementById('bw-coupon-message');
         if (!messageEl) {
             return;
         }
 
+        // Store message for persistence through DOM updates
+        activeCouponMessage = { message: message, type: type, timestamp: Date.now() };
+
+        // Clear any existing timer
+        if (messageTimer) {
+            clearTimeout(messageTimer);
+        }
+
+        // Show message
         messageEl.className = 'bw-coupon-message ' + type;
         messageEl.textContent = message;
+        messageEl.style.opacity = '1';
 
-        // Auto hide after 5 seconds
-        setTimeout(function() {
-            messageEl.className = 'bw-coupon-message';
+        // Auto hide after 5 seconds with fade-out
+        messageTimer = setTimeout(function() {
+            messageEl.style.opacity = '0';
+            setTimeout(function() {
+                messageEl.className = 'bw-coupon-message';
+                messageEl.style.opacity = '';
+                activeCouponMessage = null;
+            }, 300); // Wait for fade-out animation
         }, 5000);
+    }
+
+    function restoreCouponMessage() {
+        if (!activeCouponMessage) {
+            return;
+        }
+
+        // Only restore if message is less than 5 seconds old
+        var age = Date.now() - activeCouponMessage.timestamp;
+        if (age > 5000) {
+            activeCouponMessage = null;
+            return;
+        }
+
+        var messageEl = document.getElementById('bw-coupon-message');
+        if (!messageEl) {
+            return;
+        }
+
+        messageEl.className = 'bw-coupon-message ' + activeCouponMessage.type;
+        messageEl.textContent = activeCouponMessage.message;
+        messageEl.style.opacity = '1';
+
+        // Set remaining time for auto-hide
+        var remainingTime = 5000 - age;
+        if (messageTimer) {
+            clearTimeout(messageTimer);
+        }
+
+        messageTimer = setTimeout(function() {
+            messageEl.style.opacity = '0';
+            setTimeout(function() {
+                messageEl.className = 'bw-coupon-message';
+                messageEl.style.opacity = '';
+                activeCouponMessage = null;
+            }, 300);
+        }, remainingTime);
     }
 
     if (window.jQuery) {
@@ -175,6 +231,8 @@
                 })
                 .on('updated_checkout', function () {
                     setOrderSummaryLoading(false);
+                    // Restore coupon message if it was showing before update
+                    restoreCouponMessage();
                 })
                 .on('checkout_error', function () {
                     setOrderSummaryLoading(false);
