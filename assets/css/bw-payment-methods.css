@@ -843,12 +843,6 @@ body.woocommerce-checkout .bw-payment-method__fields .wc-stripe-upe-element .__P
 	margin: 0;
 }
 
-/* Hide Stripe UPE iframe completely - we'll show only the fields we need */
-body.woocommerce-checkout .bw-payment-method__fields .wc-stripe-upe-element iframe {
-	min-height: 0 !important;
-	height: auto !important;
-}
-
 /* ============================================
    PAYPAL BUTTON
    Specificity: (0,1,2)

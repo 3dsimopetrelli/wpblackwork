@@ -5,7 +5,7 @@
 (function($) {
     'use strict';
 
-    // Wait for Stripe UPE to load
+    // Wait for Stripe UPE to load and try to hide the Card header
     function hideStripeCardHeader() {
         // Use MutationObserver to watch for Stripe iframe changes
         const observer = new MutationObserver(function(mutations) {
@@ -13,22 +13,8 @@
             const stripeElement = document.querySelector('.wc-stripe-upe-element');
 
             if (stripeElement) {
-                // Try to hide elements via CSS injection
-                const style = document.createElement('style');
-                style.textContent = `
-                    .wc-stripe-upe-element {
-                        overflow: hidden !important;
-                    }
-                    .wc-stripe-upe-element > div:first-child {
-                        margin-top: -60px !important;
-                    }
-                `;
-
-                // Append style if not already added
-                if (!document.getElementById('bw-stripe-upe-cleaner-style')) {
-                    style.id = 'bw-stripe-upe-cleaner-style';
-                    document.head.appendChild(style);
-                }
+                // Add a class to enable CSS targeting
+                stripeElement.classList.add('bw-stripe-upe-cleaned');
             }
         });
 
@@ -42,22 +28,9 @@
         setTimeout(function() {
             const stripeElement = document.querySelector('.wc-stripe-upe-element');
             if (stripeElement) {
-                const style = document.createElement('style');
-                style.textContent = `
-                    .wc-stripe-upe-element {
-                        overflow: hidden !important;
-                    }
-                    .wc-stripe-upe-element > div:first-child {
-                        margin-top: -60px !important;
-                    }
-                `;
-
-                if (!document.getElementById('bw-stripe-upe-cleaner-style')) {
-                    style.id = 'bw-stripe-upe-cleaner-style';
-                    document.head.appendChild(style);
-                }
+                stripeElement.classList.add('bw-stripe-upe-cleaned');
             }
-        }, 1000);
+        }, 500);
     }
 
     // Run on page load
@@ -67,7 +40,7 @@
 
     // Re-run when checkout updates (AJAX)
     $(document.body).on('updated_checkout', function() {
-        hideStripeCardHeader();
+        setTimeout(hideStripeCardHeader, 300);
     });
 
 })(jQuery);
