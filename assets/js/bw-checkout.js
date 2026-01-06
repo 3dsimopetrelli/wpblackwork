@@ -329,38 +329,115 @@
     function initFloatingLabel() {
         var couponInput = document.getElementById('coupon_code');
         var wrapper = couponInput ? couponInput.closest('.bw-coupon-input-wrapper') : null;
+        var label = wrapper ? wrapper.querySelector('.bw-floating-label') : null;
+        var errorDiv = document.querySelector('.bw-coupon-error');
 
-        if (!couponInput || !wrapper) {
+        if (!couponInput || !wrapper || !label) {
             return;
         }
 
         function updateHasValue() {
-            if (couponInput.value.trim() !== '') {
+            var hasValue = couponInput.value.trim() !== '';
+
+            if (hasValue) {
                 wrapper.classList.add('has-value');
+                // Change label text to short version
+                if (label.getAttribute('data-short')) {
+                    label.textContent = label.getAttribute('data-short');
+                }
             } else {
                 wrapper.classList.remove('has-value');
+                // Change label text back to full version
+                if (label.getAttribute('data-full')) {
+                    label.textContent = label.getAttribute('data-full');
+                }
+            }
+        }
+
+        function clearError() {
+            if (errorDiv) {
+                errorDiv.style.display = 'none';
+                errorDiv.textContent = '';
+            }
+        }
+
+        function showError(message) {
+            if (errorDiv) {
+                errorDiv.textContent = message;
+                errorDiv.style.display = 'block';
             }
         }
 
         // Check on input
-        couponInput.addEventListener('input', updateHasValue);
+        couponInput.addEventListener('input', function() {
+            updateHasValue();
+            clearError();
+        });
+
+        // Clear error on focus
+        couponInput.addEventListener('focus', clearError);
+
+        // Handle coupon form submission
+        var couponForm = couponInput.closest('form');
+        if (couponForm) {
+            couponForm.addEventListener('submit', function(e) {
+                clearError();
+            });
+        }
 
         // Check on page load (in case of browser autofill)
         updateHasValue();
 
-        // Re-check after WooCommerce checkout update
+        // Listen for WooCommerce notice events to catch coupon errors
         if (window.jQuery) {
+            // Re-check after WooCommerce checkout update
             window.jQuery(document.body).on('updated_checkout', function() {
                 var newCouponInput = document.getElementById('coupon_code');
                 var newWrapper = newCouponInput ? newCouponInput.closest('.bw-coupon-input-wrapper') : null;
+                var newLabel = newWrapper ? newWrapper.querySelector('.bw-floating-label') : null;
+                var newErrorDiv = document.querySelector('.bw-coupon-error');
 
-                if (newCouponInput && newWrapper) {
+                if (newCouponInput && newWrapper && newLabel) {
                     couponInput = newCouponInput;
                     wrapper = newWrapper;
+                    label = newLabel;
+                    errorDiv = newErrorDiv;
 
                     // Re-attach listener to new element
-                    couponInput.addEventListener('input', updateHasValue);
+                    couponInput.addEventListener('input', function() {
+                        updateHasValue();
+                        clearError();
+                    });
+                    couponInput.addEventListener('focus', clearError);
+
+                    var newCouponForm = couponInput.closest('form');
+                    if (newCouponForm) {
+                        newCouponForm.addEventListener('submit', function() {
+                            clearError();
+                        });
+                    }
+
                     updateHasValue();
+
+                    // Check for WooCommerce error notices
+                    setTimeout(function() {
+                        var wcNotices = document.querySelectorAll('.woocommerce-error, .woocommerce-message');
+                        if (wcNotices.length > 0) {
+                            wcNotices.forEach(function(notice) {
+                                var text = notice.textContent.trim();
+                                // Check if it's a coupon-related error
+                                if (text.toLowerCase().includes('coupon') ||
+                                    text.toLowerCase().includes('code') ||
+                                    text.toLowerCase().includes('expired') ||
+                                    text.toLowerCase().includes('not valid') ||
+                                    text.toLowerCase().includes('does not exist')) {
+                                    showError(text);
+                                    // Hide WooCommerce notice to avoid duplication
+                                    notice.style.display = 'none';
+                                }
+                            });
+                        }
+                    }, 100);
                 }
             });
         }

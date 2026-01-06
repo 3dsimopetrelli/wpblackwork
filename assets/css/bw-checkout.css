@@ -1131,6 +1131,19 @@ body.woocommerce-checkout .bw-checkout-right .bw-qty-badge {
     background: #a8a8a8 !important;
 }
 
+/* Coupon error message */
+.bw-coupon-error {
+    margin-top: 10px;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+    line-height: 1.4;
+}
+
 /* Coupon success message */
 .bw-coupon-message {
     margin-top: 12px;
