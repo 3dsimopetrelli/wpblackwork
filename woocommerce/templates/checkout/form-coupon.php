@@ -16,9 +16,11 @@ if ( ! wc_coupons_enabled() ) {
 ?>
 <form class="checkout_coupon woocommerce-form-coupon" method="post">
 	<div class="bw-coupon-fields">
-		<label for="coupon_code" class="screen-reader-text"><?php esc_html_e( 'Coupon:', 'woocommerce' ); ?></label>
-		<input type="text" name="coupon_code" class="input-text" placeholder="<?php esc_attr_e( 'Enter Coupon Code', 'woocommerce' ); ?>" id="coupon_code" value="" />
-		<button type="submit" class="button" name="apply_coupon" value="<?php esc_attr_e( 'Apply', 'woocommerce' ); ?>"><?php esc_html_e( 'Apply', 'woocommerce' ); ?></button>
+		<div class="bw-coupon-input-wrapper">
+			<input type="text" name="coupon_code" class="input-text" placeholder="<?php esc_attr_e( 'Discount code or gift card', 'woocommerce' ); ?>" id="coupon_code" value="" />
+			<label for="coupon_code" class="bw-floating-label"><?php esc_html_e( 'Discount code or gift card', 'woocommerce' ); ?></label>
+		</div>
+		<button type="submit" class="button bw-apply-button" name="apply_coupon" value="<?php esc_attr_e( 'Apply', 'woocommerce' ); ?>"><?php esc_html_e( 'Apply', 'woocommerce' ); ?></button>
 	</div>
 	<?php wp_nonce_field( 'woocommerce-apply-coupon', 'woocommerce-apply-coupon-nonce' ); ?>
 </form>
