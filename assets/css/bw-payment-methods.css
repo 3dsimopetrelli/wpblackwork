@@ -162,29 +162,29 @@ body.woocommerce-checkout .bw-payment-method:hover {
 body.woocommerce-checkout .bw-payment-method:has(input[type="radio"]:checked),
 body.woocommerce-checkout .bw-payment-method.is-selected {
 	border-color: var(--bw-pm-border-selected) !important;
-	border-width: 2px !important;
-	box-shadow: var(--bw-pm-shadow-selected) !important;
+	border-width: 1px !important;
+	box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
 }
 
 body.woocommerce-checkout .bw-payment-method:has(input[type="radio"]:checked) .bw-payment-method__header,
 body.woocommerce-checkout .bw-payment-method.is-selected .bw-payment-method__header {
-	background: var(--bw-pm-primary) !important;
+	background: var(--bw-pm-bg) !important;
 }
 
 body.woocommerce-checkout .bw-payment-method:has(input[type="radio"]:checked) .bw-payment-method__title,
 body.woocommerce-checkout .bw-payment-method.is-selected .bw-payment-method__title {
-	color: var(--bw-pm-text-inverse) !important;
+	color: var(--bw-pm-text) !important;
 }
 
 body.woocommerce-checkout .bw-payment-method:has(input[type="radio"]:checked) .bw-payment-method__header input[type="radio"],
 body.woocommerce-checkout .bw-payment-method.is-selected .bw-payment-method__header input[type="radio"] {
-	border-color: var(--bw-pm-secondary) !important;
-	background: var(--bw-pm-primary) !important;
+	border-color: var(--bw-pm-primary) !important;
+	background: var(--bw-pm-bg) !important;
 }
 
 body.woocommerce-checkout .bw-payment-method:has(input[type="radio"]:checked) .bw-payment-method__header input[type="radio"]::after,
 body.woocommerce-checkout .bw-payment-method.is-selected .bw-payment-method__header input[type="radio"]::after {
-	background: var(--bw-pm-secondary) !important;
+	background: var(--bw-pm-primary) !important;
 }
 
 /* ============================================
@@ -211,7 +211,7 @@ body.woocommerce-checkout .bw-payment-method__header input[type="radio"] {
 	width: 20px;
 	height: 20px;
 	min-width: 20px;
-	border: 2px solid var(--bw-pm-border-hover);
+	border: 1.5px solid var(--bw-pm-border);
 	border-radius: var(--bw-pm-radius-full);
 	margin: 0;
 	padding: 0;
@@ -230,8 +230,8 @@ body.woocommerce-checkout .bw-payment-method__header input[type="radio"]:hover {
 /* Radio State: Checked */
 body.woocommerce-checkout .bw-payment-method__header input[type="radio"]:checked {
 	border-color: var(--bw-pm-primary);
-	background: var(--bw-pm-primary);
-	border-width: 2px;
+	background: var(--bw-pm-bg);
+	border-width: 1.5px;
 }
 
 body.woocommerce-checkout .bw-payment-method__header input[type="radio"]:checked::after {
@@ -240,9 +240,9 @@ body.woocommerce-checkout .bw-payment-method__header input[type="radio"]:checked
 	top: 50%;
 	left: 50%;
 	transform: translate(-50%, -50%);
-	width: 6px;
-	height: 6px;
-	background: var(--bw-pm-secondary);
+	width: 8px;
+	height: 8px;
+	background: var(--bw-pm-primary);
 	border-radius: var(--bw-pm-radius-full);
 }
 
@@ -654,7 +654,7 @@ body.woocommerce-checkout .bw-payment-method__instruction {
 body.woocommerce-checkout .bw-place-order-btn {
 	width: 100%;
 	padding: var(--bw-pm-spacing-lg) var(--bw-pm-spacing-2xl) !important;
-	background: #3b82f6 !important;
+	background: #000000 !important;
 	color: var(--bw-pm-secondary) !important;
 	border: none !important;
 	border-radius: var(--bw-pm-radius-md) !important;
@@ -671,14 +671,14 @@ body.woocommerce-checkout .bw-place-order-btn {
 
 /* Button State: Hover */
 body.woocommerce-checkout .bw-place-order-btn:hover {
-	background: #2563eb !important;
+	background: #1a1a1a !important;
 	box-shadow: var(--bw-pm-shadow-md) !important;
 	transform: translateY(-1px);
 }
 
 /* Button State: Active */
 body.woocommerce-checkout .bw-place-order-btn:active {
-	background: #1d4ed8 !important;
+	background: #000000 !important;
 	transform: translateY(0);
 	box-shadow: var(--bw-pm-shadow-sm) !important;
 }
