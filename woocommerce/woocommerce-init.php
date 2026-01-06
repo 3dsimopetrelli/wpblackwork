@@ -917,14 +917,6 @@ function bw_mew_customize_stripe_elements_style( $options ) {
  * @return array Modified params with custom appearance.
  */
 function bw_mew_customize_stripe_upe_appearance( $params ) {
-    // Configure layout to prevent accordion/tabs
-    $params['layout'] = array(
-        'type' => 'accordion',
-        'defaultCollapsed' => false,
-        'radios' => false,
-        'spacedAccordionItems' => false,
-    );
-
     // Add appearance configuration to UPE params
     $params['appearance'] = array(
         'theme' => 'flat',
@@ -974,6 +966,9 @@ function bw_mew_customize_stripe_upe_appearance( $params ) {
                 'display' => 'none',
             ),
             '.AccordionItem' => array(
+                'display' => 'none',
+            ),
+            '.AccordionItemHeader' => array(
                 'display' => 'none',
             ),
             '.PickerItem' => array(
