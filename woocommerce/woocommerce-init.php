@@ -11,8 +11,9 @@ function bw_mew_initialize_woocommerce_overrides() {
         return;
     }
 
-    $my_account_file = BW_MEW_PATH . 'includes/woocommerce-overrides/class-bw-my-account.php';
+    $my_account_file   = BW_MEW_PATH . 'includes/woocommerce-overrides/class-bw-my-account.php';
     $social_login_file = BW_MEW_PATH . 'includes/woocommerce-overrides/class-bw-social-login.php';
+    $supabase_file     = BW_MEW_PATH . 'includes/woocommerce-overrides/class-bw-supabase-auth.php';
 
     if ( file_exists( $my_account_file ) ) {
         require_once $my_account_file;
@@ -20,6 +21,10 @@ function bw_mew_initialize_woocommerce_overrides() {
 
     if ( file_exists( $social_login_file ) ) {
         require_once $social_login_file;
+    }
+
+    if ( file_exists( $supabase_file ) ) {
+        require_once $supabase_file;
     }
 
     add_filter( 'woocommerce_locate_template', 'bw_mew_locate_template', 1, 3 );
@@ -141,6 +146,16 @@ function bw_mew_enqueue_account_page_assets() {
         [],
         $js_version,
         true
+    );
+
+    wp_localize_script(
+        'bw-account-page',
+        'bwAccountAuth',
+        [
+            'ajaxUrl'         => admin_url( 'admin-ajax.php' ),
+            'nonce'           => wp_create_nonce( 'bw-supabase-login' ),
+            'defaultProvider' => get_option( 'bw_account_login_provider', 'wordpress' ),
+        ]
     );
 }
 
