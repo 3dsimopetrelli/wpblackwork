@@ -403,6 +403,7 @@ body.woocommerce-checkout .bw-payment-method__content {
 	            border-color 0.35s ease;
 	padding: 0;
 	margin: 0;
+	border-radius: 0 0 var(--bw-pm-radius-md) var(--bw-pm-radius-md);
 }
 
 /* Panel State: Open */
@@ -851,19 +852,6 @@ body.woocommerce-checkout .payment_box.payment_method_stripe::before {
 	content: none !important;
 }
 
-/* Specific selectors to hide Stripe UPE Card header and icon */
-body.woocommerce-checkout .payment_method_stripe .wc-stripe-upe-element {
-	position: relative;
-	min-height: 200px;
-}
-
-/* Hide the Card header by clipping the top portion of the iframe */
-body.woocommerce-checkout .payment_method_stripe .wc-stripe-upe-element iframe {
-	position: relative;
-	top: -70px;
-	margin-bottom: -70px;
-}
-
 /* ============================================
    PAYPAL BUTTON
    Specificity: (0,1,2)
@@ -1000,8 +988,7 @@ body.woocommerce-checkout .bw-remember-section__box .bw-payment-checkbox {
    ============================================ */
 
 body.woocommerce-checkout .bw-payment-method__header:focus-within {
-	outline: 2px solid var(--bw-pm-border-focus);
-	outline-offset: 2px;
+	outline: none;
 }
 
 /* Screen reader only */
