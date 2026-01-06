@@ -407,8 +407,9 @@ body.woocommerce-checkout .bw-payment-method__content {
 
 /* Panel State: Open */
 body.woocommerce-checkout .bw-payment-method__content.is-open {
-	max-height: 1500px;
+	max-height: 3000px;
 	border-top-color: var(--bw-pm-border);
+	overflow: visible;
 }
 
 body.woocommerce-checkout .bw-payment-method__inner {
