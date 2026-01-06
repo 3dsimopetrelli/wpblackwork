@@ -950,6 +950,12 @@ function bw_mew_customize_stripe_upe_appearance( $params ) {
             '.TabIcon' => array(
                 'display' => 'none',
             ),
+            '.Block' => array(
+                'display' => 'none',
+            ),
+            '.AccordionItem' => array(
+                'display' => 'none',
+            ),
         ),
     );
 
