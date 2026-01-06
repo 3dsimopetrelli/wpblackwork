@@ -941,6 +941,15 @@ function bw_mew_customize_stripe_upe_appearance( $params ) {
             '.Label' => array(
                 'display' => 'none',
             ),
+            '.Tab' => array(
+                'display' => 'none',
+            ),
+            '.TabLabel' => array(
+                'display' => 'none',
+            ),
+            '.TabIcon' => array(
+                'display' => 'none',
+            ),
         ),
     );
 

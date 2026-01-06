@@ -806,6 +806,44 @@ body.woocommerce-checkout .wc-stripe-iban-element-field:focus-within {
 }
 
 /* ============================================
+   STRIPE UPE (Unified Payment Element)
+   Specificity: (0,1,2)
+   ============================================ */
+
+/* UPE Form Container */
+body.woocommerce-checkout .wc-upe-form {
+	background: transparent !important;
+	border: none !important;
+	padding: 0 !important;
+	margin: 0 !important;
+}
+
+/* UPE Element Wrapper - Remove all borders/backgrounds */
+body.woocommerce-checkout .wc-stripe-upe-element {
+	background: transparent !important;
+	border: none !important;
+	padding: 0 !important;
+	margin: 0 !important;
+	box-shadow: none !important;
+}
+
+/* UPE iframe container - Clean slate for Stripe iframe */
+body.woocommerce-checkout .wc-stripe-upe-element .StripeElement {
+	background: transparent !important;
+	border: none !important;
+	padding: 0 !important;
+	margin: 0 !important;
+}
+
+/* Private Stripe element wrapper */
+body.woocommerce-checkout .wc-stripe-upe-element .__PrivateStripeElement {
+	background: transparent !important;
+	border: none !important;
+	padding: 0 !important;
+	margin: 0 !important;
+}
+
+/* ============================================
    PAYPAL BUTTON
    Specificity: (0,1,2)
    ============================================ */
