@@ -412,7 +412,7 @@ body.woocommerce-checkout .bw-payment-method__content.is-open {
 }
 
 body.woocommerce-checkout .bw-payment-method__inner {
-	padding: var(--bw-pm-spacing-2xl) var(--bw-pm-spacing-xl);
+	padding: 0;
 	opacity: 0;
 	transform: translateY(-8px);
 	transition: opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.15s,
@@ -811,36 +811,36 @@ body.woocommerce-checkout .wc-stripe-iban-element-field:focus-within {
    ============================================ */
 
 /* UPE Form Container */
-body.woocommerce-checkout .wc-upe-form {
-	background: transparent !important;
-	border: none !important;
-	padding: 0 !important;
-	margin: 0 !important;
+body.woocommerce-checkout .bw-payment-method__fields .wc-upe-form {
+	background: transparent;
+	border: none;
+	padding: 0;
+	margin: 0;
 }
 
 /* UPE Element Wrapper - Remove all borders/backgrounds */
-body.woocommerce-checkout .wc-stripe-upe-element {
-	background: transparent !important;
-	border: none !important;
-	padding: 0 !important;
-	margin: 0 !important;
-	box-shadow: none !important;
+body.woocommerce-checkout .bw-payment-method__fields .wc-stripe-upe-element {
+	background: transparent;
+	border: none;
+	padding: 0;
+	margin: 0;
+	box-shadow: none;
 }
 
 /* UPE iframe container - Clean slate for Stripe iframe */
-body.woocommerce-checkout .wc-stripe-upe-element .StripeElement {
-	background: transparent !important;
-	border: none !important;
-	padding: 0 !important;
-	margin: 0 !important;
+body.woocommerce-checkout .bw-payment-method__fields .wc-stripe-upe-element .StripeElement {
+	background: transparent;
+	border: none;
+	padding: 0;
+	margin: 0;
 }
 
 /* Private Stripe element wrapper */
-body.woocommerce-checkout .wc-stripe-upe-element .__PrivateStripeElement {
-	background: transparent !important;
-	border: none !important;
-	padding: 0 !important;
-	margin: 0 !important;
+body.woocommerce-checkout .bw-payment-method__fields .wc-stripe-upe-element .__PrivateStripeElement {
+	background: transparent;
+	border: none;
+	padding: 0;
+	margin: 0;
 }
 
 /* ============================================
