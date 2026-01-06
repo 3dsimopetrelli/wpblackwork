@@ -221,17 +221,19 @@ body.woocommerce-checkout .bw-payment-method.is-selected .bw-payment-method__hea
 body.woocommerce-checkout .bw-payment-method__header {
 	display: flex;
 	align-items: center;
-	padding: 16px 20px;
-	height: 55px;
-	min-height: 55px;
-	max-height: 55px;
-	box-sizing: border-box;
+	padding: 16px 20px !important;
+	height: 55px !important;
+	min-height: 55px !important;
+	max-height: 55px !important;
+	box-sizing: border-box !important;
 	cursor: pointer;
 	position: relative;
 	gap: 14px;
 	background: var(--bw-pm-bg);
 	transition: background-color var(--bw-pm-transition-smooth), color var(--bw-pm-transition-base);
 	border-radius: 0;
+	overflow: hidden !important;
+	line-height: 1.4;
 }
 
 /* Remove any ::before or ::after from payment header */
@@ -303,9 +305,11 @@ body.woocommerce-checkout .bw-payment-method__label {
 	gap: var(--bw-pm-spacing-md);
 	cursor: pointer;
 	margin: 0 !important;
+	padding: 0 !important;
 	font-size: var(--bw-pm-font-size-md);
 	font-weight: var(--bw-pm-font-weight-medium);
 	color: var(--bw-pm-text);
+	line-height: 1.4;
 }
 
 body.woocommerce-checkout .bw-payment-method__title {
@@ -313,6 +317,9 @@ body.woocommerce-checkout .bw-payment-method__title {
 	font-size: var(--bw-pm-font-size-md);
 	font-weight: var(--bw-pm-font-weight-medium);
 	color: var(--bw-pm-text);
+	margin: 0 !important;
+	padding: 0 !important;
+	line-height: 1.4;
 }
 
 /* ============================================
