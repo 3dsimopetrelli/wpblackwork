@@ -419,25 +419,31 @@
 
                     updateHasValue();
 
-                    // Check for WooCommerce error notices
-                    setTimeout(function() {
-                        var wcNotices = document.querySelectorAll('.woocommerce-error, .woocommerce-message');
-                        if (wcNotices.length > 0) {
-                            wcNotices.forEach(function(notice) {
-                                var text = notice.textContent.trim();
-                                // Check if it's a coupon-related error
-                                if (text.toLowerCase().includes('coupon') ||
-                                    text.toLowerCase().includes('code') ||
-                                    text.toLowerCase().includes('expired') ||
-                                    text.toLowerCase().includes('not valid') ||
-                                    text.toLowerCase().includes('does not exist')) {
-                                    showError(text);
-                                    // Hide WooCommerce notice to avoid duplication
-                                    notice.style.display = 'none';
-                                }
-                            });
-                        }
-                    }, 100);
+                    // Check for WooCommerce error notices (only errors, not success messages)
+                    // Skip this on initial page load to prevent duplicate messages on refresh
+                    var isInitialLoad = !couponInput.value || couponInput.value.trim() === '';
+
+                    if (!isInitialLoad) {
+                        setTimeout(function() {
+                            // Only check for actual errors, not success messages
+                            var wcErrors = document.querySelectorAll('.woocommerce-error');
+                            if (wcErrors.length > 0) {
+                                wcErrors.forEach(function(notice) {
+                                    var text = notice.textContent.trim();
+                                    // Check if it's a coupon-related error (not success)
+                                    if (text.toLowerCase().includes('coupon') ||
+                                        text.toLowerCase().includes('code') ||
+                                        text.toLowerCase().includes('expired') ||
+                                        text.toLowerCase().includes('not valid') ||
+                                        text.toLowerCase().includes('does not exist')) {
+                                        showError(text);
+                                        // Hide WooCommerce notice to avoid duplication
+                                        notice.style.display = 'none';
+                                    }
+                                });
+                            }
+                        }, 100);
+                    }
                 }
             });
         }
