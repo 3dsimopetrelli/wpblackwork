@@ -396,7 +396,7 @@ body.woocommerce-checkout .bw-payment-icon__tooltip .bw-payment-icon img {
 
 body.woocommerce-checkout .bw-payment-method__content {
 	max-height: 0;
-	background: transparent;
+	background: transparent !important;
 	border-top: 1px solid transparent;
 	overflow: hidden;
 	transition: max-height 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94),
@@ -841,6 +841,12 @@ body.woocommerce-checkout .bw-payment-method__fields .wc-stripe-upe-element .__P
 	border: none;
 	padding: 0;
 	margin: 0;
+}
+
+/* Hide Stripe UPE iframe completely - we'll show only the fields we need */
+body.woocommerce-checkout .bw-payment-method__fields .wc-stripe-upe-element iframe {
+	min-height: 0 !important;
+	height: auto !important;
 }
 
 /* ============================================

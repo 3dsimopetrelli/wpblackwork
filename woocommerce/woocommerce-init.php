@@ -217,6 +217,18 @@ function bw_mew_enqueue_checkout_assets() {
             true
         );
     }
+
+    // Enqueue Stripe UPE cleaner to hide "Card" accordion header
+    $stripe_upe_cleaner_file = BW_MEW_PATH . 'assets/js/bw-stripe-upe-cleaner.js';
+    if ( file_exists( $stripe_upe_cleaner_file ) ) {
+        wp_enqueue_script(
+            'bw-stripe-upe-cleaner',
+            BW_MEW_URL . 'assets/js/bw-stripe-upe-cleaner.js',
+            [ 'jquery', 'wc-checkout' ],
+            filemtime( $stripe_upe_cleaner_file ),
+            true
+        );
+    }
 }
 
 /**
