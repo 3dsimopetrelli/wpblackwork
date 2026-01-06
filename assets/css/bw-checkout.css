@@ -361,6 +361,7 @@ body.woocommerce-checkout .bw-checkout-right #order_review_inner {
     background: transparent !important;
     margin: 0;
     width: 100%;
+    table-layout: fixed; /* CRITICAL: Forces browser to respect column widths from first row, preventing recalculation when content changes (coupons added/removed) */
 }
 
 .bw-checkout-right table.shop_table tbody,
@@ -805,6 +806,7 @@ body.woocommerce-checkout .bw-checkout-right .bw-review-item__media {
     border-radius: 12px;
     border: 1px solid #e1e1e1;
     position: relative;
+    box-sizing: border-box; /* Prevent 2px overflow from border (1px left + 1px right) */
 }
 
 body.woocommerce-checkout .bw-checkout-right .bw-review-item__media a {

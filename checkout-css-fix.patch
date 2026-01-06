@@ -1,0 +1,47 @@
+diff --git a/assets/css/bw-checkout.css b/assets/css/bw-checkout.css
+index 1234567..abcdefg 100644
+--- a/assets/css/bw-checkout.css
++++ b/assets/css/bw-checkout.css
+@@ -360,6 +360,7 @@ body.woocommerce-checkout #order_review_inner {
+     border: none;
+     background: transparent !important;
+     margin: 0;
+     width: 100%;
++    table-layout: fixed;
+ }
+
+ .bw-checkout-right table.shop_table tbody,
+@@ -790,7 +791,10 @@ body.woocommerce-checkout .bw-checkout-right table.shop_table tbody .bw-review-
+ }
+
+ body.woocommerce-checkout .bw-checkout-right table.shop_table tbody .bw-review-item td.product-thumbnail {
+-    /* ALL dimensions and spacing controlled by inline styles in template - DO NOT add any CSS here */
++    vertical-align: top;
++    background: transparent;
++    border: none;
++    /* width, min-width, max-width, padding controlled by inline styles - DO NOT override */
+ }
+
+ body.woocommerce-checkout .bw-checkout-right table.shop_table tbody .bw-review-item td.product-name {
+@@ -801,6 +805,7 @@ body.woocommerce-checkout .bw-checkout-right .bw-review-item__media {
+     /* Width and aspect-ratio are controlled by inline styles in template - DO NOT override here */
+     overflow: hidden;
+     border-radius: 12px;
+     border: 1px solid #e1e1e1;
+     position: relative;
++    box-sizing: border-box;
+ }
+
+ body.woocommerce-checkout .bw-checkout-right .bw-review-item__media a {
+@@ -1217,7 +1223,10 @@ body.woocommerce-checkout .bw-checkout-right table.shop_table tbody .bw-review-
+     }
+
+     body.woocommerce-checkout .bw-checkout-right table.shop_table tbody .bw-review-item td.product-thumbnail {
+-        /* ALL dimensions and spacing controlled by inline styles in template - DO NOT add any CSS here */
++        vertical-align: top;
++        background: transparent;
++        border: none;
++        /* width, min-width, max-width, padding controlled by inline styles - DO NOT override */
+     }
+
+     body.woocommerce-checkout .bw-checkout-right table.shop_table tbody .bw-review-item:last-child td.product-thumbnail {
