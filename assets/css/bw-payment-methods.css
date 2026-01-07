@@ -158,14 +158,22 @@ body.woocommerce-checkout .bw-payment-method {
 }
 
 /* Remove any ::before or ::after from payment method that could break borders */
-body.woocommerce-checkout .bw-payment-method::before,
-body.woocommerce-checkout .bw-payment-method::after,
-body.woocommerce-checkout .wc_payment_method::before,
-body.woocommerce-checkout .wc_payment_method::after,
-body.woocommerce-checkout li.payment_method::before,
-body.woocommerce-checkout li.payment_method::after {
-	display: none !important;
-	content: none !important;
+body.woocommerce-checkout div.woocommerce-checkout-payment div#payment::before,
+body.woocommerce-checkout div.woocommerce-checkout-payment div#payment::after,
+body.woocommerce-checkout div#payment.woocommerce-checkout-payment::before,
+body.woocommerce-checkout div#payment.woocommerce-checkout-payment::after,
+body.woocommerce-checkout ul.bw-payment-methods::before,
+body.woocommerce-checkout ul.bw-payment-methods::after,
+body.woocommerce-checkout ul.bw-payment-methods li.bw-payment-method::before,
+body.woocommerce-checkout ul.bw-payment-methods li.bw-payment-method::after,
+body.woocommerce-checkout ul.bw-payment-methods li.wc_payment_method::before,
+body.woocommerce-checkout ul.bw-payment-methods li.wc_payment_method::after,
+body.woocommerce-checkout .bw-payment-method__content.payment_box::before,
+body.woocommerce-checkout .bw-payment-method__content.payment_box::after,
+body.woocommerce-checkout div.payment_box::before,
+body.woocommerce-checkout div.payment_box::after {
+	display: none;
+	content: none;
 }
 
 /* First payment method - round top corners */
