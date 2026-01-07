@@ -218,6 +218,29 @@ function bw_mew_enqueue_checkout_assets() {
         );
     }
 
+    // Enqueue checkout notices assets (moves notices into left column with custom styling)
+    $notices_css_file = BW_MEW_PATH . 'assets/css/bw-checkout-notices.css';
+    $notices_js_file  = BW_MEW_PATH . 'assets/js/bw-checkout-notices.js';
+
+    if ( file_exists( $notices_css_file ) ) {
+        wp_enqueue_style(
+            'bw-checkout-notices',
+            BW_MEW_URL . 'assets/css/bw-checkout-notices.css',
+            [ 'bw-checkout' ],
+            filemtime( $notices_css_file )
+        );
+    }
+
+    if ( file_exists( $notices_js_file ) ) {
+        wp_enqueue_script(
+            'bw-checkout-notices',
+            BW_MEW_URL . 'assets/js/bw-checkout-notices.js',
+            [ 'jquery', 'wc-checkout' ],
+            filemtime( $notices_js_file ),
+            true
+        );
+    }
+
     // Enqueue Stripe UPE cleaner to hide "Card" accordion header
     $stripe_upe_cleaner_file = BW_MEW_PATH . 'assets/js/bw-stripe-upe-cleaner.js';
     if ( file_exists( $stripe_upe_cleaner_file ) ) {
