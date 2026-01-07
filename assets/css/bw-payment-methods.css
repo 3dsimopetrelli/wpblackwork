@@ -410,7 +410,6 @@ body.woocommerce-checkout .bw-payment-method__content.is-open {
 }
 
 body.woocommerce-checkout .bw-payment-method__inner {
-	padding: var(--bw-pm-spacing-xl);
 	margin: 0 !important;
 	opacity: 0;
 	transform: translateY(-8px);
