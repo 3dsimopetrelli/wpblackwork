@@ -75,6 +75,10 @@ $active_tab           = ( isset( $_GET['action'] ) && 'lostpassword' === sanitiz
                                     <p class="form-row bw-account-login__actions">
                                         <button type="submit" class="woocommerce-button button bw-account-login__submit" data-bw-supabase-submit><?php esc_html_e( 'Log In', 'woocommerce' ); ?></button>
                                     </p>
+
+                                    <p class="bw-account-login__back-to-login">
+                                        <button type="button" class="bw-account-login__back-link" data-bw-auth-tab="lostpassword"><?php esc_html_e( 'Lost your password?', 'woocommerce' ); ?></button>
+                                    </p>
                                 </form>
                             </div>
 
@@ -96,6 +100,36 @@ $active_tab           = ( isset( $_GET['action'] ) && 'lostpassword' === sanitiz
 
                                     <p class="form-row bw-account-login__actions">
                                         <button type="submit" class="woocommerce-button button bw-account-login__submit" data-bw-supabase-submit><?php esc_html_e( 'Register', 'woocommerce' ); ?></button>
+                                    </p>
+                                </form>
+                            </div>
+
+                            <div class="bw-account-auth__panel" data-bw-auth-panel="lostpassword">
+                                <form class="bw-account-login__form bw-account-login__form--supabase" data-bw-supabase-form data-bw-supabase-action="recover">
+                                    <p class="bw-account-login__note"><?php esc_html_e( 'Enter your email to receive a password reset link.', 'bw' ); ?></p>
+
+                            <div class="bw-account-auth__panel <?php echo 'register' === $active_tab ? 'is-active is-visible' : ''; ?>" data-bw-auth-panel="register">
+                                <form class="bw-account-login__form bw-account-login__form--supabase" data-bw-supabase-form data-bw-supabase-action="register">
+                                    <p class="bw-account-login__note"><?php esc_html_e( 'Create your Supabase account.', 'bw' ); ?></p>
+
+                                    <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide bw-account-login__field">
+                                        <label for="bw_supabase_register_email"><?php esc_html_e( 'Email address', 'woocommerce' ); ?> <span class="required">*</span></label>
+                                        <input type="email" class="woocommerce-Input woocommerce-Input--text input-text" name="email" id="bw_supabase_register_email" autocomplete="email" required />
+                                    </p>
+                                    <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide bw-account-login__field">
+                                        <label for="bw_supabase_recover_email"><?php esc_html_e( 'Email address', 'woocommerce' ); ?> <span class="required">*</span></label>
+                                        <input type="email" class="woocommerce-Input woocommerce-Input--text input-text" name="email" id="bw_supabase_recover_email" autocomplete="email" required />
+                                    </p>
+
+                                    <div class="bw-account-login__error" role="alert" aria-live="polite" hidden></div>
+                                    <div class="bw-account-login__success" role="status" aria-live="polite" hidden></div>
+
+                                    <p class="form-row bw-account-login__actions">
+                                        <button type="submit" class="woocommerce-button button bw-account-login__submit" data-bw-supabase-submit><?php esc_html_e( 'Send reset link', 'bw' ); ?></button>
+                                    </p>
+
+                                    <p class="bw-account-login__back-to-login">
+                                        <button type="button" class="bw-account-login__back-link" data-bw-auth-tab="login">← <?php esc_html_e( 'Back to login', 'woocommerce' ); ?></button>
                                     </p>
                                 </form>
                             </div>

@@ -87,7 +87,14 @@
                     }
 
                     var formData = new FormData(supabaseForm);
-                    var action = supabaseForm.getAttribute('data-bw-supabase-action') === 'register' ? 'bw_supabase_register' : 'bw_supabase_login';
+                    var actionType = supabaseForm.getAttribute('data-bw-supabase-action');
+                    var action = 'bw_supabase_login';
+
+                    if (actionType === 'register') {
+                        action = 'bw_supabase_register';
+                    } else if (actionType === 'recover') {
+                        action = 'bw_supabase_recover';
+                    }
 
                     formData.append('action', action);
                     formData.append('nonce', window.bwAccountAuth.nonce);
