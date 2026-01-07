@@ -157,23 +157,39 @@ body.woocommerce-checkout .bw-payment-method {
 	position: relative;
 }
 
-/* Remove any ::before or ::after from payment method that could break borders */
+/* Remove any ::before or ::after that could create triangles or break borders */
 body.woocommerce-checkout div.woocommerce-checkout-payment div#payment::before,
 body.woocommerce-checkout div.woocommerce-checkout-payment div#payment::after,
 body.woocommerce-checkout div#payment.woocommerce-checkout-payment::before,
 body.woocommerce-checkout div#payment.woocommerce-checkout-payment::after,
 body.woocommerce-checkout ul.bw-payment-methods::before,
 body.woocommerce-checkout ul.bw-payment-methods::after,
+body.woocommerce-checkout ul.bw-payment-methods li::before,
+body.woocommerce-checkout ul.bw-payment-methods li::after,
 body.woocommerce-checkout ul.bw-payment-methods li.bw-payment-method::before,
 body.woocommerce-checkout ul.bw-payment-methods li.bw-payment-method::after,
 body.woocommerce-checkout ul.bw-payment-methods li.wc_payment_method::before,
 body.woocommerce-checkout ul.bw-payment-methods li.wc_payment_method::after,
+body.woocommerce-checkout ul.bw-payment-methods li.payment_method::before,
+body.woocommerce-checkout ul.bw-payment-methods li.payment_method::after,
+body.woocommerce-checkout ul.wc_payment_methods li::before,
+body.woocommerce-checkout ul.wc_payment_methods li::after,
+body.woocommerce-checkout ul.payment_methods li::before,
+body.woocommerce-checkout ul.payment_methods li::after,
+body.woocommerce-checkout .bw-payment-method__content::before,
+body.woocommerce-checkout .bw-payment-method__content::after,
 body.woocommerce-checkout .bw-payment-method__content.payment_box::before,
 body.woocommerce-checkout .bw-payment-method__content.payment_box::after,
+body.woocommerce-checkout .payment_box::before,
+body.woocommerce-checkout .payment_box::after,
 body.woocommerce-checkout div.payment_box::before,
 body.woocommerce-checkout div.payment_box::after {
 	display: none;
 	content: none;
+	border: none;
+	background: none;
+	width: 0;
+	height: 0;
 }
 
 /* First payment method - round top corners */
@@ -336,118 +352,6 @@ body.woocommerce-checkout .bw-payment-method__title {
 	margin: 0 !important;
 	padding: 0 !important;
 	line-height: var(--bw-pm-line-height-normal);
-}
-
-/* ============================================
-   PAYMENT ICONS
-   Specificity: (0,1,2)
-   ============================================ */
-
-body.woocommerce-checkout .bw-payment-method__icons {
-	display: flex;
-	align-items: center;
-	gap: var(--bw-pm-spacing-xs);
-	flex-shrink: 0;
-}
-
-body.woocommerce-checkout .bw-payment-icon {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	position: relative;
-}
-
-body.woocommerce-checkout .bw-payment-icon img {
-	height: 28px;
-	width: auto;
-	display: block;
-}
-
-/* "+N" Badge */
-body.woocommerce-checkout .bw-payment-icon--more {
-	position: relative;
-	cursor: pointer;
-}
-
-body.woocommerce-checkout .bw-payment-icon__badge {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	min-width: 40px;
-	height: 32px;
-	padding: var(--bw-pm-spacing-xs) 10px;
-	background: var(--bw-pm-bg);
-	border: 1px solid var(--bw-pm-border);
-	border-radius: var(--bw-pm-radius-sm);
-	font-size: var(--bw-pm-font-size-sm);
-	font-weight: var(--bw-pm-font-weight-semibold);
-	color: var(--bw-pm-text);
-	transition: background-color var(--bw-pm-transition-base), border-color var(--bw-pm-transition-base), color var(--bw-pm-transition-base);
-}
-
-/* Badge State: Hover */
-body.woocommerce-checkout .bw-payment-icon--more:hover .bw-payment-icon__badge {
-	background: var(--bw-pm-bg-hover);
-	border-color: var(--bw-pm-border-hover);
-	color: var(--bw-pm-primary);
-}
-
-/* Tooltip - Black style like reference image */
-body.woocommerce-checkout .bw-payment-icon__tooltip {
-	position: absolute;
-	top: auto;
-	bottom: calc(100% + 12px);
-	right: 0;
-	z-index: 1000;
-	display: none;
-	min-width: 100px;
-	padding: 10px 12px;
-	background: var(--bw-pm-primary);
-	border: 1px solid var(--bw-pm-primary);
-	border-radius: var(--bw-pm-radius-md);
-	box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
-	gap: var(--bw-pm-spacing-sm);
-	flex-wrap: wrap;
-	animation: bw-tooltip-fade-in 0.2s ease-out;
-}
-
-/* Tooltip Arrow (pointing down) */
-body.woocommerce-checkout .bw-payment-icon__tooltip::before {
-	content: "";
-	position: absolute;
-	bottom: -6px;
-	right: 14px;
-	width: 12px;
-	height: 12px;
-	background: var(--bw-pm-primary);
-	border: none;
-	transform: rotate(45deg);
-}
-
-/* Tooltip State: Visible */
-body.woocommerce-checkout .bw-payment-icon--more:hover .bw-payment-icon__tooltip,
-body.woocommerce-checkout .bw-payment-icon__tooltip:hover {
-	display: flex;
-}
-
-@keyframes bw-tooltip-fade-in {
-	from {
-		opacity: 0;
-		transform: translateY(-4px);
-	}
-	to {
-		opacity: 1;
-		transform: translateY(0);
-	}
-}
-
-body.woocommerce-checkout .bw-payment-icon__tooltip .bw-payment-icon {
-	display: inline-flex;
-}
-
-body.woocommerce-checkout .bw-payment-icon__tooltip .bw-payment-icon img {
-	height: 28px;
-	width: auto;
 }
 
 /* ============================================
@@ -972,33 +876,6 @@ body.woocommerce-checkout .bw-remember-section__box .bw-payment-checkbox {
 
 	body.woocommerce-checkout .bw-payment-method__title {
 		font-size: var(--bw-pm-font-size-base);
-	}
-
-	body.woocommerce-checkout .bw-payment-method__icons {
-		gap: 3px;
-	}
-
-	body.woocommerce-checkout .bw-payment-icon img {
-		height: 20px;
-	}
-
-	body.woocommerce-checkout .bw-payment-icon__badge {
-		min-width: 28px;
-		height: 20px;
-		padding: 0 6px;
-		font-size: 11px;
-	}
-
-	body.woocommerce-checkout .bw-payment-icon__tooltip {
-		bottom: calc(100% + var(--bw-pm-spacing-sm));
-		right: -8px;
-		min-width: 100px;
-		padding: var(--bw-pm-spacing-sm);
-		gap: var(--bw-pm-spacing-xs);
-	}
-
-	body.woocommerce-checkout .bw-payment-icon__tooltip .bw-payment-icon img {
-		height: 24px;
 	}
 
 	body.woocommerce-checkout .bw-payment-row {
