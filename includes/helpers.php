@@ -333,11 +333,24 @@ if ( ! function_exists( 'bw_oidc_get_redirect_uri' ) ) {
             $redirect = $settings['redirect_uri_override'];
         }
 
-        if ( ! $redirect ) {
-            $redirect = home_url( '/?action=openid-connect-authorize' );
+        if ( $redirect ) {
+            return esc_url_raw( $redirect );
         }
 
-        return esc_url_raw( $redirect );
+        $alternate_enabled = false;
+
+        foreach ( [ 'alternate_redirect_uri', 'alternate_redirect_uri_enabled', 'alternate_redirect_uri_enable' ] as $key ) {
+            if ( ! empty( $settings[ $key ] ) ) {
+                $alternate_enabled = true;
+                break;
+            }
+        }
+
+        if ( $alternate_enabled ) {
+            return esc_url_raw( home_url( '/openid-connect-authorize' ) );
+        }
+
+        return esc_url_raw( home_url( '/?action=openid-connect-authorize' ) );
     }
 }
 
