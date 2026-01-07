@@ -74,11 +74,14 @@ if ( ! wp_doing_ajax() ) {
 							<div class="bw-payment-method__content payment_box payment_method_<?php echo $gateway_id; ?> <?php echo $gateway_count === 1 ? 'is-open' : ''; ?>">
 								<div class="bw-payment-method__inner">
 									<?php
-									// Check if this is PayPal gateway
+									// Check if this is PayPal or Google Pay gateway
 									$is_paypal = ( strpos( $gateway_id, 'paypal' ) !== false ||
 									               strpos( $gateway_id, 'ppcp' ) !== false );
+									$is_google_pay = ( strpos( $gateway_id, 'google' ) !== false ||
+									                   strpos( $gateway_id, 'googlepay' ) !== false );
 
-									if ( $is_paypal ) :
+									if ( $is_paypal || $is_google_pay ) :
+										$payment_name = $is_paypal ? 'PayPal' : 'Google Pay';
 										?>
 										<div class="bw-paypal-redirect">
 											<svg class="bw-paypal-redirect__icon" xmlns="http://www.w3.org/2000/svg" viewBox="-252.3 356.1 163 80.9">
@@ -89,7 +92,14 @@ if ( ! wp_doing_ajax() ) {
 												<path fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="2" d="M-128.7 400.1H-92m-3.6-4.1 4 4.1-4 4.1"></path>
 											</svg>
 											<p class="bw-paypal-redirect__text">
-												<?php esc_html_e( 'After clicking "Pay with PayPal", you will be redirected to PayPal to complete your purchase securely.', 'woocommerce' ); ?>
+												<?php
+												// Translators: %s is the payment method name (PayPal or Google Pay)
+												printf(
+													esc_html__( 'After clicking "Pay with %s", you will be redirected to %s to complete your purchase securely.', 'woocommerce' ),
+													esc_html( $payment_name ),
+													esc_html( $payment_name )
+												);
+												?>
 											</p>
 										</div>
 										<?php
