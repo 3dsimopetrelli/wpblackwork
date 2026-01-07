@@ -44,6 +44,19 @@ if ( ! wp_doing_ajax() ) {
 								<span class="bw-payment-method__title">
 									<?php echo wp_kses_post( $gateway->get_title() ); ?>
 								</span>
+								<?php
+								// Show icon for Google Pay
+								$gateway_type = strtolower( $gateway_id );
+								$is_google_pay = ( strpos( $gateway_type, 'google' ) !== false ||
+								                   strpos( $gateway_type, 'googlepay' ) !== false );
+
+								if ( $is_google_pay ) {
+									$icon_html = $gateway->get_icon();
+									if ( $icon_html ) {
+										echo '<span class="bw-payment-method__icon">' . wp_kses_post( $icon_html ) . '</span>';
+									}
+								}
+								?>
 							</label>
 						</div>
 

@@ -366,6 +366,19 @@ body.woocommerce-checkout .bw-payment-method__title {
 	line-height: var(--bw-pm-line-height-normal);
 }
 
+body.woocommerce-checkout .bw-payment-method__icon {
+	display: flex;
+	align-items: center;
+	flex-shrink: 0;
+	margin-left: auto;
+}
+
+body.woocommerce-checkout .bw-payment-method__icon img {
+	height: 24px;
+	width: auto;
+	display: block;
+}
+
 /* ============================================
    PAYMENT METHOD CONTENT (Accordion Panel)
    !important on background to override WooCommerce payment_box styles
