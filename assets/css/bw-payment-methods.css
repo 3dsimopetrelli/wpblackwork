@@ -197,6 +197,12 @@ body.woocommerce-checkout div.payment_box::after {
 	left: -9999px !important;
 }
 
+#add_payment_method #payment div.payment_box, .woocommerce-cart #payment div.payment_box, .woocommerce-checkout #payment div.payment_box{
+     padding: 0 !important; 
+     margin: 0 !important; 
+}
+
+
 /* First payment method - round top corners */
 body.woocommerce-checkout .bw-payment-method:first-child {
 	border-radius: var(--bw-pm-radius-md) var(--bw-pm-radius-md) 0 0;
