@@ -45,54 +45,17 @@ if ( ! wp_doing_ajax() ) {
 									<?php echo wp_kses_post( $gateway->get_title() ); ?>
 								</span>
 								<?php
-								// Process payment gateway icons
-								$icon_html = $gateway->get_icon();
-
-								// Force multiple card brand icons for card/stripe gateways (override generic icon)
+								// Show icon for Google Pay
 								$gateway_type = strtolower( $gateway_id );
-								if ( strpos( $gateway_type, 'stripe' ) !== false ||
-								     strpos( $gateway_type, 'card' ) !== false ||
-								     strpos( $gateway_type, 'credit' ) !== false ) {
-									// Use local colored card brand icons
-									$icons_url = BW_MEW_URL . 'assets/images/payment-icons/';
-									$icon_html = '<img src="' . $icons_url . 'visa.svg" alt="Visa" />';
-									$icon_html .= '<img src="' . $icons_url . 'mastercard.svg" alt="Mastercard" />';
-									$icon_html .= '<img src="' . $icons_url . 'maestro.svg" alt="Maestro" />';
-									$icon_html .= '<img src="' . $icons_url . 'amex.svg" alt="American Express" />';
-									$icon_html .= '<img src="' . $icons_url . 'discover.svg" alt="Discover" />';
+								$is_google_pay = ( strpos( $gateway_type, 'google' ) !== false ||
+								                   strpos( $gateway_type, 'googlepay' ) !== false );
+
+								if ( $is_google_pay ) {
+									$icon_html = $gateway->get_icon();
+									if ( $icon_html ) {
+										echo '<span class="bw-payment-method__icon">' . wp_kses_post( $icon_html ) . '</span>';
+									}
 								}
-
-								if ( $icon_html ) :
-									// Extract all <img> tags from the icon HTML
-									preg_match_all( '/<img[^>]+>/i', $icon_html, $matches );
-									$icon_images = $matches[0] ?? [];
-									$total_icons = count( $icon_images );
-
-									if ( $total_icons > 0 ) :
-										$max_visible = 3; // Show max 3 icons
-										$visible_icons = array_slice( $icon_images, 0, $max_visible );
-										$remaining_icons = array_slice( $icon_images, $max_visible );
-										$remaining_count = count( $remaining_icons );
-										?>
-										<span class="bw-payment-method__icons">
-											<?php foreach ( $visible_icons as $icon ) : ?>
-												<span class="bw-payment-icon"><?php echo wp_kses_post( $icon ); ?></span>
-											<?php endforeach; ?>
-
-											<?php if ( $remaining_count > 0 ) : ?>
-												<span class="bw-payment-icon bw-payment-icon--more" data-tooltip-id="tooltip-<?php echo $gateway_id; ?>">
-													<span class="bw-payment-icon__badge">+<?php echo $remaining_count; ?></span>
-													<span class="bw-payment-icon__tooltip" id="tooltip-<?php echo $gateway_id; ?>">
-														<?php foreach ( $remaining_icons as $icon ) : ?>
-															<span class="bw-payment-icon"><?php echo wp_kses_post( $icon ); ?></span>
-														<?php endforeach; ?>
-													</span>
-												</span>
-											<?php endif; ?>
-										</span>
-										<?php
-									endif;
-								endif;
 								?>
 							</label>
 						</div>
@@ -100,7 +63,13 @@ if ( ! wp_doing_ajax() ) {
 						<?php if ( $gateway->has_fields() || $gateway->get_description() ) : ?>
 							<div class="bw-payment-method__content payment_box payment_method_<?php echo $gateway_id; ?> <?php echo $gateway_count === 1 ? 'is-open' : ''; ?>">
 								<div class="bw-payment-method__inner">
-									<?php if ( $gateway->get_description() ) : ?>
+									<?php
+									// Hide description for PayPal (we show custom redirect message instead)
+									$is_paypal_desc = ( strpos( $gateway_id, 'paypal' ) !== false ||
+									                    strpos( $gateway_id, 'ppcp' ) !== false );
+
+									if ( $gateway->get_description() && ! $is_paypal_desc ) :
+										?>
 										<div class="bw-payment-method__description">
 											<?php echo wp_kses_post( wpautop( wptexturize( $gateway->get_description() ) ) ); ?>
 										</div>
@@ -118,27 +87,92 @@ if ( ! wp_doing_ajax() ) {
 											<?php $gateway->payment_fields(); ?>
 										</div>
 									<?php endif; ?>
+
+									<?php
+									// Check if this is PayPal or Google Pay gateway for redirect message
+									$is_paypal = ( strpos( $gateway_id, 'paypal' ) !== false ||
+									               strpos( $gateway_id, 'ppcp' ) !== false );
+									$is_google_pay = ( strpos( $gateway_id, 'google' ) !== false ||
+									                   strpos( $gateway_id, 'googlepay' ) !== false );
+
+									if ( $is_paypal ) :
+										?>
+										<div class="bw-paypal-redirect">
+											<svg class="bw-paypal-redirect__icon" xmlns="http://www.w3.org/2000/svg" viewBox="-252.3 356.1 163 80.9">
+												<path fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="2" d="M-108.9 404.1v30c0 1.1-.9 2-2 2H-231c-1.1 0-2-.9-2-2v-75c0-1.1.9-2 2-2h120.1c1.1 0 2 .9 2 2v37m-124.1-29h124.1"></path>
+												<circle cx="-227.8" cy="361.9" r="1.8" fill="currentColor"></circle>
+												<circle cx="-222.2" cy="361.9" r="1.8" fill="currentColor"></circle>
+												<circle cx="-216.6" cy="361.9" r="1.8" fill="currentColor"></circle>
+												<path fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="2" d="M-128.7 400.1H-92m-3.6-4.1 4 4.1-4 4.1"></path>
+											</svg>
+											<p class="bw-paypal-redirect__text">
+												<?php echo esc_html( 'After clicking "PayPal", you will be redirected to PayPal to complete your purchase securely.' ); ?>
+											</p>
+										</div>
+										<?php
+									elseif ( $is_google_pay ) :
+										?>
+										<div class="bw-paypal-redirect">
+											<svg class="bw-paypal-redirect__icon" xmlns="http://www.w3.org/2000/svg" viewBox="-252.3 356.1 163 80.9">
+												<path fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="2" d="M-108.9 404.1v30c0 1.1-.9 2-2 2H-231c-1.1 0-2-.9-2-2v-75c0-1.1.9-2 2-2h120.1c1.1 0 2 .9 2 2v37m-124.1-29h124.1"></path>
+												<circle cx="-227.8" cy="361.9" r="1.8" fill="currentColor"></circle>
+												<circle cx="-222.2" cy="361.9" r="1.8" fill="currentColor"></circle>
+												<circle cx="-216.6" cy="361.9" r="1.8" fill="currentColor"></circle>
+												<path fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="2" d="M-128.7 400.1H-92m-3.6-4.1 4 4.1-4 4.1"></path>
+											</svg>
+											<p class="bw-paypal-redirect__text">
+												<?php echo esc_html( 'After clicking "Google Pay", you will be redirected to Google Pay to complete your purchase securely.' ); ?>
+											</p>
+										</div>
+										<?php
+									endif;
+									?>
 								</div>
 							</div>
 						<?php else : ?>
 							<div class="bw-payment-method__content payment_box payment_method_<?php echo $gateway_id; ?> <?php echo $gateway_count === 1 ? 'is-open' : ''; ?>">
 								<div class="bw-payment-method__inner">
-									<div class="bw-payment-method__selected-indicator">
-										<svg class="bw-payment-check-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-											<circle cx="8" cy="8" r="7.5" fill="#27ae60" stroke="#27ae60"/>
-											<path d="M5 8L7 10L11 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-										</svg>
-										<span><?php echo wp_kses_post( $gateway->get_title() ); ?> selected</span>
-									</div>
-									<p class="bw-payment-method__instruction">
-										<?php
-										// Translators: %s is the payment method name
-										printf(
-											esc_html__( 'Click the "%s" button to submit your payment information and complete your order.', 'woocommerce' ),
-											esc_html( $gateway->order_button_text ? $gateway->order_button_text : __( 'Place order', 'woocommerce' ) )
-										);
+									<?php
+									// Check if this is Google Pay for redirect message
+									$is_google_pay_else = ( strpos( $gateway_id, 'google' ) !== false ||
+									                        strpos( $gateway_id, 'googlepay' ) !== false );
+
+									if ( $is_google_pay_else ) :
 										?>
-									</p>
+										<div class="bw-paypal-redirect">
+											<svg class="bw-paypal-redirect__icon" xmlns="http://www.w3.org/2000/svg" viewBox="-252.3 356.1 163 80.9">
+												<path fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="2" d="M-108.9 404.1v30c0 1.1-.9 2-2 2H-231c-1.1 0-2-.9-2-2v-75c0-1.1.9-2 2-2h120.1c1.1 0 2 .9 2 2v37m-124.1-29h124.1"></path>
+												<circle cx="-227.8" cy="361.9" r="1.8" fill="currentColor"></circle>
+												<circle cx="-222.2" cy="361.9" r="1.8" fill="currentColor"></circle>
+												<circle cx="-216.6" cy="361.9" r="1.8" fill="currentColor"></circle>
+												<path fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="2" d="M-128.7 400.1H-92m-3.6-4.1 4 4.1-4 4.1"></path>
+											</svg>
+											<p class="bw-paypal-redirect__text">
+												<?php echo esc_html( 'After clicking "Google Pay", you will be redirected to Google Pay to complete your purchase securely.' ); ?>
+											</p>
+										</div>
+										<?php
+									else :
+										?>
+										<div class="bw-payment-method__selected-indicator">
+											<svg class="bw-payment-check-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+												<circle cx="8" cy="8" r="7.5" fill="#27ae60" stroke="#27ae60"/>
+												<path d="M5 8L7 10L11 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+											</svg>
+											<span><?php echo wp_kses_post( $gateway->get_title() ); ?> selected</span>
+										</div>
+										<p class="bw-payment-method__instruction">
+											<?php
+											// Translators: %s is the payment method name
+											printf(
+												esc_html__( 'Click the "%s" button to submit your payment information and complete your order.', 'woocommerce' ),
+												esc_html( $gateway->order_button_text ? $gateway->order_button_text : __( 'Place order', 'woocommerce' ) )
+											);
+											?>
+										</p>
+										<?php
+									endif;
+									?>
 								</div>
 							</div>
 						<?php endif; ?>
