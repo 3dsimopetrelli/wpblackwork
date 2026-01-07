@@ -405,10 +405,26 @@ body.woocommerce-checkout .bw-payment-method__content.is-open {
 
 body.woocommerce-checkout .bw-payment-method__inner {
 	padding: var(--bw-pm-spacing-xl);
-	margin: 0;
+	margin: 0 !important;
 	opacity: 0;
 	transform: translateY(-8px);
 	transition: opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.15s, transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.15s;
+}
+
+/* Ultra-specific selectors to override WooCommerce paragraph margins */
+body.woocommerce-checkout div#payment.woocommerce-checkout-payment .bw-payment-method__content.payment_box .bw-payment-method__inner {
+	margin: 0 !important;
+}
+
+body.woocommerce-checkout div#payment.woocommerce-checkout-payment .bw-payment-method__content.payment_box .bw-payment-method__inner p,
+body.woocommerce-checkout div#payment.woocommerce-checkout-payment .bw-payment-method__content.payment_box .bw-paypal-redirect p,
+body.woocommerce-checkout div#payment.woocommerce-checkout-payment .bw-payment-method__content.payment_box p.bw-paypal-redirect__text,
+body.woocommerce-checkout div#payment.woocommerce-checkout-payment .bw-payment-method__content.payment_box p.bw-payment-method__instruction {
+	margin: 0 !important;
+}
+
+body.woocommerce-checkout div#payment.woocommerce-checkout-payment .bw-payment-method__content.payment_box .bw-paypal-redirect {
+	margin: 0 !important;
 }
 
 body.woocommerce-checkout .bw-payment-method__content.is-open .bw-payment-method__inner {
