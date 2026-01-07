@@ -56,14 +56,6 @@
 
         if (authWrapper) {
             initAuthTabs(authWrapper);
-
-            var emailConfirmed = authWrapper.getAttribute('data-bw-email-confirmed');
-            if (emailConfirmed === '1') {
-                var loginTab = authWrapper.querySelector('[data-bw-auth-tab="login"]');
-                if (loginTab) {
-                    loginTab.click();
-                }
-            }
         }
 
         // Handle Supabase login/register/recover forms (single provider view).

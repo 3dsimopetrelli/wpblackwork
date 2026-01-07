@@ -205,7 +205,6 @@ function bw_site_render_account_page_tab() {
         $supabase_registration    = isset($_POST['bw_supabase_registration_mode']) ? sanitize_text_field($_POST['bw_supabase_registration_mode']) : 'R2';
         $supabase_signup_url      = isset($_POST['bw_supabase_provider_signup_url']) ? esc_url_raw($_POST['bw_supabase_provider_signup_url']) : '';
         $supabase_reset_url       = isset($_POST['bw_supabase_provider_reset_url']) ? esc_url_raw($_POST['bw_supabase_provider_reset_url']) : '';
-        $supabase_confirm_url     = isset($_POST['bw_supabase_email_confirm_redirect_url']) ? esc_url_raw(trim($_POST['bw_supabase_email_confirm_redirect_url'])) : '';
 
         if ( ! in_array( $login_provider, [ 'wordpress', 'supabase' ], true ) ) {
             $login_provider = 'wordpress';
@@ -250,7 +249,6 @@ function bw_site_render_account_page_tab() {
         update_option('bw_supabase_registration_mode', $supabase_registration);
         update_option('bw_supabase_provider_signup_url', $supabase_signup_url);
         update_option('bw_supabase_provider_reset_url', $supabase_reset_url);
-        update_option('bw_supabase_email_confirm_redirect_url', $supabase_confirm_url);
 
         // Clear social login settings cache.
         if (class_exists('BW_Social_Login')) {
@@ -288,7 +286,6 @@ function bw_site_render_account_page_tab() {
     $supabase_registration = get_option('bw_supabase_registration_mode', 'R2');
     $supabase_signup_url   = get_option('bw_supabase_provider_signup_url', '');
     $supabase_reset_url    = get_option('bw_supabase_provider_reset_url', '');
-    $supabase_confirm_url  = get_option('bw_supabase_email_confirm_redirect_url', site_url('/my-account/?bw_email_confirmed=1'));
 
     $facebook_redirect = function_exists('bw_mew_get_social_redirect_uri') ? bw_mew_get_social_redirect_uri('facebook') : add_query_arg('bw_social_login_callback', 'facebook', wc_get_page_permalink('myaccount'));
     $google_redirect   = function_exists('bw_mew_get_social_redirect_uri') ? bw_mew_get_social_redirect_uri('google') : add_query_arg('bw_social_login_callback', 'google', wc_get_page_permalink('myaccount'));
@@ -662,15 +659,6 @@ function bw_site_render_account_page_tab() {
                 <td>
                     <input type="url" id="bw_supabase_provider_reset_url" name="bw_supabase_provider_reset_url" value="<?php echo esc_attr( $supabase_reset_url ); ?>" class="regular-text" />
                     <p class="description"><?php esc_html_e( 'Reset password page hosted by your provider (used in OIDC mode).', 'bw' ); ?></p>
-                </td>
-            </tr>
-            <tr>
-                <th scope="row">
-                    <label for="bw_supabase_email_confirm_redirect_url"><?php esc_html_e( 'Email Confirm Redirect URL', 'bw' ); ?></label>
-                </th>
-                <td>
-                    <input type="url" id="bw_supabase_email_confirm_redirect_url" name="bw_supabase_email_confirm_redirect_url" value="<?php echo esc_attr( $supabase_confirm_url ); ?>" class="regular-text" />
-                    <p class="description"><?php esc_html_e( 'Where Supabase should redirect users after email confirmation.', 'bw' ); ?></p>
                 </td>
             </tr>
             <?php if ( $supabase_with_plugins ) : ?>
