@@ -23,6 +23,7 @@ $google_url          = ( $google && function_exists( 'bw_mew_get_social_login_ur
 $has_facebook        = $facebook && $facebook_url;
 $has_google          = $google && $google_url;
 $description         = get_option( 'bw_account_description', '' );
+$show_description    = apply_filters( 'bw_account_show_description', true );
 $back_text           = get_option( 'bw_account_back_text', 'go back to store' );
 $back_url            = get_option( 'bw_account_back_url', '' );
 $back_url            = $back_url ? $back_url : home_url( '/' );
@@ -32,6 +33,18 @@ $registration_enabled = 'yes' === get_option( 'woocommerce_enable_myaccount_regi
 $generate_username    = 'yes' === get_option( 'woocommerce_registration_generate_username' );
 $generate_password    = 'yes' === get_option( 'woocommerce_registration_generate_password' );
 $active_tab           = ( isset( $_GET['action'] ) && 'lostpassword' === sanitize_key( wp_unslash( $_GET['action'] ) ) ) ? 'lostpassword' : ( ( $registration_enabled && ( ( isset( $_GET['action'] ) && 'register' === sanitize_key( wp_unslash( $_GET['action'] ) ) ) || isset( $_POST['register'] ) ) ) ? 'register' : 'login' );
+$requested_view       = isset( $_GET['bw_auth_view'] ) ? sanitize_key( wp_unslash( $_GET['bw_auth_view'] ) ) : '';
+
+if ( 'supabase' === $login_provider && $requested_view ) {
+    if ( 'reset_password' === $requested_view ) {
+        $active_tab = 'lostpassword';
+    } elseif ( in_array( $requested_view, [ 'login', 'register' ], true ) ) {
+        $active_tab = $requested_view;
+    }
+}
+
+$supabase_reset_url = add_query_arg( 'bw_auth_view', 'reset_password', wc_get_page_permalink( 'myaccount' ) );
+$supabase_login_url = add_query_arg( 'bw_auth_view', 'login', wc_get_page_permalink( 'myaccount' ) );
 ?>
 
 <div class="bw-account-login-page">
@@ -58,6 +71,10 @@ $active_tab           = ( isset( $_GET['action'] ) && 'lostpassword' === sanitiz
                             <button class="bw-account-auth__tab <?php echo 'register' === $active_tab ? 'is-active' : ''; ?>" type="button" data-bw-auth-tab="register"><?php esc_html_e( 'Register', 'woocommerce' ); ?></button>
                         </div>
 
+                        <?php if ( $description && $show_description ) : ?>
+                            <div class="bw-auth-description"><?php echo wpautop( wp_kses_post( $description ) ); ?></div>
+                        <?php endif; ?>
+
                         <div class="bw-account-auth__panels">
                             <div class="bw-account-auth__panel <?php echo 'login' === $active_tab ? 'is-active is-visible' : ''; ?>" data-bw-auth-panel="login">
                                 <form class="bw-account-login__form bw-account-login__form--supabase" data-bw-supabase-form data-bw-supabase-action="login">
@@ -80,7 +97,7 @@ $active_tab           = ( isset( $_GET['action'] ) && 'lostpassword' === sanitiz
                                     </p>
 
                                     <p class="form-row bw-account-login__controls">
-                                        <button type="button" class="bw-account-login__lost-password" data-bw-auth-tab="lostpassword"><?php esc_html_e( 'Lost your password?', 'woocommerce' ); ?></button>
+                                        <a class="bw-account-login__lost-password" href="<?php echo esc_url( $supabase_reset_url ); ?>"><?php esc_html_e( 'Lost your password?', 'woocommerce' ); ?></a>
                                     </p>
                                 </form>
                             </div>
@@ -111,18 +128,6 @@ $active_tab           = ( isset( $_GET['action'] ) && 'lostpassword' === sanitiz
                                 <form class="bw-account-login__form bw-account-login__form--supabase" data-bw-supabase-form data-bw-supabase-action="recover">
                                     <p class="bw-account-login__note"><?php esc_html_e( 'Enter your email to receive a password reset link.', 'bw' ); ?></p>
 
-                            <div class="bw-account-auth__panel" data-bw-auth-panel="lostpassword">
-                                <form class="bw-account-login__form bw-account-login__form--supabase" data-bw-supabase-form data-bw-supabase-action="recover">
-                                    <p class="bw-account-login__note"><?php esc_html_e( 'Enter your email to receive a password reset link.', 'bw' ); ?></p>
-
-                            <div class="bw-account-auth__panel <?php echo 'register' === $active_tab ? 'is-active is-visible' : ''; ?>" data-bw-auth-panel="register">
-                                <form class="bw-account-login__form bw-account-login__form--supabase" data-bw-supabase-form data-bw-supabase-action="register">
-                                    <p class="bw-account-login__note"><?php esc_html_e( 'Create your Supabase account.', 'bw' ); ?></p>
-
-                                    <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide bw-account-login__field">
-                                        <label for="bw_supabase_register_email"><?php esc_html_e( 'Email address', 'woocommerce' ); ?> <span class="required">*</span></label>
-                                        <input type="email" class="woocommerce-Input woocommerce-Input--text input-text" name="email" id="bw_supabase_register_email" autocomplete="email" required />
-                                    </p>
                                     <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide bw-account-login__field">
                                         <label for="bw_supabase_recover_email"><?php esc_html_e( 'Email address', 'woocommerce' ); ?> <span class="required">*</span></label>
                                         <input type="email" class="woocommerce-Input woocommerce-Input--text input-text" name="email" id="bw_supabase_recover_email" autocomplete="email" required />
@@ -136,9 +141,15 @@ $active_tab           = ( isset( $_GET['action'] ) && 'lostpassword' === sanitiz
                                     </p>
 
                                     <p class="bw-account-login__back-to-login">
-                                        <button type="button" class="bw-account-login__back-link" data-bw-auth-tab="login">← <?php esc_html_e( 'Back to login', 'woocommerce' ); ?></button>
+                                        <a class="bw-account-login__back-link" href="<?php echo esc_url( $supabase_login_url ); ?>">← <?php esc_html_e( 'Go back to login', 'bw' ); ?></a>
                                     </p>
+
+                                    <?php do_action( 'woocommerce_login_form_end' ); ?>
                                 </form>
+
+                                <?php if ( $passwordless_url ) : ?>
+                                    <a class="bw-account-login__passwordless" href="<?php echo esc_url( $passwordless_url ); ?>" data-login-method="passwordless"><?php esc_html_e( 'Log in Without Password', 'woocommerce' ); ?></a>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
@@ -150,6 +161,10 @@ $active_tab           = ( isset( $_GET['action'] ) && 'lostpassword' === sanitiz
                                 <button class="bw-account-auth__tab <?php echo 'register' === $active_tab ? 'is-active' : ''; ?>" type="button" data-bw-auth-tab="register"><?php esc_html_e( 'Register', 'woocommerce' ); ?></button>
                             <?php endif; ?>
                         </div>
+
+                        <?php if ( $description && $show_description ) : ?>
+                            <div class="bw-auth-description"><?php echo wpautop( wp_kses_post( $description ) ); ?></div>
+                        <?php endif; ?>
 
                         <div class="bw-account-auth__panels">
                             <div class="bw-account-auth__panel <?php echo 'login' === $active_tab ? 'is-active is-visible' : ''; ?>" data-bw-auth-panel="login">
@@ -281,13 +296,11 @@ $active_tab           = ( isset( $_GET['action'] ) && 'lostpassword' === sanitiz
                     </div>
                 <?php endif; ?>
 
-                <?php if ( $description ) : ?>
-                    <div class="bw-account-login__description"><?php echo wpautop( wp_kses_post( $description ) ); ?></div>
+                <?php if ( 'supabase' !== $login_provider ) : ?>
+                    <div class="bw-account-login__back">
+                        <a href="<?php echo esc_url( $back_url ); ?>"><?php echo esc_html( $back_text ); ?> <span aria-hidden="true">→</span></a>
+                    </div>
                 <?php endif; ?>
-
-                <div class="bw-account-login__back">
-                    <a href="<?php echo esc_url( $back_url ); ?>"><?php echo esc_html( $back_text ); ?> <span aria-hidden="true">→</span></a>
-                </div>
 
                 <?php do_action( 'woocommerce_after_customer_login_form' ); ?>
             </div>

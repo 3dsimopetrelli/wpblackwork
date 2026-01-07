@@ -518,14 +518,14 @@ body.woocommerce-account.bw-account-login-only .bw-account-login__back-link:focu
     background-color: #777;
 }
 
-.bw-account-login__description {
-    margin-top: 20px;
+.bw-auth-description {
+    margin: 18px 0 20px;
     color: #303030;
     font-size: 14px;
     line-height: 1.6;
 }
 
-.bw-account-login__description p {
+.bw-auth-description p {
     margin: 0 0 8px;
 }
 
