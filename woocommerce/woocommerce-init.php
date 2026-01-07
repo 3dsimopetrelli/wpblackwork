@@ -154,6 +154,11 @@ function bw_mew_enqueue_account_page_assets() {
         [
             'ajaxUrl'         => admin_url( 'admin-ajax.php' ),
             'nonce'           => wp_create_nonce( 'bw-supabase-login' ),
+            'supabaseWithOidc' => (int) get_option( 'bw_supabase_with_plugins', 0 ),
+            'registrationMode' => get_option( 'bw_supabase_registration_mode', 'R2' ),
+            'providerSignupUrl' => get_option( 'bw_supabase_provider_signup_url', '' ),
+            'providerResetUrl' => get_option( 'bw_supabase_provider_reset_url', '' ),
+            'oidcAuthUrl'      => function_exists( 'bw_oidc_get_auth_url' ) ? bw_oidc_get_auth_url() : '',
         ]
     );
 }

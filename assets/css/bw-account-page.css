@@ -427,6 +427,14 @@ body.woocommerce-account.bw-account-login-only .bw-account-login__lost-password:
     transition: background 0.2s ease, transform 0.2s ease;
 }
 
+.bw-account-login__submit.is-disabled,
+.bw-account-login__submit.is-disabled:hover,
+.bw-account-login__submit.is-disabled:focus-visible {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
 .bw-account-login__submit:hover,
 .bw-account-login__submit:focus-visible {
     background: #1a1a1a;

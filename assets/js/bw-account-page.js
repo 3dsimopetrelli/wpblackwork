@@ -97,6 +97,24 @@
                         action = 'bw_supabase_recover';
                     }
 
+                    if (actionType === 'login' && window.bwAccountAuth.supabaseWithOidc) {
+                        if (window.bwAccountAuth.oidcAuthUrl) {
+                            window.location.href = window.bwAccountAuth.oidcAuthUrl;
+                            return;
+                        }
+
+                        if (errorBox) {
+                            errorBox.textContent = 'OIDC auth URL is not configured.';
+                            errorBox.hidden = false;
+                        }
+
+                        if (submitButton) {
+                            submitButton.disabled = false;
+                        }
+
+                        return;
+                    }
+
                     formData.append('action', action);
                     formData.append('nonce', window.bwAccountAuth.nonce);
 

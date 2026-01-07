@@ -28,23 +28,21 @@ $back_text           = get_option( 'bw_account_back_text', 'go back to store' );
 $back_url            = get_option( 'bw_account_back_url', '' );
 $back_url            = $back_url ? $back_url : home_url( '/' );
 $login_provider      = get_option( 'bw_account_login_provider', 'wordpress' );
+$supabase_with_oidc  = (int) get_option( 'bw_supabase_with_plugins', 0 );
+$registration_mode   = get_option( 'bw_supabase_registration_mode', 'R2' );
+$provider_signup_url = get_option( 'bw_supabase_provider_signup_url', '' );
+$provider_reset_url  = get_option( 'bw_supabase_provider_reset_url', '' );
 $lost_password_url   = wc_lostpassword_url();
 $registration_enabled = 'yes' === get_option( 'woocommerce_enable_myaccount_registration' );
 $generate_username    = 'yes' === get_option( 'woocommerce_registration_generate_username' );
 $generate_password    = 'yes' === get_option( 'woocommerce_registration_generate_password' );
 $active_tab           = ( isset( $_GET['action'] ) && 'lostpassword' === sanitize_key( wp_unslash( $_GET['action'] ) ) ) ? 'lostpassword' : ( ( $registration_enabled && ( ( isset( $_GET['action'] ) && 'register' === sanitize_key( wp_unslash( $_GET['action'] ) ) ) || isset( $_POST['register'] ) ) ) ? 'register' : 'login' );
-$requested_view       = isset( $_GET['bw_auth_view'] ) ? sanitize_key( wp_unslash( $_GET['bw_auth_view'] ) ) : '';
+$registration_mode    = in_array( $registration_mode, [ 'R1', 'R2', 'R3' ], true ) ? $registration_mode : 'R2';
+$show_supabase_register = 'R3' !== $registration_mode;
 
-if ( 'supabase' === $login_provider && $requested_view ) {
-    if ( 'reset_password' === $requested_view ) {
-        $active_tab = 'lostpassword';
-    } elseif ( in_array( $requested_view, [ 'login', 'register' ], true ) ) {
-        $active_tab = $requested_view;
-    }
+if ( 'supabase' === $login_provider && ! $show_supabase_register && 'register' === $active_tab ) {
+    $active_tab = 'login';
 }
-
-$supabase_reset_url = add_query_arg( 'bw_auth_view', 'reset_password', wc_get_page_permalink( 'myaccount' ) );
-$supabase_login_url = add_query_arg( 'bw_auth_view', 'login', wc_get_page_permalink( 'myaccount' ) );
 ?>
 
 <div class="bw-account-login-page">
@@ -66,9 +64,11 @@ $supabase_login_url = add_query_arg( 'bw_auth_view', 'login', wc_get_page_permal
                 if ( 'supabase' === $login_provider ) :
                 ?>
                     <div class="bw-account-auth" data-bw-default-tab="<?php echo esc_attr( $active_tab ); ?>">
-                        <div class="bw-account-auth__tabs bw-account-auth__tabs--dual">
+                        <div class="bw-account-auth__tabs <?php echo $show_supabase_register ? 'bw-account-auth__tabs--dual' : 'bw-account-auth__tabs--single'; ?>">
                             <button class="bw-account-auth__tab <?php echo 'login' === $active_tab ? 'is-active' : ''; ?>" type="button" data-bw-auth-tab="login"><?php esc_html_e( 'Login', 'woocommerce' ); ?></button>
-                            <button class="bw-account-auth__tab <?php echo 'register' === $active_tab ? 'is-active' : ''; ?>" type="button" data-bw-auth-tab="register"><?php esc_html_e( 'Register', 'woocommerce' ); ?></button>
+                            <?php if ( $show_supabase_register ) : ?>
+                                <button class="bw-account-auth__tab <?php echo 'register' === $active_tab ? 'is-active' : ''; ?>" type="button" data-bw-auth-tab="register"><?php esc_html_e( 'Register', 'woocommerce' ); ?></button>
+                            <?php endif; ?>
                         </div>
 
                         <div class="bw-account-auth__panels">
@@ -98,53 +98,80 @@ $supabase_login_url = add_query_arg( 'bw_auth_view', 'login', wc_get_page_permal
                                 </form>
                             </div>
 
-                            <div class="bw-account-auth__panel <?php echo 'register' === $active_tab ? 'is-active is-visible' : ''; ?>" data-bw-auth-panel="register">
-                                <form class="bw-account-login__form bw-account-login__form--supabase" data-bw-supabase-form data-bw-supabase-action="register">
-                                    <p class="bw-account-login__note"><?php esc_html_e( 'Create your Supabase account.', 'bw' ); ?></p>
+                            <?php if ( $show_supabase_register ) : ?>
+                                <div class="bw-account-auth__panel <?php echo 'register' === $active_tab ? 'is-active is-visible' : ''; ?>" data-bw-auth-panel="register">
+                                    <?php if ( 'R1' === $registration_mode ) : ?>
+                                        <div class="bw-account-login__form bw-account-login__form--supabase">
+                                            <p class="bw-account-login__note"><?php esc_html_e( 'Create your account on the provider.', 'bw' ); ?></p>
+                                            <p class="form-row bw-account-login__actions">
+                                                <a class="woocommerce-button button bw-account-login__submit <?php echo $provider_signup_url ? '' : 'is-disabled'; ?>" href="<?php echo esc_url( $provider_signup_url ? $provider_signup_url : '#' ); ?>" <?php echo $provider_signup_url ? '' : 'aria-disabled="true"'; ?>>
+                                                    <?php esc_html_e( 'Create account', 'bw' ); ?>
+                                                </a>
+                                            </p>
+                                            <?php if ( ! $provider_signup_url ) : ?>
+                                                <p class="bw-account-login__note"><?php esc_html_e( 'Add a Provider Signup URL in Blackworksite > Account to enable this action.', 'bw' ); ?></p>
+                                            <?php endif; ?>
+                                        </div>
+                                    <?php else : ?>
+                                        <form class="bw-account-login__form bw-account-login__form--supabase" data-bw-supabase-form data-bw-supabase-action="register">
+                                            <p class="bw-account-login__note"><?php esc_html_e( 'Create your Supabase account.', 'bw' ); ?></p>
 
-                                    <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide bw-account-login__field">
-                                        <label for="bw_supabase_register_email"><?php esc_html_e( 'Email address', 'woocommerce' ); ?> <span class="required">*</span></label>
-                                        <input type="email" class="woocommerce-Input woocommerce-Input--text input-text" name="email" id="bw_supabase_register_email" autocomplete="email" required />
-                                    </p>
-                                    <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide bw-account-login__field">
-                                        <label for="bw_supabase_register_password"><?php esc_html_e( 'Password', 'woocommerce' ); ?> <span class="required">*</span></label>
-                                        <input class="woocommerce-Input woocommerce-Input--text input-text" type="password" name="password" id="bw_supabase_register_password" autocomplete="new-password" required />
-                                    </p>
+                                            <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide bw-account-login__field">
+                                                <label for="bw_supabase_register_email"><?php esc_html_e( 'Email address', 'woocommerce' ); ?> <span class="required">*</span></label>
+                                                <input type="email" class="woocommerce-Input woocommerce-Input--text input-text" name="email" id="bw_supabase_register_email" autocomplete="email" required />
+                                            </p>
+                                            <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide bw-account-login__field">
+                                                <label for="bw_supabase_register_password"><?php esc_html_e( 'Password', 'woocommerce' ); ?> <span class="required">*</span></label>
+                                                <input class="woocommerce-Input woocommerce-Input--text input-text" type="password" name="password" id="bw_supabase_register_password" autocomplete="new-password" required />
+                                            </p>
 
-                                    <div class="bw-account-login__error" role="alert" aria-live="polite" hidden></div>
-                                    <div class="bw-account-login__success" role="status" aria-live="polite" hidden></div>
+                                            <div class="bw-account-login__error" role="alert" aria-live="polite" hidden></div>
+                                            <div class="bw-account-login__success" role="status" aria-live="polite" hidden></div>
 
-                                    <p class="form-row bw-account-login__actions">
-                                        <button type="submit" class="woocommerce-button button bw-account-login__submit" data-bw-supabase-submit><?php esc_html_e( 'Register', 'woocommerce' ); ?></button>
-                                    </p>
-                                </form>
-                            </div>
+                                            <p class="form-row bw-account-login__actions">
+                                                <button type="submit" class="woocommerce-button button bw-account-login__submit" data-bw-supabase-submit><?php esc_html_e( 'Register', 'woocommerce' ); ?></button>
+                                            </p>
+                                        </form>
+                                    <?php endif; ?>
+                                </div>
+                            <?php endif; ?>
 
                             <div class="bw-account-auth__panel <?php echo 'lostpassword' === $active_tab ? 'is-active is-visible' : ''; ?>" data-bw-auth-panel="lostpassword">
-                                <form class="bw-account-login__form bw-account-login__form--supabase" data-bw-supabase-form data-bw-supabase-action="recover">
-                                    <p class="bw-account-login__note"><?php esc_html_e( 'Enter your email to receive a password reset link.', 'bw' ); ?></p>
+                                <?php if ( $supabase_with_oidc ) : ?>
+                                    <div class="bw-account-login__form bw-account-login__form--supabase">
+                                        <p class="bw-account-login__note"><?php esc_html_e( 'Reset your password on the provider.', 'bw' ); ?></p>
+                                        <p class="form-row bw-account-login__actions">
+                                            <a class="woocommerce-button button bw-account-login__submit <?php echo $provider_reset_url ? '' : 'is-disabled'; ?>" href="<?php echo esc_url( $provider_reset_url ? $provider_reset_url : '#' ); ?>" <?php echo $provider_reset_url ? '' : 'aria-disabled="true"'; ?>>
+                                                <?php esc_html_e( 'Reset password on provider', 'bw' ); ?>
+                                            </a>
+                                        </p>
+                                        <?php if ( ! $provider_reset_url ) : ?>
+                                            <p class="bw-account-login__note"><?php esc_html_e( 'Add a Provider Reset URL in Blackworksite > Account to enable this action.', 'bw' ); ?></p>
+                                        <?php endif; ?>
+                                        <p class="bw-account-login__back-to-login">
+                                            <button type="button" class="bw-account-login__back-link" data-bw-auth-tab="login">← <?php esc_html_e( 'Go back to login', 'bw' ); ?></button>
+                                        </p>
+                                    </div>
+                                <?php else : ?>
+                                    <form class="bw-account-login__form bw-account-login__form--supabase" data-bw-supabase-form data-bw-supabase-action="recover">
+                                        <p class="bw-account-login__note"><?php esc_html_e( 'Enter your email to receive a password reset link.', 'bw' ); ?></p>
 
-                                    <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide bw-account-login__field">
-                                        <label for="bw_supabase_recover_email"><?php esc_html_e( 'Email address', 'woocommerce' ); ?> <span class="required">*</span></label>
-                                        <input type="email" class="woocommerce-Input woocommerce-Input--text input-text" name="email" id="bw_supabase_recover_email" autocomplete="email" required />
-                                    </p>
+                                        <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide bw-account-login__field">
+                                            <label for="bw_supabase_recover_email"><?php esc_html_e( 'Email address', 'woocommerce' ); ?> <span class="required">*</span></label>
+                                            <input type="email" class="woocommerce-Input woocommerce-Input--text input-text" name="email" id="bw_supabase_recover_email" autocomplete="email" required />
+                                        </p>
 
-                                    <div class="bw-account-login__error" role="alert" aria-live="polite" hidden></div>
-                                    <div class="bw-account-login__success" role="status" aria-live="polite" hidden></div>
+                                        <div class="bw-account-login__error" role="alert" aria-live="polite" hidden></div>
+                                        <div class="bw-account-login__success" role="status" aria-live="polite" hidden></div>
 
-                                    <p class="form-row bw-account-login__actions">
-                                        <button type="submit" class="woocommerce-button button bw-account-login__submit" data-bw-supabase-submit><?php esc_html_e( 'Send reset link', 'bw' ); ?></button>
-                                    </p>
+                                        <p class="form-row bw-account-login__actions">
+                                            <button type="submit" class="woocommerce-button button bw-account-login__submit" data-bw-supabase-submit><?php esc_html_e( 'Send reset link', 'bw' ); ?></button>
+                                        </p>
 
-                                    <p class="bw-account-login__back-to-login">
-                                        <button type="button" class="bw-account-login__back-link" data-bw-auth-tab="login">← <?php esc_html_e( 'Go back to login', 'bw' ); ?></button>
-                                    </p>
-
-                                    <?php do_action( 'woocommerce_login_form_end' ); ?>
-                                </form>
-
-                                <?php if ( $passwordless_url ) : ?>
-                                    <a class="bw-account-login__passwordless" href="<?php echo esc_url( $passwordless_url ); ?>" data-login-method="passwordless"><?php esc_html_e( 'Log in Without Password', 'woocommerce' ); ?></a>
+                                        <p class="bw-account-login__back-to-login">
+                                            <button type="button" class="bw-account-login__back-link" data-bw-auth-tab="login">← <?php esc_html_e( 'Go back to login', 'bw' ); ?></button>
+                                        </p>
+                                    </form>
                                 <?php endif; ?>
                             </div>
                         </div>
@@ -196,6 +223,14 @@ $supabase_login_url = add_query_arg( 'bw_auth_view', 'login', wc_get_page_permal
                                 <form class="woocommerce-form woocommerce-form-login login bw-account-login__form" method="post" action="<?php echo esc_url( wc_get_page_permalink( 'myaccount' ) ); ?>">
                                     <?php do_action( 'woocommerce_login_form_start' ); ?>
 
+                            <div class="bw-account-auth__panel <?php echo 'register' === $active_tab ? 'is-active is-visible' : ''; ?>" data-bw-auth-panel="register">
+                                <form class="bw-account-login__form bw-account-login__form--supabase" data-bw-supabase-form data-bw-supabase-action="register">
+                                    <p class="bw-account-login__note"><?php esc_html_e( 'Create your Supabase account.', 'bw' ); ?></p>
+
+                                    <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide bw-account-login__field">
+                                        <label for="bw_supabase_register_email"><?php esc_html_e( 'Email address', 'woocommerce' ); ?> <span class="required">*</span></label>
+                                        <input type="email" class="woocommerce-Input woocommerce-Input--text input-text" name="email" id="bw_supabase_register_email" autocomplete="email" required />
+                                    </p>
                                     <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide bw-account-login__field">
                                         <label for="username"><?php esc_html_e( 'Username or email address', 'woocommerce' ); ?> <span class="required">*</span></label>
                                         <input type="text" class="woocommerce-Input woocommerce-Input--text input-text" name="username" id="username" autocomplete="username" value="<?php echo isset( $_POST['username'] ) ? esc_attr( wp_unslash( $_POST['username'] ) ) : ''; ?>" />
