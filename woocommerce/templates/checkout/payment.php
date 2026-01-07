@@ -93,8 +93,7 @@ if ( ! wp_doing_ajax() ) {
 									$is_google_pay = ( strpos( $gateway_id, 'google' ) !== false ||
 									                   strpos( $gateway_id, 'googlepay' ) !== false );
 
-									if ( $is_paypal || $is_google_pay ) :
-										$payment_name = $is_paypal ? 'PayPal' : 'Google Pay';
+									if ( $is_paypal ) :
 										?>
 										<div class="bw-paypal-redirect">
 											<svg class="bw-paypal-redirect__icon" xmlns="http://www.w3.org/2000/svg" viewBox="-252.3 356.1 163 80.9">
@@ -105,13 +104,22 @@ if ( ! wp_doing_ajax() ) {
 												<path fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="2" d="M-128.7 400.1H-92m-3.6-4.1 4 4.1-4 4.1"></path>
 											</svg>
 											<p class="bw-paypal-redirect__text">
-												<?php
-												printf(
-													esc_html( 'After clicking "%s", you will be redirected to %s to complete your purchase securely.' ),
-													esc_html( $payment_name ),
-													esc_html( $payment_name )
-												);
-												?>
+												<?php echo esc_html( 'After clicking "PayPal", you will be redirected to PayPal to complete your purchase securely.' ); ?>
+											</p>
+										</div>
+										<?php
+									elseif ( $is_google_pay ) :
+										?>
+										<div class="bw-paypal-redirect">
+											<svg class="bw-paypal-redirect__icon" xmlns="http://www.w3.org/2000/svg" viewBox="-252.3 356.1 163 80.9">
+												<path fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="2" d="M-108.9 404.1v30c0 1.1-.9 2-2 2H-231c-1.1 0-2-.9-2-2v-75c0-1.1.9-2 2-2h120.1c1.1 0 2 .9 2 2v37m-124.1-29h124.1"></path>
+												<circle cx="-227.8" cy="361.9" r="1.8" fill="currentColor"></circle>
+												<circle cx="-222.2" cy="361.9" r="1.8" fill="currentColor"></circle>
+												<circle cx="-216.6" cy="361.9" r="1.8" fill="currentColor"></circle>
+												<path fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="2" d="M-128.7 400.1H-92m-3.6-4.1 4 4.1-4 4.1"></path>
+											</svg>
+											<p class="bw-paypal-redirect__text">
+												<?php echo esc_html( 'After clicking "Google Pay", you will be redirected to Google Pay to complete your purchase securely.' ); ?>
 											</p>
 										</div>
 										<?php
