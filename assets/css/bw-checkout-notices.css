@@ -7,14 +7,25 @@
 
 /* ============================================
    HIDE DEFAULT NOTICES POSITION
-   Hide notices that appear before the form
+   Hide ALL notices on checkout, then show only those in left column
    ============================================ */
 
-.woocommerce-checkout > .woocommerce-notices-wrapper,
-.woocommerce-checkout > .woocommerce-error,
-.woocommerce-checkout > .woocommerce-message,
-.woocommerce-checkout > .woocommerce-info {
+body.woocommerce-checkout .woocommerce-error,
+body.woocommerce-checkout .woocommerce-message,
+body.woocommerce-checkout .woocommerce-info {
 	display: none !important;
+}
+
+/* Force show notices inside left column */
+body.woocommerce-checkout .bw-checkout-left .woocommerce-error,
+body.woocommerce-checkout .bw-checkout-left .woocommerce-message,
+body.woocommerce-checkout .bw-checkout-left .woocommerce-info {
+	display: flex !important;
+	visibility: visible !important;
+	opacity: 1 !important;
+	position: relative !important;
+	left: auto !important;
+	height: auto !important;
 }
 
 /* ============================================

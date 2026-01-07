@@ -11,14 +11,19 @@
      * Move notices into left column
      */
     function moveNotices() {
+        // Only run on checkout page
+        if (!$('body').hasClass('woocommerce-checkout')) {
+            return;
+        }
+
         const leftColumn = $('.bw-checkout-left');
 
         if (!leftColumn.length) {
             return;
         }
 
-        // Find all notices outside the form
-        const notices = $('.woocommerce-checkout > .woocommerce-notices-wrapper, .woocommerce-checkout > .woocommerce-error, .woocommerce-checkout > .woocommerce-message, .woocommerce-checkout > .woocommerce-info, body.woocommerce-checkout > .woocommerce-notices-wrapper, body.woocommerce-checkout > .woocommerce-error, body.woocommerce-checkout > .woocommerce-message, body.woocommerce-checkout > .woocommerce-info');
+        // Find ALL notices anywhere on the page (not inside left column already)
+        const notices = $('.woocommerce-error, .woocommerce-message, .woocommerce-info').not('.bw-checkout-left .woocommerce-error, .bw-checkout-left .woocommerce-message, .bw-checkout-left .woocommerce-info');
 
         if (notices.length) {
             // Create container if it doesn't exist
@@ -29,17 +34,17 @@
                 leftColumn.prepend(container);
             }
 
-            // Move each notice into the container
-            notices.each(function() {
-                const notice = $(this);
+            // Clear container and move notices
+            container.empty();
 
-                // If it's a wrapper, move its children
-                if (notice.hasClass('woocommerce-notices-wrapper')) {
-                    notice.children().appendTo(container);
-                } else {
-                    notice.appendTo(container);
-                }
+            // Clone and append each notice to avoid removing from original position if needed later
+            notices.each(function() {
+                const notice = $(this).clone();
+                container.append(notice);
             });
+
+            // Hide original notices
+            notices.hide();
         }
     }
 
@@ -47,14 +52,43 @@
      * Initialize on document ready
      */
     $(document).ready(function() {
-        moveNotices();
+        setTimeout(moveNotices, 100);
     });
 
     /**
      * Re-run after AJAX updates (e.g., after failed checkout submission)
      */
     $(document.body).on('checkout_error updated_checkout', function() {
-        setTimeout(moveNotices, 100);
+        setTimeout(moveNotices, 200);
     });
 
+    /**
+     * Re-run when DOM changes (for dynamic notices)
+     */
+    if (window.MutationObserver) {
+        const observer = new MutationObserver(function(mutations) {
+            const hasNewNotices = mutations.some(function(mutation) {
+                return Array.from(mutation.addedNodes).some(function(node) {
+                    return node.nodeType === 1 && (
+                        node.classList && (
+                            node.classList.contains('woocommerce-error') ||
+                            node.classList.contains('woocommerce-message') ||
+                            node.classList.contains('woocommerce-info')
+                        )
+                    );
+                });
+            });
+
+            if (hasNewNotices) {
+                setTimeout(moveNotices, 100);
+            }
+        });
+
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+    }
+
 })(jQuery);
+
