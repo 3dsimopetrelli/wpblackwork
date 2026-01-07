@@ -111,7 +111,6 @@ if ( function_exists( 'bw_mew_render_checkout_header' ) ) {
                 <?php endif; ?>
 
                 <div class="bw-checkout-payment">
-                    <h3 class="bw-checkout-section-title"><?php esc_html_e( 'Payment', 'woocommerce' ); ?></h3>
                     <?php
                     wc_get_template(
                         'checkout/payment.php',
