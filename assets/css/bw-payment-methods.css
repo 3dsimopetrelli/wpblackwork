@@ -159,9 +159,13 @@ body.woocommerce-checkout .bw-payment-method {
 
 /* Remove any ::before or ::after from payment method that could break borders */
 body.woocommerce-checkout .bw-payment-method::before,
-body.woocommerce-checkout .bw-payment-method::after {
-	display: none;
-	content: none;
+body.woocommerce-checkout .bw-payment-method::after,
+body.woocommerce-checkout .wc_payment_method::before,
+body.woocommerce-checkout .wc_payment_method::after,
+body.woocommerce-checkout li.payment_method::before,
+body.woocommerce-checkout li.payment_method::after {
+	display: none !important;
+	content: none !important;
 }
 
 /* First payment method - round top corners */
