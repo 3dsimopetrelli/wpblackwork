@@ -71,10 +71,6 @@ $supabase_login_url = add_query_arg( 'bw_auth_view', 'login', wc_get_page_permal
                             <button class="bw-account-auth__tab <?php echo 'register' === $active_tab ? 'is-active' : ''; ?>" type="button" data-bw-auth-tab="register"><?php esc_html_e( 'Register', 'woocommerce' ); ?></button>
                         </div>
 
-                        <?php if ( $description && $show_description ) : ?>
-                            <div class="bw-auth-description"><?php echo wpautop( wp_kses_post( $description ) ); ?></div>
-                        <?php endif; ?>
-
                         <div class="bw-account-auth__panels">
                             <div class="bw-account-auth__panel <?php echo 'login' === $active_tab ? 'is-active is-visible' : ''; ?>" data-bw-auth-panel="login">
                                 <form class="bw-account-login__form bw-account-login__form--supabase" data-bw-supabase-form data-bw-supabase-action="login">
@@ -97,7 +93,7 @@ $supabase_login_url = add_query_arg( 'bw_auth_view', 'login', wc_get_page_permal
                                     </p>
 
                                     <p class="form-row bw-account-login__controls">
-                                        <a class="bw-account-login__lost-password" href="<?php echo esc_url( $supabase_reset_url ); ?>"><?php esc_html_e( 'Lost your password?', 'woocommerce' ); ?></a>
+                                        <button type="button" class="bw-account-login__lost-password" data-bw-auth-tab="lostpassword"><?php esc_html_e( 'Lost your password?', 'woocommerce' ); ?></button>
                                     </p>
                                 </form>
                             </div>
@@ -141,7 +137,7 @@ $supabase_login_url = add_query_arg( 'bw_auth_view', 'login', wc_get_page_permal
                                     </p>
 
                                     <p class="bw-account-login__back-to-login">
-                                        <a class="bw-account-login__back-link" href="<?php echo esc_url( $supabase_login_url ); ?>">← <?php esc_html_e( 'Go back to login', 'bw' ); ?></a>
+                                        <button type="button" class="bw-account-login__back-link" data-bw-auth-tab="login">← <?php esc_html_e( 'Go back to login', 'bw' ); ?></button>
                                     </p>
 
                                     <?php do_action( 'woocommerce_login_form_end' ); ?>
@@ -152,6 +148,10 @@ $supabase_login_url = add_query_arg( 'bw_auth_view', 'login', wc_get_page_permal
                                 <?php endif; ?>
                             </div>
                         </div>
+
+                        <?php if ( $description && $show_description ) : ?>
+                            <div class="bw-auth-description"><?php echo wpautop( wp_kses_post( $description ) ); ?></div>
+                        <?php endif; ?>
                     </div>
                 <?php else : ?>
                     <div class="bw-account-auth" data-bw-default-tab="<?php echo esc_attr( $active_tab ); ?>">
@@ -161,10 +161,6 @@ $supabase_login_url = add_query_arg( 'bw_auth_view', 'login', wc_get_page_permal
                                 <button class="bw-account-auth__tab <?php echo 'register' === $active_tab ? 'is-active' : ''; ?>" type="button" data-bw-auth-tab="register"><?php esc_html_e( 'Register', 'woocommerce' ); ?></button>
                             <?php endif; ?>
                         </div>
-
-                        <?php if ( $description && $show_description ) : ?>
-                            <div class="bw-auth-description"><?php echo wpautop( wp_kses_post( $description ) ); ?></div>
-                        <?php endif; ?>
 
                         <div class="bw-account-auth__panels">
                             <div class="bw-account-auth__panel <?php echo 'login' === $active_tab ? 'is-active is-visible' : ''; ?>" data-bw-auth-panel="login">
@@ -293,6 +289,10 @@ $supabase_login_url = add_query_arg( 'bw_auth_view', 'login', wc_get_page_permal
                                 </form>
                             </div>
                         </div>
+
+                        <?php if ( $description && $show_description ) : ?>
+                            <div class="bw-auth-description"><?php echo wpautop( wp_kses_post( $description ) ); ?></div>
+                        <?php endif; ?>
                     </div>
                 <?php endif; ?>
 
