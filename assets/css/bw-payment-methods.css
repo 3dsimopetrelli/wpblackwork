@@ -99,14 +99,14 @@ body.woocommerce-checkout {
 
 /* ============================================
    SCOPED RESET & CONTAINER
-   Specificity: (0,1,2)
+   !important needed to override WooCommerce inline styles
    ============================================ */
 
 body.woocommerce-checkout .woocommerce-checkout-payment {
-	background: transparent;
-	border: none;
-	padding: 0;
-	margin: 0;
+	background: transparent !important;
+	border: none !important;
+	padding: 0 !important;
+	margin: 0 !important;
 }
 
 /* ============================================
@@ -136,9 +136,9 @@ body.woocommerce-checkout .bw-payment-section-subtitle {
    ============================================ */
 
 body.woocommerce-checkout ul.bw-payment-methods {
-	list-style: none;
-	padding: 0;
-	margin: 0 0 var(--bw-pm-spacing-2xl) 0;
+	list-style: none !important;
+	padding: 0 !important;
+	margin: 0 0 var(--bw-pm-spacing-2xl) 0 !important;
 }
 
 /* ============================================
@@ -220,32 +220,32 @@ body.woocommerce-checkout .bw-payment-method.is-selected .bw-payment-method__hea
 
 /* ============================================
    PAYMENT METHOD HEADER (Radio + Label)
-   Specificity: (0,1,2)
+   !important on height/overflow to ensure consistent 55px across all gateways
    ============================================ */
 
 body.woocommerce-checkout .bw-payment-method__header {
 	display: flex;
 	align-items: center;
-	padding: 16px 20px;
-	height: var(--bw-pm-header-height);
-	min-height: var(--bw-pm-header-height);
-	max-height: var(--bw-pm-header-height);
-	box-sizing: border-box;
+	padding: 16px 20px !important;
+	height: var(--bw-pm-header-height) !important;
+	min-height: var(--bw-pm-header-height) !important;
+	max-height: var(--bw-pm-header-height) !important;
+	box-sizing: border-box !important;
 	cursor: pointer;
 	position: relative;
 	gap: 14px;
 	background: var(--bw-pm-bg);
 	transition: background-color var(--bw-pm-transition-smooth);
 	border-radius: 0;
-	overflow: hidden;
+	overflow: hidden !important;
 	line-height: var(--bw-pm-line-height-normal);
 }
 
 /* Remove any ::before or ::after from payment header */
 body.woocommerce-checkout .bw-payment-method__header::before,
 body.woocommerce-checkout .bw-payment-method__header::after {
-	display: none;
-	content: none;
+	display: none !important;
+	content: none !important;
 }
 
 /* Radio Button */
@@ -308,8 +308,8 @@ body.woocommerce-checkout .bw-payment-method__label {
 	justify-content: space-between;
 	gap: var(--bw-pm-spacing-md);
 	cursor: pointer;
-	margin: 0;
-	padding: 0;
+	margin: 0 !important;
+	padding: 0 !important;
 	font-size: var(--bw-pm-font-size-md);
 	font-weight: var(--bw-pm-font-weight-medium);
 	color: var(--bw-pm-text);
@@ -321,8 +321,8 @@ body.woocommerce-checkout .bw-payment-method__title {
 	font-size: var(--bw-pm-font-size-md);
 	font-weight: var(--bw-pm-font-weight-medium);
 	color: var(--bw-pm-text);
-	margin: 0;
-	padding: 0;
+	margin: 0 !important;
+	padding: 0 !important;
 	line-height: var(--bw-pm-line-height-normal);
 }
 
@@ -440,12 +440,12 @@ body.woocommerce-checkout .bw-payment-icon__tooltip .bw-payment-icon img {
 
 /* ============================================
    PAYMENT METHOD CONTENT (Accordion Panel)
-   Specificity: (0,1,2)
+   !important on background to override WooCommerce payment_box styles
    ============================================ */
 
 body.woocommerce-checkout .bw-payment-method__content {
 	max-height: 0;
-	background: transparent;
+	background: transparent !important;
 	border-top: 1px solid transparent;
 	overflow: hidden;
 	transition: max-height 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94), border-color 0.35s ease;
@@ -675,12 +675,12 @@ body.woocommerce-checkout .bw-payment-checkbox input[type="checkbox"]:checked::a
 }
 
 body.woocommerce-checkout .bw-payment-checkbox label {
-	display: block;
+	display: block !important;
 	font-size: var(--bw-pm-font-size-md);
 	font-weight: var(--bw-pm-font-weight-normal);
 	color: var(--bw-pm-text);
 	cursor: pointer;
-	margin: 0;
+	margin: 0 !important;
 }
 
 /* ============================================
@@ -702,13 +702,13 @@ body.woocommerce-checkout .bw-payment-method__instruction {
 
 body.woocommerce-checkout .bw-place-order-btn {
 	width: 100%;
-	padding: var(--bw-pm-spacing-lg) var(--bw-pm-spacing-2xl);
-	background: var(--bw-pm-primary);
-	color: var(--bw-pm-secondary);
-	border: none;
-	border-radius: var(--bw-pm-radius-md);
-	font-size: var(--bw-pm-font-size-lg);
-	font-weight: var(--bw-pm-font-weight-semibold);
+	padding: var(--bw-pm-spacing-lg) var(--bw-pm-spacing-2xl) !important;
+	background: var(--bw-pm-primary) !important;
+	color: var(--bw-pm-secondary) !important;
+	border: none !important;
+	border-radius: var(--bw-pm-radius-md) !important;
+	font-size: var(--bw-pm-font-size-lg) !important;
+	font-weight: var(--bw-pm-font-weight-semibold) !important;
 	cursor: pointer;
 	transition: background-color var(--bw-pm-transition-base), box-shadow var(--bw-pm-transition-base);
 	text-align: center;
