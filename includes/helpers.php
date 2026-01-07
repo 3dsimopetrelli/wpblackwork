@@ -270,6 +270,112 @@ if ( ! function_exists( 'bw_register_widget_assets' ) ) {
     }
 }
 
+if ( ! function_exists( 'bw_oidc_is_active' ) ) {
+    /**
+     * Determine if OpenID Connect Generic Client is active.
+     *
+     * @return bool
+     */
+    function bw_oidc_is_active() {
+        if ( ! function_exists( 'is_plugin_active' ) ) {
+            require_once ABSPATH . 'wp-admin/includes/plugin.php';
+        }
+
+        return ( function_exists( 'is_plugin_active' ) && is_plugin_active( 'openid-connect-generic/openid-connect-generic.php' ) )
+            || class_exists( 'OpenID_Connect_Generic' );
+    }
+}
+
+if ( ! function_exists( 'bw_oidc_get_settings' ) ) {
+    /**
+     * Get OpenID Connect Generic Client settings array.
+     *
+     * @return array<string,mixed>
+     */
+    function bw_oidc_get_settings() {
+        $settings = get_option( 'openid_connect_generic_settings', [] );
+
+        return is_array( $settings ) ? $settings : [];
+    }
+}
+
+if ( ! function_exists( 'bw_oidc_get_auth_url' ) ) {
+    /**
+     * Get the current OIDC authorization URL from shortcode output.
+     *
+     * @return string
+     */
+    function bw_oidc_get_auth_url() {
+        if ( ! bw_oidc_is_active() ) {
+            return '';
+        }
+
+        $shortcode_output = do_shortcode( '[openid_connect_generic_auth_url]' );
+        $auth_url         = trim( wp_strip_all_tags( (string) $shortcode_output ) );
+
+        return $auth_url && filter_var( $auth_url, FILTER_VALIDATE_URL ) ? esc_url_raw( $auth_url ) : '';
+    }
+}
+
+if ( ! function_exists( 'bw_oidc_get_redirect_uri' ) ) {
+    /**
+     * Resolve the configured redirect URI for OIDC.
+     *
+     * @return string
+     */
+    function bw_oidc_get_redirect_uri() {
+        $settings = bw_oidc_get_settings();
+        $redirect = '';
+
+        if ( ! empty( $settings['redirect_uri'] ) ) {
+            $redirect = $settings['redirect_uri'];
+        } elseif ( ! empty( $settings['redirect_uri_override'] ) ) {
+            $redirect = $settings['redirect_uri_override'];
+        }
+
+        if ( ! $redirect ) {
+            $redirect = home_url( '/?action=openid-connect-authorize' );
+        }
+
+        return esc_url_raw( $redirect );
+    }
+}
+
+if ( ! function_exists( 'bw_oidc_get_provider_base_url' ) ) {
+    /**
+     * Attempt to derive the OIDC provider base URL from settings.
+     *
+     * @return string
+     */
+    function bw_oidc_get_provider_base_url() {
+        $settings = bw_oidc_get_settings();
+        $candidate = '';
+
+        foreach ( [ 'issuer', 'authorization_endpoint', 'token_endpoint' ] as $key ) {
+            if ( ! empty( $settings[ $key ] ) ) {
+                $candidate = $settings[ $key ];
+                break;
+            }
+        }
+
+        if ( ! $candidate ) {
+            return '';
+        }
+
+        $parts = wp_parse_url( $candidate );
+        if ( empty( $parts['scheme'] ) || empty( $parts['host'] ) ) {
+            return '';
+        }
+
+        $base = $parts['scheme'] . '://' . $parts['host'];
+        if ( ! empty( $parts['port'] ) ) {
+            $base .= ':' . $parts['port'];
+        }
+
+        return esc_url_raw( $base );
+    }
+}
+
 if ( ! function_exists( 'bw_get_safe_product_permalink' ) ) {
     /**
      * Get a safe permalink for a product.
