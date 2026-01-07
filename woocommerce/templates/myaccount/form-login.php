@@ -33,6 +33,18 @@ $registration_enabled = 'yes' === get_option( 'woocommerce_enable_myaccount_regi
 $generate_username    = 'yes' === get_option( 'woocommerce_registration_generate_username' );
 $generate_password    = 'yes' === get_option( 'woocommerce_registration_generate_password' );
 $active_tab           = ( isset( $_GET['action'] ) && 'lostpassword' === sanitize_key( wp_unslash( $_GET['action'] ) ) ) ? 'lostpassword' : ( ( $registration_enabled && ( ( isset( $_GET['action'] ) && 'register' === sanitize_key( wp_unslash( $_GET['action'] ) ) ) || isset( $_POST['register'] ) ) ) ? 'register' : 'login' );
+$requested_view       = isset( $_GET['bw_auth_view'] ) ? sanitize_key( wp_unslash( $_GET['bw_auth_view'] ) ) : '';
+
+if ( 'supabase' === $login_provider && $requested_view ) {
+    if ( 'reset_password' === $requested_view ) {
+        $active_tab = 'lostpassword';
+    } elseif ( in_array( $requested_view, [ 'login', 'register' ], true ) ) {
+        $active_tab = $requested_view;
+    }
+}
+
+$supabase_reset_url = add_query_arg( 'bw_auth_view', 'reset_password', wc_get_page_permalink( 'myaccount' ) );
+$supabase_login_url = add_query_arg( 'bw_auth_view', 'login', wc_get_page_permalink( 'myaccount' ) );
 ?>
 
 <div class="bw-account-login-page">
@@ -127,7 +139,13 @@ $active_tab           = ( isset( $_GET['action'] ) && 'lostpassword' === sanitiz
                                     <p class="bw-account-login__back-to-login">
                                         <button type="button" class="bw-account-login__back-link" data-bw-auth-tab="login">← <?php esc_html_e( 'Go back to login', 'bw' ); ?></button>
                                     </p>
+
+                                    <?php do_action( 'woocommerce_login_form_end' ); ?>
                                 </form>
+
+                                <?php if ( $passwordless_url ) : ?>
+                                    <a class="bw-account-login__passwordless" href="<?php echo esc_url( $passwordless_url ); ?>" data-login-method="passwordless"><?php esc_html_e( 'Log in Without Password', 'woocommerce' ); ?></a>
+                                <?php endif; ?>
                             </div>
                         </div>
 
