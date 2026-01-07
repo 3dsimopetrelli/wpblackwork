@@ -154,7 +154,6 @@ function bw_mew_enqueue_account_page_assets() {
         [
             'ajaxUrl'         => admin_url( 'admin-ajax.php' ),
             'nonce'           => wp_create_nonce( 'bw-supabase-login' ),
-            'defaultProvider' => get_option( 'bw_account_login_provider', 'wordpress' ),
         ]
     );
 }
