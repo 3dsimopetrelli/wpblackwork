@@ -232,7 +232,7 @@ body.woocommerce-checkout .bw-payment-method.is-selected {
 
 body.woocommerce-checkout .bw-payment-method:has(input[type="radio"]:checked) .bw-payment-method__header,
 body.woocommerce-checkout .bw-payment-method.is-selected .bw-payment-method__header {
-	background: var(--bw-pm-bg);
+	background: #f7f7f7;
 }
 
 body.woocommerce-checkout .bw-payment-method:has(input[type="radio"]:checked) .bw-payment-method__title,
@@ -387,10 +387,11 @@ body.woocommerce-checkout .bw-payment-method__content.is-open {
 	max-height: 3000px;
 	border-top-color: var(--bw-pm-border);
 	overflow: visible;
+	background: #f7f7f7 !important;
 }
 
 body.woocommerce-checkout .bw-payment-method__inner {
-	padding: 0;
+	padding: var(--bw-pm-spacing-xl);
 	opacity: 0;
 	transform: translateY(-8px);
 	transition: opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.15s, transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.15s;
@@ -399,6 +400,35 @@ body.woocommerce-checkout .bw-payment-method__inner {
 body.woocommerce-checkout .bw-payment-method__content.is-open .bw-payment-method__inner {
 	opacity: 1;
 	transform: translateY(0);
+}
+
+/* ============================================
+   PAYPAL REDIRECT MESSAGE
+   Specificity: (0,1,2)
+   ============================================ */
+
+body.woocommerce-checkout .bw-paypal-redirect {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	gap: var(--bw-pm-spacing-xl);
+	padding: var(--bw-pm-spacing-2xl) 0;
+}
+
+body.woocommerce-checkout .bw-paypal-redirect__icon {
+	width: 160px;
+	height: auto;
+	color: var(--bw-pm-text-light);
+}
+
+body.woocommerce-checkout .bw-paypal-redirect__text {
+	font-size: var(--bw-pm-font-size-md);
+	line-height: var(--bw-pm-line-height-relaxed);
+	color: var(--bw-pm-text);
+	max-width: 500px;
+	margin: 0;
 }
 
 /* ============================================
