@@ -8,6 +8,62 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 
 /**
+ * Retrieve normalized Supabase configuration and diagnostics.
+ *
+ * @return array<string,mixed>
+ */
+function bw_mew_get_supabase_config() {
+    $project_url = trim( (string) get_option( 'bw_supabase_project_url', '' ) );
+    $anon_key    = trim( (string) get_option( 'bw_supabase_anon_key', '' ) );
+
+    return [
+        'project_url' => $project_url,
+        'anon_key'    => $anon_key,
+        'has_url'     => (bool) $project_url,
+        'has_anon'    => (bool) $anon_key,
+    ];
+}
+
+/**
+ * Build admin-only diagnostics for Supabase config.
+ *
+ * @param array<string,mixed> $config Config array.
+ *
+ * @return array<string,string>
+ */
+function bw_mew_supabase_build_diagnostics( array $config ) {
+    $url = $config['project_url'] ?? '';
+    $url_display = $url ? wp_parse_url( $url, PHP_URL_HOST ) : '';
+
+    return [
+        'missing_project_url' => empty( $config['has_url'] ) ? 'yes' : 'no',
+        'missing_anon_key'    => empty( $config['has_anon'] ) ? 'yes' : 'no',
+        'project_url_host'    => $url_display ? $url_display : 'empty',
+        'anon_key_present'    => empty( $config['has_anon'] ) ? 'empty' : 'present',
+        'options'             => 'bw_supabase_project_url, bw_supabase_anon_key, bw_supabase_with_plugins, bw_supabase_registration_mode',
+    ];
+}
+
+/**
+ * Return diagnostics to admins when debug logging is enabled.
+ *
+ * @param array<string,mixed> $config Config array.
+ *
+ * @return array<string,mixed>
+ */
+function bw_mew_supabase_debug_payload( array $config ) {
+    $debug_log = (bool) get_option( 'bw_supabase_debug_log', 0 );
+
+    if ( ! $debug_log || ! current_user_can( 'manage_options' ) ) {
+        return [];
+    }
+
+    return [
+        'diagnostics' => bw_mew_supabase_build_diagnostics( $config ),
+    ];
+}
+
+/**
  * Handle Supabase password login via AJAX.
  */
 function bw_mew_handle_supabase_login() {
@@ -30,25 +86,31 @@ function bw_mew_handle_supabase_login() {
         );
     }
 
-    $project_url = get_option( 'bw_supabase_project_url', '' );
-    $anon_key    = get_option( 'bw_supabase_anon_key', '' );
-    $debug_log   = (bool) get_option( 'bw_supabase_debug_log', 0 );
+    $config    = bw_mew_get_supabase_config();
+    $debug_log = (bool) get_option( 'bw_supabase_debug_log', 0 );
 
-    if ( ! $project_url || ! $anon_key ) {
+    if ( empty( $config['has_url'] ) || empty( $config['has_anon'] ) ) {
+        if ( $debug_log ) {
+            error_log( sprintf( 'Supabase config missing: %s', wp_json_encode( bw_mew_supabase_build_diagnostics( $config ) ) ) );
+        }
+
         wp_send_json_error(
-            [ 'message' => __( 'Supabase is not configured yet.', 'bw' ) ],
+            array_merge(
+                [ 'message' => __( 'Supabase is not configured yet.', 'bw' ) ],
+                bw_mew_supabase_debug_payload( $config )
+            ),
             400
         );
     }
 
     // Supabase password grant endpoint (server-side).
-    $endpoint = trailingslashit( untrailingslashit( $project_url ) ) . 'auth/v1/token?grant_type=password';
+    $endpoint = trailingslashit( untrailingslashit( $config['project_url'] ) ) . 'auth/v1/token?grant_type=password';
 
     $response = wp_remote_post(
         $endpoint,
         [
             'headers' => [
-                'apikey'       => $anon_key,
+                'apikey'       => $config['anon_key'],
                 'Content-Type' => 'application/json',
                 'Accept'       => 'application/json',
             ],
@@ -143,25 +205,46 @@ function bw_mew_handle_supabase_register() {
         );
     }
 
-    $project_url = get_option( 'bw_supabase_project_url', '' );
-    $anon_key    = get_option( 'bw_supabase_anon_key', '' );
-    $debug_log   = (bool) get_option( 'bw_supabase_debug_log', 0 );
+    $config              = bw_mew_get_supabase_config();
+    $debug_log           = (bool) get_option( 'bw_supabase_debug_log', 0 );
+    $registration_mode   = get_option( 'bw_supabase_registration_mode', 'R2' );
+    $supabase_with_oidc  = (bool) get_option( 'bw_supabase_with_plugins', 0 );
 
-    if ( ! $project_url || ! $anon_key ) {
+    if ( 'R1' === $registration_mode ) {
         wp_send_json_error(
-            [ 'message' => __( 'Supabase is not configured yet.', 'bw' ) ],
+            array_merge(
+                [ 'message' => __( 'Registration is handled by the provider signup flow.', 'bw' ) ],
+                bw_mew_supabase_debug_payload( $config )
+            ),
+            400
+        );
+    }
+
+    if ( empty( $config['has_url'] ) || empty( $config['has_anon'] ) ) {
+        if ( $debug_log ) {
+            $context = bw_mew_supabase_build_diagnostics( $config );
+            $context['registration_mode'] = $registration_mode;
+            $context['supabase_with_oidc'] = $supabase_with_oidc ? 'yes' : 'no';
+            error_log( sprintf( 'Supabase config missing (register): %s', wp_json_encode( $context ) ) );
+        }
+
+        wp_send_json_error(
+            array_merge(
+                [ 'message' => __( 'Supabase is not configured yet.', 'bw' ) ],
+                bw_mew_supabase_debug_payload( $config )
+            ),
             400
         );
     }
 
     // Supabase signup endpoint (server-side).
-    $endpoint = trailingslashit( untrailingslashit( $project_url ) ) . 'auth/v1/signup';
+    $endpoint = trailingslashit( untrailingslashit( $config['project_url'] ) ) . 'auth/v1/signup';
 
     $response = wp_remote_post(
         $endpoint,
         [
             'headers' => [
-                'apikey'       => $anon_key,
+                'apikey'       => $config['anon_key'],
                 'Content-Type' => 'application/json',
                 'Accept'       => 'application/json',
             ],
@@ -256,25 +339,31 @@ function bw_mew_handle_supabase_recover() {
         );
     }
 
-    $project_url = get_option( 'bw_supabase_project_url', '' );
-    $anon_key    = get_option( 'bw_supabase_anon_key', '' );
-    $debug_log   = (bool) get_option( 'bw_supabase_debug_log', 0 );
+    $config    = bw_mew_get_supabase_config();
+    $debug_log = (bool) get_option( 'bw_supabase_debug_log', 0 );
 
-    if ( ! $project_url || ! $anon_key ) {
+    if ( empty( $config['has_url'] ) || empty( $config['has_anon'] ) ) {
+        if ( $debug_log ) {
+            error_log( sprintf( 'Supabase config missing (recover): %s', wp_json_encode( bw_mew_supabase_build_diagnostics( $config ) ) ) );
+        }
+
         wp_send_json_error(
-            [ 'message' => __( 'Supabase is not configured yet.', 'bw' ) ],
+            array_merge(
+                [ 'message' => __( 'Supabase is not configured yet.', 'bw' ) ],
+                bw_mew_supabase_debug_payload( $config )
+            ),
             400
         );
     }
 
     // Supabase recover endpoint (server-side).
-    $endpoint = trailingslashit( untrailingslashit( $project_url ) ) . 'auth/v1/recover';
+    $endpoint = trailingslashit( untrailingslashit( $config['project_url'] ) ) . 'auth/v1/recover';
 
     $response = wp_remote_post(
         $endpoint,
         [
             'headers' => [
-                'apikey'       => $anon_key,
+                'apikey'       => $config['anon_key'],
                 'Content-Type' => 'application/json',
                 'Accept'       => 'application/json',
             ],

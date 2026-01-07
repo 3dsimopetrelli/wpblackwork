@@ -193,8 +193,8 @@ function bw_site_render_account_page_tab() {
         $back_text            = isset($_POST['bw_account_back_text']) ? sanitize_text_field($_POST['bw_account_back_text']) : 'go back to store';
         $back_url             = isset($_POST['bw_account_back_url']) ? esc_url_raw($_POST['bw_account_back_url']) : '';
         $passwordless_url     = isset($_POST['bw_account_passwordless_url']) ? esc_url_raw($_POST['bw_account_passwordless_url']) : '';
-        $supabase_project_url     = isset($_POST['bw_supabase_project_url']) ? esc_url_raw($_POST['bw_supabase_project_url']) : '';
-        $supabase_anon_key        = isset($_POST['bw_supabase_anon_key']) ? sanitize_textarea_field($_POST['bw_supabase_anon_key']) : '';
+        $supabase_project_url     = isset($_POST['bw_supabase_project_url']) ? esc_url_raw(trim($_POST['bw_supabase_project_url'])) : '';
+        $supabase_anon_key        = isset($_POST['bw_supabase_anon_key']) ? sanitize_textarea_field(trim($_POST['bw_supabase_anon_key'])) : '';
         $supabase_service_key     = isset($_POST['bw_supabase_service_role_key']) ? sanitize_textarea_field($_POST['bw_supabase_service_role_key']) : '';
         $supabase_auth_mode       = isset($_POST['bw_supabase_auth_mode']) ? sanitize_key($_POST['bw_supabase_auth_mode']) : 'password';
         $supabase_cookie_name     = isset($_POST['bw_supabase_jwt_cookie_name']) ? sanitize_key($_POST['bw_supabase_jwt_cookie_name']) : 'bw_supabase_session';
