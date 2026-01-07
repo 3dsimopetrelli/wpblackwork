@@ -176,6 +176,8 @@ body.woocommerce-checkout ul.wc_payment_methods li::before,
 body.woocommerce-checkout ul.wc_payment_methods li::after,
 body.woocommerce-checkout ul.payment_methods li::before,
 body.woocommerce-checkout ul.payment_methods li::after,
+body.woocommerce-checkout .bw-payment-method__header::before,
+body.woocommerce-checkout .bw-payment-method__header::after,
 body.woocommerce-checkout .bw-payment-method__content::before,
 body.woocommerce-checkout .bw-payment-method__content::after,
 body.woocommerce-checkout .bw-payment-method__content.payment_box::before,
@@ -184,12 +186,15 @@ body.woocommerce-checkout .payment_box::before,
 body.woocommerce-checkout .payment_box::after,
 body.woocommerce-checkout div.payment_box::before,
 body.woocommerce-checkout div.payment_box::after {
-	display: none;
-	content: none;
-	border: none;
-	background: none;
-	width: 0;
-	height: 0;
+	display: none !important;
+	content: none !important;
+	border: none !important;
+	background: none !important;
+	width: 0 !important;
+	height: 0 !important;
+	position: absolute !important;
+	top: -9999px !important;
+	left: -9999px !important;
 }
 
 /* First payment method - round top corners */
@@ -274,6 +279,13 @@ body.woocommerce-checkout .bw-payment-method__header::before,
 body.woocommerce-checkout .bw-payment-method__header::after {
 	display: none !important;
 	content: none !important;
+	border: none !important;
+	background: none !important;
+	width: 0 !important;
+	height: 0 !important;
+	position: absolute !important;
+	top: -9999px !important;
+	left: -9999px !important;
 }
 
 /* Radio Button */
