@@ -143,7 +143,13 @@ $supabase_login_url = add_query_arg( 'bw_auth_view', 'login', wc_get_page_permal
                                     <p class="bw-account-login__back-to-login">
                                         <a class="bw-account-login__back-link" href="<?php echo esc_url( $supabase_login_url ); ?>">← <?php esc_html_e( 'Go back to login', 'bw' ); ?></a>
                                     </p>
+
+                                    <?php do_action( 'woocommerce_login_form_end' ); ?>
                                 </form>
+
+                                <?php if ( $passwordless_url ) : ?>
+                                    <a class="bw-account-login__passwordless" href="<?php echo esc_url( $passwordless_url ); ?>" data-login-method="passwordless"><?php esc_html_e( 'Log in Without Password', 'woocommerce' ); ?></a>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
