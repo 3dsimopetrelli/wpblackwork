@@ -8,17 +8,6 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 
 /**
- * Get the configured default login provider.
- *
- * @return string
- */
-function bw_mew_get_login_provider() {
-    $provider = get_option( 'bw_account_login_provider', 'wordpress' );
-
-    return in_array( $provider, [ 'wordpress', 'supabase' ], true ) ? $provider : 'wordpress';
-}
-
-/**
  * Handle Supabase password login via AJAX.
  */
 function bw_mew_handle_supabase_login() {
@@ -52,6 +41,7 @@ function bw_mew_handle_supabase_login() {
         );
     }
 
+    // Supabase password grant endpoint (server-side).
     $endpoint = trailingslashit( untrailingslashit( $project_url ) ) . 'auth/v1/token?grant_type=password';
 
     $response = wp_remote_post(
@@ -111,6 +101,7 @@ function bw_mew_handle_supabase_login() {
         );
     }
 
+    // Store tokens in secure cookies or usermeta and optionally link to WP users.
     $stored = bw_mew_supabase_store_session( $payload, $email );
 
     if ( ! $stored ) {
@@ -163,6 +154,7 @@ function bw_mew_handle_supabase_register() {
         );
     }
 
+    // Supabase signup endpoint (server-side).
     $endpoint = trailingslashit( untrailingslashit( $project_url ) ) . 'auth/v1/signup';
 
     $response = wp_remote_post(
@@ -222,6 +214,7 @@ function bw_mew_handle_supabase_register() {
         );
     }
 
+    // Store tokens if returned (signup can also require email confirmation).
     $stored = bw_mew_supabase_store_session( $payload, $email );
 
     if ( $stored ) {
@@ -274,6 +267,7 @@ function bw_mew_handle_supabase_recover() {
         );
     }
 
+    // Supabase recover endpoint (server-side).
     $endpoint = trailingslashit( untrailingslashit( $project_url ) ) . 'auth/v1/recover';
 
     $response = wp_remote_post(

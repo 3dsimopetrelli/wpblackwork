@@ -58,6 +58,7 @@
             initAuthTabs(authWrapper);
         }
 
+        // Handle Supabase login/register/recover forms (single provider view).
         var supabaseForms = Array.prototype.slice.call(document.querySelectorAll('[data-bw-supabase-form]'));
         if (supabaseForms.length && window.bwAccountAuth) {
             supabaseForms.forEach(function (supabaseForm) {
