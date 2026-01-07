@@ -108,7 +108,7 @@ if ( ! wp_doing_ajax() ) {
 												<?php
 												// Translators: %s is the payment method name (PayPal or Google Pay)
 												printf(
-													esc_html__( 'After clicking "Pay with %s", you will be redirected to %s to complete your purchase securely.', 'woocommerce' ),
+													esc_html__( 'After clicking "%s", you will be redirected to %s to complete your purchase securely.', 'woocommerce' ),
 													esc_html( $payment_name ),
 													esc_html( $payment_name )
 												);
