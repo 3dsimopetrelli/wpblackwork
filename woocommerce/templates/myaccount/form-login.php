@@ -76,8 +76,8 @@ $active_tab           = ( isset( $_GET['action'] ) && 'lostpassword' === sanitiz
                                         <button type="submit" class="woocommerce-button button bw-account-login__submit" data-bw-supabase-submit><?php esc_html_e( 'Log In', 'woocommerce' ); ?></button>
                                     </p>
 
-                                    <p class="bw-account-login__back-to-login">
-                                        <button type="button" class="bw-account-login__back-link" data-bw-auth-tab="lostpassword"><?php esc_html_e( 'Lost your password?', 'woocommerce' ); ?></button>
+                                    <p class="form-row bw-account-login__controls">
+                                        <button type="button" class="bw-account-login__lost-password" data-bw-auth-tab="lostpassword"><?php esc_html_e( 'Lost your password?', 'woocommerce' ); ?></button>
                                     </p>
                                 </form>
                             </div>
@@ -103,6 +103,10 @@ $active_tab           = ( isset( $_GET['action'] ) && 'lostpassword' === sanitiz
                                     </p>
                                 </form>
                             </div>
+
+                            <div class="bw-account-auth__panel <?php echo 'lostpassword' === $active_tab ? 'is-active is-visible' : ''; ?>" data-bw-auth-panel="lostpassword">
+                                <form class="bw-account-login__form bw-account-login__form--supabase" data-bw-supabase-form data-bw-supabase-action="recover">
+                                    <p class="bw-account-login__note"><?php esc_html_e( 'Enter your email to receive a password reset link.', 'bw' ); ?></p>
 
                             <div class="bw-account-auth__panel" data-bw-auth-panel="lostpassword">
                                 <form class="bw-account-login__form bw-account-login__form--supabase" data-bw-supabase-form data-bw-supabase-action="recover">
