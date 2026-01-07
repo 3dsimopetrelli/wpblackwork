@@ -81,13 +81,9 @@ if ( ! wp_doing_ajax() ) {
 											<?php $gateway->payment_fields(); ?>
 										</div>
 									<?php endif; ?>
-								</div>
-							</div>
-						<?php else : ?>
-							<div class="bw-payment-method__content payment_box payment_method_<?php echo $gateway_id; ?> <?php echo $gateway_count === 1 ? 'is-open' : ''; ?>">
-								<div class="bw-payment-method__inner">
+
 									<?php
-									// Check if this is PayPal or Google Pay gateway
+									// Check if this is PayPal or Google Pay gateway for redirect message
 									$is_paypal = ( strpos( $gateway_id, 'paypal' ) !== false ||
 									               strpos( $gateway_id, 'ppcp' ) !== false );
 									$is_google_pay = ( strpos( $gateway_id, 'google' ) !== false ||
@@ -123,27 +119,29 @@ if ( ! wp_doing_ajax() ) {
 											</p>
 										</div>
 										<?php
-									else :
-										?>
-										<div class="bw-payment-method__selected-indicator">
-											<svg class="bw-payment-check-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-												<circle cx="8" cy="8" r="7.5" fill="#27ae60" stroke="#27ae60"/>
-												<path d="M5 8L7 10L11 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-											</svg>
-											<span><?php echo wp_kses_post( $gateway->get_title() ); ?> selected</span>
-										</div>
-										<p class="bw-payment-method__instruction">
-											<?php
-											// Translators: %s is the payment method name
-											printf(
-												esc_html__( 'Click the "%s" button to submit your payment information and complete your order.', 'woocommerce' ),
-												esc_html( $gateway->order_button_text ? $gateway->order_button_text : __( 'Place order', 'woocommerce' ) )
-											);
-											?>
-										</p>
-										<?php
 									endif;
 									?>
+								</div>
+							</div>
+						<?php else : ?>
+							<div class="bw-payment-method__content payment_box payment_method_<?php echo $gateway_id; ?> <?php echo $gateway_count === 1 ? 'is-open' : ''; ?>">
+								<div class="bw-payment-method__inner">
+									<div class="bw-payment-method__selected-indicator">
+										<svg class="bw-payment-check-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+											<circle cx="8" cy="8" r="7.5" fill="#27ae60" stroke="#27ae60"/>
+											<path d="M5 8L7 10L11 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+										</svg>
+										<span><?php echo wp_kses_post( $gateway->get_title() ); ?> selected</span>
+									</div>
+									<p class="bw-payment-method__instruction">
+										<?php
+										// Translators: %s is the payment method name
+										printf(
+											esc_html__( 'Click the "%s" button to submit your payment information and complete your order.', 'woocommerce' ),
+											esc_html( $gateway->order_button_text ? $gateway->order_button_text : __( 'Place order', 'woocommerce' ) )
+										);
+										?>
+									</p>
 								</div>
 							</div>
 						<?php endif; ?>
