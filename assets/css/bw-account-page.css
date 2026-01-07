@@ -387,6 +387,18 @@ body.woocommerce-account.bw-account-login-only .bw-account-login__lost-password:
     font-size: 14px;
 }
 
+.bw-account-login__error {
+    margin-top: 4px;
+    color: #e00000;
+    font-size: 14px;
+}
+
+.bw-account-login__success {
+    margin-top: 4px;
+    color: #1a7f37;
+    font-size: 14px;
+}
+
 .bw-account-login__back-to-login {
     margin-top: 16px;
     text-align: center;
