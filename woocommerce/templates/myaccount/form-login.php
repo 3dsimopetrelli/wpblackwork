@@ -52,6 +52,11 @@ if ( 'supabase' === $login_provider && ! $show_supabase_register && 'register' =
             <div class="bw-account-login__content">
                 <?php do_action( 'woocommerce_before_customer_login_form' ); ?>
                 <?php wc_print_notices(); ?>
+                <?php if ( isset( $_GET['bw_email_confirmed'] ) && '1' === sanitize_text_field( wp_unslash( $_GET['bw_email_confirmed'] ) ) ) : ?>
+                    <div class="woocommerce-message bw-account-login__notice">
+                        <?php esc_html_e( 'Email confirmed. Please log in.', 'bw' ); ?>
+                    </div>
+                <?php endif; ?>
 
                 <?php if ( $logo ) : ?>
                     <div class="bw-account-login__logo" style="padding-top: <?php echo absint( $logo_padding_top ); ?>px; padding-bottom: <?php echo absint( $logo_padding_bottom ); ?>px;">
@@ -63,7 +68,7 @@ if ( 'supabase' === $login_provider && ! $show_supabase_register && 'register' =
                 // Provider-driven rendering: show only the Supabase auth stack or the WordPress/WooCommerce stack.
                 if ( 'supabase' === $login_provider ) :
                 ?>
-                    <div class="bw-account-auth" data-bw-default-tab="<?php echo esc_attr( $active_tab ); ?>">
+                    <div class="bw-account-auth" data-bw-default-tab="<?php echo esc_attr( $active_tab ); ?>" data-bw-email-confirmed="<?php echo isset( $_GET['bw_email_confirmed'] ) ? esc_attr( sanitize_text_field( wp_unslash( $_GET['bw_email_confirmed'] ) ) ) : ''; ?>">
                         <div class="bw-account-auth__tabs <?php echo $show_supabase_register ? 'bw-account-auth__tabs--dual' : 'bw-account-auth__tabs--single'; ?>">
                             <button class="bw-account-auth__tab <?php echo 'login' === $active_tab ? 'is-active' : ''; ?>" type="button" data-bw-auth-tab="login"><?php esc_html_e( 'Login', 'woocommerce' ); ?></button>
                             <?php if ( $show_supabase_register ) : ?>

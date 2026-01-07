@@ -64,6 +64,30 @@ function bw_mew_supabase_debug_payload( array $config ) {
 }
 
 /**
+ * Sanitize and normalize redirect URLs for Supabase email confirmations.
+ *
+ * @param string $url Raw URL.
+ *
+ * @return string
+ */
+function bw_mew_supabase_sanitize_redirect_url( $url ) {
+    $url = trim( (string) $url );
+
+    if ( ! $url ) {
+        return '';
+    }
+
+    $url = preg_replace( '/\s+/', '', $url );
+    $url = preg_replace( '/\.+$/', '', $url );
+
+    if ( 0 === strpos( $url, 'http://' ) ) {
+        $url = 'https://' . substr( $url, 7 );
+    }
+
+    return esc_url_raw( $url );
+}
+
+/**
  * Handle Supabase password login via AJAX.
  */
 function bw_mew_handle_supabase_login() {
@@ -240,6 +264,19 @@ function bw_mew_handle_supabase_register() {
     // Supabase signup endpoint (server-side).
     $endpoint = trailingslashit( untrailingslashit( $config['project_url'] ) ) . 'auth/v1/signup';
 
+    $confirm_redirect = bw_mew_supabase_sanitize_redirect_url(
+        get_option( 'bw_supabase_email_confirm_redirect_url', site_url( '/my-account/?bw_email_confirmed=1' ) )
+    );
+
+    $payload_body = [
+        'email'    => $email,
+        'password' => $password,
+    ];
+
+    if ( $confirm_redirect ) {
+        $payload_body['emailRedirectTo'] = $confirm_redirect;
+    }
+
     $response = wp_remote_post(
         $endpoint,
         [
@@ -250,10 +287,7 @@ function bw_mew_handle_supabase_register() {
             ],
             'timeout' => 15,
             'body'    => wp_json_encode(
-                [
-                    'email'    => $email,
-                    'password' => $password,
-                ]
+                $payload_body
             ),
         ]
     );
