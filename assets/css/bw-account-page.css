@@ -125,6 +125,79 @@ body.woocommerce-account.bw-account-login-only:not(.elementor-editor-active) .el
     justify-content: center;
 }
 
+.bw-account-provider__tabs {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 24px;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Provider tabs - match login/register styling */
+body.woocommerce-account.bw-account-login-only .bw-account-provider__tab,
+.bw-account-provider__tab {
+    background: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 0 0 4px 0 !important;
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+    font-weight: 400 !important;
+    color: #000 !important;
+    cursor: pointer;
+    transition: color 0.3s ease;
+    position: relative;
+    text-decoration: none !important;
+    text-transform: none !important;
+    box-shadow: none !important;
+    min-height: auto !important;
+    display: inline-block !important;
+}
+
+body.woocommerce-account.bw-account-login-only .bw-account-provider__tab.is-active,
+.bw-account-provider__tab.is-active {
+    color: #777 !important;
+}
+
+body.woocommerce-account.bw-account-login-only .bw-account-provider__tab.is-active::after,
+.bw-account-provider__tab.is-active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: #777;
+}
+
+.bw-account-provider__panels {
+    position: relative;
+    min-height: 450px;
+}
+
+.bw-account-provider__panel {
+    position: absolute !important;
+    top: 0;
+    left: 0;
+    right: 0;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
+    visibility: hidden;
+}
+
+.bw-account-provider__panel.is-visible {
+    visibility: visible;
+}
+
+.bw-account-provider__panel.is-active {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+    visibility: visible;
+}
+
 /* B) Tab typography fix - simple text links, not Elementor buttons */
 body.woocommerce-account.bw-account-login-only .bw-account-auth__tab,
 .bw-account-auth__tab {
