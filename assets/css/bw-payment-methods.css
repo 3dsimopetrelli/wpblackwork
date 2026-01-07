@@ -413,18 +413,18 @@ body.woocommerce-checkout .bw-payment-method__inner {
 
 /* Ultra-specific selectors to override WooCommerce paragraph margins */
 body.woocommerce-checkout div#payment.woocommerce-checkout-payment .bw-payment-method__content.payment_box .bw-payment-method__inner {
-	margin: 0 !important;
+	margin: 0;
 }
 
 body.woocommerce-checkout div#payment.woocommerce-checkout-payment .bw-payment-method__content.payment_box .bw-payment-method__inner p,
 body.woocommerce-checkout div#payment.woocommerce-checkout-payment .bw-payment-method__content.payment_box .bw-paypal-redirect p,
 body.woocommerce-checkout div#payment.woocommerce-checkout-payment .bw-payment-method__content.payment_box p.bw-paypal-redirect__text,
 body.woocommerce-checkout div#payment.woocommerce-checkout-payment .bw-payment-method__content.payment_box p.bw-payment-method__instruction {
-	margin: 0 !important;
+	margin: 0;
 }
 
 body.woocommerce-checkout div#payment.woocommerce-checkout-payment .bw-payment-method__content.payment_box .bw-paypal-redirect {
-	margin: 0 !important;
+	margin: 0;
 }
 
 body.woocommerce-checkout .bw-payment-method__content.is-open .bw-payment-method__inner {
