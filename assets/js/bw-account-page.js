@@ -134,11 +134,14 @@
                     var formData = new FormData(supabaseForm);
                     var actionType = supabaseForm.getAttribute('data-bw-supabase-action');
                     var action = 'bw_supabase_login';
+                    var defaultMessage = 'Unable to login.';
 
                     if (actionType === 'register') {
                         action = 'bw_supabase_register';
+                        defaultMessage = 'Unable to register.';
                     } else if (actionType === 'recover') {
                         action = 'bw_supabase_recover';
+                        defaultMessage = 'Unable to send reset email.';
                     }
 
                     if (actionType === 'login' && window.bwAccountAuth.supabaseWithOidc) {
@@ -168,9 +171,20 @@
                         body: new URLSearchParams(formData)
                     })
                         .then(function (response) {
-                            return response.json();
+                            return response.text();
                         })
-                        .then(function (payload) {
+                        .then(function (responseText) {
+                            var payload = null;
+                            try {
+                                payload = JSON.parse(responseText);
+                            } catch (error) {
+                                if (errorBox) {
+                                    errorBox.textContent = 'Unexpected server response.';
+                                    errorBox.hidden = false;
+                                }
+                                return;
+                            }
+
                             if (payload && payload.success && payload.data && payload.data.redirect) {
                                 window.location.href = payload.data.redirect;
                                 return;
@@ -184,7 +198,7 @@
                                 return;
                             }
 
-                            var message = (payload && payload.data && payload.data.message) ? payload.data.message : 'Unable to login.';
+                            var message = (payload && payload.data && payload.data.message) ? payload.data.message : defaultMessage;
                             if (errorBox) {
                                 errorBox.textContent = message;
                                 errorBox.hidden = false;
@@ -192,7 +206,7 @@
                         })
                         .catch(function () {
                             if (errorBox) {
-                                errorBox.textContent = 'Unable to login.';
+                                errorBox.textContent = defaultMessage;
                                 errorBox.hidden = false;
                             }
                         })
