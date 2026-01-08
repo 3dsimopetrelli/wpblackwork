@@ -377,25 +377,27 @@ function bw_mew_handle_supabase_register() {
         );
     }
 
-    // Supabase signup endpoint (server-side).
-    $endpoint = trailingslashit( untrailingslashit( $config['project_url'] ) ) . 'auth/v1/signup';
-
     $confirm_redirect = bw_mew_supabase_sanitize_redirect_url(
         get_option( 'bw_supabase_email_confirm_redirect_url', site_url( '/my-account/?bw_email_confirmed=1' ) )
     );
+
+    // Supabase signup endpoint (server-side).
+    $endpoint = trailingslashit( untrailingslashit( $config['project_url'] ) ) . 'auth/v1/signup';
+
+    if ( $confirm_redirect ) {
+        $endpoint = add_query_arg( 'redirect_to', rawurlencode( $confirm_redirect ), $endpoint );
+    }
 
     $payload_body = [
         'email'    => $email,
         'password' => $password,
     ];
 
-    if ( $confirm_redirect ) {
-        $payload_body['redirect_to'] = $confirm_redirect;
-    }
     if ( $debug_log ) {
         $redirect_for_log = $confirm_redirect ? $confirm_redirect : 'empty';
         $payload_keys     = implode( ', ', array_keys( $payload_body ) );
         error_log( sprintf( 'Supabase register redirect: %s', $redirect_for_log ) );
+        error_log( sprintf( 'Supabase register signup URL: %s', $endpoint ) );
         error_log( sprintf( 'Supabase register payload keys: %s', $payload_keys ) );
     }
 
