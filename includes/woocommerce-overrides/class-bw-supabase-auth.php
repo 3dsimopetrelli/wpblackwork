@@ -80,6 +80,10 @@ function bw_mew_supabase_sanitize_redirect_url( $url ) {
     $url = preg_replace( '/\s+/', '', $url );
     $url = preg_replace( '/\.+$/', '', $url );
 
+    if ( 0 === strpos( $url, '/' ) && 0 !== strpos( $url, '//' ) ) {
+        $url = site_url( $url );
+    }
+
     if ( 0 === strpos( $url, 'http://' ) ) {
         $url = 'https://' . substr( $url, 7 );
     }
@@ -386,11 +390,13 @@ function bw_mew_handle_supabase_register() {
     ];
 
     if ( $confirm_redirect ) {
-        $payload_body['emailRedirectTo'] = $confirm_redirect;
+        $payload_body['redirect_to'] = $confirm_redirect;
     }
     if ( $debug_log ) {
         $redirect_for_log = $confirm_redirect ? $confirm_redirect : 'empty';
+        $payload_keys     = implode( ', ', array_keys( $payload_body ) );
         error_log( sprintf( 'Supabase register redirect: %s', $redirect_for_log ) );
+        error_log( sprintf( 'Supabase register payload keys: %s', $payload_keys ) );
     }
 
     $response = wp_remote_post(
