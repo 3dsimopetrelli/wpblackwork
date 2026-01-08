@@ -159,6 +159,7 @@ function bw_mew_enqueue_account_page_assets() {
             'providerSignupUrl' => get_option( 'bw_supabase_provider_signup_url', '' ),
             'providerResetUrl' => get_option( 'bw_supabase_provider_reset_url', '' ),
             'oidcAuthUrl'      => function_exists( 'bw_oidc_get_auth_url' ) ? bw_oidc_get_auth_url() : '',
+            'autoLoginAfterConfirm' => (int) get_option( 'bw_supabase_auto_login_after_confirm', 0 ),
         ]
     );
 }

@@ -56,6 +56,50 @@
 
         if (authWrapper) {
             initAuthTabs(authWrapper);
+
+            var emailConfirmed = authWrapper.getAttribute('data-bw-email-confirmed');
+            if (emailConfirmed === '1') {
+                var loginTab = authWrapper.querySelector('[data-bw-auth-tab="login"]');
+                if (loginTab) {
+                    loginTab.click();
+                }
+            }
+        }
+
+        var autoLoginEnabled = window.bwAccountAuth && window.bwAccountAuth.autoLoginAfterConfirm;
+        var hash = window.location.hash || '';
+        if (autoLoginEnabled && hash.indexOf('access_token=') !== -1 && window.bwAccountAuth && window.bwAccountAuth.ajaxUrl) {
+            var params = new URLSearchParams(hash.replace(/^#/, ''));
+            var accessToken = params.get('access_token');
+
+            if (accessToken) {
+                fetch(window.bwAccountAuth.ajaxUrl, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8'
+                    },
+                    body: new URLSearchParams({
+                        action: 'bw_supabase_token_login',
+                        nonce: window.bwAccountAuth.nonce,
+                        access_token: accessToken
+                    })
+                })
+                    .then(function (response) {
+                        return response.json();
+                    })
+                    .then(function (payload) {
+                        if (payload && payload.success && payload.data && payload.data.redirect) {
+                            window.location.replace(payload.data.redirect);
+                            return;
+                        }
+                    })
+                    .finally(function () {
+                        if (window.history && window.history.replaceState) {
+                            window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+                        }
+                    });
+            }
         }
 
         // Handle Supabase login/register/recover forms (single provider view).
