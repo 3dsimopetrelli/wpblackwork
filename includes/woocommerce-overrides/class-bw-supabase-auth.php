@@ -64,6 +64,142 @@ function bw_mew_supabase_debug_payload( array $config ) {
 }
 
 /**
+ * Sanitize and normalize redirect URLs for Supabase email confirmations.
+ *
+ * @param string $url Raw URL.
+ *
+ * @return string
+ */
+function bw_mew_supabase_sanitize_redirect_url( $url ) {
+    $url = trim( (string) $url );
+
+    if ( ! $url ) {
+        return '';
+    }
+
+    $url = preg_replace( '/\s+/', '', $url );
+    $url = preg_replace( '/\.+$/', '', $url );
+
+    if ( 0 === strpos( $url, 'http://' ) ) {
+        $url = 'https://' . substr( $url, 7 );
+    }
+
+    return esc_url_raw( $url );
+}
+
+/**
+ * Use a Supabase access token to create a WordPress session after confirmation.
+ */
+function bw_mew_handle_supabase_token_login() {
+    check_ajax_referer( 'bw-supabase-login', 'nonce' );
+
+    if ( is_user_logged_in() ) {
+        wp_send_json_success(
+            [
+                'redirect' => wc_get_page_permalink( 'myaccount' ),
+            ]
+        );
+    }
+
+    $access_token = isset( $_POST['access_token'] ) ? sanitize_text_field( wp_unslash( $_POST['access_token'] ) ) : '';
+    if ( ! $access_token ) {
+        wp_send_json_error(
+            [ 'message' => __( 'Missing access token.', 'bw' ) ],
+            400
+        );
+    }
+
+    $config    = bw_mew_get_supabase_config();
+    $debug_log = (bool) get_option( 'bw_supabase_debug_log', 0 );
+
+    if ( empty( $config['has_url'] ) || empty( $config['has_anon'] ) ) {
+        if ( $debug_log ) {
+            error_log( sprintf( 'Supabase config missing (token login): %s', wp_json_encode( bw_mew_supabase_build_diagnostics( $config ) ) ) );
+        }
+
+        wp_send_json_error(
+            array_merge(
+                [ 'message' => __( 'Supabase is not configured yet.', 'bw' ) ],
+                bw_mew_supabase_debug_payload( $config )
+            ),
+            400
+        );
+    }
+
+    $endpoint = trailingslashit( untrailingslashit( $config['project_url'] ) ) . 'auth/v1/user';
+
+    $response = wp_remote_get(
+        $endpoint,
+        [
+            'headers' => [
+                'apikey'       => $config['anon_key'],
+                'Authorization' => 'Bearer ' . $access_token,
+                'Accept'       => 'application/json',
+            ],
+            'timeout' => 15,
+        ]
+    );
+
+    if ( is_wp_error( $response ) ) {
+        if ( $debug_log ) {
+            error_log( sprintf( 'Supabase token login error: %s', $response->get_error_message() ) );
+        }
+
+        wp_send_json_error(
+            [ 'message' => __( 'Unable to reach Supabase. Please try again.', 'bw' ) ],
+            500
+        );
+    }
+
+    $status_code = wp_remote_retrieve_response_code( $response );
+    $body        = wp_remote_retrieve_body( $response );
+    $payload     = json_decode( $body, true );
+
+    if ( $status_code < 200 || $status_code >= 300 || ! is_array( $payload ) ) {
+        wp_send_json_error(
+            [ 'message' => __( 'Unable to verify Supabase session.', 'bw' ) ],
+            401
+        );
+    }
+
+    $email = isset( $payload['email'] ) ? sanitize_email( $payload['email'] ) : '';
+    if ( ! $email ) {
+        wp_send_json_error(
+            [ 'message' => __( 'Supabase user email is missing.', 'bw' ) ],
+            400
+        );
+    }
+
+    $create_users = (bool) get_option( 'bw_supabase_create_wp_users', 1 );
+    $user         = get_user_by( 'email', $email );
+
+    if ( ! $user && $create_users ) {
+        $user_id = wp_create_user( $email, wp_generate_password( 32, true ), $email );
+        if ( ! is_wp_error( $user_id ) ) {
+            $user = get_user_by( 'id', $user_id );
+        }
+    }
+
+    if ( ! $user instanceof WP_User ) {
+        wp_send_json_error(
+            [ 'message' => __( 'No matching WordPress user found.', 'bw' ) ],
+            404
+        );
+    }
+
+    wp_set_current_user( $user->ID );
+    wp_set_auth_cookie( $user->ID, true, is_ssl() );
+
+    wp_send_json_success(
+        [
+            'redirect' => wc_get_page_permalink( 'myaccount' ),
+        ]
+    );
+}
+add_action( 'wp_ajax_nopriv_bw_supabase_token_login', 'bw_mew_handle_supabase_token_login' );
+add_action( 'wp_ajax_bw_supabase_token_login', 'bw_mew_handle_supabase_token_login' );
+
+/**
  * Handle Supabase password login via AJAX.
  */
 function bw_mew_handle_supabase_login() {
@@ -240,6 +376,19 @@ function bw_mew_handle_supabase_register() {
     // Supabase signup endpoint (server-side).
     $endpoint = trailingslashit( untrailingslashit( $config['project_url'] ) ) . 'auth/v1/signup';
 
+    $confirm_redirect = bw_mew_supabase_sanitize_redirect_url(
+        get_option( 'bw_supabase_email_confirm_redirect_url', site_url( '/my-account/?bw_email_confirmed=1' ) )
+    );
+
+    $payload_body = [
+        'email'    => $email,
+        'password' => $password,
+    ];
+
+    if ( $confirm_redirect ) {
+        $payload_body['emailRedirectTo'] = $confirm_redirect;
+    }
+
     $response = wp_remote_post(
         $endpoint,
         [
@@ -250,10 +399,7 @@ function bw_mew_handle_supabase_register() {
             ],
             'timeout' => 15,
             'body'    => wp_json_encode(
-                [
-                    'email'    => $email,
-                    'password' => $password,
-                ]
+                $payload_body
             ),
         ]
     );

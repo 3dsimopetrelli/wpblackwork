@@ -205,6 +205,9 @@ function bw_site_render_account_page_tab() {
         $supabase_registration    = isset($_POST['bw_supabase_registration_mode']) ? sanitize_text_field($_POST['bw_supabase_registration_mode']) : 'R2';
         $supabase_signup_url      = isset($_POST['bw_supabase_provider_signup_url']) ? esc_url_raw($_POST['bw_supabase_provider_signup_url']) : '';
         $supabase_reset_url       = isset($_POST['bw_supabase_provider_reset_url']) ? esc_url_raw($_POST['bw_supabase_provider_reset_url']) : '';
+        $supabase_confirm_url     = isset($_POST['bw_supabase_email_confirm_redirect_url']) ? esc_url_raw(trim($_POST['bw_supabase_email_confirm_redirect_url'])) : '';
+        $supabase_auto_login      = isset($_POST['bw_supabase_auto_login_after_confirm']) ? 1 : 0;
+        $supabase_create_users    = isset($_POST['bw_supabase_create_wp_users']) ? 1 : 0;
 
         if ( ! in_array( $login_provider, [ 'wordpress', 'supabase' ], true ) ) {
             $login_provider = 'wordpress';
@@ -249,6 +252,9 @@ function bw_site_render_account_page_tab() {
         update_option('bw_supabase_registration_mode', $supabase_registration);
         update_option('bw_supabase_provider_signup_url', $supabase_signup_url);
         update_option('bw_supabase_provider_reset_url', $supabase_reset_url);
+        update_option('bw_supabase_email_confirm_redirect_url', $supabase_confirm_url);
+        update_option('bw_supabase_auto_login_after_confirm', $supabase_auto_login);
+        update_option('bw_supabase_create_wp_users', $supabase_create_users);
 
         // Clear social login settings cache.
         if (class_exists('BW_Social_Login')) {
@@ -286,6 +292,9 @@ function bw_site_render_account_page_tab() {
     $supabase_registration = get_option('bw_supabase_registration_mode', 'R2');
     $supabase_signup_url   = get_option('bw_supabase_provider_signup_url', '');
     $supabase_reset_url    = get_option('bw_supabase_provider_reset_url', '');
+    $supabase_confirm_url  = get_option('bw_supabase_email_confirm_redirect_url', site_url('/my-account/?bw_email_confirmed=1'));
+    $supabase_auto_login   = (int) get_option('bw_supabase_auto_login_after_confirm', 0);
+    $supabase_create_users = (int) get_option('bw_supabase_create_wp_users', 1);
 
     $facebook_redirect = function_exists('bw_mew_get_social_redirect_uri') ? bw_mew_get_social_redirect_uri('facebook') : add_query_arg('bw_social_login_callback', 'facebook', wc_get_page_permalink('myaccount'));
     $google_redirect   = function_exists('bw_mew_get_social_redirect_uri') ? bw_mew_get_social_redirect_uri('google') : add_query_arg('bw_social_login_callback', 'google', wc_get_page_permalink('myaccount'));
@@ -661,6 +670,45 @@ function bw_site_render_account_page_tab() {
                     <p class="description"><?php esc_html_e( 'Reset password page hosted by your provider (used in OIDC mode).', 'bw' ); ?></p>
                 </td>
             </tr>
+            <tr class="bw-supabase-registration-option" data-bw-registration-mode="R2">
+                <th scope="row">
+                    <label for="bw_supabase_email_confirm_redirect_url"><?php esc_html_e( 'Email Confirm Redirect URL', 'bw' ); ?></label>
+                </th>
+                <td>
+                    <input type="text" id="bw_supabase_email_confirm_redirect_url" name="bw_supabase_email_confirm_redirect_url" value="<?php echo esc_attr( $supabase_confirm_url ); ?>" class="regular-text" />
+                    <p class="description"><?php esc_html_e( 'URL where Supabase redirects the user after email confirmation. Must be allowlisted in Supabase Redirect URLs.', 'bw' ); ?></p>
+                </td>
+            </tr>
+            <tr class="bw-supabase-registration-option" data-bw-registration-mode="R2">
+                <th scope="row">
+                    <label for="bw_supabase_auto_login_after_confirm"><?php esc_html_e( 'Auto-login after email confirmation', 'bw' ); ?></label>
+                </th>
+                <td>
+                    <label>
+                        <input type="checkbox" id="bw_supabase_auto_login_after_confirm" name="bw_supabase_auto_login_after_confirm" value="1" <?php checked( 1, $supabase_auto_login ); ?> />
+                        <?php esc_html_e( 'Attempt to log users into WordPress after Supabase email confirmation.', 'bw' ); ?>
+                    </label>
+                    <p class="description"><?php esc_html_e( 'When enabled, the frontend bridges the #access_token fragment to WordPress via AJAX to create a WP session.', 'bw' ); ?></p>
+                </td>
+            </tr>
+            <tr class="bw-supabase-registration-option" data-bw-registration-mode="R2">
+                <th scope="row">
+                    <label for="bw_supabase_create_wp_users"><?php esc_html_e( 'Create WordPress user if missing', 'bw' ); ?></label>
+                </th>
+                <td>
+                    <label>
+                        <input type="checkbox" id="bw_supabase_create_wp_users" name="bw_supabase_create_wp_users" value="1" <?php checked( 1, $supabase_create_users ); ?> />
+                        <?php esc_html_e( 'Create a WordPress user automatically when Supabase confirms a new email.', 'bw' ); ?>
+                    </label>
+                    <p class="description"><?php esc_html_e( 'If enabled, create a WP user automatically when a Supabase-confirmed email does not exist in WordPress.', 'bw' ); ?></p>
+                </td>
+            </tr>
+            <tr class="bw-supabase-registration-note">
+                <th scope="row"><?php esc_html_e( 'Email confirmation auto-login', 'bw' ); ?></th>
+                <td>
+                    <p class="description"><?php esc_html_e( 'Email confirmation auto-login settings are only used for R2 Native Supabase Registration.', 'bw' ); ?></p>
+                </td>
+            </tr>
             <?php if ( $supabase_with_plugins ) : ?>
                 <?php
                 $oidc_active      = function_exists( 'bw_oidc_is_active' ) ? bw_oidc_is_active() : false;
@@ -758,6 +806,7 @@ function bw_site_render_account_page_tab() {
             var providerSections = $('.bw-login-provider-section');
             var registrationMode = $('#bw_supabase_registration_mode');
             var registrationRows = $('.bw-supabase-registration-option');
+            var registrationNote = $('.bw-supabase-registration-note');
             var oidcRows = $('.bw-supabase-oidc-option');
             var oidcToggle = $('#bw_supabase_with_plugins');
 
@@ -774,6 +823,9 @@ function bw_site_render_account_page_tab() {
                     var $row = $(this);
                     $row.toggle($row.data('bw-registration-mode') === mode);
                 });
+                if (registrationNote.length) {
+                    registrationNote.toggle(mode !== 'R2');
+                }
             };
 
             var toggleOidcRows = function(enabled) {
