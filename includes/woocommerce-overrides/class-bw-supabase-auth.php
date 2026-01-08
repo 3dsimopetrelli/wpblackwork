@@ -388,6 +388,10 @@ function bw_mew_handle_supabase_register() {
     if ( $confirm_redirect ) {
         $payload_body['emailRedirectTo'] = $confirm_redirect;
     }
+    if ( $debug_log ) {
+        $redirect_for_log = $confirm_redirect ? $confirm_redirect : 'empty';
+        error_log( sprintf( 'Supabase register redirect: %s', $redirect_for_log ) );
+    }
 
     $response = wp_remote_post(
         $endpoint,
