@@ -40,7 +40,7 @@ function bw_mew_supabase_build_diagnostics( array $config ) {
         'missing_anon_key'    => empty( $config['has_anon'] ) ? 'yes' : 'no',
         'project_url_host'    => $url_display ? $url_display : 'empty',
         'anon_key_present'    => empty( $config['has_anon'] ) ? 'empty' : 'present',
-        'options'             => 'bw_supabase_project_url, bw_supabase_anon_key, bw_supabase_with_plugins, bw_supabase_registration_mode',
+        'options'             => 'bw_supabase_project_url, bw_supabase_anon_key, bw_supabase_with_plugins, bw_supabase_login_mode, bw_supabase_registration_mode',
     ];
 }
 
@@ -309,6 +309,30 @@ function bw_mew_handle_supabase_login() {
     if ( ! $stored ) {
         wp_send_json_error(
             [ 'message' => __( 'Supabase did not return session tokens.', 'bw' ) ],
+            500
+        );
+    }
+
+    if ( ! is_user_logged_in() ) {
+        $link_users   = (bool) get_option( 'bw_supabase_enable_wp_user_linking', 0 );
+        $create_users = (bool) get_option( 'bw_supabase_create_wp_users', 1 );
+
+        if ( ! $link_users ) {
+            wp_send_json_error(
+                [ 'message' => __( 'Login succeeded, but WordPress user linking is disabled. Enable “Link Supabase users to WP users” to complete login.', 'bw' ) ],
+                403
+            );
+        }
+
+        if ( ! $create_users ) {
+            wp_send_json_error(
+                [ 'message' => __( 'Login succeeded, but no matching WordPress user exists. Enable automatic WP user creation or create the user manually.', 'bw' ) ],
+                404
+            );
+        }
+
+        wp_send_json_error(
+            [ 'message' => __( 'Login succeeded, but a WordPress session could not be created.', 'bw' ) ],
             500
         );
     }
@@ -600,10 +624,17 @@ function bw_mew_supabase_store_session( array $payload, $email ) {
     $cookie_base = sanitize_key( $cookie_base ) ?: 'bw_supabase_session';
     $secure      = is_ssl();
     $link_users  = (bool) get_option( 'bw_supabase_enable_wp_user_linking', 0 );
+    $create_users = (bool) get_option( 'bw_supabase_create_wp_users', 1 );
     $user        = null;
 
     if ( $link_users && $user_email ) {
         $user = get_user_by( 'email', $user_email );
+        if ( ! $user && $create_users ) {
+            $user_id = wp_create_user( $user_email, wp_generate_password( 32, true ), $user_email );
+            if ( ! is_wp_error( $user_id ) ) {
+                $user = get_user_by( 'id', $user_id );
+            }
+        }
         if ( $user instanceof WP_User ) {
             wp_set_current_user( $user->ID );
             wp_set_auth_cookie( $user->ID, true, $secure );

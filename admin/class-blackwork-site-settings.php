@@ -197,6 +197,7 @@ function bw_site_render_account_page_tab() {
         $supabase_anon_key        = isset($_POST['bw_supabase_anon_key']) ? sanitize_textarea_field(trim($_POST['bw_supabase_anon_key'])) : '';
         $supabase_service_key     = isset($_POST['bw_supabase_service_role_key']) ? sanitize_textarea_field($_POST['bw_supabase_service_role_key']) : '';
         $supabase_auth_mode       = isset($_POST['bw_supabase_auth_mode']) ? sanitize_key($_POST['bw_supabase_auth_mode']) : 'password';
+        $supabase_login_mode      = isset($_POST['bw_supabase_login_mode']) ? sanitize_key($_POST['bw_supabase_login_mode']) : 'native';
         $supabase_cookie_name     = isset($_POST['bw_supabase_jwt_cookie_name']) ? sanitize_key($_POST['bw_supabase_jwt_cookie_name']) : 'bw_supabase_session';
         $supabase_storage         = isset($_POST['bw_supabase_session_storage']) ? sanitize_key($_POST['bw_supabase_session_storage']) : 'cookie';
         $supabase_link_users      = isset($_POST['bw_supabase_enable_wp_user_linking']) ? 1 : 0;
@@ -215,6 +216,10 @@ function bw_site_render_account_page_tab() {
 
         if ( ! in_array( $supabase_auth_mode, [ 'password' ], true ) ) {
             $supabase_auth_mode = 'password';
+        }
+
+        if ( ! in_array( $supabase_login_mode, [ 'native', 'oidc' ], true ) ) {
+            $supabase_login_mode = 'native';
         }
 
         if ( ! in_array( $supabase_storage, [ 'cookie', 'usermeta' ], true ) ) {
@@ -244,6 +249,7 @@ function bw_site_render_account_page_tab() {
         update_option('bw_supabase_anon_key', $supabase_anon_key);
         update_option('bw_supabase_service_role_key', $supabase_service_key);
         update_option('bw_supabase_auth_mode', $supabase_auth_mode);
+        update_option('bw_supabase_login_mode', $supabase_login_mode);
         update_option('bw_supabase_jwt_cookie_name', $supabase_cookie_name);
         update_option('bw_supabase_session_storage', $supabase_storage);
         update_option('bw_supabase_enable_wp_user_linking', $supabase_link_users);
@@ -284,6 +290,7 @@ function bw_site_render_account_page_tab() {
     $supabase_anon_key     = get_option('bw_supabase_anon_key', '');
     $supabase_service_key  = get_option('bw_supabase_service_role_key', '');
     $supabase_auth_mode    = get_option('bw_supabase_auth_mode', 'password');
+    $supabase_login_mode   = get_option('bw_supabase_login_mode', 'native');
     $supabase_cookie_name  = get_option('bw_supabase_jwt_cookie_name', 'bw_supabase_session');
     $supabase_storage      = get_option('bw_supabase_session_storage', 'cookie');
     $supabase_link_users   = (int) get_option('bw_supabase_enable_wp_user_linking', 0);
@@ -627,6 +634,18 @@ function bw_site_render_account_page_tab() {
             </tr>
             <tr>
                 <th scope="row">
+                    <label for="bw_supabase_login_mode"><?php esc_html_e( 'Login Mode', 'bw' ); ?></label>
+                </th>
+                <td>
+                    <select id="bw_supabase_login_mode" name="bw_supabase_login_mode">
+                        <option value="native" <?php selected( 'native', $supabase_login_mode ); ?>><?php esc_html_e( 'Native Supabase Login (email/password)', 'bw' ); ?></option>
+                        <option value="oidc" <?php selected( 'oidc', $supabase_login_mode ); ?>><?php esc_html_e( 'OIDC Login (OpenID Connect redirect)', 'bw' ); ?></option>
+                    </select>
+                    <p class="description"><?php esc_html_e( 'Choose whether login uses the Supabase password flow or redirects to OpenID Connect.', 'bw' ); ?></p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
                     <label for="bw_supabase_with_plugins"><?php esc_html_e( 'SupabaseWithPlugins (OIDC)', 'bw' ); ?></label>
                 </th>
                 <td>
@@ -635,6 +654,12 @@ function bw_site_render_account_page_tab() {
                         <?php esc_html_e( 'Enable OIDC plugin integration', 'bw' ); ?>
                     </label>
                     <p class="description"><?php esc_html_e( 'When enabled, authentication is handled by OpenID Connect Generic Client (OIDC redirect flow). The frontend form keeps the same style, but password is not submitted to WordPress.', 'bw' ); ?></p>
+                </td>
+            </tr>
+            <tr class="bw-supabase-oidc-warning" <?php echo ( $supabase_with_plugins && 'native' === $supabase_login_mode ) ? '' : 'style="display:none;"'; ?>>
+                <th scope="row"><?php esc_html_e( 'OIDC login notice', 'bw' ); ?></th>
+                <td>
+                    <p class="description"><?php esc_html_e( 'OIDC enabled but login is set to native email/password. OIDC will not hijack the login submit.', 'bw' ); ?></p>
                 </td>
             </tr>
             <tr>
@@ -809,6 +834,8 @@ function bw_site_render_account_page_tab() {
             var registrationNote = $('.bw-supabase-registration-note');
             var oidcRows = $('.bw-supabase-oidc-option');
             var oidcToggle = $('#bw_supabase_with_plugins');
+            var loginMode = $('#bw_supabase_login_mode');
+            var oidcWarning = $('.bw-supabase-oidc-warning');
 
             var toggleProviderSections = function(provider) {
                 providerSections.each(function() {
@@ -832,9 +859,18 @@ function bw_site_render_account_page_tab() {
                 oidcRows.toggle(!!enabled);
             };
 
+            var toggleOidcWarning = function(enabled, mode) {
+                if (!oidcWarning.length) {
+                    return;
+                }
+
+                oidcWarning.toggle(!!enabled && mode === 'native');
+            };
+
             toggleProviderSections(providerRadios.filter(':checked').val() || 'wordpress');
             toggleRegistrationMode(registrationMode.val());
             toggleOidcRows(oidcToggle.is(':checked'));
+            toggleOidcWarning(oidcToggle.is(':checked'), loginMode.val());
 
             providerRadios.on('change', function() {
                 toggleProviderSections($(this).val());
@@ -845,7 +881,13 @@ function bw_site_render_account_page_tab() {
             });
 
             oidcToggle.on('change', function() {
-                toggleOidcRows($(this).is(':checked'));
+                var enabled = $(this).is(':checked');
+                toggleOidcRows(enabled);
+                toggleOidcWarning(enabled, loginMode.val());
+            });
+
+            loginMode.on('change', function() {
+                toggleOidcWarning(oidcToggle.is(':checked'), $(this).val());
             });
         });
     </script>
