@@ -986,6 +986,7 @@ function bw_site_render_checkout_tab() {
         $thumb_ratio          = isset( $_POST['bw_checkout_thumb_ratio'] ) ? sanitize_key( wp_unslash( $_POST['bw_checkout_thumb_ratio'] ) ) : 'square';
         $thumb_width          = isset( $_POST['bw_checkout_thumb_width'] ) ? absint( $_POST['bw_checkout_thumb_width'] ) : 110;
         $footer_text          = isset( $_POST['bw_checkout_footer_text'] ) ? sanitize_text_field( wp_unslash( $_POST['bw_checkout_footer_text'] ) ) : '';
+        $supabase_checkout_sync = isset( $_POST['bw_checkout_supabase_sync'] ) ? '1' : '0';
 
         if ( ! in_array( $thumb_ratio, [ 'square', 'portrait', 'landscape' ], true ) ) {
             $thumb_ratio = 'square';
@@ -1042,6 +1043,7 @@ function bw_site_render_checkout_tab() {
         update_option( 'bw_checkout_thumb_ratio', $thumb_ratio );
         update_option( 'bw_checkout_thumb_width', $thumb_width );
         update_option( 'bw_checkout_footer_text', $footer_text );
+        update_option( 'bw_checkout_supabase_sync', $supabase_checkout_sync );
 
         // Redirect to the same tab to prevent losing tab state
         wp_safe_redirect( add_query_arg( array(
@@ -1084,6 +1086,7 @@ function bw_site_render_checkout_tab() {
     $thumb_ratio         = get_option( 'bw_checkout_thumb_ratio', 'square' );
     $thumb_width         = get_option( 'bw_checkout_thumb_width', 110 );
     $footer_text         = get_option( 'bw_checkout_footer_text', '' );
+    $supabase_checkout_sync = get_option( 'bw_checkout_supabase_sync', '0' );
     ?>
 
     <?php if ( $saved ) : ?>
@@ -1160,6 +1163,18 @@ function bw_site_render_checkout_tab() {
                         <span style="font-weight: 500;">Attiva</span>
                     </label>
                     <p class="description">Mostra o nascondi il titolo "Your order" nella colonna destra.</p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_checkout_supabase_sync"><?php esc_html_e( 'Supabase checkout registration', 'bw' ); ?></label>
+                </th>
+                <td>
+                    <label style="display: inline-flex; align-items: center; gap: 8px;">
+                        <input type="checkbox" id="bw_checkout_supabase_sync" name="bw_checkout_supabase_sync" value="1" <?php checked( $supabase_checkout_sync, '1' ); ?> />
+                        <span style="font-weight: 500;"><?php esc_html_e( 'Create Supabase user on checkout', 'bw' ); ?></span>
+                    </label>
+                    <p class="description"><?php esc_html_e( 'When enabled, new checkout accounts are also registered in Supabase with the same email/password so Supabase confirmation emails are sent.', 'bw' ); ?></p>
                 </td>
             </tr>
             <tr class="bw-section-break">

@@ -600,6 +600,90 @@ add_action( 'wp_ajax_nopriv_bw_supabase_recover', 'bw_mew_handle_supabase_recove
 add_action( 'wp_ajax_bw_supabase_recover', 'bw_mew_handle_supabase_recover' );
 
 /**
+ * Optionally register checkout-created customers in Supabase.
+ *
+ * @param int   $customer_id       New customer ID.
+ * @param array $new_customer_data Data passed to wc_create_new_customer.
+ * @param bool  $password_generated Whether WC auto-generated the password.
+ */
+function bw_mew_maybe_register_supabase_checkout_customer( $customer_id, $new_customer_data = [], $password_generated = false ) {
+    $sync_enabled = get_option( 'bw_checkout_supabase_sync', '0' );
+    if ( '1' !== $sync_enabled ) {
+        return;
+    }
+
+    $user = get_user_by( 'id', $customer_id );
+    if ( ! $user instanceof WP_User ) {
+        return;
+    }
+
+    $email = $user->user_email;
+    if ( ! $email ) {
+        return;
+    }
+
+    $password = '';
+    if ( is_array( $new_customer_data ) && ! empty( $new_customer_data['user_pass'] ) ) {
+        $password = (string) $new_customer_data['user_pass'];
+    }
+
+    if ( '' === $password ) {
+        return;
+    }
+
+    $config    = bw_mew_get_supabase_config();
+    $debug_log = (bool) get_option( 'bw_supabase_debug_log', 0 );
+
+    if ( empty( $config['has_url'] ) || empty( $config['has_anon'] ) ) {
+        if ( $debug_log ) {
+            error_log( sprintf( 'Supabase config missing (checkout sync): %s', wp_json_encode( bw_mew_supabase_build_diagnostics( $config ) ) ) );
+        }
+        return;
+    }
+
+    $confirm_redirect = bw_mew_supabase_sanitize_redirect_url(
+        get_option( 'bw_supabase_email_confirm_redirect_url', site_url( '/my-account/?bw_email_confirmed=1' ) )
+    );
+
+    $endpoint = trailingslashit( untrailingslashit( $config['project_url'] ) ) . 'auth/v1/signup';
+
+    if ( $confirm_redirect ) {
+        $endpoint = add_query_arg( 'redirect_to', rawurlencode( $confirm_redirect ), $endpoint );
+    }
+
+    $payload_body = [
+        'email'    => $email,
+        'password' => $password,
+    ];
+
+    $response = wp_remote_post(
+        $endpoint,
+        [
+            'headers' => [
+                'apikey'       => $config['anon_key'],
+                'Content-Type' => 'application/json',
+                'Accept'       => 'application/json',
+            ],
+            'timeout' => 15,
+            'body'    => wp_json_encode( $payload_body ),
+        ]
+    );
+
+    if ( is_wp_error( $response ) ) {
+        if ( $debug_log ) {
+            error_log( sprintf( 'Supabase checkout register error: %s', $response->get_error_message() ) );
+        }
+        return;
+    }
+
+    $status_code = wp_remote_retrieve_response_code( $response );
+    if ( $debug_log ) {
+        error_log( sprintf( 'Supabase checkout register status: %d', (int) $status_code ) );
+    }
+}
+add_action( 'woocommerce_created_customer', 'bw_mew_maybe_register_supabase_checkout_customer', 20, 3 );
+
+/**
  * Store Supabase session tokens in cookies/usermeta.
  *
  * @param array  $payload Supabase response payload.
