@@ -30,6 +30,7 @@ $back_url            = $back_url ? $back_url : home_url( '/' );
 $login_provider      = get_option( 'bw_account_login_provider', 'wordpress' );
 $supabase_with_oidc  = (int) get_option( 'bw_supabase_with_plugins', 0 );
 $registration_mode   = get_option( 'bw_supabase_registration_mode', 'R2' );
+$login_mode          = get_option( 'bw_supabase_login_mode', 'native' );
 $provider_signup_url = get_option( 'bw_supabase_provider_signup_url', '' );
 $provider_reset_url  = get_option( 'bw_supabase_provider_reset_url', '' );
 $lost_password_url   = wc_lostpassword_url();
@@ -38,7 +39,9 @@ $generate_username    = 'yes' === get_option( 'woocommerce_registration_generate
 $generate_password    = 'yes' === get_option( 'woocommerce_registration_generate_password' );
 $active_tab           = ( isset( $_GET['action'] ) && 'lostpassword' === sanitize_key( wp_unslash( $_GET['action'] ) ) ) ? 'lostpassword' : ( ( $registration_enabled && ( ( isset( $_GET['action'] ) && 'register' === sanitize_key( wp_unslash( $_GET['action'] ) ) ) || isset( $_POST['register'] ) ) ) ? 'register' : 'login' );
 $registration_mode    = in_array( $registration_mode, [ 'R1', 'R2', 'R3' ], true ) ? $registration_mode : 'R2';
+$login_mode           = in_array( $login_mode, [ 'native', 'oidc' ], true ) ? $login_mode : 'native';
 $show_supabase_register = 'R3' !== $registration_mode;
+$oidc_login_mode        = 'oidc' === $login_mode;
 
 if ( 'supabase' === $login_provider && ! $show_supabase_register && 'register' === $active_tab ) {
     $active_tab = 'login';
@@ -79,22 +82,32 @@ if ( 'supabase' === $login_provider && ! $show_supabase_register && 'register' =
                         <div class="bw-account-auth__panels">
                             <div class="bw-account-auth__panel <?php echo 'login' === $active_tab ? 'is-active is-visible' : ''; ?>" data-bw-auth-panel="login">
                                 <form class="bw-account-login__form bw-account-login__form--supabase" data-bw-supabase-form data-bw-supabase-action="login">
-                                    <p class="bw-account-login__note"><?php esc_html_e( 'Use your Supabase account credentials to continue.', 'bw' ); ?></p>
+                                    <?php if ( $oidc_login_mode ) : ?>
+                                        <p class="bw-account-login__note"><?php esc_html_e( 'Use OpenID Connect to continue. Email and password login is disabled.', 'bw' ); ?></p>
+                                    <?php else : ?>
+                                        <p class="bw-account-login__note"><?php esc_html_e( 'Use your Supabase account credentials to continue.', 'bw' ); ?></p>
+                                    <?php endif; ?>
 
-                                    <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide bw-account-login__field">
-                                        <label for="bw_supabase_email"><?php esc_html_e( 'Email address', 'woocommerce' ); ?> <span class="required">*</span></label>
-                                        <input type="email" class="woocommerce-Input woocommerce-Input--text input-text" name="email" id="bw_supabase_email" autocomplete="email" required />
-                                    </p>
-                                    <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide bw-account-login__field">
-                                        <label for="bw_supabase_password"><?php esc_html_e( 'Password', 'woocommerce' ); ?> <span class="required">*</span></label>
-                                        <input class="woocommerce-Input woocommerce-Input--text input-text" type="password" name="password" id="bw_supabase_password" autocomplete="current-password" required />
-                                    </p>
+                                    <?php if ( ! $oidc_login_mode ) : ?>
+                                        <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide bw-account-login__field">
+                                            <label for="bw_supabase_email"><?php esc_html_e( 'Email address', 'woocommerce' ); ?> <span class="required">*</span></label>
+                                            <input type="email" class="woocommerce-Input woocommerce-Input--text input-text" name="email" id="bw_supabase_email" autocomplete="email" required />
+                                        </p>
+                                        <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide bw-account-login__field">
+                                            <label for="bw_supabase_password"><?php esc_html_e( 'Password', 'woocommerce' ); ?> <span class="required">*</span></label>
+                                            <input class="woocommerce-Input woocommerce-Input--text input-text" type="password" name="password" id="bw_supabase_password" autocomplete="current-password" required />
+                                        </p>
+                                    <?php endif; ?>
 
                                     <div class="bw-account-login__error" role="alert" aria-live="polite" hidden></div>
                                     <div class="bw-account-login__success" role="status" aria-live="polite" hidden></div>
 
                                     <p class="form-row bw-account-login__actions">
-                                        <button type="submit" class="woocommerce-button button bw-account-login__submit" data-bw-supabase-submit><?php esc_html_e( 'Log In', 'woocommerce' ); ?></button>
+                                        <?php if ( $oidc_login_mode ) : ?>
+                                            <button type="submit" class="woocommerce-button button bw-account-login__submit" data-bw-supabase-submit><?php esc_html_e( 'Login with OpenID Connect', 'bw' ); ?></button>
+                                        <?php else : ?>
+                                            <button type="submit" class="woocommerce-button button bw-account-login__submit" data-bw-supabase-submit><?php esc_html_e( 'Log In', 'woocommerce' ); ?></button>
+                                        <?php endif; ?>
                                     </p>
 
                                     <p class="form-row bw-account-login__controls">

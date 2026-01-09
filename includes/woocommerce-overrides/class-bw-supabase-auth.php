@@ -40,7 +40,7 @@ function bw_mew_supabase_build_diagnostics( array $config ) {
         'missing_anon_key'    => empty( $config['has_anon'] ) ? 'yes' : 'no',
         'project_url_host'    => $url_display ? $url_display : 'empty',
         'anon_key_present'    => empty( $config['has_anon'] ) ? 'empty' : 'present',
-        'options'             => 'bw_supabase_project_url, bw_supabase_anon_key, bw_supabase_with_plugins, bw_supabase_registration_mode',
+        'options'             => 'bw_supabase_project_url, bw_supabase_anon_key, bw_supabase_with_plugins, bw_supabase_login_mode, bw_supabase_registration_mode',
     ];
 }
 
