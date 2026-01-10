@@ -136,8 +136,25 @@ body.woocommerce-account .woocommerce-MyAccount-navigation li a:focus .bw-accoun
     font-size: 14px;
 }
 
+.bw-account-set-password__label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+
+.bw-account-set-password__email {
+    margin: 0 0 12px;
+    width: 100%;
+    max-width: 320px;
+}
+
 .bw-account-set-password__cta {
-    margin-top: 12px;
+    margin-top: 8px;
+}
+
+.bw-account-set-password__notice {
+    margin: 12px 0 0;
+    color: #1e5b36;
 }
 
 .bw-account-set-password__error {

@@ -611,10 +611,6 @@ function bw_mew_handle_supabase_checkout_invite( $order_id ) {
         return;
     }
 
-    if ( $order->get_meta( '_bw_supabase_invite_sent' ) ) {
-        return;
-    }
-
     if ( $order->get_user_id() ) {
         return;
     }
@@ -635,6 +631,10 @@ function bw_mew_handle_supabase_checkout_invite( $order_id ) {
     $redirect_to    = get_option( 'bw_supabase_invite_redirect_url', '' );
     $default_redirect = home_url( '/my-account/set-password/' );
     $redirect_to    = $redirect_to ? $redirect_to : $default_redirect;
+    $redirect_to    = add_query_arg( 'bw_invite_email', rawurlencode( $email ), $redirect_to );
+    $last_invite_at = (int) $order->get_meta( '_bw_supabase_invite_sent_at' );
+    $now            = time();
+    $min_interval   = 10 * MINUTE_IN_SECONDS;
 
     if ( empty( $config['has_url'] ) || ! $service_key ) {
         if ( $debug_log ) {
@@ -651,6 +651,17 @@ function bw_mew_handle_supabase_checkout_invite( $order_id ) {
     }
 
     $user = get_user_by( 'email', $email );
+    if ( $user instanceof WP_User ) {
+        $onboarded = (int) get_user_meta( $user->ID, 'bw_supabase_onboarded', true );
+        if ( 1 === $onboarded ) {
+            return;
+        }
+    }
+
+    if ( $order->get_meta( '_bw_supabase_invite_sent' ) && $last_invite_at && ( $now - $last_invite_at ) < $min_interval ) {
+        return;
+    }
+
     if ( ! $user instanceof WP_User ) {
         $base_username = sanitize_user( current( explode( '@', $email ) ), true );
         $username      = $base_username ?: 'customer';
@@ -670,7 +681,70 @@ function bw_mew_handle_supabase_checkout_invite( $order_id ) {
         }
     }
 
-    $endpoint = trailingslashit( untrailingslashit( $config['project_url'] ) ) . 'auth/v1/invite';
+    $result = bw_mew_send_supabase_invite(
+        [
+            'email'       => $email,
+            'redirect_to' => $redirect_to,
+            'service_key' => $service_key,
+            'project_url' => $config['project_url'],
+            'debug_log'   => $debug_log,
+            'context'     => sprintf( 'order %d', $order_id ),
+        ]
+    );
+
+    if ( 'sent' === $result['status'] ) {
+        $order->update_meta_data( '_bw_supabase_invite_sent', 1 );
+        $order->update_meta_data( '_bw_supabase_invite_sent_at', $now );
+        $resend_count = (int) $order->get_meta( '_bw_supabase_invite_resend_count' );
+        $order->update_meta_data( '_bw_supabase_invite_resend_count', $resend_count + 1 );
+        $order->save();
+
+        if ( $user instanceof WP_User ) {
+            update_user_meta( $user->ID, 'bw_supabase_invited', 1 );
+            update_user_meta( $user->ID, 'bw_supabase_invite_sent_at', $now );
+            update_user_meta( $user->ID, 'bw_supabase_invite_resend_count', $resend_count + 1 );
+            if ( $result['user_id'] ) {
+                update_user_meta( $user->ID, 'bw_supabase_user_id', sanitize_text_field( $result['user_id'] ) );
+            }
+        }
+
+        return;
+    }
+
+    if ( 'exists' === $result['status'] ) {
+        $order->update_meta_data( '_bw_supabase_invite_sent', 1 );
+        $order->update_meta_data( '_bw_supabase_invite_sent_at', $now );
+        $order->save();
+        return;
+    }
+}
+add_action( 'woocommerce_order_status_processing', 'bw_mew_handle_supabase_checkout_invite', 10, 1 );
+add_action( 'woocommerce_order_status_completed', 'bw_mew_handle_supabase_checkout_invite', 10, 1 );
+
+/**
+ * Send Supabase invite via Admin API.
+ *
+ * @param array $args Invite args.
+ *
+ * @return array{status:string,user_id:string}
+ */
+function bw_mew_send_supabase_invite( array $args ) {
+    $email       = $args['email'] ?? '';
+    $redirect_to = $args['redirect_to'] ?? '';
+    $service_key = $args['service_key'] ?? '';
+    $project_url = $args['project_url'] ?? '';
+    $debug_log   = (bool) ( $args['debug_log'] ?? false );
+    $context     = $args['context'] ?? 'manual';
+    $user_id     = '';
+
+    if ( ! $email || ! $project_url || ! $service_key ) {
+        return [
+            'status'  => 'invalid',
+            'user_id' => '',
+        ];
+    }
+
+    $endpoint = trailingslashit( untrailingslashit( $project_url ) ) . 'auth/v1/admin/invite';
     if ( $redirect_to ) {
         $endpoint = add_query_arg( 'redirect_to', rawurlencode( $redirect_to ), $endpoint );
     }
@@ -697,14 +771,18 @@ function bw_mew_handle_supabase_checkout_invite( $order_id ) {
         if ( $debug_log ) {
             error_log(
                 sprintf(
-                    'Supabase invite error (order %d, email %s): %s',
-                    $order_id,
+                    'Supabase invite error (%s, email %s): %s',
+                    $context,
                     $email,
                     $response->get_error_message()
                 )
             );
         }
-        return;
+
+        return [
+            'status'  => 'error',
+            'user_id' => '',
+        ];
     }
 
     $status_code = wp_remote_retrieve_response_code( $response );
@@ -717,21 +795,17 @@ function bw_mew_handle_supabase_checkout_invite( $order_id ) {
         if ( is_string( $message ) && false !== stripos( $message, 'already' ) ) {
             $already_exists = true;
         }
+        if ( isset( $payload['id'] ) ) {
+            $user_id = (string) $payload['id'];
+        }
     }
 
     if ( $status_code >= 200 && $status_code < 300 ) {
-        $order->update_meta_data( '_bw_supabase_invite_sent', 1 );
-        $order->save();
-
-        if ( $user instanceof WP_User ) {
-            update_user_meta( $user->ID, 'bw_supabase_invited', 1 );
-        }
-
         if ( $debug_log ) {
             error_log(
                 sprintf(
-                    'Supabase invite sent. Order %d, email %s, redirect %s, status %d',
-                    $order_id,
+                    'Supabase invite sent (%s). Email %s, redirect %s, status %d',
+                    $context,
                     $email,
                     $redirect_to,
                     $status_code
@@ -739,45 +813,108 @@ function bw_mew_handle_supabase_checkout_invite( $order_id ) {
             );
         }
 
-        if ( $user instanceof WP_User && isset( $payload['id'] ) ) {
-            update_user_meta( $user->ID, 'bw_supabase_user_id', sanitize_text_field( $payload['id'] ) );
-        }
-
-        return;
+        return [
+            'status'  => 'sent',
+            'user_id' => $user_id,
+        ];
     }
 
     if ( $already_exists ) {
-        $order->update_meta_data( '_bw_supabase_invite_sent', 1 );
-        $order->save();
-
         if ( $debug_log ) {
             error_log(
                 sprintf(
-                    'Supabase invite skipped (user exists). Order %d, email %s, status %d',
-                    $order_id,
+                    'Supabase invite skipped (user exists, %s). Email %s, status %d',
+                    $context,
                     $email,
                     $status_code
                 )
             );
         }
 
-        return;
+        return [
+            'status'  => 'exists',
+            'user_id' => $user_id,
+        ];
     }
 
     if ( $debug_log ) {
         error_log(
             sprintf(
-                'Supabase invite failed. Order %d, email %s, status %d, redirect %s',
-                $order_id,
+                'Supabase invite failed (%s). Email %s, status %d, redirect %s',
+                $context,
                 $email,
                 $status_code,
                 $redirect_to
             )
         );
     }
+
+    return [
+        'status'  => 'error',
+        'user_id' => $user_id,
+    ];
 }
-add_action( 'woocommerce_order_status_processing', 'bw_mew_handle_supabase_checkout_invite', 10, 1 );
-add_action( 'woocommerce_order_status_completed', 'bw_mew_handle_supabase_checkout_invite', 10, 1 );
+
+/**
+ * Resend Supabase invite via AJAX.
+ */
+function bw_mew_handle_supabase_resend_invite() {
+    check_ajax_referer( 'bw-supabase-login', 'nonce' );
+
+    $email = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
+    if ( ! $email ) {
+        wp_send_json_error(
+            [ 'message' => __( 'Email is required.', 'bw' ) ],
+            400
+        );
+    }
+
+    $config      = bw_mew_get_supabase_config();
+    $service_key = trim( (string) get_option( 'bw_supabase_service_role_key', '' ) );
+    $debug_log   = (bool) get_option( 'bw_supabase_debug_log', 0 );
+    $redirect_to = get_option( 'bw_supabase_invite_redirect_url', '' );
+    $default_redirect = home_url( '/my-account/set-password/' );
+    $redirect_to = $redirect_to ? $redirect_to : $default_redirect;
+    $redirect_to = add_query_arg( 'bw_invite_email', rawurlencode( $email ), $redirect_to );
+
+    if ( empty( $config['has_url'] ) || ! $service_key ) {
+        wp_send_json_error(
+            [ 'message' => __( 'Supabase is not configured for invites.', 'bw' ) ],
+            400
+        );
+    }
+
+    $result = bw_mew_send_supabase_invite(
+        [
+            'email'       => $email,
+            'redirect_to' => $redirect_to,
+            'service_key' => $service_key,
+            'project_url' => $config['project_url'],
+            'debug_log'   => $debug_log,
+            'context'     => 'manual resend',
+        ]
+    );
+
+    if ( 'sent' === $result['status'] ) {
+        wp_send_json_success(
+            [ 'message' => __( 'Invite sent. Please check your email.', 'bw' ) ]
+        );
+    }
+
+    if ( 'exists' === $result['status'] ) {
+        wp_send_json_error(
+            [ 'message' => __( 'User already exists. Please use the login or reset password flow.', 'bw' ) ],
+            409
+        );
+    }
+
+    wp_send_json_error(
+        [ 'message' => __( 'Unable to send invite. Please try again later.', 'bw' ) ],
+        500
+    );
+}
+add_action( 'wp_ajax_nopriv_bw_supabase_resend_invite', 'bw_mew_handle_supabase_resend_invite' );
+add_action( 'wp_ajax_bw_supabase_resend_invite', 'bw_mew_handle_supabase_resend_invite' );
 
 /**
  * Store Supabase session tokens in cookies/usermeta.

@@ -17,10 +17,13 @@ if ( ! defined( 'ABSPATH' ) ) {
     <div class="bw-account-set-password__missing-token" data-bw-missing-token hidden>
         <p><?php esc_html_e( 'This page must be opened from the Supabase invite email link. Please click “Accept the invite” again.', 'bw' ); ?></p>
         <p>
-            <a class="woocommerce-button button bw-account-set-password__cta" href="<?php echo esc_url( wc_get_page_permalink( 'myaccount' ) ); ?>">
-                <?php esc_html_e( 'Open invite link again / Request a new invite', 'bw' ); ?>
-            </a>
+            <label class="bw-account-set-password__label" for="bw_resend_invite_email"><?php esc_html_e( 'Email address', 'bw' ); ?></label>
+            <input class="woocommerce-Input woocommerce-Input--text input-text bw-account-set-password__email" type="email" id="bw_resend_invite_email" data-bw-resend-email autocomplete="email" />
+            <button class="woocommerce-button button bw-account-set-password__cta" type="button" data-bw-resend-invite>
+                <?php esc_html_e( 'Request a new invite', 'bw' ); ?>
+            </button>
         </p>
+        <p class="bw-account-set-password__notice" data-bw-resend-notice hidden></p>
     </div>
 
     <form class="bw-account-set-password__form" data-bw-set-password-form>

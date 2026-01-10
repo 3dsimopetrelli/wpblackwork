@@ -38,12 +38,19 @@
     const ajaxUrl = window.bwAccountOnboarding.ajaxUrl || '';
     const nonce = window.bwAccountOnboarding.nonce || '';
     const redirectUrl = window.bwAccountOnboarding.redirectUrl || '';
+    const resendButton = document.querySelector('[data-bw-resend-invite]');
+    const resendEmailInput = document.querySelector('[data-bw-resend-email]');
+    const resendNotice = document.querySelector('[data-bw-resend-notice]');
 
     const hash = window.location.hash.replace(/^#/, '');
     const params = new URLSearchParams(hash);
     const accessToken = params.get('access_token') || '';
     const refreshToken = params.get('refresh_token') || '';
+    const errorCode = params.get('error_code') || '';
+    const errorDescription = params.get('error_description') || '';
     const debugEnabled = Boolean(window.bwAccountOnboarding.debug);
+    const searchParams = new URLSearchParams(window.location.search);
+    const inviteEmail = decodeURIComponent(searchParams.get('bw_invite_email') || '');
 
     const showError = (message) => {
         if (!errorBox) {
@@ -64,8 +71,23 @@
     if (debugEnabled) {
         console.log('[bw] Supabase invite tokens', {
             accessToken: accessToken ? 'present' : 'missing',
-            refreshToken: refreshToken ? 'present' : 'missing'
+            refreshToken: refreshToken ? 'present' : 'missing',
+            errorCode: errorCode || 'none'
         });
+    }
+
+    if (inviteEmail && resendEmailInput) {
+        resendEmailInput.value = inviteEmail;
+    }
+
+    if (errorCode) {
+        const message = errorCode === 'otp_expired'
+            ? 'Link expired. Please request a new invite.'
+            : decodeURIComponent(errorDescription.replace(/\+/g, ' ')) || 'The invite link is invalid.';
+        showError(message);
+        if (submitButton) {
+            submitButton.disabled = true;
+        }
     }
 
     if (!accessToken) {
@@ -79,6 +101,56 @@
         if (submitButton) {
             submitButton.disabled = true;
         }
+    }
+
+    if (resendButton && ajaxUrl && nonce) {
+        resendButton.addEventListener('click', (event) => {
+            event.preventDefault();
+            if (resendNotice) {
+                resendNotice.textContent = '';
+                resendNotice.hidden = true;
+            }
+
+            const emailValue = resendEmailInput ? resendEmailInput.value.trim() : '';
+            if (!emailValue) {
+                showError('Please enter the email used for the purchase.');
+                return;
+            }
+
+            resendButton.disabled = true;
+
+            fetch(ajaxUrl, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8'
+                },
+                body: new URLSearchParams({
+                    action: 'bw_supabase_resend_invite',
+                    nonce: nonce,
+                    email: emailValue
+                })
+            })
+                .then((response) => response.json())
+                .then((payload) => {
+                    if (payload && payload.success) {
+                        if (resendNotice) {
+                            resendNotice.textContent = payload.data && payload.data.message ? payload.data.message : 'Invite sent.';
+                            resendNotice.hidden = false;
+                        }
+                        return;
+                    }
+
+                    const message = payload && payload.data && payload.data.message ? payload.data.message : 'Unable to send invite.';
+                    showError(message);
+                })
+                .catch(() => {
+                    showError('Unable to send invite.');
+                })
+                .finally(() => {
+                    resendButton.disabled = false;
+                });
+        });
     }
 
     setPasswordForm.addEventListener('submit', (event) => {
