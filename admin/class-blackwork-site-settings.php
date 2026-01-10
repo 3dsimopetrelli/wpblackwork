@@ -986,7 +986,8 @@ function bw_site_render_checkout_tab() {
         $thumb_ratio          = isset( $_POST['bw_checkout_thumb_ratio'] ) ? sanitize_key( wp_unslash( $_POST['bw_checkout_thumb_ratio'] ) ) : 'square';
         $thumb_width          = isset( $_POST['bw_checkout_thumb_width'] ) ? absint( $_POST['bw_checkout_thumb_width'] ) : 110;
         $footer_text          = isset( $_POST['bw_checkout_footer_text'] ) ? sanitize_text_field( wp_unslash( $_POST['bw_checkout_footer_text'] ) ) : '';
-        $supabase_checkout_sync = isset( $_POST['bw_checkout_supabase_sync'] ) ? '1' : '0';
+        $supabase_provision_enabled = isset( $_POST['bw_supabase_checkout_provision_enabled'] ) ? '1' : '0';
+        $supabase_invite_redirect   = isset( $_POST['bw_supabase_invite_redirect_url'] ) ? esc_url_raw( wp_unslash( $_POST['bw_supabase_invite_redirect_url'] ) ) : '';
 
         if ( ! in_array( $thumb_ratio, [ 'square', 'portrait', 'landscape' ], true ) ) {
             $thumb_ratio = 'square';
@@ -1043,7 +1044,8 @@ function bw_site_render_checkout_tab() {
         update_option( 'bw_checkout_thumb_ratio', $thumb_ratio );
         update_option( 'bw_checkout_thumb_width', $thumb_width );
         update_option( 'bw_checkout_footer_text', $footer_text );
-        update_option( 'bw_checkout_supabase_sync', $supabase_checkout_sync );
+        update_option( 'bw_supabase_checkout_provision_enabled', $supabase_provision_enabled );
+        update_option( 'bw_supabase_invite_redirect_url', $supabase_invite_redirect );
 
         // Redirect to the same tab to prevent losing tab state
         wp_safe_redirect( add_query_arg( array(
@@ -1086,7 +1088,11 @@ function bw_site_render_checkout_tab() {
     $thumb_ratio         = get_option( 'bw_checkout_thumb_ratio', 'square' );
     $thumb_width         = get_option( 'bw_checkout_thumb_width', 110 );
     $footer_text         = get_option( 'bw_checkout_footer_text', '' );
-    $supabase_checkout_sync = get_option( 'bw_checkout_supabase_sync', '0' );
+    $supabase_provision_enabled = get_option( 'bw_supabase_checkout_provision_enabled', '0' );
+    $supabase_invite_redirect   = get_option( 'bw_supabase_invite_redirect_url', '' );
+    $supabase_service_key       = get_option( 'bw_supabase_service_role_key', '' );
+    $default_invite_redirect    = home_url( '/my-account/set-password/' );
+    $supabase_invite_redirect   = $supabase_invite_redirect ? $supabase_invite_redirect : $default_invite_redirect;
     ?>
 
     <?php if ( $saved ) : ?>
@@ -1167,16 +1173,35 @@ function bw_site_render_checkout_tab() {
             </tr>
             <tr>
                 <th scope="row">
-                    <label for="bw_checkout_supabase_sync"><?php esc_html_e( 'Supabase checkout registration', 'bw' ); ?></label>
+                    <label for="bw_supabase_checkout_provision_enabled"><?php esc_html_e( 'Supabase checkout provisioning', 'bw' ); ?></label>
                 </th>
                 <td>
                     <label style="display: inline-flex; align-items: center; gap: 8px;">
-                        <input type="checkbox" id="bw_checkout_supabase_sync" name="bw_checkout_supabase_sync" value="1" <?php checked( $supabase_checkout_sync, '1' ); ?> />
-                        <span style="font-weight: 500;"><?php esc_html_e( 'Create Supabase user on checkout', 'bw' ); ?></span>
+                        <input type="checkbox" id="bw_supabase_checkout_provision_enabled" name="bw_supabase_checkout_provision_enabled" value="1" <?php checked( $supabase_provision_enabled, '1' ); ?> />
+                        <span style="font-weight: 500;"><?php esc_html_e( 'Invite Supabase users after guest checkout', 'bw' ); ?></span>
                     </label>
-                    <p class="description"><?php esc_html_e( 'When enabled, new checkout accounts are also registered in Supabase with the same email/password so Supabase confirmation emails are sent.', 'bw' ); ?></p>
+                    <p class="description"><?php esc_html_e( 'When enabled, guest orders trigger a Supabase invite email that leads users to set their password.', 'bw' ); ?></p>
                 </td>
             </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_supabase_invite_redirect_url"><?php esc_html_e( 'Supabase invite redirect URL', 'bw' ); ?></label>
+                </th>
+                <td>
+                    <input type="url" id="bw_supabase_invite_redirect_url" name="bw_supabase_invite_redirect_url" value="<?php echo esc_attr( $supabase_invite_redirect ); ?>" class="regular-text" />
+                    <p class="description"><?php esc_html_e( 'URL where Supabase directs users after the invite link (default: /my-account/set-password/).', 'bw' ); ?></p>
+                </td>
+            </tr>
+            <?php if ( '1' === $supabase_provision_enabled && ! $supabase_service_key ) : ?>
+                <tr>
+                    <th scope="row"><?php esc_html_e( 'Supabase provisioning warning', 'bw' ); ?></th>
+                    <td>
+                        <div class="notice notice-warning inline">
+                            <p><?php esc_html_e( 'Provisioning is enabled but Supabase Service Role Key is missing. Invites will not be sent.', 'bw' ); ?></p>
+                        </div>
+                    </td>
+                </tr>
+            <?php endif; ?>
             <tr class="bw-section-break">
                 <th scope="row" colspan="2" style="padding-bottom:0;">
                     <h3 style="margin:0;">Colori di sfondo checkout</h3>

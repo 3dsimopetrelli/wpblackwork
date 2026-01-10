@@ -40,7 +40,7 @@ function bw_mew_supabase_build_diagnostics( array $config ) {
         'missing_anon_key'    => empty( $config['has_anon'] ) ? 'yes' : 'no',
         'project_url_host'    => $url_display ? $url_display : 'empty',
         'anon_key_present'    => empty( $config['has_anon'] ) ? 'empty' : 'present',
-        'options'             => 'bw_supabase_project_url, bw_supabase_anon_key, bw_supabase_with_plugins, bw_supabase_login_mode, bw_supabase_registration_mode',
+        'options'             => 'bw_supabase_project_url, bw_supabase_anon_key, bw_supabase_with_plugins, bw_supabase_login_mode, bw_supabase_registration_mode, bw_supabase_checkout_provision_enabled, bw_supabase_invite_redirect_url',
     ];
 }
 
@@ -193,6 +193,7 @@ function bw_mew_handle_supabase_token_login() {
 
     wp_set_current_user( $user->ID );
     wp_set_auth_cookie( $user->ID, true, is_ssl() );
+    update_user_meta( $user->ID, 'bw_supabase_onboarded', 1 );
 
     wp_send_json_success(
         [
@@ -600,88 +601,183 @@ add_action( 'wp_ajax_nopriv_bw_supabase_recover', 'bw_mew_handle_supabase_recove
 add_action( 'wp_ajax_bw_supabase_recover', 'bw_mew_handle_supabase_recover' );
 
 /**
- * Optionally register checkout-created customers in Supabase.
+ * Invite Supabase users after guest checkout when orders become valid.
  *
- * @param int   $customer_id       New customer ID.
- * @param array $new_customer_data Data passed to wc_create_new_customer.
- * @param bool  $password_generated Whether WC auto-generated the password.
+ * @param int $order_id Order ID.
  */
-function bw_mew_maybe_register_supabase_checkout_customer( $customer_id, $new_customer_data = [], $password_generated = false ) {
-    $sync_enabled = get_option( 'bw_checkout_supabase_sync', '0' );
-    if ( '1' !== $sync_enabled ) {
+function bw_mew_handle_supabase_checkout_invite( $order_id ) {
+    $order = wc_get_order( $order_id );
+    if ( ! $order instanceof WC_Order ) {
         return;
     }
 
-    $user = get_user_by( 'id', $customer_id );
-    if ( ! $user instanceof WP_User ) {
+    if ( $order->get_meta( '_bw_supabase_invite_sent' ) ) {
         return;
     }
 
-    $email = $user->user_email;
+    if ( $order->get_user_id() ) {
+        return;
+    }
+
+    $provision_enabled = get_option( 'bw_supabase_checkout_provision_enabled', '0' );
+    if ( '1' !== $provision_enabled ) {
+        return;
+    }
+
+    $email = $order->get_billing_email();
     if ( ! $email ) {
         return;
     }
 
-    $password = '';
-    if ( is_array( $new_customer_data ) && ! empty( $new_customer_data['user_pass'] ) ) {
-        $password = (string) $new_customer_data['user_pass'];
-    }
+    $config         = bw_mew_get_supabase_config();
+    $service_key    = trim( (string) get_option( 'bw_supabase_service_role_key', '' ) );
+    $debug_log      = (bool) get_option( 'bw_supabase_debug_log', 0 );
+    $redirect_to    = get_option( 'bw_supabase_invite_redirect_url', '' );
+    $default_redirect = home_url( '/my-account/set-password/' );
+    $redirect_to    = $redirect_to ? $redirect_to : $default_redirect;
 
-    if ( '' === $password ) {
-        return;
-    }
-
-    $config    = bw_mew_get_supabase_config();
-    $debug_log = (bool) get_option( 'bw_supabase_debug_log', 0 );
-
-    if ( empty( $config['has_url'] ) || empty( $config['has_anon'] ) ) {
+    if ( empty( $config['has_url'] ) || ! $service_key ) {
         if ( $debug_log ) {
-            error_log( sprintf( 'Supabase config missing (checkout sync): %s', wp_json_encode( bw_mew_supabase_build_diagnostics( $config ) ) ) );
+            error_log(
+                sprintf(
+                    'Supabase invite skipped (missing config). Order %d, email %s, redirect %s',
+                    $order_id,
+                    $email,
+                    $redirect_to
+                )
+            );
         }
         return;
     }
 
-    $confirm_redirect = bw_mew_supabase_sanitize_redirect_url(
-        get_option( 'bw_supabase_email_confirm_redirect_url', site_url( '/my-account/?bw_email_confirmed=1' ) )
-    );
+    $user = get_user_by( 'email', $email );
+    if ( ! $user instanceof WP_User ) {
+        $base_username = sanitize_user( current( explode( '@', $email ) ), true );
+        $username      = $base_username ?: 'customer';
+        $suffix        = 1;
 
-    $endpoint = trailingslashit( untrailingslashit( $config['project_url'] ) ) . 'auth/v1/signup';
+        while ( username_exists( $username ) ) {
+            $username = $base_username ? $base_username . $suffix : 'customer' . $suffix;
+            $suffix++;
+        }
 
-    if ( $confirm_redirect ) {
-        $endpoint = add_query_arg( 'redirect_to', rawurlencode( $confirm_redirect ), $endpoint );
+        $user_id = wp_create_user( $username, wp_generate_password( 32, true ), $email );
+        if ( ! is_wp_error( $user_id ) ) {
+            $user = get_user_by( 'id', $user_id );
+            if ( $user instanceof WP_User ) {
+                $user->set_role( 'customer' );
+            }
+        }
     }
 
-    $payload_body = [
-        'email'    => $email,
-        'password' => $password,
-    ];
+    $endpoint = trailingslashit( untrailingslashit( $config['project_url'] ) ) . 'auth/v1/invite';
+    if ( $redirect_to ) {
+        $endpoint = add_query_arg( 'redirect_to', rawurlencode( $redirect_to ), $endpoint );
+    }
 
     $response = wp_remote_post(
         $endpoint,
         [
             'headers' => [
-                'apikey'       => $config['anon_key'],
+                'apikey'       => $service_key,
+                'Authorization' => 'Bearer ' . $service_key,
                 'Content-Type' => 'application/json',
                 'Accept'       => 'application/json',
             ],
             'timeout' => 15,
-            'body'    => wp_json_encode( $payload_body ),
+            'body'    => wp_json_encode(
+                [
+                    'email' => $email,
+                ]
+            ),
         ]
     );
 
     if ( is_wp_error( $response ) ) {
         if ( $debug_log ) {
-            error_log( sprintf( 'Supabase checkout register error: %s', $response->get_error_message() ) );
+            error_log(
+                sprintf(
+                    'Supabase invite error (order %d, email %s): %s',
+                    $order_id,
+                    $email,
+                    $response->get_error_message()
+                )
+            );
         }
         return;
     }
 
     $status_code = wp_remote_retrieve_response_code( $response );
+    $body        = wp_remote_retrieve_body( $response );
+    $payload     = json_decode( $body, true );
+    $already_exists = false;
+
+    if ( is_array( $payload ) ) {
+        $message = $payload['msg'] ?? $payload['message'] ?? '';
+        if ( is_string( $message ) && false !== stripos( $message, 'already' ) ) {
+            $already_exists = true;
+        }
+    }
+
+    if ( $status_code >= 200 && $status_code < 300 ) {
+        $order->update_meta_data( '_bw_supabase_invite_sent', 1 );
+        $order->save();
+
+        if ( $user instanceof WP_User ) {
+            update_user_meta( $user->ID, 'bw_supabase_invited', 1 );
+        }
+
+        if ( $debug_log ) {
+            error_log(
+                sprintf(
+                    'Supabase invite sent. Order %d, email %s, redirect %s, status %d',
+                    $order_id,
+                    $email,
+                    $redirect_to,
+                    $status_code
+                )
+            );
+        }
+
+        if ( $user instanceof WP_User && isset( $payload['id'] ) ) {
+            update_user_meta( $user->ID, 'bw_supabase_user_id', sanitize_text_field( $payload['id'] ) );
+        }
+
+        return;
+    }
+
+    if ( $already_exists ) {
+        $order->update_meta_data( '_bw_supabase_invite_sent', 1 );
+        $order->save();
+
+        if ( $debug_log ) {
+            error_log(
+                sprintf(
+                    'Supabase invite skipped (user exists). Order %d, email %s, status %d',
+                    $order_id,
+                    $email,
+                    $status_code
+                )
+            );
+        }
+
+        return;
+    }
+
     if ( $debug_log ) {
-        error_log( sprintf( 'Supabase checkout register status: %d', (int) $status_code ) );
+        error_log(
+            sprintf(
+                'Supabase invite failed. Order %d, email %s, status %d, redirect %s',
+                $order_id,
+                $email,
+                $status_code,
+                $redirect_to
+            )
+        );
     }
 }
-add_action( 'woocommerce_created_customer', 'bw_mew_maybe_register_supabase_checkout_customer', 20, 3 );
+add_action( 'woocommerce_order_status_processing', 'bw_mew_handle_supabase_checkout_invite', 10, 1 );
+add_action( 'woocommerce_order_status_completed', 'bw_mew_handle_supabase_checkout_invite', 10, 1 );
 
 /**
  * Store Supabase session tokens in cookies/usermeta.
