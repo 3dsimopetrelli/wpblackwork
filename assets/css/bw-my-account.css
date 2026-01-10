@@ -57,11 +57,12 @@ body.woocommerce-account .woocommerce-MyAccount-navigation li.is-active a {
     border-left-color: #000;
 }
 
-body.woocommerce-account.bw-onboarding-lock .woocommerce-MyAccount-navigation li a {
+body.woocommerce-account.bw-onboarding-lock .woocommerce-MyAccount-navigation {
     pointer-events: none;
     opacity: 0.5;
 }
 
+body.woocommerce-account.bw-onboarding-lock .woocommerce-MyAccount-navigation li.woocommerce-MyAccount-navigation-link--customer-logout,
 body.woocommerce-account.bw-onboarding-lock .woocommerce-MyAccount-navigation li.woocommerce-MyAccount-navigation-link--customer-logout a {
     pointer-events: auto;
     opacity: 1;

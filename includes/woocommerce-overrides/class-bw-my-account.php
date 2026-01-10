@@ -105,12 +105,11 @@ function bw_mew_add_onboarding_body_class( $classes ) {
         return $classes;
     }
 
-    if ( is_user_logged_in() ) {
-        $onboarded = (int) get_user_meta( get_current_user_id(), 'bw_supabase_onboarded', true );
-        if ( 1 !== $onboarded ) {
-            $classes[] = 'bw-onboarding-lock';
-        }
-    } elseif ( is_wc_endpoint_url( 'set-password' ) ) {
+    $onboarded = is_user_logged_in()
+        ? (int) get_user_meta( get_current_user_id(), 'bw_supabase_onboarded', true )
+        : 0;
+
+    if ( is_wc_endpoint_url( 'set-password' ) || 1 !== $onboarded ) {
         $classes[] = 'bw-onboarding-lock';
     }
 
