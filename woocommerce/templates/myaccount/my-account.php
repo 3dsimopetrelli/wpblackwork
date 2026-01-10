@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 wc_print_notices();
 // phpcs:enable
 
-if ( ! is_user_logged_in() ) {
+if ( ! is_user_logged_in() && ! is_wc_endpoint_url( 'set-password' ) ) {
     wc_get_template( 'myaccount/form-login.php', [ 'redirect' => wc_get_page_permalink( 'myaccount' ) ] );
     return;
 }
