@@ -31,6 +31,7 @@
 
     const errorBox = setPasswordForm.querySelector('.bw-account-set-password__error');
     const successBox = setPasswordForm.querySelector('.bw-account-set-password__success');
+    const missingTokenBox = setPasswordForm.querySelector('[data-bw-missing-token]');
     const submitButton = setPasswordForm.querySelector('.bw-account-set-password__submit');
     const projectUrl = window.bwAccountOnboarding.projectUrl || '';
     const anonKey = window.bwAccountOnboarding.anonKey || '';
@@ -41,6 +42,8 @@
     const hash = window.location.hash.replace(/^#/, '');
     const params = new URLSearchParams(hash);
     const accessToken = params.get('access_token') || '';
+    const refreshToken = params.get('refresh_token') || '';
+    const debugEnabled = Boolean(window.bwAccountOnboarding.debug);
 
     const showError = (message) => {
         if (!errorBox) {
@@ -57,6 +60,26 @@
         successBox.textContent = message;
         successBox.hidden = false;
     };
+
+    if (debugEnabled) {
+        console.log('[bw] Supabase invite tokens', {
+            accessToken: accessToken ? 'present' : 'missing',
+            refreshToken: refreshToken ? 'present' : 'missing'
+        });
+    }
+
+    if (!accessToken) {
+        if (errorBox) {
+            errorBox.hidden = true;
+            errorBox.textContent = '';
+        }
+        if (missingTokenBox) {
+            missingTokenBox.hidden = false;
+        }
+        if (submitButton) {
+            submitButton.disabled = true;
+        }
+    }
 
     setPasswordForm.addEventListener('submit', (event) => {
         event.preventDefault();
@@ -80,7 +103,9 @@
         }
 
         if (!accessToken) {
-            showError('Missing access token from the invite link.');
+            if (missingTokenBox) {
+                missingTokenBox.hidden = false;
+            }
             return;
         }
 

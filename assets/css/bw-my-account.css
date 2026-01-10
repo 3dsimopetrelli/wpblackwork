@@ -127,6 +127,19 @@ body.woocommerce-account .woocommerce-MyAccount-navigation li a:focus .bw-accoun
     font-size: 14px;
 }
 
+.bw-account-set-password__missing-token {
+    margin: 12px 0;
+    padding: 16px;
+    border-radius: 4px;
+    background: #fff8db;
+    color: #5a4100;
+    font-size: 14px;
+}
+
+.bw-account-set-password__cta {
+    margin-top: 12px;
+}
+
 .bw-account-set-password__error {
     background: #fdecea;
     color: #7a1a12;

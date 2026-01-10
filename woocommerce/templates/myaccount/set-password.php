@@ -14,6 +14,15 @@ if ( ! defined( 'ABSPATH' ) ) {
     <h2 class="bw-account-set-password__title"><?php esc_html_e( 'Set Password', 'bw' ); ?></h2>
     <p class="bw-account-set-password__intro"><?php esc_html_e( 'Complete your account setup by choosing a new password.', 'bw' ); ?></p>
 
+    <div class="bw-account-set-password__missing-token" data-bw-missing-token hidden>
+        <p><?php esc_html_e( 'This page must be opened from the Supabase invite email link. Please click “Accept the invite” again.', 'bw' ); ?></p>
+        <p>
+            <a class="woocommerce-button button bw-account-set-password__cta" href="<?php echo esc_url( wc_get_page_permalink( 'myaccount' ) ); ?>">
+                <?php esc_html_e( 'Open invite link again / Request a new invite', 'bw' ); ?>
+            </a>
+        </p>
+    </div>
+
     <form class="bw-account-set-password__form" data-bw-set-password-form>
         <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide">
             <label for="bw_set_password"><?php esc_html_e( 'New password', 'bw' ); ?> <span class="required">*</span></label>

@@ -159,6 +159,7 @@ function bw_mew_enqueue_my_account_assets() {
             'anonKey'     => get_option( 'bw_supabase_anon_key', '' ),
             'setPasswordUrl' => wc_get_account_endpoint_url( 'set-password' ),
             'redirectUrl' => wc_get_page_permalink( 'myaccount' ),
+            'debug'       => (bool) get_option( 'bw_supabase_debug_log', 0 ),
         ]
     );
 }
