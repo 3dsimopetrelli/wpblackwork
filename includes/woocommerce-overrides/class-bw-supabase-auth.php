@@ -750,37 +750,53 @@ function bw_mew_send_supabase_invite( array $args ) {
     }
 
     $project_url = preg_replace( '#/auth/v1/?$#', '', untrailingslashit( (string) $project_url ) );
-    $endpoint    = $project_url . '/auth/v1/admin/invite';
+    $primary_endpoint = $project_url . '/auth/v1/invite';
+    $fallback_endpoint = $project_url . '/auth/v1/admin/invite';
     $redirect_to = $redirect_to ? $redirect_to : '';
 
     if ( $debug_log ) {
         error_log(
             sprintf(
-                'Supabase invite endpoint (%s): %s',
+                'Supabase invite primary endpoint (%s): %s',
                 $context,
-                $endpoint
+                $primary_endpoint
             )
         );
     }
 
-    $response = wp_remote_post(
-        $endpoint,
-        [
-            'headers' => [
-                'apikey'       => $service_key,
-                'Authorization' => 'Bearer ' . $service_key,
-                'Content-Type' => 'application/json',
-                'Accept'       => 'application/json',
-            ],
-            'timeout' => 15,
-            'body'    => wp_json_encode(
-                [
-                    'email' => $email,
-                    'redirect_to' => $redirect_to,
-                ]
-            ),
-        ]
-    );
+    $request_args = [
+        'headers' => [
+            'apikey'       => $service_key,
+            'Authorization' => 'Bearer ' . $service_key,
+            'Content-Type' => 'application/json',
+            'Accept'       => 'application/json',
+        ],
+        'timeout' => 15,
+        'body'    => wp_json_encode(
+            [
+                'email' => $email,
+                'redirect_to' => $redirect_to,
+            ]
+        ),
+    ];
+
+    $response = wp_remote_post( $primary_endpoint, $request_args );
+    $status_code = is_wp_error( $response ) ? 0 : wp_remote_retrieve_response_code( $response );
+    $final_endpoint = $primary_endpoint;
+
+    if ( ! is_wp_error( $response ) && 404 === (int) $status_code ) {
+        if ( $debug_log ) {
+            error_log(
+                sprintf(
+                    'Supabase invite fallback endpoint (%s): %s',
+                    $context,
+                    $fallback_endpoint
+                )
+            );
+        }
+        $response = wp_remote_post( $fallback_endpoint, $request_args );
+        $final_endpoint = $fallback_endpoint;
+    }
 
     if ( is_wp_error( $response ) ) {
         if ( $debug_log ) {
@@ -823,7 +839,7 @@ function bw_mew_send_supabase_invite( array $args ) {
                     'Supabase invite sent (%s). Email %s, endpoint %s, status %d',
                     $context,
                     $email,
-                    $endpoint,
+                    $final_endpoint,
                     $status_code
                 )
             );
@@ -843,7 +859,7 @@ function bw_mew_send_supabase_invite( array $args ) {
                     'Supabase invite skipped (user exists, %s). Email %s, endpoint %s, status %d',
                     $context,
                     $email,
-                    $endpoint,
+                    $final_endpoint,
                     $status_code
                 )
             );
@@ -862,7 +878,7 @@ function bw_mew_send_supabase_invite( array $args ) {
                 'Supabase invite failed (%s). Email %s, endpoint %s, status %d',
                 $context,
                 $email,
-                $endpoint,
+                $final_endpoint,
                 $status_code
             )
         );
