@@ -577,7 +577,20 @@ body.woocommerce-account.bw-account-login-only .bw-account-login__back-link:focu
 }
 
 @media (max-width: 640px) {
+    .bw-account-login {
+        min-height: 100vh;
+        height: auto;
+    }
+
+    .bw-account-login__media {
+        display: none;
+    }
+
     .bw-account-login__content-wrapper {
+        flex: 1 0 100%;
+        width: 100%;
+        height: auto;
+        min-height: 100vh;
         padding: 32px 18px;
     }
 
