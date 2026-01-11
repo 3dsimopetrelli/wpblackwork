@@ -1189,7 +1189,7 @@ function bw_site_render_checkout_tab() {
                 </th>
                 <td>
                     <input type="url" id="bw_supabase_invite_redirect_url" name="bw_supabase_invite_redirect_url" value="<?php echo esc_attr( $supabase_invite_redirect ); ?>" class="regular-text" />
-                    <p class="description"><?php esc_html_e( 'URL where Supabase directs users after the invite link (default: /my-account/set-password/).', 'bw' ); ?></p>
+                    <p class="description"><?php esc_html_e( 'URL where Supabase directs users after the invite link (default: /my-account/set-password/). The URL must be allowlisted in Supabase Redirect URLs.', 'bw' ); ?></p>
                 </td>
             </tr>
             <?php if ( '1' === $supabase_provision_enabled && ! $supabase_service_key ) : ?>

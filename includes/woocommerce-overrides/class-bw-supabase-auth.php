@@ -753,6 +753,7 @@ function bw_mew_send_supabase_invite( array $args ) {
     $primary_endpoint = $project_url . '/auth/v1/invite';
     $fallback_endpoint = $project_url . '/auth/v1/admin/invite';
     $redirect_to = $redirect_to ? $redirect_to : '';
+    $redirect_to = bw_mew_supabase_sanitize_redirect_url( $redirect_to );
 
     if ( $debug_log ) {
         error_log(
@@ -760,6 +761,13 @@ function bw_mew_send_supabase_invite( array $args ) {
                 'Supabase invite primary endpoint (%s): %s',
                 $context,
                 $primary_endpoint
+            )
+        );
+        error_log(
+            sprintf(
+                'Supabase invite redirect_to (%s): %s',
+                $context,
+                $redirect_to ? $redirect_to : 'empty'
             )
         );
     }
