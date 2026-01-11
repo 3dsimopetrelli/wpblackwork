@@ -695,6 +695,7 @@ function bw_mew_handle_supabase_checkout_invite( $order_id ) {
     if ( 'sent' === $result['status'] ) {
         $order->update_meta_data( '_bw_supabase_invite_sent', 1 );
         $order->update_meta_data( '_bw_supabase_invite_sent_at', $now );
+        $order->delete_meta_data( '_bw_supabase_invite_error' );
         $resend_count = (int) $order->get_meta( '_bw_supabase_invite_resend_count' );
         $order->update_meta_data( '_bw_supabase_invite_resend_count', $resend_count + 1 );
         $order->save();
@@ -717,6 +718,9 @@ function bw_mew_handle_supabase_checkout_invite( $order_id ) {
         $order->save();
         return;
     }
+
+    $order->update_meta_data( '_bw_supabase_invite_error', $result['body'] ?? '' );
+    $order->save();
 }
 add_action( 'woocommerce_order_status_processing', 'bw_mew_handle_supabase_checkout_invite', 10, 1 );
 add_action( 'woocommerce_order_status_completed', 'bw_mew_handle_supabase_checkout_invite', 10, 1 );
@@ -726,7 +730,7 @@ add_action( 'woocommerce_order_status_completed', 'bw_mew_handle_supabase_checko
  *
  * @param array $args Invite args.
  *
- * @return array{status:string,user_id:string}
+ * @return array{status:string,user_id:string,body:string}
  */
 function bw_mew_send_supabase_invite( array $args ) {
     $email       = $args['email'] ?? '';
@@ -741,12 +745,22 @@ function bw_mew_send_supabase_invite( array $args ) {
         return [
             'status'  => 'invalid',
             'user_id' => '',
+            'body'    => '',
         ];
     }
 
-    $endpoint = trailingslashit( untrailingslashit( $project_url ) ) . 'auth/v1/admin/invite';
-    if ( $redirect_to ) {
-        $endpoint = add_query_arg( 'redirect_to', rawurlencode( $redirect_to ), $endpoint );
+    $project_url = preg_replace( '#/auth/v1/?$#', '', untrailingslashit( (string) $project_url ) );
+    $endpoint    = $project_url . '/auth/v1/admin/invite';
+    $redirect_to = $redirect_to ? $redirect_to : '';
+
+    if ( $debug_log ) {
+        error_log(
+            sprintf(
+                'Supabase invite endpoint (%s): %s',
+                $context,
+                $endpoint
+            )
+        );
     }
 
     $response = wp_remote_post(
@@ -762,6 +776,7 @@ function bw_mew_send_supabase_invite( array $args ) {
             'body'    => wp_json_encode(
                 [
                     'email' => $email,
+                    'redirect_to' => $redirect_to,
                 ]
             ),
         ]
@@ -782,6 +797,7 @@ function bw_mew_send_supabase_invite( array $args ) {
         return [
             'status'  => 'error',
             'user_id' => '',
+            'body'    => '',
         ];
     }
 
@@ -804,10 +820,10 @@ function bw_mew_send_supabase_invite( array $args ) {
         if ( $debug_log ) {
             error_log(
                 sprintf(
-                    'Supabase invite sent (%s). Email %s, redirect %s, status %d',
+                    'Supabase invite sent (%s). Email %s, endpoint %s, status %d',
                     $context,
                     $email,
-                    $redirect_to,
+                    $endpoint,
                     $status_code
                 )
             );
@@ -816,6 +832,7 @@ function bw_mew_send_supabase_invite( array $args ) {
         return [
             'status'  => 'sent',
             'user_id' => $user_id,
+            'body'    => $body,
         ];
     }
 
@@ -823,9 +840,10 @@ function bw_mew_send_supabase_invite( array $args ) {
         if ( $debug_log ) {
             error_log(
                 sprintf(
-                    'Supabase invite skipped (user exists, %s). Email %s, status %d',
+                    'Supabase invite skipped (user exists, %s). Email %s, endpoint %s, status %d',
                     $context,
                     $email,
+                    $endpoint,
                     $status_code
                 )
             );
@@ -834,24 +852,27 @@ function bw_mew_send_supabase_invite( array $args ) {
         return [
             'status'  => 'exists',
             'user_id' => $user_id,
+            'body'    => $body,
         ];
     }
 
     if ( $debug_log ) {
         error_log(
             sprintf(
-                'Supabase invite failed (%s). Email %s, status %d, redirect %s',
+                'Supabase invite failed (%s). Email %s, endpoint %s, status %d',
                 $context,
                 $email,
-                $status_code,
-                $redirect_to
+                $endpoint,
+                $status_code
             )
         );
+        error_log( sprintf( 'Supabase invite response body (%s): %s', $context, $body ) );
     }
 
     return [
         'status'  => 'error',
         'user_id' => $user_id,
+        'body'    => $body,
     ];
 }
 
