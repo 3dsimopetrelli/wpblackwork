@@ -41,11 +41,14 @@
     const resendButton = document.querySelector('[data-bw-resend-invite]');
     const resendEmailInput = document.querySelector('[data-bw-resend-email]');
     const resendNotice = document.querySelector('[data-bw-resend-notice]');
+    const userEmail = window.bwAccountOnboarding.userEmail || '';
+    const searchParams = new URLSearchParams(window.location.search);
+    const inviteEmailParam = searchParams.get('bw_invite_email') || '';
 
     const hash = window.location.hash.replace(/^#/, '');
     const params = new URLSearchParams(hash);
-    const accessToken = params.get('access_token') || '';
-    const refreshToken = params.get('refresh_token') || '';
+    let accessToken = params.get('access_token') || '';
+    let refreshToken = params.get('refresh_token') || '';
     const errorCode = params.get('error_code') || '';
     const errorDescription = params.get('error_description') || '';
     const debugEnabled = Boolean(window.bwAccountOnboarding.debug);
@@ -66,6 +69,15 @@
         successBox.hidden = false;
     };
 
+    if (!accessToken && window.sessionStorage) {
+        accessToken = sessionStorage.getItem('bw_supabase_access_token') || '';
+        refreshToken = sessionStorage.getItem('bw_supabase_refresh_token') || '';
+        if (accessToken) {
+            sessionStorage.removeItem('bw_supabase_access_token');
+            sessionStorage.removeItem('bw_supabase_refresh_token');
+        }
+    }
+
     if (debugEnabled) {
         console.log('[bw] Supabase invite tokens', {
             accessToken: accessToken ? 'present' : 'missing',
@@ -74,6 +86,14 @@
         });
     }
 
+    if (userEmail && resendEmailInput) {
+        resendEmailInput.value = userEmail;
+        resendEmailInput.readOnly = true;
+    }
+
+    if (!userEmail && inviteEmailParam && resendEmailInput) {
+        resendEmailInput.value = decodeURIComponent(inviteEmailParam);
+    }
 
     if (errorCode) {
         const message = errorCode === 'otp_expired'

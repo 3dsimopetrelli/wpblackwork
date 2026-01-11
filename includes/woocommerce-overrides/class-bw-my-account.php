@@ -160,6 +160,7 @@ function bw_mew_enqueue_my_account_assets() {
             'setPasswordUrl' => wc_get_account_endpoint_url( 'set-password' ),
             'redirectUrl' => wc_get_page_permalink( 'myaccount' ),
             'debug'       => (bool) get_option( 'bw_supabase_debug_log', 0 ),
+            'userEmail'   => is_user_logged_in() ? wp_get_current_user()->user_email : '',
         ]
     );
 }

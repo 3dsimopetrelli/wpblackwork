@@ -515,6 +515,10 @@ function bw_mew_handle_supabase_recover() {
 
     $email = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
 
+    if ( ! $email && is_user_logged_in() ) {
+        $email = wp_get_current_user()->user_email;
+    }
+
     if ( ! $email ) {
         wp_send_json_error(
             [ 'message' => __( 'Email is required.', 'bw' ) ],
@@ -738,6 +742,7 @@ function bw_mew_send_supabase_invite( array $args ) {
     $project_url = $args['project_url'] ?? '';
     $debug_log   = (bool) ( $args['debug_log'] ?? false );
     $context     = $args['context'] ?? 'manual';
+    $force_admin = (bool) ( $args['force_admin'] ?? false );
     $user_id     = '';
 
     if ( ! $email || ! $project_url || ! $service_key ) {
@@ -749,8 +754,8 @@ function bw_mew_send_supabase_invite( array $args ) {
     }
 
     $project_url = preg_replace( '#/auth/v1/?$#', '', untrailingslashit( (string) $project_url ) );
-    $primary_endpoint = $project_url . '/auth/v1/invite';
-    $fallback_endpoint = $project_url . '/auth/v1/admin/invite';
+    $primary_endpoint = $force_admin ? $project_url . '/auth/v1/admin/invite' : $project_url . '/auth/v1/invite';
+    $fallback_endpoint = $force_admin ? $project_url . '/auth/v1/invite' : $project_url . '/auth/v1/admin/invite';
     $redirect_to = $redirect_to ? $redirect_to : '';
     $redirect_to = bw_mew_supabase_sanitize_redirect_url( $redirect_to );
     if ( $debug_log && $redirect_to && false !== strpos( $redirect_to, '?' ) ) {
@@ -938,6 +943,7 @@ function bw_mew_handle_supabase_resend_invite() {
             'project_url' => $config['project_url'],
             'debug_log'   => $debug_log,
             'context'     => 'manual resend',
+            'force_admin' => true,
         ]
     );
 
