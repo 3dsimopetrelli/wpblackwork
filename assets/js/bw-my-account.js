@@ -85,12 +85,15 @@
             ? 'Link expired. Please request a new invite.'
             : decodeURIComponent(errorDescription.replace(/\+/g, ' ')) || 'The invite link is invalid.';
         showError(message);
+        if (missingTokenBox) {
+            missingTokenBox.hidden = false;
+        }
         if (submitButton) {
             submitButton.disabled = true;
         }
     }
 
-    if (!accessToken) {
+    if (!accessToken && !errorCode) {
         if (errorBox) {
             errorBox.hidden = true;
             errorBox.textContent = '';
