@@ -136,6 +136,14 @@ body.woocommerce-account .woocommerce-MyAccount-navigation li a:focus .bw-accoun
     font-size: 14px;
 }
 
+.bw-account-set-password__resend-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
 .bw-account-set-password__label {
     display: block;
     margin-bottom: 6px;
