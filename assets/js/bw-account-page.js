@@ -135,6 +135,7 @@
                     var actionType = supabaseForm.getAttribute('data-bw-supabase-action');
                     var action = 'bw_supabase_login';
                     var defaultMessage = 'Unable to login.';
+                    var loginMode = window.bwAccountAuth.loginMode || 'native';
 
                     if (actionType === 'register') {
                         action = 'bw_supabase_register';
@@ -144,7 +145,7 @@
                         defaultMessage = 'Unable to send reset email.';
                     }
 
-                    if (actionType === 'login' && window.bwAccountAuth.supabaseWithOidc) {
+                    if (actionType === 'login' && loginMode === 'oidc') {
                         if (window.bwAccountAuth.oidcAuthUrl) {
                             window.location.href = window.bwAccountAuth.oidcAuthUrl;
                             return;
