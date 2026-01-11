@@ -49,8 +49,6 @@
     const errorCode = params.get('error_code') || '';
     const errorDescription = params.get('error_description') || '';
     const debugEnabled = Boolean(window.bwAccountOnboarding.debug);
-    const searchParams = new URLSearchParams(window.location.search);
-    const inviteEmail = decodeURIComponent(searchParams.get('bw_invite_email') || '');
 
     const showError = (message) => {
         if (!errorBox) {
@@ -76,9 +74,6 @@
         });
     }
 
-    if (inviteEmail && resendEmailInput) {
-        resendEmailInput.value = inviteEmail;
-    }
 
     if (errorCode) {
         const message = errorCode === 'otp_expired'

@@ -631,7 +631,6 @@ function bw_mew_handle_supabase_checkout_invite( $order_id ) {
     $redirect_to    = get_option( 'bw_supabase_invite_redirect_url', '' );
     $default_redirect = home_url( '/my-account/set-password/' );
     $redirect_to    = $redirect_to ? $redirect_to : $default_redirect;
-    $redirect_to    = add_query_arg( 'bw_invite_email', rawurlencode( $email ), $redirect_to );
     $last_invite_at = (int) $order->get_meta( '_bw_supabase_invite_sent_at' );
     $now            = time();
     $min_interval   = 10 * MINUTE_IN_SECONDS;
@@ -754,6 +753,9 @@ function bw_mew_send_supabase_invite( array $args ) {
     $fallback_endpoint = $project_url . '/auth/v1/admin/invite';
     $redirect_to = $redirect_to ? $redirect_to : '';
     $redirect_to = bw_mew_supabase_sanitize_redirect_url( $redirect_to );
+    if ( $debug_log && $redirect_to && false !== strpos( $redirect_to, '?' ) ) {
+        error_log( sprintf( 'Supabase invite redirect_to contains query params (%s): %s', $context, $redirect_to ) );
+    }
 
     if ( $debug_log ) {
         error_log(
@@ -920,7 +922,6 @@ function bw_mew_handle_supabase_resend_invite() {
     $redirect_to = get_option( 'bw_supabase_invite_redirect_url', '' );
     $default_redirect = home_url( '/my-account/set-password/' );
     $redirect_to = $redirect_to ? $redirect_to : $default_redirect;
-    $redirect_to = add_query_arg( 'bw_invite_email', rawurlencode( $email ), $redirect_to );
 
     if ( empty( $config['has_url'] ) || ! $service_key ) {
         wp_send_json_error(
