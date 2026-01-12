@@ -197,6 +197,7 @@ function bw_site_render_account_page_tab() {
         $supabase_anon_key        = isset($_POST['bw_supabase_anon_key']) ? sanitize_textarea_field(trim($_POST['bw_supabase_anon_key'])) : '';
         $supabase_service_key     = isset($_POST['bw_supabase_service_role_key']) ? sanitize_textarea_field($_POST['bw_supabase_service_role_key']) : '';
         $supabase_auth_mode       = isset($_POST['bw_supabase_auth_mode']) ? sanitize_key($_POST['bw_supabase_auth_mode']) : 'password';
+        $supabase_login_mode      = isset($_POST['bw_supabase_login_mode']) ? sanitize_key($_POST['bw_supabase_login_mode']) : 'native';
         $supabase_cookie_name     = isset($_POST['bw_supabase_jwt_cookie_name']) ? sanitize_key($_POST['bw_supabase_jwt_cookie_name']) : 'bw_supabase_session';
         $supabase_storage         = isset($_POST['bw_supabase_session_storage']) ? sanitize_key($_POST['bw_supabase_session_storage']) : 'cookie';
         $supabase_link_users      = isset($_POST['bw_supabase_enable_wp_user_linking']) ? 1 : 0;
@@ -206,6 +207,12 @@ function bw_site_render_account_page_tab() {
         $supabase_signup_url      = isset($_POST['bw_supabase_provider_signup_url']) ? esc_url_raw($_POST['bw_supabase_provider_signup_url']) : '';
         $supabase_reset_url       = isset($_POST['bw_supabase_provider_reset_url']) ? esc_url_raw($_POST['bw_supabase_provider_reset_url']) : '';
         $supabase_confirm_url     = isset($_POST['bw_supabase_email_confirm_redirect_url']) ? esc_url_raw(trim($_POST['bw_supabase_email_confirm_redirect_url'])) : '';
+        $supabase_magic_link_enabled = isset($_POST['bw_supabase_magic_link_enabled']) ? 1 : 0;
+        $supabase_oauth_google_enabled = isset($_POST['bw_supabase_oauth_google_enabled']) ? 1 : 0;
+        $supabase_oauth_facebook_enabled = isset($_POST['bw_supabase_oauth_facebook_enabled']) ? 1 : 0;
+        $supabase_magic_link_redirect = isset($_POST['bw_supabase_magic_link_redirect_url']) ? esc_url_raw(trim($_POST['bw_supabase_magic_link_redirect_url'])) : '';
+        $supabase_oauth_redirect = isset($_POST['bw_supabase_oauth_redirect_url']) ? esc_url_raw(trim($_POST['bw_supabase_oauth_redirect_url'])) : '';
+        $supabase_signup_redirect = isset($_POST['bw_supabase_signup_redirect_url']) ? esc_url_raw(trim($_POST['bw_supabase_signup_redirect_url'])) : '';
         $supabase_auto_login      = isset($_POST['bw_supabase_auto_login_after_confirm']) ? 1 : 0;
         $supabase_create_users    = isset($_POST['bw_supabase_create_wp_users']) ? 1 : 0;
 
@@ -215,6 +222,10 @@ function bw_site_render_account_page_tab() {
 
         if ( ! in_array( $supabase_auth_mode, [ 'password' ], true ) ) {
             $supabase_auth_mode = 'password';
+        }
+
+        if ( ! in_array( $supabase_login_mode, [ 'native', 'oidc' ], true ) ) {
+            $supabase_login_mode = 'native';
         }
 
         if ( ! in_array( $supabase_storage, [ 'cookie', 'usermeta' ], true ) ) {
@@ -244,6 +255,7 @@ function bw_site_render_account_page_tab() {
         update_option('bw_supabase_anon_key', $supabase_anon_key);
         update_option('bw_supabase_service_role_key', $supabase_service_key);
         update_option('bw_supabase_auth_mode', $supabase_auth_mode);
+        update_option('bw_supabase_login_mode', $supabase_login_mode);
         update_option('bw_supabase_jwt_cookie_name', $supabase_cookie_name);
         update_option('bw_supabase_session_storage', $supabase_storage);
         update_option('bw_supabase_enable_wp_user_linking', $supabase_link_users);
@@ -253,6 +265,12 @@ function bw_site_render_account_page_tab() {
         update_option('bw_supabase_provider_signup_url', $supabase_signup_url);
         update_option('bw_supabase_provider_reset_url', $supabase_reset_url);
         update_option('bw_supabase_email_confirm_redirect_url', $supabase_confirm_url);
+        update_option('bw_supabase_magic_link_enabled', $supabase_magic_link_enabled);
+        update_option('bw_supabase_oauth_google_enabled', $supabase_oauth_google_enabled);
+        update_option('bw_supabase_oauth_facebook_enabled', $supabase_oauth_facebook_enabled);
+        update_option('bw_supabase_magic_link_redirect_url', $supabase_magic_link_redirect);
+        update_option('bw_supabase_oauth_redirect_url', $supabase_oauth_redirect);
+        update_option('bw_supabase_signup_redirect_url', $supabase_signup_redirect);
         update_option('bw_supabase_auto_login_after_confirm', $supabase_auto_login);
         update_option('bw_supabase_create_wp_users', $supabase_create_users);
 
@@ -284,6 +302,7 @@ function bw_site_render_account_page_tab() {
     $supabase_anon_key     = get_option('bw_supabase_anon_key', '');
     $supabase_service_key  = get_option('bw_supabase_service_role_key', '');
     $supabase_auth_mode    = get_option('bw_supabase_auth_mode', 'password');
+    $supabase_login_mode   = get_option('bw_supabase_login_mode', 'native');
     $supabase_cookie_name  = get_option('bw_supabase_jwt_cookie_name', 'bw_supabase_session');
     $supabase_storage      = get_option('bw_supabase_session_storage', 'cookie');
     $supabase_link_users   = (int) get_option('bw_supabase_enable_wp_user_linking', 0);
@@ -293,6 +312,12 @@ function bw_site_render_account_page_tab() {
     $supabase_signup_url   = get_option('bw_supabase_provider_signup_url', '');
     $supabase_reset_url    = get_option('bw_supabase_provider_reset_url', '');
     $supabase_confirm_url  = get_option('bw_supabase_email_confirm_redirect_url', site_url('/my-account/?bw_email_confirmed=1'));
+    $supabase_magic_link_enabled = (int) get_option('bw_supabase_magic_link_enabled', 1);
+    $supabase_oauth_google_enabled = (int) get_option('bw_supabase_oauth_google_enabled', 1);
+    $supabase_oauth_facebook_enabled = (int) get_option('bw_supabase_oauth_facebook_enabled', 1);
+    $supabase_magic_link_redirect = get_option('bw_supabase_magic_link_redirect_url', site_url('/my-account/'));
+    $supabase_oauth_redirect = get_option('bw_supabase_oauth_redirect_url', site_url('/my-account/'));
+    $supabase_signup_redirect = get_option('bw_supabase_signup_redirect_url', site_url('/my-account/?bw_email_confirmed=1'));
     $supabase_auto_login   = (int) get_option('bw_supabase_auto_login_after_confirm', 0);
     $supabase_create_users = (int) get_option('bw_supabase_create_wp_users', 1);
 
@@ -627,6 +652,18 @@ function bw_site_render_account_page_tab() {
             </tr>
             <tr>
                 <th scope="row">
+                    <label for="bw_supabase_login_mode"><?php esc_html_e( 'Login Mode', 'bw' ); ?></label>
+                </th>
+                <td>
+                    <select id="bw_supabase_login_mode" name="bw_supabase_login_mode">
+                        <option value="native" <?php selected( 'native', $supabase_login_mode ); ?>><?php esc_html_e( 'Native Supabase Login (email/password)', 'bw' ); ?></option>
+                        <option value="oidc" <?php selected( 'oidc', $supabase_login_mode ); ?>><?php esc_html_e( 'OIDC Login (OpenID Connect redirect)', 'bw' ); ?></option>
+                    </select>
+                    <p class="description"><?php esc_html_e( 'Choose whether login uses the Supabase password flow or redirects to OpenID Connect.', 'bw' ); ?></p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
                     <label for="bw_supabase_with_plugins"><?php esc_html_e( 'SupabaseWithPlugins (OIDC)', 'bw' ); ?></label>
                 </th>
                 <td>
@@ -635,6 +672,12 @@ function bw_site_render_account_page_tab() {
                         <?php esc_html_e( 'Enable OIDC plugin integration', 'bw' ); ?>
                     </label>
                     <p class="description"><?php esc_html_e( 'When enabled, authentication is handled by OpenID Connect Generic Client (OIDC redirect flow). The frontend form keeps the same style, but password is not submitted to WordPress.', 'bw' ); ?></p>
+                </td>
+            </tr>
+            <tr class="bw-supabase-oidc-warning" <?php echo ( $supabase_with_plugins && 'native' === $supabase_login_mode ) ? '' : 'style="display:none;"'; ?>>
+                <th scope="row"><?php esc_html_e( 'OIDC login notice', 'bw' ); ?></th>
+                <td>
+                    <p class="description"><?php esc_html_e( 'OIDC enabled but login is set to native email/password. OIDC will not hijack the login submit.', 'bw' ); ?></p>
                 </td>
             </tr>
             <tr>
@@ -707,6 +750,56 @@ function bw_site_render_account_page_tab() {
                 <th scope="row"><?php esc_html_e( 'Email confirmation auto-login', 'bw' ); ?></th>
                 <td>
                     <p class="description"><?php esc_html_e( 'Email confirmation auto-login settings are only used for R2 Native Supabase Registration.', 'bw' ); ?></p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row"><?php esc_html_e( 'Magic link login', 'bw' ); ?></th>
+                <td>
+                    <label>
+                        <input type="checkbox" id="bw_supabase_magic_link_enabled" name="bw_supabase_magic_link_enabled" value="1" <?php checked( 1, $supabase_magic_link_enabled ); ?> />
+                        <?php esc_html_e( 'Enable magic link email login', 'bw' ); ?>
+                    </label>
+                    <p class="description"><?php esc_html_e( 'Uses Supabase /auth/v1/otp magic link. Users receive a sign-in link by email.', 'bw' ); ?></p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row"><?php esc_html_e( 'OAuth login providers', 'bw' ); ?></th>
+                <td>
+                    <label style="display:block; margin-bottom:8px;">
+                        <input type="checkbox" id="bw_supabase_oauth_google_enabled" name="bw_supabase_oauth_google_enabled" value="1" <?php checked( 1, $supabase_oauth_google_enabled ); ?> />
+                        <?php esc_html_e( 'Enable Google OAuth', 'bw' ); ?>
+                    </label>
+                    <label style="display:block;">
+                        <input type="checkbox" id="bw_supabase_oauth_facebook_enabled" name="bw_supabase_oauth_facebook_enabled" value="1" <?php checked( 1, $supabase_oauth_facebook_enabled ); ?> />
+                        <?php esc_html_e( 'Enable Facebook OAuth', 'bw' ); ?>
+                    </label>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_supabase_magic_link_redirect_url"><?php esc_html_e( 'Magic link redirect URL', 'bw' ); ?></label>
+                </th>
+                <td>
+                    <input type="text" id="bw_supabase_magic_link_redirect_url" name="bw_supabase_magic_link_redirect_url" value="<?php echo esc_attr( $supabase_magic_link_redirect ); ?>" class="regular-text" />
+                    <p class="description"><?php esc_html_e( 'Redirect after magic link login (must be allowlisted in Supabase).', 'bw' ); ?></p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_supabase_oauth_redirect_url"><?php esc_html_e( 'OAuth redirect URL', 'bw' ); ?></label>
+                </th>
+                <td>
+                    <input type="text" id="bw_supabase_oauth_redirect_url" name="bw_supabase_oauth_redirect_url" value="<?php echo esc_attr( $supabase_oauth_redirect ); ?>" class="regular-text" />
+                    <p class="description"><?php esc_html_e( 'Redirect after Google/Facebook OAuth (must be allowlisted in Supabase).', 'bw' ); ?></p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_supabase_signup_redirect_url"><?php esc_html_e( 'Signup confirmation redirect URL', 'bw' ); ?></label>
+                </th>
+                <td>
+                    <input type="text" id="bw_supabase_signup_redirect_url" name="bw_supabase_signup_redirect_url" value="<?php echo esc_attr( $supabase_signup_redirect ); ?>" class="regular-text" />
+                    <p class="description"><?php esc_html_e( 'Redirect after confirming signup email (must be allowlisted in Supabase).', 'bw' ); ?></p>
                 </td>
             </tr>
             <?php if ( $supabase_with_plugins ) : ?>
@@ -809,6 +902,8 @@ function bw_site_render_account_page_tab() {
             var registrationNote = $('.bw-supabase-registration-note');
             var oidcRows = $('.bw-supabase-oidc-option');
             var oidcToggle = $('#bw_supabase_with_plugins');
+            var loginMode = $('#bw_supabase_login_mode');
+            var oidcWarning = $('.bw-supabase-oidc-warning');
 
             var toggleProviderSections = function(provider) {
                 providerSections.each(function() {
@@ -832,9 +927,18 @@ function bw_site_render_account_page_tab() {
                 oidcRows.toggle(!!enabled);
             };
 
+            var toggleOidcWarning = function(enabled, mode) {
+                if (!oidcWarning.length) {
+                    return;
+                }
+
+                oidcWarning.toggle(!!enabled && mode === 'native');
+            };
+
             toggleProviderSections(providerRadios.filter(':checked').val() || 'wordpress');
             toggleRegistrationMode(registrationMode.val());
             toggleOidcRows(oidcToggle.is(':checked'));
+            toggleOidcWarning(oidcToggle.is(':checked'), loginMode.val());
 
             providerRadios.on('change', function() {
                 toggleProviderSections($(this).val());
@@ -845,7 +949,13 @@ function bw_site_render_account_page_tab() {
             });
 
             oidcToggle.on('change', function() {
-                toggleOidcRows($(this).is(':checked'));
+                var enabled = $(this).is(':checked');
+                toggleOidcRows(enabled);
+                toggleOidcWarning(enabled, loginMode.val());
+            });
+
+            loginMode.on('change', function() {
+                toggleOidcWarning(oidcToggle.is(':checked'), $(this).val());
             });
         });
     </script>
@@ -944,6 +1054,8 @@ function bw_site_render_checkout_tab() {
         $thumb_ratio          = isset( $_POST['bw_checkout_thumb_ratio'] ) ? sanitize_key( wp_unslash( $_POST['bw_checkout_thumb_ratio'] ) ) : 'square';
         $thumb_width          = isset( $_POST['bw_checkout_thumb_width'] ) ? absint( $_POST['bw_checkout_thumb_width'] ) : 110;
         $footer_text          = isset( $_POST['bw_checkout_footer_text'] ) ? sanitize_text_field( wp_unslash( $_POST['bw_checkout_footer_text'] ) ) : '';
+        $supabase_provision_enabled = isset( $_POST['bw_supabase_checkout_provision_enabled'] ) ? '1' : '0';
+        $supabase_invite_redirect   = isset( $_POST['bw_supabase_invite_redirect_url'] ) ? esc_url_raw( wp_unslash( $_POST['bw_supabase_invite_redirect_url'] ) ) : '';
 
         if ( ! in_array( $thumb_ratio, [ 'square', 'portrait', 'landscape' ], true ) ) {
             $thumb_ratio = 'square';
@@ -1000,6 +1112,8 @@ function bw_site_render_checkout_tab() {
         update_option( 'bw_checkout_thumb_ratio', $thumb_ratio );
         update_option( 'bw_checkout_thumb_width', $thumb_width );
         update_option( 'bw_checkout_footer_text', $footer_text );
+        update_option( 'bw_supabase_checkout_provision_enabled', $supabase_provision_enabled );
+        update_option( 'bw_supabase_invite_redirect_url', $supabase_invite_redirect );
 
         // Redirect to the same tab to prevent losing tab state
         wp_safe_redirect( add_query_arg( array(
@@ -1042,6 +1156,11 @@ function bw_site_render_checkout_tab() {
     $thumb_ratio         = get_option( 'bw_checkout_thumb_ratio', 'square' );
     $thumb_width         = get_option( 'bw_checkout_thumb_width', 110 );
     $footer_text         = get_option( 'bw_checkout_footer_text', '' );
+    $supabase_provision_enabled = get_option( 'bw_supabase_checkout_provision_enabled', '0' );
+    $supabase_invite_redirect   = get_option( 'bw_supabase_invite_redirect_url', '' );
+    $supabase_service_key       = get_option( 'bw_supabase_service_role_key', '' );
+    $default_invite_redirect    = home_url( '/my-account/set-password/' );
+    $supabase_invite_redirect   = $supabase_invite_redirect ? $supabase_invite_redirect : $default_invite_redirect;
     ?>
 
     <?php if ( $saved ) : ?>
@@ -1120,6 +1239,37 @@ function bw_site_render_checkout_tab() {
                     <p class="description">Mostra o nascondi il titolo "Your order" nella colonna destra.</p>
                 </td>
             </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_supabase_checkout_provision_enabled"><?php esc_html_e( 'Supabase checkout provisioning', 'bw' ); ?></label>
+                </th>
+                <td>
+                    <label style="display: inline-flex; align-items: center; gap: 8px;">
+                        <input type="checkbox" id="bw_supabase_checkout_provision_enabled" name="bw_supabase_checkout_provision_enabled" value="1" <?php checked( $supabase_provision_enabled, '1' ); ?> />
+                        <span style="font-weight: 500;"><?php esc_html_e( 'Invite Supabase users after guest checkout', 'bw' ); ?></span>
+                    </label>
+                    <p class="description"><?php esc_html_e( 'When enabled, guest orders trigger a Supabase invite email that leads users to set their password.', 'bw' ); ?></p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_supabase_invite_redirect_url"><?php esc_html_e( 'Supabase invite redirect URL', 'bw' ); ?></label>
+                </th>
+                <td>
+                    <input type="url" id="bw_supabase_invite_redirect_url" name="bw_supabase_invite_redirect_url" value="<?php echo esc_attr( $supabase_invite_redirect ); ?>" class="regular-text" />
+                    <p class="description"><?php esc_html_e( 'URL where Supabase directs users after the invite link (default: /my-account/set-password/). The URL must be allowlisted in Supabase Redirect URLs.', 'bw' ); ?></p>
+                </td>
+            </tr>
+            <?php if ( '1' === $supabase_provision_enabled && ! $supabase_service_key ) : ?>
+                <tr>
+                    <th scope="row"><?php esc_html_e( 'Supabase provisioning warning', 'bw' ); ?></th>
+                    <td>
+                        <div class="notice notice-warning inline">
+                            <p><?php esc_html_e( 'Provisioning is enabled but Supabase Service Role Key is missing. Invites will not be sent.', 'bw' ); ?></p>
+                        </div>
+                    </td>
+                </tr>
+            <?php endif; ?>
             <tr class="bw-section-break">
                 <th scope="row" colspan="2" style="padding-bottom:0;">
                     <h3 style="margin:0;">Colori di sfondo checkout</h3>

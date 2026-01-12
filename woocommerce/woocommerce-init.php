@@ -12,15 +12,10 @@ function bw_mew_initialize_woocommerce_overrides() {
     }
 
     $my_account_file   = BW_MEW_PATH . 'includes/woocommerce-overrides/class-bw-my-account.php';
-    $social_login_file = BW_MEW_PATH . 'includes/woocommerce-overrides/class-bw-social-login.php';
     $supabase_file     = BW_MEW_PATH . 'includes/woocommerce-overrides/class-bw-supabase-auth.php';
 
     if ( file_exists( $my_account_file ) ) {
         require_once $my_account_file;
-    }
-
-    if ( file_exists( $social_login_file ) ) {
-        require_once $social_login_file;
     }
 
     if ( file_exists( $supabase_file ) ) {
@@ -155,14 +150,68 @@ function bw_mew_enqueue_account_page_assets() {
             'ajaxUrl'         => admin_url( 'admin-ajax.php' ),
             'nonce'           => wp_create_nonce( 'bw-supabase-login' ),
             'supabaseWithOidc' => (int) get_option( 'bw_supabase_with_plugins', 0 ),
+            'loginMode'       => get_option( 'bw_supabase_login_mode', 'native' ),
             'registrationMode' => get_option( 'bw_supabase_registration_mode', 'R2' ),
             'providerSignupUrl' => get_option( 'bw_supabase_provider_signup_url', '' ),
             'providerResetUrl' => get_option( 'bw_supabase_provider_reset_url', '' ),
             'oidcAuthUrl'      => function_exists( 'bw_oidc_get_auth_url' ) ? bw_oidc_get_auth_url() : '',
             'autoLoginAfterConfirm' => (int) get_option( 'bw_supabase_auto_login_after_confirm', 0 ),
+            'projectUrl'      => get_option( 'bw_supabase_project_url', '' ),
+            'anonKey'         => get_option( 'bw_supabase_anon_key', '' ),
+            'magicLinkRedirectUrl' => get_option( 'bw_supabase_magic_link_redirect_url', site_url( '/my-account/' ) ),
+            'oauthRedirectUrl' => get_option( 'bw_supabase_oauth_redirect_url', site_url( '/my-account/' ) ),
+            'signupRedirectUrl' => get_option( 'bw_supabase_signup_redirect_url', site_url( '/my-account/?bw_email_confirmed=1' ) ),
+            'magicLinkEnabled' => (int) get_option( 'bw_supabase_magic_link_enabled', 1 ),
+            'oauthGoogleEnabled' => (int) get_option( 'bw_supabase_oauth_google_enabled', 1 ),
+            'oauthFacebookEnabled' => (int) get_option( 'bw_supabase_oauth_facebook_enabled', 1 ),
+            'debug' => (int) get_option( 'bw_supabase_debug_log', 0 ),
+            'messages' => [
+                'missingConfig' => esc_html__( 'Supabase configuration is missing.', 'bw' ),
+                'enterEmail' => esc_html__( 'Please enter your email address.', 'bw' ),
+                'magicLinkSent' => esc_html__( 'Check your email for the login link.', 'bw' ),
+                'magicLinkError' => esc_html__( 'Unable to send magic link.', 'bw' ),
+                'loginError' => esc_html__( 'Unable to login.', 'bw' ),
+                'registerCompleteFields' => esc_html__( 'Please complete all fields.', 'bw' ),
+                'registerPasswordMismatch' => esc_html__( 'Passwords do not match.', 'bw' ),
+                'registerSuccess' => esc_html__( 'Check your email to confirm your account.', 'bw' ),
+                'registerError' => esc_html__( 'Unable to register.', 'bw' ),
+            ],
         ]
     );
 }
+
+/**
+ * Enqueue Supabase invite token bridge on the frontend.
+ */
+function bw_mew_enqueue_supabase_bridge() {
+    if ( is_user_logged_in() ) {
+        return;
+    }
+
+    $js_file    = BW_MEW_PATH . 'assets/js/bw-supabase-bridge.js';
+    if ( ! file_exists( $js_file ) ) {
+        return;
+    }
+
+    wp_enqueue_script(
+        'bw-supabase-bridge',
+        BW_MEW_URL . 'assets/js/bw-supabase-bridge.js',
+        [],
+        filemtime( $js_file ),
+        true
+    );
+
+    wp_localize_script(
+        'bw-supabase-bridge',
+        'bwSupabaseBridge',
+        [
+            'ajaxUrl'       => admin_url( 'admin-ajax.php' ),
+            'nonce'         => wp_create_nonce( 'bw-supabase-login' ),
+            'setPasswordUrl' => wc_get_account_endpoint_url( 'set-password' ),
+        ]
+    );
+}
+add_action( 'wp_enqueue_scripts', 'bw_mew_enqueue_supabase_bridge', 20 );
 
 /**
  * Enqueue assets for the custom checkout layout and expose colors as CSS variables.

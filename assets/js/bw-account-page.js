@@ -1,5 +1,27 @@
 (function () {
     document.addEventListener('DOMContentLoaded', function () {
+        var setFieldsState = function (container, isEnabled) {
+            if (!container) {
+                return;
+            }
+            var fields = Array.prototype.slice.call(container.querySelectorAll('input, select, textarea, button'));
+            fields.forEach(function (field) {
+                if (isEnabled) {
+                    field.disabled = false;
+                    if (field.dataset && field.dataset.bwRequired === '1') {
+                        field.required = true;
+                    }
+                    return;
+                }
+
+                if (field.required) {
+                    field.dataset.bwRequired = '1';
+                    field.required = false;
+                }
+                field.disabled = true;
+            });
+        };
+
         var initAuthTabs = function (authWrapper) {
             var tabs = Array.prototype.slice.call(authWrapper.querySelectorAll('[data-bw-auth-tab]'));
             var panels = Array.prototype.slice.call(authWrapper.querySelectorAll('[data-bw-auth-panel]'));
@@ -7,6 +29,27 @@
             if (!tabs.length || !panels.length) {
                 return;
             }
+
+            var setPanelState = function (panel, isActive) {
+                if (!panel) {
+                    return;
+                }
+                if (!isActive) {
+                    setFieldsState(panel, false);
+                    return;
+                }
+
+                var steps = panel.querySelectorAll('[data-bw-register-step]');
+                if (!steps.length) {
+                    setFieldsState(panel, true);
+                    return;
+                }
+
+                Array.prototype.slice.call(steps).forEach(function (step) {
+                    var stepActive = step.classList.contains('is-active');
+                    setFieldsState(step, stepActive);
+                });
+            };
 
             var activatePanel = function (target) {
                 tabs.forEach(function (tab) {
@@ -34,6 +77,7 @@
                             panel.classList.remove('is-visible');
                         }, 300);
                     }
+                    setPanelState(panel, isTarget);
                 });
             };
 
@@ -66,13 +110,16 @@
             }
         }
 
-        var autoLoginEnabled = window.bwAccountAuth && window.bwAccountAuth.autoLoginAfterConfirm;
         var hash = window.location.hash || '';
-        if (autoLoginEnabled && hash.indexOf('access_token=') !== -1 && window.bwAccountAuth && window.bwAccountAuth.ajaxUrl) {
+        if (hash.indexOf('access_token=') !== -1 && window.bwAccountAuth && window.bwAccountAuth.ajaxUrl) {
             var params = new URLSearchParams(hash.replace(/^#/, ''));
             var accessToken = params.get('access_token');
+            var refreshToken = params.get('refresh_token');
+            var authType = params.get('type');
+            var autoLoginAfterConfirm = window.bwAccountAuth ? Boolean(window.bwAccountAuth.autoLoginAfterConfirm) : false;
+            var shouldHandleToken = authType !== 'invite' && (authType !== 'signup' || autoLoginAfterConfirm);
 
-            if (accessToken) {
+            if (accessToken && shouldHandleToken) {
                 fetch(window.bwAccountAuth.ajaxUrl, {
                     method: 'POST',
                     credentials: 'same-origin',
@@ -82,7 +129,9 @@
                     body: new URLSearchParams({
                         action: 'bw_supabase_token_login',
                         nonce: window.bwAccountAuth.nonce,
-                        access_token: accessToken
+                        access_token: accessToken,
+                        refresh_token: refreshToken || '',
+                        type: authType || ''
                     })
                 })
                     .then(function (response) {
@@ -102,120 +151,327 @@
             }
         }
 
-        // Handle Supabase login/register/recover forms (single provider view).
-        var supabaseForms = Array.prototype.slice.call(document.querySelectorAll('[data-bw-supabase-form]'));
-        if (supabaseForms.length && window.bwAccountAuth) {
-            supabaseForms.forEach(function (supabaseForm) {
-                var submitButton = supabaseForm.querySelector('[data-bw-supabase-submit]');
-                var errorBox = supabaseForm.querySelector('.bw-account-login__error');
-                var successBox = supabaseForm.querySelector('.bw-account-login__success');
+        var projectUrl = window.bwAccountAuth ? window.bwAccountAuth.projectUrl : '';
+        var anonKey = window.bwAccountAuth ? window.bwAccountAuth.anonKey : '';
+        var magicLinkRedirect = window.bwAccountAuth ? window.bwAccountAuth.magicLinkRedirectUrl : '';
+        var oauthRedirect = window.bwAccountAuth ? window.bwAccountAuth.oauthRedirectUrl : '';
+        var signupRedirect = window.bwAccountAuth ? window.bwAccountAuth.signupRedirectUrl : '';
+        var magicLinkEnabled = window.bwAccountAuth ? Boolean(window.bwAccountAuth.magicLinkEnabled) : true;
+        var oauthGoogleEnabled = window.bwAccountAuth ? Boolean(window.bwAccountAuth.oauthGoogleEnabled) : true;
+        var oauthFacebookEnabled = window.bwAccountAuth ? Boolean(window.bwAccountAuth.oauthFacebookEnabled) : true;
+        var debugEnabled = window.bwAccountAuth ? Boolean(window.bwAccountAuth.debug) : false;
+        var messages = window.bwAccountAuth && window.bwAccountAuth.messages ? window.bwAccountAuth.messages : {};
 
-                supabaseForm.addEventListener('submit', function (event) {
-                    event.preventDefault();
+        var magicLinkForm = document.querySelector('[data-bw-supabase-form][data-bw-supabase-action="magic-link"]');
+        var passwordLoginForm = document.querySelector('[data-bw-supabase-form][data-bw-supabase-action="password-login"]');
+        var oauthButtons = Array.prototype.slice.call(document.querySelectorAll('[data-bw-oauth-provider]'));
+        var registerForm = document.querySelector('[data-bw-register-form]');
+        var registerContinue = registerForm ? registerForm.querySelector('[data-bw-register-continue]') : null;
+        var registerSubmit = registerForm ? registerForm.querySelector('[data-bw-register-submit]') : null;
+        var getMessage = function (key, fallback) {
+            if (messages && Object.prototype.hasOwnProperty.call(messages, key)) {
+                return messages[key];
+            }
+            return fallback;
+        };
 
-                    if (!window.bwAccountAuth.ajaxUrl || !window.bwAccountAuth.nonce) {
-                        return;
-                    }
+        var logDebug = function (message, context) {
+            if (!debugEnabled) {
+                return;
+            }
+            if (context) {
+                console.log('[bw]', message, context);
+                return;
+            }
+            console.log('[bw]', message);
+        };
 
-                    if (errorBox) {
-                        errorBox.textContent = '';
-                        errorBox.hidden = true;
-                    }
+        var showFormMessage = function (form, type, message) {
+            if (!form) {
+                return;
+            }
+            var errorBox = form.querySelector('.bw-account-login__error');
+            var successBox = form.querySelector('.bw-account-login__success');
 
-                    if (successBox) {
-                        successBox.textContent = '';
-                        successBox.hidden = true;
-                    }
+            if (errorBox) {
+                errorBox.hidden = type !== 'error';
+                errorBox.textContent = type === 'error' ? message : '';
+            }
 
-                    if (submitButton) {
-                        submitButton.disabled = true;
-                    }
+            if (successBox) {
+                successBox.hidden = type !== 'success';
+                successBox.textContent = type === 'success' ? message : '';
+            }
+        };
 
-                    var formData = new FormData(supabaseForm);
-                    var actionType = supabaseForm.getAttribute('data-bw-supabase-action');
-                    var action = 'bw_supabase_login';
-                    var defaultMessage = 'Unable to login.';
+        var setStepState = function (step, isActive) {
+            setFieldsState(step, isActive);
+        };
 
-                    if (actionType === 'register') {
-                        action = 'bw_supabase_register';
-                        defaultMessage = 'Unable to register.';
-                    } else if (actionType === 'recover') {
-                        action = 'bw_supabase_recover';
-                        defaultMessage = 'Unable to send reset email.';
-                    }
+        if (debugEnabled) {
+            logDebug('Auth UI elements', {
+                magicLinkForm: Boolean(magicLinkForm),
+                passwordLoginForm: Boolean(passwordLoginForm),
+                registerForm: Boolean(registerForm),
+                registerContinue: Boolean(registerContinue),
+                registerSubmit: Boolean(registerSubmit)
+            });
+        }
 
-                    if (actionType === 'login' && window.bwAccountAuth.supabaseWithOidc) {
-                        if (window.bwAccountAuth.oidcAuthUrl) {
-                            window.location.href = window.bwAccountAuth.oidcAuthUrl;
-                            return;
-                        }
+        var submitAjaxForm = function (form, action, options) {
+            if (!form) {
+                return;
+            }
 
-                        if (errorBox) {
-                            errorBox.textContent = 'OIDC auth URL is not configured.';
-                            errorBox.hidden = false;
-                        }
+            var submitButton = form.querySelector('[data-bw-supabase-submit]');
+            var defaultError = options && options.defaultError ? options.defaultError : getMessage('loginError', 'Unable to login.');
 
-                        if (submitButton) {
-                            submitButton.disabled = false;
-                        }
+            form.addEventListener('submit', function (event) {
+                event.preventDefault();
+                event.stopPropagation();
 
-                        return;
-                    }
+                if (!window.bwAccountAuth || !window.bwAccountAuth.ajaxUrl || !window.bwAccountAuth.nonce) {
+                    showFormMessage(form, 'error', getMessage('missingConfig', 'Supabase configuration is missing.'));
+                    return;
+                }
 
-                    formData.append('action', action);
-                    formData.append('nonce', window.bwAccountAuth.nonce);
+                var emailField = form.querySelector('input[type="email"]');
+                var passwordField = form.querySelector('input[type="password"]');
+                logDebug('Supabase form submit', {
+                    action: action,
+                    hasEmail: Boolean(emailField && emailField.value.trim()),
+                    hasPassword: Boolean(passwordField && passwordField.value)
+                });
 
-                    fetch(window.bwAccountAuth.ajaxUrl, {
-                        method: 'POST',
-                        credentials: 'same-origin',
-                        body: new URLSearchParams(formData)
+                var formData = new FormData(form);
+                formData.append('action', action);
+                formData.append('nonce', window.bwAccountAuth.nonce);
+
+                showFormMessage(form, 'error', '');
+                showFormMessage(form, 'success', '');
+
+                if (submitButton) {
+                    submitButton.disabled = true;
+                }
+
+                fetch(window.bwAccountAuth.ajaxUrl, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    body: new URLSearchParams(formData)
+                })
+                    .then(function (response) {
+                        return response.json();
                     })
-                        .then(function (response) {
-                            return response.text();
-                        })
-                        .then(function (responseText) {
-                            var payload = null;
-                            try {
-                                payload = JSON.parse(responseText);
-                            } catch (error) {
-                                if (errorBox) {
-                                    errorBox.textContent = 'Unexpected server response.';
-                                    errorBox.hidden = false;
-                                }
-                                return;
-                            }
-
-                            if (payload && payload.success && payload.data && payload.data.redirect) {
+                    .then(function (payload) {
+                        logDebug('Supabase form response', {
+                            success: Boolean(payload && payload.success),
+                            keys: payload && payload.data ? Object.keys(payload.data) : []
+                        });
+                        if (payload && payload.success) {
+                            if (payload.data && payload.data.redirect) {
                                 window.location.href = payload.data.redirect;
                                 return;
                             }
-
-                            if (payload && payload.success && payload.data && payload.data.message) {
-                                if (successBox) {
-                                    successBox.textContent = payload.data.message;
-                                    successBox.hidden = false;
-                                }
+                            if (payload.data && payload.data.message) {
+                                showFormMessage(form, 'success', payload.data.message);
                                 return;
                             }
+                        }
 
-                            var message = (payload && payload.data && payload.data.message) ? payload.data.message : defaultMessage;
-                            if (errorBox) {
-                                errorBox.textContent = message;
-                                errorBox.hidden = false;
-                            }
-                        })
-                        .catch(function () {
-                            if (errorBox) {
-                                errorBox.textContent = defaultMessage;
-                                errorBox.hidden = false;
-                            }
-                        })
-                        .finally(function () {
-                            if (submitButton) {
-                                submitButton.disabled = false;
-                            }
-                        });
+                        var message = payload && payload.data && payload.data.message ? payload.data.message : defaultError;
+                        showFormMessage(form, 'error', message);
+                    })
+                    .catch(function () {
+                        showFormMessage(form, 'error', defaultError);
+                    })
+                    .finally(function () {
+                        if (submitButton) {
+                            submitButton.disabled = false;
+                        }
+                    });
+            });
+        };
+
+        if (magicLinkForm) {
+            magicLinkForm.addEventListener('submit', function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                if (!magicLinkEnabled) {
+                    return;
+                }
+                if (!projectUrl || !anonKey) {
+                    showFormMessage(magicLinkForm, 'error', getMessage('missingConfig', 'Supabase configuration is missing.'));
+                    return;
+                }
+
+                var emailField = magicLinkForm.querySelector('input[name="email"]');
+                var emailValue = emailField ? emailField.value.trim() : '';
+                if (!emailValue) {
+                    showFormMessage(magicLinkForm, 'error', getMessage('enterEmail', 'Please enter your email address.'));
+                    return;
+                }
+
+                showFormMessage(magicLinkForm, 'success', '');
+                showFormMessage(magicLinkForm, 'error', '');
+
+                logDebug('Supabase magic link request', { redirect_to: magicLinkRedirect });
+
+                fetch(projectUrl.replace(/\/$/, '') + '/auth/v1/otp', {
+                    method: 'POST',
+                    headers: {
+                        apikey: anonKey,
+                        'Content-Type': 'application/json',
+                        Accept: 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: emailValue,
+                        type: 'magiclink',
+                        options: {
+                            email_redirect_to: magicLinkRedirect || window.location.origin + '/my-account/'
+                        }
+                    })
+                })
+                    .then(function (response) {
+                        logDebug('Supabase magic link status', { status: response.status });
+                        if (!response.ok) {
+                            return response.json().then(function (payload) {
+                                var message = payload && (payload.msg || payload.message) ? (payload.msg || payload.message) : getMessage('magicLinkError', 'Unable to send magic link.');
+                                throw new Error(message);
+                            });
+                        }
+                        showFormMessage(magicLinkForm, 'success', getMessage('magicLinkSent', 'Check your email for the login link.'));
+                    })
+                    .catch(function (error) {
+                        showFormMessage(magicLinkForm, 'error', error.message || getMessage('magicLinkError', 'Unable to send magic link.'));
+                    });
+            });
+        }
+
+        submitAjaxForm(passwordLoginForm, 'bw_supabase_login', {
+            defaultError: getMessage('loginError', 'Unable to login.')
+        });
+
+        if (oauthButtons.length) {
+            oauthButtons.forEach(function (button) {
+                button.addEventListener('click', function () {
+                    if (!projectUrl) {
+                        return;
+                    }
+                    var provider = button.getAttribute('data-bw-oauth-provider');
+                    if (provider === 'google' && !oauthGoogleEnabled) {
+                        return;
+                    }
+                    if (provider === 'facebook' && !oauthFacebookEnabled) {
+                        return;
+                    }
+                    var redirectTo = oauthRedirect || window.location.origin + '/my-account/';
+                    var authUrl = projectUrl.replace(/\/$/, '') + '/auth/v1/authorize?provider=' + encodeURIComponent(provider) + '&redirect_to=' + encodeURIComponent(redirectTo);
+                    logDebug('Supabase OAuth redirect', { provider: provider, redirect_to: redirectTo });
+                    window.location.href = authUrl;
                 });
+            });
+        }
+
+        var showRegisterStep = function (step) {
+            if (!registerForm) {
+                return;
+            }
+            var steps = Array.prototype.slice.call(registerForm.querySelectorAll('[data-bw-register-step]'));
+            steps.forEach(function (panel) {
+                var isActive = panel.getAttribute('data-bw-register-step') === step;
+                panel.classList.toggle('is-active', isActive);
+                setStepState(panel, isActive);
+            });
+        };
+
+        if (registerForm) {
+            var initialStep = registerForm.querySelector('[data-bw-register-step].is-active');
+            var initialStepName = initialStep ? initialStep.getAttribute('data-bw-register-step') : 'email';
+            showRegisterStep(initialStepName || 'email');
+        }
+
+        if (registerContinue && registerForm) {
+            registerContinue.addEventListener('click', function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                var emailField = registerForm.querySelector('#bw_supabase_register_email');
+                var emailValue = emailField ? emailField.value.trim() : '';
+                if (!emailValue) {
+                    showFormMessage(registerForm, 'error', getMessage('enterEmail', 'Please enter your email address.'));
+                    return;
+                }
+                showFormMessage(registerForm, 'error', '');
+                showRegisterStep('password');
+            });
+        }
+
+        if (registerForm) {
+            registerForm.addEventListener('submit', function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                var emailField = registerForm.querySelector('#bw_supabase_register_email');
+                var passwordField = registerForm.querySelector('#bw_supabase_register_password');
+                var confirmField = registerForm.querySelector('#bw_supabase_register_password_confirm');
+                var emailValue = emailField ? emailField.value.trim() : '';
+                var passwordValue = passwordField ? passwordField.value : '';
+                var confirmValue = confirmField ? confirmField.value : '';
+
+                if (!emailValue || !passwordValue || !confirmValue) {
+                    showFormMessage(registerForm, 'error', getMessage('registerCompleteFields', 'Please complete all fields.'));
+                    return;
+                }
+
+                if (passwordValue !== confirmValue) {
+                    showFormMessage(registerForm, 'error', getMessage('registerPasswordMismatch', 'Passwords do not match.'));
+                    return;
+                }
+
+                if (!window.bwAccountAuth || !window.bwAccountAuth.ajaxUrl || !window.bwAccountAuth.nonce) {
+                    showFormMessage(registerForm, 'error', getMessage('missingConfig', 'Supabase configuration is missing.'));
+                    return;
+                }
+
+                logDebug('Supabase signup request', { email_present: Boolean(emailValue), redirect_to: signupRedirect || 'default' });
+
+                if (registerSubmit) {
+                    registerSubmit.disabled = true;
+                }
+
+                var formData = new FormData();
+                formData.append('email', emailValue);
+                formData.append('password', passwordValue);
+                formData.append('action', 'bw_supabase_register');
+                formData.append('nonce', window.bwAccountAuth.nonce);
+
+                fetch(window.bwAccountAuth.ajaxUrl, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    body: new URLSearchParams(formData)
+                })
+                    .then(function (response) {
+                        return response.json();
+                    })
+                    .then(function (payload) {
+                        if (payload && payload.success) {
+                            if (payload.data && payload.data.redirect) {
+                                window.location.href = payload.data.redirect;
+                                return;
+                            }
+                            showFormMessage(registerForm, 'success', payload.data && payload.data.message ? payload.data.message : getMessage('registerSuccess', 'Check your email to confirm your account.'));
+                            return;
+                        }
+
+                        var message = payload && payload.data && payload.data.message ? payload.data.message : getMessage('registerError', 'Unable to register.');
+                        showFormMessage(registerForm, 'error', message);
+                    })
+                    .catch(function () {
+                        showFormMessage(registerForm, 'error', getMessage('registerError', 'Unable to register.'));
+                    })
+                    .finally(function () {
+                        if (registerSubmit) {
+                            registerSubmit.disabled = false;
+                        }
+                    });
             });
         }
     });
