@@ -29,7 +29,7 @@
     const resendEmailInput = document.querySelector('[data-bw-resend-email]');
     const resendNotice = document.querySelector('[data-bw-resend-notice]');
 
-    if (!window.bwAccountOnboarding) {
+    if (!window.bwAccountOnboarding || (!setPasswordForm && !resendButton)) {
         return;
     }
 
@@ -172,11 +172,10 @@
         });
     }
 
+    const profileForm = document.querySelector('[data-bw-supabase-profile-form]');
     const passwordForm = document.querySelector('[data-bw-supabase-password-form]');
     const emailForm = document.querySelector('[data-bw-supabase-email-form]');
     const pendingEmailBanner = document.querySelector('[data-bw-pending-email-banner]');
-    const shippingToggle = document.querySelector('#bw_shipping_same_as_billing');
-    const shippingFields = document.querySelector('[data-bw-shipping-fields]');
 
     const submitSupabaseForm = (form, action, options = {}) => {
         if (!form) {
@@ -210,21 +209,6 @@
             }
 
             const formData = new FormData(form);
-            if (action === 'bw_supabase_update_email') {
-                const emailValue = formData.get('email') ? formData.get('email').toString().trim() : '';
-                const confirmValue = formData.get('confirm_email') ? formData.get('confirm_email').toString().trim() : '';
-
-                if (!emailValue || !confirmValue || emailValue !== confirmValue) {
-                    if (errorBox) {
-                        errorBox.textContent = 'Email addresses do not match.';
-                        errorBox.hidden = false;
-                    }
-                    if (submitButton) {
-                        submitButton.disabled = false;
-                    }
-                    return;
-                }
-            }
             formData.append('action', action);
             formData.append('nonce', nonce);
 
@@ -276,21 +260,15 @@
         });
     };
 
+    submitSupabaseForm(profileForm, 'bw_supabase_update_profile', {
+        defaultMessage: 'Unable to update profile.'
+    });
     submitSupabaseForm(passwordForm, 'bw_supabase_update_password', {
         defaultMessage: 'Unable to update password.'
     });
     submitSupabaseForm(emailForm, 'bw_supabase_update_email', {
         defaultMessage: 'Unable to update email.'
     });
-
-    if (shippingToggle && shippingFields) {
-        const toggleShippingFields = () => {
-            const shouldHide = shippingToggle.checked;
-            shippingFields.hidden = shouldHide;
-        };
-        shippingToggle.addEventListener('change', toggleShippingFields);
-        toggleShippingFields();
-    }
 
     if (!setPasswordForm) {
         return;
