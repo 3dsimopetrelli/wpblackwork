@@ -1,5 +1,27 @@
 (function () {
     document.addEventListener('DOMContentLoaded', function () {
+        var setFieldsState = function (container, isEnabled) {
+            if (!container) {
+                return;
+            }
+            var fields = Array.prototype.slice.call(container.querySelectorAll('input, select, textarea, button'));
+            fields.forEach(function (field) {
+                if (isEnabled) {
+                    field.disabled = false;
+                    if (field.dataset && field.dataset.bwRequired === '1') {
+                        field.required = true;
+                    }
+                    return;
+                }
+
+                if (field.required) {
+                    field.dataset.bwRequired = '1';
+                    field.required = false;
+                }
+                field.disabled = true;
+            });
+        };
+
         var initAuthTabs = function (authWrapper) {
             var tabs = Array.prototype.slice.call(authWrapper.querySelectorAll('[data-bw-auth-tab]'));
             var panels = Array.prototype.slice.call(authWrapper.querySelectorAll('[data-bw-auth-panel]'));
@@ -7,6 +29,27 @@
             if (!tabs.length || !panels.length) {
                 return;
             }
+
+            var setPanelState = function (panel, isActive) {
+                if (!panel) {
+                    return;
+                }
+                if (!isActive) {
+                    setFieldsState(panel, false);
+                    return;
+                }
+
+                var steps = panel.querySelectorAll('[data-bw-register-step]');
+                if (!steps.length) {
+                    setFieldsState(panel, true);
+                    return;
+                }
+
+                Array.prototype.slice.call(steps).forEach(function (step) {
+                    var stepActive = step.classList.contains('is-active');
+                    setFieldsState(step, stepActive);
+                });
+            };
 
             var activatePanel = function (target) {
                 tabs.forEach(function (tab) {
@@ -34,6 +77,7 @@
                             panel.classList.remove('is-visible');
                         }, 300);
                     }
+                    setPanelState(panel, isTarget);
                 });
             };
 
@@ -123,6 +167,7 @@
         var oauthButtons = Array.prototype.slice.call(document.querySelectorAll('[data-bw-oauth-provider]'));
         var registerForm = document.querySelector('[data-bw-register-form]');
         var registerContinue = registerForm ? registerForm.querySelector('[data-bw-register-continue]') : null;
+        var registerSubmit = registerForm ? registerForm.querySelector('[data-bw-register-submit]') : null;
         var getMessage = function (key, fallback) {
             if (messages && Object.prototype.hasOwnProperty.call(messages, key)) {
                 return messages[key];
@@ -159,6 +204,20 @@
             }
         };
 
+        var setStepState = function (step, isActive) {
+            setFieldsState(step, isActive);
+        };
+
+        if (debugEnabled) {
+            logDebug('Auth UI elements', {
+                magicLinkForm: Boolean(magicLinkForm),
+                passwordLoginForm: Boolean(passwordLoginForm),
+                registerForm: Boolean(registerForm),
+                registerContinue: Boolean(registerContinue),
+                registerSubmit: Boolean(registerSubmit)
+            });
+        }
+
         var submitAjaxForm = function (form, action, options) {
             if (!form) {
                 return;
@@ -169,11 +228,20 @@
 
             form.addEventListener('submit', function (event) {
                 event.preventDefault();
+                event.stopPropagation();
 
                 if (!window.bwAccountAuth || !window.bwAccountAuth.ajaxUrl || !window.bwAccountAuth.nonce) {
                     showFormMessage(form, 'error', getMessage('missingConfig', 'Supabase configuration is missing.'));
                     return;
                 }
+
+                var emailField = form.querySelector('input[type="email"]');
+                var passwordField = form.querySelector('input[type="password"]');
+                logDebug('Supabase form submit', {
+                    action: action,
+                    hasEmail: Boolean(emailField && emailField.value.trim()),
+                    hasPassword: Boolean(passwordField && passwordField.value)
+                });
 
                 var formData = new FormData(form);
                 formData.append('action', action);
@@ -195,6 +263,10 @@
                         return response.json();
                     })
                     .then(function (payload) {
+                        logDebug('Supabase form response', {
+                            success: Boolean(payload && payload.success),
+                            keys: payload && payload.data ? Object.keys(payload.data) : []
+                        });
                         if (payload && payload.success) {
                             if (payload.data && payload.data.redirect) {
                                 window.location.href = payload.data.redirect;
@@ -223,6 +295,7 @@
         if (magicLinkForm) {
             magicLinkForm.addEventListener('submit', function (event) {
                 event.preventDefault();
+                event.stopPropagation();
                 if (!magicLinkEnabled) {
                     return;
                 }
@@ -307,11 +380,20 @@
             steps.forEach(function (panel) {
                 var isActive = panel.getAttribute('data-bw-register-step') === step;
                 panel.classList.toggle('is-active', isActive);
+                setStepState(panel, isActive);
             });
         };
 
+        if (registerForm) {
+            var initialStep = registerForm.querySelector('[data-bw-register-step].is-active');
+            var initialStepName = initialStep ? initialStep.getAttribute('data-bw-register-step') : 'email';
+            showRegisterStep(initialStepName || 'email');
+        }
+
         if (registerContinue && registerForm) {
-            registerContinue.addEventListener('click', function () {
+            registerContinue.addEventListener('click', function (event) {
+                event.preventDefault();
+                event.stopPropagation();
                 var emailField = registerForm.querySelector('#bw_supabase_register_email');
                 var emailValue = emailField ? emailField.value.trim() : '';
                 if (!emailValue) {
@@ -326,6 +408,7 @@
         if (registerForm) {
             registerForm.addEventListener('submit', function (event) {
                 event.preventDefault();
+                event.stopPropagation();
                 var emailField = registerForm.querySelector('#bw_supabase_register_email');
                 var passwordField = registerForm.querySelector('#bw_supabase_register_password');
                 var confirmField = registerForm.querySelector('#bw_supabase_register_password_confirm');
@@ -349,6 +432,10 @@
                 }
 
                 logDebug('Supabase signup request', { email_present: Boolean(emailValue), redirect_to: signupRedirect || 'default' });
+
+                if (registerSubmit) {
+                    registerSubmit.disabled = true;
+                }
 
                 var formData = new FormData();
                 formData.append('email', emailValue);
@@ -379,6 +466,11 @@
                     })
                     .catch(function () {
                         showFormMessage(registerForm, 'error', getMessage('registerError', 'Unable to register.'));
+                    })
+                    .finally(function () {
+                        if (registerSubmit) {
+                            registerSubmit.disabled = false;
+                        }
                     });
             });
         }

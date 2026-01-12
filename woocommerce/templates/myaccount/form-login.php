@@ -134,6 +134,9 @@ if ( ! $show_supabase_register && 'register' === $active_tab ) {
                                         <?php if ( ! $provider_signup_url ) : ?>
                                             <p class="bw-account-login__note"><?php esc_html_e( 'Add a Provider Signup URL in Blackworksite > Account to enable this action.', 'bw' ); ?></p>
                                         <?php endif; ?>
+                                        <p class="bw-account-login__back-to-login">
+                                            <button type="button" class="bw-account-login__back-link" data-bw-auth-tab="login">← <?php esc_html_e( 'Go back to login', 'bw' ); ?></button>
+                                        </p>
                                     </div>
                                 <?php else : ?>
                                     <form class="bw-account-login__form bw-account-login__form--supabase" data-bw-register-form>
