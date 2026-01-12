@@ -8,6 +8,11 @@
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
+
+if ( is_user_logged_in() && function_exists( 'bw_user_needs_onboarding' ) && ! bw_user_needs_onboarding( get_current_user_id() ) ) {
+    wp_safe_redirect( wc_get_page_permalink( 'myaccount' ) );
+    exit;
+}
 ?>
 
 <div class="bw-account-set-password">
