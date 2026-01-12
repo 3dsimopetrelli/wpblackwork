@@ -168,6 +168,9 @@
         var registerForm = document.querySelector('[data-bw-register-form]');
         var registerContinue = registerForm ? registerForm.querySelector('[data-bw-register-continue]') : null;
         var registerSubmit = registerForm ? registerForm.querySelector('[data-bw-register-submit]') : null;
+        var authScreens = Array.prototype.slice.call(document.querySelectorAll('[data-bw-screen]'));
+        var goPasswordButton = document.querySelector('[data-bw-go-password]');
+        var goMagicButton = document.querySelector('[data-bw-go-magic]');
         var getMessage = function (key, fallback) {
             if (messages && Object.prototype.hasOwnProperty.call(messages, key)) {
                 return messages[key];
@@ -208,13 +211,60 @@
             setFieldsState(step, isActive);
         };
 
+        var setScreenState = function (screen, isActive) {
+            if (!screen) {
+                return;
+            }
+            setFieldsState(screen, isActive);
+            if (isActive) {
+                screen.classList.add('is-visible');
+                screen.setAttribute('aria-hidden', 'false');
+                requestAnimationFrame(function () {
+                    requestAnimationFrame(function () {
+                        screen.classList.add('is-active');
+                    });
+                });
+                return;
+            }
+
+            screen.classList.remove('is-active');
+            screen.setAttribute('aria-hidden', 'true');
+            setTimeout(function () {
+                screen.classList.remove('is-visible');
+            }, 300);
+        };
+
+        var switchAuthScreen = function (target) {
+            if (!authScreens.length) {
+                return;
+            }
+
+            authScreens.forEach(function (screen) {
+                var isTarget = screen.getAttribute('data-bw-screen') === target;
+                setScreenState(screen, isTarget);
+            });
+
+            if (target === 'password' && passwordLoginForm) {
+                var passwordEmail = passwordLoginForm.querySelector('input[type="email"]');
+                if (passwordEmail) {
+                    passwordEmail.focus();
+                }
+            }
+
+            if (target === 'magic' && passwordLoginForm) {
+                showFormMessage(passwordLoginForm, 'error', '');
+                showFormMessage(passwordLoginForm, 'success', '');
+            }
+        };
+
         if (debugEnabled) {
             logDebug('Auth UI elements', {
                 magicLinkForm: Boolean(magicLinkForm),
                 passwordLoginForm: Boolean(passwordLoginForm),
                 registerForm: Boolean(registerForm),
                 registerContinue: Boolean(registerContinue),
-                registerSubmit: Boolean(registerSubmit)
+                registerSubmit: Boolean(registerSubmit),
+                authScreens: authScreens.length
             });
         }
 
@@ -351,6 +401,22 @@
             defaultError: getMessage('loginError', 'Unable to login.')
         });
 
+        if (goPasswordButton) {
+            goPasswordButton.addEventListener('click', function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                switchAuthScreen('password');
+            });
+        }
+
+        if (goMagicButton) {
+            goMagicButton.addEventListener('click', function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                switchAuthScreen('magic');
+            });
+        }
+
         if (oauthButtons.length) {
             oauthButtons.forEach(function (button) {
                 button.addEventListener('click', function () {
@@ -388,6 +454,10 @@
             var initialStep = registerForm.querySelector('[data-bw-register-step].is-active');
             var initialStepName = initialStep ? initialStep.getAttribute('data-bw-register-step') : 'email';
             showRegisterStep(initialStepName || 'email');
+        }
+
+        if (authScreens.length) {
+            switchAuthScreen('magic');
         }
 
         if (registerContinue && registerForm) {

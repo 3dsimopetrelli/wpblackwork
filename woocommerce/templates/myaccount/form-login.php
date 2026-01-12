@@ -64,59 +64,68 @@ if ( ! $show_supabase_register && 'register' === $active_tab ) {
                 <div class="bw-account-auth" data-bw-default-tab="<?php echo esc_attr( $active_tab ); ?>" data-bw-email-confirmed="<?php echo isset( $_GET['bw_email_confirmed'] ) ? esc_attr( sanitize_text_field( wp_unslash( $_GET['bw_email_confirmed'] ) ) ) : ''; ?>">
                     <div class="bw-account-auth__panels">
                         <div class="bw-account-auth__panel <?php echo 'login' === $active_tab ? 'is-active is-visible' : ''; ?>" data-bw-auth-panel="login">
-                            <form class="bw-account-login__form bw-account-login__form--supabase" data-bw-supabase-form data-bw-supabase-action="magic-link">
-                                <p class="bw-account-login__note"><?php esc_html_e( 'Enter your email and we will send you a login link.', 'bw' ); ?></p>
+                            <div class="bw-auth-screen bw-auth-screen--magic is-active is-visible" data-bw-screen="magic">
+                                <form class="bw-account-login__form bw-account-login__form--supabase" data-bw-supabase-form data-bw-supabase-action="magic-link">
+                                    <p class="bw-account-login__note"><?php esc_html_e( 'Enter your email and we will send you a login link.', 'bw' ); ?></p>
 
-                                <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide bw-account-login__field">
-                                    <label for="bw_supabase_magic_email"><?php esc_html_e( 'Email address', 'woocommerce' ); ?> <span class="required">*</span></label>
-                                    <input type="email" class="woocommerce-Input woocommerce-Input--text input-text" name="email" id="bw_supabase_magic_email" autocomplete="email" required />
-                                </p>
-
-                                <div class="bw-account-login__error" role="alert" aria-live="polite" hidden></div>
-                                <div class="bw-account-login__success" role="status" aria-live="polite" hidden></div>
-
-                                <p class="form-row bw-account-login__actions">
-                                    <button type="submit" class="woocommerce-button button bw-account-login__submit" data-bw-supabase-submit <?php echo $magic_link_enabled ? '' : 'disabled'; ?>><?php esc_html_e( 'Continue', 'bw' ); ?></button>
-                                </p>
-                            </form>
-
-                            <div class="bw-account-login__divider">
-                                <span><?php esc_html_e( 'or', 'bw' ); ?></span>
-                            </div>
-
-                            <div class="bw-account-login__oauth">
-                                <button type="button" class="woocommerce-button button bw-account-login__oauth-button bw-account-login__oauth-button--google" data-bw-oauth-provider="google" <?php echo $oauth_google_enabled ? '' : 'disabled'; ?>>
-                                    <?php esc_html_e( 'Continue with Google', 'bw' ); ?>
-                                </button>
-                                <button type="button" class="woocommerce-button button bw-account-login__oauth-button bw-account-login__oauth-button--facebook" data-bw-oauth-provider="facebook" <?php echo $oauth_facebook_enabled ? '' : 'disabled'; ?>>
-                                    <?php esc_html_e( 'Continue with Facebook', 'bw' ); ?>
-                                </button>
-                            </div>
-
-                            <div class="bw-account-login__divider">
-                                <span><?php esc_html_e( 'or use password', 'bw' ); ?></span>
-                            </div>
-
-                            <form class="bw-account-login__form bw-account-login__form--supabase" data-bw-supabase-form data-bw-supabase-action="password-login">
-                                <p class="bw-account-login__note"><?php esc_html_e( 'Use your email and password to sign in.', 'bw' ); ?></p>
-
-                                <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide bw-account-login__field">
-                                    <label for="bw_supabase_login_email"><?php esc_html_e( 'Email address', 'woocommerce' ); ?> <span class="required">*</span></label>
-                                    <input type="email" class="woocommerce-Input woocommerce-Input--text input-text" name="email" id="bw_supabase_login_email" autocomplete="email" required />
-                                </p>
-
-                                <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide bw-account-login__field">
-                                    <label for="bw_supabase_login_password"><?php esc_html_e( 'Password', 'woocommerce' ); ?> <span class="required">*</span></label>
-                                    <input class="woocommerce-Input woocommerce-Input--text input-text" type="password" name="password" id="bw_supabase_login_password" autocomplete="current-password" required />
-                                </p>
+                                    <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide bw-account-login__field">
+                                        <label for="bw_supabase_magic_email"><?php esc_html_e( 'Email address', 'woocommerce' ); ?> <span class="required">*</span></label>
+                                        <input type="email" class="woocommerce-Input woocommerce-Input--text input-text" name="email" id="bw_supabase_magic_email" autocomplete="email" required />
+                                    </p>
 
                                 <div class="bw-account-login__error" role="alert" aria-live="polite" hidden></div>
                                 <div class="bw-account-login__success" role="status" aria-live="polite" hidden></div>
 
-                                <p class="form-row bw-account-login__actions">
-                                    <button type="submit" class="woocommerce-button button bw-account-login__submit" data-bw-supabase-submit><?php esc_html_e( 'Log in', 'bw' ); ?></button>
+                                    <p class="form-row bw-account-login__actions">
+                                        <button type="submit" class="woocommerce-button button bw-account-login__submit" data-bw-supabase-submit <?php echo $magic_link_enabled ? '' : 'disabled'; ?>><?php esc_html_e( 'Continue', 'bw' ); ?></button>
+                                    </p>
+                                </form>
+
+                                <div class="bw-account-login__divider">
+                                    <span><?php esc_html_e( 'or', 'bw' ); ?></span>
+                                </div>
+
+                                <div class="bw-account-login__oauth">
+                                    <button type="button" class="woocommerce-button button bw-account-login__oauth-button bw-account-login__oauth-button--google" data-bw-oauth-provider="google" <?php echo $oauth_google_enabled ? '' : 'disabled'; ?>>
+                                        <?php esc_html_e( 'Continue with Google', 'bw' ); ?>
+                                    </button>
+                                    <button type="button" class="woocommerce-button button bw-account-login__oauth-button bw-account-login__oauth-button--facebook" data-bw-oauth-provider="facebook" <?php echo $oauth_facebook_enabled ? '' : 'disabled'; ?>>
+                                        <?php esc_html_e( 'Continue with Facebook', 'bw' ); ?>
+                                    </button>
+                                </div>
+
+                                <div class="bw-account-login__divider">
+                                    <span><?php esc_html_e( 'or', 'bw' ); ?></span>
+                                </div>
+
+                                <button type="button" class="woocommerce-button button bw-auth-btn bw-auth-btn--password" data-bw-go-password><?php esc_html_e( 'Login with password', 'bw' ); ?></button>
+                            </div>
+
+                            <div class="bw-auth-screen bw-auth-screen--password" data-bw-screen="password">
+                                <form class="bw-account-login__form bw-account-login__form--supabase" data-bw-supabase-form data-bw-supabase-action="password-login">
+                                    <p class="bw-account-login__note"><?php esc_html_e( 'Use your email and password to sign in.', 'bw' ); ?></p>
+
+                                    <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide bw-account-login__field">
+                                        <label for="bw_supabase_login_email"><?php esc_html_e( 'Email address', 'woocommerce' ); ?> <span class="required">*</span></label>
+                                        <input type="email" class="woocommerce-Input woocommerce-Input--text input-text" name="email" id="bw_supabase_login_email" autocomplete="email" required />
+                                    </p>
+
+                                    <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide bw-account-login__field">
+                                        <label for="bw_supabase_login_password"><?php esc_html_e( 'Password', 'woocommerce' ); ?> <span class="required">*</span></label>
+                                        <input class="woocommerce-Input woocommerce-Input--text input-text" type="password" name="password" id="bw_supabase_login_password" autocomplete="current-password" required />
+                                    </p>
+
+                                    <div class="bw-account-login__error" role="alert" aria-live="polite" hidden></div>
+                                    <div class="bw-account-login__success" role="status" aria-live="polite" hidden></div>
+
+                                    <p class="form-row bw-account-login__actions">
+                                        <button type="submit" class="woocommerce-button button bw-account-login__submit" data-bw-supabase-submit><?php esc_html_e( 'Log in', 'bw' ); ?></button>
+                                    </p>
+                                </form>
+                                <p class="bw-auth-screen__back">
+                                    <button type="button" class="bw-auth-btn bw-auth-btn--back" data-bw-go-magic>← <?php esc_html_e( 'Go back', 'bw' ); ?></button>
                                 </p>
-                            </form>
+                            </div>
 
                             <?php if ( $show_supabase_register ) : ?>
                                 <p class="bw-account-login__register">

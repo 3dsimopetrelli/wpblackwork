@@ -319,6 +319,68 @@ body.woocommerce-account.bw-account-login-only .bw-account-auth__tab.is-active::
     white-space: nowrap;
 }
 
+.bw-auth-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
+    visibility: hidden;
+}
+
+.bw-auth-screen.is-visible {
+    visibility: visible;
+}
+
+.bw-auth-screen.is-active {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+    visibility: visible;
+}
+
+.bw-auth-btn {
+    width: 100%;
+    border-radius: 50px;
+    padding: 12px 18px;
+    font-size: 14px;
+    border: 1px solid #d6d6d6;
+    background: #fff;
+    color: #1a1a1a;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+}
+
+.bw-auth-btn:hover,
+.bw-auth-btn:focus-visible {
+    background: #f7f7f7;
+    border-color: #bdbdbd;
+    transform: translateY(-1px);
+}
+
+.bw-auth-screen__back {
+    margin-top: 14px;
+    text-align: center;
+}
+
+.bw-auth-btn--back {
+    width: auto;
+    padding: 0;
+    border: none;
+    background: none;
+    color: #000;
+    font-size: 13px;
+}
+
+.bw-auth-btn--back:hover,
+.bw-auth-btn--back:focus-visible {
+    color: #777;
+    transform: none;
+}
+
 .bw-account-login__divider {
     display: flex;
     align-items: center;
