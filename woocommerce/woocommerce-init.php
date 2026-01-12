@@ -155,6 +155,7 @@ function bw_mew_enqueue_account_page_assets() {
             'ajaxUrl'         => admin_url( 'admin-ajax.php' ),
             'nonce'           => wp_create_nonce( 'bw-supabase-login' ),
             'supabaseWithOidc' => (int) get_option( 'bw_supabase_with_plugins', 0 ),
+            'loginMode'       => get_option( 'bw_supabase_login_mode', 'native' ),
             'registrationMode' => get_option( 'bw_supabase_registration_mode', 'R2' ),
             'providerSignupUrl' => get_option( 'bw_supabase_provider_signup_url', '' ),
             'providerResetUrl' => get_option( 'bw_supabase_provider_reset_url', '' ),
@@ -163,6 +164,39 @@ function bw_mew_enqueue_account_page_assets() {
         ]
     );
 }
+
+/**
+ * Enqueue Supabase invite token bridge on the frontend.
+ */
+function bw_mew_enqueue_supabase_bridge() {
+    if ( is_user_logged_in() ) {
+        return;
+    }
+
+    $js_file    = BW_MEW_PATH . 'assets/js/bw-supabase-bridge.js';
+    if ( ! file_exists( $js_file ) ) {
+        return;
+    }
+
+    wp_enqueue_script(
+        'bw-supabase-bridge',
+        BW_MEW_URL . 'assets/js/bw-supabase-bridge.js',
+        [],
+        filemtime( $js_file ),
+        true
+    );
+
+    wp_localize_script(
+        'bw-supabase-bridge',
+        'bwSupabaseBridge',
+        [
+            'ajaxUrl'       => admin_url( 'admin-ajax.php' ),
+            'nonce'         => wp_create_nonce( 'bw-supabase-login' ),
+            'setPasswordUrl' => wc_get_account_endpoint_url( 'set-password' ),
+        ]
+    );
+}
+add_action( 'wp_enqueue_scripts', 'bw_mew_enqueue_supabase_bridge', 20 );
 
 /**
  * Enqueue assets for the custom checkout layout and expose colors as CSS variables.
