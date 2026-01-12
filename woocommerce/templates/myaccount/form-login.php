@@ -57,6 +57,10 @@ if ( ! $show_supabase_register && 'register' === $active_tab ) {
                     </div>
                 <?php endif; ?>
 
+                <?php if ( $description && $show_description ) : ?>
+                    <div class="bw-auth-description"><?php echo wpautop( wp_kses_post( $description ) ); ?></div>
+                <?php endif; ?>
+
                 <div class="bw-account-auth" data-bw-default-tab="<?php echo esc_attr( $active_tab ); ?>" data-bw-email-confirmed="<?php echo isset( $_GET['bw_email_confirmed'] ) ? esc_attr( sanitize_text_field( wp_unslash( $_GET['bw_email_confirmed'] ) ) ) : ''; ?>">
                     <div class="bw-account-auth__panels">
                         <div class="bw-account-auth__panel <?php echo 'login' === $active_tab ? 'is-active is-visible' : ''; ?>" data-bw-auth-panel="login">
@@ -182,9 +186,6 @@ if ( ! $show_supabase_register && 'register' === $active_tab ) {
                         <?php endif; ?>
                     </div>
 
-                    <?php if ( $description && $show_description ) : ?>
-                        <div class="bw-auth-description"><?php echo wpautop( wp_kses_post( $description ) ); ?></div>
-                    <?php endif; ?>
                 </div>
 
                 <div class="bw-account-login__back">
