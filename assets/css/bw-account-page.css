@@ -319,6 +319,58 @@ body.woocommerce-account.bw-account-login-only .bw-account-auth__tab.is-active::
     white-space: nowrap;
 }
 
+.bw-account-login__divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 22px 0;
+    color: #8c8c8c;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.bw-account-login__divider::before,
+.bw-account-login__divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #e5e5e5;
+}
+
+.bw-account-login__oauth {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+.bw-account-login__oauth-button {
+    width: 100%;
+    background: #fff;
+    color: #1a1a1a;
+    padding: 12px 18px;
+    border-radius: 50px;
+    font-size: 14px;
+    text-transform: capitalize;
+    border: 1px solid #d6d6d6;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+}
+
+.bw-account-login__oauth-button:hover,
+.bw-account-login__oauth-button:focus-visible {
+    background: #f7f7f7;
+    border-color: #bdbdbd;
+    transform: translateY(-1px);
+}
+
+.bw-account-login__oauth-button[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
 .bw-account-login__form {
     display: flex;
     flex-direction: column;
@@ -390,6 +442,26 @@ body.woocommerce-account.bw-account-login-only .bw-account-login__lost-password,
     display: inline-block !important;
 }
 
+body.woocommerce-account.bw-account-login-only .bw-account-login__register-link,
+.bw-account-login__register-link {
+    background: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 0 0 4px 0 !important;
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+    font-weight: 400 !important;
+    color: #000 !important;
+    cursor: pointer;
+    transition: color 0.3s ease;
+    position: relative;
+    text-decoration: none !important;
+    text-transform: none !important;
+    box-shadow: none !important;
+    min-height: auto !important;
+    display: inline-block !important;
+}
+
 body.woocommerce-account.bw-account-login-only .bw-account-login__lost-password:hover,
 body.woocommerce-account.bw-account-login-only .bw-account-login__lost-password:focus-visible,
 .bw-account-login__lost-password:hover,
@@ -397,10 +469,30 @@ body.woocommerce-account.bw-account-login-only .bw-account-login__lost-password:
     color: #777 !important;
 }
 
+body.woocommerce-account.bw-account-login-only .bw-account-login__register-link:hover,
+body.woocommerce-account.bw-account-login-only .bw-account-login__register-link:focus-visible,
+.bw-account-login__register-link:hover,
+.bw-account-login__register-link:focus-visible {
+    color: #777 !important;
+}
+
 body.woocommerce-account.bw-account-login-only .bw-account-login__lost-password:hover::after,
 body.woocommerce-account.bw-account-login-only .bw-account-login__lost-password:focus-visible::after,
 .bw-account-login__lost-password:hover::after,
 .bw-account-login__lost-password:focus-visible::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: #777;
+}
+
+body.woocommerce-account.bw-account-login-only .bw-account-login__register-link:hover::after,
+body.woocommerce-account.bw-account-login-only .bw-account-login__register-link:focus-visible::after,
+.bw-account-login__register-link:hover::after,
+.bw-account-login__register-link:focus-visible::after {
     content: '';
     position: absolute;
     bottom: 0;
@@ -430,6 +522,14 @@ body.woocommerce-account.bw-account-login-only .bw-account-login__lost-password:
 .bw-account-login__submit.is-disabled,
 .bw-account-login__submit.is-disabled:hover,
 .bw-account-login__submit.is-disabled:focus-visible {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.bw-account-login__submit[disabled],
+.bw-account-login__submit[disabled]:hover,
+.bw-account-login__submit[disabled]:focus-visible {
     opacity: 0.5;
     cursor: not-allowed;
     pointer-events: none;
@@ -478,6 +578,30 @@ body.woocommerce-account.bw-account-login-only .bw-account-login__lost-password:
     margin-top: 4px;
     color: #1a7f37;
     font-size: 14px;
+}
+
+.bw-account-login__register {
+    margin-top: 16px;
+    text-align: center;
+}
+
+.bw-account-register-step {
+    display: none;
+}
+
+.bw-account-register-step.is-active {
+    display: block;
+}
+
+.bw-account-login__rules {
+    margin: 8px 0 12px;
+    padding-left: 18px;
+    color: #6f6f6f;
+    font-size: 13px;
+}
+
+.bw-account-login__rules li {
+    margin-bottom: 6px;
 }
 
 .bw-account-login__back-to-login {
@@ -577,7 +701,20 @@ body.woocommerce-account.bw-account-login-only .bw-account-login__back-link:focu
 }
 
 @media (max-width: 640px) {
+    .bw-account-login {
+        min-height: 100vh;
+        height: auto;
+    }
+
+    .bw-account-login__media {
+        display: none;
+    }
+
     .bw-account-login__content-wrapper {
+        flex: 1 0 100%;
+        width: 100%;
+        height: auto;
+        min-height: 100vh;
         padding: 32px 18px;
     }
 
