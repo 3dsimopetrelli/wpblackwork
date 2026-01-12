@@ -12,15 +12,10 @@ function bw_mew_initialize_woocommerce_overrides() {
     }
 
     $my_account_file   = BW_MEW_PATH . 'includes/woocommerce-overrides/class-bw-my-account.php';
-    $social_login_file = BW_MEW_PATH . 'includes/woocommerce-overrides/class-bw-social-login.php';
     $supabase_file     = BW_MEW_PATH . 'includes/woocommerce-overrides/class-bw-supabase-auth.php';
 
     if ( file_exists( $my_account_file ) ) {
         require_once $my_account_file;
-    }
-
-    if ( file_exists( $social_login_file ) ) {
-        require_once $social_login_file;
     }
 
     if ( file_exists( $supabase_file ) ) {

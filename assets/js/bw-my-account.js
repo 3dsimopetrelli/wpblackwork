@@ -172,6 +172,104 @@
         });
     }
 
+    const profileForm = document.querySelector('[data-bw-supabase-profile-form]');
+    const passwordForm = document.querySelector('[data-bw-supabase-password-form]');
+    const emailForm = document.querySelector('[data-bw-supabase-email-form]');
+    const pendingEmailBanner = document.querySelector('[data-bw-pending-email-banner]');
+
+    const submitSupabaseForm = (form, action, options = {}) => {
+        if (!form) {
+            return;
+        }
+
+        const submitButton = form.querySelector('button[type="submit"]');
+        const errorBox = form.querySelector('.bw-account-form__error');
+        const successBox = form.querySelector('.bw-account-form__success');
+        const defaultMessage = options.defaultMessage || 'Unable to update settings.';
+
+        form.addEventListener('submit', (event) => {
+            event.preventDefault();
+
+            if (!ajaxUrl || !nonce) {
+                return;
+            }
+
+            if (errorBox) {
+                errorBox.textContent = '';
+                errorBox.hidden = true;
+            }
+
+            if (successBox) {
+                successBox.textContent = '';
+                successBox.hidden = true;
+            }
+
+            if (submitButton) {
+                submitButton.disabled = true;
+            }
+
+            const formData = new FormData(form);
+            formData.append('action', action);
+            formData.append('nonce', nonce);
+
+            fetch(ajaxUrl, {
+                method: 'POST',
+                credentials: 'same-origin',
+                body: new URLSearchParams(formData)
+            })
+                .then((response) => response.json())
+                .then((payload) => {
+                    if (payload && payload.success) {
+                        if (successBox) {
+                            successBox.textContent = (payload.data && payload.data.message) ? payload.data.message : 'Saved.';
+                            successBox.hidden = false;
+                        }
+
+                        if (action === 'bw_supabase_update_email' && pendingEmailBanner && payload.data && payload.data.pendingEmail) {
+                            pendingEmailBanner.textContent = 'Confirm your new email address (' + payload.data.pendingEmail + ') from the confirmation email we sent you.';
+                            pendingEmailBanner.hidden = false;
+                        }
+
+                        if (action === 'bw_supabase_update_password') {
+                            const passwordFields = form.querySelectorAll('input[type="password"]');
+                            passwordFields.forEach((field) => {
+                                field.value = '';
+                            });
+                        }
+
+                        return;
+                    }
+
+                    const message = payload && payload.data && payload.data.message ? payload.data.message : defaultMessage;
+                    if (errorBox) {
+                        errorBox.textContent = message;
+                        errorBox.hidden = false;
+                    }
+                })
+                .catch(() => {
+                    if (errorBox) {
+                        errorBox.textContent = defaultMessage;
+                        errorBox.hidden = false;
+                    }
+                })
+                .finally(() => {
+                    if (submitButton) {
+                        submitButton.disabled = false;
+                    }
+                });
+        });
+    };
+
+    submitSupabaseForm(profileForm, 'bw_supabase_update_profile', {
+        defaultMessage: 'Unable to update profile.'
+    });
+    submitSupabaseForm(passwordForm, 'bw_supabase_update_password', {
+        defaultMessage: 'Unable to update password.'
+    });
+    submitSupabaseForm(emailForm, 'bw_supabase_update_email', {
+        defaultMessage: 'Unable to update email.'
+    });
+
     if (!setPasswordForm) {
         return;
     }
@@ -259,7 +357,8 @@
                     body: new URLSearchParams({
                         action: 'bw_supabase_token_login',
                         nonce: nonce,
-                        access_token: accessToken
+                        access_token: accessToken,
+                        refresh_token: refreshToken
                     })
                 })
                     .then((response) => response.json())
