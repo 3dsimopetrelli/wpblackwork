@@ -630,6 +630,13 @@ body.woocommerce-account.bw-account-login-only .bw-account-login__register-link:
     font-size: 14px;
 }
 
+.bw-account-login__title {
+    margin: 0 0 12px;
+    font-size: 20px;
+    font-weight: 600;
+    color: #111;
+}
+
 .bw-account-login__error {
     margin-top: 4px;
     color: #e00000;
@@ -645,6 +652,15 @@ body.woocommerce-account.bw-account-login-only .bw-account-login__register-link:
 .bw-account-login__register {
     margin-top: 16px;
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+}
+
+.bw-account-login__register-text {
+    font-size: 13px;
+    color: #6f6f6f;
 }
 
 .bw-account-register-step {

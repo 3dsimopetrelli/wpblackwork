@@ -94,11 +94,14 @@ if ( ! $show_supabase_register && 'register' === $active_tab ) {
                                     </button>
                                 </div>
 
-                                <div class="bw-account-login__divider">
-                                    <span><?php esc_html_e( 'or', 'bw' ); ?></span>
-                                </div>
-
                                 <button type="button" class="woocommerce-button button bw-auth-btn bw-auth-btn--password" data-bw-go-password><?php esc_html_e( 'Login with password', 'bw' ); ?></button>
+
+                                <?php if ( $show_supabase_register ) : ?>
+                                    <div class="bw-account-login__register">
+                                        <span class="bw-account-login__register-text"><?php esc_html_e( 'Don’t have an account?', 'bw' ); ?></span>
+                                        <button type="button" class="bw-account-login__register-link" data-bw-auth-tab="register"><?php esc_html_e( 'Register', 'bw' ); ?></button>
+                                    </div>
+                                <?php endif; ?>
                             </div>
 
                             <div class="bw-auth-screen bw-auth-screen--password" data-bw-screen="password">
@@ -127,15 +130,11 @@ if ( ! $show_supabase_register && 'register' === $active_tab ) {
                                 </p>
                             </div>
 
-                            <?php if ( $show_supabase_register ) : ?>
-                                <p class="bw-account-login__register">
-                                    <button type="button" class="bw-account-login__register-link" data-bw-auth-tab="register"><?php esc_html_e( 'Register', 'bw' ); ?></button>
-                                </p>
-                            <?php endif; ?>
                         </div>
 
                         <?php if ( $show_supabase_register ) : ?>
                             <div class="bw-account-auth__panel <?php echo 'register' === $active_tab ? 'is-active is-visible' : ''; ?>" data-bw-auth-panel="register">
+                                <h3 class="bw-account-login__title"><?php esc_html_e( 'Register', 'bw' ); ?></h3>
                                 <?php if ( 'R1' === $registration_mode ) : ?>
                                     <div class="bw-account-login__form bw-account-login__form--supabase">
                                         <p class="bw-account-login__note"><?php esc_html_e( 'Create your account on the provider.', 'bw' ); ?></p>
@@ -148,7 +147,7 @@ if ( ! $show_supabase_register && 'register' === $active_tab ) {
                                             <p class="bw-account-login__note"><?php esc_html_e( 'Add a Provider Signup URL in Blackworksite > Account to enable this action.', 'bw' ); ?></p>
                                         <?php endif; ?>
                                         <p class="bw-account-login__back-to-login">
-                                            <button type="button" class="bw-account-login__back-link" data-bw-auth-tab="login">← <?php esc_html_e( 'Go back to login', 'bw' ); ?></button>
+                                            <button type="button" class="bw-account-login__back-link" data-bw-auth-tab="login">← <?php esc_html_e( 'Back to Login', 'bw' ); ?></button>
                                         </p>
                                     </div>
                                 <?php else : ?>
@@ -163,6 +162,9 @@ if ( ! $show_supabase_register && 'register' === $active_tab ) {
                                             <div class="bw-account-login__success" role="status" aria-live="polite" hidden></div>
                                             <p class="form-row bw-account-login__actions">
                                                 <button type="button" class="woocommerce-button button bw-account-login__submit" data-bw-register-continue><?php esc_html_e( 'Continue', 'bw' ); ?></button>
+                                            </p>
+                                            <p class="bw-account-login__back-to-login">
+                                                <button type="button" class="bw-account-login__back-link" data-bw-auth-tab="login">← <?php esc_html_e( 'Back to Login', 'bw' ); ?></button>
                                             </p>
                                         </div>
 
@@ -186,7 +188,7 @@ if ( ! $show_supabase_register && 'register' === $active_tab ) {
                                                 <button type="submit" class="woocommerce-button button bw-account-login__submit" data-bw-register-submit><?php esc_html_e( 'Create account', 'bw' ); ?></button>
                                             </p>
                                             <p class="bw-account-login__back-to-login">
-                                                <button type="button" class="bw-account-login__back-link" data-bw-auth-tab="login">← <?php esc_html_e( 'Go back to login', 'bw' ); ?></button>
+                                                <button type="button" class="bw-account-login__back-link" data-bw-auth-tab="login">← <?php esc_html_e( 'Back to Login', 'bw' ); ?></button>
                                             </p>
                                         </div>
                                     </form>
