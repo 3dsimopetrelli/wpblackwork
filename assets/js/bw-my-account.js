@@ -25,22 +25,23 @@
     });
 
     const setPasswordForm = document.querySelector('[data-bw-set-password-form]');
-    if (!setPasswordForm || !window.bwAccountOnboarding) {
+    const resendButton = document.querySelector('[data-bw-resend-invite]');
+    const resendEmailInput = document.querySelector('[data-bw-resend-email]');
+    const resendNotice = document.querySelector('[data-bw-resend-notice]');
+
+    if (!window.bwAccountOnboarding || (!setPasswordForm && !resendButton)) {
         return;
     }
 
-    const errorBox = setPasswordForm.querySelector('.bw-account-set-password__error');
-    const successBox = setPasswordForm.querySelector('.bw-account-set-password__success');
-    const missingTokenBox = setPasswordForm.querySelector('[data-bw-missing-token]');
-    const submitButton = setPasswordForm.querySelector('.bw-account-set-password__submit');
+    const errorBox = setPasswordForm ? setPasswordForm.querySelector('.bw-account-set-password__error') : document.querySelector('.bw-account-set-password__error');
+    const successBox = setPasswordForm ? setPasswordForm.querySelector('.bw-account-set-password__success') : document.querySelector('.bw-account-set-password__success');
+    const missingTokenBox = setPasswordForm ? setPasswordForm.querySelector('[data-bw-missing-token]') : document.querySelector('[data-bw-missing-token]');
+    const submitButton = setPasswordForm ? setPasswordForm.querySelector('.bw-account-set-password__submit') : null;
     const projectUrl = window.bwAccountOnboarding.projectUrl || '';
     const anonKey = window.bwAccountOnboarding.anonKey || '';
     const ajaxUrl = window.bwAccountOnboarding.ajaxUrl || '';
     const nonce = window.bwAccountOnboarding.nonce || '';
     const redirectUrl = window.bwAccountOnboarding.redirectUrl || '';
-    const resendButton = document.querySelector('[data-bw-resend-invite]');
-    const resendEmailInput = document.querySelector('[data-bw-resend-email]');
-    const resendNotice = document.querySelector('[data-bw-resend-notice]');
     const userEmail = window.bwAccountOnboarding.userEmail || '';
     const searchParams = new URLSearchParams(window.location.search);
     const inviteEmailParam = searchParams.get('bw_invite_email') || '';
@@ -169,6 +170,10 @@
                     resendButton.disabled = false;
                 });
         });
+    }
+
+    if (!setPasswordForm) {
+        return;
     }
 
     setPasswordForm.addEventListener('submit', (event) => {

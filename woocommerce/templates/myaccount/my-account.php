@@ -19,6 +19,15 @@ if ( ! is_user_logged_in() && ! is_wc_endpoint_url( 'set-password' ) ) {
     wc_get_template( 'myaccount/form-login.php', [ 'redirect' => wc_get_page_permalink( 'myaccount' ) ] );
     return;
 }
+
+if ( is_user_logged_in()
+    && is_wc_endpoint_url( 'set-password' )
+    && function_exists( 'bw_user_needs_onboarding' )
+    && ! bw_user_needs_onboarding( get_current_user_id() )
+) {
+    wp_safe_redirect( wc_get_page_permalink( 'myaccount' ) );
+    exit;
+}
 ?>
 <div class="bw-account-layout">
     <?php $account_title = get_post_field( 'post_title', get_queried_object_id(), 'raw' ); ?>

@@ -42,6 +42,21 @@ function bw_mew_filter_account_menu_items( $items ) {
 add_filter( 'woocommerce_account_menu_items', 'bw_mew_filter_account_menu_items', 20 );
 
 /**
+ * Check if a user still needs onboarding.
+ *
+ * @param int $user_id User ID.
+ *
+ * @return bool
+ */
+function bw_user_needs_onboarding( $user_id ) {
+    if ( ! $user_id ) {
+        return false;
+    }
+
+    return 1 !== (int) get_user_meta( $user_id, 'bw_supabase_onboarded', true );
+}
+
+/**
  * Register the set-password endpoint under My Account.
  */
 function bw_mew_register_set_password_endpoint() {
@@ -79,8 +94,11 @@ function bw_mew_enforce_supabase_onboarding_lock() {
         return;
     }
 
-    $onboarded = (int) get_user_meta( get_current_user_id(), 'bw_supabase_onboarded', true );
-    if ( 1 === $onboarded ) {
+    if ( ! bw_user_needs_onboarding( get_current_user_id() ) ) {
+        if ( is_wc_endpoint_url( 'set-password' ) ) {
+            wp_safe_redirect( wc_get_page_permalink( 'myaccount' ) );
+            exit;
+        }
         return;
     }
 
@@ -106,7 +124,7 @@ function bw_mew_add_onboarding_body_class( $classes ) {
     }
 
     $onboarded = is_user_logged_in()
-        ? (int) get_user_meta( get_current_user_id(), 'bw_supabase_onboarded', true )
+        ? bw_user_needs_onboarding( get_current_user_id() ) ? 0 : 1
         : 0;
 
     if ( is_wc_endpoint_url( 'set-password' ) || 1 !== $onboarded ) {

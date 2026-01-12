@@ -194,6 +194,12 @@ function bw_mew_handle_supabase_token_login() {
     wp_set_current_user( $user->ID );
     wp_set_auth_cookie( $user->ID, true, is_ssl() );
     update_user_meta( $user->ID, 'bw_supabase_onboarded', 1 );
+    delete_user_meta( $user->ID, 'bw_supabase_invite_error' );
+    delete_user_meta( $user->ID, 'bw_supabase_onboarding_error' );
+
+    if ( $debug_log ) {
+        error_log( 'Supabase token login success → set onboarded=1 → redirect /my-account/' );
+    }
 
     wp_send_json_success(
         [
@@ -336,6 +342,17 @@ function bw_mew_handle_supabase_login() {
             [ 'message' => __( 'Login succeeded, but a WordPress session could not be created.', 'bw' ) ],
             500
         );
+    }
+
+    $user_id = get_current_user_id();
+    if ( $user_id ) {
+        update_user_meta( $user_id, 'bw_supabase_onboarded', 1 );
+        delete_user_meta( $user_id, 'bw_supabase_invite_error' );
+        delete_user_meta( $user_id, 'bw_supabase_onboarding_error' );
+    }
+
+    if ( $debug_log ) {
+        error_log( 'Supabase login success → set onboarded=1 → redirect /my-account/' );
     }
 
     wp_send_json_success(
