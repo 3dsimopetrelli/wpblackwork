@@ -76,8 +76,6 @@ require_once __DIR__ . '/includes/class-bw-widget-loader.php';
  * This prevents WordPress 6.7.0+ warnings about translations being loaded too early.
  */
 function bw_initialize_plugin_components() {
-        // Product Type column display
-        require_once plugin_dir_path( __FILE__ ) . 'includes/product-types/product-types-init.php';
         // Metabox per prodotti digitali
         require_once plugin_dir_path( __FILE__ ) . 'metabox/digital-products-metabox.php';
         // Metabox Bibliographic Details
@@ -94,6 +92,14 @@ function bw_initialize_plugin_components() {
         require_once plugin_dir_path( __FILE__ ) . 'metabox/variation-license-html-field.php';
 }
 add_action( 'init', 'bw_initialize_plugin_components', 5 );
+
+/**
+ * Load WooCommerce-specific components after WooCommerce initializes.
+ */
+function bw_initialize_woocommerce_components() {
+        require_once plugin_dir_path( __FILE__ ) . 'includes/product-types/product-types-init.php';
+}
+add_action( 'woocommerce_init', 'bw_initialize_woocommerce_components', 5 );
 
 add_action('elementor/frontend/after_enqueue_scripts', 'bw_enqueue_slick_slider_assets');
 add_action('elementor/editor/after_enqueue_scripts', 'bw_enqueue_slick_slider_assets');
