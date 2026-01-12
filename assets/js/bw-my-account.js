@@ -50,6 +50,7 @@
     const params = new URLSearchParams(hash);
     let accessToken = params.get('access_token') || '';
     let refreshToken = params.get('refresh_token') || '';
+    const tokenType = params.get('type') || '';
     const errorCode = params.get('error_code') || '';
     const errorDescription = params.get('error_description') || '';
     const debugEnabled = Boolean(window.bwAccountOnboarding.debug);
@@ -83,7 +84,8 @@
         console.log('[bw] Supabase invite tokens', {
             accessToken: accessToken ? 'present' : 'missing',
             refreshToken: refreshToken ? 'present' : 'missing',
-            errorCode: errorCode || 'none'
+            errorCode: errorCode || 'none',
+            type: tokenType || 'none'
         });
     }
 
@@ -120,6 +122,12 @@
         if (submitButton) {
             submitButton.disabled = true;
         }
+    } else if (submitButton) {
+        submitButton.disabled = false;
+    }
+
+    if (accessToken && missingTokenBox) {
+        missingTokenBox.hidden = true;
     }
 
     if (resendButton && ajaxUrl && nonce) {

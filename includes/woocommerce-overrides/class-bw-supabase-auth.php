@@ -278,6 +278,7 @@ function bw_mew_handle_supabase_token_login() {
 
     $access_token  = isset( $_POST['access_token'] ) ? sanitize_text_field( wp_unslash( $_POST['access_token'] ) ) : '';
     $refresh_token = isset( $_POST['refresh_token'] ) ? sanitize_text_field( wp_unslash( $_POST['refresh_token'] ) ) : '';
+    $token_type    = isset( $_POST['type'] ) ? sanitize_key( wp_unslash( $_POST['type'] ) ) : '';
     if ( ! $access_token ) {
         wp_send_json_error(
             [ 'message' => __( 'Missing access token.', 'bw' ) ],
@@ -417,9 +418,55 @@ function bw_mew_handle_supabase_token_login() {
         error_log( 'Supabase token login success → set onboarded=1 → redirect /my-account/' );
     }
 
+    if ( $refresh_token ) {
+        bw_mew_supabase_store_session(
+            [
+                'access_token'  => $access_token,
+                'refresh_token' => $refresh_token,
+                'expires_in'    => HOUR_IN_SECONDS,
+                'user'          => [
+                    'email' => $email,
+                ],
+            ],
+            $email
+        );
+    }
+
+    $already_onboarded = function_exists( 'bw_user_needs_onboarding' )
+        ? ! bw_user_needs_onboarding( $user->ID )
+        : ( 1 === (int) get_user_meta( $user->ID, 'bw_supabase_onboarded', true ) );
+    $is_invite = 'invite' === $token_type;
+
+    if ( $is_invite && ! $already_onboarded ) {
+        update_user_meta( $user->ID, 'bw_supabase_onboarded', 0 );
+        update_user_meta( $user->ID, 'bw_supabase_invited', 1 );
+    } elseif ( ! $is_invite ) {
+        update_user_meta( $user->ID, 'bw_supabase_onboarded', 1 );
+        delete_user_meta( $user->ID, 'bw_supabase_invited' );
+    }
+
+    delete_user_meta( $user->ID, 'bw_supabase_invite_error' );
+    delete_user_meta( $user->ID, 'bw_supabase_onboarding_error' );
+    bw_mew_apply_supabase_user_to_wp( $user->ID, $payload, 'token-login' );
+
+    $needs_onboarding = $is_invite && ! $already_onboarded;
+    $redirect_url     = $needs_onboarding
+        ? wc_get_account_endpoint_url( 'set-password' )
+        : wc_get_page_permalink( 'myaccount' );
+
+    if ( $debug_log ) {
+        error_log(
+            sprintf(
+                'Supabase token login success (type=%s) → redirect %s',
+                $token_type ? $token_type : 'none',
+                $redirect_url
+            )
+        );
+    }
+
     wp_send_json_success(
         [
-            'redirect' => wc_get_page_permalink( 'myaccount' ),
+            'redirect' => $redirect_url,
         ]
     );
 }
@@ -563,6 +610,7 @@ function bw_mew_handle_supabase_login() {
     $user_id = get_current_user_id();
     if ( $user_id ) {
         update_user_meta( $user_id, 'bw_supabase_onboarded', 1 );
+        delete_user_meta( $user_id, 'bw_supabase_invited' );
         delete_user_meta( $user_id, 'bw_supabase_invite_error' );
         delete_user_meta( $user_id, 'bw_supabase_onboarding_error' );
         if ( isset( $payload['user'] ) && is_array( $payload['user'] ) ) {
@@ -1154,6 +1202,7 @@ function bw_mew_handle_supabase_checkout_invite( $order_id ) {
             update_user_meta( $user->ID, 'bw_supabase_invited', 1 );
             update_user_meta( $user->ID, 'bw_supabase_invite_sent_at', $now );
             update_user_meta( $user->ID, 'bw_supabase_invite_resend_count', $resend_count + 1 );
+            update_user_meta( $user->ID, 'bw_supabase_onboarded', 0 );
             if ( $result['user_id'] ) {
                 update_user_meta( $user->ID, 'bw_supabase_user_id', sanitize_text_field( $result['user_id'] ) );
             }
@@ -1238,6 +1287,7 @@ function bw_mew_send_supabase_invite( array $args ) {
             [
                 'email' => $email,
                 'redirect_to' => $redirect_to,
+                'data' => $redirect_to ? [ 'redirect_to' => $redirect_to ] : new stdClass(),
             ]
         ),
     ];
@@ -1368,6 +1418,14 @@ function bw_mew_handle_supabase_resend_invite() {
         );
     }
 
+    $rate_key = 'bw_supabase_invite_resend_' . md5( strtolower( $email ) );
+    if ( get_transient( $rate_key ) ) {
+        wp_send_json_error(
+            [ 'message' => __( 'Please wait a moment before requesting another invite.', 'bw' ) ],
+            429
+        );
+    }
+
     $config      = bw_mew_get_supabase_config();
     $service_key = trim( (string) get_option( 'bw_supabase_service_role_key', '' ) );
     $debug_log   = (bool) get_option( 'bw_supabase_debug_log', 0 );
@@ -1395,6 +1453,13 @@ function bw_mew_handle_supabase_resend_invite() {
     );
 
     if ( 'sent' === $result['status'] ) {
+        set_transient( $rate_key, 1, 2 * MINUTE_IN_SECONDS );
+        $user = get_user_by( 'email', $email );
+        if ( $user instanceof WP_User ) {
+            update_user_meta( $user->ID, 'bw_supabase_invited', 1 );
+            update_user_meta( $user->ID, 'bw_supabase_invite_sent_at', time() );
+            update_user_meta( $user->ID, 'bw_supabase_onboarded', 0 );
+        }
         wp_send_json_success(
             [ 'message' => __( 'Invite sent. Please check your email.', 'bw' ) ]
         );

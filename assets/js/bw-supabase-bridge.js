@@ -24,6 +24,16 @@
         }
     }
 
+    if (inviteType === 'invite') {
+        if (window.bwSupabaseBridge && window.bwSupabaseBridge.setPasswordUrl) {
+            var targetUrl = window.bwSupabaseBridge.setPasswordUrl;
+            if (window.location.pathname.indexOf('/set-password') === -1) {
+                window.location.href = targetUrl + window.location.hash;
+            }
+        }
+        return;
+    }
+
     fetch(window.bwSupabaseBridge.ajaxUrl, {
         method: 'POST',
         credentials: 'same-origin',
@@ -46,7 +56,7 @@
                 window.history.replaceState({}, document.title, window.location.pathname);
             }
             if (payload && payload.success && payload.data && payload.data.redirect) {
-                window.location.href = window.bwSupabaseBridge.setPasswordUrl;
+                window.location.href = payload.data.redirect;
             }
         });
 })();

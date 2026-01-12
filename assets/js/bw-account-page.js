@@ -73,7 +73,7 @@
             var refreshToken = params.get('refresh_token');
             var authType = params.get('type');
             var autoLoginAfterConfirm = window.bwAccountAuth ? Boolean(window.bwAccountAuth.autoLoginAfterConfirm) : false;
-            var shouldHandleToken = authType !== 'signup' || autoLoginAfterConfirm;
+            var shouldHandleToken = authType !== 'invite' && (authType !== 'signup' || autoLoginAfterConfirm);
 
             if (accessToken && shouldHandleToken) {
                 fetch(window.bwAccountAuth.ajaxUrl, {
@@ -86,7 +86,8 @@
                         action: 'bw_supabase_token_login',
                         nonce: window.bwAccountAuth.nonce,
                         access_token: accessToken,
-                        refresh_token: refreshToken || ''
+                        refresh_token: refreshToken || '',
+                        type: authType || ''
                     })
                 })
                     .then(function (response) {
@@ -118,6 +119,7 @@
         var messages = window.bwAccountAuth && window.bwAccountAuth.messages ? window.bwAccountAuth.messages : {};
 
         var magicLinkForm = document.querySelector('[data-bw-supabase-form][data-bw-supabase-action="magic-link"]');
+        var passwordLoginForm = document.querySelector('[data-bw-supabase-form][data-bw-supabase-action="password-login"]');
         var oauthButtons = Array.prototype.slice.call(document.querySelectorAll('[data-bw-oauth-provider]'));
         var registerForm = document.querySelector('[data-bw-register-form]');
         var registerContinue = registerForm ? registerForm.querySelector('[data-bw-register-continue]') : null;
@@ -155,6 +157,67 @@
                 successBox.hidden = type !== 'success';
                 successBox.textContent = type === 'success' ? message : '';
             }
+        };
+
+        var submitAjaxForm = function (form, action, options) {
+            if (!form) {
+                return;
+            }
+
+            var submitButton = form.querySelector('[data-bw-supabase-submit]');
+            var defaultError = options && options.defaultError ? options.defaultError : getMessage('loginError', 'Unable to login.');
+
+            form.addEventListener('submit', function (event) {
+                event.preventDefault();
+
+                if (!window.bwAccountAuth || !window.bwAccountAuth.ajaxUrl || !window.bwAccountAuth.nonce) {
+                    showFormMessage(form, 'error', getMessage('missingConfig', 'Supabase configuration is missing.'));
+                    return;
+                }
+
+                var formData = new FormData(form);
+                formData.append('action', action);
+                formData.append('nonce', window.bwAccountAuth.nonce);
+
+                showFormMessage(form, 'error', '');
+                showFormMessage(form, 'success', '');
+
+                if (submitButton) {
+                    submitButton.disabled = true;
+                }
+
+                fetch(window.bwAccountAuth.ajaxUrl, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    body: new URLSearchParams(formData)
+                })
+                    .then(function (response) {
+                        return response.json();
+                    })
+                    .then(function (payload) {
+                        if (payload && payload.success) {
+                            if (payload.data && payload.data.redirect) {
+                                window.location.href = payload.data.redirect;
+                                return;
+                            }
+                            if (payload.data && payload.data.message) {
+                                showFormMessage(form, 'success', payload.data.message);
+                                return;
+                            }
+                        }
+
+                        var message = payload && payload.data && payload.data.message ? payload.data.message : defaultError;
+                        showFormMessage(form, 'error', message);
+                    })
+                    .catch(function () {
+                        showFormMessage(form, 'error', defaultError);
+                    })
+                    .finally(function () {
+                        if (submitButton) {
+                            submitButton.disabled = false;
+                        }
+                    });
+            });
         };
 
         if (magicLinkForm) {
@@ -211,6 +274,10 @@
             });
         }
 
+        submitAjaxForm(passwordLoginForm, 'bw_supabase_login', {
+            defaultError: getMessage('loginError', 'Unable to login.')
+        });
+
         if (oauthButtons.length) {
             oauthButtons.forEach(function (button) {
                 button.addEventListener('click', function () {
@@ -259,11 +326,6 @@
         if (registerForm) {
             registerForm.addEventListener('submit', function (event) {
                 event.preventDefault();
-                if (!projectUrl || !anonKey) {
-                    showFormMessage(registerForm, 'error', getMessage('missingConfig', 'Supabase configuration is missing.'));
-                    return;
-                }
-
                 var emailField = registerForm.querySelector('#bw_supabase_register_email');
                 var passwordField = registerForm.querySelector('#bw_supabase_register_password');
                 var confirmField = registerForm.querySelector('#bw_supabase_register_password_confirm');
@@ -281,35 +343,42 @@
                     return;
                 }
 
-                logDebug('Supabase signup request', { redirect_to: signupRedirect });
+                if (!window.bwAccountAuth || !window.bwAccountAuth.ajaxUrl || !window.bwAccountAuth.nonce) {
+                    showFormMessage(registerForm, 'error', getMessage('missingConfig', 'Supabase configuration is missing.'));
+                    return;
+                }
 
-                fetch(projectUrl.replace(/\/$/, '') + '/auth/v1/signup', {
+                logDebug('Supabase signup request', { email_present: Boolean(emailValue), redirect_to: signupRedirect || 'default' });
+
+                var formData = new FormData();
+                formData.append('email', emailValue);
+                formData.append('password', passwordValue);
+                formData.append('action', 'bw_supabase_register');
+                formData.append('nonce', window.bwAccountAuth.nonce);
+
+                fetch(window.bwAccountAuth.ajaxUrl, {
                     method: 'POST',
-                    headers: {
-                        apikey: anonKey,
-                        'Content-Type': 'application/json',
-                        Accept: 'application/json'
-                    },
-                    body: JSON.stringify({
-                        email: emailValue,
-                        password: passwordValue,
-                        options: {
-                            email_redirect_to: signupRedirect || (window.location.origin + '/my-account/?bw_email_confirmed=1')
-                        }
-                    })
+                    credentials: 'same-origin',
+                    body: new URLSearchParams(formData)
                 })
                     .then(function (response) {
-                        logDebug('Supabase signup status', { status: response.status });
-                        if (!response.ok) {
-                            return response.json().then(function (payload) {
-                                var message = payload && (payload.error_description || payload.msg || payload.message) ? (payload.error_description || payload.msg || payload.message) : getMessage('registerError', 'Unable to register.');
-                                throw new Error(message);
-                            });
-                        }
-                        showFormMessage(registerForm, 'success', getMessage('registerSuccess', 'Check your email to confirm your account.'));
+                        return response.json();
                     })
-                    .catch(function (error) {
-                        showFormMessage(registerForm, 'error', error.message || getMessage('registerError', 'Unable to register.'));
+                    .then(function (payload) {
+                        if (payload && payload.success) {
+                            if (payload.data && payload.data.redirect) {
+                                window.location.href = payload.data.redirect;
+                                return;
+                            }
+                            showFormMessage(registerForm, 'success', payload.data && payload.data.message ? payload.data.message : getMessage('registerSuccess', 'Check your email to confirm your account.'));
+                            return;
+                        }
+
+                        var message = payload && payload.data && payload.data.message ? payload.data.message : getMessage('registerError', 'Unable to register.');
+                        showFormMessage(registerForm, 'error', message);
+                    })
+                    .catch(function () {
+                        showFormMessage(registerForm, 'error', getMessage('registerError', 'Unable to register.'));
                     });
             });
         }

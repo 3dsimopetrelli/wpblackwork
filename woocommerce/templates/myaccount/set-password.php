@@ -20,25 +20,10 @@ $needs_onboarding = is_user_logged_in() && function_exists( 'bw_user_needs_onboa
 ?>
 
 <div class="bw-account-set-password">
-    <?php if ( ! is_user_logged_in() ) : ?>
-        <h2 class="bw-account-set-password__title"><?php esc_html_e( 'Set Password', 'bw' ); ?></h2>
-        <p class="bw-account-set-password__intro"><?php esc_html_e( 'Apri il link dalla mail di invito per completare l’attivazione del tuo account.', 'bw' ); ?></p>
-        <div class="bw-account-set-password__error" role="alert" aria-live="polite" hidden></div>
-        <div class="bw-account-set-password__success" role="status" aria-live="polite" hidden></div>
-        <div class="bw-account-set-password__missing-token" data-bw-missing-token>
-            <p><?php esc_html_e( 'Questo link deve essere aperto dalla mail di invito. Se non la trovi, puoi richiedere un nuovo invito qui sotto.', 'bw' ); ?></p>
-            <p class="bw-account-set-password__resend-row">
-                <label class="bw-account-set-password__label" for="bw_resend_invite_email"><?php esc_html_e( 'Email address', 'bw' ); ?></label>
-                <input class="woocommerce-Input woocommerce-Input--text input-text bw-account-set-password__email" type="email" id="bw_resend_invite_email" data-bw-resend-email autocomplete="email" />
-                <button class="woocommerce-button button bw-account-set-password__cta" type="button" data-bw-resend-invite>
-                    <?php esc_html_e( 'Request a new invite', 'bw' ); ?>
-                </button>
-            </p>
-            <p class="bw-account-set-password__notice" data-bw-resend-notice hidden></p>
-        </div>
-    <?php elseif ( $needs_onboarding ) : ?>
     <h2 class="bw-account-set-password__title"><?php esc_html_e( 'Set Password', 'bw' ); ?></h2>
-    <p class="bw-account-set-password__intro"><?php esc_html_e( 'Complete your account setup by choosing a new password.', 'bw' ); ?></p>
+    <p class="bw-account-set-password__intro">
+        <?php echo esc_html( $needs_onboarding ? __( 'Complete your account setup by choosing a new password.', 'bw' ) : __( 'Apri il link dalla mail di invito per completare l’attivazione del tuo account.', 'bw' ) ); ?>
+    </p>
 
     <form class="bw-account-set-password__form" data-bw-set-password-form>
         <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide">
@@ -70,5 +55,4 @@ $needs_onboarding = is_user_logged_in() && function_exists( 'bw_user_needs_onboa
         </p>
         <p class="bw-account-set-password__notice" data-bw-resend-notice hidden></p>
     </div>
-    <?php endif; ?>
 </div>

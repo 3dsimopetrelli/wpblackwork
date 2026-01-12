@@ -89,6 +89,31 @@ if ( ! $show_supabase_register && 'register' === $active_tab ) {
                                 </button>
                             </div>
 
+                            <div class="bw-account-login__divider">
+                                <span><?php esc_html_e( 'or use password', 'bw' ); ?></span>
+                            </div>
+
+                            <form class="bw-account-login__form bw-account-login__form--supabase" data-bw-supabase-form data-bw-supabase-action="password-login">
+                                <p class="bw-account-login__note"><?php esc_html_e( 'Use your email and password to sign in.', 'bw' ); ?></p>
+
+                                <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide bw-account-login__field">
+                                    <label for="bw_supabase_login_email"><?php esc_html_e( 'Email address', 'woocommerce' ); ?> <span class="required">*</span></label>
+                                    <input type="email" class="woocommerce-Input woocommerce-Input--text input-text" name="email" id="bw_supabase_login_email" autocomplete="email" required />
+                                </p>
+
+                                <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide bw-account-login__field">
+                                    <label for="bw_supabase_login_password"><?php esc_html_e( 'Password', 'woocommerce' ); ?> <span class="required">*</span></label>
+                                    <input class="woocommerce-Input woocommerce-Input--text input-text" type="password" name="password" id="bw_supabase_login_password" autocomplete="current-password" required />
+                                </p>
+
+                                <div class="bw-account-login__error" role="alert" aria-live="polite" hidden></div>
+                                <div class="bw-account-login__success" role="status" aria-live="polite" hidden></div>
+
+                                <p class="form-row bw-account-login__actions">
+                                    <button type="submit" class="woocommerce-button button bw-account-login__submit" data-bw-supabase-submit><?php esc_html_e( 'Log in', 'bw' ); ?></button>
+                                </p>
+                            </form>
+
                             <?php if ( $show_supabase_register ) : ?>
                                 <p class="bw-account-login__register">
                                     <button type="button" class="bw-account-login__register-link" data-bw-auth-tab="register"><?php esc_html_e( 'Register', 'bw' ); ?></button>

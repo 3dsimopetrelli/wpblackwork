@@ -117,10 +117,6 @@ if ( has_action( 'woocommerce_before_edit_account_form' ) ) {
                             </div>
                         <?php endforeach; ?>
                     </div>
-                    <div class="bw-account-form__messages">
-                        <div class="bw-account-form__error" role="alert" aria-live="polite" hidden></div>
-                        <div class="bw-account-form__success" role="status" aria-live="polite" hidden></div>
-                    </div>
                     <p>
                         <button type="submit" class="button"><?php esc_html_e( 'Update password', 'bw' ); ?></button>
                     </p>

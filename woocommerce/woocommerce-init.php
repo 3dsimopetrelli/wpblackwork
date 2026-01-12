@@ -170,6 +170,7 @@ function bw_mew_enqueue_account_page_assets() {
                 'enterEmail' => esc_html__( 'Please enter your email address.', 'bw' ),
                 'magicLinkSent' => esc_html__( 'Check your email for the login link.', 'bw' ),
                 'magicLinkError' => esc_html__( 'Unable to send magic link.', 'bw' ),
+                'loginError' => esc_html__( 'Unable to login.', 'bw' ),
                 'registerCompleteFields' => esc_html__( 'Please complete all fields.', 'bw' ),
                 'registerPasswordMismatch' => esc_html__( 'Passwords do not match.', 'bw' ),
                 'registerSuccess' => esc_html__( 'Check your email to confirm your account.', 'bw' ),
