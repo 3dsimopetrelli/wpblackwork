@@ -21,8 +21,10 @@ $back_text           = get_option( 'bw_account_back_text', 'go back to store' );
 $back_url            = get_option( 'bw_account_back_url', '' );
 $back_url            = $back_url ? $back_url : home_url( '/' );
 $registration_mode   = get_option( 'bw_supabase_registration_mode', 'R2' );
+$login_mode          = get_option( 'bw_supabase_login_mode', 'native' );
 $provider_signup_url = get_option( 'bw_supabase_provider_signup_url', '' );
 $registration_mode    = in_array( $registration_mode, [ 'R1', 'R2', 'R3' ], true ) ? $registration_mode : 'R2';
+$login_mode           = in_array( $login_mode, [ 'native', 'oidc' ], true ) ? $login_mode : 'native';
 $show_supabase_register = 'R3' !== $registration_mode;
 $magic_link_enabled     = (int) get_option( 'bw_supabase_magic_link_enabled', 1 );
 $oauth_google_enabled   = (int) get_option( 'bw_supabase_oauth_google_enabled', 1 );
@@ -132,9 +134,6 @@ if ( ! $show_supabase_register && 'register' === $active_tab ) {
                                         <?php if ( ! $provider_signup_url ) : ?>
                                             <p class="bw-account-login__note"><?php esc_html_e( 'Add a Provider Signup URL in Blackworksite > Account to enable this action.', 'bw' ); ?></p>
                                         <?php endif; ?>
-                                        <p class="bw-account-login__back-to-login">
-                                            <button type="button" class="bw-account-login__back-link" data-bw-auth-tab="login">← <?php esc_html_e( 'Go back to login', 'bw' ); ?></button>
-                                        </p>
                                     </div>
                                 <?php else : ?>
                                     <form class="bw-account-login__form bw-account-login__form--supabase" data-bw-register-form>

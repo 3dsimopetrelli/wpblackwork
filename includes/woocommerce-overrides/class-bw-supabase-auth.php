@@ -366,6 +366,57 @@ function bw_mew_handle_supabase_token_login() {
 
     wp_set_current_user( $user->ID );
     wp_set_auth_cookie( $user->ID, true, is_ssl() );
+    update_user_meta( $user->ID, 'bw_supabase_onboarded', 1 );
+    delete_user_meta( $user->ID, 'bw_supabase_invite_error' );
+    delete_user_meta( $user->ID, 'bw_supabase_onboarding_error' );
+
+    if ( $debug_log ) {
+        error_log( 'Supabase token login success → set onboarded=1 → redirect /my-account/' );
+    }
+
+    if ( $refresh_token ) {
+        bw_mew_supabase_store_session(
+            [
+                'access_token'  => $access_token,
+                'refresh_token' => $refresh_token,
+                'expires_in'    => HOUR_IN_SECONDS,
+                'user'          => [
+                    'email' => $email,
+                ],
+            ],
+            $email
+        );
+    }
+    update_user_meta( $user->ID, 'bw_supabase_onboarded', 1 );
+    delete_user_meta( $user->ID, 'bw_supabase_invite_error' );
+    delete_user_meta( $user->ID, 'bw_supabase_onboarding_error' );
+    bw_mew_apply_supabase_user_to_wp( $user->ID, $payload, 'token-login' );
+
+    if ( $debug_log ) {
+        error_log( 'Supabase token login success → set onboarded=1 → redirect /my-account/' );
+    }
+
+    if ( $refresh_token ) {
+        bw_mew_supabase_store_session(
+            [
+                'access_token'  => $access_token,
+                'refresh_token' => $refresh_token,
+                'expires_in'    => HOUR_IN_SECONDS,
+                'user'          => [
+                    'email' => $email,
+                ],
+            ],
+            $email
+        );
+    }
+    update_user_meta( $user->ID, 'bw_supabase_onboarded', 1 );
+    delete_user_meta( $user->ID, 'bw_supabase_invite_error' );
+    delete_user_meta( $user->ID, 'bw_supabase_onboarding_error' );
+    bw_mew_apply_supabase_user_to_wp( $user->ID, $payload, 'token-login' );
+
+    if ( $debug_log ) {
+        error_log( 'Supabase token login success → set onboarded=1 → redirect /my-account/' );
+    }
 
     if ( $refresh_token ) {
         bw_mew_supabase_store_session(
