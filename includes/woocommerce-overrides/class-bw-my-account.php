@@ -185,6 +185,119 @@ function bw_mew_enqueue_my_account_assets() {
 add_action( 'wp_enqueue_scripts', 'bw_mew_enqueue_my_account_assets', 25 );
 
 /**
+ * Handle profile updates for WooCommerce account settings.
+ */
+function bw_mew_handle_profile_update() {
+    if ( ! function_exists( 'is_account_page' ) || ! is_account_page() || ! is_user_logged_in() ) {
+        return;
+    }
+
+    if ( empty( $_POST['bw_account_profile_submit'] ) ) {
+        return;
+    }
+
+    if ( empty( $_POST['bw-profile-details-nonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['bw-profile-details-nonce'] ), 'bw_save_profile_details' ) ) {
+        wc_add_notice( __( 'Unable to save your profile. Please try again.', 'bw' ), 'error' );
+        return;
+    }
+
+    $user_id = get_current_user_id();
+    $errors  = new WP_Error();
+
+    $first_name   = isset( $_POST['account_first_name'] ) ? wc_clean( wp_unslash( $_POST['account_first_name'] ) ) : '';
+    $last_name    = isset( $_POST['account_last_name'] ) ? wc_clean( wp_unslash( $_POST['account_last_name'] ) ) : '';
+    $display_name = isset( $_POST['account_display_name'] ) ? wc_clean( wp_unslash( $_POST['account_display_name'] ) ) : '';
+
+    if ( ! $first_name ) {
+        $errors->add( 'first_name', __( 'Please enter your first name.', 'bw' ) );
+    }
+
+    if ( ! $last_name ) {
+        $errors->add( 'last_name', __( 'Please enter your last name.', 'bw' ) );
+    }
+
+    if ( ! $display_name ) {
+        $errors->add( 'display_name', __( 'Please enter a display name.', 'bw' ) );
+    }
+
+    $countries = new WC_Countries();
+    $billing_country  = isset( $_POST['billing_country'] ) ? wc_clean( wp_unslash( $_POST['billing_country'] ) ) : '';
+    $billing_fields   = $countries->get_address_fields( $billing_country, 'billing_' );
+
+    $billing_values = [];
+    foreach ( $billing_fields as $key => $field ) {
+        $value = isset( $_POST[ $key ] ) ? wc_clean( wp_unslash( $_POST[ $key ] ) ) : '';
+        if ( ! empty( $field['required'] ) && '' === $value ) {
+            $errors->add( $key, sprintf( __( 'Please enter %s.', 'bw' ), $field['label'] ?? $key ) );
+        }
+        $billing_values[ $key ] = $value;
+    }
+
+    $ship_to_billing = ! empty( $_POST['shipping_same_as_billing'] );
+    $shipping_values = [];
+    if ( $ship_to_billing ) {
+        foreach ( $billing_values as $key => $value ) {
+            $shipping_key                 = str_replace( 'billing_', 'shipping_', $key );
+            $shipping_values[ $shipping_key ] = $value;
+        }
+    } else {
+        $shipping_country = isset( $_POST['shipping_country'] ) ? wc_clean( wp_unslash( $_POST['shipping_country'] ) ) : '';
+        $shipping_fields  = $countries->get_address_fields( $shipping_country, 'shipping_' );
+
+        foreach ( $shipping_fields as $key => $field ) {
+            $value = isset( $_POST[ $key ] ) ? wc_clean( wp_unslash( $_POST[ $key ] ) ) : '';
+            if ( ! empty( $field['required'] ) && '' === $value ) {
+                $errors->add( $key, sprintf( __( 'Please enter %s.', 'bw' ), $field['label'] ?? $key ) );
+            }
+            $shipping_values[ $key ] = $value;
+        }
+    }
+
+    if ( $errors->has_errors() ) {
+        foreach ( $errors->get_error_messages() as $message ) {
+            wc_add_notice( $message, 'error' );
+        }
+        return;
+    }
+
+    update_user_meta( $user_id, 'first_name', $first_name );
+    update_user_meta( $user_id, 'last_name', $last_name );
+    wp_update_user(
+        [
+            'ID'           => $user_id,
+            'display_name' => $display_name,
+        ]
+    );
+
+    $customer = new WC_Customer( $user_id );
+
+    foreach ( $billing_values as $key => $value ) {
+        $setter = 'set_' . $key;
+        if ( method_exists( $customer, $setter ) ) {
+            $customer->{$setter}( $value );
+        } else {
+            update_user_meta( $user_id, $key, $value );
+        }
+    }
+
+    foreach ( $shipping_values as $key => $value ) {
+        $setter = 'set_' . $key;
+        if ( method_exists( $customer, $setter ) ) {
+            $customer->{$setter}( $value );
+        } else {
+            update_user_meta( $user_id, $key, $value );
+        }
+    }
+
+    $customer->save();
+
+    wc_add_notice( __( 'Profile updated.', 'bw' ), 'success' );
+    wp_safe_redirect( wc_get_account_endpoint_url( 'edit-account' ) );
+    exit;
+}
+add_action( 'template_redirect', 'bw_mew_handle_profile_update', 12 );
+
+/**
  * Helper to get the black box text content.
  *
  * @return string

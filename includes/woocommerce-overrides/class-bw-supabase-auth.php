@@ -395,6 +395,28 @@ function bw_mew_handle_supabase_token_login() {
         error_log( 'Supabase token login success → set onboarded=1 → redirect /my-account/' );
     }
 
+    if ( $refresh_token ) {
+        bw_mew_supabase_store_session(
+            [
+                'access_token'  => $access_token,
+                'refresh_token' => $refresh_token,
+                'expires_in'    => HOUR_IN_SECONDS,
+                'user'          => [
+                    'email' => $email,
+                ],
+            ],
+            $email
+        );
+    }
+    update_user_meta( $user->ID, 'bw_supabase_onboarded', 1 );
+    delete_user_meta( $user->ID, 'bw_supabase_invite_error' );
+    delete_user_meta( $user->ID, 'bw_supabase_onboarding_error' );
+    bw_mew_apply_supabase_user_to_wp( $user->ID, $payload, 'token-login' );
+
+    if ( $debug_log ) {
+        error_log( 'Supabase token login success → set onboarded=1 → redirect /my-account/' );
+    }
+
     wp_send_json_success(
         [
             'redirect' => wc_get_page_permalink( 'myaccount' ),
@@ -997,10 +1019,15 @@ function bw_mew_handle_supabase_update_email() {
         wp_send_json_error( [ 'message' => __( 'Supabase session is missing.', 'bw' ) ], 401 );
     }
 
-    $email = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
+    $email         = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
+    $confirm_email = isset( $_POST['confirm_email'] ) ? sanitize_email( wp_unslash( $_POST['confirm_email'] ) ) : '';
 
     if ( ! $email ) {
         wp_send_json_error( [ 'message' => __( 'Please enter a valid email address.', 'bw' ) ], 400 );
+    }
+
+    if ( ! $confirm_email || strtolower( $email ) !== strtolower( $confirm_email ) ) {
+        wp_send_json_error( [ 'message' => __( 'Email addresses do not match.', 'bw' ) ], 400 );
     }
 
     $response = bw_mew_supabase_update_user(

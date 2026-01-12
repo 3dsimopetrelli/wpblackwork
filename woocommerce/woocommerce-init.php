@@ -156,6 +156,25 @@ function bw_mew_enqueue_account_page_assets() {
             'providerResetUrl' => get_option( 'bw_supabase_provider_reset_url', '' ),
             'oidcAuthUrl'      => function_exists( 'bw_oidc_get_auth_url' ) ? bw_oidc_get_auth_url() : '',
             'autoLoginAfterConfirm' => (int) get_option( 'bw_supabase_auto_login_after_confirm', 0 ),
+            'projectUrl'      => get_option( 'bw_supabase_project_url', '' ),
+            'anonKey'         => get_option( 'bw_supabase_anon_key', '' ),
+            'magicLinkRedirectUrl' => get_option( 'bw_supabase_magic_link_redirect_url', site_url( '/my-account/' ) ),
+            'oauthRedirectUrl' => get_option( 'bw_supabase_oauth_redirect_url', site_url( '/my-account/' ) ),
+            'signupRedirectUrl' => get_option( 'bw_supabase_signup_redirect_url', site_url( '/my-account/?bw_email_confirmed=1' ) ),
+            'magicLinkEnabled' => (int) get_option( 'bw_supabase_magic_link_enabled', 1 ),
+            'oauthGoogleEnabled' => (int) get_option( 'bw_supabase_oauth_google_enabled', 1 ),
+            'oauthFacebookEnabled' => (int) get_option( 'bw_supabase_oauth_facebook_enabled', 1 ),
+            'debug' => (int) get_option( 'bw_supabase_debug_log', 0 ),
+            'messages' => [
+                'missingConfig' => esc_html__( 'Supabase configuration is missing.', 'bw' ),
+                'enterEmail' => esc_html__( 'Please enter your email address.', 'bw' ),
+                'magicLinkSent' => esc_html__( 'Check your email for the login link.', 'bw' ),
+                'magicLinkError' => esc_html__( 'Unable to send magic link.', 'bw' ),
+                'registerCompleteFields' => esc_html__( 'Please complete all fields.', 'bw' ),
+                'registerPasswordMismatch' => esc_html__( 'Passwords do not match.', 'bw' ),
+                'registerSuccess' => esc_html__( 'Check your email to confirm your account.', 'bw' ),
+                'registerError' => esc_html__( 'Unable to register.', 'bw' ),
+            ],
         ]
     );
 }

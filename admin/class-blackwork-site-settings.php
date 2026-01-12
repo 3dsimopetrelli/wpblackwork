@@ -207,6 +207,12 @@ function bw_site_render_account_page_tab() {
         $supabase_signup_url      = isset($_POST['bw_supabase_provider_signup_url']) ? esc_url_raw($_POST['bw_supabase_provider_signup_url']) : '';
         $supabase_reset_url       = isset($_POST['bw_supabase_provider_reset_url']) ? esc_url_raw($_POST['bw_supabase_provider_reset_url']) : '';
         $supabase_confirm_url     = isset($_POST['bw_supabase_email_confirm_redirect_url']) ? esc_url_raw(trim($_POST['bw_supabase_email_confirm_redirect_url'])) : '';
+        $supabase_magic_link_enabled = isset($_POST['bw_supabase_magic_link_enabled']) ? 1 : 0;
+        $supabase_oauth_google_enabled = isset($_POST['bw_supabase_oauth_google_enabled']) ? 1 : 0;
+        $supabase_oauth_facebook_enabled = isset($_POST['bw_supabase_oauth_facebook_enabled']) ? 1 : 0;
+        $supabase_magic_link_redirect = isset($_POST['bw_supabase_magic_link_redirect_url']) ? esc_url_raw(trim($_POST['bw_supabase_magic_link_redirect_url'])) : '';
+        $supabase_oauth_redirect = isset($_POST['bw_supabase_oauth_redirect_url']) ? esc_url_raw(trim($_POST['bw_supabase_oauth_redirect_url'])) : '';
+        $supabase_signup_redirect = isset($_POST['bw_supabase_signup_redirect_url']) ? esc_url_raw(trim($_POST['bw_supabase_signup_redirect_url'])) : '';
         $supabase_auto_login      = isset($_POST['bw_supabase_auto_login_after_confirm']) ? 1 : 0;
         $supabase_create_users    = isset($_POST['bw_supabase_create_wp_users']) ? 1 : 0;
 
@@ -259,6 +265,12 @@ function bw_site_render_account_page_tab() {
         update_option('bw_supabase_provider_signup_url', $supabase_signup_url);
         update_option('bw_supabase_provider_reset_url', $supabase_reset_url);
         update_option('bw_supabase_email_confirm_redirect_url', $supabase_confirm_url);
+        update_option('bw_supabase_magic_link_enabled', $supabase_magic_link_enabled);
+        update_option('bw_supabase_oauth_google_enabled', $supabase_oauth_google_enabled);
+        update_option('bw_supabase_oauth_facebook_enabled', $supabase_oauth_facebook_enabled);
+        update_option('bw_supabase_magic_link_redirect_url', $supabase_magic_link_redirect);
+        update_option('bw_supabase_oauth_redirect_url', $supabase_oauth_redirect);
+        update_option('bw_supabase_signup_redirect_url', $supabase_signup_redirect);
         update_option('bw_supabase_auto_login_after_confirm', $supabase_auto_login);
         update_option('bw_supabase_create_wp_users', $supabase_create_users);
 
@@ -300,6 +312,12 @@ function bw_site_render_account_page_tab() {
     $supabase_signup_url   = get_option('bw_supabase_provider_signup_url', '');
     $supabase_reset_url    = get_option('bw_supabase_provider_reset_url', '');
     $supabase_confirm_url  = get_option('bw_supabase_email_confirm_redirect_url', site_url('/my-account/?bw_email_confirmed=1'));
+    $supabase_magic_link_enabled = (int) get_option('bw_supabase_magic_link_enabled', 1);
+    $supabase_oauth_google_enabled = (int) get_option('bw_supabase_oauth_google_enabled', 1);
+    $supabase_oauth_facebook_enabled = (int) get_option('bw_supabase_oauth_facebook_enabled', 1);
+    $supabase_magic_link_redirect = get_option('bw_supabase_magic_link_redirect_url', site_url('/my-account/'));
+    $supabase_oauth_redirect = get_option('bw_supabase_oauth_redirect_url', site_url('/my-account/'));
+    $supabase_signup_redirect = get_option('bw_supabase_signup_redirect_url', site_url('/my-account/?bw_email_confirmed=1'));
     $supabase_auto_login   = (int) get_option('bw_supabase_auto_login_after_confirm', 0);
     $supabase_create_users = (int) get_option('bw_supabase_create_wp_users', 1);
 
@@ -732,6 +750,56 @@ function bw_site_render_account_page_tab() {
                 <th scope="row"><?php esc_html_e( 'Email confirmation auto-login', 'bw' ); ?></th>
                 <td>
                     <p class="description"><?php esc_html_e( 'Email confirmation auto-login settings are only used for R2 Native Supabase Registration.', 'bw' ); ?></p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row"><?php esc_html_e( 'Magic link login', 'bw' ); ?></th>
+                <td>
+                    <label>
+                        <input type="checkbox" id="bw_supabase_magic_link_enabled" name="bw_supabase_magic_link_enabled" value="1" <?php checked( 1, $supabase_magic_link_enabled ); ?> />
+                        <?php esc_html_e( 'Enable magic link email login', 'bw' ); ?>
+                    </label>
+                    <p class="description"><?php esc_html_e( 'Uses Supabase /auth/v1/otp magic link. Users receive a sign-in link by email.', 'bw' ); ?></p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row"><?php esc_html_e( 'OAuth login providers', 'bw' ); ?></th>
+                <td>
+                    <label style="display:block; margin-bottom:8px;">
+                        <input type="checkbox" id="bw_supabase_oauth_google_enabled" name="bw_supabase_oauth_google_enabled" value="1" <?php checked( 1, $supabase_oauth_google_enabled ); ?> />
+                        <?php esc_html_e( 'Enable Google OAuth', 'bw' ); ?>
+                    </label>
+                    <label style="display:block;">
+                        <input type="checkbox" id="bw_supabase_oauth_facebook_enabled" name="bw_supabase_oauth_facebook_enabled" value="1" <?php checked( 1, $supabase_oauth_facebook_enabled ); ?> />
+                        <?php esc_html_e( 'Enable Facebook OAuth', 'bw' ); ?>
+                    </label>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_supabase_magic_link_redirect_url"><?php esc_html_e( 'Magic link redirect URL', 'bw' ); ?></label>
+                </th>
+                <td>
+                    <input type="text" id="bw_supabase_magic_link_redirect_url" name="bw_supabase_magic_link_redirect_url" value="<?php echo esc_attr( $supabase_magic_link_redirect ); ?>" class="regular-text" />
+                    <p class="description"><?php esc_html_e( 'Redirect after magic link login (must be allowlisted in Supabase).', 'bw' ); ?></p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_supabase_oauth_redirect_url"><?php esc_html_e( 'OAuth redirect URL', 'bw' ); ?></label>
+                </th>
+                <td>
+                    <input type="text" id="bw_supabase_oauth_redirect_url" name="bw_supabase_oauth_redirect_url" value="<?php echo esc_attr( $supabase_oauth_redirect ); ?>" class="regular-text" />
+                    <p class="description"><?php esc_html_e( 'Redirect after Google/Facebook OAuth (must be allowlisted in Supabase).', 'bw' ); ?></p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_supabase_signup_redirect_url"><?php esc_html_e( 'Signup confirmation redirect URL', 'bw' ); ?></label>
+                </th>
+                <td>
+                    <input type="text" id="bw_supabase_signup_redirect_url" name="bw_supabase_signup_redirect_url" value="<?php echo esc_attr( $supabase_signup_redirect ); ?>" class="regular-text" />
+                    <p class="description"><?php esc_html_e( 'Redirect after confirming signup email (must be allowlisted in Supabase).', 'bw' ); ?></p>
                 </td>
             </tr>
             <?php if ( $supabase_with_plugins ) : ?>
