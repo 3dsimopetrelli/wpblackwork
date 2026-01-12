@@ -21,8 +21,10 @@ $back_text           = get_option( 'bw_account_back_text', 'go back to store' );
 $back_url            = get_option( 'bw_account_back_url', '' );
 $back_url            = $back_url ? $back_url : home_url( '/' );
 $registration_mode   = get_option( 'bw_supabase_registration_mode', 'R2' );
+$login_mode          = get_option( 'bw_supabase_login_mode', 'native' );
 $provider_signup_url = get_option( 'bw_supabase_provider_signup_url', '' );
 $registration_mode    = in_array( $registration_mode, [ 'R1', 'R2', 'R3' ], true ) ? $registration_mode : 'R2';
+$login_mode           = in_array( $login_mode, [ 'native', 'oidc' ], true ) ? $login_mode : 'native';
 $show_supabase_register = 'R3' !== $registration_mode;
 $magic_link_enabled     = (int) get_option( 'bw_supabase_magic_link_enabled', 1 );
 $oauth_google_enabled   = (int) get_option( 'bw_supabase_oauth_google_enabled', 1 );
@@ -71,8 +73,8 @@ if ( ! $show_supabase_register && 'register' === $active_tab ) {
                                         <input type="email" class="woocommerce-Input woocommerce-Input--text input-text" name="email" id="bw_supabase_magic_email" autocomplete="email" required />
                                     </p>
 
-                                    <div class="bw-account-login__error" role="alert" aria-live="polite" hidden></div>
-                                    <div class="bw-account-login__success" role="status" aria-live="polite" hidden></div>
+                                <div class="bw-account-login__error" role="alert" aria-live="polite" hidden></div>
+                                <div class="bw-account-login__success" role="status" aria-live="polite" hidden></div>
 
                                     <p class="form-row bw-account-login__actions">
                                         <button type="submit" class="woocommerce-button button bw-account-login__submit" data-bw-supabase-submit <?php echo $magic_link_enabled ? '' : 'disabled'; ?>><?php esc_html_e( 'Continue', 'bw' ); ?></button>
