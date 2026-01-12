@@ -42,10 +42,108 @@ function bw_mew_filter_account_menu_items( $items ) {
 add_filter( 'woocommerce_account_menu_items', 'bw_mew_filter_account_menu_items', 20 );
 
 /**
+ * Check if a user still needs onboarding.
+ *
+ * @param int $user_id User ID.
+ *
+ * @return bool
+ */
+function bw_user_needs_onboarding( $user_id ) {
+    if ( ! $user_id ) {
+        return false;
+    }
+
+    return 1 !== (int) get_user_meta( $user_id, 'bw_supabase_onboarded', true );
+}
+
+/**
+ * Register the set-password endpoint under My Account.
+ */
+function bw_mew_register_set_password_endpoint() {
+    add_rewrite_endpoint( 'set-password', EP_ROOT | EP_PAGES );
+}
+add_action( 'init', 'bw_mew_register_set_password_endpoint' );
+
+/**
+ * Add the set-password query var to WooCommerce endpoints.
+ *
+ * @param array $vars WooCommerce query vars.
+ *
+ * @return array
+ */
+function bw_mew_add_set_password_query_var( $vars ) {
+    $vars['set-password'] = 'set-password';
+
+    return $vars;
+}
+add_filter( 'woocommerce_get_query_vars', 'bw_mew_add_set_password_query_var' );
+
+/**
+ * Render set-password endpoint content.
+ */
+function bw_mew_render_set_password_endpoint() {
+    wc_get_template( 'myaccount/set-password.php' );
+}
+add_action( 'woocommerce_account_set-password_endpoint', 'bw_mew_render_set_password_endpoint' );
+
+/**
+ * Enforce onboarding lock until Supabase password is set.
+ */
+function bw_mew_enforce_supabase_onboarding_lock() {
+    if ( ! function_exists( 'is_account_page' ) || ! is_account_page() || ! is_user_logged_in() ) {
+        return;
+    }
+
+    if ( ! bw_user_needs_onboarding( get_current_user_id() ) ) {
+        if ( is_wc_endpoint_url( 'set-password' ) ) {
+            wp_safe_redirect( wc_get_page_permalink( 'myaccount' ) );
+            exit;
+        }
+        return;
+    }
+
+    if ( is_wc_endpoint_url( 'set-password' ) || is_wc_endpoint_url( 'customer-logout' ) ) {
+        return;
+    }
+
+    wp_safe_redirect( wc_get_account_endpoint_url( 'set-password' ) );
+    exit;
+}
+add_action( 'template_redirect', 'bw_mew_enforce_supabase_onboarding_lock' );
+
+/**
+ * Add body class when onboarding lock is active.
+ *
+ * @param array $classes Body classes.
+ *
+ * @return array
+ */
+function bw_mew_add_onboarding_body_class( $classes ) {
+    if ( ! function_exists( 'is_account_page' ) || ! is_account_page() ) {
+        return $classes;
+    }
+
+    $onboarded = is_user_logged_in()
+        ? bw_user_needs_onboarding( get_current_user_id() ) ? 0 : 1
+        : 0;
+
+    if ( is_wc_endpoint_url( 'set-password' ) || 1 !== $onboarded ) {
+        $classes[] = 'bw-onboarding-lock';
+    }
+
+    return $classes;
+}
+add_filter( 'body_class', 'bw_mew_add_onboarding_body_class' );
+
+/**
  * Enqueue assets for the logged-in my account area.
  */
 function bw_mew_enqueue_my_account_assets() {
-    if ( ! function_exists( 'is_account_page' ) || ! is_account_page() || ! is_user_logged_in() ) {
+    if ( ! function_exists( 'is_account_page' ) || ! is_account_page() ) {
+        return;
+    }
+
+    if ( ! is_user_logged_in() && ! is_wc_endpoint_url( 'set-password' ) ) {
         return;
     }
 
@@ -68,8 +166,136 @@ function bw_mew_enqueue_my_account_assets() {
         $js_ver,
         true
     );
+
+    wp_localize_script(
+        'bw-my-account',
+        'bwAccountOnboarding',
+        [
+            'ajaxUrl'     => admin_url( 'admin-ajax.php' ),
+            'nonce'       => wp_create_nonce( 'bw-supabase-login' ),
+            'projectUrl'  => get_option( 'bw_supabase_project_url', '' ),
+            'anonKey'     => get_option( 'bw_supabase_anon_key', '' ),
+            'setPasswordUrl' => wc_get_account_endpoint_url( 'set-password' ),
+            'redirectUrl' => wc_get_page_permalink( 'myaccount' ),
+            'debug'       => (bool) get_option( 'bw_supabase_debug_log', 0 ),
+            'userEmail'   => is_user_logged_in() ? wp_get_current_user()->user_email : '',
+        ]
+    );
 }
 add_action( 'wp_enqueue_scripts', 'bw_mew_enqueue_my_account_assets', 25 );
+
+/**
+ * Handle profile updates for WooCommerce account settings.
+ */
+function bw_mew_handle_profile_update() {
+    if ( ! function_exists( 'is_account_page' ) || ! is_account_page() || ! is_user_logged_in() ) {
+        return;
+    }
+
+    if ( empty( $_POST['bw_account_profile_submit'] ) ) {
+        return;
+    }
+
+    if ( empty( $_POST['bw-profile-details-nonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['bw-profile-details-nonce'] ), 'bw_save_profile_details' ) ) {
+        wc_add_notice( __( 'Unable to save your profile. Please try again.', 'bw' ), 'error' );
+        return;
+    }
+
+    $user_id = get_current_user_id();
+    $errors  = new WP_Error();
+
+    $first_name   = isset( $_POST['account_first_name'] ) ? wc_clean( wp_unslash( $_POST['account_first_name'] ) ) : '';
+    $last_name    = isset( $_POST['account_last_name'] ) ? wc_clean( wp_unslash( $_POST['account_last_name'] ) ) : '';
+    $display_name = isset( $_POST['account_display_name'] ) ? wc_clean( wp_unslash( $_POST['account_display_name'] ) ) : '';
+
+    if ( ! $first_name ) {
+        $errors->add( 'first_name', __( 'Please enter your first name.', 'bw' ) );
+    }
+
+    if ( ! $last_name ) {
+        $errors->add( 'last_name', __( 'Please enter your last name.', 'bw' ) );
+    }
+
+    if ( ! $display_name ) {
+        $errors->add( 'display_name', __( 'Please enter a display name.', 'bw' ) );
+    }
+
+    $countries = new WC_Countries();
+    $billing_country  = isset( $_POST['billing_country'] ) ? wc_clean( wp_unslash( $_POST['billing_country'] ) ) : '';
+    $billing_fields   = $countries->get_address_fields( $billing_country, 'billing_' );
+
+    $billing_values = [];
+    foreach ( $billing_fields as $key => $field ) {
+        $value = isset( $_POST[ $key ] ) ? wc_clean( wp_unslash( $_POST[ $key ] ) ) : '';
+        if ( ! empty( $field['required'] ) && '' === $value ) {
+            $errors->add( $key, sprintf( __( 'Please enter %s.', 'bw' ), $field['label'] ?? $key ) );
+        }
+        $billing_values[ $key ] = $value;
+    }
+
+    $ship_to_billing = ! empty( $_POST['shipping_same_as_billing'] );
+    $shipping_values = [];
+    if ( $ship_to_billing ) {
+        foreach ( $billing_values as $key => $value ) {
+            $shipping_key                 = str_replace( 'billing_', 'shipping_', $key );
+            $shipping_values[ $shipping_key ] = $value;
+        }
+    } else {
+        $shipping_country = isset( $_POST['shipping_country'] ) ? wc_clean( wp_unslash( $_POST['shipping_country'] ) ) : '';
+        $shipping_fields  = $countries->get_address_fields( $shipping_country, 'shipping_' );
+
+        foreach ( $shipping_fields as $key => $field ) {
+            $value = isset( $_POST[ $key ] ) ? wc_clean( wp_unslash( $_POST[ $key ] ) ) : '';
+            if ( ! empty( $field['required'] ) && '' === $value ) {
+                $errors->add( $key, sprintf( __( 'Please enter %s.', 'bw' ), $field['label'] ?? $key ) );
+            }
+            $shipping_values[ $key ] = $value;
+        }
+    }
+
+    if ( $errors->has_errors() ) {
+        foreach ( $errors->get_error_messages() as $message ) {
+            wc_add_notice( $message, 'error' );
+        }
+        return;
+    }
+
+    update_user_meta( $user_id, 'first_name', $first_name );
+    update_user_meta( $user_id, 'last_name', $last_name );
+    wp_update_user(
+        [
+            'ID'           => $user_id,
+            'display_name' => $display_name,
+        ]
+    );
+
+    $customer = new WC_Customer( $user_id );
+
+    foreach ( $billing_values as $key => $value ) {
+        $setter = 'set_' . $key;
+        if ( method_exists( $customer, $setter ) ) {
+            $customer->{$setter}( $value );
+        } else {
+            update_user_meta( $user_id, $key, $value );
+        }
+    }
+
+    foreach ( $shipping_values as $key => $value ) {
+        $setter = 'set_' . $key;
+        if ( method_exists( $customer, $setter ) ) {
+            $customer->{$setter}( $value );
+        } else {
+            update_user_meta( $user_id, $key, $value );
+        }
+    }
+
+    $customer->save();
+
+    wc_add_notice( __( 'Profile updated.', 'bw' ), 'success' );
+    wp_safe_redirect( wc_get_account_endpoint_url( 'edit-account' ) );
+    exit;
+}
+add_action( 'template_redirect', 'bw_mew_handle_profile_update', 12 );
 
 /**
  * Helper to get the black box text content.
