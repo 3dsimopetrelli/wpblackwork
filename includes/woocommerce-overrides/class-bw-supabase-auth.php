@@ -365,6 +365,13 @@ function bw_mew_handle_supabase_token_login() {
 
     wp_set_current_user( $user->ID );
     wp_set_auth_cookie( $user->ID, true, is_ssl() );
+    update_user_meta( $user->ID, 'bw_supabase_onboarded', 1 );
+    delete_user_meta( $user->ID, 'bw_supabase_invite_error' );
+    delete_user_meta( $user->ID, 'bw_supabase_onboarding_error' );
+
+    if ( $debug_log ) {
+        error_log( 'Supabase token login success → set onboarded=1 → redirect /my-account/' );
+    }
 
     if ( $refresh_token ) {
         bw_mew_supabase_store_session(
