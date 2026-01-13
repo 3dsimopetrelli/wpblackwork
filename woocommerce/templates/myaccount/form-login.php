@@ -121,6 +121,34 @@ if ( ! $show_supabase_register && 'register' === $active_tab ) {
                                 </p>
                             </div>
 
+                            <div class="bw-auth-screen bw-auth-screen--otp" data-bw-screen="otp">
+                                <h3 class="bw-account-login__title"><?php esc_html_e( 'Enter the 6-digit code', 'bw' ); ?></h3>
+                                <p class="bw-account-login__note">
+                                    <?php esc_html_e( 'We sent a code to', 'bw' ); ?> <span data-bw-otp-email></span>
+                                </p>
+                                <form class="bw-account-login__form bw-account-login__form--otp" data-bw-otp-form>
+                                    <div class="bw-otp-inputs" data-bw-otp-inputs>
+                                        <input type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*" maxlength="1" aria-label="<?php esc_attr_e( 'Digit 1', 'bw' ); ?>" data-bw-otp-digit />
+                                        <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="<?php esc_attr_e( 'Digit 2', 'bw' ); ?>" data-bw-otp-digit />
+                                        <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="<?php esc_attr_e( 'Digit 3', 'bw' ); ?>" data-bw-otp-digit />
+                                        <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="<?php esc_attr_e( 'Digit 4', 'bw' ); ?>" data-bw-otp-digit />
+                                        <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="<?php esc_attr_e( 'Digit 5', 'bw' ); ?>" data-bw-otp-digit />
+                                        <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="<?php esc_attr_e( 'Digit 6', 'bw' ); ?>" data-bw-otp-digit />
+                                    </div>
+
+                                    <div class="bw-account-login__error" role="alert" aria-live="polite" hidden></div>
+                                    <div class="bw-account-login__success" role="status" aria-live="polite" hidden></div>
+
+                                    <p class="form-row bw-account-login__actions">
+                                        <button type="submit" class="woocommerce-button button bw-account-login__submit" data-bw-otp-confirm disabled><?php esc_html_e( 'Confirm', 'bw' ); ?></button>
+                                    </p>
+                                    <button type="button" class="bw-account-login__register-link" data-bw-otp-resend><?php esc_html_e( 'Resend code', 'bw' ); ?></button>
+                                    <p class="bw-account-login__back-to-login">
+                                        <button type="button" class="bw-account-login__back-link" data-bw-go-magic>← <?php esc_html_e( 'Back to Login', 'bw' ); ?></button>
+                                    </p>
+                                </form>
+                            </div>
+
                         </div>
 
                         <?php if ( $show_supabase_register ) : ?>
