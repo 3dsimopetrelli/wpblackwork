@@ -5,9 +5,36 @@
         var searchParams = new URLSearchParams(window.location.search);
         var loggedOutParam = searchParams.has('logged_out');
         var skipAuthHandlers = false;
+        var debugEnabled = Boolean(authConfig.debug);
 
         var clearCookie = function (name) {
             document.cookie = name + '=; Max-Age=0; path=/; SameSite=Lax';
+        };
+
+        var getSessionStorageItem = function (key) {
+            if (!window.sessionStorage) {
+                return '';
+            }
+            try {
+                return window.sessionStorage.getItem(key) || '';
+            } catch (error) {
+                return '';
+            }
+        };
+
+        var setSessionStorageItem = function (key, value) {
+            if (!window.sessionStorage) {
+                return;
+            }
+            try {
+                if (value) {
+                    window.sessionStorage.setItem(key, value);
+                } else {
+                    window.sessionStorage.removeItem(key);
+                }
+            } catch (error) {
+                // ignore sessionStorage errors
+            }
         };
 
         var clearAuthStorage = function () {
@@ -45,6 +72,23 @@
             var loggedOutUrl = new URL(window.location.href);
             loggedOutUrl.searchParams.delete('logged_out');
             window.history.replaceState(null, document.title, loggedOutUrl.pathname + (loggedOutUrl.search ? loggedOutUrl.search : '') + (loggedOutUrl.hash ? loggedOutUrl.hash : ''));
+        };
+
+        var cleanAuthUrl = function (removeParams) {
+            if (!window.history || !window.history.replaceState) {
+                return;
+            }
+            var url = new URL(window.location.href);
+            url.hash = '';
+            if (removeParams && url.searchParams) {
+                removeParams.forEach(function (param) {
+                    url.searchParams.delete(param);
+                });
+            }
+            window.history.replaceState(null, document.title, url.pathname + (url.search ? url.search : ''));
+            if (debugEnabled) {
+                console.log('[bw] Auth URL cleaned');
+            }
         };
 
         if (loggedOutParam) {
@@ -166,10 +210,6 @@
                         cleanAuthUrl(['bw_email_confirmed', 'code']);
                     }
                 }
-                if (getSessionStorageItem('bw_handled_email_confirm') !== '1') {
-                    setSessionStorageItem('bw_handled_email_confirm', '1');
-                    cleanAuthUrl(['bw_email_confirmed', 'code']);
-                }
             }
         }
 
@@ -218,7 +258,6 @@
                     }
                 }
             }
-            }
         }
 
         var projectUrl = authConfig.projectUrl || '';
@@ -232,7 +271,6 @@
         var oauthAppleEnabled = authConfig.oauthAppleEnabled !== undefined ? Boolean(authConfig.oauthAppleEnabled) : false;
         var passwordLoginEnabled = authConfig.passwordLoginEnabled !== undefined ? Boolean(authConfig.passwordLoginEnabled) : true;
         var registerPromptEnabled = authConfig.registerPromptEnabled !== undefined ? Boolean(authConfig.registerPromptEnabled) : true;
-        var debugEnabled = Boolean(authConfig.debug);
         var registrationMode = authConfig.registrationMode || 'R2';
         var messages = authConfig.messages || {};
 
@@ -291,32 +329,6 @@
             setFieldsState(step, isActive);
         };
 
-        var getSessionStorageItem = function (key) {
-            if (!window.sessionStorage) {
-                return '';
-            }
-            try {
-                return window.sessionStorage.getItem(key) || '';
-            } catch (error) {
-                return '';
-            }
-        };
-
-        var setSessionStorageItem = function (key, value) {
-            if (!window.sessionStorage) {
-                return;
-            }
-            try {
-                if (value) {
-                    window.sessionStorage.setItem(key, value);
-                } else {
-                    window.sessionStorage.removeItem(key);
-                }
-            } catch (error) {
-                logDebug('Unable to access sessionStorage', error);
-            }
-        };
-
         var cleanupAuthState = function () {
             setPendingOtpEmail('');
             clearAuthStorage();
@@ -326,23 +338,6 @@
             setPendingOtpEmail('');
             setSessionStorageItem('bw_pending_otp_email', '');
             setSessionStorageItem('bw_handled_supabase_hash', '');
-        };
-
-        var cleanAuthUrl = function (removeParams) {
-            if (!window.history || !window.history.replaceState) {
-                return;
-            }
-            var url = new URL(window.location.href);
-            url.hash = '';
-            if (removeParams && url.searchParams) {
-                removeParams.forEach(function (param) {
-                    url.searchParams.delete(param);
-                });
-            }
-            window.history.replaceState(null, document.title, url.pathname + (url.search ? url.search : ''));
-            if (debugEnabled) {
-                console.log('[bw] Auth URL cleaned');
-            }
         };
 
         var supabaseClient = null;
