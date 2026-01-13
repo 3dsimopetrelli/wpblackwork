@@ -103,18 +103,26 @@ function bw_mew_get_supabase_access_token( $user_id ) {
     $storage     = in_array( $storage, [ 'cookie', 'usermeta' ], true ) ? $storage : 'cookie';
     $cookie_base = get_option( 'bw_supabase_jwt_cookie_name', 'bw_supabase_session' );
     $cookie_base = sanitize_key( $cookie_base ) ?: 'bw_supabase_session';
+    $token       = '';
 
     if ( 'usermeta' === $storage && $user_id ) {
         $token = (string) get_user_meta( $user_id, 'bw_supabase_access_token', true );
-        return $token ? sanitize_text_field( $token ) : '';
+        $token = $token ? sanitize_text_field( $token ) : '';
     }
 
-    $cookie_name = $cookie_base . '_access';
-    if ( isset( $_COOKIE[ $cookie_name ] ) ) {
-        return sanitize_text_field( wp_unslash( $_COOKIE[ $cookie_name ] ) );
+    if ( ! $token ) {
+        $cookie_name = $cookie_base . '_access';
+        if ( isset( $_COOKIE[ $cookie_name ] ) ) {
+            $token = sanitize_text_field( wp_unslash( $_COOKIE[ $cookie_name ] ) );
+        }
     }
 
-    return '';
+    if ( ! $token && $user_id ) {
+        $meta_token = (string) get_user_meta( $user_id, 'bw_supabase_access_token', true );
+        $token      = $meta_token ? sanitize_text_field( $meta_token ) : '';
+    }
+
+    return $token;
 }
 
 /**
@@ -1281,6 +1289,23 @@ function bw_mew_handle_supabase_update_profile() {
 add_action( 'wp_ajax_bw_supabase_update_profile', 'bw_mew_handle_supabase_update_profile' );
 
 /**
+ * Validate Supabase password rules.
+ *
+ * @param string $password Supabase password.
+ *
+ * @return bool
+ */
+function bw_mew_supabase_password_meets_requirements( $password ) {
+    $length_ok    = strlen( $password ) >= 8;
+    $lowercase_ok = (bool) preg_match( '/[a-z]/', $password );
+    $uppercase_ok = (bool) preg_match( '/[A-Z]/', $password );
+    $number_ok    = (bool) preg_match( '/[0-9]/', $password );
+    $symbol_ok    = (bool) preg_match( '/[^A-Za-z0-9]/', $password );
+
+    return $length_ok && $lowercase_ok && $uppercase_ok && $number_ok && $symbol_ok;
+}
+
+/**
  * Update Supabase password via AJAX.
  */
 function bw_mew_handle_supabase_update_password() {
@@ -1306,6 +1331,10 @@ function bw_mew_handle_supabase_update_password() {
 
     if ( $new_password !== $confirm_password ) {
         wp_send_json_error( [ 'message' => __( 'Passwords do not match.', 'bw' ) ], 400 );
+    }
+
+    if ( ! bw_mew_supabase_password_meets_requirements( $new_password ) ) {
+        wp_send_json_error( [ 'message' => __( 'Password does not meet the requirements.', 'bw' ) ], 400 );
     }
 
     $response = bw_mew_supabase_update_user(

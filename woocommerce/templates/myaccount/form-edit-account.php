@@ -173,9 +173,25 @@ if ( has_action( 'woocommerce_before_edit_account_form' ) ) {
                             <input type="password" name="confirm_password" id="bw_security_password_confirm" autocomplete="new-password" required />
                         </div>
                     </div>
+                    <div class="bw-password-rules" data-bw-password-rules>
+                        <p class="bw-password-rules__title"><?php esc_html_e( 'Password must include:', 'bw' ); ?></p>
+                        <ul class="bw-password-rules__list">
+                            <li class="bw-password-rules__rule" data-bw-password-rule="length"><?php esc_html_e( 'At least 8 characters', 'bw' ); ?></li>
+                            <li class="bw-password-rules__rule" data-bw-password-rule="lowercase"><?php esc_html_e( 'One lowercase letter', 'bw' ); ?></li>
+                            <li class="bw-password-rules__rule" data-bw-password-rule="uppercase"><?php esc_html_e( 'One uppercase letter', 'bw' ); ?></li>
+                            <li class="bw-password-rules__rule" data-bw-password-rule="number"><?php esc_html_e( 'One number', 'bw' ); ?></li>
+                            <li class="bw-password-rules__rule" data-bw-password-rule="symbol"><?php esc_html_e( 'One special character', 'bw' ); ?></li>
+                        </ul>
+                    </div>
                     <div class="bw-account-form__messages">
                         <div class="bw-account-form__error" role="alert" aria-live="polite" hidden></div>
                         <div class="bw-account-form__success" role="status" aria-live="polite" hidden></div>
+                    </div>
+                    <div class="bw-account-security__missing-session" data-bw-supabase-missing-session hidden>
+                        <p><?php esc_html_e( 'Your Supabase session is missing. Please log in again to update your password.', 'bw' ); ?></p>
+                        <a class="button" href="<?php echo esc_url( wp_logout_url( wc_get_page_permalink( 'myaccount' ) ) ); ?>">
+                            <?php esc_html_e( 'Log in again', 'bw' ); ?>
+                        </a>
                     </div>
                     <p>
                         <button type="submit" class="button"><?php esc_html_e( 'Update password', 'bw' ); ?></button>
