@@ -6,6 +6,19 @@
         var loggedOutParam = searchParams.has('logged_out');
         var skipAuthHandlers = false;
         var debugEnabled = Boolean(authConfig.debug);
+        var shouldSignOutSupabase = loggedOutParam;
+        var reloadGuardKey = 'bw_account_reload_guard';
+        var bridgeAttemptKey = 'bw_supabase_bridge_attempted';
+        var logDebug = function (message, context) {
+            if (!debugEnabled) {
+                return;
+            }
+            if (context) {
+                console.log('[bw]', message, context);
+                return;
+            }
+            console.log('[bw]', message);
+        };
 
         var clearCookie = function (name) {
             document.cookie = name + '=; Max-Age=0; path=/; SameSite=Lax';
@@ -91,10 +104,61 @@
             }
         };
 
+        var updateReloadGuard = function () {
+            if (!window.sessionStorage) {
+                return false;
+            }
+            try {
+                var now = Date.now();
+                var state = {};
+                var rawState = sessionStorage.getItem(reloadGuardKey);
+                if (rawState) {
+                    state = JSON.parse(rawState) || {};
+                }
+                var last = state.last || 0;
+                var count = state.count || 0;
+                if (now - last < 3000) {
+                    count += 1;
+                } else {
+                    count = 1;
+                }
+                sessionStorage.setItem(reloadGuardKey, JSON.stringify({ last: now, count: count }));
+                return count > 1;
+            } catch (error) {
+                return false;
+            }
+        };
+
+        var resetReloadGuard = function () {
+            if (!window.sessionStorage) {
+                return;
+            }
+            try {
+                sessionStorage.removeItem(reloadGuardKey);
+            } catch (error) {
+                // ignore sessionStorage errors
+            }
+        };
+
+        var setBridgeAttempted = function (value) {
+            setSessionStorageItem(bridgeAttemptKey, value ? '1' : '');
+        };
+
+        var hasBridgeAttempted = function () {
+            return getSessionStorageItem(bridgeAttemptKey) === '1';
+        };
+
+        if (updateReloadGuard()) {
+            skipAuthHandlers = true;
+            logDebug('Auto-login aborted', { reason: 'reload_guard' });
+        }
+
         if (loggedOutParam) {
             clearAuthStorage();
             clearLoggedOutParam();
             skipAuthHandlers = true;
+            setBridgeAttempted(false);
+            resetReloadGuard();
         }
 
         var setFieldsState = function (container, isEnabled) {
@@ -296,17 +360,6 @@
             return fallback;
         };
 
-        var logDebug = function (message, context) {
-            if (!debugEnabled) {
-                return;
-            }
-            if (context) {
-                console.log('[bw]', message, context);
-                return;
-            }
-            console.log('[bw]', message);
-        };
-
         var showFormMessage = function (form, type, message) {
             if (!form) {
                 return;
@@ -359,6 +412,19 @@
             supabaseClient = window.supabase.createClient(projectUrl, anonKey);
             return supabaseClient;
         };
+
+        if (shouldSignOutSupabase) {
+            var supabaseForLogout = getSupabaseClient();
+            if (supabaseForLogout) {
+                supabaseForLogout.auth.signOut().then(function (response) {
+                    if (response && response.error) {
+                        logDebug('Supabase signOut failed', { message: response.error.message || 'unknown' });
+                        return;
+                    }
+                    logDebug('Supabase signOut success');
+                });
+            }
+        }
 
         var requestOtp = function (email) {
             var supabase = getSupabaseClient();
@@ -605,11 +671,14 @@
                 })
             })
                 .then(function (response) {
+                    logDebug('WP bridge response', { status: response.status, context: context || 'otp' });
                     return response.json();
                 })
                 .then(function (payload) {
                     cleanAuthUrl(['access_token', 'refresh_token', 'type', 'code', 'bw_email_confirmed']);
                     if (payload && payload.success && payload.data && payload.data.redirect) {
+                        setBridgeAttempted(false);
+                        resetReloadGuard();
                         window.location.href = payload.data.redirect;
                         return payload;
                     }
@@ -627,10 +696,26 @@
                 return;
             }
             setSessionStorageItem('bw_handled_session_check', '1');
-            supabase.auth.getUser().then(function (response) {
-                if (response && response.data && response.data.user) {
-                    supabaseSessionRedirect();
+            if (hasBridgeAttempted()) {
+                logDebug('Auto-bridge skipped', { reason: 'already_attempted' });
+                return;
+            }
+            supabase.auth.getSession().then(function (response) {
+                if (response && response.data && response.data.session) {
+                    logDebug('Supabase session found', { autoBridge: true });
+                    setBridgeAttempted(true);
+                    return bridgeSupabaseSession(
+                        response.data.session.access_token || '',
+                        response.data.session.refresh_token || '',
+                        'session'
+                    ).catch(function (error) {
+                        logDebug('Auto-bridge failed', { message: error && error.message ? error.message : 'unknown' });
+                        switchAuthScreen('magic');
+                    });
                 }
+                logDebug('Auto-bridge skipped', { reason: 'no_session' });
+                switchAuthScreen('magic');
+                return null;
             });
         };
 
@@ -723,6 +808,8 @@
             magicLinkForm.addEventListener('submit', function (event) {
                 event.preventDefault();
                 event.stopPropagation();
+                setBridgeAttempted(false);
+                resetReloadGuard();
                 if (!magicLinkEnabled) {
                     return;
                 }
@@ -769,6 +856,8 @@
             passwordLoginForm.addEventListener('submit', function (event) {
                 event.preventDefault();
                 event.stopPropagation();
+                setBridgeAttempted(false);
+                resetReloadGuard();
 
                 if (!projectUrl || !anonKey) {
                     showFormMessage(passwordLoginForm, 'error', getMessage('missingConfig', 'Supabase configuration is missing.'));
@@ -1133,6 +1222,8 @@
             otpForm.addEventListener('submit', function (event) {
                 event.preventDefault();
                 event.stopPropagation();
+                setBridgeAttempted(false);
+                resetReloadGuard();
 
                 if (otpConfirmButton && otpConfirmButton.disabled) {
                     return;
