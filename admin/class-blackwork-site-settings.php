@@ -207,6 +207,8 @@ function bw_site_render_account_page_tab() {
         $supabase_magic_link_enabled = isset($_POST['bw_supabase_magic_link_enabled']) ? 1 : 0;
         $supabase_oauth_google_enabled = isset($_POST['bw_supabase_oauth_google_enabled']) ? 1 : 0;
         $supabase_oauth_facebook_enabled = isset($_POST['bw_supabase_oauth_facebook_enabled']) ? 1 : 0;
+        $supabase_password_enabled = isset($_POST['bw_supabase_login_password_enabled']) ? 1 : 0;
+        $supabase_register_prompt_enabled = isset($_POST['bw_supabase_register_prompt_enabled']) ? 1 : 0;
         $supabase_magic_link_redirect = isset($_POST['bw_supabase_magic_link_redirect_url']) ? esc_url_raw(trim($_POST['bw_supabase_magic_link_redirect_url'])) : '';
         $supabase_oauth_redirect = isset($_POST['bw_supabase_oauth_redirect_url']) ? esc_url_raw(trim($_POST['bw_supabase_oauth_redirect_url'])) : '';
         $supabase_signup_redirect = isset($_POST['bw_supabase_signup_redirect_url']) ? esc_url_raw(trim($_POST['bw_supabase_signup_redirect_url'])) : '';
@@ -262,6 +264,8 @@ function bw_site_render_account_page_tab() {
         update_option('bw_supabase_magic_link_enabled', $supabase_magic_link_enabled);
         update_option('bw_supabase_oauth_google_enabled', $supabase_oauth_google_enabled);
         update_option('bw_supabase_oauth_facebook_enabled', $supabase_oauth_facebook_enabled);
+        update_option('bw_supabase_login_password_enabled', $supabase_password_enabled);
+        update_option('bw_supabase_register_prompt_enabled', $supabase_register_prompt_enabled);
         update_option('bw_supabase_magic_link_redirect_url', $supabase_magic_link_redirect);
         update_option('bw_supabase_oauth_redirect_url', $supabase_oauth_redirect);
         update_option('bw_supabase_signup_redirect_url', $supabase_signup_redirect);
@@ -306,6 +310,8 @@ function bw_site_render_account_page_tab() {
     $supabase_magic_link_enabled = (int) get_option('bw_supabase_magic_link_enabled', 1);
     $supabase_oauth_google_enabled = (int) get_option('bw_supabase_oauth_google_enabled', 1);
     $supabase_oauth_facebook_enabled = (int) get_option('bw_supabase_oauth_facebook_enabled', 1);
+    $supabase_password_enabled = (int) get_option('bw_supabase_login_password_enabled', 1);
+    $supabase_register_prompt_enabled = (int) get_option('bw_supabase_register_prompt_enabled', 1);
     $supabase_magic_link_redirect = get_option('bw_supabase_magic_link_redirect_url', site_url('/my-account/'));
     $supabase_oauth_redirect = get_option('bw_supabase_oauth_redirect_url', site_url('/my-account/'));
     $supabase_signup_redirect = get_option('bw_supabase_signup_redirect_url', site_url('/my-account/?bw_email_confirmed=1'));
@@ -736,6 +742,24 @@ function bw_site_render_account_page_tab() {
                     <label style="display:block;">
                         <input type="checkbox" id="bw_supabase_oauth_facebook_enabled" name="bw_supabase_oauth_facebook_enabled" value="1" <?php checked( 1, $supabase_oauth_facebook_enabled ); ?> />
                         <?php esc_html_e( 'Enable Facebook OAuth', 'bw' ); ?>
+                    </label>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row"><?php esc_html_e( 'Password login', 'bw' ); ?></th>
+                <td>
+                    <label>
+                        <input type="checkbox" id="bw_supabase_login_password_enabled" name="bw_supabase_login_password_enabled" value="1" <?php checked( 1, $supabase_password_enabled ); ?> />
+                        <?php esc_html_e( 'Enable login with password button', 'bw' ); ?>
+                    </label>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row"><?php esc_html_e( 'Register prompt', 'bw' ); ?></th>
+                <td>
+                    <label>
+                        <input type="checkbox" id="bw_supabase_register_prompt_enabled" name="bw_supabase_register_prompt_enabled" value="1" <?php checked( 1, $supabase_register_prompt_enabled ); ?> />
+                        <?php esc_html_e( 'Show “Don’t have an account? Register” prompt', 'bw' ); ?>
                     </label>
                 </td>
             </tr>

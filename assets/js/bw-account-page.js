@@ -167,6 +167,8 @@
         var magicLinkEnabled = window.bwAccountAuth ? Boolean(window.bwAccountAuth.magicLinkEnabled) : true;
         var oauthGoogleEnabled = window.bwAccountAuth ? Boolean(window.bwAccountAuth.oauthGoogleEnabled) : true;
         var oauthFacebookEnabled = window.bwAccountAuth ? Boolean(window.bwAccountAuth.oauthFacebookEnabled) : true;
+        var passwordLoginEnabled = window.bwAccountAuth ? Boolean(window.bwAccountAuth.passwordLoginEnabled) : true;
+        var registerPromptEnabled = window.bwAccountAuth ? Boolean(window.bwAccountAuth.registerPromptEnabled) : true;
         var debugEnabled = window.bwAccountAuth ? Boolean(window.bwAccountAuth.debug) : false;
         var registrationMode = window.bwAccountAuth ? window.bwAccountAuth.registrationMode : 'R2';
         var cookieBase = window.bwAccountAuth ? window.bwAccountAuth.cookieBase : 'bw_supabase_session';
@@ -715,7 +717,7 @@
             });
         }
 
-        if (passwordLoginForm) {
+        if (passwordLoginEnabled && passwordLoginForm) {
             passwordLoginForm.addEventListener('submit', function (event) {
                 event.preventDefault();
                 event.stopPropagation();
@@ -774,7 +776,7 @@
             });
         }
 
-        if (goPasswordButton) {
+        if (passwordLoginEnabled && goPasswordButton) {
             goPasswordButton.addEventListener('click', function (event) {
                 event.preventDefault();
                 event.stopPropagation();
@@ -795,15 +797,15 @@
 
         if (oauthButtons.length) {
             oauthButtons.forEach(function (button) {
+                var provider = button.getAttribute('data-bw-oauth-provider');
+                if (provider === 'google' && !oauthGoogleEnabled) {
+                    return;
+                }
+                if (provider === 'facebook' && !oauthFacebookEnabled) {
+                    return;
+                }
                 button.addEventListener('click', function () {
                     if (!projectUrl) {
-                        return;
-                    }
-                    var provider = button.getAttribute('data-bw-oauth-provider');
-                    if (provider === 'google' && !oauthGoogleEnabled) {
-                        return;
-                    }
-                    if (provider === 'facebook' && !oauthFacebookEnabled) {
                         return;
                     }
                     var redirectTo = oauthRedirect || window.location.origin + '/my-account/';
