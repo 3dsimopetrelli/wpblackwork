@@ -262,8 +262,15 @@
             setSessionStorageItem('bw_handled_supabase_hash', '');
             setSessionStorageItem('bw_handled_email_confirm', '');
             setSessionStorageItem('bw_handled_token_login', '');
+            setSessionStorageItem('bw_handled_session_check', '');
             clearCookie(cookieBase + '_access');
             clearCookie(cookieBase + '_refresh');
+        };
+
+        var clearOtpPendingState = function () {
+            setPendingOtpEmail('');
+            setSessionStorageItem('bw_pending_otp_email', '');
+            setSessionStorageItem('bw_handled_supabase_hash', '');
         };
 
         var cleanAuthUrl = function (removeParams) {
@@ -766,6 +773,22 @@
         var url = new URL(window.location.href);
         if (url.pathname.indexOf('customer-logout') !== -1 || url.searchParams.get('loggedout') === 'true') {
             cleanupAuthState();
+            clearOtpPendingState();
+        }
+
+        var logoutLinks = Array.prototype.slice.call(document.querySelectorAll('a[href*="customer-logout"]'));
+        if (logoutLinks.length) {
+            logoutLinks.forEach(function (link) {
+                link.addEventListener('click', function () {
+                    cleanupAuthState();
+                    clearOtpPendingState();
+                });
+            });
+        }
+
+        if (document.body.classList.contains('bw-account-login-only')) {
+            clearOtpPendingState();
+            switchAuthScreen('magic');
         }
 
         if (registerForm) {
@@ -778,7 +801,7 @@
 
         if (authScreens.length) {
             var storedEmail = getPendingOtpEmail();
-            if (storedEmail) {
+            if (!document.body.classList.contains('bw-account-login-only') && storedEmail) {
                 switchAuthScreen('otp');
             } else {
                 switchAuthScreen('magic');
