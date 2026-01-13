@@ -235,6 +235,93 @@
             return supabaseClient;
         };
 
+        var requestOtp = function (email) {
+            var supabase = getSupabaseClient();
+            var redirectTo = magicLinkRedirect || window.location.origin + '/my-account/';
+            var shouldCreateUser = registrationMode === 'R2';
+
+            if (supabase) {
+                return supabase.auth.signInWithOtp({
+                    email: email,
+                    options: {
+                        emailRedirectTo: redirectTo,
+                        shouldCreateUser: shouldCreateUser
+                    }
+                });
+            }
+
+            if (!projectUrl || !anonKey) {
+                return Promise.resolve({ error: new Error(getMessage('missingConfig', 'Supabase configuration is missing.')) });
+            }
+
+            return fetch(projectUrl.replace(/\/$/, '') + '/auth/v1/otp', {
+                method: 'POST',
+                headers: {
+                    apikey: anonKey,
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json'
+                },
+                body: JSON.stringify({
+                    email: email,
+                    options: {
+                        email_redirect_to: redirectTo,
+                        should_create_user: shouldCreateUser
+                    }
+                })
+            }).then(function (response) {
+                if (!response.ok) {
+                    return response.json().then(function (payload) {
+                        var message = payload && (payload.msg || payload.message) ? (payload.msg || payload.message) : getMessage('magicLinkError', 'Unable to send magic link.');
+                        throw new Error(message);
+                    });
+                }
+                return { data: {} };
+            }).catch(function (error) {
+                return { error: error };
+            });
+        };
+
+        var verifyOtp = function (email, code) {
+            var supabase = getSupabaseClient();
+            if (supabase) {
+                return supabase.auth.verifyOtp({
+                    email: email,
+                    token: code,
+                    type: 'email'
+                });
+            }
+
+            if (!projectUrl || !anonKey) {
+                return Promise.resolve({ error: new Error(getMessage('missingConfig', 'Supabase configuration is missing.')) });
+            }
+
+            return fetch(projectUrl.replace(/\/$/, '') + '/auth/v1/verify', {
+                method: 'POST',
+                headers: {
+                    apikey: anonKey,
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json'
+                },
+                body: JSON.stringify({
+                    email: email,
+                    token: code,
+                    type: 'email'
+                })
+            }).then(function (response) {
+                if (!response.ok) {
+                    return response.json().then(function (payload) {
+                        var message = payload && (payload.msg || payload.message) ? (payload.msg || payload.message) : getMessage('otpVerifyError', 'Unable to verify the code.');
+                        throw new Error(message);
+                    });
+                }
+                return response.json();
+            }).then(function (payload) {
+                return { data: payload };
+            }).catch(function (error) {
+                return { error: error };
+            });
+        };
+
         var setPendingOtpEmail = function (email) {
             pendingOtpEmail = email;
             if (otpEmailText) {
@@ -468,19 +555,10 @@
                 showFormMessage(magicLinkForm, 'success', '');
                 showFormMessage(magicLinkForm, 'error', '');
 
-                var shouldCreateUser = registrationMode === 'R2';
-
                 logDebug('Supabase OTP request', { redirect_to: magicLinkRedirect });
 
                 // Supabase email templates control OTP vs link ({{ .Token }} vs {{ .ConfirmationURL }}).
-                supabase.auth
-                    .signInWithOtp({
-                        email: emailValue,
-                        options: {
-                            emailRedirectTo: magicLinkRedirect || window.location.origin + '/my-account/',
-                            shouldCreateUser: shouldCreateUser
-                        }
-                    })
+                requestOtp(emailValue)
                     .then(function (response) {
                         if (response && response.error) {
                             throw response.error;
@@ -695,12 +773,6 @@
                 event.preventDefault();
                 event.stopPropagation();
 
-                var supabase = getSupabaseClient();
-                if (!supabase) {
-                    showFormMessage(otpForm, 'error', getMessage('missingConfig', 'Supabase configuration is missing.'));
-                    return;
-                }
-
                 var emailValue = getPendingOtpEmail();
                 if (!emailValue) {
                     switchAuthScreen('magic');
@@ -719,12 +791,7 @@
                 showFormMessage(otpForm, 'success', '');
                 setOtpInputsError(false);
 
-                supabase.auth
-                    .verifyOtp({
-                        email: emailValue,
-                        token: code,
-                        type: 'email'
-                    })
+                verifyOtp(emailValue, code)
                     .then(function (response) {
                         if (response && response.error) {
                             throw response.error;
@@ -748,12 +815,6 @@
                 event.preventDefault();
                 event.stopPropagation();
 
-                var supabase = getSupabaseClient();
-                if (!supabase) {
-                    showFormMessage(otpForm, 'error', getMessage('missingConfig', 'Supabase configuration is missing.'));
-                    return;
-                }
-
                 var emailValue = getPendingOtpEmail();
                 if (!emailValue) {
                     switchAuthScreen('magic');
@@ -763,14 +824,7 @@
 
                 otpResendButton.disabled = true;
 
-                supabase.auth
-                    .signInWithOtp({
-                        email: emailValue,
-                        options: {
-                            emailRedirectTo: magicLinkRedirect || window.location.origin + '/my-account/',
-                            shouldCreateUser: registrationMode === 'R2'
-                        }
-                    })
+                requestOtp(emailValue)
                     .then(function (response) {
                         if (response && response.error) {
                             throw response.error;
