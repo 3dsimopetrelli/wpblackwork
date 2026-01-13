@@ -3,6 +3,20 @@
         return;
     }
 
+    var handledKey = 'bw_handled_supabase_hash';
+    if (window.sessionStorage) {
+        try {
+            if (sessionStorage.getItem(handledKey) === '1') {
+                if (window.history && window.history.replaceState) {
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }
+                return;
+            }
+        } catch (error) {
+            // ignore sessionStorage errors
+        }
+    }
+
     var hash = window.location.hash.replace(/^#/, '');
     if (!hash) {
         return;
@@ -18,9 +32,14 @@
     }
 
     if (window.sessionStorage) {
-        sessionStorage.setItem('bw_supabase_access_token', accessToken);
-        if (refreshToken) {
-            sessionStorage.setItem('bw_supabase_refresh_token', refreshToken);
+        try {
+            sessionStorage.setItem('bw_supabase_access_token', accessToken);
+            if (refreshToken) {
+                sessionStorage.setItem('bw_supabase_refresh_token', refreshToken);
+            }
+            sessionStorage.setItem(handledKey, '1');
+        } catch (error) {
+            // ignore sessionStorage errors
         }
     }
 
