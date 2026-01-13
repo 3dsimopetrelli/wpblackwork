@@ -57,6 +57,17 @@ body.woocommerce-account .woocommerce-MyAccount-navigation li.is-active a {
     border-left-color: #000;
 }
 
+body.woocommerce-account.bw-onboarding-lock .woocommerce-MyAccount-navigation {
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+body.woocommerce-account.bw-onboarding-lock .woocommerce-MyAccount-navigation li.woocommerce-MyAccount-navigation-link--customer-logout,
+body.woocommerce-account.bw-onboarding-lock .woocommerce-MyAccount-navigation li.woocommerce-MyAccount-navigation-link--customer-logout a {
+    pointer-events: auto;
+    opacity: 1;
+}
+
 body.woocommerce-account .woocommerce-MyAccount-navigation .bw-account-label {
     position: relative;
     display: inline-block;
@@ -89,6 +100,79 @@ body.woocommerce-account .woocommerce-MyAccount-navigation li a:focus .bw-accoun
 .bw-account-content {
     background: #fafafa;
     padding: 0;
+}
+
+.bw-account-set-password {
+    background: #fff;
+    padding: 32px;
+    border: 1px solid #e5e5e5;
+    max-width: 520px;
+}
+
+.bw-account-set-password__title {
+    margin: 0 0 12px;
+    font-size: 28px;
+}
+
+.bw-account-set-password__intro {
+    margin: 0 0 24px;
+    color: #4a4a4a;
+}
+
+.bw-account-set-password__error,
+.bw-account-set-password__success {
+    margin: 12px 0;
+    padding: 10px 12px;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.bw-account-set-password__missing-token {
+    margin: 12px 0;
+    padding: 16px;
+    border-radius: 4px;
+    background: #fff8db;
+    color: #5a4100;
+    font-size: 14px;
+}
+
+.bw-account-set-password__resend-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.bw-account-set-password__label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+
+.bw-account-set-password__email {
+    margin: 0 0 12px;
+    width: 100%;
+    max-width: 320px;
+}
+
+.bw-account-set-password__cta {
+    margin-top: 8px;
+}
+
+.bw-account-set-password__notice {
+    margin: 12px 0 0;
+    color: #1e5b36;
+}
+
+.bw-account-set-password__error {
+    background: #fdecea;
+    color: #7a1a12;
+}
+
+.bw-account-set-password__success {
+    background: #e7f7ec;
+    color: #1e5b36;
 }
 
 body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw-account-title {
