@@ -172,6 +172,7 @@ function bw_mew_enqueue_account_page_assets() {
             'magicLinkEnabled' => (int) get_option( 'bw_supabase_magic_link_enabled', 1 ),
             'oauthGoogleEnabled' => (int) get_option( 'bw_supabase_oauth_google_enabled', 1 ),
             'oauthFacebookEnabled' => (int) get_option( 'bw_supabase_oauth_facebook_enabled', 1 ),
+            'oauthAppleEnabled' => (int) get_option( 'bw_supabase_oauth_apple_enabled', 0 ),
             'passwordLoginEnabled' => (int) get_option( 'bw_supabase_login_password_enabled', 1 ),
             'registerPromptEnabled' => (int) get_option( 'bw_supabase_register_prompt_enabled', 1 ),
             'debug' => (int) get_option( 'bw_supabase_debug_log', 0 ),

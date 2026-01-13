@@ -167,6 +167,7 @@
         var magicLinkEnabled = window.bwAccountAuth ? Boolean(window.bwAccountAuth.magicLinkEnabled) : true;
         var oauthGoogleEnabled = window.bwAccountAuth ? Boolean(window.bwAccountAuth.oauthGoogleEnabled) : true;
         var oauthFacebookEnabled = window.bwAccountAuth ? Boolean(window.bwAccountAuth.oauthFacebookEnabled) : true;
+        var oauthAppleEnabled = window.bwAccountAuth ? Boolean(window.bwAccountAuth.oauthAppleEnabled) : false;
         var passwordLoginEnabled = window.bwAccountAuth ? Boolean(window.bwAccountAuth.passwordLoginEnabled) : true;
         var registerPromptEnabled = window.bwAccountAuth ? Boolean(window.bwAccountAuth.registerPromptEnabled) : true;
         var debugEnabled = window.bwAccountAuth ? Boolean(window.bwAccountAuth.debug) : false;
@@ -804,7 +805,14 @@
                 if (provider === 'facebook' && !oauthFacebookEnabled) {
                     return;
                 }
+                if (provider === 'apple' && !oauthAppleEnabled) {
+                    return;
+                }
                 button.addEventListener('click', function () {
+                    if (provider === 'apple') {
+                        showFormMessage(magicLinkForm, 'success', 'Apple login coming soon.');
+                        return;
+                    }
                     if (!projectUrl) {
                         return;
                     }
