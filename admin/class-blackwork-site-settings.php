@@ -189,9 +189,6 @@ function bw_site_render_account_page_tab() {
         $facebook_app_secret  = isset($_POST['bw_account_facebook_app_secret']) ? sanitize_text_field($_POST['bw_account_facebook_app_secret']) : '';
         $google_client_id     = isset($_POST['bw_account_google_client_id']) ? sanitize_text_field($_POST['bw_account_google_client_id']) : '';
         $google_client_secret = isset($_POST['bw_account_google_client_secret']) ? sanitize_text_field($_POST['bw_account_google_client_secret']) : '';
-        $description          = isset($_POST['bw_account_description']) ? wp_kses_post($_POST['bw_account_description']) : '';
-        $back_text            = isset($_POST['bw_account_back_text']) ? sanitize_text_field($_POST['bw_account_back_text']) : 'go back to store';
-        $back_url             = isset($_POST['bw_account_back_url']) ? esc_url_raw($_POST['bw_account_back_url']) : '';
         $passwordless_url     = isset($_POST['bw_account_passwordless_url']) ? esc_url_raw($_POST['bw_account_passwordless_url']) : '';
         $supabase_project_url     = isset($_POST['bw_supabase_project_url']) ? esc_url_raw(trim($_POST['bw_supabase_project_url'])) : '';
         $supabase_anon_key        = isset($_POST['bw_supabase_anon_key']) ? sanitize_textarea_field(trim($_POST['bw_supabase_anon_key'])) : '';
@@ -247,9 +244,6 @@ function bw_site_render_account_page_tab() {
         update_option('bw_account_facebook_app_secret', $facebook_app_secret);
         update_option('bw_account_google_client_id', $google_client_id);
         update_option('bw_account_google_client_secret', $google_client_secret);
-        update_option('bw_account_description', $description);
-        update_option('bw_account_back_text', $back_text);
-        update_option('bw_account_back_url', $back_url);
         update_option('bw_account_passwordless_url', $passwordless_url);
         update_option('bw_supabase_project_url', $supabase_project_url);
         update_option('bw_supabase_anon_key', $supabase_anon_key);
@@ -294,9 +288,6 @@ function bw_site_render_account_page_tab() {
     $facebook_app_secret  = get_option('bw_account_facebook_app_secret', '');
     $google_client_id     = get_option('bw_account_google_client_id', '');
     $google_client_secret = get_option('bw_account_google_client_secret', '');
-    $description          = get_option('bw_account_description', '');
-    $back_text            = get_option('bw_account_back_text', 'go back to store');
-    $back_url             = get_option('bw_account_back_url', '');
     $passwordless_url     = get_option('bw_account_passwordless_url', '');
     $supabase_project_url  = get_option('bw_supabase_project_url', '');
     $supabase_anon_key     = get_option('bw_supabase_anon_key', '');
@@ -413,15 +404,6 @@ function bw_site_render_account_page_tab() {
                         <input type="checkbox" id="bw_account_google" name="bw_account_google" value="1" <?php checked(1, $google); ?> />
                         Enable Google Login
                     </label>
-                </td>
-            </tr>
-            <tr>
-                <th scope="row">
-                    <label for="bw_account_description">Testo descrizione</label>
-                </th>
-                <td>
-                    <textarea id="bw_account_description" name="bw_account_description" rows="4" class="large-text"><?php echo esc_textarea($description); ?></textarea>
-                    <p class="description">Paragrafo mostrato sotto il pulsante "Log in Without Password".</p>
                 </td>
             </tr>
 
@@ -581,24 +563,6 @@ function bw_site_render_account_page_tab() {
                 <td>
                     <input type="text" readonly class="regular-text" value="<?php echo esc_url($google_redirect); ?>" />
                     <p class="description"><?php esc_html_e('Configure this URL in the authorized redirect URIs in the Google Cloud Console.', 'bw'); ?></p>
-                </td>
-            </tr>
-            <tr>
-                <th scope="row">
-                    <label for="bw_account_back_text">Testo link "Go back to store"</label>
-                </th>
-                <td>
-                    <input type="text" id="bw_account_back_text" name="bw_account_back_text" value="<?php echo esc_attr($back_text); ?>" class="regular-text" placeholder="go back to store" />
-                    <p class="description">Testo mostrato in fondo al layout di login.</p>
-                </td>
-            </tr>
-            <tr>
-                <th scope="row">
-                    <label for="bw_account_back_url">URL link "Go back to store"</label>
-                </th>
-                <td>
-                    <input type="url" id="bw_account_back_url" name="bw_account_back_url" value="<?php echo esc_attr($back_url); ?>" class="regular-text" placeholder="<?php echo esc_url(home_url('/')); ?>" />
-                    <p class="description">Lascia vuoto per usare l'home URL del sito.</p>
                 </td>
             </tr>
             <tr>

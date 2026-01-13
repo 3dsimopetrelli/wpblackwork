@@ -15,11 +15,6 @@ $logo                = get_option( 'bw_account_logo', '' );
 $logo_width          = (int) get_option( 'bw_account_logo_width', 180 );
 $logo_padding_top    = (int) get_option( 'bw_account_logo_padding_top', 0 );
 $logo_padding_bottom = (int) get_option( 'bw_account_logo_padding_bottom', 30 );
-$description         = get_option( 'bw_account_description', '' );
-$show_description    = apply_filters( 'bw_account_show_description', true );
-$back_text           = get_option( 'bw_account_back_text', 'go back to store' );
-$back_url            = get_option( 'bw_account_back_url', '' );
-$back_url            = $back_url ? $back_url : home_url( '/' );
 $registration_mode   = get_option( 'bw_supabase_registration_mode', 'R2' );
 $login_mode          = get_option( 'bw_supabase_login_mode', 'native' );
 $provider_signup_url = get_option( 'bw_supabase_provider_signup_url', '' );
@@ -55,10 +50,6 @@ if ( ! $show_supabase_register && 'register' === $active_tab ) {
                     <div class="bw-account-login__logo" style="padding-top: <?php echo absint( $logo_padding_top ); ?>px; padding-bottom: <?php echo absint( $logo_padding_bottom ); ?>px;">
                         <img src="<?php echo esc_url( $logo ); ?>" alt="<?php esc_attr_e( 'Account logo', 'bw' ); ?>" style="max-width: <?php echo absint( $logo_width ); ?>px;" />
                     </div>
-                <?php endif; ?>
-
-                <?php if ( $description && $show_description ) : ?>
-                    <div class="bw-auth-description"><?php echo wpautop( wp_kses_post( $description ) ); ?></div>
                 <?php endif; ?>
 
                 <div class="bw-account-auth" data-bw-default-tab="<?php echo esc_attr( $active_tab ); ?>" data-bw-email-confirmed="<?php echo isset( $_GET['bw_email_confirmed'] ) ? esc_attr( sanitize_text_field( wp_unslash( $_GET['bw_email_confirmed'] ) ) ) : ''; ?>">
@@ -125,8 +116,8 @@ if ( ! $show_supabase_register && 'register' === $active_tab ) {
                                         <button type="submit" class="woocommerce-button button bw-account-login__submit" data-bw-supabase-submit><?php esc_html_e( 'Log in', 'bw' ); ?></button>
                                     </p>
                                 </form>
-                                <p class="bw-auth-screen__back">
-                                    <button type="button" class="bw-auth-btn bw-auth-btn--back" data-bw-go-magic>← <?php esc_html_e( 'Go back', 'bw' ); ?></button>
+                                <p class="bw-account-login__back-to-login">
+                                    <button type="button" class="bw-account-login__back-link" data-bw-go-magic>← <?php esc_html_e( 'Back to Login', 'bw' ); ?></button>
                                 </p>
                             </div>
 
@@ -197,10 +188,6 @@ if ( ! $show_supabase_register && 'register' === $active_tab ) {
                         <?php endif; ?>
                     </div>
 
-                </div>
-
-                <div class="bw-account-login__back">
-                    <a href="<?php echo esc_url( $back_url ); ?>"><?php echo esc_html( $back_text ); ?> <span aria-hidden="true">→</span></a>
                 </div>
 
                 <?php do_action( 'woocommerce_after_customer_login_form' ); ?>

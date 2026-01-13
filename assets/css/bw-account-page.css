@@ -361,26 +361,6 @@ body.woocommerce-account.bw-account-login-only .bw-account-auth__tab.is-active::
     transform: translateY(-1px);
 }
 
-.bw-auth-screen__back {
-    margin-top: 14px;
-    text-align: center;
-}
-
-.bw-auth-btn--back {
-    width: auto;
-    padding: 0;
-    border: none;
-    background: none;
-    color: #000;
-    font-size: 13px;
-}
-
-.bw-auth-btn--back:hover,
-.bw-auth-btn--back:focus-visible {
-    color: #777;
-    transform: none;
-}
-
 .bw-account-login__divider {
     display: flex;
     align-items: center;
@@ -726,34 +706,6 @@ body.woocommerce-account.bw-account-login-only .bw-account-login__back-link:focu
     right: 0;
     height: 2px;
     background-color: #777;
-}
-
-.bw-auth-description {
-    margin: 18px 0 20px;
-    color: #303030;
-    font-size: 14px;
-    line-height: 1.6;
-}
-
-.bw-auth-description p {
-    margin: 0 0 8px;
-}
-
-.bw-account-login__back {
-    margin-top: 26px;
-    text-align: center;
-    font-size: 12px;
-}
-
-.bw-account-login__back a {
-    color: #9b9b9b;
-    text-decoration: none;
-    letter-spacing: 0.3px;
-}
-
-.bw-account-login__back a:hover,
-.bw-account-login__back a:focus-visible {
-    text-decoration: underline;
 }
 
 @media (max-width: 1024px) {

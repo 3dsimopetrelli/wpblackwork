@@ -94,6 +94,24 @@ function bw_initialize_plugin_components() {
 add_action( 'init', 'bw_initialize_plugin_components', 5 );
 
 /**
+ * Clean up removed account description option.
+ */
+function bw_cleanup_account_description_option() {
+    $options = [
+        'bw_account_description',
+        'bw_account_back_text',
+        'bw_account_back_url',
+    ];
+
+    foreach ( $options as $option ) {
+        if ( false !== get_option( $option ) ) {
+            delete_option( $option );
+        }
+    }
+}
+add_action( 'init', 'bw_cleanup_account_description_option', 6 );
+
+/**
  * Load WooCommerce-specific components after WooCommerce initializes.
  */
 function bw_initialize_woocommerce_components() {
