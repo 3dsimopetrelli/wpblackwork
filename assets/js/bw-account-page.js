@@ -225,10 +225,13 @@
             if (supabaseClient) {
                 return supabaseClient;
             }
-            if (!window.supabase || !window.supabase.createClient) {
+            if (!projectUrl || !anonKey) {
                 return null;
             }
-            if (!projectUrl || !anonKey) {
+            if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+                if (debugEnabled) {
+                    console.warn(getMessage('supabaseSdkMissing', 'Supabase JS SDK is not loaded.'));
+                }
                 return null;
             }
             supabaseClient = window.supabase.createClient(projectUrl, anonKey);
@@ -263,9 +266,9 @@
                 },
                 body: JSON.stringify({
                     email: email,
+                    create_user: shouldCreateUser,
                     options: {
-                        email_redirect_to: redirectTo,
-                        should_create_user: shouldCreateUser
+                        email_redirect_to: redirectTo
                     }
                 })
             }).then(function (response) {
