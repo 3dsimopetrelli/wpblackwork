@@ -118,7 +118,8 @@ body.woocommerce-checkout:not(.elementor-editor-active) .entry-title {
     }
 }
 
-/* Hide all WooCommerce notices on checkout page - AGGRESSIVE */
+/* TEMPORARILY DISABLED - User wants to see how notices look */
+/*
 .woocommerce-checkout .woocommerce-notices-wrapper,
 .woocommerce-checkout .woocommerce-message,
 .woocommerce-checkout .woocommerce-error,
@@ -151,6 +152,7 @@ body.woocommerce-checkout .woocommerce-info {
     position: absolute !important;
     left: -9999px !important;
 }
+*/
 
 /* ============================================
    FORCE ZERO SPACING - Override ALL theme/plugin CSS
