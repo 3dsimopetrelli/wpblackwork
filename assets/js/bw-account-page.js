@@ -715,14 +715,70 @@
             });
         }
 
-        submitAjaxForm(passwordLoginForm, 'bw_supabase_login', {
-            defaultError: getMessage('loginError', 'Unable to login.')
-        });
+        if (passwordLoginForm) {
+            passwordLoginForm.addEventListener('submit', function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                if (!projectUrl || !anonKey) {
+                    showFormMessage(passwordLoginForm, 'error', getMessage('missingConfig', 'Supabase configuration is missing.'));
+                    return;
+                }
+
+                var supabase = getSupabaseClient();
+                if (!supabase) {
+                    showFormMessage(passwordLoginForm, 'error', getMessage('missingConfig', 'Supabase configuration is missing.'));
+                    return;
+                }
+
+                var emailField = passwordLoginForm.querySelector('input[type="email"]');
+                var passwordField = passwordLoginForm.querySelector('input[type="password"]');
+                var emailValue = emailField ? emailField.value.trim() : '';
+                var passwordValue = passwordField ? passwordField.value : '';
+
+                if (!emailValue || !passwordValue) {
+                    showFormMessage(passwordLoginForm, 'error', getMessage('loginError', 'Invalid email or password.'));
+                    return;
+                }
+
+                var submitButton = passwordLoginForm.querySelector('[data-bw-supabase-submit]');
+                if (submitButton) {
+                    submitButton.disabled = true;
+                }
+
+                showFormMessage(passwordLoginForm, 'error', '');
+                showFormMessage(passwordLoginForm, 'success', '');
+
+                supabase.auth
+                    .signInWithPassword({
+                        email: emailValue,
+                        password: passwordValue
+                    })
+                    .then(function (response) {
+                        if (response && response.error) {
+                            throw response.error;
+                        }
+                        var session = response && response.data ? response.data.session : null;
+                        var accessToken = session ? session.access_token : '';
+                        var refreshToken = session ? session.refresh_token : '';
+                        return bridgeSupabaseSession(accessToken, refreshToken, 'password');
+                    })
+                    .catch(function () {
+                        showFormMessage(passwordLoginForm, 'error', getMessage('loginError', 'Invalid email or password.'));
+                    })
+                    .finally(function () {
+                        if (submitButton) {
+                            submitButton.disabled = false;
+                        }
+                    });
+            });
+        }
 
         if (goPasswordButton) {
             goPasswordButton.addEventListener('click', function (event) {
                 event.preventDefault();
                 event.stopPropagation();
+                clearOtpPendingState();
                 switchAuthScreen('password');
             });
         }
@@ -1037,6 +1093,8 @@
          * - Resend works
          * - Back to Login returns to email screen with fade-up
          * - Refresh on OTP screen retains email (localStorage) and allows verification
+         * - Email + password logs in and redirects to /my-account/
+         * - Wrong password stays on password screen with error
          */
     });
 })();
