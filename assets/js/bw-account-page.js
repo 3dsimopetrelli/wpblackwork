@@ -365,7 +365,8 @@
                 return '';
             }
             return otpInputs.map(function (input) {
-                return input.value.replace(/\D/g, '');
+                var digit = input.value.replace(/\D/g, '');
+                return digit ? digit.charAt(0) : '';
             }).join('');
         };
 
@@ -376,12 +377,16 @@
             otpInputsWrap.classList.toggle('is-error', hasError);
         };
 
-        var updateOtpConfirmState = function () {
+        var updateOtpState = function () {
             if (!otpConfirmButton) {
                 return;
             }
             var code = getOtpCode();
-            otpConfirmButton.disabled = code.length !== 6;
+            var isValid = code.length === 6 && /^\d{6}$/.test(code);
+            otpConfirmButton.disabled = !isValid;
+            if (debugEnabled) {
+                console.log('[bw] OTP state', { length: code.length, enabled: isValid });
+            }
         };
 
         var setScreenState = function (screen, isActive) {
@@ -441,8 +446,25 @@
                 if (otpInputs.length) {
                     otpInputs[0].focus();
                 }
-                updateOtpConfirmState();
+                updateOtpState();
             }
+        };
+
+        var supabaseSessionRedirect = function () {
+            setPendingOtpEmail('');
+            window.location.href = magicLinkRedirect || window.location.origin + '/my-account/';
+        };
+
+        var checkExistingSession = function () {
+            var supabase = getSupabaseClient();
+            if (!supabase) {
+                return;
+            }
+            supabase.auth.getUser().then(function (response) {
+                if (response && response.data && response.data.user) {
+                    supabaseSessionRedirect();
+                }
+            });
         };
 
         if (debugEnabled) {
@@ -637,6 +659,8 @@
             showRegisterStep(initialStepName || 'email');
         }
 
+        checkExistingSession();
+
         if (authScreens.length) {
             var storedEmail = getPendingOtpEmail();
             if (storedEmail) {
@@ -735,13 +759,19 @@
             if (otpInputs.length) {
                 otpInputs.forEach(function (input, index) {
                     input.addEventListener('input', function () {
-                        var value = input.value.replace(/\D/g, '');
+                        var value = input.value.replace(/\D/g, '').charAt(0);
                         input.value = value;
                         if (value && index < otpInputs.length - 1) {
                             otpInputs[index + 1].focus();
                         }
                         setOtpInputsError(false);
-                        updateOtpConfirmState();
+                        updateOtpState();
+                    });
+
+                    input.addEventListener('change', function () {
+                        var value = input.value.replace(/\D/g, '').charAt(0);
+                        input.value = value;
+                        updateOtpState();
                     });
 
                     input.addEventListener('keydown', function (event) {
@@ -767,7 +797,7 @@
                                 otpInputs[index].value = digit;
                             }
                         });
-                        updateOtpConfirmState();
+                        updateOtpState();
                     });
                 }
             }
@@ -784,7 +814,7 @@
                 }
 
                 var code = getOtpCode();
-                if (code.length !== 6) {
+                if (!/^\d{6}$/.test(code)) {
                     showFormMessage(otpForm, 'error', getMessage('enterOtp', 'Please enter the 6-digit code.'));
                     setOtpInputsError(true);
                     return;
@@ -799,8 +829,7 @@
                         if (response && response.error) {
                             throw response.error;
                         }
-                        setPendingOtpEmail('');
-                        window.location.href = magicLinkRedirect || window.location.origin + '/my-account/';
+                        supabaseSessionRedirect();
                     })
                     .catch(function (error) {
                         var message = getMessage('otpVerifyError', 'Unable to verify the code.');
