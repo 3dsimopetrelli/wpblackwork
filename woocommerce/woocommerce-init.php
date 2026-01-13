@@ -173,6 +173,7 @@ function bw_mew_enqueue_account_page_assets() {
             'oauthGoogleEnabled' => (int) get_option( 'bw_supabase_oauth_google_enabled', 1 ),
             'oauthFacebookEnabled' => (int) get_option( 'bw_supabase_oauth_facebook_enabled', 1 ),
             'debug' => (int) get_option( 'bw_supabase_debug_log', 0 ),
+            'cookieBase' => sanitize_key( (string) get_option( 'bw_supabase_jwt_cookie_name', 'bw_supabase_session' ) ) ?: 'bw_supabase_session',
             'messages' => [
                 'missingConfig' => esc_html__( 'Supabase configuration is missing.', 'bw' ),
                 'enterEmail' => esc_html__( 'Please enter your email address.', 'bw' ),

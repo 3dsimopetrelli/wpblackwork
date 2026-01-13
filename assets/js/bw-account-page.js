@@ -107,11 +107,18 @@
                 if (loginTab) {
                     loginTab.click();
                 }
+                if (getSessionStorageItem('bw_handled_email_confirm') !== '1') {
+                    setSessionStorageItem('bw_handled_email_confirm', '1');
+                    cleanAuthUrl(['bw_email_confirmed', 'code']);
+                }
             }
         }
 
         var hash = window.location.hash || '';
         if (hash.indexOf('access_token=') !== -1 && window.bwAccountAuth && window.bwAccountAuth.ajaxUrl) {
+            if (getSessionStorageItem('bw_handled_supabase_hash') === '1') {
+                cleanAuthUrl(['access_token', 'refresh_token', 'type', 'code', 'bw_email_confirmed']);
+            } else {
             var params = new URLSearchParams(hash.replace(/^#/, ''));
             var accessToken = params.get('access_token');
             var refreshToken = params.get('refresh_token');
@@ -120,6 +127,8 @@
             var shouldHandleToken = authType !== 'invite' && (authType !== 'signup' || autoLoginAfterConfirm);
 
             if (accessToken && shouldHandleToken) {
+                setSessionStorageItem('bw_handled_supabase_hash', '1');
+                setSessionStorageItem('bw_handled_token_login', '1');
                 fetch(window.bwAccountAuth.ajaxUrl, {
                     method: 'POST',
                     credentials: 'same-origin',
@@ -144,10 +153,9 @@
                         }
                     })
                     .finally(function () {
-                        if (window.history && window.history.replaceState) {
-                            window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
-                        }
+                        cleanAuthUrl(['access_token', 'refresh_token', 'type', 'code', 'bw_email_confirmed']);
                     });
+            }
             }
         }
 
@@ -161,6 +169,7 @@
         var oauthFacebookEnabled = window.bwAccountAuth ? Boolean(window.bwAccountAuth.oauthFacebookEnabled) : true;
         var debugEnabled = window.bwAccountAuth ? Boolean(window.bwAccountAuth.debug) : false;
         var registrationMode = window.bwAccountAuth ? window.bwAccountAuth.registrationMode : 'R2';
+        var cookieBase = window.bwAccountAuth ? window.bwAccountAuth.cookieBase : 'bw_supabase_session';
         var messages = window.bwAccountAuth && window.bwAccountAuth.messages ? window.bwAccountAuth.messages : {};
 
         var magicLinkForm = document.querySelector('[data-bw-supabase-form][data-bw-supabase-action="magic-link"]');
@@ -216,6 +225,62 @@
 
         var setStepState = function (step, isActive) {
             setFieldsState(step, isActive);
+        };
+
+        var getSessionStorageItem = function (key) {
+            if (!window.sessionStorage) {
+                return '';
+            }
+            try {
+                return window.sessionStorage.getItem(key) || '';
+            } catch (error) {
+                return '';
+            }
+        };
+
+        var setSessionStorageItem = function (key, value) {
+            if (!window.sessionStorage) {
+                return;
+            }
+            try {
+                if (value) {
+                    window.sessionStorage.setItem(key, value);
+                } else {
+                    window.sessionStorage.removeItem(key);
+                }
+            } catch (error) {
+                logDebug('Unable to access sessionStorage', error);
+            }
+        };
+
+        var clearCookie = function (name) {
+            document.cookie = name + '=; Max-Age=0; path=/; SameSite=Lax';
+        };
+
+        var cleanupAuthState = function () {
+            setPendingOtpEmail('');
+            setSessionStorageItem('bw_handled_supabase_hash', '');
+            setSessionStorageItem('bw_handled_email_confirm', '');
+            setSessionStorageItem('bw_handled_token_login', '');
+            clearCookie(cookieBase + '_access');
+            clearCookie(cookieBase + '_refresh');
+        };
+
+        var cleanAuthUrl = function (removeParams) {
+            if (!window.history || !window.history.replaceState) {
+                return;
+            }
+            var url = new URL(window.location.href);
+            url.hash = '';
+            if (removeParams && url.searchParams) {
+                removeParams.forEach(function (param) {
+                    url.searchParams.delete(param);
+                });
+            }
+            window.history.replaceState(null, document.title, url.pathname + (url.search ? url.search : ''));
+            if (debugEnabled) {
+                console.log('[bw] Auth URL cleaned');
+            }
         };
 
         var supabaseClient = null;
@@ -451,15 +516,19 @@
         };
 
         var supabaseSessionRedirect = function () {
-            setPendingOtpEmail('');
+            cleanupAuthState();
             window.location.href = magicLinkRedirect || window.location.origin + '/my-account/';
         };
 
         var checkExistingSession = function () {
+            if (getSessionStorageItem('bw_handled_session_check') === '1') {
+                return;
+            }
             var supabase = getSupabaseClient();
             if (!supabase) {
                 return;
             }
+            setSessionStorageItem('bw_handled_session_check', '1');
             supabase.auth.getUser().then(function (response) {
                 if (response && response.data && response.data.user) {
                     supabaseSessionRedirect();
@@ -652,6 +721,11 @@
                 setStepState(panel, isActive);
             });
         };
+
+        var url = new URL(window.location.href);
+        if (url.pathname.indexOf('customer-logout') !== -1 || url.searchParams.get('loggedout') === 'true') {
+            cleanupAuthState();
+        }
 
         if (registerForm) {
             var initialStep = registerForm.querySelector('[data-bw-register-step].is-active');
