@@ -1864,3 +1864,29 @@ function bw_mew_supabase_store_session( array $payload, $email ) {
 
     return true;
 }
+
+/**
+ * Clear Supabase session cookies on logout.
+ */
+function bw_mew_clear_supabase_session_cookies() {
+    $cookie_base = get_option( 'bw_supabase_jwt_cookie_name', 'bw_supabase_session' );
+    $cookie_base = sanitize_key( $cookie_base ) ?: 'bw_supabase_session';
+    $secure      = is_ssl();
+    $path        = COOKIEPATH ? COOKIEPATH : '/';
+    $domain      = defined( 'COOKIE_DOMAIN' ) ? COOKIE_DOMAIN : '';
+    $cookie_args = [
+        'expires'  => time() - HOUR_IN_SECONDS,
+        'path'     => $path,
+        'secure'   => $secure,
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ];
+
+    if ( $domain ) {
+        $cookie_args['domain'] = $domain;
+    }
+
+    setcookie( $cookie_base . '_access', '', $cookie_args );
+    setcookie( $cookie_base . '_refresh', '', $cookie_args );
+}
+add_action( 'wp_logout', 'bw_mew_clear_supabase_session_cookies' );

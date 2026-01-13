@@ -42,6 +42,32 @@ function bw_mew_filter_account_menu_items( $items ) {
 add_filter( 'woocommerce_account_menu_items', 'bw_mew_filter_account_menu_items', 20 );
 
 /**
+ * Append logged_out flag after logout redirects.
+ *
+ * @param string  $redirect_to Redirect URL.
+ * @param string  $requested   Requested redirect URL.
+ * @param WP_User $user        User object.
+ *
+ * @return string
+ */
+function bw_mew_append_logout_flag( $redirect_to, $requested, $user ) {
+    $account_url = function_exists( 'wc_get_page_permalink' )
+        ? wc_get_page_permalink( 'myaccount' )
+        : home_url( '/my-account/' );
+
+    if ( ! $redirect_to ) {
+        $redirect_to = $account_url;
+    }
+
+    if ( $account_url && false !== strpos( $redirect_to, $account_url ) ) {
+        $redirect_to = add_query_arg( 'logged_out', '1', $redirect_to );
+    }
+
+    return $redirect_to;
+}
+add_filter( 'logout_redirect', 'bw_mew_append_logout_flag', 10, 3 );
+
+/**
  * Check if a user still needs onboarding.
  *
  * @param int $user_id User ID.
