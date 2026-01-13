@@ -128,6 +128,14 @@ function bw_mew_enqueue_account_page_assets() {
     $js_file      = BW_MEW_PATH . 'assets/js/bw-account-page.js';
     $js_version   = file_exists( $js_file ) ? filemtime( $js_file ) : '1.0.0';
 
+    wp_enqueue_script(
+        'supabase-js',
+        'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',
+        [],
+        null,
+        true
+    );
+
     wp_enqueue_style(
         'bw-account-page',
         BW_MEW_URL . 'assets/css/bw-account-page.css',
@@ -138,7 +146,7 @@ function bw_mew_enqueue_account_page_assets() {
     wp_enqueue_script(
         'bw-account-page',
         BW_MEW_URL . 'assets/js/bw-account-page.js',
-        [],
+        [ 'supabase-js' ],
         $js_version,
         true
     );
@@ -168,13 +176,20 @@ function bw_mew_enqueue_account_page_assets() {
             'messages' => [
                 'missingConfig' => esc_html__( 'Supabase configuration is missing.', 'bw' ),
                 'enterEmail' => esc_html__( 'Please enter your email address.', 'bw' ),
-                'magicLinkSent' => esc_html__( 'Check your email for the login link.', 'bw' ),
+                'magicLinkSent' => esc_html__( 'Check your email for the 6-digit code.', 'bw' ),
                 'magicLinkError' => esc_html__( 'Unable to send magic link.', 'bw' ),
                 'loginError' => esc_html__( 'Unable to login.', 'bw' ),
                 'registerCompleteFields' => esc_html__( 'Please complete all fields.', 'bw' ),
                 'registerPasswordMismatch' => esc_html__( 'Passwords do not match.', 'bw' ),
                 'registerSuccess' => esc_html__( 'Check your email to confirm your account.', 'bw' ),
                 'registerError' => esc_html__( 'Unable to register.', 'bw' ),
+                'otpSent' => esc_html__( 'Check your email for the 6-digit code.', 'bw' ),
+                'enterOtp' => esc_html__( 'Please enter the 6-digit code.', 'bw' ),
+                'otpVerifyError' => esc_html__( 'Unable to verify the code.', 'bw' ),
+                'otpInvalid' => esc_html__( 'Invalid or expired code. Please try again.', 'bw' ),
+                'otpResent' => esc_html__( 'We sent you a new code.', 'bw' ),
+                'otpResendError' => esc_html__( 'Unable to resend the code right now.', 'bw' ),
+                'supabaseSdkMissing' => esc_html__( 'Supabase JS SDK is not loaded.', 'bw' ),
             ],
         ]
     );
@@ -196,7 +211,7 @@ function bw_mew_enqueue_supabase_bridge() {
     wp_enqueue_script(
         'bw-supabase-bridge',
         BW_MEW_URL . 'assets/js/bw-supabase-bridge.js',
-        [],
+        [ 'supabase-js' ],
         filemtime( $js_file ),
         true
     );
