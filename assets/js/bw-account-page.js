@@ -520,6 +520,47 @@
             window.location.href = magicLinkRedirect || window.location.origin + '/my-account/';
         };
 
+        var bridgeSupabaseSession = function (accessToken, refreshToken, context) {
+            if (!window.bwAccountAuth || !window.bwAccountAuth.ajaxUrl || !window.bwAccountAuth.nonce) {
+                return Promise.resolve({ error: new Error(getMessage('missingConfig', 'Supabase configuration is missing.')) });
+            }
+
+            if (!accessToken) {
+                return Promise.resolve({ error: new Error(getMessage('otpVerifyError', 'Unable to verify the code.')) });
+            }
+
+            if (debugEnabled) {
+                console.log('[bw] Supabase token bridge', { context: context || 'otp' });
+            }
+
+            return fetch(window.bwAccountAuth.ajaxUrl, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8'
+                },
+                body: new URLSearchParams({
+                    action: 'bw_supabase_token_login',
+                    nonce: window.bwAccountAuth.nonce,
+                    access_token: accessToken,
+                    refresh_token: refreshToken || '',
+                    type: context || 'otp'
+                })
+            })
+                .then(function (response) {
+                    return response.json();
+                })
+                .then(function (payload) {
+                    cleanAuthUrl(['access_token', 'refresh_token', 'type', 'code', 'bw_email_confirmed']);
+                    if (payload && payload.success && payload.data && payload.data.redirect) {
+                        window.location.href = payload.data.redirect;
+                        return payload;
+                    }
+                    window.location.href = magicLinkRedirect || window.location.origin + '/my-account/';
+                    return payload;
+                });
+        };
+
         var checkExistingSession = function () {
             if (getSessionStorageItem('bw_handled_session_check') === '1') {
                 return;
@@ -880,6 +921,10 @@
                 event.preventDefault();
                 event.stopPropagation();
 
+                if (otpConfirmButton && otpConfirmButton.disabled) {
+                    return;
+                }
+
                 var emailValue = getPendingOtpEmail();
                 if (!emailValue) {
                     switchAuthScreen('magic');
@@ -898,12 +943,19 @@
                 showFormMessage(otpForm, 'success', '');
                 setOtpInputsError(false);
 
+                if (otpConfirmButton) {
+                    otpConfirmButton.disabled = true;
+                }
+
                 verifyOtp(emailValue, code)
                     .then(function (response) {
                         if (response && response.error) {
                             throw response.error;
                         }
-                        supabaseSessionRedirect();
+                        var session = response && response.data ? response.data.session : null;
+                        var accessToken = session ? session.access_token : response.access_token;
+                        var refreshToken = session ? session.refresh_token : response.refresh_token;
+                        return bridgeSupabaseSession(accessToken, refreshToken, 'otp');
                     })
                     .catch(function (error) {
                         var message = getMessage('otpVerifyError', 'Unable to verify the code.');
@@ -912,6 +964,11 @@
                         }
                         showFormMessage(otpForm, 'error', message);
                         setOtpInputsError(true);
+                    })
+                    .finally(function () {
+                        if (otpConfirmButton) {
+                            updateOtpState();
+                        }
                     });
             });
         }
