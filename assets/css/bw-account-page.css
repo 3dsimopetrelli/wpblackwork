@@ -419,6 +419,24 @@ body.woocommerce-account.bw-account-login-only .bw-account-auth__tab.is-active::
     gap: 10px;
 }
 
+.bw-otp-inputs {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.bw-otp-inputs input {
+    text-align: center;
+    font-size: 18px;
+    font-weight: 600;
+    padding: 12px 0;
+}
+
+.bw-otp-inputs.is-error input {
+    border-color: #e00000;
+    box-shadow: 0 0 0 3px rgba(224, 0, 0, 0.12);
+}
+
 .bw-account-login__field label {
     display: block;
     margin-bottom: 8px;

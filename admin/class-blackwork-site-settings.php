@@ -207,6 +207,23 @@ function bw_site_render_account_page_tab() {
         $supabase_magic_link_enabled = isset($_POST['bw_supabase_magic_link_enabled']) ? 1 : 0;
         $supabase_oauth_google_enabled = isset($_POST['bw_supabase_oauth_google_enabled']) ? 1 : 0;
         $supabase_oauth_facebook_enabled = isset($_POST['bw_supabase_oauth_facebook_enabled']) ? 1 : 0;
+        $supabase_oauth_apple_enabled = isset($_POST['bw_supabase_oauth_apple_enabled']) ? 1 : 0;
+        $supabase_google_client_id = isset($_POST['bw_supabase_google_client_id']) ? sanitize_text_field($_POST['bw_supabase_google_client_id']) : '';
+        $supabase_google_client_secret = isset($_POST['bw_supabase_google_client_secret']) ? sanitize_textarea_field($_POST['bw_supabase_google_client_secret']) : '';
+        $supabase_google_redirect_url = isset($_POST['bw_supabase_google_redirect_url']) ? esc_url_raw($_POST['bw_supabase_google_redirect_url']) : '';
+        $supabase_google_scopes = isset($_POST['bw_supabase_google_scopes']) ? sanitize_text_field($_POST['bw_supabase_google_scopes']) : '';
+        $supabase_google_prompt = isset($_POST['bw_supabase_google_prompt']) ? sanitize_text_field($_POST['bw_supabase_google_prompt']) : '';
+        $supabase_facebook_app_id = isset($_POST['bw_supabase_facebook_app_id']) ? sanitize_text_field($_POST['bw_supabase_facebook_app_id']) : '';
+        $supabase_facebook_app_secret = isset($_POST['bw_supabase_facebook_app_secret']) ? sanitize_textarea_field($_POST['bw_supabase_facebook_app_secret']) : '';
+        $supabase_facebook_redirect_url = isset($_POST['bw_supabase_facebook_redirect_url']) ? esc_url_raw($_POST['bw_supabase_facebook_redirect_url']) : '';
+        $supabase_facebook_scopes = isset($_POST['bw_supabase_facebook_scopes']) ? sanitize_text_field($_POST['bw_supabase_facebook_scopes']) : '';
+        $supabase_apple_client_id = isset($_POST['bw_supabase_apple_client_id']) ? sanitize_text_field($_POST['bw_supabase_apple_client_id']) : '';
+        $supabase_apple_team_id = isset($_POST['bw_supabase_apple_team_id']) ? sanitize_text_field($_POST['bw_supabase_apple_team_id']) : '';
+        $supabase_apple_key_id = isset($_POST['bw_supabase_apple_key_id']) ? sanitize_text_field($_POST['bw_supabase_apple_key_id']) : '';
+        $supabase_apple_private_key = isset($_POST['bw_supabase_apple_private_key']) ? sanitize_textarea_field($_POST['bw_supabase_apple_private_key']) : '';
+        $supabase_apple_redirect_url = isset($_POST['bw_supabase_apple_redirect_url']) ? esc_url_raw($_POST['bw_supabase_apple_redirect_url']) : '';
+        $supabase_password_enabled = isset($_POST['bw_supabase_login_password_enabled']) ? 1 : 0;
+        $supabase_register_prompt_enabled = isset($_POST['bw_supabase_register_prompt_enabled']) ? 1 : 0;
         $supabase_magic_link_redirect = isset($_POST['bw_supabase_magic_link_redirect_url']) ? esc_url_raw(trim($_POST['bw_supabase_magic_link_redirect_url'])) : '';
         $supabase_oauth_redirect = isset($_POST['bw_supabase_oauth_redirect_url']) ? esc_url_raw(trim($_POST['bw_supabase_oauth_redirect_url'])) : '';
         $supabase_signup_redirect = isset($_POST['bw_supabase_signup_redirect_url']) ? esc_url_raw(trim($_POST['bw_supabase_signup_redirect_url'])) : '';
@@ -262,6 +279,23 @@ function bw_site_render_account_page_tab() {
         update_option('bw_supabase_magic_link_enabled', $supabase_magic_link_enabled);
         update_option('bw_supabase_oauth_google_enabled', $supabase_oauth_google_enabled);
         update_option('bw_supabase_oauth_facebook_enabled', $supabase_oauth_facebook_enabled);
+        update_option('bw_supabase_oauth_apple_enabled', $supabase_oauth_apple_enabled);
+        update_option('bw_supabase_google_client_id', $supabase_google_client_id);
+        update_option('bw_supabase_google_client_secret', $supabase_google_client_secret);
+        update_option('bw_supabase_google_redirect_url', $supabase_google_redirect_url);
+        update_option('bw_supabase_google_scopes', $supabase_google_scopes);
+        update_option('bw_supabase_google_prompt', $supabase_google_prompt);
+        update_option('bw_supabase_facebook_app_id', $supabase_facebook_app_id);
+        update_option('bw_supabase_facebook_app_secret', $supabase_facebook_app_secret);
+        update_option('bw_supabase_facebook_redirect_url', $supabase_facebook_redirect_url);
+        update_option('bw_supabase_facebook_scopes', $supabase_facebook_scopes);
+        update_option('bw_supabase_apple_client_id', $supabase_apple_client_id);
+        update_option('bw_supabase_apple_team_id', $supabase_apple_team_id);
+        update_option('bw_supabase_apple_key_id', $supabase_apple_key_id);
+        update_option('bw_supabase_apple_private_key', $supabase_apple_private_key);
+        update_option('bw_supabase_apple_redirect_url', $supabase_apple_redirect_url);
+        update_option('bw_supabase_login_password_enabled', $supabase_password_enabled);
+        update_option('bw_supabase_register_prompt_enabled', $supabase_register_prompt_enabled);
         update_option('bw_supabase_magic_link_redirect_url', $supabase_magic_link_redirect);
         update_option('bw_supabase_oauth_redirect_url', $supabase_oauth_redirect);
         update_option('bw_supabase_signup_redirect_url', $supabase_signup_redirect);
@@ -306,6 +340,23 @@ function bw_site_render_account_page_tab() {
     $supabase_magic_link_enabled = (int) get_option('bw_supabase_magic_link_enabled', 1);
     $supabase_oauth_google_enabled = (int) get_option('bw_supabase_oauth_google_enabled', 1);
     $supabase_oauth_facebook_enabled = (int) get_option('bw_supabase_oauth_facebook_enabled', 1);
+    $supabase_oauth_apple_enabled = (int) get_option('bw_supabase_oauth_apple_enabled', 0);
+    $supabase_google_client_id = get_option('bw_supabase_google_client_id', '');
+    $supabase_google_client_secret = get_option('bw_supabase_google_client_secret', '');
+    $supabase_google_redirect_url = get_option('bw_supabase_google_redirect_url', site_url('/my-account/'));
+    $supabase_google_scopes = get_option('bw_supabase_google_scopes', 'email profile');
+    $supabase_google_prompt = get_option('bw_supabase_google_prompt', 'select_account');
+    $supabase_facebook_app_id = get_option('bw_supabase_facebook_app_id', '');
+    $supabase_facebook_app_secret = get_option('bw_supabase_facebook_app_secret', '');
+    $supabase_facebook_redirect_url = get_option('bw_supabase_facebook_redirect_url', site_url('/my-account/'));
+    $supabase_facebook_scopes = get_option('bw_supabase_facebook_scopes', 'email,public_profile');
+    $supabase_apple_client_id = get_option('bw_supabase_apple_client_id', '');
+    $supabase_apple_team_id = get_option('bw_supabase_apple_team_id', '');
+    $supabase_apple_key_id = get_option('bw_supabase_apple_key_id', '');
+    $supabase_apple_private_key = get_option('bw_supabase_apple_private_key', '');
+    $supabase_apple_redirect_url = get_option('bw_supabase_apple_redirect_url', site_url('/my-account/'));
+    $supabase_password_enabled = (int) get_option('bw_supabase_login_password_enabled', 1);
+    $supabase_register_prompt_enabled = (int) get_option('bw_supabase_register_prompt_enabled', 1);
     $supabase_magic_link_redirect = get_option('bw_supabase_magic_link_redirect_url', site_url('/my-account/'));
     $supabase_oauth_redirect = get_option('bw_supabase_oauth_redirect_url', site_url('/my-account/'));
     $supabase_signup_redirect = get_option('bw_supabase_signup_redirect_url', site_url('/my-account/?bw_email_confirmed=1'));
@@ -320,6 +371,25 @@ function bw_site_render_account_page_tab() {
             <p><strong>Impostazioni salvate con successo!</strong></p>
         </div>
     <?php endif; ?>
+    <style>
+        .bw-provider-box {
+            background: #f6f6f6;
+            border: 1px solid #e5e5e5;
+            padding: 12px 14px;
+            margin: 10px 0 18px;
+            border-radius: 8px;
+        }
+        .bw-provider-box__title {
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .bw-provider-box__grid {
+            display: grid;
+            grid-template-columns: 220px 1fr;
+            gap: 10px 12px;
+            align-items: center;
+        }
+    </style>
 
     <form method="post" action="">
         <?php wp_nonce_field('bw_account_page_save', 'bw_account_page_nonce'); ?>
@@ -737,6 +807,90 @@ function bw_site_render_account_page_tab() {
                         <input type="checkbox" id="bw_supabase_oauth_facebook_enabled" name="bw_supabase_oauth_facebook_enabled" value="1" <?php checked( 1, $supabase_oauth_facebook_enabled ); ?> />
                         <?php esc_html_e( 'Enable Facebook OAuth', 'bw' ); ?>
                     </label>
+                    <label style="display:block; margin-top:8px;">
+                        <input type="checkbox" id="bw_supabase_oauth_apple_enabled" name="bw_supabase_oauth_apple_enabled" value="1" <?php checked( 1, $supabase_oauth_apple_enabled ); ?> />
+                        <?php esc_html_e( 'Enable Apple OAuth', 'bw' ); ?>
+                    </label>
+                    <p class="description"><?php esc_html_e( 'These fields are used to configure the provider and will be needed in Supabase Auth settings. Keep secrets private.', 'bw' ); ?></p>
+                </td>
+            </tr>
+            <tr class="bw-supabase-google-option" <?php echo $supabase_oauth_google_enabled ? '' : 'style="display:none;"'; ?>>
+                <th scope="row"><?php esc_html_e( 'Google settings', 'bw' ); ?></th>
+                <td>
+                    <div class="bw-provider-box bw-provider-box--google">
+                        <div class="bw-provider-box__title"><?php esc_html_e( 'Google settings', 'bw' ); ?></div>
+                        <div class="bw-provider-box__grid">
+                            <label for="bw_supabase_google_client_id"><?php esc_html_e( 'Client ID', 'bw' ); ?></label>
+                            <input type="text" id="bw_supabase_google_client_id" name="bw_supabase_google_client_id" value="<?php echo esc_attr( $supabase_google_client_id ); ?>" class="regular-text" />
+                            <label for="bw_supabase_google_client_secret"><?php esc_html_e( 'Client Secret', 'bw' ); ?></label>
+                            <input type="text" id="bw_supabase_google_client_secret" name="bw_supabase_google_client_secret" value="<?php echo esc_attr( $supabase_google_client_secret ); ?>" class="regular-text" />
+                            <label for="bw_supabase_google_redirect_url"><?php esc_html_e( 'Redirect URL', 'bw' ); ?></label>
+                            <input type="url" id="bw_supabase_google_redirect_url" name="bw_supabase_google_redirect_url" value="<?php echo esc_attr( $supabase_google_redirect_url ); ?>" class="regular-text" />
+                            <label for="bw_supabase_google_scopes"><?php esc_html_e( 'Scopes', 'bw' ); ?></label>
+                            <input type="text" id="bw_supabase_google_scopes" name="bw_supabase_google_scopes" value="<?php echo esc_attr( $supabase_google_scopes ); ?>" class="regular-text" />
+                            <label for="bw_supabase_google_prompt"><?php esc_html_e( 'Prompt', 'bw' ); ?></label>
+                            <input type="text" id="bw_supabase_google_prompt" name="bw_supabase_google_prompt" value="<?php echo esc_attr( $supabase_google_prompt ); ?>" class="regular-text" />
+                        </div>
+                        <p class="description"><?php esc_html_e( 'These fields are used to configure the provider and will be needed in Supabase Auth settings. Keep secrets private.', 'bw' ); ?></p>
+                    </div>
+                </td>
+            </tr>
+            <tr class="bw-supabase-facebook-option" <?php echo $supabase_oauth_facebook_enabled ? '' : 'style="display:none;"'; ?>>
+                <th scope="row"><?php esc_html_e( 'Facebook settings', 'bw' ); ?></th>
+                <td>
+                    <div class="bw-provider-box bw-provider-box--facebook">
+                        <div class="bw-provider-box__title"><?php esc_html_e( 'Facebook settings', 'bw' ); ?></div>
+                        <div class="bw-provider-box__grid">
+                            <label for="bw_supabase_facebook_app_id"><?php esc_html_e( 'App ID', 'bw' ); ?></label>
+                            <input type="text" id="bw_supabase_facebook_app_id" name="bw_supabase_facebook_app_id" value="<?php echo esc_attr( $supabase_facebook_app_id ); ?>" class="regular-text" />
+                            <label for="bw_supabase_facebook_app_secret"><?php esc_html_e( 'App Secret', 'bw' ); ?></label>
+                            <input type="text" id="bw_supabase_facebook_app_secret" name="bw_supabase_facebook_app_secret" value="<?php echo esc_attr( $supabase_facebook_app_secret ); ?>" class="regular-text" />
+                            <label for="bw_supabase_facebook_redirect_url"><?php esc_html_e( 'Redirect URL', 'bw' ); ?></label>
+                            <input type="url" id="bw_supabase_facebook_redirect_url" name="bw_supabase_facebook_redirect_url" value="<?php echo esc_attr( $supabase_facebook_redirect_url ); ?>" class="regular-text" />
+                            <label for="bw_supabase_facebook_scopes"><?php esc_html_e( 'Scopes', 'bw' ); ?></label>
+                            <input type="text" id="bw_supabase_facebook_scopes" name="bw_supabase_facebook_scopes" value="<?php echo esc_attr( $supabase_facebook_scopes ); ?>" class="regular-text" />
+                        </div>
+                        <p class="description"><?php esc_html_e( 'These fields are used to configure the provider and will be needed in Supabase Auth settings. Keep secrets private.', 'bw' ); ?></p>
+                    </div>
+                </td>
+            </tr>
+            <tr class="bw-supabase-apple-option" <?php echo $supabase_oauth_apple_enabled ? '' : 'style="display:none;"'; ?>>
+                <th scope="row"><?php esc_html_e( 'Apple settings', 'bw' ); ?></th>
+                <td>
+                    <div class="bw-provider-box bw-provider-box--apple">
+                        <div class="bw-provider-box__title"><?php esc_html_e( 'Apple settings', 'bw' ); ?></div>
+                        <div class="bw-provider-box__grid">
+                            <label for="bw_supabase_apple_client_id"><?php esc_html_e( 'Apple Service ID / Client ID', 'bw' ); ?></label>
+                            <input type="text" id="bw_supabase_apple_client_id" name="bw_supabase_apple_client_id" value="<?php echo esc_attr( $supabase_apple_client_id ); ?>" class="regular-text" />
+                            <label for="bw_supabase_apple_team_id"><?php esc_html_e( 'Apple Team ID', 'bw' ); ?></label>
+                            <input type="text" id="bw_supabase_apple_team_id" name="bw_supabase_apple_team_id" value="<?php echo esc_attr( $supabase_apple_team_id ); ?>" class="regular-text" />
+                            <label for="bw_supabase_apple_key_id"><?php esc_html_e( 'Apple Key ID', 'bw' ); ?></label>
+                            <input type="text" id="bw_supabase_apple_key_id" name="bw_supabase_apple_key_id" value="<?php echo esc_attr( $supabase_apple_key_id ); ?>" class="regular-text" />
+                            <label for="bw_supabase_apple_private_key"><?php esc_html_e( 'Apple Private Key (P8)', 'bw' ); ?></label>
+                            <textarea id="bw_supabase_apple_private_key" name="bw_supabase_apple_private_key" rows="5" class="large-text"><?php echo esc_textarea( $supabase_apple_private_key ); ?></textarea>
+                            <label for="bw_supabase_apple_redirect_url"><?php esc_html_e( 'Redirect URL', 'bw' ); ?></label>
+                            <input type="url" id="bw_supabase_apple_redirect_url" name="bw_supabase_apple_redirect_url" value="<?php echo esc_attr( $supabase_apple_redirect_url ); ?>" class="regular-text" />
+                        </div>
+                        <p class="description"><?php esc_html_e( 'These fields are used to configure the provider and will be needed in Supabase Auth settings. Keep secrets private.', 'bw' ); ?></p>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row"><?php esc_html_e( 'Password login', 'bw' ); ?></th>
+                <td>
+                    <label>
+                        <input type="checkbox" id="bw_supabase_login_password_enabled" name="bw_supabase_login_password_enabled" value="1" <?php checked( 1, $supabase_password_enabled ); ?> />
+                        <?php esc_html_e( 'Enable login with password button', 'bw' ); ?>
+                    </label>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row"><?php esc_html_e( 'Register prompt', 'bw' ); ?></th>
+                <td>
+                    <label>
+                        <input type="checkbox" id="bw_supabase_register_prompt_enabled" name="bw_supabase_register_prompt_enabled" value="1" <?php checked( 1, $supabase_register_prompt_enabled ); ?> />
+                        <?php esc_html_e( 'Show “Don’t have an account? Register” prompt', 'bw' ); ?>
+                    </label>
                 </td>
             </tr>
             <tr>
@@ -868,6 +1022,12 @@ function bw_site_render_account_page_tab() {
             var oidcToggle = $('#bw_supabase_with_plugins');
             var loginMode = $('#bw_supabase_login_mode');
             var oidcWarning = $('.bw-supabase-oidc-warning');
+            var appleToggle = $('#bw_supabase_oauth_apple_enabled');
+            var appleRows = $('.bw-supabase-apple-option');
+            var googleToggle = $('#bw_supabase_oauth_google_enabled');
+            var facebookToggle = $('#bw_supabase_oauth_facebook_enabled');
+            var googleRows = $('.bw-supabase-google-option');
+            var facebookRows = $('.bw-supabase-facebook-option');
 
             var toggleProviderSections = function(provider) {
                 providerSections.each(function() {
@@ -899,10 +1059,25 @@ function bw_site_render_account_page_tab() {
                 oidcWarning.toggle(!!enabled && mode === 'native');
             };
 
+            var toggleAppleRows = function(enabled) {
+                appleRows.toggle(!!enabled);
+            };
+
+            var toggleGoogleRows = function(enabled) {
+                googleRows.toggle(!!enabled);
+            };
+
+            var toggleFacebookRows = function(enabled) {
+                facebookRows.toggle(!!enabled);
+            };
+
             toggleProviderSections(providerRadios.filter(':checked').val() || 'wordpress');
             toggleRegistrationMode(registrationMode.val());
             toggleOidcRows(oidcToggle.is(':checked'));
             toggleOidcWarning(oidcToggle.is(':checked'), loginMode.val());
+            toggleAppleRows(appleToggle.is(':checked'));
+            toggleGoogleRows(googleToggle.is(':checked'));
+            toggleFacebookRows(facebookToggle.is(':checked'));
 
             providerRadios.on('change', function() {
                 toggleProviderSections($(this).val());
@@ -920,6 +1095,18 @@ function bw_site_render_account_page_tab() {
 
             loginMode.on('change', function() {
                 toggleOidcWarning(oidcToggle.is(':checked'), $(this).val());
+            });
+
+            appleToggle.on('change', function() {
+                toggleAppleRows($(this).is(':checked'));
+            });
+
+            googleToggle.on('change', function() {
+                toggleGoogleRows($(this).is(':checked'));
+            });
+
+            facebookToggle.on('change', function() {
+                toggleFacebookRows($(this).is(':checked'));
             });
         });
     </script>
