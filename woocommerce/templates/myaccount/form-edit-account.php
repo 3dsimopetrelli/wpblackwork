@@ -62,7 +62,7 @@ if ( has_action( 'woocommerce_before_edit_account_form' ) ) {
         <div class="bw-tab-panel is-active" id="bw-tab-profile">
             <form class="woocommerce-EditAccountForm edit-account" action="" method="post">
                 <section class="bw-settings-block">
-                    <h3><?php esc_html_e( 'Personal information', 'bw' ); ?></h3>
+                    <h3><?php esc_html_e( 'Profile', 'bw' ); ?></h3>
                     <div class="bw-grid">
                         <div class="bw-field">
                             <label for="bw_profile_first_name"><?php esc_html_e( 'First name', 'woocommerce' ); ?> <span class="required">*</span></label>
@@ -80,8 +80,31 @@ if ( has_action( 'woocommerce_before_edit_account_form' ) ) {
                             </p>
                         </div>
                     </div>
+                    <div class="bw-account-form__messages">
+                        <div class="bw-account-form__error" role="alert" aria-live="polite" hidden></div>
+                        <div class="bw-account-form__success" role="status" aria-live="polite" hidden></div>
+                    </div>
+                    <p>
+                        <button type="submit" class="button"><?php esc_html_e( 'Save profile', 'bw' ); ?></button>
+                    </p>
                 </section>
+            </form>
+        </div>
 
+        <div class="bw-tab-panel" id="bw-tab-security">
+            <div class="woocommerce-message bw-account-security__notice" data-bw-pending-email-banner <?php echo $pending_email ? '' : 'hidden'; ?>>
+                <?php
+                if ( $pending_email ) {
+                    printf(
+                        /* translators: %s is the pending email address. */
+                        esc_html__( 'Confirm your new email address (%s) from the confirmation email we sent you.', 'bw' ),
+                        esc_html( $pending_email )
+                    );
+                }
+                ?>
+            </div>
+
+            <form class="bw-settings-form" data-bw-supabase-password-form>
                 <section class="bw-settings-block">
                     <h3><?php esc_html_e( 'Billing details', 'bw' ); ?></h3>
                     <div class="bw-grid">
@@ -94,6 +117,9 @@ if ( has_action( 'woocommerce_before_edit_account_form' ) ) {
                             </div>
                         <?php endforeach; ?>
                     </div>
+                    <p>
+                        <button type="submit" class="button"><?php esc_html_e( 'Update password', 'bw' ); ?></button>
+                    </p>
                 </section>
 
                 <section class="bw-settings-block">
@@ -114,6 +140,13 @@ if ( has_action( 'woocommerce_before_edit_account_form' ) ) {
                             </div>
                         <?php endforeach; ?>
                     </div>
+                    <div class="bw-account-form__messages">
+                        <div class="bw-account-form__error" role="alert" aria-live="polite" hidden></div>
+                        <div class="bw-account-form__success" role="status" aria-live="polite" hidden></div>
+                    </div>
+                    <p>
+                        <button type="submit" class="button"><?php esc_html_e( 'Update email', 'bw' ); ?></button>
+                    </p>
                 </section>
 
                 <?php do_action( 'woocommerce_edit_account_form' ); ?>
