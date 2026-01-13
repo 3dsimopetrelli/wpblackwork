@@ -166,6 +166,10 @@
                         cleanAuthUrl(['bw_email_confirmed', 'code']);
                     }
                 }
+                if (getSessionStorageItem('bw_handled_email_confirm') !== '1') {
+                    setSessionStorageItem('bw_handled_email_confirm', '1');
+                    cleanAuthUrl(['bw_email_confirmed', 'code']);
+                }
             }
         }
 
@@ -213,6 +217,7 @@
                             });
                     }
                 }
+            }
             }
         }
 
@@ -727,6 +732,12 @@
                     return;
                 }
                 if (!projectUrl || !anonKey) {
+                    showFormMessage(magicLinkForm, 'error', getMessage('missingConfig', 'Supabase configuration is missing.'));
+                    return;
+                }
+
+                var supabase = getSupabaseClient();
+                if (!supabase) {
                     showFormMessage(magicLinkForm, 'error', getMessage('missingConfig', 'Supabase configuration is missing.'));
                     return;
                 }
