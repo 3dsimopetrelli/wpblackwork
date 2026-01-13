@@ -775,12 +775,6 @@
                     return;
                 }
 
-                var supabase = getSupabaseClient();
-                if (!supabase) {
-                    showFormMessage(passwordLoginForm, 'error', getMessage('missingConfig', 'Supabase configuration is missing.'));
-                    return;
-                }
-
                 var emailField = passwordLoginForm.querySelector('input[type="email"]');
                 var passwordField = passwordLoginForm.querySelector('input[type="password"]');
                 var emailValue = emailField ? emailField.value.trim() : '';
@@ -799,22 +793,99 @@
                 showFormMessage(passwordLoginForm, 'error', '');
                 showFormMessage(passwordLoginForm, 'success', '');
 
-                supabase.auth
-                    .signInWithPassword({
+                var bridgePasswordSession = function (accessToken, refreshToken) {
+                    if (!authConfig.ajaxUrl || !authConfig.nonce) {
+                        return Promise.reject(new Error(getMessage('missingConfig', 'Supabase configuration is missing.')));
+                    }
+
+                    logDebug('WP bridge start', { type: 'password' });
+
+                    return fetch(authConfig.ajaxUrl, {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8'
+                        },
+                        body: new URLSearchParams({
+                            action: 'bw_supabase_token_login',
+                            nonce: authConfig.nonce,
+                            access_token: accessToken,
+                            refresh_token: refreshToken || '',
+                            type: 'password'
+                        })
+                    })
+                        .then(function (response) {
+                            logDebug('WP bridge response', { status: response.status });
+                            return response.json().then(function (payload) {
+                                return { payload: payload, status: response.status };
+                            });
+                        })
+                        .then(function (result) {
+                            var payload = result.payload;
+                            if (payload && payload.success) {
+                                if (payload.data && payload.data.redirect) {
+                                    window.location.href = payload.data.redirect;
+                                    return;
+                                }
+                                window.location.href = window.location.origin + '/my-account/';
+                                return;
+                            }
+                            var message = payload && payload.data && payload.data.message ? payload.data.message : getMessage('loginError', 'Unable to login.');
+                            throw new Error(message);
+                        });
+                };
+
+                var supabase = getSupabaseClient();
+                var loginPromise;
+
+                if (supabase) {
+                    logDebug('Supabase password login', { method: 'sdk' });
+                    loginPromise = supabase.auth.signInWithPassword({
                         email: emailValue,
                         password: passwordValue
-                    })
+                    });
+                } else {
+                    logDebug('Supabase password login', { method: 'rest' });
+                    loginPromise = fetch(projectUrl.replace(/\/$/, '') + '/auth/v1/token?grant_type=password', {
+                        method: 'POST',
+                        headers: {
+                            apikey: anonKey,
+                            'Content-Type': 'application/json',
+                            Accept: 'application/json'
+                        },
+                        body: JSON.stringify({
+                            email: emailValue,
+                            password: passwordValue
+                        })
+                    }).then(function (response) {
+                        logDebug('Supabase REST login response', { status: response.status });
+                        if (!response.ok) {
+                            return response.json().then(function (payload) {
+                                var message = payload && (payload.msg || payload.message) ? (payload.msg || payload.message) : getMessage('loginError', 'Invalid email or password.');
+                                throw new Error(message);
+                            });
+                        }
+                        return response.json().then(function (payload) {
+                            return { data: { session: payload } };
+                        });
+                    });
+                }
+
+                Promise.resolve(loginPromise)
                     .then(function (response) {
                         if (response && response.error) {
                             throw response.error;
                         }
                         var session = response && response.data ? response.data.session : null;
-                        var accessToken = session ? session.access_token : '';
-                        var refreshToken = session ? session.refresh_token : '';
-                        return bridgeSupabaseSession(accessToken, refreshToken, 'password');
+                        if (!session) {
+                            throw new Error(getMessage('loginError', 'Unable to login.'));
+                        }
+                        logDebug('Supabase password login success', { hasSession: true });
+                        return bridgePasswordSession(session.access_token || '', session.refresh_token || '');
                     })
-                    .catch(function () {
-                        showFormMessage(passwordLoginForm, 'error', getMessage('loginError', 'Invalid email or password.'));
+                    .catch(function (error) {
+                        logDebug('Password login failed', { message: error && error.message ? error.message : 'unknown' });
+                        showFormMessage(passwordLoginForm, 'error', (error && error.message) ? error.message : getMessage('loginError', 'Invalid email or password.'));
                     })
                     .finally(function () {
                         if (submitButton) {
