@@ -817,6 +817,24 @@ function bw_site_render_account_page_tab() {
                 </td>
             </tr>
             <tr>
+                <th scope="row"><?php esc_html_e( 'Password login', 'bw' ); ?></th>
+                <td>
+                    <label>
+                        <input type="checkbox" id="bw_supabase_login_password_enabled" name="bw_supabase_login_password_enabled" value="1" <?php checked( 1, $supabase_password_enabled ); ?> />
+                        <?php esc_html_e( 'Enable login with password button', 'bw' ); ?>
+                    </label>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row"><?php esc_html_e( 'Register prompt', 'bw' ); ?></th>
+                <td>
+                    <label>
+                        <input type="checkbox" id="bw_supabase_register_prompt_enabled" name="bw_supabase_register_prompt_enabled" value="1" <?php checked( 1, $supabase_register_prompt_enabled ); ?> />
+                        <?php esc_html_e( 'Show “Don’t have an account? Register” prompt', 'bw' ); ?>
+                    </label>
+                </td>
+            </tr>
+            <tr>
                 <th scope="row">
                     <label for="bw_supabase_magic_link_redirect_url"><?php esc_html_e( 'Magic link redirect URL', 'bw' ); ?></label>
                 </th>
