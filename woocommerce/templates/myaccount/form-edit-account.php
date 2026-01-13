@@ -16,6 +16,8 @@ $pending_email = get_user_meta( $customer_id, 'bw_supabase_pending_email', true 
 $countries     = new WC_Countries();
 $billing_country  = get_user_meta( $customer_id, 'billing_country', true );
 $shipping_country = get_user_meta( $customer_id, 'shipping_country', true );
+$billing_country  = $billing_country ? $billing_country : $countries->get_base_country();
+$shipping_country = $shipping_country ? $shipping_country : $countries->get_base_country();
 $billing_fields   = $countries->get_address_fields( $billing_country, 'billing_' );
 $shipping_fields  = $countries->get_address_fields( $shipping_country, 'shipping_' );
 
@@ -53,9 +55,14 @@ if ( has_action( 'woocommerce_before_edit_account_form' ) ) {
         <h2><?php esc_html_e( 'Settings', 'bw' ); ?></h2>
         <div class="bw-tab-switcher" role="tablist">
             <button class="bw-tab is-active" type="button" data-target="#bw-tab-profile" aria-selected="true"><?php esc_html_e( 'Profile', 'bw' ); ?></button>
+            <button class="bw-tab" type="button" data-target="#bw-tab-billing" aria-selected="false"><?php esc_html_e( 'Billing Details', 'bw' ); ?></button>
+            <button class="bw-tab" type="button" data-target="#bw-tab-shipping" aria-selected="false"><?php esc_html_e( 'Shipping Details', 'bw' ); ?></button>
             <button class="bw-tab" type="button" data-target="#bw-tab-security" aria-selected="false"><?php esc_html_e( 'Security', 'bw' ); ?></button>
         </div>
     </header>
+
+    <?php wc_print_notices(); ?>
+
     <h2 class="screen-reader-text"><?php esc_html_e( 'Account details', 'woocommerce' ); ?></h2>
 
     <div class="bw-tab-panels">
@@ -80,48 +87,40 @@ if ( has_action( 'woocommerce_before_edit_account_form' ) ) {
                             </p>
                         </div>
                     </div>
-                    <div class="bw-account-form__messages">
-                        <div class="bw-account-form__error" role="alert" aria-live="polite" hidden></div>
-                        <div class="bw-account-form__success" role="status" aria-live="polite" hidden></div>
-                    </div>
                     <p>
                         <button type="submit" class="button"><?php esc_html_e( 'Save profile', 'bw' ); ?></button>
                     </p>
                 </section>
+
+                <?php wp_nonce_field( 'bw_save_profile_details', 'bw-profile-details-nonce' ); ?>
+                <input type="hidden" name="bw_account_profile_submit" value="1" />
             </form>
         </div>
 
-        <div class="bw-tab-panel" id="bw-tab-security">
-            <div class="woocommerce-message bw-account-security__notice" data-bw-pending-email-banner <?php echo $pending_email ? '' : 'hidden'; ?>>
-                <?php
-                if ( $pending_email ) {
-                    printf(
-                        /* translators: %s is the pending email address. */
-                        esc_html__( 'Confirm your new email address (%s) from the confirmation email we sent you.', 'bw' ),
-                        esc_html( $pending_email )
-                    );
-                }
-                ?>
-            </div>
-
-            <form class="bw-settings-form" data-bw-supabase-password-form>
+        <div class="bw-tab-panel" id="bw-tab-billing">
+            <form class="woocommerce-EditAccountForm edit-account" action="" method="post">
                 <section class="bw-settings-block">
                     <h3><?php esc_html_e( 'Billing details', 'bw' ); ?></h3>
                     <div class="bw-grid">
                         <?php foreach ( $billing_fields as $key => $field ) : ?>
-                            <?php
-                            $value = get_user_meta( $customer_id, $key, true );
-                            ?>
+                            <?php $value = get_user_meta( $customer_id, $key, true ); ?>
                             <div class="bw-field">
                                 <?php woocommerce_form_field( $key, $field, $value ); ?>
                             </div>
                         <?php endforeach; ?>
                     </div>
                     <p>
-                        <button type="submit" class="button"><?php esc_html_e( 'Update password', 'bw' ); ?></button>
+                        <button type="submit" class="button"><?php esc_html_e( 'Save billing details', 'bw' ); ?></button>
                     </p>
                 </section>
 
+                <?php wp_nonce_field( 'bw_save_profile_details', 'bw-profile-details-nonce' ); ?>
+                <input type="hidden" name="bw_account_billing_submit" value="1" />
+            </form>
+        </div>
+
+        <div class="bw-tab-panel" id="bw-tab-shipping">
+            <form class="woocommerce-EditAccountForm edit-account" action="" method="post">
                 <section class="bw-settings-block">
                     <h3><?php esc_html_e( 'Shipping details', 'bw' ); ?></h3>
                     <p class="form-row form-row-wide">
@@ -132,30 +131,19 @@ if ( has_action( 'woocommerce_before_edit_account_form' ) ) {
                     </p>
                     <div class="bw-grid" data-bw-shipping-fields <?php echo $ship_to_billing ? 'hidden' : ''; ?>>
                         <?php foreach ( $shipping_fields as $key => $field ) : ?>
-                            <?php
-                            $value = get_user_meta( $customer_id, $key, true );
-                            ?>
+                            <?php $value = get_user_meta( $customer_id, $key, true ); ?>
                             <div class="bw-field">
                                 <?php woocommerce_form_field( $key, $field, $value ); ?>
                             </div>
                         <?php endforeach; ?>
                     </div>
-                    <div class="bw-account-form__messages">
-                        <div class="bw-account-form__error" role="alert" aria-live="polite" hidden></div>
-                        <div class="bw-account-form__success" role="status" aria-live="polite" hidden></div>
-                    </div>
                     <p>
-                        <button type="submit" class="button"><?php esc_html_e( 'Update email', 'bw' ); ?></button>
+                        <button type="submit" class="button"><?php esc_html_e( 'Save shipping details', 'bw' ); ?></button>
                     </p>
                 </section>
 
-                <?php do_action( 'woocommerce_edit_account_form' ); ?>
-
                 <?php wp_nonce_field( 'bw_save_profile_details', 'bw-profile-details-nonce' ); ?>
-                <input type="hidden" name="bw_account_profile_submit" value="1" />
-                <p>
-                    <button type="submit" class="button"><?php esc_html_e( 'Save profile', 'bw' ); ?></button>
-                </p>
+                <input type="hidden" name="bw_account_shipping_submit" value="1" />
             </form>
         </div>
 
