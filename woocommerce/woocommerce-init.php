@@ -227,6 +227,9 @@ function bw_mew_enqueue_supabase_bridge() {
             'ajaxUrl'       => admin_url( 'admin-ajax.php' ),
             'nonce'         => wp_create_nonce( 'bw-supabase-login' ),
             'setPasswordUrl' => wc_get_account_endpoint_url( 'set-password' ),
+            'projectUrl'    => get_option( 'bw_supabase_project_url', '' ),
+            'anonKey'       => get_option( 'bw_supabase_anon_key', '' ),
+            'debug'         => (int) get_option( 'bw_supabase_debug_log', 0 ),
         ]
     );
 }
