@@ -51,6 +51,7 @@
 
         var handledKey = 'bw_handled_supabase_hash';
         var codeHandledKey = 'bw_handled_supabase_code';
+        var redirectGuardKey = 'bw_bridge_redirected';
         if (window.sessionStorage) {
             try {
                 if (sessionStorage.getItem(handledKey) === '1') {
@@ -101,6 +102,31 @@
             return true;
         };
 
+        var redirectAfterBridge = function (payload) {
+            if (!payload || !payload.success) {
+                return false;
+            }
+            if (window.sessionStorage) {
+                try {
+                    if (sessionStorage.getItem(redirectGuardKey) === '1') {
+                        logDebug('Skip redirect (already redirected)');
+                        return false;
+                    }
+                    sessionStorage.setItem(redirectGuardKey, '1');
+                } catch (error) {
+                    // ignore sessionStorage errors
+                }
+            }
+
+            cleanAuthParams();
+            cleanHash();
+
+            var target = payload.data && payload.data.redirect ? payload.data.redirect : '/my-account/';
+            logDebug('Bridge success -> redirecting to /my-account/');
+            window.location.assign(target);
+            return true;
+        };
+
         var bridgeSession = function (accessToken, refreshToken, context) {
             return fetch(window.bwSupabaseBridge.ajaxUrl, {
                 method: 'POST',
@@ -119,6 +145,10 @@
                 .then(function (response) {
                     logDebug('WP bridge response', { status: response.status, context: context || 'hash' });
                     return response.json();
+                })
+                .then(function (payload) {
+                    redirectAfterBridge(payload);
+                    return payload;
                 });
         };
 
@@ -163,11 +193,7 @@
                 return Promise.resolve(true);
             }
 
-            return bridgeSession(accessToken, refreshToken, inviteType).then(function (payload) {
-                cleanHash();
-                if (payload && payload.success && payload.data && payload.data.redirect) {
-                    safeRedirect(payload.data.redirect);
-                }
+            return bridgeSession(accessToken, refreshToken, inviteType).then(function () {
                 return true;
             });
         };
@@ -234,13 +260,7 @@
                         throw new Error('Supabase session missing after PKCE exchange.');
                     }
                     logDebug('Supabase code exchange success', { hasSession: true });
-                    return bridgeSession(session.access_token || '', session.refresh_token || '', 'oauth').then(function (payload) {
-                        cleanAuthParams();
-                        if (payload && payload.success && payload.data && payload.data.redirect) {
-                            safeRedirect(payload.data.redirect);
-                        } else {
-                            safeRedirect('/my-account/');
-                        }
+                    return bridgeSession(session.access_token || '', session.refresh_token || '', 'oauth').then(function () {
                         return true;
                     });
                 }).catch(function (error) {
@@ -283,13 +303,7 @@
                     if (!accessToken) {
                         throw new Error('Supabase PKCE exchange missing token.');
                     }
-                    return bridgeSession(accessToken, refreshToken, 'oauth').then(function (bridgePayload) {
-                        cleanAuthParams();
-                        if (bridgePayload && bridgePayload.success && bridgePayload.data && bridgePayload.data.redirect) {
-                            safeRedirect(bridgePayload.data.redirect);
-                        } else {
-                            safeRedirect('/my-account/');
-                        }
+                    return bridgeSession(accessToken, refreshToken, 'oauth').then(function () {
                         return true;
                     });
                 })
