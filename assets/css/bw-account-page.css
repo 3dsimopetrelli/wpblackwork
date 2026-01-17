@@ -680,6 +680,16 @@ body.woocommerce-account.bw-account-login-only .bw-account-login__register-link:
     margin-bottom: 6px;
 }
 
+.bw-account-login__rules li.is-valid {
+    color: #1a7f37;
+    font-weight: 600;
+}
+
+.bw-account-login__forgot {
+    margin-top: 8px;
+    text-align: center;
+}
+
 .bw-account-login__back-to-login {
     margin-top: 16px;
     text-align: center;
