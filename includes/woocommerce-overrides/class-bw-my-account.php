@@ -42,6 +42,32 @@ function bw_mew_filter_account_menu_items( $items ) {
 add_filter( 'woocommerce_account_menu_items', 'bw_mew_filter_account_menu_items', 20 );
 
 /**
+ * Append logged_out flag after logout redirects.
+ *
+ * @param string  $redirect_to Redirect URL.
+ * @param string  $requested   Requested redirect URL.
+ * @param WP_User $user        User object.
+ *
+ * @return string
+ */
+function bw_mew_append_logout_flag( $redirect_to, $requested, $user ) {
+    $account_url = function_exists( 'wc_get_page_permalink' )
+        ? wc_get_page_permalink( 'myaccount' )
+        : home_url( '/my-account/' );
+
+    if ( ! $redirect_to ) {
+        $redirect_to = $account_url;
+    }
+
+    if ( $account_url && false !== strpos( $redirect_to, $account_url ) ) {
+        $redirect_to = add_query_arg( 'logged_out', '1', $redirect_to );
+    }
+
+    return $redirect_to;
+}
+add_filter( 'logout_redirect', 'bw_mew_append_logout_flag', 10, 3 );
+
+/**
  * Check if a user still needs onboarding.
  *
  * @param int $user_id User ID.
@@ -192,7 +218,11 @@ function bw_mew_handle_profile_update() {
         return;
     }
 
-    if ( empty( $_POST['bw_account_profile_submit'] ) ) {
+    $submit_profile  = ! empty( $_POST['bw_account_profile_submit'] );
+    $submit_billing  = ! empty( $_POST['bw_account_billing_submit'] );
+    $submit_shipping = ! empty( $_POST['bw_account_shipping_submit'] );
+
+    if ( ! $submit_profile && ! $submit_billing && ! $submit_shipping ) {
         return;
     }
 
@@ -203,53 +233,61 @@ function bw_mew_handle_profile_update() {
 
     $user_id = get_current_user_id();
     $errors  = new WP_Error();
-
-    $first_name   = isset( $_POST['account_first_name'] ) ? wc_clean( wp_unslash( $_POST['account_first_name'] ) ) : '';
-    $last_name    = isset( $_POST['account_last_name'] ) ? wc_clean( wp_unslash( $_POST['account_last_name'] ) ) : '';
-    $display_name = isset( $_POST['account_display_name'] ) ? wc_clean( wp_unslash( $_POST['account_display_name'] ) ) : '';
-
-    if ( ! $first_name ) {
-        $errors->add( 'first_name', __( 'Please enter your first name.', 'bw' ) );
-    }
-
-    if ( ! $last_name ) {
-        $errors->add( 'last_name', __( 'Please enter your last name.', 'bw' ) );
-    }
-
-    if ( ! $display_name ) {
-        $errors->add( 'display_name', __( 'Please enter a display name.', 'bw' ) );
-    }
-
+    $customer = new WC_Customer( $user_id );
     $countries = new WC_Countries();
-    $billing_country  = isset( $_POST['billing_country'] ) ? wc_clean( wp_unslash( $_POST['billing_country'] ) ) : '';
-    $billing_fields   = $countries->get_address_fields( $billing_country, 'billing_' );
+
+    if ( $submit_profile ) {
+        $first_name   = isset( $_POST['account_first_name'] ) ? wc_clean( wp_unslash( $_POST['account_first_name'] ) ) : '';
+        $last_name    = isset( $_POST['account_last_name'] ) ? wc_clean( wp_unslash( $_POST['account_last_name'] ) ) : '';
+        $display_name = isset( $_POST['account_display_name'] ) ? wc_clean( wp_unslash( $_POST['account_display_name'] ) ) : '';
+
+        if ( ! $first_name ) {
+            $errors->add( 'first_name', __( 'Please enter your first name.', 'bw' ) );
+        }
+
+        if ( ! $last_name ) {
+            $errors->add( 'last_name', __( 'Please enter your last name.', 'bw' ) );
+        }
+
+        if ( ! $display_name ) {
+            $errors->add( 'display_name', __( 'Please enter a display name.', 'bw' ) );
+        }
+    }
 
     $billing_values = [];
-    foreach ( $billing_fields as $key => $field ) {
-        $value = isset( $_POST[ $key ] ) ? wc_clean( wp_unslash( $_POST[ $key ] ) ) : '';
-        if ( ! empty( $field['required'] ) && '' === $value ) {
-            $errors->add( $key, sprintf( __( 'Please enter %s.', 'bw' ), $field['label'] ?? $key ) );
-        }
-        $billing_values[ $key ] = $value;
-    }
+    if ( $submit_billing ) {
+        $billing_country  = isset( $_POST['billing_country'] ) ? wc_clean( wp_unslash( $_POST['billing_country'] ) ) : '';
+        $billing_fields   = $countries->get_address_fields( $billing_country, 'billing_' );
 
-    $ship_to_billing = ! empty( $_POST['shipping_same_as_billing'] );
-    $shipping_values = [];
-    if ( $ship_to_billing ) {
-        foreach ( $billing_values as $key => $value ) {
-            $shipping_key                 = str_replace( 'billing_', 'shipping_', $key );
-            $shipping_values[ $shipping_key ] = $value;
-        }
-    } else {
-        $shipping_country = isset( $_POST['shipping_country'] ) ? wc_clean( wp_unslash( $_POST['shipping_country'] ) ) : '';
-        $shipping_fields  = $countries->get_address_fields( $shipping_country, 'shipping_' );
-
-        foreach ( $shipping_fields as $key => $field ) {
+        foreach ( $billing_fields as $key => $field ) {
             $value = isset( $_POST[ $key ] ) ? wc_clean( wp_unslash( $_POST[ $key ] ) ) : '';
             if ( ! empty( $field['required'] ) && '' === $value ) {
                 $errors->add( $key, sprintf( __( 'Please enter %s.', 'bw' ), $field['label'] ?? $key ) );
             }
-            $shipping_values[ $key ] = $value;
+            $billing_values[ $key ] = $value;
+        }
+    }
+
+    $shipping_values = [];
+    if ( $submit_shipping ) {
+        $ship_to_billing = ! empty( $_POST['shipping_same_as_billing'] );
+        if ( $ship_to_billing ) {
+            foreach ( $countries->get_address_fields( $customer->get_billing_country(), 'billing_' ) as $key => $field ) {
+                $billing_value = $customer->{'get_' . $key}();
+                $shipping_key  = str_replace( 'billing_', 'shipping_', $key );
+                $shipping_values[ $shipping_key ] = $billing_value;
+            }
+        } else {
+            $shipping_country = isset( $_POST['shipping_country'] ) ? wc_clean( wp_unslash( $_POST['shipping_country'] ) ) : '';
+            $shipping_fields  = $countries->get_address_fields( $shipping_country, 'shipping_' );
+
+            foreach ( $shipping_fields as $key => $field ) {
+                $value = isset( $_POST[ $key ] ) ? wc_clean( wp_unslash( $_POST[ $key ] ) ) : '';
+                if ( ! empty( $field['required'] ) && '' === $value ) {
+                    $errors->add( $key, sprintf( __( 'Please enter %s.', 'bw' ), $field['label'] ?? $key ) );
+                }
+                $shipping_values[ $key ] = $value;
+            }
         }
     }
 
@@ -260,38 +298,44 @@ function bw_mew_handle_profile_update() {
         return;
     }
 
-    update_user_meta( $user_id, 'first_name', $first_name );
-    update_user_meta( $user_id, 'last_name', $last_name );
-    wp_update_user(
-        [
-            'ID'           => $user_id,
-            'display_name' => $display_name,
-        ]
-    );
-
-    $customer = new WC_Customer( $user_id );
-
-    foreach ( $billing_values as $key => $value ) {
-        $setter = 'set_' . $key;
-        if ( method_exists( $customer, $setter ) ) {
-            $customer->{$setter}( $value );
-        } else {
-            update_user_meta( $user_id, $key, $value );
-        }
+    if ( $submit_profile ) {
+        update_user_meta( $user_id, 'first_name', $first_name );
+        update_user_meta( $user_id, 'last_name', $last_name );
+        wp_update_user(
+            [
+                'ID'           => $user_id,
+                'display_name' => $display_name,
+            ]
+        );
+        wc_add_notice( __( 'Profile updated.', 'bw' ), 'success' );
     }
 
-    foreach ( $shipping_values as $key => $value ) {
-        $setter = 'set_' . $key;
-        if ( method_exists( $customer, $setter ) ) {
-            $customer->{$setter}( $value );
-        } else {
-            update_user_meta( $user_id, $key, $value );
+    if ( $submit_billing ) {
+        foreach ( $billing_values as $key => $value ) {
+            $setter = 'set_' . $key;
+            if ( method_exists( $customer, $setter ) ) {
+                $customer->{$setter}( $value );
+            } else {
+                update_user_meta( $user_id, $key, $value );
+            }
         }
+        $customer->save();
+        wc_add_notice( __( 'Billing details updated.', 'bw' ), 'success' );
     }
 
-    $customer->save();
+    if ( $submit_shipping ) {
+        foreach ( $shipping_values as $key => $value ) {
+            $setter = 'set_' . $key;
+            if ( method_exists( $customer, $setter ) ) {
+                $customer->{$setter}( $value );
+            } else {
+                update_user_meta( $user_id, $key, $value );
+            }
+        }
+        $customer->save();
+        wc_add_notice( __( 'Shipping details updated.', 'bw' ), 'success' );
+    }
 
-    wc_add_notice( __( 'Profile updated.', 'bw' ), 'success' );
     wp_safe_redirect( wc_get_account_endpoint_url( 'edit-account' ) );
     exit;
 }
