@@ -51,7 +51,8 @@
 
         var handledKey = 'bw_handled_supabase_hash';
         var codeHandledKey = 'bw_handled_supabase_code';
-        var redirectGuardKey = 'bw_bridge_redirected';
+        var redirectGuardKey = 'bw_oauth_bridge_done';
+        var redirectDelayMs = 150;
         if (window.sessionStorage) {
             try {
                 if (sessionStorage.getItem(handledKey) === '1') {
@@ -67,6 +68,44 @@
             } catch (error) {
                 // ignore sessionStorage errors
             }
+            if (context) {
+                console.log('[bw]', message, context);
+                return;
+            }
+            console.log('[bw]', message);
+        };
+
+        var searchParams = new URLSearchParams(window.location.search);
+        var authCode = searchParams.get('code') || '';
+        if (searchParams.has('logged_out')) {
+            if (window.sessionStorage) {
+                try {
+                    sessionStorage.removeItem('bw_pending_otp_email');
+                    sessionStorage.removeItem('bw_handled_supabase_hash');
+                    sessionStorage.removeItem('bw_handled_supabase_code');
+                    sessionStorage.removeItem('bw_handled_token_login');
+                    sessionStorage.removeItem('bw_handled_email_confirm');
+                    sessionStorage.removeItem('bw_handled_session_check');
+                    sessionStorage.removeItem('bw_supabase_access_token');
+                    sessionStorage.removeItem('bw_supabase_refresh_token');
+                } catch (error) {
+                    // ignore sessionStorage errors
+                }
+            }
+            if (window.localStorage) {
+                try {
+                    localStorage.removeItem('bw_pending_otp_email');
+                    localStorage.removeItem('bw_onboarded');
+                } catch (error) {
+                    // ignore localStorage errors
+                }
+            }
+            if (window.history && window.history.replaceState) {
+                var loggedOutUrl = new URL(window.location.href);
+                loggedOutUrl.searchParams.delete('logged_out');
+                window.history.replaceState({}, document.title, loggedOutUrl.pathname + (loggedOutUrl.search ? loggedOutUrl.search : '') + (loggedOutUrl.hash ? loggedOutUrl.hash : ''));
+            }
+            return;
         }
 
         var cleanHash = function () {
@@ -122,8 +161,53 @@
             cleanHash();
 
             var target = payload.data && payload.data.redirect ? payload.data.redirect : '/my-account/';
-            logDebug('Bridge success -> redirecting to /my-account/');
-            window.location.assign(target);
+            var attempts = 0;
+            var maxAttempts = 2;
+
+            var checkSession = function () {
+                attempts += 1;
+                return fetch(window.bwSupabaseBridge.ajaxUrl, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8'
+                    },
+                    body: new URLSearchParams({
+                        action: 'bw_supabase_check_wp_session',
+                        nonce: window.bwSupabaseBridge.nonce
+                    })
+                })
+                    .then(function (response) {
+                        logDebug('WP session check', { status: response.status, attempt: attempts });
+                        return response.json();
+                    })
+                    .then(function (payload) {
+                        return payload && payload.success && payload.data && payload.data.loggedIn;
+                    })
+                    .catch(function () {
+                        return false;
+                    });
+            };
+
+            var scheduleRedirect = function () {
+                logDebug('Bridge success -> redirecting to /my-account/');
+                setTimeout(function () {
+                    window.location.replace(target);
+                }, redirectDelayMs);
+            };
+
+            var attemptRedirect = function () {
+                checkSession().then(function (loggedIn) {
+                    if (loggedIn || attempts > maxAttempts) {
+                        scheduleRedirect();
+                        return;
+                    }
+                    var backoff = attempts === 1 ? 200 : 600;
+                    setTimeout(attemptRedirect, backoff);
+                });
+            };
+
+            attemptRedirect();
             return true;
         };
 

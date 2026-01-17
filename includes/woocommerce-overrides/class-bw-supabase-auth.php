@@ -1405,6 +1405,21 @@ function bw_mew_handle_supabase_update_email() {
 add_action( 'wp_ajax_bw_supabase_update_email', 'bw_mew_handle_supabase_update_email' );
 
 /**
+ * Check if the current session is authenticated.
+ */
+function bw_mew_handle_supabase_session_check() {
+    check_ajax_referer( 'bw-supabase-login', 'nonce' );
+
+    wp_send_json_success(
+        [
+            'loggedIn' => is_user_logged_in(),
+        ]
+    );
+}
+add_action( 'wp_ajax_bw_supabase_check_wp_session', 'bw_mew_handle_supabase_session_check' );
+add_action( 'wp_ajax_nopriv_bw_supabase_check_wp_session', 'bw_mew_handle_supabase_session_check' );
+
+/**
  * Invite Supabase users after guest checkout when orders become valid.
  *
  * @param int $order_id Order ID.

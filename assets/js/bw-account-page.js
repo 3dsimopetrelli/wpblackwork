@@ -70,6 +70,7 @@
                     sessionStorage.removeItem('bw_handled_session_check');
                     sessionStorage.removeItem('bw_supabase_access_token');
                     sessionStorage.removeItem('bw_supabase_refresh_token');
+                    sessionStorage.removeItem('bw_oauth_bridge_done');
                     sessionStorage.removeItem(redirectGuardKey);
                 } catch (error) {
                     // ignore sessionStorage errors
@@ -166,6 +167,7 @@
         if (document.body.classList.contains('logged-in')) {
             if (window.sessionStorage) {
                 try {
+                    sessionStorage.removeItem('bw_oauth_bridge_done');
                     sessionStorage.removeItem(redirectGuardKey);
                 } catch (error) {
                     // ignore sessionStorage errors
@@ -1091,6 +1093,9 @@
                 switchAuthScreen('magic');
             } else {
                 var storedEmail = getPendingOtpEmail();
+                if (!storedEmail) {
+                    clearOtpPendingState();
+                }
                 if (!document.body.classList.contains('bw-account-login-only') && storedEmail) {
                     switchAuthScreen('otp');
                 } else {
