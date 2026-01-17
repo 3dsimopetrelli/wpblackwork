@@ -326,11 +326,11 @@
                     var refreshToken = params.get('refresh_token');
                     var authType = params.get('type');
                     var autoLoginAfterConfirm = Boolean(authConfig.autoLoginAfterConfirm);
+                    var shouldHandleToken = authType !== 'invite' && (authType !== 'signup' || autoLoginAfterConfirm);
                     if (authType === 'recovery') {
                         cleanAuthUrl(['access_token', 'refresh_token', 'type', 'code', 'bw_email_confirmed']);
-                        return;
+                        shouldHandleToken = false;
                     }
-                    var shouldHandleToken = authType !== 'invite' && (authType !== 'signup' || autoLoginAfterConfirm);
 
                     if (accessToken && shouldHandleToken) {
                         setSessionStorageItem('bw_handled_supabase_hash', '1');
