@@ -131,63 +131,9 @@ if ( ! $show_supabase_register && 'register' === $active_tab ) {
                                         <p class="form-row bw-account-login__actions">
                                             <button type="submit" class="woocommerce-button button bw-account-login__submit" data-bw-supabase-submit><?php esc_html_e( 'Log in', 'bw' ); ?></button>
                                         </p>
-                                        <p class="bw-account-login__forgot">
-                                            <button type="button" class="bw-account-login__back-link" data-bw-go-reset-password><?php esc_html_e( 'Forgot password?', 'bw' ); ?></button>
-                                        </p>
                                     </form>
                                     <p class="bw-account-login__back-to-login">
                                         <button type="button" class="bw-account-login__back-link" data-bw-go-magic>← <?php esc_html_e( 'Back to Login', 'bw' ); ?></button>
-                                    </p>
-                                </div>
-
-                                <div class="bw-auth-screen bw-auth-screen--reset-password" data-bw-screen="reset-password">
-                                    <h3 class="bw-account-login__title"><?php esc_html_e( 'Reset password', 'bw' ); ?></h3>
-                                    <p class="bw-account-login__note"><?php esc_html_e( 'Enter your email and we will send a reset link.', 'bw' ); ?></p>
-                                    <form class="bw-account-login__form bw-account-login__form--supabase" data-bw-reset-form>
-                                        <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide bw-account-login__field">
-                                            <label for="bw_supabase_reset_email"><?php esc_html_e( 'Email address', 'woocommerce' ); ?> <span class="required">*</span></label>
-                                            <input type="email" class="woocommerce-Input woocommerce-Input--text input-text" name="email" id="bw_supabase_reset_email" autocomplete="email" required />
-                                        </p>
-
-                                        <div class="bw-account-login__error" role="alert" aria-live="polite" hidden></div>
-                                        <div class="bw-account-login__success" role="status" aria-live="polite" hidden></div>
-
-                                        <p class="form-row bw-account-login__actions">
-                                            <button type="submit" class="woocommerce-button button bw-account-login__submit" data-bw-reset-send><?php esc_html_e( 'Send reset link', 'bw' ); ?></button>
-                                        </p>
-                                    </form>
-                                    <p class="bw-account-login__back-to-login">
-                                        <button type="button" class="bw-account-login__back-link" data-bw-go-password>← <?php esc_html_e( 'Back to login', 'bw' ); ?></button>
-                                    </p>
-                                </div>
-
-                                <div class="bw-auth-screen bw-auth-screen--set-password" data-bw-screen="set-password">
-                                    <h3 class="bw-account-login__title"><?php esc_html_e( 'Set new password', 'bw' ); ?></h3>
-                                    <p class="bw-account-login__note"><?php esc_html_e( 'Create a new password for your account.', 'bw' ); ?></p>
-                                    <form class="bw-account-login__form bw-account-login__form--supabase" data-bw-set-password-form>
-                                        <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide bw-account-login__field">
-                                            <label for="bw_supabase_reset_password"><?php esc_html_e( 'New password', 'woocommerce' ); ?> <span class="required">*</span></label>
-                                            <input class="woocommerce-Input woocommerce-Input--text input-text" type="password" name="new_password" id="bw_supabase_reset_password" autocomplete="new-password" required />
-                                        </p>
-                                        <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide bw-account-login__field">
-                                            <label for="bw_supabase_reset_password_confirm"><?php esc_html_e( 'Confirm password', 'woocommerce' ); ?> <span class="required">*</span></label>
-                                            <input class="woocommerce-Input woocommerce-Input--text input-text" type="password" name="confirm_password" id="bw_supabase_reset_password_confirm" autocomplete="new-password" required />
-                                        </p>
-                                        <ul class="bw-account-login__rules" data-bw-reset-rules>
-                                            <li data-bw-reset-rule="length"><?php esc_html_e( 'At least 8 characters', 'bw' ); ?></li>
-                                            <li data-bw-reset-rule="upper"><?php esc_html_e( 'At least 1 uppercase letter', 'bw' ); ?></li>
-                                            <li data-bw-reset-rule="number"><?php esc_html_e( 'At least 1 number or special character', 'bw' ); ?></li>
-                                        </ul>
-
-                                        <div class="bw-account-login__error" role="alert" aria-live="polite" hidden></div>
-                                        <div class="bw-account-login__success" role="status" aria-live="polite" hidden></div>
-
-                                        <p class="form-row bw-account-login__actions">
-                                            <button type="submit" class="woocommerce-button button bw-account-login__submit" data-bw-setpass-submit><?php esc_html_e( 'Update password', 'bw' ); ?></button>
-                                        </p>
-                                    </form>
-                                    <p class="bw-account-login__back-to-login">
-                                        <button type="button" class="bw-account-login__back-link" data-bw-go-magic>← <?php esc_html_e( 'Back to login', 'bw' ); ?></button>
                                     </p>
                                 </div>
                             <?php endif; ?>
