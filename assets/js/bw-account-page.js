@@ -276,22 +276,6 @@
 
         var authWrapper = document.querySelector('.bw-account-auth');
 
-        var hasRecoveryContext = function () {
-            try {
-                var hashValue = window.location.hash || '';
-                var searchValue = window.location.search || '';
-                if (hashValue.indexOf('type=recovery') !== -1 || hashValue.indexOf('access_token=') !== -1 || hashValue.indexOf('refresh_token=') !== -1) {
-                    return true;
-                }
-                if (searchValue.indexOf('code=') !== -1) {
-                    return true;
-                }
-            } catch (error) {
-                return false;
-            }
-            return false;
-        };
-
         if (authWrapper) {
             initAuthTabs(authWrapper);
 
@@ -310,7 +294,7 @@
             }
         }
 
-        if (!skipAuthHandlers && (hasRecoveryContext() || hasRecoveryContextFallback()) && !recoveryAlreadyHandled()) {
+        if (!skipAuthHandlers && hasRecoveryContext() && !recoveryAlreadyHandled()) {
             markRecoveryHandled();
             switchAuthScreen('set-password');
         }
@@ -489,26 +473,28 @@
             return '';
         };
 
-        // Guarded recovery detection: avoid hard crashes that disable auth UI.
-        var hasRecoveryContextFallback = function () {
-            try {
-                var hash = window.location.hash.replace(/^#/, '');
-                var hashParams = hash ? new URLSearchParams(hash) : null;
-                var type = hashParams ? hashParams.get('type') : '';
-                var accessToken = hashParams ? hashParams.get('access_token') : '';
-                var refreshToken = hashParams ? hashParams.get('refresh_token') : '';
-                var codeParam = searchParams.get('code') || '';
+        var hasRecoveryContext = function () {
+            var hash = window.location.hash.replace(/^#/, '');
+            var hashParams = hash ? new URLSearchParams(hash) : null;
+            var type = hashParams ? hashParams.get('type') : '';
+            var accessToken = hashParams ? hashParams.get('access_token') : '';
+            var codeParam = searchParams.get('code') || '';
+            var typeParam = searchParams.get('type') || '';
+            var providerParam = searchParams.get('provider') || '';
+            var stateParam = searchParams.get('state') || '';
 
-                if (type === 'recovery' || (accessToken && refreshToken)) {
-                    return true;
-                }
-
-                if (codeParam) {
-                    return true;
-                }
-            } catch (error) {
-                return false;
+            if (type === 'recovery' || typeParam === 'recovery') {
+                return true;
             }
+
+            if (accessToken && type === 'recovery') {
+                return true;
+            }
+
+            if (codeParam && !providerParam && !stateParam) {
+                return true;
+            }
+
             return false;
         };
 
