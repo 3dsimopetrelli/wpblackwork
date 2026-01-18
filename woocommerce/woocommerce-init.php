@@ -128,6 +128,14 @@ function bw_mew_enqueue_account_page_assets() {
     $js_file      = BW_MEW_PATH . 'assets/js/bw-account-page.js';
     $js_version   = file_exists( $js_file ) ? filemtime( $js_file ) : '1.0.0';
 
+    wp_enqueue_script(
+        'supabase-js',
+        'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',
+        [],
+        null,
+        true
+    );
+
     wp_enqueue_style(
         'bw-account-page',
         BW_MEW_URL . 'assets/css/bw-account-page.css',
@@ -138,7 +146,7 @@ function bw_mew_enqueue_account_page_assets() {
     wp_enqueue_script(
         'bw-account-page',
         BW_MEW_URL . 'assets/js/bw-account-page.js',
-        [],
+        [ 'supabase-js' ],
         $js_version,
         true
     );
@@ -161,20 +169,43 @@ function bw_mew_enqueue_account_page_assets() {
             'magicLinkRedirectUrl' => get_option( 'bw_supabase_magic_link_redirect_url', site_url( '/my-account/' ) ),
             'oauthRedirectUrl' => get_option( 'bw_supabase_oauth_redirect_url', site_url( '/my-account/' ) ),
             'signupRedirectUrl' => get_option( 'bw_supabase_signup_redirect_url', site_url( '/my-account/?bw_email_confirmed=1' ) ),
+            'resetRedirectUrl' => site_url( '/my-account/' ),
             'magicLinkEnabled' => (int) get_option( 'bw_supabase_magic_link_enabled', 1 ),
             'oauthGoogleEnabled' => (int) get_option( 'bw_supabase_oauth_google_enabled', 1 ),
             'oauthFacebookEnabled' => (int) get_option( 'bw_supabase_oauth_facebook_enabled', 1 ),
+            'oauthAppleEnabled' => (int) get_option( 'bw_supabase_oauth_apple_enabled', 0 ),
+            'passwordLoginEnabled' => (int) get_option( 'bw_supabase_login_password_enabled', 1 ),
+            'registerPromptEnabled' => (int) get_option( 'bw_supabase_register_prompt_enabled', 1 ),
             'debug' => (int) get_option( 'bw_supabase_debug_log', 0 ),
+            'cookieBase' => sanitize_key( (string) get_option( 'bw_supabase_jwt_cookie_name', 'bw_supabase_session' ) ) ?: 'bw_supabase_session',
             'messages' => [
                 'missingConfig' => esc_html__( 'Supabase configuration is missing.', 'bw' ),
                 'enterEmail' => esc_html__( 'Please enter your email address.', 'bw' ),
-                'magicLinkSent' => esc_html__( 'Check your email for the login link.', 'bw' ),
+                'magicLinkSent' => esc_html__( 'Check your email for the 6-digit code.', 'bw' ),
                 'magicLinkError' => esc_html__( 'Unable to send magic link.', 'bw' ),
                 'loginError' => esc_html__( 'Unable to login.', 'bw' ),
                 'registerCompleteFields' => esc_html__( 'Please complete all fields.', 'bw' ),
                 'registerPasswordMismatch' => esc_html__( 'Passwords do not match.', 'bw' ),
                 'registerSuccess' => esc_html__( 'Check your email to confirm your account.', 'bw' ),
                 'registerError' => esc_html__( 'Unable to register.', 'bw' ),
+                'resetEmailSent' => esc_html__( 'If an account exists for this email, you’ll receive a reset link shortly.', 'bw' ),
+                'resetEmailError' => esc_html__( 'Unable to send reset email.', 'bw' ),
+                'updatePasswordSuccess' => esc_html__( 'Your password has been updated.', 'bw' ),
+                'updatePasswordError' => esc_html__( 'Unable to update password.', 'bw' ),
+                'createPasswordTitle' => esc_html__( 'Create your password', 'bw' ),
+                'createPasswordHelper' => esc_html__( 'For extra security, create your password now.', 'bw' ),
+                'saveAndContinue' => esc_html__( 'Save and continue', 'bw' ),
+                'passwordUpdateFailed' => esc_html__( 'Unable to update password.', 'bw' ),
+                'passwordRuleLength' => esc_html__( 'At least 8 characters', 'bw' ),
+                'passwordRuleUpper' => esc_html__( 'At least 1 uppercase letter', 'bw' ),
+                'passwordRuleNumber' => esc_html__( 'At least 1 number or special character', 'bw' ),
+                'otpSent' => esc_html__( 'Check your email for the 6-digit code.', 'bw' ),
+                'enterOtp' => esc_html__( 'Please enter the 6-digit code.', 'bw' ),
+                'otpVerifyError' => esc_html__( 'Unable to verify the code.', 'bw' ),
+                'otpInvalid' => esc_html__( 'Invalid or expired code. Please try again.', 'bw' ),
+                'otpResent' => esc_html__( 'We sent you a new code.', 'bw' ),
+                'otpResendError' => esc_html__( 'Unable to resend the code right now.', 'bw' ),
+                'supabaseSdkMissing' => esc_html__( 'Supabase JS SDK is not loaded.', 'bw' ),
             ],
         ]
     );
@@ -196,7 +227,7 @@ function bw_mew_enqueue_supabase_bridge() {
     wp_enqueue_script(
         'bw-supabase-bridge',
         BW_MEW_URL . 'assets/js/bw-supabase-bridge.js',
-        [],
+        [ 'supabase-js' ],
         filemtime( $js_file ),
         true
     );
@@ -208,6 +239,9 @@ function bw_mew_enqueue_supabase_bridge() {
             'ajaxUrl'       => admin_url( 'admin-ajax.php' ),
             'nonce'         => wp_create_nonce( 'bw-supabase-login' ),
             'setPasswordUrl' => wc_get_account_endpoint_url( 'set-password' ),
+            'projectUrl'    => get_option( 'bw_supabase_project_url', '' ),
+            'anonKey'       => get_option( 'bw_supabase_anon_key', '' ),
+            'debug'         => (int) get_option( 'bw_supabase_debug_log', 0 ),
         ]
     );
 }
