@@ -10,6 +10,7 @@
         var reloadGuardKey = 'bw_account_reload_guard';
         var bridgeAttemptKey = 'bw_supabase_bridge_attempted';
         var redirectGuardKey = 'bw_bridge_redirected';
+        var recoveryHandledKey = 'bw_recovery_handled';
         var logDebug = function (message, context) {
             if (!debugEnabled) {
                 return;
@@ -72,6 +73,7 @@
                     sessionStorage.removeItem('bw_supabase_refresh_token');
                     sessionStorage.removeItem('bw_oauth_bridge_done');
                     sessionStorage.removeItem(redirectGuardKey);
+                    sessionStorage.removeItem(recoveryHandledKey);
                 } catch (error) {
                     // ignore sessionStorage errors
                 }
@@ -169,6 +171,7 @@
                 try {
                     sessionStorage.removeItem('bw_oauth_bridge_done');
                     sessionStorage.removeItem(redirectGuardKey);
+                    sessionStorage.removeItem(recoveryHandledKey);
                 } catch (error) {
                     // ignore sessionStorage errors
                 }
@@ -273,6 +276,23 @@
 
         var authWrapper = document.querySelector('.bw-account-auth');
 
+        // Guarded recovery detection: avoid hard crashes that disable auth UI.
+        function hasRecoveryContext() {
+            try {
+                var hashValue = window.location.hash || '';
+                var searchValue = window.location.search || '';
+                if (hashValue.indexOf('type=recovery') !== -1 || hashValue.indexOf('access_token=') !== -1 || hashValue.indexOf('refresh_token=') !== -1) {
+                    return true;
+                }
+                if (searchValue.indexOf('code=') !== -1) {
+                    return true;
+                }
+            } catch (error) {
+                return false;
+            }
+            return false;
+        }
+
         if (authWrapper) {
             initAuthTabs(authWrapper);
 
@@ -291,6 +311,11 @@
             }
         }
 
+        if (!skipAuthHandlers && hasRecoveryContext() && !recoveryAlreadyHandled()) {
+            markRecoveryHandled();
+            switchAuthScreen('set-password');
+        }
+
         if (!skipAuthHandlers) {
             var hash = window.location.hash || '';
             if (hash.indexOf('access_token=') !== -1 && authConfig.ajaxUrl) {
@@ -303,6 +328,10 @@
                     var authType = params.get('type');
                     var autoLoginAfterConfirm = Boolean(authConfig.autoLoginAfterConfirm);
                     var shouldHandleToken = authType !== 'invite' && (authType !== 'signup' || autoLoginAfterConfirm);
+                    if (authType === 'recovery') {
+                        cleanAuthUrl(['access_token', 'refresh_token', 'type', 'code', 'bw_email_confirmed']);
+                        shouldHandleToken = false;
+                    }
 
                     if (accessToken && shouldHandleToken) {
                         setSessionStorageItem('bw_handled_supabase_hash', '1');
@@ -343,6 +372,7 @@
         var magicLinkRedirect = authConfig.magicLinkRedirectUrl || '';
         var oauthRedirect = authConfig.oauthRedirectUrl || '';
         var signupRedirect = authConfig.signupRedirectUrl || '';
+        var resetRedirect = authConfig.resetRedirectUrl || magicLinkRedirect || window.location.origin + '/my-account/';
         var magicLinkEnabled = authConfig.magicLinkEnabled !== undefined ? Boolean(authConfig.magicLinkEnabled) : true;
         var oauthGoogleEnabled = authConfig.oauthGoogleEnabled !== undefined ? Boolean(authConfig.oauthGoogleEnabled) : true;
         var oauthFacebookEnabled = authConfig.oauthFacebookEnabled !== undefined ? Boolean(authConfig.oauthFacebookEnabled) : true;
@@ -354,6 +384,8 @@
 
         var magicLinkForm = document.querySelector('[data-bw-supabase-form][data-bw-supabase-action="magic-link"]');
         var passwordLoginForm = document.querySelector('[data-bw-supabase-form][data-bw-supabase-action="password-login"]');
+        var resetPasswordForm = document.querySelector('[data-bw-reset-form]');
+        var setPasswordForm = document.querySelector('[data-bw-set-password-form]');
         var oauthButtons = Array.prototype.slice.call(document.querySelectorAll('[data-bw-oauth-provider]'));
         var registerForm = document.querySelector('[data-bw-register-form]');
         var registerContinue = registerForm ? registerForm.querySelector('[data-bw-register-continue]') : null;
@@ -366,6 +398,11 @@
         var otpEmailText = otpForm ? otpForm.querySelector('[data-bw-otp-email]') : null;
         var authScreens = Array.prototype.slice.call(document.querySelectorAll('[data-bw-screen]'));
         var goPasswordButton = document.querySelector('[data-bw-go-password]');
+        var goResetPasswordButton = document.querySelector('[data-bw-go-reset-password]');
+        var resetRules = setPasswordForm ? Array.prototype.slice.call(setPasswordForm.querySelectorAll('[data-bw-reset-rule]')) : [];
+        var resetPasswordSubmit = setPasswordForm ? setPasswordForm.querySelector('[data-bw-setpass-submit]') : null;
+        var resetPasswordInput = setPasswordForm ? setPasswordForm.querySelector('input[name="new_password"]') : null;
+        var resetPasswordConfirm = setPasswordForm ? setPasswordForm.querySelector('input[name="confirm_password"]') : null;
         var goMagicButtons = Array.prototype.slice.call(document.querySelectorAll('[data-bw-go-magic]'));
         var getMessage = function (key, fallback) {
             if (messages && Object.prototype.hasOwnProperty.call(messages, key)) {
@@ -390,6 +427,75 @@
                 successBox.hidden = type !== 'success';
                 successBox.textContent = type === 'success' ? message : '';
             }
+        };
+
+        var resetPasswordRules = [
+            { id: 'length', test: function (value) { return value.length >= 8; } },
+            { id: 'upper', test: function (value) { return /[A-Z]/.test(value); } },
+            { id: 'number', test: function (value) { return /[0-9]|[^A-Za-z0-9]/.test(value); } }
+        ];
+
+        var updateResetRules = function () {
+            if (!resetPasswordInput || !resetRules.length) {
+                return true;
+            }
+            var value = resetPasswordInput.value || '';
+            var allPass = true;
+            resetPasswordRules.forEach(function (rule) {
+                var passes = rule.test(value);
+                var ruleItem = resetRules.find(function (item) {
+                    return item.dataset.bwResetRule === rule.id;
+                });
+                if (ruleItem) {
+                    ruleItem.classList.toggle('is-valid', passes);
+                }
+                if (!passes) {
+                    allPass = false;
+                }
+            });
+            return allPass;
+        };
+
+        var updateResetSubmitState = function () {
+            if (!resetPasswordSubmit) {
+                return;
+            }
+            var rulesPass = updateResetRules();
+            var newValue = resetPasswordInput ? resetPasswordInput.value.trim() : '';
+            var confirmValue = resetPasswordConfirm ? resetPasswordConfirm.value.trim() : '';
+            resetPasswordSubmit.disabled = !(rulesPass && newValue && confirmValue && newValue === confirmValue);
+        };
+
+        var getCodeVerifier = function () {
+            if (!window.localStorage) {
+                return '';
+            }
+            try {
+                var direct = localStorage.getItem('supabase.auth.code_verifier');
+                if (direct) {
+                    return direct;
+                }
+                for (var i = 0; i < localStorage.length; i += 1) {
+                    var key = localStorage.key(i);
+                    if (key && key.indexOf('code_verifier') !== -1) {
+                        var value = localStorage.getItem(key);
+                        if (value) {
+                            return value;
+                        }
+                    }
+                }
+            } catch (error) {
+                // ignore localStorage errors
+            }
+            return '';
+        };
+
+        var markRecoveryHandled = function () {
+            setSessionStorageItem(recoveryHandledKey, '1');
+        };
+
+        var recoveryAlreadyHandled = function () {
+            return getSessionStorageItem(recoveryHandledKey) === '1';
         };
 
         var setStepState = function (step, isActive) {
@@ -650,6 +756,10 @@
                 }
                 updateOtpState();
             }
+
+            if (target === 'set-password') {
+                updateResetSubmitState();
+            }
         };
 
         var supabaseSessionRedirect = function () {
@@ -866,6 +976,101 @@
             });
         }
 
+        if (resetPasswordInput) {
+            resetPasswordInput.addEventListener('input', updateResetSubmitState);
+        }
+
+        if (resetPasswordConfirm) {
+            resetPasswordConfirm.addEventListener('input', updateResetSubmitState);
+        }
+
+        updateResetSubmitState();
+
+        if (goResetPasswordButton) {
+            goResetPasswordButton.addEventListener('click', function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                if (resetPasswordForm) {
+                    showFormMessage(resetPasswordForm, 'error', '');
+                    showFormMessage(resetPasswordForm, 'success', '');
+                }
+                switchAuthScreen('reset-password');
+            });
+        }
+
+        if (resetPasswordForm) {
+            resetPasswordForm.addEventListener('submit', function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                if (!projectUrl || !anonKey) {
+                    showFormMessage(resetPasswordForm, 'error', getMessage('missingConfig', 'Supabase configuration is missing.'));
+                    return;
+                }
+
+                var emailField = resetPasswordForm.querySelector('input[type="email"]');
+                var emailValue = emailField ? emailField.value.trim() : '';
+                if (!emailValue) {
+                    showFormMessage(resetPasswordForm, 'error', getMessage('enterEmail', 'Please enter your email address.'));
+                    return;
+                }
+
+                var submitButton = resetPasswordForm.querySelector('[data-bw-reset-send]');
+                if (submitButton) {
+                    submitButton.disabled = true;
+                }
+
+                showFormMessage(resetPasswordForm, 'error', '');
+                showFormMessage(resetPasswordForm, 'success', '');
+
+                var supabase = getSupabaseClient();
+                var request;
+
+                if (supabase) {
+                    logDebug('Supabase reset request', { method: 'sdk' });
+                    request = supabase.auth.resetPasswordForEmail(emailValue, { redirectTo: resetRedirect });
+                } else {
+                    logDebug('Supabase reset request', { method: 'rest' });
+                    request = fetch(projectUrl.replace(/\/$/, '') + '/auth/v1/recover', {
+                        method: 'POST',
+                        headers: {
+                            apikey: anonKey,
+                            'Content-Type': 'application/json',
+                            Accept: 'application/json'
+                        },
+                        body: JSON.stringify({
+                            email: emailValue,
+                            redirect_to: resetRedirect
+                        })
+                    }).then(function (response) {
+                        if (!response.ok) {
+                            return response.json().then(function (payload) {
+                                var message = payload && (payload.msg || payload.message) ? (payload.msg || payload.message) : getMessage('resetEmailError', 'Unable to send reset email.');
+                                throw new Error(message);
+                            });
+                        }
+                        return { data: {} };
+                    });
+                }
+
+                Promise.resolve(request)
+                    .then(function (response) {
+                        if (response && response.error) {
+                            throw response.error;
+                        }
+                        showFormMessage(resetPasswordForm, 'success', getMessage('resetEmailSent', 'If an account exists for this email, you’ll receive a reset link shortly.'));
+                    })
+                    .catch(function () {
+                        showFormMessage(resetPasswordForm, 'error', getMessage('resetEmailError', 'Unable to send reset email.'));
+                    })
+                    .finally(function () {
+                        if (submitButton) {
+                            submitButton.disabled = false;
+                        }
+                    });
+            });
+        }
+
         if (passwordLoginEnabled && passwordLoginForm) {
             passwordLoginForm.addEventListener('submit', function (event) {
                 event.preventDefault();
@@ -998,6 +1203,173 @@
             });
         }
 
+        if (setPasswordForm) {
+            var setPasswordSubmit = function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                if (!projectUrl || !anonKey) {
+                    showFormMessage(setPasswordForm, 'error', getMessage('missingConfig', 'Supabase configuration is missing.'));
+                    return;
+                }
+
+                var newValue = resetPasswordInput ? resetPasswordInput.value.trim() : '';
+                var confirmValue = resetPasswordConfirm ? resetPasswordConfirm.value.trim() : '';
+
+                if (!newValue || !confirmValue) {
+                    showFormMessage(setPasswordForm, 'error', getMessage('updatePasswordError', 'Unable to update password.'));
+                    return;
+                }
+
+                if (newValue !== confirmValue) {
+                    showFormMessage(setPasswordForm, 'error', getMessage('registerPasswordMismatch', 'Passwords do not match.'));
+                    return;
+                }
+
+                if (!updateResetRules()) {
+                    showFormMessage(setPasswordForm, 'error', getMessage('updatePasswordError', 'Unable to update password.'));
+                    return;
+                }
+
+                if (resetPasswordSubmit) {
+                    resetPasswordSubmit.disabled = true;
+                }
+
+                showFormMessage(setPasswordForm, 'error', '');
+                showFormMessage(setPasswordForm, 'success', '');
+
+                var hash = window.location.hash.replace(/^#/, '');
+                var hashParams = hash ? new URLSearchParams(hash) : null;
+                var hashAccessToken = hashParams ? hashParams.get('access_token') || '' : '';
+                var hashRefreshToken = hashParams ? hashParams.get('refresh_token') || '' : '';
+                var codeParam = searchParams.get('code') || '';
+
+                if (!hashAccessToken && window.sessionStorage) {
+                    try {
+                        hashAccessToken = sessionStorage.getItem('bw_supabase_access_token') || '';
+                        hashRefreshToken = sessionStorage.getItem('bw_supabase_refresh_token') || '';
+                    } catch (error) {
+                        // ignore sessionStorage errors
+                    }
+                }
+
+                var supabase = getSupabaseClient();
+                var sessionPromise;
+
+                if (supabase) {
+                    if (codeParam) {
+                        sessionPromise = supabase.auth.exchangeCodeForSession(codeParam).then(function (response) {
+                            if (response && response.error) {
+                                throw response.error;
+                            }
+                            return response && response.data ? response.data.session : null;
+                        });
+                    } else if (hashAccessToken) {
+                        sessionPromise = supabase.auth.setSession({
+                            access_token: hashAccessToken,
+                            refresh_token: hashRefreshToken
+                        }).then(function (response) {
+                            if (response && response.error) {
+                                throw response.error;
+                            }
+                            return response && response.data ? response.data.session : null;
+                        });
+                    } else {
+                        sessionPromise = supabase.auth.getSession().then(function (response) {
+                            return response && response.data ? response.data.session : null;
+                        });
+                    }
+                } else {
+                    if (codeParam) {
+                        var verifier = getCodeVerifier();
+                        if (!verifier) {
+                            sessionPromise = Promise.reject(new Error(getMessage('updatePasswordError', 'Unable to update password.')));
+                        } else {
+                            sessionPromise = fetch(projectUrl.replace(/\/$/, '') + '/auth/v1/token?grant_type=pkce', {
+                                method: 'POST',
+                                headers: {
+                                    apikey: anonKey,
+                                    'Content-Type': 'application/json',
+                                    Accept: 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    auth_code: codeParam,
+                                    code_verifier: verifier
+                                })
+                            }).then(function (response) {
+                                if (!response.ok) {
+                                    return response.json().then(function (payload) {
+                                        var message = payload && (payload.msg || payload.message) ? (payload.msg || payload.message) : getMessage('updatePasswordError', 'Unable to update password.');
+                                        throw new Error(message);
+                                    });
+                                }
+                                return response.json();
+                            }).then(function (payload) {
+                                return {
+                                    access_token: payload.access_token || '',
+                                    refresh_token: payload.refresh_token || ''
+                                };
+                            });
+                        }
+                    } else {
+                        sessionPromise = Promise.resolve({
+                            access_token: hashAccessToken,
+                            refresh_token: hashRefreshToken
+                        });
+                    }
+                }
+
+                Promise.resolve(sessionPromise)
+                    .then(function (session) {
+                        var accessToken = session && session.access_token ? session.access_token : '';
+                        if (!accessToken) {
+                            throw new Error(getMessage('updatePasswordError', 'Unable to update password.'));
+                        }
+
+                        if (supabase) {
+                            return supabase.auth.updateUser({ password: newValue });
+                        }
+
+                        return fetch(projectUrl.replace(/\/$/, '') + '/auth/v1/user', {
+                            method: 'PUT',
+                            headers: {
+                                apikey: anonKey,
+                                Authorization: 'Bearer ' + accessToken,
+                                'Content-Type': 'application/json',
+                                Accept: 'application/json'
+                            },
+                            body: JSON.stringify({ password: newValue })
+                        }).then(function (response) {
+                            if (!response.ok) {
+                                return response.json().then(function (payload) {
+                                    var message = payload && (payload.msg || payload.message) ? (payload.msg || payload.message) : getMessage('updatePasswordError', 'Unable to update password.');
+                                    throw new Error(message);
+                                });
+                            }
+                            return response.json();
+                        });
+                    })
+                    .then(function (response) {
+                        if (response && response.error) {
+                            throw response.error;
+                        }
+                        cleanAuthUrl(['code', 'state', 'type', 'provider']);
+                        setSessionStorageItem(recoveryHandledKey, '');
+                        showFormMessage(setPasswordForm, 'success', getMessage('updatePasswordSuccess', 'Your password has been updated.'));
+                    })
+                    .catch(function () {
+                        showFormMessage(setPasswordForm, 'error', getMessage('updatePasswordError', 'Unable to update password.'));
+                    })
+                    .finally(function () {
+                        if (resetPasswordSubmit) {
+                            resetPasswordSubmit.disabled = false;
+                        }
+                    });
+            };
+
+            setPasswordForm.addEventListener('submit', setPasswordSubmit);
+        }
+
         if (passwordLoginEnabled && goPasswordButton) {
             goPasswordButton.addEventListener('click', function (event) {
                 event.preventDefault();
@@ -1012,6 +1384,12 @@
                 button.addEventListener('click', function (event) {
                     event.preventDefault();
                     event.stopPropagation();
+                    setSessionStorageItem(recoveryHandledKey, '');
+                    if (setPasswordForm) {
+                        showFormMessage(setPasswordForm, 'error', '');
+                        showFormMessage(setPasswordForm, 'success', '');
+                    }
+                    cleanAuthUrl(['code', 'state', 'type', 'provider']);
                     switchAuthScreen('magic');
                 });
             });
@@ -1337,6 +1715,11 @@
          * - Refresh on OTP screen retains email (localStorage) and allows verification
          * - Email + password logs in and redirects to /my-account/
          * - Wrong password stays on password screen with error
+         * - Forgot password -> reset screen shows (fade-up)
+         * - Reset email -> success message shown
+         * - Recovery link -> set-password screen shows automatically
+         * - Set password -> rules validate, success message, back to login works
+         * - Logout -> no OTP/reset screens shown by default
          */
     });
 })();
