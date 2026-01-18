@@ -185,6 +185,65 @@
     const pendingEmailBanner = document.querySelector('[data-bw-pending-email-banner]');
     const shippingToggle = document.querySelector('#bw_shipping_same_as_billing');
     const shippingFields = document.querySelector('[data-bw-shipping-fields]');
+    const passwordRuleConfig = [
+        { id: 'length', test: (value) => value.length >= 8 },
+        { id: 'lowercase', test: (value) => /[a-z]/.test(value) },
+        { id: 'uppercase', test: (value) => /[A-Z]/.test(value) },
+        { id: 'number', test: (value) => /[0-9]/.test(value) },
+        { id: 'symbol', test: (value) => /[^A-Za-z0-9]/.test(value) }
+    ];
+    const passwordRuleItems = passwordForm ? Array.from(passwordForm.querySelectorAll('[data-bw-password-rule]')) : [];
+    const passwordMissingSession = passwordForm ? passwordForm.querySelector('[data-bw-supabase-missing-session]') : null;
+    const passwordInput = passwordForm ? passwordForm.querySelector('input[name="new_password"]') : null;
+    const passwordConfirmInput = passwordForm ? passwordForm.querySelector('input[name="confirm_password"]') : null;
+    const passwordSubmitButton = passwordForm ? passwordForm.querySelector('button[type="submit"]') : null;
+
+    const updatePasswordRulesState = () => {
+        if (!passwordForm || !passwordInput) {
+            return true;
+        }
+
+        const value = passwordInput.value || '';
+        let allRulesPass = true;
+
+        passwordRuleConfig.forEach((rule) => {
+            const passes = rule.test(value);
+            const ruleItem = passwordRuleItems.find((item) => item.dataset.bwPasswordRule === rule.id);
+
+            if (ruleItem) {
+                ruleItem.classList.toggle('is-valid', passes);
+            }
+
+            if (!passes) {
+                allRulesPass = false;
+            }
+        });
+
+        return allRulesPass;
+    };
+
+    const updatePasswordSubmitState = () => {
+        if (!passwordForm || !passwordSubmitButton) {
+            return;
+        }
+
+        const rulesPass = updatePasswordRulesState();
+        const passwordValue = passwordInput ? passwordInput.value.trim() : '';
+        const confirmValue = passwordConfirmInput ? passwordConfirmInput.value.trim() : '';
+        const confirmMatches = passwordValue !== '' && confirmValue !== '' && passwordValue === confirmValue;
+
+        if (passwordForm.dataset.bwSubmitting === '1') {
+            return;
+        }
+
+        passwordSubmitButton.disabled = !(rulesPass && confirmMatches);
+    };
+
+    const hidePasswordMissingSession = () => {
+        if (passwordMissingSession) {
+            passwordMissingSession.hidden = true;
+        }
+    };
 
     const submitSupabaseForm = (form, action, options = {}) => {
         if (!form) {
@@ -213,6 +272,10 @@
                 successBox.hidden = true;
             }
 
+            if (action === 'bw_supabase_update_password') {
+                hidePasswordMissingSession();
+            }
+
             if (submitButton) {
                 submitButton.disabled = true;
             }
@@ -233,9 +296,50 @@
                     return;
                 }
             }
+
+            if (action === 'bw_supabase_update_password') {
+                const passwordValue = formData.get('new_password') ? formData.get('new_password').toString() : '';
+                const confirmValue = formData.get('confirm_password') ? formData.get('confirm_password').toString() : '';
+                const rulesPass = updatePasswordRulesState();
+
+                if (!passwordValue || !confirmValue) {
+                    if (errorBox) {
+                        errorBox.textContent = 'Please enter and confirm your new password.';
+                        errorBox.hidden = false;
+                    }
+                    if (submitButton) {
+                        submitButton.disabled = false;
+                    }
+                    return;
+                }
+
+                if (!rulesPass) {
+                    if (errorBox) {
+                        errorBox.textContent = 'Password does not meet the requirements.';
+                        errorBox.hidden = false;
+                    }
+                    if (submitButton) {
+                        submitButton.disabled = false;
+                    }
+                    return;
+                }
+
+                if (passwordValue !== confirmValue) {
+                    if (errorBox) {
+                        errorBox.textContent = 'Passwords do not match.';
+                        errorBox.hidden = false;
+                    }
+                    if (submitButton) {
+                        submitButton.disabled = false;
+                    }
+                    return;
+                }
+            }
+
             formData.append('action', action);
             formData.append('nonce', nonce);
 
+            form.dataset.bwSubmitting = '1';
             fetch(ajaxUrl, {
                 method: 'POST',
                 credentials: 'same-origin',
@@ -269,6 +373,10 @@
                         errorBox.textContent = message;
                         errorBox.hidden = false;
                     }
+
+                    if (action === 'bw_supabase_update_password' && message === 'Supabase session is missing.' && passwordMissingSession) {
+                        passwordMissingSession.hidden = false;
+                    }
                 })
                 .catch(() => {
                     if (errorBox) {
@@ -277,8 +385,12 @@
                     }
                 })
                 .finally(() => {
+                    form.dataset.bwSubmitting = '';
                     if (submitButton) {
                         submitButton.disabled = false;
+                    }
+                    if (action === 'bw_supabase_update_password') {
+                        updatePasswordSubmitState();
                     }
                 });
         });
@@ -290,6 +402,24 @@
     submitSupabaseForm(emailForm, 'bw_supabase_update_email', {
         defaultMessage: 'Unable to update email.'
     });
+
+    if (passwordForm) {
+        if (passwordInput) {
+            passwordInput.addEventListener('input', () => {
+                hidePasswordMissingSession();
+                updatePasswordSubmitState();
+            });
+        }
+
+        if (passwordConfirmInput) {
+            passwordConfirmInput.addEventListener('input', () => {
+                hidePasswordMissingSession();
+                updatePasswordSubmitState();
+            });
+        }
+
+        updatePasswordSubmitState();
+    }
 
     if (shippingToggle && shippingFields) {
         const toggleShippingFields = () => {

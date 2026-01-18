@@ -103,18 +103,26 @@ function bw_mew_get_supabase_access_token( $user_id ) {
     $storage     = in_array( $storage, [ 'cookie', 'usermeta' ], true ) ? $storage : 'cookie';
     $cookie_base = get_option( 'bw_supabase_jwt_cookie_name', 'bw_supabase_session' );
     $cookie_base = sanitize_key( $cookie_base ) ?: 'bw_supabase_session';
+    $token       = '';
 
     if ( 'usermeta' === $storage && $user_id ) {
         $token = (string) get_user_meta( $user_id, 'bw_supabase_access_token', true );
-        return $token ? sanitize_text_field( $token ) : '';
+        $token = $token ? sanitize_text_field( $token ) : '';
     }
 
-    $cookie_name = $cookie_base . '_access';
-    if ( isset( $_COOKIE[ $cookie_name ] ) ) {
-        return sanitize_text_field( wp_unslash( $_COOKIE[ $cookie_name ] ) );
+    if ( ! $token ) {
+        $cookie_name = $cookie_base . '_access';
+        if ( isset( $_COOKIE[ $cookie_name ] ) ) {
+            $token = sanitize_text_field( wp_unslash( $_COOKIE[ $cookie_name ] ) );
+        }
     }
 
-    return '';
+    if ( ! $token && $user_id ) {
+        $meta_token = (string) get_user_meta( $user_id, 'bw_supabase_access_token', true );
+        $token      = $meta_token ? sanitize_text_field( $meta_token ) : '';
+    }
+
+    return $token;
 }
 
 /**
@@ -364,59 +372,18 @@ function bw_mew_handle_supabase_token_login() {
         );
     }
 
+    $guard_key = 'bw_supabase_token_login_' . md5( $access_token . '|' . $token_type );
+    if ( get_transient( $guard_key ) ) {
+        wp_send_json_success(
+            [
+                'redirect' => wc_get_page_permalink( 'myaccount' ),
+            ]
+        );
+    }
+    set_transient( $guard_key, 1, 30 );
+
     wp_set_current_user( $user->ID );
     wp_set_auth_cookie( $user->ID, true, is_ssl() );
-    update_user_meta( $user->ID, 'bw_supabase_onboarded', 1 );
-    delete_user_meta( $user->ID, 'bw_supabase_invite_error' );
-    delete_user_meta( $user->ID, 'bw_supabase_onboarding_error' );
-
-    if ( $debug_log ) {
-        error_log( 'Supabase token login success → set onboarded=1 → redirect /my-account/' );
-    }
-
-    if ( $refresh_token ) {
-        bw_mew_supabase_store_session(
-            [
-                'access_token'  => $access_token,
-                'refresh_token' => $refresh_token,
-                'expires_in'    => HOUR_IN_SECONDS,
-                'user'          => [
-                    'email' => $email,
-                ],
-            ],
-            $email
-        );
-    }
-    update_user_meta( $user->ID, 'bw_supabase_onboarded', 1 );
-    delete_user_meta( $user->ID, 'bw_supabase_invite_error' );
-    delete_user_meta( $user->ID, 'bw_supabase_onboarding_error' );
-    bw_mew_apply_supabase_user_to_wp( $user->ID, $payload, 'token-login' );
-
-    if ( $debug_log ) {
-        error_log( 'Supabase token login success → set onboarded=1 → redirect /my-account/' );
-    }
-
-    if ( $refresh_token ) {
-        bw_mew_supabase_store_session(
-            [
-                'access_token'  => $access_token,
-                'refresh_token' => $refresh_token,
-                'expires_in'    => HOUR_IN_SECONDS,
-                'user'          => [
-                    'email' => $email,
-                ],
-            ],
-            $email
-        );
-    }
-    update_user_meta( $user->ID, 'bw_supabase_onboarded', 1 );
-    delete_user_meta( $user->ID, 'bw_supabase_invite_error' );
-    delete_user_meta( $user->ID, 'bw_supabase_onboarding_error' );
-    bw_mew_apply_supabase_user_to_wp( $user->ID, $payload, 'token-login' );
-
-    if ( $debug_log ) {
-        error_log( 'Supabase token login success → set onboarded=1 → redirect /my-account/' );
-    }
 
     if ( $refresh_token ) {
         bw_mew_supabase_store_session(
@@ -432,12 +399,17 @@ function bw_mew_handle_supabase_token_login() {
         );
     }
 
-    $already_onboarded = function_exists( 'bw_user_needs_onboarding' )
+    $already_onboarded       = function_exists( 'bw_user_needs_onboarding' )
         ? ! bw_user_needs_onboarding( $user->ID )
         : ( 1 === (int) get_user_meta( $user->ID, 'bw_supabase_onboarded', true ) );
-    $is_invite = 'invite' === $token_type;
+    $is_invite               = 'invite' === $token_type;
+    $needs_password_cookie   = isset( $_COOKIE['bw_needs_password'] ) ? sanitize_text_field( wp_unslash( $_COOKIE['bw_needs_password'] ) ) : '';
+    $needs_password_for_otp  = 'otp' === $token_type && '1' === $needs_password_cookie;
 
-    if ( $is_invite && ! $already_onboarded ) {
+    if ( $needs_password_for_otp ) {
+        update_user_meta( $user->ID, 'bw_supabase_onboarded', 0 );
+        delete_user_meta( $user->ID, 'bw_supabase_invited' );
+    } elseif ( $is_invite && ! $already_onboarded ) {
         update_user_meta( $user->ID, 'bw_supabase_onboarded', 0 );
         update_user_meta( $user->ID, 'bw_supabase_invited', 1 );
     } elseif ( ! $is_invite ) {
@@ -450,9 +422,13 @@ function bw_mew_handle_supabase_token_login() {
     bw_mew_apply_supabase_user_to_wp( $user->ID, $payload, 'token-login' );
 
     $needs_onboarding = $is_invite && ! $already_onboarded;
-    $redirect_url     = $needs_onboarding
-        ? wc_get_account_endpoint_url( 'set-password' )
-        : wc_get_page_permalink( 'myaccount' );
+    if ( $needs_password_for_otp ) {
+        $redirect_url = add_query_arg( 'bw_set_password', '1', wc_get_page_permalink( 'myaccount' ) );
+    } else {
+        $redirect_url = $needs_onboarding
+            ? wc_get_account_endpoint_url( 'set-password' )
+            : wc_get_page_permalink( 'myaccount' );
+    }
 
     if ( $debug_log ) {
         error_log(
@@ -475,268 +451,6 @@ function bw_mew_handle_supabase_token_login() {
                 ],
             ],
             $email
-        );
-    }
-
-    $already_onboarded = function_exists( 'bw_user_needs_onboarding' )
-        ? ! bw_user_needs_onboarding( $user->ID )
-        : ( 1 === (int) get_user_meta( $user->ID, 'bw_supabase_onboarded', true ) );
-    $is_invite = 'invite' === $token_type;
-
-    if ( $is_invite && ! $already_onboarded ) {
-        update_user_meta( $user->ID, 'bw_supabase_onboarded', 0 );
-        update_user_meta( $user->ID, 'bw_supabase_invited', 1 );
-    } elseif ( ! $is_invite ) {
-        update_user_meta( $user->ID, 'bw_supabase_onboarded', 1 );
-        delete_user_meta( $user->ID, 'bw_supabase_invited' );
-    }
-
-    delete_user_meta( $user->ID, 'bw_supabase_invite_error' );
-    delete_user_meta( $user->ID, 'bw_supabase_onboarding_error' );
-    bw_mew_apply_supabase_user_to_wp( $user->ID, $payload, 'token-login' );
-
-    $needs_onboarding = $is_invite && ! $already_onboarded;
-    $redirect_url     = $needs_onboarding
-        ? wc_get_account_endpoint_url( 'set-password' )
-        : wc_get_page_permalink( 'myaccount' );
-
-    if ( $debug_log ) {
-        error_log(
-            sprintf(
-                'Supabase token login success (type=%s) → redirect %s',
-                $token_type ? $token_type : 'none',
-                $redirect_url
-            )
-        );
-    }
-
-    if ( $refresh_token ) {
-        bw_mew_supabase_store_session(
-            [
-                'access_token'  => $access_token,
-                'refresh_token' => $refresh_token,
-                'expires_in'    => HOUR_IN_SECONDS,
-                'user'          => [
-                    'email' => $email,
-                ],
-            ],
-            $email
-        );
-    }
-
-    $already_onboarded = function_exists( 'bw_user_needs_onboarding' )
-        ? ! bw_user_needs_onboarding( $user->ID )
-        : ( 1 === (int) get_user_meta( $user->ID, 'bw_supabase_onboarded', true ) );
-    $is_invite = 'invite' === $token_type;
-
-    if ( $is_invite && ! $already_onboarded ) {
-        update_user_meta( $user->ID, 'bw_supabase_onboarded', 0 );
-        update_user_meta( $user->ID, 'bw_supabase_invited', 1 );
-    } elseif ( ! $is_invite ) {
-        update_user_meta( $user->ID, 'bw_supabase_onboarded', 1 );
-        delete_user_meta( $user->ID, 'bw_supabase_invited' );
-    }
-
-    delete_user_meta( $user->ID, 'bw_supabase_invite_error' );
-    delete_user_meta( $user->ID, 'bw_supabase_onboarding_error' );
-    bw_mew_apply_supabase_user_to_wp( $user->ID, $payload, 'token-login' );
-
-    $needs_onboarding = $is_invite && ! $already_onboarded;
-    $redirect_url     = $needs_onboarding
-        ? wc_get_account_endpoint_url( 'set-password' )
-        : wc_get_page_permalink( 'myaccount' );
-
-    if ( $debug_log ) {
-        error_log(
-            sprintf(
-                'Supabase token login success (type=%s) → redirect %s',
-                $token_type ? $token_type : 'none',
-                $redirect_url
-            )
-        );
-    }
-
-    if ( $refresh_token ) {
-        bw_mew_supabase_store_session(
-            [
-                'access_token'  => $access_token,
-                'refresh_token' => $refresh_token,
-                'expires_in'    => HOUR_IN_SECONDS,
-                'user'          => [
-                    'email' => $email,
-                ],
-            ],
-            $email
-        );
-    }
-
-    $already_onboarded = function_exists( 'bw_user_needs_onboarding' )
-        ? ! bw_user_needs_onboarding( $user->ID )
-        : ( 1 === (int) get_user_meta( $user->ID, 'bw_supabase_onboarded', true ) );
-    $is_invite = 'invite' === $token_type;
-
-    if ( $is_invite && ! $already_onboarded ) {
-        update_user_meta( $user->ID, 'bw_supabase_onboarded', 0 );
-        update_user_meta( $user->ID, 'bw_supabase_invited', 1 );
-    } elseif ( ! $is_invite ) {
-        update_user_meta( $user->ID, 'bw_supabase_onboarded', 1 );
-        delete_user_meta( $user->ID, 'bw_supabase_invited' );
-    }
-
-    delete_user_meta( $user->ID, 'bw_supabase_invite_error' );
-    delete_user_meta( $user->ID, 'bw_supabase_onboarding_error' );
-    bw_mew_apply_supabase_user_to_wp( $user->ID, $payload, 'token-login' );
-
-    $needs_onboarding = $is_invite && ! $already_onboarded;
-    $redirect_url     = $needs_onboarding
-        ? wc_get_account_endpoint_url( 'set-password' )
-        : wc_get_page_permalink( 'myaccount' );
-
-    if ( $debug_log ) {
-        error_log(
-            sprintf(
-                'Supabase token login success (type=%s) → redirect %s',
-                $token_type ? $token_type : 'none',
-                $redirect_url
-            )
-        );
-    }
-
-    if ( $refresh_token ) {
-        bw_mew_supabase_store_session(
-            [
-                'access_token'  => $access_token,
-                'refresh_token' => $refresh_token,
-                'expires_in'    => HOUR_IN_SECONDS,
-                'user'          => [
-                    'email' => $email,
-                ],
-            ],
-            $email
-        );
-    }
-
-    $already_onboarded = function_exists( 'bw_user_needs_onboarding' )
-        ? ! bw_user_needs_onboarding( $user->ID )
-        : ( 1 === (int) get_user_meta( $user->ID, 'bw_supabase_onboarded', true ) );
-    $is_invite = 'invite' === $token_type;
-
-    if ( $is_invite && ! $already_onboarded ) {
-        update_user_meta( $user->ID, 'bw_supabase_onboarded', 0 );
-        update_user_meta( $user->ID, 'bw_supabase_invited', 1 );
-    } elseif ( ! $is_invite ) {
-        update_user_meta( $user->ID, 'bw_supabase_onboarded', 1 );
-        delete_user_meta( $user->ID, 'bw_supabase_invited' );
-    }
-
-    delete_user_meta( $user->ID, 'bw_supabase_invite_error' );
-    delete_user_meta( $user->ID, 'bw_supabase_onboarding_error' );
-    bw_mew_apply_supabase_user_to_wp( $user->ID, $payload, 'token-login' );
-
-    $needs_onboarding = $is_invite && ! $already_onboarded;
-    $redirect_url     = $needs_onboarding
-        ? wc_get_account_endpoint_url( 'set-password' )
-        : wc_get_page_permalink( 'myaccount' );
-
-    if ( $debug_log ) {
-        error_log(
-            sprintf(
-                'Supabase token login success (type=%s) → redirect %s',
-                $token_type ? $token_type : 'none',
-                $redirect_url
-            )
-        );
-    }
-
-    if ( $refresh_token ) {
-        bw_mew_supabase_store_session(
-            [
-                'access_token'  => $access_token,
-                'refresh_token' => $refresh_token,
-                'expires_in'    => HOUR_IN_SECONDS,
-                'user'          => [
-                    'email' => $email,
-                ],
-            ],
-            $email
-        );
-    }
-
-    $already_onboarded = function_exists( 'bw_user_needs_onboarding' )
-        ? ! bw_user_needs_onboarding( $user->ID )
-        : ( 1 === (int) get_user_meta( $user->ID, 'bw_supabase_onboarded', true ) );
-    $is_invite = 'invite' === $token_type;
-
-    if ( $is_invite && ! $already_onboarded ) {
-        update_user_meta( $user->ID, 'bw_supabase_onboarded', 0 );
-        update_user_meta( $user->ID, 'bw_supabase_invited', 1 );
-    } elseif ( ! $is_invite ) {
-        update_user_meta( $user->ID, 'bw_supabase_onboarded', 1 );
-        delete_user_meta( $user->ID, 'bw_supabase_invited' );
-    }
-
-    delete_user_meta( $user->ID, 'bw_supabase_invite_error' );
-    delete_user_meta( $user->ID, 'bw_supabase_onboarding_error' );
-    bw_mew_apply_supabase_user_to_wp( $user->ID, $payload, 'token-login' );
-
-    $needs_onboarding = $is_invite && ! $already_onboarded;
-    $redirect_url     = $needs_onboarding
-        ? wc_get_account_endpoint_url( 'set-password' )
-        : wc_get_page_permalink( 'myaccount' );
-
-    if ( $debug_log ) {
-        error_log(
-            sprintf(
-                'Supabase token login success (type=%s) → redirect %s',
-                $token_type ? $token_type : 'none',
-                $redirect_url
-            )
-        );
-    }
-
-    if ( $refresh_token ) {
-        bw_mew_supabase_store_session(
-            [
-                'access_token'  => $access_token,
-                'refresh_token' => $refresh_token,
-                'expires_in'    => HOUR_IN_SECONDS,
-                'user'          => [
-                    'email' => $email,
-                ],
-            ],
-            $email
-        );
-    }
-
-    $already_onboarded = function_exists( 'bw_user_needs_onboarding' )
-        ? ! bw_user_needs_onboarding( $user->ID )
-        : ( 1 === (int) get_user_meta( $user->ID, 'bw_supabase_onboarded', true ) );
-    $is_invite = 'invite' === $token_type;
-
-    if ( $is_invite && ! $already_onboarded ) {
-        update_user_meta( $user->ID, 'bw_supabase_onboarded', 0 );
-        update_user_meta( $user->ID, 'bw_supabase_invited', 1 );
-    } elseif ( ! $is_invite ) {
-        update_user_meta( $user->ID, 'bw_supabase_onboarded', 1 );
-        delete_user_meta( $user->ID, 'bw_supabase_invited' );
-    }
-
-    delete_user_meta( $user->ID, 'bw_supabase_invite_error' );
-    delete_user_meta( $user->ID, 'bw_supabase_onboarding_error' );
-    bw_mew_apply_supabase_user_to_wp( $user->ID, $payload, 'token-login' );
-
-    $needs_onboarding = $is_invite && ! $already_onboarded;
-    $redirect_url     = $needs_onboarding
-        ? wc_get_account_endpoint_url( 'set-password' )
-        : wc_get_page_permalink( 'myaccount' );
-
-    if ( $debug_log ) {
-        error_log(
-            sprintf(
-                'Supabase token login success (type=%s) → redirect %s',
-                $token_type ? $token_type : 'none',
-                $redirect_url
-            )
         );
     }
 
@@ -1281,6 +995,23 @@ function bw_mew_handle_supabase_update_profile() {
 add_action( 'wp_ajax_bw_supabase_update_profile', 'bw_mew_handle_supabase_update_profile' );
 
 /**
+ * Validate Supabase password rules.
+ *
+ * @param string $password Supabase password.
+ *
+ * @return bool
+ */
+function bw_mew_supabase_password_meets_requirements( $password ) {
+    $length_ok    = strlen( $password ) >= 8;
+    $lowercase_ok = (bool) preg_match( '/[a-z]/', $password );
+    $uppercase_ok = (bool) preg_match( '/[A-Z]/', $password );
+    $number_ok    = (bool) preg_match( '/[0-9]/', $password );
+    $symbol_ok    = (bool) preg_match( '/[^A-Za-z0-9]/', $password );
+
+    return $length_ok && $lowercase_ok && $uppercase_ok && $number_ok && $symbol_ok;
+}
+
+/**
  * Update Supabase password via AJAX.
  */
 function bw_mew_handle_supabase_update_password() {
@@ -1306,6 +1037,10 @@ function bw_mew_handle_supabase_update_password() {
 
     if ( $new_password !== $confirm_password ) {
         wp_send_json_error( [ 'message' => __( 'Passwords do not match.', 'bw' ) ], 400 );
+    }
+
+    if ( ! bw_mew_supabase_password_meets_requirements( $new_password ) ) {
+        wp_send_json_error( [ 'message' => __( 'Password does not meet the requirements.', 'bw' ) ], 400 );
     }
 
     $response = bw_mew_supabase_update_user(
@@ -1374,6 +1109,21 @@ function bw_mew_handle_supabase_update_email() {
     );
 }
 add_action( 'wp_ajax_bw_supabase_update_email', 'bw_mew_handle_supabase_update_email' );
+
+/**
+ * Check if the current session is authenticated.
+ */
+function bw_mew_handle_supabase_session_check() {
+    check_ajax_referer( 'bw-supabase-login', 'nonce' );
+
+    wp_send_json_success(
+        [
+            'loggedIn' => is_user_logged_in(),
+        ]
+    );
+}
+add_action( 'wp_ajax_bw_supabase_check_wp_session', 'bw_mew_handle_supabase_session_check' );
+add_action( 'wp_ajax_nopriv_bw_supabase_check_wp_session', 'bw_mew_handle_supabase_session_check' );
 
 /**
  * Invite Supabase users after guest checkout when orders become valid.
@@ -1835,3 +1585,29 @@ function bw_mew_supabase_store_session( array $payload, $email ) {
 
     return true;
 }
+
+/**
+ * Clear Supabase session cookies on logout.
+ */
+function bw_mew_clear_supabase_session_cookies() {
+    $cookie_base = get_option( 'bw_supabase_jwt_cookie_name', 'bw_supabase_session' );
+    $cookie_base = sanitize_key( $cookie_base ) ?: 'bw_supabase_session';
+    $secure      = is_ssl();
+    $path        = COOKIEPATH ? COOKIEPATH : '/';
+    $domain      = defined( 'COOKIE_DOMAIN' ) ? COOKIE_DOMAIN : '';
+    $cookie_args = [
+        'expires'  => time() - HOUR_IN_SECONDS,
+        'path'     => $path,
+        'secure'   => $secure,
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ];
+
+    if ( $domain ) {
+        $cookie_args['domain'] = $domain;
+    }
+
+    setcookie( $cookie_base . '_access', '', $cookie_args );
+    setcookie( $cookie_base . '_refresh', '', $cookie_args );
+}
+add_action( 'wp_logout', 'bw_mew_clear_supabase_session_cookies' );
