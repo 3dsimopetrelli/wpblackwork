@@ -222,7 +222,7 @@ if ( ! $show_supabase_register && 'register' === $active_tab ) {
 
                             <div class="bw-auth-screen bw-auth-screen--otp-set-password" data-bw-screen="otp-set-password">
                                 <h3 class="bw-account-login__title"><?php esc_html_e( 'Create your password', 'bw' ); ?></h3>
-                                <p class="bw-account-login__note"><?php esc_html_e( 'For security reasons, please create a password for your account.', 'bw' ); ?></p>
+                                <p class="bw-account-login__note"><?php esc_html_e( 'For added security, create a password for your account.', 'bw' ); ?></p>
                                 <form class="bw-account-login__form bw-account-login__form--supabase" data-bw-otp-setpass-form>
                                     <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide bw-account-login__field">
                                         <label for="bw_supabase_otp_password"><?php esc_html_e( 'New password', 'woocommerce' ); ?> <span class="required">*</span></label>

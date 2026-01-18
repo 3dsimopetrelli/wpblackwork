@@ -28,7 +28,8 @@
                     sessionStorage.removeItem('bw_handled_token_login');
                     sessionStorage.removeItem('bw_handled_email_confirm');
                     sessionStorage.removeItem('bw_handled_session_check');
-                    sessionStorage.removeItem('bw_is_new_user');
+                    sessionStorage.removeItem('bw_otp_needs_password');
+                    sessionStorage.removeItem('bw_otp_mode');
                     sessionStorage.removeItem('bw_supabase_access_token');
                     sessionStorage.removeItem('bw_supabase_refresh_token');
                 } catch (error) {
