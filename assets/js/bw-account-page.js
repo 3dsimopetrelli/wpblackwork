@@ -31,6 +31,32 @@
             document.cookie = name + '=; Max-Age=0; path=/; SameSite=Lax';
         };
 
+        var setCookieValue = function (name, value, maxAgeSeconds) {
+            if (!name) {
+                return;
+            }
+            var cookie = name + '=' + encodeURIComponent(value || '') + '; Max-Age=' + (maxAgeSeconds || 0) + '; path=/; SameSite=Lax';
+            if (window.location && window.location.protocol === 'https:') {
+                cookie += '; Secure';
+            }
+            document.cookie = cookie;
+        };
+
+        var getCookieValue = function (name) {
+            if (!name) {
+                return '';
+            }
+            var cookies = document.cookie ? document.cookie.split('; ') : [];
+            for (var i = 0; i < cookies.length; i += 1) {
+                var parts = cookies[i].split('=');
+                var key = parts.shift();
+                if (key === name) {
+                    return decodeURIComponent(parts.join('=') || '');
+                }
+            }
+            return '';
+        };
+
         var getSessionStorageItem = function (key) {
             if (!window.sessionStorage) {
                 return '';
@@ -91,6 +117,7 @@
 
             clearCookie(cookieBase + '_access');
             clearCookie(cookieBase + '_refresh');
+            setCookieValue('bw_needs_password', '', 0);
         };
 
         var clearLoggedOutParam = function () {
@@ -332,6 +359,18 @@
                 logDebug('Captured email from query param, cleaned URL');
             }
         }
+
+        var needsPasswordCookie = getCookieValue('bw_needs_password') === '1';
+        var passwordUrl = new URL(window.location.href);
+        var hasPasswordParam = passwordUrl.searchParams.get('bw_set_password') === '1';
+        if (hasPasswordParam) {
+            passwordUrl.searchParams.delete('bw_set_password');
+            if (window.history && window.history.replaceState) {
+                window.history.replaceState({}, document.title, passwordUrl.pathname + (passwordUrl.search ? passwordUrl.search : '') + passwordUrl.hash);
+            }
+            logDebug('Post-OTP password flag detected, cleaned URL');
+        }
+        var forcePasswordScreen = needsPasswordCookie || hasPasswordParam;
 
         if (authWrapper) {
             initAuthTabs(authWrapper);
@@ -947,6 +986,155 @@ if (!skipAuthHandlers && typeof hasRecoveryContext === 'function' && hasRecovery
                 setOtpNeedsPasswordFlag(false);
                 setOtpMode('');
                 setSessionStorageItem(otpSignupIntentKey, '');
+                setCookieValue('bw_needs_password', '', 0);
+            }
+
+            if (target === 'otp') {
+                if (otpInputs.length) {
+                    otpInputs[0].focus();
+                }
+                updateOtpState();
+            }
+
+            if (target === 'set-password') {
+                updateResetSubmitState();
+            }
+
+            if (target === 'create-password') {
+                switchAuthScreen('otp-set-password');
+                return;
+            }
+
+            if (target === 'otp-set-password') {
+                updateOtpPasswordSubmitState();
+            }
+        };
+
+        var getCleanRedirectUrl = function (targetUrl) {
+            var baseUrl = targetUrl || magicLinkRedirect || window.location.origin + '/my-account/';
+            var url = new URL(baseUrl, window.location.origin);
+            url.hash = '';
+            url.searchParams.delete('code');
+            url.searchParams.delete('type');
+            url.searchParams.delete('state');
+            return url.toString();
+        };
+
+        var supabaseSessionRedirect = function () {
+            cleanupAuthState();
+            window.location.replace(getCleanRedirectUrl());
+        };
+
+        var bridgeSupabaseSession = function (accessToken, refreshToken, context) {
+            if (!window.bwAccountAuth || !window.bwAccountAuth.ajaxUrl || !window.bwAccountAuth.nonce) {
+                return Promise.resolve({ error: new Error(getMessage('missingConfig', 'Supabase configuration is missing.')) });
+            }
+
+            if (!accessToken) {
+                return Promise.resolve({ error: new Error(getMessage('otpVerifyError', 'Unable to verify the code.')) });
+            }
+
+            if (debugEnabled) {
+                console.log('[bw] Supabase token bridge', { context: context || 'otp' });
+            }
+
+            return fetch(window.bwAccountAuth.ajaxUrl, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8'
+                },
+                body: new URLSearchParams({
+                    action: 'bw_supabase_token_login',
+                    nonce: window.bwAccountAuth.nonce,
+                    access_token: accessToken,
+                    refresh_token: refreshToken || '',
+                    type: context || 'otp'
+                })
+            })
+                .then(function (response) {
+                    logDebug('WP bridge response', { status: response.status, context: context || 'otp' });
+                    return response.json();
+                })
+                .then(function (payload) {
+                    cleanAuthUrl(['access_token', 'refresh_token', 'type', 'code', 'bw_email_confirmed']);
+                    setBridgeAttempted(false);
+                    resetReloadGuard();
+                    var targetUrl = payload && payload.success && payload.data && payload.data.redirect ? payload.data.redirect : '';
+                    if (payload && payload.success) {
+                        var pendingEmail = getSessionStorageItem(pendingEmailKey);
+                        setOnboardedMarker(pendingEmail);
+                    }
+                    if (window.sessionStorage) {
+                        try {
+                            if (sessionStorage.getItem(redirectGuardKey) === '1') {
+                                return payload;
+                            }
+                            sessionStorage.setItem(redirectGuardKey, '1');
+                        } catch (error) {
+                            // ignore sessionStorage errors
+                        }
+                    }
+                    setTimeout(function () {
+                        window.location.replace(getCleanRedirectUrl(targetUrl));
+                    }, 150);
+                    return payload;
+                });
+        };
+
+        var checkExistingSession = function () {
+            if (getSessionStorageItem('bw_handled_session_check') === '1') {
+                return;
+            }
+            var supabase = getSupabaseClient();
+            if (!supabase) {
+                return;
+            }
+            setSessionStorageItem('bw_handled_session_check', '1');
+            if (hasBridgeAttempted()) {
+                logDebug('Auto-bridge skipped', { reason: 'already_attempted' });
+                return;
+            }
+            supabase.auth.getSession().then(function (response) {
+                if (response && response.data && response.data.session) {
+                    if (forcePasswordScreen) {
+                        switchAuthScreen('create-password');
+                        return;
+                    }
+                    if (shouldShowOtpPassword()) {
+                        switchAuthScreen('otp-set-password');
+                        return;
+                    }
+                    logDebug('Supabase session found', { autoBridge: true });
+                    setBridgeAttempted(true);
+                    return bridgeSupabaseSession(
+                        response.data.session.access_token || '',
+                        response.data.session.refresh_token || '',
+                        'session'
+                    ).catch(function (error) {
+                        logDebug('Auto-bridge failed', { message: error && error.message ? error.message : 'unknown' });
+                        switchAuthScreen('magic');
+                    });
+                }
+                logDebug('Auto-bridge skipped', { reason: 'no_session' });
+                switchAuthScreen('magic');
+                return null;
+            });
+        };
+
+            if (target === 'magic') {
+                if (magicLinkForm) {
+                    showFormMessage(magicLinkForm, 'error', '');
+                    showFormMessage(magicLinkForm, 'success', '');
+                }
+                if (otpForm) {
+                    showFormMessage(otpForm, 'error', '');
+                    showFormMessage(otpForm, 'success', '');
+                    setOtpInputsError(false);
+                }
+                setOtpNeedsPasswordFlag(false);
+                setOtpMode('');
+                setSessionStorageItem(otpSignupIntentKey, '');
             }
 
             if (target === 'otp') {
@@ -1184,12 +1372,6 @@ if (!skipAuthHandlers && typeof hasRecoveryContext === 'function' && hasRecovery
                     return;
                 }
 
-                var supabase = getSupabaseClient();
-                if (!supabase) {
-                    showFormMessage(magicLinkForm, 'error', getMessage('missingConfig', 'Supabase configuration is missing.'));
-                    return;
-                }
-
                 var emailField = magicLinkForm.querySelector('input[name="email"]');
                 var emailValue = emailField ? emailField.value.trim().toLowerCase() : '';
                 if (!emailValue) {
@@ -1206,6 +1388,7 @@ if (!skipAuthHandlers && typeof hasRecoveryContext === 'function' && hasRecovery
                 setOtpMode('signup');
                 setSessionStorageItem(pendingEmailKey, emailValue);
                 setSessionStorageItem(otpSignupIntentKey, '1');
+                setCookieValue('bw_needs_password', '1', 600);
                 logDebug('Stored pending email in sessionStorage');
                 requestOtp(emailValue, true, 'signup')
                     .then(function (response) {
@@ -1417,6 +1600,7 @@ if (!skipAuthHandlers && typeof hasRecoveryContext === 'function' && hasRecovery
                                 // ignore sessionStorage errors
                             }
                         }
+                        setCookieValue('bw_needs_password', '', 0);
                         clearOtpPendingState();
                         logDebug('Auth transition: password -> wp-bridge');
                         if (supabase) {
@@ -1845,7 +2029,9 @@ if (!skipAuthHandlers && typeof hasRecoveryContext === 'function' && hasRecovery
                 if (!storedEmail && !hasAuthCallback()) {
                     clearOtpPendingState();
                 }
-                if (shouldShowOtpPassword()) {
+                if (forcePasswordScreen) {
+                    switchAuthScreen('create-password');
+                } else if (shouldShowOtpPassword()) {
                     switchAuthScreen('otp-set-password');
                 } else if (!document.body.classList.contains('bw-account-login-only') && storedEmail) {
                     switchAuthScreen('otp');
