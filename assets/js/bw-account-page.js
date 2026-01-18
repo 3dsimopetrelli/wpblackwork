@@ -11,9 +11,8 @@
         var bridgeAttemptKey = 'bw_supabase_bridge_attempted';
         var redirectGuardKey = 'bw_bridge_redirected';
         var recoveryHandledKey = 'bw_recovery_handled';
-        var otpPasswordKey = 'bw_otp_verified_need_password';
         var otpSessionKey = 'bw_otp_pending_session';
-        var otpNewUserKey = 'bw_otp_new_user';
+        var newUserKey = 'bw_is_new_user';
         var logDebug = function (message, context) {
             if (!debugEnabled) {
                 return;
@@ -77,9 +76,8 @@
                     sessionStorage.removeItem('bw_oauth_bridge_done');
                     sessionStorage.removeItem(redirectGuardKey);
                     sessionStorage.removeItem(recoveryHandledKey);
-                    sessionStorage.removeItem(otpPasswordKey);
                     sessionStorage.removeItem(otpSessionKey);
-                    sessionStorage.removeItem(otpNewUserKey);
+                    sessionStorage.removeItem(newUserKey);
                 } catch (error) {
                     // ignore sessionStorage errors
                 }
@@ -552,7 +550,7 @@
             setPendingOtpEmail('');
             setSessionStorageItem('bw_pending_otp_email', '');
             setSessionStorageItem('bw_handled_supabase_hash', '');
-            setSessionStorageItem(otpNewUserKey, '');
+            setSessionStorageItem(newUserKey, '');
         };
 
         var supabaseClient = null;
@@ -653,11 +651,11 @@
         };
 
         var setOtpNewUserFlag = function (value) {
-            setSessionStorageItem(otpNewUserKey, value ? '1' : '');
+            setSessionStorageItem(newUserKey, value ? '1' : '');
         };
 
         var getOtpNewUserFlagValue = function () {
-            return getSessionStorageItem(otpNewUserKey);
+            return getSessionStorageItem(newUserKey);
         };
 
         var getOtpNewUserFlag = function () {
@@ -790,7 +788,7 @@
                 return false;
             }
             try {
-                return sessionStorage.getItem(otpPasswordKey) === '1';
+                return sessionStorage.getItem(newUserKey) === '1' && sessionStorage.getItem(otpSessionKey);
             } catch (error) {
                 return false;
             }
@@ -866,9 +864,18 @@
             }
         };
 
+        var getCleanRedirectUrl = function (targetUrl) {
+            var baseUrl = targetUrl || magicLinkRedirect || window.location.origin + '/my-account/';
+            var url = new URL(baseUrl, window.location.origin);
+            url.hash = '';
+            url.searchParams.delete('code');
+            url.searchParams.delete('type');
+            return url.toString();
+        };
+
         var supabaseSessionRedirect = function () {
             cleanupAuthState();
-            window.location.href = magicLinkRedirect || window.location.origin + '/my-account/';
+            window.location.replace(getCleanRedirectUrl());
         };
 
         var bridgeSupabaseSession = function (accessToken, refreshToken, context) {
@@ -904,13 +911,10 @@
                 })
                 .then(function (payload) {
                     cleanAuthUrl(['access_token', 'refresh_token', 'type', 'code', 'bw_email_confirmed']);
-                    if (payload && payload.success && payload.data && payload.data.redirect) {
-                        setBridgeAttempted(false);
-                        resetReloadGuard();
-                        window.location.href = payload.data.redirect;
-                        return payload;
-                    }
-                    window.location.href = magicLinkRedirect || window.location.origin + '/my-account/';
+                    setBridgeAttempted(false);
+                    resetReloadGuard();
+                    var targetUrl = payload && payload.success && payload.data && payload.data.redirect ? payload.data.redirect : '';
+                    window.location.replace(getCleanRedirectUrl(targetUrl));
                     return payload;
                 });
         };
@@ -1077,6 +1081,7 @@
                         setOtpNewUserFlag(false);
                         setPendingOtpEmail(emailValue);
                         switchAuthScreen('otp');
+                        logDebug('Auth transition: email -> otp');
                         showFormMessage(otpForm || magicLinkForm, 'success', getMessage('otpSent', 'Check your email for the 6-digit code.'));
                     })
                     .catch(function (error) {
@@ -1090,6 +1095,7 @@
                                     setOtpNewUserFlag(true);
                                     setPendingOtpEmail(emailValue);
                                     switchAuthScreen('otp');
+                                    logDebug('Auth transition: email -> otp (new user)');
                                     showFormMessage(otpForm || magicLinkForm, 'success', getMessage('otpSent', 'Check your email for the 6-digit code.'));
                                     return null;
                                 });
@@ -1280,12 +1286,14 @@
                         }
                         if (window.sessionStorage) {
                             try {
-                                sessionStorage.removeItem(otpPasswordKey);
+                                sessionStorage.removeItem(newUserKey);
                                 sessionStorage.removeItem(otpSessionKey);
                             } catch (error) {
                                 // ignore sessionStorage errors
                             }
                         }
+                        clearOtpPendingState();
+                        logDebug('Auth transition: password -> wp-bridge');
                         if (supabase) {
                             return supabase.auth.getSession().then(function (sessionResponse) {
                                 var session = sessionResponse && sessionResponse.data ? sessionResponse.data.session : null;
@@ -1899,6 +1907,8 @@
                             logDebug('OTP verified: new-user flag missing, defaulting to existing');
                         }
                         logDebug('OTP verified: isNewUser=' + (isNewUser ? '1' : '0'));
+                        setPendingOtpEmail('');
+                        setSessionStorageItem('bw_pending_otp_email', '');
                         if (window.sessionStorage) {
                             try {
                                 sessionStorage.setItem(otpSessionKey, JSON.stringify({
@@ -1910,12 +1920,12 @@
                             }
                         }
                         if (isNewUser) {
-                            setSessionStorageItem(otpPasswordKey, '1');
+                            logDebug('Auth transition: otp -> password');
                             switchAuthScreen('otp-set-password');
                             return null;
                         }
-                        setSessionStorageItem(otpPasswordKey, '');
                         setOtpNewUserFlag(false);
+                        logDebug('Auth transition: otp -> wp-bridge');
                         return bridgeSupabaseSession(accessToken || '', refreshToken || '', 'otp');
                     })
                     .catch(function (error) {
