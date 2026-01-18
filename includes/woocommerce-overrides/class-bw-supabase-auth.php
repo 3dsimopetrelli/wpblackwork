@@ -403,7 +403,7 @@ function bw_mew_handle_supabase_token_login() {
         ? ! bw_user_needs_onboarding( $user->ID )
         : ( 1 === (int) get_user_meta( $user->ID, 'bw_supabase_onboarded', true ) );
     $is_invite               = 'invite' === $token_type;
-    $needs_password_cookie   = isset( $_COOKIE['bw_needs_password'] ) ? sanitize_text_field( wp_unslash( $_COOKIE['bw_needs_password'] ) ) : '';
+    $needs_password_cookie   = isset( $_COOKIE['bw_post_otp_needs_password'] ) ? sanitize_text_field( wp_unslash( $_COOKIE['bw_post_otp_needs_password'] ) ) : '';
     $needs_password_for_otp  = 'otp' === $token_type && '1' === $needs_password_cookie;
 
     if ( $needs_password_for_otp ) {
@@ -456,7 +456,8 @@ function bw_mew_handle_supabase_token_login() {
 
     wp_send_json_success(
         [
-            'redirect' => $redirect_url,
+            'redirect'        => $redirect_url,
+            'needs_password'  => $needs_password_for_otp,
         ]
     );
 }
