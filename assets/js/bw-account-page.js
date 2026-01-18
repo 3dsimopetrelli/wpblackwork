@@ -1046,6 +1046,124 @@ if (!skipAuthHandlers && typeof hasRecoveryContext === 'function' && hasRecovery
             });
         }
 
+            if (target === 'otp') {
+                if (otpInputs.length) {
+                    otpInputs[0].focus();
+                }
+                updateOtpState();
+            }
+
+            if (target === 'set-password') {
+                updateResetSubmitState();
+            }
+
+            if (target === 'otp-set-password') {
+                updateOtpPasswordSubmitState();
+            }
+        };
+
+        var getCleanRedirectUrl = function (targetUrl) {
+            var baseUrl = targetUrl || magicLinkRedirect || window.location.origin + '/my-account/';
+            var url = new URL(baseUrl, window.location.origin);
+            url.hash = '';
+            url.searchParams.delete('code');
+            url.searchParams.delete('type');
+            return url.toString();
+        };
+
+        var supabaseSessionRedirect = function () {
+            cleanupAuthState();
+            window.location.replace(getCleanRedirectUrl());
+        };
+
+        var bridgeSupabaseSession = function (accessToken, refreshToken, context) {
+            if (!window.bwAccountAuth || !window.bwAccountAuth.ajaxUrl || !window.bwAccountAuth.nonce) {
+                return Promise.resolve({ error: new Error(getMessage('missingConfig', 'Supabase configuration is missing.')) });
+            }
+
+            if (!accessToken) {
+                return Promise.resolve({ error: new Error(getMessage('otpVerifyError', 'Unable to verify the code.')) });
+            }
+
+            if (debugEnabled) {
+                console.log('[bw] Supabase token bridge', { context: context || 'otp' });
+            }
+
+            return fetch(window.bwAccountAuth.ajaxUrl, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8'
+                },
+                body: new URLSearchParams({
+                    action: 'bw_supabase_token_login',
+                    nonce: window.bwAccountAuth.nonce,
+                    access_token: accessToken,
+                    refresh_token: refreshToken || '',
+                    type: context || 'otp'
+                })
+            })
+                .then(function (response) {
+                    logDebug('WP bridge response', { status: response.status, context: context || 'otp' });
+                    return response.json();
+                })
+                .then(function (payload) {
+                    cleanAuthUrl(['access_token', 'refresh_token', 'type', 'code', 'bw_email_confirmed']);
+                    setBridgeAttempted(false);
+                    resetReloadGuard();
+                    var targetUrl = payload && payload.success && payload.data && payload.data.redirect ? payload.data.redirect : '';
+                    window.location.replace(getCleanRedirectUrl(targetUrl));
+                    return payload;
+                });
+        };
+
+        var checkExistingSession = function () {
+            if (getSessionStorageItem('bw_handled_session_check') === '1') {
+                return;
+            }
+            var supabase = getSupabaseClient();
+            if (!supabase) {
+                return;
+            }
+            setSessionStorageItem('bw_handled_session_check', '1');
+            if (hasBridgeAttempted()) {
+                logDebug('Auto-bridge skipped', { reason: 'already_attempted' });
+                return;
+            }
+            supabase.auth.getSession().then(function (response) {
+                if (response && response.data && response.data.session) {
+                    if (shouldShowOtpPassword()) {
+                        switchAuthScreen('otp-set-password');
+                        return;
+                    }
+                    logDebug('Supabase session found', { autoBridge: true });
+                    setBridgeAttempted(true);
+                    return bridgeSupabaseSession(
+                        response.data.session.access_token || '',
+                        response.data.session.refresh_token || '',
+                        'session'
+                    ).catch(function (error) {
+                        logDebug('Auto-bridge failed', { message: error && error.message ? error.message : 'unknown' });
+                        switchAuthScreen('magic');
+                    });
+                }
+                logDebug('Auto-bridge skipped', { reason: 'no_session' });
+                switchAuthScreen('magic');
+                return null;
+            });
+        };
+
+        if (debugEnabled) {
+            logDebug('Auth UI elements', {
+                magicLinkForm: Boolean(magicLinkForm),
+                passwordLoginForm: Boolean(passwordLoginForm),
+                registerForm: Boolean(registerForm),
+                registerContinue: Boolean(registerContinue),
+                registerSubmit: Boolean(registerSubmit),
+                authScreens: authScreens.length
+            });
+        }
+
         var submitAjaxForm = function (form, action, options) {
             if (!form) {
                 return;
@@ -1130,6 +1248,12 @@ if (!skipAuthHandlers && typeof hasRecoveryContext === 'function' && hasRecovery
                     return;
                 }
                 if (!projectUrl || !anonKey) {
+                    showFormMessage(magicLinkForm, 'error', getMessage('missingConfig', 'Supabase configuration is missing.'));
+                    return;
+                }
+
+                var supabase = getSupabaseClient();
+                if (!supabase) {
                     showFormMessage(magicLinkForm, 'error', getMessage('missingConfig', 'Supabase configuration is missing.'));
                     return;
                 }
