@@ -15,6 +15,7 @@
         var otpNeedsPasswordKey = 'bw_otp_needs_password';
         var otpModeKey = 'bw_otp_mode';
         var pendingEmailKey = 'bw_pending_email';
+        var otpSignupIntentKey = 'bw_otp_signup_intent';
         var logDebug = function (message, context) {
             if (!debugEnabled) {
                 return;
@@ -81,6 +82,7 @@
                     sessionStorage.removeItem(otpSessionKey);
                     sessionStorage.removeItem(otpNeedsPasswordKey);
                     sessionStorage.removeItem(otpModeKey);
+                    sessionStorage.removeItem(otpSignupIntentKey);
                     sessionStorage.removeItem('bw_onboarded_email');
                 } catch (error) {
                     // ignore sessionStorage errors
@@ -586,6 +588,7 @@ if (!skipAuthHandlers && typeof hasRecoveryContext === 'function' && hasRecovery
             setSessionStorageItem('bw_handled_supabase_hash', '');
             setSessionStorageItem(otpNeedsPasswordKey, '');
             setSessionStorageItem(otpModeKey, '');
+            setSessionStorageItem(otpSignupIntentKey, '');
         };
 
         var supabaseClient = null;
@@ -932,6 +935,10 @@ if (!skipAuthHandlers && typeof hasRecoveryContext === 'function' && hasRecovery
             }
 
             if (target === 'magic') {
+                if (magicLinkForm) {
+                    showFormMessage(magicLinkForm, 'error', '');
+                    showFormMessage(magicLinkForm, 'success', '');
+                }
                 if (otpForm) {
                     showFormMessage(otpForm, 'error', '');
                     showFormMessage(otpForm, 'success', '');
@@ -939,6 +946,7 @@ if (!skipAuthHandlers && typeof hasRecoveryContext === 'function' && hasRecovery
                 }
                 setOtpNeedsPasswordFlag(false);
                 setOtpMode('');
+                setSessionStorageItem(otpSignupIntentKey, '');
             }
 
             if (target === 'otp') {
@@ -950,6 +958,11 @@ if (!skipAuthHandlers && typeof hasRecoveryContext === 'function' && hasRecovery
 
             if (target === 'set-password') {
                 updateResetSubmitState();
+            }
+
+            if (target === 'create-password') {
+                switchAuthScreen('otp-set-password');
+                return;
             }
 
             if (target === 'otp-set-password') {
@@ -1192,6 +1205,7 @@ if (!skipAuthHandlers && typeof hasRecoveryContext === 'function' && hasRecovery
                 // Supabase email templates control OTP vs link ({{ .Token }} vs {{ .ConfirmationURL }}).
                 setOtpMode('signup');
                 setSessionStorageItem(pendingEmailKey, emailValue);
+                setSessionStorageItem(otpSignupIntentKey, '1');
                 logDebug('Stored pending email in sessionStorage');
                 requestOtp(emailValue, true, 'signup')
                     .then(function (response) {
@@ -1745,6 +1759,7 @@ if (!skipAuthHandlers && typeof hasRecoveryContext === 'function' && hasRecovery
                         showFormMessage(setPasswordForm, 'error', '');
                         showFormMessage(setPasswordForm, 'success', '');
                     }
+                    setSessionStorageItem(otpSignupIntentKey, '');
                     cleanAuthUrl(['code', 'state', 'type', 'provider']);
                     switchAuthScreen('magic');
                 });
@@ -2016,15 +2031,17 @@ if (!skipAuthHandlers && typeof hasRecoveryContext === 'function' && hasRecovery
                         var otpMode = getOtpMode();
                         var pendingEmail = getSessionStorageItem(pendingEmailKey);
                         var onboardedEmail = getOnboardedEmail();
+                        var signupIntent = getSessionStorageItem(otpSignupIntentKey) === '1';
                         var shouldRequirePassword = false;
                         if (resolvedNewUser === true) {
                             shouldRequirePassword = true;
                         } else if (resolvedNewUser === null) {
-                            shouldRequirePassword = otpMode === 'signup' && (!hasOnboardedMarker() || (pendingEmail && onboardedEmail && pendingEmail !== onboardedEmail) || (pendingEmail && !onboardedEmail));
+                            shouldRequirePassword = otpMode === 'signup' && signupIntent && (!hasOnboardedMarker() || (pendingEmail && onboardedEmail && pendingEmail !== onboardedEmail) || (pendingEmail && !onboardedEmail));
                         }
                         logDebug('OTP verified: requiresPassword=' + (shouldRequirePassword ? '1' : '0'), {
                             resolvedNewUser: resolvedNewUser,
-                            otpMode: otpMode || 'unknown'
+                            otpMode: otpMode || 'unknown',
+                            signupIntent: signupIntent ? '1' : '0'
                         });
                         setPendingOtpEmail('');
                         setSessionStorageItem(pendingEmailKey, '');
@@ -2040,9 +2057,10 @@ if (!skipAuthHandlers && typeof hasRecoveryContext === 'function' && hasRecovery
                         }
                         setOtpNeedsPasswordFlag(shouldRequirePassword);
                         setOtpMode('');
+                        setSessionStorageItem(otpSignupIntentKey, '');
                         if (shouldRequirePassword) {
                             logDebug('Auth transition: otp -> password');
-                            switchAuthScreen('otp-set-password');
+                            switchAuthScreen('create-password');
                             return null;
                         }
                         setOtpNeedsPasswordFlag(false);
