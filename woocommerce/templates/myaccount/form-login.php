@@ -220,6 +220,36 @@ if ( ! $show_supabase_register && 'register' === $active_tab ) {
                                 </form>
                             </div>
 
+                            <div class="bw-auth-screen bw-auth-screen--otp-set-password" data-bw-screen="otp-set-password">
+                                <h3 class="bw-account-login__title"><?php esc_html_e( 'Create your password', 'bw' ); ?></h3>
+                                <p class="bw-account-login__note"><?php esc_html_e( 'For extra security, create your password now.', 'bw' ); ?></p>
+                                <form class="bw-account-login__form bw-account-login__form--supabase" data-bw-otp-setpass-form>
+                                    <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide bw-account-login__field">
+                                        <label for="bw_supabase_otp_password"><?php esc_html_e( 'New password', 'woocommerce' ); ?> <span class="required">*</span></label>
+                                        <input class="woocommerce-Input woocommerce-Input--text input-text" type="password" name="otp_password" id="bw_supabase_otp_password" autocomplete="new-password" required />
+                                    </p>
+                                    <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide bw-account-login__field">
+                                        <label for="bw_supabase_otp_password_confirm"><?php esc_html_e( 'Confirm password', 'woocommerce' ); ?> <span class="required">*</span></label>
+                                        <input class="woocommerce-Input woocommerce-Input--text input-text" type="password" name="otp_password_confirm" id="bw_supabase_otp_password_confirm" autocomplete="new-password" required />
+                                    </p>
+                                    <ul class="bw-account-login__rules" data-bw-otp-rules>
+                                        <li data-bw-otp-rule="length"><?php esc_html_e( 'At least 8 characters', 'bw' ); ?></li>
+                                        <li data-bw-otp-rule="upper"><?php esc_html_e( 'At least 1 uppercase letter', 'bw' ); ?></li>
+                                        <li data-bw-otp-rule="number"><?php esc_html_e( 'At least 1 number or special character', 'bw' ); ?></li>
+                                    </ul>
+
+                                    <div class="bw-account-login__error" role="alert" aria-live="polite" hidden></div>
+                                    <div class="bw-account-login__success" role="status" aria-live="polite" hidden></div>
+
+                                    <p class="form-row bw-account-login__actions">
+                                        <button type="submit" class="woocommerce-button button bw-account-login__submit" data-bw-otp-setpass-submit><?php esc_html_e( 'Save and continue', 'bw' ); ?></button>
+                                    </p>
+                                </form>
+                                <p class="bw-account-login__back-to-login">
+                                    <button type="button" class="bw-account-login__back-link" data-bw-go-magic>← <?php esc_html_e( 'Back to login', 'bw' ); ?></button>
+                                </p>
+                            </div>
+
                         </div>
 
                         <?php if ( $show_supabase_register && $register_prompt_enabled ) : ?>

@@ -11,6 +11,9 @@
         var bridgeAttemptKey = 'bw_supabase_bridge_attempted';
         var redirectGuardKey = 'bw_bridge_redirected';
         var recoveryHandledKey = 'bw_recovery_handled';
+        var otpPasswordKey = 'bw_otp_verified_need_password';
+        var otpSessionKey = 'bw_otp_pending_session';
+        var otpNewUserKey = 'bw_otp_new_user';
         var logDebug = function (message, context) {
             if (!debugEnabled) {
                 return;
@@ -74,6 +77,9 @@
                     sessionStorage.removeItem('bw_oauth_bridge_done');
                     sessionStorage.removeItem(redirectGuardKey);
                     sessionStorage.removeItem(recoveryHandledKey);
+                    sessionStorage.removeItem(otpPasswordKey);
+                    sessionStorage.removeItem(otpSessionKey);
+                    sessionStorage.removeItem(otpNewUserKey);
                 } catch (error) {
                     // ignore sessionStorage errors
                 }
@@ -379,7 +385,6 @@
         var oauthAppleEnabled = authConfig.oauthAppleEnabled !== undefined ? Boolean(authConfig.oauthAppleEnabled) : false;
         var passwordLoginEnabled = authConfig.passwordLoginEnabled !== undefined ? Boolean(authConfig.passwordLoginEnabled) : true;
         var registerPromptEnabled = authConfig.registerPromptEnabled !== undefined ? Boolean(authConfig.registerPromptEnabled) : true;
-        var registrationMode = authConfig.registrationMode || 'R2';
         var messages = authConfig.messages || {};
 
         var magicLinkForm = document.querySelector('[data-bw-supabase-form][data-bw-supabase-action="magic-link"]');
@@ -403,6 +408,11 @@
         var resetPasswordSubmit = setPasswordForm ? setPasswordForm.querySelector('[data-bw-setpass-submit]') : null;
         var resetPasswordInput = setPasswordForm ? setPasswordForm.querySelector('input[name="new_password"]') : null;
         var resetPasswordConfirm = setPasswordForm ? setPasswordForm.querySelector('input[name="confirm_password"]') : null;
+        var otpSetPasswordForm = document.querySelector('[data-bw-otp-setpass-form]');
+        var otpSetPasswordRules = otpSetPasswordForm ? Array.prototype.slice.call(otpSetPasswordForm.querySelectorAll('[data-bw-otp-rule]')) : [];
+        var otpSetPasswordSubmit = otpSetPasswordForm ? otpSetPasswordForm.querySelector('[data-bw-otp-setpass-submit]') : null;
+        var otpSetPasswordInput = otpSetPasswordForm ? otpSetPasswordForm.querySelector('input[name="otp_password"]') : null;
+        var otpSetPasswordConfirm = otpSetPasswordForm ? otpSetPasswordForm.querySelector('input[name="otp_password_confirm"]') : null;
         var goMagicButtons = Array.prototype.slice.call(document.querySelectorAll('[data-bw-go-magic]'));
         var getMessage = function (key, fallback) {
             if (messages && Object.prototype.hasOwnProperty.call(messages, key)) {
@@ -466,6 +476,37 @@
             resetPasswordSubmit.disabled = !(rulesPass && newValue && confirmValue && newValue === confirmValue);
         };
 
+        var updateOtpPasswordRules = function () {
+            if (!otpSetPasswordInput || !otpSetPasswordRules.length) {
+                return true;
+            }
+            var value = otpSetPasswordInput.value || '';
+            var allPass = true;
+            resetPasswordRules.forEach(function (rule) {
+                var passes = rule.test(value);
+                var ruleItem = otpSetPasswordRules.find(function (item) {
+                    return item.dataset.bwOtpRule === rule.id;
+                });
+                if (ruleItem) {
+                    ruleItem.classList.toggle('is-valid', passes);
+                }
+                if (!passes) {
+                    allPass = false;
+                }
+            });
+            return allPass;
+        };
+
+        var updateOtpPasswordSubmitState = function () {
+            if (!otpSetPasswordSubmit) {
+                return;
+            }
+            var rulesPass = updateOtpPasswordRules();
+            var newValue = otpSetPasswordInput ? otpSetPasswordInput.value.trim() : '';
+            var confirmValue = otpSetPasswordConfirm ? otpSetPasswordConfirm.value.trim() : '';
+            otpSetPasswordSubmit.disabled = !(rulesPass && newValue && confirmValue && newValue === confirmValue);
+        };
+
         var getCodeVerifier = function () {
             if (!window.localStorage) {
                 return '';
@@ -511,6 +552,7 @@
             setPendingOtpEmail('');
             setSessionStorageItem('bw_pending_otp_email', '');
             setSessionStorageItem('bw_handled_supabase_hash', '');
+            setSessionStorageItem(otpNewUserKey, '');
         };
 
         var supabaseClient = null;
@@ -546,17 +588,20 @@
             }
         }
 
-        var requestOtp = function (email) {
+        var requestOtp = function (email, shouldCreateUser, context) {
             var supabase = getSupabaseClient();
             var redirectTo = magicLinkRedirect || window.location.origin + '/my-account/';
-            var shouldCreateUser = registrationMode === 'R2';
+            var allowCreate = Boolean(shouldCreateUser);
+            var requestLabel = context || (allowCreate ? 'signup' : 'login-only');
+
+            logDebug('OTP send mode: ' + requestLabel, { shouldCreateUser: allowCreate });
 
             if (supabase) {
                 return supabase.auth.signInWithOtp({
                     email: email,
                     options: {
                         emailRedirectTo: redirectTo,
-                        shouldCreateUser: shouldCreateUser
+                        shouldCreateUser: allowCreate
                     }
                 });
             }
@@ -574,7 +619,8 @@
                 },
                 body: JSON.stringify({
                     email: email,
-                    create_user: shouldCreateUser,
+                    create_user: allowCreate,
+                    should_create_user: allowCreate,
                     options: {
                         email_redirect_to: redirectTo
                     }
@@ -590,6 +636,32 @@
             }).catch(function (error) {
                 return { error: error };
             });
+        };
+
+        var isUserNotFoundError = function (error) {
+            if (!error) {
+                return false;
+            }
+            var message = '';
+            if (typeof error === 'string') {
+                message = error;
+            } else if (error.message) {
+                message = error.message;
+            }
+            message = message.toLowerCase();
+            return message.indexOf('user not found') !== -1 || message.indexOf('not found') !== -1;
+        };
+
+        var setOtpNewUserFlag = function (value) {
+            setSessionStorageItem(otpNewUserKey, value ? '1' : '');
+        };
+
+        var getOtpNewUserFlagValue = function () {
+            return getSessionStorageItem(otpNewUserKey);
+        };
+
+        var getOtpNewUserFlag = function () {
+            return getOtpNewUserFlagValue() === '1';
         };
 
         var verifyOtp = function (email, code) {
@@ -627,6 +699,22 @@
                 }
                 return response.json();
             }).then(function (payload) {
+                if (window.sessionStorage && payload) {
+                    try {
+                        if (payload.access_token) {
+                            sessionStorage.setItem('bw_supabase_access_token', payload.access_token);
+                        }
+                        if (payload.refresh_token) {
+                            sessionStorage.setItem('bw_supabase_refresh_token', payload.refresh_token);
+                        }
+                        sessionStorage.setItem(otpSessionKey, JSON.stringify({
+                            access_token: payload.access_token || '',
+                            refresh_token: payload.refresh_token || ''
+                        }));
+                    } catch (error) {
+                        // ignore sessionStorage errors
+                    }
+                }
                 return { data: payload };
             }).catch(function (error) {
                 return { error: error };
@@ -697,6 +785,17 @@
             }
         };
 
+        var shouldShowOtpPassword = function () {
+            if (!window.sessionStorage) {
+                return false;
+            }
+            try {
+                return sessionStorage.getItem(otpPasswordKey) === '1';
+            } catch (error) {
+                return false;
+            }
+        };
+
         var setScreenState = function (screen, isActive) {
             if (!screen) {
                 return;
@@ -748,6 +847,7 @@
                     showFormMessage(otpForm, 'success', '');
                     setOtpInputsError(false);
                 }
+                setOtpNewUserFlag(false);
             }
 
             if (target === 'otp') {
@@ -759,6 +859,10 @@
 
             if (target === 'set-password') {
                 updateResetSubmitState();
+            }
+
+            if (target === 'otp-set-password') {
+                updateOtpPasswordSubmitState();
             }
         };
 
@@ -826,6 +930,10 @@
             }
             supabase.auth.getSession().then(function (response) {
                 if (response && response.data && response.data.session) {
+                    if (shouldShowOtpPassword()) {
+                        switchAuthScreen('otp-set-password');
+                        return;
+                    }
                     logDebug('Supabase session found', { autoBridge: true });
                     setBridgeAttempted(true);
                     return bridgeSupabaseSession(
@@ -949,7 +1057,7 @@
                 }
 
                 var emailField = magicLinkForm.querySelector('input[name="email"]');
-                var emailValue = emailField ? emailField.value.trim() : '';
+                var emailValue = emailField ? emailField.value.trim().toLowerCase() : '';
                 if (!emailValue) {
                     showFormMessage(magicLinkForm, 'error', getMessage('enterEmail', 'Please enter your email address.'));
                     return;
@@ -961,17 +1069,33 @@
                 logDebug('Supabase OTP request', { redirect_to: magicLinkRedirect });
 
                 // Supabase email templates control OTP vs link ({{ .Token }} vs {{ .ConfirmationURL }}).
-                requestOtp(emailValue)
+                requestOtp(emailValue, false, 'login-only')
                     .then(function (response) {
                         if (response && response.error) {
                             throw response.error;
                         }
+                        setOtpNewUserFlag(false);
                         setPendingOtpEmail(emailValue);
                         switchAuthScreen('otp');
                         showFormMessage(otpForm || magicLinkForm, 'success', getMessage('otpSent', 'Check your email for the 6-digit code.'));
                     })
                     .catch(function (error) {
+                        if (isUserNotFoundError(error)) {
+                            logDebug('OTP send retry: signup');
+                            return requestOtp(emailValue, true, 'signup')
+                                .then(function (retryResponse) {
+                                    if (retryResponse && retryResponse.error) {
+                                        throw retryResponse.error;
+                                    }
+                                    setOtpNewUserFlag(true);
+                                    setPendingOtpEmail(emailValue);
+                                    switchAuthScreen('otp');
+                                    showFormMessage(otpForm || magicLinkForm, 'success', getMessage('otpSent', 'Check your email for the 6-digit code.'));
+                                    return null;
+                                });
+                        }
                         showFormMessage(magicLinkForm, 'error', error.message || getMessage('magicLinkError', 'Unable to send magic link.'));
+                        return null;
                     });
             });
         }
@@ -985,6 +1109,16 @@
         }
 
         updateResetSubmitState();
+
+        if (otpSetPasswordInput) {
+            otpSetPasswordInput.addEventListener('input', updateOtpPasswordSubmitState);
+        }
+
+        if (otpSetPasswordConfirm) {
+            otpSetPasswordConfirm.addEventListener('input', updateOtpPasswordSubmitState);
+        }
+
+        updateOtpPasswordSubmitState();
 
         if (goResetPasswordButton) {
             goResetPasswordButton.addEventListener('click', function (event) {
@@ -1066,6 +1200,109 @@
                     .finally(function () {
                         if (submitButton) {
                             submitButton.disabled = false;
+                        }
+                    });
+            });
+        }
+
+        if (otpSetPasswordForm) {
+            otpSetPasswordForm.addEventListener('submit', function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                var newValue = otpSetPasswordInput ? otpSetPasswordInput.value.trim() : '';
+                var confirmValue = otpSetPasswordConfirm ? otpSetPasswordConfirm.value.trim() : '';
+
+                if (!newValue || !confirmValue) {
+                    showFormMessage(otpSetPasswordForm, 'error', getMessage('passwordUpdateFailed', 'Unable to update password.'));
+                    return;
+                }
+
+                if (newValue !== confirmValue || !updateOtpPasswordRules()) {
+                    showFormMessage(otpSetPasswordForm, 'error', getMessage('passwordUpdateFailed', 'Unable to update password.'));
+                    return;
+                }
+
+                if (otpSetPasswordSubmit) {
+                    otpSetPasswordSubmit.disabled = true;
+                }
+
+                showFormMessage(otpSetPasswordForm, 'error', '');
+                showFormMessage(otpSetPasswordForm, 'success', '');
+
+                var supabase = getSupabaseClient();
+                var updatePromise;
+                var sessionAccessToken = '';
+                var sessionRefreshToken = '';
+
+                if (window.sessionStorage) {
+                    try {
+                        var storedSession = sessionStorage.getItem(otpSessionKey);
+                        if (storedSession) {
+                            var parsedSession = JSON.parse(storedSession);
+                            sessionAccessToken = parsedSession.access_token || '';
+                            sessionRefreshToken = parsedSession.refresh_token || '';
+                        }
+                    } catch (error) {
+                        // ignore sessionStorage errors
+                    }
+                }
+
+                if (supabase) {
+                    updatePromise = supabase.auth.updateUser({ password: newValue });
+                } else if (sessionAccessToken) {
+                    updatePromise = fetch(projectUrl.replace(/\/$/, '') + '/auth/v1/user', {
+                        method: 'PUT',
+                        headers: {
+                            apikey: anonKey,
+                            Authorization: 'Bearer ' + sessionAccessToken,
+                            'Content-Type': 'application/json',
+                            Accept: 'application/json'
+                        },
+                        body: JSON.stringify({ password: newValue })
+                    }).then(function (response) {
+                        if (!response.ok) {
+                            return response.json().then(function (payload) {
+                                var message = payload && (payload.msg || payload.message) ? (payload.msg || payload.message) : getMessage('passwordUpdateFailed', 'Unable to update password.');
+                                throw new Error(message);
+                            });
+                        }
+                        return response.json();
+                    });
+                } else {
+                    updatePromise = Promise.reject(new Error(getMessage('passwordUpdateFailed', 'Unable to update password.')));
+                }
+
+                Promise.resolve(updatePromise)
+                    .then(function (response) {
+                        if (response && response.error) {
+                            throw response.error;
+                        }
+                        if (window.sessionStorage) {
+                            try {
+                                sessionStorage.removeItem(otpPasswordKey);
+                                sessionStorage.removeItem(otpSessionKey);
+                            } catch (error) {
+                                // ignore sessionStorage errors
+                            }
+                        }
+                        if (supabase) {
+                            return supabase.auth.getSession().then(function (sessionResponse) {
+                                var session = sessionResponse && sessionResponse.data ? sessionResponse.data.session : null;
+                                var accessToken = session ? session.access_token : sessionAccessToken;
+                                var refreshToken = session ? session.refresh_token : sessionRefreshToken;
+                                return bridgeSupabaseSession(accessToken, refreshToken, 'otp');
+                            });
+                        }
+                        return bridgeSupabaseSession(sessionAccessToken, sessionRefreshToken, 'otp');
+                    })
+                    .catch(function (error) {
+                        var message = error && error.message ? error.message : getMessage('passwordUpdateFailed', 'Unable to update password.');
+                        showFormMessage(otpSetPasswordForm, 'error', message);
+                    })
+                    .finally(function () {
+                        if (otpSetPasswordSubmit) {
+                            otpSetPasswordSubmit.disabled = false;
                         }
                     });
             });
@@ -1474,7 +1711,9 @@
                 if (!storedEmail) {
                     clearOtpPendingState();
                 }
-                if (!document.body.classList.contains('bw-account-login-only') && storedEmail) {
+                if (shouldShowOtpPassword()) {
+                    switchAuthScreen('otp-set-password');
+                } else if (!document.body.classList.contains('bw-account-login-only') && storedEmail) {
                     switchAuthScreen('otp');
                 } else {
                     switchAuthScreen('magic');
@@ -1654,7 +1893,30 @@
                         var session = response && response.data ? response.data.session : null;
                         var accessToken = session ? session.access_token : response.access_token;
                         var refreshToken = session ? session.refresh_token : response.refresh_token;
-                        return bridgeSupabaseSession(accessToken, refreshToken, 'otp');
+                        var newUserValue = getOtpNewUserFlagValue();
+                        var isNewUser = newUserValue === '1';
+                        if (!newUserValue) {
+                            logDebug('OTP verified: new-user flag missing, defaulting to existing');
+                        }
+                        logDebug('OTP verified: isNewUser=' + (isNewUser ? '1' : '0'));
+                        if (window.sessionStorage) {
+                            try {
+                                sessionStorage.setItem(otpSessionKey, JSON.stringify({
+                                    access_token: accessToken || '',
+                                    refresh_token: refreshToken || ''
+                                }));
+                            } catch (error) {
+                                // ignore sessionStorage errors
+                            }
+                        }
+                        if (isNewUser) {
+                            setSessionStorageItem(otpPasswordKey, '1');
+                            switchAuthScreen('otp-set-password');
+                            return null;
+                        }
+                        setSessionStorageItem(otpPasswordKey, '');
+                        setOtpNewUserFlag(false);
+                        return bridgeSupabaseSession(accessToken || '', refreshToken || '', 'otp');
                     })
                     .catch(function (error) {
                         var message = getMessage('otpVerifyError', 'Unable to verify the code.');
@@ -1686,7 +1948,7 @@
 
                 otpResendButton.disabled = true;
 
-                requestOtp(emailValue)
+                requestOtp(emailValue, getOtpNewUserFlag(), getOtpNewUserFlag() ? 'signup' : 'login-only')
                     .then(function (response) {
                         if (response && response.error) {
                             throw response.error;
