@@ -59,7 +59,7 @@ if ( ! $show_supabase_register && 'register' === $active_tab ) {
                     <div class="bw-account-auth__panels">
                         <div class="bw-account-auth__panel <?php echo 'login' === $active_tab ? 'is-active is-visible' : ''; ?>" data-bw-auth-panel="login">
                             <div class="bw-auth-screen bw-auth-screen--magic is-active is-visible" data-bw-screen="magic">
-                                <form class="bw-account-login__form bw-account-login__form--supabase" data-bw-supabase-form data-bw-supabase-action="magic-link">
+                                <form class="bw-account-login__form bw-account-login__form--supabase" method="post" action="<?php echo esc_url( wc_get_page_permalink( 'myaccount' ) ); ?>" data-bw-supabase-form data-bw-supabase-action="magic-link">
                                     <p class="bw-account-login__note"><?php esc_html_e( 'Enter your email and we will send you a login link.', 'bw' ); ?></p>
 
                                     <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide bw-account-login__field">
