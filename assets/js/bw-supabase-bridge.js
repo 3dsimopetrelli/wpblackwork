@@ -39,6 +39,7 @@
             if (window.localStorage) {
                 try {
                     localStorage.removeItem('bw_onboarded');
+                    localStorage.removeItem('bw_onboarded_email');
                 } catch (error) {
                     // ignore localStorage errors
                 }

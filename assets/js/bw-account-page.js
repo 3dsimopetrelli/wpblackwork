@@ -60,6 +60,7 @@
             if (window.localStorage) {
                 try {
                     localStorage.removeItem('bw_onboarded');
+                    localStorage.removeItem('bw_onboarded_email');
                 } catch (error) {
                     // ignore localStorage errors
                 }
@@ -80,6 +81,7 @@
                     sessionStorage.removeItem(otpSessionKey);
                     sessionStorage.removeItem(otpNeedsPasswordKey);
                     sessionStorage.removeItem(otpModeKey);
+                    sessionStorage.removeItem('bw_onboarded_email');
                 } catch (error) {
                     // ignore sessionStorage errors
                 }
@@ -698,6 +700,23 @@ if (!skipAuthHandlers && typeof hasRecoveryContext === 'function' && hasRecovery
             return getSessionStorageItem(otpNeedsPasswordKey) === '1';
         };
 
+        var getOnboardedEmail = function () {
+            if (!window.localStorage && !window.sessionStorage) {
+                return '';
+            }
+            try {
+                if (window.localStorage && window.localStorage.getItem('bw_onboarded_email')) {
+                    return window.localStorage.getItem('bw_onboarded_email') || '';
+                }
+                if (window.sessionStorage) {
+                    return window.sessionStorage.getItem('bw_onboarded_email') || '';
+                }
+            } catch (error) {
+                return '';
+            }
+            return '';
+        };
+
         var hasOnboardedMarker = function () {
             if (!window.localStorage && !window.sessionStorage) {
                 return false;
@@ -712,13 +731,19 @@ if (!skipAuthHandlers && typeof hasRecoveryContext === 'function' && hasRecovery
             }
         };
 
-        var setOnboardedMarker = function () {
+        var setOnboardedMarker = function (email) {
             try {
                 if (window.localStorage) {
                     window.localStorage.setItem('bw_onboarded', '1');
+                    if (email) {
+                        window.localStorage.setItem('bw_onboarded_email', email);
+                    }
                 }
                 if (window.sessionStorage) {
                     window.sessionStorage.setItem('bw_onboarded', '1');
+                    if (email) {
+                        window.sessionStorage.setItem('bw_onboarded_email', email);
+                    }
                 }
             } catch (error) {
                 // ignore storage errors
@@ -984,7 +1009,8 @@ if (!skipAuthHandlers && typeof hasRecoveryContext === 'function' && hasRecovery
                     resetReloadGuard();
                     var targetUrl = payload && payload.success && payload.data && payload.data.redirect ? payload.data.redirect : '';
                     if (payload && payload.success) {
-                        setOnboardedMarker();
+                        var pendingEmail = getSessionStorageItem(pendingEmailKey);
+                        setOnboardedMarker(pendingEmail);
                     }
                     if (window.sessionStorage) {
                         try {
@@ -1988,11 +2014,13 @@ if (!skipAuthHandlers && typeof hasRecoveryContext === 'function' && hasRecovery
                         var refreshToken = session ? session.refresh_token : response.refresh_token;
                         var resolvedNewUser = resolveNewUserFromResponse(response);
                         var otpMode = getOtpMode();
+                        var pendingEmail = getSessionStorageItem(pendingEmailKey);
+                        var onboardedEmail = getOnboardedEmail();
                         var shouldRequirePassword = false;
                         if (resolvedNewUser === true) {
                             shouldRequirePassword = true;
                         } else if (resolvedNewUser === null) {
-                            shouldRequirePassword = otpMode === 'signup' && !hasOnboardedMarker();
+                            shouldRequirePassword = otpMode === 'signup' && (!hasOnboardedMarker() || (pendingEmail && onboardedEmail && pendingEmail !== onboardedEmail) || (pendingEmail && !onboardedEmail));
                         }
                         logDebug('OTP verified: requiresPassword=' + (shouldRequirePassword ? '1' : '0'), {
                             resolvedNewUser: resolvedNewUser,
