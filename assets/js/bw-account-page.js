@@ -1184,6 +1184,12 @@ if (!skipAuthHandlers && typeof hasRecoveryContext === 'function' && hasRecovery
                     return;
                 }
 
+                var supabase = getSupabaseClient();
+                if (!supabase) {
+                    showFormMessage(magicLinkForm, 'error', getMessage('missingConfig', 'Supabase configuration is missing.'));
+                    return;
+                }
+
                 var emailField = magicLinkForm.querySelector('input[name="email"]');
                 var emailValue = emailField ? emailField.value.trim().toLowerCase() : '';
                 if (!emailValue) {
