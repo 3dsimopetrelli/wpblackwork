@@ -22,7 +22,7 @@
         if (searchParams.has('logged_out')) {
             if (window.sessionStorage) {
                 try {
-                    sessionStorage.removeItem('bw_pending_otp_email');
+                    sessionStorage.removeItem('bw_pending_email');
                     sessionStorage.removeItem('bw_handled_supabase_hash');
                     sessionStorage.removeItem('bw_handled_supabase_code');
                     sessionStorage.removeItem('bw_handled_token_login');
@@ -38,7 +38,6 @@
             }
             if (window.localStorage) {
                 try {
-                    localStorage.removeItem('bw_pending_otp_email');
                     localStorage.removeItem('bw_onboarded');
                 } catch (error) {
                     // ignore localStorage errors

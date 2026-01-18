@@ -14,6 +14,7 @@
         var otpSessionKey = 'bw_otp_pending_session';
         var otpNeedsPasswordKey = 'bw_otp_needs_password';
         var otpModeKey = 'bw_otp_mode';
+        var pendingEmailKey = 'bw_pending_email';
         var logDebug = function (message, context) {
             if (!debugEnabled) {
                 return;
@@ -58,7 +59,6 @@
         var clearAuthStorage = function () {
             if (window.localStorage) {
                 try {
-                    localStorage.removeItem('bw_pending_otp_email');
                     localStorage.removeItem('bw_onboarded');
                 } catch (error) {
                     // ignore localStorage errors
@@ -67,7 +67,7 @@
 
             if (window.sessionStorage) {
                 try {
-                    sessionStorage.removeItem('bw_pending_otp_email');
+                    sessionStorage.removeItem(pendingEmailKey);
                     sessionStorage.removeItem('bw_handled_supabase_hash');
                     sessionStorage.removeItem('bw_handled_email_confirm');
                     sessionStorage.removeItem('bw_handled_token_login');
@@ -113,6 +113,13 @@
             if (debugEnabled) {
                 console.log('[bw] Auth URL cleaned');
             }
+        };
+
+        var isValidEmail = function (value) {
+            if (!value) {
+                return false;
+            }
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
         };
 
         var hasAuthCallback = function () {
@@ -307,6 +314,19 @@
                 return false;
             }
             return false;
+        }
+
+        if (!skipAuthHandlers) {
+            var legacyUrl = new URL(window.location.href);
+            var legacyEmail = legacyUrl.searchParams.get('email');
+            if (legacyEmail && isValidEmail(legacyEmail)) {
+                setSessionStorageItem(pendingEmailKey, legacyEmail);
+                legacyUrl.searchParams.delete('email');
+                if (window.history && window.history.replaceState) {
+                    window.history.replaceState({}, document.title, legacyUrl.pathname + (legacyUrl.search ? legacyUrl.search : '') + legacyUrl.hash);
+                }
+                logDebug('Captured email from query param, cleaned URL');
+            }
         }
 
         if (authWrapper) {
@@ -560,7 +580,7 @@ if (!skipAuthHandlers && typeof hasRecoveryContext === 'function' && hasRecovery
 
         var clearOtpPendingState = function () {
             setPendingOtpEmail('');
-            setSessionStorageItem('bw_pending_otp_email', '');
+            setSessionStorageItem(pendingEmailKey, '');
             setSessionStorageItem('bw_handled_supabase_hash', '');
             setSessionStorageItem(otpNeedsPasswordKey, '');
             setSessionStorageItem(otpModeKey, '');
@@ -568,7 +588,6 @@ if (!skipAuthHandlers && typeof hasRecoveryContext === 'function' && hasRecovery
 
         var supabaseClient = null;
         var pendingOtpEmail = '';
-        var pendingOtpKey = 'bw_pending_otp_email';
         var getSupabaseClient = function () {
             if (supabaseClient) {
                 return supabaseClient;
@@ -787,30 +806,15 @@ if (!skipAuthHandlers && typeof hasRecoveryContext === 'function' && hasRecovery
             if (otpEmailText) {
                 otpEmailText.textContent = email ? email : '';
             }
-            if (window.localStorage) {
-                try {
-                    if (email) {
-                        window.localStorage.setItem(pendingOtpKey, email);
-                    } else {
-                        window.localStorage.removeItem(pendingOtpKey);
-                    }
-                } catch (error) {
-                    logDebug('Unable to access localStorage', error);
-                }
-            }
+            setSessionStorageItem(pendingEmailKey, email || '');
+            logDebug('Stored pending email in sessionStorage');
         };
 
         var getPendingOtpEmail = function () {
             if (pendingOtpEmail) {
                 return pendingOtpEmail;
             }
-            if (window.localStorage) {
-                try {
-                    pendingOtpEmail = window.localStorage.getItem(pendingOtpKey) || '';
-                } catch (error) {
-                    logDebug('Unable to access localStorage', error);
-                }
-            }
+            pendingOtpEmail = getSessionStorageItem(pendingEmailKey) || '';
             if (otpEmailText) {
                 otpEmailText.textContent = pendingOtpEmail ? pendingOtpEmail : '';
             }
@@ -1046,124 +1050,6 @@ if (!skipAuthHandlers && typeof hasRecoveryContext === 'function' && hasRecovery
             });
         }
 
-            if (target === 'otp') {
-                if (otpInputs.length) {
-                    otpInputs[0].focus();
-                }
-                updateOtpState();
-            }
-
-            if (target === 'set-password') {
-                updateResetSubmitState();
-            }
-
-            if (target === 'otp-set-password') {
-                updateOtpPasswordSubmitState();
-            }
-        };
-
-        var getCleanRedirectUrl = function (targetUrl) {
-            var baseUrl = targetUrl || magicLinkRedirect || window.location.origin + '/my-account/';
-            var url = new URL(baseUrl, window.location.origin);
-            url.hash = '';
-            url.searchParams.delete('code');
-            url.searchParams.delete('type');
-            return url.toString();
-        };
-
-        var supabaseSessionRedirect = function () {
-            cleanupAuthState();
-            window.location.replace(getCleanRedirectUrl());
-        };
-
-        var bridgeSupabaseSession = function (accessToken, refreshToken, context) {
-            if (!window.bwAccountAuth || !window.bwAccountAuth.ajaxUrl || !window.bwAccountAuth.nonce) {
-                return Promise.resolve({ error: new Error(getMessage('missingConfig', 'Supabase configuration is missing.')) });
-            }
-
-            if (!accessToken) {
-                return Promise.resolve({ error: new Error(getMessage('otpVerifyError', 'Unable to verify the code.')) });
-            }
-
-            if (debugEnabled) {
-                console.log('[bw] Supabase token bridge', { context: context || 'otp' });
-            }
-
-            return fetch(window.bwAccountAuth.ajaxUrl, {
-                method: 'POST',
-                credentials: 'same-origin',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8'
-                },
-                body: new URLSearchParams({
-                    action: 'bw_supabase_token_login',
-                    nonce: window.bwAccountAuth.nonce,
-                    access_token: accessToken,
-                    refresh_token: refreshToken || '',
-                    type: context || 'otp'
-                })
-            })
-                .then(function (response) {
-                    logDebug('WP bridge response', { status: response.status, context: context || 'otp' });
-                    return response.json();
-                })
-                .then(function (payload) {
-                    cleanAuthUrl(['access_token', 'refresh_token', 'type', 'code', 'bw_email_confirmed']);
-                    setBridgeAttempted(false);
-                    resetReloadGuard();
-                    var targetUrl = payload && payload.success && payload.data && payload.data.redirect ? payload.data.redirect : '';
-                    window.location.replace(getCleanRedirectUrl(targetUrl));
-                    return payload;
-                });
-        };
-
-        var checkExistingSession = function () {
-            if (getSessionStorageItem('bw_handled_session_check') === '1') {
-                return;
-            }
-            var supabase = getSupabaseClient();
-            if (!supabase) {
-                return;
-            }
-            setSessionStorageItem('bw_handled_session_check', '1');
-            if (hasBridgeAttempted()) {
-                logDebug('Auto-bridge skipped', { reason: 'already_attempted' });
-                return;
-            }
-            supabase.auth.getSession().then(function (response) {
-                if (response && response.data && response.data.session) {
-                    if (shouldShowOtpPassword()) {
-                        switchAuthScreen('otp-set-password');
-                        return;
-                    }
-                    logDebug('Supabase session found', { autoBridge: true });
-                    setBridgeAttempted(true);
-                    return bridgeSupabaseSession(
-                        response.data.session.access_token || '',
-                        response.data.session.refresh_token || '',
-                        'session'
-                    ).catch(function (error) {
-                        logDebug('Auto-bridge failed', { message: error && error.message ? error.message : 'unknown' });
-                        switchAuthScreen('magic');
-                    });
-                }
-                logDebug('Auto-bridge skipped', { reason: 'no_session' });
-                switchAuthScreen('magic');
-                return null;
-            });
-        };
-
-        if (debugEnabled) {
-            logDebug('Auth UI elements', {
-                magicLinkForm: Boolean(magicLinkForm),
-                passwordLoginForm: Boolean(passwordLoginForm),
-                registerForm: Boolean(registerForm),
-                registerContinue: Boolean(registerContinue),
-                registerSubmit: Boolean(registerSubmit),
-                authScreens: authScreens.length
-            });
-        }
-
         var submitAjaxForm = function (form, action, options) {
             if (!form) {
                 return;
@@ -1239,6 +1125,13 @@ if (!skipAuthHandlers && typeof hasRecoveryContext === 'function' && hasRecovery
         };
 
         if (magicLinkForm) {
+            var magicEmailField = magicLinkForm.querySelector('input[name="email"]');
+            if (magicEmailField && !magicEmailField.value) {
+                var storedEmail = getSessionStorageItem(pendingEmailKey);
+                if (storedEmail && isValidEmail(storedEmail)) {
+                    magicEmailField.value = storedEmail;
+                }
+            }
             magicLinkForm.addEventListener('submit', function (event) {
                 event.preventDefault();
                 event.stopPropagation();
@@ -1272,6 +1165,8 @@ if (!skipAuthHandlers && typeof hasRecoveryContext === 'function' && hasRecovery
 
                 // Supabase email templates control OTP vs link ({{ .Token }} vs {{ .ConfirmationURL }}).
                 setOtpMode('signup');
+                setSessionStorageItem(pendingEmailKey, emailValue);
+                logDebug('Stored pending email in sessionStorage');
                 requestOtp(emailValue, true, 'signup')
                     .then(function (response) {
                         if (response && response.error) {
@@ -2104,7 +1999,7 @@ if (!skipAuthHandlers && typeof hasRecoveryContext === 'function' && hasRecovery
                             otpMode: otpMode || 'unknown'
                         });
                         setPendingOtpEmail('');
-                        setSessionStorageItem('bw_pending_otp_email', '');
+                        setSessionStorageItem(pendingEmailKey, '');
                         if (window.sessionStorage) {
                             try {
                                 sessionStorage.setItem(otpSessionKey, JSON.stringify({
