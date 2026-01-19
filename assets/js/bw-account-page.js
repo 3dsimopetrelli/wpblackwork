@@ -694,7 +694,6 @@ if (!skipAuthHandlers && typeof hasRecoveryContext === 'function' && hasRecovery
             var requestLabel = context || (allowCreate ? 'signup' : 'login-only');
 
             logDebug('OTP send mode: ' + requestLabel, { shouldCreateUser: allowCreate });
-            logDebug('OTP request payload', { shouldCreateUser: allowCreate, create_user: allowCreate });
 
             if (supabase) {
                 return supabase.auth.signInWithOtp({
@@ -703,11 +702,6 @@ if (!skipAuthHandlers && typeof hasRecoveryContext === 'function' && hasRecovery
                         emailRedirectTo: redirectTo,
                         shouldCreateUser: allowCreate
                     }
-                }).then(function (response) {
-                    if (response && response.error) {
-                        logDebug('OTP request failed', { message: response.error.message || 'unknown' });
-                    }
-                    return response;
                 });
             }
 
@@ -739,7 +733,6 @@ if (!skipAuthHandlers && typeof hasRecoveryContext === 'function' && hasRecovery
                 }
                 return { data: {} };
             }).catch(function (error) {
-                logDebug('OTP request failed', { message: error && error.message ? error.message : 'unknown' });
                 return { error: error };
             });
         };

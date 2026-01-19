@@ -39,12 +39,6 @@ if ( file_exists( plugin_dir_path( __FILE__ ) . 'admin/class-blackwork-site-sett
     require_once plugin_dir_path( __FILE__ ) . 'admin/class-blackwork-site-settings.php';
 }
 
-function bw_mew_load_textdomain() {
-    load_plugin_textdomain( 'bw', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
-    load_plugin_textdomain( 'bw-elementor-widgets', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
-}
-add_action( 'init', 'bw_mew_load_textdomain' );
-
 
 // Helper functions
 require_once __DIR__ . '/includes/helpers.php';
