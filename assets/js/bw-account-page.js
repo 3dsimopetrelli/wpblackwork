@@ -628,26 +628,6 @@
                 });
                 return { error: error };
             });
-
-            if (target === 'magic' && allowClearOtp) {
-                setPendingOtpEmail('');
-                clearAuthFlow();
-                clearPendingTokens();
-            }
-
-            if (target === 'otp' && otpInputs.length) {
-                otpInputs[0].focus();
-                updateOtpState();
-            }
-
-            if (target === 'create-password') {
-                if (createPasswordInput) {
-                    createPasswordInput.focus();
-                }
-                updateCreatePasswordSubmitState();
-            }
-
-            logDiagnostics(target);
         };
 
         var verifyOtp = function (email, code) {
@@ -674,6 +654,7 @@
                 method: 'POST',
                 headers: {
                     apikey: anonKey,
+                    Authorization: 'Bearer ' + anonKey,
                     'Content-Type': 'application/json',
                     Accept: 'application/json'
                 },
@@ -790,7 +771,6 @@
             if (!payload || !payload.success) {
                 return false;
             }
-        };
 
             if (window.sessionStorage) {
                 try {
@@ -1064,6 +1044,10 @@
                         if (response && response.error) {
                             throw response.error;
                         }
+                        if (getSessionStorageItem(tokenHandledKey) === '1') {
+                            return { data: {} };
+                        }
+                        setSessionStorageItem(tokenHandledKey, '1');
                         var tokens = extractTokensFromVerify(response);
                         if (!tokens.accessToken) {
                             throw new Error(getMessage('otpVerifyError', 'Unable to verify the code.'));
