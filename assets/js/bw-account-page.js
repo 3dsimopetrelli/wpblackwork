@@ -535,97 +535,62 @@
             var redirectTo = magicLinkRedirect || window.location.origin + '/my-account/';
             var allowCreate = Boolean(shouldCreateUser);
             var modeLabel = context || (allowCreate ? 'signup' : 'login-only');
-            var endpoint = projectUrl ? projectUrl.replace(/\/$/, '') + '/auth/v1/otp' : '';
 
             logDebug('OTP_REQUEST_START', {
                 mode: supabase ? 'sdk' : 'rest',
                 flow: modeLabel,
-                emailHash: hashEmail(email),
                 shouldCreateUser: allowCreate,
-                redirectTo: redirectTo,
-                projectUrlConfigured: Boolean(projectUrl),
-                endpoint: supabase ? '' : endpoint,
-                anonKeyConfigured: Boolean(anonKey)
+                emailHash: hashEmail(email),
+                redirectTo: redirectTo
             });
 
-            if (supabase) {
+            if (supabase && supabase.auth && typeof supabase.auth.signInWithOtp === 'function') {
                 return supabase.auth.signInWithOtp({
                     email: email,
-                    options: {
-                        emailRedirectTo: redirectTo,
-                        shouldCreateUser: allowCreate
-                    }
+                    options: { emailRedirectTo: redirectTo, shouldCreateUser: allowCreate }
                 }).then(function (response) {
                     logDebug('OTP_REQUEST_RESULT', {
                         mode: 'sdk',
                         ok: Boolean(response && !response.error),
-                        errorMessage: response && response.error ? response.error.message : '',
-                        errorName: response && response.error ? response.error.name : ''
+                        errorMessage: response && response.error ? response.error.message : ''
                     });
                     return response;
                 });
             }
-            return otpInputs.map(function (input) {
-                var digit = input.value.replace(/\D/g, '');
-                return digit ? digit.charAt(0) : '';
-            }).join('');
-        };
 
-        var updateOtpState = function () {
-            if (!otpConfirmButton) {
-                return;
+            if (!projectUrl || !anonKey) {
+                return Promise.resolve({ error: new Error(getMessage('missingConfig', 'Supabase configuration is missing.')) });
             }
-            var code = getOtpCode();
-            var isValid = code.length === 6 && /^\d{6}$/.test(code);
-            otpConfirmButton.disabled = !isValid;
-        };
+
+            var endpoint = projectUrl.replace(/\/$/, '') + '/auth/v1/otp';
 
             return fetch(endpoint, {
                 method: 'POST',
                 headers: {
                     apikey: anonKey,
-                    Authorization: 'Bearer ' + anonKey,
                     'Content-Type': 'application/json',
-                    Accept: 'application/json'
+                    Accept: 'application/json',
+                    Authorization: 'Bearer ' + anonKey
                 },
                 body: JSON.stringify({
                     email: email,
+                    create_user: allowCreate,
                     should_create_user: allowCreate,
-                    options: {
-                        email_redirect_to: redirectTo
-                    }
+                    options: { email_redirect_to: redirectTo }
                 })
             }).then(function (response) {
-                logDebug('OTP_REQUEST_RESULT', {
-                    mode: 'rest',
-                    ok: response.ok,
-                    status: response.status,
-                    errorMessage: ''
-                });
+                logDebug('OTP_REQUEST_RESULT', { mode: 'rest', ok: response.ok, status: response.status });
                 if (!response.ok) {
                     return response.json().then(function (payload) {
-                        logDebug('OTP_REQUEST_ERROR', {
-                            mode: 'rest',
-                            status: response.status,
-                            payload: sanitizeSupabasePayload(payload)
-                        });
-                        var message = payload && (payload.msg || payload.message) ? (payload.msg || payload.message) : getMessage('magicLinkError', 'Unable to send code.');
-                        throw new Error(message);
+                        logDebug('OTP_REQUEST_ERROR', { mode: 'rest', status: response.status, payload: sanitizeSupabasePayload(payload) });
+                        var msg = payload && (payload.msg || payload.message) ? (payload.msg || payload.message) : getMessage('magicLinkError', 'Unable to send code.');
+                        throw new Error(msg);
+                    }).catch(function () {
+                        throw new Error(getMessage('magicLinkError', 'Unable to send code.'));
                     });
-                } else {
-                    screen.classList.remove('is-active');
-                    setTimeout(function () {
-                        screen.classList.remove('is-visible');
-                    }, 300);
                 }
                 return { data: {} };
             }).catch(function (error) {
-                logDebug('OTP_REQUEST_RESULT', {
-                    mode: 'rest',
-                    ok: false,
-                    errorMessage: error && error.message ? error.message : 'unknown',
-                    errorName: error && error.name ? error.name : ''
-                });
                 return { error: error };
             });
         };
@@ -761,10 +726,6 @@
                 .catch(function () {
                     return false;
                 });
-            };
-
-            attemptRedirect();
-            return true;
         };
 
         var completeBridgeRedirect = function (payload) {
