@@ -435,10 +435,10 @@
                 return response.json().then(function (payload) {
                     var result = payload && payload.data ? payload.data : payload;
                     logDebug('EMAIL_EXISTS_RESULT', {
-                        ok: Boolean(payload && payload.success),
-                        exists: result && result.exists,
+                        ok: Boolean(result && result.ok),
+                        exists: Boolean(result && result.exists),
                         reason: result && result.reason ? result.reason : '',
-                        status: response.status,
+                        status: result && result.status ? result.status : response.status,
                         emailHash: hashEmail(email)
                     });
                     return result;
@@ -928,10 +928,11 @@
                         });
                         setAuthFlow(flow);
                         return requestOtp(emailValue, shouldCreateUser, flow).catch(function (error) {
-                            if (String(error && error.message ? error.message : '').toLowerCase().indexOf('signups not allowed') !== -1 && exists) {
-                                logDebug('OTP_RETRY_LOGIN_ONLY', { flow: 'login', emailHash: hashEmail(emailValue) });
-                                setAuthFlow('login');
-                                return requestOtp(emailValue, false, 'login');
+                            var message = String(error && error.message ? error.message : '').toLowerCase();
+                            if (message.indexOf('signups not allowed') !== -1 && !shouldCreateUser) {
+                                logDebug('OTP_RETRY_SIGNUP', { flow: 'signup', emailHash: hashEmail(emailValue) });
+                                setAuthFlow('signup');
+                                return requestOtp(emailValue, true, 'signup');
                             }
                             throw error;
                         });

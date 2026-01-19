@@ -648,22 +648,21 @@ function bw_mew_handle_supabase_email_exists() {
         if ( $debug_log ) {
             error_log( sprintf( 'Supabase email exists skipped (missing service role). email_hash=%s', hash( 'sha256', strtolower( $email ) ) ) );
         }
-        wp_send_json_error(
+        wp_send_json_success(
             [
                 'ok'     => false,
                 'exists' => false,
                 'reason' => 'service_role_missing',
-            ],
-            200
+                'status' => 200,
+            ]
         );
     }
 
     $endpoint = trailingslashit( untrailingslashit( $config['project_url'] ) ) . 'auth/v1/admin/users';
     $endpoint = add_query_arg(
         [
-            'email'    => $email,
             'page'     => 1,
-            'per_page' => 1,
+            'per_page' => 100,
         ],
         $endpoint
     );
@@ -684,25 +683,39 @@ function bw_mew_handle_supabase_email_exists() {
         if ( $debug_log ) {
             error_log( sprintf( 'Supabase email exists error: %s', $response->get_error_message() ) );
         }
-        wp_send_json_error(
+        wp_send_json_success(
             [
                 'ok'     => false,
                 'exists' => false,
                 'reason' => 'request_failed',
-            ],
-            500
+                'status' => 500,
+            ]
         );
     }
 
     $status_code = wp_remote_retrieve_response_code( $response );
     $payload     = json_decode( wp_remote_retrieve_body( $response ), true );
     $exists      = false;
+    $users       = [];
 
     if ( is_array( $payload ) ) {
         if ( isset( $payload['users'] ) && is_array( $payload['users'] ) ) {
-            $exists = ! empty( $payload['users'] );
+            $users = $payload['users'];
         } elseif ( isset( $payload[0] ) ) {
-            $exists = true;
+            $users = $payload;
+        }
+    }
+
+    if ( $users ) {
+        $email_lower = strtolower( $email );
+        foreach ( $users as $user ) {
+            if ( ! is_array( $user ) || empty( $user['email'] ) ) {
+                continue;
+            }
+            if ( strtolower( (string) $user['email'] ) === $email_lower ) {
+                $exists = true;
+                break;
+            }
         }
     }
 
@@ -722,6 +735,8 @@ function bw_mew_handle_supabase_email_exists() {
         [
             'ok'     => true,
             'exists' => $exists,
+            'reason' => '',
+            'status' => (int) $status_code,
         ]
     );
 }
