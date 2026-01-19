@@ -623,261 +623,110 @@ add_action( 'wp_ajax_nopriv_bw_supabase_login', 'bw_mew_handle_supabase_login' )
 add_action( 'wp_ajax_bw_supabase_login', 'bw_mew_handle_supabase_login' );
 
 /**
- * Handle Supabase signup via AJAX.
+ * Check if a Supabase user exists by email.
  */
-function bw_mew_handle_supabase_register() {
+function bw_mew_handle_supabase_email_exists() {
     check_ajax_referer( 'bw-supabase-login', 'nonce' );
-
-    if ( is_user_logged_in() ) {
-        wp_send_json_error(
-            [ 'message' => __( 'You are already logged in.', 'bw' ) ],
-            400
-        );
-    }
-
-    $email    = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
-    $password = isset( $_POST['password'] ) ? wp_unslash( $_POST['password'] ) : '';
-
-    if ( ! $email || ! $password ) {
-        wp_send_json_error(
-            [ 'message' => __( 'Email and password are required.', 'bw' ) ],
-            400
-        );
-    }
-
-    $config              = bw_mew_get_supabase_config();
-    $debug_log           = (bool) get_option( 'bw_supabase_debug_log', 0 );
-    $registration_mode   = get_option( 'bw_supabase_registration_mode', 'R2' );
-    $supabase_with_oidc  = (bool) get_option( 'bw_supabase_with_plugins', 0 );
-
-    if ( 'R1' === $registration_mode ) {
-        wp_send_json_error(
-            array_merge(
-                [ 'message' => __( 'Registration is handled by the provider signup flow.', 'bw' ) ],
-                bw_mew_supabase_debug_payload( $config )
-            ),
-            400
-        );
-    }
-
-    if ( empty( $config['has_url'] ) || empty( $config['has_anon'] ) ) {
-        if ( $debug_log ) {
-            $context = bw_mew_supabase_build_diagnostics( $config );
-            $context['registration_mode'] = $registration_mode;
-            $context['supabase_with_oidc'] = $supabase_with_oidc ? 'yes' : 'no';
-            error_log( sprintf( 'Supabase config missing (register): %s', wp_json_encode( $context ) ) );
-        }
-
-        wp_send_json_error(
-            array_merge(
-                [ 'message' => __( 'Supabase is not configured yet.', 'bw' ) ],
-                bw_mew_supabase_debug_payload( $config )
-            ),
-            400
-        );
-    }
-
-    $confirm_redirect = bw_mew_supabase_sanitize_redirect_url(
-        get_option( 'bw_supabase_email_confirm_redirect_url', site_url( '/my-account/?bw_email_confirmed=1' ) )
-    );
-
-    // Supabase signup endpoint (server-side).
-    $endpoint = trailingslashit( untrailingslashit( $config['project_url'] ) ) . 'auth/v1/signup';
-
-    if ( $confirm_redirect ) {
-        $endpoint = add_query_arg( 'redirect_to', rawurlencode( $confirm_redirect ), $endpoint );
-    }
-
-    $payload_body = [
-        'email'    => $email,
-        'password' => $password,
-    ];
-
-    if ( $debug_log ) {
-        $redirect_for_log = $confirm_redirect ? $confirm_redirect : 'empty';
-        $payload_keys     = implode( ', ', array_keys( $payload_body ) );
-        error_log( sprintf( 'Supabase register redirect: %s', $redirect_for_log ) );
-        error_log( sprintf( 'Supabase register signup URL: %s', $endpoint ) );
-        error_log( sprintf( 'Supabase register payload keys: %s', $payload_keys ) );
-    }
-
-    $response = wp_remote_post(
-        $endpoint,
-        [
-            'headers' => [
-                'apikey'       => $config['anon_key'],
-                'Content-Type' => 'application/json',
-                'Accept'       => 'application/json',
-            ],
-            'timeout' => 15,
-            'body'    => wp_json_encode(
-                $payload_body
-            ),
-        ]
-    );
-
-    if ( is_wp_error( $response ) ) {
-        if ( $debug_log ) {
-            error_log( sprintf( 'Supabase register error: %s', $response->get_error_message() ) );
-        }
-
-        wp_send_json_error(
-            [ 'message' => __( 'Unable to reach Supabase. Please try again.', 'bw' ) ],
-            500
-        );
-    }
-
-    $status_code = wp_remote_retrieve_response_code( $response );
-    $body        = wp_remote_retrieve_body( $response );
-    $payload     = json_decode( $body, true );
-
-    if ( $debug_log ) {
-        error_log( sprintf( 'Supabase register status: %d', (int) $status_code ) );
-    }
-
-    if ( $status_code < 200 || $status_code >= 300 ) {
-        $message = __( 'Unable to register with Supabase.', 'bw' );
-
-        if ( is_array( $payload ) ) {
-            $message = $payload['error_description'] ?? $payload['msg'] ?? $message;
-        }
-
-        wp_send_json_error(
-            [ 'message' => $message ],
-            401
-        );
-    }
-
-    if ( ! is_array( $payload ) ) {
-        wp_send_json_error(
-            [ 'message' => __( 'Unexpected response from Supabase.', 'bw' ) ],
-            500
-        );
-    }
-
-    // Store tokens if returned (signup can also require email confirmation).
-    $stored = bw_mew_supabase_store_session( $payload, $email );
-
-    if ( $stored ) {
-        wp_send_json_success(
-            [
-                'redirect' => wc_get_page_permalink( 'myaccount' ),
-            ]
-        );
-    }
-
-    wp_send_json_success(
-        [
-            'message' => __( 'Check your email to confirm your Supabase account.', 'bw' ),
-        ]
-    );
-}
-add_action( 'wp_ajax_nopriv_bw_supabase_register', 'bw_mew_handle_supabase_register' );
-add_action( 'wp_ajax_bw_supabase_register', 'bw_mew_handle_supabase_register' );
-
-/**
- * Handle Supabase password recovery via AJAX.
- */
-function bw_mew_handle_supabase_recover() {
-    check_ajax_referer( 'bw-supabase-login', 'nonce' );
-
-    if ( is_user_logged_in() ) {
-        wp_send_json_error(
-            [ 'message' => __( 'You are already logged in.', 'bw' ) ],
-            400
-        );
-    }
 
     $email = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
-
-    if ( ! $email && is_user_logged_in() ) {
-        $email = wp_get_current_user()->user_email;
-    }
-
-    if ( ! $email ) {
+    if ( ! $email || ! is_email( $email ) ) {
         wp_send_json_error(
-            [ 'message' => __( 'Email is required.', 'bw' ) ],
+            [
+                'ok'     => false,
+                'exists' => false,
+                'reason' => 'invalid_email',
+            ],
             400
         );
     }
 
     $config    = bw_mew_get_supabase_config();
     $debug_log = (bool) get_option( 'bw_supabase_debug_log', 0 );
+    $service_key = trim( (string) get_option( 'bw_supabase_service_role_key', '' ) );
 
-    if ( empty( $config['has_url'] ) || empty( $config['has_anon'] ) ) {
+    if ( empty( $config['has_url'] ) || ! $service_key ) {
         if ( $debug_log ) {
-            error_log( sprintf( 'Supabase config missing (recover): %s', wp_json_encode( bw_mew_supabase_build_diagnostics( $config ) ) ) );
+            error_log( sprintf( 'Supabase email exists skipped (missing service role). email_hash=%s', hash( 'sha256', strtolower( $email ) ) ) );
         }
-
         wp_send_json_error(
-            array_merge(
-                [ 'message' => __( 'Supabase is not configured yet.', 'bw' ) ],
-                bw_mew_supabase_debug_payload( $config )
-            ),
-            400
+            [
+                'ok'     => false,
+                'exists' => false,
+                'reason' => 'service_role_missing',
+            ],
+            200
         );
     }
 
-    // Supabase recover endpoint (server-side).
-    $endpoint = trailingslashit( untrailingslashit( $config['project_url'] ) ) . 'auth/v1/recover';
+    $endpoint = trailingslashit( untrailingslashit( $config['project_url'] ) ) . 'auth/v1/admin/users';
+    $endpoint = add_query_arg(
+        [
+            'email'    => $email,
+            'page'     => 1,
+            'per_page' => 1,
+        ],
+        $endpoint
+    );
 
-    $response = wp_remote_post(
+    $response = wp_remote_get(
         $endpoint,
         [
             'headers' => [
-                'apikey'       => $config['anon_key'],
-                'Content-Type' => 'application/json',
+                'apikey'       => $service_key,
+                'Authorization' => 'Bearer ' . $service_key,
                 'Accept'       => 'application/json',
             ],
             'timeout' => 15,
-            'body'    => wp_json_encode(
-                [
-                    'email' => $email,
-                ]
-            ),
         ]
     );
 
     if ( is_wp_error( $response ) ) {
         if ( $debug_log ) {
-            error_log( sprintf( 'Supabase recover error: %s', $response->get_error_message() ) );
+            error_log( sprintf( 'Supabase email exists error: %s', $response->get_error_message() ) );
         }
-
         wp_send_json_error(
-            [ 'message' => __( 'Unable to reach Supabase. Please try again.', 'bw' ) ],
+            [
+                'ok'     => false,
+                'exists' => false,
+                'reason' => 'request_failed',
+            ],
             500
         );
     }
 
     $status_code = wp_remote_retrieve_response_code( $response );
-    $body        = wp_remote_retrieve_body( $response );
-    $payload     = json_decode( $body, true );
+    $payload     = json_decode( wp_remote_retrieve_body( $response ), true );
+    $exists      = false;
 
-    if ( $debug_log ) {
-        error_log( sprintf( 'Supabase recover status: %d', (int) $status_code ) );
+    if ( is_array( $payload ) ) {
+        if ( isset( $payload['users'] ) && is_array( $payload['users'] ) ) {
+            $exists = ! empty( $payload['users'] );
+        } elseif ( isset( $payload[0] ) ) {
+            $exists = true;
+        }
     }
 
-    if ( $status_code < 200 || $status_code >= 300 ) {
-        $message = __( 'Unable to send reset email.', 'bw' );
-
-        if ( is_array( $payload ) ) {
-            $message = $payload['error_description'] ?? $payload['msg'] ?? $message;
-        }
-
-        wp_send_json_error(
-            [ 'message' => $message ],
-            401
+    if ( $debug_log ) {
+        error_log(
+            sprintf(
+                'Supabase email exists (status=%d, exists=%s, endpoint=%s, email_hash=%s)',
+                (int) $status_code,
+                $exists ? 'yes' : 'no',
+                $endpoint,
+                hash( 'sha256', strtolower( $email ) )
+            )
         );
     }
 
     wp_send_json_success(
         [
-            'message' => __( 'If the email exists, a reset link has been sent.', 'bw' ),
+            'ok'     => true,
+            'exists' => $exists,
         ]
     );
 }
-add_action( 'wp_ajax_nopriv_bw_supabase_recover', 'bw_mew_handle_supabase_recover' );
-add_action( 'wp_ajax_bw_supabase_recover', 'bw_mew_handle_supabase_recover' );
+add_action( 'wp_ajax_nopriv_bw_supabase_email_exists', 'bw_mew_handle_supabase_email_exists' );
+add_action( 'wp_ajax_bw_supabase_email_exists', 'bw_mew_handle_supabase_email_exists' );
 
 /**
  * Update Supabase user fields for authenticated requests.
