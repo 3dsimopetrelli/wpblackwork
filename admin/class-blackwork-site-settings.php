@@ -205,6 +205,7 @@ function bw_site_render_account_page_tab() {
         $supabase_reset_url       = isset($_POST['bw_supabase_provider_reset_url']) ? esc_url_raw($_POST['bw_supabase_provider_reset_url']) : '';
         $supabase_confirm_url     = isset($_POST['bw_supabase_email_confirm_redirect_url']) ? esc_url_raw(trim($_POST['bw_supabase_email_confirm_redirect_url'])) : '';
         $supabase_magic_link_enabled = isset($_POST['bw_supabase_magic_link_enabled']) ? 1 : 0;
+        $supabase_otp_allow_signup = isset($_POST['bw_supabase_otp_allow_signup']) ? 1 : 0;
         $supabase_oauth_google_enabled = isset($_POST['bw_supabase_oauth_google_enabled']) ? 1 : 0;
         $supabase_oauth_facebook_enabled = isset($_POST['bw_supabase_oauth_facebook_enabled']) ? 1 : 0;
         $supabase_oauth_apple_enabled = isset($_POST['bw_supabase_oauth_apple_enabled']) ? 1 : 0;
@@ -223,7 +224,6 @@ function bw_site_render_account_page_tab() {
         $supabase_apple_private_key = isset($_POST['bw_supabase_apple_private_key']) ? sanitize_textarea_field($_POST['bw_supabase_apple_private_key']) : '';
         $supabase_apple_redirect_url = isset($_POST['bw_supabase_apple_redirect_url']) ? esc_url_raw($_POST['bw_supabase_apple_redirect_url']) : '';
         $supabase_password_enabled = isset($_POST['bw_supabase_login_password_enabled']) ? 1 : 0;
-        $supabase_register_prompt_enabled = isset($_POST['bw_supabase_register_prompt_enabled']) ? 1 : 0;
         $supabase_magic_link_redirect = isset($_POST['bw_supabase_magic_link_redirect_url']) ? esc_url_raw(trim($_POST['bw_supabase_magic_link_redirect_url'])) : '';
         $supabase_oauth_redirect = isset($_POST['bw_supabase_oauth_redirect_url']) ? esc_url_raw(trim($_POST['bw_supabase_oauth_redirect_url'])) : '';
         $supabase_signup_redirect = isset($_POST['bw_supabase_signup_redirect_url']) ? esc_url_raw(trim($_POST['bw_supabase_signup_redirect_url'])) : '';
@@ -277,6 +277,7 @@ function bw_site_render_account_page_tab() {
         update_option('bw_supabase_provider_reset_url', $supabase_reset_url);
         update_option('bw_supabase_email_confirm_redirect_url', $supabase_confirm_url);
         update_option('bw_supabase_magic_link_enabled', $supabase_magic_link_enabled);
+        update_option('bw_supabase_otp_allow_signup', $supabase_otp_allow_signup);
         update_option('bw_supabase_oauth_google_enabled', $supabase_oauth_google_enabled);
         update_option('bw_supabase_oauth_facebook_enabled', $supabase_oauth_facebook_enabled);
         update_option('bw_supabase_oauth_apple_enabled', $supabase_oauth_apple_enabled);
@@ -295,7 +296,6 @@ function bw_site_render_account_page_tab() {
         update_option('bw_supabase_apple_private_key', $supabase_apple_private_key);
         update_option('bw_supabase_apple_redirect_url', $supabase_apple_redirect_url);
         update_option('bw_supabase_login_password_enabled', $supabase_password_enabled);
-        update_option('bw_supabase_register_prompt_enabled', $supabase_register_prompt_enabled);
         update_option('bw_supabase_magic_link_redirect_url', $supabase_magic_link_redirect);
         update_option('bw_supabase_oauth_redirect_url', $supabase_oauth_redirect);
         update_option('bw_supabase_signup_redirect_url', $supabase_signup_redirect);
@@ -338,6 +338,7 @@ function bw_site_render_account_page_tab() {
     $supabase_reset_url    = get_option('bw_supabase_provider_reset_url', '');
     $supabase_confirm_url  = get_option('bw_supabase_email_confirm_redirect_url', site_url('/my-account/?bw_email_confirmed=1'));
     $supabase_magic_link_enabled = (int) get_option('bw_supabase_magic_link_enabled', 1);
+    $supabase_otp_allow_signup   = (int) get_option('bw_supabase_otp_allow_signup', 1);
     $supabase_oauth_google_enabled = (int) get_option('bw_supabase_oauth_google_enabled', 1);
     $supabase_oauth_facebook_enabled = (int) get_option('bw_supabase_oauth_facebook_enabled', 1);
     $supabase_oauth_apple_enabled = (int) get_option('bw_supabase_oauth_apple_enabled', 0);
@@ -356,7 +357,6 @@ function bw_site_render_account_page_tab() {
     $supabase_apple_private_key = get_option('bw_supabase_apple_private_key', '');
     $supabase_apple_redirect_url = get_option('bw_supabase_apple_redirect_url', site_url('/my-account/'));
     $supabase_password_enabled = (int) get_option('bw_supabase_login_password_enabled', 1);
-    $supabase_register_prompt_enabled = (int) get_option('bw_supabase_register_prompt_enabled', 1);
     $supabase_magic_link_redirect = get_option('bw_supabase_magic_link_redirect_url', site_url('/my-account/'));
     $supabase_oauth_redirect = get_option('bw_supabase_oauth_redirect_url', site_url('/my-account/'));
     $supabase_signup_redirect = get_option('bw_supabase_signup_redirect_url', site_url('/my-account/?bw_email_confirmed=1'));
@@ -797,6 +797,16 @@ function bw_site_render_account_page_tab() {
                 </td>
             </tr>
             <tr>
+                <th scope="row"><?php esc_html_e( 'OTP signup behavior', 'bw' ); ?></th>
+                <td>
+                    <label>
+                        <input type="checkbox" id="bw_supabase_otp_allow_signup" name="bw_supabase_otp_allow_signup" value="1" <?php checked( 1, $supabase_otp_allow_signup ); ?> />
+                        <?php esc_html_e( 'Allow OTP login to create Supabase users', 'bw' ); ?>
+                    </label>
+                    <p class="description"><?php esc_html_e( 'When disabled, OTP login only works for existing Supabase users and will show an error for unknown emails.', 'bw' ); ?></p>
+                </td>
+            </tr>
+            <tr>
                 <th scope="row"><?php esc_html_e( 'OAuth login providers', 'bw' ); ?></th>
                 <td>
                     <label style="display:block; margin-bottom:8px;">
@@ -881,15 +891,6 @@ function bw_site_render_account_page_tab() {
                     <label>
                         <input type="checkbox" id="bw_supabase_login_password_enabled" name="bw_supabase_login_password_enabled" value="1" <?php checked( 1, $supabase_password_enabled ); ?> />
                         <?php esc_html_e( 'Enable login with password button', 'bw' ); ?>
-                    </label>
-                </td>
-            </tr>
-            <tr>
-                <th scope="row"><?php esc_html_e( 'Register prompt', 'bw' ); ?></th>
-                <td>
-                    <label>
-                        <input type="checkbox" id="bw_supabase_register_prompt_enabled" name="bw_supabase_register_prompt_enabled" value="1" <?php checked( 1, $supabase_register_prompt_enabled ); ?> />
-                        <?php esc_html_e( 'Show “Don’t have an account? Register” prompt', 'bw' ); ?>
                     </label>
                 </td>
             </tr>
