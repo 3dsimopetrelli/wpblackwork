@@ -179,7 +179,7 @@ function bw_mew_enqueue_account_page_assets() {
                 'enterEmail' => esc_html__( 'Please enter your email address.', 'bw' ),
                 'magicLinkError' => esc_html__( 'Unable to send magic link.', 'bw' ),
                 'loginError' => esc_html__( 'Unable to login.', 'bw' ),
-                'otpSent' => esc_html__( 'Check your email for the 6-digit code.', 'bw' ),
+                'otpSent' => esc_html__( 'If the email is valid, we sent you a code.', 'bw' ),
                 'enterOtp' => esc_html__( 'Please enter the 6-digit code.', 'bw' ),
                 'otpVerifyError' => esc_html__( 'Unable to verify the code.', 'bw' ),
                 'otpInvalid' => esc_html__( 'Invalid or expired code. Please try again.', 'bw' ),

@@ -14,8 +14,7 @@
         var debugEnabled = Boolean(authConfig.debug);
         var cookieBase = authConfig.cookieBase || 'bw_supabase_session';
         var pendingEmailKey = 'bw_pending_email';
-        var pendingFlowKey = 'bw_pending_flow';
-        var pendingFlowTimestampKey = 'bw_pending_flow_ts';
+        var authFlowKey = 'bw_auth_flow';
         var pendingAccessTokenKey = 'bw_pending_access_token';
         var pendingRefreshTokenKey = 'bw_pending_refresh_token';
         var redirectGuardKey = 'bw_bridge_redirected_at';
@@ -69,8 +68,7 @@
             if (window.sessionStorage) {
                 try {
                     sessionStorage.removeItem(pendingEmailKey);
-                    sessionStorage.removeItem(pendingFlowKey);
-                    sessionStorage.removeItem(pendingFlowTimestampKey);
+                    sessionStorage.removeItem(authFlowKey);
                     sessionStorage.removeItem(pendingAccessTokenKey);
                     sessionStorage.removeItem(pendingRefreshTokenKey);
                     sessionStorage.removeItem('bw_handled_supabase_hash');
@@ -228,18 +226,16 @@
             return pendingOtpEmail;
         };
 
-        var setPendingFlow = function (flow) {
-            setSessionStorageItem(pendingFlowKey, flow || '');
-            setSessionStorageItem(pendingFlowTimestampKey, flow ? String(Date.now()) : '');
+        var setAuthFlow = function (flow) {
+            setSessionStorageItem(authFlowKey, flow || '');
         };
 
-        var getPendingFlow = function () {
-            return getSessionStorageItem(pendingFlowKey);
+        var getAuthFlow = function () {
+            return getSessionStorageItem(authFlowKey);
         };
 
-        var clearPendingFlow = function () {
-            setPendingFlow('');
-            setSessionStorageItem(pendingFlowTimestampKey, '');
+        var clearAuthFlow = function () {
+            setAuthFlow('');
         };
 
         var setPendingTokens = function (accessToken, refreshToken) {
@@ -326,7 +322,7 @@
 
             if (target === 'magic' && allowClearOtp) {
                 setPendingOtpEmail('');
-                clearPendingFlow();
+                clearAuthFlow();
                 clearPendingTokens();
             }
 
@@ -352,9 +348,6 @@
             }
             var message = error.message ? error.message : String(error);
             var normalized = message.toLowerCase();
-            if (normalized.indexOf('signups not allowed') !== -1) {
-                return getMessage('otpSignupDisabled', 'No account found for this email.');
-            }
             if (normalized.indexOf('rate') !== -1 || normalized.indexOf('too many') !== -1) {
                 return getMessage('otpRateLimit', 'Too many attempts. Please wait and try again.');
             }
@@ -792,7 +785,7 @@
 
             supabase.auth.getSession().then(function (response) {
                 if (response && response.data && response.data.session) {
-                    if (getPendingFlow() === 'signup') {
+                    if (getAuthFlow() === 'signup') {
                         setPendingTokens(response.data.session.access_token || '', response.data.session.refresh_token || '');
                         switchAuthScreen('create-password');
                         return;
@@ -828,11 +821,13 @@
         var initializeScreenState = function () {
             var hasCallback = hasAuthCallback();
             var storedEmail = getPendingOtpEmail();
-            var pendingFlow = getPendingFlow();
+            var pendingFlow = getAuthFlow();
             var hasPendingToken = Boolean(getSessionStorageItem(pendingAccessTokenKey));
 
             if (!storedEmail && !hasCallback) {
                 setPendingOtpEmail('');
+                clearAuthFlow();
+                clearPendingTokens();
             }
 
             if (hasCallback) {
@@ -906,22 +901,22 @@
                     submitButton.setAttribute('aria-busy', 'true');
                 }
 
+                logDebug('EMAIL_SUBMIT', { emailHash: hashEmail(emailValue) });
                 checkEmailExists(emailValue)
                     .then(function (result) {
                         var exists = result && result.ok ? Boolean(result.exists) : false;
                         var flow = exists ? 'login' : 'signup';
                         var shouldCreateUser = !exists;
                         if (!result || !result.ok) {
-                            flow = 'login';
-                            shouldCreateUser = false;
+                            flow = 'signup';
+                            shouldCreateUser = true;
                         }
                         logDebug('EMAIL_EXISTS_DECISION', {
-                            emailHash: hashEmail(emailValue),
                             exists: exists,
                             flow: flow,
                             reason: result && result.reason ? result.reason : ''
                         });
-                        setPendingFlow(flow);
+                        setAuthFlow(flow);
                         return requestOtp(emailValue, shouldCreateUser, flow);
                     })
                     .then(function (response) {
@@ -929,15 +924,15 @@
                             throw response.error;
                         }
                         setPendingOtpEmail(emailValue);
-                        if (!getPendingFlow()) {
-                            setPendingFlow('login');
+                        if (!getAuthFlow()) {
+                            setAuthFlow('login');
                         }
-                        showFormMessage(form, 'success', getMessage('otpSent', 'Check your email for the 6-digit code.'));
+                        showFormMessage(form, 'success', getMessage('otpSent', 'If the email is valid, we sent you a code.'));
                         switchAuthScreen('otp', { clearOtp: false });
                     })
                     .catch(function (error) {
                         showFormMessage(form, 'error', getOtpErrorMessage(error));
-                        clearPendingFlow();
+                        clearAuthFlow();
                         setPendingOtpEmail('');
                         clearPendingTokens();
                     })
@@ -1046,21 +1041,23 @@
                             throw new Error(getMessage('otpVerifyError', 'Unable to verify the code.'));
                         }
                         setPendingTokens(tokens.accessToken, tokens.refreshToken);
-                        if (getPendingFlow() === 'signup') {
+                        if (getAuthFlow() === 'signup') {
+                            logDebug('OTP_VERIFY_NEXT', { next: 'create-password' });
                             switchAuthScreen('create-password');
                             return { success: true, data: { redirect: '/my-account/' } };
                         }
+                        logDebug('OTP_VERIFY_NEXT', { next: 'wp-bridge' });
                         return bridgeSupabaseSession(tokens.accessToken, tokens.refreshToken, 'otp');
                     })
                     .then(function (payload) {
-                        if (getPendingFlow() === 'signup') {
+                        if (getAuthFlow() === 'signup') {
                             return;
                         }
                         if (!completeBridgeRedirect(payload)) {
                             showFormMessage(form, 'error', getMessage('otpVerifyError', 'Unable to verify the code.'));
                         } else {
                             setPendingOtpEmail('');
-                            clearPendingFlow();
+                            clearAuthFlow();
                             clearPendingTokens();
                         }
                     })
@@ -1107,7 +1104,7 @@
                         if (response && response.error) {
                             throw response.error;
                         }
-                        clearPendingFlow();
+                        clearAuthFlow();
                         setPendingOtpEmail('');
                         return resolveBridgeTokens();
                     })
@@ -1161,7 +1158,7 @@
                     switchAuthScreen('magic');
                     return;
                 }
-                var flow = getPendingFlow() === 'signup' ? 'signup' : 'login';
+                var flow = getAuthFlow() === 'signup' ? 'signup' : 'login';
                 var shouldCreateUser = flow === 'signup';
                 if (otpResendButton) {
                     otpResendButton.disabled = true;
@@ -1297,7 +1294,7 @@
         }
 
         // QA checklist:
-        // - Magic/email: enter email → OTP email arrives → otp screen appears
+        // - Magic/email: enter email → neutral success message → otp screen appears
         // - Existing user email → Continue → OTP request ok (log) → enter OTP → WP bridge → redirect without manual refresh
         // - New user email → Continue → OTP signup ok → enter OTP → create-password screen → set password → bridge → redirect
         // - Wrong OTP → error message
