@@ -149,6 +149,36 @@ $password_login_enabled = (int) get_option( 'bw_supabase_login_password_enabled'
                                 </form>
                             </div>
 
+                            <div class="bw-auth-screen bw-auth-screen--create-password" data-bw-screen="create-password">
+                                <h3 class="bw-account-login__title"><?php esc_html_e( 'Create your password', 'bw' ); ?></h3>
+                                <p class="bw-account-login__note"><?php esc_html_e( 'Set a password to finish creating your account.', 'bw' ); ?></p>
+                                <form class="bw-account-login__form bw-account-login__form--supabase" data-bw-create-password-form>
+                                    <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide bw-account-login__field">
+                                        <label for="bw_supabase_create_password"><?php esc_html_e( 'New password', 'woocommerce' ); ?> <span class="required">*</span></label>
+                                        <input class="woocommerce-Input woocommerce-Input--text input-text" type="password" name="new_password" id="bw_supabase_create_password" autocomplete="new-password" required data-bw-password-input />
+                                    </p>
+                                    <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide bw-account-login__field">
+                                        <label for="bw_supabase_create_password_confirm"><?php esc_html_e( 'Confirm password', 'woocommerce' ); ?> <span class="required">*</span></label>
+                                        <input class="woocommerce-Input woocommerce-Input--text input-text" type="password" name="confirm_password" id="bw_supabase_create_password_confirm" autocomplete="new-password" required data-bw-password-confirm />
+                                    </p>
+                                    <ul class="bw-account-login__rules">
+                                        <li data-bw-password-rule="length"><?php esc_html_e( 'At least 8 characters', 'bw' ); ?></li>
+                                        <li data-bw-password-rule="upper"><?php esc_html_e( 'At least 1 uppercase letter', 'bw' ); ?></li>
+                                        <li data-bw-password-rule="number"><?php esc_html_e( 'At least 1 number or special character', 'bw' ); ?></li>
+                                    </ul>
+
+                                    <div class="bw-account-login__error" role="alert" aria-live="polite" hidden></div>
+                                    <div class="bw-account-login__success" role="status" aria-live="polite" hidden></div>
+
+                                    <p class="form-row bw-account-login__actions">
+                                        <button type="submit" class="woocommerce-button button bw-account-login__submit" data-bw-create-password-submit disabled><?php esc_html_e( 'Save and continue', 'bw' ); ?></button>
+                                    </p>
+                                </form>
+                                <p class="bw-account-login__back-to-login">
+                                    <button type="button" class="bw-account-login__back-link" data-bw-go-magic>← <?php esc_html_e( 'Back to Login', 'bw' ); ?></button>
+                                </p>
+                            </div>
+
                         </div>
                     </div>
 
