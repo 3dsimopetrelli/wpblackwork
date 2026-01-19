@@ -348,6 +348,9 @@
             }
             var message = error.message ? error.message : String(error);
             var normalized = message.toLowerCase();
+            if (normalized.indexOf('signups not allowed') !== -1) {
+                return getMessage('otpSignupDisabledNeutral', 'We could not send a code. Please try a different email.');
+            }
             if (normalized.indexOf('rate') !== -1 || normalized.indexOf('too many') !== -1) {
                 return getMessage('otpRateLimit', 'Too many attempts. Please wait and try again.');
             }
@@ -893,6 +896,8 @@
                 }
                 showFormMessage(form, 'error', '');
                 showFormMessage(form, 'success', '');
+                showFormMessage(otpForm, 'error', '');
+                showFormMessage(otpForm, 'success', '');
 
                 var submitButton = form.querySelector('[data-bw-supabase-submit]');
                 if (submitButton) {
@@ -902,6 +907,8 @@
                 }
 
                 logDebug('EMAIL_SUBMIT', { emailHash: hashEmail(emailValue) });
+                setPendingOtpEmail(emailValue);
+                switchAuthScreen('otp', { clearOtp: false });
                 checkEmailExists(emailValue)
                     .then(function (result) {
                         var exists = result && result.ok ? Boolean(result.exists) : false;
@@ -923,17 +930,13 @@
                         if (response && response.error) {
                             throw response.error;
                         }
-                        setPendingOtpEmail(emailValue);
                         if (!getAuthFlow()) {
                             setAuthFlow('login');
                         }
-                        showFormMessage(form, 'success', getMessage('otpSent', 'If the email is valid, we sent you a code.'));
-                        switchAuthScreen('otp', { clearOtp: false });
+                        showFormMessage(otpForm, 'success', getMessage('otpSent', 'If the email is valid, we sent you a code.'));
                     })
                     .catch(function (error) {
-                        showFormMessage(form, 'error', getOtpErrorMessage(error));
-                        clearAuthFlow();
-                        setPendingOtpEmail('');
+                        showFormMessage(otpForm, 'error', getOtpErrorMessage(error));
                         clearPendingTokens();
                     })
                     .finally(function () {

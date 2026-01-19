@@ -185,7 +185,7 @@ function bw_mew_enqueue_account_page_assets() {
                 'otpInvalid' => esc_html__( 'Invalid or expired code. Please try again.', 'bw' ),
                 'otpResent' => esc_html__( 'We sent you a new code.', 'bw' ),
                 'otpResendError' => esc_html__( 'Unable to resend the code right now.', 'bw' ),
-                'otpSignupDisabled' => esc_html__( 'No account found for this email.', 'bw' ),
+                'otpSignupDisabledNeutral' => esc_html__( 'We could not send a code. Please try a different email.', 'bw' ),
                 'otpRateLimit' => esc_html__( 'Too many attempts. Please wait and try again.', 'bw' ),
                 'otpRedirectInvalid' => esc_html__( 'Login is unavailable right now. Please contact support.', 'bw' ),
                 'createPasswordError' => esc_html__( 'Unable to update password.', 'bw' ),
