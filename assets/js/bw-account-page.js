@@ -565,10 +565,20 @@
                     return response;
                 });
             }
+            return otpInputs.map(function (input) {
+                var digit = input.value.replace(/\D/g, '');
+                return digit ? digit.charAt(0) : '';
+            }).join('');
+        };
 
-            if (!projectUrl || !anonKey) {
-                return Promise.resolve({ error: new Error(getMessage('missingConfig', 'Supabase configuration is missing.')) });
+        var updateOtpState = function () {
+            if (!otpConfirmButton) {
+                return;
             }
+            var code = getOtpCode();
+            var isValid = code.length === 6 && /^\d{6}$/.test(code);
+            otpConfirmButton.disabled = !isValid;
+        };
 
             return fetch(endpoint, {
                 method: 'POST',
@@ -602,6 +612,11 @@
                         var message = payload && (payload.msg || payload.message) ? (payload.msg || payload.message) : getMessage('magicLinkError', 'Unable to send code.');
                         throw new Error(message);
                     });
+                } else {
+                    screen.classList.remove('is-active');
+                    setTimeout(function () {
+                        screen.classList.remove('is-visible');
+                    }, 300);
                 }
                 return { data: {} };
             }).catch(function (error) {
@@ -613,6 +628,26 @@
                 });
                 return { error: error };
             });
+
+            if (target === 'magic' && allowClearOtp) {
+                setPendingOtpEmail('');
+                clearAuthFlow();
+                clearPendingTokens();
+            }
+
+            if (target === 'otp' && otpInputs.length) {
+                otpInputs[0].focus();
+                updateOtpState();
+            }
+
+            if (target === 'create-password') {
+                if (createPasswordInput) {
+                    createPasswordInput.focus();
+                }
+                updateCreatePasswordSubmitState();
+            }
+
+            logDiagnostics(target);
         };
 
         var verifyOtp = function (email, code) {
@@ -745,12 +780,17 @@
                 .catch(function () {
                     return false;
                 });
+            };
+
+            attemptRedirect();
+            return true;
         };
 
         var completeBridgeRedirect = function (payload) {
             if (!payload || !payload.success) {
                 return false;
             }
+        };
 
             if (window.sessionStorage) {
                 try {
@@ -1021,7 +1061,21 @@
                     })
                 })
                     .then(function (response) {
-                        return response.json();
+                        if (response && response.error) {
+                            throw response.error;
+                        }
+                        var tokens = extractTokensFromVerify(response);
+                        if (!tokens.accessToken) {
+                            throw new Error(getMessage('otpVerifyError', 'Unable to verify the code.'));
+                        }
+                        setPendingTokens(tokens.accessToken, tokens.refreshToken);
+                        if (getAuthFlow() === 'signup') {
+                            logDebug('OTP_VERIFY_NEXT', { next: 'create-password' });
+                            switchAuthScreen('create-password');
+                            return { success: true, data: { redirect: '/my-account/' } };
+                        }
+                        logDebug('OTP_VERIFY_NEXT', { next: 'wp-bridge' });
+                        return bridgeSupabaseSession(tokens.accessToken, tokens.refreshToken, 'otp');
                     })
                     .then(function (payload) {
                         if (payload && payload.success && payload.data && payload.data.redirect) {
