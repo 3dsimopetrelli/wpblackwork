@@ -565,10 +565,20 @@
                     return response;
                 });
             }
+            return otpInputs.map(function (input) {
+                var digit = input.value.replace(/\D/g, '');
+                return digit ? digit.charAt(0) : '';
+            }).join('');
+        };
 
-            if (!projectUrl || !anonKey) {
-                return Promise.resolve({ error: new Error(getMessage('missingConfig', 'Supabase configuration is missing.')) });
+        var updateOtpState = function () {
+            if (!otpConfirmButton) {
+                return;
             }
+            var code = getOtpCode();
+            var isValid = code.length === 6 && /^\d{6}$/.test(code);
+            otpConfirmButton.disabled = !isValid;
+        };
 
             return fetch(endpoint, {
                 method: 'POST',
@@ -602,6 +612,11 @@
                         var message = payload && (payload.msg || payload.message) ? (payload.msg || payload.message) : getMessage('magicLinkError', 'Unable to send code.');
                         throw new Error(message);
                     });
+                } else {
+                    screen.classList.remove('is-active');
+                    setTimeout(function () {
+                        screen.classList.remove('is-visible');
+                    }, 300);
                 }
                 return { data: {} };
             }).catch(function (error) {
@@ -746,6 +761,10 @@
                 .catch(function () {
                     return false;
                 });
+            };
+
+            attemptRedirect();
+            return true;
         };
 
         var completeBridgeRedirect = function (payload) {
@@ -1022,7 +1041,25 @@
                     })
                 })
                     .then(function (response) {
-                        return response.json();
+                        if (response && response.error) {
+                            throw response.error;
+                        }
+                        if (getSessionStorageItem(tokenHandledKey) === '1') {
+                            return { data: {} };
+                        }
+                        setSessionStorageItem(tokenHandledKey, '1');
+                        var tokens = extractTokensFromVerify(response);
+                        if (!tokens.accessToken) {
+                            throw new Error(getMessage('otpVerifyError', 'Unable to verify the code.'));
+                        }
+                        setPendingTokens(tokens.accessToken, tokens.refreshToken);
+                        if (getAuthFlow() === 'signup') {
+                            logDebug('OTP_VERIFY_NEXT', { next: 'create-password' });
+                            switchAuthScreen('create-password');
+                            return { success: true, data: { redirect: '/my-account/' } };
+                        }
+                        logDebug('OTP_VERIFY_NEXT', { next: 'wp-bridge' });
+                        return bridgeSupabaseSession(tokens.accessToken, tokens.refreshToken, 'otp');
                     })
                     .then(function (payload) {
                         if (payload && payload.success && payload.data && payload.data.redirect) {
