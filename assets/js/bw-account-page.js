@@ -20,6 +20,7 @@
         var redirectGuardKey = 'bw_bridge_redirected_at';
         var bridgeAttemptKey = 'bw_bridge_attempted';
         var sessionCheckKey = 'bw_handled_session_check';
+        var tokenHandledKey = 'bw_token_handled_otp';
 
         var lastBridgeStatus = '';
 
@@ -71,6 +72,7 @@
                     sessionStorage.removeItem(authFlowKey);
                     sessionStorage.removeItem(pendingAccessTokenKey);
                     sessionStorage.removeItem(pendingRefreshTokenKey);
+                    sessionStorage.removeItem(tokenHandledKey);
                     sessionStorage.removeItem('bw_handled_supabase_hash');
                     sessionStorage.removeItem('bw_handled_supabase_code');
                     sessionStorage.removeItem('bw_handled_token_login');
@@ -245,6 +247,21 @@
 
         var clearPendingTokens = function () {
             setPendingTokens('', '');
+            setSessionStorageItem(tokenHandledKey, '');
+        };
+
+        var sanitizeSupabasePayload = function (payload) {
+            if (!payload || typeof payload !== 'object') {
+                return payload;
+            }
+            var clone = {};
+            Object.keys(payload).forEach(function (key) {
+                if (key === 'access_token' || key === 'refresh_token') {
+                    return;
+                }
+                clone[key] = payload[key];
+            });
+            return clone;
         };
 
         var getSupabaseClient = function () {
@@ -518,6 +535,7 @@
             var redirectTo = magicLinkRedirect || window.location.origin + '/my-account/';
             var allowCreate = Boolean(shouldCreateUser);
             var modeLabel = context || (allowCreate ? 'signup' : 'login-only');
+            var endpoint = projectUrl ? projectUrl.replace(/\/$/, '') + '/auth/v1/otp' : '';
 
             logDebug('OTP_REQUEST_START', {
                 mode: supabase ? 'sdk' : 'rest',
@@ -526,6 +544,7 @@
                 shouldCreateUser: allowCreate,
                 redirectTo: redirectTo,
                 projectUrlConfigured: Boolean(projectUrl),
+                endpoint: supabase ? '' : endpoint,
                 anonKeyConfigured: Boolean(anonKey)
             });
 
@@ -546,23 +565,31 @@
                     return response;
                 });
             }
+            return otpInputs.map(function (input) {
+                var digit = input.value.replace(/\D/g, '');
+                return digit ? digit.charAt(0) : '';
+            }).join('');
+        };
 
-            if (!projectUrl || !anonKey) {
-                return Promise.resolve({ error: new Error(getMessage('missingConfig', 'Supabase configuration is missing.')) });
+        var updateOtpState = function () {
+            if (!otpConfirmButton) {
+                return;
             }
-
-            var endpoint = projectUrl.replace(/\/$/, '') + '/auth/v1/otp';
+            var code = getOtpCode();
+            var isValid = code.length === 6 && /^\d{6}$/.test(code);
+            otpConfirmButton.disabled = !isValid;
+        };
 
             return fetch(endpoint, {
                 method: 'POST',
                 headers: {
                     apikey: anonKey,
+                    Authorization: 'Bearer ' + anonKey,
                     'Content-Type': 'application/json',
                     Accept: 'application/json'
                 },
                 body: JSON.stringify({
                     email: email,
-                    create_user: allowCreate,
                     should_create_user: allowCreate,
                     options: {
                         email_redirect_to: redirectTo
@@ -577,9 +604,19 @@
                 });
                 if (!response.ok) {
                     return response.json().then(function (payload) {
+                        logDebug('OTP_REQUEST_ERROR', {
+                            mode: 'rest',
+                            status: response.status,
+                            payload: sanitizeSupabasePayload(payload)
+                        });
                         var message = payload && (payload.msg || payload.message) ? (payload.msg || payload.message) : getMessage('magicLinkError', 'Unable to send code.');
                         throw new Error(message);
                     });
+                } else {
+                    screen.classList.remove('is-active');
+                    setTimeout(function () {
+                        screen.classList.remove('is-visible');
+                    }, 300);
                 }
                 return { data: {} };
             }).catch(function (error) {
@@ -591,6 +628,26 @@
                 });
                 return { error: error };
             });
+
+            if (target === 'magic' && allowClearOtp) {
+                setPendingOtpEmail('');
+                clearAuthFlow();
+                clearPendingTokens();
+            }
+
+            if (target === 'otp' && otpInputs.length) {
+                otpInputs[0].focus();
+                updateOtpState();
+            }
+
+            if (target === 'create-password') {
+                if (createPasswordInput) {
+                    createPasswordInput.focus();
+                }
+                updateCreatePasswordSubmitState();
+            }
+
+            logDiagnostics(target);
         };
 
         var verifyOtp = function (email, code) {
@@ -723,12 +780,17 @@
                 .catch(function () {
                     return false;
                 });
+            };
+
+            attemptRedirect();
+            return true;
         };
 
         var completeBridgeRedirect = function (payload) {
             if (!payload || !payload.success) {
                 return false;
             }
+        };
 
             if (window.sessionStorage) {
                 try {
@@ -924,7 +986,14 @@
                             reason: result && result.reason ? result.reason : ''
                         });
                         setAuthFlow(flow);
-                        return requestOtp(emailValue, shouldCreateUser, flow);
+                        return requestOtp(emailValue, shouldCreateUser, flow).catch(function (error) {
+                            if (String(error && error.message ? error.message : '').toLowerCase().indexOf('signups not allowed') !== -1 && exists) {
+                                logDebug('OTP_RETRY_LOGIN_ONLY', { flow: 'login', emailHash: hashEmail(emailValue) });
+                                setAuthFlow('login');
+                                return requestOtp(emailValue, false, 'login');
+                            }
+                            throw error;
+                        });
                     })
                     .then(function (response) {
                         if (response && response.error) {
@@ -992,7 +1061,21 @@
                     })
                 })
                     .then(function (response) {
-                        return response.json();
+                        if (response && response.error) {
+                            throw response.error;
+                        }
+                        var tokens = extractTokensFromVerify(response);
+                        if (!tokens.accessToken) {
+                            throw new Error(getMessage('otpVerifyError', 'Unable to verify the code.'));
+                        }
+                        setPendingTokens(tokens.accessToken, tokens.refreshToken);
+                        if (getAuthFlow() === 'signup') {
+                            logDebug('OTP_VERIFY_NEXT', { next: 'create-password' });
+                            switchAuthScreen('create-password');
+                            return { success: true, data: { redirect: '/my-account/' } };
+                        }
+                        logDebug('OTP_VERIFY_NEXT', { next: 'wp-bridge' });
+                        return bridgeSupabaseSession(tokens.accessToken, tokens.refreshToken, 'otp');
                     })
                     .then(function (payload) {
                         if (payload && payload.success && payload.data && payload.data.redirect) {
@@ -1039,6 +1122,10 @@
                         if (response && response.error) {
                             throw response.error;
                         }
+                        if (getSessionStorageItem(tokenHandledKey) === '1') {
+                            return { data: {} };
+                        }
+                        setSessionStorageItem(tokenHandledKey, '1');
                         var tokens = extractTokensFromVerify(response);
                         if (!tokens.accessToken) {
                             throw new Error(getMessage('otpVerifyError', 'Unable to verify the code.'));
