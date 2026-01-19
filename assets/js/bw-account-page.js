@@ -1002,7 +1002,25 @@
                     })
                 })
                     .then(function (response) {
-                        return response.json();
+                        if (response && response.error) {
+                            throw response.error;
+                        }
+                        if (getSessionStorageItem(tokenHandledKey) === '1') {
+                            return { data: {} };
+                        }
+                        setSessionStorageItem(tokenHandledKey, '1');
+                        var tokens = extractTokensFromVerify(response);
+                        if (!tokens.accessToken) {
+                            throw new Error(getMessage('otpVerifyError', 'Unable to verify the code.'));
+                        }
+                        setPendingTokens(tokens.accessToken, tokens.refreshToken);
+                        if (getAuthFlow() === 'signup') {
+                            logDebug('OTP_VERIFY_NEXT', { next: 'create-password' });
+                            switchAuthScreen('create-password');
+                            return { success: true, data: { redirect: '/my-account/' } };
+                        }
+                        logDebug('OTP_VERIFY_NEXT', { next: 'wp-bridge' });
+                        return bridgeSupabaseSession(tokens.accessToken, tokens.refreshToken, 'otp');
                     })
                     .then(function (payload) {
                         if (payload && payload.success && payload.data && payload.data.redirect) {
