@@ -39,9 +39,6 @@ if ( $login_image_id ) {
     }
 }
 
-$has_cover = ! empty( $login_image_url );
-$wrapper_class = 'bw-account-login-page' . ( $has_cover ? ' bw-account-login-page--has-cover' : '' );
-
 $logo_url = $logo;
 if ( $logo_id ) {
     $logo_attachment = wp_get_attachment_url( $logo_id );
@@ -59,9 +56,9 @@ $logo_styles = sprintf(
 $login_subtitle_html = nl2br( esc_html( $login_subtitle ) );
 ?>
 
-<div class="<?php echo esc_attr( $wrapper_class ); ?>">
+<div class="bw-account-login-page">
     <div class="bw-account-login">
-        <div class="bw-account-login__media" <?php if ( $login_image_url ) : ?>style="--bw-login-cover: url('<?php echo esc_url( $login_image_url ); ?>');"<?php endif; ?>></div>
+        <div class="bw-account-login__media" <?php if ( $login_image_url ) : ?>style="background-image: url('<?php echo esc_url( $login_image_url ); ?>');"<?php endif; ?>></div>
         <div class="bw-account-login__content-wrapper">
             <div class="bw-account-login__content">
                 <?php do_action( 'woocommerce_before_customer_login_form' ); ?>
