@@ -44,9 +44,7 @@ body.woocommerce-checkout .bw-checkout-left .woocommerce-info {
 .bw-checkout-left .woocommerce-error,
 .bw-checkout-left .woocommerce-message,
 .bw-checkout-left .woocommerce-info {
-	display: flex !important;
-	align-items: center;
-	gap: 12px;
+	display: block !important;
 	padding: 16px 20px;
 	border-radius: 8px;
 	font-size: 14px;
@@ -71,11 +69,7 @@ body.woocommerce-checkout .bw-checkout-left .woocommerce-info {
 }
 
 .bw-checkout-left .woocommerce-error::before {
-	content: "⚠";
-	font-size: 20px;
-	line-height: 1;
-	flex-shrink: 0;
-	color: #dc2626;
+	display: none !important;
 }
 
 /* Success Box - Green */
@@ -86,12 +80,7 @@ body.woocommerce-checkout .bw-checkout-left .woocommerce-info {
 }
 
 .bw-checkout-left .woocommerce-message::before {
-	content: "✓";
-	font-size: 20px;
-	line-height: 1;
-	flex-shrink: 0;
-	color: #059669;
-	font-weight: bold;
+	display: none !important;
 }
 
 /* Info Box - Blue */
@@ -102,11 +91,7 @@ body.woocommerce-checkout .bw-checkout-left .woocommerce-info {
 }
 
 .bw-checkout-left .woocommerce-info::before {
-	content: "ℹ";
-	font-size: 20px;
-	line-height: 1;
-	flex-shrink: 0;
-	color: #3b82f6;
+	display: none !important;
 }
 
 /* Notice text content */
