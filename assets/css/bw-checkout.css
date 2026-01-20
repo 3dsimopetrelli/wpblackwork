@@ -155,6 +155,52 @@ body.woocommerce-checkout .woocommerce-info {
 */
 
 /* ============================================
+   WOOCOMMERCE ERROR/NOTICE MESSAGES - FIX ICON ALIGNMENT
+   ============================================ */
+
+/* Fix error message icon to display inline with text (not above it) */
+body.woocommerce-checkout .woocommerce-error,
+body.woocommerce-checkout .woocommerce-notice,
+body.woocommerce-checkout .woocommerce-message,
+.woocommerce-checkout .woocommerce-error,
+.woocommerce-checkout .woocommerce-notice,
+.woocommerce-checkout .woocommerce-message {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+}
+
+/* Icon (usually a ::before pseudo-element) */
+body.woocommerce-checkout .woocommerce-error::before,
+body.woocommerce-checkout .woocommerce-notice::before,
+body.woocommerce-checkout .woocommerce-message::before,
+.woocommerce-checkout .woocommerce-error::before,
+.woocommerce-checkout .woocommerce-notice::before,
+.woocommerce-checkout .woocommerce-message::before {
+    display: inline-flex !important;
+    flex-shrink: 0 !important;
+    align-self: flex-start !important;
+    margin-top: 0 !important;
+    margin-right: 0 !important;
+    margin-bottom: 0 !important;
+    margin-left: 0 !important;
+    position: relative !important;
+    float: none !important;
+}
+
+/* Text content */
+body.woocommerce-checkout .woocommerce-error > *:not(::before),
+body.woocommerce-checkout .woocommerce-notice > *:not(::before),
+body.woocommerce-checkout .woocommerce-message > *:not(::before),
+.woocommerce-checkout .woocommerce-error > *:not(::before),
+.woocommerce-checkout .woocommerce-notice > *:not(::before),
+.woocommerce-checkout .woocommerce-message > *:not(::before) {
+    flex: 1 1 auto !important;
+    margin: 0 !important;
+}
+
+/* ============================================
    FORCE ZERO SPACING - Override ALL theme/plugin CSS
    These rules target specific classes visible in DevTools
    to eliminate any padding/margin from Elementor, theme, or plugins
@@ -600,6 +646,41 @@ body.woocommerce-checkout #wc-stripe-express-checkout-element > div > div {
     width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
+}
+
+/* Stripe Payment Element Error Icon Fix - Force inline layout */
+body.woocommerce-checkout #wc-stripe-express-checkout-element .Error,
+body.woocommerce-checkout .StripeElement .Error,
+body.woocommerce-checkout [class*="stripe"] .Error {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+}
+
+body.woocommerce-checkout #wc-stripe-express-checkout-element .ErrorIcon,
+body.woocommerce-checkout .StripeElement .ErrorIcon,
+body.woocommerce-checkout [class*="stripe"] .ErrorIcon {
+    display: inline-flex !important;
+    flex-shrink: 0 !important;
+    width: 16px !important;
+    height: 16px !important;
+    margin: 2px 0 0 0 !important;
+}
+
+body.woocommerce-checkout #wc-stripe-express-checkout-element .ErrorIcon::before,
+body.woocommerce-checkout .StripeElement .ErrorIcon::before,
+body.woocommerce-checkout [class*="stripe"] .ErrorIcon::before {
+    display: inline !important;
+    margin: 0 !important;
+}
+
+body.woocommerce-checkout #wc-stripe-express-checkout-element .ErrorText,
+body.woocommerce-checkout .StripeElement .ErrorText,
+body.woocommerce-checkout [class*="stripe"] .ErrorText {
+    display: inline-block !important;
+    flex: 1 1 auto !important;
+    margin: 0 !important;
 }
 
 body.woocommerce-checkout .wcpay-express-checkout-wrapper {

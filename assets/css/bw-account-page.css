@@ -124,7 +124,7 @@ body.woocommerce-account.bw-account-login-only:not(.elementor-editor-active) .el
 
 .bw-account-login__content {
     width: 100%;
-    max-width: 520px;
+    max-width: 400px;
     display: flex;
     flex-direction: column;
     align-items: stretch;
@@ -197,7 +197,7 @@ body.woocommerce-account .bw-account-login-page.bw-full-section .bw-account-logi
 .bw-account-login__subtitle {
     margin: 0;
     font-weight: 400;
-    font-size: 16px;
+    font-size: 13px;
     line-height: 1.5;
     color: #666;
     text-align: center;
@@ -708,10 +708,12 @@ body.woocommerce-account .bw-account-login-page input[type="submit"],
 body.woocommerce-account .bw-account-login-page [role="button"],
 body.woocommerce-account .bw-account-login-page .bw-oauth-button,
 body.woocommerce-account .bw-account-login-page .bw-account-login__button {
-    background-color: #000;
+      background-color: #000;
     color: #fff;
-    border-radius: 50%;
+    border-radius: 50px;
     border: none;
+    font-size: 23px;
+    font-weight: normal;
 }
 
 body.woocommerce-account .bw-account-login-page button:hover,

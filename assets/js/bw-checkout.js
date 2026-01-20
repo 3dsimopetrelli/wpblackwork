@@ -383,6 +383,125 @@
         initCustomSticky();
     }
 
+    // Intercept coupon form submission at checkout form level (to prevent nested form issues)
+    function interceptCouponSubmit() {
+        var checkoutForm = document.querySelector('form.checkout, form.woocommerce-checkout');
+        if (!checkoutForm) return;
+
+        // Use capture phase to intercept BEFORE any other handlers
+        checkoutForm.addEventListener('submit', function(e) {
+            var submitter = e.submitter;
+            // Check if submit was triggered by coupon button
+            if (submitter && (
+                submitter.name === 'apply_coupon' ||
+                submitter.classList.contains('bw-apply-button')
+            )) {
+                // This is a coupon submission, not checkout submission
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+
+                // Trigger coupon apply manually
+                var couponInput = document.getElementById('coupon_code');
+                if (couponInput) {
+                    var event = new Event('apply-coupon-trigger', { bubbles: false });
+                    couponInput.dispatchEvent(event);
+                }
+                return false;
+            }
+        }, true); // Capture phase
+    }
+
+    // Initialize intercept
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', interceptCouponSubmit);
+    } else {
+        interceptCouponSubmit();
+    }
+
+    // Fix Stripe error icon positioning (force inline layout with inline styles)
+    function fixStripeErrorLayout() {
+        // Find all Stripe error containers in both main DOM and shadow roots
+        var errorContainers = document.querySelectorAll('.Error, [class*="Error"]');
+
+        console.log('[BW Checkout] Fixing Stripe errors, found ' + errorContainers.length + ' containers');
+
+        errorContainers.forEach(function(container) {
+            // Check if it's actually a Stripe error (has ErrorIcon and ErrorText)
+            var icon = container.querySelector('.ErrorIcon, [class*="ErrorIcon"]');
+            var text = container.querySelector('.ErrorText, [class*="ErrorText"]');
+
+            console.log('[BW Checkout] Container:', container, 'Icon:', icon, 'Text:', text);
+
+            if (icon && text) {
+                console.log('[BW Checkout] Applying inline styles with !important');
+
+                // Force inline layout with inline styles using !important (overrides everything)
+                container.style.setProperty('display', 'flex', 'important');
+                container.style.setProperty('flex-direction', 'row', 'important');
+                container.style.setProperty('align-items', 'flex-start', 'important');
+                container.style.setProperty('gap', '8px', 'important');
+
+                icon.style.setProperty('display', 'inline-flex', 'important');
+                icon.style.setProperty('flex-shrink', '0', 'important');
+                icon.style.setProperty('width', '16px', 'important');
+                icon.style.setProperty('height', '16px', 'important');
+                icon.style.setProperty('margin', '2px 0 0 0', 'important');
+
+                text.style.setProperty('display', 'inline-block', 'important');
+                text.style.setProperty('flex', '1 1 auto', 'important');
+                text.style.setProperty('margin', '0', 'important');
+
+                console.log('[BW Checkout] Styles applied successfully');
+            }
+        });
+    }
+
+    // Run immediately and observe for new errors
+    function observeStripeErrors() {
+        // Run initial fix
+        fixStripeErrorLayout();
+
+        // Observe DOM changes to catch dynamically added errors
+        var observer = new MutationObserver(function(mutations) {
+            var shouldFix = false;
+            mutations.forEach(function(mutation) {
+                if (mutation.addedNodes.length > 0) {
+                    mutation.addedNodes.forEach(function(node) {
+                        if (node.nodeType === 1) { // Element node
+                            var hasError = node.matches && (
+                                node.matches('.Error, [class*="Error"]') ||
+                                node.querySelector('.Error, [class*="Error"]')
+                            );
+                            if (hasError) {
+                                shouldFix = true;
+                            }
+                        }
+                    });
+                }
+            });
+            if (shouldFix) {
+                setTimeout(fixStripeErrorLayout, 10);
+            }
+        });
+
+        // Observe the payment area for changes
+        var paymentArea = document.querySelector('.bw-checkout-payment, #payment');
+        if (paymentArea) {
+            observer.observe(paymentArea, {
+                childList: true,
+                subtree: true
+            });
+        }
+    }
+
+    // Initialize error layout fix
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', observeStripeErrors);
+    } else {
+        observeStripeErrors();
+    }
+
     // Floating label for coupon input
     function initFloatingLabel() {
         var couponInput = document.getElementById('coupon_code');
@@ -436,16 +555,114 @@
         couponInput.addEventListener('focus', clearError);
 
         // Handle coupon form submission
-        var couponForm = couponInput.closest('form');
-        if (couponForm) {
-            couponForm.addEventListener('submit', function(e) {
-                clearError();
-                // Set flag to show messages after form submission
-                try {
-                    sessionStorage.setItem('bw_coupon_action', 'true');
-                } catch(e) {}
-            });
+        var couponForm = couponInput.closest('form.checkout_coupon, form.woocommerce-form-coupon');
+
+        function applyCouponAjax() {
+            clearError();
+
+            var couponCode = couponInput.value.trim();
+
+            if (!couponCode) {
+                showError('Please enter a coupon code');
+                return false;
+            }
+
+            // FIX 2: Apply coupon via AJAX to bypass payment validation
+            if (window.jQuery) {
+                var $ = window.jQuery;
+
+                setOrderSummaryLoading(true);
+
+                $.ajax({
+                    type: 'POST',
+                    url: wc_checkout_params.wc_ajax_url.toString().replace('%%endpoint%%', 'apply_coupon'),
+                    data: {
+                        security: wc_checkout_params.apply_coupon_nonce,
+                        coupon_code: couponCode
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            // Trigger checkout update to refresh totals
+                            $(document.body).trigger('update_checkout');
+                            showCouponMessage('Coupon applied successfully', 'success');
+                            // Clear input after successful application
+                            couponInput.value = '';
+                            updateHasValue();
+                        } else {
+                            setOrderSummaryLoading(false);
+                            var errorMessage = response.data && response.data.message
+                                ? response.data.message
+                                : 'Invalid coupon code';
+                            showError(errorMessage);
+                        }
+                    },
+                    error: function() {
+                        setOrderSummaryLoading(false);
+                        showError('Error applying coupon. Please try again.');
+                    }
+                });
+                return false;
+            }
+            return true;
         }
+
+        // Listen for custom trigger event from main interceptor
+        couponInput.addEventListener('apply-coupon-trigger', function() {
+            applyCouponAjax();
+        });
+
+        if (couponForm) {
+            // Use capture phase to intercept before other handlers
+            couponForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                applyCouponAjax();
+                return false;
+            }, true);
+
+            // Also prevent on the button directly
+            var applyButton = couponForm.querySelector('button[name="apply_coupon"], .bw-apply-button');
+            if (applyButton) {
+                applyButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    applyCouponAjax();
+                    return false;
+                }, true);
+            }
+        }
+
+        if (couponForm) {
+            // Use capture phase to intercept before other handlers
+            couponForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                applyCouponAjax();
+                return false;
+            }, true);
+
+            // Also prevent on the button directly
+            var applyButton = couponForm.querySelector('button[name="apply_coupon"], .bw-apply-button');
+            if (applyButton) {
+                applyButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    applyCouponAjax();
+                    return false;
+                }, true);
+            }
+        }
+
+        // Also listen for Enter key in input
+        couponInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' || e.keyCode === 13) {
+                e.preventDefault();
+                e.stopPropagation();
+                applyCoupon();
+            }
+        });
 
         // Check on page load (in case of browser autofill)
         updateHasValue();

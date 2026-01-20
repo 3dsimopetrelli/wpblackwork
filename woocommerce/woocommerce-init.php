@@ -245,6 +245,9 @@ function bw_mew_enqueue_checkout_assets() {
     $css_file = BW_MEW_PATH . 'assets/css/bw-checkout.css';
     $js_file  = BW_MEW_PATH . 'assets/js/bw-checkout.js';
     $version  = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
+
+    // FORCE CACHE BUST - Remove after testing
+    $version .= '.forcebust';
     $settings = bw_mew_get_checkout_settings();
 
     wp_enqueue_style(
@@ -255,7 +258,7 @@ function bw_mew_enqueue_checkout_assets() {
     );
 
     if ( file_exists( $js_file ) ) {
-        $js_version   = filemtime( $js_file );
+        $js_version   = filemtime( $js_file ) . '.forcebust';
         $dependencies = [ 'jquery' ];
 
         if ( wp_script_is( 'wc-checkout', 'registered' ) ) {
@@ -1066,6 +1069,36 @@ function bw_mew_customize_stripe_upe_appearance( $params ) {
             '.Label' => array(
                 'display' => 'none',
             ),
+            // FIX 1: Error message icon positioning - use !important to override Stripe defaults
+            '.Error' => array(
+                'display' => 'flex',
+                'flexDirection' => 'row',
+                'alignItems' => 'flex-start',
+                'gap' => '8px',
+                'marginTop' => '8px',
+                'fontSize' => '13px',
+                'lineHeight' => '1.4',
+                'color' => '#991b1b',
+            ),
+            '.ErrorIcon' => array(
+                'flexShrink' => '0',
+                'width' => '16px',
+                'height' => '16px',
+                'minWidth' => '16px',
+                'marginTop' => '2px',
+                'marginRight' => '0',
+                'marginBottom' => '0',
+                'marginLeft' => '0',
+                'display' => 'inline-flex',
+            ),
+            '.ErrorText' => array(
+                'flex' => '1 1 auto',
+                'marginTop' => '0',
+                'marginRight' => '0',
+                'marginBottom' => '0',
+                'marginLeft' => '0',
+                'display' => 'inline-block',
+            ),
             '.Tab' => array(
                 'display' => 'none',
             ),
@@ -1093,6 +1126,24 @@ function bw_mew_customize_stripe_upe_appearance( $params ) {
             ),
             '.PaymentMethodHeader' => array(
                 'display' => 'none',
+            ),
+        ),
+    );
+
+    // FIX 3: Configure fields to auto-collect billing details from WooCommerce checkout form
+    // This prevents the "You specified 'never' but did not pass billing_details.name" error
+    $params['fields'] = array(
+        'billingDetails' => array(
+            'name' => 'auto',    // Auto-collect from WC checkout form
+            'email' => 'auto',   // Auto-collect from WC checkout form
+            'phone' => 'auto',   // Auto-collect from WC checkout form
+            'address' => array(
+                'country' => 'auto',
+                'line1' => 'auto',
+                'line2' => 'auto',
+                'city' => 'auto',
+                'state' => 'auto',
+                'postalCode' => 'auto',
             ),
         ),
     );
