@@ -84,29 +84,22 @@ body.woocommerce-account.bw-account-login-only:not(.elementor-editor-active) .el
 }
 
 @media (min-width: 1024px) {
-    body.woocommerce-account .bw-account-login-page--has-cover .bw-account-login__media {
-        position: relative;
-        background: none !important;
+    body.woocommerce-account .bw-account-login-page {
         overflow: hidden;
     }
 
-    body.woocommerce-account .bw-account-login-page--has-cover .bw-account-login__media::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        left: 50%;
-        width: 100vw;
-        transform: translateX(-50%);
-        background-image: var(--bw-login-cover);
-        background-size: cover;
-        background-repeat: no-repeat;
-        background-position: center;
+    body.woocommerce-account .bw-account-login__media {
+        position: relative;
+        width: calc(100% + 4vw);
+        margin-left: -2vw;
+        margin-right: -2vw;
     }
 }
 
 @media (max-width: 1023px) {
-    body.woocommerce-account .bw-account-login__media::before {
-        content: none;
+    body.woocommerce-account .bw-account-login__media {
+        width: 100%;
+        margin: 0;
     }
 }
 
