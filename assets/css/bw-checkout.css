@@ -155,6 +155,52 @@ body.woocommerce-checkout .woocommerce-info {
 */
 
 /* ============================================
+   WOOCOMMERCE ERROR/NOTICE MESSAGES - FIX ICON ALIGNMENT
+   ============================================ */
+
+/* Fix error message icon to display inline with text (not above it) */
+body.woocommerce-checkout .woocommerce-error,
+body.woocommerce-checkout .woocommerce-notice,
+body.woocommerce-checkout .woocommerce-message,
+.woocommerce-checkout .woocommerce-error,
+.woocommerce-checkout .woocommerce-notice,
+.woocommerce-checkout .woocommerce-message {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+}
+
+/* Icon (usually a ::before pseudo-element) */
+body.woocommerce-checkout .woocommerce-error::before,
+body.woocommerce-checkout .woocommerce-notice::before,
+body.woocommerce-checkout .woocommerce-message::before,
+.woocommerce-checkout .woocommerce-error::before,
+.woocommerce-checkout .woocommerce-notice::before,
+.woocommerce-checkout .woocommerce-message::before {
+    display: inline-flex !important;
+    flex-shrink: 0 !important;
+    align-self: flex-start !important;
+    margin-top: 0 !important;
+    margin-right: 0 !important;
+    margin-bottom: 0 !important;
+    margin-left: 0 !important;
+    position: relative !important;
+    float: none !important;
+}
+
+/* Text content */
+body.woocommerce-checkout .woocommerce-error > *:not(::before),
+body.woocommerce-checkout .woocommerce-notice > *:not(::before),
+body.woocommerce-checkout .woocommerce-message > *:not(::before),
+.woocommerce-checkout .woocommerce-error > *:not(::before),
+.woocommerce-checkout .woocommerce-notice > *:not(::before),
+.woocommerce-checkout .woocommerce-message > *:not(::before) {
+    flex: 1 1 auto !important;
+    margin: 0 !important;
+}
+
+/* ============================================
    FORCE ZERO SPACING - Override ALL theme/plugin CSS
    These rules target specific classes visible in DevTools
    to eliminate any padding/margin from Elementor, theme, or plugins
