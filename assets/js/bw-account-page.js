@@ -788,6 +788,7 @@
                 logDebug('Auto-bridge skipped', { reason: 'already_attempted' });
                 return;
             }
+        }
 
             supabase.auth.getSession().then(function (response) {
                 if (response && response.data && response.data.session) {
