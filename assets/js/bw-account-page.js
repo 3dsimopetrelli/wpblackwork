@@ -788,6 +788,7 @@
                 logDebug('Auto-bridge skipped', { reason: 'already_attempted' });
                 return;
             }
+        }
 
             supabase.auth.getSession().then(function (response) {
                 if (response && response.data && response.data.session) {
@@ -989,6 +990,7 @@
                     loginSubmit.disabled = true;
                 }
 
+                logDebug('PASSWORD_LOGIN_START', { emailHash: hashEmail(email) });
                 fetch(authConfig.ajaxUrl, {
                     method: 'POST',
                     credentials: 'same-origin',
@@ -1003,36 +1005,47 @@
                     })
                 })
                     .then(function (response) {
-                        if (response && response.error) {
-                            throw response.error;
-                        }
-                        if (getSessionStorageItem(tokenHandledKey) === '1') {
-                            return { data: {} };
-                        }
-                        setSessionStorageItem(tokenHandledKey, '1');
-                        var tokens = extractTokensFromVerify(response);
-                        if (!tokens.accessToken) {
-                            throw new Error(getMessage('otpVerifyError', 'Unable to verify the code.'));
-                        }
-                        setPendingTokens(tokens.accessToken, tokens.refreshToken);
-                        if (getAuthFlow() === 'signup') {
-                            logDebug('OTP_VERIFY_NEXT', { next: 'create-password' });
-                            switchAuthScreen('create-password');
-                            return { success: true, data: { redirect: '/my-account/' } };
-                        }
-                        logDebug('OTP_VERIFY_NEXT', { next: 'wp-bridge' });
-                        return bridgeSupabaseSession(tokens.accessToken, tokens.refreshToken, 'otp');
+                        return response.json().then(function (payload) {
+                            return { httpOk: response.ok, status: response.status, payload: payload };
+                        });
                     })
-                    .then(function (payload) {
-                        if (payload && payload.success && payload.data && payload.data.redirect) {
-                            window.location.replace(payload.data.redirect);
-                            return;
+                    .then(function (result) {
+                        logDebug('PASSWORD_LOGIN_HTTP', { status: result.status });
+                        var payload = result.payload;
+                        if (!result.httpOk || !payload || payload.success !== true) {
+                            var message = payload && payload.data && payload.data.message ? payload.data.message : getMessage('loginError', 'Unable to login.');
+                            throw new Error(message);
                         }
-                        var message = payload && payload.data && payload.data.message ? payload.data.message : getMessage('loginError', 'Unable to login.');
-                        showFormMessage(form, 'error', message);
+
+                        var data = payload.data || {};
+                        var tokens = {
+                            access_token: data.access_token || (data.session && data.session.access_token ? data.session.access_token : ''),
+                            refresh_token: data.refresh_token || (data.session && data.session.refresh_token ? data.session.refresh_token : '')
+                        };
+
+                        if (tokens.access_token) {
+                            logDebug('PASSWORD_LOGIN_SUCCESS', { path: 'bridge' });
+                            return bridgeSupabaseSession(tokens.access_token, tokens.refresh_token, 'password')
+                                .then(function (bridgePayload) {
+                                    completeBridgeRedirect(bridgePayload);
+                                    return null;
+                                });
+                        }
+
+                        if (data.redirect) {
+                            logDebug('PASSWORD_LOGIN_SUCCESS', { path: 'redirect' });
+                            cleanAuthUrl(['email', 'code', 'type', 'state', 'provider', 'bw_email_confirmed']);
+                            setTimeout(function () {
+                                window.location.replace(data.redirect);
+                            }, 150);
+                            return null;
+                        }
+
+                        throw new Error(getMessage('loginError', 'Unable to login.'));
                     })
-                    .catch(function () {
-                        showFormMessage(form, 'error', getMessage('loginError', 'Unable to login.'));
+                    .catch(function (error) {
+                        logDebug('PASSWORD_LOGIN_ERROR', { message: error && error.message ? error.message : 'unknown' });
+                        showFormMessage(form, 'error', error && error.message ? error.message : getMessage('loginError', 'Unable to login.'));
                     })
                     .finally(function () {
                         if (loginSubmit) {
