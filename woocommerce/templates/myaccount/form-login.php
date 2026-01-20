@@ -71,7 +71,9 @@ $login_subtitle_html = nl2br( esc_html( $login_subtitle ) );
 
                 <?php if ( $logo_url ) : ?>
                     <div class="bw-account-login__logo" style="<?php echo esc_attr( $logo_styles ); ?>">
-                        <img src="<?php echo esc_url( $logo_url ); ?>" alt="<?php esc_attr_e( 'Account logo', 'bw' ); ?>" />
+                        <a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="bw-account-login__logo-link" aria-label="<?php esc_attr_e( 'Go to homepage', 'bw' ); ?>">
+                            <img src="<?php echo esc_url( $logo_url ); ?>" alt="<?php esc_attr_e( 'Account logo', 'bw' ); ?>" />
+                        </a>
                     </div>
                 <?php endif; ?>
 
