@@ -94,6 +94,22 @@ body.woocommerce-checkout .bw-checkout-left .woocommerce-info {
 	display: none !important;
 }
 
+/* Hide ALL icons in checkout notices container - UL and LI elements */
+body.woocommerce-checkout .woocommerce-error::before,
+body.woocommerce-checkout .woocommerce-message::before,
+body.woocommerce-checkout .woocommerce-info::before,
+.bw-checkout-notices-container .woocommerce-error::before,
+.bw-checkout-notices-container .woocommerce-message::before,
+.bw-checkout-notices-container .woocommerce-info::before,
+.bw-checkout-notices-container ul::before,
+.bw-checkout-notices-container li::before,
+ul.woocommerce-error::before,
+ul.woocommerce-message::before,
+ul.woocommerce-info::before {
+	display: none !important;
+	content: none !important;
+}
+
 /* Notice text content */
 .bw-checkout-left .woocommerce-error,
 .bw-checkout-left .woocommerce-message,
