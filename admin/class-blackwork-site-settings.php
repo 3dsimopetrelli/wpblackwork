@@ -1464,7 +1464,28 @@ function bw_site_render_checkout_tab() {
     <form method="post" action="">
         <?php wp_nonce_field( 'bw_checkout_settings_save', 'bw_checkout_settings_nonce' ); ?>
 
-        <table class="form-table" role="presentation">
+        <?php
+        $active_checkout_tab = isset( $_GET['checkout_tab'] ) ? sanitize_key( $_GET['checkout_tab'] ) : 'style';
+        $allowed_checkout_tabs = [ 'style', 'supabase' ];
+        if ( ! in_array( $active_checkout_tab, $allowed_checkout_tabs, true ) ) {
+            $active_checkout_tab = 'style';
+        }
+
+        $style_tab_url = add_query_arg( 'checkout_tab', 'style' );
+        $supabase_tab_url = add_query_arg( 'checkout_tab', 'supabase' );
+        ?>
+
+        <h2 class="nav-tab-wrapper">
+            <a class="nav-tab <?php echo 'style' === $active_checkout_tab ? 'nav-tab-active' : ''; ?>" href="<?php echo esc_url( $style_tab_url ); ?>">
+                <?php esc_html_e( 'Style', 'bw' ); ?>
+            </a>
+            <a class="nav-tab <?php echo 'supabase' === $active_checkout_tab ? 'nav-tab-active' : ''; ?>" href="<?php echo esc_url( $supabase_tab_url ); ?>">
+                <?php esc_html_e( 'Supabase Provider', 'bw' ); ?>
+            </a>
+        </h2>
+
+        <div class="bw-tab-panel" data-bw-tab="style" <?php echo 'style' === $active_checkout_tab ? '' : 'style="display:none;"'; ?>>
+            <table class="form-table" role="presentation">
             <tr>
                 <th scope="row">
                     <label for="bw_checkout_logo">Logo Checkout</label>
@@ -1531,37 +1552,6 @@ function bw_site_render_checkout_tab() {
                     <p class="description">Mostra o nascondi il titolo "Your order" nella colonna destra.</p>
                 </td>
             </tr>
-            <tr>
-                <th scope="row">
-                    <label for="bw_supabase_checkout_provision_enabled"><?php esc_html_e( 'Supabase checkout provisioning', 'bw' ); ?></label>
-                </th>
-                <td>
-                    <label style="display: inline-flex; align-items: center; gap: 8px;">
-                        <input type="checkbox" id="bw_supabase_checkout_provision_enabled" name="bw_supabase_checkout_provision_enabled" value="1" <?php checked( $supabase_provision_enabled, '1' ); ?> />
-                        <span style="font-weight: 500;"><?php esc_html_e( 'Invite Supabase users after guest checkout', 'bw' ); ?></span>
-                    </label>
-                    <p class="description"><?php esc_html_e( 'When enabled, guest orders trigger a Supabase invite email that leads users to set their password.', 'bw' ); ?></p>
-                </td>
-            </tr>
-            <tr>
-                <th scope="row">
-                    <label for="bw_supabase_invite_redirect_url"><?php esc_html_e( 'Supabase invite redirect URL', 'bw' ); ?></label>
-                </th>
-                <td>
-                    <input type="url" id="bw_supabase_invite_redirect_url" name="bw_supabase_invite_redirect_url" value="<?php echo esc_attr( $supabase_invite_redirect ); ?>" class="regular-text" />
-                    <p class="description"><?php esc_html_e( 'URL where Supabase directs users after the invite link (default: /my-account/set-password/). The URL must be allowlisted in Supabase Redirect URLs.', 'bw' ); ?></p>
-                </td>
-            </tr>
-            <?php if ( '1' === $supabase_provision_enabled && ! $supabase_service_key ) : ?>
-                <tr>
-                    <th scope="row"><?php esc_html_e( 'Supabase provisioning warning', 'bw' ); ?></th>
-                    <td>
-                        <div class="notice notice-warning inline">
-                            <p><?php esc_html_e( 'Provisioning is enabled but Supabase Service Role Key is missing. Invites will not be sent.', 'bw' ); ?></p>
-                        </div>
-                    </td>
-                </tr>
-            <?php endif; ?>
             <tr class="bw-section-break">
                 <th scope="row" colspan="2" style="padding-bottom:0;">
                     <h3 style="margin:0;">Colori di sfondo checkout</h3>
@@ -1723,7 +1713,44 @@ function bw_site_render_checkout_tab() {
                     </label>
                 </td>
             </tr>
-        </table>
+            </table>
+        </div>
+
+        <div class="bw-tab-panel" data-bw-tab="supabase" <?php echo 'supabase' === $active_checkout_tab ? '' : 'style="display:none;"'; ?>>
+            <table class="form-table" role="presentation">
+                <tr>
+                    <th scope="row">
+                        <label for="bw_supabase_checkout_provision_enabled"><?php esc_html_e( 'Supabase checkout provisioning', 'bw' ); ?></label>
+                    </th>
+                    <td>
+                        <label style="display: inline-flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" id="bw_supabase_checkout_provision_enabled" name="bw_supabase_checkout_provision_enabled" value="1" <?php checked( $supabase_provision_enabled, '1' ); ?> />
+                            <span style="font-weight: 500;"><?php esc_html_e( 'Invite Supabase users after guest checkout', 'bw' ); ?></span>
+                        </label>
+                        <p class="description"><?php esc_html_e( 'When enabled, guest orders trigger a Supabase invite email that leads users to set their password.', 'bw' ); ?></p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">
+                        <label for="bw_supabase_invite_redirect_url"><?php esc_html_e( 'Supabase invite redirect URL', 'bw' ); ?></label>
+                    </th>
+                    <td>
+                        <input type="url" id="bw_supabase_invite_redirect_url" name="bw_supabase_invite_redirect_url" value="<?php echo esc_attr( $supabase_invite_redirect ); ?>" class="regular-text" />
+                        <p class="description"><?php esc_html_e( 'URL where Supabase directs users after the invite link (default: /my-account/set-password/). The URL must be allowlisted in Supabase Redirect URLs.', 'bw' ); ?></p>
+                    </td>
+                </tr>
+                <?php if ( '1' === $supabase_provision_enabled && ! $supabase_service_key ) : ?>
+                    <tr>
+                        <th scope="row"><?php esc_html_e( 'Supabase provisioning warning', 'bw' ); ?></th>
+                        <td>
+                            <div class="notice notice-warning inline">
+                                <p><?php esc_html_e( 'Provisioning is enabled but Supabase Service Role Key is missing. Invites will not be sent.', 'bw' ); ?></p>
+                            </div>
+                        </td>
+                    </tr>
+                <?php endif; ?>
+            </table>
+        </div>
 
         <?php submit_button( 'Salva impostazioni', 'primary', 'bw_checkout_settings_submit' ); ?>
     </form>
