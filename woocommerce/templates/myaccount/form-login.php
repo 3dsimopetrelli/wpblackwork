@@ -91,10 +91,8 @@ $login_subtitle_html = nl2br( esc_html( $login_subtitle ) );
                         <div class="bw-account-auth__panel is-active is-visible" data-bw-auth-panel="login">
                             <div class="bw-auth-screen bw-auth-screen--magic is-active is-visible" data-bw-screen="magic">
                                 <form class="bw-account-login__form bw-account-login__form--supabase" method="post" action="<?php echo esc_url( wc_get_page_permalink( 'myaccount' ) ); ?>" data-bw-supabase-form data-bw-supabase-action="magic-link">
-                                    <p class="bw-account-login__note"><?php esc_html_e( 'Enter your email and we will send you a login link.', 'bw' ); ?></p>
-
                                     <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide bw-account-login__field">
-                                        <label for="bw_supabase_magic_email"><?php esc_html_e( 'Email address', 'woocommerce' ); ?> <span class="required">*</span></label>
+                                        <label for="bw_supabase_magic_email"><?php esc_html_e( 'Email', 'bw' ); ?> <span class="required">*</span></label>
                                         <input type="email" class="woocommerce-Input woocommerce-Input--text input-text" name="email" id="bw_supabase_magic_email" autocomplete="email" required />
                                     </p>
 
@@ -102,7 +100,7 @@ $login_subtitle_html = nl2br( esc_html( $login_subtitle ) );
                                 <div class="bw-account-login__success" role="status" aria-live="polite" hidden></div>
 
                                     <p class="form-row bw-account-login__actions">
-                                        <button type="submit" class="woocommerce-button button bw-account-login__submit" data-bw-supabase-submit <?php echo $magic_link_enabled ? '' : 'disabled'; ?>><?php esc_html_e( 'Continue', 'bw' ); ?></button>
+                                        <button type="submit" class="woocommerce-button button bw-account-login__submit" data-bw-supabase-submit <?php echo $magic_link_enabled ? '' : 'disabled'; ?>><?php esc_html_e( 'Send code', 'bw' ); ?></button>
                                     </p>
                                 </form>
 
