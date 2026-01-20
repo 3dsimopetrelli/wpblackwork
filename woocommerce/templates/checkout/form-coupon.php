@@ -14,14 +14,15 @@ if ( ! wc_coupons_enabled() ) {
 }
 
 ?>
-<form class="checkout_coupon woocommerce-form-coupon" method="post">
+<div class="checkout_coupon woocommerce-form-coupon" data-form-type="coupon">
 	<div class="bw-coupon-fields">
 		<div class="bw-coupon-input-wrapper">
 			<input type="text" name="coupon_code" class="input-text" placeholder="" id="coupon_code" value="" />
 			<label for="coupon_code" class="bw-floating-label" data-full="<?php esc_attr_e( 'Enter coupon code', 'woocommerce' ); ?>" data-short="<?php esc_attr_e( 'Coupon code', 'woocommerce' ); ?>"><?php esc_html_e( 'Enter coupon code', 'woocommerce' ); ?></label>
 		</div>
-		<button type="submit" class="button bw-apply-button" name="apply_coupon" value="<?php esc_attr_e( 'Apply', 'woocommerce' ); ?>"><?php esc_html_e( 'Apply', 'woocommerce' ); ?></button>
+		<button type="button" class="button bw-apply-button" name="apply_coupon" value="<?php esc_attr_e( 'Apply', 'woocommerce' ); ?>"><?php esc_html_e( 'Apply', 'woocommerce' ); ?></button>
 	</div>
 	<div class="bw-coupon-error" style="display: none;"></div>
-	<?php wp_nonce_field( 'woocommerce-apply-coupon', 'woocommerce-apply-coupon-nonce' ); ?>
-</form>
+	<input type="hidden" name="woocommerce-apply-coupon-nonce" value="<?php echo esc_attr( wp_create_nonce( 'woocommerce-apply-coupon' ) ); ?>" />
+	<input type="hidden" name="_wp_http_referer" value="<?php echo esc_attr( wp_unslash( $_SERVER['REQUEST_URI'] ?? '' ) ); ?>" />
+</div>

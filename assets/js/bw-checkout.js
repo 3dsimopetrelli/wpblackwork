@@ -435,17 +435,75 @@
         // Clear error on focus
         couponInput.addEventListener('focus', clearError);
 
-        // Handle coupon form submission
-        var couponForm = couponInput.closest('form');
-        if (couponForm) {
-            couponForm.addEventListener('submit', function(e) {
-                clearError();
-                // Set flag to show messages after form submission
-                try {
-                    sessionStorage.setItem('bw_coupon_action', 'true');
-                } catch(e) {}
+        // Handle coupon application via button click (not form submit to avoid nested form issues)
+        var couponContainer = couponInput.closest('.checkout_coupon, .woocommerce-form-coupon');
+        var applyButton = couponContainer ? couponContainer.querySelector('.bw-apply-button') : null;
+
+        // Function to apply coupon via AJAX
+        function applyCoupon() {
+            clearError();
+
+            var couponCode = couponInput.value.trim();
+
+            if (!couponCode) {
+                showError('Please enter a coupon code');
+                return;
+            }
+
+            // FIX 2: Apply coupon via AJAX to bypass payment validation
+            if (window.jQuery) {
+                var $ = window.jQuery;
+
+                setOrderSummaryLoading(true);
+
+                $.ajax({
+                    type: 'POST',
+                    url: wc_checkout_params.wc_ajax_url.toString().replace('%%endpoint%%', 'apply_coupon'),
+                    data: {
+                        security: wc_checkout_params.apply_coupon_nonce,
+                        coupon_code: couponCode
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            // Trigger checkout update to refresh totals
+                            $(document.body).trigger('update_checkout');
+                            showCouponMessage('Coupon applied successfully', 'success');
+                            // Clear input after successful application
+                            couponInput.value = '';
+                            updateHasValue();
+                        } else {
+                            setOrderSummaryLoading(false);
+                            var errorMessage = response.data && response.data.message
+                                ? response.data.message
+                                : 'Invalid coupon code';
+                            showError(errorMessage);
+                        }
+                    },
+                    error: function() {
+                        setOrderSummaryLoading(false);
+                        showError('Error applying coupon. Please try again.');
+                    }
+                });
+            }
+        }
+
+        // Listen for button click
+        if (applyButton) {
+            applyButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                applyCoupon();
             });
         }
+
+        // Also listen for Enter key in input
+        couponInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' || e.keyCode === 13) {
+                e.preventDefault();
+                e.stopPropagation();
+                applyCoupon();
+            }
+        });
 
         // Check on page load (in case of browser autofill)
         updateHasValue();
