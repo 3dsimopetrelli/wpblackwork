@@ -383,6 +383,123 @@
         initCustomSticky();
     }
 
+    // Intercept coupon form submission at checkout form level (to prevent nested form issues)
+    function interceptCouponSubmit() {
+        var checkoutForm = document.querySelector('form.checkout, form.woocommerce-checkout');
+        if (!checkoutForm) return;
+
+        // Use capture phase to intercept BEFORE any other handlers
+        checkoutForm.addEventListener('submit', function(e) {
+            var submitter = e.submitter;
+            // Check if submit was triggered by coupon button
+            if (submitter && (
+                submitter.name === 'apply_coupon' ||
+                submitter.classList.contains('bw-apply-button')
+            )) {
+                // This is a coupon submission, not checkout submission
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+
+                // Trigger coupon apply manually
+                var couponInput = document.getElementById('coupon_code');
+                if (couponInput) {
+                    var event = new Event('apply-coupon-trigger', { bubbles: false });
+                    couponInput.dispatchEvent(event);
+                }
+                return false;
+            }
+        }, true); // Capture phase
+    }
+
+    // Initialize intercept
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', interceptCouponSubmit);
+    } else {
+        interceptCouponSubmit();
+    }
+
+    // Fix Stripe error icon positioning (force inline layout with inline styles)
+    function fixStripeErrorLayout() {
+        // Find all Stripe error containers
+        var errorContainers = document.querySelectorAll('.Error, [class*="Error"]');
+
+        errorContainers.forEach(function(container) {
+            // Check if it's actually a Stripe error (has ErrorIcon and ErrorText)
+            var icon = container.querySelector('.ErrorIcon, [class*="ErrorIcon"]');
+            var text = container.querySelector('.ErrorText, [class*="ErrorText"]');
+
+            if (icon && text) {
+                // Force inline layout with inline styles (overrides everything)
+                container.style.display = 'flex';
+                container.style.flexDirection = 'row';
+                container.style.alignItems = 'flex-start';
+                container.style.gap = '8px';
+
+                icon.style.display = 'inline-flex';
+                icon.style.flexShrink = '0';
+                icon.style.width = '16px';
+                icon.style.height = '16px';
+                icon.style.marginTop = '2px';
+                icon.style.marginRight = '0';
+                icon.style.marginBottom = '0';
+                icon.style.marginLeft = '0';
+
+                text.style.display = 'inline-block';
+                text.style.flex = '1 1 auto';
+                text.style.marginTop = '0';
+                text.style.marginRight = '0';
+                text.style.marginBottom = '0';
+                text.style.marginLeft = '0';
+            }
+        });
+    }
+
+    // Run immediately and observe for new errors
+    function observeStripeErrors() {
+        // Run initial fix
+        fixStripeErrorLayout();
+
+        // Observe DOM changes to catch dynamically added errors
+        var observer = new MutationObserver(function(mutations) {
+            var shouldFix = false;
+            mutations.forEach(function(mutation) {
+                if (mutation.addedNodes.length > 0) {
+                    mutation.addedNodes.forEach(function(node) {
+                        if (node.nodeType === 1) { // Element node
+                            var hasError = node.matches && (
+                                node.matches('.Error, [class*="Error"]') ||
+                                node.querySelector('.Error, [class*="Error"]')
+                            );
+                            if (hasError) {
+                                shouldFix = true;
+                            }
+                        }
+                    });
+                }
+            });
+            if (shouldFix) {
+                setTimeout(fixStripeErrorLayout, 10);
+            }
+        });
+
+        // Observe the payment area for changes
+        var paymentArea = document.querySelector('.bw-checkout-payment, #payment');
+        if (paymentArea) {
+            observer.observe(paymentArea, {
+                childList: true,
+                subtree: true
+            });
+        }
+    }
+
+    // Initialize error layout fix
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', observeStripeErrors);
+    } else {
+        observeStripeErrors();
+    }
+
     // Floating label for coupon input
     function initFloatingLabel() {
         var couponInput = document.getElementById('coupon_code');
@@ -486,6 +603,11 @@
             }
             return true;
         }
+
+        // Listen for custom trigger event from main interceptor
+        couponInput.addEventListener('apply-coupon-trigger', function() {
+            applyCouponAjax();
+        });
 
         if (couponForm) {
             // Use capture phase to intercept before other handlers
