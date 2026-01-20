@@ -197,7 +197,7 @@ body.woocommerce-account .bw-account-login-page.bw-full-section .bw-account-logi
 .bw-account-login__subtitle {
     margin: 0;
     font-weight: 400;
-    font-size: 13px;
+    font-size: 16px;
     line-height: 1.5;
     color: #666;
     text-align: center;
@@ -700,6 +700,46 @@ body.woocommerce-account.bw-account-login-only .bw-account-login__register-link:
     text-decoration: none;
     font-size: 15px;
     transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+body.woocommerce-account .bw-account-login-page button,
+body.woocommerce-account .bw-account-login-page .button,
+body.woocommerce-account .bw-account-login-page input[type="submit"],
+body.woocommerce-account .bw-account-login-page [role="button"],
+body.woocommerce-account .bw-account-login-page .bw-oauth-button,
+body.woocommerce-account .bw-account-login-page .bw-account-login__button {
+    background-color: #000;
+    color: #fff;
+    border-radius: 50%;
+    border: none;
+}
+
+body.woocommerce-account .bw-account-login-page button:hover,
+body.woocommerce-account .bw-account-login-page .button:hover,
+body.woocommerce-account .bw-account-login-page input[type="submit"]:hover,
+body.woocommerce-account .bw-account-login-page [role="button"]:hover,
+body.woocommerce-account .bw-account-login-page .bw-oauth-button:hover,
+body.woocommerce-account .bw-account-login-page .bw-account-login__button:hover,
+body.woocommerce-account .bw-account-login-page button:focus,
+body.woocommerce-account .bw-account-login-page .button:focus,
+body.woocommerce-account .bw-account-login-page input[type="submit"]:focus,
+body.woocommerce-account .bw-account-login-page [role="button"]:focus,
+body.woocommerce-account .bw-account-login-page .bw-oauth-button:focus,
+body.woocommerce-account .bw-account-login-page .bw-account-login__button:focus,
+body.woocommerce-account .bw-account-login-page button:active,
+body.woocommerce-account .bw-account-login-page .button:active,
+body.woocommerce-account .bw-account-login-page input[type="submit"]:active,
+body.woocommerce-account .bw-account-login-page [role="button"]:active,
+body.woocommerce-account .bw-account-login-page .bw-oauth-button:active,
+body.woocommerce-account .bw-account-login-page .bw-account-login__button:active,
+body.woocommerce-account .bw-account-login-page button:focus-visible,
+body.woocommerce-account .bw-account-login-page .button:focus-visible,
+body.woocommerce-account .bw-account-login-page input[type="submit"]:focus-visible,
+body.woocommerce-account .bw-account-login-page [role="button"]:focus-visible,
+body.woocommerce-account .bw-account-login-page .bw-oauth-button:focus-visible,
+body.woocommerce-account .bw-account-login-page .bw-account-login__button:focus-visible {
+    background-color: #000;
+    color: #fff;
 }
 
 .bw-account-login__passwordless:hover,
