@@ -75,6 +75,29 @@
     margin-bottom: 10px;
 }
 
+/* Account Page settings grouping */
+.bw-settings-group {
+    background: #f6f7f7;
+    border: 1px solid #dcdcde;
+    border-radius: 6px;
+    padding: 12px;
+    margin: 10px 0 18px;
+}
+
+.bw-settings-group__title,
+.bw-provider-box__title {
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.bw-settings-group__grid,
+.bw-provider-box__grid {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 10px 12px;
+    align-items: center;
+}
+
 /* Padding Grid Layout */
 .bw-padding-grid {
     display: flex;
