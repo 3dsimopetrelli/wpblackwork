@@ -788,7 +788,6 @@
                 logDebug('Auto-bridge skipped', { reason: 'already_attempted' });
                 return;
             }
-        }
 
             supabase.auth.getSession().then(function (response) {
                 if (response && response.data && response.data.session) {
@@ -1356,6 +1355,7 @@
         // Verification notes:
         // - Open Network tab: check /admin-ajax.php?action=bw_supabase_email_exists and /auth/v1/otp requests.
         // - With debug enabled, look for OTP_REQUEST_START/RESULT and WP_BRIDGE_START/RESULT logs in console.
+        // End QA checklist.
     };
 
     if (document.readyState === 'loading') {
