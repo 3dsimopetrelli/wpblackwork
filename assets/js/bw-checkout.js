@@ -509,6 +509,15 @@
             }
         }
 
+        // Also listen for Enter key in input
+        couponInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' || e.keyCode === 13) {
+                e.preventDefault();
+                e.stopPropagation();
+                applyCoupon();
+            }
+        });
+
         // Check on page load (in case of browser autofill)
         updateHasValue();
 
