@@ -167,8 +167,8 @@ body.woocommerce-checkout .woocommerce-message,
 .woocommerce-checkout .woocommerce-message {
     display: flex !important;
     flex-direction: row !important;
-    align-items: flex-start !important;
-    gap: 12px !important;
+    align-items: center !important;
+    gap: 8px !important;
 }
 
 /* Icon (usually a ::before pseudo-element) */
@@ -180,13 +180,11 @@ body.woocommerce-checkout .woocommerce-message::before,
 .woocommerce-checkout .woocommerce-message::before {
     display: inline-flex !important;
     flex-shrink: 0 !important;
-    align-self: flex-start !important;
-    margin-top: 0 !important;
-    margin-right: 0 !important;
-    margin-bottom: 0 !important;
-    margin-left: 0 !important;
+    align-self: center !important;
+    margin: 0 !important;
     position: relative !important;
     float: none !important;
+    line-height: 1 !important;
 }
 
 /* Text content */
