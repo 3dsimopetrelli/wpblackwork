@@ -1066,6 +1066,26 @@ function bw_mew_customize_stripe_upe_appearance( $params ) {
             '.Label' => array(
                 'display' => 'none',
             ),
+            // FIX 1: Error message icon positioning
+            '.Error' => array(
+                'display' => 'flex',
+                'alignItems' => 'center',
+                'gap' => '6px',
+                'marginTop' => '8px',
+                'fontSize' => '13px',
+                'lineHeight' => '1.4',
+                'color' => '#991b1b',
+            ),
+            '.ErrorIcon' => array(
+                'flexShrink' => '0',
+                'width' => '16px',
+                'height' => '16px',
+                'marginTop' => '0',
+            ),
+            '.ErrorText' => array(
+                'flex' => '1',
+                'marginTop' => '0',
+            ),
             '.Tab' => array(
                 'display' => 'none',
             ),
@@ -1093,6 +1113,24 @@ function bw_mew_customize_stripe_upe_appearance( $params ) {
             ),
             '.PaymentMethodHeader' => array(
                 'display' => 'none',
+            ),
+        ),
+    );
+
+    // FIX 3: Configure fields to auto-collect billing details from WooCommerce checkout form
+    // This prevents the "You specified 'never' but did not pass billing_details.name" error
+    $params['fields'] = array(
+        'billingDetails' => array(
+            'name' => 'auto',    // Auto-collect from WC checkout form
+            'email' => 'auto',   // Auto-collect from WC checkout form
+            'phone' => 'auto',   // Auto-collect from WC checkout form
+            'address' => array(
+                'country' => 'auto',
+                'line1' => 'auto',
+                'line2' => 'auto',
+                'city' => 'auto',
+                'state' => 'auto',
+                'postalCode' => 'auto',
             ),
         ),
     );
