@@ -245,6 +245,9 @@ function bw_mew_enqueue_checkout_assets() {
     $css_file = BW_MEW_PATH . 'assets/css/bw-checkout.css';
     $js_file  = BW_MEW_PATH . 'assets/js/bw-checkout.js';
     $version  = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
+
+    // FORCE CACHE BUST - Remove after testing
+    $version .= '.forcebust';
     $settings = bw_mew_get_checkout_settings();
 
     wp_enqueue_style(
