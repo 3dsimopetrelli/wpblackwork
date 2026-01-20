@@ -141,10 +141,8 @@ $login_subtitle_html = nl2br( esc_html( $login_subtitle ) );
                             <?php if ( $password_login_enabled ) : ?>
                                 <div class="bw-auth-screen bw-auth-screen--password" data-bw-screen="password">
                                     <form class="bw-account-login__form bw-account-login__form--supabase" data-bw-supabase-form data-bw-supabase-action="password-login">
-                                        <p class="bw-account-login__note"><?php esc_html_e( 'Use your email and password to sign in.', 'bw' ); ?></p>
-
                                         <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide bw-account-login__field">
-                                            <label for="bw_supabase_login_email"><?php esc_html_e( 'Email address', 'woocommerce' ); ?> <span class="required">*</span></label>
+                                            <label for="bw_supabase_login_email"><?php esc_html_e( 'Email', 'bw' ); ?> <span class="required">*</span></label>
                                             <input type="email" class="woocommerce-Input woocommerce-Input--text input-text" name="email" id="bw_supabase_login_email" autocomplete="email" required />
                                         </p>
 
