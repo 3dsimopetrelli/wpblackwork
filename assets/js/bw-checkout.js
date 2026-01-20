@@ -439,11 +439,56 @@
         var couponForm = couponInput.closest('form');
         if (couponForm) {
             couponForm.addEventListener('submit', function(e) {
+                e.preventDefault(); // FIX 2: Prevent default form submission
+                e.stopImmediatePropagation(); // Stop WooCommerce from intercepting
+
                 clearError();
-                // Set flag to show messages after form submission
-                try {
-                    sessionStorage.setItem('bw_coupon_action', 'true');
-                } catch(e) {}
+
+                var couponCode = couponInput.value.trim();
+
+                if (!couponCode) {
+                    showError('Please enter a coupon code');
+                    return;
+                }
+
+                // FIX 2: Apply coupon via AJAX to bypass payment validation
+                if (window.jQuery) {
+                    var $ = window.jQuery;
+
+                    setOrderSummaryLoading(true);
+
+                    $.ajax({
+                        type: 'POST',
+                        url: wc_checkout_params.wc_ajax_url.toString().replace('%%endpoint%%', 'apply_coupon'),
+                        data: {
+                            security: wc_checkout_params.apply_coupon_nonce,
+                            coupon_code: couponCode
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                // Trigger checkout update to refresh totals
+                                $(document.body).trigger('update_checkout');
+                                showCouponMessage('Coupon applied successfully', 'success');
+                                // Clear input after successful application
+                                couponInput.value = '';
+                                updateHasValue();
+                            } else {
+                                setOrderSummaryLoading(false);
+                                var errorMessage = response.data && response.data.message
+                                    ? response.data.message
+                                    : 'Invalid coupon code';
+                                showError(errorMessage);
+                            }
+                        },
+                        error: function() {
+                            setOrderSummaryLoading(false);
+                            showError('Error applying coupon. Please try again.');
+                        }
+                    });
+                } else {
+                    // Fallback to traditional form submission if jQuery not available
+                    couponForm.submit();
+                }
             });
         }
 
