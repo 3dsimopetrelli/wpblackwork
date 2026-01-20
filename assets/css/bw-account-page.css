@@ -197,7 +197,7 @@ body.woocommerce-account .bw-account-login-page.bw-full-section .bw-account-logi
 .bw-account-login__subtitle {
     margin: 0;
     font-weight: 400;
-    font-size: 13px;
+    font-size: 16px;
     line-height: 1.5;
     color: #666;
     text-align: center;
@@ -742,6 +742,22 @@ body.woocommerce-account .bw-account-login-page .bw-oauth-button:focus-visible,
 body.woocommerce-account .bw-account-login-page .bw-account-login__button:focus-visible {
     background-color: #000;
     color: #fff;
+}
+
+body.woocommerce-account .bw-account-login-page span.password-input button.show-password-input {
+    background-color: transparent !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 0;
+    cursor: pointer;
+}
+
+body.woocommerce-account .bw-account-login-page span.password-input button.show-password-input:hover,
+body.woocommerce-account .bw-account-login-page span.password-input button.show-password-input:focus,
+body.woocommerce-account .bw-account-login-page span.password-input button.show-password-input:active,
+body.woocommerce-account .bw-account-login-page span.password-input button.show-password-input:focus-visible {
+    background-color: transparent !important;
 }
 
 .bw-account-login__passwordless:hover,
