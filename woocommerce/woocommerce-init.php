@@ -1069,11 +1069,12 @@ function bw_mew_customize_stripe_upe_appearance( $params ) {
             '.Label' => array(
                 'display' => 'none',
             ),
-            // FIX 1: Error message icon positioning
+            // FIX 1: Error message icon positioning - use !important to override Stripe defaults
             '.Error' => array(
                 'display' => 'flex',
-                'alignItems' => 'center',
-                'gap' => '6px',
+                'flexDirection' => 'row',
+                'alignItems' => 'flex-start',
+                'gap' => '8px',
                 'marginTop' => '8px',
                 'fontSize' => '13px',
                 'lineHeight' => '1.4',
@@ -1083,11 +1084,20 @@ function bw_mew_customize_stripe_upe_appearance( $params ) {
                 'flexShrink' => '0',
                 'width' => '16px',
                 'height' => '16px',
-                'marginTop' => '0',
+                'minWidth' => '16px',
+                'marginTop' => '2px',
+                'marginRight' => '0',
+                'marginBottom' => '0',
+                'marginLeft' => '0',
+                'display' => 'inline-flex',
             ),
             '.ErrorText' => array(
-                'flex' => '1',
+                'flex' => '1 1 auto',
                 'marginTop' => '0',
+                'marginRight' => '0',
+                'marginBottom' => '0',
+                'marginLeft' => '0',
+                'display' => 'inline-block',
             ),
             '.Tab' => array(
                 'display' => 'none',

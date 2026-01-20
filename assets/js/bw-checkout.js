@@ -435,19 +435,17 @@
         // Clear error on focus
         couponInput.addEventListener('focus', clearError);
 
-        // Handle coupon application via button click (not form submit to avoid nested form issues)
-        var couponContainer = couponInput.closest('.checkout_coupon, .woocommerce-form-coupon');
-        var applyButton = couponContainer ? couponContainer.querySelector('.bw-apply-button') : null;
+        // Handle coupon form submission
+        var couponForm = couponInput.closest('form.checkout_coupon, form.woocommerce-form-coupon');
 
-        // Function to apply coupon via AJAX
-        function applyCoupon() {
+        function applyCouponAjax() {
             clearError();
 
             var couponCode = couponInput.value.trim();
 
             if (!couponCode) {
                 showError('Please enter a coupon code');
-                return;
+                return false;
             }
 
             // FIX 2: Apply coupon via AJAX to bypass payment validation
@@ -484,16 +482,31 @@
                         showError('Error applying coupon. Please try again.');
                     }
                 });
+                return false;
             }
+            return true;
         }
 
-        // Listen for button click
-        if (applyButton) {
-            applyButton.addEventListener('click', function(e) {
+        if (couponForm) {
+            // Use capture phase to intercept before other handlers
+            couponForm.addEventListener('submit', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
-                applyCoupon();
-            });
+                e.stopImmediatePropagation();
+                applyCouponAjax();
+                return false;
+            }, true);
+
+            // Also prevent on the button directly
+            var applyButton = couponForm.querySelector('button[name="apply_coupon"], .bw-apply-button');
+            if (applyButton) {
+                applyButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    applyCouponAjax();
+                    return false;
+                }, true);
+            }
         }
 
         // Also listen for Enter key in input
