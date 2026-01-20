@@ -154,9 +154,37 @@ body.woocommerce-account .bw-account-login__logo-link img {
     display: block;
 }
 
+body.woocommerce-account .bw-account-login-page.bw-full-section {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden;
+}
+
+body.woocommerce-account .bw-account-login-page.bw-full-section .bw-account-login {
+    display: flex;
+}
+
 .bw-account-login__intro {
     margin-bottom: 20px;
     text-align: center;
+}
+
+@media (max-width: 1024px) {
+    body.woocommerce-account .bw-account-login-page.bw-full-section .bw-account-login__media {
+        display: none !important;
+    }
+
+    body.woocommerce-account .bw-account-login-page.bw-full-section .bw-account-login__content-wrapper {
+        width: 100% !important;
+        flex: 1 1 100% !important;
+        max-width: 100% !important;
+    }
+
+    body.woocommerce-account .bw-account-login-page.bw-full-section .bw-account-login {
+        display: block !important;
+    }
 }
 
 .bw-account-login__intro .bw-account-login__title {

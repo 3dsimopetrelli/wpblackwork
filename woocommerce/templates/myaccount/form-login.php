@@ -40,7 +40,7 @@ if ( $login_image_id ) {
 }
 
 $has_cover = ! empty( $login_image_url );
-$wrapper_class = 'bw-account-login-page' . ( $has_cover ? ' bw-account-login-page--has-cover' : '' );
+$wrapper_class = 'bw-account-login-page bw-full-section' . ( $has_cover ? ' bw-account-login-page--has-cover' : '' );
 
 $logo_url = $logo;
 if ( $logo_id ) {
