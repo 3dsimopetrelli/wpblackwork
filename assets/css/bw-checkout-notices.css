@@ -45,7 +45,7 @@ body.woocommerce-checkout .bw-checkout-left .woocommerce-info {
 .bw-checkout-left .woocommerce-message,
 .bw-checkout-left .woocommerce-info {
 	display: flex !important;
-	align-items: flex-start;
+	align-items: center;
 	gap: 12px;
 	padding: 16px 20px;
 	border-radius: 8px;
