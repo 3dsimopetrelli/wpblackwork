@@ -11,10 +11,18 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 $login_image         = get_option( 'bw_account_login_image', '' );
+$login_image_id      = (int) get_option( 'bw_account_login_image_id', 0 );
 $logo                = get_option( 'bw_account_logo', '' );
+$logo_id             = (int) get_option( 'bw_account_logo_id', 0 );
 $logo_width          = (int) get_option( 'bw_account_logo_width', 180 );
 $logo_padding_top    = (int) get_option( 'bw_account_logo_padding_top', 0 );
 $logo_padding_bottom = (int) get_option( 'bw_account_logo_padding_bottom', 30 );
+$login_title         = get_option( 'bw_account_login_title', 'Log in to Blackwork' );
+$login_subtitle      = get_option(
+    'bw_account_login_subtitle',
+    "If you are new, we will create your account automatically.\nNew or returning, this works the same."
+);
+$show_social_buttons = (int) get_option( 'bw_account_show_social_buttons', 1 );
 $login_mode          = get_option( 'bw_supabase_login_mode', 'native' );
 $login_mode           = in_array( $login_mode, [ 'native', 'oidc' ], true ) ? $login_mode : 'native';
 $magic_link_enabled     = (int) get_option( 'bw_supabase_magic_link_enabled', 1 );
@@ -22,11 +30,35 @@ $oauth_google_enabled   = (int) get_option( 'bw_supabase_oauth_google_enabled', 
 $oauth_facebook_enabled = (int) get_option( 'bw_supabase_oauth_facebook_enabled', 1 );
 $oauth_apple_enabled    = (int) get_option( 'bw_supabase_oauth_apple_enabled', 0 );
 $password_login_enabled = (int) get_option( 'bw_supabase_login_password_enabled', 1 );
+
+$login_image_url = $login_image;
+if ( $login_image_id ) {
+    $login_image_attachment = wp_get_attachment_url( $login_image_id );
+    if ( $login_image_attachment ) {
+        $login_image_url = $login_image_attachment;
+    }
+}
+
+$logo_url = $logo;
+if ( $logo_id ) {
+    $logo_attachment = wp_get_attachment_url( $logo_id );
+    if ( $logo_attachment ) {
+        $logo_url = $logo_attachment;
+    }
+}
+
+$logo_styles = sprintf(
+    '--bw-logo-width:%dpx; --bw-logo-pt:%dpx; --bw-logo-pb:%dpx;',
+    absint( $logo_width ),
+    absint( $logo_padding_top ),
+    absint( $logo_padding_bottom )
+);
+$login_subtitle_html = nl2br( esc_html( $login_subtitle ) );
 ?>
 
 <div class="bw-account-login-page">
     <div class="bw-account-login">
-        <div class="bw-account-login__media" <?php if ( $login_image ) : ?>style="background-image: url('<?php echo esc_url( $login_image ); ?>');"<?php endif; ?>></div>
+        <div class="bw-account-login__media" <?php if ( $login_image_url ) : ?>style="background-image: url('<?php echo esc_url( $login_image_url ); ?>');"<?php endif; ?>></div>
         <div class="bw-account-login__content-wrapper">
             <div class="bw-account-login__content">
                 <?php do_action( 'woocommerce_before_customer_login_form' ); ?>
@@ -37,9 +69,20 @@ $password_login_enabled = (int) get_option( 'bw_supabase_login_password_enabled'
                     </div>
                 <?php endif; ?>
 
-                <?php if ( $logo ) : ?>
-                    <div class="bw-account-login__logo" style="padding-top: <?php echo absint( $logo_padding_top ); ?>px; padding-bottom: <?php echo absint( $logo_padding_bottom ); ?>px;">
-                        <img src="<?php echo esc_url( $logo ); ?>" alt="<?php esc_attr_e( 'Account logo', 'bw' ); ?>" style="max-width: <?php echo absint( $logo_width ); ?>px;" />
+                <?php if ( $logo_url ) : ?>
+                    <div class="bw-account-login__logo" style="<?php echo esc_attr( $logo_styles ); ?>">
+                        <img src="<?php echo esc_url( $logo_url ); ?>" alt="<?php esc_attr_e( 'Account logo', 'bw' ); ?>" />
+                    </div>
+                <?php endif; ?>
+
+                <?php if ( $login_title || $login_subtitle ) : ?>
+                    <div class="bw-account-login__intro">
+                        <?php if ( $login_title ) : ?>
+                            <h2 class="bw-account-login__title"><?php echo esc_html( $login_title ); ?></h2>
+                        <?php endif; ?>
+                        <?php if ( $login_subtitle ) : ?>
+                            <p class="bw-account-login__subtitle"><?php echo wp_kses( $login_subtitle_html, [ 'br' => [] ] ); ?></p>
+                        <?php endif; ?>
                     </div>
                 <?php endif; ?>
 
@@ -63,7 +106,7 @@ $password_login_enabled = (int) get_option( 'bw_supabase_login_password_enabled'
                                     </p>
                                 </form>
 
-                                <?php if ( $oauth_google_enabled || $oauth_facebook_enabled || $oauth_apple_enabled ) : ?>
+                                <?php if ( $show_social_buttons && ( $oauth_google_enabled || $oauth_facebook_enabled || $oauth_apple_enabled ) ) : ?>
                                     <div class="bw-account-login__divider">
                                         <span><?php esc_html_e( 'or', 'bw' ); ?></span>
                                     </div>
