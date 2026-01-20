@@ -631,6 +631,37 @@
             }
         }
 
+        if (couponForm) {
+            // Use capture phase to intercept before other handlers
+            couponForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                applyCouponAjax();
+                return false;
+            }, true);
+
+            // Also prevent on the button directly
+            var applyButton = couponForm.querySelector('button[name="apply_coupon"], .bw-apply-button');
+            if (applyButton) {
+                applyButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    applyCouponAjax();
+                    return false;
+                }, true);
+            }
+        }
+
+        // Also listen for Enter key in input
+        couponInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' || e.keyCode === 13) {
+                e.preventDefault();
+                e.stopPropagation();
+                applyCoupon();
+            }
+        });
+
         // Check on page load (in case of browser autofill)
         updateHasValue();
 
