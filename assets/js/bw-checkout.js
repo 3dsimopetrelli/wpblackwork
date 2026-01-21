@@ -523,7 +523,16 @@
         var couponContainer = couponInput.closest('.checkout_coupon, .woocommerce-form-coupon');
         var applyButton = couponContainer ? couponContainer.querySelector('.bw-apply-button') : null;
 
+        console.log('[BW Checkout] Coupon elements:', {
+            couponInput: couponInput,
+            couponContainer: couponContainer,
+            applyButton: applyButton,
+            hasJQuery: !!window.jQuery,
+            hasWcParams: typeof wc_checkout_params !== 'undefined'
+        });
+
         function applyCouponAjax() {
+            console.log('[BW Checkout] applyCouponAjax called');
             clearError();
 
             var couponCode = couponInput.value.trim();
@@ -534,7 +543,8 @@
             }
 
             // FIX 2: Apply coupon via AJAX to bypass payment validation
-            if (window.jQuery) {
+            if (window.jQuery && typeof wc_checkout_params !== 'undefined') {
+                console.log('[BW Checkout] Sending AJAX request for coupon:', couponCode);
                 var $ = window.jQuery;
 
                 setOrderSummaryLoading(true);
@@ -568,16 +578,24 @@
                     }
                 });
                 return false;
+            } else {
+                // Fallback: show error if jQuery or WC params not available
+                console.error('[BW Checkout] jQuery or wc_checkout_params not available');
+                showError('Unable to apply coupon. Please refresh the page.');
+                return false;
             }
-            return true;
         }
 
         // Handle button click
         if (applyButton) {
+            console.log('[BW Checkout] Adding click listener to apply button');
             applyButton.addEventListener('click', function(e) {
+                console.log('[BW Checkout] Apply button clicked');
                 e.preventDefault();
                 applyCouponAjax();
             });
+        } else {
+            console.error('[BW Checkout] Apply button not found!');
         }
 
         // Handle Enter key in input
