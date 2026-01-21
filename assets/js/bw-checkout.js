@@ -522,7 +522,14 @@ console.log('[BW Checkout] Script file loaded and executing');
         var couponContainer = couponInput.closest('.checkout_coupon, .woocommerce-form-coupon');
         var applyButton = couponContainer ? couponContainer.querySelector('.bw-apply-button') : null;
 
+        console.log('[BW Checkout] Looking for apply button:', {
+            couponContainer: couponContainer,
+            applyButton: applyButton,
+            couponContainerHTML: couponContainer ? couponContainer.outerHTML.substring(0, 200) : 'NOT FOUND'
+        });
+
         function applyCouponAjax() {
+            console.log('[BW Checkout] applyCouponAjax function called!');
             clearError();
 
             var couponCode = couponInput.value.trim();
@@ -577,10 +584,15 @@ console.log('[BW Checkout] Script file loaded and executing');
 
         // Handle button click
         if (applyButton) {
+            console.log('[BW Checkout] Adding click listener to apply button');
             applyButton.addEventListener('click', function(e) {
+                console.log('[BW Checkout] Apply button CLICKED!');
                 e.preventDefault();
                 applyCouponAjax();
             });
+            console.log('[BW Checkout] Click listener successfully added');
+        } else {
+            console.error('[BW Checkout] Apply button NOT FOUND - cannot add listener!');
         }
 
         // Handle Enter key in input
