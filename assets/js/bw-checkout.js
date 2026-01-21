@@ -582,26 +582,26 @@ console.log('[BW Checkout] Script file loaded and executing');
             }
         }
 
-        // Handle button click - USE CAPTURE PHASE to intercept before other handlers
-        if (applyButton) {
-            console.log('[BW Checkout] Adding click listener to apply button with capture=true');
-            applyButton.addEventListener('click', function(e) {
-                console.log('[BW Checkout] Apply button CLICKED! Stopping propagation.');
+        // EVENT DELEGATION - Listen on document for clicks on apply button
+        // This works even if button is recreated by WooCommerce
+        console.log('[BW Checkout] Setting up event delegation for apply button');
+        document.addEventListener('click', function(e) {
+            var target = e.target;
+            // Check if clicked element is the apply button or inside it
+            if (target.matches('.bw-apply-button') || target.closest('.bw-apply-button')) {
+                console.log('[BW Checkout] Apply button CLICKED via delegation! Stopping propagation.');
                 e.preventDefault();
                 e.stopPropagation();
                 e.stopImmediatePropagation();
                 applyCouponAjax();
                 return false;
-            }, true); // CAPTURE PHASE - executes BEFORE bubble phase
-            console.log('[BW Checkout] Click listener successfully added in capture phase');
-        } else {
-            console.error('[BW Checkout] Apply button NOT FOUND - cannot add listener!');
-        }
+            }
+        }, true); // CAPTURE PHASE - executes BEFORE all other handlers
 
-        // Handle Enter key in input - also use capture phase
-        couponInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' || e.keyCode === 13) {
-                console.log('[BW Checkout] Enter key pressed in coupon input');
+        // EVENT DELEGATION for Enter key
+        document.addEventListener('keypress', function(e) {
+            if ((e.key === 'Enter' || e.keyCode === 13) && e.target.id === 'coupon_code') {
+                console.log('[BW Checkout] Enter key pressed in coupon input via delegation');
                 e.preventDefault();
                 e.stopPropagation();
                 e.stopImmediatePropagation();
@@ -609,6 +609,8 @@ console.log('[BW Checkout] Script file loaded and executing');
                 return false;
             }
         }, true); // CAPTURE PHASE
+
+        console.log('[BW Checkout] Event delegation successfully set up');
 
         // Check on page load (in case of browser autofill)
         updateHasValue();
