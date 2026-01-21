@@ -1,4 +1,38 @@
 (function () {
+    'use strict';
+
+    // Wait for both DOM and jQuery to be ready
+    function initWhenReady(callback) {
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                if (window.jQuery) {
+                    callback();
+                } else {
+                    // jQuery not ready yet, wait a bit
+                    var checkJQuery = setInterval(function() {
+                        if (window.jQuery) {
+                            clearInterval(checkJQuery);
+                            callback();
+                        }
+                    }, 50);
+                }
+            });
+        } else {
+            // DOM already loaded
+            if (window.jQuery) {
+                callback();
+            } else {
+                // jQuery not ready yet, wait a bit
+                var checkJQuery = setInterval(function() {
+                    if (window.jQuery) {
+                        clearInterval(checkJQuery);
+                        callback();
+                    }
+                }, 50);
+            }
+        }
+    }
+
     function triggerCheckoutUpdate() {
         if (window.jQuery && window.jQuery(document.body).trigger) {
             window.jQuery(document.body).trigger('update_checkout');
@@ -661,10 +695,8 @@
         }
     }
 
-    // Initialize floating label
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initFloatingLabel);
-    } else {
+    // Initialize all functions when ready
+    initWhenReady(function() {
         initFloatingLabel();
-    }
+    });
 })();
