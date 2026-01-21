@@ -1,5 +1,14 @@
-jQuery(function($) {
+(function() {
     'use strict';
+
+    // Force execution even if there are errors in other scripts
+    var $ = window.jQuery;
+
+    if (!$) {
+        // jQuery not loaded, retry after short delay
+        setTimeout(arguments.callee, 100);
+        return;
+    }
 
     function triggerCheckoutUpdate() {
         if (window.jQuery && window.jQuery(document.body).trigger) {
@@ -649,8 +658,16 @@ jQuery(function($) {
         }
     }
 
-    // Initialize all functions
-    initCustomSticky();
-    observeStripeErrors();
-    initFloatingLabel();
-});
+    // Initialize all functions when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            initCustomSticky();
+            observeStripeErrors();
+            initFloatingLabel();
+        });
+    } else {
+        initCustomSticky();
+        observeStripeErrors();
+        initFloatingLabel();
+    }
+})();
