@@ -582,26 +582,33 @@ console.log('[BW Checkout] Script file loaded and executing');
             }
         }
 
-        // Handle button click
+        // Handle button click - USE CAPTURE PHASE to intercept before other handlers
         if (applyButton) {
-            console.log('[BW Checkout] Adding click listener to apply button');
+            console.log('[BW Checkout] Adding click listener to apply button with capture=true');
             applyButton.addEventListener('click', function(e) {
-                console.log('[BW Checkout] Apply button CLICKED!');
+                console.log('[BW Checkout] Apply button CLICKED! Stopping propagation.');
                 e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
                 applyCouponAjax();
-            });
-            console.log('[BW Checkout] Click listener successfully added');
+                return false;
+            }, true); // CAPTURE PHASE - executes BEFORE bubble phase
+            console.log('[BW Checkout] Click listener successfully added in capture phase');
         } else {
             console.error('[BW Checkout] Apply button NOT FOUND - cannot add listener!');
         }
 
-        // Handle Enter key in input
+        // Handle Enter key in input - also use capture phase
         couponInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter' || e.keyCode === 13) {
+                console.log('[BW Checkout] Enter key pressed in coupon input');
                 e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
                 applyCouponAjax();
+                return false;
             }
-        });
+        }, true); // CAPTURE PHASE
 
         // Check on page load (in case of browser autofill)
         updateHasValue();
