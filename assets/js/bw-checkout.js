@@ -1,14 +1,21 @@
+console.log('[BW Checkout] Script file loaded and executing');
+
 (function() {
     'use strict';
+
+    console.log('[BW Checkout] IIFE started');
 
     // Force execution even if there are errors in other scripts
     var $ = window.jQuery;
 
     if (!$) {
+        console.log('[BW Checkout] jQuery not ready, will retry');
         // jQuery not loaded, retry after short delay
         setTimeout(arguments.callee, 100);
         return;
     }
+
+    console.log('[BW Checkout] jQuery is ready, continuing initialization');
 
     function triggerCheckoutUpdate() {
         if (window.jQuery && window.jQuery(document.body).trigger) {
