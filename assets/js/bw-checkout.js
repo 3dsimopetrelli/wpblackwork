@@ -1,4 +1,6 @@
 (function () {
+    console.log('[BW Checkout] Script loaded');
+
     function triggerCheckoutUpdate() {
         if (window.jQuery && window.jQuery(document.body).trigger) {
             window.jQuery(document.body).trigger('update_checkout');
@@ -469,12 +471,22 @@
 
     // Floating label for coupon input
     function initFloatingLabel() {
+        console.log('[BW Checkout] initFloatingLabel called');
+
         var couponInput = document.getElementById('coupon_code');
         var wrapper = couponInput ? couponInput.closest('.bw-coupon-input-wrapper') : null;
         var label = wrapper ? wrapper.querySelector('.bw-floating-label') : null;
         var errorDiv = document.querySelector('.bw-coupon-error');
 
+        console.log('[BW Checkout] Elements found:', {
+            couponInput: couponInput,
+            wrapper: wrapper,
+            label: label,
+            errorDiv: errorDiv
+        });
+
         if (!couponInput || !wrapper || !label) {
+            console.error('[BW Checkout] Missing required elements - exiting initFloatingLabel');
             return;
         }
 
@@ -684,9 +696,12 @@
     }
 
     // Initialize floating label
+    console.log('[BW Checkout] Initializing - readyState:', document.readyState);
     if (document.readyState === 'loading') {
+        console.log('[BW Checkout] Waiting for DOMContentLoaded');
         document.addEventListener('DOMContentLoaded', initFloatingLabel);
     } else {
+        console.log('[BW Checkout] DOM already loaded, calling initFloatingLabel immediately');
         initFloatingLabel();
     }
 })();
