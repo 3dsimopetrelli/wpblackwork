@@ -1,6 +1,4 @@
 (function () {
-    console.log('[BW Checkout] Script loaded');
-
     function triggerCheckoutUpdate() {
         if (window.jQuery && window.jQuery(document.body).trigger) {
             window.jQuery(document.body).trigger('update_checkout');
@@ -391,18 +389,12 @@
         // Find all Stripe error containers in both main DOM and shadow roots
         var errorContainers = document.querySelectorAll('.Error, [class*="Error"]');
 
-        console.log('[BW Checkout] Fixing Stripe errors, found ' + errorContainers.length + ' containers');
-
         errorContainers.forEach(function(container) {
             // Check if it's actually a Stripe error (has ErrorIcon and ErrorText)
             var icon = container.querySelector('.ErrorIcon, [class*="ErrorIcon"]');
             var text = container.querySelector('.ErrorText, [class*="ErrorText"]');
 
-            console.log('[BW Checkout] Container:', container, 'Icon:', icon, 'Text:', text);
-
             if (icon && text) {
-                console.log('[BW Checkout] Applying inline styles with !important');
-
                 // Force inline layout with inline styles using !important (overrides everything)
                 container.style.setProperty('display', 'flex', 'important');
                 container.style.setProperty('flex-direction', 'row', 'important');
@@ -418,8 +410,6 @@
                 text.style.setProperty('display', 'inline-block', 'important');
                 text.style.setProperty('flex', '1 1 auto', 'important');
                 text.style.setProperty('margin', '0', 'important');
-
-                console.log('[BW Checkout] Styles applied successfully');
             }
         });
     }
@@ -471,22 +461,12 @@
 
     // Floating label for coupon input
     function initFloatingLabel() {
-        console.log('[BW Checkout] initFloatingLabel called');
-
         var couponInput = document.getElementById('coupon_code');
         var wrapper = couponInput ? couponInput.closest('.bw-coupon-input-wrapper') : null;
         var label = wrapper ? wrapper.querySelector('.bw-floating-label') : null;
         var errorDiv = document.querySelector('.bw-coupon-error');
 
-        console.log('[BW Checkout] Elements found:', {
-            couponInput: couponInput,
-            wrapper: wrapper,
-            label: label,
-            errorDiv: errorDiv
-        });
-
         if (!couponInput || !wrapper || !label) {
-            console.error('[BW Checkout] Missing required elements - exiting initFloatingLabel');
             return;
         }
 
@@ -535,16 +515,7 @@
         var couponContainer = couponInput.closest('.checkout_coupon, .woocommerce-form-coupon');
         var applyButton = couponContainer ? couponContainer.querySelector('.bw-apply-button') : null;
 
-        console.log('[BW Checkout] Coupon elements:', {
-            couponInput: couponInput,
-            couponContainer: couponContainer,
-            applyButton: applyButton,
-            hasJQuery: !!window.jQuery,
-            hasWcParams: typeof wc_checkout_params !== 'undefined'
-        });
-
         function applyCouponAjax() {
-            console.log('[BW Checkout] applyCouponAjax called');
             clearError();
 
             var couponCode = couponInput.value.trim();
@@ -554,9 +525,8 @@
                 return false;
             }
 
-            // FIX 2: Apply coupon via AJAX to bypass payment validation
+            // Apply coupon via AJAX to bypass payment validation
             if (window.jQuery && typeof wc_checkout_params !== 'undefined') {
-                console.log('[BW Checkout] Sending AJAX request for coupon:', couponCode);
                 var $ = window.jQuery;
 
                 setOrderSummaryLoading(true);
@@ -600,14 +570,10 @@
 
         // Handle button click
         if (applyButton) {
-            console.log('[BW Checkout] Adding click listener to apply button');
             applyButton.addEventListener('click', function(e) {
-                console.log('[BW Checkout] Apply button clicked');
                 e.preventDefault();
                 applyCouponAjax();
             });
-        } else {
-            console.error('[BW Checkout] Apply button not found!');
         }
 
         // Handle Enter key in input
@@ -696,12 +662,9 @@
     }
 
     // Initialize floating label
-    console.log('[BW Checkout] Initializing - readyState:', document.readyState);
     if (document.readyState === 'loading') {
-        console.log('[BW Checkout] Waiting for DOMContentLoaded');
         document.addEventListener('DOMContentLoaded', initFloatingLabel);
     } else {
-        console.log('[BW Checkout] DOM already loaded, calling initFloatingLabel immediately');
         initFloatingLabel();
     }
 })();
