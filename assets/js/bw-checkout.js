@@ -539,17 +539,18 @@ console.log('[BW Checkout] Script file loaded and executing');
                 return false;
             }
 
-            // Apply coupon via AJAX to bypass payment validation
-            if (window.jQuery && typeof wc_checkout_params !== 'undefined') {
+            // Apply coupon via custom AJAX handler with proper session persistence
+            if (window.jQuery && window.bwCheckoutParams) {
                 var $ = window.jQuery;
 
                 setOrderSummaryLoading(true);
 
                 $.ajax({
                     type: 'POST',
-                    url: wc_checkout_params.wc_ajax_url.toString().replace('%%endpoint%%', 'apply_coupon'),
+                    url: bwCheckoutParams.ajax_url,
                     data: {
-                        security: wc_checkout_params.apply_coupon_nonce,
+                        action: 'bw_apply_coupon',
+                        nonce: bwCheckoutParams.nonce,
                         coupon_code: couponCode
                     },
                     success: function(response) {
@@ -583,8 +584,8 @@ console.log('[BW Checkout] Script file loaded and executing');
                 });
                 return false;
             } else {
-                // Fallback: show error if jQuery or WC params not available
-                console.error('[BW Checkout] jQuery or wc_checkout_params not available');
+                // Fallback: show error if jQuery or BW checkout params not available
+                console.error('[BW Checkout] jQuery or bwCheckoutParams not available');
                 showError('Unable to apply coupon. Please refresh the page.');
                 return false;
             }
