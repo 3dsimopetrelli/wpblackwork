@@ -590,35 +590,35 @@ console.log('[BW Checkout] Script file loaded and executing');
             }
         }
 
-        // EVENT DELEGATION - Listen on document for clicks on apply button
-        // This works even if button is recreated by WooCommerce
-        console.log('[BW Checkout] Setting up event delegation for apply button');
-        document.addEventListener('click', function(e) {
-            var target = e.target;
-            // Check if clicked element is the apply button or inside it
-            if (target.matches('.bw-apply-button') || target.closest('.bw-apply-button')) {
-                console.log('[BW Checkout] Apply button CLICKED via delegation! Stopping propagation.');
+        // SIMPLE JQUERY DELEGATION - Works like cart popup
+        // Use jQuery's delegation to handle button clicks even if WooCommerce recreates the element
+        if (window.jQuery) {
+            console.log('[BW Checkout] Setting up jQuery delegation for apply button');
+
+            // Apply button click handler
+            $(document).on('click', '.bw-apply-button', function(e) {
+                console.log('[BW Checkout] Apply button clicked!');
                 e.preventDefault();
                 e.stopPropagation();
-                e.stopImmediatePropagation();
                 applyCouponAjax();
                 return false;
-            }
-        }, true); // CAPTURE PHASE - executes BEFORE all other handlers
+            });
 
-        // EVENT DELEGATION for Enter key
-        document.addEventListener('keypress', function(e) {
-            if ((e.key === 'Enter' || e.keyCode === 13) && e.target.id === 'coupon_code') {
-                console.log('[BW Checkout] Enter key pressed in coupon input via delegation');
-                e.preventDefault();
-                e.stopPropagation();
-                e.stopImmediatePropagation();
-                applyCouponAjax();
-                return false;
-            }
-        }, true); // CAPTURE PHASE
+            // Enter key in coupon input
+            $(document).on('keypress', '#coupon_code', function(e) {
+                if (e.which === 13) { // Enter key
+                    console.log('[BW Checkout] Enter key pressed in coupon input');
+                    e.preventDefault();
+                    e.stopPropagation();
+                    applyCouponAjax();
+                    return false;
+                }
+            });
 
-        console.log('[BW Checkout] Event delegation successfully set up');
+            console.log('[BW Checkout] jQuery delegation successfully set up');
+        } else {
+            console.error('[BW Checkout] jQuery not available for event delegation');
+        }
 
         // Check on page load (in case of browser autofill)
         updateHasValue();
