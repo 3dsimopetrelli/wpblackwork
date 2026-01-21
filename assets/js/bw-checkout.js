@@ -595,9 +595,27 @@ console.log('[BW Checkout] Script file loaded and executing');
         console.log('[BW Checkout] Setting up event delegation for apply button');
         document.addEventListener('click', function(e) {
             var target = e.target;
+
+            // DEBUG: Log ALL clicks to see if event fires
+            console.log('[BW Checkout] Document click captured:', {
+                target: target,
+                tagName: target.tagName,
+                className: target.className,
+                id: target.id
+            });
+
             // Check if clicked element is the apply button or inside it
-            if (target.matches('.bw-apply-button') || target.closest('.bw-apply-button')) {
-                console.log('[BW Checkout] Apply button CLICKED via delegation! Stopping propagation.');
+            var isApplyButton = target.classList.contains('bw-apply-button');
+            var closestApplyButton = target.closest('.bw-apply-button');
+
+            console.log('[BW Checkout] Button check:', {
+                isApplyButton: isApplyButton,
+                hasClosest: !!closestApplyButton,
+                targetClasses: target.className
+            });
+
+            if (isApplyButton || closestApplyButton) {
+                console.log('[BW Checkout] ✅ Apply button CLICKED via delegation! Stopping propagation.');
                 e.preventDefault();
                 e.stopPropagation();
                 e.stopImmediatePropagation();
