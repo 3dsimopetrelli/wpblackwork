@@ -32,6 +32,8 @@ function bw_mew_initialize_woocommerce_overrides() {
     add_action( 'template_redirect', 'bw_mew_prepare_theme_title_bypass', 8 );
     add_action( 'template_redirect', 'bw_mew_hide_single_product_notices', 9 );
     add_action( 'woocommerce_checkout_update_order_review', 'bw_mew_sync_checkout_cart_quantities', 10, 1 );
+    add_action( 'wp_ajax_bw_apply_coupon', 'bw_mew_ajax_apply_coupon' );
+    add_action( 'wp_ajax_nopriv_bw_apply_coupon', 'bw_mew_ajax_apply_coupon' );
     add_action( 'wp_ajax_bw_remove_coupon', 'bw_mew_ajax_remove_coupon' );
     add_action( 'wp_ajax_nopriv_bw_remove_coupon', 'bw_mew_ajax_remove_coupon' );
     add_filter( 'the_title', 'bw_mew_filter_account_page_title', 10, 2 );
@@ -944,6 +946,92 @@ function bw_mew_ajax_remove_coupon() {
 
     wp_send_json_success( array(
         'message'         => __( 'Coupon removed successfully.', 'woocommerce' ),
+        'applied_coupons' => WC()->cart->get_applied_coupons(),
+        'cart_hash'       => WC()->cart->get_cart_hash(), // Return hash to verify state change
+    ) );
+}
+
+/**
+ * AJAX handler to apply coupon to cart.
+ *
+ * FIX: This custom handler ensures proper session persistence when applying coupons.
+ * Without this, the coupon would be applied server-side but not reflected in the checkout
+ * fragments due to race conditions between session writes and checkout refresh reads.
+ *
+ * Key differences from WooCommerce's standard apply_coupon endpoint:
+ * 1. Forces immediate session persistence with multiple safety checks
+ * 2. Explicitly sets all coupon-related session data
+ * 3. Returns cart hash to help client detect state changes
+ * 4. Properly integrates with WooCommerce's action hooks
+ */
+function bw_mew_ajax_apply_coupon() {
+    check_ajax_referer( 'bw-checkout-nonce', 'nonce' );
+
+    if ( ! class_exists( 'WooCommerce' ) || ! WC()->cart ) {
+        wp_send_json_error( array( 'message' => __( 'Cart not available.', 'woocommerce' ) ) );
+    }
+
+    $coupon_code = isset( $_POST['coupon_code'] ) ? sanitize_text_field( wp_unslash( $_POST['coupon_code'] ) ) : '';
+
+    if ( empty( $coupon_code ) ) {
+        wp_send_json_error( array( 'message' => __( 'Please enter a coupon code.', 'woocommerce' ) ) );
+    }
+
+    // Clear any existing notices to ensure clean validation
+    wc_clear_notices();
+
+    // Apply the coupon using WooCommerce's standard method
+    $applied = WC()->cart->apply_coupon( $coupon_code );
+
+    if ( ! $applied ) {
+        // Get error message from WooCommerce notices
+        $error_notices = wc_get_notices( 'error' );
+        $error_message = __( 'Invalid coupon code.', 'woocommerce' );
+
+        if ( ! empty( $error_notices ) && is_array( $error_notices ) ) {
+            $first_error = reset( $error_notices );
+            if ( is_array( $first_error ) && isset( $first_error['notice'] ) ) {
+                $error_message = wp_strip_all_tags( (string) $first_error['notice'] );
+            } elseif ( is_string( $first_error ) ) {
+                $error_message = wp_strip_all_tags( $first_error );
+            }
+        }
+
+        wc_clear_notices();
+        wp_send_json_error( array( 'message' => $error_message ) );
+    }
+
+    // Calculate totals after applying coupon
+    WC()->cart->calculate_totals();
+
+    // CRITICAL FIX: Force immediate session persistence with multiple safety checks
+    // This ensures the coupon application is saved BEFORE the checkout fragment refresh reads the session
+    if ( WC()->session ) {
+        // Save cart data to session immediately
+        WC()->cart->persistent_cart_update();
+
+        // Force session data write to database/storage
+        WC()->session->save_data();
+
+        // Additional safety: set the cart session explicitly
+        WC()->session->set( 'cart', serialize( WC()->cart->get_cart_for_session() ) );
+        WC()->session->set( 'applied_coupons', WC()->cart->get_applied_coupons() );
+        WC()->session->set( 'coupon_discount_totals', WC()->cart->get_coupon_discount_totals() );
+        WC()->session->set( 'coupon_discount_tax_totals', WC()->cart->get_coupon_discount_tax_totals() );
+
+        // Force one more save to commit all the above
+        WC()->session->save_data();
+    }
+
+    // Clear any notices
+    wc_clear_notices();
+
+    // Trigger WooCommerce's standard applied_coupon action for proper event integration
+    // This allows other plugins/code to react to coupon application
+    do_action( 'woocommerce_applied_coupon', $coupon_code );
+
+    wp_send_json_success( array(
+        'message'         => __( 'Coupon applied successfully.', 'woocommerce' ),
         'applied_coupons' => WC()->cart->get_applied_coupons(),
         'cart_hash'       => WC()->cart->get_cart_hash(), // Return hash to verify state change
     ) );
