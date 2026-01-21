@@ -282,6 +282,14 @@ function bw_mew_enqueue_checkout_assets() {
                 'nonce'    => wp_create_nonce( 'bw-checkout-nonce' ),
             )
         );
+
+        // Add defer attribute to ensure script executes even if other scripts error
+        add_filter( 'script_loader_tag', function( $tag, $handle ) {
+            if ( 'bw-checkout' === $handle ) {
+                $tag = str_replace( ' src=', ' defer src=', $tag );
+            }
+            return $tag;
+        }, 10, 2 );
     }
 
     $inline_styles = '.bw-checkout-form{--bw-checkout-left-bg:' . esc_attr( $settings['left_bg'] ) . ';--bw-checkout-right-bg:' . esc_attr( $settings['right_bg'] ) . ';--bw-checkout-border-color:' . esc_attr( $settings['border_color'] ) . ';}';
