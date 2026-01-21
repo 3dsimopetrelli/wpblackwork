@@ -553,7 +553,12 @@ console.log('[BW Checkout] Script file loaded and executing');
                         coupon_code: couponCode
                     },
                     success: function(response) {
+                        console.log('[BW Checkout] AJAX response received:', response);
+                        console.log('[BW Checkout] response.success:', response.success);
+                        console.log('[BW Checkout] response.data:', response.data);
+
                         if (response.success) {
+                            console.log('[BW Checkout] Coupon applied successfully!');
                             // Trigger checkout update to refresh totals
                             $(document.body).trigger('update_checkout');
                             showCouponMessage('Coupon applied successfully', 'success');
@@ -561,14 +566,17 @@ console.log('[BW Checkout] Script file loaded and executing');
                             couponInput.value = '';
                             updateHasValue();
                         } else {
+                            console.log('[BW Checkout] Coupon application failed');
                             setOrderSummaryLoading(false);
                             var errorMessage = response.data && response.data.message
                                 ? response.data.message
                                 : 'Invalid coupon code';
+                            console.log('[BW Checkout] Error message:', errorMessage);
                             showError(errorMessage);
                         }
                     },
-                    error: function() {
+                    error: function(xhr, status, error) {
+                        console.error('[BW Checkout] AJAX error:', {xhr: xhr, status: status, error: error});
                         setOrderSummaryLoading(false);
                         showError('Error applying coupon. Please try again.');
                     }
