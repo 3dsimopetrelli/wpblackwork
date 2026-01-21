@@ -410,13 +410,6 @@
         }
     }
 
-    // Initialize custom sticky
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initCustomSticky);
-    } else {
-        initCustomSticky();
-    }
-
 
     // Fix Stripe error icon positioning (force inline layout with inline styles)
     function fixStripeErrorLayout() {
@@ -484,13 +477,6 @@
                 subtree: true
             });
         }
-    }
-
-    // Initialize error layout fix
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', observeStripeErrors);
-    } else {
-        observeStripeErrors();
     }
 
     // Floating label for coupon input
@@ -697,6 +683,8 @@
 
     // Initialize all functions when ready
     initWhenReady(function() {
+        initCustomSticky();
+        observeStripeErrors();
         initFloatingLabel();
     });
 })();
