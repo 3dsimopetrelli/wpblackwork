@@ -463,8 +463,11 @@ console.log('[BW Checkout] Script file loaded and executing');
         }
     }
 
+    console.log('[BW Checkout] About to define initFloatingLabel');
+
     // Floating label for coupon input
     function initFloatingLabel() {
+        console.log('[BW Checkout] initFloatingLabel called');
         var couponInput = document.getElementById('coupon_code');
         var wrapper = couponInput ? couponInput.closest('.bw-coupon-input-wrapper') : null;
         var label = wrapper ? wrapper.querySelector('.bw-floating-label') : null;
@@ -665,16 +668,23 @@ console.log('[BW Checkout] Script file loaded and executing');
         }
     }
 
+    console.log('[BW Checkout] Script reached end, about to initialize. DOM readyState:', document.readyState);
+
     // Initialize all functions when DOM is ready
     if (document.readyState === 'loading') {
+        console.log('[BW Checkout] DOM still loading, waiting for DOMContentLoaded');
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('[BW Checkout] DOMContentLoaded fired, initializing now');
             initCustomSticky();
             observeStripeErrors();
             initFloatingLabel();
         });
     } else {
+        console.log('[BW Checkout] DOM already loaded, initializing immediately');
         initCustomSticky();
         observeStripeErrors();
         initFloatingLabel();
     }
+
+    console.log('[BW Checkout] Script execution completed');
 })();
