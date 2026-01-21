@@ -383,41 +383,6 @@
         initCustomSticky();
     }
 
-    // Intercept coupon form submission at checkout form level (to prevent nested form issues)
-    function interceptCouponSubmit() {
-        var checkoutForm = document.querySelector('form.checkout, form.woocommerce-checkout');
-        if (!checkoutForm) return;
-
-        // Use capture phase to intercept BEFORE any other handlers
-        checkoutForm.addEventListener('submit', function(e) {
-            var submitter = e.submitter;
-            // Check if submit was triggered by coupon button
-            if (submitter && (
-                submitter.name === 'apply_coupon' ||
-                submitter.classList.contains('bw-apply-button')
-            )) {
-                // This is a coupon submission, not checkout submission
-                e.preventDefault();
-                e.stopPropagation();
-                e.stopImmediatePropagation();
-
-                // Trigger coupon apply manually
-                var couponInput = document.getElementById('coupon_code');
-                if (couponInput) {
-                    var event = new Event('apply-coupon-trigger', { bubbles: false });
-                    couponInput.dispatchEvent(event);
-                }
-                return false;
-            }
-        }, true); // Capture phase
-    }
-
-    // Initialize intercept
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', interceptCouponSubmit);
-    } else {
-        interceptCouponSubmit();
-    }
 
     // Fix Stripe error icon positioning (force inline layout with inline styles)
     function fixStripeErrorLayout() {
@@ -554,8 +519,9 @@
         // Clear error on focus
         couponInput.addEventListener('focus', clearError);
 
-        // Handle coupon form submission
-        var couponForm = couponInput.closest('form.checkout_coupon, form.woocommerce-form-coupon');
+        // Handle coupon button click (form converted to div with type="button")
+        var couponContainer = couponInput.closest('.checkout_coupon, .woocommerce-form-coupon');
+        var applyButton = couponContainer ? couponContainer.querySelector('.bw-apply-button') : null;
 
         function applyCouponAjax() {
             clearError();
@@ -606,61 +572,19 @@
             return true;
         }
 
-        // Listen for custom trigger event from main interceptor
-        couponInput.addEventListener('apply-coupon-trigger', function() {
-            applyCouponAjax();
-        });
-
-        if (couponForm) {
-            // Use capture phase to intercept before other handlers
-            couponForm.addEventListener('submit', function(e) {
+        // Handle button click
+        if (applyButton) {
+            applyButton.addEventListener('click', function(e) {
                 e.preventDefault();
-                e.stopPropagation();
-                e.stopImmediatePropagation();
                 applyCouponAjax();
-                return false;
-            }, true);
-
-            // Also prevent on the button directly
-            var applyButton = couponForm.querySelector('button[name="apply_coupon"], .bw-apply-button');
-            if (applyButton) {
-                applyButton.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    applyCouponAjax();
-                    return false;
-                }, true);
-            }
+            });
         }
 
-        if (couponForm) {
-            // Use capture phase to intercept before other handlers
-            couponForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                e.stopImmediatePropagation();
-                applyCouponAjax();
-                return false;
-            }, true);
-
-            // Also prevent on the button directly
-            var applyButton = couponForm.querySelector('button[name="apply_coupon"], .bw-apply-button');
-            if (applyButton) {
-                applyButton.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    applyCouponAjax();
-                    return false;
-                }, true);
-            }
-        }
-
-        // Also listen for Enter key in input
+        // Handle Enter key in input
         couponInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter' || e.keyCode === 13) {
                 e.preventDefault();
-                e.stopPropagation();
-                applyCoupon();
+                applyCouponAjax();
             }
         });
 
