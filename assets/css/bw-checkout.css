@@ -703,25 +703,18 @@ body.woocommerce-checkout .wcpay-express-checkout-wrapper::before {
     color: #111111;
 }
 
-/* Delivery section heading - add more spacing below */
-body.woocommerce-checkout .bw-delivery-section-title {
-    margin-bottom: 20px !important;
-}
-
-/* Ensure the wrapper also has spacing */
+/* Delivery section heading - ensure proper display and spacing */
 body.woocommerce-checkout .bw-checkout-section-heading--delivery {
+    display: block !important;
+    width: 100% !important;
+    margin: 20px 0 20px 0 !important;
+    clear: both !important;
+}
+
+body.woocommerce-checkout .bw-delivery-section-title {
+    display: block !important;
+    width: 100% !important;
     margin-bottom: 20px !important;
-}
-
-/* Add spacing to first field after newsletter */
-body.woocommerce-checkout #bw_subscribe_newsletter_field + * {
-    margin-top: 20px !important;
-}
-
-/* Specifically target first field after Delivery heading */
-body.woocommerce-checkout .bw-checkout-section-heading--delivery + .form-row,
-body.woocommerce-checkout .bw-delivery-section-title + .form-row {
-    margin-top: 20px !important;
 }
 
 /* Customer details section */
