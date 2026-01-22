@@ -40,6 +40,8 @@ function bw_mew_initialize_woocommerce_overrides() {
     add_filter( 'woocommerce_available_payment_gateways', 'bw_mew_hide_paypal_advanced_card_processing' );
     add_filter( 'wc_stripe_elements_options', 'bw_mew_customize_stripe_elements_style' );
     add_filter( 'wc_stripe_upe_params', 'bw_mew_customize_stripe_upe_appearance' );
+    add_filter( 'body_class', 'bw_mew_add_section_heading_body_classes' );
+    add_action( 'woocommerce_checkout_before_customer_details', 'bw_mew_render_address_section_heading', 5 );
 }
 add_action( 'plugins_loaded', 'bw_mew_initialize_woocommerce_overrides' );
 
@@ -277,12 +279,9 @@ function bw_mew_enqueue_checkout_assets() {
         );
 
         // Get free order message and button text from settings
-        $free_order_message = '';
-        $free_order_button_text = '';
-        if ( class_exists( 'BW_Checkout_Fields_Admin' ) ) {
-            $free_order_message = BW_Checkout_Fields_Admin::get_free_order_message();
-            $free_order_button_text = BW_Checkout_Fields_Admin::get_free_order_button_text();
-        }
+        $free_order_message = get_option( 'bw_checkout_free_order_message', '' );
+        $free_order_button_text = get_option( 'bw_checkout_free_order_button_text', '' );
+
         if ( empty( $free_order_message ) ) {
             $free_order_message = __( 'Your order is free. Complete your details and click Place order.', 'bw' );
         }
@@ -923,10 +922,7 @@ function bw_mew_render_express_divider() {
     }
 
     // Get free order message from settings
-    $free_message = '';
-    if ( class_exists( 'BW_Checkout_Fields_Admin' ) ) {
-        $free_message = BW_Checkout_Fields_Admin::get_free_order_message();
-    }
+    $free_message = get_option( 'bw_checkout_free_order_message', '' );
     if ( empty( $free_message ) ) {
         $free_message = __( 'Your order is free. Complete your details and click Place order.', 'bw' );
     }
@@ -1312,4 +1308,42 @@ function bw_mew_customize_stripe_upe_appearance( $params ) {
     );
 
     return $params;
+}
+
+/**
+ * Add body classes for section heading customizations.
+ *
+ * @param array $classes Body classes.
+ * @return array
+ */
+function bw_mew_add_section_heading_body_classes( $classes ) {
+    if ( ! is_checkout() || is_wc_endpoint_url() ) {
+        return $classes;
+    }
+
+    $hide_billing = get_option( 'bw_checkout_hide_billing_heading', '0' );
+    $hide_additional = get_option( 'bw_checkout_hide_additional_heading', '0' );
+
+    if ( '1' === $hide_billing ) {
+        $classes[] = 'bw-hide-billing-heading';
+    }
+
+    if ( '1' === $hide_additional ) {
+        $classes[] = 'bw-hide-additional-heading';
+    }
+
+    return $classes;
+}
+
+/**
+ * Render custom address section heading before checkout customer details.
+ */
+function bw_mew_render_address_section_heading() {
+    $label = get_option( 'bw_checkout_address_heading_label', '' );
+
+    if ( empty( $label ) ) {
+        return;
+    }
+
+    echo '<h3 class="bw-checkout-section-heading bw-checkout-section-heading--delivery">' . esc_html( $label ) . '</h3>';
 }

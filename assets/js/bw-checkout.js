@@ -1203,6 +1203,35 @@ console.log('[BW Checkout] Script file loaded and executing');
         return banner;
     }
 
+    /**
+     * Hide section headings based on body classes.
+     */
+    function hideSectionHeadings() {
+        var body = document.body;
+
+        // Hide Billing Details heading
+        if (body.classList.contains('bw-hide-billing-heading')) {
+            var billingHeadings = document.querySelectorAll('.woocommerce-billing-fields h3, .woocommerce-billing-fields__field-wrapper h3');
+            billingHeadings.forEach(function(heading) {
+                var text = heading.textContent.trim().toLowerCase();
+                if (text.includes('billing') || text.includes('fatturazione') || text.includes('dati di fatturazione')) {
+                    heading.style.display = 'none';
+                }
+            });
+        }
+
+        // Hide Additional Information heading
+        if (body.classList.contains('bw-hide-additional-heading')) {
+            var additionalHeadings = document.querySelectorAll('.woocommerce-additional-fields h3, .woocommerce-additional-fields__field-wrapper h3');
+            additionalHeadings.forEach(function(heading) {
+                var text = heading.textContent.trim().toLowerCase();
+                if (text.includes('additional') || text.includes('aggiuntiv') || text.includes('note')) {
+                    heading.style.display = 'none';
+                }
+            });
+        }
+    }
+
     console.log('[BW Checkout] Script reached end, about to initialize. DOM readyState:', document.readyState);
 
     // Initialize all functions when DOM is ready
@@ -1217,6 +1246,7 @@ console.log('[BW Checkout] Script file loaded and executing');
             initGooglePlacesAutocomplete();
             moveDeliveryHeading();
             detectFreeOrder();
+            hideSectionHeadings();
         });
     } else {
         console.log('[BW Checkout] DOM already loaded, initializing immediately');
@@ -1227,6 +1257,7 @@ console.log('[BW Checkout] Script file loaded and executing');
         initGooglePlacesAutocomplete();
         moveDeliveryHeading();
         detectFreeOrder();
+        hideSectionHeadings();
     }
 
     // Re-initialize floating labels and detect free order after WooCommerce AJAX update
@@ -1243,6 +1274,7 @@ console.log('[BW Checkout] Script file loaded and executing');
                 initGooglePlacesAutocomplete();
                 moveDeliveryHeading();
                 detectFreeOrder();
+                hideSectionHeadings();
             }, 50);
         });
     }

@@ -1889,3 +1889,22 @@ body.woocommerce-checkout .select2-results__option--selected {
         padding: 13px 15px !important;
     }
 }
+
+/* ============================================
+   SECTION HEADINGS CUSTOMIZATION
+   ============================================ */
+
+/* Custom address section heading styling */
+.bw-checkout-section-heading {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 24px 0 16px 0;
+    padding: 0;
+    display: block;
+    width: 100%;
+}
+
+.bw-checkout-section-heading--delivery {
+    margin-top: 32px;
+}
