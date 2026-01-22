@@ -622,6 +622,57 @@ body.woocommerce-checkout #wc-stripe-express-checkout-button-separator {
     line-height: 1;
 }
 
+/* Free order banner - Shopify-like styling */
+.bw-free-order-banner {
+    display: none;
+    width: 100%;
+    margin: 20px 0;
+    padding: 16px 20px;
+    background: #f0f9ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+}
+
+.bw-free-order-banner__content {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.bw-free-order-banner__icon {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    color: #0284c7;
+    margin-top: 2px;
+}
+
+.bw-free-order-banner__content p {
+    margin: 0;
+    padding: 0;
+    font-size: 15px;
+    line-height: 1.6;
+    color: #0c4a6e;
+}
+
+/* Hide express buttons and divider when order is free */
+body.woocommerce-checkout.bw-free-order .bw-express-divider {
+    display: none !important;
+}
+
+body.woocommerce-checkout.bw-free-order #wc-stripe-express-checkout-element {
+    display: none !important;
+}
+
+body.woocommerce-checkout.bw-free-order #payment .wc-stripe-ece-button-separator {
+    display: none !important;
+}
+
+/* Show free order banner only when order is free */
+body.woocommerce-checkout.bw-free-order .bw-free-order-banner {
+    display: block !important;
+}
+
 /* Express checkout buttons - Two columns at 50% width */
 body.woocommerce-checkout #wc-stripe-express-checkout-element {
     display: grid !important;
