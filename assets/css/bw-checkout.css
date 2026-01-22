@@ -1572,6 +1572,13 @@ body.woocommerce-checkout .bw-field-wrapper textarea {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
+/* Hide placeholder when floating label is present */
+body.woocommerce-checkout .bw-field-wrapper input::placeholder,
+body.woocommerce-checkout .bw-field-wrapper textarea::placeholder {
+    opacity: 0;
+    visibility: hidden;
+}
+
 /* Input focus state - Black thick border (Shopify-like) */
 body.woocommerce-checkout .bw-field-wrapper input[type="text"]:focus,
 body.woocommerce-checkout .bw-field-wrapper input[type="email"]:focus,
