@@ -32,6 +32,7 @@ class BW_Checkout_Subscribe_Frontend {
     private function __construct() {
         add_action( 'woocommerce_before_checkout_billing_form', [ $this, 'render_contact_header' ] );
         add_filter( 'woocommerce_checkout_fields', [ $this, 'inject_newsletter_field' ], 30, 1 );
+        add_filter( 'woocommerce_form_field', [ $this, 'remove_optional_label' ], 10, 4 );
         add_action( 'woocommerce_checkout_update_order_meta', [ $this, 'save_consent_meta' ], 10, 2 );
         add_action( 'woocommerce_checkout_order_processed', [ $this, 'maybe_subscribe_on_created' ], 20, 3 );
         add_action( 'woocommerce_order_status_processing', [ $this, 'maybe_subscribe_on_paid' ] );
@@ -107,6 +108,33 @@ class BW_Checkout_Subscribe_Frontend {
         }
 
         return $fields;
+    }
+
+    /**
+     * Remove the (optional) label from newsletter checkbox only.
+     *
+     * @param string $field     Field HTML.
+     * @param string $key       Field key.
+     * @param array  $args      Field args.
+     * @param string $value     Field value.
+     *
+     * @return string
+     */
+    public function remove_optional_label( $field, $key, $args, $value ) {
+        // Only target the newsletter checkbox
+        if ( 'bw_subscribe_newsletter' !== $key ) {
+            return $field;
+        }
+
+        // Remove the optional span with any text inside parentheses
+        // Pattern matches: <span class="optional">(...)</span>
+        $field = preg_replace(
+            '/<span\s+class=["\']optional["\'][^>]*>\s*\([^)]*\)\s*<\/span>/i',
+            '',
+            $field
+        );
+
+        return $field;
     }
 
     /**
