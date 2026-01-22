@@ -291,7 +291,7 @@ function bw_mew_enqueue_checkout_assets() {
             array(
                 'ajax_url'         => admin_url( 'admin-ajax.php' ),
                 'nonce'            => wp_create_nonce( 'bw-checkout-nonce' ),
-                'freeOrderMessage' => $free_order_message,
+                'freeOrderMessage' => wp_kses_post( wpautop( $free_order_message ) ),
             )
         );
 
