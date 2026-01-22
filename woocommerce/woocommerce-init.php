@@ -916,9 +916,9 @@ function bw_mew_render_express_divider() {
     }
 
     if ( $is_free ) {
-        // Render free order banner (hidden by default, shown via JS class)
+        // Render free order banner (visible immediately with bw-free-order-active class)
         ?>
-        <div class="bw-free-order-banner">
+        <div class="bw-free-order-banner bw-free-order-active">
             <div class="bw-free-order-banner__content">
                 <svg class="bw-free-order-banner__icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>

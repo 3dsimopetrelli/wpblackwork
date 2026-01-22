@@ -1081,7 +1081,7 @@ console.log('[BW Checkout] Script file loaded and executing');
                 initGooglePlacesAutocomplete();
                 moveDeliveryHeading();
                 detectFreeOrder();
-            }, 500);
+            }, 100);
         });
     }
 
