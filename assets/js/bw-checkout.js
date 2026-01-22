@@ -1274,6 +1274,147 @@ console.log('[BW Checkout] Script file loaded and executing');
         }
     }
 
+    /**
+     * Initialize mobile order summary accordion.
+     * Creates toggle bar and wraps right column for mobile view.
+     */
+    function initMobileOrderSummary() {
+        console.log('[BW Checkout] Initializing mobile order summary accordion');
+
+        var rightColumn = document.querySelector('.bw-checkout-right');
+        if (!rightColumn) {
+            console.log('[BW Checkout] Right column not found, skipping mobile summary init');
+            return;
+        }
+
+        // Check if already initialized
+        if (document.querySelector('.bw-order-summary-toggle')) {
+            console.log('[BW Checkout] Mobile summary already initialized');
+            return;
+        }
+
+        // Create toggle bar
+        var toggleBar = document.createElement('button');
+        toggleBar.type = 'button';
+        toggleBar.className = 'bw-order-summary-toggle';
+        toggleBar.setAttribute('aria-expanded', 'false');
+        toggleBar.setAttribute('aria-controls', 'bw-order-summary-panel');
+
+        var toggleLabel = document.createElement('span');
+        toggleLabel.className = 'bw-order-summary-label';
+        toggleLabel.innerHTML = '<span class="bw-order-summary-text">Order summary</span><svg class="bw-order-summary-icon" width="12" height="8" viewBox="0 0 12 8" fill="none"><path d="M1 1.5L6 6.5L11 1.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+        var toggleTotal = document.createElement('span');
+        toggleTotal.className = 'bw-order-summary-total';
+        toggleTotal.textContent = '...';
+
+        toggleBar.appendChild(toggleLabel);
+        toggleBar.appendChild(toggleTotal);
+
+        // Wrap right column in panel
+        var panel = document.createElement('div');
+        panel.id = 'bw-order-summary-panel';
+        panel.className = 'bw-order-summary-panel';
+        panel.setAttribute('aria-hidden', 'true');
+
+        // Insert toggle bar and panel before right column
+        var grid = rightColumn.parentElement;
+        grid.insertBefore(toggleBar, rightColumn);
+        grid.insertBefore(panel, rightColumn);
+
+        // Move right column into panel
+        panel.appendChild(rightColumn);
+
+        // Add toggle functionality
+        toggleBar.addEventListener('click', function() {
+            var isExpanded = toggleBar.getAttribute('aria-expanded') === 'true';
+            toggleBar.setAttribute('aria-expanded', !isExpanded);
+            panel.setAttribute('aria-hidden', isExpanded);
+
+            if (!isExpanded) {
+                panel.style.maxHeight = panel.scrollHeight + 'px';
+            } else {
+                panel.style.maxHeight = '0';
+            }
+        });
+
+        // Keyboard support
+        toggleBar.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                toggleBar.click();
+            }
+        });
+
+        console.log('[BW Checkout] Mobile order summary accordion initialized');
+    }
+
+    /**
+     * Add mobile total row before Place Order button.
+     */
+    function addMobileTotalRow() {
+        console.log('[BW Checkout] Adding mobile total row');
+
+        // Check if already exists
+        if (document.querySelector('.bw-mobile-total-row')) {
+            console.log('[BW Checkout] Mobile total row already exists');
+            return;
+        }
+
+        var placeOrderButton = document.querySelector('#place_order');
+        if (!placeOrderButton) {
+            console.log('[BW Checkout] Place order button not found');
+            return;
+        }
+
+        // Create mobile total row
+        var totalRow = document.createElement('div');
+        totalRow.className = 'bw-mobile-total-row';
+
+        var totalLabel = document.createElement('span');
+        totalLabel.className = 'bw-mobile-total-label';
+        totalLabel.textContent = 'Total';
+
+        var totalAmount = document.createElement('span');
+        totalAmount.className = 'bw-mobile-total-amount';
+        totalAmount.textContent = '...';
+
+        totalRow.appendChild(totalLabel);
+        totalRow.appendChild(totalAmount);
+
+        // Insert before place order button
+        placeOrderButton.parentElement.insertBefore(totalRow, placeOrderButton);
+
+        console.log('[BW Checkout] Mobile total row added');
+    }
+
+    /**
+     * Update total amounts in toggle bar and mobile total row.
+     */
+    function updateMobileTotals() {
+        // Find total amount from checkout
+        var totalElement = document.querySelector('.order-total .woocommerce-Price-amount, .order-total .amount');
+        if (!totalElement) {
+            console.log('[BW Checkout] Total element not found');
+            return;
+        }
+
+        var totalText = totalElement.textContent.trim();
+        console.log('[BW Checkout] Updating mobile totals to:', totalText);
+
+        // Update toggle bar total
+        var toggleTotal = document.querySelector('.bw-order-summary-total');
+        if (toggleTotal) {
+            toggleTotal.textContent = totalText;
+        }
+
+        // Update mobile total row
+        var mobileTotalAmount = document.querySelector('.bw-mobile-total-amount');
+        if (mobileTotalAmount) {
+            mobileTotalAmount.textContent = totalText;
+        }
+    }
+
     console.log('[BW Checkout] Script reached end, about to initialize. DOM readyState:', document.readyState);
 
     // Initialize all functions when DOM is ready
@@ -1289,6 +1430,9 @@ console.log('[BW Checkout] Script file loaded and executing');
             moveDeliveryHeading();
             detectFreeOrder();
             hideSectionHeadings();
+            initMobileOrderSummary();
+            addMobileTotalRow();
+            updateMobileTotals();
         });
     } else {
         console.log('[BW Checkout] DOM already loaded, initializing immediately');
@@ -1300,6 +1444,9 @@ console.log('[BW Checkout] Script file loaded and executing');
         moveDeliveryHeading();
         detectFreeOrder();
         hideSectionHeadings();
+        initMobileOrderSummary();
+        addMobileTotalRow();
+        updateMobileTotals();
     }
 
     // Re-initialize floating labels and detect free order after WooCommerce AJAX update
@@ -1310,6 +1457,9 @@ console.log('[BW Checkout] Script file loaded and executing');
             // Detect free order immediately without delay
             detectFreeOrder();
 
+            // Update mobile totals immediately
+            updateMobileTotals();
+
             // Also re-run after a small delay for elements that render slower
             setTimeout(function() {
                 initCheckoutFloatingLabels();
@@ -1317,6 +1467,7 @@ console.log('[BW Checkout] Script file loaded and executing');
                 moveDeliveryHeading();
                 detectFreeOrder();
                 hideSectionHeadings();
+                updateMobileTotals();
             }, 50);
         });
     }

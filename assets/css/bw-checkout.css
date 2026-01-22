@@ -1990,3 +1990,122 @@ body.woocommerce-checkout .select2-results__option--selected {
 .bw-checkout-section-heading--delivery {
     margin-top: 32px;
 }
+
+/* ============================================
+   MOBILE ORDER SUMMARY ACCORDION (SHOPIFY-LIKE)
+   ============================================ */
+
+/* Hide toggle bar on desktop */
+.bw-order-summary-toggle {
+    display: none;
+}
+
+/* Mobile/Tablet breakpoint */
+@media (max-width: 1024px) {
+    /* Show toggle bar on mobile */
+    .bw-order-summary-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        padding: 16px 20px;
+        background: #fafafa;
+        border: none;
+        border-top: 1px solid #e0e0e0;
+        border-bottom: 1px solid #e0e0e0;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 15px;
+        font-weight: 500;
+        color: #1f2937;
+        text-align: left;
+        transition: background-color 0.2s ease;
+        margin: 0;
+        order: -1; /* Ensure it appears first in flex/grid */
+    }
+
+    .bw-order-summary-toggle:hover {
+        background: #f5f5f5;
+    }
+
+    .bw-order-summary-toggle:focus {
+        outline: 2px solid #000000;
+        outline-offset: -2px;
+    }
+
+    .bw-order-summary-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .bw-order-summary-text {
+        font-size: 15px;
+        font-weight: 500;
+        color: #1f2937;
+    }
+
+    .bw-order-summary-icon {
+        transition: transform 0.3s ease;
+        color: #6b7280;
+    }
+
+    .bw-order-summary-toggle[aria-expanded="true"] .bw-order-summary-icon {
+        transform: rotate(180deg);
+    }
+
+    .bw-order-summary-total {
+        font-size: 16px;
+        font-weight: 600;
+        color: #1f2937;
+    }
+
+    /* Accordion panel */
+    .bw-order-summary-panel {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+    }
+
+    .bw-order-summary-panel[aria-hidden="false"] {
+        max-height: 5000px; /* Large enough to accommodate any content */
+    }
+
+    /* Right column styling when inside panel */
+    .bw-order-summary-panel .bw-checkout-right {
+        position: static !important;
+        width: 100% !important;
+        margin: 0 !important;
+        border: none !important;
+    }
+
+    /* Mobile total row before Place Order button */
+    .bw-mobile-total-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 0;
+        margin: 16px 0;
+        border-top: 1px solid #e0e0e0;
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    .bw-mobile-total-label {
+        font-size: 16px;
+        font-weight: 500;
+        color: #1f2937;
+    }
+
+    .bw-mobile-total-amount {
+        font-size: 18px;
+        font-weight: 600;
+        color: #1f2937;
+    }
+}
+
+/* Hide mobile total row on desktop */
+@media (min-width: 1025px) {
+    .bw-mobile-total-row {
+        display: none !important;
+    }
+}
