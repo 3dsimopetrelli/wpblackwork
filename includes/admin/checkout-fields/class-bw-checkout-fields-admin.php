@@ -87,24 +87,34 @@ class BW_Checkout_Fields_Admin {
         $raw      = isset( $_POST['bw_checkout_fields'] ) ? wp_unslash( $_POST['bw_checkout_fields'] ) : [];
 
         $warnings = false;
-        $settings = [
-            'version' => self::OPTION_VERSION,
-        ];
 
-        // Save section_headings settings
+        // Get existing settings to preserve other data
+        $settings = $this->get_settings();
+        if ( empty( $settings['version'] ) ) {
+            $settings['version'] = self::OPTION_VERSION;
+        }
+
+        // Save section_headings settings - merge with existing
         $section_headings_raw = isset( $_POST['bw_section_headings'] ) ? wp_unslash( $_POST['bw_section_headings'] ) : [];
 
         // Debug logging
         error_log( '[BW Checkout Fields] POST data received: ' . print_r( $_POST['bw_section_headings'], true ) );
 
-        $settings['section_headings'] = [
-            'free_order_message'     => isset( $section_headings_raw['free_order_message'] )
-                ? sanitize_textarea_field( $section_headings_raw['free_order_message'] )
-                : '',
-            'free_order_button_text' => isset( $section_headings_raw['free_order_button_text'] )
-                ? sanitize_text_field( $section_headings_raw['free_order_button_text'] )
-                : '',
-        ];
+        // Get existing section_headings to preserve other fields
+        $existing_section_headings = isset( $settings['section_headings'] ) ? $settings['section_headings'] : [];
+
+        // Merge new values with existing ones
+        $settings['section_headings'] = array_merge(
+            $existing_section_headings,
+            [
+                'free_order_message'     => isset( $section_headings_raw['free_order_message'] )
+                    ? sanitize_textarea_field( $section_headings_raw['free_order_message'] )
+                    : ( isset( $existing_section_headings['free_order_message'] ) ? $existing_section_headings['free_order_message'] : '' ),
+                'free_order_button_text' => isset( $section_headings_raw['free_order_button_text'] )
+                    ? sanitize_text_field( $section_headings_raw['free_order_button_text'] )
+                    : ( isset( $existing_section_headings['free_order_button_text'] ) ? $existing_section_headings['free_order_button_text'] : '' ),
+            ]
+        );
 
         // Debug logging
         error_log( '[BW Checkout Fields] Saving section_headings: ' . print_r( $settings['section_headings'], true ) );
