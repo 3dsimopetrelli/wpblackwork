@@ -782,7 +782,7 @@ console.log('[BW Checkout] Script file loaded and executing');
             floatingLabel.setAttribute('for', input.id);
             floatingLabel.setAttribute('data-full', labelText);
             floatingLabel.setAttribute('data-short', shortLabel);
-            floatingLabel.textContent = labelText;
+            floatingLabel.textContent = shortLabel;
 
             // Insert wrapper before element
             elementToWrap.parentNode.insertBefore(wrapper, elementToWrap);
@@ -808,12 +808,8 @@ console.log('[BW Checkout] Script file loaded and executing');
 
                 if (hasValue) {
                     wrapper.classList.add('has-value');
-                    // Change label text to short version
-                    floatingLabel.textContent = shortLabel;
                 } else {
                     wrapper.classList.remove('has-value');
-                    // Change label text back to full version
-                    floatingLabel.textContent = labelText;
                 }
             }
 
