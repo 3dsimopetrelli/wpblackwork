@@ -10,7 +10,7 @@
  *   shipping: { ... },
  *   order: { ... },
  *   account: { ... },
- *   section_headings: { free_order_message: "..." }
+ *   section_headings: { free_order_message: "...", free_order_button_text: "..." }
  * }
  *
  * @package BW_Elementor_Widgets
@@ -57,7 +57,10 @@ class BW_Checkout_Fields_Admin {
      * Handle settings save/reset for checkout fields.
      */
     public function handle_post() {
+        error_log( '[BW Checkout Fields] handle_post called' );
+
         if ( empty( $_POST['bw_checkout_fields_submit'] ) && empty( $_POST['bw_checkout_fields_reset'] ) ) {
+            error_log( '[BW Checkout Fields] No submit button found in POST' );
             return;
         }
 
@@ -85,20 +88,37 @@ class BW_Checkout_Fields_Admin {
         $headings = isset( $_POST['bw_checkout_section_headings'] ) ? wp_unslash( $_POST['bw_checkout_section_headings'] ) : [];
 
         $warnings = false;
-        $settings = [
-            'version' => self::OPTION_VERSION,
-        ];
 
-        // Save section_headings settings
+        // Get existing settings to preserve other data
+        $settings = $this->get_settings();
+        if ( empty( $settings['version'] ) ) {
+            $settings['version'] = self::OPTION_VERSION;
+        }
+
+        // Save section_headings settings - merge with existing
         $section_headings_raw = isset( $_POST['bw_section_headings'] ) ? wp_unslash( $_POST['bw_section_headings'] ) : [];
-        $settings['section_headings'] = [
-            'free_order_message'     => isset( $section_headings_raw['free_order_message'] )
-                ? sanitize_textarea_field( $section_headings_raw['free_order_message'] )
-                : '',
-            'free_order_button_text' => isset( $section_headings_raw['free_order_button_text'] )
-                ? sanitize_text_field( $section_headings_raw['free_order_button_text'] )
-                : '',
-        ];
+
+        // Debug logging
+        error_log( '[BW Checkout Fields] POST data received: ' . print_r( $_POST['bw_section_headings'], true ) );
+
+        // Get existing section_headings to preserve other fields
+        $existing_section_headings = isset( $settings['section_headings'] ) ? $settings['section_headings'] : [];
+
+        // Merge new values with existing ones
+        $settings['section_headings'] = array_merge(
+            $existing_section_headings,
+            [
+                'free_order_message'     => isset( $section_headings_raw['free_order_message'] )
+                    ? sanitize_textarea_field( $section_headings_raw['free_order_message'] )
+                    : ( isset( $existing_section_headings['free_order_message'] ) ? $existing_section_headings['free_order_message'] : '' ),
+                'free_order_button_text' => isset( $section_headings_raw['free_order_button_text'] )
+                    ? sanitize_text_field( $section_headings_raw['free_order_button_text'] )
+                    : ( isset( $existing_section_headings['free_order_button_text'] ) ? $existing_section_headings['free_order_button_text'] : '' ),
+            ]
+        );
+
+        // Debug logging
+        error_log( '[BW Checkout Fields] Saving section_headings: ' . print_r( $settings['section_headings'], true ) );
 
         foreach ( $defaults as $section => $fields ) {
             foreach ( $fields as $key => $field ) {
@@ -144,6 +164,10 @@ class BW_Checkout_Fields_Admin {
         }
 
         update_option( self::OPTION_NAME, $settings );
+
+        // Debug: verify the save
+        $saved_data = get_option( self::OPTION_NAME );
+        error_log( '[BW Checkout Fields] Saved to database: ' . print_r( $saved_data['section_headings'], true ) );
 
         $redirect_args['bw_checkout_fields_saved'] = '1';
         if ( $warnings ) {
