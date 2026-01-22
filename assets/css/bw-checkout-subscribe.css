@@ -1,0 +1,66 @@
+/**
+ * Checkout subscribe styles (Contact header + newsletter checkbox).
+ */
+body.woocommerce-checkout .bw-checkout-contact-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin: 10px 0 16px;
+}
+
+body.woocommerce-checkout .bw-checkout-contact-header__title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #111111;
+}
+
+body.woocommerce-checkout .bw-checkout-contact-header__signin {
+    font-size: 14px;
+    color: #111111;
+    text-decoration: underline;
+}
+
+body.woocommerce-checkout .bw-checkout-newsletter label,
+body.woocommerce-checkout .bw-checkout-newsletter .woocommerce-form__label-for-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 16px;
+    font-weight: 500;
+    color: #111111;
+}
+
+body.woocommerce-checkout .bw-checkout-newsletter input[type="checkbox"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 22px;
+    height: 22px;
+    border: 2px solid #111111;
+    border-radius: 4px;
+    background: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    position: relative;
+}
+
+body.woocommerce-checkout .bw-checkout-newsletter input[type="checkbox"]:checked {
+    background: #111111;
+}
+
+body.woocommerce-checkout .bw-checkout-newsletter input[type="checkbox"]:checked::after {
+    content: '';
+    position: absolute;
+    width: 6px;
+    height: 12px;
+    border: solid #ffffff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+body.woocommerce-checkout .bw-checkout-newsletter .description {
+    margin: 8px 0 0 34px;
+    font-size: 13px;
+    color: #555555;
+}
