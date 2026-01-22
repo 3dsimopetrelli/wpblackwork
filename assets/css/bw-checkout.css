@@ -1563,6 +1563,7 @@ body.woocommerce-checkout .bw-field-wrapper textarea {
     border: 1px solid #d1d5db;
     border-radius: 8px;
     font-size: 15px;
+    line-height: 1.4;
     color: #1f2937;
     background: #ffffff;
     transition: border 0.2s ease, padding 0.15s ease;
@@ -1649,13 +1650,15 @@ body.woocommerce-checkout .form-row.bw-has-floating-label > label {
 /* Base select styles */
 body.woocommerce-checkout .bw-field-wrapper select {
     width: 100%;
+    height: 51px; /* Match input height: 16px padding top + 16px padding bottom + 15px font-size + 4px line-height = ~51px */
     padding: 16px 40px 16px 18px; /* Extra right padding for dropdown arrow */
     border: 1px solid #d1d5db;
     border-radius: 8px;
     font-size: 15px;
+    line-height: 1.4;
     color: #1f2937;
     background: #ffffff;
-    transition: border 0.2s ease, padding 0.15s ease;
+    transition: border 0.2s ease, padding 0.15s ease, height 0.15s ease;
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     box-sizing: border-box;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -1671,6 +1674,7 @@ body.woocommerce-checkout .bw-field-wrapper select {
 
 /* Select focus state */
 body.woocommerce-checkout .bw-field-wrapper select:focus {
+    height: 51px; /* Maintain same height with thicker border */
     border: 2px solid #000000;
     outline: none;
     padding: 15px 39px 15px 17px; /* Compensate for thicker border */

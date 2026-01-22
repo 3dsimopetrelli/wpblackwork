@@ -740,12 +740,22 @@ console.log('[BW Checkout] Script file loaded and executing');
             if (!fieldRow) return;
 
             var originalLabel = fieldRow.querySelector('label[for="' + input.id + '"]');
-            var labelText = originalLabel ? originalLabel.textContent.replace('*', '').trim() : '';
-            
+            if (!originalLabel) return;
+
+            // Get clean label text (remove asterisks, abbr, optional text, etc.)
+            var labelClone = originalLabel.cloneNode(true);
+            // Remove abbr (asterisks), optional spans, and other non-text elements
+            var elemsToRemove = labelClone.querySelectorAll('abbr, .optional, .required');
+            elemsToRemove.forEach(function(elem) { elem.remove(); });
+            var labelText = labelClone.textContent.replace(/\*/g, '').trim();
+
             if (!labelText) return;
 
-            // Generate short label
-            var shortLabel = labelText.replace(/^(Enter your |Enter |Your )/i, '').trim();
+            // Generate short label (remove "Street address" suffix like "and street name")
+            var shortLabel = labelText
+                .replace(/^(Enter your |Enter |Your )/i, '')
+                .replace(/\s+(and\s+.+)$/i, '') // Remove "and street name" type suffixes
+                .trim();
 
             // Wrap input with floating label structure
             var wrapper = document.createElement('span');
