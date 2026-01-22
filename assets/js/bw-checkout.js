@@ -1016,6 +1016,7 @@ console.log('[BW Checkout] Script file loaded and executing');
     /**
      * Detect if order total is 0 and toggle free order UI.
      * Shows free order banner, hides express buttons and divider.
+     * Creates banner dynamically if it doesn't exist during AJAX updates.
      */
     function detectFreeOrder() {
         // Try multiple selectors for order total
@@ -1037,13 +1038,104 @@ console.log('[BW Checkout] Script file loaded and executing');
         var body = document.body;
         var isFree = totalValue === 0 || isNaN(totalValue) && totalText.includes('0');
 
+        // Find or create banner and divider
+        var banner = document.querySelector('.bw-free-order-banner');
+        var divider = document.querySelector('.bw-express-divider');
+        var expressCheckout = document.querySelector('#wc-stripe-express-checkout-element');
+
+        // Determine where to insert banner (before customer details or before express checkout)
+        var insertPoint = document.querySelector('.woocommerce-billing-fields') ||
+                         document.querySelector('#customer_details') ||
+                         expressCheckout;
+
         if (isFree) {
             body.classList.add('bw-free-order');
-            console.log('[BW Checkout] Free order detected, added bw-free-order class');
+
+            // Create banner if it doesn't exist
+            if (!banner && insertPoint) {
+                banner = createFreeOrderBanner();
+
+                // Insert before billing fields or express checkout
+                if (insertPoint.parentNode) {
+                    insertPoint.parentNode.insertBefore(banner, insertPoint);
+                    console.log('[BW Checkout] Free order banner created and inserted');
+                }
+            }
+
+            // Show banner if it exists
+            if (banner) {
+                banner.classList.add('bw-free-order-active');
+                banner.style.display = 'block';
+            }
+
+            // Hide divider if it exists
+            if (divider) {
+                divider.style.display = 'none';
+            }
+
+            console.log('[BW Checkout] Free order detected, UI updated');
         } else {
             body.classList.remove('bw-free-order');
-            console.log('[BW Checkout] Paid order detected, removed bw-free-order class');
+
+            // Hide banner if it exists
+            if (banner) {
+                banner.classList.remove('bw-free-order-active');
+                banner.style.display = 'none';
+            }
+
+            // Show divider if it exists
+            if (divider) {
+                divider.style.display = '';
+            }
+
+            console.log('[BW Checkout] Paid order detected, UI updated');
         }
+    }
+
+    /**
+     * Create free order banner HTML dynamically.
+     *
+     * @return {HTMLElement}
+     */
+    function createFreeOrderBanner() {
+        var banner = document.createElement('div');
+        banner.className = 'bw-free-order-banner bw-free-order-active';
+
+        var content = document.createElement('div');
+        content.className = 'bw-free-order-banner__content';
+
+        var icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        icon.setAttribute('class', 'bw-free-order-banner__icon');
+        icon.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+        icon.setAttribute('width', '24');
+        icon.setAttribute('height', '24');
+        icon.setAttribute('viewBox', '0 0 24 24');
+        icon.setAttribute('fill', 'none');
+        icon.setAttribute('stroke', 'currentColor');
+        icon.setAttribute('stroke-width', '2');
+        icon.setAttribute('stroke-linecap', 'round');
+        icon.setAttribute('stroke-linejoin', 'round');
+
+        var path1 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path1.setAttribute('d', 'M22 11.08V12a10 10 0 1 1-5.93-9.14');
+        icon.appendChild(path1);
+
+        var polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+        polyline.setAttribute('points', '22 4 12 14.01 9 11.01');
+        icon.appendChild(polyline);
+
+        var message = document.createElement('p');
+        // Get message from localized data or use default
+        var messageText = window.bwCheckoutParams && window.bwCheckoutParams.freeOrderMessage
+            ? window.bwCheckoutParams.freeOrderMessage
+            : 'Your order is free. Complete your details and click Place order.';
+        message.textContent = messageText;
+
+        content.appendChild(icon);
+        content.appendChild(message);
+        banner.appendChild(content);
+
+        return banner;
     }
 
     console.log('[BW Checkout] Script reached end, about to initialize. DOM readyState:', document.readyState);
