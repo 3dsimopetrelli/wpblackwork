@@ -9,7 +9,8 @@
  *   billing: { billing_first_name: { enabled, priority, width, label, required }, ... },
  *   shipping: { ... },
  *   order: { ... },
- *   account: { ... }
+ *   account: { ... },
+ *   section_headings: { free_order_message: "..." }
  * }
  *
  * @package BW_Elementor_Widgets
@@ -85,6 +86,14 @@ class BW_Checkout_Fields_Admin {
         $warnings = false;
         $settings = [
             'version' => self::OPTION_VERSION,
+        ];
+
+        // Save section_headings settings
+        $section_headings_raw = isset( $_POST['bw_section_headings'] ) ? wp_unslash( $_POST['bw_section_headings'] ) : [];
+        $settings['section_headings'] = [
+            'free_order_message' => isset( $section_headings_raw['free_order_message'] )
+                ? sanitize_textarea_field( $section_headings_raw['free_order_message'] )
+                : '',
         ];
 
         foreach ( $defaults as $section => $fields ) {
@@ -177,6 +186,35 @@ class BW_Checkout_Fields_Admin {
 
         <input type="hidden" name="bw_checkout_fields_form" value="1" />
         <?php wp_nonce_field( 'bw_checkout_fields_save', 'bw_checkout_fields_nonce' ); ?>
+
+        <?php
+        // Get section_headings settings
+        $section_headings = isset( $settings['section_headings'] ) ? $settings['section_headings'] : [];
+        $free_order_message = isset( $section_headings['free_order_message'] ) && '' !== $section_headings['free_order_message']
+            ? $section_headings['free_order_message']
+            : __( 'Your order is free. Complete your details and click Place order.', 'bw' );
+        ?>
+
+        <h3><?php esc_html_e( 'Section Headings', 'bw' ); ?></h3>
+        <table class="form-table" role="presentation">
+            <tr>
+                <th scope="row">
+                    <label for="bw_free_order_message"><?php esc_html_e( 'Free Order Message', 'bw' ); ?></label>
+                </th>
+                <td>
+                    <textarea
+                        id="bw_free_order_message"
+                        name="bw_section_headings[free_order_message]"
+                        rows="3"
+                        class="large-text"
+                        placeholder="<?php esc_attr_e( 'Your order is free. Complete your details and click Place order.', 'bw' ); ?>"
+                    ><?php echo esc_textarea( $free_order_message ); ?></textarea>
+                    <p class="description">
+                        <?php esc_html_e( 'Shown when order total becomes 0 (e.g., after applying a 100% discount coupon). Stripe express buttons and divider will be hidden.', 'bw' ); ?>
+                    </p>
+                </td>
+            </tr>
+        </table>
 
         <?php foreach ( $sections as $section_key => $section_label ) : ?>
             <?php if ( empty( $fields[ $section_key ] ) ) : ?>
@@ -385,5 +423,19 @@ class BW_Checkout_Fields_Admin {
         }
 
         return has_block( 'woocommerce/checkout', $post->post_content );
+    }
+
+    /**
+     * Get free order message from settings.
+     *
+     * @return string
+     */
+    public static function get_free_order_message() {
+        $settings = get_option( self::OPTION_NAME, [ 'version' => self::OPTION_VERSION ] );
+        if ( ! is_array( $settings ) || empty( $settings['section_headings']['free_order_message'] ) ) {
+            return __( 'Your order is free. Complete your details and click Place order.', 'bw' );
+        }
+
+        return $settings['section_headings']['free_order_message'];
     }
 }

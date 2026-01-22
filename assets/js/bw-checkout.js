@@ -1013,6 +1013,39 @@ console.log('[BW Checkout] Script file loaded and executing');
         }
     }
 
+    /**
+     * Detect if order total is 0 and toggle free order UI.
+     * Shows free order banner, hides express buttons and divider.
+     */
+    function detectFreeOrder() {
+        // Try multiple selectors for order total
+        var totalElement = document.querySelector('.order-total .woocommerce-Price-amount') ||
+                          document.querySelector('.order-total .amount') ||
+                          document.querySelector('.cart-subtotal .woocommerce-Price-amount');
+
+        if (!totalElement) {
+            console.log('[BW Checkout] Total element not found, cannot detect free order');
+            return;
+        }
+
+        var totalText = totalElement.textContent || totalElement.innerText || '';
+        // Remove currency symbols, spaces, and parse
+        var totalValue = parseFloat(totalText.replace(/[^\d.,]/g, '').replace(',', '.'));
+
+        console.log('[BW Checkout] Detected total value:', totalValue);
+
+        var body = document.body;
+        var isFree = totalValue === 0 || isNaN(totalValue) && totalText.includes('0');
+
+        if (isFree) {
+            body.classList.add('bw-free-order');
+            console.log('[BW Checkout] Free order detected, added bw-free-order class');
+        } else {
+            body.classList.remove('bw-free-order');
+            console.log('[BW Checkout] Paid order detected, removed bw-free-order class');
+        }
+    }
+
     console.log('[BW Checkout] Script reached end, about to initialize. DOM readyState:', document.readyState);
 
     // Initialize all functions when DOM is ready
@@ -1026,6 +1059,7 @@ console.log('[BW Checkout] Script file loaded and executing');
             initCheckoutFloatingLabels();
             initGooglePlacesAutocomplete();
             moveDeliveryHeading();
+            detectFreeOrder();
         });
     } else {
         console.log('[BW Checkout] DOM already loaded, initializing immediately');
@@ -1035,16 +1069,18 @@ console.log('[BW Checkout] Script file loaded and executing');
         initCheckoutFloatingLabels();
         initGooglePlacesAutocomplete();
         moveDeliveryHeading();
+        detectFreeOrder();
     }
 
-    // Re-initialize floating labels after WooCommerce AJAX update
+    // Re-initialize floating labels and detect free order after WooCommerce AJAX update
     if (window.jQuery) {
         jQuery(document.body).on('updated_checkout', function() {
-            console.log('[BW Checkout] Checkout updated, re-initializing floating labels');
+            console.log('[BW Checkout] Checkout updated, re-initializing floating labels and detecting free order');
             setTimeout(function() {
                 initCheckoutFloatingLabels();
                 initGooglePlacesAutocomplete();
                 moveDeliveryHeading();
+                detectFreeOrder();
             }, 500);
         });
     }

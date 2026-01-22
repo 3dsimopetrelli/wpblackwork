@@ -890,21 +890,52 @@ function bw_mew_render_checkout_header() {
 }
 
 /**
- * Render custom express checkout divider with perfect continuous lines.
- * Replaces the default WCPay separator with a cleaner implementation.
+ * Render custom express checkout divider OR free order banner.
+ * - If cart total is 0: show free order message banner
+ * - Otherwise: show OR divider for express buttons
  */
 function bw_mew_render_express_divider() {
     if ( ! function_exists( 'is_checkout' ) || ! is_checkout() ) {
         return;
     }
 
-    // Check if WCPay express checkout separator exists in the page
-    // If it does, our CSS will hide it and show this custom one instead
-    ?>
-    <div class="bw-express-divider">
-        <span>OR</span>
-    </div>
-    <?php
+    // Check if cart total is 0
+    $is_free = false;
+    if ( function_exists( 'WC' ) && WC()->cart ) {
+        $total = WC()->cart->get_total( 'edit' );
+        $is_free = ( 0 == $total || '0' === $total || 0.0 === (float) $total );
+    }
+
+    // Get free order message from settings
+    $free_message = '';
+    if ( class_exists( 'BW_Checkout_Fields_Admin' ) ) {
+        $free_message = BW_Checkout_Fields_Admin::get_free_order_message();
+    }
+    if ( empty( $free_message ) ) {
+        $free_message = __( 'Your order is free. Complete your details and click Place order.', 'bw' );
+    }
+
+    if ( $is_free ) {
+        // Render free order banner (hidden by default, shown via JS class)
+        ?>
+        <div class="bw-free-order-banner">
+            <div class="bw-free-order-banner__content">
+                <svg class="bw-free-order-banner__icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+                <p><?php echo wp_kses_post( wpautop( $free_message ) ); ?></p>
+            </div>
+        </div>
+        <?php
+    } else {
+        // Render OR divider for express buttons
+        ?>
+        <div class="bw-express-divider">
+            <span>OR</span>
+        </div>
+        <?php
+    }
 }
 add_action( 'woocommerce_checkout_before_customer_details', 'bw_mew_render_express_divider', 100 );
 
