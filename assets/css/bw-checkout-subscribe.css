@@ -64,8 +64,7 @@ body.woocommerce-checkout .bw-checkout-newsletter input[type="checkbox"] {
 }
 
 body.woocommerce-checkout .bw-checkout-newsletter input[type="checkbox"]:focus {
-    outline: 2px solid #000000;
-    outline-offset: 2px;
+    outline: none;
 }
 
 body.woocommerce-checkout .bw-checkout-newsletter input[type="checkbox"]:checked {
