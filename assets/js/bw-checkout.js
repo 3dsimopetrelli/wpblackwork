@@ -1531,12 +1531,14 @@ console.log('[BW Checkout] Script file loaded and executing');
     // Re-initialize floating labels and detect free order after WooCommerce AJAX update
     if (window.jQuery) {
         jQuery(document.body).on('updated_checkout', function() {
-            console.log('[BW Checkout] Checkout updated, re-initializing floating labels and detecting free order');
+            console.log('[BW Checkout] Checkout updated, re-initializing all components');
 
             // Detect free order immediately without delay
             detectFreeOrder();
 
-            // Update mobile totals immediately
+            // Re-initialize mobile accordion and totals immediately
+            initMobileOrderSummary();
+            addMobileTotalRow();
             updateMobileTotals();
 
             // Also re-run after a small delay for elements that render slower
