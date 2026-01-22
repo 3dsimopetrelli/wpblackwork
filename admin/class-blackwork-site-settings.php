@@ -1369,6 +1369,12 @@ function bw_site_render_checkout_tab() {
         $supabase_provision_enabled = isset( $_POST['bw_supabase_checkout_provision_enabled'] ) ? '1' : '0';
         $supabase_invite_redirect   = isset( $_POST['bw_supabase_invite_redirect_url'] ) ? esc_url_raw( wp_unslash( $_POST['bw_supabase_invite_redirect_url'] ) ) : '';
 
+        // Google Maps settings
+        $google_maps_enabled = isset( $_POST['bw_google_maps_enabled'] ) ? '1' : '0';
+        $google_maps_api_key = isset( $_POST['bw_google_maps_api_key'] ) ? sanitize_text_field( wp_unslash( $_POST['bw_google_maps_api_key'] ) ) : '';
+        $google_maps_autofill = isset( $_POST['bw_google_maps_autofill'] ) ? '1' : '0';
+        $google_maps_restrict_country = isset( $_POST['bw_google_maps_restrict_country'] ) ? '1' : '0';
+
         if ( ! in_array( $thumb_ratio, [ 'square', 'portrait', 'landscape' ], true ) ) {
             $thumb_ratio = 'square';
         }
@@ -1427,6 +1433,25 @@ function bw_site_render_checkout_tab() {
         update_option( 'bw_supabase_checkout_provision_enabled', $supabase_provision_enabled );
         update_option( 'bw_supabase_invite_redirect_url', $supabase_invite_redirect );
 
+        // Save Google Maps settings
+        update_option( 'bw_google_maps_enabled', $google_maps_enabled );
+        update_option( 'bw_google_maps_api_key', $google_maps_api_key );
+        update_option( 'bw_google_maps_autofill', $google_maps_autofill );
+        update_option( 'bw_google_maps_restrict_country', $google_maps_restrict_country );
+
+        // Section Headings settings
+        $hide_billing_heading_val    = isset( $_POST['bw_checkout_hide_billing_heading'] ) ? '1' : '0';
+        $hide_additional_heading_val = isset( $_POST['bw_checkout_hide_additional_heading'] ) ? '1' : '0';
+        $address_heading_label_val   = isset( $_POST['bw_checkout_address_heading_label'] ) ? sanitize_text_field( wp_unslash( $_POST['bw_checkout_address_heading_label'] ) ) : '';
+        $free_order_message_val      = isset( $_POST['bw_checkout_free_order_message'] ) ? sanitize_textarea_field( wp_unslash( $_POST['bw_checkout_free_order_message'] ) ) : '';
+        $free_order_button_text_val  = isset( $_POST['bw_checkout_free_order_button_text'] ) ? sanitize_text_field( wp_unslash( $_POST['bw_checkout_free_order_button_text'] ) ) : '';
+
+        update_option( 'bw_checkout_hide_billing_heading', $hide_billing_heading_val );
+        update_option( 'bw_checkout_hide_additional_heading', $hide_additional_heading_val );
+        update_option( 'bw_checkout_address_heading_label', $address_heading_label_val );
+        update_option( 'bw_checkout_free_order_message', $free_order_message_val );
+        update_option( 'bw_checkout_free_order_button_text', $free_order_button_text_val );
+
         // Redirect to the same tab to prevent losing tab state
         wp_safe_redirect( add_query_arg( array(
             'page' => 'blackwork-site-settings',
@@ -1473,6 +1498,13 @@ function bw_site_render_checkout_tab() {
     $supabase_service_key       = get_option( 'bw_supabase_service_role_key', '' );
     $default_invite_redirect    = home_url( '/my-account/set-password/' );
     $supabase_invite_redirect   = $supabase_invite_redirect ? $supabase_invite_redirect : $default_invite_redirect;
+
+    // Section Headings settings
+    $hide_billing_heading      = get_option( 'bw_checkout_hide_billing_heading', '0' );
+    $hide_additional_heading   = get_option( 'bw_checkout_hide_additional_heading', '0' );
+    $address_heading_label     = get_option( 'bw_checkout_address_heading_label', '' );
+    $free_order_message        = get_option( 'bw_checkout_free_order_message', '' );
+    $free_order_button_text    = get_option( 'bw_checkout_free_order_button_text', '' );
     ?>
 
     <?php if ( $saved ) : ?>
@@ -1486,7 +1518,7 @@ function bw_site_render_checkout_tab() {
 
         <?php
     $active_checkout_tab = isset( $_GET['checkout_tab'] ) ? sanitize_key( $_GET['checkout_tab'] ) : 'style';
-    $allowed_checkout_tabs = [ 'style', 'supabase', 'fields', 'subscribe' ];
+    $allowed_checkout_tabs = [ 'style', 'supabase', 'fields', 'subscribe', 'google-maps' ];
         if ( ! in_array( $active_checkout_tab, $allowed_checkout_tabs, true ) ) {
             $active_checkout_tab = 'style';
         }
@@ -1495,6 +1527,7 @@ function bw_site_render_checkout_tab() {
         $supabase_tab_url = add_query_arg( 'checkout_tab', 'supabase' );
         $fields_tab_url = add_query_arg( 'checkout_tab', 'fields' );
         $subscribe_tab_url = add_query_arg( 'checkout_tab', 'subscribe' );
+        $google_maps_tab_url = add_query_arg( 'checkout_tab', 'google-maps' );
         ?>
 
         <h2 class="nav-tab-wrapper">
@@ -1509,6 +1542,9 @@ function bw_site_render_checkout_tab() {
             </a>
             <a class="nav-tab <?php echo 'subscribe' === $active_checkout_tab ? 'nav-tab-active' : ''; ?>" href="<?php echo esc_url( $subscribe_tab_url ); ?>">
                 <?php esc_html_e( 'Subscribe', 'bw' ); ?>
+            </a>
+            <a class="nav-tab <?php echo 'google-maps' === $active_checkout_tab ? 'nav-tab-active' : ''; ?>" href="<?php echo esc_url( $google_maps_tab_url ); ?>">
+                <?php esc_html_e( 'Google Maps', 'bw' ); ?>
             </a>
         </h2>
 
@@ -1741,6 +1777,61 @@ function bw_site_render_checkout_tab() {
                     </label>
                 </td>
             </tr>
+            <tr class="bw-section-break">
+                <th scope="row" colspan="2" style="padding-bottom:0;">
+                    <h3 style="margin:0;">Section Headings</h3>
+                    <p class="description" style="margin-top:6px;">Configure checkout section headings and free order behavior.</p>
+                </th>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_checkout_hide_billing_heading">Hide Billing Details heading</label>
+                </th>
+                <td>
+                    <label style="display: inline-flex; align-items: center; gap: 8px;">
+                        <input type="checkbox" id="bw_checkout_hide_billing_heading" name="bw_checkout_hide_billing_heading" value="1" <?php checked( '1', $hide_billing_heading ); ?> />
+                        <span style="font-weight: 500;">Remove the default WooCommerce "Billing details" heading.</span>
+                    </label>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_checkout_hide_additional_heading">Hide Additional information heading</label>
+                </th>
+                <td>
+                    <label style="display: inline-flex; align-items: center; gap: 8px;">
+                        <input type="checkbox" id="bw_checkout_hide_additional_heading" name="bw_checkout_hide_additional_heading" value="1" <?php checked( '1', $hide_additional_heading ); ?> />
+                        <span style="font-weight: 500;">Remove the default "Additional information" heading above order notes.</span>
+                    </label>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_checkout_address_heading_label">Address section heading label</label>
+                </th>
+                <td>
+                    <input type="text" id="bw_checkout_address_heading_label" name="bw_checkout_address_heading_label" value="<?php echo esc_attr( $address_heading_label ); ?>" class="regular-text" placeholder="Delivery" />
+                    <p class="description">Suggested: Delivery / Address / Shipping address.</p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_checkout_free_order_message">Free Order Message</label>
+                </th>
+                <td>
+                    <textarea id="bw_checkout_free_order_message" name="bw_checkout_free_order_message" rows="3" class="large-text" placeholder="Your order is free. Complete your details and click Place order."><?php echo esc_textarea( $free_order_message ); ?></textarea>
+                    <p class="description">Shown when order total becomes 0 (e.g., after applying a 100% discount coupon). Stripe express buttons and divider will be hidden.</p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_checkout_free_order_button_text">Free Order Button Text</label>
+                </th>
+                <td>
+                    <input type="text" id="bw_checkout_free_order_button_text" name="bw_checkout_free_order_button_text" value="<?php echo esc_attr( $free_order_button_text ); ?>" class="regular-text" placeholder="Confirm free order" />
+                    <p class="description">Text for the Place Order button when order total is 0. Original button text is restored when total becomes greater than 0.</p>
+                </td>
+            </tr>
             </table>
         </div>
 
@@ -1794,6 +1885,127 @@ function bw_site_render_checkout_tab() {
             <?php else : ?>
                 <p><?php esc_html_e( 'Subscribe module is unavailable.', 'bw' ); ?></p>
             <?php endif; ?>
+        </div>
+
+        <div class="bw-tab-panel" data-bw-tab="google-maps" <?php echo 'google-maps' === $active_checkout_tab ? '' : 'style="display:none;"'; ?>>
+            <?php
+            // Get Google Maps settings
+            $google_maps_enabled = get_option( 'bw_google_maps_enabled', '0' );
+            $google_maps_api_key = get_option( 'bw_google_maps_api_key', '' );
+            $google_maps_autofill = get_option( 'bw_google_maps_autofill', '1' );
+            $google_maps_restrict_country = get_option( 'bw_google_maps_restrict_country', '1' );
+            ?>
+
+            <table class="form-table" role="presentation">
+                <tr>
+                    <th scope="row">
+                        <label for="bw_google_maps_enabled"><?php esc_html_e( 'Enable Address Autocomplete', 'bw' ); ?></label>
+                    </th>
+                    <td>
+                        <label style="display: inline-flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" id="bw_google_maps_enabled" name="bw_google_maps_enabled" value="1" <?php checked( $google_maps_enabled, '1' ); ?> />
+                            <span style="font-weight: 500;"><?php esc_html_e( 'Active', 'bw' ); ?></span>
+                        </label>
+                        <p class="description">
+                            <?php esc_html_e( 'Enable Google Places API to suggest addresses as users type in the checkout form.', 'bw' ); ?>
+                        </p>
+                    </td>
+                </tr>
+            </table>
+
+            <div id="bw-google-maps-conditional-fields" style="<?php echo '1' === $google_maps_enabled ? '' : 'display:none;'; ?>">
+                <table class="form-table" role="presentation">
+                    <tr>
+                        <th scope="row">
+                            <label for="bw_google_maps_api_key"><?php esc_html_e( 'Google Maps API Key', 'bw' ); ?> *</label>
+                        </th>
+                        <td>
+                            <input type="text" id="bw_google_maps_api_key" name="bw_google_maps_api_key" value="<?php echo esc_attr( $google_maps_api_key ); ?>" class="regular-text" placeholder="AIzaSyB..." />
+                            <p class="description">
+                                <?php
+                                echo sprintf(
+                                    /* translators: %s: URL to Google Cloud Console */
+                                    esc_html__( 'Create an API key at %s and enable the Places API.', 'bw' ),
+                                    '<a href="https://console.cloud.google.com/apis/credentials" target="_blank">Google Cloud Console</a>'
+                                );
+                                ?>
+                                <br>
+                                <strong><?php esc_html_e( 'Free tier: $200/month (~70,000 autocomplete requests)', 'bw' ); ?></strong>
+                            </p>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row">
+                            <label for="bw_google_maps_autofill"><?php esc_html_e( 'Auto-fill City & Postcode', 'bw' ); ?></label>
+                        </th>
+                        <td>
+                            <label style="display: inline-flex; align-items: center; gap: 8px;">
+                                <input type="checkbox" id="bw_google_maps_autofill" name="bw_google_maps_autofill" value="1" <?php checked( $google_maps_autofill, '1' ); ?> />
+                                <span style="font-weight: 500;"><?php esc_html_e( 'Active', 'bw' ); ?></span>
+                            </label>
+                            <p class="description">
+                                <?php esc_html_e( 'When user selects an address, automatically fill City and Postal Code fields.', 'bw' ); ?>
+                            </p>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row">
+                            <label for="bw_google_maps_restrict_country"><?php esc_html_e( 'Restrict to Selected Country', 'bw' ); ?></label>
+                        </th>
+                        <td>
+                            <label style="display: inline-flex; align-items: center; gap: 8px;">
+                                <input type="checkbox" id="bw_google_maps_restrict_country" name="bw_google_maps_restrict_country" value="1" <?php checked( $google_maps_restrict_country, '1' ); ?> />
+                                <span style="font-weight: 500;"><?php esc_html_e( 'Active (Recommended)', 'bw' ); ?></span>
+                            </label>
+                            <p class="description">
+                                <?php esc_html_e( 'Search addresses ONLY in the country selected in the "Country/Region" dropdown. Improves search accuracy and relevance.', 'bw' ); ?>
+                            </p>
+                        </td>
+                    </tr>
+
+                    <tr class="bw-section-break">
+                        <th scope="row" colspan="2" style="padding-bottom:0;">
+                            <h3 style="margin:0;"><?php esc_html_e( 'Privacy & GDPR', 'bw' ); ?></h3>
+                            <p class="description" style="margin-top:6px;">
+                                <?php esc_html_e( 'Google Places API may track user searches. Add a notice in your Privacy Policy.', 'bw' ); ?>
+                            </p>
+                        </th>
+                    </tr>
+
+                    <tr>
+                        <td colspan="2">
+                            <div style="background: #f0f6fc; border-left: 4px solid #0969da; padding: 16px; margin-top: 10px;">
+                                <p style="margin: 0 0 10px 0; font-weight: 600;">
+                                    ℹ️ <?php esc_html_e( 'How to get your Google Maps API Key:', 'bw' ); ?>
+                                </p>
+                                <ol style="margin: 0; padding-left: 20px;">
+                                    <li><?php esc_html_e( 'Go to', 'bw' ); ?> <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a></li>
+                                    <li><?php esc_html_e( 'Create a new project (or select an existing one)', 'bw' ); ?></li>
+                                    <li><?php esc_html_e( 'Enable "Places API" in APIs & Services', 'bw' ); ?></li>
+                                    <li><?php esc_html_e( 'Go to Credentials → Create Credentials → API Key', 'bw' ); ?></li>
+                                    <li><?php esc_html_e( 'Restrict the key to your domain and Places API only', 'bw' ); ?></li>
+                                    <li><?php esc_html_e( 'Paste the key above and save settings', 'bw' ); ?></li>
+                                </ol>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <script>
+                jQuery(document).ready(function($) {
+                    // Toggle conditional fields
+                    $('#bw_google_maps_enabled').on('change', function() {
+                        if ($(this).is(':checked')) {
+                            $('#bw-google-maps-conditional-fields').slideDown(200);
+                        } else {
+                            $('#bw-google-maps-conditional-fields').slideUp(200);
+                        }
+                    });
+                });
+            </script>
         </div>
 
         <?php if ( in_array( $active_checkout_tab, [ 'fields', 'subscribe' ], true ) ) : ?>

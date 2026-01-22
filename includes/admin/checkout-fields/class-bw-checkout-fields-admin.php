@@ -9,7 +9,8 @@
  *   billing: { billing_first_name: { enabled, priority, width, label, required }, ... },
  *   shipping: { ... },
  *   order: { ... },
- *   account: { ... }
+ *   account: { ... },
+ *   section_headings: { free_order_message: "...", free_order_button_text: "..." }
  * }
  *
  * @package BW_Elementor_Widgets
@@ -84,9 +85,12 @@ class BW_Checkout_Fields_Admin {
         $headings = isset( $_POST['bw_checkout_section_headings'] ) ? wp_unslash( $_POST['bw_checkout_section_headings'] ) : [];
 
         $warnings = false;
-        $settings = [
-            'version' => self::OPTION_VERSION,
-        ];
+
+        // Get existing settings to preserve other data
+        $settings = $this->get_settings();
+        if ( empty( $settings['version'] ) ) {
+            $settings['version'] = self::OPTION_VERSION;
+        }
 
         foreach ( $defaults as $section => $fields ) {
             foreach ( $fields as $key => $field ) {
@@ -448,5 +452,33 @@ class BW_Checkout_Fields_Admin {
         }
 
         return has_block( 'woocommerce/checkout', $post->post_content );
+    }
+
+    /**
+     * Get free order message from settings.
+     *
+     * @return string
+     */
+    public static function get_free_order_message() {
+        $settings = get_option( self::OPTION_NAME, [ 'version' => self::OPTION_VERSION ] );
+        if ( ! is_array( $settings ) || empty( $settings['section_headings']['free_order_message'] ) ) {
+            return __( 'Your order is free. Complete your details and click Place order.', 'bw' );
+        }
+
+        return $settings['section_headings']['free_order_message'];
+    }
+
+    /**
+     * Get free order button text from settings.
+     *
+     * @return string
+     */
+    public static function get_free_order_button_text() {
+        $settings = get_option( self::OPTION_NAME, [ 'version' => self::OPTION_VERSION ] );
+        if ( ! is_array( $settings ) || empty( $settings['section_headings']['free_order_button_text'] ) ) {
+            return __( 'Confirm free order', 'bw' );
+        }
+
+        return $settings['section_headings']['free_order_button_text'];
     }
 }

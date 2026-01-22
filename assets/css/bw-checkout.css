@@ -622,6 +622,71 @@ body.woocommerce-checkout #wc-stripe-express-checkout-button-separator {
     line-height: 1;
 }
 
+/* Free order banner - Shopify-like styling */
+.bw-free-order-banner {
+    display: none;
+    width: 100%;
+    margin: 20px 0;
+    padding: 16px 20px;
+    background: #f0f9ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+}
+
+.bw-free-order-banner__content {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.bw-free-order-banner__icon {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    color: #0284c7;
+    margin-top: 2px;
+}
+
+.bw-free-order-banner__content p {
+    margin: 0;
+    padding: 0;
+    font-size: 15px;
+    line-height: 1.6;
+    color: #0c4a6e;
+}
+
+/* Hide express buttons and divider when order is free */
+body.woocommerce-checkout.bw-free-order .bw-express-divider {
+    display: none !important;
+}
+
+body.woocommerce-checkout.bw-free-order #wc-stripe-express-checkout-element {
+    display: none !important;
+}
+
+body.woocommerce-checkout.bw-free-order #payment .wc-stripe-ece-button-separator {
+    display: none !important;
+}
+
+/* Hide payment section elements when order is free (but keep Place order button) */
+body.woocommerce-checkout.bw-free-order .bw-payment-section-title,
+body.woocommerce-checkout.bw-free-order .bw-payment-section-subtitle,
+body.woocommerce-checkout.bw-free-order .ppcp-messages,
+body.woocommerce-checkout.bw-free-order div.ppcp-messages,
+body.woocommerce-checkout.bw-free-order #wc-stripe-express-checkout-button-separator,
+body.woocommerce-checkout.bw-free-order #payment .payment_methods,
+body.woocommerce-checkout.bw-free-order #payment ul.wc_payment_methods,
+body.woocommerce-checkout.bw-free-order #payment .woocommerce-checkout-payment > p,
+body.woocommerce-checkout.bw-free-order #payment .woocommerce-terms-and-conditions-wrapper {
+    display: none !important;
+}
+
+/* Show free order banner when order is free (JS detection or server-side active class) */
+body.woocommerce-checkout.bw-free-order .bw-free-order-banner,
+body.woocommerce-checkout .bw-free-order-banner.bw-free-order-active {
+    display: block !important;
+}
+
 /* Express checkout buttons - Two columns at 50% width */
 body.woocommerce-checkout #wc-stripe-express-checkout-element {
     display: grid !important;
@@ -701,6 +766,21 @@ body.woocommerce-checkout .wcpay-express-checkout-wrapper::before {
     font-weight: 700;
     margin: 22px 0 12px;
     color: #111111;
+}
+
+/* Delivery section heading - ensure proper display and spacing */
+body.woocommerce-checkout .bw-checkout-section-heading--delivery {
+    display: block !important;
+    width: 100% !important;
+    margin: 20px 0 5px 0 !important;
+    clear: both !important;
+}
+
+body.woocommerce-checkout .bw-delivery-section-title {
+    display: block !important;
+    width: 100% !important;
+    line-height: 30px;
+
 }
 
 /* Customer details section */
@@ -1619,4 +1699,294 @@ body.bw-order-summary-open .bw-order-summary-caret {
     .bw-checkout-footer__content p {
         font-size: 13px;
     }
+}
+
+/* ============================================
+   FLOATING LABELS (Shopify-style)
+   Applied to checkout form fields
+   ============================================ */
+
+/* Wrapper for each field with floating label */
+body.woocommerce-checkout .bw-field-wrapper {
+    position: relative;
+    width: 100%;
+    display: block;
+}
+
+/* Base input styles */
+body.woocommerce-checkout .bw-field-wrapper input[type="text"],
+body.woocommerce-checkout .bw-field-wrapper input[type="email"],
+body.woocommerce-checkout .bw-field-wrapper input[type="tel"],
+body.woocommerce-checkout .bw-field-wrapper input[type="number"],
+body.woocommerce-checkout .bw-field-wrapper textarea {
+    width: 100%;
+    padding: 16px 18px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 15px;
+    line-height: 1.4;
+    color: #1f2937;
+    background: #ffffff;
+    transition: border 0.2s ease, padding 0.15s ease;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Hide placeholder when floating label is present */
+body.woocommerce-checkout .bw-field-wrapper input::placeholder,
+body.woocommerce-checkout .bw-field-wrapper textarea::placeholder {
+    opacity: 0;
+    visibility: hidden;
+}
+
+/* Input focus state - Black thick border (Shopify-like) */
+body.woocommerce-checkout .bw-field-wrapper input[type="text"]:focus,
+body.woocommerce-checkout .bw-field-wrapper input[type="email"]:focus,
+body.woocommerce-checkout .bw-field-wrapper input[type="tel"]:focus,
+body.woocommerce-checkout .bw-field-wrapper input[type="number"]:focus,
+body.woocommerce-checkout .bw-field-wrapper textarea:focus {
+    border: 2px solid #000000;
+    outline: none;
+    padding: 15px 17px; /* Compensate for thicker border */
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* Floating label */
+body.woocommerce-checkout .bw-field-wrapper .bw-floating-label {
+    position: absolute;
+    left: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 15px;
+    color: #6b7280;
+    pointer-events: none;
+    transition: all 0.2s ease;
+    background: #ffffff;
+    padding: 0 4px;
+    line-height: 1.4;
+    font-weight: 400;
+}
+
+/* Label active state (when input has focus or value) */
+body.woocommerce-checkout .bw-field-wrapper input:focus ~ .bw-floating-label,
+body.woocommerce-checkout .bw-field-wrapper.has-value .bw-floating-label {
+    top: -8px;
+    transform: translateY(0);
+    font-size: 11px;
+    color: #374151;
+    font-weight: 500;
+}
+
+/* Hide original WooCommerce labels */
+body.woocommerce-checkout .bw-field-wrapper + label,
+body.woocommerce-checkout .form-row.bw-has-floating-label > label {
+    display: none !important;
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+    body.woocommerce-checkout .bw-field-wrapper input[type="text"],
+    body.woocommerce-checkout .bw-field-wrapper input[type="email"],
+    body.woocommerce-checkout .bw-field-wrapper input[type="tel"],
+    body.woocommerce-checkout .bw-field-wrapper input[type="number"],
+    body.woocommerce-checkout .bw-field-wrapper textarea {
+        font-size: 16px; /* Prevent iOS zoom */
+        padding: 14px 16px;
+    }
+
+    body.woocommerce-checkout .bw-field-wrapper input:focus {
+        padding: 13px 15px; /* Compensate for 2px border */
+    }
+
+    body.woocommerce-checkout .bw-field-wrapper .bw-floating-label {
+        left: 16px;
+        font-size: 16px;
+    }
+
+    body.woocommerce-checkout .bw-field-wrapper input:focus ~ .bw-floating-label,
+    body.woocommerce-checkout .bw-field-wrapper.has-value .bw-floating-label {
+        top: -8px;
+        font-size: 11px;
+    }
+}
+
+/* ============================================
+   FLOATING LABELS FOR SELECT DROPDOWNS
+   ============================================ */
+
+/* Base select styles */
+body.woocommerce-checkout .bw-field-wrapper select {
+    width: 100%;
+    height: 51px; /* Match input height: 16px padding top + 16px padding bottom + 15px font-size + 4px line-height = ~51px */
+    padding: 16px 40px 16px 18px; /* Extra right padding for dropdown arrow */
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 15px;
+    line-height: 1.4;
+    color: #1f2937;
+    background: #ffffff;
+    transition: border 0.2s ease, padding 0.15s ease, height 0.15s ease;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url('data:image/svg+xml;charset=UTF-8,%3Csvg xmlns="http://www.w3.org/2000/svg" width="12" height="8" viewBox="0 0 12 8"%3E%3Cpath fill="%236b7280" d="M1.41 0L6 4.59L10.59 0L12 1.41l-6 6l-6-6z"/%3E%3C/svg%3E');
+    background-repeat: no-repeat;
+    background-position: right 18px center;
+    background-size: 12px;
+}
+
+/* Select focus state */
+body.woocommerce-checkout .bw-field-wrapper select:focus {
+    height: 51px; /* Maintain same height with thicker border */
+    border: 2px solid #000000;
+    outline: none;
+    padding: 15px 39px 15px 17px; /* Compensate for thicker border */
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    background-image: url('data:image/svg+xml;charset=UTF-8,%3Csvg xmlns="http://www.w3.org/2000/svg" width="12" height="8" viewBox="0 0 12 8"%3E%3Cpath fill="%23000000" d="M1.41 0L6 4.59L10.59 0L12 1.41l-6 6l-6-6z"/%3E%3C/svg%3E');
+}
+
+/* Select with value - label stays on top */
+body.woocommerce-checkout .bw-field-wrapper.has-value select,
+body.woocommerce-checkout .bw-field-wrapper select:not([value=""]) {
+    /* Keep same padding */
+}
+
+/* Mobile select adjustments */
+@media (max-width: 768px) {
+    body.woocommerce-checkout .bw-field-wrapper select {
+        font-size: 16px; /* Prevent iOS zoom */
+        padding: 14px 40px 14px 16px;
+    }
+
+    body.woocommerce-checkout .bw-field-wrapper select:focus {
+        padding: 13px 39px 13px 15px;
+    }
+}
+
+/* ============================================
+   SELECT2 DROPDOWNS (Country, State/Province)
+   Override WooCommerce Select2 styles
+   ============================================ */
+
+/* Select2 container - match input height */
+body.woocommerce-checkout .bw-field-wrapper .select2-container {
+    width: 100% !important;
+}
+
+/* Select2 selection box - match input styles */
+body.woocommerce-checkout .bw-field-wrapper .select2-container .select2-selection--single {
+    height: 51px !important;
+    padding: 16px 18px !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 8px !important;
+    background: #ffffff !important;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+    transition: border 0.2s ease, padding 0.15s ease !important;
+}
+
+/* Select2 rendered text */
+body.woocommerce-checkout .bw-field-wrapper .select2-container .select2-selection__rendered {
+    line-height: 19px !important;
+    padding: 0 !important;
+    font-size: 15px !important;
+    color: #1f2937 !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+}
+
+/* Select2 arrow */
+body.woocommerce-checkout .bw-field-wrapper .select2-container .select2-selection__arrow {
+    height: 49px !important;
+    top: 1px !important;
+    right: 18px !important;
+}
+
+body.woocommerce-checkout .bw-field-wrapper .select2-container .select2-selection__arrow b {
+    border-color: #6b7280 transparent transparent transparent !important;
+    border-width: 6px 5px 0 5px !important;
+    margin-left: -5px !important;
+    margin-top: -3px !important;
+}
+
+/* Remove double border on focus */
+body.woocommerce-checkout .bw-field-wrapper .select2-container--focus,
+body.woocommerce-checkout .bw-field-wrapper .select2-container--open {
+    outline: none !important;
+}
+
+/* Select2 focus state - match input focus */
+body.woocommerce-checkout .bw-field-wrapper .select2-container--focus .select2-selection--single,
+body.woocommerce-checkout .bw-field-wrapper .select2-container--open .select2-selection--single {
+    height: 51px !important;
+    border: 2px solid #000000 !important;
+    padding: 15px 17px !important;
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+    outline: none !important;
+}
+
+/* Select2 focus arrow color */
+body.woocommerce-checkout .bw-field-wrapper .select2-container--focus .select2-selection__arrow b,
+body.woocommerce-checkout .bw-field-wrapper .select2-container--open .select2-selection__arrow b {
+    border-color: #000000 transparent transparent transparent !important;
+}
+
+/* Select2 dropdown menu */
+body.woocommerce-checkout .select2-dropdown {
+    border: 2px solid #000000 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+}
+
+body.woocommerce-checkout .select2-results__option {
+    padding: 12px 18px !important;
+    font-size: 15px !important;
+    color: #1f2937 !important;
+}
+
+body.woocommerce-checkout .select2-results__option--highlighted {
+    background: #f3f4f6 !important;
+    color: #000000 !important;
+}
+
+body.woocommerce-checkout .select2-results__option--selected {
+    background: #e5e7eb !important;
+}
+
+/* Mobile adjustments for Select2 */
+@media (max-width: 768px) {
+    body.woocommerce-checkout .bw-field-wrapper .select2-container .select2-selection--single {
+        padding: 14px 16px !important;
+    }
+
+    body.woocommerce-checkout .bw-field-wrapper .select2-container .select2-selection__rendered {
+        font-size: 16px !important; /* Prevent iOS zoom */
+    }
+
+    body.woocommerce-checkout .bw-field-wrapper .select2-container--focus .select2-selection--single,
+    body.woocommerce-checkout .bw-field-wrapper .select2-container--open .select2-selection--single {
+        padding: 13px 15px !important;
+    }
+}
+
+/* ============================================
+   SECTION HEADINGS CUSTOMIZATION
+   ============================================ */
+
+/* Custom address section heading styling */
+.bw-checkout-section-heading {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 24px 0 16px 0;
+    padding: 0;
+    display: block;
+    width: 100%;
+}
+
+.bw-checkout-section-heading--delivery {
+    margin-top: 32px;
 }

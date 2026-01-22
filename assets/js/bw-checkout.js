@@ -740,6 +740,540 @@ console.log('[BW Checkout] Script file loaded and executing');
         }
     }
 
+    /**
+     * Transform checkout fields into floating label fields
+     */
+    function initCheckoutFloatingLabels() {
+        console.log('[BW Checkout] Initializing floating labels');
+
+        // Target checkout form fields (including select dropdowns)
+        var fieldSelectors = [
+            '#billing_first_name',
+            '#billing_last_name',
+            '#billing_company',
+            '#billing_country',
+            '#billing_state',
+            '#billing_address_1',
+            '#billing_address_2',
+            '#billing_city',
+            '#billing_postcode',
+            '#billing_phone',
+            '#billing_email',
+            '#shipping_first_name',
+            '#shipping_last_name',
+            '#shipping_company',
+            '#shipping_country',
+            '#shipping_state',
+            '#shipping_address_1',
+            '#shipping_address_2',
+            '#shipping_city',
+            '#shipping_postcode'
+        ];
+
+        fieldSelectors.forEach(function(selector) {
+            var input = document.querySelector(selector);
+            if (!input) return;
+
+            // Skip if already wrapped
+            if (input.closest('.bw-field-wrapper')) return;
+
+            // Get field label text
+            var fieldRow = input.closest('.form-row');
+            if (!fieldRow) return;
+
+            var originalLabel = fieldRow.querySelector('label[for="' + input.id + '"]');
+            if (!originalLabel) return;
+
+            // Get clean label text (remove asterisks, abbr, optional text, etc.)
+            var labelClone = originalLabel.cloneNode(true);
+            // Remove abbr (asterisks), optional spans, and other non-text elements
+            var elemsToRemove = labelClone.querySelectorAll('abbr, .optional, .required');
+            elemsToRemove.forEach(function(elem) { elem.remove(); });
+            var labelText = labelClone.textContent.replace(/\*/g, '').trim();
+
+            if (!labelText) return;
+
+            // Check if this is a Select2 field
+            var isSelect2 = input.tagName === 'SELECT' && input.classList.contains('select2-hidden-accessible');
+            var elementToWrap = input;
+
+            // For Select2, wrap the .select2-container instead of the hidden select
+            if (isSelect2) {
+                var select2Container = fieldRow.querySelector('.select2-container');
+                if (select2Container) {
+                    elementToWrap = select2Container;
+                }
+            }
+
+            // Skip if element to wrap is already inside a wrapper
+            if (elementToWrap.closest('.bw-field-wrapper')) return;
+
+            // Wrap input/select2 with floating label structure
+            var wrapper = document.createElement('span');
+            wrapper.className = 'bw-field-wrapper';
+
+            // Create floating label
+            var floatingLabel = document.createElement('label');
+            floatingLabel.className = 'bw-floating-label';
+            floatingLabel.setAttribute('for', input.id);
+            floatingLabel.textContent = labelText;
+
+            // Insert wrapper before element
+            elementToWrap.parentNode.insertBefore(wrapper, elementToWrap);
+            wrapper.appendChild(elementToWrap);
+            wrapper.appendChild(floatingLabel);
+
+            // For Select2, also move the hidden select into wrapper
+            if (isSelect2 && elementToWrap !== input) {
+                wrapper.appendChild(input);
+            }
+
+            // Hide original label
+            if (originalLabel) {
+                originalLabel.style.display = 'none';
+            }
+
+            // Add has-floating-label class to form-row
+            fieldRow.classList.add('bw-has-floating-label');
+
+            // Function to update has-value class
+            function updateHasValue() {
+                var hasValue = input.value && input.value.trim() !== '';
+
+                if (hasValue) {
+                    wrapper.classList.add('has-value');
+                } else {
+                    wrapper.classList.remove('has-value');
+                }
+            }
+
+            // Listen to appropriate events based on field type
+            if (isSelect2) {
+                // Select2 events
+                if (window.jQuery) {
+                    jQuery(input).on('select2:select select2:clear change', updateHasValue);
+                }
+            } else {
+                // Standard input events
+                input.addEventListener('input', updateHasValue);
+                input.addEventListener('blur', updateHasValue);
+                input.addEventListener('change', updateHasValue);
+            }
+
+            // Check initial value
+            updateHasValue();
+        });
+
+        console.log('[BW Checkout] Floating labels initialized');
+    }
+
+    /**
+     * Initialize Google Places Autocomplete (if enabled)
+     */
+    function initGooglePlacesAutocomplete() {
+        // Check if Google Maps is enabled
+        if (!window.bwGoogleMapsSettings || !window.bwGoogleMapsSettings.enabled) {
+            console.log('[BW Checkout] Google Maps not enabled');
+            return;
+        }
+
+        // Check if Google Maps API is loaded
+        if (typeof google === 'undefined' || !google.maps || !google.maps.places) {
+            console.warn('[BW Checkout] Google Maps API not loaded');
+            return;
+        }
+
+        console.log('[BW Checkout] Initializing Google Places Autocomplete');
+
+        var addressInput = document.getElementById('billing_address_1');
+        if (!addressInput) {
+            console.warn('[BW Checkout] Address input not found');
+            return;
+        }
+
+        // Get selected country
+        var countrySelect = document.querySelector('select[name="billing_country"]');
+        var selectedCountry = countrySelect ? countrySelect.value : '';
+
+        // Configure autocomplete options
+        var options = {
+            types: ['address'],
+            fields: ['address_components', 'formatted_address', 'geometry']
+        };
+
+        // Add country restriction if enabled and country is selected
+        if (window.bwGoogleMapsSettings.restrictToCountry && selectedCountry) {
+            options.componentRestrictions = {
+                country: selectedCountry.toLowerCase()
+            };
+        }
+
+        // Create autocomplete instance
+        window.bwGoogleAutocomplete = new google.maps.places.Autocomplete(addressInput, options);
+
+        // Listen for place selection
+        window.bwGoogleAutocomplete.addListener('place_changed', function() {
+            var place = window.bwGoogleAutocomplete.getPlace();
+            
+            if (!place.address_components) {
+                console.warn('[BW Checkout] No address components found');
+                return;
+            }
+
+            console.log('[BW Checkout] Place selected:', place);
+
+            // Parse address components
+            var addressData = {
+                street: '',
+                city: '',
+                postcode: '',
+                state: '',
+                country: ''
+            };
+
+            place.address_components.forEach(function(component) {
+                var types = component.types;
+
+                if (types.includes('street_number')) {
+                    addressData.street = component.long_name + ' ';
+                }
+                if (types.includes('route')) {
+                    addressData.street += component.long_name;
+                }
+                if (types.includes('locality') || types.includes('postal_town')) {
+                    addressData.city = component.long_name;
+                }
+                if (types.includes('postal_code')) {
+                    addressData.postcode = component.long_name;
+                }
+                if (types.includes('administrative_area_level_1')) {
+                    addressData.state = component.short_name;
+                }
+                if (types.includes('country')) {
+                    addressData.country = component.short_name;
+                }
+            });
+
+            // Fill address field
+            if (addressData.street) {
+                addressInput.value = addressData.street.trim();
+                jQuery(addressInput).trigger('change');
+            }
+
+            // Auto-fill city and postcode if enabled
+            if (window.bwGoogleMapsSettings.autoFillCityPostcode) {
+                if (addressData.city) {
+                    var cityInput = document.getElementById('billing_city');
+                    if (cityInput) {
+                        cityInput.value = addressData.city;
+                        jQuery(cityInput).trigger('change');
+                    }
+                }
+
+                if (addressData.postcode) {
+                    var postcodeInput = document.getElementById('billing_postcode');
+                    if (postcodeInput) {
+                        postcodeInput.value = addressData.postcode;
+                        jQuery(postcodeInput).trigger('change');
+                    }
+                }
+            }
+
+            // Update floating labels for filled fields
+            setTimeout(function() {
+                initCheckoutFloatingLabels();
+            }, 100);
+
+            // Trigger WooCommerce update
+            if (window.jQuery) {
+                jQuery(document.body).trigger('update_checkout');
+            }
+        });
+
+        // Update country restriction when country changes
+        if (countrySelect && window.bwGoogleMapsSettings.restrictToCountry) {
+            jQuery(countrySelect).on('change', function() {
+                var newCountry = this.value;
+                if (window.bwGoogleAutocomplete && newCountry) {
+                    window.bwGoogleAutocomplete.setComponentRestrictions({
+                        country: newCountry.toLowerCase()
+                    });
+                    console.log('[BW Checkout] Google Places country restriction updated:', newCountry);
+                }
+            });
+        }
+
+        console.log('[BW Checkout] Google Places Autocomplete initialized');
+    }
+
+    /**
+     * Move "Delivery" section heading below newsletter checkbox.
+     * This creates a visual separation between Contact section and Delivery section.
+     */
+    function moveDeliveryHeading() {
+        var newsletterField = document.getElementById('bw_subscribe_newsletter_field');
+        if (!newsletterField) {
+            return;
+        }
+
+        // Try multiple selectors to find the Delivery heading
+        var deliveryHeading = document.querySelector('.checkout-delivery-title') ||
+                             document.querySelector('.bw-checkout-section-heading--delivery') ||
+                             document.querySelector('h2.checkout-section-title');
+
+        // If not found by class, try finding by text content
+        if (!deliveryHeading) {
+            var allHeadings = document.querySelectorAll('h2, h3, .checkout-section-title');
+            for (var i = 0; i < allHeadings.length; i++) {
+                if (allHeadings[i].textContent.trim().toLowerCase() === 'delivery') {
+                    deliveryHeading = allHeadings[i];
+                    break;
+                }
+            }
+        }
+
+        if (deliveryHeading) {
+            // Add class for styling
+            deliveryHeading.classList.add('bw-delivery-section-title');
+
+            // Move the heading (and its wrapper if it has one) after the newsletter field
+            var headingToMove = deliveryHeading.closest('.bw-checkout-section-heading') || deliveryHeading;
+
+            // Add class to wrapper if it exists
+            if (headingToMove.classList.contains('bw-checkout-section-heading')) {
+                headingToMove.classList.add('bw-checkout-section-heading--delivery');
+            }
+
+            // Insert after newsletter field
+            if (newsletterField.nextSibling) {
+                newsletterField.parentNode.insertBefore(headingToMove, newsletterField.nextSibling);
+            } else {
+                newsletterField.parentNode.appendChild(headingToMove);
+            }
+
+            console.log('[BW Checkout] Delivery heading moved below newsletter checkbox');
+        }
+    }
+
+    /**
+     * Detect if order total is 0 and toggle free order UI.
+     * Shows free order banner, hides express buttons and divider.
+     * Creates banner dynamically if it doesn't exist during AJAX updates.
+     */
+    function detectFreeOrder() {
+        // Try multiple selectors for order total
+        var totalElement = document.querySelector('.order-total .woocommerce-Price-amount') ||
+                          document.querySelector('.order-total .amount') ||
+                          document.querySelector('.cart-subtotal .woocommerce-Price-amount');
+
+        if (!totalElement) {
+            console.log('[BW Checkout] Total element not found, cannot detect free order');
+            return;
+        }
+
+        var totalText = totalElement.textContent || totalElement.innerText || '';
+        // Remove currency symbols, spaces, and parse
+        var totalValue = parseFloat(totalText.replace(/[^\d.,]/g, '').replace(',', '.'));
+
+        console.log('[BW Checkout] Detected total value:', totalValue);
+
+        var body = document.body;
+        var isFree = totalValue === 0 || isNaN(totalValue) && totalText.includes('0');
+
+        // Find or create banner and divider
+        var banner = document.querySelector('.bw-free-order-banner');
+        var divider = document.querySelector('.bw-express-divider');
+        var expressCheckout = document.querySelector('#wc-stripe-express-checkout-element');
+
+        if (isFree) {
+            body.classList.add('bw-free-order');
+
+            // Create banner if it doesn't exist
+            if (!banner) {
+                banner = createFreeOrderBanner();
+
+                // Insert in same position as divider if divider exists
+                if (divider && divider.parentNode) {
+                    divider.parentNode.insertBefore(banner, divider);
+                    console.log('[BW Checkout] Free order banner created before divider');
+                } else {
+                    // Otherwise insert before customer details or express checkout
+                    var insertPoint = document.querySelector('.woocommerce-billing-fields') ||
+                                     document.querySelector('#customer_details') ||
+                                     expressCheckout;
+
+                    if (insertPoint && insertPoint.parentNode) {
+                        insertPoint.parentNode.insertBefore(banner, insertPoint);
+                        console.log('[BW Checkout] Free order banner created and inserted before customer details');
+                    }
+                }
+            }
+
+            // Show banner if it exists
+            if (banner) {
+                banner.classList.add('bw-free-order-active');
+                banner.style.display = 'block';
+            }
+
+            // Hide divider if it exists
+            if (divider) {
+                divider.style.display = 'none';
+            }
+
+            // Update button text for free order
+            updatePlaceOrderButton(true);
+
+            console.log('[BW Checkout] Free order detected, UI updated');
+        } else {
+            body.classList.remove('bw-free-order');
+
+            // Hide banner if it exists
+            if (banner) {
+                banner.classList.remove('bw-free-order-active');
+                banner.style.display = 'none';
+            }
+
+            // Show divider if it exists
+            if (divider) {
+                divider.style.display = '';
+            }
+
+            // Restore original button text
+            updatePlaceOrderButton(false);
+
+            console.log('[BW Checkout] Paid order detected, UI updated');
+        }
+    }
+
+    /**
+     * Update Place Order button text based on free order state.
+     * Stores original button text on first call to restore it later.
+     *
+     * @param {boolean} isFree - Whether order is free (total = 0)
+     */
+    function updatePlaceOrderButton(isFree) {
+        // Find Place Order button
+        var button = document.querySelector('#place_order') ||
+                    document.querySelector('.woocommerce-checkout button[type="submit"]');
+
+        if (!button) {
+            return;
+        }
+
+        // Store original button text on first call
+        if (!button.hasAttribute('data-original-text')) {
+            var originalText = button.textContent || button.innerText || button.value;
+            button.setAttribute('data-original-text', originalText);
+            console.log('[BW Checkout] Stored original button text:', originalText);
+        }
+
+        if (isFree) {
+            // Set free order button text
+            var freeText = window.bwCheckoutParams && window.bwCheckoutParams.freeOrderButtonText
+                ? window.bwCheckoutParams.freeOrderButtonText
+                : 'Confirm free order';
+
+            button.textContent = freeText;
+            if (button.value) {
+                button.value = freeText;
+            }
+            console.log('[BW Checkout] Button text changed to:', freeText);
+        } else {
+            // Restore original button text
+            var originalText = button.getAttribute('data-original-text');
+            if (originalText) {
+                button.textContent = originalText;
+                if (button.value) {
+                    button.value = originalText;
+                }
+                console.log('[BW Checkout] Button text restored to:', originalText);
+            }
+        }
+    }
+
+    /**
+     * Create free order banner HTML dynamically.
+     *
+     * @return {HTMLElement}
+     */
+    function createFreeOrderBanner() {
+        var banner = document.createElement('div');
+        banner.className = 'bw-free-order-banner bw-free-order-active';
+
+        var content = document.createElement('div');
+        content.className = 'bw-free-order-banner__content';
+
+        var icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        icon.setAttribute('class', 'bw-free-order-banner__icon');
+        icon.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+        icon.setAttribute('width', '24');
+        icon.setAttribute('height', '24');
+        icon.setAttribute('viewBox', '0 0 24 24');
+        icon.setAttribute('fill', 'none');
+        icon.setAttribute('stroke', 'currentColor');
+        icon.setAttribute('stroke-width', '2');
+        icon.setAttribute('stroke-linecap', 'round');
+        icon.setAttribute('stroke-linejoin', 'round');
+
+        var path1 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path1.setAttribute('d', 'M22 11.08V12a10 10 0 1 1-5.93-9.14');
+        icon.appendChild(path1);
+
+        var polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+        polyline.setAttribute('points', '22 4 12 14.01 9 11.01');
+        icon.appendChild(polyline);
+
+        var message = document.createElement('div');
+        // Get message from localized data or use default
+        var messageText = window.bwCheckoutParams && window.bwCheckoutParams.freeOrderMessage
+            ? window.bwCheckoutParams.freeOrderMessage
+            : 'Your order is free. Complete your details and click Place order.';
+
+        // Check if message contains HTML tags
+        if (messageText.indexOf('<') !== -1) {
+            message.innerHTML = messageText;
+        } else {
+            var p = document.createElement('p');
+            p.textContent = messageText;
+            message.appendChild(p);
+        }
+
+        content.appendChild(icon);
+        content.appendChild(message);
+        banner.appendChild(content);
+
+        return banner;
+    }
+
+    /**
+     * Hide section headings based on body classes.
+     */
+    function hideSectionHeadings() {
+        var body = document.body;
+
+        // Hide Billing Details heading
+        if (body.classList.contains('bw-hide-billing-heading')) {
+            var billingHeadings = document.querySelectorAll('.woocommerce-billing-fields h3, .woocommerce-billing-fields__field-wrapper h3');
+            billingHeadings.forEach(function(heading) {
+                var text = heading.textContent.trim().toLowerCase();
+                if (text.includes('billing') || text.includes('fatturazione') || text.includes('dati di fatturazione')) {
+                    heading.style.display = 'none';
+                }
+            });
+        }
+
+        // Hide Additional Information heading
+        if (body.classList.contains('bw-hide-additional-heading')) {
+            var additionalHeadings = document.querySelectorAll('.woocommerce-additional-fields h3, .woocommerce-additional-fields__field-wrapper h3');
+            additionalHeadings.forEach(function(heading) {
+                var text = heading.textContent.trim().toLowerCase();
+                if (text.includes('additional') || text.includes('aggiuntiv') || text.includes('note')) {
+                    heading.style.display = 'none';
+                }
+            });
+        }
+    }
+
     console.log('[BW Checkout] Script reached end, about to initialize. DOM readyState:', document.readyState);
 
     // Initialize all functions when DOM is ready
@@ -750,16 +1284,41 @@ console.log('[BW Checkout] Script file loaded and executing');
             initCustomSticky();
             observeStripeErrors();
             initFloatingLabel();
-            initOrderSummaryToggle();
-            updateOrderSummaryTotals();
+            initCheckoutFloatingLabels();
+            initGooglePlacesAutocomplete();
+            moveDeliveryHeading();
+            detectFreeOrder();
+            hideSectionHeadings();
         });
     } else {
         console.log('[BW Checkout] DOM already loaded, initializing immediately');
         initCustomSticky();
         observeStripeErrors();
         initFloatingLabel();
-        initOrderSummaryToggle();
-        updateOrderSummaryTotals();
+        initCheckoutFloatingLabels();
+        initGooglePlacesAutocomplete();
+        moveDeliveryHeading();
+        detectFreeOrder();
+        hideSectionHeadings();
+    }
+
+    // Re-initialize floating labels and detect free order after WooCommerce AJAX update
+    if (window.jQuery) {
+        jQuery(document.body).on('updated_checkout', function() {
+            console.log('[BW Checkout] Checkout updated, re-initializing floating labels and detecting free order');
+
+            // Detect free order immediately without delay
+            detectFreeOrder();
+
+            // Also re-run after a small delay for elements that render slower
+            setTimeout(function() {
+                initCheckoutFloatingLabels();
+                initGooglePlacesAutocomplete();
+                moveDeliveryHeading();
+                detectFreeOrder();
+                hideSectionHeadings();
+            }, 50);
+        });
     }
 
     console.log('[BW Checkout] Script execution completed');

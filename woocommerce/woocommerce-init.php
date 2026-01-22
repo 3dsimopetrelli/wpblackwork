@@ -40,6 +40,8 @@ function bw_mew_initialize_woocommerce_overrides() {
     add_filter( 'woocommerce_available_payment_gateways', 'bw_mew_hide_paypal_advanced_card_processing' );
     add_filter( 'wc_stripe_elements_options', 'bw_mew_customize_stripe_elements_style' );
     add_filter( 'wc_stripe_upe_params', 'bw_mew_customize_stripe_upe_appearance' );
+    add_filter( 'body_class', 'bw_mew_add_section_heading_body_classes' );
+    add_action( 'woocommerce_checkout_before_customer_details', 'bw_mew_render_address_section_heading', 5 );
 }
 add_action( 'plugins_loaded', 'bw_mew_initialize_woocommerce_overrides' );
 
@@ -276,12 +278,53 @@ function bw_mew_enqueue_checkout_assets() {
             true
         );
 
+        // Get free order message and button text from settings
+        $free_order_message = get_option( 'bw_checkout_free_order_message', '' );
+        $free_order_button_text = get_option( 'bw_checkout_free_order_button_text', '' );
+
+        if ( empty( $free_order_message ) ) {
+            $free_order_message = __( 'Your order is free. Complete your details and click Place order.', 'bw' );
+        }
+        if ( empty( $free_order_button_text ) ) {
+            $free_order_button_text = __( 'Confirm free order', 'bw' );
+        }
+
         wp_localize_script(
             'bw-checkout',
             'bwCheckoutParams',
             array(
-                'ajax_url' => admin_url( 'admin-ajax.php' ),
-                'nonce'    => wp_create_nonce( 'bw-checkout-nonce' ),
+                'ajax_url'            => admin_url( 'admin-ajax.php' ),
+                'nonce'               => wp_create_nonce( 'bw-checkout-nonce' ),
+                'freeOrderMessage'    => wp_kses_post( wpautop( $free_order_message ) ),
+                'freeOrderButtonText' => esc_html( $free_order_button_text ),
+            )
+        );
+
+        // Google Maps settings for floating labels + autocomplete
+        $google_maps_enabled = get_option( 'bw_google_maps_enabled', '0' );
+        $google_maps_api_key = get_option( 'bw_google_maps_api_key', '' );
+        $google_maps_autofill = get_option( 'bw_google_maps_autofill', '1' );
+        $google_maps_restrict = get_option( 'bw_google_maps_restrict_country', '1' );
+
+        // Load Google Maps API if enabled and API key exists
+        if ( '1' === $google_maps_enabled && ! empty( $google_maps_api_key ) ) {
+            wp_enqueue_script(
+                'google-maps-places',
+                'https://maps.googleapis.com/maps/api/js?key=' . esc_attr( $google_maps_api_key ) . '&libraries=places',
+                [],
+                null,
+                true
+            );
+        }
+
+        // Pass Google Maps settings to JavaScript
+        wp_localize_script(
+            'bw-checkout',
+            'bwGoogleMapsSettings',
+            array(
+                'enabled'             => '1' === $google_maps_enabled && ! empty( $google_maps_api_key ),
+                'autoFillCityPostcode'=> '1' === $google_maps_autofill,
+                'restrictToCountry'   => '1' === $google_maps_restrict,
             )
         );
     }
@@ -862,21 +905,49 @@ function bw_mew_render_checkout_header() {
 }
 
 /**
- * Render custom express checkout divider with perfect continuous lines.
- * Replaces the default WCPay separator with a cleaner implementation.
+ * Render custom express checkout divider OR free order banner.
+ * - If cart total is 0: show free order message banner
+ * - Otherwise: show OR divider for express buttons
  */
 function bw_mew_render_express_divider() {
     if ( ! function_exists( 'is_checkout' ) || ! is_checkout() ) {
         return;
     }
 
-    // Check if WCPay express checkout separator exists in the page
-    // If it does, our CSS will hide it and show this custom one instead
-    ?>
-    <div class="bw-express-divider">
-        <span>OR</span>
-    </div>
-    <?php
+    // Check if cart total is 0
+    $is_free = false;
+    if ( function_exists( 'WC' ) && WC()->cart ) {
+        $total = WC()->cart->get_total( 'edit' );
+        $is_free = ( 0 == $total || '0' === $total || 0.0 === (float) $total );
+    }
+
+    // Get free order message from settings
+    $free_message = get_option( 'bw_checkout_free_order_message', '' );
+    if ( empty( $free_message ) ) {
+        $free_message = __( 'Your order is free. Complete your details and click Place order.', 'bw' );
+    }
+
+    if ( $is_free ) {
+        // Render free order banner (visible immediately with bw-free-order-active class)
+        ?>
+        <div class="bw-free-order-banner bw-free-order-active">
+            <div class="bw-free-order-banner__content">
+                <svg class="bw-free-order-banner__icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+                <p><?php echo wp_kses_post( wpautop( $free_message ) ); ?></p>
+            </div>
+        </div>
+        <?php
+    } else {
+        // Render OR divider for express buttons
+        ?>
+        <div class="bw-express-divider">
+            <span>OR</span>
+        </div>
+        <?php
+    }
 }
 add_action( 'woocommerce_checkout_before_customer_details', 'bw_mew_render_express_divider', 100 );
 
@@ -1237,4 +1308,42 @@ function bw_mew_customize_stripe_upe_appearance( $params ) {
     );
 
     return $params;
+}
+
+/**
+ * Add body classes for section heading customizations.
+ *
+ * @param array $classes Body classes.
+ * @return array
+ */
+function bw_mew_add_section_heading_body_classes( $classes ) {
+    if ( ! is_checkout() || is_wc_endpoint_url() ) {
+        return $classes;
+    }
+
+    $hide_billing = get_option( 'bw_checkout_hide_billing_heading', '0' );
+    $hide_additional = get_option( 'bw_checkout_hide_additional_heading', '0' );
+
+    if ( '1' === $hide_billing ) {
+        $classes[] = 'bw-hide-billing-heading';
+    }
+
+    if ( '1' === $hide_additional ) {
+        $classes[] = 'bw-hide-additional-heading';
+    }
+
+    return $classes;
+}
+
+/**
+ * Render custom address section heading before checkout customer details.
+ */
+function bw_mew_render_address_section_heading() {
+    $label = get_option( 'bw_checkout_address_heading_label', '' );
+
+    if ( empty( $label ) ) {
+        return;
+    }
+
+    echo '<h3 class="bw-checkout-section-heading bw-checkout-section-heading--delivery">' . esc_html( $label ) . '</h3>';
 }
