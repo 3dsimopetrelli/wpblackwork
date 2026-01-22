@@ -1,0 +1,86 @@
+/**
+ * Checkout subscribe styles (Contact header + newsletter checkbox).
+ */
+body.woocommerce-checkout .bw-checkout-section-heading {
+    margin: 12px 0 16px;
+}
+
+body.woocommerce-checkout .bw-checkout-section-heading--contact {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+}
+
+body.woocommerce-checkout .checkout-section-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #111111;
+    margin: 0;
+}
+
+body.woocommerce-checkout .bw-checkout-section-link {
+    font-size: 14px;
+    color: #111111;
+    text-decoration: underline;
+}
+
+body.woocommerce-checkout #bw_subscribe_newsletter_field label,
+body.woocommerce-checkout #bw_subscribe_newsletter_field .woocommerce-form__label-for-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #111111;
+}
+
+body.woocommerce-checkout #bw_subscribe_newsletter_field .optional {
+    display: none;
+}
+
+body.woocommerce-checkout #bw_subscribe_newsletter_field input[type="checkbox"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 17px;
+    height: 17px;
+    border: 2px solid #111111;
+    border-radius: 4px;
+    background: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    position: relative;
+    transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+body.woocommerce-checkout #bw_subscribe_newsletter_field input[type="checkbox"]:checked {
+    background: #111111;
+}
+
+body.woocommerce-checkout #bw_subscribe_newsletter_field input[type="checkbox"]::after {
+    content: '';
+    position: absolute;
+    width: 4px;
+    height: 8px;
+    border: solid #ffffff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+    opacity: 0;
+    transition: opacity 120ms ease;
+}
+
+body.woocommerce-checkout #bw_subscribe_newsletter_field input[type="checkbox"]:checked::after {
+    opacity: 1;
+}
+
+body.woocommerce-checkout #bw_subscribe_newsletter_field input[type="checkbox"]:focus-visible {
+    outline: 2px solid #111111;
+    outline-offset: 2px;
+}
+
+body.woocommerce-checkout #bw_subscribe_newsletter_field .description {
+    margin: 8px 0 0 34px;
+    font-size: 13px;
+    color: #555555;
+}
