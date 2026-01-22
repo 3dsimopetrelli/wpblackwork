@@ -1076,12 +1076,17 @@ console.log('[BW Checkout] Script file loaded and executing');
     if (window.jQuery) {
         jQuery(document.body).on('updated_checkout', function() {
             console.log('[BW Checkout] Checkout updated, re-initializing floating labels and detecting free order');
+
+            // Detect free order immediately without delay
+            detectFreeOrder();
+
+            // Also re-run after a small delay for elements that render slower
             setTimeout(function() {
                 initCheckoutFloatingLabels();
                 initGooglePlacesAutocomplete();
                 moveDeliveryHeading();
                 detectFreeOrder();
-            }, 100);
+            }, 50);
         });
     }
 
