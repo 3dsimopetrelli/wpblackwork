@@ -276,12 +276,22 @@ function bw_mew_enqueue_checkout_assets() {
             true
         );
 
+        // Get free order message from settings
+        $free_order_message = '';
+        if ( class_exists( 'BW_Checkout_Fields_Admin' ) ) {
+            $free_order_message = BW_Checkout_Fields_Admin::get_free_order_message();
+        }
+        if ( empty( $free_order_message ) ) {
+            $free_order_message = __( 'Your order is free. Complete your details and click Place order.', 'bw' );
+        }
+
         wp_localize_script(
             'bw-checkout',
             'bwCheckoutParams',
             array(
-                'ajax_url' => admin_url( 'admin-ajax.php' ),
-                'nonce'    => wp_create_nonce( 'bw-checkout-nonce' ),
+                'ajax_url'         => admin_url( 'admin-ajax.php' ),
+                'nonce'            => wp_create_nonce( 'bw-checkout-nonce' ),
+                'freeOrderMessage' => wp_kses_post( wpautop( $free_order_message ) ),
             )
         );
 
