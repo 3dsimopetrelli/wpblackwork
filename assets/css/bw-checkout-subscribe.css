@@ -27,7 +27,7 @@ body.woocommerce-checkout .bw-checkout-section-link {
 
 /* Reduce spacing between email field and newsletter checkbox */
 body.woocommerce-checkout #bw_subscribe_newsletter_field {
-    margin-top: 8px !important;
+    margin-top: -10px !important;
 }
 
 /* Hide optional span as fallback */
@@ -49,8 +49,8 @@ body.woocommerce-checkout .bw-checkout-newsletter .woocommerce-form__label-for-c
 body.woocommerce-checkout .bw-checkout-newsletter input[type="checkbox"] {
     -webkit-appearance: none;
     appearance: none;
-    width: 17px;
-    height: 17px;
+    width: 16px;
+    height: 16px;
     border: 2px solid #111111;
     border-radius: 4px;
     background: #ffffff;
