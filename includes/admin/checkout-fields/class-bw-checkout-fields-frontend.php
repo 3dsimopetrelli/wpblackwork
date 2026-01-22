@@ -33,7 +33,6 @@ class BW_Checkout_Fields_Frontend {
         add_filter( 'woocommerce_checkout_fields', [ $this, 'apply_checkout_fields' ], 20, 1 );
         add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_assets' ], 25 );
         add_filter( 'body_class', [ $this, 'add_body_class' ] );
-        add_action( 'woocommerce_before_order_notes', [ $this, 'maybe_remove_order_notes_heading' ], 1 );
     }
 
     /**
@@ -196,22 +195,6 @@ class BW_Checkout_Fields_Frontend {
         }
 
         return $defaults;
-    }
-
-    /**
-     * Remove the Additional information heading when configured.
-     */
-    public function maybe_remove_order_notes_heading() {
-        if ( ! $this->should_apply() || $this->is_block_checkout() ) {
-            return;
-        }
-
-        $section_headings = $this->get_section_headings();
-        if ( empty( $section_headings['hide_additional_info'] ) ) {
-            return;
-        }
-
-        remove_action( 'woocommerce_before_order_notes', 'woocommerce_order_notes_heading', 10 );
     }
 
     /**
