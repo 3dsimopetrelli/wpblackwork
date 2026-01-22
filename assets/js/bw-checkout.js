@@ -1043,22 +1043,27 @@ console.log('[BW Checkout] Script file loaded and executing');
         var divider = document.querySelector('.bw-express-divider');
         var expressCheckout = document.querySelector('#wc-stripe-express-checkout-element');
 
-        // Determine where to insert banner (before customer details or before express checkout)
-        var insertPoint = document.querySelector('.woocommerce-billing-fields') ||
-                         document.querySelector('#customer_details') ||
-                         expressCheckout;
-
         if (isFree) {
             body.classList.add('bw-free-order');
 
             // Create banner if it doesn't exist
-            if (!banner && insertPoint) {
+            if (!banner) {
                 banner = createFreeOrderBanner();
 
-                // Insert before billing fields or express checkout
-                if (insertPoint.parentNode) {
-                    insertPoint.parentNode.insertBefore(banner, insertPoint);
-                    console.log('[BW Checkout] Free order banner created and inserted');
+                // Insert in same position as divider if divider exists
+                if (divider && divider.parentNode) {
+                    divider.parentNode.insertBefore(banner, divider);
+                    console.log('[BW Checkout] Free order banner created before divider');
+                } else {
+                    // Otherwise insert before customer details or express checkout
+                    var insertPoint = document.querySelector('.woocommerce-billing-fields') ||
+                                     document.querySelector('#customer_details') ||
+                                     expressCheckout;
+
+                    if (insertPoint && insertPoint.parentNode) {
+                        insertPoint.parentNode.insertBefore(banner, insertPoint);
+                        console.log('[BW Checkout] Free order banner created and inserted before customer details');
+                    }
                 }
             }
 
@@ -1124,12 +1129,20 @@ console.log('[BW Checkout] Script file loaded and executing');
         polyline.setAttribute('points', '22 4 12 14.01 9 11.01');
         icon.appendChild(polyline);
 
-        var message = document.createElement('p');
+        var message = document.createElement('div');
         // Get message from localized data or use default
         var messageText = window.bwCheckoutParams && window.bwCheckoutParams.freeOrderMessage
             ? window.bwCheckoutParams.freeOrderMessage
             : 'Your order is free. Complete your details and click Place order.';
-        message.textContent = messageText;
+
+        // Check if message contains HTML tags
+        if (messageText.indexOf('<') !== -1) {
+            message.innerHTML = messageText;
+        } else {
+            var p = document.createElement('p');
+            p.textContent = messageText;
+            message.appendChild(p);
+        }
 
         content.appendChild(icon);
         content.appendChild(message);
