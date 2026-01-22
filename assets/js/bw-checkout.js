@@ -1078,6 +1078,9 @@ console.log('[BW Checkout] Script file loaded and executing');
                 divider.style.display = 'none';
             }
 
+            // Update button text for free order
+            updatePlaceOrderButton(true);
+
             console.log('[BW Checkout] Free order detected, UI updated');
         } else {
             body.classList.remove('bw-free-order');
@@ -1093,7 +1096,56 @@ console.log('[BW Checkout] Script file loaded and executing');
                 divider.style.display = '';
             }
 
+            // Restore original button text
+            updatePlaceOrderButton(false);
+
             console.log('[BW Checkout] Paid order detected, UI updated');
+        }
+    }
+
+    /**
+     * Update Place Order button text based on free order state.
+     * Stores original button text on first call to restore it later.
+     *
+     * @param {boolean} isFree - Whether order is free (total = 0)
+     */
+    function updatePlaceOrderButton(isFree) {
+        // Find Place Order button
+        var button = document.querySelector('#place_order') ||
+                    document.querySelector('.woocommerce-checkout button[type="submit"]');
+
+        if (!button) {
+            return;
+        }
+
+        // Store original button text on first call
+        if (!button.hasAttribute('data-original-text')) {
+            var originalText = button.textContent || button.innerText || button.value;
+            button.setAttribute('data-original-text', originalText);
+            console.log('[BW Checkout] Stored original button text:', originalText);
+        }
+
+        if (isFree) {
+            // Set free order button text
+            var freeText = window.bwCheckoutParams && window.bwCheckoutParams.freeOrderButtonText
+                ? window.bwCheckoutParams.freeOrderButtonText
+                : 'Confirm free order';
+
+            button.textContent = freeText;
+            if (button.value) {
+                button.value = freeText;
+            }
+            console.log('[BW Checkout] Button text changed to:', freeText);
+        } else {
+            // Restore original button text
+            var originalText = button.getAttribute('data-original-text');
+            if (originalText) {
+                button.textContent = originalText;
+                if (button.value) {
+                    button.value = originalText;
+                }
+                console.log('[BW Checkout] Button text restored to:', originalText);
+            }
         }
     }
 

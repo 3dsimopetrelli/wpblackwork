@@ -91,8 +91,11 @@ class BW_Checkout_Fields_Admin {
         // Save section_headings settings
         $section_headings_raw = isset( $_POST['bw_section_headings'] ) ? wp_unslash( $_POST['bw_section_headings'] ) : [];
         $settings['section_headings'] = [
-            'free_order_message' => isset( $section_headings_raw['free_order_message'] )
+            'free_order_message'     => isset( $section_headings_raw['free_order_message'] )
                 ? sanitize_textarea_field( $section_headings_raw['free_order_message'] )
+                : '',
+            'free_order_button_text' => isset( $section_headings_raw['free_order_button_text'] )
+                ? sanitize_text_field( $section_headings_raw['free_order_button_text'] )
                 : '',
         ];
 
@@ -193,6 +196,9 @@ class BW_Checkout_Fields_Admin {
         $free_order_message = isset( $section_headings['free_order_message'] ) && '' !== $section_headings['free_order_message']
             ? $section_headings['free_order_message']
             : __( 'Your order is free. Complete your details and click Place order.', 'bw' );
+        $free_order_button_text = isset( $section_headings['free_order_button_text'] ) && '' !== $section_headings['free_order_button_text']
+            ? $section_headings['free_order_button_text']
+            : __( 'Confirm free order', 'bw' );
         ?>
 
         <h3><?php esc_html_e( 'Section Headings', 'bw' ); ?></h3>
@@ -211,6 +217,24 @@ class BW_Checkout_Fields_Admin {
                     ><?php echo esc_textarea( $free_order_message ); ?></textarea>
                     <p class="description">
                         <?php esc_html_e( 'Shown when order total becomes 0 (e.g., after applying a 100% discount coupon). Stripe express buttons and divider will be hidden.', 'bw' ); ?>
+                    </p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_free_order_button_text"><?php esc_html_e( 'Free Order Button Text', 'bw' ); ?></label>
+                </th>
+                <td>
+                    <input
+                        type="text"
+                        id="bw_free_order_button_text"
+                        name="bw_section_headings[free_order_button_text]"
+                        value="<?php echo esc_attr( $free_order_button_text ); ?>"
+                        class="regular-text"
+                        placeholder="<?php esc_attr_e( 'Confirm free order', 'bw' ); ?>"
+                    />
+                    <p class="description">
+                        <?php esc_html_e( 'Text for the Place Order button when order total is 0. Original button text is restored when total becomes greater than 0.', 'bw' ); ?>
                     </p>
                 </td>
             </tr>
@@ -437,5 +461,19 @@ class BW_Checkout_Fields_Admin {
         }
 
         return $settings['section_headings']['free_order_message'];
+    }
+
+    /**
+     * Get free order button text from settings.
+     *
+     * @return string
+     */
+    public static function get_free_order_button_text() {
+        $settings = get_option( self::OPTION_NAME, [ 'version' => self::OPTION_VERSION ] );
+        if ( ! is_array( $settings ) || empty( $settings['section_headings']['free_order_button_text'] ) ) {
+            return __( 'Confirm free order', 'bw' );
+        }
+
+        return $settings['section_headings']['free_order_button_text'];
     }
 }
