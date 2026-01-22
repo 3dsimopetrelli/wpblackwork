@@ -1539,3 +1539,105 @@ body.woocommerce-checkout .bw-checkout-right .bw-qty-badge {
         font-size: 13px;
     }
 }
+
+/* ============================================
+   FLOATING LABELS (Shopify-style)
+   Applied to checkout form fields
+   ============================================ */
+
+/* Wrapper for each field with floating label */
+body.woocommerce-checkout .bw-field-wrapper {
+    position: relative;
+    width: 100%;
+    display: block;
+}
+
+/* Base input styles */
+body.woocommerce-checkout .bw-field-wrapper input[type="text"],
+body.woocommerce-checkout .bw-field-wrapper input[type="email"],
+body.woocommerce-checkout .bw-field-wrapper input[type="tel"],
+body.woocommerce-checkout .bw-field-wrapper input[type="number"],
+body.woocommerce-checkout .bw-field-wrapper textarea {
+    width: 100%;
+    padding: 16px 18px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 15px;
+    color: #1f2937;
+    background: #ffffff;
+    transition: border 0.2s ease, padding 0.15s ease;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Input focus state - Black thick border (Shopify-like) */
+body.woocommerce-checkout .bw-field-wrapper input[type="text"]:focus,
+body.woocommerce-checkout .bw-field-wrapper input[type="email"]:focus,
+body.woocommerce-checkout .bw-field-wrapper input[type="tel"]:focus,
+body.woocommerce-checkout .bw-field-wrapper input[type="number"]:focus,
+body.woocommerce-checkout .bw-field-wrapper textarea:focus {
+    border: 2px solid #000000;
+    outline: none;
+    padding: 15px 17px; /* Compensate for thicker border */
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* Floating label */
+body.woocommerce-checkout .bw-field-wrapper .bw-floating-label {
+    position: absolute;
+    left: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 15px;
+    color: #6b7280;
+    pointer-events: none;
+    transition: all 0.2s ease;
+    background: #ffffff;
+    padding: 0 4px;
+    line-height: 1.4;
+    font-weight: 400;
+}
+
+/* Label active state (when input has focus or value) */
+body.woocommerce-checkout .bw-field-wrapper input:focus ~ .bw-floating-label,
+body.woocommerce-checkout .bw-field-wrapper.has-value .bw-floating-label {
+    top: -8px;
+    transform: translateY(0);
+    font-size: 11px;
+    color: #374151;
+    font-weight: 500;
+}
+
+/* Hide original WooCommerce labels */
+body.woocommerce-checkout .bw-field-wrapper + label,
+body.woocommerce-checkout .form-row.bw-has-floating-label > label {
+    display: none !important;
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+    body.woocommerce-checkout .bw-field-wrapper input[type="text"],
+    body.woocommerce-checkout .bw-field-wrapper input[type="email"],
+    body.woocommerce-checkout .bw-field-wrapper input[type="tel"],
+    body.woocommerce-checkout .bw-field-wrapper input[type="number"],
+    body.woocommerce-checkout .bw-field-wrapper textarea {
+        font-size: 16px; /* Prevent iOS zoom */
+        padding: 14px 16px;
+    }
+
+    body.woocommerce-checkout .bw-field-wrapper input:focus {
+        padding: 13px 15px; /* Compensate for 2px border */
+    }
+
+    body.woocommerce-checkout .bw-field-wrapper .bw-floating-label {
+        left: 16px;
+        font-size: 16px;
+    }
+
+    body.woocommerce-checkout .bw-field-wrapper input:focus ~ .bw-floating-label,
+    body.woocommerce-checkout .bw-field-wrapper.has-value .bw-floating-label {
+        top: -8px;
+        font-size: 11px;
+    }
+}
