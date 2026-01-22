@@ -180,3 +180,17 @@
     gap: 12px;
     margin-top: 16px;
 }
+
+.bw-brevo-test-result {
+    display: inline-block;
+    margin-left: 12px;
+    font-weight: 600;
+}
+
+.bw-brevo-test-result.notice-success {
+    color: #1d2327;
+}
+
+.bw-brevo-test-result.notice-error {
+    color: #b32d2e;
+}

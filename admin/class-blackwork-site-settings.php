@@ -81,6 +81,26 @@ function bw_site_settings_admin_assets($hook) {
         true
     );
 
+    $subscribe_script_path = BW_MEW_PATH . 'admin/js/bw-checkout-subscribe.js';
+    $subscribe_version     = file_exists( $subscribe_script_path ) ? filemtime( $subscribe_script_path ) : '1.0.0';
+
+    wp_enqueue_script(
+        'bw-checkout-subscribe-admin',
+        BW_MEW_URL . 'admin/js/bw-checkout-subscribe.js',
+        [ 'jquery' ],
+        $subscribe_version,
+        true
+    );
+
+    wp_localize_script(
+        'bw-checkout-subscribe-admin',
+        'bwCheckoutSubscribe',
+        [
+            'nonce'     => wp_create_nonce( 'bw_checkout_subscribe_test' ),
+            'errorText' => esc_html__( 'Connection failed. Please check the API key.', 'bw' ),
+        ]
+    );
+
     // Border toggle script (shared across Cart Pop-up and Site Settings)
     $border_toggle_path = BW_MEW_PATH . 'assets/js/bw-border-toggle-admin.js';
     $border_toggle_version = file_exists($border_toggle_path) ? filemtime($border_toggle_path) : '1.0.0';
@@ -1465,8 +1485,8 @@ function bw_site_render_checkout_tab() {
         <?php wp_nonce_field( 'bw_checkout_settings_save', 'bw_checkout_settings_nonce' ); ?>
 
         <?php
-        $active_checkout_tab = isset( $_GET['checkout_tab'] ) ? sanitize_key( $_GET['checkout_tab'] ) : 'style';
-        $allowed_checkout_tabs = [ 'style', 'supabase', 'fields' ];
+    $active_checkout_tab = isset( $_GET['checkout_tab'] ) ? sanitize_key( $_GET['checkout_tab'] ) : 'style';
+    $allowed_checkout_tabs = [ 'style', 'supabase', 'fields', 'subscribe' ];
         if ( ! in_array( $active_checkout_tab, $allowed_checkout_tabs, true ) ) {
             $active_checkout_tab = 'style';
         }
@@ -1474,6 +1494,7 @@ function bw_site_render_checkout_tab() {
         $style_tab_url = add_query_arg( 'checkout_tab', 'style' );
         $supabase_tab_url = add_query_arg( 'checkout_tab', 'supabase' );
         $fields_tab_url = add_query_arg( 'checkout_tab', 'fields' );
+        $subscribe_tab_url = add_query_arg( 'checkout_tab', 'subscribe' );
         ?>
 
         <h2 class="nav-tab-wrapper">
@@ -1485,6 +1506,9 @@ function bw_site_render_checkout_tab() {
             </a>
             <a class="nav-tab <?php echo 'fields' === $active_checkout_tab ? 'nav-tab-active' : ''; ?>" href="<?php echo esc_url( $fields_tab_url ); ?>">
                 <?php esc_html_e( 'Checkout Fields', 'bw' ); ?>
+            </a>
+            <a class="nav-tab <?php echo 'subscribe' === $active_checkout_tab ? 'nav-tab-active' : ''; ?>" href="<?php echo esc_url( $subscribe_tab_url ); ?>">
+                <?php esc_html_e( 'Subscribe', 'bw' ); ?>
             </a>
         </h2>
 
@@ -1764,8 +1788,16 @@ function bw_site_render_checkout_tab() {
             <?php endif; ?>
         </div>
 
-        <?php if ( 'fields' === $active_checkout_tab ) : ?>
-            <?php // Buttons rendered inside Checkout Fields module. ?>
+        <div class="bw-tab-panel" data-bw-tab="subscribe" <?php echo 'subscribe' === $active_checkout_tab ? '' : 'style="display:none;"'; ?>>
+            <?php if ( class_exists( 'BW_Checkout_Subscribe_Admin' ) ) : ?>
+                <?php BW_Checkout_Subscribe_Admin::get_instance()->render_tab(); ?>
+            <?php else : ?>
+                <p><?php esc_html_e( 'Subscribe module is unavailable.', 'bw' ); ?></p>
+            <?php endif; ?>
+        </div>
+
+        <?php if ( in_array( $active_checkout_tab, [ 'fields', 'subscribe' ], true ) ) : ?>
+            <?php // Buttons rendered inside module panels. ?>
         <?php else : ?>
             <?php submit_button( 'Salva impostazioni', 'primary', 'bw_checkout_settings_submit' ); ?>
         <?php endif; ?>
