@@ -703,6 +703,11 @@ body.woocommerce-checkout .wcpay-express-checkout-wrapper::before {
     color: #111111;
 }
 
+/* Delivery section heading - add more spacing below */
+body.woocommerce-checkout .bw-delivery-section-title {
+    margin-bottom: 20px !important;
+}
+
 /* Customer details section */
 .bw-checkout-customer-details {
     margin-bottom: 18px;

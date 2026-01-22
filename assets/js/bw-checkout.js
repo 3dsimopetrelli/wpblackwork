@@ -991,6 +991,9 @@ console.log('[BW Checkout] Script file loaded and executing');
         }
 
         if (deliveryHeading) {
+            // Add class for styling
+            deliveryHeading.classList.add('bw-delivery-section-title');
+
             // Move the heading (and its wrapper if it has one) after the newsletter field
             var headingToMove = deliveryHeading.closest('.bw-checkout-section-heading') || deliveryHeading;
 
