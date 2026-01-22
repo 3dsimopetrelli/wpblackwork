@@ -1,0 +1,230 @@
+<?php
+/**
+ * Checkout fields frontend handler for Blackwork.
+ *
+ * Hooks used:
+ * - woocommerce_checkout_fields: adjust priorities, required flags, labels, and visibility.
+ * - wp_enqueue_scripts: load checkout field layout styles.
+ * - body_class: add a scoped class when settings are active.
+ *
+ * To add new field mappings later, ensure the field exists in WC()->checkout()->get_checkout_fields(),
+ * then it will automatically appear in the admin table and be processed here.
+ *
+ * @package BW_Elementor_Widgets
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+    exit;
+}
+
+class BW_Checkout_Fields_Frontend {
+    const OPTION_NAME = 'bw_checkout_fields_settings';
+    const OPTION_VERSION = 1;
+
+    /**
+     * Initialize the frontend module.
+     */
+    public static function init() {
+        $instance = new self();
+        return $instance;
+    }
+
+    private function __construct() {
+        add_filter( 'woocommerce_checkout_fields', [ $this, 'apply_checkout_fields' ], 20, 1 );
+        add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_assets' ], 25 );
+        add_filter( 'body_class', [ $this, 'add_body_class' ] );
+    }
+
+    /**
+     * Apply configured checkout field settings.
+     *
+     * @param array $fields Checkout fields.
+     *
+     * @return array
+     */
+    public function apply_checkout_fields( $fields ) {
+        if ( ! $this->should_apply() ) {
+            return $fields;
+        }
+
+        $settings = $this->get_settings();
+        if ( empty( $settings ) ) {
+            return $fields;
+        }
+
+        foreach ( $settings as $section => $section_fields ) {
+            if ( 'version' === $section || empty( $section_fields ) || empty( $fields[ $section ] ) ) {
+                continue;
+            }
+
+            foreach ( $section_fields as $field_key => $config ) {
+                if ( empty( $fields[ $section ][ $field_key ] ) ) {
+                    continue;
+                }
+
+                if ( empty( $config['enabled'] ) ) {
+                    unset( $fields[ $section ][ $field_key ] );
+                    continue;
+                }
+
+                $field = $fields[ $section ][ $field_key ];
+
+                if ( ! empty( $config['label'] ) ) {
+                    $field['label'] = $config['label'];
+                }
+
+                if ( isset( $config['required'] ) ) {
+                    $field['required'] = (bool) $config['required'];
+                }
+
+                if ( isset( $config['priority'] ) ) {
+                    $field['priority'] = absint( $config['priority'] );
+                }
+
+                $field['class'] = $this->apply_width_class( isset( $field['class'] ) ? (array) $field['class'] : [], $config );
+
+                $fields[ $section ][ $field_key ] = $field;
+            }
+        }
+
+        return $fields;
+    }
+
+    /**
+     * Enqueue checkout field layout styles.
+     */
+    public function enqueue_assets() {
+        if ( ! $this->should_apply() ) {
+            return;
+        }
+
+        $css_file = BW_MEW_PATH . 'assets/css/bw-checkout-fields.css';
+        $version  = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
+
+        wp_enqueue_style(
+            'bw-checkout-fields',
+            BW_MEW_URL . 'assets/css/bw-checkout-fields.css',
+            [ 'bw-checkout' ],
+            $version
+        );
+    }
+
+    /**
+     * Add a body class when checkout field settings are active.
+     *
+     * @param array $classes Body classes.
+     *
+     * @return array
+     */
+    public function add_body_class( $classes ) {
+        if ( $this->should_apply() ) {
+            $classes[] = 'bw-checkout-fields-active';
+        }
+
+        return $classes;
+    }
+
+    /**
+     * Determine if settings should be applied.
+     *
+     * @return bool
+     */
+    private function should_apply() {
+        if ( is_admin() && ! wp_doing_ajax() ) {
+            return false;
+        }
+
+        if ( ! function_exists( 'is_checkout' ) ) {
+            return false;
+        }
+
+        if ( ! is_checkout() && ! ( defined( 'WC_DOING_AJAX' ) && WC_DOING_AJAX ) ) {
+            return false;
+        }
+
+        if ( $this->is_block_checkout() ) {
+            return false;
+        }
+
+        return $this->has_settings();
+    }
+
+    /**
+     * Get checkout field settings.
+     *
+     * @return array
+     */
+    private function get_settings() {
+        $settings = get_option( self::OPTION_NAME, [ 'version' => self::OPTION_VERSION ] );
+        if ( ! is_array( $settings ) ) {
+            return [];
+        }
+
+        return $settings;
+    }
+
+    /**
+     * Determine if any configured field settings exist.
+     *
+     * @return bool
+     */
+    private function has_settings() {
+        $settings = $this->get_settings();
+        foreach ( $settings as $section => $section_fields ) {
+            if ( 'version' === $section ) {
+                continue;
+            }
+
+            if ( ! empty( $section_fields ) ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Apply column width classes to a field.
+     *
+     * @param array $classes Existing classes.
+     * @param array $config  Field config.
+     *
+     * @return array
+     */
+    private function apply_width_class( $classes, $config ) {
+        $classes = array_diff( $classes, [ 'form-row-first', 'form-row-last', 'form-row-wide' ] );
+        $classes[] = 'bw-checkout-field';
+
+        $width = isset( $config['width'] ) ? $config['width'] : 'full';
+        if ( 'half' === $width ) {
+            $classes[] = 'bw-checkout-field--half';
+        } else {
+            $classes[] = 'bw-checkout-field--full';
+        }
+
+        return array_values( array_unique( $classes ) );
+    }
+
+    /**
+     * Detect if the checkout page uses the WooCommerce Checkout block.
+     *
+     * @return bool
+     */
+    private function is_block_checkout() {
+        if ( ! function_exists( 'wc_get_page_id' ) || ! function_exists( 'has_block' ) ) {
+            return false;
+        }
+
+        $checkout_page_id = wc_get_page_id( 'checkout' );
+        if ( ! $checkout_page_id ) {
+            return false;
+        }
+
+        $post = get_post( $checkout_page_id );
+        if ( ! $post ) {
+            return false;
+        }
+
+        return has_block( 'woocommerce/checkout', $post->post_content );
+    }
+}

@@ -1,0 +1,43 @@
+/**
+ * Checkout fields layout adjustments.
+ * Scoped to classic checkout form only.
+ */
+body.woocommerce-checkout.bw-checkout-fields-active .woocommerce-billing-fields__field-wrapper,
+body.woocommerce-checkout.bw-checkout-fields-active .woocommerce-shipping-fields__field-wrapper,
+body.woocommerce-checkout.bw-checkout-fields-active .woocommerce-additional-fields__field-wrapper,
+body.woocommerce-checkout.bw-checkout-fields-active .woocommerce-account-fields {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+body.woocommerce-checkout.bw-checkout-fields-active .woocommerce-billing-fields__field-wrapper .form-row,
+body.woocommerce-checkout.bw-checkout-fields-active .woocommerce-shipping-fields__field-wrapper .form-row,
+body.woocommerce-checkout.bw-checkout-fields-active .woocommerce-additional-fields__field-wrapper .form-row,
+body.woocommerce-checkout.bw-checkout-fields-active .woocommerce-account-fields .form-row {
+    float: none;
+    width: 100%;
+    margin-right: 0;
+}
+
+body.woocommerce-checkout.bw-checkout-fields-active .bw-checkout-field {
+    flex: 0 0 100%;
+    max-width: 100%;
+}
+
+body.woocommerce-checkout.bw-checkout-fields-active .bw-checkout-field--half {
+    flex: 0 0 calc(50% - 8px);
+    max-width: calc(50% - 8px);
+}
+
+body.woocommerce-checkout.bw-checkout-fields-active .bw-checkout-field--full {
+    flex: 0 0 100%;
+    max-width: 100%;
+}
+
+@media (max-width: 768px) {
+    body.woocommerce-checkout.bw-checkout-fields-active .bw-checkout-field--half {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+}
