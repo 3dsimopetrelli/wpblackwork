@@ -1,0 +1,452 @@
+<?php
+/**
+ * Checkout fields admin settings for Blackwork.
+ *
+ * Settings are stored in a single option: bw_checkout_fields_settings.
+ * Structure:
+ * {
+ *   version: 1,
+ *   billing: { billing_first_name: { enabled, priority, width, label, required }, ... },
+ *   shipping: { ... },
+ *   order: { ... },
+ *   account: { ... }
+ * }
+ *
+ * @package BW_Elementor_Widgets
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+    exit;
+}
+
+class BW_Checkout_Fields_Admin {
+    const OPTION_NAME = 'bw_checkout_fields_settings';
+    const OPTION_VERSION = 1;
+
+    /**
+     * @var BW_Checkout_Fields_Admin|null
+     */
+    private static $instance = null;
+
+    /**
+     * Initialize the admin module.
+     */
+    public static function init() {
+        if ( null === self::$instance ) {
+            self::$instance = new self();
+        }
+
+        return self::$instance;
+    }
+
+    /**
+     * Get instance.
+     *
+     * @return BW_Checkout_Fields_Admin
+     */
+    public static function get_instance() {
+        return self::init();
+    }
+
+    private function __construct() {
+        add_action( 'admin_init', [ $this, 'handle_post' ] );
+    }
+
+    /**
+     * Handle settings save/reset for checkout fields.
+     */
+    public function handle_post() {
+        if ( empty( $_POST['bw_checkout_fields_submit'] ) && empty( $_POST['bw_checkout_fields_reset'] ) ) {
+            return;
+        }
+
+        if ( ! current_user_can( 'manage_options' ) ) {
+            return;
+        }
+
+        check_admin_referer( 'bw_checkout_fields_save', 'bw_checkout_fields_nonce' );
+
+        $redirect_args = [
+            'page'         => 'blackwork-site-settings',
+            'tab'          => 'checkout',
+            'checkout_tab' => 'fields',
+        ];
+
+        if ( ! empty( $_POST['bw_checkout_fields_reset'] ) ) {
+            update_option( self::OPTION_NAME, [ 'version' => self::OPTION_VERSION ] );
+            $redirect_args['bw_checkout_fields_reset'] = '1';
+            wp_safe_redirect( add_query_arg( $redirect_args, admin_url( 'admin.php' ) ) );
+            exit;
+        }
+
+        $defaults = $this->get_checkout_fields();
+        $raw      = isset( $_POST['bw_checkout_fields'] ) ? wp_unslash( $_POST['bw_checkout_fields'] ) : [];
+        $headings = isset( $_POST['bw_checkout_section_headings'] ) ? wp_unslash( $_POST['bw_checkout_section_headings'] ) : [];
+
+        $warnings = false;
+        $settings = [
+            'version' => self::OPTION_VERSION,
+        ];
+
+        foreach ( $defaults as $section => $fields ) {
+            foreach ( $fields as $key => $field ) {
+                $posted   = isset( $raw[ $section ][ $key ] ) ? (array) $raw[ $section ][ $key ] : [];
+                $enabled  = ! empty( $posted['enabled'] );
+                $required = ! empty( $posted['required'] );
+
+                if ( ! $enabled && $required ) {
+                    $required = false;
+                    $warnings = true;
+                }
+
+                $priority = isset( $posted['priority'] ) ? absint( $posted['priority'] ) : 0;
+                if ( 0 === $priority && isset( $field['priority'] ) ) {
+                    $priority = absint( $field['priority'] );
+                }
+
+                $width = isset( $posted['width'] ) ? sanitize_key( $posted['width'] ) : $this->infer_field_width( $field );
+                if ( ! in_array( $width, [ 'half', 'full' ], true ) ) {
+                    $width = $this->infer_field_width( $field );
+                }
+
+                $label = isset( $posted['label'] ) ? sanitize_text_field( $posted['label'] ) : '';
+
+                $settings[ $section ][ $key ] = [
+                    'enabled'  => (bool) $enabled,
+                    'priority' => $priority,
+                    'width'    => $width,
+                    'label'    => $label,
+                    'required' => (bool) $required,
+                ];
+            }
+        }
+
+        $settings['section_headings'] = [
+            'hide_billing_details'     => ! empty( $headings['hide_billing_details'] ) ? 1 : 0,
+            'hide_additional_info'     => ! empty( $headings['hide_additional_info'] ) ? 1 : 0,
+            'address_heading_text'     => isset( $headings['address_heading_text'] ) ? sanitize_text_field( $headings['address_heading_text'] ) : __( 'Delivery', 'bw' ),
+        ];
+
+        if ( empty( $settings['section_headings']['address_heading_text'] ) ) {
+            $settings['section_headings']['address_heading_text'] = __( 'Delivery', 'bw' );
+        }
+
+        update_option( self::OPTION_NAME, $settings );
+
+        $redirect_args['bw_checkout_fields_saved'] = '1';
+        if ( $warnings ) {
+            $redirect_args['bw_checkout_fields_warning'] = '1';
+        }
+
+        wp_safe_redirect( add_query_arg( $redirect_args, admin_url( 'admin.php' ) ) );
+        exit;
+    }
+
+    /**
+     * Render the Checkout Fields tab.
+     */
+    public function render_tab() {
+        if ( ! current_user_can( 'manage_options' ) ) {
+            return;
+        }
+
+        $fields   = $this->get_checkout_fields();
+        $settings = $this->get_settings();
+        $section_headings = $this->get_section_heading_settings( $settings );
+
+        if ( isset( $_GET['bw_checkout_fields_saved'] ) && '1' === sanitize_text_field( wp_unslash( $_GET['bw_checkout_fields_saved'] ) ) ) {
+            echo '<div class="notice notice-success is-dismissible"><p><strong>' . esc_html__( 'Checkout fields saved.', 'bw' ) . '</strong></p></div>';
+        }
+
+        if ( isset( $_GET['bw_checkout_fields_reset'] ) && '1' === sanitize_text_field( wp_unslash( $_GET['bw_checkout_fields_reset'] ) ) ) {
+            echo '<div class="notice notice-success is-dismissible"><p><strong>' . esc_html__( 'Checkout fields reset to defaults.', 'bw' ) . '</strong></p></div>';
+        }
+
+        if ( isset( $_GET['bw_checkout_fields_warning'] ) && '1' === sanitize_text_field( wp_unslash( $_GET['bw_checkout_fields_warning'] ) ) ) {
+            echo '<div class="notice notice-warning is-dismissible"><p><strong>' . esc_html__( 'Disabled required fields were marked optional to avoid validation errors.', 'bw' ) . '</strong></p></div>';
+        }
+
+        if ( $this->is_block_checkout() ) {
+            echo '<div class="notice notice-info"><p><strong>' . esc_html__( 'Checkout Fields targets the classic checkout form. The Checkout Block is detected and will not be affected.', 'bw' ) . '</strong></p></div>';
+        }
+
+        if ( empty( $fields ) ) {
+            echo '<div class="notice notice-warning"><p>' . esc_html__( 'WooCommerce checkout fields are unavailable. Ensure WooCommerce is active.', 'bw' ) . '</p></div>';
+            return;
+        }
+
+        $sections = [
+            'billing'  => __( 'Billing', 'bw' ),
+            'shipping' => __( 'Shipping', 'bw' ),
+            'order'    => __( 'Order', 'bw' ),
+            'account'  => __( 'Account', 'bw' ),
+        ];
+        ?>
+
+        <p class="description">
+            <?php esc_html_e( 'Reorder, hide, or resize classic checkout fields. Changes apply only on the checkout form and keep WooCommerce validation intact.', 'bw' ); ?>
+        </p>
+
+        <div class="bw-settings-group">
+            <div class="bw-settings-group__title"><?php esc_html_e( 'Section headings', 'bw' ); ?></div>
+            <div class="bw-settings-group__grid">
+                <label for="bw_checkout_hide_billing_details"><?php esc_html_e( 'Hide Billing Details heading', 'bw' ); ?></label>
+                <label>
+                    <input type="checkbox" id="bw_checkout_hide_billing_details" name="bw_checkout_section_headings[hide_billing_details]" value="1" <?php checked( $section_headings['hide_billing_details'], 1 ); ?> />
+                    <?php esc_html_e( 'Remove the default WooCommerce “Billing details” heading.', 'bw' ); ?>
+                </label>
+                <label for="bw_checkout_hide_additional_info"><?php esc_html_e( 'Hide Additional information heading', 'bw' ); ?></label>
+                <label>
+                    <input type="checkbox" id="bw_checkout_hide_additional_info" name="bw_checkout_section_headings[hide_additional_info]" value="1" <?php checked( $section_headings['hide_additional_info'], 1 ); ?> />
+                    <?php esc_html_e( 'Remove the default “Additional information” heading above order notes.', 'bw' ); ?>
+                </label>
+                <label for="bw_checkout_address_heading_text"><?php esc_html_e( 'Address section heading label', 'bw' ); ?></label>
+                <div>
+                    <input type="text" id="bw_checkout_address_heading_text" name="bw_checkout_section_headings[address_heading_text]" value="<?php echo esc_attr( $section_headings['address_heading_text'] ); ?>" class="regular-text" />
+                    <p class="description"><?php esc_html_e( 'Suggested: Delivery / Address / Shipping address.', 'bw' ); ?></p>
+                </div>
+            </div>
+        </div>
+
+        <input type="hidden" name="bw_checkout_fields_form" value="1" />
+        <?php wp_nonce_field( 'bw_checkout_fields_save', 'bw_checkout_fields_nonce' ); ?>
+
+        <?php foreach ( $sections as $section_key => $section_label ) : ?>
+            <?php if ( empty( $fields[ $section_key ] ) ) : ?>
+                <?php continue; ?>
+            <?php endif; ?>
+
+            <h3><?php echo esc_html( $section_label ); ?></h3>
+            <table class="widefat striped bw-checkout-fields-table">
+                <thead>
+                    <tr>
+                        <th scope="col"><?php esc_html_e( 'Enabled', 'bw' ); ?></th>
+                        <th scope="col"><?php esc_html_e( 'Field Key', 'bw' ); ?></th>
+                        <th scope="col"><?php esc_html_e( 'Label', 'bw' ); ?></th>
+                        <th scope="col"><?php esc_html_e( 'Required', 'bw' ); ?></th>
+                        <th scope="col"><?php esc_html_e( 'Priority', 'bw' ); ?></th>
+                        <th scope="col"><?php esc_html_e( 'Column Layout', 'bw' ); ?></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ( $fields[ $section_key ] as $field_key => $field ) : ?>
+                        <?php
+                        $config   = $this->get_field_config( $settings, $section_key, $field_key, $field );
+                        $label    = $config['label'];
+                        $priority = $config['priority'];
+                        $width    = $config['width'];
+                        $enabled  = $config['enabled'];
+                        $required = $config['required'];
+                        ?>
+                        <tr>
+                            <td>
+                                <label class="screen-reader-text" for="bw-field-enabled-<?php echo esc_attr( $section_key . '-' . $field_key ); ?>">
+                                    <?php esc_html_e( 'Enable field', 'bw' ); ?>
+                                </label>
+                                <input type="checkbox"
+                                    id="bw-field-enabled-<?php echo esc_attr( $section_key . '-' . $field_key ); ?>"
+                                    name="bw_checkout_fields[<?php echo esc_attr( $section_key ); ?>][<?php echo esc_attr( $field_key ); ?>][enabled]"
+                                    value="1" <?php checked( $enabled ); ?> />
+                            </td>
+                            <td>
+                                <code><?php echo esc_html( $field_key ); ?></code>
+                            </td>
+                            <td>
+                                <label class="screen-reader-text" for="bw-field-label-<?php echo esc_attr( $section_key . '-' . $field_key ); ?>">
+                                    <?php esc_html_e( 'Custom label', 'bw' ); ?>
+                                </label>
+                                <input type="text"
+                                    id="bw-field-label-<?php echo esc_attr( $section_key . '-' . $field_key ); ?>"
+                                    name="bw_checkout_fields[<?php echo esc_attr( $section_key ); ?>][<?php echo esc_attr( $field_key ); ?>][label]"
+                                    value="<?php echo esc_attr( $label ); ?>"
+                                    placeholder="<?php echo esc_attr( $this->get_field_label( $field ) ); ?>"
+                                    class="regular-text" />
+                            </td>
+                            <td>
+                                <label class="screen-reader-text" for="bw-field-required-<?php echo esc_attr( $section_key . '-' . $field_key ); ?>">
+                                    <?php esc_html_e( 'Required', 'bw' ); ?>
+                                </label>
+                                <input type="checkbox"
+                                    id="bw-field-required-<?php echo esc_attr( $section_key . '-' . $field_key ); ?>"
+                                    name="bw_checkout_fields[<?php echo esc_attr( $section_key ); ?>][<?php echo esc_attr( $field_key ); ?>][required]"
+                                    value="1" <?php checked( $required ); ?> />
+                            </td>
+                            <td>
+                                <label class="screen-reader-text" for="bw-field-priority-<?php echo esc_attr( $section_key . '-' . $field_key ); ?>">
+                                    <?php esc_html_e( 'Priority', 'bw' ); ?>
+                                </label>
+                                <input type="number"
+                                    id="bw-field-priority-<?php echo esc_attr( $section_key . '-' . $field_key ); ?>"
+                                    name="bw_checkout_fields[<?php echo esc_attr( $section_key ); ?>][<?php echo esc_attr( $field_key ); ?>][priority]"
+                                    value="<?php echo esc_attr( $priority ); ?>"
+                                    min="0" step="1" />
+                            </td>
+                            <td>
+                                <label class="screen-reader-text" for="bw-field-width-<?php echo esc_attr( $section_key . '-' . $field_key ); ?>">
+                                    <?php esc_html_e( 'Column layout', 'bw' ); ?>
+                                </label>
+                                <select id="bw-field-width-<?php echo esc_attr( $section_key . '-' . $field_key ); ?>"
+                                    name="bw_checkout_fields[<?php echo esc_attr( $section_key ); ?>][<?php echo esc_attr( $field_key ); ?>][width]">
+                                    <option value="full" <?php selected( $width, 'full' ); ?>><?php esc_html_e( 'Full width (1 col)', 'bw' ); ?></option>
+                                    <option value="half" <?php selected( $width, 'half' ); ?>><?php esc_html_e( 'Half width (2 col)', 'bw' ); ?></option>
+                                </select>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php endforeach; ?>
+
+        <div class="bw-checkout-fields-actions">
+            <?php submit_button( __( 'Save Checkout Fields', 'bw' ), 'primary', 'bw_checkout_fields_submit', false ); ?>
+            <?php submit_button( __( 'Reset to defaults', 'bw' ), 'secondary', 'bw_checkout_fields_reset', false ); ?>
+        </div>
+        <?php
+    }
+
+    /**
+     * Get saved settings with defaults.
+     *
+     * @return array
+     */
+    private function get_settings() {
+        $settings = get_option( self::OPTION_NAME, [ 'version' => self::OPTION_VERSION ] );
+        if ( ! is_array( $settings ) ) {
+            $settings = [ 'version' => self::OPTION_VERSION ];
+        }
+
+        return $settings;
+    }
+
+    /**
+     * Retrieve section heading settings.
+     *
+     * @param array $settings Settings array.
+     *
+     * @return array
+     */
+    private function get_section_heading_settings( $settings ) {
+        $defaults = [
+            'hide_billing_details' => 0,
+            'hide_additional_info' => 0,
+            'address_heading_text' => __( 'Delivery', 'bw' ),
+        ];
+
+        if ( isset( $settings['section_headings'] ) && is_array( $settings['section_headings'] ) ) {
+            $merged = array_merge( $defaults, $settings['section_headings'] );
+            $merged['hide_billing_details'] = ! empty( $merged['hide_billing_details'] ) ? 1 : 0;
+            $merged['hide_additional_info'] = ! empty( $merged['hide_additional_info'] ) ? 1 : 0;
+            $merged['address_heading_text'] = sanitize_text_field( $merged['address_heading_text'] );
+
+            if ( empty( $merged['address_heading_text'] ) ) {
+                $merged['address_heading_text'] = $defaults['address_heading_text'];
+            }
+
+            return $merged;
+        }
+
+        return $defaults;
+    }
+
+    /**
+     * Retrieve checkout fields from WooCommerce.
+     *
+     * @return array
+     */
+    private function get_checkout_fields() {
+        if ( ! class_exists( 'WooCommerce' ) || ! function_exists( 'WC' ) ) {
+            return [];
+        }
+
+        $checkout = WC()->checkout();
+        if ( ! $checkout ) {
+            return [];
+        }
+
+        return (array) $checkout->get_checkout_fields();
+    }
+
+    /**
+     * Determine default field width from WooCommerce classes.
+     *
+     * @param array $field Field data.
+     *
+     * @return string
+     */
+    private function infer_field_width( $field ) {
+        $classes = isset( $field['class'] ) ? (array) $field['class'] : [];
+        if ( in_array( 'form-row-first', $classes, true ) || in_array( 'form-row-last', $classes, true ) ) {
+            return 'half';
+        }
+
+        return 'full';
+    }
+
+    /**
+     * Get field label safely.
+     *
+     * @param array $field Field data.
+     *
+     * @return string
+     */
+    private function get_field_label( $field ) {
+        return isset( $field['label'] ) ? (string) $field['label'] : '';
+    }
+
+    /**
+     * Get field config by merging saved settings with defaults.
+     *
+     * @param array  $settings Saved settings.
+     * @param string $section  Section key.
+     * @param string $key      Field key.
+     * @param array  $field    Field data.
+     *
+     * @return array
+     */
+    private function get_field_config( $settings, $section, $key, $field ) {
+        $default = [
+            'enabled'  => true,
+            'priority' => isset( $field['priority'] ) ? absint( $field['priority'] ) : 0,
+            'width'    => $this->infer_field_width( $field ),
+            'label'    => '',
+            'required' => ! empty( $field['required'] ),
+        ];
+
+        if ( isset( $settings[ $section ][ $key ] ) && is_array( $settings[ $section ][ $key ] ) ) {
+            $saved = $settings[ $section ][ $key ];
+
+            return [
+                'enabled'  => isset( $saved['enabled'] ) ? (bool) $saved['enabled'] : $default['enabled'],
+                'priority' => isset( $saved['priority'] ) ? absint( $saved['priority'] ) : $default['priority'],
+                'width'    => isset( $saved['width'] ) ? sanitize_key( $saved['width'] ) : $default['width'],
+                'label'    => isset( $saved['label'] ) ? (string) $saved['label'] : $default['label'],
+                'required' => isset( $saved['required'] ) ? (bool) $saved['required'] : $default['required'],
+            ];
+        }
+
+        return $default;
+    }
+
+    /**
+     * Detect if the checkout page uses the WooCommerce Checkout block.
+     *
+     * @return bool
+     */
+    private function is_block_checkout() {
+        if ( ! function_exists( 'wc_get_page_id' ) || ! function_exists( 'has_block' ) ) {
+            return false;
+        }
+
+        $checkout_page_id = wc_get_page_id( 'checkout' );
+        if ( ! $checkout_page_id ) {
+            return false;
+        }
+
+        $post = get_post( $checkout_page_id );
+        if ( ! $post ) {
+            return false;
+        }
+
+        return has_block( 'woocommerce/checkout', $post->post_content );
+    }
+}
