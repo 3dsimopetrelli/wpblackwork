@@ -194,17 +194,22 @@ if ( ! wp_doing_ajax() ) {
 
 		<?php wc_get_template( 'checkout/terms.php' ); ?>
 
-		<?php do_action( 'woocommerce_review_order_before_submit' ); ?>
+	<?php do_action( 'woocommerce_review_order_before_submit' ); ?>
 
-		<?php
-		$default_button_text = apply_filters( 'woocommerce_order_button_text', __( 'Place order', 'woocommerce' ) );
-		$first_gateway = ! empty( $available_gateways ) ? reset( $available_gateways ) : null;
-		$initial_button_text = $first_gateway && $first_gateway->order_button_text ? $first_gateway->order_button_text : $default_button_text;
-		?>
+	<?php
+	$default_button_text = apply_filters( 'woocommerce_order_button_text', __( 'Place order', 'woocommerce' ) );
+	$first_gateway = ! empty( $available_gateways ) ? reset( $available_gateways ) : null;
+	$initial_button_text = $first_gateway && $first_gateway->order_button_text ? $first_gateway->order_button_text : $default_button_text;
+	?>
 
-		<button
-			type="submit"
-			class="button alt bw-place-order-btn<?php echo esc_attr( wc_wp_theme_get_element_class_name( 'button' ) ? ' ' . wc_wp_theme_get_element_class_name( 'button' ) : '' ); ?>"
+	<div class="bw-mobile-total-row" aria-live="polite">
+		<span class="bw-mobile-total-label"><?php esc_html_e( 'Total', 'woocommerce' ); ?></span>
+		<span class="bw-mobile-total-amount">—</span>
+	</div>
+
+	<button
+		type="submit"
+		class="button alt bw-place-order-btn<?php echo esc_attr( wc_wp_theme_get_element_class_name( 'button' ) ? ' ' . wc_wp_theme_get_element_class_name( 'button' ) : '' ); ?>"
 			name="woocommerce_checkout_place_order"
 			id="place_order"
 			value="<?php echo esc_attr( $initial_button_text ); ?>"
