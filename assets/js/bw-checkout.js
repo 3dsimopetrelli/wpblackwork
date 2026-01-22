@@ -745,7 +745,7 @@ console.log('[BW Checkout] Script file loaded and executing');
             // Get clean label text (remove asterisks, abbr, optional text, etc.)
             var labelClone = originalLabel.cloneNode(true);
             // Remove abbr (asterisks), optional spans, and other non-text elements
-            var elemsToRemove = labelClone.querySelectorAll('abbr, .optional, .required');
+            var elemsToRemove = labelClone.querySelectorAll('abbr, .optional, .required, span');
             elemsToRemove.forEach(function(elem) { elem.remove(); });
             var labelText = labelClone.textContent.replace(/\*/g, '').trim();
 
@@ -754,7 +754,7 @@ console.log('[BW Checkout] Script file loaded and executing');
             // Generate short label (remove "Street address" suffix like "and street name")
             var shortLabel = labelText
                 .replace(/^(Enter your |Enter |Your )/i, '')
-                .replace(/\s+(and\s+.+)$/i, '') // Remove "and street name" type suffixes
+                .replace(/\s*and\s+.+$/i, '') // Remove "and street name" type suffixes (including leading spaces)
                 .trim();
 
             // Check if this is a Select2 field
