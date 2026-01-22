@@ -704,11 +704,13 @@ console.log('[BW Checkout] Script file loaded and executing');
     function initCheckoutFloatingLabels() {
         console.log('[BW Checkout] Initializing floating labels');
 
-        // Target checkout form fields (exclude country/state selects and buttons)
+        // Target checkout form fields (including select dropdowns)
         var fieldSelectors = [
             '#billing_first_name',
             '#billing_last_name',
             '#billing_company',
+            '#billing_country',
+            '#billing_state',
             '#billing_address_1',
             '#billing_address_2',
             '#billing_city',
@@ -718,6 +720,8 @@ console.log('[BW Checkout] Script file loaded and executing');
             '#shipping_first_name',
             '#shipping_last_name',
             '#shipping_company',
+            '#shipping_country',
+            '#shipping_state',
             '#shipping_address_1',
             '#shipping_address_2',
             '#shipping_city',
