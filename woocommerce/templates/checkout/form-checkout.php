@@ -97,6 +97,16 @@ if ( function_exists( 'bw_mew_render_checkout_header' ) ) {
 <form name="checkout" method="post" class="checkout woocommerce-checkout bw-checkout-form" action="<?php echo esc_url( wc_get_checkout_url() ); ?>" enctype="multipart/form-data">
     <div class="bw-checkout-wrapper" style="<?php echo esc_attr( $grid_inline_styles ); ?>">
         <div class="bw-checkout-grid" style="<?php echo esc_attr( $grid_inline_styles ); ?>">
+            <button
+                type="button"
+                class="bw-order-summary-toggle"
+                aria-expanded="false"
+                aria-controls="order_review"
+            >
+                <span class="bw-order-summary-label"><?php esc_html_e( 'Order summary', 'woocommerce' ); ?></span>
+                <span class="bw-order-summary-total" aria-live="polite">—</span>
+                <span class="bw-order-summary-caret" aria-hidden="true"></span>
+            </button>
             <div class="bw-checkout-left">
 
                 <?php if ( $checkout->get_checkout_fields() ) : ?>
