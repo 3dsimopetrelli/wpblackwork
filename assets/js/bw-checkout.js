@@ -1235,13 +1235,13 @@ console.log('[BW Checkout] Script file loaded and executing');
     /**
      * Initialize mobile order summary accordion.
      * Creates toggle bar and wraps right column for mobile view.
-     * ONLY runs on mobile/tablet (≤1024px).
+     * ONLY runs on mobile/tablet (≤900px).
      */
     function initMobileOrderSummary() {
         console.log('[BW Checkout] Initializing mobile order summary accordion');
 
-        // Only run on mobile/tablet screens
-        if (window.innerWidth > 1024) {
+        // Only run on mobile/tablet screens (≤900px)
+        if (window.innerWidth > 900) {
             console.log('[BW Checkout] Desktop view detected, skipping mobile accordion');
             return;
         }
@@ -1265,6 +1265,12 @@ console.log('[BW Checkout] Script file loaded and executing');
             existingPanel.remove();
             console.log('[BW Checkout] Removed existing panel');
         }
+
+        // Restore original right column visibility (in case it was hidden)
+        var allRightColumns = document.querySelectorAll('.bw-checkout-right');
+        allRightColumns.forEach(function(col) {
+            col.style.display = '';
+        });
 
         // Create toggle bar
         var toggleBar = document.createElement('button');
@@ -1310,6 +1316,10 @@ console.log('[BW Checkout] Script file loaded and executing');
         panel.appendChild(rightColumnClone);
         console.log('[BW Checkout] Right column CLONED into panel (original remains in grid)');
 
+        // Hide original right column AFTER clone is created and inserted
+        rightColumn.style.display = 'none';
+        console.log('[BW Checkout] Original right column hidden via JS');
+
         // Add toggle functionality
         toggleBar.addEventListener('click', function() {
             var isExpanded = toggleBar.getAttribute('aria-expanded') === 'true';
@@ -1336,13 +1346,13 @@ console.log('[BW Checkout] Script file loaded and executing');
 
     /**
      * Add mobile total row before Place Order button.
-     * ONLY runs on mobile/tablet (≤1024px).
+     * ONLY runs on mobile/tablet (≤900px).
      */
     function addMobileTotalRow() {
         console.log('[BW Checkout] Adding mobile total row');
 
-        // Only run on mobile/tablet screens
-        if (window.innerWidth > 1024) {
+        // Only run on mobile/tablet screens (≤900px)
+        if (window.innerWidth > 900) {
             console.log('[BW Checkout] Desktop view detected, skipping mobile total row');
             return;
         }

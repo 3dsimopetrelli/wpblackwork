@@ -1919,12 +1919,7 @@ body.woocommerce-checkout .select2-results__option--selected {
 }
 
 /* Mobile/Tablet breakpoint */
-@media (max-width: 1024px) {
-    /* Hide original right column in grid (show only cloned one in panel) */
-    .bw-checkout-grid > .bw-checkout-right {
-        display: none !important;
-    }
-
+@media (max-width: 900px) {
     /* Show toggle bar on mobile */
     .bw-order-summary-toggle {
         display: flex;
@@ -2026,7 +2021,7 @@ body.woocommerce-checkout .select2-results__option--selected {
 }
 
 /* Hide mobile elements on desktop */
-@media (min-width: 1025px) {
+@media (min-width: 901px) {
     .bw-mobile-total-row,
     .bw-order-summary-toggle,
     .bw-order-summary-panel {
