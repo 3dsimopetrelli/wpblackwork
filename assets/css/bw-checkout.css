@@ -2102,9 +2102,16 @@ body.woocommerce-checkout .select2-results__option--selected {
     }
 }
 
-/* Hide mobile total row on desktop */
+/* Hide mobile elements on desktop */
 @media (min-width: 1025px) {
-    .bw-mobile-total-row {
+    .bw-mobile-total-row,
+    .bw-order-summary-toggle,
+    .bw-order-summary-panel {
         display: none !important;
+    }
+
+    /* Ensure right column is always visible on desktop */
+    .bw-checkout-right {
+        display: block !important;
     }
 }
