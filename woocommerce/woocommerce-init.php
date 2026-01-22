@@ -284,6 +284,34 @@ function bw_mew_enqueue_checkout_assets() {
                 'nonce'    => wp_create_nonce( 'bw-checkout-nonce' ),
             )
         );
+
+        // Google Maps settings for floating labels + autocomplete
+        $google_maps_enabled = get_option( 'bw_google_maps_enabled', '0' );
+        $google_maps_api_key = get_option( 'bw_google_maps_api_key', '' );
+        $google_maps_autofill = get_option( 'bw_google_maps_autofill', '1' );
+        $google_maps_restrict = get_option( 'bw_google_maps_restrict_country', '1' );
+
+        // Load Google Maps API if enabled and API key exists
+        if ( '1' === $google_maps_enabled && ! empty( $google_maps_api_key ) ) {
+            wp_enqueue_script(
+                'google-maps-places',
+                'https://maps.googleapis.com/maps/api/js?key=' . esc_attr( $google_maps_api_key ) . '&libraries=places',
+                [],
+                null,
+                true
+            );
+        }
+
+        // Pass Google Maps settings to JavaScript
+        wp_localize_script(
+            'bw-checkout',
+            'bwGoogleMapsSettings',
+            array(
+                'enabled'             => '1' === $google_maps_enabled && ! empty( $google_maps_api_key ),
+                'autoFillCityPostcode'=> '1' === $google_maps_autofill,
+                'restrictToCountry'   => '1' === $google_maps_restrict,
+            )
+        );
     }
 
     $inline_styles = '.bw-checkout-form{--bw-checkout-left-bg:' . esc_attr( $settings['left_bg'] ) . ';--bw-checkout-right-bg:' . esc_attr( $settings['right_bg'] ) . ';--bw-checkout-border-color:' . esc_attr( $settings['border_color'] ) . ';}';

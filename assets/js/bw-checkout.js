@@ -698,6 +698,242 @@ console.log('[BW Checkout] Script file loaded and executing');
         }
     }
 
+    /**
+     * Transform checkout fields into floating label fields
+     */
+    function initCheckoutFloatingLabels() {
+        console.log('[BW Checkout] Initializing floating labels');
+
+        // Target checkout form fields (exclude country/state selects and buttons)
+        var fieldSelectors = [
+            '#billing_first_name',
+            '#billing_last_name',
+            '#billing_company',
+            '#billing_address_1',
+            '#billing_address_2',
+            '#billing_city',
+            '#billing_postcode',
+            '#billing_phone',
+            '#billing_email',
+            '#shipping_first_name',
+            '#shipping_last_name',
+            '#shipping_company',
+            '#shipping_address_1',
+            '#shipping_address_2',
+            '#shipping_city',
+            '#shipping_postcode'
+        ];
+
+        fieldSelectors.forEach(function(selector) {
+            var input = document.querySelector(selector);
+            if (!input) return;
+
+            // Skip if already wrapped
+            if (input.closest('.bw-field-wrapper')) return;
+
+            // Get field label text
+            var fieldRow = input.closest('.form-row');
+            if (!fieldRow) return;
+
+            var originalLabel = fieldRow.querySelector('label[for="' + input.id + '"]');
+            var labelText = originalLabel ? originalLabel.textContent.replace('*', '').trim() : '';
+            
+            if (!labelText) return;
+
+            // Generate short label
+            var shortLabel = labelText.replace(/^(Enter your |Enter |Your )/i, '').trim();
+
+            // Wrap input with floating label structure
+            var wrapper = document.createElement('span');
+            wrapper.className = 'bw-field-wrapper';
+
+            // Create floating label
+            var floatingLabel = document.createElement('label');
+            floatingLabel.className = 'bw-floating-label';
+            floatingLabel.setAttribute('for', input.id);
+            floatingLabel.setAttribute('data-full', labelText);
+            floatingLabel.setAttribute('data-short', shortLabel);
+            floatingLabel.textContent = labelText;
+
+            // Insert wrapper before input
+            input.parentNode.insertBefore(wrapper, input);
+            wrapper.appendChild(input);
+            wrapper.appendChild(floatingLabel);
+
+            // Hide original label
+            if (originalLabel) {
+                originalLabel.style.display = 'none';
+            }
+
+            // Add has-floating-label class to form-row
+            fieldRow.classList.add('bw-has-floating-label');
+
+            // Function to update has-value class
+            function updateHasValue() {
+                var hasValue = input.value.trim() !== '';
+                
+                if (hasValue) {
+                    wrapper.classList.add('has-value');
+                    // Change label text to short version
+                    floatingLabel.textContent = shortLabel;
+                } else {
+                    wrapper.classList.remove('has-value');
+                    // Change label text back to full version
+                    floatingLabel.textContent = labelText;
+                }
+            }
+
+            // Listen to input changes
+            input.addEventListener('input', updateHasValue);
+            input.addEventListener('blur', updateHasValue);
+            input.addEventListener('change', updateHasValue);
+
+            // Check initial value
+            updateHasValue();
+        });
+
+        console.log('[BW Checkout] Floating labels initialized');
+    }
+
+    /**
+     * Initialize Google Places Autocomplete (if enabled)
+     */
+    function initGooglePlacesAutocomplete() {
+        // Check if Google Maps is enabled
+        if (!window.bwGoogleMapsSettings || !window.bwGoogleMapsSettings.enabled) {
+            console.log('[BW Checkout] Google Maps not enabled');
+            return;
+        }
+
+        // Check if Google Maps API is loaded
+        if (typeof google === 'undefined' || !google.maps || !google.maps.places) {
+            console.warn('[BW Checkout] Google Maps API not loaded');
+            return;
+        }
+
+        console.log('[BW Checkout] Initializing Google Places Autocomplete');
+
+        var addressInput = document.getElementById('billing_address_1');
+        if (!addressInput) {
+            console.warn('[BW Checkout] Address input not found');
+            return;
+        }
+
+        // Get selected country
+        var countrySelect = document.querySelector('select[name="billing_country"]');
+        var selectedCountry = countrySelect ? countrySelect.value : '';
+
+        // Configure autocomplete options
+        var options = {
+            types: ['address'],
+            fields: ['address_components', 'formatted_address', 'geometry']
+        };
+
+        // Add country restriction if enabled and country is selected
+        if (window.bwGoogleMapsSettings.restrictToCountry && selectedCountry) {
+            options.componentRestrictions = {
+                country: selectedCountry.toLowerCase()
+            };
+        }
+
+        // Create autocomplete instance
+        window.bwGoogleAutocomplete = new google.maps.places.Autocomplete(addressInput, options);
+
+        // Listen for place selection
+        window.bwGoogleAutocomplete.addListener('place_changed', function() {
+            var place = window.bwGoogleAutocomplete.getPlace();
+            
+            if (!place.address_components) {
+                console.warn('[BW Checkout] No address components found');
+                return;
+            }
+
+            console.log('[BW Checkout] Place selected:', place);
+
+            // Parse address components
+            var addressData = {
+                street: '',
+                city: '',
+                postcode: '',
+                state: '',
+                country: ''
+            };
+
+            place.address_components.forEach(function(component) {
+                var types = component.types;
+
+                if (types.includes('street_number')) {
+                    addressData.street = component.long_name + ' ';
+                }
+                if (types.includes('route')) {
+                    addressData.street += component.long_name;
+                }
+                if (types.includes('locality') || types.includes('postal_town')) {
+                    addressData.city = component.long_name;
+                }
+                if (types.includes('postal_code')) {
+                    addressData.postcode = component.long_name;
+                }
+                if (types.includes('administrative_area_level_1')) {
+                    addressData.state = component.short_name;
+                }
+                if (types.includes('country')) {
+                    addressData.country = component.short_name;
+                }
+            });
+
+            // Fill address field
+            if (addressData.street) {
+                addressInput.value = addressData.street.trim();
+                jQuery(addressInput).trigger('change');
+            }
+
+            // Auto-fill city and postcode if enabled
+            if (window.bwGoogleMapsSettings.autoFillCityPostcode) {
+                if (addressData.city) {
+                    var cityInput = document.getElementById('billing_city');
+                    if (cityInput) {
+                        cityInput.value = addressData.city;
+                        jQuery(cityInput).trigger('change');
+                    }
+                }
+
+                if (addressData.postcode) {
+                    var postcodeInput = document.getElementById('billing_postcode');
+                    if (postcodeInput) {
+                        postcodeInput.value = addressData.postcode;
+                        jQuery(postcodeInput).trigger('change');
+                    }
+                }
+            }
+
+            // Update floating labels for filled fields
+            setTimeout(function() {
+                initCheckoutFloatingLabels();
+            }, 100);
+
+            // Trigger WooCommerce update
+            if (window.jQuery) {
+                jQuery(document.body).trigger('update_checkout');
+            }
+        });
+
+        // Update country restriction when country changes
+        if (countrySelect && window.bwGoogleMapsSettings.restrictToCountry) {
+            jQuery(countrySelect).on('change', function() {
+                var newCountry = this.value;
+                if (window.bwGoogleAutocomplete && newCountry) {
+                    window.bwGoogleAutocomplete.setComponentRestrictions({
+                        country: newCountry.toLowerCase()
+                    });
+                    console.log('[BW Checkout] Google Places country restriction updated:', newCountry);
+                }
+            });
+        }
+
+        console.log('[BW Checkout] Google Places Autocomplete initialized');
+    }
+
     console.log('[BW Checkout] Script reached end, about to initialize. DOM readyState:', document.readyState);
 
     // Initialize all functions when DOM is ready
@@ -708,12 +944,27 @@ console.log('[BW Checkout] Script file loaded and executing');
             initCustomSticky();
             observeStripeErrors();
             initFloatingLabel();
+            initCheckoutFloatingLabels();
+            initGooglePlacesAutocomplete();
         });
     } else {
         console.log('[BW Checkout] DOM already loaded, initializing immediately');
         initCustomSticky();
         observeStripeErrors();
         initFloatingLabel();
+        initCheckoutFloatingLabels();
+        initGooglePlacesAutocomplete();
+    }
+
+    // Re-initialize floating labels after WooCommerce AJAX update
+    if (window.jQuery) {
+        jQuery(document.body).on('updated_checkout', function() {
+            console.log('[BW Checkout] Checkout updated, re-initializing floating labels');
+            setTimeout(function() {
+                initCheckoutFloatingLabels();
+                initGooglePlacesAutocomplete();
+            }, 500);
+        });
     }
 
     console.log('[BW Checkout] Script execution completed');
