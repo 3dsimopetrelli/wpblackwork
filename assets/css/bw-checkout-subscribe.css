@@ -24,21 +24,27 @@ body.woocommerce-checkout .bw-checkout-section-link {
     text-decoration: underline;
 }
 
+/* Hide optional span as fallback */
+body.woocommerce-checkout #bw_subscribe_newsletter_field .optional {
+    display: none !important;
+}
+
 body.woocommerce-checkout .bw-checkout-newsletter label,
 body.woocommerce-checkout .bw-checkout-newsletter .woocommerce-form__label-for-checkbox {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 12px;
-    font-size: 16px;
-    font-weight: 500;
+    gap: 10px;
+    font-size: 13px;
+    font-weight: 400;
     color: #111111;
+    cursor: pointer;
 }
 
 body.woocommerce-checkout .bw-checkout-newsletter input[type="checkbox"] {
     -webkit-appearance: none;
     appearance: none;
-    width: 22px;
-    height: 22px;
+    width: 17px;
+    height: 17px;
     border: 2px solid #111111;
     border-radius: 4px;
     background: #ffffff;
@@ -47,24 +53,40 @@ body.woocommerce-checkout .bw-checkout-newsletter input[type="checkbox"] {
     justify-content: center;
     margin: 0;
     position: relative;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+body.woocommerce-checkout .bw-checkout-newsletter input[type="checkbox"]:focus {
+    outline: 2px solid #000000;
+    outline-offset: 2px;
 }
 
 body.woocommerce-checkout .bw-checkout-newsletter input[type="checkbox"]:checked {
     background: #111111;
+    border-color: #111111;
 }
 
-body.woocommerce-checkout .bw-checkout-newsletter input[type="checkbox"]:checked::after {
+body.woocommerce-checkout .bw-checkout-newsletter input[type="checkbox"]::after {
     content: '';
     position: absolute;
-    width: 6px;
-    height: 12px;
+    width: 5px;
+    height: 9px;
     border: solid #ffffff;
     border-width: 0 2px 2px 0;
     transform: rotate(45deg);
+    opacity: 0;
+    transition: opacity 120ms ease;
+}
+
+body.woocommerce-checkout .bw-checkout-newsletter input[type="checkbox"]:checked::after {
+    opacity: 1;
 }
 
 body.woocommerce-checkout .bw-checkout-newsletter .description {
-    margin: 8px 0 0 34px;
+    margin: 8px 0 0 27px;
     font-size: 13px;
     color: #555555;
+    line-height: 1.5;
 }
