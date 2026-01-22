@@ -19,6 +19,11 @@ The plugin requires:
 - WooCommerce (for e-commerce features)
 - Slick Carousel (loaded via CDN)
 
+## Git Conventions
+
+- Never include references to Claude or Claude Code in commit messages or PR descriptions
+- Do not add "Co-Authored-By: Claude" or similar attribution lines
+
 ## Plugin Architecture
 
 ### Main Entry Point
