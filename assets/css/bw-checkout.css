@@ -708,6 +708,22 @@ body.woocommerce-checkout .bw-delivery-section-title {
     margin-bottom: 20px !important;
 }
 
+/* Ensure the wrapper also has spacing */
+body.woocommerce-checkout .bw-checkout-section-heading--delivery {
+    margin-bottom: 20px !important;
+}
+
+/* Add spacing to first field after newsletter */
+body.woocommerce-checkout #bw_subscribe_newsletter_field + * {
+    margin-top: 20px !important;
+}
+
+/* Specifically target first field after Delivery heading */
+body.woocommerce-checkout .bw-checkout-section-heading--delivery + .form-row,
+body.woocommerce-checkout .bw-delivery-section-title + .form-row {
+    margin-top: 20px !important;
+}
+
 /* Customer details section */
 .bw-checkout-customer-details {
     margin-bottom: 18px;
