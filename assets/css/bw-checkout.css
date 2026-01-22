@@ -772,14 +772,15 @@ body.woocommerce-checkout .wcpay-express-checkout-wrapper::before {
 body.woocommerce-checkout .bw-checkout-section-heading--delivery {
     display: block !important;
     width: 100% !important;
-    margin: 20px 0 20px 0 !important;
+    margin: 20px 0 5px 0 !important;
     clear: both !important;
 }
 
 body.woocommerce-checkout .bw-delivery-section-title {
     display: block !important;
     width: 100% !important;
-    margin-bottom: 20px !important;
+    line-height: 30px;
+
 }
 
 /* Customer details section */
