@@ -57,7 +57,10 @@ class BW_Checkout_Fields_Admin {
      * Handle settings save/reset for checkout fields.
      */
     public function handle_post() {
+        error_log( '[BW Checkout Fields] handle_post called' );
+
         if ( empty( $_POST['bw_checkout_fields_submit'] ) && empty( $_POST['bw_checkout_fields_reset'] ) ) {
+            error_log( '[BW Checkout Fields] No submit button found in POST' );
             return;
         }
 
@@ -90,6 +93,10 @@ class BW_Checkout_Fields_Admin {
 
         // Save section_headings settings
         $section_headings_raw = isset( $_POST['bw_section_headings'] ) ? wp_unslash( $_POST['bw_section_headings'] ) : [];
+
+        // Debug logging
+        error_log( '[BW Checkout Fields] POST data received: ' . print_r( $_POST['bw_section_headings'], true ) );
+
         $settings['section_headings'] = [
             'free_order_message'     => isset( $section_headings_raw['free_order_message'] )
                 ? sanitize_textarea_field( $section_headings_raw['free_order_message'] )
@@ -98,6 +105,9 @@ class BW_Checkout_Fields_Admin {
                 ? sanitize_text_field( $section_headings_raw['free_order_button_text'] )
                 : '',
         ];
+
+        // Debug logging
+        error_log( '[BW Checkout Fields] Saving section_headings: ' . print_r( $settings['section_headings'], true ) );
 
         foreach ( $defaults as $section => $fields ) {
             foreach ( $fields as $key => $field ) {
@@ -133,6 +143,10 @@ class BW_Checkout_Fields_Admin {
         }
 
         update_option( self::OPTION_NAME, $settings );
+
+        // Debug: verify the save
+        $saved_data = get_option( self::OPTION_NAME );
+        error_log( '[BW Checkout Fields] Saved to database: ' . print_r( $saved_data['section_headings'], true ) );
 
         $redirect_args['bw_checkout_fields_saved'] = '1';
         if ( $warnings ) {
