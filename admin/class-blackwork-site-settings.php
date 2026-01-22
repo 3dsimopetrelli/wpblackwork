@@ -1439,6 +1439,19 @@ function bw_site_render_checkout_tab() {
         update_option( 'bw_google_maps_autofill', $google_maps_autofill );
         update_option( 'bw_google_maps_restrict_country', $google_maps_restrict_country );
 
+        // Section Headings settings
+        $hide_billing_heading_val    = isset( $_POST['bw_checkout_hide_billing_heading'] ) ? '1' : '0';
+        $hide_additional_heading_val = isset( $_POST['bw_checkout_hide_additional_heading'] ) ? '1' : '0';
+        $address_heading_label_val   = isset( $_POST['bw_checkout_address_heading_label'] ) ? sanitize_text_field( wp_unslash( $_POST['bw_checkout_address_heading_label'] ) ) : '';
+        $free_order_message_val      = isset( $_POST['bw_checkout_free_order_message'] ) ? sanitize_textarea_field( wp_unslash( $_POST['bw_checkout_free_order_message'] ) ) : '';
+        $free_order_button_text_val  = isset( $_POST['bw_checkout_free_order_button_text'] ) ? sanitize_text_field( wp_unslash( $_POST['bw_checkout_free_order_button_text'] ) ) : '';
+
+        update_option( 'bw_checkout_hide_billing_heading', $hide_billing_heading_val );
+        update_option( 'bw_checkout_hide_additional_heading', $hide_additional_heading_val );
+        update_option( 'bw_checkout_address_heading_label', $address_heading_label_val );
+        update_option( 'bw_checkout_free_order_message', $free_order_message_val );
+        update_option( 'bw_checkout_free_order_button_text', $free_order_button_text_val );
+
         // Redirect to the same tab to prevent losing tab state
         wp_safe_redirect( add_query_arg( array(
             'page' => 'blackwork-site-settings',
@@ -1485,6 +1498,13 @@ function bw_site_render_checkout_tab() {
     $supabase_service_key       = get_option( 'bw_supabase_service_role_key', '' );
     $default_invite_redirect    = home_url( '/my-account/set-password/' );
     $supabase_invite_redirect   = $supabase_invite_redirect ? $supabase_invite_redirect : $default_invite_redirect;
+
+    // Section Headings settings
+    $hide_billing_heading      = get_option( 'bw_checkout_hide_billing_heading', '0' );
+    $hide_additional_heading   = get_option( 'bw_checkout_hide_additional_heading', '0' );
+    $address_heading_label     = get_option( 'bw_checkout_address_heading_label', '' );
+    $free_order_message        = get_option( 'bw_checkout_free_order_message', '' );
+    $free_order_button_text    = get_option( 'bw_checkout_free_order_button_text', '' );
     ?>
 
     <?php if ( $saved ) : ?>
@@ -1755,6 +1775,61 @@ function bw_site_render_checkout_tab() {
                         <input type="checkbox" id="bw_checkout_show_return_to_shop" name="bw_checkout_show_return_to_shop" value="1" <?php checked( '1', $show_return_to_shop ); ?> />
                         <span class="description">Attiva o disattiva il link di ritorno allo shop nel footer della colonna sinistra.</span>
                     </label>
+                </td>
+            </tr>
+            <tr class="bw-section-break">
+                <th scope="row" colspan="2" style="padding-bottom:0;">
+                    <h3 style="margin:0;">Section Headings</h3>
+                    <p class="description" style="margin-top:6px;">Configure checkout section headings and free order behavior.</p>
+                </th>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_checkout_hide_billing_heading">Hide Billing Details heading</label>
+                </th>
+                <td>
+                    <label style="display: inline-flex; align-items: center; gap: 8px;">
+                        <input type="checkbox" id="bw_checkout_hide_billing_heading" name="bw_checkout_hide_billing_heading" value="1" <?php checked( '1', $hide_billing_heading ); ?> />
+                        <span style="font-weight: 500;">Remove the default WooCommerce "Billing details" heading.</span>
+                    </label>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_checkout_hide_additional_heading">Hide Additional information heading</label>
+                </th>
+                <td>
+                    <label style="display: inline-flex; align-items: center; gap: 8px;">
+                        <input type="checkbox" id="bw_checkout_hide_additional_heading" name="bw_checkout_hide_additional_heading" value="1" <?php checked( '1', $hide_additional_heading ); ?> />
+                        <span style="font-weight: 500;">Remove the default "Additional information" heading above order notes.</span>
+                    </label>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_checkout_address_heading_label">Address section heading label</label>
+                </th>
+                <td>
+                    <input type="text" id="bw_checkout_address_heading_label" name="bw_checkout_address_heading_label" value="<?php echo esc_attr( $address_heading_label ); ?>" class="regular-text" placeholder="Delivery" />
+                    <p class="description">Suggested: Delivery / Address / Shipping address.</p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_checkout_free_order_message">Free Order Message</label>
+                </th>
+                <td>
+                    <textarea id="bw_checkout_free_order_message" name="bw_checkout_free_order_message" rows="3" class="large-text" placeholder="Your order is free. Complete your details and click Place order."><?php echo esc_textarea( $free_order_message ); ?></textarea>
+                    <p class="description">Shown when order total becomes 0 (e.g., after applying a 100% discount coupon). Stripe express buttons and divider will be hidden.</p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_checkout_free_order_button_text">Free Order Button Text</label>
+                </th>
+                <td>
+                    <input type="text" id="bw_checkout_free_order_button_text" name="bw_checkout_free_order_button_text" value="<?php echo esc_attr( $free_order_button_text ); ?>" class="regular-text" placeholder="Confirm free order" />
+                    <p class="description">Text for the Place Order button when order total is 0. Original button text is restored when total becomes greater than 0.</p>
                 </td>
             </tr>
             </table>

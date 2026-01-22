@@ -57,10 +57,7 @@ class BW_Checkout_Fields_Admin {
      * Handle settings save/reset for checkout fields.
      */
     public function handle_post() {
-        error_log( '[BW Checkout Fields] handle_post called' );
-
         if ( empty( $_POST['bw_checkout_fields_submit'] ) && empty( $_POST['bw_checkout_fields_reset'] ) ) {
-            error_log( '[BW Checkout Fields] No submit button found in POST' );
             return;
         }
 
@@ -94,31 +91,6 @@ class BW_Checkout_Fields_Admin {
         if ( empty( $settings['version'] ) ) {
             $settings['version'] = self::OPTION_VERSION;
         }
-
-        // Save section_headings settings - merge with existing
-        $section_headings_raw = isset( $_POST['bw_section_headings'] ) ? wp_unslash( $_POST['bw_section_headings'] ) : [];
-
-        // Debug logging
-        error_log( '[BW Checkout Fields] POST data received: ' . print_r( $_POST['bw_section_headings'], true ) );
-
-        // Get existing section_headings to preserve other fields
-        $existing_section_headings = isset( $settings['section_headings'] ) ? $settings['section_headings'] : [];
-
-        // Merge new values with existing ones
-        $settings['section_headings'] = array_merge(
-            $existing_section_headings,
-            [
-                'free_order_message'     => isset( $section_headings_raw['free_order_message'] )
-                    ? sanitize_textarea_field( $section_headings_raw['free_order_message'] )
-                    : ( isset( $existing_section_headings['free_order_message'] ) ? $existing_section_headings['free_order_message'] : '' ),
-                'free_order_button_text' => isset( $section_headings_raw['free_order_button_text'] )
-                    ? sanitize_text_field( $section_headings_raw['free_order_button_text'] )
-                    : ( isset( $existing_section_headings['free_order_button_text'] ) ? $existing_section_headings['free_order_button_text'] : '' ),
-            ]
-        );
-
-        // Debug logging
-        error_log( '[BW Checkout Fields] Saving section_headings: ' . print_r( $settings['section_headings'], true ) );
 
         foreach ( $defaults as $section => $fields ) {
             foreach ( $fields as $key => $field ) {
@@ -164,10 +136,6 @@ class BW_Checkout_Fields_Admin {
         }
 
         update_option( self::OPTION_NAME, $settings );
-
-        // Debug: verify the save
-        $saved_data = get_option( self::OPTION_NAME );
-        error_log( '[BW Checkout Fields] Saved to database: ' . print_r( $saved_data['section_headings'], true ) );
 
         $redirect_args['bw_checkout_fields_saved'] = '1';
         if ( $warnings ) {
@@ -246,56 +214,6 @@ class BW_Checkout_Fields_Admin {
 
         <input type="hidden" name="bw_checkout_fields_form" value="1" />
         <?php wp_nonce_field( 'bw_checkout_fields_save', 'bw_checkout_fields_nonce' ); ?>
-
-        <?php
-        // Get section_headings settings
-        $section_headings = isset( $settings['section_headings'] ) ? $settings['section_headings'] : [];
-        $free_order_message = isset( $section_headings['free_order_message'] ) && '' !== $section_headings['free_order_message']
-            ? $section_headings['free_order_message']
-            : __( 'Your order is free. Complete your details and click Place order.', 'bw' );
-        $free_order_button_text = isset( $section_headings['free_order_button_text'] ) && '' !== $section_headings['free_order_button_text']
-            ? $section_headings['free_order_button_text']
-            : __( 'Confirm free order', 'bw' );
-        ?>
-
-        <h3><?php esc_html_e( 'Section Headings', 'bw' ); ?></h3>
-        <table class="form-table" role="presentation">
-            <tr>
-                <th scope="row">
-                    <label for="bw_free_order_message"><?php esc_html_e( 'Free Order Message', 'bw' ); ?></label>
-                </th>
-                <td>
-                    <textarea
-                        id="bw_free_order_message"
-                        name="bw_section_headings[free_order_message]"
-                        rows="3"
-                        class="large-text"
-                        placeholder="<?php esc_attr_e( 'Your order is free. Complete your details and click Place order.', 'bw' ); ?>"
-                    ><?php echo esc_textarea( $free_order_message ); ?></textarea>
-                    <p class="description">
-                        <?php esc_html_e( 'Shown when order total becomes 0 (e.g., after applying a 100% discount coupon). Stripe express buttons and divider will be hidden.', 'bw' ); ?>
-                    </p>
-                </td>
-            </tr>
-            <tr>
-                <th scope="row">
-                    <label for="bw_free_order_button_text"><?php esc_html_e( 'Free Order Button Text', 'bw' ); ?></label>
-                </th>
-                <td>
-                    <input
-                        type="text"
-                        id="bw_free_order_button_text"
-                        name="bw_section_headings[free_order_button_text]"
-                        value="<?php echo esc_attr( $free_order_button_text ); ?>"
-                        class="regular-text"
-                        placeholder="<?php esc_attr_e( 'Confirm free order', 'bw' ); ?>"
-                    />
-                    <p class="description">
-                        <?php esc_html_e( 'Text for the Place Order button when order total is 0. Original button text is restored when total becomes greater than 0.', 'bw' ); ?>
-                    </p>
-                </td>
-            </tr>
-        </table>
 
         <?php foreach ( $sections as $section_key => $section_label ) : ?>
             <?php if ( empty( $fields[ $section_key ] ) ) : ?>
