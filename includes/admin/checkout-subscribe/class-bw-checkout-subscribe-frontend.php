@@ -112,24 +112,6 @@ class BW_Checkout_Subscribe_Frontend {
     }
 
     /**
-     * Remove optional marker from newsletter field only.
-     *
-     * @param string $field Field HTML.
-     * @param string $key   Field key.
-     * @param array  $args  Field args.
-     * @param mixed  $value Field value.
-     *
-     * @return string
-     */
-    public function remove_optional_marker( $field, $key, $args, $value ) {
-        if ( 'bw_subscribe_newsletter' !== $key ) {
-            return $field;
-        }
-
-        return preg_replace( '/<span class=\"optional\">.*?<\/span>/i', '', $field );
-    }
-
-    /**
      * Save consent metadata on checkout.
      *
      * @param int   $order_id Order ID.
