@@ -745,17 +745,11 @@ console.log('[BW Checkout] Script file loaded and executing');
             // Get clean label text (remove asterisks, abbr, optional text, etc.)
             var labelClone = originalLabel.cloneNode(true);
             // Remove abbr (asterisks), optional spans, and other non-text elements
-            var elemsToRemove = labelClone.querySelectorAll('abbr, .optional, .required, span');
+            var elemsToRemove = labelClone.querySelectorAll('abbr, .optional, .required');
             elemsToRemove.forEach(function(elem) { elem.remove(); });
             var labelText = labelClone.textContent.replace(/\*/g, '').trim();
 
             if (!labelText) return;
-
-            // Generate short label (remove "Street address" suffix like "and street name")
-            var shortLabel = labelText
-                .replace(/^(Enter your |Enter |Your )/i, '')
-                .replace(/\s*and\s+.+$/i, '') // Remove "and street name" type suffixes (including leading spaces)
-                .trim();
 
             // Check if this is a Select2 field
             var isSelect2 = input.tagName === 'SELECT' && input.classList.contains('select2-hidden-accessible');
@@ -780,9 +774,7 @@ console.log('[BW Checkout] Script file loaded and executing');
             var floatingLabel = document.createElement('label');
             floatingLabel.className = 'bw-floating-label';
             floatingLabel.setAttribute('for', input.id);
-            floatingLabel.setAttribute('data-full', labelText);
-            floatingLabel.setAttribute('data-short', shortLabel);
-            floatingLabel.textContent = shortLabel;
+            floatingLabel.textContent = labelText;
 
             // Insert wrapper before element
             elementToWrap.parentNode.insertBefore(wrapper, elementToWrap);
