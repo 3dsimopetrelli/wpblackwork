@@ -39,6 +39,26 @@ if ( file_exists( plugin_dir_path( __FILE__ ) . 'admin/class-blackwork-site-sett
     require_once plugin_dir_path( __FILE__ ) . 'admin/class-blackwork-site-settings.php';
 }
 
+// Checkout fields manager (admin + frontend)
+$bw_checkout_fields_admin = plugin_dir_path( __FILE__ ) . 'includes/admin/checkout-fields/class-bw-checkout-fields-admin.php';
+$bw_checkout_fields_frontend = plugin_dir_path( __FILE__ ) . 'includes/admin/checkout-fields/class-bw-checkout-fields-frontend.php';
+
+if ( file_exists( $bw_checkout_fields_admin ) ) {
+    require_once $bw_checkout_fields_admin;
+}
+
+if ( file_exists( $bw_checkout_fields_frontend ) ) {
+    require_once $bw_checkout_fields_frontend;
+}
+
+if ( class_exists( 'BW_Checkout_Fields_Admin' ) ) {
+    BW_Checkout_Fields_Admin::init();
+}
+
+if ( class_exists( 'BW_Checkout_Fields_Frontend' ) ) {
+    BW_Checkout_Fields_Frontend::init();
+}
+
 
 // Helper functions
 require_once __DIR__ . '/includes/helpers.php';
