@@ -1262,14 +1262,8 @@ console.log('[BW Checkout] Script file loaded and executing');
         }
 
         if (existingPanel) {
-            // Move right column back to grid before removing panel
-            var grid = document.querySelector('.bw-checkout-grid');
-            var rightInPanel = existingPanel.querySelector('.bw-checkout-right');
-            if (grid && rightInPanel) {
-                grid.appendChild(rightInPanel);
-            }
             existingPanel.remove();
-            console.log('[BW Checkout] Removed existing panel and restored right column');
+            console.log('[BW Checkout] Removed existing panel');
         }
 
         // Create toggle bar
@@ -1290,7 +1284,7 @@ console.log('[BW Checkout] Script file loaded and executing');
         toggleBar.appendChild(toggleLabel);
         toggleBar.appendChild(toggleTotal);
 
-        // Wrap right column in panel
+        // Create panel with CLONED right column
         var panel = document.createElement('div');
         panel.id = 'bw-order-summary-panel';
         panel.className = 'bw-order-summary-panel';
@@ -1311,9 +1305,10 @@ console.log('[BW Checkout] Script file loaded and executing');
         wrapper.insertBefore(panel, grid);
         console.log('[BW Checkout] Panel inserted into wrapper');
 
-        // Move right column into panel
-        panel.appendChild(rightColumn);
-        console.log('[BW Checkout] Right column moved into panel');
+        // CLONE right column into panel (keep original in grid)
+        var rightColumnClone = rightColumn.cloneNode(true);
+        panel.appendChild(rightColumnClone);
+        console.log('[BW Checkout] Right column CLONED into panel (original remains in grid)');
 
         // Add toggle functionality
         toggleBar.addEventListener('click', function() {
