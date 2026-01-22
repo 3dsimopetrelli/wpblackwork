@@ -757,7 +757,22 @@ console.log('[BW Checkout] Script file loaded and executing');
                 .replace(/\s+(and\s+.+)$/i, '') // Remove "and street name" type suffixes
                 .trim();
 
-            // Wrap input with floating label structure
+            // Check if this is a Select2 field
+            var isSelect2 = input.tagName === 'SELECT' && input.classList.contains('select2-hidden-accessible');
+            var elementToWrap = input;
+
+            // For Select2, wrap the .select2-container instead of the hidden select
+            if (isSelect2) {
+                var select2Container = fieldRow.querySelector('.select2-container');
+                if (select2Container) {
+                    elementToWrap = select2Container;
+                }
+            }
+
+            // Skip if element to wrap is already inside a wrapper
+            if (elementToWrap.closest('.bw-field-wrapper')) return;
+
+            // Wrap input/select2 with floating label structure
             var wrapper = document.createElement('span');
             wrapper.className = 'bw-field-wrapper';
 
@@ -769,10 +784,15 @@ console.log('[BW Checkout] Script file loaded and executing');
             floatingLabel.setAttribute('data-short', shortLabel);
             floatingLabel.textContent = labelText;
 
-            // Insert wrapper before input
-            input.parentNode.insertBefore(wrapper, input);
-            wrapper.appendChild(input);
+            // Insert wrapper before element
+            elementToWrap.parentNode.insertBefore(wrapper, elementToWrap);
+            wrapper.appendChild(elementToWrap);
             wrapper.appendChild(floatingLabel);
+
+            // For Select2, also move the hidden select into wrapper
+            if (isSelect2 && elementToWrap !== input) {
+                wrapper.appendChild(input);
+            }
 
             // Hide original label
             if (originalLabel) {
@@ -784,8 +804,8 @@ console.log('[BW Checkout] Script file loaded and executing');
 
             // Function to update has-value class
             function updateHasValue() {
-                var hasValue = input.value.trim() !== '';
-                
+                var hasValue = input.value && input.value.trim() !== '';
+
                 if (hasValue) {
                     wrapper.classList.add('has-value');
                     // Change label text to short version
@@ -797,10 +817,18 @@ console.log('[BW Checkout] Script file loaded and executing');
                 }
             }
 
-            // Listen to input changes
-            input.addEventListener('input', updateHasValue);
-            input.addEventListener('blur', updateHasValue);
-            input.addEventListener('change', updateHasValue);
+            // Listen to appropriate events based on field type
+            if (isSelect2) {
+                // Select2 events
+                if (window.jQuery) {
+                    jQuery(input).on('select2:select select2:clear change', updateHasValue);
+                }
+            } else {
+                // Standard input events
+                input.addEventListener('input', updateHasValue);
+                input.addEventListener('blur', updateHasValue);
+                input.addEventListener('change', updateHasValue);
+            }
 
             // Check initial value
             updateHasValue();
