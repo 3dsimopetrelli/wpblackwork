@@ -10,7 +10,7 @@
  *   shipping: { ... },
  *   order: { ... },
  *   account: { ... },
- *   section_headings: { free_order_message: "..." }
+ *   section_headings: { free_order_message: "...", free_order_button_text: "..." }
  * }
  *
  * @package BW_Elementor_Widgets
