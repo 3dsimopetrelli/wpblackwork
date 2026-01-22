@@ -1317,13 +1317,24 @@ console.log('[BW Checkout] Script file loaded and executing');
         panel.className = 'bw-order-summary-panel';
         panel.setAttribute('aria-hidden', 'true');
 
-        // Insert toggle bar and panel before right column
-        var grid = rightColumn.parentElement;
-        grid.insertBefore(toggleBar, rightColumn);
-        grid.insertBefore(panel, rightColumn);
+        // Find the grid and wrapper
+        var grid = rightColumn.parentElement; // .bw-checkout-grid
+        var wrapper = grid.parentElement; // .bw-checkout-wrapper
+
+        console.log('[BW Checkout] Grid element:', grid.className);
+        console.log('[BW Checkout] Wrapper element:', wrapper.className);
+
+        // Insert toggle bar at the beginning of wrapper (before grid)
+        wrapper.insertBefore(toggleBar, grid);
+        console.log('[BW Checkout] Toggle bar inserted into wrapper');
+
+        // Insert panel after toggle bar (still before grid)
+        wrapper.insertBefore(panel, grid);
+        console.log('[BW Checkout] Panel inserted into wrapper');
 
         // Move right column into panel
         panel.appendChild(rightColumn);
+        console.log('[BW Checkout] Right column moved into panel');
 
         // Add toggle functionality
         toggleBar.addEventListener('click', function() {

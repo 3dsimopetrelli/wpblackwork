@@ -2020,8 +2020,7 @@ body.woocommerce-checkout .select2-results__option--selected {
         color: #1f2937;
         text-align: left;
         transition: background-color 0.2s ease;
-        margin: 0;
-        order: -1; /* Ensure it appears first in flex/grid */
+        margin: 0 0 20px 0;
     }
 
     .bw-order-summary-toggle:hover {
