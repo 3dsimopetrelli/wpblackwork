@@ -997,6 +997,11 @@ console.log('[BW Checkout] Script file loaded and executing');
             // Move the heading (and its wrapper if it has one) after the newsletter field
             var headingToMove = deliveryHeading.closest('.bw-checkout-section-heading') || deliveryHeading;
 
+            // Add class to wrapper if it exists
+            if (headingToMove.classList.contains('bw-checkout-section-heading')) {
+                headingToMove.classList.add('bw-checkout-section-heading--delivery');
+            }
+
             // Insert after newsletter field
             if (newsletterField.nextSibling) {
                 newsletterField.parentNode.insertBefore(headingToMove, newsletterField.nextSibling);
