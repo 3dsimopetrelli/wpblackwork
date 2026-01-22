@@ -37,6 +37,7 @@ class BW_Checkout_Subscribe_Frontend {
         add_action( 'woocommerce_order_status_processing', [ $this, 'maybe_subscribe_on_paid' ] );
         add_action( 'woocommerce_order_status_completed', [ $this, 'maybe_subscribe_on_paid' ] );
         add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_assets' ], 25 );
+        add_filter( 'woocommerce_form_field', [ $this, 'remove_optional_marker' ], 10, 4 );
     }
 
     /**
