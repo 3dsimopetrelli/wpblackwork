@@ -81,6 +81,7 @@ class BW_Checkout_Fields_Admin {
 
         $defaults = $this->get_checkout_fields();
         $raw      = isset( $_POST['bw_checkout_fields'] ) ? wp_unslash( $_POST['bw_checkout_fields'] ) : [];
+        $headings = isset( $_POST['bw_checkout_section_headings'] ) ? wp_unslash( $_POST['bw_checkout_section_headings'] ) : [];
 
         $warnings = false;
         $settings = [
@@ -120,6 +121,15 @@ class BW_Checkout_Fields_Admin {
             }
         }
 
+        $settings['section_headings'] = [
+            'hide_billing_details' => ! empty( $headings['hide_billing_details'] ) ? 1 : 0,
+            'address_heading_text' => isset( $headings['address_heading_text'] ) ? sanitize_text_field( $headings['address_heading_text'] ) : __( 'Delivery', 'bw' ),
+        ];
+
+        if ( empty( $settings['section_headings']['address_heading_text'] ) ) {
+            $settings['section_headings']['address_heading_text'] = __( 'Delivery', 'bw' );
+        }
+
         update_option( self::OPTION_NAME, $settings );
 
         $redirect_args['bw_checkout_fields_saved'] = '1';
@@ -141,6 +151,7 @@ class BW_Checkout_Fields_Admin {
 
         $fields   = $this->get_checkout_fields();
         $settings = $this->get_settings();
+        $section_headings = $this->get_section_heading_settings( $settings );
 
         if ( isset( $_GET['bw_checkout_fields_saved'] ) && '1' === sanitize_text_field( wp_unslash( $_GET['bw_checkout_fields_saved'] ) ) ) {
             echo '<div class="notice notice-success is-dismissible"><p><strong>' . esc_html__( 'Checkout fields saved.', 'bw' ) . '</strong></p></div>';
@@ -174,6 +185,22 @@ class BW_Checkout_Fields_Admin {
         <p class="description">
             <?php esc_html_e( 'Reorder, hide, or resize classic checkout fields. Changes apply only on the checkout form and keep WooCommerce validation intact.', 'bw' ); ?>
         </p>
+
+        <div class="bw-settings-group">
+            <div class="bw-settings-group__title"><?php esc_html_e( 'Section headings', 'bw' ); ?></div>
+            <div class="bw-settings-group__grid">
+                <label for="bw_checkout_hide_billing_details"><?php esc_html_e( 'Hide Billing Details heading', 'bw' ); ?></label>
+                <label>
+                    <input type="checkbox" id="bw_checkout_hide_billing_details" name="bw_checkout_section_headings[hide_billing_details]" value="1" <?php checked( $section_headings['hide_billing_details'], 1 ); ?> />
+                    <?php esc_html_e( 'Remove the default WooCommerce “Billing details” heading.', 'bw' ); ?>
+                </label>
+                <label for="bw_checkout_address_heading_text"><?php esc_html_e( 'Address section heading label', 'bw' ); ?></label>
+                <div>
+                    <input type="text" id="bw_checkout_address_heading_text" name="bw_checkout_section_headings[address_heading_text]" value="<?php echo esc_attr( $section_headings['address_heading_text'] ); ?>" class="regular-text" />
+                    <p class="description"><?php esc_html_e( 'Suggested: Delivery / Address / Shipping address.', 'bw' ); ?></p>
+                </div>
+            </div>
+        </div>
 
         <input type="hidden" name="bw_checkout_fields_form" value="1" />
         <?php wp_nonce_field( 'bw_checkout_fields_save', 'bw_checkout_fields_nonce' ); ?>
@@ -283,6 +310,34 @@ class BW_Checkout_Fields_Admin {
         }
 
         return $settings;
+    }
+
+    /**
+     * Retrieve section heading settings.
+     *
+     * @param array $settings Settings array.
+     *
+     * @return array
+     */
+    private function get_section_heading_settings( $settings ) {
+        $defaults = [
+            'hide_billing_details' => 0,
+            'address_heading_text' => __( 'Delivery', 'bw' ),
+        ];
+
+        if ( isset( $settings['section_headings'] ) && is_array( $settings['section_headings'] ) ) {
+            $merged = array_merge( $defaults, $settings['section_headings'] );
+            $merged['hide_billing_details'] = ! empty( $merged['hide_billing_details'] ) ? 1 : 0;
+            $merged['address_heading_text'] = sanitize_text_field( $merged['address_heading_text'] );
+
+            if ( empty( $merged['address_heading_text'] ) ) {
+                $merged['address_heading_text'] = $defaults['address_heading_text'];
+            }
+
+            return $merged;
+        }
+
+        return $defaults;
     }
 
     /**
