@@ -1,20 +1,24 @@
 /**
  * Checkout subscribe styles (Contact header + newsletter checkbox).
  */
-body.woocommerce-checkout .bw-checkout-contact-header {
+body.woocommerce-checkout .bw-checkout-section-heading {
+    margin: 12px 0 16px;
+}
+
+body.woocommerce-checkout .bw-checkout-section-heading--contact {
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
-    margin: 10px 0 16px;
 }
 
-body.woocommerce-checkout .bw-checkout-contact-header__title {
+body.woocommerce-checkout .checkout-section-title {
     font-size: 24px;
     font-weight: 700;
     color: #111111;
+    margin: 0;
 }
 
-body.woocommerce-checkout .bw-checkout-contact-header__signin {
+body.woocommerce-checkout .bw-checkout-section-link {
     font-size: 14px;
     color: #111111;
     text-decoration: underline;

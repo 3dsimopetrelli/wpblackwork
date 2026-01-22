@@ -30,7 +30,8 @@ class BW_Checkout_Subscribe_Frontend {
     }
 
     private function __construct() {
-        add_action( 'woocommerce_before_checkout_billing_form', [ $this, 'render_contact_header' ] );
+        add_action( 'woocommerce_before_checkout_billing_form', [ $this, 'render_contact_header' ], 5 );
+        add_action( 'woocommerce_before_checkout_billing_form', [ $this, 'render_delivery_heading' ], 15 );
         add_filter( 'woocommerce_checkout_fields', [ $this, 'inject_newsletter_field' ], 30, 1 );
         add_action( 'woocommerce_checkout_update_order_meta', [ $this, 'save_consent_meta' ], 10, 2 );
         add_action( 'woocommerce_checkout_order_processed', [ $this, 'maybe_subscribe_on_created' ], 20, 3 );
@@ -53,13 +54,43 @@ class BW_Checkout_Subscribe_Frontend {
 
         $account_url = function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( 'myaccount' ) : '';
         ?>
-        <div class="bw-checkout-contact-header">
-            <span class="bw-checkout-contact-header__title"><?php esc_html_e( 'Contact', 'bw' ); ?></span>
+        <div class="bw-checkout-section-heading bw-checkout-section-heading--contact">
+            <h2 class="checkout-section-title checkout-contact-title"><?php esc_html_e( 'Contact', 'bw' ); ?></h2>
             <?php if ( ! is_user_logged_in() && $account_url ) : ?>
-                <a class="bw-checkout-contact-header__signin" href="<?php echo esc_url( $account_url ); ?>">
+                <a class="bw-checkout-section-link" href="<?php echo esc_url( $account_url ); ?>">
                     <?php esc_html_e( 'Sign in', 'bw' ); ?>
                 </a>
             <?php endif; ?>
+        </div>
+        <?php
+    }
+
+    /**
+     * Render the Delivery heading before billing fields.
+     */
+    public function render_delivery_heading() {
+        if ( ! $this->should_apply() ) {
+            return;
+        }
+
+        if ( $this->is_block_checkout() ) {
+            return;
+        }
+
+        if ( ! $this->has_billing_address_fields() ) {
+            return;
+        }
+
+        $settings = $this->get_section_headings();
+        $label    = $settings['address_heading_text'];
+
+        if ( ! $this->cart_needs_shipping() && __( 'Delivery', 'bw' ) === $label ) {
+            $label = __( 'Address', 'bw' );
+        }
+
+        ?>
+        <div class="bw-checkout-section-heading bw-checkout-section-heading--delivery">
+            <h2 class="checkout-section-title checkout-delivery-title"><?php echo esc_html( $label ); ?></h2>
         </div>
         <?php
     }
@@ -322,6 +353,82 @@ class BW_Checkout_Subscribe_Frontend {
         }
 
         return array_merge( $defaults, $settings );
+    }
+
+    /**
+     * Get checkout section heading settings from checkout fields option.
+     *
+     * @return array
+     */
+    private function get_section_headings() {
+        $defaults = [
+            'address_heading_text' => __( 'Delivery', 'bw' ),
+        ];
+
+        $settings = get_option( 'bw_checkout_fields_settings', [] );
+        if ( isset( $settings['section_headings'] ) && is_array( $settings['section_headings'] ) ) {
+            $merged = array_merge( $defaults, $settings['section_headings'] );
+            $merged['address_heading_text'] = sanitize_text_field( $merged['address_heading_text'] );
+
+            if ( empty( $merged['address_heading_text'] ) ) {
+                $merged['address_heading_text'] = $defaults['address_heading_text'];
+            }
+
+            return $merged;
+        }
+
+        return $defaults;
+    }
+
+    /**
+     * Determine if billing address fields exist.
+     *
+     * @return bool
+     */
+    private function has_billing_address_fields() {
+        if ( ! function_exists( 'WC' ) ) {
+            return false;
+        }
+
+        $checkout = WC()->checkout();
+        if ( ! $checkout ) {
+            return false;
+        }
+
+        $fields = $checkout->get_checkout_fields();
+        if ( empty( $fields['billing'] ) ) {
+            return false;
+        }
+
+        $keys = [
+            'billing_address_1',
+            'billing_address_2',
+            'billing_city',
+            'billing_postcode',
+            'billing_state',
+            'billing_country',
+        ];
+
+        foreach ( $keys as $key ) {
+            if ( isset( $fields['billing'][ $key ] ) ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if cart needs shipping.
+     *
+     * @return bool
+     */
+    private function cart_needs_shipping() {
+        if ( function_exists( 'WC' ) && WC()->cart ) {
+            return WC()->cart->needs_shipping();
+        }
+
+        return true;
     }
 
     /**

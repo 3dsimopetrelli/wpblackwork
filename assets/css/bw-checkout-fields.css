@@ -35,18 +35,6 @@ body.woocommerce-checkout.bw-checkout-fields-active .bw-checkout-field--full {
     max-width: 100%;
 }
 
-body.woocommerce-checkout .bw-checkout-section-heading {
-    width: 100%;
-    margin: 12px 0 16px;
-}
-
-body.woocommerce-checkout .bw-checkout-section-heading h2 {
-    font-size: 22px;
-    font-weight: 700;
-    margin: 0;
-    color: #111111;
-}
-
 body.woocommerce-checkout.bw-hide-billing-heading .woocommerce-billing-fields > h3 {
     display: none;
 }

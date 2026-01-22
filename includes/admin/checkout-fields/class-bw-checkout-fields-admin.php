@@ -122,8 +122,9 @@ class BW_Checkout_Fields_Admin {
         }
 
         $settings['section_headings'] = [
-            'hide_billing_details' => ! empty( $headings['hide_billing_details'] ) ? 1 : 0,
-            'address_heading_text' => isset( $headings['address_heading_text'] ) ? sanitize_text_field( $headings['address_heading_text'] ) : __( 'Delivery', 'bw' ),
+            'hide_billing_details'     => ! empty( $headings['hide_billing_details'] ) ? 1 : 0,
+            'hide_additional_info'     => ! empty( $headings['hide_additional_info'] ) ? 1 : 0,
+            'address_heading_text'     => isset( $headings['address_heading_text'] ) ? sanitize_text_field( $headings['address_heading_text'] ) : __( 'Delivery', 'bw' ),
         ];
 
         if ( empty( $settings['section_headings']['address_heading_text'] ) ) {
@@ -193,6 +194,11 @@ class BW_Checkout_Fields_Admin {
                 <label>
                     <input type="checkbox" id="bw_checkout_hide_billing_details" name="bw_checkout_section_headings[hide_billing_details]" value="1" <?php checked( $section_headings['hide_billing_details'], 1 ); ?> />
                     <?php esc_html_e( 'Remove the default WooCommerce “Billing details” heading.', 'bw' ); ?>
+                </label>
+                <label for="bw_checkout_hide_additional_info"><?php esc_html_e( 'Hide Additional information heading', 'bw' ); ?></label>
+                <label>
+                    <input type="checkbox" id="bw_checkout_hide_additional_info" name="bw_checkout_section_headings[hide_additional_info]" value="1" <?php checked( $section_headings['hide_additional_info'], 1 ); ?> />
+                    <?php esc_html_e( 'Remove the default “Additional information” heading above order notes.', 'bw' ); ?>
                 </label>
                 <label for="bw_checkout_address_heading_text"><?php esc_html_e( 'Address section heading label', 'bw' ); ?></label>
                 <div>
@@ -322,12 +328,14 @@ class BW_Checkout_Fields_Admin {
     private function get_section_heading_settings( $settings ) {
         $defaults = [
             'hide_billing_details' => 0,
+            'hide_additional_info' => 0,
             'address_heading_text' => __( 'Delivery', 'bw' ),
         ];
 
         if ( isset( $settings['section_headings'] ) && is_array( $settings['section_headings'] ) ) {
             $merged = array_merge( $defaults, $settings['section_headings'] );
             $merged['hide_billing_details'] = ! empty( $merged['hide_billing_details'] ) ? 1 : 0;
+            $merged['hide_additional_info'] = ! empty( $merged['hide_additional_info'] ) ? 1 : 0;
             $merged['address_heading_text'] = sanitize_text_field( $merged['address_heading_text'] );
 
             if ( empty( $merged['address_heading_text'] ) ) {

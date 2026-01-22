@@ -31,10 +31,9 @@ class BW_Checkout_Fields_Frontend {
 
     private function __construct() {
         add_filter( 'woocommerce_checkout_fields', [ $this, 'apply_checkout_fields' ], 20, 1 );
-        add_filter( 'woocommerce_checkout_fields', [ $this, 'inject_address_heading' ], 40, 1 );
-        add_filter( 'woocommerce_form_field', [ $this, 'render_heading_field' ], 10, 4 );
         add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_assets' ], 25 );
         add_filter( 'body_class', [ $this, 'add_body_class' ] );
+        add_action( 'woocommerce_before_order_notes', [ $this, 'maybe_remove_order_notes_heading' ], 1 );
     }
 
     /**
@@ -179,12 +178,14 @@ class BW_Checkout_Fields_Frontend {
         $settings = $this->get_settings();
         $defaults = [
             'hide_billing_details' => 0,
+            'hide_additional_info' => 0,
             'address_heading_text' => __( 'Delivery', 'bw' ),
         ];
 
         if ( isset( $settings['section_headings'] ) && is_array( $settings['section_headings'] ) ) {
             $merged = array_merge( $defaults, $settings['section_headings'] );
             $merged['hide_billing_details'] = ! empty( $merged['hide_billing_details'] ) ? 1 : 0;
+            $merged['hide_additional_info'] = ! empty( $merged['hide_additional_info'] ) ? 1 : 0;
             $merged['address_heading_text'] = sanitize_text_field( $merged['address_heading_text'] );
 
             if ( empty( $merged['address_heading_text'] ) ) {
@@ -198,113 +199,19 @@ class BW_Checkout_Fields_Frontend {
     }
 
     /**
-     * Inject address heading field after the email/newsletter area.
-     *
-     * @param array $fields Checkout fields.
-     *
-     * @return array
+     * Remove the Additional information heading when configured.
      */
-    public function inject_address_heading( $fields ) {
-        if ( ! $this->should_apply() ) {
-            return $fields;
-        }
-
-        if ( $this->is_block_checkout() ) {
-            return $fields;
-        }
-
-        if ( empty( $fields['billing'] ) ) {
-            return $fields;
-        }
-
-        if ( ! $this->has_address_fields( $fields['billing'] ) ) {
-            return $fields;
+    public function maybe_remove_order_notes_heading() {
+        if ( ! $this->should_apply() || $this->is_block_checkout() ) {
+            return;
         }
 
         $section_headings = $this->get_section_headings();
-        $label            = $section_headings['address_heading_text'];
-
-        if ( ! $this->cart_needs_shipping() && __( 'Delivery', 'bw' ) === $label ) {
-            $label = __( 'Address', 'bw' );
+        if ( empty( $section_headings['hide_additional_info'] ) ) {
+            return;
         }
 
-        $priority = isset( $fields['billing']['billing_email']['priority'] ) ? absint( $fields['billing']['billing_email']['priority'] ) + 7 : 117;
-        if ( isset( $fields['billing']['bw_subscribe_newsletter']['priority'] ) ) {
-            $priority = absint( $fields['billing']['bw_subscribe_newsletter']['priority'] ) + 2;
-        }
-
-        $fields['billing']['bw_checkout_address_heading'] = [
-            'type'     => 'bw_heading',
-            'label'    => $label,
-            'required' => false,
-            'priority' => $priority,
-            'class'    => [ 'form-row-wide', 'bw-checkout-address-heading' ],
-            'clear'    => true,
-        ];
-
-        return $fields;
-    }
-
-    /**
-     * Render the custom heading field type.
-     *
-     * @param string $field  Field HTML.
-     * @param string $key    Field key.
-     * @param array  $args   Field args.
-     * @param mixed  $value  Field value.
-     *
-     * @return string
-     */
-    public function render_heading_field( $field, $key, $args, $value ) {
-        if ( 'bw_heading' !== $args['type'] ) {
-            return $field;
-        }
-
-        $label = isset( $args['label'] ) ? $args['label'] : '';
-        if ( '' === $label ) {
-            return '';
-        }
-
-        return '<div class="bw-checkout-section-heading"><h2>' . esc_html( $label ) . '</h2></div>';
-    }
-
-    /**
-     * Check if billing address fields are available.
-     *
-     * @param array $billing_fields Billing fields.
-     *
-     * @return bool
-     */
-    private function has_address_fields( $billing_fields ) {
-        $keys = [
-            'billing_address_1',
-            'billing_address_2',
-            'billing_city',
-            'billing_postcode',
-            'billing_state',
-            'billing_country',
-        ];
-
-        foreach ( $keys as $key ) {
-            if ( isset( $billing_fields[ $key ] ) ) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Check if cart needs shipping.
-     *
-     * @return bool
-     */
-    private function cart_needs_shipping() {
-        if ( function_exists( 'WC' ) && WC()->cart ) {
-            return WC()->cart->needs_shipping();
-        }
-
-        return true;
+        remove_action( 'woocommerce_before_order_notes', 'woocommerce_order_notes_heading', 10 );
     }
 
     /**
