@@ -1277,9 +1277,16 @@ console.log('[BW Checkout] Script file loaded and executing');
     /**
      * Initialize mobile order summary accordion.
      * Creates toggle bar and wraps right column for mobile view.
+     * ONLY runs on mobile/tablet (≤1024px).
      */
     function initMobileOrderSummary() {
         console.log('[BW Checkout] Initializing mobile order summary accordion');
+
+        // Only run on mobile/tablet screens
+        if (window.innerWidth > 1024) {
+            console.log('[BW Checkout] Desktop view detected, skipping mobile accordion');
+            return;
+        }
 
         var rightColumn = document.querySelector('.bw-checkout-right');
         if (!rightColumn) {
@@ -1362,9 +1369,16 @@ console.log('[BW Checkout] Script file loaded and executing');
 
     /**
      * Add mobile total row before Place Order button.
+     * ONLY runs on mobile/tablet (≤1024px).
      */
     function addMobileTotalRow() {
         console.log('[BW Checkout] Adding mobile total row');
+
+        // Only run on mobile/tablet screens
+        if (window.innerWidth > 1024) {
+            console.log('[BW Checkout] Desktop view detected, skipping mobile total row');
+            return;
+        }
 
         // Check if already exists
         if (document.querySelector('.bw-mobile-total-row')) {
@@ -1426,6 +1440,57 @@ console.log('[BW Checkout] Script file loaded and executing');
         }
     }
 
+    /**
+     * Cleanup mobile accordion and restore desktop layout.
+     */
+    function cleanupMobileAccordion() {
+        var panel = document.getElementById('bw-order-summary-panel');
+        var toggleBar = document.querySelector('.bw-order-summary-toggle');
+        var mobileTotalRow = document.querySelector('.bw-mobile-total-row');
+
+        if (panel && toggleBar) {
+            var rightColumn = panel.querySelector('.bw-checkout-right');
+            var grid = document.querySelector('.bw-checkout-grid');
+
+            if (rightColumn && grid) {
+                // Move right column back to grid
+                grid.appendChild(rightColumn);
+            }
+
+            // Remove toggle bar and panel
+            toggleBar.remove();
+            panel.remove();
+        }
+
+        if (mobileTotalRow) {
+            mobileTotalRow.remove();
+        }
+
+        console.log('[BW Checkout] Mobile accordion cleaned up, restored desktop layout');
+    }
+
+    /**
+     * Handle window resize to switch between mobile and desktop layouts.
+     */
+    var resizeTimeout;
+    function handleResize() {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(function() {
+            var isMobile = window.innerWidth <= 1024;
+            var hasAccordion = document.querySelector('.bw-order-summary-toggle') !== null;
+
+            if (isMobile && !hasAccordion) {
+                console.log('[BW Checkout] Switched to mobile, initializing accordion');
+                initMobileOrderSummary();
+                addMobileTotalRow();
+                updateMobileTotals();
+            } else if (!isMobile && hasAccordion) {
+                console.log('[BW Checkout] Switched to desktop, cleaning up accordion');
+                cleanupMobileAccordion();
+            }
+        }, 250);
+    }
+
     console.log('[BW Checkout] Script reached end, about to initialize. DOM readyState:', document.readyState);
 
     // Initialize all functions when DOM is ready
@@ -1459,6 +1524,9 @@ console.log('[BW Checkout] Script file loaded and executing');
         addMobileTotalRow();
         updateMobileTotals();
     }
+
+    // Handle window resize for mobile/desktop layout switching
+    window.addEventListener('resize', handleResize);
 
     // Re-initialize floating labels and detect free order after WooCommerce AJAX update
     if (window.jQuery) {
