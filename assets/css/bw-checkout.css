@@ -668,14 +668,16 @@ body.woocommerce-checkout.bw-free-order #payment .wc-stripe-ece-button-separator
     display: none !important;
 }
 
-/* Hide payment section elements when order is free */
+/* Hide payment section elements when order is free (but keep Place order button) */
 body.woocommerce-checkout.bw-free-order .bw-payment-section-title,
 body.woocommerce-checkout.bw-free-order .bw-payment-section-subtitle,
 body.woocommerce-checkout.bw-free-order .ppcp-messages,
 body.woocommerce-checkout.bw-free-order div.ppcp-messages,
 body.woocommerce-checkout.bw-free-order #wc-stripe-express-checkout-button-separator,
-body.woocommerce-checkout.bw-free-order .woocommerce-checkout-payment,
-body.woocommerce-checkout.bw-free-order #payment {
+body.woocommerce-checkout.bw-free-order #payment .payment_methods,
+body.woocommerce-checkout.bw-free-order #payment ul.wc_payment_methods,
+body.woocommerce-checkout.bw-free-order #payment .woocommerce-checkout-payment > p,
+body.woocommerce-checkout.bw-free-order #payment .woocommerce-terms-and-conditions-wrapper {
     display: none !important;
 }
 
