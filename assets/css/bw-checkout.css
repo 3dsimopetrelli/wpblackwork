@@ -1751,6 +1751,12 @@ body.woocommerce-checkout .bw-field-wrapper .select2-container .select2-selectio
     margin-top: -3px !important;
 }
 
+/* Remove double border on focus */
+body.woocommerce-checkout .bw-field-wrapper .select2-container--focus,
+body.woocommerce-checkout .bw-field-wrapper .select2-container--open {
+    outline: none !important;
+}
+
 /* Select2 focus state - match input focus */
 body.woocommerce-checkout .bw-field-wrapper .select2-container--focus .select2-selection--single,
 body.woocommerce-checkout .bw-field-wrapper .select2-container--open .select2-selection--single {

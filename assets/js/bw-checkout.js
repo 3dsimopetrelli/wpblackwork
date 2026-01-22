@@ -964,6 +964,47 @@ console.log('[BW Checkout] Script file loaded and executing');
         console.log('[BW Checkout] Google Places Autocomplete initialized');
     }
 
+    /**
+     * Move "Delivery" section heading below newsletter checkbox.
+     * This creates a visual separation between Contact section and Delivery section.
+     */
+    function moveDeliveryHeading() {
+        var newsletterField = document.getElementById('bw_subscribe_newsletter_field');
+        if (!newsletterField) {
+            return;
+        }
+
+        // Try multiple selectors to find the Delivery heading
+        var deliveryHeading = document.querySelector('.checkout-delivery-title') ||
+                             document.querySelector('.bw-checkout-section-heading--delivery') ||
+                             document.querySelector('h2.checkout-section-title');
+
+        // If not found by class, try finding by text content
+        if (!deliveryHeading) {
+            var allHeadings = document.querySelectorAll('h2, h3, .checkout-section-title');
+            for (var i = 0; i < allHeadings.length; i++) {
+                if (allHeadings[i].textContent.trim().toLowerCase() === 'delivery') {
+                    deliveryHeading = allHeadings[i];
+                    break;
+                }
+            }
+        }
+
+        if (deliveryHeading) {
+            // Move the heading (and its wrapper if it has one) after the newsletter field
+            var headingToMove = deliveryHeading.closest('.bw-checkout-section-heading') || deliveryHeading;
+
+            // Insert after newsletter field
+            if (newsletterField.nextSibling) {
+                newsletterField.parentNode.insertBefore(headingToMove, newsletterField.nextSibling);
+            } else {
+                newsletterField.parentNode.appendChild(headingToMove);
+            }
+
+            console.log('[BW Checkout] Delivery heading moved below newsletter checkbox');
+        }
+    }
+
     console.log('[BW Checkout] Script reached end, about to initialize. DOM readyState:', document.readyState);
 
     // Initialize all functions when DOM is ready
@@ -976,6 +1017,7 @@ console.log('[BW Checkout] Script file loaded and executing');
             initFloatingLabel();
             initCheckoutFloatingLabels();
             initGooglePlacesAutocomplete();
+            moveDeliveryHeading();
         });
     } else {
         console.log('[BW Checkout] DOM already loaded, initializing immediately');
@@ -984,6 +1026,7 @@ console.log('[BW Checkout] Script file loaded and executing');
         initFloatingLabel();
         initCheckoutFloatingLabels();
         initGooglePlacesAutocomplete();
+        moveDeliveryHeading();
     }
 
     // Re-initialize floating labels after WooCommerce AJAX update
@@ -993,6 +1036,7 @@ console.log('[BW Checkout] Script file loaded and executing');
             setTimeout(function() {
                 initCheckoutFloatingLabels();
                 initGooglePlacesAutocomplete();
+                moveDeliveryHeading();
             }, 500);
         });
     }
