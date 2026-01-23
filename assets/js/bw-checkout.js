@@ -1352,20 +1352,49 @@ console.log('[BW Checkout] Script file loaded and executing');
         form.parentNode.insertBefore(panel, form);
         console.log('[BW Checkout] Panel inserted before form');
 
-        // CLONE right column content into panel (keep original in grid)
-        // Clone with deep copy to include all child elements
-        var rightColumnClone = rightColumn.cloneNode(true);
+        // CLONE only the order summary content (not the entire right column)
+        // This ensures we get the actual review order content without wrapper styling issues
+        var orderSummary = rightColumn.querySelector('.bw-order-summary');
+
+        if (!orderSummary) {
+            console.error('[BW Checkout] Order summary not found in right column, cannot create mobile accordion');
+            return;
+        }
+
+        // Clone the order summary with deep copy to include all child elements
+        var orderSummaryClone = orderSummary.cloneNode(true);
 
         // Force display styles on cloned content to ensure visibility
-        rightColumnClone.style.display = 'block';
-        rightColumnClone.style.visibility = 'visible';
-        rightColumnClone.style.opacity = '1';
+        orderSummaryClone.style.display = 'block';
+        orderSummaryClone.style.visibility = 'visible';
+        orderSummaryClone.style.opacity = '1';
 
-        // Append to panel
-        panel.appendChild(rightColumnClone);
+        // Also force visibility on review table
+        var reviewTable = orderSummaryClone.querySelector('.woocommerce-checkout-review-order-table');
+        if (reviewTable) {
+            reviewTable.style.display = 'table';
+            reviewTable.style.visibility = 'visible';
+            reviewTable.style.opacity = '1';
+        }
 
-        console.log('[BW Checkout] Right column CLONED into panel with:', rightColumnClone.childNodes.length, 'child nodes');
-        console.log('[BW Checkout] Clone innerHTML length:', rightColumnClone.innerHTML.length);
+        // Create a wrapper div with same styling as right column for the cloned content
+        var wrapper = document.createElement('div');
+        wrapper.className = 'bw-order-summary-panel__wrapper';
+        wrapper.style.padding = '0 20px 20px 20px';
+        wrapper.style.background = 'transparent';
+
+        // Append cloned order summary to wrapper
+        wrapper.appendChild(orderSummaryClone);
+
+        // Append wrapper to panel
+        panel.appendChild(wrapper);
+
+        console.log('[BW Checkout] Order summary CLONED into panel with:', orderSummaryClone.childNodes.length, 'child nodes');
+        console.log('[BW Checkout] Clone innerHTML length:', orderSummaryClone.innerHTML.length);
+        console.log('[BW Checkout] Review table found:', !!reviewTable);
+        if (reviewTable) {
+            console.log('[BW Checkout] Review table has', reviewTable.querySelectorAll('tbody tr').length, 'cart items');
+        }
         console.log('[BW Checkout] Original right column will be hidden via CSS on mobile');
 
         // Add toggle functionality
@@ -1496,12 +1525,35 @@ console.log('[BW Checkout] Script file loaded and executing');
             mobileTotalAmount.textContent = totalText;
         }
 
-        // Update cloned right column in panel with fresh content
-        var oldClone = panel.querySelector('.bw-checkout-right');
-        if (oldClone && rightColumn) {
-            var newClone = rightColumn.cloneNode(true);
-            panel.replaceChild(newClone, oldClone);
-            console.log('[BW Checkout] Refreshed cloned right column in panel');
+        // Update cloned order summary in panel with fresh content
+        var wrapper = panel.querySelector('.bw-order-summary-panel__wrapper');
+        if (wrapper && rightColumn) {
+            // Find the order summary in the original right column
+            var orderSummary = rightColumn.querySelector('.bw-order-summary');
+
+            if (orderSummary) {
+                // Clone the fresh order summary
+                var newClone = orderSummary.cloneNode(true);
+
+                // Force display styles
+                newClone.style.display = 'block';
+                newClone.style.visibility = 'visible';
+                newClone.style.opacity = '1';
+
+                var reviewTable = newClone.querySelector('.woocommerce-checkout-review-order-table');
+                if (reviewTable) {
+                    reviewTable.style.display = 'table';
+                    reviewTable.style.visibility = 'visible';
+                    reviewTable.style.opacity = '1';
+                }
+
+                // Replace the old clone with the new one
+                var oldClone = wrapper.querySelector('.bw-order-summary');
+                if (oldClone) {
+                    wrapper.replaceChild(newClone, oldClone);
+                    console.log('[BW Checkout] Refreshed cloned order summary in panel');
+                }
+            }
         }
     }
 

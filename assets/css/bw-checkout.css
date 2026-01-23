@@ -2075,7 +2075,26 @@ body.woocommerce-checkout .select2-results__option--selected {
         max-height: 5000px; /* Large enough to accommodate any content */
     }
 
-    /* Right column styling when inside panel */
+    /* Wrapper styling inside panel */
+    .bw-order-summary-panel__wrapper {
+        position: static !important;
+        width: 100% !important;
+        margin: 0 !important;
+        border: none !important;
+        padding: 0 20px 20px 20px !important;
+        background: transparent !important;
+    }
+
+    /* Order summary styling when inside panel */
+    .bw-order-summary-panel .bw-order-summary {
+        position: static !important;
+        width: 100% !important;
+        margin: 0 !important;
+        border: none !important;
+        background: transparent !important;
+    }
+
+    /* Keep old rule for backwards compatibility if any clones use old structure */
     .bw-order-summary-panel .bw-checkout-right {
         position: static !important;
         width: 100% !important;
