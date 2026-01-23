@@ -1335,24 +1335,22 @@ console.log('[BW Checkout] Script file loaded and executing');
         panel.className = 'bw-order-summary-panel';
         panel.setAttribute('aria-hidden', 'true');
 
-        // Find the wrapper (first element inside form that contains the grid)
-        var grid = rightColumn.parentElement;
-        var wrapper = grid.parentElement;
-
-        if (!wrapper) {
-            console.log('[BW Checkout] Wrapper not found');
+        // Find the form element
+        var form = document.querySelector('form.checkout');
+        if (!form) {
+            console.log('[BW Checkout] Checkout form not found');
             return;
         }
 
-        console.log('[BW Checkout] Wrapper found:', wrapper.className);
+        console.log('[BW Checkout] Form found');
 
-        // Insert toggle bar at the beginning of wrapper (before grid)
-        wrapper.insertBefore(toggleBar, wrapper.firstChild);
-        console.log('[BW Checkout] Toggle bar inserted into wrapper');
+        // Insert toggle bar BEFORE the form (as sibling, not child)
+        form.parentNode.insertBefore(toggleBar, form);
+        console.log('[BW Checkout] Toggle bar inserted before form');
 
-        // Insert panel after toggle bar
-        wrapper.insertBefore(panel, wrapper.children[1]);
-        console.log('[BW Checkout] Panel inserted into wrapper');
+        // Insert panel after toggle bar (still before form)
+        form.parentNode.insertBefore(panel, form);
+        console.log('[BW Checkout] Panel inserted before form');
 
         // CLONE right column into panel (keep original in grid)
         var rightColumnClone = rightColumn.cloneNode(true);
@@ -1384,7 +1382,27 @@ console.log('[BW Checkout] Script file loaded and executing');
             }
         });
 
-        console.log('[BW Checkout] Mobile order summary accordion initialized');
+        // Add mutation observer to detect if toggle gets removed from DOM
+        var observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                mutation.removedNodes.forEach(function(node) {
+                    if (node === toggleBar || node === panel) {
+                        console.log('[BW Checkout] Toggle/panel removed from DOM, reinserting');
+                        if (!document.body.contains(toggleBar)) {
+                            form.parentNode.insertBefore(toggleBar, form);
+                        }
+                        if (!document.body.contains(panel)) {
+                            form.parentNode.insertBefore(panel, form);
+                        }
+                    }
+                });
+            });
+        });
+
+        // Observe the form's parent for removed children
+        observer.observe(form.parentNode, { childList: true });
+
+        console.log('[BW Checkout] Mobile order summary accordion initialized with mutation observer');
     }
 
     /**
