@@ -1356,10 +1356,7 @@ console.log('[BW Checkout] Script file loaded and executing');
         var rightColumnClone = rightColumn.cloneNode(true);
         panel.appendChild(rightColumnClone);
         console.log('[BW Checkout] Right column CLONED into panel (original remains in grid)');
-
-        // Hide original right column AFTER clone is created and inserted
-        rightColumn.style.display = 'none';
-        console.log('[BW Checkout] Original right column hidden via JS');
+        console.log('[BW Checkout] Original right column will be hidden via CSS on mobile');
 
         // Add toggle functionality
         toggleBar.addEventListener('click', function() {
