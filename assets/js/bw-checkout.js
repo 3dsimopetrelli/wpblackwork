@@ -1294,10 +1294,21 @@ console.log('[BW Checkout] Script file loaded and executing');
             return;
         }
 
-        // Check if already initialized (prevent double initialization)
-        if (document.querySelector('.bw-order-summary-toggle')) {
-            console.log('[BW Checkout] Mobile accordion already exists, skipping initialization');
+        // Check if already initialized (skip if accordion exists and is in the DOM)
+        var existingToggle = document.querySelector('.bw-order-summary-toggle');
+        var existingPanel = document.querySelector('#bw-order-summary-panel');
+
+        if (existingToggle && existingPanel && document.body.contains(existingToggle)) {
+            console.log('[BW Checkout] Mobile accordion already exists in DOM, skipping');
             return;
+        }
+
+        // Clean up orphaned elements if they exist but not in DOM
+        if (existingToggle && !document.body.contains(existingToggle)) {
+            existingToggle.remove();
+        }
+        if (existingPanel && !document.body.contains(existingPanel)) {
+            existingPanel.remove();
         }
 
         // Create toggle bar
@@ -1324,22 +1335,24 @@ console.log('[BW Checkout] Script file loaded and executing');
         panel.className = 'bw-order-summary-panel';
         panel.setAttribute('aria-hidden', 'true');
 
-        // Find the form (not wrapper - form is parent that WooCommerce doesn't replace)
-        var form = document.querySelector('form.checkout');
-        if (!form) {
-            console.log('[BW Checkout] Checkout form not found');
+        // Find the wrapper (first element inside form that contains the grid)
+        var grid = rightColumn.parentElement;
+        var wrapper = grid.parentElement;
+
+        if (!wrapper) {
+            console.log('[BW Checkout] Wrapper not found');
             return;
         }
 
-        console.log('[BW Checkout] Form found:', form.className);
+        console.log('[BW Checkout] Wrapper found:', wrapper.className);
 
-        // Insert toggle bar BEFORE the form (so WooCommerce never touches it)
-        form.parentElement.insertBefore(toggleBar, form);
-        console.log('[BW Checkout] Toggle bar inserted before form');
+        // Insert toggle bar at the beginning of wrapper (before grid)
+        wrapper.insertBefore(toggleBar, wrapper.firstChild);
+        console.log('[BW Checkout] Toggle bar inserted into wrapper');
 
-        // Insert panel after toggle bar (still before form)
-        form.parentElement.insertBefore(panel, form);
-        console.log('[BW Checkout] Panel inserted before form');
+        // Insert panel after toggle bar
+        wrapper.insertBefore(panel, wrapper.children[1]);
+        console.log('[BW Checkout] Panel inserted into wrapper');
 
         // CLONE right column into panel (keep original in grid)
         var rightColumnClone = rightColumn.cloneNode(true);
@@ -1508,6 +1521,9 @@ console.log('[BW Checkout] Script file loaded and executing');
 
             // Detect free order immediately without delay
             detectFreeOrder();
+
+            // Re-initialize mobile accordion if it was removed (only creates if missing)
+            initMobileOrderSummary();
 
             // Re-add mobile total row (gets removed by WooCommerce form update)
             addMobileTotalRow();
