@@ -8,6 +8,7 @@
  * @version 1.0.0
  *
  * INDICE:
+ * 0. SHARED CART UI COMPONENT (reused by Checkout Order Summary)
  * 1. OVERLAY
  * 2. PANNELLO PRINCIPALE
  * 3. HEADER DEL PANNELLO
@@ -22,6 +23,325 @@
  * 12. UTILITIES
  * 13. RESPONSIVE
  */
+
+
+/* ========================================================================
+   0. SHARED CART UI COMPONENT
+   Base styles reused by both Cart Popup and Checkout Order Summary
+   These create a consistent Shopify-like cart interface
+   ======================================================================== */
+
+/**
+ * Base container class for cart-like interfaces
+ * Applied to both .bw-cart-popup-panel and .bw-order-summary-panel__wrapper
+ */
+.bw-cart-ui {
+    /* Base container - no specific styles needed, serves as namespace */
+}
+
+/* Product Items - Shared flexbox-based card layout */
+.bw-cart-ui .bw-ui-item {
+    display: flex;
+    align-items: stretch;
+    gap: 12px;
+    padding: 15px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    position: relative;
+}
+
+.bw-cart-ui .bw-ui-item-main {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 12px;
+    width: 100%;
+}
+
+/* Product image */
+.bw-cart-ui .bw-ui-item-image {
+    width: 60px;
+    height: 60px;
+    flex-shrink: 0;
+    border-radius: 6px;
+    overflow: visible;
+    border: 1px solid #e5e5e5;
+    position: relative;
+}
+
+.bw-cart-ui .bw-ui-item-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 6px;
+}
+
+/* Quantity badge on image */
+.bw-cart-ui .bw-ui-item-quantity-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: #000000;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 22px;
+    text-align: center;
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+}
+
+/* Product details */
+.bw-cart-ui .bw-ui-item-body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.bw-cart-ui .bw-ui-item-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+}
+
+.bw-cart-ui .bw-ui-item-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+}
+
+.bw-cart-ui .bw-ui-item-name {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.3;
+    color: #000000;
+}
+
+.bw-cart-ui .bw-ui-item-name a {
+    color: #000000;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.bw-cart-ui .bw-ui-item-name a:hover {
+    color: #007bff;
+}
+
+/* Price block (positioned on the right) */
+.bw-cart-ui .bw-ui-item-price-block {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+}
+
+.bw-cart-ui .bw-ui-item-price-current {
+    font-size: 14px;
+    font-weight: 600;
+    color: #000000;
+    white-space: nowrap;
+}
+
+.bw-cart-ui .bw-ui-item-price-original {
+    font-size: 12px;
+    color: #999999;
+    text-decoration: line-through;
+    white-space: nowrap;
+}
+
+/* Item controls (quantity + remove) */
+.bw-cart-ui .bw-ui-item-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 0;
+}
+
+/* Quantity stepper - pill-shaped controls */
+.bw-cart-ui .bw-ui-qty-stepper {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 10px;
+    border: 1px solid #000000;
+    border-radius: 8px;
+    background: transparent;
+    color: #000000;
+    min-width: 80px;
+    justify-content: center;
+    height: 25px;
+}
+
+.bw-cart-ui .bw-ui-qty-btn {
+    background: none;
+    border: none;
+    color: #000000;
+    font-size: 12px;
+    line-height: 1;
+    padding: 0;
+    cursor: pointer;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.bw-cart-ui .bw-ui-qty-btn:hover {
+    color: #000000;
+}
+
+.bw-cart-ui .bw-ui-qty-value {
+    font-size: 12px;
+    font-weight: 600;
+    min-width: 14px;
+    text-align: center;
+}
+
+/* Remove link */
+.bw-cart-ui .bw-ui-item-remove {
+    font-size: 11px;
+    color: #999999;
+    text-decoration: none;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    padding: 0;
+    font-family: inherit;
+}
+
+.bw-cart-ui .bw-ui-item-remove:hover {
+    color: #000000;
+    text-decoration: underline;
+}
+
+/* Sold individually label */
+.bw-cart-ui .bw-ui-sold-individually-label {
+    font-size: 11px;
+    color: #999999;
+    font-style: italic;
+}
+
+/* Promo Code Section - Shared */
+.bw-cart-ui .bw-ui-promo {
+    margin-bottom: 20px;
+}
+
+.bw-cart-ui .bw-ui-promo-trigger {
+    text-align: center;
+    font-size: 14px;
+    color: #666666;
+    margin: 0 0 10px 0;
+}
+
+.bw-cart-ui .bw-ui-promo-link {
+    color: #000000 !important;
+    text-decoration: underline;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.bw-cart-ui .bw-ui-promo-link:hover {
+    color: #28a745 !important;
+}
+
+.bw-cart-ui .bw-ui-promo-box {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding: 15px;
+    background-color: #ffffff;
+    border-radius: 8px;
+}
+
+.bw-cart-ui .bw-ui-promo-input {
+    flex: 1;
+    border: 1px solid #d5d5d5;
+    border-radius: 4px;
+    padding: 10px 12px;
+    font-size: 14px;
+    transition: border-color 0.2s ease;
+}
+
+.bw-cart-ui .bw-ui-promo-input:focus {
+    outline: none;
+    border-color: #007bff;
+}
+
+.bw-cart-ui .bw-ui-promo-apply {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color 0.2s ease;
+}
+
+.bw-cart-ui .bw-ui-promo-apply:hover {
+    background-color: #0056b3;
+}
+
+/* Totals Section - Shared */
+.bw-cart-ui .bw-ui-totals {
+    background-color: #ffffff;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.bw-cart-ui .bw-ui-totals > div {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    font-size: 14px;
+}
+
+.bw-cart-ui .bw-ui-totals > div:not(:last-child) {
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.bw-cart-ui .bw-ui-totals .label {
+    color: #666666;
+    font-weight: 500;
+}
+
+.bw-cart-ui .bw-ui-totals .value {
+    font-weight: 600;
+    color: #000000;
+}
+
+/* Total (grand total - larger and bold) */
+.bw-cart-ui .bw-ui-total-grand {
+    padding-top: 12px !important;
+}
+
+.bw-cart-ui .bw-ui-total-grand .label,
+.bw-cart-ui .bw-ui-total-grand .value {
+    font-size: 16px;
+    font-weight: 700;
+    color: #000000;
+}
+
+/* Discount row (green value) */
+.bw-cart-ui .bw-ui-total-discount .value {
+    color: #28a745;
+}
 
 
 /* ========================================================================
