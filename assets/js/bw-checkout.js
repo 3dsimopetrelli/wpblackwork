@@ -1252,25 +1252,11 @@ console.log('[BW Checkout] Script file loaded and executing');
             return;
         }
 
-        // Remove existing mobile accordion elements before recreating
-        var existingToggle = document.querySelector('.bw-order-summary-toggle');
-        var existingPanel = document.querySelector('#bw-order-summary-panel');
-
-        if (existingToggle) {
-            existingToggle.remove();
-            console.log('[BW Checkout] Removed existing toggle bar');
+        // Check if already initialized (prevent double initialization)
+        if (document.querySelector('.bw-order-summary-toggle')) {
+            console.log('[BW Checkout] Mobile accordion already exists, skipping initialization');
+            return;
         }
-
-        if (existingPanel) {
-            existingPanel.remove();
-            console.log('[BW Checkout] Removed existing panel');
-        }
-
-        // Restore original right column visibility (in case it was hidden)
-        var allRightColumns = document.querySelectorAll('.bw-checkout-right');
-        allRightColumns.forEach(function(col) {
-            col.style.display = '';
-        });
 
         // Create toggle bar
         var toggleBar = document.createElement('button');
@@ -1363,7 +1349,6 @@ console.log('[BW Checkout] Script file loaded and executing');
         var existingTotalRow = document.querySelector('.bw-mobile-total-row');
         if (existingTotalRow) {
             existingTotalRow.remove();
-            console.log('[BW Checkout] Removed existing mobile total row');
         }
 
         var placeOrderButton = document.querySelector('#place_order');
@@ -1395,10 +1380,22 @@ console.log('[BW Checkout] Script file loaded and executing');
 
     /**
      * Update total amounts in toggle bar and mobile total row.
+     * Also refreshes the cloned right column content.
      */
     function updateMobileTotals() {
-        // Find total amount from checkout
-        var totalElement = document.querySelector('.order-total .woocommerce-Price-amount, .order-total .amount');
+        // Only update if mobile accordion exists
+        var panel = document.getElementById('bw-order-summary-panel');
+        if (!panel) {
+            return;
+        }
+
+        // Find total amount from original right column in grid
+        var rightColumn = document.querySelector('.bw-checkout-grid .bw-checkout-right');
+        if (!rightColumn) {
+            return;
+        }
+
+        var totalElement = rightColumn.querySelector('.order-total .woocommerce-Price-amount, .order-total .amount');
         if (!totalElement) {
             console.log('[BW Checkout] Total element not found');
             return;
@@ -1417,6 +1414,14 @@ console.log('[BW Checkout] Script file loaded and executing');
         var mobileTotalAmount = document.querySelector('.bw-mobile-total-amount');
         if (mobileTotalAmount) {
             mobileTotalAmount.textContent = totalText;
+        }
+
+        // Update cloned right column in panel with fresh content
+        var oldClone = panel.querySelector('.bw-checkout-right');
+        if (oldClone && rightColumn) {
+            var newClone = rightColumn.cloneNode(true);
+            panel.replaceChild(newClone, oldClone);
+            console.log('[BW Checkout] Refreshed cloned right column in panel');
         }
     }
 
@@ -1457,14 +1462,15 @@ console.log('[BW Checkout] Script file loaded and executing');
     // Re-initialize floating labels and detect free order after WooCommerce AJAX update
     if (window.jQuery) {
         jQuery(document.body).on('updated_checkout', function() {
-            console.log('[BW Checkout] Checkout updated, re-initializing all components');
+            console.log('[BW Checkout] Checkout updated, refreshing components');
 
             // Detect free order immediately without delay
             detectFreeOrder();
 
-            // Re-initialize mobile accordion and totals immediately
-            initMobileOrderSummary();
+            // Re-add mobile total row (gets removed by WooCommerce form update)
             addMobileTotalRow();
+
+            // Update mobile totals and refresh cloned content immediately
             updateMobileTotals();
 
             // Also re-run after a small delay for elements that render slower
