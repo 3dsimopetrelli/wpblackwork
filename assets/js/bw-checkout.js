@@ -1352,11 +1352,19 @@ console.log('[BW Checkout] Script file loaded and executing');
         form.parentNode.insertBefore(panel, form);
         console.log('[BW Checkout] Panel inserted before form');
 
+        // Add test content to see if toggle works
+        var testContent = document.createElement('div');
+        testContent.style.padding = '20px';
+        testContent.style.backgroundColor = '#f0f0f0';
+        testContent.innerHTML = '<h3 style="margin: 0 0 10px 0;">TEST CONTENT</h3><p style="margin: 0;">This is test content to verify the toggle is working correctly. If you can see this text when clicking the toggle, the accordion mechanism is functioning properly.</p>';
+        panel.appendChild(testContent);
+
         // CLONE right column into panel (keep original in grid)
         var rightColumnClone = rightColumn.cloneNode(true);
         panel.appendChild(rightColumnClone);
         console.log('[BW Checkout] Right column CLONED into panel (original remains in grid)');
         console.log('[BW Checkout] Original right column will be hidden via CSS on mobile');
+        console.log('[BW Checkout] TEST CONTENT added to panel');
 
         // Add toggle functionality
         toggleBar.addEventListener('click', function() {
