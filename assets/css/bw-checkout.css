@@ -1920,6 +1920,11 @@ body.woocommerce-checkout .select2-results__option--selected {
 
 /* Mobile/Tablet breakpoint */
 @media (max-width: 900px) {
+    /* Hide original right column on mobile (cloned version shows in panel) */
+    .bw-checkout-grid > .bw-checkout-right {
+        display: none !important;
+    }
+
     /* Show toggle bar on mobile */
     .bw-order-summary-toggle {
         display: flex;
