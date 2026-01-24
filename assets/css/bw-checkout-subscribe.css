@@ -2,7 +2,7 @@
  * Checkout subscribe styles (Contact header + newsletter checkbox).
  */
 body.woocommerce-checkout .bw-checkout-section-heading {
-    margin: 12px 0 6px;
+    margin: 12px 0 10px;
 }
 
 body.woocommerce-checkout .bw-checkout-section-heading--contact {
