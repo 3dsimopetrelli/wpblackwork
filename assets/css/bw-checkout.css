@@ -2008,12 +2008,13 @@ body.woocommerce-checkout .bw-order-summary-toggle {
     }
 
     /* Show toggle bar on mobile - Shopify style */
-    .bw-order-summary-toggle {
+    body.woocommerce-checkout button.bw-order-summary-toggle {
         display: flex;
         align-items: center;
         justify-content: space-between;
         width: 100%;
         padding: 18px 20px;
+        margin: 0;
         background: #f7f7f7;
         border: none;
         border-top: 1px solid #d9d9d9;
@@ -2022,26 +2023,28 @@ body.woocommerce-checkout .bw-order-summary-toggle {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
         font-size: 14px;
         font-weight: 500;
+        line-height: 1.4;
         color: #323232;
         text-align: left;
-        transition: background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-        margin: 0 0 0 0;
+        text-decoration: none;
+        box-shadow: none;
+        transition: none;
     }
 
-    .bw-order-summary-toggle:hover {
-        background: #ececec;
+    body.woocommerce-checkout button.bw-order-summary-toggle:hover {
+        background: #f7f7f7;
     }
 
     /* Focus state (accessibility) */
-    body.woocommerce-checkout .bw-checkout-wrapper .bw-order-summary-toggle:focus {
+    body.woocommerce-checkout button.bw-order-summary-toggle:focus {
         outline: 2px solid #000000;
         outline-offset: -2px;
-        background-color: #f0f0f0;
+        background: #f7f7f7;
     }
 
     /* Active/pressed state */
-    body.woocommerce-checkout .bw-checkout-wrapper .bw-order-summary-toggle:active {
-        background-color: #ebebeb;
+    body.woocommerce-checkout button.bw-order-summary-toggle:active {
+        background: #f7f7f7;
     }
 
     /* Label container (text + icon) */
