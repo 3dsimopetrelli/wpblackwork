@@ -2007,29 +2007,38 @@ body.woocommerce-checkout .bw-order-summary-toggle {
         display: none;
     }
 
-    /* Show toggle bar on mobile - Shopify style */
-    .bw-order-summary-toggle {
+    /* ======================================================================
+       SHOPIFY-STYLE ORDER SUMMARY TOGGLE BAR
+       Clean, minimal design matching Shopify's checkout experience
+       ====================================================================== */
+
+    /* Toggle button base styles */
+    body.woocommerce-checkout .bw-checkout-wrapper .bw-order-summary-toggle {
         display: flex;
         align-items: center;
         justify-content: space-between;
         width: 100%;
         padding: 18px 20px;
-        background: #f7f7f7;
+        background-color: #f7f7f7;
         border: none;
         border-top: 1px solid #d9d9d9;
         border-bottom: 1px solid #d9d9d9;
         cursor: pointer;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         font-size: 14px;
         font-weight: 500;
-        color: #323232;
+        color: #333333;
         text-align: left;
-        transition: background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-        margin: 0 0 0 0;
+        transition: background-color 0.2s ease, border-color 0.2s ease;
+        margin: 0 0 1px 0;
+        box-shadow: none;
+        -webkit-appearance: none;
+        appearance: none;
     }
 
-    .bw-order-summary-toggle:hover {
-        background: #ececec;
+    /* Hover state */
+    body.woocommerce-checkout .bw-checkout-wrapper .bw-order-summary-toggle:hover {
+        background-color: #f0f0f0;
     }
 
     /* Focus state (accessibility) */
@@ -2049,19 +2058,24 @@ body.woocommerce-checkout .bw-order-summary-toggle {
         display: flex;
         align-items: center;
         gap: 10px;
+        flex: 1;
     }
 
-    .bw-order-summary-text {
+    /* "Order summary" text */
+    body.woocommerce-checkout .bw-checkout-wrapper .bw-order-summary-text {
         font-size: 14px;
         font-weight: 500;
-        color: #323232;
+        color: #333333;
+        line-height: 1.4;
     }
 
-    .bw-order-summary-icon {
+    /* Caret icon */
+    body.woocommerce-checkout .bw-checkout-wrapper .bw-order-summary-icon {
+        width: 10px;
+        height: 10px;
+        flex-shrink: 0;
         transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        color: #737373;
-        width: 12px;
-        height: 12px;
+        color: #757575;
     }
 
     /* Rotate caret when expanded */
@@ -2073,7 +2087,10 @@ body.woocommerce-checkout .bw-order-summary-toggle {
     body.woocommerce-checkout .bw-checkout-wrapper .bw-order-summary-total {
         font-size: 16px;
         font-weight: 600;
-        color: #323232;
+        color: #1a1a1a;
+        line-height: 1.4;
+        margin-left: auto;
+        flex-shrink: 0;
     }
 
     /* ======================================================================
@@ -2086,7 +2103,7 @@ body.woocommerce-checkout .bw-order-summary-toggle {
         max-height: 0;
         overflow: hidden;
         transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        background: #fafafa;
+        background-color: #ffffff;
     }
 
     /* Expanded state */
@@ -2094,14 +2111,21 @@ body.woocommerce-checkout .bw-order-summary-toggle {
         max-height: 5000px;
     }
 
-    /* Wrapper styling inside panel */
-    .bw-order-summary-panel__wrapper {
-        position: static !important;
-        width: 100% !important;
-        margin: 0 !important;
-        border: none !important;
-        padding: 0 !important;
-        background: #ffffff !important;
+    /* ======================================================================
+       PANEL CONTENT WRAPPER
+       Reset positioning and styling to prevent conflicts
+       ====================================================================== */
+
+    /* Wrapper inside panel - reset all positioning */
+    body.woocommerce-checkout .bw-checkout-wrapper .bw-order-summary-panel .bw-order-summary-panel__wrapper {
+        position: static;
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+        padding: 0 20px 20px 20px;
+        border: none;
+        background: transparent;
+        box-shadow: none;
     }
 
     /* Order summary container inside panel - reset positioning */
@@ -2159,16 +2183,11 @@ body.woocommerce-checkout .bw-order-summary-toggle {
         display: flex;
         align-items: stretch;
         gap: 12px;
-        padding: 16px;
+        padding: 15px;
         background-color: #ffffff;
-        border-radius: 0;
-        margin-bottom: 0;
-        border: none !important;
-        border-bottom: 1px solid #e5e5e5 !important;
-    }
-
-    .bw-order-summary-panel .bw-order-summary table.shop_table tbody tr.bw-review-item:last-child {
-        border-bottom: none !important;
+        border-radius: 8px;
+        margin-bottom: 12px;
+        border: none;
     }
 
     body.woocommerce-checkout .bw-checkout-wrapper .bw-order-summary-panel .bw-order-summary table.shop_table tbody tr.bw-review-item td {
