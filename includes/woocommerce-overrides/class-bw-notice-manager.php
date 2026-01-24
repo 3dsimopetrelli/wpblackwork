@@ -17,36 +17,43 @@ class BW_Notice_Manager
     public static function init()
     {
         // Suppress specific error messages
-        add_filter('woocommerce_add_error', [__CLASS__, 'suppress_errors']);
+        add_filter('woocommerce_add_error', [__CLASS__, 'suppress_message']);
+        // Suppress success/info messages
+        add_filter('woocommerce_add_notice', [__CLASS__, 'suppress_message'], 10, 2);
+        add_filter('woocommerce_add_success', [__CLASS__, 'suppress_message']); // Back compat
     }
 
     /**
-     * Filter error messages to suppress unwanted ones.
+     * Filter messages to suppress unwanted ones.
      *
-     * @param string $error The error message.
-     * @return string The filtered error message (empty string to suppress).
+     * @param string $message The message.
+     * @param string $notice_type Optional. The notice type (success, notice, error).
+     * @return string The filtered message (empty string to suppress).
      */
-    public static function suppress_errors($error)
+    public static function suppress_message($message, $notice_type = '')
     {
         // List of strings/patterns to suppress
-        // "You cannot add another..." corresponds to 'cannot_add_another' text in WC
         $suppressed_strings = [
             'cannot add another',
-            'non puoi aggiungere un altro', // Italian common translation
-            // Add more snippets here if needed
+            'non puoi aggiungere un altro',
+            'choose product options', // "Please choose product options"
+            'scegliere le opzioni del prodotto',
+            'has been added to your cart', // Hide "added to cart" success spam
+            'è stato aggiunto al tuo carrello',
+            'have been added to your cart',
+            'sono stati aggiunti al tuo carrello',
+            'added to cart',
         ];
 
-        // Clean the error string (strip tags to ensure matching)
-        $clean_error = strip_tags($error);
+        // Clean the message string
+        $clean_message = strip_tags($message);
 
         foreach ($suppressed_strings as $suppress) {
-            if (stripos($clean_error, $suppress) !== false) {
-                // Log suppression if debugging is needed
-                // error_log( 'BW Notice Manager suppressed: ' . $clean_error );
+            if (stripos($clean_message, $suppress) !== false) {
                 return '';
             }
         }
 
-        return $error;
+        return $message;
     }
 }
