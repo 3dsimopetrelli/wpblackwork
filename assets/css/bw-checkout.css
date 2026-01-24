@@ -2330,7 +2330,7 @@ body.woocommerce-checkout .select2-results__option--selected {
     }
 
     .bw-order-summary-panel .bw-order-summary .bw-review-item__remove-text:hover {
-        color: #000000;
+        color: #999999;
         text-decoration: underline;
     }
 
