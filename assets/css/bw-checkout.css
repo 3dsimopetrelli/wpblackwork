@@ -2019,6 +2019,7 @@ body.woocommerce-checkout .select2-results__option--selected {
         border: none;
         border-top: 1px solid #e0e0e0;
         border-bottom: 1px solid #e0e0e0;
+        border-radius: 0;
         cursor: pointer;
         font-family: inherit;
         font-size: 15px;
@@ -2037,8 +2038,7 @@ body.woocommerce-checkout .select2-results__option--selected {
 
     /* Focus state (accessibility) */
     body.woocommerce-checkout button.bw-order-summary-toggle:focus {
-        outline: 2px solid #000000;
-        outline-offset: -2px;
+        outline: none;
         background: #f7f7f7;
     }
 
