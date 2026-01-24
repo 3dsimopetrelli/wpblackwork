@@ -2424,7 +2424,7 @@ body.woocommerce-checkout .select2-results__option--selected {
     .bw-order-summary-panel .bw-order-summary .bw-review-coupon .woocommerce-form-coupon {
         display: flex !important;
         gap: 8px;
-        align-items: center;
+        align-items: stretch;
         padding: 15px;
         background-color: #ffffff;
         border-radius: 8px;
@@ -2435,39 +2435,70 @@ body.woocommerce-checkout .select2-results__option--selected {
     .bw-order-summary-panel .bw-order-summary .bw-review-coupon input[type="text"],
     .bw-order-summary-panel .bw-order-summary .bw-review-coupon #coupon_code {
         flex: 1;
-        border: 1px solid #d5d5d5 !important;
-        border-radius: 4px;
-        padding: 10px 12px !important;
-        font-size: 14px !important;
+        border: 1px solid #e0e0e0 !important;
+        border-radius: 8px !important;
+        padding: 14px 16px !important;
+        font-size: 15px !important;
         margin: 0 !important;
         height: auto !important;
+        background: #f8f8f8 !important;
+        color: #333 !important;
+        transition: all 0.2s;
+        box-sizing: border-box;
+    }
+
+    .bw-order-summary-panel .bw-order-summary .bw-review-coupon input[type="text"]::placeholder,
+    .bw-order-summary-panel .bw-order-summary .bw-review-coupon #coupon_code::placeholder {
+        color: #999;
+        font-weight: 400;
+        font-size: 15px;
+        opacity: 1;
     }
 
     .bw-order-summary-panel .bw-order-summary .bw-review-coupon input[type="text"]:focus,
     .bw-order-summary-panel .bw-order-summary .bw-review-coupon #coupon_code:focus {
         outline: none;
-        border-color: #007bff !important;
+        border: 2px solid #000 !important;
+        background: #fff !important;
+        padding: 13px 15px !important;
     }
 
     .bw-order-summary-panel .bw-order-summary .bw-review-coupon button,
     .bw-order-summary-panel .bw-order-summary .bw-review-coupon .button {
-        padding: 10px 20px !important;
-        background-color: #007bff !important;
-        color: #ffffff !important;
+        padding: 14px 20px !important;
+        background: #c0c0c0 !important;
+        color: #fff !important;
         border: none !important;
-        border-radius: 4px;
-        font-size: 14px !important;
-        font-weight: 600;
+        border-radius: 8px !important;
+        font-size: 15px !important;
+        font-weight: 400 !important;
         cursor: pointer;
         white-space: nowrap;
         margin: 0 !important;
         height: auto !important;
         line-height: 1.4 !important;
+        transition: background 0.2s;
+        min-width: 80px;
     }
 
     .bw-order-summary-panel .bw-order-summary .bw-review-coupon button:hover,
     .bw-order-summary-panel .bw-order-summary .bw-review-coupon .button:hover {
-        background-color: #0056b3 !important;
+        background: #a8a8a8 !important;
+    }
+
+    /* Active button when input has value */
+    .bw-order-summary-panel .bw-order-summary .bw-review-coupon .bw-coupon-input-wrapper.has-value ~ button,
+    .bw-order-summary-panel .bw-order-summary .bw-review-coupon .bw-coupon-input-wrapper.has-value ~ .button,
+    .bw-order-summary-panel .bw-order-summary .bw-review-coupon .bw-coupon-input-wrapper.has-value ~ .bw-apply-button {
+        background: #000 !important;
+        color: #fff !important;
+        font-weight: 700 !important;
+    }
+
+    .bw-order-summary-panel .bw-order-summary .bw-review-coupon .bw-coupon-input-wrapper.has-value ~ button:hover,
+    .bw-order-summary-panel .bw-order-summary .bw-review-coupon .bw-coupon-input-wrapper.has-value ~ .button:hover,
+    .bw-order-summary-panel .bw-order-summary .bw-review-coupon .bw-coupon-input-wrapper.has-value ~ .bw-apply-button:hover {
+        background: #333 !important;
     }
 
     /* Mobile total row before Place Order button */
