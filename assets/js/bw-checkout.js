@@ -1380,6 +1380,8 @@ console.log('[BW Checkout] Script file loaded and executing');
         // Create a wrapper div with cart UI base class for shared styling
         var wrapper = document.createElement('div');
         wrapper.className = 'bw-order-summary-panel__wrapper bw-cart-ui';
+        wrapper.style.padding = '0 20px 20px 20px';
+        wrapper.style.background = 'transparent';
 
         // Append cloned order summary to wrapper
         wrapper.appendChild(orderSummaryClone);
