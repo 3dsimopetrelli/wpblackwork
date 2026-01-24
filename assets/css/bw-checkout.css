@@ -1494,7 +1494,7 @@ body.bw-order-summary-open .bw-order-summary-caret {
     }
 
     body.woocommerce-checkout .bw-checkout-grid {
-        padding-top: 24px;
+        padding-top: 0;
     }
 
     body.woocommerce-checkout .bw-checkout-left {
