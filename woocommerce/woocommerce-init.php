@@ -257,7 +257,7 @@ function bw_mew_enqueue_checkout_assets() {
     wp_enqueue_style(
         'bw-checkout',
         BW_MEW_URL . 'assets/css/bw-checkout.css',
-        [ 'woocommerce-general', 'woocommerce-layout' ], // Load after WooCommerce styles
+        [],
         $version
     );
 
