@@ -188,12 +188,12 @@ body.woocommerce-checkout .woocommerce-message::before,
 }
 
 /* Text content */
-body.woocommerce-checkout .woocommerce-error > *:not(::before),
-body.woocommerce-checkout .woocommerce-notice > *:not(::before),
-body.woocommerce-checkout .woocommerce-message > *:not(::before),
-.woocommerce-checkout .woocommerce-error > *:not(::before),
-.woocommerce-checkout .woocommerce-notice > *:not(::before),
-.woocommerce-checkout .woocommerce-message > *:not(::before) {
+body.woocommerce-checkout .woocommerce-error>*:not(::before),
+body.woocommerce-checkout .woocommerce-notice>*:not(::before),
+body.woocommerce-checkout .woocommerce-message>*:not(::before),
+.woocommerce-checkout .woocommerce-error>*:not(::before),
+.woocommerce-checkout .woocommerce-notice>*:not(::before),
+.woocommerce-checkout .woocommerce-message>*:not(::before) {
     flex: 1 1 auto !important;
     margin: 0 !important;
 }
@@ -243,7 +243,7 @@ body.woocommerce-checkout .bw-checkout-grid {
 }
 
 /* Force all direct children of checkout grid to not break layout */
-.bw-checkout-grid > *:not(.bw-checkout-left):not(.bw-checkout-right):not(.bw-checkout-order-heading__wrap) {
+.bw-checkout-grid>*:not(.bw-checkout-left):not(.bw-checkout-right):not(.bw-checkout-order-heading__wrap) {
     display: none !important;
     position: absolute !important;
     left: -9999px !important;
@@ -407,7 +407,8 @@ body.woocommerce-checkout .bw-checkout-right #order_review_inner {
     background: transparent !important;
     margin: 0;
     width: 100%;
-    table-layout: fixed; /* CRITICAL: Forces browser to respect column widths from first row, preventing recalculation when content changes (coupons added/removed) */
+    table-layout: fixed;
+    /* CRITICAL: Forces browser to respect column widths from first row, preventing recalculation when content changes (coupons added/removed) */
 }
 
 .bw-checkout-right table.shop_table tbody,
@@ -521,7 +522,7 @@ body.woocommerce-checkout .bw-checkout-wrapper .bw-checkout-express__gateway-gri
     align-items: stretch;
 }
 
-body.woocommerce-checkout .bw-checkout-wrapper .bw-checkout-express__gateway-grid > * {
+body.woocommerce-checkout .bw-checkout-wrapper .bw-checkout-express__gateway-grid>* {
     width: 100%;
 }
 
@@ -532,7 +533,7 @@ body.woocommerce-checkout .bw-checkout-wrapper .bw-checkout-express__gateway-gri
     align-items: stretch;
 }
 
-body.woocommerce-checkout .bw-checkout-wrapper .bw-checkout-express__gateway-grid ul.payment_methods > li {
+body.woocommerce-checkout .bw-checkout-wrapper .bw-checkout-express__gateway-grid ul.payment_methods>li {
     margin: 0;
     width: 100%;
 }
@@ -676,7 +677,7 @@ body.woocommerce-checkout.bw-free-order div.ppcp-messages,
 body.woocommerce-checkout.bw-free-order #wc-stripe-express-checkout-button-separator,
 body.woocommerce-checkout.bw-free-order #payment .payment_methods,
 body.woocommerce-checkout.bw-free-order #payment ul.wc_payment_methods,
-body.woocommerce-checkout.bw-free-order #payment .woocommerce-checkout-payment > p,
+body.woocommerce-checkout.bw-free-order #payment .woocommerce-checkout-payment>p,
 body.woocommerce-checkout.bw-free-order #payment .woocommerce-terms-and-conditions-wrapper {
     display: none !important;
 }
@@ -697,7 +698,7 @@ body.woocommerce-checkout #wc-stripe-express-checkout-element {
     box-sizing: border-box !important;
 }
 
-body.woocommerce-checkout #wc-stripe-express-checkout-element > div {
+body.woocommerce-checkout #wc-stripe-express-checkout-element>div {
     width: 100% !important;
     max-width: 100% !important;
     min-width: 0 !important;
@@ -705,7 +706,7 @@ body.woocommerce-checkout #wc-stripe-express-checkout-element > div {
 }
 
 body.woocommerce-checkout #wc-stripe-express-checkout-element iframe,
-body.woocommerce-checkout #wc-stripe-express-checkout-element > div > div {
+body.woocommerce-checkout #wc-stripe-express-checkout-element>div>div {
     width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
@@ -931,8 +932,13 @@ body.woocommerce-checkout .bw-checkout-copyright {
 }
 
 @keyframes bw-spin {
-    0% { transform: translate(-50%, -50%) rotate(0deg); }
-    100% { transform: translate(-50%, -50%) rotate(360deg); }
+    0% {
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
+
+    100% {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
 }
 
 /* Review items - Scoped to checkout only */
@@ -967,7 +973,8 @@ body.woocommerce-checkout .bw-checkout-right .bw-review-item__media {
     border-radius: 12px;
     border: 1px solid #e1e1e1;
     position: relative;
-    box-sizing: border-box; /* Prevent 2px overflow from border (1px left + 1px right) */
+    box-sizing: border-box;
+    /* Prevent 2px overflow from border (1px left + 1px right) */
 }
 
 body.woocommerce-checkout .bw-checkout-right .bw-review-item__media a {
@@ -1160,11 +1167,63 @@ body.woocommerce-checkout .bw-checkout-right .bw-qty-badge {
     line-height: 1.4;
 }
 
-/* Coupon form - Style matching reference image */
+/* Coupon form - Clean layout */
 .bw-review-coupon {
     padding: 0 !important;
-    margin: 0 0 24px 0 !important;
-    border-bottom: none;
+    margin: 0 !important;
+    border: none !important;
+    width: 100% !important;
+}
+
+/* Force full width in mobile panel */
+.bw-order-summary-panel .bw-review-coupon,
+.bw-order-summary-panel .bw-review-coupon .checkout_coupon {
+    width: 100% !important;
+    max-width: 100% !important;
+    display: block !important;
+}
+
+/* CRITICAL: Collapse table cell borders in mobile view */
+.bw-order-summary-panel table.shop_table,
+.bw-order-summary-panel table.shop_table tbody,
+.bw-order-summary-panel table.shop_table tfoot,
+.bw-order-summary-panel table.shop_table tr,
+.bw-order-summary-panel table.shop_table td {
+    border: none !important;
+    border-top: none !important;
+    border-bottom: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+    width: 100% !important;
+    display: block !important;
+    /* Force block to break table layout */
+}
+
+/* Fix coupon container inside panel */
+.bw-order-summary-panel .bw-coupon-fields {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 10px !important;
+    width: 100% !important;
+    margin-top: 15px !important;
+    margin-bottom: 20px !important;
+}
+
+/* Ensure button and input proper sizing in mobile */
+.bw-order-summary-panel .bw-coupon-input-wrapper {
+    flex: 1 !important;
+    width: auto !important;
+}
+
+.bw-order-summary-panel .bw-apply-button {
+    width: auto !important;
+    flex: 0 0 auto !important;
+}
+
+/* Override any inherited padding from table */
+.bw-order-summary-panel td.bw-review-coupon {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
 }
 
 .bw-review-coupon .checkout_coupon {
@@ -1189,7 +1248,8 @@ body.woocommerce-checkout .bw-checkout-right .bw-qty-badge {
 
 /* Floating label wrapper */
 .bw-review-coupon .bw-coupon-input-wrapper {
-    flex: 0 0 calc(75% - 4px);
+    flex: 1 1 auto;
+    width: auto;
     position: relative;
 }
 
@@ -1210,7 +1270,8 @@ body.woocommerce-checkout .bw-checkout-right .bw-qty-badge {
     outline: none;
     border: 2px solid #000 !important;
     background: #fff;
-    padding: 19px 17px 9px 17px !important; /* Compensate for 2px border */
+    padding: 19px 17px 9px 17px !important;
+    /* Compensate for 2px border */
 }
 
 .bw-review-coupon input[type="text"]::placeholder {
@@ -1243,7 +1304,7 @@ body.woocommerce-checkout .bw-checkout-right .bw-qty-badge {
 }
 
 /* Floating label - active state (when focused or has value) */
-.bw-review-coupon input[type="text"]:focus ~ .bw-floating-label,
+.bw-review-coupon input[type="text"]:focus~.bw-floating-label,
 .bw-review-coupon .bw-coupon-input-wrapper.has-value .bw-floating-label {
     top: 8px;
     transform: translateY(0);
@@ -1277,13 +1338,13 @@ body.woocommerce-checkout .bw-checkout-right .bw-qty-badge {
 }
 
 /* Button - active state when input has value */
-.bw-review-coupon .bw-coupon-input-wrapper.has-value ~ .bw-apply-button {
+.bw-review-coupon .bw-coupon-input-wrapper.has-value~.bw-apply-button {
     background: #000 !important;
     color: #fff !important;
     font-weight: 700 !important;
 }
 
-.bw-review-coupon .bw-coupon-input-wrapper.has-value ~ .bw-apply-button:hover {
+.bw-review-coupon .bw-coupon-input-wrapper.has-value~.bw-apply-button:hover {
     background: #333 !important;
 }
 
@@ -1607,7 +1668,7 @@ body.bw-order-summary-open .bw-order-summary-caret {
         font-size: 14px;
     }
 
-    .bw-review-coupon input[type="text"]:focus ~ .bw-floating-label,
+    .bw-review-coupon input[type="text"]:focus~.bw-floating-label,
     .bw-review-coupon .bw-coupon-input-wrapper.has-value .bw-floating-label {
         top: 6px;
         font-size: 10px;
@@ -1748,7 +1809,8 @@ body.woocommerce-checkout .bw-field-wrapper input[type="number"]:focus,
 body.woocommerce-checkout .bw-field-wrapper textarea:focus {
     border: 2px solid #000000;
     outline: none;
-    padding: 15px 17px; /* Compensate for thicker border */
+    padding: 15px 17px;
+    /* Compensate for thicker border */
     box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
@@ -1769,7 +1831,7 @@ body.woocommerce-checkout .bw-field-wrapper .bw-floating-label {
 }
 
 /* Label active state (when input has focus or value) */
-body.woocommerce-checkout .bw-field-wrapper input:focus ~ .bw-floating-label,
+body.woocommerce-checkout .bw-field-wrapper input:focus~.bw-floating-label,
 body.woocommerce-checkout .bw-field-wrapper.has-value .bw-floating-label {
     top: -8px;
     transform: translateY(0);
@@ -1779,24 +1841,27 @@ body.woocommerce-checkout .bw-field-wrapper.has-value .bw-floating-label {
 }
 
 /* Hide original WooCommerce labels */
-body.woocommerce-checkout .bw-field-wrapper + label,
-body.woocommerce-checkout .form-row.bw-has-floating-label > label {
+body.woocommerce-checkout .bw-field-wrapper+label,
+body.woocommerce-checkout .form-row.bw-has-floating-label>label {
     display: none !important;
 }
 
 /* Mobile adjustments */
 @media (max-width: 768px) {
+
     body.woocommerce-checkout .bw-field-wrapper input[type="text"],
     body.woocommerce-checkout .bw-field-wrapper input[type="email"],
     body.woocommerce-checkout .bw-field-wrapper input[type="tel"],
     body.woocommerce-checkout .bw-field-wrapper input[type="number"],
     body.woocommerce-checkout .bw-field-wrapper textarea {
-        font-size: 16px; /* Prevent iOS zoom */
+        font-size: 16px;
+        /* Prevent iOS zoom */
         padding: 14px 16px;
     }
 
     body.woocommerce-checkout .bw-field-wrapper input:focus {
-        padding: 13px 15px; /* Compensate for 2px border */
+        padding: 13px 15px;
+        /* Compensate for 2px border */
     }
 
     body.woocommerce-checkout .bw-field-wrapper .bw-floating-label {
@@ -1804,7 +1869,7 @@ body.woocommerce-checkout .form-row.bw-has-floating-label > label {
         font-size: 16px;
     }
 
-    body.woocommerce-checkout .bw-field-wrapper input:focus ~ .bw-floating-label,
+    body.woocommerce-checkout .bw-field-wrapper input:focus~.bw-floating-label,
     body.woocommerce-checkout .bw-field-wrapper.has-value .bw-floating-label {
         top: -8px;
         font-size: 11px;
@@ -1818,8 +1883,10 @@ body.woocommerce-checkout .form-row.bw-has-floating-label > label {
 /* Base select styles */
 body.woocommerce-checkout .bw-field-wrapper select {
     width: 100%;
-    height: 51px; /* Match input height: 16px padding top + 16px padding bottom + 15px font-size + 4px line-height = ~51px */
-    padding: 16px 40px 16px 18px; /* Extra right padding for dropdown arrow */
+    height: 51px;
+    /* Match input height: 16px padding top + 16px padding bottom + 15px font-size + 4px line-height = ~51px */
+    padding: 16px 40px 16px 18px;
+    /* Extra right padding for dropdown arrow */
     border: 1px solid #d1d5db;
     border-radius: 8px;
     font-size: 15px;
@@ -1842,10 +1909,12 @@ body.woocommerce-checkout .bw-field-wrapper select {
 
 /* Select focus state */
 body.woocommerce-checkout .bw-field-wrapper select:focus {
-    height: 51px; /* Maintain same height with thicker border */
+    height: 51px;
+    /* Maintain same height with thicker border */
     border: 2px solid #000000;
     outline: none;
-    padding: 15px 39px 15px 17px; /* Compensate for thicker border */
+    padding: 15px 39px 15px 17px;
+    /* Compensate for thicker border */
     box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     background-image: url('data:image/svg+xml;charset=UTF-8,%3Csvg xmlns="http://www.w3.org/2000/svg" width="12" height="8" viewBox="0 0 12 8"%3E%3Cpath fill="%23000000" d="M1.41 0L6 4.59L10.59 0L12 1.41l-6 6l-6-6z"/%3E%3C/svg%3E');
 }
@@ -1859,7 +1928,8 @@ body.woocommerce-checkout .bw-field-wrapper select:not([value=""]) {
 /* Mobile select adjustments */
 @media (max-width: 768px) {
     body.woocommerce-checkout .bw-field-wrapper select {
-        font-size: 16px; /* Prevent iOS zoom */
+        font-size: 16px;
+        /* Prevent iOS zoom */
         padding: 14px 40px 14px 16px;
     }
 
@@ -1963,7 +2033,8 @@ body.woocommerce-checkout .select2-results__option--selected {
     }
 
     body.woocommerce-checkout .bw-field-wrapper .select2-container .select2-selection__rendered {
-        font-size: 16px !important; /* Prevent iOS zoom */
+        font-size: 16px !important;
+        /* Prevent iOS zoom */
     }
 
     body.woocommerce-checkout .bw-field-wrapper .select2-container--focus .select2-selection--single,
@@ -2002,8 +2073,9 @@ body.woocommerce-checkout .select2-results__option--selected {
 
 /* Mobile/Tablet breakpoint */
 @media (max-width: 900px) {
+
     /* Hide original right column on mobile (cloned version shows in panel) */
-    .bw-checkout-grid > .bw-checkout-right {
+    .bw-checkout-grid>.bw-checkout-right {
         display: none !important;
     }
 
@@ -2082,7 +2154,8 @@ body.woocommerce-checkout .select2-results__option--selected {
     }
 
     .bw-order-summary-panel[aria-hidden="false"] {
-        max-height: 5000px; /* Large enough to accommodate any content */
+        max-height: 5000px;
+        /* Large enough to accommodate any content */
     }
 
     /* Wrapper styling inside panel */
@@ -2091,7 +2164,7 @@ body.woocommerce-checkout .select2-results__option--selected {
         width: 100% !important;
         margin: 0 !important;
         border: none !important;
-        padding: 0 20px 20px 20px !important;
+        padding: 35px 20px 20px 20px !important;
         background: transparent !important;
     }
 
@@ -2127,12 +2200,13 @@ body.woocommerce-checkout .select2-results__option--selected {
     }
 
     .bw-order-summary-panel .bw-order-summary table.shop_table thead {
-        display: none !important; /* Hide table header */
+        display: none !important;
+        /* Hide table header */
     }
 
     .bw-order-summary-panel .bw-order-summary table.shop_table tbody {
         display: block !important;
-        margin-bottom: 0;
+        margin-bottom: 35px !important;
     }
 
     /* Convert product rows to flexbox cards (matching cart popup) */
@@ -2306,15 +2380,19 @@ body.woocommerce-checkout .select2-results__option--selected {
     }
 
     /* Sold individually badge */
-    .bw-order-summary-panel .bw-order-summary .bw-qty-badge {
+    /* Badge styling (Sold individually etc) */
+    .bw-order-summary-panel .bw-order-summary .bw-qty-badge,
+    .bw-order-summary .bw-qty-badge {
         font-size: 11px;
-        color: #999999;
-        font-style: italic;
-        padding: 4px 10px;
-        border: 1px solid #e5e5e5;
-        border-radius: 8px;
-        background: transparent;
+        color: #000000;
+        font-weight: 700;
+        font-style: normal;
+        padding: 1px 9px;
+        border: none;
+        border-radius: 50px;
+        background: #e4e4e4;
         display: inline-block;
+        text-transform: none;
     }
 
     /* Remove link styling (text "Remove") */
@@ -2345,18 +2423,18 @@ body.woocommerce-checkout .select2-results__option--selected {
         margin-top: 8px;
     }
 
-    .bw-order-summary-panel .bw-order-summary table.shop_table tfoot > tr {
+    .bw-order-summary-panel .bw-order-summary table.shop_table tfoot>tr {
         display: block !important;
     }
 
     /* Hide coupon row wrapper (keep only inner content) */
-    .bw-order-summary-panel .bw-order-summary table.shop_table tfoot > tr:first-child {
+    .bw-order-summary-panel .bw-order-summary table.shop_table tfoot>tr:first-child {
         background: transparent !important;
         padding: 0 !important;
         margin-bottom: 20px;
     }
 
-    .bw-order-summary-panel .bw-order-summary table.shop_table tfoot > tr:first-child td {
+    .bw-order-summary-panel .bw-order-summary table.shop_table tfoot>tr:first-child td {
         padding: 0 !important;
         background: transparent !important;
     }
@@ -2430,6 +2508,16 @@ body.woocommerce-checkout .select2-results__option--selected {
         border-radius: 8px;
         border: none !important;
         margin: 0 !important;
+        flex-wrap: wrap !important;
+        /* Allow error message to wrap */
+    }
+
+    .bw-order-summary-panel .bw-coupon-error,
+    .bw-order-summary-panel .woocommerce-error {
+        width: 100% !important;
+        flex: 0 0 100% !important;
+        order: 10 !important;
+        margin-top: 10px !important;
     }
 
     .bw-order-summary-panel .bw-order-summary .bw-review-coupon input[type="text"],
@@ -2487,17 +2575,17 @@ body.woocommerce-checkout .select2-results__option--selected {
     }
 
     /* Active button when input has value */
-    .bw-order-summary-panel .bw-order-summary .bw-review-coupon .bw-coupon-input-wrapper.has-value ~ button,
-    .bw-order-summary-panel .bw-order-summary .bw-review-coupon .bw-coupon-input-wrapper.has-value ~ .button,
-    .bw-order-summary-panel .bw-order-summary .bw-review-coupon .bw-coupon-input-wrapper.has-value ~ .bw-apply-button {
+    .bw-order-summary-panel .bw-order-summary .bw-review-coupon .bw-coupon-input-wrapper.has-value~button,
+    .bw-order-summary-panel .bw-order-summary .bw-review-coupon .bw-coupon-input-wrapper.has-value~.button,
+    .bw-order-summary-panel .bw-order-summary .bw-review-coupon .bw-coupon-input-wrapper.has-value~.bw-apply-button {
         background: #000 !important;
         color: #fff !important;
         font-weight: 700 !important;
     }
 
-    .bw-order-summary-panel .bw-order-summary .bw-review-coupon .bw-coupon-input-wrapper.has-value ~ button:hover,
-    .bw-order-summary-panel .bw-order-summary .bw-review-coupon .bw-coupon-input-wrapper.has-value ~ .button:hover,
-    .bw-order-summary-panel .bw-order-summary .bw-review-coupon .bw-coupon-input-wrapper.has-value ~ .bw-apply-button:hover {
+    .bw-order-summary-panel .bw-order-summary .bw-review-coupon .bw-coupon-input-wrapper.has-value~button:hover,
+    .bw-order-summary-panel .bw-order-summary .bw-review-coupon .bw-coupon-input-wrapper.has-value~.button:hover,
+    .bw-order-summary-panel .bw-order-summary .bw-review-coupon .bw-coupon-input-wrapper.has-value~.bw-apply-button:hover {
         background: #333 !important;
     }
 
@@ -2527,6 +2615,7 @@ body.woocommerce-checkout .select2-results__option--selected {
 
 /* Hide mobile elements on desktop */
 @media (min-width: 901px) {
+
     .bw-mobile-total-row,
     .bw-order-summary-toggle,
     .bw-order-summary-panel {
@@ -2537,4 +2626,217 @@ body.woocommerce-checkout .select2-results__option--selected {
     .bw-checkout-right {
         display: block !important;
     }
+}
+
+/* ============================================
+   COUPON PILLS (Matched to Cart Popup)
+   ============================================ */
+.bw-cart-coupon-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #000000;
+    color: #ffffff;
+    border-radius: 50px;
+    /* Fully rounded */
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+/* Coupon Row Layout - Force Flex for Alignment ONLY in Mobile Panel */
+/* Desktop should retain standard display: table-row behavior to avoid breaking column layout */
+.bw-order-summary-panel .bw-order-summary table.shop_table tr.cart-discount {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 10px 0 !important;
+    border-bottom: 1px solid #e5e5e5 !important;
+    background: transparent !important;
+    width: 100% !important;
+}
+
+.bw-order-summary-panel .bw-order-summary table.shop_table tr.cart-discount th {
+    display: block !important;
+    padding: 0 !important;
+    border: none !important;
+    width: auto !important;
+    font-size: 0 !important;
+    /* Hide default text label, show badge only */
+}
+
+.bw-order-summary-panel .bw-order-summary table.shop_table tr.cart-discount td {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 10px !important;
+    padding: 0 !important;
+    border: none !important;
+    width: auto !important;
+    text-align: right !important;
+}
+
+.bw-order-summary-panel .bw-order-summary table.shop_table tr.cart-discount td .woocommerce-Price-amount {
+    color: #2ecc71 !important;
+    /* Green */
+    font-weight: 600 !important;
+}
+
+.bw-order-summary-panel .bw-order-summary table.shop_table tr.cart-discount td .woocommerce-remove-coupon {
+    color: #999 !important;
+    font-size: 12px !important;
+    text-decoration: none !important;
+}
+
+.bw-cart-coupon-label .bw-cart-coupon-icon::before {
+    content: "🏷️";
+    display: inline-block;
+    font-size: 13px;
+    line-height: 1;
+}
+
+/* Ensure vertical alignment in table */
+.woocommerce-checkout-review-order-table .cart-discount th {
+    vertical-align: middle;
+}
+
+/* ============================================
+   COUPON & TOGGLE SPACING REFINEMENTS
+   ============================================ */
+
+/* 1. Spacing for Coupon Rows in Checkout Table */
+/* Adds breathing room top/bottom for the coupon rows to separate from Subtotal/Total */
+.woocommerce-checkout-review-order-table tr.cart-discount th,
+.woocommerce-checkout-review-order-table tr.cart-discount td {
+    padding-top: 15px !important;
+    padding-bottom: 15px !important;
+}
+
+/* 2. Coupon Pill Styling (Shared with Cart Popup) */
+/* Ensure pills are defined here if not loaded from popup css */
+.bw-cart-coupon-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #000000;
+    color: #ffffff;
+    border-radius: 12px;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+    /* Vertical margin for when they wrap or just general spacing */
+    margin: 2px 0;
+}
+
+.bw-cart-coupon-label .bw-cart-coupon-icon::before {
+    content: "🏷️";
+    display: inline-block;
+    font-size: 13px;
+    line-height: 1;
+}
+
+/* 3. Mobile Toggle Spacing */
+/* Separates the toggle bar from the product image/list above it on mobile */
+#bw-toggle-order-summary,
+.bw-toggle-order-summary {
+    margin-top: 20px !important;
+    margin-bottom: 20px !important;
+    /* Also spacing below if needed */
+    position: relative;
+    z-index: 5;
+}
+
+/* Ensure the toggle doesn't overlap the product image weirdly */
+.bw-order-summary-mobile-toggle {
+    margin-top: 20px !important;
+}
+
+
+/* ============================================
+   FINAL POLISH: MARGINS & BUTTONS
+   ============================================ */
+
+/* 1. Detach Coupon Pills from borders */
+/* Force height on the coupon row cells */
+.woocommerce-checkout-review-order-table tr.cart-discount td,
+.woocommerce-checkout-review-order-table tr.cart-discount th {
+    padding-top: 5px !important;
+    padding-bottom: 5px !important;
+}
+
+/* Add margin to the pill itself to be safe */
+.bw-cart-coupon-label {
+    margin: 4px 0 !important;
+}
+
+/* 2. Mobile Toggle Separation */
+/* Ensure massive space between product list and toggle */
+.bw-toggle-order-summary {
+    margin-top: 30px !important;
+    border-top: 1px solid #eee;
+    /* Optional visual separator */
+    padding-top: 20px;
+}
+
+/* 3. Apply Button State - Ensure black on mobile when input has value */
+/* Relies on JS adding 'has-value' to wrapper */
+.bw-coupon-input-wrapper.has-value~.bw-apply-button,
+.bw-coupon-input-wrapper.has-value~button,
+.bw-coupon-input-wrapper.has-value~.button {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    opacity: 1 !important;
+}
+
+/* Force hover state too */
+.bw-coupon-input-wrapper.has-value~.bw-apply-button:hover,
+.bw-coupon-input-wrapper.has-value~button:hover,
+.bw-coupon-input-wrapper.has-value~.button:hover {
+    background-color: #333333 !important;
+}
+
+/* 4. Total and Subtotal Row Styling - Match screenshot borders/spacing ONLY for Mobile Panel */
+.bw-order-summary-panel .bw-order-summary table.shop_table tr.order-total th,
+.bw-order-summary-panel .bw-order-summary table.shop_table tr.bw-total-row--grand-order-total th {
+    font-weight: 700 !important;
+    font-size: 18px !important;
+    /* Larger Total */
+    padding-top: 20px !important;
+    padding-bottom: 20px !important;
+    border-top: 2px solid #000 !important;
+    border-bottom: none !important;
+    text-align: left !important;
+    vertical-align: middle !important;
+}
+
+.bw-order-summary-panel .bw-order-summary table.shop_table tr.order-total td,
+.bw-order-summary-panel .bw-order-summary table.shop_table tr.bw-total-row--grand-order-total td {
+    text-align: right !important;
+    font-weight: 700 !important;
+    font-size: 18px !important;
+    /* Larger Total Price */
+    padding-top: 20px !important;
+    padding-bottom: 20px !important;
+    border-top: 2px solid #000 !important;
+    border-bottom: none !important;
+    vertical-align: middle !important;
+}
+
+/* Subtotal Row - Use specific class seen in inspector */
+.bw-order-summary-panel .bw-order-summary table.shop_table tr.cart-subtotal th,
+.bw-order-summary-panel .bw-order-summary table.shop_table tr.cart-subtotal td,
+.bw-order-summary-panel .bw-order-summary table.shop_table tr.bw-total-row--subtotal th,
+.bw-order-summary-panel .bw-order-summary table.shop_table tr.bw-total-row--subtotal td {
+    padding-top: 15px !important;
+    padding-bottom: 15px !important;
+    font-size: 14px !important;
+    /* Smaller Subtotal */
+    font-weight: 700 !important;
+    color: #000000 !important;
+    /* Ensure black */
+    border-bottom: 1px solid #e5e5e5 !important;
 }

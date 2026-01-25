@@ -7,7 +7,7 @@
  * @version 1.0.0
  */
 
-(function($) {
+(function ($) {
     'use strict';
 
     // Oggetto principale
@@ -45,7 +45,7 @@
         /**
          * Inizializzazione
          */
-        init: function() {
+        init: function () {
             // Inizializza elementi DOM
             this.$overlay = $('#bw-cart-popup-overlay');
             this.$panel = $('#bw-cart-popup-panel');
@@ -105,23 +105,23 @@
         /**
          * Bind eventi
          */
-        bindEvents: function() {
+        bindEvents: function () {
             const self = this;
 
             // Chiudi pannello al click sull'overlay
-            this.$overlay.on('click', function() {
+            this.$overlay.on('click', function () {
                 self.closePanel();
             });
 
             // Chiudi pannello al click sul pulsante X
             // Usa un listener delegato per coprire eventuali re-render del markup
-            $(document).on('click', '.bw-cart-popup-close', function(e) {
+            $(document).on('click', '.bw-cart-popup-close', function (e) {
                 e.preventDefault();
                 self.closePanel();
             });
 
             // Forza sempre il redirect verso la pagina checkout quando si clicca sul pulsante verde
-            $(document).on('click', '.bw-cart-popup-checkout', function(e) {
+            $(document).on('click', '.bw-cart-popup-checkout', function (e) {
                 const checkoutUrl = (bwCartPopupConfig && bwCartPopupConfig.checkoutUrl) || $(this).attr('href');
 
                 if (checkoutUrl) {
@@ -131,53 +131,61 @@
             });
 
             // Toggle promo code box
-            this.$promoTrigger.on('click', function(e) {
+            this.$promoTrigger.on('click', function (e) {
                 e.preventDefault();
                 self.togglePromoBox();
             });
 
             // Apertura da pulsante flottante
-            $(document).on('click', '.bw-cart-floating-trigger', function(e) {
+            $(document).on('click', '.bw-cart-floating-trigger', function (e) {
                 e.preventDefault();
                 self.openPanel();
             });
 
             // Applica coupon
-            $('.bw-promo-apply').on('click', function(e) {
+            $('.bw-promo-apply').on('click', function (e) {
                 e.preventDefault();
                 self.applyCoupon();
             });
 
             // Gestione visibilità trigger flottante su scroll
             if (bwCartPopupConfig.settings.show_floating_trigger) {
-                $(window).on('scroll.bwCartPopup', function() {
+                $(window).on('scroll.bwCartPopup', function () {
                     self.onFloatingScroll();
                 });
             }
 
             // Enter per applicare coupon
-            $('.bw-promo-input').on('keypress', function(e) {
+            $('.bw-promo-input').on('keypress', function (e) {
                 if (e.which === 13) {
                     e.preventDefault();
                     self.applyCoupon();
                 }
             });
 
-            // Rimuovi coupon
-            this.$promoRemoveLink.on('click', function(e) {
+            // Rimuovi coupon (Legacy link)
+            this.$promoRemoveLink.on('click', function (e) {
                 e.preventDefault();
                 self.removeCoupon();
             });
 
+            // Rimuovi coupon (Nuovo pulsante dinamico per riga)
+            // Delegato al container dei totali o document
+            $('.bw-cart-popup-totals').on('click', '.bw-remove-coupon-btn-dynamic', function (e) {
+                e.preventDefault();
+                var code = $(this).data('code');
+                self.removeCoupon(code);
+            });
+
             // Rimuovi prodotto dal carrello
-            this.$itemsContainer.on('click', '.bw-cart-item-remove', function(e) {
+            this.$itemsContainer.on('click', '.bw-cart-item-remove', function (e) {
                 e.preventDefault();
                 const cartItemKey = $(this).data('cart-item-key');
                 self.removeItem(cartItemKey);
             });
 
             // Controlli quantità (+/-)
-            this.$itemsContainer.on('click', '.bw-qty-btn', function(e) {
+            this.$itemsContainer.on('click', '.bw-qty-btn', function (e) {
                 e.preventDefault();
                 const $btn = $(this);
                 const $stepper = $btn.closest('.bw-qty-stepper');
@@ -196,7 +204,7 @@
             });
 
             // Chiudi con ESC
-            $(document).on('keyup', function(e) {
+            $(document).on('keyup', function (e) {
                 if (e.key === 'Escape' && self.isOpen) {
                     self.closePanel();
                 }
@@ -206,7 +214,7 @@
         /**
          * Recupera l'URL di checkout seguendo le API WooCommerce e i fallback HTML
          */
-        getCheckoutUrl: function() {
+        getCheckoutUrl: function () {
             const config = (typeof bwCartPopupConfig !== 'undefined') ? bwCartPopupConfig : {};
             const $button = $('.bw-cart-popup-checkout');
 
@@ -234,7 +242,7 @@
          * Aggiorna l'anchor del checkout con l'URL corretto da WooCommerce
          * FORZA SEMPRE l'uso di wc_get_checkout_url() ignorando qualsiasi valore presente nell'HTML
          */
-        ensureCheckoutLink: function() {
+        ensureCheckoutLink: function () {
             // Usa SEMPRE il checkout URL da WooCommerce passato dal PHP
             const checkoutUrl = (bwCartPopupConfig && bwCartPopupConfig.checkoutUrl) || '/checkout/';
 
@@ -251,12 +259,12 @@
          * Questo listener viene sempre registrato per garantire che il cart popup
          * si apra quando un prodotto viene aggiunto al carrello
          */
-        listenToAddedToCart: function() {
+        listenToAddedToCart: function () {
             const self = this;
 
             // Intercetta l'evento WooCommerce 'added_to_cart' (dopo aggiunta al carrello)
             // Questo evento viene triggerato da WooCommerce per tutti i tipi di Add to Cart
-            $(document.body).on('added_to_cart', function(event, fragments, cart_hash, $button) {
+            $(document.body).on('added_to_cart', function (event, fragments, cart_hash, $button) {
                 // Controlla se il pulsante che ha triggerato l'evento ha data-open-cart-popup="1"
                 // (significa che è un widget con l'opzione attiva)
                 const isWidgetWithPopup = $button && $button.attr('data-open-cart-popup') === '1';
@@ -298,12 +306,12 @@
          * Intercetta i pulsanti "Add to Cart" standard di WooCommerce
          * Questa funzione viene chiamata solo se l'opzione "slide_animation" è attiva
          */
-        interceptAddToCart: function() {
+        interceptAddToCart: function () {
             const self = this;
 
             // 1. Previeni il redirect per pulsanti non-AJAX e convertili in chiamate AJAX
             // Alcuni temi o configurazioni potrebbero avere pulsanti "Add to Cart" come link diretti
-            $(document).on('click', 'a.add_to_cart_button', function(e) {
+            $(document).on('click', 'a.add_to_cart_button', function (e) {
                 const $btn = $(this);
 
                 // Se il pulsante ha un href che contiene 'add-to-cart' e non è AJAX
@@ -325,7 +333,7 @@
 
             // 2. Intercetta il link "View Cart" che appare dopo l'aggiunta di un prodotto
             // WooCommerce aggiunge dinamicamente questo link accanto al pulsante "Add to Cart"
-            $(document).on('click', '.added_to_cart', function(e) {
+            $(document).on('click', '.added_to_cart', function (e) {
                 e.preventDefault();
                 self.openPanel();
                 console.log('View Cart link clicked, opening popup instead');
@@ -338,11 +346,11 @@
         /**
          * Intercetta i pulsanti "Add to Cart" dei widget con data attribute
          */
-        interceptWidgetAddToCart: function() {
+        interceptWidgetAddToCart: function () {
             const self = this;
 
             // Intercetta i pulsanti Add to Cart dei widget che hanno l'opzione cart popup attiva
-            $(document).on('click', '.bw-btn-addtocart[data-open-cart-popup="1"]', function(e) {
+            $(document).on('click', '.bw-btn-addtocart[data-open-cart-popup="1"]', function (e) {
                 const $btn = $(this);
                 const href = $btn.attr('href');
 
@@ -389,7 +397,7 @@
          * @param {object} $button - jQuery button element
          * @param {object} extraParams - Parametri extra (variation_id, attributi, ecc.)
          */
-        addToCartAjax: function(productId, quantity, $button, extraParams) {
+        addToCartAjax: function (productId, quantity, $button, extraParams) {
             const self = this;
 
             // Disabilita il pulsante durante il caricamento
@@ -412,7 +420,7 @@
                 url: bwCartPopupConfig.ajaxUrl,
                 type: 'POST',
                 data: ajaxData,
-                success: function(response) {
+                success: function (response) {
                     const payload = response && response.data ? response.data : response;
 
                     if (payload && payload.status === 'already_in_cart') {
@@ -437,7 +445,7 @@
                     $button.removeClass('loading');
                     self.showErrorModal('Unable to add product to cart. Please try again.');
                 },
-                error: function(xhr, status, errorThrown) {
+                error: function (xhr, status, errorThrown) {
                     console.error('Error adding product to cart:', status, errorThrown);
                     $button.removeClass('loading');
 
@@ -451,7 +459,7 @@
         /**
          * Apri il pannello
          */
-        openPanel: function() {
+        openPanel: function () {
             // CORREZIONE: Non aprire il cart popup in Elementor editor o preview
             // Questo previene che il popup si apra quando si clicca Publish/Update
             // Controlliamo sia elementorFrontend che le classi body
@@ -493,7 +501,7 @@
         /**
          * Chiudi il pannello
          */
-        closePanel: function() {
+        closePanel: function () {
             if (!this.isOpen) {
                 return;
             }
@@ -510,13 +518,18 @@
             // Nascondi promo box se aperto
             this.$promoBox.fadeOut(200);
 
+            // Se siamo nella pagina checkout, aggiorna i totali
+            if ($('body').hasClass('woocommerce-checkout')) {
+                $(document.body).trigger('update_checkout');
+            }
+
             console.log('Cart popup closed');
         },
 
         /**
          * Mostra il loading state
          */
-        showLoading: function() {
+        showLoading: function () {
             this.$loadingState.fadeIn(150);
             this.$emptyState.hide();
             this.$fullContent.hide();
@@ -526,7 +539,7 @@
         /**
          * Nascondi il loading state
          */
-        hideLoading: function() {
+        hideLoading: function () {
             this.$loadingState.fadeOut(150);
         },
 
@@ -537,7 +550,7 @@
          * @param {boolean} options.skipLoading - Se true, non mostra il loading state
          * @returns {Promise}
          */
-        fetchCartData: function(options) {
+        fetchCartData: function (options) {
             const self = this;
             const opts = Object.assign({ render: true, skipLoading: false }, options);
 
@@ -553,7 +566,7 @@
                     nonce: bwCartPopupConfig.nonce
                 }
             })
-                .done(function(response) {
+                .done(function (response) {
                     if (response && response.success) {
                         self.cartItems = (response.data && response.data.items) ? response.data.items : [];
 
@@ -566,15 +579,15 @@
                         console.error('Failed to load cart contents');
                     }
                 })
-                .fail(function() {
+                .fail(function () {
                     console.error('AJAX error loading cart contents');
                 })
-                .always(function() {
+                .always(function () {
                     self.isLoading = false;
 
                     if (!opts.skipLoading) {
                         // Nascondi loading con un leggero delay per evitare flickering
-                        setTimeout(function() {
+                        setTimeout(function () {
                             self.hideLoading();
                         }, opts.render ? 200 : 0);
                     }
@@ -585,7 +598,7 @@
          * Carica il contenuto del carrello
          * @param {boolean} skipLoading - Se true, non mostra il loading state
          */
-        loadCartContents: function(skipLoading) {
+        loadCartContents: function (skipLoading) {
             return this.fetchCartData({ render: true, skipLoading: !!skipLoading });
         },
 
@@ -594,7 +607,7 @@
          * @param {boolean} forceRefresh - Se true, forza una chiamata AJAX anche se è presente una cache
          * @returns {Promise<Array>}
          */
-        ensureCartItems: function(forceRefresh) {
+        ensureCartItems: function (forceRefresh) {
             const self = this;
             const shouldRefresh = forceRefresh || !Array.isArray(self.cartItems);
 
@@ -603,9 +616,9 @@
             }
 
             return self.fetchCartData({ render: false, skipLoading: true })
-                .then(function() {
+                .then(function () {
                     return self.cartItems || [];
-                }, function() {
+                }, function () {
                     return [];
                 });
         },
@@ -616,7 +629,7 @@
          * @param {number} variationId
          * @returns {boolean}
          */
-        hasCartVariation: function(productId, variationId) {
+        hasCartVariation: function (productId, variationId) {
             if (!Array.isArray(this.cartItems)) {
                 return false;
             }
@@ -624,7 +637,7 @@
             const targetProduct = parseInt(productId, 10);
             const targetVariation = parseInt(variationId, 10);
 
-            return this.cartItems.some(function(item) {
+            return this.cartItems.some(function (item) {
                 const itemProductId = parseInt(item.product_id, 10);
                 const itemVariationId = parseInt(item.variation_id || 0, 10);
 
@@ -635,7 +648,7 @@
         /**
          * Renderizza i prodotti nel carrello
          */
-        renderCartItems: function(data) {
+        renderCartItems: function (data) {
             this.cartItems = (data && Array.isArray(data.items)) ? data.items : [];
 
             // Se il carrello è vuoto, mostra il layout vuoto
@@ -651,7 +664,7 @@
             let html = '';
             let totalQuantity = 0;
 
-            data.items.forEach(function(item) {
+            data.items.forEach(function (item) {
                 const parsedQuantity = parseInt(item.quantity, 10);
                 const quantity = Number.isNaN(parsedQuantity) || parsedQuantity < 1 ? 1 : parsedQuantity;
                 totalQuantity += quantity;
@@ -708,7 +721,7 @@
         /**
          * Mostra lo stato carrello vuoto
          */
-        showEmptyState: function() {
+        showEmptyState: function () {
             this.cartItems = [];
 
             // Nascondi contenuto pieno e footer
@@ -725,7 +738,7 @@
         /**
          * Mostra lo stato carrello pieno
          */
-        showFullState: function() {
+        showFullState: function () {
             // Nascondi stato vuoto
             this.$emptyState.hide();
 
@@ -740,30 +753,62 @@
         /**
          * Aggiorna i totali
          */
-        updateTotals: function(data) {
+        updateTotals: function (data) {
+            const self = this;
             // Subtotal
             $('.bw-cart-popup-subtotal .value').html(data.subtotal).attr('data-price', data.subtotal_raw);
 
-            // Discount
-            if (data.discount_raw > 0) {
-                $('.bw-cart-popup-discount').show();
-                $('.bw-cart-popup-discount .value').html('-' + data.discount).attr('data-discount', data.discount_raw);
-            } else {
-                $('.bw-cart-popup-discount').hide();
+            // Hide default discount row structure as we will rebuild it dynamically
+            var $discountContainer = $('.bw-cart-popup-discount');
+            $discountContainer.find('.label, .value, .bw-cart-coupon-label').hide();
+
+            // Remove previously added dynamic rows
+            $discountContainer.find('.bw-cart-coupon-dynamic-row').remove();
+
+            // Coupons Data (now array of objects {code, amount})
+            const coupons = Array.isArray(data.coupons) ? data.coupons : [];
+
+            // Hide generic remove link in promo section
+            if (this.$promoRemoveWrapper) {
+                this.$promoRemoveWrapper.hide();
             }
 
-            // Coupon label
-            const coupons = Array.isArray(data.coupons) ? data.coupons : [];
-            const couponCode = coupons.length ? coupons[0] : '';
-            const $couponLabel = $('.bw-cart-coupon-label').first();
-            if ($couponLabel.length) {
-                if (couponCode) {
-                    $couponLabel.find('.bw-cart-coupon-code').text(couponCode);
-                    $couponLabel.show();
-                } else {
-                    $couponLabel.hide();
-                    $couponLabel.find('.bw-cart-coupon-code').text('');
-                }
+            if (coupons.length > 0) {
+                $discountContainer.show();
+                $discountContainer.css({
+                    'display': 'flex',
+                    'flex-direction': 'column',
+                    'gap': '8px'
+                });
+
+                coupons.forEach(function (coupon) {
+                    // Handle both object (new) and string (legacy/fallback) formats
+                    var code = typeof coupon === 'object' ? coupon.code : coupon;
+                    var amount = typeof coupon === 'object' ? coupon.amount : '';
+
+                    // If amount is empty (legacy), we might not show it per row, but user asked for it. 
+                    // Backend now ensures amount is sent.
+
+                    var rowHtml = `
+                     <div class="bw-cart-coupon-dynamic-row" style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span class="label" style="display:inline; margin:0; font-weight:600;">Discount</span>
+                            <span class="bw-cart-coupon-badge" style="background:#f0f0f1; color:#333; padding:2px 8px; border-radius:4px; font-size:12px; display:flex; align-items:center; gap:4px;">
+                                <span class="bw-cart-coupon-icon" style="display:inline-block; width:12px; height:12px; background-image:url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22currentColor%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><path d=%22M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z%22></path><line x1=%227%22 y1=%227%22 x2=%227.01%22 y2=%227%22></line></svg>'); background-size:contain; background-repeat:no-repeat; opacity:0.7;"></span>
+                                <b>${code}</b>
+                            </span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <span class="value" style="color:var(--e-global-color-accent, #4CAF50); font-weight:bold; display:block;">${amount}</span>
+                            <a href="#" class="bw-remove-coupon-btn-dynamic" data-code="${code}" style="font-size:11px; color:#999; text-decoration:none; text-transform:uppercase;">[Remove]</a>
+                        </div>
+                     </div>`;
+
+                    $discountContainer.append(rowHtml);
+                });
+
+            } else {
+                $discountContainer.hide();
             }
 
             // VAT
@@ -777,7 +822,7 @@
         /**
          * Toggle promo box
          */
-        togglePromoBox: function() {
+        togglePromoBox: function () {
             if (this.$promoBox.is(':visible')) {
                 this.$promoBox.fadeOut(200);
             } else {
@@ -789,7 +834,7 @@
         /**
          * Applica coupon
          */
-        applyCoupon: function() {
+        applyCoupon: function () {
             const self = this;
             const couponCode = $('.bw-promo-input').val().trim();
 
@@ -810,7 +855,7 @@
                     nonce: bwCartPopupConfig.nonce,
                     coupon_code: couponCode
                 },
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         self.showPromoMessage(response.data.message, 'success');
                         self.updateTotals(response.data);
@@ -822,7 +867,7 @@
 
                     $applyBtn.prop('disabled', false).text('Apply');
                 },
-                error: function() {
+                error: function () {
                     self.showPromoMessage('Error applying coupon', 'error');
                     $applyBtn.prop('disabled', false).text('Apply');
                 }
@@ -832,7 +877,7 @@
         /**
          * Aggiorna il display del coupon (mostra/nascondi link "Remove coupon")
          */
-        updateCouponDisplay: function(appliedCoupons) {
+        updateCouponDisplay: function (appliedCoupons) {
             this.appliedCoupons = appliedCoupons || [];
 
             if (this.appliedCoupons.length > 0) {
@@ -846,17 +891,24 @@
 
         /**
          * Rimuovi coupon
+         * @param {string} specificCode - Codice opzionale da rimuovere
          */
-        removeCoupon: function() {
+        removeCoupon: function (specificCode) {
             const self = this;
 
+            var couponCode = specificCode;
+
+            if (!couponCode) {
+                if (this.appliedCoupons && this.appliedCoupons.length > 0) {
+                    couponCode = this.appliedCoupons[0];
+                }
+            }
+
             // Ottieni il primo coupon applicato (in questo caso assumiamo ci sia solo un coupon)
-            if (!this.appliedCoupons || this.appliedCoupons.length === 0) {
+            if (!couponCode) {
                 this.showPromoMessage('No coupon to remove', 'error');
                 return;
             }
-
-            const couponCode = this.appliedCoupons[0];
 
             $.ajax({
                 url: bwCartPopupConfig.ajaxUrl,
@@ -866,7 +918,7 @@
                     nonce: bwCartPopupConfig.nonce,
                     coupon_code: couponCode
                 },
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         self.showPromoMessage(response.data.message, 'success');
                         self.updateTotals(response.data);
@@ -875,7 +927,7 @@
                         self.showPromoMessage(response.data.message, 'error');
                     }
                 },
-                error: function() {
+                error: function () {
                     self.showPromoMessage('Error removing coupon', 'error');
                 }
             });
@@ -884,7 +936,7 @@
         /**
          * Mostra messaggio promo code
          */
-        showPromoMessage: function(message, type) {
+        showPromoMessage: function (message, type) {
             const self = this;
             const $inputWrapper = $('.bw-promo-input-wrapper');
 
@@ -895,13 +947,13 @@
 
             if (type === 'error') {
                 // Per errori: nascondi input/pulsante, mostra messaggio full width
-                $inputWrapper.fadeOut(300, function() {
+                $inputWrapper.fadeOut(300, function () {
                     self.$promoMessage.fadeIn(300);
                 });
 
                 // Dopo 2.5 secondi, nascondi messaggio e rimostra input/pulsante
                 setTimeout(() => {
-                    self.$promoMessage.fadeOut(300, function() {
+                    self.$promoMessage.fadeOut(300, function () {
                         $inputWrapper.fadeIn(300);
                     });
                 }, 2500);
@@ -919,7 +971,7 @@
          * Rimuovi prodotto con animazione fluida
          * Mostra "Product removed" per 0.5 secondi mentre aggiorna in background
          */
-        removeItem: function(cartItemKey) {
+        removeItem: function (cartItemKey) {
             const self = this;
             const $item = $('.bw-cart-item[data-cart-item-key="' + cartItemKey + '"]');
 
@@ -933,7 +985,7 @@
                 'transition': 'opacity 0.3s ease, transform 0.3s ease'
             });
 
-            setTimeout(function() {
+            setTimeout(function () {
                 $item.css({
                     'opacity': '0',
                     'transform': 'scale(0.95)'
@@ -941,7 +993,7 @@
             }, 10);
 
             // 2. Dopo il fade-out, sostituisci con il placeholder
-            setTimeout(function() {
+            setTimeout(function () {
                 const itemHeight = $item.outerHeight();
 
                 // Crea il box placeholder "Product removed" (o "Prodotto rimosso" se in italiano)
@@ -961,17 +1013,17 @@
                         nonce: bwCartPopupConfig.nonce,
                         cart_item_key: cartItemKey
                     },
-                    success: function(response) {
+                    success: function (response) {
                         if (response.success) {
                             // Aggiorna anche il mini-cart di WooCommerce
                             $(document.body).trigger('wc_fragment_refresh');
 
                             // 4. Dopo 0.5 secondi (500ms), fade-out del placeholder e ricarica il contenuto
                             // Durante questi 0.5 secondi, l'aggiornamento avviene in background
-                            setTimeout(function() {
+                            setTimeout(function () {
                                 $placeholder.addClass('fade-out');
 
-                                setTimeout(function() {
+                                setTimeout(function () {
                                     $placeholder.remove();
                                     // Ricarica il contenuto del carrello senza mostrare il loading spinner
                                     // (skipLoading = true) per evitare il flash del loading
@@ -984,7 +1036,7 @@
                             self.loadCartContents();
                         }
                     },
-                    error: function() {
+                    error: function () {
                         console.error('AJAX error removing item');
                         // In caso di errore, ricarica comunque il carrello
                         self.loadCartContents();
@@ -996,7 +1048,7 @@
         /**
          * Aggiorna quantità
          */
-        updateQuantity: function(cartItemKey, quantity) {
+        updateQuantity: function (cartItemKey, quantity) {
             const self = this;
 
             $.ajax({
@@ -1008,7 +1060,7 @@
                     cart_item_key: cartItemKey,
                     quantity: quantity
                 },
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         // Ricarica contenuto carrello
                         self.loadCartContents();
@@ -1019,7 +1071,7 @@
                         console.error('Failed to update quantity');
                     }
                 },
-                error: function() {
+                error: function () {
                     console.error('AJAX error updating quantity');
                 }
             });
@@ -1029,7 +1081,7 @@
          * Aggiorna il badge con il numero totale di prodotti
          * Nasconde l'icona carrello + badge quando count = 0
          */
-        updateBadge: function(count) {
+        updateBadge: function (count) {
             if (this.$cartBadge && this.$cartBadge.length) {
                 this.$cartBadge.text(count);
             }
@@ -1050,12 +1102,12 @@
             this.toggleFloatingTrigger(count);
         },
 
-        setupFloatingTriggerWatcher: function() {
+        setupFloatingTriggerWatcher: function () {
             // Inizializza stato iniziale (non visibile finché non si scrolla)
             this.onFloatingScroll();
         },
 
-        onFloatingScroll: function() {
+        onFloatingScroll: function () {
             if (!bwCartPopupConfig.settings.show_floating_trigger || !this.$floatingTrigger || !this.$floatingTrigger.length) {
                 return;
             }
@@ -1073,7 +1125,7 @@
             }
         },
 
-        toggleFloatingTrigger: function(count) {
+        toggleFloatingTrigger: function (count) {
             if (!bwCartPopupConfig.settings.show_floating_trigger || !this.$floatingTrigger || !this.$floatingTrigger.length) {
                 return;
             }
@@ -1091,7 +1143,7 @@
         /**
          * Aggiorna il testo del pulsante checkout mostrando il totale
          */
-        updateCheckoutCta: function(totalFormatted) {
+        updateCheckoutCta: function (totalFormatted) {
             const $cta = this.$footer.find('.bw-cart-popup-checkout');
             if (!$cta.length) {
                 return;
@@ -1110,7 +1162,7 @@
         /**
          * Cambia il testo del pulsante Add to Cart in "Added to cart"
          */
-        changeButtonTextToAdded: function($button) {
+        changeButtonTextToAdded: function ($button) {
             if (!$button || !$button.length) {
                 return;
             }
@@ -1133,7 +1185,7 @@
         /**
          * Ripristina il testo originale del pulsante Add to Cart
          */
-        resetButtonText: function($button) {
+        resetButtonText: function ($button) {
             if (!$button || !$button.length) {
                 return;
             }
@@ -1150,7 +1202,7 @@
         /**
          * Mostra la notifica verde "Your item has been added to the cart"
          */
-        showAddedNotification: function() {
+        showAddedNotification: function () {
             const self = this;
 
             if (!this.$notification || !this.$notification.length) {
@@ -1161,7 +1213,7 @@
             this.$notification.addClass('show');
 
             // Nascondi la notifica dopo 3 secondi con fade-out
-            setTimeout(function() {
+            setTimeout(function () {
                 self.$notification.removeClass('show');
             }, 3000);
         },
@@ -1169,14 +1221,14 @@
         /**
          * Rimuove i link "View cart" di WooCommerce automaticamente
          */
-        removeViewCartLinks: function() {
+        removeViewCartLinks: function () {
             // Rimuovi i link esistenti
             $('.added_to_cart.wc-forward').remove();
 
             // Monitora il DOM per nuovi link "View cart" aggiunti dinamicamente
-            const observer = new MutationObserver(function(mutations) {
-                mutations.forEach(function(mutation) {
-                    mutation.addedNodes.forEach(function(node) {
+            const observer = new MutationObserver(function (mutations) {
+                mutations.forEach(function (mutation) {
+                    mutation.addedNodes.forEach(function (node) {
                         if (node.nodeType === 1) { // Element node
                             if ($(node).hasClass('added_to_cart') && $(node).hasClass('wc-forward')) {
                                 $(node).remove();
@@ -1198,11 +1250,11 @@
         /**
          * Monitora i cambiamenti del carrello per aggiornare lo stato dei pulsanti
          */
-        monitorCartChanges: function() {
+        monitorCartChanges: function () {
             const self = this;
 
             // Ascolta l'evento WooCommerce quando il carrello viene aggiornato
-            $(document.body).on('wc_fragments_refreshed wc_fragment_refresh', function() {
+            $(document.body).on('wc_fragments_refreshed wc_fragment_refresh', function () {
                 // Quando il carrello viene aggiornato, controlla se i prodotti sono stati rimossi
                 // e ripristina il testo dei pulsanti se necessario
                 self.updateAllButtonStates();
@@ -1212,11 +1264,11 @@
         /**
          * Aggiorna lo stato di tutti i pulsanti Add to Cart in base al contenuto del carrello
          */
-        updateAllButtonStates: function() {
+        updateAllButtonStates: function () {
             const self = this;
 
             // Per ogni pulsante con il testo "Added to cart", controlla se il prodotto è ancora nel carrello
-            $('.bw-btn-addtocart.added, .add_to_cart_button.added').each(function() {
+            $('.bw-btn-addtocart.added, .add_to_cart_button.added').each(function () {
                 const $button = $(this);
                 const productId = $button.data('product_id') || $button.data('product-id');
 
@@ -1233,7 +1285,7 @@
          * @param {string} message - Messaggio da mostrare
          * @param {string} cartUrl - URL del carrello
          */
-        showAlreadyInCartModal: function(message, cartUrl, options) {
+        showAlreadyInCartModal: function (message, cartUrl, options) {
             const self = this;
             const safeMessage = message || 'This product is already in your cart.';
             const opts = options || {};
@@ -1308,11 +1360,11 @@
 
             $('body').addClass('bw-cart-popup-no-scroll');
 
-            setTimeout(function() {
+            setTimeout(function () {
                 $modalOverlay.css('opacity', '1');
                 $modal.css('transform', 'scale(1)');
             }, 10);
-            $modalOverlay.on('click', '.bw-cart-already-modal__btn--continue', function(e) {
+            $modalOverlay.on('click', '.bw-cart-already-modal__btn--continue', function (e) {
                 e.preventDefault();
                 self.closeAlreadyInCartModal();
 
@@ -1326,13 +1378,13 @@
                 }
             });
 
-            $modalOverlay.on('click', function(e) {
+            $modalOverlay.on('click', function (e) {
                 if ($(e.target).hasClass('bw-cart-already-modal-overlay')) {
                     self.closeAlreadyInCartModal();
                 }
             });
 
-            $(document).on('keyup.bwCartAlreadyModal', function(e) {
+            $(document).on('keyup.bwCartAlreadyModal', function (e) {
                 if (e.key === 'Escape') {
                     self.closeAlreadyInCartModal();
                 }
@@ -1353,7 +1405,7 @@
         /**
          * Chiudi il pop-up dedicato già nel carrello
          */
-        closeAlreadyInCartModal: function() {
+        closeAlreadyInCartModal: function () {
             const $modalOverlay = $('.bw-cart-already-modal-overlay');
 
             if (!$modalOverlay.length) {
@@ -1363,7 +1415,7 @@
             $modalOverlay.css('opacity', '0');
             $modalOverlay.find('.bw-cart-already-modal').css('transform', 'scale(0.9)');
 
-            setTimeout(function() {
+            setTimeout(function () {
                 $modalOverlay.remove();
                 $('body').removeClass('bw-cart-popup-no-scroll');
             }, 300);
@@ -1375,7 +1427,7 @@
          * Mostra modal di errore con overlay
          * @param {string} errorMessage - Messaggio di errore da mostrare
          */
-        showErrorModal: function(errorMessage, options) {
+        showErrorModal: function (errorMessage, options) {
             const self = this;
 
             // Rimuovi eventuali modal esistenti
@@ -1468,26 +1520,26 @@
             $('body').addClass('bw-cart-popup-no-scroll');
 
             // Animazione fade-in
-            setTimeout(function() {
+            setTimeout(function () {
                 $modalOverlay.css('opacity', '1');
                 $modal.css('transform', 'scale(1)');
             }, 10);
 
             // Gestisci click sul pulsante "Return to Shop"
-            $modalOverlay.on('click', '.bw-cart-error-modal__btn--shop', function(e) {
+            $modalOverlay.on('click', '.bw-cart-error-modal__btn--shop', function (e) {
                 e.preventDefault();
                 window.location.href = targetUrl;
             });
 
             // Chiudi modal al click sull'overlay (opzionale)
-            $modalOverlay.on('click', function(e) {
+            $modalOverlay.on('click', function (e) {
                 if ($(e.target).hasClass('bw-cart-error-modal-overlay')) {
                     self.closeErrorModal();
                 }
             });
 
             // Chiudi con ESC
-            $(document).on('keyup.bwCartErrorModal', function(e) {
+            $(document).on('keyup.bwCartErrorModal', function (e) {
                 if (e.key === 'Escape') {
                     self.closeErrorModal();
                 }
@@ -1515,7 +1567,7 @@
         /**
          * Chiudi modal di errore
          */
-        closeErrorModal: function() {
+        closeErrorModal: function () {
             const $modalOverlay = $('.bw-cart-error-modal-overlay');
 
             if (!$modalOverlay.length) {
@@ -1527,7 +1579,7 @@
             $modalOverlay.find('.bw-cart-error-modal').css('transform', 'scale(0.9)');
 
             // Rimuovi dopo l'animazione
-            setTimeout(function() {
+            setTimeout(function () {
                 $modalOverlay.remove();
                 $('body').removeClass('bw-cart-popup-no-scroll');
             }, 300);
@@ -1538,7 +1590,7 @@
     };
 
     // Inizializza al document ready
-    $(document).ready(function() {
+    $(document).ready(function () {
         BW_CartPopup.init();
     });
 
