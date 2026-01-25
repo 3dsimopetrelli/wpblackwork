@@ -343,8 +343,8 @@ function bw_cart_popup_dynamic_css()
         /* Pannello */
         .bw-cart-popup-panel {
             width:
-                <?php echo esc_attr($panel_width); ?>
-                px;
+                <?php echo intval($panel_width) . 'px'; ?>
+            ;
             background-color:
                 <?php echo esc_attr($panel_bg); ?>
             ;
@@ -354,8 +354,8 @@ function bw_cart_popup_dynamic_css()
         @media only screen and (max-width: 768px) {
             .bw-cart-popup-panel {
                 width:
-                    <?php echo esc_attr($mobile_width); ?>
-                    % !important;
+                    <?php echo intval($mobile_width) . '%'; ?>
+                    !important;
                 max-width: 100vw;
             }
         }
@@ -370,26 +370,17 @@ function bw_cart_popup_dynamic_css()
                 <?php echo esc_attr($checkout_text_color); ?>
                 !important;
             font-size:
-                <?php echo esc_attr($checkout_font_size); ?>
-                px !important;
+                <?php echo intval($checkout_font_size) . 'px'; ?>
+                !important;
             border-radius:
-                <?php echo esc_attr($checkout_border_radius); ?>
-                px !important;
+                <?php echo intval($checkout_border_radius) . 'px'; ?>
+                !important;
             padding:
-                <?php echo esc_attr($checkout_padding_top); ?>
-                px
-                <?php echo esc_attr($checkout_padding_right); ?>
-                px
-                <?php echo esc_attr($checkout_padding_bottom); ?>
-                px
-                <?php echo esc_attr($checkout_padding_left); ?>
-                px !important;
+                <?php echo intval($checkout_padding_top) . 'px ' . intval($checkout_padding_right) . 'px ' . intval($checkout_padding_bottom) . 'px ' . intval($checkout_padding_left) . 'px'; ?>
+                !important;
             <?php if ($checkout_border_enabled): ?>
                 border:
-                    <?php echo esc_attr($checkout_border_width); ?>
-                    px
-                    <?php echo esc_attr($checkout_border_style); ?>
-                    <?php echo esc_attr($checkout_border_color); ?>
+                    <?php echo intval($checkout_border_width) . 'px ' . esc_attr($checkout_border_style) . ' ' . esc_attr($checkout_border_color); ?>
                     !important;
             <?php else: ?>
                 border: none !important;
@@ -416,26 +407,17 @@ function bw_cart_popup_dynamic_css()
                 <?php echo esc_attr($continue_text_color); ?>
                 !important;
             font-size:
-                <?php echo esc_attr($continue_font_size); ?>
-                px !important;
+                <?php echo intval($continue_font_size) . 'px'; ?>
+                !important;
             border-radius:
-                <?php echo esc_attr($continue_border_radius); ?>
-                px !important;
+                <?php echo intval($continue_border_radius) . 'px'; ?>
+                !important;
             padding:
-                <?php echo esc_attr($continue_padding_top); ?>
-                px
-                <?php echo esc_attr($continue_padding_right); ?>
-                px
-                <?php echo esc_attr($continue_padding_bottom); ?>
-                px
-                <?php echo esc_attr($continue_padding_left); ?>
-                px !important;
+                <?php echo intval($continue_padding_top) . 'px ' . intval($continue_padding_right) . 'px ' . intval($continue_padding_bottom) . 'px ' . intval($continue_padding_left) . 'px'; ?>
+                !important;
             <?php if ($continue_border_enabled): ?>
                 border:
-                    <?php echo esc_attr($continue_border_width); ?>
-                    px
-                    <?php echo esc_attr($continue_border_style); ?>
-                    <?php echo esc_attr($continue_border_color); ?>
+                    <?php echo intval($continue_border_width) . 'px ' . esc_attr($continue_border_style) . ' ' . esc_attr($continue_border_color); ?>
                     !important;
             <?php else: ?>
                 border: none !important;
@@ -457,14 +439,8 @@ function bw_cart_popup_dynamic_css()
         .bw-cart-popup-custom-svg svg,
         .bw-cart-icon {
             margin:
-                <?php echo esc_attr($cart_icon_margin_top); ?>
-                px
-                <?php echo esc_attr($cart_icon_margin_right); ?>
-                px
-                <?php echo esc_attr($cart_icon_margin_bottom); ?>
-                px
-                <?php echo esc_attr($cart_icon_margin_left); ?>
-                px !important;
+                <?php echo intval($cart_icon_margin_top) . 'px ' . intval($cart_icon_margin_right) . 'px ' . intval($cart_icon_margin_bottom) . 'px ' . intval($cart_icon_margin_left) . 'px'; ?>
+                !important;
         }
 
         /* === APPLY PROMO CODE BUTTON - USA STILE CHECKOUT === */
@@ -477,26 +453,17 @@ function bw_cart_popup_dynamic_css()
                 <?php echo esc_attr($checkout_text_color); ?>
                 !important;
             font-size:
-                <?php echo esc_attr($checkout_font_size); ?>
-                px !important;
+                <?php echo intval($checkout_font_size) . 'px'; ?>
+                !important;
             border-radius:
-                <?php echo esc_attr($checkout_border_radius); ?>
-                px !important;
+                <?php echo intval($checkout_border_radius) . 'px'; ?>
+                !important;
             padding:
-                <?php echo esc_attr($checkout_padding_top); ?>
-                px
-                <?php echo esc_attr($checkout_padding_right); ?>
-                px
-                <?php echo esc_attr($checkout_padding_bottom); ?>
-                px
-                <?php echo esc_attr($checkout_padding_left); ?>
-                px !important;
+                <?php echo intval($checkout_padding_top) . 'px ' . intval($checkout_padding_right) . 'px ' . intval($checkout_padding_bottom) . 'px ' . intval($checkout_padding_left) . 'px'; ?>
+                !important;
             <?php if ($checkout_border_enabled): ?>
                 border:
-                    <?php echo esc_attr($checkout_border_width); ?>
-                    px
-                    <?php echo esc_attr($checkout_border_style); ?>
-                    <?php echo esc_attr($checkout_border_color); ?>
+                    <?php echo intval($checkout_border_width) . 'px ' . esc_attr($checkout_border_style) . ' ' . esc_attr($checkout_border_color); ?>
                     !important;
             <?php else: ?>
                 border: none !important;
@@ -528,34 +495,22 @@ function bw_cart_popup_dynamic_css()
         /* Padding per input promo code */
         .bw-cart-popup-panel .bw-promo-input {
             padding:
-                <?php echo esc_attr($promo_input_padding_top); ?>
-                px
-                <?php echo esc_attr($promo_input_padding_right); ?>
-                px
-                <?php echo esc_attr($promo_input_padding_bottom); ?>
-                px
-                <?php echo esc_attr($promo_input_padding_left); ?>
-                px !important;
+                <?php echo intval($promo_input_padding_top) . 'px ' . intval($promo_input_padding_right) . 'px ' . intval($promo_input_padding_bottom) . 'px ' . intval($promo_input_padding_left) . 'px'; ?>
+                !important;
         }
 
         /* Font size placeholder input promo code */
         .bw-cart-popup-panel .bw-promo-input::placeholder {
             font-size:
-                <?php echo esc_attr($promo_placeholder_font_size); ?>
-                px;
+                <?php echo intval($promo_placeholder_font_size) . 'px'; ?>
+            ;
         }
 
         /* === PADDING PER EMPTY CART SVG === */
         .bw-cart-empty-icon svg {
             padding:
-                <?php echo esc_attr($empty_cart_padding_top); ?>
-                px
-                <?php echo esc_attr($empty_cart_padding_right); ?>
-                px
-                <?php echo esc_attr($empty_cart_padding_bottom); ?>
-                px
-                <?php echo esc_attr($empty_cart_padding_left); ?>
-                px;
+                <?php echo intval($empty_cart_padding_top) . 'px ' . intval($empty_cart_padding_right) . 'px ' . intval($empty_cart_padding_bottom) . 'px ' . intval($empty_cart_padding_left) . 'px'; ?>
+            ;
         }
     </style>
     <?php
@@ -760,7 +715,7 @@ function bw_cart_popup_get_cart_contents()
 
         $detailed_coupons[] = [
             'code' => $code,
-            'amount' => wc_price($amount),
+            'amount' => wc_price($amount), // Formatted string
             'amount_raw' => $amount
         ];
     }
@@ -795,7 +750,7 @@ function bw_cart_popup_apply_coupon()
         wp_send_json_error(['message' => 'WooCommerce not active']);
     }
 
-    $coupon_code = isset($_POST['coupon_code']) ? sanitize_text_field($_POST['coupon_code']) : '';
+    $coupon_code = isset($_POST['coupon_code']) ? sanitize_text_field(wp_unslash($_POST['coupon_code'])) : '';
 
     if (empty($coupon_code)) {
         wp_send_json_error(['message' => 'Please enter a coupon code']);
@@ -807,34 +762,52 @@ function bw_cart_popup_apply_coupon()
         wp_send_json_error(['message' => 'Cart not initialized']);
     }
 
-    $result = $cart->apply_coupon($coupon_code);
+    $applied = $cart->add_discount($coupon_code);
 
-    if ($result) {
-        // Ricalcola i totali
+    if ($applied) {
+        // Recalculate totals
         $cart->calculate_totals();
-        $subtotal = $cart->get_subtotal();
+
+        // Prepare return data same as get_contents
         $discount = $cart->get_discount_total();
-        $tax = $cart->get_total_tax();
+        $subtotal = $cart->get_subtotal();
         $total = $cart->get_total('');
-        $applied_coupons = array_map('sanitize_text_field', array_values(array_unique($cart->get_applied_coupons())));
+        $tax = $cart->get_total_tax();
+
+        // Coupons list (legacy/simple)
+        $applied_coupons = is_callable([$cart, 'get_applied_coupons']) ? $cart->get_applied_coupons() : [];
+
+        // Detailed coupons with amounts
+        $detailed_coupons = [];
+        $coupon_amounts = [];
+        if (is_callable([$cart, 'get_coupon_discount_amounts'])) {
+            $coupon_amounts = $cart->get_coupon_discount_amounts();
+        }
+
+        foreach ($applied_coupons as $code) {
+            $amount = isset($coupon_amounts[$code]) ? $coupon_amounts[$code] : 0;
+            $detailed_coupons[] = [
+                'code' => $code,
+                'amount' => wc_price($amount), // Formatted string
+                'amount_raw' => $amount
+            ];
+        }
 
         wp_send_json_success([
-            'message' => 'Coupon applied successfully!',
+            'message' => 'Coupon code applied successfully.',
             'subtotal' => wc_price($subtotal),
-            'subtotal_raw' => $subtotal,
             'discount' => wc_price($discount),
-            'discount_raw' => $discount,
             'tax' => wc_price($tax),
-            'tax_raw' => $tax,
             'total' => wc_price($total),
+            'subtotal_raw' => $subtotal,
+            'discount_raw' => $discount,
+            'tax_raw' => $tax,
             'total_raw' => $total,
-            'coupons' => $applied_coupons,
+            'applied_coupons' => $applied_coupons, // Legacy
+            'coupons' => $detailed_coupons         // New detailed list
         ]);
     } else {
-        $message = bw_cart_popup_get_first_error_notice(__('Invalid coupon code', 'bw'));
-        wc_clear_notices();
-
-        wp_send_json_error(['message' => $message]);
+        wp_send_json_error(['message' => 'Coupon code invalid or expired.']);
     }
 }
 add_action('wp_ajax_bw_cart_popup_apply_coupon', 'bw_cart_popup_apply_coupon');
@@ -851,121 +824,62 @@ function bw_cart_popup_remove_coupon()
         wp_send_json_error(['message' => 'WooCommerce not active']);
     }
 
-    $coupon_code = isset($_POST['coupon_code']) ? sanitize_text_field($_POST['coupon_code']) : '';
-
-    if (empty($coupon_code)) {
-        wp_send_json_error(['message' => 'Please provide a coupon code']);
-    }
-
     $cart = bw_cart_popup_get_cart_instance();
 
     if (!$cart) {
         wp_send_json_error(['message' => 'Cart not initialized']);
     }
 
-    $result = $cart->remove_coupon($coupon_code);
+    // Support removing a specific coupon if provided
+    $coupon_code = isset($_POST['coupon_code']) ? sanitize_text_field(wp_unslash($_POST['coupon_code'])) : '';
 
-    if ($result) {
-        // Ricalcola i totali
-        $cart->calculate_totals();
-        $subtotal = $cart->get_subtotal();
-        $discount = $cart->get_discount_total();
-        $tax = $cart->get_total_tax();
-        $total = $cart->get_total('');
-        $applied_coupons = $cart->get_applied_coupons();
-
-        wp_send_json_success([
-            'message' => 'Coupon removed successfully!',
-            'subtotal' => wc_price($subtotal),
-            'subtotal_raw' => $subtotal,
-            'discount' => wc_price($discount),
-            'discount_raw' => $discount,
-            'tax' => wc_price($tax),
-            'tax_raw' => $tax,
-            'total' => wc_price($total),
-            'total_raw' => $total,
-            'applied_coupons' => $applied_coupons,
-        ]);
+    if (!empty($coupon_code)) {
+        // Remove specific coupon
+        $cart->remove_coupon($coupon_code);
     } else {
-        wp_send_json_error(['message' => 'Failed to remove coupon']);
+        // Legacy behavior: Remove ALL coupons
+        $cart->remove_coupons();
     }
+
+    $cart->calculate_totals();
+
+    $subtotal = $cart->get_subtotal();
+    $discount = $cart->get_discount_total();
+    $total = $cart->get_total('');
+    $tax = $cart->get_total_tax();
+
+    // Coupons list
+    $applied_coupons = is_callable([$cart, 'get_applied_coupons']) ? $cart->get_applied_coupons() : [];
+
+    // Detailed coupons
+    $detailed_coupons = [];
+    $coupon_amounts = [];
+    if (is_callable([$cart, 'get_coupon_discount_amounts'])) {
+        $coupon_amounts = $cart->get_coupon_discount_amounts();
+    }
+
+    foreach ($applied_coupons as $code) {
+        $amount = isset($coupon_amounts[$code]) ? $coupon_amounts[$code] : 0;
+        $detailed_coupons[] = [
+            'code' => $code,
+            'amount' => wc_price($amount), // Formatted string
+            'amount_raw' => $amount
+        ];
+    }
+
+    wp_send_json_success([
+        'message' => 'Coupon removed.',
+        'subtotal' => wc_price($subtotal),
+        'discount' => wc_price($discount),
+        'tax' => wc_price($tax),
+        'total' => wc_price($total),
+        'subtotal_raw' => $subtotal,
+        'discount_raw' => $discount,
+        'tax_raw' => $tax,
+        'total_raw' => $total,
+        'applied_coupons' => $applied_coupons,
+        'coupons' => $detailed_coupons // New detailed list
+    ]);
 }
 add_action('wp_ajax_bw_cart_popup_remove_coupon', 'bw_cart_popup_remove_coupon');
 add_action('wp_ajax_nopriv_bw_cart_popup_remove_coupon', 'bw_cart_popup_remove_coupon');
-
-/**
- * AJAX: Rimuovi prodotto dal carrello
- */
-function bw_cart_popup_remove_item()
-{
-    check_ajax_referer('bw_cart_popup_nonce', 'nonce');
-
-    if (!class_exists('WooCommerce')) {
-        wp_send_json_error(['message' => 'WooCommerce not active']);
-    }
-
-    $cart_item_key = isset($_POST['cart_item_key']) ? sanitize_text_field($_POST['cart_item_key']) : '';
-
-    if (empty($cart_item_key)) {
-        wp_send_json_error(['message' => 'Invalid cart item']);
-    }
-
-    $cart = bw_cart_popup_get_cart_instance();
-
-    if (!$cart) {
-        wp_send_json_error(['message' => 'Cart not initialized']);
-    }
-
-    $result = $cart->remove_cart_item($cart_item_key);
-
-    if ($result) {
-        // Ricalcola i totali
-        $cart->calculate_totals();
-
-        wp_send_json_success(['message' => 'Item removed from cart']);
-    } else {
-        wp_send_json_error(['message' => 'Failed to remove item']);
-    }
-}
-add_action('wp_ajax_bw_cart_popup_remove_item', 'bw_cart_popup_remove_item');
-add_action('wp_ajax_nopriv_bw_cart_popup_remove_item', 'bw_cart_popup_remove_item');
-
-/**
- * AJAX: Aggiorna quantità prodotto
- */
-function bw_cart_popup_update_quantity()
-{
-    check_ajax_referer('bw_cart_popup_nonce', 'nonce');
-
-    if (!class_exists('WooCommerce')) {
-        wp_send_json_error(['message' => 'WooCommerce not active']);
-    }
-
-    $cart = bw_cart_popup_get_cart_instance();
-
-    if (!$cart) {
-        wp_send_json_error(['message' => 'Cart not initialized']);
-    }
-
-    $cart_item_key = isset($_POST['cart_item_key']) ? sanitize_text_field($_POST['cart_item_key']) : '';
-    $quantity = isset($_POST['quantity']) ? intval($_POST['quantity']) : 1;
-
-    if (empty($cart_item_key) || $quantity < 0) {
-        wp_send_json_error(['message' => 'Invalid parameters']);
-    }
-
-    if ($quantity == 0) {
-        // Rimuovi il prodotto se la quantità è 0
-        $cart->remove_cart_item($cart_item_key);
-    } else {
-        // Aggiorna la quantità
-        $cart->set_quantity($cart_item_key, $quantity);
-    }
-
-    // Ricalcola i totali
-    $cart->calculate_totals();
-
-    wp_send_json_success(['message' => 'Quantity updated']);
-}
-add_action('wp_ajax_bw_cart_popup_update_quantity', 'bw_cart_popup_update_quantity');
-add_action('wp_ajax_nopriv_bw_cart_popup_update_quantity', 'bw_cart_popup_update_quantity');
