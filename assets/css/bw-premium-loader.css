@@ -1,0 +1,203 @@
+/* BlackWork Modular Loading System (BWLS) */
+
+:root {
+    --bw-shimmer-base: #f6f7f8;
+    --bw-shimmer-highlight: #edeef1;
+    --bw-glass-bg: rgba(255, 255, 255, 0.4);
+    --bw-glass-blur: 8px;
+    --bw-spinner-color: #000000;
+}
+
+/* 1. Shimmer Effect (Facebook Style) */
+.bw-shimmer {
+    background: var(--bw-shimmer-base);
+    background-image: linear-gradient(to right,
+            var(--bw-shimmer-base) 0%,
+            var(--bw-shimmer-highlight) 20%,
+            var(--bw-shimmer-base) 40%,
+            var(--bw-shimmer-base) 100%);
+    background-repeat: no-repeat;
+    background-size: 200% 100%;
+    animation: bwShimmer 1.5s linear infinite;
+    display: inline-block;
+    position: relative;
+    overflow: hidden;
+}
+
+@keyframes bwShimmer {
+    0% {
+        background-position: -200% 0;
+    }
+
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+/* Shimmer utility for text placeholders */
+.bw-shimmer-text {
+    height: 1.25em;
+    width: 100%;
+    border-radius: 4px;
+    margin-bottom: 0.8em;
+    background: var(--bw-shimmer-base);
+    background-image: linear-gradient(to right,
+            var(--bw-shimmer-base) 0%,
+            var(--bw-shimmer-highlight) 20%,
+            var(--bw-shimmer-base) 40%,
+            var(--bw-shimmer-base) 100%);
+    background-repeat: no-repeat;
+    background-size: 200% 100%;
+    animation: bwShimmer 1.5s linear infinite;
+}
+
+/* 2. Glassmorphism Overlay Utilities */
+.bw-glass-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--bw-glass-bg) !important;
+    backdrop-filter: blur(var(--bw-glass-blur));
+    -webkit-backdrop-filter: blur(var(--bw-glass-blur));
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.bw-is-loading .bw-glass-overlay {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* 3. Premium Gradient Spinner */
+.bw-gradient-spinner {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, transparent 0%, var(--bw-spinner-color) 100%);
+    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #fff 0);
+    mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #fff 0);
+    animation: bwRotate 1s infinite linear;
+}
+
+@keyframes bwRotate {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* WooCommerce Implementation */
+.woocommerce-checkout-review-order .blockUI.blockOverlay,
+.woocommerce-cart-form .blockUI.blockOverlay,
+.woocommerce-checkout .blockUI.blockOverlay,
+.woocommerce .blockUI.blockOverlay {
+    background: var(--bw-glass-bg) !important;
+    backdrop-filter: blur(var(--bw-glass-blur)) !important;
+    -webkit-backdrop-filter: blur(var(--bw-glass-blur)) !important;
+    opacity: 1 !important;
+}
+
+/* Custom Spinner in WooCommerce BlockUI */
+.blockUI.blockMsg.blockElement {
+    background: none !important;
+    border: none !important;
+    width: 40px !important;
+    height: 40px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+}
+
+.blockUI.blockMsg.blockElement::before {
+    content: "" !important;
+    display: block;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, transparent 0%, var(--bw-spinner-color) 100%);
+    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #fff 0);
+    mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #fff 0);
+    animation: bwRotate 1s infinite linear;
+}
+
+/* Remove default spinner image */
+.blockUI.blockMsg.blockElement {
+    background-image: none !important;
+}
+
+/* Checkout Skeleton */
+.bw-checkout-skeleton {
+    padding: 20px;
+    background: #fff;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+}
+
+.bw-skeleton-item {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.bw-skeleton-thumb {
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+
+.bw-skeleton-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.bw-skeleton-total {
+    margin-top: 30px;
+    border-top: 1px solid #eee;
+    padding-top: 20px;
+}
+
+/* Top Progress Bar */
+.bw-top-bar-loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    background: var(--bw-spinner-color);
+    z-index: 99999;
+    width: 0;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    pointer-events: none;
+    transition: width 0.4s ease;
+}
+
+/* Body Fade-In */
+body {
+    transition: opacity 0.5s ease;
+}
+
+.bw-page-loading body {
+    opacity: 0;
+}
+
+body.bw-page-ready {
+    opacity: 1 !important;
+}

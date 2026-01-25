@@ -1494,7 +1494,7 @@ function bw_site_render_account_page_tab()
         accountGoogleToggle.on('change', function () {
             toggleAccountProviderRows('google', $(this).is(':checked'));
         });
-                });
+                    });
     </script>
     <?php
 }
@@ -2514,779 +2514,788 @@ function bw_site_render_cart_popup_tab()
                 </th>
                 <td>
                     <div style="display: flex; align-items: center; gap: 10px;">
-                                <input type="range" id="bw_cart_popup_panel_width_range" min="300" max="1200" step="10"
-                                    value="<?php echo esc_attr($panel_width); ?>"
-                                    oninput="document.getElementById('bw_cart_popup_panel_width').value = this.value"
-                                    style="width: 200px;">
-                                <input type="number" id="bw_cart_popup_panel_width" name="bw_cart_popup_panel_width"
-                                    value="<?php echo esc_attr($panel_width); ?>" min="300" step="10" class="regular-text"
-                                    style="width: 80px;"
-                                    oninput="document.getElementById('bw_cart_popup_panel_width_range').value = this.value" />
-                                <span>px</span>
-                            </div>
-                            <p class="description">Larghezza del pannello laterale in pixel (range slider per comodità).</p>
-                        </td>
-                    </tr>
+                        <input type="range" id="bw_cart_popup_panel_width_range" min="300" max="1200" step="10"
+                            value="<?php echo esc_attr($panel_width); ?>"
+                            oninput="document.getElementById('bw_cart_popup_panel_width').value = this.value"
+                            style="width: 200px;">
+                        <input type="number" id="bw_cart_popup_panel_width" name="bw_cart_popup_panel_width"
+                            value="<?php echo esc_attr($panel_width); ?>" min="300" step="10" class="regular-text"
+                            style="width: 80px;"
+                            oninput="document.getElementById('bw_cart_popup_panel_width_range').value = this.value" />
+                        <span>px</span>
+                    </div>
+                    <p class="description">Larghezza del pannello laterale in pixel (range slider per comodità).</p>
+                </td>
+            </tr>
 
-                    <!-- Larghezza Mobile (%) -->
-                    <tr>
-                        <th scope="row">
-                            <label for="bw_cart_popup_mobile_width">Larghezza Mobile (%)</label>
-                        </th>
-                        <td>
-                            <input type="number" id="bw_cart_popup_mobile_width" name="bw_cart_popup_mobile_width"
-                                value="<?php echo esc_attr($mobile_width); ?>" min="10" max="100" step="1" class="regular-text"
-                                style="width: 80px;" />
-                            <p class="description">Larghezza percentuale su dispositivi mobili (< 768px). Default: 100%.</p>
-                        </td>
-                    </tr>
+            <!-- Larghezza Mobile (%) -->
+            <tr>
+                <th scope="row">
+                    <label for="bw_cart_popup_mobile_width">Larghezza Mobile (%)</label>
+                </th>
+                <td>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <input type="range" id="bw_cart_popup_mobile_width_range" min="10" max="100" step="1"
+                            value="<?php echo esc_attr($mobile_width); ?>"
+                            oninput="document.getElementById('bw_cart_popup_mobile_width').value = this.value"
+                            style="width: 200px;">
+                        <input type="number" id="bw_cart_popup_mobile_width" name="bw_cart_popup_mobile_width"
+                            value="<?php echo esc_attr($mobile_width); ?>" min="10" max="100" step="1" class="regular-text"
+                            style="width: 80px;"
+                            oninput="document.getElementById('bw_cart_popup_mobile_width_range').value = this.value" />
+                        <span>%</span>
+                    </div>
+                    <p class="description">Larghezza percentuale su dispositivi mobili (< 768px). Default: 100%.</p>
+                </td>
+            </tr>
 
-                    <!-- Colore overlay -->
-                    <tr>
-                        <th scope="row">
-                            <label for="bw_cart_popup_overlay_color">Colore Overlay</label>
-                        </th>
-                        <td>
-                            <input type="color" id="bw_cart_popup_overlay_color" name="bw_cart_popup_overlay_color"
-                                value="<?php echo esc_attr($overlay_color); ?>" />
-                            <p class="description">Colore della maschera overlay che oscura la pagina</p>
-                        </td>
-                    </tr>
+            <!-- Colore overlay -->
+            <tr>
+                <th scope="row">
+                    <label for="bw_cart_popup_overlay_color">Colore Overlay</label>
+                </th>
+                <td>
+                    <input type="color" id="bw_cart_popup_overlay_color" name="bw_cart_popup_overlay_color"
+                        value="<?php echo esc_attr($overlay_color); ?>" />
+                    <p class="description">Colore della maschera overlay che oscura la pagina</p>
+                </td>
+            </tr>
 
-                    <!-- Opacità overlay -->
-                    <tr>
-                        <th scope="row">
-                            <label for="bw_cart_popup_overlay_opacity">Opacità Overlay</label>
-                        </th>
-                        <td>
-                            <input type="number" id="bw_cart_popup_overlay_opacity" name="bw_cart_popup_overlay_opacity"
-                                value="<?php echo esc_attr($overlay_opacity); ?>" min="0" max="1" step="0.1" class="small-text" />
-                            <p class="description">Opacità dell'overlay (da 0 a 1, default: 0.5)</p>
-                        </td>
-                    </tr>
+            <!-- Opacità overlay -->
+            <tr>
+                <th scope="row">
+                    <label for="bw_cart_popup_overlay_opacity">Opacità Overlay</label>
+                </th>
+                <td>
+                    <input type="number" id="bw_cart_popup_overlay_opacity" name="bw_cart_popup_overlay_opacity"
+                        value="<?php echo esc_attr($overlay_opacity); ?>" min="0" max="1" step="0.1" class="small-text" />
+                    <p class="description">Opacità dell'overlay (da 0 a 1, default: 0.5)</p>
+                </td>
+            </tr>
 
-                    <!-- Colore sfondo pannello -->
-                    <tr>
-                        <th scope="row">
-                            <label for="bw_cart_popup_panel_bg">Colore Sfondo Pannello</label>
-                        </th>
-                        <td>
-                            <input type="color" id="bw_cart_popup_panel_bg" name="bw_cart_popup_panel_bg"
-                                value="<?php echo esc_attr($panel_bg); ?>" />
-                            <p class="description">Colore di sfondo del pannello slide-in</p>
-                        </td>
-                    </tr>
+            <!-- Colore sfondo pannello -->
+            <tr>
+                <th scope="row">
+                    <label for="bw_cart_popup_panel_bg">Colore Sfondo Pannello</label>
+                </th>
+                <td>
+                    <input type="color" id="bw_cart_popup_panel_bg" name="bw_cart_popup_panel_bg"
+                        value="<?php echo esc_attr($panel_bg); ?>" />
+                    <p class="description">Colore di sfondo del pannello slide-in</p>
+                </td>
+            </tr>
 
-                    <!-- Badge quantità -->
-                    <tr>
-                        <th scope="row">
-                            <label for="bw_cart_popup_show_quantity_badge">Mostra badge quantità (thumbnail)</label>
-                        </th>
-                        <td>
-                            <label class="switch">
-                                <input type="checkbox" id="bw_cart_popup_show_quantity_badge"
-                                    name="bw_cart_popup_show_quantity_badge" value="1" <?php checked(1, $show_quantity_badge); ?> />
-                                <span class="description">Attiva o disattiva il pallino con il numero di pezzi sopra l’immagine
-                                    prodotto nel cart pop-up.</span>
-                            </label>
-                        </td>
-                    </tr>
+            <!-- Badge quantità -->
+            <tr>
+                <th scope="row">
+                    <label for="bw_cart_popup_show_quantity_badge">Mostra badge quantità (thumbnail)</label>
+                </th>
+                <td>
+                    <label class="switch">
+                        <input type="checkbox" id="bw_cart_popup_show_quantity_badge"
+                            name="bw_cart_popup_show_quantity_badge" value="1" <?php checked(1, $show_quantity_badge); ?> />
+                        <span class="description">Attiva o disattiva il pallino con il numero di pezzi sopra l’immagine
+                            prodotto nel cart pop-up.</span>
+                    </label>
+                </td>
+            </tr>
 
-                    <!-- Sezione Pulsanti -->
-                    <tr>
-                        <th colspan="2">
-                            <h2>Configurazione Pulsanti</h2>
-                        </th>
-                    </tr>
+            <!-- Sezione Pulsanti -->
+            <tr>
+                <th colspan="2">
+                    <h2>Configurazione Pulsanti</h2>
+                </th>
+            </tr>
 
-                    <!-- === PROCEED TO CHECKOUT BUTTON === -->
-                    <tr>
-                        <th colspan="2">
-                            <h3 style="margin: 20px 0 10px 0;">Proceed to Checkout Button Style</h3>
-                        </th>
-                    </tr>
+            <!-- === PROCEED TO CHECKOUT BUTTON === -->
+            <tr>
+                <th colspan="2">
+                    <h3 style="margin: 20px 0 10px 0;">Proceed to Checkout Button Style</h3>
+                </th>
+            </tr>
 
-                    <!-- Testo -->
-                    <tr>
-                        <th scope="row">
-                            <label for="bw_cart_popup_checkout_text">Testo Pulsante</label>
-                        </th>
-                        <td>
-                            <input type="text" id="bw_cart_popup_checkout_text" name="bw_cart_popup_checkout_text"
-                                value="<?php echo esc_attr($checkout_text); ?>" class="regular-text" />
-                            <p class="description">Testo del pulsante (default: "Proceed to checkout")</p>
-                        </td>
-                    </tr>
+            <!-- Testo -->
+            <tr>
+                <th scope="row">
+                    <label for="bw_cart_popup_checkout_text">Testo Pulsante</label>
+                </th>
+                <td>
+                    <input type="text" id="bw_cart_popup_checkout_text" name="bw_cart_popup_checkout_text"
+                        value="<?php echo esc_attr($checkout_text); ?>" class="regular-text" />
+                    <p class="description">Testo del pulsante (default: "Proceed to checkout")</p>
+                </td>
+            </tr>
 
-                    <!-- RIMOSSO: Link Personalizzato - Il pulsante usa sempre wc_get_checkout_url() per garantire che punti alla checkout page di WooCommerce -->
+            <!-- RIMOSSO: Link Personalizzato - Il pulsante usa sempre wc_get_checkout_url() per garantire che punti alla checkout page di WooCommerce -->
 
-                    <!-- Background Color -->
-                    <tr>
-                        <th scope="row">
-                            <label for="bw_cart_popup_checkout_bg">Colore Background</label>
-                        </th>
-                        <td>
-                            <input type="color" id="bw_cart_popup_checkout_bg" name="bw_cart_popup_checkout_bg"
-                                value="<?php echo esc_attr($checkout_bg); ?>" />
-                            <p class="description">Colore di sfondo normale</p>
-                        </td>
-                    </tr>
+            <!-- Background Color -->
+            <tr>
+                <th scope="row">
+                    <label for="bw_cart_popup_checkout_bg">Colore Background</label>
+                </th>
+                <td>
+                    <input type="color" id="bw_cart_popup_checkout_bg" name="bw_cart_popup_checkout_bg"
+                        value="<?php echo esc_attr($checkout_bg); ?>" />
+                    <p class="description">Colore di sfondo normale</p>
+                </td>
+            </tr>
 
-                    <!-- Background Hover -->
-                    <tr>
-                        <th scope="row">
-                            <label for="bw_cart_popup_checkout_bg_hover">Colore Background Hover</label>
-                        </th>
-                        <td>
-                            <input type="color" id="bw_cart_popup_checkout_bg_hover" name="bw_cart_popup_checkout_bg_hover"
-                                value="<?php echo esc_attr($checkout_bg_hover); ?>" />
-                            <p class="description">Colore di sfondo al passaggio del mouse</p>
-                        </td>
-                    </tr>
+            <!-- Background Hover -->
+            <tr>
+                <th scope="row">
+                    <label for="bw_cart_popup_checkout_bg_hover">Colore Background Hover</label>
+                </th>
+                <td>
+                    <input type="color" id="bw_cart_popup_checkout_bg_hover" name="bw_cart_popup_checkout_bg_hover"
+                        value="<?php echo esc_attr($checkout_bg_hover); ?>" />
+                    <p class="description">Colore di sfondo al passaggio del mouse</p>
+                </td>
+            </tr>
 
-                    <!-- Text Color -->
-                    <tr>
-                        <th scope="row">
-                            <label for="bw_cart_popup_checkout_text_color">Colore Testo</label>
-                        </th>
-                        <td>
-                            <input type="color" id="bw_cart_popup_checkout_text_color" name="bw_cart_popup_checkout_text_color"
-                                value="<?php echo esc_attr($checkout_text_color); ?>" />
-                            <p class="description">Colore del testo normale</p>
-                        </td>
-                    </tr>
+            <!-- Text Color -->
+            <tr>
+                <th scope="row">
+                    <label for="bw_cart_popup_checkout_text_color">Colore Testo</label>
+                </th>
+                <td>
+                    <input type="color" id="bw_cart_popup_checkout_text_color" name="bw_cart_popup_checkout_text_color"
+                        value="<?php echo esc_attr($checkout_text_color); ?>" />
+                    <p class="description">Colore del testo normale</p>
+                </td>
+            </tr>
 
-                    <!-- Text Hover -->
-                    <tr>
-                        <th scope="row">
-                            <label for="bw_cart_popup_checkout_text_hover">Colore Testo Hover</label>
-                        </th>
-                        <td>
-                            <input type="color" id="bw_cart_popup_checkout_text_hover" name="bw_cart_popup_checkout_text_hover"
-                                value="<?php echo esc_attr($checkout_text_hover); ?>" />
-                            <p class="description">Colore del testo al passaggio del mouse</p>
-                        </td>
-                    </tr>
+            <!-- Text Hover -->
+            <tr>
+                <th scope="row">
+                    <label for="bw_cart_popup_checkout_text_hover">Colore Testo Hover</label>
+                </th>
+                <td>
+                    <input type="color" id="bw_cart_popup_checkout_text_hover" name="bw_cart_popup_checkout_text_hover"
+                        value="<?php echo esc_attr($checkout_text_hover); ?>" />
+                    <p class="description">Colore del testo al passaggio del mouse</p>
+                </td>
+            </tr>
 
-                    <!-- Font Size -->
-                    <tr>
-                        <th scope="row">
-                            <label for="bw_cart_popup_checkout_font_size">Dimensione Testo (px)</label>
-                        </th>
-                        <td>
-                            <input type="number" id="bw_cart_popup_checkout_font_size" name="bw_cart_popup_checkout_font_size"
-                                value="<?php echo esc_attr($checkout_font_size); ?>" min="10" max="30" class="small-text" />
-                            <p class="description">Dimensione del testo in pixel</p>
-                        </td>
-                    </tr>
+            <!-- Font Size -->
+            <tr>
+                <th scope="row">
+                    <label for="bw_cart_popup_checkout_font_size">Dimensione Testo (px)</label>
+                </th>
+                <td>
+                    <input type="number" id="bw_cart_popup_checkout_font_size" name="bw_cart_popup_checkout_font_size"
+                        value="<?php echo esc_attr($checkout_font_size); ?>" min="10" max="30" class="small-text" />
+                    <p class="description">Dimensione del testo in pixel</p>
+                </td>
+            </tr>
 
-                    <!-- Border Radius -->
-                    <tr>
-                        <th scope="row">
-                            <label for="bw_cart_popup_checkout_border_radius">Border Radius (px)</label>
-                        </th>
-                        <td>
-                            <input type="number" id="bw_cart_popup_checkout_border_radius"
-                                name="bw_cart_popup_checkout_border_radius" value="<?php echo esc_attr($checkout_border_radius); ?>"
-                                min="0" max="50" class="small-text" />
-                            <p class="description">Arrotondamento degli angoli in pixel</p>
-                        </td>
-                    </tr>
+            <!-- Border Radius -->
+            <tr>
+                <th scope="row">
+                    <label for="bw_cart_popup_checkout_border_radius">Border Radius (px)</label>
+                </th>
+                <td>
+                    <input type="number" id="bw_cart_popup_checkout_border_radius"
+                        name="bw_cart_popup_checkout_border_radius" value="<?php echo esc_attr($checkout_border_radius); ?>"
+                        min="0" max="50" class="small-text" />
+                    <p class="description">Arrotondamento degli angoli in pixel</p>
+                </td>
+            </tr>
 
-                    <!-- Border ON/OFF -->
-                    <tr>
-                        <th scope="row">
-                            <label for="bw_cart_popup_checkout_border_enabled">Abilita Bordo</label>
-                        </th>
-                        <td>
-                            <input type="checkbox" id="bw_cart_popup_checkout_border_enabled"
-                                name="bw_cart_popup_checkout_border_enabled" value="1" <?php checked(1, $checkout_border_enabled); ?> />
-                            <span class="description">Attiva/disattiva il bordo del pulsante</span>
-                        </td>
-                    </tr>
+            <!-- Border ON/OFF -->
+            <tr>
+                <th scope="row">
+                    <label for="bw_cart_popup_checkout_border_enabled">Abilita Bordo</label>
+                </th>
+                <td>
+                    <input type="checkbox" id="bw_cart_popup_checkout_border_enabled"
+                        name="bw_cart_popup_checkout_border_enabled" value="1" <?php checked(1, $checkout_border_enabled); ?> />
+                    <span class="description">Attiva/disattiva il bordo del pulsante</span>
+                </td>
+            </tr>
 
-                    <!-- Border Width -->
-                    <tr class="bw-checkout-border-field">
-                        <th scope="row">
-                            <label for="bw_cart_popup_checkout_border_width">Spessore Bordo (px)</label>
-                        </th>
-                        <td>
-                            <input type="number" id="bw_cart_popup_checkout_border_width" name="bw_cart_popup_checkout_border_width"
-                                value="<?php echo esc_attr($checkout_border_width); ?>" min="0" max="10" class="small-text" />
-                            <p class="description">Spessore del bordo in pixel</p>
-                        </td>
-                    </tr>
+            <!-- Border Width -->
+            <tr class="bw-checkout-border-field">
+                <th scope="row">
+                    <label for="bw_cart_popup_checkout_border_width">Spessore Bordo (px)</label>
+                </th>
+                <td>
+                    <input type="number" id="bw_cart_popup_checkout_border_width" name="bw_cart_popup_checkout_border_width"
+                        value="<?php echo esc_attr($checkout_border_width); ?>" min="0" max="10" class="small-text" />
+                    <p class="description">Spessore del bordo in pixel</p>
+                </td>
+            </tr>
 
-                    <!-- Border Style -->
-                    <tr class="bw-checkout-border-field">
-                        <th scope="row">
-                            <label for="bw_cart_popup_checkout_border_style">Stile Bordo</label>
-                        </th>
-                        <td>
-                            <select id="bw_cart_popup_checkout_border_style" name="bw_cart_popup_checkout_border_style">
-                                <option value="solid" <?php selected($checkout_border_style, 'solid'); ?>>Solid</option>
-                                <option value="dashed" <?php selected($checkout_border_style, 'dashed'); ?>>Dashed</option>
-                                <option value="dotted" <?php selected($checkout_border_style, 'dotted'); ?>>Dotted</option>
-                                <option value="double" <?php selected($checkout_border_style, 'double'); ?>>Double</option>
-                            </select>
-                            <p class="description">Stile del bordo</p>
-                        </td>
-                    </tr>
+            <!-- Border Style -->
+            <tr class="bw-checkout-border-field">
+                <th scope="row">
+                    <label for="bw_cart_popup_checkout_border_style">Stile Bordo</label>
+                </th>
+                <td>
+                    <select id="bw_cart_popup_checkout_border_style" name="bw_cart_popup_checkout_border_style">
+                        <option value="solid" <?php selected($checkout_border_style, 'solid'); ?>>Solid</option>
+                        <option value="dashed" <?php selected($checkout_border_style, 'dashed'); ?>>Dashed</option>
+                        <option value="dotted" <?php selected($checkout_border_style, 'dotted'); ?>>Dotted</option>
+                        <option value="double" <?php selected($checkout_border_style, 'double'); ?>>Double</option>
+                    </select>
+                    <p class="description">Stile del bordo</p>
+                </td>
+            </tr>
 
-                    <!-- Border Color -->
-                    <tr class="bw-checkout-border-field">
-                        <th scope="row">
-                            <label for="bw_cart_popup_checkout_border_color">Colore Bordo</label>
-                        </th>
-                        <td>
-                            <input type="color" id="bw_cart_popup_checkout_border_color" name="bw_cart_popup_checkout_border_color"
-                                value="<?php echo esc_attr($checkout_border_color); ?>" />
-                            <p class="description">Colore del bordo</p>
-                        </td>
-                    </tr>
+            <!-- Border Color -->
+            <tr class="bw-checkout-border-field">
+                <th scope="row">
+                    <label for="bw_cart_popup_checkout_border_color">Colore Bordo</label>
+                </th>
+                <td>
+                    <input type="color" id="bw_cart_popup_checkout_border_color" name="bw_cart_popup_checkout_border_color"
+                        value="<?php echo esc_attr($checkout_border_color); ?>" />
+                    <p class="description">Colore del bordo</p>
+                </td>
+            </tr>
 
-                    <!-- Padding (Layout Compatto) -->
-                    <tr>
-                        <th scope="row">
-                            <label>Padding (px)</label>
-                        </th>
-                        <td>
-                            <div class="bw-padding-grid">
-                                <div class="bw-padding-field">
-                                    <input type="number" id="bw_cart_popup_checkout_padding_top"
-                                        name="bw_cart_popup_checkout_padding_top"
-                                        value="<?php echo esc_attr($checkout_padding_top); ?>" min="0" max="50"
-                                        class="small-text" />
-                                    <label for="bw_cart_popup_checkout_padding_top">Top</label>
-                                </div>
-                                <div class="bw-padding-field">
-                                    <input type="number" id="bw_cart_popup_checkout_padding_right"
-                                        name="bw_cart_popup_checkout_padding_right"
-                                        value="<?php echo esc_attr($checkout_padding_right); ?>" min="0" max="50"
-                                        class="small-text" />
-                                    <label for="bw_cart_popup_checkout_padding_right">Right</label>
-                                </div>
-                                <div class="bw-padding-field">
-                                    <input type="number" id="bw_cart_popup_checkout_padding_bottom"
-                                        name="bw_cart_popup_checkout_padding_bottom"
-                                        value="<?php echo esc_attr($checkout_padding_bottom); ?>" min="0" max="50"
-                                        class="small-text" />
-                                    <label for="bw_cart_popup_checkout_padding_bottom">Bottom</label>
-                                </div>
-                                <div class="bw-padding-field">
-                                    <input type="number" id="bw_cart_popup_checkout_padding_left"
-                                        name="bw_cart_popup_checkout_padding_left"
-                                        value="<?php echo esc_attr($checkout_padding_left); ?>" min="0" max="50"
-                                        class="small-text" />
-                                    <label for="bw_cart_popup_checkout_padding_left">Left</label>
-                                </div>
-                            </div>
-                            <p class="description">Imposta il padding per ogni lato del pulsante</p>
-                        </td>
-                    </tr>
+            <!-- Padding (Layout Compatto) -->
+            <tr>
+                <th scope="row">
+                    <label>Padding (px)</label>
+                </th>
+                <td>
+                    <div class="bw-padding-grid">
+                        <div class="bw-padding-field">
+                            <input type="number" id="bw_cart_popup_checkout_padding_top"
+                                name="bw_cart_popup_checkout_padding_top"
+                                value="<?php echo esc_attr($checkout_padding_top); ?>" min="0" max="50"
+                                class="small-text" />
+                            <label for="bw_cart_popup_checkout_padding_top">Top</label>
+                        </div>
+                        <div class="bw-padding-field">
+                            <input type="number" id="bw_cart_popup_checkout_padding_right"
+                                name="bw_cart_popup_checkout_padding_right"
+                                value="<?php echo esc_attr($checkout_padding_right); ?>" min="0" max="50"
+                                class="small-text" />
+                            <label for="bw_cart_popup_checkout_padding_right">Right</label>
+                        </div>
+                        <div class="bw-padding-field">
+                            <input type="number" id="bw_cart_popup_checkout_padding_bottom"
+                                name="bw_cart_popup_checkout_padding_bottom"
+                                value="<?php echo esc_attr($checkout_padding_bottom); ?>" min="0" max="50"
+                                class="small-text" />
+                            <label for="bw_cart_popup_checkout_padding_bottom">Bottom</label>
+                        </div>
+                        <div class="bw-padding-field">
+                            <input type="number" id="bw_cart_popup_checkout_padding_left"
+                                name="bw_cart_popup_checkout_padding_left"
+                                value="<?php echo esc_attr($checkout_padding_left); ?>" min="0" max="50"
+                                class="small-text" />
+                            <label for="bw_cart_popup_checkout_padding_left">Left</label>
+                        </div>
+                    </div>
+                    <p class="description">Imposta il padding per ogni lato del pulsante</p>
+                </td>
+            </tr>
 
-                    <!-- === CONTINUE SHOPPING BUTTON === -->
-                    <tr>
-                        <th colspan="2">
-                            <h3 style="margin: 30px 0 10px 0;">Continue Shopping Button Style</h3>
-                        </th>
-                    </tr>
+            <!-- === CONTINUE SHOPPING BUTTON === -->
+            <tr>
+                <th colspan="2">
+                    <h3 style="margin: 30px 0 10px 0;">Continue Shopping Button Style</h3>
+                </th>
+            </tr>
 
-                    <!-- Testo -->
-                    <tr>
-                        <th scope="row">
-                            <label for="bw_cart_popup_continue_text">Testo Pulsante</label>
-                        </th>
-                        <td>
-                            <input type="text" id="bw_cart_popup_continue_text" name="bw_cart_popup_continue_text"
-                                value="<?php echo esc_attr($continue_text); ?>" class="regular-text" />
-                            <p class="description">Testo del pulsante (default: "Continue shopping")</p>
-                        </td>
-                    </tr>
+            <!-- Testo -->
+            <tr>
+                <th scope="row">
+                    <label for="bw_cart_popup_continue_text">Testo Pulsante</label>
+                </th>
+                <td>
+                    <input type="text" id="bw_cart_popup_continue_text" name="bw_cart_popup_continue_text"
+                        value="<?php echo esc_attr($continue_text); ?>" class="regular-text" />
+                    <p class="description">Testo del pulsante (default: "Continue shopping")</p>
+                </td>
+            </tr>
 
-                    <!-- Link Personalizzato -->
-                    <tr>
-                        <th scope="row">
-                            <label for="bw_cart_popup_continue_url">Link Personalizzato</label>
-                        </th>
-                        <td>
-                            <input type="url" id="bw_cart_popup_continue_url" name="bw_cart_popup_continue_url"
-                                value="<?php echo esc_attr($continue_url); ?>" class="regular-text" placeholder="/shop/" />
-                            <p class="description">URL personalizzato per il pulsante Continue Shopping (lascia vuoto per usare
-                                /shop/ di default)</p>
-                        </td>
-                    </tr>
+            <!-- Link Personalizzato -->
+            <tr>
+                <th scope="row">
+                    <label for="bw_cart_popup_continue_url">Link Personalizzato</label>
+                </th>
+                <td>
+                    <input type="url" id="bw_cart_popup_continue_url" name="bw_cart_popup_continue_url"
+                        value="<?php echo esc_attr($continue_url); ?>" class="regular-text" placeholder="/shop/" />
+                    <p class="description">URL personalizzato per il pulsante Continue Shopping (lascia vuoto per usare
+                        /shop/ di default)</p>
+                </td>
+            </tr>
 
-                    <!-- Background Color -->
-                    <tr>
-                        <th scope="row">
-                            <label for="bw_cart_popup_continue_bg">Colore Background</label>
-                        </th>
-                        <td>
-                            <input type="color" id="bw_cart_popup_continue_bg" name="bw_cart_popup_continue_bg"
-                                value="<?php echo esc_attr($continue_bg); ?>" />
-                            <p class="description">Colore di sfondo normale</p>
-                        </td>
-                    </tr>
+            <!-- Background Color -->
+            <tr>
+                <th scope="row">
+                    <label for="bw_cart_popup_continue_bg">Colore Background</label>
+                </th>
+                <td>
+                    <input type="color" id="bw_cart_popup_continue_bg" name="bw_cart_popup_continue_bg"
+                        value="<?php echo esc_attr($continue_bg); ?>" />
+                    <p class="description">Colore di sfondo normale</p>
+                </td>
+            </tr>
 
-                    <!-- Background Hover -->
-                    <tr>
-                        <th scope="row">
-                            <label for="bw_cart_popup_continue_bg_hover">Colore Background Hover</label>
-                        </th>
-                        <td>
-                            <input type="color" id="bw_cart_popup_continue_bg_hover" name="bw_cart_popup_continue_bg_hover"
-                                value="<?php echo esc_attr($continue_bg_hover); ?>" />
-                            <p class="description">Colore di sfondo al passaggio del mouse</p>
-                        </td>
-                    </tr>
+            <!-- Background Hover -->
+            <tr>
+                <th scope="row">
+                    <label for="bw_cart_popup_continue_bg_hover">Colore Background Hover</label>
+                </th>
+                <td>
+                    <input type="color" id="bw_cart_popup_continue_bg_hover" name="bw_cart_popup_continue_bg_hover"
+                        value="<?php echo esc_attr($continue_bg_hover); ?>" />
+                    <p class="description">Colore di sfondo al passaggio del mouse</p>
+                </td>
+            </tr>
 
-                    <!-- Text Color -->
-                    <tr>
-                        <th scope="row">
-                            <label for="bw_cart_popup_continue_text_color">Colore Testo</label>
-                        </th>
-                        <td>
-                            <input type="color" id="bw_cart_popup_continue_text_color" name="bw_cart_popup_continue_text_color"
-                                value="<?php echo esc_attr($continue_text_color); ?>" />
-                            <p class="description">Colore del testo normale</p>
-                        </td>
-                    </tr>
+            <!-- Text Color -->
+            <tr>
+                <th scope="row">
+                    <label for="bw_cart_popup_continue_text_color">Colore Testo</label>
+                </th>
+                <td>
+                    <input type="color" id="bw_cart_popup_continue_text_color" name="bw_cart_popup_continue_text_color"
+                        value="<?php echo esc_attr($continue_text_color); ?>" />
+                    <p class="description">Colore del testo normale</p>
+                </td>
+            </tr>
 
-                    <!-- Text Hover -->
-                    <tr>
-                        <th scope="row">
-                            <label for="bw_cart_popup_continue_text_hover">Colore Testo Hover</label>
-                        </th>
-                        <td>
-                            <input type="color" id="bw_cart_popup_continue_text_hover" name="bw_cart_popup_continue_text_hover"
-                                value="<?php echo esc_attr($continue_text_hover); ?>" />
-                            <p class="description">Colore del testo al passaggio del mouse</p>
-                        </td>
-                    </tr>
+            <!-- Text Hover -->
+            <tr>
+                <th scope="row">
+                    <label for="bw_cart_popup_continue_text_hover">Colore Testo Hover</label>
+                </th>
+                <td>
+                    <input type="color" id="bw_cart_popup_continue_text_hover" name="bw_cart_popup_continue_text_hover"
+                        value="<?php echo esc_attr($continue_text_hover); ?>" />
+                    <p class="description">Colore del testo al passaggio del mouse</p>
+                </td>
+            </tr>
 
-                    <!-- Font Size -->
-                    <tr>
-                        <th scope="row">
-                            <label for="bw_cart_popup_continue_font_size">Dimensione Testo (px)</label>
-                        </th>
-                        <td>
-                            <input type="number" id="bw_cart_popup_continue_font_size" name="bw_cart_popup_continue_font_size"
-                                value="<?php echo esc_attr($continue_font_size); ?>" min="10" max="30" class="small-text" />
-                            <p class="description">Dimensione del testo in pixel</p>
-                        </td>
-                    </tr>
+            <!-- Font Size -->
+            <tr>
+                <th scope="row">
+                    <label for="bw_cart_popup_continue_font_size">Dimensione Testo (px)</label>
+                </th>
+                <td>
+                    <input type="number" id="bw_cart_popup_continue_font_size" name="bw_cart_popup_continue_font_size"
+                        value="<?php echo esc_attr($continue_font_size); ?>" min="10" max="30" class="small-text" />
+                    <p class="description">Dimensione del testo in pixel</p>
+                </td>
+            </tr>
 
-                    <!-- Border Radius -->
-                    <tr>
-                        <th scope="row">
-                            <label for="bw_cart_popup_continue_border_radius">Border Radius (px)</label>
-                        </th>
-                        <td>
-                            <input type="number" id="bw_cart_popup_continue_border_radius"
-                                name="bw_cart_popup_continue_border_radius" value="<?php echo esc_attr($continue_border_radius); ?>"
-                                min="0" max="50" class="small-text" />
-                            <p class="description">Arrotondamento degli angoli in pixel</p>
-                        </td>
-                    </tr>
+            <!-- Border Radius -->
+            <tr>
+                <th scope="row">
+                    <label for="bw_cart_popup_continue_border_radius">Border Radius (px)</label>
+                </th>
+                <td>
+                    <input type="number" id="bw_cart_popup_continue_border_radius"
+                        name="bw_cart_popup_continue_border_radius" value="<?php echo esc_attr($continue_border_radius); ?>"
+                        min="0" max="50" class="small-text" />
+                    <p class="description">Arrotondamento degli angoli in pixel</p>
+                </td>
+            </tr>
 
-                    <!-- Border ON/OFF -->
-                    <tr>
-                        <th scope="row">
-                            <label for="bw_cart_popup_continue_border_enabled">Abilita Bordo</label>
-                        </th>
-                        <td>
-                            <input type="checkbox" id="bw_cart_popup_continue_border_enabled"
-                                name="bw_cart_popup_continue_border_enabled" value="1" <?php checked(1, $continue_border_enabled); ?> />
-                            <span class="description">Attiva/disattiva il bordo del pulsante</span>
-                        </td>
-                    </tr>
+            <!-- Border ON/OFF -->
+            <tr>
+                <th scope="row">
+                    <label for="bw_cart_popup_continue_border_enabled">Abilita Bordo</label>
+                </th>
+                <td>
+                    <input type="checkbox" id="bw_cart_popup_continue_border_enabled"
+                        name="bw_cart_popup_continue_border_enabled" value="1" <?php checked(1, $continue_border_enabled); ?> />
+                    <span class="description">Attiva/disattiva il bordo del pulsante</span>
+                </td>
+            </tr>
 
-                    <!-- Border Width -->
-                    <tr class="bw-continue-border-field">
-                        <th scope="row">
-                            <label for="bw_cart_popup_continue_border_width">Spessore Bordo (px)</label>
-                        </th>
-                        <td>
-                            <input type="number" id="bw_cart_popup_continue_border_width" name="bw_cart_popup_continue_border_width"
-                                value="<?php echo esc_attr($continue_border_width); ?>" min="0" max="10" class="small-text" />
-                            <p class="description">Spessore del bordo in pixel</p>
-                        </td>
-                    </tr>
+            <!-- Border Width -->
+            <tr class="bw-continue-border-field">
+                <th scope="row">
+                    <label for="bw_cart_popup_continue_border_width">Spessore Bordo (px)</label>
+                </th>
+                <td>
+                    <input type="number" id="bw_cart_popup_continue_border_width" name="bw_cart_popup_continue_border_width"
+                        value="<?php echo esc_attr($continue_border_width); ?>" min="0" max="10" class="small-text" />
+                    <p class="description">Spessore del bordo in pixel</p>
+                </td>
+            </tr>
 
-                    <!-- Border Style -->
-                    <tr class="bw-continue-border-field">
-                        <th scope="row">
-                            <label for="bw_cart_popup_continue_border_style">Stile Bordo</label>
-                        </th>
-                        <td>
-                            <select id="bw_cart_popup_continue_border_style" name="bw_cart_popup_continue_border_style">
-                                <option value="solid" <?php selected($continue_border_style, 'solid'); ?>>Solid</option>
-                                <option value="dashed" <?php selected($continue_border_style, 'dashed'); ?>>Dashed</option>
-                                <option value="dotted" <?php selected($continue_border_style, 'dotted'); ?>>Dotted</option>
-                                <option value="double" <?php selected($continue_border_style, 'double'); ?>>Double</option>
-                            </select>
-                            <p class="description">Stile del bordo</p>
-                        </td>
-                    </tr>
+            <!-- Border Style -->
+            <tr class="bw-continue-border-field">
+                <th scope="row">
+                    <label for="bw_cart_popup_continue_border_style">Stile Bordo</label>
+                </th>
+                <td>
+                    <select id="bw_cart_popup_continue_border_style" name="bw_cart_popup_continue_border_style">
+                        <option value="solid" <?php selected($continue_border_style, 'solid'); ?>>Solid</option>
+                        <option value="dashed" <?php selected($continue_border_style, 'dashed'); ?>>Dashed</option>
+                        <option value="dotted" <?php selected($continue_border_style, 'dotted'); ?>>Dotted</option>
+                        <option value="double" <?php selected($continue_border_style, 'double'); ?>>Double</option>
+                    </select>
+                    <p class="description">Stile del bordo</p>
+                </td>
+            </tr>
 
-                    <!-- Border Color -->
-                    <tr class="bw-continue-border-field">
-                        <th scope="row">
-                            <label for="bw_cart_popup_continue_border_color">Colore Bordo</label>
-                        </th>
-                        <td>
-                            <input type="color" id="bw_cart_popup_continue_border_color" name="bw_cart_popup_continue_border_color"
-                                value="<?php echo esc_attr($continue_border_color); ?>" />
-                            <p class="description">Colore del bordo</p>
-                        </td>
-                    </tr>
+            <!-- Border Color -->
+            <tr class="bw-continue-border-field">
+                <th scope="row">
+                    <label for="bw_cart_popup_continue_border_color">Colore Bordo</label>
+                </th>
+                <td>
+                    <input type="color" id="bw_cart_popup_continue_border_color" name="bw_cart_popup_continue_border_color"
+                        value="<?php echo esc_attr($continue_border_color); ?>" />
+                    <p class="description">Colore del bordo</p>
+                </td>
+            </tr>
 
-                    <!-- Padding (Layout Compatto) -->
-                    <tr>
-                        <th scope="row">
-                            <label>Padding (px)</label>
-                        </th>
-                        <td>
-                            <div class="bw-padding-grid">
-                                <div class="bw-padding-field">
-                                    <input type="number" id="bw_cart_popup_continue_padding_top"
-                                        name="bw_cart_popup_continue_padding_top"
-                                        value="<?php echo esc_attr($continue_padding_top); ?>" min="0" max="50"
-                                        class="small-text" />
-                                    <label for="bw_cart_popup_continue_padding_top">Top</label>
-                                </div>
-                                <div class="bw-padding-field">
-                                    <input type="number" id="bw_cart_popup_continue_padding_right"
-                                        name="bw_cart_popup_continue_padding_right"
-                                        value="<?php echo esc_attr($continue_padding_right); ?>" min="0" max="50"
-                                        class="small-text" />
-                                    <label for="bw_cart_popup_continue_padding_right">Right</label>
-                                </div>
-                                <div class="bw-padding-field">
-                                    <input type="number" id="bw_cart_popup_continue_padding_bottom"
-                                        name="bw_cart_popup_continue_padding_bottom"
-                                        value="<?php echo esc_attr($continue_padding_bottom); ?>" min="0" max="50"
-                                        class="small-text" />
-                                    <label for="bw_cart_popup_continue_padding_bottom">Bottom</label>
-                                </div>
-                                <div class="bw-padding-field">
-                                    <input type="number" id="bw_cart_popup_continue_padding_left"
-                                        name="bw_cart_popup_continue_padding_left"
-                                        value="<?php echo esc_attr($continue_padding_left); ?>" min="0" max="50"
-                                        class="small-text" />
-                                    <label for="bw_cart_popup_continue_padding_left">Left</label>
-                                </div>
-                            </div>
-                            <p class="description">Imposta il padding per ogni lato del pulsante</p>
-                        </td>
-                    </tr>
+            <!-- Padding (Layout Compatto) -->
+            <tr>
+                <th scope="row">
+                    <label>Padding (px)</label>
+                </th>
+                <td>
+                    <div class="bw-padding-grid">
+                        <div class="bw-padding-field">
+                            <input type="number" id="bw_cart_popup_continue_padding_top"
+                                name="bw_cart_popup_continue_padding_top"
+                                value="<?php echo esc_attr($continue_padding_top); ?>" min="0" max="50"
+                                class="small-text" />
+                            <label for="bw_cart_popup_continue_padding_top">Top</label>
+                        </div>
+                        <div class="bw-padding-field">
+                            <input type="number" id="bw_cart_popup_continue_padding_right"
+                                name="bw_cart_popup_continue_padding_right"
+                                value="<?php echo esc_attr($continue_padding_right); ?>" min="0" max="50"
+                                class="small-text" />
+                            <label for="bw_cart_popup_continue_padding_right">Right</label>
+                        </div>
+                        <div class="bw-padding-field">
+                            <input type="number" id="bw_cart_popup_continue_padding_bottom"
+                                name="bw_cart_popup_continue_padding_bottom"
+                                value="<?php echo esc_attr($continue_padding_bottom); ?>" min="0" max="50"
+                                class="small-text" />
+                            <label for="bw_cart_popup_continue_padding_bottom">Bottom</label>
+                        </div>
+                        <div class="bw-padding-field">
+                            <input type="number" id="bw_cart_popup_continue_padding_left"
+                                name="bw_cart_popup_continue_padding_left"
+                                value="<?php echo esc_attr($continue_padding_left); ?>" min="0" max="50"
+                                class="small-text" />
+                            <label for="bw_cart_popup_continue_padding_left">Left</label>
+                        </div>
+                    </div>
+                    <p class="description">Imposta il padding per ogni lato del pulsante</p>
+                </td>
+            </tr>
 
-                    <!-- === PROMO CODE SECTION === -->
-                    <tr>
-                        <th colspan="2">
-                            <hr style="margin: 30px 0 20px 0; border: none; border-top: 2px solid #ddd;">
-                            <h2 style="margin: 20px 0 10px 0;">Promo Code Section</h2>
-                        </th>
-                    </tr>
+            <!-- === PROMO CODE SECTION === -->
+            <tr>
+                <th colspan="2">
+                    <hr style="margin: 30px 0 20px 0; border: none; border-top: 2px solid #ddd;">
+                    <h2 style="margin: 20px 0 10px 0;">Promo Code Section</h2>
+                </th>
+            </tr>
 
-                    <!-- Section Label -->
-                    <tr>
-                        <th scope="row">
-                            <label for="bw_cart_popup_promo_section_label">Section Label</label>
-                        </th>
-                        <td>
-                            <input type="text" id="bw_cart_popup_promo_section_label" name="bw_cart_popup_promo_section_label"
-                                value="<?php echo esc_attr($promo_section_label); ?>" class="regular-text" />
-                            <p class="description">Label per la sezione promo code (default: "Promo code section")</p>
-                        </td>
-                    </tr>
+            <!-- Section Label -->
+            <tr>
+                <th scope="row">
+                    <label for="bw_cart_popup_promo_section_label">Section Label</label>
+                </th>
+                <td>
+                    <input type="text" id="bw_cart_popup_promo_section_label" name="bw_cart_popup_promo_section_label"
+                        value="<?php echo esc_attr($promo_section_label); ?>" class="regular-text" />
+                    <p class="description">Label per la sezione promo code (default: "Promo code section")</p>
+                </td>
+            </tr>
 
-                    <!-- Promo Input Padding -->
-                    <tr>
-                        <th scope="row">
-                            <label>Input "Enter promo code" Padding (px)</label>
-                        </th>
-                        <td>
-                            <div class="bw-padding-grid">
-                                <div class="bw-padding-field">
-                                    <input type="number" id="bw_cart_popup_promo_input_padding_top"
-                                        name="bw_cart_popup_promo_input_padding_top"
-                                        value="<?php echo esc_attr($promo_input_padding_top); ?>" min="0" max="100"
-                                        class="small-text" />
-                                    <label for="bw_cart_popup_promo_input_padding_top">Top</label>
-                                </div>
-                                <div class="bw-padding-field">
-                                    <input type="number" id="bw_cart_popup_promo_input_padding_right"
-                                        name="bw_cart_popup_promo_input_padding_right"
-                                        value="<?php echo esc_attr($promo_input_padding_right); ?>" min="0" max="100"
-                                        class="small-text" />
-                                    <label for="bw_cart_popup_promo_input_padding_right">Right</label>
-                                </div>
-                                <div class="bw-padding-field">
-                                    <input type="number" id="bw_cart_popup_promo_input_padding_bottom"
-                                        name="bw_cart_popup_promo_input_padding_bottom"
-                                        value="<?php echo esc_attr($promo_input_padding_bottom); ?>" min="0" max="100"
-                                        class="small-text" />
-                                    <label for="bw_cart_popup_promo_input_padding_bottom">Bottom</label>
-                                </div>
-                                <div class="bw-padding-field">
-                                    <input type="number" id="bw_cart_popup_promo_input_padding_left"
-                                        name="bw_cart_popup_promo_input_padding_left"
-                                        value="<?php echo esc_attr($promo_input_padding_left); ?>" min="0" max="100"
-                                        class="small-text" />
-                                    <label for="bw_cart_popup_promo_input_padding_left">Left</label>
-                                </div>
-                            </div>
-                            <p class="description">Padding dell'input del promo code (tutti i 4 valori in linea)</p>
-                        </td>
-                    </tr>
+            <!-- Promo Input Padding -->
+            <tr>
+                <th scope="row">
+                    <label>Input "Enter promo code" Padding (px)</label>
+                </th>
+                <td>
+                    <div class="bw-padding-grid">
+                        <div class="bw-padding-field">
+                            <input type="number" id="bw_cart_popup_promo_input_padding_top"
+                                name="bw_cart_popup_promo_input_padding_top"
+                                value="<?php echo esc_attr($promo_input_padding_top); ?>" min="0" max="100"
+                                class="small-text" />
+                            <label for="bw_cart_popup_promo_input_padding_top">Top</label>
+                        </div>
+                        <div class="bw-padding-field">
+                            <input type="number" id="bw_cart_popup_promo_input_padding_right"
+                                name="bw_cart_popup_promo_input_padding_right"
+                                value="<?php echo esc_attr($promo_input_padding_right); ?>" min="0" max="100"
+                                class="small-text" />
+                            <label for="bw_cart_popup_promo_input_padding_right">Right</label>
+                        </div>
+                        <div class="bw-padding-field">
+                            <input type="number" id="bw_cart_popup_promo_input_padding_bottom"
+                                name="bw_cart_popup_promo_input_padding_bottom"
+                                value="<?php echo esc_attr($promo_input_padding_bottom); ?>" min="0" max="100"
+                                class="small-text" />
+                            <label for="bw_cart_popup_promo_input_padding_bottom">Bottom</label>
+                        </div>
+                        <div class="bw-padding-field">
+                            <input type="number" id="bw_cart_popup_promo_input_padding_left"
+                                name="bw_cart_popup_promo_input_padding_left"
+                                value="<?php echo esc_attr($promo_input_padding_left); ?>" min="0" max="100"
+                                class="small-text" />
+                            <label for="bw_cart_popup_promo_input_padding_left">Left</label>
+                        </div>
+                    </div>
+                    <p class="description">Padding dell'input del promo code (tutti i 4 valori in linea)</p>
+                </td>
+            </tr>
 
-                    <!-- Placeholder Font Size -->
-                    <tr>
-                        <th scope="row">
-                            <label for="bw_cart_popup_promo_placeholder_font_size">Placeholder Font Size (px)</label>
-                        </th>
-                        <td>
-                            <input type="number" id="bw_cart_popup_promo_placeholder_font_size"
-                                name="bw_cart_popup_promo_placeholder_font_size"
-                                value="<?php echo esc_attr($promo_placeholder_font_size); ?>" min="8" max="30" class="small-text" />
-                            <p class="description">Dimensione del font del placeholder dell'input "Enter promo code" (solo
-                                placeholder, non il testo digitato)</p>
-                        </td>
-                    </tr>
+            <!-- Placeholder Font Size -->
+            <tr>
+                <th scope="row">
+                    <label for="bw_cart_popup_promo_placeholder_font_size">Placeholder Font Size (px)</label>
+                </th>
+                <td>
+                    <input type="number" id="bw_cart_popup_promo_placeholder_font_size"
+                        name="bw_cart_popup_promo_placeholder_font_size"
+                        value="<?php echo esc_attr($promo_placeholder_font_size); ?>" min="8" max="30" class="small-text" />
+                    <p class="description">Dimensione del font del placeholder dell'input "Enter promo code" (solo
+                        placeholder, non il testo digitato)</p>
+                </td>
+            </tr>
 
-                    <!-- Apply Button Font Weight -->
-                    <tr>
-                        <th scope="row">
-                            <label for="bw_cart_popup_apply_button_font_weight">Apply Button Font Weight</label>
-                        </th>
-                        <td>
-                            <select id="bw_cart_popup_apply_button_font_weight" name="bw_cart_popup_apply_button_font_weight">
-                                <option value="normal" <?php selected($apply_button_font_weight, 'normal'); ?>>Normal</option>
-                                <option value="600" <?php selected($apply_button_font_weight, '600'); ?>>Semi-bold (600)</option>
-                                <option value="bold" <?php selected($apply_button_font_weight, 'bold'); ?>>Bold</option>
-                            </select>
-                            <p class="description">Font weight del pulsante "Apply" (default: normal)</p>
-                        </td>
-                    </tr>
+            <!-- Apply Button Font Weight -->
+            <tr>
+                <th scope="row">
+                    <label for="bw_cart_popup_apply_button_font_weight">Apply Button Font Weight</label>
+                </th>
+                <td>
+                    <select id="bw_cart_popup_apply_button_font_weight" name="bw_cart_popup_apply_button_font_weight">
+                        <option value="normal" <?php selected($apply_button_font_weight, 'normal'); ?>>Normal</option>
+                        <option value="600" <?php selected($apply_button_font_weight, '600'); ?>>Semi-bold (600)</option>
+                        <option value="bold" <?php selected($apply_button_font_weight, 'bold'); ?>>Bold</option>
+                    </select>
+                    <p class="description">Font weight del pulsante "Apply" (default: normal)</p>
+                </td>
+            </tr>
 
-                    <!-- === EMPTY CART SETTINGS === -->
-                    <tr>
-                        <th colspan="2">
-                            <h3 style="margin: 30px 0 10px 0;">Empty Cart Settings</h3>
-                        </th>
-                    </tr>
+            <!-- === EMPTY CART SETTINGS === -->
+            <tr>
+                <th colspan="2">
+                    <h3 style="margin: 30px 0 10px 0;">Empty Cart Settings</h3>
+                </th>
+            </tr>
 
-                    <!-- Return to Shop URL -->
-                    <tr>
-                        <th scope="row">
-                            <label for="bw_cart_popup_return_shop_url">Return to Shop URL</label>
-                        </th>
-                        <td>
-                            <input type="url" id="bw_cart_popup_return_shop_url" name="bw_cart_popup_return_shop_url"
-                                value="<?php echo esc_attr($return_shop_url); ?>" class="regular-text" placeholder="/shop/" />
-                            <p class="description">URL personalizzato per il pulsante "Return to Shop" (lascia vuoto per usare
-                                /shop/ di default)</p>
-                        </td>
-                    </tr>
+            <!-- Return to Shop URL -->
+            <tr>
+                <th scope="row">
+                    <label for="bw_cart_popup_return_shop_url">Return to Shop URL</label>
+                </th>
+                <td>
+                    <input type="url" id="bw_cart_popup_return_shop_url" name="bw_cart_popup_return_shop_url"
+                        value="<?php echo esc_attr($return_shop_url); ?>" class="regular-text" placeholder="/shop/" />
+                    <p class="description">URL personalizzato per il pulsante "Return to Shop" (lascia vuoto per usare
+                        /shop/ di default)</p>
+                </td>
+            </tr>
 
-                    <!-- Sezione SVG Personalizzato -->
-                    <tr>
-                        <th colspan="2">
-                            <h2>SVG Personalizzato</h2>
-                        </th>
-                    </tr>
+            <!-- Sezione SVG Personalizzato -->
+            <tr>
+                <th colspan="2">
+                    <h2>SVG Personalizzato</h2>
+                </th>
+            </tr>
 
-                    <!-- SVG Aggiuntivo -->
-                    <tr>
-                        <th scope="row">
-                            <label for="bw_cart_popup_additional_svg">Cart Pop-Up SVG Icon (Custom)</label>
-                        </th>
-                        <td>
-                            <textarea id="bw_cart_popup_additional_svg" name="bw_cart_popup_additional_svg" rows="8"
-                                class="large-text code"><?php echo esc_textarea($additional_svg); ?></textarea>
-                            <p class="description">Incolla qui il codice SVG completo da visualizzare nel Cart Pop-Up. Esempio:
-                                &lt;svg xmlns="http://www.w3.org/2000/svg"...&gt;...&lt;/svg&gt;</p>
-                        </td>
-                    </tr>
+            <!-- SVG Aggiuntivo -->
+            <tr>
+                <th scope="row">
+                    <label for="bw_cart_popup_additional_svg">Cart Pop-Up SVG Icon (Custom)</label>
+                </th>
+                <td>
+                    <textarea id="bw_cart_popup_additional_svg" name="bw_cart_popup_additional_svg" rows="8"
+                        class="large-text code"><?php echo esc_textarea($additional_svg); ?></textarea>
+                    <p class="description">Incolla qui il codice SVG completo da visualizzare nel Cart Pop-Up. Esempio:
+                        &lt;svg xmlns="http://www.w3.org/2000/svg"...&gt;...&lt;/svg&gt;</p>
+                </td>
+            </tr>
 
-                    <!-- Margin per Cart Icon SVG -->
-                    <tr>
-                        <th scope="row">
-                            <label>Margin Cart Icon SVG (px)</label>
-                        </th>
-                        <td>
-                            <div class="bw-padding-grid">
-                                <div class="bw-padding-field">
-                                    <input type="number" id="bw_cart_popup_cart_icon_margin_top"
-                                        name="bw_cart_popup_cart_icon_margin_top"
-                                        value="<?php echo esc_attr($cart_icon_margin_top); ?>" min="0" max="100"
-                                        class="small-text" />
-                                    <label for="bw_cart_popup_cart_icon_margin_top">Top</label>
-                                </div>
-                                <div class="bw-padding-field">
-                                    <input type="number" id="bw_cart_popup_cart_icon_margin_right"
-                                        name="bw_cart_popup_cart_icon_margin_right"
-                                        value="<?php echo esc_attr($cart_icon_margin_right); ?>" min="0" max="100"
-                                        class="small-text" />
-                                    <label for="bw_cart_popup_cart_icon_margin_right">Right</label>
-                                </div>
-                                <div class="bw-padding-field">
-                                    <input type="number" id="bw_cart_popup_cart_icon_margin_bottom"
-                                        name="bw_cart_popup_cart_icon_margin_bottom"
-                                        value="<?php echo esc_attr($cart_icon_margin_bottom); ?>" min="0" max="100"
-                                        class="small-text" />
-                                    <label for="bw_cart_popup_cart_icon_margin_bottom">Bottom</label>
-                                </div>
-                                <div class="bw-padding-field">
-                                    <input type="number" id="bw_cart_popup_cart_icon_margin_left"
-                                        name="bw_cart_popup_cart_icon_margin_left"
-                                        value="<?php echo esc_attr($cart_icon_margin_left); ?>" min="0" max="100"
-                                        class="small-text" />
-                                    <label for="bw_cart_popup_cart_icon_margin_left">Left</label>
-                                </div>
-                            </div>
-                            <p class="description">Imposta il margin per l'icona SVG del carrello</p>
-                        </td>
-                    </tr>
+            <!-- Margin per Cart Icon SVG -->
+            <tr>
+                <th scope="row">
+                    <label>Margin Cart Icon SVG (px)</label>
+                </th>
+                <td>
+                    <div class="bw-padding-grid">
+                        <div class="bw-padding-field">
+                            <input type="number" id="bw_cart_popup_cart_icon_margin_top"
+                                name="bw_cart_popup_cart_icon_margin_top"
+                                value="<?php echo esc_attr($cart_icon_margin_top); ?>" min="0" max="100"
+                                class="small-text" />
+                            <label for="bw_cart_popup_cart_icon_margin_top">Top</label>
+                        </div>
+                        <div class="bw-padding-field">
+                            <input type="number" id="bw_cart_popup_cart_icon_margin_right"
+                                name="bw_cart_popup_cart_icon_margin_right"
+                                value="<?php echo esc_attr($cart_icon_margin_right); ?>" min="0" max="100"
+                                class="small-text" />
+                            <label for="bw_cart_popup_cart_icon_margin_right">Right</label>
+                        </div>
+                        <div class="bw-padding-field">
+                            <input type="number" id="bw_cart_popup_cart_icon_margin_bottom"
+                                name="bw_cart_popup_cart_icon_margin_bottom"
+                                value="<?php echo esc_attr($cart_icon_margin_bottom); ?>" min="0" max="100"
+                                class="small-text" />
+                            <label for="bw_cart_popup_cart_icon_margin_bottom">Bottom</label>
+                        </div>
+                        <div class="bw-padding-field">
+                            <input type="number" id="bw_cart_popup_cart_icon_margin_left"
+                                name="bw_cart_popup_cart_icon_margin_left"
+                                value="<?php echo esc_attr($cart_icon_margin_left); ?>" min="0" max="100"
+                                class="small-text" />
+                            <label for="bw_cart_popup_cart_icon_margin_left">Left</label>
+                        </div>
+                    </div>
+                    <p class="description">Imposta il margin per l'icona SVG del carrello</p>
+                </td>
+            </tr>
 
-                    <!-- Empty Cart SVG (Custom) -->
-                    <tr>
-                        <th scope="row">
-                            <label for="bw_cart_popup_empty_cart_svg">Empty Cart SVG (Custom)</label>
-                        </th>
-                        <td>
-                            <textarea id="bw_cart_popup_empty_cart_svg" name="bw_cart_popup_empty_cart_svg" rows="8"
-                                class="large-text code"><?php echo esc_textarea($empty_cart_svg); ?></textarea>
-                            <p class="description">Incolla qui il codice SVG personalizzato per l'icona del carrello vuoto. Se
-                                vuoto, verrà usata l'icona di default.</p>
-                        </td>
-                    </tr>
+            <!-- Empty Cart SVG (Custom) -->
+            <tr>
+                <th scope="row">
+                    <label for="bw_cart_popup_empty_cart_svg">Empty Cart SVG (Custom)</label>
+                </th>
+                <td>
+                    <textarea id="bw_cart_popup_empty_cart_svg" name="bw_cart_popup_empty_cart_svg" rows="8"
+                        class="large-text code"><?php echo esc_textarea($empty_cart_svg); ?></textarea>
+                    <p class="description">Incolla qui il codice SVG personalizzato per l'icona del carrello vuoto. Se
+                        vuoto, verrà usata l'icona di default.</p>
+                </td>
+            </tr>
 
-                    <!-- Padding per Empty Cart SVG -->
-                    <tr>
-                        <th scope="row">
-                            <label>Padding Empty Cart SVG (px)</label>
-                        </th>
-                        <td>
-                            <div class="bw-padding-grid">
-                                <div class="bw-padding-field">
-                                    <input type="number" id="bw_cart_popup_empty_cart_padding_top"
-                                        name="bw_cart_popup_empty_cart_padding_top"
-                                        value="<?php echo esc_attr($empty_cart_padding_top); ?>" min="0" max="100"
-                                        class="small-text" />
-                                    <label for="bw_cart_popup_empty_cart_padding_top">Top</label>
-                                </div>
-                                <div class="bw-padding-field">
-                                    <input type="number" id="bw_cart_popup_empty_cart_padding_right"
-                                        name="bw_cart_popup_empty_cart_padding_right"
-                                        value="<?php echo esc_attr($empty_cart_padding_right); ?>" min="0" max="100"
-                                        class="small-text" />
-                                    <label for="bw_cart_popup_empty_cart_padding_right">Right</label>
-                                </div>
-                                <div class="bw-padding-field">
-                                    <input type="number" id="bw_cart_popup_empty_cart_padding_bottom"
-                                        name="bw_cart_popup_empty_cart_padding_bottom"
-                                        value="<?php echo esc_attr($empty_cart_padding_bottom); ?>" min="0" max="100"
-                                        class="small-text" />
-                                    <label for="bw_cart_popup_empty_cart_padding_bottom">Bottom</label>
-                                </div>
-                                <div class="bw-padding-field">
-                                    <input type="number" id="bw_cart_popup_empty_cart_padding_left"
-                                        name="bw_cart_popup_empty_cart_padding_left"
-                                        value="<?php echo esc_attr($empty_cart_padding_left); ?>" min="0" max="100"
-                                        class="small-text" />
-                                    <label for="bw_cart_popup_empty_cart_padding_left">Left</label>
-                                </div>
-                            </div>
-                            <p class="description">Imposta il padding per l'icona SVG del carrello vuoto</p>
-                        </td>
-                    </tr>
+            <!-- Padding per Empty Cart SVG -->
+            <tr>
+                <th scope="row">
+                    <label>Padding Empty Cart SVG (px)</label>
+                </th>
+                <td>
+                    <div class="bw-padding-grid">
+                        <div class="bw-padding-field">
+                            <input type="number" id="bw_cart_popup_empty_cart_padding_top"
+                                name="bw_cart_popup_empty_cart_padding_top"
+                                value="<?php echo esc_attr($empty_cart_padding_top); ?>" min="0" max="100"
+                                class="small-text" />
+                            <label for="bw_cart_popup_empty_cart_padding_top">Top</label>
+                        </div>
+                        <div class="bw-padding-field">
+                            <input type="number" id="bw_cart_popup_empty_cart_padding_right"
+                                name="bw_cart_popup_empty_cart_padding_right"
+                                value="<?php echo esc_attr($empty_cart_padding_right); ?>" min="0" max="100"
+                                class="small-text" />
+                            <label for="bw_cart_popup_empty_cart_padding_right">Right</label>
+                        </div>
+                        <div class="bw-padding-field">
+                            <input type="number" id="bw_cart_popup_empty_cart_padding_bottom"
+                                name="bw_cart_popup_empty_cart_padding_bottom"
+                                value="<?php echo esc_attr($empty_cart_padding_bottom); ?>" min="0" max="100"
+                                class="small-text" />
+                            <label for="bw_cart_popup_empty_cart_padding_bottom">Bottom</label>
+                        </div>
+                        <div class="bw-padding-field">
+                            <input type="number" id="bw_cart_popup_empty_cart_padding_left"
+                                name="bw_cart_popup_empty_cart_padding_left"
+                                value="<?php echo esc_attr($empty_cart_padding_left); ?>" min="0" max="100"
+                                class="small-text" />
+                            <label for="bw_cart_popup_empty_cart_padding_left">Left</label>
+                        </div>
+                    </div>
+                    <p class="description">Imposta il padding per l'icona SVG del carrello vuoto</p>
+                </td>
+            </tr>
 
-                    <!-- Opzione colore nero SVG -->
-                    <tr>
-                        <th scope="row">
-                            <label for="bw_cart_popup_svg_black">Colora SVG di Nero</label>
-                        </th>
-                        <td>
-                            <label class="switch">
-                                <input type="checkbox" id="bw_cart_popup_svg_black" name="bw_cart_popup_svg_black" value="1" <?php checked(1, $svg_black); ?> />
-                                <span class="description">Applica automaticamente fill: #000 su tutti i path dell'SVG</span>
-                            </label>
-                        </td>
-                    </tr>
-                </table>
+            <!-- Opzione colore nero SVG -->
+            <tr>
+                <th scope="row">
+                    <label for="bw_cart_popup_svg_black">Colora SVG di Nero</label>
+                </th>
+                <td>
+                    <label class="switch">
+                        <input type="checkbox" id="bw_cart_popup_svg_black" name="bw_cart_popup_svg_black" value="1" <?php checked(1, $svg_black); ?> />
+                        <span class="description">Applica automaticamente fill: #000 su tutti i path dell'SVG</span>
+                    </label>
+                </td>
+            </tr>
+        </table>
 
-                <?php submit_button('Salva Impostazioni', 'primary', 'bw_cart_popup_submit'); ?>
-            </form>
+        <?php submit_button('Salva Impostazioni', 'primary', 'bw_cart_popup_submit'); ?>
+    </form>
 
-            <!-- Note informative -->
-            <div class="card" style="margin-top: 20px;">
-                <h2>Note sull'utilizzo</h2>
-                <ul>
-                    <li><strong>Funzionalità OFF:</strong> I pulsanti "Add to Cart" comportano in modo standard e portano alla
-                        pagina del carrello.</li>
-                    <li><strong>Funzionalità ON:</strong> Cliccando su "Add to Cart" si apre un pannello slide-in da destra con
-                        overlay scuro.</li>
-                    <li><strong>Design:</strong> Il pannello replica il design del mini-cart con header, lista prodotti, promo code,
-                        totali e pulsanti azione.</li>
-                    <li><strong>Promo Code:</strong> Al click su "Click here" appare un box per inserire il coupon con calcolo
-                        real-time dello sconto.</li>
-                    <li><strong>CSS Personalizzato:</strong> Puoi modificare ulteriormente lo stile editando il file
-                        <code>assets/css/bw-cart-popup.css</code></li>
-                </ul>
-            </div>
+    <!-- Note informative -->
+    <div class="card" style="margin-top: 20px;">
+        <h2>Note sull'utilizzo</h2>
+        <ul>
+            <li><strong>Funzionalità OFF:</strong> I pulsanti "Add to Cart" comportano in modo standard e portano alla
+                pagina del carrello.</li>
+            <li><strong>Funzionalità ON:</strong> Cliccando su "Add to Cart" si apre un pannello slide-in da destra con
+                overlay scuro.</li>
+            <li><strong>Design:</strong> Il pannello replica il design del mini-cart con header, lista prodotti, promo code,
+                totali e pulsanti azione.</li>
+            <li><strong>Promo Code:</strong> Al click su "Click here" appare un box per inserire il coupon con calcolo
+                real-time dello sconto.</li>
+            <li><strong>CSS Personalizzato:</strong> Puoi modificare ulteriormente lo stile editando il file
+                <code>assets/css/bw-cart-popup.css</code>
+            </li>
+        </ul>
+    </div>
 
-            <style>
-                .switch input {
-                    margin-right: 10px;
-                }
+    <style>
+        .switch input {
+            margin-right: 10px;
+        }
 
-                .card {
-                    background: #fff;
-                    border: 1px solid #ccd0d4;
-                    padding: 20px;
-                    box-shadow: 0 1px 1px rgba(0, 0, 0, .04);
-                }
+        .card {
+            background: #fff;
+            border: 1px solid #ccd0d4;
+            padding: 20px;
+            box-shadow: 0 1px 1px rgba(0, 0, 0, .04);
+        }
 
-                .card h2 {
-                    margin-top: 0;
-                }
+        .card h2 {
+            margin-top: 0;
+        }
 
-                .card ul {
-                    list-style: disc;
-                    padding-left: 20px;
-                }
+        .card ul {
+            list-style: disc;
+            padding-left: 20px;
+        }
 
-                .card li {
-                    margin-bottom: 10px;
-                }
+        .card li {
+            margin-bottom: 10px;
+        }
 
-                /* Layout compatto per padding */
-                .bw-padding-grid {
-                    display: flex;
-                    gap: 15px;
-                    flex-wrap: wrap;
-                }
+        /* Layout compatto per padding */
+        .bw-padding-grid {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
 
-                .bw-padding-field {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                }
+        .bw-padding-field {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
 
-                .bw-padding-field input {
-                    margin-bottom: 5px;
-                }
+        .bw-padding-field input {
+            margin-bottom: 5px;
+        }
 
-                .bw-padding-field label {
-                    font-size: 12px;
-                    color: #666;
-                    font-weight: 500;
-                }
-            </style>
-            <?php
+        .bw-padding-field label {
+            font-size: 12px;
+            color: #666;
+            font-weight: 500;
+        }
+    </style>
+    <?php
     // JavaScript for border toggle is now loaded via bw-border-toggle-admin.js
 }
 
@@ -3344,84 +3353,84 @@ function bw_site_render_redirect_tab()
     $next_index = count($redirects);
     ?>
 
-            <?php if ($saved): ?>
-                        <div class="notice notice-success is-dismissible">
-                            <p><strong>Redirect salvati con successo!</strong></p>
-                        </div>
-            <?php endif; ?>
+    <?php if ($saved): ?>
+        <div class="notice notice-success is-dismissible">
+            <p><strong>Redirect salvati con successo!</strong></p>
+        </div>
+    <?php endif; ?>
 
-            <form method="post" action="">
-                <?php wp_nonce_field('bw_redirects_save', 'bw_redirects_nonce'); ?>
+    <form method="post" action="">
+        <?php wp_nonce_field('bw_redirects_save', 'bw_redirects_nonce'); ?>
 
-                <table class="form-table bw-redirects-table" role="presentation">
-                    <thead>
-                        <tr>
-                            <th scope="col">Link d'arrivo</th>
-                            <th scope="col">Link di redirect</th>
-                            <th scope="col">Azioni</th>
-                        </tr>
-                    </thead>
-                    <tbody id="bw-redirects-rows" data-next-index="<?php echo esc_attr($next_index); ?>">
-                        <?php foreach ($redirects as $index => $redirect):
-                            $target = isset($redirect['target']) ? $redirect['target'] : '';
-                            $source = isset($redirect['source']) ? $redirect['source'] : '';
-                            ?>
-                                    <tr class="bw-redirect-row">
-                                        <td>
-                                            <label>
-                                                Inserisci il link d'arrivo
-                                                <input type="text" name="bw_redirects[<?php echo esc_attr($index); ?>][target_url]"
-                                                    value="<?php echo esc_attr($target); ?>" class="regular-text"
-                                                    placeholder="https://esempio.com/pagina" />
-                                            </label>
-                                            <p class="description">URL assoluto verso cui reindirizzare l'utente.</p>
-                                        </td>
-                                        <td>
-                                            <label>
-                                                Inserisci il link di redirect
-                                                <input type="text" name="bw_redirects[<?php echo esc_attr($index); ?>][source_url]"
-                                                    value="<?php echo esc_attr($source); ?>" class="regular-text"
-                                                    placeholder="/promo/black-friday" />
-                                            </label>
-                                            <p class="description">Accetta un path relativo (es. /promo) o un URL completo.</p>
-                                        </td>
-                                        <td class="bw-redirect-actions">
-                                            <button type="button" class="button button-link-delete bw-remove-redirect">Rimuovi</button>
-                                        </td>
-                                    </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
+        <table class="form-table bw-redirects-table" role="presentation">
+            <thead>
+                <tr>
+                    <th scope="col">Link d'arrivo</th>
+                    <th scope="col">Link di redirect</th>
+                    <th scope="col">Azioni</th>
+                </tr>
+            </thead>
+            <tbody id="bw-redirects-rows" data-next-index="<?php echo esc_attr($next_index); ?>">
+                <?php foreach ($redirects as $index => $redirect):
+                    $target = isset($redirect['target']) ? $redirect['target'] : '';
+                    $source = isset($redirect['source']) ? $redirect['source'] : '';
+                    ?>
+                    <tr class="bw-redirect-row">
+                        <td>
+                            <label>
+                                Inserisci il link d'arrivo
+                                <input type="text" name="bw_redirects[<?php echo esc_attr($index); ?>][target_url]"
+                                    value="<?php echo esc_attr($target); ?>" class="regular-text"
+                                    placeholder="https://esempio.com/pagina" />
+                            </label>
+                            <p class="description">URL assoluto verso cui reindirizzare l'utente.</p>
+                        </td>
+                        <td>
+                            <label>
+                                Inserisci il link di redirect
+                                <input type="text" name="bw_redirects[<?php echo esc_attr($index); ?>][source_url]"
+                                    value="<?php echo esc_attr($source); ?>" class="regular-text"
+                                    placeholder="/promo/black-friday" />
+                            </label>
+                            <p class="description">Accetta un path relativo (es. /promo) o un URL completo.</p>
+                        </td>
+                        <td class="bw-redirect-actions">
+                            <button type="button" class="button button-link-delete bw-remove-redirect">Rimuovi</button>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
 
-                <p>
-                    <button type="button" class="button" id="bw-add-redirect">Aggiungi redirect</button>
-                </p>
+        <p>
+            <button type="button" class="button" id="bw-add-redirect">Aggiungi redirect</button>
+        </p>
 
-                <script type="text/html" id="bw-redirect-row-template">
-                        <tr class="bw-redirect-row">
-                            <td>
-                                <label>
-                                    Inserisci il link d'arrivo
-                                    <input type="text" name="bw_redirects[__index__][target_url]" value="" class="regular-text" placeholder="https://esempio.com/pagina" />
-                                </label>
-                                <p class="description">URL assoluto verso cui reindirizzare l'utente.</p>
-                            </td>
-                            <td>
-                                <label>
-                                    Inserisci il link di redirect
-                                    <input type="text" name="bw_redirects[__index__][source_url]" value="" class="regular-text" placeholder="/promo/black-friday" />
-                                </label>
-                                <p class="description">Accetta un path relativo (es. /promo) o un URL completo.</p>
-                            </td>
-                            <td class="bw-redirect-actions">
-                                <button type="button" class="button button-link-delete bw-remove-redirect">Rimuovi</button>
-                            </td>
-                        </tr>
-                    </script>
+        <script type="text/html" id="bw-redirect-row-template">
+                            <tr class="bw-redirect-row">
+                                <td>
+                                    <label>
+                                        Inserisci il link d'arrivo
+                                        <input type="text" name="bw_redirects[__index__][target_url]" value="" class="regular-text" placeholder="https://esempio.com/pagina" />
+                                    </label>
+                                    <p class="description">URL assoluto verso cui reindirizzare l'utente.</p>
+                                </td>
+                                <td>
+                                    <label>
+                                        Inserisci il link di redirect
+                                        <input type="text" name="bw_redirects[__index__][source_url]" value="" class="regular-text" placeholder="/promo/black-friday" />
+                                    </label>
+                                    <p class="description">Accetta un path relativo (es. /promo) o un URL completo.</p>
+                                </td>
+                                <td class="bw-redirect-actions">
+                                    <button type="button" class="button button-link-delete bw-remove-redirect">Rimuovi</button>
+                                </td>
+                            </tr>
+                        </script>
 
-                <?php submit_button('Salva redirect', 'primary', 'bw_redirects_submit'); ?>
-            </form>
-            <?php
+        <?php submit_button('Salva redirect', 'primary', 'bw_redirects_submit'); ?>
+    </form>
+    <?php
 }
 
 /**
@@ -3441,30 +3450,30 @@ function bw_site_render_coming_soon_tab()
 
     $active = (int) get_option('bw_coming_soon_active', 0);
     ?>
-            <?php if ($saved): ?>
-                        <div class="notice notice-success is-dismissible">
-                            <p><strong>Impostazioni salvate con successo!</strong></p>
-                        </div>
-            <?php endif; ?>
+    <?php if ($saved): ?>
+        <div class="notice notice-success is-dismissible">
+            <p><strong>Impostazioni salvate con successo!</strong></p>
+        </div>
+    <?php endif; ?>
 
-            <form method="post" action="">
-                <?php wp_nonce_field('bw_coming_soon_save', 'bw_coming_soon_nonce'); ?>
-                <table class="form-table" role="presentation">
-                    <tr>
-                        <th scope="row">
-                            <label for="bw_coming_soon_toggle">Attiva modalità Coming Soon</label>
-                        </th>
-                        <td>
-                            <input type="checkbox" id="bw_coming_soon_toggle" name="bw_coming_soon_toggle" value="1" <?php checked(1, $active); ?> />
-                            <span class="description">Quando attivo, il sito mostrerà la pagina Coming Soon ai visitatori non
-                                loggati.</span>
-                        </td>
-                    </tr>
-                </table>
+    <form method="post" action="">
+        <?php wp_nonce_field('bw_coming_soon_save', 'bw_coming_soon_nonce'); ?>
+        <table class="form-table" role="presentation">
+            <tr>
+                <th scope="row">
+                    <label for="bw_coming_soon_toggle">Attiva modalità Coming Soon</label>
+                </th>
+                <td>
+                    <input type="checkbox" id="bw_coming_soon_toggle" name="bw_coming_soon_toggle" value="1" <?php checked(1, $active); ?> />
+                    <span class="description">Quando attivo, il sito mostrerà la pagina Coming Soon ai visitatori non
+                        loggati.</span>
+                </td>
+            </tr>
+        </table>
 
-                <?php submit_button('Salva impostazioni', 'primary', 'bw_coming_soon_submit'); ?>
-            </form>
-            <?php
+        <?php submit_button('Salva impostazioni', 'primary', 'bw_coming_soon_submit'); ?>
+    </form>
+    <?php
 }
 
 /**
@@ -3507,198 +3516,200 @@ function bw_site_render_import_product_tab()
         foreach ($notices as $notice) {
             $class = $notice['type'] === 'error' ? 'notice-error' : 'notice-success';
             ?>
-                                    <div class="notice <?php echo esc_attr($class); ?> is-dismissible">
-                                        <p><?php echo esc_html($notice['message']); ?></p>
-                                    </div>
-                                    <?php
+            <div class="notice <?php echo esc_attr($class); ?> is-dismissible">
+                <p><?php echo esc_html($notice['message']); ?></p>
+            </div>
+            <?php
         }
     }
 
     $state = bw_import_get_state();
     ?>
-            <div class="wrap">
-                <h2><?php esc_html_e('Import Product', 'bw'); ?></h2>
-                <p><?php esc_html_e('Upload a CSV file to import or update WooCommerce products and custom meta fields.', 'bw'); ?>
-                </p>
+    <div class="wrap">
+        <h2><?php esc_html_e('Import Product', 'bw'); ?></h2>
+        <p><?php esc_html_e('Upload a CSV file to import or update WooCommerce products and custom meta fields.', 'bw'); ?>
+        </p>
 
-                <h3><?php esc_html_e('1. Upload CSV', 'bw'); ?></h3>
-                <form method="post" enctype="multipart/form-data">
-                    <?php wp_nonce_field('bw_import_upload', 'bw_import_upload_nonce'); ?>
-                    <input type="file" name="bw_import_csv" accept=".csv" />
-                    <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 6px; max-width: 620px;">
-                        <strong><?php esc_html_e('Update existing products', 'bw'); ?></strong>
-                        <label style="display: flex; gap: 8px; align-items: flex-start;">
-                            <input type="checkbox" name="bw_import_update_existing" value="1" <?php checked(!empty($state['update_existing'])); ?> />
-                            <span><?php esc_html_e('Existing products that match by ID or SKU will be updated. Products that do not exist will be skipped.', 'bw'); ?></span>
-                        </label>
-                    </div>
-                    <?php submit_button(__('Upload & Analyze', 'bw'), 'primary', 'bw_import_upload_submit', false); ?>
-                </form>
-
-                <?php if (!empty($state['upload_summary'])): ?>
-                            <hr />
-                            <h3><?php esc_html_e('Upload summary', 'bw'); ?></h3>
-                            <table class="widefat fixed" style="max-width:700px;">
-                                <tbody>
-                                    <tr>
-                                        <th><?php esc_html_e('Uploaded file', 'bw'); ?></th>
-                                        <td><?php echo esc_html($state['upload_summary']['file_name']); ?></td>
-                                    </tr>
-                                    <tr>
-                                        <th><?php esc_html_e('Total fields in file', 'bw'); ?></th>
-                                        <td><?php echo (int) $state['upload_summary']['total_fields']; ?></td>
-                                    </tr>
-                                    <tr>
-                                        <th><?php esc_html_e('Fields detected', 'bw'); ?></th>
-                                        <td><?php echo (int) $state['upload_summary']['loaded_fields']; ?></td>
-                                    </tr>
-                                    <tr>
-                                        <th><?php esc_html_e('Missing field names', 'bw'); ?></th>
-                                        <td>
-                                            <?php if (!empty($state['upload_summary']['missing'])): ?>
-                                                        <ul style="margin: 0; padding-left: 20px;">
-                                                            <?php foreach ($state['upload_summary']['missing'] as $missing_header): ?>
-                                                                        <li><?php echo esc_html($missing_header); ?></li>
-                                                            <?php endforeach; ?>
-                                                        </ul>
-                                            <?php else: ?>
-                                                        <?php esc_html_e('All fields were loaded successfully.', 'bw'); ?>
-                                            <?php endif; ?>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th><?php esc_html_e('Replaced fields', 'bw'); ?></th>
-                                        <td>
-                                            <?php
-                                            $replaced_count = isset($state['upload_summary']['replaced_count']) ? (int) $state['upload_summary']['replaced_count'] : 0;
-                                            if ($replaced_count > 0):
-                                                ?>
-                                                        <strong><?php echo esc_html(sprintf(__('Replaced headers: %d', 'bw'), $replaced_count)); ?></strong>
-                                                        <ul style="margin: 4px 0 0 20px;">
-                                                            <?php foreach ((array) $state['upload_summary']['replaced'] as $replaced_header): ?>
-                                                                        <li><?php echo esc_html($replaced_header); ?></li>
-                                                            <?php endforeach; ?>
-                                                        </ul>
-                                            <?php else: ?>
-                                                        <?php esc_html_e('No empty headers were replaced.', 'bw'); ?>
-                                            <?php endif; ?>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th><?php esc_html_e('Duplicate headers', 'bw'); ?></th>
-                                        <td>
-                                            <?php
-                                            $duplicate_count = isset($state['upload_summary']['duplicate_count']) ? (int) $state['upload_summary']['duplicate_count'] : 0;
-                                            $duplicates = isset($state['upload_summary']['duplicates']) ? (array) $state['upload_summary']['duplicates'] : [];
-                                            if ($duplicate_count > 0):
-                                                ?>
-                                                        <strong><?php echo esc_html(sprintf(__('Duplicated fields: %d', 'bw'), $duplicate_count)); ?></strong>
-                                                        <ul style="margin: 4px 0 0 20px;">
-                                                            <?php foreach ($duplicates as $header => $positions): ?>
-                                                                        <li>
-                                                                            <?php
-                                                                            echo esc_html(
-                                                                                sprintf(
-                                                                                    /* translators: 1: header label, 2: column positions */
-                                                                                    __('%1$s (columns: %2$s)', 'bw'),
-                                                                                    $header,
-                                                                                    implode(', ', array_map('intval', (array) $positions))
-                                                                                )
-                                                                            );
-                                                                            ?>
-                                                                        </li>
-                                                            <?php endforeach; ?>
-                                                        </ul>
-                                            <?php else: ?>
-                                                        <?php esc_html_e('No duplicate header names detected.', 'bw'); ?>
-                                            <?php endif; ?>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                <?php endif; ?>
-
-                <?php if (!empty($state['headers'])): ?>
-                            <hr />
-                            <h3><?php esc_html_e('2. Map CSV columns', 'bw'); ?></h3>
-                            <p><?php esc_html_e('Match each CSV column to a WooCommerce field or a custom meta field.', 'bw'); ?></p>
-
-                            <form method="post">
-                                <?php wp_nonce_field('bw_import_run', 'bw_import_run_nonce'); ?>
-                                <table class="widefat fixed" style="max-width:900px;">
-                                    <thead>
-                                        <tr>
-                                            <th style="width:50%;"><?php esc_html_e('CSV Column', 'bw'); ?></th>
-                                            <th><?php esc_html_e('Map To', 'bw'); ?></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php
-                                        $options = bw_import_get_mapping_options();
-                                        $auto_mapping = bw_import_guess_mapping($state['headers'], $options);
-                                        $submitted_mapping = [];
-
-                                        if (!empty($_POST['bw_import_mapping'])) {
-                                            foreach ((array) $_POST['bw_import_mapping'] as $submitted_header => $submitted_value) {
-                                                $submitted_mapping[$submitted_header] = sanitize_text_field(wp_unslash($submitted_value));
-                                            }
-                                        }
-
-                                        foreach ($state['headers'] as $header):
-                                            $current_value = isset($submitted_mapping[$header])
-                                                ? $submitted_mapping[$header]
-                                                : (isset($auto_mapping[$header]) ? $auto_mapping[$header] : 'ignore');
-                                            ?>
-                                                    <tr>
-                                                        <td><strong><?php echo esc_html($header); ?></strong></td>
-                                                        <td>
-                                                            <select name="bw_import_mapping[<?php echo esc_attr($header); ?>]" style="width:100%;">
-                                                                <option value="ignore" <?php selected($current_value, 'ignore'); ?>>
-                                                                    <?php esc_html_e('Ignore this column', 'bw'); ?></option>
-                                                                <?php foreach ($options as $group_label => $group_options): ?>
-                                                                            <optgroup label="<?php echo esc_attr($group_label); ?>">
-                                                                                <?php foreach ($group_options as $key => $label): ?>
-                                                                                            <option value="<?php echo esc_attr($key); ?>" <?php selected($current_value, $key); ?>>
-                                                                                                <?php echo esc_html($label); ?></option>
-                                                                                <?php endforeach; ?>
-                                                                            </optgroup>
-                                                                <?php endforeach; ?>
-                                                            </select>
-                                                        </td>
-                                                    </tr>
-                                                    <?php
-                                        endforeach;
-                                        ?>
-                                    </tbody>
-                                </table>
-
-                                <p><strong><?php esc_html_e('Preview (first 5 rows):', 'bw'); ?></strong></p>
-                                <div style="overflow:auto; max-width:900px;">
-                                    <table class="widefat striped">
-                                        <thead>
-                                            <tr>
-                                                <?php foreach ($state['headers'] as $header): ?>
-                                                            <th><?php echo esc_html($header); ?></th>
-                                                <?php endforeach; ?>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <?php foreach ($state['sample'] as $sample_row): ?>
-                                                        <tr>
-                                                            <?php foreach ($state['headers'] as $index => $header): ?>
-                                                                        <td><?php echo isset($sample_row[$index]) ? esc_html($sample_row[$index]) : ''; ?></td>
-                                                            <?php endforeach; ?>
-                                                        </tr>
-                                            <?php endforeach; ?>
-                                        </tbody>
-                                    </table>
-                                </div>
-
-                                <?php submit_button(__('Save Mapping & Run Import', 'bw'), 'primary', 'bw_import_run'); ?>
-                            </form>
-                <?php endif; ?>
+        <h3><?php esc_html_e('1. Upload CSV', 'bw'); ?></h3>
+        <form method="post" enctype="multipart/form-data">
+            <?php wp_nonce_field('bw_import_upload', 'bw_import_upload_nonce'); ?>
+            <input type="file" name="bw_import_csv" accept=".csv" />
+            <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 6px; max-width: 620px;">
+                <strong><?php esc_html_e('Update existing products', 'bw'); ?></strong>
+                <label style="display: flex; gap: 8px; align-items: flex-start;">
+                    <input type="checkbox" name="bw_import_update_existing" value="1" <?php checked(!empty($state['update_existing'])); ?> />
+                    <span><?php esc_html_e('Existing products that match by ID or SKU will be updated. Products that do not exist will be skipped.', 'bw'); ?></span>
+                </label>
             </div>
-            <?php
+            <?php submit_button(__('Upload & Analyze', 'bw'), 'primary', 'bw_import_upload_submit', false); ?>
+        </form>
+
+        <?php if (!empty($state['upload_summary'])): ?>
+            <hr />
+            <h3><?php esc_html_e('Upload summary', 'bw'); ?></h3>
+            <table class="widefat fixed" style="max-width:700px;">
+                <tbody>
+                    <tr>
+                        <th><?php esc_html_e('Uploaded file', 'bw'); ?></th>
+                        <td><?php echo esc_html($state['upload_summary']['file_name']); ?></td>
+                    </tr>
+                    <tr>
+                        <th><?php esc_html_e('Total fields in file', 'bw'); ?></th>
+                        <td><?php echo (int) $state['upload_summary']['total_fields']; ?></td>
+                    </tr>
+                    <tr>
+                        <th><?php esc_html_e('Fields detected', 'bw'); ?></th>
+                        <td><?php echo (int) $state['upload_summary']['loaded_fields']; ?></td>
+                    </tr>
+                    <tr>
+                        <th><?php esc_html_e('Missing field names', 'bw'); ?></th>
+                        <td>
+                            <?php if (!empty($state['upload_summary']['missing'])): ?>
+                                <ul style="margin: 0; padding-left: 20px;">
+                                    <?php foreach ($state['upload_summary']['missing'] as $missing_header): ?>
+                                        <li><?php echo esc_html($missing_header); ?></li>
+                                    <?php endforeach; ?>
+                                </ul>
+                            <?php else: ?>
+                                <?php esc_html_e('All fields were loaded successfully.', 'bw'); ?>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><?php esc_html_e('Replaced fields', 'bw'); ?></th>
+                        <td>
+                            <?php
+                            $replaced_count = isset($state['upload_summary']['replaced_count']) ? (int) $state['upload_summary']['replaced_count'] : 0;
+                            if ($replaced_count > 0):
+                                ?>
+                                <strong><?php echo esc_html(sprintf(__('Replaced headers: %d', 'bw'), $replaced_count)); ?></strong>
+                                <ul style="margin: 4px 0 0 20px;">
+                                    <?php foreach ((array) $state['upload_summary']['replaced'] as $replaced_header): ?>
+                                        <li><?php echo esc_html($replaced_header); ?></li>
+                                    <?php endforeach; ?>
+                                </ul>
+                            <?php else: ?>
+                                <?php esc_html_e('No empty headers were replaced.', 'bw'); ?>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><?php esc_html_e('Duplicate headers', 'bw'); ?></th>
+                        <td>
+                            <?php
+                            $duplicate_count = isset($state['upload_summary']['duplicate_count']) ? (int) $state['upload_summary']['duplicate_count'] : 0;
+                            $duplicates = isset($state['upload_summary']['duplicates']) ? (array) $state['upload_summary']['duplicates'] : [];
+                            if ($duplicate_count > 0):
+                                ?>
+                                <strong><?php echo esc_html(sprintf(__('Duplicated fields: %d', 'bw'), $duplicate_count)); ?></strong>
+                                <ul style="margin: 4px 0 0 20px;">
+                                    <?php foreach ($duplicates as $header => $positions): ?>
+                                        <li>
+                                            <?php
+                                            echo esc_html(
+                                                sprintf(
+                                                    /* translators: 1: header label, 2: column positions */
+                                                    __('%1$s (columns: %2$s)', 'bw'),
+                                                    $header,
+                                                    implode(', ', array_map('intval', (array) $positions))
+                                                )
+                                            );
+                                            ?>
+                                        </li>
+                                    <?php endforeach; ?>
+                                </ul>
+                            <?php else: ?>
+                                <?php esc_html_e('No duplicate header names detected.', 'bw'); ?>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        <?php endif; ?>
+
+        <?php if (!empty($state['headers'])): ?>
+            <hr />
+            <h3><?php esc_html_e('2. Map CSV columns', 'bw'); ?></h3>
+            <p><?php esc_html_e('Match each CSV column to a WooCommerce field or a custom meta field.', 'bw'); ?></p>
+
+            <form method="post">
+                <?php wp_nonce_field('bw_import_run', 'bw_import_run_nonce'); ?>
+                <table class="widefat fixed" style="max-width:900px;">
+                    <thead>
+                        <tr>
+                            <th style="width:50%;"><?php esc_html_e('CSV Column', 'bw'); ?></th>
+                            <th><?php esc_html_e('Map To', 'bw'); ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
+                        $options = bw_import_get_mapping_options();
+                        $auto_mapping = bw_import_guess_mapping($state['headers'], $options);
+                        $submitted_mapping = [];
+
+                        if (!empty($_POST['bw_import_mapping'])) {
+                            foreach ((array) $_POST['bw_import_mapping'] as $submitted_header => $submitted_value) {
+                                $submitted_mapping[$submitted_header] = sanitize_text_field(wp_unslash($submitted_value));
+                            }
+                        }
+
+                        foreach ($state['headers'] as $header):
+                            $current_value = isset($submitted_mapping[$header])
+                                ? $submitted_mapping[$header]
+                                : (isset($auto_mapping[$header]) ? $auto_mapping[$header] : 'ignore');
+                            ?>
+                            <tr>
+                                <td><strong><?php echo esc_html($header); ?></strong></td>
+                                <td>
+                                    <select name="bw_import_mapping[<?php echo esc_attr($header); ?>]" style="width:100%;">
+                                        <option value="ignore" <?php selected($current_value, 'ignore'); ?>>
+                                            <?php esc_html_e('Ignore this column', 'bw'); ?>
+                                        </option>
+                                        <?php foreach ($options as $group_label => $group_options): ?>
+                                            <optgroup label="<?php echo esc_attr($group_label); ?>">
+                                                <?php foreach ($group_options as $key => $label): ?>
+                                                    <option value="<?php echo esc_attr($key); ?>" <?php selected($current_value, $key); ?>>
+                                                        <?php echo esc_html($label); ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            </optgroup>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </td>
+                            </tr>
+                            <?php
+                        endforeach;
+                        ?>
+                    </tbody>
+                </table>
+
+                <p><strong><?php esc_html_e('Preview (first 5 rows):', 'bw'); ?></strong></p>
+                <div style="overflow:auto; max-width:900px;">
+                    <table class="widefat striped">
+                        <thead>
+                            <tr>
+                                <?php foreach ($state['headers'] as $header): ?>
+                                    <th><?php echo esc_html($header); ?></th>
+                                <?php endforeach; ?>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($state['sample'] as $sample_row): ?>
+                                <tr>
+                                    <?php foreach ($state['headers'] as $index => $header): ?>
+                                        <td><?php echo isset($sample_row[$index]) ? esc_html($sample_row[$index]) : ''; ?></td>
+                                    <?php endforeach; ?>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+
+                <?php submit_button(__('Save Mapping & Run Import', 'bw'), 'primary', 'bw_import_run'); ?>
+            </form>
+        <?php endif; ?>
+    </div>
+    <?php
 }
 
 /**

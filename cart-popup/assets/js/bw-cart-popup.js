@@ -530,6 +530,7 @@
          * Mostra il loading state
          */
         showLoading: function () {
+            if (window.BWLS) window.BWLS.startProgress();
             this.$loadingState.fadeIn(150);
             this.$emptyState.hide();
             this.$fullContent.hide();
@@ -537,9 +538,30 @@
         },
 
         /**
+         * Mostra lo stato di carrello pieno
+         */
+        showFullState: function () {
+            this.$emptyState.hide();
+            this.$fullContent.show();
+            this.$footer.show();
+            this.updateBadge();
+        },
+
+        /**
+         * Mostra lo stato di carrello vuoto
+         */
+        showEmptyState: function () {
+            this.$fullContent.hide();
+            this.$footer.show(); // Always visible as requested
+            this.$emptyState.show();
+            this.updateBadge();
+        },
+
+        /**
          * Nascondi il loading state
          */
         hideLoading: function () {
+            if (window.BWLS) window.BWLS.stopProgress();
             this.$loadingState.fadeOut(150);
         },
 
@@ -577,10 +599,26 @@
                         }
                     } else {
                         console.error('Failed to load cart contents');
+                        // Fallback: if we have items in memory, show them, else show empty
+                        if (opts.render) {
+                            if (self.cartItems && self.cartItems.length > 0) {
+                                self.showFullState();
+                            } else {
+                                self.showEmptyState();
+                            }
+                        }
                     }
                 })
                 .fail(function () {
                     console.error('AJAX error loading cart contents');
+                    // Fallback on error
+                    if (opts.render) {
+                        if (self.cartItems && self.cartItems.length > 0) {
+                            self.showFullState();
+                        } else {
+                            self.showEmptyState();
+                        }
+                    }
                 })
                 .always(function () {
                     self.isLoading = false;
@@ -589,6 +627,11 @@
                         // Nascondi loading con un leggero delay per evitare flickering
                         setTimeout(function () {
                             self.hideLoading();
+
+                            // Final safety check: if nothing is visible, show empty state
+                            if (opts.render && !self.$fullContent.is(':visible') && !self.$emptyState.is(':visible')) {
+                                self.showEmptyState();
+                            }
                         }, opts.render ? 200 : 0);
                     }
                 });

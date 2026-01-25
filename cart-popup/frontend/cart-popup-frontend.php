@@ -256,9 +256,7 @@ function bw_cart_popup_render_panel()
 add_action('wp_footer', 'bw_cart_popup_render_panel');
 
 /**
- * Aggiungi CSS dinamico per le impostazioni configurabili
- * NOTA: Il CSS viene sempre renderizzato perché è necessario anche per i widget
- * (anche se l'opzione globale cart popup è disattivata)
+ * Genera il CSS dinamico in base alle impostazioni dell'admin.
  */
 function bw_cart_popup_dynamic_css()
 {
@@ -267,32 +265,13 @@ function bw_cart_popup_dynamic_css()
         return;
     }
 
+
     // Recupera le impostazioni generali
     $panel_width = get_option('bw_cart_popup_panel_width', 400);
     $mobile_width = get_option('bw_cart_popup_mobile_width', 100);
     $overlay_color = get_option('bw_cart_popup_overlay_color', '#000000');
     $overlay_opacity = get_option('bw_cart_popup_overlay_opacity', 0.5);
     $panel_bg = get_option('bw_cart_popup_panel_bg', '#ffffff');
-
-    // Margin per Cart Icon SVG
-    $cart_icon_margin_top = get_option('bw_cart_popup_cart_icon_margin_top', 0);
-    $cart_icon_margin_right = get_option('bw_cart_popup_cart_icon_margin_right', 0);
-    $cart_icon_margin_bottom = get_option('bw_cart_popup_cart_icon_margin_bottom', 0);
-    $cart_icon_margin_left = get_option('bw_cart_popup_cart_icon_margin_left', 0);
-
-    // Padding per Empty Cart SVG
-    $empty_cart_padding_top = get_option('bw_cart_popup_empty_cart_padding_top', 0);
-    $empty_cart_padding_right = get_option('bw_cart_popup_empty_cart_padding_right', 0);
-    $empty_cart_padding_bottom = get_option('bw_cart_popup_empty_cart_padding_bottom', 0);
-    $empty_cart_padding_left = get_option('bw_cart_popup_empty_cart_padding_left', 0);
-
-    // Promo code section settings
-    $promo_input_padding_top = get_option('bw_cart_popup_promo_input_padding_top', 10);
-    $promo_input_padding_right = get_option('bw_cart_popup_promo_input_padding_right', 12);
-    $promo_input_padding_bottom = get_option('bw_cart_popup_promo_input_padding_bottom', 10);
-    $promo_input_padding_left = get_option('bw_cart_popup_promo_input_padding_left', 12);
-    $promo_placeholder_font_size = get_option('bw_cart_popup_promo_placeholder_font_size', 14);
-    $apply_button_font_weight = get_option('bw_cart_popup_apply_button_font_weight', 'normal');
 
     // Proceed to Checkout button settings
     $checkout_bg = get_option('bw_cart_popup_checkout_bg', '#28a745');
@@ -326,111 +305,75 @@ function bw_cart_popup_dynamic_css()
     $continue_padding_bottom = get_option('bw_cart_popup_continue_padding_bottom', 12);
     $continue_padding_left = get_option('bw_cart_popup_continue_padding_left', 20);
 
+    // Margin per Cart Icon SVG
+    $cart_icon_margin_top = get_option('bw_cart_popup_cart_icon_margin_top', 0);
+    $cart_icon_margin_right = get_option('bw_cart_popup_cart_icon_margin_right', 0);
+    $cart_icon_margin_bottom = get_option('bw_cart_popup_cart_icon_margin_bottom', 0);
+    $cart_icon_margin_left = get_option('bw_cart_popup_cart_icon_margin_left', 0);
+
+    // Padding per Empty Cart SVG
+    $empty_cart_padding_top = get_option('bw_cart_popup_empty_cart_padding_top', 0);
+    $empty_cart_padding_right = get_option('bw_cart_popup_empty_cart_padding_right', 0);
+    $empty_cart_padding_bottom = get_option('bw_cart_popup_empty_cart_padding_bottom', 0);
+    $empty_cart_padding_left = get_option('bw_cart_popup_empty_cart_padding_left', 0);
+
+    // Promo code section settings
+    $promo_input_padding_top = get_option('bw_cart_popup_promo_input_padding_top', 10);
+    $promo_input_padding_right = get_option('bw_cart_popup_promo_input_padding_right', 12);
+    $promo_input_padding_bottom = get_option('bw_cart_popup_promo_input_padding_bottom', 10);
+    $promo_input_padding_left = get_option('bw_cart_popup_promo_input_padding_left', 12);
+    $promo_placeholder_font_size = get_option('bw_cart_popup_promo_placeholder_font_size', 14);
+    $apply_button_font_weight = get_option('bw_cart_popup_apply_button_font_weight', 'normal');
+
     // Converti colore hex in rgba per l'overlay
     $overlay_rgb = bw_cart_popup_hex_to_rgb($overlay_color);
 
-    ?>
-    <style id="bw-cart-popup-dynamic-css">
+    $css = "
+    <style id=\"bw-cart-popup-dynamic-css\">
         /* CSS Dinamico generato dalle impostazioni admin */
 
         /* Overlay */
-        .bw-cart-popup-overlay.active {
-            background-color: rgba(<?php echo esc_attr($overlay_rgb); ?>,
-                    <?php echo esc_attr($overlay_opacity); ?>
-                );
-        }
+        .bw-cart-popup-overlay.active { background-color: rgba(" . esc_attr($overlay_rgb) . ", " . esc_attr($overlay_opacity) . "); }
 
         /* Pannello */
-        .bw-cart-popup-panel {
-            width:
-                <?php echo intval($panel_width) . 'px'; ?>
-            ;
-            background-color:
-                <?php echo esc_attr($panel_bg); ?>
-            ;
-        }
+        .bw-cart-popup-panel { width: " . intval($panel_width) . "px; background-color: " . esc_attr($panel_bg) . "; }
 
         /* Mobile Layout */
         @media only screen and (max-width: 768px) {
-            .bw-cart-popup-panel {
-                width:
-                    <?php echo intval($mobile_width) . '%'; ?>
-                    !important;
-                max-width: 100vw;
-            }
+            .bw-cart-popup-panel { width: " . intval($mobile_width) . "% !important; max-width: 100vw; }
         }
 
         /* === PROCEED TO CHECKOUT BUTTON === */
         .bw-cart-popup-checkout,
         .bw-cart-popup-return-shop {
-            background-color:
-                <?php echo esc_attr($checkout_bg); ?>
-                !important;
-            color:
-                <?php echo esc_attr($checkout_text_color); ?>
-                !important;
-            font-size:
-                <?php echo intval($checkout_font_size) . 'px'; ?>
-                !important;
-            border-radius:
-                <?php echo intval($checkout_border_radius) . 'px'; ?>
-                !important;
-            padding:
-                <?php echo intval($checkout_padding_top) . 'px ' . intval($checkout_padding_right) . 'px ' . intval($checkout_padding_bottom) . 'px ' . intval($checkout_padding_left) . 'px'; ?>
-                !important;
-            <?php if ($checkout_border_enabled): ?>
-                border:
-                    <?php echo intval($checkout_border_width) . 'px ' . esc_attr($checkout_border_style) . ' ' . esc_attr($checkout_border_color); ?>
-                    !important;
-            <?php else: ?>
-                border: none !important;
-            <?php endif; ?>
+            background-color: " . esc_attr($checkout_bg) . " !important;
+            color: " . esc_attr($checkout_text_color) . " !important;
+            font-size: " . intval($checkout_font_size) . "px !important;
+            border-radius: " . intval($checkout_border_radius) . "px !important;
+            padding: " . intval($checkout_padding_top) . "px " . intval($checkout_padding_right) . "px " . intval($checkout_padding_bottom) . "px " . intval($checkout_padding_left) . "px !important;
+            " . ($checkout_border_enabled ? "border: " . intval($checkout_border_width) . "px " . esc_attr($checkout_border_style) . " " . esc_attr($checkout_border_color) . " !important;" : "border: none !important;") . "
         }
 
         .bw-cart-popup-checkout:hover,
         .bw-cart-popup-return-shop:hover {
-            background-color:
-                <?php echo esc_attr($checkout_bg_hover); ?>
-                !important;
-            color:
-                <?php echo esc_attr($checkout_text_hover); ?>
-                !important;
+            background-color: " . esc_attr($checkout_bg_hover) . " !important;
+            color: " . esc_attr($checkout_text_hover) . " !important;
             opacity: 1 !important;
         }
 
         /* === CONTINUE SHOPPING BUTTON === */
         .bw-cart-popup-continue {
-            background-color:
-                <?php echo esc_attr($continue_bg); ?>
-                !important;
-            color:
-                <?php echo esc_attr($continue_text_color); ?>
-                !important;
-            font-size:
-                <?php echo intval($continue_font_size) . 'px'; ?>
-                !important;
-            border-radius:
-                <?php echo intval($continue_border_radius) . 'px'; ?>
-                !important;
-            padding:
-                <?php echo intval($continue_padding_top) . 'px ' . intval($continue_padding_right) . 'px ' . intval($continue_padding_bottom) . 'px ' . intval($continue_padding_left) . 'px'; ?>
-                !important;
-            <?php if ($continue_border_enabled): ?>
-                border:
-                    <?php echo intval($continue_border_width) . 'px ' . esc_attr($continue_border_style) . ' ' . esc_attr($continue_border_color); ?>
-                    !important;
-            <?php else: ?>
-                border: none !important;
-            <?php endif; ?>
+            background-color: " . esc_attr($continue_bg) . " !important;
+            color: " . esc_attr($continue_text_color) . " !important;
+            font-size: " . intval($continue_font_size) . "px !important;
+            border-radius: " . intval($continue_border_radius) . "px !important;
+            padding: " . intval($continue_padding_top) . "px " . intval($continue_padding_right) . "px " . intval($continue_padding_bottom) . "px " . intval($continue_padding_left) . "px !important;
+            " . ($continue_border_enabled ? "border: " . intval($continue_border_width) . "px " . esc_attr($continue_border_style) . " " . esc_attr($continue_border_color) . " !important;" : "border: none !important;") . "
         }
 
         .bw-cart-popup-continue:hover {
-            background-color:
-                <?php echo esc_attr($continue_bg_hover); ?>
-                !important;
-            color:
-                <?php echo esc_attr($continue_text_hover); ?>
-                !important;
+            background-color: " . esc_attr($continue_bg_hover) . " !important;
+            color: " . esc_attr($continue_text_hover) . " !important;
             opacity: 1 !important;
         }
 
@@ -438,51 +381,27 @@ function bw_cart_popup_dynamic_css()
         /* Applicato sia all'icona custom che a quella default */
         .bw-cart-popup-custom-svg svg,
         .bw-cart-icon {
-            margin:
-                <?php echo intval($cart_icon_margin_top) . 'px ' . intval($cart_icon_margin_right) . 'px ' . intval($cart_icon_margin_bottom) . 'px ' . intval($cart_icon_margin_left) . 'px'; ?>
-                !important;
+            margin: " . intval($cart_icon_margin_top) . "px " . intval($cart_icon_margin_right) . "px " . intval($cart_icon_margin_bottom) . "px " . intval($cart_icon_margin_left) . "px !important;
         }
 
         /* === APPLY PROMO CODE BUTTON - USA STILE CHECKOUT === */
         /* Forza lo stile del pulsante checkout sul pulsante apply promo solo nel cart popup */
         .bw-cart-popup-panel .bw-promo-apply {
-            background-color:
-                <?php echo esc_attr($checkout_bg); ?>
-                !important;
-            color:
-                <?php echo esc_attr($checkout_text_color); ?>
-                !important;
-            font-size:
-                <?php echo intval($checkout_font_size) . 'px'; ?>
-                !important;
-            border-radius:
-                <?php echo intval($checkout_border_radius) . 'px'; ?>
-                !important;
-            padding:
-                <?php echo intval($checkout_padding_top) . 'px ' . intval($checkout_padding_right) . 'px ' . intval($checkout_padding_bottom) . 'px ' . intval($checkout_padding_left) . 'px'; ?>
-                !important;
-            <?php if ($checkout_border_enabled): ?>
-                border:
-                    <?php echo intval($checkout_border_width) . 'px ' . esc_attr($checkout_border_style) . ' ' . esc_attr($checkout_border_color); ?>
-                    !important;
-            <?php else: ?>
-                border: none !important;
-            <?php endif; ?>
-            font-weight:
-                <?php echo esc_attr($apply_button_font_weight); ?>
-                !important;
+            background-color: " . esc_attr($checkout_bg) . " !important;
+            color: " . esc_attr($checkout_text_color) . " !important;
+            font-size: " . intval($checkout_font_size) . "px !important;
+            border-radius: " . intval($checkout_border_radius) . "px !important;
+            padding: " . intval($checkout_padding_top) . "px " . intval($checkout_padding_right) . "px " . intval($checkout_padding_bottom) . "px " . intval($checkout_padding_left) . "px !important;
+            " . ($checkout_border_enabled ? "border: " . intval($checkout_border_width) . "px " . esc_attr($checkout_border_style) . " " . esc_attr($checkout_border_color) . " !important;" : "border: none !important;") . "
+            font-weight: " . esc_attr($apply_button_font_weight) . " !important;
             cursor: pointer;
             transition: background-color 0.2s ease;
             white-space: nowrap;
         }
 
         .bw-cart-popup-panel .bw-promo-apply:hover {
-            background-color:
-                <?php echo esc_attr($checkout_bg_hover); ?>
-                !important;
-            color:
-                <?php echo esc_attr($checkout_text_hover); ?>
-                !important;
+            background-color: " . esc_attr($checkout_bg_hover) . " !important;
+            color: " . esc_attr($checkout_text_hover) . " !important;
             opacity: 1 !important;
         }
 
@@ -494,26 +413,21 @@ function bw_cart_popup_dynamic_css()
         /* === PROMO CODE INPUT SETTINGS === */
         /* Padding per input promo code */
         .bw-cart-popup-panel .bw-promo-input {
-            padding:
-                <?php echo intval($promo_input_padding_top) . 'px ' . intval($promo_input_padding_right) . 'px ' . intval($promo_input_padding_bottom) . 'px ' . intval($promo_input_padding_left) . 'px'; ?>
-                !important;
+            padding: " . intval($promo_input_padding_top) . "px " . intval($promo_input_padding_right) . "px " . intval($promo_input_padding_bottom) . "px " . intval($promo_input_padding_left) . "px !important;
         }
 
         /* Font size placeholder input promo code */
         .bw-cart-popup-panel .bw-promo-input::placeholder {
-            font-size:
-                <?php echo intval($promo_placeholder_font_size) . 'px'; ?>
-            ;
+            font-size: " . intval($promo_placeholder_font_size) . "px;
         }
 
         /* === PADDING PER EMPTY CART SVG === */
         .bw-cart-empty-icon svg {
-            padding:
-                <?php echo intval($empty_cart_padding_top) . 'px ' . intval($empty_cart_padding_right) . 'px ' . intval($empty_cart_padding_bottom) . 'px ' . intval($empty_cart_padding_left) . 'px'; ?>
-            ;
+            padding: " . intval($empty_cart_padding_top) . "px " . intval($empty_cart_padding_right) . "px " . intval($empty_cart_padding_bottom) . "px " . intval($empty_cart_padding_left) . "px;
         }
-    </style>
-    <?php
+    </style>";
+
+    echo $css;
 }
 add_action('wp_head', 'bw_cart_popup_dynamic_css');
 

@@ -604,9 +604,17 @@ function bw_cart_popup_settings_page()
                         <label for="bw_cart_popup_mobile_width">Larghezza Mobile (%)</label>
                     </th>
                     <td>
-                        <input type="number" id="bw_cart_popup_mobile_width" name="bw_cart_popup_mobile_width"
-                            value="<?php echo esc_attr($mobile_width); ?>" min="10" max="100" step="1" class="regular-text"
-                            style="width: 80px;" />
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="range" id="bw_cart_popup_mobile_width_range" min="10" max="100" step="1"
+                                value="<?php echo esc_attr($mobile_width); ?>"
+                                oninput="document.getElementById('bw_cart_popup_mobile_width').value = this.value"
+                                style="width: 200px;">
+                            <input type="number" id="bw_cart_popup_mobile_width" name="bw_cart_popup_mobile_width"
+                                value="<?php echo esc_attr($mobile_width); ?>" min="10" max="100" step="1"
+                                class="regular-text" style="width: 80px;"
+                                oninput="document.getElementById('bw_cart_popup_mobile_width_range').value = this.value" />
+                            <span>%</span>
+                        </div>
                         <p class="description">Larghezza percentuale su dispositivi mobili (< 768px). Default: 100%.</p>
                     </td>
                 </tr>
