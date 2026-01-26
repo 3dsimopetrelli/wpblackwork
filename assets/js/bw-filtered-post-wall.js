@@ -62,7 +62,7 @@
         var totalGap = gap * (columnsCount - 1);
         var itemWidth = (containerWidth - totalGap) / columnsCount;
 
-        $items.each(function() {
+        $items.each(function () {
             var $item = $(this);
             $item.css({
                 'width': itemWidth + 'px',
@@ -99,7 +99,7 @@
         var maxHeight = 0;
         var $items = $grid.find('.bw-fpw-item');
 
-        $items.each(function() {
+        $items.each(function () {
             var $item = $(this);
             var itemBottom = $item.position().top + $item.outerHeight(true);
             if (itemBottom > maxHeight) {
@@ -163,7 +163,7 @@
                 instance.layout();
                 updateGridHeight($grid);
 
-                setTimeout(function() {
+                setTimeout(function () {
                     if (instance && typeof instance.layout === 'function') {
                         instance.layout();
                         updateGridHeight($grid);
@@ -200,7 +200,7 @@
 
             updateGridHeight($grid);
 
-            setTimeout(function() {
+            setTimeout(function () {
                 var instance = $grid.data('masonry');
                 if (instance && typeof instance.layout === 'function') {
                     instance.layout();
@@ -261,7 +261,7 @@
     }
 
     function clearWidgetCache(widgetId) {
-        Object.keys(ajaxCache).forEach(function(key) {
+        Object.keys(ajaxCache).forEach(function (key) {
             if (key.indexOf('_' + widgetId) > -1) {
                 delete ajaxCache[key];
             }
@@ -280,7 +280,7 @@
             var context = this;
             var args = arguments;
 
-            var later = function() {
+            var later = function () {
                 timeout = null;
                 if (!immediate) func.apply(context, args);
             };
@@ -325,7 +325,7 @@
         // Fade out before clearing
         if ($subcatContainers.length) {
             $subcatContainers.removeClass('bw-fpw-animating').css('opacity', '0');
-            setTimeout(function() {
+            setTimeout(function () {
                 $subcatContainers.empty();
             }, 150);
         }
@@ -355,12 +355,12 @@
                 post_type: postType,
                 nonce: bwFilteredPostWallAjax.nonce
             },
-            success: function(response) {
+            success: function (response) {
                 // Cache the response
                 setCachedData(cacheKey, response);
                 processSubcategoriesResponse(response, widgetId, $subcatContainers, $subcatRow, hasPosts, isMobile, autoOpenMobile);
             },
-            error: function() {
+            error: function () {
                 console.error('❌ Error loading subcategories');
                 $subcatContainers.html('<p class="bw-fpw-error">Error loading subcategories</p>');
                 if ($subcatRow.length) {
@@ -379,18 +379,18 @@
             var subcats = response.data;
             var html = '';
 
-            $.each(subcats, function(index, subcat) {
+            $.each(subcats, function (index, subcat) {
                 html += '<button class="bw-fpw-filter-option bw-fpw-subcat-button" data-subcategory="' + subcat.term_id + '">';
                 html += '<span class="bw-fpw-option-label">' + subcat.name + '</span> ';
                 html += '<span class="bw-fpw-option-count">(' + subcat.count + ')</span>';
                 html += '</button>';
             });
 
-            $subcatContainers.each(function() {
+            $subcatContainers.each(function () {
                 var $container = $(this);
                 $container.html(html);
                 // Trigger fade + slide animation
-                setTimeout(function() {
+                setTimeout(function () {
                     $container.addClass('bw-fpw-animating').css('opacity', '1');
                 }, 50);
             });
@@ -398,7 +398,7 @@
                 var hasButtons = $subcatContainers.find('.bw-fpw-subcat-button').length > 0;
                 if (hasPosts && hasButtons) {
                     $subcatRow.css('opacity', '0').show();
-                    setTimeout(function() {
+                    setTimeout(function () {
                         $subcatRow.css('opacity', '1');
                     }, 50);
                 } else {
@@ -410,7 +410,7 @@
             if (isMobile && autoOpenMobile && subcats.length > 0) {
                 var $mobileSubcatGroup = $('.bw-fpw-mobile-filter-group--subcategories[data-widget-id="' + widgetId + '"]');
                 if ($mobileSubcatGroup.length && !$mobileSubcatGroup.hasClass('is-open')) {
-                    setTimeout(function() {
+                    setTimeout(function () {
                         $mobileSubcatGroup.addClass('is-open');
                         $mobileSubcatGroup.find('.bw-fpw-mobile-dropdown-panel').attr('aria-hidden', 'false');
                     }, 200);
@@ -437,7 +437,7 @@
         // Fade out before clearing
         if ($tagContainers.length) {
             $tagContainers.removeClass('bw-fpw-animating').css('opacity', '0');
-            setTimeout(function() {
+            setTimeout(function () {
                 $tagContainers.empty();
             }, 150);
         }
@@ -469,12 +469,12 @@
                 subcategories: subcategories || [],
                 nonce: bwFilteredPostWallAjax.nonce
             },
-            success: function(response) {
+            success: function (response) {
                 // Cache the response
                 setCachedData(cacheKey, response);
                 processTagsResponse(response, widgetId, $tagContainers, $tagRow, hasPosts, isMobile, autoOpenMobile);
             },
-            error: function() {
+            error: function () {
                 console.error('❌ Error loading tags');
                 $tagContainers.html('<p class="bw-fpw-error">Error loading tags</p>');
                 if ($tagRow.length) {
@@ -493,18 +493,18 @@
             var tags = response.data;
             var html = '';
 
-            $.each(tags, function(index, tag) {
+            $.each(tags, function (index, tag) {
                 html += '<button class="bw-fpw-filter-option bw-fpw-tag-button" data-tag="' + tag.term_id + '">';
                 html += '<span class="bw-fpw-option-label">' + tag.name + '</span> ';
                 html += '<span class="bw-fpw-option-count">(' + tag.count + ')</span>';
                 html += '</button>';
             });
 
-            $tagContainers.each(function() {
+            $tagContainers.each(function () {
                 var $container = $(this);
                 $container.html(html);
                 // Trigger fade + slide animation
-                setTimeout(function() {
+                setTimeout(function () {
                     $container.addClass('bw-fpw-animating').css('opacity', '1');
                 }, 50);
             });
@@ -513,7 +513,7 @@
                 var hasButtons = $tagContainers.find('.bw-fpw-tag-button').length > 0;
                 if (hasPosts && hasButtons) {
                     $tagRow.css('opacity', '0').show();
-                    setTimeout(function() {
+                    setTimeout(function () {
                         $tagRow.css('opacity', '1');
                     }, 50);
                 } else {
@@ -525,7 +525,7 @@
             if (isMobile && autoOpenMobile && tags.length > 0) {
                 var $mobileTagGroup = $('.bw-fpw-mobile-filter-group--tags[data-widget-id="' + widgetId + '"]');
                 if ($mobileTagGroup.length && !$mobileTagGroup.hasClass('is-open')) {
-                    setTimeout(function() {
+                    setTimeout(function () {
                         $mobileTagGroup.addClass('is-open');
                         $mobileTagGroup.find('.bw-fpw-mobile-dropdown-panel').attr('aria-hidden', 'false');
                     }, 400);
@@ -559,7 +559,7 @@
 
             if (hasTags) {
                 // Auto-open tags dropdown in mobile
-                setTimeout(function() {
+                setTimeout(function () {
                     if (!$mobileTagGroup.hasClass('is-open')) {
                         $mobileTagGroup.addClass('is-open');
                         $mobileTagGroup.find('.bw-fpw-mobile-dropdown-panel').attr('aria-hidden', 'false');
@@ -588,11 +588,11 @@
         $items.removeClass('bw-fpw-item--visible');
 
         // Apply staggered fade-in with delay
-        $items.each(function(index) {
+        $items.each(function (index) {
             var $item = $(this);
             var delay = index * 80; // 80ms delay between each item
 
-            setTimeout(function() {
+            setTimeout(function () {
                 $item.addClass('bw-fpw-item--visible');
             }, delay);
         });
@@ -674,7 +674,7 @@
                 order: order,
                 nonce: bwFilteredPostWallAjax.nonce
             },
-            success: function(response) {
+            success: function (response) {
                 // Cache the response
                 setCachedData(cacheKey, response);
                 // Clear request queue
@@ -682,7 +682,7 @@
                 // Process response
                 processFilterResponse(response, widgetId, $grid, $wrapper, $filters, hadMasonryBefore);
             },
-            error: function(xhr, status, error) {
+            error: function (xhr, status, error) {
                 // Clear request queue
                 delete ajaxRequestQueue[widgetId];
 
@@ -731,10 +731,10 @@
                 var $tagOptions = $('.bw-fpw-tag-options[data-widget-id="' + widgetId + '"]');
 
                 if ($tagRow.length && $tagOptions.length) {
-                    var availableTags = Array.isArray(response.data.available_tags) ? response.data.available_tags.map(function(tag){ return parseInt(tag); }) : [];
+                    var availableTags = Array.isArray(response.data.available_tags) ? response.data.available_tags.map(function (tag) { return parseInt(tag); }) : [];
 
                     if (availableTags.length) {
-                        filterState[widgetId].tags = filterState[widgetId].tags.filter(function(tag){
+                        filterState[widgetId].tags = filterState[widgetId].tags.filter(function (tag) {
                             return availableTags.indexOf(tag) > -1;
                         });
                     }
@@ -742,25 +742,25 @@
                     if (!hasPosts) {
                         filterState[widgetId].tags = [];
                         $tagOptions.removeClass('bw-fpw-animating').css('opacity', '0');
-                        setTimeout(function() {
+                        setTimeout(function () {
                             $tagOptions.empty();
                             $tagRow.hide();
                         }, 150);
                     } else if (response.data.tags_html) {
                         $tagOptions.removeClass('bw-fpw-animating').css('opacity', '0');
-                        setTimeout(function() {
-                            $tagOptions.each(function() {
+                        setTimeout(function () {
+                            $tagOptions.each(function () {
                                 $(this).html(response.data.tags_html);
                             });
                             $tagRow.css('opacity', '0').show();
 
-                            setTimeout(function() {
+                            setTimeout(function () {
                                 $tagOptions.addClass('bw-fpw-animating').css('opacity', '1');
                                 $tagRow.css('opacity', '1');
                             }, 50);
 
                             if (filterState[widgetId].tags.length) {
-                                $tagOptions.find('.bw-fpw-tag-button').each(function(){
+                                $tagOptions.find('.bw-fpw-tag-button').each(function () {
                                     var $tagButton = $(this);
                                     var tagId = parseInt($tagButton.attr('data-tag'));
 
@@ -774,7 +774,7 @@
                             if (isInMobileMode(widgetId)) {
                                 var $mobileTagGroup = $('.bw-fpw-mobile-filter-group--tags[data-widget-id="' + widgetId + '"]');
                                 if ($mobileTagGroup.length && $tagOptions.find('.bw-fpw-tag-button').length > 0) {
-                                    setTimeout(function() {
+                                    setTimeout(function () {
                                         if (!$mobileTagGroup.hasClass('is-open')) {
                                             $mobileTagGroup.addClass('is-open');
                                             $mobileTagGroup.find('.bw-fpw-mobile-dropdown-panel').attr('aria-hidden', 'false');
@@ -786,7 +786,7 @@
                     } else {
                         filterState[widgetId].tags = [];
                         $tagOptions.removeClass('bw-fpw-animating').css('opacity', '0');
-                        setTimeout(function() {
+                        setTimeout(function () {
                             $tagOptions.empty();
                             $tagRow.hide();
                         }, 150);
@@ -795,14 +795,14 @@
             }
 
             // CRITICAL: Wait for images to load before reinitializing masonry
-            withImagesLoaded($grid, function() {
+            withImagesLoaded($grid, function () {
                 console.log('📸 Images loaded, reinitializing grid');
 
                 // Reinitialize masonry after images are loaded
                 initGrid($grid);
 
                 // Fade in grid and apply staggered animation to posts
-                setTimeout(function() {
+                setTimeout(function () {
                     $grid.css('opacity', '1');
 
                     // Apply staggered fade-in animation to posts
@@ -810,7 +810,7 @@
                 }, 100);
 
                 // Additional layout passes for stability
-                setTimeout(function() {
+                setTimeout(function () {
                     var instance = $grid.data('masonry');
                     if (instance && typeof instance.layout === 'function') {
                         instance.layout();
@@ -818,7 +818,7 @@
                     }
                 }, 200);
 
-                setTimeout(function() {
+                setTimeout(function () {
                     var instance = $grid.data('masonry');
                     if (instance && typeof instance.layout === 'function') {
                         instance.layout();
@@ -854,7 +854,7 @@
     }
 
     function initFilters() {
-        $(document).on('click', '.bw-fpw-cat-button', function(e) {
+        $(document).on('click', '.bw-fpw-cat-button', function (e) {
             e.preventDefault();
 
             var $button = $(this);
@@ -868,7 +868,7 @@
             initFilterState(widgetId);
 
             // Update active state
-            $('.bw-fpw-cat-button').filter(function(){
+            $('.bw-fpw-cat-button').filter(function () {
                 return $(this).closest('[data-widget-id]').attr('data-widget-id') === widgetId;
             }).removeClass('active');
             $button.addClass('active');
@@ -879,12 +879,12 @@
             filterState[widgetId].tags = [];
 
             // Reset tag visual state
-            $('.bw-fpw-tag-button').filter(function(){
+            $('.bw-fpw-tag-button').filter(function () {
                 return $(this).closest('[data-widget-id]').attr('data-widget-id') === widgetId;
             }).removeClass('active');
 
             // Clear subcategory active states
-            $('.bw-fpw-subcat-button').filter(function(){
+            $('.bw-fpw-subcat-button').filter(function () {
                 return $(this).closest('[data-widget-id]').attr('data-widget-id') === widgetId;
             }).removeClass('active');
 
@@ -918,7 +918,7 @@
         });
 
         // Subcategory filter
-        $(document).on('click', '.bw-fpw-subcat-button', function(e) {
+        $(document).on('click', '.bw-fpw-subcat-button', function (e) {
             e.preventDefault();
 
             var $button = $(this);
@@ -960,7 +960,7 @@
         });
 
         // Tag filter
-        $(document).on('click', '.bw-fpw-tag-button', function(e) {
+        $(document).on('click', '.bw-fpw-tag-button', function (e) {
             e.preventDefault();
 
             var $button = $(this);
@@ -991,21 +991,21 @@
             }
         });
 
-        $(document).on('click', '.bw-fpw-mobile-filter-button', function(e) {
+        $(document).on('click', '.bw-fpw-mobile-filter-button', function (e) {
             e.preventDefault();
 
             var widgetId = $(this).closest('.bw-fpw-mobile-filter').attr('data-widget-id');
             openMobilePanel(widgetId);
         });
 
-        $(document).on('click', '.bw-fpw-mobile-filter-close', function(e) {
+        $(document).on('click', '.bw-fpw-mobile-filter-close', function (e) {
             e.preventDefault();
 
             var widgetId = $(this).closest('.bw-fpw-mobile-filter').attr('data-widget-id');
             closeMobilePanel(widgetId);
         });
 
-        $(document).on('click', '.bw-fpw-mobile-apply', function(e) {
+        $(document).on('click', '.bw-fpw-mobile-apply', function (e) {
             e.preventDefault();
 
             var widgetId = $(this).closest('.bw-fpw-mobile-filter').attr('data-widget-id');
@@ -1013,7 +1013,7 @@
             closeMobilePanel(widgetId);
         });
 
-        $(document).on('click', '.bw-fpw-mobile-dropdown-toggle', function() {
+        $(document).on('click', '.bw-fpw-mobile-dropdown-toggle', function () {
             var $group = $(this).closest('.bw-fpw-mobile-filter-group');
             var $panel = $group.find('.bw-fpw-mobile-dropdown-panel');
             var isOpen = $group.hasClass('is-open');
@@ -1029,7 +1029,7 @@
         });
 
         // Reset filters button
-        $(document).on('click', '.bw-fpw-reset-filters', function(e) {
+        $(document).on('click', '.bw-fpw-reset-filters', function (e) {
             e.preventDefault();
 
             var $button = $(this);
@@ -1056,23 +1056,23 @@
             };
 
             // Reset all category buttons
-            $('.bw-fpw-cat-button').filter(function(){
+            $('.bw-fpw-cat-button').filter(function () {
                 return $(this).closest('[data-widget-id]').attr('data-widget-id') === widgetId;
             }).removeClass('active');
 
             // Activate the default category button
-            var $defaultCatButton = $('.bw-fpw-cat-button[data-category="' + defaultCategory + '"]').filter(function(){
+            var $defaultCatButton = $('.bw-fpw-cat-button[data-category="' + defaultCategory + '"]').filter(function () {
                 return $(this).closest('[data-widget-id]').attr('data-widget-id') === widgetId;
             });
             $defaultCatButton.addClass('active');
 
             // Reset all subcategory buttons
-            $('.bw-fpw-subcat-button').filter(function(){
+            $('.bw-fpw-subcat-button').filter(function () {
                 return $(this).closest('[data-widget-id]').attr('data-widget-id') === widgetId;
             }).removeClass('active');
 
             // Reset all tag buttons
-            $('.bw-fpw-tag-button').filter(function(){
+            $('.bw-fpw-tag-button').filter(function () {
                 return $(this).closest('[data-widget-id]').attr('data-widget-id') === widgetId;
             }).removeClass('active');
 
@@ -1122,7 +1122,7 @@
     }
 
     function toggleResponsiveFilters() {
-        $('.bw-filtered-post-wall-wrapper').each(function() {
+        $('.bw-filtered-post-wall-wrapper').each(function () {
             var $wrapper = $(this);
             var breakpoint = parseInt($wrapper.attr('data-filter-breakpoint')) || 900;
             var width = window.innerWidth || $(window).width();
@@ -1168,7 +1168,7 @@
                 }
 
                 var initialSubcats = [];
-                $filters.find('.bw-fpw-subcat-button.active').each(function(){
+                $filters.find('.bw-fpw-subcat-button.active').each(function () {
                     var id = parseInt($(this).attr('data-subcategory'));
                     if (!isNaN(id)) {
                         initialSubcats.push(id);
@@ -1177,7 +1177,7 @@
                 filterState[widgetId].subcategories = initialSubcats;
 
                 var initialTags = [];
-                $filters.find('.bw-fpw-tag-button.active').each(function(){
+                $filters.find('.bw-fpw-tag-button.active').each(function () {
                     var id = parseInt($(this).attr('data-tag'));
                     if (!isNaN(id)) {
                         initialTags.push(id);
@@ -1188,8 +1188,8 @@
             initGrid($grid);
 
             // Apply staggered animation on initial load
-            withImagesLoaded($grid, function() {
-                setTimeout(function() {
+            withImagesLoaded($grid, function () {
+                setTimeout(function () {
                     animatePostsStaggered($grid);
                 }, 100);
             });
@@ -1202,9 +1202,9 @@
         toggleResponsiveFilters();
 
         var resizeTimer;
-        $(window).on('resize orientationchange', function() {
+        $(window).on('resize orientationchange', function () {
             clearTimeout(resizeTimer);
-            resizeTimer = setTimeout(function() {
+            resizeTimer = setTimeout(function () {
                 toggleResponsiveFilters();
             }, 150);
         });
@@ -1216,7 +1216,7 @@
 
     $(window).on('resize', function () {
         clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(function() {
+        resizeTimeout = setTimeout(function () {
             $('.bw-fpw-grid.bw-fpw-initialized').each(function () {
                 var $grid = $(this);
                 var gridId = $grid.attr('data-widget-id') || $grid.index();
@@ -1262,7 +1262,7 @@
 
                     var self = this;
 
-                    setTimeout(function() {
+                    setTimeout(function () {
                         initWidget(self.$element);
                     }, 50);
                 },
@@ -1294,7 +1294,7 @@
                         if (needsFullReinit) {
                             initGrid($grid);
 
-                            setTimeout(function() {
+                            setTimeout(function () {
                                 layoutGrid($grid, false);
                             }, 200);
                         } else {
@@ -1357,9 +1357,9 @@
     // Detect if we're in Elementor editor
     function isElementorEditor() {
         return (typeof elementorFrontend !== 'undefined' &&
-                elementorFrontend.isEditMode &&
-                elementorFrontend.isEditMode()) ||
-               (typeof elementor !== 'undefined');
+            elementorFrontend.isEditMode &&
+            elementorFrontend.isEditMode()) ||
+            (typeof elementor !== 'undefined');
     }
 
     // Enhanced initialization for editor
@@ -1367,7 +1367,7 @@
         var editorResizeTimeout;
         $(window).off('resize.bwFPW').on('resize.bwFPW', function () {
             clearTimeout(editorResizeTimeout);
-            editorResizeTimeout = setTimeout(function() {
+            editorResizeTimeout = setTimeout(function () {
                 $('.bw-fpw-grid.bw-fpw-initialized').each(function () {
                     var $grid = $(this);
                     setItemWidths($grid);

@@ -29,6 +29,11 @@ function bw_mew_initialize_woocommerce_overrides()
         BW_Notice_Manager::init();
     }
 
+    $google_pay_file = BW_MEW_PATH . 'includes/woocommerce-overrides/class-bw-google-pay-gateway.php';
+    if (file_exists($google_pay_file)) {
+        require_once $google_pay_file;
+    }
+
     add_filter('woocommerce_locate_template', 'bw_mew_locate_template', 1, 3);
     add_action('wp_enqueue_scripts', 'bw_mew_enqueue_related_products_assets', 30);
     add_action('wp_enqueue_scripts', 'bw_mew_enqueue_account_page_assets', 20);
@@ -49,6 +54,7 @@ function bw_mew_initialize_woocommerce_overrides()
     add_filter('wc_stripe_upe_params', 'bw_mew_customize_stripe_upe_appearance');
     add_filter('body_class', 'bw_mew_add_section_heading_body_classes');
     add_action('woocommerce_checkout_before_customer_details', 'bw_mew_render_address_section_heading', 5);
+    add_filter('woocommerce_payment_gateways', 'bw_mew_add_google_pay_gateway');
 }
 add_action('plugins_loaded', 'bw_mew_initialize_woocommerce_overrides');
 
@@ -402,6 +408,33 @@ function bw_mew_enqueue_checkout_assets()
             filemtime($stripe_upe_cleaner_file),
             true
         );
+    }
+
+    // Google Pay Integration
+    if (get_option('bw_google_pay_enabled', '0') === '1') {
+        $google_pay_js = BW_MEW_PATH . 'assets/js/bw-google-pay.js';
+        if (file_exists($google_pay_js)) {
+            wp_enqueue_script('stripe', 'https://js.stripe.com/v3/', [], null, true);
+            wp_enqueue_script(
+                'bw-google-pay',
+                BW_MEW_URL . 'assets/js/bw-google-pay.js',
+                ['jquery', 'stripe', 'wc-checkout'],
+                filemtime($google_pay_js),
+                true
+            );
+
+            $test_mode = get_option('bw_google_pay_test_mode', '0') === '1';
+            $pub_key = $test_mode
+                ? get_option('bw_google_pay_test_publishable_key', '')
+                : get_option('bw_google_pay_publishable_key', '');
+
+            wp_localize_script('bw-google-pay', 'bwGooglePayParams', [
+                'publishableKey' => $pub_key,
+                'testMode' => $test_mode,
+                'nonce' => wp_create_nonce('bw-google-pay-nonce'),
+                'checkoutUrl' => wc_get_checkout_url(),
+            ]);
+        }
     }
 }
 
@@ -1396,4 +1429,18 @@ function bw_mew_render_address_section_heading()
     }
 
     echo '<h3 class="bw-checkout-section-heading bw-checkout-section-heading--delivery">' . esc_html($label) . '</h3>';
+}
+
+/**
+ * Add Google Pay gateway to WooCommerce payment gateways.
+ *
+ * @param array $gateways WooCommerce gateways.
+ * @return array
+ */
+function bw_mew_add_google_pay_gateway($gateways)
+{
+    if (class_exists('BW_Google_Pay_Gateway')) {
+        $gateways[] = 'BW_Google_Pay_Gateway';
+    }
+    return $gateways;
 }

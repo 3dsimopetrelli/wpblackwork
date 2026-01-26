@@ -897,38 +897,80 @@ body.woocommerce-checkout .bw-checkout-copyright {
    Order Summary Styling
    ============================================ */
 
-/* Loading state */
+/* Loading state - Shopify-style Skeleton Overlays (Dual Column) */
+.bw-checkout-left,
+.bw-checkout-right,
 .bw-order-summary {
     position: relative;
+    overflow: hidden;
 }
 
+.bw-checkout-left__loader,
+.bw-checkout-right__loader,
 .bw-order-summary__loader {
-    display: none;
+    display: block;
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.55);
-    z-index: 10;
+    background-color: #f2f2f2;
+    /* Exact gray to match the skeleton image background */
+    background-size: 100% auto;
+    /* Force full width while maintaining aspect ratio */
+    background-position: top center;
+    background-repeat: no-repeat !important;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.4s ease, visibility 0.4s ease;
 }
 
+/* Dynamic background images via CSS Variables */
+.bw-checkout-left__loader {
+    background-image: var(--bw-skeleton-col1, url('../images/bw-checkout-skeleton.png'));
+}
+
+.bw-checkout-right__loader,
+.bw-order-summary__loader {
+    background-image: var(--bw-skeleton-col2, url('../images/bw-checkout-skeleton.png'));
+}
+
+/* Pulse Animation */
+.bw-checkout-left__loader::after,
+.bw-checkout-right__loader::after,
 .bw-order-summary__loader::after {
     content: "";
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 40px;
-    height: 40px;
-    border: 3px solid #2f2f2f;
-    border-top: 3px solid #9a7bff;
-    border-radius: 50%;
-    animation: bw-spin 0.8s linear infinite;
+    top: 0;
+    left: 0;
+    width: 200%;
+    height: 100%;
+    background: linear-gradient(90deg,
+            rgba(255, 255, 255, 0) 0%,
+            rgba(255, 255, 255, 0.4) 50%,
+            rgba(255, 255, 255, 0) 100%);
+    animation: bw-skeleton-shimmer 1.5s infinite;
 }
 
+@keyframes bw-skeleton-shimmer {
+    0% {
+        transform: translateX(-100%);
+    }
+
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+/* Active states */
+.bw-checkout-left.is-loading .bw-checkout-left__loader,
+.bw-checkout-right.is-loading .bw-checkout-right__loader,
 .bw-order-summary.is-loading .bw-order-summary__loader {
-    display: block;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: all;
 }
 
 @keyframes bw-spin {
@@ -958,8 +1000,9 @@ body.woocommerce-checkout .bw-checkout-right table.shop_table tbody .bw-review-i
     padding-bottom: 25px;
 }
 
+/* Dimensions and spacing controlled by inline styles in template */
 body.woocommerce-checkout .bw-checkout-right table.shop_table tbody .bw-review-item td.product-thumbnail {
-    /* ALL dimensions and spacing controlled by inline styles in template - DO NOT add any CSS here */
+    display: table-cell;
 }
 
 body.woocommerce-checkout .bw-checkout-right table.shop_table tbody .bw-review-item td.product-name {

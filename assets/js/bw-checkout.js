@@ -24,16 +24,18 @@ console.log('[BW Checkout] Script file loaded and executing');
     }
 
     function setOrderSummaryLoading(isLoading) {
-        var summary = document.querySelector('.bw-order-summary');
-
-        if (!summary) {
-            return;
-        }
+        var loaders = document.querySelectorAll('.bw-order-summary, .bw-checkout-left, .bw-checkout-right');
 
         if (isLoading) {
-            summary.classList.add('is-loading');
+            loaders.forEach(function (el) { el.classList.add('is-loading'); });
+            if (window.BWLS && window.BWLS.startProgress) {
+                window.BWLS.startProgress();
+            }
         } else {
-            summary.classList.remove('is-loading');
+            loaders.forEach(function (el) { el.classList.remove('is-loading'); });
+            if (window.BWLS && window.BWLS.stopProgress) {
+                window.BWLS.stopProgress();
+            }
         }
     }
 

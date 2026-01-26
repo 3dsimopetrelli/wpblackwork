@@ -487,7 +487,7 @@
 
             // Get all current category buttons
             const $currentButtons = $filters.find('.bw-category-filter');
-            const currentIds = $currentButtons.map(function() {
+            const currentIds = $currentButtons.map(function () {
                 return $(this).data('category-id').toString();
             }).get();
 
@@ -513,7 +513,7 @@
         };
 
         // Listen to Elementor settings changes
-        elementor.channels.editor.on('change', function(controlView) {
+        elementor.channels.editor.on('change', function (controlView) {
             const elementView = controlView.container.view;
 
             // Check if this is our widget

@@ -165,6 +165,14 @@ function bw_site_settings_page()
                 class="nav-tab <?php echo $active_tab === 'import-product' ? 'nav-tab-active' : ''; ?>">
                 Import Product
             </a>
+            <a href="?page=blackwork-site-settings&tab=loading"
+                class="nav-tab <?php echo $active_tab === 'loading' ? 'nav-tab-active' : ''; ?>">
+                Loading
+            </a>
+            <a href="?page=blackwork-site-settings&tab=google-pay"
+                class="nav-tab <?php echo $active_tab === 'google-pay' ? 'nav-tab-active' : ''; ?>">
+                Google Pay
+            </a>
         </nav>
 
         <!-- Tab Content -->
@@ -185,6 +193,10 @@ function bw_site_settings_page()
                 bw_site_render_redirect_tab();
             } elseif ($active_tab === 'import-product') {
                 bw_site_render_import_product_tab();
+            } elseif ($active_tab === 'loading') {
+                bw_site_render_loading_tab();
+            } elseif ($active_tab === 'google-pay') {
+                bw_site_render_google_pay_tab();
             }
             ?>
         </div>
@@ -1304,8 +1316,8 @@ function bw_site_render_account_page_tab()
     </form>
 
     <script>
-        jQuery(document).rea dy(fun                    ction($) {
-            $('.bw-media-upload').on('click', function (e) {
+        jQuery(document).rea dy(fun                           c              tion($) {
+            $('.bw-media-uplo             ad').on('click', function (e) {
                 e.preventDefault();
 
                 const targetInput = $(this).data('target');
@@ -1494,7 +1506,7 @@ function bw_site_render_account_page_tab()
         accountGoogleToggle.on('change', function () {
             toggleAccountProviderRows('google', $(this).is(':checked'));
         });
-                    });
+                                                            });
     </script>
     <?php
 }
@@ -3407,26 +3419,26 @@ function bw_site_render_redirect_tab()
         </p>
 
         <script type="text/html" id="bw-redirect-row-template">
-                            <tr class="bw-redirect-row">
-                                <td>
-                                    <label>
-                                        Inserisci il link d'arrivo
-                                        <input type="text" name="bw_redirects[__index__][target_url]" value="" class="regular-text" placeholder="https://esempio.com/pagina" />
-                                    </label>
-                                    <p class="description">URL assoluto verso cui reindirizzare l'utente.</p>
-                                </td>
-                                <td>
-                                    <label>
-                                        Inserisci il link di redirect
-                                        <input type="text" name="bw_redirects[__index__][source_url]" value="" class="regular-text" placeholder="/promo/black-friday" />
-                                    </label>
-                                    <p class="description">Accetta un path relativo (es. /promo) o un URL completo.</p>
-                                </td>
-                                <td class="bw-redirect-actions">
-                                    <button type="button" class="button button-link-delete bw-remove-redirect">Rimuovi</button>
-                                </td>
-                            </tr>
-                        </script>
+                                                                        <tr class="bw-redirect-row">
+                                                                            <td>
+                                                                                <label>
+                                                                                    Inserisci il link d'arrivo
+                                                                                    <input type="text" name="bw_redirects[__index__][target_url]" value="" class="regular-text" placeholder="https://esempio.com/pagina" />
+                                                                                </label>
+                                                                                <p class="description">URL assoluto verso cui reindirizzare l'utente.</p>
+                                                                            </td>
+                                                                            <td>
+                                                                                <label>
+                                                                                    Inserisci il link di redirect
+                                                                                    <input type="text" name="bw_redirects[__index__][source_url]" value="" class="regular-text" placeholder="/promo/black-friday" />
+                                                                                </label>
+                                                                                <p class="description">Accetta un path relativo (es. /promo) o un URL completo.</p>
+                                                                            </td>
+                                                                            <td class="bw-redirect-actions">
+                                                                                <button type="button" class="button button-link-delete bw-remove-redirect">Rimuovi</button>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </script>
 
         <?php submit_button('Salva redirect', 'primary', 'bw_redirects_submit'); ?>
     </form>
@@ -4879,4 +4891,163 @@ function bw_import_apply_attributes($product_id, $attributes)
             $product->save();
         }
     }
+}
+
+/**
+ * Renderizza il tab Loading
+ */
+function bw_site_render_loading_tab()
+{
+    $saved = false;
+
+    if (isset($_POST['bw_loading_settings_submit'])) {
+        check_admin_referer('bw_loading_settings_save', 'bw_loading_settings_nonce');
+
+        $global_spinner_hidden = isset($_POST['bw_loading_global_spinner_hidden']) ? 1 : 0;
+        update_option('bw_loading_global_spinner_hidden', $global_spinner_hidden);
+
+        $saved = true;
+    }
+
+    $global_spinner_hidden = get_option('bw_loading_global_spinner_hidden', 1);
+    ?>
+
+    <?php if ($saved): ?>
+        <div class="notice notice-success is-dismissible">
+            <p><strong>Impostazioni salvate con successo!</strong></p>
+        </div>
+    <?php endif; ?>
+
+    <form method="post" action="">
+        <?php wp_nonce_field('bw_loading_settings_save', 'bw_loading_settings_nonce'); ?>
+
+        <table class="form-table" role="presentation">
+            <tr>
+                <th scope="row">Nascondi Spinner WC</th>
+                <td>
+                    <label for="bw_loading_global_spinner_hidden">
+                        <input name="bw_loading_global_spinner_hidden" type="checkbox" id="bw_loading_global_spinner_hidden"
+                            value="1" <?php checked(1, $global_spinner_hidden); ?> />
+                        Nascondi caricamento standard e maschera grigia di WooCommerce (Checkout e altro)
+                    </label>
+                </td>
+            </tr>
+        </table>
+
+        <?php submit_button('Salva Impostazioni', 'primary', 'bw_loading_settings_submit'); ?>
+    </form>
+    <?php
+}
+
+function bw_site_render_google_pay_tab()
+{
+    $saved = false;
+
+    if (isset($_POST['bw_google_pay_settings_submit'])) {
+        check_admin_referer('bw_google_pay_settings_save', 'bw_google_pay_settings_nonce');
+
+        $enabled = isset($_POST['bw_google_pay_enabled']) ? 1 : 0;
+        $test_mode = isset($_POST['bw_google_pay_test_mode']) ? 1 : 0;
+        $pub_key = isset($_POST['bw_google_pay_publishable_key']) ? sanitize_text_field(wp_unslash($_POST['bw_google_pay_publishable_key'])) : '';
+        $sec_key = isset($_POST['bw_google_pay_secret_key']) ? sanitize_text_field(wp_unslash($_POST['bw_google_pay_secret_key'])) : '';
+        $test_pub_key = isset($_POST['bw_google_pay_test_publishable_key']) ? sanitize_text_field(wp_unslash($_POST['bw_google_pay_test_publishable_key'])) : '';
+        $test_sec_key = isset($_POST['bw_google_pay_test_secret_key']) ? sanitize_text_field(wp_unslash($_POST['bw_google_pay_test_secret_key'])) : '';
+
+        update_option('bw_google_pay_enabled', $enabled);
+        update_option('bw_google_pay_test_mode', $test_mode);
+        update_option('bw_google_pay_publishable_key', $pub_key);
+        update_option('bw_google_pay_secret_key', $sec_key);
+        update_option('bw_google_pay_test_publishable_key', $test_pub_key);
+        update_option('bw_google_pay_test_secret_key', $test_sec_key);
+
+        $saved = true;
+    }
+
+    $enabled = get_option('bw_google_pay_enabled', 0);
+    $test_mode = get_option('bw_google_pay_test_mode', 0);
+    $pub_key = get_option('bw_google_pay_publishable_key', '');
+    $sec_key = get_option('bw_google_pay_secret_key', '');
+    $test_pub_key = get_option('bw_google_pay_test_publishable_key', '');
+    $test_sec_key = get_option('bw_google_pay_test_secret_key', '');
+    ?>
+
+        <?php if ($saved): ?>
+                <div class="notice notice-success is-dismissible">
+                    <p><strong>Configurazione Google Pay salvata!</strong></p>
+                </div>
+        <?php endif; ?>
+
+        <div class="bw-settings-section">
+            <h2 class="title">Google Pay (Stripe Integration)</h2>
+            <p class="description">Configura Google Pay tramite Stripe per il checkout personalizzato. Nota: Google Pay richiede HTTPS attivo e dominio verificato su Stripe.</p>
+
+            <form method="post" action="">
+                <?php wp_nonce_field('bw_google_pay_settings_save', 'bw_google_pay_settings_nonce'); ?>
+
+                <table class="form-table" role="presentation">
+                    <tr>
+                        <th scope="row">Abilita Gateway</th>
+                        <td>
+                            <label class="bw-switch">
+                                <input name="bw_google_pay_enabled" type="checkbox" id="bw_google_pay_enabled"
+                                    value="1" <?php checked(1, $enabled); ?> />
+                                <span class="bw-slider round"></span>
+                            </label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Test Mode</th>
+                        <td>
+                            <label class="bw-switch">
+                                <input name="bw_google_pay_test_mode" type="checkbox" id="bw_google_pay_test_mode"
+                                    value="1" <?php checked(1, $test_mode); ?> />
+                                <span class="bw-slider round"></span>
+                            </label>
+                        </td>
+                    </tr>
+                
+                    <tr class="bw-settings-divider"><td colspan="2"><hr></td></tr>
+
+                    <tr>
+                        <th scope="row">Live Publishable Key</th>
+                        <td>
+                            <input name="bw_google_pay_publishable_key" type="text" id="bw_google_pay_publishable_key"
+                                value="<?php echo esc_attr($pub_key); ?>" class="regular-text" placeholder="pk_live_..." />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Live Secret Key</th>
+                        <td>
+                            <input name="bw_google_pay_secret_key" type="password" id="bw_google_pay_secret_key"
+                                value="<?php echo esc_attr($sec_key); ?>" class="regular-text" placeholder="sk_live_..." />
+                        </td>
+                    </tr>
+
+                    <tr class="bw-settings-divider"><td colspan="2"><hr></td></tr>
+
+                    <tr>
+                        <th scope="row">Test Publishable Key</th>
+                        <td>
+                            <input name="bw_google_pay_test_publishable_key" type="text" id="bw_google_pay_test_publishable_key"
+                                value="<?php echo esc_attr($test_pub_key); ?>" class="regular-text" placeholder="pk_test_..." />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Test Secret Key</th>
+                        <td>
+                            <input name="bw_google_pay_test_secret_key" type="password" id="bw_google_pay_test_secret_key"
+                                value="<?php echo esc_attr($test_sec_key); ?>" class="regular-text" placeholder="sk_test_..." />
+                        </td>
+                    </tr>
+                </table>
+
+                <?php submit_button('Salva Configurazione', 'primary', 'bw_google_pay_settings_submit'); ?>
+            </form>
+        </div>
+
+        <style>
+            .bw-settings-divider hr { border: 0; border-top: 1px solid #ddd; margin: 10px 0; }
+            .bw-settings-section { padding: 20px; background: #fff; border: 1px solid #ccd0d4; box-shadow: 0 1px 1px rgba(0,0,0,.04); }
+        </style>
+        <?php
 }

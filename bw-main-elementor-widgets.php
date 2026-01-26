@@ -622,32 +622,29 @@ function bw_enqueue_smart_header_assets()
 }
 
 /**
- * Enqueue Premium Modular Loading System assets
+ * Lightweight WooCommerce Loader Overrides
  */
-function bw_enqueue_premium_loader_assets()
+function bw_enqueue_wc_loader_overrides()
 {
-    $css_file = BW_MEW_PATH . 'assets/css/bw-premium-loader.css';
-    $css_version = file_exists($css_file) ? filemtime($css_file) : '1.1.0';
-
-    wp_enqueue_style(
-        'bw-premium-loader-style',
-        BW_MEW_URL . 'assets/css/bw-premium-loader.css',
-        [],
-        $css_version
-    );
-
-    $js_file = BW_MEW_PATH . 'assets/js/bw-premium-loader.js';
-    $js_version = file_exists($js_file) ? filemtime($js_file) : '1.1.0';
-
-    wp_enqueue_script(
-        'bw-premium-loader-script',
-        BW_MEW_URL . 'assets/js/bw-premium-loader.js',
-        ['jquery'],
-        $js_version,
-        true
-    );
+    if (get_option('bw_loading_global_spinner_hidden', 1)) {
+        $custom_css = "
+            /* Hide default WooCommerce spinner and masks */
+            .blockUI.blockOverlay {
+                display: none !important;
+                background: transparent !important;
+                opacity: 0 !important;
+            }
+            .blockUI.blockMsg.blockElement,
+            .woocommerce .loader,
+            .woocommerce .blockUI.blockMsg::before {
+                display: none !important;
+                opacity: 0 !important;
+            }
+        ";
+        wp_add_inline_style('woocommerce-general', $custom_css);
+    }
 }
-add_action('wp_enqueue_scripts', 'bw_enqueue_premium_loader_assets', 5);
+add_action('wp_enqueue_scripts', 'bw_enqueue_wc_loader_overrides', 20);
 
 function bw_register_animated_banner_widget_assets()
 {

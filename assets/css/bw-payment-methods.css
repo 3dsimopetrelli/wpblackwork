@@ -82,7 +82,8 @@ body.woocommerce-checkout {
 	--bw-pm-font-size-lg: 16px;
 	--bw-pm-font-size-xl: 24px;
 	--bw-pm-font-size-2xl: 28px;
-	--bw-pm-font-size-mobile: 16px; /* Prevent iOS zoom */
+	--bw-pm-font-size-mobile: 16px;
+	/* Prevent iOS zoom */
 
 	--bw-pm-font-weight-normal: 400;
 	--bw-pm-font-weight-medium: 500;
@@ -197,9 +198,11 @@ body.woocommerce-checkout div.payment_box::after {
 	left: -9999px !important;
 }
 
-#add_payment_method #payment div.payment_box, .woocommerce-cart #payment div.payment_box, .woocommerce-checkout #payment div.payment_box{
-     padding: 0 !important; 
-     margin: 0 !important; 
+#add_payment_method #payment div.payment_box,
+.woocommerce-cart #payment div.payment_box,
+.woocommerce-checkout #payment div.payment_box {
+	padding: 0 !important;
+	margin: 0 !important;
 }
 
 
@@ -379,7 +382,8 @@ body.woocommerce-checkout .bw-payment-method__icon {
 	margin-left: auto;
 }
 
-body.woocommerce-checkout .bw-payment-method__icon img {
+body.woocommerce-checkout .bw-payment-method__icon img,
+body.woocommerce-checkout .bw-payment-method__icon svg {
 	height: 24px;
 	width: auto;
 	display: block;
@@ -526,7 +530,8 @@ body.woocommerce-checkout .bw-payment-method__fields .form-row {
 }
 
 body.woocommerce-checkout .bw-payment-method__fields label {
-	display: none; /* Hide labels - use placeholders */
+	display: none;
+	/* Hide labels - use placeholders */
 }
 
 /* Input field wrapper for icons */
@@ -1012,4 +1017,84 @@ body.woocommerce-checkout .bw-sr-only {
 	clip: rect(0, 0, 0, 0);
 	white-space: nowrap;
 	border-width: 0;
+}
+
+/** Google Pay Integration */
+.bw-google-pay-info {
+	padding: 30px 20px;
+	text-align: center;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+}
+
+.bw-google-pay-info__icon {
+	width: 120px;
+	height: auto;
+	margin-bottom: 20px;
+	color: #333;
+}
+
+.bw-google-pay-info__text {
+	font-size: 15px;
+	line-height: 1.5;
+	color: #666;
+	max-width: 320px;
+	margin: 0 auto;
+}
+
+#bw-google-pay-button-wrapper {
+	width: 100%;
+	margin-top: 10px;
+}
+
+#bw-google-pay-button {
+	min-height: 54px;
+	width: 100%;
+}
+
+.bw-custom-gpay-btn {
+	width: 100% !important;
+	height: 54px !important;
+	background: #000 !important;
+	color: #fff !important;
+	border: none !important;
+	border-radius: 4px !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	gap: 12px !important;
+	font-weight: 600 !important;
+	font-size: 16px !important;
+	cursor: pointer !important;
+	transition: background 0.2s ease !important;
+	padding: 0 !important;
+	margin: 0 !important;
+}
+
+.bw-custom-gpay-btn:hover {
+	background: #1a1a1a !important;
+}
+
+.bw-custom-gpay-btn svg {
+	height: 24px !important;
+	width: 24px !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	display: block !important;
+}
+
+@keyframes bw-pulse {
+	0% {
+		opacity: 0.6;
+	}
+
+	50% {
+		opacity: 1;
+	}
+
+	100% {
+		opacity: 0.6;
+	}
 }
