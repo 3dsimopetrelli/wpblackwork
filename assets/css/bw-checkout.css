@@ -212,6 +212,8 @@ body.woocommerce-checkout:not(.elementor-editor-active) {
 
 body.woocommerce-checkout {
     background: var(--bw-checkout-page-bg, #ffffff);
+    overflow-x: hidden;
+    /* Prevent horizontal scroll from 100vw elements */
 }
 
 /* Force Elementor sections and containers to zero spacing */
@@ -338,7 +340,7 @@ body.woocommerce-checkout .bw-checkout-right #order_review_inner {
         position: absolute;
         top: 0;
         left: var(--bw-checkout-left-col, 62%);
-        width: calc(100vw - var(--bw-checkout-left-col, 62%));
+        width: calc(50vw + 50% - var(--bw-checkout-left-col, 62%));
         height: 100%;
         background: var(--bw-checkout-right-bg, transparent);
         z-index: 0;
