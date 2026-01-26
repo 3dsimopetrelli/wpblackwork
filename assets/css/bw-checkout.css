@@ -2885,3 +2885,279 @@ body.woocommerce-checkout .select2-results__option--selected {
     /* Ensure black */
     border-bottom: 1px solid #e5e5e5 !important;
 }
+
+/* ============================================
+   CUSTOM SHIPPING ADDRESS CHECKBOX
+   Styled to match newsletter checkbox
+   ============================================ */
+
+.bw-shipping-custom-checkbox {
+    margin: 24px 0 25px !important;
+    /* Updated margin-bottom to 25px */
+    padding-top: 16px;
+    border-top: 1px solid #e0e0e0;
+}
+
+
+
+/* Hide the default h3 that might be injected by hooks if not using our template */
+.woocommerce-shipping-fields>h3#ship-to-different-address {
+    display: none !important;
+}
+
+/* ============================================
+   SHIPPING ROW ALIGNMENT (REFINED)
+   Push price to the right and fix vertical alignment
+   ============================================ */
+
+/* General and Desktop */
+.bw-order-summary table.shop_table tr.shipping th,
+.bw-order-summary table.shop_table tr.shipping td,
+.bw-checkout-right table.shop_table tr.shipping th,
+.bw-checkout-right table.shop_table tr.shipping td {
+    padding: 12px 0 !important;
+    vertical-align: top !important;
+}
+
+#shipping_method {
+    margin: 0 !important;
+    padding: 0 !important;
+    list-style: none !important;
+}
+
+#shipping_method li {
+    display: flex !important;
+    align-items: flex-start !important;
+    /* Changed from center to flex-start for top alignment */
+    margin: 0 !important;
+    padding: 0 !important;
+    /* Removed padding from li */
+}
+
+#shipping_method li label {
+    display: flex !important;
+    justify-content: space-between !important;
+    flex: 1 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    font-weight: 500 !important;
+    font-size: 14px !important;
+    color: #111111 !important;
+    cursor: pointer !important;
+    line-height: 1.4 !important;
+    /* Consistent line-height */
+}
+
+/* Ensure price is all the way to the right */
+#shipping_method li label .woocommerce-Price-amount {
+    margin-left: auto !important;
+    padding-left: 20px !important;
+}
+
+/* Force "Shipping" title to the left */
+.bw-order-summary table.shop_table tr.shipping th,
+.bw-checkout-right table.shop_table tr.shipping th {
+    text-align: left !important;
+    width: auto !important;
+    min-width: 100px !important;
+}
+
+/* Mobile Panel Specific */
+.bw-order-summary-panel .bw-order-summary table.shop_table tr.shipping td {
+    text-align: right !important;
+}
+
+/* ============================================
+   POLICY POPUPS & CHECKOUT FOOTER
+   ============================================ */
+
+body.bw-modal-open {
+    overflow: hidden;
+}
+
+.bw-policy-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 100000;
+    display: none;
+    /* Initially hidden */
+    align-items: center;
+    justify-content: center;
+}
+
+.bw-policy-modal__overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    opacity: 0;
+    /* Hidden by default */
+    transition: opacity 0.4s ease;
+}
+
+.bw-policy-modal.is-active .bw-policy-modal__overlay {
+    opacity: 1;
+}
+
+.bw-policy-modal__container {
+    position: relative;
+    background: #fff;
+    width: 90%;
+    max-width: 650px;
+    max-height: 85vh;
+    border-radius: 20px;
+    padding: 60px 40px;
+    /* Slightly reduced horizontal padding */
+    overflow-y: auto;
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.25);
+    z-index: 1;
+    text-align: left;
+    /* Changed from center to left */
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    opacity: 0;
+    transform: scale(0.95);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+}
+
+.bw-policy-modal.is-active .bw-policy-modal__container {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.dark-mode .bw-policy-modal__container {
+    background: #111;
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.bw-policy-modal__close {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    background: #fff;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    color: #000;
+    padding: 0;
+}
+
+.dark-mode .bw-policy-modal__close {
+    background: #222;
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.bw-policy-modal__close:hover {
+    transform: rotate(90deg) scale(1.1);
+    background: #000;
+    color: #fff;
+}
+
+.dark-mode .bw-policy-modal__close:hover {
+    background: #fff;
+    color: #000;
+}
+
+.bw-policy-modal__title {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #000;
+    text-align: left;
+}
+
+.dark-mode .bw-policy-modal__title {
+    color: #fff;
+}
+
+.bw-policy-modal__subtitle {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 30px;
+    color: #666;
+    letter-spacing: -0.01em;
+    text-align: left;
+}
+
+.dark-mode .bw-policy-modal__subtitle {
+    color: #888;
+}
+
+.bw-policy-modal__body {
+    font-size: 16px;
+    line-height: 1.65;
+    color: #333;
+    text-align: left;
+}
+
+.dark-mode .bw-policy-modal__body {
+    color: #ccc;
+}
+
+/* Custom Scrollbar for Modal */
+.bw-policy-modal__container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.bw-policy-modal__container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.bw-policy-modal__container::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+}
+
+.dark-mode .bw-policy-modal__container::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Checkout Footer Links */
+.bw-checkout-footer-links {
+    margin: 30px 0 20px;
+    padding-top: 25px;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    /* Aligned to left column */
+    gap: 20px;
+}
+
+
+.dark-mode .bw-checkout-footer-links {
+    border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+.bw-policy-link {
+    color: #000;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 1px;
+    transition: all 0.2s ease;
+}
+
+.dark-mode .bw-policy-link {
+    color: #fff;
+}
+
+.bw-policy-link:hover {
+    opacity: 0.6;
+    border-bottom-width: 2px;
+}

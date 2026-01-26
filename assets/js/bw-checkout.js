@@ -1725,6 +1725,9 @@ console.log('[BW Checkout] Script file loaded and executing');
             initMobileOrderSummary();
             addMobileTotalRow();
             updateMobileTotals();
+            initShippingToggleFix();
+            initAutoDismissNotices();
+            initPolicyPopups();
 
             // Handle resize to initialize mobile accordion when switching views
             window.addEventListener('resize', function () {
@@ -1752,7 +1755,231 @@ console.log('[BW Checkout] Script file loaded and executing');
         addMobileTotalRow();
         addMobileTotalRow();
         updateMobileTotals();
+        initShippingToggleFix();
+        initAutoDismissNotices();
+        initPolicyPopups();
         styleCheckoutCoupons();
+    }
+
+    /**
+     * Fix for "Ship to a different address" checkbox scrolling to top.
+     * THE TITANIUM EDITION: Blocks every possible scroll trigger.
+     */
+    function initShippingToggleFix() {
+        if (!window.jQuery) return;
+        var $ = window.jQuery;
+
+        // 1. SAVE original scroll functions and override them
+        if (!window.bw_original_scrollTo) {
+            window.bw_original_scrollTo = window.scrollTo;
+            window.bw_original_scroll = window.scroll;
+
+            window.scrollTo = function (x, y) {
+                if (window.bw_is_toggling_shipping && !window.bw_allow_shipping_scroll) {
+                    // console.log('[BW Checkout] TITANIUM: Blocked direct window.scrollTo(', x, y, ')');
+                    return;
+                }
+                return window.bw_original_scrollTo.apply(this, arguments);
+            };
+
+            window.scroll = function (x, y) {
+                if (window.bw_is_toggling_shipping && !window.bw_allow_shipping_scroll) {
+                    // console.log('[BW Checkout] TITANIUM: Blocked direct window.scroll(', x, y, ')');
+                    return;
+                }
+                return window.bw_original_scroll.apply(this, arguments);
+            };
+        }
+
+        // 2. OVERRIDE jQuery animate
+        if (!$.fn.bw_original_animate) {
+            $.fn.bw_original_animate = $.fn.animate;
+        }
+
+        $.fn.animate = function (props, speed, easing, callback) {
+            if (window.bw_is_toggling_shipping && props && props.scrollTop !== undefined) {
+                if (!window.bw_allow_shipping_scroll) {
+                    // console.log('[BW Checkout] TITANIUM: Blocked jQuery.animate scroll');
+                    return this;
+                }
+            }
+            return $.fn.bw_original_animate.apply(this, arguments);
+        };
+
+        // 3. LISTEN for clicks and LOCK scroll
+        $(document.body).off('click.bwTitaniumScroll').on('click.bwTitaniumScroll', '#ship-to-different-address-checkbox', function (e) {
+            var checkbox = $(this);
+            var isChecked = checkbox.is(':checked');
+            var shippingForm = $('.shipping_address');
+
+            // SAVE current position
+            var savedScrollTop = $(window).scrollTop();
+
+            // ACTIVATE generic scroll blocker
+            window.bw_is_toggling_shipping = true;
+            window.bw_allow_shipping_scroll = false;
+
+            // MANUALLY handle visibility immediately
+            if (isChecked) { shippingForm.show(); } else { shippingForm.hide(); }
+
+            // BRUTE FORCE scroll reset on any scroll attempt for next 300ms
+            var scrollResetter = function () {
+                if (!window.bw_allow_shipping_scroll) {
+                    window.bw_original_scrollTo(0, savedScrollTop);
+                }
+            };
+            window.addEventListener('scroll', scrollResetter, { passive: false });
+
+            // After a short delay, we trigger OUR specific scroll
+            setTimeout(function () {
+                // Remove the brute force resetter
+                window.removeEventListener('scroll', scrollResetter);
+
+                if (isChecked && shippingForm.length && shippingForm.is(':visible')) {
+                    window.bw_allow_shipping_scroll = true;
+
+                    $('html, body').stop().bw_original_animate({
+                        scrollTop: shippingForm.offset().top - 140
+                    }, 800, function () {
+                        window.bw_allow_shipping_scroll = false;
+                        window.bw_is_toggling_shipping = false;
+                    });
+                } else {
+                    // Just stay put
+                    setTimeout(function () {
+                        window.bw_is_toggling_shipping = false;
+                    }, 500);
+                }
+            }, 300); // 300ms of hard locking
+        });
+    }
+
+    /**
+     * Initialize policy popups for the checkout footer.
+     */
+    function initPolicyPopups() {
+        if (!window.jQuery) return;
+        var $ = window.jQuery;
+
+        // Use global document delegation - much more robust for AJAX/Fragments
+        $(document).off('click.bwPolicy').on('click.bwPolicy', '.bw-policy-link', function (e) {
+            e.preventDefault();
+
+            var link = $(this);
+            var modal = $('#bw-policy-modal');
+
+            if (modal.length === 0) {
+                console.warn('[BW Checkout] Policy modal not found in DOM');
+                return;
+            }
+
+            var data = {
+                title: link.attr('data-title'),
+                subtitle: link.attr('data-subtitle'),
+                content: link.attr('data-content')
+            };
+
+            if (data.title || data.content) {
+                modal.find('.bw-policy-modal__title').text(data.title || '');
+                modal.find('.bw-policy-modal__subtitle').text(data.subtitle || '');
+                modal.find('.bw-policy-modal__body').html(data.content || '');
+
+                // Show container and trigger transition
+                modal.css('display', 'flex');
+
+                // Tiny delay to ensure browser registers display:flex before adding active class
+                setTimeout(function () {
+                    modal.addClass('is-active');
+                    $('body').addClass('bw-modal-open');
+                }, 10);
+            }
+        });
+
+        // Close events - also delegated for robustness
+        $(document).off('click.bwModalClose').on('click.bwModalClose', '#bw-policy-modal .bw-policy-modal__close, #bw-policy-modal .bw-policy-modal__overlay', function (e) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            var modal = $('#bw-policy-modal');
+            modal.removeClass('is-active');
+
+            setTimeout(function () {
+                modal.css('display', 'none');
+                $('body').removeClass('bw-modal-open');
+            }, 400); // Wait for transition to finish
+        });
+
+        $(document).off('keydown.bwModalEscape').on('keydown.bwModalEscape', function (e) {
+            var modal = $('#bw-policy-modal');
+            if (e.key === 'Escape' && modal.is(':visible')) {
+                modal.removeClass('is-active');
+
+                setTimeout(function () {
+                    modal.css('display', 'none');
+                    $('body').removeClass('bw-modal-open');
+                }, 400);
+            }
+        });
+    }
+
+    /**
+     * Automatically dismiss WooCommerce notices (errors, messages, info) after a set time.
+     */
+    function initAutoDismissNotices() {
+        if (!window.jQuery) return;
+        var $ = window.jQuery;
+
+        // Ensure we don't have multiple handlers
+        $(document.body).off('updated_checkout.bwNoticeAutoDismiss applied_coupon.bwNoticeAutoDismiss removed_coupon.bwNoticeAutoDismiss checkout_error.bwNoticeAutoDismiss');
+
+        function dismissNotices() {
+            // Find ALL notices
+            // WooCommerce often adds them as ul.woocommerce-error or div.woocommerce-message
+            var notices = $('.woocommerce-error, .woocommerce-message, .woocommerce-info, .woocommerce-notice, .bw-coupon-message').not('.bw-notice-processed');
+
+            if (notices.length === 0) return;
+
+            console.log('[BW Checkout] Found notices to auto-dismiss:', notices.length);
+
+            notices.each(function () {
+                var notice = $(this);
+                notice.addClass('bw-notice-processed');
+
+                // Force a transition style if not present
+                notice.css({
+                    'transition': 'opacity 0.8s ease, transform 0.8s ease',
+                    'opacity': '1'
+                });
+
+                // Wait 5 seconds, then fade out and remove
+                setTimeout(function () {
+                    notice.css({
+                        'opacity': '0',
+                        'transform': 'translateY(-10px)'
+                    });
+
+                    setTimeout(function () {
+                        notice.remove();
+                    }, 800);
+                }, 5000);
+            });
+        }
+
+        // Run immediately
+        dismissNotices();
+
+        // Also watch for notices added via fragments/AJAX
+        $(document.body).on('updated_checkout.bwNoticeAutoDismiss applied_coupon.bwNoticeAutoDismiss removed_coupon.bwNoticeAutoDismiss checkout_error.bwNoticeAutoDismiss', function () {
+            // Small delay to ensure Woo has finished rendering them
+            setTimeout(dismissNotices, 200);
+        });
+
+        // Also check periodically for any missed ones (robustness)
+        if (!window.bw_notice_checker) {
+            window.bw_notice_checker = setInterval(dismissNotices, 2000);
+        }
     }
 
     // Re-initialize floating labels and detect free order after WooCommerce AJAX update
@@ -1772,6 +1999,9 @@ console.log('[BW Checkout] Script file loaded and executing');
             // Update mobile totals and refresh cloned content immediately
             updateMobileTotals();
 
+            // Re-bind shipping toggle fix
+            initShippingToggleFix();
+
             // Also re-run after a small delay for elements that render slower
             setTimeout(function () {
                 // FORCE GLOBAL RE-INIT of floating labels to catch refreshed desktop and mobile inputs
@@ -1784,6 +2014,7 @@ console.log('[BW Checkout] Script file loaded and executing');
                 hideSectionHeadings();
                 updateMobileTotals();
                 styleCheckoutCoupons();
+                initPolicyPopups();
             }, 50);
         });
     }

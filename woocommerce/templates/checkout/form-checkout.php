@@ -162,7 +162,10 @@ if (function_exists('bw_mew_render_checkout_header')) {
                                 </a>
                             <?php endif; ?>
 
-                            <?php if (!empty($footer_copy)): ?>
+                            <?php
+                            $show_copyright = !isset($settings['show_footer_copyright']) || '1' === (string) $settings['show_footer_copyright'];
+                            if ($show_copyright && !empty($footer_copy)):
+                                ?>
                                 <div class="bw-checkout-copyright">
                                     <?php
                                     printf(
@@ -176,11 +179,41 @@ if (function_exists('bw_mew_render_checkout_header')) {
                         </div>
                     <?php endif; ?>
                 </div>
+
+                <?php
+                // Policy Footer and Modals (Left Column Placement)
+                $policy_keys = ['refund', 'shipping', 'privacy', 'terms', 'contact'];
+                $footer_policies = [];
+
+                foreach ($policy_keys as $key) {
+                    $data = get_option("bw_checkout_policy_{$key}", []);
+                    if (!empty($data['title'])) {
+                        $footer_policies[$key] = $data;
+                    }
+                }
+                ?>
+
+                <?php if (!empty($footer_policies)): ?>
+                    <div class="bw-checkout-footer-links">
+                        <?php foreach ($footer_policies as $key => $data): ?>
+                            <a href="#" class="bw-policy-link" data-policy="<?php echo esc_attr($key); ?>"
+                                data-title="<?php echo esc_attr($data['title']); ?>"
+                                data-subtitle="<?php echo esc_attr($data['subtitle']); ?>"
+                                data-content="<?php echo esc_attr($data['content']); ?>">
+                                <?php echo esc_html($data['title']); ?>
+                            </a>
+                        <?php endforeach; ?>
+                    </div>
+
+                    <script>
+                        window.bwPolicyContent = <?php echo json_encode($footer_policies); ?>;
+                    </script>
+                <?php endif; ?>
             </div>
 
             <?php do_action('woocommerce_checkout_before_order_review_heading'); ?>
 
-            <?php if ($settings['show_order_heading'] === '1'): ?>
+            <?php if (isset($settings['show_order_heading']) && $settings['show_order_heading'] === '1'): ?>
                 <div class="bw-checkout-order-heading__wrap"
                     style="<?php echo esc_attr($right_spacing_vars . ' margin-top:' . $right_sticky_top . 'px;'); ?>">
                     <h3 id="order_review_heading" class="bw-checkout-order-heading">
@@ -204,5 +237,23 @@ if (function_exists('bw_mew_render_checkout_header')) {
                 <?php do_action('woocommerce_checkout_after_order_review'); ?>
             </div>
         </div>
+
+        <?php if (!empty($footer_policies)): ?>
+            <div id="bw-policy-modal" class="bw-policy-modal" style="display:none;">
+                <div class="bw-policy-modal__overlay"></div>
+                <div class="bw-policy-modal__container">
+                    <button type="button" class="bw-policy-modal__close" aria-label="Close">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 6L6 18M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                    <div class="bw-policy-modal__content">
+                        <h2 class="bw-policy-modal__title"></h2>
+                        <h3 class="bw-policy-modal__subtitle"></h3>
+                        <div class="bw-policy-modal__body"></div>
+                    </div>
+                </div>
+            </div>
+        <?php endif; ?>
     </div>
 </form>

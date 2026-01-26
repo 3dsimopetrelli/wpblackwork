@@ -22,6 +22,8 @@ function bw_mew_initialize_woocommerce_overrides()
     if (file_exists($supabase_file)) {
         require_once $supabase_file;
     }
+    // Force "Ship to a different address?" checkbox to be unchecked by default
+    add_filter('woocommerce_ship_to_different_address_checked', '__return_false');
 
     $notice_manager_file = BW_MEW_PATH . 'includes/woocommerce-overrides/class-bw-notice-manager.php';
     if (file_exists($notice_manager_file)) {
@@ -770,6 +772,7 @@ function bw_mew_get_checkout_settings()
         'right_padding_bottom' => 0,
         'right_padding_left' => 28,
         'footer_copyright' => '',
+        'show_footer_copyright' => '1',
         'show_return_to_shop' => '1',
     ];
 
@@ -799,6 +802,7 @@ function bw_mew_get_checkout_settings()
         'right_padding_bottom' => absint(get_option('bw_checkout_right_padding_bottom', $defaults['right_padding_bottom'])),
         'right_padding_left' => absint(get_option('bw_checkout_right_padding_left', $defaults['right_padding_left'])),
         'footer_copyright' => get_option('bw_checkout_footer_copyright_text', $defaults['footer_copyright']),
+        'show_footer_copyright' => get_option('bw_checkout_show_footer_copyright', $defaults['show_footer_copyright']),
         'show_return_to_shop' => get_option('bw_checkout_show_return_to_shop', $defaults['show_return_to_shop']),
     ];
 
@@ -831,6 +835,7 @@ function bw_mew_get_checkout_settings()
     }
 
     $settings['footer_copyright'] = wp_kses_post($settings['footer_copyright']);
+    $settings['show_footer_copyright'] = '1' === (string) $settings['show_footer_copyright'] ? '1' : '0';
     $settings['show_return_to_shop'] = '1' === (string) $settings['show_return_to_shop'] ? '1' : '0';
 
     return $settings;

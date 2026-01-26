@@ -1506,7 +1506,7 @@ function bw_site_render_account_page_tab()
         accountGoogleToggle.on('change', function () {
             toggleAccountProviderRows('google', $(this).is(':checked'));
         });
-                                                            });
+                                                                                        });
     </script>
     <?php
 }
@@ -1572,7 +1572,7 @@ function bw_site_render_checkout_tab()
 {
     $saved = false;
 
-    if (isset($_POST['bw_checkout_settings_submit'])) {
+    if (isset($_POST['bw_checkout_settings_submit']) || isset($_POST['bw_checkout_footer_submit'])) {
         check_admin_referer('bw_checkout_settings_save', 'bw_checkout_settings_nonce');
 
         $logo = isset($_POST['bw_checkout_logo']) ? esc_url_raw(wp_unslash($_POST['bw_checkout_logo'])) : '';
@@ -1596,6 +1596,7 @@ function bw_site_render_checkout_tab()
         $border_color = isset($_POST['bw_checkout_border_color']) ? sanitize_hex_color(wp_unslash($_POST['bw_checkout_border_color'])) : '';
         $legal_text = isset($_POST['bw_checkout_legal_text']) ? wp_kses_post(wp_unslash($_POST['bw_checkout_legal_text'])) : '';
         $footer_copyright = isset($_POST['bw_checkout_footer_copyright_text']) ? wp_kses_post(wp_unslash($_POST['bw_checkout_footer_copyright_text'])) : '';
+        $show_footer_copyright = isset($_POST['bw_checkout_show_footer_copyright']) ? '1' : '0';
         $show_return_to_shop = isset($_POST['bw_checkout_show_return_to_shop']) ? '1' : '0';
         $left_width_percent = isset($_POST['bw_checkout_left_width']) ? absint($_POST['bw_checkout_left_width']) : 62;
         $right_width_percent = isset($_POST['bw_checkout_right_width']) ? absint($_POST['bw_checkout_right_width']) : 38;
@@ -1604,6 +1605,25 @@ function bw_site_render_checkout_tab()
         $footer_text = isset($_POST['bw_checkout_footer_text']) ? sanitize_text_field(wp_unslash($_POST['bw_checkout_footer_text'])) : '';
         $supabase_provision_enabled = isset($_POST['bw_supabase_checkout_provision_enabled']) ? '1' : '0';
         $supabase_invite_redirect = isset($_POST['bw_supabase_invite_redirect_url']) ? esc_url_raw(wp_unslash($_POST['bw_supabase_invite_redirect_url'])) : '';
+
+        // Policy Settings
+        $policies = [
+            'refund' => 'bw_checkout_policy_refund',
+            'shipping' => 'bw_checkout_policy_shipping',
+            'privacy' => 'bw_checkout_policy_privacy',
+            'terms' => 'bw_checkout_policy_terms',
+            'contact' => 'bw_checkout_policy_contact'
+        ];
+
+        foreach ($policies as $key => $option_prefix) {
+            $policy_data = isset($_POST[$option_prefix]) ? wp_unslash($_POST[$option_prefix]) : [];
+            $sanitized_data = [
+                'title' => isset($policy_data['title']) ? sanitize_text_field($policy_data['title']) : '',
+                'subtitle' => isset($policy_data['subtitle']) ? sanitize_text_field($policy_data['subtitle']) : '',
+                'content' => isset($policy_data['content']) ? wp_kses_post($policy_data['content']) : '',
+            ];
+            update_option($option_prefix, $sanitized_data);
+        }
 
         // Google Maps settings
         $google_maps_enabled = isset($_POST['bw_google_maps_enabled']) ? '1' : '0';
@@ -1660,6 +1680,7 @@ function bw_site_render_checkout_tab()
         update_option('bw_checkout_border_color', $border_color);
         update_option('bw_checkout_legal_text', $legal_text);
         update_option('bw_checkout_footer_copyright_text', $footer_copyright);
+        update_option('bw_checkout_show_footer_copyright', $show_footer_copyright);
         update_option('bw_checkout_show_return_to_shop', $show_return_to_shop);
         update_option('bw_checkout_left_width', $left_width_percent);
         update_option('bw_checkout_right_width', $right_width_percent);
@@ -1692,6 +1713,7 @@ function bw_site_render_checkout_tab()
         wp_safe_redirect(add_query_arg(array(
             'page' => 'blackwork-site-settings',
             'tab' => 'checkout',
+            'checkout_tab' => isset($_GET['checkout_tab']) ? sanitize_key($_GET['checkout_tab']) : 'style',
             'saved' => '1'
         ), admin_url('admin.php')));
         exit;
@@ -1721,6 +1743,7 @@ function bw_site_render_checkout_tab()
     $right_padding_bottom = get_option('bw_checkout_right_padding_bottom', 0);
     $right_padding_left = get_option('bw_checkout_right_padding_left', 28);
     $footer_copyright = get_option('bw_checkout_footer_copyright_text', '');
+    $show_footer_copyright = get_option('bw_checkout_show_footer_copyright', '1');
     $show_return_to_shop = get_option('bw_checkout_show_return_to_shop', '1');
     $border_color = get_option('bw_checkout_border_color', '#262626');
     $legal_text = get_option('bw_checkout_legal_text', '');
@@ -1741,6 +1764,17 @@ function bw_site_render_checkout_tab()
     $address_heading_label = get_option('bw_checkout_address_heading_label', '');
     $free_order_message = get_option('bw_checkout_free_order_message', '');
     $free_order_button_text = get_option('bw_checkout_free_order_button_text', '');
+
+    // Get Policy Data
+    $policy_names = ['refund', 'shipping', 'privacy', 'terms', 'contact'];
+    $policy_settings = [];
+    foreach ($policy_names as $name) {
+        $policy_settings[$name] = get_option("bw_checkout_policy_{$name}", [
+            'title' => '',
+            'subtitle' => '',
+            'content' => '',
+        ]);
+    }
     ?>
 
     <?php if ($saved): ?>
@@ -1754,7 +1788,7 @@ function bw_site_render_checkout_tab()
 
         <?php
         $active_checkout_tab = isset($_GET['checkout_tab']) ? sanitize_key($_GET['checkout_tab']) : 'style';
-        $allowed_checkout_tabs = ['style', 'supabase', 'fields', 'subscribe', 'google-maps'];
+        $allowed_checkout_tabs = ['style', 'supabase', 'fields', 'subscribe', 'google-maps', 'footer'];
         if (!in_array($active_checkout_tab, $allowed_checkout_tabs, true)) {
             $active_checkout_tab = 'style';
         }
@@ -1764,6 +1798,7 @@ function bw_site_render_checkout_tab()
         $fields_tab_url = add_query_arg('checkout_tab', 'fields');
         $subscribe_tab_url = add_query_arg('checkout_tab', 'subscribe');
         $google_maps_tab_url = add_query_arg('checkout_tab', 'google-maps');
+        $footer_tab_url = add_query_arg('checkout_tab', 'footer');
         ?>
 
         <h2 class="nav-tab-wrapper">
@@ -1786,6 +1821,10 @@ function bw_site_render_checkout_tab()
             <a class="nav-tab <?php echo 'google-maps' === $active_checkout_tab ? 'nav-tab-active' : ''; ?>"
                 href="<?php echo esc_url($google_maps_tab_url); ?>">
                 <?php esc_html_e('Google Maps', 'bw'); ?>
+            </a>
+            <a class="nav-tab <?php echo 'footer' === $active_checkout_tab ? 'nav-tab-active' : ''; ?>"
+                href="<?php echo esc_url($footer_tab_url); ?>">
+                <?php esc_html_e('Footer Cleanup', 'bw'); ?>
             </a>
         </h2>
 
@@ -2043,39 +2082,6 @@ function bw_site_render_checkout_tab()
                             value="<?php echo esc_attr($border_color); ?>" class="bw-color-picker"
                             data-default-color="#262626" />
                         <p class="description">Colore del bordo verticale tra le due colonne.</p>
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row">
-                        <label for="bw_checkout_legal_text">Testo informativo legale</label>
-                    </th>
-                    <td>
-                        <textarea id="bw_checkout_legal_text" name="bw_checkout_legal_text" rows="6"
-                            class="large-text"><?php echo esc_textarea($legal_text); ?></textarea>
-                        <p class="description">Testo mostrato sotto i metodi di pagamento; supporta link e HTML consentito.
-                        </p>
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row">
-                        <label for="bw_checkout_footer_copyright_text">Text of Footer Copyright</label>
-                    </th>
-                    <td>
-                        <textarea id="bw_checkout_footer_copyright_text" name="bw_checkout_footer_copyright_text" rows="3"
-                            class="large-text"><?php echo esc_textarea($footer_copyright); ?></textarea>
-                        <p class="description">Testo mostrato nel footer della colonna sinistra; viene preceduto da
-                            "Copyright © {anno},".</p>
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row">Mostra link "Return to shop"</th>
-                    <td>
-                        <label class="switch">
-                            <input type="checkbox" id="bw_checkout_show_return_to_shop"
-                                name="bw_checkout_show_return_to_shop" value="1" <?php checked('1', $show_return_to_shop); ?> />
-                            <span class="description">Attiva o disattiva il link di ritorno allo shop nel footer della
-                                colonna sinistra.</span>
-                        </label>
                     </td>
                 </tr>
                 <tr class="bw-section-break">
@@ -2345,7 +2351,111 @@ function bw_site_render_checkout_tab()
             </script>
         </div>
 
-        <?php if (in_array($active_checkout_tab, ['fields', 'subscribe'], true)): ?>
+        <div class="bw-tab-panel" data-bw-tab="footer" <?php echo 'footer' === $active_checkout_tab ? '' : 'style="display:none;"'; ?>>
+            <div class="bw-settings-header" style="margin-bottom: 25px;">
+                <h2><?php esc_html_e('Checkout Footer Cleanup', 'bw'); ?></h2>
+                <p><?php esc_html_e('Manage the policy links and content shown at the bottom of the checkout page.', 'bw'); ?>
+                </p>
+            </div>
+
+            <table class="form-table" role="presentation" style="margin-bottom: 30px;">
+                <tr>
+                    <th scope="row">
+                        <label for="bw_checkout_legal_text">Testo informativo legale</label>
+                    </th>
+                    <td>
+                        <textarea id="bw_checkout_legal_text" name="bw_checkout_legal_text" rows="4"
+                            class="large-text"><?php echo esc_textarea($legal_text); ?></textarea>
+                        <p class="description">Testo mostrato sotto i metodi di pagamento; supporta link e HTML consentito.
+                        </p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">
+                        <label
+                            for="bw_checkout_show_footer_copyright"><?php esc_html_e('Show Footer Copyright', 'bw'); ?></label>
+                    </th>
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox" id="bw_checkout_show_footer_copyright"
+                                name="bw_checkout_show_footer_copyright" value="1" <?php checked('1', $show_footer_copyright); ?> />
+                            <span class="description">Mostra o nascondi il testo di copyright nel footer.</span>
+                        </label>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">
+                        <label for="bw_checkout_footer_copyright_text">Text of Footer Copyright</label>
+                    </th>
+                    <td>
+                        <textarea id="bw_checkout_footer_copyright_text" name="bw_checkout_footer_copyright_text" rows="2"
+                            class="large-text"><?php echo esc_textarea($footer_copyright); ?></textarea>
+                        <p class="description">Testo mostrato nel footer della colonna sinistra; viene preceduto da
+                            "Copyright © {anno},".</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Mostra link "Return to shop"</th>
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox" id="bw_checkout_show_return_to_shop"
+                                name="bw_checkout_show_return_to_shop" value="1" <?php checked('1', $show_return_to_shop); ?> />
+                            <span class="description">Attiva o disattiva il link di ritorno allo shop nel footer della
+                                colonna sinistra.</span>
+                        </label>
+                    </td>
+                </tr>
+            </table>
+
+            <h3 style="margin-bottom: 20px;"><?php esc_html_e('Policy Sections (Popups)', 'bw'); ?></h3>
+
+            <?php foreach ($policy_settings as $key => $data): ?>
+                <div class="bw-policy-section"
+                    style="background: #fff; border: 1px solid #ccd0d4; padding: 25px; margin-bottom: 30px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                    <h3 style="margin-top:0; border-bottom: 1px solid #eee; padding-bottom: 15px; text-transform: capitalize;">
+                        <?php echo esc_html($key); ?> Policy
+                    </h3>
+
+                    <table class="form-table" role="presentation">
+                        <tr>
+                            <th scope="row"><label><?php esc_html_e('Link Title', 'bw'); ?></label></th>
+                            <td>
+                                <input type="text" name="bw_checkout_policy_<?php echo esc_attr($key); ?>[title]"
+                                    value="<?php echo esc_attr($data['title']); ?>" class="regular-text"
+                                    placeholder="<?php echo esc_attr(ucfirst($key) . ' policy'); ?>" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><label><?php esc_html_e('Popup Subtitle', 'bw'); ?></label></th>
+                            <td>
+                                <input type="text" name="bw_checkout_policy_<?php echo esc_attr($key); ?>[subtitle]"
+                                    value="<?php echo esc_attr($data['subtitle']); ?>" class="regular-text" />
+                                <p class="description"><?php esc_html_e('Optional subtitle shown inside the popup.', 'bw'); ?>
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><label><?php esc_html_e('Content', 'bw'); ?></label></th>
+                            <td>
+                                <?php
+                                wp_editor($data['content'], "bw_checkout_policy_{$key}_content", [
+                                    'textarea_name' => "bw_checkout_policy_{$key}[content]",
+                                    'media_buttons' => true,
+                                    'textarea_rows' => 10,
+                                    'teeny' => false,
+                                    'quicktags' => true
+                                ]);
+                                ?>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            <?php endforeach; ?>
+
+            <?php submit_button('Salva Footer', 'primary', 'bw_checkout_footer_submit'); ?>
+        </div>
+
+        <?php if (in_array($active_checkout_tab, ['fields', 'subscribe', 'footer'], true)): ?>
             <?php // Buttons rendered inside module panels. ?>
         <?php else: ?>
             <?php submit_button('Salva impostazioni', 'primary', 'bw_checkout_settings_submit'); ?>
@@ -3419,26 +3529,26 @@ function bw_site_render_redirect_tab()
         </p>
 
         <script type="text/html" id="bw-redirect-row-template">
-                                                                        <tr class="bw-redirect-row">
-                                                                            <td>
-                                                                                <label>
-                                                                                    Inserisci il link d'arrivo
-                                                                                    <input type="text" name="bw_redirects[__index__][target_url]" value="" class="regular-text" placeholder="https://esempio.com/pagina" />
-                                                                                </label>
-                                                                                <p class="description">URL assoluto verso cui reindirizzare l'utente.</p>
-                                                                            </td>
-                                                                            <td>
-                                                                                <label>
-                                                                                    Inserisci il link di redirect
-                                                                                    <input type="text" name="bw_redirects[__index__][source_url]" value="" class="regular-text" placeholder="/promo/black-friday" />
-                                                                                </label>
-                                                                                <p class="description">Accetta un path relativo (es. /promo) o un URL completo.</p>
-                                                                            </td>
-                                                                            <td class="bw-redirect-actions">
-                                                                                <button type="button" class="button button-link-delete bw-remove-redirect">Rimuovi</button>
-                                                                            </td>
-                                                                        </tr>
-                                                                    </script>
+                                                                                                    <tr class="bw-redirect-row">
+                                                                                                        <td>
+                                                                                                            <label>
+                                                                                                                Inserisci il link d'arrivo
+                                                                                                                <input type="text" name="bw_redirects[__index__][target_url]" value="" class="regular-text" placeholder="https://esempio.com/pagina" />
+                                                                                                            </label>
+                                                                                                            <p class="description">URL assoluto verso cui reindirizzare l'utente.</p>
+                                                                                                        </td>
+                                                                                                        <td>
+                                                                                                            <label>
+                                                                                                                Inserisci il link di redirect
+                                                                                                                <input type="text" name="bw_redirects[__index__][source_url]" value="" class="regular-text" placeholder="/promo/black-friday" />
+                                                                                                            </label>
+                                                                                                            <p class="description">Accetta un path relativo (es. /promo) o un URL completo.</p>
+                                                                                                        </td>
+                                                                                                        <td class="bw-redirect-actions">
+                                                                                                            <button type="button" class="button button-link-delete bw-remove-redirect">Rimuovi</button>
+                                                                                                        </td>
+                                                                                                    </tr>
+                                                                                                </script>
 
         <?php submit_button('Salva redirect', 'primary', 'bw_redirects_submit'); ?>
     </form>
@@ -4971,83 +5081,101 @@ function bw_site_render_google_pay_tab()
     $test_sec_key = get_option('bw_google_pay_test_secret_key', '');
     ?>
 
-        <?php if ($saved): ?>
-                <div class="notice notice-success is-dismissible">
-                    <p><strong>Configurazione Google Pay salvata!</strong></p>
-                </div>
-        <?php endif; ?>
-
-        <div class="bw-settings-section">
-            <h2 class="title">Google Pay (Stripe Integration)</h2>
-            <p class="description">Configura Google Pay tramite Stripe per il checkout personalizzato. Nota: Google Pay richiede HTTPS attivo e dominio verificato su Stripe.</p>
-
-            <form method="post" action="">
-                <?php wp_nonce_field('bw_google_pay_settings_save', 'bw_google_pay_settings_nonce'); ?>
-
-                <table class="form-table" role="presentation">
-                    <tr>
-                        <th scope="row">Abilita Gateway</th>
-                        <td>
-                            <label class="bw-switch">
-                                <input name="bw_google_pay_enabled" type="checkbox" id="bw_google_pay_enabled"
-                                    value="1" <?php checked(1, $enabled); ?> />
-                                <span class="bw-slider round"></span>
-                            </label>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row">Test Mode</th>
-                        <td>
-                            <label class="bw-switch">
-                                <input name="bw_google_pay_test_mode" type="checkbox" id="bw_google_pay_test_mode"
-                                    value="1" <?php checked(1, $test_mode); ?> />
-                                <span class="bw-slider round"></span>
-                            </label>
-                        </td>
-                    </tr>
-                
-                    <tr class="bw-settings-divider"><td colspan="2"><hr></td></tr>
-
-                    <tr>
-                        <th scope="row">Live Publishable Key</th>
-                        <td>
-                            <input name="bw_google_pay_publishable_key" type="text" id="bw_google_pay_publishable_key"
-                                value="<?php echo esc_attr($pub_key); ?>" class="regular-text" placeholder="pk_live_..." />
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row">Live Secret Key</th>
-                        <td>
-                            <input name="bw_google_pay_secret_key" type="password" id="bw_google_pay_secret_key"
-                                value="<?php echo esc_attr($sec_key); ?>" class="regular-text" placeholder="sk_live_..." />
-                        </td>
-                    </tr>
-
-                    <tr class="bw-settings-divider"><td colspan="2"><hr></td></tr>
-
-                    <tr>
-                        <th scope="row">Test Publishable Key</th>
-                        <td>
-                            <input name="bw_google_pay_test_publishable_key" type="text" id="bw_google_pay_test_publishable_key"
-                                value="<?php echo esc_attr($test_pub_key); ?>" class="regular-text" placeholder="pk_test_..." />
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row">Test Secret Key</th>
-                        <td>
-                            <input name="bw_google_pay_test_secret_key" type="password" id="bw_google_pay_test_secret_key"
-                                value="<?php echo esc_attr($test_sec_key); ?>" class="regular-text" placeholder="sk_test_..." />
-                        </td>
-                    </tr>
-                </table>
-
-                <?php submit_button('Salva Configurazione', 'primary', 'bw_google_pay_settings_submit'); ?>
-            </form>
+    <?php if ($saved): ?>
+        <div class="notice notice-success is-dismissible">
+            <p><strong>Configurazione Google Pay salvata!</strong></p>
         </div>
+    <?php endif; ?>
 
-        <style>
-            .bw-settings-divider hr { border: 0; border-top: 1px solid #ddd; margin: 10px 0; }
-            .bw-settings-section { padding: 20px; background: #fff; border: 1px solid #ccd0d4; box-shadow: 0 1px 1px rgba(0,0,0,.04); }
-        </style>
-        <?php
+    <div class="bw-settings-section">
+        <h2 class="title">Google Pay (Stripe Integration)</h2>
+        <p class="description">Configura Google Pay tramite Stripe per il checkout personalizzato. Nota: Google Pay richiede
+            HTTPS attivo e dominio verificato su Stripe.</p>
+
+        <form method="post" action="">
+            <?php wp_nonce_field('bw_google_pay_settings_save', 'bw_google_pay_settings_nonce'); ?>
+
+            <table class="form-table" role="presentation">
+                <tr>
+                    <th scope="row">Abilita Gateway</th>
+                    <td>
+                        <label class="bw-switch">
+                            <input name="bw_google_pay_enabled" type="checkbox" id="bw_google_pay_enabled" value="1" <?php checked(1, $enabled); ?> />
+                            <span class="bw-slider round"></span>
+                        </label>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Test Mode</th>
+                    <td>
+                        <label class="bw-switch">
+                            <input name="bw_google_pay_test_mode" type="checkbox" id="bw_google_pay_test_mode" value="1"
+                                <?php checked(1, $test_mode); ?> />
+                            <span class="bw-slider round"></span>
+                        </label>
+                    </td>
+                </tr>
+
+                <tr class="bw-settings-divider">
+                    <td colspan="2">
+                        <hr>
+                    </td>
+                </tr>
+
+                <tr>
+                    <th scope="row">Live Publishable Key</th>
+                    <td>
+                        <input name="bw_google_pay_publishable_key" type="text" id="bw_google_pay_publishable_key"
+                            value="<?php echo esc_attr($pub_key); ?>" class="regular-text" placeholder="pk_live_..." />
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Live Secret Key</th>
+                    <td>
+                        <input name="bw_google_pay_secret_key" type="password" id="bw_google_pay_secret_key"
+                            value="<?php echo esc_attr($sec_key); ?>" class="regular-text" placeholder="sk_live_..." />
+                    </td>
+                </tr>
+
+                <tr class="bw-settings-divider">
+                    <td colspan="2">
+                        <hr>
+                    </td>
+                </tr>
+
+                <tr>
+                    <th scope="row">Test Publishable Key</th>
+                    <td>
+                        <input name="bw_google_pay_test_publishable_key" type="text" id="bw_google_pay_test_publishable_key"
+                            value="<?php echo esc_attr($test_pub_key); ?>" class="regular-text" placeholder="pk_test_..." />
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Test Secret Key</th>
+                    <td>
+                        <input name="bw_google_pay_test_secret_key" type="password" id="bw_google_pay_test_secret_key"
+                            value="<?php echo esc_attr($test_sec_key); ?>" class="regular-text" placeholder="sk_test_..." />
+                    </td>
+                </tr>
+            </table>
+
+            <?php submit_button('Salva Configurazione', 'primary', 'bw_google_pay_settings_submit'); ?>
+        </form>
+    </div>
+
+    <style>
+        .bw-settings-divider hr {
+            border: 0;
+            border-top: 1px solid #ddd;
+            margin: 10px 0;
+        }
+
+        .bw-settings-section {
+            padding: 20px;
+            background: #fff;
+            border: 1px solid #ccd0d4;
+            box-shadow: 0 1px 1px rgba(0, 0, 0, .04);
+        }
+    </style>
+    <?php
 }
