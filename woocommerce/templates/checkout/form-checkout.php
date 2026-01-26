@@ -105,7 +105,7 @@ if (function_exists('bw_mew_render_checkout_header')) {
             </button>
             <div class="bw-checkout-left">
                 <?php
-                $skeleton_enabled = get_option('bw_loading_checkout_skeleton_enabled', '1') === '1';
+                $skeleton_enabled = false; // get_option('bw_loading_checkout_skeleton_enabled', '1') === '1';
                 $skeleton_col1 = get_option('bw_loading_skeleton_col1', '');
                 $skeleton_col2 = get_option('bw_loading_skeleton_col2', '');
 
@@ -184,7 +184,8 @@ if (function_exists('bw_mew_render_checkout_header')) {
                 <div class="bw-checkout-order-heading__wrap"
                     style="<?php echo esc_attr($right_spacing_vars . ' margin-top:' . $right_sticky_top . 'px;'); ?>">
                     <h3 id="order_review_heading" class="bw-checkout-order-heading">
-                        <?php esc_html_e('Your order', 'woocommerce'); ?></h3>
+                        <?php esc_html_e('Your order', 'woocommerce'); ?>
+                    </h3>
                 </div>
             <?php endif; ?>
 
