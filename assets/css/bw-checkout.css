@@ -690,15 +690,38 @@ body.woocommerce-checkout .bw-free-order-banner.bw-free-order-active {
     display: block !important;
 }
 
-/* Express checkout buttons - Let Stripe handle its own layout */
+/* Express checkout buttons - Two columns layout */
 body.woocommerce-checkout #wc-stripe-express-checkout-element,
 body.woocommerce-checkout #wc-stripe-payment-request-wrapper {
-    display: block !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 12px !important;
     width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
-    margin-bottom: 20px !important;
+    margin-bottom: 0 !important;
     overflow: visible !important;
+}
+
+/* Each Express button takes 50% width (minus gap) */
+body.woocommerce-checkout #wc-stripe-express-checkout-element > div[id*="express-checkout-element-"],
+body.woocommerce-checkout [id*="wc-stripe-express-checkout-element-applePay"],
+body.woocommerce-checkout [id*="wc-stripe-express-checkout-element-googlePay"],
+body.woocommerce-checkout [id*="wc-stripe-express-checkout-element-link"] {
+    flex: 1 1 calc(50% - 6px) !important;
+    min-width: calc(50% - 6px) !important;
+    max-width: calc(50% - 6px) !important;
+    box-sizing: border-box !important;
+    overflow: visible !important;
+    min-height: 44px !important;
+    height: auto !important;
+}
+
+/* If only one button, make it full width */
+body.woocommerce-checkout #wc-stripe-express-checkout-element > div[id*="express-checkout-element-"]:only-child {
+    flex: 1 1 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
 }
 
 /* Payment Request wrapper children sizing */
@@ -706,13 +729,10 @@ body.woocommerce-checkout #wc-stripe-payment-request-wrapper>* {
     width: 100% !important;
 }
 
-/* Express Checkout Element - preserve Stripe's internal layout and fix overflow */
-body.woocommerce-checkout #wc-stripe-express-checkout-element>div,
+/* Express Checkout Element internal elements - fix overflow */
 body.woocommerce-checkout #wc-stripe-express-checkout-element .StripeElement,
-body.woocommerce-checkout #wc-stripe-express-checkout-element [class*="StripeElement"],
-body.woocommerce-checkout [id*="wc-stripe-express-checkout-element-"] {
+body.woocommerce-checkout #wc-stripe-express-checkout-element [class*="StripeElement"] {
     width: 100% !important;
-    max-width: 100% !important;
     box-sizing: border-box !important;
     overflow: visible !important;
     min-height: 44px !important;
@@ -726,6 +746,36 @@ body.woocommerce-checkout #wc-stripe-express-checkout-element iframe {
     box-sizing: border-box !important;
     min-height: 44px !important;
     height: auto !important;
+}
+
+/* Stripe Express Checkout separator - OR divider with lines */
+body.woocommerce-checkout #wc-stripe-express-checkout-button-separator,
+body.woocommerce-checkout .wc-stripe-express-checkout-button-separator {
+    display: flex !important;
+    align-items: center !important;
+    width: 100% !important;
+    margin: 20px 0 !important;
+    text-align: center !important;
+    font-size: 14px !important;
+    color: #6b7280 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+}
+
+body.woocommerce-checkout #wc-stripe-express-checkout-button-separator::before,
+body.woocommerce-checkout #wc-stripe-express-checkout-button-separator::after {
+    content: '' !important;
+    flex: 1 !important;
+    height: 1px !important;
+    background-color: #e5e7eb !important;
+}
+
+body.woocommerce-checkout #wc-stripe-express-checkout-button-separator::before {
+    margin-right: 16px !important;
+}
+
+body.woocommerce-checkout #wc-stripe-express-checkout-button-separator::after {
+    margin-left: 16px !important;
 }
 
 /* Stripe Payment Element Error Icon Fix - Force inline layout */
