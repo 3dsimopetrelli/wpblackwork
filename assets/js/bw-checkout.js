@@ -1225,10 +1225,10 @@ console.log('[BW Checkout] Script file loaded and executing');
 
             // Show Express Checkout on paid order
             if (expressCheckout) {
-                expressCheckout.style.display = ''; // Reset to default (block/visible)
+                expressCheckout.style.display = 'block'; // Force block visibility
                 // Show all known separators
                 var separators = document.querySelectorAll('#wc-stripe-payment-request-button-separator, #wc-stripe-express-checkout-button-separator, #wcpay-express-checkout-button-separator');
-                separators.forEach(function (s) { s.style.display = ''; });
+                separators.forEach(function (s) { s.style.display = 'block'; });
             }
 
             // Restore original button text
