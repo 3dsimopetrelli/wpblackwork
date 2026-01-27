@@ -53,6 +53,7 @@ function bw_mew_initialize_woocommerce_overrides()
     add_filter('the_title', 'bw_mew_filter_account_page_title', 10, 2);
     add_filter('woocommerce_available_payment_gateways', 'bw_mew_hide_paypal_advanced_card_processing');
     add_filter('wc_stripe_elements_options', 'bw_mew_customize_stripe_elements_style');
+    add_filter('wc_stripe_elements_styling', 'bw_mew_customize_stripe_elements_style');
     add_filter('wc_stripe_upe_params', 'bw_mew_customize_stripe_upe_appearance');
     add_filter('body_class', 'bw_mew_add_section_heading_body_classes');
     add_action('woocommerce_checkout_before_customer_details', 'bw_mew_render_address_section_heading', 5);
@@ -1225,7 +1226,28 @@ function bw_mew_hide_paypal_advanced_card_processing($available_gateways)
  */
 function bw_mew_customize_stripe_elements_style($options)
 {
-    // Shopify-style appearance configuration
+    // Ensure 8px border radius for inputs (Legacy Style API)
+    $style = array(
+        'base' => array(
+            'color' => '#1f2937',
+            'fontFamily' => '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+            'fontSize' => '15px',
+            '::placeholder' => array(
+                'color' => '#9ca3af',
+            ),
+        ),
+        'invalid' => array(
+            'color' => '#991b1b',
+        ),
+    );
+
+    // If this is the 'styling' filter, return just the style array
+    if (current_filter() === 'wc_stripe_elements_styling') {
+        return $style;
+    }
+
+    // Otherwise, assume it's 'elements_options' and add Appearance API (UPE/Modern)
+    $options['style'] = $style;
     $options['appearance'] = array(
         'theme' => 'flat',
         'variables' => array(
@@ -1238,30 +1260,32 @@ function bw_mew_customize_stripe_elements_style($options)
             'fontSizeBase' => '15px',
             'fontWeightNormal' => '400',
             'fontWeightMedium' => '500',
-            'borderRadius' => '8px',
+            'borderRadius' => '0px',
             'spacingUnit' => '4px',
+            'gridRowGap' => '20px',
+            'gridColumnGap' => '12px',
         ),
         'rules' => array(
             '.Input' => array(
                 'border' => '1px solid #d1d5db',
-                'boxShadow' => '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+                'boxShadow' => 'none',
                 'padding' => '16px 18px',
-                'transition' => 'border-color 0.2s ease, box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            ),
-            '.Input:hover' => array(
-                'borderColor' => '#9ca3af',
-            ),
-            '.Input:focus' => array(
-                'borderColor' => '#3b82f6',
-                'boxShadow' => '0 0 0 3px rgba(59, 130, 246, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-                'outline' => 'none',
-            ),
-            '.Input--invalid' => array(
-                'borderColor' => '#fecaca',
-                'backgroundColor' => '#fef2f2',
+                'borderRadius' => '8px',
             ),
             '.Label' => array(
-                'display' => 'none',
+                'display' => 'block',
+                'textAlign' => 'center',
+                'marginBottom' => '8px',
+            ),
+            '.Block' => array(
+                'backgroundColor' => 'transparent',
+                'border' => 'none',
+                'boxShadow' => 'none',
+                'padding' => '0',
+                'margin' => '0',
+            ),
+            '.PaymentElement' => array(
+                'padding' => '0',
             ),
         ),
     );
@@ -1291,28 +1315,47 @@ function bw_mew_customize_stripe_upe_appearance($params)
             'fontSizeBase' => '15px',
             'fontWeightNormal' => '400',
             'fontWeightMedium' => '500',
-            'borderRadius' => '8px',
+            'borderRadius' => '0px',
             'spacingUnit' => '4px',
+            'gridRowGap' => '20px',
+            'gridColumnGap' => '12px',
         ),
         'rules' => array(
             '.Input' => array(
                 'border' => '1px solid #d1d5db',
-                'boxShadow' => '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+                'boxShadow' => 'none',
                 'padding' => '16px 18px',
+                'borderRadius' => '8px',
             ),
             '.Input:hover' => array(
                 'borderColor' => '#9ca3af',
             ),
             '.Input:focus' => array(
                 'borderColor' => '#3b82f6',
-                'boxShadow' => '0 0 0 3px rgba(59, 130, 246, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+                'boxShadow' => '0 0 0 3px rgba(59, 130, 246, 0.1)',
             ),
             '.Input--invalid' => array(
                 'borderColor' => '#fecaca',
                 'backgroundColor' => '#fef2f2',
             ),
             '.Label' => array(
-                'display' => 'none',
+                'display' => 'block',
+                'textAlign' => 'center',
+                'marginBottom' => '8px',
+            ),
+            '.Block' => array(
+                'backgroundColor' => 'transparent',
+                'border' => 'none',
+                'boxShadow' => 'none',
+                'padding' => '0',
+                'margin' => '0',
+            ),
+            '.BlockItem' => array(
+                'backgroundColor' => 'transparent',
+                'border' => 'none',
+                'boxShadow' => 'none',
+                'padding' => '0',
+                'margin' => '0',
             ),
             // FIX 1: Error message icon positioning - use !important to override Stripe defaults
             '.Error' => array(
@@ -1353,11 +1396,18 @@ function bw_mew_customize_stripe_upe_appearance($params)
             '.TabIcon' => array(
                 'display' => 'none',
             ),
-            '.Block' => array(
-                'display' => 'none',
+            '.Accordion' => array(
+                'border' => 'none',
+                'boxShadow' => 'none',
+                'padding' => '0',
+                'margin' => '0 !important',
             ),
             '.AccordionItem' => array(
-                'display' => 'none',
+                'border' => 'none',
+                'boxShadow' => 'none',
+                'backgroundColor' => 'transparent',
+                'padding' => '0',
+                'margin' => '0 !important',
             ),
             '.AccordionItemHeader' => array(
                 'display' => 'none',
@@ -1368,9 +1418,16 @@ function bw_mew_customize_stripe_upe_appearance($params)
             '.PaymentMethod' => array(
                 'padding' => '0',
                 'border' => 'none',
+                'margin' => '0',
             ),
             '.PaymentMethodHeader' => array(
-                'display' => 'none',
+                'display' => 'none !important',
+            ),
+            '.PaymentElement' => array(
+                'padding' => '0',
+            ),
+            '.AccordionButton' => array(
+                'display' => 'none !important',
             ),
         ),
     );

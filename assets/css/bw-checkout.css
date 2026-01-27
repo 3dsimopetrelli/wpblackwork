@@ -3161,3 +3161,57 @@ body.bw-modal-open {
     opacity: 0.6;
     border-bottom-width: 2px;
 }
+
+/* ============================================
+   STRIPE PAYMENT ELEMENT ALIGNMENT
+   Force precise external alignment via wrapper (0px 35px 30px 40px)
+   ============================================ */
+.bw-stripe-fields-wrapper {
+    padding: 0px 35px 30px 40px !important;
+    background: transparent !important;
+    box-sizing: border-box !important;
+    display: block !important;
+    width: 100% !important;
+}
+
+#wc-stripe-payment-element {
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    box-sizing: border-box !important;
+}
+
+/* Broaden coverage for various Stripe field versions and ensure border-radius */
+#wc-stripe-payment-element,
+#wc-stripe-card-element,
+.StripeElement:not(img):not(svg),
+.wc-stripe-elements-field,
+.wc-stripe-upe-element,
+#stripe-card-element,
+#stripe-exp-element,
+#stripe-cvc-element,
+.stripe-elements-container {
+    border-radius: 8px !important;
+    overflow: hidden !important;
+}
+
+/* Ensure logos/icons don't inherit border-radius from broad selectors */
+.bw-payment-method img,
+.bw-payment-method svg,
+.bw-payment-method__icon img,
+.bw-payment-method__icon svg,
+.StripeElement img,
+[class*="StripeElement"] img,
+[id*="stripe-"] img {
+    border-radius: 0 !important;
+}
+
+/* Spacing for Stripe fields container */
+.bw-stripe-fields-wrapper {
+    margin-top: 15px !important;
+}
+
+/* Ensure the Stripe iframe respects the container padding */
+#wc-stripe-payment-element iframe {
+    width: 100% !important;
+}

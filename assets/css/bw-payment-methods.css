@@ -355,7 +355,8 @@ body.woocommerce-checkout .bw-payment-method__label {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	gap: var(--bw-pm-spacing-md);
+	gap: 16px;
+	/* Increased from var(--bw-pm-spacing-md) for better logo/text distance */
 	cursor: pointer;
 	margin: 0 !important;
 	padding: 0 !important;
@@ -380,6 +381,8 @@ body.woocommerce-checkout .bw-payment-method__icon {
 	align-items: center;
 	flex-shrink: 0;
 	margin-left: auto;
+	margin-top: 2px;
+	/* Slight adjustment for better visual centering with text */
 }
 
 body.woocommerce-checkout .bw-payment-method__icon img,
@@ -1097,4 +1100,49 @@ body.woocommerce-checkout .bw-sr-only {
 	100% {
 		opacity: 0.6;
 	}
+}
+
+/* ============================================
+   GLOBAL RESET FOR PAYMENT ICONS
+   Force sharp corners on all gateway logos/icons
+   ============================================ */
+body.woocommerce-checkout #payment ul.methods li img,
+body.woocommerce-checkout #payment ul.methods li svg,
+body.woocommerce-checkout .bw-payment-method img,
+body.woocommerce-checkout .bw-payment-method svg,
+body.woocommerce-checkout .bw_payment_method img,
+body.woocommerce-checkout .bw_payment_method svg,
+body.woocommerce-checkout .wc_payment_method img,
+body.woocommerce-checkout .wc_payment_method svg,
+body.woocommerce-checkout .payment_methods img,
+body.woocommerce-checkout .payment_methods svg,
+body.woocommerce-checkout .bw-payment-method__label img,
+body.woocommerce-checkout .bw-payment-method__label svg,
+body.woocommerce-checkout .StripeElement img,
+body.woocommerce-checkout .StripeElement svg,
+body.woocommerce-checkout [class*="StripeElement"] img,
+body.woocommerce-checkout [id*="stripe-"] img {
+	border-radius: 0 !important;
+	border-top-left-radius: 0 !important;
+	border-top-right-radius: 0 !important;
+	border-bottom-left-radius: 0 !important;
+	border-bottom-right-radius: 0 !important;
+	-webkit-border-radius: 0 !important;
+	-moz-border-radius: 0 !important;
+}
+
+/* Vertical spacing for payment method fields (Stripe, Klarna fields, etc.) */
+body.woocommerce-checkout .bw-payment-method__fields {
+	margin-top: 30px !important;
+}
+
+/* Margin-top for the Stripe specific wrapper to ensure it separates from the header */
+body.woocommerce-checkout .bw-stripe-fields-wrapper {
+	margin-top: 40px !important;
+	display: block !important;
+}
+
+/* Specific spacing for Klarna to distance it from the previous method */
+body.woocommerce-checkout li.wc_payment_method.payment_method_stripe_klarna {
+	margin-top: 20px !important;
 }

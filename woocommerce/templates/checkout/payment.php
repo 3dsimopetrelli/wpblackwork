@@ -82,7 +82,13 @@ if (!wp_doing_ajax()) {
 									if ($gateway->has_fields() || $is_card_gateway):
 										?>
 										<div class="bw-payment-method__fields">
-											<?php $gateway->payment_fields(); ?>
+											<?php if ($is_card_gateway): ?>
+												<div class="bw-stripe-fields-wrapper">
+													<?php $gateway->payment_fields(); ?>
+												</div>
+											<?php else: ?>
+												<?php $gateway->payment_fields(); ?>
+											<?php endif; ?>
 										</div>
 									<?php endif; ?>
 
