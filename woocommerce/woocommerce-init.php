@@ -57,6 +57,8 @@ function bw_mew_initialize_woocommerce_overrides()
     add_filter('wc_stripe_upe_params', 'bw_mew_customize_stripe_upe_appearance');
     add_filter('body_class', 'bw_mew_add_section_heading_body_classes');
     add_action('woocommerce_checkout_before_customer_details', 'bw_mew_render_address_section_heading', 5);
+    add_action('wp_enqueue_scripts', 'bw_mew_enqueue_cart_assets', 20);
+    add_action('template_redirect', 'bw_mew_prepare_cart_layout', 9);
     add_filter('woocommerce_payment_gateways', 'bw_mew_add_google_pay_gateway');
 }
 add_action('plugins_loaded', 'bw_mew_initialize_woocommerce_overrides');
@@ -1502,4 +1504,49 @@ function bw_mew_add_google_pay_gateway($gateways)
         $gateways[] = 'BW_Google_Pay_Gateway';
     }
     return $gateways;
+}
+
+/**
+ * Enqueue assets for the custom cart layout.
+ */
+function bw_mew_enqueue_cart_assets()
+{
+    if (!function_exists('is_cart') || !is_cart()) {
+        return;
+    }
+
+    $css_file = BW_MEW_PATH . 'assets/css/bw-cart.css';
+    $js_file = BW_MEW_PATH . 'assets/js/bw-cart.js';
+    $css_version = file_exists($css_file) ? filemtime($css_file) : '1.0.0';
+    $js_version = file_exists($js_file) ? filemtime($js_file) : '1.0.0';
+
+    wp_enqueue_style(
+        'bw-cart',
+        BW_MEW_URL . 'assets/css/bw-cart.css',
+        [],
+        $css_version
+    );
+
+    wp_enqueue_script(
+        'bw-cart',
+        BW_MEW_URL . 'assets/js/bw-cart.js',
+        ['jquery'],
+        $js_version,
+        true
+    );
+}
+
+/**
+ * Prepare cart layout by hiding theme elements if necessary.
+ */
+function bw_mew_prepare_cart_layout()
+{
+    if (!function_exists('is_cart') || !is_cart()) {
+        return;
+    }
+
+    add_filter('woocommerce_show_page_title', '__return_false');
+
+    // Unhook cross-sells from their default position in collaterals
+    remove_action('woocommerce_cart_collaterals', 'woocommerce_cross_sell_display');
 }
