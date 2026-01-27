@@ -22,23 +22,6 @@ $settings = function_exists('bw_mew_get_checkout_settings') ? bw_mew_get_checkou
     'right_width' => 38,
 ];
 
-// PREVENT DUPLICATE RENDERING: Remove standard hooks so our manual placement is the ONLY one
-if (class_exists('WC_Stripe_Payment_Request')) {
-    $stripe_pr = WC_Stripe_Payment_Request::instance();
-    remove_action('woocommerce_checkout_before_customer_details', array($stripe_pr, 'display_payment_request_button_html'), 1);
-    remove_action('woocommerce_checkout_before_customer_details', array($stripe_pr, 'display_payment_request_button_html'), 10);
-    remove_action('woocommerce_before_checkout_form', array($stripe_pr, 'display_payment_request_button_html'), 1);
-    remove_action('woocommerce_before_checkout_form', array($stripe_pr, 'display_payment_request_button_html'), 10);
-}
-
-if (class_exists('WCPay\Payment_Request')) {
-    $wcpay_pr = WCPay\Payment_Request::instance();
-    remove_action('woocommerce_checkout_before_customer_details', array($wcpay_pr, 'display_payment_request_button_html'), 1);
-    remove_action('woocommerce_checkout_before_customer_details', array($wcpay_pr, 'display_payment_request_button_html'), 10);
-    remove_action('woocommerce_before_checkout_form', array($wcpay_pr, 'display_payment_request_button_html'), 1);
-    remove_action('woocommerce_before_checkout_form', array($wcpay_pr, 'display_payment_request_button_html'), 10);
-}
-
 $right_padding_top = isset($settings['right_padding_top']) ? absint($settings['right_padding_top']) : 0;
 $right_padding_right = isset($settings['right_padding_right']) ? absint($settings['right_padding_right']) : 0;
 $right_padding_bottom = isset($settings['right_padding_bottom']) ? absint($settings['right_padding_bottom']) : 0;
@@ -141,34 +124,6 @@ if (function_exists('bw_mew_render_checkout_header')) {
                     <?php do_action('woocommerce_checkout_before_customer_details'); ?>
 
                     <div id="customer_details" class="bw-checkout-customer-details">
-                        <!-- Manual Rendering of Stripe / WooPayments Express Buttons -->
-                        <?php
-                        // Stripe Express buttons
-                        if (class_exists('WC_Stripe_Payment_Request') && method_exists('WC_Stripe_Payment_Request', 'instance')) {
-                            $stripe_pr = WC_Stripe_Payment_Request::instance();
-                            if (method_exists($stripe_pr, 'display_payment_request_button_html')) {
-                                $stripe_pr->display_payment_request_button_html();
-                            }
-                        }
-
-                        // WooPayments Express buttons
-                        if (class_exists('WCPay\Payment_Request') && method_exists('WCPay\Payment_Request', 'instance')) {
-                            $wcpay_pr = WCPay\Payment_Request::instance();
-                            if (method_exists($wcpay_pr, 'display_payment_request_button_html')) {
-                                $wcpay_pr->display_payment_request_button_html();
-                            }
-                        }
-                        ?>
-
-                        <div id="wc-stripe-payment-request-button-separator" style="clear:both;display:none;"></div>
-
-                        <?php
-                        // Render OR divider manually to ensure correct order
-                        if (function_exists('bw_mew_render_express_divider')) {
-                            bw_mew_render_express_divider();
-                        }
-                        ?>
-
                         <?php do_action('woocommerce_checkout_billing'); ?>
                         <?php do_action('woocommerce_checkout_shipping'); ?>
                     </div>
