@@ -22,6 +22,23 @@ $settings = function_exists('bw_mew_get_checkout_settings') ? bw_mew_get_checkou
     'right_width' => 38,
 ];
 
+// PREVENT DUPLICATE RENDERING: Remove standard hooks so our manual placement is the ONLY one
+if (class_exists('WC_Stripe_Payment_Request')) {
+    $stripe_pr = WC_Stripe_Payment_Request::instance();
+    remove_action('woocommerce_checkout_before_customer_details', array($stripe_pr, 'display_payment_request_button_html'), 1);
+    remove_action('woocommerce_checkout_before_customer_details', array($stripe_pr, 'display_payment_request_button_html'), 10);
+    remove_action('woocommerce_before_checkout_form', array($stripe_pr, 'display_payment_request_button_html'), 1);
+    remove_action('woocommerce_before_checkout_form', array($stripe_pr, 'display_payment_request_button_html'), 10);
+}
+
+if (class_exists('WCPay\Payment_Request')) {
+    $wcpay_pr = WCPay\Payment_Request::instance();
+    remove_action('woocommerce_checkout_before_customer_details', array($wcpay_pr, 'display_payment_request_button_html'), 1);
+    remove_action('woocommerce_checkout_before_customer_details', array($wcpay_pr, 'display_payment_request_button_html'), 10);
+    remove_action('woocommerce_before_checkout_form', array($wcpay_pr, 'display_payment_request_button_html'), 1);
+    remove_action('woocommerce_before_checkout_form', array($wcpay_pr, 'display_payment_request_button_html'), 10);
+}
+
 $right_padding_top = isset($settings['right_padding_top']) ? absint($settings['right_padding_top']) : 0;
 $right_padding_right = isset($settings['right_padding_right']) ? absint($settings['right_padding_right']) : 0;
 $right_padding_bottom = isset($settings['right_padding_bottom']) ? absint($settings['right_padding_bottom']) : 0;
@@ -234,7 +251,7 @@ if (function_exists('bw_mew_render_checkout_header')) {
                     </div>
 
                     <script>
-                        window.bwPolicyContent = <?php echo json_encode($footer_policies); ?>;
+                            window.bwPolicyContent = <?php echo json_encode($footer_policies); ?>;
                     </script>
                 <?php endif; ?>
             </div>
