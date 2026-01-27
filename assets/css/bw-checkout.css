@@ -580,6 +580,7 @@ body.woocommerce-checkout .bw-checkout-wrapper .bw-checkout-express__or span {
 }
 
 /* Hide original WCPay and Stripe separators (keep in DOM for plugin compatibility) */
+/*
 body.woocommerce-checkout #wcpay-express-checkout-button-separator,
 body.woocommerce-checkout #wc-stripe-express-checkout-button-separator {
     position: absolute !important;
@@ -592,6 +593,7 @@ body.woocommerce-checkout #wc-stripe-express-checkout-button-separator {
     white-space: nowrap !important;
     border: 0 !important;
 }
+*/
 
 /* Custom OR divider - Two continuous lines with centered OR */
 .bw-express-divider {
@@ -664,11 +666,11 @@ body.woocommerce-checkout.bw-free-order .bw-express-divider {
 }
 
 body.woocommerce-checkout.bw-free-order #wc-stripe-express-checkout-element {
-    display: none !important;
+    /* display: none !important; */
 }
 
 body.woocommerce-checkout.bw-free-order #payment .wc-stripe-ece-button-separator {
-    display: none !important;
+    /* display: none !important; */
 }
 
 /* Hide payment section elements when order is free (but keep Place order button) */
@@ -691,6 +693,7 @@ body.woocommerce-checkout .bw-free-order-banner.bw-free-order-active {
 }
 
 /* Express checkout buttons - Two columns at 50% width */
+/*
 body.woocommerce-checkout #wc-stripe-express-checkout-element {
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
@@ -713,6 +716,7 @@ body.woocommerce-checkout #wc-stripe-express-checkout-element>div>div {
     max-width: 100% !important;
     box-sizing: border-box !important;
 }
+*/
 
 /* Stripe Payment Element Error Icon Fix - Force inline layout */
 body.woocommerce-checkout #wc-stripe-express-checkout-element .Error,
