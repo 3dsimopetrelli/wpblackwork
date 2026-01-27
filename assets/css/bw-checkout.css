@@ -698,6 +698,7 @@ body.woocommerce-checkout #wc-stripe-payment-request-wrapper {
     max-width: 100% !important;
     box-sizing: border-box !important;
     margin-bottom: 20px !important;
+    overflow: visible !important;
 }
 
 /* Payment Request wrapper children sizing */
@@ -705,17 +706,26 @@ body.woocommerce-checkout #wc-stripe-payment-request-wrapper>* {
     width: 100% !important;
 }
 
-/* Express Checkout Element - preserve Stripe's internal layout */
-body.woocommerce-checkout #wc-stripe-express-checkout-element>div {
+/* Express Checkout Element - preserve Stripe's internal layout and fix overflow */
+body.woocommerce-checkout #wc-stripe-express-checkout-element>div,
+body.woocommerce-checkout #wc-stripe-express-checkout-element .StripeElement,
+body.woocommerce-checkout #wc-stripe-express-checkout-element [class*="StripeElement"],
+body.woocommerce-checkout [id*="wc-stripe-express-checkout-element-"] {
     width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
+    overflow: visible !important;
+    min-height: 44px !important;
+    height: auto !important;
 }
 
+/* Stripe Express iframe - ensure proper height */
 body.woocommerce-checkout #wc-stripe-express-checkout-element iframe {
     width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
+    min-height: 44px !important;
+    height: auto !important;
 }
 
 /* Stripe Payment Element Error Icon Fix - Force inline layout */
@@ -3187,8 +3197,8 @@ body.bw-modal-open {
 
 /* Broaden coverage for various Stripe field versions and ensure border-radius */
 #wc-stripe-payment-element,
+/* Card elements styling - NOT for Express Checkout buttons */
 #wc-stripe-card-element,
-.StripeElement:not(img):not(svg),
 .wc-stripe-elements-field,
 .wc-stripe-upe-element,
 #stripe-card-element,
@@ -3197,6 +3207,18 @@ body.bw-modal-open {
 .stripe-elements-container {
     border-radius: 8px !important;
     overflow: hidden !important;
+}
+
+/* StripeElement but NOT inside Express Checkout */
+.StripeElement:not(img):not(svg):not([id*="express-checkout"]) {
+    border-radius: 8px !important;
+}
+
+/* Express Checkout buttons need overflow visible */
+#wc-stripe-express-checkout-element .StripeElement,
+[id*="wc-stripe-express-checkout-element-"] {
+    overflow: visible !important;
+    border-radius: 8px !important;
 }
 
 /* Ensure logos/icons don't inherit border-radius from broad selectors */
