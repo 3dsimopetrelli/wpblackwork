@@ -1,3 +1,14 @@
+body.woocommerce-account.bw-account-login-only {
+    overflow-x: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+body.woocommerce-account.bw-account-login-only html {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
 .bw-account-login-only header,
 .bw-account-login-only .site-header,
 .bw-account-login-only footer,
@@ -31,7 +42,7 @@ body.woocommerce-account.bw-account-login-only:not(.elementor-editor-active) sec
 
 /* Override Elementor inner section/column padding */
 body.woocommerce-account.bw-account-login-only:not(.elementor-editor-active) .elementor-inner-section,
-body.woocommerce-account.bw-account-login-only:not(.elementor-editor-active) .elementor-column-gap-default > .elementor-column > .elementor-element-populated,
+body.woocommerce-account.bw-account-login-only:not(.elementor-editor-active) .elementor-column-gap-default>.elementor-column>.elementor-element-populated,
 body.woocommerce-account.bw-account-login-only:not(.elementor-editor-active) .elementor-widget-wrap,
 body.woocommerce-account.bw-account-login-only:not(.elementor-editor-active) .elementor-container {
     padding-top: 0 !important;
@@ -94,9 +105,8 @@ body.woocommerce-account.bw-account-login-only:not(.elementor-editor-active) .el
         content: "";
         position: absolute;
         inset: 0;
-        left: 50%;
-        width: 100vw;
-        transform: translateX(-50%);
+        left: 0;
+        width: 200%;
         background-image: var(--bw-login-cover);
         background-size: cover;
         background-repeat: no-repeat;
@@ -708,7 +718,7 @@ body.woocommerce-account .bw-account-login-page input[type="submit"],
 body.woocommerce-account .bw-account-login-page [role="button"],
 body.woocommerce-account .bw-account-login-page .bw-oauth-button,
 body.woocommerce-account .bw-account-login-page .bw-account-login__button {
-      background-color: #000;
+    background-color: #000;
     color: #fff;
     border-radius: 50px;
     border: none;
