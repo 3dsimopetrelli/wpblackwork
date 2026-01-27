@@ -582,15 +582,11 @@ function bw_mew_enqueue_theme_title_bypass_css()
  */
 function bw_mew_prepare_checkout_layout()
 {
-    if (!bw_mew_is_checkout_request() || (function_exists('is_wc_endpoint_url') && is_wc_endpoint_url('order-received'))) {
-        return;
-    }
-
     // Remove all WooCommerce notices from checkout page
     // remove_action('woocommerce_before_checkout_form', 'woocommerce_output_all_notices', 10);
 
     // Remove "Have a coupon?" banner that appears above checkout form
-    // remove_action('woocommerce_before_checkout_form', 'woocommerce_checkout_coupon_form', 10);
+    remove_action('woocommerce_before_checkout_form', 'woocommerce_checkout_coupon_form', 10);
 
     // Avoid rendering the payment section (and its button) twice by keeping it only in the left column.
     // remove_action('woocommerce_checkout_order_review', 'woocommerce_checkout_payment', 20);

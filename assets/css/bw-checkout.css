@@ -691,13 +691,21 @@ body.woocommerce-checkout .bw-free-order-banner.bw-free-order-active {
 }
 
 /* Express checkout buttons - Two columns at 50% width */
-body.woocommerce-checkout #wc-stripe-express-checkout-element {
+body.woocommerce-checkout #wc-stripe-express-checkout-element,
+body.woocommerce-checkout #wc-stripe-payment-request-wrapper {
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
     gap: 12px !important;
     width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
+    margin-bottom: 20px !important;
+}
+
+/* Ensure direct children (the buttons) take full width of their grid cell */
+body.woocommerce-checkout #wc-stripe-express-checkout-element>*,
+body.woocommerce-checkout #wc-stripe-payment-request-wrapper>* {
+    width: 100% !important;
 }
 
 body.woocommerce-checkout #wc-stripe-express-checkout-element>div {
