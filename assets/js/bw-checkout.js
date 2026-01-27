@@ -1157,9 +1157,10 @@ console.log('[BW Checkout] Script file loaded and executing');
         // Find or create banner and divider
         var banner = document.querySelector('.bw-free-order-banner');
         var divider = document.querySelector('.bw-express-divider');
-        // UPDATED: Target all potential Stripe wrappers
+        // UPDATED: Target all potential Stripe / WCPay wrappers
         var expressCheckout = document.querySelector('#wc-stripe-payment-request-wrapper') ||
-            document.querySelector('#wc-stripe-express-checkout-element');
+            document.querySelector('#wc-stripe-express-checkout-element') ||
+            document.querySelector('#wcpay-express-checkout-element');
 
         if (isFree) {
             body.classList.add('bw-free-order');

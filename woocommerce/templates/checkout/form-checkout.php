@@ -124,12 +124,12 @@ if (function_exists('bw_mew_render_checkout_header')) {
                     <?php do_action('woocommerce_checkout_before_customer_details'); ?>
 
                     <div id="customer_details" class="bw-checkout-customer-details">
-                        <!-- Standard Stripe Payment Request Wrapper -->
-                        <!-- Multiple IDs to catch different plugin versions / configurations -->
-                        <div id="wc-stripe-payment-request-wrapper" id="wc-stripe-express-checkout-element"
-                            style="clear:both;padding-top:1.5em;"></div>
-                        <div id="wc-stripe-payment-request-button-separator"
-                            style="clear:both;padding-top:1.5em;display:none;"></div>
+                        <!-- Standard Stripe / WooPayments Payment Request Wrappers -->
+                        <!-- Multiple containers to catch different plugin versions / configurations -->
+                        <div id="wc-stripe-payment-request-wrapper" style="clear:both;"></div>
+                        <div id="wc-stripe-express-checkout-element" style="clear:both;"></div>
+                        <div id="wcpay-express-checkout-element" style="clear:both;"></div>
+                        <div id="wc-stripe-payment-request-button-separator" style="clear:both;display:none;"></div>
 
                         <?php
                         // Render OR divider manually to ensure correct order
@@ -220,7 +220,7 @@ if (function_exists('bw_mew_render_checkout_header')) {
                     </div>
 
                     <script>
-                                            window.bwPolicyContent = <?php echo json_encode($footer_policies); ?>;
+                        window.bwPolicyContent = <?php echo json_encode($footer_policies); ?>;
                     </script>
                 <?php endif; ?>
             </div>
