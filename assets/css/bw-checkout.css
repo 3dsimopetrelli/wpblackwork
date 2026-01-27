@@ -690,33 +690,29 @@ body.woocommerce-checkout .bw-free-order-banner.bw-free-order-active {
     display: block !important;
 }
 
-/* Express checkout buttons - Two columns at 50% width */
+/* Express checkout buttons - Let Stripe handle its own layout */
 body.woocommerce-checkout #wc-stripe-express-checkout-element,
 body.woocommerce-checkout #wc-stripe-payment-request-wrapper {
-    display: grid !important;
-    grid-template-columns: 1fr 1fr !important;
-    gap: 12px !important;
+    display: block !important;
     width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
     margin-bottom: 20px !important;
 }
 
-/* Ensure direct children (the buttons) take full width of their grid cell */
-body.woocommerce-checkout #wc-stripe-express-checkout-element>*,
+/* Payment Request wrapper children sizing */
 body.woocommerce-checkout #wc-stripe-payment-request-wrapper>* {
     width: 100% !important;
 }
 
+/* Express Checkout Element - preserve Stripe's internal layout */
 body.woocommerce-checkout #wc-stripe-express-checkout-element>div {
     width: 100% !important;
     max-width: 100% !important;
-    min-width: 0 !important;
     box-sizing: border-box !important;
 }
 
-body.woocommerce-checkout #wc-stripe-express-checkout-element iframe,
-body.woocommerce-checkout #wc-stripe-express-checkout-element>div>div {
+body.woocommerce-checkout #wc-stripe-express-checkout-element iframe {
     width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
