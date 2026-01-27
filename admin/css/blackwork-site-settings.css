@@ -160,3 +160,37 @@
 .bw-redirects-table .bw-redirect-actions .button-link-delete {
     margin-top: 8px;
 }
+
+/* Checkout Fields table */
+.bw-checkout-fields-table th,
+.bw-checkout-fields-table td {
+    vertical-align: middle;
+}
+
+.bw-checkout-fields-table code {
+    font-size: 12px;
+}
+
+.bw-checkout-fields-table input[type="number"] {
+    width: 90px;
+}
+
+.bw-checkout-fields-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.bw-brevo-test-result {
+    display: inline-block;
+    margin-left: 12px;
+    font-weight: 600;
+}
+
+.bw-brevo-test-result.notice-success {
+    color: #1d2327;
+}
+
+.bw-brevo-test-result.notice-error {
+    color: #b32d2e;
+}

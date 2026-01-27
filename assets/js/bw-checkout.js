@@ -231,6 +231,47 @@ console.log('[BW Checkout] Script file loaded and executing');
         }, remainingTime);
     }
 
+    function getOrderTotalText() {
+        var totalEl = document.querySelector('.bw-checkout-right .order-total .amount') ||
+            document.querySelector('.woocommerce-checkout-review-order .order-total .amount');
+
+        if (!totalEl) {
+            return '';
+        }
+
+        return totalEl.textContent.trim();
+    }
+
+    function updateOrderSummaryTotals() {
+        var totalText = getOrderTotalText();
+
+        if (!totalText) {
+            return;
+        }
+
+        var toggleTotal = document.querySelector('.bw-order-summary-total');
+        if (toggleTotal) {
+            toggleTotal.textContent = totalText;
+        }
+
+        var mobileTotal = document.querySelector('.bw-mobile-total-amount');
+        if (mobileTotal) {
+            mobileTotal.textContent = totalText;
+        }
+    }
+
+    function initOrderSummaryToggle() {
+        var toggle = document.querySelector('.bw-order-summary-toggle');
+        if (!toggle) {
+            return;
+        }
+
+        toggle.addEventListener('click', function () {
+            var isOpen = document.body.classList.toggle('bw-order-summary-open');
+            toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        });
+    }
+
     if (window.jQuery) {
         window.jQuery(function ($) {
             $(document.body)
@@ -251,6 +292,7 @@ console.log('[BW Checkout] Script file loaded and executing');
                     setOrderSummaryLoading(false);
                     // Restore coupon message if it was showing before update
                     restoreCouponMessage();
+                    updateOrderSummaryTotals();
                 })
                 .on('checkout_error', function () {
                     setOrderSummaryLoading(false);
@@ -708,12 +750,16 @@ console.log('[BW Checkout] Script file loaded and executing');
             initCustomSticky();
             observeStripeErrors();
             initFloatingLabel();
+            initOrderSummaryToggle();
+            updateOrderSummaryTotals();
         });
     } else {
         console.log('[BW Checkout] DOM already loaded, initializing immediately');
         initCustomSticky();
         observeStripeErrors();
         initFloatingLabel();
+        initOrderSummaryToggle();
+        updateOrderSummaryTotals();
     }
 
     console.log('[BW Checkout] Script execution completed');
