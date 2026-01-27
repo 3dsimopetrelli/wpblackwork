@@ -124,11 +124,25 @@ if (function_exists('bw_mew_render_checkout_header')) {
                     <?php do_action('woocommerce_checkout_before_customer_details'); ?>
 
                     <div id="customer_details" class="bw-checkout-customer-details">
-                        <!-- Standard Stripe / WooPayments Payment Request Wrappers -->
-                        <!-- Multiple containers to catch different plugin versions / configurations -->
-                        <div id="wc-stripe-payment-request-wrapper" style="clear:both;"></div>
-                        <div id="wc-stripe-express-checkout-element" style="clear:both;"></div>
-                        <div id="wcpay-express-checkout-element" style="clear:both;"></div>
+                        <!-- Manual Rendering of Stripe / WooPayments Express Buttons -->
+                        <?php
+                        // Stripe Express buttons
+                        if (class_exists('WC_Stripe_Payment_Request') && method_exists('WC_Stripe_Payment_Request', 'instance')) {
+                            $stripe_pr = WC_Stripe_Payment_Request::instance();
+                            if (method_exists($stripe_pr, 'display_payment_request_button_html')) {
+                                $stripe_pr->display_payment_request_button_html();
+                            }
+                        }
+
+                        // WooPayments Express buttons
+                        if (class_exists('WCPay\Payment_Request') && method_exists('WCPay\Payment_Request', 'instance')) {
+                            $wcpay_pr = WCPay\Payment_Request::instance();
+                            if (method_exists($wcpay_pr, 'display_payment_request_button_html')) {
+                                $wcpay_pr->display_payment_request_button_html();
+                            }
+                        }
+                        ?>
+
                         <div id="wc-stripe-payment-request-button-separator" style="clear:both;display:none;"></div>
 
                         <?php
