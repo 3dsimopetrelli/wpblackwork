@@ -246,7 +246,7 @@ body.woocommerce-checkout .bw-checkout-grid {
 
 /* Force all direct children of checkout grid to not break layout */
 /* Force all direct children of checkout grid to not break layout */
-.bw-checkout-grid>*:not(.bw-checkout-left):not(.bw-checkout-right):not(.bw-checkout-order-heading__wrap):not(#wc-stripe-payment-request-wrapper):not(#wc-stripe-payment-request-button-separator):not(.bw-express-divider):not(#wc-stripe-express-checkout-element) {
+.bw-checkout-grid>*:not(.bw-checkout-left):not(.bw-checkout-right):not(.bw-checkout-order-heading__wrap):not(.bw-order-summary-toggle):not(.bw-express-divider):not(#wc-stripe-payment-request-wrapper):not(#wc-stripe-express-checkout-element):not(#wc-stripe-payment-request-button-separator):not(#wc-stripe-express-checkout-button-separator):not(#wcpay-express-checkout-button-separator) {
     display: none !important;
     position: absolute !important;
     left: -9999px !important;
