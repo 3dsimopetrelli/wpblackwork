@@ -1726,7 +1726,6 @@ console.log('[BW Checkout] Script file loaded and executing');
             addMobileTotalRow();
             updateMobileTotals();
             initShippingToggleFix();
-            initAutoDismissNotices();
             initPolicyPopups();
 
             // Handle resize to initialize mobile accordion when switching views
@@ -1756,7 +1755,6 @@ console.log('[BW Checkout] Script file loaded and executing');
         addMobileTotalRow();
         updateMobileTotals();
         initShippingToggleFix();
-        initAutoDismissNotices();
         initPolicyPopups();
         styleCheckoutCoupons();
     }
@@ -1922,64 +1920,6 @@ console.log('[BW Checkout] Script file loaded and executing');
                 }, 400);
             }
         });
-    }
-
-    /**
-     * Automatically dismiss WooCommerce notices (errors, messages, info) after a set time.
-     */
-    function initAutoDismissNotices() {
-        if (!window.jQuery) return;
-        var $ = window.jQuery;
-
-        // Ensure we don't have multiple handlers
-        $(document.body).off('updated_checkout.bwNoticeAutoDismiss applied_coupon.bwNoticeAutoDismiss removed_coupon.bwNoticeAutoDismiss checkout_error.bwNoticeAutoDismiss');
-
-        function dismissNotices() {
-            // Find ALL notices
-            // WooCommerce often adds them as ul.woocommerce-error or div.woocommerce-message
-            var notices = $('.woocommerce-error, .woocommerce-message, .woocommerce-info, .woocommerce-notice, .bw-coupon-message').not('.bw-notice-processed');
-
-            if (notices.length === 0) return;
-
-            console.log('[BW Checkout] Found notices to auto-dismiss:', notices.length);
-
-            notices.each(function () {
-                var notice = $(this);
-                notice.addClass('bw-notice-processed');
-
-                // Force a transition style if not present
-                notice.css({
-                    'transition': 'opacity 0.8s ease, transform 0.8s ease',
-                    'opacity': '1'
-                });
-
-                // Wait 5 seconds, then fade out and remove
-                setTimeout(function () {
-                    notice.css({
-                        'opacity': '0',
-                        'transform': 'translateY(-10px)'
-                    });
-
-                    setTimeout(function () {
-                        notice.remove();
-                    }, 800);
-                }, 5000);
-            });
-        }
-
-        // Run immediately
-        dismissNotices();
-
-        // Also watch for notices added via fragments/AJAX
-        $(document.body).on('updated_checkout.bwNoticeAutoDismiss applied_coupon.bwNoticeAutoDismiss removed_coupon.bwNoticeAutoDismiss checkout_error.bwNoticeAutoDismiss', function () {
-            // Small delay to ensure Woo has finished rendering them
-            setTimeout(dismissNotices, 200);
-        });
-
-        // Also check periodically for any missed ones (robustness)
-        if (!window.bw_notice_checker) {
-            window.bw_notice_checker = setInterval(dismissNotices, 2000);
-        }
     }
 
     // Re-initialize floating labels and detect free order after WooCommerce AJAX update

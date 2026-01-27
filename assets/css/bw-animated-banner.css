@@ -15,7 +15,7 @@
     padding: 0 !important;
 }
 
-.elementor-widget-bw-animated-banner > .elementor-widget-container {
+.elementor-widget-bw-animated-banner>.elementor-widget-container {
     position: static !important;
     transform: none !important;
     filter: none !important;
@@ -38,7 +38,7 @@
 
 /* Fallback per browser che non supportano :has() - applica a tutte le sezioni che hanno il widget */
 .elementor-element.elementor-widget-bw-animated-banner .elementor-widget-wrap,
-.elementor-element.elementor-widget-bw-animated-banner ~ .elementor-element {
+.elementor-element.elementor-widget-bw-animated-banner~.elementor-element {
     transform: none !important;
 }
 
@@ -74,6 +74,10 @@ body:not(.elementor-editor-active) .elementor-top-section {
     white-space: nowrap;
     animation: bw-banner-scroll 50s linear infinite;
     will-change: transform;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
 }
 
 .bw-animated-banner__content {
@@ -85,6 +89,7 @@ body:not(.elementor-editor-active) .elementor-top-section {
     text-transform: uppercase;
     font-size: 18px;
     line-height: 1.2;
+    flex-shrink: 0;
 }
 
 .bw-animated-banner__content a {
@@ -105,8 +110,9 @@ body:not(.elementor-editor-active) .elementor-top-section {
     0% {
         transform: translateX(0);
     }
+
     100% {
-        transform: translateX(-20%);
+        transform: translateX(-10%);
     }
 }
 

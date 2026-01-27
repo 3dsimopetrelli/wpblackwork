@@ -79,7 +79,7 @@ class BW_Animated_Banner_Widget extends Widget_Base {
                 ],
                 'default'    => [ 'size' => 0, 'unit' => 'px' ],
                 'selectors'  => [
-                    '{{WRAPPER}} .bw-animated-banner__item:not(:last-child)' => 'margin-right: {{SIZE}}{{UNIT}};',
+                    '{{WRAPPER}} .bw-animated-banner__item' => 'padding-right: {{SIZE}}{{UNIT}};',
                 ],
             ]
         );
@@ -230,21 +230,11 @@ class BW_Animated_Banner_Widget extends Widget_Base {
         ?>
         <div class="bw-animated-banner" data-speed="<?php echo esc_attr( $scroll_speed ); ?>" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
             <div class="bw-animated-banner__track" style="animation-duration: <?php echo esc_attr( $animation_duration ); ?>s;">
-                <div class="bw-animated-banner__content bw-animated-banner__item">
-                    <?php echo $clean_content; ?>
-                </div>
-                <div class="bw-animated-banner__content bw-animated-banner__item" aria-hidden="true">
-                    <?php echo $clean_content; ?>
-                </div>
-                <div class="bw-animated-banner__content bw-animated-banner__item" aria-hidden="true">
-                    <?php echo $clean_content; ?>
-                </div>
-                <div class="bw-animated-banner__content bw-animated-banner__item" aria-hidden="true">
-                    <?php echo $clean_content; ?>
-                </div>
-                <div class="bw-animated-banner__content bw-animated-banner__item" aria-hidden="true">
-                    <?php echo $clean_content; ?>
-                </div>
+                <?php for ( $i = 0; $i < 10; $i++ ) : ?>
+                    <div class="bw-animated-banner__content bw-animated-banner__item" <?php echo ( $i > 0 ) ? 'aria-hidden="true"' : ''; ?>>
+                        <?php echo $clean_content; ?>
+                    </div>
+                <?php endfor; ?>
             </div>
         </div>
         <?php
@@ -261,11 +251,9 @@ class BW_Animated_Banner_Widget extends Widget_Base {
         #>
         <div class="bw-animated-banner" data-speed="{{ scrollSpeed }}" data-widget-id="{{ view.model.id }}">
             <div class="bw-animated-banner__track" style="animation-duration: {{ animationDuration }}s;">
-                <div class="bw-animated-banner__content bw-animated-banner__item">{{{ content }}}</div>
-                <div class="bw-animated-banner__content bw-animated-banner__item" aria-hidden="true">{{{ content }}}</div>
-                <div class="bw-animated-banner__content bw-animated-banner__item" aria-hidden="true">{{{ content }}}</div>
-                <div class="bw-animated-banner__content bw-animated-banner__item" aria-hidden="true">{{{ content }}}</div>
-                <div class="bw-animated-banner__content bw-animated-banner__item" aria-hidden="true">{{{ content }}}</div>
+                <# for ( var i = 0; i < 10; i++ ) { #>
+                    <div class="bw-animated-banner__content bw-animated-banner__item" <# if ( i > 0 ) { #>aria-hidden="true"<# } #>>{{{ content }}}</div>
+                <# } #>
             </div>
         </div>
         <# } #>

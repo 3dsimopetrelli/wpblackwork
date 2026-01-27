@@ -149,6 +149,7 @@ ul.woocommerce-info::before {
 
 /* Mobile responsive */
 @media (max-width: 768px) {
+
 	.bw-checkout-left .woocommerce-error,
 	.bw-checkout-left .woocommerce-message,
 	.bw-checkout-left .woocommerce-info {
