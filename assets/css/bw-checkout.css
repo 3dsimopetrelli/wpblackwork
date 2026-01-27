@@ -3223,3 +3223,22 @@ body.bw-modal-open {
 #wc-stripe-payment-element iframe {
     width: 100% !important;
 }
+
+/* Force Visibility for Express Checkout Buttons */
+#wc-stripe-payment-request-wrapper,
+#wc-stripe-express-checkout-element,
+#wcpay-express-checkout-element {
+    clear: both;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+#wc-stripe-payment-request-wrapper:not(:empty),
+#wc-stripe-express-checkout-element:not(:empty),
+#wcpay-express-checkout-element:not(:empty) {
+    padding-top: 1.5rem;
+    display: block !important;
+    min-height: 40px;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
