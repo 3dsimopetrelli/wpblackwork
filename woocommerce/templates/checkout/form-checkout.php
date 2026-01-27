@@ -123,7 +123,7 @@ if (function_exists('bw_mew_render_checkout_header')) {
                 <?php if ($checkout->get_checkout_fields()): ?>
                     <!-- Standard Stripe Payment Request Wrapper -->
                     <!-- This is where Apple Pay / Google Pay buttons are injected by the standard plugin -->
-                    <div id="wc-stripe-payment-request-wrapper" style="clear:both;padding-top:1.5em;display:none;"></div>
+                    <div id="wc-stripe-payment-request-wrapper" style="clear:both;padding-top:1.5em;"></div>
                     <div id="wc-stripe-payment-request-button-separator" style="clear:both;padding-top:1.5em;display:none;">
                     </div>
 
@@ -212,7 +212,7 @@ if (function_exists('bw_mew_render_checkout_header')) {
                     </div>
 
                     <script>
-                                window.bwPolicyContent = <?php echo json_encode($footer_policies); ?>;
+                                    window.bwPolicyContent = <?php echo json_encode($footer_policies); ?>;
                     </script>
                 <?php endif; ?>
             </div>
