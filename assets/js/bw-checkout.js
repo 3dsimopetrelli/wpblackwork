@@ -1157,8 +1157,9 @@ console.log('[BW Checkout] Script file loaded and executing');
         // Find or create banner and divider
         var banner = document.querySelector('.bw-free-order-banner');
         var divider = document.querySelector('.bw-express-divider');
-        // UPDATED: Target the standard Stripe wrapper we are using now
-        var expressCheckout = document.querySelector('#wc-stripe-payment-request-wrapper');
+        // UPDATED: Target all potential Stripe wrappers
+        var expressCheckout = document.querySelector('#wc-stripe-payment-request-wrapper') ||
+            document.querySelector('#wc-stripe-express-checkout-element');
 
         if (isFree) {
             body.classList.add('bw-free-order');
@@ -1198,9 +1199,9 @@ console.log('[BW Checkout] Script file loaded and executing');
             // Hide Express Checkout on free order
             if (expressCheckout) {
                 expressCheckout.style.display = 'none';
-                // Also hide the separator if it exists
-                var sep = document.querySelector('#wc-stripe-payment-request-button-separator');
-                if (sep) sep.style.display = 'none';
+                // Also hide all known separators
+                var separators = document.querySelectorAll('#wc-stripe-payment-request-button-separator, #wc-stripe-express-checkout-button-separator, #wcpay-express-checkout-button-separator');
+                separators.forEach(function (s) { s.style.display = 'none'; });
             }
 
             // Update button text for free order
@@ -1224,10 +1225,9 @@ console.log('[BW Checkout] Script file loaded and executing');
             // Show Express Checkout on paid order
             if (expressCheckout) {
                 expressCheckout.style.display = ''; // Reset to default (block/visible)
-                // We don't force separator display as it might be handled by Stripe? 
-                // typically separator matches wrapper.
-                var sep = document.querySelector('#wc-stripe-payment-request-button-separator');
-                if (sep) sep.style.display = '';
+                // Show all known separators
+                var separators = document.querySelectorAll('#wc-stripe-payment-request-button-separator, #wc-stripe-express-checkout-button-separator, #wcpay-express-checkout-button-separator');
+                separators.forEach(function (s) { s.style.display = ''; });
             }
 
             // Restore original button text
