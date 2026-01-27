@@ -11,10 +11,11 @@
    ============================================ */
 
 body.woocommerce-checkout .woocommerce-error,
-body.woocommerce-checkout .woocommerce-message,
-body.woocommerce-checkout .woocommerce-info {
+body.woocommerce-checkout .woocommerce-message {
 	display: none !important;
 }
+
+/* body.woocommerce-checkout .woocommerce-info { display: none !important; } */
 
 /* Force show notices inside left column */
 body.woocommerce-checkout .bw-checkout-left .woocommerce-error,
