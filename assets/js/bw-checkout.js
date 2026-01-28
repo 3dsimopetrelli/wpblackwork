@@ -1225,10 +1225,11 @@ console.log('[BW Checkout] Script file loaded and executing');
 
             // Show Express Checkout on paid order
             if (expressCheckout) {
-                expressCheckout.style.display = 'block'; // Force block visibility
-                // Show all known separators
+                // Clear inline display to let CSS handle layout (flex for 2-column buttons)
+                expressCheckout.style.removeProperty('display');
+                // Native Stripe separators are hidden via CSS - we use custom divider
                 var separators = document.querySelectorAll('#wc-stripe-payment-request-button-separator, #wc-stripe-express-checkout-button-separator, #wcpay-express-checkout-button-separator');
-                separators.forEach(function (s) { s.style.display = 'block'; });
+                separators.forEach(function (s) { s.style.display = 'none'; });
             }
 
             // Restore original button text
