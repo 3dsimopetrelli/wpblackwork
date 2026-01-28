@@ -599,7 +599,7 @@ body.woocommerce-checkout .bw-checkout-wrapper .bw-checkout-express__or span {
     align-items: center;
     justify-content: center;
     width: 100%;
-    margin: 20px 0;
+    margin: 16px 0 20px 0;
 }
 
 .bw-express-divider::before,
@@ -699,7 +699,8 @@ body.woocommerce-checkout #wc-stripe-payment-request-wrapper {
     width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
-    margin-bottom: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
     overflow: visible !important;
 }
 
@@ -752,8 +753,14 @@ body.woocommerce-checkout #wc-stripe-express-checkout-element iframe {
 body.woocommerce-checkout #wc-stripe-express-checkout-button-separator,
 body.woocommerce-checkout .wc-stripe-express-checkout-button-separator,
 body.woocommerce-checkout #wc-stripe-payment-request-button-separator,
-body.woocommerce-checkout #wcpay-express-checkout-button-separator {
+body.woocommerce-checkout #wcpay-express-checkout-button-separator,
+body.woocommerce-checkout .wc-stripe-ece-button-separator {
     display: none !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    visibility: hidden !important;
 }
 
 /* Stripe Payment Element Error Icon Fix - Force inline layout */
