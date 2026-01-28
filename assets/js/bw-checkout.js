@@ -2054,44 +2054,45 @@ console.log('[BW Checkout] Script file loaded and executing');
 
     /**
      * Fix Stripe Element styling that might be missed by PHP/CSS
-     * Force 8px border radius on everything related to Stripe
+     * Force 8px border radius on card elements (NOT Express Checkout buttons)
      */
     function fixStripeAppearance() {
+        // Only target card/payment elements, NOT Express Checkout buttons
         var selectors = [
             '#wc-stripe-payment-element',
             '#wc-stripe-card-element',
-            '.StripeElement',
             '.wc-stripe-elements-field',
             '.wc-stripe-upe-element',
             '#stripe-card-element',
             '#stripe-exp-element',
             '#stripe-cvc-element',
-            '.stripe-elements-container',
-            '[class*="StripeElement"]'
+            '.stripe-elements-container'
         ];
 
         selectors.forEach(function (selector) {
             var elements = document.querySelectorAll(selector);
             elements.forEach(function (el) {
+                // Skip if inside Express Checkout element
+                if (el.closest('#wc-stripe-express-checkout-element')) {
+                    return;
+                }
                 el.style.setProperty('border-radius', '8px', 'important');
                 el.style.setProperty('overflow', 'hidden', 'important');
             });
         });
     }
 
-    // Run fixStripeAppearance on load and on checkout updates
+    // Run fixStripeAppearance on load and on checkout updates (once, not repeatedly)
     setTimeout(fixStripeAppearance, 500);
     setTimeout(fixStripeAppearance, 2000); // Check again after Stripe likely loaded
 
     if (window.jQuery) {
         window.jQuery(document.body).on('updated_checkout updated_shipping_method', function () {
             setTimeout(fixStripeAppearance, 500);
-            setTimeout(fixStripeAppearance, 2000);
         });
     }
 
-    // Periodic check as a fallback (Stripe iframes load at different times)
-    setInterval(fixStripeAppearance, 3000);
+    // REMOVED: setInterval was causing flickering on Express Checkout buttons
 
     console.log('[BW Checkout] Script execution completed');
 })();
