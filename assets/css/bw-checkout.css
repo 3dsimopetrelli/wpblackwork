@@ -799,7 +799,12 @@ body.woocommerce-checkout .wc-stripe-ece-button-separator,
 body.woocommerce-checkout [class*="button-separator"],
 body.woocommerce-checkout [class*="ece-separator"],
 body.woocommerce-checkout .bw-checkout-left > p:empty,
-body.woocommerce-checkout .bw-checkout-left > div:empty:not(.bw-express-divider) {
+body.woocommerce-checkout .bw-checkout-left > div:empty:not(.bw-express-divider),
+/* Stripe internal separator classes */
+body.woocommerce-checkout [class*="ECESeparator"],
+body.woocommerce-checkout [class*="Separator"]:not(.bw-express-divider),
+body.woocommerce-checkout #wc-stripe-express-checkout-element ~ div:not(.bw-express-divider):not(#customer_details):not(.bw-checkout-payment),
+body.woocommerce-checkout .p-ECESeparator {
     display: none !important;
     height: 0 !important;
     min-height: 0 !important;
