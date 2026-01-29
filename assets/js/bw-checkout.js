@@ -2098,69 +2098,90 @@ console.log('[BW Checkout] Script file loaded and executing');
      * Stripe sets margin-top on the Express Checkout element and separator via JavaScript
      */
     function fixExpressCheckoutSpacing() {
-        // Remove margin-top from Express Checkout element
+        // Force remove margin/min-height from Express Checkout element
         var expressCheckout = document.getElementById('wc-stripe-express-checkout-element');
         if (expressCheckout) {
-            expressCheckout.style.removeProperty('margin-top');
-            expressCheckout.style.removeProperty('margin');
-            expressCheckout.style.removeProperty('min-height');
+            expressCheckout.style.setProperty('margin-top', '0', 'important');
+            expressCheckout.style.setProperty('margin-bottom', '0', 'important');
+            expressCheckout.style.setProperty('min-height', '0', 'important');
+            expressCheckout.style.setProperty('padding', '0', 'important');
         }
 
-        // Hide and collapse the native Stripe separator
+        // Hide and completely remove the native Stripe separator from flow
         var separator = document.getElementById('wc-stripe-express-checkout-button-separator');
         if (separator) {
             separator.style.setProperty('display', 'none', 'important');
             separator.style.setProperty('height', '0', 'important');
             separator.style.setProperty('min-height', '0', 'important');
+            separator.style.setProperty('max-height', '0', 'important');
             separator.style.setProperty('margin', '0', 'important');
             separator.style.setProperty('padding', '0', 'important');
             separator.style.setProperty('visibility', 'hidden', 'important');
+            separator.style.setProperty('overflow', 'hidden', 'important');
+            separator.style.setProperty('position', 'absolute', 'important');
+            separator.style.setProperty('left', '-9999px', 'important');
         }
 
         // Also handle payment request wrapper
         var paymentRequest = document.getElementById('wc-stripe-payment-request-wrapper');
         if (paymentRequest) {
-            paymentRequest.style.removeProperty('margin-top');
-            paymentRequest.style.removeProperty('margin');
+            paymentRequest.style.setProperty('margin-top', '0', 'important');
+            paymentRequest.style.setProperty('margin-bottom', '0', 'important');
+            paymentRequest.style.setProperty('min-height', '0', 'important');
+        }
+
+        // Hide wc-order-attribution-inputs if it exists (takes up space)
+        var attribution = document.querySelector('wc-order-attribution-inputs');
+        if (attribution) {
+            attribution.style.setProperty('display', 'none', 'important');
+            attribution.style.setProperty('height', '0', 'important');
+            attribution.style.setProperty('min-height', '0', 'important');
+            attribution.style.setProperty('position', 'absolute', 'important');
         }
     }
 
-    // Run immediately and after short delays to catch Stripe's async initialization
+    // Run immediately
     fixExpressCheckoutSpacing();
-    setTimeout(fixExpressCheckoutSpacing, 100);
-    setTimeout(fixExpressCheckoutSpacing, 300);
-    setTimeout(fixExpressCheckoutSpacing, 500);
-    setTimeout(fixExpressCheckoutSpacing, 1000);
-    setTimeout(fixExpressCheckoutSpacing, 2000);
+
+    // Run continuously for the first 5 seconds to catch Stripe's async initialization
+    var fixIntervals = [50, 100, 150, 200, 250, 300, 400, 500, 600, 750, 1000, 1250, 1500, 2000, 2500, 3000, 4000, 5000];
+    fixIntervals.forEach(function(delay) {
+        setTimeout(fixExpressCheckoutSpacing, delay);
+    });
 
     // Also run on checkout updates
     if (window.jQuery) {
         window.jQuery(document.body).on('updated_checkout updated_shipping_method', function () {
-            setTimeout(fixExpressCheckoutSpacing, 100);
-            setTimeout(fixExpressCheckoutSpacing, 500);
+            fixExpressCheckoutSpacing();
+            var updateDelays = [50, 100, 200, 300, 500, 750, 1000, 1500, 2000];
+            updateDelays.forEach(function(delay) {
+                setTimeout(fixExpressCheckoutSpacing, delay);
+            });
         });
     }
 
-    // Use MutationObserver to catch when Stripe modifies the element
-    var expressObserver = new MutationObserver(function(mutations) {
-        mutations.forEach(function(mutation) {
-            if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
-                fixExpressCheckoutSpacing();
-            }
-        });
+    // Use MutationObserver to catch ALL changes in the checkout left column
+    var checkoutObserver = new MutationObserver(function(mutations) {
+        fixExpressCheckoutSpacing();
     });
 
-    // Start observing when elements exist
-    setTimeout(function() {
-        var expressEl = document.getElementById('wc-stripe-express-checkout-element');
-        if (expressEl) {
-            expressObserver.observe(expressEl, { attributes: true, attributeFilter: ['style'] });
+    // Start observing the checkout left column for any DOM/style changes
+    function startObserving() {
+        var checkoutLeft = document.querySelector('.bw-checkout-left');
+        if (checkoutLeft) {
+            checkoutObserver.observe(checkoutLeft, {
+                attributes: true,
+                childList: true,
+                subtree: true,
+                attributeFilter: ['style', 'class']
+            });
         }
-        var sepEl = document.getElementById('wc-stripe-express-checkout-button-separator');
-        if (sepEl) {
-            expressObserver.observe(sepEl, { attributes: true, attributeFilter: ['style'] });
-        }
-    }, 500);
+    }
+
+    // Start observing early
+    startObserving();
+    setTimeout(startObserving, 100);
+    setTimeout(startObserving, 500);
 
     console.log('[BW Checkout] Script execution completed');
 })();
