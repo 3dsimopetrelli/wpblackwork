@@ -1549,4 +1549,9 @@ function bw_mew_prepare_cart_layout()
 
     // Unhook cross-sells from their default position in collaterals
     remove_action('woocommerce_cart_collaterals', 'woocommerce_cross_sell_display');
+
+    // Remove shipping from cart totals
+    add_filter('woocommerce_cart_ready_to_calc_shipping', '__return_false', 99);
+    add_filter('woocommerce_shipping_calculator_enabled', '__return_false', 99);
+    add_filter('woocommerce_cart_needs_shipping', '__return_false', 99);
 }
