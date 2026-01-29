@@ -2106,11 +2106,10 @@ console.log('[BW Checkout] Script file loaded and executing');
             expressCheckout.style.cssText = 'margin: 0 !important; padding: 0 !important; min-height: 0 !important; display: flex !important; flex-wrap: wrap !important; gap: 12px !important; width: 100% !important; overflow: visible !important;';
         }
 
-        // Completely remove the native Stripe separator
+        // PHYSICALLY REMOVE the native Stripe separator from DOM
         var separator = document.getElementById('wc-stripe-express-checkout-button-separator');
-        if (separator) {
-            // Move it completely out of the document flow
-            separator.style.cssText = 'display: none !important; position: absolute !important; left: -9999px !important; height: 0 !important; min-height: 0 !important; max-height: 0 !important; margin: 0 !important; padding: 0 !important; visibility: hidden !important; overflow: hidden !important;';
+        if (separator && separator.parentNode) {
+            separator.parentNode.removeChild(separator);
         }
 
         // Also handle payment request wrapper
@@ -2119,35 +2118,40 @@ console.log('[BW Checkout] Script file loaded and executing');
             paymentRequest.style.cssText = 'margin: 0 !important; padding: 0 !important; min-height: 0 !important; display: flex !important; flex-wrap: wrap !important; gap: 12px !important; width: 100% !important; overflow: visible !important;';
         }
 
-        // Hide wc-order-attribution-inputs completely
+        // PHYSICALLY REMOVE wc-order-attribution-inputs from DOM
         var attribution = document.querySelector('wc-order-attribution-inputs');
-        if (attribution) {
-            attribution.style.cssText = 'display: none !important; position: absolute !important; left: -9999px !important; height: 0 !important; min-height: 0 !important;';
+        if (attribution && attribution.parentNode) {
+            attribution.parentNode.removeChild(attribution);
         }
     }
 
     // Run immediately
     fixExpressCheckoutSpacing();
 
-    // Run continuously for the first 5 seconds to catch Stripe's async initialization
-    var fixIntervals = [50, 100, 150, 200, 250, 300, 400, 500, 600, 750, 1000, 1250, 1500, 2000, 2500, 3000, 4000, 5000];
-    fixIntervals.forEach(function(delay) {
-        setTimeout(fixExpressCheckoutSpacing, delay);
+    // Run continuously every 200ms for the first 10 seconds
+    var fixCount = 0;
+    var maxFixes = 50; // 50 * 200ms = 10 seconds
+    var fixInterval = setInterval(function() {
+        fixExpressCheckoutSpacing();
+        fixCount++;
+        if (fixCount >= maxFixes) {
+            clearInterval(fixInterval);
+        }
+    }, 200);
+
+    // Also run on window resize (this is what happens when DevTools opens)
+    window.addEventListener('resize', function() {
+        fixExpressCheckoutSpacing();
     });
 
     // Also run on checkout updates
     if (window.jQuery) {
         window.jQuery(document.body).on('updated_checkout updated_shipping_method', function () {
             fixExpressCheckoutSpacing();
-            var updateDelays = [50, 100, 200, 300, 500, 750, 1000, 1500, 2000];
-            updateDelays.forEach(function(delay) {
-                setTimeout(fixExpressCheckoutSpacing, delay);
-            });
+            // Reset the interval counter to keep fixing for another 10 seconds
+            fixCount = 0;
         });
     }
-
-    // MutationObserver removed - was causing infinite loop
-    // The setTimeout intervals are sufficient to catch Stripe's changes
 
     console.log('[BW Checkout] Script execution completed');
 })();
