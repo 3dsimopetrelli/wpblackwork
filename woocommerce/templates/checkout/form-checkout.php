@@ -98,11 +98,6 @@ if (function_exists('bw_mew_render_checkout_header')) {
     action="<?php echo esc_url(wc_get_checkout_url()); ?>" enctype="multipart/form-data">
     <div class="bw-checkout-wrapper" style="<?php echo esc_attr($grid_inline_styles); ?>">
         <div class="bw-checkout-grid" style="<?php echo esc_attr($grid_inline_styles); ?>">
-            <button type="button" class="bw-order-summary-toggle" aria-expanded="false" aria-controls="order_review">
-                <span class="bw-order-summary-label"><?php esc_html_e('Order summary', 'woocommerce'); ?></span>
-                <span class="bw-order-summary-total" aria-live="polite">—</span>
-                <span class="bw-order-summary-caret" aria-hidden="true"></span>
-            </button>
             <div class="bw-checkout-left">
                 <?php
                 $skeleton_enabled = false; // get_option('bw_loading_checkout_skeleton_enabled', '1') === '1';
