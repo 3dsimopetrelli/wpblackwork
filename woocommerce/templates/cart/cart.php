@@ -48,71 +48,75 @@ do_action('woocommerce_before_cart'); ?>
                                     ?>
                                 </div>
 
-                                <div class="bw-cart-item__name" data-title="<?php esc_attr_e('Product', 'woocommerce'); ?>">
-                                    <?php
-                                    if (!$product_permalink) {
-                                        echo wp_kses_post(apply_filters('woocommerce_cart_item_name', $_product->get_name(), $cart_item, $cart_item_key) . '&nbsp;');
-                                    } else {
-                                        echo wp_kses_post(apply_filters('woocommerce_cart_item_name', sprintf('<a href="%s">%s</a>', esc_url($product_permalink), $_product->get_name()), $cart_item, $cart_item_key));
-                                    }
+                                <div class="bw-cart-item__content">
+                                    <div class="bw-cart-item__name" data-title="<?php esc_attr_e('Product', 'woocommerce'); ?>">
+                                        <?php
+                                        if (!$product_permalink) {
+                                            echo wp_kses_post(apply_filters('woocommerce_cart_item_name', $_product->get_name(), $cart_item, $cart_item_key) . '&nbsp;');
+                                        } else {
+                                            echo wp_kses_post(apply_filters('woocommerce_cart_item_name', sprintf('<a href="%s">%s</a>', esc_url($product_permalink), $_product->get_name()), $cart_item, $cart_item_key));
+                                        }
 
-                                    do_action('woocommerce_after_cart_item_name', $cart_item, $cart_item_key);
+                                        do_action('woocommerce_after_cart_item_name', $cart_item, $cart_item_key);
 
-                                    echo wc_get_formatted_cart_item_data($cart_item); // PHPCS: XSS ok.
-                            
-                                    if ($_product->backorders_require_notification() && $_product->is_on_backorder($cart_item['quantity'])) {
-                                        echo wp_kses_post(apply_filters('woocommerce_cart_item_backorder_notification', '<p class="backorder_notification">' . esc_html__('Available on backorder', 'woocommerce') . '</p>', $product_id));
-                                    }
-                                    ?>
+                                        echo wc_get_formatted_cart_item_data($cart_item); // PHPCS: XSS ok.
+                                
+                                        if ($_product->backorders_require_notification() && $_product->is_on_backorder($cart_item['quantity'])) {
+                                            echo wp_kses_post(apply_filters('woocommerce_cart_item_backorder_notification', '<p class="backorder_notification">' . esc_html__('Available on backorder', 'woocommerce') . '</p>', $product_id));
+                                        }
+                                        ?>
+                                    </div>
+
+                                    <div class="bw-cart-item__meta">
+                                        <div class="bw-cart-item__quantity"
+                                            data-title="<?php esc_attr_e('Quantity', 'woocommerce'); ?>">
+                                            <?php if ($_product->is_sold_individually()): ?>
+                                                <div class="bw-cart-qty-badge">
+                                                    <?php esc_html_e('Sold individually', 'woocommerce'); ?>
+                                                </div>
+                                                <?php printf('<input type="hidden" name="cart[%s][qty]" value="1" />', $cart_item_key); ?>
+                                            <?php else: ?>
+                                                <div class="bw-qty-pill">
+                                                    <button type="button" class="minus" aria-label="Decrease quantity">-</button>
+                                                    <?php
+                                                    $product_quantity = woocommerce_quantity_input(
+                                                        array(
+                                                            'input_name' => "cart[{$cart_item_key}][qty]",
+                                                            'input_value' => $cart_item['quantity'],
+                                                            'max_value' => $_product->get_max_purchase_quantity(),
+                                                            'min_value' => '0',
+                                                            'product_name' => $_product->get_name(),
+                                                        ),
+                                                        $_product,
+                                                        false
+                                                    );
+                                                    echo apply_filters('woocommerce_cart_item_quantity', $product_quantity, $cart_item_key, $cart_item);
+                                                    ?>
+                                                    <button type="button" class="plus" aria-label="Increase quantity">+</button>
+                                                </div>
+                                            <?php endif; ?>
+                                        </div>
+
+                                        <div class="bw-cart-item__remove">
+                                            <?php
+                                            echo apply_filters(
+                                                'woocommerce_cart_item_remove_link',
+                                                sprintf(
+                                                    '<a href="%s" class="remove" aria-label="%s" data-product_id="%s" data-product_sku="%s">Remove</a>',
+                                                    esc_url(wc_get_cart_remove_url($cart_item_key)),
+                                                    esc_attr(sprintf(__('Remove %s from cart', 'woocommerce'), $product_name)),
+                                                    esc_attr($product_id),
+                                                    esc_attr($_product->get_sku())
+                                                ),
+                                                $cart_item_key
+                                            );
+                                            ?>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div class="bw-cart-item__price" data-title="<?php esc_attr_e('Price', 'woocommerce'); ?>">
                                     <?php echo apply_filters('woocommerce_cart_item_price', WC()->cart->get_product_price($_product), $cart_item, $cart_item_key); ?>
-                                </div>
-
-                                <div class="bw-cart-item__quantity"
-                                    data-title="<?php esc_attr_e('Quantity', 'woocommerce'); ?>">
-                                    <?php if ($_product->is_sold_individually()): ?>
-                                        <div class="bw-cart-qty-badge">
-                                            <?php esc_html_e('Sold individually', 'woocommerce'); ?>
-                                        </div>
-                                        <?php printf('<input type="hidden" name="cart[%s][qty]" value="1" />', $cart_item_key); ?>
-                                    <?php else: ?>
-                                        <div class="bw-qty-pill">
-                                            <button type="button" class="minus" aria-label="Decrease quantity">-</button>
-                                            <?php
-                                            $product_quantity = woocommerce_quantity_input(
-                                                array(
-                                                    'input_name' => "cart[{$cart_item_key}][qty]",
-                                                    'input_value' => $cart_item['quantity'],
-                                                    'max_value' => $_product->get_max_purchase_quantity(),
-                                                    'min_value' => '0',
-                                                    'product_name' => $_product->get_name(),
-                                                ),
-                                                $_product,
-                                                false
-                                            );
-                                            echo apply_filters('woocommerce_cart_item_quantity', $product_quantity, $cart_item_key, $cart_item);
-                                            ?>
-                                            <button type="button" class="plus" aria-label="Increase quantity">+</button>
-                                        </div>
-                                    <?php endif; ?>
-                                </div>
-
-                                <div class="bw-cart-item__remove">
-                                    <?php
-                                    echo apply_filters(
-                                        'woocommerce_cart_item_remove_link',
-                                        sprintf(
-                                            '<a href="%s" class="remove" aria-label="%s" data-product_id="%s" data-product_sku="%s">Remove</a>',
-                                            esc_url(wc_get_cart_remove_url($cart_item_key)),
-                                            esc_attr(sprintf(__('Remove %s from cart', 'woocommerce'), $product_name)),
-                                            esc_attr($product_id),
-                                            esc_attr($_product->get_sku())
-                                        ),
-                                        $cart_item_key
-                                    );
-                                    ?>
                                 </div>
                             </div>
                             <?php
