@@ -134,7 +134,6 @@
     font-weight: 500;
     -moz-appearance: textfield;
     appearance: textfield;
-    appearance: textfield;
     background: #fff;
     color: #000;
 }
@@ -143,6 +142,25 @@
 .woocommerce-cart .bw-cart-item__quantity .quantity input::-webkit-inner-spin-button {
     -webkit-appearance: none;
     margin: 0;
+}
+
+/* Global Cart Page Transparency */
+.woocommerce-cart.woocommerce-page #content .woocommerce .bw-cart-container,
+.woocommerce-cart.woocommerce-page #content .woocommerce .bw-cart-container .bw-cart-grid,
+.woocommerce-cart.woocommerce-page #content .woocommerce .bw-cart-container .bw-cart-grid .bw-cart-items-column,
+.woocommerce-cart.woocommerce-page #content .woocommerce .bw-cart-container .bw-cart-grid .bw-cart-totals-column,
+.woocommerce-cart.woocommerce-page #content .woocommerce .bw-cart-container .bw-cart-grid .bw-cart-totals-column .cart-collaterals,
+.woocommerce-cart.woocommerce-page #content .woocommerce .bw-cart-container .bw-cart-grid .bw-cart-form {
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.woocommerce-cart .bw-cart-header,
+.woocommerce-cart .bw-cart-item {
+    border-bottom: none !important;
+    /* Remove other partial borders */
 }
 
 /* Sidebar / Totals */
@@ -166,42 +184,43 @@
     text-align: left !important;
 }
 
-.woocommerce-cart .bw-cart-totals-column h2 {
+/* Aggressive Specificity Overrides for Cart Totals */
+.woocommerce-cart.woocommerce-page #content .woocommerce .bw-cart-container .bw-cart-grid .bw-cart-totals-column .cart-collaterals .cart_totals h2 {
     display: none !important;
-    /* Hide title as requested */
+    visibility: hidden !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
-.woocommerce-cart .bw-cart-totals-column .cart_totals h2 {
-    display: none !important;
-}
-
-.woocommerce-cart .shop_table.shop_table_responsive.cart_totals {
-    width: 100% !important;
-    margin-bottom: 30px !important;
-    border-collapse: collapse !important;
-    border: none !important;
+.woocommerce-cart.woocommerce-page #content .woocommerce .bw-cart-container .bw-cart-grid .bw-cart-totals-column .cart-collaterals .cart_totals,
+.woocommerce-cart.woocommerce-page #content .woocommerce .bw-cart-container .bw-cart-grid .bw-cart-totals-column .cart-collaterals .cart_totals .shop_table,
+.woocommerce-cart.woocommerce-page #content .woocommerce .bw-cart-container .bw-cart-grid .bw-cart-totals-column .cart-collaterals .cart_totals .shop_table tr,
+.woocommerce-cart.woocommerce-page #content .woocommerce .bw-cart-container .bw-cart-grid .bw-cart-totals-column .cart-collaterals .cart_totals .shop_table th,
+.woocommerce-cart.woocommerce-page #content .woocommerce .bw-cart-container .bw-cart-grid .bw-cart-totals-column .cart-collaterals .cart_totals .shop_table td {
     background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+    border-width: 0 !important;
+    box-shadow: none !important;
+    outline: none !important;
 }
 
-.woocommerce-cart .shop_table.cart_totals tr,
-.woocommerce-cart .shop_table.cart_totals th,
-.woocommerce-cart .shop_table.cart_totals td {
-    background: transparent !important;
-    /* Transparent fields */
-    border: none !important;
+.woocommerce-cart.woocommerce-page #content .woocommerce .bw-cart-container .bw-cart-grid .bw-cart-totals-column .cart-collaterals .cart_totals .shop_table tr th,
+.woocommerce-cart.woocommerce-page #content .woocommerce .bw-cart-container .bw-cart-grid .bw-cart-totals-column .cart-collaterals .cart_totals .shop_table tr td {
     padding-left: 0 !important;
-    /* Ensure content is flush */
     padding-right: 0 !important;
+    background: transparent !important;
 }
 
-.woocommerce-cart .shop_table.cart_totals th {
+.woocommerce-cart.woocommerce-page #content .woocommerce .bw-cart-container .bw-cart-grid .bw-cart-totals-column .cart-collaterals .cart_totals .shop_table th {
     text-align: left !important;
     padding: 12px 0 !important;
     font-weight: 700;
     color: #111;
 }
 
-.woocommerce-cart .shop_table.cart_totals td {
+.woocommerce-cart.woocommerce-page #content .woocommerce .bw-cart-container .bw-cart-grid .bw-cart-totals-column .cart-collaterals .cart_totals .shop_table td {
     text-align: right !important;
     padding: 12px 0 !important;
     font-weight: 600;
