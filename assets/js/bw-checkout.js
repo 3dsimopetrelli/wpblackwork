@@ -2128,25 +2128,30 @@ console.log('[BW Checkout] Script file loaded and executing');
     // Run immediately
     fixExpressCheckoutSpacing();
 
-    // Run continuously for the first 5 seconds to catch Stripe's async initialization
-    var fixIntervals = [50, 100, 150, 200, 250, 300, 400, 500, 600, 750, 1000, 1250, 1500, 2000, 2500, 3000, 4000, 5000];
-    fixIntervals.forEach(function(delay) {
-        setTimeout(fixExpressCheckoutSpacing, delay);
+    // Run continuously every 200ms for the first 10 seconds
+    var fixCount = 0;
+    var maxFixes = 50; // 50 * 200ms = 10 seconds
+    var fixInterval = setInterval(function() {
+        fixExpressCheckoutSpacing();
+        fixCount++;
+        if (fixCount >= maxFixes) {
+            clearInterval(fixInterval);
+        }
+    }, 200);
+
+    // Also run on window resize (this is what happens when DevTools opens)
+    window.addEventListener('resize', function() {
+        fixExpressCheckoutSpacing();
     });
 
     // Also run on checkout updates
     if (window.jQuery) {
         window.jQuery(document.body).on('updated_checkout updated_shipping_method', function () {
             fixExpressCheckoutSpacing();
-            var updateDelays = [50, 100, 200, 300, 500, 750, 1000, 1500, 2000];
-            updateDelays.forEach(function(delay) {
-                setTimeout(fixExpressCheckoutSpacing, delay);
-            });
+            // Reset the interval counter to keep fixing for another 10 seconds
+            fixCount = 0;
         });
     }
-
-    // MutationObserver removed - was causing infinite loop
-    // The setTimeout intervals are sufficient to catch Stripe's changes
 
     console.log('[BW Checkout] Script execution completed');
 })();
