@@ -2146,28 +2146,8 @@ console.log('[BW Checkout] Script file loaded and executing');
         });
     }
 
-    // Use MutationObserver to catch ALL changes in the checkout left column
-    var checkoutObserver = new MutationObserver(function(mutations) {
-        fixExpressCheckoutSpacing();
-    });
-
-    // Start observing the checkout left column for any DOM/style changes
-    function startObserving() {
-        var checkoutLeft = document.querySelector('.bw-checkout-left');
-        if (checkoutLeft) {
-            checkoutObserver.observe(checkoutLeft, {
-                attributes: true,
-                childList: true,
-                subtree: true,
-                attributeFilter: ['style', 'class']
-            });
-        }
-    }
-
-    // Start observing early
-    startObserving();
-    setTimeout(startObserving, 100);
-    setTimeout(startObserving, 500);
+    // MutationObserver removed - was causing infinite loop
+    // The setTimeout intervals are sufficient to catch Stripe's changes
 
     console.log('[BW Checkout] Script execution completed');
 })();
