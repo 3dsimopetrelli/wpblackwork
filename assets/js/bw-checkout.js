@@ -2113,7 +2113,7 @@ console.log('[BW Checkout] Script file loaded and executing');
         }
 
         // Remove any element with class containing "Separator" (Stripe internal classes)
-        var separatorElements = document.querySelectorAll('[class*="Separator"], [class*="separator"], [class*="ECESeparator"]');
+        var separatorElements = document.querySelectorAll('[class*="Separator"], [class*="separator"], [class*="ECESeparator"], [class*="Divider"], [class^="p-"][class*="Or"]');
         separatorElements.forEach(function(el) {
             // Don't remove our custom divider
             if (!el.classList.contains('bw-express-divider')) {
@@ -2135,6 +2135,21 @@ console.log('[BW Checkout] Script file loaded and executing');
                 }
                 sibling = nextSibling;
             }
+
+            // Search INSIDE the express checkout element for "OR" text elements
+            var allElements = expressCheckout.querySelectorAll('*');
+            allElements.forEach(function(el) {
+                // Check if element contains only "OR" text (likely a separator)
+                if (el.childNodes.length === 1 && el.textContent && el.textContent.trim() === 'OR') {
+                    el.style.cssText = 'display: none !important; height: 0 !important; visibility: hidden !important;';
+                }
+                // Check for Stripe internal separator classes (p- prefix)
+                if (el.className && typeof el.className === 'string') {
+                    if (el.className.match(/p-.*(?:Separator|Divider|Or)/i)) {
+                        el.style.cssText = 'display: none !important; height: 0 !important; visibility: hidden !important;';
+                    }
+                }
+            });
         }
 
         // Also handle payment request wrapper
