@@ -2106,11 +2106,10 @@ console.log('[BW Checkout] Script file loaded and executing');
             expressCheckout.style.cssText = 'margin: 0 !important; padding: 0 !important; min-height: 0 !important; display: flex !important; flex-wrap: wrap !important; gap: 12px !important; width: 100% !important; overflow: visible !important;';
         }
 
-        // Completely remove the native Stripe separator
+        // PHYSICALLY REMOVE the native Stripe separator from DOM
         var separator = document.getElementById('wc-stripe-express-checkout-button-separator');
-        if (separator) {
-            // Move it completely out of the document flow
-            separator.style.cssText = 'display: none !important; position: absolute !important; left: -9999px !important; height: 0 !important; min-height: 0 !important; max-height: 0 !important; margin: 0 !important; padding: 0 !important; visibility: hidden !important; overflow: hidden !important;';
+        if (separator && separator.parentNode) {
+            separator.parentNode.removeChild(separator);
         }
 
         // Also handle payment request wrapper
@@ -2119,10 +2118,10 @@ console.log('[BW Checkout] Script file loaded and executing');
             paymentRequest.style.cssText = 'margin: 0 !important; padding: 0 !important; min-height: 0 !important; display: flex !important; flex-wrap: wrap !important; gap: 12px !important; width: 100% !important; overflow: visible !important;';
         }
 
-        // Hide wc-order-attribution-inputs completely
+        // PHYSICALLY REMOVE wc-order-attribution-inputs from DOM
         var attribution = document.querySelector('wc-order-attribution-inputs');
-        if (attribution) {
-            attribution.style.cssText = 'display: none !important; position: absolute !important; left: -9999px !important; height: 0 !important; min-height: 0 !important;';
+        if (attribution && attribution.parentNode) {
+            attribution.parentNode.removeChild(attribution);
         }
     }
 
