@@ -2093,7 +2093,74 @@ console.log('[BW Checkout] Script file loaded and executing');
         });
     }
 
-    // REMOVED: setInterval was causing flickering on Express Checkout buttons
+    /**
+     * Fix Express Checkout spacing - Remove inline styles set by Stripe
+     * Stripe sets margin-top on the Express Checkout element and separator via JavaScript
+     */
+    function fixExpressCheckoutSpacing() {
+        // Remove margin-top from Express Checkout element
+        var expressCheckout = document.getElementById('wc-stripe-express-checkout-element');
+        if (expressCheckout) {
+            expressCheckout.style.removeProperty('margin-top');
+            expressCheckout.style.removeProperty('margin');
+            expressCheckout.style.removeProperty('min-height');
+        }
+
+        // Hide and collapse the native Stripe separator
+        var separator = document.getElementById('wc-stripe-express-checkout-button-separator');
+        if (separator) {
+            separator.style.setProperty('display', 'none', 'important');
+            separator.style.setProperty('height', '0', 'important');
+            separator.style.setProperty('min-height', '0', 'important');
+            separator.style.setProperty('margin', '0', 'important');
+            separator.style.setProperty('padding', '0', 'important');
+            separator.style.setProperty('visibility', 'hidden', 'important');
+        }
+
+        // Also handle payment request wrapper
+        var paymentRequest = document.getElementById('wc-stripe-payment-request-wrapper');
+        if (paymentRequest) {
+            paymentRequest.style.removeProperty('margin-top');
+            paymentRequest.style.removeProperty('margin');
+        }
+    }
+
+    // Run immediately and after short delays to catch Stripe's async initialization
+    fixExpressCheckoutSpacing();
+    setTimeout(fixExpressCheckoutSpacing, 100);
+    setTimeout(fixExpressCheckoutSpacing, 300);
+    setTimeout(fixExpressCheckoutSpacing, 500);
+    setTimeout(fixExpressCheckoutSpacing, 1000);
+    setTimeout(fixExpressCheckoutSpacing, 2000);
+
+    // Also run on checkout updates
+    if (window.jQuery) {
+        window.jQuery(document.body).on('updated_checkout updated_shipping_method', function () {
+            setTimeout(fixExpressCheckoutSpacing, 100);
+            setTimeout(fixExpressCheckoutSpacing, 500);
+        });
+    }
+
+    // Use MutationObserver to catch when Stripe modifies the element
+    var expressObserver = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+                fixExpressCheckoutSpacing();
+            }
+        });
+    });
+
+    // Start observing when elements exist
+    setTimeout(function() {
+        var expressEl = document.getElementById('wc-stripe-express-checkout-element');
+        if (expressEl) {
+            expressObserver.observe(expressEl, { attributes: true, attributeFilter: ['style'] });
+        }
+        var sepEl = document.getElementById('wc-stripe-express-checkout-button-separator');
+        if (sepEl) {
+            expressObserver.observe(sepEl, { attributes: true, attributeFilter: ['style'] });
+        }
+    }, 500);
 
     console.log('[BW Checkout] Script execution completed');
 })();
