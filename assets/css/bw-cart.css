@@ -104,12 +104,12 @@
 
 .woocommerce-cart .bw-cart-qty-badge {
     display: inline-block;
-    padding: 4px 14px;
-    background: #e6e6e6;
+    padding: 2px 10px;
+    background: #f0f0f0;
     border-radius: 100px;
-    font-size: 14px;
-    color: #000000;
-    font-weight: 700;
+    font-size: 11px;
+    color: #444;
+    font-weight: 500;
     white-space: nowrap;
     line-height: 1.2;
 }
@@ -117,22 +117,22 @@
 .bw-qty-pill {
     display: flex;
     align-items: center;
-    border: 1px solid #000;
+    border: 1px solid #dcdcdc;
     border-radius: 100px;
-    padding: 2px 10px;
-    height: 38px;
+    padding: 0 6px;
+    height: 28px;
     background: transparent;
 }
 
 .bw-qty-pill button {
     background: none !important;
     border: none !important;
-    color: #000 !important;
-    font-size: 20px !important;
+    color: #444 !important;
+    font-size: 14px !important;
     cursor: pointer;
-    padding: 0 10px !important;
+    padding: 0 6px !important;
     line-height: 1;
-    font-weight: 300;
+    font-weight: 400;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -149,13 +149,13 @@
 }
 
 .bw-qty-pill .quantity input {
-    width: 40px !important;
+    width: 28px !important;
     background: transparent !important;
     border: none !important;
     text-align: center !important;
-    font-size: 16px !important;
+    font-size: 13px !important;
     font-weight: 500 !important;
-    color: #000 !important;
+    color: #111 !important;
     padding: 0 !important;
     margin: 0 !important;
 }
