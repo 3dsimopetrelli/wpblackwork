@@ -2096,47 +2096,33 @@ console.log('[BW Checkout] Script file loaded and executing');
     /**
      * Fix Express Checkout spacing - Remove inline styles set by Stripe
      * Stripe sets margin-top on the Express Checkout element and separator via JavaScript
+     * We completely replace the style attribute to override Stripe's !important
      */
     function fixExpressCheckoutSpacing() {
-        // Force remove margin/min-height from Express Checkout element
+        // Completely override Express Checkout element styles
         var expressCheckout = document.getElementById('wc-stripe-express-checkout-element');
         if (expressCheckout) {
-            expressCheckout.style.setProperty('margin-top', '0', 'important');
-            expressCheckout.style.setProperty('margin-bottom', '0', 'important');
-            expressCheckout.style.setProperty('min-height', '0', 'important');
-            expressCheckout.style.setProperty('padding', '0', 'important');
+            // Remove ALL inline styles and set only what we need
+            expressCheckout.style.cssText = 'margin: 0 !important; padding: 0 !important; min-height: 0 !important; display: flex !important; flex-wrap: wrap !important; gap: 12px !important; width: 100% !important; overflow: visible !important;';
         }
 
-        // Hide and completely remove the native Stripe separator from flow
+        // Completely remove the native Stripe separator
         var separator = document.getElementById('wc-stripe-express-checkout-button-separator');
         if (separator) {
-            separator.style.setProperty('display', 'none', 'important');
-            separator.style.setProperty('height', '0', 'important');
-            separator.style.setProperty('min-height', '0', 'important');
-            separator.style.setProperty('max-height', '0', 'important');
-            separator.style.setProperty('margin', '0', 'important');
-            separator.style.setProperty('padding', '0', 'important');
-            separator.style.setProperty('visibility', 'hidden', 'important');
-            separator.style.setProperty('overflow', 'hidden', 'important');
-            separator.style.setProperty('position', 'absolute', 'important');
-            separator.style.setProperty('left', '-9999px', 'important');
+            // Move it completely out of the document flow
+            separator.style.cssText = 'display: none !important; position: absolute !important; left: -9999px !important; height: 0 !important; min-height: 0 !important; max-height: 0 !important; margin: 0 !important; padding: 0 !important; visibility: hidden !important; overflow: hidden !important;';
         }
 
         // Also handle payment request wrapper
         var paymentRequest = document.getElementById('wc-stripe-payment-request-wrapper');
         if (paymentRequest) {
-            paymentRequest.style.setProperty('margin-top', '0', 'important');
-            paymentRequest.style.setProperty('margin-bottom', '0', 'important');
-            paymentRequest.style.setProperty('min-height', '0', 'important');
+            paymentRequest.style.cssText = 'margin: 0 !important; padding: 0 !important; min-height: 0 !important; display: flex !important; flex-wrap: wrap !important; gap: 12px !important; width: 100% !important; overflow: visible !important;';
         }
 
-        // Hide wc-order-attribution-inputs if it exists (takes up space)
+        // Hide wc-order-attribution-inputs completely
         var attribution = document.querySelector('wc-order-attribution-inputs');
         if (attribution) {
-            attribution.style.setProperty('display', 'none', 'important');
-            attribution.style.setProperty('height', '0', 'important');
-            attribution.style.setProperty('min-height', '0', 'important');
-            attribution.style.setProperty('position', 'absolute', 'important');
+            attribution.style.cssText = 'display: none !important; position: absolute !important; left: -9999px !important; height: 0 !important; min-height: 0 !important;';
         }
     }
 
