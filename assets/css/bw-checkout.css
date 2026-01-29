@@ -690,6 +690,12 @@ body.woocommerce-checkout .bw-free-order-banner.bw-free-order-active {
     display: block !important;
 }
 
+/* Remove spacing from any Stripe wrapper elements in checkout left column */
+body.woocommerce-checkout .bw-checkout-left > div:not(.bw-express-divider):not(#customer_details):not(.bw-checkout-payment):not(.bw-checkout-left-footer):not(.bw-checkout-left__loader) {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
 /* Express checkout buttons - Two columns layout */
 body.woocommerce-checkout #wc-stripe-express-checkout-element,
 body.woocommerce-checkout #wc-stripe-payment-request-wrapper {
@@ -702,6 +708,15 @@ body.woocommerce-checkout #wc-stripe-payment-request-wrapper {
     margin: 0 !important;
     padding: 0 !important;
     overflow: visible !important;
+}
+
+/* Remove any spacing from Stripe Express parent wrapper */
+body.woocommerce-checkout #wc-stripe-express-checkout-element-wrapper,
+body.woocommerce-checkout .wc-stripe-express-checkout-element,
+body.woocommerce-checkout [class*="stripe-express"],
+body.woocommerce-checkout [class*="ece-container"] {
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
 /* Each Express button takes 50% width (minus gap) */
