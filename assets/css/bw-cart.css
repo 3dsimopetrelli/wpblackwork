@@ -187,6 +187,15 @@
 .bw-cart-container .bw-cart-item__remove a.remove:hover {
     color: #666 !important;
     text-decoration: underline !important;
+    background: none !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.bw-cart-container .bw-cart-item__remove a.remove::before,
+.bw-cart-container .bw-cart-item__remove a.remove::after {
+    display: none !important;
 }
 
 .bw-cart-container .quantity input::-webkit-outer-spin-button,
