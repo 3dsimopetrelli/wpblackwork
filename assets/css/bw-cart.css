@@ -56,7 +56,7 @@
 
 .woocommerce-cart .bw-cart-item {
     display: grid;
-    grid-template-columns: 24px 100px 1fr 120px 100px;
+    grid-template-columns: 100px 1fr 100px 150px 100px;
     gap: 30px;
     padding: 30px 0;
     border-bottom: 1px solid #f2f2f2;
@@ -65,21 +65,6 @@
 
 .woocommerce-cart .bw-cart-item:last-child {
     border-bottom: none;
-}
-
-.woocommerce-cart .bw-cart-item__remove a.remove {
-    font-size: 24px;
-    color: #cc0000 !important;
-    text-decoration: none;
-    transition: transform 0.2s;
-    font-weight: 300;
-    /* Lighter X weight */
-    line-height: 1;
-}
-
-.woocommerce-cart .bw-cart-item__remove a.remove:hover {
-    color: #990000 !important;
-    transform: scale(1.1);
 }
 
 .woocommerce-cart .bw-cart-item__image {
@@ -107,35 +92,93 @@
     font-size: 15px;
     color: #888;
     font-weight: 500;
-    text-align: right;
+    text-align: center;
     white-space: nowrap;
 }
 
 .woocommerce-cart .bw-cart-item__quantity {
     display: flex;
-    justify-content: flex-end;
+    justify-content: center;
+    align-items: center;
 }
 
-/* Quantity Input Styling */
-.woocommerce-cart .bw-cart-item__quantity .quantity {
+.woocommerce-cart .bw-cart-item__remove {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+/* New Pill Style Quantity */
+.bw-qty-pill-wrapper {
     display: flex;
     align-items: center;
-    border: 1px solid #e0e0e0;
-    border-radius: 6px;
-    overflow: hidden;
+    gap: 20px;
 }
 
-.woocommerce-cart .bw-cart-item__quantity .quantity input {
-    width: 50px;
-    height: 40px;
-    border: none;
-    text-align: center;
-    font-size: 15px;
-    font-weight: 500;
-    -moz-appearance: textfield;
-    appearance: textfield;
-    background: #fff;
-    color: #000;
+.bw-qty-pill {
+    display: flex;
+    align-items: center;
+    border: 1px solid #000;
+    border-radius: 100px;
+    /* Fully rounded pill */
+    padding: 2px 10px;
+    height: 38px;
+    background: transparent;
+}
+
+.bw-qty-pill button {
+    background: none !important;
+    border: none !important;
+    color: #000 !important;
+    font-size: 20px !important;
+    cursor: pointer;
+    padding: 0 10px !important;
+    line-height: 1;
+    font-weight: 300;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0 !important;
+    box-shadow: none !important;
+}
+
+.bw-qty-pill button:hover {
+    opacity: 0.6;
+}
+
+.bw-qty-pill .quantity {
+    display: inline-block;
+}
+
+.bw-qty-pill .quantity input {
+    width: 40px !important;
+    background: transparent !important;
+    border: none !important;
+    text-align: center !important;
+    font-size: 16px !important;
+    font-weight: 500 !important;
+    color: #000 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.bw-qty-pill-wrapper a.remove {
+    color: #b0b0b0 !important;
+    /* Gray color for Remove text */
+    text-decoration: none !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    transition: color 0.2s;
+    float: none !important;
+    width: auto !important;
+    height: auto !important;
+    background: none !important;
+    border: none !important;
+    line-height: inherit !important;
+}
+
+.bw-qty-pill-wrapper a.remove:hover {
+    color: #000 !important;
 }
 
 .woocommerce-cart .bw-cart-item__quantity .quantity input::-webkit-outer-spin-button,
@@ -397,9 +440,9 @@
 }
 
 @media (max-width: 768px) {
-    .bw-cart-item {
-        grid-template-columns: 30px 80px 1fr;
-        gap: 15px;
+    .woocommerce-cart .bw-cart-item {
+        grid-template-columns: 80px 1fr;
+        gap: 20px;
     }
 
     .bw-cart-item__remove {
@@ -419,8 +462,17 @@
         gap: 10px;
     }
 
-    .bw-cart-item__name,
-    .bw-cart-item__price {
+    .bw-cart-item__name {
         margin: 0;
+    }
+
+    .woocommerce-cart .bw-cart-item__price {
+        text-align: left;
+        grid-column: 2;
+    }
+
+    .woocommerce-cart .bw-cart-item__quantity {
+        grid-column: 2;
+        justify-content: flex-start;
     }
 }

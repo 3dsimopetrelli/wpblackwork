@@ -37,23 +37,6 @@ do_action('woocommerce_before_cart'); ?>
                             <div
                                 class="bw-cart-item <?php echo esc_attr(apply_filters('woocommerce_cart_item_class', 'cart_item', $cart_item, $cart_item_key)); ?>">
 
-                                <div class="bw-cart-item__remove">
-                                    <?php
-                                    echo apply_filters( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-                                        'woocommerce_cart_item_remove_link',
-                                        sprintf(
-                                            '<a href="%s" class="remove" aria-label="%s" data-product_id="%s" data-product_sku="%s">&times;</a>',
-                                            esc_url(wc_get_cart_remove_url($cart_item_key)),
-                                            /* translators: %s is the product name */
-                                            esc_attr(sprintf(__('Remove %s from cart', 'woocommerce'), $product_name)),
-                                            esc_attr($product_id),
-                                            esc_attr($_product->get_sku())
-                                        ),
-                                        $cart_item_key
-                                    );
-                                    ?>
-                                </div>
-
                                 <div class="bw-cart-item__image">
                                     <?php
                                     $thumbnail = apply_filters('woocommerce_cart_item_thumbnail', $_product->get_image(), $cart_item, $cart_item_key);
@@ -94,28 +77,49 @@ do_action('woocommerce_before_cart'); ?>
 
                                 <div class="bw-cart-item__quantity"
                                     data-title="<?php esc_attr_e('Quantity', 'woocommerce'); ?>">
+                                    <div class="bw-qty-pill">
+                                        <button type="button" class="minus" aria-label="Decrease quantity">-</button>
+                                        <?php
+                                        if ($_product->is_sold_individually()) {
+                                            $min_quantity = 1;
+                                            $max_quantity = 1;
+                                        } else {
+                                            $min_quantity = 0;
+                                            $max_quantity = $_product->get_max_purchase_quantity();
+                                        }
+
+                                        $product_quantity = woocommerce_quantity_input(
+                                            array(
+                                                'input_name' => "cart[{$cart_item_key}][qty]",
+                                                'input_value' => $cart_item['quantity'],
+                                                'max_value' => $max_quantity,
+                                                'min_value' => $min_quantity,
+                                                'product_name' => $product_name,
+                                            ),
+                                            $_product,
+                                            false
+                                        );
+
+                                        echo apply_filters('woocommerce_cart_item_quantity', $product_quantity, $cart_item_key, $cart_item); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+                                        ?>
+                                        <button type="button" class="plus" aria-label="Increase quantity">+</button>
+                                    </div>
+                                </div>
+
+                                <div class="bw-cart-item__remove">
                                     <?php
-                                    if ($_product->is_sold_individually()) {
-                                        $min_quantity = 1;
-                                        $max_quantity = 1;
-                                    } else {
-                                        $min_quantity = 0;
-                                        $max_quantity = $_product->get_max_purchase_quantity();
-                                    }
-
-                                    $product_quantity = woocommerce_quantity_input(
-                                        array(
-                                            'input_name' => "cart[{$cart_item_key}][qty]",
-                                            'input_value' => $cart_item['quantity'],
-                                            'max_value' => $max_quantity,
-                                            'min_value' => $min_quantity,
-                                            'product_name' => $product_name,
+                                    echo apply_filters( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+                                        'woocommerce_cart_item_remove_link',
+                                        sprintf(
+                                            '<a href="%s" class="remove" aria-label="%s" data-product_id="%s" data-product_sku="%s">Remove</a>',
+                                            esc_url(wc_get_cart_remove_url($cart_item_key)),
+                                            /* translators: %s is the product name */
+                                            esc_attr(sprintf(__('Remove %s from cart', 'woocommerce'), $product_name)),
+                                            esc_attr($product_id),
+                                            esc_attr($_product->get_sku())
                                         ),
-                                        $_product,
-                                        false
+                                        $cart_item_key
                                     );
-
-                                    echo apply_filters('woocommerce_cart_item_quantity', $product_quantity, $cart_item_key, $cart_item); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
                                     ?>
                                 </div>
                             </div>
