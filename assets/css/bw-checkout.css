@@ -593,13 +593,21 @@ body.woocommerce-checkout .bw-checkout-wrapper .bw-checkout-express__or span {
     border: 0 !important;
 }
 
+/* Force zero margin on anything between Express buttons and form */
+body.woocommerce-checkout .bw-checkout-left > *:not(#customer_details):not(.bw-checkout-payment):not(.bw-checkout-left-footer):not(.bw-express-divider) {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+
 /* Custom OR divider - Two continuous lines with centered OR */
 .bw-express-divider {
     display: flex;
     align-items: center;
     justify-content: center;
     width: 100%;
-    margin: 16px 0 20px 0;
+    margin: 16px 0 20px 0 !important;
 }
 
 .bw-express-divider::before,
@@ -769,13 +777,22 @@ body.woocommerce-checkout #wc-stripe-express-checkout-button-separator,
 body.woocommerce-checkout .wc-stripe-express-checkout-button-separator,
 body.woocommerce-checkout #wc-stripe-payment-request-button-separator,
 body.woocommerce-checkout #wcpay-express-checkout-button-separator,
-body.woocommerce-checkout .wc-stripe-ece-button-separator {
+body.woocommerce-checkout .wc-stripe-ece-button-separator,
+body.woocommerce-checkout [class*="button-separator"],
+body.woocommerce-checkout [class*="ece-separator"],
+body.woocommerce-checkout .bw-checkout-left > p:empty,
+body.woocommerce-checkout .bw-checkout-left > div:empty:not(.bw-express-divider) {
     display: none !important;
     height: 0 !important;
+    min-height: 0 !important;
+    max-height: 0 !important;
     margin: 0 !important;
     padding: 0 !important;
     border: none !important;
     visibility: hidden !important;
+    overflow: hidden !important;
+    position: absolute !important;
+    left: -9999px !important;
 }
 
 /* Stripe Payment Element Error Icon Fix - Force inline layout */
