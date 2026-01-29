@@ -740,6 +740,7 @@ body.woocommerce-checkout [id*="wc-stripe-express-checkout-element-link"] {
     min-height: 44px !important;
     max-height: 50px !important;
     height: 48px !important;
+    border-radius: 4px !important;
 }
 
 /* Force Stripe internal elements to not exceed button height */
@@ -749,6 +750,7 @@ body.woocommerce-checkout #wc-stripe-express-checkout-element [class*="StripeEle
     max-height: 48px !important;
     height: 48px !important;
     overflow: hidden !important;
+    border-radius: 4px !important;
 }
 
 /* Force iframe inside buttons to proper height */
