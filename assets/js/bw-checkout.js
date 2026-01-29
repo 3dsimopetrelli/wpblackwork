@@ -2112,6 +2112,46 @@ console.log('[BW Checkout] Script file loaded and executing');
             separator.parentNode.removeChild(separator);
         }
 
+        // Remove any element with class containing "Separator" (Stripe internal classes)
+        var separatorElements = document.querySelectorAll('[class*="Separator"], [class*="separator"], [class*="ECESeparator"], [class*="Divider"], [class^="p-"][class*="Or"]');
+        separatorElements.forEach(function(el) {
+            // Don't remove our custom divider
+            if (!el.classList.contains('bw-express-divider')) {
+                el.style.cssText = 'display: none !important; height: 0 !important; visibility: hidden !important;';
+            }
+        });
+
+        // Find and hide div siblings after express checkout element that contain "OR" text
+        if (expressCheckout) {
+            var sibling = expressCheckout.nextElementSibling;
+            while (sibling) {
+                var nextSibling = sibling.nextElementSibling;
+                // Check if it's a separator (contains "OR" text or has separator class)
+                if (sibling.textContent && sibling.textContent.trim() === 'OR') {
+                    sibling.style.cssText = 'display: none !important; height: 0 !important; visibility: hidden !important;';
+                }
+                if (sibling.className && (sibling.className.indexOf('separator') !== -1 || sibling.className.indexOf('Separator') !== -1)) {
+                    sibling.style.cssText = 'display: none !important; height: 0 !important; visibility: hidden !important;';
+                }
+                sibling = nextSibling;
+            }
+
+            // Search INSIDE the express checkout element for "OR" text elements
+            var allElements = expressCheckout.querySelectorAll('*');
+            allElements.forEach(function(el) {
+                // Check if element contains only "OR" text (likely a separator)
+                if (el.childNodes.length === 1 && el.textContent && el.textContent.trim() === 'OR') {
+                    el.style.cssText = 'display: none !important; height: 0 !important; visibility: hidden !important;';
+                }
+                // Check for Stripe internal separator classes (p- prefix)
+                if (el.className && typeof el.className === 'string') {
+                    if (el.className.match(/p-.*(?:Separator|Divider|Or)/i)) {
+                        el.style.cssText = 'display: none !important; height: 0 !important; visibility: hidden !important;';
+                    }
+                }
+            });
+        }
+
         // Also handle payment request wrapper
         var paymentRequest = document.getElementById('wc-stripe-payment-request-wrapper');
         if (paymentRequest) {

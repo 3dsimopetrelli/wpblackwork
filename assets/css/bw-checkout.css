@@ -759,6 +759,16 @@ body.woocommerce-checkout #wc-stripe-express-checkout-element iframe {
     height: 48px !important;
 }
 
+/* Stripe internal p- prefix classes - force border-radius */
+body.woocommerce-checkout .p-ApplePayFrame,
+body.woocommerce-checkout .p-GooglePayFrame,
+body.woocommerce-checkout .p-ThirdPartyButtonContainer,
+body.woocommerce-checkout [class^="p-"][class*="Frame"],
+body.woocommerce-checkout [class^="p-"][class*="Button"] {
+    border-radius: 4px !important;
+    overflow: hidden !important;
+}
+
 /* If only one button, make it full width */
 body.woocommerce-checkout #wc-stripe-express-checkout-element > div[id*="express-checkout-element-"]:only-child {
     flex: 1 1 100% !important;
@@ -799,7 +809,17 @@ body.woocommerce-checkout .wc-stripe-ece-button-separator,
 body.woocommerce-checkout [class*="button-separator"],
 body.woocommerce-checkout [class*="ece-separator"],
 body.woocommerce-checkout .bw-checkout-left > p:empty,
-body.woocommerce-checkout .bw-checkout-left > div:empty:not(.bw-express-divider) {
+body.woocommerce-checkout .bw-checkout-left > div:empty:not(.bw-express-divider),
+/* Stripe internal separator classes (p- prefix) */
+body.woocommerce-checkout [class*="ECESeparator"],
+body.woocommerce-checkout [class*="Separator"]:not(.bw-express-divider),
+body.woocommerce-checkout #wc-stripe-express-checkout-element ~ div:not(.bw-express-divider):not(#customer_details):not(.bw-checkout-payment),
+body.woocommerce-checkout .p-ECESeparator,
+body.woocommerce-checkout [class^="p-"][class*="Separator"],
+body.woocommerce-checkout [class^="p-"][class*="Divider"],
+body.woocommerce-checkout [class^="p-"][class*="Or"],
+body.woocommerce-checkout .p-ExpressCheckoutView > div:last-child:not([class*="Button"]):not([class*="Container"]),
+body.woocommerce-checkout #wc-stripe-express-checkout-element > div > div:last-child:not([class*="Button"]):not([class*="Container"]) {
     display: none !important;
     height: 0 !important;
     min-height: 0 !important;
