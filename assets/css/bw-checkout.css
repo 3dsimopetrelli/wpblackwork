@@ -762,11 +762,8 @@ body.woocommerce-checkout #wc-stripe-express-checkout-element iframe {
 /* Stripe internal p- prefix classes - force border-radius */
 body.woocommerce-checkout .p-ApplePayFrame,
 body.woocommerce-checkout .p-GooglePayFrame,
-body.woocommerce-checkout .p-ThirdPartyButtonContainer,
-body.woocommerce-checkout [class^="p-"][class*="Frame"],
-body.woocommerce-checkout [class^="p-"][class*="Button"] {
+body.woocommerce-checkout .p-ThirdPartyButtonContainer {
     border-radius: 4px !important;
-    overflow: hidden !important;
 }
 
 /* If only one button, make it full width */
