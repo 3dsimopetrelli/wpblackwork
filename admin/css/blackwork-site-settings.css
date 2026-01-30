@@ -128,6 +128,38 @@
     margin: 20px 0 0 0;
 }
 
+/* Account Page sub tabs */
+.bw-account-settings-tabs {
+    display: flex;
+    gap: 8px;
+    margin: 0 0 16px 0;
+    border-bottom: 1px solid #ccd0d4;
+}
+
+.bw-account-settings-tab {
+    background: #f6f7f7;
+    border: 1px solid #ccd0d4;
+    border-bottom: none;
+    padding: 8px 14px;
+    cursor: pointer;
+    font-weight: 600;
+    color: #1d2327;
+}
+
+.bw-account-settings-tab.is-active {
+    background: #fff;
+    position: relative;
+    top: 1px;
+}
+
+html.js .bw-account-settings-panel {
+    display: none;
+}
+
+html.js .bw-account-settings-panel.is-active {
+    display: block;
+}
+
 /* Redirects repeater */
 .bw-redirects-table .bw-redirect-actions {
     vertical-align: top;
