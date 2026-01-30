@@ -1019,14 +1019,8 @@ function bw_mew_render_express_divider()
             </div>
         </div>
         <?php
-    } else {
-        // Render OR divider for express buttons
-        ?>
-        <div class="bw-express-divider">
-            <span>OR</span>
-        </div>
-        <?php
     }
+    // Note: OR divider removed - Stripe provides its own separator
 }
 add_action('woocommerce_checkout_before_customer_details', 'bw_mew_render_express_divider', 100);
 

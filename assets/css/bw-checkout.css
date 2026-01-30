@@ -740,7 +740,7 @@ body.woocommerce-checkout [id*="wc-stripe-express-checkout-element-link"] {
     min-height: 44px !important;
     max-height: 50px !important;
     height: 48px !important;
-    border-radius: 4px !important;
+    border-radius: 8px !important;
 }
 
 /* Force Stripe internal elements to not exceed button height */
@@ -750,13 +750,14 @@ body.woocommerce-checkout #wc-stripe-express-checkout-element [class*="StripeEle
     max-height: 48px !important;
     height: 48px !important;
     overflow: hidden !important;
-    border-radius: 4px !important;
+    border-radius: 8px !important;
 }
 
-/* Force iframe inside buttons to proper height */
+/* Force iframe inside buttons to proper height and rounded corners */
 body.woocommerce-checkout #wc-stripe-express-checkout-element iframe {
     max-height: 48px !important;
     height: 48px !important;
+    border-radius: 8px !important;
 }
 
 /* If only one button, make it full width */
@@ -779,6 +780,7 @@ body.woocommerce-checkout #wc-stripe-express-checkout-element [class*="StripeEle
     overflow: visible !important;
     min-height: 44px !important;
     height: auto !important;
+    border-radius: 8px !important;
 }
 
 /* Stripe Express iframe - ensure proper height */
@@ -788,41 +790,14 @@ body.woocommerce-checkout #wc-stripe-express-checkout-element iframe {
     box-sizing: border-box !important;
     min-height: 44px !important;
     height: auto !important;
+    border-radius: 8px !important;
 }
 
-/* Hide native Stripe separator - we use custom .bw-express-divider instead */
-body.woocommerce-checkout #wc-stripe-express-checkout-button-separator,
-body.woocommerce-checkout .wc-stripe-express-checkout-button-separator,
-body.woocommerce-checkout #wc-stripe-payment-request-button-separator,
-body.woocommerce-checkout #wcpay-express-checkout-button-separator,
-body.woocommerce-checkout .wc-stripe-ece-button-separator,
-body.woocommerce-checkout [class*="button-separator"],
-body.woocommerce-checkout [class*="ece-separator"],
+/* Stripe native separator styling - let it display naturally */
+/* Previously we hid Stripe separators but now we use them */
 body.woocommerce-checkout .bw-checkout-left > p:empty,
-body.woocommerce-checkout .bw-checkout-left > div:empty:not(.bw-express-divider) {
+body.woocommerce-checkout .bw-checkout-left > div:empty {
     display: none !important;
-    height: 0 !important;
-    min-height: 0 !important;
-    max-height: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    border: none !important;
-    visibility: hidden !important;
-    overflow: hidden !important;
-    position: absolute !important;
-    left: -9999px !important;
-}
-
-/* Hide Stripe internal ECE separator - uses p- prefix classes */
-/* Target only elements that are NOT button containers */
-body.woocommerce-checkout #wc-stripe-express-checkout-element [class^="p-"][class*="Separator"],
-body.woocommerce-checkout #wc-stripe-express-checkout-element [class^="p-"][class*="Divider"],
-body.woocommerce-checkout #wc-stripe-express-checkout-element > [class^="p-"]:not([class*="Button"]):not([class*="Container"]):not([class*="Frame"]):not([class*="Pay"]) {
-    display: none !important;
-    height: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    visibility: hidden !important;
 }
 
 /* Stripe Payment Element Error Icon Fix - Force inline layout */
