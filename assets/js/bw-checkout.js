@@ -2112,6 +2112,31 @@ console.log('[BW Checkout] Script file loaded and executing');
             separator.parentNode.removeChild(separator);
         }
 
+        // Also hide Stripe internal separator (p- prefix classes)
+        if (expressCheckout) {
+            // Find elements that look like separators (not buttons/containers)
+            var allChildren = expressCheckout.querySelectorAll('*');
+            allChildren.forEach(function(el) {
+                if (!el.className || typeof el.className !== 'string') return;
+
+                // Check if it's a separator class (contains Separator or Divider)
+                var isSeparator = /p-.*(?:Separator|Divider)/i.test(el.className);
+
+                // Check if element contains only "OR" text
+                var isOrText = el.childNodes.length === 1 &&
+                               el.firstChild &&
+                               el.firstChild.nodeType === 3 &&
+                               el.textContent.trim().toLowerCase() === 'or';
+
+                // Don't hide button-related elements
+                var isButtonRelated = /(?:Button|Container|Frame|Pay)/i.test(el.className);
+
+                if ((isSeparator || isOrText) && !isButtonRelated) {
+                    el.style.cssText = 'display: none !important; height: 0 !important; visibility: hidden !important;';
+                }
+            });
+        }
+
         // Also handle payment request wrapper
         var paymentRequest = document.getElementById('wc-stripe-payment-request-wrapper');
         if (paymentRequest) {

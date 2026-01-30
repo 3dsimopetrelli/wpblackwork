@@ -813,6 +813,18 @@ body.woocommerce-checkout .bw-checkout-left > div:empty:not(.bw-express-divider)
     left: -9999px !important;
 }
 
+/* Hide Stripe internal ECE separator - uses p- prefix classes */
+/* Target only elements that are NOT button containers */
+body.woocommerce-checkout #wc-stripe-express-checkout-element [class^="p-"][class*="Separator"],
+body.woocommerce-checkout #wc-stripe-express-checkout-element [class^="p-"][class*="Divider"],
+body.woocommerce-checkout #wc-stripe-express-checkout-element > [class^="p-"]:not([class*="Button"]):not([class*="Container"]):not([class*="Frame"]):not([class*="Pay"]) {
+    display: none !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    visibility: hidden !important;
+}
+
 /* Stripe Payment Element Error Icon Fix - Force inline layout */
 body.woocommerce-checkout #wc-stripe-express-checkout-element .Error,
 body.woocommerce-checkout .StripeElement .Error,
