@@ -1316,8 +1316,8 @@ function bw_site_render_account_page_tab()
     </form>
 
     <script>
-        jQuery(document).rea dy(fun                           c              tion($) {
-            $('.bw-media-uplo             ad').on('click', function (e) {
+        jQuery(document).ready(function($) {
+            $('.bw-media-upload').on('click', function (e) {
                 e.preventDefault();
 
                 const targetInput = $(this).data('target');
