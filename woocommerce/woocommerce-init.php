@@ -981,9 +981,8 @@ function bw_mew_render_checkout_header()
 }
 
 /**
- * Render custom express checkout divider OR free order banner.
- * - If cart total is 0: show free order message banner
- * - Otherwise: show OR divider for express buttons
+ * Render free order banner when cart total is 0.
+ * Note: Stripe Express Checkout provides its own "OR" separator.
  */
 function bw_mew_render_express_divider()
 {
@@ -1019,12 +1018,8 @@ function bw_mew_render_express_divider()
             </div>
         </div>
         <?php
-    } else {
-        // Render OR divider between express buttons and contact form
-        ?>
-        <div class="bw-express-divider"><span><?php esc_html_e('OR', 'bw'); ?></span></div>
-        <?php
     }
+    // Note: Stripe Express Checkout provides its own "OR" separator natively
 }
 add_action('woocommerce_checkout_before_customer_details', 'bw_mew_render_express_divider', 100);
 
