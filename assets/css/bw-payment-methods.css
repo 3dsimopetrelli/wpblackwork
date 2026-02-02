@@ -1146,3 +1146,41 @@ body.woocommerce-checkout .bw-stripe-fields-wrapper {
 body.woocommerce-checkout li.wc_payment_method.payment_method_stripe_klarna {
 	margin-top: 20px !important;
 }
+
+/* ============================================
+   STRIPE PAYMENT ELEMENT - Hide internal labels
+   These rules target elements outside the Stripe iframe
+   ============================================ */
+
+/* Hide any payment method labels that Stripe renders outside iframe */
+body.woocommerce-checkout .wc-stripe-upe-element > div > div > label,
+body.woocommerce-checkout .wc-stripe-upe-element label[for],
+body.woocommerce-checkout #wc-stripe-payment-element > div > div > label,
+body.woocommerce-checkout #wc-stripe-payment-element label[for] {
+	display: none !important;
+}
+
+/* Hide Klarna-specific elements if shown as separate section */
+body.woocommerce-checkout .wc-stripe-upe-element [data-field="klarna"],
+body.woocommerce-checkout .wc-stripe-upe-element .p-PaymentMethod--klarna,
+body.woocommerce-checkout #wc-stripe-payment-element [data-field="klarna"] {
+	display: none !important;
+}
+
+/* Target Stripe's internal label structure */
+body.woocommerce-checkout .bw-payment-method__fields .StripeElement label,
+body.woocommerce-checkout .bw-stripe-fields-wrapper label:not([for*="billing"]):not([for*="shipping"]) {
+	display: none !important;
+}
+
+/* Ensure proper spacing when labels are hidden */
+body.woocommerce-checkout .wc-stripe-upe-element .ElementsApp,
+body.woocommerce-checkout #wc-stripe-payment-element .ElementsApp {
+	padding-top: 0 !important;
+	margin-top: 0 !important;
+}
+
+/* Hide the payment method text that appears with icons */
+body.woocommerce-checkout .bw-payment-method__fields .p-GridCell--span12:first-child > div:first-child {
+	display: none !important;
+}

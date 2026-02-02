@@ -55,6 +55,8 @@ function bw_mew_initialize_woocommerce_overrides()
     add_filter('wc_stripe_elements_options', 'bw_mew_customize_stripe_elements_style');
     add_filter('wc_stripe_elements_styling', 'bw_mew_customize_stripe_elements_style');
     add_filter('wc_stripe_upe_params', 'bw_mew_customize_stripe_upe_appearance');
+    // Disable Klarna from showing in Stripe Payment Element (it appears as label inside card payment)
+    add_filter('wc_stripe_klarna_upe_supported_currencies', 'bw_mew_disable_klarna_in_payment_element');
     add_filter('body_class', 'bw_mew_add_section_heading_body_classes');
     add_action('woocommerce_checkout_before_customer_details', 'bw_mew_render_address_section_heading', 5);
     add_filter('woocommerce_payment_gateways', 'bw_mew_add_google_pay_gateway');
@@ -1332,10 +1334,13 @@ function bw_mew_customize_stripe_upe_appearance($params)
                 'borderColor' => '#fecaca',
                 'backgroundColor' => '#fef2f2',
             ),
+            // Hide all method labels (Card, Klarna labels inside Payment Element)
             '.Label' => array(
-                'display' => 'block',
-                'textAlign' => 'center',
-                'marginBottom' => '8px',
+                'display' => 'none !important',
+                'visibility' => 'hidden !important',
+                'height' => '0 !important',
+                'margin' => '0 !important',
+                'padding' => '0 !important',
             ),
             '.Block' => array(
                 'backgroundColor' => 'transparent',
@@ -1381,14 +1386,15 @@ function bw_mew_customize_stripe_upe_appearance($params)
                 'marginLeft' => '0',
                 'display' => 'inline-block',
             ),
+            // Hide tabs/accordion headers
             '.Tab' => array(
-                'display' => 'none',
+                'display' => 'none !important',
             ),
             '.TabLabel' => array(
-                'display' => 'none',
+                'display' => 'none !important',
             ),
             '.TabIcon' => array(
-                'display' => 'none',
+                'display' => 'none !important',
             ),
             '.Accordion' => array(
                 'border' => 'none',
@@ -1404,10 +1410,10 @@ function bw_mew_customize_stripe_upe_appearance($params)
                 'margin' => '0 !important',
             ),
             '.AccordionItemHeader' => array(
-                'display' => 'none',
+                'display' => 'none !important',
             ),
             '.PickerItem' => array(
-                'display' => 'none',
+                'display' => 'none !important',
             ),
             '.PaymentMethod' => array(
                 'padding' => '0',
@@ -1421,6 +1427,24 @@ function bw_mew_customize_stripe_upe_appearance($params)
                 'padding' => '0',
             ),
             '.AccordionButton' => array(
+                'display' => 'none !important',
+            ),
+            // Hide payment method selector/picker (Card, Klarna selection)
+            '.PaymentMethodSelector' => array(
+                'display' => 'none !important',
+            ),
+            '.p-PaymentMethodSelector' => array(
+                'display' => 'none !important',
+            ),
+            // Hide the method icon and label row
+            '.p-PaymentMethodHeader' => array(
+                'display' => 'none !important',
+            ),
+            '.p-MethodChooser' => array(
+                'display' => 'none !important',
+            ),
+            // Hide Klarna-specific elements when card is selected
+            '[data-testid="klarna"]' => array(
                 'display' => 'none !important',
             ),
         ),
@@ -1444,7 +1468,51 @@ function bw_mew_customize_stripe_upe_appearance($params)
         ),
     );
 
+    // FIX 4: Configure layout to hide accordion/tabs headers
+    // This makes the Payment Element show only the card fields without method selector
+    $params['layout'] = array(
+        'type' => 'accordion',
+        'defaultCollapsed' => false,
+        'radios' => false,
+        'spacedAccordionItems' => false,
+    );
+
+    // FIX 5: Disable wallet payment methods in the Payment Element
+    // These are handled separately (Apple Pay, Google Pay as express checkout)
+    $params['wallets'] = array(
+        'applePay' => 'never',
+        'googlePay' => 'never',
+    );
+
+    // FIX 6: Restrict payment method types to only show card
+    // This hides Klarna and other methods from the Payment Element
+    // Klarna should be a separate WooCommerce payment method if needed
+    if (isset($params['paymentMethodTypes']) && is_array($params['paymentMethodTypes'])) {
+        // Filter out non-card payment methods
+        $params['paymentMethodTypes'] = array_values(array_filter($params['paymentMethodTypes'], function ($type) {
+            return $type === 'card';
+        }));
+    } else {
+        $params['paymentMethodTypes'] = array('card');
+    }
+
     return $params;
+}
+
+/**
+ * Disable Klarna from appearing in Stripe Payment Element.
+ *
+ * Klarna was showing as a label inside the card payment section.
+ * By returning an empty array of supported currencies, Klarna is effectively disabled.
+ *
+ * @param array $currencies Supported currencies for Klarna.
+ * @return array Empty array to disable Klarna.
+ */
+function bw_mew_disable_klarna_in_payment_element($currencies)
+{
+    // Return empty array to disable Klarna in Payment Element
+    // This prevents Klarna label from appearing inside the card payment box
+    return array();
 }
 
 /**
