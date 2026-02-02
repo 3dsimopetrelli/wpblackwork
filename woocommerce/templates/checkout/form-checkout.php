@@ -123,13 +123,6 @@ if (function_exists('bw_mew_render_checkout_header')) {
                 <?php if ($checkout->get_checkout_fields()): ?>
                     <?php do_action('woocommerce_checkout_before_customer_details'); ?>
 
-                    <?php
-                    // Render custom OR divider after Express buttons
-                    if (function_exists('bw_mew_render_express_divider')) {
-                        bw_mew_render_express_divider();
-                    }
-                    ?>
-
                     <div id="customer_details" class="bw-checkout-customer-details">
                         <?php do_action('woocommerce_checkout_billing'); ?>
                         <?php do_action('woocommerce_checkout_shipping'); ?>
