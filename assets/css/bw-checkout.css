@@ -3312,6 +3312,15 @@ body.bw-modal-open {
     margin-top: 15px !important;
 }
 
+/* Spacing for Stripe Payment Accordion items (Card & Klarna labels) */
+.p-AccordionButton[data-value="card"] .p-PaymentAccordionButtonView {
+    margin-bottom: 8px !important;
+}
+
+.p-AccordionButton[data-value="klarna"] .p-PaymentAccordionButtonView {
+    margin-top: 12px !important;
+}
+
 /* Ensure the Stripe iframe respects the container padding */
 #wc-stripe-payment-element iframe {
     width: 100% !important;
