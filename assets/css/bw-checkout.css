@@ -788,8 +788,16 @@ body.woocommerce-checkout #wc-stripe-express-checkout-element iframe {
     height: auto !important;
 }
 
-/* Stripe native separator styling - let it display naturally */
-/* Previously we hid Stripe separators but now we use them */
+/* Hide ALL Stripe native separators - we use our custom .bw-express-divider instead */
+body.woocommerce-checkout #wc-stripe-payment-request-button-separator,
+body.woocommerce-checkout #wc-stripe-express-checkout-button-separator,
+body.woocommerce-checkout #wcpay-express-checkout-button-separator,
+body.woocommerce-checkout .wc-stripe-ece-button-separator,
+body.woocommerce-checkout [id*="stripe"][id*="separator"],
+body.woocommerce-checkout [class*="stripe"][class*="separator"] {
+    display: none !important;
+}
+
 body.woocommerce-checkout .bw-checkout-left > p:empty,
 body.woocommerce-checkout .bw-checkout-left > div:empty {
     display: none !important;
