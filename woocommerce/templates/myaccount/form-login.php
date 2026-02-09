@@ -163,6 +163,22 @@ $login_subtitle_html = nl2br( esc_html( $login_subtitle ) );
                         <?php esc_html_e( 'Email confirmed. Please log in.', 'bw' ); ?>
                     </div>
                 <?php endif; ?>
+                <?php
+                $invite_error_code = isset( $_GET['bw_invite_error'] ) ? sanitize_key( wp_unslash( $_GET['bw_invite_error'] ) ) : '';
+                $invite_error_desc = isset( $_GET['bw_invite_error_description'] ) ? sanitize_text_field( wp_unslash( $_GET['bw_invite_error_description'] ) ) : '';
+                if ( 'supabase' === $login_provider && $invite_error_code ) :
+                    $invite_error_message = __( 'The invite link is invalid or expired. Please request a new invite.', 'bw' );
+                    if ( 'otp_expired' === $invite_error_code ) {
+                        $invite_error_message = __( 'This invite link has expired. Please request a new invite.', 'bw' );
+                    }
+                    if ( $invite_error_desc ) {
+                        $invite_error_message = $invite_error_desc;
+                    }
+                    ?>
+                    <div class="woocommerce-error bw-account-login__notice" role="alert">
+                        <?php echo esc_html( $invite_error_message ); ?>
+                    </div>
+                <?php endif; ?>
 
                 <?php if ( $logo_url ) : ?>
                     <div class="bw-account-login__logo" style="<?php echo esc_attr( $logo_styles ); ?>">

@@ -86,6 +86,32 @@
             }
         };
 
+        var handleInviteHashError = function () {
+            var hash = window.location.hash.replace(/^#/, '');
+            if (!hash) {
+                return false;
+            }
+
+            var params = new URLSearchParams(hash);
+            var errorCode = params.get('error_code') || '';
+            var errorDescription = params.get('error_description') || '';
+            if (!errorCode) {
+                return false;
+            }
+
+            var accountUrl = window.bwSupabaseBridge.accountUrl || '/my-account/';
+            var targetUrl = new URL(accountUrl, window.location.origin);
+            targetUrl.searchParams.set('bw_invite_error', errorCode);
+
+            if (errorDescription) {
+                targetUrl.searchParams.set('bw_invite_error_description', errorDescription.replace(/\+/g, ' '));
+            }
+
+            cleanHash();
+            window.location.replace(targetUrl.toString());
+            return true;
+        };
+
         var cleanAuthParams = function () {
             if (window.history && window.history.replaceState) {
                 var cleanUrl = new URL(window.location.href);
@@ -373,6 +399,10 @@
                 }
                 handleHashTokens();
             });
+            return;
+        }
+
+        if (handleInviteHashError()) {
             return;
         }
 
