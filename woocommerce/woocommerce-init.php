@@ -238,6 +238,21 @@ function bw_mew_enqueue_supabase_bridge()
         return;
     }
 
+    // Ensure the dependency exists on every landing page (home included),
+    // otherwise the bridge script is skipped by WP when invites redirect there.
+    if (!wp_script_is('supabase-js', 'registered')) {
+        wp_register_script(
+            'supabase-js',
+            'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',
+            [],
+            null,
+            true
+        );
+    }
+    if (!wp_script_is('supabase-js', 'enqueued')) {
+        wp_enqueue_script('supabase-js');
+    }
+
     wp_enqueue_script(
         'bw-supabase-bridge',
         BW_MEW_URL . 'assets/js/bw-supabase-bridge.js',
