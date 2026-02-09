@@ -422,12 +422,10 @@ function bw_mew_handle_supabase_token_login() {
     bw_mew_apply_supabase_user_to_wp( $user->ID, $payload, 'token-login' );
 
     $needs_onboarding = $is_invite && ! $already_onboarded;
-    if ( $needs_password_for_otp ) {
+    if ( $needs_password_for_otp || $needs_onboarding ) {
         $redirect_url = add_query_arg( 'bw_set_password', '1', wc_get_page_permalink( 'myaccount' ) );
     } else {
-        $redirect_url = $needs_onboarding
-            ? wc_get_account_endpoint_url( 'set-password' )
-            : wc_get_page_permalink( 'myaccount' );
+        $redirect_url = wc_get_page_permalink( 'myaccount' );
     }
 
     if ( $debug_log ) {
@@ -1090,7 +1088,7 @@ function bw_mew_handle_supabase_checkout_invite( $order_id ) {
     $service_key    = trim( (string) get_option( 'bw_supabase_service_role_key', '' ) );
     $debug_log      = (bool) get_option( 'bw_supabase_debug_log', 0 );
     $redirect_to    = get_option( 'bw_supabase_invite_redirect_url', '' );
-    $default_redirect = home_url( '/my-account/set-password/' );
+    $default_redirect = wc_get_page_permalink( 'myaccount' );
     $redirect_to    = $redirect_to ? $redirect_to : $default_redirect;
     $last_invite_at = (int) $order->get_meta( '_bw_supabase_invite_sent_at' );
     $now            = time();
@@ -1392,7 +1390,7 @@ function bw_mew_handle_supabase_resend_invite() {
     $service_key = trim( (string) get_option( 'bw_supabase_service_role_key', '' ) );
     $debug_log   = (bool) get_option( 'bw_supabase_debug_log', 0 );
     $redirect_to = get_option( 'bw_supabase_invite_redirect_url', '' );
-    $default_redirect = home_url( '/my-account/set-password/' );
+    $default_redirect = wc_get_page_permalink( 'myaccount' );
     $redirect_to = $redirect_to ? $redirect_to : $default_redirect;
 
     if ( empty( $config['has_url'] ) || ! $service_key ) {

@@ -57,6 +57,7 @@
         setTimeout(function () {
             modal.classList.add('is-active');
             document.body.classList.add('bw-password-modal-open');
+            document.body.classList.add('bw-modal-open');
         }, 10);
 
         // Focus first input
@@ -78,6 +79,7 @@
         setTimeout(function () {
             modal.style.display = 'none';
             document.body.classList.remove('bw-password-modal-open');
+            document.body.classList.remove('bw-modal-open');
         }, 400);
     }
 

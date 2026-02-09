@@ -236,15 +236,9 @@
             }
 
             if (inviteType === 'invite') {
-                if (window.bwSupabaseBridge && window.bwSupabaseBridge.setPasswordUrl) {
-                    var targetUrl = window.bwSupabaseBridge.setPasswordUrl;
-                    if (window.location.pathname.indexOf('/set-password') === -1) {
-                        window.location.href = targetUrl + window.location.hash;
-                    } else {
-                        cleanHash();
-                    }
-                }
-                return Promise.resolve(true);
+                return bridgeSession(accessToken, refreshToken, inviteType).then(function () {
+                    return true;
+                });
             }
 
             if (inviteType === 'recovery') {

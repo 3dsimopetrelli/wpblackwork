@@ -450,10 +450,6 @@ function bw_mew_output_password_gating_modal() {
         return;
     }
 
-    // Don't show on set-password endpoint (redundant)
-    if ( is_wc_endpoint_url( 'set-password' ) ) {
-        return;
-    }
     ?>
     <div id="bw-password-modal" class="bw-password-modal" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="bw-password-modal-title">
         <div class="bw-password-modal__overlay"></div>
@@ -528,11 +524,6 @@ function bw_mew_enqueue_password_modal_assets() {
 
     $provider = get_option( 'bw_account_login_provider', 'wordpress' );
     if ( 'supabase' !== $provider ) {
-        return;
-    }
-
-    // Don't load on set-password endpoint
-    if ( is_wc_endpoint_url( 'set-password' ) ) {
         return;
     }
 
