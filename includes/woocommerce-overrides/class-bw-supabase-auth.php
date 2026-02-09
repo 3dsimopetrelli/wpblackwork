@@ -1372,6 +1372,110 @@ add_action( 'wp_ajax_nopriv_bw_supabase_resend_invite', 'bw_mew_handle_supabase_
 add_action( 'wp_ajax_bw_supabase_resend_invite', 'bw_mew_handle_supabase_resend_invite' );
 
 /**
+ * AJAX: Check if Supabase password gating modal should be shown.
+ *
+ * Returns enabled=false if provider is WordPress.
+ * Returns needs_password=true if user has not completed onboarding.
+ */
+function bw_mew_handle_get_password_status() {
+    check_ajax_referer( 'bw-supabase-login', 'nonce' );
+
+    $provider = get_option( 'bw_account_login_provider', 'wordpress' );
+
+    // If provider is WordPress, no modal needed
+    if ( 'supabase' !== $provider ) {
+        wp_send_json_success( [
+            'enabled'        => false,
+            'needs_password' => false,
+        ] );
+    }
+
+    // Must be logged in
+    if ( ! is_user_logged_in() ) {
+        wp_send_json_success( [
+            'enabled'        => true,
+            'needs_password' => false,
+        ] );
+    }
+
+    $user_id        = get_current_user_id();
+    $needs_password = function_exists( 'bw_user_needs_onboarding' )
+        ? bw_user_needs_onboarding( $user_id )
+        : ( 1 !== (int) get_user_meta( $user_id, 'bw_supabase_onboarded', true ) );
+
+    wp_send_json_success( [
+        'enabled'        => true,
+        'needs_password' => $needs_password,
+    ] );
+}
+add_action( 'wp_ajax_bw_get_password_status', 'bw_mew_handle_get_password_status' );
+add_action( 'wp_ajax_nopriv_bw_get_password_status', 'bw_mew_handle_get_password_status' );
+
+/**
+ * AJAX: Set Supabase password from gating modal.
+ *
+ * Updates password in Supabase and marks user as onboarded.
+ */
+function bw_mew_handle_set_password_modal() {
+    check_ajax_referer( 'bw-supabase-login', 'nonce' );
+
+    // Check provider
+    $provider = get_option( 'bw_account_login_provider', 'wordpress' );
+    if ( 'supabase' !== $provider ) {
+        wp_send_json_error( [ 'message' => __( 'Password management is handled by WordPress.', 'bw' ) ], 400 );
+    }
+
+    // Must be logged in
+    if ( ! is_user_logged_in() ) {
+        wp_send_json_error( [ 'message' => __( 'You must be logged in.', 'bw' ) ], 401 );
+    }
+
+    $user_id      = get_current_user_id();
+    $access_token = bw_mew_get_supabase_access_token( $user_id );
+
+    if ( ! $access_token ) {
+        wp_send_json_error( [ 'message' => __( 'Supabase session is missing. Please log in again.', 'bw' ) ], 401 );
+    }
+
+    $new_password     = isset( $_POST['new_password'] ) ? (string) wp_unslash( $_POST['new_password'] ) : '';
+    $confirm_password = isset( $_POST['confirm_password'] ) ? (string) wp_unslash( $_POST['confirm_password'] ) : '';
+
+    if ( ! $new_password || ! $confirm_password ) {
+        wp_send_json_error( [ 'message' => __( 'Please enter and confirm your password.', 'bw' ) ], 400 );
+    }
+
+    if ( $new_password !== $confirm_password ) {
+        wp_send_json_error( [ 'message' => __( 'Passwords do not match.', 'bw' ) ], 400 );
+    }
+
+    if ( strlen( $new_password ) < 8 ) {
+        wp_send_json_error( [ 'message' => __( 'Password must be at least 8 characters.', 'bw' ) ], 400 );
+    }
+
+    // Update password in Supabase
+    $response = bw_mew_supabase_update_user(
+        $access_token,
+        [ 'password' => $new_password ],
+        'password-modal'
+    );
+
+    if ( is_wp_error( $response ) ) {
+        wp_send_json_error( [ 'message' => $response->get_error_message() ], 500 );
+    }
+
+    // Mark user as onboarded
+    update_user_meta( $user_id, 'bw_supabase_onboarded', 1 );
+    delete_user_meta( $user_id, 'bw_supabase_invited' );
+    delete_user_meta( $user_id, 'bw_supabase_invite_error' );
+    delete_user_meta( $user_id, 'bw_supabase_onboarding_error' );
+
+    wp_send_json_success( [
+        'message' => __( 'Password saved successfully.', 'bw' ),
+    ] );
+}
+add_action( 'wp_ajax_bw_set_password_modal', 'bw_mew_handle_set_password_modal' );
+
+/**
  * Store Supabase session tokens in cookies/usermeta.
  *
  * @param array  $payload Supabase response payload.
