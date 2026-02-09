@@ -2161,6 +2161,30 @@ function bw_site_render_checkout_tab()
         </div>
 
         <div class="bw-tab-panel" data-bw-tab="supabase" <?php echo 'supabase' === $active_checkout_tab ? '' : 'style="display:none;"'; ?>>
+            <?php
+            // Check if Supabase keys are configured
+            $supabase_project_url_check = get_option('bw_supabase_project_url', '');
+            $supabase_configured = !empty($supabase_service_key) && !empty($supabase_project_url_check);
+            ?>
+            <div class="notice notice-info inline" style="margin: 15px 0;">
+                <p>
+                    <strong><?php esc_html_e('Supabase API Keys:', 'bw'); ?></strong>
+                    <?php if ($supabase_configured): ?>
+                        <span style="color: #00a32a;">&#10003; <?php esc_html_e('Configured', 'bw'); ?></span>
+                    <?php else: ?>
+                        <span style="color: #d63638;">&#10007; <?php esc_html_e('Not configured', 'bw'); ?></span>
+                    <?php endif; ?>
+                    &mdash;
+                    <?php
+                    printf(
+                        /* translators: %s: link to Account Page settings */
+                        esc_html__('Supabase Project URL, Anon Key, and Service Role Key are configured in %s.', 'bw'),
+                        '<a href="' . esc_url(admin_url('admin.php?page=blackwork-site-settings&tab=account')) . '">' . esc_html__('Account Page > Technical Settings', 'bw') . '</a>'
+                    );
+                    ?>
+                </p>
+            </div>
+
             <table class="form-table" role="presentation">
                 <tr>
                     <th scope="row">
