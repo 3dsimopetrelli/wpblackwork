@@ -1603,10 +1603,6 @@ function bw_site_render_checkout_tab()
         $thumb_ratio = isset($_POST['bw_checkout_thumb_ratio']) ? sanitize_key(wp_unslash($_POST['bw_checkout_thumb_ratio'])) : 'square';
         $thumb_width = isset($_POST['bw_checkout_thumb_width']) ? absint($_POST['bw_checkout_thumb_width']) : 110;
         $footer_text = isset($_POST['bw_checkout_footer_text']) ? sanitize_text_field(wp_unslash($_POST['bw_checkout_footer_text'])) : '';
-        $checkout_auth_provider = isset($_POST['bw_checkout_auth_provider']) ? sanitize_key($_POST['bw_checkout_auth_provider']) : 'wordpress';
-        if (!in_array($checkout_auth_provider, ['wordpress', 'supabase'], true)) {
-            $checkout_auth_provider = 'wordpress';
-        }
         $supabase_provision_enabled = isset($_POST['bw_supabase_checkout_provision_enabled']) ? '1' : '0';
         $supabase_invite_redirect = isset($_POST['bw_supabase_invite_redirect_url']) ? esc_url_raw(wp_unslash($_POST['bw_supabase_invite_redirect_url'])) : '';
 
@@ -1691,7 +1687,6 @@ function bw_site_render_checkout_tab()
         update_option('bw_checkout_thumb_ratio', $thumb_ratio);
         update_option('bw_checkout_thumb_width', $thumb_width);
         update_option('bw_checkout_footer_text', $footer_text);
-        update_option('bw_checkout_auth_provider', $checkout_auth_provider);
         update_option('bw_supabase_checkout_provision_enabled', $supabase_provision_enabled);
         update_option('bw_supabase_invite_redirect_url', $supabase_invite_redirect);
 
@@ -1757,7 +1752,6 @@ function bw_site_render_checkout_tab()
     $thumb_ratio = get_option('bw_checkout_thumb_ratio', 'square');
     $thumb_width = get_option('bw_checkout_thumb_width', 110);
     $footer_text = get_option('bw_checkout_footer_text', '');
-    $checkout_auth_provider = get_option('bw_checkout_auth_provider', 'wordpress');
     $supabase_provision_enabled = get_option('bw_supabase_checkout_provision_enabled', '0');
     $supabase_invite_redirect = get_option('bw_supabase_invite_redirect_url', '');
     $supabase_service_key = get_option('bw_supabase_service_role_key', '');
@@ -2188,29 +2182,6 @@ function bw_site_render_checkout_tab()
             <table class="form-table" role="presentation">
                 <tr>
                     <th scope="row">
-                        <label><?php esc_html_e('Checkout Auth Provider', 'bw'); ?></label>
-                    </th>
-                    <td>
-                        <fieldset>
-                            <label style="display:block; margin-bottom:8px;">
-                                <input type="radio" name="bw_checkout_auth_provider" value="wordpress" <?php checked('wordpress', $checkout_auth_provider); ?> />
-                                <?php esc_html_e('WordPress (native WooCommerce)', 'bw'); ?>
-                            </label>
-                            <label style="display:block;">
-                                <input type="radio" name="bw_checkout_auth_provider" value="supabase" <?php checked('supabase', $checkout_auth_provider); ?> />
-                                <?php esc_html_e('Supabase', 'bw'); ?>
-                            </label>
-                            <p class="description">
-                                <?php esc_html_e('Choose which authentication provider to use for checkout guest provisioning. When Supabase is selected, guest checkout users will receive a Supabase invite email.', 'bw'); ?>
-                            </p>
-                        </fieldset>
-                    </td>
-                </tr>
-            </table>
-
-            <table class="form-table bw-checkout-supabase-options" role="presentation" <?php echo 'supabase' === $checkout_auth_provider ? '' : 'style="display:none;"'; ?>>
-                <tr>
-                    <th scope="row">
                         <label
                             for="bw_supabase_checkout_provision_enabled"><?php esc_html_e('Supabase checkout provisioning', 'bw'); ?></label>
                     </th>
@@ -2251,19 +2222,6 @@ function bw_site_render_checkout_tab()
                     </tr>
                 <?php endif; ?>
             </table>
-
-            <script>
-            jQuery(document).ready(function($) {
-                $('input[name="bw_checkout_auth_provider"]').on('change', function() {
-                    var selected = $(this).val();
-                    if (selected === 'supabase') {
-                        $('.bw-checkout-supabase-options').slideDown(200);
-                    } else {
-                        $('.bw-checkout-supabase-options').slideUp(200);
-                    }
-                });
-            });
-            </script>
         </div>
 
         <div class="bw-tab-panel" data-bw-tab="fields" <?php echo 'fields' === $active_checkout_tab ? '' : 'style="display:none;"'; ?>>
