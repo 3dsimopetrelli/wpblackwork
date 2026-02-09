@@ -2,6 +2,10 @@
 /**
  * Login Form
  *
+ * This template supports two login providers:
+ * - 'wordpress': Standard WooCommerce login form with optional social login
+ * - 'supabase': Custom Supabase auth (magic link, OTP, OAuth)
+ *
  * @package WooCommerce/Templates
  * @version 8.1.0
  */
@@ -10,6 +14,10 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit; // Exit if accessed directly.
 }
 
+// Determine which login provider to use
+$login_provider = get_option( 'bw_account_login_provider', 'wordpress' );
+
+// Common settings (used by both providers)
 $login_image         = get_option( 'bw_account_login_image', '' );
 $login_image_id      = (int) get_option( 'bw_account_login_image_id', 0 );
 $logo                = get_option( 'bw_account_logo', '' );
@@ -22,6 +30,12 @@ $login_subtitle      = get_option(
     'bw_account_login_subtitle',
     "If you are new, we will create your account automatically.\nNew or returning, this works the same."
 );
+
+// WordPress provider settings
+$wp_facebook_enabled = (int) get_option( 'bw_account_facebook', 0 );
+$wp_google_enabled   = (int) get_option( 'bw_account_google', 0 );
+
+// Supabase provider settings (only loaded if supabase)
 $show_social_buttons = (int) get_option( 'bw_account_show_social_buttons', 1 );
 $login_mode          = get_option( 'bw_supabase_login_mode', 'native' );
 $login_mode           = in_array( $login_mode, [ 'native', 'oidc' ], true ) ? $login_mode : 'native';
@@ -91,7 +105,72 @@ $login_subtitle_html = nl2br( esc_html( $login_subtitle ) );
                     </div>
                 <?php endif; ?>
 
-                <div class="bw-account-auth" data-bw-default-tab="login" data-bw-email-confirmed="<?php echo isset( $_GET['bw_email_confirmed'] ) ? esc_attr( sanitize_text_field( wp_unslash( $_GET['bw_email_confirmed'] ) ) ) : ''; ?>">
+                <?php if ( 'wordpress' === $login_provider ) : ?>
+                    <!-- WordPress/WooCommerce Login Provider -->
+                    <div class="bw-account-auth bw-account-auth--wordpress">
+                        <form class="woocommerce-form woocommerce-form-login login bw-account-login__form bw-account-login__form--wordpress" method="post">
+
+                            <?php do_action( 'woocommerce_login_form_start' ); ?>
+
+                            <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide bw-account-login__field">
+                                <label for="username"><?php esc_html_e( 'Username or email address', 'woocommerce' ); ?>&nbsp;<span class="required">*</span></label>
+                                <input type="text" class="woocommerce-Input woocommerce-Input--text input-text" name="username" id="username" autocomplete="username" value="<?php echo ( ! empty( $_POST['username'] ) ) ? esc_attr( wp_unslash( $_POST['username'] ) ) : ''; ?>" required />
+                            </p>
+                            <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide bw-account-login__field">
+                                <label for="password"><?php esc_html_e( 'Password', 'woocommerce' ); ?>&nbsp;<span class="required">*</span></label>
+                                <input class="woocommerce-Input woocommerce-Input--text input-text" type="password" name="password" id="password" autocomplete="current-password" required />
+                            </p>
+
+                            <?php do_action( 'woocommerce_login_form' ); ?>
+
+                            <p class="form-row bw-account-login__remember">
+                                <label class="woocommerce-form__label woocommerce-form__label-for-checkbox woocommerce-form-login__rememberme">
+                                    <input class="woocommerce-form__input woocommerce-form__input-checkbox" name="rememberme" type="checkbox" id="rememberme" value="forever" />
+                                    <span><?php esc_html_e( 'Remember me', 'woocommerce' ); ?></span>
+                                </label>
+                            </p>
+
+                            <p class="form-row bw-account-login__actions">
+                                <?php wp_nonce_field( 'woocommerce-login', 'woocommerce-login-nonce' ); ?>
+                                <button type="submit" class="woocommerce-button button woocommerce-form-login__submit bw-account-login__submit" name="login" value="<?php esc_attr_e( 'Log in', 'woocommerce' ); ?>"><?php esc_html_e( 'Log in', 'woocommerce' ); ?></button>
+                            </p>
+                            <p class="woocommerce-LostPassword lost_password bw-account-login__lost-password">
+                                <a href="<?php echo esc_url( wp_lostpassword_url() ); ?>"><?php esc_html_e( 'Lost your password?', 'woocommerce' ); ?></a>
+                            </p>
+
+                            <?php do_action( 'woocommerce_login_form_end' ); ?>
+
+                        </form>
+
+                        <?php if ( $wp_google_enabled || $wp_facebook_enabled ) : ?>
+                            <div class="bw-account-login__divider">
+                                <span><?php esc_html_e( 'or', 'bw' ); ?></span>
+                            </div>
+                            <div class="bw-account-login__oauth bw-account-login__oauth--wordpress">
+                                <?php if ( $wp_google_enabled && function_exists( 'bw_mew_get_social_login_url' ) ) : ?>
+                                    <a href="<?php echo esc_url( bw_mew_get_social_login_url( 'google' ) ); ?>" class="woocommerce-button button bw-account-login__oauth-button bw-account-login__oauth-button--google">
+                                        <?php esc_html_e( 'Continue with Google', 'bw' ); ?>
+                                    </a>
+                                <?php endif; ?>
+                                <?php if ( $wp_facebook_enabled && function_exists( 'bw_mew_get_social_login_url' ) ) : ?>
+                                    <a href="<?php echo esc_url( bw_mew_get_social_login_url( 'facebook' ) ); ?>" class="woocommerce-button button bw-account-login__oauth-button bw-account-login__oauth-button--facebook">
+                                        <?php esc_html_e( 'Continue with Facebook', 'bw' ); ?>
+                                    </a>
+                                <?php endif; ?>
+                            </div>
+                        <?php endif; ?>
+
+                        <?php if ( 'yes' === get_option( 'woocommerce_enable_myaccount_registration' ) ) : ?>
+                            <div class="bw-account-login__register-section">
+                                <p class="bw-account-login__register-text"><?php esc_html_e( "Don't have an account?", 'bw' ); ?></p>
+                                <a href="<?php echo esc_url( add_query_arg( 'action', 'register', wc_get_page_permalink( 'myaccount' ) ) ); ?>" class="woocommerce-button button bw-account-login__register-btn"><?php esc_html_e( 'Register', 'woocommerce' ); ?></a>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+
+                <?php else : ?>
+                    <!-- Supabase Login Provider -->
+                    <div class="bw-account-auth" data-bw-default-tab="login" data-bw-email-confirmed="<?php echo isset( $_GET['bw_email_confirmed'] ) ? esc_attr( sanitize_text_field( wp_unslash( $_GET['bw_email_confirmed'] ) ) ) : ''; ?>">
                     <div class="bw-account-auth__panels">
                         <div class="bw-account-auth__panel is-active is-visible" data-bw-auth-panel="login">
                             <div class="bw-auth-screen bw-auth-screen--magic is-active is-visible" data-bw-screen="magic">
@@ -227,6 +306,7 @@ $login_subtitle_html = nl2br( esc_html( $login_subtitle ) );
                     </div>
 
                 </div>
+                <?php endif; ?>
 
                 <?php do_action( 'woocommerce_after_customer_login_form' ); ?>
             </div>
