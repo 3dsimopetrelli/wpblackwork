@@ -456,10 +456,46 @@
 
         var updateSupabasePassword = function (newPassword) {
             var supabase = getSupabaseClient();
+            var accessToken = getSessionStorageItem(pendingAccessTokenKey) || getSessionStorageItem('bw_supabase_access_token');
+            var refreshToken = getSessionStorageItem(pendingRefreshTokenKey) || getSessionStorageItem('bw_supabase_refresh_token');
             logDebug('PASSWORD_UPDATE_START', {
-                mode: supabase ? 'sdk' : 'rest',
-                hasAccessToken: Boolean(getSessionStorageItem(pendingAccessTokenKey))
+                mode: authConfig.ajaxUrl && authConfig.nonce ? 'ajax' : (supabase ? 'sdk' : 'rest'),
+                hasAccessToken: Boolean(accessToken)
             });
+
+            if (authConfig.ajaxUrl && authConfig.nonce && accessToken) {
+                return fetch(authConfig.ajaxUrl, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8'
+                    },
+                    body: new URLSearchParams({
+                        action: 'bw_supabase_create_password',
+                        nonce: authConfig.nonce,
+                        access_token: accessToken,
+                        refresh_token: refreshToken || '',
+                        new_password: newPassword,
+                        confirm_password: newPassword
+                    })
+                }).then(function (response) {
+                    return response.json().then(function (payload) {
+                        var ok = Boolean(payload && payload.success);
+                        logDebug('PASSWORD_UPDATE_RESULT', {
+                            mode: 'ajax',
+                            ok: ok,
+                            status: response.status
+                        });
+                        if (!ok) {
+                            var message = payload && payload.data && payload.data.message
+                                ? payload.data.message
+                                : getMessage('createPasswordError', 'Unable to update password.');
+                            return { error: new Error(message) };
+                        }
+                        return payload.data || {};
+                    });
+                });
+            }
 
             if (supabase && supabase.auth && typeof supabase.auth.updateUser === 'function') {
                 return supabase.auth.updateUser({ password: newPassword }).then(function (response) {
@@ -476,7 +512,6 @@
                 return Promise.resolve({ error: new Error(getMessage('missingConfig', 'Supabase configuration is missing.')) });
             }
 
-            var accessToken = getSessionStorageItem(pendingAccessTokenKey) || getSessionStorageItem('bw_supabase_access_token');
             if (!accessToken) {
                 return Promise.resolve({ error: new Error(getMessage('otpVerifyError', 'Unable to verify the code.')) });
             }

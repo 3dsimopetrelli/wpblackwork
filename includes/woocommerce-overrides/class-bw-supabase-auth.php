@@ -791,7 +791,25 @@ function bw_mew_supabase_update_user( $access_token, array $payload, $context = 
     }
 
     if ( $status_code < 200 || $status_code >= 300 || ! is_array( $decoded ) ) {
-        return new WP_Error( 'bw_supabase_update_failed', __( 'Supabase update failed.', 'bw' ) );
+        $message = __( 'Supabase update failed.', 'bw' );
+        if ( is_array( $decoded ) ) {
+            $remote_message = '';
+            if ( isset( $decoded['msg'] ) && is_string( $decoded['msg'] ) ) {
+                $remote_message = $decoded['msg'];
+            } elseif ( isset( $decoded['message'] ) && is_string( $decoded['message'] ) ) {
+                $remote_message = $decoded['message'];
+            }
+
+            if ( $remote_message ) {
+                $message = $remote_message;
+            }
+        }
+
+        return new WP_Error(
+            'bw_supabase_update_failed',
+            $message,
+            [ 'status' => (int) $status_code ]
+        );
     }
 
     return [
@@ -925,6 +943,59 @@ function bw_mew_handle_supabase_update_password() {
     );
 }
 add_action( 'wp_ajax_bw_supabase_update_password', 'bw_mew_handle_supabase_update_password' );
+
+/**
+ * Create/assign Supabase password during onboarding (pre-login flow).
+ *
+ * This endpoint is used by the My Account login experience when the user
+ * verified OTP and must create a password before the WP session bridge.
+ */
+function bw_mew_handle_supabase_create_password() {
+    check_ajax_referer( 'bw-supabase-login', 'nonce' );
+
+    $access_token  = isset( $_POST['access_token'] ) ? sanitize_text_field( wp_unslash( $_POST['access_token'] ) ) : '';
+    $new_password  = isset( $_POST['new_password'] ) ? (string) wp_unslash( $_POST['new_password'] ) : '';
+    $confirm_password = isset( $_POST['confirm_password'] ) ? (string) wp_unslash( $_POST['confirm_password'] ) : '';
+
+    if ( ! $access_token ) {
+        wp_send_json_error( [ 'message' => __( 'Missing access token.', 'bw' ) ], 400 );
+    }
+
+    if ( ! $new_password || ! $confirm_password ) {
+        wp_send_json_error( [ 'message' => __( 'Please enter and confirm your new password.', 'bw' ) ], 400 );
+    }
+
+    if ( $new_password !== $confirm_password ) {
+        wp_send_json_error( [ 'message' => __( 'Passwords do not match.', 'bw' ) ], 400 );
+    }
+
+    if ( ! bw_mew_supabase_password_meets_requirements( $new_password ) ) {
+        wp_send_json_error( [ 'message' => __( 'Password does not meet the requirements.', 'bw' ) ], 400 );
+    }
+
+    $response = bw_mew_supabase_update_user(
+        $access_token,
+        [ 'password' => $new_password ],
+        'create-password'
+    );
+
+    if ( is_wp_error( $response ) ) {
+        $status = (int) $response->get_error_data( 'status' );
+        if ( $status < 400 || $status > 599 ) {
+            $status = 500;
+        }
+        wp_send_json_error( [ 'message' => $response->get_error_message() ], $status );
+    }
+
+    wp_send_json_success(
+        [
+            'message' => __( 'Password updated.', 'bw' ),
+            'user'    => isset( $response['payload'] ) && is_array( $response['payload'] ) ? $response['payload'] : [],
+        ]
+    );
+}
+add_action( 'wp_ajax_nopriv_bw_supabase_create_password', 'bw_mew_handle_supabase_create_password' );
+add_action( 'wp_ajax_bw_supabase_create_password', 'bw_mew_handle_supabase_create_password' );
 
 /**
  * Update Supabase email via AJAX.
