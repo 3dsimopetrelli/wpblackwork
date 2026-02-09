@@ -25,15 +25,62 @@ $logo_id             = (int) get_option( 'bw_account_logo_id', 0 );
 $logo_width          = (int) get_option( 'bw_account_logo_width', 180 );
 $logo_padding_top    = (int) get_option( 'bw_account_logo_padding_top', 0 );
 $logo_padding_bottom = (int) get_option( 'bw_account_logo_padding_bottom', 30 );
-$login_title         = get_option( 'bw_account_login_title', 'Log in to Blackwork' );
-$login_subtitle      = get_option(
+$legacy_login_title  = get_option( 'bw_account_login_title', 'Log in to Blackwork' );
+$legacy_login_subtitle = get_option(
     'bw_account_login_subtitle',
     "If you are new, we will create your account automatically.\nNew or returning, this works the same."
 );
+$login_title_supabase = get_option( 'bw_account_login_title_supabase', $legacy_login_title );
+$login_subtitle_supabase = get_option( 'bw_account_login_subtitle_supabase', $legacy_login_subtitle );
+$login_title_wordpress = get_option( 'bw_account_login_title_wordpress', $legacy_login_title );
+$login_subtitle_wordpress = get_option( 'bw_account_login_subtitle_wordpress', $legacy_login_subtitle );
+$login_title = 'wordpress' === $login_provider ? $login_title_wordpress : $login_title_supabase;
+$login_subtitle = 'wordpress' === $login_provider ? $login_subtitle_wordpress : $login_subtitle_supabase;
 
 // WordPress provider settings
 $wp_facebook_enabled = (int) get_option( 'bw_account_facebook', 0 );
 $wp_google_enabled   = (int) get_option( 'bw_account_google', 0 );
+$wp_registration_enabled = 'yes' === get_option( 'woocommerce_enable_myaccount_registration' );
+$wp_generate_username = 'yes' === get_option( 'woocommerce_registration_generate_username' );
+$wp_generate_password = 'yes' === get_option( 'woocommerce_registration_generate_password' );
+$wp_default_screen = 'login';
+
+if ( 'wordpress' === $login_provider ) {
+    if ( isset( $_GET['action'] ) && 'register' === sanitize_key( wp_unslash( $_GET['action'] ) ) && $wp_registration_enabled ) {
+        $wp_default_screen = 'register';
+    }
+
+    if ( isset( $_POST['register'] ) && $wp_registration_enabled ) {
+        $wp_default_screen = 'register';
+    }
+
+    if ( isset( $_POST['bw_wp_lost_password_submit'] ) ) {
+        $wp_default_screen = 'lost-password';
+        $lost_password_nonce = isset( $_POST['bw_lost_password_nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['bw_lost_password_nonce'] ) ) : '';
+        $lost_password_login = isset( $_POST['user_login'] ) ? sanitize_text_field( wp_unslash( $_POST['user_login'] ) ) : '';
+
+        if ( ! wp_verify_nonce( $lost_password_nonce, 'bw_lost_password_action' ) ) {
+            wc_add_notice( __( 'Security check failed. Please try again.', 'bw' ), 'error' );
+        } elseif ( '' === $lost_password_login ) {
+            wc_add_notice( __( 'Please enter a username or email address.', 'bw' ), 'error' );
+        } else {
+            $reset_result = retrieve_password( $lost_password_login );
+
+            if ( is_wp_error( $reset_result ) ) {
+                $error_messages = $reset_result->get_error_messages();
+                if ( ! empty( $error_messages ) ) {
+                    foreach ( $error_messages as $error_message ) {
+                        wc_add_notice( $error_message, 'error' );
+                    }
+                } else {
+                    wc_add_notice( __( 'Unable to process your request. Please try again.', 'bw' ), 'error' );
+                }
+            } else {
+                wc_add_notice( __( 'Check your email for the confirmation link.', 'bw' ), 'success' );
+            }
+        }
+    }
+}
 
 // Supabase provider settings (only loaded if supabase)
 $show_social_buttons = (int) get_option( 'bw_account_show_social_buttons', 1 );
@@ -55,6 +102,7 @@ if ( $login_image_id ) {
 
 $has_cover = ! empty( $login_image_url );
 $wrapper_class = 'bw-account-login-page bw-full-section' . ( $has_cover ? ' bw-account-login-page--has-cover' : '' );
+$wrapper_class .= ' bw-account-login-page--provider-' . sanitize_html_class( $login_provider );
 
 $logo_url = $logo;
 if ( $logo_id ) {
@@ -78,8 +126,38 @@ $login_subtitle_html = nl2br( esc_html( $login_subtitle ) );
         <div class="bw-account-login__media" <?php if ( $login_image_url ) : ?>style="--bw-login-cover: url('<?php echo esc_url( $login_image_url ); ?>');"<?php endif; ?>></div>
         <div class="bw-account-login__content-wrapper">
             <div class="bw-account-login__content">
-                <?php do_action( 'woocommerce_before_customer_login_form' ); ?>
-                <?php wc_print_notices(); ?>
+                <?php
+                $wp_notices_html = '';
+                if ( 'wordpress' === $login_provider ) {
+                    // WooCommerce prints notices in this hook by default; suppress top rendering for WordPress provider.
+                    $restore_wc_output_notices = false;
+                    $restore_wc_print_notices = false;
+                    if ( has_action( 'woocommerce_before_customer_login_form', 'woocommerce_output_all_notices' ) ) {
+                        remove_action( 'woocommerce_before_customer_login_form', 'woocommerce_output_all_notices', 10 );
+                        $restore_wc_output_notices = true;
+                    }
+                    if ( has_action( 'woocommerce_before_customer_login_form', 'wc_print_notices' ) ) {
+                        remove_action( 'woocommerce_before_customer_login_form', 'wc_print_notices', 10 );
+                        $restore_wc_print_notices = true;
+                    }
+
+                    do_action( 'woocommerce_before_customer_login_form' );
+
+                    if ( $restore_wc_output_notices ) {
+                        add_action( 'woocommerce_before_customer_login_form', 'woocommerce_output_all_notices', 10 );
+                    }
+                    if ( $restore_wc_print_notices ) {
+                        add_action( 'woocommerce_before_customer_login_form', 'wc_print_notices', 10 );
+                    }
+
+                    ob_start();
+                    wc_print_notices();
+                    $wp_notices_html = trim( ob_get_clean() );
+                } else {
+                    do_action( 'woocommerce_before_customer_login_form' );
+                    wc_print_notices();
+                }
+                ?>
                 <?php if ( isset( $_GET['bw_email_confirmed'] ) && '1' === sanitize_text_field( wp_unslash( $_GET['bw_email_confirmed'] ) ) ) : ?>
                     <div class="woocommerce-message bw-account-login__notice">
                         <?php esc_html_e( 'Email confirmed. Please log in.', 'bw' ); ?>
@@ -107,65 +185,140 @@ $login_subtitle_html = nl2br( esc_html( $login_subtitle ) );
 
                 <?php if ( 'wordpress' === $login_provider ) : ?>
                     <!-- WordPress/WooCommerce Login Provider -->
-                    <div class="bw-account-auth bw-account-auth--wordpress">
-                        <form class="woocommerce-form woocommerce-form-login login bw-account-login__form bw-account-login__form--wordpress" method="post">
+                    <div class="bw-account-auth bw-account-auth--wordpress" data-bw-wp-default-screen="<?php echo esc_attr( $wp_default_screen ); ?>">
+                        <div class="bw-account-auth__tabs bw-account-auth__tabs--wordpress">
+                            <button type="button" class="bw-account-auth__tab<?php echo 'login' === $wp_default_screen ? ' is-active' : ''; ?>" data-bw-wp-auth-tab="login">
+                                <?php esc_html_e( 'Login', 'bw' ); ?>
+                            </button>
+                            <?php if ( $wp_registration_enabled ) : ?>
+                                <button type="button" class="bw-account-auth__tab<?php echo 'register' === $wp_default_screen ? ' is-active' : ''; ?>" data-bw-wp-auth-tab="register">
+                                    <?php esc_html_e( 'Register', 'bw' ); ?>
+                                </button>
+                            <?php endif; ?>
+                        </div>
 
-                            <?php do_action( 'woocommerce_login_form_start' ); ?>
+                        <div class="bw-account-auth__panels bw-account-auth__panels--wordpress">
+                            <div class="bw-auth-screen bw-auth-screen--wp-login<?php echo 'login' === $wp_default_screen ? ' is-active is-visible' : ''; ?>" data-bw-wp-screen="login">
+                                <form class="woocommerce-form woocommerce-form-login login bw-account-login__form bw-account-login__form--wordpress" method="post">
 
-                            <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide bw-account-login__field">
-                                <label for="username"><?php esc_html_e( 'Username or email address', 'woocommerce' ); ?>&nbsp;<span class="required">*</span></label>
-                                <input type="text" class="woocommerce-Input woocommerce-Input--text input-text" name="username" id="username" autocomplete="username" value="<?php echo ( ! empty( $_POST['username'] ) ) ? esc_attr( wp_unslash( $_POST['username'] ) ) : ''; ?>" required />
-                            </p>
-                            <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide bw-account-login__field">
-                                <label for="password"><?php esc_html_e( 'Password', 'woocommerce' ); ?>&nbsp;<span class="required">*</span></label>
-                                <input class="woocommerce-Input woocommerce-Input--text input-text" type="password" name="password" id="password" autocomplete="current-password" required />
-                            </p>
+                                    <?php do_action( 'woocommerce_login_form_start' ); ?>
 
-                            <?php do_action( 'woocommerce_login_form' ); ?>
+                                    <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide bw-account-login__field">
+                                        <label for="username"><?php esc_html_e( 'Username or email address', 'woocommerce' ); ?>&nbsp;<span class="required">*</span></label>
+                                        <input type="text" class="woocommerce-Input woocommerce-Input--text input-text" name="username" id="username" autocomplete="username" value="<?php echo ( ! empty( $_POST['username'] ) ) ? esc_attr( wp_unslash( $_POST['username'] ) ) : ''; ?>" required />
+                                    </p>
+                                    <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide bw-account-login__field">
+                                        <label for="password"><?php esc_html_e( 'Password', 'woocommerce' ); ?>&nbsp;<span class="required">*</span></label>
+                                        <input class="woocommerce-Input woocommerce-Input--text input-text" type="password" name="password" id="password" autocomplete="current-password" required />
+                                    </p>
 
-                            <p class="form-row bw-account-login__remember">
-                                <label class="woocommerce-form__label woocommerce-form__label-for-checkbox woocommerce-form-login__rememberme">
-                                    <input class="woocommerce-form__input woocommerce-form__input-checkbox" name="rememberme" type="checkbox" id="rememberme" value="forever" />
-                                    <span><?php esc_html_e( 'Remember me', 'woocommerce' ); ?></span>
-                                </label>
-                            </p>
+                                    <?php do_action( 'woocommerce_login_form' ); ?>
 
-                            <p class="form-row bw-account-login__actions">
-                                <?php wp_nonce_field( 'woocommerce-login', 'woocommerce-login-nonce' ); ?>
-                                <button type="submit" class="woocommerce-button button woocommerce-form-login__submit bw-account-login__submit" name="login" value="<?php esc_attr_e( 'Log in', 'woocommerce' ); ?>"><?php esc_html_e( 'Log in', 'woocommerce' ); ?></button>
-                            </p>
-                            <p class="woocommerce-LostPassword lost_password bw-account-login__lost-password">
-                                <a href="<?php echo esc_url( wp_lostpassword_url() ); ?>"><?php esc_html_e( 'Lost your password?', 'woocommerce' ); ?></a>
-                            </p>
+                                    <p class="form-row bw-account-login__remember">
+                                        <label class="woocommerce-form__label woocommerce-form__label-for-checkbox woocommerce-form-login__rememberme">
+                                            <input class="woocommerce-form__input woocommerce-form__input-checkbox" name="rememberme" type="checkbox" id="rememberme" value="forever" />
+                                            <span><?php esc_html_e( 'Remember me', 'woocommerce' ); ?></span>
+                                        </label>
+                                    </p>
 
-                            <?php do_action( 'woocommerce_login_form_end' ); ?>
+                                    <p class="form-row bw-account-login__actions">
+                                        <?php wp_nonce_field( 'woocommerce-login', 'woocommerce-login-nonce' ); ?>
+                                        <button type="submit" class="woocommerce-button button woocommerce-form-login__submit bw-account-login__submit" name="login" value="<?php esc_attr_e( 'Log in', 'woocommerce' ); ?>"><?php esc_html_e( 'Log in', 'woocommerce' ); ?></button>
+                                    </p>
+                                    <?php if ( $wp_notices_html && 'login' === $wp_default_screen ) : ?>
+                                        <div class="bw-account-login__form-notices">
+                                            <?php echo wp_kses_post( $wp_notices_html ); ?>
+                                        </div>
+                                    <?php endif; ?>
+                                    <p class="woocommerce-LostPassword lost_password bw-account-login__lost-password-wrap">
+                                        <button type="button" class="bw-account-login__lost-password-toggle bw-account-login__lost-password" data-bw-wp-go="lost-password"><?php esc_html_e( 'Lost your password?', 'woocommerce' ); ?></button>
+                                    </p>
 
-                        </form>
+                                    <?php do_action( 'woocommerce_login_form_end' ); ?>
+                                </form>
 
-                        <?php if ( $wp_google_enabled || $wp_facebook_enabled ) : ?>
-                            <div class="bw-account-login__divider">
-                                <span><?php esc_html_e( 'or', 'bw' ); ?></span>
-                            </div>
-                            <div class="bw-account-login__oauth bw-account-login__oauth--wordpress">
-                                <?php if ( $wp_google_enabled && function_exists( 'bw_mew_get_social_login_url' ) ) : ?>
-                                    <a href="<?php echo esc_url( bw_mew_get_social_login_url( 'google' ) ); ?>" class="woocommerce-button button bw-account-login__oauth-button bw-account-login__oauth-button--google">
-                                        <?php esc_html_e( 'Continue with Google', 'bw' ); ?>
-                                    </a>
+                                <?php if ( $wp_google_enabled || $wp_facebook_enabled ) : ?>
+                                    <div class="bw-account-login__divider">
+                                        <span><?php esc_html_e( 'or', 'bw' ); ?></span>
+                                    </div>
+                                    <div class="bw-account-login__oauth bw-account-login__oauth--wordpress">
+                                        <?php if ( $wp_google_enabled && function_exists( 'bw_mew_get_social_login_url' ) ) : ?>
+                                            <a href="<?php echo esc_url( bw_mew_get_social_login_url( 'google' ) ); ?>" class="woocommerce-button button bw-account-login__oauth-button bw-account-login__oauth-button--google">
+                                                <?php esc_html_e( 'Continue with Google', 'bw' ); ?>
+                                            </a>
+                                        <?php endif; ?>
+                                        <?php if ( $wp_facebook_enabled && function_exists( 'bw_mew_get_social_login_url' ) ) : ?>
+                                            <a href="<?php echo esc_url( bw_mew_get_social_login_url( 'facebook' ) ); ?>" class="woocommerce-button button bw-account-login__oauth-button bw-account-login__oauth-button--facebook">
+                                                <?php esc_html_e( 'Continue with Facebook', 'bw' ); ?>
+                                            </a>
+                                        <?php endif; ?>
+                                    </div>
                                 <?php endif; ?>
-                                <?php if ( $wp_facebook_enabled && function_exists( 'bw_mew_get_social_login_url' ) ) : ?>
-                                    <a href="<?php echo esc_url( bw_mew_get_social_login_url( 'facebook' ) ); ?>" class="woocommerce-button button bw-account-login__oauth-button bw-account-login__oauth-button--facebook">
-                                        <?php esc_html_e( 'Continue with Facebook', 'bw' ); ?>
-                                    </a>
-                                <?php endif; ?>
                             </div>
-                        <?php endif; ?>
 
-                        <?php if ( 'yes' === get_option( 'woocommerce_enable_myaccount_registration' ) ) : ?>
-                            <div class="bw-account-login__register-section">
-                                <p class="bw-account-login__register-text"><?php esc_html_e( "Don't have an account?", 'bw' ); ?></p>
-                                <a href="<?php echo esc_url( add_query_arg( 'action', 'register', wc_get_page_permalink( 'myaccount' ) ) ); ?>" class="woocommerce-button button bw-account-login__register-btn"><?php esc_html_e( 'Register', 'woocommerce' ); ?></a>
+                            <?php if ( $wp_registration_enabled ) : ?>
+                                <div class="bw-auth-screen bw-auth-screen--wp-register<?php echo 'register' === $wp_default_screen ? ' is-active is-visible' : ''; ?>" data-bw-wp-screen="register">
+                                    <form method="post" class="woocommerce-form woocommerce-form-register register bw-account-login__form bw-account-login__form--wordpress" <?php do_action( 'woocommerce_register_form_tag' ); ?>>
+                                        <?php do_action( 'woocommerce_register_form_start' ); ?>
+
+                                        <?php if ( ! $wp_generate_username ) : ?>
+                                            <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide bw-account-login__field">
+                                                <label for="reg_username"><?php esc_html_e( 'Username', 'woocommerce' ); ?>&nbsp;<span class="required">*</span></label>
+                                                <input type="text" class="woocommerce-Input woocommerce-Input--text input-text" name="username" id="reg_username" autocomplete="username" value="<?php echo ( ! empty( $_POST['username'] ) ) ? esc_attr( wp_unslash( $_POST['username'] ) ) : ''; ?>" />
+                                            </p>
+                                        <?php endif; ?>
+
+                                        <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide bw-account-login__field">
+                                            <label for="reg_email"><?php esc_html_e( 'Email address', 'woocommerce' ); ?>&nbsp;<span class="required">*</span></label>
+                                            <input type="email" class="woocommerce-Input woocommerce-Input--text input-text" name="email" id="reg_email" autocomplete="email" value="<?php echo ( ! empty( $_POST['email'] ) ) ? esc_attr( wp_unslash( $_POST['email'] ) ) : ''; ?>" />
+                                        </p>
+
+                                        <?php if ( ! $wp_generate_password ) : ?>
+                                            <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide bw-account-login__field">
+                                                <label for="reg_password"><?php esc_html_e( 'Password', 'woocommerce' ); ?>&nbsp;<span class="required">*</span></label>
+                                                <input type="password" class="woocommerce-Input woocommerce-Input--text input-text" name="password" id="reg_password" autocomplete="new-password" />
+                                            </p>
+                                        <?php else : ?>
+                                            <p><?php esc_html_e( 'A link to set a new password will be sent to your email address.', 'woocommerce' ); ?></p>
+                                        <?php endif; ?>
+
+                                        <?php do_action( 'woocommerce_register_form' ); ?>
+                                        <?php wp_nonce_field( 'woocommerce-register', 'woocommerce-register-nonce' ); ?>
+                                        <p class="woocommerce-form-row form-row bw-account-login__actions">
+                                            <button type="submit" class="woocommerce-Button woocommerce-button button bw-account-login__submit" name="register" value="<?php esc_attr_e( 'Register', 'woocommerce' ); ?>"><?php esc_html_e( 'Register', 'woocommerce' ); ?></button>
+                                        </p>
+                                        <?php if ( $wp_notices_html && 'register' === $wp_default_screen ) : ?>
+                                            <div class="bw-account-login__form-notices">
+                                                <?php echo wp_kses_post( $wp_notices_html ); ?>
+                                            </div>
+                                        <?php endif; ?>
+
+                                        <?php do_action( 'woocommerce_register_form_end' ); ?>
+                                    </form>
+                                </div>
+                            <?php endif; ?>
+
+                            <div class="bw-auth-screen bw-auth-screen--wp-lost-password<?php echo 'lost-password' === $wp_default_screen ? ' is-active is-visible' : ''; ?>" data-bw-wp-screen="lost-password">
+                                <form method="post" class="woocommerce-ResetPassword lost_reset_password bw-account-login__form bw-account-login__form--wordpress">
+                                    <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide bw-account-login__field">
+                                        <label for="user_login_lost"><?php esc_html_e( 'Username or email address', 'woocommerce' ); ?>&nbsp;<span class="required">*</span></label>
+                                        <input type="text" class="woocommerce-Input woocommerce-Input--text input-text" name="user_login" id="user_login_lost" autocomplete="username email" value="<?php echo ( ! empty( $_POST['user_login'] ) ) ? esc_attr( wp_unslash( $_POST['user_login'] ) ) : ''; ?>" />
+                                    </p>
+                                    <?php wp_nonce_field( 'bw_lost_password_action', 'bw_lost_password_nonce' ); ?>
+                                    <p class="woocommerce-form-row form-row bw-account-login__actions">
+                                        <button type="submit" class="woocommerce-button button bw-account-login__submit" name="bw_wp_lost_password_submit" value="1"><?php esc_html_e( 'Reset password', 'woocommerce' ); ?></button>
+                                    </p>
+                                    <?php if ( $wp_notices_html && 'lost-password' === $wp_default_screen ) : ?>
+                                        <div class="bw-account-login__form-notices">
+                                            <?php echo wp_kses_post( $wp_notices_html ); ?>
+                                        </div>
+                                    <?php endif; ?>
+                                </form>
+                                <p class="bw-account-login__back-to-login">
+                                    <button type="button" class="bw-account-login__back-link" data-bw-wp-go="login">← <?php esc_html_e( 'Back to Login', 'bw' ); ?></button>
+                                </p>
                             </div>
-                        <?php endif; ?>
+                        </div>
                     </div>
 
                 <?php else : ?>

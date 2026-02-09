@@ -216,8 +216,10 @@ function bw_site_render_account_page_tab()
         $logo_width = isset($_POST['bw_account_logo_width']) ? absint($_POST['bw_account_logo_width']) : 180;
         $logo_padding_top = isset($_POST['bw_account_logo_padding_top']) ? absint($_POST['bw_account_logo_padding_top']) : 0;
         $logo_padding_bottom = isset($_POST['bw_account_logo_padding_bottom']) ? absint($_POST['bw_account_logo_padding_bottom']) : 30;
-        $login_title = isset($_POST['bw_account_login_title']) ? sanitize_text_field($_POST['bw_account_login_title']) : '';
-        $login_subtitle = isset($_POST['bw_account_login_subtitle']) ? sanitize_textarea_field($_POST['bw_account_login_subtitle']) : '';
+        $login_title_supabase = isset($_POST['bw_account_login_title_supabase']) ? sanitize_text_field($_POST['bw_account_login_title_supabase']) : '';
+        $login_subtitle_supabase = isset($_POST['bw_account_login_subtitle_supabase']) ? sanitize_textarea_field($_POST['bw_account_login_subtitle_supabase']) : '';
+        $login_title_wordpress = isset($_POST['bw_account_login_title_wordpress']) ? sanitize_text_field($_POST['bw_account_login_title_wordpress']) : '';
+        $login_subtitle_wordpress = isset($_POST['bw_account_login_subtitle_wordpress']) ? sanitize_textarea_field($_POST['bw_account_login_subtitle_wordpress']) : '';
         $show_social_buttons = isset($_POST['bw_account_show_social_buttons']) ? 1 : 0;
         $facebook = isset($_POST['bw_account_facebook']) ? 1 : 0;
         $google = isset($_POST['bw_account_google']) ? 1 : 0;
@@ -319,8 +321,13 @@ function bw_site_render_account_page_tab()
         update_option('bw_account_logo_width', $logo_width);
         update_option('bw_account_logo_padding_top', $logo_padding_top);
         update_option('bw_account_logo_padding_bottom', $logo_padding_bottom);
-        update_option('bw_account_login_title', $login_title);
-        update_option('bw_account_login_subtitle', $login_subtitle);
+        update_option('bw_account_login_title_supabase', $login_title_supabase);
+        update_option('bw_account_login_subtitle_supabase', $login_subtitle_supabase);
+        update_option('bw_account_login_title_wordpress', $login_title_wordpress);
+        update_option('bw_account_login_subtitle_wordpress', $login_subtitle_wordpress);
+        // Legacy fallback options used by older code paths.
+        update_option('bw_account_login_title', $login_title_wordpress);
+        update_option('bw_account_login_subtitle', $login_subtitle_wordpress);
         update_option('bw_account_show_social_buttons', $show_social_buttons);
         update_option('bw_account_passwordless_url', $passwordless_url);
 
@@ -393,11 +400,15 @@ function bw_site_render_account_page_tab()
     $logo_width = (int) get_option('bw_account_logo_width', 180);
     $logo_padding_top = (int) get_option('bw_account_logo_padding_top', 0);
     $logo_padding_bottom = (int) get_option('bw_account_logo_padding_bottom', 30);
-    $login_title = get_option('bw_account_login_title', 'Log in to Blackwork');
-    $login_subtitle = get_option(
+    $legacy_login_title = get_option('bw_account_login_title', 'Log in to Blackwork');
+    $legacy_login_subtitle = get_option(
         'bw_account_login_subtitle',
         "If you are new, we will create your account automatically.\nNew or returning, this works the same."
     );
+    $login_title_supabase = get_option('bw_account_login_title_supabase', $legacy_login_title);
+    $login_subtitle_supabase = get_option('bw_account_login_subtitle_supabase', $legacy_login_subtitle);
+    $login_title_wordpress = get_option('bw_account_login_title_wordpress', $legacy_login_title);
+    $login_subtitle_wordpress = get_option('bw_account_login_subtitle_wordpress', $legacy_login_subtitle);
     $show_social_buttons = (int) get_option('bw_account_show_social_buttons', 1);
     $facebook = (int) get_option('bw_account_facebook', 0);
     $google = (int) get_option('bw_account_google', 0);
@@ -548,26 +559,49 @@ function bw_site_render_account_page_tab()
                             <p class="description"><?php esc_html_e('Space below the logo in pixels.', 'bw'); ?></p>
                         </td>
                     </tr>
-                    <tr>
+                    <tr class="bw-login-copy-field" data-bw-login-copy-provider="supabase" <?php echo 'supabase' === $login_provider ? '' : 'style="display:none;"'; ?>>
                         <th scope="row">
-                            <label for="bw_account_login_title"><?php esc_html_e('Login Title', 'bw'); ?></label>
+                            <label for="bw_account_login_title_supabase"><?php esc_html_e('Login Title (Supabase)', 'bw'); ?></label>
                         </th>
                         <td>
-                            <input type="text" id="bw_account_login_title" name="bw_account_login_title"
-                                value="<?php echo esc_attr($login_title); ?>" class="regular-text" />
-                            <p class="description"><?php esc_html_e('Displayed below the logo (bold, ~20px).', 'bw'); ?>
+                            <input type="text" id="bw_account_login_title_supabase" name="bw_account_login_title_supabase"
+                                value="<?php echo esc_attr($login_title_supabase); ?>" class="regular-text" />
+                            <p class="description"><?php esc_html_e('Title shown when Login Provider is Supabase.', 'bw'); ?>
                             </p>
                         </td>
                     </tr>
-                    <tr>
+                    <tr class="bw-login-copy-field" data-bw-login-copy-provider="supabase" <?php echo 'supabase' === $login_provider ? '' : 'style="display:none;"'; ?>>
                         <th scope="row">
-                            <label for="bw_account_login_subtitle"><?php esc_html_e('Login Subtitle', 'bw'); ?></label>
+                            <label for="bw_account_login_subtitle_supabase"><?php esc_html_e('Login Subtitle (Supabase)', 'bw'); ?></label>
                         </th>
                         <td>
-                            <textarea id="bw_account_login_subtitle" name="bw_account_login_subtitle" rows="3"
-                                class="large-text"><?php echo esc_textarea($login_subtitle); ?></textarea>
+                            <textarea id="bw_account_login_subtitle_supabase" name="bw_account_login_subtitle_supabase" rows="3"
+                                class="large-text"><?php echo esc_textarea($login_subtitle_supabase); ?></textarea>
                             <p class="description">
-                                <?php esc_html_e('Displayed below the logo. Use new lines for line breaks.', 'bw'); ?>
+                                <?php esc_html_e('Subtitle shown when Login Provider is Supabase. Use new lines for line breaks.', 'bw'); ?>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr class="bw-login-copy-field" data-bw-login-copy-provider="wordpress" <?php echo 'wordpress' === $login_provider ? '' : 'style="display:none;"'; ?>>
+                        <th scope="row">
+                            <label for="bw_account_login_title_wordpress"><?php esc_html_e('Login Title (WordPress)', 'bw'); ?></label>
+                        </th>
+                        <td>
+                            <input type="text" id="bw_account_login_title_wordpress" name="bw_account_login_title_wordpress"
+                                value="<?php echo esc_attr($login_title_wordpress); ?>" class="regular-text" />
+                            <p class="description"><?php esc_html_e('Title shown when Login Provider is WordPress.', 'bw'); ?>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr class="bw-login-copy-field" data-bw-login-copy-provider="wordpress" <?php echo 'wordpress' === $login_provider ? '' : 'style="display:none;"'; ?>>
+                        <th scope="row">
+                            <label for="bw_account_login_subtitle_wordpress"><?php esc_html_e('Login Subtitle (WordPress)', 'bw'); ?></label>
+                        </th>
+                        <td>
+                            <textarea id="bw_account_login_subtitle_wordpress" name="bw_account_login_subtitle_wordpress" rows="3"
+                                class="large-text"><?php echo esc_textarea($login_subtitle_wordpress); ?></textarea>
+                            <p class="description">
+                                <?php esc_html_e('Subtitle shown when Login Provider is WordPress. Use new lines for line breaks.', 'bw'); ?>
                             </p>
                         </td>
                     </tr>
@@ -1354,6 +1388,7 @@ function bw_site_render_account_page_tab()
 
             var providerRadios = $('input[name="bw_account_login_provider"]');
             var providerSections = $('.bw-login-provider-section');
+            var loginCopyRows = $('.bw-login-copy-field');
             var registrationMode = $('#bw_supabase_registration_mode');
             var registrationRows = $('.bw-supabase-registration-option');
             var registrationNote = $('.bw-supabase-registration-note');
@@ -1392,6 +1427,14 @@ function bw_site_render_account_page_tab()
                     var $section = $(this);
                     var sectionProvider = $section.data('bw-login-provider');
                     $section.toggle(sectionProvider === provider);
+                });
+            };
+
+            var toggleLoginCopyFields = function (provider) {
+                loginCopyRows.each(function () {
+                    var $row = $(this);
+                    var rowProvider = $row.data('bw-login-copy-provider');
+                    $row.toggle(rowProvider === provider);
                 });
             };
 
@@ -1440,6 +1483,7 @@ function bw_site_render_account_page_tab()
         setAccountTab(initialAccountTab);
 
         toggleProviderSections(providerRadios.filter(':checked').val() || 'wordpress');
+        toggleLoginCopyFields(providerRadios.filter(':checked').val() || 'wordpress');
         toggleRegistrationMode(registrationMode.val());
         toggleOidcRows(oidcToggle.is(':checked'));
         toggleOidcWarning(oidcToggle.is(':checked'), loginMode.val());
@@ -1472,7 +1516,9 @@ function bw_site_render_account_page_tab()
         });
 
         providerRadios.on('change', function () {
-            toggleProviderSections($(this).val());
+            var provider = $(this).val();
+            toggleProviderSections(provider);
+            toggleLoginCopyFields(provider);
         });
 
         registrationMode.on('change', function () {

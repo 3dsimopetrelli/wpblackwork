@@ -515,6 +515,17 @@ body.woocommerce-account.bw-account-login-only .bw-account-auth__tab.is-active::
     gap: 10px;
 }
 
+/* WordPress provider: remove WooCommerce form card border/padding for login/register */
+.bw-account-auth--wordpress .woocommerce-form-login,
+.bw-account-auth--wordpress .woocommerce-form-register {
+    border: 0 !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+}
+
 .bw-otp-inputs {
     display: grid;
     grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -575,6 +586,13 @@ body.woocommerce-account.bw-account-login-only .bw-account-auth__tab.is-active::
 
 .bw-account-login__remember input {
     margin-right: 6px;
+}
+
+.bw-account-login__lost-password-wrap {
+    margin: 4px 0 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    box-shadow: none !important;
 }
 
 /* Lost your password button - styled like Login/Register tabs */
@@ -660,6 +678,65 @@ body.woocommerce-account.bw-account-login-only .bw-account-login__register-link:
 
 .bw-account-login__actions {
     margin-top: 6px;
+}
+
+.bw-account-login__form-notices {
+    margin-top: 10px;
+}
+
+.bw-account-login__form-notices .woocommerce-notices-wrapper {
+    margin: 0;
+}
+
+.bw-account-login-page--provider-wordpress .bw-account-login__content > .woocommerce-notices-wrapper {
+    display: none !important;
+}
+
+.bw-account-login__form-notices .woocommerce-error,
+.bw-account-login__form-notices .woocommerce-message,
+.bw-account-login__form-notices .woocommerce-info {
+    margin: 0;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #fecaca;
+    background: #fff1f2;
+    color: #991b1b;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px;
+    list-style: none;
+    border-top: 0 !important;
+    box-shadow: none !important;
+}
+
+.bw-account-login__form-notices .woocommerce-message {
+    border-color: #bbf7d0;
+    background: #f0fdf4;
+    color: #166534;
+}
+
+.bw-account-login__form-notices .woocommerce-info {
+    border-color: #bfdbfe;
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+.bw-account-login__form-notices .woocommerce-error::before,
+.bw-account-login__form-notices .woocommerce-message::before,
+.bw-account-login__form-notices .woocommerce-info::before {
+    float: none !important;
+    position: static !important;
+    margin: 0 !important;
+    line-height: 1 !important;
+    display: inline-flex !important;
+    flex-shrink: 0 !important;
+    transform: none !important;
+}
+
+.bw-account-login__form-notices .woocommerce-error li,
+.bw-account-login__form-notices .woocommerce-message li,
+.bw-account-login__form-notices .woocommerce-info li {
+    margin: 0;
 }
 
 .bw-account-login__submit {

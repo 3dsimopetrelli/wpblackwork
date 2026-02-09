@@ -122,7 +122,7 @@
                 searchValue.indexOf('provider=') !== -1;
         };
 
-        var authWrapper = document.querySelector('.bw-account-auth');
+        var authWrapper = document.querySelector('.bw-account-auth[data-bw-default-tab]');
         if (!authWrapper) {
             return;
         }
@@ -1362,5 +1362,77 @@
         document.addEventListener('DOMContentLoaded', init);
     } else {
         init();
+    }
+})();
+
+(function () {
+    if (window.__bwWpAccountAuthInit) {
+        return;
+    }
+    window.__bwWpAccountAuthInit = true;
+
+    var initWpAuth = function () {
+        var wpAuthWrapper = document.querySelector('.bw-account-auth--wordpress');
+        if (!wpAuthWrapper) {
+            return;
+        }
+
+        var tabs = Array.prototype.slice.call(wpAuthWrapper.querySelectorAll('[data-bw-wp-auth-tab]'));
+        var screens = Array.prototype.slice.call(wpAuthWrapper.querySelectorAll('[data-bw-wp-screen]'));
+        var defaultScreen = wpAuthWrapper.getAttribute('data-bw-wp-default-screen') || 'login';
+        var animationMs = 300;
+
+        var setScreen = function (screenName) {
+            tabs.forEach(function (tab) {
+                var isActiveTab = tab.getAttribute('data-bw-wp-auth-tab') === screenName;
+                tab.classList.toggle('is-active', isActiveTab);
+                tab.setAttribute('aria-selected', isActiveTab ? 'true' : 'false');
+            });
+
+            screens.forEach(function (screen) {
+                var isActive = screen.getAttribute('data-bw-wp-screen') === screenName;
+                screen.setAttribute('aria-hidden', isActive ? 'false' : 'true');
+
+                if (isActive) {
+                    screen.classList.add('is-visible');
+                    requestAnimationFrame(function () {
+                        requestAnimationFrame(function () {
+                            screen.classList.add('is-active');
+                        });
+                    });
+                    return;
+                }
+
+                screen.classList.remove('is-active');
+                setTimeout(function () {
+                    screen.classList.remove('is-visible');
+                }, animationMs);
+            });
+        };
+
+        setScreen(defaultScreen);
+
+        wpAuthWrapper.addEventListener('click', function (event) {
+            var tabTarget = event.target.closest('[data-bw-wp-auth-tab]');
+            if (tabTarget) {
+                event.preventDefault();
+                setScreen(tabTarget.getAttribute('data-bw-wp-auth-tab'));
+                return;
+            }
+
+            var actionTarget = event.target.closest('[data-bw-wp-go]');
+            if (!actionTarget) {
+                return;
+            }
+
+            event.preventDefault();
+            setScreen(actionTarget.getAttribute('data-bw-wp-go'));
+        });
+    };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initWpAuth);
+    } else {
+        initWpAuth();
     }
 })();
