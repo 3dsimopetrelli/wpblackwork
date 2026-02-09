@@ -147,7 +147,7 @@ function bw_site_settings_page()
             </a>
             <a href="?page=blackwork-site-settings&tab=account-page"
                 class="nav-tab <?php echo $active_tab === 'account-page' ? 'nav-tab-active' : ''; ?>">
-                Account Page
+                Login Page
             </a>
             <a href="?page=blackwork-site-settings&tab=my-account-page"
                 class="nav-tab <?php echo $active_tab === 'my-account-page' ? 'nav-tab-active' : ''; ?>">
@@ -168,10 +168,6 @@ function bw_site_settings_page()
             <a href="?page=blackwork-site-settings&tab=loading"
                 class="nav-tab <?php echo $active_tab === 'loading' ? 'nav-tab-active' : ''; ?>">
                 Loading
-            </a>
-            <a href="?page=blackwork-site-settings&tab=google-pay"
-                class="nav-tab <?php echo $active_tab === 'google-pay' ? 'nav-tab-active' : ''; ?>">
-                Google Pay
             </a>
         </nav>
 
@@ -195,8 +191,6 @@ function bw_site_settings_page()
                 bw_site_render_import_product_tab();
             } elseif ($active_tab === 'loading') {
                 bw_site_render_loading_tab();
-            } elseif ($active_tab === 'google-pay') {
-                bw_site_render_google_pay_tab();
             }
             ?>
         </div>
@@ -475,7 +469,7 @@ function bw_site_render_account_page_tab()
                 <?php esc_html_e('Design', 'bw'); ?>
             </a>
             <a href="#technical" class="nav-tab" role="tab" aria-selected="false" data-bw-account-tab="technical">
-                <?php esc_html_e('Technical Settings', 'bw'); ?>
+                <?php esc_html_e('Provider WordPress or Supabase', 'bw'); ?>
             </a>
         </h2>
 
@@ -1605,6 +1599,12 @@ function bw_site_render_checkout_tab()
         $footer_text = isset($_POST['bw_checkout_footer_text']) ? sanitize_text_field(wp_unslash($_POST['bw_checkout_footer_text'])) : '';
         $supabase_provision_enabled = isset($_POST['bw_supabase_checkout_provision_enabled']) ? '1' : '0';
         $supabase_invite_redirect = isset($_POST['bw_supabase_invite_redirect_url']) ? esc_url_raw(wp_unslash($_POST['bw_supabase_invite_redirect_url'])) : '';
+        $google_pay_enabled = isset($_POST['bw_google_pay_enabled']) ? 1 : 0;
+        $google_pay_test_mode = isset($_POST['bw_google_pay_test_mode']) ? 1 : 0;
+        $google_pay_pub_key = isset($_POST['bw_google_pay_publishable_key']) ? sanitize_text_field(wp_unslash($_POST['bw_google_pay_publishable_key'])) : '';
+        $google_pay_sec_key = isset($_POST['bw_google_pay_secret_key']) ? sanitize_text_field(wp_unslash($_POST['bw_google_pay_secret_key'])) : '';
+        $google_pay_test_pub_key = isset($_POST['bw_google_pay_test_publishable_key']) ? sanitize_text_field(wp_unslash($_POST['bw_google_pay_test_publishable_key'])) : '';
+        $google_pay_test_sec_key = isset($_POST['bw_google_pay_test_secret_key']) ? sanitize_text_field(wp_unslash($_POST['bw_google_pay_test_secret_key'])) : '';
 
         // Policy Settings
         $policies = [
@@ -1689,6 +1689,12 @@ function bw_site_render_checkout_tab()
         update_option('bw_checkout_footer_text', $footer_text);
         update_option('bw_supabase_checkout_provision_enabled', $supabase_provision_enabled);
         update_option('bw_supabase_invite_redirect_url', $supabase_invite_redirect);
+        update_option('bw_google_pay_enabled', $google_pay_enabled);
+        update_option('bw_google_pay_test_mode', $google_pay_test_mode);
+        update_option('bw_google_pay_publishable_key', $google_pay_pub_key);
+        update_option('bw_google_pay_secret_key', $google_pay_sec_key);
+        update_option('bw_google_pay_test_publishable_key', $google_pay_test_pub_key);
+        update_option('bw_google_pay_test_secret_key', $google_pay_test_sec_key);
 
         // Save Google Maps settings
         update_option('bw_google_maps_enabled', $google_maps_enabled);
@@ -1788,7 +1794,7 @@ function bw_site_render_checkout_tab()
 
         <?php
         $active_checkout_tab = isset($_GET['checkout_tab']) ? sanitize_key($_GET['checkout_tab']) : 'style';
-        $allowed_checkout_tabs = ['style', 'supabase', 'fields', 'subscribe', 'google-maps', 'footer'];
+        $allowed_checkout_tabs = ['style', 'supabase', 'fields', 'subscribe', 'google-maps', 'google-pay', 'footer'];
         if (!in_array($active_checkout_tab, $allowed_checkout_tabs, true)) {
             $active_checkout_tab = 'style';
         }
@@ -1798,6 +1804,7 @@ function bw_site_render_checkout_tab()
         $fields_tab_url = add_query_arg('checkout_tab', 'fields');
         $subscribe_tab_url = add_query_arg('checkout_tab', 'subscribe');
         $google_maps_tab_url = add_query_arg('checkout_tab', 'google-maps');
+        $google_pay_tab_url = add_query_arg('checkout_tab', 'google-pay');
         $footer_tab_url = add_query_arg('checkout_tab', 'footer');
         ?>
 
@@ -1821,6 +1828,10 @@ function bw_site_render_checkout_tab()
             <a class="nav-tab <?php echo 'google-maps' === $active_checkout_tab ? 'nav-tab-active' : ''; ?>"
                 href="<?php echo esc_url($google_maps_tab_url); ?>">
                 <?php esc_html_e('Google Maps', 'bw'); ?>
+            </a>
+            <a class="nav-tab <?php echo 'google-pay' === $active_checkout_tab ? 'nav-tab-active' : ''; ?>"
+                href="<?php echo esc_url($google_pay_tab_url); ?>">
+                <?php esc_html_e('Google Pay', 'bw'); ?>
             </a>
             <a class="nav-tab <?php echo 'footer' === $active_checkout_tab ? 'nav-tab-active' : ''; ?>"
                 href="<?php echo esc_url($footer_tab_url); ?>">
@@ -2349,6 +2360,102 @@ function bw_site_render_checkout_tab()
                     });
                 });
             </script>
+        </div>
+
+        <div class="bw-tab-panel" data-bw-tab="google-pay" <?php echo 'google-pay' === $active_checkout_tab ? '' : 'style="display:none;"'; ?>>
+            <?php
+            $google_pay_enabled = get_option('bw_google_pay_enabled', 0);
+            $google_pay_test_mode = get_option('bw_google_pay_test_mode', 0);
+            $google_pay_pub_key = get_option('bw_google_pay_publishable_key', '');
+            $google_pay_sec_key = get_option('bw_google_pay_secret_key', '');
+            $google_pay_test_pub_key = get_option('bw_google_pay_test_publishable_key', '');
+            $google_pay_test_sec_key = get_option('bw_google_pay_test_secret_key', '');
+            ?>
+
+            <div class="bw-settings-section">
+                <h2 class="title">Google Pay (Stripe Integration)</h2>
+                <p class="description">Configura Google Pay tramite Stripe per il checkout personalizzato. Nota: Google Pay
+                    richiede HTTPS attivo e dominio verificato su Stripe.</p>
+
+                <table class="form-table" role="presentation">
+                    <tr>
+                        <th scope="row">Abilita Gateway</th>
+                        <td>
+                            <label class="bw-switch">
+                                <input name="bw_google_pay_enabled" type="checkbox" id="bw_google_pay_enabled" value="1" <?php checked(1, $google_pay_enabled); ?> />
+                                <span class="bw-slider round"></span>
+                            </label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Test Mode</th>
+                        <td>
+                            <label class="bw-switch">
+                                <input name="bw_google_pay_test_mode" type="checkbox" id="bw_google_pay_test_mode" value="1"
+                                    <?php checked(1, $google_pay_test_mode); ?> />
+                                <span class="bw-slider round"></span>
+                            </label>
+                        </td>
+                    </tr>
+
+                    <tr class="bw-settings-divider">
+                        <td colspan="2">
+                            <hr>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row">Live Publishable Key</th>
+                        <td>
+                            <input name="bw_google_pay_publishable_key" type="text" id="bw_google_pay_publishable_key"
+                                value="<?php echo esc_attr($google_pay_pub_key); ?>" class="regular-text" placeholder="pk_live_..." />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Live Secret Key</th>
+                        <td>
+                            <input name="bw_google_pay_secret_key" type="password" id="bw_google_pay_secret_key"
+                                value="<?php echo esc_attr($google_pay_sec_key); ?>" class="regular-text" placeholder="sk_live_..." />
+                        </td>
+                    </tr>
+
+                    <tr class="bw-settings-divider">
+                        <td colspan="2">
+                            <hr>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row">Test Publishable Key</th>
+                        <td>
+                            <input name="bw_google_pay_test_publishable_key" type="text" id="bw_google_pay_test_publishable_key"
+                                value="<?php echo esc_attr($google_pay_test_pub_key); ?>" class="regular-text" placeholder="pk_test_..." />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Test Secret Key</th>
+                        <td>
+                            <input name="bw_google_pay_test_secret_key" type="password" id="bw_google_pay_test_secret_key"
+                                value="<?php echo esc_attr($google_pay_test_sec_key); ?>" class="regular-text" placeholder="sk_test_..." />
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <style>
+                .bw-settings-divider hr {
+                    border: 0;
+                    border-top: 1px solid #ddd;
+                    margin: 10px 0;
+                }
+
+                .bw-settings-section {
+                    padding: 20px;
+                    background: #fff;
+                    border: 1px solid #ccd0d4;
+                    box-shadow: 0 1px 1px rgba(0, 0, 0, .04);
+                }
+            </style>
         </div>
 
         <div class="bw-tab-panel" data-bw-tab="footer" <?php echo 'footer' === $active_checkout_tab ? '' : 'style="display:none;"'; ?>>
