@@ -114,12 +114,23 @@ add_action( 'woocommerce_account_set-password_endpoint', 'bw_mew_render_set_pass
 
 /**
  * Enforce onboarding lock until Supabase password is set.
+ *
+ * When provider is Supabase, we use a modal instead of redirecting.
+ * When provider is WordPress, no onboarding lock is enforced.
  */
 function bw_mew_enforce_supabase_onboarding_lock() {
     if ( ! function_exists( 'is_account_page' ) || ! is_account_page() || ! is_user_logged_in() ) {
         return;
     }
 
+    $provider = get_option( 'bw_account_login_provider', 'wordpress' );
+
+    // If provider is WordPress, no onboarding lock
+    if ( 'wordpress' === $provider ) {
+        return;
+    }
+
+    // For Supabase provider: if user is onboarded, redirect away from set-password
     if ( ! bw_user_needs_onboarding( get_current_user_id() ) ) {
         if ( is_wc_endpoint_url( 'set-password' ) ) {
             wp_safe_redirect( wc_get_page_permalink( 'myaccount' ) );
@@ -128,12 +139,13 @@ function bw_mew_enforce_supabase_onboarding_lock() {
         return;
     }
 
+    // For Supabase provider: let modal handle gating (no redirect)
+    // Allow set-password and logout endpoints
     if ( is_wc_endpoint_url( 'set-password' ) || is_wc_endpoint_url( 'customer-logout' ) ) {
         return;
     }
 
-    wp_safe_redirect( wc_get_account_endpoint_url( 'set-password' ) );
-    exit;
+    // Modal will handle the gating via JS - no redirect needed
 }
 add_action( 'template_redirect', 'bw_mew_enforce_supabase_onboarding_lock' );
 
@@ -418,3 +430,146 @@ function bw_mew_get_customer_coupons() {
 
     return $available;
 }
+
+/**
+ * Output password gating modal HTML on My Account pages.
+ *
+ * Only outputs when provider is Supabase and user is logged in.
+ */
+function bw_mew_output_password_gating_modal() {
+    if ( ! function_exists( 'is_account_page' ) || ! is_account_page() ) {
+        return;
+    }
+
+    if ( ! is_user_logged_in() ) {
+        return;
+    }
+
+    $provider = get_option( 'bw_account_login_provider', 'wordpress' );
+    if ( 'supabase' !== $provider ) {
+        return;
+    }
+
+    // Don't show on set-password endpoint (redundant)
+    if ( is_wc_endpoint_url( 'set-password' ) ) {
+        return;
+    }
+    ?>
+    <div id="bw-password-modal" class="bw-password-modal" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="bw-password-modal-title">
+        <div class="bw-password-modal__overlay"></div>
+        <div class="bw-password-modal__container">
+            <div class="bw-password-modal__content">
+                <h2 id="bw-password-modal-title" class="bw-password-modal__title"><?php esc_html_e( 'Set Password', 'bw' ); ?></h2>
+                <p class="bw-password-modal__subtitle"><?php esc_html_e( 'For better security and to complete your account, please choose a password.', 'bw' ); ?></p>
+
+                <form id="bw-password-modal-form" class="bw-password-modal__form" autocomplete="off">
+                    <div class="bw-password-modal__field">
+                        <label for="bw_modal_new_password"><?php esc_html_e( 'New password', 'bw' ); ?></label>
+                        <div class="bw-password-modal__input-wrap">
+                            <input type="password" id="bw_modal_new_password" name="new_password" autocomplete="new-password" required minlength="8" />
+                            <button type="button" class="bw-password-modal__toggle" data-target="bw_modal_new_password" aria-label="<?php esc_attr_e( 'Show password', 'bw' ); ?>">
+                                <svg class="bw-icon-eye" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                                <svg class="bw-icon-eye-off" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;">
+                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bw-password-modal__field">
+                        <label for="bw_modal_confirm_password"><?php esc_html_e( 'Confirm password', 'bw' ); ?></label>
+                        <div class="bw-password-modal__input-wrap">
+                            <input type="password" id="bw_modal_confirm_password" name="confirm_password" autocomplete="new-password" required minlength="8" />
+                            <button type="button" class="bw-password-modal__toggle" data-target="bw_modal_confirm_password" aria-label="<?php esc_attr_e( 'Show password', 'bw' ); ?>">
+                                <svg class="bw-icon-eye" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                                <svg class="bw-icon-eye-off" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;">
+                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <ul class="bw-password-modal__rules">
+                        <li data-rule="length"><?php esc_html_e( 'At least 8 characters', 'bw' ); ?></li>
+                        <li data-rule="upper"><?php esc_html_e( 'At least 1 uppercase letter', 'bw' ); ?></li>
+                        <li data-rule="number"><?php esc_html_e( 'At least 1 number or special character', 'bw' ); ?></li>
+                    </ul>
+
+                    <div class="bw-password-modal__error" role="alert" aria-live="polite" hidden></div>
+
+                    <button type="submit" class="bw-password-modal__submit"><?php esc_html_e( 'Save password', 'bw' ); ?></button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <?php
+}
+add_action( 'wp_footer', 'bw_mew_output_password_gating_modal', 50 );
+
+/**
+ * Enqueue password gating modal assets on My Account pages.
+ */
+function bw_mew_enqueue_password_modal_assets() {
+    if ( ! function_exists( 'is_account_page' ) || ! is_account_page() ) {
+        return;
+    }
+
+    if ( ! is_user_logged_in() ) {
+        return;
+    }
+
+    $provider = get_option( 'bw_account_login_provider', 'wordpress' );
+    if ( 'supabase' !== $provider ) {
+        return;
+    }
+
+    // Don't load on set-password endpoint
+    if ( is_wc_endpoint_url( 'set-password' ) ) {
+        return;
+    }
+
+    $css_file = BW_MEW_PATH . 'assets/css/bw-password-modal.css';
+    $css_ver  = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
+    $js_file  = BW_MEW_PATH . 'assets/js/bw-password-modal.js';
+    $js_ver   = file_exists( $js_file ) ? filemtime( $js_file ) : '1.0.0';
+
+    wp_enqueue_style(
+        'bw-password-modal',
+        BW_MEW_URL . 'assets/css/bw-password-modal.css',
+        [],
+        $css_ver
+    );
+
+    wp_enqueue_script(
+        'bw-password-modal',
+        BW_MEW_URL . 'assets/js/bw-password-modal.js',
+        [],
+        $js_ver,
+        true
+    );
+
+    wp_localize_script(
+        'bw-password-modal',
+        'bwPasswordModal',
+        [
+            'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+            'nonce'   => wp_create_nonce( 'bw-supabase-login' ),
+            'i18n'    => [
+                'saving'           => __( 'Saving...', 'bw' ),
+                'savePassword'     => __( 'Save password', 'bw' ),
+                'passwordMismatch' => __( 'Passwords do not match.', 'bw' ),
+                'passwordTooShort' => __( 'Password must be at least 8 characters.', 'bw' ),
+                'genericError'     => __( 'Unable to save password. Please try again.', 'bw' ),
+            ],
+        ]
+    );
+}
+add_action( 'wp_enqueue_scripts', 'bw_mew_enqueue_password_modal_assets', 30 );
