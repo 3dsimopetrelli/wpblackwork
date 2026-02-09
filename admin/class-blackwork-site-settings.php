@@ -1769,6 +1769,21 @@ function bw_site_render_checkout_tab()
         update_option('bw_checkout_free_order_message', $free_order_message_val);
         update_option('bw_checkout_free_order_button_text', $free_order_button_text_val);
 
+        // Keep Checkout Fields section heading settings in sync with Style tab settings.
+        $checkout_fields_settings = get_option('bw_checkout_fields_settings', ['version' => 1]);
+        if (!is_array($checkout_fields_settings)) {
+            $checkout_fields_settings = ['version' => 1];
+        }
+        if (empty($checkout_fields_settings['version'])) {
+            $checkout_fields_settings['version'] = 1;
+        }
+        $checkout_fields_settings['section_headings'] = [
+            'hide_billing_details' => '1' === $hide_billing_heading_val ? 1 : 0,
+            'hide_additional_info' => '1' === $hide_additional_heading_val ? 1 : 0,
+            'address_heading_text' => '' !== $address_heading_label_val ? $address_heading_label_val : __('Delivery', 'bw'),
+        ];
+        update_option('bw_checkout_fields_settings', $checkout_fields_settings);
+
         // Redirect to the same tab to prevent losing tab state
         wp_safe_redirect(add_query_arg(array(
             'page' => 'blackwork-site-settings',
@@ -1818,10 +1833,14 @@ function bw_site_render_checkout_tab()
     $default_invite_redirect = home_url('/my-account/set-password/');
     $supabase_invite_redirect = $supabase_invite_redirect ? $supabase_invite_redirect : $default_invite_redirect;
 
-    // Section Headings settings
-    $hide_billing_heading = get_option('bw_checkout_hide_billing_heading', '0');
-    $hide_additional_heading = get_option('bw_checkout_hide_additional_heading', '0');
-    $address_heading_label = get_option('bw_checkout_address_heading_label', '');
+    // Section Headings settings (fallback to checkout fields settings to keep a single source of truth).
+    $checkout_fields_settings = get_option('bw_checkout_fields_settings', []);
+    $checkout_section_headings = (is_array($checkout_fields_settings) && isset($checkout_fields_settings['section_headings']) && is_array($checkout_fields_settings['section_headings']))
+        ? $checkout_fields_settings['section_headings']
+        : [];
+    $hide_billing_heading = get_option('bw_checkout_hide_billing_heading', !empty($checkout_section_headings['hide_billing_details']) ? '1' : '0');
+    $hide_additional_heading = get_option('bw_checkout_hide_additional_heading', !empty($checkout_section_headings['hide_additional_info']) ? '1' : '0');
+    $address_heading_label = get_option('bw_checkout_address_heading_label', isset($checkout_section_headings['address_heading_text']) ? sanitize_text_field($checkout_section_headings['address_heading_text']) : '');
     $free_order_message = get_option('bw_checkout_free_order_message', '');
     $free_order_button_text = get_option('bw_checkout_free_order_button_text', '');
 
