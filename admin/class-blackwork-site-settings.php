@@ -322,52 +322,60 @@ function bw_site_render_account_page_tab()
         update_option('bw_account_login_title', $login_title);
         update_option('bw_account_login_subtitle', $login_subtitle);
         update_option('bw_account_show_social_buttons', $show_social_buttons);
-        update_option('bw_account_facebook', $facebook);
-        update_option('bw_account_google', $google);
-        update_option('bw_account_facebook_app_id', $facebook_app_id);
-        update_option('bw_account_facebook_app_secret', $facebook_app_secret);
-        update_option('bw_account_google_client_id', $google_client_id);
-        update_option('bw_account_google_client_secret', $google_client_secret);
         update_option('bw_account_passwordless_url', $passwordless_url);
-        update_option('bw_supabase_project_url', $supabase_project_url);
-        update_option('bw_supabase_anon_key', $supabase_anon_key);
-        update_option('bw_supabase_service_role_key', $supabase_service_key);
-        update_option('bw_supabase_auth_mode', $supabase_auth_mode);
-        update_option('bw_supabase_login_mode', $supabase_login_mode);
-        update_option('bw_supabase_jwt_cookie_name', $supabase_cookie_name);
-        update_option('bw_supabase_session_storage', $supabase_storage);
-        update_option('bw_supabase_enable_wp_user_linking', $supabase_link_users);
-        update_option('bw_supabase_debug_log', $supabase_debug_log);
-        update_option('bw_supabase_with_plugins', $supabase_with_plugins);
-        update_option('bw_supabase_registration_mode', $supabase_registration);
-        update_option('bw_supabase_provider_signup_url', $supabase_signup_url);
-        update_option('bw_supabase_provider_reset_url', $supabase_reset_url);
-        update_option('bw_supabase_email_confirm_redirect_url', $supabase_confirm_url);
-        update_option('bw_supabase_magic_link_enabled', $supabase_magic_link_enabled);
-        update_option('bw_supabase_otp_allow_signup', $supabase_otp_allow_signup);
-        update_option('bw_supabase_oauth_google_enabled', $supabase_oauth_google_enabled);
-        update_option('bw_supabase_oauth_facebook_enabled', $supabase_oauth_facebook_enabled);
-        update_option('bw_supabase_oauth_apple_enabled', $supabase_oauth_apple_enabled);
-        update_option('bw_supabase_google_client_id', $supabase_google_client_id);
-        update_option('bw_supabase_google_client_secret', $supabase_google_client_secret);
-        update_option('bw_supabase_google_redirect_url', $supabase_google_redirect_url);
-        update_option('bw_supabase_google_scopes', $supabase_google_scopes);
-        update_option('bw_supabase_google_prompt', $supabase_google_prompt);
-        update_option('bw_supabase_facebook_app_id', $supabase_facebook_app_id);
-        update_option('bw_supabase_facebook_app_secret', $supabase_facebook_app_secret);
-        update_option('bw_supabase_facebook_redirect_url', $supabase_facebook_redirect_url);
-        update_option('bw_supabase_facebook_scopes', $supabase_facebook_scopes);
-        update_option('bw_supabase_apple_client_id', $supabase_apple_client_id);
-        update_option('bw_supabase_apple_team_id', $supabase_apple_team_id);
-        update_option('bw_supabase_apple_key_id', $supabase_apple_key_id);
-        update_option('bw_supabase_apple_private_key', $supabase_apple_private_key);
-        update_option('bw_supabase_apple_redirect_url', $supabase_apple_redirect_url);
-        update_option('bw_supabase_login_password_enabled', $supabase_password_enabled);
-        update_option('bw_supabase_magic_link_redirect_url', $supabase_magic_link_redirect);
-        update_option('bw_supabase_oauth_redirect_url', $supabase_oauth_redirect);
-        update_option('bw_supabase_signup_redirect_url', $supabase_signup_redirect);
-        update_option('bw_supabase_auto_login_after_confirm', $supabase_auto_login);
-        update_option('bw_supabase_create_wp_users', $supabase_create_users);
+
+        // WordPress provider options - only save if WordPress is selected (preserve Supabase settings when switching)
+        if ('wordpress' === $login_provider) {
+            update_option('bw_account_facebook', $facebook);
+            update_option('bw_account_google', $google);
+            update_option('bw_account_facebook_app_id', $facebook_app_id);
+            update_option('bw_account_facebook_app_secret', $facebook_app_secret);
+            update_option('bw_account_google_client_id', $google_client_id);
+            update_option('bw_account_google_client_secret', $google_client_secret);
+        }
+
+        // Supabase provider options - only save if Supabase is selected (preserve WordPress settings when switching)
+        if ('supabase' === $login_provider) {
+            update_option('bw_supabase_project_url', $supabase_project_url);
+            update_option('bw_supabase_anon_key', $supabase_anon_key);
+            update_option('bw_supabase_service_role_key', $supabase_service_key);
+            update_option('bw_supabase_auth_mode', $supabase_auth_mode);
+            update_option('bw_supabase_login_mode', $supabase_login_mode);
+            update_option('bw_supabase_jwt_cookie_name', $supabase_cookie_name);
+            update_option('bw_supabase_session_storage', $supabase_storage);
+            update_option('bw_supabase_enable_wp_user_linking', $supabase_link_users);
+            update_option('bw_supabase_debug_log', $supabase_debug_log);
+            update_option('bw_supabase_with_plugins', $supabase_with_plugins);
+            update_option('bw_supabase_registration_mode', $supabase_registration);
+            update_option('bw_supabase_provider_signup_url', $supabase_signup_url);
+            update_option('bw_supabase_provider_reset_url', $supabase_reset_url);
+            update_option('bw_supabase_email_confirm_redirect_url', $supabase_confirm_url);
+            update_option('bw_supabase_magic_link_enabled', $supabase_magic_link_enabled);
+            update_option('bw_supabase_otp_allow_signup', $supabase_otp_allow_signup);
+            update_option('bw_supabase_oauth_google_enabled', $supabase_oauth_google_enabled);
+            update_option('bw_supabase_oauth_facebook_enabled', $supabase_oauth_facebook_enabled);
+            update_option('bw_supabase_oauth_apple_enabled', $supabase_oauth_apple_enabled);
+            update_option('bw_supabase_google_client_id', $supabase_google_client_id);
+            update_option('bw_supabase_google_client_secret', $supabase_google_client_secret);
+            update_option('bw_supabase_google_redirect_url', $supabase_google_redirect_url);
+            update_option('bw_supabase_google_scopes', $supabase_google_scopes);
+            update_option('bw_supabase_google_prompt', $supabase_google_prompt);
+            update_option('bw_supabase_facebook_app_id', $supabase_facebook_app_id);
+            update_option('bw_supabase_facebook_app_secret', $supabase_facebook_app_secret);
+            update_option('bw_supabase_facebook_redirect_url', $supabase_facebook_redirect_url);
+            update_option('bw_supabase_facebook_scopes', $supabase_facebook_scopes);
+            update_option('bw_supabase_apple_client_id', $supabase_apple_client_id);
+            update_option('bw_supabase_apple_team_id', $supabase_apple_team_id);
+            update_option('bw_supabase_apple_key_id', $supabase_apple_key_id);
+            update_option('bw_supabase_apple_private_key', $supabase_apple_private_key);
+            update_option('bw_supabase_apple_redirect_url', $supabase_apple_redirect_url);
+            update_option('bw_supabase_login_password_enabled', $supabase_password_enabled);
+            update_option('bw_supabase_magic_link_redirect_url', $supabase_magic_link_redirect);
+            update_option('bw_supabase_oauth_redirect_url', $supabase_oauth_redirect);
+            update_option('bw_supabase_signup_redirect_url', $supabase_signup_redirect);
+            update_option('bw_supabase_auto_login_after_confirm', $supabase_auto_login);
+            update_option('bw_supabase_create_wp_users', $supabase_create_users);
+        }
 
         // Clear social login settings cache.
         if (class_exists('BW_Social_Login')) {
@@ -2166,6 +2174,30 @@ function bw_site_render_checkout_tab()
         </div>
 
         <div class="bw-tab-panel" data-bw-tab="supabase" <?php echo 'supabase' === $active_checkout_tab ? '' : 'style="display:none;"'; ?>>
+            <?php
+            // Check if Supabase keys are configured
+            $supabase_project_url_check = get_option('bw_supabase_project_url', '');
+            $supabase_configured = !empty($supabase_service_key) && !empty($supabase_project_url_check);
+            ?>
+            <div class="notice notice-info inline" style="margin: 15px 0;">
+                <p>
+                    <strong><?php esc_html_e('Supabase API Keys:', 'bw'); ?></strong>
+                    <?php if ($supabase_configured): ?>
+                        <span style="color: #00a32a;">&#10003; <?php esc_html_e('Configured', 'bw'); ?></span>
+                    <?php else: ?>
+                        <span style="color: #d63638;">&#10007; <?php esc_html_e('Not configured', 'bw'); ?></span>
+                    <?php endif; ?>
+                    &mdash;
+                    <?php
+                    printf(
+                        /* translators: %s: link to Account Page settings */
+                        esc_html__('Supabase Project URL, Anon Key, and Service Role Key are configured in %s.', 'bw'),
+                        '<a href="' . esc_url(admin_url('admin.php?page=blackwork-site-settings&tab=account')) . '">' . esc_html__('Account Page > Technical Settings', 'bw') . '</a>'
+                    );
+                    ?>
+                </p>
+            </div>
+
             <table class="form-table" role="presentation">
                 <tr>
                     <th scope="row">
