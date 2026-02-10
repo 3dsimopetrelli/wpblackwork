@@ -85,9 +85,52 @@
         });
     };
 
+    const initSettingsSelectFloatingLabels = (scope = document) => {
+        const root = scope && scope.querySelectorAll ? scope : document;
+        const settingsContainers = root.querySelectorAll('.bw-settings');
+
+        if (!settingsContainers.length) {
+            return;
+        }
+
+        settingsContainers.forEach((settingsContainer) => {
+            const selects = settingsContainer.querySelectorAll('select[id]');
+
+            selects.forEach((select) => {
+                const fieldRow = select.closest('.form-row, .bw-field');
+                if (!fieldRow) {
+                    return;
+                }
+
+                const label = fieldRow.querySelector('label[for="' + select.id.replace(/"/g, '\\"') + '"]');
+                if (!label) {
+                    return;
+                }
+
+                fieldRow.classList.add('bw-select-floating-row');
+                label.classList.add('bw-select-floating-label');
+
+                const updateHasValue = () => {
+                    const value = (select.value || '').toString().trim();
+                    fieldRow.classList.toggle('has-value', value !== '');
+                };
+
+                if (select.dataset.bwSelectFloatingInitialized !== '1') {
+                    select.addEventListener('change', updateHasValue);
+                    select.addEventListener('blur', updateHasValue);
+                    select.dataset.bwSelectFloatingInitialized = '1';
+                }
+
+                updateHasValue();
+            });
+        });
+    };
+
     const scheduleSettingsFloatingLabels = () => {
         window.requestAnimationFrame(() => initSettingsFloatingLabels(document));
+        window.requestAnimationFrame(() => initSettingsSelectFloatingLabels(document));
         window.setTimeout(() => initSettingsFloatingLabels(document), 180);
+        window.setTimeout(() => initSettingsSelectFloatingLabels(document), 180);
     };
 
     const tabs = document.querySelectorAll('.bw-tab');

@@ -711,6 +711,31 @@ body.woocommerce-account .bw-settings .bw-field select:focus {
     box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.08);
 }
 
+body.woocommerce-account .bw-settings .bw-select-floating-row {
+    position: relative;
+    padding-top: 12px;
+}
+
+body.woocommerce-account .bw-settings .bw-select-floating-row > label.bw-select-floating-label {
+    position: absolute;
+    left: 16px;
+    top: 12px;
+    transform: translateY(-50%);
+    z-index: 2;
+    margin: 0;
+    padding: 0 6px;
+    font-size: 12px;
+    line-height: 1.2;
+    color: #111827;
+    background: #f7f7f7;
+    pointer-events: none;
+}
+
+body.woocommerce-account .bw-settings .bw-select-floating-row .select2-container,
+body.woocommerce-account .bw-settings .bw-select-floating-row select {
+    margin-top: 0 !important;
+}
+
 body.woocommerce-account .bw-settings .bw-field .select2-container {
     width: 100% !important;
 }
