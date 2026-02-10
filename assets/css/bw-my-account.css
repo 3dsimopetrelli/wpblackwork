@@ -164,7 +164,32 @@ body.woocommerce-account .bw-account-orders-card .woocommerce-orders-table tr:la
 }
 
 body.woocommerce-account .bw-account-orders-card .woocommerce-orders-table .button {
-    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 8px 6px 0;
+    padding: 10px 18px;
+    border-radius: 12px;
+    border: 1px solid #111;
+    background: #111;
+    color: #fff !important;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1;
+    text-decoration: none !important;
+    transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+
+body.woocommerce-account .bw-account-orders-card .woocommerce-orders-table .button:last-child {
+    margin-right: 0;
+}
+
+body.woocommerce-account .bw-account-orders-card .woocommerce-orders-table .button:hover,
+body.woocommerce-account .bw-account-orders-card .woocommerce-orders-table .button:focus {
+    background: #111;
+    border-color: #111;
+    color: #80fd03 !important;
+    text-decoration: none !important;
 }
 
 body.woocommerce-account .bw-account-orders-card .woocommerce-MyAccount-pagination {
