@@ -241,6 +241,27 @@
     text-align: left !important;
 }
 
+/* Empty cart page: reuse popup visual components in page context */
+.woocommerce-cart .bw-cart-page-empty {
+    min-height: 56vh;
+    width: 100%;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 48px 20px;
+}
+
+.woocommerce-cart .bw-cart-page-empty .bw-cart-empty-icon {
+    margin-bottom: 20px;
+}
+
+.woocommerce-cart .bw-cart-page-empty .bw-cart-popup-return-shop {
+    margin-top: 4px;
+}
+
 /* Aggressive Specificity Overrides for Cart Totals */
 .woocommerce-cart.woocommerce-page #content .woocommerce .bw-cart-container .bw-cart-grid .bw-cart-totals-column .cart-collaterals .cart_totals h2 {
     display: none !important;
