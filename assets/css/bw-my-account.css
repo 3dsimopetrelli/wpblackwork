@@ -812,6 +812,61 @@ body.woocommerce-account .bw-settings .bw-settings-block > .form-row {
     background: #f7f7f7;
 }
 
+body.woocommerce-account .bw-settings #bw_shipping_same_as_billing {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    border: 2px solid #111;
+    border-radius: 6px;
+    margin: 0;
+    cursor: pointer;
+    position: relative;
+    background: #fff;
+    vertical-align: middle;
+    transition: background-color 160ms ease, border-color 160ms ease;
+}
+
+body.woocommerce-account .bw-settings #bw_shipping_same_as_billing:checked {
+    background: #111;
+    border-color: #111;
+}
+
+body.woocommerce-account .bw-settings #bw_shipping_same_as_billing:checked::after {
+    content: "";
+    position: absolute;
+    top: 1px;
+    left: 5px;
+    width: 5px;
+    height: 10px;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+body.woocommerce-account .bw-settings #bw_shipping_same_as_billing:focus-visible {
+    outline: 2px solid #111;
+    outline-offset: 2px;
+}
+
+body.woocommerce-account .bw-settings label[for="bw_shipping_same_as_billing"] {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.4;
+    color: #111;
+    margin: 0;
+    cursor: pointer;
+}
+
+body.woocommerce-account .bw-settings #bw-tab-shipping .form-row.form-row-wide {
+    margin: 0 0 20px !important;
+}
+
 .bw-password-rules__title {
     margin: 0 0 6px;
     font-weight: 600;
