@@ -1,0 +1,486 @@
+/**
+ * Order Confirmation (Thank You) page styles
+ * Matches the BlackWork checkout design system
+ * Loaded only on the WooCommerce order-received endpoint
+ */
+
+/* ============================================
+   CSS VARIABLES
+   ============================================ */
+body.woocommerce-order-received {
+    --bw-oc-text: #111111;
+    --bw-oc-text-muted: #4a4a4a;
+    --bw-oc-text-link: #222222;
+    --bw-oc-bg: #ffffff;
+    --bw-oc-bg-alt: #f7f7f7;
+    --bw-oc-border: #e0e0e0;
+    --bw-oc-border-strong: #000000;
+    --bw-oc-success: #27ae60;
+    --bw-oc-accent: #7e3cfd;
+    --bw-oc-btn-bg: #000000;
+    --bw-oc-btn-text: #ffffff;
+    --bw-oc-btn-hover: #333333;
+}
+
+/* ============================================
+   BASE RESET & CONTAINER
+   ============================================ */
+body.woocommerce-order-received {
+    background: var(--bw-oc-bg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+body.woocommerce-order-received .woocommerce {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    font-size: 14px;
+    color: var(--bw-oc-text);
+    line-height: 1.5;
+}
+
+body.woocommerce-order-received .woocommerce *,
+body.woocommerce-order-received .woocommerce *::before,
+body.woocommerce-order-received .woocommerce *::after {
+    box-sizing: border-box;
+}
+
+/* Reset Elementor container spacing on this page */
+body.woocommerce-order-received .elementor-section,
+body.woocommerce-order-received .elementor-element,
+body.woocommerce-order-received .elementor-element-populated,
+body.woocommerce-order-received .elementor-widget-wrap,
+body.woocommerce-order-received .elementor-container,
+body.woocommerce-order-received .elementor-column,
+body.woocommerce-order-received .elementor-widget {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* ============================================
+   THANK YOU MESSAGE
+   ============================================ */
+body.woocommerce-order-received .woocommerce-thankyou-order-received {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--bw-oc-text);
+    text-align: center;
+    padding: 24px 0 20px;
+    margin: 0 0 24px;
+    border-bottom: 1px solid var(--bw-oc-border);
+}
+
+/* ============================================
+   ORDER META ROW (order number, date, total, payment)
+   ============================================ */
+body.woocommerce-order-received .woocommerce-order-overview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+    list-style: none;
+    padding: 0;
+    margin: 0 0 32px;
+    border: 1px solid var(--bw-oc-border);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--bw-oc-bg);
+}
+
+body.woocommerce-order-received .woocommerce-order-overview li {
+    flex: 1 1 0;
+    padding: 16px 20px;
+    border-right: 1px solid var(--bw-oc-border);
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--bw-oc-text-muted);
+    margin: 0;
+}
+
+body.woocommerce-order-received .woocommerce-order-overview li:last-child {
+    border-right: none;
+}
+
+body.woocommerce-order-received .woocommerce-order-overview li strong {
+    display: block;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--bw-oc-text);
+    margin-top: 6px;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+/* ============================================
+   SECTION HEADINGS
+   ============================================ */
+body.woocommerce-order-received .woocommerce-order-details h2,
+body.woocommerce-order-received .woocommerce-order-downloads h2,
+body.woocommerce-order-received .woocommerce-customer-details h2,
+body.woocommerce-order-received .woocommerce-order-details__title,
+body.woocommerce-order-received .woocommerce h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--bw-oc-text);
+    margin: 0 0 16px;
+    padding: 0 0 12px;
+    border-bottom: 1px solid var(--bw-oc-border);
+    line-height: 1.3;
+}
+
+/* ============================================
+   TABLES — Order Details + Downloads
+   ============================================ */
+body.woocommerce-order-received table.woocommerce-table,
+body.woocommerce-order-received table.shop_table {
+    width: 100%;
+    border-collapse: collapse;
+    border: none;
+    font-size: 14px;
+    margin: 0 0 32px;
+    background: transparent;
+}
+
+/* Table header */
+body.woocommerce-order-received table.woocommerce-table thead th,
+body.woocommerce-order-received table.shop_table thead th {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--bw-oc-text-muted);
+    border-top: none;
+    border-bottom: 1px solid var(--bw-oc-border);
+    padding: 12px 0;
+    text-align: left;
+    background: transparent;
+}
+
+body.woocommerce-order-received table.woocommerce-table thead th:last-child,
+body.woocommerce-order-received table.shop_table thead th:last-child {
+    text-align: right;
+}
+
+/* Table body cells */
+body.woocommerce-order-received table.woocommerce-table tbody td,
+body.woocommerce-order-received table.shop_table tbody td {
+    padding: 14px 0;
+    border-top: none;
+    border-bottom: 1px solid var(--bw-oc-border);
+    vertical-align: middle;
+    color: var(--bw-oc-text);
+    background: transparent;
+}
+
+body.woocommerce-order-received table.woocommerce-table tbody td:last-child,
+body.woocommerce-order-received table.shop_table tbody td:last-child {
+    text-align: right;
+    font-weight: 600;
+}
+
+/* Table rows - remove default bg stripes */
+body.woocommerce-order-received table.woocommerce-table tbody tr,
+body.woocommerce-order-received table.shop_table tbody tr {
+    background: transparent !important;
+}
+
+body.woocommerce-order-received table.woocommerce-table tbody tr:nth-child(even),
+body.woocommerce-order-received table.shop_table tbody tr:nth-child(even) {
+    background: transparent !important;
+}
+
+/* Table footer (subtotal, discount, total) */
+body.woocommerce-order-received table.woocommerce-table tfoot th,
+body.woocommerce-order-received table.shop_table tfoot th {
+    padding: 12px 0;
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--bw-oc-text);
+    text-align: left;
+    background: transparent;
+}
+
+body.woocommerce-order-received table.woocommerce-table tfoot td,
+body.woocommerce-order-received table.shop_table tfoot td {
+    padding: 12px 0;
+    border: none;
+    font-size: 14px;
+    text-align: right;
+    color: var(--bw-oc-text);
+    background: transparent;
+}
+
+body.woocommerce-order-received table.woocommerce-table tfoot tr,
+body.woocommerce-order-received table.shop_table tfoot tr {
+    background: transparent !important;
+}
+
+/* Subtotal row - top border separator */
+body.woocommerce-order-received table.woocommerce-table tfoot tr:first-child th,
+body.woocommerce-order-received table.woocommerce-table tfoot tr:first-child td,
+body.woocommerce-order-received table.shop_table tfoot tr:first-child th,
+body.woocommerce-order-received table.shop_table tfoot tr:first-child td {
+    padding-top: 16px;
+}
+
+/* Grand total row - bold separator */
+body.woocommerce-order-received table.woocommerce-table tfoot tr:last-child th,
+body.woocommerce-order-received table.woocommerce-table tfoot tr:last-child td,
+body.woocommerce-order-received table.shop_table tfoot tr:last-child th,
+body.woocommerce-order-received table.shop_table tfoot tr:last-child td {
+    border-top: 3px solid var(--bw-oc-border-strong);
+    padding-top: 16px;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--bw-oc-border-strong);
+}
+
+/* Discount rows */
+body.woocommerce-order-received table.woocommerce-table tfoot .discount td,
+body.woocommerce-order-received table.shop_table tfoot .discount td,
+body.woocommerce-order-received table.woocommerce-table tfoot .cart-discount td,
+body.woocommerce-order-received table.shop_table tfoot .cart-discount td {
+    color: var(--bw-oc-success);
+}
+
+/* ============================================
+   DOWNLOADS TABLE
+   ============================================ */
+body.woocommerce-order-received .woocommerce-order-downloads {
+    margin-bottom: 32px;
+}
+
+/* Download button */
+body.woocommerce-order-received .woocommerce-table--order-downloads td.download-file a,
+body.woocommerce-order-received table.woocommerce-table td.download-file a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: var(--bw-oc-accent);
+    color: #ffffff;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: opacity 0.2s ease;
+    white-space: nowrap;
+}
+
+body.woocommerce-order-received .woocommerce-table--order-downloads td.download-file a:hover,
+body.woocommerce-order-received table.woocommerce-table td.download-file a:hover {
+    opacity: 0.85;
+}
+
+/* ============================================
+   PRODUCT LINKS
+   ============================================ */
+body.woocommerce-order-received .woocommerce a {
+    color: var(--bw-oc-text-link);
+    text-decoration: none;
+}
+
+body.woocommerce-order-received .woocommerce a:hover {
+    text-decoration: underline;
+    color: var(--bw-oc-text);
+}
+
+/* Product name in order table */
+body.woocommerce-order-received table.woocommerce-table .product-name a {
+    font-weight: 500;
+}
+
+/* ============================================
+   ORDER DETAILS SECTION
+   ============================================ */
+body.woocommerce-order-received .woocommerce-order-details {
+    margin-bottom: 32px;
+}
+
+/* ============================================
+   CUSTOMER DETAILS (Billing / Shipping)
+   ============================================ */
+body.woocommerce-order-received .woocommerce-customer-details {
+    margin-bottom: 32px;
+}
+
+body.woocommerce-order-received .woocommerce-customer-details .woocommerce-columns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 32px;
+}
+
+body.woocommerce-order-received .woocommerce-customer-details .woocommerce-column {
+    flex: 1 1 calc(50% - 16px);
+    min-width: 200px;
+}
+
+body.woocommerce-order-received .woocommerce-customer-details .woocommerce-column h2 {
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--bw-oc-text-muted);
+    border-bottom: none;
+    padding-bottom: 8px;
+    margin-bottom: 8px;
+}
+
+body.woocommerce-order-received .woocommerce-customer-details address {
+    font-style: normal;
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--bw-oc-text);
+    padding: 0;
+    margin: 0;
+    border: none;
+    background: transparent;
+}
+
+body.woocommerce-order-received .woocommerce-customer-details address p {
+    margin: 0;
+}
+
+/* ============================================
+   ORDER AGAIN BUTTON
+   ============================================ */
+body.woocommerce-order-received .order-again {
+    margin-top: 8px;
+    padding-top: 24px;
+    border-top: 1px solid var(--bw-oc-border);
+}
+
+body.woocommerce-order-received .order-again .button,
+body.woocommerce-order-received .order-again a.button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 28px;
+    background: var(--bw-oc-btn-bg) !important;
+    color: var(--bw-oc-btn-text) !important;
+    border: none !important;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    text-decoration: none;
+    line-height: 1.4;
+}
+
+body.woocommerce-order-received .order-again .button:hover,
+body.woocommerce-order-received .order-again a.button:hover {
+    background: var(--bw-oc-btn-hover) !important;
+    color: var(--bw-oc-btn-text) !important;
+    text-decoration: none;
+}
+
+/* ============================================
+   WOOCOMMERCE NOTICES ON ORDER PAGE
+   ============================================ */
+body.woocommerce-order-received .woocommerce-message,
+body.woocommerce-order-received .woocommerce-info {
+    padding: 12px 16px;
+    margin: 0 0 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    border: 1px solid var(--bw-oc-border);
+    background: var(--bw-oc-bg-alt);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+body.woocommerce-order-received .woocommerce-error {
+    padding: 12px 16px;
+    margin: 0 0 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    border: 1px solid #fecaca;
+    background: #fef2f2;
+    color: #991b1b;
+}
+
+/* ============================================
+   RESPONSIVE — MOBILE
+   ============================================ */
+@media (max-width: 768px) {
+    body.woocommerce-order-received .woocommerce {
+        padding: 24px 16px;
+    }
+
+    /* Stack order meta vertically */
+    body.woocommerce-order-received .woocommerce-order-overview {
+        flex-direction: column;
+        border-radius: 12px;
+    }
+
+    body.woocommerce-order-received .woocommerce-order-overview li {
+        border-right: none;
+        border-bottom: 1px solid var(--bw-oc-border);
+        padding: 14px 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        text-align: left;
+    }
+
+    body.woocommerce-order-received .woocommerce-order-overview li:last-child {
+        border-bottom: none;
+    }
+
+    body.woocommerce-order-received .woocommerce-order-overview li strong {
+        display: inline;
+        margin-top: 0;
+    }
+
+    /* Customer details stack */
+    body.woocommerce-order-received .woocommerce-customer-details .woocommerce-columns {
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    body.woocommerce-order-received .woocommerce-customer-details .woocommerce-column {
+        flex: 1 1 100%;
+    }
+
+    /* Table responsive tweaks */
+    body.woocommerce-order-received table.woocommerce-table thead th,
+    body.woocommerce-order-received table.shop_table thead th {
+        padding: 10px 0;
+        font-size: 11px;
+    }
+
+    body.woocommerce-order-received table.woocommerce-table tbody td,
+    body.woocommerce-order-received table.shop_table tbody td {
+        padding: 12px 0;
+        font-size: 13px;
+    }
+
+    /* Full width button on mobile */
+    body.woocommerce-order-received .order-again .button,
+    body.woocommerce-order-received .order-again a.button {
+        width: 100%;
+    }
+}
+
+/* ============================================
+   SMALL MOBILE
+   ============================================ */
+@media (max-width: 480px) {
+    body.woocommerce-order-received .woocommerce {
+        padding: 20px 14px;
+    }
+
+    body.woocommerce-order-received .woocommerce-order-overview li {
+        padding: 12px 14px;
+        font-size: 10px;
+    }
+
+    body.woocommerce-order-received .woocommerce-order-overview li strong {
+        font-size: 14px;
+    }
+}
