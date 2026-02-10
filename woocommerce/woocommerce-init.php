@@ -40,6 +40,7 @@ function bw_mew_initialize_woocommerce_overrides()
     add_action('wp_enqueue_scripts', 'bw_mew_enqueue_related_products_assets', 30);
     add_action('wp_enqueue_scripts', 'bw_mew_enqueue_account_page_assets', 20);
     add_action('wp_enqueue_scripts', 'bw_mew_enqueue_checkout_assets', 20);
+    add_action('wp_enqueue_scripts', 'bw_mew_enqueue_order_confirmation_assets', 20);
     add_filter('woocommerce_locate_core_template', 'bw_mew_locate_template', 1, 3);
     add_action('template_redirect', 'bw_mew_prepare_account_page_layout', 9);
     add_action('template_redirect', 'bw_mew_prepare_checkout_layout', 9);
@@ -457,6 +458,26 @@ function bw_mew_enqueue_checkout_assets()
             ]);
         }
     }
+}
+
+/**
+ * Enqueue assets for the order confirmation (thank you) page.
+ */
+function bw_mew_enqueue_order_confirmation_assets()
+{
+    if (!function_exists('is_wc_endpoint_url') || !is_wc_endpoint_url('order-received')) {
+        return;
+    }
+
+    $css_file = BW_MEW_PATH . 'assets/css/bw-order-confirmation.css';
+    $version = file_exists($css_file) ? filemtime($css_file) : '1.0.0';
+
+    wp_enqueue_style(
+        'bw-order-confirmation',
+        BW_MEW_URL . 'assets/css/bw-order-confirmation.css',
+        [],
+        $version
+    );
 }
 
 /**
