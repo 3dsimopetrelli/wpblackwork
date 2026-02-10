@@ -728,7 +728,9 @@ body.woocommerce-account .bw-settings .bw-field-wrapper .select2-container .sele
 }
 
 body.woocommerce-account .bw-settings .bw-field-wrapper .select2-container .select2-selection__rendered {
+    display: block !important;
     line-height: 1.2 !important;
+    margin: 0 !important;
     padding: 0 !important;
     color: #0f172a !important;
 }
@@ -742,6 +744,27 @@ body.woocommerce-account .bw-settings .bw-field-wrapper .select2-container--focu
 body.woocommerce-account .bw-settings .bw-field-wrapper .select2-container--open .select2-selection--single {
     border-color: #000 !important;
     box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.08) !important;
+}
+
+body.woocommerce-account .bw-settings .bw-field-wrapper--select .bw-floating-label {
+    top: 0;
+    transform: translateY(-50%);
+    font-size: 12px;
+    color: #111827;
+}
+
+body.woocommerce-account .bw-settings .bw-field.bw-has-select2-floating select,
+body.woocommerce-account .bw-settings .form-row.bw-has-select2-floating select {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    border: 0 !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
 }
 
 body.woocommerce-account .bw-settings .button,

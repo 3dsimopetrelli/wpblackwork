@@ -64,6 +64,9 @@
 
                 const wrapper = document.createElement('div');
                 wrapper.className = 'bw-field-wrapper bw-field-wrapper--settings';
+                if ('SELECT' === input.tagName) {
+                    wrapper.classList.add('bw-field-wrapper--select');
+                }
                 elementToWrap.parentNode.insertBefore(wrapper, elementToWrap);
                 wrapper.appendChild(elementToWrap);
 
@@ -75,6 +78,9 @@
 
                 originalLabel.classList.add('bw-original-label-hidden');
                 fieldRow.classList.add('bw-has-floating-label');
+                if ('SELECT' === input.tagName) {
+                    fieldRow.classList.add('bw-has-select2-floating');
+                }
 
                 const updateHasValue = () => {
                     const currentValue = (input.value || '').toString().trim();
