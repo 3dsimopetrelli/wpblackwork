@@ -1,4 +1,101 @@
 (function() {
+    const initSettingsFloatingLabels = (scope = document) => {
+        const root = scope && scope.querySelectorAll ? scope : document;
+        const settingsContainers = root.querySelectorAll('.bw-settings');
+
+        if (!settingsContainers.length) {
+            return;
+        }
+
+        const getLabelText = (labelNode) => {
+            if (!labelNode) {
+                return '';
+            }
+
+            const clone = labelNode.cloneNode(true);
+            clone.querySelectorAll('abbr, .optional, .required').forEach((node) => node.remove());
+            return clone.textContent.replace(/\*/g, '').trim();
+        };
+
+        const findLabelForInput = (container, inputId) => {
+            if (!inputId) {
+                return null;
+            }
+
+            return container.querySelector('label[for="' + inputId.replace(/"/g, '\\"') + '"]');
+        };
+
+        settingsContainers.forEach((settingsContainer) => {
+            const fields = settingsContainer.querySelectorAll(
+                'input[type="text"], input[type="email"], input[type="tel"], input[type="number"], input[type="password"], textarea, select'
+            );
+
+            fields.forEach((input) => {
+                if (!input.id || input.closest('.bw-field-wrapper') || input.dataset.bwSettingsFloatingInitialized === '1') {
+                    return;
+                }
+
+                const fieldRow = input.closest('.form-row, .bw-field');
+                if (!fieldRow) {
+                    return;
+                }
+
+                const originalLabel = findLabelForInput(fieldRow, input.id);
+                if (!originalLabel) {
+                    return;
+                }
+
+                const labelText = getLabelText(originalLabel);
+                if (!labelText) {
+                    return;
+                }
+
+                let elementToWrap = input;
+                if ('SELECT' === input.tagName) {
+                    const select2Container = fieldRow.querySelector('.select2-container');
+                    if (select2Container) {
+                        elementToWrap = select2Container;
+                    }
+                }
+
+                if (!elementToWrap.parentNode || elementToWrap.closest('.bw-field-wrapper')) {
+                    return;
+                }
+
+                const wrapper = document.createElement('div');
+                wrapper.className = 'bw-field-wrapper bw-field-wrapper--settings';
+                elementToWrap.parentNode.insertBefore(wrapper, elementToWrap);
+                wrapper.appendChild(elementToWrap);
+
+                const floatingLabel = document.createElement('label');
+                floatingLabel.className = 'bw-floating-label';
+                floatingLabel.setAttribute('for', input.id);
+                floatingLabel.textContent = labelText;
+                wrapper.appendChild(floatingLabel);
+
+                originalLabel.classList.add('bw-original-label-hidden');
+                fieldRow.classList.add('bw-has-floating-label');
+
+                const updateHasValue = () => {
+                    const currentValue = (input.value || '').toString().trim();
+                    wrapper.classList.toggle('has-value', currentValue !== '');
+                };
+
+                input.addEventListener('input', updateHasValue);
+                input.addEventListener('change', updateHasValue);
+                input.addEventListener('blur', updateHasValue);
+
+                updateHasValue();
+                input.dataset.bwSettingsFloatingInitialized = '1';
+            });
+        });
+    };
+
+    const scheduleSettingsFloatingLabels = () => {
+        window.requestAnimationFrame(() => initSettingsFloatingLabels(document));
+        window.setTimeout(() => initSettingsFloatingLabels(document), 180);
+    };
+
     const tabs = document.querySelectorAll('.bw-tab');
 
     tabs.forEach((tab) => {
@@ -21,7 +118,22 @@
             if (targetPanel) {
                 targetPanel.classList.add('is-active');
             }
+
+            scheduleSettingsFloatingLabels();
         });
+    });
+
+    scheduleSettingsFloatingLabels();
+
+    document.addEventListener('change', (event) => {
+        const target = event.target;
+        if (!target || !target.closest || !target.closest('.bw-settings')) {
+            return;
+        }
+
+        if ('SELECT' === target.tagName || /_country$|_state$/.test(target.id || '')) {
+            scheduleSettingsFloatingLabels();
+        }
     });
 
     const setPasswordForm = document.querySelector('[data-bw-set-password-form]');

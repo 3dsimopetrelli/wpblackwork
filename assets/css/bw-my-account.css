@@ -350,8 +350,7 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
 .bw-view-all,
 .bw-download-button,
 .bw-coupon-badge,
-.bw-social-action,
-.bw-settings .button {
+.bw-social-action {
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -586,30 +585,170 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
 .bw-settings-block {
     background: #fff;
     border-radius: 12px;
-    padding: 14px;
+    padding: 22px;
     margin-bottom: 16px;
+    border: 1px solid #ececec;
 }
 
 .bw-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 12px;
+    gap: 16px;
 }
 
-.bw-field label {
-    display: block;
-    margin-bottom: 6px;
-    font-weight: 600;
-}
-
-.bw-field input,
-.bw-field select,
-.bw-field textarea {
+body.woocommerce-account .bw-settings .bw-field-wrapper {
+    position: relative;
     width: 100%;
-    border-radius: 10px;
-    border: 1px solid #dcdcdc;
-    padding: 10px 12px;
-    background: #fafafa;
+    display: block;
+}
+
+body.woocommerce-account .bw-settings .bw-field-wrapper input[type="text"],
+body.woocommerce-account .bw-settings .bw-field-wrapper input[type="email"],
+body.woocommerce-account .bw-settings .bw-field-wrapper input[type="tel"],
+body.woocommerce-account .bw-settings .bw-field-wrapper input[type="number"],
+body.woocommerce-account .bw-settings .bw-field-wrapper input[type="password"],
+body.woocommerce-account .bw-settings .bw-field-wrapper textarea {
+    width: 100%;
+    min-height: 56px;
+    border-radius: 14px;
+    border: 1px solid #cfd4dc;
+    padding: 24px 16px 10px;
+    background: #fff;
+    color: #0f172a;
+    box-sizing: border-box;
+    transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+body.woocommerce-account .bw-settings .bw-field-wrapper input::placeholder,
+body.woocommerce-account .bw-settings .bw-field-wrapper textarea::placeholder {
+    opacity: 0;
+}
+
+body.woocommerce-account .bw-settings .bw-field-wrapper textarea {
+    min-height: 110px;
+    resize: vertical;
+}
+
+body.woocommerce-account .bw-settings .bw-field-wrapper input:focus,
+body.woocommerce-account .bw-settings .bw-field-wrapper textarea:focus {
+    border-color: #000;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.08);
+}
+
+body.woocommerce-account .bw-settings .bw-field-wrapper .bw-floating-label {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 17px;
+    line-height: 1.2;
+    color: #6b7280;
+    pointer-events: none;
+    transition: all 160ms ease;
+    background: #fff;
+    padding: 0 6px;
+}
+
+body.woocommerce-account .bw-settings .bw-field-wrapper input:focus ~ .bw-floating-label,
+body.woocommerce-account .bw-settings .bw-field-wrapper select:focus ~ .bw-floating-label,
+body.woocommerce-account .bw-settings .bw-field-wrapper textarea:focus ~ .bw-floating-label,
+body.woocommerce-account .bw-settings .bw-field-wrapper .select2-container--focus ~ .bw-floating-label,
+body.woocommerce-account .bw-settings .bw-field-wrapper .select2-container--open ~ .bw-floating-label,
+body.woocommerce-account .bw-settings .bw-field-wrapper.has-value .bw-floating-label {
+    top: 0;
+    transform: translateY(-50%);
+    font-size: 12px;
+    color: #111827;
+}
+
+body.woocommerce-account .bw-settings .bw-field label.bw-original-label-hidden,
+body.woocommerce-account .bw-settings .form-row > label.bw-original-label-hidden {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    margin: -1px !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    border: 0 !important;
+}
+
+body.woocommerce-account .bw-settings .bw-field-wrapper select {
+    width: 100%;
+    min-height: 56px;
+    border-radius: 14px;
+    border: 1px solid #cfd4dc;
+    padding: 24px 42px 10px 16px;
+    background-color: #fff;
+    box-sizing: border-box;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url('data:image/svg+xml;charset=UTF-8,%3Csvg xmlns="http://www.w3.org/2000/svg" width="12" height="8" viewBox="0 0 12 8"%3E%3Cpath fill="%236b7280" d="M1.41 0L6 4.59L10.59 0L12 1.41l-6 6l-6-6z"/%3E%3C/svg%3E');
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    background-size: 12px;
+}
+
+body.woocommerce-account .bw-settings .bw-field-wrapper select:focus {
+    border-color: #000;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.08);
+}
+
+body.woocommerce-account .bw-settings .bw-field-wrapper .select2-container {
+    width: 100% !important;
+}
+
+body.woocommerce-account .bw-settings .bw-field-wrapper .select2-container .select2-selection--single {
+    min-height: 56px;
+    border-radius: 14px !important;
+    border: 1px solid #cfd4dc !important;
+    padding: 24px 42px 10px 16px !important;
+    background: #fff !important;
+    box-sizing: border-box;
+}
+
+body.woocommerce-account .bw-settings .bw-field-wrapper .select2-container .select2-selection__rendered {
+    line-height: 1.2 !important;
+    padding: 0 !important;
+    color: #0f172a !important;
+}
+
+body.woocommerce-account .bw-settings .bw-field-wrapper .select2-container .select2-selection__arrow {
+    height: 56px !important;
+    right: 12px !important;
+}
+
+body.woocommerce-account .bw-settings .bw-field-wrapper .select2-container--focus .select2-selection--single,
+body.woocommerce-account .bw-settings .bw-field-wrapper .select2-container--open .select2-selection--single {
+    border-color: #000 !important;
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.08) !important;
+}
+
+body.woocommerce-account .bw-settings .button,
+body.woocommerce-account .bw-settings .button[type="submit"] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 54px;
+    padding: 12px 30px;
+    border-radius: 999px;
+    border: 1px solid #000;
+    background: #000;
+    color: #fff;
+    font-size: 20px;
+    line-height: 1.1;
+    text-decoration: none;
+    transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+
+body.woocommerce-account .bw-settings .button:hover,
+body.woocommerce-account .bw-settings .button:focus {
+    background: #80fd03;
+    color: #000;
+    border-color: #000;
 }
 
 .bw-password-rules {
@@ -657,4 +796,16 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
 
 .bw-tab-panels .bw-tab-panel.is-active {
     display: block;
+}
+
+@media (max-width: 768px) {
+    body.woocommerce-account .bw-settings .bw-field-wrapper .bw-floating-label {
+        font-size: 16px;
+    }
+
+    body.woocommerce-account .bw-settings .button,
+    body.woocommerce-account .bw-settings .button[type="submit"] {
+        font-size: 18px;
+        width: 100%;
+    }
 }
