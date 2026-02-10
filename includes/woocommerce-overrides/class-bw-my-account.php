@@ -150,30 +150,6 @@ function bw_mew_enforce_supabase_onboarding_lock() {
 add_action( 'template_redirect', 'bw_mew_enforce_supabase_onboarding_lock' );
 
 /**
- * Add body class when onboarding lock is active.
- *
- * @param array $classes Body classes.
- *
- * @return array
- */
-function bw_mew_add_onboarding_body_class( $classes ) {
-    if ( ! function_exists( 'is_account_page' ) || ! is_account_page() ) {
-        return $classes;
-    }
-
-    $onboarded = is_user_logged_in()
-        ? bw_user_needs_onboarding( get_current_user_id() ) ? 0 : 1
-        : 0;
-
-    if ( is_wc_endpoint_url( 'set-password' ) || 1 !== $onboarded ) {
-        $classes[] = 'bw-onboarding-lock';
-    }
-
-    return $classes;
-}
-add_filter( 'body_class', 'bw_mew_add_onboarding_body_class' );
-
-/**
  * Enqueue assets for the logged-in my account area.
  */
 function bw_mew_enqueue_my_account_assets() {
