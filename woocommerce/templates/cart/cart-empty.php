@@ -132,5 +132,4 @@ $allowed_svg_tags = [
     </a>
 </div>
 
-<?php do_action( 'woocommerce_cart_is_empty' ); ?>
 <?php do_action( 'woocommerce_after_cart' ); ?>
