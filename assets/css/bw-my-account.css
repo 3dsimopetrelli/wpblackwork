@@ -768,6 +768,19 @@ body.woocommerce-account .bw-settings .button:focus {
     border-color: #000;
 }
 
+body.woocommerce-account .bw-settings .description {
+    margin-top: 10px;
+    font-size: 13px;
+    line-height: 1.4;
+    color: #4b5563;
+}
+
+body.woocommerce-account .bw-settings .bw-settings-block > p,
+body.woocommerce-account .bw-settings .bw-settings-block > .form-row {
+    margin-top: 30px;
+    margin-bottom: 0;
+}
+
 .bw-password-rules {
     margin-top: 12px;
     padding: 12px;
@@ -828,5 +841,10 @@ body.woocommerce-account .bw-settings .button:focus {
     body.woocommerce-account .bw-settings .button[type="submit"] {
         font-size: 18px;
         width: 100%;
+    }
+
+    body.woocommerce-account .bw-settings .bw-settings-block > p,
+    body.woocommerce-account .bw-settings .bw-settings-block > .form-row {
+        margin-top: 24px;
     }
 }
