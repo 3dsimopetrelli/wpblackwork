@@ -107,13 +107,10 @@ do_action( 'woocommerce_before_account_orders', $has_orders );
     <section class="bw-account-empty-orders" aria-live="polite">
         <p class="bw-account-empty-orders__text"><?php esc_html_e( 'No order has been made yet.', 'woocommerce' ); ?></p>
         <a class="bw-account-empty-orders__cta elementor-button elementor-button-link elementor-size-md" href="<?php echo esc_url( apply_filters( 'woocommerce_return_to_shop_redirect', $shop_url ) ); ?>">
-            <span class="elementor-button-content-wrapper">
-                <span class="elementor-button-text"><?php esc_html_e( 'Browse products', 'woocommerce' ); ?></span>
-            </span>
+            <?php esc_html_e( 'Browse products', 'woocommerce' ); ?>
         </a>
     </section>
 
 <?php endif; ?>
 
 <?php do_action( 'woocommerce_after_account_orders', $has_orders ); ?>
-
