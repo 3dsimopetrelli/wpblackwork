@@ -128,6 +128,7 @@ $login_subtitle_html = nl2br( esc_html( $login_subtitle ) );
             <div class="bw-account-login__content">
                 <?php
                 $wp_notices_html = '';
+                $supabase_notices_html = '';
                 if ( 'wordpress' === $login_provider ) {
                     // WooCommerce prints notices in this hook by default; suppress top rendering for WordPress provider.
                     $restore_wc_output_notices = false;
@@ -154,31 +155,37 @@ $login_subtitle_html = nl2br( esc_html( $login_subtitle ) );
                     wc_print_notices();
                     $wp_notices_html = trim( ob_get_clean() );
                 } else {
+                    // Keep Supabase notices in a controlled position under intro text.
+                    $restore_wc_output_notices = false;
+                    $restore_wc_print_notices = false;
+                    if ( has_action( 'woocommerce_before_customer_login_form', 'woocommerce_output_all_notices' ) ) {
+                        remove_action( 'woocommerce_before_customer_login_form', 'woocommerce_output_all_notices', 10 );
+                        $restore_wc_output_notices = true;
+                    }
+                    if ( has_action( 'woocommerce_before_customer_login_form', 'wc_print_notices' ) ) {
+                        remove_action( 'woocommerce_before_customer_login_form', 'wc_print_notices', 10 );
+                        $restore_wc_print_notices = true;
+                    }
+
                     do_action( 'woocommerce_before_customer_login_form' );
+
+                    if ( $restore_wc_output_notices ) {
+                        add_action( 'woocommerce_before_customer_login_form', 'woocommerce_output_all_notices', 10 );
+                    }
+                    if ( $restore_wc_print_notices ) {
+                        add_action( 'woocommerce_before_customer_login_form', 'wc_print_notices', 10 );
+                    }
+
+                    ob_start();
                     wc_print_notices();
+                    $supabase_notices_html = trim( ob_get_clean() );
                 }
                 ?>
-                <?php if ( isset( $_GET['bw_email_confirmed'] ) && '1' === sanitize_text_field( wp_unslash( $_GET['bw_email_confirmed'] ) ) ) : ?>
-                    <div class="woocommerce-message bw-account-login__notice">
-                        <?php esc_html_e( 'Email confirmed. Please log in.', 'bw' ); ?>
-                    </div>
-                <?php endif; ?>
                 <?php
+                $email_confirmed = isset( $_GET['bw_email_confirmed'] ) && '1' === sanitize_text_field( wp_unslash( $_GET['bw_email_confirmed'] ) );
                 $invite_error_code = isset( $_GET['bw_invite_error'] ) ? sanitize_key( wp_unslash( $_GET['bw_invite_error'] ) ) : '';
                 $invite_error_desc = isset( $_GET['bw_invite_error_description'] ) ? sanitize_text_field( wp_unslash( $_GET['bw_invite_error_description'] ) ) : '';
-                if ( 'supabase' === $login_provider && $invite_error_code ) :
-                    $invite_error_message = __( 'The invite link is invalid or expired. Please request a new invite.', 'bw' );
-                    if ( 'otp_expired' === $invite_error_code ) {
-                        $invite_error_message = __( 'This invite link has expired. Please request a new invite.', 'bw' );
-                    }
-                    if ( $invite_error_desc ) {
-                        $invite_error_message = $invite_error_desc;
-                    }
-                    ?>
-                    <div class="woocommerce-error bw-account-login__notice" role="alert">
-                        <?php echo esc_html( $invite_error_message ); ?>
-                    </div>
-                <?php endif; ?>
+                ?>
 
                 <?php if ( $logo_url ) : ?>
                     <div class="bw-account-login__logo" style="<?php echo esc_attr( $logo_styles ); ?>">
@@ -195,6 +202,35 @@ $login_subtitle_html = nl2br( esc_html( $login_subtitle ) );
                         <?php endif; ?>
                         <?php if ( $login_subtitle ) : ?>
                             <p class="bw-account-login__subtitle"><?php echo wp_kses( $login_subtitle_html, [ 'br' => [] ] ); ?></p>
+                        <?php endif; ?>
+                    </div>
+                <?php endif; ?>
+
+                <?php if ( 'supabase' === $login_provider && ( $email_confirmed || $invite_error_code || $supabase_notices_html ) ) : ?>
+                    <div class="bw-account-login__intro-notices bw-account-login__form-notices">
+                        <?php if ( $email_confirmed ) : ?>
+                            <div class="woocommerce-message" role="status">
+                                <?php esc_html_e( 'Email confirmed. Please log in.', 'bw' ); ?>
+                            </div>
+                        <?php endif; ?>
+
+                        <?php if ( $invite_error_code ) : ?>
+                            <?php
+                            $invite_error_message = __( 'The invite link is invalid or expired. Please request a new invite.', 'bw' );
+                            if ( 'otp_expired' === $invite_error_code ) {
+                                $invite_error_message = __( 'This invite link has expired. Please request a new invite.', 'bw' );
+                            }
+                            if ( $invite_error_desc ) {
+                                $invite_error_message = $invite_error_desc;
+                            }
+                            ?>
+                            <div class="woocommerce-error" role="alert">
+                                <?php echo esc_html( $invite_error_message ); ?>
+                            </div>
+                        <?php endif; ?>
+
+                        <?php if ( $supabase_notices_html ) : ?>
+                            <?php echo wp_kses_post( $supabase_notices_html ); ?>
                         <?php endif; ?>
                     </div>
                 <?php endif; ?>

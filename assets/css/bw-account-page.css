@@ -684,6 +684,11 @@ body.woocommerce-account.bw-account-login-only .bw-account-login__register-link:
     margin-top: 10px;
 }
 
+.bw-account-login__intro-notices {
+    margin-top: 0;
+    margin-bottom: 16px;
+}
+
 .bw-account-login__form-notices .woocommerce-notices-wrapper {
     margin: 0;
 }
