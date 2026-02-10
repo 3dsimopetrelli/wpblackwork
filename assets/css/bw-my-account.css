@@ -492,18 +492,35 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
 }
 
 .bw-tab {
-    border: none;
-    background: transparent;
-    padding: 8px 12px;
-    border-radius: 8px;
+    border: 1px solid #111;
+    background: #80fd03;
+    padding: 8px 18px;
+    border-radius: 999px;
     cursor: pointer;
-    color: #444;
+    color: #111;
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 1.2;
+    transition: background-color 180ms ease, color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
+    will-change: transform;
+}
+
+.bw-tab:hover,
+.bw-tab:focus-visible {
+    background: #fff;
+    color: #000;
+    font-weight: 600;
+    transform: translateY(-1px) scale(1.015);
+    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.08);
+    outline: none;
 }
 
 .bw-tab.is-active {
     background: #fff;
     color: #000;
     font-weight: 600;
+    transform: none;
+    box-shadow: none;
 }
 
 .bw-download-list {
