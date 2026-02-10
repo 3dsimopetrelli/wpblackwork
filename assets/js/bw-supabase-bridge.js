@@ -63,7 +63,7 @@
         var redirectDelayMs = 150;
         if (window.sessionStorage) {
             try {
-                if (sessionStorage.getItem(handledKey) === '1') {
+                if (sessionStorage.getItem(handledKey) === 'done') {
                     if (window.history && window.history.replaceState) {
                         var cleanedUrl = new URL(window.location.href);
                         cleanedUrl.hash = '';
@@ -227,6 +227,13 @@
                     return response.json();
                 })
                 .then(function (payload) {
+                    if (payload && payload.success && window.sessionStorage) {
+                        try {
+                            sessionStorage.setItem(handledKey, 'done');
+                        } catch (error) {
+                            // ignore sessionStorage errors
+                        }
+                    }
                     redirectAfterBridge(payload);
                     return payload;
                 });
@@ -255,7 +262,6 @@
                     if (refreshToken) {
                         sessionStorage.setItem('bw_supabase_refresh_token', refreshToken);
                     }
-                    sessionStorage.setItem(handledKey, '1');
                 } catch (error) {
                     // ignore sessionStorage errors
                 }

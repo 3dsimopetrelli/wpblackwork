@@ -274,7 +274,17 @@ add_action( 'init', 'bw_mew_sync_supabase_user_on_load', 20 );
  * Use a Supabase access token to create a WordPress session after confirmation.
  */
 function bw_mew_handle_supabase_token_login() {
-    check_ajax_referer( 'bw-supabase-login', 'nonce' );
+    $nonce_valid = check_ajax_referer( 'bw-supabase-login', 'nonce', false );
+
+    // For invite/hash callbacks from public pages, the localized nonce can be stale
+    // because of full-page cache. In that case we continue and rely on Supabase token
+    // verification below. Keep strict nonce checks for already-authenticated requests.
+    if ( ! $nonce_valid && is_user_logged_in() ) {
+        wp_send_json_error(
+            [ 'message' => __( 'Security check failed. Please refresh and try again.', 'bw' ) ],
+            403
+        );
+    }
 
     if ( is_user_logged_in() ) {
         wp_send_json_success(
