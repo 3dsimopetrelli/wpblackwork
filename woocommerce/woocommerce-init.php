@@ -278,6 +278,55 @@ function bw_mew_enqueue_supabase_bridge()
 add_action('wp_enqueue_scripts', 'bw_mew_enqueue_supabase_bridge', 20);
 
 /**
+ * Early invite redirect to avoid home-page flash before My Account bridge.
+ *
+ * Supabase invite links may land on non-account pages with hash tokens.
+ * We move the browser to /my-account/ immediately (keeping hash) so the
+ * bridge and password modal flow starts without visible intermediate page.
+ */
+function bw_mew_supabase_early_invite_redirect_hint()
+{
+    if (is_user_logged_in()) {
+        return;
+    }
+
+    $account_url = wc_get_page_permalink('myaccount');
+    if (!$account_url) {
+        return;
+    }
+
+    ?>
+    <script>
+    (function () {
+        var hash = window.location.hash || '';
+        if (!hash || hash.indexOf('access_token=') === -1) {
+            return;
+        }
+
+        var params = new URLSearchParams(hash.replace(/^#/, ''));
+        var type = params.get('type') || '';
+        if (type !== 'invite' && type !== 'recovery') {
+            return;
+        }
+
+        var target = new URL(<?php echo wp_json_encode($account_url); ?>, window.location.origin);
+        var current = new URL(window.location.href);
+        var targetPath = target.pathname.replace(/\/+$/, '');
+        var currentPath = current.pathname.replace(/\/+$/, '');
+
+        if (targetPath === currentPath) {
+            return;
+        }
+
+        target.hash = hash.replace(/^#/, '');
+        window.location.replace(target.toString());
+    })();
+    </script>
+    <?php
+}
+add_action('wp_head', 'bw_mew_supabase_early_invite_redirect_hint', 1);
+
+/**
  * Enqueue assets for the custom checkout layout and expose colors as CSS variables.
  */
 function bw_mew_enqueue_checkout_assets()
