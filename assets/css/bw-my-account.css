@@ -484,9 +484,11 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
 
 .bw-tab-switcher {
     display: inline-flex;
-    background: #ececec;
-    border-radius: 10px;
-    padding: 4px;
+    flex-wrap: wrap;
+    gap: 10px;
+    background: transparent;
+    border-radius: 0;
+    padding: 0;
 }
 
 .bw-tab {
