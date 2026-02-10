@@ -196,6 +196,120 @@ body.woocommerce-account .bw-account-orders-card .woocommerce-MyAccount-paginati
     margin-top: 18px;
 }
 
+body.woocommerce-account .woocommerce-order > p:first-child {
+    margin: 0 0 18px;
+    padding: 14px 16px;
+    background: #fff;
+    border: 1px solid #ececec;
+    border-radius: 12px;
+    font-size: 20px;
+    line-height: 1.45;
+}
+
+body.woocommerce-account .woocommerce-order > p:first-child mark {
+    background: transparent;
+    color: #000;
+    font-weight: 600;
+}
+
+body.woocommerce-account .woocommerce-order-downloads,
+body.woocommerce-account .woocommerce-order-details,
+body.woocommerce-account .woocommerce-customer-details {
+    margin: 0 0 20px;
+    padding: 22px;
+    background: #fff;
+    border: 1px solid #ececec;
+    border-radius: 12px;
+}
+
+body.woocommerce-account .woocommerce-order-downloads__title,
+body.woocommerce-account .woocommerce-order-details__title,
+body.woocommerce-account .woocommerce-column__title {
+    margin: 0 0 16px;
+}
+
+body.woocommerce-account .woocommerce-order .shop_table {
+    margin: 0;
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border: 0;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+body.woocommerce-account .woocommerce-order .shop_table th,
+body.woocommerce-account .woocommerce-order .shop_table td {
+    border: 1px solid #e6e6e6;
+    border-left: 0;
+    border-top: 0;
+    padding: 14px;
+    vertical-align: middle;
+}
+
+body.woocommerce-account .woocommerce-order .shop_table th:first-child,
+body.woocommerce-account .woocommerce-order .shop_table td:first-child {
+    border-left: 1px solid #e6e6e6;
+}
+
+body.woocommerce-account .woocommerce-order .shop_table thead th {
+    background: #f7f7f7;
+    font-weight: 600;
+}
+
+body.woocommerce-account .woocommerce-order .shop_table tr:last-child td,
+body.woocommerce-account .woocommerce-order .shop_table tr:last-child th {
+    border-bottom: 1px solid #e6e6e6;
+}
+
+body.woocommerce-account .woocommerce-order-downloads .woocommerce-MyAccount-downloads-file.button {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 18px;
+    border-radius: 12px;
+    border: 1px solid #111 !important;
+    background: #111 !important;
+    color: #fff !important;
+    text-decoration: none !important;
+    transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease;
+}
+
+body.woocommerce-account .woocommerce-order-downloads .woocommerce-MyAccount-downloads-file.button::before {
+    content: "\2193";
+    font-size: 16px;
+    line-height: 1;
+    color: inherit;
+}
+
+body.woocommerce-account .woocommerce-order-downloads .woocommerce-MyAccount-downloads-file.button:hover,
+body.woocommerce-account .woocommerce-order-downloads .woocommerce-MyAccount-downloads-file.button:focus {
+    background: #111 !important;
+    border-color: #111 !important;
+    color: #80fd03 !important;
+}
+
+body.woocommerce-account .woocommerce-order .order-actions-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 8px 6px 0;
+    padding: 10px 18px;
+    border-radius: 12px;
+    border: 1px solid #111;
+    background: #111;
+    color: #fff !important;
+    text-decoration: none !important;
+    transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease;
+}
+
+body.woocommerce-account .woocommerce-order .order-actions-button:hover,
+body.woocommerce-account .woocommerce-order .order-actions-button:focus {
+    background: #111;
+    border-color: #111;
+    color: #80fd03 !important;
+}
+
 .bw-account-set-password {
     background: #fff;
     padding: 32px;
