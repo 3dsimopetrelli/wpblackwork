@@ -123,6 +123,54 @@ body.woocommerce-account .woocommerce-MyAccount-navigation li a:focus .bw-accoun
     text-decoration: none;
 }
 
+.bw-account-orders-card {
+    background: #fff;
+    border: 1px solid #ececec;
+    border-radius: 12px;
+    padding: 22px;
+}
+
+body.woocommerce-account .bw-account-orders-card .woocommerce-orders-table {
+    margin: 0;
+    border: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+    overflow: hidden;
+    border-radius: 10px;
+}
+
+body.woocommerce-account .bw-account-orders-card .woocommerce-orders-table th,
+body.woocommerce-account .bw-account-orders-card .woocommerce-orders-table td {
+    border: 1px solid #e6e6e6;
+    border-left: 0;
+    border-top: 0;
+    padding: 14px 14px;
+    vertical-align: middle;
+}
+
+body.woocommerce-account .bw-account-orders-card .woocommerce-orders-table th:first-child,
+body.woocommerce-account .bw-account-orders-card .woocommerce-orders-table td:first-child {
+    border-left: 1px solid #e6e6e6;
+}
+
+body.woocommerce-account .bw-account-orders-card .woocommerce-orders-table thead th {
+    background: #f7f7f7;
+    font-weight: 600;
+}
+
+body.woocommerce-account .bw-account-orders-card .woocommerce-orders-table tr:last-child td {
+    border-bottom: 1px solid #e6e6e6;
+}
+
+body.woocommerce-account .bw-account-orders-card .woocommerce-orders-table .button {
+    border-radius: 10px;
+}
+
+body.woocommerce-account .bw-account-orders-card .woocommerce-MyAccount-pagination {
+    margin-top: 18px;
+}
+
 .bw-account-set-password {
     background: #fff;
     padding: 32px;
