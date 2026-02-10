@@ -91,6 +91,30 @@ body.woocommerce-account .woocommerce-MyAccount-navigation li a:focus .bw-accoun
     padding: 0;
 }
 
+.bw-account-empty-orders {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 18px;
+    margin: 0;
+    padding: 8px 0 0;
+    border: 0;
+    background: transparent;
+}
+
+.bw-account-empty-orders__text {
+    margin: 0;
+    font-size: 32px;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: #0f0f0f;
+}
+
+.bw-account-empty-orders__cta {
+    display: inline-block;
+    text-decoration: none;
+}
+
 .bw-account-set-password {
     background: #fff;
     padding: 32px;
@@ -195,6 +219,14 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
         font-size: 48px;
         line-height: 64px;
         letter-spacing: -2px;
+    }
+
+    .bw-account-empty-orders {
+        padding-top: 4px;
+    }
+
+    .bw-account-empty-orders__text {
+        font-size: 26px;
     }
 }
 
