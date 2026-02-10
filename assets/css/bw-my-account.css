@@ -115,6 +115,14 @@ body.woocommerce-account .woocommerce-MyAccount-navigation li a:focus .bw-accoun
     text-decoration: none;
 }
 
+.bw-account-empty-orders__cta.elementor-button,
+.bw-account-empty-orders__cta.elementor-button:hover,
+.bw-account-empty-orders__cta.elementor-button:focus,
+.bw-account-empty-orders__cta.elementor-button:active {
+    color: var(--e-global-color-primary, #000) !important;
+    text-decoration: none;
+}
+
 .bw-account-set-password {
     background: #fff;
     padding: 32px;
