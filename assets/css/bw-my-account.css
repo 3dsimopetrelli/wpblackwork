@@ -592,8 +592,25 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
 
 .bw-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 16px;
+}
+
+body.woocommerce-account .bw-settings .bw-grid > .bw-field,
+body.woocommerce-account .bw-settings .bw-grid > .form-row {
+    min-width: 0;
+}
+
+body.woocommerce-account .bw-settings .bw-grid .form-row {
+    float: none !important;
+    width: auto !important;
+    margin: 0 !important;
+}
+
+body.woocommerce-account .bw-settings .bw-grid .form-row-first,
+body.woocommerce-account .bw-settings .bw-grid .form-row-last,
+body.woocommerce-account .bw-settings .bw-grid .form-row-wide {
+    grid-column: auto !important;
 }
 
 body.woocommerce-account .bw-settings .bw-field-wrapper {
@@ -799,6 +816,10 @@ body.woocommerce-account .bw-settings .button:focus {
 }
 
 @media (max-width: 768px) {
+    .bw-grid {
+        grid-template-columns: 1fr;
+    }
+
     body.woocommerce-account .bw-settings .bw-field-wrapper .bw-floating-label {
         font-size: 16px;
     }
