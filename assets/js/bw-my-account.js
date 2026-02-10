@@ -27,7 +27,7 @@
 
         settingsContainers.forEach((settingsContainer) => {
             const fields = settingsContainer.querySelectorAll(
-                'input[type="text"], input[type="email"], input[type="tel"], input[type="number"], input[type="password"], textarea, select'
+                'input[type="text"], input[type="email"], input[type="tel"], input[type="number"], input[type="password"], textarea'
             );
 
             fields.forEach((input) => {
@@ -50,13 +50,7 @@
                     return;
                 }
 
-                let elementToWrap = input;
-                if ('SELECT' === input.tagName) {
-                    const select2Container = fieldRow.querySelector('.select2-container');
-                    if (select2Container) {
-                        elementToWrap = select2Container;
-                    }
-                }
+                const elementToWrap = input;
 
                 if (!elementToWrap.parentNode || elementToWrap.closest('.bw-field-wrapper')) {
                     return;
@@ -64,9 +58,6 @@
 
                 const wrapper = document.createElement('div');
                 wrapper.className = 'bw-field-wrapper bw-field-wrapper--settings';
-                if ('SELECT' === input.tagName) {
-                    wrapper.classList.add('bw-field-wrapper--select');
-                }
                 elementToWrap.parentNode.insertBefore(wrapper, elementToWrap);
                 wrapper.appendChild(elementToWrap);
 
@@ -78,9 +69,6 @@
 
                 originalLabel.classList.add('bw-original-label-hidden');
                 fieldRow.classList.add('bw-has-floating-label');
-                if ('SELECT' === input.tagName) {
-                    fieldRow.classList.add('bw-has-select2-floating');
-                }
 
                 const updateHasValue = () => {
                     const currentValue = (input.value || '').toString().trim();
