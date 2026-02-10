@@ -31,9 +31,9 @@ body.woocommerce-order-received {
 }
 
 body.woocommerce-order-received .woocommerce {
-    max-width: 680px;
+    max-width: 820px;
     margin: 0 auto;
-    padding: 40px 20px;
+    padding: 40px 32px;
     font-size: 14px;
     color: var(--bw-oc-text);
     line-height: 1.5;
@@ -153,20 +153,26 @@ body.woocommerce-order-received table.shop_table thead th {
     color: var(--bw-oc-text-muted);
     border-top: none;
     border-bottom: 1px solid var(--bw-oc-border);
-    padding: 12px 0;
+    padding: 12px 16px;
     text-align: left;
     background: transparent;
+}
+
+body.woocommerce-order-received table.woocommerce-table thead th:first-child,
+body.woocommerce-order-received table.shop_table thead th:first-child {
+    padding-left: 0;
 }
 
 body.woocommerce-order-received table.woocommerce-table thead th:last-child,
 body.woocommerce-order-received table.shop_table thead th:last-child {
     text-align: right;
+    padding-right: 0;
 }
 
 /* Table body cells */
 body.woocommerce-order-received table.woocommerce-table tbody td,
 body.woocommerce-order-received table.shop_table tbody td {
-    padding: 14px 0;
+    padding: 14px 16px;
     border-top: none;
     border-bottom: 1px solid var(--bw-oc-border);
     vertical-align: middle;
@@ -174,10 +180,16 @@ body.woocommerce-order-received table.shop_table tbody td {
     background: transparent;
 }
 
+body.woocommerce-order-received table.woocommerce-table tbody td:first-child,
+body.woocommerce-order-received table.shop_table tbody td:first-child {
+    padding-left: 0;
+}
+
 body.woocommerce-order-received table.woocommerce-table tbody td:last-child,
 body.woocommerce-order-received table.shop_table tbody td:last-child {
     text-align: right;
     font-weight: 600;
+    padding-right: 0;
 }
 
 /* Table rows - remove default bg stripes */
@@ -194,7 +206,7 @@ body.woocommerce-order-received table.shop_table tbody tr:nth-child(even) {
 /* Table footer (subtotal, discount, total) */
 body.woocommerce-order-received table.woocommerce-table tfoot th,
 body.woocommerce-order-received table.shop_table tfoot th {
-    padding: 12px 0;
+    padding: 12px 16px 12px 0;
     border: none;
     font-size: 14px;
     font-weight: 600;
@@ -205,7 +217,7 @@ body.woocommerce-order-received table.shop_table tfoot th {
 
 body.woocommerce-order-received table.woocommerce-table tfoot td,
 body.woocommerce-order-received table.shop_table tfoot td {
-    padding: 12px 0;
+    padding: 12px 0 12px 16px;
     border: none;
     font-size: 14px;
     text-align: right;
@@ -409,7 +421,7 @@ body.woocommerce-order-received .woocommerce-error {
    ============================================ */
 @media (max-width: 768px) {
     body.woocommerce-order-received .woocommerce {
-        padding: 24px 16px;
+        padding: 24px 20px;
     }
 
     /* Stack order meta vertically */
@@ -450,14 +462,34 @@ body.woocommerce-order-received .woocommerce-error {
     /* Table responsive tweaks */
     body.woocommerce-order-received table.woocommerce-table thead th,
     body.woocommerce-order-received table.shop_table thead th {
-        padding: 10px 0;
+        padding: 10px 12px;
         font-size: 11px;
+    }
+
+    body.woocommerce-order-received table.woocommerce-table thead th:first-child,
+    body.woocommerce-order-received table.shop_table thead th:first-child {
+        padding-left: 0;
+    }
+
+    body.woocommerce-order-received table.woocommerce-table thead th:last-child,
+    body.woocommerce-order-received table.shop_table thead th:last-child {
+        padding-right: 0;
     }
 
     body.woocommerce-order-received table.woocommerce-table tbody td,
     body.woocommerce-order-received table.shop_table tbody td {
-        padding: 12px 0;
+        padding: 12px 12px;
         font-size: 13px;
+    }
+
+    body.woocommerce-order-received table.woocommerce-table tbody td:first-child,
+    body.woocommerce-order-received table.shop_table tbody td:first-child {
+        padding-left: 0;
+    }
+
+    body.woocommerce-order-received table.woocommerce-table tbody td:last-child,
+    body.woocommerce-order-received table.shop_table tbody td:last-child {
+        padding-right: 0;
     }
 
     /* Full width button on mobile */
@@ -472,7 +504,7 @@ body.woocommerce-order-received .woocommerce-error {
    ============================================ */
 @media (max-width: 480px) {
     body.woocommerce-order-received .woocommerce {
-        padding: 20px 14px;
+        padding: 20px 16px;
     }
 
     body.woocommerce-order-received .woocommerce-order-overview li {
