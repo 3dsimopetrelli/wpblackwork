@@ -67,6 +67,28 @@ class BW_Search_Widget extends Widget_Base {
             ]
         );
 
+        $this->add_control(
+            'mobile_icon_media',
+            [
+                'label'       => __( 'Mobile Custom Icon (SVG Upload)', 'bw' ),
+                'type'        => Controls_Manager::MEDIA,
+                'description' => __( 'Carica un file SVG per l\'icona mobile del pulsante Search. Se vuoto usa la lente di default.', 'bw' ),
+            ]
+        );
+
+        $this->add_control(
+            'mobile_icon_breakpoint',
+            [
+                'label'       => __( 'Mobile Icon Breakpoint (px)', 'bw' ),
+                'type'        => Controls_Manager::NUMBER,
+                'default'     => 768,
+                'min'         => 320,
+                'max'         => 1920,
+                'step'        => 1,
+                'description' => __( 'Sotto questo breakpoint (max-width), il testo Search diventa icona.', 'bw' ),
+            ]
+        );
+
         $this->end_controls_section();
 
         // Popup Content Settings
@@ -1178,12 +1200,48 @@ class BW_Search_Widget extends Widget_Base {
         $label = isset( $settings['button_label'] ) && '' !== trim( $settings['button_label'] )
             ? $settings['button_label']
             : __( 'Search', 'bw' );
+        $mobile_icon_breakpoint = isset( $settings['mobile_icon_breakpoint'] )
+            ? max( 320, min( 1920, absint( $settings['mobile_icon_breakpoint'] ) ) )
+            : 768;
+        $mobile_icon_markup = $this->get_mobile_icon_markup( $settings );
 
         $this->add_render_attribute( 'button', 'class', 'bw-search-button' );
         $this->add_render_attribute( 'button', 'type', 'button' );
         $this->add_render_attribute( 'button', 'aria-label', __( 'Open search', 'bw' ) );
 
-        $label_markup = sprintf( '<span class="bw-search-button__label">%s</span>', esc_html( $label ) );
+        $label_markup = sprintf(
+            '<span class="bw-search-button__label">%1$s</span><span class="bw-search-button__icon" aria-hidden="true">%2$s</span>',
+            esc_html( $label ),
+            $mobile_icon_markup // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+        );
+
+        ?>
+        <style>
+            @media (max-width: <?php echo esc_html( $mobile_icon_breakpoint ); ?>px) {
+                .elementor-element-<?php echo esc_attr( $this->get_id() ); ?> .bw-search-button {
+                    display: inline-flex !important;
+                    background: transparent !important;
+                    border: none !important;
+                    box-shadow: none !important;
+                    padding: 0 !important;
+                    min-width: auto !important;
+                    min-height: auto !important;
+                }
+
+                .elementor-element-<?php echo esc_attr( $this->get_id() ); ?> .bw-search-button__label {
+                    display: none;
+                }
+
+                .elementor-element-<?php echo esc_attr( $this->get_id() ); ?> .bw-search-button__icon {
+                    display: inline-flex;
+                    background: transparent !important;
+                    border: none !important;
+                    border-radius: 0 !important;
+                    padding: 0 !important;
+                }
+            }
+        </style>
+        <?php
 
         echo sprintf(
             '<button %s>%s</button>',
@@ -1193,6 +1251,34 @@ class BW_Search_Widget extends Widget_Base {
 
         // Render overlay
         $this->render_search_overlay( $settings );
+    }
+
+    /**
+     * Build mobile icon markup using uploaded media if available.
+     *
+     * @param array<string,mixed> $settings Widget settings.
+     * @return string
+     */
+    private function get_mobile_icon_markup( $settings ) {
+        $media_id = isset( $settings['mobile_icon_media']['id'] ) ? absint( $settings['mobile_icon_media']['id'] ) : 0;
+        $media_url = isset( $settings['mobile_icon_media']['url'] ) ? esc_url( $settings['mobile_icon_media']['url'] ) : '';
+
+        if ( $media_id > 0 ) {
+            $svg_markup = wp_get_attachment_image( $media_id, 'full', false, [ 'class' => 'bw-search-button__icon-image' ] );
+            if ( $svg_markup ) {
+                return $svg_markup;
+            }
+        }
+
+        if ( '' !== $media_url ) {
+            return sprintf(
+                '<img class="bw-search-button__icon-image" src="%1$s" alt="%2$s" loading="lazy" decoding="async" />',
+                $media_url,
+                esc_attr__( 'Search', 'bw' )
+            );
+        }
+
+        return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7" fill="none"></circle><line x1="16.65" y1="16.65" x2="21" y2="21"></line></svg>';
     }
 
     private function render_search_overlay( $settings ) {
