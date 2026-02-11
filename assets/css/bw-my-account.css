@@ -406,6 +406,16 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
         grid-template-columns: 1fr;
     }
 
+    .bw-account-navigation {
+        position: static !important;
+        top: auto !important;
+    }
+
+    body.woocommerce-account .woocommerce-MyAccount-navigation {
+        position: static !important;
+        top: auto !important;
+    }
+
     body.woocommerce-account .woocommerce-MyAccount-navigation .bw-account-label {
         white-space: normal;
     }
