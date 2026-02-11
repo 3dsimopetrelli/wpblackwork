@@ -1123,6 +1123,26 @@ body.woocommerce-account .bw-settings #bw-tab-shipping .form-row.form-row-wide {
 }
 
 @media (max-width: 768px) {
+    .bw-page-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 14px;
+    }
+
+    .bw-page-header h2 {
+        width: 100%;
+        margin: 0;
+    }
+
+    .bw-tab-switcher {
+        width: 100%;
+    }
+
+    .bw-tab {
+        width: 100%;
+        justify-content: center;
+    }
+
     .bw-grid {
         grid-template-columns: 1fr;
     }
