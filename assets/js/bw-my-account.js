@@ -147,10 +147,14 @@
                 return;
             }
 
-            container.querySelectorAll('.bw-tab').forEach((btn) => btn.classList.remove('is-active'));
+            container.querySelectorAll('.bw-tab').forEach((btn) => {
+                btn.classList.remove('is-active');
+                btn.setAttribute('aria-selected', 'false');
+            });
             container.querySelectorAll('.bw-tab-panel').forEach((panel) => panel.classList.remove('is-active'));
 
             tab.classList.add('is-active');
+            tab.setAttribute('aria-selected', 'true');
             const targetPanel = container.querySelector(targetSelector);
             if (targetPanel) {
                 targetPanel.classList.add('is-active');
@@ -160,6 +164,26 @@
         });
     });
 
+    document.querySelectorAll('.bw-settings').forEach((container) => {
+        const tabsInContainer = Array.from(container.querySelectorAll('.bw-tab'));
+        const activeTab = tabsInContainer.find((btn) => btn.classList.contains('is-active')) || tabsInContainer[0];
+
+        tabsInContainer.forEach((btn) => {
+            btn.setAttribute('aria-selected', btn === activeTab ? 'true' : 'false');
+            btn.classList.toggle('is-active', btn === activeTab);
+        });
+
+        if (activeTab) {
+            const targetSelector = activeTab.getAttribute('data-target');
+            if (targetSelector) {
+                container.querySelectorAll('.bw-tab-panel').forEach((panel) => panel.classList.remove('is-active'));
+                const activePanel = container.querySelector(targetSelector);
+                if (activePanel) {
+                    activePanel.classList.add('is-active');
+                }
+            }
+        }
+    });
     scheduleSettingsFloatingLabels();
 
     document.addEventListener('change', (event) => {

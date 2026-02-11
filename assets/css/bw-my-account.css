@@ -690,33 +690,44 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
 
 .bw-tab {
     border: 1px solid #111;
-    background: #80fd03;
+    background: #80fd03 !important;
+    background-color: #80fd03 !important;
     padding: 8px 18px;
     border-radius: 999px;
     cursor: pointer;
     color: #111;
     font-size: 18px;
-    font-weight: 600;
+    font-weight: 500;
     line-height: 1.2;
     transition: background-color 180ms ease, color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
     will-change: transform;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .bw-tab:hover,
 .bw-tab:focus-visible {
-    background: #fff;
+    background: #fff !important;
+    background-color: #fff !important;
     color: #000;
     transform: translateY(-1px) scale(1.015);
     box-shadow: 0 2px 0 rgba(0, 0, 0, 0.08);
     outline: none;
 }
 
-.bw-tab.is-active {
-    background: #fff;
-    color: #000;
-    font-weight: 600;
+.bw-tab.is-active,
+.bw-tab[aria-selected="true"] {
+    background: #fff !important;
+    background-color: #fff !important;
+    color: #000 !important;
+    font-weight: 500;
     transform: none;
     box-shadow: none;
+}
+
+.bw-tab:not(.is-active)[aria-selected="false"] {
+    background: #80fd03 !important;
+    background-color: #80fd03 !important;
+    color: #111 !important;
 }
 
 .bw-download-list {
@@ -1142,6 +1153,7 @@ body.woocommerce-account .bw-settings #bw-tab-shipping .form-row.form-row-wide {
         width: 100%;
         justify-content: center;
     }
+
 
     .bw-grid {
         grid-template-columns: 1fr;
