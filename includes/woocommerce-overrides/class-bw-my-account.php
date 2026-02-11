@@ -150,6 +150,38 @@ function bw_mew_enforce_supabase_onboarding_lock() {
 add_action( 'template_redirect', 'bw_mew_enforce_supabase_onboarding_lock' );
 
 /**
+ * Redirect guest order verify-email flow to My Account login when provider is Supabase.
+ *
+ * Keeps default WooCommerce verify-email form when provider is WordPress.
+ */
+function bw_mew_redirect_order_verify_email_for_supabase() {
+    if ( is_user_logged_in() ) {
+        return;
+    }
+
+    if ( ! function_exists( 'is_wc_endpoint_url' ) || ! is_wc_endpoint_url( 'order-received' ) ) {
+        return;
+    }
+
+    $provider = get_option( 'bw_account_login_provider', 'wordpress' );
+    if ( 'supabase' !== $provider ) {
+        return;
+    }
+
+    $account_url = function_exists( 'wc_get_page_permalink' )
+        ? wc_get_page_permalink( 'myaccount' )
+        : home_url( '/my-account/' );
+
+    if ( ! $account_url ) {
+        return;
+    }
+
+    wp_safe_redirect( $account_url );
+    exit;
+}
+add_action( 'template_redirect', 'bw_mew_redirect_order_verify_email_for_supabase', 25 );
+
+/**
  * Enqueue assets for the logged-in my account area.
  */
 function bw_mew_enqueue_my_account_assets() {

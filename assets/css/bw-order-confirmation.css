@@ -406,6 +406,108 @@ body.woocommerce-order-received .woocommerce-error {
 }
 
 /* ============================================
+   VERIFY EMAIL FORM (Order Received fallback)
+   ============================================ */
+body.woocommerce-order-received .bw-verify-email-form {
+    margin: 0;
+    padding: 24px;
+    border: 1px solid var(--bw-oc-border);
+    border-radius: 12px;
+    background: #ffffff;
+}
+
+body.woocommerce-order-received .bw-verify-email-form__intro {
+    margin: 0 0 16px;
+    color: var(--bw-oc-text);
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+body.woocommerce-order-received .bw-verify-email-form .form-row {
+    margin: 0;
+}
+
+body.woocommerce-order-received .bw-verify-email-form__field {
+    position: relative;
+    margin-bottom: 16px !important;
+}
+
+body.woocommerce-order-received .bw-verify-email-form__field input[type="email"] {
+    width: 100%;
+    min-height: 56px;
+    border-radius: 14px;
+    border: 1px solid #cfd4dc;
+    padding: 24px 16px 10px;
+    background: #f7f7f7;
+    color: #0f172a;
+    box-sizing: border-box;
+    transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+body.woocommerce-order-received .bw-verify-email-form__field input[type="email"]::placeholder {
+    opacity: 0;
+}
+
+body.woocommerce-order-received .bw-verify-email-form__field input[type="email"]:focus {
+    border-color: #000;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.08);
+}
+
+body.woocommerce-order-received .bw-verify-email-form__field label {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    margin: 0;
+    font-size: 17px;
+    line-height: 1.2;
+    color: #6b7280;
+    pointer-events: none;
+    transition: all 160ms ease;
+    background: #f7f7f7;
+    padding: 0 6px;
+}
+
+body.woocommerce-order-received .bw-verify-email-form__field input[type="email"]:focus + label,
+body.woocommerce-order-received .bw-verify-email-form__field input[type="email"]:not(:placeholder-shown) + label {
+    top: 0;
+    transform: translateY(-50%);
+    font-size: 12px;
+    color: #111827;
+}
+
+body.woocommerce-order-received .bw-verify-email-form__actions {
+    margin-top: 22px !important;
+}
+
+body.woocommerce-order-received .bw-verify-email-form__actions .button,
+body.woocommerce-order-received .bw-verify-email-form__actions button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 54px;
+    padding: 12px 30px;
+    border-radius: 999px;
+    border: 1px solid #000 !important;
+    background: #000 !important;
+    color: #fff !important;
+    font-size: 20px;
+    line-height: 1.1;
+    text-decoration: none;
+    transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+
+body.woocommerce-order-received .bw-verify-email-form__actions .button:hover,
+body.woocommerce-order-received .bw-verify-email-form__actions .button:focus,
+body.woocommerce-order-received .bw-verify-email-form__actions button:hover,
+body.woocommerce-order-received .bw-verify-email-form__actions button:focus {
+    background: #80fd03 !important;
+    color: #000 !important;
+    border-color: #000 !important;
+}
+
+/* ============================================
    RESPONSIVE — MOBILE
    ============================================ */
 @media (max-width: 768px) {
@@ -465,6 +567,20 @@ body.woocommerce-order-received .woocommerce-error {
     body.woocommerce-order-received .order-again .button,
     body.woocommerce-order-received .order-again a.button {
         width: 100%;
+    }
+
+    body.woocommerce-order-received .bw-verify-email-form {
+        padding: 18px;
+    }
+
+    body.woocommerce-order-received .bw-verify-email-form__field label {
+        font-size: 16px;
+    }
+
+    body.woocommerce-order-received .bw-verify-email-form__actions .button,
+    body.woocommerce-order-received .bw-verify-email-form__actions button {
+        width: 100%;
+        font-size: 18px;
     }
 }
 
