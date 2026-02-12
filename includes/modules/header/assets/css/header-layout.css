@@ -45,15 +45,20 @@
     -webkit-backface-visibility: hidden;
 }
 
-.bw-custom-header.bw-custom-header--smart.bw-header-hidden {
+.bw-custom-header.bw-custom-header--smart.bw-header-hidden,
+.bw-custom-header.bw-custom-header--smart.hidden {
     transform: translateY(-100%);
+    pointer-events: none;
 }
 
-.bw-custom-header.bw-custom-header--smart.bw-header-visible {
+.bw-custom-header.bw-custom-header--smart.bw-header-visible,
+.bw-custom-header.bw-custom-header--smart.visible {
     transform: translateY(0);
+    pointer-events: auto;
 }
 
-.bw-custom-header.bw-custom-header--smart.bw-header-scrolled {
+.bw-custom-header.bw-custom-header--smart.bw-header-scrolled,
+.bw-custom-header.bw-custom-header--smart.scrolled {
     background: rgba(239, 239, 239, 0.86);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;

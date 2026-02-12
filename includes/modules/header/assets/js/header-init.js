@@ -92,6 +92,7 @@
             scrollDelta = 1;
         }
         var lastHandle = 0;
+        var isHeaderHidden = false;
 
         function recalcOffsets() {
             var adminBarHeight = getAdminBarHeight();
@@ -110,13 +111,25 @@
         }
 
         function showHeader() {
+            if (!isHeaderHidden) {
+                return;
+            }
+            header.classList.remove('hidden');
             header.classList.remove('bw-header-hidden');
+            header.classList.add('visible');
             header.classList.add('bw-header-visible');
+            isHeaderHidden = false;
         }
 
         function hideHeader() {
+            if (isHeaderHidden) {
+                return;
+            }
+            header.classList.remove('visible');
             header.classList.remove('bw-header-visible');
+            header.classList.add('hidden');
             header.classList.add('bw-header-hidden');
+            isHeaderHidden = true;
         }
 
         function onScroll() {
@@ -129,8 +142,11 @@
 
             // Mobile: disable smart hide/show + scrolled blur state to avoid jitter.
             if (isMobile) {
+                header.classList.remove('hidden');
+                header.classList.add('visible');
                 header.classList.remove('bw-header-hidden');
                 header.classList.add('bw-header-visible');
+                header.classList.remove('scrolled');
                 header.classList.remove('bw-header-scrolled');
                 lastScrollTop = currentScrollTop;
                 return;
@@ -139,20 +155,31 @@
             var headerHeight = header.offsetHeight || 0;
             var hideThreshold = Math.max(scrollDownThreshold, headerHeight);
             var blurTrigger = Math.max(blurThreshold, Math.round(headerHeight * 0.5));
+            var deltaScroll = currentScrollTop - lastScrollTop;
+            var newDirection = deltaScroll > 0 ? 'down' : 'up';
 
             if (currentScrollTop > blurTrigger) {
+                header.classList.add('scrolled');
                 header.classList.add('bw-header-scrolled');
             } else {
+                header.classList.remove('scrolled');
                 header.classList.remove('bw-header-scrolled');
             }
 
-            if (currentScrollTop > lastScrollTop) {
+            if (currentScrollTop <= hideThreshold) {
+                showHeader();
+                lastScrollTop = currentScrollTop;
+                return;
+            }
+
+            if (newDirection === 'up') {
+                // Scroll up: show immediately (legacy smart-header behavior)
+                showHeader();
+            } else if (newDirection === 'down') {
+                // Scroll down: hide only after threshold
                 if (currentScrollTop > hideThreshold) {
                     hideHeader();
-                }
-            } else {
-                var upDelta = lastScrollTop - currentScrollTop;
-                if (upDelta >= scrollUpThreshold) {
+                } else {
                     showHeader();
                 }
             }

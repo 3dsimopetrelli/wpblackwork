@@ -147,7 +147,7 @@ if (!function_exists('bw_header_render_frontend')) {
         $menu_blur_enabled = !empty($settings['smart_header']['menu_blur_enabled']);
         $header_classes = 'bw-custom-header';
         if ($smart_scroll_enabled) {
-            $header_classes .= ' bw-custom-header--smart bw-header-visible';
+            $header_classes .= ' bw-custom-header--smart bw-header-visible smart-header visible';
         }
 
         $search_desktop_markup = bw_header_render_search_block([

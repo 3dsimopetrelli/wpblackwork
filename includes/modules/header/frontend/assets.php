@@ -186,7 +186,7 @@ if (!function_exists('bw_header_enqueue_assets')) {
         );
 
         // Prevent legacy Elementor widget assets from overriding custom header styles/scripts.
-        $legacy_style_handles = ['bw-search-style', 'bw-navshop-style', 'bw-navigation-style'];
+        $legacy_style_handles = ['bw-search-style', 'bw-navshop-style', 'bw-navigation-style', 'bw-smart-header-style'];
         foreach ($legacy_style_handles as $handle) {
             if (wp_style_is($handle, 'enqueued')) {
                 wp_dequeue_style($handle);
@@ -279,7 +279,7 @@ if (!function_exists('bw_header_enqueue_assets')) {
             true
         );
 
-        $legacy_script_handles = ['bw-search-script', 'bw-navshop-script', 'bw-navigation-script'];
+        $legacy_script_handles = ['bw-search-script', 'bw-navshop-script', 'bw-navigation-script', 'bw-smart-header-script'];
         foreach ($legacy_script_handles as $handle) {
             if (wp_script_is($handle, 'enqueued')) {
                 wp_dequeue_script($handle);
