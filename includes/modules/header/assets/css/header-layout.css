@@ -6,13 +6,39 @@
     border-bottom: none;
 }
 
+.bw-custom-header.bw-header-preload:not(.bw-header-ready) {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.bw-custom-header.bw-header-preload {
+    transition: opacity 0.35s ease, visibility 0s linear 0.35s;
+}
+
+.bw-custom-header.bw-header-preload .bw-custom-header__inner {
+    transform: translateY(-14px);
+    transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.bw-custom-header.bw-header-preload.bw-header-ready {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transition: opacity 0.35s ease, visibility 0s linear 0s;
+}
+
+.bw-custom-header.bw-header-preload.bw-header-ready .bw-custom-header__inner {
+    transform: translateY(0);
+}
+
 .bw-custom-header.bw-custom-header--smart {
     position: fixed;
     top: var(--bw-header-top-offset, 0px);
     left: 0;
     right: 0;
     z-index: 9998;
-    transition: transform 0.4s ease-in-out, background-color 0.3s ease, backdrop-filter 0.3s ease, top 0.2s ease;
+    transition: transform 0.4s ease-in-out, background-color 0.35s ease, backdrop-filter 0.35s ease, -webkit-backdrop-filter 0.35s ease, top 0.2s ease;
     will-change: transform;
     transform: translateZ(0);
     backface-visibility: hidden;
@@ -29,8 +55,8 @@
 
 .bw-custom-header.bw-custom-header--smart.bw-header-scrolled {
     background: rgba(239, 239, 239, 0.86);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
 }
 
 body.bw-custom-header-smart-enabled:not(.elementor-editor-active) {
@@ -101,7 +127,7 @@ body.bw-custom-header-smart-enabled:not(.elementor-editor-active) {
     position: relative;
     z-index: 1;
     isolation: isolate;
-    transition: backdrop-filter 0.3s ease, padding 0.3s ease;
+    transition: backdrop-filter 0.35s ease, -webkit-backdrop-filter 0.35s ease, background-color 0.35s ease, padding 0.35s ease;
     overflow: visible;
 }
 
@@ -268,5 +294,12 @@ body.bw-custom-header-smart-enabled:not(.elementor-editor-active) {
 
     .bw-custom-header__mobile-right {
         gap: 14px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .bw-custom-header.bw-header-preload,
+    .bw-custom-header.bw-header-preload .bw-custom-header__inner {
+        transition: none !important;
     }
 }

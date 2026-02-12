@@ -37,6 +37,15 @@ if (!function_exists('bw_header_default_settings')) {
                 'cart_badge_offset_x' => 0,
                 'cart_badge_offset_y' => 0,
                 'cart_badge_size' => 1.2,
+                'desktop_cart_badge_offset_x' => 0,
+                'desktop_cart_badge_offset_y' => 0,
+                'desktop_cart_badge_size' => 1.2,
+                'inner_padding' => [
+                    'top' => 14,
+                    'right' => 18,
+                    'bottom' => 14,
+                    'left' => 18,
+                ],
                 'hamburger_padding' => [
                     'top' => 0,
                     'right' => 0,
@@ -172,6 +181,14 @@ if (!function_exists('bw_header_sanitize_settings')) {
         $out['mobile_layout']['cart_badge_offset_x'] = isset($mobile_layout['cart_badge_offset_x']) ? max(-100, min(100, (float) $mobile_layout['cart_badge_offset_x'])) : $defaults['mobile_layout']['cart_badge_offset_x'];
         $out['mobile_layout']['cart_badge_offset_y'] = isset($mobile_layout['cart_badge_offset_y']) ? max(-100, min(100, (float) $mobile_layout['cart_badge_offset_y'])) : $defaults['mobile_layout']['cart_badge_offset_y'];
         $out['mobile_layout']['cart_badge_size'] = isset($mobile_layout['cart_badge_size']) ? max(0.6, min(3, (float) $mobile_layout['cart_badge_size'])) : $defaults['mobile_layout']['cart_badge_size'];
+        $out['mobile_layout']['desktop_cart_badge_offset_x'] = isset($mobile_layout['desktop_cart_badge_offset_x']) ? max(-100, min(100, (float) $mobile_layout['desktop_cart_badge_offset_x'])) : $defaults['mobile_layout']['desktop_cart_badge_offset_x'];
+        $out['mobile_layout']['desktop_cart_badge_offset_y'] = isset($mobile_layout['desktop_cart_badge_offset_y']) ? max(-100, min(100, (float) $mobile_layout['desktop_cart_badge_offset_y'])) : $defaults['mobile_layout']['desktop_cart_badge_offset_y'];
+        $out['mobile_layout']['desktop_cart_badge_size'] = isset($mobile_layout['desktop_cart_badge_size']) ? max(0.6, min(3, (float) $mobile_layout['desktop_cart_badge_size'])) : $defaults['mobile_layout']['desktop_cart_badge_size'];
+        $mobile_inner_padding = isset($mobile_layout['inner_padding']) && is_array($mobile_layout['inner_padding']) ? $mobile_layout['inner_padding'] : [];
+        $out['mobile_layout']['inner_padding']['top'] = isset($mobile_inner_padding['top']) ? max(0, min(200, (float) $mobile_inner_padding['top'])) : $defaults['mobile_layout']['inner_padding']['top'];
+        $out['mobile_layout']['inner_padding']['right'] = isset($mobile_inner_padding['right']) ? max(0, min(200, (float) $mobile_inner_padding['right'])) : $defaults['mobile_layout']['inner_padding']['right'];
+        $out['mobile_layout']['inner_padding']['bottom'] = isset($mobile_inner_padding['bottom']) ? max(0, min(200, (float) $mobile_inner_padding['bottom'])) : $defaults['mobile_layout']['inner_padding']['bottom'];
+        $out['mobile_layout']['inner_padding']['left'] = isset($mobile_inner_padding['left']) ? max(0, min(200, (float) $mobile_inner_padding['left'])) : $defaults['mobile_layout']['inner_padding']['left'];
         $mobile_box_fields = [
             'hamburger_padding',
             'hamburger_margin',

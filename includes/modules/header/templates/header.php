@@ -3,8 +3,20 @@ if (!defined('ABSPATH')) {
     exit;
 }
 ?>
+<noscript>
+    <style>
+        .bw-custom-header.bw-header-preload {
+            opacity: 1 !important;
+            visibility: visible !important;
+            pointer-events: auto !important;
+        }
+        .bw-custom-header.bw-header-preload .bw-custom-header__inner {
+            transform: none !important;
+        }
+    </style>
+</noscript>
 <header
-    class="<?php echo esc_attr(isset($header_classes) ? $header_classes : 'bw-custom-header'); ?>"
+    class="<?php echo esc_attr(trim((isset($header_classes) ? $header_classes : 'bw-custom-header') . ' bw-header-preload')); ?>"
     role="banner"
     aria-label="<?php echo esc_attr($header_title); ?>"
     data-smart-scroll="<?php echo !empty($smart_scroll_enabled) ? 'yes' : 'no'; ?>"

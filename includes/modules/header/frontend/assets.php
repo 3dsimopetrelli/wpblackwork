@@ -110,6 +110,14 @@ if (!function_exists('bw_header_enqueue_assets')) {
         $mobile_cart_badge_offset_x = isset($mobile_layout['cart_badge_offset_x']) ? max(-100, min(100, (float) $mobile_layout['cart_badge_offset_x'])) : 0;
         $mobile_cart_badge_offset_y = isset($mobile_layout['cart_badge_offset_y']) ? max(-100, min(100, (float) $mobile_layout['cart_badge_offset_y'])) : 0;
         $mobile_cart_badge_size = isset($mobile_layout['cart_badge_size']) ? max(0.6, min(3, (float) $mobile_layout['cart_badge_size'])) : 1.2;
+        $desktop_cart_badge_offset_x = isset($mobile_layout['desktop_cart_badge_offset_x']) ? max(-100, min(100, (float) $mobile_layout['desktop_cart_badge_offset_x'])) : 0;
+        $desktop_cart_badge_offset_y = isset($mobile_layout['desktop_cart_badge_offset_y']) ? max(-100, min(100, (float) $mobile_layout['desktop_cart_badge_offset_y'])) : 0;
+        $desktop_cart_badge_size = isset($mobile_layout['desktop_cart_badge_size']) ? max(0.6, min(3, (float) $mobile_layout['desktop_cart_badge_size'])) : 1.2;
+        $mobile_inner_padding = isset($mobile_layout['inner_padding']) && is_array($mobile_layout['inner_padding']) ? $mobile_layout['inner_padding'] : ['top' => 14, 'right' => 18, 'bottom' => 14, 'left' => 18];
+        $mobile_inner_padding_top = isset($mobile_inner_padding['top']) ? max(0, min(200, (float) $mobile_inner_padding['top'])) : 14;
+        $mobile_inner_padding_right = isset($mobile_inner_padding['right']) ? max(0, min(200, (float) $mobile_inner_padding['right'])) : 18;
+        $mobile_inner_padding_bottom = isset($mobile_inner_padding['bottom']) ? max(0, min(200, (float) $mobile_inner_padding['bottom'])) : 14;
+        $mobile_inner_padding_left = isset($mobile_inner_padding['left']) ? max(0, min(200, (float) $mobile_inner_padding['left'])) : 18;
 
         $mobile_default_box = ['top' => 0, 'right' => 0, 'bottom' => 0, 'left' => 0];
         $mobile_hamburger_padding = isset($mobile_layout['hamburger_padding']) && is_array($mobile_layout['hamburger_padding']) ? $mobile_layout['hamburger_padding'] : $mobile_default_box;
@@ -178,6 +186,9 @@ if (!function_exists('bw_header_enqueue_assets')) {
         );
 
         $inline_css = "\n@media (max-width: {$breakpoint}px) {\n"
+            . ".bw-custom-header{position:fixed !important;top:var(--bw-header-mobile-top-offset, 0px) !important;left:0 !important;right:0 !important;z-index:9998;width:auto !important;min-width:0 !important;max-width:none !important;margin:0 !important;transform:none !important;box-sizing:border-box !important;transition: background-color 0.35s ease, opacity 0.35s ease;}\n"
+            . ".bw-custom-header.bw-mobile-scrolled{background-color:#ffffff !important;}\n"
+            . ".bw-custom-header .bw-custom-header__inner{padding: {$mobile_inner_padding_top}px {$mobile_inner_padding_right}px {$mobile_inner_padding_bottom}px {$mobile_inner_padding_left}px !important;width:100% !important;max-width:none !important;margin:0 !important;}\n"
             . ".bw-custom-header__desktop{display:none;}\n"
             . ".bw-custom-header__mobile{display:grid;}\n"
             . ".bw-custom-header .bw-navigation__toggle{display:inline-flex;}\n"
@@ -198,18 +209,19 @@ if (!function_exists('bw_header_enqueue_assets')) {
             . ".bw-custom-header__desktop{display:flex;}\n"
             . ".bw-custom-header__mobile{display:none;}\n"
             . ".bw-custom-header .bw-navigation__toggle,.bw-custom-header .bw-navigation__mobile-overlay{display:none !important;}\n"
+            . ".bw-custom-header__desktop-right .bw-navshop__cart-count{transform: translate({$desktop_cart_badge_offset_x}px, {$desktop_cart_badge_offset_y}px) !important;min-width: {$desktop_cart_badge_size}em !important;height: {$desktop_cart_badge_size}em !important;line-height: {$desktop_cart_badge_size}em !important;}\n"
             . "}\n";
 
         if ($smart_scroll_enabled) {
-            $inline_css .= ".bw-custom-header{background: " . bw_header_hex_to_rgba($smart_header_bg, $smart_header_bg_opacity) . " !important;}\n";
-            $inline_css .= ".bw-custom-header.bw-custom-header--smart.bw-header-scrolled{background: " . bw_header_hex_to_rgba($smart_header_scrolled_bg, $smart_header_scrolled_opacity) . " !important;}\n";
+            $inline_css .= ".bw-custom-header{background-color: " . bw_header_hex_to_rgba($smart_header_bg, $smart_header_bg_opacity) . " !important;}\n";
+            $inline_css .= ".bw-custom-header.bw-custom-header--smart.bw-header-scrolled{background-color: " . bw_header_hex_to_rgba($smart_header_scrolled_bg, $smart_header_scrolled_opacity) . " !important;}\n";
         } else {
             if ($background_transparent) {
-                $inline_css .= ".bw-custom-header{background: transparent !important;}\n";
+                $inline_css .= ".bw-custom-header{background-color: transparent !important;}\n";
             } else {
-                $inline_css .= ".bw-custom-header{background: {$header_bg} !important;}\n";
+                $inline_css .= ".bw-custom-header{background-color: {$header_bg} !important;}\n";
             }
-            $inline_css .= ".bw-custom-header.bw-custom-header--smart.bw-header-scrolled{background: {$header_bg} !important;}\n";
+            $inline_css .= ".bw-custom-header.bw-custom-header--smart.bw-header-scrolled{background-color: {$header_bg} !important;}\n";
         }
         $inline_css .= ".bw-custom-header__inner{padding: {$inner_padding_top}{$inner_padding_unit} {$inner_padding_right}{$inner_padding_unit} {$inner_padding_bottom}{$inner_padding_unit} {$inner_padding_left}{$inner_padding_unit} !important;}\n";
         if ($menu_blur_enabled) {
@@ -218,6 +230,9 @@ if (!function_exists('bw_header_enqueue_assets')) {
         } else {
             $inline_css .= ".bw-custom-header__desktop-panel{backdrop-filter:none !important;-webkit-backdrop-filter:none !important;background:transparent !important;padding:0 !important;margin:0 !important;border-radius:0 !important;}\n";
         }
+
+        // Mobile scroll state must win over smart-header desktop rules.
+        $inline_css .= "@media (max-width: {$breakpoint}px){.bw-custom-header.is-mobile.bw-mobile-scrolled,.bw-custom-header.bw-custom-header--smart.is-mobile.bw-mobile-scrolled,.bw-custom-header.bw-custom-header--smart.bw-header-scrolled.is-mobile.bw-mobile-scrolled{background-color:#ffffff !important;}}\n";
 
         // Disable legacy smart-header body offset when custom header is enabled.
         $inline_css .= "body:not(.elementor-editor-active){--smart-header-body-padding:0px !important;}\n";
