@@ -1,11 +1,6 @@
-.elementor-widget-bw-navigation {
+.bw-header-navigation {
     width: max-content !important;
     flex: 0 0 auto !important;
-    max-width: none !important;
-}
-
-.elementor-widget-bw-navigation > .elementor-widget-container {
-    width: max-content !important;
     max-width: none !important;
 }
 

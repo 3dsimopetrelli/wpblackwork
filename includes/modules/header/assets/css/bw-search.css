@@ -1,13 +1,8 @@
 /* BW Search Button */
-.elementor-widget-bw-search {
+.bw-header-search {
     width: max-content !important;
     max-width: 100%;
     flex: 0 0 auto !important;
-}
-
-.elementor-widget-bw-search > .elementor-widget-container {
-    width: max-content;
-    max-width: 100%;
 }
 
 .bw-search-button {

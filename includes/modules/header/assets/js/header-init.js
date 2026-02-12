@@ -5,23 +5,30 @@
         document.documentElement.classList.add('bw-header-js');
     }
 
-    // Global definition for Dark Zone vars within this scope
+    // Dark Zone state
     var darkZoneObserver = null;
     var darkZones = [];
     var isOnDarkZone = false;
-    var currentDarkZone = null;
+
+    /**
+     * Read admin-configured values from bwHeaderConfig (set via wp_localize_script).
+     */
+    function getConfig() {
+        var cfg = window.bwHeaderConfig || {};
+        var smart = cfg.smartHeader || {};
+        return {
+            breakpoint: parseInt(cfg.breakpoint, 10) || 1024,
+            smartScroll: !!cfg.smartScroll,
+            scrollDownThreshold: parseInt(smart.scrollDownThreshold, 10) || 100,
+            scrollUpThreshold: parseInt(smart.scrollUpThreshold, 10) || 0,
+            scrollDelta: Math.max(1, parseInt(smart.scrollDelta, 10) || 1),
+            blurThreshold: parseInt(smart.blurThreshold, 10) || 50,
+            throttleDelay: parseInt(smart.throttleDelay, 10) || 16,
+        };
+    }
 
     function getBreakpoint() {
-        if (typeof window.bwHeaderConfig === 'undefined') {
-            return 1024;
-        }
-
-        var bp = parseInt(window.bwHeaderConfig.breakpoint, 10);
-        if (!bp || Number.isNaN(bp)) {
-            return 1024;
-        }
-
-        return bp;
+        return getConfig().breakpoint;
     }
 
     function ensureHeaderInBody() {
@@ -148,10 +155,7 @@
         if (!header) return;
         var headerRect = header.getBoundingClientRect();
         var headerHeight = headerRect.height;
-        // Optimization: if header is hidden (translateY -100%), technically it's not "on" anything, 
-        // but for state consistency we might want to keep the last state or check overlap effectively.
-        // Assuming we check based on where it *would* be.
-        var headerTop = headerRect.top > 0 ? headerRect.top : 0; // Simplified for sticky top
+        var headerTop = headerRect.top > 0 ? headerRect.top : 0;
         var headerBottom = headerTop + headerHeight;
 
         var overlappingZone = null;
@@ -159,7 +163,6 @@
 
         darkZones.forEach(function (zone) {
             var zoneRect = zone.getBoundingClientRect();
-            // Simple overlap check
             if (zoneRect.top < headerBottom && zoneRect.bottom > headerTop) {
                 var overlapHeight = Math.min(headerBottom, zoneRect.bottom) - Math.max(headerTop, zoneRect.top);
                 var pct = (overlapHeight / headerHeight) * 100;
@@ -173,10 +176,8 @@
         var shouldBeOnDark = overlappingZone !== null && maxOverlap >= 30;
         if (shouldBeOnDark !== isOnDarkZone) {
             isOnDarkZone = shouldBeOnDark;
-            currentDarkZone = overlappingZone;
             if (isOnDarkZone) {
                 header.classList.add('bw-header-on-dark');
-                // Legacy support if needed, but trying to keep clean
             } else {
                 header.classList.remove('bw-header-on-dark');
             }
@@ -186,21 +187,20 @@
     function initDarkZoneDetection(header) {
         var manualDarkZones = Array.from(document.querySelectorAll('.smart-header-dark-zone'));
         var autoDarkZones = autoDetectDarkSections();
-        var allDarkZones = manualDarkZones.concat(autoDarkZones.filter(function (z) { return !manualDarkZones.includes(z) }));
+        var allDarkZones = manualDarkZones.concat(autoDarkZones.filter(function (z) { return !manualDarkZones.includes(z); }));
         darkZones = allDarkZones;
 
         if ('IntersectionObserver' in window && darkZones.length > 0) {
-            darkZoneObserver = new IntersectionObserver(function (entries) {
-                // When any dark zone enters/exits view, re-check overlap
+            darkZoneObserver = new IntersectionObserver(function () {
                 checkDarkZoneOverlap(header);
-            }, { root: null, margin: '0px' });
+            }, { root: null, rootMargin: '0px' });
             darkZones.forEach(function (zone) { darkZoneObserver.observe(zone); });
         }
         checkDarkZoneOverlap(header);
     }
 
     /* ========================================================================
-       NEW SIMPLIFIED STICKY LOGIC
+       STICKY HEADER LOGIC
        ======================================================================== */
 
     function initStickyHeader() {
@@ -209,40 +209,31 @@
 
         initDarkZoneDetection(header);
 
+        var cfg = getConfig();
         var docEl = document.documentElement;
         var body = document.body;
         var lastScrollTop = window.pageYOffset || 0;
         var ticking = false;
-
-        // Constants
-        var SCROLL_DELTA = 5; // Minimum scroll to trigger action
-        var HIDE_OFFSET = 100; // Pixel offset before hiding starts
+        var wasSticky = false;
+        var scrollDelta = cfg.scrollDelta;
+        var scrollDownThreshold = cfg.scrollDownThreshold;
+        var scrollUpThreshold = cfg.scrollUpThreshold;
 
         function recalcOffsets() {
             var adminBarHeight = getAdminBarHeight();
             var headerHeight = header.offsetHeight || 0;
-            // Banner height might not be needed for sticky logic if it scrolls away,
-            // but we keep the variable if needed for other logic.
             getAnimatedBannerHeight(header);
 
-            var topOffset = adminBarHeight;
-
-            // Set variables
-            docEl.style.setProperty('--bw-header-top-offset', topOffset + 'px');
+            docEl.style.setProperty('--bw-header-top-offset', adminBarHeight + 'px');
             docEl.style.setProperty('--bw-header-body-padding', headerHeight + 'px');
 
-            // IMPORTANT:
-            // We do NOT add the 'bw-sticky-header-active' class here initially.
-            // That class adds padding-top to body. 
-            // Since the header is position:relative by default (static), it effectively takes up space.
-            // Adding padding to body would double the whitespace at the top.
-            // The class is now toggled ONLY in the onScroll function when the header becomes fixed.
-
-            // Just ensure it's removed on resize if we are at the top
             var st = window.pageYOffset || 0;
-            if (st <= headerHeight + 50) {
+            if (st <= 0) {
                 body.classList.remove('bw-sticky-header-active');
                 header.classList.remove('bw-sticky-header');
+                header.classList.remove('bw-header-hidden');
+                header.classList.remove('bw-header-visible');
+                wasSticky = false;
             }
         }
 
@@ -252,46 +243,63 @@
 
             checkDarkZoneOverlap(header);
 
-            // ACTIVATION POINT:
-            // When the header should become sticky.
-            // Usually headerHeight + some buffer.
-            var activationPoint = headerHeight + 50;
+            // Header must scroll fully past its own height before becoming sticky.
+            // Also respect the admin-configured scrollDownThreshold.
+            var activationPoint = Math.max(headerHeight, scrollDownThreshold);
             var isSticky = st > activationPoint;
 
             if (isSticky) {
-                header.classList.add('bw-sticky-header');
-                document.body.classList.add('bw-sticky-header-active');
+                if (!wasSticky) {
+                    // First frame entering sticky mode.
+                    header.classList.add('bw-sticky-header');
+                    body.classList.add('bw-sticky-header-active');
+
+                    if (st > lastScrollTop) {
+                        // Entering sticky while scrolling DOWN:
+                        // Hide instantly (no transition) to prevent the flash
+                        // where the header snaps to fixed-top then hides.
+                        header.style.transition = 'none';
+                        header.classList.add('bw-header-hidden');
+                        header.classList.remove('bw-header-visible');
+                        void header.offsetHeight; // force reflow
+                        header.style.transition = '';
+                    } else {
+                        // Entering sticky while scrolling UP: show immediately.
+                        header.classList.remove('bw-header-hidden');
+                        header.classList.add('bw-header-visible');
+                    }
+                    wasSticky = true;
+                } else {
+                    // Already sticky — directional show/hide.
+                    var delta = Math.abs(lastScrollTop - st);
+                    if (delta > scrollDelta) {
+                        if (st > lastScrollTop) {
+                            // Scrolling DOWN → hide.
+                            header.classList.add('bw-header-hidden');
+                            header.classList.remove('bw-header-visible');
+                        } else {
+                            // Scrolling UP → show (respecting scrollUpThreshold).
+                            var upDelta = lastScrollTop - st;
+                            if (upDelta >= scrollUpThreshold && st + window.innerHeight < body.scrollHeight) {
+                                header.classList.remove('bw-header-hidden');
+                                header.classList.add('bw-header-visible');
+                            }
+                        }
+                    }
+                }
             } else {
+                // Below activation point → return to natural position.
+                if (wasSticky) {
+                    // Remove sticky instantly (no transition flash).
+                    header.style.transition = 'none';
+                    void header.offsetHeight;
+                    header.style.transition = '';
+                }
                 header.classList.remove('bw-sticky-header');
-                document.body.classList.remove('bw-sticky-header-active');
+                body.classList.remove('bw-sticky-header-active');
                 header.classList.remove('bw-header-hidden');
                 header.classList.remove('bw-header-visible');
-                lastScrollTop = st;
-                return;
-            }
-
-            // Directional Logic
-            if (Math.abs(lastScrollTop - st) <= SCROLL_DELTA) return;
-
-            // HIDE LOGIC:
-            // Only hide if scrolling DOWN AND past a certain point.
-            // Crucial fix: Ensure we are well past the activation point to avoid immediate hiding.
-            // If we just became sticky at 'activationPoint' (e.g. 150px), and we scroll to 155px,
-            // we are scrolling down, but we shouldn't hide yet.
-            // Let's require being past activationPoint + headerHeight.
-            var safeHideThreshold = activationPoint + headerHeight + 50;
-
-            if (st > lastScrollTop && st > safeHideThreshold) {
-                // Scroll Down -> Hide
-                header.classList.add('bw-header-hidden');
-                header.classList.remove('bw-header-visible');
-            } else if (st < lastScrollTop) {
-                // Scroll Up -> Show
-                // Only show if we aren't at the very bottom (rubber banding)
-                if (st + window.innerHeight < document.body.scrollHeight) {
-                    header.classList.remove('bw-header-hidden');
-                    header.classList.add('bw-header-visible');
-                }
+                wasSticky = false;
             }
 
             lastScrollTop = st;
@@ -313,7 +321,6 @@
             checkDarkZoneOverlap(header);
         });
 
-        // Init
         recalcOffsets();
     }
 
@@ -322,10 +329,9 @@
         applyStateClass();
         initStickyHeader();
 
-        // Reveal header
         var header = document.querySelector('.bw-custom-header');
         if (header) {
-            header.classList.remove('bw-header-preload'); // If used in CSS
+            header.classList.remove('bw-header-preload');
             header.style.opacity = '1';
             header.style.visibility = 'visible';
         }

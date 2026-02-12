@@ -219,7 +219,7 @@
     }
 
     function initBWSearchWidgets() {
-        $('.bw-header-search, .elementor-widget-bw-search').each(function () {
+        $('.bw-header-search').each(function () {
             if ($(this).data('bw-search-initialized')) {
                 return;
             }
