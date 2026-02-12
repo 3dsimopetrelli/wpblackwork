@@ -370,20 +370,6 @@ if (!function_exists('bw_header_render_admin_page')) {
                                 </td>
                             </tr>
                             <tr>
-                                <th scope="row"><label for="bw-header-blur-threshold"><?php esc_html_e('Blur Threshold (px)', 'bw'); ?></label></th>
-                                <td>
-                                    <input id="bw-header-blur-threshold" type="number" min="0" max="2000" name="<?php echo esc_attr(BW_HEADER_OPTION_KEY); ?>[smart_header][blur_threshold]" value="<?php echo esc_attr((int) $settings['smart_header']['blur_threshold']); ?>" />
-                                    <p class="description"><?php esc_html_e('Apply blur/background effect after this scroll distance.', 'bw'); ?></p>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th scope="row"><label for="bw-header-throttle-delay"><?php esc_html_e('Throttle Delay (ms)', 'bw'); ?></label></th>
-                                <td>
-                                    <input id="bw-header-throttle-delay" type="number" min="1" max="1000" name="<?php echo esc_attr(BW_HEADER_OPTION_KEY); ?>[smart_header][throttle_delay]" value="<?php echo esc_attr((int) $settings['smart_header']['throttle_delay']); ?>" />
-                                    <p class="description"><?php esc_html_e('Scroll handler cadence. Lower = more reactive.', 'bw'); ?></p>
-                                </td>
-                            </tr>
-                            <tr>
                                 <th scope="row"><label for="bw-header-smart-bg-color"><?php esc_html_e('Header BG Color (Smart)', 'bw'); ?></label></th>
                                 <td><input id="bw-header-smart-bg-color" type="color" name="<?php echo esc_attr(BW_HEADER_OPTION_KEY); ?>[smart_header][header_bg_color]" value="<?php echo esc_attr($settings['smart_header']['header_bg_color']); ?>" /></td>
                             </tr>

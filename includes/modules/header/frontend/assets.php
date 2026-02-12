@@ -308,8 +308,6 @@ if (!function_exists('bw_header_enqueue_assets')) {
                     'scrollDownThreshold' => isset($settings['smart_header']['scroll_down_threshold']) ? absint($settings['smart_header']['scroll_down_threshold']) : 100,
                     'scrollUpThreshold' => isset($settings['smart_header']['scroll_up_threshold']) ? absint($settings['smart_header']['scroll_up_threshold']) : 0,
                     'scrollDelta' => isset($settings['smart_header']['scroll_delta']) ? absint($settings['smart_header']['scroll_delta']) : 1,
-                    'blurThreshold' => isset($settings['smart_header']['blur_threshold']) ? absint($settings['smart_header']['blur_threshold']) : 50,
-                    'throttleDelay' => isset($settings['smart_header']['throttle_delay']) ? absint($settings['smart_header']['throttle_delay']) : 16,
                 ],
             ]
         );

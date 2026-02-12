@@ -107,8 +107,6 @@ if (!function_exists('bw_header_default_settings')) {
                 'scroll_down_threshold' => 100,
                 'scroll_up_threshold' => 0,
                 'scroll_delta' => 1,
-                'blur_threshold' => 50,
-                'throttle_delay' => 16,
                 'header_bg_color' => '#efefef',
                 'header_bg_opacity' => 1,
                 'header_scrolled_bg_color' => '#efefef',
@@ -238,12 +236,6 @@ if (!function_exists('bw_header_sanitize_settings')) {
         $out['smart_header']['scroll_delta'] = isset($smart_header['scroll_delta'])
             ? max(1, min(100, absint($smart_header['scroll_delta'])))
             : $defaults['smart_header']['scroll_delta'];
-        $out['smart_header']['blur_threshold'] = isset($smart_header['blur_threshold'])
-            ? max(0, min(2000, absint($smart_header['blur_threshold'])))
-            : $defaults['smart_header']['blur_threshold'];
-        $out['smart_header']['throttle_delay'] = isset($smart_header['throttle_delay'])
-            ? max(1, min(1000, absint($smart_header['throttle_delay'])))
-            : $defaults['smart_header']['throttle_delay'];
         $out['smart_header']['header_bg_color'] = isset($smart_header['header_bg_color'])
             ? sanitize_hex_color($smart_header['header_bg_color'])
             : $defaults['smart_header']['header_bg_color'];
