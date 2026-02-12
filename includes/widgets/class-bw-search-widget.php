@@ -428,6 +428,39 @@ class BW_Search_Widget extends Widget_Base {
             ]
         );
 
+        $this->add_responsive_control(
+            'widget_position',
+            [
+                'label'        => __( 'Widget Position', 'bw' ),
+                'type'         => Controls_Manager::CHOOSE,
+                'options'      => [
+                    'left'   => [
+                        'title' => __( 'Left', 'bw' ),
+                        'icon'  => 'eicon-h-align-left',
+                    ],
+                    'center' => [
+                        'title' => __( 'Center', 'bw' ),
+                        'icon'  => 'eicon-h-align-center',
+                    ],
+                    'right'  => [
+                        'title' => __( 'Right', 'bw' ),
+                        'icon'  => 'eicon-h-align-right',
+                    ],
+                ],
+                'default'      => 'left',
+                'selectors_dictionary' => [
+                    'left'   => 'width: max-content; max-width: 100%; flex: 0 0 auto; margin-left: 0; margin-right: 0;',
+                    'center' => 'width: max-content; max-width: 100%; flex: 0 0 auto; margin-left: auto; margin-right: auto;',
+                    'right'  => 'width: max-content; max-width: 100%; flex: 0 0 auto; margin-left: auto; margin-right: 0;',
+                ],
+                'selectors'    => [
+                    '{{WRAPPER}}' => '{{VALUE}}',
+                ],
+                'toggle'       => false,
+                'separator'    => 'before',
+            ]
+        );
+
         $this->end_controls_section();
 
         // Popup Style Section

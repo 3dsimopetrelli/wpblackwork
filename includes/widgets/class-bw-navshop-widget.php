@@ -341,11 +341,43 @@ class BW_Navshop_Widget extends Widget_Base {
                     'right'  => 'flex-end',
                 ],
                 'selectors'    => [
-                    '{{WRAPPER}} .bw-navshop' => 'justify-content: {{VALUE}};',
+                    '{{WRAPPER}}' => 'display: flex; justify-content: {{VALUE}};',
                 ],
                 'toggle'       => false,
                 'render_type'  => 'ui',
                 'separator'    => 'before',
+            ]
+        );
+
+        $this->add_responsive_control(
+            'widget_position',
+            [
+                'label'        => __( 'Widget Position', 'bw' ),
+                'type'         => Controls_Manager::CHOOSE,
+                'options'      => [
+                    'left'   => [
+                        'title' => __( 'Left', 'bw' ),
+                        'icon'  => 'eicon-h-align-left',
+                    ],
+                    'center' => [
+                        'title' => __( 'Center', 'bw' ),
+                        'icon'  => 'eicon-h-align-center',
+                    ],
+                    'right'  => [
+                        'title' => __( 'Right', 'bw' ),
+                        'icon'  => 'eicon-h-align-right',
+                    ],
+                ],
+                'default'      => 'left',
+                'selectors_dictionary' => [
+                    'left'   => 'margin-left: 0; margin-right: 0;',
+                    'center' => 'margin-left: auto; margin-right: auto;',
+                    'right'  => 'margin-left: auto; margin-right: 0;',
+                ],
+                'selectors'    => [
+                    '{{WRAPPER}}' => '{{VALUE}}',
+                ],
+                'toggle'       => false,
             ]
         );
 
