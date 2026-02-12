@@ -119,8 +119,8 @@
 
 .bw-navigation__mobile-panel {
     position: relative;
-    width: 400px;
-    max-width: 100%;
+    width: 590px;
+    max-width: 590px;
     height: 100%;
     overflow-y: auto;
     background-color: #ffffff;
@@ -213,14 +213,7 @@ body.bw-navigation-mobile-open {
     overflow: hidden;
 }
 
-@media (max-width: 768px) {
-    .bw-navigation__mobile-panel {
-        width: 90%;
-        max-width: 400px;
-    }
-}
-
-@media (max-width: 480px) {
+@media (max-width: 1025px) {
     .bw-navigation__mobile-panel {
         width: 100%;
         max-width: 100%;

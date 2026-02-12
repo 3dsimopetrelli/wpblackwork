@@ -185,6 +185,14 @@ if (!function_exists('bw_header_enqueue_assets')) {
             file_exists($base_path . 'css/bw-navigation.css') ? filemtime($base_path . 'css/bw-navigation.css') : '1.0.0'
         );
 
+        // Prevent legacy Elementor widget assets from overriding custom header styles/scripts.
+        $legacy_style_handles = ['bw-search-style', 'bw-navshop-style', 'bw-navigation-style'];
+        foreach ($legacy_style_handles as $handle) {
+            if (wp_style_is($handle, 'enqueued')) {
+                wp_dequeue_style($handle);
+            }
+        }
+
         $inline_css = "\n@media (max-width: {$breakpoint}px) {\n"
             . ".bw-custom-header{position:fixed !important;top:var(--bw-header-mobile-top-offset, 0px) !important;left:0 !important;right:0 !important;z-index:9998;width:auto !important;min-width:0 !important;max-width:none !important;margin:0 !important;transform:none !important;box-sizing:border-box !important;transition: background-color 0.35s ease, opacity 0.35s ease;}\n"
             . ".bw-custom-header.bw-mobile-scrolled{background-color:#ffffff !important;}\n"
@@ -270,6 +278,13 @@ if (!function_exists('bw_header_enqueue_assets')) {
             file_exists($base_path . 'js/header-init.js') ? filemtime($base_path . 'js/header-init.js') : '1.0.0',
             true
         );
+
+        $legacy_script_handles = ['bw-search-script', 'bw-navshop-script', 'bw-navigation-script'];
+        foreach ($legacy_script_handles as $handle) {
+            if (wp_script_is($handle, 'enqueued')) {
+                wp_dequeue_script($handle);
+            }
+        }
 
         wp_localize_script(
             'bw-header-search-script',
