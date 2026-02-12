@@ -9,14 +9,6 @@ if (!defined('ABSPATH')) {
  * Migrated from bw-main-elementor-widgets.php to allow standalone header usage.
  */
 
-// Se l'action è già stata registrata altrove (retrocompatibilità), rimuoviamola per evitare doppi hook
-if (has_action('wp_ajax_bw_live_search_products', 'bw_live_search_products')) {
-    remove_action('wp_ajax_bw_live_search_products', 'bw_live_search_products');
-}
-if (has_action('wp_ajax_nopriv_bw_live_search_products', 'bw_live_search_products')) {
-    remove_action('wp_ajax_nopriv_bw_live_search_products', 'bw_live_search_products');
-}
-
 add_action('wp_ajax_bw_live_search_products', 'bw_header_live_search_products');
 add_action('wp_ajax_nopriv_bw_live_search_products', 'bw_header_live_search_products');
 

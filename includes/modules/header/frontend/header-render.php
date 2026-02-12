@@ -53,7 +53,7 @@ if (!function_exists('bw_header_render_search_block')) {
 
         ob_start();
         ?>
-        <div class="elementor-widget-bw-search bw-header-search" data-bw-search-root="1">
+        <div class="bw-header-search" data-bw-search-root="1">
             <button class="bw-search-button" type="button" aria-label="<?php esc_attr_e('Open search', 'bw'); ?>">
                 <span class="bw-search-button__label"><?php echo esc_html($label); ?></span>
                 <span class="bw-search-button__icon" aria-hidden="true"><?php echo $icon_markup; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>

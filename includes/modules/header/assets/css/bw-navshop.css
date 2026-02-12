@@ -1,16 +1,11 @@
-/* BW NavShop Widget Styles */
-.elementor-widget-bw-navshop {
+/* BW NavShop Styles */
+.bw-header-navshop {
     width: max-content !important;
     max-width: 100%;
     flex: 0 0 auto !important;
 }
 
-.elementor-widget-bw-navshop > .elementor-widget-container {
-    width: max-content;
-    max-width: 100%;
-}
-
-.elementor-widget-bw-navshop .bw-navshop {
+.bw-header-navshop .bw-navshop {
     display: flex;
     align-items: center;
     flex-wrap: nowrap;

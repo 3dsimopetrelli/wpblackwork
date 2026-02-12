@@ -23,7 +23,7 @@ if (!function_exists('bw_header_get_mobile_breakpoint')) {
     }
 }
 
-if (!function_exists('bw_header_enqueue_assets')) {
+if (!function_exists('bw_header_hex_to_rgba')) {
     function bw_header_hex_to_rgba($hex, $opacity = 1)
     {
         $hex = sanitize_hex_color($hex);
@@ -46,7 +46,9 @@ if (!function_exists('bw_header_enqueue_assets')) {
 
         return sprintf('rgba(%d,%d,%d,%.2f)', $r, $g, $b, $opacity);
     }
+}
 
+if (!function_exists('bw_header_enqueue_assets')) {
     function bw_header_enqueue_assets()
     {
         if (is_admin() || !bw_header_is_enabled()) {

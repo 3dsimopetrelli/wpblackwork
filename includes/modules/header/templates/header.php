@@ -38,7 +38,7 @@ if (!defined('ABSPATH')) {
                     </div>
                 </div>
 
-                <div class="bw-custom-header__desktop-right elementor-widget-bw-navshop bw-header-navshop">
+                <div class="bw-custom-header__desktop-right bw-header-navshop">
                     <div class="bw-navshop bw-navshop--hide-account-mobile">
                         <a href="<?php echo esc_url($account_link); ?>" class="bw-navshop__item bw-navshop__account"><?php echo esc_html($account_label); ?></a>
                         <a href="<?php echo esc_url($cart_link); ?>" class="bw-navshop__item bw-navshop__cart" aria-label="<?php echo esc_attr($cart_label); ?>" data-use-popup="yes">
@@ -52,17 +52,12 @@ if (!defined('ABSPATH')) {
         </div>
 
         <div class="bw-custom-header__mobile">
-            <div class="bw-custom-header__mobile-left elementor-widget-bw-navigation bw-header-navigation">
+            <div class="bw-custom-header__mobile-left bw-header-navigation">
                 <div class="bw-navigation">
                     <button class="bw-navigation__toggle" type="button" aria-expanded="false" aria-label="<?php esc_attr_e('Open menu', 'bw'); ?>">
                         <span class="bw-navigation__toggle-icon" aria-hidden="true"><?php echo $hamburger_icon; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
                     </button>
-                    <?php
-                    $mobile_nav_args = [
-                        'mobile_menu_html' => $mobile_menu_html,
-                    ];
-                    include BW_MEW_PATH . 'includes/modules/header/templates/parts/mobile-nav.php';
-                    ?>
+                    <?php include BW_MEW_PATH . 'includes/modules/header/templates/parts/mobile-nav.php'; ?>
                 </div>
             </div>
 
@@ -74,7 +69,7 @@ if (!defined('ABSPATH')) {
 
             <div class="bw-custom-header__mobile-right">
                 <?php echo $search_mobile_markup; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-                <div class="elementor-widget-bw-navshop bw-header-navshop bw-header-navshop--mobile">
+                <div class="bw-header-navshop bw-header-navshop--mobile">
                     <div class="bw-navshop bw-navshop--hide-account-mobile">
                         <a href="<?php echo esc_url($account_link); ?>" class="bw-navshop__item bw-navshop__account"><?php echo esc_html($account_label); ?></a>
                         <a href="<?php echo esc_url($cart_link); ?>" class="bw-navshop__item bw-navshop__cart" aria-label="<?php echo esc_attr($cart_label); ?>" data-use-popup="yes">
