@@ -18,6 +18,46 @@ if (!defined('BW_MEW_PATH')) {
     define('BW_MEW_PATH', plugin_dir_path(__FILE__));
 }
 
+/**
+ * Enable safe SVG uploads for administrators/editors and prevent raster metadata processing.
+ */
+function bw_mew_allow_svg_uploads($mimes)
+{
+    if (current_user_can('manage_options')) {
+        $mimes['svg'] = 'image/svg+xml';
+        $mimes['svgz'] = 'image/svg+xml';
+    }
+
+    return $mimes;
+}
+add_filter('upload_mimes', 'bw_mew_allow_svg_uploads');
+
+function bw_mew_fix_svg_filetype($data, $file, $filename, $mimes)
+{
+    $filetype = wp_check_filetype($filename, $mimes);
+
+    if (!empty($filetype['ext']) && in_array($filetype['ext'], ['svg', 'svgz'], true)) {
+        $data['ext'] = $filetype['ext'];
+        $data['type'] = 'image/svg+xml';
+        $data['proper_filename'] = $filename;
+    }
+
+    return $data;
+}
+add_filter('wp_check_filetype_and_ext', 'bw_mew_fix_svg_filetype', 10, 4);
+
+function bw_mew_skip_svg_metadata($metadata, $attachment_id)
+{
+    $mime = get_post_mime_type($attachment_id);
+
+    if ('image/svg+xml' === $mime) {
+        return [];
+    }
+
+    return $metadata;
+}
+add_filter('wp_generate_attachment_metadata', 'bw_mew_skip_svg_metadata', 10, 2);
+
 // Gestione redirect personalizzati
 if (file_exists(plugin_dir_path(__FILE__) . 'includes/class-bw-redirects.php')) {
     require_once plugin_dir_path(__FILE__) . 'includes/class-bw-redirects.php';
@@ -37,6 +77,11 @@ if (file_exists(plugin_dir_path(__FILE__) . 'cart-popup/cart-popup.php')) {
 // Includi la pagina unificata Blackwork Site Settings
 if (file_exists(plugin_dir_path(__FILE__) . 'admin/class-blackwork-site-settings.php')) {
     require_once plugin_dir_path(__FILE__) . 'admin/class-blackwork-site-settings.php';
+}
+
+// Custom Header module (server-rendered, no Elementor dependency)
+if (file_exists(plugin_dir_path(__FILE__) . 'includes/modules/header/header-module.php')) {
+    require_once plugin_dir_path(__FILE__) . 'includes/modules/header/header-module.php';
 }
 
 // Checkout fields manager (admin + frontend)

@@ -1,0 +1,562 @@
+/* BW Search Button */
+.elementor-widget-bw-search {
+    width: max-content !important;
+    max-width: 100%;
+    flex: 0 0 auto !important;
+}
+
+.elementor-widget-bw-search > .elementor-widget-container {
+    width: max-content;
+    max-width: 100%;
+}
+
+.bw-search-button {
+    --bw-search-button-bg: #80fd03;
+    --bw-search-button-bg-hover: var(--bw-search-button-bg);
+    --bw-search-button-border-color: #080808;
+    --bw-search-button-border-color-hover: var(--bw-search-button-border-color);
+    --bw-search-button-border-width: 1px;
+    --bw-search-button-border-radius: 999px;
+    --bw-search-button-padding-top: 12px;
+    --bw-search-button-padding-right: 26px;
+    --bw-search-button-padding-bottom: 12px;
+    --bw-search-button-padding-left: 26px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #080808;
+    font-size: 24px;
+    font-weight: 500;
+    line-height: 1;
+    cursor: pointer;
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
+    transition: all 0.3s ease;
+}
+
+.bw-search-button:hover,
+.bw-search-button:focus {
+    outline: none;
+}
+
+.bw-search-button__label {
+    color: inherit;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--bw-search-button-bg);
+    border: var(--bw-search-button-border-width) solid var(--bw-search-button-border-color);
+    border-radius: var(--bw-search-button-border-radius);
+    padding: var(--bw-search-button-padding-top) var(--bw-search-button-padding-right) var(--bw-search-button-padding-bottom) var(--bw-search-button-padding-left);
+    transition: all 0.3s ease;
+}
+
+.bw-search-button__icon {
+    color: inherit;
+    line-height: 1;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--bw-search-button-bg);
+    border: var(--bw-search-button-border-width) solid var(--bw-search-button-border-color);
+    border-radius: var(--bw-search-button-border-radius);
+    padding: var(--bw-search-button-padding-top) var(--bw-search-button-padding-right) var(--bw-search-button-padding-bottom) var(--bw-search-button-padding-left);
+    transition: all 0.3s ease;
+}
+
+.bw-search-button__icon svg {
+    width: 1em;
+    height: 1em;
+    display: block;
+}
+
+.bw-search-button__icon-image {
+    width: 1em;
+    height: 1em;
+    display: block;
+    object-fit: contain;
+}
+
+.bw-search-button__icon svg,
+.bw-search-button__icon svg * {
+    fill: none;
+    stroke: currentColor;
+}
+
+.bw-search-button:hover .bw-search-button__label,
+.bw-search-button:focus .bw-search-button__label,
+.bw-search-button:hover .bw-search-button__icon,
+.bw-search-button:focus .bw-search-button__icon {
+    background-color: var(--bw-search-button-bg-hover);
+    border-color: var(--bw-search-button-border-color-hover);
+}
+
+/* BW Search Overlay */
+/*
+ * L'overlay viene automaticamente spostato nel body via JavaScript
+ * per garantire che non sia vincolato da contenitori parent (es. navigation)
+ * e possa sempre aprirsi in fullscreen.
+ */
+.bw-search-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #FFFFFF;
+    z-index: 99999;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-100%);
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+                visibility 0s 0.5s;
+    overflow-y: auto;
+}
+
+.bw-search-overlay.is-active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+                visibility 0s 0s;
+}
+
+.bw-search-overlay__container {
+    position: relative;
+    width: 100%;
+    min-height: 100%;
+    padding: 40px 2%;
+    box-sizing: border-box;
+}
+
+/* Close Button */
+.bw-search-overlay__close {
+    position: absolute;
+    top: 40px;
+    right: 40px;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #F5F5F5;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    padding: 0;
+    color: #080808;
+}
+
+.bw-search-overlay__close:hover {
+    background-color: #E8E8E8;
+    transform: scale(1.05);
+}
+
+.bw-search-overlay__close:focus {
+    outline: 2px solid #080808;
+    outline-offset: 2px;
+}
+
+.bw-search-overlay__close svg {
+    width: 24px;
+    height: 24px;
+    stroke: currentColor;
+}
+
+/* Content */
+.bw-search-overlay__content {
+    max-width: 900px;
+    margin: 0 auto;
+    padding-top: 100px;
+}
+
+.bw-search-overlay__title {
+    font-size: clamp(28px, 4vw, 48px);
+    font-weight: 500;
+    color: #080808;
+    margin: 0 0 40px 0;
+    text-align: center;
+    line-height: 1.2;
+}
+
+/* Input Section */
+.bw-search-overlay__form {
+    /* No margin, content flows naturally */
+}
+
+.bw-search-overlay__input-wrapper {
+    position: relative;
+    border-bottom: 2px solid #080808;
+    padding-bottom: 12px;
+    padding-left: 2%;
+    padding-right: 2%;
+}
+
+.bw-search-overlay__input {
+    width: 100%;
+    font-size: clamp(20px, 3vw, 32px);
+    font-weight: 400;
+    color: #080808;
+    background: none;
+    border: none;
+    outline: none;
+    /* Padding removed - now controlled via widget settings only */
+    /* Default padding: 12px 0 12px 0 is set in the widget control */
+    line-height: 1.4;
+    font-family: inherit;
+}
+
+.bw-search-overlay__input::placeholder {
+    color: #C0C0C0;
+}
+
+.bw-search-overlay__input:focus {
+    outline: none;
+}
+
+/* Override WooCommerce input borders - ensures only plugin border is visible */
+.bw-search-overlay__input[type="search"],
+.woocommerce .bw-search-overlay__input[type="search"],
+.woocommerce-page .bw-search-overlay__input[type="search"],
+body .bw-search-overlay__input[type="search"] {
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* Reset any external padding that might be inherited from theme or plugins */
+/* High specificity selectors to ensure we override reset.css, WooCommerce, and theme styles */
+/* Padding is now controlled exclusively via widget "Input Field Padding" setting */
+.bw-search-overlay__input,
+.bw-search-overlay__input[type="search"],
+input.bw-search-overlay__input,
+input.bw-search-overlay__input[type="search"],
+.woocommerce .bw-search-overlay__input,
+.woocommerce .bw-search-overlay__input[type="search"],
+.woocommerce-page .bw-search-overlay__input,
+.woocommerce-page .bw-search-overlay__input[type="search"],
+body .bw-search-overlay__input,
+body .bw-search-overlay__input[type="search"],
+body input.bw-search-overlay__input,
+body input.bw-search-overlay__input[type="search"] {
+    /* Empty block with high specificity to prevent external styles */
+    /* Widget settings use !important to ensure they always take precedence */
+}
+
+/* Hint Text */
+.bw-search-overlay__hint {
+    font-size: 16px;
+    color: #808080;
+    margin: 16px 0 24px 0;
+    text-align: left;
+    line-height: 1.5;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .bw-search-overlay__close {
+        top: 20px;
+        right: 20px;
+        width: 44px;
+        height: 44px;
+    }
+
+    .bw-search-overlay__close svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .bw-search-overlay__content {
+        padding-top: 80px;
+    }
+
+    .bw-search-overlay__title {
+        margin-bottom: 30px;
+    }
+
+    .bw-search-overlay__container {
+        padding: 20px 2%;
+    }
+}
+
+/* Prevent body scroll when overlay is active */
+body.bw-search-overlay-active {
+    overflow: hidden;
+}
+
+/* Category Filters */
+.bw-search-overlay__filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 24px;
+    justify-content: center;
+}
+
+.bw-category-filter {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: 400;
+    color: #000000;
+    background-color: #FFFFFF;
+    border: 1px solid #000000;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    line-height: 1.4;
+    font-family: inherit;
+}
+
+.bw-category-filter:hover {
+    opacity: 0.8;
+}
+
+.bw-category-filter.is-active {
+    color: #FFFFFF;
+    background-color: #000000;
+    border-color: #000000;
+}
+
+.bw-category-filter:focus {
+    outline: 2px solid #080808;
+    outline-offset: 2px;
+}
+
+/* Placeholder fade-out animation - controlled by JavaScript */
+.bw-search-overlay__input::placeholder {
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+/* Class added by JS when user starts typing */
+.bw-search-overlay__input.has-content::placeholder {
+    opacity: 0;
+}
+
+/* Ensure caret is always visible */
+.bw-search-overlay__input {
+    caret-color: auto;
+}
+
+/* Responsive for filters */
+@media (max-width: 768px) {
+    .bw-search-overlay__filters {
+        margin-top: 20px;
+        gap: 6px;
+    }
+
+    .bw-category-filter {
+        padding: 8px 16px;
+        font-size: 14px;
+    }
+}
+
+/* ==========================================================================
+   Live Search Results - Masonry Layout
+   ========================================================================== */
+
+/* Results Container */
+.bw-search-results {
+    margin-top: 40px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20px);
+    transition: opacity 0.4s ease, transform 0.4s ease, visibility 0s 0.4s;
+}
+
+.bw-search-results.is-visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    transition: opacity 0.4s ease, transform 0.4s ease, visibility 0s 0s;
+}
+
+/* Results Grid - Masonry Layout (4 colonne) */
+.bw-search-results__grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    width: 100%;
+}
+
+/* Product Card */
+.bw-product-card {
+    background-color: #FFFFFF;
+    border-radius: 8px;
+    overflow: hidden;
+    animation: fadeInUp 0.5s ease forwards;
+    opacity: 0;
+    break-inside: avoid;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Product Card Link */
+.bw-product-card__link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+}
+
+/* Product Image */
+.bw-product-card__image {
+    position: relative;
+    width: 100%;
+    padding-bottom: 100%; /* 1:1 Aspect Ratio */
+    overflow: hidden;
+    background-color: #F5F5F5;
+}
+
+.bw-product-card__image img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Product Info */
+.bw-product-card__info {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Product Title */
+.bw-product-card__title {
+    font-size: 16px;
+    font-weight: 500;
+    color: #080808;
+    margin: 0;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Product Price */
+.bw-product-card__price {
+    font-size: 18px;
+    font-weight: 600;
+    color: #080808;
+}
+
+.bw-product-card__price .amount {
+    color: #080808;
+}
+
+.bw-product-card__price del {
+    opacity: 0.5;
+    margin-right: 8px;
+    font-weight: 400;
+}
+
+.bw-product-card__price ins {
+    text-decoration: none;
+}
+
+/* Results Message */
+.bw-search-results__message {
+    text-align: center;
+    padding: 40px 20px;
+    font-size: 18px;
+    color: #606060;
+    display: none;
+}
+
+/* Loading Spinner */
+.bw-search-results__loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0s 0.3s;
+}
+
+.bw-search-results__loading.is-visible {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.3s ease, visibility 0s 0s;
+}
+
+.bw-search-loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid #F0F0F0;
+    border-top-color: #080808;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Responsive - Tablet (3 colonne) */
+@media (max-width: 1024px) {
+    .bw-search-results__grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+    }
+}
+
+/* Responsive - Mobile (2 colonne) */
+@media (max-width: 768px) {
+    .bw-search-results {
+        margin-top: 30px;
+    }
+
+    .bw-search-results__grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    .bw-product-card__info {
+        padding: 12px;
+    }
+
+    .bw-product-card__title {
+        font-size: 14px;
+    }
+
+    .bw-product-card__price {
+        font-size: 16px;
+    }
+
+    .bw-search-results__message {
+        font-size: 16px;
+        padding: 30px 20px;
+    }
+}
+
+/* Responsive - Molto piccolo (1 colonna) */
+@media (max-width: 480px) {
+    .bw-search-results__grid {
+        grid-template-columns: 1fr;
+    }
+}
