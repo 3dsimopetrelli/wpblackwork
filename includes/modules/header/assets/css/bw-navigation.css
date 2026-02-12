@@ -52,6 +52,12 @@
     white-space: nowrap;
 }
 
+.bw-navigation__desktop .bw-navigation__link,
+.bw-navigation__mobile .bw-navigation__link {
+    font-size: 24px;
+    line-height: 1;
+}
+
 .bw-navigation__toggle {
     display: none;
     align-items: center;
@@ -138,10 +144,8 @@
 
 .bw-navigation__close {
     position: absolute;
-    top: 22px;
-    right: 22px;
-    width: 48px;
-    height: 48px;
+    top: 16px;
+    right: 20px;
     border: none !important;
     background: transparent !important;
     cursor: pointer;
@@ -149,16 +153,11 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    line-height: 1;
     padding: 4px;
     transition: opacity 0.2s ease;
     box-shadow: none !important;
     outline: none !important;
-}
-
-.bw-navigation__close:focus-visible {
-    outline: 2px solid currentColor;
-    outline-offset: 3px;
+    line-height: 1;
 }
 
 .bw-navigation__close:hover {
@@ -193,6 +192,20 @@
     transform: translateX(-28px);
 }
 
+.bw-navigation__mobile-divider {
+    width: 100%;
+    height: 1px;
+    background-color: #2f2f2f;
+    margin: 24px 0 18px;
+}
+
+.bw-navigation__auth-link {
+    display: inline-flex;
+    width: 100%;
+    text-decoration: none;
+    color: inherit;
+}
+
 .bw-navigation__mobile-overlay.is-open .bw-navigation__mobile .menu-item {
     animation: bw-navigation-item-enter 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
     animation-delay: var(--bw-nav-stagger-delay, 0ms);
@@ -213,7 +226,7 @@ body.bw-navigation-mobile-open {
     overflow: hidden;
 }
 
-@media (max-width: 1025px) {
+@media (max-width: 769px) {
     .bw-navigation__mobile-panel {
         width: 100%;
         max-width: 100%;

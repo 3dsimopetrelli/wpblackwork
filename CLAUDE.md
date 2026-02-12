@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**BW Elementor Widgets** is a WordPress plugin that provides custom Elementor widgets and extensive WooCommerce customizations for the BlackWork theme. The plugin is structured as a modular system with three main submodules and a collection of custom Elementor widgets.
+**BW Elementor Widgets** is a WordPress plugin that provides custom Elementor widgets, a server-rendered custom header module, and extensive WooCommerce customizations for the BlackWork theme.
 
 ## Development Environment
 
@@ -50,6 +50,7 @@ The plugin requires:
    - **Cart Popup** (`cart-popup/`) - Side-sliding cart with AJAX updates
    - **Coming Soon** (`BW_coming_soon/`) - Coming soon page with video background and newsletter integration
    - **Site Settings** (`admin/class-blackwork-site-settings.php`) - Unified settings page
+   - **Custom Header Module** (`includes/modules/header/`) - Server-rendered header (no Elementor dependency for header rendering)
 
 ### Widget System
 
@@ -58,16 +59,16 @@ All widgets are located in `includes/widgets/` and follow this pattern:
 - Class name: `Widget_Bw_{Name}` or `BW_{Name}_Widget`
 - Auto-discovered and registered by the widget loader
 
-**Key Widgets:**
+**Key Widgets (current):**
 - `class-bw-slick-slider-widget.php` - Slick carousel for posts/products
 - `class-bw-filtered-post-wall-widget.php` - Filterable masonry grid with category/tag filters
 - `class-bw-wallpost-widget.php` - Masonry layout using WordPress native masonry
-- `class-bw-search-widget.php` - Live search with AJAX filtering
 - `class-bw-product-slide-widget.php` - Product slider with variations
 - `class-bw-related-products-widget.php` - Related products display
 - `class-bw-static-showcase-widget.php` - Static image showcase
 - `class-bw-animated-banner-widget.php` - Animated banner widget
-- `class-bw-navshop-widget.php` - Navigation shop menu
+
+Note: header Elementor widgets (`bw-search`, `bw-navshop`, `bw-navigation`) were removed after migration to the custom header module.
 
 ### Asset Management
 
@@ -145,6 +146,7 @@ Located in `bw-main-elementor-widgets.php`:
    - Endpoint: `wp_ajax_bw_live_search_products`
    - Searches products with category/type filters
    - Returns JSON with product data
+   - Contract preserved for custom header search (`bw_search_nonce`, `action: bw_live_search_products`)
 
 2. **Filtered Post Wall**
    - `bw_fpw_get_subcategories` - Get child categories

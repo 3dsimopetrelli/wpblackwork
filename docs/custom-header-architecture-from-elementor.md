@@ -1,56 +1,55 @@
-# Header Widgets Architecture (BW Search, BW NavShop, BW Navigation)
+# Header Custom Architecture (Post-Migration)
 
-## Obiettivo
-Questo documento descrive l'architettura attuale dei 3 widget header usati in Elementor:
-- `BW Search`
-- `BW NavShop`
-- `BW Navigation`
+## Stato
+Migrazione completata: i widget Elementor header legacy (`BW Search`, `BW NavShop`, `BW Navigation`) sono stati rimossi.
 
-Scopo: usare questo contesto per costruire una versione **header custom** (senza Elementor), mantenendo le stesse funzionalita e UX.
+L'header ora e server-rendered tramite modulo custom in `includes/modules/header/`, mantenendo UX e classi BEM compatibili.
 
 ---
 
-## File sorgente principali
+## File sorgente principali (attuali)
 
-### Widget PHP (controlli + render)
-- `includes/widgets/class-bw-search-widget.php`
-- `includes/widgets/class-bw-navshop-widget.php`
-- `includes/widgets/class-bw-navigation-widget.php`
+### Render/template header custom
+- `includes/modules/header/frontend/header-render.php`
+- `includes/modules/header/templates/header.php`
+- `includes/modules/header/templates/parts/search-overlay.php`
+- `includes/modules/header/templates/parts/mobile-nav.php`
 
 ### CSS
-- `assets/css/bw-search.css`
-- `assets/css/bw-navshop.css`
-- `assets/css/bw-navigation.css`
+- `includes/modules/header/assets/css/bw-search.css`
+- `includes/modules/header/assets/css/bw-navshop.css`
+- `includes/modules/header/assets/css/bw-navigation.css`
+- `includes/modules/header/assets/css/header-layout.css`
 
 ### JS
-- `assets/js/bw-search.js`
-- `assets/js/bw-navshop.js`
-- `assets/js/bw-navigation.js`
+- `includes/modules/header/assets/js/bw-search.js`
+- `includes/modules/header/assets/js/bw-navshop.js`
+- `includes/modules/header/assets/js/bw-navigation.js`
+- `includes/modules/header/assets/js/header-init.js`
 
 ### Bootstrap asset + AJAX live search
 - `bw-main-elementor-widgets.php`
-  - register/enqueue script/style dei 3 widget
+  - handler AJAX `bw_live_search_products` (contratto preservato)
+- `includes/modules/header/frontend/assets.php`
+  - enqueue asset header custom
   - localizzazione `bwSearchAjax` (`ajaxUrl`, `nonce`)
-  - handler AJAX `bw_live_search_products`
 
 ---
 
-## Architettura attuale (visione d'insieme)
+## Contratto funzionale attuale (visione d'insieme)
 
-1. Ogni widget Elementor registra controlli (Content/Style).
-2. Il `render()` genera markup HTML + blocchi `<style>` inline per breakpoint per-widget.
-3. I CSS globali dei widget forniscono layout, animazioni, reset visuali.
-4. I JS dei widget gestiscono interazioni UI:
+1. Il modulo header legge una configurazione unica (`bw_header_settings`).
+2. Il render server-side genera markup desktop/mobile + overlay search/nav.
+3. I CSS del modulo header forniscono layout, animazioni, reset visuali.
+4. I JS del modulo header gestiscono interazioni UI:
    - Search overlay + live search AJAX
    - Cart popup trigger
    - Mobile nav drawer
 5. Per Search live, backend WordPress risponde via `admin-ajax.php` (action `bw_live_search_products`).
 
-Per il custom header, questi 5 punti vanno replicati senza dipendere dalle API di Elementor.
-
 ---
 
-## BW Search: contratto funzionale
+## BW Search (header custom): contratto funzionale
 
 ## Responsabilita
 - Bottone `Search` desktop.
@@ -66,7 +65,7 @@ Per il custom header, questi 5 punti vanno replicati senza dipendere dalle API d
 - Risultati: `.bw-search-results`, `.bw-search-results__grid`
 - Filtri categoria: `.bw-category-filter`
 
-## JS behavior chiave (`assets/js/bw-search.js`)
+## JS behavior chiave (`includes/modules/header/assets/js/bw-search.js`)
 - Sposta overlay nel `body` per evitare clipping da parent container.
 - Apertura/chiusura con classe `is-active`.
 - `ESC` chiude overlay.
@@ -92,7 +91,7 @@ Per il custom header, questi 5 punti vanno replicati senza dipendere dalle API d
 
 ---
 
-## BW NavShop: contratto funzionale
+## BW NavShop (header custom): contratto funzionale
 
 ## Responsabilita
 - Link `Cart` + `Account`.
@@ -112,7 +111,7 @@ Per il custom header, questi 5 punti vanno replicati senza dipendere dalle API d
 - Icon cart mobile: `.bw-navshop__cart-icon`
 - Badge count: `.bw-navshop__cart-count`
 
-## JS behavior chiave (`assets/js/bw-navshop.js`)
+## JS behavior chiave (`includes/modules/header/assets/js/bw-navshop.js`)
 - Click su `.bw-navshop__cart[data-use-popup="yes"]`
   - se `window.BW_CartPopup.openPanel` esiste: apre popup
   - fallback: redirect href normale
@@ -123,7 +122,7 @@ Per il custom header, questi 5 punti vanno replicati senza dipendere dalle API d
 
 ---
 
-## BW Navigation: contratto funzionale
+## BW Navigation (header custom): contratto funzionale
 
 ## Responsabilita
 - Menu desktop e menu mobile separati (se mobile vuoto usa desktop).
@@ -146,7 +145,7 @@ Per il custom header, questi 5 punti vanno replicati senza dipendere dalle API d
 - Mobile list item: `.bw-navigation__mobile .menu-item`
 - Stato aperto: `.bw-navigation__mobile-overlay.is-open`
 
-## JS behavior chiave (`assets/js/bw-navigation.js`)
+## JS behavior chiave (`includes/modules/header/assets/js/bw-navigation.js`)
 - Inizializza istanze per ogni `.bw-navigation`.
 - Setta `--bw-nav-stagger-delay` su ogni item mobile (70ms step).
 - Toggle open/close + `aria-expanded`, `aria-hidden`.
@@ -154,60 +153,9 @@ Per il custom header, questi 5 punti vanno replicati senza dipendere dalle API d
 
 ---
 
-## Criticita emerse (importanti per il custom header)
+## Nota storica
 
-1. Layout conflittuale da settings per-widget
-- In Elementor, `Widget Position` dei singoli widget puo applicare `margin-left: auto` e "rompere" il layout globale.
-- Nel custom header va evitato: il posizionamento deve essere centralizzato nel layout header, non sui singoli blocchi.
-
-2. Breakpoint non sincronizzati
-- `BW Navigation`, `BW Search`, `BW NavShop` hanno breakpoint indipendenti.
-- Se diversi, tablet/mobile mostrano comportamenti incoerenti.
-- Nel custom header usare una mappa breakpoint unica.
-
-3. Overlay Search
-- Deve essere fuori dai container (`appendTo(body)` attuale).
-- Nel custom header va montato gia a livello root (fuori header) per evitare overflow clipping.
-
----
-
-## Proposta architettura custom header (senza Elementor)
-
-## 1) Config centrale (PHP)
-Creare una configurazione unificata (DB option o file PHP) con sezioni:
-- `navigation`
-- `search`
-- `navshop`
-- `breakpoints`
-
-Esempio campi minimi:
-- `breakpoints.mobile` (unico)
-- `search.mobile_icon_breakpoint`
-- `navshop.cart_icon_mobile_breakpoint`
-- `navshop.account_mobile_breakpoint`
-- `navigation.mobile_breakpoint`
-
-Nel custom header impostare default coerenti e, idealmente, derivarli tutti da `breakpoints.mobile`.
-
-## 2) Render server-side
-Creare template custom (es. `templates/header/custom-header.php`) che renderizza:
-- logo
-- blocco nav
-- blocco search
-- blocco cart/account
-- overlay search (fuori dalla navbar)
-- overlay navigation mobile
-
-## 3) JS modulare
-Riutilizzare logica esistente con minime refactor:
-- `SearchController` (open/close/live search)
-- `NavigationController` (drawer mobile)
-- `NavshopController` (cart popup trigger)
-
-## 4) CSS per layout header unico
-- Un solo layout system (flex o grid) deciso a livello header.
-- Eliminare logiche di auto-margin "per-widget".
-- Mantenere classi BEM attuali per compatibilita.
+Questo documento nasce come analisi pre-migrazione. Le criticita indicate (allineamenti per-widget, breakpoint non sincronizzati, overlay limitato dai container) sono state affrontate nel modulo header custom.
 
 ---
 
@@ -226,23 +174,21 @@ Riutilizzare logica esistente con minime refactor:
 
 ---
 
-## Sequenza consigliata di migrazione
+## Stato migrazione
 
-1. Estrarre config corrente Elementor in un array standard (per confronto).
-2. Implementare custom render statico dell'header (senza logiche).
-3. Portare Search overlay + AJAX.
-4. Portare NavShop + fragments badge + cart popup trigger.
-5. Portare Navigation mobile drawer.
-6. Allineare animazioni e breakpoint.
-7. Rimuovere dipendenze Elementor per l'header.
+Completato:
+1. Render custom header server-side.
+2. Search/NavShop/Navigation portati in modulo dedicato.
+3. Contratto AJAX live search preservato.
+4. Trigger Cart Pop-up preservato.
+5. Rimozione widget Elementor header legacy.
 
 ---
 
-## Nota per Codex (contesto operativo)
+## Nota operativa
 
-Quando si sviluppa la versione custom:
-- considerare `assets/js/bw-search.js`, `assets/js/bw-navshop.js`, `assets/js/bw-navigation.js` come baseline funzionale;
-- preservare classi CSS principali per ridurre regressioni;
-- centralizzare i breakpoint in un punto solo;
-- non usare regole di posizionamento basate su `{{WRAPPER}}`/auto margin per-widget.
-
+Per ulteriori evoluzioni usare come baseline:
+- `includes/modules/header/assets/js/bw-search.js`
+- `includes/modules/header/assets/js/bw-navshop.js`
+- `includes/modules/header/assets/js/bw-navigation.js`
+- `includes/modules/header/frontend/assets.php`

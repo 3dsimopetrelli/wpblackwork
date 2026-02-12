@@ -94,7 +94,19 @@ Widget trovati in `includes/widgets/`:
 
 Totale: 20 widget.
 
-## 6) Focus header: widget e moduli già esistenti
+## 6) Focus header: stato attuale
+
+I widget header Elementor legacy sono stati rimossi.
+L'header usa ora il modulo custom server-rendered:
+- `includes/modules/header/header-module.php`
+- `includes/modules/header/frontend/header-render.php`
+- `includes/modules/header/frontend/assets.php`
+- `includes/modules/header/assets/css/*`
+- `includes/modules/header/assets/js/*`
+
+Il contratto AJAX live search resta in `bw-main-elementor-widgets.php`:
+- action: `bw_live_search_products`
+- nonce: `bw_search_nonce`
 
 ### `BW About Menu` (`bw-about-menu`)
 - File widget: `includes/widgets/class-bw-about-menu-widget.php`
@@ -106,28 +118,7 @@ Totale: 20 widget.
   - Spotlight effect gestito con CSS variables + JS
   - In editor Elementor si reinizializza via hook `frontend/element_ready/bw-about-menu.default`
 
-### `BW Search` (`bw-search`)
-- File widget: `includes/widgets/class-bw-search-widget.php`
-- Asset:
-  - `assets/css/bw-search.css`
-  - `assets/js/bw-search.js`
-- Ruolo:
-  - Pulsante header + overlay fullscreen di ricerca
-  - Overlay spostato in `body` via JS per evitare limiti di overflow/layout
-  - Live search AJAX (`action: bw_live_search_products`)
-  - Filtri categoria con supporto single/multi select
-  - Styling overlay targettizzato con `{{ID}}` per istanze multiple (`data-widget-id`)
-
-### `BW NavShop` (`bw-navshop`)
-- File widget: `includes/widgets/class-bw-navshop-widget.php`
-- Asset:
-  - `assets/css/bw-navshop.css`
-  - `assets/js/bw-navshop.js`
-- Ruolo:
-  - Link Account/Cart con ordine invertibile
-  - Integrazione opzionale con cart pop-up (`data-use-popup="yes"` -> `window.BW_CartPopup.openPanel()`)
-
-### Smart Header (non widget, ma sistema header globale)
+### Smart Header (sistema header globale)
 - Asset:
   - `assets/css/bw-smart-header.css`
   - `assets/js/bw-smart-header.js`
@@ -138,7 +129,7 @@ Totale: 20 widget.
   - Evita caricamento in editor preview Elementor
   - Supporta dark zones (`.smart-header-dark-zone`) e testo reattivo (`.smart-header-reactive-text`)
 
-## 7) Pattern importanti per nuovi widget header
+## 7) Pattern importanti per nuovi widget header (storico)
 
 1. Namespace CSS rigoroso:
    - prefisso univoco (`.bw-{widget}*`)
@@ -206,4 +197,4 @@ Totale: 20 widget.
 
 ---
 
-Sezione pronta per step successivo: implementazione del nuovo widget header usando questo blueprint.
+Nota: il blueprint sopra resta utile per nuovi widget Elementor non-header. Per l'header, usare il modulo custom.
