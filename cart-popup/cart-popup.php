@@ -5,7 +5,7 @@
  * Modulo per gestire il cart pop-up laterale con slide-in animato
  *
  * @package BW_Cart_Popup
- * @version 1.0.0
+ * @version 1.0.1
  */
 
 if (!defined('ABSPATH')) {
@@ -49,7 +49,7 @@ function bw_cart_popup_register_assets() {
 
     // CSS del Cart Pop-Up
     $css_file = BW_CART_POPUP_PATH . 'assets/css/bw-cart-popup.css';
-    $css_version = file_exists($css_file) ? filemtime($css_file) : '1.0.0';
+    $css_version = file_exists($css_file) ? filemtime($css_file) : '1.0.1';
 
     wp_register_style(
         'bw-cart-popup-style',
@@ -60,7 +60,7 @@ function bw_cart_popup_register_assets() {
 
     // JavaScript del Cart Pop-Up
     $js_file = BW_CART_POPUP_PATH . 'assets/js/bw-cart-popup.js';
-    $js_version = file_exists($js_file) ? filemtime($js_file) : '1.0.0';
+    $js_version = file_exists($js_file) ? filemtime($js_file) : '1.0.1';
 
     wp_register_script(
         'bw-cart-popup-script',

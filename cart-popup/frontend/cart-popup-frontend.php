@@ -654,6 +654,117 @@ add_action('wp_ajax_bw_cart_popup_get_contents', 'bw_cart_popup_get_cart_content
 add_action('wp_ajax_nopriv_bw_cart_popup_get_contents', 'bw_cart_popup_get_cart_contents');
 
 /**
+ * AJAX: Rimuovi un prodotto dal carrello tramite cart item key.
+ */
+function bw_cart_popup_remove_item()
+{
+    check_ajax_referer('bw_cart_popup_nonce', 'nonce');
+
+    if (!class_exists('WooCommerce')) {
+        wp_send_json_error(['message' => 'WooCommerce not active']);
+    }
+
+    $cart = bw_cart_popup_get_cart_instance();
+
+    if (!$cart) {
+        wp_send_json_error(['message' => 'Cart not initialized']);
+    }
+
+    $cart_item_key = isset($_POST['cart_item_key']) ? wc_clean(wp_unslash($_POST['cart_item_key'])) : '';
+
+    if ('' === $cart_item_key) {
+        wp_send_json_error(['message' => 'Missing cart item key']);
+    }
+
+    $cart_items = $cart->get_cart();
+    if (!isset($cart_items[$cart_item_key])) {
+        wp_send_json_error(['message' => 'Cart item not found']);
+    }
+
+    $removed = $cart->remove_cart_item($cart_item_key);
+    if (!$removed) {
+        wp_send_json_error(['message' => 'Unable to remove cart item']);
+    }
+
+    $cart->calculate_totals();
+
+    wp_send_json_success([
+        'message' => 'Item removed.',
+        'item_count' => $cart->get_cart_contents_count(),
+        'empty' => $cart->is_empty(),
+        'subtotal' => wc_price($cart->get_subtotal()),
+        'subtotal_raw' => $cart->get_subtotal(),
+        'discount' => wc_price($cart->get_discount_total()),
+        'discount_raw' => $cart->get_discount_total(),
+        'tax' => wc_price($cart->get_total_tax()),
+        'tax_raw' => $cart->get_total_tax(),
+        'total' => wc_price($cart->get_total('')),
+        'total_raw' => $cart->get_total(''),
+    ]);
+}
+add_action('wp_ajax_bw_cart_popup_remove_item', 'bw_cart_popup_remove_item');
+add_action('wp_ajax_nopriv_bw_cart_popup_remove_item', 'bw_cart_popup_remove_item');
+
+/**
+ * AJAX: Aggiorna la quantità di un prodotto nel carrello.
+ */
+function bw_cart_popup_update_quantity()
+{
+    check_ajax_referer('bw_cart_popup_nonce', 'nonce');
+
+    if (!class_exists('WooCommerce')) {
+        wp_send_json_error(['message' => 'WooCommerce not active']);
+    }
+
+    $cart = bw_cart_popup_get_cart_instance();
+
+    if (!$cart) {
+        wp_send_json_error(['message' => 'Cart not initialized']);
+    }
+
+    $cart_item_key = isset($_POST['cart_item_key']) ? wc_clean(wp_unslash($_POST['cart_item_key'])) : '';
+    $quantity = isset($_POST['quantity']) ? max(0, wc_stock_amount(wp_unslash($_POST['quantity']))) : null;
+
+    if ('' === $cart_item_key || null === $quantity) {
+        wp_send_json_error(['message' => 'Missing required parameters']);
+    }
+
+    $cart_items = $cart->get_cart();
+    if (!isset($cart_items[$cart_item_key])) {
+        wp_send_json_error(['message' => 'Cart item not found']);
+    }
+
+    if (0 === (int) $quantity) {
+        $updated = $cart->remove_cart_item($cart_item_key);
+    } else {
+        // Delay totals calculation to batch operations consistently.
+        $updated = $cart->set_quantity($cart_item_key, $quantity, false);
+    }
+
+    if (false === $updated) {
+        wp_send_json_error(['message' => 'Unable to update quantity']);
+    }
+
+    $cart->calculate_totals();
+
+    wp_send_json_success([
+        'message' => 'Quantity updated.',
+        'item_count' => $cart->get_cart_contents_count(),
+        'empty' => $cart->is_empty(),
+        'subtotal' => wc_price($cart->get_subtotal()),
+        'subtotal_raw' => $cart->get_subtotal(),
+        'discount' => wc_price($cart->get_discount_total()),
+        'discount_raw' => $cart->get_discount_total(),
+        'tax' => wc_price($cart->get_total_tax()),
+        'tax_raw' => $cart->get_total_tax(),
+        'total' => wc_price($cart->get_total('')),
+        'total_raw' => $cart->get_total(''),
+    ]);
+}
+add_action('wp_ajax_bw_cart_popup_update_quantity', 'bw_cart_popup_update_quantity');
+add_action('wp_ajax_nopriv_bw_cart_popup_update_quantity', 'bw_cart_popup_update_quantity');
+
+/**
  * AJAX: Applica coupon
  */
 function bw_cart_popup_apply_coupon()
