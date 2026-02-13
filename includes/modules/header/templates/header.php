@@ -83,3 +83,6 @@ if (!defined('ABSPATH')) {
         </div>
     </div>
 </header>
+<?php if (!empty($smart_scroll_enabled)) : ?>
+<div class="bw-header-spacer" aria-hidden="true"></div>
+<?php endif; ?>
