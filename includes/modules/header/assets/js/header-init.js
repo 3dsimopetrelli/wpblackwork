@@ -213,8 +213,6 @@
         var lastScrollTop = window.pageYOffset || 0;
         var ticking = false;
         var wasSticky = false;
-        var isExiting = false;
-        var exitTimer = null;
         var scrollDelta = cfg.scrollDelta;
         var scrollDownThreshold = cfg.scrollDownThreshold;
         var scrollUpThreshold = cfg.scrollUpThreshold;
@@ -245,19 +243,20 @@
 
             // Header must scroll fully past its own height before becoming sticky.
             // Also respect the admin-configured scrollDownThreshold.
+            // Hysteresis: activate at activationPoint (scroll down),
+            // but only deactivate when scroll reaches the very top (~0)
+            // so the natural (relative) header is already in view.
             var activationPoint = Math.max(headerHeight, scrollDownThreshold);
-            var isSticky = st > activationPoint;
 
-            if (isSticky) {
-                // Cancel any pending exit animation if user scrolls back down.
-                if (isExiting) {
-                    clearTimeout(exitTimer);
-                    isExiting = false;
-                    header.classList.remove('bw-header-hidden');
-                    header.classList.add('bw-header-visible');
-                    wasSticky = true;
-                }
+            var shouldBeSticky;
+            if (wasSticky) {
+                // Once sticky, stay sticky until user scrolls to the very top.
+                shouldBeSticky = st > 2;
+            } else {
+                shouldBeSticky = st > activationPoint;
+            }
 
+            if (shouldBeSticky) {
                 if (!wasSticky) {
                     // First frame entering sticky mode.
                     header.classList.add('bw-sticky-header');
@@ -297,26 +296,19 @@
                     }
                 }
             } else {
-                // Below activation point → transition back to natural position.
-                if (wasSticky && !isExiting) {
-                    // Smoothly slide header up before removing sticky state.
-                    isExiting = true;
-                    header.classList.add('bw-header-hidden');
-                    header.classList.remove('bw-header-visible');
-
-                    exitTimer = setTimeout(function () {
-                        // Transition done — remove sticky instantly (no flash).
-                        header.style.transition = 'none';
-                        header.classList.remove('bw-sticky-header');
-                        body.classList.remove('bw-sticky-header-active');
-                        header.classList.remove('bw-header-hidden');
-                        header.classList.remove('bw-header-visible');
-                        void header.offsetHeight;
-                        header.style.transition = '';
-                        wasSticky = false;
-                        isExiting = false;
-                    }, 300); // matches CSS transition duration
+                // At the very top: natural header is in view.
+                // Remove sticky instantly — no animation needed, the natural
+                // header provides seamless visual continuity.
+                if (wasSticky) {
+                    header.style.transition = 'none';
+                    void header.offsetHeight;
+                    header.style.transition = '';
                 }
+                header.classList.remove('bw-sticky-header');
+                body.classList.remove('bw-sticky-header-active');
+                header.classList.remove('bw-header-hidden');
+                header.classList.remove('bw-header-visible');
+                wasSticky = false;
             }
 
             lastScrollTop = st;
