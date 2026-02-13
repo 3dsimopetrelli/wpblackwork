@@ -163,6 +163,11 @@
                 }
             });
 
+            // Floating label promo input (stile checkout/my-account)
+            $(document).on('input change keyup blur focus', '.bw-promo-input', function () {
+                self.syncPromoFloatingLabel($(this));
+            });
+
             // Rimuovi coupon (Legacy link)
             this.$promoRemoveLink.on('click', function (e) {
                 e.preventDefault();
@@ -207,6 +212,40 @@
             $(document).on('keyup', function (e) {
                 if (e.key === 'Escape' && self.isOpen) {
                     self.closePanel();
+                }
+            });
+
+            // Stato iniziale label
+            this.syncPromoFloatingLabel($('.bw-promo-input'));
+        },
+
+        /**
+         * Aggiorna stato floating label del promo input
+         */
+        syncPromoFloatingLabel: function ($input) {
+            if (!$input || !$input.length) {
+                return;
+            }
+
+            $input.each(function () {
+                const $field = $(this);
+                const $wrapper = $field.closest('.bw-coupon-input-wrapper');
+                if (!$wrapper.length) {
+                    return;
+                }
+
+                const hasValue = ($field.val() || '').toString().trim() !== '';
+                const $label = $wrapper.find('.bw-floating-label');
+                $wrapper.toggleClass('has-value', hasValue);
+
+                if ($label.length) {
+                    const shortText = $label.attr('data-short');
+                    const fullText = $label.attr('data-full');
+                    if (hasValue && shortText) {
+                        $label.text(shortText);
+                    } else if (!hasValue && fullText) {
+                        $label.text(fullText);
+                    }
                 }
             });
         },
@@ -870,7 +909,9 @@
                 this.$promoBox.fadeOut(200);
             } else {
                 this.$promoBox.fadeIn(200);
-                $('.bw-promo-input').focus();
+                const $promoInput = $('.bw-promo-input');
+                $promoInput.focus();
+                this.syncPromoFloatingLabel($promoInput);
             }
         },
 
@@ -904,6 +945,7 @@
                         self.updateTotals(response.data);
                         self.updateCouponDisplay(response.data.applied_coupons || []);
                         $('.bw-promo-input').val('');
+                        self.syncPromoFloatingLabel($('.bw-promo-input'));
                     } else {
                         self.showPromoMessage(response.data.message, 'error');
                     }

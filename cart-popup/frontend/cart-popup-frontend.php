@@ -176,7 +176,10 @@ function bw_cart_popup_render_panel()
                 </p>
                 <div class="bw-cart-popup-promo-box" style="display: none;">
                     <div class="bw-promo-input-wrapper">
-                        <input type="text" class="bw-promo-input" placeholder="Enter promo code" />
+                        <div class="bw-coupon-input-wrapper bw-field-wrapper">
+                            <input type="text" class="bw-promo-input" placeholder="" aria-label="Enter promo code" />
+                            <label class="bw-floating-label" data-full="Enter promo code" data-short="Promo code">Enter promo code</label>
+                        </div>
                         <button class="bw-promo-apply">Apply</button>
                     </div>
                 </div>

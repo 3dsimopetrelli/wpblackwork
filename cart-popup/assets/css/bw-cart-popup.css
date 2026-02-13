@@ -388,6 +388,7 @@
     width: 400px; /* Default: 400px, modificabile da admin */
     max-width: 100%;
     height: 100vh;
+    height: 100dvh;
     background-color: #FFFFFF; /* Bianco puro */
     box-shadow: -2px 0 10px rgba(0, 0, 0, 0.15);
     transform: translateX(100%); /* Nascosto fuori schermo a destra */
@@ -525,6 +526,10 @@
 .bw-cart-popup-content {
     flex: 1;
     overflow-y: auto;
+    min-height: 0;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
     padding: 20px;
     background-color: #FFFFFF;
 }
@@ -1011,24 +1016,65 @@
 .bw-promo-input-wrapper {
     display: flex;
     gap: 8px;
-    align-items: center;
+    align-items: stretch;
     padding: 15px;
     background-color: #ffffff;
     border-radius: 8px;
 }
 
-/* Input promo code */
-.bw-promo-input {
+/* Floating label wrapper allineato al checkout */
+.bw-cart-popup-panel .bw-coupon-input-wrapper {
+    position: relative;
     flex: 1;
-    border: 1px solid #d5d5d5;
-    border-radius: 4px;
-    font-size: 14px;
-    transition: border-color 0.2s ease;
+    min-width: 0;
 }
 
-.bw-promo-input:focus {
+/* Input promo code */
+.bw-cart-popup-panel .bw-coupon-input-wrapper .bw-promo-input {
+    width: 100%;
+    border: 1px solid #dedede;
+    border-radius: 12px;
+    font-size: 15px;
+    min-height: 44px;
+    background: #ffffff;
+    color: #111111;
+    padding: 16px 18px !important;
+    line-height: 1.4;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    box-sizing: border-box;
+}
+
+.bw-cart-popup-panel .bw-coupon-input-wrapper .bw-promo-input:focus {
     outline: none;
-    border-color: #007bff;
+    border: 2px solid #000000 !important;
+    padding: 15px 17px !important;
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* Floating label style coerente con checkout/my-account */
+.bw-cart-popup-panel .bw-coupon-input-wrapper .bw-floating-label {
+    position: absolute;
+    left: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 15px;
+    line-height: 1.4;
+    color: #6b7280;
+    pointer-events: none;
+    transition: transform 0.2s ease, top 0.2s ease, font-size 0.2s ease, color 0.2s ease;
+    background: #ffffff;
+    padding: 0 4px;
+    font-weight: 400;
+}
+
+.bw-cart-popup-panel .bw-coupon-input-wrapper .bw-promo-input:focus~.bw-floating-label,
+.bw-cart-popup-panel .bw-coupon-input-wrapper:focus-within .bw-floating-label,
+.bw-cart-popup-panel .bw-coupon-input-wrapper.has-value .bw-floating-label {
+    top: -8px !important;
+    transform: translateY(0) !important;
+    font-size: 11px !important;
+    color: #374151 !important;
+    font-weight: 500;
 }
 
 /* Pulsante Apply */
@@ -1172,6 +1218,18 @@
     text-decoration: none;
 }
 
+/* Force robust text layout for checkout CTA (also when admin dynamic styles are active) */
+.bw-cart-popup-panel .bw-cart-popup-footer .bw-cart-popup-checkout {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.15 !important;
+    letter-spacing: 0;
+}
+
 /* Pulsante Continue Shopping */
 .bw-cart-popup-continue {
     display: block;
@@ -1263,6 +1321,7 @@
 /* Blocca scroll del body quando il pannello è aperto */
 body.bw-cart-popup-no-scroll {
     overflow: hidden;
+    overscroll-behavior: none;
 }
 
 /* Loading state */
@@ -1355,6 +1414,12 @@ body.bw-cart-popup-no-scroll {
     .bw-cart-popup-continue {
         font-size: 14px;
         padding: 12px 16px;
+    }
+
+    /* Mobile adaptive CTA font size (wins against dynamic admin rule by higher specificity) */
+    .bw-cart-popup-panel .bw-cart-popup-footer .bw-cart-popup-checkout {
+        font-size: clamp(16px, 6vw, 24px) !important;
+        padding: 12px 16px !important;
     }
 }
 
