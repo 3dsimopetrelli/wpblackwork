@@ -45,9 +45,21 @@
     pointer-events: auto;
 }
 
-/* Body Padding Compensation */
-body.bw-sticky-header-active:not(.elementor-editor-active) {
+/*
+ * Body Padding Compensation — always-on approach.
+ * The body ALWAYS has padding-top equal to header height, and the header
+ * in its natural (non-sticky) state has an equal negative margin-top that
+ * cancels it out visually. When the header becomes fixed (sticky), it leaves
+ * the flow, the negative margin no longer applies, and the already-present
+ * padding seamlessly fills the gap. Because the padding never changes,
+ * the mobile compositor thread can't cause a layout jolt.
+ */
+body.bw-has-sticky-header:not(.elementor-editor-active) {
     padding-top: var(--bw-header-body-padding, 0px);
+}
+
+body.bw-has-sticky-header:not(.elementor-editor-active) .bw-custom-header:not(.bw-sticky-header) {
+    margin-top: calc(-1 * var(--bw-header-body-padding, 0px));
 }
 
 /* LEGACY / HELPER CLASSES (Keep minimal set required for layout) */

@@ -217,6 +217,9 @@
         var scrollDownThreshold = cfg.scrollDownThreshold;
         var scrollUpThreshold = cfg.scrollUpThreshold;
 
+        // Mark the body once so CSS always-on padding + negative margin is active.
+        body.classList.add('bw-has-sticky-header');
+
         function recalcOffsets() {
             var adminBarHeight = getAdminBarHeight();
             var headerHeight = header.offsetHeight || 0;
@@ -227,7 +230,6 @@
 
             var st = window.pageYOffset || 0;
             if (st <= 0) {
-                body.classList.remove('bw-sticky-header-active');
                 header.classList.remove('bw-sticky-header');
                 header.classList.remove('bw-header-hidden');
                 header.classList.remove('bw-header-visible');
@@ -267,7 +269,6 @@
                     docEl.style.setProperty('--bw-header-body-padding', headerHeight + 'px');
 
                     header.classList.add('bw-sticky-header');
-                    body.classList.add('bw-sticky-header-active');
 
                     if (st > lastScrollTop) {
                         // Entering sticky while scrolling DOWN: hide instantly.
@@ -308,7 +309,6 @@
                 // header provides seamless visual continuity.
                 header.style.transition = 'none';
                 header.classList.remove('bw-sticky-header');
-                body.classList.remove('bw-sticky-header-active');
                 header.classList.remove('bw-header-hidden');
                 header.classList.remove('bw-header-visible');
                 void header.offsetHeight;
