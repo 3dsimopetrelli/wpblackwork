@@ -22,8 +22,6 @@
             scrollDownThreshold: parseInt(smart.scrollDownThreshold, 10) || 100,
             scrollUpThreshold: parseInt(smart.scrollUpThreshold, 10) || 0,
             scrollDelta: Math.max(1, parseInt(smart.scrollDelta, 10) || 1),
-            blurThreshold: parseInt(smart.blurThreshold, 10) || 50,
-            throttleDelay: parseInt(smart.throttleDelay, 10) || 16,
         };
     }
 
@@ -245,10 +243,20 @@
 
             // Header must scroll fully past its own height before becoming sticky.
             // Also respect the admin-configured scrollDownThreshold.
+            // Hysteresis: activate at activationPoint (scroll down),
+            // but only deactivate when scroll reaches the very top (~0)
+            // so the natural (relative) header is already in view.
             var activationPoint = Math.max(headerHeight, scrollDownThreshold);
-            var isSticky = st > activationPoint;
 
-            if (isSticky) {
+            var shouldBeSticky;
+            if (wasSticky) {
+                // Once sticky, stay sticky until user scrolls to the very top.
+                shouldBeSticky = st > 2;
+            } else {
+                shouldBeSticky = st > activationPoint;
+            }
+
+            if (shouldBeSticky) {
                 if (!wasSticky) {
                     // First frame entering sticky mode.
                     header.classList.add('bw-sticky-header');
@@ -288,9 +296,10 @@
                     }
                 }
             } else {
-                // Below activation point → return to natural position.
+                // At the very top: natural header is in view.
+                // Remove sticky instantly — no animation needed, the natural
+                // header provides seamless visual continuity.
                 if (wasSticky) {
-                    // Remove sticky instantly (no transition flash).
                     header.style.transition = 'none';
                     void header.offsetHeight;
                     header.style.transition = '';
