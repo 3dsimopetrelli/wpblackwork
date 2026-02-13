@@ -259,23 +259,30 @@
             if (shouldBeSticky) {
                 if (!wasSticky) {
                     // First frame entering sticky mode.
+                    // Disable transitions BEFORE any class changes to prevent
+                    // the browser from animating the position: relative → fixed shift.
+                    header.style.transition = 'none';
+
+                    // Ensure body padding matches current header height exactly.
+                    docEl.style.setProperty('--bw-header-body-padding', headerHeight + 'px');
+
                     header.classList.add('bw-sticky-header');
                     body.classList.add('bw-sticky-header-active');
 
                     if (st > lastScrollTop) {
-                        // Entering sticky while scrolling DOWN:
-                        // Hide instantly (no transition) to prevent the flash
-                        // where the header snaps to fixed-top then hides.
-                        header.style.transition = 'none';
+                        // Entering sticky while scrolling DOWN: hide instantly.
                         header.classList.add('bw-header-hidden');
                         header.classList.remove('bw-header-visible');
-                        void header.offsetHeight; // force reflow
-                        header.style.transition = '';
                     } else {
                         // Entering sticky while scrolling UP: show immediately.
                         header.classList.remove('bw-header-hidden');
                         header.classList.add('bw-header-visible');
                     }
+
+                    // Force reflow so all changes are computed with no transition,
+                    // then restore CSS transitions for future show/hide animations.
+                    void header.offsetHeight;
+                    header.style.transition = '';
                     wasSticky = true;
                 } else {
                     // Already sticky — directional show/hide.
@@ -299,15 +306,13 @@
                 // At the very top: natural header is in view.
                 // Remove sticky instantly — no animation needed, the natural
                 // header provides seamless visual continuity.
-                if (wasSticky) {
-                    header.style.transition = 'none';
-                    void header.offsetHeight;
-                    header.style.transition = '';
-                }
+                header.style.transition = 'none';
                 header.classList.remove('bw-sticky-header');
                 body.classList.remove('bw-sticky-header-active');
                 header.classList.remove('bw-header-hidden');
                 header.classList.remove('bw-header-visible');
+                void header.offsetHeight;
+                header.style.transition = '';
                 wasSticky = false;
             }
 
