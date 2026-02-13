@@ -810,6 +810,7 @@
     height: 56px;
     border-radius: 14px;
     background: #ffffff;
+    color: #000000;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
     border: 1px solid #e5e5e5;
     display: flex;
@@ -821,13 +822,16 @@
     visibility: hidden;
     pointer-events: none;
     transform: translateY(8px);
-    transition: opacity 0.25s ease, transform 0.25s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    transition: opacity 0.25s ease, transform 0.25s ease, box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.25s ease, color 0.25s ease;
 }
 
-.bw-cart-floating-trigger:hover {
+.bw-cart-floating-trigger:hover,
+.bw-cart-floating-trigger:focus-visible {
     transform: translateY(-2px);
     box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
-    border-color: #d0d0d0;
+    border-color: #000000 !important;
+    background: #000000 !important;
+    color: #ffffff !important;
 }
 
 .bw-cart-floating-trigger.hidden {
@@ -844,7 +848,14 @@
 .bw-cart-floating-trigger svg {
     width: 24px;
     height: 24px;
-    color: #000000;
+    color: currentColor;
+    transition: color 0.25s ease;
+}
+
+.bw-cart-floating-trigger svg,
+.bw-cart-floating-trigger svg * {
+    fill: currentColor;
+    stroke: currentColor;
 }
 
 .bw-cart-floating-badge {
