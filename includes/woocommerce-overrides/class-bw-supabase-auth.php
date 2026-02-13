@@ -1080,7 +1080,8 @@ function bw_mew_handle_supabase_checkout_invite( $order_id ) {
         return;
     }
 
-    if ( $order->get_user_id() ) {
+    $provider = get_option( 'bw_account_login_provider', 'wordpress' );
+    if ( 'supabase' !== $provider ) {
         return;
     }
 
@@ -1089,7 +1090,14 @@ function bw_mew_handle_supabase_checkout_invite( $order_id ) {
         return;
     }
 
-    $email = $order->get_billing_email();
+    $order_user_id = (int) $order->get_user_id();
+    $user          = $order_user_id ? get_user_by( 'id', $order_user_id ) : null;
+    $email         = sanitize_email( (string) $order->get_billing_email() );
+
+    if ( ! $email && $user instanceof WP_User ) {
+        $email = sanitize_email( (string) $user->user_email );
+    }
+
     if ( ! $email ) {
         return;
     }
@@ -1118,7 +1126,10 @@ function bw_mew_handle_supabase_checkout_invite( $order_id ) {
         return;
     }
 
-    $user = get_user_by( 'email', $email );
+    if ( ! $user instanceof WP_User ) {
+        $user = get_user_by( 'email', $email );
+    }
+
     if ( $user instanceof WP_User ) {
         $onboarded = (int) get_user_meta( $user->ID, 'bw_supabase_onboarded', true );
         if ( 1 === $onboarded ) {
@@ -1193,6 +1204,8 @@ function bw_mew_handle_supabase_checkout_invite( $order_id ) {
 }
 add_action( 'woocommerce_order_status_processing', 'bw_mew_handle_supabase_checkout_invite', 10, 1 );
 add_action( 'woocommerce_order_status_completed', 'bw_mew_handle_supabase_checkout_invite', 10, 1 );
+add_action( 'woocommerce_order_status_on-hold', 'bw_mew_handle_supabase_checkout_invite', 10, 1 );
+add_action( 'woocommerce_payment_complete', 'bw_mew_handle_supabase_checkout_invite', 10, 1 );
 
 /**
  * Send Supabase invite via Admin API.

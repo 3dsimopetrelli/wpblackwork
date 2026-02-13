@@ -2257,7 +2257,7 @@ function bw_site_render_checkout_tab()
                     printf(
                         /* translators: %s: link to Account Page settings */
                         esc_html__('Supabase Project URL, Anon Key, and Service Role Key are configured in %s.', 'bw'),
-                        '<a href="' . esc_url(admin_url('admin.php?page=blackwork-site-settings&tab=account')) . '">' . esc_html__('Account Page > Technical Settings', 'bw') . '</a>'
+                        '<a href="' . esc_url(admin_url('admin.php?page=blackwork-site-settings&tab=account-page')) . '">' . esc_html__('Account Page > Technical Settings', 'bw') . '</a>'
                     );
                     ?>
                 </p>
