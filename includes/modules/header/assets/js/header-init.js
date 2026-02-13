@@ -35,7 +35,12 @@
             return;
         }
         if (header.parentNode !== document.body) {
+            var spacer = document.querySelector('.bw-header-spacer');
             document.body.insertBefore(header, document.body.firstChild);
+            // Keep spacer right after header in the DOM.
+            if (spacer) {
+                header.after(spacer);
+            }
         }
     }
 
@@ -212,12 +217,13 @@
         var body = document.body;
         var lastScrollTop = window.pageYOffset || 0;
         var ticking = false;
-        var wasSticky = false;
+        var isHidden = false;
         var scrollDelta = cfg.scrollDelta;
         var scrollDownThreshold = cfg.scrollDownThreshold;
         var scrollUpThreshold = cfg.scrollUpThreshold;
 
-        // Mark the body once so CSS always-on padding + negative margin is active.
+        // Make header always-fixed via CSS; spacer fills the flow gap.
+        // Because position never toggles, no layout jolt is possible.
         body.classList.add('bw-has-sticky-header');
 
         function recalcOffsets() {
@@ -227,14 +233,30 @@
 
             docEl.style.setProperty('--bw-header-top-offset', adminBarHeight + 'px');
             docEl.style.setProperty('--bw-header-body-padding', headerHeight + 'px');
+        }
 
-            var st = window.pageYOffset || 0;
-            if (st <= 0) {
-                header.classList.remove('bw-sticky-header');
-                header.classList.remove('bw-header-hidden');
-                header.classList.remove('bw-header-visible');
-                wasSticky = false;
-            }
+        function showHeader() {
+            if (!isHidden) return;
+            header.classList.remove('bw-header-hidden');
+            header.classList.add('bw-header-visible');
+            isHidden = false;
+        }
+
+        function hideHeader() {
+            if (isHidden) return;
+            header.classList.add('bw-header-hidden');
+            header.classList.remove('bw-header-visible');
+            isHidden = true;
+        }
+
+        function resetHeader() {
+            // At the very top: remove all scroll classes instantly (no animation).
+            header.style.transition = 'none';
+            header.classList.remove('bw-header-hidden');
+            header.classList.remove('bw-header-visible');
+            void header.offsetHeight;
+            header.style.transition = '';
+            isHidden = false;
         }
 
         function onScroll() {
@@ -243,77 +265,26 @@
 
             checkDarkZoneOverlap(header);
 
-            // Header must scroll fully past its own height before becoming sticky.
-            // Also respect the admin-configured scrollDownThreshold.
-            // Hysteresis: activate at activationPoint (scroll down),
-            // but only deactivate when scroll reaches the very top (~0)
-            // so the natural (relative) header is already in view.
             var activationPoint = Math.max(headerHeight, scrollDownThreshold);
 
-            var shouldBeSticky;
-            if (wasSticky) {
-                // Once sticky, stay sticky until user scrolls to the very top.
-                shouldBeSticky = st > 2;
-            } else {
-                shouldBeSticky = st > activationPoint;
-            }
-
-            if (shouldBeSticky) {
-                if (!wasSticky) {
-                    // First frame entering sticky mode.
-                    // Disable transitions BEFORE any class changes to prevent
-                    // the browser from animating the position: relative → fixed shift.
-                    header.style.transition = 'none';
-
-                    // Ensure body padding matches current header height exactly.
-                    docEl.style.setProperty('--bw-header-body-padding', headerHeight + 'px');
-
-                    header.classList.add('bw-sticky-header');
-
+            if (st <= 2) {
+                // At the very top: header is naturally visible.
+                resetHeader();
+            } else if (st > activationPoint) {
+                // Past the activation threshold: smart show/hide.
+                var delta = Math.abs(lastScrollTop - st);
+                if (delta > scrollDelta) {
                     if (st > lastScrollTop) {
-                        // Entering sticky while scrolling DOWN: hide instantly.
-                        header.classList.add('bw-header-hidden');
-                        header.classList.remove('bw-header-visible');
+                        // Scrolling DOWN → hide.
+                        hideHeader();
                     } else {
-                        // Entering sticky while scrolling UP: show immediately.
-                        header.classList.remove('bw-header-hidden');
-                        header.classList.add('bw-header-visible');
-                    }
-
-                    // Force reflow so all changes are computed with no transition,
-                    // then restore CSS transitions for future show/hide animations.
-                    void header.offsetHeight;
-                    header.style.transition = '';
-                    wasSticky = true;
-                } else {
-                    // Already sticky — directional show/hide.
-                    var delta = Math.abs(lastScrollTop - st);
-                    if (delta > scrollDelta) {
-                        if (st > lastScrollTop) {
-                            // Scrolling DOWN → hide.
-                            header.classList.add('bw-header-hidden');
-                            header.classList.remove('bw-header-visible');
-                        } else {
-                            // Scrolling UP → show (respecting scrollUpThreshold).
-                            var upDelta = lastScrollTop - st;
-                            if (upDelta >= scrollUpThreshold && st + window.innerHeight < body.scrollHeight) {
-                                header.classList.remove('bw-header-hidden');
-                                header.classList.add('bw-header-visible');
-                            }
+                        // Scrolling UP → show.
+                        var upDelta = lastScrollTop - st;
+                        if (upDelta >= scrollUpThreshold && st + window.innerHeight < body.scrollHeight) {
+                            showHeader();
                         }
                     }
                 }
-            } else {
-                // At the very top: natural header is in view.
-                // Remove sticky instantly — no animation needed, the natural
-                // header provides seamless visual continuity.
-                header.style.transition = 'none';
-                header.classList.remove('bw-sticky-header');
-                header.classList.remove('bw-header-hidden');
-                header.classList.remove('bw-header-visible');
-                void header.offsetHeight;
-                header.style.transition = '';
-                wasSticky = false;
             }
 
             lastScrollTop = st;

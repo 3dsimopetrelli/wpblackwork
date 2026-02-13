@@ -4,62 +4,52 @@
     width: 100%;
     background: #efefef;
     border-bottom: none;
-    /* Ensure hardware acceleration for smooth transforms if needed later */
     will-change: transform;
 }
 
-/* 
- * STICKY HEADER STATES
- * Simplification: 
- * - .bw-sticky-header : The base class when header becomes "sticky" (fixed)
- * - .bw-header-hidden : State when scrolling DOWN (hides header)
- * - .bw-header-visible: State when scrolling UP (shows header)
+/*
+ * ALWAYS-FIXED HEADER
+ * When JS is active (bw-has-sticky-header on body), the header is ALWAYS
+ * position: fixed. A spacer div (.bw-header-spacer) reserves the space in
+ * the document flow. Because the position never changes from relative to
+ * fixed, the mobile compositor thread cannot cause a layout jolt.
+ *
+ * Show/hide on scroll is handled purely with transform (GPU-composited).
  */
-
-.bw-custom-header.bw-sticky-header {
+body.bw-has-sticky-header:not(.elementor-editor-active) .bw-custom-header {
     position: fixed;
     top: var(--bw-header-top-offset, 0px);
     left: 0;
     right: 0;
     z-index: 9998;
+}
 
-    /* Core transition for the slide effect */
-    transition: transform 0.3s ease-in-out, background-color 0.3s ease;
+/* Spacer: reserves the header's space in the flow */
+.bw-header-spacer {
+    display: none;
+}
 
-    /* Initial state: visible (translateY 0) */
-    transform: translateY(0);
+body.bw-has-sticky-header:not(.elementor-editor-active) .bw-header-spacer {
+    display: block;
+    height: var(--bw-header-body-padding, 0px);
+}
 
-    /* No box-shadow here — shadow lives on the blur panel instead */
+/* Slide transitions (only active in smart-scroll mode) */
+.bw-custom-header.bw-header-hidden,
+.bw-custom-header.bw-header-visible {
+    transition: transform 0.3s ease-in-out;
 }
 
 /* Hidden State: Slide Up */
-.bw-custom-header.bw-sticky-header.bw-header-hidden {
+.bw-custom-header.bw-header-hidden {
     transform: translateY(-100%);
     pointer-events: none;
-    /* Prevent clicks when hidden */
 }
 
-/* Visible State: Slide Down (Redundant if default is 0, but good for specificity) */
-.bw-custom-header.bw-sticky-header.bw-header-visible {
+/* Visible State: Slide Down */
+.bw-custom-header.bw-header-visible {
     transform: translateY(0);
     pointer-events: auto;
-}
-
-/*
- * Body Padding Compensation — always-on approach.
- * The body ALWAYS has padding-top equal to header height, and the header
- * in its natural (non-sticky) state has an equal negative margin-top that
- * cancels it out visually. When the header becomes fixed (sticky), it leaves
- * the flow, the negative margin no longer applies, and the already-present
- * padding seamlessly fills the gap. Because the padding never changes,
- * the mobile compositor thread can't cause a layout jolt.
- */
-body.bw-has-sticky-header:not(.elementor-editor-active) {
-    padding-top: var(--bw-header-body-padding, 0px);
-}
-
-body.bw-has-sticky-header:not(.elementor-editor-active) .bw-custom-header:not(.bw-sticky-header) {
-    margin-top: calc(-1 * var(--bw-header-body-padding, 0px));
 }
 
 /* LEGACY / HELPER CLASSES (Keep minimal set required for layout) */
@@ -289,8 +279,7 @@ body.bw-has-sticky-header:not(.elementor-editor-active) .bw-custom-header:not(.b
 
 @media (max-width: 1024px) {
 
-    .bw-custom-header,
-    .bw-custom-header.bw-sticky-header {
+    .bw-custom-header {
         background-color: #ffffff !important;
     }
 }
@@ -307,8 +296,7 @@ body.bw-has-sticky-header:not(.elementor-editor-active) .bw-custom-header:not(.b
 
 @media (prefers-reduced-motion: reduce) {
 
-    .bw-custom-header,
-    .bw-custom-header.bw-sticky-header {
+    .bw-custom-header {
         transition: none !important;
     }
 }
