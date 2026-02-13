@@ -29,8 +29,7 @@
     /* Initial state: visible (translateY 0) */
     transform: translateY(0);
 
-    /* Visuals for sticky state */
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    /* No box-shadow here — shadow lives on the blur panel instead */
 }
 
 /* Hidden State: Slide Up */
@@ -118,6 +117,7 @@ body.bw-sticky-header-active:not(.elementor-editor-active) {
     position: relative;
     z-index: 1;
     isolation: isolate;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 @supports not (backdrop-filter: blur(20px)) {
