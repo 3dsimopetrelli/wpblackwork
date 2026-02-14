@@ -1074,6 +1074,25 @@ add_action( 'wp_ajax_nopriv_bw_supabase_check_wp_session', 'bw_mew_handle_supaba
  *
  * @param int $order_id Order ID.
  */
+function bw_mew_supabase_invite_trace( $order_id, $message, $debug_log = false ) {
+    if ( ! $debug_log || ! $order_id ) {
+        return;
+    }
+
+    $log_line = sprintf( 'Supabase invite trace (order %d): %s', (int) $order_id, (string) $message );
+    error_log( $log_line );
+
+    $trace_key = '_bw_supabase_invite_trace';
+    $trace     = get_post_meta( $order_id, $trace_key, true );
+    if ( ! is_array( $trace ) ) {
+        $decoded = json_decode( (string) $trace, true );
+        $trace   = is_array( $decoded ) ? $decoded : [];
+    }
+
+    $trace[] = gmdate( 'c' ) . ' ' . (string) $message;
+    update_post_meta( $order_id, $trace_key, $trace );
+}
+
 function bw_mew_handle_supabase_checkout_invite( $order_id ) {
     $order = wc_get_order( $order_id );
     if ( ! $order instanceof WC_Order ) {
@@ -1087,12 +1106,14 @@ function bw_mew_handle_supabase_checkout_invite( $order_id ) {
 
     $debug_log = (bool) get_option( 'bw_supabase_debug_log', 0 );
     $log_ctx   = sprintf( 'order %d', (int) $order_id );
+    bw_mew_supabase_invite_trace( $order_id, sprintf( 'entered trigger (status=%s)', $order_status ), $debug_log );
 
     $provider = get_option( 'bw_account_login_provider', 'wordpress' );
     if ( 'supabase' !== $provider ) {
         if ( $debug_log ) {
             error_log( sprintf( 'Supabase invite skipped (%s): provider=%s', $log_ctx, $provider ) );
         }
+        bw_mew_supabase_invite_trace( $order_id, sprintf( 'skip: provider=%s', $provider ), $debug_log );
         return;
     }
 
@@ -1101,6 +1122,7 @@ function bw_mew_handle_supabase_checkout_invite( $order_id ) {
         if ( $debug_log ) {
             error_log( sprintf( 'Supabase invite skipped (%s): checkout provisioning disabled', $log_ctx ) );
         }
+        bw_mew_supabase_invite_trace( $order_id, 'skip: checkout provisioning disabled', $debug_log );
         return;
     }
 
@@ -1116,6 +1138,7 @@ function bw_mew_handle_supabase_checkout_invite( $order_id ) {
         if ( $debug_log ) {
             error_log( sprintf( 'Supabase invite skipped (%s): missing billing email', $log_ctx ) );
         }
+        bw_mew_supabase_invite_trace( $order_id, 'skip: missing billing email', $debug_log );
         return;
     }
 
@@ -1139,6 +1162,7 @@ function bw_mew_handle_supabase_checkout_invite( $order_id ) {
                 )
             );
         }
+        bw_mew_supabase_invite_trace( $order_id, 'skip: missing config (project_url/service_role)', $debug_log );
         return;
     }
 
@@ -1152,6 +1176,7 @@ function bw_mew_handle_supabase_checkout_invite( $order_id ) {
             if ( $debug_log ) {
                 error_log( sprintf( 'Supabase invite skipped (%s): user %d already onboarded', $log_ctx, (int) $user->ID ) );
             }
+            bw_mew_supabase_invite_trace( $order_id, sprintf( 'skip: user %d already onboarded', (int) $user->ID ), $debug_log );
             return;
         }
     }
@@ -1160,6 +1185,7 @@ function bw_mew_handle_supabase_checkout_invite( $order_id ) {
         if ( $debug_log ) {
             error_log( sprintf( 'Supabase invite skipped (%s): throttled (%d seconds since last send)', $log_ctx, (int) ( $now - $last_invite_at ) ) );
         }
+        bw_mew_supabase_invite_trace( $order_id, 'skip: throttled', $debug_log );
         return;
     }
 
@@ -1178,7 +1204,10 @@ function bw_mew_handle_supabase_checkout_invite( $order_id ) {
             $user = get_user_by( 'id', $user_id );
             if ( $user instanceof WP_User ) {
                 $user->set_role( 'customer' );
+                bw_mew_supabase_invite_trace( $order_id, sprintf( 'created WP user %d for %s', (int) $user_id, $email ), $debug_log );
             }
+        } else {
+            bw_mew_supabase_invite_trace( $order_id, sprintf( 'wp_create_user failed: %s', $user_id->get_error_message() ), $debug_log );
         }
     }
 
@@ -1194,6 +1223,7 @@ function bw_mew_handle_supabase_checkout_invite( $order_id ) {
     );
 
     if ( 'sent' === $result['status'] ) {
+        bw_mew_supabase_invite_trace( $order_id, 'invite sent to Supabase', $debug_log );
         $order->update_meta_data( '_bw_supabase_invite_sent', 1 );
         $order->update_meta_data( '_bw_supabase_invite_sent_at', $now );
         $order->delete_meta_data( '_bw_supabase_invite_error' );
@@ -1215,6 +1245,7 @@ function bw_mew_handle_supabase_checkout_invite( $order_id ) {
     }
 
     if ( 'exists' === $result['status'] ) {
+        bw_mew_supabase_invite_trace( $order_id, 'invite status=exists (already exists)', $debug_log );
         $order->update_meta_data( '_bw_supabase_invite_sent', 1 );
         $order->update_meta_data( '_bw_supabase_invite_sent_at', $now );
         $order->save();
@@ -1222,6 +1253,7 @@ function bw_mew_handle_supabase_checkout_invite( $order_id ) {
     }
 
     $order->update_meta_data( '_bw_supabase_invite_error', $result['body'] ?? '' );
+    bw_mew_supabase_invite_trace( $order_id, 'invite failed (see _bw_supabase_invite_error)', $debug_log );
     $order->save();
 }
 add_action( 'woocommerce_order_status_processing', 'bw_mew_handle_supabase_checkout_invite', 10, 1 );
