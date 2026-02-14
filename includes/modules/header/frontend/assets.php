@@ -200,7 +200,7 @@ if (!function_exists('bw_header_enqueue_assets')) {
             . ".bw-custom-header.bw-mobile-scrolled{background-color:#ffffff !important;}\n"
             . ".bw-custom-header .bw-custom-header__inner{padding: {$mobile_inner_padding_top}px {$mobile_inner_padding_right}px {$mobile_inner_padding_bottom}px {$mobile_inner_padding_left}px !important;width:100% !important;max-width:none !important;margin:0 !important;}\n"
             . ".bw-custom-header__desktop{display:none;}\n"
-            . ".bw-custom-header__mobile{display:grid;}\n"
+            . ".bw-custom-header__mobile{display:block;}\n"
             . ".bw-custom-header .bw-navigation__toggle{display:inline-flex;}\n"
             . ".bw-custom-header .bw-navigation__mobile-overlay{display:block;}\n"
             . ".bw-custom-header .bw-navshop--hide-account-mobile .bw-navshop__account{display:none;}\n"
@@ -234,11 +234,19 @@ if (!function_exists('bw_header_enqueue_assets')) {
             $inline_css .= ".bw-custom-header.bw-custom-header--smart.bw-header-scrolled{background-color: {$header_bg} !important;}\n";
         }
         $inline_css .= ".bw-custom-header__inner{padding: {$inner_padding_top}{$inner_padding_unit} {$inner_padding_right}{$inner_padding_unit} {$inner_padding_bottom}{$inner_padding_unit} {$inner_padding_left}{$inner_padding_unit} !important;}\n";
+        $blur_tint = bw_header_hex_to_rgba($menu_blur_tint_color, $menu_blur_tint_opacity);
+        $blur_scrolled_tint = bw_header_hex_to_rgba($menu_blur_scrolled_tint_color, $menu_blur_scrolled_tint_opacity);
+
         if ($menu_blur_enabled) {
-            $inline_css .= ".bw-custom-header__desktop-panel.is-blur-enabled{-webkit-backdrop-filter: blur({$menu_blur_amount}px);backdrop-filter: blur({$menu_blur_amount}px) !important;background-color:" . bw_header_hex_to_rgba($menu_blur_tint_color, $menu_blur_tint_opacity) . " !important;padding: {$menu_blur_padding_top}px {$menu_blur_padding_right}px {$menu_blur_padding_bottom}px {$menu_blur_padding_left}px !important;border-radius: {$menu_blur_radius}px !important;}\n";
-            $inline_css .= ".bw-custom-header.bw-header-scrolled .bw-custom-header__desktop-panel.is-blur-enabled{background-color:" . bw_header_hex_to_rgba($menu_blur_scrolled_tint_color, $menu_blur_scrolled_tint_opacity) . " !important;}\n";
+            // Desktop panel blur
+            $inline_css .= ".bw-custom-header__desktop-panel.is-blur-enabled{-webkit-backdrop-filter: blur({$menu_blur_amount}px);backdrop-filter: blur({$menu_blur_amount}px) !important;background-color:{$blur_tint} !important;padding: {$menu_blur_padding_top}px {$menu_blur_padding_right}px {$menu_blur_padding_bottom}px {$menu_blur_padding_left}px !important;border-radius: {$menu_blur_radius}px !important;}\n";
+            $inline_css .= ".bw-custom-header.bw-header-scrolled .bw-custom-header__desktop-panel.is-blur-enabled{background-color:{$blur_scrolled_tint} !important;}\n";
+            // Mobile panel blur (same settings)
+            $inline_css .= ".bw-custom-header__mobile-panel.is-blur-enabled{-webkit-backdrop-filter: blur({$menu_blur_amount}px);backdrop-filter: blur({$menu_blur_amount}px) !important;background-color:{$blur_tint} !important;padding: {$menu_blur_padding_top}px {$menu_blur_padding_right}px {$menu_blur_padding_bottom}px {$menu_blur_padding_left}px !important;border-radius: {$menu_blur_radius}px !important;}\n";
+            $inline_css .= ".bw-custom-header.bw-header-scrolled .bw-custom-header__mobile-panel.is-blur-enabled{background-color:{$blur_scrolled_tint} !important;}\n";
         } else {
             $inline_css .= ".bw-custom-header__desktop-panel{backdrop-filter:none !important;-webkit-backdrop-filter:none !important;background:transparent !important;padding:0 !important;margin:0 !important;border-radius:0 !important;}\n";
+            $inline_css .= ".bw-custom-header__mobile-panel{backdrop-filter:none !important;-webkit-backdrop-filter:none !important;background:transparent !important;padding:0 !important;margin:0 !important;border-radius:0 !important;}\n";
         }
 
         // Mobile scroll state must win over smart-header desktop rules.

@@ -162,11 +162,33 @@ body.bw-has-sticky-header:not(.elementor-editor-active) .bw-header-spacer {
 
 .bw-custom-header__mobile {
     display: none;
+    width: 100%;
+}
+
+.bw-custom-header__mobile-panel {
+    display: grid;
     grid-template-columns: auto 1fr auto;
     align-items: center;
     min-height: 54px;
     width: 100%;
     position: relative;
+    box-sizing: border-box;
+}
+
+/* Mobile Blur Effect (mirrors desktop panel blur) */
+.bw-custom-header__mobile-panel.is-blur-enabled {
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px) !important;
+    background-color: transparent !important;
+    padding: 10px;
+    border-radius: 12px;
+    isolation: isolate;
+}
+
+@supports not (backdrop-filter: blur(20px)) {
+    .bw-custom-header__mobile-panel.is-blur-enabled {
+        background-color: rgba(255, 255, 255, 0.15) !important;
+    }
 }
 
 .bw-custom-header__mobile-left {

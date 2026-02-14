@@ -267,6 +267,13 @@
 
             var activationPoint = Math.max(headerHeight, scrollDownThreshold);
 
+            // Toggle scrolled state for background color changes (admin-configured).
+            if (st > 2) {
+                header.classList.add('bw-header-scrolled');
+            } else {
+                header.classList.remove('bw-header-scrolled');
+            }
+
             if (st <= 2) {
                 // At the very top: header is naturally visible.
                 resetHeader();
