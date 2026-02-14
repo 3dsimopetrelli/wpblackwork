@@ -196,7 +196,7 @@ if (!function_exists('bw_header_enqueue_assets')) {
         }
 
         $inline_css = "\n@media (max-width: {$breakpoint}px) {\n"
-            . ".bw-custom-header{position:fixed !important;top:var(--bw-header-mobile-top-offset, 0px) !important;left:0 !important;right:0 !important;z-index:9998;width:auto !important;min-width:0 !important;max-width:none !important;margin:0 !important;transform:none !important;box-sizing:border-box !important;transition: background-color 0.35s ease, opacity 0.35s ease;}\n"
+            . ".bw-custom-header{position:fixed !important;top:var(--bw-header-mobile-top-offset, 0px) !important;left:0 !important;right:0 !important;z-index:9998;width:auto !important;min-width:0 !important;max-width:none !important;margin:0 !important;box-sizing:border-box !important;transition: transform 0.3s ease-in-out, background-color 0.35s ease, opacity 0.35s ease;}\n"
             . ".bw-custom-header.bw-mobile-scrolled{background-color:#ffffff !important;}\n"
             . ".bw-custom-header .bw-custom-header__inner{padding: {$mobile_inner_padding_top}px {$mobile_inner_padding_right}px {$mobile_inner_padding_bottom}px {$mobile_inner_padding_left}px !important;width:100% !important;max-width:none !important;margin:0 !important;}\n"
             . ".bw-custom-header__desktop{display:none;}\n"
@@ -241,8 +241,10 @@ if (!function_exists('bw_header_enqueue_assets')) {
             // Desktop panel blur
             $inline_css .= ".bw-custom-header__desktop-panel.is-blur-enabled{-webkit-backdrop-filter: blur({$menu_blur_amount}px);backdrop-filter: blur({$menu_blur_amount}px) !important;background-color:{$blur_tint} !important;padding: {$menu_blur_padding_top}px {$menu_blur_padding_right}px {$menu_blur_padding_bottom}px {$menu_blur_padding_left}px !important;border-radius: {$menu_blur_radius}px !important;}\n";
             $inline_css .= ".bw-custom-header.bw-header-scrolled .bw-custom-header__desktop-panel.is-blur-enabled{background-color:{$blur_scrolled_tint} !important;}\n";
-            // Mobile panel blur (same settings)
-            $inline_css .= ".bw-custom-header__mobile-panel.is-blur-enabled{-webkit-backdrop-filter: blur({$menu_blur_amount}px);backdrop-filter: blur({$menu_blur_amount}px) !important;background-color:{$blur_tint} !important;padding: {$menu_blur_padding_top}px {$menu_blur_padding_right}px {$menu_blur_padding_bottom}px {$menu_blur_padding_left}px !important;border-radius: {$menu_blur_radius}px !important;}\n";
+            // Mobile panel blur (compact padding to avoid double-spacing with __inner)
+            $mobile_blur_v = max(2, min(8, intval(round($menu_blur_padding_top * 0.5))));
+            $mobile_blur_h = max(2, min(10, intval(round($menu_blur_padding_right * 0.5))));
+            $inline_css .= ".bw-custom-header__mobile-panel.is-blur-enabled{-webkit-backdrop-filter: blur({$menu_blur_amount}px);backdrop-filter: blur({$menu_blur_amount}px) !important;background-color:{$blur_tint} !important;padding: {$mobile_blur_v}px {$mobile_blur_h}px !important;border-radius: {$menu_blur_radius}px !important;}\n";
             $inline_css .= ".bw-custom-header.bw-header-scrolled .bw-custom-header__mobile-panel.is-blur-enabled{background-color:{$blur_scrolled_tint} !important;}\n";
         } else {
             $inline_css .= ".bw-custom-header__desktop-panel{backdrop-filter:none !important;-webkit-backdrop-filter:none !important;background:transparent !important;padding:0 !important;margin:0 !important;border-radius:0 !important;}\n";
