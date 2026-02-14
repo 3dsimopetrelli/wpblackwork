@@ -1127,11 +1127,11 @@ function bw_mew_handle_supabase_checkout_invite( $order_id ) {
     }
 
     $order_user_id = (int) $order->get_user_id();
-    $user          = $order_user_id ? get_user_by( 'id', $order_user_id ) : null;
+    $order_user    = $order_user_id ? get_user_by( 'id', $order_user_id ) : null;
     $email         = sanitize_email( (string) $order->get_billing_email() );
 
-    if ( ! $email && $user instanceof WP_User ) {
-        $email = sanitize_email( (string) $user->user_email );
+    if ( ! $email && $order_user instanceof WP_User ) {
+        $email = sanitize_email( (string) $order_user->user_email );
     }
 
     if ( ! $email ) {
@@ -1166,8 +1166,15 @@ function bw_mew_handle_supabase_checkout_invite( $order_id ) {
         return;
     }
 
-    if ( ! $user instanceof WP_User ) {
-        $user = get_user_by( 'email', $email );
+    // Resolve user by billing email first, to avoid false positives when an order is
+    // associated with an already-onboarded account that differs from billing email.
+    $user = get_user_by( 'email', $email );
+
+    if ( ! $user instanceof WP_User && $order_user instanceof WP_User ) {
+        $order_user_email = sanitize_email( (string) $order_user->user_email );
+        if ( $order_user_email && strtolower( $order_user_email ) === strtolower( $email ) ) {
+            $user = $order_user;
+        }
     }
 
     if ( $user instanceof WP_User ) {
