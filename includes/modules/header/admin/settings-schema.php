@@ -118,9 +118,9 @@ if (!function_exists('bw_header_default_settings')) {
                 'menu_blur_tint_opacity' => 0.15,
                 'menu_blur_scrolled_tint_color' => '#ffffff',
                 'menu_blur_scrolled_tint_opacity' => 0.15,
-                'menu_blur_padding_top' => 10,
+                'menu_blur_padding_top' => 5,
                 'menu_blur_padding_right' => 10,
-                'menu_blur_padding_bottom' => 10,
+                'menu_blur_padding_bottom' => 5,
                 'menu_blur_padding_left' => 10,
             ],
         ];
