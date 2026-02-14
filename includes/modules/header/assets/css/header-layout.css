@@ -169,7 +169,6 @@ body.bw-has-sticky-header:not(.elementor-editor-active) .bw-header-spacer {
     display: grid;
     grid-template-columns: auto 1fr auto;
     align-items: center;
-    min-height: 54px;
     width: 100%;
     position: relative;
     box-sizing: border-box;
@@ -180,7 +179,7 @@ body.bw-has-sticky-header:not(.elementor-editor-active) .bw-header-spacer {
     -webkit-backdrop-filter: blur(20px);
     backdrop-filter: blur(20px) !important;
     background-color: transparent !important;
-    padding: 10px;
+    padding: 6px 8px;
     border-radius: 12px;
     isolation: isolate;
 }
