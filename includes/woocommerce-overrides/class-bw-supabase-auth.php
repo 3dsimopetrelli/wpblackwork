@@ -1080,13 +1080,22 @@ function bw_mew_handle_supabase_checkout_invite( $order_id ) {
         return;
     }
 
+    $debug_log = (bool) get_option( 'bw_supabase_debug_log', 0 );
+    $log_ctx   = sprintf( 'order %d', (int) $order_id );
+
     $provider = get_option( 'bw_account_login_provider', 'wordpress' );
     if ( 'supabase' !== $provider ) {
+        if ( $debug_log ) {
+            error_log( sprintf( 'Supabase invite skipped (%s): provider=%s', $log_ctx, $provider ) );
+        }
         return;
     }
 
     $provision_enabled = get_option( 'bw_supabase_checkout_provision_enabled', '0' );
     if ( '1' !== $provision_enabled ) {
+        if ( $debug_log ) {
+            error_log( sprintf( 'Supabase invite skipped (%s): checkout provisioning disabled', $log_ctx ) );
+        }
         return;
     }
 
@@ -1099,12 +1108,14 @@ function bw_mew_handle_supabase_checkout_invite( $order_id ) {
     }
 
     if ( ! $email ) {
+        if ( $debug_log ) {
+            error_log( sprintf( 'Supabase invite skipped (%s): missing billing email', $log_ctx ) );
+        }
         return;
     }
 
     $config         = bw_mew_get_supabase_config();
     $service_key    = trim( (string) get_option( 'bw_supabase_service_role_key', '' ) );
-    $debug_log      = (bool) get_option( 'bw_supabase_debug_log', 0 );
     $redirect_to    = get_option( 'bw_supabase_invite_redirect_url', '' );
     $default_redirect = wc_get_page_permalink( 'myaccount' );
     $redirect_to    = $redirect_to ? $redirect_to : $default_redirect;
@@ -1133,11 +1144,17 @@ function bw_mew_handle_supabase_checkout_invite( $order_id ) {
     if ( $user instanceof WP_User ) {
         $onboarded = (int) get_user_meta( $user->ID, 'bw_supabase_onboarded', true );
         if ( 1 === $onboarded ) {
+            if ( $debug_log ) {
+                error_log( sprintf( 'Supabase invite skipped (%s): user %d already onboarded', $log_ctx, (int) $user->ID ) );
+            }
             return;
         }
     }
 
     if ( $order->get_meta( '_bw_supabase_invite_sent' ) && $last_invite_at && ( $now - $last_invite_at ) < $min_interval ) {
+        if ( $debug_log ) {
+            error_log( sprintf( 'Supabase invite skipped (%s): throttled (%d seconds since last send)', $log_ctx, (int) ( $now - $last_invite_at ) ) );
+        }
         return;
     }
 
@@ -1167,7 +1184,7 @@ function bw_mew_handle_supabase_checkout_invite( $order_id ) {
             'service_key' => $service_key,
             'project_url' => $config['project_url'],
             'debug_log'   => $debug_log,
-            'context'     => sprintf( 'order %d', $order_id ),
+            'context'     => $log_ctx,
         ]
     );
 
@@ -1279,13 +1296,18 @@ function bw_mew_send_supabase_invite( array $args ) {
     $status_code = is_wp_error( $response ) ? 0 : wp_remote_retrieve_response_code( $response );
     $final_endpoint = $primary_endpoint;
 
-    if ( ! is_wp_error( $response ) && 404 === (int) $status_code ) {
+    $should_try_fallback = ! is_wp_error( $response )
+        && $fallback_endpoint !== $primary_endpoint
+        && ( (int) $status_code < 200 || (int) $status_code >= 300 );
+
+    if ( $should_try_fallback ) {
         if ( $debug_log ) {
             error_log(
                 sprintf(
-                    'Supabase invite fallback endpoint (%s): %s',
+                    'Supabase invite fallback endpoint (%s): %s (primary status %d)',
                     $context,
-                    $fallback_endpoint
+                    $fallback_endpoint,
+                    (int) $status_code
                 )
             );
         }
