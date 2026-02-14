@@ -1080,6 +1080,11 @@ function bw_mew_handle_supabase_checkout_invite( $order_id ) {
         return;
     }
 
+    $order_status = $order->get_status();
+    if ( in_array( $order_status, [ 'failed', 'cancelled', 'refunded', 'trash' ], true ) ) {
+        return;
+    }
+
     $debug_log = (bool) get_option( 'bw_supabase_debug_log', 0 );
     $log_ctx   = sprintf( 'order %d', (int) $order_id );
 
@@ -1223,6 +1228,7 @@ add_action( 'woocommerce_order_status_processing', 'bw_mew_handle_supabase_check
 add_action( 'woocommerce_order_status_completed', 'bw_mew_handle_supabase_checkout_invite', 10, 1 );
 add_action( 'woocommerce_order_status_on-hold', 'bw_mew_handle_supabase_checkout_invite', 10, 1 );
 add_action( 'woocommerce_payment_complete', 'bw_mew_handle_supabase_checkout_invite', 10, 1 );
+add_action( 'woocommerce_thankyou', 'bw_mew_handle_supabase_checkout_invite', 20, 1 );
 
 /**
  * Send Supabase invite via Admin API.
