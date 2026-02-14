@@ -303,6 +303,15 @@ body.bw-has-sticky-header:not(.elementor-editor-active) .bw-header-spacer {
     .bw-custom-header .bw-navshop__cart-count {
         font-size: 0.5em;
     }
+
+    .bw-custom-header__mobile-right {
+        transform: translateX(20px);
+        transition: transform 0.25s ease;
+    }
+
+    .bw-custom-header__mobile-right:has(.bw-navshop__cart-count:not(.is-empty)) {
+        transform: translateX(0);
+    }
 }
 
 @media (max-width: 767px) {
