@@ -104,9 +104,9 @@ if (!function_exists('bw_header_enqueue_assets')) {
             $menu_blur_scrolled_tint_color = $menu_blur_tint_color;
         }
         $menu_blur_scrolled_tint_opacity = isset($smart_header['menu_blur_scrolled_tint_opacity']) ? max(0, min(1, (float) $smart_header['menu_blur_scrolled_tint_opacity'])) : $menu_blur_tint_opacity;
-        $menu_blur_padding_top = isset($smart_header['menu_blur_padding_top']) ? max(0, min(200, absint($smart_header['menu_blur_padding_top']))) : 10;
+        $menu_blur_padding_top = isset($smart_header['menu_blur_padding_top']) ? max(0, min(200, absint($smart_header['menu_blur_padding_top']))) : 5;
         $menu_blur_padding_right = isset($smart_header['menu_blur_padding_right']) ? max(0, min(200, absint($smart_header['menu_blur_padding_right']))) : 10;
-        $menu_blur_padding_bottom = isset($smart_header['menu_blur_padding_bottom']) ? max(0, min(200, absint($smart_header['menu_blur_padding_bottom']))) : 10;
+        $menu_blur_padding_bottom = isset($smart_header['menu_blur_padding_bottom']) ? max(0, min(200, absint($smart_header['menu_blur_padding_bottom']))) : 5;
         $menu_blur_padding_left = isset($smart_header['menu_blur_padding_left']) ? max(0, min(200, absint($smart_header['menu_blur_padding_left']))) : 10;
         $mobile_right_icons_gap = isset($mobile_layout['right_icons_gap']) ? max(0, min(200, (float) $mobile_layout['right_icons_gap'])) : 16;
         $mobile_cart_badge_offset_x = isset($mobile_layout['cart_badge_offset_x']) ? max(-100, min(100, (float) $mobile_layout['cart_badge_offset_x'])) : 0;
