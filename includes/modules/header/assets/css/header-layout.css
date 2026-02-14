@@ -179,7 +179,7 @@ body.bw-has-sticky-header:not(.elementor-editor-active) .bw-header-spacer {
     -webkit-backdrop-filter: blur(20px);
     backdrop-filter: blur(20px) !important;
     background-color: transparent !important;
-    padding: 6px 8px;
+    padding: 6px 4px;
     border-radius: 12px;
     isolation: isolate;
 }
@@ -298,6 +298,10 @@ body.bw-has-sticky-header:not(.elementor-editor-active) .bw-header-spacer {
 
     .bw-custom-header {
         background-color: #ffffff !important;
+    }
+
+    .bw-custom-header .bw-navshop__cart-count {
+        font-size: 0.5em;
     }
 }
 
