@@ -293,18 +293,19 @@ add_action('wp_enqueue_scripts', 'bw_mew_enqueue_supabase_bridge', 20);
  */
 function bw_mew_supabase_early_invite_redirect_hint()
 {
-    if (is_user_logged_in()) {
-        return;
-    }
-
     $account_url = wc_get_page_permalink('myaccount');
     if (!$account_url) {
         return;
+    }
+    $set_password_url = wc_get_account_endpoint_url('set-password');
+    if (!$set_password_url) {
+        $set_password_url = $account_url;
     }
     $expired_link_url = trim((string) get_option('bw_supabase_expired_link_redirect_url', ''));
     if (!$expired_link_url) {
         $expired_link_url = site_url('/link-expired/');
     }
+    $is_logged_in = is_user_logged_in();
 
     ?>
     <script>
@@ -317,8 +318,15 @@ function bw_mew_supabase_early_invite_redirect_hint()
         var params = new URLSearchParams(hash.replace(/^#/, ''));
         var errorCode = params.get('error_code') || '';
         if (errorCode === 'otp_expired') {
-            var expiredUrl = new URL(<?php echo wp_json_encode($expired_link_url); ?>, window.location.origin);
-            window.location.replace(expiredUrl.toString());
+            var isLoggedIn = <?php echo $is_logged_in ? 'true' : 'false'; ?>;
+            var targetBase = isLoggedIn
+                ? <?php echo wp_json_encode($set_password_url); ?>
+                : <?php echo wp_json_encode($expired_link_url); ?>;
+            var targetUrl = new URL(targetBase, window.location.origin);
+            if (isLoggedIn) {
+                targetUrl.searchParams.set('bw_set_password', '1');
+            }
+            window.location.replace(targetUrl.toString());
             return;
         }
 
