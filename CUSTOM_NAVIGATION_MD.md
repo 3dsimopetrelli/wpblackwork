@@ -182,3 +182,14 @@ Mobile:
 ## Conclusione
 
 La custom navigation è strutturalmente solida e separata per desktop/mobile con fallback robusti e comportamento JS completo sul drawer. Il principale gap funzionale è la mancata applicazione dei flag `features.*` nel rendering effettivo, mentre il resto riguarda miglioramenti mirati (focus accessibility, gestione scenari multi-istanza, supporto submenu).
+
+## Update applicato
+
+Migliorie implementate nel codice:
+
+- `features.navigation/search/navshop` ora applicate davvero nel rendering frontend.
+- Aggiunti checkbox admin per gestire i tre blocchi feature direttamente da pannello Header.
+- Supporto dropdown menu (depth 2) con stile minimal desktop + freccia elegante su voci parent.
+- Drawer mobile con toggle submenu dedicato (freccia, apertura/chiusura animata, reset allo shutdown del drawer).
+- Focus accessibility aggiunto su bottone close del menu mobile.
+- Stabilizzato id submenu mobile per istanze multiple (`bw-nav-...-submenu-...`).
