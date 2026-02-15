@@ -1,238 +1,284 @@
-# BW Cart Pop-Up Module
+# Cart Pop-up: Struttura Completa, Flussi e Gestione Coupon
 
-Modulo per gestire un pannello cart pop-up laterale con slide-in animato per WooCommerce.
+Documento tecnico aggiornato del sottosistema **Cart Pop-up** del plugin `wpblackwork`.
 
-## Descrizione
+## 1) Obiettivo del modulo
 
-Il modulo Cart Pop-Up aggiunge al plugin BW Elementor Widgets la possibilità di mostrare il carrello WooCommerce in un pannello laterale slide-in invece di reindirizzare alla pagina del carrello quando si clicca su "Add to Cart".
+Il Cart Pop-up sostituisce (in specifici contesti) il comportamento standard di WooCommerce dopo l'`Add to cart`, aprendo un pannello laterale con:
+- elenco prodotti nel carrello,
+- modifica quantità e rimozione item,
+- applicazione/rimozione coupon,
+- ricalcolo totale in tempo reale,
+- CTA checkout/continue shopping.
 
-## Caratteristiche
+## 2) Mappa file coinvolti
 
-- **Toggle ON/OFF**: Attiva/disattiva la funzionalità dal pannello admin
-- **Pannello Slide-in**: Animazione fluida da destra verso sinistra con overlay scuro
-- **Completamente Configurabile**: Tutti i colori, dimensioni e testi personalizzabili da admin
-- **Design Responsive**: Ottimizzato per desktop, tablet e mobile
-- **Promo Code**: Box per inserire coupon con calcolo real-time degli sconti
-- **Mini Cart Completo**: Lista prodotti, quantità modificabile, rimozione prodotti, totali
-- **CSS Personalizzabile**: File CSS completamente commentato per modifiche manuali
+### Nucleo Cart Pop-up
+- `cart-popup/cart-popup.php`
+- `cart-popup/frontend/cart-popup-frontend.php`
+- `cart-popup/assets/js/bw-cart-popup.js`
+- `cart-popup/assets/css/bw-cart-popup.css`
+- `cart-popup/admin/settings-page.php`
 
-## Struttura File
+### Integrazioni plugin / WooCommerce
+- `bw-main-elementor-widgets.php` (bootstrap modulo)
+- `admin/class-blackwork-site-settings.php` (pannello unificato “Blackwork Site”, tab Cart Pop-up)
+- `includes/modules/header/templates/header.php` (trigger cart icona header)
+- `includes/modules/header/assets/js/bw-navshop.js` (apertura popup da header)
+- `includes/widgets/class-bw-slick-slider-widget.php` (data attribute `data-open-cart-popup="1"`)
+- `includes/widgets/class-bw-filtered-post-wall-widget.php` (data attribute `data-open-cart-popup="1"`)
+- `includes/widgets/class-bw-related-products-widget.php` (opzione Elementor per popup)
+- `woocommerce/templates/single-product/related.php` (button con `data-open-cart-popup="1"`)
+- `templates/woocommerce/content-product.php` (flag `open_cart_popup` per renderer card)
 
-```
-cart-popup/
-├── cart-popup.php                    # File principale del modulo
-├── admin/
-│   └── settings-page.php            # Pannello admin con impostazioni
-├── frontend/
-│   └── cart-popup-frontend.php      # Logica frontend e AJAX handlers
-├── assets/
-│   ├── css/
-│   │   └── bw-cart-popup.css       # Stili del cart pop-up (completo e commentato)
-│   └── js/
-│       └── bw-cart-popup.js        # JavaScript per interazioni
-└── README.md                        # Questa documentazione
-```
+### Flusso coupon checkout (correlato, ma separato dal popup)
+- `woocommerce/woocommerce-init.php` (`bw_mew_ajax_apply_coupon`, `bw_mew_ajax_remove_coupon`)
+- `assets/js/bw-checkout.js` (AJAX apply/remove coupon in checkout)
+- `woocommerce/templates/checkout/form-coupon.php`
+- `woocommerce/templates/checkout/review-order.php`
 
-## Installazione
+### Empty cart page allineata al linguaggio popup
+- `woocommerce/templates/cart/cart-empty.php`
 
-Il modulo è già integrato nel plugin BW Elementor Widgets. Non serve installazione separata.
+## 3) Bootstrap e inizializzazione
 
-## Configurazione
+1. `bw-main-elementor-widgets.php` include `cart-popup/cart-popup.php`.
+2. `cart-popup/cart-popup.php`:
+- definisce costanti percorso/URL modulo,
+- include admin settings e logica frontend,
+- registra/enqueue CSS+JS,
+- passa config JS via `wp_localize_script` (`bwCartPopupConfig`),
+- inietta CSS anti `View cart` WooCommerce.
+3. `cart-popup/frontend/cart-popup-frontend.php` renderizza markup pannello in `wp_footer` e registra endpoint AJAX custom.
+4. `cart-popup/assets/js/bw-cart-popup.js` inizializza `window.BW_CartPopup` al `document.ready`.
 
-1. Vai nel pannello admin di WordPress
-2. Clicca su **Cart Pop-Up** nel menu laterale
-3. Configura le seguenti opzioni:
+Nota: gli asset del popup vengono caricati sempre nel frontend (non solo quando toggle globale è attivo), per supportare widget che forzano l'apertura popup via data-attribute.
 
-### Impostazioni Disponibili
+## 4) Struttura UI del pannello
 
-#### Generale
-- **Attiva Cart Pop-Up**: Toggle per attivare/disattivare la funzionalità
-- **Larghezza Pannello**: Larghezza del pannello laterale in pixel (default: 400px)
+Markup principale (`bw_cart_popup_render_panel`):
+- overlay: `#bw-cart-popup-overlay`
+- panel: `#bw-cart-popup-panel`
+- loading state
+- header con badge + close
+- notifica “item added”
+- stato empty cart (SVG custom/default + Return to Shop)
+- stato full cart:
+  - lista item (`.bw-cart-popup-items`),
+  - promo area (input coupon + apply + messaggi),
+  - totali (subtotal, discount, total)
+- footer CTA (checkout + continue)
+- trigger flottante opzionale
 
-#### Overlay
-- **Colore Overlay**: Colore della maschera che oscura la pagina
-- **Opacità Overlay**: Opacità dell'overlay da 0 a 1 (default: 0.5)
+## 5) Trigger apertura popup
 
-#### Pannello
-- **Colore Sfondo Pannello**: Colore di sfondo del pannello slide-in
+### Trigger automatico da Add to cart
+- Evento WooCommerce `added_to_cart` intercettato in JS.
+- Popup si apre se:
+  - `bw_cart_popup_slide_animation = 1` (globale), oppure
+  - il bottone ha `data-open-cart-popup="1"` (widget).
 
-#### Pulsanti
-- **Testo Pulsante Checkout**: Personalizza il testo del pulsante (default: "Proceed to checkout")
-- **Colore Pulsante Checkout**: Colore di sfondo del pulsante checkout (default: verde #28a745)
-- **Testo Pulsante Continue Shopping**: Personalizza il testo del pulsante (default: "Continue shopping")
-- **Colore Pulsante Continue Shopping**: Colore di sfondo del pulsante continue
+### Trigger manuale da header
+- Link header con `data-use-popup="yes"`.
+- `includes/modules/header/assets/js/bw-navshop.js` chiama `window.BW_CartPopup.openPanel()`.
+- fallback a redirect cart URL se oggetto popup non disponibile.
 
-#### Icone (CSS Custom)
-- **CSS Icona Carrello**: CSS personalizzato per sostituire l'icona del carrello
-- **CSS Icona Chiusura**: CSS personalizzato per sostituire l'icona X
+## 6) Endpoint AJAX Cart Pop-up
 
-### Esempio CSS Personalizzato Icone
+Definiti in `cart-popup/frontend/cart-popup-frontend.php`:
+- `bw_cart_popup_get_contents`
+- `bw_cart_popup_add_to_cart`
+- `bw_cart_popup_remove_item`
+- `bw_cart_popup_update_quantity`
+- `bw_cart_popup_apply_coupon`
+- `bw_cart_popup_remove_coupon`
 
-```css
-/* Per sostituire l'icona del carrello */
-background-image: url('https://tuosito.com/path/to/cart-icon.svg');
-background-size: 24px 24px;
+Tutti protetti da nonce `bw_cart_popup_nonce`.
 
-/* Per sostituire l'icona di chiusura */
-background-image: url('https://tuosito.com/path/to/close-icon.svg');
-background-size: 20px 20px;
-```
+## 7) Flusso runtime completo del popup
 
-## Funzionalità
+1. `openPanel()`:
+- blocca in editor Elementor,
+- applica classi active a overlay/panel,
+- blocca scroll body,
+- invoca `loadCartContents()`.
 
-### Comportamento Add to Cart
+2. `loadCartContents()` -> `bw_cart_popup_get_contents`:
+- legge carrello WooCommerce,
+- serializza item + prezzi raw/formattati,
+- ritorna coupon applicati e importi per coupon,
+- ritorna subtotal/discount/tax/total.
 
-**Quando OFF (Disattivato)**:
-- I pulsanti "Add to Cart" funzionano in modo standard
-- L'utente viene reindirizzato alla pagina del carrello
+3. Render frontend:
+- `renderCartItems(data)` ricostruisce lista prodotti,
+- `updateTotals(data)` aggiorna subtotale/sconti/totale,
+- `updateCouponDisplay(data.applied_coupons)` gestisce visibilità remove coupon.
 
-**Quando ON (Attivato)**:
-- Cliccando su "Add to Cart" si apre il pannello slide-in
-- Overlay scuro copre la pagina
-- Il pannello scorre da destra verso sinistra con animazione fluida
+4. Azioni utente:
+- quantità `+/-` -> `bw_cart_popup_update_quantity` -> `calculate_totals()` -> refresh popup,
+- remove item -> `bw_cart_popup_remove_item` -> `calculate_totals()` -> refresh popup,
+- apply coupon -> `bw_cart_popup_apply_coupon` -> `calculate_totals()` -> refresh totals,
+- remove coupon -> `bw_cart_popup_remove_coupon` -> `calculate_totals()` -> refresh totals.
 
-### Pannello Cart Pop-Up
+5. Sincronizzazione WooCommerce fragments:
+- in punti chiave il JS triggera `wc_fragment_refresh` per tenere coerenti mini-cart/frammenti.
 
-Il pannello include:
+## 8) Metodo di calcolo coupon nel Cart Pop-up
 
-1. **Header**
-   - Icona carrello
-   - Titolo "Your Cart"
-   - Pulsante chiusura (X)
+### Apply coupon (popup)
+Handler: `bw_cart_popup_apply_coupon()`
+- input: `coupon_code`
+- applicazione: `$cart->add_discount($coupon_code)`
+- ricalcolo: `$cart->calculate_totals()`
+- valori restituiti:
+  - `subtotal = get_subtotal()`
+  - `discount = get_discount_total()`
+  - `tax = get_total_tax()`
+  - `total = get_total('')`
+  - `applied_coupons = get_applied_coupons()`
+  - `coupons[]` dettagliato con importi da `get_coupon_discount_amounts()`
 
-2. **Lista Prodotti**
-   - Immagine prodotto
-   - Nome prodotto (cliccabile)
-   - Input quantità modificabile
-   - Prezzo
-   - Pulsante rimozione (X)
+### Remove coupon (popup)
+Handler: `bw_cart_popup_remove_coupon()`
+- input opzionale: `coupon_code`
+- se presente: `remove_coupon($coupon_code)`
+- se assente: `remove_coupons()` (legacy behavior)
+- ricalcolo: `$cart->calculate_totals()`
+- output speculare all'apply.
 
-3. **Divider**
-   - Linea divisoria elegante
+### Rendering sconti lato JS
+`updateTotals(data)`:
+- non usa una singola riga “discount totale”,
+- costruisce righe dinamiche per ciascun coupon con:
+  - codice coupon,
+  - amount coupon-specific,
+  - link `[Remove]` per rimozione puntuale.
 
-4. **Sezione Promo Code**
-   - Link "Have a promo code? Click here."
-   - Box fade-in con input coupon e pulsante Apply
-   - Messaggio di successo/errore
-   - Calcolo real-time dello sconto
+## 9) Flusso coupon in Checkout (distinto dal popup)
 
-5. **Totali**
-   - Subtotal
-   - Discount (se applicato)
-   - VAT
-   - Total (evidenziato)
+In checkout non si usano gli endpoint popup: si usano endpoint custom in `woocommerce/woocommerce-init.php`:
+- `bw_mew_ajax_apply_coupon` (action `bw_apply_coupon`)
+- `bw_mew_ajax_remove_coupon` (action `bw_remove_coupon`)
 
-6. **Footer**
-   - Pulsante "Proceed to checkout" (verde, larghezza 100%)
-   - Pulsante "Continue shopping" (grigio)
+Differenze chiave rispetto al popup:
+- apply usa `WC()->cart->apply_coupon()` (non `add_discount`),
+- forzatura persistenza sessione WooCommerce (`persistent_cart_update`, `session->save_data`, set esplicito di `applied_coupons`/`coupon_discount_totals`),
+- ritorno `cart_hash` per sincronizzazione robusta,
+- integrazione eventi `woocommerce_applied_coupon` / `woocommerce_removed_coupon`.
 
-### Interazioni
+JS checkout (`assets/js/bw-checkout.js`) poi triggera `update_checkout` per rigenerare il riepilogo ordine.
 
-- **Chiudi Pannello**: Click sull'overlay, pulsante X, pulsante "Continue shopping", tasto ESC
-- **Modifica Quantità**: Cambio valore input aggiorna il carrello in tempo reale
-- **Rimuovi Prodotto**: Click sulla X del prodotto
-- **Applica Coupon**: Click su "Click here" → inserisci codice → Apply
-- **Checkout**: Click su "Proceed to checkout" porta alla pagina di checkout
+## 10) Pannello di controllo “Blackwork Site”
 
-## AJAX Endpoints
+Menu: `Blackwork Site` (`admin/class-blackwork-site-settings.php`)
+Tab disponibili:
+- `Cart Pop-up`
+- `BW Coming Soon`
+- `Login Page`
+- `My Account Page`
+- `Checkout`
+- `Redirect`
+- `Import Product`
+- `Loading`
 
-Il modulo espone i seguenti endpoint AJAX:
+Il tab `Cart Pop-up` usa la funzione di salvataggio centralizzata `bw_cart_popup_save_settings()` definita in `cart-popup/admin/settings-page.php`.
 
-- `bw_cart_popup_get_contents`: Ottiene il contenuto del carrello
-- `bw_cart_popup_apply_coupon`: Applica un codice coupon
-- `bw_cart_popup_remove_item`: Rimuove un prodotto dal carrello
-- `bw_cart_popup_update_quantity`: Aggiorna la quantità di un prodotto
+## 11) Tutti i campi del tab Cart Pop-up (con option key)
 
-## Personalizzazione CSS
+### A) Generale
+- `bw_cart_popup_active`: abilita/disabilita popup globale.
+- `bw_cart_popup_show_floating_trigger`: bottone cart fisso flottante.
+- `bw_cart_popup_slide_animation`: apertura automatica popup su add-to-cart.
+- `bw_cart_popup_panel_width`: larghezza pannello desktop (px).
+- `bw_cart_popup_mobile_width`: larghezza pannello mobile (%).
+- `bw_cart_popup_overlay_color`: colore overlay.
+- `bw_cart_popup_overlay_opacity`: opacità overlay (0-1).
+- `bw_cart_popup_panel_bg`: background pannello.
+- `bw_cart_popup_show_quantity_badge`: badge quantità su thumbnail item.
 
-Il file `assets/css/bw-cart-popup.css` è completamente commentato e diviso in sezioni:
+### B) CTA Checkout
+- `bw_cart_popup_checkout_text`: testo bottone checkout.
+- `bw_cart_popup_checkout_bg`: bg normale.
+- `bw_cart_popup_checkout_bg_hover`: bg hover.
+- `bw_cart_popup_checkout_text_color`: testo normale.
+- `bw_cart_popup_checkout_text_hover`: testo hover.
+- `bw_cart_popup_checkout_font_size`: font-size.
+- `bw_cart_popup_checkout_border_radius`: border-radius.
+- `bw_cart_popup_checkout_border_enabled`: toggle bordo.
+- `bw_cart_popup_checkout_border_width`: spessore bordo.
+- `bw_cart_popup_checkout_border_style`: stile bordo.
+- `bw_cart_popup_checkout_border_color`: colore bordo.
+- `bw_cart_popup_checkout_padding_top`
+- `bw_cart_popup_checkout_padding_right`
+- `bw_cart_popup_checkout_padding_bottom`
+- `bw_cart_popup_checkout_padding_left`
 
-1. **OVERLAY**: Maschera scura di sfondo
-2. **PANNELLO PRINCIPALE**: Contenitore slide-in
-3. **HEADER DEL PANNELLO**: Intestazione con titolo e pulsanti
-4. **ICONE**: Icone carrello e chiusura (personalizzabili)
-5. **CONTENUTO CARRELLO**: Area scrollabile
-6. **PRODOTTI NEL CARRELLO**: Layout lista prodotti
-7. **DIVIDER**: Linea divisoria
-8. **SEZIONE PROMO CODE**: Box coupon con animazioni
-9. **TOTALI**: Riepilogo prezzi
-10. **FOOTER E PULSANTI**: Pulsanti azione
-11. **TRANSIZIONI E ANIMAZIONI**: Effetti smooth
-12. **UTILITIES**: Classi helper
-13. **RESPONSIVE**: Adattamenti mobile e tablet
+### C) CTA Continue Shopping
+- `bw_cart_popup_continue_text`: testo bottone.
+- `bw_cart_popup_continue_url`: URL personalizzato continue.
+- `bw_cart_popup_continue_bg`: bg normale.
+- `bw_cart_popup_continue_bg_hover`: bg hover.
+- `bw_cart_popup_continue_text_color`: testo normale.
+- `bw_cart_popup_continue_text_hover`: testo hover.
+- `bw_cart_popup_continue_font_size`: font-size.
+- `bw_cart_popup_continue_border_radius`: border-radius.
+- `bw_cart_popup_continue_border_enabled`: toggle bordo.
+- `bw_cart_popup_continue_border_width`: spessore bordo.
+- `bw_cart_popup_continue_border_style`: stile bordo.
+- `bw_cart_popup_continue_border_color`: colore bordo.
+- `bw_cart_popup_continue_padding_top`
+- `bw_cart_popup_continue_padding_right`
+- `bw_cart_popup_continue_padding_bottom`
+- `bw_cart_popup_continue_padding_left`
 
-### Modifiche CSS Comuni
+### D) Promo code section
+- `bw_cart_popup_promo_section_label`: label sezione promo.
+- `bw_cart_popup_promo_input_padding_top`
+- `bw_cart_popup_promo_input_padding_right`
+- `bw_cart_popup_promo_input_padding_bottom`
+- `bw_cart_popup_promo_input_padding_left`
+- `bw_cart_popup_promo_placeholder_font_size`: dimensione placeholder input.
+- `bw_cart_popup_apply_button_font_weight`: peso font bottone Apply.
 
-```css
-/* Cambia larghezza pannello */
-.bw-cart-popup-panel {
-    width: 500px; /* Invece di 400px */
-}
+### E) Empty cart
+- `bw_cart_popup_return_shop_url`: URL pulsante Return to Shop.
+- `bw_cart_popup_empty_cart_svg`: SVG custom stato empty.
+- `bw_cart_popup_empty_cart_padding_top`
+- `bw_cart_popup_empty_cart_padding_right`
+- `bw_cart_popup_empty_cart_padding_bottom`
+- `bw_cart_popup_empty_cart_padding_left`
 
-/* Cambia colore overlay */
-.bw-cart-popup-overlay.active {
-    background-color: rgba(0, 0, 0, 0.7); /* Invece di 0.5 */
-}
+### F) SVG cart icon
+- `bw_cart_popup_additional_svg`: SVG custom aggiuntivo nel popup.
+- `bw_cart_popup_cart_icon_margin_top`
+- `bw_cart_popup_cart_icon_margin_right`
+- `bw_cart_popup_cart_icon_margin_bottom`
+- `bw_cart_popup_cart_icon_margin_left`
+- `bw_cart_popup_svg_black`: forza fill nero su SVG custom.
 
-/* Cambia colore pulsante checkout */
-.bw-cart-popup-checkout {
-    background-color: #ff6600 !important; /* Arancione */
-}
+### G) Opzioni legacy ancora salvate
+- `bw_cart_popup_checkout_color`
+- `bw_cart_popup_continue_color`
 
-/* Cambia velocità animazione */
-.bw-cart-popup-panel {
-    transition: transform 0.6s ease; /* Invece di 0.4s */
-}
-```
+Sono ancora persistite e localizzate in JS config, ma lo stile effettivo corrente è guidato soprattutto dai campi `*_bg`, `*_text_color`, `*_border_*`, `*_padding_*` e dal CSS dinamico.
 
-## Compatibilità
+## 12) Note tecniche importanti
 
-- **WordPress**: 5.0+
-- **WooCommerce**: 4.0+
-- **PHP**: 7.4+
-- **Browser**: Chrome, Firefox, Safari, Edge (ultime 2 versioni)
+- Checkout URL popup: nel JS localizzato viene forzato `home_url('/checkout/')`; nel markup PHP è `wc_get_checkout_url()`. Il JS forza poi l'href del bottone.
+- Nel popup il calcolo sconto totale usa `get_discount_total()`, mentre il dettaglio per coupon usa `get_coupon_discount_amounts()`.
+- Esistono due stack coupon separati:
+  - stack popup (`bw_cart_popup_*`) per pannello cart,
+  - stack checkout (`bw_apply_coupon`/`bw_remove_coupon`) per pagina checkout con persistenza sessione hardening.
+- La UI checkout è stata stilisticamente allineata al cart popup (pill coupon, input floating label), ma il backend coupon rimane separato.
+- L'opzione legacy `bw_cart_popup_checkout_url` viene ripulita in `admin_init` e non è più usata.
+- `bw_cart_popup_promo_section_label` è salvata in admin ma il testo visibile della promo area nel popup è hardcoded nel markup frontend corrente.
 
-## Note Tecniche
+## 13) File sorgente principali da consultare rapidamente
 
-- Il modulo usa `added_to_cart` event di WooCommerce per intercettare l'aggiunta al carrello
-- Gli assets vengono caricati solo se la funzionalità è attiva
-- Il pannello usa `position: fixed` e `z-index: 9999`
-- Lo scroll del body viene bloccato quando il pannello è aperto
-- Le transizioni usano `cubic-bezier` per animazioni fluide
-- I totali vengono ricalcolati automaticamente via AJAX
-
-## Troubleshooting
-
-### Il pannello non si apre
-1. Verifica che la funzionalità sia attiva nel pannello admin
-2. Controlla che WooCommerce sia installato e attivo
-3. Verifica console JavaScript per errori
-
-### I coupon non funzionano
-1. Verifica che i coupon siano configurati correttamente in WooCommerce
-2. Controlla le condizioni di applicazione del coupon
-3. Verifica che il carrello abbia prodotti validi per il coupon
-
-### Conflitti CSS
-1. Aumenta la specificità dei selettori nel CSS custom
-2. Usa `!important` se necessario
-3. Verifica che non ci siano altri plugin che modificano il carrello
-
-## Supporto
-
-Per problemi o domande, contatta il team di sviluppo del plugin BW Elementor Widgets.
-
-## Changelog
-
-### 1.0.0 (2025-11-17)
-- Release iniziale
-- Pannello admin con tutte le configurazioni
-- Pannello slide-in frontend
-- Funzionalità promo code
-- CSS completo e commentato
-- Responsive design
-- AJAX per aggiornamenti real-time
-
-## Crediti
-
-Sviluppato per BW Elementor Widgets
+- Flusso completo popup: `cart-popup/assets/js/bw-cart-popup.js`
+- Endpoint popup: `cart-popup/frontend/cart-popup-frontend.php`
+- Bootstrap/config popup: `cart-popup/cart-popup.php`
+- Salvataggio campi admin popup: `cart-popup/admin/settings-page.php`
+- Tab admin unificato: `admin/class-blackwork-site-settings.php`
+- Coupon checkout custom: `woocommerce/woocommerce-init.php`
+- Coupon checkout frontend: `assets/js/bw-checkout.js`
