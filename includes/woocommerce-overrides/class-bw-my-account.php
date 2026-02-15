@@ -150,9 +150,11 @@ function bw_mew_enforce_supabase_onboarding_lock() {
 add_action( 'template_redirect', 'bw_mew_enforce_supabase_onboarding_lock' );
 
 /**
- * Redirect guest order verify-email flow to My Account login when provider is Supabase.
+ * Optional redirect from order-received to My Account for guest users.
  *
- * Keeps default WooCommerce verify-email form when provider is WordPress.
+ * Default behavior is disabled to keep users on the Thank You page after checkout.
+ * Enable only via filter:
+ * add_filter( 'bw_mew_redirect_guest_order_received_to_account', '__return_true' );
  */
 function bw_mew_redirect_order_verify_email_for_supabase() {
     if ( is_user_logged_in() ) {
@@ -165,6 +167,11 @@ function bw_mew_redirect_order_verify_email_for_supabase() {
 
     $provider = get_option( 'bw_account_login_provider', 'wordpress' );
     if ( 'supabase' !== $provider ) {
+        return;
+    }
+
+    $should_redirect = (bool) apply_filters( 'bw_mew_redirect_guest_order_received_to_account', false );
+    if ( ! $should_redirect ) {
         return;
     }
 
