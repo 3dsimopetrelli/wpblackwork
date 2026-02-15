@@ -881,8 +881,8 @@
                             </span>
                         </div>
                         <div style="display:flex; align-items:center; gap:10px;">
-                            <span class="value" style="color:var(--e-global-color-accent, #4CAF50); font-weight:bold; display:block;">${amount}</span>
                             <a href="#" class="bw-remove-coupon-btn-dynamic" data-code="${code}" style="font-size:11px; color:#999; text-decoration:none; text-transform:uppercase;">[Remove]</a>
+                            <span class="value" style="color:#000; font-weight:bold; display:block;">${amount}</span>
                         </div>
                      </div>`;
 

@@ -70,6 +70,40 @@ function bw_cart_popup_get_first_error_notice($fallback = '')
 }
 
 /**
+ * Compute a single coupon discount amount using the same primary method used in checkout.
+ *
+ * @param WC_Cart $cart Cart instance.
+ * @param string  $code Coupon code.
+ * @param array   $coupon_amounts Optional pre-fetched fallback map from get_coupon_discount_amounts().
+ *
+ * @return float Positive discount amount for the coupon.
+ */
+function bw_cart_popup_get_coupon_amount($cart, $code, $coupon_amounts = [])
+{
+    $amount = 0.0;
+
+    if ($cart && is_callable([$cart, 'get_coupon_discount_amount'])) {
+        $amount = (float) $cart->get_coupon_discount_amount($code);
+    }
+
+    if ($amount <= 0 && !empty($coupon_amounts) && is_array($coupon_amounts)) {
+        if (isset($coupon_amounts[$code])) {
+            $amount = (float) $coupon_amounts[$code];
+        } else {
+            $code_lc = strtolower((string) $code);
+            foreach ($coupon_amounts as $key => $value) {
+                if (strtolower((string) $key) === $code_lc) {
+                    $amount = (float) $value;
+                    break;
+                }
+            }
+        }
+    }
+
+    return max(0, $amount);
+}
+
+/**
  * Aggiungi il markup HTML del cart pop-up nel footer
  * NOTA: Il markup viene sempre renderizzato perché è necessario anche per i widget
  * (anche se l'opzione globale cart popup è disattivata)
@@ -628,12 +662,12 @@ function bw_cart_popup_get_cart_contents()
     }
 
     foreach ($raw_coupons as $code) {
-        $amount = isset($coupon_amounts[$code]) ? $coupon_amounts[$code] : 0;
+        $amount = bw_cart_popup_get_coupon_amount($cart, $code, $coupon_amounts);
 
         $detailed_coupons[] = [
             'code' => $code,
-            'amount' => wc_price($amount), // Formatted string
-            'amount_raw' => $amount
+            'amount' => wc_price(-$amount), // Formatted as discount (negative)
+            'amount_raw' => -$amount
         ];
     }
 
@@ -813,11 +847,11 @@ function bw_cart_popup_apply_coupon()
         }
 
         foreach ($applied_coupons as $code) {
-            $amount = isset($coupon_amounts[$code]) ? $coupon_amounts[$code] : 0;
+            $amount = bw_cart_popup_get_coupon_amount($cart, $code, $coupon_amounts);
             $detailed_coupons[] = [
                 'code' => $code,
-                'amount' => wc_price($amount), // Formatted string
-                'amount_raw' => $amount
+                'amount' => wc_price(-$amount), // Formatted as discount (negative)
+                'amount_raw' => -$amount
             ];
         }
 
@@ -887,11 +921,11 @@ function bw_cart_popup_remove_coupon()
     }
 
     foreach ($applied_coupons as $code) {
-        $amount = isset($coupon_amounts[$code]) ? $coupon_amounts[$code] : 0;
+        $amount = bw_cart_popup_get_coupon_amount($cart, $code, $coupon_amounts);
         $detailed_coupons[] = [
             'code' => $code,
-            'amount' => wc_price($amount), // Formatted string
-            'amount_raw' => $amount
+            'amount' => wc_price(-$amount), // Formatted as discount (negative)
+            'amount_raw' => -$amount
         ];
     }
 
