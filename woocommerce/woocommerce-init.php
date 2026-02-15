@@ -262,6 +262,11 @@ function bw_mew_enqueue_supabase_bridge()
         true
     );
 
+    $expired_link_url = trim((string) get_option('bw_supabase_expired_link_redirect_url', ''));
+    if (!$expired_link_url) {
+        $expired_link_url = site_url('/link-expired/');
+    }
+
     wp_localize_script(
         'bw-supabase-bridge',
         'bwSupabaseBridge',
@@ -270,6 +275,7 @@ function bw_mew_enqueue_supabase_bridge()
             'nonce' => wp_create_nonce('bw-supabase-login'),
             'accountUrl' => wc_get_page_permalink( 'myaccount' ),
             'setPasswordUrl' => wc_get_account_endpoint_url('set-password'),
+            'expiredLinkUrl' => $expired_link_url,
             'projectUrl' => get_option('bw_supabase_project_url', ''),
             'anonKey' => get_option('bw_supabase_anon_key', ''),
             'debug' => (int) get_option('bw_supabase_debug_log', 0),

@@ -1653,6 +1653,7 @@ function bw_site_render_checkout_tab()
         $footer_text = isset($_POST['bw_checkout_footer_text']) ? sanitize_text_field(wp_unslash($_POST['bw_checkout_footer_text'])) : '';
         $supabase_provision_enabled = isset($_POST['bw_supabase_checkout_provision_enabled']) ? '1' : '0';
         $supabase_invite_redirect = isset($_POST['bw_supabase_invite_redirect_url']) ? esc_url_raw(wp_unslash($_POST['bw_supabase_invite_redirect_url'])) : '';
+        $supabase_expired_link_redirect = isset($_POST['bw_supabase_expired_link_redirect_url']) ? esc_url_raw(wp_unslash($_POST['bw_supabase_expired_link_redirect_url'])) : '';
         $google_pay_enabled = isset($_POST['bw_google_pay_enabled']) ? 1 : 0;
         $google_pay_test_mode = isset($_POST['bw_google_pay_test_mode']) ? 1 : 0;
         $google_pay_pub_key = isset($_POST['bw_google_pay_publishable_key']) ? sanitize_text_field(wp_unslash($_POST['bw_google_pay_publishable_key'])) : '';
@@ -1743,6 +1744,7 @@ function bw_site_render_checkout_tab()
         update_option('bw_checkout_footer_text', $footer_text);
         update_option('bw_supabase_checkout_provision_enabled', $supabase_provision_enabled);
         update_option('bw_supabase_invite_redirect_url', $supabase_invite_redirect);
+        update_option('bw_supabase_expired_link_redirect_url', $supabase_expired_link_redirect);
         update_option('bw_google_pay_enabled', $google_pay_enabled);
         update_option('bw_google_pay_test_mode', $google_pay_test_mode);
         update_option('bw_google_pay_publishable_key', $google_pay_pub_key);
@@ -1829,9 +1831,12 @@ function bw_site_render_checkout_tab()
     $footer_text = get_option('bw_checkout_footer_text', '');
     $supabase_provision_enabled = get_option('bw_supabase_checkout_provision_enabled', '0');
     $supabase_invite_redirect = get_option('bw_supabase_invite_redirect_url', '');
+    $supabase_expired_link_redirect = get_option('bw_supabase_expired_link_redirect_url', '');
     $supabase_service_key = get_option('bw_supabase_service_role_key', '');
     $default_invite_redirect = home_url('/my-account/set-password/');
     $supabase_invite_redirect = $supabase_invite_redirect ? $supabase_invite_redirect : $default_invite_redirect;
+    $default_expired_link_redirect = home_url('/link-expired/');
+    $supabase_expired_link_redirect = $supabase_expired_link_redirect ? $supabase_expired_link_redirect : $default_expired_link_redirect;
 
     // Section Headings settings (fallback to checkout fields settings to keep a single source of truth).
     $checkout_fields_settings = get_option('bw_checkout_fields_settings', []);
@@ -2291,6 +2296,19 @@ function bw_site_render_checkout_tab()
                             value="<?php echo esc_attr($supabase_invite_redirect); ?>" class="regular-text" />
                         <p class="description">
                             <?php esc_html_e('URL where Supabase directs users after the invite link (default: /my-account/set-password/). The URL must be allowlisted in Supabase Redirect URLs.', 'bw'); ?>
+                        </p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">
+                        <label
+                            for="bw_supabase_expired_link_redirect_url"><?php esc_html_e('Supabase expired link redirect URL', 'bw'); ?></label>
+                    </th>
+                    <td>
+                        <input type="url" id="bw_supabase_expired_link_redirect_url" name="bw_supabase_expired_link_redirect_url"
+                            value="<?php echo esc_attr($supabase_expired_link_redirect); ?>" class="regular-text" />
+                        <p class="description">
+                            <?php esc_html_e('URL where users are redirected when invite links are invalid or expired (e.g. otp_expired). Default: /link-expired/.', 'bw'); ?>
                         </p>
                     </td>
                 </tr>

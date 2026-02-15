@@ -99,6 +99,15 @@
                 return false;
             }
 
+            if (errorCode === 'otp_expired') {
+                var expiredLinkUrl = window.bwSupabaseBridge.expiredLinkUrl || '';
+                if (expiredLinkUrl) {
+                    cleanHash();
+                    window.location.replace(expiredLinkUrl);
+                    return true;
+                }
+            }
+
             var accountUrl = window.bwSupabaseBridge.accountUrl || '/my-account/';
             var targetUrl = new URL(accountUrl, window.location.origin);
             targetUrl.searchParams.set('bw_invite_error', errorCode);

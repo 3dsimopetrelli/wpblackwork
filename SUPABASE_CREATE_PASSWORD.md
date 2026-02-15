@@ -48,6 +48,7 @@ If the user is not logged in, modal cannot open.
 ## Known Failure Modes
 1. Invite link expired (`otp_expired`):
    - User cannot be authenticated from that link.
+   - User is redirected to `Supabase expired link redirect URL` (default: `/link-expired/`).
    - Must request/generate a fresh invite link.
 
 2. User lands on site but remains logged out:
@@ -64,6 +65,12 @@ If the user is not logged in, modal cannot open.
 - Supabase allow-list must include:
   - `https://blackwork.pro/my-account/`
   - `https://blackwork.pro/my-account/set-password/` (compatibility)
+  - `https://blackwork.pro/link-expired/` (expired-link fallback page)
+
+## New Checkout Setting (Supabase Provider Tab)
+- `Supabase expired link redirect URL`:
+  - Default: `https://blackwork.pro/link-expired/`
+  - Used when callback hash contains `error_code=otp_expired`.
 
 ## Quick Test Checklist
 1. Set `Login Provider = Supabase`.
@@ -99,4 +106,3 @@ If a regression appears, revert only affected files (keep small blast radius):
   - `includes/woocommerce-overrides/class-bw-supabase-auth.php`
 
 Then retest with the "Quick Test Checklist" above.
-
