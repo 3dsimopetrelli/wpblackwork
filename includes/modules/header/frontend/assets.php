@@ -142,7 +142,7 @@ if (!function_exists('bw_header_enqueue_assets')) {
         $mobile_search_padding_right = isset($mobile_search_padding['right']) ? max(0, min(200, (float) $mobile_search_padding['right'])) : 0;
         $mobile_search_padding_bottom = isset($mobile_search_padding['bottom']) ? max(0, min(200, (float) $mobile_search_padding['bottom'])) : 0;
         $mobile_search_padding_left = isset($mobile_search_padding['left']) ? max(0, min(200, (float) $mobile_search_padding['left'])) : 0;
-        $mobile_search_margin_top = isset($mobile_search_margin['top']) ? max(-200, min(200, (float) $mobile_search_margin['top'])) : 0;
+        $mobile_search_margin_top = isset($mobile_search_margin['top']) ? max(-200, min(200, (float) $mobile_search_margin['top'])) : 4;
         $mobile_search_margin_right = isset($mobile_search_margin['right']) ? max(-200, min(200, (float) $mobile_search_margin['right'])) : 0;
         $mobile_search_margin_bottom = isset($mobile_search_margin['bottom']) ? max(-200, min(200, (float) $mobile_search_margin['bottom'])) : 0;
         $mobile_search_margin_left = isset($mobile_search_margin['left']) ? max(-200, min(200, (float) $mobile_search_margin['left'])) : 0;
