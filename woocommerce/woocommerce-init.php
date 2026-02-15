@@ -301,16 +301,31 @@ function bw_mew_supabase_early_invite_redirect_hint()
     if (!$account_url) {
         return;
     }
+    $expired_link_url = trim((string) get_option('bw_supabase_expired_link_redirect_url', ''));
+    if (!$expired_link_url) {
+        $expired_link_url = site_url('/link-expired/');
+    }
 
     ?>
     <script>
     (function () {
         var hash = window.location.hash || '';
-        if (!hash || hash.indexOf('access_token=') === -1) {
+        if (!hash) {
             return;
         }
 
         var params = new URLSearchParams(hash.replace(/^#/, ''));
+        var errorCode = params.get('error_code') || '';
+        if (errorCode === 'otp_expired') {
+            var expiredUrl = new URL(<?php echo wp_json_encode($expired_link_url); ?>, window.location.origin);
+            window.location.replace(expiredUrl.toString());
+            return;
+        }
+
+        if (hash.indexOf('access_token=') === -1) {
+            return;
+        }
+
         var type = params.get('type') || '';
         if (type !== 'invite' && type !== 'recovery') {
             return;
