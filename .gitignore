@@ -1,0 +1,15 @@
+# PHP/Composer (solo locale)
+vendor/
+composer.phar
+
+# Node (solo locale)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS/editor
+.DS_Store
+.vscode/
+
