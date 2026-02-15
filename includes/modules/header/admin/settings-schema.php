@@ -221,9 +221,19 @@ if (!function_exists('bw_header_sanitize_settings')) {
         $out['links']['cart'] = isset($links['cart']) ? esc_url_raw($links['cart']) : $defaults['links']['cart'];
 
         $features = isset($input['features']) && is_array($input['features']) ? $input['features'] : [];
-        $out['features']['search'] = !empty($features['search']) ? 1 : 0;
-        $out['features']['navigation'] = !empty($features['navigation']) ? 1 : 0;
-        $out['features']['navshop'] = !empty($features['navshop']) ? 1 : 0;
+        $saved = get_option(BW_HEADER_OPTION_KEY, []);
+        $saved_features = (is_array($saved) && isset($saved['features']) && is_array($saved['features'])) ? $saved['features'] : [];
+
+        // Preserve existing values when keys are not posted (legacy admin form does not expose these fields).
+        $out['features']['search'] = array_key_exists('search', $features)
+            ? (!empty($features['search']) ? 1 : 0)
+            : (isset($saved_features['search']) ? (int) !empty($saved_features['search']) : $defaults['features']['search']);
+        $out['features']['navigation'] = array_key_exists('navigation', $features)
+            ? (!empty($features['navigation']) ? 1 : 0)
+            : (isset($saved_features['navigation']) ? (int) !empty($saved_features['navigation']) : $defaults['features']['navigation']);
+        $out['features']['navshop'] = array_key_exists('navshop', $features)
+            ? (!empty($features['navshop']) ? 1 : 0)
+            : (isset($saved_features['navshop']) ? (int) !empty($saved_features['navshop']) : $defaults['features']['navshop']);
         $out['features']['smart_scroll'] = !empty($features['smart_scroll']) ? 1 : 0;
 
         $smart_header = isset($input['smart_header']) && is_array($input['smart_header']) ? $input['smart_header'] : [];

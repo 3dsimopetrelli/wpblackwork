@@ -94,25 +94,41 @@ if (!function_exists('bw_header_render_frontend')) {
             return;
         }
 
-        $desktop_menu_id = !empty($settings['menus']['desktop_menu_id']) ? absint($settings['menus']['desktop_menu_id']) : 0;
-        if ($desktop_menu_id <= 0) {
-            return;
+        $saved_settings = get_option(BW_HEADER_OPTION_KEY, []);
+        $saved_features = (is_array($saved_settings) && isset($saved_settings['features']) && is_array($saved_settings['features']))
+            ? $saved_settings['features']
+            : [];
+
+        // Backward compatibility: if a feature key was never saved, keep legacy enabled behavior.
+        $feature_navigation = !array_key_exists('navigation', $saved_features) || !empty($settings['features']['navigation']);
+        $feature_search = !array_key_exists('search', $saved_features) || !empty($settings['features']['search']);
+        $feature_navshop = !array_key_exists('navshop', $saved_features) || !empty($settings['features']['navshop']);
+
+        // Safety fallback: legacy saves may have zeroed all three feature flags unintentionally.
+        if (!$feature_navigation && !$feature_search && !$feature_navshop) {
+            $feature_navigation = true;
+            $feature_search = true;
+            $feature_navshop = true;
         }
 
-        $mobile_menu_id = !empty($settings['menus']['mobile_menu_id']) ? absint($settings['menus']['mobile_menu_id']) : $desktop_menu_id;
-        if ($mobile_menu_id <= 0) {
-            $mobile_menu_id = $desktop_menu_id;
-        }
+        $desktop_menu_html = '';
+        $mobile_menu_html = '';
 
-        $desktop_menu_html = bw_header_render_menu($desktop_menu_id, 'bw-navigation__list bw-navigation__list--desktop');
-        $mobile_menu_html = bw_header_render_menu($mobile_menu_id, 'bw-navigation__list bw-navigation__list--mobile');
+        if ($feature_navigation) {
+            $desktop_menu_id = !empty($settings['menus']['desktop_menu_id']) ? absint($settings['menus']['desktop_menu_id']) : 0;
+            $mobile_menu_id = !empty($settings['menus']['mobile_menu_id']) ? absint($settings['menus']['mobile_menu_id']) : $desktop_menu_id;
+            if ($mobile_menu_id <= 0) {
+                $mobile_menu_id = $desktop_menu_id;
+            }
 
-        if ($desktop_menu_html === '') {
-            return;
-        }
+            $desktop_menu_html = bw_header_render_menu($desktop_menu_id, 'bw-navigation__list bw-navigation__list--desktop');
+            $mobile_menu_html = bw_header_render_menu($mobile_menu_id, 'bw-navigation__list bw-navigation__list--mobile');
 
-        if ($mobile_menu_html === '') {
-            $mobile_menu_html = $desktop_menu_html;
+            if ($desktop_menu_html === '') {
+                $feature_navigation = false;
+            } elseif ($mobile_menu_html === '') {
+                $mobile_menu_html = $desktop_menu_html;
+            }
         }
 
         $search_label = !empty($settings['labels']['search']) ? (string) $settings['labels']['search'] : __('Search', 'bw');
@@ -150,25 +166,29 @@ if (!function_exists('bw_header_render_frontend')) {
             $header_classes .= ' bw-custom-header--smart bw-header-visible smart-header visible';
         }
 
-        $search_desktop_markup = bw_header_render_search_block([
-            'widget_id' => 'bw-header-search-desktop',
-            'label' => $search_label,
-            'icon_markup' => $search_icon,
-            'show_header_text' => true,
-            'header_text' => __("Type what you're looking for", 'bw'),
-            'placeholder' => __('Type...', 'bw'),
-            'hint_text' => __('Hit enter to search or ESC to close', 'bw'),
-        ]);
+        $search_desktop_markup = '';
+        $search_mobile_markup = '';
+        if ($feature_search) {
+            $search_desktop_markup = bw_header_render_search_block([
+                'widget_id' => 'bw-header-search-desktop',
+                'label' => $search_label,
+                'icon_markup' => $search_icon,
+                'show_header_text' => true,
+                'header_text' => __("Type what you're looking for", 'bw'),
+                'placeholder' => __('Type...', 'bw'),
+                'hint_text' => __('Hit enter to search or ESC to close', 'bw'),
+            ]);
 
-        $search_mobile_markup = bw_header_render_search_block([
-            'widget_id' => 'bw-header-search-mobile',
-            'label' => $search_label,
-            'icon_markup' => $search_icon,
-            'show_header_text' => true,
-            'header_text' => __("Type what you're looking for", 'bw'),
-            'placeholder' => __('Type...', 'bw'),
-            'hint_text' => __('Hit enter to search or ESC to close', 'bw'),
-        ]);
+            $search_mobile_markup = bw_header_render_search_block([
+                'widget_id' => 'bw-header-search-mobile',
+                'label' => $search_label,
+                'icon_markup' => $search_icon,
+                'show_header_text' => true,
+                'header_text' => __("Type what you're looking for", 'bw'),
+                'placeholder' => __('Type...', 'bw'),
+                'hint_text' => __('Hit enter to search or ESC to close', 'bw'),
+            ]);
+        }
 
         include BW_MEW_PATH . 'includes/modules/header/templates/header.php';
     }

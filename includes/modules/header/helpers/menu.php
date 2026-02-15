@@ -31,7 +31,7 @@ if (!function_exists('bw_header_render_menu')) {
             'container' => false,
             'fallback_cb' => '__return_empty_string',
             'echo' => false,
-            'depth' => 1,
+            'depth' => 2,
         ]);
         remove_filter('nav_menu_link_attributes', 'bw_header_filter_nav_link_class', 10);
 
