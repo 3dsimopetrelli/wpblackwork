@@ -142,7 +142,7 @@ if (!function_exists('bw_header_enqueue_assets')) {
         $mobile_search_padding_right = isset($mobile_search_padding['right']) ? max(0, min(200, (float) $mobile_search_padding['right'])) : 0;
         $mobile_search_padding_bottom = isset($mobile_search_padding['bottom']) ? max(0, min(200, (float) $mobile_search_padding['bottom'])) : 0;
         $mobile_search_padding_left = isset($mobile_search_padding['left']) ? max(0, min(200, (float) $mobile_search_padding['left'])) : 0;
-        $mobile_search_margin_top = isset($mobile_search_margin['top']) ? max(-200, min(200, (float) $mobile_search_margin['top'])) : 4;
+        $mobile_search_margin_top = isset($mobile_search_margin['top']) ? max(-200, min(200, (float) $mobile_search_margin['top'])) : 0;
         $mobile_search_margin_right = isset($mobile_search_margin['right']) ? max(-200, min(200, (float) $mobile_search_margin['right'])) : 0;
         $mobile_search_margin_bottom = isset($mobile_search_margin['bottom']) ? max(-200, min(200, (float) $mobile_search_margin['bottom'])) : 0;
         $mobile_search_margin_left = isset($mobile_search_margin['left']) ? max(-200, min(200, (float) $mobile_search_margin['left'])) : 0;
@@ -211,7 +211,7 @@ if (!function_exists('bw_header_enqueue_assets')) {
             . ".bw-custom-header .bw-search-button__icon{display:inline-flex;background:transparent !important;border:none !important;border-radius:0 !important;padding:0 !important;}\n"
             . ".bw-custom-header__mobile-right{gap: {$mobile_right_icons_gap}px !important;}\n"
             . ".bw-custom-header__mobile-left .bw-navigation__toggle{padding: {$mobile_hamburger_padding_top}px {$mobile_hamburger_padding_right}px {$mobile_hamburger_padding_bottom}px {$mobile_hamburger_padding_left}px !important;margin: {$mobile_hamburger_margin_top}px {$mobile_hamburger_margin_right}px {$mobile_hamburger_margin_bottom}px {$mobile_hamburger_margin_left}px !important;}\n"
-            . ".bw-custom-header__mobile-right .bw-header-search .bw-search-button{padding: {$mobile_search_padding_top}px {$mobile_search_padding_right}px {$mobile_search_padding_bottom}px {$mobile_search_padding_left}px !important;margin: {$mobile_search_margin_top}px {$mobile_search_margin_right}px {$mobile_search_margin_bottom}px {$mobile_search_margin_left}px !important;}\n"
+            . ".bw-custom-header__mobile-right .bw-header-search .bw-search-button{padding: {$mobile_search_padding_top}px {$mobile_search_padding_right}px {$mobile_search_padding_bottom}px {$mobile_search_padding_left}px !important;margin: 4px {$mobile_search_margin_right}px {$mobile_search_margin_bottom}px {$mobile_search_margin_left}px !important;}\n"
             . ".bw-custom-header__mobile-right .bw-header-navshop--mobile .bw-navshop__cart{padding: {$mobile_cart_padding_top}px {$mobile_cart_padding_right}px {$mobile_cart_padding_bottom}px {$mobile_cart_padding_left}px !important;margin: {$mobile_cart_margin_top}px {$mobile_cart_margin_right}px {$mobile_cart_margin_bottom}px {$mobile_cart_margin_left}px !important;}\n"
             . ".bw-custom-header__mobile-right .bw-header-navshop--mobile .bw-navshop__cart-count{transform: translate({$mobile_cart_badge_offset_x}px, {$mobile_cart_badge_offset_y}px) !important;min-width: {$mobile_cart_badge_size}em !important;height: {$mobile_cart_badge_size}em !important;line-height: {$mobile_cart_badge_size}em !important;}\n"
             . ".bw-custom-header__mobile-right .bw-header-navshop--mobile .bw-navshop__cart:has(.bw-navshop__cart-count.is-empty){margin-right: 8px !important;}\n"
