@@ -242,7 +242,7 @@ if (!function_exists('bw_header_enqueue_assets')) {
             $inline_css .= ".bw-custom-header__desktop-panel.is-blur-enabled{-webkit-backdrop-filter: blur({$menu_blur_amount}px);backdrop-filter: blur({$menu_blur_amount}px) !important;background-color:{$blur_tint} !important;padding: {$menu_blur_padding_top}px {$menu_blur_padding_right}px {$menu_blur_padding_bottom}px {$menu_blur_padding_left}px !important;border-radius: {$menu_blur_radius}px !important;}\n";
             $inline_css .= ".bw-custom-header.bw-header-scrolled .bw-custom-header__desktop-panel.is-blur-enabled{background-color:{$blur_scrolled_tint} !important;}\n";
             // Mobile panel blur (compact padding to avoid double-spacing with __inner)
-            $mobile_blur_v = max(2, min(8, intval(round($menu_blur_padding_top * 0.5))));
+            $mobile_blur_v = max(2, min(15, intval($menu_blur_padding_top)));
             $mobile_blur_h = max(2, min(10, intval(round($menu_blur_padding_right * 0.5))));
             $inline_css .= ".bw-custom-header__mobile-panel.is-blur-enabled{-webkit-backdrop-filter: blur({$menu_blur_amount}px);backdrop-filter: blur({$menu_blur_amount}px) !important;background-color:{$blur_tint} !important;padding: {$mobile_blur_v}px {$mobile_blur_h}px !important;border-radius: {$menu_blur_radius}px !important;}\n";
             $inline_css .= ".bw-custom-header.bw-header-scrolled .bw-custom-header__mobile-panel.is-blur-enabled{background-color:{$blur_scrolled_tint} !important;}\n";
