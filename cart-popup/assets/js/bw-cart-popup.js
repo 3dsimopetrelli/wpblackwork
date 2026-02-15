@@ -1184,7 +1184,33 @@
                 }
             }
 
+            // Mantieni sincronizzato anche il badge cart nell'header custom (desktop/mobile).
+            this.syncHeaderCartBadge(count);
+
             this.toggleFloatingTrigger(count);
+        },
+
+        /**
+         * Sincronizza il contatore cart nell'header navigation.
+         */
+        syncHeaderCartBadge: function (count) {
+            const safeCount = Math.max(0, parseInt(count, 10) || 0);
+            const $headerBadges = $('.bw-navshop__cart .bw-navshop__cart-count');
+
+            if (!$headerBadges.length) {
+                return;
+            }
+
+            $headerBadges.each(function () {
+                const $badge = $(this);
+                $badge.text(safeCount);
+
+                if (safeCount > 0) {
+                    $badge.removeClass('is-empty');
+                } else {
+                    $badge.addClass('is-empty');
+                }
+            });
         },
 
         setupFloatingTriggerWatcher: function () {
