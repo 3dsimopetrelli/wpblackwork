@@ -112,13 +112,19 @@ body.bw-has-sticky-header:not(.elementor-editor-active) .bw-header-spacer {
 .bw-custom-header__desktop-panel.is-blur-enabled {
     -webkit-backdrop-filter: blur(20px);
     backdrop-filter: blur(20px) !important;
-    background-color: transparent !important;
+    background-color: rgba(255, 255, 255, 0.00) !important;
     padding: 10px;
     margin: 0;
     border-radius: 12px;
     position: relative;
     z-index: 1;
     isolation: isolate;
+    transition: background-color 0.4s ease;
+}
+
+/* Scrolled state: subtle tinted background */
+.bw-custom-header.bw-header-scrolled .bw-custom-header__desktop-panel.is-blur-enabled {
+    background-color: rgba(102, 102, 102, 0.15) !important;
 }
 
 @supports not (backdrop-filter: blur(20px)) {
@@ -178,10 +184,16 @@ body.bw-has-sticky-header:not(.elementor-editor-active) .bw-header-spacer {
 .bw-custom-header__mobile-panel.is-blur-enabled {
     -webkit-backdrop-filter: blur(20px);
     backdrop-filter: blur(20px) !important;
-    background-color: transparent !important;
-    padding: 10px 10px;
+    background-color: rgba(255, 255, 255, 0.00) !important;
+    padding: 9px 10px;
     border-radius: 8px;
     isolation: isolate;
+    transition: background-color 0.4s ease;
+}
+
+/* Scrolled state: subtle tinted background */
+.bw-custom-header.bw-header-scrolled .bw-custom-header__mobile-panel.is-blur-enabled {
+    background-color: rgba(102, 102, 102, 0.15) !important;
 }
 
 @supports not (backdrop-filter: blur(20px)) {
@@ -300,6 +312,21 @@ body.bw-has-sticky-header:not(.elementor-editor-active) .bw-header-spacer {
         background-color: #ffffff !important;
     }
 
+    .bw-custom-header .bw-search-button {
+        display: inline-flex !important;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        min-width: auto !important;
+        min-height: auto !important;
+    }
+
+    .bw-custom-header__mobile-right .bw-header-search .bw-search-button {
+        padding: 0 !important;
+        margin: 4px 0 0 0 !important;
+    }
+
     .bw-custom-header .bw-search-button__icon {
         background: transparent !important;
         border: none !important;
@@ -308,11 +335,18 @@ body.bw-has-sticky-header:not(.elementor-editor-active) .bw-header-spacer {
     }
 
     .bw-custom-header .bw-navshop__cart-icon {
-        margin-top: 4px;
+        margin-top: 3px;
     }
 
     .bw-custom-header .bw-navshop__cart-count {
-        font-size: 0.5em;
+        font-size: 11px;
+    }
+
+    .bw-custom-header__mobile-right .bw-header-navshop--mobile .bw-navshop__cart-count {
+        transform: translate(-15px, 0px) !important;
+        min-width: 1.2em !important;
+        height: 1.2em !important;
+        line-height: 1.2em !important;
     }
 
     .bw-custom-header__mobile-right {
