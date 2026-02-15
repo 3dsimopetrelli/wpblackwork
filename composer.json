@@ -1,0 +1,21 @@
+{
+    "name": "blackwork/wpblackwork",
+    "description": "BlackWork custom plugin",
+    "type": "wordpress-plugin",
+    "require-dev": {
+        "squizlabs/php_codesniffer": "^3",
+        "wp-coding-standards/wpcs": "^3",
+        "phpcompatibility/phpcompatibility-wp": "^2",
+        "dealerdirect/phpcodesniffer-composer-installer": "^1"
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
+    },
+    "scripts": {
+        "lint": "phpcs --standard=WordPress .",
+        "lint:main": "phpcs --standard=WordPress bw-main-elementor-widgets.php",
+        "lint:fix:main": "phpcbf --standard=WordPress bw-main-elementor-widgets.php"
+    }
+}
