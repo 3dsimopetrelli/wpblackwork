@@ -1151,6 +1151,10 @@ function bw_mew_render_order_received_logo_header()
         return;
     }
 
+    $header_styles = 'position:fixed;top:0;left:0;width:100%;background:transparent;border:0;z-index:100;pointer-events:none;';
+    $inner_styles  = 'width:100%;max-width:none;margin:0;padding:22px 28px;display:flex;align-items:center;justify-content:flex-start;';
+    $anchor_styles = 'pointer-events:auto;display:inline-flex;align-items:center;justify-content:flex-start;text-decoration:none;';
+
     $logo_styles = sprintf(
         'max-width: %dpx; padding: %dpx %dpx %dpx %dpx;',
         $logo_width,
@@ -1160,10 +1164,10 @@ function bw_mew_render_order_received_logo_header()
         $logo_padding_left
     );
     ?>
-    <div class="bw-minimal-checkout-header bw-minimal-checkout-header--order-received">
-        <div class="bw-minimal-checkout-header__inner bw-minimal-checkout-header__inner--left">
+    <div class="bw-minimal-checkout-header bw-minimal-checkout-header--order-received" style="<?php echo esc_attr($header_styles); ?>">
+        <div class="bw-minimal-checkout-header__inner bw-minimal-checkout-header__inner--left" style="<?php echo esc_attr($inner_styles); ?>">
             <a href="<?php echo esc_url(home_url('/')); ?>" class="bw-minimal-checkout-header__logo"
-                style="<?php echo esc_attr($logo_styles); ?>">
+                style="<?php echo esc_attr($anchor_styles . $logo_styles); ?>">
                 <img src="<?php echo esc_url($logo_url); ?>" alt="<?php echo esc_attr(get_bloginfo('name')); ?>" />
             </a>
         </div>
