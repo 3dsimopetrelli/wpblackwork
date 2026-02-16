@@ -32,16 +32,21 @@ body.woocommerce-order-received {
 
 /* Checkout logo header reused on order-received (top-left). */
 body.woocommerce-order-received .bw-minimal-checkout-header {
-    position: relative;
+    position: fixed;
+    top: 0;
+    left: 0;
     width: 100%;
     background: transparent;
     border-bottom: 0;
+    z-index: 100;
+    pointer-events: none;
 }
 
 body.woocommerce-order-received .bw-minimal-checkout-header__inner {
-    max-width: 980px;
-    margin: 0 auto;
-    padding: 20px 16px 8px;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 22px 28px;
     display: flex;
     align-items: center;
     justify-content: flex-start;
@@ -52,12 +57,18 @@ body.woocommerce-order-received .bw-minimal-checkout-header__logo {
     align-items: center;
     justify-content: flex-start;
     text-decoration: none;
+    pointer-events: auto;
 }
 
 body.woocommerce-order-received .bw-minimal-checkout-header__logo img {
     display: block;
     width: auto;
     height: auto;
+}
+
+/* Keep headline block visually detached from the floating logo. */
+body.woocommerce-order-received .woocommerce {
+    padding-top: 130px;
 }
 
 body.woocommerce-order-received .woocommerce {
@@ -832,6 +843,14 @@ body.woocommerce-order-received .bw-verify-email-cta__actions .elementor-button-
    RESPONSIVE — MOBILE
    ============================================ */
 @media (max-width: 768px) {
+    body.woocommerce-order-received .bw-minimal-checkout-header__inner {
+        padding: 14px 16px;
+    }
+
+    body.woocommerce-order-received .woocommerce {
+        padding-top: 96px;
+    }
+
     body.woocommerce-order-received .bw-order-confirmed__hero {
         margin-bottom: 32px;
     }
@@ -987,6 +1006,14 @@ body.woocommerce-order-received .bw-verify-email-cta__actions .elementor-button-
    SMALL MOBILE
    ============================================ */
 @media (max-width: 480px) {
+    body.woocommerce-order-received .bw-minimal-checkout-header__inner {
+        padding: 12px 14px;
+    }
+
+    body.woocommerce-order-received .woocommerce {
+        padding-top: 90px;
+    }
+
     body.woocommerce-order-received .bw-order-confirmed__title {
         font-size: clamp(36px, 12vw, 54px);
     }
