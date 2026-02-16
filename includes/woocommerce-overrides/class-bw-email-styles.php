@@ -181,7 +181,7 @@ a.bw-email-hero-cta-button {
     border: 1px solid #111111 !important;
     border-radius: 8px !important;
     text-decoration: none !important;
-    font-size: 18px !important;
+    font-size: 15px !important;
     font-weight: 400 !important;
     line-height: 1.1 !important;
     padding: 14px 20px !important;
