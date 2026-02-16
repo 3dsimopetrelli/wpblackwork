@@ -75,6 +75,10 @@ h3 {
     font-weight: 700 !important;
 }
 
+h2.email-order-detail-heading {
+    margin-top: 20px !important;
+}
+
 a {
     color: #111111 !important;
 }
