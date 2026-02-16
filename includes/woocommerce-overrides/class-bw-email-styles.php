@@ -96,7 +96,7 @@ function bw_mew_customize_woocommerce_email_styles( $css, $email ) {
 }
 
 #header_wrapper {
-    padding: 20px !important;
+    padding: 0 !important;
 }
 
 #template_header h1 {
@@ -123,6 +123,7 @@ table.bw-email-hero-top td {
     max-width: 100px !important;
     height: auto !important;
     display: block !important;
+    margin-bottom: 20px !important;
 }
 
 .bw-email-hero-logo-text {
