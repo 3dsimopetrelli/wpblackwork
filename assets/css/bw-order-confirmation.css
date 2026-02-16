@@ -565,6 +565,20 @@ body.woocommerce-order-received .bw-verify-email-cta__actions .elementor-button:
     text-decoration: none;
 }
 
+body.woocommerce-order-received .bw-verify-email-cta__actions .elementor-button,
+body.woocommerce-order-received .bw-verify-email-cta__actions .elementor-button:visited,
+body.woocommerce-order-received .bw-verify-email-cta__actions .elementor-button:hover,
+body.woocommerce-order-received .bw-verify-email-cta__actions .elementor-button:focus,
+body.woocommerce-order-received .bw-verify-email-cta__actions .elementor-button:active,
+body.woocommerce-order-received .bw-verify-email-cta__actions .elementor-button .elementor-button-text {
+    text-decoration: none !important;
+}
+
+body.woocommerce-order-received .bw-verify-email-cta__actions .elementor-button {
+    border-radius: 9999px !important;
+    overflow: hidden;
+}
+
 body.woocommerce-order-received .bw-verify-email-cta__actions .elementor-button-content-wrapper {
     display: flex;
     justify-content: center;
