@@ -24,25 +24,61 @@ if ( is_user_logged_in() ) {
 $is_order_received_login_gate = function_exists( 'is_wc_endpoint_url' ) && is_wc_endpoint_url( 'order-received' );
 
 if ( $is_order_received_login_gate ) :
+	$login_provider    = strtolower( (string) get_option( 'bw_account_login_provider', 'wordpress' ) );
+	$provision_enabled = '1' === (string) get_option( 'bw_supabase_checkout_provision_enabled', '0' );
+	$is_supabase_gate  = 'supabase' === $login_provider || $provision_enabled;
+	$my_account_url    = wc_get_page_permalink( 'myaccount' );
+	$order_id          = absint( get_query_var( 'order-received' ) );
+	$order_key         = isset( $_GET['key'] ) ? wc_clean( wp_unslash( $_GET['key'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	$order_email       = '';
+	$cta_label         = __( 'Please log in to your account to view this order.', 'wpblackwork' );
+	$cta_lead          = __( 'Click the button to continue.', 'wpblackwork' );
+	$cta_secondary     = __( 'You will be redirected to the login page where you can sign in to your account.', 'wpblackwork' );
+	$cta_footnote      = __( 'You can log in by entering your email address since your account is already registered.', 'wpblackwork' );
+
+	if ( $order_id > 0 ) {
+		$order = wc_get_order( $order_id );
+		if ( $order instanceof WC_Order ) {
+			$is_valid_key = '' !== $order_key && hash_equals( $order->get_order_key(), $order_key );
+			if ( $is_valid_key ) {
+				$order_email = (string) $order->get_billing_email();
+			}
+		}
+	}
+
+	if ( $is_supabase_gate ) {
+		$cta_label     = __( 'Check your email to create password', 'wpblackwork' );
+		$cta_lead      = __( 'Click the button to continue.', 'wpblackwork' );
+		$cta_secondary = __( 'Open My Account to request a new invite email if needed.', 'wpblackwork' );
+		$cta_footnote  = __( 'Then use the Supabase email link to set your password.', 'wpblackwork' );
+
+		$my_account_url = add_query_arg(
+			[
+				'bw_post_checkout' => '1',
+				'bw_invite_email'  => $order_email,
+			],
+			$my_account_url
+		);
+	}
 	?>
 	<section class="bw-verify-email-cta" aria-label="<?php esc_attr_e( 'Login required', 'wpblackwork' ); ?>">
 		<p class="bw-verify-email-cta__actions">
-			<a class="elementor-button-link elementor-button" href="<?php echo esc_url( wc_get_page_permalink( 'myaccount' ) ); ?>">
+			<a class="elementor-button-link elementor-button" href="<?php echo esc_url( $my_account_url ); ?>">
 				<span class="elementor-button-content-wrapper">
-					<span class="elementor-button-text"><?php esc_html_e( 'Please log in to your account to view this order.', 'wpblackwork' ); ?></span>
+					<span class="elementor-button-text"><?php echo esc_html( $cta_label ); ?></span>
 				</span>
 			</a>
 		</p>
 
 		<p class="bw-verify-email-cta__lead">
-			<?php esc_html_e( 'Click the button to continue.', 'wpblackwork' ); ?>
+			<?php echo esc_html( $cta_lead ); ?>
 		</p>
 		<p class="bw-verify-email-cta__lead bw-verify-email-cta__lead--secondary">
-			<?php esc_html_e( 'You will be redirected to the login page where you can sign in to your account.', 'wpblackwork' ); ?>
+			<?php echo esc_html( $cta_secondary ); ?>
 		</p>
 
 		<p class="bw-verify-email-cta__footnote">
-			<?php esc_html_e( 'You can log in by entering your email address since your account is already registered.', 'wpblackwork' ); ?>
+			<?php echo esc_html( $cta_footnote ); ?>
 		</p>
 	</section>
 	<?php
