@@ -47,11 +47,11 @@ $custom_columns = [
 	<?php foreach ( $downloads as $download ) : ?>
 		<tr>
 			<th class="td text-align-left" scope="row">
-				<a href="<?php echo esc_url( get_permalink( $download['product_id'] ) ); ?>"><?php echo wp_kses_post( $download['product_name'] ); ?></a>
+				<a href="<?php echo esc_url( get_permalink( $download['product_id'] ) ); ?>" class="bw-email-download-product-link"><?php echo wp_kses_post( $download['product_name'] ); ?></a>
 			</th>
 			<td class="td text-align-right">
 				<a href="<?php echo esc_url( $downloads_url ); ?>" class="woocommerce-MyAccount-downloads-file button alt bw-email-download-btn">
-					<span class="bw-email-download-btn__icon" aria-hidden="true">&#8595;</span>
+					<span class="bw-email-download-btn__icon" aria-hidden="true">&#11015;</span>
 					<span><?php esc_html_e( 'Download', 'woocommerce' ); ?></span>
 				</a>
 			</td>

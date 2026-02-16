@@ -119,6 +119,10 @@ table.bw-email-downloads-table td:last-child {
     text-align: right !important;
 }
 
+table.bw-email-downloads-table .bw-email-download-product-link {
+    text-decoration: none !important;
+}
+
 table.td thead th {
     background: #f7f7f7 !important;
     color: #111111 !important;
@@ -205,7 +209,8 @@ a.bw-email-download-btn {
 a.bw-email-download-btn .bw-email-download-btn__icon {
     display: inline-block !important;
     margin-right: 8px !important;
-    font-size: 16px !important;
+    font-size: 20px !important;
+    font-weight: 700 !important;
     line-height: 1 !important;
 }
 
