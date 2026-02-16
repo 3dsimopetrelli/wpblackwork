@@ -17,7 +17,9 @@ $is_guest_order_received_gate = ! is_user_logged_in()
 	&& is_wc_endpoint_url( 'order-received' )
 	&& false === $order;
 
-$is_logged_in_order_received = ( $order && is_user_logged_in() );
+$is_custom_order_received = ( $order instanceof WC_Order )
+	&& function_exists( 'is_wc_endpoint_url' )
+	&& is_wc_endpoint_url( 'order-received' );
 
 if ( $order instanceof WC_Order ) {
 	error_log(
@@ -39,7 +41,7 @@ if ( $order instanceof WC_Order ) {
 		<span class="bw-verify-email-cta__title-line"><?php esc_html_e( 'your session has', 'wpblackwork' ); ?></span>
 		<span class="bw-verify-email-cta__title-line"><?php esc_html_e( 'expired', 'wpblackwork' ); ?></span>
 	</h1>
-<?php elseif ( $is_logged_in_order_received ) : ?>
+<?php elseif ( $is_custom_order_received ) : ?>
 	<?php
 	remove_action( 'woocommerce_thankyou', 'woocommerce_order_details_table', 10 );
 
