@@ -60,6 +60,10 @@ function bw_mew_customize_woocommerce_email_styles( $css, $email ) {
     text-align: center !important;
 }
 
+#header_wrapper {
+    padding: 20px !important;
+}
+
 #template_header h1 {
     color: #111111 !important;
     font-size: 30px !important;
@@ -67,6 +71,53 @@ function bw_mew_customize_woocommerce_email_styles( $css, $email ) {
     font-weight: 700 !important;
     text-align: center !important;
     margin-bottom: 20px !important;
+}
+
+table.bw-email-hero-top {
+    width: 100% !important;
+    margin: 0 0 16px !important;
+}
+
+table.bw-email-hero-top td {
+    border: 0 !important;
+    padding: 0 !important;
+}
+
+.bw-email-hero-logo {
+    max-width: 220px !important;
+    height: auto !important;
+    display: block !important;
+}
+
+.bw-email-hero-logo-text {
+    color: #111111 !important;
+    font-size: 28px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.02em !important;
+}
+
+.bw-email-hero-top__order {
+    color: #9a9a9a !important;
+    font-size: 18px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.02em !important;
+}
+
+.bw-email-hero-greeting {
+    margin: 0 0 12px !important;
+    color: #111111 !important;
+    font-size: 28px !important;
+    line-height: 1.25 !important;
+    font-weight: 500 !important;
+    text-align: left !important;
+}
+
+.bw-email-hero-subtitle {
+    margin: 0 0 8px !important;
+    color: #7a7a7a !important;
+    font-size: 18px !important;
+    line-height: 1.4 !important;
+    text-align: left !important;
 }
 
 h2,
@@ -217,6 +268,22 @@ a.bw-email-download-btn .bw-email-download-btn__icon {
 @media screen and (max-width: 600px) {
     #template_header h1 {
         font-size: 24px !important;
+    }
+
+    .bw-email-hero-logo {
+        max-width: 170px !important;
+    }
+
+    .bw-email-hero-top__order {
+        font-size: 14px !important;
+    }
+
+    .bw-email-hero-greeting {
+        font-size: 22px !important;
+    }
+
+    .bw-email-hero-subtitle {
+        font-size: 16px !important;
     }
 
     a.button,
