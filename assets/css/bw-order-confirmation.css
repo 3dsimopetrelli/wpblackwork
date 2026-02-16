@@ -551,7 +551,7 @@ body.woocommerce-order-received .bw-verify-email-cta__footnote {
     max-width: 920px;
     margin: 20px auto 0;
     color: #30343b;
-    font-size: 1rem;
+    font-size: 0.95rem;
     line-height: 1.6;
 }
 
@@ -563,6 +563,20 @@ body.woocommerce-order-received .woocommerce:has(.bw-verify-email-cta) .woocomme
 body.woocommerce-order-received .bw-verify-email-cta__actions .elementor-button:hover .elementor-button-text,
 body.woocommerce-order-received .bw-verify-email-cta__actions .elementor-button:focus .elementor-button-text {
     text-decoration: none;
+}
+
+body.woocommerce-order-received .bw-verify-email-cta__actions .elementor-button-content-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+body.woocommerce-order-received .bw-verify-email-cta__actions .elementor-button-text {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-align: center;
+    line-height: 1.2;
 }
 
 /* ============================================
@@ -653,6 +667,25 @@ body.woocommerce-order-received .bw-verify-email-cta__actions .elementor-button:
 
     body.woocommerce-order-received .bw-verify-email-cta__footnote {
         margin-top: 16px;
+        font-size: 0.92rem;
+        line-height: 1.55;
+    }
+
+    body.woocommerce-order-received .bw-verify-email-cta__actions .elementor-button {
+        display: inline-flex;
+        width: 100%;
+        justify-content: center;
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    body.woocommerce-order-received .bw-verify-email-cta__actions .elementor-button-content-wrapper {
+        width: 100%;
+    }
+
+    body.woocommerce-order-received .bw-verify-email-cta__actions .elementor-button-text {
+        font-size: clamp(18px, 5.2vw, 24px);
+        line-height: 1.25;
     }
 }
 
