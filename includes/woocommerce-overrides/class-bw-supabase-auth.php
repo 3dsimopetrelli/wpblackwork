@@ -430,6 +430,7 @@ function bw_mew_handle_supabase_token_login() {
     delete_user_meta( $user->ID, 'bw_supabase_invite_error' );
     delete_user_meta( $user->ID, 'bw_supabase_onboarding_error' );
     bw_mew_apply_supabase_user_to_wp( $user->ID, $payload, 'token-login' );
+    bw_mew_claim_guest_orders_for_user( $user->ID, $email, $debug_log, 'token-login' );
 
     $needs_onboarding = $is_invite && ! $already_onboarded;
     if ( $needs_password_for_otp || $needs_onboarding ) {
@@ -1093,6 +1094,116 @@ function bw_mew_supabase_invite_trace( $order_id, $message, $debug_log = false )
     update_post_meta( $order_id, $trace_key, $trace );
 }
 
+/**
+ * Attach a guest order to a WordPress user.
+ *
+ * @param WC_Order $order     WooCommerce order.
+ * @param WP_User  $user      WordPress user.
+ * @param bool     $debug_log Debug logging enabled.
+ * @param string   $context   Context label for logs.
+ *
+ * @return bool True when assignment happened, false otherwise.
+ */
+function bw_mew_assign_guest_order_to_user( WC_Order $order, WP_User $user, $debug_log = false, $context = '' ) {
+    $current_customer_id = (int) $order->get_user_id();
+    if ( $current_customer_id > 0 ) {
+        return false;
+    }
+
+    $order_email = sanitize_email( (string) $order->get_billing_email() );
+    $user_email  = sanitize_email( (string) $user->user_email );
+    if ( $order_email && $user_email && strtolower( $order_email ) !== strtolower( $user_email ) ) {
+        return false;
+    }
+
+    $order->set_customer_id( (int) $user->ID );
+
+    if ( $debug_log ) {
+        error_log(
+            sprintf(
+                'Supabase order attach (%s): order %d -> user %d',
+                $context ? $context : 'unknown',
+                (int) $order->get_id(),
+                (int) $user->ID
+            )
+        );
+    }
+
+    return true;
+}
+
+/**
+ * Backfill guest orders/download permissions to the authenticated user by email.
+ *
+ * @param int    $user_id   WordPress user ID.
+ * @param string $email     Billing/user email.
+ * @param bool   $debug_log Debug logging enabled.
+ * @param string $context   Context label for logs.
+ *
+ * @return void
+ */
+function bw_mew_claim_guest_orders_for_user( $user_id, $email, $debug_log = false, $context = '' ) {
+    $user_id = absint( $user_id );
+    $email   = sanitize_email( (string) $email );
+    if ( ! $user_id || ! $email || ! function_exists( 'wc_get_orders' ) ) {
+        return;
+    }
+
+    $user = get_user_by( 'id', $user_id );
+    if ( ! $user instanceof WP_User ) {
+        return;
+    }
+
+    $orders = wc_get_orders(
+        [
+            'limit'         => -1,
+            'customer_id'   => 0,
+            'billing_email' => $email,
+            'return'        => 'objects',
+        ]
+    );
+
+    $attached = 0;
+    foreach ( $orders as $guest_order ) {
+        if ( ! $guest_order instanceof WC_Order ) {
+            continue;
+        }
+
+        if ( bw_mew_assign_guest_order_to_user( $guest_order, $user, $debug_log, $context ) ) {
+            $guest_order->save();
+            $attached++;
+        }
+    }
+
+    global $wpdb;
+    if ( isset( $wpdb ) && ! empty( $wpdb->prefix ) ) {
+        $table = $wpdb->prefix . 'woocommerce_downloadable_product_permissions';
+        $updated_rows = (int) $wpdb->query(
+            $wpdb->prepare(
+                "UPDATE {$table}
+                 SET user_id = %d
+                 WHERE user_id = 0
+                   AND user_email = %s",
+                $user_id,
+                $email
+            )
+        );
+
+        if ( $debug_log ) {
+            error_log(
+                sprintf(
+                    'Supabase order attach (%s): guest orders linked=%d, download rows linked=%d, user=%d, email=%s',
+                    $context ? $context : 'unknown',
+                    $attached,
+                    $updated_rows,
+                    $user_id,
+                    $email
+                )
+            );
+        }
+    }
+}
+
 function bw_mew_handle_supabase_checkout_invite( $order_id ) {
     $order = wc_get_order( $order_id );
     if ( ! $order instanceof WC_Order ) {
@@ -1236,9 +1347,9 @@ function bw_mew_handle_supabase_checkout_invite( $order_id ) {
         $order->delete_meta_data( '_bw_supabase_invite_error' );
         $resend_count = (int) $order->get_meta( '_bw_supabase_invite_resend_count' );
         $order->update_meta_data( '_bw_supabase_invite_resend_count', $resend_count + 1 );
-        $order->save();
 
         if ( $user instanceof WP_User ) {
+            bw_mew_assign_guest_order_to_user( $order, $user, $debug_log, $log_ctx );
             update_user_meta( $user->ID, 'bw_supabase_invited', 1 );
             update_user_meta( $user->ID, 'bw_supabase_invite_sent_at', $now );
             update_user_meta( $user->ID, 'bw_supabase_invite_resend_count', $resend_count + 1 );
@@ -1248,11 +1359,15 @@ function bw_mew_handle_supabase_checkout_invite( $order_id ) {
             }
         }
 
+        $order->save();
         return;
     }
 
     if ( 'exists' === $result['status'] ) {
         bw_mew_supabase_invite_trace( $order_id, 'invite status=exists (already exists)', $debug_log );
+        if ( $user instanceof WP_User ) {
+            bw_mew_assign_guest_order_to_user( $order, $user, $debug_log, $log_ctx );
+        }
         $order->update_meta_data( '_bw_supabase_invite_sent', 1 );
         $order->update_meta_data( '_bw_supabase_invite_sent_at', $now );
         $order->save();
@@ -1633,6 +1748,10 @@ function bw_mew_handle_set_password_modal() {
     delete_user_meta( $user_id, 'bw_supabase_invited' );
     delete_user_meta( $user_id, 'bw_supabase_invite_error' );
     delete_user_meta( $user_id, 'bw_supabase_onboarding_error' );
+    $user = get_user_by( 'id', $user_id );
+    if ( $user instanceof WP_User ) {
+        bw_mew_claim_guest_orders_for_user( $user_id, $user->user_email, (bool) get_option( 'bw_supabase_debug_log', 0 ), 'set-password-modal' );
+    }
 
     wp_send_json_success( [
         'message' => __( 'Password saved successfully.', 'bw' ),
