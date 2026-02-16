@@ -26,9 +26,6 @@ $is_order_received_login_gate = function_exists( 'is_wc_endpoint_url' ) && is_wc
 if ( $is_order_received_login_gate ) :
 	?>
 	<section class="bw-verify-email-cta" aria-label="<?php esc_attr_e( 'Login required', 'wpblackwork' ); ?>">
-		<h2 class="bw-verify-email-cta__title">
-			<?php esc_html_e( 'Uh-oh, your session has expired', 'wpblackwork' ); ?>
-		</h2>
 		<p class="bw-verify-email-cta__lead">
 			<?php esc_html_e( 'Click the button below to continue.', 'wpblackwork' ); ?>
 		</p>
@@ -37,12 +34,10 @@ if ( $is_order_received_login_gate ) :
 		</p>
 
 		<p class="bw-verify-email-cta__actions">
-			<a class="button bw-verify-email-cta__button" href="<?php echo esc_url( wc_get_page_permalink( 'myaccount' ) ); ?>">
+			<a class="button" href="<?php echo esc_url( wc_get_page_permalink( 'myaccount' ) ); ?>">
 				<?php esc_html_e( 'Go to Login', 'wpblackwork' ); ?>
 			</a>
 		</p>
-
-		<hr class="bw-verify-email-cta__divider" />
 
 		<p class="bw-verify-email-cta__footnote">
 			<?php esc_html_e( 'You can log in by entering your email address since your account is already registered.', 'wpblackwork' ); ?>
