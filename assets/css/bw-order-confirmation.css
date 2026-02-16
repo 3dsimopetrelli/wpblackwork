@@ -413,6 +413,15 @@ body.woocommerce-order-received .bw-order-confirmed {
     margin: 0 auto;
 }
 
+/* When custom logged-in layout is present, hide default Woo summary blocks. */
+body.woocommerce-order-received .woocommerce-order:has(.bw-order-confirmed) .woocommerce-order-overview,
+body.woocommerce-order-received .woocommerce-order:has(.bw-order-confirmed) .woocommerce-order-details,
+body.woocommerce-order-received .woocommerce-order:has(.bw-order-confirmed) .woocommerce-order-downloads,
+body.woocommerce-order-received .woocommerce-order:has(.bw-order-confirmed) .woocommerce-customer-details,
+body.woocommerce-order-received .woocommerce-order:has(.bw-order-confirmed) .woocommerce-thankyou-order-received {
+    display: none;
+}
+
 body.woocommerce-order-received .bw-order-confirmed__hero {
     text-align: center;
     margin-bottom: 56px;
