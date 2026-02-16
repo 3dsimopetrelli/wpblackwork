@@ -483,7 +483,7 @@ body.woocommerce-order-received .bw-order-confirmed__lead--secondary {
 
 body.woocommerce-order-received .bw-order-confirmed__cards {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     gap: 22px;
     margin-bottom: 28px;
 }
