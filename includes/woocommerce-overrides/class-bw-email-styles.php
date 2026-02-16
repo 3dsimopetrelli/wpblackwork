@@ -10,8 +10,43 @@ function bw_mew_register_email_styles() {
     add_filter( 'woocommerce_email_styles', 'bw_mew_customize_woocommerce_email_styles', 20, 2 );
     add_action( 'woocommerce_email_after_order_table', 'bw_mew_render_order_email_primary_cta', 20, 4 );
     add_action( 'woocommerce_email', 'bw_mew_disable_new_order_mobile_messaging', 20, 1 );
+    bw_mew_override_woocommerce_email_header_renderer();
 }
 add_action( 'init', 'bw_mew_register_email_styles' );
+
+/**
+ * Replace WooCommerce default email header renderer so templates receive $email object.
+ */
+function bw_mew_override_woocommerce_email_header_renderer() {
+    if ( ! function_exists( 'WC' ) || ! WC() || ! method_exists( WC(), 'mailer' ) ) {
+        return;
+    }
+
+    $mailer = WC()->mailer();
+    if ( ! $mailer || ! is_a( $mailer, 'WC_Emails' ) ) {
+        return;
+    }
+
+    remove_action( 'woocommerce_email_header', [ $mailer, 'email_header' ] );
+    add_action( 'woocommerce_email_header', 'bw_mew_render_woocommerce_email_header', 10, 2 );
+}
+
+/**
+ * Render WooCommerce email header with support for $email context.
+ *
+ * @param string        $email_heading Header heading.
+ * @param WC_Email|null $email         Email object when available.
+ */
+function bw_mew_render_woocommerce_email_header( $email_heading, $email = null ) {
+    wc_get_template(
+        'emails/email-header.php',
+        [
+            'email_heading' => $email_heading,
+            'email'         => $email,
+            'store_name'    => get_bloginfo( 'name', 'display' ),
+        ]
+    );
+}
 
 /**
  * Disable WooCommerce app promo line in new order admin email footer.
