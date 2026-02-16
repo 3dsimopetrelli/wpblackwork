@@ -66,6 +66,7 @@ function bw_mew_customize_woocommerce_email_styles( $css, $email ) {
     line-height: 1.2 !important;
     font-weight: 700 !important;
     text-align: center !important;
+    margin-bottom: 20px !important;
 }
 
 h2,
@@ -116,6 +117,16 @@ table.td tfoot th,
 table.td tfoot td {
     border-color: #e4e4e4 !important;
     padding: 12px !important;
+}
+
+table.td.email-order-details th:first-child,
+table.td.email-order-details td:first-child {
+    padding-left: 20px !important;
+}
+
+table.td.email-order-details th:last-child,
+table.td.email-order-details td:last-child {
+    padding-right: 20px !important;
 }
 
 table.td tfoot tr:last-child th,
