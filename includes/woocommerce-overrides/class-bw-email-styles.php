@@ -56,6 +56,7 @@ function bw_mew_customize_woocommerce_email_styles( $css, $email ) {
 #template_header {
     background: #f3f3f3 !important;
     border-bottom: 1px solid #d6d6d6 !important;
+    text-align: center !important;
 }
 
 #template_header h1 {
@@ -63,6 +64,7 @@ function bw_mew_customize_woocommerce_email_styles( $css, $email ) {
     font-size: 30px !important;
     line-height: 1.2 !important;
     font-weight: 700 !important;
+    text-align: center !important;
 }
 
 h2,
@@ -75,7 +77,17 @@ a {
     color: #111111 !important;
 }
 
+#body_content_inner {
+    padding: 0 !important;
+}
+
+table.td + table.td {
+    margin-top: 20px !important;
+}
+
 table.td {
+    width: 100% !important;
+    margin: 0 !important;
     border: 1px solid #d6d6d6 !important;
     border-radius: 16px !important;
     border-collapse: separate !important;
