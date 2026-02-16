@@ -139,6 +139,7 @@ address {
     border-radius: 14px !important;
     padding: 14px !important;
     background: #fafafa !important;
+    margin-bottom: 10px !important;
 }
 
 a.button,
