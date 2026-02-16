@@ -38,10 +38,10 @@ if ( $order ) {
 
     $order_label = sprintf( __( 'Order #%s', 'woocommerce' ), $order->get_order_number() );
 
-    if ( function_exists( 'wc_get_page_permalink' ) && function_exists( 'wc_get_endpoint_url' ) ) {
+    if ( function_exists( 'wc_get_page_permalink' ) && function_exists( 'wc_get_account_endpoint_url' ) ) {
         $account_url = wc_get_page_permalink( 'myaccount' );
         if ( $account_url ) {
-            $view_order_url = wc_get_endpoint_url( 'view-order', $order->get_id(), $account_url );
+            $view_order_url = wc_get_account_endpoint_url( 'orders' );
         }
     }
 
