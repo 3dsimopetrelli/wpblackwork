@@ -24,6 +24,7 @@ $customer_first_name        = '';
 $order_label                = '';
 $view_order_url             = '';
 $visit_website_url          = home_url( '/' );
+$billing_email              = '';
 
 if ( $order ) {
     $customer_first_name = trim( (string) $order->get_billing_first_name() );
@@ -37,10 +38,18 @@ if ( $order ) {
     }
 
     $order_label = sprintf( __( 'Order #%s', 'woocommerce' ), $order->get_order_number() );
+    $billing_email = sanitize_email( (string) $order->get_billing_email() );
 
     $account_url = wc_get_page_permalink( 'myaccount' );
     if ( $account_url ) {
-        $view_order_url = add_query_arg( 'bw_after_login', 'orders', $account_url );
+        $view_query_args = [
+            'bw_after_login'  => 'orders',
+            'bw_post_checkout' => '1',
+        ];
+        if ( $billing_email ) {
+            $view_query_args['bw_invite_email'] = $billing_email;
+        }
+        $view_order_url = add_query_arg( $view_query_args, $account_url );
     }
 }
 

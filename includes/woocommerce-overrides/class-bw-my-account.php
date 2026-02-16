@@ -150,6 +150,57 @@ function bw_mew_enforce_supabase_onboarding_lock() {
 add_action( 'template_redirect', 'bw_mew_enforce_supabase_onboarding_lock' );
 
 /**
+ * Normalize guest email-entry URLs to My Account root.
+ *
+ * When users click email CTAs before login, endpoint URLs (for example
+ * /my-account/downloads/) may show a generic logged-out state. Force a stable
+ * entry on /my-account/ while preserving post-checkout query args so the
+ * custom invite/resend guidance is always visible.
+ */
+function bw_mew_normalize_guest_email_entrypoint() {
+    if ( ! function_exists( 'is_account_page' ) || ! is_account_page() || is_user_logged_in() ) {
+        return;
+    }
+
+    $target = isset( $_GET['bw_after_login'] ) ? sanitize_key( wp_unslash( $_GET['bw_after_login'] ) ) : '';
+    if ( ! in_array( $target, [ 'orders', 'downloads' ], true ) ) {
+        return;
+    }
+
+    $account_url = function_exists( 'wc_get_page_permalink' )
+        ? wc_get_page_permalink( 'myaccount' )
+        : home_url( '/my-account/' );
+
+    if ( ! $account_url ) {
+        return;
+    }
+
+    $current_path = wp_parse_url( (string) wp_unslash( $_SERVER['REQUEST_URI'] ), PHP_URL_PATH );
+    $account_path = wp_parse_url( $account_url, PHP_URL_PATH );
+    if ( $current_path && $account_path && untrailingslashit( $current_path ) === untrailingslashit( $account_path ) ) {
+        return;
+    }
+
+    $query_args = [
+        'bw_after_login' => $target,
+    ];
+
+    $is_post_checkout = isset( $_GET['bw_post_checkout'] ) && '1' === sanitize_text_field( wp_unslash( $_GET['bw_post_checkout'] ) );
+    if ( $is_post_checkout ) {
+        $query_args['bw_post_checkout'] = '1';
+    }
+
+    $invite_email = isset( $_GET['bw_invite_email'] ) ? sanitize_email( wp_unslash( $_GET['bw_invite_email'] ) ) : '';
+    if ( $invite_email ) {
+        $query_args['bw_invite_email'] = $invite_email;
+    }
+
+    wp_safe_redirect( add_query_arg( $query_args, $account_url ) );
+    exit;
+}
+add_action( 'template_redirect', 'bw_mew_normalize_guest_email_entrypoint', 15 );
+
+/**
  * Handle post-login email entrypoint redirects from bw_after_login query arg.
  *
  * Supports safe endpoints used by email CTAs:

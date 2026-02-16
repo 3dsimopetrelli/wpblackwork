@@ -13,7 +13,17 @@ defined( 'ABSPATH' ) || exit;
 
 $email_improvements_enabled = FeaturesUtil::feature_is_enabled( 'email_improvements' );
 $account_url                = wc_get_page_permalink( 'myaccount' );
-$downloads_url              = $account_url ? add_query_arg( 'bw_after_login', 'downloads', $account_url ) : wc_get_page_permalink( 'myaccount' );
+$billing_email              = isset( $order ) && is_a( $order, 'WC_Order' ) ? sanitize_email( (string) $order->get_billing_email() ) : '';
+$download_query_args        = [
+    'bw_after_login'   => 'downloads',
+    'bw_post_checkout' => '1',
+];
+
+if ( $billing_email ) {
+    $download_query_args['bw_invite_email'] = $billing_email;
+}
+
+$downloads_url = $account_url ? add_query_arg( $download_query_args, $account_url ) : wc_get_page_permalink( 'myaccount' );
 
 if ( ! $downloads_url ) {
     $downloads_url = home_url( '/my-account/' );

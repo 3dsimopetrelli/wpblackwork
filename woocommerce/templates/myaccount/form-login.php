@@ -101,7 +101,12 @@ if ( $login_image_id ) {
 }
 
 $has_cover = ! empty( $login_image_url );
+$email_entry_target = isset( $_GET['bw_after_login'] ) ? sanitize_key( wp_unslash( $_GET['bw_after_login'] ) ) : '';
+$is_email_entry = in_array( $email_entry_target, [ 'orders', 'downloads' ], true );
 $post_checkout_gate = isset( $_GET['bw_post_checkout'] ) && '1' === sanitize_text_field( wp_unslash( $_GET['bw_post_checkout'] ) );
+if ( ! $post_checkout_gate && 'supabase' === $login_provider && $is_email_entry ) {
+    $post_checkout_gate = true;
+}
 $wrapper_class = 'bw-account-login-page bw-full-section' . ( $has_cover ? ' bw-account-login-page--has-cover' : '' );
 $wrapper_class .= ' bw-account-login-page--provider-' . sanitize_html_class( $login_provider );
 if ( $post_checkout_gate ) {
@@ -214,7 +219,7 @@ $login_subtitle_html = nl2br( esc_html( $login_subtitle ) );
                 <?php if ( 'supabase' === $login_provider && $post_checkout_gate ) : ?>
                     <div class="bw-account-login__intro-notices bw-account-login__form-notices bw-account-login__intro-notices--post-checkout">
                         <div class="woocommerce-info" role="status">
-                            <?php esc_html_e( 'Check your email and click the invite link to create your password.', 'bw' ); ?>
+                            <?php esc_html_e( 'To open order details and downloads, first complete account setup from the invite email.', 'bw' ); ?>
                         </div>
                         <p>
                             <?php esc_html_e( 'Didn\'t receive it? Request a new invite email here.', 'bw' ); ?>
