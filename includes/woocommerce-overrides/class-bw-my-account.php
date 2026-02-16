@@ -568,12 +568,16 @@ function bw_mew_enqueue_password_modal_assets() {
         [
             'ajaxUrl' => admin_url( 'admin-ajax.php' ),
             'nonce'   => wp_create_nonce( 'bw-supabase-login' ),
+            'logoutUrl' => wp_logout_url( add_query_arg( 'logged_out', '1', wc_get_page_permalink( 'myaccount' ) ) ),
+            'accountUrl' => wc_get_page_permalink( 'myaccount' ),
             'i18n'    => [
                 'saving'           => __( 'Saving...', 'bw' ),
                 'savePassword'     => __( 'Save password', 'bw' ),
                 'passwordMismatch' => __( 'Passwords do not match.', 'bw' ),
                 'passwordTooShort' => __( 'Password must be at least 8 characters.', 'bw' ),
                 'genericError'     => __( 'Unable to save password. Please try again.', 'bw' ),
+                'sessionMissingPrefix' => __( 'Supabase session is missing. Please log in again ', 'bw' ),
+                'sessionMissingLink'   => __( 'here', 'bw' ),
             ],
         ]
     );

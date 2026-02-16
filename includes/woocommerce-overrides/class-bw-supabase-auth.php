@@ -1593,7 +1593,13 @@ function bw_mew_handle_set_password_modal() {
     $access_token = bw_mew_get_supabase_access_token( $user_id );
 
     if ( ! $access_token ) {
-        wp_send_json_error( [ 'message' => __( 'Supabase session is missing. Please log in again.', 'bw' ) ], 401 );
+        wp_send_json_error(
+            [
+                'code'    => 'supabase_session_missing',
+                'message' => __( 'Supabase session is missing. Please log in again.', 'bw' ),
+            ],
+            401
+        );
     }
 
     $new_password     = isset( $_POST['new_password'] ) ? (string) wp_unslash( $_POST['new_password'] ) : '';

@@ -104,6 +104,75 @@
     }
 
     /**
+     * Force re-login when Supabase session is missing.
+     */
+    function redirectToLogin() {
+        var keys = [
+            'bw_pending_email',
+            'bw_handled_supabase_hash',
+            'bw_handled_supabase_code',
+            'bw_handled_token_login',
+            'bw_handled_email_confirm',
+            'bw_handled_session_check',
+            'bw_otp_needs_password',
+            'bw_otp_mode',
+            'bw_supabase_access_token',
+            'bw_supabase_refresh_token',
+            'bw_pending_access_token',
+            'bw_pending_refresh_token',
+            'bw_auth_flow'
+        ];
+
+        if (window.sessionStorage) {
+            try {
+                keys.forEach(function (key) {
+                    sessionStorage.removeItem(key);
+                });
+            } catch (error) {
+                // ignore sessionStorage errors
+            }
+        }
+
+        if (window.localStorage) {
+            try {
+                localStorage.removeItem('bw_onboarded');
+                localStorage.removeItem('bw_onboarded_email');
+            } catch (error) {
+                // ignore localStorage errors
+            }
+        }
+
+        var fallbackUrl = (config.accountUrl || '/my-account/').replace(/\/+$/, '') + '/?logged_out=1';
+        var targetUrl = config.logoutUrl || fallbackUrl;
+        window.location.href = targetUrl;
+    }
+
+    /**
+     * Render session-missing error with clickable "here" link.
+     */
+    function showSessionMissingError() {
+        if (!errorBox) return;
+
+        var prefix = i18n('sessionMissingPrefix', 'Supabase session is missing. Please log in again ');
+        var linkText = i18n('sessionMissingLink', 'here');
+
+        errorBox.textContent = '';
+        errorBox.appendChild(document.createTextNode(prefix));
+
+        var link = document.createElement('a');
+        link.href = '#';
+        link.textContent = linkText;
+        link.className = 'bw-password-modal__relogin-link';
+        link.addEventListener('click', function (event) {
+            event.preventDefault();
+            redirectToLogin();
+        });
+
+        errorBox.appendChild(link);
+        errorBox.hidden = false;
+    }
+
+    /**
      * Get i18n string
      */
     function i18n(key, fallback) {
@@ -234,6 +303,10 @@
                     });
                 } else {
                     // Error
+                    if (response && response.data && response.data.code === 'supabase_session_missing') {
+                        showSessionMissingError();
+                        return;
+                    }
                     var message = response && response.data && response.data.message
                         ? response.data.message
                         : i18n('genericError', 'Unable to save password. Please try again.');
