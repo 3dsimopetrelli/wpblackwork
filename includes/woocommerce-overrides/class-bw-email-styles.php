@@ -162,6 +162,7 @@ table.bw-email-hero-top td {
 table.bw-email-hero-ctas {
     margin: 20px 0 6px !important;
     width: auto !important;
+    white-space: nowrap !important;
 }
 
 table.bw-email-hero-ctas td {
@@ -372,16 +373,33 @@ a.bw-email-download-btn .bw-email-download-btn__icon {
 
     table.bw-email-hero-ctas {
         margin-top: 16px !important;
+        width: 100% !important;
+        white-space: nowrap !important;
     }
 
     td.bw-email-hero-ctas__primary {
-        display: block !important;
+        display: table-cell !important;
         padding-right: 0 !important;
-        padding-bottom: 10px !important;
+        padding-bottom: 0 !important;
+        white-space: nowrap !important;
     }
 
     td.bw-email-hero-ctas__secondary {
-        display: block !important;
+        display: table-cell !important;
+        white-space: nowrap !important;
+    }
+
+    a.bw-email-hero-cta-button {
+        font-size: 13px !important;
+        padding: 11px 14px !important;
+        margin-right: 8px !important;
+        white-space: nowrap !important;
+    }
+
+    td.bw-email-hero-ctas__secondary span,
+    a.bw-email-hero-cta-link {
+        font-size: 11px !important;
+        white-space: nowrap !important;
     }
 
     a.button,
