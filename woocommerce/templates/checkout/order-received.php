@@ -34,6 +34,7 @@ if ( $order instanceof WC_Order ) {
 ?>
 
 <?php if ( $is_guest_order_received_gate ) : ?>
+	<?php error_log( 'BW order-received branch: guest-gate' ); ?>
 	<h1 class="bw-verify-email-cta__title">
 		<span class="bw-verify-email-cta__title-line"><?php esc_html_e( 'Uh-oh', 'wpblackwork' ); ?></span>
 		<span class="bw-verify-email-cta__title-line"><?php esc_html_e( 'your session has', 'wpblackwork' ); ?></span>
@@ -41,6 +42,7 @@ if ( $order instanceof WC_Order ) {
 	</h1>
 <?php elseif ( $is_custom_order_received ) : ?>
 	<?php
+	error_log( 'BW order-received branch: custom-order-confirmed' );
 	remove_action( 'woocommerce_thankyou', 'woocommerce_order_details_table', 10 );
 
 	$item_lines = array();
@@ -62,6 +64,7 @@ if ( $order instanceof WC_Order ) {
 	$billing_address = $order->get_formatted_billing_address();
 	$billing_email   = $order->get_billing_email();
 	?>
+	<!-- BW order-received custom hero v2 -->
 	<section class="bw-order-confirmed" aria-label="<?php esc_attr_e( 'Order confirmed', 'wpblackwork' ); ?>">
 		<header class="bw-order-confirmed__hero">
 			<h1 class="bw-order-confirmed__title"><?php esc_html_e( 'THANK YOU', 'wpblackwork' ); ?></h1>
@@ -152,6 +155,7 @@ if ( $order instanceof WC_Order ) {
 		</section>
 	</section>
 <?php else : ?>
+	<?php error_log( 'BW order-received branch: fallback-default' ); ?>
 	<p class="woocommerce-notice woocommerce-notice--success woocommerce-thankyou-order-received">
 		<?php
 		$message = apply_filters(
