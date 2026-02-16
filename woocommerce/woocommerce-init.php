@@ -1117,6 +1117,61 @@ function bw_mew_render_checkout_header()
 }
 
 /**
+ * Render checkout logo header for order-received pages (logo only).
+ *
+ * Reuses checkout logo source and sizing options to keep visual consistency.
+ *
+ * @return void
+ */
+function bw_mew_render_order_received_logo_header()
+{
+    $settings = bw_mew_get_checkout_settings();
+    $logo_width = !empty($settings['logo_width']) ? absint($settings['logo_width']) : 200;
+    $logo_padding_top = isset($settings['logo_padding_top']) ? absint($settings['logo_padding_top']) : 0;
+    $logo_padding_right = isset($settings['logo_padding_right']) ? absint($settings['logo_padding_right']) : 0;
+    $logo_padding_bottom = isset($settings['logo_padding_bottom']) ? absint($settings['logo_padding_bottom']) : 0;
+    $logo_padding_left = isset($settings['logo_padding_left']) ? absint($settings['logo_padding_left']) : 0;
+
+    $logo_url = '';
+    if (function_exists('has_custom_logo') && has_custom_logo()) {
+        $custom_logo_id = get_theme_mod('custom_logo');
+        if ($custom_logo_id) {
+            $logo_data = wp_get_attachment_image_src($custom_logo_id, 'full');
+            if ($logo_data) {
+                $logo_url = $logo_data[0];
+            }
+        }
+    }
+
+    if (empty($logo_url)) {
+        $logo_url = !empty($settings['logo']) ? $settings['logo'] : '';
+    }
+
+    if (empty($logo_url)) {
+        return;
+    }
+
+    $logo_styles = sprintf(
+        'max-width: %dpx; padding: %dpx %dpx %dpx %dpx;',
+        $logo_width,
+        $logo_padding_top,
+        $logo_padding_right,
+        $logo_padding_bottom,
+        $logo_padding_left
+    );
+    ?>
+    <div class="bw-minimal-checkout-header bw-minimal-checkout-header--order-received">
+        <div class="bw-minimal-checkout-header__inner bw-minimal-checkout-header__inner--left">
+            <a href="<?php echo esc_url(home_url('/')); ?>" class="bw-minimal-checkout-header__logo"
+                style="<?php echo esc_attr($logo_styles); ?>">
+                <img src="<?php echo esc_url($logo_url); ?>" alt="<?php echo esc_attr(get_bloginfo('name')); ?>" />
+            </a>
+        </div>
+    </div>
+    <?php
+}
+
+/**
  * Render free order banner when cart total is 0.
  * Note: Stripe Express Checkout provides its own "OR" separator.
  */

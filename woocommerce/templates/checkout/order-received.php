@@ -18,6 +18,10 @@ $is_guest_order_received_gate = ! is_user_logged_in()
 	&& false === $order;
 
 $is_custom_order_received = ( $order instanceof WC_Order );
+
+if ( function_exists( 'bw_mew_render_order_received_logo_header' ) ) {
+	bw_mew_render_order_received_logo_header();
+}
 ?>
 
 <?php if ( $is_guest_order_received_gate ) : ?>
