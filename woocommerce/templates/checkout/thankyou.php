@@ -12,10 +12,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-$is_owner_logged_in = false;
-if ( $order && is_user_logged_in() ) {
-	$is_owner_logged_in = ( (int) $order->get_user_id() === (int) get_current_user_id() );
-}
+$is_logged_in_order_received = ( $order && is_user_logged_in() );
 ?>
 <div class="woocommerce-order">
 	<?php if ( $order ) : ?>
@@ -30,7 +27,7 @@ if ( $order && is_user_logged_in() ) {
 					<a href="<?php echo esc_url( wc_get_page_permalink( 'myaccount' ) ); ?>" class="button pay"><?php esc_html_e( 'My account', 'woocommerce' ); ?></a>
 				<?php endif; ?>
 			</p>
-		<?php elseif ( $is_owner_logged_in ) : ?>
+		<?php elseif ( $is_logged_in_order_received ) : ?>
 			<?php
 			$item_lines = array();
 			foreach ( $order->get_items() as $item ) {
@@ -178,7 +175,7 @@ if ( $order && is_user_logged_in() ) {
 		<?php do_action( 'woocommerce_thankyou_' . $order->get_payment_method(), $order->get_id() ); ?>
 
 		<?php
-		if ( $is_owner_logged_in ) {
+		if ( $is_logged_in_order_received ) {
 			remove_action( 'woocommerce_thankyou', 'woocommerce_order_details_table', 10 );
 		}
 		do_action( 'woocommerce_thankyou', $order->get_id() );
