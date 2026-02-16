@@ -20,7 +20,9 @@ $is_guest_order_received_gate = ! is_user_logged_in()
 
 <?php if ( $is_guest_order_received_gate ) : ?>
 	<h1 class="bw-verify-email-cta__title">
-		<?php esc_html_e( 'Uh-oh, your session has expired', 'wpblackwork' ); ?>
+		<span class="bw-verify-email-cta__title-line"><?php esc_html_e( 'Uh-oh', 'wpblackwork' ); ?></span>
+		<span class="bw-verify-email-cta__title-line"><?php esc_html_e( 'your session has', 'wpblackwork' ); ?></span>
+		<span class="bw-verify-email-cta__title-line"><?php esc_html_e( 'expired', 'wpblackwork' ); ?></span>
 	</h1>
 <?php else : ?>
 	<p class="woocommerce-notice woocommerce-notice--success woocommerce-thankyou-order-received">

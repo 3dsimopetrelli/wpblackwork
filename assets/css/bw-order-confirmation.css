@@ -527,6 +527,10 @@ body.woocommerce-order-received .bw-verify-email-cta__title {
     text-align: center;
 }
 
+body.woocommerce-order-received .bw-verify-email-cta__title-line {
+    display: block;
+}
+
 body.woocommerce-order-received .bw-verify-email-cta__lead {
     max-width: 920px;
     margin: 0 auto;
@@ -549,6 +553,11 @@ body.woocommerce-order-received .bw-verify-email-cta__footnote {
     color: #30343b;
     font-size: 1rem;
     line-height: 1.6;
+}
+
+/* In login-gate mode replace the textual Woo notice with CTA-only layout. */
+body.woocommerce-order-received .woocommerce:has(.bw-verify-email-cta) .woocommerce-info {
+    display: none;
 }
 
 /* ============================================
