@@ -21,6 +21,29 @@
     var errorBox = null;
     var rules = {};
 
+    function getPostSetupTarget() {
+        try {
+            var url = new URL(window.location.href);
+            var target = (url.searchParams.get('bw_after_login') || '').trim();
+            if (target === 'orders' || target === 'downloads') {
+                return target;
+            }
+        } catch (error) {
+            // Ignore URL parsing issues.
+        }
+        return '';
+    }
+
+    function getPostSetupRedirectUrl() {
+        var target = getPostSetupTarget();
+        if (!target) {
+            return '';
+        }
+
+        var base = (config.accountUrl || '/my-account/').replace(/\/+$/, '');
+        return base + '/' + target + '/';
+    }
+
     /**
      * Initialize modal elements
      */
@@ -301,6 +324,11 @@
                             rules[key].classList.remove('is-valid');
                         }
                     });
+
+                    var redirectUrl = getPostSetupRedirectUrl();
+                    if (redirectUrl) {
+                        window.location.href = redirectUrl;
+                    }
                 } else {
                     // Error
                     if (response && response.data && response.data.code === 'supabase_session_missing') {

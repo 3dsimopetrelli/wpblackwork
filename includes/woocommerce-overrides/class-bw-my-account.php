@@ -150,6 +150,43 @@ function bw_mew_enforce_supabase_onboarding_lock() {
 add_action( 'template_redirect', 'bw_mew_enforce_supabase_onboarding_lock' );
 
 /**
+ * Handle post-login email entrypoint redirects from bw_after_login query arg.
+ *
+ * Supports safe endpoints used by email CTAs:
+ * - orders
+ * - downloads
+ */
+function bw_mew_handle_email_entrypoint_redirect() {
+    if ( ! function_exists( 'is_account_page' ) || ! is_account_page() ) {
+        return;
+    }
+
+    $target = isset( $_GET['bw_after_login'] ) ? sanitize_key( wp_unslash( $_GET['bw_after_login'] ) ) : '';
+    if ( ! in_array( $target, [ 'orders', 'downloads' ], true ) ) {
+        return;
+    }
+
+    if ( ! is_user_logged_in() ) {
+        return;
+    }
+
+    $provider = get_option( 'bw_account_login_provider', 'wordpress' );
+    if ( 'supabase' === $provider && function_exists( 'bw_user_needs_onboarding' ) && bw_user_needs_onboarding( get_current_user_id() ) ) {
+        // Keep user on My Account so modal can complete setup first.
+        return;
+    }
+
+    $target_url = wc_get_account_endpoint_url( $target );
+    if ( ! $target_url ) {
+        return;
+    }
+
+    wp_safe_redirect( $target_url );
+    exit;
+}
+add_action( 'template_redirect', 'bw_mew_handle_email_entrypoint_redirect', 20 );
+
+/**
  * Optional redirect from order-received to My Account for guest users.
  *
  * Default behavior is disabled to keep users on the Thank You page after checkout.

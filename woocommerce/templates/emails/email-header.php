@@ -38,15 +38,9 @@ if ( $order ) {
 
     $order_label = sprintf( __( 'Order #%s', 'woocommerce' ), $order->get_order_number() );
 
-    if ( function_exists( 'wc_get_page_permalink' ) && function_exists( 'wc_get_account_endpoint_url' ) ) {
-        $account_url = wc_get_page_permalink( 'myaccount' );
-        if ( $account_url ) {
-            $view_order_url = wc_get_account_endpoint_url( 'orders' );
-        }
-    }
-
-    if ( ! $view_order_url ) {
-        $view_order_url = wc_get_page_permalink( 'myaccount' );
+    $account_url = wc_get_page_permalink( 'myaccount' );
+    if ( $account_url ) {
+        $view_order_url = add_query_arg( 'bw_after_login', 'orders', $account_url );
     }
 }
 

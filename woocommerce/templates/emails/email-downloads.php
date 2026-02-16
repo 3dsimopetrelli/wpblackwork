@@ -12,9 +12,8 @@ use Automattic\WooCommerce\Utilities\FeaturesUtil;
 defined( 'ABSPATH' ) || exit;
 
 $email_improvements_enabled = FeaturesUtil::feature_is_enabled( 'email_improvements' );
-$downloads_url              = function_exists( 'wc_get_account_endpoint_url' )
-    ? wc_get_account_endpoint_url( 'downloads' )
-    : wc_get_page_permalink( 'myaccount' );
+$account_url                = wc_get_page_permalink( 'myaccount' );
+$downloads_url              = $account_url ? add_query_arg( 'bw_after_login', 'downloads', $account_url ) : wc_get_page_permalink( 'myaccount' );
 
 if ( ! $downloads_url ) {
     $downloads_url = home_url( '/my-account/' );
