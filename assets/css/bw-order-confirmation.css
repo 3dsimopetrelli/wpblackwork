@@ -459,6 +459,11 @@ body.woocommerce-order-received .bw-order-confirmed__cta .elementor-button {
     justify-content: center;
 }
 
+body.woocommerce-order-received .bw-order-confirmed__cta .bw-order-confirmed__cta-button--static {
+    pointer-events: none;
+    cursor: default;
+}
+
 body.woocommerce-order-received .bw-order-confirmed__cta .elementor-button-text {
     font-size: clamp(16px, 1.4vw, 24px);
 }

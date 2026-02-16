@@ -50,12 +50,12 @@ $is_custom_order_received = ( $order instanceof WC_Order );
 	$billing_email   = $order->get_billing_email();
 	$login_provider  = strtolower( (string) get_option( 'bw_account_login_provider', 'wordpress' ) );
 	$provision_enabled = '1' === (string) get_option( 'bw_supabase_checkout_provision_enabled', '0' );
-	$is_guest_order  = 0 === (int) $order->get_user_id();
+	$show_email_reminder_cta = ! is_user_logged_in() && ( 'supabase' === $login_provider || $provision_enabled );
 	$my_account_url  = wc_get_page_permalink( 'myaccount' );
 	$cta_url         = $my_account_url;
 	$cta_label       = __( 'Go to your account', 'wpblackwork' );
 
-	if ( ( 'supabase' === $login_provider || $provision_enabled ) && $is_guest_order ) {
+	if ( $show_email_reminder_cta ) {
 		$cta_url   = add_query_arg(
 			[
 				'bw_post_checkout' => '1',
@@ -83,11 +83,19 @@ $is_custom_order_received = ( $order instanceof WC_Order );
 				?>
 			</p>
 			<p class="bw-order-confirmed__cta bw-verify-email-cta__actions">
-				<a class="elementor-button-link elementor-button" href="<?php echo esc_url( $cta_url ); ?>">
-					<span class="elementor-button-content-wrapper">
-						<span class="elementor-button-text"><?php echo esc_html( $cta_label ); ?></span>
+				<?php if ( $show_email_reminder_cta ) : ?>
+					<span class="elementor-button elementor-button-link bw-order-confirmed__cta-button--static" role="button" aria-disabled="true">
+						<span class="elementor-button-content-wrapper">
+							<span class="elementor-button-text"><?php echo esc_html( $cta_label ); ?></span>
+						</span>
 					</span>
-				</a>
+				<?php else : ?>
+					<a class="elementor-button-link elementor-button" href="<?php echo esc_url( $cta_url ); ?>">
+						<span class="elementor-button-content-wrapper">
+							<span class="elementor-button-text"><?php echo esc_html( $cta_label ); ?></span>
+						</span>
+					</a>
+				<?php endif; ?>
 			</p>
 			<p class="bw-order-confirmed__lead"><?php esc_html_e( 'Your files are available inside your account.', 'wpblackwork' ); ?></p>
 			<p class="bw-order-confirmed__lead bw-order-confirmed__lead--secondary"><?php esc_html_e( 'You can download them anytime.', 'wpblackwork' ); ?></p>
