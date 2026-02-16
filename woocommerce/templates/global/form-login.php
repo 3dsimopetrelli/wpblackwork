@@ -34,8 +34,10 @@ if ( $is_order_received_login_gate ) :
 		</p>
 
 		<p class="bw-verify-email-cta__actions">
-			<a class="button" href="<?php echo esc_url( wc_get_page_permalink( 'myaccount' ) ); ?>">
-				<?php esc_html_e( 'Go to Login', 'wpblackwork' ); ?>
+			<a class="elementor-button-link elementor-button" href="<?php echo esc_url( wc_get_page_permalink( 'myaccount' ) ); ?>">
+				<span class="elementor-button-content-wrapper">
+					<span class="elementor-button-text"><?php esc_html_e( 'Go to Login', 'wpblackwork' ); ?></span>
+				</span>
 			</a>
 		</p>
 
