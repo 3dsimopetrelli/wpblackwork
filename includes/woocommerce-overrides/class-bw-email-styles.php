@@ -78,6 +78,12 @@ a {
     color: #111111 !important;
 }
 
+.address-title,
+#addresses h2 {
+    display: block !important;
+    margin-bottom: 10px !important;
+}
+
 #body_content_inner,
 td#body_content_inner_cell {
     padding: 0 !important;
