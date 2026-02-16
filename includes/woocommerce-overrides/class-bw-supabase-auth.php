@@ -1517,7 +1517,7 @@ function bw_mew_handle_supabase_resend_invite() {
 
     if ( 'exists' === $result['status'] ) {
         wp_send_json_error(
-            [ 'message' => __( 'User already exists. Please use the login or reset password flow.', 'bw' ) ],
+            [ 'message' => __( 'Your account is already active. Use Magic Link, code, or password to sign in.', 'bw' ) ],
             409
         );
     }
