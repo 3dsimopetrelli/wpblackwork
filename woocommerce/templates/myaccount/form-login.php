@@ -185,6 +185,8 @@ $login_subtitle_html = nl2br( esc_html( $login_subtitle ) );
                 $email_confirmed = isset( $_GET['bw_email_confirmed'] ) && '1' === sanitize_text_field( wp_unslash( $_GET['bw_email_confirmed'] ) );
                 $invite_error_code = isset( $_GET['bw_invite_error'] ) ? sanitize_key( wp_unslash( $_GET['bw_invite_error'] ) ) : '';
                 $invite_error_desc = isset( $_GET['bw_invite_error_description'] ) ? sanitize_text_field( wp_unslash( $_GET['bw_invite_error_description'] ) ) : '';
+                $post_checkout_gate = isset( $_GET['bw_post_checkout'] ) && '1' === sanitize_text_field( wp_unslash( $_GET['bw_post_checkout'] ) );
+                $post_checkout_email = isset( $_GET['bw_invite_email'] ) ? sanitize_email( wp_unslash( $_GET['bw_invite_email'] ) ) : '';
                 ?>
 
                 <?php if ( $logo_url ) : ?>
@@ -203,6 +205,34 @@ $login_subtitle_html = nl2br( esc_html( $login_subtitle ) );
                         <?php if ( $login_subtitle ) : ?>
                             <p class="bw-account-login__subtitle"><?php echo wp_kses( $login_subtitle_html, [ 'br' => [] ] ); ?></p>
                         <?php endif; ?>
+                    </div>
+                <?php endif; ?>
+
+                <?php if ( 'supabase' === $login_provider && $post_checkout_gate ) : ?>
+                    <div class="bw-account-login__intro-notices bw-account-login__form-notices">
+                        <div class="woocommerce-info" role="status">
+                            <?php esc_html_e( 'Check your email and click the invite link to create your password.', 'bw' ); ?>
+                        </div>
+                        <p>
+                            <?php esc_html_e( 'Didn\'t receive it? Request a new invite email here.', 'bw' ); ?>
+                        </p>
+                        <p class="bw-account-login__actions">
+                            <input
+                                class="woocommerce-Input woocommerce-Input--text input-text"
+                                type="email"
+                                data-bw-resend-email
+                                value="<?php echo esc_attr( $post_checkout_email ); ?>"
+                                autocomplete="email"
+                                placeholder="<?php esc_attr_e( 'Email address', 'bw' ); ?>"
+                            />
+                        </p>
+                        <p class="bw-account-login__actions">
+                            <button type="button" class="woocommerce-button button" data-bw-resend-invite>
+                                <?php esc_html_e( 'Resend invite email', 'bw' ); ?>
+                            </button>
+                        </p>
+                        <p class="bw-account-set-password__error" role="alert" hidden></p>
+                        <p class="bw-account-set-password__notice" data-bw-resend-notice hidden></p>
                     </div>
                 <?php endif; ?>
 

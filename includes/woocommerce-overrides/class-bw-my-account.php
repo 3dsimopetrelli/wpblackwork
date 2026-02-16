@@ -196,21 +196,21 @@ function bw_mew_enqueue_my_account_assets() {
         return;
     }
 
-    if ( ! is_user_logged_in() && ! is_wc_endpoint_url( 'set-password' ) ) {
-        return;
-    }
+    $load_full_account_assets = is_user_logged_in() || is_wc_endpoint_url( 'set-password' );
 
     $css_file = BW_MEW_PATH . 'assets/css/bw-my-account.css';
     $css_ver  = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
     $js_file  = BW_MEW_PATH . 'assets/js/bw-my-account.js';
     $js_ver   = file_exists( $js_file ) ? filemtime( $js_file ) : '1.0.0';
 
-    wp_enqueue_style(
-        'bw-my-account',
-        BW_MEW_URL . 'assets/css/bw-my-account.css',
-        [],
-        $css_ver
-    );
+    if ( $load_full_account_assets ) {
+        wp_enqueue_style(
+            'bw-my-account',
+            BW_MEW_URL . 'assets/css/bw-my-account.css',
+            [],
+            $css_ver
+        );
+    }
 
     wp_enqueue_script(
         'bw-my-account',

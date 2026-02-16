@@ -48,6 +48,23 @@ $is_custom_order_received = ( $order instanceof WC_Order );
 	$total_amount    = (float) $order->get_total();
 	$billing_address = $order->get_formatted_billing_address();
 	$billing_email   = $order->get_billing_email();
+	$login_provider  = strtolower( (string) get_option( 'bw_account_login_provider', 'wordpress' ) );
+	$provision_enabled = '1' === (string) get_option( 'bw_supabase_checkout_provision_enabled', '0' );
+	$is_guest_order  = 0 === (int) $order->get_user_id();
+	$my_account_url  = wc_get_page_permalink( 'myaccount' );
+	$cta_url         = $my_account_url;
+	$cta_label       = __( 'Go to your account', 'wpblackwork' );
+
+	if ( ( 'supabase' === $login_provider || $provision_enabled ) && $is_guest_order ) {
+		$cta_url   = add_query_arg(
+			[
+				'bw_post_checkout' => '1',
+				'bw_invite_email'  => $billing_email,
+			],
+			$my_account_url
+		);
+		$cta_label = __( 'Check your email to create password', 'wpblackwork' );
+	}
 	?>
 	<section class="bw-order-confirmed" aria-label="<?php esc_attr_e( 'Order confirmed', 'wpblackwork' ); ?>">
 		<div class="bw-order-confirmed__hero">
@@ -66,9 +83,9 @@ $is_custom_order_received = ( $order instanceof WC_Order );
 				?>
 			</p>
 			<p class="bw-order-confirmed__cta bw-verify-email-cta__actions">
-				<a class="elementor-button-link elementor-button" href="<?php echo esc_url( wc_get_page_permalink( 'myaccount' ) ); ?>">
+				<a class="elementor-button-link elementor-button" href="<?php echo esc_url( $cta_url ); ?>">
 					<span class="elementor-button-content-wrapper">
-						<span class="elementor-button-text"><?php esc_html_e( 'Go to your account', 'wpblackwork' ); ?></span>
+						<span class="elementor-button-text"><?php echo esc_html( $cta_label ); ?></span>
 					</span>
 				</a>
 			</p>
