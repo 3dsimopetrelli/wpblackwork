@@ -67,7 +67,7 @@ if ( function_exists( 'bw_mew_render_order_received_logo_header' ) ) {
 			],
 			$my_account_url
 		);
-		$cta_label = __( 'Check your email to create password', 'wpblackwork' );
+		$cta_label = __( 'Check your email to finish account setup', 'wpblackwork' );
 	}
 	?>
 	<section class="bw-order-confirmed" aria-label="<?php esc_attr_e( 'Order confirmed', 'wpblackwork' ); ?>">
@@ -158,9 +158,20 @@ if ( function_exists( 'bw_mew_render_order_received_logo_header' ) ) {
 					</svg>
 				</div>
 				<div>
-					<h3><?php esc_html_e( 'Email sent', 'wpblackwork' ); ?></h3>
-					<p><?php esc_html_e( 'We have sent you a confirmation email.', 'wpblackwork' ); ?></p>
-					<p><?php esc_html_e( 'Please confirm your account and create a secure password to activate it.', 'wpblackwork' ); ?></p>
+					<h3><?php esc_html_e( 'Order confirmation email', 'wpblackwork' ); ?></h3>
+					<p><?php esc_html_e( 'We have sent an order confirmation email with your order details and receipt.', 'wpblackwork' ); ?></p>
+				</div>
+			</div>
+			<div class="bw-order-next__step">
+				<div class="bw-order-next__icon" aria-hidden="true">
+					<svg viewBox="0 0 24 24" role="presentation" focusable="false">
+						<rect x="6.5" y="11" width="11" height="8" rx="1.8" fill="none" stroke="currentColor" stroke-width="1.8" />
+						<path d="M9 11V8.7a3 3 0 0 1 6 0V11" fill="none" stroke="currentColor" stroke-width="1.8" />
+					</svg>
+				</div>
+				<div>
+					<h3><?php esc_html_e( 'Account setup email', 'wpblackwork' ); ?></h3>
+					<p><?php esc_html_e( 'We have also sent a second email to help you create your password and secure your account.', 'wpblackwork' ); ?></p>
 				</div>
 			</div>
 			<div class="bw-order-next__step">
@@ -172,7 +183,7 @@ if ( function_exists( 'bw_mew_render_order_received_logo_header' ) ) {
 				</div>
 				<div>
 					<h3><?php esc_html_e( 'Access your account', 'wpblackwork' ); ?></h3>
-					<p><?php esc_html_e( 'Log in to manage your order, download your files (if digital), or update your account details.', 'wpblackwork' ); ?></p>
+					<p><?php esc_html_e( 'After setting your password, log in to view your order, download your files, and manage your account details anytime.', 'wpblackwork' ); ?></p>
 				</div>
 			</div>
 		</section>
