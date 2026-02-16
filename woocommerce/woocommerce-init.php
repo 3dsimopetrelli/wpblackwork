@@ -105,9 +105,32 @@ function bw_mew_filter_account_page_title($title, $post_id)
 function bw_mew_locate_template($template, $template_name, $template_path)
 {
     $plugin_template_path = trailingslashit(BW_MEW_PATH . 'woocommerce/templates');
+    $tracked_templates = ['checkout/thankyou.php', 'checkout/order-received.php'];
 
     if ($template_name && file_exists($plugin_template_path . $template_name)) {
-        return $plugin_template_path . $template_name;
+        $resolved = $plugin_template_path . $template_name;
+
+        if (in_array($template_name, $tracked_templates, true)) {
+            error_log(
+                sprintf(
+                    'BW template trace: template_name=%s source=plugin resolved=%s',
+                    $template_name,
+                    $resolved
+                )
+            );
+        }
+
+        return $resolved;
+    }
+
+    if ($template_name && in_array($template_name, $tracked_templates, true)) {
+        error_log(
+            sprintf(
+                'BW template trace: template_name=%s source=default resolved=%s',
+                $template_name,
+                $template
+            )
+        );
     }
 
     return $template;
