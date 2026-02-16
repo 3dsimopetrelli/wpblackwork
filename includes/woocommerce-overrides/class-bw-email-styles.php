@@ -47,15 +47,16 @@ function bw_mew_customize_woocommerce_email_styles( $css, $email ) {
 
     $custom_css = '
 #template_container {
-    border: 1px solid #d6d6d6 !important;
-    border-radius: 20px !important;
-    overflow: hidden !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+    background: transparent !important;
     box-shadow: none !important;
 }
 
 #template_header {
-    background: #f3f3f3 !important;
-    border-bottom: 1px solid #d6d6d6 !important;
+    background: transparent !important;
+    border-bottom: 0 !important;
     text-align: center !important;
 }
 
