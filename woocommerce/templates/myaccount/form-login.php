@@ -209,7 +209,7 @@ $login_subtitle_html = nl2br( esc_html( $login_subtitle ) );
                 <?php endif; ?>
 
                 <?php if ( 'supabase' === $login_provider && $post_checkout_gate ) : ?>
-                    <div class="bw-account-login__intro-notices bw-account-login__form-notices">
+                    <div class="bw-account-login__intro-notices bw-account-login__form-notices bw-account-login__intro-notices--post-checkout">
                         <div class="woocommerce-info" role="status">
                             <?php esc_html_e( 'Check your email and click the invite link to create your password.', 'bw' ); ?>
                         </div>
@@ -218,7 +218,7 @@ $login_subtitle_html = nl2br( esc_html( $login_subtitle ) );
                         </p>
                         <p class="bw-account-login__actions">
                             <input
-                                class="woocommerce-Input woocommerce-Input--text input-text"
+                                class="woocommerce-Input woocommerce-Input--text input-text bw-account-login__resend-email"
                                 type="email"
                                 data-bw-resend-email
                                 value="<?php echo esc_attr( $post_checkout_email ); ?>"
@@ -227,7 +227,7 @@ $login_subtitle_html = nl2br( esc_html( $login_subtitle ) );
                             />
                         </p>
                         <p class="bw-account-login__actions">
-                            <button type="button" class="woocommerce-button button" data-bw-resend-invite>
+                            <button type="button" class="woocommerce-button button bw-account-login__resend-invite" data-bw-resend-invite>
                                 <?php esc_html_e( 'Resend invite email', 'bw' ); ?>
                             </button>
                         </p>

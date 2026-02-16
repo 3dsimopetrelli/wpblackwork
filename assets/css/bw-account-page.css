@@ -145,8 +145,9 @@ body.woocommerce-account.bw-account-login-only:not(.elementor-editor-active) .el
 .bw-account-login__logo {
     display: flex;
     justify-content: center;
-    padding-top: var(--bw-logo-pt, 0px);
+    padding-top: max(0px, var(--bw-logo-pt, 0px));
     padding-bottom: var(--bw-logo-pb, 30px);
+    overflow: visible;
 }
 
 /* Logo image - max-width controlled via admin panel */
@@ -169,7 +170,8 @@ body.woocommerce-account .bw-account-login-page.bw-full-section {
     max-width: 100%;
     margin: 0 !important;
     padding: 0 !important;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: visible;
 }
 
 body.woocommerce-account .bw-account-login-page.bw-full-section .bw-account-login {
@@ -687,6 +689,15 @@ body.woocommerce-account.bw-account-login-only .bw-account-login__register-link:
 .bw-account-login__intro-notices {
     margin-top: 0;
     margin-bottom: 16px;
+}
+
+.bw-account-login__intro-notices--post-checkout .woocommerce-info {
+    margin-bottom: 10px !important;
+}
+
+.bw-account-login__resend-invite {
+    width: 100%;
+    display: block;
 }
 
 .bw-account-login__form-notices .woocommerce-notices-wrapper {
