@@ -520,8 +520,8 @@ body.woocommerce-order-received .bw-verify-email-cta__title {
     margin: 0 auto 20px;
     max-width: 1200px;
     color: #111111;
-    font-size: clamp(36px, 7.4vw, 104px);
-    line-height: clamp(42px, 8.5vw, 120px);
+    font-size: 80px;
+    line-height: 1.08;
     font-weight: 600;
     letter-spacing: -0.05em;
     text-align: center;
@@ -544,7 +544,7 @@ body.woocommerce-order-received .bw-verify-email-cta__lead--secondary {
 }
 
 body.woocommerce-order-received .bw-verify-email-cta__actions {
-    margin: 28px 0 0;
+    margin: 28px 0 22px;
 }
 
 body.woocommerce-order-received .bw-verify-email-cta__footnote {
@@ -560,10 +560,21 @@ body.woocommerce-order-received .woocommerce:has(.bw-verify-email-cta) .woocomme
     display: none;
 }
 
+body.woocommerce-order-received .bw-verify-email-cta__actions .elementor-button:hover .elementor-button-text,
+body.woocommerce-order-received .bw-verify-email-cta__actions .elementor-button:focus .elementor-button-text {
+    text-decoration: none;
+}
+
 /* ============================================
    RESPONSIVE — MOBILE
    ============================================ */
 @media (max-width: 768px) {
+    body.woocommerce-order-received .bw-verify-email-cta__title {
+        font-size: clamp(40px, 8vw, 64px);
+        line-height: 1.1;
+        letter-spacing: -0.04em;
+    }
+
     body.woocommerce-order-received .woocommerce {
         padding: 24px 20px;
     }
@@ -663,7 +674,7 @@ body.woocommerce-order-received .woocommerce:has(.bw-verify-email-cta) .woocomme
     }
 
     body.woocommerce-order-received .bw-verify-email-cta__title {
-        font-size: clamp(34px, 10vw, 56px);
+        font-size: clamp(32px, 10.5vw, 46px);
         line-height: 1.08;
         letter-spacing: -0.04em;
     }
