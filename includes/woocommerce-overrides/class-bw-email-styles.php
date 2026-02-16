@@ -190,16 +190,17 @@ a.bw-email-hero-cta-button {
 
 td.bw-email-hero-ctas__secondary span {
     color: #111111 !important;
-    font-size: 16px !important;
+    font-size: 12px !important;
     font-weight: 400 !important;
 }
 
 a.bw-email-hero-cta-link {
     color: #111111 !important;
     text-decoration: none !important;
-    font-size: 16px !important;
+    font-size: 12px !important;
     font-weight: 400 !important;
     margin-left: 6px !important;
+    white-space: nowrap !important;
 }
 
 h2,
@@ -416,19 +417,13 @@ function bw_mew_render_order_email_primary_cta( $order, $sent_to_admin, $plain_t
         return;
     }
 
-    if ( ! $sent_to_admin && ! in_array( $email_id, [ 'customer_processing_order', 'customer_on_hold_order' ], true ) ) {
+    if ( ! $sent_to_admin ) {
         return;
     }
 
-    if ( $sent_to_admin ) {
-        $url   = admin_url( 'post.php?post=' . absint( $order->get_id() ) . '&action=edit' );
-        $label = __( 'Open order in admin', 'bw' );
-        $wrap_style = 'margin:30px 0 0; padding-bottom:30px; text-align:center;';
-    } else {
-        $url   = wc_get_page_permalink( 'myaccount' );
-        $label = __( 'Go to your account', 'bw' );
-        $wrap_style = 'margin:24px 0 10px; text-align:center;';
-    }
+    $url        = admin_url( 'post.php?post=' . absint( $order->get_id() ) . '&action=edit' );
+    $label      = __( 'Open order in admin', 'bw' );
+    $wrap_style = 'margin:30px 0 0; padding-bottom:30px; text-align:center;';
 
     if ( ! $url ) {
         return;
