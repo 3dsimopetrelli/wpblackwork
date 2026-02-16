@@ -125,6 +125,15 @@ table.td.email-order-details tr.order-totals td {
     padding-right: 20px !important;
 }
 
+table.td.email-order-details tr.order-totals.order-totals-subtotal th,
+table.td.email-order-details tr.order-totals.order-totals-subtotal td {
+    padding-top: 22px !important;
+}
+
+table.td.email-order-details tr.order-customer-note td {
+    padding: 20px !important;
+}
+
 address {
     border: 1px solid #d6d6d6 !important;
     border-radius: 14px !important;
@@ -192,16 +201,18 @@ function bw_mew_render_order_email_primary_cta( $order, $sent_to_admin, $plain_t
     if ( $sent_to_admin ) {
         $url   = admin_url( 'post.php?post=' . absint( $order->get_id() ) . '&action=edit' );
         $label = __( 'Open order in admin', 'bw' );
+        $wrap_style = 'margin:30px 0 0; padding-bottom:30px; text-align:center;';
     } else {
         $url   = wc_get_page_permalink( 'myaccount' );
         $label = __( 'Go to your account', 'bw' );
+        $wrap_style = 'margin:24px 0 10px; text-align:center;';
     }
 
     if ( ! $url ) {
         return;
     }
 
-    echo '<p style="margin:24px 0 10px; text-align:center;">';
+    echo '<p style="' . esc_attr( $wrap_style ) . '">';
     echo '<a class="bw-email-cta" href="' . esc_url( $url ) . '" style="background:#79ff00;color:#111111;border:1px solid #111111;border-radius:999px;display:inline-block;padding:16px 30px;font-size:20px;line-height:1.2;font-weight:500;text-decoration:none;">' . esc_html( $label ) . '</a>';
     echo '</p>';
 }
