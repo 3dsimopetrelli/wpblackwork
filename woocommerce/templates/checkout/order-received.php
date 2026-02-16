@@ -17,9 +17,7 @@ $is_guest_order_received_gate = ! is_user_logged_in()
 	&& is_wc_endpoint_url( 'order-received' )
 	&& false === $order;
 
-$is_custom_order_received = ( $order instanceof WC_Order )
-	&& function_exists( 'is_wc_endpoint_url' )
-	&& is_wc_endpoint_url( 'order-received' );
+$is_custom_order_received = ( $order instanceof WC_Order );
 
 if ( $order instanceof WC_Order ) {
 	error_log(
