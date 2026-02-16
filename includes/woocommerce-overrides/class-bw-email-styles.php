@@ -77,7 +77,8 @@ a {
     color: #111111 !important;
 }
 
-#body_content_inner {
+#body_content_inner,
+td#body_content_inner_cell {
     padding: 0 !important;
 }
 
@@ -115,6 +116,12 @@ table.td tfoot tr:last-child td {
     border-top: 2px solid #111111 !important;
     font-size: 18px !important;
     font-weight: 700 !important;
+}
+
+table.td.email-order-details tr.order-totals th,
+table.td.email-order-details tr.order-totals td {
+    padding-left: 20px !important;
+    padding-right: 20px !important;
 }
 
 address {
