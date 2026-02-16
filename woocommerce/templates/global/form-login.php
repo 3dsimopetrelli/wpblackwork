@@ -26,19 +26,19 @@ $is_order_received_login_gate = function_exists( 'is_wc_endpoint_url' ) && is_wc
 if ( $is_order_received_login_gate ) :
 	?>
 	<section class="bw-verify-email-cta" aria-label="<?php esc_attr_e( 'Login required', 'wpblackwork' ); ?>">
-		<p class="bw-verify-email-cta__lead">
-			<?php esc_html_e( 'Click the button below to continue.', 'wpblackwork' ); ?>
-		</p>
-		<p class="bw-verify-email-cta__lead bw-verify-email-cta__lead--secondary">
-			<?php esc_html_e( 'You will be redirected to the login page where you can sign in to your account.', 'wpblackwork' ); ?>
-		</p>
-
 		<p class="bw-verify-email-cta__actions">
 			<a class="elementor-button-link elementor-button" href="<?php echo esc_url( wc_get_page_permalink( 'myaccount' ) ); ?>">
 				<span class="elementor-button-content-wrapper">
-					<span class="elementor-button-text"><?php esc_html_e( 'Go to Login', 'wpblackwork' ); ?></span>
+					<span class="elementor-button-text"><?php esc_html_e( 'Please log in to your account to view this order.', 'wpblackwork' ); ?></span>
 				</span>
 			</a>
+		</p>
+
+		<p class="bw-verify-email-cta__lead">
+			<?php esc_html_e( 'Click the button to continue.', 'wpblackwork' ); ?>
+		</p>
+		<p class="bw-verify-email-cta__lead bw-verify-email-cta__lead--secondary">
+			<?php esc_html_e( 'You will be redirected to the login page where you can sign in to your account.', 'wpblackwork' ); ?>
 		</p>
 
 		<p class="bw-verify-email-cta__footnote">
