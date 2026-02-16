@@ -179,7 +179,7 @@ address {
 }
 
 #addresses address.address {
-    min-height: 300px !important;
+    min-height: 250px !important;
     box-sizing: border-box !important;
 }
 
