@@ -32,7 +32,7 @@ body.woocommerce-order-received {
 
 /* Checkout logo header reused on order-received (top-left). */
 body.woocommerce-order-received .bw-minimal-checkout-header {
-    position: fixed;
+    position: absolute;
     top: 0;
     left: 0;
     width: 100%;
@@ -58,12 +58,19 @@ body.woocommerce-order-received .bw-minimal-checkout-header__logo {
     justify-content: flex-start;
     text-decoration: none;
     pointer-events: auto;
+    transform-origin: top left;
 }
 
 body.woocommerce-order-received .bw-minimal-checkout-header__logo img {
     display: block;
     width: auto;
     height: auto;
+}
+
+@media (max-width: 1024px) {
+    body.woocommerce-order-received .bw-minimal-checkout-header__logo {
+        transform: scale(0.94);
+    }
 }
 
 /* Keep headline block visually detached from the floating logo. */

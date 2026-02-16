@@ -1151,7 +1151,7 @@ function bw_mew_render_order_received_logo_header()
         return;
     }
 
-    $header_styles = 'position:fixed;top:0;left:0;width:100%;background:transparent;border:0;z-index:100;pointer-events:none;';
+    $header_styles = 'position:absolute;top:0;left:0;width:100%;background:transparent;border:0;z-index:100;pointer-events:none;';
     $inner_styles  = 'width:100%;max-width:none;margin:0;padding:22px 28px;display:flex;align-items:center;justify-content:flex-start;';
     $anchor_styles = 'pointer-events:auto;display:inline-flex;align-items:center;justify-content:flex-start;text-decoration:none;';
 
