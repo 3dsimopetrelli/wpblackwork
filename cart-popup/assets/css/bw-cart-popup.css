@@ -137,7 +137,7 @@
 }
 
 .bw-cart-ui .bw-ui-item-name a:hover {
-    color: #007bff;
+    color: #1f1f1f;
 }
 
 /* Price block (positioned on the right) */
@@ -253,7 +253,7 @@
 }
 
 .bw-cart-ui .bw-ui-promo-link:hover {
-    color: #28a745 !important;
+    color: #1f1f1f !important;
 }
 
 .bw-cart-ui .bw-ui-promo-box {
@@ -710,7 +710,7 @@
 }
 
 .bw-cart-item-name a:hover {
-    color: #007bff;
+    color: #1f1f1f;
 }
 
 /* Prezzo (posizionato sotto il titolo) */
@@ -992,7 +992,7 @@
 }
 
 .bw-promo-link:hover {
-    color: #28a745 !important;
+    color: #1f1f1f !important;
 }
 
 /* Remove coupon link - stesso stile di Click here */
@@ -1004,7 +1004,7 @@
 }
 
 .bw-promo-remove-link:hover {
-    color: #28a745 !important;
+    color: #1f1f1f !important;
 }
 
 /* Box promo code */

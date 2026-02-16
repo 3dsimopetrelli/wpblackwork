@@ -577,26 +577,6 @@
         },
 
         /**
-         * Mostra lo stato di carrello pieno
-         */
-        showFullState: function () {
-            this.$emptyState.hide();
-            this.$fullContent.show();
-            this.$footer.show();
-            this.updateBadge();
-        },
-
-        /**
-         * Mostra lo stato di carrello vuoto
-         */
-        showEmptyState: function () {
-            this.$fullContent.hide();
-            this.$footer.show(); // Always visible as requested
-            this.$emptyState.show();
-            this.updateBadge();
-        },
-
-        /**
          * Nascondi il loading state
          */
         hideLoading: function () {
