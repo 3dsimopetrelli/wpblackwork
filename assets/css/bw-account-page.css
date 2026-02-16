@@ -141,6 +141,16 @@ body.woocommerce-account.bw-account-login-only:not(.elementor-editor-active) .el
     color: #161616;
 }
 
+body.woocommerce-account .bw-account-login-page--post-checkout .bw-account-login {
+    min-height: 100vh;
+    height: auto;
+}
+
+body.woocommerce-account .bw-account-login-page--post-checkout .bw-account-login__content-wrapper {
+    align-items: flex-start;
+    padding-top: 28px;
+}
+
 /* Logo container - padding controlled via admin panel (Blackwork > Site Settings > My Account Page) */
 .bw-account-login__logo {
     display: flex;

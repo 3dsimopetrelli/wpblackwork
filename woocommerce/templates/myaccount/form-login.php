@@ -101,8 +101,12 @@ if ( $login_image_id ) {
 }
 
 $has_cover = ! empty( $login_image_url );
+$post_checkout_gate = isset( $_GET['bw_post_checkout'] ) && '1' === sanitize_text_field( wp_unslash( $_GET['bw_post_checkout'] ) );
 $wrapper_class = 'bw-account-login-page bw-full-section' . ( $has_cover ? ' bw-account-login-page--has-cover' : '' );
 $wrapper_class .= ' bw-account-login-page--provider-' . sanitize_html_class( $login_provider );
+if ( $post_checkout_gate ) {
+    $wrapper_class .= ' bw-account-login-page--post-checkout';
+}
 
 $logo_url = $logo;
 if ( $logo_id ) {
@@ -185,7 +189,6 @@ $login_subtitle_html = nl2br( esc_html( $login_subtitle ) );
                 $email_confirmed = isset( $_GET['bw_email_confirmed'] ) && '1' === sanitize_text_field( wp_unslash( $_GET['bw_email_confirmed'] ) );
                 $invite_error_code = isset( $_GET['bw_invite_error'] ) ? sanitize_key( wp_unslash( $_GET['bw_invite_error'] ) ) : '';
                 $invite_error_desc = isset( $_GET['bw_invite_error_description'] ) ? sanitize_text_field( wp_unslash( $_GET['bw_invite_error_description'] ) ) : '';
-                $post_checkout_gate = isset( $_GET['bw_post_checkout'] ) && '1' === sanitize_text_field( wp_unslash( $_GET['bw_post_checkout'] ) );
                 $post_checkout_email = isset( $_GET['bw_invite_email'] ) ? sanitize_email( wp_unslash( $_GET['bw_invite_email'] ) ) : '';
                 ?>
 
