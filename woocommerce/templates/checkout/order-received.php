@@ -18,23 +18,9 @@ $is_guest_order_received_gate = ! is_user_logged_in()
 	&& false === $order;
 
 $is_custom_order_received = ( $order instanceof WC_Order );
-
-if ( $order instanceof WC_Order ) {
-	error_log(
-		sprintf(
-			'BW order-received trace v2: order_id=%d is_user_logged_in=%d current_user_id=%d order_user_id=%d key_in_url=%d',
-			(int) $order->get_id(),
-			is_user_logged_in() ? 1 : 0,
-			(int) get_current_user_id(),
-			(int) $order->get_user_id(),
-			isset( $_GET['key'] ) ? 1 : 0 // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		)
-	);
-}
 ?>
 
 <?php if ( $is_guest_order_received_gate ) : ?>
-	<?php error_log( 'BW order-received branch: guest-gate' ); ?>
 	<h1 class="bw-verify-email-cta__title">
 		<span class="bw-verify-email-cta__title-line"><?php esc_html_e( 'Uh-oh', 'wpblackwork' ); ?></span>
 		<span class="bw-verify-email-cta__title-line"><?php esc_html_e( 'your session has', 'wpblackwork' ); ?></span>
@@ -42,7 +28,6 @@ if ( $order instanceof WC_Order ) {
 	</h1>
 <?php elseif ( $is_custom_order_received ) : ?>
 	<?php
-	error_log( 'BW order-received branch: custom-order-confirmed' );
 	remove_action( 'woocommerce_thankyou', 'woocommerce_order_details_table', 10 );
 
 	$item_lines = array();
@@ -64,9 +49,8 @@ if ( $order instanceof WC_Order ) {
 	$billing_address = $order->get_formatted_billing_address();
 	$billing_email   = $order->get_billing_email();
 	?>
-	<!-- BW order-received custom hero v2 -->
 	<section class="bw-order-confirmed" aria-label="<?php esc_attr_e( 'Order confirmed', 'wpblackwork' ); ?>">
-		<header class="bw-order-confirmed__hero">
+		<div class="bw-order-confirmed__hero">
 			<h1 class="bw-order-confirmed__title"><?php esc_html_e( 'THANK YOU', 'wpblackwork' ); ?></h1>
 			<p class="bw-order-confirmed__subtitle"><?php esc_html_e( 'Order confirmed', 'wpblackwork' ); ?></p>
 			<p class="bw-order-confirmed__meta">
@@ -90,7 +74,7 @@ if ( $order instanceof WC_Order ) {
 			</p>
 			<p class="bw-order-confirmed__lead"><?php esc_html_e( 'Your files are available inside your account.', 'wpblackwork' ); ?></p>
 			<p class="bw-order-confirmed__lead bw-order-confirmed__lead--secondary"><?php esc_html_e( 'You can download them anytime.', 'wpblackwork' ); ?></p>
-		</header>
+		</div>
 
 		<div class="bw-order-confirmed__cards">
 			<section class="bw-order-card">
@@ -155,7 +139,6 @@ if ( $order instanceof WC_Order ) {
 		</section>
 	</section>
 <?php else : ?>
-	<?php error_log( 'BW order-received branch: fallback-default' ); ?>
 	<p class="woocommerce-notice woocommerce-notice--success woocommerce-thankyou-order-received">
 		<?php
 		$message = apply_filters(
