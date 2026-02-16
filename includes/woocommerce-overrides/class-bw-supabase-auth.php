@@ -1349,7 +1349,6 @@ function bw_mew_handle_supabase_checkout_invite( $order_id ) {
         $order->update_meta_data( '_bw_supabase_invite_resend_count', $resend_count + 1 );
 
         if ( $user instanceof WP_User ) {
-            bw_mew_assign_guest_order_to_user( $order, $user, $debug_log, $log_ctx );
             update_user_meta( $user->ID, 'bw_supabase_invited', 1 );
             update_user_meta( $user->ID, 'bw_supabase_invite_sent_at', $now );
             update_user_meta( $user->ID, 'bw_supabase_invite_resend_count', $resend_count + 1 );
@@ -1365,9 +1364,6 @@ function bw_mew_handle_supabase_checkout_invite( $order_id ) {
 
     if ( 'exists' === $result['status'] ) {
         bw_mew_supabase_invite_trace( $order_id, 'invite status=exists (already exists)', $debug_log );
-        if ( $user instanceof WP_User ) {
-            bw_mew_assign_guest_order_to_user( $order, $user, $debug_log, $log_ctx );
-        }
         $order->update_meta_data( '_bw_supabase_invite_sent', 1 );
         $order->update_meta_data( '_bw_supabase_invite_sent_at', $now );
         $order->save();
