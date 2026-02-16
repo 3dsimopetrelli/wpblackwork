@@ -108,6 +108,17 @@ table.td {
     overflow: hidden !important;
 }
 
+table.bw-email-downloads-table th:first-child,
+table.bw-email-downloads-table td:first-child {
+    width: 68% !important;
+}
+
+table.bw-email-downloads-table th:last-child,
+table.bw-email-downloads-table td:last-child {
+    width: 32% !important;
+    text-align: right !important;
+}
+
 table.td thead th {
     background: #f7f7f7 !important;
     color: #111111 !important;
@@ -181,6 +192,21 @@ a.bw-email-cta {
     line-height: 1.2 !important;
     font-weight: 500 !important;
     padding: 16px 30px !important;
+}
+
+a.bw-email-download-btn {
+    font-size: 16px !important;
+    line-height: 1 !important;
+    font-weight: 600 !important;
+    padding: 12px 20px !important;
+    white-space: nowrap !important;
+}
+
+a.bw-email-download-btn .bw-email-download-btn__icon {
+    display: inline-block !important;
+    margin-right: 8px !important;
+    font-size: 16px !important;
+    line-height: 1 !important;
 }
 
 @media screen and (max-width: 600px) {
