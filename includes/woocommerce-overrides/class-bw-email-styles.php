@@ -119,7 +119,8 @@ table.bw-email-hero-top td {
 }
 
 .bw-email-hero-logo {
-    max-width: 220px !important;
+    width: 100px !important;
+    max-width: 100px !important;
     height: auto !important;
     display: block !important;
 }
@@ -152,6 +153,7 @@ table.bw-email-hero-top td {
     color: #7a7a7a !important;
     font-size: 18px !important;
     line-height: 1.4 !important;
+    font-weight: 400 !important;
     text-align: left !important;
 }
 
@@ -306,7 +308,8 @@ a.bw-email-download-btn .bw-email-download-btn__icon {
     }
 
     .bw-email-hero-logo {
-        max-width: 170px !important;
+        width: 100px !important;
+        max-width: 100px !important;
     }
 
     .bw-email-hero-top__order {
