@@ -22,6 +22,8 @@ $order                      = isset( $email->object ) && is_a( $email->object, '
 $is_customer_order_email    = $order && 0 === strpos( $email_id, 'customer_' );
 $customer_first_name        = '';
 $order_label                = '';
+$view_order_url             = '';
+$visit_website_url          = home_url( '/' );
 
 if ( $order ) {
     $customer_first_name = trim( (string) $order->get_billing_first_name() );
@@ -35,6 +37,17 @@ if ( $order ) {
     }
 
     $order_label = sprintf( __( 'Order #%s', 'woocommerce' ), $order->get_order_number() );
+
+    if ( function_exists( 'wc_get_page_permalink' ) && function_exists( 'wc_get_endpoint_url' ) ) {
+        $account_url = wc_get_page_permalink( 'myaccount' );
+        if ( $account_url ) {
+            $view_order_url = wc_get_endpoint_url( 'view-order', $order->get_id(), $account_url );
+        }
+    }
+
+    if ( ! $view_order_url ) {
+        $view_order_url = wc_get_page_permalink( 'myaccount' );
+    }
 }
 
 ?>
@@ -120,8 +133,19 @@ if ( $order ) {
                                                                     <?php echo esc_html( sprintf( __( 'Dear %s, thanks for your order!', 'woocommerce' ), $customer_first_name ) ); ?>
                                                                 </p>
                                                                 <p class="bw-email-hero-subtitle">
-                                                                    <?php esc_html_e( 'Please find all the details below. We will notify you when it has been sent.', 'woocommerce' ); ?>
+                                                                    <?php esc_html_e( 'Please find your order details below.', 'woocommerce' ); ?>
                                                                 </p>
+                                                                <table border="0" cellpadding="0" cellspacing="0" class="bw-email-hero-ctas" role="presentation">
+                                                                    <tr>
+                                                                        <td class="bw-email-hero-ctas__primary" valign="middle">
+                                                                            <a href="<?php echo esc_url( $view_order_url ); ?>" class="bw-email-hero-cta-button"><?php esc_html_e( 'View your order', 'woocommerce' ); ?></a>
+                                                                        </td>
+                                                                        <td class="bw-email-hero-ctas__secondary" valign="middle">
+                                                                            <span><?php esc_html_e( 'or', 'woocommerce' ); ?></span>
+                                                                            <a href="<?php echo esc_url( $visit_website_url ); ?>" class="bw-email-hero-cta-link"><?php esc_html_e( 'Visit website', 'woocommerce' ); ?></a>
+                                                                        </td>
+                                                                    </tr>
+                                                                </table>
                                                             <?php else : ?>
                                                                 <h1><?php echo esc_html( $email_heading ); ?></h1>
                                                             <?php endif; ?>

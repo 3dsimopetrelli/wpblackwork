@@ -159,6 +159,47 @@ table.bw-email-hero-top td {
     text-align: left !important;
 }
 
+table.bw-email-hero-ctas {
+    margin: 20px 0 6px !important;
+    width: auto !important;
+}
+
+table.bw-email-hero-ctas td {
+    border: 0 !important;
+    padding: 0 !important;
+    vertical-align: middle !important;
+}
+
+td.bw-email-hero-ctas__primary {
+    padding-right: 14px !important;
+}
+
+a.bw-email-hero-cta-button {
+    display: inline-block !important;
+    background: #057a3f !important;
+    color: #ffffff !important;
+    border: 1px solid #057a3f !important;
+    border-radius: 10px !important;
+    text-decoration: none !important;
+    font-size: 18px !important;
+    font-weight: 600 !important;
+    line-height: 1.1 !important;
+    padding: 14px 20px !important;
+}
+
+td.bw-email-hero-ctas__secondary span {
+    color: #111111 !important;
+    font-size: 16px !important;
+}
+
+a.bw-email-hero-cta-link {
+    color: #057a3f !important;
+    text-decoration: none !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    margin-left: 6px !important;
+}
+
 h2,
 h3 {
     color: #111111 !important;
@@ -324,6 +365,20 @@ a.bw-email-download-btn .bw-email-download-btn__icon {
 
     .bw-email-hero-subtitle {
         font-size: 16px !important;
+    }
+
+    table.bw-email-hero-ctas {
+        margin-top: 16px !important;
+    }
+
+    td.bw-email-hero-ctas__primary {
+        display: block !important;
+        padding-right: 0 !important;
+        padding-bottom: 10px !important;
+    }
+
+    td.bw-email-hero-ctas__secondary {
+        display: block !important;
     }
 
     a.button,
