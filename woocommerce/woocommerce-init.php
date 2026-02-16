@@ -582,6 +582,25 @@ function bw_mew_enqueue_order_confirmation_assets()
 }
 
 /**
+ * Prevent full-page cache from serving stale order-received pages.
+ */
+function bw_mew_prevent_order_received_cache()
+{
+    if (!function_exists('is_wc_endpoint_url') || !is_wc_endpoint_url('order-received')) {
+        return;
+    }
+
+    if (function_exists('nocache_headers')) {
+        nocache_headers();
+    }
+
+    if (!defined('DONOTCACHEPAGE')) {
+        define('DONOTCACHEPAGE', true);
+    }
+}
+add_action('template_redirect', 'bw_mew_prevent_order_received_cache', 1);
+
+/**
  * Add a specific body class and hide theme wrappers on the custom login page.
  */
 function bw_mew_prepare_account_page_layout()

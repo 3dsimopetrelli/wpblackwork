@@ -22,7 +22,7 @@ $is_custom_order_received = ( $order instanceof WC_Order );
 if ( $order instanceof WC_Order ) {
 	error_log(
 		sprintf(
-			'BW order-received trace: order_id=%d is_user_logged_in=%d current_user_id=%d order_user_id=%d key_in_url=%d',
+			'BW order-received trace v2: order_id=%d is_user_logged_in=%d current_user_id=%d order_user_id=%d key_in_url=%d',
 			(int) $order->get_id(),
 			is_user_logged_in() ? 1 : 0,
 			(int) get_current_user_id(),
