@@ -137,11 +137,9 @@ if ( $order ) {
                                                                 </p>
                                                                 <table border="0" cellpadding="0" cellspacing="0" class="bw-email-hero-ctas" role="presentation">
                                                                     <tr>
-                                                                        <td class="bw-email-hero-ctas__primary" valign="middle">
+                                                                        <td class="bw-email-hero-ctas__line" valign="middle">
                                                                             <a href="<?php echo esc_url( $view_order_url ); ?>" class="bw-email-hero-cta-button"><?php esc_html_e( 'View your order', 'woocommerce' ); ?></a>
-                                                                        </td>
-                                                                        <td class="bw-email-hero-ctas__secondary" valign="middle">
-                                                                            <span><?php esc_html_e( 'or', 'woocommerce' ); ?></span>
+                                                                            <span class="bw-email-hero-cta-or"><?php esc_html_e( 'or', 'woocommerce' ); ?></span>
                                                                             <a href="<?php echo esc_url( $visit_website_url ); ?>" class="bw-email-hero-cta-link"><?php esc_html_e( 'Visit website', 'woocommerce' ); ?></a>
                                                                         </td>
                                                                     </tr>

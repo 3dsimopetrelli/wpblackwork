@@ -163,16 +163,13 @@ table.bw-email-hero-ctas {
     margin: 20px 0 6px !important;
     width: auto !important;
     white-space: nowrap !important;
+    text-align: left !important;
 }
 
 table.bw-email-hero-ctas td {
     border: 0 !important;
     padding: 0 !important;
     vertical-align: middle !important;
-}
-
-td.bw-email-hero-ctas__primary {
-    padding-right: 0 !important;
 }
 
 a.bw-email-hero-cta-button {
@@ -189,10 +186,16 @@ a.bw-email-hero-cta-button {
     margin-right: 10px !important;
 }
 
-td.bw-email-hero-ctas__secondary span {
+td.bw-email-hero-ctas__line {
+    text-align: left !important;
+    white-space: nowrap !important;
+}
+
+span.bw-email-hero-cta-or {
     color: #111111 !important;
     font-size: 12px !important;
     font-weight: 400 !important;
+    margin-right: 6px !important;
 }
 
 a.bw-email-hero-cta-link {
@@ -373,20 +376,15 @@ a.bw-email-download-btn .bw-email-download-btn__icon {
 
     table.bw-email-hero-ctas {
         margin-top: 16px !important;
-        width: 100% !important;
+        width: auto !important;
         white-space: nowrap !important;
+        text-align: left !important;
     }
 
-    td.bw-email-hero-ctas__primary {
-        display: table-cell !important;
-        padding-right: 0 !important;
-        padding-bottom: 0 !important;
+    td.bw-email-hero-ctas__line {
+        display: block !important;
         white-space: nowrap !important;
-    }
-
-    td.bw-email-hero-ctas__secondary {
-        display: table-cell !important;
-        white-space: nowrap !important;
+        text-align: left !important;
     }
 
     a.bw-email-hero-cta-button {
@@ -396,7 +394,7 @@ a.bw-email-download-btn .bw-email-download-btn__icon {
         white-space: nowrap !important;
     }
 
-    td.bw-email-hero-ctas__secondary span,
+    span.bw-email-hero-cta-or,
     a.bw-email-hero-cta-link {
         font-size: 11px !important;
         white-space: nowrap !important;
