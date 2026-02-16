@@ -14,6 +14,7 @@ function bw_mew_initialize_woocommerce_overrides()
 
     $my_account_file = BW_MEW_PATH . 'includes/woocommerce-overrides/class-bw-my-account.php';
     $supabase_file = BW_MEW_PATH . 'includes/woocommerce-overrides/class-bw-supabase-auth.php';
+    $email_styles_file = BW_MEW_PATH . 'includes/woocommerce-overrides/class-bw-email-styles.php';
 
     if (file_exists($my_account_file)) {
         require_once $my_account_file;
@@ -21,6 +22,10 @@ function bw_mew_initialize_woocommerce_overrides()
 
     if (file_exists($supabase_file)) {
         require_once $supabase_file;
+    }
+
+    if (file_exists($email_styles_file)) {
+        require_once $email_styles_file;
     }
     // Force "Ship to a different address?" checkbox to be unchecked by default
     add_filter('woocommerce_ship_to_different_address_checked', '__return_false');
