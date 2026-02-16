@@ -93,6 +93,7 @@ function bw_mew_customize_woocommerce_email_styles( $css, $email ) {
     background: transparent !important;
     border-bottom: 0 !important;
     text-align: center !important;
+    margin-bottom: 30px !important;
 }
 
 #header_wrapper {
