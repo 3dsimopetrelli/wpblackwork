@@ -4,13 +4,7 @@
     max-width: none !important;
 }
 
-.bw-navigation {
-    display: inline-flex;
-    width: max-content;
-    max-width: none;
-    overflow: visible;
-}
-
+.bw-navigation,
 .bw-navigation__desktop {
     display: inline-flex;
     width: max-content;
@@ -26,7 +20,7 @@
     flex-wrap: nowrap;
     align-items: center;
     justify-content: flex-start;
-    gap: 32px;
+    gap: 24px;
     width: max-content;
     max-width: none;
     overflow: visible;
@@ -45,12 +39,6 @@
     color: inherit;
     transition: color 0.25s ease;
     white-space: nowrap;
-}
-
-.bw-navigation__desktop .bw-navigation__link,
-.bw-navigation__mobile .bw-navigation__link {
-    font-size: 24px;
-    line-height: 1;
 }
 
 .bw-navigation__toggle {

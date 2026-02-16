@@ -136,12 +136,12 @@
                     if (response && response.success && response.data) {
                         this.renderResults(response.data.products || [], response.data.message || '');
                     } else {
-                        this.showMessage('Errore durante la ricerca');
+                        this.showMessage((bwSearchAjax.i18n && bwSearchAjax.i18n.searchError) || 'Error during search');
                     }
                 },
                 error: (xhr, status) => {
                     if (status !== 'abort') {
-                        this.showMessage('Errore di connessione');
+                        this.showMessage((bwSearchAjax.i18n && bwSearchAjax.i18n.connectionError) || 'Connection error');
                     }
                 },
                 complete: () => {
@@ -155,7 +155,7 @@
             this.$resultsMessage.hide().text('');
 
             if (!products.length) {
-                this.showMessage(message || 'Nessun prodotto trovato');
+                this.showMessage(message || (bwSearchAjax.i18n && bwSearchAjax.i18n.noProducts) || 'No products found');
                 this.$resultsGrid.empty();
                 this.$resultsContainer.addClass('is-visible');
                 return;

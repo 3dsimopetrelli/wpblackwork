@@ -112,7 +112,7 @@ if (!function_exists('bw_header_live_search_products')) {
         // Restituisci i risultati
         wp_send_json_success([
             'products' => $products,
-            'message' => empty($products) ? __('Nessun prodotto trovato', 'bw') : '',
+            'message' => empty($products) ? __('No products found', 'bw') : '',
         ]);
     }
 }

@@ -184,10 +184,6 @@
 }
 
 /* Input Section */
-.bw-search-overlay__form {
-    /* No margin, content flows naturally */
-}
-
 .bw-search-overlay__input-wrapper {
     position: relative;
     border-bottom: 2px solid #080808;
@@ -212,6 +208,8 @@
 
 .bw-search-overlay__input::placeholder {
     color: #C0C0C0;
+    opacity: 1;
+    transition: opacity 0.3s ease;
 }
 
 .bw-search-overlay__input:focus {
@@ -227,25 +225,6 @@ body .bw-search-overlay__input[type="search"] {
     box-shadow: none !important;
 }
 
-/* Reset any external padding that might be inherited from theme or plugins */
-/* High specificity selectors to ensure we override reset.css, WooCommerce, and theme styles */
-/* Padding is now controlled exclusively via widget "Input Field Padding" setting */
-.bw-search-overlay__input,
-.bw-search-overlay__input[type="search"],
-input.bw-search-overlay__input,
-input.bw-search-overlay__input[type="search"],
-.woocommerce .bw-search-overlay__input,
-.woocommerce .bw-search-overlay__input[type="search"],
-.woocommerce-page .bw-search-overlay__input,
-.woocommerce-page .bw-search-overlay__input[type="search"],
-body .bw-search-overlay__input,
-body .bw-search-overlay__input[type="search"],
-body input.bw-search-overlay__input,
-body input.bw-search-overlay__input[type="search"] {
-    /* Empty block with high specificity to prevent external styles */
-    /* Widget settings use !important to ensure they always take precedence */
-}
-
 /* Hint Text */
 .bw-search-overlay__hint {
     font-size: 16px;
@@ -257,11 +236,6 @@ body input.bw-search-overlay__input[type="search"] {
 
 /* Responsive */
 @media (max-width: 768px) {
-    .bw-search-overlay__close {
-        top: 16px;
-        right: 20px;
-    }
-
     .bw-search-overlay__content {
         padding-top: 80px;
     }
@@ -321,20 +295,9 @@ body.bw-search-overlay-active {
     outline-offset: 2px;
 }
 
-/* Placeholder fade-out animation - controlled by JavaScript */
-.bw-search-overlay__input::placeholder {
-    opacity: 1;
-    transition: opacity 0.3s ease;
-}
-
 /* Class added by JS when user starts typing */
 .bw-search-overlay__input.has-content::placeholder {
     opacity: 0;
-}
-
-/* Ensure caret is always visible */
-.bw-search-overlay__input {
-    caret-color: auto;
 }
 
 /* Responsive for filters */

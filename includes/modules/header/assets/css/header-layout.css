@@ -108,29 +108,13 @@ body.bw-has-sticky-header:not(.elementor-editor-active) .bw-header-spacer {
     align-self: center;
 }
 
-/* Blur Effect Logic (Simplified) */
+/* Blur Effect: structural properties (dynamic values set via inline CSS) */
 .bw-custom-header__desktop-panel.is-blur-enabled {
-    -webkit-backdrop-filter: blur(20px);
-    backdrop-filter: blur(20px) !important;
-    background-color: rgba(255, 255, 255, 0.00) !important;
-    padding: 10px;
     margin: 0;
-    border-radius: 12px;
     position: relative;
     z-index: 1;
     isolation: isolate;
     transition: background-color 0.4s ease;
-}
-
-/* Scrolled state: subtle tinted background */
-.bw-custom-header.bw-header-scrolled .bw-custom-header__desktop-panel.is-blur-enabled {
-    background-color: rgba(102, 102, 102, 0.15) !important;
-}
-
-@supports not (backdrop-filter: blur(20px)) {
-    .bw-custom-header__desktop-panel.is-blur-enabled {
-        background-color: rgba(255, 255, 255, 0.15) !important;
-    }
 }
 
 .bw-custom-header__desktop-menu {
@@ -180,26 +164,10 @@ body.bw-has-sticky-header:not(.elementor-editor-active) .bw-header-spacer {
     box-sizing: border-box;
 }
 
-/* Mobile Blur Effect (mirrors desktop panel blur) */
+/* Mobile Blur Effect: structural properties (dynamic values set via inline CSS) */
 .bw-custom-header__mobile-panel.is-blur-enabled {
-    -webkit-backdrop-filter: blur(20px);
-    backdrop-filter: blur(20px) !important;
-    background-color: rgba(255, 255, 255, 0.00) !important;
-    padding: 9px 10px;
-    border-radius: 8px;
     isolation: isolate;
     transition: background-color 0.4s ease;
-}
-
-/* Scrolled state: subtle tinted background */
-.bw-custom-header.bw-header-scrolled .bw-custom-header__mobile-panel.is-blur-enabled {
-    background-color: rgba(102, 102, 102, 0.15) !important;
-}
-
-@supports not (backdrop-filter: blur(20px)) {
-    .bw-custom-header__mobile-panel.is-blur-enabled {
-        background-color: rgba(255, 255, 255, 0.15) !important;
-    }
 }
 
 .bw-custom-header__mobile-left {
@@ -233,13 +201,8 @@ body.bw-has-sticky-header:not(.elementor-editor-active) .bw-header-spacer {
     width: max-content;
 }
 
-.bw-custom-header .bw-navigation__desktop .bw-navigation__list {
-    gap: 24px;
-}
-
 .bw-custom-header .bw-navigation__link {
     color: #000000;
-    white-space: nowrap;
 }
 
 .bw-custom-header .bw-navigation__link:hover,
@@ -304,69 +267,6 @@ body.bw-has-sticky-header:not(.elementor-editor-active) .bw-header-spacer {
 
 .bw-custom-header .bw-navigation__mobile-overlay {
     z-index: 99999;
-}
-
-@media (max-width: 1024px) {
-
-    .bw-custom-header {
-        background-color: #ffffff !important;
-    }
-
-    .bw-custom-header .bw-search-button {
-        display: inline-flex !important;
-        background: transparent !important;
-        border: none !important;
-        box-shadow: none !important;
-        padding: 0 !important;
-        min-width: auto !important;
-        min-height: auto !important;
-    }
-
-    .bw-custom-header__mobile-right .bw-header-search .bw-search-button {
-        padding: 0 !important;
-        margin: 4px 0 0 0 !important;
-    }
-
-    .bw-custom-header .bw-search-button__icon {
-        background: transparent !important;
-        border: none !important;
-        box-shadow: none !important;
-        padding: 0 !important;
-    }
-
-    .bw-custom-header .bw-navshop__cart-icon {
-        margin-top: 3px;
-    }
-
-    .bw-custom-header .bw-navshop__cart-count {
-        font-size: 11px;
-    }
-
-    .bw-custom-header__mobile-right .bw-header-navshop--mobile .bw-navshop__cart-count {
-        transform: translate(-15px, 0px) !important;
-        min-width: 1.2em !important;
-        height: 1.2em !important;
-        line-height: 1.2em !important;
-    }
-
-    .bw-custom-header__mobile-right {
-        transform: translateX(20px);
-        transition: transform 0.25s ease;
-    }
-
-    .bw-custom-header__mobile-right:has(.bw-navshop__cart-count:not(.is-empty)) {
-        transform: translateX(0);
-    }
-}
-
-@media (max-width: 767px) {
-    .bw-custom-header__inner {
-        padding: 14px 18px;
-    }
-
-    .bw-custom-header__mobile-right {
-        gap: 14px;
-    }
 }
 
 @media (prefers-reduced-motion: reduce) {
