@@ -148,6 +148,11 @@ address {
     margin-bottom: 10px !important;
 }
 
+#addresses address.address {
+    min-height: 300px !important;
+    box-sizing: border-box !important;
+}
+
 a.button,
 .button,
 a.bw-email-cta {
