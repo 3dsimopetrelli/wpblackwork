@@ -122,7 +122,12 @@ $is_custom_order_received = ( $order instanceof WC_Order );
 		<section class="bw-order-next">
 			<h2 class="bw-order-next__title"><?php esc_html_e( 'What happens next?', 'wpblackwork' ); ?></h2>
 			<div class="bw-order-next__step">
-				<div class="bw-order-next__icon" aria-hidden="true">✉</div>
+				<div class="bw-order-next__icon" aria-hidden="true">
+					<svg viewBox="0 0 24 24" role="presentation" focusable="false">
+						<path d="M3 7.5h18v9H3z" fill="none" stroke="currentColor" stroke-width="1.8" />
+						<path d="M3 8l9 6 9-6" fill="none" stroke="currentColor" stroke-width="1.8" />
+					</svg>
+				</div>
 				<div>
 					<h3><?php esc_html_e( 'Email sent', 'wpblackwork' ); ?></h3>
 					<p><?php esc_html_e( 'We have sent you a confirmation email.', 'wpblackwork' ); ?></p>
@@ -130,7 +135,12 @@ $is_custom_order_received = ( $order instanceof WC_Order );
 				</div>
 			</div>
 			<div class="bw-order-next__step">
-				<div class="bw-order-next__icon" aria-hidden="true">👤</div>
+				<div class="bw-order-next__icon" aria-hidden="true">
+					<svg viewBox="0 0 24 24" role="presentation" focusable="false">
+						<circle cx="12" cy="8" r="3.3" fill="none" stroke="currentColor" stroke-width="1.8" />
+						<path d="M5.5 19c0-3.2 2.9-5.8 6.5-5.8s6.5 2.6 6.5 5.8" fill="none" stroke="currentColor" stroke-width="1.8" />
+					</svg>
+				</div>
 				<div>
 					<h3><?php esc_html_e( 'Access your account', 'wpblackwork' ); ?></h3>
 					<p><?php esc_html_e( 'Log in to manage your order, download your files (if digital), or update your account details.', 'wpblackwork' ); ?></p>
