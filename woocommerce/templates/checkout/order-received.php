@@ -65,7 +65,7 @@ $is_custom_order_received = ( $order instanceof WC_Order );
 				);
 				?>
 			</p>
-			<p class="bw-order-confirmed__cta">
+			<p class="bw-order-confirmed__cta bw-verify-email-cta__actions">
 				<a class="elementor-button-link elementor-button" href="<?php echo esc_url( wc_get_page_permalink( 'myaccount' ) ); ?>">
 					<span class="elementor-button-content-wrapper">
 						<span class="elementor-button-text"><?php esc_html_e( 'Go to your account', 'wpblackwork' ); ?></span>
@@ -137,6 +137,14 @@ $is_custom_order_received = ( $order instanceof WC_Order );
 				</div>
 			</div>
 		</section>
+
+		<p class="bw-order-confirmed__home-cta bw-verify-email-cta__actions">
+			<a class="elementor-button-link elementor-button" href="<?php echo esc_url( home_url( '/' ) ); ?>">
+				<span class="elementor-button-content-wrapper">
+					<span class="elementor-button-text"><?php esc_html_e( 'Go to Home', 'wpblackwork' ); ?></span>
+				</span>
+			</a>
+		</p>
 	</section>
 <?php else : ?>
 	<p class="woocommerce-notice woocommerce-notice--success woocommerce-thankyou-order-received">

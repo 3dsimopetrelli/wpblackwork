@@ -455,19 +455,12 @@ body.woocommerce-order-received .bw-order-confirmed__cta {
 }
 
 body.woocommerce-order-received .bw-order-confirmed__cta .elementor-button {
-    min-width: min(100%, 520px);
+    width: min(100%, 560px);
     justify-content: center;
-    border-radius: 14px !important;
-    background: #9eea35;
-    border: 1px solid #323232;
-    color: #111;
-    text-decoration: none !important;
 }
 
 body.woocommerce-order-received .bw-order-confirmed__cta .elementor-button-text {
-    font-size: clamp(18px, 2vw, 34px);
-    font-weight: 600;
-    text-decoration: none !important;
+    font-size: clamp(16px, 1.4vw, 24px);
 }
 
 body.woocommerce-order-received .bw-order-confirmed__lead {
@@ -544,6 +537,15 @@ body.woocommerce-order-received .bw-order-next {
     border-radius: 16px;
     padding: 22px 24px;
     background: #fff;
+}
+
+body.woocommerce-order-received .bw-order-confirmed__home-cta {
+    margin: 40px 0 0;
+}
+
+body.woocommerce-order-received .bw-order-confirmed__home-cta .elementor-button {
+    width: min(100%, 560px);
+    justify-content: center;
 }
 
 body.woocommerce-order-received .bw-order-next__title {
@@ -955,7 +957,8 @@ body.woocommerce-order-received .bw-verify-email-cta__actions .elementor-button-
         line-height: 1.35;
     }
 
-    body.woocommerce-order-received .bw-order-confirmed__cta .elementor-button {
+    body.woocommerce-order-received .bw-order-confirmed__cta .elementor-button,
+    body.woocommerce-order-received .bw-order-confirmed__home-cta .elementor-button {
         width: 100%;
     }
 
