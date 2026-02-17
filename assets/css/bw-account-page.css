@@ -710,11 +710,12 @@ body.woocommerce-account.bw-account-login-only .bw-account-login__register-link:
     padding: 20px 18px;
     border: 1px solid #d0d0d0;
     border-radius: 16px;
-    background: #f3f3f3;
+    background: #ffffff;
     color: #111;
     display: flex;
     align-items: flex-start;
     gap: 12px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
 }
 
 .bw-account-login__post-checkout-icon {
