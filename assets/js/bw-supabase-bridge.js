@@ -19,6 +19,7 @@
         var searchParams = new URLSearchParams(window.location.search);
         var authCode = searchParams.get('code') || '';
         var typeParam = searchParams.get('type') || '';
+        var callbackUrl = window.bwSupabaseBridge.callbackUrl || '';
         if (searchParams.has('logged_out')) {
             if (window.sessionStorage) {
                 try {
@@ -117,6 +118,31 @@
             }
 
             cleanHash();
+            window.location.replace(targetUrl.toString());
+            return true;
+        };
+
+        var redirectInviteToCallback = function () {
+            var hash = window.location.hash || '';
+            if (!hash) {
+                return false;
+            }
+
+            var params = new URLSearchParams(hash.replace(/^#/, ''));
+            var type = params.get('type') || '';
+            var hasAuthTokens = hash.indexOf('access_token=') !== -1 || hash.indexOf('refresh_token=') !== -1;
+
+            if (!hasAuthTokens || (type !== 'invite' && type !== 'recovery') || !callbackUrl) {
+                return false;
+            }
+
+            var currentUrl = new URL(window.location.href);
+            if (currentUrl.searchParams.get('bw_auth_callback') === '1') {
+                return false;
+            }
+
+            var targetUrl = new URL(callbackUrl, window.location.origin);
+            targetUrl.hash = hash.replace(/^#/, '');
             window.location.replace(targetUrl.toString());
             return true;
         };
@@ -414,6 +440,10 @@
                 }
                 handleHashTokens();
             });
+            return;
+        }
+
+        if (redirectInviteToCallback()) {
             return;
         }
 

@@ -272,13 +272,17 @@ function bw_mew_enqueue_supabase_bridge()
         $expired_link_url = site_url('/link-expired/');
     }
 
+    $account_url  = wc_get_page_permalink( 'myaccount' );
+    $callback_url = $account_url ? add_query_arg( 'bw_auth_callback', '1', $account_url ) : site_url( '/my-account/?bw_auth_callback=1' );
+
     wp_localize_script(
         'bw-supabase-bridge',
         'bwSupabaseBridge',
         [
             'ajaxUrl' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('bw-supabase-login'),
-            'accountUrl' => wc_get_page_permalink( 'myaccount' ),
+            'accountUrl' => $account_url,
+            'callbackUrl' => $callback_url,
             'setPasswordUrl' => wc_get_account_endpoint_url('set-password'),
             'expiredLinkUrl' => $expired_link_url,
             'projectUrl' => get_option('bw_supabase_project_url', ''),
@@ -302,6 +306,7 @@ function bw_mew_supabase_early_invite_redirect_hint()
     if (!$account_url) {
         return;
     }
+    $callback_url = add_query_arg( 'bw_auth_callback', '1', $account_url );
     $set_password_url = wc_get_account_endpoint_url('set-password');
     if (!$set_password_url) {
         $set_password_url = $account_url;
@@ -344,12 +349,12 @@ function bw_mew_supabase_early_invite_redirect_hint()
             return;
         }
 
-        var target = new URL(<?php echo wp_json_encode($account_url); ?>, window.location.origin);
+        var target = new URL(<?php echo wp_json_encode($callback_url); ?>, window.location.origin);
         var current = new URL(window.location.href);
         var targetPath = target.pathname.replace(/\/+$/, '');
         var currentPath = current.pathname.replace(/\/+$/, '');
 
-        if (targetPath === currentPath) {
+        if (targetPath === currentPath && current.search.indexOf('bw_auth_callback=1') !== -1) {
             return;
         }
 

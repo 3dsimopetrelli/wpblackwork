@@ -9,6 +9,74 @@ body.woocommerce-account.bw-account-login-only html {
     padding: 0 !important;
 }
 
+body.woocommerce-account .bw-auth-callback {
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 20px;
+}
+
+body.woocommerce-account .bw-auth-callback__card {
+    width: min(560px, 100%);
+    border: 1px solid #d7d7d7;
+    background: #fff;
+    border-radius: 18px;
+    padding: 32px 24px;
+    text-align: center;
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.08);
+}
+
+body.woocommerce-account .bw-auth-callback__spinner {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 3px solid #e5e5e5;
+    border-top-color: #111;
+    margin: 0 auto 18px;
+    animation: bw-auth-callback-spin 0.9s linear infinite;
+}
+
+body.woocommerce-account .bw-auth-callback__title {
+    margin: 0 0 10px;
+    font-size: 34px;
+    line-height: 1.1;
+    color: #111;
+}
+
+body.woocommerce-account .bw-auth-callback__text {
+    margin: 0;
+    font-size: 18px;
+    line-height: 1.45;
+    color: #4b5563;
+}
+
+@keyframes bw-auth-callback-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (max-width: 767px) {
+    body.woocommerce-account .bw-auth-callback {
+        min-height: 60vh;
+        padding: 24px 16px;
+    }
+
+    body.woocommerce-account .bw-auth-callback__card {
+        border-radius: 14px;
+        padding: 22px 16px;
+    }
+
+    body.woocommerce-account .bw-auth-callback__title {
+        font-size: 28px;
+    }
+
+    body.woocommerce-account .bw-auth-callback__text {
+        font-size: 16px;
+    }
+}
+
 .bw-account-login-only header,
 .bw-account-login-only .site-header,
 .bw-account-login-only footer,

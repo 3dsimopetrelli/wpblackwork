@@ -15,6 +15,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 wc_print_notices();
 // phpcs:enable
 
+$is_auth_callback = isset( $_GET['bw_auth_callback'] ) && '1' === sanitize_text_field( wp_unslash( $_GET['bw_auth_callback'] ) );
+
+if ( $is_auth_callback ) {
+    wc_get_template( 'myaccount/auth-callback.php' );
+    return;
+}
+
 if ( ! is_user_logged_in() && ! is_wc_endpoint_url( 'set-password' ) ) {
     wc_get_template( 'myaccount/form-login.php', [ 'redirect' => wc_get_page_permalink( 'myaccount' ) ] );
     return;
