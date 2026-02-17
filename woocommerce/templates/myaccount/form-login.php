@@ -231,7 +231,7 @@ $login_subtitle_html = nl2br( esc_html( $login_subtitle ) );
                                 </svg>
                             </span>
                             <p class="bw-account-login__post-checkout-text">
-                                <?php esc_html_e( 'To open order details and downloads, complete your account setup from the invite email.', 'bw' ); ?>
+                                <?php esc_html_e( 'To open order details and downloads, complete account setup from the invite email and create your password.', 'bw' ); ?>
                             </p>
                         </div>
                         <p>
