@@ -705,6 +705,42 @@ body.woocommerce-account.bw-account-login-only .bw-account-login__register-link:
     margin-bottom: 10px !important;
 }
 
+.bw-account-login__post-checkout-notice {
+    margin: 0 0 10px;
+    padding: 20px 18px;
+    border: 1px solid #d0d0d0;
+    border-radius: 16px;
+    background: #f3f3f3;
+    color: #111;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.bw-account-login__post-checkout-icon {
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #111;
+    flex-shrink: 0;
+}
+
+.bw-account-login__post-checkout-icon svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.bw-account-login__post-checkout-text {
+    margin: 0;
+    color: #111;
+    font-size: 24px;
+    line-height: 1.32;
+    font-weight: 500;
+}
+
 .bw-account-login__resend-invite {
     width: 100%;
     display: block;
@@ -763,6 +799,24 @@ body.woocommerce-account.bw-account-login-only .bw-account-login__register-link:
 .bw-account-login__form-notices .woocommerce-message li,
 .bw-account-login__form-notices .woocommerce-info li {
     margin: 0;
+}
+
+@media (max-width: 767px) {
+    .bw-account-login__post-checkout-notice {
+        padding: 18px 14px;
+        gap: 10px;
+        border-radius: 14px;
+    }
+
+    .bw-account-login__post-checkout-icon {
+        width: 28px;
+        height: 28px;
+    }
+
+    .bw-account-login__post-checkout-text {
+        font-size: 20px;
+        line-height: 1.36;
+    }
 }
 
 .bw-account-login__submit {

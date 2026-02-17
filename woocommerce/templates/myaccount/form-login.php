@@ -218,8 +218,16 @@ $login_subtitle_html = nl2br( esc_html( $login_subtitle ) );
 
                 <?php if ( 'supabase' === $login_provider && $post_checkout_gate ) : ?>
                     <div class="bw-account-login__intro-notices bw-account-login__form-notices bw-account-login__intro-notices--post-checkout">
-                        <div class="woocommerce-info" role="status">
-                            <?php esc_html_e( 'To open order details and downloads, first complete account setup from the invite email.', 'bw' ); ?>
+                        <div class="bw-account-login__post-checkout-notice" role="status">
+                            <span class="bw-account-login__post-checkout-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" focusable="false" role="presentation">
+                                    <path d="M3.5 7.2h17v9.6h-17z" fill="none" stroke="currentColor" stroke-width="2" />
+                                    <path d="M3.8 7.6l8.2 5.8 8.2-5.8" fill="none" stroke="currentColor" stroke-width="2" />
+                                </svg>
+                            </span>
+                            <p class="bw-account-login__post-checkout-text">
+                                <?php esc_html_e( 'To open order details and downloads, first complete account setup from the invite email.', 'bw' ); ?>
+                            </p>
                         </div>
                         <p>
                             <?php esc_html_e( 'Didn\'t receive it? Request a new invite email here.', 'bw' ); ?>
