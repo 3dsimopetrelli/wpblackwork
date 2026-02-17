@@ -107,6 +107,11 @@ $post_checkout_gate = isset( $_GET['bw_post_checkout'] ) && '1' === sanitize_tex
 if ( ! $post_checkout_gate && 'supabase' === $login_provider && $is_email_entry ) {
     $post_checkout_gate = true;
 }
+
+if ( $post_checkout_gate && 'supabase' === $login_provider ) {
+    $login_subtitle = __( 'Check your inbox: we sent two emails - your order confirmation and your account setup email. Click "Complete your account" in the setup email to activate access.', 'bw' );
+}
+
 $wrapper_class = 'bw-account-login-page bw-full-section' . ( $has_cover ? ' bw-account-login-page--has-cover' : '' );
 $wrapper_class .= ' bw-account-login-page--provider-' . sanitize_html_class( $login_provider );
 if ( $post_checkout_gate ) {
@@ -226,7 +231,7 @@ $login_subtitle_html = nl2br( esc_html( $login_subtitle ) );
                                 </svg>
                             </span>
                             <p class="bw-account-login__post-checkout-text">
-                                <?php esc_html_e( 'To open order details and downloads, first complete account setup from the invite email.', 'bw' ); ?>
+                                <?php esc_html_e( 'To open order details and downloads, complete your account setup from the invite email.', 'bw' ); ?>
                             </p>
                         </div>
                         <p>
