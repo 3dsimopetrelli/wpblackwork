@@ -188,15 +188,8 @@ if ( function_exists( 'bw_mew_render_order_received_logo_header' ) ) {
 			</div>
 		</section>
 
-		<p class="bw-order-confirmed__home-cta bw-verify-email-cta__actions">
-			<a class="elementor-button-link elementor-button" href="<?php echo esc_url( home_url( '/' ) ); ?>">
-				<span class="elementor-button-content-wrapper">
-					<span class="elementor-button-text"><?php esc_html_e( 'Go to Home', 'wpblackwork' ); ?></span>
-				</span>
-			</a>
-		</p>
-	</section>
-<?php else : ?>
+		</section>
+	<?php else : ?>
 	<p class="woocommerce-notice woocommerce-notice--success woocommerce-thankyou-order-received">
 		<?php
 		$message = apply_filters(
