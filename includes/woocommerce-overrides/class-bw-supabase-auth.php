@@ -327,6 +327,102 @@ function bw_mew_apply_supabase_user_to_wp( $user_id, array $supabase_user, $cont
 }
 
 /**
+ * Promote low-privilege users to WooCommerce customer role.
+ *
+ * @param WP_User $user User object.
+ *
+ * @return void
+ */
+function bw_mew_maybe_set_customer_role( WP_User $user ) {
+    if ( in_array( 'customer', (array) $user->roles, true ) ) {
+        return;
+    }
+
+    $roles = array_values( (array) $user->roles );
+    $can_promote = empty( $roles ) || ( 1 === count( $roles ) && 'subscriber' === $roles[0] );
+    if ( $can_promote ) {
+        $user->set_role( 'customer' );
+    }
+}
+
+/**
+ * Fill missing WP profile fields using latest order billing data.
+ *
+ * @param int    $user_id User ID.
+ * @param string $email   Optional billing email fallback.
+ *
+ * @return void
+ */
+function bw_mew_sync_user_name_from_orders( $user_id, $email = '' ) {
+    if ( ! function_exists( 'wc_get_orders' ) || ! $user_id ) {
+        return;
+    }
+
+    $user = get_user_by( 'id', $user_id );
+    if ( ! $user instanceof WP_User ) {
+        return;
+    }
+
+    $current_first = (string) get_user_meta( $user_id, 'first_name', true );
+    $current_last  = (string) get_user_meta( $user_id, 'last_name', true );
+    $display_name  = (string) $user->display_name;
+    $needs_name    = '' === trim( $current_first ) || '' === trim( $current_last ) || '' === trim( $display_name ) || trim( $display_name ) === trim( $user->user_login );
+    if ( ! $needs_name ) {
+        return;
+    }
+
+    $orders = wc_get_orders(
+        [
+            'customer' => $user_id,
+            'limit'    => 1,
+            'orderby'  => 'date',
+            'order'    => 'DESC',
+            'return'   => 'objects',
+        ]
+    );
+
+    if ( empty( $orders ) && $email ) {
+        $orders = wc_get_orders(
+            [
+                'billing_email' => sanitize_email( (string) $email ),
+                'limit'         => 1,
+                'orderby'       => 'date',
+                'order'         => 'DESC',
+                'return'        => 'objects',
+            ]
+        );
+    }
+
+    $order = ! empty( $orders ) && $orders[0] instanceof WC_Order ? $orders[0] : null;
+    if ( ! $order ) {
+        return;
+    }
+
+    $first_name = sanitize_text_field( (string) $order->get_billing_first_name() );
+    $last_name  = sanitize_text_field( (string) $order->get_billing_last_name() );
+    if ( '' === $first_name && '' === $last_name ) {
+        return;
+    }
+
+    if ( '' === $current_first && '' !== $first_name ) {
+        update_user_meta( $user_id, 'first_name', $first_name );
+    }
+    if ( '' === $current_last && '' !== $last_name ) {
+        update_user_meta( $user_id, 'last_name', $last_name );
+    }
+
+    $full_name = trim( $first_name . ' ' . $last_name );
+    if ( $full_name && ( '' === trim( $display_name ) || trim( $display_name ) === trim( $user->user_login ) ) ) {
+        wp_update_user(
+            [
+                'ID'           => $user_id,
+                'display_name' => $full_name,
+            ]
+        );
+    }
+}
+
+/**
  * Sync Supabase user metadata into WordPress.
  *
  * @param int    $user_id User ID.
@@ -480,6 +576,9 @@ function bw_mew_handle_supabase_token_login() {
         $user_id = wp_create_user( $email, wp_generate_password( 32, true ), $email );
         if ( ! is_wp_error( $user_id ) ) {
             $user = get_user_by( 'id', $user_id );
+            if ( $user instanceof WP_User ) {
+                bw_mew_maybe_set_customer_role( $user );
+            }
         }
     }
 
@@ -489,6 +588,7 @@ function bw_mew_handle_supabase_token_login() {
             404
         );
     }
+    bw_mew_maybe_set_customer_role( $user );
 
     $guard_key = 'bw_supabase_token_login_' . md5( $access_token . '|' . $token_type );
     if ( get_transient( $guard_key ) ) {
@@ -539,6 +639,7 @@ function bw_mew_handle_supabase_token_login() {
     delete_user_meta( $user->ID, 'bw_supabase_onboarding_error' );
     bw_mew_apply_supabase_user_to_wp( $user->ID, $payload, 'token-login' );
     bw_mew_claim_guest_orders_for_user( $user->ID, $email, $debug_log, 'token-login' );
+    bw_mew_sync_user_name_from_orders( $user->ID, $email );
 
     $needs_onboarding = $is_invite && ! $already_onboarded;
     if ( $needs_password_for_otp || $needs_onboarding ) {
@@ -1479,7 +1580,7 @@ function bw_mew_handle_supabase_checkout_invite( $order_id ) {
         if ( ! is_wp_error( $user_id ) ) {
             $user = get_user_by( 'id', $user_id );
             if ( $user instanceof WP_User ) {
-                $user->set_role( 'customer' );
+                bw_mew_maybe_set_customer_role( $user );
                 bw_mew_supabase_invite_trace( $order_id, sprintf( 'created WP user %d for %s', (int) $user_id, $email ), $debug_log );
             }
         } else {
@@ -1947,9 +2048,13 @@ function bw_mew_supabase_store_session( array $payload, $email ) {
             $user_id = wp_create_user( $user_email, wp_generate_password( 32, true ), $user_email );
             if ( ! is_wp_error( $user_id ) ) {
                 $user = get_user_by( 'id', $user_id );
+                if ( $user instanceof WP_User ) {
+                    bw_mew_maybe_set_customer_role( $user );
+                }
             }
         }
         if ( $user instanceof WP_User ) {
+            bw_mew_maybe_set_customer_role( $user );
             wp_set_current_user( $user->ID );
             wp_set_auth_cookie( $user->ID, true, $secure );
 
