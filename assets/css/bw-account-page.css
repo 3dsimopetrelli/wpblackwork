@@ -778,7 +778,7 @@ body.woocommerce-account .bw-account-login-page--post-checkout .bw-account-login
 }
 
 body.woocommerce-account .bw-account-login-page--post-checkout .bw-account-login__intro .bw-account-login__title {
-    margin: 0 0 10px;
+    margin: 20px 0 10px;
     font-family: inherit;
     font-size: 20px;
     font-weight: 600;
