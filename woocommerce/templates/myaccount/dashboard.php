@@ -90,7 +90,22 @@ $library_label        = sprintf(
                             </div>
                             <p class="bw-order-price"><?php echo wp_kses_post( $row['price'] ); ?></p>
                             <div class="bw-order-action">
-                                <a class="bw-order-btn bw-order-btn--download" href="<?php echo esc_url( ! empty( $row['downloadUrl'] ) ? $row['downloadUrl'] : $row['orderUrl'] ); ?>"><?php esc_html_e( 'Download', 'bw' ); ?></a>
+                                <?php if ( ! empty( $row['downloadUrl'] ) ) : ?>
+                                    <a class="bw-download-button" href="<?php echo esc_url( $row['downloadUrl'] ); ?>" download>
+                                        <span class="bw-download-icon" aria-hidden="true">
+                                            <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M10 2v10" stroke="currentColor" stroke-width="2"/>
+                                                <path d="M5 8l5 5 5-5" stroke="currentColor" stroke-width="2" fill="none"/>
+                                                <path d="M3 15h14v3H3z" fill="currentColor"/>
+                                            </svg>
+                                        </span>
+                                        <span><?php esc_html_e( 'Download', 'bw' ); ?></span>
+                                    </a>
+                                <?php else : ?>
+                                    <span class="bw-download-unavailable" aria-disabled="true">
+                                        <?php esc_html_e( 'Unavailable', 'bw' ); ?>
+                                    </span>
+                                <?php endif; ?>
                             </div>
                         </li>
                     <?php endforeach; ?>
