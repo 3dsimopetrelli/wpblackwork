@@ -215,3 +215,93 @@ After a guest checkout (Supabase provider enabled), the user must:
 4. If onboarding stuck:
    - verify bridge request `action=bw_supabase_token_login`,
    - inspect `bw_supabase_onboarded` user meta and session state.
+
+---
+
+## Latest Implemented Updates (2026-02-16 -> 2026-02-18)
+
+### 1) Invite callback hardening + loader (anti-flash architecture)
+- Added a dedicated callback route on My Account:
+  - `?bw_auth_callback=1`
+- Purpose:
+  - consume Supabase hash/token first,
+  - then redirect to clean My Account state,
+  - reduce visible transitions before password setup.
+- Files:
+  - `woocommerce/templates/myaccount/auth-callback.php`
+  - `woocommerce/templates/myaccount/my-account.php`
+  - `assets/js/bw-supabase-bridge.js`
+  - `assets/css/bw-account-page.css`
+  - `woocommerce/woocommerce-init.php`
+
+### 2) Order received split UX (guest/supabase vs normal)
+- Guest + Supabase path shows dedicated onboarding-oriented CTA/copy.
+- Logged-in/normal path uses account-oriented order confirmation layout.
+- File:
+  - `woocommerce/templates/checkout/order-received.php`
+- Style:
+  - `assets/css/bw-order-confirmation.css`
+
+### 3) Post-checkout resend block redesigned in My Account
+- New post-checkout section:
+  - "Activate your account"
+  - "Activation email sent"
+  - resend email input + CTA
+  - "Change email" control
+- Current resend notice copy:
+  - `Your account is already active. Use Magic Link, code, or password to sign in.`
+- File:
+  - `woocommerce/templates/myaccount/form-login.php`
+- Style/behavior:
+  - `assets/css/bw-account-page.css`
+  - `assets/js/bw-my-account.js`
+
+### 4) "Change email" control normalized
+- Removed button-like black background behavior.
+- Kept link-style behavior:
+  - normal text,
+  - underline only on hover/focus.
+- File:
+  - `assets/css/bw-account-page.css`
+
+### 5) Resend/onboarding card and typography alignment
+- Title/spacing + activation card typography aligned to current design:
+  - intro title margin top 20px,
+  - activation title sizing refined,
+  - classic login container width maintained.
+- File:
+  - `assets/css/bw-account-page.css`
+
+### 6) Floating labels applied to login/auth fields (checkout-consistent pattern)
+- Reused existing BW floating-label architecture (`bw-field-wrapper`, `bw-floating-label`, `has-value`) without importing full checkout stylesheet.
+- Applied to login-related email/password inputs and resend email input.
+- Files:
+  - `assets/js/bw-my-account.js`
+  - `assets/css/bw-account-page.css`
+
+---
+
+## Current Open Issue (Next Task)
+
+### My Account logged-out flash before create-password popup
+- Symptom:
+  - after clicking Supabase invite link, user may briefly see logged-out My Account before session/popup state is finalized.
+- Current status:
+  - callback + loader architecture is already in place, but visual flash can still appear in some timing conditions.
+- Next stabilization pass should focus on:
+  1. callback entry guard timing,
+  2. first paint suppression for auth panels during callback resolution,
+  3. deterministic redirect order after token bridge.
+
+---
+
+## Stable Baseline Rules (Do Not Break)
+
+1. Supabase email CTA must keep `{{ .ConfirmationURL }}`.
+2. For Supabase provider, order flow must always keep post-checkout onboarding path active.
+3. Resend flow must remain available from My Account post-checkout state.
+4. Any change to onboarding/login UI must be tested on desktop + mobile.
+5. Any change touching bridge/callback must be tested with:
+   - fresh invite link,
+   - expired invite link,
+   - already-activated account.
