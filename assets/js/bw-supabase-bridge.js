@@ -123,6 +123,31 @@
         };
 
         var redirectInviteToCallback = function () {
+            var currentUrl = new URL(window.location.href);
+            var code = currentUrl.searchParams.get('code') || '';
+            var typeFromQuery = currentUrl.searchParams.get('type') || '';
+            if (code && (typeFromQuery === 'invite' || typeFromQuery === 'recovery') && callbackUrl) {
+                if (currentUrl.searchParams.get('bw_auth_callback') === '1') {
+                    return false;
+                }
+
+                var codeTargetUrl = new URL(callbackUrl, window.location.origin);
+                codeTargetUrl.searchParams.set('code', code);
+                codeTargetUrl.searchParams.set('type', typeFromQuery);
+
+                var state = currentUrl.searchParams.get('state') || '';
+                var provider = currentUrl.searchParams.get('provider') || '';
+                if (state) {
+                    codeTargetUrl.searchParams.set('state', state);
+                }
+                if (provider) {
+                    codeTargetUrl.searchParams.set('provider', provider);
+                }
+
+                window.location.replace(codeTargetUrl.toString());
+                return true;
+            }
+
             var hash = window.location.hash || '';
             if (!hash) {
                 return false;
@@ -433,6 +458,10 @@
                 });
         };
 
+        if (redirectInviteToCallback()) {
+            return;
+        }
+
         if (authCode) {
             handleCodeCallback().then(function (handled) {
                 if (handled) {
@@ -440,10 +469,6 @@
                 }
                 handleHashTokens();
             });
-            return;
-        }
-
-        if (redirectInviteToCallback()) {
             return;
         }
 

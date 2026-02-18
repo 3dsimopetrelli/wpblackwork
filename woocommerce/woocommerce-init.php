@@ -320,6 +320,29 @@ function bw_mew_supabase_early_invite_redirect_hint()
     ?>
     <script>
     (function () {
+        var currentUrl = new URL(window.location.href);
+        var code = currentUrl.searchParams.get('code') || '';
+        var typeFromQuery = currentUrl.searchParams.get('type') || '';
+        if (code && (typeFromQuery === 'invite' || typeFromQuery === 'recovery')) {
+            if (currentUrl.searchParams.get('bw_auth_callback') !== '1') {
+                var codeTarget = new URL(<?php echo wp_json_encode($callback_url); ?>, window.location.origin);
+                codeTarget.searchParams.set('code', code);
+                codeTarget.searchParams.set('type', typeFromQuery);
+
+                var state = currentUrl.searchParams.get('state') || '';
+                var provider = currentUrl.searchParams.get('provider') || '';
+                if (state) {
+                    codeTarget.searchParams.set('state', state);
+                }
+                if (provider) {
+                    codeTarget.searchParams.set('provider', provider);
+                }
+
+                window.location.replace(codeTarget.toString());
+            }
+            return;
+        }
+
         var hash = window.location.hash || '';
         if (!hash) {
             return;
