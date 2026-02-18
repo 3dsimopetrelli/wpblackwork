@@ -1137,6 +1137,10 @@ body.woocommerce-account .bw-settings #bw-tab-shipping .form-row.form-row-wide {
     color: #102a44;
 }
 
+.bw-account-security__notice[hidden] {
+    display: none !important;
+}
+
 .bw-account-security__notice-icon {
     display: inline-flex;
     align-items: center;
@@ -1195,6 +1199,10 @@ body.woocommerce-account .bw-settings #bw-tab-shipping .form-row.form-row-wide {
     border-radius: 10px;
     background: #edf5ff;
     color: #102a44;
+}
+
+.bw-account-security__email-notice[hidden] {
+    display: none !important;
 }
 
 .bw-account-security__email-notice-icon {
