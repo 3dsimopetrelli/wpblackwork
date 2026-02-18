@@ -1139,6 +1139,28 @@ function bw_mew_handle_supabase_update_email() {
 
     $email         = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
     $confirm_email = isset( $_POST['confirm_email'] ) ? sanitize_email( wp_unslash( $_POST['confirm_email'] ) ) : '';
+    $account_url   = function_exists( 'wc_get_account_endpoint_url' ) ? wc_get_account_endpoint_url( 'edit-account' ) : '';
+    if ( ! $account_url ) {
+        $account_url = function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( 'myaccount' ) : home_url( '/my-account/' );
+    }
+    $default_confirm_redirect = add_query_arg(
+        [
+            'bw_email_changed' => '1',
+            'bw_tab'           => 'security',
+        ],
+        $account_url
+    );
+    $confirm_redirect = get_option( 'bw_supabase_email_confirm_redirect_url', '' );
+    $confirm_redirect = bw_mew_supabase_sanitize_redirect_url( $confirm_redirect );
+    $home_path        = wp_parse_url( home_url( '/' ), PHP_URL_PATH );
+    $redirect_path    = $confirm_redirect ? wp_parse_url( $confirm_redirect, PHP_URL_PATH ) : '';
+    $points_to_home   = $confirm_redirect && $redirect_path && $home_path && untrailingslashit( $redirect_path ) === untrailingslashit( $home_path );
+    $confirm_redirect = ( ! $confirm_redirect || $points_to_home ) ? $default_confirm_redirect : $confirm_redirect;
+    $account_path     = wp_parse_url( $account_url, PHP_URL_PATH );
+    if ( $account_path && $redirect_path && false !== strpos( untrailingslashit( $redirect_path ), untrailingslashit( $account_path ) ) ) {
+        $confirm_redirect = add_query_arg( 'bw_tab', 'security', $confirm_redirect );
+    }
+    $confirm_redirect = add_query_arg( 'bw_email_changed', '1', $confirm_redirect );
 
     if ( ! $email ) {
         wp_send_json_error( [ 'message' => __( 'Please enter a valid email address.', 'bw' ) ], 400 );
@@ -1150,7 +1172,10 @@ function bw_mew_handle_supabase_update_email() {
 
     $response = bw_mew_supabase_update_user(
         $access_token,
-        [ 'email' => $email ],
+        [
+            'email'             => $email,
+            'email_redirect_to' => $confirm_redirect,
+        ],
         'email-update'
     );
 
@@ -1164,6 +1189,7 @@ function bw_mew_handle_supabase_update_email() {
         [
             'message'      => __( 'Please confirm your new email address from the email we sent.', 'bw' ),
             'pendingEmail' => $email,
+            'redirectTo'   => $confirm_redirect,
         ]
     );
 }

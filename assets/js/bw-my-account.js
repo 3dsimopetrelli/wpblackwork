@@ -204,31 +204,37 @@
     };
 
     const tabs = document.querySelectorAll('.bw-tab');
+    const activateSettingsTab = (container, tab) => {
+        if (!container || !tab) {
+            return;
+        }
+
+        const targetSelector = tab.getAttribute('data-target');
+        if (!targetSelector) {
+            return;
+        }
+
+        container.querySelectorAll('.bw-tab').forEach((btn) => {
+            btn.classList.remove('is-active');
+            btn.setAttribute('aria-selected', 'false');
+        });
+        container.querySelectorAll('.bw-tab-panel').forEach((panel) => panel.classList.remove('is-active'));
+
+        tab.classList.add('is-active');
+        tab.setAttribute('aria-selected', 'true');
+        const targetPanel = container.querySelector(targetSelector);
+        if (targetPanel) {
+            targetPanel.classList.add('is-active');
+        }
+    };
 
     tabs.forEach((tab) => {
         tab.addEventListener('click', () => {
-            const targetSelector = tab.getAttribute('data-target');
-            if (!targetSelector) {
-                return;
-            }
-
             const container = tab.closest('.bw-settings');
             if (!container) {
                 return;
             }
-
-            container.querySelectorAll('.bw-tab').forEach((btn) => {
-                btn.classList.remove('is-active');
-                btn.setAttribute('aria-selected', 'false');
-            });
-            container.querySelectorAll('.bw-tab-panel').forEach((panel) => panel.classList.remove('is-active'));
-
-            tab.classList.add('is-active');
-            tab.setAttribute('aria-selected', 'true');
-            const targetPanel = container.querySelector(targetSelector);
-            if (targetPanel) {
-                targetPanel.classList.add('is-active');
-            }
+            activateSettingsTab(container, tab);
 
             scheduleSettingsFloatingLabels();
         });
@@ -244,16 +250,72 @@
         });
 
         if (activeTab) {
-            const targetSelector = activeTab.getAttribute('data-target');
-            if (targetSelector) {
-                container.querySelectorAll('.bw-tab-panel').forEach((panel) => panel.classList.remove('is-active'));
-                const activePanel = container.querySelector(targetSelector);
-                if (activePanel) {
-                    activePanel.classList.add('is-active');
-                }
-            }
+            activateSettingsTab(container, activeTab);
         }
     });
+
+    const pageSearchParams = new URLSearchParams(window.location.search);
+    const requestedTab = (pageSearchParams.get('bw_tab') || '').trim().toLowerCase();
+    if (requestedTab) {
+        const targetSelector = '#bw-tab-' + requestedTab;
+        document.querySelectorAll('.bw-settings').forEach((container) => {
+            const tab = container.querySelector('.bw-tab[data-target="' + targetSelector + '"]');
+            if (!tab) {
+                return;
+            }
+            activateSettingsTab(container, tab);
+        });
+    }
+
+    const showAccountPopup = (title, message) => {
+        const existing = document.querySelector('.bw-account-popup');
+        if (existing) {
+            existing.remove();
+        }
+
+        const popup = document.createElement('div');
+        popup.className = 'bw-account-popup';
+        popup.innerHTML = '' +
+            '<div class="bw-account-popup__overlay" data-bw-popup-close></div>' +
+            '<div class="bw-account-popup__dialog" role="dialog" aria-modal="true" aria-live="polite">' +
+                '<h3 class="bw-account-popup__title"></h3>' +
+                '<p class="bw-account-popup__text"></p>' +
+                '<button type="button" class="bw-account-popup__button button" data-bw-popup-close>OK</button>' +
+            '</div>';
+
+        const titleNode = popup.querySelector('.bw-account-popup__title');
+        const textNode = popup.querySelector('.bw-account-popup__text');
+        if (titleNode) {
+            titleNode.textContent = title;
+        }
+        if (textNode) {
+            textNode.textContent = message;
+        }
+
+        const closePopup = () => {
+            popup.remove();
+            document.body.classList.remove('bw-account-popup-open');
+        };
+
+        popup.querySelectorAll('[data-bw-popup-close]').forEach((node) => {
+            node.addEventListener('click', closePopup);
+        });
+
+        document.body.appendChild(popup);
+        document.body.classList.add('bw-account-popup-open');
+    };
+
+    if ('1' === pageSearchParams.get('bw_email_changed')) {
+        showAccountPopup('Email confirmed', 'Your email has been changed successfully.');
+        if (window.history && typeof window.history.replaceState === 'function') {
+            pageSearchParams.delete('bw_email_changed');
+            pageSearchParams.delete('bw_tab');
+            const newQuery = pageSearchParams.toString();
+            const newUrl = window.location.pathname + (newQuery ? '?' + newQuery : '') + window.location.hash;
+            window.history.replaceState({}, document.title, newUrl);
+        }
+    }
+
     scheduleLoginFloatingLabels();
     scheduleSettingsFloatingLabels();
 
