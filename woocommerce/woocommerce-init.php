@@ -370,6 +370,18 @@ function bw_mew_supabase_early_invite_redirect_hint()
             authInProgress = !!(window.sessionStorage && sessionStorage.getItem('bw_auth_in_progress') === '1');
         } catch (e) {}
 
+        // Stale callback URL (common after logout): no auth payload available.
+        // Avoid showing the callback loader forever and go back to clean My Account.
+        if (!isLoggedIn && onAccountPage && callbackMode && !setPasswordMode && !hasInviteHash && !hasInviteCode) {
+            try {
+                if (window.sessionStorage) {
+                    sessionStorage.removeItem('bw_auth_in_progress');
+                }
+            } catch (e) {}
+            window.location.replace(<?php echo wp_json_encode($account_url); ?>);
+            return;
+        }
+
         if (!isLoggedIn && onAccountPage && (authInProgress || hasInviteHash || hasInviteCode || callbackMode || setPasswordMode)) {
             document.documentElement.classList.add('bw-auth-preload');
         }
