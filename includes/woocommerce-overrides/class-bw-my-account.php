@@ -726,7 +726,7 @@ function bw_mew_sync_profile_names_from_purchase_data() {
 add_action( 'template_redirect', 'bw_mew_sync_profile_names_from_purchase_data', 11 );
 
 /**
- * Count unique purchased products for the current customer.
+ * Count purchased order items for the current customer.
  *
  * @param int $user_id User ID.
  *
@@ -750,7 +750,7 @@ function bw_mew_get_customer_library_count( $user_id ) {
         return 0;
     }
 
-    $product_ids = [];
+    $items_count = 0;
     foreach ( $orders as $order ) {
         if ( ! $order instanceof WC_Order ) {
             continue;
@@ -761,14 +761,13 @@ function bw_mew_get_customer_library_count( $user_id ) {
                 continue;
             }
 
-            $product_id = (int) $item->get_product_id();
-            if ( $product_id > 0 ) {
-                $product_ids[ $product_id ] = true;
+            if ( (int) $item->get_product_id() > 0 ) {
+                $items_count++;
             }
         }
     }
 
-    return count( $product_ids );
+    return $items_count;
 }
 
 /**
