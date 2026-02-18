@@ -277,6 +277,69 @@ function bw_mew_redirect_order_verify_email_for_supabase() {
 add_action( 'template_redirect', 'bw_mew_redirect_order_verify_email_for_supabase', 25 );
 
 /**
+ * Force callback loader entry for unauthenticated invite/set-password transitions.
+ *
+ * This avoids rendering the logged-out My Account form during the short interval
+ * before WP auth cookie/session is fully available.
+ */
+function bw_mew_force_auth_callback_for_guest_transitions() {
+    if ( ! function_exists( 'is_account_page' ) || ! is_account_page() || is_user_logged_in() ) {
+        return;
+    }
+
+    $is_callback = isset( $_GET['bw_auth_callback'] ) && '1' === sanitize_text_field( wp_unslash( $_GET['bw_auth_callback'] ) );
+    if ( $is_callback ) {
+        return;
+    }
+
+    $needs_set_password = isset( $_GET['bw_set_password'] ) && '1' === sanitize_text_field( wp_unslash( $_GET['bw_set_password'] ) );
+    $auth_code          = isset( $_GET['code'] ) ? sanitize_text_field( wp_unslash( $_GET['code'] ) ) : '';
+    $auth_type          = isset( $_GET['type'] ) ? sanitize_key( wp_unslash( $_GET['type'] ) ) : '';
+    $is_auth_transition = ! empty( $auth_code ) && in_array( $auth_type, [ 'invite', 'recovery' ], true );
+
+    if ( ! $needs_set_password && ! $is_auth_transition ) {
+        return;
+    }
+
+    $account_url = function_exists( 'wc_get_page_permalink' )
+        ? wc_get_page_permalink( 'myaccount' )
+        : home_url( '/my-account/' );
+    if ( ! $account_url ) {
+        return;
+    }
+
+    $target_url = add_query_arg( 'bw_auth_callback', '1', $account_url );
+
+    if ( $needs_set_password ) {
+        $target_url = add_query_arg( 'bw_set_password', '1', $target_url );
+    }
+
+    if ( $is_auth_transition ) {
+        $target_url = add_query_arg(
+            [
+                'code' => $auth_code,
+                'type' => $auth_type,
+            ],
+            $target_url
+        );
+
+        $state = isset( $_GET['state'] ) ? sanitize_text_field( wp_unslash( $_GET['state'] ) ) : '';
+        if ( '' !== $state ) {
+            $target_url = add_query_arg( 'state', $state, $target_url );
+        }
+
+        $provider = isset( $_GET['provider'] ) ? sanitize_key( wp_unslash( $_GET['provider'] ) ) : '';
+        if ( '' !== $provider ) {
+            $target_url = add_query_arg( 'provider', $provider, $target_url );
+        }
+    }
+
+    wp_safe_redirect( $target_url );
+    exit;
+}
+add_action( 'template_redirect', 'bw_mew_force_auth_callback_for_guest_transitions', 6 );
+
+/**
  * Enqueue assets for the logged-in my account area.
  */
 function bw_mew_enqueue_my_account_assets() {

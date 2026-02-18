@@ -19,6 +19,7 @@
         var searchParams = new URLSearchParams(window.location.search);
         var authCode = searchParams.get('code') || '';
         var typeParam = searchParams.get('type') || '';
+        var needsSetPassword = searchParams.get('bw_set_password') === '1';
         var callbackUrl = window.bwSupabaseBridge.callbackUrl || '';
         if (searchParams.has('logged_out')) {
             if (window.sessionStorage) {
@@ -457,6 +458,68 @@
                     return false;
                 });
         };
+
+        var waitForWpSession = function (onReady, onTimeout) {
+            var attempts = 0;
+            var maxAttempts = 30;
+            var intervalMs = 250;
+
+            var check = function () {
+                attempts += 1;
+
+                fetch(window.bwSupabaseBridge.ajaxUrl, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8'
+                    },
+                    body: new URLSearchParams({
+                        action: 'bw_supabase_check_wp_session',
+                        nonce: window.bwSupabaseBridge.nonce
+                    })
+                })
+                    .then(function (response) {
+                        return response.json();
+                    })
+                    .then(function (payload) {
+                        var loggedIn = Boolean(payload && payload.success && payload.data && payload.data.loggedIn);
+                        if (loggedIn) {
+                            onReady();
+                            return;
+                        }
+
+                        if (attempts >= maxAttempts) {
+                            onTimeout();
+                            return;
+                        }
+
+                        setTimeout(check, intervalMs);
+                    })
+                    .catch(function () {
+                        if (attempts >= maxAttempts) {
+                            onTimeout();
+                            return;
+                        }
+                        setTimeout(check, intervalMs);
+                    });
+            };
+
+            check();
+        };
+
+        if (needsSetPassword && !authCode && !window.location.hash) {
+            logDebug('Waiting WP session for set-password flow');
+            waitForWpSession(
+                function () {
+                    window.location.reload();
+                },
+                function () {
+                    var fallback = window.bwSupabaseBridge.accountUrl || '/my-account/';
+                    window.location.replace(fallback);
+                }
+            );
+            return;
+        }
 
         if (redirectInviteToCallback()) {
             return;
