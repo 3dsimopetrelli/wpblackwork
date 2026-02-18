@@ -12,6 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 $customer_id   = get_current_user_id();
 $customer      = wp_get_current_user();
+$current_email = $customer instanceof WP_User ? (string) $customer->user_email : '';
 $pending_email = get_user_meta( $customer_id, 'bw_supabase_pending_email', true );
 $countries     = new WC_Countries();
 $billing_country  = get_user_meta( $customer_id, 'billing_country', true );
@@ -148,16 +149,27 @@ if ( has_action( 'woocommerce_before_edit_account_form' ) ) {
         </div>
 
         <div class="bw-tab-panel" id="bw-tab-security">
-            <div class="woocommerce-message bw-account-security__notice" data-bw-pending-email-banner <?php echo $pending_email ? '' : 'hidden'; ?>>
-                <?php
-                if ( $pending_email ) {
-                    printf(
-                        /* translators: %s is the pending email address. */
-                        esc_html__( 'Confirm your new email address (%s) from the confirmation email we sent you.', 'bw' ),
-                        esc_html( $pending_email )
-                    );
-                }
-                ?>
+            <div class="bw-account-security__notice" role="status" data-bw-pending-email-banner <?php echo $pending_email ? '' : 'hidden'; ?>>
+                <span class="bw-account-security__notice-icon" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M3 6.75C3 5.78 3.78 5 4.75 5h14.5c.97 0 1.75.78 1.75 1.75v10.5c0 .97-.78 1.75-1.75 1.75H4.75A1.75 1.75 0 0 1 3 17.25V6.75Z" stroke="currentColor" stroke-width="1.5"/>
+                        <path d="m4 7 8 6 8-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </span>
+                <div class="bw-account-security__notice-copy">
+                    <p class="bw-account-security__notice-title" data-bw-pending-email-message>
+                        <?php
+                        if ( $pending_email ) {
+                            printf(
+                                /* translators: %s is the pending email address. */
+                                esc_html__( 'Confirm your new email address (%s) from the confirmation email we sent you.', 'bw' ),
+                                esc_html( $pending_email )
+                            );
+                        }
+                        ?>
+                    </p>
+                    <p class="bw-account-security__notice-hint"><?php esc_html_e( 'Check your inbox and click the confirmation link to complete the update.', 'bw' ); ?></p>
+                </div>
             </div>
 
             <form class="bw-settings-form" data-bw-supabase-password-form>
@@ -203,6 +215,14 @@ if ( has_action( 'woocommerce_before_edit_account_form' ) ) {
                 <section class="bw-settings-block">
                     <h3><?php esc_html_e( 'Change email', 'bw' ); ?></h3>
                     <div class="bw-grid">
+                        <div class="bw-field bw-account-security__readonly-field">
+                            <label for="bw_security_current_email"><?php esc_html_e( 'Current email', 'bw' ); ?></label>
+                            <input type="email" id="bw_security_current_email" value="<?php echo esc_attr( $current_email ); ?>" readonly aria-readonly="true" />
+                            <p class="description bw-account-security__readonly-note"><?php esc_html_e( 'This is your current email address.', 'bw' ); ?></p>
+                        </div>
+                    </div>
+                    <p class="bw-account-security__email-intro"><?php esc_html_e( 'If you want to change email, enter and confirm the new address below.', 'bw' ); ?></p>
+                    <div class="bw-grid">
                         <div class="bw-field">
                             <label for="bw_security_email"><?php esc_html_e( 'New email address', 'woocommerce' ); ?> <span class="required">*</span></label>
                             <input type="email" name="email" id="bw_security_email" autocomplete="email" required />
@@ -215,6 +235,18 @@ if ( has_action( 'woocommerce_before_edit_account_form' ) ) {
                     <div class="bw-account-form__messages">
                         <div class="bw-account-form__error" role="alert" aria-live="polite" hidden></div>
                         <div class="bw-account-form__success" role="status" aria-live="polite" hidden></div>
+                        <div class="bw-account-security__email-notice" role="status" aria-live="polite" data-bw-email-confirmation-box hidden>
+                            <span class="bw-account-security__email-notice-icon" aria-hidden="true">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M3 6.75C3 5.78 3.78 5 4.75 5h14.5c.97 0 1.75.78 1.75 1.75v10.5c0 .97-.78 1.75-1.75 1.75H4.75A1.75 1.75 0 0 1 3 17.25V6.75Z" stroke="currentColor" stroke-width="1.5"/>
+                                    <path d="m4 7 8 6 8-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </span>
+                            <div class="bw-account-security__email-notice-copy">
+                                <p class="bw-account-security__email-notice-title" data-bw-email-confirmation-message><?php esc_html_e( 'Please confirm your new email address from the email we sent.', 'bw' ); ?></p>
+                                <p class="bw-account-security__email-notice-hint"><?php esc_html_e( 'Check your inbox to complete the change.', 'bw' ); ?></p>
+                            </div>
+                        </div>
                     </div>
                     <p>
                         <button type="submit" class="button"><?php esc_html_e( 'Update email', 'bw' ); ?></button>

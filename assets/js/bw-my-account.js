@@ -436,8 +436,11 @@
     const passwordForm = document.querySelector('[data-bw-supabase-password-form]');
     const emailForm = document.querySelector('[data-bw-supabase-email-form]');
     const pendingEmailBanner = document.querySelector('[data-bw-pending-email-banner]');
+    const pendingEmailMessage = pendingEmailBanner ? pendingEmailBanner.querySelector('[data-bw-pending-email-message]') : null;
     const shippingToggle = document.querySelector('#bw_shipping_same_as_billing');
     const shippingFields = document.querySelector('[data-bw-shipping-fields]');
+    const emailConfirmationBox = emailForm ? emailForm.querySelector('[data-bw-email-confirmation-box]') : null;
+    const emailConfirmationMessage = emailForm ? emailForm.querySelector('[data-bw-email-confirmation-message]') : null;
     const passwordRuleConfig = [
         { id: 'length', test: (value) => value.length >= 8 },
         { id: 'lowercase', test: (value) => /[a-z]/.test(value) },
@@ -524,6 +527,9 @@
                 successBox.textContent = '';
                 successBox.hidden = true;
             }
+            if (action === 'bw_supabase_update_email' && emailConfirmationBox) {
+                emailConfirmationBox.hidden = true;
+            }
 
             if (action === 'bw_supabase_update_password') {
                 hidePasswordMissingSession();
@@ -607,8 +613,22 @@
                         }
 
                         if (action === 'bw_supabase_update_email' && pendingEmailBanner && payload.data && payload.data.pendingEmail) {
-                            pendingEmailBanner.textContent = 'Confirm your new email address (' + payload.data.pendingEmail + ') from the confirmation email we sent you.';
+                            if (pendingEmailMessage) {
+                                pendingEmailMessage.textContent = 'Confirm your new email address (' + payload.data.pendingEmail + ') from the confirmation email we sent you.';
+                            }
                             pendingEmailBanner.hidden = false;
+                        }
+
+                        if (action === 'bw_supabase_update_email' && emailConfirmationBox) {
+                            if (successBox) {
+                                successBox.hidden = true;
+                            }
+                            if (emailConfirmationMessage) {
+                                emailConfirmationMessage.textContent = (payload.data && payload.data.message)
+                                    ? payload.data.message
+                                    : 'Please confirm your new email address from the email we sent.';
+                            }
+                            emailConfirmationBox.hidden = false;
                         }
 
                         if (action === 'bw_supabase_update_password') {

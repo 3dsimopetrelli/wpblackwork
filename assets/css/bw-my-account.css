@@ -1125,6 +1125,108 @@ body.woocommerce-account .bw-settings #bw-tab-shipping .form-row.form-row-wide {
     color: #8a1f1f;
 }
 
+.bw-account-security__notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin: 0 0 14px;
+    padding: 12px 14px;
+    border: 1px solid #b9d7ff;
+    border-radius: 10px;
+    background: #edf5ff;
+    color: #102a44;
+}
+
+.bw-account-security__notice-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    flex: 0 0 28px;
+    border-radius: 999px;
+    background: #d6e8ff;
+    color: #1f4d86;
+}
+
+.bw-account-security__notice-copy {
+    min-width: 0;
+}
+
+.bw-account-security__notice-title {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.45;
+    font-weight: 600;
+}
+
+.bw-account-security__notice-hint {
+    margin: 4px 0 0;
+    font-size: 13px;
+    line-height: 1.45;
+    color: #36536f;
+}
+
+.bw-account-security__readonly-field input[readonly] {
+    background: #eceff3 !important;
+    border-color: #d2d8e1 !important;
+    color: #475569;
+    cursor: not-allowed;
+}
+
+.bw-account-security__readonly-note {
+    margin-top: 8px !important;
+}
+
+.bw-account-security__email-intro {
+    margin: 12px 0 14px !important;
+    font-size: 14px;
+    line-height: 1.45;
+    color: #334155;
+}
+
+.bw-account-security__email-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-top: 12px;
+    padding: 12px 14px;
+    border: 1px solid #b9d7ff;
+    border-radius: 10px;
+    background: #edf5ff;
+    color: #102a44;
+}
+
+.bw-account-security__email-notice-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    flex: 0 0 28px;
+    border-radius: 999px;
+    background: #d6e8ff;
+    color: #1f4d86;
+}
+
+.bw-account-security__email-notice-copy {
+    min-width: 0;
+}
+
+.bw-account-security__email-notice-title {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.45;
+    font-weight: 600;
+}
+
+.bw-account-security__email-notice-hint {
+    margin: 4px 0 0;
+    font-size: 13px;
+    line-height: 1.45;
+    color: #36536f;
+}
+
 .bw-tab-panels .bw-tab-panel {
     display: none;
 }
