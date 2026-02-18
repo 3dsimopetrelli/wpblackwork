@@ -167,7 +167,7 @@ function bw_mew_get_supabase_refresh_token( $user_id ) {
  * @return string
  */
 function bw_mew_get_supabase_access_token_with_refresh( $user_id ) {
-    $access_token = bw_mew_get_supabase_access_token_with_refresh( $user_id );
+    $access_token = bw_mew_get_supabase_access_token( $user_id );
     if ( $access_token ) {
         return $access_token;
     }
