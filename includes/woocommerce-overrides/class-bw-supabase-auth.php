@@ -852,10 +852,11 @@ add_action( 'wp_ajax_bw_supabase_email_exists', 'bw_mew_handle_supabase_email_ex
  * @param string               $access_token Supabase access token.
  * @param array<string,mixed>  $payload      Update payload.
  * @param string               $context      Context for logging.
+ * @param string               $redirect_to  Optional redirect URL for email actions.
  *
  * @return array{status:int,payload:array<string,mixed>}|WP_Error
  */
-function bw_mew_supabase_update_user( $access_token, array $payload, $context = '' ) {
+function bw_mew_supabase_update_user( $access_token, array $payload, $context = '', $redirect_to = '' ) {
     $config    = bw_mew_get_supabase_config();
     $debug_log = (bool) get_option( 'bw_supabase_debug_log', 0 );
 
@@ -864,6 +865,9 @@ function bw_mew_supabase_update_user( $access_token, array $payload, $context = 
     }
 
     $endpoint = trailingslashit( untrailingslashit( $config['project_url'] ) ) . 'auth/v1/user';
+    if ( $redirect_to ) {
+        $endpoint = add_query_arg( 'redirect_to', $redirect_to, $endpoint );
+    }
     $response = wp_remote_request(
         $endpoint,
         [
@@ -1173,10 +1177,10 @@ function bw_mew_handle_supabase_update_email() {
     $response = bw_mew_supabase_update_user(
         $access_token,
         [
-            'email'             => $email,
-            'email_redirect_to' => $confirm_redirect,
+            'email' => $email,
         ],
-        'email-update'
+        'email-update',
+        $confirm_redirect
     );
 
     if ( is_wp_error( $response ) ) {
