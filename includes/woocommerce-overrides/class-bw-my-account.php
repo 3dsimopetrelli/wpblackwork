@@ -602,6 +602,27 @@ function bw_mew_get_dashboard_identity( $user_id ) {
         $last_name = trim( (string) get_user_meta( $user_id, 'billing_last_name', true ) );
     }
 
+    if ( '' === $first_name || '' === $last_name ) {
+        $orders = wc_get_orders(
+            [
+                'limit'    => 1,
+                'customer' => $user_id,
+                'orderby'  => 'date',
+                'order'    => 'DESC',
+                'return'   => 'objects',
+            ]
+        );
+
+        if ( ! empty( $orders ) && $orders[0] instanceof WC_Order ) {
+            if ( '' === $first_name ) {
+                $first_name = trim( (string) $orders[0]->get_billing_first_name() );
+            }
+            if ( '' === $last_name ) {
+                $last_name = trim( (string) $orders[0]->get_billing_last_name() );
+            }
+        }
+    }
+
     $full_name = trim( $first_name . ' ' . $last_name );
 
     return [
@@ -609,6 +630,100 @@ function bw_mew_get_dashboard_identity( $user_id ) {
         'email'     => sanitize_email( (string) $user->user_email ),
     ];
 }
+
+/**
+ * Sync missing profile names from billing fields / latest order on My Account.
+ *
+ * @return void
+ */
+function bw_mew_sync_profile_names_from_purchase_data() {
+    if ( ! function_exists( 'is_account_page' ) || ! is_account_page() || ! is_user_logged_in() || ! function_exists( 'wc_get_orders' ) ) {
+        return;
+    }
+
+    $user_id = get_current_user_id();
+    if ( ! $user_id ) {
+        return;
+    }
+
+    $user = get_user_by( 'id', $user_id );
+    if ( ! $user instanceof WP_User ) {
+        return;
+    }
+
+    $first_name = trim( (string) get_user_meta( $user_id, 'first_name', true ) );
+    $last_name  = trim( (string) get_user_meta( $user_id, 'last_name', true ) );
+    $changed    = false;
+
+    if ( '' === $first_name ) {
+        $billing_first = trim( (string) get_user_meta( $user_id, 'billing_first_name', true ) );
+        if ( '' !== $billing_first ) {
+            $first_name = $billing_first;
+            update_user_meta( $user_id, 'first_name', $billing_first );
+            $changed = true;
+        }
+    }
+
+    if ( '' === $last_name ) {
+        $billing_last = trim( (string) get_user_meta( $user_id, 'billing_last_name', true ) );
+        if ( '' !== $billing_last ) {
+            $last_name = $billing_last;
+            update_user_meta( $user_id, 'last_name', $billing_last );
+            $changed = true;
+        }
+    }
+
+    if ( '' === $first_name || '' === $last_name ) {
+        $orders = wc_get_orders(
+            [
+                'limit'    => 1,
+                'customer' => $user_id,
+                'orderby'  => 'date',
+                'order'    => 'DESC',
+                'return'   => 'objects',
+            ]
+        );
+
+        if ( ! empty( $orders ) && $orders[0] instanceof WC_Order ) {
+            if ( '' === $first_name ) {
+                $order_first = trim( (string) $orders[0]->get_billing_first_name() );
+                if ( '' !== $order_first ) {
+                    $first_name = $order_first;
+                    update_user_meta( $user_id, 'first_name', $order_first );
+                    $changed = true;
+                }
+            }
+
+            if ( '' === $last_name ) {
+                $order_last = trim( (string) $orders[0]->get_billing_last_name() );
+                if ( '' !== $order_last ) {
+                    $last_name = $order_last;
+                    update_user_meta( $user_id, 'last_name', $order_last );
+                    $changed = true;
+                }
+            }
+        }
+    }
+
+    $full_name    = trim( $first_name . ' ' . $last_name );
+    $display_name = trim( (string) $user->display_name );
+    $login_name   = trim( (string) $user->user_login );
+    $email_name   = trim( (string) $user->user_email );
+    $should_set_display = '' !== $full_name
+        && ( '' === $display_name || $display_name === $login_name || $display_name === $email_name );
+
+    if ( $should_set_display ) {
+        wp_update_user(
+            [
+                'ID'           => $user_id,
+                'display_name' => $full_name,
+            ]
+        );
+    } elseif ( ! $changed ) {
+        return;
+    }
+}
+add_action( 'template_redirect', 'bw_mew_sync_profile_names_from_purchase_data', 11 );
 
 /**
  * Count unique purchased products for the current customer.
