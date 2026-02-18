@@ -22,6 +22,20 @@
         var needsSetPassword = searchParams.get('bw_set_password') === '1';
         var isAuthCallback = searchParams.get('bw_auth_callback') === '1';
         var callbackUrl = window.bwSupabaseBridge.callbackUrl || '';
+        var markEmailChangeConfirmed = function () {
+            if (!window.sessionStorage) {
+                return;
+            }
+            try {
+                sessionStorage.setItem('bw_email_change_confirmed', '1');
+            } catch (error) {
+                // ignore sessionStorage errors
+            }
+        };
+
+        if (searchParams.get('bw_email_confirmed') === '1') {
+            markEmailChangeConfirmed();
+        }
         var clearAuthInProgress = function () {
             if (window.sessionStorage) {
                 try {
@@ -349,6 +363,10 @@
                 return Promise.resolve(false);
             }
 
+            if (inviteType === 'email_change') {
+                markEmailChangeConfirmed();
+            }
+
             if (window.sessionStorage) {
                 try {
                     sessionStorage.setItem('bw_supabase_access_token', accessToken);
@@ -403,6 +421,10 @@
         var handleCodeCallback = function () {
             if (!authCode) {
                 return Promise.resolve(false);
+            }
+
+            if (typeParam === 'email_change') {
+                markEmailChangeConfirmed();
             }
 
             if (window.sessionStorage) {

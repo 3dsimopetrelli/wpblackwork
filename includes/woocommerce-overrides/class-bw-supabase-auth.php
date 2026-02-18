@@ -369,6 +369,21 @@ add_action( 'init', 'bw_mew_sync_supabase_user_on_load', 20 );
  */
 function bw_mew_handle_supabase_token_login() {
     $nonce_valid = check_ajax_referer( 'bw-supabase-login', 'nonce', false );
+    $token_type  = isset( $_POST['type'] ) ? sanitize_key( wp_unslash( $_POST['type'] ) ) : '';
+    $account_url = wc_get_page_permalink( 'myaccount' );
+    $build_redirect_url = static function ( $url, $type ) {
+        if ( 'email_change' !== $type ) {
+            return $url;
+        }
+
+        return add_query_arg(
+            [
+                'bw_email_changed' => '1',
+                'bw_tab'           => 'security',
+            ],
+            $url
+        );
+    };
 
     // For invite/hash callbacks from public pages, the localized nonce can be stale
     // because of full-page cache. In that case we continue and rely on Supabase token
@@ -383,14 +398,13 @@ function bw_mew_handle_supabase_token_login() {
     if ( is_user_logged_in() ) {
         wp_send_json_success(
             [
-                'redirect' => wc_get_page_permalink( 'myaccount' ),
+                'redirect' => $build_redirect_url( $account_url, $token_type ),
             ]
         );
     }
 
     $access_token  = isset( $_POST['access_token'] ) ? sanitize_text_field( wp_unslash( $_POST['access_token'] ) ) : '';
     $refresh_token = isset( $_POST['refresh_token'] ) ? sanitize_text_field( wp_unslash( $_POST['refresh_token'] ) ) : '';
-    $token_type    = isset( $_POST['type'] ) ? sanitize_key( wp_unslash( $_POST['type'] ) ) : '';
     if ( ! $access_token ) {
         wp_send_json_error(
             [ 'message' => __( 'Missing access token.', 'bw' ) ],
@@ -480,7 +494,7 @@ function bw_mew_handle_supabase_token_login() {
     if ( get_transient( $guard_key ) ) {
         wp_send_json_success(
             [
-                'redirect' => wc_get_page_permalink( 'myaccount' ),
+                'redirect' => $build_redirect_url( $account_url, $token_type ),
             ]
         );
     }
@@ -528,9 +542,9 @@ function bw_mew_handle_supabase_token_login() {
 
     $needs_onboarding = $is_invite && ! $already_onboarded;
     if ( $needs_password_for_otp || $needs_onboarding ) {
-        $redirect_url = add_query_arg( 'bw_set_password', '1', wc_get_page_permalink( 'myaccount' ) );
+        $redirect_url = add_query_arg( 'bw_set_password', '1', $account_url );
     } else {
-        $redirect_url = wc_get_page_permalink( 'myaccount' );
+        $redirect_url = $build_redirect_url( $account_url, $token_type );
     }
 
     if ( $debug_log ) {

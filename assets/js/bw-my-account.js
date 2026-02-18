@@ -255,6 +255,7 @@
     });
 
     const pageSearchParams = new URLSearchParams(window.location.search);
+    const hashSearchParams = new URLSearchParams((window.location.hash || '').replace(/^#/, ''));
     const requestedTab = (pageSearchParams.get('bw_tab') || '').trim().toLowerCase();
     if (requestedTab) {
         const targetSelector = '#bw-tab-' + requestedTab;
@@ -378,12 +379,13 @@
         });
     };
 
-    const callbackType = (pageSearchParams.get('type') || '').trim().toLowerCase();
+    const callbackType = (pageSearchParams.get('type') || hashSearchParams.get('type') || '').trim().toLowerCase();
     const hasEmailChangedParam = '1' === pageSearchParams.get('bw_email_changed');
+    const hasEmailConfirmedParam = '1' === pageSearchParams.get('bw_email_confirmed');
     const isSupabaseEmailChangeCallback = callbackType === 'email_change';
-    const shouldShowEmailChangedPopup = hasEmailChangedParam || isSupabaseEmailChangeCallback || hasEmailChangeFlag();
+    const shouldShowEmailChangedPopup = hasEmailChangedParam || hasEmailConfirmedParam || isSupabaseEmailChangeCallback || hasEmailChangeFlag();
 
-    if (isSupabaseEmailChangeCallback || hasEmailChangedParam) {
+    if (isSupabaseEmailChangeCallback || hasEmailChangedParam || hasEmailConfirmedParam) {
         setEmailChangeFlag();
     }
 
@@ -400,6 +402,7 @@
         showAccountPopup('Email confirmed', 'Your email has been changed successfully.');
         if (window.history && typeof window.history.replaceState === 'function') {
             pageSearchParams.delete('bw_email_changed');
+            pageSearchParams.delete('bw_email_confirmed');
             pageSearchParams.delete('bw_tab');
             pageSearchParams.delete('type');
             pageSearchParams.delete('code');
