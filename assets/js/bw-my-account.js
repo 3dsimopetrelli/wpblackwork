@@ -606,8 +606,22 @@
                 credentials: 'same-origin',
                 body: new URLSearchParams(formData)
             })
-                .then((response) => response.json())
-                .then((payload) => {
+                .then(async (response) => {
+                    const status = response.status;
+                    const raw = await response.text();
+                    let payload = null;
+
+                    if (raw) {
+                        try {
+                            payload = JSON.parse(raw);
+                        } catch (error) {
+                            payload = null;
+                        }
+                    }
+
+                    return { payload, raw, status };
+                })
+                .then(({ payload, raw, status }) => {
                     if (payload && payload.success) {
                         if (successBox) {
                             successBox.textContent = (payload.data && payload.data.message) ? payload.data.message : 'Saved.';
@@ -647,8 +661,12 @@
                         return;
                     }
 
-                    const message = payload && payload.data && payload.data.message ? payload.data.message : defaultMessage;
-                    if (action === 'bw_supabase_update_email' && message === 'Supabase session is missing.' && emailConfirmationBox) {
+                    const fallbackMessage = (status === 403 || raw.trim() === '-1')
+                        ? 'Security check failed. Please refresh the page and try again.'
+                        : defaultMessage;
+                    const message = payload && payload.data && payload.data.message ? payload.data.message : fallbackMessage;
+
+                    if (action === 'bw_supabase_update_email' && emailConfirmationBox) {
                         if (errorBox) {
                             errorBox.hidden = true;
                         }
@@ -657,7 +675,9 @@
                             emailConfirmationMessage.textContent = message;
                         }
                         if (emailConfirmationHint) {
-                            emailConfirmationHint.textContent = 'Please log in again to refresh your secure session.';
+                            emailConfirmationHint.textContent = message === 'Supabase session is missing.'
+                                ? 'Please log in again to refresh your secure session.'
+                                : 'Please verify your details and try again.';
                         }
                         emailConfirmationBox.hidden = false;
                         return;
@@ -672,6 +692,20 @@
                     }
                 })
                 .catch(() => {
+                    if (action === 'bw_supabase_update_email' && emailConfirmationBox) {
+                        if (errorBox) {
+                            errorBox.hidden = true;
+                        }
+                        emailConfirmationBox.classList.add('is-error');
+                        if (emailConfirmationMessage) {
+                            emailConfirmationMessage.textContent = defaultMessage;
+                        }
+                        if (emailConfirmationHint) {
+                            emailConfirmationHint.textContent = 'Please verify your details and try again.';
+                        }
+                        emailConfirmationBox.hidden = false;
+                        return;
+                    }
                     if (errorBox) {
                         errorBox.textContent = defaultMessage;
                         errorBox.hidden = false;
