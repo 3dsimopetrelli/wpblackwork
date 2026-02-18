@@ -1258,57 +1258,6 @@ body.woocommerce-account .bw-settings #bw-tab-shipping .form-row.form-row-wide {
     display: block;
 }
 
-body.bw-account-popup-open {
-    overflow: hidden;
-}
-
-.bw-account-popup {
-    position: fixed;
-    inset: 0;
-    z-index: 99999;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-}
-
-.bw-account-popup__overlay {
-    position: absolute;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.46);
-}
-
-.bw-account-popup__dialog {
-    position: relative;
-    width: min(520px, 100%);
-    padding: 26px 24px;
-    border-radius: 14px;
-    background: #fff;
-    border: 1px solid #e6e6e6;
-    box-shadow: 0 26px 52px rgba(0, 0, 0, 0.18);
-}
-
-.bw-account-popup__title {
-    margin: 0 0 8px;
-    font-size: 30px;
-    line-height: 1.15;
-    letter-spacing: -0.02em;
-    color: #0f172a;
-}
-
-.bw-account-popup__text {
-    margin: 0 0 20px;
-    font-size: 18px;
-    line-height: 1.45;
-    color: #334155;
-}
-
-.bw-account-popup__button.button {
-    min-height: 48px;
-    padding: 10px 24px;
-    font-size: 18px;
-}
-
 @media (max-width: 768px) {
     .bw-page-header {
         flex-direction: column;
@@ -1350,15 +1299,4 @@ body.bw-account-popup-open {
         margin-top: 24px;
     }
 
-    .bw-account-popup__dialog {
-        padding: 22px 18px;
-    }
-
-    .bw-account-popup__title {
-        font-size: 24px;
-    }
-
-    .bw-account-popup__text {
-        font-size: 16px;
-    }
 }

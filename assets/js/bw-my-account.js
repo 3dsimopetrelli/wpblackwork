@@ -267,24 +267,77 @@
         });
     }
 
+    const hasActivePasswordModal = () => {
+        const passwordModal = document.getElementById('bw-password-modal');
+        if (!passwordModal) {
+            return false;
+        }
+
+        if (passwordModal.classList.contains('is-active')) {
+            return true;
+        }
+
+        return passwordModal.style.display && passwordModal.style.display !== 'none';
+    };
+
+    const setEmailChangeFlag = () => {
+        if (!window.sessionStorage) {
+            return;
+        }
+
+        try {
+            sessionStorage.setItem('bw_email_change_confirmed', '1');
+        } catch (error) {
+            // Ignore sessionStorage errors.
+        }
+    };
+
+    const clearEmailChangeFlag = () => {
+        if (!window.sessionStorage) {
+            return;
+        }
+
+        try {
+            sessionStorage.removeItem('bw_email_change_confirmed');
+        } catch (error) {
+            // Ignore sessionStorage errors.
+        }
+    };
+
+    const hasEmailChangeFlag = () => {
+        if (!window.sessionStorage) {
+            return false;
+        }
+
+        try {
+            return sessionStorage.getItem('bw_email_change_confirmed') === '1';
+        } catch (error) {
+            return false;
+        }
+    };
+
     const showAccountPopup = (title, message) => {
-        const existing = document.querySelector('.bw-account-popup');
+        const existing = document.querySelector('.bw-account-confirm-modal');
         if (existing) {
             existing.remove();
         }
 
         const popup = document.createElement('div');
-        popup.className = 'bw-account-popup';
+        popup.className = 'bw-password-modal bw-account-confirm-modal';
+        popup.style.display = 'flex';
         popup.innerHTML = '' +
-            '<div class="bw-account-popup__overlay" data-bw-popup-close></div>' +
-            '<div class="bw-account-popup__dialog" role="dialog" aria-modal="true" aria-live="polite">' +
-                '<h3 class="bw-account-popup__title"></h3>' +
-                '<p class="bw-account-popup__text"></p>' +
-                '<button type="button" class="bw-account-popup__button button" data-bw-popup-close>OK</button>' +
+            '<div class="bw-password-modal__overlay" data-bw-popup-close></div>' +
+            '<div class="bw-password-modal__container" role="dialog" aria-modal="true" aria-live="polite" aria-labelledby="bw-account-confirm-title">' +
+                '<button type="button" class="bw-password-modal__close" aria-label="Close" data-bw-popup-close>X</button>' +
+                '<div class="bw-password-modal__content">' +
+                    '<h3 id="bw-account-confirm-title" class="bw-password-modal__title"></h3>' +
+                    '<p class="bw-password-modal__subtitle"></p>' +
+                    '<button type="button" class="bw-password-modal__submit" data-bw-popup-close>OK</button>' +
+                '</div>' +
             '</div>';
 
-        const titleNode = popup.querySelector('.bw-account-popup__title');
-        const textNode = popup.querySelector('.bw-account-popup__text');
+        const titleNode = popup.querySelector('.bw-password-modal__title');
+        const textNode = popup.querySelector('.bw-password-modal__subtitle');
         if (titleNode) {
             titleNode.textContent = title;
         }
@@ -292,24 +345,66 @@
             textNode.textContent = message;
         }
 
+        let onEscape = null;
+
         const closePopup = () => {
             popup.remove();
-            document.body.classList.remove('bw-account-popup-open');
+            if (!hasActivePasswordModal()) {
+                document.body.classList.remove('bw-modal-open');
+            }
+            if (onEscape) {
+                document.removeEventListener('keydown', onEscape);
+                onEscape = null;
+            }
+            clearEmailChangeFlag();
         };
 
         popup.querySelectorAll('[data-bw-popup-close]').forEach((node) => {
             node.addEventListener('click', closePopup);
         });
 
+        onEscape = (event) => {
+            if (event.key !== 'Escape') {
+                return;
+            }
+            closePopup();
+        };
+        document.addEventListener('keydown', onEscape);
+
         document.body.appendChild(popup);
-        document.body.classList.add('bw-account-popup-open');
+        requestAnimationFrame(() => {
+            popup.classList.add('is-active');
+            document.body.classList.add('bw-modal-open');
+        });
     };
 
-    if ('1' === pageSearchParams.get('bw_email_changed')) {
+    const callbackType = (pageSearchParams.get('type') || '').trim().toLowerCase();
+    const hasEmailChangedParam = '1' === pageSearchParams.get('bw_email_changed');
+    const isSupabaseEmailChangeCallback = callbackType === 'email_change';
+    const shouldShowEmailChangedPopup = hasEmailChangedParam || isSupabaseEmailChangeCallback || hasEmailChangeFlag();
+
+    if (isSupabaseEmailChangeCallback || hasEmailChangedParam) {
+        setEmailChangeFlag();
+    }
+
+    if (shouldShowEmailChangedPopup) {
+        if (!requestedTab) {
+            document.querySelectorAll('.bw-settings').forEach((container) => {
+                const securityTab = container.querySelector('.bw-tab[data-target="#bw-tab-security"]');
+                if (securityTab) {
+                    activateSettingsTab(container, securityTab);
+                }
+            });
+        }
+
         showAccountPopup('Email confirmed', 'Your email has been changed successfully.');
         if (window.history && typeof window.history.replaceState === 'function') {
             pageSearchParams.delete('bw_email_changed');
             pageSearchParams.delete('bw_tab');
+            pageSearchParams.delete('type');
+            pageSearchParams.delete('code');
+            pageSearchParams.delete('state');
+            pageSearchParams.delete('provider');
             const newQuery = pageSearchParams.toString();
             const newUrl = window.location.pathname + (newQuery ? '?' + newQuery : '') + window.location.hash;
             window.history.replaceState({}, document.title, newUrl);
