@@ -782,17 +782,43 @@ function bw_mew_get_customer_library_count( $user_id ) {
 function bw_mew_get_order_item_license_label( WC_Order_Item_Product $item, $product = null ) {
     $license = '';
 
+    $variation_id = (int) $item->get_variation_id();
+    if ( $variation_id > 0 ) {
+        $variation_product = $product instanceof WC_Product_Variation ? $product : wc_get_product( $variation_id );
+        if ( $variation_product instanceof WC_Product_Variation ) {
+            $variation_attributes = $variation_product->get_variation_attributes();
+
+            $preferred_keys = [ 'attribute_pa_license', 'attribute_license' ];
+            foreach ( $preferred_keys as $key ) {
+                if ( ! empty( $variation_attributes[ $key ] ) ) {
+                    $license = bw_mew_format_license_label( (string) $variation_attributes[ $key ] );
+                    break;
+                }
+            }
+
+            if ( '' === $license ) {
+                foreach ( $variation_attributes as $value ) {
+                    if ( is_scalar( $value ) && '' !== trim( (string) $value ) ) {
+                        $license = bw_mew_format_license_label( (string) $value );
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
     $license_keys = [ 'attribute_pa_license', 'attribute_license', 'pa_license', 'license', 'license_type', '_license', '_license_type', 'License', 'License Type' ];
-    foreach ( $license_keys as $key ) {
-        $value = $item->get_meta( $key, true );
-        if ( is_scalar( $value ) && '' !== trim( (string) $value ) ) {
-            $license = bw_mew_format_license_label( (string) $value );
-            break;
+    if ( '' === $license ) {
+        foreach ( $license_keys as $key ) {
+            $value = $item->get_meta( $key, true );
+            if ( is_scalar( $value ) && '' !== trim( (string) $value ) ) {
+                $license = bw_mew_format_license_label( (string) $value );
+                break;
+            }
         }
     }
 
     if ( '' === $license ) {
-        $variation_id = (int) $item->get_variation_id();
         if ( $variation_id > 0 && function_exists( 'wc_get_product_variation_attributes' ) ) {
             $variation_attributes = wc_get_product_variation_attributes( $variation_id );
             $variation_value      = $variation_attributes['attribute_pa_license'] ?? ( $variation_attributes['attribute_license'] ?? '' );

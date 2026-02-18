@@ -90,11 +90,14 @@ $library_label        = sprintf(
                             </div>
                             <p class="bw-order-price"><?php echo wp_kses_post( $row['price'] ); ?></p>
                             <div class="bw-order-action">
-                                <?php if ( ! empty( $row['downloadUrl'] ) ) : ?>
-                                    <a class="bw-order-btn bw-order-btn--download" href="<?php echo esc_url( $row['downloadUrl'] ); ?>"><?php esc_html_e( 'Download', 'bw' ); ?></a>
-                                <?php else : ?>
+                                <div class="bw-order-action-group">
                                     <a class="bw-order-btn bw-order-btn--details" href="<?php echo esc_url( $row['orderUrl'] ); ?>"><?php esc_html_e( 'View details', 'bw' ); ?></a>
-                                <?php endif; ?>
+                                    <?php if ( ! empty( $row['downloadUrl'] ) ) : ?>
+                                        <a class="bw-order-btn bw-order-btn--icon" href="<?php echo esc_url( $row['downloadUrl'] ); ?>" aria-label="<?php esc_attr_e( 'Download', 'bw' ); ?>" title="<?php esc_attr_e( 'Download', 'bw' ); ?>">
+                                            <span aria-hidden="true">&#x2193;</span>
+                                        </a>
+                                    <?php endif; ?>
+                                </div>
                             </div>
                         </li>
                     <?php endforeach; ?>

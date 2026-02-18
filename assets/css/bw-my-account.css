@@ -723,6 +723,12 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
     justify-self: end;
 }
 
+.bw-order-action-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
 .bw-order-btn {
     display: inline-flex;
     align-items: center;
@@ -755,6 +761,18 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
     color: #fff;
 }
 
+.bw-order-btn--icon {
+    min-width: 44px;
+    width: 44px;
+    min-height: 44px;
+    padding: 0;
+    border-radius: 12px;
+    background: #111;
+    color: #fff;
+    font-size: 20px;
+    line-height: 1;
+}
+
 @media (max-width: 1024px) {
     .bw-section-header h3 {
         font-size: 20px;
@@ -772,6 +790,13 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
         min-width: 126px;
         min-height: 42px;
         font-size: 15px;
+    }
+
+    .bw-order-btn--icon {
+        min-width: 42px;
+        width: 42px;
+        min-height: 42px;
+        font-size: 18px;
     }
 }
 
@@ -806,8 +831,18 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
         justify-self: stretch;
     }
 
+    .bw-order-action-group {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr auto;
+    }
+
     .bw-order-btn {
         width: 100%;
+    }
+
+    .bw-order-btn--icon {
+        width: 42px;
     }
 }
 
