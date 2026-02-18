@@ -17,7 +17,7 @@ $auth_code        = isset( $_GET['code'] ) ? sanitize_text_field( wp_unslash( $_
 $is_code_callback = ! empty( $auth_code ) && in_array( $auth_type, [ 'invite', 'recovery' ], true );
 $set_password_qs  = isset( $_GET['bw_set_password'] ) && '1' === sanitize_text_field( wp_unslash( $_GET['bw_set_password'] ) );
 
-if ( $is_auth_callback || $is_code_callback || ( $set_password_qs && ! is_user_logged_in() ) ) {
+if ( ! is_user_logged_in() && ( $is_auth_callback || $is_code_callback || $set_password_qs ) ) {
     wc_get_template( 'myaccount/auth-callback.php' );
     return;
 }

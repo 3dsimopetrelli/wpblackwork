@@ -340,6 +340,35 @@ function bw_mew_force_auth_callback_for_guest_transitions() {
 add_action( 'template_redirect', 'bw_mew_force_auth_callback_for_guest_transitions', 6 );
 
 /**
+ * Clean stale auth-callback query from logged-in account sessions.
+ */
+function bw_mew_cleanup_logged_in_auth_callback_query() {
+    if ( ! function_exists( 'is_account_page' ) || ! is_account_page() || ! is_user_logged_in() ) {
+        return;
+    }
+
+    $is_callback = isset( $_GET['bw_auth_callback'] ) && '1' === sanitize_text_field( wp_unslash( $_GET['bw_auth_callback'] ) );
+    if ( ! $is_callback ) {
+        return;
+    }
+
+    if ( is_wc_endpoint_url( 'set-password' ) ) {
+        return;
+    }
+
+    $account_url = function_exists( 'wc_get_page_permalink' )
+        ? wc_get_page_permalink( 'myaccount' )
+        : home_url( '/my-account/' );
+    if ( ! $account_url ) {
+        return;
+    }
+
+    wp_safe_redirect( $account_url );
+    exit;
+}
+add_action( 'template_redirect', 'bw_mew_cleanup_logged_in_auth_callback_query', 7 );
+
+/**
  * Enqueue assets for the logged-in my account area.
  */
 function bw_mew_enqueue_my_account_assets() {

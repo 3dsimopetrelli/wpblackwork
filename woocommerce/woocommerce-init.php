@@ -332,6 +332,7 @@ function bw_mew_supabase_early_invite_redirect_hint()
     </style>
     <script>
     (function () {
+        var isLoggedIn = <?php echo $is_logged_in ? 'true' : 'false'; ?>;
         var normalizePath = function (path) {
             return (path || '').replace(/\/+$/, '') || '/';
         };
@@ -352,6 +353,9 @@ function bw_mew_supabase_early_invite_redirect_hint()
 
         try {
             if (window.sessionStorage) {
+                if (isLoggedIn) {
+                    sessionStorage.removeItem('bw_auth_in_progress');
+                }
                 if (hasInviteHash || hasInviteCode || callbackMode || setPasswordMode) {
                     sessionStorage.setItem('bw_auth_in_progress', '1');
                 }
@@ -366,11 +370,11 @@ function bw_mew_supabase_early_invite_redirect_hint()
             authInProgress = !!(window.sessionStorage && sessionStorage.getItem('bw_auth_in_progress') === '1');
         } catch (e) {}
 
-        if (onAccountPage && (authInProgress || hasInviteHash || hasInviteCode || callbackMode || setPasswordMode)) {
+        if (!isLoggedIn && onAccountPage && (authInProgress || hasInviteHash || hasInviteCode || callbackMode || setPasswordMode)) {
             document.documentElement.classList.add('bw-auth-preload');
         }
 
-        if (onAccountPage && authInProgress && !callbackMode && !setPasswordMode && !hasInviteHash && !hasInviteCode) {
+        if (!isLoggedIn && onAccountPage && authInProgress && !callbackMode && !setPasswordMode && !hasInviteHash && !hasInviteCode) {
             window.location.replace(<?php echo wp_json_encode($callback_url); ?>);
             return;
         }
@@ -402,7 +406,6 @@ function bw_mew_supabase_early_invite_redirect_hint()
         var params = new URLSearchParams(hash.replace(/^#/, ''));
         var errorCode = params.get('error_code') || '';
         if (errorCode === 'otp_expired') {
-            var isLoggedIn = <?php echo $is_logged_in ? 'true' : 'false'; ?>;
             var targetBase = isLoggedIn
                 ? <?php echo wp_json_encode($set_password_url); ?>
                 : <?php echo wp_json_encode($expired_link_url); ?>;
