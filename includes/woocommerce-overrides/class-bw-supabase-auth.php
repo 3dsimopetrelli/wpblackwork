@@ -904,6 +904,26 @@ function bw_mew_supabase_password_meets_requirements( $password ) {
 }
 
 /**
+ * Validate onboarding password rules shown in Supabase login/create-password UI.
+ *
+ * Rules:
+ * - At least 8 characters
+ * - At least 1 uppercase letter
+ * - At least 1 number OR special character
+ *
+ * @param string $password Candidate password.
+ *
+ * @return bool
+ */
+function bw_mew_supabase_password_meets_onboarding_requirements( $password ) {
+    $length_ok = strlen( $password ) >= 8;
+    $upper_ok  = (bool) preg_match( '/[A-Z]/', $password );
+    $mixed_ok  = (bool) preg_match( '/[0-9]|[^A-Za-z0-9]/', $password );
+
+    return $length_ok && $upper_ok && $mixed_ok;
+}
+
+/**
  * Update Supabase password via AJAX.
  */
 function bw_mew_handle_supabase_update_password() {
@@ -931,7 +951,7 @@ function bw_mew_handle_supabase_update_password() {
         wp_send_json_error( [ 'message' => __( 'Passwords do not match.', 'bw' ) ], 400 );
     }
 
-    if ( ! bw_mew_supabase_password_meets_requirements( $new_password ) ) {
+    if ( ! bw_mew_supabase_password_meets_onboarding_requirements( $new_password ) ) {
         wp_send_json_error( [ 'message' => __( 'Password does not meet the requirements.', 'bw' ) ], 400 );
     }
 
@@ -1724,8 +1744,8 @@ function bw_mew_handle_set_password_modal() {
         wp_send_json_error( [ 'message' => __( 'Passwords do not match.', 'bw' ) ], 400 );
     }
 
-    if ( strlen( $new_password ) < 8 ) {
-        wp_send_json_error( [ 'message' => __( 'Password must be at least 8 characters.', 'bw' ) ], 400 );
+    if ( ! bw_mew_supabase_password_meets_onboarding_requirements( $new_password ) ) {
+        wp_send_json_error( [ 'message' => __( 'Password does not meet the requirements.', 'bw' ) ], 400 );
     }
 
     // Update password in Supabase
