@@ -322,6 +322,11 @@ After a guest checkout (Supabase provider enabled), the user must:
    - stays on normal My Account dashboard.
 3. **Expired invite link**:
    - redirects to configured expired-link page (or set-password if already logged-in path applies).
+4. **OTP create-password (new user)**:
+   - validation must follow onboarding UI rules exactly:
+     - at least 8 characters,
+     - at least 1 uppercase letter,
+     - at least 1 number **or** special character.
 
 ---
 
@@ -363,3 +368,40 @@ After a guest checkout (Supabase provider enabled), the user must:
 - `Supabase invite sent ... status 200`
 - `BW template trace: template_name=checkout/order-received.php source=plugin`
 - `BW order-received branch: custom-order-confirmed`
+
+---
+
+## Password Rules Alignment (Updated 2026-02-18)
+
+### Issue observed
+- In OTP/new-user create-password flow, UI showed all rules green and enabled submit, but backend returned:
+  - `Password does not meet the requirements.`
+- Example reported:
+  - `CiaoSimone1` should pass onboarding UI (8 + uppercase + number) but was rejected.
+
+### Root cause
+- Endpoint `bw_mew_handle_supabase_create_password()` was still using strict validator:
+  - `bw_mew_supabase_password_meets_requirements()`
+- That strict validator requires:
+  - lowercase + uppercase + number + symbol (and length).
+
+### Final mapping (stable)
+- **Onboarding flows (must match onboarding UI):**
+  - `bw_mew_supabase_password_meets_onboarding_requirements()`
+  - used by:
+    - `bw_mew_handle_supabase_create_password()`
+    - `bw_mew_handle_set_password_modal()`
+- **Logged-in account password update (advanced profile rules):**
+  - `bw_mew_supabase_password_meets_requirements()`
+  - used by:
+    - `bw_mew_handle_supabase_update_password()`
+
+### Files touched for this fix
+- `includes/woocommerce-overrides/class-bw-supabase-auth.php`
+
+### Quick verification set
+1. OTP new-user flow:
+   - `CiaoSimone1` => must pass.
+   - `CiaoSimone!` => must pass.
+2. Logged-in profile password update:
+   - strict 5-rule policy remains active.
