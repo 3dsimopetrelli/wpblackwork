@@ -329,7 +329,6 @@
         popup.innerHTML = '' +
             '<div class="bw-password-modal__overlay" data-bw-popup-close></div>' +
             '<div class="bw-password-modal__container" role="dialog" aria-modal="true" aria-live="polite" aria-labelledby="bw-account-confirm-title">' +
-                '<button type="button" class="bw-password-modal__close" aria-label="Close" data-bw-popup-close>X</button>' +
                 '<div class="bw-password-modal__content">' +
                     '<h3 id="bw-account-confirm-title" class="bw-password-modal__title"></h3>' +
                     '<p class="bw-password-modal__subtitle"></p>' +
