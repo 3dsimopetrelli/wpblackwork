@@ -462,8 +462,8 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
 }
 
 .bw-hero-label {
-    font-size: 34px;
-    letter-spacing: 0.12em;
+    font-size: 19px;
+    letter-spacing: 0;
     text-transform: uppercase;
     margin: 0;
     font-weight: 700;
@@ -493,7 +493,7 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
 
 .bw-hero-email {
     margin: 0;
-    font-size: 43px;
+    font-size: 23px;
     line-height: 1.08;
     letter-spacing: -0.02em;
     word-break: break-word;
@@ -600,7 +600,7 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
     }
 
     .bw-hero-label {
-        font-size: 22px;
+        font-size: 19px;
     }
 
     .bw-hero-title {
@@ -608,7 +608,7 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
     }
 
     .bw-hero-email {
-        font-size: 29px;
+        font-size: 23px;
     }
 
     .bw-hero-help-title {
