@@ -726,7 +726,11 @@ function bw_mew_sync_profile_names_from_purchase_data() {
 add_action( 'template_redirect', 'bw_mew_sync_profile_names_from_purchase_data', 11 );
 
 /**
- * Count purchased order items for the current customer.
+ * Count unique purchased products for the current customer.
+ *
+ * Uniqueness is based on product + variation so different licenses
+ * (for example Commercial/Extended) are counted separately, while repeated
+ * purchases of the same exact item are counted once.
  *
  * @param int $user_id User ID.
  *
@@ -750,7 +754,7 @@ function bw_mew_get_customer_library_count( $user_id ) {
         return 0;
     }
 
-    $items_count = 0;
+    $unique_items = [];
     foreach ( $orders as $order ) {
         if ( ! $order instanceof WC_Order ) {
             continue;
@@ -761,13 +765,17 @@ function bw_mew_get_customer_library_count( $user_id ) {
                 continue;
             }
 
-            if ( (int) $item->get_product_id() > 0 ) {
-                $items_count++;
+            $product_id   = (int) $item->get_product_id();
+            $variation_id = (int) $item->get_variation_id();
+
+            if ( $product_id > 0 ) {
+                $key = $product_id . ':' . $variation_id;
+                $unique_items[ $key ] = true;
             }
         }
     }
 
-    return $items_count;
+    return count( $unique_items );
 }
 
 /**
