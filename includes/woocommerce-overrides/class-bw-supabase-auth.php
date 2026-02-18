@@ -126,6 +126,100 @@ function bw_mew_get_supabase_access_token( $user_id ) {
 }
 
 /**
+ * Retrieve the Supabase refresh token for the current user.
+ *
+ * @param int $user_id User ID.
+ *
+ * @return string
+ */
+function bw_mew_get_supabase_refresh_token( $user_id ) {
+    $storage     = get_option( 'bw_supabase_session_storage', 'cookie' );
+    $storage     = in_array( $storage, [ 'cookie', 'usermeta' ], true ) ? $storage : 'cookie';
+    $cookie_base = get_option( 'bw_supabase_jwt_cookie_name', 'bw_supabase_session' );
+    $cookie_base = sanitize_key( $cookie_base ) ?: 'bw_supabase_session';
+    $token       = '';
+
+    if ( 'usermeta' === $storage && $user_id ) {
+        $token = (string) get_user_meta( $user_id, 'bw_supabase_refresh_token', true );
+        $token = $token ? sanitize_text_field( $token ) : '';
+    }
+
+    if ( ! $token ) {
+        $cookie_name = $cookie_base . '_refresh';
+        if ( isset( $_COOKIE[ $cookie_name ] ) ) {
+            $token = sanitize_text_field( wp_unslash( $_COOKIE[ $cookie_name ] ) );
+        }
+    }
+
+    if ( ! $token && $user_id ) {
+        $meta_token = (string) get_user_meta( $user_id, 'bw_supabase_refresh_token', true );
+        $token      = $meta_token ? sanitize_text_field( $meta_token ) : '';
+    }
+
+    return $token;
+}
+
+/**
+ * Ensure an access token is available, attempting refresh when needed.
+ *
+ * @param int $user_id User ID.
+ *
+ * @return string
+ */
+function bw_mew_get_supabase_access_token_with_refresh( $user_id ) {
+    $access_token = bw_mew_get_supabase_access_token_with_refresh( $user_id );
+    if ( $access_token ) {
+        return $access_token;
+    }
+
+    $refresh_token = bw_mew_get_supabase_refresh_token( $user_id );
+    if ( ! $refresh_token ) {
+        return '';
+    }
+
+    $config = bw_mew_get_supabase_config();
+    if ( empty( $config['has_url'] ) || empty( $config['has_anon'] ) ) {
+        return '';
+    }
+
+    $endpoint = trailingslashit( untrailingslashit( $config['project_url'] ) ) . 'auth/v1/token?grant_type=refresh_token';
+    $response = wp_remote_post(
+        $endpoint,
+        [
+            'headers' => [
+                'apikey'       => $config['anon_key'],
+                'Content-Type' => 'application/json',
+                'Accept'       => 'application/json',
+            ],
+            'timeout' => 15,
+            'body'    => wp_json_encode(
+                [
+                    'refresh_token' => $refresh_token,
+                ]
+            ),
+        ]
+    );
+
+    if ( is_wp_error( $response ) ) {
+        return '';
+    }
+
+    $status_code = (int) wp_remote_retrieve_response_code( $response );
+    $payload     = json_decode( wp_remote_retrieve_body( $response ), true );
+    if ( $status_code < 200 || $status_code >= 300 || ! is_array( $payload ) || empty( $payload['access_token'] ) ) {
+        return '';
+    }
+
+    $user = get_user_by( 'id', $user_id );
+    bw_mew_supabase_store_session(
+        $payload,
+        $user instanceof WP_User ? (string) $user->user_email : ''
+    );
+
+    return (string) $payload['access_token'];
+}
+
+/**
  * Request the Supabase user profile with an access token.
  *
  * @param string $access_token Supabase access token.
@@ -245,7 +339,7 @@ function bw_mew_sync_supabase_user( $user_id, $context = '' ) {
         return;
     }
 
-    $access_token = bw_mew_get_supabase_access_token( $user_id );
+    $access_token = bw_mew_get_supabase_access_token_with_refresh( $user_id );
     if ( ! $access_token ) {
         return;
     }
@@ -838,7 +932,7 @@ function bw_mew_handle_supabase_update_profile() {
     }
 
     $user_id      = get_current_user_id();
-    $access_token = bw_mew_get_supabase_access_token( $user_id );
+    $access_token = bw_mew_get_supabase_access_token_with_refresh( $user_id );
 
     if ( ! $access_token ) {
         wp_send_json_error( [ 'message' => __( 'Supabase session is missing.', 'bw' ) ], 401 );
@@ -934,7 +1028,7 @@ function bw_mew_handle_supabase_update_password() {
     }
 
     $user_id      = get_current_user_id();
-    $access_token = bw_mew_get_supabase_access_token( $user_id );
+    $access_token = bw_mew_get_supabase_access_token_with_refresh( $user_id );
 
     if ( ! $access_token ) {
         wp_send_json_error( [ 'message' => __( 'Supabase session is missing.', 'bw' ) ], 401 );
@@ -1037,7 +1131,7 @@ function bw_mew_handle_supabase_update_email() {
     }
 
     $user_id      = get_current_user_id();
-    $access_token = bw_mew_get_supabase_access_token( $user_id );
+    $access_token = bw_mew_get_supabase_access_token_with_refresh( $user_id );
 
     if ( ! $access_token ) {
         wp_send_json_error( [ 'message' => __( 'Supabase session is missing.', 'bw' ) ], 401 );
