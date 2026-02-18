@@ -712,7 +712,7 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
 
 .bw-order-price {
     margin: 0;
-    font-size: 24px;
+    font-size: 15px;
     line-height: 1;
     letter-spacing: -0.02em;
     color: #111;
@@ -783,7 +783,7 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
     }
 
     .bw-order-price {
-        font-size: 22px;
+        font-size: 15px;
     }
 
     .bw-order-btn {
@@ -823,7 +823,7 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
 
     .bw-order-price {
         grid-column: 2;
-        font-size: 21px;
+        font-size: 15px;
     }
 
     .bw-order-action {

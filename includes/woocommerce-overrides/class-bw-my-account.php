@@ -895,9 +895,13 @@ function bw_mew_get_dashboard_digital_orders( $user_id, $limit = 6 ) {
     foreach ( $downloads as $download ) {
         $order_id   = isset( $download['order_id'] ) ? (int) $download['order_id'] : 0;
         $product_id = isset( $download['product_id'] ) ? (int) $download['product_id'] : 0;
+        $download_id = isset( $download['download_id'] ) ? (string) $download['download_id'] : '';
         $url        = isset( $download['download_url'] ) ? (string) $download['download_url'] : '';
         if ( $order_id > 0 && $product_id > 0 && $url ) {
             $download_map[ $order_id . ':' . $product_id ] = esc_url_raw( $url );
+        }
+        if ( $order_id > 0 && $download_id && $url ) {
+            $download_map[ $order_id . ':download:' . $download_id ] = esc_url_raw( $url );
         }
     }
 
@@ -933,8 +937,42 @@ function bw_mew_get_dashboard_digital_orders( $user_id, $limit = 6 ) {
             }
 
             $product_id    = (int) $item->get_product_id();
-            $map_key       = (int) $order->get_id() . ':' . $product_id;
-            $download_url  = $download_map[ $map_key ] ?? '';
+            $variation_id  = (int) $item->get_variation_id();
+            $order_id      = (int) $order->get_id();
+            $download_id   = (string) $item->get_meta( '_download_id', true );
+            $download_url  = '';
+
+            $map_keys = [
+                $order_id . ':' . $variation_id,
+                $order_id . ':' . $product_id,
+            ];
+            if ( '' !== $download_id ) {
+                $map_keys[] = $order_id . ':download:' . $download_id;
+            }
+
+            foreach ( $map_keys as $key ) {
+                if ( isset( $download_map[ $key ] ) && '' !== $download_map[ $key ] ) {
+                    $download_url = $download_map[ $key ];
+                    break;
+                }
+            }
+
+            if ( '' === $download_url ) {
+                $order_downloads = $order->get_downloadable_items();
+                foreach ( $order_downloads as $order_download ) {
+                    $od_product_id   = isset( $order_download['product_id'] ) ? (int) $order_download['product_id'] : 0;
+                    $od_download_id  = isset( $order_download['download_id'] ) ? (string) $order_download['download_id'] : '';
+                    $od_download_url = isset( $order_download['download_url'] ) ? (string) $order_download['download_url'] : '';
+                    if ( $od_product_id === $product_id && '' !== $od_download_url ) {
+                        $download_url = esc_url_raw( $od_download_url );
+                        break;
+                    }
+                    if ( '' !== $download_id && $od_download_id === $download_id && '' !== $od_download_url ) {
+                        $download_url = esc_url_raw( $od_download_url );
+                        break;
+                    }
+                }
+            }
             $thumbnail_url = get_the_post_thumbnail_url( $product_id, 'thumbnail' );
             $rows[] = [
                 'title'       => $item->get_name(),
