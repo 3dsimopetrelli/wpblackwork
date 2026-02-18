@@ -951,7 +951,7 @@ function bw_mew_handle_supabase_update_password() {
         wp_send_json_error( [ 'message' => __( 'Passwords do not match.', 'bw' ) ], 400 );
     }
 
-    if ( ! bw_mew_supabase_password_meets_onboarding_requirements( $new_password ) ) {
+    if ( ! bw_mew_supabase_password_meets_requirements( $new_password ) ) {
         wp_send_json_error( [ 'message' => __( 'Password does not meet the requirements.', 'bw' ) ], 400 );
     }
 
@@ -998,7 +998,7 @@ function bw_mew_handle_supabase_create_password() {
         wp_send_json_error( [ 'message' => __( 'Passwords do not match.', 'bw' ) ], 400 );
     }
 
-    if ( ! bw_mew_supabase_password_meets_requirements( $new_password ) ) {
+    if ( ! bw_mew_supabase_password_meets_onboarding_requirements( $new_password ) ) {
         wp_send_json_error( [ 'message' => __( 'Password does not meet the requirements.', 'bw' ) ], 400 );
     }
 
