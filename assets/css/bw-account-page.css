@@ -778,11 +778,13 @@ body.woocommerce-account .bw-account-login-page--post-checkout .bw-account-login
 }
 
 body.woocommerce-account .bw-account-login-page--post-checkout .bw-account-login__intro .bw-account-login__title {
-    margin: 0 0 14px;
+    margin: 0 0 10px;
     font-family: inherit;
-    font-size: 56px;
-    font-weight: 500;
-    line-height: 1.05;
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: 0;
+    text-align: center;
 }
 
 body.woocommerce-account .bw-account-login-page--post-checkout .bw-account-login__subtitle {
@@ -816,7 +818,7 @@ body.woocommerce-account .bw-account-login-page--post-checkout .bw-account-login
 .bw-account-login__post-checkout-title {
     margin: 0 0 4px;
     font-family: inherit;
-    font-size: 36px;
+    font-size: 23px;
     line-height: 1.1;
     font-weight: 500;
     letter-spacing: 0;
@@ -855,15 +857,28 @@ body.woocommerce-account .bw-account-login-page--post-checkout .bw-account-login
 }
 
 .bw-account-login__change-email {
-    border: 0;
-    background: transparent;
-    color: #161616;
-    font-size: 15px;
-    line-height: 1.2;
-    text-decoration: underline;
-    text-underline-offset: 6px;
+    border: 0 !important;
+    background: transparent !important;
+    color: #161616 !important;
+    font-family: inherit;
+    font-size: 16px !important;
+    font-weight: 400 !important;
+    line-height: 1.4;
+    text-decoration: none !important;
+    text-underline-offset: 4px;
+    border-radius: 0 !important;
+    box-shadow: none !important;
     cursor: pointer;
     padding: 0;
+}
+
+.bw-account-login__change-email:hover,
+.bw-account-login__change-email:focus,
+.bw-account-login__change-email:active,
+.bw-account-login__change-email:focus-visible {
+    background: transparent !important;
+    color: #161616 !important;
+    text-decoration: underline !important;
 }
 
 .bw-account-login__actions--label {
@@ -952,7 +967,7 @@ body.woocommerce-account .bw-account-login-page--post-checkout .bw-account-login
     }
 
     body.woocommerce-account .bw-account-login-page--post-checkout .bw-account-login__intro .bw-account-login__title {
-        font-size: 44px;
+        font-size: 20px;
     }
 
     body.woocommerce-account .bw-account-login-page--post-checkout .bw-account-login__subtitle {
@@ -974,7 +989,7 @@ body.woocommerce-account .bw-account-login-page--post-checkout .bw-account-login
     }
 
     .bw-account-login__post-checkout-title {
-        font-size: 30px;
+        font-size: 23px;
     }
 
     .bw-account-login__post-checkout-email {
