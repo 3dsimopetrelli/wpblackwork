@@ -201,6 +201,7 @@
     const resendButton = document.querySelector('[data-bw-resend-invite]');
     const resendEmailInput = document.querySelector('[data-bw-resend-email]');
     const resendNotice = document.querySelector('[data-bw-resend-notice]');
+    const changeEmailButton = document.querySelector('[data-bw-change-email]');
 
     if (!window.bwAccountOnboarding) {
         return;
@@ -350,6 +351,14 @@
                 .finally(() => {
                     resendButton.disabled = false;
                 });
+        });
+    }
+
+    if (changeEmailButton && resendEmailInput) {
+        changeEmailButton.addEventListener('click', (event) => {
+            event.preventDefault();
+            resendEmailInput.focus();
+            resendEmailInput.select();
         });
     }
 

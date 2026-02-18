@@ -219,6 +219,10 @@ body.woocommerce-account .bw-account-login-page--post-checkout .bw-account-login
     padding-top: 28px;
 }
 
+body.woocommerce-account .bw-account-login-page--post-checkout .bw-account-login__content {
+    max-width: 760px;
+}
+
 /* Logo container - padding controlled via admin panel (Blackwork > Site Settings > My Account Page) */
 .bw-account-login__logo {
     display: flex;
@@ -769,45 +773,117 @@ body.woocommerce-account.bw-account-login-only .bw-account-login__register-link:
     margin-bottom: 16px;
 }
 
-.bw-account-login__intro-notices--post-checkout .woocommerce-info {
-    margin-bottom: 10px !important;
+body.woocommerce-account .bw-account-login-page--post-checkout .bw-account-login__intro {
+    margin-bottom: 44px;
+}
+
+body.woocommerce-account .bw-account-login-page--post-checkout .bw-account-login__intro .bw-account-login__title {
+    margin: 0 0 14px;
+    font-family: "Cormorant Garamond", "Times New Roman", serif;
+    font-size: clamp(56px, 7vw, 74px);
+    font-weight: 500;
+    line-height: 1;
+}
+
+body.woocommerce-account .bw-account-login-page--post-checkout .bw-account-login__subtitle {
+    max-width: 640px;
+    margin: 0 auto;
+    font-size: 18px;
+    line-height: 1.5;
+    color: #1f2937;
 }
 
 .bw-account-login__post-checkout-notice {
-    margin: 0 0 10px;
-    padding: 20px 18px;
-    border: 1px solid #d0d0d0;
-    border-radius: 16px;
-    background: #ffffff;
+    margin: 0;
+    border: 1px solid #cfcfd3;
+    border-radius: 26px;
+    background: #f6f6f7;
     color: #111;
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
 }
 
-.bw-account-login__post-checkout-icon {
-    width: 34px;
-    height: 34px;
-    display: inline-flex;
+.bw-account-login__post-checkout-head {
+    display: flex;
     align-items: center;
-    justify-content: center;
+    gap: 18px;
+    padding: 30px 28px 26px;
+}
+
+.bw-account-login__post-checkout-meta {
+    min-width: 0;
+}
+
+.bw-account-login__post-checkout-title {
+    margin: 0 0 4px;
+    font-family: "Cormorant Garamond", "Times New Roman", serif;
+    font-size: 50px;
+    line-height: 1;
+    font-weight: 500;
+    letter-spacing: 0;
+}
+
+.bw-account-login__post-checkout-email {
+    margin: 0;
+    font-size: 21px;
+    line-height: 1.4;
     color: #111;
-    flex-shrink: 0;
 }
 
 .bw-account-login__post-checkout-icon svg {
-    width: 100%;
-    height: 100%;
+    width: 64px;
+    height: 64px;
     display: block;
+    color: #111;
+}
+
+.bw-account-login__post-checkout-body {
+    border-top: 1px solid #cfcfd3;
+    padding: 26px 28px 30px;
 }
 
 .bw-account-login__post-checkout-text {
     margin: 0;
     color: #111;
-    font-size: 24px;
-    line-height: 1.32;
-    font-weight: 500;
+    font-size: 20px;
+    line-height: 1.45;
+    font-weight: 400;
+}
+
+.bw-account-login__change-email-wrap {
+    margin: 22px 0 16px;
+    text-align: center;
+}
+
+.bw-account-login__change-email {
+    border: 0;
+    background: transparent;
+    color: #161616;
+    font-size: 22px;
+    line-height: 1.2;
+    text-decoration: underline;
+    text-underline-offset: 6px;
+    cursor: pointer;
+    padding: 0;
+}
+
+.bw-account-login__actions--label {
+    margin-top: 0;
+    margin-bottom: 8px;
+}
+
+.bw-account-login__resend-label {
+    display: block;
+    font-size: 18px;
+    line-height: 1.35;
+    color: #374151;
+}
+
+.bw-account-login__actions--resend-email {
+    margin-top: 0;
+}
+
+.bw-account-login__actions--resend-button {
+    margin-top: 16px;
 }
 
 .bw-account-login__resend-invite {
@@ -871,20 +947,56 @@ body.woocommerce-account.bw-account-login-only .bw-account-login__register-link:
 }
 
 @media (max-width: 767px) {
-    .bw-account-login__post-checkout-notice {
-        padding: 18px 14px;
-        gap: 10px;
-        border-radius: 14px;
+    body.woocommerce-account .bw-account-login-page--post-checkout .bw-account-login__intro {
+        margin-bottom: 30px;
     }
 
-    .bw-account-login__post-checkout-icon {
-        width: 28px;
-        height: 28px;
+    body.woocommerce-account .bw-account-login-page--post-checkout .bw-account-login__intro .bw-account-login__title {
+        font-size: 60px;
+    }
+
+    body.woocommerce-account .bw-account-login-page--post-checkout .bw-account-login__subtitle {
+        font-size: 16px;
+    }
+
+    .bw-account-login__post-checkout-notice {
+        border-radius: 20px;
+    }
+
+    .bw-account-login__post-checkout-head {
+        gap: 12px;
+        padding: 20px 16px;
+    }
+
+    .bw-account-login__post-checkout-icon svg {
+        width: 48px;
+        height: 48px;
+    }
+
+    .bw-account-login__post-checkout-title {
+        font-size: 40px;
+    }
+
+    .bw-account-login__post-checkout-email {
+        font-size: 16px;
+        word-break: break-word;
+    }
+
+    .bw-account-login__post-checkout-body {
+        padding: 20px 16px 22px;
     }
 
     .bw-account-login__post-checkout-text {
-        font-size: 20px;
-        line-height: 1.36;
+        font-size: 17px;
+    }
+
+    .bw-account-login__change-email {
+        font-size: 16px;
+        text-underline-offset: 4px;
+    }
+
+    .bw-account-login__resend-label {
+        font-size: 15px;
     }
 }
 

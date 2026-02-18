@@ -109,7 +109,8 @@ if ( ! $post_checkout_gate && 'supabase' === $login_provider && $is_email_entry 
 }
 
 if ( $post_checkout_gate && 'supabase' === $login_provider ) {
-    $login_subtitle = __( 'Check your inbox: we sent two emails - your order confirmation and your account setup email. Click "Complete your account" in the setup email to activate access.', 'bw' );
+    $login_title    = __( 'Activate your account', 'bw' );
+    $login_subtitle = __( 'Create your password to access your orders and downloads.', 'bw' );
 }
 
 $wrapper_class = 'bw-account-login-page bw-full-section' . ( $has_cover ? ' bw-account-login-page--has-cover' : '' );
@@ -224,28 +225,48 @@ $login_subtitle_html = nl2br( esc_html( $login_subtitle ) );
 	                <?php if ( 'supabase' === $login_provider && $post_checkout_gate ) : ?>
 	                    <div class="bw-account-login__intro-notices bw-account-login__form-notices bw-account-login__intro-notices--post-checkout">
 	                        <div class="bw-account-login__post-checkout-notice" role="status">
-	                            <p class="bw-account-login__post-checkout-text">
-	                                <?php esc_html_e( 'Complete your account from the invite email to access orders and downloads.', 'bw' ); ?>
-	                            </p>
+                                <div class="bw-account-login__post-checkout-head">
+                                    <div class="bw-account-login__post-checkout-icon" aria-hidden="true">
+                                        <svg viewBox="0 0 24 24" focusable="false" role="presentation">
+                                            <rect x="2.5" y="5.5" width="19" height="13" rx="2.2" fill="none" stroke="currentColor" stroke-width="1.8" />
+                                            <path d="M3.3 6.2L12 12.8l8.7-6.6" fill="none" stroke="currentColor" stroke-width="1.8" />
+                                        </svg>
+                                    </div>
+                                    <div class="bw-account-login__post-checkout-meta">
+                                        <h3 class="bw-account-login__post-checkout-title"><?php esc_html_e( 'Activation email sent', 'bw' ); ?></h3>
+                                        <p class="bw-account-login__post-checkout-email"><?php echo esc_html( $post_checkout_email ); ?></p>
+                                    </div>
+                                </div>
+                                <div class="bw-account-login__post-checkout-body">
+                                    <p class="bw-account-login__post-checkout-text">
+                                        <?php esc_html_e( 'Complete your account from the invite email to access orders and downloads.', 'bw' ); ?>
+                                    </p>
+                                </div>
 	                        </div>
-                        <p>
-                            <?php esc_html_e( 'Didn\'t receive it? Request a new invite email here.', 'bw' ); ?>
-                        </p>
-                        <p class="bw-account-login__actions">
-                            <input
-                                class="woocommerce-Input woocommerce-Input--text input-text bw-account-login__resend-email"
-                                type="email"
-                                data-bw-resend-email
-                                value="<?php echo esc_attr( $post_checkout_email ); ?>"
-                                autocomplete="email"
-                                placeholder="<?php esc_attr_e( 'Email address', 'bw' ); ?>"
-                            />
-                        </p>
-                        <p class="bw-account-login__actions">
-                            <button type="button" class="woocommerce-button button bw-account-login__resend-invite" data-bw-resend-invite>
-                                <?php esc_html_e( 'Resend invite email', 'bw' ); ?>
-                            </button>
-                        </p>
+	                        <p class="bw-account-login__change-email-wrap">
+                                <button type="button" class="bw-account-login__change-email" data-bw-change-email>
+                                    <?php esc_html_e( 'Change email', 'bw' ); ?>
+                                </button>
+	                        </p>
+	                        <p class="bw-account-login__actions bw-account-login__actions--label">
+                                <label class="bw-account-login__resend-label" for="bw_post_checkout_resend_email"><?php esc_html_e( 'Email address', 'bw' ); ?></label>
+                            </p>
+	                        <p class="bw-account-login__actions bw-account-login__actions--resend-email">
+	                            <input
+	                                class="woocommerce-Input woocommerce-Input--text input-text bw-account-login__resend-email"
+	                                type="email"
+                                    id="bw_post_checkout_resend_email"
+	                                data-bw-resend-email
+	                                value="<?php echo esc_attr( $post_checkout_email ); ?>"
+	                                autocomplete="email"
+	                                placeholder="<?php esc_attr_e( 'Email address', 'bw' ); ?>"
+	                            />
+	                        </p>
+	                        <p class="bw-account-login__actions bw-account-login__actions--resend-button">
+	                            <button type="button" class="woocommerce-button button bw-account-login__resend-invite" data-bw-resend-invite>
+	                                <?php esc_html_e( 'Resend email', 'bw' ); ?>
+	                            </button>
+	                        </p>
                         <p class="bw-account-set-password__error" role="alert" hidden></p>
                         <p class="bw-account-set-password__notice" data-bw-resend-notice hidden></p>
                     </div>
