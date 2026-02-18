@@ -782,23 +782,73 @@ function bw_mew_get_customer_library_count( $user_id ) {
 function bw_mew_get_order_item_license_label( WC_Order_Item_Product $item, $product = null ) {
     $license = '';
 
-    $license_keys = [ 'license', 'license_type', '_license', '_license_type', 'License', 'License Type' ];
+    $license_keys = [ 'attribute_pa_license', 'attribute_license', 'pa_license', 'license', 'license_type', '_license', '_license_type', 'License', 'License Type' ];
     foreach ( $license_keys as $key ) {
         $value = $item->get_meta( $key, true );
         if ( is_scalar( $value ) && '' !== trim( (string) $value ) ) {
-            $license = trim( (string) $value );
+            $license = bw_mew_format_license_label( (string) $value );
             break;
+        }
+    }
+
+    if ( '' === $license ) {
+        $variation_id = (int) $item->get_variation_id();
+        if ( $variation_id > 0 && function_exists( 'wc_get_product_variation_attributes' ) ) {
+            $variation_attributes = wc_get_product_variation_attributes( $variation_id );
+            $variation_value      = $variation_attributes['attribute_pa_license'] ?? ( $variation_attributes['attribute_license'] ?? '' );
+            if ( is_scalar( $variation_value ) && '' !== trim( (string) $variation_value ) ) {
+                $license = bw_mew_format_license_label( (string) $variation_value );
+            }
         }
     }
 
     if ( '' === $license && $product instanceof WC_Product ) {
         $attribute = (string) $product->get_attribute( 'pa_license' );
         if ( '' !== trim( $attribute ) ) {
-            $license = trim( $attribute );
+            $license = bw_mew_format_license_label( $attribute );
         }
     }
 
     return $license ? $license : __( 'License', 'bw' );
+}
+
+/**
+ * Format stored license value into a readable label.
+ *
+ * @param string $value Raw license value.
+ *
+ * @return string
+ */
+function bw_mew_format_license_label( $value ) {
+    $value = trim( (string) $value );
+    if ( '' === $value ) {
+        return '';
+    }
+
+    $decoded = rawurldecode( $value );
+    $taxonomies = [ 'pa_license', 'license' ];
+
+    foreach ( $taxonomies as $taxonomy ) {
+        if ( ! taxonomy_exists( $taxonomy ) ) {
+            continue;
+        }
+
+        $term = get_term_by( 'slug', $decoded, $taxonomy );
+        if ( $term && ! is_wp_error( $term ) && ! empty( $term->name ) ) {
+            return trim( (string) $term->name );
+        }
+
+        $term = get_term_by( 'name', $decoded, $taxonomy );
+        if ( $term && ! is_wp_error( $term ) && ! empty( $term->name ) ) {
+            return trim( (string) $term->name );
+        }
+    }
+
+    if ( false === strpos( $decoded, ' ' ) && ( false !== strpos( $decoded, '-' ) || false !== strpos( $decoded, '_' ) ) ) {
+        return ucwords( str_replace( [ '-', '_' ], ' ', $decoded ) );
+    }
+
+    return $decoded;
 }
 
 /**

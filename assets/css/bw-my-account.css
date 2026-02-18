@@ -637,22 +637,30 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
     margin-bottom: 20px;
 }
 
+.bw-order-card {
+    border: 1px solid #e7e7e7;
+    border-radius: 14px;
+    background: #fff;
+    overflow: hidden;
+}
+
 .bw-section-header h3 {
-    margin: 0 0 14px;
-    font-size: 34px;
+    margin: 0;
+    font-size: 22px;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    line-height: 1;
+    line-height: 1.1;
+}
+
+.bw-section-header--inside {
+    padding: 16px 20px 14px;
+    border-bottom: 1px solid #ececec;
 }
 
 .bw-order-list {
     list-style: none;
     margin: 0;
     padding: 0;
-    border: 1px solid #e7e7e7;
-    border-radius: 14px;
-    background: #fff;
-    overflow: hidden;
 }
 
 .bw-order-row {
@@ -660,7 +668,7 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
     grid-template-columns: 76px minmax(0, 1fr) auto auto;
     gap: 18px;
     align-items: center;
-    padding: 16px 20px;
+    padding: 14px 20px;
     border-bottom: 1px solid #ececec;
 }
 
@@ -690,21 +698,21 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
 
 .bw-order-title {
     margin: 0 0 4px;
-    font-size: 36px;
-    line-height: 1;
+    font-size: 20px;
+    line-height: 1.2;
     letter-spacing: -0.02em;
     color: #111;
 }
 
 .bw-order-meta {
     margin: 0;
-    font-size: 15px;
+    font-size: 13px;
     color: #5f5f5f;
 }
 
 .bw-order-price {
     margin: 0;
-    font-size: 39px;
+    font-size: 24px;
     line-height: 1;
     letter-spacing: -0.02em;
     color: #111;
@@ -719,11 +727,12 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 176px;
-    min-height: 56px;
-    border-radius: 14px;
-    padding: 10px 20px;
-    font-size: 22px;
+    min-width: 136px;
+    min-height: 44px;
+    border-radius: 12px;
+    padding: 9px 16px;
+    font-size: 16px;
+    font-weight: 500;
     line-height: 1;
     text-decoration: none;
     transition: filter 180ms ease, transform 180ms ease;
@@ -748,21 +757,21 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
 
 @media (max-width: 1024px) {
     .bw-section-header h3 {
-        font-size: 26px;
+        font-size: 20px;
     }
 
     .bw-order-title {
-        font-size: 28px;
+        font-size: 18px;
     }
 
     .bw-order-price {
-        font-size: 30px;
+        font-size: 22px;
     }
 
     .bw-order-btn {
-        min-width: 148px;
-        min-height: 48px;
-        font-size: 18px;
+        min-width: 126px;
+        min-height: 42px;
+        font-size: 15px;
     }
 }
 
@@ -780,16 +789,16 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
     }
 
     .bw-order-title {
-        font-size: 22px;
+        font-size: 17px;
     }
 
     .bw-order-meta {
-        font-size: 14px;
+        font-size: 13px;
     }
 
     .bw-order-price {
         grid-column: 2;
-        font-size: 24px;
+        font-size: 21px;
     }
 
     .bw-order-action {

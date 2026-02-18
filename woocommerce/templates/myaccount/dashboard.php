@@ -69,68 +69,72 @@ $library_label        = sprintf(
     </section>
 
     <section class="bw-dashboard-section bw-dashboard-section--digital">
-        <div class="bw-section-header">
-            <h3><?php esc_html_e( 'Your digital orders', 'bw' ); ?></h3>
+        <div class="bw-order-card">
+            <div class="bw-section-header bw-section-header--inside">
+                <h3><?php esc_html_e( 'Your digital orders', 'bw' ); ?></h3>
+            </div>
+            <?php if ( ! empty( $digital_orders ) ) : ?>
+                <ul class="bw-order-list">
+                    <?php foreach ( $digital_orders as $row ) : ?>
+                        <li class="bw-order-row bw-order-row--digital">
+                            <div class="bw-order-thumb">
+                                <?php if ( ! empty( $row['thumbnail'] ) ) : ?>
+                                    <img src="<?php echo esc_url( $row['thumbnail'] ); ?>" alt="<?php echo esc_attr( $row['title'] ); ?>" loading="lazy" />
+                                <?php else : ?>
+                                    <span class="bw-order-thumb-placeholder" aria-hidden="true"></span>
+                                <?php endif; ?>
+                            </div>
+                            <div class="bw-order-info">
+                                <p class="bw-order-title"><?php echo esc_html( $row['title'] ); ?></p>
+                                <p class="bw-order-meta"><?php echo esc_html( $row['license'] ); ?> <span aria-hidden="true">|</span> <?php echo esc_html( $row['date'] ); ?></p>
+                            </div>
+                            <p class="bw-order-price"><?php echo wp_kses_post( $row['price'] ); ?></p>
+                            <div class="bw-order-action">
+                                <?php if ( ! empty( $row['downloadUrl'] ) ) : ?>
+                                    <a class="bw-order-btn bw-order-btn--download" href="<?php echo esc_url( $row['downloadUrl'] ); ?>"><?php esc_html_e( 'Download', 'bw' ); ?></a>
+                                <?php else : ?>
+                                    <a class="bw-order-btn bw-order-btn--details" href="<?php echo esc_url( $row['orderUrl'] ); ?>"><?php esc_html_e( 'View details', 'bw' ); ?></a>
+                                <?php endif; ?>
+                            </div>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            <?php else : ?>
+                <p class="bw-empty-state"><?php esc_html_e( 'No digital orders found yet.', 'bw' ); ?></p>
+            <?php endif; ?>
         </div>
-        <?php if ( ! empty( $digital_orders ) ) : ?>
-            <ul class="bw-order-list">
-                <?php foreach ( $digital_orders as $row ) : ?>
-                    <li class="bw-order-row bw-order-row--digital">
-                        <div class="bw-order-thumb">
-                            <?php if ( ! empty( $row['thumbnail'] ) ) : ?>
-                                <img src="<?php echo esc_url( $row['thumbnail'] ); ?>" alt="<?php echo esc_attr( $row['title'] ); ?>" loading="lazy" />
-                            <?php else : ?>
-                                <span class="bw-order-thumb-placeholder" aria-hidden="true"></span>
-                            <?php endif; ?>
-                        </div>
-                        <div class="bw-order-info">
-                            <p class="bw-order-title"><?php echo esc_html( $row['title'] ); ?></p>
-                            <p class="bw-order-meta"><?php echo esc_html( $row['license'] ); ?> <span aria-hidden="true">|</span> <?php echo esc_html( $row['date'] ); ?></p>
-                        </div>
-                        <p class="bw-order-price"><?php echo wp_kses_post( $row['price'] ); ?></p>
-                        <div class="bw-order-action">
-                            <?php if ( ! empty( $row['downloadUrl'] ) ) : ?>
-                                <a class="bw-order-btn bw-order-btn--download" href="<?php echo esc_url( $row['downloadUrl'] ); ?>"><?php esc_html_e( 'Download', 'bw' ); ?></a>
-                            <?php else : ?>
-                                <a class="bw-order-btn bw-order-btn--details" href="<?php echo esc_url( $row['orderUrl'] ); ?>"><?php esc_html_e( 'View details', 'bw' ); ?></a>
-                            <?php endif; ?>
-                        </div>
-                    </li>
-                <?php endforeach; ?>
-            </ul>
-        <?php else : ?>
-            <p class="bw-empty-state"><?php esc_html_e( 'No digital orders found yet.', 'bw' ); ?></p>
-        <?php endif; ?>
     </section>
 
     <section class="bw-dashboard-section bw-dashboard-section--physical">
-        <div class="bw-section-header">
-            <h3><?php esc_html_e( 'Physical orders', 'bw' ); ?></h3>
+        <div class="bw-order-card">
+            <div class="bw-section-header bw-section-header--inside">
+                <h3><?php esc_html_e( 'Physical orders', 'bw' ); ?></h3>
+            </div>
+            <?php if ( ! empty( $physical_orders ) ) : ?>
+                <ul class="bw-order-list">
+                    <?php foreach ( $physical_orders as $row ) : ?>
+                        <li class="bw-order-row bw-order-row--physical">
+                            <div class="bw-order-thumb">
+                                <?php if ( ! empty( $row['thumbnail'] ) ) : ?>
+                                    <img src="<?php echo esc_url( $row['thumbnail'] ); ?>" alt="<?php echo esc_attr( $row['title'] ); ?>" loading="lazy" />
+                                <?php else : ?>
+                                    <span class="bw-order-thumb-placeholder" aria-hidden="true"></span>
+                                <?php endif; ?>
+                            </div>
+                            <div class="bw-order-info">
+                                <p class="bw-order-title"><?php echo esc_html( $row['title'] ); ?></p>
+                                <p class="bw-order-meta"><?php echo esc_html( $row['date'] ); ?></p>
+                            </div>
+                            <p class="bw-order-price"><?php echo wp_kses_post( $row['price'] ); ?></p>
+                            <div class="bw-order-action">
+                                <a class="bw-order-btn bw-order-btn--details" href="<?php echo esc_url( $row['orderUrl'] ); ?>"><?php esc_html_e( 'View order', 'bw' ); ?></a>
+                            </div>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            <?php else : ?>
+                <p class="bw-empty-state"><?php esc_html_e( 'No physical orders found yet.', 'bw' ); ?></p>
+            <?php endif; ?>
         </div>
-        <?php if ( ! empty( $physical_orders ) ) : ?>
-            <ul class="bw-order-list">
-                <?php foreach ( $physical_orders as $row ) : ?>
-                    <li class="bw-order-row bw-order-row--physical">
-                        <div class="bw-order-thumb">
-                            <?php if ( ! empty( $row['thumbnail'] ) ) : ?>
-                                <img src="<?php echo esc_url( $row['thumbnail'] ); ?>" alt="<?php echo esc_attr( $row['title'] ); ?>" loading="lazy" />
-                            <?php else : ?>
-                                <span class="bw-order-thumb-placeholder" aria-hidden="true"></span>
-                            <?php endif; ?>
-                        </div>
-                        <div class="bw-order-info">
-                            <p class="bw-order-title"><?php echo esc_html( $row['title'] ); ?></p>
-                            <p class="bw-order-meta"><?php echo esc_html( $row['date'] ); ?></p>
-                        </div>
-                        <p class="bw-order-price"><?php echo wp_kses_post( $row['price'] ); ?></p>
-                        <div class="bw-order-action">
-                            <a class="bw-order-btn bw-order-btn--details" href="<?php echo esc_url( $row['orderUrl'] ); ?>"><?php esc_html_e( 'View order', 'bw' ); ?></a>
-                        </div>
-                    </li>
-                <?php endforeach; ?>
-            </ul>
-        <?php else : ?>
-            <p class="bw-empty-state"><?php esc_html_e( 'No physical orders found yet.', 'bw' ); ?></p>
-        <?php endif; ?>
     </section>
 </div>
