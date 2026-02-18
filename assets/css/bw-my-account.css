@@ -437,16 +437,16 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
 
 .bw-account-dashboard .bw-account-hero {
     display: grid;
-    grid-template-columns: 2fr 3fr;
-    gap: 16px;
+    grid-template-columns: minmax(0, 2.3fr) minmax(0, 1fr);
+    gap: 20px;
     margin-bottom: 24px;
 }
 
 .bw-hero-box {
-    --bw-hero-padding: 20px;
-    border-radius: 12px;
+    --bw-hero-padding: 26px;
+    border-radius: 16px;
     padding: var(--bw-hero-padding);
-    min-height: 270px;
+    min-height: 260px;
     display: flex;
     flex-direction: column;
 }
@@ -457,31 +457,70 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
 }
 
 .bw-hero-message {
-    background: #0f0f0f;
+    background: radial-gradient(circle at 100% 100%, #121826 0%, #0b0b0f 52%, #050505 100%);
     color: #fff;
 }
 
 .bw-hero-label {
-    font-size: 12px;
+    font-size: 34px;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    margin: 0 0 8px;
+    margin: 0;
+    font-weight: 700;
+    line-height: 1;
 }
 
 .bw-hero-title {
-    font-size: 26px;
-    margin: 0 0 12px;
+    font-size: 58px;
+    margin: 16px 0 10px;
+    line-height: 1;
+    letter-spacing: -0.02em;
+}
+
+.bw-hero-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+}
+
+.bw-hero-verified {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.bw-hero-email {
+    margin: 0;
+    font-size: 43px;
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    word-break: break-word;
+}
+
+.bw-hero-help-title {
+    margin: 0 0 14px;
+    font-size: 44px;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    font-weight: 600;
 }
 
 .bw-hero-description,
 .bw-hero-body p {
-    margin: 0 0 8px;
+    margin: 0 0 10px;
     line-height: 1.5;
+    font-size: 17px;
+}
+
+.bw-hero-body {
+    font-size: 17px;
 }
 
 .bw-hero-footer {
     margin-top: auto;
-    padding-top: 16px;
+    padding-top: 20px;
     border-top: 1px solid #e5e5e5;
     margin-left: calc(-1 * var(--bw-hero-padding));
     margin-right: calc(-1 * var(--bw-hero-padding));
@@ -489,15 +528,64 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
     padding-right: var(--bw-hero-padding);
 }
 
-.bw-hero-link {
+.bw-hero-footer--stats {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 16px;
+    align-items: center;
+}
+
+.bw-hero-meta {
+    min-width: 0;
+}
+
+.bw-hero-meta-item {
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.45;
+}
+
+.bw-hero-library {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.bw-hero-support-link {
     display: inline-flex;
     align-items: center;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    font-size: 13px;
-    font-weight: 600;
-    color: inherit;
+    justify-content: center;
+    min-height: 52px;
+    padding: 10px 32px;
+    border: 1.5px solid rgba(255, 255, 255, 0.78);
+    border-radius: 999px;
+    color: #fff;
     text-decoration: none;
+    font-size: 19px;
+    line-height: 1;
+    transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease;
+}
+
+.bw-hero-support-link:hover,
+.bw-hero-support-link:focus {
+    background: #fff;
+    color: #000;
+    border-color: #fff;
+    text-decoration: none;
+}
+
+.bw-dashboard-thanks {
+    margin: 0 0 24px;
+    padding: 18px 22px;
+    border-radius: 12px;
+    background: #f0f0f0;
+}
+
+.bw-dashboard-thanks p {
+    margin: 0;
+    font-size: 19px;
+    line-height: 1.45;
+    color: #1f1f1f;
 }
 
 .bw-hero-description a {
@@ -508,6 +596,40 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
 @media (max-width: 768px) {
     .bw-account-dashboard .bw-account-hero {
         grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .bw-hero-label {
+        font-size: 22px;
+    }
+
+    .bw-hero-title {
+        font-size: 42px;
+    }
+
+    .bw-hero-email {
+        font-size: 29px;
+    }
+
+    .bw-hero-help-title {
+        font-size: 34px;
+    }
+
+    .bw-hero-verified {
+        font-size: 15px;
+    }
+
+    .bw-hero-footer--stats {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .bw-hero-support-link {
+        width: 100%;
+    }
+
+    .bw-dashboard-thanks p {
+        font-size: 17px;
     }
 }
 

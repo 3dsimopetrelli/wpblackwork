@@ -1572,8 +1572,12 @@ function bw_site_render_my_account_front_tab()
         $black_box_text = isset($_POST['bw_myaccount_black_box_text'])
             ? wp_kses_post(wp_unslash($_POST['bw_myaccount_black_box_text']))
             : '';
+        $support_link = isset($_POST['bw_myaccount_support_link'])
+            ? esc_url_raw(wp_unslash($_POST['bw_myaccount_support_link']))
+            : '';
 
         update_option('bw_myaccount_black_box_text', $black_box_text);
+        update_option('bw_myaccount_support_link', $support_link);
 
         $saved = true;
     }
@@ -1582,6 +1586,7 @@ function bw_site_render_my_account_front_tab()
         'bw_myaccount_black_box_text',
         __('Your mockups will always be here, available to download. Please enjoy them!', 'bw')
     );
+    $support_link = get_option('bw_myaccount_support_link', '');
     ?>
     <?php if ($saved): ?>
         <div class="notice notice-success is-dismissible">
@@ -1603,6 +1608,18 @@ function bw_site_render_my_account_front_tab()
                         class="large-text"><?php echo esc_textarea($black_box_text); ?></textarea>
                     <p class="description">
                         <?php esc_html_e('Contenuto mostrato nel box nero in alto alla dashboard My Account. Puoi utilizzare HTML semplice; il testo verrà sanificato.', 'bw'); ?>
+                    </p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_myaccount_support_link"><?php esc_html_e('Link Support (My Account)', 'bw'); ?></label>
+                </th>
+                <td>
+                    <input id="bw_myaccount_support_link" name="bw_myaccount_support_link" type="url"
+                        class="regular-text" value="<?php echo esc_attr($support_link); ?>" placeholder="https://blackwork.pro/support/" />
+                    <p class="description">
+                        <?php esc_html_e('URL del pulsante "Contact support" nel box nero della dashboard My Account.', 'bw'); ?>
                     </p>
                 </td>
             </tr>

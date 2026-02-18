@@ -560,6 +560,103 @@ function bw_mew_get_my_account_black_box_text() {
 }
 
 /**
+ * Get My Account support link URL from settings.
+ *
+ * @return string
+ */
+function bw_mew_get_my_account_support_link() {
+    $default = function_exists( 'wc_get_endpoint_url' ) ? wc_get_endpoint_url( 'edit-account' ) : home_url( '/contact/' );
+    $url     = (string) get_option( 'bw_myaccount_support_link', $default );
+    $url     = trim( $url );
+
+    if ( '' === $url ) {
+        return $default;
+    }
+
+    return esc_url_raw( $url );
+}
+
+/**
+ * Get display name parts for My Account dashboard.
+ *
+ * @param int $user_id User ID.
+ *
+ * @return array{full_name:string,email:string}
+ */
+function bw_mew_get_dashboard_identity( $user_id ) {
+    $user = get_user_by( 'id', $user_id );
+    if ( ! $user instanceof WP_User ) {
+        return [
+            'full_name' => '',
+            'email'     => '',
+        ];
+    }
+
+    $first_name = trim( (string) get_user_meta( $user_id, 'first_name', true ) );
+    $last_name  = trim( (string) get_user_meta( $user_id, 'last_name', true ) );
+
+    if ( '' === $first_name ) {
+        $first_name = trim( (string) get_user_meta( $user_id, 'billing_first_name', true ) );
+    }
+    if ( '' === $last_name ) {
+        $last_name = trim( (string) get_user_meta( $user_id, 'billing_last_name', true ) );
+    }
+
+    $full_name = trim( $first_name . ' ' . $last_name );
+
+    return [
+        'full_name' => $full_name,
+        'email'     => sanitize_email( (string) $user->user_email ),
+    ];
+}
+
+/**
+ * Count unique purchased products for the current customer.
+ *
+ * @param int $user_id User ID.
+ *
+ * @return int
+ */
+function bw_mew_get_customer_library_count( $user_id ) {
+    if ( ! function_exists( 'wc_get_orders' ) || ! $user_id ) {
+        return 0;
+    }
+
+    $orders = wc_get_orders(
+        [
+            'limit'    => -1,
+            'customer' => $user_id,
+            'status'   => apply_filters( 'woocommerce_my_account_my_orders_query_statuses', [ 'wc-completed', 'wc-processing', 'wc-on-hold' ] ),
+            'return'   => 'objects',
+        ]
+    );
+
+    if ( empty( $orders ) ) {
+        return 0;
+    }
+
+    $product_ids = [];
+    foreach ( $orders as $order ) {
+        if ( ! $order instanceof WC_Order ) {
+            continue;
+        }
+
+        foreach ( $order->get_items( 'line_item' ) as $item ) {
+            if ( ! $item instanceof WC_Order_Item_Product ) {
+                continue;
+            }
+
+            $product_id = (int) $item->get_product_id();
+            if ( $product_id > 0 ) {
+                $product_ids[ $product_id ] = true;
+            }
+        }
+    }
+
+    return count( $product_ids );
+}
+
+/**
  * Get recent orders for the current customer.
  *
  * @param int $limit Number of orders to return.
