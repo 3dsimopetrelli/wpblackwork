@@ -20,7 +20,34 @@
         var authCode = searchParams.get('code') || '';
         var typeParam = searchParams.get('type') || '';
         var needsSetPassword = searchParams.get('bw_set_password') === '1';
+        var isAuthCallback = searchParams.get('bw_auth_callback') === '1';
         var callbackUrl = window.bwSupabaseBridge.callbackUrl || '';
+        var clearAuthInProgress = function () {
+            if (window.sessionStorage) {
+                try {
+                    sessionStorage.removeItem('bw_auth_in_progress');
+                } catch (error) {
+                    // ignore sessionStorage errors
+                }
+            }
+            if (document && document.documentElement) {
+                document.documentElement.classList.remove('bw-auth-preload');
+            }
+        };
+        var markAuthInProgress = function () {
+            if (window.sessionStorage) {
+                try {
+                    sessionStorage.setItem('bw_auth_in_progress', '1');
+                } catch (error) {
+                    // ignore sessionStorage errors
+                }
+            }
+        };
+
+        if (!authCode && !window.location.hash && !needsSetPassword && !isAuthCallback) {
+            clearAuthInProgress();
+        }
+
         if (searchParams.has('logged_out')) {
             if (window.sessionStorage) {
                 try {
@@ -34,6 +61,7 @@
                     sessionStorage.removeItem('bw_otp_mode');
                     sessionStorage.removeItem('bw_supabase_access_token');
                     sessionStorage.removeItem('bw_supabase_refresh_token');
+                    sessionStorage.removeItem('bw_auth_in_progress');
                 } catch (error) {
                     // ignore sessionStorage errors
                 }
@@ -93,6 +121,7 @@
             if (!hash) {
                 return false;
             }
+            markAuthInProgress();
 
             var params = new URLSearchParams(hash);
             var errorCode = params.get('error_code') || '';
@@ -128,6 +157,7 @@
             var code = currentUrl.searchParams.get('code') || '';
             var typeFromQuery = currentUrl.searchParams.get('type') || '';
             if (code && (typeFromQuery === 'invite' || typeFromQuery === 'recovery') && callbackUrl) {
+                markAuthInProgress();
                 if (currentUrl.searchParams.get('bw_auth_callback') === '1') {
                     return false;
                 }
@@ -161,6 +191,7 @@
             if (!hasAuthTokens || (type !== 'invite' && type !== 'recovery') || !callbackUrl) {
                 return false;
             }
+            markAuthInProgress();
 
             var currentUrl = new URL(window.location.href);
             if (currentUrl.searchParams.get('bw_auth_callback') === '1') {
@@ -249,6 +280,7 @@
             var scheduleRedirect = function () {
                 logDebug('Bridge success -> redirecting to /my-account/');
                 setTimeout(function () {
+                    clearAuthInProgress();
                     window.location.replace(target);
                 }, redirectDelayMs);
             };

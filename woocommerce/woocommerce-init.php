@@ -318,11 +318,63 @@ function bw_mew_supabase_early_invite_redirect_hint()
     $is_logged_in = is_user_logged_in();
 
     ?>
+    <style id="bw-supabase-auth-preload">
+        html.bw-auth-preload body.woocommerce-account .bw-account-login__content {
+            visibility: hidden !important;
+        }
+
+        html.bw-auth-preload body.woocommerce-account .bw-auth-callback {
+            display: flex !important;
+            min-height: 60vh;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
     <script>
     (function () {
+        var normalizePath = function (path) {
+            return (path || '').replace(/\/+$/, '') || '/';
+        };
+        var accountPath = normalizePath(new URL(<?php echo wp_json_encode($account_url); ?>, window.location.origin).pathname);
         var currentUrl = new URL(window.location.href);
-        var code = currentUrl.searchParams.get('code') || '';
-        var typeFromQuery = currentUrl.searchParams.get('type') || '';
+        var currentPath = normalizePath(currentUrl.pathname);
+        var onAccountPage = currentPath === accountPath;
+        var search = currentUrl.searchParams;
+        var callbackMode = search.get('bw_auth_callback') === '1';
+        var setPasswordMode = search.get('bw_set_password') === '1';
+        var code = search.get('code') || '';
+        var typeFromQuery = search.get('type') || '';
+        var hash = window.location.hash || '';
+        var hashParams = hash ? new URLSearchParams(hash.replace(/^#/, '')) : null;
+        var hashType = hashParams ? (hashParams.get('type') || '') : '';
+        var hasInviteHash = !!hash && hash.indexOf('access_token=') !== -1 && (hashType === 'invite' || hashType === 'recovery');
+        var hasInviteCode = !!code && (typeFromQuery === 'invite' || typeFromQuery === 'recovery');
+
+        try {
+            if (window.sessionStorage) {
+                if (hasInviteHash || hasInviteCode || callbackMode || setPasswordMode) {
+                    sessionStorage.setItem('bw_auth_in_progress', '1');
+                }
+                if (search.get('logged_out') === '1') {
+                    sessionStorage.removeItem('bw_auth_in_progress');
+                }
+            }
+        } catch (e) {}
+
+        var authInProgress = false;
+        try {
+            authInProgress = !!(window.sessionStorage && sessionStorage.getItem('bw_auth_in_progress') === '1');
+        } catch (e) {}
+
+        if (onAccountPage && (authInProgress || hasInviteHash || hasInviteCode || callbackMode || setPasswordMode)) {
+            document.documentElement.classList.add('bw-auth-preload');
+        }
+
+        if (onAccountPage && authInProgress && !callbackMode && !setPasswordMode && !hasInviteHash && !hasInviteCode) {
+            window.location.replace(<?php echo wp_json_encode($callback_url); ?>);
+            return;
+        }
+
         if (code && (typeFromQuery === 'invite' || typeFromQuery === 'recovery')) {
             if (currentUrl.searchParams.get('bw_auth_callback') !== '1') {
                 var codeTarget = new URL(<?php echo wp_json_encode($callback_url); ?>, window.location.origin);
@@ -343,7 +395,6 @@ function bw_mew_supabase_early_invite_redirect_hint()
             return;
         }
 
-        var hash = window.location.hash || '';
         if (!hash) {
             return;
         }
