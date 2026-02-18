@@ -1,4 +1,92 @@
 (function() {
+    const getFloatingLabelText = (labelNode) => {
+        if (!labelNode) {
+            return '';
+        }
+
+        const clone = labelNode.cloneNode(true);
+        clone.querySelectorAll('abbr, .optional, .required').forEach((node) => node.remove());
+        return clone.textContent.replace(/\*/g, '').trim();
+    };
+
+    const findLabelByFor = (container, inputId) => {
+        if (!container || !inputId) {
+            return null;
+        }
+
+        return container.querySelector('label[for="' + inputId.replace(/"/g, '\\"') + '"]');
+    };
+
+    const initLoginFloatingLabels = (scope = document) => {
+        const root = scope && scope.querySelectorAll ? scope : document;
+        const loginContainers = root.querySelectorAll('.bw-account-login-page');
+
+        if (!loginContainers.length) {
+            return;
+        }
+
+        loginContainers.forEach((container) => {
+            const fields = container.querySelectorAll(
+                '.bw-account-login__field input[type="text"], .bw-account-login__field input[type="email"], .bw-account-login__field input[type="password"], .bw-account-login__field input[type="tel"], .bw-account-login__field input[type="number"], .bw-account-login__actions--resend-email input[type="email"]'
+            );
+
+            fields.forEach((input) => {
+                if (!input.id || input.closest('.bw-field-wrapper') || input.dataset.bwLoginFloatingInitialized === '1') {
+                    return;
+                }
+
+                const originalLabel = findLabelByFor(container, input.id);
+                if (!originalLabel) {
+                    return;
+                }
+
+                const labelText = getFloatingLabelText(originalLabel);
+                if (!labelText) {
+                    return;
+                }
+
+                if (!input.parentNode || input.closest('.bw-field-wrapper')) {
+                    return;
+                }
+
+                const wrapper = document.createElement('div');
+                wrapper.className = 'bw-field-wrapper bw-field-wrapper--login';
+                input.parentNode.insertBefore(wrapper, input);
+                wrapper.appendChild(input);
+
+                const floatingLabel = document.createElement('label');
+                floatingLabel.className = 'bw-floating-label';
+                floatingLabel.setAttribute('for', input.id);
+                floatingLabel.textContent = labelText;
+                wrapper.appendChild(floatingLabel);
+
+                originalLabel.classList.add('bw-original-label-hidden');
+
+                const fieldRow = input.closest('.bw-account-login__field, .bw-account-login__actions--resend-email');
+                if (fieldRow) {
+                    fieldRow.classList.add('bw-has-floating-label');
+                }
+
+                const updateHasValue = () => {
+                    const currentValue = (input.value || '').toString().trim();
+                    wrapper.classList.toggle('has-value', currentValue !== '');
+                };
+
+                input.addEventListener('input', updateHasValue);
+                input.addEventListener('change', updateHasValue);
+                input.addEventListener('blur', updateHasValue);
+
+                updateHasValue();
+                input.dataset.bwLoginFloatingInitialized = '1';
+            });
+        });
+    };
+
+    const scheduleLoginFloatingLabels = () => {
+        window.requestAnimationFrame(() => initLoginFloatingLabels(document));
+        window.setTimeout(() => initLoginFloatingLabels(document), 180);
+    };
+
     const initSettingsFloatingLabels = (scope = document) => {
         const root = scope && scope.querySelectorAll ? scope : document;
         const settingsContainers = root.querySelectorAll('.bw-settings');
@@ -6,24 +94,6 @@
         if (!settingsContainers.length) {
             return;
         }
-
-        const getLabelText = (labelNode) => {
-            if (!labelNode) {
-                return '';
-            }
-
-            const clone = labelNode.cloneNode(true);
-            clone.querySelectorAll('abbr, .optional, .required').forEach((node) => node.remove());
-            return clone.textContent.replace(/\*/g, '').trim();
-        };
-
-        const findLabelForInput = (container, inputId) => {
-            if (!inputId) {
-                return null;
-            }
-
-            return container.querySelector('label[for="' + inputId.replace(/"/g, '\\"') + '"]');
-        };
 
         settingsContainers.forEach((settingsContainer) => {
             const fields = settingsContainer.querySelectorAll(
@@ -40,12 +110,12 @@
                     return;
                 }
 
-                const originalLabel = findLabelForInput(fieldRow, input.id);
+                const originalLabel = findLabelByFor(fieldRow, input.id);
                 if (!originalLabel) {
                     return;
                 }
 
-                const labelText = getLabelText(originalLabel);
+                const labelText = getFloatingLabelText(originalLabel);
                 if (!labelText) {
                     return;
                 }
@@ -184,6 +254,7 @@
             }
         }
     });
+    scheduleLoginFloatingLabels();
     scheduleSettingsFloatingLabels();
 
     document.addEventListener('change', (event) => {

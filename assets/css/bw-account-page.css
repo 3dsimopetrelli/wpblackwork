@@ -636,6 +636,78 @@ body.woocommerce-account.bw-account-login-only .bw-account-auth__tab.is-active::
     font-size: 14px;
 }
 
+body.woocommerce-account .bw-account-login-page .bw-field-wrapper--login {
+    position: relative;
+    width: 100%;
+    display: block;
+}
+
+body.woocommerce-account .bw-account-login-page .bw-field-wrapper--login input[type="text"],
+body.woocommerce-account .bw-account-login-page .bw-field-wrapper--login input[type="email"],
+body.woocommerce-account .bw-account-login-page .bw-field-wrapper--login input[type="tel"],
+body.woocommerce-account .bw-account-login-page .bw-field-wrapper--login input[type="password"],
+body.woocommerce-account .bw-account-login-page .bw-field-wrapper--login input[type="number"] {
+    width: 100%;
+    padding: 16px 18px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 15px;
+    line-height: 1.4;
+    color: #1f2937;
+    background: #ffffff;
+    transition: border 0.2s ease, padding 0.15s ease, box-shadow 0.2s ease;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    box-sizing: border-box;
+    font-family: inherit;
+}
+
+body.woocommerce-account .bw-account-login-page .bw-field-wrapper--login input::placeholder {
+    opacity: 0;
+    visibility: hidden;
+}
+
+body.woocommerce-account .bw-account-login-page .bw-field-wrapper--login input:focus {
+    border: 2px solid #000000;
+    outline: none;
+    padding: 15px 17px;
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+body.woocommerce-account .bw-account-login-page .bw-field-wrapper--login .bw-floating-label {
+    position: absolute;
+    left: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 15px;
+    color: #6b7280;
+    pointer-events: none;
+    transition: all 0.2s ease;
+    background: #ffffff;
+    padding: 0 4px;
+    line-height: 1.4;
+    font-weight: 400;
+}
+
+body.woocommerce-account .bw-account-login-page .bw-field-wrapper--login:focus-within .bw-floating-label,
+body.woocommerce-account .bw-account-login-page .bw-field-wrapper--login.has-value .bw-floating-label {
+    top: -8px;
+    transform: translateY(0);
+    font-size: 11px;
+    color: #374151;
+    font-weight: 500;
+}
+
+body.woocommerce-account .bw-account-login-page label.bw-original-label-hidden {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    margin: -1px !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    border: 0 !important;
+}
+
 .bw-account-login__form .woocommerce-Input,
 .bw-account-login__form input.input-text,
 .bw-account-login__form input[type="text"],
