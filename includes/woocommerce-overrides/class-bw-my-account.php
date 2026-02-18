@@ -772,6 +772,177 @@ function bw_mew_get_customer_library_count( $user_id ) {
 }
 
 /**
+ * Resolve license label for an order item.
+ *
+ * @param WC_Order_Item_Product $item    Order item.
+ * @param WC_Product|null       $product Product.
+ *
+ * @return string
+ */
+function bw_mew_get_order_item_license_label( WC_Order_Item_Product $item, $product = null ) {
+    $license = '';
+
+    $license_keys = [ 'license', 'license_type', '_license', '_license_type', 'License', 'License Type' ];
+    foreach ( $license_keys as $key ) {
+        $value = $item->get_meta( $key, true );
+        if ( is_scalar( $value ) && '' !== trim( (string) $value ) ) {
+            $license = trim( (string) $value );
+            break;
+        }
+    }
+
+    if ( '' === $license && $product instanceof WC_Product ) {
+        $attribute = (string) $product->get_attribute( 'pa_license' );
+        if ( '' !== trim( $attribute ) ) {
+            $license = trim( $attribute );
+        }
+    }
+
+    return $license ? $license : __( 'License', 'bw' );
+}
+
+/**
+ * Build dashboard rows for digital order items.
+ *
+ * @param int $user_id User ID.
+ * @param int $limit   Rows limit.
+ *
+ * @return array<int,array<string,mixed>>
+ */
+function bw_mew_get_dashboard_digital_orders( $user_id, $limit = 6 ) {
+    if ( ! function_exists( 'wc_get_orders' ) || ! function_exists( 'wc_get_customer_available_downloads' ) || ! $user_id ) {
+        return [];
+    }
+
+    $downloads = wc_get_customer_available_downloads( $user_id );
+    $download_map = [];
+    foreach ( $downloads as $download ) {
+        $order_id   = isset( $download['order_id'] ) ? (int) $download['order_id'] : 0;
+        $product_id = isset( $download['product_id'] ) ? (int) $download['product_id'] : 0;
+        $url        = isset( $download['download_url'] ) ? (string) $download['download_url'] : '';
+        if ( $order_id > 0 && $product_id > 0 && $url ) {
+            $download_map[ $order_id . ':' . $product_id ] = esc_url_raw( $url );
+        }
+    }
+
+    $orders = wc_get_orders(
+        [
+            'limit'    => -1,
+            'customer' => $user_id,
+            'orderby'  => 'date',
+            'order'    => 'DESC',
+            'status'   => apply_filters( 'woocommerce_my_account_my_orders_query_statuses', [ 'wc-completed', 'wc-processing', 'wc-on-hold' ] ),
+            'return'   => 'objects',
+        ]
+    );
+
+    $rows = [];
+    foreach ( $orders as $order ) {
+        if ( ! $order instanceof WC_Order ) {
+            continue;
+        }
+
+        $order_date = $order->get_date_created();
+        $date_label = $order_date ? date_i18n( 'F j, Y', $order_date->getTimestamp() ) : '';
+        $order_url  = $order->get_view_order_url();
+
+        foreach ( $order->get_items( 'line_item' ) as $item ) {
+            if ( ! $item instanceof WC_Order_Item_Product ) {
+                continue;
+            }
+
+            $product = $item->get_product();
+            if ( ! $product instanceof WC_Product || ! $product->is_downloadable() ) {
+                continue;
+            }
+
+            $product_id    = (int) $item->get_product_id();
+            $map_key       = (int) $order->get_id() . ':' . $product_id;
+            $download_url  = $download_map[ $map_key ] ?? '';
+            $thumbnail_url = get_the_post_thumbnail_url( $product_id, 'thumbnail' );
+            $rows[] = [
+                'title'       => $item->get_name(),
+                'license'     => bw_mew_get_order_item_license_label( $item, $product ),
+                'date'        => $date_label,
+                'price'       => wc_price( (float) $item->get_total() + (float) $item->get_total_tax(), [ 'currency' => $order->get_currency() ] ),
+                'thumbnail'   => $thumbnail_url ? esc_url_raw( $thumbnail_url ) : '',
+                'downloadUrl' => $download_url,
+                'orderUrl'    => $order_url,
+            ];
+
+            if ( count( $rows ) >= absint( $limit ) ) {
+                return $rows;
+            }
+        }
+    }
+
+    return $rows;
+}
+
+/**
+ * Build dashboard rows for physical order items.
+ *
+ * @param int $user_id User ID.
+ * @param int $limit   Rows limit.
+ *
+ * @return array<int,array<string,mixed>>
+ */
+function bw_mew_get_dashboard_physical_orders( $user_id, $limit = 6 ) {
+    if ( ! function_exists( 'wc_get_orders' ) || ! $user_id ) {
+        return [];
+    }
+
+    $orders = wc_get_orders(
+        [
+            'limit'    => -1,
+            'customer' => $user_id,
+            'orderby'  => 'date',
+            'order'    => 'DESC',
+            'status'   => apply_filters( 'woocommerce_my_account_my_orders_query_statuses', [ 'wc-completed', 'wc-processing', 'wc-on-hold' ] ),
+            'return'   => 'objects',
+        ]
+    );
+
+    $rows = [];
+    foreach ( $orders as $order ) {
+        if ( ! $order instanceof WC_Order ) {
+            continue;
+        }
+
+        $order_date = $order->get_date_created();
+        $date_label = $order_date ? date_i18n( 'F j, Y', $order_date->getTimestamp() ) : '';
+        $order_url  = $order->get_view_order_url();
+
+        foreach ( $order->get_items( 'line_item' ) as $item ) {
+            if ( ! $item instanceof WC_Order_Item_Product ) {
+                continue;
+            }
+
+            $product = $item->get_product();
+            if ( ! $product instanceof WC_Product || $product->is_downloadable() ) {
+                continue;
+            }
+
+            $product_id    = (int) $item->get_product_id();
+            $thumbnail_url = get_the_post_thumbnail_url( $product_id, 'thumbnail' );
+            $rows[] = [
+                'title'     => $item->get_name(),
+                'date'      => $date_label,
+                'price'     => wc_price( (float) $item->get_total() + (float) $item->get_total_tax(), [ 'currency' => $order->get_currency() ] ),
+                'thumbnail' => $thumbnail_url ? esc_url_raw( $thumbnail_url ) : '',
+                'orderUrl'  => $order_url,
+            ];
+
+            if ( count( $rows ) >= absint( $limit ) ) {
+                return $rows;
+            }
+        }
+    }
+
+    return $rows;
+}
+
+/**
  * Get recent orders for the current customer.
  *
  * @param int $limit Number of orders to return.

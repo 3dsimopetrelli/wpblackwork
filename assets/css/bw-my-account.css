@@ -634,16 +634,172 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
 }
 
 .bw-dashboard-section {
-    background: #f4f4f4;
-    border-radius: 12px;
-    padding: 18px 18px 8px;
+    margin-bottom: 20px;
 }
 
 .bw-section-header h3 {
-    margin: 0 0 12px;
-    font-size: 16px;
+    margin: 0 0 14px;
+    font-size: 34px;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.08em;
+    line-height: 1;
+}
+
+.bw-order-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border: 1px solid #e7e7e7;
+    border-radius: 14px;
+    background: #fff;
+    overflow: hidden;
+}
+
+.bw-order-row {
+    display: grid;
+    grid-template-columns: 76px minmax(0, 1fr) auto auto;
+    gap: 18px;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid #ececec;
+}
+
+.bw-order-row:last-child {
+    border-bottom: 0;
+}
+
+.bw-order-thumb img {
+    width: 76px;
+    height: 76px;
+    border-radius: 10px;
+    object-fit: cover;
+    display: block;
+}
+
+.bw-order-thumb-placeholder {
+    width: 76px;
+    height: 76px;
+    border-radius: 10px;
+    background: #ececec;
+    display: block;
+}
+
+.bw-order-info {
+    min-width: 0;
+}
+
+.bw-order-title {
+    margin: 0 0 4px;
+    font-size: 36px;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: #111;
+}
+
+.bw-order-meta {
+    margin: 0;
+    font-size: 15px;
+    color: #5f5f5f;
+}
+
+.bw-order-price {
+    margin: 0;
+    font-size: 39px;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: #111;
+    white-space: nowrap;
+}
+
+.bw-order-action {
+    justify-self: end;
+}
+
+.bw-order-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 176px;
+    min-height: 56px;
+    border-radius: 14px;
+    padding: 10px 20px;
+    font-size: 22px;
+    line-height: 1;
+    text-decoration: none;
+    transition: filter 180ms ease, transform 180ms ease;
+}
+
+.bw-order-btn:hover,
+.bw-order-btn:focus {
+    text-decoration: none;
+    transform: translateY(-1px);
+    filter: brightness(1.03);
+}
+
+.bw-order-btn--download {
+    background: #80fd03;
+    color: #000;
+}
+
+.bw-order-btn--details {
+    background: #111;
+    color: #fff;
+}
+
+@media (max-width: 1024px) {
+    .bw-section-header h3 {
+        font-size: 26px;
+    }
+
+    .bw-order-title {
+        font-size: 28px;
+    }
+
+    .bw-order-price {
+        font-size: 30px;
+    }
+
+    .bw-order-btn {
+        min-width: 148px;
+        min-height: 48px;
+        font-size: 18px;
+    }
+}
+
+@media (max-width: 768px) {
+    .bw-order-row {
+        grid-template-columns: 64px minmax(0, 1fr);
+        gap: 12px;
+        padding: 14px 14px;
+    }
+
+    .bw-order-thumb img,
+    .bw-order-thumb-placeholder {
+        width: 64px;
+        height: 64px;
+    }
+
+    .bw-order-title {
+        font-size: 22px;
+    }
+
+    .bw-order-meta {
+        font-size: 14px;
+    }
+
+    .bw-order-price {
+        grid-column: 2;
+        font-size: 24px;
+    }
+
+    .bw-order-action {
+        grid-column: 1 / -1;
+        justify-self: stretch;
+    }
+
+    .bw-order-btn {
+        width: 100%;
+    }
 }
 
 .bw-invoices-list {
