@@ -441,6 +441,7 @@
     const shippingFields = document.querySelector('[data-bw-shipping-fields]');
     const emailConfirmationBox = emailForm ? emailForm.querySelector('[data-bw-email-confirmation-box]') : null;
     const emailConfirmationMessage = emailForm ? emailForm.querySelector('[data-bw-email-confirmation-message]') : null;
+    const emailConfirmationHint = emailForm ? emailForm.querySelector('.bw-account-security__email-notice-hint') : null;
     const passwordRuleConfig = [
         { id: 'length', test: (value) => value.length >= 8 },
         { id: 'lowercase', test: (value) => /[a-z]/.test(value) },
@@ -529,6 +530,7 @@
             }
             if (action === 'bw_supabase_update_email' && emailConfirmationBox) {
                 emailConfirmationBox.hidden = true;
+                emailConfirmationBox.classList.remove('is-error');
             }
 
             if (action === 'bw_supabase_update_password') {
@@ -623,10 +625,14 @@
                             if (successBox) {
                                 successBox.hidden = true;
                             }
+                            emailConfirmationBox.classList.remove('is-error');
                             if (emailConfirmationMessage) {
                                 emailConfirmationMessage.textContent = (payload.data && payload.data.message)
                                     ? payload.data.message
                                     : 'Please confirm your new email address from the email we sent.';
+                            }
+                            if (emailConfirmationHint) {
+                                emailConfirmationHint.textContent = 'Check your inbox to complete the change.';
                             }
                             emailConfirmationBox.hidden = false;
                         }
@@ -642,6 +648,20 @@
                     }
 
                     const message = payload && payload.data && payload.data.message ? payload.data.message : defaultMessage;
+                    if (action === 'bw_supabase_update_email' && message === 'Supabase session is missing.' && emailConfirmationBox) {
+                        if (errorBox) {
+                            errorBox.hidden = true;
+                        }
+                        emailConfirmationBox.classList.add('is-error');
+                        if (emailConfirmationMessage) {
+                            emailConfirmationMessage.textContent = message;
+                        }
+                        if (emailConfirmationHint) {
+                            emailConfirmationHint.textContent = 'Please log in again to refresh your secure session.';
+                        }
+                        emailConfirmationBox.hidden = false;
+                        return;
+                    }
                     if (errorBox) {
                         errorBox.textContent = message;
                         errorBox.hidden = false;

@@ -1205,6 +1205,12 @@ body.woocommerce-account .bw-settings #bw-tab-shipping .form-row.form-row-wide {
     display: none !important;
 }
 
+.bw-account-security__email-notice.is-error {
+    border-color: #f0b5b5;
+    background: #fff5f5;
+    color: #8a1f1f;
+}
+
 .bw-account-security__email-notice-icon {
     display: inline-flex;
     align-items: center;
@@ -1233,6 +1239,15 @@ body.woocommerce-account .bw-settings #bw-tab-shipping .form-row.form-row-wide {
     font-size: 13px;
     line-height: 1.45;
     color: #36536f;
+}
+
+.bw-account-security__email-notice.is-error .bw-account-security__email-notice-icon {
+    background: #ffdede;
+    color: #8a1f1f;
+}
+
+.bw-account-security__email-notice.is-error .bw-account-security__email-notice-hint {
+    color: #8a1f1f;
 }
 
 .bw-tab-panels .bw-tab-panel {
