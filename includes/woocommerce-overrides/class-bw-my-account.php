@@ -779,6 +779,103 @@ function bw_mew_get_customer_library_count( $user_id ) {
 }
 
 /**
+ * Count unique downloadable products (product + variation) for a customer.
+ *
+ * @param int $user_id User ID.
+ *
+ * @return int
+ */
+function bw_mew_get_customer_digital_library_count( $user_id ) {
+    if ( ! function_exists( 'wc_get_orders' ) || ! $user_id ) {
+        return 0;
+    }
+
+    $orders = wc_get_orders(
+        [
+            'limit'    => -1,
+            'customer' => $user_id,
+            'status'   => apply_filters( 'woocommerce_my_account_my_orders_query_statuses', [ 'wc-completed', 'wc-processing', 'wc-on-hold' ] ),
+            'return'   => 'objects',
+        ]
+    );
+
+    $unique_items = [];
+    foreach ( $orders as $order ) {
+        if ( ! $order instanceof WC_Order ) {
+            continue;
+        }
+
+        foreach ( $order->get_items( 'line_item' ) as $item ) {
+            if ( ! $item instanceof WC_Order_Item_Product ) {
+                continue;
+            }
+
+            $product = $item->get_product();
+            if ( ! $product instanceof WC_Product || ! $product->is_downloadable() ) {
+                continue;
+            }
+
+            $product_id   = (int) $item->get_product_id();
+            $variation_id = (int) $item->get_variation_id();
+            if ( $product_id > 0 ) {
+                $key = $product_id . ':' . $variation_id;
+                $unique_items[ $key ] = true;
+            }
+        }
+    }
+
+    return count( $unique_items );
+}
+
+/**
+ * Count orders that include at least one physical (non-downloadable) product.
+ *
+ * @param int $user_id User ID.
+ *
+ * @return int
+ */
+function bw_mew_get_customer_physical_orders_count( $user_id ) {
+    if ( ! function_exists( 'wc_get_orders' ) || ! $user_id ) {
+        return 0;
+    }
+
+    $orders = wc_get_orders(
+        [
+            'limit'    => -1,
+            'customer' => $user_id,
+            'status'   => apply_filters( 'woocommerce_my_account_my_orders_query_statuses', [ 'wc-completed', 'wc-processing', 'wc-on-hold' ] ),
+            'return'   => 'objects',
+        ]
+    );
+
+    $count = 0;
+    foreach ( $orders as $order ) {
+        if ( ! $order instanceof WC_Order ) {
+            continue;
+        }
+
+        $has_physical = false;
+        foreach ( $order->get_items( 'line_item' ) as $item ) {
+            if ( ! $item instanceof WC_Order_Item_Product ) {
+                continue;
+            }
+
+            $product = $item->get_product();
+            if ( $product instanceof WC_Product && ! $product->is_downloadable() ) {
+                $has_physical = true;
+                break;
+            }
+        }
+
+        if ( $has_physical ) {
+            $count++;
+        }
+    }
+
+    return $count;
+}
+
+/**
  * Resolve license label for an order item.
  *
  * @param WC_Order_Item_Product $item    Order item.

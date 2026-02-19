@@ -551,6 +551,13 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
     font-weight: 700;
 }
 
+.bw-hero-library-stats {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+}
+
 .bw-hero-support-link {
     display: inline-flex;
     align-items: center;
@@ -622,6 +629,10 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
     .bw-hero-footer--stats {
         grid-template-columns: 1fr;
         gap: 10px;
+    }
+
+    .bw-hero-library-stats {
+        align-items: flex-start;
     }
 
     .bw-hero-support-link {
