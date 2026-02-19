@@ -1,21 +1,22 @@
-console.log('[BW Checkout] Script file loaded and executing');
-
 (function () {
     'use strict';
 
-    console.log('[BW Checkout] IIFE started');
+    // Debug flag — set window.BW_CHECKOUT_DEBUG = true in the browser console to enable logging
+    var BW_CHECKOUT_DEBUG = window.BW_CHECKOUT_DEBUG === true;
+
+    BW_CHECKOUT_DEBUG && console.log('[BW Checkout] IIFE started');
 
     // Force execution even if there are errors in other scripts
     var $ = window.jQuery;
 
     if (!$) {
-        console.log('[BW Checkout] jQuery not ready, will retry');
+        BW_CHECKOUT_DEBUG && console.log('[BW Checkout] jQuery not ready, will retry');
         // jQuery not loaded, retry after short delay
         setTimeout(arguments.callee, 100);
         return;
     }
 
-    console.log('[BW Checkout] jQuery is ready, continuing initialization');
+    BW_CHECKOUT_DEBUG && console.log('[BW Checkout] jQuery is ready, continuing initialization');
 
     function triggerCheckoutUpdate() {
         if (window.jQuery && window.jQuery(document.body).trigger) {
@@ -560,7 +561,7 @@ console.log('[BW Checkout] Script file loaded and executing');
         }
     }
 
-    console.log('[BW Checkout] About to define initFloatingLabel');
+    BW_CHECKOUT_DEBUG && console.log('[BW Checkout] About to define initFloatingLabel');
 
     // Floating label for coupon input - Supports multiple instances (desktop + mobile clone)
     function initFloatingLabel(scope) {
@@ -583,7 +584,7 @@ console.log('[BW Checkout] Script file loaded and executing');
             var errorDiv = container ? container.querySelector('.bw-coupon-error') : null;
 
             if (!wrapper || !label) {
-                console.log('[BW Checkout] Missing wrapper or label for input', couponInput);
+                BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Missing wrapper or label for input', couponInput);
                 return;
             }
 
@@ -614,7 +615,7 @@ console.log('[BW Checkout] Script file loaded and executing');
 
             function showError(message) {
                 if (errorDiv) {
-                    errorDiv.innerHTML = message;
+                    errorDiv.textContent = message;
                     errorDiv.style.display = 'block';
                 }
             }
@@ -688,7 +689,7 @@ console.log('[BW Checkout] Script file loaded and executing');
     function handleCouponSubmission(inputElement) {
         if (!inputElement) return;
 
-        console.log('[BW Checkout] Handling coupon submission for:', inputElement.id || 'unknown text input');
+        BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Handling coupon submission for:', inputElement.id || 'unknown text input');
 
         var couponCode = inputElement.value.trim();
         var container = inputElement.closest('.checkout_coupon, .woocommerce-form-coupon, .bw-review-coupon') || inputElement.closest('.bw-coupon-fields');
@@ -772,7 +773,7 @@ console.log('[BW Checkout] Script file loaded and executing');
             e.stopPropagation();
 
             var button = this;
-            console.log('[BW Checkout] Global delegate caught click on:', button);
+            BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Global delegate caught click on:', button);
 
             // Find valid input logic:
             // 1. Sibling in flex container (Mobile/New)
@@ -800,11 +801,11 @@ console.log('[BW Checkout] Script file loaded and executing');
             if (input) {
                 handleCouponSubmission(input);
             } else {
-                console.error('[BW Checkout] Input not found for clicked button');
+                BW_CHECKOUT_DEBUG && console.error('[BW Checkout] Input not found for clicked button');
                 // Absolute last resort
                 var visibleInput = document.querySelector('.bw-coupon-code-input:not([type="hidden"])');
                 if (visibleInput && visibleInput.offsetParent !== null) {
-                    console.log('Falling back to first visible input');
+                    BW_CHECKOUT_DEBUG && console.log('Falling back to first visible input');
                     handleCouponSubmission(visibleInput);
                 }
             }
@@ -818,7 +819,7 @@ console.log('[BW Checkout] Script file loaded and executing');
      * Transform checkout fields into floating label fields
      */
     function initCheckoutFloatingLabels() {
-        console.log('[BW Checkout] Initializing floating labels');
+        BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Initializing floating labels');
 
         // Target checkout form fields (including select dropdowns)
         var fieldSelectors = [
@@ -938,7 +939,7 @@ console.log('[BW Checkout] Script file loaded and executing');
             updateHasValue();
         });
 
-        console.log('[BW Checkout] Floating labels initialized');
+        BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Floating labels initialized');
     }
 
     /**
@@ -947,21 +948,21 @@ console.log('[BW Checkout] Script file loaded and executing');
     function initGooglePlacesAutocomplete() {
         // Check if Google Maps is enabled
         if (!window.bwGoogleMapsSettings || !window.bwGoogleMapsSettings.enabled) {
-            console.log('[BW Checkout] Google Maps not enabled');
+            BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Google Maps not enabled');
             return;
         }
 
         // Check if Google Maps API is loaded
         if (typeof google === 'undefined' || !google.maps || !google.maps.places) {
-            console.warn('[BW Checkout] Google Maps API not loaded');
+            BW_CHECKOUT_DEBUG && console.warn('[BW Checkout] Google Maps API not loaded');
             return;
         }
 
-        console.log('[BW Checkout] Initializing Google Places Autocomplete');
+        BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Initializing Google Places Autocomplete');
 
         var addressInput = document.getElementById('billing_address_1');
         if (!addressInput) {
-            console.warn('[BW Checkout] Address input not found');
+            BW_CHECKOUT_DEBUG && console.warn('[BW Checkout] Address input not found');
             return;
         }
 
@@ -990,11 +991,11 @@ console.log('[BW Checkout] Script file loaded and executing');
             var place = window.bwGoogleAutocomplete.getPlace();
 
             if (!place.address_components) {
-                console.warn('[BW Checkout] No address components found');
+                BW_CHECKOUT_DEBUG && console.warn('[BW Checkout] No address components found');
                 return;
             }
 
-            console.log('[BW Checkout] Place selected:', place);
+            BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Place selected:', place);
 
             // Parse address components
             var addressData = {
@@ -1072,12 +1073,12 @@ console.log('[BW Checkout] Script file loaded and executing');
                     window.bwGoogleAutocomplete.setComponentRestrictions({
                         country: newCountry.toLowerCase()
                     });
-                    console.log('[BW Checkout] Google Places country restriction updated:', newCountry);
+                    BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Google Places country restriction updated:', newCountry);
                 }
             });
         }
 
-        console.log('[BW Checkout] Google Places Autocomplete initialized');
+        BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Google Places Autocomplete initialized');
     }
 
     /**
@@ -1125,7 +1126,7 @@ console.log('[BW Checkout] Script file loaded and executing');
                 newsletterField.parentNode.appendChild(headingToMove);
             }
 
-            console.log('[BW Checkout] Delivery heading moved below newsletter checkbox');
+            BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Delivery heading moved below newsletter checkbox');
         }
     }
 
@@ -1141,7 +1142,7 @@ console.log('[BW Checkout] Script file loaded and executing');
             document.querySelector('.cart-subtotal .woocommerce-Price-amount');
 
         if (!totalElement) {
-            console.log('[BW Checkout] Total element not found, cannot detect free order');
+            BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Total element not found, cannot detect free order');
             return;
         }
 
@@ -1149,7 +1150,7 @@ console.log('[BW Checkout] Script file loaded and executing');
         // Remove currency symbols, spaces, and parse
         var totalValue = parseFloat(totalText.replace(/[^\d.,]/g, '').replace(',', '.'));
 
-        console.log('[BW Checkout] Detected total value:', totalValue);
+        BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Detected total value:', totalValue);
 
         var body = document.body;
         var isFree = totalValue === 0 || isNaN(totalValue) && totalText.includes('0');
@@ -1172,7 +1173,7 @@ console.log('[BW Checkout] Script file loaded and executing');
                 // Insert in same position as divider if divider exists
                 if (divider && divider.parentNode) {
                     divider.parentNode.insertBefore(banner, divider);
-                    console.log('[BW Checkout] Free order banner created before divider');
+                    BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Free order banner created before divider');
                 } else {
                     // Otherwise insert before customer details or express checkout
                     var insertPoint = document.querySelector('.woocommerce-billing-fields') ||
@@ -1181,7 +1182,7 @@ console.log('[BW Checkout] Script file loaded and executing');
 
                     if (insertPoint && insertPoint.parentNode) {
                         insertPoint.parentNode.insertBefore(banner, insertPoint);
-                        console.log('[BW Checkout] Free order banner created and inserted before customer details');
+                        BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Free order banner created and inserted before customer details');
                     }
                 }
             }
@@ -1208,7 +1209,7 @@ console.log('[BW Checkout] Script file loaded and executing');
             // Update button text for free order
             updatePlaceOrderButton(true);
 
-            console.log('[BW Checkout] Free order detected, UI updated');
+            BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Free order detected, UI updated');
         } else {
             body.classList.remove('bw-free-order');
 
@@ -1235,7 +1236,7 @@ console.log('[BW Checkout] Script file loaded and executing');
             // Restore original button text
             updatePlaceOrderButton(false);
 
-            console.log('[BW Checkout] Paid order detected, UI updated');
+            BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Paid order detected, UI updated');
         }
     }
 
@@ -1258,7 +1259,7 @@ console.log('[BW Checkout] Script file loaded and executing');
         if (!button.hasAttribute('data-original-text')) {
             var originalText = button.textContent || button.innerText || button.value;
             button.setAttribute('data-original-text', originalText);
-            console.log('[BW Checkout] Stored original button text:', originalText);
+            BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Stored original button text:', originalText);
         }
 
         if (isFree) {
@@ -1271,7 +1272,7 @@ console.log('[BW Checkout] Script file loaded and executing');
             if (button.value) {
                 button.value = freeText;
             }
-            console.log('[BW Checkout] Button text changed to:', freeText);
+            BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Button text changed to:', freeText);
         } else {
             // Restore original button text
             var originalText = button.getAttribute('data-original-text');
@@ -1280,7 +1281,7 @@ console.log('[BW Checkout] Script file loaded and executing');
                 if (button.value) {
                     button.value = originalText;
                 }
-                console.log('[BW Checkout] Button text restored to:', originalText);
+                BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Button text restored to:', originalText);
             }
         }
     }
@@ -1323,14 +1324,9 @@ console.log('[BW Checkout] Script file loaded and executing');
             ? window.bwCheckoutParams.freeOrderMessage
             : 'Your order is free. Complete your details and click Place order.';
 
-        // Check if message contains HTML tags
-        if (messageText.indexOf('<') !== -1) {
-            message.innerHTML = messageText;
-        } else {
-            var p = document.createElement('p');
-            p.textContent = messageText;
-            message.appendChild(p);
-        }
+        var p = document.createElement('p');
+        p.textContent = messageText;
+        message.appendChild(p);
 
         content.appendChild(icon);
         content.appendChild(message);
@@ -1374,17 +1370,17 @@ console.log('[BW Checkout] Script file loaded and executing');
      * ONLY runs on mobile/tablet (≤900px).
      */
     function initMobileOrderSummary() {
-        console.log('[BW Checkout] Initializing mobile order summary accordion');
+        BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Initializing mobile order summary accordion');
 
         // Only run on mobile/tablet screens (≤900px)
         if (window.innerWidth > 900) {
-            console.log('[BW Checkout] Desktop view detected, skipping mobile accordion');
+            BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Desktop view detected, skipping mobile accordion');
             return;
         }
 
         var rightColumn = document.querySelector('.bw-checkout-right');
         if (!rightColumn) {
-            console.log('[BW Checkout] Right column not found, skipping mobile summary init');
+            BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Right column not found, skipping mobile summary init');
             return;
         }
 
@@ -1393,7 +1389,7 @@ console.log('[BW Checkout] Script file loaded and executing');
         var existingPanel = document.querySelector('#bw-order-summary-panel');
 
         if (existingToggle && existingPanel && document.body.contains(existingToggle)) {
-            console.log('[BW Checkout] Mobile accordion already exists in DOM, skipping');
+            BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Mobile accordion already exists in DOM, skipping');
             return;
         }
 
@@ -1432,26 +1428,26 @@ console.log('[BW Checkout] Script file loaded and executing');
         // Find the form element
         var form = document.querySelector('form.checkout');
         if (!form) {
-            console.log('[BW Checkout] Checkout form not found');
+            BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Checkout form not found');
             return;
         }
 
-        console.log('[BW Checkout] Form found');
+        BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Form found');
 
         // Insert toggle bar BEFORE the form (as sibling, not child)
         form.parentNode.insertBefore(toggleBar, form);
-        console.log('[BW Checkout] Toggle bar inserted before form');
+        BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Toggle bar inserted before form');
 
         // Insert panel after toggle bar (still before form)
         form.parentNode.insertBefore(panel, form);
-        console.log('[BW Checkout] Panel inserted before form');
+        BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Panel inserted before form');
 
         // CLONE only the order summary content (not the entire right column)
         // This ensures we get the actual review order content without wrapper styling issues
         var orderSummary = rightColumn.querySelector('.bw-order-summary');
 
         if (!orderSummary) {
-            console.error('[BW Checkout] Order summary not found in right column, cannot create mobile accordion');
+            BW_CHECKOUT_DEBUG && console.error('[BW Checkout] Order summary not found in right column, cannot create mobile accordion');
             return;
         }
 
@@ -1487,20 +1483,20 @@ console.log('[BW Checkout] Script file loaded and executing');
         // Append wrapper to panel
         panel.appendChild(wrapper);
 
-        console.log('[BW Checkout] Order summary CLONED into panel with:', orderSummaryClone.childNodes.length, 'child nodes');
-        console.log('[BW Checkout] Clone innerHTML length:', orderSummaryClone.innerHTML.length);
-        console.log('[BW Checkout] Review table found:', !!reviewTable);
+        BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Order summary CLONED into panel with:', orderSummaryClone.childNodes.length, 'child nodes');
+        BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Clone innerHTML length:', orderSummaryClone.innerHTML.length);
+        BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Review table found:', !!reviewTable);
         if (reviewTable) {
-            console.log('[BW Checkout] Review table has', reviewTable.querySelectorAll('tbody tr').length, 'cart items');
+            BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Review table has', reviewTable.querySelectorAll('tbody tr').length, 'cart items');
         }
-        console.log('[BW Checkout] Original right column will be hidden via CSS on mobile');
+        BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Original right column will be hidden via CSS on mobile');
 
         // Initialize panel style for jQuery slideToggle
         // PERSISTENCE CHECK: Use sessionStorage to survive page reloads (e.g. coupon removal URL)
         var storedState = false;
         try {
             storedState = sessionStorage.getItem('bw_mobile_toggle_open') === 'true';
-        } catch (e) { console.log('SessionStorage error', e); }
+        } catch (e) { BW_CHECKOUT_DEBUG && console.log('SessionStorage error', e); }
 
         if (storedState) {
             panel.style.display = 'block';
@@ -1554,7 +1550,7 @@ console.log('[BW Checkout] Script file loaded and executing');
             mutations.forEach(function (mutation) {
                 mutation.removedNodes.forEach(function (node) {
                     if (node === toggleBar || node === panel) {
-                        console.log('[BW Checkout] Toggle/panel removed from DOM, reinserting');
+                        BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Toggle/panel removed from DOM, reinserting');
                         if (!document.body.contains(toggleBar)) {
                             form.parentNode.insertBefore(toggleBar, form);
                         }
@@ -1569,7 +1565,7 @@ console.log('[BW Checkout] Script file loaded and executing');
         // Observe the form's parent for removed children
         observer.observe(form.parentNode, { childList: true });
 
-        console.log('[BW Checkout] Mobile order summary accordion initialized with mutation observer');
+        BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Mobile order summary accordion initialized with mutation observer');
 
         // Unique ID for mobile elements to prevent conflicts
         var mobileInput = panel.querySelector('#coupon_code');
@@ -1586,7 +1582,7 @@ console.log('[BW Checkout] Script file loaded and executing');
         }
 
         // RE-INIT Logic for cloned elements
-        console.log('[BW Checkout] triggering initFloatingLabel for mobile panel');
+        BW_CHECKOUT_DEBUG && console.log('[BW Checkout] triggering initFloatingLabel for mobile panel');
         // Run immediately, no timeout needed as element is already appended
         initFloatingLabel(panel, true);
     }
@@ -1596,11 +1592,11 @@ console.log('[BW Checkout] Script file loaded and executing');
      * ONLY runs on mobile/tablet (≤900px).
      */
     function addMobileTotalRow() {
-        console.log('[BW Checkout] Adding mobile total row');
+        BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Adding mobile total row');
 
         // Only run on mobile/tablet screens (≤900px)
         if (window.innerWidth > 900) {
-            console.log('[BW Checkout] Desktop view detected, skipping mobile total row');
+            BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Desktop view detected, skipping mobile total row');
             return;
         }
 
@@ -1612,7 +1608,7 @@ console.log('[BW Checkout] Script file loaded and executing');
 
         var placeOrderButton = document.querySelector('#place_order');
         if (!placeOrderButton) {
-            console.log('[BW Checkout] Place order button not found');
+            BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Place order button not found');
             return;
         }
 
@@ -1634,7 +1630,7 @@ console.log('[BW Checkout] Script file loaded and executing');
         // Insert before place order button
         placeOrderButton.parentElement.insertBefore(totalRow, placeOrderButton);
 
-        console.log('[BW Checkout] Mobile total row added');
+        BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Mobile total row added');
     }
 
     /**
@@ -1656,12 +1652,12 @@ console.log('[BW Checkout] Script file loaded and executing');
 
         var totalElement = rightColumn.querySelector('.order-total .woocommerce-Price-amount, .order-total .amount');
         if (!totalElement) {
-            console.log('[BW Checkout] Total element not found');
+            BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Total element not found');
             return;
         }
 
         var totalText = totalElement.textContent.trim();
-        console.log('[BW Checkout] Updating mobile totals to:', totalText);
+        BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Updating mobile totals to:', totalText);
 
         // Update toggle bar total
         var toggleTotal = document.querySelector('.bw-order-summary-total');
@@ -1715,7 +1711,7 @@ console.log('[BW Checkout] Script file loaded and executing');
                 var oldClone = wrapper.querySelector('.bw-order-summary');
                 if (oldClone) {
                     wrapper.replaceChild(newClone, oldClone);
-                    console.log('[BW Checkout] Refreshed cloned order summary in panel');
+                    BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Refreshed cloned order summary in panel');
                     // Re-init floating labels on the new clone
                     initFloatingLabel(wrapper, true);
                 }
@@ -1723,13 +1719,13 @@ console.log('[BW Checkout] Script file loaded and executing');
         }
     }
 
-    console.log('[BW Checkout] Script reached end, about to initialize. DOM readyState:', document.readyState);
+    BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Script reached end, about to initialize. DOM readyState:', document.readyState);
 
     // Initialize all functions when DOM is ready
     if (document.readyState === 'loading') {
-        console.log('[BW Checkout] DOM still loading, waiting for DOMContentLoaded');
+        BW_CHECKOUT_DEBUG && console.log('[BW Checkout] DOM still loading, waiting for DOMContentLoaded');
         document.addEventListener('DOMContentLoaded', function () {
-            console.log('[BW Checkout] DOMContentLoaded fired, initializing now');
+            BW_CHECKOUT_DEBUG && console.log('[BW Checkout] DOMContentLoaded fired, initializing now');
             initCustomSticky();
             observeStripeErrors();
             initEntityDecoder(); // Initialize error decoder
@@ -1758,7 +1754,7 @@ console.log('[BW Checkout] Script file loaded and executing');
             });
         });
     } else {
-        console.log('[BW Checkout] DOM already loaded, initializing immediately');
+        BW_CHECKOUT_DEBUG && console.log('[BW Checkout] DOM already loaded, initializing immediately');
         initCustomSticky();
         observeStripeErrors();
 
@@ -1887,7 +1883,7 @@ console.log('[BW Checkout] Script file loaded and executing');
             var modal = $('#bw-policy-modal');
 
             if (modal.length === 0) {
-                console.warn('[BW Checkout] Policy modal not found in DOM');
+                BW_CHECKOUT_DEBUG && console.warn('[BW Checkout] Policy modal not found in DOM');
                 return;
             }
 
@@ -1900,6 +1896,7 @@ console.log('[BW Checkout] Script file loaded and executing');
             if (data.title || data.content) {
                 modal.find('.bw-policy-modal__title').text(data.title || '');
                 modal.find('.bw-policy-modal__subtitle').text(data.subtitle || '');
+                // content is sanitized server-side with wp_kses_post() — HTML is intentional
                 modal.find('.bw-policy-modal__body').html(data.content || '');
 
                 // Show container and trigger transition
@@ -1945,7 +1942,7 @@ console.log('[BW Checkout] Script file loaded and executing');
     // Re-initialize floating labels and detect free order after WooCommerce AJAX update
     if (window.jQuery) {
         jQuery(document.body).on('updated_checkout', function () {
-            console.log('[BW Checkout] Checkout updated, refreshing components');
+            BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Checkout updated, refreshing components');
 
             // Detect free order immediately without delay
             detectFreeOrder();
@@ -2002,7 +1999,14 @@ console.log('[BW Checkout] Script file loaded and executing');
             if (!code) code = text; // Just use all text if we can't parse
 
             if (code) {
-                th.innerHTML = '<span class="bw-cart-coupon-label"><span class="bw-cart-coupon-icon"></span> ' + code + '</span>';
+                var couponLabel = document.createElement('span');
+                couponLabel.className = 'bw-cart-coupon-label';
+                var couponIcon = document.createElement('span');
+                couponIcon.className = 'bw-cart-coupon-icon';
+                couponLabel.appendChild(couponIcon);
+                couponLabel.appendChild(document.createTextNode(' ' + code));
+                th.textContent = '';
+                th.appendChild(couponLabel);
             }
         });
     }
@@ -2178,5 +2182,5 @@ console.log('[BW Checkout] Script file loaded and executing');
         });
     }
 
-    console.log('[BW Checkout] Script execution completed');
+    BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Script execution completed');
 })();

@@ -50,7 +50,7 @@ if (!wp_doing_ajax()) {
 								if ($is_google_pay) {
 									$icon_html = $gateway->get_icon();
 									if ($icon_html) {
-										echo '<span class="bw-payment-method__icon">' . $icon_html . '</span>';
+										echo '<span class="bw-payment-method__icon">' . wp_kses_post( $icon_html ) . '</span>';
 									}
 								}
 								?>
