@@ -48,6 +48,9 @@ if (!wp_doing_ajax()) {
 									strpos($gateway_type, 'card') !== false ||
 									strpos($gateway_type, 'credit') !== false ||
 									strpos($gateway_type, 'debit') !== false);
+								$is_google_pay_icon = (strpos($gateway_type, 'google') !== false ||
+									strpos($gateway_type, 'googlepay') !== false ||
+									'bw_google_pay' === $gateway_type);
 								$is_paypal = (strpos($gateway_type, 'paypal') !== false ||
 									strpos($gateway_type, 'ppcp') !== false);
 								$icon_html = '';
@@ -60,6 +63,10 @@ if (!wp_doing_ajax()) {
 									$card_logo_url = trailingslashit($asset_base_url) . 'assets/images/payment-icons/card-outline.svg';
 									$icon_html = '<img src="' . esc_url($card_logo_url) . '" alt="' . esc_attr__('Card', 'woocommerce') . '" loading="lazy" decoding="async" />';
 									$icon_class .= ' bw-payment-method__icon--card';
+								} elseif ($is_google_pay_icon) {
+									$google_pay_logo_url = trailingslashit($asset_base_url) . 'assets/images/payment-icons/google-pay.svg';
+									$icon_html = '<img src="' . esc_url($google_pay_logo_url) . '" alt="' . esc_attr__('Google Pay', 'woocommerce') . '" loading="lazy" decoding="async" />';
+									$icon_class .= ' bw-payment-method__icon--google-pay';
 								} elseif ($is_paypal) {
 									$paypal_logo_url = trailingslashit($asset_base_url) . 'assets/images/payment-icons/paypal.svg';
 									$icon_html = '<img src="' . esc_url($paypal_logo_url) . '" alt="' . esc_attr__('PayPal', 'woocommerce') . '" loading="lazy" decoding="async" />';
