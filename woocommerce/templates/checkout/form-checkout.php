@@ -182,9 +182,14 @@ if (function_exists('bw_mew_render_checkout_header')) {
 
                 foreach ($policy_keys as $key) {
                     $data = get_option("bw_checkout_policy_{$key}", []);
-                    if (!empty($data['title'])) {
-                        $footer_policies[$key] = $data;
+                    if (!is_array($data) || empty($data['title'])) {
+                        continue;
                     }
+                    $footer_policies[$key] = [
+                        'title'    => sanitize_text_field($data['title']),
+                        'subtitle' => sanitize_text_field($data['subtitle'] ?? ''),
+                        'content'  => wp_kses_post($data['content'] ?? ''),
+                    ];
                 }
                 ?>
 
@@ -201,7 +206,7 @@ if (function_exists('bw_mew_render_checkout_header')) {
                     </div>
 
                     <script>
-                            window.bwPolicyContent = <?php echo json_encode($footer_policies); ?>;
+                            window.bwPolicyContent = <?php echo wp_json_encode($footer_policies); ?>;
                     </script>
                 <?php endif; ?>
             </div>
