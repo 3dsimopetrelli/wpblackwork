@@ -2090,11 +2090,18 @@
      * We completely replace the style attribute to override Stripe's !important
      */
     function fixExpressCheckoutSpacing() {
+        var isFreeOrder = document.body && document.body.classList.contains('bw-free-order');
+        var expressWrappers = document.querySelectorAll('#wcpay-express-checkout-element, #wc-stripe-express-checkout-element-wrapper, .wcpay-express-checkout-wrapper');
+
         // Completely override Express Checkout element styles
         var expressCheckout = document.getElementById('wc-stripe-express-checkout-element');
         if (expressCheckout) {
-            // Remove ALL inline styles and set only what we need
-            expressCheckout.style.cssText = 'margin: 0 !important; padding: 0 !important; min-height: 0 !important; display: flex !important; flex-wrap: wrap !important; gap: 12px !important; width: 100% !important; overflow: visible !important;';
+            if (isFreeOrder) {
+                expressCheckout.style.cssText = 'display: none !important; margin: 0 !important; padding: 0 !important; min-height: 0 !important; height: 0 !important; overflow: hidden !important;';
+            } else {
+                // Remove ALL inline styles and set only what we need
+                expressCheckout.style.cssText = 'margin: 0 !important; padding: 0 !important; min-height: 0 !important; display: flex !important; flex-wrap: wrap !important; gap: 12px !important; width: 100% !important; overflow: visible !important;';
+            }
         }
 
         // PHYSICALLY REMOVE the native Stripe separator from DOM
@@ -2131,8 +2138,26 @@
         // Also handle payment request wrapper
         var paymentRequest = document.getElementById('wc-stripe-payment-request-wrapper');
         if (paymentRequest) {
-            paymentRequest.style.cssText = 'margin: 0 !important; padding: 0 !important; min-height: 0 !important; display: flex !important; flex-wrap: wrap !important; gap: 12px !important; width: 100% !important; overflow: visible !important;';
+            if (isFreeOrder) {
+                paymentRequest.style.cssText = 'display: none !important; margin: 0 !important; padding: 0 !important; min-height: 0 !important; height: 0 !important; overflow: hidden !important;';
+            } else {
+                paymentRequest.style.cssText = 'margin: 0 !important; padding: 0 !important; min-height: 0 !important; display: flex !important; flex-wrap: wrap !important; gap: 12px !important; width: 100% !important; overflow: visible !important;';
+            }
         }
+
+        // Keep wrapper containers in sync with free-order state.
+        expressWrappers.forEach(function (wrapper) {
+            if (isFreeOrder) {
+                wrapper.style.cssText = 'display: none !important; margin: 0 !important; padding: 0 !important; min-height: 0 !important; height: 0 !important; overflow: hidden !important;';
+            } else {
+                wrapper.style.removeProperty('display');
+                wrapper.style.removeProperty('height');
+                wrapper.style.removeProperty('overflow');
+                wrapper.style.removeProperty('margin');
+                wrapper.style.removeProperty('padding');
+                wrapper.style.removeProperty('min-height');
+            }
+        });
 
         // PHYSICALLY REMOVE wc-order-attribution-inputs from DOM
         var attribution = document.querySelector('wc-order-attribution-inputs');
