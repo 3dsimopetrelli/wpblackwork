@@ -815,6 +815,159 @@
     // Expose for debugging/manual re-init
     window.bwInitFloatingLabel = initFloatingLabel;
 
+    var BW_PHONE_COUNTRIES = [
+        { iso: 'IT', dial: '39', flag: '🇮🇹', label: 'Italy' },
+        { iso: 'US', dial: '1', flag: '🇺🇸', label: 'United States' },
+        { iso: 'GB', dial: '44', flag: '🇬🇧', label: 'United Kingdom' },
+        { iso: 'DE', dial: '49', flag: '🇩🇪', label: 'Germany' },
+        { iso: 'FR', dial: '33', flag: '🇫🇷', label: 'France' },
+        { iso: 'ES', dial: '34', flag: '🇪🇸', label: 'Spain' },
+        { iso: 'NL', dial: '31', flag: '🇳🇱', label: 'Netherlands' },
+        { iso: 'BE', dial: '32', flag: '🇧🇪', label: 'Belgium' },
+        { iso: 'CH', dial: '41', flag: '🇨🇭', label: 'Switzerland' },
+        { iso: 'AT', dial: '43', flag: '🇦🇹', label: 'Austria' },
+        { iso: 'PT', dial: '351', flag: '🇵🇹', label: 'Portugal' },
+        { iso: 'IE', dial: '353', flag: '🇮🇪', label: 'Ireland' },
+        { iso: 'SE', dial: '46', flag: '🇸🇪', label: 'Sweden' },
+        { iso: 'NO', dial: '47', flag: '🇳🇴', label: 'Norway' },
+        { iso: 'DK', dial: '45', flag: '🇩🇰', label: 'Denmark' },
+        { iso: 'FI', dial: '358', flag: '🇫🇮', label: 'Finland' },
+        { iso: 'PL', dial: '48', flag: '🇵🇱', label: 'Poland' },
+        { iso: 'CZ', dial: '420', flag: '🇨🇿', label: 'Czech Republic' },
+        { iso: 'HU', dial: '36', flag: '🇭🇺', label: 'Hungary' },
+        { iso: 'RO', dial: '40', flag: '🇷🇴', label: 'Romania' },
+        { iso: 'GR', dial: '30', flag: '🇬🇷', label: 'Greece' },
+        { iso: 'HR', dial: '385', flag: '🇭🇷', label: 'Croatia' },
+        { iso: 'SI', dial: '386', flag: '🇸🇮', label: 'Slovenia' },
+        { iso: 'SK', dial: '421', flag: '🇸🇰', label: 'Slovakia' },
+        { iso: 'BG', dial: '359', flag: '🇧🇬', label: 'Bulgaria' },
+        { iso: 'EE', dial: '372', flag: '🇪🇪', label: 'Estonia' },
+        { iso: 'LV', dial: '371', flag: '🇱🇻', label: 'Latvia' },
+        { iso: 'LT', dial: '370', flag: '🇱🇹', label: 'Lithuania' },
+        { iso: 'TR', dial: '90', flag: '🇹🇷', label: 'Turkey' },
+        { iso: 'UA', dial: '380', flag: '🇺🇦', label: 'Ukraine' },
+        { iso: 'CA', dial: '1', flag: '🇨🇦', label: 'Canada' },
+        { iso: 'AU', dial: '61', flag: '🇦🇺', label: 'Australia' },
+        { iso: 'NZ', dial: '64', flag: '🇳🇿', label: 'New Zealand' },
+        { iso: 'JP', dial: '81', flag: '🇯🇵', label: 'Japan' },
+        { iso: 'CN', dial: '86', flag: '🇨🇳', label: 'China' },
+        { iso: 'IN', dial: '91', flag: '🇮🇳', label: 'India' },
+        { iso: 'BR', dial: '55', flag: '🇧🇷', label: 'Brazil' },
+        { iso: 'MX', dial: '52', flag: '🇲🇽', label: 'Mexico' },
+        { iso: 'AR', dial: '54', flag: '🇦🇷', label: 'Argentina' },
+        { iso: 'CL', dial: '56', flag: '🇨🇱', label: 'Chile' },
+        { iso: 'CO', dial: '57', flag: '🇨🇴', label: 'Colombia' },
+        { iso: 'PE', dial: '51', flag: '🇵🇪', label: 'Peru' },
+        { iso: 'ZA', dial: '27', flag: '🇿🇦', label: 'South Africa' },
+        { iso: 'AE', dial: '971', flag: '🇦🇪', label: 'United Arab Emirates' },
+        { iso: 'SA', dial: '966', flag: '🇸🇦', label: 'Saudi Arabia' },
+        { iso: 'IL', dial: '972', flag: '🇮🇱', label: 'Israel' }
+    ];
+
+    function bwFindCountryByIso(iso) {
+        if (!iso) return null;
+        var upper = String(iso).toUpperCase();
+        for (var i = 0; i < BW_PHONE_COUNTRIES.length; i++) {
+            if (BW_PHONE_COUNTRIES[i].iso === upper) {
+                return BW_PHONE_COUNTRIES[i];
+            }
+        }
+        return null;
+    }
+
+    function bwDetectDialCode(value) {
+        if (!value || value.charAt(0) !== '+') return null;
+        var digits = value.replace(/[^\d+]/g, '');
+        var best = null;
+
+        for (var i = 0; i < BW_PHONE_COUNTRIES.length; i++) {
+            var dial = BW_PHONE_COUNTRIES[i].dial;
+            if (digits.indexOf('+' + dial) === 0) {
+                if (!best || dial.length > best.length) {
+                    best = dial;
+                }
+            }
+        }
+        return best;
+    }
+
+    function bwStripCurrentDialPrefix(value) {
+        var cleaned = (value || '').trim();
+        if (cleaned.charAt(0) !== '+') {
+            return cleaned;
+        }
+
+        var detected = bwDetectDialCode(cleaned);
+        if (!detected) {
+            return cleaned.replace(/^\+\d+\s*/, '').trim();
+        }
+
+        var regex = new RegExp('^\\+' + detected + '\\s*');
+        return cleaned.replace(regex, '').trim();
+    }
+
+    function bwApplyDialPrefix(input, dial, keepNational) {
+        if (!input || !dial) return;
+
+        var national = keepNational ? bwStripCurrentDialPrefix(input.value) : '';
+        input.value = '+' + dial + (national ? ' ' + national : ' ');
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    function initBillingPhoneCountryPicker(wrapper, input, fieldRow) {
+        if (!wrapper || !input || !fieldRow) return;
+        if (wrapper.querySelector('.bw-phone-country')) return;
+        if (fieldRow.querySelector('.iti, .iti__flag-container, .iti--allow-dropdown')) return;
+
+        var billingCountrySelect = document.getElementById('billing_country');
+        var defaultCountry = bwFindCountryByIso(billingCountrySelect ? billingCountrySelect.value : '') || bwFindCountryByIso('IT');
+        var detectedDial = bwDetectDialCode(input.value);
+
+        var picker = document.createElement('select');
+        picker.className = 'bw-phone-country';
+        picker.setAttribute('aria-label', 'Phone country code');
+
+        BW_PHONE_COUNTRIES.forEach(function (country) {
+            var option = document.createElement('option');
+            option.value = country.dial;
+            option.setAttribute('data-iso', country.iso);
+            option.textContent = country.flag + ' +' + country.dial;
+            picker.appendChild(option);
+        });
+
+        var initialDial = detectedDial || (defaultCountry ? defaultCountry.dial : '39');
+        picker.value = initialDial;
+        wrapper.appendChild(picker);
+
+        if (!input.value || input.value.trim() === '') {
+            bwApplyDialPrefix(input, initialDial, false);
+        } else if (detectedDial && picker.value !== detectedDial) {
+            picker.value = detectedDial;
+        }
+
+        picker.addEventListener('change', function () {
+            bwApplyDialPrefix(input, picker.value, true);
+        });
+
+        input.addEventListener('blur', function () {
+            if (!input.value || input.value.trim() === '') {
+                bwApplyDialPrefix(input, picker.value || initialDial, false);
+                return;
+            }
+
+            var detected = bwDetectDialCode(input.value);
+            if (!detected) {
+                bwApplyDialPrefix(input, picker.value || initialDial, true);
+                return;
+            }
+
+            if (picker.value !== detected) {
+                picker.value = detected;
+            }
+        });
+    }
+
     /**
      * Transform checkout fields into floating label fields
      */
@@ -910,6 +1063,7 @@
                 phoneIcon.setAttribute('aria-hidden', 'true');
                 phoneIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 14 14" role="img"><path d="M3.25 3.25c0-.966.784-1.75 1.75-1.75h4c.966 0 1.75.784 1.75 1.75v7.5A1.75 1.75 0 0 1 9 12.5H5a1.75 1.75 0 0 1-1.75-1.75z" fill="none" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/><path d="M6 10.5h2" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 2h2" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>';
                 wrapper.appendChild(phoneIcon);
+                initBillingPhoneCountryPicker(wrapper, input, fieldRow);
             }
 
             wrapper.appendChild(floatingLabel);

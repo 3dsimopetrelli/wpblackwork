@@ -1997,14 +1997,40 @@ body.woocommerce-checkout .bw-field-wrapper--phone .bw-phone-icon svg {
 
 body.woocommerce-checkout .bw-field-wrapper--phone input[type="tel"] {
     padding-left: 46px;
+    padding-right: 110px;
 }
 
 body.woocommerce-checkout .bw-field-wrapper--phone input[type="tel"]:focus {
     padding-left: 45px;
+    padding-right: 109px;
 }
 
 body.woocommerce-checkout .bw-field-wrapper--phone .bw-floating-label {
     left: 44px;
+}
+
+body.woocommerce-checkout .bw-field-wrapper--phone .bw-phone-country {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    max-width: 92px;
+    border: 0;
+    background: transparent;
+    color: #4b5563;
+    font-size: 14px;
+    line-height: 1;
+    padding: 2px 18px 2px 6px;
+    min-height: auto;
+    box-shadow: none;
+    z-index: 2;
+    cursor: pointer;
+}
+
+body.woocommerce-checkout .bw-field-wrapper--phone .bw-phone-country:focus {
+    outline: none;
+    border: 0;
+    box-shadow: none;
 }
 
 /* Label active state (when input has focus or value) */
@@ -2052,14 +2078,22 @@ body.woocommerce-checkout .form-row.bw-has-floating-label>label {
 
     body.woocommerce-checkout .bw-field-wrapper--phone input[type="tel"] {
         padding-left: 44px;
+        padding-right: 98px;
     }
 
     body.woocommerce-checkout .bw-field-wrapper--phone input[type="tel"]:focus {
         padding-left: 43px;
+        padding-right: 97px;
     }
 
     body.woocommerce-checkout .bw-field-wrapper--phone .bw-floating-label {
         left: 42px;
+    }
+
+    body.woocommerce-checkout .bw-field-wrapper--phone .bw-phone-country {
+        right: 10px;
+        max-width: 82px;
+        font-size: 13px;
     }
 
     body.woocommerce-checkout .bw-field-wrapper input:focus~.bw-floating-label,
