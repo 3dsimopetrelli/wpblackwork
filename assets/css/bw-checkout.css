@@ -3474,17 +3474,4 @@ body.bw-modal-open {
     width: 100% !important;
 }
 
-/* HARD CROP: Stripe iframe top row (Card icon + "Card" text) */
-body.woocommerce-checkout #wc-stripe-payment-element {
-    --bw-stripe-top-crop: 28px;
-    position: relative;
-    overflow: hidden !important;
-}
-
-body.woocommerce-checkout #wc-stripe-payment-element iframe {
-    display: block !important;
-    margin-top: calc(-1 * var(--bw-stripe-top-crop)) !important;
-    height: calc(100% + var(--bw-stripe-top-crop)) !important;
-}
-
 /* Express Checkout visibility is now handled by rules in main section (line ~693) */
