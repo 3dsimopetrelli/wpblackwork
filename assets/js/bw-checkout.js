@@ -863,6 +863,7 @@
         { iso: 'SA', dial: '966', flag: '🇸🇦', label: 'Saudi Arabia' },
         { iso: 'IL', dial: '972', flag: '🇮🇱', label: 'Israel' }
     ];
+    var BW_PHONE_MAX_E164_DIGITS = 15;
 
     function bwFindCountryByIso(iso) {
         if (!iso) return null;
@@ -906,11 +907,26 @@
         return cleaned.replace(regex, '').trim();
     }
 
+    function bwGetNationalMaxDigits(dial) {
+        var max = BW_PHONE_MAX_E164_DIGITS - String(dial || '').length;
+        return max > 0 ? max : BW_PHONE_MAX_E164_DIGITS;
+    }
+
+    function bwGetNationalDigits(value) {
+        return (value || '').replace(/\D/g, '');
+    }
+
+    function bwFormatPhoneValue(dial, nationalDigits) {
+        var cleanDial = String(dial || '').replace(/\D/g, '');
+        var cleanNational = bwGetNationalDigits(nationalDigits).slice(0, bwGetNationalMaxDigits(cleanDial));
+        return '+' + cleanDial + (cleanNational ? ' ' + cleanNational : ' ');
+    }
+
     function bwApplyDialPrefix(input, dial, keepNational) {
         if (!input || !dial) return;
 
         var national = keepNational ? bwStripCurrentDialPrefix(input.value) : '';
-        input.value = '+' + dial + (national ? ' ' + national : ' ');
+        input.value = bwFormatPhoneValue(dial, national);
         input.dispatchEvent(new Event('input', { bubbles: true }));
         input.dispatchEvent(new Event('change', { bubbles: true }));
     }
@@ -945,8 +961,26 @@
         wrapper.appendChild(selectedFlag);
         wrapper.appendChild(picker);
 
+        input.setAttribute('inputmode', 'numeric');
+        input.setAttribute('autocomplete', 'tel-national');
+        input.setAttribute('pattern', '[0-9]*');
+        input.setAttribute('maxlength', String(BW_PHONE_MAX_E164_DIGITS + 2)); // + and space
+
+        function sanitizePhoneValue() {
+            var dial = picker.value || initialDial;
+            var hasPrefix = (input.value || '').trim().charAt(0) === '+';
+            var national = hasPrefix ? bwStripCurrentDialPrefix(input.value) : input.value;
+            input.value = bwFormatPhoneValue(dial, national);
+        }
+
         function syncSelectedFlag() {
-            var current = BW_PHONE_COUNTRIES.find(function (c) { return c.dial === picker.value; });
+            var current = null;
+            for (var i = 0; i < BW_PHONE_COUNTRIES.length; i++) {
+                if (BW_PHONE_COUNTRIES[i].dial === picker.value) {
+                    current = BW_PHONE_COUNTRIES[i];
+                    break;
+                }
+            }
             selectedFlag.textContent = current ? current.flag : '🌐';
         }
 
@@ -960,6 +994,11 @@
         picker.addEventListener('change', function () {
             syncSelectedFlag();
             bwApplyDialPrefix(input, picker.value, true);
+        });
+
+        input.addEventListener('input', sanitizePhoneValue);
+        input.addEventListener('paste', function () {
+            setTimeout(sanitizePhoneValue, 0);
         });
 
         input.addEventListener('blur', function () {
@@ -978,6 +1017,8 @@
                 picker.value = detected;
                 syncSelectedFlag();
             }
+
+            sanitizePhoneValue();
         });
     }
 
