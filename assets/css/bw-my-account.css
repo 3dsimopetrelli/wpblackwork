@@ -2026,6 +2026,10 @@ body.woocommerce-account.woocommerce-view-order .order-again .button {
     line-height: 1;
 }
 
+body.woocommerce-account.woocommerce-view-order .order-again {
+    display: none !important;
+}
+
 body.woocommerce-account.woocommerce-view-order .woocommerce-MyAccount-downloads-file.button:hover,
 body.woocommerce-account.woocommerce-view-order .woocommerce-MyAccount-downloads-file.button:focus,
 body.woocommerce-account.woocommerce-view-order .order-actions-button:hover,
@@ -2034,6 +2038,30 @@ body.woocommerce-account.woocommerce-view-order .order-again .button:hover,
 body.woocommerce-account.woocommerce-view-order .order-again .button:focus {
     filter: brightness(1.03);
     transform: translateY(-1px);
+}
+
+body.woocommerce-account.woocommerce-view-order .woocommerce-customer-details address {
+    border: 0 !important;
+    border-radius: 0 !important;
+    margin: 0;
+    padding: 18px 20px 20px;
+    font-style: normal;
+    font-size: 16px;
+    line-height: 1.55;
+    color: #111;
+    background: #fff;
+}
+
+body.woocommerce-account.woocommerce-view-order .woocommerce-customer-details address p {
+    margin: 0;
+}
+
+body.woocommerce-account.woocommerce-view-order .woocommerce-customer-details .woocommerce-customer-details--phone,
+body.woocommerce-account.woocommerce-view-order .woocommerce-customer-details .woocommerce-customer-details--email {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
 }
 
 @media (max-width: 768px) {
