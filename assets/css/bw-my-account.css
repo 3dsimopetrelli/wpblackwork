@@ -674,7 +674,7 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
 }
 
 .bw-purchases-table {
-    --bw-purchases-cols: minmax(0, 2.3fr) 0.8fr 1fr 0.8fr 1fr auto;
+    --bw-purchases-cols: minmax(0, 2.6fr) repeat(5, minmax(0, 1fr));
     list-style: none;
     margin: 0;
     padding: 0;
@@ -706,6 +706,12 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
     color: #111;
     font-size: 14px;
     line-height: 1.35;
+}
+
+.bw-purchases-head .bw-purchases-col:not(.bw-purchases-col--product),
+.bw-purchases-row .bw-purchases-col:not(.bw-purchases-col--product) {
+    text-align: center;
+    justify-self: center;
 }
 
 .bw-purchases-col--product {
@@ -964,6 +970,11 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
         grid-template-columns: 90px minmax(0, 1fr);
         gap: 10px;
         align-items: center;
+    }
+
+    .bw-purchases-row .bw-purchases-col:not(.bw-purchases-col--product) {
+        text-align: left;
+        justify-self: stretch;
     }
 
     .bw-purchases-col::before {
