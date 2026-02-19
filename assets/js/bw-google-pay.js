@@ -61,6 +61,65 @@
         return Math.round(bwParseWcAmount($el.text()) * 100);
     }
 
+    /**
+     * Validate visible required checkout fields before opening Google Pay sheet.
+     * Mirrors WooCommerce invalid/valid classes enough to give clear UX feedback.
+     *
+     * @returns {boolean}
+     */
+    function bwValidateRequiredCheckoutFields() {
+        var $form = $('form.checkout');
+        var $requiredRows = $form.find('.validate-required:visible');
+        var invalidLabels = [];
+
+        $requiredRows.each(function () {
+            var $row = $(this);
+            var $input = $row.find('input, select, textarea').filter(function () {
+                var $el = $(this);
+                var type = ($el.attr('type') || '').toLowerCase();
+                return !$el.prop('disabled') && type !== 'hidden';
+            }).first();
+
+            if (!$input.length) {
+                return;
+            }
+
+            var isValid = true;
+            var type = ($input.attr('type') || '').toLowerCase();
+
+            if (type === 'checkbox') {
+                isValid = $input.is(':checked');
+            } else if ($input.is('select')) {
+                isValid = $.trim($input.val() || '') !== '';
+            } else {
+                isValid = $.trim($input.val() || '') !== '';
+            }
+
+            if (!isValid) {
+                var labelText = $.trim($row.find('label').first().clone().children().remove().end().text()) || 'Required field';
+                invalidLabels.push(labelText);
+                $row.removeClass('woocommerce-validated').addClass('woocommerce-invalid');
+            } else {
+                $row.removeClass('woocommerce-invalid').addClass('woocommerce-validated');
+            }
+        });
+
+        if (!invalidLabels.length) {
+            return true;
+        }
+
+        var $notices = $('.woocommerce-notices-wrapper').first();
+        if ($notices.length) {
+            $notices.html(
+                '<ul class="woocommerce-error" role="alert"><li>Please fill in required fields: ' +
+                invalidLabels.join(', ') +
+                '.</li></ul>'
+            );
+        }
+        $('html, body').animate({ scrollTop: 0 }, 250);
+        return false;
+    }
+
     // -------------------------------------------------------------------------
     // Google Pay button visibility
     // -------------------------------------------------------------------------
@@ -219,6 +278,10 @@
                 $(document).off('click.bwgpay', '#bw-google-pay-trigger')
                            .on('click.bwgpay', '#bw-google-pay-trigger', function (e) {
                     e.preventDefault();
+                    if (!bwValidateRequiredCheckoutFields()) {
+                        BW_GOOGLE_PAY_DEBUG && console.warn('[BW Google Pay] Campi obbligatori mancanti: popup bloccato.');
+                        return;
+                    }
                     paymentRequest.show();
                 });
             } else {
