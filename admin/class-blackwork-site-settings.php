@@ -2651,6 +2651,7 @@ function bw_site_render_checkout_tab()
             <h3 style="margin-bottom: 20px;"><?php esc_html_e('Policy Sections (Popups)', 'bw'); ?></h3>
 
             <?php foreach ($policy_settings as $key => $data): ?>
+                <?php $policy_enabled = !isset($data['enabled']) || '1' === (string) $data['enabled']; ?>
                 <div class="bw-policy-section"
                     style="background: #fff; border: 1px solid #ccd0d4; padding: 25px; margin-bottom: 30px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                     <h3 style="margin-top:0; border-bottom: 1px solid #eee; padding-bottom: 15px; text-transform: capitalize;">
@@ -2663,12 +2664,15 @@ function bw_site_render_checkout_tab()
                             <td>
                                 <label class="switch">
                                     <input type="checkbox" name="bw_checkout_policy_<?php echo esc_attr($key); ?>[enabled]"
+                                        class="bw-policy-enabled-toggle"
+                                        data-policy-key="<?php echo esc_attr($key); ?>"
                                         value="1" <?php checked('1', isset($data['enabled']) ? (string) $data['enabled'] : '1'); ?> />
                                     <span class="description"><?php esc_html_e('Show this policy link and popup in checkout footer.', 'bw'); ?></span>
                                 </label>
                             </td>
                         </tr>
-                        <tr>
+                        <tr class="bw-policy-fields bw-policy-fields--<?php echo esc_attr($key); ?>"
+                            <?php echo $policy_enabled ? '' : 'style="display:none;"'; ?>>
                             <th scope="row"><label><?php esc_html_e('Link Title', 'bw'); ?></label></th>
                             <td>
                                 <input type="text" name="bw_checkout_policy_<?php echo esc_attr($key); ?>[title]"
@@ -2676,7 +2680,8 @@ function bw_site_render_checkout_tab()
                                     placeholder="<?php echo esc_attr(ucfirst($key) . ' policy'); ?>" />
                             </td>
                         </tr>
-                        <tr>
+                        <tr class="bw-policy-fields bw-policy-fields--<?php echo esc_attr($key); ?>"
+                            <?php echo $policy_enabled ? '' : 'style="display:none;"'; ?>>
                             <th scope="row"><label><?php esc_html_e('Popup Subtitle', 'bw'); ?></label></th>
                             <td>
                                 <input type="text" name="bw_checkout_policy_<?php echo esc_attr($key); ?>[subtitle]"
@@ -2685,7 +2690,8 @@ function bw_site_render_checkout_tab()
                                 </p>
                             </td>
                         </tr>
-                        <tr>
+                        <tr class="bw-policy-fields bw-policy-fields--<?php echo esc_attr($key); ?>"
+                            <?php echo $policy_enabled ? '' : 'style="display:none;"'; ?>>
                             <th scope="row"><label><?php esc_html_e('Content', 'bw'); ?></label></th>
                             <td>
                                 <?php
@@ -2713,8 +2719,32 @@ function bw_site_render_checkout_tab()
         <?php endif; ?>
     </form>
 
-    <script>
+        <script>
         jQuery(document).ready(function ($) {
+            function togglePolicyFields(checkbox) {
+                var $checkbox = $(checkbox);
+                var key = $checkbox.data('policy-key');
+                if (!key) {
+                    return;
+                }
+
+                var isEnabled = $checkbox.is(':checked');
+                var $rows = $('.bw-policy-fields--' + key);
+                if (isEnabled) {
+                    $rows.stop(true, true).slideDown(150);
+                } else {
+                    $rows.stop(true, true).slideUp(150);
+                }
+            }
+
+            $('.bw-policy-enabled-toggle').each(function () {
+                togglePolicyFields(this);
+            });
+
+            $(document).on('change', '.bw-policy-enabled-toggle', function () {
+                togglePolicyFields(this);
+            });
+
             $('.bw-media-upload').on('click', function (e) {
                 e.preventDefault();
 
