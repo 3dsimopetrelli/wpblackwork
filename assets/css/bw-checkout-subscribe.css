@@ -49,8 +49,8 @@ body.woocommerce-checkout .bw-checkout-newsletter .woocommerce-form__label-for-c
 body.woocommerce-checkout .bw-checkout-newsletter input[type="checkbox"] {
     -webkit-appearance: none !important;
     appearance: none !important;
-    width: 20px !important;
-    height: 20px !important;
+    width: 17px !important;
+    height: 17px !important;
     border: 2px solid #111111 !important;
     border-radius: 4px !important;
     background: #ffffff !important;
