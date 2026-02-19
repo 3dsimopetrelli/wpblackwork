@@ -25,13 +25,23 @@ if (!wp_doing_ajax()) {
 		<ul class="bw-payment-methods wc_payment_methods payment_methods methods">
 			<?php
 			if (!empty($available_gateways)) {
+				// Preserve selected method across AJAX checkout updates.
+				$chosen_method = isset( $_POST['payment_method'] ) // phpcs:ignore WordPress.Security.NonceVerification.Missing
+					? wc_clean( wp_unslash( $_POST['payment_method'] ) ) // phpcs:ignore WordPress.Security.NonceVerification.Missing
+					: WC()->session->get( 'chosen_payment_method' );
+				// Fall back to the first gateway when nothing is stored yet.
+				if ( empty( $chosen_method ) ) {
+					$first         = reset( $available_gateways );
+					$chosen_method = $first ? $first->id : '';
+				}
+
 				$gateway_count = 0;
 				foreach ($available_gateways as $gateway) {
 					$gateway_count++;
 					$gateway_id = esc_attr($gateway->id);
-					$is_checked = $gateway_count === 1 ? 'checked="checked"' : '';
+					$is_checked = ( $gateway->id === $chosen_method ) ? 'checked="checked"' : '';
 					?>
-					<li class="bw-payment-method wc_payment_method payment_method_<?php echo $gateway_id; ?>"
+					<li class="bw-payment-method wc_payment_method payment_method_<?php echo $gateway_id; ?><?php echo $gateway->id === $chosen_method ? ' is-selected' : ''; ?>"
 						data-gateway-id="<?php echo $gateway_id; ?>">
 						<div class="bw-payment-method__header">
 							<input id="payment_method_<?php echo $gateway_id; ?>" type="radio" class="input-radio"
@@ -87,7 +97,7 @@ if (!wp_doing_ajax()) {
 
 						<?php if ($gateway->has_fields() || $gateway->get_description()): ?>
 							<div
-								class="bw-payment-method__content payment_box payment_method_<?php echo $gateway_id; ?>">
+								class="bw-payment-method__content payment_box payment_method_<?php echo $gateway_id; ?> <?php echo $gateway->id === $chosen_method ? 'is-open' : ''; ?>">
 								<div class="bw-payment-method__inner">
 									<?php
 									// Hide description for PayPal (we show custom redirect message instead)
@@ -121,14 +131,14 @@ if (!wp_doing_ajax()) {
 									<?php endif; ?>
 
 									<?php
-									// Check if this is PayPal or Google Pay gateway for redirect message
-									$is_paypal = (strpos($gateway_id, 'paypal') !== false ||
-										strpos($gateway_id, 'ppcp') !== false);
-									$is_google_pay = (strpos($gateway_id, 'google') !== false ||
+									// Distinguish PPCP (renders own buttons) from classic PayPal (redirect).
+									$is_ppcp           = (strpos($gateway_id, 'ppcp') !== false);
+									$is_classic_paypal = (strpos($gateway_id, 'paypal') !== false && !$is_ppcp);
+									$is_google_pay     = (strpos($gateway_id, 'google') !== false ||
 										strpos($gateway_id, 'googlepay') !== false);
-									$is_bw_google_pay = ('bw_google_pay' === $gateway_id);
+									$is_bw_google_pay  = ('bw_google_pay' === $gateway_id);
 
-									if ($is_paypal):
+									if ($is_classic_paypal):
 										?>
 										<div class="bw-paypal-redirect">
 											<svg class="bw-paypal-redirect__icon" xmlns="http://www.w3.org/2000/svg"
@@ -172,7 +182,7 @@ if (!wp_doing_ajax()) {
 							</div>
 						<?php else: ?>
 							<div
-								class="bw-payment-method__content payment_box payment_method_<?php echo $gateway_id; ?>">
+								class="bw-payment-method__content payment_box payment_method_<?php echo $gateway_id; ?> <?php echo $gateway->id === $chosen_method ? 'is-open' : ''; ?>">
 								<div class="bw-payment-method__inner">
 									<?php
 									// Check if this is Google Pay for redirect message

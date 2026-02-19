@@ -1,169 +1,118 @@
 /**
  * BW Payment Methods - Shopify-style Accordion
  *
- * Handles accordion behavior and dynamic payment button text
- * Compatible with all WooCommerce payment gateways (Stripe, PayPal, etc.)
+ * Handles accordion behavior and dynamic payment button text.
+ * Compatible with all WooCommerce payment gateways (Stripe, PayPal, etc.).
+ *
+ * Uses document-level event delegation so that handlers survive the full
+ * DOM replacement that WooCommerce performs on every `updated_checkout` event.
  */
 
 (function () {
     'use strict';
 
-    /**
-     * Initialize payment methods accordion
-     */
-    function initPaymentMethodsAccordion() {
-        var paymentContainer = document.querySelector('#payment');
+    // -------------------------------------------------------------------------
+    // Accordion state helpers
+    // -------------------------------------------------------------------------
 
+    /**
+     * Sync JS-managed state (is-selected class, place-order button text).
+     * NOTE: the accordion open/close is now driven entirely by the CSS
+     * :has(input[name="payment_method"]:checked) rule, so this function no
+     * longer needs to manage is-open.  It still keeps is-selected in sync
+     * (for border/background styling) and updates the button label.
+     */
+    function syncAccordionState() {
+        var paymentContainer = document.querySelector('#payment');
         if (!paymentContainer) {
             return;
         }
 
-        // Handle radio button changes
-        var radioButtons = paymentContainer.querySelectorAll('input[name="payment_method"]');
+        var checkedRadio = paymentContainer.querySelector('input[name="payment_method"]:checked');
 
-        radioButtons.forEach(function (radio) {
-            radio.addEventListener('change', function () {
-                handlePaymentMethodChange(this);
-            });
+        paymentContainer.querySelectorAll('.bw-payment-method').forEach(function (method) {
+            var radio      = method.querySelector('input[name="payment_method"]');
+            var content    = method.querySelector('.bw-payment-method__content');
+            var isSelected = radio && radio.checked;
+
+            method.classList.toggle('is-selected', isSelected);
+
+            // Keep is-open in sync for browsers that don't support :has().
+            if (content) {
+                content.classList.toggle('is-open', isSelected);
+            }
         });
 
-        // Initialize on first load - open the first payment method
-        var firstChecked = paymentContainer.querySelector('input[name="payment_method"]:checked');
-        if (firstChecked) {
-            handlePaymentMethodChange(firstChecked);
+        if (checkedRadio) {
+            updatePlaceOrderButton(checkedRadio);
         }
     }
 
     /**
-     * Handle payment method change
-     * @param {HTMLElement} radio - The selected radio button
+     * Animate accordion open/close in response to a user interaction.
+     * @param {HTMLElement} radio - The radio button that just became checked.
      */
     function handlePaymentMethodChange(radio) {
         var paymentContainer = document.querySelector('#payment');
-
         if (!paymentContainer) {
             return;
         }
 
-        // Remove selected class from all payment methods
-        var allMethods = paymentContainer.querySelectorAll('.bw-payment-method');
-        allMethods.forEach(function (method) {
+        // Deselect all.
+        paymentContainer.querySelectorAll('.bw-payment-method').forEach(function (method) {
             method.classList.remove('is-selected');
         });
-
-        // Close all payment boxes with smooth animation
-        var allBoxes = paymentContainer.querySelectorAll('.bw-payment-method__content');
-        allBoxes.forEach(function (box) {
+        paymentContainer.querySelectorAll('.bw-payment-method__content').forEach(function (box) {
             box.classList.remove('is-open');
         });
 
-        // Add selected class to current method (for browsers that don't support :has())
+        // Select the chosen method.
         var selectedMethod = radio.closest('.bw-payment-method');
         if (selectedMethod) {
             selectedMethod.classList.add('is-selected');
 
             var contentBox = selectedMethod.querySelector('.bw-payment-method__content');
             if (contentBox) {
-                openPaymentBox(selectedMethod, contentBox);
+                contentBox.classList.add('is-open');
             }
         }
 
-        // Update the place order button text
         updatePlaceOrderButton(radio);
 
-        // Trigger WooCommerce event
+        // Notify WooCommerce.
         if (window.jQuery) {
             window.jQuery(document.body).trigger('payment_method_selected');
         }
     }
 
-    /**
-     * Open payment panel.
-     * For Stripe gateways, wait briefly for iframe readiness to avoid "half-open" flash.
-     *
-     * @param {HTMLElement} selectedMethod
-     * @param {HTMLElement} contentBox
-     */
-    function openPaymentBox(selectedMethod, contentBox) {
-        var gatewayId = (selectedMethod.getAttribute('data-gateway-id') || '').toLowerCase();
-        var isStripeGateway = gatewayId.indexOf('stripe') !== -1;
-
-        if (!isStripeGateway) {
-            setTimeout(function () {
-                contentBox.classList.add('is-open');
-            }, 10);
-            return;
-        }
-
-        var iframe = contentBox.querySelector('.wc-stripe-upe-element iframe');
-        var revealed = false;
-
-        function reveal() {
-            if (revealed) {
-                return;
-            }
-            revealed = true;
-            contentBox.classList.remove('bw-stripe-loading');
-            contentBox.classList.add('is-open');
-        }
-
-        // No iframe yet: open quickly and let Stripe render after.
-        if (!iframe) {
-            setTimeout(reveal, 30);
-            return;
-        }
-
-        // Hide panel while Stripe iframe reaches a stable height.
-        contentBox.classList.add('bw-stripe-loading');
-
-        // If already rendered, reveal immediately.
-        if (iframe.offsetHeight > 80) {
-            reveal();
-            return;
-        }
-
-        var pollCount = 0;
-        var maxPolls = 18; // ~1.8s
-        var pollTimer = setInterval(function () {
-            pollCount++;
-            if (iframe.offsetHeight > 80 || pollCount >= maxPolls) {
-                clearInterval(pollTimer);
-                reveal();
-            }
-        }, 100);
-
-        iframe.addEventListener('load', function onStripeIframeLoad() {
-            iframe.removeEventListener('load', onStripeIframeLoad);
-            clearInterval(pollTimer);
-            reveal();
-        });
-    }
+    // -------------------------------------------------------------------------
+    // Place-order button text
+    // -------------------------------------------------------------------------
 
     /**
-     * Update place order button text based on selected payment method
-     * @param {HTMLElement} radio - The selected radio button
+     * Update the "Place order" button label to match the selected payment method.
+     * @param {HTMLElement} radio
      */
     function updatePlaceOrderButton(radio) {
         var placeOrderBtn = document.querySelector('.bw-place-order-btn');
-
         if (!placeOrderBtn) {
             return;
         }
 
         var buttonTextSpan = placeOrderBtn.querySelector('.bw-place-order-btn__text');
-        var buttonText = radio.getAttribute('data-order_button_text') || placeOrderBtn.getAttribute('data-default-text') || 'Place order';
+        var buttonText     = radio.getAttribute('data-order_button_text') ||
+                             placeOrderBtn.getAttribute('data-default-text') ||
+                             'Place order';
 
-        // Update button text
         if (buttonTextSpan) {
             buttonTextSpan.textContent = buttonText;
         } else {
             placeOrderBtn.textContent = buttonText;
         }
 
-        // Update button value
         placeOrderBtn.setAttribute('value', buttonText);
 
-        // Add smooth animation
+        // Brief fade for visual feedback.
         if (buttonTextSpan) {
             buttonTextSpan.style.opacity = '0';
             setTimeout(function () {
@@ -172,75 +121,70 @@
         }
     }
 
-    /**
-     * Handle form submission - add loading state
-     */
+    // -------------------------------------------------------------------------
+    // Form submission loading state
+    // -------------------------------------------------------------------------
+
     function handleFormSubmission() {
         var checkoutForm = document.querySelector('form.checkout');
-
         if (!checkoutForm) {
             return;
         }
 
         checkoutForm.addEventListener('submit', function () {
             var placeOrderBtn = document.querySelector('.bw-place-order-btn');
-
             if (placeOrderBtn && !placeOrderBtn.classList.contains('processing')) {
                 placeOrderBtn.classList.add('processing');
             }
         });
     }
 
-    /**
-     * Remove loading state on checkout error
-     */
     function removeLoadingState() {
         var placeOrderBtn = document.querySelector('.bw-place-order-btn');
-
         if (placeOrderBtn) {
             placeOrderBtn.classList.remove('processing');
         }
     }
 
-    /**
-     * Initialize on DOM ready
-     */
-    function init() {
-        initPaymentMethodsAccordion();
-        handleFormSubmission();
-    }
+    // -------------------------------------------------------------------------
+    // Document-level event delegation (survives WooCommerce DOM replacement)
+    // -------------------------------------------------------------------------
 
-    // Initialize when DOM is ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
-    }
+    // Payment method radio change.
+    document.addEventListener('change', function (event) {
+        var target = event.target;
+        if (target.type === 'radio' && target.name === 'payment_method') {
+            handlePaymentMethodChange(target);
+        }
+    });
 
-    // Re-initialize on WooCommerce checkout updates
-    if (window.jQuery) {
-        window.jQuery(function ($) {
-            $(document.body).on('updated_checkout', function () {
-                // Small delay to ensure DOM is updated
-                setTimeout(function () {
-                    initPaymentMethodsAccordion();
-                }, 100);
-            });
+    // Entire payment-method header is clickable (except radio/label themselves).
+    document.addEventListener('click', function (event) {
+        var header = event.target.closest('.bw-payment-method__header');
+        if (!header) {
+            return;
+        }
 
-            $(document.body).on('checkout_error', function () {
-                removeLoadingState();
-            });
-        });
-    }
+        // Skip if the click landed directly on the radio or its label — the
+        // browser will fire the `change` event for those automatically.
+        if (event.target.type === 'radio' ||
+            event.target.classList.contains('bw-payment-method__label') ||
+            event.target.closest('.bw-payment-method__label')) {
+            return;
+        }
 
-    /**
-     * Handle keyboard navigation (accessibility)
-     */
+        var radio = header.querySelector('input[type="radio"]');
+        if (radio && !radio.checked) {
+            radio.checked = true;
+            handlePaymentMethodChange(radio);
+        }
+    });
+
+    // Keyboard navigation (accessibility).
     document.addEventListener('keydown', function (event) {
-        // Handle Enter/Space on payment method labels
+        // Enter / Space on the label triggers the radio.
         if (event.key === 'Enter' || event.key === ' ') {
             var target = event.target;
-
             if (target.classList.contains('bw-payment-method__label')) {
                 event.preventDefault();
                 var radio = target.previousElementSibling;
@@ -251,13 +195,12 @@
             }
         }
 
-        // Handle Arrow keys for navigation between payment methods
+        // Arrow keys cycle between payment methods.
         if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
             var target = event.target;
-
             if (target.type === 'radio' && target.name === 'payment_method') {
                 event.preventDefault();
-                var allRadios = Array.from(document.querySelectorAll('input[name="payment_method"]'));
+                var allRadios    = Array.from(document.querySelectorAll('input[name="payment_method"]'));
                 var currentIndex = allRadios.indexOf(target);
                 var nextIndex;
 
@@ -277,55 +220,32 @@
         }
     });
 
-    /**
-     * Handle payment method header clicks (entire header is clickable)
-     */
-    document.addEventListener('click', function (event) {
-        var header = event.target.closest('.bw-payment-method__header');
+    // -------------------------------------------------------------------------
+    // Payment icons tooltip
+    // -------------------------------------------------------------------------
 
-        if (header) {
-            var radio = header.querySelector('input[type="radio"]');
-
-            // Don't trigger if clicking directly on radio or label
-            if (event.target.type !== 'radio' && !event.target.classList.contains('bw-payment-method__label')) {
-                if (radio && !radio.checked) {
-                    radio.checked = true;
-                    handlePaymentMethodChange(radio);
-                }
-            }
-        }
-    });
-
-    /**
-     * Handle payment icons tooltip visibility
-     * Keeps tooltip open when hovering over it
-     */
     function initPaymentIconsTooltips() {
         var moreIcons = document.querySelectorAll('.bw-payment-icon--more');
 
         moreIcons.forEach(function (moreIcon) {
-            var tooltip = moreIcon.querySelector('.bw-payment-icon__tooltip');
+            var tooltip     = moreIcon.querySelector('.bw-payment-icon__tooltip');
             var hideTimeout;
 
             if (!tooltip) {
                 return;
             }
 
-            // Show tooltip on hover over badge
             moreIcon.addEventListener('mouseenter', function () {
                 clearTimeout(hideTimeout);
                 tooltip.style.display = 'flex';
             });
 
-            // Keep tooltip open when hovering over tooltip itself
             tooltip.addEventListener('mouseenter', function () {
                 clearTimeout(hideTimeout);
                 tooltip.style.display = 'flex';
             });
 
-            // Hide tooltip with delay when leaving badge
             moreIcon.addEventListener('mouseleave', function (event) {
-                // Check if we're moving to the tooltip
                 if (!tooltip.contains(event.relatedTarget)) {
                     hideTimeout = setTimeout(function () {
                         tooltip.style.display = 'none';
@@ -333,14 +253,12 @@
                 }
             });
 
-            // Hide tooltip when leaving tooltip
             tooltip.addEventListener('mouseleave', function () {
                 hideTimeout = setTimeout(function () {
                     tooltip.style.display = 'none';
                 }, 100);
             });
 
-            // Hide tooltip on click outside
             document.addEventListener('click', function (event) {
                 if (!moreIcon.contains(event.target)) {
                     tooltip.style.display = 'none';
@@ -349,19 +267,34 @@
         });
     }
 
-    // Initialize tooltips on load
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initPaymentIconsTooltips);
-    } else {
+    // -------------------------------------------------------------------------
+    // Initialisation
+    // -------------------------------------------------------------------------
+
+    function init() {
+        syncAccordionState();
+        handleFormSubmission();
         initPaymentIconsTooltips();
     }
 
-    // Re-initialize tooltips on checkout update
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+
+    // Re-sync after WooCommerce replaces the #payment DOM fragment.
+    // The DOM is fully ready when `updated_checkout` fires — no delay needed.
     if (window.jQuery) {
-        window.jQuery(document.body).on('updated_checkout', function () {
-            setTimeout(function () {
+        window.jQuery(function ($) {
+            $(document.body).on('updated_checkout', function () {
+                syncAccordionState();
                 initPaymentIconsTooltips();
-            }, 100);
+            });
+
+            $(document.body).on('checkout_error', function () {
+                removeLoadingState();
+            });
         });
     }
 
