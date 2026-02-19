@@ -1158,10 +1158,10 @@
         // Find or create banner and divider
         var banner = document.querySelector('.bw-free-order-banner');
         var divider = document.querySelector('.bw-express-divider');
-        // UPDATED: Target all potential Stripe / WCPay wrappers
-        var expressCheckout = document.querySelector('#wc-stripe-payment-request-wrapper') ||
-            document.querySelector('#wc-stripe-express-checkout-element') ||
-            document.querySelector('#wcpay-express-checkout-element');
+        // Target all potential Stripe / WCPay express wrappers
+        var expressCheckoutNodes = document.querySelectorAll(
+            '#wc-stripe-payment-request-wrapper, #wc-stripe-express-checkout-element, #wcpay-express-checkout-element, #wc-stripe-express-checkout-element-wrapper, .wcpay-express-checkout-wrapper'
+        );
 
         if (isFree) {
             body.classList.add('bw-free-order');
@@ -1178,7 +1178,7 @@
                     // Otherwise insert before customer details or express checkout
                     var insertPoint = document.querySelector('.woocommerce-billing-fields') ||
                         document.querySelector('#customer_details') ||
-                        expressCheckout;
+                        expressCheckoutNodes[0];
 
                     if (insertPoint && insertPoint.parentNode) {
                         insertPoint.parentNode.insertBefore(banner, insertPoint);
@@ -1199,12 +1199,12 @@
             }
 
             // Hide Express Checkout on free order
-            if (expressCheckout) {
-                expressCheckout.style.display = 'none';
-                // Also hide all known separators
-                var separators = document.querySelectorAll('#wc-stripe-payment-request-button-separator, #wc-stripe-express-checkout-button-separator, #wcpay-express-checkout-button-separator');
-                separators.forEach(function (s) { s.style.display = 'none'; });
-            }
+            expressCheckoutNodes.forEach(function (node) {
+                node.style.display = 'none';
+            });
+            // Also hide all known separators
+            var separators = document.querySelectorAll('#wc-stripe-payment-request-button-separator, #wc-stripe-express-checkout-button-separator, #wcpay-express-checkout-button-separator');
+            separators.forEach(function (s) { s.style.display = 'none'; });
 
             // Update button text for free order
             updatePlaceOrderButton(true);
@@ -1225,13 +1225,13 @@
             }
 
             // Show Express Checkout on paid order
-            if (expressCheckout) {
-                // Clear inline display to let CSS handle layout (flex for 2-column buttons)
-                expressCheckout.style.removeProperty('display');
-                // Native Stripe separators are hidden via CSS - we use custom divider
-                var separators = document.querySelectorAll('#wc-stripe-payment-request-button-separator, #wc-stripe-express-checkout-button-separator, #wcpay-express-checkout-button-separator');
-                separators.forEach(function (s) { s.style.display = 'none'; });
-            }
+            // Clear inline display to let CSS handle layout (flex for 2-column buttons)
+            expressCheckoutNodes.forEach(function (node) {
+                node.style.removeProperty('display');
+            });
+            // Native Stripe separators are hidden via CSS - we use custom divider
+            var separators = document.querySelectorAll('#wc-stripe-payment-request-button-separator, #wc-stripe-express-checkout-button-separator, #wcpay-express-checkout-button-separator');
+            separators.forEach(function (s) { s.style.display = 'none'; });
 
             // Restore original button text
             updatePlaceOrderButton(false);
@@ -1298,38 +1298,19 @@
         var content = document.createElement('div');
         content.className = 'bw-free-order-banner__content';
 
-        var icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        icon.setAttribute('class', 'bw-free-order-banner__icon');
-        icon.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-        icon.setAttribute('width', '24');
-        icon.setAttribute('height', '24');
-        icon.setAttribute('viewBox', '0 0 24 24');
-        icon.setAttribute('fill', 'none');
-        icon.setAttribute('stroke', 'currentColor');
-        icon.setAttribute('stroke-width', '2');
-        icon.setAttribute('stroke-linecap', 'round');
-        icon.setAttribute('stroke-linejoin', 'round');
-
-        var path1 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        path1.setAttribute('d', 'M22 11.08V12a10 10 0 1 1-5.93-9.14');
-        icon.appendChild(path1);
-
-        var polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
-        polyline.setAttribute('points', '22 4 12 14.01 9 11.01');
-        icon.appendChild(polyline);
-
-        var message = document.createElement('div');
         // Get message from localized data or use default
         var messageText = window.bwCheckoutParams && window.bwCheckoutParams.freeOrderMessage
             ? window.bwCheckoutParams.freeOrderMessage
             : 'Your order is free. Complete your details and click Place order.';
+        // Normalize configured HTML into plain text for a clean banner.
+        var tmp = document.createElement('div');
+        tmp.innerHTML = messageText;
+        messageText = (tmp.textContent || tmp.innerText || '').trim() || 'Your order is free. Complete your details and click Place order.';
 
         var p = document.createElement('p');
+        p.className = 'bw-free-order-banner__text';
         p.textContent = messageText;
-        message.appendChild(p);
-
-        content.appendChild(icon);
-        content.appendChild(message);
+        content.appendChild(p);
         banner.appendChild(content);
 
         return banner;

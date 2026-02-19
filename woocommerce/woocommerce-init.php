@@ -1290,16 +1290,14 @@ function bw_mew_render_express_divider()
 
     if ($is_free) {
         // Render free order banner (visible immediately with bw-free-order-active class)
+        $free_message_text = trim(wp_strip_all_tags((string) $free_message));
+        if ('' === $free_message_text) {
+            $free_message_text = __('Your order is free. Complete your details and click Place order.', 'bw');
+        }
         ?>
         <div class="bw-free-order-banner bw-free-order-active">
             <div class="bw-free-order-banner__content">
-                <svg class="bw-free-order-banner__icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                    stroke-linejoin="round">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                </svg>
-                <p><?php echo wp_kses_post(wpautop($free_message)); ?></p>
+                <p class="bw-free-order-banner__text"><?php echo esc_html($free_message_text); ?></p>
             </div>
         </div>
         <?php

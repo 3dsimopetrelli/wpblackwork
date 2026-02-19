@@ -633,37 +633,37 @@ body.woocommerce-checkout .bw-checkout-left > *:not(#customer_details):not(.bw-c
     line-height: 1;
 }
 
-/* Free order banner - Shopify-like styling */
+/* Free order banner - BlackWork styling */
 .bw-free-order-banner {
     display: none;
     width: 100%;
     margin: 20px 0;
-    padding: 16px 20px;
-    background: #f0f9ff;
-    border: 1px solid #bfdbfe;
-    border-radius: 8px;
+    padding: 24px 20px;
+    background: #ffffff;
+    border: 1px solid #111111;
+    border-radius: 12px;
 }
 
 .bw-free-order-banner__content {
     display: flex;
-    align-items: flex-start;
-    gap: 12px;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
 }
 
 .bw-free-order-banner__icon {
-    flex-shrink: 0;
-    width: 24px;
-    height: 24px;
-    color: #0284c7;
-    margin-top: 2px;
+    display: none !important;
 }
 
+.bw-free-order-banner__text,
 .bw-free-order-banner__content p {
     margin: 0;
     padding: 0;
-    font-size: 15px;
-    line-height: 1.6;
-    color: #0c4a6e;
+    font-size: clamp(30px, 3.2vw, 48px);
+    font-weight: 600;
+    line-height: 1.08;
+    letter-spacing: -1px;
+    color: #111111;
 }
 
 /* Hide express buttons and divider when order is free */
@@ -671,12 +671,12 @@ body.woocommerce-checkout.bw-free-order .bw-express-divider {
     display: none !important;
 }
 
-body.woocommerce-checkout.bw-free-order #wc-stripe-express-checkout-element {
-    /* display: none !important; */
-}
-
-body.woocommerce-checkout.bw-free-order #payment .wc-stripe-ece-button-separator {
-    /* display: none !important; */
+body.woocommerce-checkout.bw-free-order #wc-stripe-express-checkout-element,
+body.woocommerce-checkout.bw-free-order #wc-stripe-payment-request-wrapper,
+body.woocommerce-checkout.bw-free-order #wcpay-express-checkout-element,
+body.woocommerce-checkout.bw-free-order #wc-stripe-express-checkout-element-wrapper,
+body.woocommerce-checkout.bw-free-order .wcpay-express-checkout-wrapper {
+    display: none !important;
 }
 
 /* Hide payment section elements when order is free (but keep Place order button) */
@@ -684,7 +684,10 @@ body.woocommerce-checkout.bw-free-order .bw-payment-section-title,
 body.woocommerce-checkout.bw-free-order .bw-payment-section-subtitle,
 body.woocommerce-checkout.bw-free-order .ppcp-messages,
 body.woocommerce-checkout.bw-free-order div.ppcp-messages,
+body.woocommerce-checkout.bw-free-order #payment .wc-stripe-ece-button-separator,
+body.woocommerce-checkout.bw-free-order #wc-stripe-payment-request-button-separator,
 body.woocommerce-checkout.bw-free-order #wc-stripe-express-checkout-button-separator,
+body.woocommerce-checkout.bw-free-order #wcpay-express-checkout-button-separator,
 body.woocommerce-checkout.bw-free-order #payment .payment_methods,
 body.woocommerce-checkout.bw-free-order #payment ul.wc_payment_methods,
 body.woocommerce-checkout.bw-free-order #payment .woocommerce-checkout-payment>p,
@@ -875,6 +878,11 @@ body.woocommerce-checkout .bw-delivery-section-title {
     line-height: 30px;
     letter-spacing: -1px !important;
 
+}
+
+body.woocommerce-checkout h2.bw-checkout-section-title,
+body.woocommerce-checkout h2.bw-delivery-section-title {
+    letter-spacing: -1px !important;
 }
 
 /* Customer details section */
@@ -1553,7 +1561,7 @@ body.woocommerce-checkout .bw-checkout-right .bw-qty-badge {
 
 /* Override WooCommerce coupon amount styling */
 .bw-total-row--coupon td {
-    color: #27ae60 !important;
+    color: #000000 !important;
     font-weight: 700 !important;
 }
 
@@ -1618,7 +1626,7 @@ body.woocommerce-checkout .bw-checkout-right .bw-qty-badge {
 }
 
 .bw-total-row--coupon td {
-    color: #27ae60;
+    color: #000000;
 }
 
 .bw-order-summary-toggle {
@@ -2627,7 +2635,7 @@ body.woocommerce-checkout .select2-results__option--selected {
     /* Discount row - green value */
     .bw-order-summary-panel .bw-order-summary table.shop_table tfoot tr.bw-total-row--discount td,
     .bw-order-summary-panel .bw-order-summary table.shop_table tfoot tr.bw-total-row--coupon td {
-        color: #28a745 !important;
+        color: #000000 !important;
     }
 
     /* Coupon form styling (inside review-coupon wrapper) */
@@ -2816,8 +2824,7 @@ body.woocommerce-checkout .select2-results__option--selected {
 }
 
 .bw-order-summary-panel .bw-order-summary table.shop_table tr.cart-discount td .woocommerce-Price-amount {
-    color: #2ecc71 !important;
-    /* Green */
+    color: #000000 !important;
     font-weight: 600 !important;
 }
 
