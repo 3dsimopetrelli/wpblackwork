@@ -942,7 +942,7 @@ function bw_mew_sync_checkout_cart_quantities($posted_data)
 }
 
 /**
- * Sync billing address from shipping fields when checkout mode is "same as shipping".
+ * Sync shipping address from billing fields when checkout mode is "same as billing".
  *
  * @param array $data Posted checkout data.
  * @return array
@@ -954,8 +954,8 @@ function bw_mew_sync_billing_from_shipping_mode($data)
     }
 
     $needs_shipping_address = WC()->cart && WC()->cart->needs_shipping_address();
-    $mode = isset($data['bw_billing_address_mode']) ? sanitize_key((string) $data['bw_billing_address_mode']) : 'same';
-    $data['bw_billing_address_mode'] = $mode;
+    $mode = isset($data['bw_shipping_address_mode']) ? sanitize_key((string) $data['bw_shipping_address_mode']) : 'same';
+    $data['bw_shipping_address_mode'] = $mode;
 
     if (!$needs_shipping_address) {
         return $data;
@@ -969,24 +969,24 @@ function bw_mew_sync_billing_from_shipping_mode($data)
     }
 
     $map = [
-        'shipping_first_name' => 'billing_first_name',
-        'shipping_last_name' => 'billing_last_name',
-        'shipping_company' => 'billing_company',
-        'shipping_country' => 'billing_country',
-        'shipping_address_1' => 'billing_address_1',
-        'shipping_address_2' => 'billing_address_2',
-        'shipping_city' => 'billing_city',
-        'shipping_postcode' => 'billing_postcode',
-        'shipping_state' => 'billing_state',
+        'billing_first_name' => 'shipping_first_name',
+        'billing_last_name' => 'shipping_last_name',
+        'billing_company' => 'shipping_company',
+        'billing_country' => 'shipping_country',
+        'billing_address_1' => 'shipping_address_1',
+        'billing_address_2' => 'shipping_address_2',
+        'billing_city' => 'shipping_city',
+        'billing_postcode' => 'shipping_postcode',
+        'billing_state' => 'shipping_state',
     ];
 
-    foreach ($map as $shipping_key => $billing_key) {
-        if (!array_key_exists($shipping_key, $data)) {
+    foreach ($map as $billing_key => $shipping_key) {
+        if (!array_key_exists($billing_key, $data)) {
             continue;
         }
 
-        $shipping_value = is_string($data[$shipping_key]) ? trim($data[$shipping_key]) : $data[$shipping_key];
-        $data[$billing_key] = $shipping_value;
+        $billing_value = is_string($data[$billing_key]) ? trim($data[$billing_key]) : $data[$billing_key];
+        $data[$shipping_key] = $billing_value;
     }
 
     return $data;

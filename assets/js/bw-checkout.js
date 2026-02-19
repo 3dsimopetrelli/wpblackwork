@@ -1364,9 +1364,9 @@
     }
 
     /**
-     * Billing address accordion behavior:
-     * - "Same as shipping address" => billing address fields hidden and synced from shipping.
-     * - "Use a different billing address" => billing fields accordion visible.
+     * Shipping details accordion behavior:
+     * - "Same as billing details" => shipping fields hidden and synced from billing.
+     * - "Use a different shipping address" => shipping fields accordion visible.
      */
     function initBillingAddressAccordion() {
         var section = document.querySelector('.bw-billing-address');
@@ -1374,7 +1374,7 @@
             return;
         }
 
-        var options = section.querySelectorAll('input[name="bw_billing_address_mode"]');
+        var options = section.querySelectorAll('input[name="bw_shipping_address_mode"]');
         var accordion = section.querySelector('.bw-billing-address__accordion');
         var form = document.querySelector('form.checkout');
 
@@ -1383,46 +1383,46 @@
         }
 
         function getSelectedMode() {
-            var checked = section.querySelector('input[name="bw_billing_address_mode"]:checked');
+            var checked = section.querySelector('input[name="bw_shipping_address_mode"]:checked');
             return checked ? checked.value : (section.getAttribute('data-default-mode') || 'same');
         }
 
-        function syncBillingFromShipping() {
+        function syncShippingFromBilling() {
             var mode = getSelectedMode();
             if (mode === 'different') {
                 return;
             }
 
             var map = {
-                shipping_first_name: 'billing_first_name',
-                shipping_last_name: 'billing_last_name',
-                shipping_company: 'billing_company',
-                shipping_country: 'billing_country',
-                shipping_address_1: 'billing_address_1',
-                shipping_address_2: 'billing_address_2',
-                shipping_postcode: 'billing_postcode',
-                shipping_city: 'billing_city',
-                shipping_state: 'billing_state'
+                billing_first_name: 'shipping_first_name',
+                billing_last_name: 'shipping_last_name',
+                billing_company: 'shipping_company',
+                billing_country: 'shipping_country',
+                billing_address_1: 'shipping_address_1',
+                billing_address_2: 'shipping_address_2',
+                billing_postcode: 'shipping_postcode',
+                billing_city: 'shipping_city',
+                billing_state: 'shipping_state'
             };
 
-            Object.keys(map).forEach(function (shippingKey) {
-                var billingKey = map[shippingKey];
-                var shippingField = document.querySelector('[name="' + shippingKey + '"]');
+            Object.keys(map).forEach(function (billingKey) {
+                var shippingKey = map[billingKey];
                 var billingField = document.querySelector('[name="' + billingKey + '"]');
+                var shippingField = document.querySelector('[name="' + shippingKey + '"]');
 
-                if (!shippingField || !billingField) {
+                if (!billingField || !shippingField) {
                     return;
                 }
 
-                var shippingValue = shippingField.value;
-                if (typeof shippingValue === 'undefined') {
+                var billingValue = billingField.value;
+                if (typeof billingValue === 'undefined') {
                     return;
                 }
 
-                if (billingField.value !== shippingValue) {
-                    billingField.value = shippingValue;
-                    billingField.dispatchEvent(new Event('input', { bubbles: true }));
-                    billingField.dispatchEvent(new Event('change', { bubbles: true }));
+                if (shippingField.value !== billingValue) {
+                    shippingField.value = billingValue;
+                    shippingField.dispatchEvent(new Event('input', { bubbles: true }));
+                    shippingField.dispatchEvent(new Event('change', { bubbles: true }));
                 }
             });
         }
@@ -1431,10 +1431,19 @@
             var isDifferent = mode === 'different';
             section.classList.toggle('is-different', isDifferent);
             accordion.setAttribute('aria-hidden', isDifferent ? 'false' : 'true');
-            accordion.style.display = isDifferent ? 'block' : 'none';
+            if (window.jQuery) {
+                var $accordion = window.jQuery(accordion);
+                if (isDifferent) {
+                    $accordion.stop(true, true).slideDown(220);
+                } else {
+                    $accordion.stop(true, true).slideUp(220);
+                }
+            } else {
+                accordion.style.display = isDifferent ? 'block' : 'none';
+            }
 
             if (!isDifferent) {
-                syncBillingFromShipping();
+                syncShippingFromBilling();
             }
 
             if (shouldTriggerUpdate && window.jQuery) {
@@ -1450,19 +1459,19 @@
             });
         });
 
-        var shippingFields = document.querySelectorAll(
-            '.woocommerce-shipping-fields__field-wrapper input, .woocommerce-shipping-fields__field-wrapper select, .woocommerce-shipping-fields__field-wrapper textarea'
+        var billingFields = document.querySelectorAll(
+            '.woocommerce-billing-fields__field-wrapper input, .woocommerce-billing-fields__field-wrapper select, .woocommerce-billing-fields__field-wrapper textarea'
         );
 
-        shippingFields.forEach(function (field) {
-            field.addEventListener('input', syncBillingFromShipping);
-            field.addEventListener('change', syncBillingFromShipping);
+        billingFields.forEach(function (field) {
+            field.addEventListener('input', syncShippingFromBilling);
+            field.addEventListener('change', syncShippingFromBilling);
         });
 
         if (form && !form.hasAttribute('data-bw-billing-submit-bound')) {
             form.setAttribute('data-bw-billing-submit-bound', '1');
             form.addEventListener('submit', function () {
-                syncBillingFromShipping();
+                syncShippingFromBilling();
             });
         }
 
