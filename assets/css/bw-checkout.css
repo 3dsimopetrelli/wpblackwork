@@ -2014,23 +2014,49 @@ body.woocommerce-checkout .bw-field-wrapper--phone .bw-phone-country {
     right: 12px;
     top: 50%;
     transform: translateY(-50%);
-    max-width: 92px;
+    width: 50px;
+    min-width: 50px;
+    max-width: 50px;
     border: 0;
-    background: transparent;
-    color: #4b5563;
+    background-color: transparent;
+    background-image: none !important;
+    background-repeat: no-repeat !important;
+    background-position: right 0 center !important;
+    background-size: 10px !important;
+    color: transparent;
     font-size: 14px;
     line-height: 1;
-    padding: 2px 18px 2px 6px;
+    text-indent: -9999px;
+    padding: 2px 14px 2px 2px;
     min-height: auto;
     box-shadow: none;
     z-index: 2;
     cursor: pointer;
+    appearance: auto;
+    -webkit-appearance: menulist;
+    -moz-appearance: menulist;
 }
 
 body.woocommerce-checkout .bw-field-wrapper--phone .bw-phone-country:focus {
     outline: none;
     border: 0;
     box-shadow: none;
+    background-image: none !important;
+}
+
+body.woocommerce-checkout .bw-field-wrapper--phone .bw-phone-country option {
+    color: #111111;
+}
+
+body.woocommerce-checkout .bw-field-wrapper--phone .bw-phone-country-flag {
+    position: absolute;
+    right: 30px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 22px;
+    line-height: 1;
+    pointer-events: none;
+    z-index: 3;
 }
 
 /* Label active state (when input has focus or value) */
@@ -2092,8 +2118,14 @@ body.woocommerce-checkout .form-row.bw-has-floating-label>label {
 
     body.woocommerce-checkout .bw-field-wrapper--phone .bw-phone-country {
         right: 10px;
-        max-width: 82px;
-        font-size: 13px;
+        width: 46px;
+        min-width: 46px;
+        max-width: 46px;
+    }
+
+    body.woocommerce-checkout .bw-field-wrapper--phone .bw-phone-country-flag {
+        right: 28px;
+        font-size: 20px;
     }
 
     body.woocommerce-checkout .bw-field-wrapper input:focus~.bw-floating-label,

@@ -927,26 +927,38 @@
         var picker = document.createElement('select');
         picker.className = 'bw-phone-country';
         picker.setAttribute('aria-label', 'Phone country code');
+        var selectedFlag = document.createElement('span');
+        selectedFlag.className = 'bw-phone-country-flag';
+        selectedFlag.setAttribute('aria-hidden', 'true');
 
         BW_PHONE_COUNTRIES.forEach(function (country) {
             var option = document.createElement('option');
             option.value = country.dial;
             option.setAttribute('data-iso', country.iso);
-            option.textContent = country.flag + ' +' + country.dial;
+            option.setAttribute('data-flag', country.flag);
+            option.textContent = country.label + '(+' + country.dial + ')';
             picker.appendChild(option);
         });
 
         var initialDial = detectedDial || (defaultCountry ? defaultCountry.dial : '39');
         picker.value = initialDial;
+        wrapper.appendChild(selectedFlag);
         wrapper.appendChild(picker);
+
+        function syncSelectedFlag() {
+            var current = BW_PHONE_COUNTRIES.find(function (c) { return c.dial === picker.value; });
+            selectedFlag.textContent = current ? current.flag : '🌐';
+        }
 
         if (!input.value || input.value.trim() === '') {
             bwApplyDialPrefix(input, initialDial, false);
         } else if (detectedDial && picker.value !== detectedDial) {
             picker.value = detectedDial;
         }
+        syncSelectedFlag();
 
         picker.addEventListener('change', function () {
+            syncSelectedFlag();
             bwApplyDialPrefix(input, picker.value, true);
         });
 
@@ -964,6 +976,7 @@
 
             if (picker.value !== detected) {
                 picker.value = detected;
+                syncSelectedFlag();
             }
         });
     }
