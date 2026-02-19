@@ -104,6 +104,27 @@ function bw_site_settings_admin_assets($hook)
         ]
     );
 
+    $google_pay_admin_script_path = BW_MEW_PATH . 'admin/js/bw-google-pay-admin.js';
+    $google_pay_admin_version = file_exists($google_pay_admin_script_path) ? filemtime($google_pay_admin_script_path) : '1.0.0';
+
+    wp_enqueue_script(
+        'bw-google-pay-admin',
+        BW_MEW_URL . 'admin/js/bw-google-pay-admin.js',
+        ['jquery'],
+        $google_pay_admin_version,
+        true
+    );
+
+    wp_localize_script(
+        'bw-google-pay-admin',
+        'bwGooglePayAdmin',
+        [
+            'nonce' => wp_create_nonce('bw_google_pay_test_connection'),
+            'errorText' => esc_html__('Connection test failed. Please verify your Stripe keys.', 'bw'),
+            'testingText' => esc_html__('Testing connection…', 'bw'),
+        ]
+    );
+
     // Border toggle script (shared across Cart Pop-up and Site Settings)
     $border_toggle_path = BW_MEW_PATH . 'assets/js/bw-border-toggle-admin.js';
     $border_toggle_version = file_exists($border_toggle_path) ? filemtime($border_toggle_path) : '1.0.0';
@@ -117,6 +138,106 @@ function bw_site_settings_admin_assets($hook)
     );
 }
 add_action('admin_enqueue_scripts', 'bw_site_settings_admin_assets');
+
+/**
+ * AJAX handler to test Stripe connection for Google Pay settings.
+ */
+function bw_google_pay_test_connection_ajax_handler()
+{
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error(['message' => __('Permission denied.', 'bw')]);
+    }
+
+    check_ajax_referer('bw_google_pay_test_connection', 'nonce');
+
+    $mode = isset($_POST['mode']) && 'test' === sanitize_key(wp_unslash($_POST['mode'])) ? 'test' : 'live';
+    $secret_key = isset($_POST['secret_key']) ? sanitize_text_field(wp_unslash($_POST['secret_key'])) : '';
+    $publishable_key = isset($_POST['publishable_key']) ? sanitize_text_field(wp_unslash($_POST['publishable_key'])) : '';
+
+    if ('' === $secret_key) {
+        wp_send_json_error(['message' => __('Secret key is required.', 'bw')]);
+    }
+
+    $expected_secret_prefix = 'test' === $mode ? 'sk_test_' : 'sk_live_';
+    $expected_publishable_prefix = 'test' === $mode ? 'pk_test_' : 'pk_live_';
+
+    if (0 !== strpos($secret_key, $expected_secret_prefix)) {
+        wp_send_json_error([
+            'message' => 'test' === $mode
+                ? __('The selected Test Mode requires a key starting with sk_test_.', 'bw')
+                : __('The selected Live Mode requires a key starting with sk_live_.', 'bw'),
+        ]);
+    }
+
+    if ('' !== $publishable_key && 0 !== strpos($publishable_key, $expected_publishable_prefix)) {
+        wp_send_json_error([
+            'message' => 'test' === $mode
+                ? __('The selected Test Mode requires a publishable key starting with pk_test_.', 'bw')
+                : __('The selected Live Mode requires a publishable key starting with pk_live_.', 'bw'),
+        ]);
+    }
+
+    $response = wp_remote_get(
+        'https://api.stripe.com/v1/account',
+        [
+            'timeout' => 15,
+            'headers' => [
+                'Authorization' => 'Bearer ' . $secret_key,
+            ],
+        ]
+    );
+
+    if (is_wp_error($response)) {
+        wp_send_json_error([
+            'message' => sprintf(
+                /* translators: %s: WP error message */
+                __('Unable to reach Stripe API: %s', 'bw'),
+                $response->get_error_message()
+            ),
+        ]);
+    }
+
+    $status_code = (int) wp_remote_retrieve_response_code($response);
+    $body = wp_remote_retrieve_body($response);
+    $payload = json_decode($body, true);
+
+    if ($status_code < 200 || $status_code >= 300) {
+        $stripe_error = '';
+        if (is_array($payload) && isset($payload['error']['message'])) {
+            $stripe_error = sanitize_text_field((string) $payload['error']['message']);
+        }
+
+        wp_send_json_error([
+            'message' => $stripe_error
+                ? sprintf(__('Stripe API error: %s', 'bw'), $stripe_error)
+                : __('Stripe API rejected the request. Please verify your keys.', 'bw'),
+        ]);
+    }
+
+    if (!is_array($payload) || !isset($payload['id'])) {
+        wp_send_json_error(['message' => __('Unexpected Stripe response. Please try again.', 'bw')]);
+    }
+
+    $api_mode = !empty($payload['livemode']) ? 'live' : 'test';
+    if ($api_mode !== $mode) {
+        wp_send_json_error([
+            'message' => 'test' === $mode
+                ? __('The key is valid but it belongs to Live Mode. Enable Live Mode or use test keys.', 'bw')
+                : __('The key is valid but it belongs to Test Mode. Enable Test Mode or use live keys.', 'bw'),
+        ]);
+    }
+
+    wp_send_json_success([
+        'message' => sprintf(
+            /* translators: 1: mode label, 2: Stripe account id */
+            __('Connected successfully (%1$s mode) - Account: %2$s', 'bw'),
+            'test' === $api_mode ? __('Test', 'bw') : __('Live', 'bw'),
+            sanitize_text_field((string) $payload['id'])
+        ),
+        'mode' => $api_mode,
+    ]);
+}
+add_action('wp_ajax_bw_google_pay_test_connection', 'bw_google_pay_test_connection_ajax_handler');
 
 /**
  * Renderizza la pagina delle impostazioni con tab
@@ -2584,6 +2705,17 @@ function bw_site_render_checkout_tab()
                         </td>
                     </tr>
 
+                    <tr>
+                        <th scope="row">Test connessione Stripe</th>
+                        <td>
+                            <button type="button" class="button" id="bw-google-pay-test-connection">Verifica connessione</button>
+                            <span id="bw-google-pay-test-result" class="bw-google-pay-test-result" aria-live="polite"></span>
+                            <p class="description" style="margin-top: 8px;">Controlla la modalità attiva in base allo switch
+                                <strong>Test Mode</strong> e verifica la connessione reale con Stripe.
+                            </p>
+                        </td>
+                    </tr>
+
                     <tr class="bw-settings-divider">
                         <td colspan="2"><hr></td>
                     </tr>
@@ -2639,6 +2771,42 @@ function bw_site_render_checkout_tab()
                     background: #fff;
                     border: 1px solid #ccd0d4;
                     box-shadow: 0 1px 1px rgba(0, 0, 0, .04);
+                }
+
+                .bw-google-pay-test-result {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 8px;
+                    margin-left: 10px;
+                    font-weight: 600;
+                }
+
+                .bw-google-pay-test-result::before {
+                    content: "";
+                    width: 9px;
+                    height: 9px;
+                    border-radius: 50%;
+                    background: #b8c0cc;
+                }
+
+                .bw-google-pay-test-result.is-success {
+                    color: #0a7d33;
+                }
+
+                .bw-google-pay-test-result.is-success::before {
+                    background: #0a7d33;
+                }
+
+                .bw-google-pay-test-result.is-error {
+                    color: #b42318;
+                }
+
+                .bw-google-pay-test-result.is-error::before {
+                    background: #b42318;
+                }
+
+                .bw-google-pay-test-result.is-testing {
+                    color: #475467;
                 }
             </style>
         </div>
