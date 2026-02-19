@@ -2064,10 +2064,10 @@ body.woocommerce-checkout .bw-field-wrapper--phone::after {
     position: absolute;
     right: 16px;
     top: 50%;
-    width: 10px;
-    height: 10px;
-    border-right: 3px solid #111111;
-    border-bottom: 3px solid #111111;
+    width: 8px;
+    height: 8px;
+    border-right: 1.5px solid #111111;
+    border-bottom: 1.5px solid #111111;
     transform: translateY(-60%) rotate(45deg);
     pointer-events: none;
     z-index: 3;
@@ -2144,8 +2144,8 @@ body.woocommerce-checkout .form-row.bw-has-floating-label>label {
 
     body.woocommerce-checkout .bw-field-wrapper--phone::after {
         right: 14px;
-        width: 10px;
-        height: 10px;
+        width: 8px;
+        height: 8px;
     }
 
     body.woocommerce-checkout .bw-field-wrapper input:focus~.bw-floating-label,
