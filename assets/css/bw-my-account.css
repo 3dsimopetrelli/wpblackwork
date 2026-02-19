@@ -1992,6 +1992,11 @@ body.woocommerce-account.woocommerce-view-order .woocommerce-table tfoot th {
     color: #111;
 }
 
+body.woocommerce-account.woocommerce-view-order .woocommerce-table tfoot th.order-actions--heading,
+body.woocommerce-account.woocommerce-view-order .woocommerce-table tfoot th.order-actions--heading + td {
+    display: none;
+}
+
 body.woocommerce-account.woocommerce-view-order .woocommerce-table tr:last-child td,
 body.woocommerce-account.woocommerce-view-order .woocommerce-table tr:last-child th {
     border-bottom: 0;
