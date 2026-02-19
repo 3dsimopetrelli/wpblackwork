@@ -1438,7 +1438,11 @@ body.woocommerce-account .bw-settings .bw-field-wrapper.bw-has-password-toggle i
     padding-right: 48px;
 }
 
-.bw-settings-password-toggle {
+button.bw-settings-password-toggle,
+button.bw-settings-password-toggle:hover,
+button.bw-settings-password-toggle:focus,
+button.bw-settings-password-toggle:active,
+button.bw-settings-password-toggle:focus-visible {
     all: unset;
     position: absolute;
     right: 12px;
@@ -1446,7 +1450,18 @@ body.woocommerce-account .bw-settings .bw-field-wrapper.bw-has-password-toggle i
     transform: translateY(-50%);
     width: 20px;
     height: 20px;
-    color: #5a6473;
+    min-width: 20px !important;
+    min-height: 20px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: #5a6473 !important;
+    font: inherit !important;
+    line-height: 1 !important;
+    text-decoration: none !important;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -1454,17 +1469,17 @@ body.woocommerce-account .bw-settings .bw-field-wrapper.bw-has-password-toggle i
     z-index: 2;
 }
 
-.bw-settings-password-toggle:hover {
+button.bw-settings-password-toggle:hover {
     color: #111;
 }
 
-.bw-settings-password-toggle:focus-visible {
+button.bw-settings-password-toggle:focus-visible {
     outline: 2px solid #111;
     outline-offset: 2px;
     border-radius: 6px;
 }
 
-.bw-settings-password-toggle svg {
+button.bw-settings-password-toggle svg {
     display: block;
     width: 18px;
     height: 18px;
