@@ -21,20 +21,8 @@ $orders_url           = wc_get_endpoint_url( 'orders' );
 $member_since         = $current_user->user_registered ? date_i18n( 'F Y', strtotime( $current_user->user_registered ) ) : '';
 $latest_order         = ! empty( $orders ) && $orders[0] instanceof WC_Order ? $orders[0] : null;
 $last_purchase        = $latest_order && $latest_order->get_date_created() ? date_i18n( 'F j, Y', $latest_order->get_date_created()->getTimestamp() ) : '';
-$digital_library_count = bw_mew_get_customer_digital_library_count( $current_user->ID );
-$physical_orders_count = bw_mew_get_customer_physical_orders_count( $current_user->ID );
 $digital_orders       = bw_mew_get_dashboard_digital_orders( $current_user->ID, 6 );
 $physical_orders      = bw_mew_get_dashboard_physical_orders( $current_user->ID, 6 );
-$digital_library_label = sprintf(
-    /* translators: %d: digital products count. */
-    _n( '%d digital product', '%d digital products', $digital_library_count, 'bw' ),
-    $digital_library_count
-);
-$physical_orders_label = sprintf(
-    /* translators: %d: physical orders count. */
-    _n( '%d physical order', '%d physical orders', $physical_orders_count, 'bw' ),
-    $physical_orders_count
-);
 ?>
 <div class="bw-account-dashboard">
     <div class="bw-account-hero">
@@ -56,10 +44,6 @@ $physical_orders_label = sprintf(
                 <div class="bw-hero-meta">
                     <p class="bw-hero-meta-item"><?php echo esc_html( sprintf( __( 'Member since %s', 'bw' ), $member_since ? $member_since : '—' ) ); ?></p>
                     <p class="bw-hero-meta-item"><?php echo esc_html( sprintf( __( 'Last purchase %s', 'bw' ), $last_purchase ? $last_purchase : '—' ) ); ?></p>
-                </div>
-                <div class="bw-hero-library-stats">
-                    <p class="bw-hero-library">&#10003; <?php echo esc_html( $digital_library_label ); ?></p>
-                    <p class="bw-hero-library">&#10003; <?php echo esc_html( $physical_orders_label ); ?></p>
                 </div>
             </div>
         </div>
