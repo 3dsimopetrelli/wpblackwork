@@ -1887,13 +1887,19 @@
                 return;
             }
 
+            var policyKey = link.attr('data-policy');
+            var policyMap = (window.bwPolicyContent && typeof window.bwPolicyContent === 'object')
+                ? window.bwPolicyContent
+                : {};
+            var mapped = (policyKey && policyMap[policyKey]) ? policyMap[policyKey] : null;
+
             var data = {
-                title: link.attr('data-title'),
-                subtitle: link.attr('data-subtitle'),
-                content: link.attr('data-content')
+                title: mapped && mapped.title ? mapped.title : (link.attr('data-title') || ''),
+                subtitle: mapped && mapped.subtitle ? mapped.subtitle : (link.attr('data-subtitle') || ''),
+                content: mapped && mapped.content ? mapped.content : (link.attr('data-content') || '')
             };
 
-            if (data.title || data.content) {
+            if (data.title || data.subtitle || data.content) {
                 modal.find('.bw-policy-modal__title').text(data.title || '');
                 modal.find('.bw-policy-modal__subtitle').text(data.subtitle || '');
                 // content is sanitized server-side with wp_kses_post() — HTML is intentional
