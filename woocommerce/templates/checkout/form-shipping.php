@@ -58,26 +58,22 @@ $billing_order = [
         </div>
     <?php endif; ?>
 
-    <?php if (!empty($billing_fields)): ?>
-        <div class="bw-billing-address <?php echo $needs_shipping_address ? '' : 'is-different bw-billing-address--standalone'; ?>" data-default-mode="<?php echo $needs_shipping_address ? 'same' : 'different'; ?>">
+    <?php if ($needs_shipping_address && !empty($billing_fields)): ?>
+        <div class="bw-billing-address" data-default-mode="same">
             <h2 class="checkout-section-title checkout-billing-title"><?php echo esc_html($billing_heading); ?></h2>
 
-            <?php if ($needs_shipping_address): ?>
-                <div class="bw-billing-address__options" role="radiogroup" aria-label="<?php echo esc_attr($billing_heading); ?>">
-                    <label class="bw-billing-address__option bw-billing-address__option--same">
-                        <input type="radio" name="bw_billing_address_mode" value="same" checked="checked" />
-                        <span><?php esc_html_e('Same as shipping address', 'bw'); ?></span>
-                    </label>
-                    <label class="bw-billing-address__option bw-billing-address__option--different">
-                        <input type="radio" name="bw_billing_address_mode" value="different" />
-                        <span><?php esc_html_e('Use a different billing address', 'bw'); ?></span>
-                    </label>
-                </div>
-            <?php else: ?>
-                <input type="hidden" name="bw_billing_address_mode" value="different" />
-            <?php endif; ?>
+            <div class="bw-billing-address__options" role="radiogroup" aria-label="<?php echo esc_attr($billing_heading); ?>">
+                <label class="bw-billing-address__option bw-billing-address__option--same">
+                    <input type="radio" name="bw_billing_address_mode" value="same" checked="checked" />
+                    <span><?php esc_html_e('Same as shipping address', 'bw'); ?></span>
+                </label>
+                <label class="bw-billing-address__option bw-billing-address__option--different">
+                    <input type="radio" name="bw_billing_address_mode" value="different" />
+                    <span><?php esc_html_e('Use a different billing address', 'bw'); ?></span>
+                </label>
+            </div>
 
-            <div class="bw-billing-address__accordion" aria-hidden="<?php echo $needs_shipping_address ? 'true' : 'false'; ?>">
+            <div class="bw-billing-address__accordion" aria-hidden="true">
                 <div class="woocommerce-billing-fields__field-wrapper bw-billing-address__field-wrapper">
                     <?php foreach ($billing_order as $key): ?>
                         <?php if (!isset($billing_fields[$key])): ?>

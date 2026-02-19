@@ -882,6 +882,12 @@ body.woocommerce-checkout .bw-delivery-section-title {
 
 /* Contact title is a WooCommerce heading and can inherit from Elementor Kit h2. */
 /* Use a more specific checkout selector so it wins without !important. */
+body.woocommerce-checkout .bw-checkout-section-heading--contact {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+}
+
 body.woocommerce-checkout .bw-checkout-section-heading--contact h2.checkout-contact-title,
 body.woocommerce-checkout .woocommerce-billing-fields h2.checkout-section-title.checkout-contact-title {
     letter-spacing: -1px;
