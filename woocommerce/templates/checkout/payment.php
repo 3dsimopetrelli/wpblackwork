@@ -42,26 +42,24 @@ if (!wp_doing_ajax()) {
 									<?php echo wp_kses_post($gateway->get_title()); ?>
 								</span>
 								<?php
-								// Show icon for Google Pay
+								// Show gateway icon with PayPal fallback logo.
 								$gateway_type = strtolower($gateway_id);
 								$is_paypal = (strpos($gateway_type, 'paypal') !== false ||
 									strpos($gateway_type, 'ppcp') !== false);
-								$is_google_pay = (strpos($gateway_type, 'google') !== false ||
-									strpos($gateway_type, 'googlepay') !== false);
+								$icon_html = '';
 
-								if ($is_paypal) {
-									$paypal_logo_url = defined('BW_MEW_URL')
-										? BW_MEW_URL . 'assets/images/payment-icons/paypal.svg'
-										: '';
+								if ($is_paypal && defined('BW_MEW_URL')) {
+									$paypal_logo_url = BW_MEW_URL . 'assets/images/payment-icons/paypal.svg';
+									$icon_html = '<img src="' . esc_url($paypal_logo_url) . '" alt="' . esc_attr__('PayPal', 'woocommerce') . '" loading="lazy" decoding="async" />';
+								}
 
-									if (!empty($paypal_logo_url)) {
-										echo '<span class="bw-payment-method__icon bw-payment-method__icon--paypal"><img src="' . esc_url($paypal_logo_url) . '" alt="' . esc_attr__('PayPal', 'woocommerce') . '" loading="lazy" decoding="async" /></span>';
-									}
-								} elseif ($is_google_pay) {
+								// If fallback is not used/available, use the gateway-provided icon.
+								if (empty($icon_html)) {
 									$icon_html = $gateway->get_icon();
-									if ($icon_html) {
-										echo '<span class="bw-payment-method__icon">' . wp_kses_post( $icon_html ) . '</span>';
-									}
+								}
+
+								if (!empty($icon_html)) {
+									echo '<span class="bw-payment-method__icon">' . wp_kses_post($icon_html) . '</span>';
 								}
 								?>
 							</label>
