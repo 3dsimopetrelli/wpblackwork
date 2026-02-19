@@ -3178,12 +3178,16 @@ body.woocommerce-checkout .select2-results__option--selected {
 }
 
 .bw-checkout-section-heading--shipping-address {
-    margin-top: 20px;
-    margin-bottom: 5px;
+    margin-top: 20px !important;
+    margin-bottom: 10px !important;
 }
 
 .bw-billing-address .checkout-shipping-address-title {
     margin: 0;
+    letter-spacing: -1px !important;
+}
+
+body.woocommerce-checkout .bw-checkout-section-heading--shipping-address .checkout-shipping-address-title {
     letter-spacing: -1px !important;
 }
 
