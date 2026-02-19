@@ -1896,6 +1896,146 @@ body.woocommerce-account .bw-settings [data-bw-shipping-fields].is-collapsed {
     display: block;
 }
 
+body.woocommerce-account.woocommerce-view-order .bw-view-order {
+    margin-bottom: 14px;
+}
+
+body.woocommerce-account.woocommerce-view-order .bw-view-order__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+body.woocommerce-account.woocommerce-view-order .bw-view-order__status {
+    margin: 0;
+    color: #111;
+}
+
+body.woocommerce-account.woocommerce-view-order .bw-view-order__status mark {
+    background: transparent;
+    color: #111;
+    font-weight: 700;
+}
+
+body.woocommerce-account.woocommerce-view-order .bw-view-order__pdf a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    border-radius: 12px;
+    padding: 10px 18px;
+    background: #000;
+    color: #fff !important;
+    text-decoration: none !important;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1;
+}
+
+body.woocommerce-account.woocommerce-view-order .bw-view-order__pdf a:hover,
+body.woocommerce-account.woocommerce-view-order .bw-view-order__pdf a:focus {
+    filter: brightness(1.03);
+    transform: translateY(-1px);
+}
+
+body.woocommerce-account.woocommerce-view-order .woocommerce-order-downloads,
+body.woocommerce-account.woocommerce-view-order .woocommerce-order-details,
+body.woocommerce-account.woocommerce-view-order .woocommerce-customer-details {
+    background: #fff;
+    border: 1px solid #ececec;
+    border-radius: 12px;
+    padding: 0;
+    overflow: hidden;
+    margin-bottom: 16px;
+}
+
+body.woocommerce-account.woocommerce-view-order .woocommerce-order-downloads__title,
+body.woocommerce-account.woocommerce-view-order .woocommerce-order-details__title,
+body.woocommerce-account.woocommerce-view-order .woocommerce-column__title {
+    font-size: 38px;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin: 0;
+    padding: 20px;
+    border-bottom: 1px solid #ececec;
+}
+
+body.woocommerce-account.woocommerce-view-order .woocommerce-table {
+    margin: 0;
+    border: 0;
+    border-collapse: collapse;
+}
+
+body.woocommerce-account.woocommerce-view-order .woocommerce-table th,
+body.woocommerce-account.woocommerce-view-order .woocommerce-table td {
+    border: 0;
+    border-bottom: 1px solid #ececec;
+    background: #fff;
+    padding: 14px 16px;
+    vertical-align: middle;
+}
+
+body.woocommerce-account.woocommerce-view-order .woocommerce-table thead th {
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    font-size: 14px;
+    font-weight: 600;
+    color: #111;
+}
+
+body.woocommerce-account.woocommerce-view-order .woocommerce-table tbody td,
+body.woocommerce-account.woocommerce-view-order .woocommerce-table tfoot td,
+body.woocommerce-account.woocommerce-view-order .woocommerce-table tfoot th {
+    font-size: 14px;
+    color: #111;
+}
+
+body.woocommerce-account.woocommerce-view-order .woocommerce-table tr:last-child td,
+body.woocommerce-account.woocommerce-view-order .woocommerce-table tr:last-child th {
+    border-bottom: 0;
+}
+
+body.woocommerce-account.woocommerce-view-order .woocommerce-table a {
+    color: #111;
+    text-decoration: none;
+}
+
+body.woocommerce-account.woocommerce-view-order .woocommerce-table a:hover,
+body.woocommerce-account.woocommerce-view-order .woocommerce-table a:focus {
+    color: #111;
+    text-decoration: none;
+}
+
+body.woocommerce-account.woocommerce-view-order .woocommerce-MyAccount-downloads-file.button,
+body.woocommerce-account.woocommerce-view-order .order-actions-button,
+body.woocommerce-account.woocommerce-view-order .order-again .button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    border-radius: 12px;
+    padding: 8px 14px;
+    background: #000;
+    color: #fff !important;
+    border: 0;
+    text-decoration: none !important;
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1;
+}
+
+body.woocommerce-account.woocommerce-view-order .woocommerce-MyAccount-downloads-file.button:hover,
+body.woocommerce-account.woocommerce-view-order .woocommerce-MyAccount-downloads-file.button:focus,
+body.woocommerce-account.woocommerce-view-order .order-actions-button:hover,
+body.woocommerce-account.woocommerce-view-order .order-actions-button:focus,
+body.woocommerce-account.woocommerce-view-order .order-again .button:hover,
+body.woocommerce-account.woocommerce-view-order .order-again .button:focus {
+    filter: brightness(1.03);
+    transform: translateY(-1px);
+}
+
 @media (max-width: 768px) {
     .bw-page-header {
         flex-direction: column;
