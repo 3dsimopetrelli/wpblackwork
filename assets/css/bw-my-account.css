@@ -230,6 +230,15 @@ body.woocommerce-account .bw-account-orders-card--modern .woocommerce-MyAccount-
     font-size: 20px;
 }
 
+.bw-orders-page-indicator {
+    min-width: 64px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: #111;
+    line-height: 1;
+}
+
 body.woocommerce-account .woocommerce-order > p:first-child {
     margin: 0 0 18px;
     padding: 14px 16px;

@@ -120,6 +120,17 @@ do_action( 'woocommerce_before_account_orders', $has_orders );
                     </a>
                 <?php endif; ?>
 
+                <span class="bw-orders-page-indicator" aria-live="polite">
+                    <?php
+                    printf(
+                        /* translators: 1: current page, 2: total pages */
+                        esc_html__( '%1$d / %2$d', 'bw' ),
+                        (int) $current_page,
+                        (int) $customer_orders->max_num_pages
+                    );
+                    ?>
+                </span>
+
                 <?php if ( (int) $customer_orders->max_num_pages !== (int) $current_page ) : ?>
                     <a class="woocommerce-button woocommerce-button--next woocommerce-Button woocommerce-Button--next button" href="<?php echo esc_url( wc_get_endpoint_url( 'orders', $current_page + 1 ) ); ?>">
                         <?php esc_html_e( 'Next', 'woocommerce' ); ?>
