@@ -1664,6 +1664,21 @@ body.woocommerce-account .bw-settings #bw-tab-shipping .form-row.form-row-wide {
     margin: 0 0 20px !important;
 }
 
+body.woocommerce-account .bw-settings [data-bw-shipping-fields] {
+    overflow: hidden;
+    transition: max-height 320ms ease, opacity 260ms ease, transform 260ms ease;
+    opacity: 1;
+    transform: translateY(0);
+    max-height: 2000px;
+}
+
+body.woocommerce-account .bw-settings [data-bw-shipping-fields].is-collapsed {
+    max-height: 0;
+    opacity: 0;
+    transform: translateY(-8px);
+    pointer-events: none;
+}
+
 .bw-password-rules__title {
     margin: 0 0 6px;
     font-weight: 600;

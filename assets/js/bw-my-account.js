@@ -908,12 +908,57 @@
     }
 
     if (shippingToggle && shippingFields) {
-        const toggleShippingFields = () => {
-            const shouldHide = shippingToggle.checked;
-            shippingFields.hidden = shouldHide;
+        const transitionDuration = 340;
+
+        const collapseShippingFields = () => {
+            const currentHeight = shippingFields.scrollHeight;
+            shippingFields.style.maxHeight = currentHeight + 'px';
+            // Force reflow so the collapse transition starts from current height.
+            void shippingFields.offsetHeight;
+            shippingFields.classList.add('is-collapsed');
+            shippingFields.style.maxHeight = '0px';
+            shippingFields.setAttribute('aria-hidden', 'true');
         };
-        shippingToggle.addEventListener('change', toggleShippingFields);
-        toggleShippingFields();
+
+        const expandShippingFields = () => {
+            shippingFields.classList.remove('is-collapsed');
+            shippingFields.setAttribute('aria-hidden', 'false');
+            const targetHeight = shippingFields.scrollHeight;
+            shippingFields.style.maxHeight = targetHeight + 'px';
+
+            window.setTimeout(() => {
+                if (!shippingFields.classList.contains('is-collapsed')) {
+                    shippingFields.style.maxHeight = 'none';
+                }
+            }, transitionDuration);
+        };
+
+        const toggleShippingFields = (skipAnimation = false) => {
+            const shouldHide = shippingToggle.checked;
+
+            if (skipAnimation) {
+                if (shouldHide) {
+                    shippingFields.classList.add('is-collapsed');
+                    shippingFields.style.maxHeight = '0px';
+                    shippingFields.setAttribute('aria-hidden', 'true');
+                } else {
+                    shippingFields.classList.remove('is-collapsed');
+                    shippingFields.style.maxHeight = 'none';
+                    shippingFields.setAttribute('aria-hidden', 'false');
+                }
+                return;
+            }
+
+            if (shouldHide) {
+                collapseShippingFields();
+            } else {
+                expandShippingFields();
+            }
+        };
+
+        shippingFields.removeAttribute('hidden');
+        shippingToggle.addEventListener('change', () => toggleShippingFields(false));
+        toggleShippingFields(true);
     }
 
     if (!setPasswordForm) {
