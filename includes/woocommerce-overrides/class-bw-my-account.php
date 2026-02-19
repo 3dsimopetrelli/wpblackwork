@@ -726,6 +726,93 @@ function bw_mew_sync_profile_names_from_purchase_data() {
 add_action( 'template_redirect', 'bw_mew_sync_profile_names_from_purchase_data', 11 );
 
 /**
+ * Sync missing billing/shipping user meta from the latest customer order.
+ *
+ * This keeps Settings -> Billing/Shipping populated for accounts that were
+ * created or linked after checkout (for example guest-first purchase flows).
+ * Existing user meta is never overwritten.
+ *
+ * @return void
+ */
+function bw_mew_sync_account_address_fields_from_latest_order() {
+    if ( ! function_exists( 'is_account_page' ) || ! is_account_page() || ! is_user_logged_in() || ! function_exists( 'wc_get_orders' ) ) {
+        return;
+    }
+
+    $user_id = get_current_user_id();
+    if ( ! $user_id ) {
+        return;
+    }
+
+    $fields_to_sync = [
+        'billing_first_name',
+        'billing_last_name',
+        'billing_company',
+        'billing_address_1',
+        'billing_address_2',
+        'billing_city',
+        'billing_state',
+        'billing_postcode',
+        'billing_country',
+        'billing_phone',
+        'billing_email',
+        'shipping_first_name',
+        'shipping_last_name',
+        'shipping_company',
+        'shipping_address_1',
+        'shipping_address_2',
+        'shipping_city',
+        'shipping_state',
+        'shipping_postcode',
+        'shipping_country',
+    ];
+
+    $missing_fields = [];
+    foreach ( $fields_to_sync as $meta_key ) {
+        $current = get_user_meta( $user_id, $meta_key, true );
+        if ( '' === trim( (string) $current ) ) {
+            $missing_fields[] = $meta_key;
+        }
+    }
+
+    if ( empty( $missing_fields ) ) {
+        return;
+    }
+
+    $orders = wc_get_orders(
+        [
+            'limit'    => 1,
+            'customer' => $user_id,
+            'orderby'  => 'date',
+            'order'    => 'DESC',
+            'return'   => 'objects',
+            'status'   => apply_filters( 'woocommerce_my_account_my_orders_query_statuses', [ 'wc-completed', 'wc-processing', 'wc-on-hold' ] ),
+        ]
+    );
+
+    if ( empty( $orders ) || ! $orders[0] instanceof WC_Order ) {
+        return;
+    }
+
+    $order = $orders[0];
+
+    foreach ( $missing_fields as $meta_key ) {
+        $getter = 'get_' . $meta_key;
+        if ( ! method_exists( $order, $getter ) ) {
+            continue;
+        }
+
+        $value = trim( (string) $order->{$getter}() );
+        if ( '' === $value ) {
+            continue;
+        }
+
+        update_user_meta( $user_id, $meta_key, $value );
+    }
+}
+add_action( 'template_redirect', 'bw_mew_sync_account_address_fields_from_latest_order', 11 );
+
+/**
  * Count unique customer products by type (digital vs physical).
  *
  * Uniqueness is based on product + variation to avoid duplicates across
