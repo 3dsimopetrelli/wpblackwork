@@ -3132,6 +3132,98 @@ body.woocommerce-checkout .select2-results__option--selected {
     border-top: 1px solid #e0e0e0;
 }
 
+.bw-billing-address {
+    margin: 18px 0 0;
+    border: 1px solid #d1d5db;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #ffffff;
+}
+
+.bw-billing-address .checkout-billing-title {
+    margin: 0;
+    padding: 18px 22px 12px;
+    font-size: 16px;
+    line-height: 1.2;
+    letter-spacing: -1px;
+    color: #111111;
+}
+
+.bw-billing-address__options {
+    display: block;
+}
+
+.bw-billing-address__option {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-height: 62px;
+    padding: 0 22px;
+    border-top: 1px solid #d1d5db;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 500;
+    color: #111111;
+    background: #ffffff;
+}
+
+.bw-billing-address__option input[type="radio"] {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    border: 1.5px solid #bfc6cf;
+    border-radius: 50%;
+    margin: 0;
+    position: relative;
+    background: #ffffff;
+    cursor: pointer;
+}
+
+.bw-billing-address__option input[type="radio"]:checked {
+    border-color: #111111;
+}
+
+.bw-billing-address__option input[type="radio"]:checked::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #111111;
+    transform: translate(-50%, -50%);
+}
+
+.bw-billing-address__option span {
+    display: inline-block;
+}
+
+.bw-billing-address.is-different .bw-billing-address__option--different,
+.bw-billing-address:not(.is-different) .bw-billing-address__option--same {
+    border-color: #111111;
+}
+
+.bw-billing-address__accordion {
+    display: none;
+    border-top: 1px solid #d1d5db;
+    padding: 18px 22px 10px;
+}
+
+.bw-billing-address.is-different .bw-billing-address__accordion {
+    display: block;
+}
+
+.bw-billing-address__field-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
 
 
 /* Hide the default h3 that might be injected by hooks if not using our template */
