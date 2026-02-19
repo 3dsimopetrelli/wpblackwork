@@ -1564,6 +1564,24 @@ function bw_mew_customize_stripe_elements_style($options)
             '.PaymentElement' => array(
                 'padding' => '0',
             ),
+            '.PaymentAccordionButtonView' => array(
+                'display' => 'none !important',
+                'height' => '0 !important',
+                'minHeight' => '0 !important',
+                'overflow' => 'hidden !important',
+            ),
+            '.PaymentAccordionButtonIconContainer' => array(
+                'display' => 'none !important',
+                'height' => '0 !important',
+                'width' => '0 !important',
+                'overflow' => 'hidden !important',
+            ),
+            '.PaymentAccordionButtonText' => array(
+                'display' => 'none !important',
+                'height' => '0 !important',
+                'overflow' => 'hidden !important',
+                'opacity' => '0',
+            ),
         ),
     );
 
@@ -1705,6 +1723,24 @@ function bw_mew_customize_stripe_upe_appearance($params)
             ),
             '.AccordionButton' => array(
                 'display' => 'none !important',
+            ),
+            '.PaymentAccordionButtonView' => array(
+                'display' => 'none !important',
+                'height' => '0 !important',
+                'minHeight' => '0 !important',
+                'overflow' => 'hidden !important',
+            ),
+            '.PaymentAccordionButtonIconContainer' => array(
+                'display' => 'none !important',
+                'height' => '0 !important',
+                'width' => '0 !important',
+                'overflow' => 'hidden !important',
+            ),
+            '.PaymentAccordionButtonText' => array(
+                'display' => 'none !important',
+                'height' => '0 !important',
+                'overflow' => 'hidden !important',
+                'opacity' => '0',
             ),
         ),
     );
