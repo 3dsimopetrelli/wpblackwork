@@ -393,6 +393,15 @@ body.woocommerce-checkout .bw-payment-method__icon svg {
 	display: block;
 }
 
+/* PayPal logo sizing (matches approved visual in checkout) */
+body.woocommerce-checkout .bw-payment-method[data-gateway-id*="paypal"] .bw-payment-method__icon img,
+body.woocommerce-checkout .bw-payment-method[data-gateway-id*="ppcp"] .bw-payment-method__icon img {
+	width: 52px !important;
+	height: 30px !important;
+	max-height: none !important;
+	object-fit: contain;
+}
+
 /* ============================================
    PAYMENT METHOD CONTENT (Accordion Panel)
    !important on background to override WooCommerce payment_box styles
