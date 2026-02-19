@@ -900,7 +900,7 @@ body.woocommerce-checkout .bw-checkout-section-heading--delivery {
     line-height: 30px !important;
     letter-spacing: -1px !important;
     color: #111111 !important;
-    margin: 12px 0 10px !important;
+    margin: 0 !important;
 }
 
 /* Customer details section */
@@ -3174,11 +3174,12 @@ body.woocommerce-checkout .select2-results__option--selected {
     border-radius: 14px;
     overflow: hidden;
     background: #ffffff;
+    box-shadow: none !important;
 }
 
 .bw-checkout-section-heading--shipping-address {
     margin-top: 20px;
-    margin-bottom: 4px;
+    margin-bottom: 5px;
 }
 
 .bw-billing-address .checkout-shipping-address-title {
@@ -3203,6 +3204,10 @@ body.woocommerce-checkout .select2-results__option--selected {
     font-weight: 500;
     color: #111111;
     background: #ffffff;
+}
+
+.bw-billing-address .bw-billing-address__option:first-child {
+    border-top: none;
 }
 
 .bw-billing-address__option input[type="radio"] {
