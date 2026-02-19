@@ -1514,6 +1514,7 @@ body.woocommerce-account .bw-settings .bw-field-wrapper .bw-floating-label {
     transition: all 160ms ease;
     background: #f7f7f7;
     padding: 0 6px;
+    border-radius: 5px;
 }
 
 body.woocommerce-account .bw-settings .bw-field-wrapper input:focus ~ .bw-floating-label,
@@ -1577,6 +1578,7 @@ body.woocommerce-account .bw-settings .bw-select-floating-row > label.bw-select-
     line-height: 1.2;
     color: #111827;
     background: #f7f7f7;
+    border-radius: 5px;
     pointer-events: none;
 }
 
@@ -1717,7 +1719,7 @@ body.woocommerce-account .bw-settings #bw-tab-shipping .form-row.form-row-wide {
 }
 
 body.woocommerce-account .bw-settings [data-bw-shipping-fields] {
-    overflow: hidden;
+    overflow: visible;
     transition: max-height 320ms ease, opacity 260ms ease, transform 260ms ease;
     opacity: 1;
     transform: translateY(0);
@@ -1725,6 +1727,7 @@ body.woocommerce-account .bw-settings [data-bw-shipping-fields] {
 }
 
 body.woocommerce-account .bw-settings [data-bw-shipping-fields].is-collapsed {
+    overflow: hidden;
     max-height: 0;
     opacity: 0;
     transform: translateY(-8px);
