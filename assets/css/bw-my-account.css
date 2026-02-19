@@ -1389,6 +1389,10 @@ body.woocommerce-account .bw-account-content .bw-page-header h2 {
     gap: 16px;
 }
 
+body.woocommerce-account .bw-settings #bw-tab-profile .bw-grid {
+    row-gap: 22px;
+}
+
 body.woocommerce-account .bw-settings .bw-grid > .bw-field,
 body.woocommerce-account .bw-settings .bw-grid > .form-row {
     min-width: 0;
