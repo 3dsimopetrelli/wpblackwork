@@ -888,6 +888,8 @@ body.woocommerce-checkout .bw-payment-method__fields .wc-stripe-upe-element {
 	padding: 0;
 	margin: 0;
 	box-shadow: none;
+	position: relative;
+	overflow: hidden !important;
 }
 
 body.woocommerce-checkout .bw-payment-method__fields .wc-stripe-upe-element .StripeElement {
@@ -902,6 +904,16 @@ body.woocommerce-checkout .bw-payment-method__fields .wc-stripe-upe-element .__P
 	border: none;
 	padding: 0;
 	margin: 0;
+}
+
+/* HARD HIDE Stripe internal "Card" row (inside iframe) by clipping iframe top area */
+body.woocommerce-checkout .bw-payment-method__fields .wc-stripe-upe-element {
+	--bw-stripe-upe-top-crop: 26px;
+}
+
+body.woocommerce-checkout .bw-payment-method__fields .wc-stripe-upe-element iframe {
+	clip-path: inset(var(--bw-stripe-upe-top-crop) 0 0 0);
+	-webkit-clip-path: inset(var(--bw-stripe-upe-top-crop) 0 0 0);
 }
 
 /* Remove any ::before pseudo-element from payment box */
