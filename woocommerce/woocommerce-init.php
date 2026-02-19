@@ -467,9 +467,6 @@ function bw_mew_enqueue_checkout_assets()
     $css_file = BW_MEW_PATH . 'assets/css/bw-checkout.css';
     $js_file = BW_MEW_PATH . 'assets/js/bw-checkout.js';
     $version = file_exists($css_file) ? filemtime($css_file) : '1.0.0';
-
-    // FORCE CACHE BUST - Remove after testing
-    $version .= '.forcebust';
     $settings = bw_mew_get_checkout_settings();
 
     wp_enqueue_style(
@@ -480,7 +477,7 @@ function bw_mew_enqueue_checkout_assets()
     );
 
     if (file_exists($js_file)) {
-        $js_version = filemtime($js_file) . '.forcebust';
+        $js_version = filemtime($js_file);
         $dependencies = ['jquery'];
 
         if (wp_script_is('wc-checkout', 'registered')) {
@@ -1053,12 +1050,6 @@ function bw_mew_get_checkout_settings()
     }
     if ($settings['thumb_width'] > 300) {
         $settings['thumb_width'] = 300;
-    }
-
-    if (function_exists('bw_mew_normalize_checkout_column_widths')) {
-        $normalized = bw_mew_normalize_checkout_column_widths($settings['left_width'], $settings['right_width']);
-        $settings['left_width'] = $normalized['left'];
-        $settings['right_width'] = $normalized['right'];
     }
 
     if (function_exists('bw_mew_normalize_checkout_column_widths')) {
