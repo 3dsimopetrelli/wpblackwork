@@ -658,7 +658,7 @@ body.woocommerce-checkout .bw-checkout-left > *:not(#customer_details):not(.bw-c
 .bw-free-order-banner__text,
 .bw-free-order-banner__content p {
     margin: 0;
-    padding: 0;
+    padding: 25px;
     font-size: clamp(30px, 3.2vw, 48px);
     font-weight: 600;
     line-height: 1.08;
@@ -859,7 +859,7 @@ body.woocommerce-checkout .wcpay-express-checkout-wrapper::before {
 .bw-checkout-section-title {
     font-size: 16px;
     font-weight: 700;
-    letter-spacing: -1px !important;
+    letter-spacing: -1px;
     margin: 22px 0 12px;
     color: #111111;
 }
@@ -876,13 +876,15 @@ body.woocommerce-checkout .bw-delivery-section-title {
     display: block !important;
     width: 100% !important;
     line-height: 30px;
-    letter-spacing: -1px !important;
+    letter-spacing: -1px;
 
 }
 
-body.woocommerce-checkout h2.bw-checkout-section-title,
-body.woocommerce-checkout h2.bw-delivery-section-title {
-    letter-spacing: -1px !important;
+/* Contact title is a WooCommerce heading and can inherit from Elementor Kit h2. */
+/* Use a more specific checkout selector so it wins without !important. */
+body.woocommerce-checkout .bw-checkout-section-heading--contact h2.checkout-contact-title,
+body.woocommerce-checkout .woocommerce-billing-fields h2.checkout-section-title.checkout-contact-title {
+    letter-spacing: -1px;
 }
 
 /* Customer details section */
