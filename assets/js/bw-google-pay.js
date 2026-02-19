@@ -16,6 +16,7 @@
     var stripe         = Stripe(bwGooglePayParams.publishableKey);
     var paymentRequest = null;
     var googlePayAvailable = false;
+    var googlePayState = 'checking'; // checking | available | unavailable
 
     // -------------------------------------------------------------------------
     // Helpers
@@ -138,21 +139,24 @@
         var $wrapper       = $('#bw-google-pay-button-wrapper');
         var $placeholder   = $('#bw-google-pay-accordion-placeholder');
         var hasCustomBtn   = $('#bw-google-pay-trigger').length > 0;
+        var isGoogleMethod = selectedMethod === 'bw_google_pay';
 
-        if (selectedMethod === 'bw_google_pay') {
-            if (googlePayAvailable) {
-                $placeOrder[0] && $placeOrder[0].style.setProperty('display', 'none', 'important');
+        if (isGoogleMethod) {
+            // While Google Pay is selected, never show the generic Place order button.
+            // This avoids intermediate UI glitches during async capability checks.
+            $placeOrder[0] && $placeOrder[0].style.setProperty('display', 'none', 'important');
+
+            if (googlePayState === 'available' && googlePayAvailable) {
                 $wrapper.show();
                 if (hasCustomBtn) {
                     $placeholder.hide();
                 }
+            } else if (googlePayState === 'checking') {
+                $wrapper.hide();
+                $placeholder.show();
             } else {
                 $wrapper.hide();
                 $placeholder.show();
-                if ($placeOrder[0]) {
-                    $placeOrder[0].style.display = '';
-                }
-                $placeOrder.show();
             }
 
             if (googlePayAvailable && $('#bw-google-pay-trigger').length === 0) {
@@ -180,7 +184,7 @@
                 }
 
                 // Ensure "Inizializzazione Google Pay..." is hidden as soon as the custom button exists.
-                if (googlePayAvailable) {
+                if (googlePayState === 'available' && googlePayAvailable) {
                     $placeholder.hide();
                 }
             }
@@ -276,6 +280,8 @@
 
     function initGooglePay() {
         var initialCents = bwGetOrderTotalCents();
+        googlePayState = 'checking';
+        googlePayAvailable = false;
 
         paymentRequest = stripe.paymentRequest({
             country:  bwGooglePayParams.country,   // from WC base country
@@ -291,6 +297,7 @@
 
         paymentRequest.canMakePayment().then(function (result) {
             googlePayAvailable = !!(result && result.googlePay === true);
+            googlePayState = googlePayAvailable ? 'available' : 'unavailable';
 
             if (googlePayAvailable) {
                 BW_GOOGLE_PAY_DEBUG && console.log('[BW Google Pay] Disponibile:', result);
@@ -319,7 +326,13 @@
                     placeholder.innerHTML = '';
                     placeholder.appendChild(p);
                 }
+
+                handleButtonVisibility();
             }
+        }).catch(function () {
+            googlePayAvailable = false;
+            googlePayState = 'unavailable';
+            handleButtonVisibility();
         });
 
         // Fires when the customer approves the payment in the Google Pay sheet.
