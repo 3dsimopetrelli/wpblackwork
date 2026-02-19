@@ -25,7 +25,7 @@ if ( ! is_array( $downloads ) ) {
     <?php if ( $downloads ) : ?>
         <ul class="bw-order-list">
             <?php foreach ( $downloads as $row ) : ?>
-                <li class="bw-order-row bw-order-row--digital">
+                <li class="bw-order-row bw-order-row--digital bw-order-row--no-price">
                     <div class="bw-order-thumb">
                         <?php if ( ! empty( $row['productUrl'] ) ) : ?>
                             <a href="<?php echo esc_url( $row['productUrl'] ); ?>" target="_blank" rel="noopener noreferrer" class="bw-order-product-link" aria-label="<?php echo esc_attr( $row['title'] ); ?>">
@@ -49,7 +49,6 @@ if ( ! is_array( $downloads ) ) {
                         </p>
                         <p class="bw-order-meta"><?php echo esc_html( $row['license'] ); ?> <span aria-hidden="true">|</span> <?php echo esc_html( $row['date'] ); ?></p>
                     </div>
-                    <p class="bw-order-price"><?php echo wp_kses_post( $row['price'] ); ?></p>
                     <div class="bw-order-action">
                         <?php if ( ! empty( $row['downloadUrl'] ) ) : ?>
                             <a class="bw-download-button" href="<?php echo esc_url( $row['downloadUrl'] ); ?>" download>

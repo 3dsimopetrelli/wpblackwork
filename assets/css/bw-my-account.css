@@ -665,6 +665,10 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
     border-bottom: 1px solid #ececec;
 }
 
+.bw-order-row--no-price {
+    grid-template-columns: 76px minmax(0, 1fr) auto;
+}
+
 .bw-order-row:last-child {
     border-bottom: 0;
 }
