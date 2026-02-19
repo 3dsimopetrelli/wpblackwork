@@ -15,6 +15,7 @@
 
     var stripe         = Stripe(bwGooglePayParams.publishableKey);
     var paymentRequest = null;
+    var googlePayAvailable = false;
 
     // -------------------------------------------------------------------------
     // Helpers
@@ -139,13 +140,22 @@
         var hasCustomBtn   = $('#bw-google-pay-trigger').length > 0;
 
         if (selectedMethod === 'bw_google_pay') {
-            $placeOrder[0] && $placeOrder[0].style.setProperty('display', 'none', 'important');
-            $wrapper.show();
-            if (hasCustomBtn) {
-                $placeholder.hide();
+            if (googlePayAvailable) {
+                $placeOrder[0] && $placeOrder[0].style.setProperty('display', 'none', 'important');
+                $wrapper.show();
+                if (hasCustomBtn) {
+                    $placeholder.hide();
+                }
+            } else {
+                $wrapper.hide();
+                $placeholder.show();
+                if ($placeOrder[0]) {
+                    $placeOrder[0].style.display = '';
+                }
+                $placeOrder.show();
             }
 
-            if ($('#bw-google-pay-trigger').length === 0) {
+            if (googlePayAvailable && $('#bw-google-pay-trigger').length === 0) {
                 var btn  = document.createElement('button');
                 btn.type = 'button';
                 btn.id   = 'bw-google-pay-trigger';
@@ -170,7 +180,9 @@
                 }
 
                 // Ensure "Inizializzazione Google Pay..." is hidden as soon as the custom button exists.
-                $placeholder.hide();
+                if (googlePayAvailable) {
+                    $placeholder.hide();
+                }
             }
         } else {
             $wrapper.hide();
@@ -278,7 +290,9 @@
         });
 
         paymentRequest.canMakePayment().then(function (result) {
-            if (result) {
+            googlePayAvailable = !!(result && result.googlePay === true);
+
+            if (googlePayAvailable) {
                 BW_GOOGLE_PAY_DEBUG && console.log('[BW Google Pay] Disponibile:', result);
                 $('#bw-google-pay-accordion-placeholder').hide();
                 handleButtonVisibility();
@@ -293,12 +307,12 @@
                     paymentRequest.show();
                 });
             } else {
-                BW_GOOGLE_PAY_DEBUG && console.log('[BW Google Pay] Non disponibile su questo dispositivo/browser.');
+                BW_GOOGLE_PAY_DEBUG && console.log('[BW Google Pay] Google Pay non disponibile (result):', result);
                 $('#bw-google-pay-button-wrapper').hide();
 
                 var p = document.createElement('p');
                 p.style.cssText = 'font-size:13px;color:#666;margin:10px 0;';
-                p.textContent   = 'Google Pay non è disponibile su questo dispositivo o browser.';
+                p.textContent   = 'Google Pay non è disponibile su questo dispositivo/browser o account.';
 
                 var placeholder = document.getElementById('bw-google-pay-accordion-placeholder');
                 if (placeholder) {
