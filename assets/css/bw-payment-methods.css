@@ -397,8 +397,9 @@ body.woocommerce-checkout .bw-payment-method__icon svg {
 body.woocommerce-checkout .bw-payment-method[data-gateway-id*="paypal"] .bw-payment-method__icon img,
 body.woocommerce-checkout .bw-payment-method[data-gateway-id*="ppcp"] .bw-payment-method__icon img {
 	width: 52px !important;
+	max-width: 52px !important;
 	height: auto !important;
-	max-height: 30px !important;
+	max-height: none !important;
 	object-fit: contain;
 }
 
