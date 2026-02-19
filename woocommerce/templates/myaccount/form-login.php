@@ -17,6 +17,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 // Determine which login provider to use
 $login_provider = get_option( 'bw_account_login_provider', 'wordpress' );
 
+$is_auth_callback = isset( $_GET['bw_auth_callback'] ) && '1' === sanitize_text_field( wp_unslash( $_GET['bw_auth_callback'] ) );
+$set_password_qs  = isset( $_GET['bw_set_password'] ) && '1' === sanitize_text_field( wp_unslash( $_GET['bw_set_password'] ) );
+$auth_type        = isset( $_GET['type'] ) ? sanitize_key( wp_unslash( $_GET['type'] ) ) : '';
+$auth_code        = isset( $_GET['code'] ) ? sanitize_text_field( wp_unslash( $_GET['code'] ) ) : '';
+$is_code_callback = ! empty( $auth_code ) && in_array( $auth_type, [ 'invite', 'recovery' ], true );
+
+if ( 'supabase' === $login_provider && ( $is_auth_callback || $set_password_qs || $is_code_callback ) ) {
+    wc_get_template( 'myaccount/auth-callback.php' );
+    return;
+}
+
 // Common settings (used by both providers)
 $login_image         = get_option( 'bw_account_login_image', '' );
 $login_image_id      = (int) get_option( 'bw_account_login_image_id', 0 );

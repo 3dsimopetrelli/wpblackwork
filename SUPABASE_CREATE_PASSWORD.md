@@ -281,17 +281,52 @@ After a guest checkout (Supabase provider enabled), the user must:
 
 ---
 
-## Current Open Issue (Next Task)
+## Stabilization Status (Updated 2026-02-18)
 
-### My Account logged-out flash before create-password popup
+### Issue fixed: Logged-out My Account flash before Create Password popup
+- Previous symptom:
+  - after clicking Supabase invite link, users could briefly see logged-out My Account UI before popup/create-password state.
+- Root cause:
+  - callback transition relied on late JS timing in some paths.
+  - `?bw_auth_callback=1` could remain in URL and be interpreted outside intended guest transition.
+- Implemented fix set:
+  1. **Early head-level preloader + redirect guard** (`wp_head`, priority 1)
+     - file: `woocommerce/woocommerce-init.php`
+     - adds ultra-early callback detection, auth-in-progress state, first-paint suppression on account page during transition.
+  2. **Bridge state hardening**
+     - file: `assets/js/bw-supabase-bridge.js`
+     - stores/clears `bw_auth_in_progress` deterministically and cleans preload class when bridge completes.
+  3. **Template guard for guest transition**
+     - files:
+       - `woocommerce/templates/myaccount/my-account.php`
+       - `woocommerce/templates/myaccount/form-login.php`
+     - auth callback template rendered only in proper transition context.
+  4. **Logged-in stale callback cleanup**
+     - file: `includes/woocommerce-overrides/class-bw-my-account.php`
+     - if logged-in user lands on `/my-account/?bw_auth_callback=1`, redirects to clean `/my-account/`.
+
+### Regression fixed: Loader shown to already logged-in users
 - Symptom:
-  - after clicking Supabase invite link, user may briefly see logged-out My Account before session/popup state is finalized.
-- Current status:
-  - callback + loader architecture is already in place, but visual flash can still appear in some timing conditions.
-- Next stabilization pass should focus on:
-  1. callback entry guard timing,
-  2. first paint suppression for auth panels during callback resolution,
-  3. deterministic redirect order after token bridge.
+  - logged-in refresh on `/my-account/?bw_auth_callback=1` showed "Completing sign-in".
+- Resolution:
+  - callback/preload logic now explicitly bypassed when `is_user_logged_in() = true`.
+  - stale callback query is auto-cleaned.
+
+### Current expected behavior (must hold)
+1. **Guest invite click (Supabase)**:
+   - no visible logged-out form flash,
+   - callback/loader path runs,
+   - popup/create-password flow opens.
+2. **Logged-in user refresh**:
+   - never sees callback loader,
+   - stays on normal My Account dashboard.
+3. **Expired invite link**:
+   - redirects to configured expired-link page (or set-password if already logged-in path applies).
+4. **OTP create-password (new user)**:
+   - validation must follow onboarding UI rules exactly:
+     - at least 8 characters,
+     - at least 1 uppercase letter,
+     - at least 1 number **or** special character.
 
 ---
 
@@ -304,4 +339,69 @@ After a guest checkout (Supabase provider enabled), the user must:
 5. Any change touching bridge/callback must be tested with:
    - fresh invite link,
    - expired invite link,
-   - already-activated account.
+   - already-activated account,
+   - logged-in refresh on clean `/my-account/` and stale `/my-account/?bw_auth_callback=1`.
+
+---
+
+## Debug-First Smoke Matrix (Use After Any Auth/Checkout Change)
+
+### Flow A — New guest purchase (primary flow)
+1. Place order as guest with new email.
+2. Confirm order-received page renders onboarding version.
+3. Confirm Supabase invite log contains status 200.
+4. Click invite link.
+5. Confirm no logged-out page flash before create-password UI.
+
+### Flow B — Logged-in safety
+1. Login with existing active account.
+2. Open `/my-account/` and refresh.
+3. Open `/my-account/?bw_auth_callback=1` manually.
+4. Confirm auto-clean redirect to `/my-account/` and no loader persistence.
+
+### Flow C — Expired invite
+1. Re-open old invite link.
+2. Confirm expired behavior path is deterministic and non-looping.
+
+### Log lines to verify quickly (`wp-content/debug.log`)
+- `Supabase invite trace ... entered trigger`
+- `Supabase invite sent ... status 200`
+- `BW template trace: template_name=checkout/order-received.php source=plugin`
+- `BW order-received branch: custom-order-confirmed`
+
+---
+
+## Password Rules Alignment (Updated 2026-02-18)
+
+### Issue observed
+- In OTP/new-user create-password flow, UI showed all rules green and enabled submit, but backend returned:
+  - `Password does not meet the requirements.`
+- Example reported:
+  - `CiaoSimone1` should pass onboarding UI (8 + uppercase + number) but was rejected.
+
+### Root cause
+- Endpoint `bw_mew_handle_supabase_create_password()` was still using strict validator:
+  - `bw_mew_supabase_password_meets_requirements()`
+- That strict validator requires:
+  - lowercase + uppercase + number + symbol (and length).
+
+### Final mapping (stable)
+- **Onboarding flows (must match onboarding UI):**
+  - `bw_mew_supabase_password_meets_onboarding_requirements()`
+  - used by:
+    - `bw_mew_handle_supabase_create_password()`
+    - `bw_mew_handle_set_password_modal()`
+- **Logged-in account password update (advanced profile rules):**
+  - `bw_mew_supabase_password_meets_requirements()`
+  - used by:
+    - `bw_mew_handle_supabase_update_password()`
+
+### Files touched for this fix
+- `includes/woocommerce-overrides/class-bw-supabase-auth.php`
+
+### Quick verification set
+1. OTP new-user flow:
+   - `CiaoSimone1` => must pass.
+   - `CiaoSimone!` => must pass.
+2. Logged-in profile password update:
+   - strict 5-rule policy remains active.

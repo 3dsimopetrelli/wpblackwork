@@ -203,32 +203,106 @@
         window.setTimeout(() => initSettingsSelectFloatingLabels(document), 180);
     };
 
-    const tabs = document.querySelectorAll('.bw-tab');
+    const ensureSettingsPasswordToggles = (scope = document) => {
+        const root = scope && scope.querySelectorAll ? scope : document;
+        const passwordInputs = root.querySelectorAll(
+            '[data-bw-supabase-password-form] input[type="password"][name="new_password"], [data-bw-supabase-password-form] input[type="password"][name="confirm_password"], [data-bw-supabase-password-form] input[type="text"][name="new_password"], [data-bw-supabase-password-form] input[type="text"][name="confirm_password"]'
+        );
 
-    tabs.forEach((tab) => {
-        tab.addEventListener('click', () => {
-            const targetSelector = tab.getAttribute('data-target');
-            if (!targetSelector) {
+        if (!passwordInputs.length) {
+            return;
+        }
+
+        passwordInputs.forEach((input) => {
+            if (!input.id) {
                 return;
             }
 
+            const wrapper = input.closest('.bw-field-wrapper');
+            if (!wrapper) {
+                return;
+            }
+
+            wrapper.classList.add('bw-has-password-toggle');
+
+            let button = wrapper.querySelector('[data-bw-settings-password-toggle="' + input.id.replace(/"/g, '\\"') + '"]');
+            if (!button) {
+                button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'bw-settings-password-toggle';
+                button.setAttribute('data-bw-settings-password-toggle', input.id);
+                button.setAttribute('aria-label', 'Show password');
+                button.innerHTML = '' +
+                    '<svg class="bw-icon-eye" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
+                        '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>' +
+                        '<circle cx="12" cy="12" r="3"></circle>' +
+                    '</svg>' +
+                    '<svg class="bw-icon-eye-off" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;">' +
+                        '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>' +
+                        '<line x1="1" y1="1" x2="23" y2="23"></line>' +
+                    '</svg>';
+                wrapper.appendChild(button);
+            }
+
+            const syncIconState = () => {
+                const isVisible = input.type === 'text';
+                const eyeIcon = button.querySelector('.bw-icon-eye');
+                const eyeOffIcon = button.querySelector('.bw-icon-eye-off');
+
+                if (eyeIcon) {
+                    eyeIcon.style.display = isVisible ? 'none' : 'block';
+                }
+                if (eyeOffIcon) {
+                    eyeOffIcon.style.display = isVisible ? 'block' : 'none';
+                }
+
+                button.setAttribute('aria-label', isVisible ? 'Hide password' : 'Show password');
+            };
+
+            if (button.dataset.bwSettingsPasswordBound !== '1') {
+                button.addEventListener('click', () => {
+                    input.type = input.type === 'password' ? 'text' : 'password';
+                    syncIconState();
+                });
+                button.dataset.bwSettingsPasswordBound = '1';
+            }
+
+            syncIconState();
+        });
+    };
+
+    const tabs = document.querySelectorAll('.bw-tab');
+    const activateSettingsTab = (container, tab) => {
+        if (!container || !tab) {
+            return;
+        }
+
+        const targetSelector = tab.getAttribute('data-target');
+        if (!targetSelector) {
+            return;
+        }
+
+        container.querySelectorAll('.bw-tab').forEach((btn) => {
+            btn.classList.remove('is-active');
+            btn.setAttribute('aria-selected', 'false');
+        });
+        container.querySelectorAll('.bw-tab-panel').forEach((panel) => panel.classList.remove('is-active'));
+
+        tab.classList.add('is-active');
+        tab.setAttribute('aria-selected', 'true');
+        const targetPanel = container.querySelector(targetSelector);
+        if (targetPanel) {
+            targetPanel.classList.add('is-active');
+        }
+    };
+
+    tabs.forEach((tab) => {
+        tab.addEventListener('click', () => {
             const container = tab.closest('.bw-settings');
             if (!container) {
                 return;
             }
-
-            container.querySelectorAll('.bw-tab').forEach((btn) => {
-                btn.classList.remove('is-active');
-                btn.setAttribute('aria-selected', 'false');
-            });
-            container.querySelectorAll('.bw-tab-panel').forEach((panel) => panel.classList.remove('is-active'));
-
-            tab.classList.add('is-active');
-            tab.setAttribute('aria-selected', 'true');
-            const targetPanel = container.querySelector(targetSelector);
-            if (targetPanel) {
-                targetPanel.classList.add('is-active');
-            }
+            activateSettingsTab(container, tab);
 
             scheduleSettingsFloatingLabels();
         });
@@ -244,18 +318,173 @@
         });
 
         if (activeTab) {
-            const targetSelector = activeTab.getAttribute('data-target');
-            if (targetSelector) {
-                container.querySelectorAll('.bw-tab-panel').forEach((panel) => panel.classList.remove('is-active'));
-                const activePanel = container.querySelector(targetSelector);
-                if (activePanel) {
-                    activePanel.classList.add('is-active');
-                }
-            }
+            activateSettingsTab(container, activeTab);
         }
     });
+
+    const pageSearchParams = new URLSearchParams(window.location.search);
+    const hashSearchParams = new URLSearchParams((window.location.hash || '').replace(/^#/, ''));
+    const requestedTab = (pageSearchParams.get('bw_tab') || '').trim().toLowerCase();
+    if (requestedTab) {
+        const targetSelector = '#bw-tab-' + requestedTab;
+        document.querySelectorAll('.bw-settings').forEach((container) => {
+            const tab = container.querySelector('.bw-tab[data-target="' + targetSelector + '"]');
+            if (!tab) {
+                return;
+            }
+            activateSettingsTab(container, tab);
+        });
+    }
+
+    const hasActivePasswordModal = () => {
+        const passwordModal = document.getElementById('bw-password-modal');
+        if (!passwordModal) {
+            return false;
+        }
+
+        if (passwordModal.classList.contains('is-active')) {
+            return true;
+        }
+
+        return passwordModal.style.display && passwordModal.style.display !== 'none';
+    };
+
+    const setEmailChangeFlag = () => {
+        if (!window.sessionStorage) {
+            return;
+        }
+
+        try {
+            sessionStorage.setItem('bw_email_change_confirmed', '1');
+        } catch (error) {
+            // Ignore sessionStorage errors.
+        }
+    };
+
+    const clearEmailChangeFlag = () => {
+        if (!window.sessionStorage) {
+            return;
+        }
+
+        try {
+            sessionStorage.removeItem('bw_email_change_confirmed');
+        } catch (error) {
+            // Ignore sessionStorage errors.
+        }
+    };
+
+    const hasEmailChangeFlag = () => {
+        if (!window.sessionStorage) {
+            return false;
+        }
+
+        try {
+            return sessionStorage.getItem('bw_email_change_confirmed') === '1';
+        } catch (error) {
+            return false;
+        }
+    };
+
+    const showAccountPopup = (title, message) => {
+        const existing = document.querySelector('.bw-account-confirm-modal');
+        if (existing) {
+            existing.remove();
+        }
+
+        const popup = document.createElement('div');
+        popup.className = 'bw-password-modal bw-account-confirm-modal';
+        popup.style.display = 'flex';
+        popup.innerHTML = '' +
+            '<div class="bw-password-modal__overlay" data-bw-popup-close></div>' +
+            '<div class="bw-password-modal__container" role="dialog" aria-modal="true" aria-live="polite" aria-labelledby="bw-account-confirm-title">' +
+                '<div class="bw-password-modal__content">' +
+                    '<h3 id="bw-account-confirm-title" class="bw-password-modal__title"></h3>' +
+                    '<p class="bw-password-modal__subtitle"></p>' +
+                    '<button type="button" class="bw-password-modal__submit" data-bw-popup-close>OK</button>' +
+                '</div>' +
+            '</div>';
+
+        const titleNode = popup.querySelector('.bw-password-modal__title');
+        const textNode = popup.querySelector('.bw-password-modal__subtitle');
+        if (titleNode) {
+            titleNode.textContent = title;
+        }
+        if (textNode) {
+            textNode.textContent = message;
+        }
+
+        let onEscape = null;
+
+        const closePopup = () => {
+            popup.remove();
+            if (!hasActivePasswordModal()) {
+                document.body.classList.remove('bw-modal-open');
+            }
+            if (onEscape) {
+                document.removeEventListener('keydown', onEscape);
+                onEscape = null;
+            }
+            clearEmailChangeFlag();
+        };
+
+        popup.querySelectorAll('[data-bw-popup-close]').forEach((node) => {
+            node.addEventListener('click', closePopup);
+        });
+
+        onEscape = (event) => {
+            if (event.key !== 'Escape') {
+                return;
+            }
+            closePopup();
+        };
+        document.addEventListener('keydown', onEscape);
+
+        document.body.appendChild(popup);
+        requestAnimationFrame(() => {
+            popup.classList.add('is-active');
+            document.body.classList.add('bw-modal-open');
+        });
+    };
+
+    const callbackType = (pageSearchParams.get('type') || hashSearchParams.get('type') || '').trim().toLowerCase();
+    const hasEmailChangedParam = '1' === pageSearchParams.get('bw_email_changed');
+    const hasEmailConfirmedParam = '1' === pageSearchParams.get('bw_email_confirmed');
+    const isSupabaseEmailChangeCallback = callbackType === 'email_change';
+    const shouldShowEmailChangedPopup = hasEmailChangedParam || hasEmailConfirmedParam || isSupabaseEmailChangeCallback || hasEmailChangeFlag();
+
+    if (isSupabaseEmailChangeCallback || hasEmailChangedParam || hasEmailConfirmedParam) {
+        setEmailChangeFlag();
+    }
+
+    if (shouldShowEmailChangedPopup) {
+        if (!requestedTab) {
+            document.querySelectorAll('.bw-settings').forEach((container) => {
+                const securityTab = container.querySelector('.bw-tab[data-target="#bw-tab-security"]');
+                if (securityTab) {
+                    activateSettingsTab(container, securityTab);
+                }
+            });
+        }
+
+        showAccountPopup('Email confirmed', 'Your email has been changed successfully.');
+        if (window.history && typeof window.history.replaceState === 'function') {
+            pageSearchParams.delete('bw_email_changed');
+            pageSearchParams.delete('bw_email_confirmed');
+            pageSearchParams.delete('bw_tab');
+            pageSearchParams.delete('type');
+            pageSearchParams.delete('code');
+            pageSearchParams.delete('state');
+            pageSearchParams.delete('provider');
+            const newQuery = pageSearchParams.toString();
+            const newUrl = window.location.pathname + (newQuery ? '?' + newQuery : '') + window.location.hash;
+            window.history.replaceState({}, document.title, newUrl);
+        }
+    }
+
     scheduleLoginFloatingLabels();
     scheduleSettingsFloatingLabels();
+    window.requestAnimationFrame(() => ensureSettingsPasswordToggles(document));
+    window.setTimeout(() => ensureSettingsPasswordToggles(document), 220);
 
     document.addEventListener('change', (event) => {
         const target = event.target;
@@ -436,8 +665,12 @@
     const passwordForm = document.querySelector('[data-bw-supabase-password-form]');
     const emailForm = document.querySelector('[data-bw-supabase-email-form]');
     const pendingEmailBanner = document.querySelector('[data-bw-pending-email-banner]');
+    const pendingEmailMessage = pendingEmailBanner ? pendingEmailBanner.querySelector('[data-bw-pending-email-message]') : null;
     const shippingToggle = document.querySelector('#bw_shipping_same_as_billing');
     const shippingFields = document.querySelector('[data-bw-shipping-fields]');
+    const emailConfirmationBox = emailForm ? emailForm.querySelector('[data-bw-email-confirmation-box]') : null;
+    const emailConfirmationMessage = emailForm ? emailForm.querySelector('[data-bw-email-confirmation-message]') : null;
+    const emailConfirmationHint = emailForm ? emailForm.querySelector('.bw-account-security__email-notice-hint') : null;
     const passwordRuleConfig = [
         { id: 'length', test: (value) => value.length >= 8 },
         { id: 'lowercase', test: (value) => /[a-z]/.test(value) },
@@ -524,6 +757,10 @@
                 successBox.textContent = '';
                 successBox.hidden = true;
             }
+            if (action === 'bw_supabase_update_email' && emailConfirmationBox) {
+                emailConfirmationBox.hidden = true;
+                emailConfirmationBox.classList.remove('is-error');
+            }
 
             if (action === 'bw_supabase_update_password') {
                 hidePasswordMissingSession();
@@ -598,8 +835,22 @@
                 credentials: 'same-origin',
                 body: new URLSearchParams(formData)
             })
-                .then((response) => response.json())
-                .then((payload) => {
+                .then(async (response) => {
+                    const status = response.status;
+                    const raw = await response.text();
+                    let payload = null;
+
+                    if (raw) {
+                        try {
+                            payload = JSON.parse(raw);
+                        } catch (error) {
+                            payload = null;
+                        }
+                    }
+
+                    return { payload, raw, status };
+                })
+                .then(({ payload, raw, status }) => {
                     if (payload && payload.success) {
                         if (successBox) {
                             successBox.textContent = (payload.data && payload.data.message) ? payload.data.message : 'Saved.';
@@ -607,8 +858,26 @@
                         }
 
                         if (action === 'bw_supabase_update_email' && pendingEmailBanner && payload.data && payload.data.pendingEmail) {
-                            pendingEmailBanner.textContent = 'Confirm your new email address (' + payload.data.pendingEmail + ') from the confirmation email we sent you.';
+                            if (pendingEmailMessage) {
+                                pendingEmailMessage.textContent = 'Confirm your new email address (' + payload.data.pendingEmail + ') from the confirmation email we sent you.';
+                            }
                             pendingEmailBanner.hidden = false;
+                        }
+
+                        if (action === 'bw_supabase_update_email' && emailConfirmationBox) {
+                            if (successBox) {
+                                successBox.hidden = true;
+                            }
+                            emailConfirmationBox.classList.remove('is-error');
+                            if (emailConfirmationMessage) {
+                                emailConfirmationMessage.textContent = (payload.data && payload.data.message)
+                                    ? payload.data.message
+                                    : 'Please confirm your new email address from the email we sent.';
+                            }
+                            if (emailConfirmationHint) {
+                                emailConfirmationHint.textContent = 'Check your inbox to complete the change.';
+                            }
+                            emailConfirmationBox.hidden = false;
                         }
 
                         if (action === 'bw_supabase_update_password') {
@@ -621,7 +890,27 @@
                         return;
                     }
 
-                    const message = payload && payload.data && payload.data.message ? payload.data.message : defaultMessage;
+                    const fallbackMessage = (status === 403 || raw.trim() === '-1')
+                        ? 'Security check failed. Please refresh the page and try again.'
+                        : defaultMessage;
+                    const message = payload && payload.data && payload.data.message ? payload.data.message : fallbackMessage;
+
+                    if (action === 'bw_supabase_update_email' && emailConfirmationBox) {
+                        if (errorBox) {
+                            errorBox.hidden = true;
+                        }
+                        emailConfirmationBox.classList.add('is-error');
+                        if (emailConfirmationMessage) {
+                            emailConfirmationMessage.textContent = message;
+                        }
+                        if (emailConfirmationHint) {
+                            emailConfirmationHint.textContent = message === 'Supabase session is missing.'
+                                ? 'Please log in again to refresh your secure session.'
+                                : 'Please verify your details and try again.';
+                        }
+                        emailConfirmationBox.hidden = false;
+                        return;
+                    }
                     if (errorBox) {
                         errorBox.textContent = message;
                         errorBox.hidden = false;
@@ -632,6 +921,20 @@
                     }
                 })
                 .catch(() => {
+                    if (action === 'bw_supabase_update_email' && emailConfirmationBox) {
+                        if (errorBox) {
+                            errorBox.hidden = true;
+                        }
+                        emailConfirmationBox.classList.add('is-error');
+                        if (emailConfirmationMessage) {
+                            emailConfirmationMessage.textContent = defaultMessage;
+                        }
+                        if (emailConfirmationHint) {
+                            emailConfirmationHint.textContent = 'Please verify your details and try again.';
+                        }
+                        emailConfirmationBox.hidden = false;
+                        return;
+                    }
                     if (errorBox) {
                         errorBox.textContent = defaultMessage;
                         errorBox.hidden = false;
@@ -675,12 +978,61 @@
     }
 
     if (shippingToggle && shippingFields) {
-        const toggleShippingFields = () => {
-            const shouldHide = shippingToggle.checked;
-            shippingFields.hidden = shouldHide;
+        const transitionDuration = 340;
+
+        const collapseShippingFields = () => {
+            const currentHeight = shippingFields.scrollHeight;
+            shippingFields.style.maxHeight = currentHeight + 'px';
+            // Force reflow so the collapse transition starts from current height.
+            void shippingFields.offsetHeight;
+            shippingFields.classList.add('is-collapsed');
+            shippingFields.style.maxHeight = '0px';
+            shippingFields.setAttribute('aria-hidden', 'true');
         };
-        shippingToggle.addEventListener('change', toggleShippingFields);
-        toggleShippingFields();
+
+        const expandShippingFields = () => {
+            shippingFields.classList.remove('is-collapsed');
+            shippingFields.setAttribute('aria-hidden', 'false');
+            const targetHeight = shippingFields.scrollHeight;
+            shippingFields.style.maxHeight = targetHeight + 'px';
+
+            window.setTimeout(() => {
+                if (!shippingFields.classList.contains('is-collapsed')) {
+                    shippingFields.style.maxHeight = 'none';
+                }
+            }, transitionDuration);
+        };
+
+        const toggleShippingFields = (skipAnimation = false) => {
+            const shouldHide = shippingToggle.checked;
+
+            if (skipAnimation) {
+                if (shouldHide) {
+                    shippingFields.classList.add('is-collapsed');
+                    shippingFields.style.maxHeight = '0px';
+                    shippingFields.setAttribute('aria-hidden', 'true');
+                } else {
+                    shippingFields.classList.remove('is-collapsed');
+                    shippingFields.style.maxHeight = 'none';
+                    shippingFields.setAttribute('aria-hidden', 'false');
+                }
+                return;
+            }
+
+            if (shouldHide) {
+                collapseShippingFields();
+            } else {
+                expandShippingFields();
+            }
+        };
+
+        shippingFields.removeAttribute('hidden');
+        shippingToggle.addEventListener('change', () => toggleShippingFields(false));
+        toggleShippingFields(true);
+    }
+
+    if (passwordForm) {
+        ensureSettingsPasswordToggles(passwordForm);
     }
 
     if (!setPasswordForm) {

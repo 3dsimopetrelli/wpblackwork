@@ -318,9 +318,99 @@ function bw_mew_supabase_early_invite_redirect_hint()
     $is_logged_in = is_user_logged_in();
 
     ?>
+    <style id="bw-supabase-auth-preload">
+        html.bw-auth-preload body.woocommerce-account .bw-account-login__content {
+            visibility: hidden !important;
+        }
+
+        html.bw-auth-preload body.woocommerce-account .bw-auth-callback {
+            display: flex !important;
+            min-height: 60vh;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
     <script>
     (function () {
+        var isLoggedIn = <?php echo $is_logged_in ? 'true' : 'false'; ?>;
+        var normalizePath = function (path) {
+            return (path || '').replace(/\/+$/, '') || '/';
+        };
+        var accountPath = normalizePath(new URL(<?php echo wp_json_encode($account_url); ?>, window.location.origin).pathname);
+        var currentUrl = new URL(window.location.href);
+        var currentPath = normalizePath(currentUrl.pathname);
+        var onAccountPage = currentPath === accountPath;
+        var search = currentUrl.searchParams;
+        var callbackMode = search.get('bw_auth_callback') === '1';
+        var setPasswordMode = search.get('bw_set_password') === '1';
+        var code = search.get('code') || '';
+        var typeFromQuery = search.get('type') || '';
         var hash = window.location.hash || '';
+        var hashParams = hash ? new URLSearchParams(hash.replace(/^#/, '')) : null;
+        var hashType = hashParams ? (hashParams.get('type') || '') : '';
+        var hasInviteHash = !!hash && hash.indexOf('access_token=') !== -1 && (hashType === 'invite' || hashType === 'recovery');
+        var hasInviteCode = !!code && (typeFromQuery === 'invite' || typeFromQuery === 'recovery');
+
+        try {
+            if (window.sessionStorage) {
+                if (isLoggedIn) {
+                    sessionStorage.removeItem('bw_auth_in_progress');
+                }
+                if (hasInviteHash || hasInviteCode || callbackMode || setPasswordMode) {
+                    sessionStorage.setItem('bw_auth_in_progress', '1');
+                }
+                if (search.get('logged_out') === '1') {
+                    sessionStorage.removeItem('bw_auth_in_progress');
+                }
+            }
+        } catch (e) {}
+
+        var authInProgress = false;
+        try {
+            authInProgress = !!(window.sessionStorage && sessionStorage.getItem('bw_auth_in_progress') === '1');
+        } catch (e) {}
+
+        // Stale callback URL (common after logout): no auth payload available.
+        // Avoid showing the callback loader forever and go back to clean My Account.
+        if (!isLoggedIn && onAccountPage && callbackMode && !setPasswordMode && !hasInviteHash && !hasInviteCode) {
+            try {
+                if (window.sessionStorage) {
+                    sessionStorage.removeItem('bw_auth_in_progress');
+                }
+            } catch (e) {}
+            window.location.replace(<?php echo wp_json_encode($account_url); ?>);
+            return;
+        }
+
+        if (!isLoggedIn && onAccountPage && (authInProgress || hasInviteHash || hasInviteCode || callbackMode || setPasswordMode)) {
+            document.documentElement.classList.add('bw-auth-preload');
+        }
+
+        if (!isLoggedIn && onAccountPage && authInProgress && !callbackMode && !setPasswordMode && !hasInviteHash && !hasInviteCode) {
+            window.location.replace(<?php echo wp_json_encode($callback_url); ?>);
+            return;
+        }
+
+        if (code && (typeFromQuery === 'invite' || typeFromQuery === 'recovery')) {
+            if (currentUrl.searchParams.get('bw_auth_callback') !== '1') {
+                var codeTarget = new URL(<?php echo wp_json_encode($callback_url); ?>, window.location.origin);
+                codeTarget.searchParams.set('code', code);
+                codeTarget.searchParams.set('type', typeFromQuery);
+
+                var state = currentUrl.searchParams.get('state') || '';
+                var provider = currentUrl.searchParams.get('provider') || '';
+                if (state) {
+                    codeTarget.searchParams.set('state', state);
+                }
+                if (provider) {
+                    codeTarget.searchParams.set('provider', provider);
+                }
+
+                window.location.replace(codeTarget.toString());
+            }
+            return;
+        }
+
         if (!hash) {
             return;
         }
@@ -328,7 +418,6 @@ function bw_mew_supabase_early_invite_redirect_hint()
         var params = new URLSearchParams(hash.replace(/^#/, ''));
         var errorCode = params.get('error_code') || '';
         if (errorCode === 'otp_expired') {
-            var isLoggedIn = <?php echo $is_logged_in ? 'true' : 'false'; ?>;
             var targetBase = isLoggedIn
                 ? <?php echo wp_json_encode($set_password_url); ?>
                 : <?php echo wp_json_encode($expired_link_url); ?>;
@@ -1202,16 +1291,14 @@ function bw_mew_render_express_divider()
 
     if ($is_free) {
         // Render free order banner (visible immediately with bw-free-order-active class)
+        $free_message_text = trim(wp_strip_all_tags((string) $free_message));
+        if ('' === $free_message_text) {
+            $free_message_text = __('Your order is free. Complete your details and click Place order.', 'bw');
+        }
         ?>
         <div class="bw-free-order-banner bw-free-order-active">
             <div class="bw-free-order-banner__content">
-                <svg class="bw-free-order-banner__icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                    stroke-linejoin="round">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                </svg>
-                <p><?php echo wp_kses_post(wpautop($free_message)); ?></p>
+                <p class="bw-free-order-banner__text"><?php echo esc_html($free_message_text); ?></p>
             </div>
         </div>
         <?php

@@ -594,7 +594,7 @@ body.woocommerce-checkout .bw-checkout-wrapper .bw-checkout-express__or span {
 }
 
 /* Force zero margin on anything between Express buttons and form */
-body.woocommerce-checkout .bw-checkout-left > *:not(#customer_details):not(.bw-checkout-payment):not(.bw-checkout-left-footer):not(.bw-express-divider) {
+body.woocommerce-checkout .bw-checkout-left > *:not(#customer_details):not(.bw-checkout-payment):not(.bw-checkout-left-footer):not(.bw-checkout-footer-links):not(.bw-express-divider) {
     margin-top: 0 !important;
     margin-bottom: 0 !important;
     padding-top: 0 !important;
@@ -633,37 +633,37 @@ body.woocommerce-checkout .bw-checkout-left > *:not(#customer_details):not(.bw-c
     line-height: 1;
 }
 
-/* Free order banner - Shopify-like styling */
+/* Free order banner - BlackWork styling */
 .bw-free-order-banner {
     display: none;
     width: 100%;
     margin: 20px 0;
-    padding: 16px 20px;
-    background: #f0f9ff;
-    border: 1px solid #bfdbfe;
-    border-radius: 8px;
+    padding: 24px 20px;
+    background: #ffffff;
+    border: 1px solid #111111;
+    border-radius: 12px;
 }
 
 .bw-free-order-banner__content {
     display: flex;
-    align-items: flex-start;
-    gap: 12px;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
 }
 
 .bw-free-order-banner__icon {
-    flex-shrink: 0;
-    width: 24px;
-    height: 24px;
-    color: #0284c7;
-    margin-top: 2px;
+    display: none !important;
 }
 
+.bw-free-order-banner__text,
 .bw-free-order-banner__content p {
     margin: 0;
-    padding: 0;
-    font-size: 15px;
-    line-height: 1.6;
-    color: #0c4a6e;
+    padding: 25px;
+    font-size: clamp(30px, 3.2vw, 48px);
+    font-weight: 600;
+    line-height: 1.08;
+    letter-spacing: -1px;
+    color: #111111;
 }
 
 /* Hide express buttons and divider when order is free */
@@ -671,12 +671,12 @@ body.woocommerce-checkout.bw-free-order .bw-express-divider {
     display: none !important;
 }
 
-body.woocommerce-checkout.bw-free-order #wc-stripe-express-checkout-element {
-    /* display: none !important; */
-}
-
-body.woocommerce-checkout.bw-free-order #payment .wc-stripe-ece-button-separator {
-    /* display: none !important; */
+body.woocommerce-checkout.bw-free-order #wc-stripe-express-checkout-element,
+body.woocommerce-checkout.bw-free-order #wc-stripe-payment-request-wrapper,
+body.woocommerce-checkout.bw-free-order #wcpay-express-checkout-element,
+body.woocommerce-checkout.bw-free-order #wc-stripe-express-checkout-element-wrapper,
+body.woocommerce-checkout.bw-free-order .wcpay-express-checkout-wrapper {
+    display: none !important;
 }
 
 /* Hide payment section elements when order is free (but keep Place order button) */
@@ -684,7 +684,10 @@ body.woocommerce-checkout.bw-free-order .bw-payment-section-title,
 body.woocommerce-checkout.bw-free-order .bw-payment-section-subtitle,
 body.woocommerce-checkout.bw-free-order .ppcp-messages,
 body.woocommerce-checkout.bw-free-order div.ppcp-messages,
+body.woocommerce-checkout.bw-free-order #payment .wc-stripe-ece-button-separator,
+body.woocommerce-checkout.bw-free-order #wc-stripe-payment-request-button-separator,
 body.woocommerce-checkout.bw-free-order #wc-stripe-express-checkout-button-separator,
+body.woocommerce-checkout.bw-free-order #wcpay-express-checkout-button-separator,
 body.woocommerce-checkout.bw-free-order #payment .payment_methods,
 body.woocommerce-checkout.bw-free-order #payment ul.wc_payment_methods,
 body.woocommerce-checkout.bw-free-order #payment .woocommerce-checkout-payment>p,
@@ -699,7 +702,7 @@ body.woocommerce-checkout .bw-free-order-banner.bw-free-order-active {
 }
 
 /* Remove spacing from any Stripe wrapper elements in checkout left column */
-body.woocommerce-checkout .bw-checkout-left > div:not(.bw-express-divider):not(#customer_details):not(.bw-checkout-payment):not(.bw-checkout-left-footer):not(.bw-checkout-left__loader) {
+body.woocommerce-checkout .bw-checkout-left > div:not(.bw-express-divider):not(#customer_details):not(.bw-checkout-payment):not(.bw-checkout-left-footer):not(.bw-checkout-footer-links):not(.bw-checkout-left__loader) {
     margin: 0 !important;
     padding: 0 !important;
 }
@@ -856,6 +859,7 @@ body.woocommerce-checkout .wcpay-express-checkout-wrapper::before {
 .bw-checkout-section-title {
     font-size: 16px;
     font-weight: 700;
+    letter-spacing: -1px;
     margin: 22px 0 12px;
     color: #111111;
 }
@@ -872,7 +876,15 @@ body.woocommerce-checkout .bw-delivery-section-title {
     display: block !important;
     width: 100% !important;
     line-height: 30px;
+    letter-spacing: -1px;
 
+}
+
+/* Contact title is a WooCommerce heading and can inherit from Elementor Kit h2. */
+/* Use a more specific checkout selector so it wins without !important. */
+body.woocommerce-checkout .bw-checkout-section-heading--contact h2.checkout-contact-title,
+body.woocommerce-checkout .woocommerce-billing-fields h2.checkout-section-title.checkout-contact-title {
+    letter-spacing: -1px;
 }
 
 /* Customer details section */
@@ -1551,7 +1563,7 @@ body.woocommerce-checkout .bw-checkout-right .bw-qty-badge {
 
 /* Override WooCommerce coupon amount styling */
 .bw-total-row--coupon td {
-    color: #27ae60 !important;
+    color: #000000 !important;
     font-weight: 700 !important;
 }
 
@@ -1616,7 +1628,7 @@ body.woocommerce-checkout .bw-checkout-right .bw-qty-badge {
 }
 
 .bw-total-row--coupon td {
-    color: #27ae60;
+    color: #000000;
 }
 
 .bw-order-summary-toggle {
@@ -1964,6 +1976,103 @@ body.woocommerce-checkout .bw-field-wrapper .bw-floating-label {
     font-weight: 400;
 }
 
+/* Phone field: icon inside input + left-offset label */
+body.woocommerce-checkout .bw-field-wrapper--phone .bw-phone-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    color: #9ca3af;
+    pointer-events: none;
+    z-index: 2;
+}
+
+body.woocommerce-checkout .bw-field-wrapper--phone .bw-phone-icon svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+body.woocommerce-checkout .bw-field-wrapper--phone input[type="tel"] {
+    padding-left: 46px;
+    padding-right: 110px;
+}
+
+body.woocommerce-checkout .bw-field-wrapper--phone input[type="tel"]:focus {
+    padding-left: 45px;
+    padding-right: 109px;
+}
+
+body.woocommerce-checkout .bw-field-wrapper--phone .bw-floating-label {
+    left: 44px;
+}
+
+body.woocommerce-checkout .bw-field-wrapper--phone .bw-phone-country {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 50px;
+    min-width: 50px;
+    max-width: 50px;
+    border: 0;
+    background-color: transparent;
+    background-image: none !important;
+    background-repeat: no-repeat !important;
+    background-position: right 0 center !important;
+    background-size: 10px !important;
+    color: transparent;
+    font-size: 14px;
+    line-height: 1;
+    text-indent: -9999px;
+    padding: 2px 14px 2px 2px;
+    min-height: auto;
+    box-shadow: none;
+    z-index: 2;
+    cursor: pointer;
+    appearance: auto;
+    -webkit-appearance: menulist;
+    -moz-appearance: menulist;
+}
+
+body.woocommerce-checkout .bw-field-wrapper--phone .bw-phone-country:focus {
+    outline: none;
+    border: 0;
+    box-shadow: none;
+    background-image: none !important;
+}
+
+body.woocommerce-checkout .bw-field-wrapper--phone .bw-phone-country option {
+    color: #111111;
+}
+
+body.woocommerce-checkout .bw-field-wrapper--phone .bw-phone-country-flag {
+    position: absolute;
+    right: 34px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 22px;
+    line-height: 1;
+    pointer-events: none;
+    z-index: 3;
+}
+
+body.woocommerce-checkout .bw-field-wrapper--phone::after {
+    content: "";
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    width: 7px;
+    height: 7px;
+    border-right: 1.5px solid #111111;
+    border-bottom: 1.5px solid #111111;
+    transform: translateY(-60%) rotate(45deg);
+    pointer-events: none;
+    z-index: 3;
+}
+
 /* Label active state (when input has focus or value) */
 body.woocommerce-checkout .bw-field-wrapper input:focus~.bw-floating-label,
 body.woocommerce-checkout .bw-field-wrapper.has-value .bw-floating-label {
@@ -2001,6 +2110,42 @@ body.woocommerce-checkout .form-row.bw-has-floating-label>label {
     body.woocommerce-checkout .bw-field-wrapper .bw-floating-label {
         left: 16px;
         font-size: 16px;
+    }
+
+    body.woocommerce-checkout .bw-field-wrapper--phone .bw-phone-icon {
+        left: 14px;
+    }
+
+    body.woocommerce-checkout .bw-field-wrapper--phone input[type="tel"] {
+        padding-left: 44px;
+        padding-right: 98px;
+    }
+
+    body.woocommerce-checkout .bw-field-wrapper--phone input[type="tel"]:focus {
+        padding-left: 43px;
+        padding-right: 97px;
+    }
+
+    body.woocommerce-checkout .bw-field-wrapper--phone .bw-floating-label {
+        left: 42px;
+    }
+
+    body.woocommerce-checkout .bw-field-wrapper--phone .bw-phone-country {
+        right: 10px;
+        width: 46px;
+        min-width: 46px;
+        max-width: 46px;
+    }
+
+    body.woocommerce-checkout .bw-field-wrapper--phone .bw-phone-country-flag {
+        right: 30px;
+        font-size: 20px;
+    }
+
+    body.woocommerce-checkout .bw-field-wrapper--phone::after {
+        right: 14px;
+        width: 7px;
+        height: 7px;
     }
 
     body.woocommerce-checkout .bw-field-wrapper input:focus~.bw-floating-label,
@@ -2185,6 +2330,7 @@ body.woocommerce-checkout .select2-results__option--selected {
 .bw-checkout-section-heading {
     font-size: 18px;
     font-weight: 600;
+    letter-spacing: -1px !important;
     color: #1f2937;
     margin: 24px 0 16px 0;
     padding: 0;
@@ -2624,7 +2770,7 @@ body.woocommerce-checkout .select2-results__option--selected {
     /* Discount row - green value */
     .bw-order-summary-panel .bw-order-summary table.shop_table tfoot tr.bw-total-row--discount td,
     .bw-order-summary-panel .bw-order-summary table.shop_table tfoot tr.bw-total-row--coupon td {
-        color: #28a745 !important;
+        color: #000000 !important;
     }
 
     /* Coupon form styling (inside review-coupon wrapper) */
@@ -2813,8 +2959,7 @@ body.woocommerce-checkout .select2-results__option--selected {
 }
 
 .bw-order-summary-panel .bw-order-summary table.shop_table tr.cart-discount td .woocommerce-Price-amount {
-    color: #2ecc71 !important;
-    /* Green */
+    color: #000000 !important;
     font-weight: 600 !important;
 }
 
@@ -3220,11 +3365,14 @@ body.bw-modal-open {
     margin: 30px 0 20px;
     padding-top: 25px;
     border-top: 1px solid rgba(0, 0, 0, 0.08);
-    display: flex;
+    display: flex !important;
     flex-wrap: wrap;
     justify-content: flex-start;
     /* Aligned to left column */
     gap: 20px;
+    width: 100%;
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 
 
@@ -3309,7 +3457,7 @@ body.bw-modal-open {
 
 /* Spacing for Stripe fields container */
 .bw-stripe-fields-wrapper {
-    margin-top: 15px !important;
+    margin-top: 0 !important;
 }
 
 /* Spacing for Stripe Payment Accordion items (Card & Klarna labels) */

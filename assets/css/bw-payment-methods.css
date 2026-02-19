@@ -118,6 +118,7 @@ body.woocommerce-checkout .woocommerce-checkout-payment {
 body.woocommerce-checkout .bw-payment-section-title {
 	font-size: var(--bw-pm-font-size-2xl);
 	font-weight: var(--bw-pm-font-weight-bold);
+	letter-spacing: -1px !important;
 	color: var(--bw-pm-primary);
 	margin: 0 0 var(--bw-pm-spacing-sm) 0;
 	line-height: var(--bw-pm-line-height-tight);
@@ -392,6 +393,22 @@ body.woocommerce-checkout .bw-payment-method__icon svg {
 	display: block;
 }
 
+/* PayPal logo sizing (matches approved visual in checkout) */
+body.woocommerce-checkout .bw-payment-method[data-gateway-id*="paypal"] .bw-payment-method__icon img,
+body.woocommerce-checkout .bw-payment-method[data-gateway-id*="ppcp"] .bw-payment-method__icon img {
+	width: 52px !important;
+	max-width: 52px !important;
+	height: auto !important;
+	max-height: none !important;
+	object-fit: contain;
+}
+
+body.woocommerce-checkout .bw-payment-method[data-gateway-id*="paypal"] .bw-payment-method__icon,
+body.woocommerce-checkout .bw-payment-method[data-gateway-id*="ppcp"] .bw-payment-method__icon {
+	margin-top: 0;
+	align-items: center;
+}
+
 /* ============================================
    PAYMENT METHOD CONTENT (Accordion Panel)
    !important on background to override WooCommerce payment_box styles
@@ -406,6 +423,13 @@ body.woocommerce-checkout .bw-payment-method__content {
 	padding: 0;
 	margin: 0;
 	border-radius: 0;
+}
+
+/* Prevent Stripe panel half-open flash while iframe bootstraps */
+body.woocommerce-checkout .bw-payment-method__content.bw-stripe-loading {
+	max-height: 0 !important;
+	border-top-color: transparent !important;
+	overflow: hidden !important;
 }
 
 /* Panel State: Open */
@@ -525,7 +549,7 @@ body.woocommerce-checkout .bw-payment-method__description p:last-child {
    ============================================ */
 
 body.woocommerce-checkout .bw-payment-method__fields {
-	margin-top: var(--bw-pm-spacing-lg);
+	margin-top: 0;
 }
 
 body.woocommerce-checkout .bw-payment-method__fields .form-row {
@@ -871,6 +895,8 @@ body.woocommerce-checkout .bw-payment-method__fields .wc-stripe-upe-element {
 	padding: 0;
 	margin: 0;
 	box-shadow: none;
+	position: relative;
+	overflow: hidden !important;
 }
 
 body.woocommerce-checkout .bw-payment-method__fields .wc-stripe-upe-element .StripeElement {
@@ -885,6 +911,16 @@ body.woocommerce-checkout .bw-payment-method__fields .wc-stripe-upe-element .__P
 	border: none;
 	padding: 0;
 	margin: 0;
+}
+
+/* HARD HIDE Stripe internal "Card" row (inside iframe) by clipping iframe top area */
+body.woocommerce-checkout .bw-payment-method__fields .wc-stripe-upe-element {
+	--bw-stripe-upe-top-crop: 26px;
+}
+
+body.woocommerce-checkout .bw-payment-method__fields .wc-stripe-upe-element iframe {
+	clip-path: inset(var(--bw-stripe-upe-top-crop) 0 0 0);
+	-webkit-clip-path: inset(var(--bw-stripe-upe-top-crop) 0 0 0);
 }
 
 /* Remove any ::before pseudo-element from payment box */
@@ -1133,12 +1169,12 @@ body.woocommerce-checkout [id*="stripe-"] img {
 
 /* Vertical spacing for payment method fields (Stripe, Klarna fields, etc.) */
 body.woocommerce-checkout .bw-payment-method__fields {
-	margin-top: 30px !important;
+	margin-top: 0 !important;
 }
 
 /* Margin-top for the Stripe specific wrapper to ensure it separates from the header */
 body.woocommerce-checkout .bw-stripe-fields-wrapper {
-	margin-top: 40px !important;
+	margin-top: 0 !important;
 	display: block !important;
 }
 

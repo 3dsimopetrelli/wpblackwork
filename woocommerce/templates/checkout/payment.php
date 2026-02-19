@@ -52,16 +52,37 @@ if (!wp_doing_ajax()) {
 									<?php echo wp_kses_post($gateway->get_title()); ?>
 								</span>
 								<?php
-								// Show icon for Google Pay
+								// Show gateway icon with PayPal fallback logo.
 								$gateway_type = strtolower($gateway_id);
-								$is_google_pay = (strpos($gateway_type, 'google') !== false ||
-									strpos($gateway_type, 'googlepay') !== false);
+								$is_card_gateway_icon = (strpos($gateway_type, 'stripe') !== false ||
+									strpos($gateway_type, 'card') !== false ||
+									strpos($gateway_type, 'credit') !== false ||
+									strpos($gateway_type, 'debit') !== false);
+								$is_paypal = (strpos($gateway_type, 'paypal') !== false ||
+									strpos($gateway_type, 'ppcp') !== false);
+								$icon_html = '';
+								$icon_class = 'bw-payment-method__icon';
+								$asset_base_url = defined('BW_MEW_URL')
+									? BW_MEW_URL
+									: content_url('/plugins/wpblackwork/');
 
-								if ($is_google_pay) {
+								if ($is_card_gateway_icon) {
+									$card_logo_url = trailingslashit($asset_base_url) . 'assets/images/payment-icons/card-outline.svg';
+									$icon_html = '<img src="' . esc_url($card_logo_url) . '" alt="' . esc_attr__('Card', 'woocommerce') . '" loading="lazy" decoding="async" />';
+									$icon_class .= ' bw-payment-method__icon--card';
+								} elseif ($is_paypal) {
+									$paypal_logo_url = trailingslashit($asset_base_url) . 'assets/images/payment-icons/paypal.svg';
+									$icon_html = '<img src="' . esc_url($paypal_logo_url) . '" alt="' . esc_attr__('PayPal', 'woocommerce') . '" loading="lazy" decoding="async" />';
+									$icon_class .= ' bw-payment-method__icon--paypal';
+								}
+
+								// If fallback is not used/available, use the gateway-provided icon.
+								if (empty($icon_html)) {
 									$icon_html = $gateway->get_icon();
-									if ($icon_html) {
-										echo '<span class="bw-payment-method__icon">' . wp_kses_post( $icon_html ) . '</span>';
-									}
+								}
+
+								if (!empty($icon_html)) {
+									echo '<span class="' . esc_attr($icon_class) . '">' . wp_kses_post($icon_html) . '</span>';
 								}
 								?>
 							</label>

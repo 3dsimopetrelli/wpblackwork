@@ -19,7 +19,49 @@
         var searchParams = new URLSearchParams(window.location.search);
         var authCode = searchParams.get('code') || '';
         var typeParam = searchParams.get('type') || '';
+        var needsSetPassword = searchParams.get('bw_set_password') === '1';
+        var isAuthCallback = searchParams.get('bw_auth_callback') === '1';
         var callbackUrl = window.bwSupabaseBridge.callbackUrl || '';
+        var markEmailChangeConfirmed = function () {
+            if (!window.sessionStorage) {
+                return;
+            }
+            try {
+                sessionStorage.setItem('bw_email_change_confirmed', '1');
+            } catch (error) {
+                // ignore sessionStorage errors
+            }
+        };
+
+        if (searchParams.get('bw_email_confirmed') === '1') {
+            markEmailChangeConfirmed();
+        }
+        var clearAuthInProgress = function () {
+            if (window.sessionStorage) {
+                try {
+                    sessionStorage.removeItem('bw_auth_in_progress');
+                } catch (error) {
+                    // ignore sessionStorage errors
+                }
+            }
+            if (document && document.documentElement) {
+                document.documentElement.classList.remove('bw-auth-preload');
+            }
+        };
+        var markAuthInProgress = function () {
+            if (window.sessionStorage) {
+                try {
+                    sessionStorage.setItem('bw_auth_in_progress', '1');
+                } catch (error) {
+                    // ignore sessionStorage errors
+                }
+            }
+        };
+
+        if (!authCode && !window.location.hash && !needsSetPassword && !isAuthCallback) {
+            clearAuthInProgress();
+        }
+
         if (searchParams.has('logged_out')) {
             if (window.sessionStorage) {
                 try {
@@ -33,6 +75,7 @@
                     sessionStorage.removeItem('bw_otp_mode');
                     sessionStorage.removeItem('bw_supabase_access_token');
                     sessionStorage.removeItem('bw_supabase_refresh_token');
+                    sessionStorage.removeItem('bw_auth_in_progress');
                 } catch (error) {
                     // ignore sessionStorage errors
                 }
@@ -92,6 +135,7 @@
             if (!hash) {
                 return false;
             }
+            markAuthInProgress();
 
             var params = new URLSearchParams(hash);
             var errorCode = params.get('error_code') || '';
@@ -123,6 +167,32 @@
         };
 
         var redirectInviteToCallback = function () {
+            var currentUrl = new URL(window.location.href);
+            var code = currentUrl.searchParams.get('code') || '';
+            var typeFromQuery = currentUrl.searchParams.get('type') || '';
+            if (code && (typeFromQuery === 'invite' || typeFromQuery === 'recovery') && callbackUrl) {
+                markAuthInProgress();
+                if (currentUrl.searchParams.get('bw_auth_callback') === '1') {
+                    return false;
+                }
+
+                var codeTargetUrl = new URL(callbackUrl, window.location.origin);
+                codeTargetUrl.searchParams.set('code', code);
+                codeTargetUrl.searchParams.set('type', typeFromQuery);
+
+                var state = currentUrl.searchParams.get('state') || '';
+                var provider = currentUrl.searchParams.get('provider') || '';
+                if (state) {
+                    codeTargetUrl.searchParams.set('state', state);
+                }
+                if (provider) {
+                    codeTargetUrl.searchParams.set('provider', provider);
+                }
+
+                window.location.replace(codeTargetUrl.toString());
+                return true;
+            }
+
             var hash = window.location.hash || '';
             if (!hash) {
                 return false;
@@ -135,6 +205,7 @@
             if (!hasAuthTokens || (type !== 'invite' && type !== 'recovery') || !callbackUrl) {
                 return false;
             }
+            markAuthInProgress();
 
             var currentUrl = new URL(window.location.href);
             if (currentUrl.searchParams.get('bw_auth_callback') === '1') {
@@ -223,6 +294,7 @@
             var scheduleRedirect = function () {
                 logDebug('Bridge success -> redirecting to /my-account/');
                 setTimeout(function () {
+                    clearAuthInProgress();
                     window.location.replace(target);
                 }, redirectDelayMs);
             };
@@ -291,6 +363,10 @@
                 return Promise.resolve(false);
             }
 
+            if (inviteType === 'email_change') {
+                markEmailChangeConfirmed();
+            }
+
             if (window.sessionStorage) {
                 try {
                     sessionStorage.setItem('bw_supabase_access_token', accessToken);
@@ -345,6 +421,10 @@
         var handleCodeCallback = function () {
             if (!authCode) {
                 return Promise.resolve(false);
+            }
+
+            if (typeParam === 'email_change') {
+                markEmailChangeConfirmed();
             }
 
             if (window.sessionStorage) {
@@ -433,6 +513,72 @@
                 });
         };
 
+        var waitForWpSession = function (onReady, onTimeout) {
+            var attempts = 0;
+            var maxAttempts = 30;
+            var intervalMs = 250;
+
+            var check = function () {
+                attempts += 1;
+
+                fetch(window.bwSupabaseBridge.ajaxUrl, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8'
+                    },
+                    body: new URLSearchParams({
+                        action: 'bw_supabase_check_wp_session',
+                        nonce: window.bwSupabaseBridge.nonce
+                    })
+                })
+                    .then(function (response) {
+                        return response.json();
+                    })
+                    .then(function (payload) {
+                        var loggedIn = Boolean(payload && payload.success && payload.data && payload.data.loggedIn);
+                        if (loggedIn) {
+                            onReady();
+                            return;
+                        }
+
+                        if (attempts >= maxAttempts) {
+                            onTimeout();
+                            return;
+                        }
+
+                        setTimeout(check, intervalMs);
+                    })
+                    .catch(function () {
+                        if (attempts >= maxAttempts) {
+                            onTimeout();
+                            return;
+                        }
+                        setTimeout(check, intervalMs);
+                    });
+            };
+
+            check();
+        };
+
+        if (needsSetPassword && !authCode && !window.location.hash) {
+            logDebug('Waiting WP session for set-password flow');
+            waitForWpSession(
+                function () {
+                    window.location.reload();
+                },
+                function () {
+                    var fallback = window.bwSupabaseBridge.accountUrl || '/my-account/';
+                    window.location.replace(fallback);
+                }
+            );
+            return;
+        }
+
+        if (redirectInviteToCallback()) {
+            return;
+        }
+
         if (authCode) {
             handleCodeCallback().then(function (handled) {
                 if (handled) {
@@ -440,10 +586,6 @@
                 }
                 handleHashTokens();
             });
-            return;
-        }
-
-        if (redirectInviteToCallback()) {
             return;
         }
 

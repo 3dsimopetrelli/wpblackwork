@@ -1572,8 +1572,12 @@ function bw_site_render_my_account_front_tab()
         $black_box_text = isset($_POST['bw_myaccount_black_box_text'])
             ? wp_kses_post(wp_unslash($_POST['bw_myaccount_black_box_text']))
             : '';
+        $support_link = isset($_POST['bw_myaccount_support_link'])
+            ? esc_url_raw(wp_unslash($_POST['bw_myaccount_support_link']))
+            : '';
 
         update_option('bw_myaccount_black_box_text', $black_box_text);
+        update_option('bw_myaccount_support_link', $support_link);
 
         $saved = true;
     }
@@ -1582,6 +1586,7 @@ function bw_site_render_my_account_front_tab()
         'bw_myaccount_black_box_text',
         __('Your mockups will always be here, available to download. Please enjoy them!', 'bw')
     );
+    $support_link = get_option('bw_myaccount_support_link', '');
     ?>
     <?php if ($saved): ?>
         <div class="notice notice-success is-dismissible">
@@ -1603,6 +1608,18 @@ function bw_site_render_my_account_front_tab()
                         class="large-text"><?php echo esc_textarea($black_box_text); ?></textarea>
                     <p class="description">
                         <?php esc_html_e('Contenuto mostrato nel box nero in alto alla dashboard My Account. Puoi utilizzare HTML semplice; il testo verrà sanificato.', 'bw'); ?>
+                    </p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_myaccount_support_link"><?php esc_html_e('Link Support (My Account)', 'bw'); ?></label>
+                </th>
+                <td>
+                    <input id="bw_myaccount_support_link" name="bw_myaccount_support_link" type="url"
+                        class="regular-text" value="<?php echo esc_attr($support_link); ?>" placeholder="https://blackwork.pro/support/" />
+                    <p class="description">
+                        <?php esc_html_e('URL del pulsante "Contact support" nel box nero della dashboard My Account.', 'bw'); ?>
                     </p>
                 </td>
             </tr>
@@ -1676,6 +1693,7 @@ function bw_site_render_checkout_tab()
         foreach ($policies as $key => $option_prefix) {
             $policy_data = isset($_POST[$option_prefix]) ? wp_unslash($_POST[$option_prefix]) : [];
             $sanitized_data = [
+                'enabled' => isset($policy_data['enabled']) ? '1' : '0',
                 'title' => isset($policy_data['title']) ? sanitize_text_field($policy_data['title']) : '',
                 'subtitle' => isset($policy_data['subtitle']) ? sanitize_text_field($policy_data['subtitle']) : '',
                 'content' => isset($policy_data['content']) ? wp_kses_post($policy_data['content']) : '',
@@ -1860,6 +1878,7 @@ function bw_site_render_checkout_tab()
     $policy_settings = [];
     foreach ($policy_names as $name) {
         $policy_settings[$name] = get_option("bw_checkout_policy_{$name}", [
+            'enabled' => '1',
             'title' => '',
             'subtitle' => '',
             'content' => '',
@@ -2683,6 +2702,7 @@ function bw_site_render_checkout_tab()
             <h3 style="margin-bottom: 20px;"><?php esc_html_e('Policy Sections (Popups)', 'bw'); ?></h3>
 
             <?php foreach ($policy_settings as $key => $data): ?>
+                <?php $policy_enabled = !isset($data['enabled']) || '1' === (string) $data['enabled']; ?>
                 <div class="bw-policy-section"
                     style="background: #fff; border: 1px solid #ccd0d4; padding: 25px; margin-bottom: 30px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                     <h3 style="margin-top:0; border-bottom: 1px solid #eee; padding-bottom: 15px; text-transform: capitalize;">
@@ -2691,6 +2711,19 @@ function bw_site_render_checkout_tab()
 
                     <table class="form-table" role="presentation">
                         <tr>
+                            <th scope="row"><label><?php esc_html_e('Enabled', 'bw'); ?></label></th>
+                            <td>
+                                <label class="switch">
+                                    <input type="checkbox" name="bw_checkout_policy_<?php echo esc_attr($key); ?>[enabled]"
+                                        class="bw-policy-enabled-toggle"
+                                        data-policy-key="<?php echo esc_attr($key); ?>"
+                                        value="1" <?php checked('1', isset($data['enabled']) ? (string) $data['enabled'] : '1'); ?> />
+                                    <span class="description"><?php esc_html_e('Show this policy link and popup in checkout footer.', 'bw'); ?></span>
+                                </label>
+                            </td>
+                        </tr>
+                        <tr class="bw-policy-fields bw-policy-fields--<?php echo esc_attr($key); ?>"
+                            <?php echo $policy_enabled ? '' : 'style="display:none;"'; ?>>
                             <th scope="row"><label><?php esc_html_e('Link Title', 'bw'); ?></label></th>
                             <td>
                                 <input type="text" name="bw_checkout_policy_<?php echo esc_attr($key); ?>[title]"
@@ -2698,7 +2731,8 @@ function bw_site_render_checkout_tab()
                                     placeholder="<?php echo esc_attr(ucfirst($key) . ' policy'); ?>" />
                             </td>
                         </tr>
-                        <tr>
+                        <tr class="bw-policy-fields bw-policy-fields--<?php echo esc_attr($key); ?>"
+                            <?php echo $policy_enabled ? '' : 'style="display:none;"'; ?>>
                             <th scope="row"><label><?php esc_html_e('Popup Subtitle', 'bw'); ?></label></th>
                             <td>
                                 <input type="text" name="bw_checkout_policy_<?php echo esc_attr($key); ?>[subtitle]"
@@ -2707,7 +2741,8 @@ function bw_site_render_checkout_tab()
                                 </p>
                             </td>
                         </tr>
-                        <tr>
+                        <tr class="bw-policy-fields bw-policy-fields--<?php echo esc_attr($key); ?>"
+                            <?php echo $policy_enabled ? '' : 'style="display:none;"'; ?>>
                             <th scope="row"><label><?php esc_html_e('Content', 'bw'); ?></label></th>
                             <td>
                                 <?php
@@ -2735,8 +2770,32 @@ function bw_site_render_checkout_tab()
         <?php endif; ?>
     </form>
 
-    <script>
+        <script>
         jQuery(document).ready(function ($) {
+            function togglePolicyFields(checkbox) {
+                var $checkbox = $(checkbox);
+                var key = $checkbox.data('policy-key');
+                if (!key) {
+                    return;
+                }
+
+                var isEnabled = $checkbox.is(':checked');
+                var $rows = $('.bw-policy-fields--' + key);
+                if (isEnabled) {
+                    $rows.stop(true, true).slideDown(150);
+                } else {
+                    $rows.stop(true, true).slideUp(150);
+                }
+            }
+
+            $('.bw-policy-enabled-toggle').each(function () {
+                togglePolicyFields(this);
+            });
+
+            $(document).on('change', '.bw-policy-enabled-toggle', function () {
+                togglePolicyFields(this);
+            });
+
             $('.bw-media-upload').on('click', function (e) {
                 e.preventDefault();
 

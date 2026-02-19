@@ -126,6 +126,100 @@ function bw_mew_get_supabase_access_token( $user_id ) {
 }
 
 /**
+ * Retrieve the Supabase refresh token for the current user.
+ *
+ * @param int $user_id User ID.
+ *
+ * @return string
+ */
+function bw_mew_get_supabase_refresh_token( $user_id ) {
+    $storage     = get_option( 'bw_supabase_session_storage', 'cookie' );
+    $storage     = in_array( $storage, [ 'cookie', 'usermeta' ], true ) ? $storage : 'cookie';
+    $cookie_base = get_option( 'bw_supabase_jwt_cookie_name', 'bw_supabase_session' );
+    $cookie_base = sanitize_key( $cookie_base ) ?: 'bw_supabase_session';
+    $token       = '';
+
+    if ( 'usermeta' === $storage && $user_id ) {
+        $token = (string) get_user_meta( $user_id, 'bw_supabase_refresh_token', true );
+        $token = $token ? sanitize_text_field( $token ) : '';
+    }
+
+    if ( ! $token ) {
+        $cookie_name = $cookie_base . '_refresh';
+        if ( isset( $_COOKIE[ $cookie_name ] ) ) {
+            $token = sanitize_text_field( wp_unslash( $_COOKIE[ $cookie_name ] ) );
+        }
+    }
+
+    if ( ! $token && $user_id ) {
+        $meta_token = (string) get_user_meta( $user_id, 'bw_supabase_refresh_token', true );
+        $token      = $meta_token ? sanitize_text_field( $meta_token ) : '';
+    }
+
+    return $token;
+}
+
+/**
+ * Ensure an access token is available, attempting refresh when needed.
+ *
+ * @param int $user_id User ID.
+ *
+ * @return string
+ */
+function bw_mew_get_supabase_access_token_with_refresh( $user_id ) {
+    $access_token = bw_mew_get_supabase_access_token( $user_id );
+    if ( $access_token ) {
+        return $access_token;
+    }
+
+    $refresh_token = bw_mew_get_supabase_refresh_token( $user_id );
+    if ( ! $refresh_token ) {
+        return '';
+    }
+
+    $config = bw_mew_get_supabase_config();
+    if ( empty( $config['has_url'] ) || empty( $config['has_anon'] ) ) {
+        return '';
+    }
+
+    $endpoint = trailingslashit( untrailingslashit( $config['project_url'] ) ) . 'auth/v1/token?grant_type=refresh_token';
+    $response = wp_remote_post(
+        $endpoint,
+        [
+            'headers' => [
+                'apikey'       => $config['anon_key'],
+                'Content-Type' => 'application/json',
+                'Accept'       => 'application/json',
+            ],
+            'timeout' => 15,
+            'body'    => wp_json_encode(
+                [
+                    'refresh_token' => $refresh_token,
+                ]
+            ),
+        ]
+    );
+
+    if ( is_wp_error( $response ) ) {
+        return '';
+    }
+
+    $status_code = (int) wp_remote_retrieve_response_code( $response );
+    $payload     = json_decode( wp_remote_retrieve_body( $response ), true );
+    if ( $status_code < 200 || $status_code >= 300 || ! is_array( $payload ) || empty( $payload['access_token'] ) ) {
+        return '';
+    }
+
+    $user = get_user_by( 'id', $user_id );
+    bw_mew_supabase_store_session(
+        $payload,
+        $user instanceof WP_User ? (string) $user->user_email : ''
+    );
+
+    return (string) $payload['access_token'];
+}
+
+/**
  * Request the Supabase user profile with an access token.
  *
  * @param string $access_token Supabase access token.
@@ -233,6 +327,102 @@ function bw_mew_apply_supabase_user_to_wp( $user_id, array $supabase_user, $cont
 }
 
 /**
+ * Promote low-privilege users to WooCommerce customer role.
+ *
+ * @param WP_User $user User object.
+ *
+ * @return void
+ */
+function bw_mew_maybe_set_customer_role( WP_User $user ) {
+    if ( in_array( 'customer', (array) $user->roles, true ) ) {
+        return;
+    }
+
+    $roles = array_values( (array) $user->roles );
+    $can_promote = empty( $roles ) || ( 1 === count( $roles ) && 'subscriber' === $roles[0] );
+    if ( $can_promote ) {
+        $user->set_role( 'customer' );
+    }
+}
+
+/**
+ * Fill missing WP profile fields using latest order billing data.
+ *
+ * @param int    $user_id User ID.
+ * @param string $email   Optional billing email fallback.
+ *
+ * @return void
+ */
+function bw_mew_sync_user_name_from_orders( $user_id, $email = '' ) {
+    if ( ! function_exists( 'wc_get_orders' ) || ! $user_id ) {
+        return;
+    }
+
+    $user = get_user_by( 'id', $user_id );
+    if ( ! $user instanceof WP_User ) {
+        return;
+    }
+
+    $current_first = (string) get_user_meta( $user_id, 'first_name', true );
+    $current_last  = (string) get_user_meta( $user_id, 'last_name', true );
+    $display_name  = (string) $user->display_name;
+    $needs_name    = '' === trim( $current_first ) || '' === trim( $current_last ) || '' === trim( $display_name ) || trim( $display_name ) === trim( $user->user_login );
+    if ( ! $needs_name ) {
+        return;
+    }
+
+    $orders = wc_get_orders(
+        [
+            'customer' => $user_id,
+            'limit'    => 1,
+            'orderby'  => 'date',
+            'order'    => 'DESC',
+            'return'   => 'objects',
+        ]
+    );
+
+    if ( empty( $orders ) && $email ) {
+        $orders = wc_get_orders(
+            [
+                'billing_email' => sanitize_email( (string) $email ),
+                'limit'         => 1,
+                'orderby'       => 'date',
+                'order'         => 'DESC',
+                'return'        => 'objects',
+            ]
+        );
+    }
+
+    $order = ! empty( $orders ) && $orders[0] instanceof WC_Order ? $orders[0] : null;
+    if ( ! $order ) {
+        return;
+    }
+
+    $first_name = sanitize_text_field( (string) $order->get_billing_first_name() );
+    $last_name  = sanitize_text_field( (string) $order->get_billing_last_name() );
+    if ( '' === $first_name && '' === $last_name ) {
+        return;
+    }
+
+    if ( '' === $current_first && '' !== $first_name ) {
+        update_user_meta( $user_id, 'first_name', $first_name );
+    }
+    if ( '' === $current_last && '' !== $last_name ) {
+        update_user_meta( $user_id, 'last_name', $last_name );
+    }
+
+    $full_name = trim( $first_name . ' ' . $last_name );
+    if ( $full_name && ( '' === trim( $display_name ) || trim( $display_name ) === trim( $user->user_login ) ) ) {
+        wp_update_user(
+            [
+                'ID'           => $user_id,
+                'display_name' => $full_name,
+            ]
+        );
+    }
+}
+
+/**
  * Sync Supabase user metadata into WordPress.
  *
  * @param int    $user_id User ID.
@@ -245,7 +435,7 @@ function bw_mew_sync_supabase_user( $user_id, $context = '' ) {
         return;
     }
 
-    $access_token = bw_mew_get_supabase_access_token( $user_id );
+    $access_token = bw_mew_get_supabase_access_token_with_refresh( $user_id );
     if ( ! $access_token ) {
         return;
     }
@@ -275,6 +465,21 @@ add_action( 'init', 'bw_mew_sync_supabase_user_on_load', 20 );
  */
 function bw_mew_handle_supabase_token_login() {
     $nonce_valid = check_ajax_referer( 'bw-supabase-login', 'nonce', false );
+    $token_type  = isset( $_POST['type'] ) ? sanitize_key( wp_unslash( $_POST['type'] ) ) : '';
+    $account_url = wc_get_page_permalink( 'myaccount' );
+    $build_redirect_url = static function ( $url, $type ) {
+        if ( 'email_change' !== $type ) {
+            return $url;
+        }
+
+        return add_query_arg(
+            [
+                'bw_email_changed' => '1',
+                'bw_tab'           => 'security',
+            ],
+            $url
+        );
+    };
 
     // For invite/hash callbacks from public pages, the localized nonce can be stale
     // because of full-page cache. In that case we continue and rely on Supabase token
@@ -289,14 +494,13 @@ function bw_mew_handle_supabase_token_login() {
     if ( is_user_logged_in() ) {
         wp_send_json_success(
             [
-                'redirect' => wc_get_page_permalink( 'myaccount' ),
+                'redirect' => $build_redirect_url( $account_url, $token_type ),
             ]
         );
     }
 
     $access_token  = isset( $_POST['access_token'] ) ? sanitize_text_field( wp_unslash( $_POST['access_token'] ) ) : '';
     $refresh_token = isset( $_POST['refresh_token'] ) ? sanitize_text_field( wp_unslash( $_POST['refresh_token'] ) ) : '';
-    $token_type    = isset( $_POST['type'] ) ? sanitize_key( wp_unslash( $_POST['type'] ) ) : '';
     if ( ! $access_token ) {
         wp_send_json_error(
             [ 'message' => __( 'Missing access token.', 'bw' ) ],
@@ -372,6 +576,9 @@ function bw_mew_handle_supabase_token_login() {
         $user_id = wp_create_user( $email, wp_generate_password( 32, true ), $email );
         if ( ! is_wp_error( $user_id ) ) {
             $user = get_user_by( 'id', $user_id );
+            if ( $user instanceof WP_User ) {
+                bw_mew_maybe_set_customer_role( $user );
+            }
         }
     }
 
@@ -381,12 +588,13 @@ function bw_mew_handle_supabase_token_login() {
             404
         );
     }
+    bw_mew_maybe_set_customer_role( $user );
 
     $guard_key = 'bw_supabase_token_login_' . md5( $access_token . '|' . $token_type );
     if ( get_transient( $guard_key ) ) {
         wp_send_json_success(
             [
-                'redirect' => wc_get_page_permalink( 'myaccount' ),
+                'redirect' => $build_redirect_url( $account_url, $token_type ),
             ]
         );
     }
@@ -431,12 +639,13 @@ function bw_mew_handle_supabase_token_login() {
     delete_user_meta( $user->ID, 'bw_supabase_onboarding_error' );
     bw_mew_apply_supabase_user_to_wp( $user->ID, $payload, 'token-login' );
     bw_mew_claim_guest_orders_for_user( $user->ID, $email, $debug_log, 'token-login' );
+    bw_mew_sync_user_name_from_orders( $user->ID, $email );
 
     $needs_onboarding = $is_invite && ! $already_onboarded;
     if ( $needs_password_for_otp || $needs_onboarding ) {
-        $redirect_url = add_query_arg( 'bw_set_password', '1', wc_get_page_permalink( 'myaccount' ) );
+        $redirect_url = add_query_arg( 'bw_set_password', '1', $account_url );
     } else {
-        $redirect_url = wc_get_page_permalink( 'myaccount' );
+        $redirect_url = $build_redirect_url( $account_url, $token_type );
     }
 
     if ( $debug_log ) {
@@ -758,10 +967,11 @@ add_action( 'wp_ajax_bw_supabase_email_exists', 'bw_mew_handle_supabase_email_ex
  * @param string               $access_token Supabase access token.
  * @param array<string,mixed>  $payload      Update payload.
  * @param string               $context      Context for logging.
+ * @param string               $redirect_to  Optional redirect URL for email actions.
  *
  * @return array{status:int,payload:array<string,mixed>}|WP_Error
  */
-function bw_mew_supabase_update_user( $access_token, array $payload, $context = '' ) {
+function bw_mew_supabase_update_user( $access_token, array $payload, $context = '', $redirect_to = '' ) {
     $config    = bw_mew_get_supabase_config();
     $debug_log = (bool) get_option( 'bw_supabase_debug_log', 0 );
 
@@ -770,6 +980,9 @@ function bw_mew_supabase_update_user( $access_token, array $payload, $context = 
     }
 
     $endpoint = trailingslashit( untrailingslashit( $config['project_url'] ) ) . 'auth/v1/user';
+    if ( $redirect_to ) {
+        $endpoint = add_query_arg( 'redirect_to', $redirect_to, $endpoint );
+    }
     $response = wp_remote_request(
         $endpoint,
         [
@@ -838,7 +1051,7 @@ function bw_mew_handle_supabase_update_profile() {
     }
 
     $user_id      = get_current_user_id();
-    $access_token = bw_mew_get_supabase_access_token( $user_id );
+    $access_token = bw_mew_get_supabase_access_token_with_refresh( $user_id );
 
     if ( ! $access_token ) {
         wp_send_json_error( [ 'message' => __( 'Supabase session is missing.', 'bw' ) ], 401 );
@@ -904,6 +1117,26 @@ function bw_mew_supabase_password_meets_requirements( $password ) {
 }
 
 /**
+ * Validate onboarding password rules shown in Supabase login/create-password UI.
+ *
+ * Rules:
+ * - At least 8 characters
+ * - At least 1 uppercase letter
+ * - At least 1 number OR special character
+ *
+ * @param string $password Candidate password.
+ *
+ * @return bool
+ */
+function bw_mew_supabase_password_meets_onboarding_requirements( $password ) {
+    $length_ok = strlen( $password ) >= 8;
+    $upper_ok  = (bool) preg_match( '/[A-Z]/', $password );
+    $mixed_ok  = (bool) preg_match( '/[0-9]|[^A-Za-z0-9]/', $password );
+
+    return $length_ok && $upper_ok && $mixed_ok;
+}
+
+/**
  * Update Supabase password via AJAX.
  */
 function bw_mew_handle_supabase_update_password() {
@@ -914,7 +1147,7 @@ function bw_mew_handle_supabase_update_password() {
     }
 
     $user_id      = get_current_user_id();
-    $access_token = bw_mew_get_supabase_access_token( $user_id );
+    $access_token = bw_mew_get_supabase_access_token_with_refresh( $user_id );
 
     if ( ! $access_token ) {
         wp_send_json_error( [ 'message' => __( 'Supabase session is missing.', 'bw' ) ], 401 );
@@ -978,7 +1211,7 @@ function bw_mew_handle_supabase_create_password() {
         wp_send_json_error( [ 'message' => __( 'Passwords do not match.', 'bw' ) ], 400 );
     }
 
-    if ( ! bw_mew_supabase_password_meets_requirements( $new_password ) ) {
+    if ( ! bw_mew_supabase_password_meets_onboarding_requirements( $new_password ) ) {
         wp_send_json_error( [ 'message' => __( 'Password does not meet the requirements.', 'bw' ) ], 400 );
     }
 
@@ -1017,7 +1250,7 @@ function bw_mew_handle_supabase_update_email() {
     }
 
     $user_id      = get_current_user_id();
-    $access_token = bw_mew_get_supabase_access_token( $user_id );
+    $access_token = bw_mew_get_supabase_access_token_with_refresh( $user_id );
 
     if ( ! $access_token ) {
         wp_send_json_error( [ 'message' => __( 'Supabase session is missing.', 'bw' ) ], 401 );
@@ -1025,6 +1258,28 @@ function bw_mew_handle_supabase_update_email() {
 
     $email         = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
     $confirm_email = isset( $_POST['confirm_email'] ) ? sanitize_email( wp_unslash( $_POST['confirm_email'] ) ) : '';
+    $account_url   = function_exists( 'wc_get_account_endpoint_url' ) ? wc_get_account_endpoint_url( 'edit-account' ) : '';
+    if ( ! $account_url ) {
+        $account_url = function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( 'myaccount' ) : home_url( '/my-account/' );
+    }
+    $default_confirm_redirect = add_query_arg(
+        [
+            'bw_email_changed' => '1',
+            'bw_tab'           => 'security',
+        ],
+        $account_url
+    );
+    $confirm_redirect = get_option( 'bw_supabase_email_confirm_redirect_url', '' );
+    $confirm_redirect = bw_mew_supabase_sanitize_redirect_url( $confirm_redirect );
+    $home_path        = wp_parse_url( home_url( '/' ), PHP_URL_PATH );
+    $redirect_path    = $confirm_redirect ? wp_parse_url( $confirm_redirect, PHP_URL_PATH ) : '';
+    $points_to_home   = $confirm_redirect && $redirect_path && $home_path && untrailingslashit( $redirect_path ) === untrailingslashit( $home_path );
+    $confirm_redirect = ( ! $confirm_redirect || $points_to_home ) ? $default_confirm_redirect : $confirm_redirect;
+    $account_path     = wp_parse_url( $account_url, PHP_URL_PATH );
+    if ( $account_path && $redirect_path && false !== strpos( untrailingslashit( $redirect_path ), untrailingslashit( $account_path ) ) ) {
+        $confirm_redirect = add_query_arg( 'bw_tab', 'security', $confirm_redirect );
+    }
+    $confirm_redirect = add_query_arg( 'bw_email_changed', '1', $confirm_redirect );
 
     if ( ! $email ) {
         wp_send_json_error( [ 'message' => __( 'Please enter a valid email address.', 'bw' ) ], 400 );
@@ -1036,8 +1291,11 @@ function bw_mew_handle_supabase_update_email() {
 
     $response = bw_mew_supabase_update_user(
         $access_token,
-        [ 'email' => $email ],
-        'email-update'
+        [
+            'email' => $email,
+        ],
+        'email-update',
+        $confirm_redirect
     );
 
     if ( is_wp_error( $response ) ) {
@@ -1050,6 +1308,7 @@ function bw_mew_handle_supabase_update_email() {
         [
             'message'      => __( 'Please confirm your new email address from the email we sent.', 'bw' ),
             'pendingEmail' => $email,
+            'redirectTo'   => $confirm_redirect,
         ]
     );
 }
@@ -1321,7 +1580,7 @@ function bw_mew_handle_supabase_checkout_invite( $order_id ) {
         if ( ! is_wp_error( $user_id ) ) {
             $user = get_user_by( 'id', $user_id );
             if ( $user instanceof WP_User ) {
-                $user->set_role( 'customer' );
+                bw_mew_maybe_set_customer_role( $user );
                 bw_mew_supabase_invite_trace( $order_id, sprintf( 'created WP user %d for %s', (int) $user_id, $email ), $debug_log );
             }
         } else {
@@ -1724,8 +1983,8 @@ function bw_mew_handle_set_password_modal() {
         wp_send_json_error( [ 'message' => __( 'Passwords do not match.', 'bw' ) ], 400 );
     }
 
-    if ( strlen( $new_password ) < 8 ) {
-        wp_send_json_error( [ 'message' => __( 'Password must be at least 8 characters.', 'bw' ) ], 400 );
+    if ( ! bw_mew_supabase_password_meets_onboarding_requirements( $new_password ) ) {
+        wp_send_json_error( [ 'message' => __( 'Password does not meet the requirements.', 'bw' ) ], 400 );
     }
 
     // Update password in Supabase
@@ -1789,9 +2048,13 @@ function bw_mew_supabase_store_session( array $payload, $email ) {
             $user_id = wp_create_user( $user_email, wp_generate_password( 32, true ), $user_email );
             if ( ! is_wp_error( $user_id ) ) {
                 $user = get_user_by( 'id', $user_id );
+                if ( $user instanceof WP_User ) {
+                    bw_mew_maybe_set_customer_role( $user );
+                }
             }
         }
         if ( $user instanceof WP_User ) {
+            bw_mew_maybe_set_customer_role( $user );
             wp_set_current_user( $user->ID );
             wp_set_auth_cookie( $user->ID, true, $secure );
 
