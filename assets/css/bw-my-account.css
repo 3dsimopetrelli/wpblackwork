@@ -674,6 +674,7 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
 }
 
 .bw-purchases-table {
+    --bw-purchases-cols: minmax(0, 2.3fr) 0.8fr 1fr 0.8fr 1fr auto;
     list-style: none;
     margin: 0;
     padding: 0;
@@ -682,7 +683,7 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
 .bw-purchases-head,
 .bw-purchases-row {
     display: grid;
-    grid-template-columns: minmax(0, 2.3fr) 0.8fr 1fr 0.8fr 1fr auto;
+    grid-template-columns: var(--bw-purchases-cols);
     gap: 14px;
     align-items: center;
     padding: 14px 20px;
@@ -703,7 +704,7 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
 .bw-purchases-col {
     min-width: 0;
     color: #111;
-    font-size: 15px;
+    font-size: 14px;
     line-height: 1.35;
 }
 
@@ -737,6 +738,31 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
 .bw-purchases-order-link:visited {
     color: #111 !important;
     text-decoration: none;
+}
+
+.bw-purchases-row .bw-order-title {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.3;
+    letter-spacing: 0;
+}
+
+.bw-purchases-col .bw-order-btn {
+    min-width: 76px;
+    min-height: 34px;
+    border-radius: 10px;
+    padding: 6px 12px;
+    font-size: 14px;
+    line-height: 1;
+    font-weight: 500;
+}
+
+.bw-account-orders-card--modern {
+    padding: 0;
+    border: 1px solid #ececec;
+    border-radius: 12px;
+    background: #fff;
+    overflow: hidden;
 }
 
 .bw-order-row:last-child {

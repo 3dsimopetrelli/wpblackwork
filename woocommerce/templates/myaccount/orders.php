@@ -15,7 +15,7 @@ do_action( 'woocommerce_before_account_orders', $has_orders );
 ?>
 
 <?php if ( $has_orders ) : ?>
-    <section class="bw-account-orders-card">
+    <section class="bw-account-orders-card bw-account-orders-card--modern">
         <header class="bw-page-header bw-page-header--boxed">
             <h2 class="bw-section-title"><?php esc_html_e( 'My purchases', 'bw' ); ?></h2>
         </header>
