@@ -2210,6 +2210,11 @@ body.woocommerce-checkout .bw-field-wrapper select:not([value=""]) {
     /* Keep same padding */
 }
 
+/* Hide native select placeholder text when empty; floating label is the placeholder. */
+body.woocommerce-checkout .bw-field-wrapper:not(.has-value) select {
+    color: transparent;
+}
+
 /* Mobile select adjustments */
 @media (max-width: 768px) {
     body.woocommerce-checkout .bw-field-wrapper select {
@@ -2251,6 +2256,11 @@ body.woocommerce-checkout .bw-field-wrapper .select2-container .select2-selectio
     font-size: 15px !important;
     color: #1f2937 !important;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+}
+
+/* Hide Select2 placeholder text when empty; floating label is the placeholder. */
+body.woocommerce-checkout .bw-field-wrapper:not(.has-value) .select2-container .select2-selection__rendered {
+    color: transparent !important;
 }
 
 /* Select2 arrow */
@@ -3147,7 +3157,7 @@ body.woocommerce-checkout .select2-results__option--selected {
 }
 
 .bw-checkout-section-heading--shipping-address {
-    margin-top: 18px;
+    margin-top: 20px;
     margin-bottom: 8px;
 }
 
