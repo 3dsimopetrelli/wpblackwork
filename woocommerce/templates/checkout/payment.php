@@ -52,13 +52,16 @@ if (!wp_doing_ajax()) {
 									strpos($gateway_type, 'ppcp') !== false);
 								$icon_html = '';
 								$icon_class = 'bw-payment-method__icon';
+								$asset_base_url = defined('BW_MEW_URL')
+									? BW_MEW_URL
+									: content_url('/plugins/wpblackwork/');
 
-								if ($is_card_gateway_icon && defined('BW_MEW_URL')) {
-									$card_logo_url = BW_MEW_URL . 'assets/images/payment-icons/card-outline.svg';
+								if ($is_card_gateway_icon) {
+									$card_logo_url = trailingslashit($asset_base_url) . 'assets/images/payment-icons/card-outline.svg';
 									$icon_html = '<img src="' . esc_url($card_logo_url) . '" alt="' . esc_attr__('Card', 'woocommerce') . '" loading="lazy" decoding="async" />';
 									$icon_class .= ' bw-payment-method__icon--card';
-								} elseif ($is_paypal && defined('BW_MEW_URL')) {
-									$paypal_logo_url = BW_MEW_URL . 'assets/images/payment-icons/paypal.svg';
+								} elseif ($is_paypal) {
+									$paypal_logo_url = trailingslashit($asset_base_url) . 'assets/images/payment-icons/paypal.svg';
 									$icon_html = '<img src="' . esc_url($paypal_logo_url) . '" alt="' . esc_attr__('PayPal', 'woocommerce') . '" loading="lazy" decoding="async" />';
 									$icon_class .= ' bw-payment-method__icon--paypal';
 								}
