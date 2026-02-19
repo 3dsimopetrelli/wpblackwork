@@ -1690,6 +1690,7 @@ function bw_site_render_checkout_tab()
         foreach ($policies as $key => $option_prefix) {
             $policy_data = isset($_POST[$option_prefix]) ? wp_unslash($_POST[$option_prefix]) : [];
             $sanitized_data = [
+                'enabled' => isset($policy_data['enabled']) ? '1' : '0',
                 'title' => isset($policy_data['title']) ? sanitize_text_field($policy_data['title']) : '',
                 'subtitle' => isset($policy_data['subtitle']) ? sanitize_text_field($policy_data['subtitle']) : '',
                 'content' => isset($policy_data['content']) ? wp_kses_post($policy_data['content']) : '',
@@ -1871,6 +1872,7 @@ function bw_site_render_checkout_tab()
     $policy_settings = [];
     foreach ($policy_names as $name) {
         $policy_settings[$name] = get_option("bw_checkout_policy_{$name}", [
+            'enabled' => '1',
             'title' => '',
             'subtitle' => '',
             'content' => '',
@@ -2656,6 +2658,16 @@ function bw_site_render_checkout_tab()
                     </h3>
 
                     <table class="form-table" role="presentation">
+                        <tr>
+                            <th scope="row"><label><?php esc_html_e('Enabled', 'bw'); ?></label></th>
+                            <td>
+                                <label class="switch">
+                                    <input type="checkbox" name="bw_checkout_policy_<?php echo esc_attr($key); ?>[enabled]"
+                                        value="1" <?php checked('1', isset($data['enabled']) ? (string) $data['enabled'] : '1'); ?> />
+                                    <span class="description"><?php esc_html_e('Show this policy link and popup in checkout footer.', 'bw'); ?></span>
+                                </label>
+                            </td>
+                        </tr>
                         <tr>
                             <th scope="row"><label><?php esc_html_e('Link Title', 'bw'); ?></label></th>
                             <td>

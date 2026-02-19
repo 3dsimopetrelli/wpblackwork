@@ -185,6 +185,10 @@ if (function_exists('bw_mew_render_checkout_header')) {
                     if (!is_array($data)) {
                         continue;
                     }
+                    $is_enabled = !isset($data['enabled']) || '1' === (string) $data['enabled'];
+                    if (!$is_enabled) {
+                        continue;
+                    }
                     $title = sanitize_text_field($data['title'] ?? '');
                     $subtitle = sanitize_text_field($data['subtitle'] ?? '');
                     $content = wp_kses_post($data['content'] ?? '');
