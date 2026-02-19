@@ -69,7 +69,7 @@ $physical_orders      = bw_mew_get_dashboard_physical_orders( $current_user->ID,
             <?php if ( ! empty( $digital_orders ) ) : ?>
                 <ul class="bw-order-list">
                     <?php foreach ( $digital_orders as $row ) : ?>
-                        <li class="bw-order-row bw-order-row--digital">
+                        <li class="bw-order-row bw-order-row--digital bw-order-row--no-price">
                             <div class="bw-order-thumb">
                                 <?php if ( ! empty( $row['productUrl'] ) ) : ?>
                                     <a href="<?php echo esc_url( $row['productUrl'] ); ?>" target="_blank" rel="noopener noreferrer" class="bw-order-product-link" aria-label="<?php echo esc_attr( $row['title'] ); ?>">
@@ -93,7 +93,6 @@ $physical_orders      = bw_mew_get_dashboard_physical_orders( $current_user->ID,
                                 </p>
                                 <p class="bw-order-meta"><?php echo esc_html( $row['license'] ); ?> <span aria-hidden="true">|</span> <?php echo esc_html( $row['date'] ); ?></p>
                             </div>
-                            <p class="bw-order-price"><?php echo wp_kses_post( $row['price'] ); ?></p>
                             <div class="bw-order-action">
                                 <?php if ( ! empty( $row['downloadUrl'] ) ) : ?>
                                     <a class="bw-download-button" href="<?php echo esc_url( $row['downloadUrl'] ); ?>" download>
@@ -129,7 +128,7 @@ $physical_orders      = bw_mew_get_dashboard_physical_orders( $current_user->ID,
             <?php if ( ! empty( $physical_orders ) ) : ?>
                 <ul class="bw-order-list">
                     <?php foreach ( $physical_orders as $row ) : ?>
-                        <li class="bw-order-row bw-order-row--physical">
+                        <li class="bw-order-row bw-order-row--physical bw-order-row--no-price">
                             <div class="bw-order-thumb">
                                 <?php if ( ! empty( $row['productUrl'] ) ) : ?>
                                     <a href="<?php echo esc_url( $row['productUrl'] ); ?>" target="_blank" rel="noopener noreferrer" class="bw-order-product-link" aria-label="<?php echo esc_attr( $row['title'] ); ?>">
@@ -153,7 +152,6 @@ $physical_orders      = bw_mew_get_dashboard_physical_orders( $current_user->ID,
                                 </p>
                                 <p class="bw-order-meta"><?php echo esc_html( $row['date'] ); ?></p>
                             </div>
-                            <p class="bw-order-price"><?php echo wp_kses_post( $row['price'] ); ?></p>
                             <div class="bw-order-action">
                                 <a class="bw-order-btn bw-order-btn--details" href="<?php echo esc_url( $row['orderUrl'] ); ?>"><?php esc_html_e( 'View order', 'bw' ); ?></a>
                             </div>
