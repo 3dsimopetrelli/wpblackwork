@@ -15,6 +15,7 @@ $heading_settings = isset($section_settings['section_headings']) && is_array($se
 $hide_additional = !empty($heading_settings['hide_additional_info']);
 $address_heading = isset($heading_settings['address_heading_text']) ? sanitize_text_field($heading_settings['address_heading_text']) : __('Delivery', 'bw');
 $billing_heading = __('Billing address', 'bw');
+$needs_shipping_address = WC()->cart && WC()->cart->needs_shipping_address();
 $billing_fields = $checkout->get_checkout_fields('billing');
 $billing_rendered = [];
 $billing_excluded = ['billing_email', 'bw_subscribe_newsletter'];
@@ -33,7 +34,7 @@ $billing_order = [
 ?>
 
 <div class="woocommerce-shipping-fields">
-    <?php if (true === WC()->cart->needs_shipping_address()): ?>
+    <?php if ($needs_shipping_address): ?>
         <div class="bw-checkout-section-heading bw-checkout-section-heading--delivery">
             <h2 class="checkout-section-title checkout-delivery-title"><?php echo esc_html($address_heading); ?></h2>
         </div>
@@ -55,11 +56,13 @@ $billing_order = [
 
             <?php do_action('woocommerce_after_checkout_shipping_form', $checkout); ?>
         </div>
+    <?php endif; ?>
 
-        <?php if (!empty($billing_fields)): ?>
-            <div class="bw-billing-address" data-default-mode="same">
-                <h2 class="checkout-section-title checkout-billing-title"><?php echo esc_html($billing_heading); ?></h2>
+    <?php if (!empty($billing_fields)): ?>
+        <div class="bw-billing-address <?php echo $needs_shipping_address ? '' : 'is-different bw-billing-address--standalone'; ?>" data-default-mode="<?php echo $needs_shipping_address ? 'same' : 'different'; ?>">
+            <h2 class="checkout-section-title checkout-billing-title"><?php echo esc_html($billing_heading); ?></h2>
 
+            <?php if ($needs_shipping_address): ?>
                 <div class="bw-billing-address__options" role="radiogroup" aria-label="<?php echo esc_attr($billing_heading); ?>">
                     <label class="bw-billing-address__option bw-billing-address__option--same">
                         <input type="radio" name="bw_billing_address_mode" value="same" checked="checked" />
@@ -70,33 +73,35 @@ $billing_order = [
                         <span><?php esc_html_e('Use a different billing address', 'bw'); ?></span>
                     </label>
                 </div>
+            <?php else: ?>
+                <input type="hidden" name="bw_billing_address_mode" value="different" />
+            <?php endif; ?>
 
-                <div class="bw-billing-address__accordion" aria-hidden="true">
-                    <div class="woocommerce-billing-fields__field-wrapper bw-billing-address__field-wrapper">
-                        <?php foreach ($billing_order as $key): ?>
-                            <?php if (!isset($billing_fields[$key])): ?>
-                                <?php continue; ?>
-                            <?php endif; ?>
-                            <?php if (in_array($key, $billing_excluded, true)): ?>
-                                <?php continue; ?>
-                            <?php endif; ?>
-                            <?php woocommerce_form_field($key, $billing_fields[$key], $checkout->get_value($key)); ?>
-                            <?php $billing_rendered[$key] = true; ?>
-                        <?php endforeach; ?>
+            <div class="bw-billing-address__accordion" aria-hidden="<?php echo $needs_shipping_address ? 'true' : 'false'; ?>">
+                <div class="woocommerce-billing-fields__field-wrapper bw-billing-address__field-wrapper">
+                    <?php foreach ($billing_order as $key): ?>
+                        <?php if (!isset($billing_fields[$key])): ?>
+                            <?php continue; ?>
+                        <?php endif; ?>
+                        <?php if (in_array($key, $billing_excluded, true)): ?>
+                            <?php continue; ?>
+                        <?php endif; ?>
+                        <?php woocommerce_form_field($key, $billing_fields[$key], $checkout->get_value($key)); ?>
+                        <?php $billing_rendered[$key] = true; ?>
+                    <?php endforeach; ?>
 
-                        <?php foreach ($billing_fields as $key => $field): ?>
-                            <?php if (isset($billing_rendered[$key])): ?>
-                                <?php continue; ?>
-                            <?php endif; ?>
-                            <?php if (in_array($key, $billing_excluded, true)): ?>
-                                <?php continue; ?>
-                            <?php endif; ?>
-                            <?php woocommerce_form_field($key, $field, $checkout->get_value($key)); ?>
-                        <?php endforeach; ?>
-                    </div>
+                    <?php foreach ($billing_fields as $key => $field): ?>
+                        <?php if (isset($billing_rendered[$key])): ?>
+                            <?php continue; ?>
+                        <?php endif; ?>
+                        <?php if (in_array($key, $billing_excluded, true)): ?>
+                            <?php continue; ?>
+                        <?php endif; ?>
+                        <?php woocommerce_form_field($key, $field, $checkout->get_value($key)); ?>
+                    <?php endforeach; ?>
                 </div>
             </div>
-        <?php endif; ?>
+        </div>
     <?php endif; ?>
 </div>
 

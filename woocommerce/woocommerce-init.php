@@ -953,10 +953,15 @@ function bw_mew_sync_billing_from_shipping_mode($data)
         return $data;
     }
 
+    $needs_shipping_address = WC()->cart && WC()->cart->needs_shipping_address();
     $mode = isset($data['bw_billing_address_mode']) ? sanitize_key((string) $data['bw_billing_address_mode']) : 'same';
     $data['bw_billing_address_mode'] = $mode;
 
-    // Shipping fields are always shown in our checkout flow.
+    if (!$needs_shipping_address) {
+        return $data;
+    }
+
+    // Shipping fields are always shown when a shipping address is required.
     $data['ship_to_different_address'] = 1;
 
     if ('different' === $mode) {
