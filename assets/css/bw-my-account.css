@@ -951,7 +951,7 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
 }
 
 .bw-downloads-empty {
-    margin: 8px 0;
+    margin: 16px 20px;
     color: #666;
 }
 
@@ -986,12 +986,35 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
     padding: 20px;
 }
 
+.bw-section-title,
+.bw-page-header h2 {
+    margin: 0;
+    font-size: 48px;
+    font-weight: 600;
+    line-height: 52px;
+    letter-spacing: -2px;
+}
+
 .bw-page-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
     margin-bottom: 16px;
+}
+
+.bw-page-header--boxed {
+    margin: 0;
+    padding: 16px 20px;
+    border-bottom: 1px solid #ececec;
+}
+
+.bw-downloads {
+    background: #fff;
+    border: 1px solid #ececec;
+    border-radius: 12px;
+    padding: 0;
+    overflow: hidden;
 }
 
 .bw-tab-switcher {
@@ -1580,9 +1603,13 @@ body.woocommerce-account .bw-settings #bw-tab-shipping .form-row.form-row-wide {
         gap: 14px;
     }
 
-    .bw-page-header h2 {
+    .bw-page-header h2,
+    .bw-section-title {
         width: 100%;
         margin: 0;
+        font-size: 38px;
+        line-height: 1.1;
+        letter-spacing: -1px;
     }
 
     .bw-tab-switcher {

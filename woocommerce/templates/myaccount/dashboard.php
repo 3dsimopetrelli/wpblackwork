@@ -64,7 +64,7 @@ $physical_orders      = bw_mew_get_dashboard_physical_orders( $current_user->ID,
     <section class="bw-dashboard-section bw-dashboard-section--digital">
         <div class="bw-order-card">
             <div class="bw-section-header bw-section-header--inside">
-                <h3><?php esc_html_e( 'Your digital orders', 'bw' ); ?></h3>
+                <h2 class="bw-section-title"><?php esc_html_e( 'Your digital orders', 'bw' ); ?></h2>
             </div>
             <?php if ( ! empty( $digital_orders ) ) : ?>
                 <ul class="bw-order-list">

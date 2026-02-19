@@ -16,6 +16,10 @@ do_action( 'woocommerce_before_account_orders', $has_orders );
 
 <?php if ( $has_orders ) : ?>
     <section class="bw-account-orders-card">
+        <header class="bw-page-header bw-page-header--boxed">
+            <h2 class="bw-section-title"><?php esc_html_e( 'My purchases', 'bw' ); ?></h2>
+        </header>
+
         <table class="woocommerce-orders-table woocommerce-MyAccount-orders shop_table shop_table_responsive my_account_orders account-orders-table">
             <thead>
                 <tr>
@@ -106,6 +110,9 @@ do_action( 'woocommerce_before_account_orders', $has_orders );
     }
     ?>
     <section class="bw-account-empty-orders" aria-live="polite">
+        <header class="bw-page-header bw-page-header--boxed">
+            <h2 class="bw-section-title"><?php esc_html_e( 'My purchases', 'bw' ); ?></h2>
+        </header>
         <p class="bw-account-empty-orders__text"><?php esc_html_e( 'No order has been made yet.', 'woocommerce' ); ?></p>
         <a class="bw-account-empty-orders__cta elementor-button elementor-button-link elementor-size-md" href="<?php echo esc_url( apply_filters( 'woocommerce_return_to_shop_redirect', $shop_url ) ); ?>">
             <?php esc_html_e( 'Browse products', 'woocommerce' ); ?>

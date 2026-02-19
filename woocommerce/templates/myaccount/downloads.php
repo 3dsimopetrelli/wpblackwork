@@ -18,6 +18,10 @@ if ( ! is_array( $downloads ) ) {
 }
 ?>
 <div class="bw-downloads">
+    <header class="bw-page-header bw-page-header--boxed">
+        <h2 class="bw-section-title"><?php esc_html_e( 'Downloads', 'bw' ); ?></h2>
+    </header>
+
     <?php if ( $downloads ) : ?>
         <div class="bw-download-list">
             <?php foreach ( $downloads as $download ) :
