@@ -44,10 +44,20 @@ if (!wp_doing_ajax()) {
 								<?php
 								// Show icon for Google Pay
 								$gateway_type = strtolower($gateway_id);
+								$is_paypal = (strpos($gateway_type, 'paypal') !== false ||
+									strpos($gateway_type, 'ppcp') !== false);
 								$is_google_pay = (strpos($gateway_type, 'google') !== false ||
 									strpos($gateway_type, 'googlepay') !== false);
 
-								if ($is_google_pay) {
+								if ($is_paypal) {
+									$paypal_logo_url = defined('BW_MEW_URL')
+										? BW_MEW_URL . 'assets/images/payment-icons/paypal.svg'
+										: '';
+
+									if (!empty($paypal_logo_url)) {
+										echo '<span class="bw-payment-method__icon bw-payment-method__icon--paypal"><img src="' . esc_url($paypal_logo_url) . '" alt="' . esc_attr__('PayPal', 'woocommerce') . '" loading="lazy" decoding="async" /></span>';
+									}
+								} elseif ($is_google_pay) {
 									$icon_html = $gateway->get_icon();
 									if ($icon_html) {
 										echo '<span class="bw-payment-method__icon">' . wp_kses_post( $icon_html ) . '</span>';
