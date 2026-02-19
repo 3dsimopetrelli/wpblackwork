@@ -1,6 +1,6 @@
 # BW Checkout — Guida Completa
 
-**Ultimo aggiornamento:** 2026-02-18
+**Ultimo aggiornamento:** 2026-02-19
 **Plugin:** BW Elementor Widgets
 **Tema:** BlackWork
 
@@ -1265,6 +1265,27 @@ CSS skeleton con animazione shimmer:
 }
 ```
 
+### Debug Flag — `BW_CHECKOUT_DEBUG`
+
+Tutti i messaggi di log (`console.log`, `console.warn`, `console.error`) sono protetti da un flag di debug per non esporre informazioni in produzione:
+
+```javascript
+// Definito all'inizio dell'IIFE
+var BW_CHECKOUT_DEBUG = window.BW_CHECKOUT_DEBUG === true;
+
+// Utilizzo in tutta la codebase (66 occorrenze)
+BW_CHECKOUT_DEBUG && console.log('[BW Checkout] ...');
+BW_CHECKOUT_DEBUG && console.warn('[BW Checkout] ...');
+```
+
+Per attivare i log durante il debug, eseguire in console del browser:
+
+```javascript
+window.BW_CHECKOUT_DEBUG = true;
+```
+
+Questo non richiede modifiche al codice sorgente e non ha effetti in produzione.
+
 ---
 
 ## 15. Impostazioni Admin
@@ -1501,6 +1522,165 @@ I separatori nativi di Stripe sono nascosti con CSS e sostituiti da `.bw-express
     margin: 0 !important;
 }
 ```
+
+---
+
+### FIX 9 — `wp_kses_post()` su icon HTML gateway (Security — Critical)
+
+**Data:** 2026-02-19
+**File:** `woocommerce/templates/checkout/payment.php`
+**Problema:** L'HTML dell'icona del gateway (es. Google Pay) veniva concatenato direttamente nell'output senza sanitizzazione, aprendo a XSS se il plugin del gateway restituisse HTML non sicuro.
+**Fix:**
+```php
+// PRIMA (vulnerabile)
+echo '<span class="bw-payment-method__icon">' . $icon_html . '</span>';
+
+// DOPO (sicuro)
+echo '<span class="bw-payment-method__icon">' . wp_kses_post( $icon_html ) . '</span>';
+```
+
+---
+
+### FIX 10 — `wp_json_encode()` per dati policy nel `<script>` inline (Security — Critical)
+
+**Data:** 2026-02-19
+**File:** `woocommerce/templates/checkout/form-checkout.php`
+**Problema:** `json_encode()` nativo PHP non applica l'escaping WordPress-aware e può produrre output non sicuro in contesti HTML.
+**Fix:**
+```php
+// PRIMA
+window.bwPolicyContent = <?php echo json_encode($footer_policies); ?>;
+
+// DOPO
+window.bwPolicyContent = <?php echo wp_json_encode($footer_policies); ?>;
+```
+
+---
+
+### FIX 11 — `is_array()` guard + sanitizzazione dati policy da `get_option()` (Security — Critical)
+
+**Data:** 2026-02-19
+**File:** `woocommerce/templates/checkout/form-checkout.php`
+**Problema:** I dati policy venivano letti da `get_option()` senza verificare il tipo né sanitizzare i campi prima di passarli a `wp_json_encode()`. Un valore corrotto o manipolato nel DB poteva causare output non previsto.
+**Fix:**
+```php
+// PRIMA
+$data = get_option("bw_checkout_policy_{$key}", []);
+if (!empty($data['title'])) {
+    $footer_policies[$key] = $data; // dati grezzi
+}
+
+// DOPO
+$data = get_option("bw_checkout_policy_{$key}", []);
+if (!is_array($data) || empty($data['title'])) {
+    continue;
+}
+$footer_policies[$key] = [
+    'title'    => sanitize_text_field($data['title']),
+    'subtitle' => sanitize_text_field($data['subtitle'] ?? ''),
+    'content'  => wp_kses_post($data['content'] ?? ''),
+];
+```
+
+---
+
+### FIX 12 — `textContent` invece di `innerHTML` in `showError()` (Security — Critical)
+
+**Data:** 2026-02-19
+**File:** `assets/js/bw-checkout.js`
+**Problema:** La funzione `showError()` usava `innerHTML` per inserire il messaggio di errore, permettendo potenzialmente l'iniezione di HTML/JavaScript se il testo del messaggio provenisse da input utente o dalla risposta AJAX.
+**Fix:**
+```javascript
+// PRIMA (vulnerabile a XSS)
+errorDiv.innerHTML = message;
+
+// DOPO (sicuro)
+errorDiv.textContent = message;
+```
+
+---
+
+### FIX 13 — DOM creation sicura per free order banner (Security — Medium)
+
+**Data:** 2026-02-19
+**File:** `assets/js/bw-checkout.js`
+**Problema:** Il banner per ordini gratuiti usava un rilevamento `indexOf('<')` per decidere se il testo contenesse HTML, e usava `innerHTML` in quel caso. Tecnica fragile e potenzialmente pericolosa.
+**Fix:** Rimossa la branch `indexOf('<')`. Il banner ora usa sempre `createElement` + `textContent`, indipendentemente dal contenuto del testo:
+```javascript
+// DOPO (sempre sicuro)
+var bannerEl = document.createElement('div');
+bannerEl.className = 'bw-free-order-banner';
+var bannerText = document.createElement('span');
+bannerText.textContent = freeOrderText;
+bannerEl.appendChild(bannerText);
+```
+
+---
+
+### FIX 14 — DOM creation sicura per etichetta coupon applicato (Security — Medium)
+
+**Data:** 2026-02-19
+**File:** `assets/js/bw-checkout.js`
+**Problema:** Il codice coupon applicato veniva inserito in tabella tramite concatenazione di stringa HTML con `innerHTML`, permettendo XSS se il codice coupon contenesse caratteri speciali HTML.
+**Fix:**
+```javascript
+// PRIMA (vulnerabile)
+th.innerHTML = '<span class="bw-cart-coupon-label"><span class="bw-cart-coupon-icon"></span> ' + code + '</span>';
+
+// DOPO (sicuro — DOM puro)
+var couponLabel = document.createElement('span');
+couponLabel.className = 'bw-cart-coupon-label';
+var couponIcon = document.createElement('span');
+couponIcon.className = 'bw-cart-coupon-icon';
+couponLabel.appendChild(couponIcon);
+couponLabel.appendChild(document.createTextNode(' ' + code));
+th.textContent = '';
+th.appendChild(couponLabel);
+```
+
+**Nota:** Il modal delle policy usa ancora `.html()` di jQuery perché il contenuto HTML è intenzionale e già sanitizzato server-side con `wp_kses_post()`.
+
+---
+
+### FIX 15 — `BW_CHECKOUT_DEBUG` guard su 66 console statements (Security — Medium)
+
+**Data:** 2026-02-19
+**File:** `assets/js/bw-checkout.js`
+**Problema:** 66 istruzioni `console.log`, `console.warn`, `console.error` erano attive in produzione, esponendo informazioni interne (stati AJAX, dati risposta, valori Stripe) a qualsiasi utente con la console browser aperta.
+**Fix:** Aggiunto flag globale all'inizio dell'IIFE; tutti i log protetti:
+```javascript
+var BW_CHECKOUT_DEBUG = window.BW_CHECKOUT_DEBUG === true;
+// ...
+BW_CHECKOUT_DEBUG && console.log('[BW Checkout] ...');
+```
+Per abilitare il debug: `window.BW_CHECKOUT_DEBUG = true` in console.
+
+---
+
+### FIX 16 — Rimosso `.forcebust` dalle versioni asset (Low)
+
+**Data:** 2026-02-19
+**File:** `woocommerce/woocommerce-init.php`
+**Problema:** Il suffisso `.forcebust` era stato aggiunto temporaneamente alle versioni CSS/JS per forzare il rinnovo della cache durante lo sviluppo, ma era rimasto in produzione disabilitando permanentemente la cache browser degli asset.
+**Fix:**
+```php
+// RIMOSSO
+$version .= '.forcebust';
+$js_version = filemtime($js_file) . '.forcebust';
+
+// MANTENUTO (corretto)
+$version = filemtime($css_file);
+$js_version = filemtime($js_file);
+```
+
+---
+
+### FIX 17 — Rimosso blocco normalizzazione colonne duplicato (Low)
+
+**Data:** 2026-02-19
+**File:** `woocommerce/woocommerce-init.php`
+**Problema:** La funzione `bw_mew_normalize_checkout_column_widths()` era registrata due volte sullo stesso hook, causando doppio calcolo delle larghezze colonne ad ogni richiesta checkout.
+**Fix:** Rimosso il secondo blocco `add_filter` ridondante (righe ~969–979).
 
 ---
 
