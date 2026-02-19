@@ -397,9 +397,15 @@ body.woocommerce-checkout .bw-payment-method__icon svg {
 body.woocommerce-checkout .bw-payment-method[data-gateway-id*="paypal"] .bw-payment-method__icon img,
 body.woocommerce-checkout .bw-payment-method[data-gateway-id*="ppcp"] .bw-payment-method__icon img {
 	width: 52px !important;
-	height: 30px !important;
-	max-height: none !important;
+	height: auto !important;
+	max-height: 30px !important;
 	object-fit: contain;
+}
+
+body.woocommerce-checkout .bw-payment-method[data-gateway-id*="paypal"] .bw-payment-method__icon,
+body.woocommerce-checkout .bw-payment-method[data-gateway-id*="ppcp"] .bw-payment-method__icon {
+	margin-top: 0;
+	align-items: center;
 }
 
 /* ============================================
