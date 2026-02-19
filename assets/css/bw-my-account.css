@@ -196,6 +196,40 @@ body.woocommerce-account .bw-account-orders-card .woocommerce-MyAccount-paginati
     margin-top: 18px;
 }
 
+body.woocommerce-account .bw-account-orders-card--modern .woocommerce-MyAccount-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin: 16px 0 24px;
+}
+
+body.woocommerce-account .bw-account-orders-card--modern .woocommerce-MyAccount-pagination .button {
+    min-width: 42px;
+    width: 42px;
+    min-height: 42px;
+    padding: 0;
+    border-radius: 10px;
+    border: 1px solid #111;
+    background: #111;
+    color: #fff !important;
+    font-size: 0;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+body.woocommerce-account .bw-account-orders-card--modern .woocommerce-MyAccount-pagination .woocommerce-button--previous::before {
+    content: "\2190";
+    font-size: 20px;
+}
+
+body.woocommerce-account .bw-account-orders-card--modern .woocommerce-MyAccount-pagination .woocommerce-button--next::before {
+    content: "\2192";
+    font-size: 20px;
+}
+
 body.woocommerce-account .woocommerce-order > p:first-child {
     margin: 0 0 18px;
     padding: 14px 16px;
