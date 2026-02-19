@@ -14,7 +14,7 @@ $heading_settings = isset($section_settings['section_headings']) && is_array($se
     : [];
 $hide_additional = !empty($heading_settings['hide_additional_info']);
 $address_heading = isset($heading_settings['address_heading_text']) ? sanitize_text_field($heading_settings['address_heading_text']) : __('Delivery', 'bw');
-$billing_heading = __('Billing address', 'bw');
+$billing_heading = __('Shipping address', 'bw');
 $needs_shipping_address = WC()->cart && WC()->cart->needs_shipping_address();
 $billing_fields = $checkout->get_checkout_fields('billing');
 $billing_rendered = [];
@@ -59,9 +59,11 @@ $billing_order = [
     <?php endif; ?>
 
     <?php if ($needs_shipping_address && !empty($billing_fields)): ?>
-        <div class="bw-billing-address" data-default-mode="same">
-            <h2 class="checkout-section-title checkout-billing-title"><?php echo esc_html($billing_heading); ?></h2>
+        <div class="bw-checkout-section-heading bw-checkout-section-heading--shipping-address">
+            <h2 class="checkout-section-title checkout-shipping-address-title"><?php echo esc_html($billing_heading); ?></h2>
+        </div>
 
+        <div class="bw-billing-address" data-default-mode="same">
             <div class="bw-billing-address__options" role="radiogroup" aria-label="<?php echo esc_attr($billing_heading); ?>">
                 <label class="bw-billing-address__option bw-billing-address__option--same">
                     <input type="radio" name="bw_billing_address_mode" value="same" checked="checked" />

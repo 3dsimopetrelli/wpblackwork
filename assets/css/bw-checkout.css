@@ -3146,13 +3146,13 @@ body.woocommerce-checkout .select2-results__option--selected {
     background: #ffffff;
 }
 
-.bw-billing-address .checkout-billing-title {
+.bw-checkout-section-heading--shipping-address {
+    margin-top: 18px;
+    margin-bottom: 8px;
+}
+
+.bw-billing-address .checkout-shipping-address-title {
     margin: 0;
-    padding: 18px 22px 12px;
-    font-size: 16px;
-    line-height: 1.2;
-    letter-spacing: -1px;
-    color: #111111;
 }
 
 .bw-billing-address__options {
