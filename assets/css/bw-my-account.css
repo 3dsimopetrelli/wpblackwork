@@ -697,6 +697,17 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
     color: #111;
 }
 
+.bw-order-product-link {
+    color: inherit;
+    text-decoration: none;
+}
+
+.bw-order-product-link:hover,
+.bw-order-product-link:focus {
+    color: inherit;
+    text-decoration: underline;
+}
+
 .bw-order-meta {
     margin: 0;
     font-size: 13px;
@@ -989,9 +1000,9 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
 .bw-section-title,
 .bw-page-header h2 {
     margin: 0;
-    font-size: 48px;
+    font-size: 38px;
     font-weight: 600;
-    line-height: 52px;
+    line-height: 1.1;
     letter-spacing: -2px;
 }
 

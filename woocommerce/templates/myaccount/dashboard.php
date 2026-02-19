@@ -71,14 +71,26 @@ $physical_orders      = bw_mew_get_dashboard_physical_orders( $current_user->ID,
                     <?php foreach ( $digital_orders as $row ) : ?>
                         <li class="bw-order-row bw-order-row--digital">
                             <div class="bw-order-thumb">
-                                <?php if ( ! empty( $row['thumbnail'] ) ) : ?>
-                                    <img src="<?php echo esc_url( $row['thumbnail'] ); ?>" alt="<?php echo esc_attr( $row['title'] ); ?>" loading="lazy" />
-                                <?php else : ?>
-                                    <span class="bw-order-thumb-placeholder" aria-hidden="true"></span>
+                                <?php if ( ! empty( $row['productUrl'] ) ) : ?>
+                                    <a href="<?php echo esc_url( $row['productUrl'] ); ?>" target="_blank" rel="noopener noreferrer" class="bw-order-product-link" aria-label="<?php echo esc_attr( $row['title'] ); ?>">
+                                <?php endif; ?>
+                                    <?php if ( ! empty( $row['thumbnail'] ) ) : ?>
+                                        <img src="<?php echo esc_url( $row['thumbnail'] ); ?>" alt="<?php echo esc_attr( $row['title'] ); ?>" loading="lazy" />
+                                    <?php else : ?>
+                                        <span class="bw-order-thumb-placeholder" aria-hidden="true"></span>
+                                    <?php endif; ?>
+                                <?php if ( ! empty( $row['productUrl'] ) ) : ?>
+                                    </a>
                                 <?php endif; ?>
                             </div>
                             <div class="bw-order-info">
-                                <p class="bw-order-title"><?php echo esc_html( $row['title'] ); ?></p>
+                                <p class="bw-order-title">
+                                    <?php if ( ! empty( $row['productUrl'] ) ) : ?>
+                                        <a href="<?php echo esc_url( $row['productUrl'] ); ?>" target="_blank" rel="noopener noreferrer" class="bw-order-product-link"><?php echo esc_html( $row['title'] ); ?></a>
+                                    <?php else : ?>
+                                        <?php echo esc_html( $row['title'] ); ?>
+                                    <?php endif; ?>
+                                </p>
                                 <p class="bw-order-meta"><?php echo esc_html( $row['license'] ); ?> <span aria-hidden="true">|</span> <?php echo esc_html( $row['date'] ); ?></p>
                             </div>
                             <p class="bw-order-price"><?php echo wp_kses_post( $row['price'] ); ?></p>
@@ -112,21 +124,33 @@ $physical_orders      = bw_mew_get_dashboard_physical_orders( $current_user->ID,
     <section class="bw-dashboard-section bw-dashboard-section--physical">
         <div class="bw-order-card">
             <div class="bw-section-header bw-section-header--inside">
-                <h3><?php esc_html_e( 'Physical orders', 'bw' ); ?></h3>
+                <h2 class="bw-section-title"><?php esc_html_e( 'Physical orders', 'bw' ); ?></h2>
             </div>
             <?php if ( ! empty( $physical_orders ) ) : ?>
                 <ul class="bw-order-list">
                     <?php foreach ( $physical_orders as $row ) : ?>
                         <li class="bw-order-row bw-order-row--physical">
                             <div class="bw-order-thumb">
-                                <?php if ( ! empty( $row['thumbnail'] ) ) : ?>
-                                    <img src="<?php echo esc_url( $row['thumbnail'] ); ?>" alt="<?php echo esc_attr( $row['title'] ); ?>" loading="lazy" />
-                                <?php else : ?>
-                                    <span class="bw-order-thumb-placeholder" aria-hidden="true"></span>
+                                <?php if ( ! empty( $row['productUrl'] ) ) : ?>
+                                    <a href="<?php echo esc_url( $row['productUrl'] ); ?>" target="_blank" rel="noopener noreferrer" class="bw-order-product-link" aria-label="<?php echo esc_attr( $row['title'] ); ?>">
+                                <?php endif; ?>
+                                    <?php if ( ! empty( $row['thumbnail'] ) ) : ?>
+                                        <img src="<?php echo esc_url( $row['thumbnail'] ); ?>" alt="<?php echo esc_attr( $row['title'] ); ?>" loading="lazy" />
+                                    <?php else : ?>
+                                        <span class="bw-order-thumb-placeholder" aria-hidden="true"></span>
+                                    <?php endif; ?>
+                                <?php if ( ! empty( $row['productUrl'] ) ) : ?>
+                                    </a>
                                 <?php endif; ?>
                             </div>
                             <div class="bw-order-info">
-                                <p class="bw-order-title"><?php echo esc_html( $row['title'] ); ?></p>
+                                <p class="bw-order-title">
+                                    <?php if ( ! empty( $row['productUrl'] ) ) : ?>
+                                        <a href="<?php echo esc_url( $row['productUrl'] ); ?>" target="_blank" rel="noopener noreferrer" class="bw-order-product-link"><?php echo esc_html( $row['title'] ); ?></a>
+                                    <?php else : ?>
+                                        <?php echo esc_html( $row['title'] ); ?>
+                                    <?php endif; ?>
+                                </p>
                                 <p class="bw-order-meta"><?php echo esc_html( $row['date'] ); ?></p>
                             </div>
                             <p class="bw-order-price"><?php echo wp_kses_post( $row['price'] ); ?></p>

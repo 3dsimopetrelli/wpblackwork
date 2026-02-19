@@ -895,6 +895,7 @@ function bw_mew_get_dashboard_digital_orders( $user_id, $limit = 6 ) {
             $order_id      = (int) $order->get_id();
             $download_id   = (string) $item->get_meta( '_download_id', true );
             $download_url  = '';
+            $product_url   = $product_id > 0 ? get_permalink( $product_id ) : '';
 
             $map_keys = [
                 $order_id . ':' . $variation_id,
@@ -935,6 +936,7 @@ function bw_mew_get_dashboard_digital_orders( $user_id, $limit = 6 ) {
                 'price'       => wc_price( (float) $item->get_total() + (float) $item->get_total_tax(), [ 'currency' => $order->get_currency() ] ),
                 'thumbnail'   => $thumbnail_url ? esc_url_raw( $thumbnail_url ) : '',
                 'downloadUrl' => $download_url,
+                'productUrl'  => $product_url ? esc_url_raw( $product_url ) : '',
                 'orderUrl'    => $order_url,
             ];
 
@@ -993,11 +995,13 @@ function bw_mew_get_dashboard_physical_orders( $user_id, $limit = 6 ) {
 
             $product_id    = (int) $item->get_product_id();
             $thumbnail_url = get_the_post_thumbnail_url( $product_id, 'thumbnail' );
+            $product_url   = $product_id > 0 ? get_permalink( $product_id ) : '';
             $rows[] = [
                 'title'     => $item->get_name(),
                 'date'      => $date_label,
                 'price'     => wc_price( (float) $item->get_total() + (float) $item->get_total_tax(), [ 'currency' => $order->get_currency() ] ),
                 'thumbnail' => $thumbnail_url ? esc_url_raw( $thumbnail_url ) : '',
+                'productUrl' => $product_url ? esc_url_raw( $product_url ) : '',
                 'orderUrl'  => $order_url,
             ];
 
