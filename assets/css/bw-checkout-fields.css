@@ -8,7 +8,8 @@ body.woocommerce-checkout.bw-checkout-fields-active .woocommerce-additional-fiel
 body.woocommerce-checkout.bw-checkout-fields-active .woocommerce-account-fields {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    --bw-checkout-fields-gap: 6px;
+    gap: var(--bw-checkout-fields-gap);
 }
 
 body.woocommerce-checkout.bw-checkout-fields-active .woocommerce-billing-fields__field-wrapper .form-row,
@@ -26,8 +27,8 @@ body.woocommerce-checkout.bw-checkout-fields-active .bw-checkout-field {
 }
 
 body.woocommerce-checkout.bw-checkout-fields-active .bw-checkout-field--half {
-    flex: 0 0 calc(50% - 8px);
-    max-width: calc(50% - 8px);
+    flex: 0 0 calc((100% - var(--bw-checkout-fields-gap)) / 2);
+    max-width: calc((100% - var(--bw-checkout-fields-gap)) / 2);
 }
 
 body.woocommerce-checkout.bw-checkout-fields-active .bw-checkout-field--full {
