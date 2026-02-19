@@ -415,6 +415,15 @@ body.woocommerce-checkout .bw-payment-method[data-gateway-id*="ppcp"] .bw-paymen
    ============================================ */
 
 body.woocommerce-checkout .bw-payment-method__content {
+	/*
+	 * WooCommerce checkout.js calls jQuery slideUp()/slideDown() on elements
+	 * with the .payment_box class, which injects inline style="display:none;
+	 * height:0" that would override any CSS rule.  The two !important below
+	 * block those inline styles so our max-height CSS transition is the sole
+	 * driver of open/close.  height:auto + max-height:0 = 0px visible height.
+	 */
+	display: block !important;
+	height: auto !important;
 	max-height: 0;
 	background: transparent !important;
 	border-top: 1px solid transparent;
@@ -434,9 +443,9 @@ body.woocommerce-checkout .bw-payment-method__content.bw-stripe-loading {
 
 /* Panel State: Open (class-based — kept for older-browser fallback) */
 body.woocommerce-checkout .bw-payment-method__content.is-open {
-	max-height: 3000px;
+	max-height: 3000px !important;
 	border-top-color: #000;
-	overflow: visible;
+	overflow: visible !important;
 	background: #f7f7f7 !important;
 }
 
@@ -482,9 +491,9 @@ body.woocommerce-checkout .bw-payment-method__content.is-open .bw-payment-method
 body.woocommerce-checkout
 	.bw-payment-method:has(input[name="payment_method"]:checked)
 	> .bw-payment-method__content {
-	max-height: 3000px;
+	max-height: 3000px !important;
 	border-top-color: #000;
-	overflow: visible;
+	overflow: visible !important;
 	background: #f7f7f7 !important;
 }
 
