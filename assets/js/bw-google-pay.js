@@ -135,10 +135,15 @@
         var selectedMethod = $('input[name="payment_method"]:checked').val();
         var $placeOrder    = $('#place_order');
         var $wrapper       = $('#bw-google-pay-button-wrapper');
+        var $placeholder   = $('#bw-google-pay-accordion-placeholder');
+        var hasCustomBtn   = $('#bw-google-pay-trigger').length > 0;
 
         if (selectedMethod === 'bw_google_pay') {
             $placeOrder[0] && $placeOrder[0].style.setProperty('display', 'none', 'important');
             $wrapper.show();
+            if (hasCustomBtn) {
+                $placeholder.hide();
+            }
 
             if ($('#bw-google-pay-trigger').length === 0) {
                 var btn  = document.createElement('button');
@@ -163,6 +168,9 @@
                     container.innerHTML = '';
                     container.appendChild(btn);
                 }
+
+                // Ensure "Inizializzazione Google Pay..." is hidden as soon as the custom button exists.
+                $placeholder.hide();
             }
         } else {
             $wrapper.hide();
@@ -321,6 +329,12 @@
 
         $(document.body).on('updated_checkout', function () {
             handleButtonVisibility();
+
+            // WooCommerce can re-render payment fields and bring back the placeholder:
+            // keep it hidden when Google Pay button is already available.
+            if ($('#bw-google-pay-trigger').length) {
+                $('#bw-google-pay-accordion-placeholder').hide();
+            }
 
             if (paymentRequest) {
                 var updatedCents = bwGetOrderTotalCents();
