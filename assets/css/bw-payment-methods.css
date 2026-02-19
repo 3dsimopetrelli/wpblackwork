@@ -1167,7 +1167,7 @@ body.woocommerce-checkout .bw-payment-method__fields {
 
 /* Margin-top for the Stripe specific wrapper to ensure it separates from the header */
 body.woocommerce-checkout .bw-stripe-fields-wrapper {
-	margin-top: 40px !important;
+	margin-top: 0 !important;
 	display: block !important;
 }
 

@@ -3457,7 +3457,7 @@ body.bw-modal-open {
 
 /* Spacing for Stripe fields container */
 .bw-stripe-fields-wrapper {
-    margin-top: 15px !important;
+    margin-top: 0 !important;
 }
 
 /* Spacing for Stripe Payment Accordion items (Card & Klarna labels) */
