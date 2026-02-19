@@ -67,7 +67,7 @@ if (!wp_doing_ajax()) {
 
 						<?php if ($gateway->has_fields() || $gateway->get_description()): ?>
 							<div
-								class="bw-payment-method__content payment_box payment_method_<?php echo $gateway_id; ?> <?php echo $gateway_count === 1 ? 'is-open' : ''; ?>">
+								class="bw-payment-method__content payment_box payment_method_<?php echo $gateway_id; ?>">
 								<div class="bw-payment-method__inner">
 									<?php
 									// Hide description for PayPal (we show custom redirect message instead)
@@ -152,7 +152,7 @@ if (!wp_doing_ajax()) {
 							</div>
 						<?php else: ?>
 							<div
-								class="bw-payment-method__content payment_box payment_method_<?php echo $gateway_id; ?> <?php echo $gateway_count === 1 ? 'is-open' : ''; ?>">
+								class="bw-payment-method__content payment_box payment_method_<?php echo $gateway_id; ?>">
 								<div class="bw-payment-method__inner">
 									<?php
 									// Check if this is Google Pay for redirect message

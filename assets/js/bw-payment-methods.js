@@ -64,10 +64,7 @@
 
             var contentBox = selectedMethod.querySelector('.bw-payment-method__content');
             if (contentBox) {
-                // Small delay to ensure smooth animation
-                setTimeout(function () {
-                    contentBox.classList.add('is-open');
-                }, 10);
+                openPaymentBox(selectedMethod, contentBox);
             }
         }
 
@@ -78,6 +75,68 @@
         if (window.jQuery) {
             window.jQuery(document.body).trigger('payment_method_selected');
         }
+    }
+
+    /**
+     * Open payment panel.
+     * For Stripe gateways, wait briefly for iframe readiness to avoid "half-open" flash.
+     *
+     * @param {HTMLElement} selectedMethod
+     * @param {HTMLElement} contentBox
+     */
+    function openPaymentBox(selectedMethod, contentBox) {
+        var gatewayId = (selectedMethod.getAttribute('data-gateway-id') || '').toLowerCase();
+        var isStripeGateway = gatewayId.indexOf('stripe') !== -1;
+
+        if (!isStripeGateway) {
+            setTimeout(function () {
+                contentBox.classList.add('is-open');
+            }, 10);
+            return;
+        }
+
+        var iframe = contentBox.querySelector('.wc-stripe-upe-element iframe');
+        var revealed = false;
+
+        function reveal() {
+            if (revealed) {
+                return;
+            }
+            revealed = true;
+            contentBox.classList.remove('bw-stripe-loading');
+            contentBox.classList.add('is-open');
+        }
+
+        // No iframe yet: open quickly and let Stripe render after.
+        if (!iframe) {
+            setTimeout(reveal, 30);
+            return;
+        }
+
+        // Hide panel while Stripe iframe reaches a stable height.
+        contentBox.classList.add('bw-stripe-loading');
+
+        // If already rendered, reveal immediately.
+        if (iframe.offsetHeight > 80) {
+            reveal();
+            return;
+        }
+
+        var pollCount = 0;
+        var maxPolls = 18; // ~1.8s
+        var pollTimer = setInterval(function () {
+            pollCount++;
+            if (iframe.offsetHeight > 80 || pollCount >= maxPolls) {
+                clearInterval(pollTimer);
+                reveal();
+            }
+        }, 100);
+
+        iframe.addEventListener('load', function onStripeIframeLoad() {
+            iframe.removeEventListener('load', onStripeIframeLoad);
+            clearInterval(pollTimer);
+            reveal();
+        });
     }
 
     /**

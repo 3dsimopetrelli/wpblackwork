@@ -425,6 +425,13 @@ body.woocommerce-checkout .bw-payment-method__content {
 	border-radius: 0;
 }
 
+/* Prevent Stripe panel half-open flash while iframe bootstraps */
+body.woocommerce-checkout .bw-payment-method__content.bw-stripe-loading {
+	max-height: 0 !important;
+	border-top-color: transparent !important;
+	overflow: hidden !important;
+}
+
 /* Panel State: Open */
 body.woocommerce-checkout .bw-payment-method__content.is-open {
 	max-height: 3000px;
