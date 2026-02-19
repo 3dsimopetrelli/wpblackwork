@@ -542,7 +542,7 @@ body.woocommerce-checkout .bw-payment-method__description p:last-child {
    ============================================ */
 
 body.woocommerce-checkout .bw-payment-method__fields {
-	margin-top: var(--bw-pm-spacing-lg);
+	margin-top: 0;
 }
 
 body.woocommerce-checkout .bw-payment-method__fields .form-row {
@@ -1162,7 +1162,7 @@ body.woocommerce-checkout [id*="stripe-"] img {
 
 /* Vertical spacing for payment method fields (Stripe, Klarna fields, etc.) */
 body.woocommerce-checkout .bw-payment-method__fields {
-	margin-top: 30px !important;
+	margin-top: 0 !important;
 }
 
 /* Margin-top for the Stripe specific wrapper to ensure it separates from the header */
