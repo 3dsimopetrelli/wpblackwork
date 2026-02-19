@@ -1439,20 +1439,18 @@ body.woocommerce-account .bw-settings .bw-field-wrapper.bw-has-password-toggle i
 }
 
 .bw-settings-password-toggle {
+    all: unset;
     position: absolute;
     right: 12px;
     top: 50%;
     transform: translateY(-50%);
-    width: 28px;
-    height: 28px;
-    border: 0;
-    background: transparent;
+    width: 20px;
+    height: 20px;
     color: #5a6473;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    padding: 0;
     z-index: 2;
 }
 
@@ -1464,6 +1462,12 @@ body.woocommerce-account .bw-settings .bw-field-wrapper.bw-has-password-toggle i
     outline: 2px solid #111;
     outline-offset: 2px;
     border-radius: 6px;
+}
+
+.bw-settings-password-toggle svg {
+    display: block;
+    width: 18px;
+    height: 18px;
 }
 
 body.woocommerce-account .bw-settings .bw-field-wrapper input::placeholder,
