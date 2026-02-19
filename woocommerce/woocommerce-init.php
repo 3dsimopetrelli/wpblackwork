@@ -625,10 +625,11 @@ function bw_mew_enqueue_checkout_assets()
                 : get_option('bw_google_pay_publishable_key', '');
 
             wp_localize_script('bw-google-pay', 'bwGooglePayParams', [
-                'publishableKey' => $pub_key,
-                'testMode' => $test_mode,
-                'nonce' => wp_create_nonce('bw-google-pay-nonce'),
-                'checkoutUrl' => wc_get_checkout_url(),
+                'publishableKey'   => $pub_key,
+                'testMode'         => $test_mode,
+                'country'          => WC()->countries->get_base_country(),
+                'currency'         => strtolower( get_woocommerce_currency() ),
+                'ajaxCheckoutUrl'  => add_query_arg( 'wc-ajax', 'checkout', home_url( '/' ) ),
             ]);
         }
     }
