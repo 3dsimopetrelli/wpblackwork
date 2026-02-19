@@ -44,13 +44,23 @@ if (!wp_doing_ajax()) {
 								<?php
 								// Show gateway icon with PayPal fallback logo.
 								$gateway_type = strtolower($gateway_id);
+								$is_card_gateway_icon = (strpos($gateway_type, 'stripe') !== false ||
+									strpos($gateway_type, 'card') !== false ||
+									strpos($gateway_type, 'credit') !== false ||
+									strpos($gateway_type, 'debit') !== false);
 								$is_paypal = (strpos($gateway_type, 'paypal') !== false ||
 									strpos($gateway_type, 'ppcp') !== false);
 								$icon_html = '';
+								$icon_class = 'bw-payment-method__icon';
 
-								if ($is_paypal && defined('BW_MEW_URL')) {
+								if ($is_card_gateway_icon && defined('BW_MEW_URL')) {
+									$card_logo_url = BW_MEW_URL . 'assets/images/payment-icons/card-outline.svg';
+									$icon_html = '<img src="' . esc_url($card_logo_url) . '" alt="' . esc_attr__('Card', 'woocommerce') . '" loading="lazy" decoding="async" />';
+									$icon_class .= ' bw-payment-method__icon--card';
+								} elseif ($is_paypal && defined('BW_MEW_URL')) {
 									$paypal_logo_url = BW_MEW_URL . 'assets/images/payment-icons/paypal.svg';
 									$icon_html = '<img src="' . esc_url($paypal_logo_url) . '" alt="' . esc_attr__('PayPal', 'woocommerce') . '" loading="lazy" decoding="async" />';
+									$icon_class .= ' bw-payment-method__icon--paypal';
 								}
 
 								// If fallback is not used/available, use the gateway-provided icon.
@@ -59,7 +69,7 @@ if (!wp_doing_ajax()) {
 								}
 
 								if (!empty($icon_html)) {
-									echo '<span class="bw-payment-method__icon">' . wp_kses_post($icon_html) . '</span>';
+									echo '<span class="' . esc_attr($icon_class) . '">' . wp_kses_post($icon_html) . '</span>';
 								}
 								?>
 							</label>
