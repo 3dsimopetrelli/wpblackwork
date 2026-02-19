@@ -16,8 +16,11 @@
     // -------------------------------------------------------------------------
 
     /**
-     * Immediately reflect the currently-checked radio in the DOM — no animation.
-     * Called on page load and after `updated_checkout` (DOM already fully replaced).
+     * Sync JS-managed state (is-selected class, place-order button text).
+     * NOTE: the accordion open/close is now driven entirely by the CSS
+     * :has(input[name="payment_method"]:checked) rule, so this function no
+     * longer needs to manage is-open.  It still keeps is-selected in sync
+     * (for border/background styling) and updates the button label.
      */
     function syncAccordionState() {
         var paymentContainer = document.querySelector('#payment');
@@ -28,12 +31,13 @@
         var checkedRadio = paymentContainer.querySelector('input[name="payment_method"]:checked');
 
         paymentContainer.querySelectorAll('.bw-payment-method').forEach(function (method) {
-            var radio   = method.querySelector('input[name="payment_method"]');
-            var content = method.querySelector('.bw-payment-method__content');
+            var radio      = method.querySelector('input[name="payment_method"]');
+            var content    = method.querySelector('.bw-payment-method__content');
             var isSelected = radio && radio.checked;
 
             method.classList.toggle('is-selected', isSelected);
 
+            // Keep is-open in sync for browsers that don't support :has().
             if (content) {
                 content.classList.toggle('is-open', isSelected);
             }
