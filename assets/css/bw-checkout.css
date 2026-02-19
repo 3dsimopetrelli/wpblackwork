@@ -1976,6 +1976,37 @@ body.woocommerce-checkout .bw-field-wrapper .bw-floating-label {
     font-weight: 400;
 }
 
+/* Phone field: icon inside input + left-offset label */
+body.woocommerce-checkout .bw-field-wrapper--phone .bw-phone-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    color: #9ca3af;
+    pointer-events: none;
+    z-index: 2;
+}
+
+body.woocommerce-checkout .bw-field-wrapper--phone .bw-phone-icon svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+body.woocommerce-checkout .bw-field-wrapper--phone input[type="tel"] {
+    padding-left: 46px;
+}
+
+body.woocommerce-checkout .bw-field-wrapper--phone input[type="tel"]:focus {
+    padding-left: 45px;
+}
+
+body.woocommerce-checkout .bw-field-wrapper--phone .bw-floating-label {
+    left: 44px;
+}
+
 /* Label active state (when input has focus or value) */
 body.woocommerce-checkout .bw-field-wrapper input:focus~.bw-floating-label,
 body.woocommerce-checkout .bw-field-wrapper.has-value .bw-floating-label {
@@ -2013,6 +2044,22 @@ body.woocommerce-checkout .form-row.bw-has-floating-label>label {
     body.woocommerce-checkout .bw-field-wrapper .bw-floating-label {
         left: 16px;
         font-size: 16px;
+    }
+
+    body.woocommerce-checkout .bw-field-wrapper--phone .bw-phone-icon {
+        left: 14px;
+    }
+
+    body.woocommerce-checkout .bw-field-wrapper--phone input[type="tel"] {
+        padding-left: 44px;
+    }
+
+    body.woocommerce-checkout .bw-field-wrapper--phone input[type="tel"]:focus {
+        padding-left: 43px;
+    }
+
+    body.woocommerce-checkout .bw-field-wrapper--phone .bw-floating-label {
+        left: 42px;
     }
 
     body.woocommerce-checkout .bw-field-wrapper input:focus~.bw-floating-label,

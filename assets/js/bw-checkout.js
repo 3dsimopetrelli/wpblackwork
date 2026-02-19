@@ -865,6 +865,11 @@
             var elemsToRemove = labelClone.querySelectorAll('abbr, .optional, .required');
             elemsToRemove.forEach(function (elem) { elem.remove(); });
             var labelText = labelClone.textContent.replace(/\*/g, '').trim();
+            var isBillingPhone = input.id === 'billing_phone';
+
+            if (isBillingPhone) {
+                labelText = 'Mobile phone (optional)';
+            }
 
             if (!labelText) return;
 
@@ -896,6 +901,17 @@
             // Insert wrapper before element
             elementToWrap.parentNode.insertBefore(wrapper, elementToWrap);
             wrapper.appendChild(elementToWrap);
+
+            if (isBillingPhone) {
+                wrapper.classList.add('bw-field-wrapper--phone');
+
+                var phoneIcon = document.createElement('span');
+                phoneIcon.className = 'bw-phone-icon';
+                phoneIcon.setAttribute('aria-hidden', 'true');
+                phoneIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 14 14" role="img"><path d="M3.25 3.25c0-.966.784-1.75 1.75-1.75h4c.966 0 1.75.784 1.75 1.75v7.5A1.75 1.75 0 0 1 9 12.5H5a1.75 1.75 0 0 1-1.75-1.75z" fill="none" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/><path d="M6 10.5h2" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 2h2" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>';
+                wrapper.appendChild(phoneIcon);
+            }
+
             wrapper.appendChild(floatingLabel);
 
             // For Select2, also move the hidden select into wrapper
