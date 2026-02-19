@@ -669,6 +669,76 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
     grid-template-columns: 76px minmax(0, 1fr) auto;
 }
 
+.bw-purchases-table-wrap {
+    padding: 0;
+}
+
+.bw-purchases-table {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.bw-purchases-head,
+.bw-purchases-row {
+    display: grid;
+    grid-template-columns: minmax(0, 2.3fr) 0.8fr 1fr 0.8fr 1fr auto;
+    gap: 14px;
+    align-items: center;
+    padding: 14px 20px;
+    border-bottom: 1px solid #ececec;
+}
+
+.bw-purchases-head {
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.bw-purchases-row:last-child {
+    border-bottom: 0;
+}
+
+.bw-purchases-col {
+    min-width: 0;
+    color: #111;
+    font-size: 15px;
+    line-height: 1.35;
+}
+
+.bw-purchases-col--product {
+    min-width: 0;
+}
+
+.bw-purchases-product {
+    display: grid;
+    grid-template-columns: 76px minmax(0, 1fr);
+    gap: 14px;
+    align-items: center;
+}
+
+.bw-purchases-thumb img {
+    width: 76px;
+    height: 76px;
+    border-radius: 8px;
+    object-fit: cover;
+    display: block;
+}
+
+.bw-purchases-order-link {
+    color: #111 !important;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.bw-purchases-order-link:hover,
+.bw-purchases-order-link:focus,
+.bw-purchases-order-link:visited {
+    color: #111 !important;
+    text-decoration: none;
+}
+
 .bw-order-row:last-child {
     border-bottom: 0;
 }
@@ -852,6 +922,49 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
 
     .bw-order-btn--icon {
         width: 42px;
+    }
+
+    .bw-purchases-head {
+        display: none;
+    }
+
+    .bw-purchases-row {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .bw-purchases-col {
+        display: grid;
+        grid-template-columns: 90px minmax(0, 1fr);
+        gap: 10px;
+        align-items: center;
+    }
+
+    .bw-purchases-col::before {
+        content: attr(data-title);
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        color: #666;
+    }
+
+    .bw-purchases-col--product {
+        display: block;
+    }
+
+    .bw-purchases-col--product::before {
+        display: none;
+    }
+
+    .bw-purchases-product {
+        grid-template-columns: 64px minmax(0, 1fr);
+        gap: 12px;
+    }
+
+    .bw-purchases-thumb img {
+        width: 64px;
+        height: 64px;
     }
 }
 

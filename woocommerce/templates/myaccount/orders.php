@@ -19,70 +19,98 @@ do_action( 'woocommerce_before_account_orders', $has_orders );
         <header class="bw-page-header bw-page-header--boxed">
             <h2 class="bw-section-title"><?php esc_html_e( 'My purchases', 'bw' ); ?></h2>
         </header>
-
-        <table class="woocommerce-orders-table woocommerce-MyAccount-orders shop_table shop_table_responsive my_account_orders account-orders-table">
-            <thead>
-                <tr>
-                    <?php foreach ( wc_get_account_orders_columns() as $column_id => $column_name ) : ?>
-                        <th class="woocommerce-orders-table__header woocommerce-orders-table__header-<?php echo esc_attr( $column_id ); ?>">
-                            <span class="nobr"><?php echo esc_html( $column_name ); ?></span>
-                        </th>
-                    <?php endforeach; ?>
-                </tr>
-            </thead>
-
-            <tbody>
+        <div class="bw-purchases-table-wrap">
+            <ul class="bw-purchases-table" role="list">
+                <li class="bw-purchases-head" aria-hidden="true">
+                    <span class="bw-purchases-col bw-purchases-col--product"><?php esc_html_e( 'Product', 'bw' ); ?></span>
+                    <span class="bw-purchases-col"><?php esc_html_e( 'Order', 'bw' ); ?></span>
+                    <span class="bw-purchases-col"><?php esc_html_e( 'Date', 'bw' ); ?></span>
+                    <span class="bw-purchases-col"><?php esc_html_e( 'Price', 'bw' ); ?></span>
+                    <span class="bw-purchases-col"><?php esc_html_e( 'Coupon', 'bw' ); ?></span>
+                    <span class="bw-purchases-col"><?php esc_html_e( 'Bill', 'bw' ); ?></span>
+                </li>
                 <?php
                 foreach ( $customer_orders->orders as $customer_order ) {
                     $order = wc_get_order( $customer_order );
-                    if ( ! $order ) {
+                    if ( ! $order instanceof WC_Order ) {
                         continue;
                     }
 
-                    $item_count = $order->get_item_count() - $order->get_item_count_refunded();
+                    $items      = $order->get_items( 'line_item' );
+                    $first_item = reset( $items );
+
+                    $product_id    = ( $first_item instanceof WC_Order_Item_Product ) ? (int) $first_item->get_product_id() : 0;
+                    $product_title = ( $first_item instanceof WC_Order_Item_Product ) ? (string) $first_item->get_name() : __( 'Product', 'bw' );
+                    $product_url   = $product_id > 0 ? get_permalink( $product_id ) : '';
+                    $thumbnail_url = $product_id > 0 ? get_the_post_thumbnail_url( $product_id, 'thumbnail' ) : '';
+
+                    $order_url    = $order->get_view_order_url();
+                    $order_number = _x( '#', 'hash before order number', 'woocommerce' ) . $order->get_order_number();
+                    $order_date   = $order->get_date_created() ? wc_format_datetime( $order->get_date_created() ) : '—';
+                    $order_total  = $order->get_formatted_order_total();
+
+                    $coupon_codes = $order->get_coupon_codes();
+                    $coupon_parts = [];
+                    foreach ( $coupon_codes as $coupon_code ) {
+                        $coupon = new WC_Coupon( $coupon_code );
+                        if ( $coupon && $coupon->get_id() && 'percent' === $coupon->get_discount_type() ) {
+                            $coupon_parts[] = sprintf(
+                                '%1$s (%2$s%%)',
+                                $coupon_code,
+                                wc_format_localized_decimal( $coupon->get_amount() )
+                            );
+                        } else {
+                            $coupon_parts[] = $coupon_code;
+                        }
+                    }
+                    $coupon_label = ! empty( $coupon_parts ) ? implode( ', ', $coupon_parts ) : '—';
                     ?>
-                    <tr class="woocommerce-orders-table__row woocommerce-orders-table__row--status-<?php echo esc_attr( $order->get_status() ); ?> order">
-                        <?php foreach ( wc_get_account_orders_columns() as $column_id => $column_name ) : ?>
-                            <td class="woocommerce-orders-table__cell woocommerce-orders-table__cell-<?php echo esc_attr( $column_id ); ?>" data-title="<?php echo esc_attr( $column_name ); ?>">
-                                <?php if ( has_action( 'woocommerce_my_account_my_orders_column_' . $column_id ) ) : ?>
-                                    <?php do_action( 'woocommerce_my_account_my_orders_column_' . $column_id, $order ); ?>
-                                <?php elseif ( 'order-number' === $column_id ) : ?>
-                                    <a href="<?php echo esc_url( $order->get_view_order_url() ); ?>">
-                                        <?php echo esc_html( _x( '#', 'hash before order number', 'woocommerce' ) . $order->get_order_number() ); ?>
-                                    </a>
-                                <?php elseif ( 'order-date' === $column_id ) : ?>
-                                    <time datetime="<?php echo esc_attr( $order->get_date_created()->date( 'c' ) ); ?>">
-                                        <?php echo esc_html( wc_format_datetime( $order->get_date_created() ) ); ?>
-                                    </time>
-                                <?php elseif ( 'order-status' === $column_id ) : ?>
-                                    <?php echo esc_html( wc_get_order_status_name( $order->get_status() ) ); ?>
-                                <?php elseif ( 'order-total' === $column_id ) : ?>
-                                    <?php
-                                    printf(
-                                        /* translators: 1: formatted order total 2: total order items */
-                                        esc_html( _n( '%1$s for %2$s item', '%1$s for %2$s items', $item_count, 'woocommerce' ) ),
-                                        wp_kses_post( $order->get_formatted_order_total() ),
-                                        esc_html( $item_count )
-                                    );
-                                    ?>
-                                <?php elseif ( 'order-actions' === $column_id ) : ?>
-                                    <?php
-                                    $actions = wc_get_account_orders_actions( $order );
-                                    if ( ! empty( $actions ) ) {
-                                        foreach ( $actions as $key => $action ) {
-                                            echo '<a href="' . esc_url( $action['url'] ) . '" class="woocommerce-button button ' . sanitize_html_class( $key ) . '">' . esc_html( $action['name'] ) . '</a>';
-                                        }
-                                    }
-                                    ?>
-                                <?php endif; ?>
-                            </td>
-                        <?php endforeach; ?>
-                    </tr>
+                    <li class="bw-purchases-row">
+                        <div class="bw-purchases-col bw-purchases-col--product" data-title="<?php esc_attr_e( 'Product', 'bw' ); ?>">
+                            <div class="bw-purchases-product">
+                                <div class="bw-purchases-thumb">
+                                    <?php if ( $product_url ) : ?>
+                                        <a href="<?php echo esc_url( $product_url ); ?>" target="_blank" rel="noopener noreferrer" class="bw-order-product-link" aria-label="<?php echo esc_attr( $product_title ); ?>">
+                                    <?php endif; ?>
+                                    <?php if ( $thumbnail_url ) : ?>
+                                        <img src="<?php echo esc_url( $thumbnail_url ); ?>" alt="<?php echo esc_attr( $product_title ); ?>" loading="lazy" />
+                                    <?php else : ?>
+                                        <span class="bw-order-thumb-placeholder" aria-hidden="true"></span>
+                                    <?php endif; ?>
+                                    <?php if ( $product_url ) : ?>
+                                        </a>
+                                    <?php endif; ?>
+                                </div>
+                                <p class="bw-order-title">
+                                    <?php if ( $product_url ) : ?>
+                                        <a href="<?php echo esc_url( $product_url ); ?>" target="_blank" rel="noopener noreferrer" class="bw-order-product-link"><?php echo esc_html( $product_title ); ?></a>
+                                    <?php else : ?>
+                                        <?php echo esc_html( $product_title ); ?>
+                                    <?php endif; ?>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="bw-purchases-col" data-title="<?php esc_attr_e( 'Order', 'bw' ); ?>">
+                            <a href="<?php echo esc_url( $order_url ); ?>" class="bw-purchases-order-link"><?php echo esc_html( $order_number ); ?></a>
+                        </div>
+                        <div class="bw-purchases-col" data-title="<?php esc_attr_e( 'Date', 'bw' ); ?>">
+                            <?php echo esc_html( $order_date ); ?>
+                        </div>
+                        <div class="bw-purchases-col" data-title="<?php esc_attr_e( 'Price', 'bw' ); ?>">
+                            <?php echo wp_kses_post( $order_total ); ?>
+                        </div>
+                        <div class="bw-purchases-col" data-title="<?php esc_attr_e( 'Coupon', 'bw' ); ?>">
+                            <?php echo esc_html( $coupon_label ); ?>
+                        </div>
+                        <div class="bw-purchases-col" data-title="<?php esc_attr_e( 'Bill', 'bw' ); ?>">
+                            <a href="<?php echo esc_url( $order_url ); ?>" class="bw-order-btn bw-order-btn--details"><?php esc_html_e( 'View', 'bw' ); ?></a>
+                        </div>
+                    </li>
                     <?php
                 }
                 ?>
-            </tbody>
-        </table>
+            </ul>
+        </div>
 
         <?php if ( 1 < (int) $customer_orders->max_num_pages ) : ?>
             <div class="woocommerce-pagination woocommerce-pagination--without-numbers woocommerce-MyAccount-pagination">
