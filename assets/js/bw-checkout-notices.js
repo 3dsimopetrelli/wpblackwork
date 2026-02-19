@@ -7,6 +7,81 @@
 (function($) {
     'use strict';
 
+    function normalizeLabel(text) {
+        if (!text) {
+            return '';
+        }
+
+        var cleaned = String(text)
+            .replace(/<[^>]*>/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+
+        cleaned = cleaned
+            .replace(/^(Billing|Shipping)\s+/i, '')
+            .replace(/\s+is\s+a\s+required\s+field\.?$/i, '')
+            .replace(/\s+\(optional\)\s*$/i, '')
+            .replace(/\s*\*+\s*/g, ' ')
+            .trim();
+
+        return cleaned;
+    }
+
+    function getVisibleInvalidRequiredLabels() {
+        var labels = [];
+        var $form = $('form.checkout');
+
+        if (!$form.length) {
+            return labels;
+        }
+
+        $form.find('.validate-required.woocommerce-invalid:visible').each(function () {
+            var $row = $(this);
+            var labelText = normalizeLabel(
+                $row.find('label').first().clone().children().remove().end().text()
+            );
+
+            if (labelText) {
+                labels.push(labelText);
+            }
+        });
+
+        return labels;
+    }
+
+    function buildCompactErrorMessage($notice) {
+        var labels = getVisibleInvalidRequiredLabels();
+
+        if (!labels.length) {
+            $notice.find('li').each(function () {
+                var cleaned = normalizeLabel($(this).text());
+                if (cleaned) {
+                    labels.push(cleaned);
+                }
+            });
+        }
+
+        if (!labels.length) {
+            return '';
+        }
+
+        var unique = Array.from(new Set(labels));
+        return 'Please fill in required fields: ' + unique.join(', ') + '.';
+    }
+
+    function normalizeErrorNotice($notice) {
+        if (!$notice || !$notice.length || !$notice.hasClass('woocommerce-error')) {
+            return;
+        }
+
+        var compact = buildCompactErrorMessage($notice);
+        if (!compact) {
+            return;
+        }
+
+        $notice.html('<li>' + compact + '</li>');
+    }
+
     /**
      * Move notices into left column
      */
@@ -40,6 +115,7 @@
             // Clone and append each notice to avoid removing from original position if needed later
             notices.each(function() {
                 const notice = $(this).clone();
+                normalizeErrorNotice(notice);
                 container.append(notice);
             });
 
@@ -91,4 +167,3 @@
     }
 
 })(jQuery);
-
