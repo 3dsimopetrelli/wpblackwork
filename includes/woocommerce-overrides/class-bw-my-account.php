@@ -726,6 +726,72 @@ function bw_mew_sync_profile_names_from_purchase_data() {
 add_action( 'template_redirect', 'bw_mew_sync_profile_names_from_purchase_data', 11 );
 
 /**
+ * Count unique customer products by type (digital vs physical).
+ *
+ * Uniqueness is based on product + variation to avoid duplicates across
+ * repeated purchases while keeping variations (for example licenses) separate.
+ *
+ * @param int $user_id User ID.
+ *
+ * @return array<string,int>
+ */
+function bw_mew_get_customer_product_type_counts( $user_id ) {
+    if ( ! function_exists( 'wc_get_orders' ) || ! $user_id ) {
+        return [
+            'digital'  => 0,
+            'physical' => 0,
+        ];
+    }
+
+    $orders = wc_get_orders(
+        [
+            'limit'    => -1,
+            'customer' => $user_id,
+            'status'   => apply_filters( 'woocommerce_my_account_my_orders_query_statuses', [ 'wc-completed', 'wc-processing', 'wc-on-hold' ] ),
+            'return'   => 'objects',
+        ]
+    );
+
+    $digital = [];
+    $physical = [];
+
+    foreach ( $orders as $order ) {
+        if ( ! $order instanceof WC_Order ) {
+            continue;
+        }
+
+        foreach ( $order->get_items( 'line_item' ) as $item ) {
+            if ( ! $item instanceof WC_Order_Item_Product ) {
+                continue;
+            }
+
+            $product = $item->get_product();
+            if ( ! $product instanceof WC_Product ) {
+                continue;
+            }
+
+            $product_id   = (int) $item->get_product_id();
+            $variation_id = (int) $item->get_variation_id();
+            if ( $product_id <= 0 ) {
+                continue;
+            }
+
+            $key = $product_id . ':' . $variation_id;
+            if ( $product->is_downloadable() ) {
+                $digital[ $key ] = true;
+            } else {
+                $physical[ $key ] = true;
+            }
+        }
+    }
+
+    return [
+        'digital'  => count( $digital ),
+        'physical' => count( $physical ),
+    ];
+}
+
+/**
  * Resolve license label for an order item.
  *
  * @param WC_Order_Item_Product $item    Order item.

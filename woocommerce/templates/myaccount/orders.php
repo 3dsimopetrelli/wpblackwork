@@ -12,12 +12,20 @@
 defined( 'ABSPATH' ) || exit;
 
 do_action( 'woocommerce_before_account_orders', $has_orders );
+
+$bw_purchase_counts = bw_mew_get_customer_product_type_counts( get_current_user_id() );
+$bw_digital_count   = isset( $bw_purchase_counts['digital'] ) ? (int) $bw_purchase_counts['digital'] : 0;
+$bw_physical_count  = isset( $bw_purchase_counts['physical'] ) ? (int) $bw_purchase_counts['physical'] : 0;
 ?>
 
 <?php if ( $has_orders ) : ?>
     <section class="bw-account-orders-card bw-account-orders-card--modern">
         <header class="bw-page-header bw-page-header--boxed">
             <h2 class="bw-section-title"><?php esc_html_e( 'My purchases', 'bw' ); ?></h2>
+            <div class="bw-purchases-summary" aria-label="<?php esc_attr_e( 'Product type counts', 'bw' ); ?>">
+                <p><?php echo esc_html( sprintf( _n( '%d digital product', '%d digital products', $bw_digital_count, 'bw' ), $bw_digital_count ) ); ?></p>
+                <p><?php echo esc_html( sprintf( _n( '%d physical product', '%d physical products', $bw_physical_count, 'bw' ), $bw_physical_count ) ); ?></p>
+            </div>
         </header>
         <div class="bw-purchases-table-wrap">
             <ul class="bw-purchases-table" role="list">
@@ -151,6 +159,10 @@ do_action( 'woocommerce_before_account_orders', $has_orders );
     <section class="bw-account-empty-orders" aria-live="polite">
         <header class="bw-page-header bw-page-header--boxed">
             <h2 class="bw-section-title"><?php esc_html_e( 'My purchases', 'bw' ); ?></h2>
+            <div class="bw-purchases-summary" aria-label="<?php esc_attr_e( 'Product type counts', 'bw' ); ?>">
+                <p><?php echo esc_html( sprintf( _n( '%d digital product', '%d digital products', $bw_digital_count, 'bw' ), $bw_digital_count ) ); ?></p>
+                <p><?php echo esc_html( sprintf( _n( '%d physical product', '%d physical products', $bw_physical_count, 'bw' ), $bw_physical_count ) ); ?></p>
+            </div>
         </header>
         <p class="bw-account-empty-orders__text"><?php esc_html_e( 'No order has been made yet.', 'woocommerce' ); ?></p>
         <a class="bw-account-empty-orders__cta elementor-button elementor-button-link elementor-size-md" href="<?php echo esc_url( apply_filters( 'woocommerce_return_to_shop_redirect', $shop_url ) ); ?>">
