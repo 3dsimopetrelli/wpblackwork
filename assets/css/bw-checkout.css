@@ -2263,6 +2263,16 @@ body.woocommerce-checkout .bw-field-wrapper:not(.has-value) .select2-container .
     color: transparent !important;
 }
 
+/* Province/State fields: keep floating label always lifted to avoid overlap with select placeholder text. */
+body.woocommerce-checkout #billing_state_field .bw-field-wrapper .bw-floating-label,
+body.woocommerce-checkout #shipping_state_field .bw-field-wrapper .bw-floating-label {
+    top: -8px !important;
+    transform: translateY(0) !important;
+    font-size: 11px !important;
+    color: #374151 !important;
+    font-weight: 500 !important;
+}
+
 /* Select2 arrow */
 body.woocommerce-checkout .bw-field-wrapper .select2-container .select2-selection__arrow {
     height: 49px !important;
