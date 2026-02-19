@@ -432,7 +432,7 @@ body.woocommerce-checkout .bw-payment-method__content.bw-stripe-loading {
 	overflow: hidden !important;
 }
 
-/* Panel State: Open */
+/* Panel State: Open (class-based — kept for older-browser fallback) */
 body.woocommerce-checkout .bw-payment-method__content.is-open {
 	max-height: 3000px;
 	border-top-color: #000;
@@ -465,6 +465,33 @@ body.woocommerce-checkout div#payment.woocommerce-checkout-payment .bw-payment-m
 }
 
 body.woocommerce-checkout .bw-payment-method__content.is-open .bw-payment-method__inner {
+	opacity: 1;
+	transform: translateY(0);
+}
+
+/* ============================================
+   DEFINITIVE ACCORDION FIX — CSS :has() driven
+   Opens the panel for the checked radio WITHOUT
+   any JS involvement.  Cannot fail regardless of
+   JS timing, PPCP re-renders, or updated_checkout
+   race conditions.  Supported: Chrome 105+,
+   Safari 15.4+, Firefox 121+.  Older browsers fall
+   back to the .is-open class set by JS above.
+   ============================================ */
+
+body.woocommerce-checkout
+	.bw-payment-method:has(input[name="payment_method"]:checked)
+	> .bw-payment-method__content {
+	max-height: 3000px;
+	border-top-color: #000;
+	overflow: visible;
+	background: #f7f7f7 !important;
+}
+
+body.woocommerce-checkout
+	.bw-payment-method:has(input[name="payment_method"]:checked)
+	> .bw-payment-method__content
+	.bw-payment-method__inner {
 	opacity: 1;
 	transform: translateY(0);
 }
