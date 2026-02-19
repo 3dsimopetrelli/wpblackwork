@@ -1433,6 +1433,39 @@ body.woocommerce-account .bw-settings .bw-field-wrapper textarea {
     transition: border-color 160ms ease, box-shadow 160ms ease;
 }
 
+body.woocommerce-account .bw-settings .bw-field-wrapper.bw-has-password-toggle input[type="password"],
+body.woocommerce-account .bw-settings .bw-field-wrapper.bw-has-password-toggle input[type="text"] {
+    padding-right: 48px;
+}
+
+.bw-settings-password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 28px;
+    height: 28px;
+    border: 0;
+    background: transparent;
+    color: #5a6473;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    z-index: 2;
+}
+
+.bw-settings-password-toggle:hover {
+    color: #111;
+}
+
+.bw-settings-password-toggle:focus-visible {
+    outline: 2px solid #111;
+    outline-offset: 2px;
+    border-radius: 6px;
+}
+
 body.woocommerce-account .bw-settings .bw-field-wrapper input::placeholder,
 body.woocommerce-account .bw-settings .bw-field-wrapper textarea::placeholder {
     opacity: 0;

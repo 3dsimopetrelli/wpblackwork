@@ -203,6 +203,74 @@
         window.setTimeout(() => initSettingsSelectFloatingLabels(document), 180);
     };
 
+    const ensureSettingsPasswordToggles = (scope = document) => {
+        const root = scope && scope.querySelectorAll ? scope : document;
+        const passwordInputs = root.querySelectorAll(
+            '[data-bw-supabase-password-form] input[type="password"][name="new_password"], [data-bw-supabase-password-form] input[type="password"][name="confirm_password"], [data-bw-supabase-password-form] input[type="text"][name="new_password"], [data-bw-supabase-password-form] input[type="text"][name="confirm_password"]'
+        );
+
+        if (!passwordInputs.length) {
+            return;
+        }
+
+        passwordInputs.forEach((input) => {
+            if (!input.id) {
+                return;
+            }
+
+            const wrapper = input.closest('.bw-field-wrapper');
+            if (!wrapper) {
+                return;
+            }
+
+            wrapper.classList.add('bw-has-password-toggle');
+
+            let button = wrapper.querySelector('[data-bw-settings-password-toggle="' + input.id.replace(/"/g, '\\"') + '"]');
+            if (!button) {
+                button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'bw-settings-password-toggle';
+                button.setAttribute('data-bw-settings-password-toggle', input.id);
+                button.setAttribute('aria-label', 'Show password');
+                button.innerHTML = '' +
+                    '<svg class="bw-icon-eye" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
+                        '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>' +
+                        '<circle cx="12" cy="12" r="3"></circle>' +
+                    '</svg>' +
+                    '<svg class="bw-icon-eye-off" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;">' +
+                        '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>' +
+                        '<line x1="1" y1="1" x2="23" y2="23"></line>' +
+                    '</svg>';
+                wrapper.appendChild(button);
+            }
+
+            const syncIconState = () => {
+                const isVisible = input.type === 'text';
+                const eyeIcon = button.querySelector('.bw-icon-eye');
+                const eyeOffIcon = button.querySelector('.bw-icon-eye-off');
+
+                if (eyeIcon) {
+                    eyeIcon.style.display = isVisible ? 'none' : 'block';
+                }
+                if (eyeOffIcon) {
+                    eyeOffIcon.style.display = isVisible ? 'block' : 'none';
+                }
+
+                button.setAttribute('aria-label', isVisible ? 'Hide password' : 'Show password');
+            };
+
+            if (button.dataset.bwSettingsPasswordBound !== '1') {
+                button.addEventListener('click', () => {
+                    input.type = input.type === 'password' ? 'text' : 'password';
+                    syncIconState();
+                });
+                button.dataset.bwSettingsPasswordBound = '1';
+            }
+
+            syncIconState();
+        });
+    };
+
     const tabs = document.querySelectorAll('.bw-tab');
     const activateSettingsTab = (container, tab) => {
         if (!container || !tab) {
@@ -415,6 +483,8 @@
 
     scheduleLoginFloatingLabels();
     scheduleSettingsFloatingLabels();
+    window.requestAnimationFrame(() => ensureSettingsPasswordToggles(document));
+    window.setTimeout(() => ensureSettingsPasswordToggles(document), 220);
 
     document.addEventListener('change', (event) => {
         const target = event.target;
@@ -959,6 +1029,10 @@
         shippingFields.removeAttribute('hidden');
         shippingToggle.addEventListener('change', () => toggleShippingFields(false));
         toggleShippingFields(true);
+    }
+
+    if (passwordForm) {
+        ensureSettingsPasswordToggles(passwordForm);
     }
 
     if (!setPasswordForm) {
