@@ -52,6 +52,7 @@ function bw_mew_initialize_woocommerce_overrides()
     add_action('template_redirect', 'bw_mew_prepare_theme_title_bypass', 8);
     add_action('template_redirect', 'bw_mew_hide_single_product_notices', 9);
     add_action('woocommerce_checkout_update_order_review', 'bw_mew_sync_checkout_cart_quantities', 10, 1);
+    add_filter('woocommerce_checkout_posted_data', 'bw_mew_sync_billing_from_shipping_mode', 20, 1);
     add_action('wp_ajax_bw_apply_coupon', 'bw_mew_ajax_apply_coupon');
     add_action('wp_ajax_nopriv_bw_apply_coupon', 'bw_mew_ajax_apply_coupon');
     add_action('wp_ajax_bw_remove_coupon', 'bw_mew_ajax_remove_coupon');
@@ -938,6 +939,57 @@ function bw_mew_sync_checkout_cart_quantities($posted_data)
     }
 
     WC()->cart->calculate_totals();
+}
+
+/**
+ * Sync shipping address from billing fields when checkout mode is "same as billing".
+ *
+ * @param array $data Posted checkout data.
+ * @return array
+ */
+function bw_mew_sync_billing_from_shipping_mode($data)
+{
+    if (!is_array($data)) {
+        return $data;
+    }
+
+    $needs_shipping_address = WC()->cart && WC()->cart->needs_shipping_address();
+    $mode = isset($data['bw_shipping_address_mode']) ? sanitize_key((string) $data['bw_shipping_address_mode']) : 'same';
+    $data['bw_shipping_address_mode'] = $mode;
+
+    if (!$needs_shipping_address) {
+        return $data;
+    }
+
+    // Shipping fields are always shown when a shipping address is required.
+    $data['ship_to_different_address'] = 1;
+
+    if ('different' === $mode) {
+        return $data;
+    }
+
+    $map = [
+        'billing_first_name' => 'shipping_first_name',
+        'billing_last_name' => 'shipping_last_name',
+        'billing_company' => 'shipping_company',
+        'billing_country' => 'shipping_country',
+        'billing_address_1' => 'shipping_address_1',
+        'billing_address_2' => 'shipping_address_2',
+        'billing_city' => 'shipping_city',
+        'billing_postcode' => 'shipping_postcode',
+        'billing_state' => 'shipping_state',
+    ];
+
+    foreach ($map as $billing_key => $shipping_key) {
+        if (!array_key_exists($billing_key, $data)) {
+            continue;
+        }
+
+        $billing_value = is_string($data[$billing_key]) ? trim($data[$billing_key]) : $data[$billing_key];
+        $data[$shipping_key] = $billing_value;
+    }
+
+    return $data;
 }
 
 /**

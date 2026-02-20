@@ -1184,14 +1184,16 @@
 
         BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Initializing Google Places Autocomplete');
 
-        var addressInput = document.getElementById('billing_address_1');
+        var addressInput = document.getElementById('shipping_address_1') || document.getElementById('billing_address_1');
         if (!addressInput) {
             BW_CHECKOUT_DEBUG && console.warn('[BW Checkout] Address input not found');
             return;
         }
 
+        var fieldPrefix = addressInput.id.indexOf('shipping_') === 0 ? 'shipping' : 'billing';
+
         // Get selected country
-        var countrySelect = document.querySelector('select[name="billing_country"]');
+        var countrySelect = document.querySelector('select[name="' + fieldPrefix + '_country"]');
         var selectedCountry = countrySelect ? countrySelect.value : '';
 
         // Configure autocomplete options
@@ -1262,7 +1264,7 @@
             // Auto-fill city and postcode if enabled
             if (window.bwGoogleMapsSettings.autoFillCityPostcode) {
                 if (addressData.city) {
-                    var cityInput = document.getElementById('billing_city');
+                    var cityInput = document.getElementById(fieldPrefix + '_city');
                     if (cityInput) {
                         cityInput.value = addressData.city;
                         jQuery(cityInput).trigger('change');
@@ -1270,7 +1272,7 @@
                 }
 
                 if (addressData.postcode) {
-                    var postcodeInput = document.getElementById('billing_postcode');
+                    var postcodeInput = document.getElementById(fieldPrefix + '_postcode');
                     if (postcodeInput) {
                         postcodeInput.value = addressData.postcode;
                         jQuery(postcodeInput).trigger('change');
@@ -1331,6 +1333,13 @@
             }
         }
 
+        // New billing/shipping architecture keeps Delivery heading in shipping section.
+        // Do not move it if it's already inside shipping fields.
+        if (deliveryHeading && deliveryHeading.closest('.woocommerce-shipping-fields')) {
+            deliveryHeading.classList.add('bw-delivery-section-title');
+            return;
+        }
+
         if (deliveryHeading) {
             // Add class for styling
             deliveryHeading.classList.add('bw-delivery-section-title');
@@ -1352,6 +1361,121 @@
 
             BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Delivery heading moved below newsletter checkbox');
         }
+    }
+
+    /**
+     * Shipping details accordion behavior:
+     * - "Same as billing details" => shipping fields hidden and synced from billing.
+     * - "Use a different shipping address" => shipping fields accordion visible.
+     */
+    function initBillingAddressAccordion() {
+        var section = document.querySelector('.bw-billing-address');
+        if (!section) {
+            return;
+        }
+
+        var options = section.querySelectorAll('input[name="bw_shipping_address_mode"]');
+        var accordion = section.querySelector('.bw-billing-address__accordion');
+        var form = document.querySelector('form.checkout');
+
+        if (!options.length || !accordion) {
+            return;
+        }
+
+        function getSelectedMode() {
+            var checked = section.querySelector('input[name="bw_shipping_address_mode"]:checked');
+            return checked ? checked.value : (section.getAttribute('data-default-mode') || 'same');
+        }
+
+        function syncShippingFromBilling() {
+            var mode = getSelectedMode();
+            if (mode === 'different') {
+                return;
+            }
+
+            var map = {
+                billing_first_name: 'shipping_first_name',
+                billing_last_name: 'shipping_last_name',
+                billing_company: 'shipping_company',
+                billing_country: 'shipping_country',
+                billing_address_1: 'shipping_address_1',
+                billing_address_2: 'shipping_address_2',
+                billing_postcode: 'shipping_postcode',
+                billing_city: 'shipping_city',
+                billing_state: 'shipping_state'
+            };
+
+            Object.keys(map).forEach(function (billingKey) {
+                var shippingKey = map[billingKey];
+                var billingField = document.querySelector('[name="' + billingKey + '"]');
+                var shippingField = document.querySelector('[name="' + shippingKey + '"]');
+
+                if (!billingField || !shippingField) {
+                    return;
+                }
+
+                var billingValue = billingField.value;
+                if (typeof billingValue === 'undefined') {
+                    return;
+                }
+
+                if (shippingField.value !== billingValue) {
+                    shippingField.value = billingValue;
+                    shippingField.dispatchEvent(new Event('input', { bubbles: true }));
+                    shippingField.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            });
+        }
+
+        function applyMode(mode, shouldTriggerUpdate) {
+            var isDifferent = mode === 'different';
+            section.classList.toggle('is-different', isDifferent);
+            accordion.setAttribute('aria-hidden', isDifferent ? 'false' : 'true');
+            if (window.jQuery) {
+                var $accordion = window.jQuery(accordion);
+                if (isDifferent) {
+                    $accordion.stop(true, true).slideDown(220);
+                } else {
+                    $accordion.stop(true, true).slideUp(220);
+                }
+            } else {
+                accordion.style.display = isDifferent ? 'block' : 'none';
+            }
+
+            if (!isDifferent) {
+                syncShippingFromBilling();
+            }
+
+            if (shouldTriggerUpdate && window.jQuery) {
+                window.jQuery(document.body).trigger('update_checkout');
+            }
+        }
+
+        options.forEach(function (radio) {
+            radio.addEventListener('change', function () {
+                if (radio.checked) {
+                    applyMode(radio.value, true);
+                }
+            });
+        });
+
+        var billingFields = document.querySelectorAll(
+            '.woocommerce-billing-fields__field-wrapper input, .woocommerce-billing-fields__field-wrapper select, .woocommerce-billing-fields__field-wrapper textarea'
+        );
+
+        billingFields.forEach(function (field) {
+            field.addEventListener('input', syncShippingFromBilling);
+            field.addEventListener('change', syncShippingFromBilling);
+        });
+
+        if (form && !form.hasAttribute('data-bw-billing-submit-bound')) {
+            form.setAttribute('data-bw-billing-submit-bound', '1');
+            form.addEventListener('submit', function () {
+                syncShippingFromBilling();
+            });
+        }
+
+        applyMode(getSelectedMode(), false);
     }
 
     /**
@@ -1941,6 +2065,7 @@
             initCheckoutFloatingLabels();
             initGooglePlacesAutocomplete();
             moveDeliveryHeading();
+            initBillingAddressAccordion();
             detectFreeOrder();
             hideSectionHeadings();
             initMobileOrderSummary();
@@ -1969,6 +2094,7 @@
         initCheckoutFloatingLabels();
         initGooglePlacesAutocomplete();
         moveDeliveryHeading();
+        initBillingAddressAccordion();
         detectFreeOrder();
         hideSectionHeadings();
         initMobileOrderSummary();
@@ -2178,6 +2304,7 @@
                 initCheckoutFloatingLabels();
                 initGooglePlacesAutocomplete();
                 moveDeliveryHeading();
+                initBillingAddressAccordion();
                 detectFreeOrder();
                 hideSectionHeadings();
                 updateMobileTotals();

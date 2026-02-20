@@ -120,6 +120,7 @@ body.woocommerce-checkout .bw-payment-section-title {
 	font-weight: var(--bw-pm-font-weight-bold);
 	letter-spacing: -1px !important;
 	color: var(--bw-pm-primary);
+	padding-top: 5px;
 	margin: 0 0 var(--bw-pm-spacing-sm) 0;
 	line-height: var(--bw-pm-line-height-tight);
 }

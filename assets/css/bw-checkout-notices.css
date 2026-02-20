@@ -60,6 +60,23 @@ body.woocommerce-checkout .bw-checkout-left .woocommerce-info {
 	height: auto !important;
 	overflow: visible !important;
 	left: auto !important;
+	transition: opacity 0.2s ease;
+}
+
+.woocommerce-checkout .woocommerce-error.is-dismissing,
+.woocommerce-checkout .woocommerce-message.is-dismissing,
+.woocommerce-checkout .woocommerce-info.is-dismissing {
+	opacity: 0 !important;
+}
+
+/* Force compact stacked text in checkout notices (avoid global flex row rules). */
+body.woocommerce-checkout .bw-checkout-left .woocommerce-error,
+body.woocommerce-checkout .bw-checkout-left .woocommerce-message,
+body.woocommerce-checkout .bw-checkout-left .woocommerce-info,
+body.woocommerce-checkout .bw-checkout-notices-container .woocommerce-error,
+body.woocommerce-checkout .bw-checkout-notices-container .woocommerce-message,
+body.woocommerce-checkout .bw-checkout-notices-container .woocommerce-info {
+	display: block !important;
 }
 
 /* Error Box - Red */
@@ -130,7 +147,9 @@ ul.woocommerce-info::before {
 .bw-checkout-left .woocommerce-error li,
 .bw-checkout-left .woocommerce-message li,
 .bw-checkout-left .woocommerce-info li {
-	margin: 4px 0;
+	display: block !important;
+	margin: 0 !important;
+	line-height: 1.5;
 }
 
 /* Links inside notices */

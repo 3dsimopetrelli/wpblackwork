@@ -882,9 +882,25 @@ body.woocommerce-checkout .bw-delivery-section-title {
 
 /* Contact title is a WooCommerce heading and can inherit from Elementor Kit h2. */
 /* Use a more specific checkout selector so it wins without !important. */
+body.woocommerce-checkout .bw-checkout-section-heading--contact {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+}
+
 body.woocommerce-checkout .bw-checkout-section-heading--contact h2.checkout-contact-title,
 body.woocommerce-checkout .woocommerce-billing-fields h2.checkout-section-title.checkout-contact-title {
     letter-spacing: -1px;
+}
+
+/* Billing details heading: match Contact title style exactly. */
+body.woocommerce-checkout .bw-checkout-section-heading--delivery {
+    font-size: 24px !important;
+    font-weight: 700 !important;
+    line-height: 30px !important;
+    letter-spacing: -1px !important;
+    color: #111111 !important;
+    margin: 0 !important;
 }
 
 /* Customer details section */
@@ -2204,6 +2220,11 @@ body.woocommerce-checkout .bw-field-wrapper select:not([value=""]) {
     /* Keep same padding */
 }
 
+/* Hide native select placeholder text when empty; floating label is the placeholder. */
+body.woocommerce-checkout .bw-field-wrapper:not(.has-value) select {
+    color: transparent;
+}
+
 /* Mobile select adjustments */
 @media (max-width: 768px) {
     body.woocommerce-checkout .bw-field-wrapper select {
@@ -2245,6 +2266,21 @@ body.woocommerce-checkout .bw-field-wrapper .select2-container .select2-selectio
     font-size: 15px !important;
     color: #1f2937 !important;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+}
+
+/* Hide Select2 placeholder text when empty; floating label is the placeholder. */
+body.woocommerce-checkout .bw-field-wrapper:not(.has-value) .select2-container .select2-selection__rendered {
+    color: transparent !important;
+}
+
+/* Province/State fields: keep floating label always lifted to avoid overlap with select placeholder text. */
+body.woocommerce-checkout #billing_state_field .bw-field-wrapper .bw-floating-label,
+body.woocommerce-checkout #shipping_state_field .bw-field-wrapper .bw-floating-label {
+    top: -8px !important;
+    transform: translateY(0) !important;
+    font-size: 11px !important;
+    color: #374151 !important;
+    font-weight: 500 !important;
 }
 
 /* Select2 arrow */
@@ -2332,7 +2368,7 @@ body.woocommerce-checkout .select2-results__option--selected {
     font-weight: 600;
     letter-spacing: -1px !important;
     color: #1f2937;
-    margin: 24px 0 16px 0;
+    margin: 20px 0 10px 0;
     padding: 0;
     display: block;
     width: 100%;
@@ -3130,6 +3166,108 @@ body.woocommerce-checkout .select2-results__option--selected {
     /* Updated margin-bottom to 25px */
     padding-top: 16px;
     border-top: 1px solid #e0e0e0;
+}
+
+.bw-billing-address {
+    margin: 10px 0 0;
+    border: 1px solid #d1d5db;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow: none !important;
+}
+
+.bw-checkout-section-heading--shipping-address {
+    margin-top: 20px !important;
+    margin-bottom: 10px !important;
+}
+
+.bw-billing-address .checkout-shipping-address-title {
+    margin: 0;
+    letter-spacing: -1px !important;
+}
+
+body.woocommerce-checkout .bw-checkout-section-heading--shipping-address .checkout-shipping-address-title {
+    letter-spacing: -1px !important;
+}
+
+.bw-billing-address__options {
+    display: block;
+}
+
+.bw-billing-address__option {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-height: 62px;
+    padding: 0 22px;
+    border-top: 1px solid #d1d5db;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 500;
+    color: #111111;
+    background: #ffffff;
+}
+
+.bw-billing-address .bw-billing-address__option:first-child {
+    border-top: none;
+}
+
+.bw-billing-address__option input[type="radio"] {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    border: 1.5px solid #bfc6cf;
+    border-radius: 50%;
+    margin: 0;
+    position: relative;
+    background: #ffffff;
+    cursor: pointer;
+}
+
+.bw-billing-address__option input[type="radio"]:checked {
+    border-color: #111111;
+}
+
+.bw-billing-address__option input[type="radio"]:checked::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #111111;
+    transform: translate(-50%, -50%);
+}
+
+.bw-billing-address__option span {
+    display: inline-block;
+}
+
+.bw-billing-address.is-different .bw-billing-address__option--different,
+.bw-billing-address:not(.is-different) .bw-billing-address__option--same {
+    border-color: #111111;
+}
+
+.bw-billing-address__accordion {
+    display: none;
+    border-top: 1px solid #d1d5db;
+    padding: 18px 22px 10px;
+}
+
+.bw-billing-address.is-different .bw-billing-address__accordion {
+    display: block;
+}
+
+.bw-billing-address__field-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
 }
 
 
