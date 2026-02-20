@@ -338,53 +338,24 @@
         BW_GOOGLE_PAY_DEBUG && console.log('[BW Google Pay] Params:', { country: country, currency: currency, cents: initialCents });
 
         paymentRequest.canMakePayment().then(function (result) {
-<<<<<<< HEAD
+            BW_GOOGLE_PAY_DEBUG && console.log('[BW Google Pay] canMakePayment result:', result);
             googlePayAvailable = bwCanShowGooglePay(result);
             googlePayState = googlePayAvailable ? 'available' : 'unavailable';
-=======
-            BW_GOOGLE_PAY_DEBUG && console.log('[BW Google Pay] canMakePayment result:', result);
->>>>>>> 52f8ef24736012dfa64b83fdba827357fa5c4f47
 
-            if (result) {
-                // Payment method (Google Pay, Apple Pay or Stripe Link) is available.
+            if (googlePayAvailable) {
                 $('#bw-google-pay-accordion-placeholder').hide();
                 handleButtonVisibility();
 
                 $(document).off('click.bwgpay', '#bw-google-pay-trigger')
-                           .on('click.bwgpay', '#bw-google-pay-trigger', function (e) {
-                    e.preventDefault();
-                    if (!bwValidateRequiredCheckoutFields()) {
-                        BW_GOOGLE_PAY_DEBUG && console.warn('[BW Google Pay] Campi obbligatori mancanti: popup bloccato.');
-                        return;
-                    }
-                    paymentRequest.show();
-                });
-
-            } else if (bwGooglePayParams.testMode) {
-                /*
-                 * TEST MODE FALLBACK
-                 * canMakePayment() returns null when the browser has no Google Pay
-                 * or Stripe Link configured.  In test mode we still render the button
-                 * so the UI/payment flow can be verified.  In production the button is
-                 * only shown when the device genuinely supports it.
-                 */
-                BW_GOOGLE_PAY_DEBUG && console.warn('[BW Google Pay] Test mode: canMakePayment null — forcing button visible for UI testing.');
-
-                $('#bw-google-pay-accordion-placeholder').hide();
-                handleButtonVisibility();
-
-                $(document).off('click.bwgpay', '#bw-google-pay-trigger')
-                           .on('click.bwgpay', '#bw-google-pay-trigger', function (e) {
-                    e.preventDefault();
-                    try {
+                    .on('click.bwgpay', '#bw-google-pay-trigger', function (e) {
+                        e.preventDefault();
+                        if (!bwValidateRequiredCheckoutFields()) {
+                            BW_GOOGLE_PAY_DEBUG && console.warn('[BW Google Pay] Campi obbligatori mancanti: popup bloccato.');
+                            return;
+                        }
                         paymentRequest.show();
-                    } catch (showErr) {
-                        BW_GOOGLE_PAY_DEBUG && console.warn('[BW Google Pay] show() failed (expected if no payment method in browser):', showErr);
-                    }
-                });
-
+                    });
             } else {
-                // Production: device does not support any compatible payment method.
                 BW_GOOGLE_PAY_DEBUG && console.log('[BW Google Pay] Non disponibile su questo dispositivo/browser.');
                 $('#bw-google-pay-button-wrapper').hide();
 
