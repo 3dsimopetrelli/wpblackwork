@@ -89,7 +89,70 @@ if (!wp_doing_ajax()) {
 								}
 
 								if (!empty($icon_html)) {
-									echo '<span class="' . esc_attr($icon_class) . '">' . wp_kses_post($icon_html) . '</span>';
+									$bw_icon_allowed_html = wp_kses_allowed_html('post');
+									$bw_icon_allowed_html['svg'] = array(
+										'class' => true,
+										'xmlns' => true,
+										'xmlns:xlink' => true,
+										'viewBox' => true,
+										'width' => true,
+										'height' => true,
+										'fill' => true,
+										'stroke' => true,
+										'stroke-width' => true,
+										'stroke-linecap' => true,
+										'stroke-linejoin' => true,
+										'role' => true,
+										'aria-label' => true,
+										'aria-hidden' => true,
+										'focusable' => true,
+									);
+									$bw_icon_allowed_html['g'] = array(
+										'id' => true,
+										'fill' => true,
+									);
+									$bw_icon_allowed_html['path'] = array(
+										'id' => true,
+										'd' => true,
+										'fill' => true,
+										'stroke' => true,
+										'stroke-width' => true,
+										'stroke-linecap' => true,
+										'stroke-linejoin' => true,
+										'stroke-miterlimit' => true,
+										'fill-rule' => true,
+									);
+									$bw_icon_allowed_html['rect'] = array(
+										'x' => true,
+										'y' => true,
+										'width' => true,
+										'height' => true,
+										'rx' => true,
+										'fill' => true,
+										'stroke' => true,
+										'stroke-opacity' => true,
+									);
+									$bw_icon_allowed_html['circle'] = array(
+										'cx' => true,
+										'cy' => true,
+										'r' => true,
+										'fill' => true,
+										'stroke' => true,
+									);
+									$bw_icon_allowed_html['line'] = array(
+										'x1' => true,
+										'y1' => true,
+										'x2' => true,
+										'y2' => true,
+										'stroke' => true,
+										'stroke-width' => true,
+										'stroke-linecap' => true,
+										'stroke-linejoin' => true,
+									);
+									$bw_icon_allowed_html['title'] = array(
+										'id' => true,
+									);
+									echo '<span class="' . esc_attr($icon_class) . '">' . wp_kses($icon_html, $bw_icon_allowed_html) . '</span>';
 								}
 								?>
 							</label>
