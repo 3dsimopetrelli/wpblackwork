@@ -1161,6 +1161,72 @@ body.woocommerce-checkout .bw-sr-only {
 	display: block !important;
 }
 
+body.woocommerce-checkout .bw-gpay-unavailable {
+	max-width: 720px;
+	margin: 0 auto;
+	padding: 16px 10px 6px;
+	text-align: center;
+}
+
+body.woocommerce-checkout .bw-gpay-unavailable__title {
+	margin: 0 0 8px;
+	font-size: 16px;
+	font-weight: 600;
+	color: #3f3f46;
+}
+
+body.woocommerce-checkout .bw-gpay-unavailable__text {
+	margin: 0;
+	font-size: 14px;
+	line-height: 1.45;
+	color: #6b7280;
+}
+
+body.woocommerce-checkout .bw-gpay-unavailable__actions {
+	margin-top: 14px;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 10px;
+}
+
+body.woocommerce-checkout .bw-gpay-unavailable__btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 38px;
+	padding: 0 14px;
+	border-radius: 8px;
+	border: 1px solid #d1d5db;
+	font-size: 14px;
+	font-weight: 600;
+	text-decoration: none !important;
+	cursor: pointer;
+	transition: all 0.18s ease;
+}
+
+body.woocommerce-checkout .bw-gpay-unavailable__btn--primary {
+	background: #111111;
+	border-color: #111111;
+	color: #ffffff !important;
+}
+
+body.woocommerce-checkout .bw-gpay-unavailable__btn--primary:hover {
+	background: #222222;
+	border-color: #222222;
+	color: #ffffff !important;
+}
+
+body.woocommerce-checkout .bw-gpay-unavailable__btn--secondary {
+	background: #ffffff;
+	color: #111111 !important;
+}
+
+body.woocommerce-checkout .bw-gpay-unavailable__btn--secondary:hover {
+	border-color: #9ca3af;
+	background: #f9fafb;
+}
+
 @keyframes bw-pulse {
 	0% {
 		opacity: 0.6;

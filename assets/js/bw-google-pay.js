@@ -229,6 +229,37 @@
     }
 
     /**
+     * Select the first available non-Google Pay method to unblock checkout.
+     */
+    function selectFallbackPaymentMethod() {
+        var $fallback = $('input[name="payment_method"]').not('[value="bw_google_pay"]').filter(':enabled').first();
+        if (!$fallback.length) {
+            return;
+        }
+        $fallback.prop('checked', true).trigger('change');
+    }
+
+    /**
+     * Render a better UX for unavailable Google Pay cases.
+     */
+    function renderGooglePayUnavailableState() {
+        var placeholder = document.getElementById('bw-google-pay-accordion-placeholder');
+        if (!placeholder) {
+            return;
+        }
+
+        placeholder.innerHTML = '' +
+            '<div class="bw-gpay-unavailable" role="status" aria-live="polite">' +
+                '<p class="bw-gpay-unavailable__title">Google Pay non disponibile su questo dispositivo.</p>' +
+                '<p class="bw-gpay-unavailable__text">Per usare Google Pay, aggiungi una carta nel tuo Google Wallet e riprova.</p>' +
+                '<div class="bw-gpay-unavailable__actions">' +
+                    '<a class="bw-gpay-unavailable__btn bw-gpay-unavailable__btn--primary" href="https://pay.google.com/gp/w/home/paymentmethods" target="_blank" rel="noopener noreferrer">Apri Google Wallet</a>' +
+                    '<button type="button" class="bw-gpay-unavailable__btn bw-gpay-unavailable__btn--secondary" id="bw-gpay-choose-other-method">Scegli un altro metodo</button>' +
+                '</div>' +
+            '</div>';
+    }
+
+    /**
      * MutationObserver to prevent WooCommerce or theme scripts from
      * overriding our display:none on #place_order.
      */
@@ -358,16 +389,7 @@
             } else {
                 BW_GOOGLE_PAY_DEBUG && console.log('[BW Google Pay] Non disponibile su questo dispositivo/browser.');
                 $('#bw-google-pay-button-wrapper').hide();
-
-                var p = document.createElement('p');
-                p.style.cssText = 'font-size:13px;color:#666;margin:16px auto 10px auto;text-align:center;max-width:640px;display:block;';
-                p.textContent   = 'Google Pay non è disponibile su questo dispositivo/browser o account.';
-
-                var placeholder = document.getElementById('bw-google-pay-accordion-placeholder');
-                if (placeholder) {
-                    placeholder.innerHTML = '';
-                    placeholder.appendChild(p);
-                }
+                renderGooglePayUnavailableState();
 
                 handleButtonVisibility();
             }
@@ -416,6 +438,11 @@
                 });
             }
         });
+
+        $(document).off('click.bwgpayfallback', '#bw-gpay-choose-other-method')
+            .on('click.bwgpayfallback', '#bw-gpay-choose-other-method', function () {
+                selectFallbackPaymentMethod();
+            });
 
         handleButtonVisibility();
     });
