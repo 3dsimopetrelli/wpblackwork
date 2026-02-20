@@ -709,6 +709,13 @@ function bw_mew_handle_klarna_failed_return_redirect()
         'notice'
     );
 
+    // Reset pending-payment session state so a new Klarna attempt can start cleanly.
+    if (function_exists('WC') && WC()->session) {
+        WC()->session->set('order_awaiting_payment', false);
+        WC()->session->set('chosen_payment_method', 'bw_klarna');
+        WC()->session->set('reload_checkout', true);
+    }
+
     $checkout_url = function_exists('wc_get_checkout_url')
         ? wc_get_checkout_url()
         : wc_get_page_permalink('checkout');
