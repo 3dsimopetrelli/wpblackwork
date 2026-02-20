@@ -676,7 +676,7 @@ function bw_mew_prevent_order_received_cache()
 add_action('template_redirect', 'bw_mew_prevent_order_received_cache', 1);
 
 /**
- * Redirect Klarna failed/canceled returns away from order-received to checkout pay page.
+ * Redirect Klarna failed/canceled returns away from order-received to checkout.
  */
 function bw_mew_handle_klarna_failed_return_redirect()
 {
@@ -709,7 +709,11 @@ function bw_mew_handle_klarna_failed_return_redirect()
         'error'
     );
 
-    wp_safe_redirect($order->get_checkout_payment_url());
+    $checkout_url = function_exists('wc_get_checkout_url')
+        ? wc_get_checkout_url()
+        : wc_get_page_permalink('checkout');
+
+    wp_safe_redirect($checkout_url);
     exit;
 }
 add_action('template_redirect', 'bw_mew_handle_klarna_failed_return_redirect', 2);
