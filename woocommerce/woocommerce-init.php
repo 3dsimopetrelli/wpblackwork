@@ -706,7 +706,7 @@ function bw_mew_handle_klarna_failed_return_redirect()
 
     wc_add_notice(
         __('Klarna payment was canceled or failed. Please choose another payment method or try again.', 'bw'),
-        'error'
+        'notice'
     );
 
     $checkout_url = function_exists('wc_get_checkout_url')
