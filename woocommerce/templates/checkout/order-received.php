@@ -59,6 +59,7 @@ if ( function_exists( 'bw_mew_render_order_received_logo_header' ) ) {
 	$my_account_url  = wc_get_page_permalink( 'myaccount' );
 	$cta_url         = $my_account_url;
 	$cta_label       = __( 'Go to your account', 'wpblackwork' );
+	$is_order_paid   = $order->is_paid();
 
 	if ( $show_email_reminder_cta ) {
 		$cta_url   = add_query_arg(
@@ -71,6 +72,16 @@ if ( function_exists( 'bw_mew_render_order_received_logo_header' ) ) {
 		$cta_label = __( 'Check your email to finish account setup', 'wpblackwork' );
 	}
 	?>
+	<?php if ( ! $is_order_paid ) : ?>
+		<div class="woocommerce-notices-wrapper">
+			<ul class="woocommerce-error" role="alert">
+				<li>
+					<?php esc_html_e( 'Payment not completed. Please return to checkout and choose another payment method.', 'wpblackwork' ); ?>
+					<a href="<?php echo esc_url( wc_get_checkout_url() ); ?>"><?php esc_html_e( 'Return to checkout', 'wpblackwork' ); ?></a>
+				</li>
+			</ul>
+		</div>
+	<?php else : ?>
 	<section class="bw-order-confirmed" aria-label="<?php esc_attr_e( 'Order confirmed', 'wpblackwork' ); ?>">
 		<div class="bw-order-confirmed__hero">
 			<h1 class="bw-order-confirmed__title"><?php esc_html_e( 'THANK YOU', 'wpblackwork' ); ?></h1>
@@ -203,6 +214,7 @@ if ( function_exists( 'bw_mew_render_order_received_logo_header' ) ) {
 		</section>
 
 		</section>
+	<?php endif; ?>
 	<?php else : ?>
 	<p class="woocommerce-notice woocommerce-notice--success woocommerce-thankyou-order-received">
 		<?php

@@ -676,9 +676,9 @@ function bw_mew_prevent_order_received_cache()
 add_action('template_redirect', 'bw_mew_prevent_order_received_cache', 1);
 
 /**
- * Redirect Klarna failed/canceled returns away from order-received to checkout.
+ * Redirect wallet failed/canceled returns away from order-received to checkout.
  */
-function bw_mew_handle_klarna_failed_return_redirect()
+function bw_mew_handle_wallet_failed_return_redirect()
 {
     if (!function_exists('is_wc_endpoint_url') || !is_wc_endpoint_url('order-received')) {
         return;
@@ -700,21 +700,33 @@ function bw_mew_handle_klarna_failed_return_redirect()
     }
 
     $order = wc_get_order($order_id);
-    if (!$order || 'bw_klarna' !== $order->get_payment_method()) {
+    if (!$order) {
+        return;
+    }
+
+    $payment_method = $order->get_payment_method();
+    if (!in_array($payment_method, array('bw_klarna', 'bw_google_pay'), true)) {
+        return;
+    }
+
+    // If payment is already confirmed by webhook, allow normal thank-you flow.
+    if ($order->is_paid()) {
         return;
     }
 
     wc_add_notice(
-        __('Klarna payment was canceled or failed. Please choose another payment method or try again.', 'bw'),
-        'notice'
+        __('Payment was canceled or not completed. Please choose another payment method and try again.', 'bw'),
+        'error'
     );
 
     // Reset pending-payment session state so a new Klarna attempt can start cleanly.
     if (function_exists('WC') && WC()->session) {
         WC()->session->set('order_awaiting_payment', false);
-        WC()->session->set('chosen_payment_method', 'bw_klarna');
+        WC()->session->set('chosen_payment_method', $payment_method);
         WC()->session->set('reload_checkout', true);
     }
+
+    $order->add_order_note(__('Customer returned from wallet flow with failed/canceled status.', 'bw'));
 
     $checkout_url = function_exists('wc_get_checkout_url')
         ? wc_get_checkout_url()
@@ -723,7 +735,7 @@ function bw_mew_handle_klarna_failed_return_redirect()
     wp_safe_redirect($checkout_url);
     exit;
 }
-add_action('template_redirect', 'bw_mew_handle_klarna_failed_return_redirect', 2);
+add_action('template_redirect', 'bw_mew_handle_wallet_failed_return_redirect', 2);
 
 /**
  * Add a specific body class and hide theme wrappers on the custom login page.

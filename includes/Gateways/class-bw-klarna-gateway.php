@@ -142,9 +142,10 @@ class BW_Klarna_Gateway extends BW_Abstract_Stripe_Gateway {
 
 		switch ( $status ) {
 			case 'succeeded':
-				$order->payment_complete( $pi_id );
-				$order->add_order_note( sprintf( __( 'Klarna payment confirmed via Stripe. PaymentIntent: %s', 'bw' ), $pi_id ) );
-				WC()->cart->empty_cart();
+				if ( ! $order->is_paid() ) {
+					$order->update_status( 'pending', sprintf( __( 'Klarna return received. Awaiting Stripe webhook confirmation. PaymentIntent: %s', 'bw' ), $pi_id ) );
+				}
+				$order->add_order_note( sprintf( __( 'Klarna return received. Awaiting Stripe webhook confirmation. PaymentIntent: %s', 'bw' ), $pi_id ) );
 				return array(
 					'result'   => 'success',
 					'redirect' => $this->get_return_url( $order ),
@@ -163,8 +164,9 @@ class BW_Klarna_Gateway extends BW_Abstract_Stripe_Gateway {
 				return;
 
 			case 'processing':
-				$order->update_status( 'on-hold', sprintf( __( 'Klarna payment is processing. PaymentIntent: %s', 'bw' ), $pi_id ) );
-				WC()->cart->empty_cart();
+				if ( ! $order->is_paid() ) {
+					$order->update_status( 'on-hold', sprintf( __( 'Klarna processing. Awaiting Stripe webhook confirmation. PaymentIntent: %s', 'bw' ), $pi_id ) );
+				}
 				return array(
 					'result'   => 'success',
 					'redirect' => $this->get_return_url( $order ),

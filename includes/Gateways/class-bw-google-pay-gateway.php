@@ -136,35 +136,29 @@ class BW_Google_Pay_Gateway extends BW_Abstract_Stripe_Gateway {
 
 		switch ( $status ) {
 			case 'succeeded':
-				$order->payment_complete( $pi_id );
+				if ( ! $order->is_paid() ) {
+					$order->update_status( 'pending', sprintf( __( 'Google Pay completed on return flow. Awaiting Stripe webhook confirmation. PaymentIntent: %s', 'bw' ), $pi_id ) );
+				}
 				$order->add_order_note(
 					sprintf(
 						/* translators: PaymentIntent ID */
-						__( 'Pagamento Google Pay confermato via Stripe. PaymentIntent: %s', 'bw' ),
+						__( 'Google Pay return received. Awaiting Stripe webhook confirmation. PaymentIntent: %s', 'bw' ),
 						$pi_id
 					)
 				);
-				WC()->cart->empty_cart();
 				return array(
 					'result'   => 'success',
 					'redirect' => $this->get_return_url( $order ),
 				);
 
 			case 'requires_action':
-				$auth_url = isset( $intent_data['next_action']['redirect_to_url']['url'] ) ? $intent_data['next_action']['redirect_to_url']['url'] : '';
-				if ( ! empty( $auth_url ) ) {
-					$order->update_status( 'pending', sprintf( __( '3DS richiesto. PaymentIntent: %s', 'bw' ), $pi_id ) );
-					return array(
-						'result'   => 'success',
-						'redirect' => esc_url_raw( $auth_url ),
-					);
-				}
-				wc_add_notice( __( 'Autenticazione aggiuntiva richiesta. Riprova o scegli un altro metodo.', 'bw' ), 'error' );
+				wc_add_notice( __( 'Additional authentication is required. Please try again or choose another payment method.', 'bw' ), 'error' );
 				return;
 
 			case 'processing':
-				$order->update_status( 'on-hold', sprintf( __( 'Pagamento in elaborazione. PaymentIntent: %s', 'bw' ), $pi_id ) );
-				WC()->cart->empty_cart();
+				if ( ! $order->is_paid() ) {
+					$order->update_status( 'on-hold', sprintf( __( 'Google Pay processing. Awaiting Stripe webhook confirmation. PaymentIntent: %s', 'bw' ), $pi_id ) );
+				}
 				return array(
 					'result'   => 'success',
 					'redirect' => $this->get_return_url( $order ),
