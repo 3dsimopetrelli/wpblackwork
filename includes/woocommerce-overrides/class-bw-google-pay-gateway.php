@@ -37,6 +37,8 @@ class BW_Google_Pay_Gateway extends WC_Payment_Gateway {
 		$this->id                 = 'bw_google_pay';
 		$this->icon               = '';
 		$this->has_fields         = true;
+		$current_supports         = is_array( $this->supports ) ? $this->supports : array();
+		$this->supports           = array_values( array_unique( array_merge( array( 'products', 'refunds' ), $current_supports ) ) );
 		$this->method_title       = 'Google Pay (BlackWork)';
 		$this->method_description = 'Implementazione Google Pay tramite Stripe Payment Intents per il checkout BlackWork.';
 
@@ -229,6 +231,10 @@ class BW_Google_Pay_Gateway extends WC_Payment_Gateway {
 			$order->update_meta_data( '_bw_gpay_mode', $this->test_mode ? 'test' : 'live' );
 			$order->update_meta_data( '_bw_gpay_pm_id', sanitize_text_field( $payment_method_id ) );
 			$order->update_meta_data( '_bw_gpay_created_at', time() );
+
+			if ( sanitize_text_field( $pi_id ) !== (string) $order->get_transaction_id() ) {
+				$order->set_transaction_id( sanitize_text_field( $pi_id ) );
+			}
 			$order->save();
 		}
 
@@ -298,6 +304,204 @@ class BW_Google_Pay_Gateway extends WC_Payment_Gateway {
 				);
 				return;
 		}
+	}
+
+	/**
+	 * Process WooCommerce refund and create a real Stripe refund.
+	 *
+	 * @param int        $order_id WooCommerce order ID.
+	 * @param float|null $amount   Refund amount in store currency (null = full).
+	 * @param string     $reason   Refund reason from WooCommerce.
+	 * @return bool|WP_Error
+	 */
+	public function process_refund( $order_id, $amount = null, $reason = '' ) {
+		$order = wc_get_order( $order_id );
+		if ( ! $order ) {
+			return new WP_Error( 'bw_gpay_refund_order_missing', __( 'Order not found.', 'bw' ) );
+		}
+
+		if ( $this->id !== $order->get_payment_method() ) {
+			return new WP_Error( 'bw_gpay_refund_invalid_gateway', __( 'Refund allowed only for Google Pay (BlackWork) orders.', 'bw' ) );
+		}
+
+		$pi_id = (string) $order->get_meta( '_bw_gpay_pi_id', true );
+		if ( empty( $pi_id ) ) {
+			return new WP_Error( 'bw_gpay_refund_pi_missing', __( 'Missing Stripe PaymentIntent ID for this order.', 'bw' ) );
+		}
+
+		$mode = (string) $order->get_meta( '_bw_gpay_mode', true );
+		if ( 'test' !== $mode && 'live' !== $mode ) {
+			$mode = $this->test_mode ? 'test' : 'live';
+		}
+
+		$secret_key = 'test' === $mode
+			? (string) get_option( 'bw_google_pay_test_secret_key', '' )
+			: (string) get_option( 'bw_google_pay_secret_key', '' );
+
+		if ( empty( $secret_key ) ) {
+			return new WP_Error( 'bw_gpay_refund_secret_missing', __( 'Stripe secret key is missing for the order mode.', 'bw' ) );
+		}
+
+		$amount_cents = null;
+		if ( null !== $amount && '' !== $amount ) {
+			$amount_cents = (int) round( (float) $amount * 100 );
+			if ( $amount_cents <= 0 ) {
+				return new WP_Error( 'bw_gpay_refund_invalid_amount', __( 'Invalid refund amount.', 'bw' ) );
+			}
+
+			$order_total_cents = (int) round( (float) $order->get_total() * 100 );
+			if ( $amount_cents > $order_total_cents ) {
+				return new WP_Error( 'bw_gpay_refund_amount_too_high', __( 'Refund amount exceeds order total.', 'bw' ) );
+			}
+		}
+
+		$clean_reason = sanitize_text_field( (string) $reason );
+		$reason_hash  = substr( md5( $clean_reason ), 0, 12 );
+		$idem_amount  = null === $amount_cents ? 'full' : (string) $amount_cents;
+		$idem_pi = preg_replace( '/[^a-zA-Z0-9_]/', '', $pi_id );
+		$idempotency_key = sprintf( 'bw_gpay_refund_%d_%s_%s_%s', (int) $order_id, $idem_pi, $idem_amount, $reason_hash );
+
+		$refund_body = array(
+			'payment_intent'            => $pi_id,
+			'metadata[wc_order_id]'     => (string) $order_id,
+			'metadata[bw_gateway]'      => $this->id,
+			'metadata[mode]'            => $mode,
+		);
+		if ( null !== $amount_cents ) {
+			$refund_body['amount'] = $amount_cents;
+		}
+		if ( '' !== $clean_reason ) {
+			$refund_body['metadata[wc_refund_reason]'] = $clean_reason;
+		}
+
+		$allowed_refund_reasons = array( 'duplicate', 'fraudulent', 'requested_by_customer' );
+		if ( in_array( $clean_reason, $allowed_refund_reasons, true ) ) {
+			$refund_body['reason'] = $clean_reason;
+		}
+
+		$response = wp_remote_post(
+			'https://api.stripe.com/v1/refunds',
+			array(
+				'headers' => array(
+					'Authorization'   => 'Bearer ' . $secret_key,
+					'Content-Type'    => 'application/x-www-form-urlencoded',
+					'Stripe-Version'  => '2023-10-16',
+					'Idempotency-Key' => $idempotency_key,
+				),
+				'body'    => $refund_body,
+				'timeout' => 30,
+			)
+		);
+
+		if ( is_wp_error( $response ) ) {
+			return new WP_Error( 'bw_gpay_refund_connection', __( 'Connection error while creating Stripe refund.', 'bw' ) );
+		}
+
+		$http_code = (int) wp_remote_retrieve_response_code( $response );
+		$data      = json_decode( wp_remote_retrieve_body( $response ), true );
+
+		// Fallback: retrieve latest_charge from PI and retry refund by charge if needed.
+		if ( $http_code < 200 || $http_code >= 300 ) {
+			$retry_with_charge = false;
+			if ( is_array( $data ) && isset( $data['error']['message'] ) ) {
+				$error_message = strtolower( (string) $data['error']['message'] );
+				$retry_with_charge = false !== strpos( $error_message, 'payment_intent' );
+			}
+
+			if ( $retry_with_charge ) {
+				$pi_response = wp_remote_get(
+					'https://api.stripe.com/v1/payment_intents/' . rawurlencode( $pi_id ),
+					array(
+						'headers' => array(
+							'Authorization'  => 'Bearer ' . $secret_key,
+							'Stripe-Version' => '2023-10-16',
+						),
+						'timeout' => 30,
+					)
+				);
+
+				if ( ! is_wp_error( $pi_response ) ) {
+					$pi_http = (int) wp_remote_retrieve_response_code( $pi_response );
+					$pi_data = json_decode( wp_remote_retrieve_body( $pi_response ), true );
+					$latest_charge = ( $pi_http >= 200 && $pi_http < 300 && is_array( $pi_data ) && ! empty( $pi_data['latest_charge'] ) )
+						? sanitize_text_field( (string) $pi_data['latest_charge'] )
+						: '';
+
+					if ( '' !== $latest_charge ) {
+						$refund_body_retry = $refund_body;
+						unset( $refund_body_retry['payment_intent'] );
+						$refund_body_retry['charge'] = $latest_charge;
+
+						$response = wp_remote_post(
+							'https://api.stripe.com/v1/refunds',
+							array(
+								'headers' => array(
+									'Authorization'   => 'Bearer ' . $secret_key,
+									'Content-Type'    => 'application/x-www-form-urlencoded',
+									'Stripe-Version'  => '2023-10-16',
+									'Idempotency-Key' => $idempotency_key,
+								),
+								'body'    => $refund_body_retry,
+								'timeout' => 30,
+							)
+						);
+
+						$http_code = is_wp_error( $response ) ? 0 : (int) wp_remote_retrieve_response_code( $response );
+						$data      = is_wp_error( $response ) ? array() : json_decode( wp_remote_retrieve_body( $response ), true );
+					}
+				}
+			}
+		}
+
+		if ( $http_code < 200 || $http_code >= 300 || ! is_array( $data ) || isset( $data['error'] ) ) {
+			$user_msg = __( 'Stripe refund failed. Please verify Stripe settings and try again.', 'bw' );
+			if ( is_array( $data ) && isset( $data['error']['message'] ) ) {
+				$user_msg = sanitize_text_field( (string) $data['error']['message'] );
+			}
+			wc_get_logger()->warning(
+				sprintf( 'Google Pay refund failed for order %d (PI %s).', (int) $order_id, $pi_id ),
+				array( 'source' => $this->log_source )
+			);
+			return new WP_Error( 'bw_gpay_refund_failed', $user_msg );
+		}
+
+		$refund_id = isset( $data['id'] ) ? sanitize_text_field( (string) $data['id'] ) : '';
+		if ( '' === $refund_id ) {
+			return new WP_Error( 'bw_gpay_refund_invalid_response', __( 'Invalid Stripe refund response.', 'bw' ) );
+		}
+
+		$existing_refunds = $order->get_meta( '_bw_gpay_refund_ids', true );
+		if ( ! is_array( $existing_refunds ) ) {
+			$existing_refunds = array();
+		}
+		if ( ! in_array( $refund_id, $existing_refunds, true ) ) {
+			$existing_refunds[] = $refund_id;
+		}
+
+		$order->update_meta_data( '_bw_gpay_refund_ids', $existing_refunds );
+		$order->update_meta_data( '_bw_gpay_last_refund_id', $refund_id );
+		$order->save();
+
+		$refund_total = null === $amount_cents ? (float) $order->get_total() : ( $amount_cents / 100 );
+		$formatted_refund = wc_price(
+			$refund_total,
+			array(
+				'currency' => $order->get_currency(),
+			)
+		);
+
+		$note = sprintf(
+			/* translators: 1: Stripe refund id, 2: formatted amount */
+			__( 'Stripe refund completed. Refund ID: %1$s — Amount: %2$s', 'bw' ),
+			$refund_id,
+			wp_strip_all_tags( $formatted_refund )
+		);
+		if ( '' !== $clean_reason ) {
+			$note .= ' — ' . sprintf( __( 'Reason: %s', 'bw' ), $clean_reason );
+		}
+		$order->add_order_note( $note );
+
+		return true;
 	}
 
 	/**
