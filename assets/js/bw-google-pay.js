@@ -229,17 +229,6 @@
     }
 
     /**
-     * Select the first available non-Google Pay method to unblock checkout.
-     */
-    function selectFallbackPaymentMethod() {
-        var $fallback = $('input[name="payment_method"]').not('[value="bw_google_pay"]').filter(':enabled').first();
-        if (!$fallback.length) {
-            return;
-        }
-        $fallback.prop('checked', true).trigger('change');
-    }
-
-    /**
      * Render a better UX for unavailable Google Pay cases.
      */
     function renderGooglePayUnavailableState() {
@@ -250,11 +239,10 @@
 
         placeholder.innerHTML = '' +
             '<div class="bw-gpay-unavailable" role="status" aria-live="polite">' +
-                '<p class="bw-gpay-unavailable__title">Google Pay non disponibile su questo dispositivo.</p>' +
-                '<p class="bw-gpay-unavailable__text">Per usare Google Pay, aggiungi una carta nel tuo Google Wallet e riprova.</p>' +
+                '<p class="bw-gpay-unavailable__title">Google Pay is not available on this device.</p>' +
+                '<p class="bw-gpay-unavailable__text">To use Google Pay, add a supported card to your Google Wallet and try again, or choose another payment method.</p>' +
                 '<div class="bw-gpay-unavailable__actions">' +
-                    '<a class="bw-gpay-unavailable__btn bw-gpay-unavailable__btn--primary" href="https://pay.google.com/gp/w/home/paymentmethods" target="_blank" rel="noopener noreferrer">Apri Google Wallet</a>' +
-                    '<button type="button" class="bw-gpay-unavailable__btn bw-gpay-unavailable__btn--secondary" id="bw-gpay-choose-other-method">Scegli un altro metodo</button>' +
+                    '<a class="bw-gpay-unavailable__btn bw-gpay-unavailable__btn--primary" href="https://pay.google.com/gp/w/home/paymentmethods" target="_blank" rel="noopener noreferrer">Open Google Wallet</a>' +
                 '</div>' +
             '</div>';
     }
@@ -438,11 +426,6 @@
                 });
             }
         });
-
-        $(document).off('click.bwgpayfallback', '#bw-gpay-choose-other-method')
-            .on('click.bwgpayfallback', '#bw-gpay-choose-other-method', function () {
-                selectFallbackPaymentMethod();
-            });
 
         handleButtonVisibility();
     });

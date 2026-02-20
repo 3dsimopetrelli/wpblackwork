@@ -2678,7 +2678,7 @@ function bw_site_render_checkout_tab()
                     <tr>
                         <th scope="row">Live Secret Key</th>
                         <td>
-                            <input name="bw_google_pay_secret_key" type="text" id="bw_google_pay_secret_key"
+                            <input name="bw_google_pay_secret_key" type="password" id="bw_google_pay_secret_key"
                                 value="<?php echo esc_attr($google_pay_sec_key); ?>" class="regular-text" placeholder="sk_live_..." />
                         </td>
                     </tr>
@@ -2699,7 +2699,7 @@ function bw_site_render_checkout_tab()
                     <tr>
                         <th scope="row">Test Secret Key</th>
                         <td>
-                            <input name="bw_google_pay_test_secret_key" type="text" id="bw_google_pay_test_secret_key"
+                            <input name="bw_google_pay_test_secret_key" type="password" id="bw_google_pay_test_secret_key"
                                 value="<?php echo esc_attr($google_pay_test_sec_key); ?>" class="regular-text" placeholder="sk_test_..." />
                         </td>
                     </tr>
