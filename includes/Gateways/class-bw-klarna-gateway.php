@@ -27,6 +27,7 @@ class BW_Klarna_Gateway extends BW_Abstract_Stripe_Gateway {
 
 		$this->title       = 'Klarna - Flexible Payments';
 		$this->description = __( 'Pay in installments with Klarna.', 'bw' );
+		$this->order_button_text = __( 'Place order with Klarna', 'bw' );
 
 		// Klarna is configured in live mode from BlackWork > Checkout > Klarna Pay tab.
 		$this->test_mode             = false;
@@ -66,7 +67,7 @@ class BW_Klarna_Gateway extends BW_Abstract_Stripe_Gateway {
 			<?php if ( ! $bw_enabled || ! $wc_enabled ) : ?>
 				<p class="bw-klarna-notice bw-klarna-notice--error"><?php esc_html_e( 'Activate Klarna (BlackWork) in WooCommerce > Settings > Payments.', 'bw' ); ?></p>
 			<?php else : ?>
-				<p class="bw-klarna-notice bw-klarna-notice--info"><?php esc_html_e( 'After clicking "Place order", you will be redirected to Klarna to complete your purchase securely.', 'bw' ); ?></p>
+				<p class="bw-klarna-notice bw-klarna-notice--info"><?php esc_html_e( 'You\'ll be redirected to Klarna - Flexible payments to complete your purchase.', 'bw' ); ?></p>
 			<?php endif; ?>
 		</div>
 		<?php

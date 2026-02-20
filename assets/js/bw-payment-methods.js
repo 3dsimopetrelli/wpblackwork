@@ -110,6 +110,8 @@
             placeOrderBtn.textContent = buttonText;
         }
 
+        placeOrderBtn.classList.toggle('bw-place-order-btn--klarna', radio.value === 'bw_klarna');
+
         placeOrderBtn.setAttribute('value', buttonText);
 
         // Brief fade for visual feedback.

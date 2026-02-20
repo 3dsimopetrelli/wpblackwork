@@ -836,6 +836,19 @@ body.woocommerce-checkout .bw-place-order-btn__text {
 	transition: opacity var(--bw-pm-transition-base);
 }
 
+body.woocommerce-checkout .bw-place-order-btn.bw-place-order-btn--klarna {
+	background: #ffa8cd !important;
+	color: #111111 !important;
+}
+
+body.woocommerce-checkout .bw-place-order-btn.bw-place-order-btn--klarna:hover {
+	background: #ff95c2 !important;
+}
+
+body.woocommerce-checkout .bw-place-order-btn.bw-place-order-btn--klarna:active {
+	background: #ff8cbd !important;
+}
+
 /* Button State: Processing (loading) */
 body.woocommerce-checkout .bw-place-order-btn.processing {
 	pointer-events: none;
