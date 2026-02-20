@@ -635,6 +635,34 @@ function bw_mew_enqueue_checkout_assets()
             ]);
         }
     }
+
+    // Apple Pay Integration (live-only).
+    if (get_option('bw_apple_pay_enabled', '0') === '1') {
+        $apple_pay_js = BW_MEW_PATH . 'assets/js/bw-apple-pay.js';
+        if (file_exists($apple_pay_js)) {
+            wp_enqueue_script('stripe', 'https://js.stripe.com/v3/', [], null, true);
+            wp_enqueue_script(
+                'bw-apple-pay',
+                BW_MEW_URL . 'assets/js/bw-apple-pay.js',
+                ['jquery', 'stripe', 'wc-checkout'],
+                filemtime($apple_pay_js),
+                true
+            );
+
+            $apple_pub_key = (string) get_option('bw_apple_pay_publishable_key', '');
+            if ('' === $apple_pub_key) {
+                $apple_pub_key = (string) get_option('bw_google_pay_publishable_key', '');
+            }
+
+            wp_localize_script('bw-apple-pay', 'bwApplePayParams', [
+                'publishableKey'   => $apple_pub_key,
+                'country'          => WC()->countries->get_base_country(),
+                'currency'         => strtolower(get_woocommerce_currency()),
+                'ajaxCheckoutUrl'  => add_query_arg('wc-ajax', 'checkout', home_url('/')),
+                'adminDebug'       => (defined('WP_DEBUG') && WP_DEBUG && current_user_can('manage_options')),
+            ]);
+        }
+    }
 }
 
 /**
@@ -730,7 +758,7 @@ function bw_mew_handle_wallet_failed_return_redirect()
     }
 
     $payment_method = $order->get_payment_method();
-    if (!in_array($payment_method, array('bw_klarna', 'bw_google_pay'), true)) {
+    if (!in_array($payment_method, array('bw_klarna', 'bw_google_pay', 'bw_apple_pay'), true)) {
         return;
     }
 
@@ -1936,6 +1964,9 @@ function bw_mew_add_google_pay_gateway($gateways)
     }
     if (class_exists('BW_Klarna_Gateway')) {
         $gateways[] = 'BW_Klarna_Gateway';
+    }
+    if (class_exists('BW_Apple_Pay_Gateway')) {
+        $gateways[] = 'BW_Apple_Pay_Gateway';
     }
     return $gateways;
 }

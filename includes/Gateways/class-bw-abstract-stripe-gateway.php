@@ -293,6 +293,22 @@ abstract class BW_Abstract_Stripe_Gateway extends WC_Payment_Gateway {
 					$order->update_status( 'failed', sprintf( __( 'Payment failed via Stripe Webhook. PI: %1$s — %2$s', 'bw' ), $pi_id, $err_msg ) );
 				}
 				break;
+
+			case 'payment_intent.processing':
+				if ( ! $order->is_paid() ) {
+					if ( 'on-hold' !== $order->get_status() ) {
+						$order->update_status( 'on-hold', sprintf( __( 'Payment processing via Stripe Webhook. PaymentIntent: %s', 'bw' ), $pi_id ) );
+					} else {
+						$order->add_order_note( sprintf( __( 'Payment processing via Stripe Webhook. PaymentIntent: %s', 'bw' ), $pi_id ) );
+					}
+				}
+				break;
+
+			case 'payment_intent.canceled':
+				if ( ! $order->is_paid() && 'cancelled' !== $order->get_status() ) {
+					$order->update_status( 'cancelled', sprintf( __( 'Payment canceled via Stripe Webhook. PaymentIntent: %s', 'bw' ), $pi_id ) );
+				}
+				break;
 		}
 
 		if ( ! empty( $event_id ) ) {

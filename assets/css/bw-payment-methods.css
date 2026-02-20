@@ -422,6 +422,27 @@ body.woocommerce-checkout .bw-payment-method__klarna-logo {
 	flex: 0 0 auto;
 }
 
+body.woocommerce-checkout .bw-payment-method__applepay-logo {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 74px;
+	height: 24px;
+	border-radius: 5px;
+	background: #111111;
+	color: #ffffff;
+	padding: 0 10px;
+	font-size: 14px;
+	font-weight: 600;
+	letter-spacing: -0.2px;
+	line-height: 1;
+}
+
+body.woocommerce-checkout .bw-payment-method__applepay-mark {
+	display: inline-block;
+	transform: translateY(-0.5px);
+}
+
 body.woocommerce-checkout #bw-klarna-accordion-container .bw-klarna-notice {
 	margin: 0 !important;
 	padding: 18px 20px;
@@ -1190,6 +1211,31 @@ body.woocommerce-checkout .bw-sr-only {
 	padding: 14px 16px;
 }
 
+.bw-apple-pay-info {
+	padding: 28px 20px;
+	text-align: center;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.bw-apple-pay-info__text {
+	font-size: 18px;
+	line-height: 1.45;
+	letter-spacing: -0.4px;
+	color: #1a1a1a;
+	max-width: 680px;
+	margin: 0 auto;
+}
+
+.bw-apple-pay-info__text--error {
+	color: #9f1d1d;
+	background: #fff3f3;
+	border: 1px solid #f1b7b7;
+	border-radius: 10px;
+	padding: 14px 16px;
+}
+
 #bw-google-pay-button-wrapper {
 	width: 100%;
 	margin-top: 10px;
@@ -1229,6 +1275,57 @@ body.woocommerce-checkout .bw-sr-only {
 	margin: 0 !important;
 	padding: 0 !important;
 	display: block !important;
+}
+
+#bw-apple-pay-button-wrapper {
+	width: 100%;
+	margin-top: 10px;
+}
+
+#bw-apple-pay-button {
+	min-height: 54px;
+	width: 100%;
+}
+
+.bw-custom-applepay-btn {
+	width: 100% !important;
+	height: 54px !important;
+	background: #000 !important;
+	color: #fff !important;
+	border: none !important;
+	border-radius: 4px !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	gap: 10px !important;
+	font-weight: 600 !important;
+	font-size: 16px !important;
+	cursor: pointer !important;
+	transition: background 0.2s ease !important;
+	padding: 0 !important;
+	margin: 0 !important;
+}
+
+.bw-custom-applepay-btn:hover {
+	background: #1a1a1a !important;
+}
+
+body.woocommerce-checkout .bw-apple-pay-unavailable {
+	max-width: 720px;
+	margin: 0 auto;
+	padding: 16px 10px 6px;
+	text-align: center;
+}
+
+body.woocommerce-checkout .bw-apple-pay-unavailable__text {
+	margin: 0;
+	font-size: 15px;
+	line-height: 1.45;
+	color: #4b5563;
+}
+
+body.woocommerce-checkout .bw-apple-pay-unavailable__text--error {
+	color: #9f1d1d;
 }
 
 body.woocommerce-checkout .bw-gpay-unavailable {

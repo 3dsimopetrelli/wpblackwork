@@ -111,6 +111,7 @@
         }
 
         placeOrderBtn.classList.toggle('bw-place-order-btn--klarna', radio.value === 'bw_klarna');
+        placeOrderBtn.classList.toggle('bw-place-order-btn--apple-pay', radio.value === 'bw_apple_pay');
 
         placeOrderBtn.setAttribute('value', buttonText);
 
