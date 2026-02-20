@@ -314,24 +314,39 @@
         googlePayState = 'checking';
         googlePayAvailable = false;
 
-        paymentRequest = stripe.paymentRequest({
-            country:  bwGooglePayParams.country,   // from WC base country
-            currency: bwGooglePayParams.currency,  // from WC currency (lowercase)
-            total: {
-                label:  'Ordine BlackWork',
-                amount: initialCents,
-            },
-            requestPayerName:  true,
-            requestPayerEmail: true,
-            requestPayerPhone: true,
-        });
+        // Fallback to safe defaults if WC settings are empty (avoids Stripe validation error).
+        var country  = (bwGooglePayParams.country  || 'IT').toUpperCase();
+        var currency = (bwGooglePayParams.currency || 'eur').toLowerCase();
+
+        try {
+            paymentRequest = stripe.paymentRequest({
+                country:  country,
+                currency: currency,
+                total: {
+                    label:  'Ordine BlackWork',
+                    amount: initialCents || 100, // Stripe requires a positive integer
+                },
+                requestPayerName:  true,
+                requestPayerEmail: true,
+                requestPayerPhone: true,
+            });
+        } catch (err) {
+            BW_GOOGLE_PAY_DEBUG && console.error('[BW Google Pay] stripe.paymentRequest() error:', err);
+            return;
+        }
+
+        BW_GOOGLE_PAY_DEBUG && console.log('[BW Google Pay] Params:', { country: country, currency: currency, cents: initialCents });
 
         paymentRequest.canMakePayment().then(function (result) {
+<<<<<<< HEAD
             googlePayAvailable = bwCanShowGooglePay(result);
             googlePayState = googlePayAvailable ? 'available' : 'unavailable';
+=======
+            BW_GOOGLE_PAY_DEBUG && console.log('[BW Google Pay] canMakePayment result:', result);
+>>>>>>> 52f8ef24736012dfa64b83fdba827357fa5c4f47
 
-            if (googlePayAvailable) {
-                BW_GOOGLE_PAY_DEBUG && console.log('[BW Google Pay] Disponibile:', result);
+            if (result) {
+                // Payment method (Google Pay, Apple Pay or Stripe Link) is available.
                 $('#bw-google-pay-accordion-placeholder').hide();
                 handleButtonVisibility();
 
@@ -344,8 +359,33 @@
                     }
                     paymentRequest.show();
                 });
+
+            } else if (bwGooglePayParams.testMode) {
+                /*
+                 * TEST MODE FALLBACK
+                 * canMakePayment() returns null when the browser has no Google Pay
+                 * or Stripe Link configured.  In test mode we still render the button
+                 * so the UI/payment flow can be verified.  In production the button is
+                 * only shown when the device genuinely supports it.
+                 */
+                BW_GOOGLE_PAY_DEBUG && console.warn('[BW Google Pay] Test mode: canMakePayment null — forcing button visible for UI testing.');
+
+                $('#bw-google-pay-accordion-placeholder').hide();
+                handleButtonVisibility();
+
+                $(document).off('click.bwgpay', '#bw-google-pay-trigger')
+                           .on('click.bwgpay', '#bw-google-pay-trigger', function (e) {
+                    e.preventDefault();
+                    try {
+                        paymentRequest.show();
+                    } catch (showErr) {
+                        BW_GOOGLE_PAY_DEBUG && console.warn('[BW Google Pay] show() failed (expected if no payment method in browser):', showErr);
+                    }
+                });
+
             } else {
-                BW_GOOGLE_PAY_DEBUG && console.log('[BW Google Pay] Google Pay non disponibile (result):', result);
+                // Production: device does not support any compatible payment method.
+                BW_GOOGLE_PAY_DEBUG && console.log('[BW Google Pay] Non disponibile su questo dispositivo/browser.');
                 $('#bw-google-pay-button-wrapper').hide();
 
                 var p = document.createElement('p');
@@ -395,7 +435,7 @@
             }
 
             if (paymentRequest) {
-                var updatedCents = bwGetOrderTotalCents();
+                var updatedCents = bwGetOrderTotalCents() || 100;
                 BW_GOOGLE_PAY_DEBUG && console.log('[BW Google Pay] Aggiornamento totale:', updatedCents, 'centesimi');
                 paymentRequest.update({
                     total: {

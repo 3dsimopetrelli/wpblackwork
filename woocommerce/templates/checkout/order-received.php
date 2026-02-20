@@ -40,7 +40,6 @@ if ( function_exists( 'bw_mew_render_order_received_logo_header' ) ) {
 		$quantity   = (int) $item->get_quantity();
 		$item_lines[] = sprintf( '%1$s × %2$d', $name, $quantity );
 	}
-	$product_line = implode( ', ', $item_lines );
 
 	$billing_name = trim( $order->get_formatted_billing_full_name() );
 	if ( '' === $billing_name ) {
@@ -115,7 +114,13 @@ if ( function_exists( 'bw_mew_render_order_received_logo_header' ) ) {
 					</div>
 					<div class="bw-order-card__row">
 						<span><?php esc_html_e( 'Product', 'wpblackwork' ); ?></span>
-						<span><?php echo esc_html( $product_line ); ?></span>
+						<span>
+							<ul class="bw-order-card__products">
+								<?php foreach ( $item_lines as $item_line ) : ?>
+									<li><?php echo esc_html( $item_line ); ?></li>
+								<?php endforeach; ?>
+							</ul>
+						</span>
 					</div>
 					<div class="bw-order-card__row">
 						<span><?php esc_html_e( 'Subtotal', 'wpblackwork' ); ?></span>
