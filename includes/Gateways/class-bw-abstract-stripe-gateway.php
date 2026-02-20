@@ -349,7 +349,6 @@ abstract class BW_Abstract_Stripe_Gateway extends WC_Payment_Gateway {
 		$body = array(
 			'amount'                 => $amount,
 			'currency'               => strtolower( get_woocommerce_currency() ),
-			'payment_method'         => $payment_method_id,
 			'payment_method_types[]' => 'card',
 			'confirm'                => 'true',
 			'return_url'             => $this->get_return_url( $order ),
@@ -360,6 +359,10 @@ abstract class BW_Abstract_Stripe_Gateway extends WC_Payment_Gateway {
 			'metadata[mode]'         => $this->get_gateway_mode(),
 		);
 
+		if ( ! empty( $payment_method_id ) ) {
+			$body['payment_method'] = $payment_method_id;
+		}
+
 		if ( ! empty( $this->statement_descriptor ) ) {
 			$body['statement_descriptor'] = substr( sanitize_text_field( $this->statement_descriptor ), 0, 22 );
 		}
@@ -368,7 +371,8 @@ abstract class BW_Abstract_Stripe_Gateway extends WC_Payment_Gateway {
 			$body = array_merge( $body, $extra_body );
 		}
 
-		$idempotency_key = 'bw_gpay_' . $order->get_id() . '_' . md5( (string) $payment_method_id );
+		$idempotency_source = ! empty( $payment_method_id ) ? (string) $payment_method_id : 'no_pm';
+		$idempotency_key    = 'bw_' . sanitize_key( (string) $this->id ) . '_' . $order->get_id() . '_' . md5( $idempotency_source );
 		$result = BW_Stripe_Api_Client::request( 'POST', '/v1/payment_intents', $this->secret_key, $body, $idempotency_key );
 
 		if ( ! $result['ok'] ) {

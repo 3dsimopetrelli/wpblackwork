@@ -125,6 +125,27 @@ function bw_site_settings_admin_assets($hook)
         ]
     );
 
+    $klarna_admin_script_path = BW_MEW_PATH . 'admin/js/bw-klarna-admin.js';
+    $klarna_admin_version = file_exists($klarna_admin_script_path) ? filemtime($klarna_admin_script_path) : '1.0.0';
+
+    wp_enqueue_script(
+        'bw-klarna-admin',
+        BW_MEW_URL . 'admin/js/bw-klarna-admin.js',
+        ['jquery'],
+        $klarna_admin_version,
+        true
+    );
+
+    wp_localize_script(
+        'bw-klarna-admin',
+        'bwKlarnaAdmin',
+        [
+            'nonce' => wp_create_nonce('bw_klarna_test_connection'),
+            'errorText' => esc_html__('Connection test failed. Please verify your Stripe keys.', 'bw'),
+            'testingText' => esc_html__('Testing connection…', 'bw'),
+        ]
+    );
+
     // Border toggle script (shared across Cart Pop-up and Site Settings)
     $border_toggle_path = BW_MEW_PATH . 'assets/js/bw-border-toggle-admin.js';
     $border_toggle_version = file_exists($border_toggle_path) ? filemtime($border_toggle_path) : '1.0.0';
@@ -237,6 +258,88 @@ function bw_google_pay_test_connection_ajax_handler()
     ]);
 }
 add_action('wp_ajax_bw_google_pay_test_connection', 'bw_google_pay_test_connection_ajax_handler');
+
+/**
+ * AJAX handler to test Stripe connection for Klarna settings (live mode).
+ */
+function bw_klarna_test_connection_ajax_handler()
+{
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error(['message' => __('Permission denied.', 'bw')]);
+    }
+
+    check_ajax_referer('bw_klarna_test_connection', 'nonce');
+
+    $secret_key = isset($_POST['secret_key']) ? sanitize_text_field(wp_unslash($_POST['secret_key'])) : '';
+    $publishable_key = isset($_POST['publishable_key']) ? sanitize_text_field(wp_unslash($_POST['publishable_key'])) : '';
+
+    if ('' === $secret_key) {
+        wp_send_json_error(['message' => __('Secret key is required.', 'bw')]);
+    }
+
+    if (0 !== strpos($secret_key, 'sk_live_')) {
+        wp_send_json_error([
+            'message' => __('Klarna live mode requires a key starting with sk_live_.', 'bw'),
+        ]);
+    }
+
+    if ('' !== $publishable_key && 0 !== strpos($publishable_key, 'pk_live_')) {
+        wp_send_json_error([
+            'message' => __('Klarna live mode requires a publishable key starting with pk_live_.', 'bw'),
+        ]);
+    }
+
+    $response = wp_remote_get(
+        'https://api.stripe.com/v1/account',
+        [
+            'timeout' => 15,
+            'headers' => [
+                'Authorization' => 'Bearer ' . $secret_key,
+            ],
+        ]
+    );
+
+    if (is_wp_error($response)) {
+        wp_send_json_error([
+            'message' => sprintf(
+                /* translators: %s: WP error message */
+                __('Unable to reach Stripe API: %s', 'bw'),
+                $response->get_error_message()
+            ),
+        ]);
+    }
+
+    $status_code = (int) wp_remote_retrieve_response_code($response);
+    $body = wp_remote_retrieve_body($response);
+    $payload = json_decode($body, true);
+
+    if ($status_code < 200 || $status_code >= 300) {
+        $stripe_error = '';
+        if (is_array($payload) && isset($payload['error']['message'])) {
+            $stripe_error = sanitize_text_field((string) $payload['error']['message']);
+        }
+
+        wp_send_json_error([
+            'message' => $stripe_error
+                ? sprintf(__('Stripe API error: %s', 'bw'), $stripe_error)
+                : __('Stripe API rejected the request. Please verify your keys.', 'bw'),
+        ]);
+    }
+
+    if (!is_array($payload) || !isset($payload['id'])) {
+        wp_send_json_error(['message' => __('Unexpected Stripe response. Please try again.', 'bw')]);
+    }
+
+    wp_send_json_success([
+        'message' => sprintf(
+            /* translators: %s: Stripe account id */
+            __('Connected successfully (Live mode) - Account: %s', 'bw'),
+            sanitize_text_field((string) $payload['id'])
+        ),
+        'mode' => 'live',
+    ]);
+}
+add_action('wp_ajax_bw_klarna_test_connection', 'bw_klarna_test_connection_ajax_handler');
 
 /**
  * Renderizza la pagina delle impostazioni con tab
@@ -1800,6 +1903,11 @@ function bw_site_render_checkout_tab()
         $google_pay_statement_descriptor = isset($_POST['bw_google_pay_statement_descriptor']) ? substr(sanitize_text_field(wp_unslash($_POST['bw_google_pay_statement_descriptor'])), 0, 22) : '';
         $google_pay_webhook_secret = isset($_POST['bw_google_pay_webhook_secret']) ? sanitize_text_field(wp_unslash($_POST['bw_google_pay_webhook_secret'])) : '';
         $google_pay_test_webhook_secret = isset($_POST['bw_google_pay_test_webhook_secret']) ? sanitize_text_field(wp_unslash($_POST['bw_google_pay_test_webhook_secret'])) : '';
+        $klarna_enabled = isset($_POST['bw_klarna_enabled']) ? 1 : 0;
+        $klarna_pub_key = isset($_POST['bw_klarna_publishable_key']) ? sanitize_text_field(wp_unslash($_POST['bw_klarna_publishable_key'])) : '';
+        $klarna_sec_key = isset($_POST['bw_klarna_secret_key']) ? sanitize_text_field(wp_unslash($_POST['bw_klarna_secret_key'])) : '';
+        $klarna_statement_descriptor = isset($_POST['bw_klarna_statement_descriptor']) ? substr(sanitize_text_field(wp_unslash($_POST['bw_klarna_statement_descriptor'])), 0, 22) : '';
+        $klarna_webhook_secret = isset($_POST['bw_klarna_webhook_secret']) ? sanitize_text_field(wp_unslash($_POST['bw_klarna_webhook_secret'])) : '';
 
         // Policy Settings
         $policies = [
@@ -1895,6 +2003,11 @@ function bw_site_render_checkout_tab()
         update_option('bw_google_pay_statement_descriptor', $google_pay_statement_descriptor);
         update_option('bw_google_pay_webhook_secret', $google_pay_webhook_secret);
         update_option('bw_google_pay_test_webhook_secret', $google_pay_test_webhook_secret);
+        update_option('bw_klarna_enabled', $klarna_enabled);
+        update_option('bw_klarna_publishable_key', $klarna_pub_key);
+        update_option('bw_klarna_secret_key', $klarna_sec_key);
+        update_option('bw_klarna_statement_descriptor', $klarna_statement_descriptor);
+        update_option('bw_klarna_webhook_secret', $klarna_webhook_secret);
 
         // Save Google Maps settings
         update_option('bw_google_maps_enabled', $google_maps_enabled);
@@ -2017,7 +2130,7 @@ function bw_site_render_checkout_tab()
 
         <?php
         $active_checkout_tab = isset($_GET['checkout_tab']) ? sanitize_key($_GET['checkout_tab']) : 'style';
-        $allowed_checkout_tabs = ['style', 'supabase', 'fields', 'subscribe', 'google-maps', 'google-pay', 'footer'];
+        $allowed_checkout_tabs = ['style', 'supabase', 'fields', 'subscribe', 'google-maps', 'google-pay', 'klarna-pay', 'footer'];
         if (!in_array($active_checkout_tab, $allowed_checkout_tabs, true)) {
             $active_checkout_tab = 'style';
         }
@@ -2028,6 +2141,7 @@ function bw_site_render_checkout_tab()
         $subscribe_tab_url = add_query_arg('checkout_tab', 'subscribe');
         $google_maps_tab_url = add_query_arg('checkout_tab', 'google-maps');
         $google_pay_tab_url = add_query_arg('checkout_tab', 'google-pay');
+        $klarna_pay_tab_url = add_query_arg('checkout_tab', 'klarna-pay');
         $footer_tab_url = add_query_arg('checkout_tab', 'footer');
         ?>
 
@@ -2055,6 +2169,10 @@ function bw_site_render_checkout_tab()
             <a class="nav-tab <?php echo 'google-pay' === $active_checkout_tab ? 'nav-tab-active' : ''; ?>"
                 href="<?php echo esc_url($google_pay_tab_url); ?>">
                 <?php esc_html_e('Google Pay', 'bw'); ?>
+            </a>
+            <a class="nav-tab <?php echo 'klarna-pay' === $active_checkout_tab ? 'nav-tab-active' : ''; ?>"
+                href="<?php echo esc_url($klarna_pay_tab_url); ?>">
+                <?php esc_html_e('Klarna Pay', 'bw'); ?>
             </a>
             <a class="nav-tab <?php echo 'footer' === $active_checkout_tab ? 'nav-tab-active' : ''; ?>"
                 href="<?php echo esc_url($footer_tab_url); ?>">
@@ -2840,6 +2958,102 @@ function bw_site_render_checkout_tab()
                     color: #475467;
                 }
             </style>
+        </div>
+
+        <div class="bw-tab-panel" data-bw-tab="klarna-pay" <?php echo 'klarna-pay' === $active_checkout_tab ? '' : 'style="display:none;"'; ?>>
+            <?php
+            $klarna_enabled = get_option('bw_klarna_enabled', 0);
+            $klarna_pub_key = get_option('bw_klarna_publishable_key', '');
+            $klarna_sec_key = get_option('bw_klarna_secret_key', '');
+            $klarna_statement_descriptor = get_option('bw_klarna_statement_descriptor', '');
+            $klarna_webhook_secret = get_option('bw_klarna_webhook_secret', '');
+            $klarna_webhook_url = add_query_arg('wc-api', 'bw_klarna', home_url('/'));
+            ?>
+
+            <div class="bw-settings-section">
+                <h2 class="title">Klarna Pay (Stripe Integration)</h2>
+                <p class="description">Configure Klarna Flexible Payments via Stripe for the custom checkout. Klarna requires HTTPS and supported buyer country/currency in Stripe.</p>
+
+                <table class="form-table" role="presentation">
+                    <tr>
+                        <th scope="row">Enable Gateway</th>
+                        <td>
+                            <label class="bw-switch">
+                                <input name="bw_klarna_enabled" type="checkbox" id="bw_klarna_enabled" value="1" <?php checked(1, $klarna_enabled); ?> />
+                                <span class="bw-slider round"></span>
+                            </label>
+                        </td>
+                    </tr>
+
+                    <tr class="bw-settings-divider">
+                        <td colspan="2"><hr></td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row">Live Publishable Key</th>
+                        <td>
+                            <input name="bw_klarna_publishable_key" type="text" id="bw_klarna_publishable_key"
+                                value="<?php echo esc_attr($klarna_pub_key); ?>" class="regular-text" placeholder="pk_live_..." />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Live Secret Key</th>
+                        <td>
+                            <input name="bw_klarna_secret_key" type="password" id="bw_klarna_secret_key"
+                                value="<?php echo esc_attr($klarna_sec_key); ?>" class="regular-text" placeholder="sk_live_..." />
+                        </td>
+                    </tr>
+
+                    <tr class="bw-settings-divider">
+                        <td colspan="2"><hr></td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row">Connection Check (Global)</th>
+                        <td>
+                            <div class="bw-google-pay-connection-row">
+                                <span id="bw-klarna-mode-pill" class="bw-google-pay-mode-pill is-live">ACTIVE MODE: LIVE</span>
+                                <button type="button" class="button" id="bw-klarna-test-connection">Verify connection (LIVE)</button>
+                            </div>
+                            <span id="bw-klarna-test-result" class="bw-google-pay-test-result" aria-live="polite"></span>
+                            <p class="description" style="margin-top: 8px;">This check always validates <strong>live keys</strong> for Klarna.</p>
+                        </td>
+                    </tr>
+
+                    <tr class="bw-settings-divider">
+                        <td colspan="2"><hr></td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row">Statement Descriptor</th>
+                        <td>
+                            <input name="bw_klarna_statement_descriptor" type="text" id="bw_klarna_statement_descriptor"
+                                value="<?php echo esc_attr($klarna_statement_descriptor); ?>" class="regular-text" placeholder="BlackWork Store" maxlength="22" />
+                            <p class="description">Text shown on the customer statement (max 22 chars). Leave empty to use Stripe account default.</p>
+                        </td>
+                    </tr>
+
+                    <tr class="bw-settings-divider">
+                        <td colspan="2"><hr></td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row">Webhook URL</th>
+                        <td>
+                            <code><?php echo esc_url($klarna_webhook_url); ?></code>
+                            <p class="description">Add this endpoint in Stripe Dashboard → Developers → Webhooks. Enable: <strong>payment_intent.succeeded</strong>, <strong>payment_intent.payment_failed</strong>.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Live Webhook Secret</th>
+                        <td>
+                            <input name="bw_klarna_webhook_secret" type="password" id="bw_klarna_webhook_secret"
+                                value="<?php echo esc_attr($klarna_webhook_secret); ?>" class="regular-text" placeholder="whsec_..." />
+                            <p class="description">Webhook signing secret for live endpoint (starts with <code>whsec_</code>).</p>
+                        </td>
+                    </tr>
+                </table>
+            </div>
         </div>
 
         <div class="bw-tab-panel" data-bw-tab="footer" <?php echo 'footer' === $active_checkout_tab ? '' : 'style="display:none;"'; ?>>

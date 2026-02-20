@@ -1824,7 +1824,7 @@ function bw_mew_render_address_section_heading()
 }
 
 /**
- * Add Google Pay gateway to WooCommerce payment gateways.
+ * Add BlackWork custom gateways to WooCommerce payment gateways.
  *
  * @param array $gateways WooCommerce gateways.
  * @return array
@@ -1833,6 +1833,9 @@ function bw_mew_add_google_pay_gateway($gateways)
 {
     if (class_exists('BW_Google_Pay_Gateway')) {
         $gateways[] = 'BW_Google_Pay_Gateway';
+    }
+    if (class_exists('BW_Klarna_Gateway')) {
+        $gateways[] = 'BW_Klarna_Gateway';
     }
     return $gateways;
 }
