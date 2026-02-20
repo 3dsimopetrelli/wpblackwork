@@ -1,14 +1,36 @@
 (function ($) {
     'use strict';
 
+    function bwRenderGooglePayBootError(message) {
+        var render = function () {
+            var placeholder = document.getElementById('bw-google-pay-accordion-placeholder');
+            if (!placeholder) {
+                return;
+            }
+            placeholder.innerHTML = '' +
+                '<div class="bw-gpay-unavailable" role="status" aria-live="polite">' +
+                    '<p class="bw-gpay-unavailable__title">Google Pay is temporarily unavailable.</p>' +
+                    '<p class="bw-gpay-unavailable__text">' + message + '</p>' +
+                '</div>';
+        };
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', render);
+        } else {
+            render();
+        }
+    }
+
     // Debug flag — enable with: window.BW_GOOGLE_PAY_DEBUG = true in browser console.
     var BW_GOOGLE_PAY_DEBUG = window.BW_GOOGLE_PAY_DEBUG === true;
 
     if (typeof bwGooglePayParams === 'undefined' || typeof Stripe === 'undefined') {
+        bwRenderGooglePayBootError('Please refresh the page and try again, or choose another payment method.');
         return;
     }
 
     if (!bwGooglePayParams.publishableKey) {
+        bwRenderGooglePayBootError('Configuration is incomplete. Please choose another payment method.');
         BW_GOOGLE_PAY_DEBUG && console.error('[BW Google Pay] Publishable key mancante.');
         return;
     }

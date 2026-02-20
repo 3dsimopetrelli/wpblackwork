@@ -83,10 +83,18 @@ class BW_Google_Pay_Gateway extends WC_Payment_Gateway {
 	 * Render the Google Pay button container inside the payment accordion.
 	 */
 	public function payment_fields() {
+		$bw_enabled = get_option( 'bw_google_pay_enabled', '0' ) === '1';
+		$wc_settings = get_option( 'woocommerce_' . $this->id . '_settings', array() );
+		$wc_enabled = isset( $wc_settings['enabled'] ) && 'yes' === $wc_settings['enabled'];
+
 		?>
 		<div id="bw-google-pay-accordion-container">
 			<div id="bw-google-pay-accordion-placeholder">
-				<p><?php esc_html_e( 'Inizializzazione Google Pay…', 'bw' ); ?></p>
+				<?php if ( ! $bw_enabled || ! $wc_enabled ) : ?>
+					<p><?php esc_html_e( 'Activate Google Pay (BlackWork) in WooCommerce > Settings > Payments.', 'bw' ); ?></p>
+				<?php else : ?>
+					<p><?php esc_html_e( 'Initializing Google Pay…', 'bw' ); ?></p>
+				<?php endif; ?>
 			</div>
 		</div>
 		<?php
