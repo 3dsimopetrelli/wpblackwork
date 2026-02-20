@@ -426,16 +426,17 @@ body.woocommerce-checkout .bw-payment-method__applepay-logo {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	min-width: 74px;
+	width: 52px;
 	height: 24px;
-	border-radius: 5px;
-	background: #111111;
-	color: #ffffff;
-	padding: 0 10px;
-	font-size: 14px;
-	font-weight: 600;
-	letter-spacing: -0.2px;
-	line-height: 1;
+	flex: 0 0 auto;
+}
+
+body.woocommerce-checkout .bw-payment-method__applepay-logo svg {
+	display: block;
+	width: 52px;
+	height: auto;
+	max-width: 52px;
+	max-height: none;
 }
 
 body.woocommerce-checkout .bw-payment-method__applepay-mark {
