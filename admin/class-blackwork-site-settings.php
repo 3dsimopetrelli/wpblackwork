@@ -2705,14 +2705,19 @@ function bw_site_render_checkout_tab()
                         </td>
                     </tr>
 
+                    <tr class="bw-settings-divider">
+                        <td colspan="2"><hr></td>
+                    </tr>
+
                     <tr>
-                        <th scope="row">Test connessione Stripe</th>
+                        <th scope="row">Verifica connessione (globale)</th>
                         <td>
-                            <button type="button" class="button" id="bw-google-pay-test-connection">Verifica connessione</button>
+                            <div class="bw-google-pay-connection-row">
+                                <span id="bw-google-pay-mode-pill" class="bw-google-pay-mode-pill">Modalita attiva: TEST</span>
+                                <button type="button" class="button" id="bw-google-pay-test-connection">Verifica connessione (TEST)</button>
+                            </div>
                             <span id="bw-google-pay-test-result" class="bw-google-pay-test-result" aria-live="polite"></span>
-                            <p class="description" style="margin-top: 8px;">Controlla la modalità attiva in base allo switch
-                                <strong>Test Mode</strong> e verifica la connessione reale con Stripe.
-                            </p>
+                            <p class="description" style="margin-top: 8px;">Questo controllo usa la modalità attiva: <strong>Test Mode ON = chiavi test</strong>, <strong>Test Mode OFF = chiavi live</strong>.</p>
                         </td>
                     </tr>
 
@@ -2777,8 +2782,35 @@ function bw_site_render_checkout_tab()
                     display: inline-flex;
                     align-items: center;
                     gap: 8px;
-                    margin-left: 10px;
+                    margin-top: 8px;
                     font-weight: 600;
+                }
+
+                .bw-google-pay-connection-row {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    flex-wrap: wrap;
+                }
+
+                .bw-google-pay-mode-pill {
+                    display: inline-flex;
+                    align-items: center;
+                    padding: 4px 10px;
+                    border-radius: 999px;
+                    font-size: 12px;
+                    font-weight: 700;
+                    letter-spacing: 0.2px;
+                    text-transform: uppercase;
+                    background: #fef3c7;
+                    color: #92400e;
+                    border: 1px solid #f59e0b;
+                }
+
+                .bw-google-pay-mode-pill.is-live {
+                    background: #ecfdf3;
+                    color: #166534;
+                    border-color: #22c55e;
                 }
 
                 .bw-google-pay-test-result::before {
