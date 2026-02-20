@@ -557,7 +557,7 @@ body.woocommerce-order-received .bw-order-card__rows {
 
 body.woocommerce-order-received .bw-order-card__row {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 14px;
     align-items: baseline;
     padding: 12px 0;
@@ -566,8 +566,66 @@ body.woocommerce-order-received .bw-order-card__row {
     line-height: 1.35;
 }
 
-body.woocommerce-order-received .bw-order-card__row span:last-child {
+body.woocommerce-order-received .bw-order-card__row span:last-child,
+body.woocommerce-order-received .bw-order-card__value {
     text-align: right;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+body.woocommerce-order-received .bw-order-card__row--products {
+    align-items: flex-start;
+}
+
+body.woocommerce-order-received .bw-order-card__row--products .bw-order-card__value {
+    text-align: left;
+}
+
+body.woocommerce-order-received .bw-order-card__products {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0;
+}
+
+body.woocommerce-order-received .bw-order-card__products li {
+    margin: 0;
+    padding: 8px 0;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    border-top: 1px solid #ededed;
+}
+
+body.woocommerce-order-received .bw-order-card__products li:first-child {
+    border-top: 0;
+    padding-top: 0;
+}
+
+body.woocommerce-order-received .bw-order-card__products li:last-child {
+    padding-bottom: 0;
+}
+
+body.woocommerce-order-received .bw-order-card__product-name {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+body.woocommerce-order-received .bw-order-card__product-qty {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 38px;
+    padding: 2px 8px;
+    border: 1px solid #d8d8d8;
+    border-radius: 999px;
+    font-size: 0.78em;
+    line-height: 1.2;
+    font-weight: 600;
+    color: #3a3a3a;
+    white-space: nowrap;
 }
 
 body.woocommerce-order-received .bw-order-card__row--total {
@@ -1046,6 +1104,14 @@ body.woocommerce-order-received .bw-verify-email-cta__actions .elementor-button-
 
     body.woocommerce-order-received .bw-order-card__row span:last-child {
         text-align: left;
+    }
+
+    body.woocommerce-order-received .bw-order-card__value {
+        text-align: left;
+    }
+
+    body.woocommerce-order-received .bw-order-card__products li {
+        align-items: flex-start;
     }
 
     body.woocommerce-order-received .woocommerce {

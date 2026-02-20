@@ -36,10 +36,12 @@ if ( function_exists( 'bw_mew_render_order_received_logo_header' ) ) {
 
 	$item_lines = array();
 	foreach ( $order->get_items() as $item ) {
-		$name       = $item->get_name();
-		$quantity   = (int) $item->get_quantity();
-		$item_lines[] = sprintf( '%1$s × %2$d', $name, $quantity );
+		$item_lines[] = array(
+			'name' => $item->get_name(),
+			'qty'  => (int) $item->get_quantity(),
+		);
 	}
+	$item_count = count( $item_lines );
 
 	$billing_name = trim( $order->get_formatted_billing_full_name() );
 	if ( '' === $billing_name ) {
@@ -109,18 +111,25 @@ if ( function_exists( 'bw_mew_render_order_received_logo_header' ) ) {
 				<h2 class="bw-order-card__title"><?php esc_html_e( 'Order summary', 'wpblackwork' ); ?></h2>
 				<div class="bw-order-card__rows">
 					<div class="bw-order-card__row">
+						<span><?php esc_html_e( 'Items', 'wpblackwork' ); ?></span>
+						<span><?php echo esc_html( $item_count ); ?></span>
+					</div>
+					<div class="bw-order-card__row">
 						<span><?php esc_html_e( 'Email', 'wpblackwork' ); ?></span>
 						<span><?php echo esc_html( $billing_email ); ?></span>
 					</div>
-					<div class="bw-order-card__row">
+					<div class="bw-order-card__row bw-order-card__row--products">
 						<span><?php esc_html_e( 'Product', 'wpblackwork' ); ?></span>
-						<span>
+						<div class="bw-order-card__value">
 							<ul class="bw-order-card__products">
 								<?php foreach ( $item_lines as $item_line ) : ?>
-									<li><?php echo esc_html( $item_line ); ?></li>
+									<li>
+										<span class="bw-order-card__product-name"><?php echo esc_html( $item_line['name'] ); ?></span>
+										<span class="bw-order-card__product-qty"><?php echo esc_html( sprintf( 'x%d', (int) $item_line['qty'] ) ); ?></span>
+									</li>
 								<?php endforeach; ?>
 							</ul>
-						</span>
+						</div>
 					</div>
 					<div class="bw-order-card__row">
 						<span><?php esc_html_e( 'Subtotal', 'wpblackwork' ); ?></span>
