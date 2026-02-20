@@ -133,6 +133,37 @@
         '<path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.66l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>' +
     '</svg>';
 
+    /**
+     * Stripe canMakePayment() payload is not fully consistent across browsers.
+     * We prefer explicit googlePay=true, but allow fallback payloads except
+     * link-only cases (to avoid opening Stripe Link instead of Google Pay).
+     *
+     * @param {Object|null} result
+     * @returns {boolean}
+     */
+    function bwCanShowGooglePay(result) {
+        if (!result) {
+            return false;
+        }
+
+        if (result.googlePay === true) {
+            return true;
+        }
+
+        if (Object.prototype.hasOwnProperty.call(result, 'googlePay') && result.googlePay === false) {
+            return false;
+        }
+
+        // Explicit link-only payload should not be treated as Google Pay.
+        if (result.link === true && result.googlePay !== true) {
+            return false;
+        }
+
+        // Fallback for browsers that do not expose a googlePay flag but still
+        // support Payment Request with Google Pay.
+        return true;
+    }
+
     function handleButtonVisibility() {
         var selectedMethod = $('input[name="payment_method"]:checked').val();
         var $placeOrder    = $('#place_order');
@@ -296,7 +327,7 @@
         });
 
         paymentRequest.canMakePayment().then(function (result) {
-            googlePayAvailable = !!(result && result.googlePay === true);
+            googlePayAvailable = bwCanShowGooglePay(result);
             googlePayState = googlePayAvailable ? 'available' : 'unavailable';
 
             if (googlePayAvailable) {
