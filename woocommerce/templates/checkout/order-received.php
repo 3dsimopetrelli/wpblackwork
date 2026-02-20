@@ -60,6 +60,24 @@ if ( function_exists( 'bw_mew_render_order_received_logo_header' ) ) {
 	$cta_url         = $my_account_url;
 	$cta_label       = __( 'Go to your account', 'wpblackwork' );
 	$is_order_paid   = $order->is_paid();
+	$bw_cart_empty   = true;
+	if ( function_exists( 'WC' ) && WC()->cart ) {
+		$bw_cart_empty = ( 0 === (int) WC()->cart->get_cart_contents_count() );
+	}
+
+	if ( function_exists( 'bw_mew_wallet_debug_log' ) ) {
+		bw_mew_wallet_debug_log(
+			'thankyou_fallback',
+			array(
+				'gateway_id'      => (string) $order->get_payment_method(),
+				'order_id'        => (int) $order->get_id(),
+				'order_status'    => (string) $order->get_status(),
+				'redirect_status' => isset( $_GET['redirect_status'] ) ? sanitize_text_field( wp_unslash( $_GET['redirect_status'] ) ) : '', // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+				'is_paid'         => (bool) $is_order_paid,
+				'is_cart_empty'   => (bool) $bw_cart_empty,
+			)
+		);
+	}
 
 	if ( $show_email_reminder_cta ) {
 		$cta_url   = add_query_arg(

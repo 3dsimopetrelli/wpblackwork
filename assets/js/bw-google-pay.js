@@ -451,6 +451,16 @@
 
         paymentRequest.on('cancel', function () {
             BW_GOOGLE_PAY_DEBUG && console.log('[BW Google Pay] Payment sheet canceled by customer.');
+            if (bwGooglePayParams && bwGooglePayParams.adminDebug) {
+                console.info('[BW Wallet Debug][gpay_cancel]', {
+                    gateway_id: 'bw_google_pay',
+                    order_id: null,
+                    order_status: 'checkout',
+                    redirect_status: 'canceled',
+                    is_paid: false,
+                    is_cart_empty: null
+                });
+            }
             bwRenderCheckoutNotice('error', 'Google Pay payment was canceled. You can try again or choose another payment method.');
             $('#bw_google_pay_method_id').val('');
             $('form.checkout').removeClass('processing');

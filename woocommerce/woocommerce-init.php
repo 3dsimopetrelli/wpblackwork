@@ -631,6 +631,7 @@ function bw_mew_enqueue_checkout_assets()
                 'country'          => WC()->countries->get_base_country(),
                 'currency'         => strtolower( get_woocommerce_currency() ),
                 'ajaxCheckoutUrl'  => add_query_arg( 'wc-ajax', 'checkout', home_url( '/' ) ),
+                'adminDebug'       => (defined('WP_DEBUG') && WP_DEBUG && current_user_can('manage_options')),
             ]);
         }
     }
@@ -676,6 +677,30 @@ function bw_mew_prevent_order_received_cache()
 add_action('template_redirect', 'bw_mew_prevent_order_received_cache', 1);
 
 /**
+ * Safe debug logger for wallet flows.
+ * Active only for admin users when WP_DEBUG is enabled.
+ *
+ * @param string $context Log context label.
+ * @param array  $data    Safe debug payload.
+ * @return void
+ */
+function bw_mew_wallet_debug_log($context, $data = array())
+{
+    if (!defined('WP_DEBUG') || !WP_DEBUG) {
+        return;
+    }
+
+    if (!is_user_logged_in() || !current_user_can('manage_options')) {
+        return;
+    }
+
+    $safe_context = sanitize_key((string) $context);
+    $safe_data = is_array($data) ? $data : array();
+
+    error_log('[BW Wallet Debug][' . $safe_context . '] ' . wp_json_encode($safe_data));
+}
+
+/**
  * Redirect wallet failed/canceled returns away from order-received to checkout.
  */
 function bw_mew_handle_wallet_failed_return_redirect()
@@ -708,6 +733,19 @@ function bw_mew_handle_wallet_failed_return_redirect()
     if (!in_array($payment_method, array('bw_klarna', 'bw_google_pay'), true)) {
         return;
     }
+
+    $is_cart_empty = true;
+    if (function_exists('WC') && WC()->cart) {
+        $is_cart_empty = (0 === (int) WC()->cart->get_cart_contents_count());
+    }
+    bw_mew_wallet_debug_log('return_router', array(
+        'gateway_id'      => (string) $payment_method,
+        'order_id'        => (int) $order_id,
+        'order_status'    => (string) $order->get_status(),
+        'redirect_status' => (string) $redirect_status,
+        'is_paid'         => (bool) $order->is_paid(),
+        'is_cart_empty'   => (bool) $is_cart_empty,
+    ));
 
     // If payment is already confirmed by webhook, allow normal thank-you flow.
     if ($order->is_paid()) {
