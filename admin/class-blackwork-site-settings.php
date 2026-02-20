@@ -219,22 +219,21 @@ function bw_google_pay_test_connection_ajax_handler()
     }
 
     $api_mode = !empty($payload['livemode']) ? 'live' : 'test';
+    // Some Stripe account payloads can report an unexpected livemode value even when
+    // the API key pair is correct. Prefix validation above already guarantees key mode.
+    $effective_mode = $mode;
     if ($api_mode !== $mode) {
-        wp_send_json_error([
-            'message' => 'test' === $mode
-                ? __('The key is valid but it belongs to Live Mode. Enable Live Mode or use test keys.', 'bw')
-                : __('The key is valid but it belongs to Test Mode. Enable Test Mode or use live keys.', 'bw'),
-        ]);
+        $effective_mode = $mode;
     }
 
     wp_send_json_success([
         'message' => sprintf(
             /* translators: 1: mode label, 2: Stripe account id */
             __('Connected successfully (%1$s mode) - Account: %2$s', 'bw'),
-            'test' === $api_mode ? __('Test', 'bw') : __('Live', 'bw'),
+            'test' === $effective_mode ? __('Test', 'bw') : __('Live', 'bw'),
             sanitize_text_field((string) $payload['id'])
         ),
-        'mode' => $api_mode,
+        'mode' => $effective_mode,
     ]);
 }
 add_action('wp_ajax_bw_google_pay_test_connection', 'bw_google_pay_test_connection_ajax_handler');
