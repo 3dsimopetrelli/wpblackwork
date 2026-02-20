@@ -1165,6 +1165,31 @@ body.woocommerce-checkout .bw-sr-only {
 	margin: 0 auto;
 }
 
+.bw-klarna-info {
+	padding: 28px 20px;
+	text-align: center;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.bw-klarna-info__text {
+	font-size: 18px;
+	line-height: 1.45;
+	letter-spacing: -0.4px;
+	color: #1a1a1a;
+	max-width: 680px;
+	margin: 0 auto;
+}
+
+.bw-klarna-info__text--error {
+	color: #9f1d1d;
+	background: #fff3f3;
+	border: 1px solid #f1b7b7;
+	border-radius: 10px;
+	padding: 14px 16px;
+}
+
 #bw-google-pay-button-wrapper {
 	width: 100%;
 	margin-top: 10px;

@@ -104,7 +104,7 @@ if (!wp_doing_ajax()) {
 									$is_paypal_desc = (strpos($gateway_id, 'paypal') !== false ||
 										strpos($gateway_id, 'ppcp') !== false);
 
-									if ($gateway->get_description() && !$is_paypal_desc && 'bw_google_pay' !== $gateway_id):
+									if ($gateway->get_description() && !$is_paypal_desc && 'bw_google_pay' !== $gateway_id && 'bw_klarna' !== $gateway_id):
 										?>
 										<div class="bw-payment-method__description">
 											<?php echo wp_kses_post(wpautop(wptexturize($gateway->get_description()))); ?>
@@ -137,6 +137,7 @@ if (!wp_doing_ajax()) {
 									$is_google_pay     = (strpos($gateway_id, 'google') !== false ||
 										strpos($gateway_id, 'googlepay') !== false);
 									$is_bw_google_pay  = ('bw_google_pay' === $gateway_id);
+									$is_bw_klarna      = ('bw_klarna' === $gateway_id);
 
 									if ($is_classic_paypal):
 										?>
@@ -176,6 +177,26 @@ if (!wp_doing_ajax()) {
 											</p>
 										</div>
 										<?php
+									elseif ($is_bw_klarna):
+										$bw_klarna_enabled = ('1' === get_option('bw_klarna_enabled', '0'));
+										$klarna_pk         = (string) get_option('bw_klarna_publishable_key', '');
+										$klarna_sk         = (string) get_option('bw_klarna_secret_key', '');
+										$klarna_wc_settings = get_option('woocommerce_bw_klarna_settings', array());
+										$klarna_wc_enabled  = isset($klarna_wc_settings['enabled']) && 'yes' === $klarna_wc_settings['enabled'];
+										$klarna_ready       = ($bw_klarna_enabled && $klarna_wc_enabled && '' !== $klarna_pk && '' !== $klarna_sk);
+										?>
+										<div class="bw-klarna-info">
+											<p class="bw-klarna-info__text<?php echo $klarna_ready ? '' : ' bw-klarna-info__text--error'; ?>">
+												<?php
+												echo esc_html(
+													$klarna_ready
+														? 'You\'ll be redirected to Klarna - Flexible payments to complete your purchase.'
+														: 'Klarna is not configured. Activate Klarna (BlackWork) in WooCommerce > Settings > Payments.'
+												);
+												?>
+											</p>
+										</div>
+										<?php
 									endif;
 									?>
 								</div>
@@ -205,6 +226,26 @@ if (!wp_doing_ajax()) {
 											</svg>
 											<p class="bw-google-pay-info__text">
 												<?php echo esc_html('After clicking "Google Pay", you will be redirected to Google Pay to complete your purchase securely.'); ?>
+											</p>
+										</div>
+										<?php
+									elseif ('bw_klarna' === $gateway_id):
+										$bw_klarna_enabled = ('1' === get_option('bw_klarna_enabled', '0'));
+										$klarna_pk         = (string) get_option('bw_klarna_publishable_key', '');
+										$klarna_sk         = (string) get_option('bw_klarna_secret_key', '');
+										$klarna_wc_settings = get_option('woocommerce_bw_klarna_settings', array());
+										$klarna_wc_enabled  = isset($klarna_wc_settings['enabled']) && 'yes' === $klarna_wc_settings['enabled'];
+										$klarna_ready       = ($bw_klarna_enabled && $klarna_wc_enabled && '' !== $klarna_pk && '' !== $klarna_sk);
+										?>
+										<div class="bw-klarna-info">
+											<p class="bw-klarna-info__text<?php echo $klarna_ready ? '' : ' bw-klarna-info__text--error'; ?>">
+												<?php
+												echo esc_html(
+													$klarna_ready
+														? 'You\'ll be redirected to Klarna - Flexible payments to complete your purchase.'
+														: 'Klarna is not configured. Activate Klarna (BlackWork) in WooCommerce > Settings > Payments.'
+												);
+												?>
 											</p>
 										</div>
 										<?php
