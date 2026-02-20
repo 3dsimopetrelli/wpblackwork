@@ -676,6 +676,45 @@ function bw_mew_prevent_order_received_cache()
 add_action('template_redirect', 'bw_mew_prevent_order_received_cache', 1);
 
 /**
+ * Redirect Klarna failed/canceled returns away from order-received to checkout pay page.
+ */
+function bw_mew_handle_klarna_failed_return_redirect()
+{
+    if (!function_exists('is_wc_endpoint_url') || !is_wc_endpoint_url('order-received')) {
+        return;
+    }
+
+    $redirect_status = isset($_GET['redirect_status']) // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        ? sanitize_text_field(wp_unslash($_GET['redirect_status'])) // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        : '';
+    if ('failed' !== $redirect_status && 'canceled' !== $redirect_status) {
+        return;
+    }
+
+    $order_id = absint(get_query_var('order-received'));
+    if ($order_id <= 0 && isset($_GET['order-received'])) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        $order_id = absint(wp_unslash($_GET['order-received'])); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+    }
+    if ($order_id <= 0) {
+        return;
+    }
+
+    $order = wc_get_order($order_id);
+    if (!$order || 'bw_klarna' !== $order->get_payment_method()) {
+        return;
+    }
+
+    wc_add_notice(
+        __('Klarna payment was canceled or failed. Please choose another payment method or try again.', 'bw'),
+        'error'
+    );
+
+    wp_safe_redirect($order->get_checkout_payment_url());
+    exit;
+}
+add_action('template_redirect', 'bw_mew_handle_klarna_failed_return_redirect', 2);
+
+/**
  * Add a specific body class and hide theme wrappers on the custom login page.
  */
 function bw_mew_prepare_account_page_layout()
