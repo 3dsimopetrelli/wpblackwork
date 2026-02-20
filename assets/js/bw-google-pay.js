@@ -318,7 +318,7 @@
                 $('#bw-google-pay-button-wrapper').hide();
 
                 var p = document.createElement('p');
-                p.style.cssText = 'font-size:13px;color:#666;margin:10px 0;';
+                p.style.cssText = 'font-size:13px;color:#666;margin:16px auto 10px auto;text-align:center;max-width:640px;display:block;';
                 p.textContent   = 'Google Pay non è disponibile su questo dispositivo/browser o account.';
 
                 var placeholder = document.getElementById('bw-google-pay-accordion-placeholder');
