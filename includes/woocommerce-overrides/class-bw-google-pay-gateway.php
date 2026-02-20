@@ -27,6 +27,9 @@ class BW_Google_Pay_Gateway extends WC_Payment_Gateway {
 	/** @var string */
 	private $webhook_secret;
 
+	/** @var string */
+	private $log_source = 'bw-google-pay';
+
 	/**
 	 * Constructor
 	 */
@@ -113,6 +116,11 @@ class BW_Google_Pay_Gateway extends WC_Payment_Gateway {
 			return;
 		}
 
+		if ( $order->get_payment_method() && $this->id !== $order->get_payment_method() ) {
+			wc_add_notice( __( 'Metodo di pagamento non valido per questo ordine.', 'bw' ), 'error' );
+			return;
+		}
+
 		// Retrieve the Stripe PaymentMethod ID injected by the frontend.
 		$payment_method_id = isset( $_POST['bw_google_pay_method_id'] ) // phpcs:ignore WordPress.Security.NonceVerification.Missing
 			? sanitize_text_field( wp_unslash( $_POST['bw_google_pay_method_id'] ) ) // phpcs:ignore WordPress.Security.NonceVerification.Missing
@@ -132,6 +140,10 @@ class BW_Google_Pay_Gateway extends WC_Payment_Gateway {
 		// Build the PaymentIntent payload.
 		$amount   = (int) round( $order->get_total() * 100 );
 		$currency = strtolower( get_woocommerce_currency() );
+		if ( $amount <= 0 ) {
+			wc_add_notice( __( 'Questo ordine non richiede un pagamento Google Pay.', 'bw' ), 'error' );
+			return;
+		}
 
 		$pi_body = array(
 			'amount'                    => $amount,
@@ -140,7 +152,9 @@ class BW_Google_Pay_Gateway extends WC_Payment_Gateway {
 			'payment_method_types[]'    => 'card',
 			'confirm'                   => 'true',
 			'return_url'                => $this->get_return_url( $order ),
+			'metadata[wc_order_id]'     => $order_id,
 			'metadata[order_id]'        => $order_id,
+			'metadata[bw_gateway]'      => $this->id,
 			'metadata[site_url]'        => home_url(),
 			'metadata[mode]'            => $this->test_mode ? 'test' : 'live',
 		);
@@ -156,6 +170,7 @@ class BW_Google_Pay_Gateway extends WC_Payment_Gateway {
 					'Authorization' => 'Bearer ' . $this->secret_key,
 					'Content-Type'  => 'application/x-www-form-urlencoded',
 					'Stripe-Version'=> '2023-10-16',
+					'Idempotency-Key' => 'bw_gpay_' . $order_id . '_' . md5( $payment_method_id ),
 				),
 				'body'    => $pi_body,
 				'timeout' => 30,
@@ -167,12 +182,27 @@ class BW_Google_Pay_Gateway extends WC_Payment_Gateway {
 			wc_add_notice( __( 'Errore di connessione durante il pagamento. Riprova.', 'bw' ), 'error' );
 			wc_get_logger()->error(
 				'Google Pay: connessione Stripe fallita: ' . $response->get_error_message(),
-				array( 'source' => 'bw-google-pay' )
+				array( 'source' => $this->log_source )
 			);
 			return;
 		}
 
+		$http_code = (int) wp_remote_retrieve_response_code( $response );
+
 		$data = json_decode( wp_remote_retrieve_body( $response ), true );
+
+		if ( $http_code < 200 || $http_code >= 300 ) {
+			$error_msg = __( 'Stripe rejected the payment request. Please try again.', 'bw' );
+			if ( is_array( $data ) && isset( $data['error']['message'] ) ) {
+				$error_msg = sanitize_text_field( (string) $data['error']['message'] );
+			}
+			wc_add_notice( $error_msg, 'error' );
+			wc_get_logger()->error(
+				sprintf( 'Google Pay: Stripe HTTP %d - %s', $http_code, $error_msg ),
+				array( 'source' => $this->log_source, 'order_id' => $order_id )
+			);
+			return;
+		}
 
 		if ( ! is_array( $data ) ) {
 			wc_add_notice( __( 'Risposta non valida da Stripe. Riprova.', 'bw' ), 'error' );
@@ -186,13 +216,21 @@ class BW_Google_Pay_Gateway extends WC_Payment_Gateway {
 			wc_add_notice( $error_msg, 'error' );
 			wc_get_logger()->error(
 				sprintf( 'Google Pay: errore Stripe [%s]: %s', $error_code, $error_msg ),
-				array( 'source' => 'bw-google-pay' )
+				array( 'source' => $this->log_source, 'order_id' => $order_id )
 			);
 			return;
 		}
 
 		$pi_id  = $data['id'] ?? '';
 		$status = $data['status'] ?? '';
+
+		if ( ! empty( $pi_id ) ) {
+			$order->update_meta_data( '_bw_gpay_pi_id', sanitize_text_field( $pi_id ) );
+			$order->update_meta_data( '_bw_gpay_mode', $this->test_mode ? 'test' : 'live' );
+			$order->update_meta_data( '_bw_gpay_pm_id', sanitize_text_field( $payment_method_id ) );
+			$order->update_meta_data( '_bw_gpay_created_at', time() );
+			$order->save();
+		}
 
 		switch ( $status ) {
 
@@ -239,11 +277,24 @@ class BW_Google_Pay_Gateway extends WC_Payment_Gateway {
 					'redirect' => $this->get_return_url( $order ),
 				);
 
+			case 'requires_payment_method':
+			case 'canceled':
+				$err_msg = __( 'Google Pay was not completed. Please try again.', 'bw' );
+				if ( isset( $data['last_payment_error']['message'] ) ) {
+					$err_msg = sanitize_text_field( (string) $data['last_payment_error']['message'] );
+				}
+				wc_add_notice( $err_msg, 'error' );
+				wc_get_logger()->warning(
+					sprintf( 'Google Pay: PaymentIntent status "%s" [PI: %s]', $status, $pi_id ),
+					array( 'source' => $this->log_source, 'order_id' => $order_id )
+				);
+				return;
+
 			default:
 				wc_add_notice( __( 'Il pagamento non è andato a buon fine. Riprova.', 'bw' ), 'error' );
 				wc_get_logger()->error(
 					sprintf( 'Google Pay: stato PaymentIntent inatteso "%s" [PI: %s]', $status, $pi_id ),
-					array( 'source' => 'bw-google-pay' )
+					array( 'source' => $this->log_source, 'order_id' => $order_id )
 				);
 				return;
 		}
@@ -261,55 +312,150 @@ class BW_Google_Pay_Gateway extends WC_Payment_Gateway {
 		$sig_header = isset( $_SERVER['HTTP_STRIPE_SIGNATURE'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_STRIPE_SIGNATURE'] ) ) : '';
 
 		if ( empty( $this->webhook_secret ) ) {
-			wc_get_logger()->warning( 'Google Pay Webhook: nessuna chiave webhook configurata.', array( 'source' => 'bw-google-pay' ) );
+			wc_get_logger()->warning( 'Google Pay Webhook: nessuna chiave webhook configurata.', array( 'source' => $this->log_source ) );
 			status_header( 400 );
 			exit( 'No webhook secret configured.' );
 		}
 
 		if ( ! $this->verify_stripe_signature( $payload, $sig_header, $this->webhook_secret ) ) {
-			wc_get_logger()->error( 'Google Pay Webhook: firma non valida.', array( 'source' => 'bw-google-pay' ) );
+			wc_get_logger()->error( 'Google Pay Webhook: firma non valida.', array( 'source' => $this->log_source ) );
 			status_header( 400 );
 			exit( 'Invalid signature.' );
 		}
 
 		$event = json_decode( $payload, true );
+		if ( ! is_array( $event ) ) {
+			status_header( 400 );
+			exit( 'Invalid payload.' );
+		}
+
+		$event_id = isset( $event['id'] ) ? sanitize_text_field( (string) $event['id'] ) : '';
 		$type  = $event['type'] ?? '';
 		$pi    = $event['data']['object'] ?? array();
+		$pi_id = isset( $pi['id'] ) ? sanitize_text_field( (string) $pi['id'] ) : '';
+
+		$order_id = 0;
+		if ( isset( $pi['metadata']['wc_order_id'] ) ) {
+			$order_id = (int) $pi['metadata']['wc_order_id'];
+		} elseif ( isset( $pi['metadata']['order_id'] ) ) {
+			$order_id = (int) $pi['metadata']['order_id'];
+		}
+
+		if ( ! $order_id ) {
+			$this->respond_ok();
+		}
+
+		$order = wc_get_order( $order_id );
+		if ( ! $order ) {
+			$this->respond_ok();
+		}
+
+		// Anti-conflict: only handle events for this gateway.
+		if ( $this->id !== $order->get_payment_method() ) {
+			$this->respond_ok();
+		}
+
+		// Optional metadata hardening: if present and different, ignore.
+		if ( isset( $pi['metadata']['bw_gateway'] ) && $this->id !== $pi['metadata']['bw_gateway'] ) {
+			$this->respond_ok();
+		}
+
+		$saved_pi_id = (string) $order->get_meta( '_bw_gpay_pi_id', true );
+		if ( ! empty( $saved_pi_id ) && ! empty( $pi_id ) && $saved_pi_id !== $pi_id ) {
+			wc_get_logger()->warning(
+				sprintf( 'Google Pay Webhook: PI mismatch for order %d (saved=%s incoming=%s).', $order_id, $saved_pi_id, $pi_id ),
+				array( 'source' => $this->log_source, 'event_id' => $event_id )
+			);
+			$this->respond_ok();
+		}
+
+		// Idempotency: ignore already processed events.
+		if ( ! empty( $event_id ) && $this->is_event_processed( $order, $event_id ) ) {
+			$this->respond_ok();
+		}
 
 		switch ( $type ) {
 
 			case 'payment_intent.succeeded':
-				$order_id = $pi['metadata']['order_id'] ?? 0;
-				$pi_id    = $pi['id'] ?? '';
-				if ( $order_id ) {
-					$order = wc_get_order( (int) $order_id );
-					if ( $order && ! $order->is_paid() ) {
-						$order->payment_complete( $pi_id );
-						$order->add_order_note(
-							sprintf( __( 'Pagamento confermato via Stripe Webhook. PaymentIntent: %s', 'bw' ), $pi_id )
-						);
-					}
+				if ( ! $order->is_paid() ) {
+					$order->payment_complete( $pi_id );
+					$order->add_order_note(
+						sprintf( __( 'Pagamento confermato via Stripe Webhook. PaymentIntent: %s', 'bw' ), $pi_id )
+					);
 				}
 				break;
 
 			case 'payment_intent.payment_failed':
-				$order_id  = $pi['metadata']['order_id'] ?? 0;
-				$pi_id     = $pi['id'] ?? '';
 				$err_msg   = $pi['last_payment_error']['message'] ?? 'unknown';
-				if ( $order_id ) {
-					$order = wc_get_order( (int) $order_id );
-					if ( $order ) {
-						$order->update_status(
-							'failed',
-							sprintf( __( 'Pagamento fallito via Stripe Webhook. PI: %s — %s', 'bw' ), $pi_id, sanitize_text_field( $err_msg ) )
-						);
-					}
+
+				if ( $order->is_paid() ) {
+					break;
+				}
+
+				if ( 'failed' !== $order->get_status() ) {
+					$order->update_status(
+						'failed',
+						sprintf( __( 'Pagamento fallito via Stripe Webhook. PI: %s — %s', 'bw' ), $pi_id, sanitize_text_field( $err_msg ) )
+					);
 				}
 				break;
 		}
 
+		if ( ! empty( $event_id ) ) {
+			$this->mark_event_processed( $order, $event_id );
+		}
+
 		status_header( 200 );
 		exit( 'OK' );
+	}
+
+	/**
+	 * Check whether this Stripe event was already processed for the order.
+	 *
+	 * @param WC_Order $order    WooCommerce order.
+	 * @param string   $event_id Stripe event id.
+	 * @return bool
+	 */
+	private function is_event_processed( WC_Order $order, $event_id ) {
+		$processed = $order->get_meta( '_bw_gpay_processed_events', true );
+		if ( ! is_array( $processed ) ) {
+			return false;
+		}
+		return in_array( $event_id, $processed, true );
+	}
+
+	/**
+	 * Mark Stripe event as processed and keep a rolling history.
+	 *
+	 * @param WC_Order $order    WooCommerce order.
+	 * @param string   $event_id Stripe event id.
+	 * @return void
+	 */
+	private function mark_event_processed( WC_Order $order, $event_id ) {
+		$processed = $order->get_meta( '_bw_gpay_processed_events', true );
+		if ( ! is_array( $processed ) ) {
+			$processed = array();
+		}
+
+		$processed[] = $event_id;
+		$processed = array_values( array_unique( $processed ) );
+		if ( count( $processed ) > 20 ) {
+			$processed = array_slice( $processed, -20 );
+		}
+
+		$order->update_meta_data( '_bw_gpay_processed_events', $processed );
+		$order->save();
+	}
+
+	/**
+	 * Return HTTP 200 quickly for ignorable webhooks.
+	 *
+	 * @param string $message Optional response body.
+	 * @return void
+	 */
+	private function respond_ok( $message = 'OK' ) {
+		status_header( 200 );
+		exit( $message );
 	}
 
 	/**
@@ -329,6 +475,7 @@ class BW_Google_Pay_Gateway extends WC_Payment_Gateway {
 		$signatures = array();
 
 		foreach ( explode( ',', $sig_header ) as $part ) {
+			$part = trim( $part );
 			if ( strpos( $part, 't=' ) === 0 ) {
 				$timestamp = substr( $part, 2 );
 			} elseif ( strpos( $part, 'v1=' ) === 0 ) {

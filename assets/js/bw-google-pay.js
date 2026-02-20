@@ -251,6 +251,27 @@
     }
 
     /**
+     * Disable Google Pay radio and fallback to another method if selected.
+     */
+    function disableGooglePaySelection() {
+        var $gpayInput = $('input[name="payment_method"][value="bw_google_pay"]');
+        if (!$gpayInput.length) {
+            return;
+        }
+
+        $gpayInput.prop('disabled', true).attr('aria-disabled', 'true');
+
+        if ($gpayInput.is(':checked')) {
+            var $fallback = $('input[name="payment_method"]').not('[value="bw_google_pay"]').not(':disabled').first();
+            if ($fallback.length) {
+                $fallback.prop('checked', true).trigger('change');
+                $(document.body).trigger('payment_method_selected');
+                $(document.body).trigger('update_checkout');
+            }
+        }
+    }
+
+    /**
      * Render a better UX for unavailable Google Pay cases.
      */
     function renderGooglePayUnavailableState() {
@@ -385,6 +406,7 @@
 
             if (googlePayAvailable) {
                 $('#bw-google-pay-accordion-placeholder').hide();
+                $('input[name="payment_method"][value="bw_google_pay"]').prop('disabled', false).removeAttr('aria-disabled');
                 handleButtonVisibility();
 
                 $(document).off('click.bwgpay', '#bw-google-pay-trigger')
@@ -400,12 +422,15 @@
                 BW_GOOGLE_PAY_DEBUG && console.log('[BW Google Pay] Non disponibile su questo dispositivo/browser.');
                 $('#bw-google-pay-button-wrapper').hide();
                 renderGooglePayUnavailableState();
+                disableGooglePaySelection();
 
                 handleButtonVisibility();
             }
         }).catch(function () {
             googlePayAvailable = false;
             googlePayState = 'unavailable';
+            renderGooglePayUnavailableState();
+            disableGooglePaySelection();
             handleButtonVisibility();
         });
 
