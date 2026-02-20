@@ -1,6 +1,6 @@
 # Custom Navigation MD
 
-## Scope analizzato
+## Scope analizzato (stato attuale)
 
 File principali della custom navigation (header module):
 
@@ -39,34 +39,36 @@ Documentazione correlata:
 6. `includes/modules/header/assets/js/bw-navigation.js` gestisce open/close overlay mobile (toggle, close button, ESC, overlay click, click su link).
 7. `includes/modules/header/assets/js/header-init.js` gestisce stato mobile/desktop, sticky/smart scroll, classe `is-mobile`, riordino DOM header in `body`.
 
-## Desktop navigation flow
+## Flusso desktop
 
 ### Rendering
 
 - In `includes/modules/header/frontend/header-render.php`:
-  - `desktop_menu_id` obbligatorio; se non impostato/non valido, header non renderizza.
-  - menu HTML generato da `bw_header_render_menu(...)`.
+  - i blocchi `navigation/search/navshop` vengono renderizzati in base ai feature flag.
+  - fallback compatibilità: se i 3 flag risultano tutti spenti per salvataggi legacy, vengono riattivati runtime.
+  - `desktop_menu_id` usato per generare HTML desktop.
 - In `includes/modules/header/templates/header.php`:
-  - desktop nav renderizzata dentro:
-    - `<nav class="bw-navigation__desktop bw-custom-header__desktop-menu">`
-  - menu desktop stampato come `$desktop_menu_html`.
+  - blocco desktop nav dentro `<nav class="bw-navigation__desktop bw-custom-header__desktop-menu">`.
+  - search/navshop condizionali ai relativi flag.
 
 ### Menu generation
 
 - In `includes/modules/header/helpers/menu.php`:
-  - `wp_nav_menu` con `depth => 1` (niente submenu nativi nel modulo custom).
+  - `wp_nav_menu` con `depth => 2` (submenu nativi abilitati).
   - filtro `nav_menu_link_attributes` aggiunge classe `bw-navigation__link` a tutti gli anchor.
 
 ### Styling desktop
 
 - `includes/modules/header/assets/css/bw-navigation.css`:
   - lista desktop in inline-flex con gap fisso.
-  - link con font-size 24 e line-height 1.
+  - freccia su voci parent (`.menu-item-has-children > .bw-navigation__link::after`).
+  - dropdown submenu desktop (`.sub-menu`) con apertura hover/focus.
+  - hover bridge invisibile (`.sub-menu::before`) per evitare chiusura del dropdown nel passaggio mouse tra parent e submenu.
 - `includes/modules/header/assets/css/header-layout.css`:
   - layout desktop a tre aree (logo, centro menu+search, destra account/cart).
   - colori hover e tipografia uniformati con navshop/search.
 
-## Mobile navigation flow
+## Flusso mobile
 
 ### Rendering e fallback menu
 
@@ -97,6 +99,7 @@ Documentazione correlata:
     - click su backdrop
     - ESC
     - click su link del menu mobile
+  - non esiste un toggle JS dedicato per aprire/chiudere submenu in mobile: i submenu vengono visualizzati come lista annidata (sempre visibile nel pannello).
 
 ### Styling mobile
 
@@ -104,6 +107,8 @@ Documentazione correlata:
   - overlay full-screen fixed con fade.
   - panel slide-in da sinistra.
   - animazione ingresso item con stagger.
+  - close button accessibile con `:focus-visible`.
+  - submenu mobile annidato con indentazione (`.bw-navigation__mobile .sub-menu`).
   - `@media (max-width: 769px)` forza panel full-width.
 - `includes/modules/header/frontend/assets.php` (inline CSS):
   - breakpoint amministrabile (`breakpoints.mobile`).
@@ -130,6 +135,7 @@ Sanitizzazione in `includes/modules/header/admin/settings-schema.php`:
 
 - clamp numerici coerenti (breakpoint, padding, margini, badge).
 - fallback mobile menu a desktop in sanitize finale.
+- preserva i feature flag `search/navigation/navshop` anche quando non inviati dal form (compatibilità con form legacy).
 
 ## Integrazione con Search/NavShop (impatto sul flusso nav)
 
@@ -139,27 +145,62 @@ Sanitizzazione in `includes/modules/header/admin/settings-schema.php`:
 
 Questo influisce sulla UX navigation mobile perché il drawer convive con icone azione nello stesso header.
 
-## Criticita e osservazioni tecniche
+## CSS Glass/Blur (gradazione effetto blur)
 
-1. Feature flags non applicate nel render
-- `features.search`, `features.navigation`, `features.navshop` sono sanitizzate in `settings-schema.php`, ma non sono usate nel template/render.
-- Effetto: anche disattivandole a livello settings, i blocchi restano renderizzati.
+Logica principale in `includes/modules/header/frontend/assets.php`:
 
-2. Accessibilita focus close button
-- `bw-navigation__close` ha stile hover, ma non una regola `:focus-visible` dedicata come il toggle.
-- Opportuno aggiungere focus ring esplicito anche sul bottone chiusura.
+- Parametri admin:
+  - `menu_blur_enabled`
+  - `menu_blur_amount` (px)
+  - `menu_blur_radius` (px)
+  - `menu_blur_tint_color` + `menu_blur_tint_opacity`
+  - `menu_blur_scrolled_tint_color` + `menu_blur_scrolled_tint_opacity`
+  - `menu_blur_padding_*`
+- Conversione colore+tinta in RGBA via `bw_header_hex_to_rgba(...)`.
 
-3. Overlay singleton per istanza
-- La logica JS supporta piu `.bw-navigation` ma sposta ogni overlay nel `body`.
-- Funziona, ma in scenari con header duplicati può produrre overlay multipli nel DOM.
+CSS inline generato (desktop):
 
-4. `:has()` in inline CSS mobile
-- In `assets.php` viene usato `:has()` per margine cart empty/non-empty.
-- Compatibilità oggi buona nei browser moderni, ma resta un selettore avanzato con rischio su ambienti legacy.
+```css
+.bw-custom-header__desktop-panel.is-blur-enabled {
+  -webkit-backdrop-filter: blur(<amount>px);
+  backdrop-filter: blur(<amount>px) !important;
+  background-color: rgba(..., <tint_opacity>) !important;
+  padding: <top>px <right>px <bottom>px <left>px !important;
+  border-radius: <radius>px !important;
+}
 
-5. Depth menu hardcoded a 1
-- `bw_header_render_menu(... depth => 1)` blocca menu annidati.
-- Se serve navigation gerarchica mobile, serve estensione specifica (toggle submenu, aria-controls, keyboard handling).
+.bw-custom-header.bw-header-scrolled .bw-custom-header__desktop-panel.is-blur-enabled {
+  background-color: rgba(..., <scrolled_tint_opacity>) !important;
+}
+```
+
+CSS inline generato (mobile):
+
+```css
+.bw-custom-header__mobile-panel.is-blur-enabled {
+  -webkit-backdrop-filter: blur(<amount>px);
+  backdrop-filter: blur(<amount>px) !important;
+  background-color: rgba(..., <tint_opacity>) !important;
+  padding: <mobile_blur_v>px <mobile_blur_h>px !important;
+  border-radius: <radius>px !important;
+}
+
+.bw-custom-header.bw-header-scrolled .bw-custom-header__mobile-panel.is-blur-enabled {
+  background-color: rgba(..., <scrolled_tint_opacity>) !important;
+}
+```
+
+Note gradazione:
+
+- La “gradazione glass” è data dalla combinazione:
+  - blur fisico (`backdrop-filter`)
+  - tinta RGBA sopra il blur (normale vs scrolled)
+- In stato `scrolled` la tinta può diventare più/meno intensa in base ai valori `*_scrolled_*`.
+- Se blur è disabilitato, `assets.php` forza reset:
+  - `backdrop-filter: none`
+  - `background: transparent`
+  - `padding: 0`
+  - `border-radius: 0`
 
 ## Checklist verifica desktop/mobile
 
@@ -167,6 +208,7 @@ Desktop:
 
 - menu desktop visibile e mobile hidden oltre breakpoint.
 - hover/focus link navigation.
+- dropdown submenu desktop raggiungibile senza chiusura prematura (hover bridge).
 - badge cart desktop in posizione coerente con offset admin.
 - smart scroll: hide/show senza flicker.
 
@@ -178,18 +220,9 @@ Mobile:
 - item animation stagger regolare.
 - login/account link finale presente e corretto.
 - fallback menu mobile -> desktop quando mobile non configurato.
+- close button navigabile con tastiera e focus visibile.
+- submenu annidati leggibili nel pannello mobile.
 
 ## Conclusione
 
-La custom navigation è strutturalmente solida e separata per desktop/mobile con fallback robusti e comportamento JS completo sul drawer. Il principale gap funzionale è la mancata applicazione dei flag `features.*` nel rendering effettivo, mentre il resto riguarda miglioramenti mirati (focus accessibility, gestione scenari multi-istanza, supporto submenu).
-
-## Update applicato
-
-Migliorie implementate nel codice:
-
-- `features.navigation/search/navshop` ora applicate davvero nel rendering frontend.
-- Aggiunti checkbox admin per gestire i tre blocchi feature direttamente da pannello Header.
-- Supporto dropdown menu (depth 2) con stile minimal desktop + freccia elegante su voci parent.
-- Drawer mobile con toggle submenu dedicato (freccia, apertura/chiusura animata, reset allo shutdown del drawer).
-- Focus accessibility aggiunto su bottone close del menu mobile.
-- Stabilizzato id submenu mobile per istanze multiple (`bw-nav-...-submenu-...`).
+La custom navigation è ora documentata in modo coerente con lo stato reale: feature flag applicati con fallback compatibilità, submenu desktop nativi (depth 2), accessibilità focus su close mobile, e dettaglio completo del sistema blur/glass con gradazione tinta normale/scrolled.
