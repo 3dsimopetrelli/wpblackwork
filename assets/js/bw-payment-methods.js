@@ -161,25 +161,28 @@
         }
     });
 
-    // Entire payment-method header is clickable (except radio/label themselves).
+    // Entire payment-method header is clickable (except direct radio click).
     document.addEventListener('click', function (event) {
         var header = event.target.closest('.bw-payment-method__header');
         if (!header) {
             return;
         }
 
-        // Skip if the click landed directly on the radio or its label — the
-        // browser will fire the `change` event for those automatically.
-        if (event.target.type === 'radio' ||
-            event.target.classList.contains('bw-payment-method__label') ||
-            event.target.closest('.bw-payment-method__label')) {
+        // Let native radio click behavior pass through.
+        if (event.target.type === 'radio') {
             return;
         }
 
         var radio = header.querySelector('input[type="radio"]');
-        if (radio && !radio.checked) {
-            radio.checked = true;
-            handlePaymentMethodChange(radio);
+        if (radio) {
+            event.preventDefault();
+            if (!radio.checked) {
+                radio.checked = true;
+                radio.dispatchEvent(new Event('change', { bubbles: true }));
+            } else {
+                // Keep state synced even when clicking an already selected row.
+                handlePaymentMethodChange(radio);
+            }
         }
     });
 
