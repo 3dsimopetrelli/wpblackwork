@@ -1327,6 +1327,35 @@ body.woocommerce-checkout .bw-apple-pay-unavailable__text--error {
 	color: #9f1d1d;
 }
 
+body.woocommerce-checkout .bw-apple-pay-init-info {
+	max-width: 760px;
+	margin: 0 auto;
+	padding: 10px 16px 0;
+	text-align: center;
+}
+
+body.woocommerce-checkout .bw-apple-pay-init-info__title {
+	margin: 0 0 10px;
+	font-size: 28px;
+	line-height: 1.15;
+	letter-spacing: -0.5px;
+	font-weight: 700;
+	color: #111111;
+}
+
+body.woocommerce-checkout .bw-apple-pay-init-info__reason,
+body.woocommerce-checkout .bw-apple-pay-init-info__check {
+	margin: 0 0 8px;
+	font-size: 14px;
+	line-height: 1.45;
+	color: #4b5563;
+}
+
+body.woocommerce-checkout .bw-apple-pay-init-info__check {
+	font-weight: 600;
+	color: #2f3a4d;
+}
+
 body.woocommerce-checkout .bw-gpay-unavailable {
 	max-width: 720px;
 	margin: 0 auto;

@@ -74,7 +74,20 @@ class BW_Apple_Pay_Gateway extends BW_Abstract_Stripe_Gateway {
 				<?php elseif ( ! $pk_available ) : ?>
 					<p><?php esc_html_e( 'Apple Pay is not configured. Add a live publishable key in BlackWork > Checkout > Apple Pay.', 'bw' ); ?></p>
 				<?php else : ?>
-					<p><?php esc_html_e( 'Initializing Apple Pay…', 'bw' ); ?></p>
+					<div class="bw-apple-pay-init-info" role="status" aria-live="polite">
+						<p class="bw-apple-pay-init-info__title"><?php esc_html_e( 'Initializing Apple Pay…', 'bw' ); ?></p>
+						<p class="bw-apple-pay-init-info__reason">
+							<?php
+							esc_html_e(
+								'If this message persists, Apple Pay usually is not available on the current device/browser, the Apple Wallet has no supported card, or the domain is not fully verified for Apple Pay in Stripe.',
+								'bw'
+							);
+							?>
+						</p>
+						<p class="bw-apple-pay-init-info__check">
+							<?php esc_html_e( 'Check: Safari + Apple device, Wallet card configured, HTTPS active, Stripe Apple Pay domain verification completed.', 'bw' ); ?>
+						</p>
+					</div>
 				<?php endif; ?>
 			</div>
 		</div>
