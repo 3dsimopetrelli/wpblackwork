@@ -126,6 +126,7 @@
      * @param {string} reason Optional debug reason.
      */
     function bwSyncCheckoutActionButtons(reason) { // eslint-disable-line no-unused-vars
+        syncAccordionState();
         dedupeWalletDom();
 
         var selected = getSelectedPaymentMethod();
@@ -233,26 +234,11 @@
             return;
         }
 
-        // Deselect all.
-        paymentContainer.querySelectorAll('.bw-payment-method').forEach(function (method) {
-            method.classList.remove('is-selected');
-        });
-        paymentContainer.querySelectorAll('.bw-payment-method__content').forEach(function (box) {
-            box.classList.remove('is-open');
+        paymentContainer.querySelectorAll('input[name="payment_method"]').forEach(function (input) {
+            input.checked = input === radio;
         });
 
-        // Select the chosen method.
-        var selectedMethod = radio.closest('.bw-payment-method');
-        if (selectedMethod) {
-            selectedMethod.classList.add('is-selected');
-
-            var contentBox = selectedMethod.querySelector('.bw-payment-method__content');
-            if (contentBox) {
-                contentBox.classList.add('is-open');
-            }
-        }
-
-        updatePlaceOrderButton(radio);
+        syncAccordionState();
 
         // Notify WooCommerce.
         if (window.jQuery) {
@@ -467,6 +453,9 @@
     // -------------------------------------------------------------------------
 
     function init() {
+        if (!(window.CSS && CSS.supports && CSS.supports('selector(:has(*))'))) {
+            document.body.classList.add('bw-no-has-support');
+        }
         normalizeCardGatewayTitles();
         syncAccordionState();
         handleFormSubmission();
@@ -494,11 +483,13 @@
 
             $(document.body).off('payment_method_selected.bwWalletUi').on('payment_method_selected.bwWalletUi', function () {
                 normalizeCardGatewayTitles();
+                syncAccordionState();
                 bwScheduleSync('payment_method_selected');
             });
 
             $(document).off('change.bwWalletUi', 'input[name="payment_method"]').on('change.bwWalletUi', 'input[name="payment_method"]', function () {
                 normalizeCardGatewayTitles();
+                syncAccordionState();
                 bwScheduleSync('payment_method_change');
             });
 

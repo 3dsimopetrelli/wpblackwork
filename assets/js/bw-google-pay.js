@@ -275,7 +275,9 @@
         if ($gpayInput.is(':checked')) {
             var $fallback = $('input[name="payment_method"]').not('[value="bw_google_pay"]').not(':disabled').first();
             if ($fallback.length) {
-                $fallback.prop('checked', true).trigger('change');
+                var fallbackRadio = $fallback.get(0);
+                fallbackRadio.checked = true;
+                fallbackRadio.dispatchEvent(new Event('change', { bubbles: true }));
                 $(document.body).trigger('payment_method_selected');
                 $(document.body).trigger('update_checkout');
             }
@@ -415,7 +417,7 @@
                 // Google Pay is explicitly available on this device/browser.
                 BW_GOOGLE_PAY_DEBUG && console.log('[BW Google Pay] Google Pay disponibile:', result);
                 $('#bw-google-pay-accordion-placeholder').hide();
-                handleButtonVisibility();
+                syncGooglePayUiState();
 
                 $(document).off('click.bwgpay', '#bw-google-pay-trigger')
                            .on('click.bwgpay', '#bw-google-pay-trigger', function (e) {

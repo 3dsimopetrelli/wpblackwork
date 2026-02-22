@@ -185,7 +185,9 @@
             $appleInput.prop('checked', false);
             var $fallback = $('input[name="payment_method"]').not('[value="bw_apple_pay"]').filter(':enabled').first();
             if ($fallback.length) {
-                $fallback.prop('checked', true).trigger('change');
+                var fallbackRadio = $fallback.get(0);
+                fallbackRadio.checked = true;
+                fallbackRadio.dispatchEvent(new Event('change', { bubbles: true }));
             } else {
                 $(document.body).trigger('payment_method_selected');
             }

@@ -488,7 +488,7 @@ body.woocommerce-checkout .bw-payment-method__content.bw-stripe-loading {
 
 /* Panel State: Open (class-based fallback).
    Open only when parent is explicitly selected to avoid stale dual-open states. */
-body.woocommerce-checkout .bw-payment-method.is-selected > .bw-payment-method__content.is-open {
+body.woocommerce-checkout.bw-no-has-support .bw-payment-method.is-selected > .bw-payment-method__content.is-open {
 	max-height: 3000px !important;
 	border-top-color: #000;
 	overflow: visible !important;
@@ -519,7 +519,7 @@ body.woocommerce-checkout div#payment.woocommerce-checkout-payment .bw-payment-m
 	margin: 0;
 }
 
-body.woocommerce-checkout .bw-payment-method.is-selected > .bw-payment-method__content.is-open .bw-payment-method__inner {
+body.woocommerce-checkout.bw-no-has-support .bw-payment-method.is-selected > .bw-payment-method__content.is-open .bw-payment-method__inner {
 	opacity: 1;
 	transform: translateY(0);
 }
