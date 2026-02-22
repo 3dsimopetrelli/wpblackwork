@@ -325,6 +325,9 @@
     document.addEventListener('change', function (event) {
         var target = event.target;
         if (target.type === 'radio' && target.name === 'payment_method') {
+            if (target.disabled || target.getAttribute('data-bw-unavailable') === '1') {
+                return;
+            }
             handlePaymentMethodChange(target);
         }
     });
@@ -343,6 +346,11 @@
 
         var radio = header.querySelector('input[type="radio"]');
         if (radio) {
+            var isUnavailable = radio.disabled || radio.getAttribute('data-bw-unavailable') === '1';
+            if (isUnavailable) {
+                event.preventDefault();
+                return;
+            }
             event.preventDefault();
             if (!radio.checked) {
                 radio.checked = true;
@@ -363,6 +371,10 @@
                 event.preventDefault();
                 var radio = target.previousElementSibling;
                 if (radio && radio.type === 'radio') {
+                    var isUnavailable = radio.disabled || radio.getAttribute('data-bw-unavailable') === '1';
+                    if (isUnavailable) {
+                        return;
+                    }
                     radio.checked = true;
                     handlePaymentMethodChange(radio);
                 }
@@ -374,7 +386,9 @@
             var target = event.target;
             if (target.type === 'radio' && target.name === 'payment_method') {
                 event.preventDefault();
-                var allRadios    = Array.from(document.querySelectorAll('input[name="payment_method"]'));
+                var allRadios    = Array.from(document.querySelectorAll('input[name="payment_method"]')).filter(function (radio) {
+                    return !radio.disabled && radio.getAttribute('data-bw-unavailable') !== '1';
+                });
                 var currentIndex = allRadios.indexOf(target);
                 var nextIndex;
 
