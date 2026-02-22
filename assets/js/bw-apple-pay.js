@@ -133,19 +133,14 @@
             return;
         }
 
-        $appleInput.prop('disabled', true).attr('aria-disabled', 'true');
+        // Keep the method selectable so the whole accordion row remains
+        // consistently clickable. We only mark it unavailable.
+        $appleInput.prop('disabled', false).removeAttr('aria-disabled');
+        $appleInput.attr('data-bw-unavailable', '1');
+        $appleInput.closest('.bw-payment-method').attr('data-bw-unavailable', '1');
 
         if (withUnavailableMessage) {
             renderApplePayPlaceholder('Apple Pay is not available on this device/browser. Choose another payment method.', true);
-        }
-
-        if ($appleInput.is(':checked')) {
-            var $fallback = $('input[name="payment_method"]').not('[value="bw_apple_pay"]').not(':disabled').first();
-            if ($fallback.length) {
-                $fallback.prop('checked', true).trigger('change');
-                $(document.body).trigger('payment_method_selected');
-                $(document.body).trigger('update_checkout');
-            }
         }
     }
 
@@ -284,7 +279,12 @@
                 return;
             }
 
-            $('input[name="payment_method"][value="bw_apple_pay"]').prop('disabled', false).removeAttr('aria-disabled');
+            $('input[name="payment_method"][value="bw_apple_pay"]')
+                .prop('disabled', false)
+                .removeAttr('aria-disabled')
+                .removeAttr('data-bw-unavailable')
+                .closest('.bw-payment-method')
+                .removeAttr('data-bw-unavailable');
             renderApplePayPlaceholder('You\'ll be redirected to Apple Pay to complete your purchase.', false);
             ensureButton();
             showAppleButtonIfSelected();
