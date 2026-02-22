@@ -1351,6 +1351,11 @@ body.woocommerce-checkout .bw-apple-pay-init-info__check {
 	color: #4b5563;
 }
 
+body.woocommerce-checkout .bw-apple-pay-init-info__reason--error {
+	color: #9f1d1d;
+	font-weight: 700;
+}
+
 body.woocommerce-checkout .bw-apple-pay-init-info__check {
 	font-weight: 600;
 	color: #2f3a4d;

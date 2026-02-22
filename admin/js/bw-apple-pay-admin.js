@@ -54,6 +54,45 @@
         });
     }
 
+    function verifyDomain() {
+        var $button = $('#bw-apple-pay-verify-domain');
+        var $result = $('#bw-apple-pay-domain-result');
+
+        var secretKey = ($('#bw_apple_pay_secret_key').val() || '').trim();
+
+        setResultMessage($result, bwApplePayAdmin.testingDomainText || 'Checking domain…', 'is-testing');
+        $button.prop('disabled', true);
+
+        $.ajax({
+            url: ajaxurl,
+            type: 'POST',
+            dataType: 'json',
+            data: {
+                action: 'bw_apple_pay_verify_domain',
+                nonce: bwApplePayAdmin.nonce,
+                secret_key: secretKey
+            }
+        }).done(function (response) {
+            if (response && response.success) {
+                setResultMessage(
+                    $result,
+                    response.data && response.data.message ? response.data.message : (bwApplePayAdmin.domainOkText || 'Domain verified in Stripe.'),
+                    'is-success'
+                );
+            } else {
+                setResultMessage(
+                    $result,
+                    response && response.data && response.data.message ? response.data.message : (bwApplePayAdmin.domainErrorText || 'Domain verification failed.'),
+                    'is-error'
+                );
+            }
+        }).fail(function () {
+            setResultMessage($result, bwApplePayAdmin.domainErrorText || 'Domain verification failed.', 'is-error');
+        }).always(function () {
+            $button.prop('disabled', false);
+        });
+    }
+
     $(function () {
         if (!$('#bw-apple-pay-test-connection').length) {
             return;
@@ -61,5 +100,6 @@
 
         updateModePill();
         $('#bw-apple-pay-test-connection').on('click', testConnection);
+        $('#bw-apple-pay-verify-domain').on('click', verifyDomain);
     });
 })(jQuery);

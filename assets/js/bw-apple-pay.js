@@ -1,18 +1,50 @@
 (function ($) {
     'use strict';
 
-    function renderApplePayPlaceholder(message, isError) {
+    function escapeHtml(value) {
+        return String(value || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function getApplePayFailureHint(extraReason) {
+        var hint = 'Possible causes: Apple Pay is not supported on this browser/device, no eligible card is configured in Wallet, or the domain is not verified in Stripe.';
+        if (extraReason) {
+            hint += ' Technical detail: ' + extraReason;
+        }
+        return hint;
+    }
+
+    function renderApplePayPlaceholder(message, isError, reason, title) {
         var render = function () {
             var placeholder = document.getElementById('bw-apple-pay-accordion-placeholder');
             if (!placeholder) {
                 return;
             }
+            var safeMessage = escapeHtml(message);
+            var safeReason = reason ? escapeHtml(reason) : '';
+            var safeTitle = title ? escapeHtml(title) : '';
+
+            if (safeTitle || safeReason) {
+                var reasonClass = isError ? ' bw-apple-pay-init-info__reason--error' : '';
+                placeholder.innerHTML = '' +
+                    '<div class="bw-apple-pay-init-info" role="status" aria-live="polite">' +
+                        (safeTitle ? '<p class="bw-apple-pay-init-info__title">' + safeTitle + '</p>' : '') +
+                        '<p class="bw-apple-pay-init-info__reason' + reasonClass + '">' + safeMessage + '</p>' +
+                        (safeReason ? '<p class="bw-apple-pay-init-info__check">' + safeReason + '</p>' : '') +
+                    '</div>' +
+                '';
+                return;
+            }
+
             var klass = isError ? ' bw-apple-pay-unavailable__text--error' : '';
             placeholder.innerHTML = '' +
                 '<div class="bw-apple-pay-unavailable" role="status" aria-live="polite">' +
-                    '<p class="bw-apple-pay-unavailable__text' + klass + '">' + message + '</p>' +
-                '</div>' +
-            '';
+                    '<p class="bw-apple-pay-unavailable__text' + klass + '">' + safeMessage + '</p>' +
+                '</div>';
         };
 
         if (document.readyState === 'loading') {
@@ -25,12 +57,22 @@
     var BW_APPLE_PAY_DEBUG = window.BW_APPLE_PAY_DEBUG === true;
 
     if (typeof bwApplePayParams === 'undefined' || typeof Stripe === 'undefined') {
-        renderApplePayPlaceholder('Please refresh the page and try again, or choose another payment method.', true);
+        renderApplePayPlaceholder(
+            'Initializing Apple Pay failed.',
+            true,
+            getApplePayFailureHint('Stripe.js is missing or not loaded.'),
+            'Apple Pay initialization error'
+        );
         return;
     }
 
     if (!bwApplePayParams.publishableKey) {
-        renderApplePayPlaceholder('Apple Pay is not configured. Please choose another payment method.', true);
+        renderApplePayPlaceholder(
+            'Initializing Apple Pay failed.',
+            true,
+            getApplePayFailureHint('Missing live publishable key.'),
+            'Apple Pay initialization error'
+        );
         return;
     }
 
@@ -278,7 +320,12 @@
                 requestPayerPhone: true
             });
         } catch (err) {
-            renderApplePayPlaceholder('Unable to initialize Apple Pay on this device/browser.', true);
+            renderApplePayPlaceholder(
+                'Initializing Apple Pay failed.',
+                true,
+                getApplePayFailureHint(err && err.message ? err.message : ''),
+                'Apple Pay initialization error'
+            );
             disableApplePaySelection(false);
             return;
         }
@@ -290,7 +337,13 @@
             applePayState = applePayAvailable ? 'available' : 'unavailable';
 
             if (!applePayAvailable) {
-                disableApplePaySelection(true);
+                renderApplePayPlaceholder(
+                    'Apple Pay is not available on this device/browser.',
+                    true,
+                    getApplePayFailureHint('canMakePayment returned no applePay support.'),
+                    'Apple Pay unavailable'
+                );
+                disableApplePaySelection(false);
                 showAppleButtonIfSelected();
                 return;
             }
@@ -301,14 +354,23 @@
                 .removeAttr('data-bw-unavailable')
                 .closest('.bw-payment-method')
                 .removeAttr('data-bw-unavailable');
-            renderApplePayPlaceholder('You\'ll be redirected to Apple Pay to complete your purchase.', false);
+            renderApplePayPlaceholder(
+                'You\'ll be redirected to Apple Pay to complete your purchase.',
+                false
+            );
             ensureButton();
             showAppleButtonIfSelected();
         }).catch(function () {
             applePayAvailable = false;
             window.BW_APPLE_PAY_AVAILABLE = false;
             applePayState = 'unavailable';
-            disableApplePaySelection(true);
+            renderApplePayPlaceholder(
+                'Initializing Apple Pay failed.',
+                true,
+                getApplePayFailureHint('canMakePayment check failed unexpectedly.'),
+                'Apple Pay initialization error'
+            );
+            disableApplePaySelection(false);
             showAppleButtonIfSelected();
         });
 
