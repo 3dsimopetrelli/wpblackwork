@@ -41,6 +41,30 @@ function bw_mew_initialize_woocommerce_overrides()
         require_once $google_pay_file;
     }
 
+    $stripe_api_client_file = BW_MEW_PATH . 'includes/Stripe/class-bw-stripe-api-client.php';
+    if (file_exists($stripe_api_client_file)) {
+        require_once $stripe_api_client_file;
+    }
+
+    $stripe_abstract_gateway_file = BW_MEW_PATH . 'includes/Gateways/class-bw-abstract-stripe-gateway.php';
+    if (file_exists($stripe_abstract_gateway_file)) {
+        require_once $stripe_abstract_gateway_file;
+    }
+
+    if (!class_exists('BW_Klarna_Gateway')) {
+        $klarna_gateway_file = BW_MEW_PATH . 'includes/Gateways/class-bw-klarna-gateway.php';
+        if (file_exists($klarna_gateway_file)) {
+            require_once $klarna_gateway_file;
+        }
+    }
+
+    if (!class_exists('BW_Apple_Pay_Gateway')) {
+        $apple_pay_gateway_file = BW_MEW_PATH . 'includes/Gateways/class-bw-apple-pay-gateway.php';
+        if (file_exists($apple_pay_gateway_file)) {
+            require_once $apple_pay_gateway_file;
+        }
+    }
+
     add_filter('woocommerce_locate_template', 'bw_mew_locate_template', 1, 3);
     add_action('wp_enqueue_scripts', 'bw_mew_enqueue_related_products_assets', 30);
     add_action('wp_enqueue_scripts', 'bw_mew_enqueue_account_page_assets', 20);
