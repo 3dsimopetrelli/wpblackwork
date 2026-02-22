@@ -214,9 +214,13 @@
     function showAppleButtonIfSelected() {
         var selectedMethod = $('input[name="payment_method"]:checked').val();
         var $wrapper = $('#bw-apple-pay-button-wrapper');
+        var $appleMethod = $('.payment_method_bw_apple_pay');
+        var $appleContent = $appleMethod.find('.bw-payment-method__content');
         var isAppleMethod = selectedMethod === 'bw_apple_pay';
 
         if (isAppleMethod) {
+            $appleMethod.addClass('is-selected');
+            $appleContent.addClass('is-open').show();
             if (applePayState === 'available' && applePayAvailable) {
                 $wrapper.show();
                 $('#bw-apple-pay-accordion-placeholder').hide();
@@ -226,6 +230,8 @@
             }
             dedupeApplePayDom();
         } else {
+            $appleMethod.removeClass('is-selected');
+            $appleContent.removeClass('is-open').hide();
             $wrapper.hide();
         }
 
