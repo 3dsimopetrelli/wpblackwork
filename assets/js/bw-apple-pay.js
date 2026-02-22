@@ -205,6 +205,11 @@
         }
     }
 
+    function syncApplePayInfoVisibility() {
+        var shouldShow = applePayState === 'available' && applePayAvailable === true;
+        $('.payment_method_bw_apple_pay .bw-apple-pay-info').toggle(shouldShow);
+    }
+
     function showAppleButtonIfSelected() {
         var selectedMethod = $('input[name="payment_method"]:checked').val();
         var $wrapper = $('#bw-apple-pay-button-wrapper');
@@ -223,6 +228,7 @@
             $wrapper.hide();
         }
 
+        syncApplePayInfoVisibility();
         scheduleGlobalWalletSync('apple_ui');
     }
 
