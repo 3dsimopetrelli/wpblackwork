@@ -176,6 +176,13 @@
         observer.observe(paymentNode, { childList: true, subtree: true });
     }
 
+    function normalizeCardGatewayTitles() {
+        var stripeTitle = document.querySelector('.payment_method_stripe .bw-payment-method__title');
+        if (stripeTitle) {
+            stripeTitle.textContent = 'Credit / Debit Card';
+        }
+    }
+
     window.bwSyncCheckoutActionButtons = bwSyncCheckoutActionButtons;
     window.bwScheduleSyncCheckoutActionButtons = bwScheduleSync;
 
@@ -460,6 +467,7 @@
     // -------------------------------------------------------------------------
 
     function init() {
+        normalizeCardGatewayTitles();
         syncAccordionState();
         handleFormSubmission();
         initPaymentIconsTooltips();
@@ -478,16 +486,19 @@
     if (window.jQuery) {
         window.jQuery(function ($) {
             $(document.body).off('updated_checkout.bwWalletUi').on('updated_checkout.bwWalletUi', function () {
+                normalizeCardGatewayTitles();
                 syncAccordionState();
                 initPaymentIconsTooltips();
                 bwScheduleSync('updated_checkout');
             });
 
             $(document.body).off('payment_method_selected.bwWalletUi').on('payment_method_selected.bwWalletUi', function () {
+                normalizeCardGatewayTitles();
                 bwScheduleSync('payment_method_selected');
             });
 
             $(document).off('change.bwWalletUi', 'input[name="payment_method"]').on('change.bwWalletUi', 'input[name="payment_method"]', function () {
+                normalizeCardGatewayTitles();
                 bwScheduleSync('payment_method_change');
             });
 

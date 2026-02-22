@@ -177,13 +177,17 @@
             return;
         }
 
+        var wasChecked = $appleInput.is(':checked');
         $appleInput.prop('disabled', true).attr('aria-disabled', 'true');
         $appleInput.attr('data-bw-unavailable', '1');
         $appleInput.closest('.bw-payment-method').attr('data-bw-unavailable', '1');
-        if ($appleInput.is(':checked')) {
+        if (wasChecked) {
+            $appleInput.prop('checked', false);
             var $fallback = $('input[name="payment_method"]').not('[value="bw_apple_pay"]').filter(':enabled').first();
             if ($fallback.length) {
                 $fallback.prop('checked', true).trigger('change');
+            } else {
+                $(document.body).trigger('payment_method_selected');
             }
         }
     }
@@ -214,13 +218,9 @@
     function showAppleButtonIfSelected() {
         var selectedMethod = $('input[name="payment_method"]:checked').val();
         var $wrapper = $('#bw-apple-pay-button-wrapper');
-        var $appleMethod = $('.payment_method_bw_apple_pay');
-        var $appleContent = $appleMethod.find('.bw-payment-method__content');
         var isAppleMethod = selectedMethod === 'bw_apple_pay';
 
         if (isAppleMethod) {
-            $appleMethod.addClass('is-selected');
-            $appleContent.addClass('is-open').show();
             if (applePayState === 'available' && applePayAvailable) {
                 $wrapper.show();
                 $('#bw-apple-pay-accordion-placeholder').hide();
@@ -230,8 +230,6 @@
             }
             dedupeApplePayDom();
         } else {
-            $appleMethod.removeClass('is-selected');
-            $appleContent.removeClass('is-open').hide();
             $wrapper.hide();
         }
 
