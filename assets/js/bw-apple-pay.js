@@ -38,6 +38,7 @@
     var paymentRequest = null;
     var applePayAvailable = false;
     var applePayState = 'checking'; // checking | available | unavailable
+    window.BW_APPLE_PAY_AVAILABLE = false;
 
     function parseAmount(text) {
         var cleaned = text.replace(/[^\d.,]/g, '');
@@ -144,15 +145,30 @@
         }
     }
 
+    function dedupeApplePayDom() {
+        var $wrappers = $('#bw-apple-pay-button-wrapper');
+        if ($wrappers.length > 1) {
+            $wrappers.slice(1).remove();
+        }
+
+        var $triggers = $('#bw-apple-pay-trigger');
+        if ($triggers.length > 1) {
+            $triggers.slice(1).remove();
+        }
+    }
+
+    function scheduleGlobalWalletSync(reason) {
+        if (typeof window.bwScheduleSyncCheckoutActionButtons === 'function') {
+            window.bwScheduleSyncCheckoutActionButtons(reason || 'apple_pay');
+        }
+    }
+
     function showAppleButtonIfSelected() {
         var selectedMethod = $('input[name="payment_method"]:checked').val();
         var $wrapper = $('#bw-apple-pay-button-wrapper');
-        var $placeOrder = $('#place_order');
         var isAppleMethod = selectedMethod === 'bw_apple_pay';
 
         if (isAppleMethod) {
-            $placeOrder[0] && $placeOrder[0].style.setProperty('display', 'none', 'important');
-
             if (applePayState === 'available' && applePayAvailable) {
                 $wrapper.show();
                 $('#bw-apple-pay-accordion-placeholder').hide();
@@ -160,13 +176,12 @@
                 $wrapper.hide();
                 $('#bw-apple-pay-accordion-placeholder').show();
             }
+            dedupeApplePayDom();
         } else {
             $wrapper.hide();
-            if ($placeOrder[0]) {
-                $placeOrder[0].style.display = '';
-            }
-            $placeOrder.show();
         }
+
+        scheduleGlobalWalletSync('apple_ui');
     }
 
     function submitCheckoutWithApplePay(ev, methodId) {
@@ -271,6 +286,7 @@
         paymentRequest.canMakePayment().then(function (result) {
             BW_APPLE_PAY_DEBUG && console.log('[BW Apple Pay] canMakePayment:', result);
             applePayAvailable = !!(result && result.applePay === true);
+            window.BW_APPLE_PAY_AVAILABLE = applePayAvailable === true;
             applePayState = applePayAvailable ? 'available' : 'unavailable';
 
             if (!applePayAvailable) {
@@ -290,6 +306,7 @@
             showAppleButtonIfSelected();
         }).catch(function () {
             applePayAvailable = false;
+            window.BW_APPLE_PAY_AVAILABLE = false;
             applePayState = 'unavailable';
             disableApplePaySelection(true);
             showAppleButtonIfSelected();
@@ -323,11 +340,12 @@
     $(document).ready(function () {
         initApplePay();
 
-        $(document.body).on('change', 'input[name="payment_method"]', function () {
+        $(document.body).off('change.bwapplepay', 'input[name="payment_method"]').on('change.bwapplepay', 'input[name="payment_method"]', function () {
             showAppleButtonIfSelected();
         });
 
-        $(document.body).on('updated_checkout', function () {
+        $(document.body).off('updated_checkout.bwapplepay').on('updated_checkout.bwapplepay', function () {
+            dedupeApplePayDom();
             showAppleButtonIfSelected();
 
             if (paymentRequest) {

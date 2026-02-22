@@ -11,6 +11,174 @@
 (function () {
     'use strict';
 
+    var BW_SYNC_TIMER = null;
+    var BW_SYNC_DELAY_MS = 80;
+    var BW_WALLET_GATEWAY_TO_SELECTORS = {
+        bw_google_pay: ['#bw-google-pay-button-wrapper', '#bw-google-pay-trigger'],
+        bw_apple_pay: ['#bw-apple-pay-button-wrapper', '#bw-apple-pay-trigger']
+    };
+    var BW_BODY_WALLET_CLASSES = [
+        'bw-wallet-bw_google_pay',
+        'bw-wallet-bw_apple_pay'
+    ];
+
+    function getSelectedPaymentMethod() {
+        var checked = document.querySelector('input[name="payment_method"]:checked');
+        return checked ? checked.value : '';
+    }
+
+    function getPlaceOrderButtons() {
+        return window.jQuery ? window.jQuery('#place_order, button[name="woocommerce_checkout_place_order"]') : null;
+    }
+
+    function hidePlaceOrderButtons() {
+        var $buttons = getPlaceOrderButtons();
+        if (!$buttons || !$buttons.length) {
+            return;
+        }
+        $buttons.each(function () {
+            this.style.setProperty('display', 'none', 'important');
+        });
+    }
+
+    function showPlaceOrderButtons() {
+        var $buttons = getPlaceOrderButtons();
+        if (!$buttons || !$buttons.length) {
+            return;
+        }
+        $buttons.each(function () {
+            this.style.display = '';
+        });
+        $buttons.show();
+    }
+
+    function hideAllWalletButtons() {
+        if (!window.jQuery) {
+            return;
+        }
+        Object.keys(BW_WALLET_GATEWAY_TO_SELECTORS).forEach(function (gatewayId) {
+            BW_WALLET_GATEWAY_TO_SELECTORS[gatewayId].forEach(function (selector) {
+                window.jQuery(selector).hide();
+            });
+        });
+    }
+
+    function showWalletButton(gatewayId) {
+        if (!window.jQuery || !BW_WALLET_GATEWAY_TO_SELECTORS[gatewayId]) {
+            return;
+        }
+        BW_WALLET_GATEWAY_TO_SELECTORS[gatewayId].forEach(function (selector) {
+            window.jQuery(selector).show();
+        });
+    }
+
+    function dedupeWalletDom() {
+        if (!window.jQuery) {
+            return;
+        }
+
+        ['#bw-google-pay-button-wrapper', '#bw-google-pay-trigger', '#bw-apple-pay-button-wrapper', '#bw-apple-pay-trigger'].forEach(function (selector) {
+            var $nodes = window.jQuery(selector);
+            if ($nodes.length > 1) {
+                $nodes.slice(1).remove();
+            }
+        });
+    }
+
+    function isWalletGateway(gatewayId) {
+        return Object.prototype.hasOwnProperty.call(BW_WALLET_GATEWAY_TO_SELECTORS, gatewayId);
+    }
+
+    function isWalletAvailable(gatewayId) {
+        if (gatewayId === 'bw_google_pay') {
+            return window.BW_GPAY_AVAILABLE === true;
+        }
+        if (gatewayId === 'bw_apple_pay') {
+            return window.BW_APPLE_PAY_AVAILABLE === true;
+        }
+        return true;
+    }
+
+    function hasWalletActionButton(gatewayId) {
+        if (!window.jQuery) {
+            return false;
+        }
+        if (gatewayId === 'bw_google_pay') {
+            return window.jQuery('#bw-google-pay-trigger').length > 0;
+        }
+        if (gatewayId === 'bw_apple_pay') {
+            return window.jQuery('#bw-apple-pay-trigger').length > 0;
+        }
+        return false;
+    }
+
+    function updateBodyWalletClass(gatewayId, isActiveWallet) {
+        document.body.classList.remove.apply(document.body.classList, BW_BODY_WALLET_CLASSES);
+        if (isActiveWallet) {
+            document.body.classList.add('bw-wallet-' + gatewayId);
+        }
+    }
+
+    /**
+     * Single source of truth for checkout action buttons visibility.
+     * Keeps exactly one actionable button visible at all times.
+     *
+     * @param {string} reason Optional debug reason.
+     */
+    function bwSyncCheckoutActionButtons(reason) { // eslint-disable-line no-unused-vars
+        dedupeWalletDom();
+
+        var selected = getSelectedPaymentMethod();
+        var isWallet = isWalletGateway(selected);
+        var available = isWallet && isWalletAvailable(selected);
+        var hasActionButton = isWallet && hasWalletActionButton(selected);
+
+        hideAllWalletButtons();
+        showPlaceOrderButtons();
+        updateBodyWalletClass('', false);
+
+        if (isWallet && available && hasActionButton) {
+            showWalletButton(selected);
+            hidePlaceOrderButtons();
+            updateBodyWalletClass(selected, true);
+            return;
+        }
+
+        // Auto-fallback for wallet methods that are selected but unavailable.
+        if (window.jQuery && isWallet && !available) {
+            if (selected === 'bw_google_pay') {
+                var $fallback = window.jQuery('input[name="payment_method"]').not('[value="bw_google_pay"]').not(':disabled').first();
+                if ($fallback.length) {
+                    $fallback.prop('checked', true).trigger('change');
+                }
+            }
+        }
+    }
+
+    function bwScheduleSync(reason) { // eslint-disable-line no-unused-vars
+        clearTimeout(BW_SYNC_TIMER);
+        BW_SYNC_TIMER = setTimeout(function () {
+            bwSyncCheckoutActionButtons(reason || 'scheduled');
+        }, BW_SYNC_DELAY_MS);
+    }
+
+    function initWalletMutationObserver() {
+        if (!window.MutationObserver) {
+            return;
+        }
+        var paymentNode = document.querySelector('#payment');
+        if (!paymentNode) {
+            return;
+        }
+        var observer = new MutationObserver(function () {
+            bwScheduleSync('mutation');
+        });
+        observer.observe(paymentNode, { childList: true, subtree: true });
+    }
+
+    window.bwSyncCheckoutActionButtons = bwSyncCheckoutActionButtons;
+    window.bwScheduleSyncCheckoutActionButtons = bwScheduleSync;
+
     // -------------------------------------------------------------------------
     // Accordion state helpers
     // -------------------------------------------------------------------------
@@ -281,6 +449,8 @@
         syncAccordionState();
         handleFormSubmission();
         initPaymentIconsTooltips();
+        bwScheduleSync('init');
+        initWalletMutationObserver();
     }
 
     if (document.readyState === 'loading') {
@@ -293,13 +463,23 @@
     // The DOM is fully ready when `updated_checkout` fires — no delay needed.
     if (window.jQuery) {
         window.jQuery(function ($) {
-            $(document.body).on('updated_checkout', function () {
+            $(document.body).off('updated_checkout.bwWalletUi').on('updated_checkout.bwWalletUi', function () {
                 syncAccordionState();
                 initPaymentIconsTooltips();
+                bwScheduleSync('updated_checkout');
             });
 
-            $(document.body).on('checkout_error', function () {
+            $(document.body).off('payment_method_selected.bwWalletUi').on('payment_method_selected.bwWalletUi', function () {
+                bwScheduleSync('payment_method_selected');
+            });
+
+            $(document).off('change.bwWalletUi', 'input[name="payment_method"]').on('change.bwWalletUi', 'input[name="payment_method"]', function () {
+                bwScheduleSync('payment_method_change');
+            });
+
+            $(document.body).off('checkout_error.bwWalletUi').on('checkout_error.bwWalletUi', function () {
                 removeLoadingState();
+                bwScheduleSync('checkout_error');
             });
         });
     }

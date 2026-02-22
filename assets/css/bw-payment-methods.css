@@ -887,6 +887,14 @@ body.woocommerce-checkout .bw-place-order-btn.processing::after {
 	}
 }
 
+/* Wallet override: while custom wallet button is active, hide generic Woo button. */
+body.woocommerce-checkout.bw-wallet-bw_google_pay #place_order,
+body.woocommerce-checkout.bw-wallet-bw_google_pay button[name="woocommerce_checkout_place_order"],
+body.woocommerce-checkout.bw-wallet-bw_apple_pay #place_order,
+body.woocommerce-checkout.bw-wallet-bw_apple_pay button[name="woocommerce_checkout_place_order"] {
+	display: none !important;
+}
+
 /* ============================================
    TERMS & CONDITIONS
    Specificity: (0,1,2)
