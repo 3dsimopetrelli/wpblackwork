@@ -3405,6 +3405,9 @@ function bw_site_render_checkout_tab()
                             <p class="description" style="margin-top: 8px;">
                                 Checks Stripe Payment Method Domains for: <strong><?php echo esc_html($apple_pay_site_domain); ?></strong>.
                                 If not verified/enabled, Apple Pay will not be available in checkout.
+                                <br />
+                                Verify/manage domains in Stripe:
+                                <a href="https://dashboard.stripe.com/settings/payment_methods" target="_blank" rel="noopener noreferrer">Stripe Dashboard → Settings → Payment Methods</a>.
                             </p>
                         </td>
                     </tr>
