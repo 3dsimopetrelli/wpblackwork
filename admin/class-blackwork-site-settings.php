@@ -125,6 +125,51 @@ function bw_site_settings_admin_assets($hook)
         ]
     );
 
+    $klarna_admin_script_path = BW_MEW_PATH . 'admin/js/bw-klarna-admin.js';
+    $klarna_admin_version = file_exists($klarna_admin_script_path) ? filemtime($klarna_admin_script_path) : '1.0.0';
+
+    wp_enqueue_script(
+        'bw-klarna-admin',
+        BW_MEW_URL . 'admin/js/bw-klarna-admin.js',
+        ['jquery'],
+        $klarna_admin_version,
+        true
+    );
+
+    wp_localize_script(
+        'bw-klarna-admin',
+        'bwKlarnaAdmin',
+        [
+            'nonce' => wp_create_nonce('bw_klarna_test_connection'),
+            'errorText' => esc_html__('Connection test failed. Please verify your Stripe keys.', 'bw'),
+            'testingText' => esc_html__('Testing connection…', 'bw'),
+        ]
+    );
+
+    $apple_pay_admin_script_path = BW_MEW_PATH . 'admin/js/bw-apple-pay-admin.js';
+    $apple_pay_admin_version = file_exists($apple_pay_admin_script_path) ? filemtime($apple_pay_admin_script_path) : '1.0.0';
+
+    wp_enqueue_script(
+        'bw-apple-pay-admin',
+        BW_MEW_URL . 'admin/js/bw-apple-pay-admin.js',
+        ['jquery'],
+        $apple_pay_admin_version,
+        true
+    );
+
+    wp_localize_script(
+        'bw-apple-pay-admin',
+        'bwApplePayAdmin',
+        [
+            'nonce' => wp_create_nonce('bw_apple_pay_test_connection'),
+            'errorText' => esc_html__('Connection test failed. Please verify your Stripe keys.', 'bw'),
+            'testingText' => esc_html__('Testing connection…', 'bw'),
+            'testingDomainText' => esc_html__('Checking domain…', 'bw'),
+            'domainOkText' => esc_html__('Domain verified in Stripe.', 'bw'),
+            'domainErrorText' => esc_html__('Domain verification failed. Please check Stripe domain settings.', 'bw'),
+        ]
+    );
+
     // Border toggle script (shared across Cart Pop-up and Site Settings)
     $border_toggle_path = BW_MEW_PATH . 'assets/js/bw-border-toggle-admin.js';
     $border_toggle_version = file_exists($border_toggle_path) ? filemtime($border_toggle_path) : '1.0.0';
@@ -219,25 +264,342 @@ function bw_google_pay_test_connection_ajax_handler()
     }
 
     $api_mode = !empty($payload['livemode']) ? 'live' : 'test';
+    // Some Stripe account payloads can report an unexpected livemode value even when
+    // the API key pair is correct. Prefix validation above already guarantees key mode.
+    $effective_mode = $mode;
     if ($api_mode !== $mode) {
-        wp_send_json_error([
-            'message' => 'test' === $mode
-                ? __('The key is valid but it belongs to Live Mode. Enable Live Mode or use test keys.', 'bw')
-                : __('The key is valid but it belongs to Test Mode. Enable Test Mode or use live keys.', 'bw'),
-        ]);
+        $effective_mode = $mode;
     }
 
     wp_send_json_success([
         'message' => sprintf(
             /* translators: 1: mode label, 2: Stripe account id */
             __('Connected successfully (%1$s mode) - Account: %2$s', 'bw'),
-            'test' === $api_mode ? __('Test', 'bw') : __('Live', 'bw'),
+            'test' === $effective_mode ? __('Test', 'bw') : __('Live', 'bw'),
             sanitize_text_field((string) $payload['id'])
         ),
-        'mode' => $api_mode,
+        'mode' => $effective_mode,
     ]);
 }
 add_action('wp_ajax_bw_google_pay_test_connection', 'bw_google_pay_test_connection_ajax_handler');
+
+/**
+ * AJAX handler to test Stripe connection for Klarna settings (live mode).
+ */
+function bw_klarna_test_connection_ajax_handler()
+{
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error(['message' => __('Permission denied.', 'bw')]);
+    }
+
+    check_ajax_referer('bw_klarna_test_connection', 'nonce');
+
+    $secret_key = isset($_POST['secret_key']) ? sanitize_text_field(wp_unslash($_POST['secret_key'])) : '';
+    $publishable_key = isset($_POST['publishable_key']) ? sanitize_text_field(wp_unslash($_POST['publishable_key'])) : '';
+
+    if ('' === $secret_key) {
+        wp_send_json_error(['message' => __('Secret key is required.', 'bw')]);
+    }
+
+    if (0 !== strpos($secret_key, 'sk_live_')) {
+        wp_send_json_error([
+            'message' => __('Klarna live mode requires a key starting with sk_live_.', 'bw'),
+        ]);
+    }
+
+    if ('' !== $publishable_key && 0 !== strpos($publishable_key, 'pk_live_')) {
+        wp_send_json_error([
+            'message' => __('Klarna live mode requires a publishable key starting with pk_live_.', 'bw'),
+        ]);
+    }
+
+    $response = wp_remote_get(
+        'https://api.stripe.com/v1/account',
+        [
+            'timeout' => 15,
+            'headers' => [
+                'Authorization' => 'Bearer ' . $secret_key,
+            ],
+        ]
+    );
+
+    if (is_wp_error($response)) {
+        wp_send_json_error([
+            'message' => sprintf(
+                /* translators: %s: WP error message */
+                __('Unable to reach Stripe API: %s', 'bw'),
+                $response->get_error_message()
+            ),
+        ]);
+    }
+
+    $status_code = (int) wp_remote_retrieve_response_code($response);
+    $body = wp_remote_retrieve_body($response);
+    $payload = json_decode($body, true);
+
+    if ($status_code < 200 || $status_code >= 300) {
+        $stripe_error = '';
+        if (is_array($payload) && isset($payload['error']['message'])) {
+            $stripe_error = sanitize_text_field((string) $payload['error']['message']);
+        }
+
+        wp_send_json_error([
+            'message' => $stripe_error
+                ? sprintf(__('Stripe API error: %s', 'bw'), $stripe_error)
+                : __('Stripe API rejected the request. Please verify your keys.', 'bw'),
+        ]);
+    }
+
+    if (!is_array($payload) || !isset($payload['id'])) {
+        wp_send_json_error(['message' => __('Unexpected Stripe response. Please try again.', 'bw')]);
+    }
+
+    wp_send_json_success([
+        'message' => sprintf(
+            /* translators: %s: Stripe account id */
+            __('Connected successfully (Live mode) - Account: %s', 'bw'),
+            sanitize_text_field((string) $payload['id'])
+        ),
+        'mode' => 'live',
+    ]);
+}
+add_action('wp_ajax_bw_klarna_test_connection', 'bw_klarna_test_connection_ajax_handler');
+
+/**
+ * AJAX handler to test Stripe connection for Apple Pay settings (live mode only).
+ */
+function bw_apple_pay_test_connection_ajax_handler()
+{
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error(['message' => __('Permission denied.', 'bw')]);
+    }
+
+    check_ajax_referer('bw_apple_pay_test_connection', 'nonce');
+
+    $secret_key = isset($_POST['secret_key']) ? sanitize_text_field(wp_unslash($_POST['secret_key'])) : '';
+    $publishable_key = isset($_POST['publishable_key']) ? sanitize_text_field(wp_unslash($_POST['publishable_key'])) : '';
+
+    if ('' === $secret_key) {
+        $secret_key = (string) get_option('bw_google_pay_secret_key', '');
+    }
+    if ('' === $publishable_key) {
+        $publishable_key = (string) get_option('bw_google_pay_publishable_key', '');
+    }
+
+    if ('' === $secret_key) {
+        wp_send_json_error(['message' => __('Live secret key is required. Add Apple Pay key or configure global live keys.', 'bw')]);
+    }
+
+    if (0 === strpos($secret_key, 'sk_test_')) {
+        wp_send_json_error([
+            'message' => __('Apple Pay LIVE mode does not accept test keys. Use a secret key starting with sk_live_.', 'bw'),
+        ]);
+    }
+
+    if ('' !== $publishable_key && 0 === strpos($publishable_key, 'pk_test_')) {
+        wp_send_json_error([
+            'message' => __('Apple Pay LIVE mode does not accept test publishable keys. Use a key starting with pk_live_.', 'bw'),
+        ]);
+    }
+
+    if (0 !== strpos($secret_key, 'sk_live_')) {
+        wp_send_json_error([
+            'message' => __('Apple Pay LIVE mode requires a key starting with sk_live_.', 'bw'),
+        ]);
+    }
+
+    if ('' !== $publishable_key && 0 !== strpos($publishable_key, 'pk_live_')) {
+        wp_send_json_error([
+            'message' => __('Apple Pay LIVE mode requires a publishable key starting with pk_live_.', 'bw'),
+        ]);
+    }
+
+    $response = wp_remote_get(
+        'https://api.stripe.com/v1/account',
+        [
+            'timeout' => 15,
+            'headers' => [
+                'Authorization' => 'Bearer ' . $secret_key,
+            ],
+        ]
+    );
+
+    if (is_wp_error($response)) {
+        wp_send_json_error([
+            'message' => sprintf(
+                /* translators: %s: WP error message */
+                __('Unable to reach Stripe API: %s', 'bw'),
+                $response->get_error_message()
+            ),
+        ]);
+    }
+
+    $status_code = (int) wp_remote_retrieve_response_code($response);
+    $body = wp_remote_retrieve_body($response);
+    $payload = json_decode($body, true);
+
+    if ($status_code < 200 || $status_code >= 300) {
+        $stripe_error = '';
+        if (is_array($payload) && isset($payload['error']['message'])) {
+            $stripe_error = sanitize_text_field((string) $payload['error']['message']);
+        }
+
+        wp_send_json_error([
+            'message' => $stripe_error
+                ? sprintf(__('Stripe API error: %s', 'bw'), $stripe_error)
+                : __('Stripe API rejected the request. Please verify your keys.', 'bw'),
+        ]);
+    }
+
+    if (!is_array($payload) || !isset($payload['id'])) {
+        wp_send_json_error(['message' => __('Unexpected Stripe response. Please try again.', 'bw')]);
+    }
+
+    wp_send_json_success([
+        'message' => sprintf(
+            /* translators: %s: Stripe account id */
+            __('Connected successfully (Live mode) - Account: %s', 'bw'),
+            sanitize_text_field((string) $payload['id'])
+        ),
+        'mode' => 'live',
+    ]);
+}
+add_action('wp_ajax_bw_apple_pay_test_connection', 'bw_apple_pay_test_connection_ajax_handler');
+
+/**
+ * AJAX handler to verify Apple Pay domain status in Stripe (live mode only).
+ */
+function bw_apple_pay_verify_domain_ajax_handler()
+{
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error(['message' => __('Permission denied.', 'bw')]);
+    }
+
+    check_ajax_referer('bw_apple_pay_test_connection', 'nonce');
+
+    $secret_key = isset($_POST['secret_key']) ? sanitize_text_field(wp_unslash($_POST['secret_key'])) : '';
+    if ('' === $secret_key) {
+        $secret_key = (string) get_option('bw_apple_pay_secret_key', '');
+    }
+    if ('' === $secret_key) {
+        $secret_key = (string) get_option('bw_google_pay_secret_key', '');
+    }
+
+    if ('' === $secret_key) {
+        wp_send_json_error(['message' => __('Live secret key is required before checking domain verification.', 'bw')]);
+    }
+
+    if (0 === strpos($secret_key, 'sk_test_')) {
+        wp_send_json_error([
+            'message' => __('Apple Pay LIVE mode does not accept test keys. Use a secret key starting with sk_live_.', 'bw'),
+        ]);
+    }
+
+    if (0 !== strpos($secret_key, 'sk_live_')) {
+        wp_send_json_error([
+            'message' => __('Apple Pay LIVE mode requires a secret key starting with sk_live_.', 'bw'),
+        ]);
+    }
+
+    $site_domain = wp_parse_url(home_url('/'), PHP_URL_HOST);
+    $site_domain = is_string($site_domain) ? strtolower(trim($site_domain)) : '';
+    if ('' === $site_domain) {
+        wp_send_json_error(['message' => __('Unable to detect your site domain.', 'bw')]);
+    }
+
+    $response = wp_remote_get(
+        'https://api.stripe.com/v1/payment_method_domains?limit=100',
+        [
+            'timeout' => 20,
+            'headers' => [
+                'Authorization' => 'Bearer ' . $secret_key,
+            ],
+        ]
+    );
+
+    if (is_wp_error($response)) {
+        wp_send_json_error([
+            'message' => sprintf(
+                /* translators: %s: WP error message */
+                __('Unable to reach Stripe API: %s', 'bw'),
+                $response->get_error_message()
+            ),
+        ]);
+    }
+
+    $status_code = (int) wp_remote_retrieve_response_code($response);
+    $body = wp_remote_retrieve_body($response);
+    $payload = json_decode($body, true);
+
+    if ($status_code < 200 || $status_code >= 300) {
+        $stripe_error = '';
+        if (is_array($payload) && isset($payload['error']['message'])) {
+            $stripe_error = sanitize_text_field((string) $payload['error']['message']);
+        }
+
+        wp_send_json_error([
+            'message' => $stripe_error
+                ? sprintf(__('Stripe API error: %s', 'bw'), $stripe_error)
+                : __('Stripe API rejected the request while checking domain verification.', 'bw'),
+        ]);
+    }
+
+    if (!is_array($payload) || !isset($payload['data']) || !is_array($payload['data'])) {
+        wp_send_json_error(['message' => __('Unexpected Stripe response while checking domain verification.', 'bw')]);
+    }
+
+    $domain_variants = array_unique(array_filter([
+        $site_domain,
+        preg_replace('/^www\./', '', $site_domain),
+        'www.' . preg_replace('/^www\./', '', $site_domain),
+    ]));
+
+    $matched = null;
+    foreach ($payload['data'] as $item) {
+        if (!is_array($item) || empty($item['domain_name'])) {
+            continue;
+        }
+        $domain_name = strtolower((string) $item['domain_name']);
+        if (in_array($domain_name, $domain_variants, true)) {
+            $matched = $item;
+            break;
+        }
+    }
+
+    if (null === $matched) {
+        wp_send_json_error([
+            'message' => sprintf(
+                /* translators: %s: domain name */
+                __('Domain not found in Stripe Payment Method Domains: %s. Add and verify it in Stripe Dashboard > Settings > Payment method domains.', 'bw'),
+                $site_domain
+            ),
+        ]);
+    }
+
+    $is_enabled = isset($matched['enabled']) ? (bool) $matched['enabled'] : false;
+    $matched_domain = sanitize_text_field((string) $matched['domain_name']);
+
+    if (!$is_enabled) {
+        wp_send_json_error([
+            'message' => sprintf(
+                /* translators: %s: domain name */
+                __('Domain found but not enabled: %s. Enable it in Stripe Payment method domains.', 'bw'),
+                $matched_domain
+            ),
+        ]);
+    }
+
+    wp_send_json_success([
+        'message' => sprintf(
+            /* translators: %s: domain name */
+            __('Domain verified and enabled in Stripe: %s', 'bw'),
+            $matched_domain
+        ),
+        'domain' => $matched_domain,
+        'enabled' => true,
+    ]);
+}
+add_action('wp_ajax_bw_apple_pay_verify_domain', 'bw_apple_pay_verify_domain_ajax_handler');
 
 /**
  * Renderizza la pagina delle impostazioni con tab
@@ -1801,6 +2163,16 @@ function bw_site_render_checkout_tab()
         $google_pay_statement_descriptor = isset($_POST['bw_google_pay_statement_descriptor']) ? substr(sanitize_text_field(wp_unslash($_POST['bw_google_pay_statement_descriptor'])), 0, 22) : '';
         $google_pay_webhook_secret = isset($_POST['bw_google_pay_webhook_secret']) ? sanitize_text_field(wp_unslash($_POST['bw_google_pay_webhook_secret'])) : '';
         $google_pay_test_webhook_secret = isset($_POST['bw_google_pay_test_webhook_secret']) ? sanitize_text_field(wp_unslash($_POST['bw_google_pay_test_webhook_secret'])) : '';
+        $klarna_enabled = isset($_POST['bw_klarna_enabled']) ? 1 : 0;
+        $klarna_pub_key = isset($_POST['bw_klarna_publishable_key']) ? sanitize_text_field(wp_unslash($_POST['bw_klarna_publishable_key'])) : '';
+        $klarna_sec_key = isset($_POST['bw_klarna_secret_key']) ? sanitize_text_field(wp_unslash($_POST['bw_klarna_secret_key'])) : '';
+        $klarna_statement_descriptor = isset($_POST['bw_klarna_statement_descriptor']) ? substr(sanitize_text_field(wp_unslash($_POST['bw_klarna_statement_descriptor'])), 0, 22) : '';
+        $klarna_webhook_secret = isset($_POST['bw_klarna_webhook_secret']) ? sanitize_text_field(wp_unslash($_POST['bw_klarna_webhook_secret'])) : '';
+        $apple_pay_enabled = isset($_POST['bw_apple_pay_enabled']) ? 1 : 0;
+        $apple_pay_pub_key = isset($_POST['bw_apple_pay_publishable_key']) ? sanitize_text_field(wp_unslash($_POST['bw_apple_pay_publishable_key'])) : '';
+        $apple_pay_sec_key = isset($_POST['bw_apple_pay_secret_key']) ? sanitize_text_field(wp_unslash($_POST['bw_apple_pay_secret_key'])) : '';
+        $apple_pay_statement_descriptor = isset($_POST['bw_apple_pay_statement_descriptor']) ? substr(sanitize_text_field(wp_unslash($_POST['bw_apple_pay_statement_descriptor'])), 0, 22) : '';
+        $apple_pay_webhook_secret = isset($_POST['bw_apple_pay_webhook_secret']) ? sanitize_text_field(wp_unslash($_POST['bw_apple_pay_webhook_secret'])) : '';
 
         // Policy Settings
         $policies = [
@@ -1896,6 +2268,16 @@ function bw_site_render_checkout_tab()
         update_option('bw_google_pay_statement_descriptor', $google_pay_statement_descriptor);
         update_option('bw_google_pay_webhook_secret', $google_pay_webhook_secret);
         update_option('bw_google_pay_test_webhook_secret', $google_pay_test_webhook_secret);
+        update_option('bw_klarna_enabled', $klarna_enabled);
+        update_option('bw_klarna_publishable_key', $klarna_pub_key);
+        update_option('bw_klarna_secret_key', $klarna_sec_key);
+        update_option('bw_klarna_statement_descriptor', $klarna_statement_descriptor);
+        update_option('bw_klarna_webhook_secret', $klarna_webhook_secret);
+        update_option('bw_apple_pay_enabled', $apple_pay_enabled);
+        update_option('bw_apple_pay_publishable_key', $apple_pay_pub_key);
+        update_option('bw_apple_pay_secret_key', $apple_pay_sec_key);
+        update_option('bw_apple_pay_statement_descriptor', $apple_pay_statement_descriptor);
+        update_option('bw_apple_pay_webhook_secret', $apple_pay_webhook_secret);
 
         // Save Google Maps settings
         update_option('bw_google_maps_enabled', $google_maps_enabled);
@@ -2018,7 +2400,7 @@ function bw_site_render_checkout_tab()
 
         <?php
         $active_checkout_tab = isset($_GET['checkout_tab']) ? sanitize_key($_GET['checkout_tab']) : 'style';
-        $allowed_checkout_tabs = ['style', 'supabase', 'fields', 'subscribe', 'google-maps', 'google-pay', 'footer'];
+        $allowed_checkout_tabs = ['style', 'supabase', 'fields', 'subscribe', 'google-maps', 'google-pay', 'klarna-pay', 'apple-pay', 'footer'];
         if (!in_array($active_checkout_tab, $allowed_checkout_tabs, true)) {
             $active_checkout_tab = 'style';
         }
@@ -2029,6 +2411,8 @@ function bw_site_render_checkout_tab()
         $subscribe_tab_url = add_query_arg('checkout_tab', 'subscribe');
         $google_maps_tab_url = add_query_arg('checkout_tab', 'google-maps');
         $google_pay_tab_url = add_query_arg('checkout_tab', 'google-pay');
+        $klarna_pay_tab_url = add_query_arg('checkout_tab', 'klarna-pay');
+        $apple_pay_tab_url = add_query_arg('checkout_tab', 'apple-pay');
         $footer_tab_url = add_query_arg('checkout_tab', 'footer');
         ?>
 
@@ -2056,6 +2440,14 @@ function bw_site_render_checkout_tab()
             <a class="nav-tab <?php echo 'google-pay' === $active_checkout_tab ? 'nav-tab-active' : ''; ?>"
                 href="<?php echo esc_url($google_pay_tab_url); ?>">
                 <?php esc_html_e('Google Pay', 'bw'); ?>
+            </a>
+            <a class="nav-tab <?php echo 'klarna-pay' === $active_checkout_tab ? 'nav-tab-active' : ''; ?>"
+                href="<?php echo esc_url($klarna_pay_tab_url); ?>">
+                <?php esc_html_e('Klarna Pay', 'bw'); ?>
+            </a>
+            <a class="nav-tab <?php echo 'apple-pay' === $active_checkout_tab ? 'nav-tab-active' : ''; ?>"
+                href="<?php echo esc_url($apple_pay_tab_url); ?>">
+                <?php esc_html_e('Apple Pay', 'bw'); ?>
             </a>
             <a class="nav-tab <?php echo 'footer' === $active_checkout_tab ? 'nav-tab-active' : ''; ?>"
                 href="<?php echo esc_url($footer_tab_url); ?>">
@@ -2705,14 +3097,19 @@ function bw_site_render_checkout_tab()
                         </td>
                     </tr>
 
+                    <tr class="bw-settings-divider">
+                        <td colspan="2"><hr></td>
+                    </tr>
+
                     <tr>
-                        <th scope="row">Test connessione Stripe</th>
+                        <th scope="row">Verifica connessione (globale)</th>
                         <td>
-                            <button type="button" class="button" id="bw-google-pay-test-connection">Verifica connessione</button>
+                            <div class="bw-google-pay-connection-row">
+                                <span id="bw-google-pay-mode-pill" class="bw-google-pay-mode-pill">Modalita attiva: TEST</span>
+                                <button type="button" class="button" id="bw-google-pay-test-connection">Verifica connessione (TEST)</button>
+                            </div>
                             <span id="bw-google-pay-test-result" class="bw-google-pay-test-result" aria-live="polite"></span>
-                            <p class="description" style="margin-top: 8px;">Controlla la modalità attiva in base allo switch
-                                <strong>Test Mode</strong> e verifica la connessione reale con Stripe.
-                            </p>
+                            <p class="description" style="margin-top: 8px;">Questo controllo usa la modalità attiva: <strong>Test Mode ON = chiavi test</strong>, <strong>Test Mode OFF = chiavi live</strong>.</p>
                         </td>
                     </tr>
 
@@ -2777,8 +3174,35 @@ function bw_site_render_checkout_tab()
                     display: inline-flex;
                     align-items: center;
                     gap: 8px;
-                    margin-left: 10px;
+                    margin-top: 8px;
                     font-weight: 600;
+                }
+
+                .bw-google-pay-connection-row {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    flex-wrap: wrap;
+                }
+
+                .bw-google-pay-mode-pill {
+                    display: inline-flex;
+                    align-items: center;
+                    padding: 4px 10px;
+                    border-radius: 999px;
+                    font-size: 12px;
+                    font-weight: 700;
+                    letter-spacing: 0.2px;
+                    text-transform: uppercase;
+                    background: #fef3c7;
+                    color: #92400e;
+                    border: 1px solid #f59e0b;
+                }
+
+                .bw-google-pay-mode-pill.is-live {
+                    background: #ecfdf3;
+                    color: #166534;
+                    border-color: #22c55e;
                 }
 
                 .bw-google-pay-test-result::before {
@@ -2809,6 +3233,219 @@ function bw_site_render_checkout_tab()
                     color: #475467;
                 }
             </style>
+        </div>
+
+        <div class="bw-tab-panel" data-bw-tab="klarna-pay" <?php echo 'klarna-pay' === $active_checkout_tab ? '' : 'style="display:none;"'; ?>>
+            <?php
+            $klarna_enabled = get_option('bw_klarna_enabled', 0);
+            $klarna_pub_key = get_option('bw_klarna_publishable_key', '');
+            $klarna_sec_key = get_option('bw_klarna_secret_key', '');
+            $klarna_statement_descriptor = get_option('bw_klarna_statement_descriptor', '');
+            $klarna_webhook_secret = get_option('bw_klarna_webhook_secret', '');
+            $klarna_webhook_url = add_query_arg('wc-api', 'bw_klarna', home_url('/'));
+            ?>
+
+            <div class="bw-settings-section">
+                <h2 class="title">Klarna Pay (Stripe Integration)</h2>
+                <p class="description">Configure Klarna Flexible Payments via Stripe for the custom checkout. Klarna requires HTTPS and supported buyer country/currency in Stripe.</p>
+
+                <table class="form-table" role="presentation">
+                    <tr>
+                        <th scope="row">Enable Gateway</th>
+                        <td>
+                            <label class="bw-switch">
+                                <input name="bw_klarna_enabled" type="checkbox" id="bw_klarna_enabled" value="1" <?php checked(1, $klarna_enabled); ?> />
+                                <span class="bw-slider round"></span>
+                            </label>
+                        </td>
+                    </tr>
+
+                    <tr class="bw-settings-divider">
+                        <td colspan="2"><hr></td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row">Live Publishable Key</th>
+                        <td>
+                            <input name="bw_klarna_publishable_key" type="text" id="bw_klarna_publishable_key"
+                                value="<?php echo esc_attr($klarna_pub_key); ?>" class="regular-text" placeholder="pk_live_..." />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Live Secret Key</th>
+                        <td>
+                            <input name="bw_klarna_secret_key" type="password" id="bw_klarna_secret_key"
+                                value="<?php echo esc_attr($klarna_sec_key); ?>" class="regular-text" placeholder="sk_live_..." />
+                        </td>
+                    </tr>
+
+                    <tr class="bw-settings-divider">
+                        <td colspan="2"><hr></td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row">Connection Check (Global)</th>
+                        <td>
+                            <div class="bw-google-pay-connection-row">
+                                <span id="bw-klarna-mode-pill" class="bw-google-pay-mode-pill is-live">ACTIVE MODE: LIVE</span>
+                                <button type="button" class="button" id="bw-klarna-test-connection">Verify connection (LIVE)</button>
+                            </div>
+                            <span id="bw-klarna-test-result" class="bw-google-pay-test-result" aria-live="polite"></span>
+                            <p class="description" style="margin-top: 8px;">This check always validates <strong>live keys</strong> for Klarna.</p>
+                        </td>
+                    </tr>
+
+                    <tr class="bw-settings-divider">
+                        <td colspan="2"><hr></td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row">Statement Descriptor</th>
+                        <td>
+                            <input name="bw_klarna_statement_descriptor" type="text" id="bw_klarna_statement_descriptor"
+                                value="<?php echo esc_attr($klarna_statement_descriptor); ?>" class="regular-text" placeholder="BlackWork Store" maxlength="22" />
+                            <p class="description">Text shown on the customer statement (max 22 chars). Leave empty to use Stripe account default.</p>
+                        </td>
+                    </tr>
+
+                    <tr class="bw-settings-divider">
+                        <td colspan="2"><hr></td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row">Webhook URL</th>
+                        <td>
+                            <code><?php echo esc_url($klarna_webhook_url); ?></code>
+                            <p class="description">Add this endpoint in Stripe Dashboard → Developers → Webhooks. Enable: <strong>payment_intent.succeeded</strong>, <strong>payment_intent.payment_failed</strong>.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Live Webhook Secret</th>
+                        <td>
+                            <input name="bw_klarna_webhook_secret" type="password" id="bw_klarna_webhook_secret"
+                                value="<?php echo esc_attr($klarna_webhook_secret); ?>" class="regular-text" placeholder="whsec_..." />
+                            <p class="description">Webhook signing secret for live endpoint (starts with <code>whsec_</code>).</p>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="bw-tab-panel" data-bw-tab="apple-pay" <?php echo 'apple-pay' === $active_checkout_tab ? '' : 'style="display:none;"'; ?>>
+            <?php
+            $apple_pay_enabled = get_option('bw_apple_pay_enabled', 0);
+            $apple_pay_pub_key = get_option('bw_apple_pay_publishable_key', '');
+            $apple_pay_sec_key = get_option('bw_apple_pay_secret_key', '');
+            $apple_pay_statement_descriptor = get_option('bw_apple_pay_statement_descriptor', '');
+            $apple_pay_webhook_secret = get_option('bw_apple_pay_webhook_secret', '');
+            $apple_pay_webhook_url = add_query_arg('wc-api', 'bw_apple_pay', home_url('/'));
+            $apple_pay_site_domain = wp_parse_url(home_url('/'), PHP_URL_HOST);
+            $apple_pay_site_domain = is_string($apple_pay_site_domain) ? strtolower(trim($apple_pay_site_domain)) : '';
+            ?>
+
+            <div class="bw-settings-section">
+                <h2 class="title">Apple Pay (Stripe Integration)</h2>
+                <p class="description">Configure Apple Pay via Stripe for the custom checkout. Apple Pay requires HTTPS and domain verification in Stripe.</p>
+
+                <table class="form-table" role="presentation">
+                    <tr>
+                        <th scope="row">Enable Gateway</th>
+                        <td>
+                            <label class="bw-switch">
+                                <input name="bw_apple_pay_enabled" type="checkbox" id="bw_apple_pay_enabled" value="1" <?php checked(1, $apple_pay_enabled); ?> />
+                                <span class="bw-slider round"></span>
+                            </label>
+                        </td>
+                    </tr>
+
+                    <tr class="bw-settings-divider">
+                        <td colspan="2"><hr></td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row">Live Publishable Key</th>
+                        <td>
+                            <input name="bw_apple_pay_publishable_key" type="password" id="bw_apple_pay_publishable_key"
+                                value="<?php echo esc_attr($apple_pay_pub_key); ?>" class="regular-text" placeholder="pk_live_..." />
+                            <p class="description">Optional override. Leave empty to use global live keys already configured in BlackWork.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Live Secret Key</th>
+                        <td>
+                            <input name="bw_apple_pay_secret_key" type="password" id="bw_apple_pay_secret_key"
+                                value="<?php echo esc_attr($apple_pay_sec_key); ?>" class="regular-text" placeholder="sk_live_..." />
+                            <p class="description">Optional override. Leave empty to use global live keys already configured in BlackWork.</p>
+                        </td>
+                    </tr>
+
+                    <tr class="bw-settings-divider">
+                        <td colspan="2"><hr></td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row">Connection Check (Global)</th>
+                        <td>
+                            <div class="bw-google-pay-connection-row">
+                                <span id="bw-apple-pay-mode-pill" class="bw-google-pay-mode-pill is-live">ACTIVE MODE: LIVE</span>
+                                <button type="button" class="button" id="bw-apple-pay-test-connection">Verify connection (LIVE)</button>
+                            </div>
+                            <span id="bw-apple-pay-test-result" class="bw-google-pay-test-result" aria-live="polite"></span>
+                            <p class="description" style="margin-top: 8px;">This check always validates <strong>live keys</strong> for Apple Pay. Test keys are never accepted.</p>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row">Domain Verification</th>
+                        <td>
+                            <div class="bw-google-pay-connection-row">
+                                <button type="button" class="button" id="bw-apple-pay-verify-domain">Verify domain in Stripe</button>
+                            </div>
+                            <span id="bw-apple-pay-domain-result" class="bw-google-pay-test-result" aria-live="polite"></span>
+                            <p class="description" style="margin-top: 8px;">
+                                Checks Stripe Payment Method Domains for: <strong><?php echo esc_html($apple_pay_site_domain); ?></strong>.
+                                If not verified/enabled, Apple Pay will not be available in checkout.
+                                <br />
+                                Verify/manage domains in Stripe:
+                                <a href="https://dashboard.stripe.com/settings/payment_methods" target="_blank" rel="noopener noreferrer">Stripe Dashboard → Settings → Payment Methods</a>.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <tr class="bw-settings-divider">
+                        <td colspan="2"><hr></td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row">Statement Descriptor</th>
+                        <td>
+                            <input name="bw_apple_pay_statement_descriptor" type="text" id="bw_apple_pay_statement_descriptor"
+                                value="<?php echo esc_attr($apple_pay_statement_descriptor); ?>" class="regular-text" placeholder="BlackWork Store" maxlength="22" />
+                            <p class="description">Text shown on the customer statement (max 22 chars). Leave empty to use Stripe account default.</p>
+                        </td>
+                    </tr>
+
+                    <tr class="bw-settings-divider">
+                        <td colspan="2"><hr></td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row">Webhook URL</th>
+                        <td>
+                            <code><?php echo esc_url($apple_pay_webhook_url); ?></code>
+                            <p class="description">Add this endpoint in Stripe Dashboard → Developers → Webhooks. Enable: <strong>payment_intent.succeeded</strong>, <strong>payment_intent.payment_failed</strong>, <strong>payment_intent.canceled</strong>.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Live Webhook Secret</th>
+                        <td>
+                            <input name="bw_apple_pay_webhook_secret" type="password" id="bw_apple_pay_webhook_secret"
+                                value="<?php echo esc_attr($apple_pay_webhook_secret); ?>" class="regular-text" placeholder="whsec_..." />
+                            <p class="description">Webhook signing secret for the live endpoint (starts with <code>whsec_</code>).</p>
+                        </td>
+                    </tr>
+                </table>
+            </div>
         </div>
 
         <div class="bw-tab-panel" data-bw-tab="footer" <?php echo 'footer' === $active_checkout_tab ? '' : 'style="display:none;"'; ?>>

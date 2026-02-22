@@ -410,6 +410,50 @@ body.woocommerce-checkout .bw-payment-method[data-gateway-id*="ppcp"] .bw-paymen
 	align-items: center;
 }
 
+/* Klarna SVG logo */
+body.woocommerce-checkout .bw-payment-method__klarna-logo {
+	display: block;
+	width: 38px;
+	height: 24px;
+	background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHJvbGU9ImltZyIgd2lkdGg9IjM4IiBoZWlnaHQ9IjI0IiB2aWV3Qm94PSIwIDAgMzggMjQiIGFyaWEtbGFiZWxsZWRieT0icGkta2xhcm5hIiBmaWxsPSJub25lIj48dGl0bGUgaWQ9InBpLWtsYXJuYSI+S2xhcm5hPC90aXRsZT48cmVjdCB3aWR0aD0iMzgiIGhlaWdodD0iMjQiIHJ4PSIyIiBmaWxsPSIjRkZBOENEIi8+PHJlY3QgeD0iLjUiIHk9Ii41IiB3aWR0aD0iMzciIGhlaWdodD0iMjMiIHJ4PSIxLjUiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLW9wYWNpdHk9Ii4wNyIvPjxwYXRoIGQ9Ik0zMC42MiAxNC43NTVjLS42NjIgMC0xLjE3OS0uNTU0LTEuMTc5LTEuMjI2IDAtLjY3My41MTctMS4yMjYgMS4xOC0xLjIyNi42NjMgMCAxLjE4LjU1MyAxLjE4IDEuMjI2IDAgLjY3Mi0uNTE3IDEuMjI2LTEuMTggMS4yMjZ6bS0uMzMgMS4yOTVjLjU2NSAwIDEuMjg2LS4yMTcgMS42ODYtMS4wNjhsLjA0LjAyYy0uMTc2LjQ2NS0uMTc2Ljc0Mi0uMTc2Ljgxdi4xMWgxLjQyM3YtNC43ODZIMzEuODR2LjEwOWMwIC4wNjkgMCAuMzQ2LjE3NS44MWwtLjAzOS4wMmMtLjQtLjg1LTEuMTIxLTEuMDY4LTEuNjg3LTEuMDY4LTEuMzU1IDAtMi4zMSAxLjA4OC0yLjMxIDIuNTIyIDAgMS40MzMuOTU1IDIuNTIxIDIuMzEgMi41MjF6bS00Ljc4OC01LjA0M2MtLjY0MyAwLTEuMTUuMjI4LTEuNTYgMS4wNjhsLS4wMzktLjAyYy4xNzUtLjQ2NC4xNzUtLjc0MS4xNzUtLjgxdi0uMTFoLTEuNDIzdjQuNzg3aDEuNDYyVjEzLjRjMC0uNjYyLjM4LTEuMDc4Ljk5NS0xLjA3OC42MTQgMCAuOTE3LjM1Ni45MTcgMS4wNjh2Mi41MzJoMS40NjJ2LTMuMDQ2YzAtMS4wODgtLjgzOC0xLjg2OS0xLjk4OS0xLjg2OXptLTQuOTYzIDEuMDY4bC0uMDM5LS4wMmMuMTc2LS40NjQuMTc2LS43NDEuMTc2LS44MXYtLjExaC0xLjQyNHY0Ljc4N2gxLjQ2M2wuMDEtMi4zMDRjMC0uNjczLjM1LTEuMDc4LjkyNi0xLjA3OC4xNTYgMCAuMjgyLjAyLjQyOS4wNnYtMS40NjRjLS42NDQtLjEzOS0xLjIyLjEwOS0xLjU0Ljk0em0tNC42NSAyLjY4Yy0uNjY0IDAtMS4xOC0uNTU0LTEuMTgtMS4yMjYgMC0uNjczLjUxNi0xLjIyNiAxLjE4LTEuMjI2LjY2MiAwIDEuMTc5LjU1MyAxLjE3OSAxLjIyNiAwIC42NzItLjUxNyAxLjIyNi0xLjE4IDEuMjI2em0tLjMzMiAxLjI5NWMuNTY1IDAgMS4yODctLjIxNyAxLjY4Ny0xLjA2OGwuMDM4LjAyYy0uMTc1LjQ2NS0uMTc1Ljc0Mi0uMTc1Ljgxdi4xMWgxLjQyNHYtNC43ODZoLTEuNDI0di4xMDljMCAuMDY5IDAgLjM0Ni4xNzUuODFsLS4wMzguMDJjLS40LS44NS0xLjEyMi0xLjA2OC0xLjY4Ny0xLjA2OC0xLjM1NiAwLTIuMzExIDEuMDg4LTIuMzExIDIuNTIyIDAgMS40MzMuOTU1IDIuNTIxIDIuMzEgMi41MjF6bS00LjM0OS0uMTI4aDEuNDYzVjloLTEuNDYzdjYuOTIyek0xMC4xMzYgOUg4LjY0NGMwIDEuMjM2LS43NTEgMi4zNDMtMS44OTIgMy4xMzRsLS40NDguMzE3VjloLTEuNTV2Ni45MjJoMS41NVYxMi40OWwyLjU2NCAzLjQzaDEuODkyTDguMjkzIDEyLjY0YzEuMTIxLS44MiAxLjg1Mi0yLjA5NiAxLjg0My0zLjYzOXoiIGZpbGw9IiMwQjA1MUQiLz48L3N2Zz4=");
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: 38px 24px;
+	flex: 0 0 auto;
+}
+
+body.woocommerce-checkout .bw-payment-method__applepay-logo {
+	display: inline-block;
+	width: 40px;
+	height: 24px;
+	flex: 0 0 auto;
+	background-image: url("data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iaXNvLTg4NTktMSI/Pgo8IS0tIEdlbmVyYXRvcjogQWRvYmUgSWxsdXN0cmF0b3IgMjEuMS4wLCBTVkcgRXhwb3J0IFBsdWctSW4gLiBTVkcgVmVyc2lvbjogNi4wMCBCdWlsZCAwKSAgLS0+CjxzdmcgdmVyc2lvbj0iMS4xIiBpZD0iTGF5ZXJfMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgeD0iMHB4IiB5PSIwcHgiCgkgd2lkdGg9IjE2NS41MjExcHgiIGhlaWdodD0iMTA1Ljk2NTFweCIgdmlld0JveD0iMCAwIDE2NS41MjExIDEwNS45NjUxIiBlbmFibGUtYmFja2dyb3VuZD0ibmV3IDAgMCAxNjUuNTIxMSAxMDUuOTY1MSIKCSB4bWw6c3BhY2U9InByZXNlcnZlIj4KPGc+Cgk8cGF0aCBpZD0iWE1MSURfOTZfIiBkPSJNMTUwLjY5ODEsMEgxNC44MjMyYy0wLjU2NTksMC0xLjEzMjgsMC0xLjY5NzcsMC4wMDMzQzEyLjY0OCwwLjAwNjcsMTIuMTcxNiwwLjAxMiwxMS42OTUyLDAuMDI1CgkJYy0xLjAzOSwwLjAyODEtMi4wODY5LDAuMDg5NC0zLjExMjksMC4yNzM4QzcuNTM5OSwwLjQ4NjQsNi41Njk5LDAuNzkyNCw1LjYyMzYsMS4yNzQyYy0wLjkzMDMsMC40NzMxLTEuNzgyLDEuMDkxOS0yLjUyMDEsMS44MzAzCgkJYy0wLjczODQsMC43Mzg0LTEuMzU3MiwxLjU4ODctMS44MzAyLDIuNTJDMC43OTE0LDYuNTcwOCwwLjQ4NTIsNy41NDExLDAuMjk4OSw4LjU4NDNjLTAuMTg1NCwxLjAyNjMtMC4yNDcxLDIuMDc0LTAuMjc1MSwzLjExMTkKCQljLTAuMDEyOCwwLjQ3NjQtMC4wMTgzLDAuOTUyOC0wLjAyMTQsMS40MjkxYy0wLjAwMzMsMC41NjYxLTAuMDAyMiwxLjEzMTgtMC4wMDIyLDEuNjk4OVY5MS4xNDIKCQljMCwwLjU2NzEtMC4wMDExLDEuMTMxOCwwLjAwMjIsMS42OTljMC4wMDMxLDAuNDc2MywwLjAwODYsMC45NTI3LDAuMDIxNCwxLjQyOTFjMC4wMjgsMS4wMzcsMC4wODk3LDIuMDg0NywwLjI3NTEsMy4xMTA3CgkJYzAuMTg2MywxLjA0MzYsMC40OTI1LDIuMDEzNSwwLjk3NDQsMi45NTk5YzAuNDczLDAuOTMxMywxLjA5MTgsMS43ODI3LDEuODMwMiwyLjUyYzAuNzM4MSwwLjczOTYsMS41ODk4LDEuMzU4MywyLjUyMDEsMS44MzAyCgkJYzAuOTQ2MywwLjQ4MzEsMS45MTYzLDAuNzg5MiwyLjk1ODcsMC45NzY3YzEuMDI2LDAuMTgzMiwyLjA3MzksMC4yNDU2LDMuMTEyOSwwLjI3MzdjMC40NzY0LDAuMDEwOCwwLjk1MjgsMC4wMTcyLDEuNDMwMywwLjAxOTQKCQljMC41NjQ5LDAuMDA0NCwxLjEzMTgsMC4wMDQ0LDEuNjk3NywwLjAwNDRoMTM1Ljg3NDljMC41NjQ5LDAsMS4xMzE4LDAsMS42OTY2LTAuMDA0NGMwLjQ3NjQtMC4wMDIyLDAuOTUyOC0wLjAwODYsMS40MzE0LTAuMDE5NAoJCWMxLjAzNjgtMC4wMjgxLDIuMDg0NS0wLjA5MDUsMy4xMTMtMC4yNzM3YzEuMDQxLTAuMTg3NSwyLjAxMTItMC40OTM2LDIuOTU3Ni0wLjk3NjdjMC45MzEzLTAuNDcxOSwxLjc4MDUtMS4wOTA2LDIuNTIwMS0xLjgzMDIKCQljMC43MzcyLTAuNzM3MywxLjM1Ni0xLjU4ODcsMS44MzAyLTIuNTJjMC40ODMtMC45NDY0LDAuNzg4OS0xLjkxNjMsMC45NzQzLTIuOTU5OWMwLjE4NTUtMS4wMjYsMC4yNDU3LTIuMDczNywwLjI3MzgtMy4xMTA3CgkJYzAuMDEzLTAuNDc2NCwwLjAxOTQtMC45NTI4LDAuMDIxNi0xLjQyOTFjMC4wMDQ0LTAuNTY3MiwwLjAwNDQtMS4xMzE5LDAuMDA0NC0xLjY5OVYxNC44MjQyYzAtMC41NjcxLDAtMS4xMzI4LTAuMDA0NC0xLjY5ODkKCQljLTAuMDAyMi0wLjQ3NjMtMC4wMDg2LTAuOTUyNy0wLjAyMTYtMS40MjkxYy0wLjAyODEtMS4wMzc5LTAuMDg4My0yLjA4NTYtMC4yNzM4LTMuMTExOQoJCWMtMC4xODU0LTEuMDQzMi0wLjQ5MTMtMi4wMTM1LTAuOTc0My0yLjk1OThjLTAuNDc0Mi0wLjkzMTMtMS4wOTMtMS43ODE2LTEuODMwMi0yLjUyYy0wLjczOTYtMC43Mzg0LTEuNTg4OC0xLjM1NzItMi41MjAxLTEuODMwMwoJCWMtMC45NDY0LTAuNDgxOC0xLjkxNjYtMC43ODc4LTIuOTU3Ni0wLjk3NTRjLTEuMDI4NS0wLjE4NDQtMi4wNzYyLTAuMjQ1Ny0zLjExMy0wLjI3MzhjLTAuNDc4Ni0wLjAxMy0wLjk1NS0wLjAxODMtMS40MzE0LTAuMDIxNwoJCUMxNTEuODI5OSwwLDE1MS4yNjMsMCwxNTAuNjk4MSwwTDE1MC42OTgxLDB6Ii8+Cgk8cGF0aCBpZD0iWE1MSURfMjI3XyIgZmlsbD0iI0ZGRkZGRiIgZD0iTTE1MC42OTgxLDMuNTMybDEuNjcxNSwwLjAwMzJjMC40NTI4LDAuMDAzMiwwLjkwNTYsMC4wMDgxLDEuMzYwOSwwLjAyMDUKCQljMC43OTIsMC4wMjE0LDEuNzE4NSwwLjA2NDMsMi41ODIxLDAuMjE5MWMwLjc1MDcsMC4xMzUyLDEuMzgwMywwLjM0MDgsMS45ODQ1LDAuNjQ4NGMwLjU5NjUsMC4zMDMxLDEuMTQzLDAuNzAwMywxLjYyMDIsMS4xNzY4CgkJYzAuNDc5LDAuNDc5NywwLjg3NjcsMS4wMjcxLDEuMTgzOCwxLjYzMDJjMC4zMDU5LDAuNTk5NSwwLjUxMDIsMS4yMjYxLDAuNjQ0NiwxLjk4MjNjMC4xNTQ0LDAuODU0MiwwLjE5NzEsMS43ODMyLDAuMjE4OCwyLjU4MDEKCQljMC4wMTIyLDAuNDQ5OCwwLjAxODIsMC44OTk2LDAuMDIwNCwxLjM2MDFjMC4wMDQzLDAuNTU2OSwwLjAwNDIsMS4xMTM1LDAuMDA0MiwxLjY3MTVWOTEuMTQyCgkJYzAsMC41NTgsMC4wMDAxLDEuMTEzNi0wLjAwNDMsMS42ODI0Yy0wLjAwMjEsMC40NDk3LTAuMDA4MSwwLjg5OTUtMC4wMjA0LDEuMzUwMWMtMC4wMjE2LDAuNzk1Ny0wLjA2NDMsMS43MjQyLTAuMjIwNiwyLjU4ODUKCQljLTAuMTMyNSwwLjc0NTgtMC4zMzY3LDEuMzcyNS0wLjY0NDMsMS45NzVjLTAuMzA2MiwwLjYwMTYtMC43MDMzLDEuMTQ4NC0xLjE4MDIsMS42MjUxYy0wLjQ3OTksMC40OC0xLjAyNDYsMC44NzYtMS42MjgyLDEuMTgxOQoJCWMtMC41OTk3LDAuMzA2MS0xLjIyODIsMC41MTE1LTEuOTcxNSwwLjY0NTNjLTAuODgxMSwwLjE1Ny0xLjg0NjQsMC4yMDAyLTIuNTczNCwwLjIxOTkKCQljLTAuNDU3NCwwLjAxMDMtMC45MTI2LDAuMDE2NS0xLjM3ODksMC4wMTg3Yy0wLjU1NTcsMC4wMDQzLTEuMTEzNCwwLjAwNDItMS42NjkyLDAuMDA0MkgxNC44MjMyYy0wLjAwNzQsMC0wLjAxNDYsMC0wLjAyMjEsMAoJCWMtMC41NDk0LDAtMS4wOTk5LDAtMS42NTkzLTAuMDA0M2MtMC40NTYxLTAuMDAyMS0wLjkxMTItMC4wMDgyLTEuMzUxMi0wLjAxODJjLTAuNzQzNi0wLjAyMDEtMS43MDk1LTAuMDYzMi0yLjU4MzQtMC4yMTkzCgkJYy0wLjc0OTctMC4xMzQ4LTEuMzc4Mi0wLjM0MDItMS45ODU4LTAuNjUwM2MtMC41OTc5LTAuMzAzMi0xLjE0MjItMC42OTg4LTEuNjIyMy0xLjE3OTcKCQljLTAuNDc2NC0wLjQ3NTYtMC44NzIzLTEuMDIwNy0xLjE3ODQtMS42MjMyYy0wLjMwNjQtMC42MDE5LTAuNTExNC0xLjIzMDUtMC42NDYyLTEuOTg1MgoJCWMtMC4xNTU4LTAuODYyNi0wLjE5ODYtMS43ODc0LTAuMjItMi41Nzc3Yy0wLjAxMjItMC40NTI1LTAuMDE3My0wLjkwNDktMC4wMjAyLTEuMzU0N2wtMC4wMDIyLTEuMzI3OWwwLjAwMDEtMC4zNTA2VjE0LjgyNDIKCQlsLTAuMDAwMS0wLjM1MDZsMC4wMDIxLTEuMzI1MWMwLjAwMy0wLjQ1MjUsMC4wMDgxLTAuOTA0OSwwLjAyMDMtMS4zNTdjMC4wMjE0LTAuNzkxMSwwLjA2NDItMS43MTYzLDAuMjIxMy0yLjU4NjEKCQlDMy45MDk0LDguNDU3NSw0LjExNDMsNy44Mjg5LDQuNDIyMyw3LjIyNEM0LjcyNiw2LjYyNjEsNS4xMjI2LDYuMDgwMyw1LjYwMTUsNS42MDE1YzAuNDc3LTAuNDc3MiwxLjAyMzEtMC44NzM5LDEuNjI0OC0xLjE3OTkKCQlDNy44Mjc0LDQuMTE1NSw4LjQ1NzEsMy45MSw5LjIwNjgsMy43NzUxYzAuODYzOC0wLjE1NTIsMS43OTA5LTAuMTk4LDIuNTg0OS0wLjIxOTVjMC40NTI2LTAuMDEyMywwLjkwNTItMC4wMTcyLDEuMzU0NC0wLjAyMDMKCQlsMS42NzcxLTAuMDAzM0gxNTAuNjk4MSIvPgoJPGcgaWQ9IlhNTElEXzM0XyI+CgkJPGcgaWQ9IlhNTElEXzQ0XyI+CgkJCTxwYXRoIGlkPSJYTUxJRF80Nl8iIGQ9Ik00My41MDg0LDM1Ljc2OTdjMS40MDMyLTEuNzU1LDIuMzU1NC00LjExMTYsMi4xMDQzLTYuNTE5N2MtMi4wNTQxLDAuMTAyMi00LjU2MDYsMS4zNTUxLTYuMDExOCwzLjExMTYKCQkJCWMtMS4zMDMsMS41MDQxLTIuNDU2MywzLjk1OTMtMi4xNTU3LDYuMjY2NUMzOS43NTEsMzguODI4MSw0Mi4wNTQ3LDM3LjQ3NTYsNDMuNTA4NCwzNS43Njk3Ii8+CgkJCTxwYXRoIGlkPSJYTUxJRF80NV8iIGQ9Ik00NS41ODY1LDM5LjA3ODZjLTMuMzQ4Ni0wLjE5OTUtNi4xOTU2LDEuOTAwNC03Ljc5NDgsMS45MDA0Yy0xLjU5OTksMC00LjA0ODctMS43OTk5LTYuNjk3Mi0xLjc1MTQKCQkJCWMtMy40NDcyLDAuMDUwNi02LjY0NTgsMS45OTk3LTguMzk1Miw1LjA5OTZjLTMuNTk4LDYuMjAxNS0wLjk0OTUsMTUuNDAwNCwyLjU0OTQsMjAuNDUxMQoJCQkJYzEuNjk5MiwyLjQ5ODgsMy43NDY5LDUuMjUwMSw2LjQ0NTIsNS4xNTEyYzIuNTQ5NC0wLjEsMy41NDg2LTEuNjUwNyw2LjY0NzUtMS42NTA3YzMuMDk2NiwwLDMuOTk2NywxLjY1MDcsNi42OTU0LDEuNjAwNwoJCQkJYzIuNzk4Ni0wLjA1LDQuNTQ4Mi0yLjUsNi4yNDc0LTUuMDAxMWMxLjk0OTItMi44NDg1LDIuNzQ3MS01LjU5ODksMi43OTczLTUuNzQ5OWMtMC4wNTAyLTAuMDUtNS4zOTY0LTIuMTAxLTUuNDQ2LTguMjUwOQoJCQkJYy0wLjA1MDUtNS4xNDk0LDQuMTk3NC03LjU5ODcsNC4zOTczLTcuNzUwNkM1MC42MzQsMzkuNTc5MSw0Ni44ODU5LDM5LjE3OTEsNDUuNTg2NSwzOS4wNzg2Ii8+CgkJPC9nPgoJCTxnIGlkPSJYTUxJRF8zNV8iPgoJCQk8cGF0aCBpZD0iWE1MSURfNDFfIiBkPSJNNzguOTczMiwzMi4xMTAyYzcuMjc4LDAsMTIuMzQ2NCw1LjAxNjgsMTIuMzQ2NCwxMi4zMjA5YzAsNy4zMzAyLTUuMTcyMiwxMi4zNzMzLTEyLjUyODQsMTIuMzczMwoJCQkJSDcwLjczM3YxMi44MTQyaC01LjgyMjVWMzIuMTEwMkg3OC45NzMyeiBNNzAuNzMzLDUxLjkxNzJoNi42ODA0YzUuMDY4OSwwLDcuOTUzOC0yLjcyOSw3Ljk1MzgtNy40NgoJCQkJYzAtNC43MzA1LTIuODg0OS03LjQzNC03LjkyNzgtNy40MzRINzAuNzMzVjUxLjkxNzJ6Ii8+CgkJCTxwYXRoIGlkPSJYTUxJRF8zOF8iIGQ9Ik05Mi43NjQxLDYxLjg0NzJjMC00LjgwOTIsMy42NjUxLTcuNTY0NSwxMC40MjMxLTcuOTgwMWw3LjI1Mi0wLjQ0MjN2LTIuMDc5MgoJCQkJYzAtMy4wNDEzLTIuMDAxNS00LjcwNDktNS41NjIzLTQuNzA0OWMtMi45Mzc2LDAtNS4wNjksMS41MDc2LTUuNTEwNywzLjgyMWgtNS4yNTA5YzAuMTU2NC00Ljg2MDksNC43MzEtOC4zOTU2LDEwLjkxNzUtOC4zOTU2CgkJCQljNi42NTQzLDAsMTAuOTk1MiwzLjQ4MzEsMTAuOTk1Miw4Ljg4OTR2MTguNjYzMWgtNS4zODA4di00LjQ5NjRoLTAuMTI5OGMtMS41MzM3LDIuOTM3MS00LjkxMyw0Ljc4MjItOC41NzgxLDQuNzgyMgoJCQkJQzk2LjUzMjksNjkuOTA0NCw5Mi43NjQxLDY2LjY4MTUsOTIuNzY0MSw2MS44NDcyeiBNMTEwLjQzOTIsNTkuNDI5NnYtMi4xMDU4bC02LjQ3MjMsMC40MTYxCgkJCQljLTMuNjM5LDAuMjMzNy01LjUzNjIsMS41ODU0LTUuNTM2MiwzLjk1MDljMCwyLjI4NzMsMS45NzU0LDMuNzY5NCw1LjA2ODQsMy43Njk0CgkJCQlDMTA3LjQ0OTksNjUuNDYwMiwxMTAuNDM5Miw2Mi45MzgyLDExMC40MzkyLDU5LjQyOTZ6Ii8+CgkJCTxwYXRoIGlkPSJYTUxJRF8zNl8iIGQ9Ik0xMjAuOTc0Niw3OS42NTIydi00LjQ5NjRjMC4zNjQsMC4wNTEyLDEuMjQ3NSwwLjEwMzMsMS43MTUyLDAuMTAzMwoJCQkJYzIuNTczNiwwLDQuMDI5MS0xLjA5MSw0LjkxMzEtMy44OTg3bDAuNTE5OS0xLjY2MzZsLTkuODUxNi0yNy4yOTI4aDYuMDgyMmw2Ljg2MjQsMjIuMTQ1N2gwLjEyOThsNi44NjI0LTIyLjE0NTdoNS45MjY4CgkJCQlsLTEwLjIxNTYsMjguNjcwNmMtMi4zMzk0LDYuNTc2MS01LjAxNjgsOC43MzQtMTAuNjgzNCw4LjczNEMxMjIuNzk0MSw3OS44MDg2LDEyMS4zNjQyLDc5Ljc1NjUsMTIwLjk3NDYsNzkuNjUyMnoiLz4KCQk8L2c+Cgk8L2c+CjwvZz4KPGc+CjwvZz4KPGc+CjwvZz4KPGc+CjwvZz4KPGc+CjwvZz4KPGc+CjwvZz4KPGc+CjwvZz4KPC9zdmc+Cg==");
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: 40px 24px;
+	pointer-events: none;
+}
+
+body.woocommerce-checkout #bw-klarna-accordion-container .bw-klarna-notice {
+	margin: 0 !important;
+	padding: 18px 20px;
+	text-align: center;
+	font-size: 18px;
+	line-height: 1.35;
+	letter-spacing: -0.5px;
+}
+
+body.woocommerce-checkout #bw-klarna-accordion-container .bw-klarna-notice--info {
+	color: #2f3a4d;
+}
+
+body.woocommerce-checkout #bw-klarna-accordion-container .bw-klarna-notice--error {
+	color: #9f1d1d;
+	background: #fff3f3;
+	border: 1px solid #f1b7b7;
+	border-radius: 10px;
+}
+
 /* ============================================
    PAYMENT METHOD CONTENT (Accordion Panel)
    !important on background to override WooCommerce payment_box styles
@@ -804,6 +848,19 @@ body.woocommerce-checkout .bw-place-order-btn__text {
 	transition: opacity var(--bw-pm-transition-base);
 }
 
+body.woocommerce-checkout .bw-place-order-btn.bw-place-order-btn--klarna {
+	background: #ffa8cd !important;
+	color: #111111 !important;
+}
+
+body.woocommerce-checkout .bw-place-order-btn.bw-place-order-btn--klarna:hover {
+	background: #ff95c2 !important;
+}
+
+body.woocommerce-checkout .bw-place-order-btn.bw-place-order-btn--klarna:active {
+	background: #ff8cbd !important;
+}
+
 /* Button State: Processing (loading) */
 body.woocommerce-checkout .bw-place-order-btn.processing {
 	pointer-events: none;
@@ -828,6 +885,14 @@ body.woocommerce-checkout .bw-place-order-btn.processing::after {
 	to {
 		transform: rotate(360deg);
 	}
+}
+
+/* Wallet override: while custom wallet button is active, hide generic Woo button. */
+body.woocommerce-checkout.bw-wallet-bw_google_pay #place_order,
+body.woocommerce-checkout.bw-wallet-bw_google_pay button[name="woocommerce_checkout_place_order"],
+body.woocommerce-checkout.bw-wallet-bw_apple_pay #place_order,
+body.woocommerce-checkout.bw-wallet-bw_apple_pay button[name="woocommerce_checkout_place_order"] {
+	display: none !important;
 }
 
 /* ============================================
@@ -1120,6 +1185,56 @@ body.woocommerce-checkout .bw-sr-only {
 	margin: 0 auto;
 }
 
+.bw-klarna-info {
+	padding: 28px 20px;
+	text-align: center;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.bw-klarna-info__text {
+	font-size: 18px;
+	line-height: 1.45;
+	letter-spacing: -0.4px;
+	color: #1a1a1a;
+	max-width: 680px;
+	margin: 0 auto;
+}
+
+.bw-klarna-info__text--error {
+	color: #9f1d1d;
+	background: #fff3f3;
+	border: 1px solid #f1b7b7;
+	border-radius: 10px;
+	padding: 14px 16px;
+}
+
+.bw-apple-pay-info {
+	padding: 28px 20px;
+	text-align: center;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.bw-apple-pay-info__text {
+	font-size: 18px;
+	line-height: 1.45;
+	letter-spacing: -0.4px;
+	color: #1a1a1a;
+	max-width: 680px;
+	margin: 0 auto;
+}
+
+.bw-apple-pay-info__text--error {
+	color: #9f1d1d;
+	background: #fff3f3;
+	border: 1px solid #f1b7b7;
+	border-radius: 10px;
+	padding: 14px 16px;
+}
+
 #bw-google-pay-button-wrapper {
 	width: 100%;
 	margin-top: 10px;
@@ -1159,6 +1274,157 @@ body.woocommerce-checkout .bw-sr-only {
 	margin: 0 !important;
 	padding: 0 !important;
 	display: block !important;
+}
+
+#bw-apple-pay-button-wrapper {
+	width: 100%;
+	margin-top: 10px;
+}
+
+#bw-apple-pay-button {
+	min-height: 54px;
+	width: 100%;
+}
+
+.bw-custom-applepay-btn {
+	width: 100% !important;
+	height: 54px !important;
+	background: #000 !important;
+	color: #fff !important;
+	border: none !important;
+	border-radius: 4px !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	gap: 10px !important;
+	font-weight: 600 !important;
+	font-size: 16px !important;
+	cursor: pointer !important;
+	transition: background 0.2s ease !important;
+	padding: 0 !important;
+	margin: 0 !important;
+}
+
+.bw-custom-applepay-btn:hover {
+	background: #1a1a1a !important;
+}
+
+body.woocommerce-checkout .bw-apple-pay-unavailable {
+	max-width: 720px;
+	margin: 0 auto;
+	padding: 16px 10px 6px;
+	text-align: center;
+}
+
+body.woocommerce-checkout .bw-apple-pay-unavailable__text {
+	margin: 0;
+	font-size: 15px;
+	line-height: 1.45;
+	color: #4b5563;
+}
+
+body.woocommerce-checkout .bw-apple-pay-unavailable__text--error {
+	color: #9f1d1d;
+}
+
+body.woocommerce-checkout .bw-apple-pay-init-info {
+	max-width: 760px;
+	margin: 0 auto;
+	padding: 20px 16px 20px;
+	text-align: center;
+}
+
+body.woocommerce-checkout .bw-apple-pay-init-info__title {
+	margin: 0 0 10px;
+	font-size: 28px;
+	line-height: 1.15;
+	letter-spacing: -0.5px;
+	font-weight: 700;
+	color: #111111;
+}
+
+body.woocommerce-checkout .bw-apple-pay-init-info__reason,
+body.woocommerce-checkout .bw-apple-pay-init-info__check {
+	margin: 0 0 8px;
+	font-size: 14px;
+	line-height: 1.45;
+	color: #4b5563;
+}
+
+body.woocommerce-checkout .bw-apple-pay-init-info__reason--error {
+	color: #9f1d1d;
+	font-weight: 700;
+}
+
+body.woocommerce-checkout .bw-apple-pay-init-info__check {
+	font-weight: 600;
+	color: #2f3a4d;
+}
+
+body.woocommerce-checkout .bw-gpay-unavailable {
+	max-width: 720px;
+	margin: 0 auto;
+	padding: 16px 10px 6px;
+	text-align: center;
+}
+
+body.woocommerce-checkout .bw-gpay-unavailable__title {
+	margin: 0 0 8px;
+	font-size: 16px;
+	font-weight: 600;
+	color: #3f3f46;
+}
+
+body.woocommerce-checkout .bw-gpay-unavailable__text {
+	margin: 0;
+	font-size: 14px;
+	line-height: 1.45;
+	color: #6b7280;
+}
+
+body.woocommerce-checkout .bw-gpay-unavailable__actions {
+	margin-top: 14px;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 10px;
+}
+
+body.woocommerce-checkout .bw-gpay-unavailable__btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 38px;
+	padding: 0 14px;
+	border-radius: 8px;
+	border: 1px solid #d1d5db;
+	font-size: 14px;
+	font-weight: 600;
+	text-decoration: none !important;
+	cursor: pointer;
+	transition: all 0.18s ease;
+}
+
+body.woocommerce-checkout .bw-gpay-unavailable__btn--primary {
+	background: #111111;
+	border-color: #111111;
+	color: #ffffff !important;
+}
+
+body.woocommerce-checkout .bw-gpay-unavailable__btn--primary:hover {
+	background: #222222;
+	border-color: #222222;
+	color: #ffffff !important;
+}
+
+body.woocommerce-checkout .bw-gpay-unavailable__btn--secondary {
+	background: #ffffff;
+	color: #111111 !important;
+}
+
+body.woocommerce-checkout .bw-gpay-unavailable__btn--secondary:hover {
+	border-color: #9ca3af;
+	background: #f9fafb;
 }
 
 @keyframes bw-pulse {

@@ -682,6 +682,105 @@ function bw_mew_prevent_order_received_cache()
 add_action('template_redirect', 'bw_mew_prevent_order_received_cache', 1);
 
 /**
+ * Safe debug logger for wallet flows.
+ * Active only for admin users when WP_DEBUG is enabled.
+ *
+ * @param string $context Log context label.
+ * @param array  $data    Safe debug payload.
+ * @return void
+ */
+function bw_mew_wallet_debug_log($context, $data = array())
+{
+    if (!defined('WP_DEBUG') || !WP_DEBUG) {
+        return;
+    }
+
+    if (!is_user_logged_in() || !current_user_can('manage_options')) {
+        return;
+    }
+
+    $safe_context = sanitize_key((string) $context);
+    $safe_data = is_array($data) ? $data : array();
+
+    error_log('[BW Wallet Debug][' . $safe_context . '] ' . wp_json_encode($safe_data));
+}
+
+/**
+ * Redirect wallet failed/canceled returns away from order-received to checkout.
+ */
+function bw_mew_handle_wallet_failed_return_redirect()
+{
+    if (!function_exists('is_wc_endpoint_url') || !is_wc_endpoint_url('order-received')) {
+        return;
+    }
+
+    $redirect_status = isset($_GET['redirect_status']) // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        ? sanitize_text_field(wp_unslash($_GET['redirect_status'])) // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        : '';
+    if ('failed' !== $redirect_status && 'canceled' !== $redirect_status) {
+        return;
+    }
+
+    $order_id = absint(get_query_var('order-received'));
+    if ($order_id <= 0 && isset($_GET['order-received'])) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        $order_id = absint(wp_unslash($_GET['order-received'])); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+    }
+    if ($order_id <= 0) {
+        return;
+    }
+
+    $order = wc_get_order($order_id);
+    if (!$order) {
+        return;
+    }
+
+    $payment_method = $order->get_payment_method();
+    if (!in_array($payment_method, array('bw_klarna', 'bw_google_pay', 'bw_apple_pay'), true)) {
+        return;
+    }
+
+    $is_cart_empty = true;
+    if (function_exists('WC') && WC()->cart) {
+        $is_cart_empty = (0 === (int) WC()->cart->get_cart_contents_count());
+    }
+    bw_mew_wallet_debug_log('return_router', array(
+        'gateway_id'      => (string) $payment_method,
+        'order_id'        => (int) $order_id,
+        'order_status'    => (string) $order->get_status(),
+        'redirect_status' => (string) $redirect_status,
+        'is_paid'         => (bool) $order->is_paid(),
+        'is_cart_empty'   => (bool) $is_cart_empty,
+    ));
+
+    // If payment is already confirmed by webhook, allow normal thank-you flow.
+    if ($order->is_paid()) {
+        return;
+    }
+
+    wc_add_notice(
+        __('Payment was canceled or not completed. Please choose another payment method and try again.', 'bw'),
+        'error'
+    );
+
+    // Reset pending-payment session state so a new Klarna attempt can start cleanly.
+    if (function_exists('WC') && WC()->session) {
+        WC()->session->set('order_awaiting_payment', false);
+        WC()->session->set('chosen_payment_method', $payment_method);
+        WC()->session->set('reload_checkout', true);
+    }
+
+    $order->add_order_note(__('Customer returned from wallet flow with failed/canceled status.', 'bw'));
+
+    $checkout_url = function_exists('wc_get_checkout_url')
+        ? wc_get_checkout_url()
+        : wc_get_page_permalink('checkout');
+
+    wp_safe_redirect($checkout_url);
+    exit;
+}
+add_action('template_redirect', 'bw_mew_handle_wallet_failed_return_redirect', 2);
+
+/**
  * Add a specific body class and hide theme wrappers on the custom login page.
  */
 function bw_mew_prepare_account_page_layout()
@@ -1830,7 +1929,7 @@ function bw_mew_render_address_section_heading()
 }
 
 /**
- * Add Google Pay gateway to WooCommerce payment gateways.
+ * Add BlackWork custom gateways to WooCommerce payment gateways.
  *
  * @param array $gateways WooCommerce gateways.
  * @return array
@@ -1839,6 +1938,12 @@ function bw_mew_add_google_pay_gateway($gateways)
 {
     if (class_exists('BW_Google_Pay_Gateway')) {
         $gateways[] = 'BW_Google_Pay_Gateway';
+    }
+    if (class_exists('BW_Klarna_Gateway')) {
+        $gateways[] = 'BW_Klarna_Gateway';
+    }
+    if (class_exists('BW_Apple_Pay_Gateway')) {
+        $gateways[] = 'BW_Apple_Pay_Gateway';
     }
     return $gateways;
 }

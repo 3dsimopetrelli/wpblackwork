@@ -89,7 +89,71 @@ if (!wp_doing_ajax()) {
 								}
 
 								if (!empty($icon_html)) {
-									echo '<span class="' . esc_attr($icon_class) . '">' . wp_kses_post($icon_html) . '</span>';
+									$bw_icon_allowed_html = wp_kses_allowed_html('post');
+									$bw_icon_allowed_html['svg'] = array(
+										'class' => true,
+										'xmlns' => true,
+										'xmlns:xlink' => true,
+										'viewBox' => true,
+										'viewbox' => true,
+										'width' => true,
+										'height' => true,
+										'fill' => true,
+										'stroke' => true,
+										'stroke-width' => true,
+										'stroke-linecap' => true,
+										'stroke-linejoin' => true,
+										'role' => true,
+										'aria-label' => true,
+										'aria-hidden' => true,
+										'focusable' => true,
+									);
+									$bw_icon_allowed_html['g'] = array(
+										'id' => true,
+										'fill' => true,
+									);
+									$bw_icon_allowed_html['path'] = array(
+										'id' => true,
+										'd' => true,
+										'fill' => true,
+										'stroke' => true,
+										'stroke-width' => true,
+										'stroke-linecap' => true,
+										'stroke-linejoin' => true,
+										'stroke-miterlimit' => true,
+										'fill-rule' => true,
+									);
+									$bw_icon_allowed_html['rect'] = array(
+										'x' => true,
+										'y' => true,
+										'width' => true,
+										'height' => true,
+										'rx' => true,
+										'fill' => true,
+										'stroke' => true,
+										'stroke-opacity' => true,
+									);
+									$bw_icon_allowed_html['circle'] = array(
+										'cx' => true,
+										'cy' => true,
+										'r' => true,
+										'fill' => true,
+										'stroke' => true,
+									);
+									$bw_icon_allowed_html['line'] = array(
+										'x1' => true,
+										'y1' => true,
+										'x2' => true,
+										'y2' => true,
+										'stroke' => true,
+										'stroke-width' => true,
+										'stroke-linecap' => true,
+										'stroke-linejoin' => true,
+									);
+									$bw_icon_allowed_html['title'] = array(
+										'id' => true,
+									);
+									echo '<span class="' . esc_attr($icon_class) . '">' . wp_kses($icon_html, $bw_icon_allowed_html) . '</span>';
 								}
 								?>
 							</label>
@@ -104,7 +168,7 @@ if (!wp_doing_ajax()) {
 									$is_paypal_desc = (strpos($gateway_id, 'paypal') !== false ||
 										strpos($gateway_id, 'ppcp') !== false);
 
-									if ($gateway->get_description() && !$is_paypal_desc && 'bw_google_pay' !== $gateway_id):
+									if ($gateway->get_description() && !$is_paypal_desc && 'bw_google_pay' !== $gateway_id && 'bw_klarna' !== $gateway_id):
 										?>
 										<div class="bw-payment-method__description">
 											<?php echo wp_kses_post(wpautop(wptexturize($gateway->get_description()))); ?>
@@ -137,6 +201,8 @@ if (!wp_doing_ajax()) {
 									$is_google_pay     = (strpos($gateway_id, 'google') !== false ||
 										strpos($gateway_id, 'googlepay') !== false);
 									$is_bw_google_pay  = ('bw_google_pay' === $gateway_id);
+									$is_bw_klarna      = ('bw_klarna' === $gateway_id);
+									$is_bw_apple_pay   = ('bw_apple_pay' === $gateway_id);
 
 									if ($is_classic_paypal):
 										?>
@@ -176,6 +242,50 @@ if (!wp_doing_ajax()) {
 											</p>
 										</div>
 										<?php
+									elseif ($is_bw_klarna):
+										$bw_klarna_enabled = ('1' === get_option('bw_klarna_enabled', '0'));
+										$klarna_pk         = (string) get_option('bw_klarna_publishable_key', '');
+										$klarna_sk         = (string) get_option('bw_klarna_secret_key', '');
+										$klarna_wc_settings = get_option('woocommerce_bw_klarna_settings', array());
+										$klarna_wc_enabled  = isset($klarna_wc_settings['enabled']) && 'yes' === $klarna_wc_settings['enabled'];
+										$klarna_ready       = ($bw_klarna_enabled && $klarna_wc_enabled && '' !== $klarna_pk && '' !== $klarna_sk);
+										?>
+										<div class="bw-klarna-info">
+											<p class="bw-klarna-info__text<?php echo $klarna_ready ? '' : ' bw-klarna-info__text--error'; ?>">
+												<?php
+												echo esc_html(
+													$klarna_ready
+														? 'You\'ll be redirected to Klarna - Flexible payments to complete your purchase.'
+														: 'Klarna is not configured. Activate Klarna (BlackWork) in WooCommerce > Settings > Payments.'
+												);
+												?>
+											</p>
+										</div>
+										<?php
+									elseif ($is_bw_apple_pay):
+										$bw_apple_enabled = ('1' === get_option('bw_apple_pay_enabled', '0'));
+										$apple_pk         = (string) get_option('bw_apple_pay_publishable_key', '');
+										$apple_sk         = (string) get_option('bw_apple_pay_secret_key', '');
+										$global_pk        = (string) get_option('bw_google_pay_publishable_key', '');
+										$global_sk        = (string) get_option('bw_google_pay_secret_key', '');
+										$apple_wc_settings = get_option('woocommerce_bw_apple_pay_settings', array());
+										$apple_wc_enabled  = isset($apple_wc_settings['enabled']) && 'yes' === $apple_wc_settings['enabled'];
+										$apple_pk_effective = '' !== $apple_pk ? $apple_pk : $global_pk;
+										$apple_sk_effective = '' !== $apple_sk ? $apple_sk : $global_sk;
+										$apple_ready       = ($bw_apple_enabled && $apple_wc_enabled && '' !== $apple_pk_effective && '' !== $apple_sk_effective);
+										?>
+										<div class="bw-apple-pay-info">
+											<p class="bw-apple-pay-info__text<?php echo $apple_ready ? '' : ' bw-apple-pay-info__text--error'; ?>">
+												<?php
+												echo esc_html(
+													$apple_ready
+														? 'You\'ll be redirected to Apple Pay to complete your purchase.'
+														: 'Apple Pay is not configured. Activate Apple Pay (BlackWork) in WooCommerce > Settings > Payments.'
+												);
+												?>
+											</p>
+										</div>
+										<?php
 									endif;
 									?>
 								</div>
@@ -205,6 +315,50 @@ if (!wp_doing_ajax()) {
 											</svg>
 											<p class="bw-google-pay-info__text">
 												<?php echo esc_html('After clicking "Google Pay", you will be redirected to Google Pay to complete your purchase securely.'); ?>
+											</p>
+										</div>
+										<?php
+									elseif ('bw_klarna' === $gateway_id):
+										$bw_klarna_enabled = ('1' === get_option('bw_klarna_enabled', '0'));
+										$klarna_pk         = (string) get_option('bw_klarna_publishable_key', '');
+										$klarna_sk         = (string) get_option('bw_klarna_secret_key', '');
+										$klarna_wc_settings = get_option('woocommerce_bw_klarna_settings', array());
+										$klarna_wc_enabled  = isset($klarna_wc_settings['enabled']) && 'yes' === $klarna_wc_settings['enabled'];
+										$klarna_ready       = ($bw_klarna_enabled && $klarna_wc_enabled && '' !== $klarna_pk && '' !== $klarna_sk);
+										?>
+										<div class="bw-klarna-info">
+											<p class="bw-klarna-info__text<?php echo $klarna_ready ? '' : ' bw-klarna-info__text--error'; ?>">
+												<?php
+												echo esc_html(
+													$klarna_ready
+														? 'You\'ll be redirected to Klarna - Flexible payments to complete your purchase.'
+														: 'Klarna is not configured. Activate Klarna (BlackWork) in WooCommerce > Settings > Payments.'
+												);
+												?>
+											</p>
+										</div>
+										<?php
+									elseif ('bw_apple_pay' === $gateway_id):
+										$bw_apple_enabled = ('1' === get_option('bw_apple_pay_enabled', '0'));
+										$apple_pk         = (string) get_option('bw_apple_pay_publishable_key', '');
+										$apple_sk         = (string) get_option('bw_apple_pay_secret_key', '');
+										$global_pk        = (string) get_option('bw_google_pay_publishable_key', '');
+										$global_sk        = (string) get_option('bw_google_pay_secret_key', '');
+										$apple_wc_settings = get_option('woocommerce_bw_apple_pay_settings', array());
+										$apple_wc_enabled  = isset($apple_wc_settings['enabled']) && 'yes' === $apple_wc_settings['enabled'];
+										$apple_pk_effective = '' !== $apple_pk ? $apple_pk : $global_pk;
+										$apple_sk_effective = '' !== $apple_sk ? $apple_sk : $global_sk;
+										$apple_ready       = ($bw_apple_enabled && $apple_wc_enabled && '' !== $apple_pk_effective && '' !== $apple_sk_effective);
+										?>
+										<div class="bw-apple-pay-info">
+											<p class="bw-apple-pay-info__text<?php echo $apple_ready ? '' : ' bw-apple-pay-info__text--error'; ?>">
+												<?php
+												echo esc_html(
+													$apple_ready
+														? 'You\'ll be redirected to Apple Pay to complete your purchase.'
+														: 'Apple Pay is not configured. Activate Apple Pay (BlackWork) in WooCommerce > Settings > Payments.'
+												);
+												?>
 											</p>
 										</div>
 										<?php
@@ -270,6 +424,10 @@ if (!wp_doing_ajax()) {
 
 		<div id="bw-google-pay-button-wrapper" style="display: none;">
 			<div id="bw-google-pay-button"></div>
+		</div>
+
+		<div id="bw-apple-pay-button-wrapper" style="display: none;">
+			<div id="bw-apple-pay-button"></div>
 		</div>
 
 		<button type="submit"

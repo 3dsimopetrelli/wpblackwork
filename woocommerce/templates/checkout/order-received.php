@@ -36,11 +36,12 @@ if ( function_exists( 'bw_mew_render_order_received_logo_header' ) ) {
 
 	$item_lines = array();
 	foreach ( $order->get_items() as $item ) {
-		$name       = $item->get_name();
-		$quantity   = (int) $item->get_quantity();
-		$item_lines[] = sprintf( '%1$s × %2$d', $name, $quantity );
+		$item_lines[] = array(
+			'name' => $item->get_name(),
+			'qty'  => (int) $item->get_quantity(),
+		);
 	}
-	$product_line = implode( ', ', $item_lines );
+	$item_count = count( $item_lines );
 
 	$billing_name = trim( $order->get_formatted_billing_full_name() );
 	if ( '' === $billing_name ) {
@@ -58,6 +59,25 @@ if ( function_exists( 'bw_mew_render_order_received_logo_header' ) ) {
 	$my_account_url  = wc_get_page_permalink( 'myaccount' );
 	$cta_url         = $my_account_url;
 	$cta_label       = __( 'Go to your account', 'wpblackwork' );
+	$is_order_paid   = $order->is_paid();
+	$bw_cart_empty   = true;
+	if ( function_exists( 'WC' ) && WC()->cart ) {
+		$bw_cart_empty = ( 0 === (int) WC()->cart->get_cart_contents_count() );
+	}
+
+	if ( function_exists( 'bw_mew_wallet_debug_log' ) ) {
+		bw_mew_wallet_debug_log(
+			'thankyou_fallback',
+			array(
+				'gateway_id'      => (string) $order->get_payment_method(),
+				'order_id'        => (int) $order->get_id(),
+				'order_status'    => (string) $order->get_status(),
+				'redirect_status' => isset( $_GET['redirect_status'] ) ? sanitize_text_field( wp_unslash( $_GET['redirect_status'] ) ) : '', // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+				'is_paid'         => (bool) $is_order_paid,
+				'is_cart_empty'   => (bool) $bw_cart_empty,
+			)
+		);
+	}
 
 	if ( $show_email_reminder_cta ) {
 		$cta_url   = add_query_arg(
@@ -70,6 +90,16 @@ if ( function_exists( 'bw_mew_render_order_received_logo_header' ) ) {
 		$cta_label = __( 'Check your email to finish account setup', 'wpblackwork' );
 	}
 	?>
+	<?php if ( ! $is_order_paid ) : ?>
+		<div class="woocommerce-notices-wrapper">
+			<ul class="woocommerce-error" role="alert">
+				<li>
+					<?php esc_html_e( 'Payment not completed. Please return to checkout and choose another payment method.', 'wpblackwork' ); ?>
+					<a href="<?php echo esc_url( wc_get_checkout_url() ); ?>"><?php esc_html_e( 'Return to checkout', 'wpblackwork' ); ?></a>
+				</li>
+			</ul>
+		</div>
+	<?php else : ?>
 	<section class="bw-order-confirmed" aria-label="<?php esc_attr_e( 'Order confirmed', 'wpblackwork' ); ?>">
 		<div class="bw-order-confirmed__hero">
 			<h1 class="bw-order-confirmed__title"><?php esc_html_e( 'THANK YOU', 'wpblackwork' ); ?></h1>
@@ -110,12 +140,25 @@ if ( function_exists( 'bw_mew_render_order_received_logo_header' ) ) {
 				<h2 class="bw-order-card__title"><?php esc_html_e( 'Order summary', 'wpblackwork' ); ?></h2>
 				<div class="bw-order-card__rows">
 					<div class="bw-order-card__row">
+						<span><?php esc_html_e( 'Items', 'wpblackwork' ); ?></span>
+						<span><?php echo esc_html( $item_count ); ?></span>
+					</div>
+					<div class="bw-order-card__row">
 						<span><?php esc_html_e( 'Email', 'wpblackwork' ); ?></span>
 						<span><?php echo esc_html( $billing_email ); ?></span>
 					</div>
-					<div class="bw-order-card__row">
+					<div class="bw-order-card__row bw-order-card__row--products">
 						<span><?php esc_html_e( 'Product', 'wpblackwork' ); ?></span>
-						<span><?php echo esc_html( $product_line ); ?></span>
+						<div class="bw-order-card__value">
+							<ul class="bw-order-card__products">
+								<?php foreach ( $item_lines as $item_line ) : ?>
+									<li>
+										<span class="bw-order-card__product-name"><?php echo esc_html( $item_line['name'] ); ?></span>
+										<span class="bw-order-card__product-qty"><?php echo esc_html( sprintf( 'x%d', (int) $item_line['qty'] ) ); ?></span>
+									</li>
+								<?php endforeach; ?>
+							</ul>
+						</div>
 					</div>
 					<div class="bw-order-card__row">
 						<span><?php esc_html_e( 'Subtotal', 'wpblackwork' ); ?></span>
@@ -189,6 +232,7 @@ if ( function_exists( 'bw_mew_render_order_received_logo_header' ) ) {
 		</section>
 
 		</section>
+	<?php endif; ?>
 	<?php else : ?>
 	<p class="woocommerce-notice woocommerce-notice--success woocommerce-thankyou-order-received">
 		<?php

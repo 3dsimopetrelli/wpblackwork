@@ -5,7 +5,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Class BW_Google_Pay_Gateway
+ * Backward-compatible bootstrap for BW Google Pay gateway.
  *
  * Custom Google Pay gateway via Stripe Payment Intents API.
  * Integrates with the BlackWork custom checkout accordion.

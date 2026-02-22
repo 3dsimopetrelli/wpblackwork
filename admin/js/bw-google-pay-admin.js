@@ -1,6 +1,8 @@
 jQuery(function ($) {
     const $button = $('#bw-google-pay-test-connection');
     const $result = $('#bw-google-pay-test-result');
+    const $testMode = $('#bw_google_pay_test_mode');
+    const $modePill = $('#bw-google-pay-mode-pill');
 
     if (!$button.length || !$result.length || typeof bwGooglePayAdmin === 'undefined') {
         return;
@@ -12,6 +14,23 @@ jQuery(function ($) {
             .addClass(statusClass)
             .text(text || '');
     };
+
+    const syncModeUi = function () {
+        const isTestMode = $testMode.is(':checked');
+        if ($modePill.length) {
+            $modePill
+                .toggleClass('is-live', !isTestMode)
+                .text(isTestMode ? 'Modalita attiva: TEST' : 'Modalita attiva: LIVE');
+        }
+
+        $button.text(isTestMode ? 'Verifica connessione (TEST)' : 'Verifica connessione (LIVE)');
+    };
+
+    syncModeUi();
+    $testMode.on('change', function () {
+        syncModeUi();
+        setResult('', '');
+    });
 
     $button.on('click', function () {
         const isTestMode = $('#bw_google_pay_test_mode').is(':checked');

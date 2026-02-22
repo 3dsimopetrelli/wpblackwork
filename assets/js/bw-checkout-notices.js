@@ -53,8 +53,11 @@
 
     function buildCompactErrorMessage($notice) {
         var labels = getVisibleInvalidRequiredLabels();
+        var noticeText = String($notice.text() || '').toLowerCase();
+        var looksLikeRequiredError = noticeText.indexOf('required field') !== -1 ||
+            noticeText.indexOf('please fill in required fields') !== -1;
 
-        if (!labels.length) {
+        if (!labels.length && looksLikeRequiredError) {
             $notice.find('li').each(function () {
                 var cleaned = normalizeLabel($(this).text());
                 if (cleaned) {
