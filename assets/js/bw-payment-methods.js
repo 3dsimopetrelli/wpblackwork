@@ -21,6 +21,30 @@
         'bw-wallet-bw_google_pay',
         'bw-wallet-bw_apple_pay'
     ];
+    var BW_INTERNAL_RADIO_CHANGE = false;
+
+    function isTemporarilyUnavailableWalletRadio(radio) {
+        if (!radio || radio.name !== 'payment_method') {
+            return false;
+        }
+
+        if (radio.value === 'bw_google_pay') {
+            return window.BW_GPAY_AVAILABLE !== true;
+        }
+        if (radio.value === 'bw_apple_pay') {
+            return window.BW_APPLE_PAY_AVAILABLE !== true;
+        }
+        return false;
+    }
+
+    function findFallbackPaymentMethod(excludedValue) {
+        return Array.from(document.querySelectorAll('input[name="payment_method"]')).find(function (radio) {
+            return radio.value !== excludedValue &&
+                !radio.disabled &&
+                radio.getAttribute('data-bw-unavailable') !== '1' &&
+                !isTemporarilyUnavailableWalletRadio(radio);
+        }) || null;
+    }
 
     function getSelectedPaymentMethod() {
         var checked = document.querySelector('input[name="payment_method"]:checked');
@@ -234,6 +258,10 @@
             return;
         }
 
+        if (radio.disabled || radio.getAttribute('data-bw-unavailable') === '1' || isTemporarilyUnavailableWalletRadio(radio)) {
+            return;
+        }
+
         paymentContainer.querySelectorAll('input[name="payment_method"]').forEach(function (input) {
             input.checked = input === radio;
         });
@@ -318,7 +346,21 @@
     document.addEventListener('change', function (event) {
         var target = event.target;
         if (target.type === 'radio' && target.name === 'payment_method') {
-            if (target.disabled || target.getAttribute('data-bw-unavailable') === '1') {
+            if (BW_INTERNAL_RADIO_CHANGE) {
+                return;
+            }
+
+            if (target.disabled || target.getAttribute('data-bw-unavailable') === '1' || isTemporarilyUnavailableWalletRadio(target)) {
+                BW_INTERNAL_RADIO_CHANGE = true;
+                target.checked = false;
+                var fallbackRadio = findFallbackPaymentMethod(target.value);
+                if (fallbackRadio) {
+                    fallbackRadio.checked = true;
+                    handlePaymentMethodChange(fallbackRadio);
+                } else {
+                    syncAccordionState();
+                }
+                BW_INTERNAL_RADIO_CHANGE = false;
                 return;
             }
             handlePaymentMethodChange(target);
@@ -339,7 +381,7 @@
 
         var radio = header.querySelector('input[type="radio"]');
         if (radio) {
-            var isUnavailable = radio.disabled || radio.getAttribute('data-bw-unavailable') === '1';
+            var isUnavailable = radio.disabled || radio.getAttribute('data-bw-unavailable') === '1' || isTemporarilyUnavailableWalletRadio(radio);
             if (isUnavailable) {
                 event.preventDefault();
                 return;
@@ -364,7 +406,7 @@
                 event.preventDefault();
                 var radio = target.previousElementSibling;
                 if (radio && radio.type === 'radio') {
-                    var isUnavailable = radio.disabled || radio.getAttribute('data-bw-unavailable') === '1';
+                    var isUnavailable = radio.disabled || radio.getAttribute('data-bw-unavailable') === '1' || isTemporarilyUnavailableWalletRadio(radio);
                     if (isUnavailable) {
                         return;
                     }
@@ -380,7 +422,9 @@
             if (target.type === 'radio' && target.name === 'payment_method') {
                 event.preventDefault();
                 var allRadios    = Array.from(document.querySelectorAll('input[name="payment_method"]')).filter(function (radio) {
-                    return !radio.disabled && radio.getAttribute('data-bw-unavailable') !== '1';
+                    return !radio.disabled &&
+                        radio.getAttribute('data-bw-unavailable') !== '1' &&
+                        !isTemporarilyUnavailableWalletRadio(radio);
                 });
                 var currentIndex = allRadios.indexOf(target);
                 var nextIndex;
