@@ -625,12 +625,18 @@ function bw_mew_enqueue_checkout_assets()
                 ? get_option('bw_google_pay_test_publishable_key', '')
                 : get_option('bw_google_pay_publishable_key', '');
 
+            // Pass server-side cart total so JS doesn't have to scrape the DOM.
+            $cart_total_cents = ( WC()->cart && ! WC()->cart->is_empty() )
+                ? (int) round( (float) WC()->cart->get_total( 'raw' ) * 100 )
+                : 0;
+
             wp_localize_script('bw-google-pay', 'bwGooglePayParams', [
                 'publishableKey'   => $pub_key,
                 'testMode'         => $test_mode,
                 'country'          => WC()->countries->get_base_country(),
                 'currency'         => strtolower( get_woocommerce_currency() ),
                 'ajaxCheckoutUrl'  => add_query_arg( 'wc-ajax', 'checkout', home_url( '/' ) ),
+                'orderTotalCents'  => $cart_total_cents,
             ]);
         }
     }

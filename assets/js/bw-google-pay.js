@@ -279,7 +279,11 @@
     // -------------------------------------------------------------------------
 
     function initGooglePay() {
-        var initialCents = bwGetOrderTotalCents();
+        // Prefer the server-side total (set at page load via wp_localize_script).
+        // Fall back to DOM scraping only if the PHP value is missing/zero.
+        var initialCents = (bwGooglePayParams.orderTotalCents > 0)
+            ? bwGooglePayParams.orderTotalCents
+            : bwGetOrderTotalCents();
         googlePayState = 'checking';
         googlePayAvailable = false;
 
@@ -309,8 +313,9 @@
         paymentRequest.canMakePayment().then(function (result) {
             BW_GOOGLE_PAY_DEBUG && console.log('[BW Google Pay] canMakePayment result:', result);
 
-            if (result) {
-                // Payment method (Google Pay, Apple Pay or Stripe Link) is available.
+            if (result && result.googlePay) {
+                // Google Pay is explicitly available on this device/browser.
+                BW_GOOGLE_PAY_DEBUG && console.log('[BW Google Pay] Google Pay disponibile:', result);
                 $('#bw-google-pay-accordion-placeholder').hide();
                 handleButtonVisibility();
 

@@ -50,6 +50,8 @@ class BW_Google_Pay_Gateway extends WC_Payment_Gateway {
 		$this->method_title       = 'Google Pay (BlackWork)';
 		$this->method_description = 'Implementazione Google Pay tramite Stripe Payment Intents per il checkout BlackWork.';
 
+		$this->supports = array( 'products', 'refunds' );
+
 		$this->init_form_fields();
 		$this->init_settings();
 
@@ -458,7 +460,31 @@ class BW_Google_Pay_Gateway extends WC_Payment_Gateway {
 				$pi_id    = $pi['id'] ?? '';
 				if ( $order_id ) {
 					$order = wc_get_order( (int) $order_id );
-					if ( $order && ! $order->is_paid() ) {
+					if ( ! $order ) {
+						break;
+					}
+					// Guard: only process orders that belong to this gateway.
+					if ( $order->get_payment_method() !== $this->id ) {
+						break;
+					}
+					// Guard: PI mismatch — reject if a different PI is already saved.
+					$saved_pi = $order->get_transaction_id();
+					if ( $saved_pi && $pi_id && $saved_pi !== $pi_id ) {
+						wc_get_logger()->warning(
+							sprintf( 'Google Pay Webhook: PI mismatch ordine %d — salvato=%s ricevuto=%s', $order_id, $saved_pi, $pi_id ),
+							array( 'source' => 'bw-google-pay' )
+						);
+						break;
+					}
+					// Guard: event idempotency — skip if already processed.
+					$event_id = $event['id'] ?? '';
+					if ( $event_id && $order->get_meta( '_bw_stripe_event_' . $event_id ) ) {
+						break;
+					}
+					if ( ! $order->is_paid() ) {
+						if ( $event_id ) {
+							$order->update_meta_data( '_bw_stripe_event_' . $event_id, time() );
+						}
 						$order->payment_complete( $pi_id );
 						$order->set_transaction_id( $pi_id );
 						$order->save();
@@ -475,7 +501,14 @@ class BW_Google_Pay_Gateway extends WC_Payment_Gateway {
 				$err_msg  = $pi['last_payment_error']['message'] ?? 'unknown';
 				if ( $order_id ) {
 					$order = wc_get_order( (int) $order_id );
-					if ( $order && ! $order->has_status( 'failed' ) ) {
+					if ( ! $order ) {
+						break;
+					}
+					// Guard: only process orders that belong to this gateway.
+					if ( $order->get_payment_method() !== $this->id ) {
+						break;
+					}
+					if ( ! $order->has_status( 'failed' ) ) {
 						$order->update_status(
 							'failed',
 							sprintf(
