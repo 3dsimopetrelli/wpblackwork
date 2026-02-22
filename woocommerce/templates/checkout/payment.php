@@ -95,6 +95,7 @@ if (!wp_doing_ajax()) {
 										'xmlns' => true,
 										'xmlns:xlink' => true,
 										'viewBox' => true,
+										'viewbox' => true,
 										'width' => true,
 										'height' => true,
 										'fill' => true,
