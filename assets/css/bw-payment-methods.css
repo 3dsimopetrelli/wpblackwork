@@ -1330,7 +1330,7 @@ body.woocommerce-checkout .bw-apple-pay-unavailable__text--error {
 body.woocommerce-checkout .bw-apple-pay-init-info {
 	max-width: 760px;
 	margin: 0 auto;
-	padding: 10px 16px 0;
+	padding: 20px 16px 20px;
 	text-align: center;
 }
 
