@@ -374,7 +374,11 @@
     // -------------------------------------------------------------------------
 
     function initGooglePay() {
-        var initialCents = bwGetOrderTotalCents();
+        // Prefer the server-side total (set at page load via wp_localize_script).
+        // Fall back to DOM scraping only if the PHP value is missing/zero.
+        var initialCents = (bwGooglePayParams.orderTotalCents > 0)
+            ? bwGooglePayParams.orderTotalCents
+            : bwGetOrderTotalCents();
         googlePayState = 'checking';
         googlePayAvailable = false;
 
@@ -407,7 +411,32 @@
             window.BW_GPAY_AVAILABLE = googlePayAvailable === true;
             googlePayState = googlePayAvailable ? 'available' : 'unavailable';
 
-            if (googlePayAvailable) {
+            if (result && result.googlePay) {
+                // Google Pay is explicitly available on this device/browser.
+                BW_GOOGLE_PAY_DEBUG && console.log('[BW Google Pay] Google Pay disponibile:', result);
+                $('#bw-google-pay-accordion-placeholder').hide();
+                handleButtonVisibility();
+
+                $(document).off('click.bwgpay', '#bw-google-pay-trigger')
+                           .on('click.bwgpay', '#bw-google-pay-trigger', function (e) {
+                    e.preventDefault();
+                    if (!bwValidateRequiredCheckoutFields()) {
+                        BW_GOOGLE_PAY_DEBUG && console.warn('[BW Google Pay] Campi obbligatori mancanti: popup bloccato.');
+                        return;
+                    }
+                    paymentRequest.show();
+                });
+
+            } else if (bwGooglePayParams.testMode) {
+                /*
+                 * TEST MODE FALLBACK
+                 * canMakePayment() returns null when the browser has no Google Pay
+                 * or Stripe Link configured.  In test mode we still render the button
+                 * so the UI/payment flow can be verified.  In production the button is
+                 * only shown when the device genuinely supports it.
+                 */
+                BW_GOOGLE_PAY_DEBUG && console.warn('[BW Google Pay] Test mode: canMakePayment null — forcing button visible for UI testing.');
+
                 $('#bw-google-pay-accordion-placeholder').hide();
                 $('input[name="payment_method"][value="bw_google_pay"]').prop('disabled', false).removeAttr('aria-disabled');
                 dedupeGooglePayDom();
