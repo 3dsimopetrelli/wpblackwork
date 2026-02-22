@@ -49,7 +49,12 @@ if (!wp_doing_ajax()) {
 								data-order_button_text="<?php echo esc_attr($gateway->order_button_text); ?>" />
 							<label for="payment_method_<?php echo $gateway_id; ?>" class="bw-payment-method__label">
 								<span class="bw-payment-method__title">
-									<?php echo wp_kses_post($gateway->get_title()); ?>
+									<?php
+									$display_title = $is_card_gateway_icon
+										? __('Credit / Debit Card', 'woocommerce')
+										: $gateway->get_title();
+									echo wp_kses_post($display_title);
+									?>
 								</span>
 								<?php
 								// Show gateway icon with PayPal fallback logo.
