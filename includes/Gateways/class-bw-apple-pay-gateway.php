@@ -26,7 +26,7 @@ class BW_Apple_Pay_Gateway extends BW_Abstract_Stripe_Gateway {
 		$this->init_settings();
 
 		$this->title             = 'Apple Pay';
-		$this->description       = __( 'Pay quickly and securely with Apple Pay.', 'bw' );
+		$this->description       = '';
 		$this->order_button_text = __( 'Place order with Apple Pay', 'bw' );
 
 		$this->test_mode            = false; // Apple Pay tab is live-only in this implementation.
