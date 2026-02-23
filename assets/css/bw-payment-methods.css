@@ -241,25 +241,19 @@ body.woocommerce-checkout .bw-payment-method.is-selected {
 	box-shadow: none !important;
 }
 
-/* Keep top selected border intact, but avoid double seam at bottom when selected method is collapsed */
-body.woocommerce-checkout .bw-payment-method:has(input[type="radio"]:checked):has(> .bw-payment-method__content[style*="display: none"]:not(.is-open)),
-body.woocommerce-checkout .bw-payment-method.is-selected:has(> .bw-payment-method__content[style*="display: none"]:not(.is-open)) {
-	border-bottom-color: transparent !important;
-}
-
-/* When panel is open, keep the selected item frame fully black (including bottom border). */
+/* Keep the selected item frame fully black (including bottom border). */
 body.woocommerce-checkout .bw-payment-method:has(input[type="radio"]:checked):has(> .bw-payment-method__content.is-open),
 body.woocommerce-checkout .bw-payment-method.is-selected:has(> .bw-payment-method__content.is-open) {
 	border-bottom-color: #000 !important;
 }
 
-/* Remove the gray top seam of the next item when the selected panel is open:
-   this keeps a single clean black bottom border on the open item. */
+/* Remove the gray top seam of the next item whenever a method is selected.
+   This prevents double borders and keeps a single clean selected divider. */
 body.woocommerce-checkout
-	.bw-payment-method:has(input[type="radio"]:checked):has(> .bw-payment-method__content.is-open)
+	.bw-payment-method:has(input[type="radio"]:checked)
 	+ .bw-payment-method,
 body.woocommerce-checkout
-	.bw-payment-method.is-selected:has(> .bw-payment-method__content.is-open)
+	.bw-payment-method.is-selected
 	+ .bw-payment-method {
 	border-top-color: transparent !important;
 }
