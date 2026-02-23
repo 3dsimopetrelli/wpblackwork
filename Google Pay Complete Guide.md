@@ -1,12 +1,13 @@
 # Google Pay Complete Guide
 
 ## Scope
-This guide documents the custom WooCommerce gateway `bw_google_pay` (Stripe integration), its architecture, runtime flow, fields, webhook behavior, hardening rules, and debugging playbook.
+This guide documents the custom WooCommerce gateway `bw_google_pay` (Stripe integration), with the current architecture and the real issues/fixes already applied during hardening and UX stabilization.
 
 Goals:
 - Keep production-safe behavior.
 - Avoid conflicts with `wc_stripe` and PayPal gateways.
 - Preserve WooCommerce standard flow (checkout -> order -> thank you -> emails).
+- Keep a practical debugging runbook for future regressions.
 
 ---
 
@@ -22,11 +23,21 @@ Goals:
   - `includes/woocommerce-overrides/class-bw-google-pay-gateway.php`
 - Checkout script:
   - `assets/js/bw-google-pay.js`
+- Checkout wallets orchestrator (shared):
+  - `assets/js/bw-payment-methods.js`
 - Checkout enqueue/localization:
   - `woocommerce/woocommerce-init.php`
 - Admin settings + connection test:
   - `admin/class-blackwork-site-settings.php`
   - `admin/js/bw-google-pay-admin.js`
+
+### Most relevant runtime files for current fixes
+- `assets/js/bw-google-pay.js`
+  - Google Pay init, canMakePayment, button mount/update, unavailable UI.
+- `assets/js/bw-payment-methods.js`
+  - Shared wallet/checkout button synchronization and accordion state normalization.
+- `woocommerce/woocommerce-init.php`
+  - Enqueue safety for Google Pay frontend script.
 
 ---
 
@@ -35,13 +46,14 @@ Goals:
 ## 1) Frontend availability (Google Pay)
 - JS creates Stripe `paymentRequest(...)`.
 - Calls `paymentRequest.canMakePayment()`.
-- If available:
+- If available (`result && bwCanShowGooglePay(result)`):
   - Shows custom Google Pay button.
   - Keeps gateway selectable.
 - If unavailable:
   - Renders unavailable state (message + Google Wallet link).
-  - Disables `bw_google_pay` radio.
-  - If selected, auto-fallback to first available gateway.
+  - Hides Google Pay informational block (`icon + "After clicking Google Pay..."`) to avoid UX noise.
+  - Leaves only unavailable notice/CTA as primary content in the accordion.
+  - Prevents misleading mixed states after checkout refresh.
 
 Main function: `initGooglePay()` in `assets/js/bw-google-pay.js`.
 
@@ -125,6 +137,7 @@ Written by webhook dedup:
 - PI mismatch protection against wrong order updates.
 - Stripe API error handling (connection + non-2xx + API error object).
 - Idempotency-Key for PaymentIntent creation.
+- Safe frontend fallback when Google Pay is unavailable.
 
 ## Data minimization
 - Do not log full payloads or full secrets.
@@ -156,11 +169,75 @@ Written by webhook dedup:
 - If Google Pay not available on device/browser/account:
   - keep explanatory message
   - provide wallet link
-  - do not allow selecting unusable method
-  - fallback to other available gateway automatically
+  - hide Google info panel (`.bw-google-pay-info`)
+  - keep checkout action state coherent (no wrong button shown)
 - If available:
   - show Google Pay button
   - hide generic Place order while Google Pay method is selected
+
+---
+
+## Resolved Incidents (Important)
+
+These were real regressions fixed in code and should be considered "known-good baseline" behavior now.
+
+## Incident 1: Stuck on "Initializing Google Pay..."
+Symptom:
+- Accordion stayed in loading state.
+- Google Pay button never appeared.
+- Console showed Stripe error about `paymentRequest.total.amount`.
+
+Root cause:
+- `paymentRequest.total.amount` sometimes arrived in an invalid format for Stripe PaymentRequest (subunit mismatch / non-normalized value).
+
+Applied fix:
+- Added strict normalization helper in `assets/js/bw-google-pay.js`:
+  - `bwNormalizeCents(value, fallback)`
+- Applied both at:
+  - init (`initialCents`)
+  - checkout updates (`paymentRequest.update(...)` on `updated_checkout`)
+
+Reference console error:
+- `Invalid value for paymentRequest(): total.amount should be a positive amount in the currency's subunit`
+
+## Incident 2: Google Pay row visible but JS not running
+Symptom:
+- Gateway row visible in checkout.
+- JS behavior missing (no proper init / stale placeholder).
+
+Root cause:
+- Script enqueue was too strict and skipped in some combinations of gateway visibility/settings.
+
+Applied fix:
+- Hardened enqueue in `woocommerce/woocommerce-init.php`:
+  - enqueue when BlackWork setting enabled OR gateway appears in Woo available gateways.
+
+## Incident 3: Mixed checkout action states (wrong button shown)
+Symptom:
+- Google Pay selected but generic `Place order` visible.
+- Intermittent mismatch after `updated_checkout`.
+
+Root cause:
+- UI state drift between wallet state and WooCommerce refreshed DOM.
+
+Applied fix:
+- Shared sync hardening in `assets/js/bw-payment-methods.js` (`bwSyncCheckoutActionButtons`).
+- Google-side re-sync in `assets/js/bw-google-pay.js` after `updated_checkout`.
+
+## Incident 4: Unavailable view too noisy
+Symptom:
+- Unavailable warning was shown together with generic “after clicking” info + icon block.
+
+Applied fix:
+- In unavailable state, force-hide `.bw-google-pay-info`.
+- Keep only unavailable message + CTA.
+
+## Incident 5: Stale "checking" state after checkout updates
+Symptom:
+- Temporary stale placeholder after Woo AJAX updates.
+
+Applied fix:
+- Added stale-checking guard and forced unavailable rerender when needed during refresh cycle.
 
 ---
 
@@ -186,10 +263,21 @@ Possible causes:
 Likely causes:
 - JS did not initialize (missing Stripe script or localized params).
 - Gateway disabled at WooCommerce payment method level.
+- Invalid `paymentRequest.total.amount` formatting/subunit value.
+
+Quick check:
+- Open console and verify there is no `Invalid value for paymentRequest()` error.
+- Verify `canMakePayment` log/result is not throwing and state moves out of checking.
 
 ## 4) Duplicate webhook delivery
 - Expected behavior from Stripe.
 - Must be harmless due to `_bw_gpay_processed_events` dedup.
+
+## 5) Shared wallet UI synchronization
+Google Pay visibility is synchronized with shared checkout wallet logic:
+- Single source of truth in `assets/js/bw-payment-methods.js` (`bwSyncCheckoutActionButtons`).
+- Prevents mixed UI states (wallet + wrong submit button shown together).
+- Keeps card title normalization stable (`Credit / Debit Card`).
 
 ---
 
@@ -204,9 +292,10 @@ Likely causes:
 - Send failed event after success -> ignored.
 - Send event for non-`bw_google_pay` order -> ignored safely.
 
-## Availability UX
-- canMakePayment true -> button visible and usable.
-- canMakePayment false -> method disabled, fallback gateway selected.
+## Availability UX (current behavior)
+- canMakePayment true -> custom Google Pay button visible, generic place-order hidden when selected.
+- canMakePayment false -> unavailable card shown with `Open Google Wallet` CTA; the extra Google info panel is hidden.
+- after `updated_checkout` -> state remains coherent (no return to stale "initializing" without cause).
 
 ## Coexistence
 - `wc_stripe` card checkout still works unchanged.
@@ -230,8 +319,28 @@ To scale to Apple Pay/Klarna without duplicated logic:
 
 - Enable BlackWork Google Pay setting.
 - Enable WooCommerce payment method "Google Pay (BlackWork)".
+- Verify active mode and key family coherence (live with `pk_live`/`sk_live`, test with `pk_test`/`sk_test`).
+- Verify `paymentRequest.total.amount` is emitted as valid currency subunit integer.
+- If unavailable, confirm expected capability limits (device/browser/account/wallet card) before treating as bug.
 - Set keys for the active mode only.
 - Configure webhook endpoint and matching `whsec` for active mode.
 - Run connection test in active mode.
 - Test one real/expected flow before going live.
 
+---
+
+## Quick Debug Snippet (Console)
+Use this to verify frontend wiring in a live checkout session:
+
+```js
+(() => {
+  console.log('typeof bwGooglePayParams =', typeof window.bwGooglePayParams);
+  console.log('bwGooglePayParams =', window.bwGooglePayParams || null);
+  console.log('typeof Stripe =', typeof window.Stripe);
+  console.log('BW_GPAY_AVAILABLE =', window.BW_GPAY_AVAILABLE);
+  const scripts = [...document.scripts]
+    .map(s => s.src)
+    .filter(src => src.includes('bw-google-pay') || src.includes('bw-payment-methods') || src.includes('stripe.com/v3'));
+  console.log('loaded scripts =', scripts);
+})();
+```
