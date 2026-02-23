@@ -226,6 +226,7 @@
             } else {
                 $wrapper.hide();
                 $placeholder.show();
+                renderGooglePayUnavailableState();
             }
 
             if (googlePayAvailable && $('#bw-google-pay-trigger').length === 0) {
@@ -570,6 +571,13 @@
             // keep it hidden when Google Pay button is already available.
             if ($('#bw-google-pay-trigger').length) {
                 $('#bw-google-pay-accordion-placeholder').hide();
+            } else if (googlePayState === 'unavailable') {
+                renderGooglePayUnavailableState();
+            } else if (googlePayState === 'checking' && (Date.now() - googlePayCheckStartedAt) > 6500) {
+                setGooglePayUnavailable(
+                    'Google Pay check timed out. Please refresh and try again, or choose another payment method.',
+                    'stuck checking after updated_checkout refresh'
+                );
             }
 
             if (paymentRequest) {

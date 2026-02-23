@@ -632,7 +632,12 @@ function bw_mew_enqueue_checkout_assets()
     }
 
     // Google Pay Integration
-    if (get_option('bw_google_pay_enabled', '0') === '1') {
+    $available_gateways = function_exists('WC') && WC()->payment_gateways()
+        ? WC()->payment_gateways()->get_available_payment_gateways()
+        : array();
+    $should_enqueue_google_pay = (get_option('bw_google_pay_enabled', '0') === '1') || isset($available_gateways['bw_google_pay']);
+
+    if ($should_enqueue_google_pay) {
         $google_pay_js = BW_MEW_PATH . 'assets/js/bw-google-pay.js';
         if (file_exists($google_pay_js)) {
             wp_enqueue_script('stripe', 'https://js.stripe.com/v3/', [], null, true);
