@@ -227,7 +227,9 @@
 
         var html = '';
         html += '<div class="bw-apple-pay-init-info" role="status" aria-live="polite">';
-        html += '<p class="bw-apple-pay-init-info__title">' + escapeHtml(title) + '</p>';
+        if (title && String(title).trim() !== '') {
+            html += '<p class="bw-apple-pay-init-info__title">' + escapeHtml(title) + '</p>';
+        }
 
         for (var i = 0; i < lines.length; i += 1) {
             var className = i === 0 ? 'bw-apple-pay-init-info__reason' : 'bw-apple-pay-init-info__check';
@@ -288,7 +290,7 @@
                 if (app.helperEnabled) {
                     hidePlaceOrder = true;
                     hasPrimaryAction = true;
-                    renderPlaceholder('Apple Pay unavailable', [
+                    renderPlaceholder('', [
                         'Apple Pay is available on Safari with Wallet configured.',
                         'Use the Apple Pay button below to jump to Express Checkout at the top of the page.'
                     ], false);
