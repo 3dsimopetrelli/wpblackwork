@@ -504,10 +504,26 @@ function bw_mew_enqueue_checkout_assets()
     if (file_exists($js_file)) {
         $js_version = filemtime($js_file);
         $dependencies = ['jquery'];
+        $google_maps_enabled = get_option('bw_google_maps_enabled', '0');
+        $google_maps_api_key = get_option('bw_google_maps_api_key', '');
+        $google_maps_autofill = get_option('bw_google_maps_autofill', '1');
+        $google_maps_restrict = get_option('bw_google_maps_restrict_country', '1');
 
         if (wp_script_is('wc-checkout', 'registered')) {
             wp_enqueue_script('wc-checkout');
             $dependencies[] = 'wc-checkout';
+        }
+
+        // Ensure Places API is available before bw-checkout initializes autocomplete.
+        if ('1' === $google_maps_enabled && !empty($google_maps_api_key)) {
+            wp_enqueue_script(
+                'google-maps-places',
+                'https://maps.googleapis.com/maps/api/js?key=' . esc_attr($google_maps_api_key) . '&libraries=places',
+                [],
+                null,
+                true
+            );
+            $dependencies[] = 'google-maps-places';
         }
 
         wp_enqueue_script(
@@ -539,23 +555,6 @@ function bw_mew_enqueue_checkout_assets()
                 'freeOrderButtonText' => esc_html($free_order_button_text),
             )
         );
-
-        // Google Maps settings for floating labels + autocomplete
-        $google_maps_enabled = get_option('bw_google_maps_enabled', '0');
-        $google_maps_api_key = get_option('bw_google_maps_api_key', '');
-        $google_maps_autofill = get_option('bw_google_maps_autofill', '1');
-        $google_maps_restrict = get_option('bw_google_maps_restrict_country', '1');
-
-        // Load Google Maps API if enabled and API key exists
-        if ('1' === $google_maps_enabled && !empty($google_maps_api_key)) {
-            wp_enqueue_script(
-                'google-maps-places',
-                'https://maps.googleapis.com/maps/api/js?key=' . esc_attr($google_maps_api_key) . '&libraries=places',
-                [],
-                null,
-                true
-            );
-        }
 
         // Pass Google Maps settings to JavaScript
         wp_localize_script(

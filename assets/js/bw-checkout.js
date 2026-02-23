@@ -1184,125 +1184,147 @@
 
         BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Initializing Google Places Autocomplete');
 
-        var addressInput = document.getElementById('shipping_address_1') || document.getElementById('billing_address_1');
-        if (!addressInput) {
+        var addressInputs = [
+            document.getElementById('billing_address_1'),
+            document.getElementById('shipping_address_1')
+        ].filter(function (input) {
+            return !!input;
+        });
+
+        if (!addressInputs.length) {
             BW_CHECKOUT_DEBUG && console.warn('[BW Checkout] Address input not found');
             return;
         }
 
-        var fieldPrefix = addressInput.id.indexOf('shipping_') === 0 ? 'shipping' : 'billing';
-
-        // Get selected country
-        var countrySelect = document.querySelector('select[name="' + fieldPrefix + '_country"]');
-        var selectedCountry = countrySelect ? countrySelect.value : '';
-
-        // Configure autocomplete options
-        var options = {
-            types: ['address'],
-            fields: ['address_components', 'formatted_address', 'geometry']
-        };
-
-        // Add country restriction if enabled and country is selected
-        if (window.bwGoogleMapsSettings.restrictToCountry && selectedCountry) {
-            options.componentRestrictions = {
-                country: selectedCountry.toLowerCase()
-            };
+        if (!window.bwGoogleAutocompleteInstances) {
+            window.bwGoogleAutocompleteInstances = {};
         }
 
-        // Create autocomplete instance
-        window.bwGoogleAutocomplete = new google.maps.places.Autocomplete(addressInput, options);
+        addressInputs.forEach(function (addressInput) {
+            var fieldPrefix = addressInput.id.indexOf('shipping_') === 0 ? 'shipping' : 'billing';
+            var countrySelect = document.querySelector('select[name="' + fieldPrefix + '_country"]');
+            var selectedCountry = countrySelect ? countrySelect.value : '';
+            var existing = window.bwGoogleAutocompleteInstances[addressInput.id];
 
-        // Listen for place selection
-        window.bwGoogleAutocomplete.addListener('place_changed', function () {
-            var place = window.bwGoogleAutocomplete.getPlace();
-
-            if (!place.address_components) {
-                BW_CHECKOUT_DEBUG && console.warn('[BW Checkout] No address components found');
-                return;
+            if (existing && existing.countrySelect && existing.countryHandler) {
+                existing.countrySelect.removeEventListener('change', existing.countryHandler);
+            }
+            if (existing && existing.autocomplete && google.maps && google.maps.event) {
+                google.maps.event.clearInstanceListeners(existing.autocomplete);
             }
 
-            BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Place selected:', place);
-
-            // Parse address components
-            var addressData = {
-                street: '',
-                city: '',
-                postcode: '',
-                state: '',
-                country: ''
+            var options = {
+                types: ['address'],
+                fields: ['address_components', 'formatted_address', 'geometry']
             };
 
-            place.address_components.forEach(function (component) {
-                var types = component.types;
+            if (window.bwGoogleMapsSettings.restrictToCountry && selectedCountry) {
+                options.componentRestrictions = {
+                    country: selectedCountry.toLowerCase()
+                };
+            }
 
-                if (types.includes('street_number')) {
-                    addressData.street = component.long_name + ' ';
+            var autocomplete = new google.maps.places.Autocomplete(addressInput, options);
+
+            autocomplete.addListener('place_changed', function () {
+                var place = autocomplete.getPlace();
+
+                if (!place.address_components) {
+                    BW_CHECKOUT_DEBUG && console.warn('[BW Checkout] No address components found');
+                    return;
                 }
-                if (types.includes('route')) {
-                    addressData.street += component.long_name;
+
+                BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Place selected:', place);
+
+                var addressData = {
+                    street: '',
+                    city: '',
+                    postcode: '',
+                    state: '',
+                    country: ''
+                };
+
+                place.address_components.forEach(function (component) {
+                    var types = component.types;
+
+                    if (types.includes('street_number')) {
+                        addressData.street = component.long_name + ' ';
+                    }
+                    if (types.includes('route')) {
+                        addressData.street += component.long_name;
+                    }
+                    if (types.includes('locality') || types.includes('postal_town')) {
+                        addressData.city = component.long_name;
+                    }
+                    if (types.includes('postal_code')) {
+                        addressData.postcode = component.long_name;
+                    }
+                    if (types.includes('administrative_area_level_1')) {
+                        addressData.state = component.short_name;
+                    }
+                    if (types.includes('country')) {
+                        addressData.country = component.short_name;
+                    }
+                });
+
+                if (addressData.street) {
+                    addressInput.value = addressData.street.trim();
+                    if (window.jQuery) {
+                        jQuery(addressInput).trigger('change');
+                    }
                 }
-                if (types.includes('locality') || types.includes('postal_town')) {
-                    addressData.city = component.long_name;
+
+                if (window.bwGoogleMapsSettings.autoFillCityPostcode) {
+                    if (addressData.city) {
+                        var cityInput = document.getElementById(fieldPrefix + '_city');
+                        if (cityInput) {
+                            cityInput.value = addressData.city;
+                            if (window.jQuery) {
+                                jQuery(cityInput).trigger('change');
+                            }
+                        }
+                    }
+
+                    if (addressData.postcode) {
+                        var postcodeInput = document.getElementById(fieldPrefix + '_postcode');
+                        if (postcodeInput) {
+                            postcodeInput.value = addressData.postcode;
+                            if (window.jQuery) {
+                                jQuery(postcodeInput).trigger('change');
+                            }
+                        }
+                    }
                 }
-                if (types.includes('postal_code')) {
-                    addressData.postcode = component.long_name;
-                }
-                if (types.includes('administrative_area_level_1')) {
-                    addressData.state = component.short_name;
-                }
-                if (types.includes('country')) {
-                    addressData.country = component.short_name;
+
+                setTimeout(function () {
+                    initCheckoutFloatingLabels();
+                }, 100);
+
+                if (window.jQuery) {
+                    jQuery(document.body).trigger('update_checkout');
                 }
             });
 
-            // Fill address field
-            if (addressData.street) {
-                addressInput.value = addressData.street.trim();
-                jQuery(addressInput).trigger('change');
-            }
-
-            // Auto-fill city and postcode if enabled
-            if (window.bwGoogleMapsSettings.autoFillCityPostcode) {
-                if (addressData.city) {
-                    var cityInput = document.getElementById(fieldPrefix + '_city');
-                    if (cityInput) {
-                        cityInput.value = addressData.city;
-                        jQuery(cityInput).trigger('change');
+            var countryHandler = null;
+            if (countrySelect && window.bwGoogleMapsSettings.restrictToCountry) {
+                countryHandler = function () {
+                    var newCountry = this.value;
+                    if (newCountry) {
+                        autocomplete.setComponentRestrictions({
+                            country: newCountry.toLowerCase()
+                        });
+                        BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Google Places country restriction updated:', newCountry);
                     }
-                }
-
-                if (addressData.postcode) {
-                    var postcodeInput = document.getElementById(fieldPrefix + '_postcode');
-                    if (postcodeInput) {
-                        postcodeInput.value = addressData.postcode;
-                        jQuery(postcodeInput).trigger('change');
-                    }
-                }
+                };
+                countrySelect.addEventListener('change', countryHandler);
             }
 
-            // Update floating labels for filled fields
-            setTimeout(function () {
-                initCheckoutFloatingLabels();
-            }, 100);
-
-            // Trigger WooCommerce update
-            if (window.jQuery) {
-                jQuery(document.body).trigger('update_checkout');
-            }
+            window.bwGoogleAutocompleteInstances[addressInput.id] = {
+                autocomplete: autocomplete,
+                countrySelect: countrySelect,
+                countryHandler: countryHandler
+            };
         });
-
-        // Update country restriction when country changes
-        if (countrySelect && window.bwGoogleMapsSettings.restrictToCountry) {
-            jQuery(countrySelect).on('change', function () {
-                var newCountry = this.value;
-                if (window.bwGoogleAutocomplete && newCountry) {
-                    window.bwGoogleAutocomplete.setComponentRestrictions({
-                        country: newCountry.toLowerCase()
-                    });
-                    BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Google Places country restriction updated:', newCountry);
-                }
-            });
-        }
 
         BW_CHECKOUT_DEBUG && console.log('[BW Checkout] Google Places Autocomplete initialized');
     }
