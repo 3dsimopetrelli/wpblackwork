@@ -249,6 +249,18 @@
         placeholder.innerHTML = html;
     }
 
+    function renderInlineExpressPlaceOrderHint() {
+        var placeholder = document.getElementById('bw-apple-pay-accordion-placeholder');
+        if (!placeholder) {
+            return;
+        }
+
+        placeholder.innerHTML = '' +
+            '<div class="bw-apple-pay-init-info" role="status" aria-live="polite">' +
+                '<p class="bw-apple-pay-init-info__reason">Use the Place order button to activate Apple Express Checkout.</p>' +
+            '</div>';
+    }
+
     function clearPlaceholder() {
         var placeholder = document.getElementById('bw-apple-pay-accordion-placeholder');
         if (!placeholder) {
@@ -322,10 +334,14 @@
             case STATE.ERROR:
             default:
                 hidePlaceOrder = false;
-                renderPlaceholder('Apple Pay unavailable', [
-                    'Apple Pay is only available on Safari with Wallet configured for this checkout.',
-                    'Use Google Pay, Credit / Debit Card, or another available method.'
-                ], true);
+                if (app.fallbackMode === FALLBACK_MODE_INLINE) {
+                    renderInlineExpressPlaceOrderHint();
+                } else {
+                    renderPlaceholder('Apple Pay unavailable', [
+                        'Apple Pay is only available on Safari with Wallet configured for this checkout.',
+                        'Use Google Pay, Credit / Debit Card, or another available method.'
+                    ], true);
+                }
                 break;
         }
 
@@ -565,6 +581,34 @@
         renderCheckoutNotice('error', 'Apple Pay is not available in this environment. Choose another payment method.');
     }
 
+    function handlePlaceOrderClick(ev) {
+        var isPlaceOrderButton = ev.target && (
+            ev.target.id === 'place_order' ||
+            ev.target.name === 'woocommerce_checkout_place_order'
+        );
+        if (!isPlaceOrderButton) {
+            return;
+        }
+
+        if (!isAppleMethodSelected()) {
+            return;
+        }
+
+        if (app.fallbackMode !== FALLBACK_MODE_INLINE) {
+            return;
+        }
+
+        if (app.state !== STATE.ERROR) {
+            return;
+        }
+
+        // In inline_express non-feasible mode, prevent Woo submit (which would
+        // fail with "Apple Pay session missing") and guide user to Express area.
+        ev.preventDefault();
+        ev.stopPropagation();
+        scrollToExpressCheckout(ev);
+    }
+
     function initPaymentRequest() {
         var initialCents = getOrderTotalCents();
         var country = (bwApplePayParams.country || 'IT').toUpperCase();
@@ -612,6 +656,10 @@
         $(document)
             .off('click' + BW_APPLE_PAY_NS, '#bw-apple-pay-trigger')
             .on('click' + BW_APPLE_PAY_NS, '#bw-apple-pay-trigger', handlePrimaryButtonClick);
+
+        $(document)
+            .off('click' + BW_APPLE_PAY_NS, '#place_order, button[name="woocommerce_checkout_place_order"]')
+            .on('click' + BW_APPLE_PAY_NS, '#place_order, button[name="woocommerce_checkout_place_order"]', handlePlaceOrderClick);
 
         $(document.body)
             .off('change' + BW_APPLE_PAY_NS, 'input[name="payment_method"]')
