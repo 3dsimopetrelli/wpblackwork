@@ -18,6 +18,20 @@
         return hint;
     }
 
+    function detectApplePayContextHint() {
+        var ua = (window.navigator && window.navigator.userAgent) ? window.navigator.userAgent : '';
+        var isSafari = /Safari/i.test(ua) && !/Chrome|CriOS|Chromium|Edg|OPR|Firefox/i.test(ua);
+        var isAppleDevice = /iPhone|iPad|iPod|Macintosh/i.test(ua);
+
+        if (!isSafari) {
+            return 'Apple Pay on the web is generally available only in Safari.';
+        }
+        if (!isAppleDevice) {
+            return 'Apple Pay requires an Apple device with Wallet support.';
+        }
+        return '';
+    }
+
     function renderApplePayPlaceholder(message, isError, reason, title) {
         var render = function () {
             var placeholder = document.getElementById('bw-apple-pay-accordion-placeholder');
@@ -238,10 +252,11 @@
         }
 
         if (applePayState === 'unavailable') {
+            var contextHint = detectApplePayContextHint();
             renderApplePayPlaceholder(
-                'Apple Pay non disponibile: verifica Safari/iPhone, carta nel Wallet, HTTPS, e dominio verificato su Stripe.',
+                'Apple Pay is not available: check Safari/iPhone, Wallet card, HTTPS, and Stripe domain verification.',
                 true,
-                getApplePayFailureHint('canMakePayment returned no applePay support.'),
+                getApplePayFailureHint((contextHint ? contextHint + ' ' : '') + 'canMakePayment returned no applePay support.'),
                 'Apple Pay unavailable'
             );
         }
@@ -265,8 +280,14 @@
             applePayState = applePayAvailable ? 'available' : 'unavailable';
 
             if (!applePayAvailable) {
+                var contextHint = detectApplePayContextHint();
                 disableApplePaySelection();
-                renderApplePayState();
+                renderApplePayPlaceholder(
+                    'Apple Pay is not available: check Safari/iPhone, Wallet card, HTTPS, and Stripe domain verification.',
+                    true,
+                    getApplePayFailureHint((contextHint ? contextHint + ' ' : '') + 'canMakePayment returned no applePay support.'),
+                    'Apple Pay unavailable'
+                );
                 showAppleButtonIfSelected();
                 isCheckingAvailability = false;
                 return;
@@ -290,7 +311,7 @@
             window.BW_APPLE_PAY_AVAILABLE = false;
             applePayState = 'unavailable';
             renderApplePayPlaceholder(
-                'Apple Pay non disponibile: verifica Safari/iPhone, carta nel Wallet, HTTPS, e dominio verificato su Stripe.',
+                'Apple Pay is not available: check Safari/iPhone, Wallet card, HTTPS, and Stripe domain verification.',
                 true,
                 getApplePayFailureHint(error && error.message ? error.message : 'canMakePayment failed unexpectedly.'),
                 'Apple Pay unavailable'
@@ -353,7 +374,7 @@
         button.type = 'button';
         button.id = 'bw-apple-pay-trigger';
         button.className = 'bw-custom-applepay-btn';
-        button.textContent = 'Pay with Apple Pay';
+        button.textContent = ' Pay with Apple Pay';
 
         var container = document.getElementById('bw-apple-pay-button');
         if (!container) {
