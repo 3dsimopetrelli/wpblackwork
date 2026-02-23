@@ -374,7 +374,7 @@
         button.type = 'button';
         button.id = 'bw-apple-pay-trigger';
         button.className = 'bw-custom-applepay-btn';
-        button.textContent = ' Pay with Apple Pay';
+        button.textContent = 'Pay with  Apple Pay';
 
         var container = document.getElementById('bw-apple-pay-button');
         if (!container) {
