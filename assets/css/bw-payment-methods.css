@@ -1324,8 +1324,8 @@ body.woocommerce-checkout .bw-apple-pay-unavailable {
 	text-align: center;
 }
 
-body.woocommerce-checkout .bw-apple-pay-unavailable__cta {
-	margin: 20px 0;
+body.woocommerce-checkout div#payment.woocommerce-checkout-payment .bw-payment-method__content.payment_box .bw-apple-pay-unavailable__cta {
+	margin: 20px 0 !important;
 }
 
 .bw-express-checkout-highlight {
@@ -1334,9 +1334,9 @@ body.woocommerce-checkout .bw-apple-pay-unavailable__cta {
 	transition: box-shadow 0.2s ease !important;
 }
 
-body.woocommerce-checkout .bw-apple-pay-unavailable__text {
-	margin: 0;
-	font-size: 13px;
+body.woocommerce-checkout div#payment.woocommerce-checkout-payment .bw-payment-method__content.payment_box .bw-apple-pay-unavailable__text {
+	margin: 0 !important;
+	font-size: 13px !important;
 	line-height: 1.45;
 	color: #4b5563;
 }
@@ -1352,8 +1352,8 @@ body.woocommerce-checkout .bw-apple-pay-init-info {
 	text-align: center;
 }
 
-body.woocommerce-checkout .bw-apple-pay-init-info__title {
-	margin: 0 0 10px;
+body.woocommerce-checkout div#payment.woocommerce-checkout-payment .bw-payment-method__content.payment_box .bw-apple-pay-init-info__title {
+	margin: 0 0 10px !important;
 	font-size: 28px;
 	line-height: 1.15;
 	letter-spacing: -0.5px;
