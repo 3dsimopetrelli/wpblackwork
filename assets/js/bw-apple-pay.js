@@ -75,7 +75,7 @@
                 placeholder.innerHTML = '' +
                     '<div class="bw-apple-pay-unavailable" role="status" aria-live="polite">' +
                         '<p class="bw-apple-pay-init-info__title">Apple Pay unavailable</p>' +
-                        '<p class="bw-apple-pay-unavailable__text">Apple Pay in checkout is available on Safari (Mac/iPhone/iPad) with an eligible Wallet card configured.</p>' +
+                        '<p class="bw-apple-pay-unavailable__text">Apple Pay in checkout is available on Safari (Mac, iPhone, iPad).<br>Use an eligible Wallet card configured on your Apple device.</p>' +
                         '<p class="bw-apple-pay-unavailable__text">Choose another payment method to complete your order.</p>' +
                     '</div>';
                 return;
@@ -84,7 +84,7 @@
             placeholder.innerHTML = '' +
                 '<div class="bw-apple-pay-unavailable" role="status" aria-live="polite">' +
                     '<p class="bw-apple-pay-init-info__title">Apple Pay unavailable</p>' +
-                    '<p class="bw-apple-pay-unavailable__text">Apple Pay in checkout is available on Safari (Mac/iPhone/iPad) with an eligible Wallet card configured.</p>' +
+                    '<p class="bw-apple-pay-unavailable__text">Apple Pay in checkout is available on Safari (Mac, iPhone, iPad).<br>Use an eligible Wallet card configured on your Apple device.</p>' +
                     '<p class="bw-apple-pay-unavailable__text">If you are using Chrome or other browsers, you can still pay with Apple Pay using Express Checkout at the top of this page (QR code on iPhone).</p>' +
                     '<p class="bw-apple-pay-unavailable__cta"><a href=\"#\" id=\"bw-apple-pay-go-express\" class=\"bw-custom-applepay-btn bw-custom-applepay-btn--link\">Go to Express Checkout</a></p>' +
                 '</div>';
@@ -290,6 +290,7 @@
         var selectedMethod = $('input[name="payment_method"]:checked').val();
         var $wrapper = $('#bw-apple-pay-button-wrapper');
         var isAppleMethod = selectedMethod === 'bw_apple_pay';
+        var hidePlaceOrderForUnavailableApple = isAppleMethod && applePayState === 'unavailable' && enableExpressFallback;
 
         if (isAppleMethod) {
             if (applePayState === 'available' && applePayAvailable) {
@@ -304,6 +305,7 @@
             $wrapper.hide();
         }
 
+        document.body.classList.toggle('bw-apple-pay-hide-place-order', hidePlaceOrderForUnavailableApple);
         syncApplePayInfoVisibility();
         scheduleGlobalWalletSync('apple_ui');
     }
