@@ -44,6 +44,13 @@ if (!wp_doing_ajax()) {
 					<li class="bw-payment-method wc_payment_method payment_method_<?php echo $gateway_id; ?><?php echo $gateway->id === $chosen_method ? ' is-selected' : ''; ?>"
 						data-gateway-id="<?php echo $gateway_id; ?>">
 						<div class="bw-payment-method__header">
+							<?php
+							$gateway_type = strtolower($gateway_id);
+							$is_card_gateway_icon = (strpos($gateway_type, 'stripe') !== false ||
+								strpos($gateway_type, 'card') !== false ||
+								strpos($gateway_type, 'credit') !== false ||
+								strpos($gateway_type, 'debit') !== false);
+							?>
 							<input id="payment_method_<?php echo $gateway_id; ?>" type="radio" class="input-radio"
 								name="payment_method" value="<?php echo $gateway_id; ?>" <?php echo $is_checked; ?>
 								data-order_button_text="<?php echo esc_attr($gateway->order_button_text); ?>" />
@@ -58,11 +65,6 @@ if (!wp_doing_ajax()) {
 								</span>
 								<?php
 								// Show gateway icon with PayPal fallback logo.
-								$gateway_type = strtolower($gateway_id);
-								$is_card_gateway_icon = (strpos($gateway_type, 'stripe') !== false ||
-									strpos($gateway_type, 'card') !== false ||
-									strpos($gateway_type, 'credit') !== false ||
-									strpos($gateway_type, 'debit') !== false);
 								$is_google_pay_icon = (strpos($gateway_type, 'google') !== false ||
 									strpos($gateway_type, 'googlepay') !== false ||
 									'bw_google_pay' === $gateway_type);

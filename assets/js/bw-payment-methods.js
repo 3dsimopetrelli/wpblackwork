@@ -22,27 +22,18 @@
         'bw-wallet-bw_apple_pay'
     ];
     var BW_INTERNAL_RADIO_CHANGE = false;
-
-    function isTemporarilyUnavailableWalletRadio(radio) {
-        if (!radio || radio.name !== 'payment_method') {
-            return false;
-        }
-
-        if (radio.value === 'bw_google_pay') {
-            return window.BW_GPAY_AVAILABLE !== true;
-        }
-        if (radio.value === 'bw_apple_pay') {
-            return window.BW_APPLE_PAY_AVAILABLE !== true;
-        }
-        return false;
-    }
+    var BW_LAST_SELECTED_METHOD = '';
 
     function findFallbackPaymentMethod(excludedValue) {
+        if (BW_LAST_SELECTED_METHOD && BW_LAST_SELECTED_METHOD !== excludedValue) {
+            var remembered = document.querySelector('input[name="payment_method"][value="' + BW_LAST_SELECTED_METHOD + '"]');
+            if (remembered && !remembered.disabled) {
+                return remembered;
+            }
+        }
+
         return Array.from(document.querySelectorAll('input[name="payment_method"]')).find(function (radio) {
-            return radio.value !== excludedValue &&
-                !radio.disabled &&
-                radio.getAttribute('data-bw-unavailable') !== '1' &&
-                !isTemporarilyUnavailableWalletRadio(radio);
+            return radio.value !== excludedValue && !radio.disabled;
         }) || null;
     }
 
@@ -169,15 +160,6 @@
             return;
         }
 
-        // Auto-fallback for wallet methods that are selected but unavailable.
-        if (window.jQuery && isWallet && !available) {
-            if (selected === 'bw_google_pay') {
-                var $fallback = window.jQuery('input[name="payment_method"]').not('[value="bw_google_pay"]').not(':disabled').first();
-                if ($fallback.length) {
-                    $fallback.prop('checked', true).trigger('change');
-                }
-            }
-        }
     }
 
     function bwScheduleSync(reason) { // eslint-disable-line no-unused-vars
@@ -229,6 +211,7 @@
         }
 
         var checkedRadio = paymentContainer.querySelector('input[name="payment_method"]:checked');
+        BW_LAST_SELECTED_METHOD = checkedRadio ? checkedRadio.value : BW_LAST_SELECTED_METHOD;
 
         paymentContainer.querySelectorAll('.bw-payment-method').forEach(function (method) {
             var radio      = method.querySelector('input[name="payment_method"]');
@@ -258,7 +241,7 @@
             return;
         }
 
-        if (radio.disabled || radio.getAttribute('data-bw-unavailable') === '1' || isTemporarilyUnavailableWalletRadio(radio)) {
+        if (radio.disabled) {
             return;
         }
 
@@ -350,7 +333,7 @@
                 return;
             }
 
-            if (target.disabled || target.getAttribute('data-bw-unavailable') === '1' || isTemporarilyUnavailableWalletRadio(target)) {
+            if (target.disabled) {
                 BW_INTERNAL_RADIO_CHANGE = true;
                 target.checked = false;
                 var fallbackRadio = findFallbackPaymentMethod(target.value);
@@ -381,7 +364,7 @@
 
         var radio = header.querySelector('input[type="radio"]');
         if (radio) {
-            var isUnavailable = radio.disabled || radio.getAttribute('data-bw-unavailable') === '1' || isTemporarilyUnavailableWalletRadio(radio);
+            var isUnavailable = radio.disabled;
             if (isUnavailable) {
                 event.preventDefault();
                 return;
@@ -406,7 +389,7 @@
                 event.preventDefault();
                 var radio = target.previousElementSibling;
                 if (radio && radio.type === 'radio') {
-                    var isUnavailable = radio.disabled || radio.getAttribute('data-bw-unavailable') === '1' || isTemporarilyUnavailableWalletRadio(radio);
+                    var isUnavailable = radio.disabled;
                     if (isUnavailable) {
                         return;
                     }
@@ -422,9 +405,7 @@
             if (target.type === 'radio' && target.name === 'payment_method') {
                 event.preventDefault();
                 var allRadios    = Array.from(document.querySelectorAll('input[name="payment_method"]')).filter(function (radio) {
-                    return !radio.disabled &&
-                        radio.getAttribute('data-bw-unavailable') !== '1' &&
-                        !isTemporarilyUnavailableWalletRadio(radio);
+                    return !radio.disabled;
                 });
                 var currentIndex = allRadios.indexOf(target);
                 var nextIndex;

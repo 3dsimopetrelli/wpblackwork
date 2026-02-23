@@ -271,20 +271,8 @@
             return;
         }
 
-        $gpayInput.prop('disabled', true).attr('aria-disabled', 'true');
         $gpayInput.attr('data-bw-unavailable', '1');
         $gpayInput.closest('.bw-payment-method').attr('data-bw-unavailable', '1');
-
-        if ($gpayInput.is(':checked')) {
-            var $fallback = $('input[name="payment_method"]').not('[value="bw_google_pay"]').not(':disabled').first();
-            if ($fallback.length) {
-                var fallbackRadio = $fallback.get(0);
-                fallbackRadio.checked = true;
-                fallbackRadio.dispatchEvent(new Event('change', { bubbles: true }));
-                $(document.body).trigger('payment_method_selected');
-                $(document.body).trigger('update_checkout');
-            }
-        }
     }
 
     function markGooglePayCheckingState() {
@@ -293,19 +281,9 @@
             return;
         }
 
-        $gpayInput.prop('disabled', true).attr('aria-disabled', 'true');
         $gpayInput.attr('data-bw-unavailable', '1');
         $gpayInput.attr('data-bw-gpay-checking', '1');
         $gpayInput.closest('.bw-payment-method').attr('data-bw-unavailable', '1');
-
-        if ($gpayInput.is(':checked')) {
-            var $fallback = $('input[name="payment_method"]').not('[value="bw_google_pay"]').not(':disabled').first();
-            if ($fallback.length) {
-                var fallbackRadio = $fallback.get(0);
-                fallbackRadio.checked = true;
-                fallbackRadio.dispatchEvent(new Event('change', { bubbles: true }));
-            }
-        }
     }
 
     function markGooglePayAvailableState() {
