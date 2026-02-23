@@ -1,6 +1,6 @@
 # BW Checkout — Guida Completa
 
-**Ultimo aggiornamento:** 2026-02-19
+**Ultimo aggiornamento:** 2026-02-23
 **Plugin:** BW Elementor Widgets
 **Tema:** BlackWork
 
@@ -1902,3 +1902,69 @@ Dopo modifiche a CSS/JS:
 .bw-checkout-right__loader          → Skeleton overlay colonna destra
 .bw-order-summary__loader           → Skeleton overlay order summary
 ```
+
+---
+
+## 21. Stato Sessione Corrente (Aggiornamento Operativo)
+
+Questa sezione traccia in modo sintetico cosa e stato completato e cosa resta da finalizzare, senza perdere contesto per i prossimi fix.
+
+### Completato (stabile)
+
+- Refactor documentazione pagamenti in guide separate:
+  - `Gateway Google Pay Guide.md`
+  - `Gateway Klarna Guide.md`
+  - `Gateway Apple Pay Guide.md`
+  - `Gateway Total Guide.md`
+- Ripristino visualizzazione metodi custom in accordion (`bw_google_pay`, `bw_klarna`, `bw_apple_pay`) dopo regressioni da merge esterni.
+- Ripristino isolamento accordion: apertura/chiusura coerente, un metodo aperto alla volta.
+- Fix conflitto titolo Stripe in accordion (label forzata a "Credit / Debit Card" invece di "Stripe").
+- Google Pay:
+  - ripristino inizializzazione `canMakePayment` con formato importo corretto (fix errore subunit/amount).
+  - fallback unavailable migliorato con CTA "Open Google Wallet".
+- Apple Pay:
+  - aggiunta sezione unavailable con messaggio informativo e CTA "Go to Express Checkout".
+  - aggiunta toggle admin per abilitare/disabilitare il messaggio guida Express.
+  - dominio e key check lato admin risultano operativi (verifiche verdi).
+- Klarna:
+  - CTA e messaggistica checkout allineate allo stile corrente.
+
+### Completato ma da monitorare (UX/CSS)
+
+- Bordi accordion: ridotti glitch principali, ma resta sensibilita ai layer `is-selected` + `header/content` in alcuni stati (soprattutto su PayPal).
+- Scroll helper Apple Pay verso Express top: funziona, ma in alcuni contesti puo risultare non fluido.
+
+### Non completato nella sessione corrente (TODO prioritari)
+
+1. Apple Pay fallback mode avanzato (richiesta recente non ancora implementata)
+   - dropdown admin `Non-Safari fallback mode` con:
+     - `helper_scroll` (default, comportamento attuale)
+     - `inline_express` (feature-flag, con fallback sicuro se non fattibile)
+   - compatibilita retroattiva con opzione booleana precedente.
+2. State machine Apple Pay esplicita
+   - stati: `idle`, `method_selected`, `native_available`, `native_unavailable_helper`, `native_unavailable_inline_possible`, `processing`, `error`.
+   - unica source of truth per:
+     - visibilita Place Order Woo
+     - visibilita CTA Apple custom
+     - messaggistica.
+3. Hardening anti regressione su `updated_checkout`
+   - rebind handler namespaced senza duplicati
+   - prevenzione render multipli placeholder/CTA
+   - stabilita su switch rapido metodi + shipping/coupon refresh.
+4. Inline express non-Safari (solo se tecnicamente fattibile)
+   - senza click forzato su iframe Stripe ufficiali (cross-origin: non consentito)
+   - no creazione PaymentIntent se capability non disponibile.
+
+### Vincoli da rispettare nei prossimi interventi (bloccanti)
+
+- Non alterare logica funzionante di:
+  - `bw_google_pay`
+  - `bw_klarna`
+  - Stripe card ufficiale
+  - PayPal ufficiale
+  - webhook e status ordini
+  - cart popup custom
+- Nessun PaymentIntent duplicato.
+- Nessun doppio primary button visibile nello stesso stato.
+- Nessun `payment_complete()` nei return flow client-side.
+- Webhook resta source of truth per ordine pagato.
