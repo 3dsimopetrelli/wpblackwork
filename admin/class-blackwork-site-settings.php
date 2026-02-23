@@ -372,89 +372,11 @@ function bw_google_maps_test_connection_ajax_handler()
         }
     }
 
-    $places_url = add_query_arg(
-        [
-            'input' => 'via roma',
-            'types' => 'address',
-            'language' => 'en',
-            'key' => $api_key,
-        ],
-        'https://maps.googleapis.com/maps/api/place/autocomplete/json'
-    );
-
-    $places_response = wp_remote_get(
-        $places_url,
-        [
-            'timeout' => 20,
-            'headers' => [
-                'Referer' => $site_referer,
-            ],
-        ]
-    );
-
-    if (is_wp_error($places_response)) {
-        wp_send_json_error([
-            'message' => sprintf(
-                /* translators: %s: WP error message */
-                __('Unable to reach Google Places API: %s', 'bw'),
-                $places_response->get_error_message()
-            ),
-        ]);
-    }
-
-    $places_status_code = (int) wp_remote_retrieve_response_code($places_response);
-    $places_payload = json_decode((string) wp_remote_retrieve_body($places_response), true);
-
-    if ($places_status_code < 200 || $places_status_code >= 300) {
-        wp_send_json_error([
-            'message' => sprintf(
-                /* translators: %d: HTTP status code */
-                __('Google Places API returned HTTP %d.', 'bw'),
-                $places_status_code
-            ),
-        ]);
-    }
-
-    if (!is_array($places_payload)) {
-        wp_send_json_error([
-            'message' => __('Unexpected response from Google Places API.', 'bw'),
-        ]);
-    }
-
-    $places_status = isset($places_payload['status']) ? sanitize_text_field((string) $places_payload['status']) : '';
-    $places_error = isset($places_payload['error_message']) ? sanitize_text_field((string) $places_payload['error_message']) : '';
-
-    if ('OK' !== $places_status && 'ZERO_RESULTS' !== $places_status) {
-        $message = __('Google Places API check failed.', 'bw');
-
-        if ('REQUEST_DENIED' === $places_status && '' !== $places_error) {
-            $message = sprintf(
-                /* translators: %s: Google error message */
-                __('Google denied the request: %s', 'bw'),
-                $places_error
-            );
-        } elseif ('' !== $places_error) {
-            $message = sprintf(
-                /* translators: %s: Google error message */
-                __('Google error: %s', 'bw'),
-                $places_error
-            );
-        }
-
-        wp_send_json_error([
-            'message' => $message,
-            'details' => '' !== $places_status
-                ? sprintf(__('Places status: %s', 'bw'), $places_status)
-                : '',
-        ]);
-    }
-
     wp_send_json_success([
-        'message' => __('Google Maps is connected correctly. Maps JavaScript API and Places API responded successfully.', 'bw'),
+        'message' => __('Google Maps key is valid for Maps JavaScript API and referrer restrictions look correct.', 'bw'),
         'details' => sprintf(
-            /* translators: 1: places status, 2: tested site URL */
-            __('Places status: %1$s | Tested referrer: %2$s', 'bw'),
-            $places_status,
+            /* translators: %s: tested site URL */
+            __('Tested referrer: %s. Note: server-side Places Web Service is intentionally not checked when key uses HTTP referrer restrictions.', 'bw'),
             esc_url_raw($site_referer)
         ),
     ]);
