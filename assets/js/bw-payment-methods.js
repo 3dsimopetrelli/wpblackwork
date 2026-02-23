@@ -109,7 +109,7 @@
             return window.BW_GPAY_AVAILABLE === true;
         }
         if (gatewayId === 'bw_apple_pay') {
-            return window.BW_APPLE_PAY_AVAILABLE === true || window.BW_APPLE_PAY_ACTION_AVAILABLE === true;
+            return window.BW_APPLE_PAY_AVAILABLE === true;
         }
         return true;
     }
