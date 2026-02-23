@@ -1325,7 +1325,7 @@ body.woocommerce-checkout .bw-apple-pay-unavailable {
 }
 
 body.woocommerce-checkout .bw-apple-pay-unavailable__cta {
-	margin: 15px 0 15px;
+	margin: 20px 0;
 }
 
 .bw-express-checkout-highlight {
@@ -1353,7 +1353,7 @@ body.woocommerce-checkout .bw-apple-pay-init-info {
 }
 
 body.woocommerce-checkout .bw-apple-pay-init-info__title {
-	margin: 0 0 15px;
+	margin: 0 0 10px;
 	font-size: 28px;
 	line-height: 1.15;
 	letter-spacing: -0.5px;
