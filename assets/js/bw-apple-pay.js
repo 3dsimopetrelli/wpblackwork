@@ -102,18 +102,34 @@
 
     function getExpressCheckoutTarget() {
         var selectors = [
+            '.bw-checkout-express__gateway-grid',
+            '.bw-checkout-express__title',
             '#wc-stripe-express-checkout-element',
             '#wc-stripe-payment-request-wrapper',
             '.wc-stripe-express-checkout',
             '.wc-stripe-payment-request-buttons',
             '#wc-stripe-express-checkout-element-wrapper',
             '#wcpay-express-checkout-element',
-            '.wcpay-express-checkout-wrapper'
+            '.wcpay-express-checkout-wrapper',
+            '#wc-stripe-payment-request-button-separator',
+            '#wc-stripe-express-checkout-button-separator',
+            '#wcpay-express-checkout-button-separator',
+            '.wc-stripe-ece-button-separator'
         ];
 
         for (var i = 0; i < selectors.length; i += 1) {
             var el = document.querySelector(selectors[i]);
-            if (el && el.offsetParent !== null) {
+            if (!el) {
+                continue;
+            }
+
+            var isVisible = true;
+            if (window.getComputedStyle) {
+                var style = window.getComputedStyle(el);
+                isVisible = style.display !== 'none' && style.visibility !== 'hidden';
+            }
+
+            if (isVisible) {
                 return el;
             }
         }
@@ -139,7 +155,8 @@
 
         var target = getExpressCheckoutTarget();
         if (!target) {
-            renderCheckoutNotice('error', 'Express Checkout is not available. Use Google Pay, Card, or another payment method.');
+            // Keep checkout stable: no hard error when target cannot be resolved.
+            renderCheckoutNotice('info', 'Express Checkout area was not detected. Please use the Apple Pay/Google Pay buttons at the top of checkout.');
             return;
         }
 
@@ -569,13 +586,38 @@
         }
 
         if (app.state === STATE.NATIVE_UNAVAILABLE_INLINE_POSSIBLE) {
-            // Safety-first fallback: we do not create/confirm PaymentIntents unless a wallet
-            // flow is truly confirmable in this browser context.
-            console.warn('[BW Apple Pay] inline_express fallback reached but no safe confirmable Apple Pay flow is available.');
+            if (!validateRequiredFields()) {
+                return;
+            }
+
+            if (app.paymentRequest) {
+                try {
+                    app.paymentRequest.show();
+                    return;
+                } catch (inlineError) {
+                    console.warn('[BW Apple Pay] inline_express show() failed:', inlineError && inlineError.message ? inlineError.message : inlineError);
+                }
+            }
+
             app.state = STATE.ERROR;
-            applyUiState('apple_inline_not_implemented');
-            renderCheckoutNotice('error', 'Apple Pay is only available on Safari with Wallet configured. Choose Google Pay or Credit / Debit Card.');
+            applyUiState('apple_inline_show_failed');
+            renderCheckoutNotice('error', 'Apple Express Checkout could not be opened in this browser. Use Google Pay, Card, or another payment method.');
             return;
+        }
+
+        if (app.fallbackMode === FALLBACK_MODE_INLINE && app.state === STATE.ERROR) {
+            if (!validateRequiredFields()) {
+                return;
+            }
+
+            if (app.paymentRequest) {
+                try {
+                    app.paymentRequest.show();
+                    return;
+                } catch (error) {
+                    console.warn('[BW Apple Pay] inline_express fallback show() failed:', error && error.message ? error.message : error);
+                }
+            }
         }
 
         renderCheckoutNotice('error', 'Apple Pay is not available in this environment. Choose another payment method.');
@@ -602,8 +644,26 @@
             return;
         }
 
-        // In inline_express non-feasible mode, prevent Woo submit (which would
-        // fail with "Apple Pay session missing") and guide user to Express area.
+        // In inline_express fallback mode, first try to open Stripe paymentRequest
+        // directly (this can open Apple Pay QR popup on supported environments).
+        if (app.paymentRequest) {
+            ev.preventDefault();
+            ev.stopPropagation();
+
+            if (!validateRequiredFields()) {
+                return;
+            }
+
+            try {
+                app.paymentRequest.show();
+                return;
+            } catch (error) {
+                console.warn('[BW Apple Pay] place_order inline_express show() failed:', error && error.message ? error.message : error);
+            }
+        }
+
+        // Fallback: prevent Woo submit (which would fail with "Apple Pay session missing")
+        // and guide user to the express checkout area.
         ev.preventDefault();
         ev.stopPropagation();
         scrollToExpressCheckout(ev);
