@@ -242,10 +242,11 @@ body.woocommerce-checkout .bw-payment-method.is-selected {
 }
 
 /* Selected gateway with hidden content (e.g. PayPal collapsed):
-   avoid double line with the next item by dropping selected bottom border. */
-body.woocommerce-checkout .bw-payment-method:has(input[type="radio"]:checked):has(> .bw-payment-method__content[style*="display: none"]),
-body.woocommerce-checkout .bw-payment-method.is-selected:has(> .bw-payment-method__content[style*="display: none"]) {
-	border-bottom-color: transparent !important;
+   keep selected bottom border and hide only the next item's top border
+   to avoid black+gray double seam. */
+body.woocommerce-checkout .bw-payment-method:has(input[type="radio"]:checked):has(> .bw-payment-method__content[style*="display: none"]) + .bw-payment-method,
+body.woocommerce-checkout .bw-payment-method.is-selected:has(> .bw-payment-method__content[style*="display: none"]) + .bw-payment-method {
+	border-top-color: transparent !important;
 }
 
 body.woocommerce-checkout .bw-payment-method:has(input[type="radio"]:checked) .bw-payment-method__header,
