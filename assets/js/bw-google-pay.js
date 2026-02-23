@@ -40,6 +40,7 @@
     var googlePayAvailable = false;
     var googlePayState = 'checking'; // checking | available | unavailable
     var googlePayCheckTimer = null;
+    var googlePayCheckStartedAt = 0;
     window.BW_GPAY_AVAILABLE = false;
 
     // -------------------------------------------------------------------------
@@ -317,6 +318,29 @@
             '</div>';
     }
 
+    function setGooglePayUnavailable(message, debugReason) {
+        googlePayAvailable = false;
+        window.BW_GPAY_AVAILABLE = false;
+        googlePayState = 'unavailable';
+        clearTimeout(googlePayCheckTimer);
+        renderGooglePayUnavailableState();
+        if (message) {
+            var placeholder = document.getElementById('bw-google-pay-accordion-placeholder');
+            if (placeholder) {
+                placeholder.innerHTML = '' +
+                    '<div class="bw-gpay-unavailable" role="status" aria-live="polite">' +
+                        '<p class="bw-gpay-unavailable__title">Google Pay is temporarily unavailable.</p>' +
+                        '<p class="bw-gpay-unavailable__text">' + message + '</p>' +
+                    '</div>';
+            }
+        }
+        disableGooglePaySelection();
+        syncGooglePayUiState();
+        if (debugReason) {
+            console.error('[BW Google Pay] unavailable reason:', debugReason);
+        }
+    }
+
     // -------------------------------------------------------------------------
     // Checkout AJAX submission
     // -------------------------------------------------------------------------
@@ -398,6 +422,7 @@
         googlePayState = 'checking';
         googlePayAvailable = false;
         window.BW_GPAY_AVAILABLE = false;
+        googlePayCheckStartedAt = Date.now();
         markGooglePayCheckingState();
         syncGooglePayUiState();
 
@@ -418,7 +443,10 @@
                 requestPayerPhone: true,
             });
         } catch (err) {
-            BW_GOOGLE_PAY_DEBUG && console.error('[BW Google Pay] stripe.paymentRequest() error:', err);
+            setGooglePayUnavailable(
+                'Google Pay initialization failed. Please choose another payment method or refresh the page.',
+                err && err.message ? err.message : err
+            );
             return;
         }
 
@@ -429,13 +457,10 @@
             if (googlePayState !== 'checking') {
                 return;
             }
-            googlePayAvailable = false;
-            window.BW_GPAY_AVAILABLE = false;
-            googlePayState = 'unavailable';
-            BW_GOOGLE_PAY_DEBUG && console.warn('[BW Google Pay] canMakePayment timeout (>6000ms). Falling back to unavailable state.');
-            renderGooglePayUnavailableState();
-            disableGooglePaySelection();
-            syncGooglePayUiState();
+            setGooglePayUnavailable(
+                'Google Pay check timed out. Please refresh and try again, or choose another payment method.',
+                'canMakePayment timeout > 6000ms'
+            );
         }, 6000);
 
         paymentRequest.canMakePayment().then(function (result) {
@@ -488,20 +513,16 @@
                     });
             } else {
                 BW_GOOGLE_PAY_DEBUG && console.log('[BW Google Pay] Non disponibile su questo dispositivo/browser.');
-                $('#bw-google-pay-button-wrapper').hide();
-                renderGooglePayUnavailableState();
-                disableGooglePaySelection();
-
-                syncGooglePayUiState();
+                setGooglePayUnavailable(
+                    'Google Pay is not available on this device/browser. Please add a supported card to Google Wallet or use another payment method.',
+                    'canMakePayment returned no googlePay support'
+                );
             }
         }).catch(function () {
-            clearTimeout(googlePayCheckTimer);
-            googlePayAvailable = false;
-            window.BW_GPAY_AVAILABLE = false;
-            googlePayState = 'unavailable';
-            renderGooglePayUnavailableState();
-            disableGooglePaySelection();
-            syncGooglePayUiState();
+            setGooglePayUnavailable(
+                'Google Pay check failed. Please refresh and try again, or choose another payment method.',
+                'canMakePayment promise rejected'
+            );
         });
 
         // Fires when the customer approves the payment in the Google Pay sheet.
@@ -534,10 +555,15 @@
     // Initialisation
     // -------------------------------------------------------------------------
 
-    $(document).ready(function () {
+        $(document).ready(function () {
         initGooglePay();
 
         $(document.body).off('change.bwgpay', 'input[name="payment_method"]').on('change.bwgpay', 'input[name="payment_method"]', function () {
+            var selectedMethod = $('input[name="payment_method"]:checked').val();
+            if (selectedMethod === 'bw_google_pay' && googlePayState === 'checking' && (Date.now() - googlePayCheckStartedAt) > 1200) {
+                initGooglePay();
+                return;
+            }
             syncGooglePayUiState();
         });
 
