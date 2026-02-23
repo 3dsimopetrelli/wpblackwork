@@ -249,6 +249,14 @@
         placeholder.innerHTML = html;
     }
 
+    function clearPlaceholder() {
+        var placeholder = document.getElementById('bw-apple-pay-accordion-placeholder');
+        if (!placeholder) {
+            return;
+        }
+        placeholder.innerHTML = '';
+    }
+
     function applyUiState(reason) {
         var isSelected = isAppleMethodSelected();
         var showWalletButton = isSelected;
@@ -281,9 +289,9 @@
             case STATE.NATIVE_AVAILABLE:
                 hidePlaceOrder = true;
                 hasPrimaryAction = true;
-                renderPlaceholder('Apple Pay', [
-                    'You\'ll be redirected to Apple Pay to complete your purchase.'
-                ], false);
+                // Keep native Apple Pay panel visually aligned with other methods:
+                // no extra title block, only the standard inline info text.
+                clearPlaceholder();
                 break;
 
             case STATE.NATIVE_UNAVAILABLE_HELPER:
