@@ -263,6 +263,14 @@
 
         BW_LAST_SELECTED_METHOD = checkedRadio ? checkedRadio.value : BW_LAST_SELECTED_METHOD;
 
+        // Force a single checked payment radio to avoid Woo/third-party race
+        // conditions where Stripe stays checked while another gateway is selected.
+        if (checkedRadio) {
+            paymentContainer.querySelectorAll('input[name="payment_method"]').forEach(function (input) {
+                input.checked = (input === checkedRadio);
+            });
+        }
+
         paymentContainer.querySelectorAll('.bw-payment-method').forEach(function (method) {
             var radio      = method.querySelector('input[name="payment_method"]');
             var content    = method.querySelector('.bw-payment-method__content');

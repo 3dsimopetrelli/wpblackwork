@@ -470,7 +470,7 @@
             window.BW_GPAY_AVAILABLE = googlePayAvailable === true;
             googlePayState = googlePayAvailable ? 'available' : 'unavailable';
 
-            if (result && result.googlePay) {
+            if (googlePayAvailable) {
                 // Google Pay is explicitly available on this device/browser.
                 BW_GOOGLE_PAY_DEBUG && console.log('[BW Google Pay] Google Pay disponibile:', result);
                 markGooglePayAvailableState();
@@ -559,11 +559,6 @@
         initGooglePay();
 
         $(document.body).off('change.bwgpay', 'input[name="payment_method"]').on('change.bwgpay', 'input[name="payment_method"]', function () {
-            var selectedMethod = $('input[name="payment_method"]:checked').val();
-            if (selectedMethod === 'bw_google_pay' && googlePayState === 'checking' && (Date.now() - googlePayCheckStartedAt) > 1200) {
-                initGooglePay();
-                return;
-            }
             syncGooglePayUiState();
         });
 
