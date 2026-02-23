@@ -669,6 +669,41 @@ function bw_mew_enqueue_checkout_assets()
             ]);
         }
     }
+
+    // Apple Pay Integration
+    $should_enqueue_apple_pay = (get_option('bw_apple_pay_enabled', '0') === '1') || isset($available_gateways['bw_apple_pay']);
+
+    if ($should_enqueue_apple_pay) {
+        $apple_pay_js = BW_MEW_PATH . 'assets/js/bw-apple-pay.js';
+        if (file_exists($apple_pay_js)) {
+            wp_enqueue_script('stripe', 'https://js.stripe.com/v3/', [], null, true);
+            wp_enqueue_script(
+                'bw-apple-pay',
+                BW_MEW_URL . 'assets/js/bw-apple-pay.js',
+                ['jquery', 'stripe', 'wc-checkout'],
+                filemtime($apple_pay_js),
+                true
+            );
+
+            $apple_pub_key = (string) get_option('bw_apple_pay_publishable_key', '');
+            if ('' === $apple_pub_key) {
+                $apple_pub_key = (string) get_option('bw_google_pay_publishable_key', '');
+            }
+
+            $cart_total_cents = ( WC()->cart && ! WC()->cart->is_empty() )
+                ? (int) round( (float) WC()->cart->get_total( 'raw' ) * 100 )
+                : 0;
+
+            wp_localize_script('bw-apple-pay', 'bwApplePayParams', [
+                'publishableKey'   => $apple_pub_key,
+                'country'          => WC()->countries->get_base_country(),
+                'currency'         => strtolower(get_woocommerce_currency()),
+                'ajaxCheckoutUrl'  => add_query_arg('wc-ajax', 'checkout', home_url('/')),
+                'orderTotalCents'  => $cart_total_cents,
+                'adminDebug'       => (defined('WP_DEBUG') && WP_DEBUG && current_user_can('manage_options')),
+            ]);
+        }
+    }
 }
 
 /**

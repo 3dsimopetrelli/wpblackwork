@@ -1214,7 +1214,7 @@ body.woocommerce-checkout .bw-sr-only {
 .bw-apple-pay-info {
 	padding: 28px 20px;
 	text-align: center;
-	display: flex;
+	display: none;
 	align-items: center;
 	justify-content: center;
 }
