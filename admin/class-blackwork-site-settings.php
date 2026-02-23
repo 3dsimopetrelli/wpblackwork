@@ -284,6 +284,184 @@ function bw_google_pay_test_connection_ajax_handler()
 add_action('wp_ajax_bw_google_pay_test_connection', 'bw_google_pay_test_connection_ajax_handler');
 
 /**
+ * AJAX handler to test Google Maps + Places API connectivity for checkout autocomplete.
+ */
+function bw_google_maps_test_connection_ajax_handler()
+{
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error(['message' => __('Permission denied.', 'bw')]);
+    }
+
+    check_ajax_referer('bw_google_maps_test_connection', 'nonce');
+
+    $api_key = isset($_POST['api_key']) ? sanitize_text_field(wp_unslash($_POST['api_key'])) : '';
+
+    if ('' === $api_key) {
+        wp_send_json_error(['message' => __('Google Maps API key is required.', 'bw')]);
+    }
+
+    if (0 !== strpos($api_key, 'AIza')) {
+        wp_send_json_error([
+            'message' => __('The API key format looks invalid. It should start with "AIza".', 'bw'),
+        ]);
+    }
+
+    $site_referer = home_url('/');
+
+    $maps_js_url = add_query_arg(
+        [
+            'key' => $api_key,
+            'libraries' => 'places',
+            'v' => 'weekly',
+        ],
+        'https://maps.googleapis.com/maps/api/js'
+    );
+
+    $maps_js_response = wp_remote_get(
+        $maps_js_url,
+        [
+            'timeout' => 20,
+            'headers' => [
+                'Referer' => $site_referer,
+            ],
+        ]
+    );
+
+    if (is_wp_error($maps_js_response)) {
+        wp_send_json_error([
+            'message' => sprintf(
+                /* translators: %s: WP error message */
+                __('Unable to reach Google Maps JavaScript API: %s', 'bw'),
+                $maps_js_response->get_error_message()
+            ),
+        ]);
+    }
+
+    $maps_status_code = (int) wp_remote_retrieve_response_code($maps_js_response);
+    $maps_body = (string) wp_remote_retrieve_body($maps_js_response);
+
+    if ($maps_status_code < 200 || $maps_status_code >= 300) {
+        wp_send_json_error([
+            'message' => sprintf(
+                /* translators: %d: HTTP status code */
+                __('Google Maps JavaScript API returned HTTP %d.', 'bw'),
+                $maps_status_code
+            ),
+        ]);
+    }
+
+    $known_maps_errors = [
+        'RefererNotAllowedMapError' => __('Referrer is not allowed. Add your domain to HTTP referrer restrictions.', 'bw'),
+        'InvalidKeyMapError' => __('Invalid API key.', 'bw'),
+        'ApiNotActivatedMapError' => __('Maps JavaScript API or Places API is not enabled in Google Cloud.', 'bw'),
+        'ApiProjectMapError' => __('The key is linked to a project that cannot use this API.', 'bw'),
+        'BillingNotEnabledMapError' => __('Billing is not enabled for this Google Cloud project.', 'bw'),
+        'ExpiredKeyMapError' => __('This API key is expired.', 'bw'),
+    ];
+
+    foreach ($known_maps_errors as $error_code => $error_message) {
+        if (false !== strpos($maps_body, $error_code)) {
+            wp_send_json_error([
+                'message' => $error_message,
+                'details' => sprintf(
+                    /* translators: %s: Google Maps error code */
+                    __('Google error code: %s', 'bw'),
+                    $error_code
+                ),
+            ]);
+        }
+    }
+
+    $places_url = add_query_arg(
+        [
+            'input' => 'via roma',
+            'types' => 'address',
+            'language' => 'en',
+            'key' => $api_key,
+        ],
+        'https://maps.googleapis.com/maps/api/place/autocomplete/json'
+    );
+
+    $places_response = wp_remote_get(
+        $places_url,
+        [
+            'timeout' => 20,
+            'headers' => [
+                'Referer' => $site_referer,
+            ],
+        ]
+    );
+
+    if (is_wp_error($places_response)) {
+        wp_send_json_error([
+            'message' => sprintf(
+                /* translators: %s: WP error message */
+                __('Unable to reach Google Places API: %s', 'bw'),
+                $places_response->get_error_message()
+            ),
+        ]);
+    }
+
+    $places_status_code = (int) wp_remote_retrieve_response_code($places_response);
+    $places_payload = json_decode((string) wp_remote_retrieve_body($places_response), true);
+
+    if ($places_status_code < 200 || $places_status_code >= 300) {
+        wp_send_json_error([
+            'message' => sprintf(
+                /* translators: %d: HTTP status code */
+                __('Google Places API returned HTTP %d.', 'bw'),
+                $places_status_code
+            ),
+        ]);
+    }
+
+    if (!is_array($places_payload)) {
+        wp_send_json_error([
+            'message' => __('Unexpected response from Google Places API.', 'bw'),
+        ]);
+    }
+
+    $places_status = isset($places_payload['status']) ? sanitize_text_field((string) $places_payload['status']) : '';
+    $places_error = isset($places_payload['error_message']) ? sanitize_text_field((string) $places_payload['error_message']) : '';
+
+    if ('OK' !== $places_status && 'ZERO_RESULTS' !== $places_status) {
+        $message = __('Google Places API check failed.', 'bw');
+
+        if ('REQUEST_DENIED' === $places_status && '' !== $places_error) {
+            $message = sprintf(
+                /* translators: %s: Google error message */
+                __('Google denied the request: %s', 'bw'),
+                $places_error
+            );
+        } elseif ('' !== $places_error) {
+            $message = sprintf(
+                /* translators: %s: Google error message */
+                __('Google error: %s', 'bw'),
+                $places_error
+            );
+        }
+
+        wp_send_json_error([
+            'message' => $message,
+            'details' => '' !== $places_status
+                ? sprintf(__('Places status: %s', 'bw'), $places_status)
+                : '',
+        ]);
+    }
+
+    wp_send_json_success([
+        'message' => __('Google Maps is connected correctly. Maps JavaScript API and Places API responded successfully.', 'bw'),
+        'details' => sprintf(
+            /* translators: 1: places status, 2: tested site URL */
+            __('Places status: %1$s | Tested referrer: %2$s', 'bw'),
+            $places_status,
+            esc_url_raw($site_referer)
+        ),
+    ]);
+}
+add_action('wp_ajax_bw_google_maps_test_connection', 'bw_google_maps_test_connection_ajax_handler');
+
+/**
  * AJAX handler to test Stripe connection for Klarna settings (live mode).
  */
 function bw_klarna_test_connection_ajax_handler()
@@ -2889,6 +3067,7 @@ function bw_site_render_checkout_tab()
             $google_maps_api_key = get_option('bw_google_maps_api_key', '');
             $google_maps_autofill = get_option('bw_google_maps_autofill', '1');
             $google_maps_restrict_country = get_option('bw_google_maps_restrict_country', '1');
+            $google_maps_test_nonce = wp_create_nonce('bw_google_maps_test_connection');
             ?>
 
             <table class="form-table" role="presentation">
@@ -2932,6 +3111,18 @@ function bw_site_render_checkout_tab()
                                 <br>
                                 <strong><?php esc_html_e('Free tier: $200/month (~70,000 autocomplete requests)', 'bw'); ?></strong>
                             </p>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row">
+                            <label for="bw_google_maps_test_connection"><?php esc_html_e('API Connection Test', 'bw'); ?></label>
+                        </th>
+                        <td>
+                            <button type="button" id="bw_google_maps_test_connection" class="button button-secondary">
+                                <?php esc_html_e('Test Google Maps Connection', 'bw'); ?>
+                            </button>
+                            <p id="bw_google_maps_test_result" class="description" style="margin-top: 10px; display:none;"></p>
                         </td>
                     </tr>
 
@@ -3005,6 +3196,39 @@ function bw_site_render_checkout_tab()
 
             <script>
                 jQuery(document).ready(function ($) {
+                    var $testButton = $('#bw_google_maps_test_connection');
+                    var $testResult = $('#bw_google_maps_test_result');
+                    var defaultButtonText = $testButton.text();
+
+                    function setTestMessage(type, message, details) {
+                        var color = '#0a7a2f';
+                        var bg = '#ecfdf3';
+                        var border = '#9ee7b3';
+
+                        if (type === 'error') {
+                            color = '#a90000';
+                            bg = '#fff1f1';
+                            border = '#f0b2b2';
+                        }
+
+                        var text = message || '';
+                        if (details) {
+                            text += ' ' + details;
+                        }
+
+                        $testResult
+                            .text(text)
+                            .css({
+                                display: 'block',
+                                color: color,
+                                background: bg,
+                                border: '1px solid ' + border,
+                                borderRadius: '6px',
+                                padding: '10px 12px',
+                                fontWeight: 500
+                            });
+                    }
+
                     // Toggle conditional fields
                     $('#bw_google_maps_enabled').on('change', function () {
                         if ($(this).is(':checked')) {
@@ -3012,6 +3236,36 @@ function bw_site_render_checkout_tab()
                         } else {
                             $('#bw-google-maps-conditional-fields').slideUp(200);
                         }
+                    });
+
+                    $testButton.on('click', function () {
+                        var apiKey = ($('#bw_google_maps_api_key').val() || '').trim();
+
+                        if (!apiKey) {
+                            setTestMessage('error', '<?php echo esc_js(__('Insert a Google Maps API key first.', 'bw')); ?>');
+                            return;
+                        }
+
+                        $testButton.prop('disabled', true).text('<?php echo esc_js(__('Testing…', 'bw')); ?>');
+                        $testResult.hide().text('');
+
+                        $.post(ajaxurl, {
+                            action: 'bw_google_maps_test_connection',
+                            nonce: '<?php echo esc_js($google_maps_test_nonce); ?>',
+                            api_key: apiKey
+                        }).done(function (response) {
+                            if (response && response.success && response.data) {
+                                setTestMessage('success', response.data.message || '<?php echo esc_js(__('Connection successful.', 'bw')); ?>', response.data.details || '');
+                                return;
+                            }
+
+                            var data = response && response.data ? response.data : {};
+                            setTestMessage('error', data.message || '<?php echo esc_js(__('Connection test failed.', 'bw')); ?>', data.details || '');
+                        }).fail(function () {
+                            setTestMessage('error', '<?php echo esc_js(__('Unable to run connection test. Please try again.', 'bw')); ?>');
+                        }).always(function () {
+                            $testButton.prop('disabled', false).text(defaultButtonText);
+                        });
                     });
                 });
             </script>
