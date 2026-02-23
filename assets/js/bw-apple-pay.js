@@ -28,6 +28,7 @@
     };
 
     window.BW_APPLE_PAY_AVAILABLE = false;
+    window.BW_APPLE_PAY_ACTION_AVAILABLE = false;
 
     function escapeHtml(value) {
         return String(value || '')
@@ -252,6 +253,7 @@
         var isSelected = isAppleMethodSelected();
         var showWalletButton = isSelected;
         var hidePlaceOrder = false;
+        var hasPrimaryAction = false;
 
         setButtonLoading(app.state === STATE.PROCESSING);
         setAppleInfoVisibility(app.state === STATE.NATIVE_AVAILABLE);
@@ -278,6 +280,7 @@
 
             case STATE.NATIVE_AVAILABLE:
                 hidePlaceOrder = true;
+                hasPrimaryAction = true;
                 renderPlaceholder('Apple Pay', [
                     'You\'ll be redirected to Apple Pay to complete your purchase.'
                 ], false);
@@ -285,6 +288,7 @@
 
             case STATE.NATIVE_UNAVAILABLE_HELPER:
                 hidePlaceOrder = true;
+                hasPrimaryAction = true;
                 renderPlaceholder('Apple Pay unavailable', [
                     'Apple Pay is available on Safari with Wallet configured.',
                     'Use the Apple Pay button below to jump to Express Checkout at the top of the page.'
@@ -293,6 +297,7 @@
 
             case STATE.NATIVE_UNAVAILABLE_INLINE_POSSIBLE:
                 hidePlaceOrder = true;
+                hasPrimaryAction = true;
                 renderPlaceholder('Apple Pay unavailable on this browser', [
                     'A compatible inline express flow is available. Continue with the Apple Pay button below.'
                 ], false);
@@ -300,6 +305,7 @@
 
             case STATE.PROCESSING:
                 hidePlaceOrder = true;
+                hasPrimaryAction = true;
                 renderPlaceholder('Apple Pay', [
                     'Processing payment. Please wait...'
                 ], false);
@@ -315,6 +321,7 @@
                 break;
         }
 
+        window.BW_APPLE_PAY_ACTION_AVAILABLE = isSelected && hasPrimaryAction;
         $('#bw-apple-pay-button-wrapper').toggle(showWalletButton);
         setPlaceOrderHidden(hidePlaceOrder);
         dedupeApplePayDom();
