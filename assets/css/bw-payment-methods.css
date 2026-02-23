@@ -154,15 +154,10 @@ body.woocommerce-checkout .bw-payment-method {
 	border: 1px solid var(--bw-pm-border);
 	border-radius: 0;
 	margin: 0;
-	margin-top: 0;
+	margin-top: -1px;
 	transition: border-color var(--bw-pm-transition-smooth);
 	overflow: hidden;
 	position: relative;
-}
-
-/* Use a single real separator between items (no border overlap artifacts) */
-body.woocommerce-checkout .bw-payment-method + .bw-payment-method {
-	border-top: 0;
 }
 
 /* Remove any ::before or ::after that could create triangles or break borders */
@@ -246,7 +241,11 @@ body.woocommerce-checkout .bw-payment-method.is-selected {
 	box-shadow: none !important;
 }
 
-/* No extra seam needed with the single-separator model above. */
+/* Keep top selected border intact, but avoid double seam at bottom when selected method is collapsed */
+body.woocommerce-checkout .bw-payment-method:has(input[type="radio"]:checked):has(> .bw-payment-method__content[style*="display: none"]),
+body.woocommerce-checkout .bw-payment-method.is-selected:has(> .bw-payment-method__content[style*="display: none"]) {
+	border-bottom-color: transparent !important;
+}
 
 body.woocommerce-checkout .bw-payment-method:has(input[type="radio"]:checked) .bw-payment-method__header,
 body.woocommerce-checkout .bw-payment-method.is-selected .bw-payment-method__header {
