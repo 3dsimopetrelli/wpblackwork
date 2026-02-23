@@ -496,7 +496,7 @@ body.woocommerce-checkout .bw-payment-method__content.bw-stripe-loading {
    Open only when parent is explicitly selected to avoid stale dual-open states. */
 body.woocommerce-checkout.bw-no-has-support .bw-payment-method.is-selected > .bw-payment-method__content.is-open {
 	max-height: 3000px !important;
-	border-top-color: #000;
+	border-top-color: transparent;
 	overflow: visible !important;
 	background: #f7f7f7 !important;
 }
@@ -544,7 +544,7 @@ body.woocommerce-checkout
 	.bw-payment-method:has(input[name="payment_method"]:checked)
 	> .bw-payment-method__content {
 	max-height: 3000px !important;
-	border-top-color: #000;
+	border-top-color: transparent;
 	overflow: visible !important;
 	background: #f7f7f7 !important;
 }
@@ -553,8 +553,14 @@ body.woocommerce-checkout
 	.bw-payment-method:has(input[name="payment_method"]:checked)
 	> .bw-payment-method__content
 	.bw-payment-method__inner {
+	border-top: 1px solid #000;
 	opacity: 1;
 	transform: translateY(0);
+}
+
+/* Fallback (no :has support): same single divider only when content is actually open */
+body.woocommerce-checkout.bw-no-has-support .bw-payment-method.is-selected > .bw-payment-method__content.is-open .bw-payment-method__inner {
+	border-top: 1px solid #000;
 }
 
 /* ============================================
