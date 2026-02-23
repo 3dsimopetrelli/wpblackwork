@@ -141,6 +141,7 @@
      * @param {string} reason Optional debug reason.
      */
     function bwSyncCheckoutActionButtons(reason) { // eslint-disable-line no-unused-vars
+        normalizeCardGatewayTitles();
         syncAccordionState();
         dedupeWalletDom();
 
@@ -184,10 +185,36 @@
     }
 
     function normalizeCardGatewayTitles() {
-        var stripeTitle = document.querySelector('.payment_method_stripe .bw-payment-method__title');
-        if (stripeTitle) {
-            stripeTitle.textContent = 'Credit / Debit Card';
-        }
+        var cardRows = document.querySelectorAll(
+            '.bw-payment-method.payment_method_stripe, ' +
+            '.bw-payment-method[data-gateway-id="stripe"], ' +
+            '.bw-payment-method.payment_method_woocommerce_payments, ' +
+            '.bw-payment-method[data-gateway-id="woocommerce_payments"]'
+        );
+
+        cardRows.forEach(function (row) {
+            var label = row.querySelector('.bw-payment-method__label');
+            if (!label) {
+                return;
+            }
+
+            var icon = label.querySelector('.bw-payment-method__icon');
+            var title = label.querySelector('.bw-payment-method__title');
+
+            if (!title) {
+                title = document.createElement('span');
+                title.className = 'bw-payment-method__title';
+                label.insertBefore(title, icon || label.firstChild);
+            }
+
+            title.textContent = 'Credit / Debit Card';
+
+            Array.from(label.childNodes).forEach(function (node) {
+                if (node.nodeType === Node.TEXT_NODE && node.textContent.trim() !== '') {
+                    node.textContent = '';
+                }
+            });
+        });
     }
 
     window.bwSyncCheckoutActionButtons = bwSyncCheckoutActionButtons;
