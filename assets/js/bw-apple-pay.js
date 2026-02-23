@@ -51,17 +51,11 @@
             return;
         }
 
-        var anchor = document.getElementById('bw-express-checkout-scroll-anchor');
-        if (!anchor) {
-            anchor = document.createElement('div');
-            anchor.id = 'bw-express-checkout-scroll-anchor';
-            anchor.setAttribute('aria-hidden', 'true');
-            target.parentNode.insertBefore(anchor, target);
-        }
-
-        var offsetTop = 24;
-        var top = Math.max(0, anchor.getBoundingClientRect().top + window.pageYOffset - offsetTop);
-        window.scrollTo({ top: top, behavior: 'smooth' });
+        var offsetTop = 40;
+        var top = Math.max(0, target.getBoundingClientRect().top + window.pageYOffset - offsetTop);
+        window.requestAnimationFrame(function () {
+            window.scrollTo({ top: top, behavior: 'smooth' });
+        });
         target.classList.add('bw-express-checkout-highlight');
         setTimeout(function () {
             target.classList.remove('bw-express-checkout-highlight');
