@@ -238,7 +238,7 @@ body.woocommerce-checkout .bw-payment-method:hover {
 body.woocommerce-checkout .bw-payment-method:has(input[type="radio"]:checked),
 body.woocommerce-checkout .bw-payment-method.is-selected {
 	border-color: var(--bw-pm-border-selected);
-	box-shadow: var(--bw-pm-shadow-sm);
+	box-shadow: none !important;
 }
 
 body.woocommerce-checkout .bw-payment-method:has(input[type="radio"]:checked) .bw-payment-method__header,
@@ -483,6 +483,10 @@ body.woocommerce-checkout .bw-payment-method__content {
 body.woocommerce-checkout .bw-payment-method__content:empty,
 body.woocommerce-checkout .bw-payment-method__content.payment_box:empty {
 	border-top-color: transparent !important;
+	max-height: 0 !important;
+	padding: 0 !important;
+	margin: 0 !important;
+	overflow: hidden !important;
 }
 
 /* Prevent Stripe panel half-open flash while iframe bootstraps */
