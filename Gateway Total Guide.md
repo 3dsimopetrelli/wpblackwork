@@ -11,7 +11,7 @@ It consolidates:
 ## Related Gateway Guides
 - `/Users/simonezanon/Documents/local site/BlackWork/wp-content/plugins/wpblackwork/Gateway Google Pay Guide.md`
 - `/Users/simonezanon/Documents/local site/BlackWork/wp-content/plugins/wpblackwork/Gateway Klarna Guide.md`
-- Apple Pay dedicated guide: planned as `Gateway Apple Pay Guide.md`
+- `/Users/simonezanon/Documents/local site/BlackWork/wp-content/plugins/wpblackwork/Gateway Apple Pay Guide.md`
 
 ---
 
@@ -213,11 +213,8 @@ Fix:
 
 ---
 
-## Next Documentation Step
-Create dedicated Apple guide:
-- `Gateway Apple Pay Guide.md`
-with the same structure as Google/Klarna guides:
-- settings fields
-- availability logic
-- webhook behavior
-- known pitfalls + fixes
+## Documentation Status
+Dedicated guides are now available for:
+- Google Pay
+- Klarna
+- Apple Pay
