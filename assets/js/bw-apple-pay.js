@@ -572,7 +572,15 @@
         }
 
         try {
-            app.paymentRequest.show();
+            var openResult = app.paymentRequest.show();
+
+            if (openResult && typeof openResult.catch === 'function') {
+                openResult.catch(function (error) {
+                    console.warn('[BW Apple Pay] inline_express show() rejected:', error && error.message ? error.message : error);
+                    setInlineNeutralHint();
+                });
+            }
+
             return true;
         } catch (error) {
             console.warn('[BW Apple Pay] inline_express show() failed:', error && error.message ? error.message : error);
@@ -599,7 +607,14 @@
                 return;
             }
 
-            app.paymentRequest.show();
+            var nativeResult = app.paymentRequest.show();
+            if (nativeResult && typeof nativeResult.catch === 'function') {
+                nativeResult.catch(function (error) {
+                    console.warn('[BW Apple Pay] native show() rejected:', error && error.message ? error.message : error);
+                    app.state = isAppleMethodSelected() ? STATE.METHOD_SELECTED : STATE.IDLE;
+                    applyUiState('apple_native_show_rejected');
+                });
+            }
             return;
         }
 
@@ -682,8 +697,10 @@
                 requestPayerName: true,
                 requestPayerEmail: true,
                 requestPayerPhone: true,
-                // Apple gateway must never trigger non-Apple wallets.
-                disableWallets: ['googlePay', 'link', 'browserCard']
+                // Keep Google Pay and Link disabled in Apple gateway context.
+                // Do not disable browserCard here because some browser contexts
+                // can require it to expose Apple Pay code flow.
+                disableWallets: ['googlePay', 'link']
             });
         } catch (err) {
             app.state = STATE.ERROR;
