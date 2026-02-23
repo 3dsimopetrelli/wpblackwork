@@ -88,6 +88,20 @@
         return Math.round(bwParseWcAmount($el.text()) * 100);
     }
 
+    function bwNormalizeCents(value, fallback) {
+        var parsed = Number(value);
+        if (!Number.isFinite(parsed)) {
+            return fallback;
+        }
+
+        parsed = Math.round(parsed);
+        if (parsed <= 0) {
+            return fallback;
+        }
+
+        return parsed;
+    }
+
     /**
      * Validate visible required checkout fields before opening Google Pay sheet.
      * Mirrors WooCommerce invalid/valid classes enough to give clear UX feedback.
@@ -439,6 +453,7 @@
         var initialCents = (bwGooglePayParams.orderTotalCents > 0)
             ? bwGooglePayParams.orderTotalCents
             : bwGetOrderTotalCents();
+        initialCents = bwNormalizeCents(initialCents, 100);
         googlePayState = 'checking';
         googlePayAvailable = false;
         window.BW_GPAY_AVAILABLE = false;
@@ -456,7 +471,7 @@
                 currency: currency,
                 total: {
                     label:  'Ordine BlackWork',
-                    amount: initialCents || 100, // Stripe requires a positive integer
+                    amount: initialCents, // Stripe requires a positive integer
                 },
                 requestPayerName:  true,
                 requestPayerEmail: true,
@@ -600,7 +615,7 @@
             }
 
             if (paymentRequest) {
-                var updatedCents = bwGetOrderTotalCents() || 100;
+                var updatedCents = bwNormalizeCents(bwGetOrderTotalCents(), 100);
                 BW_GOOGLE_PAY_DEBUG && console.log('[BW Google Pay] Aggiornamento totale:', updatedCents, 'centesimi');
                 paymentRequest.update({
                     total: {
