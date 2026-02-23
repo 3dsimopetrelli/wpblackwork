@@ -24,6 +24,7 @@
         canUseInlineExpress: false,
         fallbackMode: FALLBACK_MODE_HELPER,
         lastInlineCapabilityReason: '',
+        lastCanMakePaymentResult: null,
         initialized: false
     };
 
@@ -494,6 +495,10 @@
         return capability;
     }
 
+    function hasAppleCapability(result) {
+        return !!(result && typeof result === 'object' && result.applePay === true);
+    }
+
     function runAvailabilityCheck() {
         if (!app.paymentRequest || app.isCheckingAvailability) {
             return;
@@ -508,7 +513,8 @@
 
         app.paymentRequest.canMakePayment().then(function (result) {
             BW_APPLE_PAY_DEBUG && console.log('[BW Apple Pay] canMakePayment:', result);
-            app.nativeAvailable = !!(result && result.applePay === true);
+            app.lastCanMakePaymentResult = result || null;
+            app.nativeAvailable = hasAppleCapability(result);
             window.BW_APPLE_PAY_AVAILABLE = app.nativeAvailable;
 
             if (app.nativeAvailable) {
@@ -590,6 +596,13 @@
                 return;
             }
 
+            if (!hasAppleCapability(app.lastCanMakePaymentResult)) {
+                app.state = STATE.ERROR;
+                applyUiState('apple_inline_no_apple_capability');
+                renderCheckoutNotice('error', 'Apple Express Checkout is not available in this browser. Use Google Pay, Card, or another payment method.');
+                return;
+            }
+
             if (app.paymentRequest) {
                 try {
                     app.paymentRequest.show();
@@ -603,21 +616,6 @@
             applyUiState('apple_inline_show_failed');
             renderCheckoutNotice('error', 'Apple Express Checkout could not be opened in this browser. Use Google Pay, Card, or another payment method.');
             return;
-        }
-
-        if (app.fallbackMode === FALLBACK_MODE_INLINE && app.state === STATE.ERROR) {
-            if (!validateRequiredFields()) {
-                return;
-            }
-
-            if (app.paymentRequest) {
-                try {
-                    app.paymentRequest.show();
-                    return;
-                } catch (error) {
-                    console.warn('[BW Apple Pay] inline_express fallback show() failed:', error && error.message ? error.message : error);
-                }
-            }
         }
 
         renderCheckoutNotice('error', 'Apple Pay is not available in this environment. Choose another payment method.');
@@ -644,28 +642,15 @@
             return;
         }
 
-        // In inline_express fallback mode, first try to open Stripe paymentRequest
-        // directly (this can open Apple Pay QR popup on supported environments).
-        if (app.paymentRequest) {
-            ev.preventDefault();
-            ev.stopPropagation();
-
-            if (!validateRequiredFields()) {
-                return;
-            }
-
-            try {
-                app.paymentRequest.show();
-                return;
-            } catch (error) {
-                console.warn('[BW Apple Pay] place_order inline_express show() failed:', error && error.message ? error.message : error);
-            }
-        }
-
-        // Fallback: prevent Woo submit (which would fail with "Apple Pay session missing")
-        // and guide user to the express checkout area.
+        // Prevent Woo submit (which would fail with "Apple Pay session missing")
+        // and guide user to the express checkout area or alternative methods.
         ev.preventDefault();
         ev.stopPropagation();
+        if (app.fallbackMode === FALLBACK_MODE_INLINE) {
+            renderCheckoutNotice('info', 'Apple Express Checkout is unavailable in this browser. Use Google Pay, Card, or another payment method.');
+            return;
+        }
+
         scrollToExpressCheckout(ev);
     }
 
@@ -684,7 +669,9 @@
                 },
                 requestPayerName: true,
                 requestPayerEmail: true,
-                requestPayerPhone: true
+                requestPayerPhone: true,
+                // Apple gateway must never trigger non-Apple wallets.
+                disableWallets: ['googlePay', 'link', 'browserCard']
             });
         } catch (err) {
             app.state = STATE.ERROR;
