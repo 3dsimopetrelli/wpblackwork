@@ -479,6 +479,12 @@ body.woocommerce-checkout .bw-payment-method__content {
 	border-radius: 0;
 }
 
+/* Avoid double black line under header when a gateway has an empty/collapsed content box */
+body.woocommerce-checkout .bw-payment-method__content:empty,
+body.woocommerce-checkout .bw-payment-method__content.payment_box:empty {
+	border-top-color: transparent !important;
+}
+
 /* Prevent Stripe panel half-open flash while iframe bootstraps */
 body.woocommerce-checkout .bw-payment-method__content.bw-stripe-loading {
 	max-height: 0 !important;

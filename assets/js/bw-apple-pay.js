@@ -51,11 +51,22 @@
             return;
         }
 
-        var offsetTop = 40;
-        var top = Math.max(0, target.getBoundingClientRect().top + window.pageYOffset - offsetTop);
-        window.requestAnimationFrame(function () {
+        // Keep extra space above Express Checkout so it is not flush to the viewport top.
+        var offsetTop = 140;
+        var top = Math.max(0, Math.round(target.getBoundingClientRect().top + window.pageYOffset - offsetTop));
+
+        // Primary smooth scroll.
+        try {
             window.scrollTo({ top: top, behavior: 'smooth' });
-        });
+        } catch (e) {
+            window.scrollTo(0, top);
+        }
+
+        // Fallback for environments where native smooth scroll is inconsistent.
+        if (window.jQuery && window.jQuery.fn && window.jQuery.fn.animate) {
+            window.jQuery('html, body').stop(true).animate({ scrollTop: top }, 260);
+        }
+
         target.classList.add('bw-express-checkout-highlight');
         setTimeout(function () {
             target.classList.remove('bw-express-checkout-highlight');
