@@ -287,6 +287,10 @@
         placeholder.innerHTML = '';
     }
 
+    function setInlineNeutralHint() {
+        renderInlineExpressPlaceOrderHint();
+    }
+
     function applyUiState(reason) {
         var isSelected = isAppleMethodSelected();
         var showWalletButton = isSelected;
@@ -336,9 +340,7 @@
             case STATE.NATIVE_UNAVAILABLE_INLINE_POSSIBLE:
                 hidePlaceOrder = true;
                 hasPrimaryAction = true;
-                renderPlaceholder('Apple Pay unavailable on this browser', [
-                    'A compatible inline express flow is available. Continue with the Apple Pay button below.'
-                ], false);
+                setInlineNeutralHint();
                 break;
 
             case STATE.PROCESSING:
@@ -353,7 +355,9 @@
             default:
                 hidePlaceOrder = false;
                 if (app.fallbackMode === FALLBACK_MODE_INLINE) {
-                    renderInlineExpressPlaceOrderHint();
+                    hidePlaceOrder = true;
+                    hasPrimaryAction = true;
+                    setInlineNeutralHint();
                 } else {
                     renderPlaceholder('Apple Pay unavailable', [
                         'Apple Pay is only available on Safari with Wallet configured for this checkout.',
@@ -534,22 +538,16 @@
             var inlineCapability = detectInlineExpressCapability(result);
             app.canUseInlineExpress = inlineCapability.feasible;
             app.lastInlineCapabilityReason = inlineCapability.reason || '';
-
-            if (app.canUseInlineExpress) {
-                app.state = STATE.NATIVE_UNAVAILABLE_INLINE_POSSIBLE;
-                app.isCheckingAvailability = false;
-                applyUiState('apple_unavailable_inline_possible');
-                return;
-            }
-
-            app.state = STATE.ERROR;
+            app.state = STATE.NATIVE_UNAVAILABLE_INLINE_POSSIBLE;
             app.isCheckingAvailability = false;
-            console.warn('[BW Apple Pay] inline_express fallback not feasible:', app.lastInlineCapabilityReason);
-            applyUiState('apple_unavailable_inline_impossible');
+            if (!app.canUseInlineExpress) {
+                console.warn('[BW Apple Pay] inline_express fallback limited:', app.lastInlineCapabilityReason);
+            }
+            applyUiState('apple_unavailable_inline');
         }).catch(function (error) {
             app.nativeAvailable = false;
             window.BW_APPLE_PAY_AVAILABLE = false;
-            app.state = app.fallbackMode === FALLBACK_MODE_HELPER ? STATE.NATIVE_UNAVAILABLE_HELPER : STATE.ERROR;
+            app.state = app.fallbackMode === FALLBACK_MODE_HELPER ? STATE.NATIVE_UNAVAILABLE_HELPER : STATE.NATIVE_UNAVAILABLE_INLINE_POSSIBLE;
             app.isCheckingAvailability = false;
 
             if (BW_APPLE_PAY_DEBUG) {
@@ -557,11 +555,30 @@
             }
 
             if (app.fallbackMode === FALLBACK_MODE_INLINE) {
-                console.warn('[BW Apple Pay] inline_express fallback not feasible: canMakePayment check failed.');
+                console.warn('[BW Apple Pay] inline_express fallback limited: canMakePayment check failed.');
             }
 
             applyUiState('apple_check_error');
         });
+    }
+
+    function tryOpenInlineAppleExpress() {
+        if (!validateRequiredFields()) {
+            return false;
+        }
+
+        if (!app.paymentRequest) {
+            return false;
+        }
+
+        try {
+            app.paymentRequest.show();
+            return true;
+        } catch (error) {
+            console.warn('[BW Apple Pay] inline_express show() failed:', error && error.message ? error.message : error);
+            setInlineNeutralHint();
+            return false;
+        }
     }
 
     function handlePrimaryButtonClick(ev) {
@@ -592,29 +609,20 @@
         }
 
         if (app.state === STATE.NATIVE_UNAVAILABLE_INLINE_POSSIBLE) {
-            if (!validateRequiredFields()) {
+            if (tryOpenInlineAppleExpress()) {
                 return;
             }
-
-            if (!hasAppleCapability(app.lastCanMakePaymentResult)) {
-                app.state = STATE.ERROR;
-                applyUiState('apple_inline_no_apple_capability');
-                renderCheckoutNotice('error', 'Apple Express Checkout is not available in this browser. Use Google Pay, Card, or another payment method.');
-                return;
-            }
-
-            if (app.paymentRequest) {
-                try {
-                    app.paymentRequest.show();
-                    return;
-                } catch (inlineError) {
-                    console.warn('[BW Apple Pay] inline_express show() failed:', inlineError && inlineError.message ? inlineError.message : inlineError);
-                }
-            }
-
-            app.state = STATE.ERROR;
+            app.state = STATE.NATIVE_UNAVAILABLE_INLINE_POSSIBLE;
             applyUiState('apple_inline_show_failed');
-            renderCheckoutNotice('error', 'Apple Express Checkout could not be opened in this browser. Use Google Pay, Card, or another payment method.');
+            return;
+        }
+
+        if (app.fallbackMode === FALLBACK_MODE_INLINE && app.state === STATE.ERROR) {
+            if (tryOpenInlineAppleExpress()) {
+                return;
+            }
+            app.state = STATE.NATIVE_UNAVAILABLE_INLINE_POSSIBLE;
+            applyUiState('apple_inline_error_retry');
             return;
         }
 
@@ -643,11 +651,15 @@
         }
 
         // Prevent Woo submit (which would fail with "Apple Pay session missing")
-        // and guide user to the express checkout area or alternative methods.
+        // and route inline fallback to Apple Express trigger.
         ev.preventDefault();
         ev.stopPropagation();
         if (app.fallbackMode === FALLBACK_MODE_INLINE) {
-            renderCheckoutNotice('info', 'Apple Express Checkout is unavailable in this browser. Use Google Pay, Card, or another payment method.');
+            if (tryOpenInlineAppleExpress()) {
+                return;
+            }
+            app.state = STATE.NATIVE_UNAVAILABLE_INLINE_POSSIBLE;
+            applyUiState('apple_place_order_inline_unavailable');
             return;
         }
 
