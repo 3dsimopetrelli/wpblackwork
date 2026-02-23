@@ -3045,6 +3045,17 @@ function bw_site_render_checkout_tab()
                                 <?php esc_html_e('Test Google Maps Connection', 'bw'); ?>
                             </button>
                             <p id="bw_google_maps_test_result" class="description" style="margin-top: 10px; display:none;"></p>
+                            <p class="description" style="margin-top: 10px;">
+                                <strong><?php esc_html_e('Monitor API usage & costs:', 'bw'); ?></strong><br>
+                                <a href="https://console.cloud.google.com/apis/api/maps-backend.googleapis.com/quotas"
+                                    target="_blank" rel="noopener noreferrer"><?php esc_html_e('Maps JavaScript API Quotas', 'bw'); ?></a> |
+                                <a href="https://console.cloud.google.com/apis/api/places-backend.googleapis.com/quotas"
+                                    target="_blank" rel="noopener noreferrer"><?php esc_html_e('Places API Quotas', 'bw'); ?></a> |
+                                <a href="https://console.cloud.google.com/apis/dashboard"
+                                    target="_blank" rel="noopener noreferrer"><?php esc_html_e('API Metrics Dashboard', 'bw'); ?></a> |
+                                <a href="https://console.cloud.google.com/billing/budgets"
+                                    target="_blank" rel="noopener noreferrer"><?php esc_html_e('Billing Budgets & Alerts', 'bw'); ?></a>
+                            </p>
                         </td>
                     </tr>
 
