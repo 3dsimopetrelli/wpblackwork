@@ -238,6 +238,29 @@
         }
 
         var checkedRadio = paymentContainer.querySelector('input[name="payment_method"]:checked');
+
+        // Resilience: if third-party scripts temporarily clear all radios,
+        // restore last known selection (or first enabled fallback).
+        if (!checkedRadio) {
+            if (BW_LAST_SELECTED_METHOD) {
+                var remembered = paymentContainer.querySelector('input[name="payment_method"][value="' + BW_LAST_SELECTED_METHOD + '"]');
+                if (remembered && !remembered.disabled) {
+                    remembered.checked = true;
+                    checkedRadio = remembered;
+                }
+            }
+
+            if (!checkedRadio) {
+                var firstEnabled = Array.from(paymentContainer.querySelectorAll('input[name="payment_method"]')).find(function (input) {
+                    return !input.disabled;
+                });
+                if (firstEnabled) {
+                    firstEnabled.checked = true;
+                    checkedRadio = firstEnabled;
+                }
+            }
+        }
+
         BW_LAST_SELECTED_METHOD = checkedRadio ? checkedRadio.value : BW_LAST_SELECTED_METHOD;
 
         paymentContainer.querySelectorAll('.bw-payment-method').forEach(function (method) {
@@ -271,6 +294,8 @@
         if (radio.disabled) {
             return;
         }
+
+        BW_LAST_SELECTED_METHOD = radio.value;
 
         paymentContainer.querySelectorAll('input[name="payment_method"]').forEach(function (input) {
             input.checked = input === radio;
