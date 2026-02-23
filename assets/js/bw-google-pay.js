@@ -201,6 +201,24 @@
         }
     }
 
+    function syncGooglePayInfoBlock() {
+        var $methodRow = $('li.payment_method_bw_google_pay, li[data-gateway-id="bw_google_pay"]').first();
+        if (!$methodRow.length) {
+            return;
+        }
+
+        var $info = $methodRow.find('.bw-google-pay-info');
+        if (!$info.length) {
+            return;
+        }
+
+        if (googlePayState === 'unavailable') {
+            $info.hide();
+        } else {
+            $info.show();
+        }
+    }
+
     function scheduleGlobalWalletSync(reason) {
         if (typeof window.bwScheduleSyncCheckoutActionButtons === 'function') {
             window.bwScheduleSyncCheckoutActionButtons(reason || 'gpay');
@@ -261,6 +279,7 @@
             dedupeGooglePayDom();
         }
 
+        syncGooglePayInfoBlock();
         scheduleGlobalWalletSync('gpay_ui');
     }
 
