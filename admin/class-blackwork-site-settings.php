@@ -2169,6 +2169,7 @@ function bw_site_render_checkout_tab()
         $klarna_statement_descriptor = isset($_POST['bw_klarna_statement_descriptor']) ? substr(sanitize_text_field(wp_unslash($_POST['bw_klarna_statement_descriptor'])), 0, 22) : '';
         $klarna_webhook_secret = isset($_POST['bw_klarna_webhook_secret']) ? sanitize_text_field(wp_unslash($_POST['bw_klarna_webhook_secret'])) : '';
         $apple_pay_enabled = isset($_POST['bw_apple_pay_enabled']) ? 1 : 0;
+        $apple_pay_express_helper_enabled = isset($_POST['bw_apple_pay_express_helper_enabled']) ? 1 : 0;
         $apple_pay_pub_key = isset($_POST['bw_apple_pay_publishable_key']) ? sanitize_text_field(wp_unslash($_POST['bw_apple_pay_publishable_key'])) : '';
         $apple_pay_sec_key = isset($_POST['bw_apple_pay_secret_key']) ? sanitize_text_field(wp_unslash($_POST['bw_apple_pay_secret_key'])) : '';
         $apple_pay_statement_descriptor = isset($_POST['bw_apple_pay_statement_descriptor']) ? substr(sanitize_text_field(wp_unslash($_POST['bw_apple_pay_statement_descriptor'])), 0, 22) : '';
@@ -2274,6 +2275,7 @@ function bw_site_render_checkout_tab()
         update_option('bw_klarna_statement_descriptor', $klarna_statement_descriptor);
         update_option('bw_klarna_webhook_secret', $klarna_webhook_secret);
         update_option('bw_apple_pay_enabled', $apple_pay_enabled);
+        update_option('bw_apple_pay_express_helper_enabled', $apple_pay_express_helper_enabled);
         update_option('bw_apple_pay_publishable_key', $apple_pay_pub_key);
         update_option('bw_apple_pay_secret_key', $apple_pay_sec_key);
         update_option('bw_apple_pay_statement_descriptor', $apple_pay_statement_descriptor);
@@ -3334,6 +3336,7 @@ function bw_site_render_checkout_tab()
         <div class="bw-tab-panel" data-bw-tab="apple-pay" <?php echo 'apple-pay' === $active_checkout_tab ? '' : 'style="display:none;"'; ?>>
             <?php
             $apple_pay_enabled = get_option('bw_apple_pay_enabled', 0);
+            $apple_pay_express_helper_enabled = get_option('bw_apple_pay_express_helper_enabled', 1);
             $apple_pay_pub_key = get_option('bw_apple_pay_publishable_key', '');
             $apple_pay_sec_key = get_option('bw_apple_pay_secret_key', '');
             $apple_pay_statement_descriptor = get_option('bw_apple_pay_statement_descriptor', '');
@@ -3381,6 +3384,17 @@ function bw_site_render_checkout_tab()
 
                     <tr class="bw-settings-divider">
                         <td colspan="2"><hr></td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row">Express Checkout helper</th>
+                        <td>
+                            <label class="bw-switch">
+                                <input name="bw_apple_pay_express_helper_enabled" type="checkbox" id="bw_apple_pay_express_helper_enabled" value="1" <?php checked(1, $apple_pay_express_helper_enabled); ?> />
+                                <span class="bw-slider round"></span>
+                            </label>
+                            <p class="description" style="margin-top: 8px;">If Apple Pay is unavailable, show a message that guides the customer to the Apple Pay Express Checkout button at the top of the page.</p>
+                        </td>
                     </tr>
 
                     <tr>

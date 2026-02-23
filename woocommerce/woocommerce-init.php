@@ -700,6 +700,7 @@ function bw_mew_enqueue_checkout_assets()
                 'currency'         => strtolower(get_woocommerce_currency()),
                 'ajaxCheckoutUrl'  => add_query_arg('wc-ajax', 'checkout', home_url('/')),
                 'orderTotalCents'  => $cart_total_cents,
+                'enableExpressFallback' => get_option('bw_apple_pay_express_helper_enabled', '1') === '1',
                 'adminDebug'       => (defined('WP_DEBUG') && WP_DEBUG && current_user_can('manage_options')),
             ]);
         }
