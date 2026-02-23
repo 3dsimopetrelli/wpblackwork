@@ -693,6 +693,10 @@ function bw_mew_enqueue_checkout_assets()
             $cart_total_cents = ( WC()->cart && ! WC()->cart->is_empty() )
                 ? (int) round( (float) WC()->cart->get_total( 'raw' ) * 100 )
                 : 0;
+            $apple_fallback_mode = (string) get_option('bw_apple_pay_non_safari_fallback_mode', 'helper_scroll');
+            if (!in_array($apple_fallback_mode, array('helper_scroll', 'inline_express'), true)) {
+                $apple_fallback_mode = 'helper_scroll';
+            }
 
             wp_localize_script('bw-apple-pay', 'bwApplePayParams', [
                 'publishableKey'   => $apple_pub_key,
@@ -700,6 +704,7 @@ function bw_mew_enqueue_checkout_assets()
                 'currency'         => strtolower(get_woocommerce_currency()),
                 'ajaxCheckoutUrl'  => add_query_arg('wc-ajax', 'checkout', home_url('/')),
                 'orderTotalCents'  => $cart_total_cents,
+                'nonSafariFallbackMode' => $apple_fallback_mode,
                 'enableExpressFallback' => get_option('bw_apple_pay_express_helper_enabled', '1') === '1',
                 'adminDebug'       => (defined('WP_DEBUG') && WP_DEBUG && current_user_can('manage_options')),
             ]);
