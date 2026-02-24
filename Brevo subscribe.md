@@ -1,8 +1,8 @@
 # Documentation Governance & Update Workflow
 
-Document Version: 1.0  
+Document Version: 1.1  
 Last Updated: 2026-02-24  
-Last Update Summary: Initial Mail Marketing architecture refactor.
+Last Update Summary: Added WooCommerce Admin Order Newsletter Status panel with Refresh/Retry actions.
 
 ## 0.1 Purpose of this Document
 This file is the official technical specification and single source of truth for the Brevo Mail Marketing system in the Blackwork Site plugin.
@@ -37,11 +37,11 @@ Internal document versioning rules:
 - Minor: new functional capabilities or new documented subsystems
 - Patch: corrections, clarifications, non-functional documentation fixes
 
-Starting baseline:
+Current baseline:
 
-- Document Version: `1.0`
+- Document Version: `1.1`
 - Last Updated: `2026-02-24`
-- Last Update Summary: `Initial Mail Marketing architecture refactor.`
+- Last Update Summary: `Added WooCommerce Admin Order Newsletter Status panel with Refresh/Retry actions.`
 
 ## 0.4 Change Log Section
 A persistent change log must be maintained at the end of this document under `10. Change Log`.
@@ -95,9 +95,11 @@ Responsibilities:
 
 - Register `Mail Marketing` submenu under `Blackwork Site`
 - Render tabbed admin UI (`General`, `Checkout`)
+- Render WooCommerce Order Admin Newsletter Status panel
 - Sanitize and persist settings
 - Execute legacy migration bootstrap
 - Handle secure AJAX connection testing
+- Handle secure AJAX order actions (`Refresh`, `Retry subscribe`)
 
 ## 2.2 Service Orchestration Layer
 Current implementation:
@@ -137,6 +139,12 @@ Responsibilities:
 - Trigger subscription at configured timing
 - Persist subscription status and errors
 
+Admin order integration:
+
+- `woocommerce_admin_order_data_after_order_details` renders status panel and debug table
+- No Brevo call is executed automatically on page load
+- Brevo sync/write calls are user-triggered via AJAX buttons
+
 ## 2.5 Logging and Audit Layer
 Backend:
 
@@ -152,6 +160,7 @@ Context payload includes:
 - `email`
 - `context` (`checkout_guest` or `checkout_user`)
 - `result` (`pending`, `subscribed`, `skipped`, `error`)
+- `action` (`refresh`, `retry`, and runtime checkout flow)
 
 ---
 
@@ -223,6 +232,40 @@ Checkout support limitation:
 - Only classic WooCommerce checkout is supported.
 - Checkout Block is explicitly excluded from this integration.
 
+## 3.3 WooCommerce Order Admin -> Newsletter Status Panel
+Purpose: operational visibility and manual controls per order.
+
+Location:
+
+- WooCommerce order edit screen, rendered in order data area.
+
+UI components:
+
+- Prominent status badge:
+  - `Subscribed` (green)
+  - `Pending` (blue/gray)
+  - `Not subscribed` (neutral)
+  - `Error` (red)
+- `Refresh` button (read-only sync with Brevo)
+- `Retry subscribe` button (write action)
+- Inline response message area
+- Meta Debug Table with:
+  - Email
+  - List ID used
+  - Opt-in value
+  - Consent timestamp
+  - Consent source
+  - Current Brevo status
+  - Last error
+  - Last checked timestamp
+  - Brevo contact ID
+
+Order admin panel behavior:
+
+- No network call on page load
+- Buttons are disabled while AJAX action is running
+- UI updates status badge and debug values inline after response
+
 ---
 
 # 4. Subscription Flow (Runtime Behavior)
@@ -233,6 +276,9 @@ Admin hooks:
 - `admin_menu`
 - `admin_init` (migration + save handlers)
 - `wp_ajax_bw_brevo_test_connection`
+- `woocommerce_admin_order_data_after_order_details`
+- `wp_ajax_bw_brevo_order_refresh_status`
+- `wp_ajax_bw_brevo_order_retry_subscribe`
 
 Checkout hooks:
 
@@ -244,6 +290,11 @@ Checkout hooks:
 - `woocommerce_order_status_processing` (timing `paid`)
 - `woocommerce_order_status_completed` (timing `paid`)
 - `wp_enqueue_scripts`
+
+Order admin AJAX hooks:
+
+- `wp_ajax_bw_brevo_order_refresh_status` (read-only sync)
+- `wp_ajax_bw_brevo_order_retry_subscribe` (write action)
 
 ## 4.2 Guest Checkout with Opt-in OFF
 Sequence:
@@ -322,6 +373,51 @@ Note:
 - Current guard is explicit for blocklisted contacts.
 - Additional Brevo opt-out semantics should be expanded in future hardening.
 
+## 4.8 Order Admin Refresh (Read-Only Sync)
+Triggered manually by `Refresh` button in order admin panel.
+
+Sequence:
+
+1. Validate capability (`manage_woocommerce` or `manage_options`) and nonce.
+2. Resolve order and billing email.
+3. Call `BW_Brevo_Client->get_contact($email)`.
+4. Compute status from Brevo response:
+   - contact not found -> `skipped`
+   - contact blocklisted -> `skipped`
+   - contact in configured list -> `subscribed`
+   - contact exists but not in configured list -> `skipped`
+5. Update status metas only:
+   - `_bw_brevo_subscribed`
+   - `_bw_brevo_error_last` (clear on success path)
+   - `_bw_brevo_last_checked_at`
+   - `_bw_brevo_contact_id` (if available)
+6. Log action with source `bw-brevo` and `action=refresh`.
+
+## 4.9 Order Admin Retry Subscribe (Write Action)
+Triggered manually by `Retry subscribe` button in order admin panel.
+
+Preconditions:
+
+- `_bw_subscribe_newsletter = 1`
+- Valid billing email
+- Valid `api_key` and `list_id`
+- Contact must not be blocklisted/unsubscribed
+
+Execution:
+
+1. Validate capability + nonce.
+2. Re-check contact blocklist status.
+3. Resolve channel mode (single/DOI via checkout override + general fallback).
+4. Execute:
+   - single opt-in -> `upsert_contact(...)`
+   - DOI -> `send_double_opt_in(...)`
+5. Update state and meta:
+   - success single -> `subscribed`
+   - success DOI -> `pending`
+   - failure -> `error` + `_bw_brevo_error_last`
+6. Update `_bw_brevo_last_checked_at`.
+7. Log action with source `bw-brevo` and `action=retry`.
+
 ---
 
 # 5. State Machine
@@ -358,6 +454,18 @@ _bw_brevo_error_last
 
 Stores latest failure reason for troubleshooting.
 
+Additional order admin keys:
+
+```text
+_bw_brevo_last_checked_at
+_bw_brevo_contact_id
+```
+
+Usage:
+
+- `_bw_brevo_last_checked_at`: timestamp of last manual sync/retry check.
+- `_bw_brevo_contact_id`: cached Brevo contact identifier when available.
+
 ---
 
 # 6. Logging Specification
@@ -377,12 +485,14 @@ Minimum log context fields:
 - `email` when available
 - `context` (`checkout_guest` / `checkout_user`)
 - `result` (`pending`, `subscribed`, `skipped`, `error`)
+- `action` (`refresh`, `retry`, or checkout runtime action)
 
 Logging expectations:
 
 - Every terminal outcome must be logged.
 - Error logs must include actionable reason.
 - Skip logs must include explicit reason (consent missing, blocklisted, etc.).
+- Order admin actions must always log outcome (`refresh`/`retry`) with order and email context.
 
 ---
 
@@ -392,6 +502,7 @@ Mandatory safety rules:
 - No subscription without explicit consent.
 - No automatic resubscribe of blocklisted/unsubscribed contacts under `no_auto_resubscribe` policy.
 - All runtime outcomes must be auditable through metadata and logs.
+- Manual Retry must never bypass blocklist/unsubscribe constraints.
 
 GDPR-oriented requirements:
 
@@ -456,5 +567,10 @@ Observability improvements:
 ---
 
 # 10. Change Log
+## v1.1 - 2026-02-24
+- Added WooCommerce Admin Order Newsletter Status panel.
+- Added secure AJAX actions for order-level `Refresh` (read-only sync) and `Retry subscribe` (write action).
+- Added new order meta fields `_bw_brevo_last_checked_at` and `_bw_brevo_contact_id`.
+
 ## v1.0 - 2026-02-24
 - Initial Mail Marketing architecture refactor

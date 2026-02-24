@@ -234,6 +234,10 @@ class BW_Checkout_Subscribe_Admin {
         add_action( 'admin_menu', [ $this, 'register_submenu' ] );
         add_action( 'admin_init', [ $this, 'handle_post' ] );
         add_action( 'wp_ajax_bw_brevo_test_connection', [ $this, 'handle_test_connection' ] );
+        add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_order_newsletter_assets' ] );
+        add_action( 'woocommerce_admin_order_data_after_order_details', [ $this, 'render_order_newsletter_panel' ] );
+        add_action( 'wp_ajax_bw_brevo_order_refresh_status', [ $this, 'handle_order_refresh_status' ] );
+        add_action( 'wp_ajax_bw_brevo_order_retry_subscribe', [ $this, 'handle_order_retry_subscribe' ] );
     }
 
     /**
@@ -642,6 +646,443 @@ class BW_Checkout_Subscribe_Admin {
         );
 
         echo '<div class="notice notice-info"><p><strong>' . esc_html__( 'Subscribe settings moved to Blackwork Site > Mail Marketing > Checkout.', 'bw' ) . '</strong> <a href="' . esc_url( $mail_marketing_checkout ) . '">' . esc_html__( 'Open Mail Marketing', 'bw' ) . '</a></p></div>';
+    }
+
+    /**
+     * Enqueue order panel assets only on WooCommerce order admin screens.
+     *
+     * @param string $hook Admin hook suffix.
+     */
+    public function enqueue_order_newsletter_assets( $hook ) {
+        if ( ! in_array( $hook, [ 'post.php', 'post-new.php', 'woocommerce_page_wc-orders' ], true ) ) {
+            return;
+        }
+
+        $screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+        if ( ! $screen ) {
+            return;
+        }
+
+        $screen_id = isset( $screen->id ) ? (string) $screen->id : '';
+        if ( ! in_array( $screen_id, [ 'shop_order', 'woocommerce_page_wc-orders' ], true ) ) {
+            return;
+        }
+
+        $js_file = BW_MEW_PATH . 'admin/js/bw-order-newsletter-status.js';
+        $version = file_exists( $js_file ) ? filemtime( $js_file ) : '1.0.0';
+
+        wp_enqueue_script(
+            'bw-order-newsletter-status',
+            BW_MEW_URL . 'admin/js/bw-order-newsletter-status.js',
+            [ 'jquery' ],
+            $version,
+            true
+        );
+
+        wp_localize_script(
+            'bw-order-newsletter-status',
+            'bwOrderNewsletterStatus',
+            [
+                'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+                'nonce'   => wp_create_nonce( 'bw_brevo_order_actions' ),
+                'errorText' => esc_html__( 'Action failed. Please retry.', 'bw' ),
+            ]
+        );
+    }
+
+    /**
+     * Render newsletter status panel in WooCommerce order admin.
+     *
+     * @param WC_Order $order Woo order object.
+     */
+    public function render_order_newsletter_panel( $order ) {
+        if ( ! $order instanceof WC_Order ) {
+            return;
+        }
+
+        if ( ! current_user_can( 'manage_woocommerce' ) && ! current_user_can( 'manage_options' ) ) {
+            return;
+        }
+
+        $payload = $this->build_order_status_payload( $order );
+        $status_class = $this->get_status_badge_class( $payload['status'] );
+        ?>
+        <style>
+            .bw-newsletter-status-badge.bw-status--subscribed { background:#d1f8e0;color:#0a3622;border:1px solid #75d39a; }
+            .bw-newsletter-status-badge.bw-status--pending { background:#e7eefc;color:#1b3b7a;border:1px solid #9ab1e9; }
+            .bw-newsletter-status-badge.bw-status--neutral { background:#f3f4f6;color:#2c3338;border:1px solid #c3c4c7; }
+            .bw-newsletter-status-badge.bw-status--error { background:#fce2e2;color:#691010;border:1px solid #e99a9a; }
+        </style>
+        <div id="bw-newsletter-status-panel" class="bw-newsletter-status-panel" data-order-id="<?php echo esc_attr( $order->get_id() ); ?>" style="margin:16px 0;padding:16px;border:1px solid #dcdcde;background:#fff;">
+            <h3 style="margin:0 0 12px 0;"><?php esc_html_e( 'Newsletter Status', 'bw' ); ?></h3>
+
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px;">
+                <span id="bw-newsletter-status-badge" class="bw-newsletter-status-badge <?php echo esc_attr( $status_class ); ?>" style="display:inline-block;padding:6px 10px;border-radius:999px;font-weight:600;">
+                    <?php echo esc_html( $this->get_status_label( $payload['status'] ) ); ?>
+                </span>
+                <button type="button" class="button" id="bw-newsletter-refresh"><?php esc_html_e( 'Refresh', 'bw' ); ?></button>
+                <button type="button" class="button button-secondary" id="bw-newsletter-retry"><?php esc_html_e( 'Retry subscribe', 'bw' ); ?></button>
+                <span id="bw-newsletter-inline-message" aria-live="polite"></span>
+            </div>
+
+            <table class="widefat striped" style="max-width:100%;margin-top:8px;">
+                <tbody>
+                    <tr><th><?php esc_html_e( 'Email', 'bw' ); ?></th><td data-bw-field="email"><?php echo esc_html( $payload['meta']['email'] ); ?></td></tr>
+                    <tr><th><?php esc_html_e( 'List ID used', 'bw' ); ?></th><td data-bw-field="list_id"><?php echo esc_html( (string) $payload['meta']['list_id'] ); ?></td></tr>
+                    <tr><th><?php esc_html_e( 'Opt-in value', 'bw' ); ?></th><td data-bw-field="opt_in"><?php echo esc_html( (string) $payload['meta']['opt_in'] ); ?></td></tr>
+                    <tr><th><?php esc_html_e( 'Consent timestamp', 'bw' ); ?></th><td data-bw-field="consent_at"><?php echo esc_html( $payload['meta']['consent_at'] ); ?></td></tr>
+                    <tr><th><?php esc_html_e( 'Consent source', 'bw' ); ?></th><td data-bw-field="consent_source"><?php echo esc_html( $payload['meta']['consent_source'] ); ?></td></tr>
+                    <tr><th><?php esc_html_e( 'Current Brevo status', 'bw' ); ?></th><td data-bw-field="brevo_status"><?php echo esc_html( $payload['meta']['brevo_status'] ); ?></td></tr>
+                    <tr><th><?php esc_html_e( 'Last error', 'bw' ); ?></th><td data-bw-field="last_error"><?php echo esc_html( $payload['meta']['last_error'] ); ?></td></tr>
+                    <tr><th><?php esc_html_e( 'Last checked at', 'bw' ); ?></th><td data-bw-field="last_checked_at"><?php echo esc_html( $payload['meta']['last_checked_at'] ); ?></td></tr>
+                    <tr><th><?php esc_html_e( 'Brevo contact id', 'bw' ); ?></th><td data-bw-field="contact_id"><?php echo esc_html( $payload['meta']['contact_id'] ); ?></td></tr>
+                </tbody>
+            </table>
+        </div>
+        <?php
+    }
+
+    /**
+     * AJAX refresh status from Brevo contact API (read-only sync).
+     */
+    public function handle_order_refresh_status() {
+        $order = $this->get_order_from_ajax_request();
+        if ( ! $order ) {
+            return;
+        }
+
+        $general = BW_Mail_Marketing_Settings::get_general_settings();
+        $email   = (string) $order->get_billing_email();
+        $list_id = isset( $general['list_id'] ) ? absint( $general['list_id'] ) : 0;
+
+        if ( '' === $email || ! is_email( $email ) ) {
+            $this->set_order_error_meta( $order, __( 'Order has no valid billing email.', 'bw' ) );
+            $this->log_order_action( $order, $email, 'error', 'refresh', 'Invalid order email.' );
+            wp_send_json_error( [ 'message' => __( 'Order has no valid billing email.', 'bw' ) ] );
+        }
+
+        if ( empty( $general['api_key'] ) ) {
+            $this->set_order_error_meta( $order, __( 'Brevo API key is not configured.', 'bw' ) );
+            $this->log_order_action( $order, $email, 'error', 'refresh', 'Missing API key.' );
+            wp_send_json_error( [ 'message' => __( 'Brevo API key is not configured.', 'bw' ) ] );
+        }
+
+        $client = new BW_Brevo_Client( $general['api_key'], BW_Mail_Marketing_Settings::API_BASE_URL );
+        $result = $client->get_contact( $email );
+
+        update_post_meta( $order->get_id(), '_bw_brevo_last_checked_at', current_time( 'mysql' ) );
+
+        if ( empty( $result['success'] ) ) {
+            if ( isset( $result['code'] ) && 404 === (int) $result['code'] ) {
+                update_post_meta( $order->get_id(), '_bw_brevo_subscribed', 'skipped' );
+                delete_post_meta( $order->get_id(), '_bw_brevo_error_last' );
+                delete_post_meta( $order->get_id(), '_bw_brevo_contact_id' );
+
+                $this->log_order_action( $order, $email, 'skipped', 'refresh', 'Contact not found in Brevo.' );
+                wp_send_json_success( $this->build_order_status_payload( $order, __( 'Contact not found in Brevo.', 'bw' ) ) );
+            }
+
+            $error = isset( $result['error'] ) ? (string) $result['error'] : __( 'Unable to refresh status from Brevo.', 'bw' );
+            $this->set_order_error_meta( $order, $error );
+            $this->log_order_action( $order, $email, 'error', 'refresh', $error );
+            wp_send_json_error( [ 'message' => $error ] );
+        }
+
+        $data = isset( $result['data'] ) && is_array( $result['data'] ) ? $result['data'] : [];
+        $contact_id = isset( $data['id'] ) ? absint( $data['id'] ) : 0;
+        $is_blacklisted = ! empty( $data['emailBlacklisted'] );
+        $list_ids = isset( $data['listIds'] ) && is_array( $data['listIds'] ) ? array_map( 'absint', $data['listIds'] ) : [];
+        $in_list = $list_id > 0 ? in_array( $list_id, $list_ids, true ) : false;
+
+        if ( $contact_id > 0 ) {
+            update_post_meta( $order->get_id(), '_bw_brevo_contact_id', (string) $contact_id );
+        }
+
+        if ( $is_blacklisted ) {
+            update_post_meta( $order->get_id(), '_bw_brevo_subscribed', 'skipped' );
+            delete_post_meta( $order->get_id(), '_bw_brevo_error_last' );
+            $this->log_order_action( $order, $email, 'skipped', 'refresh', 'Contact is blocklisted/unsubscribed.' );
+            wp_send_json_success( $this->build_order_status_payload( $order, __( 'Contact is blocklisted/unsubscribed.', 'bw' ) ) );
+        }
+
+        if ( $in_list ) {
+            update_post_meta( $order->get_id(), '_bw_brevo_subscribed', 'subscribed' );
+            delete_post_meta( $order->get_id(), '_bw_brevo_error_last' );
+            $this->log_order_action( $order, $email, 'subscribed', 'refresh', 'Contact found in configured list.' );
+            wp_send_json_success( $this->build_order_status_payload( $order, __( 'Contact found in configured list.', 'bw' ) ) );
+        }
+
+        update_post_meta( $order->get_id(), '_bw_brevo_subscribed', 'skipped' );
+        delete_post_meta( $order->get_id(), '_bw_brevo_error_last' );
+        $this->log_order_action( $order, $email, 'skipped', 'refresh', 'Contact exists but is not in configured list.' );
+        wp_send_json_success( $this->build_order_status_payload( $order, __( 'Contact exists but is not in configured list.', 'bw' ) ) );
+    }
+
+    /**
+     * AJAX retry subscribe for an order (write action).
+     */
+    public function handle_order_retry_subscribe() {
+        $order = $this->get_order_from_ajax_request();
+        if ( ! $order ) {
+            return;
+        }
+
+        $general = BW_Mail_Marketing_Settings::get_general_settings();
+        $checkout = BW_Mail_Marketing_Settings::get_checkout_settings();
+
+        $email = (string) $order->get_billing_email();
+        $list_id = isset( $general['list_id'] ) ? absint( $general['list_id'] ) : 0;
+        $opt_in = (int) $order->get_meta( '_bw_subscribe_newsletter', true );
+
+        if ( 1 !== $opt_in ) {
+            update_post_meta( $order->get_id(), '_bw_brevo_subscribed', 'skipped' );
+            $this->log_order_action( $order, $email, 'skipped', 'retry', 'Retry skipped: customer did not opt-in.' );
+            wp_send_json_error( [ 'message' => __( 'Retry skipped: customer did not opt-in.', 'bw' ) ] );
+        }
+
+        if ( '' === $email || ! is_email( $email ) ) {
+            $this->set_order_error_meta( $order, __( 'Order has no valid billing email.', 'bw' ) );
+            $this->log_order_action( $order, $email, 'error', 'retry', 'Invalid order email.' );
+            wp_send_json_error( [ 'message' => __( 'Order has no valid billing email.', 'bw' ) ] );
+        }
+
+        if ( empty( $general['api_key'] ) || $list_id <= 0 ) {
+            $this->set_order_error_meta( $order, __( 'Missing Brevo API key or list id.', 'bw' ) );
+            $this->log_order_action( $order, $email, 'error', 'retry', 'Missing API key/list id.' );
+            wp_send_json_error( [ 'message' => __( 'Missing Brevo API key or list id.', 'bw' ) ] );
+        }
+
+        $client = new BW_Brevo_Client( $general['api_key'], BW_Mail_Marketing_Settings::API_BASE_URL );
+        $contact = $client->get_contact( $email );
+        if ( ! empty( $contact['success'] ) && ! empty( $contact['data'] ) && is_array( $contact['data'] ) && ! empty( $contact['data']['emailBlacklisted'] ) ) {
+            update_post_meta( $order->get_id(), '_bw_brevo_subscribed', 'skipped' );
+            delete_post_meta( $order->get_id(), '_bw_brevo_error_last' );
+            $this->log_order_action( $order, $email, 'skipped', 'retry', 'Retry skipped: contact is blocklisted/unsubscribed.' );
+            wp_send_json_error( [ 'message' => __( 'Retry skipped: contact is blocklisted/unsubscribed.', 'bw' ) ] );
+        }
+
+        $mode = isset( $checkout['channel_optin_mode'] ) ? (string) $checkout['channel_optin_mode'] : 'inherit';
+        if ( ! in_array( $mode, [ 'single_opt_in', 'double_opt_in' ], true ) ) {
+            $mode = ( isset( $general['default_optin_mode'] ) && 'double_opt_in' === $general['default_optin_mode'] ) ? 'double_opt_in' : 'single_opt_in';
+        }
+
+        $attributes = [];
+        if ( ! empty( $general['sync_first_name'] ) ) {
+            $first_name = trim( (string) $order->get_billing_first_name() );
+            if ( '' !== $first_name ) {
+                $attributes['FIRSTNAME'] = $first_name;
+            }
+        }
+        if ( ! empty( $general['sync_last_name'] ) ) {
+            $last_name = trim( (string) $order->get_billing_last_name() );
+            if ( '' !== $last_name ) {
+                $attributes['LASTNAME'] = $last_name;
+            }
+        }
+
+        if ( 'double_opt_in' === $mode ) {
+            $template_id = isset( $general['double_optin_template_id'] ) ? absint( $general['double_optin_template_id'] ) : 0;
+            $redirect_url = isset( $general['double_optin_redirect_url'] ) ? (string) $general['double_optin_redirect_url'] : '';
+            if ( $template_id <= 0 || '' === $redirect_url ) {
+                $this->set_order_error_meta( $order, __( 'DOI requires template id and redirect URL.', 'bw' ) );
+                $this->log_order_action( $order, $email, 'error', 'retry', 'Missing DOI template/redirect.' );
+                wp_send_json_error( [ 'message' => __( 'DOI requires template id and redirect URL.', 'bw' ) ] );
+            }
+
+            $sender = [];
+            if ( ! empty( $general['sender_email'] ) ) {
+                $sender['email'] = sanitize_email( (string) $general['sender_email'] );
+            }
+            if ( ! empty( $general['sender_name'] ) ) {
+                $sender['name'] = sanitize_text_field( (string) $general['sender_name'] );
+            }
+
+            $result = $client->send_double_opt_in( $email, $template_id, $redirect_url, [ $list_id ], $attributes, $sender );
+            if ( empty( $result['success'] ) ) {
+                $error = isset( $result['error'] ) ? (string) $result['error'] : __( 'Brevo DOI failed.', 'bw' );
+                $this->set_order_error_meta( $order, $error );
+                $this->log_order_action( $order, $email, 'error', 'retry', $error );
+                wp_send_json_error( [ 'message' => $error ] );
+            }
+
+            update_post_meta( $order->get_id(), '_bw_brevo_subscribed', 'pending' );
+            delete_post_meta( $order->get_id(), '_bw_brevo_error_last' );
+            update_post_meta( $order->get_id(), '_bw_brevo_last_checked_at', current_time( 'mysql' ) );
+            $this->log_order_action( $order, $email, 'pending', 'retry', 'DOI request sent.' );
+            wp_send_json_success( $this->build_order_status_payload( $order, __( 'DOI request sent successfully.', 'bw' ) ) );
+        }
+
+        $result = $client->upsert_contact( $email, $attributes, [ $list_id ] );
+        if ( empty( $result['success'] ) ) {
+            $error = isset( $result['error'] ) ? (string) $result['error'] : __( 'Brevo subscribe failed.', 'bw' );
+            $this->set_order_error_meta( $order, $error );
+            $this->log_order_action( $order, $email, 'error', 'retry', $error );
+            wp_send_json_error( [ 'message' => $error ] );
+        }
+
+        update_post_meta( $order->get_id(), '_bw_brevo_subscribed', 'subscribed' );
+        delete_post_meta( $order->get_id(), '_bw_brevo_error_last' );
+        update_post_meta( $order->get_id(), '_bw_brevo_last_checked_at', current_time( 'mysql' ) );
+        $this->log_order_action( $order, $email, 'subscribed', 'retry', 'Retry subscribe succeeded.' );
+        wp_send_json_success( $this->build_order_status_payload( $order, __( 'Retry subscribe succeeded.', 'bw' ) ) );
+    }
+
+    /**
+     * Validate AJAX request and resolve order.
+     *
+     * @return WC_Order|null
+     */
+    private function get_order_from_ajax_request() {
+        if ( ! current_user_can( 'manage_woocommerce' ) && ! current_user_can( 'manage_options' ) ) {
+            wp_send_json_error( [ 'message' => __( 'Permission denied.', 'bw' ) ] );
+        }
+
+        check_ajax_referer( 'bw_brevo_order_actions', 'nonce' );
+
+        $order_id = isset( $_POST['order_id'] ) ? absint( wp_unslash( $_POST['order_id'] ) ) : 0;
+        if ( $order_id <= 0 ) {
+            wp_send_json_error( [ 'message' => __( 'Invalid order id.', 'bw' ) ] );
+        }
+
+        $order = wc_get_order( $order_id );
+        if ( ! $order instanceof WC_Order ) {
+            wp_send_json_error( [ 'message' => __( 'Order not found.', 'bw' ) ] );
+        }
+
+        return $order;
+    }
+
+    /**
+     * Build panel payload and debug values from order meta.
+     *
+     * @param WC_Order $order   Order object.
+     * @param string   $message Optional message.
+     *
+     * @return array
+     */
+    private function build_order_status_payload( $order, $message = '' ) {
+        $general = BW_Mail_Marketing_Settings::get_general_settings();
+        $opt_in = (int) $order->get_meta( '_bw_subscribe_newsletter', true );
+        $status = (string) $order->get_meta( '_bw_brevo_subscribed', true );
+
+        if ( '' === $status ) {
+            $status = 1 === $opt_in ? 'pending' : 'not_subscribed';
+        }
+
+        if ( '1' === $status ) {
+            $status = 'subscribed';
+        }
+
+        if ( ! in_array( $status, [ 'subscribed', 'pending', 'skipped', 'error', 'not_subscribed' ], true ) ) {
+            $status = 'not_subscribed';
+        }
+
+        $meta = [
+            'email'           => (string) $order->get_billing_email(),
+            'list_id'         => isset( $general['list_id'] ) ? (string) absint( $general['list_id'] ) : '0',
+            'opt_in'          => (string) $opt_in,
+            'consent_at'      => (string) $order->get_meta( '_bw_subscribe_consent_at', true ),
+            'consent_source'  => (string) $order->get_meta( '_bw_subscribe_consent_source', true ),
+            'brevo_status'    => (string) $status,
+            'last_error'      => (string) $order->get_meta( '_bw_brevo_error_last', true ),
+            'last_checked_at' => (string) $order->get_meta( '_bw_brevo_last_checked_at', true ),
+            'contact_id'      => (string) $order->get_meta( '_bw_brevo_contact_id', true ),
+        ];
+
+        return [
+            'message'      => $message,
+            'status'       => $status,
+            'statusLabel'  => $this->get_status_label( $status ),
+            'statusClass'  => $this->get_status_badge_class( $status ),
+            'meta'         => $meta,
+        ];
+    }
+
+    /**
+     * Map status key to user-facing label.
+     *
+     * @param string $status Status key.
+     *
+     * @return string
+     */
+    private function get_status_label( $status ) {
+        switch ( $status ) {
+            case 'subscribed':
+                return __( 'Subscribed', 'bw' );
+            case 'pending':
+                return __( 'Pending', 'bw' );
+            case 'error':
+                return __( 'Error', 'bw' );
+            case 'skipped':
+            case 'not_subscribed':
+            default:
+                return __( 'Not subscribed', 'bw' );
+        }
+    }
+
+    /**
+     * Map status key to badge class.
+     *
+     * @param string $status Status key.
+     *
+     * @return string
+     */
+    private function get_status_badge_class( $status ) {
+        switch ( $status ) {
+            case 'subscribed':
+                return 'bw-status--subscribed';
+            case 'pending':
+                return 'bw-status--pending';
+            case 'error':
+                return 'bw-status--error';
+            case 'skipped':
+            case 'not_subscribed':
+            default:
+                return 'bw-status--neutral';
+        }
+    }
+
+    /**
+     * Persist error status meta on order.
+     *
+     * @param WC_Order $order Order object.
+     * @param string   $error Error message.
+     */
+    private function set_order_error_meta( $order, $error ) {
+        update_post_meta( $order->get_id(), '_bw_brevo_subscribed', 'error' );
+        update_post_meta( $order->get_id(), '_bw_brevo_error_last', sanitize_text_field( $error ) );
+        update_post_meta( $order->get_id(), '_bw_brevo_last_checked_at', current_time( 'mysql' ) );
+    }
+
+    /**
+     * Write order-level newsletter log entry.
+     *
+     * @param WC_Order $order  Order object.
+     * @param string   $email  Email.
+     * @param string   $result Result key.
+     * @param string   $action Action key (refresh/retry).
+     * @param string   $msg    Message.
+     */
+    private function log_order_action( $order, $email, $result, $action, $msg ) {
+        if ( ! function_exists( 'wc_get_logger' ) || ! $order instanceof WC_Order ) {
+            return;
+        }
+
+        $context = [
+            'source'   => 'bw-brevo',
+            'order_id' => $order->get_id(),
+            'email'    => sanitize_email( (string) $email ),
+            'result'   => sanitize_key( (string) $result ),
+            'action'   => sanitize_key( (string) $action ),
+        ];
+
+        $logger = wc_get_logger();
+        if ( 'error' === $result ) {
+            $logger->error( $msg, $context );
+            return;
+        }
+
+        $logger->info( $msg, $context );
     }
 
     /**
