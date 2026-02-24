@@ -1608,7 +1608,7 @@ class BW_Checkout_Subscribe_Admin {
         $retry_disabled_attr = ! empty( $consent_gate['allowed'] ) ? '' : 'disabled="disabled"';
         $retry_disabled_title = ! empty( $consent_gate['allowed'] )
             ? ''
-            : esc_attr__( 'Retry is disabled because the customer did not opt in.', 'bw' );
+            : esc_attr__( 'Disabled: no consent recorded for this order.', 'bw' );
         ?>
         <div id="bw-newsletter-status-panel" class="bw-newsletter-panel wc-metabox" data-order-id="<?php echo esc_attr( $order->get_id() ); ?>" data-retry-allowed="<?php echo ! empty( $consent_gate['allowed'] ) ? '1' : '0'; ?>">
             <div class="bw-newsletter-panel__header">
@@ -1627,6 +1627,9 @@ class BW_Checkout_Subscribe_Admin {
                     </button>
                 </div>
             </div>
+            <?php if ( empty( $consent_gate['allowed'] ) ) : ?>
+                <p class="description" style="margin-top:8px;"><?php esc_html_e( 'Disabled: no consent recorded for this order.', 'bw' ); ?></p>
+            <?php endif; ?>
             <p id="bw-newsletter-inline-message" class="bw-newsletter-panel__notice" aria-live="polite"></p>
 
             <div class="bw-newsletter-panel__section">
@@ -1791,6 +1794,9 @@ class BW_Checkout_Subscribe_Admin {
 
         $result = $this->resync_order_to_brevo( $order, 'manual_retry' );
         if ( in_array( $result['result'], [ 'error', 'skipped_no_consent' ], true ) ) {
+            if ( 'skipped_no_consent' === $result['result'] ) {
+                wp_send_json_error( [ 'message' => __( 'No opt-in recorded. Cannot subscribe.', 'bw' ) ] );
+            }
             wp_send_json_error( [ 'message' => $result['message'] ] );
         }
 
@@ -2531,7 +2537,7 @@ class BW_Checkout_Subscribe_Admin {
             $email,
             'skipped',
             $attempt_source,
-            'SKIPPED_NO_CONSENT: Cannot subscribe: no consent recorded for this order.'
+            'BW_BREVO_SKIP_NO_CONSENT: Cannot subscribe: no consent recorded for this order.'
         );
     }
 
