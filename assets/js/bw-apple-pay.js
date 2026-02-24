@@ -678,8 +678,7 @@
             setHiddenMethodId('');
             app.state = isAppleMethodSelected() ? STATE.METHOD_SELECTED : STATE.IDLE;
             renderCheckoutNotice('error', 'Apple Pay payment was canceled. You can choose another payment method or try again.');
-            $('form.checkout').removeClass('processing');
-            $('#place_order').removeClass('processing');
+            window.bwCheckout.removeLoadingState();
             $(document.body).trigger('update_checkout');
         });
 
