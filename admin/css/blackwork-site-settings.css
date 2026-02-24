@@ -185,6 +185,8 @@
     display: inline-block;
     margin-left: 12px;
     font-weight: 600;
+    border-radius: 999px;
+    padding: 4px 10px;
 }
 
 .bw-brevo-test-result.notice-success {
@@ -193,4 +195,16 @@
 
 .bw-brevo-test-result.notice-error {
     color: #b32d2e;
+}
+
+.bw-brevo-test-result.is-success {
+    color: #0a3622;
+    background: #d1f8e0;
+    border: 1px solid #75d39a;
+}
+
+.bw-brevo-test-result.is-error {
+    color: #691010;
+    background: #fce2e2;
+    border: 1px solid #e99a9a;
 }

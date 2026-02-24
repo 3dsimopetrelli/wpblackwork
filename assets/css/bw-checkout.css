@@ -3602,7 +3602,18 @@ body.bw-modal-open {
 #stripe-cvc-element,
 .stripe-elements-container {
     border-radius: 8px !important;
-    overflow: hidden !important;
+}
+
+/* Keep payment field wrappers unclipped so Stripe invalid borders are fully visible. */
+body.woocommerce-checkout #payment #wc-stripe-payment-element,
+body.woocommerce-checkout #payment #wc-stripe-card-element,
+body.woocommerce-checkout #payment .wc-stripe-elements-field,
+body.woocommerce-checkout #payment .wc-stripe-upe-element,
+body.woocommerce-checkout #payment #stripe-card-element,
+body.woocommerce-checkout #payment #stripe-exp-element,
+body.woocommerce-checkout #payment #stripe-cvc-element,
+body.woocommerce-checkout #payment .stripe-elements-container {
+    overflow: visible !important;
 }
 
 /* Keep validation borders fully visible in Stripe card fields (non-Express) */

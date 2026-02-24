@@ -48,6 +48,43 @@ class BW_Brevo_Client {
     }
 
     /**
+     * Fetch Brevo lists.
+     *
+     * @param int $limit  Number of lists.
+     * @param int $offset Pagination offset.
+     *
+     * @return array
+     */
+    public function get_lists( $limit = 50, $offset = 0 ) {
+        $limit = max( 1, min( 500, absint( $limit ) ) );
+        $offset = max( 0, absint( $offset ) );
+
+        $path = sprintf( '/contacts/lists?limit=%d&offset=%d', $limit, $offset );
+        return $this->request( 'GET', $path );
+    }
+
+    /**
+     * Fetch an existing contact by email.
+     *
+     * @param string $email Email address.
+     *
+     * @return array
+     */
+    public function get_contact( $email ) {
+        $email = trim( (string) $email );
+        if ( '' === $email ) {
+            return [
+                'success' => false,
+                'error'   => 'Email is required',
+                'code'    => 0,
+            ];
+        }
+
+        $path = '/contacts/' . rawurlencode( $email );
+        return $this->request( 'GET', $path );
+    }
+
+    /**
      * Create or update a contact and optionally assign list IDs.
      *
      * @param string $email      Email address.

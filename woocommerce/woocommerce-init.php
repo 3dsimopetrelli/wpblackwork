@@ -1811,6 +1811,13 @@ function bw_mew_customize_stripe_elements_style($options)
             '.PaymentElement' => array(
                 'padding' => '0',
             ),
+            '.Input--invalid' => array(
+                // Keep the error border inside the input box to avoid clipping artifacts.
+                'border' => '2px solid #991b1b',
+                'borderColor' => '#991b1b',
+                'boxShadow' => 'none',
+                'backgroundColor' => '#fef2f2',
+            ),
         ),
     );
 
@@ -1859,7 +1866,10 @@ function bw_mew_customize_stripe_upe_appearance($params)
                 'boxShadow' => '0 0 0 3px rgba(59, 130, 246, 0.1)',
             ),
             '.Input--invalid' => array(
-                'borderColor' => '#fecaca',
+                // Prevent the default external danger ring (it gets visually clipped).
+                'border' => '2px solid #991b1b',
+                'borderColor' => '#991b1b',
+                'boxShadow' => 'none',
                 'backgroundColor' => '#fef2f2',
             ),
             '.Label' => array(

@@ -53,8 +53,13 @@ add_action('admin_enqueue_scripts', 'bw_site_settings_admin_menu_icon_styles');
  */
 function bw_site_settings_admin_assets($hook)
 {
-    // Carica solo nella nostra pagina (toplevel perché è un menu principale)
-    if ($hook !== 'toplevel_page_blackwork-site-settings') {
+    $allowed_hooks = [
+        'toplevel_page_blackwork-site-settings',
+        'blackwork-site-settings_page_blackwork-mail-marketing',
+    ];
+
+    // Carica solo nelle pagine Blackwork Site (principale + Mail Marketing).
+    if (!in_array($hook, $allowed_hooks, true)) {
         return;
     }
 
@@ -100,7 +105,7 @@ function bw_site_settings_admin_assets($hook)
         'bwCheckoutSubscribe',
         [
             'nonce' => wp_create_nonce('bw_checkout_subscribe_test'),
-            'errorText' => esc_html__('Connection failed. Please check the API key.', 'bw'),
+            'errorText' => esc_html__('Connection failed. Please check the API key and network.', 'bw'),
         ]
     );
 
@@ -2510,7 +2515,6 @@ function bw_site_render_checkout_tab()
         $style_tab_url = add_query_arg('checkout_tab', 'style');
         $supabase_tab_url = add_query_arg('checkout_tab', 'supabase');
         $fields_tab_url = add_query_arg('checkout_tab', 'fields');
-        $subscribe_tab_url = add_query_arg('checkout_tab', 'subscribe');
         $google_maps_tab_url = add_query_arg('checkout_tab', 'google-maps');
         $google_pay_tab_url = add_query_arg('checkout_tab', 'google-pay');
         $klarna_pay_tab_url = add_query_arg('checkout_tab', 'klarna-pay');
@@ -2530,10 +2534,6 @@ function bw_site_render_checkout_tab()
             <a class="nav-tab <?php echo 'fields' === $active_checkout_tab ? 'nav-tab-active' : ''; ?>"
                 href="<?php echo esc_url($fields_tab_url); ?>">
                 <?php esc_html_e('Checkout Fields', 'bw'); ?>
-            </a>
-            <a class="nav-tab <?php echo 'subscribe' === $active_checkout_tab ? 'nav-tab-active' : ''; ?>"
-                href="<?php echo esc_url($subscribe_tab_url); ?>">
-                <?php esc_html_e('Subscribe', 'bw'); ?>
             </a>
             <a class="nav-tab <?php echo 'google-maps' === $active_checkout_tab ? 'nav-tab-active' : ''; ?>"
                 href="<?php echo esc_url($google_maps_tab_url); ?>">
@@ -2975,11 +2975,27 @@ function bw_site_render_checkout_tab()
         </div>
 
         <div class="bw-tab-panel" data-bw-tab="subscribe" <?php echo 'subscribe' === $active_checkout_tab ? '' : 'style="display:none;"'; ?>>
-            <?php if (class_exists('BW_Checkout_Subscribe_Admin')): ?>
-                <?php BW_Checkout_Subscribe_Admin::get_instance()->render_tab(); ?>
-            <?php else: ?>
-                <p><?php esc_html_e('Subscribe module is unavailable.', 'bw'); ?></p>
-            <?php endif; ?>
+            <?php
+            $mail_marketing_checkout_url = add_query_arg(
+                [
+                    'page' => 'blackwork-mail-marketing',
+                    'tab' => 'checkout',
+                ],
+                admin_url('admin.php')
+            );
+            ?>
+            <div class="notice notice-info inline">
+                <p>
+                    <strong><?php esc_html_e('Subscribe settings moved.', 'bw'); ?></strong>
+                    <?php
+                    printf(
+                        /* translators: %s: link to Mail Marketing page */
+                        esc_html__('Manage newsletter settings in %s.', 'bw'),
+                        '<a href="' . esc_url($mail_marketing_checkout_url) . '">' . esc_html__('Blackwork Site > Mail Marketing > Checkout', 'bw') . '</a>'
+                    );
+                    ?>
+                </p>
+            </div>
         </div>
 
         <div class="bw-tab-panel" data-bw-tab="google-maps" <?php echo 'google-maps' === $active_checkout_tab ? '' : 'style="display:none;"'; ?>>

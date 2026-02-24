@@ -18,9 +18,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 class BW_Checkout_Subscribe_Frontend {
-    const OPTION_NAME = 'bw_checkout_subscribe_settings';
-    const OPTION_VERSION = 1;
-
     /**
      * Initialize hooks.
      */
@@ -41,14 +38,10 @@ class BW_Checkout_Subscribe_Frontend {
     }
 
     /**
-     * Render the Contact header above billing email.
+     * Render the Contact heading above billing email.
      */
     public function render_contact_header() {
-        if ( ! $this->should_apply() ) {
-            return;
-        }
-
-        if ( $this->is_block_checkout() ) {
+        if ( ! $this->should_apply() || $this->is_block_checkout() ) {
             return;
         }
 
@@ -65,70 +58,68 @@ class BW_Checkout_Subscribe_Frontend {
         <?php
     }
 
-
     /**
-     * Inject newsletter checkbox after billing email.
+     * Inject newsletter checkbox after configured billing field.
      *
      * @param array $fields Checkout fields.
      *
      * @return array
      */
     public function inject_newsletter_field( $fields ) {
-        if ( ! $this->should_apply() ) {
+        if ( ! $this->should_apply() || $this->is_block_checkout() ) {
             return $fields;
         }
 
-        if ( $this->is_block_checkout() ) {
+        $checkout_settings = $this->get_checkout_settings();
+        if ( empty( $checkout_settings['enabled'] ) || empty( $fields['billing'] ) ) {
             return $fields;
         }
 
-        $settings = $this->get_settings();
-        if ( empty( $settings['enabled'] ) ) {
-            return $fields;
-        }
+        $after_key = ! empty( $checkout_settings['placement_after_key'] )
+            ? sanitize_key( $checkout_settings['placement_after_key'] )
+            : 'billing_email';
 
-        if ( empty( $fields['billing'] ) ) {
-            return $fields;
-        }
+        $anchor_priority = isset( $fields['billing'][ $after_key ]['priority'] )
+            ? absint( $fields['billing'][ $after_key ]['priority'] )
+            : ( isset( $fields['billing']['billing_email']['priority'] ) ? absint( $fields['billing']['billing_email']['priority'] ) : 110 );
 
-        $email_priority = isset( $fields['billing']['billing_email']['priority'] ) ? absint( $fields['billing']['billing_email']['priority'] ) : 110;
-        $label          = $settings['label_text'] ? $settings['label_text'] : __( 'Email me with news and offers', 'bw' );
+        $offset = isset( $checkout_settings['priority_offset'] ) ? intval( $checkout_settings['priority_offset'] ) : 5;
+        $offset = max( -50, min( 50, $offset ) );
+
+        $label = $checkout_settings['label_text']
+            ? $checkout_settings['label_text']
+            : __( 'Email me with news and offers', 'bw' );
 
         $fields['billing']['bw_subscribe_newsletter'] = [
             'type'     => 'checkbox',
             'label'    => $label,
             'required' => false,
-            'priority' => $email_priority + 5,
-            'default'  => ! empty( $settings['default_checked'] ) ? 1 : 0,
+            'priority' => max( 1, $anchor_priority + $offset ),
+            'default'  => ! empty( $checkout_settings['default_checked'] ) ? 1 : 0,
             'class'    => [ 'form-row-wide', 'bw-checkout-newsletter' ],
             'clear'    => true,
         ];
 
-        if ( ! empty( $settings['privacy_text'] ) ) {
-            $fields['billing']['bw_subscribe_newsletter']['description'] = $settings['privacy_text'];
+        if ( ! empty( $checkout_settings['privacy_text'] ) ) {
+            $fields['billing']['bw_subscribe_newsletter']['description'] = $checkout_settings['privacy_text'];
         }
 
         return $fields;
     }
 
     /**
-     * Remove the (optional) label from newsletter checkbox only.
+     * Remove optional label from newsletter checkbox only.
      *
-     * @param string $field     Field HTML.
-     * @param string $key       Field key.
-     * @param array  $args      Field args.
-     * @param string $value     Field value.
+     * @param string $field Field HTML.
+     * @param string $key   Field key.
      *
      * @return string
      */
-    public function remove_optional_label( $field, $key, $args, $value ) {
-        // Only target the newsletter checkbox
+    public function remove_optional_label( $field, $key ) {
         if ( 'bw_subscribe_newsletter' !== $key ) {
             return $field;
         }
 
-        // Remove the optional span with any text inside parentheses
-        // Pattern matches: <span class="optional">(...)</span>
         $field = preg_replace(
             '/<span\s+class=["\']optional["\'][^>]*>\s*\([^)]*\)\s*<\/span>/i',
             '',
@@ -139,41 +130,43 @@ class BW_Checkout_Subscribe_Frontend {
     }
 
     /**
-     * Save consent metadata on checkout.
+     * Save checkout consent metadata.
      *
-     * @param int   $order_id Order ID.
-     * @param array $data     Posted data.
+     * @param int $order_id Order ID.
      */
-    public function save_consent_meta( $order_id, $data ) {
+    public function save_consent_meta( $order_id ) {
         if ( $this->is_block_checkout() ) {
             return;
         }
 
-        $settings = $this->get_settings();
-        if ( empty( $settings['enabled'] ) ) {
+        $checkout_settings = $this->get_checkout_settings();
+        if ( empty( $checkout_settings['enabled'] ) ) {
             return;
         }
 
         $opt_in = ! empty( $_POST['bw_subscribe_newsletter'] ) ? 1 : 0;
 
         update_post_meta( $order_id, '_bw_subscribe_newsletter', $opt_in );
+        update_post_meta( $order_id, '_bw_subscribe_consent_source', 'checkout' );
 
         if ( $opt_in ) {
             update_post_meta( $order_id, '_bw_subscribe_consent_at', current_time( 'mysql' ) );
-            update_post_meta( $order_id, '_bw_subscribe_consent_source', 'checkout' );
+        } else {
+            update_post_meta( $order_id, '_bw_brevo_subscribed', 'skipped' );
+            delete_post_meta( $order_id, '_bw_brevo_error_last' );
         }
     }
 
     /**
      * Subscribe on order creation if configured.
      *
-     * @param int   $order_id Order ID.
-     * @param array $posted   Posted data.
-     * @param WC_Order $order Order object.
+     * @param int      $order_id Order ID.
+     * @param array    $posted   Posted checkout data.
+     * @param WC_Order $order    Order object.
      */
     public function maybe_subscribe_on_created( $order_id, $posted, $order ) {
-        $settings = $this->get_settings();
-        if ( empty( $settings['enabled'] ) || 'created' !== $settings['subscribe_timing'] ) {
+        $checkout_settings = $this->get_checkout_settings();
+        if ( empty( $checkout_settings['enabled'] ) || 'created' !== $checkout_settings['subscribe_timing'] ) {
             return;
         }
 
@@ -181,13 +174,13 @@ class BW_Checkout_Subscribe_Frontend {
     }
 
     /**
-     * Subscribe on order paid if configured.
+     * Subscribe on paid order status if configured.
      *
      * @param int $order_id Order ID.
      */
     public function maybe_subscribe_on_paid( $order_id ) {
-        $settings = $this->get_settings();
-        if ( empty( $settings['enabled'] ) || 'paid' !== $settings['subscribe_timing'] ) {
+        $checkout_settings = $this->get_checkout_settings();
+        if ( empty( $checkout_settings['enabled'] ) || 'paid' !== $checkout_settings['subscribe_timing'] ) {
             return;
         }
 
@@ -207,6 +200,11 @@ class BW_Checkout_Subscribe_Frontend {
             return;
         }
 
+        $checkout_settings = $this->get_checkout_settings();
+        if ( empty( $checkout_settings['enabled'] ) ) {
+            return;
+        }
+
         $css_file = BW_MEW_PATH . 'assets/css/bw-checkout-subscribe.css';
         $version  = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
 
@@ -219,90 +217,199 @@ class BW_Checkout_Subscribe_Frontend {
     }
 
     /**
-     * Process subscription logic and call Brevo.
+     * Execute subscription flow for checkout order.
      *
      * @param WC_Order $order Order object.
      */
     private function process_subscription( $order ) {
-        if ( ! $order instanceof WC_Order ) {
-            return;
-        }
-
-        if ( $this->is_block_checkout() ) {
+        if ( ! $order instanceof WC_Order || $this->is_block_checkout() ) {
             return;
         }
 
         $opt_in = $order->get_meta( '_bw_subscribe_newsletter', true );
         if ( empty( $opt_in ) ) {
+            $order->update_meta_data( '_bw_brevo_subscribed', 'skipped' );
+            $order->save();
+            $this->log_event( 'info', 'Skipping subscribe: no explicit consent.', $order, '', 'skipped' );
             return;
         }
 
-        $already = $order->get_meta( '_bw_brevo_subscribed', true );
-        if ( ! empty( $already ) ) {
+        $already = (string) $order->get_meta( '_bw_brevo_subscribed', true );
+        if ( in_array( $already, [ 'subscribed', 'pending', '1' ], true ) ) {
             return;
         }
 
-        $settings = $this->get_settings();
-        if ( empty( $settings['api_key'] ) || empty( $settings['list_id'] ) ) {
-            $this->log_error( 'Brevo settings missing API key or list ID.', $order );
+        $general_settings = $this->get_general_settings();
+        $checkout_settings = $this->get_checkout_settings();
+
+        if ( empty( $general_settings['api_key'] ) || empty( $general_settings['list_id'] ) ) {
+            $this->mark_error( $order, __( 'Brevo settings missing API key or list ID.', 'bw' ) );
             return;
         }
 
         $email = $order->get_billing_email();
         if ( empty( $email ) || ! is_email( $email ) ) {
-            $this->log_error( 'Invalid email address for subscription.', $order );
+            $this->mark_error( $order, __( 'Invalid billing email for newsletter subscription.', 'bw' ) );
             return;
         }
 
         if ( ! class_exists( 'BW_Brevo_Client' ) ) {
-            $this->log_error( 'Brevo client unavailable.', $order );
+            $this->mark_error( $order, __( 'Brevo client unavailable.', 'bw' ), $email );
             return;
         }
 
-        $client = new BW_Brevo_Client( $settings['api_key'], $settings['api_base'] );
-        $attributes = [];
+        $client = new BW_Brevo_Client( $general_settings['api_key'], BW_Mail_Marketing_Settings::API_BASE_URL );
 
-        if ( ! empty( $settings['double_optin_enabled'] ) ) {
-            if ( empty( $settings['double_optin_template_id'] ) || empty( $settings['double_optin_redirect_url'] ) ) {
-                $this->log_error( 'Double opt-in enabled but template ID or redirect URL missing.', $order );
+        if ( $this->is_contact_blocklisted( $client, $email, $general_settings ) ) {
+            $order->update_meta_data( '_bw_brevo_subscribed', 'skipped' );
+            $order->save();
+            $this->log_event( 'info', 'Skipping subscribe: contact is unsubscribed/blocklisted.', $order, $email, 'skipped' );
+            return;
+        }
+
+        $attributes = $this->build_contact_attributes( $order, $general_settings );
+        $mode = $this->resolve_optin_mode( $general_settings, $checkout_settings );
+
+        if ( 'double_opt_in' === $mode ) {
+            if ( empty( $general_settings['double_optin_template_id'] ) || empty( $general_settings['double_optin_redirect_url'] ) ) {
+                $this->mark_error( $order, __( 'Double opt-in requires template ID and redirect URL.', 'bw' ), $email );
                 return;
             }
 
             $sender = [];
-            if ( ! empty( $settings['sender_email'] ) ) {
-                $sender['email'] = $settings['sender_email'];
+            if ( ! empty( $general_settings['sender_email'] ) ) {
+                $sender['email'] = $general_settings['sender_email'];
             }
-            if ( ! empty( $settings['sender_name'] ) ) {
-                $sender['name'] = $settings['sender_name'];
+            if ( ! empty( $general_settings['sender_name'] ) ) {
+                $sender['name'] = $general_settings['sender_name'];
             }
 
             $result = $client->send_double_opt_in(
                 $email,
-                $settings['double_optin_template_id'],
-                $settings['double_optin_redirect_url'],
-                [ $settings['list_id'] ],
+                absint( $general_settings['double_optin_template_id'] ),
+                $general_settings['double_optin_redirect_url'],
+                [ absint( $general_settings['list_id'] ) ],
                 $attributes,
                 $sender
             );
 
             if ( empty( $result['success'] ) ) {
-                $this->log_error( 'Brevo double opt-in failed: ' . ( isset( $result['error'] ) ? $result['error'] : 'Unknown error' ), $order );
+                $this->mark_error( $order, $this->extract_error_message( $result, 'Brevo double opt-in failed.' ), $email );
                 return;
             }
 
             $order->update_meta_data( '_bw_brevo_subscribed', 'pending' );
+            $order->delete_meta_data( '_bw_brevo_error_last' );
             $order->save();
+            $this->log_event( 'info', 'Brevo double opt-in request sent.', $order, $email, 'pending' );
             return;
         }
 
-        $result = $client->upsert_contact( $email, $attributes, [ $settings['list_id'] ] );
+        $result = $client->upsert_contact(
+            $email,
+            $attributes,
+            [ absint( $general_settings['list_id'] ) ]
+        );
+
         if ( empty( $result['success'] ) ) {
-            $this->log_error( 'Brevo subscribe failed: ' . ( isset( $result['error'] ) ? $result['error'] : 'Unknown error' ), $order );
+            $this->mark_error( $order, $this->extract_error_message( $result, 'Brevo subscribe failed.' ), $email );
             return;
         }
 
-        $order->update_meta_data( '_bw_brevo_subscribed', '1' );
+        $order->update_meta_data( '_bw_brevo_subscribed', 'subscribed' );
+        $order->delete_meta_data( '_bw_brevo_error_last' );
         $order->save();
+        $this->log_event( 'info', 'Brevo contact subscribed.', $order, $email, 'subscribed' );
+    }
+
+    /**
+     * Build attributes payload according to General settings.
+     *
+     * @param WC_Order $order            Order object.
+     * @param array    $general_settings General settings.
+     *
+     * @return array
+     */
+    private function build_contact_attributes( $order, $general_settings ) {
+        $attributes = [];
+
+        if ( ! empty( $general_settings['sync_first_name'] ) ) {
+            $first_name = trim( (string) $order->get_billing_first_name() );
+            if ( '' !== $first_name ) {
+                $attributes['FIRSTNAME'] = $first_name;
+            }
+        }
+
+        if ( ! empty( $general_settings['sync_last_name'] ) ) {
+            $last_name = trim( (string) $order->get_billing_last_name() );
+            if ( '' !== $last_name ) {
+                $attributes['LASTNAME'] = $last_name;
+            }
+        }
+
+        return $attributes;
+    }
+
+    /**
+     * Resolve checkout opt-in mode from channel + general settings.
+     *
+     * @param array $general_settings  General settings.
+     * @param array $checkout_settings Checkout settings.
+     *
+     * @return string
+     */
+    private function resolve_optin_mode( $general_settings, $checkout_settings ) {
+        $channel_mode = isset( $checkout_settings['channel_optin_mode'] ) ? $checkout_settings['channel_optin_mode'] : 'inherit';
+        if ( in_array( $channel_mode, [ 'single_opt_in', 'double_opt_in' ], true ) ) {
+            return $channel_mode;
+        }
+
+        return ( isset( $general_settings['default_optin_mode'] ) && 'double_opt_in' === $general_settings['default_optin_mode'] )
+            ? 'double_opt_in'
+            : 'single_opt_in';
+    }
+
+    /**
+     * Guard against auto-resubscribing blocked/unsubscribed contacts.
+     *
+     * @param BW_Brevo_Client $client           Brevo client.
+     * @param string          $email            Contact email.
+     * @param array           $general_settings General settings.
+     *
+     * @return bool
+     */
+    private function is_contact_blocklisted( $client, $email, $general_settings ) {
+        if ( empty( $general_settings['resubscribe_policy'] ) || 'no_auto_resubscribe' !== $general_settings['resubscribe_policy'] ) {
+            return false;
+        }
+
+        $result = $client->get_contact( $email );
+        if ( ! empty( $result['success'] ) && ! empty( $result['data'] ) && is_array( $result['data'] ) ) {
+            if ( ! empty( $result['data']['emailBlacklisted'] ) ) {
+                return true;
+            }
+        }
+
+        if ( isset( $result['code'] ) && 404 === (int) $result['code'] ) {
+            return false;
+        }
+
+        return false;
+    }
+
+    /**
+     * Persist an error state in order meta and logger.
+     *
+     * @param WC_Order $order   Order object.
+     * @param string   $message Error message.
+     * @param string   $email   Email.
+     */
+    private function mark_error( $order, $message, $email = '' ) {
+        $order->update_meta_data( '_bw_brevo_subscribed', 'error' );
+        $order->update_meta_data( '_bw_brevo_error_last', $message );
+        $order->save();
+
+        $this->log_event( 'error', $message, $order, $email, 'error' );
     }
 
     /**
@@ -323,39 +430,56 @@ class BW_Checkout_Subscribe_Frontend {
     }
 
     /**
-     * Get settings with defaults.
+     * Retrieve General mail marketing settings.
      *
      * @return array
      */
-    private function get_settings() {
-        $defaults = [
-            'version'                   => self::OPTION_VERSION,
-            'enabled'                   => 1,
-            'default_checked'           => 1,
-            'label_text'                => __( 'Email me with news and offers', 'bw' ),
-            'privacy_text'              => '',
+    private function get_general_settings() {
+        if ( class_exists( 'BW_Mail_Marketing_Settings' ) ) {
+            return BW_Mail_Marketing_Settings::get_general_settings();
+        }
+
+        // Fallback in case admin class was not loaded.
+        return [
             'api_key'                   => '',
             'api_base'                  => 'https://api.brevo.com/v3',
             'list_id'                   => 0,
-            'double_optin_enabled'      => 0,
+            'default_optin_mode'        => 'single_opt_in',
             'double_optin_template_id'  => 0,
             'double_optin_redirect_url' => '',
             'sender_name'               => '',
             'sender_email'              => '',
-            'subscribe_timing'           => 'created',
+            'debug_logging'             => 0,
+            'resubscribe_policy'        => 'no_auto_resubscribe',
+            'sync_first_name'           => 1,
+            'sync_last_name'            => 1,
         ];
-
-        $settings = get_option( self::OPTION_NAME, $defaults );
-        if ( ! is_array( $settings ) ) {
-            return $defaults;
-        }
-
-        return array_merge( $defaults, $settings );
     }
 
+    /**
+     * Retrieve Checkout channel settings.
+     *
+     * @return array
+     */
+    private function get_checkout_settings() {
+        if ( class_exists( 'BW_Mail_Marketing_Settings' ) ) {
+            return BW_Mail_Marketing_Settings::get_checkout_settings();
+        }
+
+        return [
+            'enabled'             => 1,
+            'default_checked'     => 0,
+            'label_text'          => __( 'Email me with news and offers', 'bw' ),
+            'privacy_text'        => '',
+            'subscribe_timing'    => 'paid',
+            'channel_optin_mode'  => 'inherit',
+            'placement_after_key' => 'billing_email',
+            'priority_offset'     => 5,
+        ];
+    }
 
     /**
-     * Detect if the checkout page uses the WooCommerce Checkout block.
+     * Detect if checkout page uses WooCommerce blocks.
      *
      * @return bool
      */
@@ -378,21 +502,62 @@ class BW_Checkout_Subscribe_Frontend {
     }
 
     /**
-     * Log errors to WooCommerce logger.
+     * Resolve error message from client result.
      *
-     * @param string   $message Error message.
-     * @param WC_Order $order   Order object.
+     * @param array  $result Result payload.
+     * @param string $fallback Fallback text.
+     *
+     * @return string
      */
-    private function log_error( $message, $order = null ) {
+    private function extract_error_message( $result, $fallback ) {
+        if ( ! empty( $result['error'] ) ) {
+            return sanitize_text_field( (string) $result['error'] );
+        }
+
+        return $fallback;
+    }
+
+    /**
+     * Write event/error logs with standardized context.
+     *
+     * @param string   $level   Logger level.
+     * @param string   $message Message.
+     * @param WC_Order $order   Order.
+     * @param string   $email   Email.
+     * @param string   $result  Result state.
+     */
+    private function log_event( $level, $message, $order = null, $email = '', $result = 'info' ) {
         if ( ! function_exists( 'wc_get_logger' ) ) {
             return;
         }
 
-        $context = [ 'source' => 'bw-brevo' ];
+        $general_settings = $this->get_general_settings();
+        $debug_enabled = ! empty( $general_settings['debug_logging'] );
+
+        $context = [
+            'source'  => 'bw-brevo',
+            'result'  => $result,
+            'context' => ( $order instanceof WC_Order && (int) $order->get_user_id() > 0 ) ? 'checkout_user' : 'checkout_guest',
+            'debug'   => $debug_enabled ? 1 : 0,
+        ];
+
         if ( $order instanceof WC_Order ) {
             $context['order_id'] = $order->get_id();
+            if ( '' === $email ) {
+                $email = (string) $order->get_billing_email();
+            }
         }
 
-        wc_get_logger()->error( $message, $context );
+        if ( '' !== $email ) {
+            $context['email'] = sanitize_email( $email );
+        }
+
+        $logger = wc_get_logger();
+        if ( 'error' === $level ) {
+            $logger->error( $message, $context );
+            return;
+        }
+
+        $logger->info( $message, $context );
     }
 }
