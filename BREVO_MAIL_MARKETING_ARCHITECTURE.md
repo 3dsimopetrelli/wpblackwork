@@ -5,7 +5,7 @@ Scope:
 - Checkout newsletter consent capture (classic WooCommerce checkout only)
 - Brevo contact sync and retry logic
 - Order-level diagnostics and admin tooling
-- Orders list visibility (Newsletter column)
+- Orders list visibility (Newsletter + Source columns, filters, bulk actions)
 - User profile diagnostics panel
 
 Out of scope:
@@ -40,6 +40,16 @@ Input sources:
 - `_bw_checkout_field_value_raw`
 - `_bw_checkout_post_keys_snapshot`
 - `_bw_subscribe_newsletter_frontend`
+
+## Source taxonomy
+Consent source is stored in `_bw_subscribe_consent_source` and currently supports:
+- `checkout`
+- `coming_soon`
+- `footer`
+- `popup`
+- `my_account`
+- `supabase_google`
+- `supabase_facebook`
 
 
 # Order Meta Keys
@@ -92,6 +102,12 @@ For teams using alternative naming in external docs:
 
 ## Single opt-in behavior
 - Calls Brevo contact upsert with list assignment.
+- Contact attributes sent (when opt-in = 1):
+  - `SOURCE` = consent source
+  - `CONSENT_SOURCE` = consent source
+  - `CONSENT_AT` = consent timestamp (if available)
+  - `LAST_ORDER_ID` = Woo order ID
+  - `FIRSTNAME` / `LASTNAME` if enabled in General settings
 - On success:
   - `_bw_brevo_subscribed = subscribed`
   - `_bw_brevo_status_reason = subscribed`
@@ -99,7 +115,7 @@ For teams using alternative naming in external docs:
 
 ## Double opt-in behavior
 - Supported by configuration (general/channel mode).
-- Sends DOI request to Brevo with template + redirect URL.
+- Sends DOI request to Brevo with template + redirect URL and the same attributes payload.
 - On success:
   - `_bw_brevo_subscribed = pending`
   - `_bw_brevo_status_reason = double_opt_in_sent`
@@ -110,6 +126,7 @@ For teams using alternative naming in external docs:
   - `_bw_brevo_error_last = <message>`
   - `_bw_brevo_status_reason = api_error`
 - Logs are written via Woo logger source `bw-brevo`.
+- If Brevo rejects unknown custom attributes, the module retries once with a minimal payload (`FIRSTNAME`/`LASTNAME` only) and logs the fallback.
 
 ## Retry logic
 - Order metabox action `Retry subscribe` re-runs sync logic manually.
@@ -117,6 +134,22 @@ For teams using alternative naming in external docs:
 - Guardrails:
   - no subscription without consent
   - no auto-resubscribe for blocklisted/unsubscribed contacts
+
+## Bulk resync logic (orders list)
+- Bulk action: `Mail Marketing: Resync to Brevo`
+- Processes selected orders in chunks (25 per batch) to reduce timeout risk.
+- Per-order behavior:
+  - opt-in `0` => skipped (`_bw_brevo_status_reason = no_opt_in`)
+  - invalid email => skipped
+  - blocklisted/unsubscribed => skipped
+  - opt-in `1` + valid config => idempotent upsert/DOI retry
+- Meta updates include:
+  - `_bw_brevo_subscribed`
+  - `_bw_brevo_error_last`
+  - `_bw_brevo_last_attempt_at`
+  - `_bw_brevo_last_attempt_source = bulk_resync`
+- Completion notice:
+  - `Resync complete: X subscribed, Y skipped, Z errors`
 
 
 # Admin UI
@@ -136,7 +169,7 @@ Features:
   - `Advanced` (collapsible diagnostics)
 - Copy-to-clipboard for email/contact ID
 
-## Orders list custom column: Newsletter
+## Orders list custom columns: Newsletter + Source
 Location:
 - Orders list table (classic and HPOS list views)
 
@@ -144,6 +177,25 @@ Behavior:
 - Reads only local order meta (no remote API calls)
 - Displays compact state (`Subscribed`, `Pending`, `No`, `Error`) with visual indicator
 - Tooltip includes status + consent timestamp
+- `Source` column renders `_bw_subscribe_consent_source` as a muted pill (or `—` if empty)
+
+## Orders list filters
+- `Newsletter status` dropdown:
+  - Any
+  - Subscribed
+  - Pending
+  - No opt-in
+  - Error
+- `Source` dropdown:
+  - Any
+  - checkout
+  - coming_soon
+  - footer
+  - popup
+  - my_account
+  - supabase_google
+  - supabase_facebook
+- Filters are applied using `meta_query` only (no API calls).
 
 ## User profile panel: Mail Marketing - Brevo
 Location:
@@ -174,10 +226,11 @@ Reason labels are resolved from `_bw_brevo_status_reason` and surfaced in UI.
 
 
 # Performance Notes
-- Orders list column does not call Brevo APIs.
+- Orders list columns and filter dropdowns do not call Brevo APIs.
 - List names are resolved from transient cache (`bw_brevo_lists_map_<hash>`).
 - Remote Brevo checks are on-demand only (button actions), not automatic on page load.
 - Order and user panels use lightweight AJAX endpoints with nonce/capability checks.
+- Bulk resync is processed in fixed-size chunks (25 orders per chunk).
 
 
 # Future Improvements

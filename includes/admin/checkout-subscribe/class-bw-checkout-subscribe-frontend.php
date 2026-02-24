@@ -370,6 +370,18 @@ class BW_Checkout_Subscribe_Frontend {
                 $sender
             );
 
+            if ( empty( $result['success'] ) && $this->is_brevo_unknown_attribute_error( $result ) ) {
+                $this->log_event( 'error', 'Brevo rejected custom attributes for DOI. Retrying with minimal attributes.', $order, $email, 'error' );
+                $result = $client->send_double_opt_in(
+                    $email,
+                    absint( $general_settings['double_optin_template_id'] ),
+                    $general_settings['double_optin_redirect_url'],
+                    [ absint( $general_settings['list_id'] ) ],
+                    $this->strip_marketing_attributes( $attributes ),
+                    $sender
+                );
+            }
+
             if ( empty( $result['success'] ) ) {
                 $this->mark_error( $order, $this->extract_error_message( $result, 'Brevo double opt-in failed.' ), $email, 'api_error' );
                 return;
@@ -388,6 +400,15 @@ class BW_Checkout_Subscribe_Frontend {
             $attributes,
             [ absint( $general_settings['list_id'] ) ]
         );
+
+        if ( empty( $result['success'] ) && $this->is_brevo_unknown_attribute_error( $result ) ) {
+            $this->log_event( 'error', 'Brevo rejected custom attributes. Retrying with minimal attributes.', $order, $email, 'error' );
+            $result = $client->upsert_contact(
+                $email,
+                $this->strip_marketing_attributes( $attributes ),
+                [ absint( $general_settings['list_id'] ) ]
+            );
+        }
 
         if ( empty( $result['success'] ) ) {
             $this->mark_error( $order, $this->extract_error_message( $result, 'Brevo subscribe failed.' ), $email, 'api_error' );
@@ -426,7 +447,63 @@ class BW_Checkout_Subscribe_Frontend {
             }
         }
 
+        $consent_source = (string) $order->get_meta( '_bw_subscribe_consent_source', true );
+        if ( '' === $consent_source ) {
+            $consent_source = 'checkout';
+        }
+
+        $consent_source = sanitize_key( $consent_source );
+        $attributes['SOURCE'] = $consent_source;
+        $attributes['CONSENT_SOURCE'] = $consent_source;
+
+        $consent_at = (string) $order->get_meta( '_bw_subscribe_consent_at', true );
+        if ( '' !== $consent_at ) {
+            $attributes['CONSENT_AT'] = $consent_at;
+        }
+
+        $attributes['LAST_ORDER_ID'] = (string) absint( $order->get_id() );
+
         return $attributes;
+    }
+
+    /**
+     * Remove custom marketing attributes when Brevo schema rejects them.
+     *
+     * @param array $attributes Full payload.
+     *
+     * @return array
+     */
+    private function strip_marketing_attributes( $attributes ) {
+        if ( ! is_array( $attributes ) ) {
+            return [];
+        }
+
+        unset( $attributes['SOURCE'], $attributes['CONSENT_SOURCE'], $attributes['CONSENT_AT'], $attributes['LAST_ORDER_ID'] );
+        return $attributes;
+    }
+
+    /**
+     * Detect unknown-attribute errors returned by Brevo.
+     *
+     * @param array $result Brevo result.
+     *
+     * @return bool
+     */
+    private function is_brevo_unknown_attribute_error( $result ) {
+        if ( empty( $result['error'] ) ) {
+            return false;
+        }
+
+        $error = strtolower( (string) $result['error'] );
+        if ( false !== strpos( $error, 'attribute' ) && false !== strpos( $error, 'exist' ) ) {
+            return true;
+        }
+
+        if ( false !== strpos( $error, 'unknown' ) && false !== strpos( $error, 'attribute' ) ) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
