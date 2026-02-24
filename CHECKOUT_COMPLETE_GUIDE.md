@@ -1907,7 +1907,7 @@ Dopo modifiche a CSS/JS:
 
 ## 21. Stato Sessione Corrente (Aggiornamento Operativo)
 
-Questa sezione traccia in modo sintetico cosa e stato completato e cosa resta da finalizzare, senza perdere contesto per i prossimi fix.
+Questa sezione traccia lo stato operativo finale delle ultime modifiche checkout/gateway.
 
 ### Completato (stabile)
 
@@ -1923,8 +1923,10 @@ Questa sezione traccia in modo sintetico cosa e stato completato e cosa resta da
   - ripristino inizializzazione `canMakePayment` con formato importo corretto (fix errore subunit/amount).
   - fallback unavailable migliorato con CTA "Open Google Wallet".
 - Apple Pay:
-  - aggiunta sezione unavailable con messaggio informativo e CTA "Go to Express Checkout".
-  - aggiunta toggle admin per abilitare/disabilitare il messaggio guida Express.
+  - fallback riportato a **helper-only** (scroll alla sezione Express in alto) tramite checkbox admin `bw_apple_pay_express_helper_enabled`.
+  - rimossa la modalita avanzata non-Safari/inline express.
+  - messaggio helper semplificato: nessun titolo "Apple Pay unavailable", solo testo guida.
+  - rimossa evidenziazione shadow di highlight sui bottoni/target Express (`.bw-express-checkout-highlight` disattivata).
   - dominio e key check lato admin risultano operativi (verifiche verdi).
 - Klarna:
   - CTA e messaggistica checkout allineate allo stile corrente.
@@ -1936,24 +1938,9 @@ Questa sezione traccia in modo sintetico cosa e stato completato e cosa resta da
 
 ### Non completato nella sessione corrente (TODO prioritari)
 
-1. Apple Pay fallback mode avanzato (richiesta recente non ancora implementata)
-   - dropdown admin `Non-Safari fallback mode` con:
-     - `helper_scroll` (default, comportamento attuale)
-     - `inline_express` (feature-flag, con fallback sicuro se non fattibile)
-   - compatibilita retroattiva con opzione booleana precedente.
-2. State machine Apple Pay esplicita
-   - stati: `idle`, `method_selected`, `native_available`, `native_unavailable_helper`, `native_unavailable_inline_possible`, `processing`, `error`.
-   - unica source of truth per:
-     - visibilita Place Order Woo
-     - visibilita CTA Apple custom
-     - messaggistica.
-3. Hardening anti regressione su `updated_checkout`
-   - rebind handler namespaced senza duplicati
-   - prevenzione render multipli placeholder/CTA
-   - stabilita su switch rapido metodi + shipping/coupon refresh.
-4. Inline express non-Safari (solo se tecnicamente fattibile)
-   - senza click forzato su iframe Stripe ufficiali (cross-origin: non consentito)
-   - no creazione PaymentIntent se capability non disponibile.
+1. QA visuale finale cross-device (Safari iPhone, Safari macOS, Chrome desktop) con focus su coerenza testi Apple fallback helper.
+2. Eventuale smoothing dello scroll helper Apple su pagine checkout molto lunghe.
+3. Aggiunta test manuale regressione rapido dopo `updated_checkout` (shipping/coupon/method switch).
 
 ### Vincoli da rispettare nei prossimi interventi (bloccanti)
 

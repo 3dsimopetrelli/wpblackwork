@@ -2225,6 +2225,41 @@ body.woocommerce-checkout .bw-field-wrapper:not(.has-value) select {
     color: transparent;
 }
 
+/* Google Places dropdown: isolate from checkout/global styles. */
+body.woocommerce-checkout .pac-container {
+    z-index: 999999 !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 8px !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+    overflow: hidden !important;
+}
+
+body.woocommerce-checkout .pac-container::before,
+body.woocommerce-checkout .pac-container::after,
+body.woocommerce-checkout .pac-container .pac-item::before,
+body.woocommerce-checkout .pac-container .pac-item::after,
+body.woocommerce-checkout .pac-container .pac-icon::before,
+body.woocommerce-checkout .pac-container .pac-icon::after {
+    content: none !important;
+    display: none !important;
+}
+
+body.woocommerce-checkout .pac-container .pac-item {
+    display: block !important;
+    margin: 0 !important;
+    padding: 10px 12px !important;
+    line-height: 1.35 !important;
+    font-size: 14px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+/* Hide Google default icon to prevent theme/plugin collisions on pseudo-icons. */
+body.woocommerce-checkout .pac-container .pac-icon {
+    display: none !important;
+}
+
 /* Mobile select adjustments */
 @media (max-width: 768px) {
     body.woocommerce-checkout .bw-field-wrapper select {

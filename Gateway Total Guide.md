@@ -182,6 +182,9 @@ Fix:
 ## Apple Pay (custom)
 - Implemented with live-only settings and availability checks.
 - Requires Safari/Apple device + Wallet card + HTTPS + domain verification in Stripe.
+- Non-available environments use helper-only fallback (`bw_apple_pay_express_helper_enabled`):
+  - Apple button scrolls to top Express Checkout area.
+  - No inline express transformation in Apple gateway.
 
 ---
 
@@ -205,7 +208,7 @@ Fix:
 
 5. Apple Pay
 - Availability state coherent (available/unavailable).
-- Unavailable messaging visible and not conflicting.
+- Helper mode: no duplicate CTA, no extra unavailable title, scroll helper works.
 
 6. Webhook safety
 - Success completes only correct gateway orders.

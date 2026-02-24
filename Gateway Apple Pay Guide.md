@@ -35,6 +35,7 @@ This document tracks the BlackWork custom Apple Pay gateway architecture and cur
 - Sub-tab: `apple-pay`
 - Fields:
   - `bw_apple_pay_enabled`
+  - `bw_apple_pay_express_helper_enabled` (checkbox: helper scroll on unavailable Apple Pay)
   - `bw_apple_pay_publishable_key`
   - `bw_apple_pay_secret_key`
   - `bw_apple_pay_statement_descriptor`
@@ -84,7 +85,8 @@ Rendered states:
 1. Not enabled/not configured: admin guidance message.
 2. Initializing: loading message in accordion.
 3. Available: custom Apple Pay button appears.
-4. Unavailable: explicit unavailable message with causes.
+4. Unavailable + helper enabled: show only helper text (no "Apple Pay unavailable" title) and use Apple button to scroll to Express Checkout.
+5. Unavailable + helper disabled: show explicit unavailable message and keep Woo fallback path.
 
 ## Frontend JS Flow
 
@@ -97,9 +99,12 @@ Main behavior:
 4. Consider available only if:
    - `result && result.applePay === true`
 5. Maintain explicit state machine:
-   - `initializing`
-   - `available`
-   - `unavailable`
+   - `idle`
+   - `method_selected`
+   - `native_available`
+   - `native_unavailable_helper`
+   - `processing`
+   - `error`
 6. Handle events:
    - `paymentmethod` -> submit Woo checkout AJAX with `bw_apple_pay_method_id`
    - `cancel` -> show notice, clear hidden method id, keep checkout retry path
@@ -191,7 +196,7 @@ Behavior:
 
 1. Apple Pay availability is environment-dependent:
 - Requires Safari + Apple device + eligible card in Wallet + HTTPS + Stripe domain verification.
-- On non-supported environments, gateway can be selected but remains in unavailable state (by design).
+- On non-supported environments, helper mode scrolls user to top Express Checkout.
 
 2. Shared accordion/button sync can impact Apple Pay UX:
 - If shared script logic regresses, Apple row can appear selected while another gateway controls CTA.
@@ -216,7 +221,7 @@ Behavior:
 2. Checkout
 - Apple row visible and selectable.
 - Available device: custom Apple Pay button appears.
-- Unavailable device: clear unavailable message, no misleading payment success path.
+- Unavailable device (helper on): text-only helper guidance and Apple button scroll action.
 
 3. Webhook
 - `payment_intent.succeeded` finalizes order.
