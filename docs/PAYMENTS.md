@@ -2,27 +2,39 @@
 
 ## Overview
 This plugin uses WooCommerce checkout standard flow and supports multiple payment providers.
-Current active custom wallet gateway:
-- `bw_google_pay` (Stripe PaymentIntents)
 
-Coexisting gateways:
-- `wc_stripe` (cards, official plugin)
+### Active custom gateways (all in production)
+
+| Gateway ID | Method | File |
+|---|---|---|
+| `bw_google_pay` | Google Pay (Stripe) | `includes/Gateways/class-bw-google-pay-gateway.php` |
+| `bw_klarna` | Klarna (Stripe) | `includes/Gateways/class-bw-klarna-gateway.php` |
+| `bw_apple_pay` | Apple Pay (Stripe) | `includes/Gateways/class-bw-apple-pay-gateway.php` |
+
+### Coexisting gateways (third-party plugins)
+- `wc_stripe` (cards, official Stripe plugin)
 - PayPal plugin (separate)
 
-Goal of this architecture:
-- Reuse Stripe hardening logic across multiple custom gateways.
-- Keep `bw_google_pay` behavior unchanged.
-- Make `bw_klarna` and `bw_apple_pay` easy to add without code duplication.
+### Architecture goal
+- Reuse Stripe hardening logic via shared `BW_Abstract_Stripe_Gateway` base class.
+- One webhook endpoint per gateway (Option B — zero migration risk).
+- No code duplication across Google Pay, Klarna, Apple Pay.
 
 ## File Structure
-- `/Users/simonezanon/Documents/local site/BlackWork/wp-content/plugins/wpblackwork/includes/Gateways/class-bw-abstract-stripe-gateway.php`
-- `/Users/simonezanon/Documents/local site/BlackWork/wp-content/plugins/wpblackwork/includes/Gateways/class-bw-google-pay-gateway.php`
-- `/Users/simonezanon/Documents/local site/BlackWork/wp-content/plugins/wpblackwork/includes/Gateways/class-bw-klarna-gateway.php` (placeholder)
-- `/Users/simonezanon/Documents/local site/BlackWork/wp-content/plugins/wpblackwork/includes/Gateways/class-bw-apple-pay-gateway.php` (placeholder)
-- `/Users/simonezanon/Documents/local site/BlackWork/wp-content/plugins/wpblackwork/includes/Stripe/class-bw-stripe-api-client.php`
-- `/Users/simonezanon/Documents/local site/BlackWork/wp-content/plugins/wpblackwork/includes/Utils/class-bw-stripe-safe-logger.php`
-- Legacy bootstrap path kept for compatibility:
-  - `/Users/simonezanon/Documents/local site/BlackWork/wp-content/plugins/wpblackwork/includes/woocommerce-overrides/class-bw-google-pay-gateway.php`
+
+Plugin root: `wp-content/plugins/wpblackwork/`
+
+```
+includes/Gateways/
+  class-bw-abstract-stripe-gateway.php   ← shared base (webhook, refund, dedup, logging)
+  class-bw-google-pay-gateway.php        ← Google Pay implementation
+  class-bw-klarna-gateway.php            ← Klarna implementation
+  class-bw-apple-pay-gateway.php         ← Apple Pay implementation
+includes/Stripe/
+  class-bw-stripe-api-client.php         ← Stripe HTTP client
+includes/Utils/
+  class-bw-stripe-safe-logger.php        ← WC_Logger wrapper
+```
 
 ## Checkout Flow (Google Pay)
 1. User selects method `bw_google_pay` in checkout accordion.
@@ -32,9 +44,29 @@ Goal of this architecture:
 5. Gateway saves PI refs on order meta and sets transaction id.
 6. On success, WooCommerce redirects to thank-you page and triggers normal email flow.
 
+## Stripe Webhook Configuration
+
+**Three separate webhook endpoints must be registered in the Stripe Dashboard:**
+
+| Gateway | Endpoint URL | Events to subscribe |
+|---|---|---|
+| Google Pay | `https://yourdomain.com/?wc-api=bw_google_pay` | `payment_intent.succeeded`, `payment_intent.payment_failed` |
+| Klarna | `https://yourdomain.com/?wc-api=bw_klarna` | `payment_intent.succeeded`, `payment_intent.payment_failed` |
+| Apple Pay | `https://yourdomain.com/?wc-api=bw_apple_pay` | `payment_intent.succeeded`, `payment_intent.payment_failed` |
+
+Each endpoint has its own signing secret stored in:
+- `bw_google_pay_webhook_secret`
+- `bw_klarna_webhook_secret`
+- `bw_apple_pay_webhook_secret`
+
+> If only one webhook is configured, only that gateway will receive events.
+> The other two gateways will never finalize orders via webhook.
+
 ## Webhook Flow
-Endpoint (active):
+Endpoints (all active):
 - `/?wc-api=bw_google_pay`
+- `/?wc-api=bw_klarna`
+- `/?wc-api=bw_apple_pay`
 
 Handled in base class (`BW_Abstract_Stripe_Gateway::handle_webhook`):
 1. Verify Stripe signature (`t=`, one or more `v1=`, 300s tolerance).
@@ -106,13 +138,40 @@ Option B (current):
 
 Current implementation uses Option B.
 
-## How to Add New Gateway (Klarna/Apple Pay)
+## Order Status Conventions
+
+| `process_payment()` PI status | Order status | Who finalizes |
+|---|---|---|
+| `succeeded` | `on-hold` | Stripe webhook |
+| `processing` | `on-hold` | Stripe webhook |
+| `requires_action` | `pending` + redirect | User completes 3DS, then webhook |
+| `requires_payment_method` / `canceled` | error notice, no status change | User retries |
+
+> **Rule:** `on-hold` = payment attempted, waiting for webhook.
+> `pending` = 3DS auth redirect in progress.
+> Never call `payment_complete()` directly in `process_payment()`.
+> Only the webhook (`payment_intent.succeeded`) triggers `payment_complete()`.
+
+## Stuck Order Monitoring
+
+A WP-Cron job (`bw_mew_check_stuck_orders`) runs hourly and:
+- Finds orders in `pending`/`on-hold` with a BW PaymentIntent meta key.
+- That have not been updated in 4+ hours and are not paid.
+- Sends an admin email notification and logs to `wc-bw-gateway` logger.
+
+If orders appear stuck, check:
+1. Stripe Dashboard → Webhooks → delivery logs for failures.
+2. WooCommerce → Status → Logs → filter `bw-gateway`.
+3. Verify all 3 webhook endpoints are registered in Stripe with correct signing secrets.
+
+## How to Add a New Gateway (template)
 1. Create gateway class extending `BW_Abstract_Stripe_Gateway`.
 2. Implement required option-name methods and meta key map.
 3. Implement specific `process_payment()` and UI rendering.
-4. Register class in WooCommerce gateway filter only when ready.
+4. Register class in WooCommerce gateway filter.
 5. Add admin tab/settings using gateway-specific option names.
-6. Reuse base webhook and refund logic.
+6. Register a webhook endpoint in Stripe Dashboard for `/?wc-api=bw_{gateway_id}`.
+7. Reuse base webhook and refund logic.
 
 ## Testing Checklist
 ### Checkout success

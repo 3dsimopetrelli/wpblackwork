@@ -376,7 +376,139 @@
         return false;
     }
 
-    function setHiddenMethodId(methodId) {
+    function renderCheckoutNotice(type, message) {
+        var klass = type === 'error' ? 'woocommerce-error' : 'woocommerce-info';
+        var $notices = $('.woocommerce-notices-wrapper').first();
+        if ($notices.length) {
+            $notices.html('<ul class="' + klass + '" role="alert"><li>' + message + '</li></ul>');
+        }
+        $('html, body').animate({ scrollTop: 0 }, 250);
+    }
+
+    function disableApplePaySelection() {
+        var $appleInput = $('input[name="payment_method"][value="bw_apple_pay"]');
+        if (!$appleInput.length) {
+            return;
+        }
+
+        $appleInput.attr('data-bw-unavailable', '1');
+        $appleInput.closest('.bw-payment-method').attr('data-bw-unavailable', '1');
+    }
+
+    function dedupeApplePayDom() {
+        var $wrappers = $('#bw-apple-pay-button-wrapper');
+        if ($wrappers.length > 1) {
+            $wrappers.slice(1).remove();
+        }
+
+        var $triggers = $('#bw-apple-pay-trigger');
+        if ($triggers.length > 1) {
+            $triggers.slice(1).remove();
+        }
+    }
+
+    function scheduleGlobalWalletSync(reason) {
+        if (typeof window.bwScheduleSyncCheckoutActionButtons === 'function') {
+            window.bwScheduleSyncCheckoutActionButtons(reason || 'apple_pay');
+        }
+    }
+
+    function syncApplePayInfoVisibility() {
+        var shouldShow = applePayState === 'available' && applePayAvailable === true;
+        $('.payment_method_bw_apple_pay .bw-apple-pay-info').toggle(shouldShow);
+    }
+
+    function showAppleButtonIfSelected() {
+        var selectedMethod = $('input[name="payment_method"]:checked').val();
+        var $wrapper = $('#bw-apple-pay-button-wrapper');
+        var isAppleMethod = selectedMethod === 'bw_apple_pay';
+        var hidePlaceOrderForUnavailableApple = isAppleMethod && applePayState === 'unavailable' && enableExpressFallback;
+
+        if (isAppleMethod) {
+            if (applePayState === 'available' && applePayAvailable) {
+                $wrapper.show();
+                $('#bw-apple-pay-accordion-placeholder').hide();
+            } else {
+                $wrapper.hide();
+                $('#bw-apple-pay-accordion-placeholder').show();
+            }
+            dedupeApplePayDom();
+        } else {
+            $wrapper.hide();
+        }
+
+        document.body.classList.toggle('bw-apple-pay-hide-place-order', hidePlaceOrderForUnavailableApple);
+        syncApplePayInfoVisibility();
+        scheduleGlobalWalletSync('apple_ui');
+    }
+
+    function renderApplePayState() {
+        if (applePayState === 'initializing') {
+            renderApplePayPlaceholder(
+                'Initializing Apple Pay…',
+                false,
+                '',
+                'Apple Pay initialization'
+            );
+            return;
+        }
+
+        if (applePayState === 'unavailable') {
+            renderApplePayUnavailableFallback();
+        }
+    }
+
+    function runAvailabilityCheck() {
+        if (!paymentRequest || isCheckingAvailability) {
+            return;
+        }
+        isCheckingAvailability = true;
+        applePayState = 'initializing';
+        applePayAvailable = false;
+        window.BW_APPLE_PAY_AVAILABLE = false;
+        renderApplePayState();
+        showAppleButtonIfSelected();
+
+        paymentRequest.canMakePayment().then(function (result) {
+            BW_APPLE_PAY_DEBUG && console.log('[BW Apple Pay] canMakePayment:', result);
+            applePayAvailable = !!(result && result.applePay === true);
+            window.BW_APPLE_PAY_AVAILABLE = applePayAvailable === true;
+            applePayState = applePayAvailable ? 'available' : 'unavailable';
+
+            if (!applePayAvailable) {
+                disableApplePaySelection();
+                renderApplePayUnavailableFallback();
+                showAppleButtonIfSelected();
+                isCheckingAvailability = false;
+                return;
+            }
+
+            $('input[name="payment_method"][value="bw_apple_pay"]')
+                .prop('disabled', false)
+                .removeAttr('aria-disabled')
+                .removeAttr('data-bw-unavailable')
+                .closest('.bw-payment-method')
+                .removeAttr('data-bw-unavailable');
+            renderApplePayPlaceholder(
+                'You\'ll be redirected to Apple Pay to complete your purchase.',
+                false
+            );
+            ensureButton();
+            showAppleButtonIfSelected();
+            isCheckingAvailability = false;
+        }).catch(function (error) {
+            applePayAvailable = false;
+            window.BW_APPLE_PAY_AVAILABLE = false;
+            applePayState = 'unavailable';
+            BW_APPLE_PAY_DEBUG && console.warn('[BW Apple Pay] unavailable reason:', error && error.message ? error.message : 'canMakePayment failed unexpectedly');
+            renderApplePayUnavailableFallback();
+            disableApplePaySelection();
+            showAppleButtonIfSelected();
+            isCheckingAvailability = false;
+        });
+    }
+
+    function submitCheckoutWithApplePay(ev, methodId) {
         var $form = $('form.checkout');
         var $hidden = $('#bw_apple_pay_method_id');
 
@@ -546,8 +678,7 @@
             setHiddenMethodId('');
             app.state = isAppleMethodSelected() ? STATE.METHOD_SELECTED : STATE.IDLE;
             renderCheckoutNotice('error', 'Apple Pay payment was canceled. You can choose another payment method or try again.');
-            $('form.checkout').removeClass('processing');
-            $('#place_order').removeClass('processing');
+            window.bwCheckout.removeLoadingState();
             $(document.body).trigger('update_checkout');
         });
 

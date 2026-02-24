@@ -379,6 +379,10 @@
         if (placeOrderBtn) {
             placeOrderBtn.classList.remove('processing');
         }
+        var checkoutForm = document.querySelector('form.checkout');
+        if (checkoutForm) {
+            checkoutForm.classList.remove('processing');
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -584,5 +588,9 @@
             });
         });
     }
+
+    // Expose shared utilities for wallet gateway scripts (Google Pay, Apple Pay).
+    window.bwCheckout = window.bwCheckout || {};
+    window.bwCheckout.removeLoadingState = removeLoadingState;
 
 })();

@@ -60,10 +60,16 @@ In `process_payment()`:
    - metadata (`wc_order_id`, `bw_gateway`, `site_url`, `mode`)
 5. Save meta (`_bw_klarna_pi_id`, mode, timestamps) and transaction id.
 6. Handle PI status:
-   - `succeeded` -> do **not** force immediate completion; wait for webhook confirmation path
-   - `requires_action` -> redirect to Stripe/Klarna auth URL
-   - `processing` -> on-hold
-   - failed statuses -> WooCommerce error notice
+
+| PI status | Order status set | Rationale |
+|---|---|---|
+| `succeeded` | `on-hold` | Wait for webhook confirmation |
+| `processing` | `on-hold` | Async capture; wait for webhook |
+| `requires_action` | `pending` + redirect | Klarna auth redirect required |
+| `requires_payment_method` \| `canceled` | error notice only | Payment not completed |
+
+> `on-hold` is the canonical status for "payment attempted, awaiting webhook".
+> The final order completion happens via `payment_intent.succeeded` webhook only.
 
 ## Return / Cancel / Failed UX
 
@@ -122,8 +128,24 @@ Handled by base class `process_refund()`:
 - Icon rendered as Klarna logo/chip in the payment row, styled in:
   - `/Users/simonezanon/Documents/local site/BlackWork/wp-content/plugins/wpblackwork/assets/css/bw-payment-methods.css`
 
-## Next Improvements
+## Klarna Market Requirements
 
-1. Add test mode fields for Klarna if needed.
-2. Add dedicated fallback messaging for unsupported country/currency combinations.
-3. Add explicit admin warning if Stripe account country/currency rules do not support Klarna.
+Klarna via Stripe is only available in specific countries/currencies.
+If the WooCommerce store uses an unsupported country/currency, Klarna will not appear in
+the checkout (Stripe silently excludes it from `payment_method_types`).
+
+**Supported countries (Stripe Klarna):** AT, BE, DE, DK, ES, FI, FR, GB, IE, IT, NL, NO, SE, US (and others per Stripe docs).
+**Supported currencies:** EUR, GBP, DKK, NOK, SEK, USD (country-dependent).
+
+If your store is in an unsupported combination:
+- Klarna gateway will be registered but Stripe will reject PI creation.
+- The error surfaces as a WooCommerce checkout notice.
+- There is currently no admin-level pre-flight warning for this case.
+
+Reference: https://stripe.com/docs/payments/klarna#supported-currencies
+
+## Open Items
+
+1. Add test mode fields for Klarna to allow staging environment testing.
+2. Add admin warning if Stripe account country/currency does not support Klarna.
+3. Add pre-flight check in `process_payment()` that validates currency against Klarna's supported list before creating the PI.

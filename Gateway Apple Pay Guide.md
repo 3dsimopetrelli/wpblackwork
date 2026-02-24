@@ -112,8 +112,8 @@ Main behavior:
    - `payment_method` change
    - WooCommerce `updated_checkout`
 
-Debug hook currently present:
-- `console.log('[BW Apple Pay] canMakePayment:', result);`
+All `console.log` / `console.info` calls are guarded by `BW_APPLE_PAY_DEBUG` or
+`bwApplePayParams.adminDebug` and produce no output in production.
 
 ## Shared Wallet UI Orchestration
 
@@ -139,9 +139,15 @@ In `process_payment($order_id)`:
    - `return_url`
 4. Save PI references and transaction id.
 5. Handle statuses:
-   - `succeeded|processing` -> `on-hold` + return URL (wait webhook confirmation)
-   - `requires_action` -> redirect to Stripe auth URL
-   - `requires_payment_method|canceled` -> notice error
+
+| PI status | Order status set | Rationale |
+|---|---|---|
+| `succeeded` \| `processing` | `on-hold` | Wait for webhook confirmation |
+| `requires_action` | `pending` + redirect | 3DS auth required |
+| `requires_payment_method` \| `canceled` | error notice only | Payment not completed |
+
+> `on-hold` is the canonical status for "payment attempted, awaiting webhook".
+> `pending` is only set when 3DS authentication is required (user redirected).
    - default -> generic failure notice
 
 ## Webhook and Hardening

@@ -580,8 +580,7 @@
             }
             bwRenderCheckoutNotice('error', 'Google Pay payment was canceled. You can try again or choose another payment method.');
             $('#bw_google_pay_method_id').val('');
-            $('form.checkout').removeClass('processing');
-            $('#place_order').removeClass('processing');
+            window.bwCheckout.removeLoadingState();
             $(document.body).trigger('update_checkout');
         });
     }
