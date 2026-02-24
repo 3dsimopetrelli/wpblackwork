@@ -1,92 +1,152 @@
-# Brevo Subscribe Architecture
+# Documentation Governance & Update Workflow
 
-## Purpose
-This document defines the newsletter subscription architecture for Blackwork Site, aligned to the current admin IA:
+Document Version: 1.0  
+Last Updated: 2026-02-24  
+Last Update Summary: Initial Mail Marketing architecture refactor.
+
+## 0.1 Purpose of this Document
+This file is the official technical specification and single source of truth for the Brevo Mail Marketing system in the Blackwork Site plugin.
+
+It governs and documents:
+
+- Architecture
+- Configuration
+- Runtime flow
+- Compliance logic
+- State machine behavior
+
+## 0.2 How to Update This Document
+Mandatory maintenance rules:
+
+- Every architectural change must be documented in the relevant architecture section.
+- Every new setting must be added under the correct configuration section.
+- Every new hook must be listed in the `Subscription Flow (Runtime Behavior)` section.
+- Every runtime state change must update the `State Machine` section.
+- Every logging behavior change must update the `Logging Specification` section.
+- Deprecated logic must be moved to `Migration & Legacy Notes` and marked as deprecated.
+- Historical notes must never be deleted; they must be marked as deprecated and retained.
+- Each update must refresh the top metadata lines:
+  - `Document Version`
+  - `Last Updated`
+  - `Last Update Summary`
+
+## 0.3 Versioning Strategy
+Internal document versioning rules:
+
+- Major: architectural refactors or major model changes
+- Minor: new functional capabilities or new documented subsystems
+- Patch: corrections, clarifications, non-functional documentation fixes
+
+Starting baseline:
+
+- Document Version: `1.0`
+- Last Updated: `2026-02-24`
+- Last Update Summary: `Initial Mail Marketing architecture refactor.`
+
+## 0.4 Change Log Section
+A persistent change log must be maintained at the end of this document under `10. Change Log`.
+
+Required format:
+
+```text
+## vX.Y - YYYY-MM-DD
+- Change summary line 1
+- Change summary line 2
+```
+
+---
+
+# 1. Overview
+This specification describes the Brevo Mail Marketing system implemented in the Blackwork Site plugin.
+
+Current admin IA:
 
 - `Blackwork Site -> Mail Marketing -> General`
 - `Blackwork Site -> Mail Marketing -> Checkout`
 
-The objective is to keep Brevo configuration centralized, enforce explicit consent, and provide a reliable channel-specific checkout integration without breaking legacy installations.
+System goals:
 
----
+- Centralize Brevo credentials and global behavior
+- Separate global settings from checkout-channel behavior
+- Preserve backward compatibility during migration
+- Guarantee explicit consent-driven subscription logic
+- Provide auditable status transitions and logs
 
-## Scope
-This document covers:
+Runtime scope currently documented here:
 
 - Admin settings and migration
-- Checkout frontend opt-in behavior
-- Brevo API integration and state tracking
-- Logging/audit expectations
-- Safety and compliance constraints
-- Future extension strategy for other site entry points
+- Checkout subscription channel
+- Brevo API integration
+- Metadata state tracking
+- Compliance and safety rules
 
 ---
 
-## High-Level Architecture
+# 2. Architecture Overview
+The system is organized into five layers.
 
-### Admin Layer
-Primary admin module:
+## 2.1 Admin Layer
+Primary components:
 
 - `BW_Checkout_Subscribe_Admin`
 - `BW_Mail_Marketing_Settings`
 
 Responsibilities:
 
-- Register submenu `Blackwork Site -> Mail Marketing`
-- Render tabs `General` and `Checkout`
+- Register `Mail Marketing` submenu under `Blackwork Site`
+- Render tabbed admin UI (`General`, `Checkout`)
 - Sanitize and persist settings
-- Run legacy-to-new settings migration
-- Handle AJAX Brevo connection test
+- Execute legacy migration bootstrap
+- Handle secure AJAX connection testing
 
-### Service Layer (Current and Target)
-Current:
+## 2.2 Service Orchestration Layer
+Current implementation:
 
-- Subscription orchestration is handled inside `BW_Checkout_Subscribe_Frontend::process_subscription()`.
+- Runtime orchestration is handled inside `BW_Checkout_Subscribe_Frontend::process_subscription()`.
 
-Target (planned):
+Planned direction:
 
-- Introduce a dedicated `BW_Subscribe_Service` for centralized orchestration across channels.
+- Introduce centralized `BW_Subscribe_Service` to decouple channel logic from checkout-specific class.
 
-Planned responsibilities:
-
-- Consent validation
-- Mode resolution (single vs DOI)
-- Contact attribute mapping
-- Resubscribe policy enforcement
-- Unified state transitions and logging
-
-### Brevo Client Layer
-Shared low-level API wrapper:
+## 2.3 Brevo Client Layer
+Shared API adapter:
 
 - `BW_Brevo_Client`
 
-Key methods:
+Primary methods:
 
 - `get_account()`
 - `get_lists()`
-- `get_contact()`
+- `get_contact($email)`
 - `upsert_contact($email, $attributes, $list_ids)`
 - `send_double_opt_in(...)`
 
-### Frontend Integration Layer
-Checkout integration module:
+## 2.4 Frontend Integration Layer
+Current channel:
+
+- Checkout classic form only
+
+Primary component:
 
 - `BW_Checkout_Subscribe_Frontend`
 
 Responsibilities:
 
-- Inject newsletter checkbox in classic checkout billing fields
-- Save consent metadata on order
-- Trigger subscribe flow based on configured timing
-- Write status/error metadata
+- Inject checkout checkbox
+- Save consent metadata
+- Trigger subscription at configured timing
+- Persist subscription status and errors
 
-### Logging and Audit Layer
-Logging backend:
+## 2.5 Logging and Audit Layer
+Backend:
 
 - WooCommerce logger via `wc_get_logger()`
-- Source key: `bw-brevo`
 
-Log context includes:
+Source:
+
+- `bw-brevo`
+
+Context payload includes:
 
 - `order_id`
 - `email`
@@ -95,188 +155,200 @@ Log context includes:
 
 ---
 
-## Settings Model
+# 3. Admin Information Architecture
 
-### New Source Options
+## 3.1 Mail Marketing -> General
+Purpose: global Brevo configuration shared across channels.
+
+Option name:
 
 ```text
 bw_mail_marketing_general_settings
-bw_mail_marketing_checkout_settings
 ```
-
-### Legacy Option (Fallback + Migration Source)
-
-```text
-bw_checkout_subscribe_settings
-```
-
-Migration runs on admin bootstrap and maps legacy keys into the new split model.
-
----
-
-## Admin IA and Configuration
-
-### General Tab (`Mail Marketing -> General`)
-Global Brevo configuration shared by channels.
 
 Fields:
 
-- `api_key`: Brevo API key
-- `api_base`: fixed to `https://api.brevo.com/v3` (readonly in UI)
-- `list_id`: main audience/list
-- `default_optin_mode`: `single_opt_in` | `double_opt_in`
+- `api_key` (required for API operations)
+- `api_base` (fixed: `https://api.brevo.com/v3`, not editable)
+- `list_id` (main list)
+- `default_optin_mode` (`single_opt_in` | `double_opt_in`)
 - `double_optin_template_id`
 - `double_optin_redirect_url`
 - `sender_name`
 - `sender_email`
-- `debug_logging`: toggle
-- `resubscribe_policy`: currently `no_auto_resubscribe`
-- `sync_first_name`: toggle
-- `sync_last_name`: toggle
+- `debug_logging` (toggle)
+- `resubscribe_policy` (`no_auto_resubscribe`)
+- `sync_first_name` (toggle)
+- `sync_last_name` (toggle)
 
-Operational notes:
+Brevo list loading behavior:
 
-- List field prefers dropdown loaded from Brevo API (`get_lists()`), with numeric fallback if API retrieval fails.
-- AJAX test connection is protected by capability and nonce checks.
+- Preferred mode: dropdown from Brevo API (`get_lists()`)
+- Fallback mode: numeric `list_id` input if list retrieval fails
+- This fallback is mandatory to avoid UI hard-failure when API lookup is unavailable
 
-### Checkout Tab (`Mail Marketing -> Checkout`)
-Checkout-channel behavior only.
+Connection test:
+
+- AJAX action: `bw_brevo_test_connection`
+- Protected by capability check and nonce validation
+
+## 3.2 Mail Marketing -> Checkout
+Purpose: checkout-channel-specific behavior.
+
+Option name:
+
+```text
+bw_mail_marketing_checkout_settings
+```
 
 Fields:
 
-- `enabled`: show newsletter checkbox
+- `enabled`
 - `default_checked`
 - `label_text`
 - `privacy_text`
-- `subscribe_timing`: `paid` (default) | `created`
-- `channel_optin_mode`: `inherit` | `single_opt_in` | `double_opt_in`
+- `subscribe_timing` (`paid` default, `created` optional)
+- `channel_optin_mode` (`inherit` | `single_opt_in` | `double_opt_in`)
 - `placement_after_key` (default `billing_email`)
 - `priority_offset` (default `5`)
 
 Channel override behavior:
 
-- If `channel_optin_mode = inherit`, checkout uses `default_optin_mode` from General tab.
-- If forced to single/DOI, checkout ignores the General mode for this channel.
+- `inherit`: uses `General.default_optin_mode`
+- `single_opt_in`: forces single opt-in for checkout
+- `double_opt_in`: forces DOI for checkout
 
-Classic checkout limitation:
+Checkout support limitation:
 
-- Integration applies to classic WooCommerce checkout form only.
-- Checkout Block is explicitly excluded.
-
----
-
-## Hook Map
-
-### Admin
-
-- `admin_menu`: register Mail Marketing submenu
-- `admin_init`:
-  - legacy migration
-  - settings save handlers
-- `wp_ajax_bw_brevo_test_connection`: Brevo connection test
-
-### Checkout Frontend
-
-- `woocommerce_before_checkout_billing_form`: render Contact heading
-- `woocommerce_checkout_fields`: inject newsletter checkbox
-- `woocommerce_form_field`: remove optional label for checkbox
-- `woocommerce_checkout_update_order_meta`: persist consent metadata
-- `woocommerce_checkout_order_processed`: subscribe when timing is `created`
-- `woocommerce_order_status_processing`: subscribe when timing is `paid`
-- `woocommerce_order_status_completed`: subscribe when timing is `paid`
-- `wp_enqueue_scripts`: load checkout subscribe CSS
+- Only classic WooCommerce checkout is supported.
+- Checkout Block is explicitly excluded from this integration.
 
 ---
 
-## Subscription Flow (Detailed)
+# 4. Subscription Flow (Runtime Behavior)
 
-### 1) Guest Checkout with Opt-in OFF
+## 4.1 Hook Map
+Admin hooks:
 
-1. Checkout submitted.
-2. Consent save writes:
+- `admin_menu`
+- `admin_init` (migration + save handlers)
+- `wp_ajax_bw_brevo_test_connection`
+
+Checkout hooks:
+
+- `woocommerce_before_checkout_billing_form`
+- `woocommerce_checkout_fields`
+- `woocommerce_form_field`
+- `woocommerce_checkout_update_order_meta`
+- `woocommerce_checkout_order_processed` (timing `created`)
+- `woocommerce_order_status_processing` (timing `paid`)
+- `woocommerce_order_status_completed` (timing `paid`)
+- `wp_enqueue_scripts`
+
+## 4.2 Guest Checkout with Opt-in OFF
+Sequence:
+
+1. Checkout posts without consent.
+2. Metadata saved:
    - `_bw_subscribe_newsletter = 0`
    - `_bw_subscribe_consent_source = checkout`
    - `_bw_brevo_subscribed = skipped`
-3. Paid/created trigger reaches subscription processor.
-4. Processor exits early due to no explicit consent.
-5. No Brevo API call is made.
+3. Processor exits before Brevo subscription call.
+4. No API subscription request is executed.
 
-### 2) Guest Checkout with Opt-in ON
+## 4.3 Guest Checkout with Opt-in ON
+Sequence:
 
-1. Checkout submitted.
-2. Consent save writes:
+1. Checkout posts with consent.
+2. Metadata saved:
    - `_bw_subscribe_newsletter = 1`
-   - `_bw_subscribe_consent_source = checkout`
    - `_bw_subscribe_consent_at = <timestamp>`
-3. Subscription execution timing depends on `subscribe_timing`.
+   - `_bw_subscribe_consent_source = checkout`
+3. Subscription execution depends on timing.
 
-### 3) Timing = `paid`
+## 4.4 Timing Behavior: `paid` vs `created`
 
-1. Order transitions to `processing` or `completed`.
-2. `maybe_subscribe_on_paid()` executes.
-3. Processor validates consent/settings/email/client.
-4. Mode resolved from channel override or General default.
-5. Calls single opt-in or DOI API path.
-6. Writes final state meta (`subscribed` / `pending` / `skipped` / `error`).
+### `paid` (default)
+Executed on:
 
-### 4) Timing = `created`
+- `woocommerce_order_status_processing`
+- `woocommerce_order_status_completed`
 
-1. On `woocommerce_checkout_order_processed`, subscription processor is called.
-2. Same validation/mode/API/state logic applies.
+### `created`
+Executed on:
 
-### 5) Double Opt-in Enabled
+- `woocommerce_checkout_order_processed`
 
-1. Resolved mode is `double_opt_in`.
-2. Requires:
-   - `double_optin_template_id`
-   - `double_optin_redirect_url`
-3. Calls `send_double_opt_in(...)`.
-4. On success writes `_bw_brevo_subscribed = pending`.
-5. Contact joins list after end-user confirms DOI email.
+In both modes, execution path performs:
 
-### 6) Email Already Exists
+- Consent validation
+- Settings validation
+- Email validation
+- Mode resolution (single vs DOI)
+- Brevo API request
+- State write + log event
 
-1. Single opt-in path calls `upsert_contact(...)` with `updateEnabled=true`.
-2. Existing contact is updated, not duplicated.
-3. On success writes `_bw_brevo_subscribed = subscribed`.
+## 4.5 Double Opt-in Enabled
+When resolved mode is DOI:
 
-### 7) Email Unsubscribed / Blocklisted
+- Preconditions:
+  - `double_optin_template_id`
+  - `double_optin_redirect_url`
+- Call:
+  - `send_double_opt_in(...)`
+- On success:
+  - `_bw_brevo_subscribed = pending`
 
-1. Pre-check uses `get_contact(email)`.
-2. If contact is detected as blacklisted (`emailBlacklisted`), processor skips subscription.
-3. Writes `_bw_brevo_subscribed = skipped`.
-4. Logs reason via `bw-brevo` source.
+## 4.6 Email Already Exists
+Single opt-in path uses:
+
+- `upsert_contact(..., updateEnabled=true)`
+
+Result:
+
+- Existing contact is updated, not duplicated.
+
+## 4.7 Email Unsubscribed / Blocklisted
+Current enforced behavior:
+
+- Pre-check `get_contact($email)`
+- If `emailBlacklisted` is true:
+  - skip subscription
+  - set `_bw_brevo_subscribed = skipped`
+  - log reason with `bw-brevo`
 
 Note:
 
-- Current implementation explicitly checks `emailBlacklisted`; additional Brevo opt-out semantics may require further hardening.
+- Current guard is explicit for blocklisted contacts.
+- Additional Brevo opt-out semantics should be expanded in future hardening.
 
 ---
 
-## State Machine
-
-Order meta key:
+# 5. State Machine
+Primary meta key:
 
 ```text
 _bw_brevo_subscribed
 ```
 
-Allowed values:
+Allowed values and semantics:
 
-### `pending`
-Set when DOI request is accepted by Brevo and confirmation is still required.
+## 5.1 `pending`
+Set when DOI request is accepted and user confirmation is pending.
 
-### `subscribed`
-Set when single opt-in `upsert_contact()` succeeds.
+## 5.2 `subscribed`
+Set after successful single opt-in upsert.
 
-### `skipped`
-Set when subscription is intentionally not executed, e.g.:
+## 5.3 `skipped`
+Set when subscription is intentionally not performed.
+
+Typical reasons:
 
 - no explicit consent
-- contact blocklisted
+- blocklisted contact
 
-### `error`
-Set when subscription process fails validation or API call.
+## 5.4 `error`
+Set when validation or API execution fails.
 
 Companion error key:
 
@@ -284,106 +356,105 @@ Companion error key:
 _bw_brevo_error_last
 ```
 
-Stores latest error message for troubleshooting.
+Stores latest failure reason for troubleshooting.
 
 ---
 
-## Consent and Metadata
+# 6. Logging Specification
+Logger backend:
 
-Checkout consent metadata:
+- WooCommerce logger (`wc_get_logger()`)
 
-- `_bw_subscribe_newsletter`
-- `_bw_subscribe_consent_at`
-- `_bw_subscribe_consent_source`
+Source namespace:
 
-Audit/processing metadata:
+```text
+bw-brevo
+```
 
-- `_bw_brevo_subscribed`
-- `_bw_brevo_error_last`
+Minimum log context fields:
 
----
+- `order_id` when available
+- `email` when available
+- `context` (`checkout_guest` / `checkout_user`)
+- `result` (`pending`, `subscribed`, `skipped`, `error`)
 
-## Compliance and Safety Requirements
+Logging expectations:
 
-### Explicit Consent Only
-No subscription call must be performed when user did not opt in.
-
-### No Automatic Resubscribe
-When resubscribe policy is `no_auto_resubscribe`, blocklisted contacts must not be silently re-added.
-
-### Logging Requirements
-All outcomes (success/skip/error) must be traceable through Woo logger source `bw-brevo` with order and contact context.
-
-### GDPR Considerations
-
-- Avoid pre-checked consent where not legally allowed by jurisdiction.
-- Keep privacy text explicit and channel-specific.
-- Maintain auditable timestamp/source of consent.
-- Ensure unsubscribe and preference management are honored in Brevo lifecycle.
+- Every terminal outcome must be logged.
+- Error logs must include actionable reason.
+- Skip logs must include explicit reason (consent missing, blocklisted, etc.).
 
 ---
 
-## Migration and Backward Compatibility
+# 7. Compliance & Safety
+Mandatory safety rules:
 
-### Migration Strategy
-On admin initialization:
+- No subscription without explicit consent.
+- No automatic resubscribe of blocklisted/unsubscribed contacts under `no_auto_resubscribe` policy.
+- All runtime outcomes must be auditable through metadata and logs.
 
-1. If legacy option exists and new options are missing, map values into new options.
-2. Keep legacy option readable as fallback to avoid breaking existing live sites.
+GDPR-oriented requirements:
 
-### Backward Compatibility Notes
-
-- Old admin route `Checkout -> Subscribe` is deprecated.
-- Current behavior: it shows a notice and points to `Mail Marketing -> Checkout`.
-- Editable settings are centralized in Mail Marketing tabs.
-
----
-
-## Known Constraints
-
-- Checkout integration supports classic checkout only (not Checkout Block).
-- Placement settings may be constrained by checkout template rendering order if template hardcodes field sequence.
-- “Unsubscribed” semantics are only partially represented by current blacklisted check.
+- Consent language must be explicit (`label_text`, `privacy_text`).
+- Default checked behavior must be used only where legally valid.
+- Consent source and timestamp must be retained for audit.
+- Preference and unsubscribe semantics from Brevo must be respected.
 
 ---
 
-## Future Roadmap
+# 8. Migration & Legacy Notes
+## 8.1 Migration Strategy
+Legacy option:
 
-### Channel Expansion
+```text
+bw_checkout_subscribe_settings
+```
 
-- Footer newsletter module
-- Popup newsletter module
-- My Account newsletter toggle
-- OAuth/social login soft opt-in flow
+Migration behavior:
 
-### Platform Hardening
+- If new options are empty and legacy option exists:
+  - map global fields to `bw_mail_marketing_general_settings`
+  - map checkout fields to `bw_mail_marketing_checkout_settings`
 
-- Introduce centralized `BW_Subscribe_Service`
-- Expand no-resubscribe guard to all Brevo opt-out states
-- Standardize state transition policy across all channels
-- Add automated integration tests for paid/created/DOI flows
-
-### Observability
-
-- Structured log payload conventions
-- Optional admin diagnostics page for subscription events
-- Better correlation between order/user/contact events
-
----
-
-## Legacy Notes (Deprecated Behavior)
-
-Deprecated admin IA:
+## 8.2 Legacy Compatibility
+Deprecated admin path:
 
 - `Blackwork Site -> Checkout -> Subscribe`
 
-Deprecated primary option model:
+Current behavior:
 
-- `bw_checkout_subscribe_settings`
+- Deprecated route shows notice and points to Mail Marketing page.
+- Editable configuration is centralized in `Mail Marketing -> General/Checkout`.
 
-Status:
+Backward-compatibility note:
 
-- Deprecated but still supported as migration/fallback source.
-- New development must target:
-  - `bw_mail_marketing_general_settings`
-  - `bw_mail_marketing_checkout_settings`
+- Legacy option can still be read as fallback to avoid breaking old installations.
+
+---
+
+# 9. Future Roadmap
+Channel expansion:
+
+- Footer newsletter integration
+- Popup newsletter integration
+- My Account newsletter toggle
+- OAuth login soft opt-in integration
+
+Architecture hardening:
+
+- Introduce centralized `BW_Subscribe_Service`
+- Extend unsubscribe/blocklist guard coverage beyond current explicit blacklisted check
+- Normalize state transition contract across channels
+- Add automated integration tests for `created`, `paid`, and DOI paths
+
+Observability improvements:
+
+- Structured log conventions
+- Diagnostics view for subscription events
+- Cross-entity traceability (order/user/contact)
+
+---
+
+# 10. Change Log
+## v1.0 - 2026-02-24
+- Initial Mail Marketing architecture refactor
