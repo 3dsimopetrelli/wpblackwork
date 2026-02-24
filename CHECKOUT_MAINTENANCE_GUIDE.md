@@ -321,6 +321,48 @@ Quando Google Pay è in stato "initializing", il checkout mostra un loader gener
 
 ---
 
+### 6.6 ✅ RISOLTO — Riga "Card" di Stripe UPE nascosta
+
+**File:** `assets/css/bw-payment-methods.css`, `assets/js/bw-stripe-upe-cleaner.js`
+
+**Problema:** Stripe UPE (Universal Payment Element) nelle versioni più recenti inietta un elemento `<div class="p-PaymentAccordionButtonView">` direttamente nel DOM della pagina — **fuori dall'iframe** — quando usa il layout accordion/tabs. Questo crea una riga "Card" ridondante con icona e testo visibili sopra i campi di input, in conflitto con l'accordion custom BlackWork.
+
+**Perché accade:** Nelle versioni Stripe più vecchie l'elemento era confinato all'interno dell'iframe, dove veniva nascosto con `clip-path`. Nelle versioni più recenti Stripe "teleporta" l'elemento nel DOM padre, rendendo il clip-path sull'iframe inefficace.
+
+**Fix applicato — doppio strato:**
+
+**1. CSS (`bw-payment-methods.css`):**
+```css
+/* Stripe UPE newer versions render the "Card" accordion row in the parent DOM
+   (outside the iframe) using internal class names like p-PaymentAccordionButtonView.
+   Use broad selectors so the rule applies regardless of where Stripe places the element.
+   JS in bw-stripe-upe-cleaner.js provides a second layer via MutationObserver. */
+body.woocommerce-checkout [class*="PaymentAccordionButtonView"],
+body.woocommerce-checkout [data-testid="payment-accordion-wrapper"] {
+    display: none !important;
+}
+```
+
+Il selettore `[class*="PaymentAccordionButtonView"]` usa match parziale (`*=`) per resistere a variazioni minori di naming interno Stripe (es. `p-PaymentAccordionButtonView`, `PaymentAccordionButtonView--root`, ecc.).
+
+**2. JS (`bw-stripe-upe-cleaner.js`):**
+
+MutationObserver che intercetta gli elementi appena iniettati e applica `display: none !important` via `style.setProperty()` — un layer aggiuntivo per gestire eventuali versioni future di Stripe che potrebbero cambiare i nomi delle classi o iniettare l'elemento dopo il paint iniziale.
+
+```js
+var SELECTORS = [
+    '[class*="PaymentAccordionButtonView"]',
+    '[data-testid="payment-accordion-wrapper"]'
+];
+// MutationObserver + fallback setTimeout a 500ms e 1500ms
+```
+
+**Selettori da mantenere in sync tra CSS e JS.** Se Stripe aggiorna la struttura interna e l'elemento riappare, cercare nel DOM del checkout il nuovo attributo/classe con DevTools e aggiornare entrambi i file.
+
+**Approach scartato (archivio):** `clip-path: inset(26px 0 0 0)` sull'iframe `.wc-stripe-upe-element iframe` — funzionava con Stripe vecchio ma non ha effetto quando l'elemento è fuori dall'iframe.
+
+---
+
 ## 7. Webhook — hardening mancante
 
 ### 7.1 ✅ RISOLTO — Configurazione Stripe webhook documentata
