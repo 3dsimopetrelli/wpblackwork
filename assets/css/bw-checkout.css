@@ -3605,6 +3605,26 @@ body.bw-modal-open {
     overflow: hidden !important;
 }
 
+/* Keep validation borders fully visible in Stripe card fields (non-Express) */
+body.woocommerce-checkout #payment .payment_method_stripe .bw-stripe-fields-wrapper,
+body.woocommerce-checkout #payment .payment_method_stripe #wc-stripe-payment-element,
+body.woocommerce-checkout #payment .payment_method_stripe .wc-stripe-upe-element,
+body.woocommerce-checkout #payment .payment_method_stripe .wc-stripe-elements-field,
+body.woocommerce-checkout #payment .payment_method_stripe .StripeElement {
+    overflow: visible !important;
+}
+
+/* Stripe UPE internals: avoid clipping invalid red borders/outline */
+body.woocommerce-checkout #payment .payment_method_stripe .p-Field,
+body.woocommerce-checkout #payment .payment_method_stripe .p-Fieldset,
+body.woocommerce-checkout #payment .payment_method_stripe .p-Fieldset-input,
+body.woocommerce-checkout #payment .payment_method_stripe .p-CardNumberInput,
+body.woocommerce-checkout #payment .payment_method_stripe .p-CardNumberInput__input,
+body.woocommerce-checkout #payment .payment_method_stripe .p-Input,
+body.woocommerce-checkout #payment .payment_method_stripe .p-Input--invalid {
+    overflow: visible !important;
+}
+
 /* StripeElement but NOT inside Express Checkout */
 .StripeElement:not(img):not(svg):not([id*="express-checkout"]) {
     border-radius: 8px !important;
