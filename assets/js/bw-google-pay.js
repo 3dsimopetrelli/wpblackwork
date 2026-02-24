@@ -434,15 +434,6 @@
         });
     }
 
-    function bwRenderCheckoutNotice(type, message) {
-        var klass = type === 'error' ? 'woocommerce-error' : 'woocommerce-info';
-        var $notices = $('.woocommerce-notices-wrapper').first();
-        if ($notices.length) {
-            $notices.html('<ul class="' + klass + '" role="alert"><li>' + message + '</li></ul>');
-        }
-        $('html, body').animate({ scrollTop: 0 }, 250);
-    }
-
     // -------------------------------------------------------------------------
     // Stripe Payment Request (Google Pay)
     // -------------------------------------------------------------------------
@@ -578,7 +569,7 @@
                     is_cart_empty: null
                 });
             }
-            bwRenderCheckoutNotice('error', 'Google Pay payment was canceled. You can try again or choose another payment method.');
+            window.bwCheckout.renderCheckoutNotice('error', 'Google Pay payment was canceled. You can try again or choose another payment method.');
             $('#bw_google_pay_method_id').val('');
             window.bwCheckout.removeLoadingState();
             $(document.body).trigger('update_checkout');
