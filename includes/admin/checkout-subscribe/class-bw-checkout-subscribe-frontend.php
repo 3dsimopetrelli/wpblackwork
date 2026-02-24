@@ -318,7 +318,11 @@ class BW_Checkout_Subscribe_Frontend {
             return;
         }
 
-        if ( empty( $general_settings['list_id'] ) ) {
+        $list_id = class_exists( 'BW_MailMarketing_Service' )
+            ? BW_MailMarketing_Service::resolve_marketing_list_id( $general_settings )
+            : ( isset( $general_settings['list_id'] ) ? absint( $general_settings['list_id'] ) : 0 );
+
+        if ( $list_id <= 0 ) {
             $this->mark_skipped( $order, 'missing_list_id' );
             $this->log_event( 'info', 'Skipping subscribe: Brevo settings missing list ID.', $order, '', 'skipped' );
             return;
@@ -366,7 +370,7 @@ class BW_Checkout_Subscribe_Frontend {
                 $email,
                 absint( $general_settings['double_optin_template_id'] ),
                 $general_settings['double_optin_redirect_url'],
-                [ absint( $general_settings['list_id'] ) ],
+                [ $list_id ],
                 $attributes,
                 $sender
             );
@@ -378,7 +382,7 @@ class BW_Checkout_Subscribe_Frontend {
                     $email,
                     absint( $general_settings['double_optin_template_id'] ),
                     $general_settings['double_optin_redirect_url'],
-                    [ absint( $general_settings['list_id'] ) ],
+                    [ $list_id ],
                     $this->strip_marketing_attributes( $attributes ),
                     $sender
                 );
@@ -388,7 +392,7 @@ class BW_Checkout_Subscribe_Frontend {
                         $email,
                         absint( $general_settings['double_optin_template_id'] ),
                         $general_settings['double_optin_redirect_url'],
-                        [ absint( $general_settings['list_id'] ) ],
+                        [ $list_id ],
                         [],
                         $sender
                     );
@@ -423,7 +427,7 @@ class BW_Checkout_Subscribe_Frontend {
         $result = $client->upsert_contact(
             $email,
             $attributes,
-            [ absint( $general_settings['list_id'] ) ]
+            [ $list_id ]
         );
 
         if ( empty( $result['success'] ) && $this->is_brevo_unknown_attribute_error( $result ) ) {
@@ -432,14 +436,14 @@ class BW_Checkout_Subscribe_Frontend {
             $result = $client->upsert_contact(
                 $email,
                 $this->strip_marketing_attributes( $attributes ),
-                [ absint( $general_settings['list_id'] ) ]
+                [ $list_id ]
             );
             if ( empty( $result['success'] ) && $this->is_brevo_unknown_attribute_error( $result ) ) {
                 $this->log_event( 'warning', 'Brevo still rejected attributes. Retrying with empty attributes.', $order, $email, 'warning' );
                 $result = $client->upsert_contact(
                     $email,
                     [],
-                    [ absint( $general_settings['list_id'] ) ]
+                    [ $list_id ]
                 );
             }
         }
@@ -476,47 +480,15 @@ class BW_Checkout_Subscribe_Frontend {
      * @return array
      */
     private function build_contact_attributes( $order, $general_settings ) {
-        $attributes = [];
-
-        if ( ! empty( $general_settings['sync_first_name'] ) ) {
-            $first_name = trim( (string) $order->get_billing_first_name() );
-            if ( '' !== $first_name ) {
-                $attributes['FIRSTNAME'] = $first_name;
-            }
-        }
-
-        if ( ! empty( $general_settings['sync_last_name'] ) ) {
-            $last_name = trim( (string) $order->get_billing_last_name() );
-            if ( '' !== $last_name ) {
-                $attributes['LASTNAME'] = $last_name;
-            }
+        if ( ! class_exists( 'BW_MailMarketing_Service' ) ) {
+            return [];
         }
 
         $consent_source = (string) $order->get_meta( '_bw_subscribe_consent_source', true );
-        if ( '' === $consent_source ) {
-            $consent_source = 'checkout';
-        }
+        $attributes = BW_MailMarketing_Service::build_brevo_attributes_from_order( $order, $consent_source );
+        $name_attributes = BW_MailMarketing_Service::build_name_attributes_from_order( $order, $general_settings );
 
-        $consent_source = sanitize_key( $consent_source );
-        $attributes['SOURCE'] = $consent_source;
-        $attributes['CONSENT_SOURCE'] = $consent_source;
-        $attributes['BW_ENV'] = 'wp';
-
-        $consent_at = (string) $order->get_meta( '_bw_subscribe_consent_at', true );
-        if ( '' !== $consent_at ) {
-            $attributes['CONSENT_AT'] = $consent_at;
-        }
-
-        $attributes['LAST_ORDER_ID'] = (string) absint( $order->get_id() );
-        $order_date = $order->get_date_paid();
-        if ( ! $order_date ) {
-            $order_date = $order->get_date_created();
-        }
-        if ( $order_date instanceof WC_DateTime ) {
-            $attributes['LAST_ORDER_AT'] = $order_date->date( 'Y-m-d H:i:s' );
-        }
-
-        return $attributes;
+        return array_merge( $attributes, $name_attributes );
     }
 
     /**
@@ -531,7 +503,17 @@ class BW_Checkout_Subscribe_Frontend {
             return [];
         }
 
-        unset( $attributes['SOURCE'], $attributes['CONSENT_SOURCE'], $attributes['CONSENT_AT'], $attributes['BW_ENV'], $attributes['LAST_ORDER_ID'], $attributes['LAST_ORDER_AT'] );
+        unset(
+            $attributes['SOURCE'],
+            $attributes['CONSENT_SOURCE'],
+            $attributes['CONSENT_AT'],
+            $attributes['CONSENT_STATUS'],
+            $attributes['BW_ORIGIN_SYSTEM'],
+            $attributes['BW_ENV'],
+            $attributes['LAST_ORDER_ID'],
+            $attributes['LAST_ORDER_AT'],
+            $attributes['CUSTOMER_STATUS']
+        );
         return $attributes;
     }
 

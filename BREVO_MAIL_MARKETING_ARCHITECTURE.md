@@ -86,6 +86,50 @@ For teams using alternative naming in external docs:
 - `_bw_frontend_checkbox_state` == `_bw_subscribe_newsletter_frontend`
 
 
+# Brevo Data Model
+## Lists
+- `#10 Blackwork - Marketing`:
+  - primary list for consent granted contacts (`opt_in=1` + consent metadata present)
+- `#11 Blackwork - Unconfirmed`:
+  - placeholder for future DOI/non-checkout capture flows (not actively used yet)
+
+List behavior rules:
+- When consent is granted, subscribe/upsert into Marketing list.
+- If plugin setting `list_id` is configured, it has priority over fallback.
+- Fallback marketing list ID is `10` for backwards compatibility.
+- No subscription is allowed without explicit consent gating.
+
+## Attribute model (centralized map)
+Attributes are built from one shared map (`BW_MailMarketing_Service::build_brevo_attributes_from_order()`), then reused across:
+- checkout paid/created flow
+- manual retry
+- bulk resync
+
+| Key | Type | Example | Source |
+|---|---|---|---|
+| `SOURCE` | text | `checkout` | `_bw_subscribe_consent_source` |
+| `CONSENT_SOURCE` | text | `checkout` | `_bw_subscribe_consent_source` |
+| `CONSENT_AT` | ISO8601 text | `2026-02-24T18:50:00Z` | `_bw_subscribe_consent_at` |
+| `CONSENT_STATUS` | text | `granted` | consent gate state |
+| `BW_ORIGIN_SYSTEM` | text | `wp` | hardcoded |
+| `BW_ENV` | text | `production` / `staging` | `wp_get_environment_type()` / `WP_ENV` |
+| `LAST_ORDER_ID` | text/number | `26859` | order id |
+| `LAST_ORDER_AT` | ISO8601 text | `2026-02-24T19:03:00Z` | paid date, fallback created date |
+| `CUSTOMER_STATUS` | text | `customer` | order context |
+| `FIRSTNAME` | text | `Mario` | billing first name (if enabled) |
+| `LASTNAME` | text | `Rossi` | billing last name (if enabled) |
+
+SOURCE evolution notes:
+- Current implementation updates `SOURCE` with latest consent source.
+- `SOURCE_FIRST` is reserved for future implementation (first-touch immutable source).
+- Until `SOURCE_FIRST` exists, historical first-source is not persisted separately.
+
+Operational prerequisite:
+- Custom attributes must exist in Brevo:
+  - `Contacts -> Settings -> Attributes`
+- If missing, integration logs warning and applies fallback payloads.
+
+
 # Brevo Sync Logic
 ## Trigger hooks
 - `woocommerce_order_status_processing`
@@ -105,10 +149,13 @@ For teams using alternative naming in external docs:
 - Contact attributes sent (when opt-in = 1):
   - `SOURCE` = consent source
   - `CONSENT_SOURCE` = consent source
-  - `CONSENT_AT` = consent timestamp (if available)
-  - `BW_ENV` = `wp`
+  - `CONSENT_AT` = consent timestamp in ISO8601 (if available)
+  - `CONSENT_STATUS` = `granted`
+  - `BW_ORIGIN_SYSTEM` = `wp`
+  - `BW_ENV` = `production|staging` (environment detection)
   - `LAST_ORDER_ID` = Woo order ID
-  - `LAST_ORDER_AT` = paid datetime (fallback: order created datetime)
+  - `LAST_ORDER_AT` = paid datetime ISO8601 (fallback: order created datetime)
+  - `CUSTOMER_STATUS` = `customer`
   - `FIRSTNAME` / `LASTNAME` if enabled in General settings
 - On success:
   - `_bw_brevo_subscribed = subscribed`
@@ -132,7 +179,7 @@ For teams using alternative naming in external docs:
 - If Brevo still rejects attributes, the module retries with empty attributes payload.
 - Unknown-attribute failures are treated as non-fatal warnings:
   - checkout flow is not interrupted
-  - order status is not forced to error
+  - order status is not forced to error for attribute-schema mismatches
   - warning is stored in `_bw_brevo_error_last` for diagnostics
 
 ## Brevo Attributes
@@ -142,10 +189,13 @@ The module sends these attributes only when consent is allowed (`opt_in=1` with 
 |---|---|---|---|
 | `SOURCE` | string | all subscribe/upsert flows | `checkout` |
 | `CONSENT_SOURCE` | string | all subscribe/upsert flows | `checkout` |
-| `CONSENT_AT` | datetime string (`Y-m-d H:i:s`) | all flows when available | `2026-02-24 19:50:00` |
-| `BW_ENV` | string | all flows | `wp` |
+| `CONSENT_AT` | ISO8601 datetime string | all flows when available | `2026-02-24T18:50:00Z` |
+| `CONSENT_STATUS` | string | all flows | `granted` |
+| `BW_ORIGIN_SYSTEM` | string | all flows | `wp` |
+| `BW_ENV` | string | all flows | `production` |
 | `LAST_ORDER_ID` | string/int | order-based flows | `26859` |
-| `LAST_ORDER_AT` | datetime string (`Y-m-d H:i:s`) | order-based flows | `2026-02-24 20:03:00` |
+| `LAST_ORDER_AT` | ISO8601 datetime string | order-based flows | `2026-02-24T19:03:00Z` |
+| `CUSTOMER_STATUS` | string | order-based flows | `customer` |
 | `FIRSTNAME` | string | if enabled | `Mario` |
 | `LASTNAME` | string | if enabled | `Rossi` |
 

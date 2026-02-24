@@ -92,6 +92,7 @@ $bw_checkout_fields_frontend = plugin_dir_path(__FILE__) . 'includes/admin/check
 $bw_checkout_subscribe_admin = plugin_dir_path(__FILE__) . 'includes/admin/checkout-subscribe/class-bw-checkout-subscribe-admin.php';
 $bw_checkout_subscribe_frontend = plugin_dir_path(__FILE__) . 'includes/admin/checkout-subscribe/class-bw-checkout-subscribe-frontend.php';
 $bw_brevo_client = plugin_dir_path(__FILE__) . 'includes/integrations/brevo/class-bw-brevo-client.php';
+$bw_mailmarketing_service = plugin_dir_path(__FILE__) . 'includes/integrations/brevo/class-bw-mailmarketing-service.php';
 
 if (file_exists($bw_checkout_fields_admin)) {
     require_once $bw_checkout_fields_admin;
@@ -103,6 +104,10 @@ if (file_exists($bw_checkout_fields_frontend)) {
 
 if (file_exists($bw_brevo_client)) {
     require_once $bw_brevo_client;
+}
+
+if (file_exists($bw_mailmarketing_service)) {
+    require_once $bw_mailmarketing_service;
 }
 
 if (file_exists($bw_checkout_subscribe_admin)) {
