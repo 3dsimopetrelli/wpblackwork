@@ -781,12 +781,16 @@ class BW_Checkout_Subscribe_Admin {
             <table class="widefat striped bw-newsletter-meta-table" style="max-width:100%;margin-top:8px;">
                 <tbody>
                     <tr><th><?php esc_html_e( 'Email', 'bw' ); ?></th><td data-bw-field="email"><?php echo esc_html( $payload['meta']['email'] ); ?></td></tr>
-                    <tr><th><?php esc_html_e( 'List ID used', 'bw' ); ?></th><td data-bw-field="list_id"><?php echo esc_html( (string) $payload['meta']['list_id'] ); ?></td></tr>
+                    <tr><th><?php esc_html_e( 'List', 'bw' ); ?></th><td data-bw-field="list_display"><?php echo esc_html( (string) $payload['meta']['list_display'] ); ?></td></tr>
                     <tr><th><?php esc_html_e( 'Opt-in value', 'bw' ); ?></th><td data-bw-field="opt_in"><?php echo esc_html( (string) $payload['meta']['opt_in'] ); ?></td></tr>
                     <tr><th><?php esc_html_e( 'Consent timestamp', 'bw' ); ?></th><td data-bw-field="consent_at"><?php echo esc_html( $payload['meta']['consent_at'] ); ?></td></tr>
                     <tr><th><?php esc_html_e( 'Consent source', 'bw' ); ?></th><td data-bw-field="consent_source"><?php echo esc_html( $payload['meta']['consent_source'] ); ?></td></tr>
+                    <tr><th><?php esc_html_e( 'Checkout field received', 'bw' ); ?></th><td data-bw-field="checkout_field_received"><?php echo esc_html( $payload['meta']['checkout_field_received'] ); ?></td></tr>
                     <tr><th><?php esc_html_e( 'Current Brevo status', 'bw' ); ?></th><td data-bw-field="brevo_status"><?php echo esc_html( $payload['meta']['brevo_status'] ); ?></td></tr>
+                    <tr><th><?php esc_html_e( 'Status reason', 'bw' ); ?></th><td data-bw-field="status_reason"><?php echo esc_html( $payload['meta']['status_reason'] ); ?></td></tr>
                     <tr><th><?php esc_html_e( 'Last error', 'bw' ); ?></th><td data-bw-field="last_error"><?php echo esc_html( $payload['meta']['last_error'] ); ?></td></tr>
+                    <tr><th><?php esc_html_e( 'Last subscription attempt at', 'bw' ); ?></th><td data-bw-field="last_attempt_at"><?php echo esc_html( $payload['meta']['last_attempt_at'] ); ?></td></tr>
+                    <tr><th><?php esc_html_e( 'Attempt source', 'bw' ); ?></th><td data-bw-field="last_attempt_source"><?php echo esc_html( $payload['meta']['last_attempt_source'] ); ?></td></tr>
                     <tr><th><?php esc_html_e( 'Last checked at', 'bw' ); ?></th><td data-bw-field="last_checked_at"><?php echo esc_html( $payload['meta']['last_checked_at'] ); ?></td></tr>
                     <tr><th><?php esc_html_e( 'Brevo contact id', 'bw' ); ?></th><td data-bw-field="contact_id"><?php echo esc_html( $payload['meta']['contact_id'] ); ?></td></tr>
                 </tbody>
@@ -804,20 +808,27 @@ class BW_Checkout_Subscribe_Admin {
             return;
         }
 
+        $this->set_attempt_meta( $order, 'refresh_check' );
         $general = BW_Mail_Marketing_Settings::get_general_settings();
         $email   = (string) $order->get_billing_email();
         $list_id = isset( $general['list_id'] ) ? absint( $general['list_id'] ) : 0;
 
         if ( '' === $email || ! is_email( $email ) ) {
-            $this->set_order_error_meta( $order, __( 'Order has no valid billing email.', 'bw' ) );
-            $this->log_order_action( $order, $email, 'error', 'refresh', 'Invalid order email.' );
-            wp_send_json_error( [ 'message' => __( 'Order has no valid billing email.', 'bw' ) ] );
+            $this->set_order_status_meta( $order, 'skipped', 'invalid_email' );
+            $this->log_order_action( $order, $email, 'skipped', 'refresh', 'Refresh skipped: invalid order email.' );
+            wp_send_json_success( $this->build_order_status_payload( $order, __( 'Skipped: invalid order email.', 'bw' ) ) );
         }
 
         if ( empty( $general['api_key'] ) ) {
             $this->set_order_error_meta( $order, __( 'Brevo API key is not configured.', 'bw' ) );
             $this->log_order_action( $order, $email, 'error', 'refresh', 'Missing API key.' );
             wp_send_json_error( [ 'message' => __( 'Brevo API key is not configured.', 'bw' ) ] );
+        }
+
+        if ( $list_id <= 0 ) {
+            $this->set_order_status_meta( $order, 'skipped', 'missing_list_id' );
+            $this->log_order_action( $order, $email, 'skipped', 'refresh', 'Refresh skipped: missing list id.' );
+            wp_send_json_success( $this->build_order_status_payload( $order, __( 'Skipped: missing list ID.', 'bw' ) ) );
         }
 
         $client = new BW_Brevo_Client( $general['api_key'], BW_Mail_Marketing_Settings::API_BASE_URL );
@@ -827,8 +838,7 @@ class BW_Checkout_Subscribe_Admin {
 
         if ( empty( $result['success'] ) ) {
             if ( isset( $result['code'] ) && 404 === (int) $result['code'] ) {
-                update_post_meta( $order->get_id(), '_bw_brevo_subscribed', 'skipped' );
-                delete_post_meta( $order->get_id(), '_bw_brevo_error_last' );
+                $this->set_order_status_meta( $order, 'skipped', 'contact_not_found' );
                 delete_post_meta( $order->get_id(), '_bw_brevo_contact_id' );
 
                 $this->log_order_action( $order, $email, 'skipped', 'refresh', 'Contact not found in Brevo.' );
@@ -852,21 +862,18 @@ class BW_Checkout_Subscribe_Admin {
         }
 
         if ( $is_blacklisted ) {
-            update_post_meta( $order->get_id(), '_bw_brevo_subscribed', 'skipped' );
-            delete_post_meta( $order->get_id(), '_bw_brevo_error_last' );
+            $this->set_order_status_meta( $order, 'skipped', 'contact_blocklisted' );
             $this->log_order_action( $order, $email, 'skipped', 'refresh', 'Contact is blocklisted/unsubscribed.' );
             wp_send_json_success( $this->build_order_status_payload( $order, __( 'Contact is blocklisted/unsubscribed.', 'bw' ) ) );
         }
 
         if ( $in_list ) {
-            update_post_meta( $order->get_id(), '_bw_brevo_subscribed', 'subscribed' );
-            delete_post_meta( $order->get_id(), '_bw_brevo_error_last' );
+            $this->set_order_status_meta( $order, 'subscribed', 'already_subscribed' );
             $this->log_order_action( $order, $email, 'subscribed', 'refresh', 'Contact found in configured list.' );
             wp_send_json_success( $this->build_order_status_payload( $order, __( 'Contact found in configured list.', 'bw' ) ) );
         }
 
-        update_post_meta( $order->get_id(), '_bw_brevo_subscribed', 'skipped' );
-        delete_post_meta( $order->get_id(), '_bw_brevo_error_last' );
+        $this->set_order_status_meta( $order, 'skipped', 'not_in_list' );
         $this->log_order_action( $order, $email, 'skipped', 'refresh', 'Contact exists but is not in configured list.' );
         wp_send_json_success( $this->build_order_status_payload( $order, __( 'Contact exists but is not in configured list.', 'bw' ) ) );
     }
@@ -880,6 +887,7 @@ class BW_Checkout_Subscribe_Admin {
             return;
         }
 
+        $this->set_attempt_meta( $order, 'manual_retry' );
         $general = BW_Mail_Marketing_Settings::get_general_settings();
         $checkout = BW_Mail_Marketing_Settings::get_checkout_settings();
 
@@ -888,28 +896,27 @@ class BW_Checkout_Subscribe_Admin {
         $opt_in = (int) $order->get_meta( '_bw_subscribe_newsletter', true );
 
         if ( 1 !== $opt_in ) {
-            update_post_meta( $order->get_id(), '_bw_brevo_subscribed', 'skipped' );
+            $this->set_order_status_meta( $order, 'skipped', 'no_opt_in' );
             $this->log_order_action( $order, $email, 'skipped', 'retry', 'Retry skipped: customer did not opt-in.' );
             wp_send_json_error( [ 'message' => __( 'Retry skipped: customer did not opt-in.', 'bw' ) ] );
         }
 
         if ( '' === $email || ! is_email( $email ) ) {
-            $this->set_order_error_meta( $order, __( 'Order has no valid billing email.', 'bw' ) );
-            $this->log_order_action( $order, $email, 'error', 'retry', 'Invalid order email.' );
-            wp_send_json_error( [ 'message' => __( 'Order has no valid billing email.', 'bw' ) ] );
+            $this->set_order_status_meta( $order, 'skipped', 'invalid_email' );
+            $this->log_order_action( $order, $email, 'skipped', 'retry', 'Retry skipped: invalid order email.' );
+            wp_send_json_error( [ 'message' => __( 'Retry skipped: invalid order email.', 'bw' ) ] );
         }
 
         if ( empty( $general['api_key'] ) || $list_id <= 0 ) {
-            $this->set_order_error_meta( $order, __( 'Missing Brevo API key or list id.', 'bw' ) );
-            $this->log_order_action( $order, $email, 'error', 'retry', 'Missing API key/list id.' );
-            wp_send_json_error( [ 'message' => __( 'Missing Brevo API key or list id.', 'bw' ) ] );
+            $this->set_order_status_meta( $order, 'skipped', 'missing_list_id' );
+            $this->log_order_action( $order, $email, 'skipped', 'retry', 'Retry skipped: missing API key/list id.' );
+            wp_send_json_error( [ 'message' => __( 'Retry skipped: missing Brevo API key or list ID.', 'bw' ) ] );
         }
 
         $client = new BW_Brevo_Client( $general['api_key'], BW_Mail_Marketing_Settings::API_BASE_URL );
         $contact = $client->get_contact( $email );
         if ( ! empty( $contact['success'] ) && ! empty( $contact['data'] ) && is_array( $contact['data'] ) && ! empty( $contact['data']['emailBlacklisted'] ) ) {
-            update_post_meta( $order->get_id(), '_bw_brevo_subscribed', 'skipped' );
-            delete_post_meta( $order->get_id(), '_bw_brevo_error_last' );
+            $this->set_order_status_meta( $order, 'skipped', 'contact_blocklisted' );
             $this->log_order_action( $order, $email, 'skipped', 'retry', 'Retry skipped: contact is blocklisted/unsubscribed.' );
             wp_send_json_error( [ 'message' => __( 'Retry skipped: contact is blocklisted/unsubscribed.', 'bw' ) ] );
         }
@@ -959,6 +966,7 @@ class BW_Checkout_Subscribe_Admin {
             }
 
             update_post_meta( $order->get_id(), '_bw_brevo_subscribed', 'pending' );
+            update_post_meta( $order->get_id(), '_bw_brevo_status_reason', 'double_opt_in_sent' );
             delete_post_meta( $order->get_id(), '_bw_brevo_error_last' );
             update_post_meta( $order->get_id(), '_bw_brevo_last_checked_at', current_time( 'mysql' ) );
             $this->log_order_action( $order, $email, 'pending', 'retry', 'DOI request sent.' );
@@ -974,6 +982,7 @@ class BW_Checkout_Subscribe_Admin {
         }
 
         update_post_meta( $order->get_id(), '_bw_brevo_subscribed', 'subscribed' );
+        update_post_meta( $order->get_id(), '_bw_brevo_status_reason', 'subscribed' );
         delete_post_meta( $order->get_id(), '_bw_brevo_error_last' );
         update_post_meta( $order->get_id(), '_bw_brevo_last_checked_at', current_time( 'mysql' ) );
         $this->log_order_action( $order, $email, 'subscribed', 'retry', 'Retry subscribe succeeded.' );
@@ -1017,6 +1026,8 @@ class BW_Checkout_Subscribe_Admin {
         $general = BW_Mail_Marketing_Settings::get_general_settings();
         $opt_in = (int) $order->get_meta( '_bw_subscribe_newsletter', true );
         $status = (string) $order->get_meta( '_bw_brevo_subscribed', true );
+        $reason = (string) $order->get_meta( '_bw_brevo_status_reason', true );
+        $last_error = (string) $order->get_meta( '_bw_brevo_error_last', true );
 
         if ( '' === $status ) {
             $status = 1 === $opt_in ? 'pending' : 'not_subscribed';
@@ -1030,14 +1041,32 @@ class BW_Checkout_Subscribe_Admin {
             $status = 'not_subscribed';
         }
 
+        if ( '' === $reason ) {
+            if ( 'skipped' === $status && 1 !== $opt_in ) {
+                $reason = 'no_opt_in';
+            } elseif ( 'error' === $status ) {
+                $reason = 'api_error';
+            } elseif ( 'subscribed' === $status ) {
+                $reason = 'subscribed';
+            }
+        }
+
+        $list_id = isset( $general['list_id'] ) ? absint( $general['list_id'] ) : 0;
+        $list_display = $this->resolve_list_display( $general, $list_id );
+        $reason_label = $this->get_status_reason_label( $reason, $last_error );
+
         $meta = [
             'email'           => (string) $order->get_billing_email(),
-            'list_id'         => isset( $general['list_id'] ) ? (string) absint( $general['list_id'] ) : '0',
+            'list_display'    => $list_display,
             'opt_in'          => (string) $opt_in,
             'consent_at'      => (string) $order->get_meta( '_bw_subscribe_consent_at', true ),
             'consent_source'  => (string) $order->get_meta( '_bw_subscribe_consent_source', true ),
+            'checkout_field_received' => (string) $order->get_meta( '_bw_checkout_field_received', true ),
             'brevo_status'    => (string) $status,
-            'last_error'      => (string) $order->get_meta( '_bw_brevo_error_last', true ),
+            'status_reason'   => $reason_label,
+            'last_error'      => $last_error,
+            'last_attempt_at' => (string) $order->get_meta( '_bw_brevo_last_attempt_at', true ),
+            'last_attempt_source' => (string) $order->get_meta( '_bw_brevo_last_attempt_source', true ),
             'last_checked_at' => (string) $order->get_meta( '_bw_brevo_last_checked_at', true ),
             'contact_id'      => (string) $order->get_meta( '_bw_brevo_contact_id', true ),
         ];
@@ -1045,7 +1074,7 @@ class BW_Checkout_Subscribe_Admin {
         return [
             'message'      => $message,
             'status'       => $status,
-            'statusLabel'  => $this->get_status_label( $status ),
+            'statusLabel'  => $this->get_status_label( $status, $reason, $last_error ),
             'statusClass'  => $this->get_status_badge_class( $status ),
             'meta'         => $meta,
         ];
@@ -1058,15 +1087,24 @@ class BW_Checkout_Subscribe_Admin {
      *
      * @return string
      */
-    private function get_status_label( $status ) {
+    private function get_status_label( $status, $reason = '', $last_error = '' ) {
+        $reason_label = $this->get_status_reason_label( $reason, $last_error );
+
         switch ( $status ) {
             case 'subscribed':
                 return __( 'Subscribed', 'bw' );
             case 'pending':
                 return __( 'Pending', 'bw' );
             case 'error':
+                if ( '' !== $reason_label ) {
+                    return sprintf( __( 'Error (%s)', 'bw' ), $reason_label );
+                }
                 return __( 'Error', 'bw' );
             case 'skipped':
+                if ( '' !== $reason_label ) {
+                    return sprintf( __( 'Skipped (%s)', 'bw' ), $reason_label );
+                }
+                return __( 'Skipped', 'bw' );
             case 'not_subscribed':
             default:
                 return __( 'Not subscribed', 'bw' );
@@ -1104,7 +1142,120 @@ class BW_Checkout_Subscribe_Admin {
     private function set_order_error_meta( $order, $error ) {
         update_post_meta( $order->get_id(), '_bw_brevo_subscribed', 'error' );
         update_post_meta( $order->get_id(), '_bw_brevo_error_last', sanitize_text_field( $error ) );
+        update_post_meta( $order->get_id(), '_bw_brevo_status_reason', 'api_error' );
         update_post_meta( $order->get_id(), '_bw_brevo_last_checked_at', current_time( 'mysql' ) );
+    }
+
+    /**
+     * Persist non-error status transitions with reason.
+     *
+     * @param WC_Order $order  Order object.
+     * @param string   $status Status.
+     * @param string   $reason Reason key.
+     */
+    private function set_order_status_meta( $order, $status, $reason ) {
+        update_post_meta( $order->get_id(), '_bw_brevo_subscribed', sanitize_key( (string) $status ) );
+        update_post_meta( $order->get_id(), '_bw_brevo_status_reason', sanitize_key( (string) $reason ) );
+        delete_post_meta( $order->get_id(), '_bw_brevo_error_last' );
+        update_post_meta( $order->get_id(), '_bw_brevo_last_checked_at', current_time( 'mysql' ) );
+    }
+
+    /**
+     * Persist last attempt diagnostics.
+     *
+     * @param WC_Order $order          Order.
+     * @param string   $attempt_source Attempt source.
+     */
+    private function set_attempt_meta( $order, $attempt_source ) {
+        update_post_meta( $order->get_id(), '_bw_brevo_last_attempt_at', current_time( 'mysql' ) );
+        update_post_meta( $order->get_id(), '_bw_brevo_last_attempt_source', sanitize_key( (string) $attempt_source ) );
+    }
+
+    /**
+     * Resolve list display as "Name (#ID)" with graceful fallback.
+     *
+     * @param array $general General settings.
+     * @param int   $list_id List ID.
+     *
+     * @return string
+     */
+    private function resolve_list_display( $general, $list_id ) {
+        if ( $list_id <= 0 ) {
+            return __( 'Not configured (#0)', 'bw' );
+        }
+
+        $api_key = isset( $general['api_key'] ) ? (string) $general['api_key'] : '';
+        if ( '' === $api_key || ! class_exists( 'BW_Brevo_Client' ) ) {
+            return sprintf( __( 'Unknown list (#%d)', 'bw' ), $list_id );
+        }
+
+        $cache_key = 'bw_brevo_list_name_' . $list_id;
+        $cached = get_transient( $cache_key );
+        if ( false !== $cached && is_string( $cached ) && '' !== $cached ) {
+            return sprintf( '%s (#%d)', $cached, $list_id );
+        }
+
+        $client = new BW_Brevo_Client( $api_key, BW_Mail_Marketing_Settings::API_BASE_URL );
+        $lists = $client->get_lists( 200, 0 );
+        if ( empty( $lists['success'] ) || empty( $lists['data']['lists'] ) || ! is_array( $lists['data']['lists'] ) ) {
+            return sprintf( __( 'Unknown list (#%d)', 'bw' ), $list_id );
+        }
+
+        foreach ( $lists['data']['lists'] as $list ) {
+            $id = isset( $list['id'] ) ? absint( $list['id'] ) : 0;
+            if ( $id !== $list_id ) {
+                continue;
+            }
+
+            $name = isset( $list['name'] ) ? sanitize_text_field( (string) $list['name'] ) : '';
+            if ( '' === $name ) {
+                return sprintf( __( 'Unknown list (#%d)', 'bw' ), $list_id );
+            }
+
+            set_transient( $cache_key, $name, 10 * MINUTE_IN_SECONDS );
+            return sprintf( '%s (#%d)', $name, $list_id );
+        }
+
+        return sprintf( __( 'Unknown list (#%d)', 'bw' ), $list_id );
+    }
+
+    /**
+     * Human-readable reason label for diagnostics.
+     *
+     * @param string $reason     Reason key.
+     * @param string $last_error Last error.
+     *
+     * @return string
+     */
+    private function get_status_reason_label( $reason, $last_error = '' ) {
+        $reason = sanitize_key( (string) $reason );
+
+        $map = [
+            'no_opt_in'            => __( 'No opt-in', 'bw' ),
+            'missing_list_id'      => __( 'Missing list ID', 'bw' ),
+            'invalid_email'        => __( 'Invalid email', 'bw' ),
+            'already_subscribed'   => __( 'Already subscribed', 'bw' ),
+            'contact_blocklisted'  => __( 'Unsubscribed or blocklisted', 'bw' ),
+            'contact_not_found'    => __( 'Contact not found', 'bw' ),
+            'not_in_list'          => __( 'Contact not in configured list', 'bw' ),
+            'double_opt_in_sent'   => __( 'Double opt-in sent', 'bw' ),
+            'subscribed'           => __( 'Subscribed', 'bw' ),
+            'api_error'            => __( 'API error', 'bw' ),
+            'missing_settings'     => __( 'Missing API/list settings', 'bw' ),
+        ];
+
+        if ( isset( $map[ $reason ] ) ) {
+            if ( 'api_error' === $reason && '' !== $last_error ) {
+                return sprintf( __( 'API error: %s', 'bw' ), sanitize_text_field( $last_error ) );
+            }
+            return $map[ $reason ];
+        }
+
+        if ( '' !== $last_error ) {
+            return sanitize_text_field( $last_error );
+        }
+
+        return '';
     }
 
     /**

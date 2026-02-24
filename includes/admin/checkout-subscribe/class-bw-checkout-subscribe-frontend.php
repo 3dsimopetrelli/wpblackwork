@@ -144,15 +144,18 @@ class BW_Checkout_Subscribe_Frontend {
             return;
         }
 
+        $field_received = isset( $_POST['bw_subscribe_newsletter'] ) ? 'yes' : 'no';
         $opt_in = ! empty( $_POST['bw_subscribe_newsletter'] ) ? 1 : 0;
 
         update_post_meta( $order_id, '_bw_subscribe_newsletter', $opt_in );
         update_post_meta( $order_id, '_bw_subscribe_consent_source', 'checkout' );
+        update_post_meta( $order_id, '_bw_checkout_field_received', $field_received );
 
         if ( $opt_in ) {
             update_post_meta( $order_id, '_bw_subscribe_consent_at', current_time( 'mysql' ) );
         } else {
             update_post_meta( $order_id, '_bw_brevo_subscribed', 'skipped' );
+            update_post_meta( $order_id, '_bw_brevo_status_reason', 'no_opt_in' );
             delete_post_meta( $order_id, '_bw_brevo_error_last' );
         }
     }
@@ -170,7 +173,7 @@ class BW_Checkout_Subscribe_Frontend {
             return;
         }
 
-        $this->process_subscription( $order );
+        $this->process_subscription( $order, 'checkout_created_hook' );
     }
 
     /**
@@ -189,7 +192,7 @@ class BW_Checkout_Subscribe_Frontend {
             return;
         }
 
-        $this->process_subscription( $order );
+        $this->process_subscription( $order, 'checkout_paid_hook' );
     }
 
     /**
@@ -221,35 +224,45 @@ class BW_Checkout_Subscribe_Frontend {
      *
      * @param WC_Order $order Order object.
      */
-    private function process_subscription( $order ) {
+    private function process_subscription( $order, $attempt_source = 'checkout_paid_hook' ) {
         if ( ! $order instanceof WC_Order || $this->is_block_checkout() ) {
             return;
         }
 
+        $this->set_attempt_meta( $order, $attempt_source );
+
         $opt_in = $order->get_meta( '_bw_subscribe_newsletter', true );
         if ( empty( $opt_in ) ) {
-            $order->update_meta_data( '_bw_brevo_subscribed', 'skipped' );
-            $order->save();
+            $this->mark_skipped( $order, 'no_opt_in' );
             $this->log_event( 'info', 'Skipping subscribe: no explicit consent.', $order, '', 'skipped' );
             return;
         }
 
         $already = (string) $order->get_meta( '_bw_brevo_subscribed', true );
         if ( in_array( $already, [ 'subscribed', 'pending', '1' ], true ) ) {
+            $this->mark_skipped( $order, 'already_subscribed' );
+            $this->log_event( 'info', 'Skipping subscribe: already subscribed/pending.', $order, '', 'skipped' );
             return;
         }
 
         $general_settings = $this->get_general_settings();
         $checkout_settings = $this->get_checkout_settings();
 
-        if ( empty( $general_settings['api_key'] ) || empty( $general_settings['list_id'] ) ) {
-            $this->mark_error( $order, __( 'Brevo settings missing API key or list ID.', 'bw' ) );
+        if ( empty( $general_settings['api_key'] ) ) {
+            $this->mark_error( $order, __( 'Brevo settings missing API key.', 'bw' ), '', 'missing_settings' );
+            return;
+        }
+
+        if ( empty( $general_settings['list_id'] ) ) {
+            $this->mark_skipped( $order, 'missing_list_id' );
+            $this->log_event( 'info', 'Skipping subscribe: Brevo settings missing list ID.', $order, '', 'skipped' );
             return;
         }
 
         $email = $order->get_billing_email();
         if ( empty( $email ) || ! is_email( $email ) ) {
-            $this->mark_error( $order, __( 'Invalid billing email for newsletter subscription.', 'bw' ) );
+            $this->mark_skipped( $order, 'invalid_email' );
+            $this->log_event( 'info', 'Skipping subscribe: invalid billing email.', $order, '', 'skipped' );
             return;
         }
 
@@ -261,8 +274,7 @@ class BW_Checkout_Subscribe_Frontend {
         $client = new BW_Brevo_Client( $general_settings['api_key'], BW_Mail_Marketing_Settings::API_BASE_URL );
 
         if ( $this->is_contact_blocklisted( $client, $email, $general_settings ) ) {
-            $order->update_meta_data( '_bw_brevo_subscribed', 'skipped' );
-            $order->save();
+            $this->mark_skipped( $order, 'contact_blocklisted' );
             $this->log_event( 'info', 'Skipping subscribe: contact is unsubscribed/blocklisted.', $order, $email, 'skipped' );
             return;
         }
@@ -294,11 +306,12 @@ class BW_Checkout_Subscribe_Frontend {
             );
 
             if ( empty( $result['success'] ) ) {
-                $this->mark_error( $order, $this->extract_error_message( $result, 'Brevo double opt-in failed.' ), $email );
+                $this->mark_error( $order, $this->extract_error_message( $result, 'Brevo double opt-in failed.' ), $email, 'api_error' );
                 return;
             }
 
             $order->update_meta_data( '_bw_brevo_subscribed', 'pending' );
+            $order->update_meta_data( '_bw_brevo_status_reason', 'double_opt_in_sent' );
             $order->delete_meta_data( '_bw_brevo_error_last' );
             $order->save();
             $this->log_event( 'info', 'Brevo double opt-in request sent.', $order, $email, 'pending' );
@@ -312,11 +325,12 @@ class BW_Checkout_Subscribe_Frontend {
         );
 
         if ( empty( $result['success'] ) ) {
-            $this->mark_error( $order, $this->extract_error_message( $result, 'Brevo subscribe failed.' ), $email );
+            $this->mark_error( $order, $this->extract_error_message( $result, 'Brevo subscribe failed.' ), $email, 'api_error' );
             return;
         }
 
         $order->update_meta_data( '_bw_brevo_subscribed', 'subscribed' );
+        $order->update_meta_data( '_bw_brevo_status_reason', 'subscribed' );
         $order->delete_meta_data( '_bw_brevo_error_last' );
         $order->save();
         $this->log_event( 'info', 'Brevo contact subscribed.', $order, $email, 'subscribed' );
@@ -404,12 +418,38 @@ class BW_Checkout_Subscribe_Frontend {
      * @param string   $message Error message.
      * @param string   $email   Email.
      */
-    private function mark_error( $order, $message, $email = '' ) {
+    private function mark_error( $order, $message, $email = '', $reason = 'api_error' ) {
         $order->update_meta_data( '_bw_brevo_subscribed', 'error' );
         $order->update_meta_data( '_bw_brevo_error_last', $message );
+        $order->update_meta_data( '_bw_brevo_status_reason', sanitize_key( (string) $reason ) );
         $order->save();
 
         $this->log_event( 'error', $message, $order, $email, 'error' );
+    }
+
+    /**
+     * Persist skipped state with machine-readable reason.
+     *
+     * @param WC_Order $order  Order object.
+     * @param string   $reason Reason key.
+     */
+    private function mark_skipped( $order, $reason ) {
+        $order->update_meta_data( '_bw_brevo_subscribed', 'skipped' );
+        $order->update_meta_data( '_bw_brevo_status_reason', sanitize_key( (string) $reason ) );
+        $order->delete_meta_data( '_bw_brevo_error_last' );
+        $order->save();
+    }
+
+    /**
+     * Persist last attempt diagnostics.
+     *
+     * @param WC_Order $order         Order object.
+     * @param string   $attempt_source Attempt origin.
+     */
+    private function set_attempt_meta( $order, $attempt_source ) {
+        $order->update_meta_data( '_bw_brevo_last_attempt_at', current_time( 'mysql' ) );
+        $order->update_meta_data( '_bw_brevo_last_attempt_source', sanitize_key( (string) $attempt_source ) );
+        $order->save();
     }
 
     /**
