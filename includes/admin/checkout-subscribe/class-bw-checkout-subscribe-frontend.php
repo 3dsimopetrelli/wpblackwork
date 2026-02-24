@@ -181,10 +181,21 @@ class BW_Checkout_Subscribe_Frontend {
 
         $payload = $this->extract_checkout_optin_payload( is_array( $posted_data ) ? $posted_data : [] );
 
+        // Do not downgrade a valid value saved earlier in create_order hook.
+        $existing_opt_in = (int) get_post_meta( $order_id, '_bw_subscribe_newsletter', true );
+        $existing_received = (string) get_post_meta( $order_id, '_bw_checkout_field_received', true );
+        if ( 'no' === $payload['field_received'] && 'yes' === $existing_received ) {
+            $payload['field_received'] = 'yes';
+            $payload['opt_in'] = $existing_opt_in;
+            $payload['raw_value'] = (string) get_post_meta( $order_id, '_bw_checkout_field_value_raw', true );
+        }
+
         update_post_meta( $order_id, '_bw_subscribe_newsletter', $payload['opt_in'] );
         update_post_meta( $order_id, '_bw_subscribe_consent_source', 'checkout' );
         update_post_meta( $order_id, '_bw_checkout_field_received', $payload['field_received'] );
         update_post_meta( $order_id, '_bw_checkout_field_value_raw', $payload['raw_value'] );
+        update_post_meta( $order_id, '_bw_checkout_post_keys_snapshot', $payload['post_snapshot'] );
+        update_post_meta( $order_id, '_bw_subscribe_newsletter_frontend', $payload['frontend_state'] );
 
         if ( 1 === (int) $payload['opt_in'] ) {
             $consent_at = get_post_meta( $order_id, '_bw_subscribe_consent_at', true );
@@ -256,6 +267,16 @@ class BW_Checkout_Subscribe_Frontend {
             BW_MEW_URL . 'assets/css/bw-checkout-subscribe.css',
             [ 'bw-checkout' ],
             $version
+        );
+
+        $js_file = BW_MEW_PATH . 'assets/js/bw-checkout-subscribe-diagnostics.js';
+        $js_version = file_exists( $js_file ) ? filemtime( $js_file ) : '1.0.0';
+        wp_enqueue_script(
+            'bw-checkout-subscribe-diagnostics',
+            BW_MEW_URL . 'assets/js/bw-checkout-subscribe-diagnostics.js',
+            [ 'jquery' ],
+            $js_version,
+            true
         );
     }
 
@@ -497,11 +518,12 @@ class BW_Checkout_Subscribe_Frontend {
      *
      * @param array $posted_data Checkout posted data array (from Woo hook).
      *
-     * @return array{opt_in:int,field_received:string,raw_value:string}
+     * @return array{opt_in:int,field_received:string,raw_value:string,post_snapshot:string,frontend_state:string}
      */
     private function extract_checkout_optin_payload( $posted_data = [] ) {
         $raw_value = '';
         $field_received = 'no';
+        $frontend_state = '';
 
         if ( array_key_exists( 'bw_subscribe_newsletter', $posted_data ) ) {
             $raw_value = (string) $posted_data['bw_subscribe_newsletter'];
@@ -520,14 +542,24 @@ class BW_Checkout_Subscribe_Frontend {
             }
         }
 
+        if ( isset( $_POST['bw_subscribe_newsletter_frontend'] ) ) {
+            $frontend_state = sanitize_key( (string) wp_unslash( $_POST['bw_subscribe_newsletter_frontend'] ) );
+        }
+        if ( ! in_array( $frontend_state, [ 'checked', 'unchecked' ], true ) ) {
+            $frontend_state = '';
+        }
+
         $normalized = strtolower( trim( $raw_value ) );
         $truthy = [ '1', 'true', 'yes', 'on' ];
         $opt_in = in_array( $normalized, $truthy, true ) ? 1 : 0;
+        $post_snapshot = 'bw_subscribe_newsletter present: ' . ( 'yes' === $field_received ? 'yes' : 'no' );
 
         return [
             'opt_in'         => $opt_in,
             'field_received' => $field_received,
             'raw_value'      => '' !== $normalized ? $normalized : '',
+            'post_snapshot'  => $post_snapshot,
+            'frontend_state' => $frontend_state,
         ];
     }
 
@@ -546,6 +578,12 @@ class BW_Checkout_Subscribe_Frontend {
         $order->update_meta_data( '_bw_subscribe_consent_source', 'checkout' );
         $order->update_meta_data( '_bw_checkout_field_received', $field_received );
         $order->update_meta_data( '_bw_checkout_field_value_raw', $raw_value );
+        $post_snapshot = isset( $payload['post_snapshot'] ) ? (string) $payload['post_snapshot'] : 'bw_subscribe_newsletter present: no';
+        $frontend_state = isset( $payload['frontend_state'] ) ? (string) $payload['frontend_state'] : '';
+        $order->update_meta_data( '_bw_checkout_post_keys_snapshot', sanitize_text_field( $post_snapshot ) );
+        if ( in_array( $frontend_state, [ 'checked', 'unchecked' ], true ) ) {
+            $order->update_meta_data( '_bw_subscribe_newsletter_frontend', $frontend_state );
+        }
 
         if ( 1 === $opt_in ) {
             $consent_at = (string) $order->get_meta( '_bw_subscribe_consent_at', true );

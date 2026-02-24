@@ -235,9 +235,14 @@ class BW_Checkout_Subscribe_Admin {
         add_action( 'admin_init', [ $this, 'handle_post' ] );
         add_action( 'wp_ajax_bw_brevo_test_connection', [ $this, 'handle_test_connection' ] );
         add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_order_newsletter_assets' ] );
+        add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_user_mail_marketing_assets' ] );
         add_action( 'add_meta_boxes', [ $this, 'register_order_newsletter_metabox' ] );
         add_action( 'wp_ajax_bw_brevo_order_refresh_status', [ $this, 'handle_order_refresh_status' ] );
         add_action( 'wp_ajax_bw_brevo_order_retry_subscribe', [ $this, 'handle_order_retry_subscribe' ] );
+        add_action( 'show_user_profile', [ $this, 'render_user_mail_marketing_panel' ] );
+        add_action( 'edit_user_profile', [ $this, 'render_user_mail_marketing_panel' ] );
+        add_action( 'wp_ajax_bw_brevo_user_check_status', [ $this, 'handle_user_check_status' ] );
+        add_action( 'wp_ajax_bw_brevo_user_sync_status', [ $this, 'handle_user_sync_status' ] );
     }
 
     /**
@@ -691,6 +696,88 @@ class BW_Checkout_Subscribe_Admin {
     }
 
     /**
+     * Enqueue user-profile mail marketing panel assets.
+     *
+     * @param string $hook Admin hook suffix.
+     */
+    public function enqueue_user_mail_marketing_assets( $hook ) {
+        if ( ! in_array( $hook, [ 'profile.php', 'user-edit.php' ], true ) ) {
+            return;
+        }
+
+        $js_file = BW_MEW_PATH . 'admin/js/bw-user-mail-marketing.js';
+        $version = file_exists( $js_file ) ? filemtime( $js_file ) : '1.0.0';
+
+        wp_enqueue_script(
+            'bw-user-mail-marketing',
+            BW_MEW_URL . 'admin/js/bw-user-mail-marketing.js',
+            [ 'jquery' ],
+            $version,
+            true
+        );
+
+        wp_localize_script(
+            'bw-user-mail-marketing',
+            'bwUserMailMarketing',
+            [
+                'ajaxUrl'   => admin_url( 'admin-ajax.php' ),
+                'nonce'     => wp_create_nonce( 'bw_brevo_user_actions' ),
+                'errorText' => esc_html__( 'Action failed. Please retry.', 'bw' ),
+            ]
+        );
+    }
+
+    /**
+     * Render Mail Marketing diagnostics panel on user profile screens.
+     *
+     * @param WP_User $user User object.
+     */
+    public function render_user_mail_marketing_panel( $user ) {
+        if ( ! $user instanceof WP_User ) {
+            return;
+        }
+
+        if ( ! current_user_can( 'edit_user', $user->ID ) && ! current_user_can( 'manage_options' ) ) {
+            return;
+        }
+
+        $payload = $this->build_user_status_payload( $user );
+        ?>
+        <h2><?php esc_html_e( 'Mail Marketing', 'bw' ); ?></h2>
+        <table class="form-table" role="presentation">
+            <tbody>
+                <tr>
+                    <th><?php esc_html_e( 'Brevo status', 'bw' ); ?></th>
+                    <td>
+                        <div id="bw-user-mail-marketing-panel" data-user-id="<?php echo esc_attr( $user->ID ); ?>">
+                            <span id="bw-user-status-badge" class="bw-newsletter-status-badge <?php echo esc_attr( $this->get_status_badge_class( $payload['status'] ) ); ?>" style="display:inline-block;padding:6px 10px;border-radius:999px;font-weight:600;">
+                                <?php echo esc_html( $payload['statusLabel'] ); ?>
+                            </span>
+                            <button type="button" class="button" id="bw-user-check-status" style="margin-left:8px;"><?php esc_html_e( 'Check Brevo', 'bw' ); ?></button>
+                            <button type="button" class="button button-secondary" id="bw-user-sync-status" style="margin-left:8px;"><?php esc_html_e( 'Sync status', 'bw' ); ?></button>
+                            <p id="bw-user-inline-message" style="margin-top:8px;"></p>
+                            <table class="widefat striped" style="max-width:900px;margin-top:8px;">
+                                <tbody>
+                                    <tr><th><?php esc_html_e( 'Email', 'bw' ); ?></th><td data-bw-user-field="email"><?php echo esc_html( $payload['meta']['email'] ); ?></td></tr>
+                                    <tr><th><?php esc_html_e( 'List', 'bw' ); ?></th><td data-bw-user-field="list_display"><?php echo esc_html( $payload['meta']['list_display'] ); ?></td></tr>
+                                    <tr><th><?php esc_html_e( 'Current status', 'bw' ); ?></th><td data-bw-user-field="status"><?php echo esc_html( $payload['meta']['status'] ); ?></td></tr>
+                                    <tr><th><?php esc_html_e( 'Status reason', 'bw' ); ?></th><td data-bw-user-field="status_reason"><?php echo esc_html( $payload['meta']['status_reason'] ); ?></td></tr>
+                                    <tr><th><?php esc_html_e( 'Last error', 'bw' ); ?></th><td data-bw-user-field="last_error"><?php echo esc_html( $payload['meta']['last_error'] ); ?></td></tr>
+                                    <tr><th><?php esc_html_e( 'Consent timestamp', 'bw' ); ?></th><td data-bw-user-field="consent_at"><?php echo esc_html( $payload['meta']['consent_at'] ); ?></td></tr>
+                                    <tr><th><?php esc_html_e( 'Consent source', 'bw' ); ?></th><td data-bw-user-field="consent_source"><?php echo esc_html( $payload['meta']['consent_source'] ); ?></td></tr>
+                                    <tr><th><?php esc_html_e( 'Last checked at', 'bw' ); ?></th><td data-bw-user-field="last_checked_at"><?php echo esc_html( $payload['meta']['last_checked_at'] ); ?></td></tr>
+                                    <tr><th><?php esc_html_e( 'Brevo contact id', 'bw' ); ?></th><td data-bw-user-field="contact_id"><?php echo esc_html( $payload['meta']['contact_id'] ); ?></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <?php
+    }
+
+    /**
      * Register full-width newsletter metabox on order edit screen.
      */
     public function register_order_newsletter_metabox() {
@@ -786,6 +873,9 @@ class BW_Checkout_Subscribe_Admin {
                     <tr><th><?php esc_html_e( 'Consent timestamp', 'bw' ); ?></th><td data-bw-field="consent_at"><?php echo esc_html( $payload['meta']['consent_at'] ); ?></td></tr>
                     <tr><th><?php esc_html_e( 'Consent source', 'bw' ); ?></th><td data-bw-field="consent_source"><?php echo esc_html( $payload['meta']['consent_source'] ); ?></td></tr>
                     <tr><th><?php esc_html_e( 'Checkout field received', 'bw' ); ?></th><td data-bw-field="checkout_field_received"><?php echo esc_html( $payload['meta']['checkout_field_received'] ); ?></td></tr>
+                    <tr><th><?php esc_html_e( 'Checkout field raw value', 'bw' ); ?></th><td data-bw-field="checkout_field_value_raw"><?php echo esc_html( $payload['meta']['checkout_field_value_raw'] ); ?></td></tr>
+                    <tr><th><?php esc_html_e( 'POST keys snapshot', 'bw' ); ?></th><td data-bw-field="checkout_post_keys_snapshot"><?php echo esc_html( $payload['meta']['checkout_post_keys_snapshot'] ); ?></td></tr>
+                    <tr><th><?php esc_html_e( 'Frontend checkbox state', 'bw' ); ?></th><td data-bw-field="frontend_checkbox_state"><?php echo esc_html( $payload['meta']['frontend_checkbox_state'] ); ?></td></tr>
                     <tr><th><?php esc_html_e( 'Current Brevo status', 'bw' ); ?></th><td data-bw-field="brevo_status"><?php echo esc_html( $payload['meta']['brevo_status'] ); ?></td></tr>
                     <tr><th><?php esc_html_e( 'Status reason', 'bw' ); ?></th><td data-bw-field="status_reason"><?php echo esc_html( $payload['meta']['status_reason'] ); ?></td></tr>
                     <tr><th><?php esc_html_e( 'Last error', 'bw' ); ?></th><td data-bw-field="last_error"><?php echo esc_html( $payload['meta']['last_error'] ); ?></td></tr>
@@ -990,6 +1080,42 @@ class BW_Checkout_Subscribe_Admin {
     }
 
     /**
+     * AJAX: check user contact status in Brevo (read-only).
+     */
+    public function handle_user_check_status() {
+        $user = $this->get_user_from_ajax_request();
+        if ( ! $user ) {
+            return;
+        }
+
+        $payload = $this->fetch_user_brevo_payload( $user, false );
+        if ( empty( $payload['success'] ) ) {
+            wp_send_json_error( [ 'message' => $payload['message'] ] );
+        }
+
+        $this->log_user_action( $user, $payload['email'], $payload['status'], 'check', $payload['message'] );
+        wp_send_json_success( $payload['data'] );
+    }
+
+    /**
+     * AJAX: sync user contact status from Brevo to user meta (write).
+     */
+    public function handle_user_sync_status() {
+        $user = $this->get_user_from_ajax_request();
+        if ( ! $user ) {
+            return;
+        }
+
+        $payload = $this->fetch_user_brevo_payload( $user, true );
+        if ( empty( $payload['success'] ) ) {
+            wp_send_json_error( [ 'message' => $payload['message'] ] );
+        }
+
+        $this->log_user_action( $user, $payload['email'], $payload['status'], 'sync', $payload['message'] );
+        wp_send_json_success( $payload['data'] );
+    }
+
+    /**
      * Validate AJAX request and resolve order.
      *
      * @return WC_Order|null
@@ -1015,6 +1141,31 @@ class BW_Checkout_Subscribe_Admin {
     }
 
     /**
+     * Validate AJAX request and resolve user.
+     *
+     * @return WP_User|null
+     */
+    private function get_user_from_ajax_request() {
+        check_ajax_referer( 'bw_brevo_user_actions', 'nonce' );
+
+        $user_id = isset( $_POST['user_id'] ) ? absint( wp_unslash( $_POST['user_id'] ) ) : 0;
+        if ( $user_id <= 0 ) {
+            wp_send_json_error( [ 'message' => __( 'Invalid user id.', 'bw' ) ] );
+        }
+
+        if ( ! current_user_can( 'edit_user', $user_id ) && ! current_user_can( 'manage_options' ) ) {
+            wp_send_json_error( [ 'message' => __( 'Permission denied.', 'bw' ) ] );
+        }
+
+        $user = get_user_by( 'id', $user_id );
+        if ( ! $user instanceof WP_User ) {
+            wp_send_json_error( [ 'message' => __( 'User not found.', 'bw' ) ] );
+        }
+
+        return $user;
+    }
+
+    /**
      * Build panel payload and debug values from order meta.
      *
      * @param WC_Order $order   Order object.
@@ -1030,6 +1181,8 @@ class BW_Checkout_Subscribe_Admin {
         $last_error = (string) $order->get_meta( '_bw_brevo_error_last', true );
         $field_received = (string) $order->get_meta( '_bw_checkout_field_received', true );
         $field_raw = (string) $order->get_meta( '_bw_checkout_field_value_raw', true );
+        $post_snapshot = (string) $order->get_meta( '_bw_checkout_post_keys_snapshot', true );
+        $frontend_state = (string) $order->get_meta( '_bw_subscribe_newsletter_frontend', true );
 
         if ( '' === $status ) {
             $status = 1 === $opt_in ? 'pending' : 'not_subscribed';
@@ -1065,6 +1218,8 @@ class BW_Checkout_Subscribe_Admin {
             'consent_source'  => (string) $order->get_meta( '_bw_subscribe_consent_source', true ),
             'checkout_field_received' => '' !== $field_received ? $field_received : 'no',
             'checkout_field_value_raw' => $field_raw,
+            'checkout_post_keys_snapshot' => '' !== $post_snapshot ? $post_snapshot : 'bw_subscribe_newsletter present: no',
+            'frontend_checkbox_state' => $frontend_state,
             'brevo_status'    => (string) $status,
             'status_reason'   => $reason_label,
             'last_error'      => $last_error,
@@ -1080,6 +1235,156 @@ class BW_Checkout_Subscribe_Admin {
             'statusLabel'  => $this->get_status_label( $status, $reason, $last_error ),
             'statusClass'  => $this->get_status_badge_class( $status ),
             'meta'         => $meta,
+        ];
+    }
+
+    /**
+     * Build user mail-marketing payload from user meta.
+     *
+     * @param WP_User $user    User object.
+     * @param string  $message Optional message.
+     *
+     * @return array
+     */
+    private function build_user_status_payload( $user, $message = '' ) {
+        $general = BW_Mail_Marketing_Settings::get_general_settings();
+        $status = (string) get_user_meta( $user->ID, '_bw_brevo_user_status', true );
+        $reason = (string) get_user_meta( $user->ID, '_bw_brevo_user_reason', true );
+        $last_error = (string) get_user_meta( $user->ID, '_bw_brevo_user_error_last', true );
+        if ( '' === $status ) {
+            $status = 'not_subscribed';
+        }
+
+        $list_id = isset( $general['list_id'] ) ? absint( $general['list_id'] ) : 0;
+        $meta = [
+            'email'          => sanitize_email( (string) $user->user_email ),
+            'list_display'   => $this->resolve_list_display( $general, $list_id ),
+            'status'         => $status,
+            'status_reason'  => $this->get_status_reason_label( $reason, $last_error ),
+            'last_error'     => $last_error,
+            'consent_at'     => (string) get_user_meta( $user->ID, '_bw_subscribe_consent_at', true ),
+            'consent_source' => (string) get_user_meta( $user->ID, '_bw_subscribe_consent_source', true ),
+            'last_checked_at'=> (string) get_user_meta( $user->ID, '_bw_brevo_user_last_checked_at', true ),
+            'contact_id'     => (string) get_user_meta( $user->ID, '_bw_brevo_user_contact_id', true ),
+        ];
+
+        return [
+            'message'     => $message,
+            'status'      => $status,
+            'statusLabel' => $this->get_status_label( $status, $reason, $last_error ),
+            'statusClass' => $this->get_status_badge_class( $status ),
+            'meta'        => $meta,
+        ];
+    }
+
+    /**
+     * Fetch user status from Brevo and optionally persist it.
+     *
+     * @param WP_User $user      User object.
+     * @param bool    $persist   Whether to persist user meta.
+     *
+     * @return array
+     */
+    private function fetch_user_brevo_payload( $user, $persist = false ) {
+        $general = BW_Mail_Marketing_Settings::get_general_settings();
+        $email = sanitize_email( (string) $user->user_email );
+        $list_id = isset( $general['list_id'] ) ? absint( $general['list_id'] ) : 0;
+
+        if ( '' === $email || ! is_email( $email ) ) {
+            return [
+                'success' => false,
+                'status'  => 'error',
+                'message' => __( 'User has no valid email.', 'bw' ),
+                'email'   => $email,
+            ];
+        }
+
+        if ( empty( $general['api_key'] ) ) {
+            return [
+                'success' => false,
+                'status'  => 'error',
+                'message' => __( 'Brevo API key is not configured.', 'bw' ),
+                'email'   => $email,
+            ];
+        }
+
+        if ( $list_id <= 0 ) {
+            return [
+                'success' => false,
+                'status'  => 'error',
+                'message' => __( 'Main list ID is not configured.', 'bw' ),
+                'email'   => $email,
+            ];
+        }
+
+        $client = new BW_Brevo_Client( $general['api_key'], BW_Mail_Marketing_Settings::API_BASE_URL );
+        $result = $client->get_contact( $email );
+        $status = 'not_subscribed';
+        $reason = 'contact_not_found';
+        $error = '';
+        $contact_id = '';
+        $message = __( 'Contact not found in Brevo.', 'bw' );
+
+        if ( empty( $result['success'] ) ) {
+            if ( ! isset( $result['code'] ) || 404 !== (int) $result['code'] ) {
+                $status = 'error';
+                $reason = 'api_error';
+                $error = isset( $result['error'] ) ? sanitize_text_field( (string) $result['error'] ) : __( 'Brevo API error.', 'bw' );
+                $message = $error;
+            }
+        } else {
+            $data = isset( $result['data'] ) && is_array( $result['data'] ) ? $result['data'] : [];
+            $contact_id = isset( $data['id'] ) ? (string) absint( $data['id'] ) : '';
+            $is_blacklisted = ! empty( $data['emailBlacklisted'] );
+            $list_ids = isset( $data['listIds'] ) && is_array( $data['listIds'] ) ? array_map( 'absint', $data['listIds'] ) : [];
+            $in_list = in_array( $list_id, $list_ids, true );
+
+            if ( $is_blacklisted ) {
+                $status = 'skipped';
+                $reason = 'contact_blocklisted';
+                $message = __( 'Contact is unsubscribed/blocklisted.', 'bw' );
+            } elseif ( $in_list ) {
+                $status = 'subscribed';
+                $reason = 'already_subscribed';
+                $message = __( 'Contact found in configured list.', 'bw' );
+            } else {
+                $status = 'skipped';
+                $reason = 'not_in_list';
+                $message = __( 'Contact exists but is not in configured list.', 'bw' );
+            }
+        }
+
+        if ( $persist ) {
+            update_user_meta( $user->ID, '_bw_brevo_user_status', $status );
+            update_user_meta( $user->ID, '_bw_brevo_user_reason', $reason );
+            update_user_meta( $user->ID, '_bw_brevo_user_last_checked_at', current_time( 'mysql' ) );
+            if ( '' !== $contact_id ) {
+                update_user_meta( $user->ID, '_bw_brevo_user_contact_id', $contact_id );
+            }
+            if ( '' !== $error ) {
+                update_user_meta( $user->ID, '_bw_brevo_user_error_last', $error );
+            } else {
+                delete_user_meta( $user->ID, '_bw_brevo_user_error_last' );
+            }
+        }
+
+        $data_payload = $this->build_user_status_payload( $user, $message );
+        if ( ! $persist ) {
+            $data_payload['status'] = $status;
+            $data_payload['statusLabel'] = $this->get_status_label( $status, $reason, $error );
+            $data_payload['statusClass'] = $this->get_status_badge_class( $status );
+            $data_payload['meta']['status'] = $status;
+            $data_payload['meta']['status_reason'] = $this->get_status_reason_label( $reason, $error );
+            $data_payload['meta']['last_error'] = $error;
+            $data_payload['meta']['contact_id'] = $contact_id;
+        }
+
+        return [
+            'success' => true,
+            'status'  => $status,
+            'message' => $message,
+            'email'   => $email,
+            'data'    => $data_payload,
         ];
     }
 
@@ -1308,6 +1613,37 @@ class BW_Checkout_Subscribe_Admin {
             'email'    => sanitize_email( (string) $email ),
             'result'   => sanitize_key( (string) $result ),
             'action'   => sanitize_key( (string) $action ),
+        ];
+
+        $logger = wc_get_logger();
+        if ( 'error' === $result ) {
+            $logger->error( $msg, $context );
+            return;
+        }
+
+        $logger->info( $msg, $context );
+    }
+
+    /**
+     * Write user-level newsletter log entry.
+     *
+     * @param WP_User $user   User object.
+     * @param string  $email  Email.
+     * @param string  $result Result key.
+     * @param string  $action Action key.
+     * @param string  $msg    Message.
+     */
+    private function log_user_action( $user, $email, $result, $action, $msg ) {
+        if ( ! function_exists( 'wc_get_logger' ) || ! $user instanceof WP_User ) {
+            return;
+        }
+
+        $context = [
+            'source'  => 'bw-brevo',
+            'user_id' => $user->ID,
+            'email'   => sanitize_email( (string) $email ),
+            'result'  => sanitize_key( (string) $result ),
+            'action'  => sanitize_key( (string) $action ),
         ];
 
         $logger = wc_get_logger();
