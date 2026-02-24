@@ -242,6 +242,12 @@ class BW_Checkout_Subscribe_Admin {
         add_action( 'admin_notices', [ $this, 'render_user_mail_marketing_top_panel' ] );
         add_action( 'wp_ajax_bw_brevo_user_check_status', [ $this, 'handle_user_check_status' ] );
         add_action( 'wp_ajax_bw_brevo_user_sync_status', [ $this, 'handle_user_sync_status' ] );
+        add_filter( 'manage_edit-shop_order_columns', [ $this, 'register_orders_list_newsletter_column' ], 20 );
+        add_action( 'manage_shop_order_posts_custom_column', [ $this, 'render_orders_list_newsletter_column' ], 10, 2 );
+        add_filter( 'manage_woocommerce_page_wc-orders_columns', [ $this, 'register_orders_list_newsletter_column' ], 20 );
+        add_action( 'manage_woocommerce_page_wc-orders_custom_column', [ $this, 'render_hpos_orders_list_newsletter_column' ], 10, 2 );
+        add_action( 'admin_head-edit.php', [ $this, 'print_orders_list_newsletter_column_css' ] );
+        add_action( 'admin_head-woocommerce_page_wc-orders', [ $this, 'print_orders_list_newsletter_column_css' ] );
     }
 
     /**
@@ -870,6 +876,225 @@ class BW_Checkout_Subscribe_Admin {
             </div>
         </div>
         <?php
+    }
+
+    /**
+     * Register Newsletter column in WooCommerce orders list tables.
+     *
+     * @param array $columns Existing columns.
+     *
+     * @return array
+     */
+    public function register_orders_list_newsletter_column( $columns ) {
+        if ( ! is_array( $columns ) ) {
+            return $columns;
+        }
+
+        if ( isset( $columns['bw_newsletter'] ) ) {
+            return $columns;
+        }
+
+        $new_columns = [];
+        $inserted = false;
+
+        foreach ( $columns as $key => $label ) {
+            $new_columns[ $key ] = $label;
+            if ( in_array( $key, [ 'order_status', 'status' ], true ) ) {
+                $new_columns['bw_newsletter'] = __( 'Newsletter', 'bw' );
+                $inserted = true;
+            }
+        }
+
+        if ( ! $inserted ) {
+            $new_columns['bw_newsletter'] = __( 'Newsletter', 'bw' );
+        }
+
+        return $new_columns;
+    }
+
+    /**
+     * Render Newsletter column for classic shop_order posts table.
+     *
+     * @param string $column  Column key.
+     * @param int    $post_id Post ID.
+     */
+    public function render_orders_list_newsletter_column( $column, $post_id = 0 ) {
+        if ( 'bw_newsletter' !== $column ) {
+            return;
+        }
+
+        $order_id = absint( $post_id );
+        if ( $order_id <= 0 && isset( $GLOBALS['post']->ID ) ) {
+            $order_id = absint( $GLOBALS['post']->ID );
+        }
+
+        $this->render_orders_list_newsletter_cell( $order_id );
+    }
+
+    /**
+     * Render Newsletter column for HPOS wc-orders table.
+     *
+     * @param string         $column Column key.
+     * @param WC_Order|int   $order  Order object or ID.
+     */
+    public function render_hpos_orders_list_newsletter_column( $column, $order ) {
+        if ( 'bw_newsletter' !== $column ) {
+            return;
+        }
+
+        $order_id = 0;
+        if ( $order instanceof WC_Order ) {
+            $order_id = $order->get_id();
+        } elseif ( is_numeric( $order ) ) {
+            $order_id = absint( $order );
+        }
+
+        $this->render_orders_list_newsletter_cell( $order_id );
+    }
+
+    /**
+     * Print lightweight styles for Newsletter orders-list column.
+     */
+    public function print_orders_list_newsletter_column_css() {
+        if ( ! function_exists( 'get_current_screen' ) ) {
+            return;
+        }
+
+        $screen = get_current_screen();
+        if ( ! $screen ) {
+            return;
+        }
+
+        $screen_id = isset( $screen->id ) ? (string) $screen->id : '';
+        $post_type = isset( $screen->post_type ) ? (string) $screen->post_type : '';
+        if ( 'shop_order' !== $post_type && 'woocommerce_page_wc-orders' !== $screen_id ) {
+            return;
+        }
+        ?>
+        <style id="bw-orders-newsletter-column-css">
+            .column-bw_newsletter { width: 160px; }
+            .bw-newsletter-col {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                white-space: nowrap;
+                font-weight: 600;
+            }
+            .bw-newsletter-col__dot {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                display: inline-block;
+            }
+            .bw-newsletter-col--subscribed .bw-newsletter-col__dot { background: #1f9d55; }
+            .bw-newsletter-col--pending .bw-newsletter-col__dot { background: #d6a100; }
+            .bw-newsletter-col--no .bw-newsletter-col__dot { background: #c0392b; }
+            .bw-newsletter-col--neutral .bw-newsletter-col__dot { background: #98a2b3; }
+            .bw-newsletter-col__warn {
+                color: #b54708;
+                vertical-align: middle;
+                line-height: 1;
+            }
+        </style>
+        <?php
+    }
+
+    /**
+     * Render Newsletter cell value based on order meta only (no API calls).
+     *
+     * @param int $order_id Order ID.
+     */
+    private function render_orders_list_newsletter_cell( $order_id ) {
+        if ( $order_id <= 0 ) {
+            echo '&mdash;';
+            return;
+        }
+
+        $data = $this->get_order_newsletter_list_data( $order_id );
+        $tooltip = sprintf(
+            /* translators: 1: status, 2: consent timestamp */
+            __( 'Brevo status: %1$s | Consent: %2$s', 'bw' ),
+            $data['brevo_status'],
+            '' !== $data['consent_at'] ? $data['consent_at'] : __( 'n/a', 'bw' )
+        );
+
+        if ( 'error' === $data['brevo_status'] ) {
+            $error_tooltip = '' !== $data['last_error'] ? $data['last_error'] : __( 'Unknown error', 'bw' );
+            printf(
+                '<span class="bw-newsletter-col bw-newsletter-col--neutral" title="%1$s"><span class="dashicons dashicons-warning bw-newsletter-col__warn" title="%2$s" aria-hidden="true"></span> %3$s</span>',
+                esc_attr( $tooltip ),
+                esc_attr( $error_tooltip ),
+                esc_html__( 'Error', 'bw' )
+            );
+            return;
+        }
+
+        if ( 1 === $data['opt_in'] && 'subscribed' === $data['brevo_status'] ) {
+            printf(
+                '<span class="bw-newsletter-col bw-newsletter-col--subscribed" title="%1$s"><span class="bw-newsletter-col__dot" aria-hidden="true"></span> %2$s</span>',
+                esc_attr( $tooltip ),
+                esc_html__( 'Subscribed', 'bw' )
+            );
+            return;
+        }
+
+        if ( 1 === $data['opt_in'] && 'pending' === $data['brevo_status'] ) {
+            printf(
+                '<span class="bw-newsletter-col bw-newsletter-col--pending" title="%1$s"><span class="bw-newsletter-col__dot" aria-hidden="true"></span> %2$s</span>',
+                esc_attr( $tooltip ),
+                esc_html__( 'Pending', 'bw' )
+            );
+            return;
+        }
+
+        if ( 0 === $data['opt_in'] ) {
+            printf(
+                '<span class="bw-newsletter-col bw-newsletter-col--no" title="%1$s"><span class="bw-newsletter-col__dot" aria-hidden="true"></span> %2$s</span>',
+                esc_attr( $tooltip ),
+                esc_html__( 'No', 'bw' )
+            );
+            return;
+        }
+
+        printf(
+            '<span class="bw-newsletter-col bw-newsletter-col--neutral" title="%1$s"><span class="bw-newsletter-col__dot" aria-hidden="true"></span> %2$s</span>',
+            esc_attr( $tooltip ),
+            esc_html( ucfirst( str_replace( '_', ' ', $data['brevo_status'] ) ) )
+        );
+    }
+
+    /**
+     * Get newsletter list-column data from order meta only.
+     *
+     * @param int $order_id Order ID.
+     *
+     * @return array
+     */
+    private function get_order_newsletter_list_data( $order_id ) {
+        $opt_in = (int) get_post_meta( $order_id, '_bw_subscribe_newsletter', true );
+
+        $status = (string) get_post_meta( $order_id, '_bw_brevo_status', true );
+        if ( '' === $status ) {
+            $status = (string) get_post_meta( $order_id, '_bw_brevo_subscribed', true );
+        }
+        if ( '1' === $status ) {
+            $status = 'subscribed';
+        }
+        if ( '' === $status ) {
+            $status = 'not_subscribed';
+        }
+
+        $last_error = (string) get_post_meta( $order_id, '_bw_last_error', true );
+        if ( '' === $last_error ) {
+            $last_error = (string) get_post_meta( $order_id, '_bw_brevo_error_last', true );
+        }
+
+        return [
+            'opt_in'       => $opt_in,
+            'brevo_status' => sanitize_key( $status ),
+            'last_error'   => sanitize_text_field( $last_error ),
+            'consent_at'   => (string) get_post_meta( $order_id, '_bw_subscribe_consent_at', true ),
+        ];
     }
 
     /**
