@@ -5,6 +5,7 @@
  * Hooks used:
  * - woocommerce_before_checkout_billing_form: render Contact header.
  * - woocommerce_checkout_fields: inject newsletter checkbox.
+ * - woocommerce_checkout_create_order: store consent before order save.
  * - woocommerce_checkout_update_order_meta: store consent.
  * - woocommerce_checkout_order_processed: subscribe on checkout submit.
  * - woocommerce_order_status_processing/completed: subscribe on paid.
@@ -30,6 +31,7 @@ class BW_Checkout_Subscribe_Frontend {
         add_action( 'woocommerce_before_checkout_billing_form', [ $this, 'render_contact_header' ], 5 );
         add_filter( 'woocommerce_checkout_fields', [ $this, 'inject_newsletter_field' ], 30, 1 );
         add_filter( 'woocommerce_form_field', [ $this, 'remove_optional_label' ], 10, 4 );
+        add_action( 'woocommerce_checkout_create_order', [ $this, 'save_consent_meta_on_create_order' ], 20, 2 );
         add_action( 'woocommerce_checkout_update_order_meta', [ $this, 'save_consent_meta' ], 10, 2 );
         add_action( 'woocommerce_checkout_order_processed', [ $this, 'maybe_subscribe_on_created' ], 20, 3 );
         add_action( 'woocommerce_order_status_processing', [ $this, 'maybe_subscribe_on_paid' ] );
@@ -130,11 +132,32 @@ class BW_Checkout_Subscribe_Frontend {
     }
 
     /**
+     * Save consent meta at checkout create-order stage (before order save).
+     *
+     * @param WC_Order $order Order object.
+     * @param array    $data  Posted checkout data.
+     */
+    public function save_consent_meta_on_create_order( $order, $data ) {
+        if ( ! $order instanceof WC_Order || $this->is_block_checkout() ) {
+            return;
+        }
+
+        $checkout_settings = $this->get_checkout_settings();
+        if ( empty( $checkout_settings['enabled'] ) ) {
+            return;
+        }
+
+        $payload = $this->extract_checkout_optin_payload( is_array( $data ) ? $data : [] );
+        $this->apply_consent_meta_to_order( $order, $payload );
+    }
+
+    /**
      * Save checkout consent metadata.
      *
      * @param int $order_id Order ID.
+     * @param array $posted_data Posted data.
      */
-    public function save_consent_meta( $order_id ) {
+    public function save_consent_meta( $order_id, $posted_data = [] ) {
         if ( $this->is_block_checkout() ) {
             return;
         }
@@ -144,20 +167,25 @@ class BW_Checkout_Subscribe_Frontend {
             return;
         }
 
-        $field_received = isset( $_POST['bw_subscribe_newsletter'] ) ? 'yes' : 'no';
-        $opt_in = ! empty( $_POST['bw_subscribe_newsletter'] ) ? 1 : 0;
+        $payload = $this->extract_checkout_optin_payload( is_array( $posted_data ) ? $posted_data : [] );
 
-        update_post_meta( $order_id, '_bw_subscribe_newsletter', $opt_in );
+        update_post_meta( $order_id, '_bw_subscribe_newsletter', $payload['opt_in'] );
         update_post_meta( $order_id, '_bw_subscribe_consent_source', 'checkout' );
-        update_post_meta( $order_id, '_bw_checkout_field_received', $field_received );
+        update_post_meta( $order_id, '_bw_checkout_field_received', $payload['field_received'] );
+        update_post_meta( $order_id, '_bw_checkout_field_value_raw', $payload['raw_value'] );
 
-        if ( $opt_in ) {
-            update_post_meta( $order_id, '_bw_subscribe_consent_at', current_time( 'mysql' ) );
-        } else {
-            update_post_meta( $order_id, '_bw_brevo_subscribed', 'skipped' );
-            update_post_meta( $order_id, '_bw_brevo_status_reason', 'no_opt_in' );
-            delete_post_meta( $order_id, '_bw_brevo_error_last' );
+        if ( 1 === (int) $payload['opt_in'] ) {
+            $consent_at = get_post_meta( $order_id, '_bw_subscribe_consent_at', true );
+            if ( '' === (string) $consent_at ) {
+                update_post_meta( $order_id, '_bw_subscribe_consent_at', current_time( 'mysql' ) );
+            }
+            return;
         }
+
+        delete_post_meta( $order_id, '_bw_subscribe_consent_at' );
+        update_post_meta( $order_id, '_bw_brevo_subscribed', 'skipped' );
+        update_post_meta( $order_id, '_bw_brevo_status_reason', 'no_opt_in' );
+        delete_post_meta( $order_id, '_bw_brevo_error_last' );
     }
 
     /**
@@ -450,6 +478,75 @@ class BW_Checkout_Subscribe_Frontend {
         $order->update_meta_data( '_bw_brevo_last_attempt_at', current_time( 'mysql' ) );
         $order->update_meta_data( '_bw_brevo_last_attempt_source', sanitize_key( (string) $attempt_source ) );
         $order->save();
+    }
+
+    /**
+     * Resolve posted checkout opt-in payload from multiple sources.
+     *
+     * @param array $posted_data Checkout posted data array (from Woo hook).
+     *
+     * @return array{opt_in:int,field_received:string,raw_value:string}
+     */
+    private function extract_checkout_optin_payload( $posted_data = [] ) {
+        $raw_value = '';
+        $field_received = 'no';
+
+        if ( array_key_exists( 'bw_subscribe_newsletter', $posted_data ) ) {
+            $raw_value = (string) $posted_data['bw_subscribe_newsletter'];
+            $field_received = 'yes';
+        } elseif ( isset( $_POST['bw_subscribe_newsletter'] ) ) {
+            $raw_value = (string) wp_unslash( $_POST['bw_subscribe_newsletter'] );
+            $field_received = 'yes';
+        } elseif ( isset( $_POST['billing'] ) && is_array( $_POST['billing'] ) && array_key_exists( 'bw_subscribe_newsletter', $_POST['billing'] ) ) {
+            $raw_value = (string) wp_unslash( $_POST['billing']['bw_subscribe_newsletter'] );
+            $field_received = 'yes';
+        } elseif ( function_exists( 'WC' ) && WC()->checkout() ) {
+            $wc_value = WC()->checkout()->get_value( 'bw_subscribe_newsletter' );
+            if ( null !== $wc_value && '' !== (string) $wc_value ) {
+                $raw_value = (string) $wc_value;
+                $field_received = 'yes';
+            }
+        }
+
+        $normalized = strtolower( trim( $raw_value ) );
+        $truthy = [ '1', 'true', 'yes', 'on' ];
+        $opt_in = in_array( $normalized, $truthy, true ) ? 1 : 0;
+
+        return [
+            'opt_in'         => $opt_in,
+            'field_received' => $field_received,
+            'raw_value'      => '' !== $normalized ? $normalized : '',
+        ];
+    }
+
+    /**
+     * Apply checkout consent payload directly on order object.
+     *
+     * @param WC_Order $order   Order object.
+     * @param array    $payload Normalized payload.
+     */
+    private function apply_consent_meta_to_order( $order, $payload ) {
+        $opt_in = isset( $payload['opt_in'] ) ? (int) $payload['opt_in'] : 0;
+        $field_received = isset( $payload['field_received'] ) ? (string) $payload['field_received'] : 'no';
+        $raw_value = isset( $payload['raw_value'] ) ? (string) $payload['raw_value'] : '';
+
+        $order->update_meta_data( '_bw_subscribe_newsletter', $opt_in );
+        $order->update_meta_data( '_bw_subscribe_consent_source', 'checkout' );
+        $order->update_meta_data( '_bw_checkout_field_received', $field_received );
+        $order->update_meta_data( '_bw_checkout_field_value_raw', $raw_value );
+
+        if ( 1 === $opt_in ) {
+            $consent_at = (string) $order->get_meta( '_bw_subscribe_consent_at', true );
+            if ( '' === $consent_at ) {
+                $order->update_meta_data( '_bw_subscribe_consent_at', current_time( 'mysql' ) );
+            }
+            return;
+        }
+
+        $order->delete_meta_data( '_bw_subscribe_consent_at' );
+        $order->update_meta_data( '_bw_brevo_subscribed', 'skipped' );
+        $order->update_meta_data( '_bw_brevo_status_reason', 'no_opt_in' );
+        $order->delete_meta_data( '_bw_brevo_error_last' );
     }
 
     /**

@@ -1028,6 +1028,8 @@ class BW_Checkout_Subscribe_Admin {
         $status = (string) $order->get_meta( '_bw_brevo_subscribed', true );
         $reason = (string) $order->get_meta( '_bw_brevo_status_reason', true );
         $last_error = (string) $order->get_meta( '_bw_brevo_error_last', true );
+        $field_received = (string) $order->get_meta( '_bw_checkout_field_received', true );
+        $field_raw = (string) $order->get_meta( '_bw_checkout_field_value_raw', true );
 
         if ( '' === $status ) {
             $status = 1 === $opt_in ? 'pending' : 'not_subscribed';
@@ -1042,7 +1044,7 @@ class BW_Checkout_Subscribe_Admin {
         }
 
         if ( '' === $reason ) {
-            if ( 'skipped' === $status && 1 !== $opt_in ) {
+            if ( 'skipped' === $status && ( 'no' === $field_received || 1 !== $opt_in ) ) {
                 $reason = 'no_opt_in';
             } elseif ( 'error' === $status ) {
                 $reason = 'api_error';
@@ -1061,7 +1063,8 @@ class BW_Checkout_Subscribe_Admin {
             'opt_in'          => (string) $opt_in,
             'consent_at'      => (string) $order->get_meta( '_bw_subscribe_consent_at', true ),
             'consent_source'  => (string) $order->get_meta( '_bw_subscribe_consent_source', true ),
-            'checkout_field_received' => (string) $order->get_meta( '_bw_checkout_field_received', true ),
+            'checkout_field_received' => '' !== $field_received ? $field_received : 'no',
+            'checkout_field_value_raw' => $field_raw,
             'brevo_status'    => (string) $status,
             'status_reason'   => $reason_label,
             'last_error'      => $last_error,
@@ -1189,34 +1192,61 @@ class BW_Checkout_Subscribe_Admin {
             return sprintf( __( 'Unknown list (#%d)', 'bw' ), $list_id );
         }
 
-        $cache_key = 'bw_brevo_list_name_' . $list_id;
-        $cached = get_transient( $cache_key );
-        if ( false !== $cached && is_string( $cached ) && '' !== $cached ) {
-            return sprintf( '%s (#%d)', $cached, $list_id );
-        }
-
-        $client = new BW_Brevo_Client( $api_key, BW_Mail_Marketing_Settings::API_BASE_URL );
-        $lists = $client->get_lists( 200, 0 );
-        if ( empty( $lists['success'] ) || empty( $lists['data']['lists'] ) || ! is_array( $lists['data']['lists'] ) ) {
-            return sprintf( __( 'Unknown list (#%d)', 'bw' ), $list_id );
-        }
-
-        foreach ( $lists['data']['lists'] as $list ) {
-            $id = isset( $list['id'] ) ? absint( $list['id'] ) : 0;
-            if ( $id !== $list_id ) {
-                continue;
-            }
-
-            $name = isset( $list['name'] ) ? sanitize_text_field( (string) $list['name'] ) : '';
-            if ( '' === $name ) {
-                return sprintf( __( 'Unknown list (#%d)', 'bw' ), $list_id );
-            }
-
-            set_transient( $cache_key, $name, 10 * MINUTE_IN_SECONDS );
-            return sprintf( '%s (#%d)', $name, $list_id );
+        $lists_map = $this->get_cached_brevo_lists_map( $api_key );
+        if ( isset( $lists_map[ $list_id ] ) && '' !== $lists_map[ $list_id ] ) {
+            return sprintf( '%s (#%d)', $lists_map[ $list_id ], $list_id );
         }
 
         return sprintf( __( 'Unknown list (#%d)', 'bw' ), $list_id );
+    }
+
+    /**
+     * Get Brevo list-id => list-name map from transient or API.
+     *
+     * @param string $api_key Brevo API key.
+     *
+     * @return array<int,string>
+     */
+    private function get_cached_brevo_lists_map( $api_key ) {
+        $cache_key = 'bw_brevo_lists_map_' . md5( $api_key );
+        $cached = get_transient( $cache_key );
+        if ( is_array( $cached ) && ! empty( $cached ) ) {
+            return $cached;
+        }
+
+        $client = new BW_Brevo_Client( $api_key, BW_Mail_Marketing_Settings::API_BASE_URL );
+        $map = [];
+        $offset = 0;
+        $limit = 200;
+        $max_pages = 5;
+
+        for ( $page = 0; $page < $max_pages; $page++ ) {
+            $lists = $client->get_lists( $limit, $offset );
+            if ( empty( $lists['success'] ) || empty( $lists['data']['lists'] ) || ! is_array( $lists['data']['lists'] ) ) {
+                break;
+            }
+
+            $batch = $lists['data']['lists'];
+            foreach ( $batch as $list ) {
+                $id = isset( $list['id'] ) ? absint( $list['id'] ) : 0;
+                $name = isset( $list['name'] ) ? sanitize_text_field( (string) $list['name'] ) : '';
+                if ( $id > 0 && '' !== $name ) {
+                    $map[ $id ] = $name;
+                }
+            }
+
+            if ( count( $batch ) < $limit ) {
+                break;
+            }
+
+            $offset += $limit;
+        }
+
+        if ( ! empty( $map ) ) {
+            set_transient( $cache_key, $map, HOUR_IN_SECONDS );
+        }
+
+        return $map;
     }
 
     /**
