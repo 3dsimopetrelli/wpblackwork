@@ -416,9 +416,23 @@ class BW_Checkout_Subscribe_Admin {
             ? sprintf( __( 'Connection successful. Account: %s', 'bw' ), $account_email )
             : __( 'Connection successful.', 'bw' );
 
+        $account_info = [];
+        if ( ! empty( $result['data'] ) && is_array( $result['data'] ) ) {
+            if ( ! empty( $result['data']['email'] ) ) {
+                $account_info['email'] = sanitize_email( (string) $result['data']['email'] );
+            }
+            if ( ! empty( $result['data']['companyName'] ) ) {
+                $account_info['companyName'] = sanitize_text_field( (string) $result['data']['companyName'] );
+            }
+            if ( ! empty( $result['data']['plan'] ) ) {
+                $account_info['plan'] = sanitize_text_field( (string) $result['data']['plan'] );
+            }
+        }
+
         wp_send_json_success( [
             'message' => $success_msg,
             'status'  => 'success',
+            'account' => $account_info,
         ] );
     }
 

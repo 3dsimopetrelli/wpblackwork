@@ -53,13 +53,16 @@ add_action('admin_enqueue_scripts', 'bw_site_settings_admin_menu_icon_styles');
  */
 function bw_site_settings_admin_assets($hook)
 {
+    $current_page = isset($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : '';
+
     $allowed_hooks = [
         'toplevel_page_blackwork-site-settings',
         'blackwork-site-settings_page_blackwork-mail-marketing',
+        'blackwork-site_page_blackwork-mail-marketing',
     ];
 
     // Carica solo nelle pagine Blackwork Site (principale + Mail Marketing).
-    if (!in_array($hook, $allowed_hooks, true)) {
+    if (!in_array($hook, $allowed_hooks, true) && 'blackwork-mail-marketing' !== $current_page) {
         return;
     }
 
@@ -89,25 +92,32 @@ function bw_site_settings_admin_assets($hook)
         true
     );
 
-    $subscribe_script_path = BW_MEW_PATH . 'admin/js/bw-checkout-subscribe.js';
-    $subscribe_version = file_exists($subscribe_script_path) ? filemtime($subscribe_script_path) : '1.0.0';
+    $current_tab = isset($_GET['tab']) ? sanitize_key(wp_unslash($_GET['tab'])) : '';
 
-    wp_enqueue_script(
-        'bw-checkout-subscribe-admin',
-        BW_MEW_URL . 'admin/js/bw-checkout-subscribe.js',
-        ['jquery'],
-        $subscribe_version,
-        true
-    );
+    // Enqueue Brevo test script only on Mail Marketing > General.
+    if ('blackwork-mail-marketing' === $current_page && ('' === $current_tab || 'general' === $current_tab)) {
+        $subscribe_script_path = BW_MEW_PATH . 'admin/js/bw-checkout-subscribe.js';
+        $subscribe_version = file_exists($subscribe_script_path) ? filemtime($subscribe_script_path) : '1.0.0';
 
-    wp_localize_script(
-        'bw-checkout-subscribe-admin',
-        'bwCheckoutSubscribe',
-        [
-            'nonce' => wp_create_nonce('bw_checkout_subscribe_test'),
-            'errorText' => esc_html__('Connection failed. Please check the API key and network.', 'bw'),
-        ]
-    );
+        wp_enqueue_script(
+            'bw-checkout-subscribe-admin',
+            BW_MEW_URL . 'admin/js/bw-checkout-subscribe.js',
+            ['jquery'],
+            $subscribe_version,
+            true
+        );
+
+        wp_localize_script(
+            'bw-checkout-subscribe-admin',
+            'bwCheckoutSubscribe',
+            [
+                'ajaxUrl' => admin_url('admin-ajax.php'),
+                'nonce' => wp_create_nonce('bw_checkout_subscribe_test'),
+                'errorText' => esc_html__('Connection failed. Please check the API key and network.', 'bw'),
+                'testingText' => esc_html__('Testing connection...', 'bw'),
+            ]
+        );
+    }
 
     $google_pay_admin_script_path = BW_MEW_PATH . 'admin/js/bw-google-pay-admin.js';
     $google_pay_admin_version = file_exists($google_pay_admin_script_path) ? filemtime($google_pay_admin_script_path) : '1.0.0';
