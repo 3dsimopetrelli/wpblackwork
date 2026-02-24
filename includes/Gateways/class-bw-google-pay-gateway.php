@@ -137,7 +137,7 @@ class BW_Google_Pay_Gateway extends BW_Abstract_Stripe_Gateway {
 		switch ( $status ) {
 			case 'succeeded':
 				if ( ! $order->is_paid() ) {
-					$order->update_status( 'pending', sprintf( __( 'Google Pay completed on return flow. Awaiting Stripe webhook confirmation. PaymentIntent: %s', 'bw' ), $pi_id ) );
+					$order->update_status( 'on-hold', sprintf( __( 'Google Pay return received. Awaiting Stripe webhook confirmation. PaymentIntent: %s', 'bw' ), $pi_id ) );
 				}
 				$order->add_order_note(
 					sprintf(

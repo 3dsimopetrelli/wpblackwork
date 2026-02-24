@@ -143,7 +143,7 @@ class BW_Klarna_Gateway extends BW_Abstract_Stripe_Gateway {
 		switch ( $status ) {
 			case 'succeeded':
 				if ( ! $order->is_paid() ) {
-					$order->update_status( 'pending', sprintf( __( 'Klarna return received. Awaiting Stripe webhook confirmation. PaymentIntent: %s', 'bw' ), $pi_id ) );
+					$order->update_status( 'on-hold', sprintf( __( 'Klarna return received. Awaiting Stripe webhook confirmation. PaymentIntent: %s', 'bw' ), $pi_id ) );
 				}
 				$order->add_order_note( sprintf( __( 'Klarna return received. Awaiting Stripe webhook confirmation. PaymentIntent: %s', 'bw' ), $pi_id ) );
 				return array(

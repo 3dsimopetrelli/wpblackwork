@@ -16,13 +16,15 @@ if (!wp_doing_ajax()) {
 }
 ?>
 <div id="payment" class="woocommerce-checkout-payment">
-	<h2 class="bw-payment-section-title"><?php esc_html_e('Payment', 'woocommerce'); ?></h2>
+	<h2 id="bw-payment-heading" class="bw-payment-section-title"><?php esc_html_e('Payment', 'woocommerce'); ?></h2>
 	<p class="bw-payment-section-subtitle">
 		<?php esc_html_e('All transactions are secure and encrypted.', 'woocommerce'); ?>
 	</p>
 
 	<?php if (WC()->cart->needs_payment()): ?>
-		<ul class="bw-payment-methods wc_payment_methods payment_methods methods">
+		<ul class="bw-payment-methods wc_payment_methods payment_methods methods"
+			role="radiogroup"
+			aria-labelledby="bw-payment-heading">
 			<?php
 			if (!empty($available_gateways)) {
 				// Preserve selected method across AJAX checkout updates.
@@ -43,7 +45,11 @@ if (!wp_doing_ajax()) {
 					?>
 					<li class="bw-payment-method wc_payment_method payment_method_<?php echo $gateway_id; ?><?php echo $gateway->id === $chosen_method ? ' is-selected' : ''; ?>"
 						data-gateway-id="<?php echo $gateway_id; ?>">
-						<div class="bw-payment-method__header">
+						<div class="bw-payment-method__header"
+							role="button"
+							tabindex="0"
+							aria-expanded="<?php echo $gateway->id === $chosen_method ? 'true' : 'false'; ?>"
+							aria-controls="bw-payment-panel-<?php echo $gateway_id; ?>">
 							<?php
 							$gateway_type = strtolower($gateway_id);
 							$is_card_gateway_icon = (strpos($gateway_type, 'stripe') !== false ||
@@ -54,7 +60,7 @@ if (!wp_doing_ajax()) {
 							<input id="payment_method_<?php echo $gateway_id; ?>" type="radio" class="input-radio"
 								name="payment_method" value="<?php echo $gateway_id; ?>" <?php echo $is_checked; ?>
 								data-order_button_text="<?php echo esc_attr($gateway->order_button_text); ?>" />
-							<label for="payment_method_<?php echo $gateway_id; ?>" class="bw-payment-method__label">
+							<label id="payment_method_label_<?php echo $gateway_id; ?>" for="payment_method_<?php echo $gateway_id; ?>" class="bw-payment-method__label">
 								<span class="bw-payment-method__title">
 									<?php
 									$display_title = $is_card_gateway_icon
@@ -168,7 +174,10 @@ if (!wp_doing_ajax()) {
 
 						<?php if ($gateway->has_fields() || $gateway->get_description()): ?>
 							<div
-								class="bw-payment-method__content payment_box payment_method_<?php echo $gateway_id; ?> <?php echo $gateway->id === $chosen_method ? 'is-open' : ''; ?>">
+								id="bw-payment-panel-<?php echo $gateway_id; ?>"
+								class="bw-payment-method__content payment_box payment_method_<?php echo $gateway_id; ?> <?php echo $gateway->id === $chosen_method ? 'is-open' : ''; ?>"
+								role="region"
+								aria-labelledby="payment_method_label_<?php echo $gateway_id; ?>">
 								<div class="bw-payment-method__inner">
 									<?php
 									// Hide description for PayPal (we show custom redirect message instead)
@@ -299,7 +308,10 @@ if (!wp_doing_ajax()) {
 							</div>
 						<?php else: ?>
 							<div
-								class="bw-payment-method__content payment_box payment_method_<?php echo $gateway_id; ?> <?php echo $gateway->id === $chosen_method ? 'is-open' : ''; ?>">
+								id="bw-payment-panel-<?php echo $gateway_id; ?>"
+								class="bw-payment-method__content payment_box payment_method_<?php echo $gateway_id; ?> <?php echo $gateway->id === $chosen_method ? 'is-open' : ''; ?>"
+								role="region"
+								aria-labelledby="payment_method_label_<?php echo $gateway_id; ?>">
 								<div class="bw-payment-method__inner">
 									<?php
 									// Check if this is Google Pay for redirect message

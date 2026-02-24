@@ -353,7 +353,7 @@
         showAppleButtonIfSelected();
 
         paymentRequest.canMakePayment().then(function (result) {
-            console.log('[BW Apple Pay] canMakePayment:', result);
+            BW_APPLE_PAY_DEBUG && console.log('[BW Apple Pay] canMakePayment:', result);
             applePayAvailable = !!(result && result.applePay === true);
             window.BW_APPLE_PAY_AVAILABLE = applePayAvailable === true;
             applePayState = applePayAvailable ? 'available' : 'unavailable';
