@@ -31,7 +31,7 @@ class BW_Checkout_Subscribe_Frontend {
         add_action( 'woocommerce_before_checkout_billing_form', [ $this, 'render_contact_header' ], 5 );
         add_filter( 'woocommerce_checkout_fields', [ $this, 'inject_newsletter_field' ], 30, 1 );
         add_filter( 'woocommerce_form_field', [ $this, 'remove_optional_label' ], 10, 4 );
-        add_action( 'woocommerce_checkout_create_order', [ $this, 'save_consent_meta_on_create_order' ], 20, 2 );
+        add_action( 'woocommerce_checkout_create_order', [ $this, 'save_consent_meta_on_create_order' ], 10, 2 );
         add_action( 'woocommerce_checkout_update_order_meta', [ $this, 'save_consent_meta' ], 10, 2 );
         add_action( 'woocommerce_checkout_order_processed', [ $this, 'maybe_subscribe_on_created' ], 20, 3 );
         add_action( 'woocommerce_order_status_processing', [ $this, 'maybe_subscribe_on_paid' ] );
@@ -95,6 +95,7 @@ class BW_Checkout_Subscribe_Frontend {
         $fields['billing']['bw_subscribe_newsletter'] = [
             'type'     => 'checkbox',
             'label'    => $label,
+            'value'    => '1',
             'required' => false,
             'priority' => max( 1, $anchor_priority + $offset ),
             'default'  => ! empty( $checkout_settings['default_checked'] ) ? 1 : 0,
@@ -147,7 +148,18 @@ class BW_Checkout_Subscribe_Frontend {
             return;
         }
 
-        $payload = $this->extract_checkout_optin_payload( is_array( $data ) ? $data : [] );
+        // Primary source: direct checkout POST value.
+        $payload = [
+            'opt_in'         => isset( $_POST['bw_subscribe_newsletter'] ) ? 1 : 0,
+            'field_received' => isset( $_POST['bw_subscribe_newsletter'] ) ? 'yes' : 'no',
+            'raw_value'      => isset( $_POST['bw_subscribe_newsletter'] ) ? '1' : '',
+        ];
+
+        // Fallbacks for custom classic templates where value can be remapped.
+        if ( 'no' === $payload['field_received'] ) {
+            $payload = $this->extract_checkout_optin_payload( is_array( $data ) ? $data : [] );
+        }
+
         $this->apply_consent_meta_to_order( $order, $payload );
     }
 
