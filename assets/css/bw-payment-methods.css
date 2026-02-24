@@ -1059,6 +1059,13 @@ body.woocommerce-checkout .bw-payment-method__fields .wc-stripe-upe-element ifra
 	-webkit-clip-path: inset(var(--bw-stripe-upe-top-crop) 0 0 0);
 }
 
+/* Stripe UPE newer versions render the internal "Card" accordion row
+   directly in the parent DOM (outside the iframe). Hide it there too. */
+body.woocommerce-checkout .bw-payment-method__fields .wc-stripe-upe-element [class*="PaymentAccordionButtonView"],
+body.woocommerce-checkout .bw-payment-method__fields [data-testid="payment-accordion-wrapper"] {
+	display: none !important;
+}
+
 /* Remove any ::before pseudo-element from payment box */
 body.woocommerce-checkout .bw-payment-method__content.payment_box::before,
 body.woocommerce-checkout .payment_box.payment_method_stripe::before {
