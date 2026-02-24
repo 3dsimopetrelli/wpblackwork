@@ -239,6 +239,7 @@ class BW_Checkout_Subscribe_Admin {
         add_action( 'add_meta_boxes', [ $this, 'register_order_newsletter_metabox' ] );
         add_action( 'wp_ajax_bw_brevo_order_refresh_status', [ $this, 'handle_order_refresh_status' ] );
         add_action( 'wp_ajax_bw_brevo_order_retry_subscribe', [ $this, 'handle_order_retry_subscribe' ] );
+        add_action( 'wp_ajax_bw_brevo_order_load_lists', [ $this, 'handle_order_load_lists' ] );
         add_action( 'admin_notices', [ $this, 'render_user_mail_marketing_top_panel' ] );
         add_action( 'wp_ajax_bw_brevo_user_check_status', [ $this, 'handle_user_check_status' ] );
         add_action( 'wp_ajax_bw_brevo_user_sync_status', [ $this, 'handle_user_sync_status' ] );
@@ -689,6 +690,15 @@ class BW_Checkout_Subscribe_Admin {
             true
         );
 
+        $css_file = BW_MEW_PATH . 'admin/css/bw-order-newsletter-status.css';
+        $css_version = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
+        wp_enqueue_style(
+            'bw-order-newsletter-status',
+            BW_MEW_URL . 'admin/css/bw-order-newsletter-status.css',
+            [],
+            $css_version
+        );
+
         wp_localize_script(
             'bw-order-newsletter-status',
             'bwOrderNewsletterStatus',
@@ -696,6 +706,8 @@ class BW_Checkout_Subscribe_Admin {
                 'ajaxUrl' => admin_url( 'admin-ajax.php' ),
                 'nonce'   => wp_create_nonce( 'bw_brevo_order_actions' ),
                 'errorText' => esc_html__( 'Action failed. Please retry.', 'bw' ),
+                'retryNoOptInConfirm' => esc_html__( 'No opt-in recorded. Retry will not subscribe. Continue?', 'bw' ),
+                'workingText' => esc_html__( 'Working...', 'bw' ),
             ]
         );
     }
@@ -1166,45 +1178,90 @@ class BW_Checkout_Subscribe_Admin {
         }
 
         $payload = $this->build_order_status_payload( $order );
-        $status_class = $this->get_status_badge_class( $payload['status'] );
         ?>
-        <style>
-            .bw-newsletter-status-badge.bw-status--subscribed { background:#d1f8e0;color:#0a3622;border:1px solid #75d39a; }
-            .bw-newsletter-status-badge.bw-status--pending { background:#e7eefc;color:#1b3b7a;border:1px solid #9ab1e9; }
-            .bw-newsletter-status-badge.bw-status--neutral { background:#f3f4f6;color:#2c3338;border:1px solid #c3c4c7; }
-            .bw-newsletter-status-badge.bw-status--error { background:#fce2e2;color:#691010;border:1px solid #e99a9a; }
-            #bw-newsletter-status-panel .bw-newsletter-meta-table th { width:220px; }
-        </style>
-        <div id="bw-newsletter-status-panel" class="bw-newsletter-status-panel" data-order-id="<?php echo esc_attr( $order->get_id() ); ?>">
-            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px;">
-                <span id="bw-newsletter-status-badge" class="bw-newsletter-status-badge <?php echo esc_attr( $status_class ); ?>" style="display:inline-block;padding:6px 10px;border-radius:999px;font-weight:600;">
-                    <?php echo esc_html( $this->get_status_label( $payload['status'] ) ); ?>
+        <div id="bw-newsletter-status-panel" class="bw-newsletter-panel wc-metabox" data-order-id="<?php echo esc_attr( $order->get_id() ); ?>">
+            <div class="bw-newsletter-panel__header">
+                <span id="bw-newsletter-status-badge" class="bw-newsletter-status-badge status-badge <?php echo esc_attr( $payload['statusClass'] ); ?>">
+                    <span class="dashicons <?php echo esc_attr( $payload['statusIcon'] ); ?>" aria-hidden="true"></span>
+                    <span class="bw-newsletter-status-badge__label"><?php echo esc_html( $payload['statusLabel'] ); ?></span>
                 </span>
-                <button type="button" class="button" id="bw-newsletter-refresh"><?php esc_html_e( 'Refresh', 'bw' ); ?></button>
-                <button type="button" class="button button-secondary" id="bw-newsletter-retry"><?php esc_html_e( 'Retry subscribe', 'bw' ); ?></button>
-                <span id="bw-newsletter-inline-message" aria-live="polite"></span>
+                <div class="bw-newsletter-panel__actions">
+                    <button type="button" class="button" id="bw-newsletter-refresh">
+                        <span class="bw-btn-text"><?php esc_html_e( 'Check Brevo', 'bw' ); ?></span>
+                        <span class="spinner"></span>
+                    </button>
+                    <button type="button" class="button button-secondary" id="bw-newsletter-retry">
+                        <span class="bw-btn-text"><?php esc_html_e( 'Retry subscribe', 'bw' ); ?></span>
+                        <span class="spinner"></span>
+                    </button>
+                </div>
+            </div>
+            <p id="bw-newsletter-inline-message" class="bw-newsletter-panel__notice" aria-live="polite"></p>
+
+            <div class="bw-newsletter-panel__section">
+                <h4><?php esc_html_e( 'Consent', 'bw' ); ?></h4>
+                <table class="widefat striped bw-newsletter-meta-table">
+                    <tbody>
+                        <tr>
+                            <th><?php esc_html_e( 'Email', 'bw' ); ?></th>
+                            <td>
+                                <span data-bw-field="email"><?php echo esc_html( $payload['meta']['email'] ); ?></span>
+                                <button type="button" class="button-link bw-copy-field" data-copy-field="email" aria-label="<?php esc_attr_e( 'Copy email', 'bw' ); ?>">
+                                    <span class="dashicons dashicons-admin-page" aria-hidden="true"></span>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th><?php esc_html_e( 'List', 'bw' ); ?></th>
+                            <td>
+                                <span data-bw-field="list_display"><?php echo esc_html( (string) $payload['meta']['list_display'] ); ?></span>
+                                <button type="button" class="button button-link bw-load-lists <?php echo ! empty( $payload['meta']['list_needs_load'] ) ? '' : 'hidden'; ?>" id="bw-newsletter-load-lists"><?php esc_html_e( 'Load lists', 'bw' ); ?></button>
+                            </td>
+                        </tr>
+                        <tr><th><?php esc_html_e( 'Opt-in value', 'bw' ); ?></th><td data-bw-field="opt_in"><?php echo esc_html( (string) $payload['meta']['opt_in'] ); ?></td></tr>
+                        <tr><th><?php esc_html_e( 'Consent timestamp', 'bw' ); ?></th><td data-bw-field="consent_at"><?php echo esc_html( $payload['meta']['consent_at'] ); ?></td></tr>
+                        <tr><th><?php esc_html_e( 'Consent source', 'bw' ); ?></th><td data-bw-field="consent_source"><?php echo esc_html( $payload['meta']['consent_source'] ); ?></td></tr>
+                    </tbody>
+                </table>
             </div>
 
-            <table class="widefat striped bw-newsletter-meta-table" style="max-width:100%;margin-top:8px;">
-                <tbody>
-                    <tr><th><?php esc_html_e( 'Email', 'bw' ); ?></th><td data-bw-field="email"><?php echo esc_html( $payload['meta']['email'] ); ?></td></tr>
-                    <tr><th><?php esc_html_e( 'List', 'bw' ); ?></th><td data-bw-field="list_display"><?php echo esc_html( (string) $payload['meta']['list_display'] ); ?></td></tr>
-                    <tr><th><?php esc_html_e( 'Opt-in value', 'bw' ); ?></th><td data-bw-field="opt_in"><?php echo esc_html( (string) $payload['meta']['opt_in'] ); ?></td></tr>
-                    <tr><th><?php esc_html_e( 'Consent timestamp', 'bw' ); ?></th><td data-bw-field="consent_at"><?php echo esc_html( $payload['meta']['consent_at'] ); ?></td></tr>
-                    <tr><th><?php esc_html_e( 'Consent source', 'bw' ); ?></th><td data-bw-field="consent_source"><?php echo esc_html( $payload['meta']['consent_source'] ); ?></td></tr>
-                    <tr><th><?php esc_html_e( 'Checkout field received', 'bw' ); ?></th><td data-bw-field="checkout_field_received"><?php echo esc_html( $payload['meta']['checkout_field_received'] ); ?></td></tr>
-                    <tr><th><?php esc_html_e( 'Checkout field raw value', 'bw' ); ?></th><td data-bw-field="checkout_field_value_raw"><?php echo esc_html( $payload['meta']['checkout_field_value_raw'] ); ?></td></tr>
-                    <tr><th><?php esc_html_e( 'POST keys snapshot', 'bw' ); ?></th><td data-bw-field="checkout_post_keys_snapshot"><?php echo esc_html( $payload['meta']['checkout_post_keys_snapshot'] ); ?></td></tr>
-                    <tr><th><?php esc_html_e( 'Frontend checkbox state', 'bw' ); ?></th><td data-bw-field="frontend_checkbox_state"><?php echo esc_html( $payload['meta']['frontend_checkbox_state'] ); ?></td></tr>
-                    <tr><th><?php esc_html_e( 'Current Brevo status', 'bw' ); ?></th><td data-bw-field="brevo_status"><?php echo esc_html( $payload['meta']['brevo_status'] ); ?></td></tr>
-                    <tr><th><?php esc_html_e( 'Status reason', 'bw' ); ?></th><td data-bw-field="status_reason"><?php echo esc_html( $payload['meta']['status_reason'] ); ?></td></tr>
-                    <tr><th><?php esc_html_e( 'Last error', 'bw' ); ?></th><td data-bw-field="last_error"><?php echo esc_html( $payload['meta']['last_error'] ); ?></td></tr>
-                    <tr><th><?php esc_html_e( 'Last subscription attempt at', 'bw' ); ?></th><td data-bw-field="last_attempt_at"><?php echo esc_html( $payload['meta']['last_attempt_at'] ); ?></td></tr>
-                    <tr><th><?php esc_html_e( 'Attempt source', 'bw' ); ?></th><td data-bw-field="last_attempt_source"><?php echo esc_html( $payload['meta']['last_attempt_source'] ); ?></td></tr>
-                    <tr><th><?php esc_html_e( 'Last checked at', 'bw' ); ?></th><td data-bw-field="last_checked_at"><?php echo esc_html( $payload['meta']['last_checked_at'] ); ?></td></tr>
-                    <tr><th><?php esc_html_e( 'Brevo contact id', 'bw' ); ?></th><td data-bw-field="contact_id"><?php echo esc_html( $payload['meta']['contact_id'] ); ?></td></tr>
-                </tbody>
-            </table>
+            <div class="bw-newsletter-panel__section">
+                <h4><?php esc_html_e( 'Brevo Sync', 'bw' ); ?></h4>
+                <table class="widefat striped bw-newsletter-meta-table">
+                    <tbody>
+                        <tr><th><?php esc_html_e( 'Current Brevo status', 'bw' ); ?></th><td data-bw-field="brevo_status"><?php echo esc_html( $payload['meta']['brevo_status'] ); ?></td></tr>
+                        <tr><th><?php esc_html_e( 'Status reason', 'bw' ); ?></th><td data-bw-field="status_reason"><?php echo esc_html( $payload['meta']['status_reason'] ); ?></td></tr>
+                        <tr><th><?php esc_html_e( 'Last subscription attempt at', 'bw' ); ?></th><td data-bw-field="last_attempt_at"><?php echo esc_html( $payload['meta']['last_attempt_at'] ); ?></td></tr>
+                        <tr><th><?php esc_html_e( 'Attempt source', 'bw' ); ?></th><td data-bw-field="last_attempt_source"><?php echo esc_html( $payload['meta']['last_attempt_source'] ); ?></td></tr>
+                        <tr><th><?php esc_html_e( 'Last checked at (remote)', 'bw' ); ?></th><td data-bw-field="last_checked_at"><?php echo esc_html( $payload['meta']['last_checked_at'] ); ?></td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="bw-newsletter-panel__advanced">
+                <button type="button" class="button-link" id="bw-newsletter-advanced-toggle" aria-expanded="false"><?php esc_html_e( 'Show advanced', 'bw' ); ?></button>
+                <div id="bw-newsletter-advanced-content" class="hidden">
+                    <table class="widefat striped bw-newsletter-meta-table">
+                        <tbody>
+                            <tr><th><?php esc_html_e( 'Checkout field received', 'bw' ); ?></th><td data-bw-field="checkout_field_received"><?php echo esc_html( $payload['meta']['checkout_field_received'] ); ?></td></tr>
+                            <tr><th><?php esc_html_e( 'Checkout field raw value', 'bw' ); ?></th><td data-bw-field="checkout_field_value_raw"><?php echo esc_html( $payload['meta']['checkout_field_value_raw'] ); ?></td></tr>
+                            <tr><th><?php esc_html_e( 'POST keys snapshot', 'bw' ); ?></th><td data-bw-field="checkout_post_keys_snapshot"><?php echo esc_html( $payload['meta']['checkout_post_keys_snapshot'] ); ?></td></tr>
+                            <tr><th><?php esc_html_e( 'Frontend checkbox state', 'bw' ); ?></th><td data-bw-field="frontend_checkbox_state"><?php echo esc_html( $payload['meta']['frontend_checkbox_state'] ); ?></td></tr>
+                            <tr>
+                                <th><?php esc_html_e( 'Brevo contact id', 'bw' ); ?></th>
+                                <td>
+                                    <span data-bw-field="contact_id"><?php echo esc_html( $payload['meta']['contact_id'] ); ?></span>
+                                    <button type="button" class="button-link bw-copy-field" data-copy-field="contact_id" aria-label="<?php esc_attr_e( 'Copy Brevo contact id', 'bw' ); ?>">
+                                        <span class="dashicons dashicons-admin-page" aria-hidden="true"></span>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr><th><?php esc_html_e( 'Last error', 'bw' ); ?></th><td data-bw-field="last_error"><?php echo esc_html( $payload['meta']['last_error'] ); ?></td></tr>
+                        </tbody>
+                    </table>
+                    <span class="hidden" data-bw-field="opt_in_raw"><?php echo esc_html( $payload['meta']['opt_in_raw'] ); ?></span>
+                </div>
+            </div>
         </div>
         <?php
     }
@@ -1222,6 +1279,7 @@ class BW_Checkout_Subscribe_Admin {
         $general = BW_Mail_Marketing_Settings::get_general_settings();
         $email   = (string) $order->get_billing_email();
         $list_id = isset( $general['list_id'] ) ? absint( $general['list_id'] ) : 0;
+        $opt_in  = (int) $order->get_meta( '_bw_subscribe_newsletter', true );
 
         if ( '' === $email || ! is_email( $email ) ) {
             $this->set_order_status_meta( $order, 'skipped', 'invalid_email' );
@@ -1252,7 +1310,10 @@ class BW_Checkout_Subscribe_Admin {
                 delete_post_meta( $order->get_id(), '_bw_brevo_contact_id' );
 
                 $this->log_order_action( $order, $email, 'skipped', 'refresh', 'Contact not found in Brevo.' );
-                wp_send_json_success( $this->build_order_status_payload( $order, __( 'Contact not found in Brevo.', 'bw' ) ) );
+                if ( 1 !== $opt_in ) {
+                    wp_send_json_success( $this->build_order_status_payload( $order, __( 'No opt-in — contact will not be created.', 'bw' ) ) );
+                }
+                wp_send_json_success( $this->build_order_status_payload( $order, __( 'Contact not found in Brevo yet. You can retry or check Brevo.', 'bw' ) ) );
             }
 
             $error = isset( $result['error'] ) ? (string) $result['error'] : __( 'Unable to refresh status from Brevo.', 'bw' );
@@ -1280,7 +1341,7 @@ class BW_Checkout_Subscribe_Admin {
         if ( $in_list ) {
             $this->set_order_status_meta( $order, 'subscribed', 'already_subscribed' );
             $this->log_order_action( $order, $email, 'subscribed', 'refresh', 'Contact found in configured list.' );
-            wp_send_json_success( $this->build_order_status_payload( $order, __( 'Contact found in configured list.', 'bw' ) ) );
+            wp_send_json_success( $this->build_order_status_payload( $order, __( 'Synced with Brevo successfully.', 'bw' ) ) );
         }
 
         $this->set_order_status_meta( $order, 'skipped', 'not_in_list' );
@@ -1397,6 +1458,30 @@ class BW_Checkout_Subscribe_Admin {
         update_post_meta( $order->get_id(), '_bw_brevo_last_checked_at', current_time( 'mysql' ) );
         $this->log_order_action( $order, $email, 'subscribed', 'retry', 'Retry subscribe succeeded.' );
         wp_send_json_success( $this->build_order_status_payload( $order, __( 'Retry subscribe succeeded.', 'bw' ) ) );
+    }
+
+    /**
+     * AJAX: load Brevo lists into cache and refresh panel payload.
+     */
+    public function handle_order_load_lists() {
+        $order = $this->get_order_from_ajax_request();
+        if ( ! $order ) {
+            return;
+        }
+
+        $general = BW_Mail_Marketing_Settings::get_general_settings();
+        $api_key = isset( $general['api_key'] ) ? (string) $general['api_key'] : '';
+        if ( '' === $api_key ) {
+            wp_send_json_error( [ 'message' => __( 'Brevo API key is not configured.', 'bw' ) ] );
+        }
+
+        $lists = $this->get_brevo_lists( $api_key );
+        if ( empty( $lists['success'] ) ) {
+            $message = isset( $lists['message'] ) ? (string) $lists['message'] : __( 'Unable to load lists from Brevo.', 'bw' );
+            wp_send_json_error( [ 'message' => $message ] );
+        }
+
+        wp_send_json_success( $this->build_order_status_payload( $order, __( 'Lists cache updated.', 'bw' ) ) );
     }
 
     /**
@@ -1527,26 +1612,30 @@ class BW_Checkout_Subscribe_Admin {
         }
 
         $list_id = isset( $general['list_id'] ) ? absint( $general['list_id'] ) : 0;
-        $list_display = $this->resolve_list_display( $general, $list_id );
+        $list_info = $this->resolve_list_display( $general, $list_id );
         $reason_label = $this->get_status_reason_label( $reason, $last_error );
 
+        $formatted_opt_in = 1 === $opt_in ? __( 'Yes', 'bw' ) : __( 'No', 'bw' );
+
         $meta = [
-            'email'           => (string) $order->get_billing_email(),
-            'list_display'    => $list_display,
-            'opt_in'          => (string) $opt_in,
-            'consent_at'      => (string) $order->get_meta( '_bw_subscribe_consent_at', true ),
-            'consent_source'  => (string) $order->get_meta( '_bw_subscribe_consent_source', true ),
+            'email'           => $this->normalize_admin_value( (string) $order->get_billing_email() ),
+            'list_display'    => $list_info['label'],
+            'list_needs_load' => ! empty( $list_info['needs_load'] ) ? 1 : 0,
+            'opt_in'          => $formatted_opt_in,
+            'consent_at'      => $this->format_admin_datetime( (string) $order->get_meta( '_bw_subscribe_consent_at', true ) ),
+            'consent_source'  => $this->normalize_admin_value( (string) $order->get_meta( '_bw_subscribe_consent_source', true ) ),
             'checkout_field_received' => '' !== $field_received ? $field_received : 'no',
-            'checkout_field_value_raw' => $field_raw,
-            'checkout_post_keys_snapshot' => '' !== $post_snapshot ? $post_snapshot : 'bw_subscribe_newsletter present: no',
-            'frontend_checkbox_state' => $frontend_state,
-            'brevo_status'    => (string) $status,
-            'status_reason'   => $reason_label,
-            'last_error'      => $last_error,
-            'last_attempt_at' => (string) $order->get_meta( '_bw_brevo_last_attempt_at', true ),
-            'last_attempt_source' => (string) $order->get_meta( '_bw_brevo_last_attempt_source', true ),
-            'last_checked_at' => (string) $order->get_meta( '_bw_brevo_last_checked_at', true ),
-            'contact_id'      => (string) $order->get_meta( '_bw_brevo_contact_id', true ),
+            'checkout_field_value_raw' => $this->normalize_admin_value( $field_raw ),
+            'checkout_post_keys_snapshot' => '' !== $post_snapshot ? $post_snapshot : 'bw_subscribe_newsletter: no, bw_subscribe_newsletter_frontend: missing',
+            'frontend_checkbox_state' => $this->normalize_admin_value( $frontend_state ),
+            'brevo_status'    => $this->normalize_admin_value( (string) $status ),
+            'status_reason'   => $this->normalize_admin_value( $reason_label ),
+            'last_error'      => $this->normalize_admin_value( $last_error ),
+            'last_attempt_at' => $this->format_admin_datetime( (string) $order->get_meta( '_bw_brevo_last_attempt_at', true ) ),
+            'last_attempt_source' => $this->normalize_admin_value( (string) $order->get_meta( '_bw_brevo_last_attempt_source', true ) ),
+            'last_checked_at' => $this->format_admin_datetime( (string) $order->get_meta( '_bw_brevo_last_checked_at', true ) ),
+            'contact_id'      => $this->normalize_admin_value( (string) $order->get_meta( '_bw_brevo_contact_id', true ) ),
+            'opt_in_raw'      => (string) $opt_in,
         ];
 
         return [
@@ -1554,6 +1643,7 @@ class BW_Checkout_Subscribe_Admin {
             'status'       => $status,
             'statusLabel'  => $this->get_status_label( $status, $reason, $last_error ),
             'statusClass'  => $this->get_status_badge_class( $status ),
+            'statusIcon'   => $this->get_status_icon_class( $status ),
             'meta'         => $meta,
         ];
     }
@@ -1576,9 +1666,10 @@ class BW_Checkout_Subscribe_Admin {
         }
 
         $list_id = isset( $general['list_id'] ) ? absint( $general['list_id'] ) : 0;
+        $list_info = $this->resolve_list_display( $general, $list_id );
         $meta = [
             'email'          => sanitize_email( (string) $user->user_email ),
-            'list_display'   => $this->resolve_list_display( $general, $list_id ),
+            'list_display'   => $list_info['label'],
             'status'         => $status,
             'status_reason'  => $this->get_status_reason_label( $reason, $last_error ),
             'last_error'     => $last_error,
@@ -1762,6 +1853,67 @@ class BW_Checkout_Subscribe_Admin {
     }
 
     /**
+     * Map status key to dashicon class.
+     *
+     * @param string $status Status key.
+     *
+     * @return string
+     */
+    private function get_status_icon_class( $status ) {
+        switch ( $status ) {
+            case 'subscribed':
+                return 'dashicons-yes-alt';
+            case 'pending':
+                return 'dashicons-update';
+            case 'error':
+                return 'dashicons-warning';
+            case 'skipped':
+            case 'not_subscribed':
+            default:
+                return 'dashicons-minus';
+        }
+    }
+
+    /**
+     * Format a DB datetime string using WP timezone.
+     *
+     * @param string $value Datetime.
+     *
+     * @return string
+     */
+    private function format_admin_datetime( $value ) {
+        $value = trim( (string) $value );
+        if ( '' === $value ) {
+            return '—';
+        }
+
+        $timezone = wp_timezone();
+        $date = date_create_from_format( 'Y-m-d H:i:s', $value, $timezone );
+        if ( ! $date ) {
+            $timestamp = strtotime( $value );
+            if ( ! $timestamp ) {
+                return '—';
+            }
+
+            return wp_date( 'j M Y, H:i', $timestamp, $timezone );
+        }
+
+        return wp_date( 'j M Y, H:i', $date->getTimestamp(), $timezone );
+    }
+
+    /**
+     * Normalize empty values for admin display.
+     *
+     * @param string $value Raw value.
+     *
+     * @return string
+     */
+    private function normalize_admin_value( $value ) {
+        $value = trim( (string) $value );
+        return '' === $value ? '—' : $value;
+    }
+
+    /**
      * Persist error status meta on order.
      *
      * @param WC_Order $order Order object.
@@ -1809,20 +1961,32 @@ class BW_Checkout_Subscribe_Admin {
      */
     private function resolve_list_display( $general, $list_id ) {
         if ( $list_id <= 0 ) {
-            return __( 'Not configured (#0)', 'bw' );
+            return [
+                'label'      => __( 'Not configured (#0)', 'bw' ),
+                'needs_load' => 0,
+            ];
         }
 
         $api_key = isset( $general['api_key'] ) ? (string) $general['api_key'] : '';
         if ( '' === $api_key || ! class_exists( 'BW_Brevo_Client' ) ) {
-            return sprintf( __( 'Unknown list (#%d)', 'bw' ), $list_id );
+            return [
+                'label'      => sprintf( __( 'List #%d', 'bw' ), $list_id ),
+                'needs_load' => 1,
+            ];
         }
 
         $lists_map = $this->get_cached_brevo_lists_map( $api_key );
         if ( isset( $lists_map[ $list_id ] ) && '' !== $lists_map[ $list_id ] ) {
-            return sprintf( '%s (#%d)', $lists_map[ $list_id ], $list_id );
+            return [
+                'label'      => sprintf( '%s (#%d)', $lists_map[ $list_id ], $list_id ),
+                'needs_load' => 0,
+            ];
         }
 
-        return sprintf( __( 'Unknown list (#%d)', 'bw' ), $list_id );
+        return [
+            'label'      => sprintf( __( 'List #%d', 'bw' ), $list_id ),
+            'needs_load' => 1,
+        ];
     }
 
     /**
@@ -1839,39 +2003,7 @@ class BW_Checkout_Subscribe_Admin {
             return $cached;
         }
 
-        $client = new BW_Brevo_Client( $api_key, BW_Mail_Marketing_Settings::API_BASE_URL );
-        $map = [];
-        $offset = 0;
-        $limit = 200;
-        $max_pages = 5;
-
-        for ( $page = 0; $page < $max_pages; $page++ ) {
-            $lists = $client->get_lists( $limit, $offset );
-            if ( empty( $lists['success'] ) || empty( $lists['data']['lists'] ) || ! is_array( $lists['data']['lists'] ) ) {
-                break;
-            }
-
-            $batch = $lists['data']['lists'];
-            foreach ( $batch as $list ) {
-                $id = isset( $list['id'] ) ? absint( $list['id'] ) : 0;
-                $name = isset( $list['name'] ) ? sanitize_text_field( (string) $list['name'] ) : '';
-                if ( $id > 0 && '' !== $name ) {
-                    $map[ $id ] = $name;
-                }
-            }
-
-            if ( count( $batch ) < $limit ) {
-                break;
-            }
-
-            $offset += $limit;
-        }
-
-        if ( ! empty( $map ) ) {
-            set_transient( $cache_key, $map, HOUR_IN_SECONDS );
-        }
-
-        return $map;
+        return [];
     }
 
     /**
@@ -2032,10 +2164,41 @@ class BW_Checkout_Subscribe_Admin {
             ];
         }
 
+        $this->cache_brevo_lists_map( $api_key, $lists );
+
         return [
             'success' => true,
             'message' => '',
             'lists'   => $lists,
         ];
+    }
+
+    /**
+     * Persist lists map into transient cache.
+     *
+     * @param string $api_key API key.
+     * @param array  $lists   List rows with id/name.
+     */
+    private function cache_brevo_lists_map( $api_key, $lists ) {
+        $api_key = (string) $api_key;
+        if ( '' === $api_key || ! is_array( $lists ) || empty( $lists ) ) {
+            return;
+        }
+
+        $map = [];
+        foreach ( $lists as $list ) {
+            $id = isset( $list['id'] ) ? absint( $list['id'] ) : 0;
+            $name = isset( $list['name'] ) ? sanitize_text_field( (string) $list['name'] ) : '';
+            if ( $id > 0 && '' !== $name ) {
+                $map[ $id ] = $name;
+            }
+        }
+
+        if ( empty( $map ) ) {
+            return;
+        }
+
+        $cache_key = 'bw_brevo_lists_map_' . md5( $api_key );
+        set_transient( $cache_key, $map, HOUR_IN_SECONDS );
     }
 }

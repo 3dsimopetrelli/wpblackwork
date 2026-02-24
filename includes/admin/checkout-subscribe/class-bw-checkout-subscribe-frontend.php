@@ -153,6 +153,10 @@ class BW_Checkout_Subscribe_Frontend {
             'opt_in'         => isset( $_POST['bw_subscribe_newsletter'] ) ? 1 : 0,
             'field_received' => isset( $_POST['bw_subscribe_newsletter'] ) ? 'yes' : 'no',
             'raw_value'      => isset( $_POST['bw_subscribe_newsletter'] ) ? '1' : '',
+            'post_snapshot'  => isset( $_POST['bw_subscribe_newsletter'] )
+                ? 'bw_subscribe_newsletter: yes (value=1), bw_subscribe_newsletter_frontend: ' . ( isset( $_POST['bw_subscribe_newsletter_frontend'] ) ? sanitize_key( (string) wp_unslash( $_POST['bw_subscribe_newsletter_frontend'] ) ) : 'missing' )
+                : 'bw_subscribe_newsletter: no, bw_subscribe_newsletter_frontend: ' . ( isset( $_POST['bw_subscribe_newsletter_frontend'] ) ? sanitize_key( (string) wp_unslash( $_POST['bw_subscribe_newsletter_frontend'] ) ) : 'missing' ),
+            'frontend_state' => isset( $_POST['bw_subscribe_newsletter_frontend'] ) ? sanitize_key( (string) wp_unslash( $_POST['bw_subscribe_newsletter_frontend'] ) ) : '',
         ];
 
         // Fallbacks for custom classic templates where value can be remapped.
@@ -524,6 +528,8 @@ class BW_Checkout_Subscribe_Frontend {
         $raw_value = '';
         $field_received = 'no';
         $frontend_state = '';
+        $post_has_key = isset( $_POST['bw_subscribe_newsletter'] );
+        $post_val = $post_has_key ? (string) wp_unslash( $_POST['bw_subscribe_newsletter'] ) : '';
 
         if ( array_key_exists( 'bw_subscribe_newsletter', $posted_data ) ) {
             $raw_value = (string) $posted_data['bw_subscribe_newsletter'];
@@ -552,7 +558,13 @@ class BW_Checkout_Subscribe_Frontend {
         $normalized = strtolower( trim( $raw_value ) );
         $truthy = [ '1', 'true', 'yes', 'on' ];
         $opt_in = in_array( $normalized, $truthy, true ) ? 1 : 0;
-        $post_snapshot = 'bw_subscribe_newsletter present: ' . ( 'yes' === $field_received ? 'yes' : 'no' );
+        $frontend_state_snapshot = '' !== $frontend_state ? $frontend_state : 'missing';
+        $post_snapshot = sprintf(
+            'bw_subscribe_newsletter: %1$s%2$s, bw_subscribe_newsletter_frontend: %3$s',
+            $post_has_key ? 'yes' : 'no',
+            $post_has_key ? ' (value=' . sanitize_text_field( $post_val ) . ')' : '',
+            $frontend_state_snapshot
+        );
 
         return [
             'opt_in'         => $opt_in,

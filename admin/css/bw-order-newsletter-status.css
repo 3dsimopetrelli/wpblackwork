@@ -1,0 +1,80 @@
+#bw-newsletter-status-panel.bw-newsletter-panel {
+    border: 1px solid #dcdcde;
+    border-radius: 8px;
+    background: #fff;
+    padding: 14px;
+}
+
+#bw-newsletter-status-panel .bw-newsletter-panel__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+}
+
+#bw-newsletter-status-panel .bw-newsletter-panel__actions {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+}
+
+#bw-newsletter-status-panel .bw-newsletter-panel__actions .button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 32px;
+}
+
+#bw-newsletter-status-panel .bw-newsletter-panel__actions .button .spinner {
+    float: none;
+    margin: 0;
+}
+
+#bw-newsletter-status-panel .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    font-weight: 600;
+}
+
+#bw-newsletter-status-panel .status-badge .dashicons {
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+}
+
+#bw-newsletter-status-panel .status-badge.bw-status--subscribed { background: #edf7ed; color: #1e4620; border-color: #b7dfb9; }
+#bw-newsletter-status-panel .status-badge.bw-status--pending { background: #eef4ff; color: #1d3f75; border-color: #bfd0f4; }
+#bw-newsletter-status-panel .status-badge.bw-status--neutral { background: #f6f7f7; color: #3c434a; border-color: #dcdcde; }
+#bw-newsletter-status-panel .status-badge.bw-status--error { background: #fff1f0; color: #7a271a; border-color: #f5c6c1; }
+
+#bw-newsletter-status-panel .bw-newsletter-panel__notice {
+    margin: 0 0 12px;
+    font-weight: 600;
+}
+
+#bw-newsletter-status-panel .bw-newsletter-panel__notice.bw-notice-success { color: #0a3622; }
+#bw-newsletter-status-panel .bw-newsletter-panel__notice.bw-notice-error { color: #691010; }
+
+#bw-newsletter-status-panel .bw-newsletter-panel__section { margin-top: 12px; }
+#bw-newsletter-status-panel .bw-newsletter-panel__section h4 { margin: 0 0 8px; }
+#bw-newsletter-status-panel .bw-newsletter-meta-table th { width: 240px; }
+#bw-newsletter-status-panel .bw-newsletter-meta-table td { color: #1d2327; }
+
+#bw-newsletter-status-panel .bw-newsletter-panel__advanced { margin-top: 10px; }
+#bw-newsletter-status-panel .bw-newsletter-panel__advanced > .button-link { padding: 0; }
+#bw-newsletter-status-panel .bw-newsletter-panel__advanced #bw-newsletter-advanced-content { margin-top: 8px; }
+
+#bw-newsletter-status-panel .bw-copy-field {
+    margin-left: 6px;
+    text-decoration: none;
+}
+
+#bw-newsletter-status-panel .bw-copy-field .dashicons {
+    vertical-align: text-bottom;
+}
