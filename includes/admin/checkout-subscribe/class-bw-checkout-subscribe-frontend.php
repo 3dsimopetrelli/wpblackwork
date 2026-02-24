@@ -296,10 +296,10 @@ class BW_Checkout_Subscribe_Frontend {
 
         $this->set_attempt_meta( $order, $attempt_source );
 
-        $opt_in = $order->get_meta( '_bw_subscribe_newsletter', true );
-        if ( empty( $opt_in ) ) {
-            $this->mark_skipped( $order, 'no_opt_in' );
-            $this->log_event( 'info', 'Skipping subscribe: no explicit consent.', $order, '', 'skipped' );
+        $consent_gate = $this->can_subscribe_order( $order );
+        if ( empty( $consent_gate['allowed'] ) ) {
+            $this->mark_skipped( $order, 'no_consent_recorded' );
+            $this->log_event( 'info', 'SKIPPED_NO_CONSENT: Cannot subscribe: no consent recorded for this order.', $order, '', 'skipped' );
             return;
         }
 
@@ -504,6 +504,33 @@ class BW_Checkout_Subscribe_Frontend {
         }
 
         return false;
+    }
+
+    /**
+     * Centralized consent gate for checkout subscription attempts.
+     *
+     * @param WC_Order $order Order object.
+     *
+     * @return array{allowed:bool}
+     */
+    private function can_subscribe_order( $order ) {
+        if ( ! $order instanceof WC_Order ) {
+            return [ 'allowed' => false ];
+        }
+
+        $opt_in = (int) $order->get_meta( '_bw_subscribe_newsletter', true );
+        $consent_at = trim( (string) $order->get_meta( '_bw_subscribe_consent_at', true ) );
+        $consent_source = trim( (string) $order->get_meta( '_bw_subscribe_consent_source', true ) );
+
+        if ( 1 !== $opt_in ) {
+            return [ 'allowed' => false ];
+        }
+
+        if ( '' === $consent_at || '' === $consent_source ) {
+            return [ 'allowed' => false ];
+        }
+
+        return [ 'allowed' => true ];
     }
 
     /**

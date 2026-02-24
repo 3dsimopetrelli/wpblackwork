@@ -13,10 +13,11 @@ jQuery(function ($) {
     var loadListsBtn = $('#bw-newsletter-load-lists');
     var advancedToggle = $('#bw-newsletter-advanced-toggle');
     var advancedContent = $('#bw-newsletter-advanced-content');
+    var retryAllowed = String(panel.data('retry-allowed') || '1') === '1';
 
     function setButtonsDisabled(disabled) {
         refreshBtn.prop('disabled', disabled);
-        retryBtn.prop('disabled', disabled);
+        retryBtn.prop('disabled', disabled || !retryAllowed);
         if (loadListsBtn.length) {
             loadListsBtn.prop('disabled', disabled);
         }
@@ -64,6 +65,10 @@ jQuery(function ($) {
             Object.keys(payload.meta).forEach(function (key) {
                 panel.find('[data-bw-field="' + key + '"]').text(payload.meta[key] || '—');
             });
+
+            if (Object.prototype.hasOwnProperty.call(payload.meta, 'retry_allowed')) {
+                retryAllowed = String(payload.meta.retry_allowed || '0') === '1';
+            }
 
             if (loadListsBtn.length) {
                 if (String(payload.meta.list_needs_load) === '1') {
@@ -126,6 +131,10 @@ jQuery(function ($) {
 
     retryBtn.on('click', function (event) {
         event.preventDefault();
+        if (!retryAllowed) {
+            renderMessage('error', 'Cannot subscribe: no consent recorded for this order.');
+            return;
+        }
         var optInRaw = panel.find('[data-bw-field="opt_in_raw"]').text();
         if (String(optInRaw).trim() !== '1') {
             if (!window.confirm(cfg.retryNoOptInConfirm || 'No opt-in recorded. Retry will not subscribe. Continue?')) {
@@ -170,4 +179,6 @@ jQuery(function ($) {
             advancedContent.toggleClass('hidden', isExpanded);
         });
     }
+
+    setButtonsDisabled(false);
 });

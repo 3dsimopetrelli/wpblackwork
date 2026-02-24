@@ -1299,8 +1299,8 @@ class BW_Checkout_Subscribe_Admin {
         if ( ! current_user_can( 'manage_woocommerce' ) && ! current_user_can( 'manage_options' ) ) {
             return add_query_arg(
                 [
-                    'bw_resync_subscribed' => 0,
-                    'bw_resync_skipped'    => 0,
+                    'bw_resync_processed'  => 0,
+                    'bw_resync_no_consent' => 0,
                     'bw_resync_error'      => 1,
                 ],
                 $redirect_to
@@ -1312,9 +1312,9 @@ class BW_Checkout_Subscribe_Admin {
         }
 
         $counts = [
-            'subscribed' => 0,
-            'skipped'    => 0,
-            'error'      => 0,
+            'processed'          => 0,
+            'skipped_no_consent' => 0,
+            'error'              => 0,
         ];
 
         $chunks = array_chunk( array_map( 'absint', $order_ids ), 25 );
@@ -1341,8 +1341,8 @@ class BW_Checkout_Subscribe_Admin {
 
         return add_query_arg(
             [
-                'bw_resync_subscribed' => (int) $counts['subscribed'],
-                'bw_resync_skipped'    => (int) $counts['skipped'],
+                'bw_resync_processed'  => (int) $counts['processed'],
+                'bw_resync_no_consent' => (int) $counts['skipped_no_consent'],
                 'bw_resync_error'      => (int) $counts['error'],
             ],
             $redirect_to
@@ -1353,12 +1353,12 @@ class BW_Checkout_Subscribe_Admin {
      * Render admin notice after bulk resync.
      */
     public function render_bulk_resync_admin_notice() {
-        if ( ! isset( $_GET['bw_resync_subscribed'], $_GET['bw_resync_skipped'], $_GET['bw_resync_error'] ) ) {
+        if ( ! isset( $_GET['bw_resync_processed'], $_GET['bw_resync_no_consent'], $_GET['bw_resync_error'] ) ) {
             return;
         }
 
-        $subscribed = absint( wp_unslash( $_GET['bw_resync_subscribed'] ) );
-        $skipped = absint( wp_unslash( $_GET['bw_resync_skipped'] ) );
+        $processed = absint( wp_unslash( $_GET['bw_resync_processed'] ) );
+        $skipped_no_consent = absint( wp_unslash( $_GET['bw_resync_no_consent'] ) );
         $error = absint( wp_unslash( $_GET['bw_resync_error'] ) );
         ?>
         <div class="notice notice-info is-dismissible">
@@ -1367,10 +1367,10 @@ class BW_Checkout_Subscribe_Admin {
                     <?php
                     echo esc_html(
                         sprintf(
-                            /* translators: 1: subscribed count, 2: skipped count, 3: error count */
-                            __( 'Resync complete: %1$d subscribed, %2$d skipped, %3$d errors.', 'bw' ),
-                            $subscribed,
-                            $skipped,
+                            /* translators: 1: processed count, 2: skipped no-consent count, 3: error count */
+                            __( 'Resync complete: %1$d processed, %2$d skipped (no consent), %3$d errors.', 'bw' ),
+                            $processed,
+                            $skipped_no_consent,
                             $error
                         )
                     );
@@ -1604,8 +1604,13 @@ class BW_Checkout_Subscribe_Admin {
         }
 
         $payload = $this->build_order_status_payload( $order );
+        $consent_gate = $this->can_subscribe_order( $order );
+        $retry_disabled_attr = ! empty( $consent_gate['allowed'] ) ? '' : 'disabled="disabled"';
+        $retry_disabled_title = ! empty( $consent_gate['allowed'] )
+            ? ''
+            : esc_attr__( 'Retry is disabled because the customer did not opt in.', 'bw' );
         ?>
-        <div id="bw-newsletter-status-panel" class="bw-newsletter-panel wc-metabox" data-order-id="<?php echo esc_attr( $order->get_id() ); ?>">
+        <div id="bw-newsletter-status-panel" class="bw-newsletter-panel wc-metabox" data-order-id="<?php echo esc_attr( $order->get_id() ); ?>" data-retry-allowed="<?php echo ! empty( $consent_gate['allowed'] ) ? '1' : '0'; ?>">
             <div class="bw-newsletter-panel__header">
                 <span id="bw-newsletter-status-badge" class="bw-newsletter-status-badge status-badge <?php echo esc_attr( $payload['statusClass'] ); ?>">
                     <span class="dashicons <?php echo esc_attr( $payload['statusIcon'] ); ?>" aria-hidden="true"></span>
@@ -1616,7 +1621,7 @@ class BW_Checkout_Subscribe_Admin {
                         <span class="bw-btn-text"><?php esc_html_e( 'Check Brevo', 'bw' ); ?></span>
                         <span class="spinner"></span>
                     </button>
-                    <button type="button" class="button button-secondary" id="bw-newsletter-retry">
+                    <button type="button" class="button button-secondary" id="bw-newsletter-retry" <?php echo $retry_disabled_attr; ?> title="<?php echo $retry_disabled_title; ?>">
                         <span class="bw-btn-text"><?php esc_html_e( 'Retry subscribe', 'bw' ); ?></span>
                         <span class="spinner"></span>
                     </button>
@@ -1785,7 +1790,7 @@ class BW_Checkout_Subscribe_Admin {
         }
 
         $result = $this->resync_order_to_brevo( $order, 'manual_retry' );
-        if ( 'error' === $result['result'] ) {
+        if ( in_array( $result['result'], [ 'error', 'skipped_no_consent' ], true ) ) {
             wp_send_json_error( [ 'message' => $result['message'] ] );
         }
 
@@ -1946,6 +1951,7 @@ class BW_Checkout_Subscribe_Admin {
         $list_id = isset( $general['list_id'] ) ? absint( $general['list_id'] ) : 0;
         $list_info = $this->resolve_list_display( $general, $list_id );
         $reason_label = $this->get_status_reason_label( $reason, $last_error );
+        $consent_gate = $this->can_subscribe_order( $order );
 
         $formatted_opt_in = 1 === $opt_in ? __( 'Yes', 'bw' ) : __( 'No', 'bw' );
 
@@ -1968,6 +1974,7 @@ class BW_Checkout_Subscribe_Admin {
             'last_checked_at' => $this->format_admin_datetime( (string) $order->get_meta( '_bw_brevo_last_checked_at', true ) ),
             'contact_id'      => $this->normalize_admin_value( (string) $order->get_meta( '_bw_brevo_contact_id', true ) ),
             'opt_in_raw'      => (string) $opt_in,
+            'retry_allowed'   => ! empty( $consent_gate['allowed'] ) ? '1' : '0',
         ];
 
         return [
@@ -2264,13 +2271,12 @@ class BW_Checkout_Subscribe_Admin {
         $this->set_attempt_meta( $order, $attempt_source );
 
         $email = (string) $order->get_billing_email();
-        $opt_in = (int) $order->get_meta( '_bw_subscribe_newsletter', true );
-        if ( 1 !== $opt_in ) {
-            $this->set_order_status_meta( $order, 'skipped', 'no_opt_in' );
-            $this->log_order_action( $order, $email, 'skipped', $attempt_source, 'Skipped: no opt-in.' );
+        $consent_gate = $this->can_subscribe_order( $order );
+        if ( empty( $consent_gate['allowed'] ) ) {
+            $this->mark_no_consent_skipped( $order, $email, $attempt_source );
             return [
-                'result'  => 'skipped',
-                'message' => __( 'Retry skipped: customer did not opt-in.', 'bw' ),
+                'result'  => 'skipped_no_consent',
+                'message' => __( 'Cannot subscribe: no consent recorded for this order.', 'bw' ),
             ];
         }
 
@@ -2364,7 +2370,7 @@ class BW_Checkout_Subscribe_Admin {
             update_post_meta( $order->get_id(), '_bw_brevo_last_checked_at', current_time( 'mysql' ) );
             $this->log_order_action( $order, $email, 'pending', $attempt_source, 'DOI request sent.' );
             return [
-                'result'  => 'subscribed',
+                'result'  => 'processed',
                 'message' => __( 'DOI request sent successfully.', 'bw' ),
             ];
         }
@@ -2393,7 +2399,7 @@ class BW_Checkout_Subscribe_Admin {
         $this->log_order_action( $order, $email, 'subscribed', $attempt_source, 'Order synced to Brevo.' );
 
         return [
-            'result'  => 'subscribed',
+            'result'  => 'processed',
             'message' => __( 'Retry subscribe succeeded.', 'bw' ),
         ];
     }
@@ -2478,6 +2484,55 @@ class BW_Checkout_Subscribe_Admin {
         }
 
         return false;
+    }
+
+    /**
+     * Centralized consent gate for server-side manual subscribe paths.
+     *
+     * @param WC_Order $order Order.
+     *
+     * @return array{allowed:bool}
+     */
+    private function can_subscribe_order( $order ) {
+        if ( ! $order instanceof WC_Order ) {
+            return [ 'allowed' => false ];
+        }
+
+        $opt_in = (int) $order->get_meta( '_bw_subscribe_newsletter', true );
+        $consent_at = trim( (string) $order->get_meta( '_bw_subscribe_consent_at', true ) );
+        $consent_source = trim( (string) $order->get_meta( '_bw_subscribe_consent_source', true ) );
+
+        if ( 1 !== $opt_in ) {
+            return [ 'allowed' => false ];
+        }
+
+        if ( '' === $consent_at || '' === $consent_source ) {
+            return [ 'allowed' => false ];
+        }
+
+        return [ 'allowed' => true ];
+    }
+
+    /**
+     * Persist and log no-consent skip status.
+     *
+     * @param WC_Order $order          Order.
+     * @param string   $email          Email.
+     * @param string   $attempt_source Attempt source.
+     */
+    private function mark_no_consent_skipped( $order, $email, $attempt_source ) {
+        update_post_meta( $order->get_id(), '_bw_brevo_subscribed', 'skipped' );
+        update_post_meta( $order->get_id(), '_bw_brevo_status_reason', 'No consent recorded' );
+        delete_post_meta( $order->get_id(), '_bw_brevo_error_last' );
+        update_post_meta( $order->get_id(), '_bw_brevo_last_checked_at', current_time( 'mysql' ) );
+
+        $this->log_order_action(
+            $order,
+            $email,
+            'skipped',
+            $attempt_source,
+            'SKIPPED_NO_CONSENT: Cannot subscribe: no consent recorded for this order.'
+        );
     }
 
     /**
@@ -2585,6 +2640,8 @@ class BW_Checkout_Subscribe_Admin {
         $reason = sanitize_key( (string) $reason );
 
         $map = [
+            'no-consent-recorded' => __( 'No consent recorded', 'bw' ),
+            'no_consent_recorded' => __( 'No consent recorded', 'bw' ),
             'no_opt_in'            => __( 'No opt-in', 'bw' ),
             'missing_list_id'      => __( 'Missing list ID', 'bw' ),
             'invalid_email'        => __( 'Invalid email', 'bw' ),
