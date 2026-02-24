@@ -50,6 +50,8 @@ Consent source is stored in `_bw_subscribe_consent_source` and currently support
 - `my_account`
 - `supabase_google`
 - `supabase_facebook`
+- `supabase_magic_link`
+- `app_stripe`
 
 
 # Order Meta Keys
@@ -242,6 +244,7 @@ Features:
   - `Consent`
   - `Brevo Sync`
   - `Advanced` (collapsible diagnostics)
+- Advanced diagnostics includes `Brevo attributes payload (summary)` (keys only, no sensitive payload values)
 - Copy-to-clipboard for email/contact ID
 
 ## Orders list custom columns: Newsletter + Source

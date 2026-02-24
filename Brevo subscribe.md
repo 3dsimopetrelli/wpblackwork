@@ -1,8 +1,8 @@
 # Documentation Governance & Update Workflow
 
-Document Version: 1.1  
+Document Version: 1.2  
 Last Updated: 2026-02-24  
-Last Update Summary: Added WooCommerce Admin Order Newsletter Status panel with Refresh/Retry actions.
+Last Update Summary: Added centralized Brevo Data Model service, attribute map standardization, and consent-safe admin UX refinements.
 
 ## 0.1 Purpose of this Document
 This file is the official technical specification and single source of truth for the Brevo Mail Marketing system in the Blackwork Site plugin.
@@ -39,9 +39,9 @@ Internal document versioning rules:
 
 Current baseline:
 
-- Document Version: `1.1`
+- Document Version: `1.2`
 - Last Updated: `2026-02-24`
-- Last Update Summary: `Added WooCommerce Admin Order Newsletter Status panel with Refresh/Retry actions.`
+- Last Update Summary: `Added centralized Brevo Data Model service, attribute map standardization, and consent-safe admin UX refinements.`
 
 ## 0.4 Change Log Section
 A persistent change log must be maintained at the end of this document under `10. Change Log`.
@@ -567,6 +567,12 @@ Observability improvements:
 ---
 
 # 10. Change Log
+## v1.2 - 2026-02-24
+- Added shared service `BW_MailMarketing_Service` to centralize Brevo attribute mapping from order consent context.
+- Standardized Brevo attributes across checkout/retry/bulk paths (`SOURCE`, `CONSENT_SOURCE`, `CONSENT_AT`, `CONSENT_STATUS`, `BW_ORIGIN_SYSTEM`, `BW_ENV`, `LAST_ORDER_ID`, `LAST_ORDER_AT`, `CUSTOMER_STATUS`).
+- Added admin advanced payload summary row for Brevo attributes keys sent.
+- Updated consent-gated admin UX (disabled retry/sync states and friendly no-consent notices).
+
 ## v1.1 - 2026-02-24
 - Added WooCommerce Admin Order Newsletter Status panel.
 - Added secure AJAX actions for order-level `Refresh` (read-only sync) and `Retry subscribe` (write action).
