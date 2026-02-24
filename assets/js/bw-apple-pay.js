@@ -113,17 +113,6 @@
         return null;
     }
 
-    function renderCheckoutNotice(type, message) {
-        var klass = type === 'error' ? 'woocommerce-error' : 'woocommerce-info';
-        var $notices = $('.woocommerce-notices-wrapper').first();
-
-        if ($notices.length) {
-            $notices.html('<ul class="' + klass + '" role="alert"><li>' + escapeHtml(message) + '</li></ul>');
-        }
-
-        $('html, body').animate({ scrollTop: 0 }, 250);
-    }
-
     function scrollToExpressCheckout(ev) {
         if (ev && typeof ev.preventDefault === 'function') {
             ev.preventDefault();
@@ -131,7 +120,7 @@
 
         var target = getExpressCheckoutTarget();
         if (!target) {
-            renderCheckoutNotice('info', 'Express Checkout area was not detected. Please use the Apple Pay/Google Pay buttons at the top of checkout.');
+            window.bwCheckout.renderCheckoutNotice('info', 'Express Checkout area was not detected. Please use the Apple Pay/Google Pay buttons at the top of checkout.');
             return;
         }
 
@@ -372,17 +361,8 @@
             return true;
         }
 
-        renderCheckoutNotice('error', 'Please fill in required fields: ' + invalidLabels.join(', ') + '.');
+        window.bwCheckout.renderCheckoutNotice('error', 'Please fill in required fields: ' + invalidLabels.join(', ') + '.');
         return false;
-    }
-
-    function renderCheckoutNotice(type, message) {
-        var klass = type === 'error' ? 'woocommerce-error' : 'woocommerce-info';
-        var $notices = $('.woocommerce-notices-wrapper').first();
-        if ($notices.length) {
-            $notices.html('<ul class="' + klass + '" role="alert"><li>' + message + '</li></ul>');
-        }
-        $('html, body').animate({ scrollTop: 0 }, 250);
     }
 
     function disableApplePaySelection() {
@@ -562,7 +542,7 @@
             error: function () {
                 ev.complete('fail');
                 app.state = STATE.ERROR;
-                renderCheckoutNotice('error', 'Apple Pay request failed. Please try again or choose another payment method.');
+                window.bwCheckout.renderCheckoutNotice('error', 'Apple Pay request failed. Please try again or choose another payment method.');
                 applyUiState('apple_submit_error_request');
             }
         });
@@ -640,7 +620,7 @@
             return;
         }
 
-        renderCheckoutNotice('error', 'Apple Pay is not available in this environment. Choose another payment method.');
+        window.bwCheckout.renderCheckoutNotice('error', 'Apple Pay is not available in this environment. Choose another payment method.');
     }
 
     function initPaymentRequest() {
@@ -677,7 +657,7 @@
         app.paymentRequest.on('cancel', function () {
             setHiddenMethodId('');
             app.state = isAppleMethodSelected() ? STATE.METHOD_SELECTED : STATE.IDLE;
-            renderCheckoutNotice('error', 'Apple Pay payment was canceled. You can choose another payment method or try again.');
+            window.bwCheckout.renderCheckoutNotice('error', 'Apple Pay payment was canceled. You can choose another payment method or try again.');
             window.bwCheckout.removeLoadingState();
             $(document.body).trigger('update_checkout');
         });
