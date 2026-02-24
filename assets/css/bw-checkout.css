@@ -3664,13 +3664,21 @@ body.woocommerce-checkout #payment .payment_method_stripe .p-Input--invalid {
     margin-top: 0 !important;
 }
 
-/* Spacing for Stripe Payment Accordion items (Card & Klarna labels) */
-.p-AccordionButton[data-value="card"] .p-PaymentAccordionButtonView {
-    margin-bottom: 8px !important;
+/* Hide Stripe Payment Accordion internal "Card" and "Klarna" rows.
+   Stripe UPE renders these in the page DOM (outside the iframe) in newer versions.
+   We use the same high-specificity selectors Stripe itself uses (0,3,0) to ensure
+   our display:none wins even when Stripe's own bundled CSS uses !important.
+   bw-payment-methods.css adds a broad belt-and-suspenders rule;
+   bw-stripe-upe-cleaner.js adds an inline style + attribute observer as a third layer. */
+.p-AccordionButton[data-value="card"] .p-PaymentAccordionButtonView,
+.p-AccordionButton[data-value="klarna"] .p-PaymentAccordionButtonView {
+    display: none !important;
+    margin: 0 !important;
 }
 
-.p-AccordionButton[data-value="klarna"] .p-PaymentAccordionButtonView {
-    margin-top: 12px !important;
+.p-AccordionButton[data-value="card"],
+.p-AccordionButton[data-value="klarna"] {
+    display: none !important;
 }
 
 /* Ensure the Stripe iframe respects the container padding */
