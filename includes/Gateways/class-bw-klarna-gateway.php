@@ -32,10 +32,8 @@ class BW_Klarna_Gateway extends BW_Abstract_Stripe_Gateway {
 		// Klarna is configured in live mode from BlackWork > Checkout > Klarna Pay tab.
 		$this->test_mode             = false;
 		$this->enabled               = get_option( 'bw_klarna_enabled', '0' ) === '1' ? 'yes' : 'no';
-		$this->secret_key            = (string) get_option( 'bw_klarna_secret_key', '' );
-		$this->publishable_key       = (string) get_option( 'bw_klarna_publishable_key', '' );
-		$this->statement_descriptor  = (string) get_option( 'bw_klarna_statement_descriptor', '' );
-		$this->webhook_secret        = (string) get_option( 'bw_klarna_webhook_secret', '' );
+		$this->statement_descriptor = (string) get_option( 'bw_klarna_statement_descriptor', '' );
+		$this->init_stripe_keys();
 
 		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
 		add_action( 'woocommerce_api_' . $this->id, array( $this, 'handle_webhook' ) );
@@ -214,6 +212,16 @@ class BW_Klarna_Gateway extends BW_Abstract_Stripe_Gateway {
 	/** @inheritDoc */
 	protected function get_test_secret_option_name() {
 		return 'bw_klarna_test_secret_key';
+	}
+
+	/** @inheritDoc */
+	protected function get_live_publishable_key_option_name() {
+		return 'bw_klarna_publishable_key';
+	}
+
+	/** @inheritDoc */
+	protected function get_test_publishable_key_option_name() {
+		return 'bw_klarna_test_publishable_key';
 	}
 
 	/** @inheritDoc */
