@@ -235,7 +235,7 @@ class BW_Checkout_Subscribe_Admin {
         add_action( 'admin_init', [ $this, 'handle_post' ] );
         add_action( 'wp_ajax_bw_brevo_test_connection', [ $this, 'handle_test_connection' ] );
         add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_order_newsletter_assets' ] );
-        add_action( 'woocommerce_admin_order_data_after_order_details', [ $this, 'render_order_newsletter_panel' ] );
+        add_action( 'add_meta_boxes', [ $this, 'register_order_newsletter_metabox' ] );
         add_action( 'wp_ajax_bw_brevo_order_refresh_status', [ $this, 'handle_order_refresh_status' ] );
         add_action( 'wp_ajax_bw_brevo_order_retry_subscribe', [ $this, 'handle_order_retry_subscribe' ] );
     }
@@ -691,7 +691,61 @@ class BW_Checkout_Subscribe_Admin {
     }
 
     /**
-     * Render newsletter status panel in WooCommerce order admin.
+     * Register full-width newsletter metabox on order edit screen.
+     */
+    public function register_order_newsletter_metabox() {
+        if ( ! current_user_can( 'manage_woocommerce' ) && ! current_user_can( 'manage_options' ) ) {
+            return;
+        }
+
+        // Safety net: ensure legacy inline rendering inside Woo "General" column is not active.
+        remove_action( 'woocommerce_admin_order_data_after_order_details', [ $this, 'render_order_newsletter_panel' ] );
+
+        $screens = [ 'shop_order' ];
+        if ( function_exists( 'wc_get_page_screen_id' ) ) {
+            $hpos_screen = wc_get_page_screen_id( 'shop-order' );
+            if ( $hpos_screen ) {
+                $screens[] = $hpos_screen;
+            }
+        }
+
+        $screens = array_unique( array_filter( $screens ) );
+
+        foreach ( $screens as $screen ) {
+            add_meta_box(
+                'bw-newsletter-status-panel-metabox',
+                __( 'Newsletter Status', 'bw' ),
+                [ $this, 'render_order_newsletter_metabox' ],
+                $screen,
+                'normal',
+                'high'
+            );
+        }
+    }
+
+    /**
+     * Render metabox wrapper and resolve order object.
+     *
+     * @param WP_Post|WC_Order $object Post or order object from metabox callback.
+     */
+    public function render_order_newsletter_metabox( $object ) {
+        $order = null;
+
+        if ( $object instanceof WC_Order ) {
+            $order = $object;
+        } elseif ( $object instanceof WP_Post ) {
+            $order = wc_get_order( $object->ID );
+        }
+
+        if ( ! $order instanceof WC_Order ) {
+            return;
+        }
+
+        $this->render_order_newsletter_panel( $order );
+    }
+
+    /**
+     * Render newsletter status panel in WooCommerce order admin metabox.
      *
      * @param WC_Order $order Woo order object.
      */
@@ -712,10 +766,9 @@ class BW_Checkout_Subscribe_Admin {
             .bw-newsletter-status-badge.bw-status--pending { background:#e7eefc;color:#1b3b7a;border:1px solid #9ab1e9; }
             .bw-newsletter-status-badge.bw-status--neutral { background:#f3f4f6;color:#2c3338;border:1px solid #c3c4c7; }
             .bw-newsletter-status-badge.bw-status--error { background:#fce2e2;color:#691010;border:1px solid #e99a9a; }
+            #bw-newsletter-status-panel .bw-newsletter-meta-table th { width:220px; }
         </style>
-        <div id="bw-newsletter-status-panel" class="bw-newsletter-status-panel" data-order-id="<?php echo esc_attr( $order->get_id() ); ?>" style="margin:16px 0;padding:16px;border:1px solid #dcdcde;background:#fff;">
-            <h3 style="margin:0 0 12px 0;"><?php esc_html_e( 'Newsletter Status', 'bw' ); ?></h3>
-
+        <div id="bw-newsletter-status-panel" class="bw-newsletter-status-panel" data-order-id="<?php echo esc_attr( $order->get_id() ); ?>">
             <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px;">
                 <span id="bw-newsletter-status-badge" class="bw-newsletter-status-badge <?php echo esc_attr( $status_class ); ?>" style="display:inline-block;padding:6px 10px;border-radius:999px;font-weight:600;">
                     <?php echo esc_html( $this->get_status_label( $payload['status'] ) ); ?>
@@ -725,7 +778,7 @@ class BW_Checkout_Subscribe_Admin {
                 <span id="bw-newsletter-inline-message" aria-live="polite"></span>
             </div>
 
-            <table class="widefat striped" style="max-width:100%;margin-top:8px;">
+            <table class="widefat striped bw-newsletter-meta-table" style="max-width:100%;margin-top:8px;">
                 <tbody>
                     <tr><th><?php esc_html_e( 'Email', 'bw' ); ?></th><td data-bw-field="email"><?php echo esc_html( $payload['meta']['email'] ); ?></td></tr>
                     <tr><th><?php esc_html_e( 'List ID used', 'bw' ); ?></th><td data-bw-field="list_id"><?php echo esc_html( (string) $payload['meta']['list_id'] ); ?></td></tr>
