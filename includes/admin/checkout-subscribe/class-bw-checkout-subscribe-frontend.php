@@ -348,6 +348,7 @@ class BW_Checkout_Subscribe_Frontend {
         $mode = $this->resolve_optin_mode( $general_settings, $checkout_settings );
 
         if ( 'double_opt_in' === $mode ) {
+            $attribute_warning = '';
             if ( empty( $general_settings['double_optin_template_id'] ) || empty( $general_settings['double_optin_redirect_url'] ) ) {
                 $this->mark_error( $order, __( 'Double opt-in requires template ID and redirect URL.', 'bw' ), $email );
                 return;
@@ -371,7 +372,8 @@ class BW_Checkout_Subscribe_Frontend {
             );
 
             if ( empty( $result['success'] ) && $this->is_brevo_unknown_attribute_error( $result ) ) {
-                $this->log_event( 'error', 'Brevo rejected custom attributes for DOI. Retrying with minimal attributes.', $order, $email, 'error' );
+                $attribute_warning = __( 'Brevo rejected one or more custom attributes. Retrying without custom attributes.', 'bw' );
+                $this->log_event( 'warning', 'Brevo rejected custom attributes for DOI. Retrying with minimal attributes.', $order, $email, 'warning' );
                 $result = $client->send_double_opt_in(
                     $email,
                     absint( $general_settings['double_optin_template_id'] ),
@@ -380,21 +382,44 @@ class BW_Checkout_Subscribe_Frontend {
                     $this->strip_marketing_attributes( $attributes ),
                     $sender
                 );
+                if ( empty( $result['success'] ) && $this->is_brevo_unknown_attribute_error( $result ) ) {
+                    $this->log_event( 'warning', 'Brevo still rejected attributes for DOI. Retrying with empty attributes.', $order, $email, 'warning' );
+                    $result = $client->send_double_opt_in(
+                        $email,
+                        absint( $general_settings['double_optin_template_id'] ),
+                        $general_settings['double_optin_redirect_url'],
+                        [ absint( $general_settings['list_id'] ) ],
+                        [],
+                        $sender
+                    );
+                }
             }
 
             if ( empty( $result['success'] ) ) {
+                if ( $this->is_brevo_unknown_attribute_error( $result ) ) {
+                    $warning = $this->extract_error_message( $result, __( 'Brevo rejected custom attributes.', 'bw' ) );
+                    $order->update_meta_data( '_bw_brevo_error_last', $warning );
+                    $order->save();
+                    $this->log_event( 'warning', 'Brevo custom attribute warning (DOI): ' . $warning, $order, $email, 'warning' );
+                    return;
+                }
                 $this->mark_error( $order, $this->extract_error_message( $result, 'Brevo double opt-in failed.' ), $email, 'api_error' );
                 return;
             }
 
             $order->update_meta_data( '_bw_brevo_subscribed', 'pending' );
             $order->update_meta_data( '_bw_brevo_status_reason', 'double_opt_in_sent' );
-            $order->delete_meta_data( '_bw_brevo_error_last' );
+            if ( '' !== $attribute_warning ) {
+                $order->update_meta_data( '_bw_brevo_error_last', $attribute_warning );
+            } else {
+                $order->delete_meta_data( '_bw_brevo_error_last' );
+            }
             $order->save();
             $this->log_event( 'info', 'Brevo double opt-in request sent.', $order, $email, 'pending' );
             return;
         }
 
+        $attribute_warning = '';
         $result = $client->upsert_contact(
             $email,
             $attributes,
@@ -402,22 +427,42 @@ class BW_Checkout_Subscribe_Frontend {
         );
 
         if ( empty( $result['success'] ) && $this->is_brevo_unknown_attribute_error( $result ) ) {
-            $this->log_event( 'error', 'Brevo rejected custom attributes. Retrying with minimal attributes.', $order, $email, 'error' );
+            $attribute_warning = __( 'Brevo rejected one or more custom attributes. Retrying without custom attributes.', 'bw' );
+            $this->log_event( 'warning', 'Brevo rejected custom attributes. Retrying with minimal attributes.', $order, $email, 'warning' );
             $result = $client->upsert_contact(
                 $email,
                 $this->strip_marketing_attributes( $attributes ),
                 [ absint( $general_settings['list_id'] ) ]
             );
+            if ( empty( $result['success'] ) && $this->is_brevo_unknown_attribute_error( $result ) ) {
+                $this->log_event( 'warning', 'Brevo still rejected attributes. Retrying with empty attributes.', $order, $email, 'warning' );
+                $result = $client->upsert_contact(
+                    $email,
+                    [],
+                    [ absint( $general_settings['list_id'] ) ]
+                );
+            }
         }
 
         if ( empty( $result['success'] ) ) {
+            if ( $this->is_brevo_unknown_attribute_error( $result ) ) {
+                $warning = $this->extract_error_message( $result, __( 'Brevo rejected custom attributes.', 'bw' ) );
+                $order->update_meta_data( '_bw_brevo_error_last', $warning );
+                $order->save();
+                $this->log_event( 'warning', 'Brevo custom attribute warning (upsert): ' . $warning, $order, $email, 'warning' );
+                return;
+            }
             $this->mark_error( $order, $this->extract_error_message( $result, 'Brevo subscribe failed.' ), $email, 'api_error' );
             return;
         }
 
         $order->update_meta_data( '_bw_brevo_subscribed', 'subscribed' );
         $order->update_meta_data( '_bw_brevo_status_reason', 'subscribed' );
-        $order->delete_meta_data( '_bw_brevo_error_last' );
+        if ( '' !== $attribute_warning ) {
+            $order->update_meta_data( '_bw_brevo_error_last', $attribute_warning );
+        } else {
+            $order->delete_meta_data( '_bw_brevo_error_last' );
+        }
         $order->save();
         $this->log_event( 'info', 'Brevo contact subscribed.', $order, $email, 'subscribed' );
     }
@@ -455,6 +500,7 @@ class BW_Checkout_Subscribe_Frontend {
         $consent_source = sanitize_key( $consent_source );
         $attributes['SOURCE'] = $consent_source;
         $attributes['CONSENT_SOURCE'] = $consent_source;
+        $attributes['BW_ENV'] = 'wp';
 
         $consent_at = (string) $order->get_meta( '_bw_subscribe_consent_at', true );
         if ( '' !== $consent_at ) {
@@ -462,6 +508,13 @@ class BW_Checkout_Subscribe_Frontend {
         }
 
         $attributes['LAST_ORDER_ID'] = (string) absint( $order->get_id() );
+        $order_date = $order->get_date_paid();
+        if ( ! $order_date ) {
+            $order_date = $order->get_date_created();
+        }
+        if ( $order_date instanceof WC_DateTime ) {
+            $attributes['LAST_ORDER_AT'] = $order_date->date( 'Y-m-d H:i:s' );
+        }
 
         return $attributes;
     }
@@ -478,7 +531,7 @@ class BW_Checkout_Subscribe_Frontend {
             return [];
         }
 
-        unset( $attributes['SOURCE'], $attributes['CONSENT_SOURCE'], $attributes['CONSENT_AT'], $attributes['LAST_ORDER_ID'] );
+        unset( $attributes['SOURCE'], $attributes['CONSENT_SOURCE'], $attributes['CONSENT_AT'], $attributes['BW_ENV'], $attributes['LAST_ORDER_ID'], $attributes['LAST_ORDER_AT'] );
         return $attributes;
     }
 
@@ -858,6 +911,11 @@ class BW_Checkout_Subscribe_Frontend {
         $logger = wc_get_logger();
         if ( 'error' === $level ) {
             $logger->error( $message, $context );
+            return;
+        }
+
+        if ( 'warning' === $level ) {
+            $logger->warning( $message, $context );
             return;
         }
 

@@ -2349,6 +2349,7 @@ class BW_Checkout_Subscribe_Admin {
         }
 
         if ( 'double_opt_in' === $mode ) {
+            $attribute_warning = '';
             $template_id = isset( $general['double_optin_template_id'] ) ? absint( $general['double_optin_template_id'] ) : 0;
             $redirect_url = isset( $general['double_optin_redirect_url'] ) ? (string) $general['double_optin_redirect_url'] : '';
             if ( $template_id <= 0 || '' === $redirect_url ) {
@@ -2371,11 +2372,25 @@ class BW_Checkout_Subscribe_Admin {
             $result = $client->send_double_opt_in( $email, $template_id, $redirect_url, [ $list_id ], $attributes, $sender );
             if ( empty( $result['success'] ) && $this->is_brevo_unknown_attribute_error( $result ) ) {
                 $minimal_attributes = $this->strip_marketing_attributes( $attributes );
-                $this->log_order_action( $order, $email, 'error', $attempt_source, 'Brevo rejected custom attributes for DOI. Retrying with minimal attributes.' );
+                $attribute_warning = __( 'Brevo rejected one or more custom attributes. Retrying without custom attributes.', 'bw' );
+                $this->log_order_action( $order, $email, 'warning', $attempt_source, 'Brevo rejected custom attributes for DOI. Retrying with minimal attributes.' );
                 $result = $client->send_double_opt_in( $email, $template_id, $redirect_url, [ $list_id ], $minimal_attributes, $sender );
+                if ( empty( $result['success'] ) && $this->is_brevo_unknown_attribute_error( $result ) ) {
+                    $this->log_order_action( $order, $email, 'warning', $attempt_source, 'Brevo still rejected attributes for DOI. Retrying with empty attributes.' );
+                    $result = $client->send_double_opt_in( $email, $template_id, $redirect_url, [ $list_id ], [], $sender );
+                }
             }
 
             if ( empty( $result['success'] ) ) {
+                if ( $this->is_brevo_unknown_attribute_error( $result ) ) {
+                    $warning = isset( $result['error'] ) ? sanitize_text_field( (string) $result['error'] ) : __( 'Brevo rejected custom attributes.', 'bw' );
+                    update_post_meta( $order->get_id(), '_bw_brevo_error_last', $warning );
+                    $this->log_order_action( $order, $email, 'warning', $attempt_source, 'Brevo custom attribute warning (DOI): ' . $warning );
+                    return [
+                        'result'  => 'processed',
+                        'message' => __( 'Brevo warning: custom attributes were rejected. Contact status unchanged.', 'bw' ),
+                    ];
+                }
                 $error = isset( $result['error'] ) ? (string) $result['error'] : __( 'Brevo DOI failed.', 'bw' );
                 $this->set_order_error_meta( $order, $error );
                 $this->log_order_action( $order, $email, 'error', $attempt_source, $error );
@@ -2387,7 +2402,11 @@ class BW_Checkout_Subscribe_Admin {
 
             update_post_meta( $order->get_id(), '_bw_brevo_subscribed', 'pending' );
             update_post_meta( $order->get_id(), '_bw_brevo_status_reason', 'double_opt_in_sent' );
-            delete_post_meta( $order->get_id(), '_bw_brevo_error_last' );
+            if ( '' !== $attribute_warning ) {
+                update_post_meta( $order->get_id(), '_bw_brevo_error_last', $attribute_warning );
+            } else {
+                delete_post_meta( $order->get_id(), '_bw_brevo_error_last' );
+            }
             update_post_meta( $order->get_id(), '_bw_brevo_last_checked_at', current_time( 'mysql' ) );
             $this->log_order_action( $order, $email, 'pending', $attempt_source, 'DOI request sent.' );
             return [
@@ -2396,14 +2415,29 @@ class BW_Checkout_Subscribe_Admin {
             ];
         }
 
+        $attribute_warning = '';
         $result = $client->upsert_contact( $email, $attributes, [ $list_id ] );
         if ( empty( $result['success'] ) && $this->is_brevo_unknown_attribute_error( $result ) ) {
             $minimal_attributes = $this->strip_marketing_attributes( $attributes );
-            $this->log_order_action( $order, $email, 'error', $attempt_source, 'Brevo rejected custom attributes. Retrying with minimal attributes.' );
+            $attribute_warning = __( 'Brevo rejected one or more custom attributes. Retrying without custom attributes.', 'bw' );
+            $this->log_order_action( $order, $email, 'warning', $attempt_source, 'Brevo rejected custom attributes. Retrying with minimal attributes.' );
             $result = $client->upsert_contact( $email, $minimal_attributes, [ $list_id ] );
+            if ( empty( $result['success'] ) && $this->is_brevo_unknown_attribute_error( $result ) ) {
+                $this->log_order_action( $order, $email, 'warning', $attempt_source, 'Brevo still rejected attributes. Retrying with empty attributes.' );
+                $result = $client->upsert_contact( $email, [], [ $list_id ] );
+            }
         }
 
         if ( empty( $result['success'] ) ) {
+            if ( $this->is_brevo_unknown_attribute_error( $result ) ) {
+                $warning = isset( $result['error'] ) ? sanitize_text_field( (string) $result['error'] ) : __( 'Brevo rejected custom attributes.', 'bw' );
+                update_post_meta( $order->get_id(), '_bw_brevo_error_last', $warning );
+                $this->log_order_action( $order, $email, 'warning', $attempt_source, 'Brevo custom attribute warning (upsert): ' . $warning );
+                return [
+                    'result'  => 'processed',
+                    'message' => __( 'Brevo warning: custom attributes were rejected. Contact status unchanged.', 'bw' ),
+                ];
+            }
             $error = isset( $result['error'] ) ? (string) $result['error'] : __( 'Brevo subscribe failed.', 'bw' );
             $this->set_order_error_meta( $order, $error );
             $this->log_order_action( $order, $email, 'error', $attempt_source, $error );
@@ -2415,7 +2449,11 @@ class BW_Checkout_Subscribe_Admin {
 
         update_post_meta( $order->get_id(), '_bw_brevo_subscribed', 'subscribed' );
         update_post_meta( $order->get_id(), '_bw_brevo_status_reason', 'subscribed' );
-        delete_post_meta( $order->get_id(), '_bw_brevo_error_last' );
+        if ( '' !== $attribute_warning ) {
+            update_post_meta( $order->get_id(), '_bw_brevo_error_last', $attribute_warning );
+        } else {
+            delete_post_meta( $order->get_id(), '_bw_brevo_error_last' );
+        }
         update_post_meta( $order->get_id(), '_bw_brevo_last_checked_at', current_time( 'mysql' ) );
         $this->log_order_action( $order, $email, 'subscribed', $attempt_source, 'Order synced to Brevo.' );
 
@@ -2457,6 +2495,7 @@ class BW_Checkout_Subscribe_Admin {
 
         $attributes['SOURCE'] = sanitize_key( $consent_source );
         $attributes['CONSENT_SOURCE'] = sanitize_key( $consent_source );
+        $attributes['BW_ENV'] = 'wp';
 
         $consent_at = (string) $order->get_meta( '_bw_subscribe_consent_at', true );
         if ( '' !== $consent_at ) {
@@ -2464,6 +2503,13 @@ class BW_Checkout_Subscribe_Admin {
         }
 
         $attributes['LAST_ORDER_ID'] = (string) absint( $order->get_id() );
+        $order_date = $order->get_date_paid();
+        if ( ! $order_date ) {
+            $order_date = $order->get_date_created();
+        }
+        if ( $order_date instanceof WC_DateTime ) {
+            $attributes['LAST_ORDER_AT'] = $order_date->date( 'Y-m-d H:i:s' );
+        }
         return $attributes;
     }
 
@@ -2479,7 +2525,7 @@ class BW_Checkout_Subscribe_Admin {
             return [];
         }
 
-        unset( $attributes['SOURCE'], $attributes['CONSENT_SOURCE'], $attributes['CONSENT_AT'], $attributes['LAST_ORDER_ID'] );
+        unset( $attributes['SOURCE'], $attributes['CONSENT_SOURCE'], $attributes['CONSENT_AT'], $attributes['BW_ENV'], $attributes['LAST_ORDER_ID'], $attributes['LAST_ORDER_AT'] );
         return $attributes;
     }
 
@@ -2733,6 +2779,11 @@ class BW_Checkout_Subscribe_Admin {
         $logger = wc_get_logger();
         if ( 'error' === $result ) {
             $logger->error( $msg, $context );
+            return;
+        }
+
+        if ( 'warning' === $result ) {
+            $logger->warning( $msg, $context );
             return;
         }
 

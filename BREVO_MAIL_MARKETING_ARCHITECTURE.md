@@ -106,7 +106,9 @@ For teams using alternative naming in external docs:
   - `SOURCE` = consent source
   - `CONSENT_SOURCE` = consent source
   - `CONSENT_AT` = consent timestamp (if available)
+  - `BW_ENV` = `wp`
   - `LAST_ORDER_ID` = Woo order ID
+  - `LAST_ORDER_AT` = paid datetime (fallback: order created datetime)
   - `FIRSTNAME` / `LASTNAME` if enabled in General settings
 - On success:
   - `_bw_brevo_subscribed = subscribed`
@@ -127,6 +129,29 @@ For teams using alternative naming in external docs:
   - `_bw_brevo_status_reason = api_error`
 - Logs are written via Woo logger source `bw-brevo`.
 - If Brevo rejects unknown custom attributes, the module retries once with a minimal payload (`FIRSTNAME`/`LASTNAME` only) and logs the fallback.
+- If Brevo still rejects attributes, the module retries with empty attributes payload.
+- Unknown-attribute failures are treated as non-fatal warnings:
+  - checkout flow is not interrupted
+  - order status is not forced to error
+  - warning is stored in `_bw_brevo_error_last` for diagnostics
+
+## Brevo Attributes
+The module sends these attributes only when consent is allowed (`opt_in=1` with consent metadata present):
+
+| Key | Type | Context | Example |
+|---|---|---|---|
+| `SOURCE` | string | all subscribe/upsert flows | `checkout` |
+| `CONSENT_SOURCE` | string | all subscribe/upsert flows | `checkout` |
+| `CONSENT_AT` | datetime string (`Y-m-d H:i:s`) | all flows when available | `2026-02-24 19:50:00` |
+| `BW_ENV` | string | all flows | `wp` |
+| `LAST_ORDER_ID` | string/int | order-based flows | `26859` |
+| `LAST_ORDER_AT` | datetime string (`Y-m-d H:i:s`) | order-based flows | `2026-02-24 20:03:00` |
+| `FIRSTNAME` | string | if enabled | `Mario` |
+| `LASTNAME` | string | if enabled | `Rossi` |
+
+Operational guidance:
+- Create custom attributes in Brevo under `Contacts -> Settings -> Attributes` if they are not already available.
+- If custom attributes are missing in Brevo, synchronization continues with fallback payloads and logs a warning.
 
 ## Retry logic
 - Order metabox action `Retry subscribe` re-runs sync logic manually.
