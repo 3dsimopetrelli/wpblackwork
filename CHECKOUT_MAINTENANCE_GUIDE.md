@@ -19,6 +19,7 @@ Analisi iniziale: 2026-02-24 | Ultima revisione con fix applicati: 2026-02-24
 9. [Accessibilità e conformità](#9-accessibilità-e-conformità)
 10. [Checklist di regressione pre-release](#10-checklist-di-regressione-pre-release)
 11. [Baseline — cosa funziona correttamente](#11-baseline--cosa-funziona-correttamente)
+12. [Code Cleanup Backlog — vacuum audit](#12-code-cleanup-backlog--vacuum-audit)
 
 ---
 
@@ -502,3 +503,124 @@ Questi aspetti sono stati verificati nel codice e non richiedono intervento:
 | 13 | Brevo retry su API failure (§5.3) | 🟡 MEDIO | 🔲 Aperto |
 | 14 | SRI per Supabase CDN (§8.3) | 🟡 MEDIO | 🔲 Aperto |
 | 15 | CSS split in moduli (§8.1) | 🟢 BASSO | 🔲 Aperto (bassa urgenza) |
+
+---
+
+## 12. Code Cleanup Backlog — vacuum audit
+
+Audit completo eseguito il 2026-02-24 su tutti i 16 file del checkout (PHP, JS, CSS).
+Nessuna modifica applicata — questo è il backlog ordinato da affrontare uno alla volta.
+
+> Legenda: 🔲 = da fare | ✅ = fatto | 🔴 critico | 🟠 alto | 🟡 medio | 🟢 basso
+
+---
+
+### A. Codice duplicato
+
+| # | File/i coinvolti | Descrizione | Priorità | Stato |
+|---|---|---|---|---|
+| A1 | `bw-checkout.js`, `bw-google-pay.js`, `bw-apple-pay.js`, `bw-klarna.js` | Logica `showLoader` / `hideLoader` replicata in tutti e 4 i file JS. Ogni file emette classi CSS diverse (`is-loading`, `bw-loading`, `bw-processing`). | 🟡 MEDIO | 🔲 |
+| A2 | `bw-google-pay.js`, `bw-apple-pay.js`, `bw-klarna.js` | Pattern "prepara error notice → trova container → inserisci HTML → scroll" duplicato identicamente nei tre gateway JS. | 🟡 MEDIO | 🔲 |
+| A3 | `class-bw-google-pay-gateway.php`, `class-bw-klarna-gateway.php`, `class-bw-apple-pay-gateway.php` | Il blocco `get_stripe_key()` con selezione live/test è identico nei tre file gateway. Dovrebbe stare in `BW_Abstract_Stripe_Gateway`. | 🟠 ALTO | 🔲 |
+| A4 | `woocommerce-init.php` | `bw_mew_ajax_apply_coupon()` e `bw_mew_ajax_remove_coupon()` condividono ~80% del codice (nonce check, rate limit, sessione WC, risposta JSON). Estrarre un `bw_mew_coupon_handler($action)` helper. | 🟡 MEDIO | 🔲 |
+| A5 | `payment.php`, `bw-payment-methods.js` | La logica di selezione gateway attivo (quale accordion aprire) è implementata sia in PHP (con `$chosen_method`) che in JS (`bw_checkout_params.chosen_payment_method`). Il PHP determina lo stato iniziale, il JS lo gestisce dopo. Se i due non sono in sync, si ha un flash visivo al caricamento. Centralizzare. | 🟡 MEDIO | 🔲 |
+| A6 | `bw-checkout.js`, `bw-checkout-notices.js` | Entrambi i file selezionano `.woocommerce-notices-wrapper` e `.woocommerce-error` per manipolare le notice. Non condividono nessuna funzione — codice parallelo indipendente. | 🟢 BASSO | 🔲 |
+| A7 | `bw-checkout.css`, `bw-payment-methods.css` | Regole per `.bw-payment-method__header:hover` e `.bw-payment-method__header:focus` compaiono in entrambi i file con valori parzialmente diversi. L'ultimo file caricato vince ma la sovrapposizione crea ambiguità. | 🟢 BASSO | 🔲 |
+
+---
+
+### B. Codice morto / irraggiungibile
+
+| # | File | Descrizione | Priorità | Stato |
+|---|---|---|---|---|
+| B1 | `bw-checkout.js` | Funzione `bwToggleEditMode()` definita ma mai chiamata nel file corrente. Verificare se è chiamata da template PHP inline; se no, rimuovere. | 🟡 MEDIO | 🔲 |
+| B2 | `bw-apple-pay.js` | Branch `enableExpressFallback` implementa un path alternativo Apple Pay. Nessun template o admin panel imposta questo parametro a `true`. Se il path è inutilizzato, documentare o rimuovere. | 🟡 MEDIO | 🔲 |
+| B3 | `class-bw-google-pay-gateway.php` | Il metodo `process_refund_legacy()` (o equivalente fallback pre-intents) non è raggiungibile perché `process_refund()` copre tutti i casi. Rimuovere o documentare il motivo della presenza. | 🟡 MEDIO | 🔲 |
+| B4 | `woocommerce-init.php` | La funzione `bw_mew_maybe_clear_cart_on_checkout()` ha un branch `elseif` che è logicamente irraggiungibile dato il check precedente. Rivedere la condizione. | 🟢 BASSO | 🔲 |
+| B5 | `bw-checkout.js` | Variabile `bwLastScrollY` definita e aggiornata ma mai letta per ripristinare la posizione scroll. Rimuovere o completare il restore. | 🟢 BASSO | 🔲 |
+| B6 | `bw-checkout.css` | Selettori `.bw-checkout-v1 .col1-set` e `.bw-checkout-v1 .col2-set` — la classe `.bw-checkout-v1` non è assegnata da nessun PHP o JS nel codebase attuale. CSS lettera morta. | 🟡 MEDIO | 🔲 |
+| B7 | `bw-checkout.css` | Regola `@supports (display: grid)` duplicata due volte nel file con contenuto diverso — la seconda override silenziosa la prima. Unire in un unico blocco. | 🟡 MEDIO | 🔲 |
+
+---
+
+### C. Nomi e pattern incoerenti
+
+| # | File/i | Descrizione | Priorità | Stato |
+|---|---|---|---|---|
+| C1 | tutti i gateway JS | Le classi CSS emesse durante il loading sono: `is-loading` (Google Pay), `bw-loading` (Apple Pay), `bw-processing` (Klarna), `bw-checkout-loading` (checkout.js). Standardizzare a `bw-loading` o `is-loading`. | 🟠 ALTO | 🔲 |
+| C2 | `bw-google-pay.js`, `bw-apple-pay.js` | `bwGooglePayParams` vs `bwApplePayParams` — naming diverso per struttura equivalente. Nessun impatto tecnico, ma rende il codice meno leggibile. Standardizzare a `bwGatewayParams` con campo `gateway_id`. | 🟢 BASSO | 🔲 |
+| C3 | `woocommerce-init.php` | Handler coupon: `bw_mew_ajax_apply_coupon` / `bw_mew_ajax_remove_coupon` — non hanno prefisso `nopriv` nelle action hook ma gestiscono anche ospiti. Verificare se sono registrati su entrambi `wp_ajax_` e `wp_ajax_nopriv_` o solo uno. | 🟠 ALTO | 🔲 |
+| C4 | `class-bw-google-pay-gateway.php` | Il meta key `_bw_gpay_pi_id` usa underscore+prefix, ma `_bw_klarna_pi_id` e `_bw_apple_pay_pi_id` usano schemi leggermente diversi. Standardizzare tutti i meta key a `_bw_{gateway}_pi_id` con gateway slug uguale all'ID WC. | 🟡 MEDIO | 🔲 |
+| C5 | `payment.php` | La variabile `$gateway_id` viene usata sia come `esc_attr($gateway->id)` che direttamente come `$gateway_id` — verificare che tutte le occorrenze usino la versione escaped per evitare XSS nei gateway con id custom. | 🟠 ALTO | 🔲 |
+| C6 | `bw-checkout.js` | Misto di `var`, `let`, `const` in stile jQuery/ES5 e ES6. File scritto in due momenti diversi. Non è un bug, ma rende il file difficile da leggere. Unificare gradualmente verso `const`/`let`. | 🟢 BASSO | 🔲 |
+| C7 | `bw-checkout.css` | Alcune custom property sono definite su `:root`, altre su `body.woocommerce-checkout`, altre ancora inline nei selettori. Centralizzare tutte le custom property del checkout su `body.woocommerce-checkout`. | 🟢 BASSO | 🔲 |
+
+---
+
+### D. Event listener multipli / memory leak
+
+| # | File | Descrizione | Priorità | Stato |
+|---|---|---|---|---|
+| D1 | `bw-checkout.js` | L'evento `update_checkout` di WooCommerce trigghera `bwInitFloatingLabels()` che ricollega i listener a ogni aggiornamento checkout. Se i listener non vengono prima rimossi (`.off()`) si accumulano. Verificare presenza di unbind prima del rebind. | 🟠 ALTO | 🔲 |
+| D2 | `bw-payment-methods.js` | Il listener `keydown` per navigazione arrow keys è attaccato al `document` (event delegation), ma quando l'accordion cambia gateway, vecchi listener rimangono. Verificare che la navigazione keyboard non triggeri handler doppi. | 🟡 MEDIO | 🔲 |
+| D3 | `bw-checkout-notices.js` | `$(document).on('updated_checkout', ...)` viene registrato ogni volta che lo script è incluso. Se il file viene incluso più volte (raro ma possibile con caching problematico), si hanno double-fire. Aggiungere un guard `if (!window.bwNoticesInit)`. | 🟡 MEDIO | 🔲 |
+| D4 | `bw-google-pay.js` | Il click handler sul wallet button viene attaccato con `.on('click', ...)` dopo ogni `initGooglePay()`. Se `initGooglePay` viene chiamato più volte (es. dopo `updated_checkout`), i click handler si moltiplicano. Usare `.off('click').on('click', ...)`. | 🟠 ALTO | 🔲 |
+| D5 | `bw-apple-pay.js` | Stesso problema di D4 per il session handler Apple Pay. Ogni `canMakePayment()` reinizializza il button senza fare cleanup dei listener precedenti. | 🟠 ALTO | 🔲 |
+| D6 | `bw-klarna.js` | Listener sul button Klarna ricreato ad ogni cambio selezione gateway. Aggiungere `.off().on()` pattern. | 🟡 MEDIO | 🔲 |
+| D7 | `bw-checkout.js` | `$(document.body).on('updated_checkout', ...)` registrato senza namespace jQuery (es. `.updated_checkout.bwCheckout`). Se altri plugin usano `trigger('updated_checkout')`, non è possibile rimuovere solo i listener BW. Aggiungere namespace. | 🟢 BASSO | 🔲 |
+
+---
+
+### E. CSS — conflitti e override silenziosi
+
+| # | File/i | Descrizione | Priorità | Stato |
+|---|---|---|---|---|
+| E1 | `bw-checkout.css` | `.woocommerce-checkout .woocommerce-input-wrapper` ha specificità che override stili Stripe Elements. I selettori Stripe (`.StripeElement`) devono avere specificità >= per non essere schiacciati. Verificare il cascade. | 🟠 ALTO | 🔲 |
+| E2 | `bw-checkout.css`, `bw-payment-methods.css` | `.bw-payment-method__content` ha `display: none` in entrambi i file, ma con `transition` definita solo in uno — al toggle JS la transizione non si applica se l'altro file carica dopo. Unificare in un unico file. | 🟡 MEDIO | 🔲 |
+| E3 | `bw-checkout.css` | `body.woocommerce-checkout #order_review` ha regole di layout che entrano in conflitto con il plugin checkout fields customizer. Se il plugin aggiunge classi CSS aggiuntive al `#order_review`, il grid si rompe. | 🟡 MEDIO | 🔲 |
+| E4 | `bw-checkout.css` | `@media (max-width: 767px)` e `@media (max-width: 768px)` usati in punti diversi del file per lo stesso breakpoint mobile. Standardizzare a uno solo (767px o 768px). | 🟢 BASSO | 🔲 |
+| E5 | `bw-checkout.css` | Il skeleton loader animation usa `@keyframes bw-shimmer` definito due volte nel file (nella sezione skeleton e nella sezione loading states) con timing leggermente diverso. La seconda definizione vince. Unificare. | 🟡 MEDIO | 🔲 |
+| E6 | `bw-checkout.css` | `.bw-checkout__separator` ha `display: none` su mobile ma è gestito anche con `visibility: hidden` in una regola più specifica — due approcci per nascondere lo stesso elemento. Scegliere uno. | 🟢 BASSO | 🔲 |
+| E7 | `bw-payment-methods.css` | Gateway icons `.bw-payment-method__icon` hanno `width` fissa in pixel invece che `max-width` + `height: auto`. Su schermi HiDPI le icone SVG appaiono sfocate. | 🟢 BASSO | 🔲 |
+
+---
+
+### F. Modularizzazione
+
+| # | Descrizione | Beneficio | Priorità | Stato |
+|---|---|---|---|---|
+| F1 | Estrarre il phone country picker da `bw-checkout.js` in `bw-checkout-phone-picker.js` separato. Il picker ha 40+ paesi, ~200 righe di codice e dati statici — è un componente autonomo non correlato al resto del checkout flow. | Manutenibilità, possibilità di riuso su altri form | 🟡 MEDIO | 🔲 |
+| F2 | Estrarre `bwInitFloatingLabels()` da `bw-checkout.js` in `bw-checkout-floating-labels.js`. Il floating label system è usato anche fuori dal checkout (login, register). | Riuso + testing isolato | 🟡 MEDIO | 🔲 |
+| F3 | Estrarre `bw_mew_coupon_rate_limit_check()` e la logica coupon in un file `class-bw-checkout-coupon.php` separato. Oggi è tutto in `woocommerce-init.php` che è già 900+ righe. | Leggibilità, principio single responsibility | 🟡 MEDIO | 🔲 |
+| F4 | Estrarre il router return/cancel (`bw_mew_handle_wallet_return()`) in `class-bw-checkout-return-handler.php`. Logica critica per il completamento ordine sepolta a metà di woocommerce-init.php. | Separazione di concerns, testabilità | 🟠 ALTO | 🔲 |
+| F5 | `get_stripe_key()` duplicato nei tre gateway → portare in `BW_Abstract_Stripe_Gateway` con override per Apple Pay fallback (che usa chiavi Google Pay come fallback). | DRY, manutenzione centralizzata | 🟠 ALTO | 🔲 |
+| F6 | Creare `bw-checkout-utils.js` con le funzioni condivise tra i 4 file JS: `showLoader`, `hideLoader`, `showError`, `clearErrors`, `scrollToNotice`. Importato come primo script, gli altri lo usano come dipendenza. | Elimina duplicati A1+A2 | 🟡 MEDIO | 🔲 |
+| F7 | Split `bw-checkout.css` nei 4 moduli descritti in §8.1 (`-layout`, `-form`, `-payment`, `-states`). Caricamento condizionale dove possibile. | Performance + manutenibilità | 🟢 BASSO | 🔲 |
+
+---
+
+### G. Variabili inutilizzate e cleanup minori
+
+| # | File | Descrizione | Priorità | Stato |
+|---|---|---|---|---|
+| G1 | `bw-checkout.js` | `var bwLastScrollY = 0` — mai letta per restore (vedi B5). Rimuovere o completare l'implementazione. | 🟢 BASSO | 🔲 |
+| G2 | `bw-google-pay.js` | `var gpayRetryCount = 0` definita nell'outer scope ma il retry non è implementato (il codice dentro il catch non incrementa il counter). Rimuovere o implementare. | 🟡 MEDIO | 🔲 |
+| G3 | `woocommerce-init.php` | `$bw_checkout_settings` viene assegnata e poi ri-assegnata con `bw_mew_get_checkout_settings()` due righe dopo. Prima assegnazione è dead code. | 🟢 BASSO | 🔲 |
+| G4 | `class-bw-apple-pay-gateway.php` | `private $statement_descriptor` definito nel costruttore ma non usato nel metodo `create_payment_intent()` — passato come parametro separato invece. Verificare se è legacy. | 🟢 BASSO | 🔲 |
+
+---
+
+### Riepilogo cleanup backlog
+
+| Categoria | Items totali | Alta/Critica priorità | Bassa priorità |
+|---|---|---|---|
+| A — Codice duplicato | 7 | 1 | 2 |
+| B — Codice morto | 7 | 2 | 3 |
+| C — Naming incoerente | 7 | 3 | 3 |
+| D — Event listener multipli | 7 | 3 | 1 |
+| E — CSS conflitti | 7 | 1 | 4 |
+| F — Modularizzazione | 7 | 2 | 1 |
+| G — Variabili inutilizzate | 4 | 0 | 3 |
+| **Totale** | **46** | **12** | **17** |
+
+> **Ordine consigliato di attacco:** C3 (hook nopriv) → D1/D4/D5 (event listener leak) → A3/F5 (get_stripe_key in abstract) → C5 (XSS gate ID) → F4 (return handler) → poi tutto il resto in ordine di priorità.
