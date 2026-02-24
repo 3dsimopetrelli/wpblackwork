@@ -800,6 +800,12 @@ class BW_Checkout_Subscribe_Admin {
         }
 
         $payload = $this->build_user_status_payload( $user );
+        $user_sync_allowed = $this->can_sync_user_status( $user );
+        $sync_disabled_attr = $user_sync_allowed ? '' : 'disabled="disabled"';
+        $sync_aria_disabled_attr = $user_sync_allowed ? 'aria-disabled="false"' : 'aria-disabled="true"';
+        $sync_disabled_title = $user_sync_allowed
+            ? ''
+            : esc_attr__( 'Disabled: no consent recorded for this user.', 'bw' );
         ?>
         <style id="bw-user-mail-marketing-style">
             #bw-user-mail-marketing-panel-wrap { margin: 16px 0 18px; }
@@ -840,6 +846,11 @@ class BW_Checkout_Subscribe_Admin {
                 padding: 0 16px;
                 font-weight: 600;
             }
+            #bw-user-mail-marketing-panel .bw-user-mail-marketing-help {
+                margin: 8px 0 0;
+                padding: 0 16px;
+                color: #646970;
+            }
             #bw-user-mail-marketing-panel .bw-mm-table-wrap { padding: 10px 16px 16px; }
             #bw-user-mail-marketing-panel .bw-mm-table {
                 width: 100%;
@@ -867,7 +878,7 @@ class BW_Checkout_Subscribe_Admin {
             #bw-user-mail-marketing-panel .bw-mm-table td { background: #fff; color: #1f2937; }
         </style>
         <div id="bw-user-mail-marketing-panel-wrap">
-            <div id="bw-user-mail-marketing-panel" data-user-id="<?php echo esc_attr( $user->ID ); ?>">
+            <div id="bw-user-mail-marketing-panel" data-user-id="<?php echo esc_attr( $user->ID ); ?>" data-sync-allowed="<?php echo $user_sync_allowed ? '1' : '0'; ?>">
                 <div class="bw-mm-header">
                     <h2 class="bw-mm-title"><?php esc_html_e( 'Mail Marketing - Brevo', 'bw' ); ?></h2>
                     <div class="bw-mm-actions">
@@ -875,9 +886,12 @@ class BW_Checkout_Subscribe_Admin {
                             <?php echo esc_html( $payload['statusLabel'] ); ?>
                         </span>
                         <button type="button" class="button" id="bw-user-check-status"><?php esc_html_e( 'Check Brevo', 'bw' ); ?></button>
-                        <button type="button" class="button button-secondary" id="bw-user-sync-status"><?php esc_html_e( 'Sync status', 'bw' ); ?></button>
+                        <button type="button" class="button button-secondary" id="bw-user-sync-status" <?php echo $sync_disabled_attr; ?> <?php echo $sync_aria_disabled_attr; ?> title="<?php echo $sync_disabled_title; ?>"><?php esc_html_e( 'Sync status', 'bw' ); ?></button>
                     </div>
                 </div>
+                <?php if ( ! $user_sync_allowed ) : ?>
+                    <p class="description bw-user-mail-marketing-help"><?php esc_html_e( 'Disabled: no consent recorded for this user.', 'bw' ); ?></p>
+                <?php endif; ?>
                 <p id="bw-user-inline-message"></p>
                 <div class="bw-mm-table-wrap">
                     <table class="bw-mm-table">
@@ -1606,6 +1620,7 @@ class BW_Checkout_Subscribe_Admin {
         $payload = $this->build_order_status_payload( $order );
         $consent_gate = $this->can_subscribe_order( $order );
         $retry_disabled_attr = ! empty( $consent_gate['allowed'] ) ? '' : 'disabled="disabled"';
+        $retry_aria_disabled_attr = ! empty( $consent_gate['allowed'] ) ? 'aria-disabled="false"' : 'aria-disabled="true"';
         $retry_disabled_title = ! empty( $consent_gate['allowed'] )
             ? ''
             : esc_attr__( 'Disabled: no consent recorded for this order.', 'bw' );
@@ -1621,14 +1636,14 @@ class BW_Checkout_Subscribe_Admin {
                         <span class="bw-btn-text"><?php esc_html_e( 'Check Brevo', 'bw' ); ?></span>
                         <span class="spinner"></span>
                     </button>
-                    <button type="button" class="button button-secondary" id="bw-newsletter-retry" <?php echo $retry_disabled_attr; ?> title="<?php echo $retry_disabled_title; ?>">
+                    <button type="button" class="button button-secondary" id="bw-newsletter-retry" <?php echo $retry_disabled_attr; ?> <?php echo $retry_aria_disabled_attr; ?> title="<?php echo $retry_disabled_title; ?>">
                         <span class="bw-btn-text"><?php esc_html_e( 'Retry subscribe', 'bw' ); ?></span>
                         <span class="spinner"></span>
                     </button>
                 </div>
             </div>
             <?php if ( empty( $consent_gate['allowed'] ) ) : ?>
-                <p class="description" style="margin-top:8px;"><?php esc_html_e( 'Disabled: no consent recorded for this order.', 'bw' ); ?></p>
+                <p class="description bw-newsletter-panel__help"><?php esc_html_e( 'Disabled: no consent recorded for this order.', 'bw' ); ?></p>
             <?php endif; ?>
             <p id="bw-newsletter-inline-message" class="bw-newsletter-panel__notice" aria-live="polite"></p>
 
@@ -1795,7 +1810,7 @@ class BW_Checkout_Subscribe_Admin {
         $result = $this->resync_order_to_brevo( $order, 'manual_retry' );
         if ( in_array( $result['result'], [ 'error', 'skipped_no_consent' ], true ) ) {
             if ( 'skipped_no_consent' === $result['result'] ) {
-                wp_send_json_error( [ 'message' => __( 'No opt-in recorded. Cannot subscribe.', 'bw' ) ] );
+                wp_send_json_error( [ 'message' => __( 'No opt-in recorded. Cannot subscribe this customer.', 'bw' ) ] );
             }
             wp_send_json_error( [ 'message' => $result['message'] ] );
         }
@@ -2517,6 +2532,24 @@ class BW_Checkout_Subscribe_Admin {
         }
 
         return [ 'allowed' => true ];
+    }
+
+    /**
+     * Determine if user-side write actions are allowed based on consent evidence.
+     *
+     * @param WP_User $user User object.
+     *
+     * @return bool
+     */
+    private function can_sync_user_status( $user ) {
+        if ( ! $user instanceof WP_User ) {
+            return false;
+        }
+
+        $consent_at = trim( (string) get_user_meta( $user->ID, '_bw_subscribe_consent_at', true ) );
+        $consent_source = trim( (string) get_user_meta( $user->ID, '_bw_subscribe_consent_source', true ) );
+
+        return '' !== $consent_at && '' !== $consent_source;
     }
 
     /**

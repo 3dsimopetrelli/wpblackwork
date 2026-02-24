@@ -60,6 +60,10 @@
 
 #bw-newsletter-status-panel .bw-newsletter-panel__notice.bw-notice-success { color: #0a3622; }
 #bw-newsletter-status-panel .bw-newsletter-panel__notice.bw-notice-error { color: #691010; }
+#bw-newsletter-status-panel .bw-newsletter-panel__help {
+    margin: 8px 0 0;
+    color: #646970;
+}
 
 #bw-newsletter-status-panel .bw-newsletter-panel__section { margin-top: 12px; }
 #bw-newsletter-status-panel .bw-newsletter-panel__section h4 { margin: 0 0 8px; }

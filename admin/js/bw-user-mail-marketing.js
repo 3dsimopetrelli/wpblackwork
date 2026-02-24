@@ -10,10 +10,11 @@ jQuery(function ($) {
     var syncBtn = $('#bw-user-sync-status');
     var badgeEl = $('#bw-user-status-badge');
     var messageEl = $('#bw-user-inline-message');
+    var syncAllowed = String(panel.data('sync-allowed') || '1') === '1';
 
     function setBusy(isBusy) {
         checkBtn.prop('disabled', isBusy);
-        syncBtn.prop('disabled', isBusy);
+        syncBtn.prop('disabled', isBusy || !syncAllowed);
     }
 
     function renderMessage(type, text) {
@@ -90,6 +91,12 @@ jQuery(function ($) {
 
     syncBtn.on('click', function (event) {
         event.preventDefault();
+        if (!syncAllowed) {
+            renderMessage('error', 'Disabled: no consent recorded for this user.');
+            return;
+        }
         callAction('bw_brevo_user_sync_status');
     });
+
+    setBusy(false);
 });

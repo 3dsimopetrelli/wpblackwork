@@ -132,7 +132,7 @@ jQuery(function ($) {
     retryBtn.on('click', function (event) {
         event.preventDefault();
         if (!retryAllowed) {
-            renderMessage('error', 'No opt-in recorded. Cannot subscribe.');
+            renderMessage('error', 'No opt-in recorded. Cannot subscribe this customer.');
             return;
         }
         var optInRaw = panel.find('[data-bw-field="opt_in_raw"]').text();
