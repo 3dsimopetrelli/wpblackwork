@@ -24,7 +24,7 @@ Goals:
 
 ### Core files
 - Gateway class:
-  - `includes/woocommerce-overrides/class-bw-google-pay-gateway.php`
+  - `includes/Gateways/class-bw-google-pay-gateway.php`
 - Checkout script:
   - `assets/js/bw-google-pay.js`
 - Checkout wallets orchestrator (shared):
@@ -152,19 +152,28 @@ Written by webhook dedup:
 
 ## Order State Rules
 
-## `payment_intent.succeeded`
-- If order not paid:
-  - `payment_complete(pi_id)`
-  - add single order note.
-- If already paid:
-  - no side effects.
+### `process_payment()` return statuses
 
-## `payment_intent.payment_failed`
-- If order already paid:
-  - ignore.
-- If not paid:
-  - set `failed` once with reason.
-  - avoid duplicate status updates.
+| PI status | Order status set | Rationale |
+|---|---|---|
+| `succeeded` | `on-hold` | Return received; wait for webhook to finalize |
+| `processing` | `on-hold` | Async capture; wait for webhook |
+| `requires_action` | error notice only | 3DS required; user redirected to auth |
+| `requires_payment_method` / `canceled` | error notice only | Payment not completed |
+
+> **Important:** `on-hold` is the correct WooCommerce status for "payment attempted,
+> awaiting external confirmation". `pending` means "order created, payment not yet tried".
+> The distinction matters for order automation, Brevo subscribe timing, and admin dashboards.
+
+### Webhook state transitions (`BW_Abstract_Stripe_Gateway`)
+
+| Stripe event | Final order status |
+|---|---|
+| `payment_intent.succeeded` | `payment_complete()` (processing/completed) |
+| `payment_intent.payment_failed` | `failed` |
+
+### Already-paid guard
+If `$order->is_paid()` is true when the webhook arrives, no side effects occur.
 
 ---
 

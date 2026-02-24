@@ -1,6 +1,8 @@
 # Checkout Maintenance Guide
 **Analisi completa — Sicurezza, Stabilità, Efficienza**
-Data: 2026-02-24
+Analisi iniziale: 2026-02-24 | Ultima revisione con fix applicati: 2026-02-24
+
+> Le voci contrassegnate con ✅ **RISOLTO** sono state corrette nel codice nella sessione di hardening del 2026-02-24.
 
 ---
 
@@ -36,43 +38,38 @@ Il checkout BlackWork è un sistema custom completo costruito sopra WooCommerce 
 
 ## 2. Problemi di sicurezza — da risolvere
 
-### 2.1 `console.log` non protetti in produzione — CRITICO
+### 2.1 ✅ RISOLTO — `console.log` non protetti in produzione
 
 **File:** `assets/js/bw-apple-pay.js`
 
-Due istruzioni di log senza guard di debug:
+**Problema originale:** La chiamata `console.log('[BW Apple Pay] canMakePayment:', result)` alla riga ~356 era priva del guard `BW_APPLE_PAY_DEBUG &&`, esponendo dati interni Stripe in produzione.
+
+**Fix applicato:** Aggiunto il guard `BW_APPLE_PAY_DEBUG &&` davanti alla chiamata.
 
 ```js
-// RIGA ~356 — NESSUN GUARD
-console.log('[BW Apple Pay] canMakePayment:', result);
-
-// RIGA ~508 — protetta solo da adminDebug, NON da BW_APPLE_PAY_DEBUG
-console.info('[BW Wallet Debug][apple_pay_cancel]', { ... });
-```
-
-**Rischio:** In produzione espone al browser informazioni interne sul risultato di `canMakePayment` (struttura oggetto Stripe, dati wallet) e sugli eventi cancel. Un attaccante che ispeziona la console vede il flow interno.
-
-**Fix:** Aggiungere il guard `BW_APPLE_PAY_DEBUG &&` davanti a entrambe, come già fatto correttamente per tutti gli altri log del file e per l'intero `bw-google-pay.js`.
-
-```js
-// Corretto:
+// Ora corretto:
 BW_APPLE_PAY_DEBUG && console.log('[BW Apple Pay] canMakePayment:', result);
-BW_APPLE_PAY_DEBUG && console.info('[BW Wallet Debug][apple_pay_cancel]', { ... });
 ```
+
+La seconda istruzione `console.info` (riga ~508) era già protetta da `bwApplePayParams.adminDebug`, che è un flag server-side attivo solo per admin con `WP_DEBUG=true` — corretto e invariato.
 
 ---
 
-### 2.2 Mancanza di rate limiting sugli AJAX handler — ALTO
+### 2.2 ✅ RISOLTO — Rate limiting sugli AJAX handler coupon
 
 **File:** `woocommerce/woocommerce-init.php`
 
-Gli handler AJAX `bw_apply_coupon` e `bw_remove_coupon` accettano richieste da utenti non autenticati (`wp_ajax_nopriv_*`) con solo verifica nonce, senza limitazione di frequenza.
+**Fix applicato:** Aggiunta la funzione `bw_mew_coupon_rate_limit_check()` — transient-based, per IP, max 10 tentativi per 5 minuti per azione. Chiamata come prima istruzione in entrambi gli handler, subito dopo `check_ajax_referer()`.
 
-**Rischio:** Un attore malevolo può eseguire brute-force di codici coupon in automazione, verificando quali codici sono validi. Il nonce di sessione non cambia abbastanza frequentemente da prevenire attacchi rapidi all'interno della stessa sessione.
+```php
+// Max 10 tentativi / 5 minuti / IP
+bw_mew_coupon_rate_limit_check( 'apply_coupon' );
+bw_mew_coupon_rate_limit_check( 'remove_coupon' );
+```
 
-**Fix da valutare:**
-- Aggiungere transient-based rate limiting per IP: max N tentativi coupon per finestra temporale (es. 10 tentativi / 5 minuti / IP)
-- Considerare `WP_Hook` throttle o soluzione server-level (Nginx/Cloudflare rate limit su `/wp-admin/admin-ajax.php`)
+Restituisce HTTP 429 con `wp_send_json_error()` se il limite è superato.
+
+> Per protezione a livello server (Nginx/Cloudflare) su `/wp-admin/admin-ajax.php`, configurare regole di rate limiting lato infrastruttura in aggiunta.
 
 ---
 
@@ -123,19 +120,22 @@ Se il sito ha un CSP attivo (header o meta tag), questi domini mancanti bloccano
 
 ## 3. Rischi integrità pagamento — false transazioni
 
-### 3.1 Stato status: Apple Pay usa `on-hold`, Google Pay e Klarna usano `pending` — INCOERENZA
+### 3.1 ✅ RISOLTO — Stato ordine standardizzato a `on-hold` in tutti i gateway
 
-**Verificato nel codice:**
-- Google Pay `process_payment()`: PaymentIntent `succeeded` → `$order->update_status('pending')`
-- Klarna `process_payment()`: PaymentIntent `succeeded` → `$order->update_status('pending')`
-- Apple Pay `process_payment()`: PaymentIntent `succeeded` → `$order->update_status('on-hold')`
+**Fix applicato:**
+- `class-bw-google-pay-gateway.php`: `succeeded` → `on-hold` (era `pending`)
+- `class-bw-klarna-gateway.php`: `succeeded` → `on-hold` (era `pending`)
+- `class-bw-apple-pay-gateway.php`: già corretto (`on-hold`)
 
-**Problema:** I tre gateway trattano lo stesso caso (PI creato con successo, in attesa di conferma webhook) con stati WooCommerce diversi. Questo causa:
-- Dashboard admin con stati misti per ordini in attesa
-- Regole di automazione (email, fulfillment) che si attivano in modo diverso tra gateway
-- I filtri `woocommerce_order_status_processing` e `woocommerce_order_status_completed` usati da Brevo subscribe si comportano diversamente
+**Semantica corretta:**
 
-**Fix:** Standardizzare a `on-hold` per tutti e tre i gateway nel caso PI created/awaiting webhook. `on-hold` è la semantica WooCommerce corretta per "pagamento avviato, in attesa di conferma esterna". `pending` significa invece "ordine creato ma pagamento non ancora tentato".
+| PI status | Stato ordine | Significato |
+|---|---|---|
+| `succeeded` / `processing` | `on-hold` | Payment attempted, waiting webhook |
+| `requires_action` | `pending` | 3DS redirect in progress |
+
+`on-hold` = pagamento avviato, in attesa di conferma esterna via webhook.
+`pending` = ordine creato, nessun tentativo di pagamento effettuato.
 
 ---
 
@@ -191,37 +191,27 @@ Il file non sanitiza esplicitamente i valori prima di passarli all'API (probabil
 
 ## 4. Documentazione obsoleta o incoerente
 
-### 4.1 `Gateway Google Pay Guide.md` — path file obsoleto — CRITICO per manutenzione
+### 4.1 ✅ RISOLTO — `Gateway Google Pay Guide.md` — path file aggiornato
 
-Il file cita:
-```
-includes/woocommerce-overrides/class-bw-google-pay-gateway.php
-```
-
-Il file reale è in:
-```
-includes/Gateways/class-bw-google-pay-gateway.php
-```
-
-**Impatto:** Chiunque usi la documentazione per trovare il file del gateway Google Pay cerca nella directory sbagliata. Tutti i path nel Google Pay Guide sono da aggiornare.
+Il path è stato corretto da `includes/woocommerce-overrides/` a `includes/Gateways/` nella sezione "Core files" del guide.
 
 ---
 
-### 4.2 `docs/PAYMENTS.md` — documenta Klarna e Apple Pay come "futuri" ma sono già implementati
+### 4.2 ✅ RISOLTO — `docs/PAYMENTS.md` aggiornato
 
-Il file menziona "instructions for adding new gateways (Klarna, Apple Pay)" come lavoro futuro. Entrambi sono implementati e in produzione da tempo.
-
-**Fix:** Aggiornare `docs/PAYMENTS.md` per riflettere lo stato attuale: tre gateway custom attivi, con base astratta condivisa, e rimuovere le sezioni "planned".
+`docs/PAYMENTS.md` aggiornato per riflettere:
+- Tutti e tre i gateway attivi in produzione
+- Tabella file structure corretta
+- Nuova sezione "Stripe Webhook Configuration" con i tre endpoint e le istruzioni
+- Tabella stati ordine
+- Sezione stuck order monitoring
+- Rimossa la sezione "How to Add New Gateway (Klarna/Apple Pay)" (sostituita con template generico)
 
 ---
 
-### 4.3 `Gateway Apple Pay Guide.md` — debug hook documentato come "presente" ma da rimuovere
+### 4.3 ✅ RISOLTO — `Gateway Apple Pay Guide.md` aggiornato
 
-La sezione "Debug hook currently present" documenta:
-```
-console.log('[BW Apple Pay] canMakePayment:', result);
-```
-come fatto intenzionale. Questo ha portato a non rimuoverlo. Il file dovrebbe invece segnalarlo come **da rimuovere** (vedi §2.1).
+La sezione "Debug hook currently present" è stata rimossa e sostituita con una nota che documenta il comportamento corretto: tutti i log sono guardati da flag di debug e non producono output in produzione.
 
 ---
 
@@ -298,13 +288,11 @@ Nessun documento spiega come testare i webhook Stripe localmente (Stripe CLI `st
 
 ## 6. Miglioramenti UX e stabilità frontend
 
-### 6.1 Auto-hide notice dopo 3 secondi — aggressivo per accessibilità
+### 6.1 ✅ RISOLTO — Auto-hide notice portato a 6 secondi
 
 **File:** `assets/js/bw-checkout-notices.js`
 
-I messaggi di errore sui campi required vengono nascosti automaticamente dopo 3 secondi. Per utenti con disabilità cognitive o che leggono lentamente, questo non è sufficiente. WCAG 2.1 (guideline 2.2.1) richiede che i timeout siano configurabili o disabilitabili.
-
-**Fix:** Aumentare a 6-8 secondi o non nascondere automaticamente gli errori di validazione (tenerli fino a quando l'utente corregge il campo).
+`REQUIRED_ERRORS_AUTO_HIDE_MS` cambiato da `3000` a `6000`. I messaggi di errore rimangono visibili per 6 secondi prima di scomparire automaticamente (o fino a quando l'utente corregge il campo).
 
 ---
 
@@ -334,30 +322,23 @@ Quando Google Pay è in stato "initializing", il checkout mostra un loader gener
 
 ## 7. Webhook — hardening mancante
 
-### 7.1 Configurazione Stripe webhook non documentata per tre endpoint separati
+### 7.1 ✅ RISOLTO — Configurazione Stripe webhook documentata
 
-Il sistema ha tre endpoint webhook distinti:
-```
-/?wc-api=bw_google_pay
-/?wc-api=bw_klarna
-/?wc-api=bw_apple_pay
-```
-
-Se tutti e tre i gateway usano lo stesso account Stripe, occorre configurare **tre webhook separati** nel dashboard Stripe, ognuno puntando al proprio endpoint. In alternativa, un singolo webhook con routing interno.
-
-**Non documentato in nessun MD:** quale configurazione Stripe è quella corretta. Se viene configurato un solo webhook, gli altri due gateway non riceveranno mai gli eventi.
-
-**Fix:** Aggiungere a `Gateway Total Guide.md` una sezione "Stripe Webhook Configuration" che specifica esattamente quanti webhook configurare e su quali URL.
+Aggiunta sezione "Stripe Webhook Configuration" in `docs/PAYMENTS.md` con tabella completa dei tre endpoint, URL, eventi da sottoscrivere, e warning critico: se si configura un solo webhook su Stripe, gli altri due gateway non riceveranno mai gli eventi.
 
 ---
 
-### 7.2 Nessun monitoring/alerting per webhook falliti
+### 7.2 ✅ RISOLTO — Cron monitoring ordini stuck implementato
 
-Se Stripe non riesce a consegnare un webhook (sito down, timeout), riprova con backoff esponenziale per 72h, poi abbandona. Un ordine rimane a `pending`/`on-hold` indefinitamente senza che nessuno venga avvisato.
+**File:** `woocommerce/woocommerce-init.php` (fondo file)
 
-**Fix consigliato:**
-- Aggiungere un cron job WP che controlla ordini `pending`/`on-hold` con `_bw_*_pi_id` settato da più di X ore e non `is_paid()`, e invia notifica admin
-- Oppure configurare Stripe webhook retry alerts nel dashboard Stripe
+Aggiunta funzione `bw_mew_run_stuck_order_check()` schedulata su `bw_mew_check_stuck_orders` (evento WP-Cron orario):
+- Cerca ordini `pending`/`on-hold` con meta `_bw_gpay_pi_id`, `_bw_klarna_pi_id`, o `_bw_apple_pay_pi_id`
+- Modificati da più di 4 ore e non pagati
+- Invia email all'admin con lista ordini e link alla dashboard WooCommerce
+- Logga su `wc-bw-gateway` logger
+
+> In aggiunta, configurare Stripe Dashboard → Webhooks → Alerts per notifiche sui retry failures.
 
 ---
 
@@ -389,13 +370,11 @@ Un singolo file CSS che gestisce layout, gateway icons, skeleton loaders, respon
 
 ---
 
-### 8.2 Stripe JS caricato due volte se entrambi Apple Pay e Google Pay sono attivi
+### 8.2 ~~Stripe JS doppio include~~ — NON un bug
 
-**File:** `woocommerce/woocommerce-init.php`
+Entrambi i blocchi Google Pay e Apple Pay chiamano `wp_enqueue_script('stripe', 'https://js.stripe.com/v3/', ...)` con lo **stesso handle** `stripe`. WordPress gestisce questo correttamente: la seconda chiamata con lo stesso handle è un no-op e Stripe JS viene incluso una sola volta nel DOM.
 
-Sia il blocco Google Pay (riga ~643) che il blocco Apple Pay (riga ~679) registrano `https://js.stripe.com/v3/` con lo stesso handle o handle diversi. Se entrambi i gateway sono abilitati, verificare che Stripe JS non venga incluso due volte nel DOM.
-
-**Fix:** Usare un unico handle `stripe-v3` registrato una volta sola, e dipendere da esso in entrambi i blocchi.
+Nessun intervento richiesto. Il pattern è idiomatico WordPress.
 
 ---
 
@@ -424,14 +403,16 @@ Sia il blocco Google Pay (riga ~643) che il blocco Apple Pay (riga ~679) registr
 
 ---
 
-### 9.2 ARIA attributes sull'accordion payment — non documentati
+### 9.2 ✅ RISOLTO — ARIA attributes aggiunti all'accordion payment
 
-Il template `payment.php` usa HTML custom per l'accordion. Verificare presenza di:
-- `aria-expanded` sul trigger
-- `aria-controls` sul trigger → `id` sul panel
-- `role="radiogroup"` sul container dei gateway
+**File:** `woocommerce/templates/checkout/payment.php`
 
-Assenza di questi attributi rende il checkout inaccessibile a screen reader.
+Aggiunti:
+- `id="bw-payment-heading"` sul `<h2>` del titolo sezione
+- `role="radiogroup"` + `aria-labelledby="bw-payment-heading"` sul `<ul>` dei gateway
+- `id="payment_method_label_<gateway_id>"` sul `<label>` di ogni gateway
+- `role="button"` + `aria-expanded` + `aria-controls="bw-payment-panel-<gateway_id>"` sul `.bw-payment-method__header`
+- `id="bw-payment-panel-<gateway_id>"` + `role="region"` + `aria-labelledby` su ogni panel `.bw-payment-method__content`
 
 ---
 
@@ -502,22 +483,22 @@ Questi aspetti sono stati verificati nel codice e non richiedono intervento:
 
 ---
 
-## Priorità di intervento
+## Priorità di intervento — Stato aggiornato
 
-| # | Problema | Priorità | Effort |
+| # | Problema | Priorità | Stato |
 |---|---|---|---|
-| 1 | console.log in bw-apple-pay.js (§2.1) | 🔴 CRITICO | Basso |
-| 2 | Stato ordine incoerente tra gateway (§3.1) | 🔴 CRITICO | Medio |
-| 3 | Stripe webhook config per 3 endpoint (§7.1) | 🔴 CRITICO | Basso (doc) |
-| 4 | Path obsoleto Google Pay Guide (§4.1) | 🟠 ALTO | Basso |
-| 5 | Rate limiting coupon AJAX (§2.2) | 🟠 ALTO | Medio |
-| 6 | Monitoring ordini stuck on-hold (§7.2) | 🟠 ALTO | Medio |
-| 7 | Test mode Klarna (§5.1) | 🟠 ALTO | Alto |
-| 8 | CSP documentazione (§2.5) | 🟡 MEDIO | Basso |
-| 9 | docs/PAYMENTS.md aggiornamento (§4.2) | 🟡 MEDIO | Basso |
-| 10 | Brevo retry su API failure (§5.3) | 🟡 MEDIO | Medio |
-| 11 | Auto-hide notice timing (§6.1) | 🟡 MEDIO | Basso |
-| 12 | Stripe JS doppio include (§8.2) | 🟡 MEDIO | Basso |
-| 13 | SRI per Supabase CDN (§8.3) | 🟡 MEDIO | Basso |
-| 14 | ARIA accordion payment (§9.2) | 🟡 MEDIO | Medio |
-| 15 | CSS split in moduli (§8.1) | 🟢 BASSO | Alto |
+| 1 | console.log in bw-apple-pay.js (§2.1) | 🔴 CRITICO | ✅ Risolto 2026-02-24 |
+| 2 | Stato ordine incoerente tra gateway (§3.1) | 🔴 CRITICO | ✅ Risolto 2026-02-24 |
+| 3 | Stripe webhook config per 3 endpoint (§7.1) | 🔴 CRITICO | ✅ Risolto 2026-02-24 (doc) |
+| 4 | Path obsoleto Google Pay Guide (§4.1) | 🟠 ALTO | ✅ Risolto 2026-02-24 |
+| 5 | Rate limiting coupon AJAX (§2.2) | 🟠 ALTO | ✅ Risolto 2026-02-24 |
+| 6 | Monitoring ordini stuck on-hold (§7.2) | 🟠 ALTO | ✅ Risolto 2026-02-24 |
+| 7 | Auto-hide notice timing (§6.1) | 🟡 MEDIO | ✅ Risolto 2026-02-24 |
+| 8 | ARIA accordion payment (§9.2) | 🟡 MEDIO | ✅ Risolto 2026-02-24 |
+| 9 | docs/PAYMENTS.md aggiornamento (§4.2) | 🟡 MEDIO | ✅ Risolto 2026-02-24 |
+| 10 | Stripe JS doppio include (§8.2) | 🟡 MEDIO | ✅ Non un bug (WordPress no-op) |
+| 11 | Test mode Klarna (§5.1) | 🟠 ALTO | 🔲 Aperto |
+| 12 | CSP documentazione (§2.5) | 🟡 MEDIO | 🔲 Aperto |
+| 13 | Brevo retry su API failure (§5.3) | 🟡 MEDIO | 🔲 Aperto |
+| 14 | SRI per Supabase CDN (§8.3) | 🟡 MEDIO | 🔲 Aperto |
+| 15 | CSS split in moduli (§8.1) | 🟢 BASSO | 🔲 Aperto (bassa urgenza) |

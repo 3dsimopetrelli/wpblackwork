@@ -6,7 +6,7 @@
 
 (function($) {
     'use strict';
-    var REQUIRED_ERRORS_AUTO_HIDE_MS = 3000;
+    var REQUIRED_ERRORS_AUTO_HIDE_MS = 6000;
     var requiredErrorsTimer = null;
 
     function normalizeLabel(text) {

@@ -1532,6 +1532,30 @@ function bw_mew_render_express_divider()
 add_action('woocommerce_checkout_before_customer_details', 'bw_mew_render_express_divider', 100);
 
 /**
+ * Rate-limit coupon AJAX actions per IP address.
+ *
+ * Prevents automated brute-force enumeration of coupon codes.
+ * Allows max 10 attempts per IP every 5 minutes.
+ * Sends a JSON error and exits if the limit is exceeded.
+ *
+ * @param string $action Unique action name used as part of the transient key.
+ */
+function bw_mew_coupon_rate_limit_check( $action ) {
+    $ip_raw = isset( $_SERVER['HTTP_CF_CONNECTING_IP'] )
+        ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_CF_CONNECTING_IP'] ) )
+        : ( isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : 'unknown' );
+
+    $key      = 'bw_coupon_rl_' . md5( $action . $ip_raw );
+    $attempts = (int) get_transient( $key );
+
+    if ( $attempts >= 10 ) {
+        wp_send_json_error( array( 'message' => __( 'Too many attempts. Please wait a few minutes and try again.', 'woocommerce' ) ), 429 );
+    }
+
+    set_transient( $key, $attempts + 1, 5 * MINUTE_IN_SECONDS );
+}
+
+/**
  * AJAX handler to remove coupon from cart.
  *
  * FIX: This handler now properly synchronizes with WooCommerce's checkout refresh mechanism
@@ -1543,6 +1567,7 @@ add_action('woocommerce_checkout_before_customer_details', 'bw_mew_render_expres
 function bw_mew_ajax_remove_coupon()
 {
     check_ajax_referer('bw-checkout-nonce', 'nonce');
+    bw_mew_coupon_rate_limit_check( 'remove_coupon' );
 
     if (!class_exists('WooCommerce') || !WC()->cart) {
         wp_send_json_error(array('message' => __('Cart not available.', 'woocommerce')));
@@ -1619,6 +1644,7 @@ function bw_mew_ajax_remove_coupon()
 function bw_mew_ajax_apply_coupon()
 {
     check_ajax_referer('bw-checkout-nonce', 'nonce');
+    bw_mew_coupon_rate_limit_check( 'apply_coupon' );
 
     if (!class_exists('WooCommerce') || !WC()->cart) {
         wp_send_json_error(array('message' => __('Cart not available.', 'woocommerce')));
@@ -2059,4 +2085,88 @@ function bw_mew_prepare_cart_layout()
     add_filter('woocommerce_cart_ready_to_calc_shipping', '__return_false', 99);
     add_filter('woocommerce_shipping_calculator_enabled', '__return_false', 99);
     add_filter('woocommerce_cart_needs_shipping', '__return_false', 99);
+}
+
+// ─── Stuck-order monitoring cron ─────────────────────────────────────────────
+
+/**
+ * Register the hourly cron event for stuck-order monitoring.
+ *
+ * Hooked on 'init' so WP-Cron can schedule when no request triggers it.
+ */
+function bw_mew_register_stuck_order_cron() {
+    if ( ! wp_next_scheduled( 'bw_mew_check_stuck_orders' ) ) {
+        wp_schedule_event( time(), 'hourly', 'bw_mew_check_stuck_orders' );
+    }
+}
+add_action( 'init', 'bw_mew_register_stuck_order_cron' );
+add_action( 'bw_mew_check_stuck_orders', 'bw_mew_run_stuck_order_check' );
+
+/**
+ * Find BW gateway orders stuck in pending/on-hold for more than 4 hours.
+ *
+ * An order is considered "stuck" when:
+ *  - its status is pending or on-hold
+ *  - it has a BW PaymentIntent meta key (meaning a payment was attempted)
+ *  - it is not paid
+ *  - it was last modified more than 4 hours ago
+ *
+ * On finding stuck orders the function sends a single admin notification email
+ * and writes a WC log entry.
+ */
+function bw_mew_run_stuck_order_check() {
+    if ( ! function_exists( 'wc_get_orders' ) ) {
+        return;
+    }
+
+    $cutoff = strtotime( '-4 hours' );
+
+    $orders = wc_get_orders( array(
+        'status'       => array( 'wc-pending', 'wc-on-hold' ),
+        'date_modified' => '<' . $cutoff,
+        'limit'        => 50,
+        'meta_query'   => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+            'relation' => 'OR',
+            array( 'key' => '_bw_gpay_pi_id',     'compare' => 'EXISTS' ),
+            array( 'key' => '_bw_klarna_pi_id',   'compare' => 'EXISTS' ),
+            array( 'key' => '_bw_apple_pay_pi_id','compare' => 'EXISTS' ),
+        ),
+    ) );
+
+    if ( empty( $orders ) ) {
+        return;
+    }
+
+    $stuck = array();
+    foreach ( $orders as $order ) {
+        if ( ! $order->is_paid() ) {
+            $stuck[] = sprintf(
+                '#%d — %s — %s — modified %s',
+                $order->get_id(),
+                $order->get_payment_method(),
+                $order->get_status(),
+                $order->get_date_modified() ? $order->get_date_modified()->date( 'Y-m-d H:i' ) : 'n/a'
+            );
+        }
+    }
+
+    if ( empty( $stuck ) ) {
+        return;
+    }
+
+    $logger = wc_get_logger();
+    $logger->warning(
+        sprintf( 'BW stuck orders detected (%d): %s', count( $stuck ), implode( ' | ', $stuck ) ),
+        array( 'source' => 'bw-gateway' )
+    );
+
+    wp_mail(
+        get_option( 'admin_email' ),
+        sprintf( '[%s] BW Gateway — %d order(s) may be stuck', get_bloginfo( 'name' ), count( $stuck ) ),
+        sprintf(
+            "The following orders are in pending/on-hold status with a BW PaymentIntent recorded\nbut have not been updated in over 4 hours.\n\nCheck the Stripe dashboard to verify whether payment was captured.\n\n%s\n\nWooCommerce Orders: %s",
+            implode( "\n", $stuck ),
+            admin_url( 'edit.php?post_type=shop_order' )
+        )
+    );
 }
