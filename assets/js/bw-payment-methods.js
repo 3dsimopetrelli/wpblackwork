@@ -589,8 +589,33 @@
         });
     }
 
+    // -------------------------------------------------------------------------
+    // Shared checkout notice renderer (used by Google Pay, Apple Pay, Klarna).
+    // -------------------------------------------------------------------------
+
+    function bwNoticeEscapeHtml(text) {
+        return String(text || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function renderCheckoutNotice(type, message) {
+        var $ = window.jQuery;
+        if (!$) { return; }
+        var klass = type === 'error' ? 'woocommerce-error' : 'woocommerce-info';
+        var $notices = $('.woocommerce-notices-wrapper').first();
+        if ($notices.length) {
+            $notices.html('<ul class="' + klass + '" role="alert"><li>' + bwNoticeEscapeHtml(message) + '</li></ul>');
+        }
+        $('html, body').animate({ scrollTop: 0 }, 250);
+    }
+
     // Expose shared utilities for wallet gateway scripts (Google Pay, Apple Pay).
     window.bwCheckout = window.bwCheckout || {};
     window.bwCheckout.removeLoadingState = removeLoadingState;
+    window.bwCheckout.renderCheckoutNotice = renderCheckoutNotice;
 
 })();
