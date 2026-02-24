@@ -239,8 +239,7 @@ class BW_Checkout_Subscribe_Admin {
         add_action( 'add_meta_boxes', [ $this, 'register_order_newsletter_metabox' ] );
         add_action( 'wp_ajax_bw_brevo_order_refresh_status', [ $this, 'handle_order_refresh_status' ] );
         add_action( 'wp_ajax_bw_brevo_order_retry_subscribe', [ $this, 'handle_order_retry_subscribe' ] );
-        add_action( 'show_user_profile', [ $this, 'render_user_mail_marketing_panel' ] );
-        add_action( 'edit_user_profile', [ $this, 'render_user_mail_marketing_panel' ] );
+        add_action( 'admin_notices', [ $this, 'render_user_mail_marketing_top_panel' ] );
         add_action( 'wp_ajax_bw_brevo_user_check_status', [ $this, 'handle_user_check_status' ] );
         add_action( 'wp_ajax_bw_brevo_user_sync_status', [ $this, 'handle_user_sync_status' ] );
     }
@@ -728,7 +727,39 @@ class BW_Checkout_Subscribe_Admin {
     }
 
     /**
-     * Render Mail Marketing diagnostics panel on user profile screens.
+     * Render Mail Marketing panel as a top full-width container on user screens.
+     */
+    public function render_user_mail_marketing_top_panel() {
+        if ( ! function_exists( 'get_current_screen' ) ) {
+            return;
+        }
+
+        $screen = get_current_screen();
+        if ( ! $screen || ! in_array( $screen->id, [ 'profile', 'user-edit' ], true ) ) {
+            return;
+        }
+
+        $user_id = 0;
+        if ( 'profile' === $screen->id ) {
+            $user_id = get_current_user_id();
+        } elseif ( isset( $_GET['user_id'] ) ) {
+            $user_id = absint( wp_unslash( $_GET['user_id'] ) );
+        }
+
+        if ( $user_id <= 0 ) {
+            return;
+        }
+
+        $user = get_user_by( 'id', $user_id );
+        if ( ! $user instanceof WP_User ) {
+            return;
+        }
+
+        $this->render_user_mail_marketing_panel( $user );
+    }
+
+    /**
+     * Render Mail Marketing diagnostics panel content.
      *
      * @param WP_User $user User object.
      */
@@ -743,37 +774,101 @@ class BW_Checkout_Subscribe_Admin {
 
         $payload = $this->build_user_status_payload( $user );
         ?>
-        <h2><?php esc_html_e( 'Mail Marketing', 'bw' ); ?></h2>
-        <table class="form-table" role="presentation">
-            <tbody>
-                <tr>
-                    <th><?php esc_html_e( 'Brevo status', 'bw' ); ?></th>
-                    <td>
-                        <div id="bw-user-mail-marketing-panel" data-user-id="<?php echo esc_attr( $user->ID ); ?>">
-                            <span id="bw-user-status-badge" class="bw-newsletter-status-badge <?php echo esc_attr( $this->get_status_badge_class( $payload['status'] ) ); ?>" style="display:inline-block;padding:6px 10px;border-radius:999px;font-weight:600;">
-                                <?php echo esc_html( $payload['statusLabel'] ); ?>
-                            </span>
-                            <button type="button" class="button" id="bw-user-check-status" style="margin-left:8px;"><?php esc_html_e( 'Check Brevo', 'bw' ); ?></button>
-                            <button type="button" class="button button-secondary" id="bw-user-sync-status" style="margin-left:8px;"><?php esc_html_e( 'Sync status', 'bw' ); ?></button>
-                            <p id="bw-user-inline-message" style="margin-top:8px;"></p>
-                            <table class="widefat striped" style="max-width:900px;margin-top:8px;">
-                                <tbody>
-                                    <tr><th><?php esc_html_e( 'Email', 'bw' ); ?></th><td data-bw-user-field="email"><?php echo esc_html( $payload['meta']['email'] ); ?></td></tr>
-                                    <tr><th><?php esc_html_e( 'List', 'bw' ); ?></th><td data-bw-user-field="list_display"><?php echo esc_html( $payload['meta']['list_display'] ); ?></td></tr>
-                                    <tr><th><?php esc_html_e( 'Current status', 'bw' ); ?></th><td data-bw-user-field="status"><?php echo esc_html( $payload['meta']['status'] ); ?></td></tr>
-                                    <tr><th><?php esc_html_e( 'Status reason', 'bw' ); ?></th><td data-bw-user-field="status_reason"><?php echo esc_html( $payload['meta']['status_reason'] ); ?></td></tr>
-                                    <tr><th><?php esc_html_e( 'Last error', 'bw' ); ?></th><td data-bw-user-field="last_error"><?php echo esc_html( $payload['meta']['last_error'] ); ?></td></tr>
-                                    <tr><th><?php esc_html_e( 'Consent timestamp', 'bw' ); ?></th><td data-bw-user-field="consent_at"><?php echo esc_html( $payload['meta']['consent_at'] ); ?></td></tr>
-                                    <tr><th><?php esc_html_e( 'Consent source', 'bw' ); ?></th><td data-bw-user-field="consent_source"><?php echo esc_html( $payload['meta']['consent_source'] ); ?></td></tr>
-                                    <tr><th><?php esc_html_e( 'Last checked at', 'bw' ); ?></th><td data-bw-user-field="last_checked_at"><?php echo esc_html( $payload['meta']['last_checked_at'] ); ?></td></tr>
-                                    <tr><th><?php esc_html_e( 'Brevo contact id', 'bw' ); ?></th><td data-bw-user-field="contact_id"><?php echo esc_html( $payload['meta']['contact_id'] ); ?></td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+        <style id="bw-user-mail-marketing-style">
+            #bw-user-mail-marketing-panel-wrap { margin: 16px 0 18px; }
+            #bw-user-mail-marketing-panel .bw-newsletter-status-badge.bw-status--subscribed { background:#d1f8e0;color:#0a3622;border:1px solid #75d39a; }
+            #bw-user-mail-marketing-panel .bw-newsletter-status-badge.bw-status--pending { background:#e7eefc;color:#1b3b7a;border:1px solid #9ab1e9; }
+            #bw-user-mail-marketing-panel .bw-newsletter-status-badge.bw-status--neutral { background:#f3f4f6;color:#2c3338;border:1px solid #c3c4c7; }
+            #bw-user-mail-marketing-panel .bw-newsletter-status-badge.bw-status--error { background:#fce2e2;color:#691010;border:1px solid #e99a9a; }
+            #bw-user-mail-marketing-panel {
+                border: 1px solid #d0d5dd;
+                border-radius: 12px;
+                background: #fff;
+                box-shadow: 0 4px 16px rgba(16, 24, 40, 0.06);
+                overflow: hidden;
+            }
+            #bw-user-mail-marketing-panel .bw-mm-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 12px;
+                padding: 14px 16px;
+                border-bottom: 1px solid #e4e7ec;
+                background: linear-gradient(180deg, #f8fafc 0%, #f2f4f7 100%);
+            }
+            #bw-user-mail-marketing-panel .bw-mm-title {
+                margin: 0;
+                font-size: 16px;
+                font-weight: 700;
+                color: #101828;
+            }
+            #bw-user-mail-marketing-panel .bw-mm-actions {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                flex-wrap: wrap;
+            }
+            #bw-user-mail-marketing-panel #bw-user-inline-message {
+                margin: 10px 0 0;
+                padding: 0 16px;
+                font-weight: 600;
+            }
+            #bw-user-mail-marketing-panel .bw-mm-table-wrap { padding: 10px 16px 16px; }
+            #bw-user-mail-marketing-panel .bw-mm-table {
+                width: 100%;
+                border-collapse: separate;
+                border-spacing: 0;
+                border: 1px solid #e4e7ec;
+                border-radius: 10px;
+                overflow: hidden;
+            }
+            #bw-user-mail-marketing-panel .bw-mm-table th,
+            #bw-user-mail-marketing-panel .bw-mm-table td {
+                padding: 11px 12px;
+                border-bottom: 1px solid #eaecf0;
+                text-align: left;
+                vertical-align: middle;
+            }
+            #bw-user-mail-marketing-panel .bw-mm-table tr:last-child th,
+            #bw-user-mail-marketing-panel .bw-mm-table tr:last-child td { border-bottom: 0; }
+            #bw-user-mail-marketing-panel .bw-mm-table th {
+                width: 260px;
+                background: #f9fafb;
+                color: #111827;
+                font-weight: 700;
+            }
+            #bw-user-mail-marketing-panel .bw-mm-table td { background: #fff; color: #1f2937; }
+        </style>
+        <div id="bw-user-mail-marketing-panel-wrap">
+            <div id="bw-user-mail-marketing-panel" data-user-id="<?php echo esc_attr( $user->ID ); ?>">
+                <div class="bw-mm-header">
+                    <h2 class="bw-mm-title"><?php esc_html_e( 'Mail Marketing - Brevo', 'bw' ); ?></h2>
+                    <div class="bw-mm-actions">
+                        <span id="bw-user-status-badge" class="bw-newsletter-status-badge <?php echo esc_attr( $this->get_status_badge_class( $payload['status'] ) ); ?>" style="display:inline-block;padding:6px 10px;border-radius:999px;font-weight:700;">
+                            <?php echo esc_html( $payload['statusLabel'] ); ?>
+                        </span>
+                        <button type="button" class="button" id="bw-user-check-status"><?php esc_html_e( 'Check Brevo', 'bw' ); ?></button>
+                        <button type="button" class="button button-secondary" id="bw-user-sync-status"><?php esc_html_e( 'Sync status', 'bw' ); ?></button>
+                    </div>
+                </div>
+                <p id="bw-user-inline-message"></p>
+                <div class="bw-mm-table-wrap">
+                    <table class="bw-mm-table">
+                        <tbody>
+                            <tr><th><?php esc_html_e( 'Email', 'bw' ); ?></th><td data-bw-user-field="email"><?php echo esc_html( $payload['meta']['email'] ); ?></td></tr>
+                            <tr><th><?php esc_html_e( 'List', 'bw' ); ?></th><td data-bw-user-field="list_display"><?php echo esc_html( $payload['meta']['list_display'] ); ?></td></tr>
+                            <tr><th><?php esc_html_e( 'Current status', 'bw' ); ?></th><td data-bw-user-field="status"><?php echo esc_html( $payload['meta']['status'] ); ?></td></tr>
+                            <tr><th><?php esc_html_e( 'Status reason', 'bw' ); ?></th><td data-bw-user-field="status_reason"><?php echo esc_html( $payload['meta']['status_reason'] ); ?></td></tr>
+                            <tr><th><?php esc_html_e( 'Last error', 'bw' ); ?></th><td data-bw-user-field="last_error"><?php echo esc_html( $payload['meta']['last_error'] ); ?></td></tr>
+                            <tr><th><?php esc_html_e( 'Consent timestamp', 'bw' ); ?></th><td data-bw-user-field="consent_at"><?php echo esc_html( $payload['meta']['consent_at'] ); ?></td></tr>
+                            <tr><th><?php esc_html_e( 'Consent source', 'bw' ); ?></th><td data-bw-user-field="consent_source"><?php echo esc_html( $payload['meta']['consent_source'] ); ?></td></tr>
+                            <tr><th><?php esc_html_e( 'Last checked at', 'bw' ); ?></th><td data-bw-user-field="last_checked_at"><?php echo esc_html( $payload['meta']['last_checked_at'] ); ?></td></tr>
+                            <tr><th><?php esc_html_e( 'Brevo contact id', 'bw' ); ?></th><td data-bw-user-field="contact_id"><?php echo esc_html( $payload['meta']['contact_id'] ); ?></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
         <?php
     }
 
