@@ -1,6 +1,6 @@
 # BW Checkout — Guida Completa
 
-**Ultimo aggiornamento:** 2026-02-23
+**Ultimo aggiornamento:** 2026-02-24
 **Plugin:** BW Elementor Widgets
 **Tema:** BlackWork
 
@@ -30,6 +30,8 @@ Questo documento è la fonte di verità unica per tutto ciò che riguarda la pag
 18. [Fix Tecnici Applicati](#18-fix-tecnici-applicati)
 19. [Checklist di Test](#19-checklist-di-test)
 20. [Manutenzione Futura](#20-manutenzione-futura)
+21. [Stato Sessione Corrente](#21-stato-sessione-corrente)
+22. [Backlog Aperto — Cleanup e Potenziamento](#22-backlog-aperto--cleanup-e-potenziamento)
 
 ---
 
@@ -1684,6 +1686,90 @@ $js_version = filemtime($js_file);
 
 ---
 
+### FIX 18 — `console.log` non guardato in `bw-apple-pay.js` (Security — Medium)
+
+**Data:** 2026-02-24
+**File:** `assets/js/bw-apple-pay.js`
+**Problema:** La riga ~356 chiamava `console.log('[BW Apple Pay] canMakePayment:', result)` senza il flag `BW_APPLE_PAY_DEBUG`, esponendo in produzione il risultato interno di Stripe `canMakePayment` (struttura dell'oggetto wallet) a chiunque aprisse la console del browser.
+**Fix:**
+```js
+// Prima (esposto in produzione):
+console.log('[BW Apple Pay] canMakePayment:', result);
+
+// Dopo:
+BW_APPLE_PAY_DEBUG && console.log('[BW Apple Pay] canMakePayment:', result);
+```
+
+---
+
+### FIX 19 — Stato ordine standardizzato a `on-hold` su tutti i gateway (Critical — Payment Integrity)
+
+**Data:** 2026-02-24
+**File:** `includes/Gateways/class-bw-google-pay-gateway.php`, `includes/Gateways/class-bw-klarna-gateway.php`
+**Problema:** Quando il PaymentIntent ritornava `succeeded` nel `process_payment()`, Google Pay e Klarna impostavano l'ordine a `pending`. Apple Pay già usava `on-hold`. Questa incoerenza causava comportamenti diversi tra gateway per lo stesso evento (PI creato, in attesa di conferma webhook): automazioni email, Brevo subscribe e dashboard admin si comportavano diversamente.
+**Semantica corretta WooCommerce:**
+- `on-hold` = pagamento avviato, in attesa di conferma esterna (webhook) ← stato corretto
+- `pending` = ordine creato, nessun tentativo di pagamento ancora effettuato
+
+**Fix:** Google Pay e Klarna ora impostano `on-hold` nel caso `succeeded`, allineandosi ad Apple Pay.
+
+---
+
+### FIX 20 — Rate limiting su AJAX handler coupon (Security — High)
+
+**Data:** 2026-02-24
+**File:** `woocommerce/woocommerce-init.php`
+**Problema:** `bw_apply_coupon` e `bw_remove_coupon` accettavano richieste da utenti non autenticati con solo verifica nonce, senza limitazione di frequenza. Consentiva brute-force automatizzato di codici coupon.
+**Fix:** Aggiunta funzione `bw_mew_coupon_rate_limit_check()` — transient-based per IP, max 10 tentativi per 5 minuti per azione. Risponde con HTTP 429 se superato.
+```php
+bw_mew_coupon_rate_limit_check( 'apply_coupon' );  // in bw_mew_ajax_apply_coupon()
+bw_mew_coupon_rate_limit_check( 'remove_coupon' ); // in bw_mew_ajax_remove_coupon()
+```
+
+---
+
+### FIX 21 — Cron monitoring ordini stuck in `on-hold` (Reliability — High)
+
+**Data:** 2026-02-24
+**File:** `woocommerce/woocommerce-init.php`
+**Problema:** Se Stripe non riusciva a consegnare un webhook (sito down, endpoint errato), un ordine poteva rimanere in `on-hold` indefinitamente senza che nessuno venisse avvisato.
+**Fix:** Aggiunto evento WP-Cron orario `bw_mew_check_stuck_orders` che:
+- Cerca ordini `pending`/`on-hold` con meta `_bw_gpay_pi_id`, `_bw_klarna_pi_id`, o `_bw_apple_pay_pi_id`
+- Non modificati da più di 4 ore e non pagati
+- Invia email admin con lista ordini + link WooCommerce dashboard
+- Logga su logger WooCommerce `bw-gateway`
+
+---
+
+### FIX 22 — Auto-hide errori da 3s a 6s (UX / Accessibility)
+
+**Data:** 2026-02-24
+**File:** `assets/js/bw-checkout-notices.js`
+**Problema:** I messaggi di errore sui campi required sparivano dopo 3 secondi — troppo poco per utenti con lettura lenta o disabilità cognitive (WCAG 2.2.1).
+**Fix:**
+```js
+// Prima:
+var REQUIRED_ERRORS_AUTO_HIDE_MS = 3000;
+// Dopo:
+var REQUIRED_ERRORS_AUTO_HIDE_MS = 6000;
+```
+
+---
+
+### FIX 23 — ARIA attributes sul payment accordion (Accessibility)
+
+**Data:** 2026-02-24
+**File:** `woocommerce/templates/checkout/payment.php`
+**Problema:** Il payment accordion era inaccessibile a screen reader: nessun `role`, nessun `aria-expanded`, nessun collegamento tra trigger e panel.
+**Fix aggiunto:**
+- `id="bw-payment-heading"` sull'`<h2>` del titolo sezione
+- `role="radiogroup"` + `aria-labelledby="bw-payment-heading"` sull'`<ul>` dei gateway
+- `id="payment_method_label_<id>"` sul `<label>` di ogni gateway
+- `role="button"` + `aria-expanded` + `aria-controls="bw-payment-panel-<id>"` sul `.bw-payment-method__header`
+- `id="bw-payment-panel-<id>"` + `role="region"` + `aria-labelledby` su ogni panel `.bw-payment-method__content`
+
+---
+
 ## 19. Checklist di Test
 
 ### Layout Desktop (≥ 900px)
@@ -1751,17 +1837,37 @@ $js_version = filemtime($js_file);
 - [ ] Bordo sopra totale finale (3px #000000)
 - [ ] Font totale finale: 16px, font-weight 700
 
-### Pagamento
+### Pagamento — UI
 
 - [ ] Accordion pagamento funziona (radio button → apre pannello)
 - [ ] Primo gateway aperto di default
+- [ ] Un solo accordion aperto alla volta
+- [ ] Un solo CTA visibile alla volta (wallet button OPPURE place order button)
 - [ ] Stripe fields visibili e funzionanti
+- [ ] Stripe card label mostra "Credit / Debit Card" (non "Stripe")
 - [ ] PayPal: messaggio redirect invece di descrizione
-- [ ] Google Pay: messaggio redirect
+- [ ] Google Pay: messaggio redirect — no "Initializing" infinito
+- [ ] Apple Pay: stato available/unavailable coerente tra refresh
 - [ ] Errori Stripe mostrati inline (non sopra il testo)
 - [ ] Nessun errore console `billing_details.name`
 - [ ] Bottone "Place order" testo cambia in base al gateway selezionato
 - [ ] Ordine free: payment nascosto, free order banner visibile
+
+### Pagamento — Flusso gateway (test end-to-end)
+
+- [ ] **Google Pay:** checkout → PI creation → webhook `payment_intent.succeeded` → ordine `processing`/`completed` → thank-you page → email
+- [ ] **Klarna:** checkout → redirect Klarna → return URL → webhook → ordine completato → thank-you
+- [ ] **Apple Pay:** availability check positivo → payment sheet → webhook → ordine completato
+- [ ] **Cancellazione Google Pay:** ritorna a checkout, notice errore, carrello intatto, retry possibile
+- [ ] **Cancellazione Klarna:** redirect_status=canceled → checkout con notice, no ordine completato
+- [ ] **Ordine già pagato + cancel redirect:** flusso porta a thank-you (non a checkout)
+
+### Pagamento — Webhook e sicurezza
+
+- [ ] Replay stesso `event_id` → nessun doppio effetto (idempotency)
+- [ ] Webhook per ordine con gateway diverso → ignorato (anti-conflict)
+- [ ] PI id diverso da quello in meta → ignorato (PI consistency)
+- [ ] Coupon: 11+ tentativi rapidi → risposta 429 (rate limiting)
 
 ### Admin Panel
 
@@ -1907,51 +2013,127 @@ Dopo modifiche a CSS/JS:
 
 ## 21. Stato Sessione Corrente (Aggiornamento Operativo)
 
-Questa sezione traccia lo stato operativo finale delle ultime modifiche checkout/gateway.
+Questa sezione traccia in modo sintetico cosa è stato completato e cosa resta da finalizzare.
+**Ultimo aggiornamento:** 2026-02-24
 
-### Completato (stabile)
+---
 
-- Refactor documentazione pagamenti in guide separate:
-  - `Gateway Google Pay Guide.md`
-  - `Gateway Klarna Guide.md`
-  - `Gateway Apple Pay Guide.md`
-  - `Gateway Total Guide.md`
-- Ripristino visualizzazione metodi custom in accordion (`bw_google_pay`, `bw_klarna`, `bw_apple_pay`) dopo regressioni da merge esterni.
-- Ripristino isolamento accordion: apertura/chiusura coerente, un metodo aperto alla volta.
-- Fix conflitto titolo Stripe in accordion (label forzata a "Credit / Debit Card" invece di "Stripe").
-- Google Pay:
-  - ripristino inizializzazione `canMakePayment` con formato importo corretto (fix errore subunit/amount).
-  - fallback unavailable migliorato con CTA "Open Google Wallet".
-- Apple Pay:
-  - fallback riportato a **helper-only** (scroll alla sezione Express in alto) tramite checkbox admin `bw_apple_pay_express_helper_enabled`.
-  - rimossa la modalita avanzata non-Safari/inline express.
-  - messaggio helper semplificato: nessun titolo "Apple Pay unavailable", solo testo guida.
-  - rimossa evidenziazione shadow di highlight sui bottoni/target Express (`.bw-express-checkout-highlight` disattivata).
-  - dominio e key check lato admin risultano operativi (verifiche verdi).
-- Klarna:
-  - CTA e messaggistica checkout allineate allo stile corrente.
+### Completato e stabile
 
-### Completato ma da monitorare (UX/CSS)
+**Architettura pagamenti (tre gateway custom):**
+- `bw_google_pay`, `bw_klarna`, `bw_apple_pay` — tutti attivi in produzione
+- Base astratta condivisa `BW_Abstract_Stripe_Gateway` (webhook, refund, dedup, logging)
+- Idempotency webhook, anti-conflict guard, PI consistency check — tutti funzionanti
+- Refund parziale/completo via base class — funzionante
+- Webhook endpoints documentati in `docs/PAYMENTS.md` con configurazione Stripe
 
-- Bordi accordion: ridotti glitch principali, ma resta sensibilita ai layer `is-selected` + `header/content` in alcuni stati (soprattutto su PayPal).
-- Scroll helper Apple Pay verso Express top: funziona, ma in alcuni contesti puo risultare non fluido.
+**Accordion checkout:**
+- Un metodo aperto alla volta, apertura/chiusura coerente
+- Titolo Stripe forzato a "Credit / Debit Card"
+- ARIA attributes aggiunti (FIX 23): `role`, `aria-expanded`, `aria-controls`, `aria-labelledby`
+- Wallet buttons (Google Pay, Apple Pay) sincronizzati con la selezione gateway
 
-### Non completato nella sessione corrente (TODO prioritari)
+**Sicurezza e hardening (sessione 2026-02-24):**
+- console.log Apple Pay guardato da `BW_APPLE_PAY_DEBUG` (FIX 18)
+- Stato `on-hold` standardizzato su tutti e tre i gateway (FIX 19)
+- Rate limiting coupon AJAX — 10 req/5min/IP (FIX 20)
+- Cron monitoring ordini stuck (FIX 21)
+- Auto-hide errori 6s (FIX 22)
 
-1. QA visuale finale cross-device (Safari iPhone, Safari macOS, Chrome desktop) con focus su coerenza testi Apple fallback helper.
-2. Eventuale smoothing dello scroll helper Apple su pagine checkout molto lunghe.
-3. Aggiunta test manuale regressione rapido dopo `updated_checkout` (shipping/coupon/method switch).
+**Google Pay:**
+- `canMakePayment` formato importo corretto
+- Fallback unavailable con CTA "Open Google Wallet"
+- Test mode separato da live
 
-### Vincoli da rispettare nei prossimi interventi (bloccanti)
+**Apple Pay:**
+- Sezione unavailable con messaggio + CTA "Go to Express Checkout"
+- Toggle admin per il messaggio guida Express
+- Domain e key check admin operativi
+- Fallback chiavi su Google Pay se Apple Pay keys non configurate
 
-- Non alterare logica funzionante di:
-  - `bw_google_pay`
-  - `bw_klarna`
-  - Stripe card ufficiale
-  - PayPal ufficiale
-  - webhook e status ordini
-  - cart popup custom
-- Nessun PaymentIntent duplicato.
-- Nessun doppio primary button visibile nello stesso stato.
-- Nessun `payment_complete()` nei return flow client-side.
-- Webhook resta source of truth per ordine pagato.
+**Klarna:**
+- CTA e messaggistica allineate
+- Mercati e valute supportate documentate in `Gateway Klarna Guide.md`
+
+---
+
+### Da monitorare (stabile ma con edge case noti)
+
+- **Bordi accordion PayPal:** glitch visivo residuo nei layer `is-selected` + `header/content` in certi stati PayPal
+- **Scroll Apple Pay → Express:** funziona ma in alcuni contesti può risultare non fluido
+- **Race condition cancel + webhook:** il router gestisce il caso `is_paid()`, ma manca un redirect esplicito a `get_checkout_order_received_url()` nel ramo "already paid" (§3.2 di `CHECKOUT_MAINTENANCE_GUIDE.md`)
+
+---
+
+### TODO aperti — priorità alta
+
+1. **Apple Pay fallback mode avanzato** — dropdown admin con:
+   - `helper_scroll` (default, comportamento attuale)
+   - `inline_express` (feature-flag, con fallback sicuro se non fattibile)
+   - compatibilità retroattiva con opzione booleana precedente
+2. **State machine Apple Pay esplicita** — stati: `idle`, `method_selected`, `native_available`, `native_unavailable_helper`, `native_unavailable_inline_possible`, `processing`, `error`
+3. **Hardening anti-regressione su `updated_checkout`** — rebind handler namespaced senza duplicati, prevenzione render multipli placeholder/CTA, stabilità su switch rapido metodi
+4. **Test mode Klarna** — Stripe supporta Klarna in test mode (`pm_card_klarna`), da implementare
+5. **Explicit redirect to thank-you** nel ramo "already paid" del wallet return router
+
+---
+
+### Vincoli bloccanti — da non modificare
+
+- Non alterare logica funzionante di: `bw_google_pay`, `bw_klarna`, Stripe card ufficiale, PayPal, webhook, status ordini, cart popup custom
+- Nessun `PaymentIntent` duplicato
+- Nessun doppio primary button visibile nello stesso stato
+- Nessun `payment_complete()` nei return flow client-side
+- **Webhook = source of truth per ordine pagato** — non completare mai l'ordine lato client
+
+---
+
+## 22. Backlog Aperto — Cleanup e Potenziamento
+
+Questa sezione raccoglie tutti gli interventi identificati ma non ancora eseguiti. Ogni voce è numerata per poterla smaltire una alla volta in sessioni successive. Vedi `CHECKOUT_MAINTENANCE_GUIDE.md` §12 per il backlog completo del code vacuum.
+
+### 22.A — Sicurezza e integrità pagamento
+
+| # | Voce | Priorità | File |
+|---|---|---|---|
+| A1 | Redirect esplicito a `get_checkout_order_received_url()` nel ramo "already paid" del wallet return router | 🟠 ALTO | `woocommerce-init.php` |
+| A2 | Verifica free-order bypass: totale ricalcolato server-side prima di nascondere form pagamento | 🟠 ALTO | `payment.php`, `bw-checkout.css` |
+| A3 | Idempotency key Klarna e Apple Pay — verificare che includa pm_id come Google Pay | 🟡 MEDIO | `class-bw-klarna-gateway.php`, `class-bw-apple-pay-gateway.php` |
+| A4 | Billing details Klarna: aggiungere validazione esplicita prima del passaggio all'API Stripe | 🟡 MEDIO | `class-bw-klarna-gateway.php` |
+| A5 | Rolling event dedup: portare limite da 20 a 50 eventi per ordine | 🟡 MEDIO | `class-bw-abstract-stripe-gateway.php` |
+| A6 | SRI hash per Supabase CDN (`cdn.jsdelivr.net`) | 🟡 MEDIO | `woocommerce-init.php` |
+| A7 | CSP documentazione per Stripe.js, Google/Apple Pay, Supabase | 🟡 MEDIO | documentazione |
+| A8 | Google Maps API key — verificare restrizioni dominio e API nel dashboard Google | 🟡 MEDIO | configurazione esterna |
+
+### 22.B — UX e stabilità frontend
+
+| # | Voce | Priorità | File |
+|---|---|---|---|
+| B1 | Phone country picker: persistenza selezione dopo `updated_checkout` | 🟠 ALTO | `bw-checkout.js` |
+| B2 | Apple Pay `enableExpressFallback` — documentare il comportamento per browser non-Safari | 🟡 MEDIO | `bw-apple-pay.js`, `Gateway Apple Pay Guide.md` |
+| B3 | Sticky tablet (768-1024px): definire comportamento esplicito nel CSS | 🟡 MEDIO | `bw-checkout.css` |
+| B4 | Skeleton loader sincronizzato con Google Pay "initializing" (nessuna sovrapposizione visiva) | 🟡 MEDIO | `bw-google-pay.js`, `bw-checkout.css` |
+| B5 | Keyboard Tab navigation nell'accordion aperto (campo carta, CVV) — verifica ordine focus | 🟡 MEDIO | `bw-payment-methods.js` |
+
+### 22.C — Gap nei test
+
+| # | Voce | Priorità | File |
+|---|---|---|---|
+| C1 | Test mode Klarna — implementare test keys + flusso staging | 🟠 ALTO | `class-bw-klarna-gateway.php`, admin |
+| C2 | Aggiungere test flow gateway in `payment-test-checklist.md` (Google Pay, Klarna, Apple Pay, webhook replay) | 🟠 ALTO | `docs/payment-test-checklist.md` |
+| C3 | Documentare test Stripe webhook locale con `stripe listen --forward-to` | 🟠 ALTO | `docs/PAYMENTS.md` |
+| C4 | Test modulo Brevo checkout subscribe: timing, double opt-in, flag `_bw_subscribe_newsletter` | 🟡 MEDIO | documentazione |
+
+### 22.D — Performance e asset
+
+| # | Voce | Priorità | File |
+|---|---|---|---|
+| D1 | Split `bw-checkout.css` in moduli (`layout`, `form`, `payment`, `states`) | 🟢 BASSO | `bw-checkout.css` |
+
+### 22.E — Documentazione mancante
+
+| # | Voce | Priorità | File |
+|---|---|---|---|
+| E1 | Documentare Phone Country Picker in `CHECKOUT_COMPLETE_GUIDE.md` §5 | 🟠 ALTO | questo file |
+| E2 | Documentare modulo Brevo checkout subscribe in §2 (File Coinvolti) | 🟠 ALTO | questo file |
+| E3 | Apple Pay key fallback: documentare tutti i casi (nessuna key, solo Google Pay key) | 🟡 MEDIO | `Gateway Apple Pay Guide.md` |
