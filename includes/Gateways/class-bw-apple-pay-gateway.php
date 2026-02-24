@@ -31,10 +31,8 @@ class BW_Apple_Pay_Gateway extends BW_Abstract_Stripe_Gateway {
 
 		$this->test_mode            = false; // Apple Pay tab is live-only in this implementation.
 		$this->enabled              = get_option( 'bw_apple_pay_enabled', '0' ) === '1' ? 'yes' : 'no';
-		$this->secret_key           = $this->resolve_live_secret_key();
-		$this->publishable_key      = $this->resolve_live_publishable_key();
 		$this->statement_descriptor = (string) get_option( 'bw_apple_pay_statement_descriptor', '' );
-		$this->webhook_secret       = (string) get_option( 'bw_apple_pay_webhook_secret', '' );
+		$this->init_stripe_keys();
 
 		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
 		add_action( 'woocommerce_api_' . $this->id, array( $this, 'handle_webhook' ) );
@@ -216,6 +214,44 @@ class BW_Apple_Pay_Gateway extends BW_Abstract_Stripe_Gateway {
 	}
 
 	/** @inheritDoc */
+	protected function get_live_publishable_key_option_name() {
+		return 'bw_apple_pay_publishable_key';
+	}
+
+	/** @inheritDoc */
+	protected function get_test_publishable_key_option_name() {
+		return 'bw_apple_pay_test_publishable_key';
+	}
+
+	/**
+	 * Apple Pay secret key falls back to the Google Pay live key when its own key is not set.
+	 *
+	 * @param string $mode Stripe mode.
+	 * @return string
+	 */
+	protected function get_secret_key_for_mode( $mode ) {
+		$key = parent::get_secret_key_for_mode( $mode );
+		if ( '' === $key && 'live' === $mode ) {
+			return (string) get_option( 'bw_google_pay_secret_key', '' );
+		}
+		return $key;
+	}
+
+	/**
+	 * Apple Pay publishable key falls back to the Google Pay live key when its own key is not set.
+	 *
+	 * @param string $mode Stripe mode.
+	 * @return string
+	 */
+	protected function get_publishable_key_for_mode( $mode ) {
+		$key = parent::get_publishable_key_for_mode( $mode );
+		if ( '' === $key && 'live' === $mode ) {
+			return (string) get_option( 'bw_google_pay_publishable_key', '' );
+		}
+		return $key;
+	}
+
+	/** @inheritDoc */
 	protected function get_live_webhook_secret_option_name() {
 		return 'bw_apple_pay_webhook_secret';
 	}
@@ -238,29 +274,4 @@ class BW_Apple_Pay_Gateway extends BW_Abstract_Stripe_Gateway {
 		);
 	}
 
-	/**
-	 * Resolve Apple Pay live secret key with fallback to global live key.
-	 *
-	 * @return string
-	 */
-	private function resolve_live_secret_key() {
-		$apple_secret = (string) get_option( 'bw_apple_pay_secret_key', '' );
-		if ( '' !== $apple_secret ) {
-			return $apple_secret;
-		}
-		return (string) get_option( 'bw_google_pay_secret_key', '' );
-	}
-
-	/**
-	 * Resolve Apple Pay live publishable key with fallback to global live key.
-	 *
-	 * @return string
-	 */
-	private function resolve_live_publishable_key() {
-		$apple_pk = (string) get_option( 'bw_apple_pay_publishable_key', '' );
-		if ( '' !== $apple_pk ) {
-			return $apple_pk;
-		}
-		return (string) get_option( 'bw_google_pay_publishable_key', '' );
-	}
 }

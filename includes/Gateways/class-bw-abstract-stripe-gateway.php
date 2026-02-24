@@ -56,6 +56,20 @@ abstract class BW_Abstract_Stripe_Gateway extends WC_Payment_Gateway {
 	abstract protected function get_test_webhook_secret_option_name();
 
 	/**
+	 * Get option name for live publishable key.
+	 *
+	 * @return string
+	 */
+	abstract protected function get_live_publishable_key_option_name();
+
+	/**
+	 * Get option name for test publishable key.
+	 *
+	 * @return string
+	 */
+	abstract protected function get_test_publishable_key_option_name();
+
+	/**
 	 * Return order meta key map used by this gateway.
 	 *
 	 * @return array
@@ -537,6 +551,20 @@ abstract class BW_Abstract_Stripe_Gateway extends WC_Payment_Gateway {
 	}
 
 	/**
+	 * Resolve and assign secret_key, publishable_key, and webhook_secret from
+	 * WordPress options based on the current gateway mode. Call this from the
+	 * subclass constructor after $this->test_mode has been set.
+	 *
+	 * @return void
+	 */
+	protected function init_stripe_keys() {
+		$mode                  = $this->get_gateway_mode();
+		$this->secret_key      = $this->get_secret_key_for_mode( $mode );
+		$this->publishable_key = $this->get_publishable_key_for_mode( $mode );
+		$this->webhook_secret  = $this->get_webhook_secret_for_mode( $mode );
+	}
+
+	/**
 	 * Resolve secret key by mode.
 	 *
 	 * @param string $mode Stripe mode.
@@ -544,6 +572,17 @@ abstract class BW_Abstract_Stripe_Gateway extends WC_Payment_Gateway {
 	 */
 	protected function get_secret_key_for_mode( $mode ) {
 		$option = ( 'test' === $mode ) ? $this->get_test_secret_option_name() : $this->get_live_secret_option_name();
+		return (string) get_option( $option, '' );
+	}
+
+	/**
+	 * Resolve publishable key by mode.
+	 *
+	 * @param string $mode Stripe mode.
+	 * @return string
+	 */
+	protected function get_publishable_key_for_mode( $mode ) {
+		$option = ( 'test' === $mode ) ? $this->get_test_publishable_key_option_name() : $this->get_live_publishable_key_option_name();
 		return (string) get_option( $option, '' );
 	}
 
