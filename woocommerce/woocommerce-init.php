@@ -643,7 +643,7 @@ function bw_mew_enqueue_checkout_assets()
             wp_enqueue_script(
                 'bw-google-pay',
                 BW_MEW_URL . 'assets/js/bw-google-pay.js',
-                ['jquery', 'stripe', 'wc-checkout'],
+                ['jquery', 'stripe', 'wc-checkout', 'bw-payment-methods'],
                 filemtime($google_pay_js),
                 true
             );
@@ -679,7 +679,7 @@ function bw_mew_enqueue_checkout_assets()
             wp_enqueue_script(
                 'bw-apple-pay',
                 BW_MEW_URL . 'assets/js/bw-apple-pay.js',
-                ['jquery', 'stripe', 'wc-checkout'],
+                ['jquery', 'stripe', 'wc-checkout', 'bw-payment-methods'],
                 filemtime($apple_pay_js),
                 true
             );
