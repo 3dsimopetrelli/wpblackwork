@@ -202,3 +202,53 @@ Typical failure classes in these zones:
 - Regression protocol: [`docs/50-ops/regression-protocol.md`](../../50-ops/regression-protocol.md)
 - Payments runbook: [`docs/50-ops/runbooks/payments-runbook.md`](../../50-ops/runbooks/payments-runbook.md)
 - Checkout architecture dependency: [`docs/30-features/checkout/checkout-architecture-map.md`](../../30-features/checkout/checkout-architecture-map.md)
+
+## Normative Payments Architecture Principles
+
+### 1) Readiness Gating (Keys + Toggle Discipline)
+- Payment toggles express integration intent, not automatic runtime availability.
+- A payment method is actionable only if all required key material and gateway readiness conditions are valid for the active mode.
+- Rendering and submission paths must enforce the same readiness gates.
+
+### 2) Deterministic Order State Transitions
+- Payment lifecycle must map to deterministic WooCommerce order statuses.
+- Equivalent provider events must never produce divergent statuses for the same order state.
+- Manual/UI status updates must not contradict gateway/webhook authority for payment completion/failure events.
+
+### 3) Webhook Integrity + Idempotency Invariant
+- Webhook signature validation is mandatory before any state mutation.
+- Event replay must be idempotent through processed-event tracking and PaymentIntent consistency checks.
+- A webhook event may be safely ignored only when invariant checks fail (invalid signature, mismatched gateway/order/PI, already processed event).
+
+### 4) Wallet Capability Discipline
+- Wallet methods (Google Pay, Apple Pay) must be shown as actionable only when both:
+  - server eligibility passes
+  - client capability checks succeed (`canMakePayment` or equivalent)
+- If capability fails after render, UI must downgrade to a safe non-wallet path without ambiguous state.
+
+### 5) UPE vs Custom Selector Non-Duplication Invariant
+- The custom selector (`payment.php` + selector JS) is the canonical user-facing payment state model.
+- Stripe UPE artifacts must not create duplicate or conflicting selection controls.
+- Any UPE cleanup/styling logic must preserve a single, unambiguous selectable method per effective payment path.
+
+### 6) Mode Consistency (Test/Live Isolation)
+- Test and live credentials, webhook secrets, and mode-dependent behavior must remain isolated.
+- A request executed in one mode must never read secrets from the opposite mode except where an explicit, documented fallback is intentionally designed.
+- Operational logs and error diagnostics should include mode context for traceability.
+
+### 7) Error Normalization Contract
+- Provider/API errors must be normalized into:
+  - customer-safe messages for checkout UX
+  - detailed diagnostics for logs/order notes
+- Error handling must not leak sensitive key/secret details.
+- Equivalent failures across gateways should produce coherent user-facing outcomes.
+
+### 8) High-Risk Change Policy (Blast-Radius Rule)
+- Changes touching the payment state contract or webhook semantics are high-risk by definition.
+- High-risk surfaces include:
+  - `woocommerce/templates/checkout/payment.php`
+  - selector/wallet scripts
+  - gateway classes
+  - `BW_Abstract_Stripe_Gateway`
+  - payments orchestration in `woocommerce-init.php`
+- Any change in these surfaces requires full payment + checkout regression validation before release.
