@@ -176,3 +176,36 @@ Invariants:
 - [Payments Architecture Map](../../40-integrations/payments/payments-architecture-map.md)
 - [Brevo Mail Marketing Architecture](./brevo-mail-marketing-architecture.md)
 - [Subscribe Governance](./subscribe.md)
+
+## Normative Brevo Architecture Principles
+
+### 1) Consent Gate Invariant (GDPR hard gate)
+- `can_subscribe_order` is mandatory for any write-side subscribe operation (automatic, retry, bulk).
+- No consent evidence means no Brevo subscribe API call.
+
+### 2) Non-Blocking Commerce Invariant
+- Brevo failures must never block checkout, payment execution, or order placement.
+- Subscribe timing configuration must not alter payment/order authority.
+
+### 3) Idempotency & Convergence Invariant
+- Email is the primary contact identity for sync/upsert.
+- Retries must converge on a single contact state (no duplicate-contact intent from integration flow).
+- Local status transitions must remain deterministic for equal inputs.
+
+### 4) Local Authority Invariant
+- Consent truth is owned by WordPress/WooCommerce metadata.
+- Brevo is delivery destination and synchronization target, not consent source-of-truth.
+
+### 5) Observability Discipline
+- No remote API calls should be executed purely during passive list rendering.
+- Remote checks are allowed only through explicit admin actions.
+- Every remote action must leave a local audit trail (meta updates + logger trace).
+
+### 6) Error Normalization & Sensitive Data Policy
+- Customer-facing errors must remain safe and minimal.
+- Diagnostic detail belongs to logs/admin diagnostics.
+- API keys and raw sensitive payloads must never be logged; only necessary identifiers should appear.
+
+### 7) High-Risk Change Policy (Blast Radius Rule)
+- Changes to consent capture, consent gate, paid-hook triggers, or Brevo API client behavior require regression validation.
+- Such changes must follow the project regression protocol before release.
