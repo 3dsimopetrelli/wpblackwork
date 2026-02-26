@@ -112,13 +112,14 @@ Onboarding metadata (`bw_supabase_onboarded`) controls whether user remains in s
 
 ### Magic Link (OTP) + Create Password (new user) flow
 Lifecycle (native path):
-1. User enters email in Supabase login screen; magic-link/OTP request is sent.
-2. User receives Supabase email and lands with callback payload (hash/code) containing auth tokens or verification context.
-3. Bridge layer (`bw-supabase-bridge.js` / account auth JS) forwards token context to `bw_supabase_token_login`.
-4. Backend validates token against Supabase user endpoint, establishes WP session, and stores session tokens using configured strategy.
-5. If flow is classified as onboarding/new user, OTP confirmation and password creation gate is enforced.
-6. `bw_mew_handle_supabase_create_password()` or modal password path finalizes password update.
-7. Onboarding marker is updated (`bw_supabase_onboarded = 1`), and account transitions to standard usable state.
+1. User submits email and receives magic-link/OTP email from Supabase.
+2. User lands with callback payload (`hash` or `code`), which is routed into callback/bridge context.
+3. OTP verification step resolves token validity and produces session token material for bridge continuation.
+4. Token bridge posts to `bw_supabase_token_login`; backend verifies Supabase user and establishes WP session authority.
+5. Modal/password gating requires an active WP logged-in session before sensitive password-set actions are accepted.
+6. Password creation gate (`bw_mew_handle_supabase_create_password()` or modal path) is mandatory for onboarding/new-user state.
+7. Onboarding marker flips to onboarded (`bw_supabase_onboarded = 1`) when password setup is successfully completed.
+8. Order claim attachment runs on mapped user context (`bw_mew_claim_guest_orders_for_user`), making prior guest assets/downloads attachable to the activated account.
 
 ### Reset password
 Recovery/invite callbacks are routed into account callback flow (`bw_auth_callback`, `type=recovery|invite`), then handled by bridge + password update routines.
@@ -261,6 +262,41 @@ After successful Supabase/WP mapping, guest orders/download permissions can be a
 - Flow must avoid redirect loops between callback/account endpoints.
 - Invite/callback transitions must avoid visual auth-state flash before route stabilization.
 
+## 7.6) Auth Callback & Anti-Flash Architecture Model
+
+### A) `?bw_auth_callback=1` routing purpose
+- This query flag is the canonical callback-routing contract for auth transitions (invite/recovery/token bridge).
+- It forces the account template path into callback loader mode instead of normal My Account content rendering.
+
+### B) Early `wp_head` guard
+- An early frontend guard in runtime bootstrap (`wp_head`) detects callback/hash/code contexts and normalizes redirect targets to callback-safe entrypoints.
+- Goal: prevent landing-page flash and inconsistent first route during invite/callback transitions.
+
+### C) First-paint suppression
+- Callback states activate preload suppression classes/logic (`auth_in_progress` orchestration) so UI does not paint standard account layout before bridge resolution.
+- The callback loader acts as a controlled interim state while session bridge decisions complete.
+
+### D) Bridge state machine (`auth_in_progress`)
+Observed bridge phases:
+1. detect callback payload/hash/code
+2. mark auth transition in progress
+3. execute token/code bridge to WP session endpoint(s)
+4. poll/confirm WP session state
+5. perform single redirect to resolved target
+6. clear transitional state markers
+
+### E) Logged-in stale callback auto-clean
+- If user is already authenticated and callback params are stale, callback query parameters are cleaned automatically to avoid ghost callback states and re-bridging.
+
+### F) Modal gating dependency on WP session
+- Password/onboarding modal actions depend on valid WP session presence.
+- Bridge must establish WP session before modal-based onboarding actions can complete safely.
+
+### G) Non-break invariants
+- No flash: standard My Account content must not appear before callback bridge resolves state.
+- No loop: callback redirects must converge in one direction and stop after session confirmation.
+- No ghost loader: callback loader must be cleared once state is resolved (authenticated target or explicit failure path).
+
 ## 8) Security Boundaries
 
 ### Service role key isolation
@@ -280,10 +316,15 @@ Security relies on backend endpoint discipline plus Supabase policy enforcement.
 - Invite/expired-link redirects are validated/sanitized before usage.
 - Email template invariant: Supabase email templates must preserve `{{ .ConfirmationURL }}` to keep callback/token bridge valid.
 - Expired-link invariant: `otp_expired` outcomes must route to the configured expired-link redirect (`bw_supabase_expired_link_redirect_url` when set).
+- Callback route invariant: callback contexts must not render standard My Account content before bridge resolution is completed.
 
 ### CSRF/nonce model
 Supabase AJAX endpoints consistently gate requests with:
 - `check_ajax_referer( 'bw-supabase-login', 'nonce' )`
+
+### Password policy bifurcation invariant
+- Onboarding password validation and strict profile-password validation are distinct policy lanes.
+- Architecture requires both validators to keep their own contracts so onboarding completion and post-onboarding profile security checks do not conflict.
 
 ### Anti-token-leak invariant
 - Tokens are never intended to be logged in clear form.
