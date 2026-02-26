@@ -110,6 +110,16 @@ Password setup endpoints:
 
 Onboarding metadata (`bw_supabase_onboarded`) controls whether user remains in setup state.
 
+### Magic Link (OTP) + Create Password (new user) flow
+Lifecycle (native path):
+1. User enters email in Supabase login screen; magic-link/OTP request is sent.
+2. User receives Supabase email and lands with callback payload (hash/code) containing auth tokens or verification context.
+3. Bridge layer (`bw-supabase-bridge.js` / account auth JS) forwards token context to `bw_supabase_token_login`.
+4. Backend validates token against Supabase user endpoint, establishes WP session, and stores session tokens using configured strategy.
+5. If flow is classified as onboarding/new user, OTP confirmation and password creation gate is enforced.
+6. `bw_mew_handle_supabase_create_password()` or modal password path finalizes password update.
+7. Onboarding marker is updated (`bw_supabase_onboarded = 1`), and account transitions to standard usable state.
+
 ### Reset password
 Recovery/invite callbacks are routed into account callback flow (`bw_auth_callback`, `type=recovery|invite`), then handled by bridge + password update routines.
 Reset URL behavior is configured via redirect options and callback discipline.
@@ -217,6 +227,40 @@ Primary state marker:
 ### Order ownership implications
 After successful Supabase/WP mapping, guest orders/download permissions can be attached to the resolved WP user (`bw_mew_claim_guest_orders_for_user` and related helpers), which affects My Account order/download access.
 
+## 7.5) Full Lifecycle Model (Guest Purchase -> Account Activation -> Downloads)
+
+### A) Guest checkout with provisioning enabled
+- Preconditions:
+  - provider branch in Supabase context
+  - `bw_supabase_checkout_provision_enabled = 1`
+  - valid Supabase project URL + service role key for invite API calls
+- On eligible order status hooks, invite workflow triggers from order lifecycle handlers.
+
+### B) Dual-email expectation
+- Email 1: order confirmation email (commerce confirmation path).
+- Email 2: Supabase invite/activation email (account activation path).
+- Architecture assumes both channels can arrive at different times without breaking activation continuity.
+
+### C) Logged-out order-received gating behavior
+- Order-received templates evaluate provider/provision flags.
+- If auth/account activation is still required, CTA routes user to account activation/login gate instead of assuming direct account access.
+
+### D) Invite click -> callback bridge -> onboarding gate
+1. User clicks invite link and lands with invite/recovery callback payload.
+2. Callback is routed to `bw_auth_callback` account path (bridge entrypoint).
+3. Bridge exchanges/verifies session and creates WP session context.
+4. If `bw_supabase_onboarded != 1`, onboarding gate remains active (set-password/modal/password required).
+
+### E) Create password -> unlock account downloads
+- Password completion flips onboarding state to onboarded.
+- Guest order ownership/download permissions are attached to mapped WP user.
+- My Account downloads/orders become accessible in normal session flow.
+
+### F) Non-break invariants
+- Invite confirmation links must preserve valid confirmation callback semantics and redirect targets.
+- Flow must avoid redirect loops between callback/account endpoints.
+- Invite/callback transitions must avoid visual auth-state flash before route stabilization.
+
 ## 8) Security Boundaries
 
 ### Service role key isolation
@@ -234,6 +278,8 @@ Security relies on backend endpoint discipline plus Supabase policy enforcement.
 ### Redirect sanitization
 - Redirect values are normalized through `bw_mew_supabase_sanitize_redirect_url()`.
 - Invite/expired-link redirects are validated/sanitized before usage.
+- Email template invariant: Supabase email templates must preserve `{{ .ConfirmationURL }}` to keep callback/token bridge valid.
+- Expired-link invariant: `otp_expired` outcomes must route to the configured expired-link redirect (`bw_supabase_expired_link_redirect_url` when set).
 
 ### CSRF/nonce model
 Supabase AJAX endpoints consistently gate requests with:
