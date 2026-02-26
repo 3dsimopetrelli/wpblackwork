@@ -148,3 +148,22 @@ Any change to these requires execution of the Regression Minimum Suite.
 | Brevo checkout `enabled` (`bw_mail_marketing_checkout_settings[enabled]`) | Brevo / Checkout | toggles consent capture + subscribe processing path; must remain non-blocking | `R-08`, `R-09` |
 | Brevo `subscribe_timing` (`bw_mail_marketing_checkout_settings[subscribe_timing]`) | Brevo / Checkout / Orders | shifts trigger from created->paid path and can alter consistency with payment authority timing | `R-01`, `R-08`, `R-09` |
 | Brevo opt-in mode SOI/DOI (`bw_mail_marketing_general_settings[default_optin_mode]`, channel opt-in mode) | Brevo / Consent | changes consent execution mode and remote sync semantics; can drift from local authority expectations | `R-08`, `R-09` |
+
+## 10) Tier 0 Admin Toggles
+
+These toggles are classified as Tier 0 because changing them can impact cross-domain authority, payment truth, onboarding continuity, or consent guarantees.
+Any change to these requires execution of the Regression Minimum Suite.
+
+| Toggle Key | Domain | Why Tier 0 | Requires Regression Journeys |
+|------------|--------|------------|-----------------------------|
+| `bw_account_login_provider` | Auth / My Account | Switches provider authority boundary and callback logic | R-01, R-02, R-05 |
+| `bw_supabase_login_mode` | Supabase / Auth | Changes authentication flow shape (native vs OIDC) | R-05, R-06 |
+| `bw_supabase_checkout_provision_enabled` | Supabase / Checkout | Alters provisioning + claim flow | R-01, R-05 |
+| `bw_supabase_session_storage` | Supabase | Affects session/token convergence | R-05 |
+| `bw_google_pay_enabled` | Payments | Alters gateway availability and selector determinism | R-01, R-02, R-07 |
+| `bw_apple_pay_enabled` | Payments | Alters wallet availability and UI eligibility | R-01, R-07 |
+| `bw_klarna_enabled` | Payments | Alters selector determinism and readiness logic | R-01, R-07 |
+| Stripe publishable/secret/webhook keys | Payments | Impacts payment truth and webhook authority | R-01, R-02, R-04 |
+| Brevo checkout `enabled` | Brevo / Checkout | Controls consent capture + remote write activation | R-08, R-09 |
+| Brevo `subscribe_timing` | Brevo | Alters order lifecycle hook timing | R-08 |
+| Brevo opt-in mode (SOI/DOI) | Brevo | Changes confirmation model and consent finalization | R-08 |
