@@ -130,3 +130,21 @@ Toggles that require regression validation:
 - [Auth Architecture Map](../40-integrations/auth/auth-architecture-map.md)
 - [Supabase Architecture Map](../40-integrations/supabase/supabase-architecture-map.md)
 - [Brevo Architecture Map](../40-integrations/brevo/brevo-architecture-map.md)
+
+## 10) Tier 0 Admin Toggles
+These toggles are classified as Tier 0 because changing them can impact cross-domain authority, payment truth, onboarding continuity, or consent guarantees.
+Any change to these requires execution of the Regression Minimum Suite.
+
+| Toggle Key | Domain | Why Tier 0 | Requires Regression Journeys |
+|---|---|---|---|
+| `bw_account_login_provider` | Auth / My Account / Supabase | switches provider authority model and callback/onboarding gating behavior | `R-01`, `R-02`, `R-05`, `R-06` |
+| `bw_supabase_login_mode` | Supabase / Auth | changes runtime path (native vs OIDC) and callback/session ownership flow | `R-02`, `R-05`, `R-06` |
+| `bw_supabase_checkout_provision_enabled` | Supabase / Checkout / My Account | enables/disables guest post-order provisioning and claim path | `R-01`, `R-05` |
+| `bw_supabase_session_storage` | Supabase / Auth | changes token persistence strategy (cookie/usermeta) affecting callback/session convergence | `R-05`, `R-06` |
+| `bw_google_pay_enabled` | Payments / Checkout | controls wallet surface availability and selector determinism under refresh | `R-01`, `R-02`, `R-07` |
+| `bw_apple_pay_enabled` | Payments / Checkout | controls Apple Pay actionability and selector + wallet fallback behavior | `R-01`, `R-02`, `R-07` |
+| `bw_klarna_enabled` | Payments / Checkout | controls Klarna gateway readiness and paid/failed branch behavior | `R-01`, `R-03`, `R-07` |
+| Stripe mode/secret/webhook keys (`bw_google_pay_test_mode`, `bw_google_pay_*secret*`, `bw_google_pay_*publishable*`, `bw_google_pay_*webhook_secret*`, `bw_apple_pay_*secret*`, `bw_apple_pay_*publishable*`, `bw_apple_pay_*webhook_secret*`, `bw_klarna_*secret*`, `bw_klarna_*publishable*`, `bw_klarna_*webhook_secret*`) | Payments | mode/key mismatch can break payment truth, webhook validation, and gateway convergence | `R-01`, `R-02`, `R-03`, `R-04`, `R-07` |
+| Brevo checkout `enabled` (`bw_mail_marketing_checkout_settings[enabled]`) | Brevo / Checkout | toggles consent capture + subscribe processing path; must remain non-blocking | `R-08`, `R-09` |
+| Brevo `subscribe_timing` (`bw_mail_marketing_checkout_settings[subscribe_timing]`) | Brevo / Checkout / Orders | shifts trigger from created->paid path and can alter consistency with payment authority timing | `R-01`, `R-08`, `R-09` |
+| Brevo opt-in mode SOI/DOI (`bw_mail_marketing_general_settings[default_optin_mode]`, channel opt-in mode) | Brevo / Consent | changes consent execution mode and remote sync semantics; can drift from local authority expectations | `R-08`, `R-09` |
