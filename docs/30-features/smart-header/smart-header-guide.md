@@ -46,6 +46,40 @@ Una volta attivato, il sistema funziona automaticamente:
 
 ---
 
+## 🌗 Dark Zone Detection (Integrato)
+
+Il sistema include anche il rilevamento automatico degli sfondi scuri:
+
+- Scansiona sezioni Elementor/HTML e valuta il colore di background.
+- Usa una soglia di luminosita (default `128`) per classificare una sezione come scura.
+- Applica automaticamente lo stato dark agli elementi reattivi.
+
+Formula di riferimento:
+
+```javascript
+Brightness = (R * 299 + G * 587 + B * 114) / 1000;
+isDark = Brightness < 128;
+```
+
+### Modalita supportate
+
+1. Automatica (consigliata): nessuna classe manuale richiesta.
+2. Manuale (retrocompatibile): usa `.smart-header-dark-zone` per forzare una sezione come dark.
+
+### Elementi reattivi
+
+Per sincronizzare testi/logo/widget con il cambio colore:
+- applica `.smart-header-reactive-text` agli elementi da rendere reattivi.
+
+### Debug rapido
+
+```javascript
+window.bwSmartHeader.getState();
+window.bwSmartHeader.getDarkZones();
+```
+
+---
+
 ## 🔧 File Integrati
 
 Il sistema è composto da questi file:

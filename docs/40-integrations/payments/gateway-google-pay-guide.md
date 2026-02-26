@@ -1,8 +1,9 @@
 # Gateway Google Pay Guide
 
 ## Related Docs
-- Global architecture: `/Users/simonezanon/Documents/local site/BlackWork/wp-content/plugins/wpblackwork/Gateway Total Guide.md`
-- Klarna gateway: `/Users/simonezanon/Documents/local site/BlackWork/wp-content/plugins/wpblackwork/Gateway Klarna Guide.md`
+- Global architecture: `payments-overview.md`
+- Klarna gateway: `gateway-klarna-guide.md`
+- Apple Pay gateway: `gateway-apple-pay-guide.md`
 
 ## Scope
 This guide documents the custom WooCommerce gateway `bw_google_pay` (Stripe integration), with the current architecture and the real issues/fixes already applied during hardening and UX stabilization.

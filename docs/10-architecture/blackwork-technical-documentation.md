@@ -1,7 +1,7 @@
 # BlackWork Site - Complete Technical Documentation
 
-**Version:** 1.0
-**Last Updated:** January 2026
+**Version:** 1.1
+**Last Updated:** 2026-02-26
 **Plugin Path:** `wp-content/plugins/wpblackwork/`
 
 ---
@@ -20,6 +20,20 @@
 10. [Implementation Guide for New Features](#10-implementation-guide-for-new-features)
 11. [Data Flow Diagrams](#11-data-flow-diagrams)
 12. [Security Considerations](#12-security-considerations)
+
+---
+
+## Executive Architecture Summary
+
+`wpblackwork` is a modular WordPress plugin for BlackWork, with three primary pillars:
+- Elementor widgets (auto-loaded by `includes/class-bw-widget-loader.php`)
+- WooCommerce customizations (checkout, my-account, product-type extensions)
+- Shared site modules (`admin/`, `cart-popup/`, `BW_coming_soon/`)
+
+Core implementation principles:
+- Keep WooCommerce core flows intact, then layer custom UX and integrations.
+- Centralize settings and runtime contracts to minimize regressions.
+- Use module-level assets and hooks to avoid global side effects.
 
 ---
 

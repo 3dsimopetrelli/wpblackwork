@@ -1,5 +1,9 @@
 # Guida Configurazione Social Login - BlackWork
 
+> Nota implementativa:
+> Current implementation: Supabase-only.
+> Planned: WordPress provider support.
+
 ## 🔵 Facebook Login Setup
 
 ### Step 1: Creare un'App Facebook

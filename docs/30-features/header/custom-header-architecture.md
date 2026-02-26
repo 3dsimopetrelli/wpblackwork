@@ -93,3 +93,17 @@ Il modulo viene incluso da:
 - `bw-main-elementor-widgets.php`
 
 Elementor widget code esistente non viene rimosso in questa fase.
+
+## Post-Migration Functional Notes
+
+Integrazione consolidata dalla documentazione post-migrazione:
+- Contratto Search invariato (`bw_live_search_products`, nonce `bw_search_nonce`, `admin-ajax.php`).
+- Overlay search spostato nel `body` per evitare clipping da container parent.
+- NavShop mantiene trigger Cart Pop-up con fallback a redirect.
+- Navigation mobile mantiene chiusura su overlay, `ESC` e click link.
+- Breakpoint desktop/mobile governato da `bw_header_settings.breakpoints.mobile`.
+
+Parita funzionale verificata sui blocchi principali:
+- Search overlay fullscreen + live results.
+- NavShop account/cart con badge Woo fragments.
+- Navigation desktop + drawer mobile.

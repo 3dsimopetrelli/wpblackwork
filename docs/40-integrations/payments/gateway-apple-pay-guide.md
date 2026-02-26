@@ -1,9 +1,9 @@
 # Gateway Apple Pay Guide
 
 ## Related Docs
-- Global architecture: `/Users/simonezanon/Documents/local site/BlackWork/wp-content/plugins/wpblackwork/Gateway Total Guide.md`
-- Google Pay gateway: `/Users/simonezanon/Documents/local site/BlackWork/wp-content/plugins/wpblackwork/Gateway Google Pay Guide.md`
-- Klarna gateway: `/Users/simonezanon/Documents/local site/BlackWork/wp-content/plugins/wpblackwork/Gateway Klarna Guide.md`
+- Global architecture: `payments-overview.md`
+- Google Pay gateway: `gateway-google-pay-guide.md`
+- Klarna gateway: `gateway-klarna-guide.md`
 
 ## Overview
 This document tracks the BlackWork custom Apple Pay gateway architecture and current behavior.

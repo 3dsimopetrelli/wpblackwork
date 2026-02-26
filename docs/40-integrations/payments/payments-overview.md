@@ -1,4 +1,4 @@
-# PAYMENTS Architecture Guide
+# Payments Overview
 
 ## Overview
 This plugin uses WooCommerce checkout standard flow and supports multiple payment providers.
@@ -19,6 +19,23 @@ This plugin uses WooCommerce checkout standard flow and supports multiple paymen
 - Reuse Stripe hardening logic via shared `BW_Abstract_Stripe_Gateway` base class.
 - One webhook endpoint per gateway (Option B — zero migration risk).
 - No code duplication across Google Pay, Klarna, Apple Pay.
+
+## Payment Stack Overview
+
+### Official plugins
+1. Credit / Debit Card
+- Provider: `wc_stripe` official plugin
+- Checkout behavior: standard Stripe card fields inside Woo payment box
+
+2. PayPal
+- Provider: official PayPal plugin
+- Checkout behavior: plugin-managed
+
+### Canonical runtime rules
+1. Final payment completion is webhook-driven (`payment_intent.succeeded`), not return URL-driven.
+2. Custom gateways must never mutate orders owned by `wc_stripe` or PayPal.
+3. Webhook handling and refunds must stay gateway-scoped with idempotency guards.
+4. Checkout UI must show a single active action path for the selected payment method.
 
 ## File Structure
 
