@@ -1,6 +1,7 @@
 # Payments
 
 ## Files
+- [payments-architecture-map.md](payments-architecture-map.md): official payments integration architecture map.
 - [payments-overview.md](payments-overview.md): central payments architecture overview.
 - [gateway-google-pay-guide.md](gateway-google-pay-guide.md): Google Pay gateway guide.
 - [gateway-klarna-guide.md](gateway-klarna-guide.md): Klarna gateway guide.

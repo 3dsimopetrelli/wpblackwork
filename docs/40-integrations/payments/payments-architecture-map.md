@@ -1,0 +1,204 @@
+# Payments Integration Architecture Map
+
+## 1) Purpose + Scope
+This document is the official architecture reference for the Payments integration domain.
+It defines how payment configuration, gateway registration, checkout rendering, wallet orchestration, Stripe execution, and webhook-driven order updates work together in the current implementation.
+
+Scope:
+- Google Pay, Apple Pay, Klarna, Stripe coupling, checkout selector coupling.
+- Runtime architecture and contracts only.
+- No code refactor guidance and no implementation change instructions.
+
+## 2) Payment Stack Layers
+
+### Layer A: Admin toggle & key layer
+Primary writer: `admin/class-blackwork-site-settings.php` (Checkout > payment sub-tabs).
+
+Persisted keys include:
+- Google Pay: `bw_google_pay_*`
+- Klarna: `bw_klarna_*`
+- Apple Pay: `bw_apple_pay_*`
+
+Admin layer also provides:
+- connection test AJAX endpoints
+- Apple domain verification endpoint
+- admin scripts for mode pills/test actions
+
+### Layer B: WooCommerce gateway registration
+Bootstrap path: `woocommerce/woocommerce-init.php`.
+
+Registration/loading model:
+- `add_filter('woocommerce_payment_gateways', 'bw_mew_add_google_pay_gateway')`
+- gateway classes loaded from:
+  - `includes/woocommerce-overrides/class-bw-google-pay-gateway.php`
+  - `includes/Gateways/class-bw-klarna-gateway.php`
+  - `includes/Gateways/class-bw-apple-pay-gateway.php`
+  - shared base: `includes/Gateways/class-bw-abstract-stripe-gateway.php`
+
+### Layer C: Stripe SDK integration
+Stripe is integrated at multiple levels:
+- server side: `BW_Stripe_Api_Client` + gateway API requests
+- client side: `https://js.stripe.com/v3/` in checkout
+- Woo Stripe appearance customization via:
+  - `wc_stripe_elements_options`
+  - `wc_stripe_elements_styling`
+  - `wc_stripe_upe_params`
+
+### Layer D: Wallet orchestration layer
+Wallet runtime JS:
+- `assets/js/bw-google-pay.js`
+- `assets/js/bw-apple-pay.js`
+
+Responsibilities:
+- capability checks (`canMakePayment`)
+- hidden method field injection (`bw_google_pay_method_id`, `bw_apple_pay_method_id`)
+- fallback to non-wallet gateway when unavailable
+- sync with checkout refresh lifecycle (`updated_checkout`)
+
+### Layer E: Checkout selector coupling
+Selector core:
+- template: `woocommerce/templates/checkout/payment.php`
+- orchestrator: `assets/js/bw-payment-methods.js`
+
+Contract:
+- selected radio method is the effective submission method
+- wallet button visibility and place-order visibility are synchronized from selector state
+
+### Layer F: Webhook processing layer
+Webhook endpoints handled per gateway via `woocommerce_api_{gateway_id}`.
+
+Core webhook logic lives in `BW_Abstract_Stripe_Gateway::handle_webhook()` and maps Stripe PaymentIntent events to WooCommerce order state.
+
+## 3) Runtime Flow Model
+Lifecycle:
+
+1. Admin Intent
+- Merchant enables/disables methods and configures keys/secrets/mode-related settings.
+
+2. Gateway Registration
+- WooCommerce bootstrap loads gateway classes and hooks.
+- gateway availability list is filtered before checkout render.
+
+3. Eligibility
+- Eligibility is derived from combined conditions:
+  - custom enable toggles (`bw_*_enabled`)
+  - WooCommerce gateway enabled status
+  - key readiness
+  - context/runtime constraints
+
+4. Checkout Render
+- `payment.php` renders payment methods and readiness hints.
+- payment selector structure is output for JS orchestration.
+
+5. Client Capability
+- wallet scripts instantiate Stripe PaymentRequest.
+- `canMakePayment` determines device/browser wallet support.
+- unavailable wallet methods are visually/behaviorally disabled with fallback path.
+
+6. Stripe Execution
+- gateway `process_payment()` creates PaymentIntent, handles immediate statuses, persists PI metadata.
+- wallet hidden method ID participates in request payload.
+
+7. Webhook
+- Stripe webhook is signature-validated.
+- event id deduplication and PI/order consistency checks run.
+
+8. Order Status Update
+- `payment_intent.succeeded` -> complete payment
+- `payment_intent.payment_failed` -> failed
+- `payment_intent.processing` -> on-hold
+- `payment_intent.canceled` -> cancelled
+
+## 4) Gateway Contract
+Each gateway implementation is expected to satisfy these responsibilities.
+
+### `is_available()`
+- Determines if method can be offered in checkout context.
+- In current codebase, explicit `is_available()` is implemented in the Google Pay override class; Klarna/Apple rely on parent/selector/readiness coupling.
+
+### `process_payment()`
+- Validates order and gateway-specific payload.
+- Verifies key readiness.
+- Creates/confirms Stripe PaymentIntent.
+- Persists PI and mode metadata.
+- Returns WooCommerce result + redirect, or customer-safe error.
+
+### Key readiness
+- Mode-aware key resolution (test/live) is required.
+- Missing or invalid key material must fail fast with safe message + log.
+
+### Error handling
+- Customer errors should be generic and actionable.
+- Detailed provider diagnostics stay in logs/order notes.
+
+### Webhook validation
+- Signature verification with gateway webhook secret is mandatory.
+- Invalid signature/payload must terminate with non-success HTTP status.
+
+### Order status mapping
+- Stripe event outcomes must deterministically map to WooCommerce statuses.
+- Event replay must be idempotent (processed-event tracking and PI consistency checks).
+
+## 5) Wallet Model
+
+### Google Pay
+- Runtime script: `assets/js/bw-google-pay.js`
+- Uses Stripe PaymentRequest with localized params from `bwGooglePayParams`.
+- Injects `bw_google_pay_method_id` for gateway processing.
+
+### Apple Pay
+- Runtime script: `assets/js/bw-apple-pay.js`
+- Uses Stripe PaymentRequest with localized params from `bwApplePayParams`.
+- Injects `bw_apple_pay_method_id` for gateway processing.
+
+### Klarna
+- Implemented as Stripe-backed custom gateway (`BW_Klarna_Gateway`) with selector and readiness checks in checkout template.
+
+### Express fallback logic
+- Apple Pay runtime includes explicit express fallback flag (`enableExpressFallback`).
+- Selector orchestration ensures only one actionable submission path is visible.
+
+### Stripe UPE interaction
+- Stripe UPE styling is overridden by filters.
+- `assets/js/bw-stripe-upe-cleaner.js` removes conflicting UPE rows to keep custom selector coherent.
+
+## 6) Precedence & Mode Rules
+
+### Custom toggle vs Woo enable
+- Effective availability is intersection logic, not single-flag logic:
+  - custom toggle intent (`bw_*_enabled`)
+  - WooCommerce gateway enabled state
+  - runtime readiness and context
+
+### Test vs Live keys
+- Google Pay has explicit `bw_google_pay_test_mode` with test/live key switching.
+- Base/derived gateway logic resolves secrets/webhook keys by mode.
+
+### UPE vs custom selector
+- Custom selector (`payment.php` + `bw-payment-methods.js`) is the operative checkout payment UI.
+- Stripe UPE components are visually constrained/cleaned to prevent duplicate method controls.
+
+## 7) High-Risk Zones
+Blast-radius hotspots:
+- `woocommerce/templates/checkout/payment.php`
+  - central render contract for payment methods and readiness messaging.
+- `assets/js/bw-payment-methods.js`
+  - source of truth for selector state, fallback method switching, and checkout button visibility.
+- `assets/js/bw-google-pay.js`
+- `assets/js/bw-apple-pay.js`
+  - wallet capability gating + hidden-field coupling + checkout submission path.
+- `includes/Gateways/class-bw-abstract-stripe-gateway.php`
+  - shared webhook/payment/refund semantics across gateway family.
+- `woocommerce/woocommerce-init.php`
+  - registration/orchestration nexus (gateway load, enqueue, Stripe/UPE filters).
+
+Typical failure classes in these zones:
+- selected gateway mismatch vs submitted gateway
+- wallet shown while unavailable (or hidden while available)
+- duplicate/conflicting payment UIs
+- webhook-driven order state drift
+
+## 8) Maintenance & Regression References
+- Regression protocol: [`docs/50-ops/regression-protocol.md`](../../50-ops/regression-protocol.md)
+- Payments runbook: [`docs/50-ops/runbooks/payments-runbook.md`](../../50-ops/runbooks/payments-runbook.md)
+- Checkout architecture dependency: [`docs/30-features/checkout/checkout-architecture-map.md`](../../30-features/checkout/checkout-architecture-map.md)

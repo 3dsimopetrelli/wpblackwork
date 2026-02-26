@@ -141,3 +141,43 @@ Checkout depends on these documentation domains:
 - Regression protocol: [`docs/50-ops/regression-protocol.md`](../../50-ops/regression-protocol.md)
 - Checkout runbook: [`docs/50-ops/runbooks/checkout-runbook.md`](../../50-ops/runbooks/checkout-runbook.md)
 - Checkout reality audit: [`docs/50-ops/checkout-reality-audit.md`](../../50-ops/checkout-reality-audit.md)
+
+## 8) Normative Checkout Architecture Principles
+
+### 1) Payment Selector Contract
+- The custom payment selector (`payment.php` + `bw-payment-methods.js`) is the single source of truth for visible payment state.
+- Any gateway integration must comply with selector contract (`radio` state = effective submission method).
+- No direct DOM injection may override selector state without synchronization.
+
+### 2) Wallet Isolation Rule
+- Apple Pay and Google Pay must not silently override each other's keys.
+- Fallback behavior must be explicit and documented.
+- Wallet availability must respect both server eligibility and client capability.
+
+### 3) Soft-Gating Integrity Rule
+- Admin toggle expresses intent only.
+- Runtime must validate readiness before rendering actionable UI.
+- UI must never present a payment method as actionable if submission will fail.
+
+### 4) Fragment Refresh Stability Rule
+- Checkout JS must re-bind after WooCommerce fragment refresh.
+- No payment method state may depend on DOM nodes that are replaced without reinitialization.
+
+### 5) Submission Integrity Rule
+- The selected gateway at submit time must always match:
+  - active radio input
+  - visible UI state
+  - hidden injected method field (if wallet)
+- Any mismatch is considered a critical regression.
+
+### 6) Cross-Domain Dependency Discipline
+- Checkout must not assume Supabase, Brevo, or Maps are configured unless readiness verified.
+- Cross-domain integrations must fail safely (degrade, not block core checkout).
+
+### 7) High-Risk Change Policy
+- Modifications to:
+  - `payment.php`
+  - `bw-payment-methods.js`
+  - wallet scripts
+  - `woocommerce-init.php`
+  require regression protocol execution.
