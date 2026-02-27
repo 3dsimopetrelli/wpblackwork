@@ -63,3 +63,12 @@ Notes:
 Search runtime documented completely.
 Initial letter indexing not present in current implementation.
 Enhancements will be defined under Search vNext spec.
+
+## Search Architecture Documentation Closure
+
+Status: CLOSED
+Date: 2026-02-27
+Notes:
+Search runtime fully documented (AS-IS).
+Search vNext architecture defined and approved.
+Implementation scheduled in roadmap backlog.
