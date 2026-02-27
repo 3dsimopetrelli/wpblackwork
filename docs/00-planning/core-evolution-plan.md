@@ -96,6 +96,27 @@ It MUST be used as planning reference only and MUST NOT replace ADRs.
   - Settings storage/sanitization contract remains unchanged
   - Admin flow is documented after simplification
 
+### Search System — vNext Implementation (Filters + Index + Cache)
+- Status: Backlog
+- Risk classification: Medium
+- Short description: Implement Search vNext according to the approved runtime/dataflow contracts, including deterministic query behavior, full filter model, initials indexing, cache layer, and observability.
+- Reference docs:
+  - `docs/30-features/search/search-vnext-spec.md`
+  - `docs/30-features/search/search-vnext-dataflow.md`
+- Includes:
+  - Deterministic query contract
+  - Full filter coverage
+  - Initial letter indexing
+  - Server-side caching layer
+  - Structured observability
+  - Deterministic sorting and pagination
+- Acceptance:
+  - Response envelope matches spec
+  - Cache layer functional with measurable hit ratio
+  - Initials index deterministic and convergent
+  - No mutation of commerce authority
+  - Regression journeys pass
+
 ## Tier 2 – Refactor & Cleanup
 
 ### Elementor Widgets Cleanup
