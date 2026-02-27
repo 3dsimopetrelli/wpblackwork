@@ -155,6 +155,81 @@ Risk level (qualitative):
   - [Blast-Radius Consolidation Map](./blast-radius-consolidation-map.md)
   - [Technical Hardening Plan](./technical-hardening-plan.md)
 
+### Risk ID: R-IMP-10
+- Domain: Import / Catalog Data Integrity
+- Surface Anchor: Current import runtime (legacy sync path) vs vNext requirements in `docs/30-features/import-products/import-products-vnext-spec.md`
+- Description: Bulk import execution remains exposed to duplicate/partial-write risk until Import Engine v2 is implemented with chunking, checkpointing, and deterministic SKU convergence.
+- Invariant Threatened: Canonical SKU identity and single authority per product entity.
+- Impact: Critical
+- Likelihood: Medium
+- Risk Level: Critical
+- Current Mitigation: Governance lock in vNext spec (SKU-only identity, resumable model, run-level audit requirements) and Tier 0 backlog gating in planning.
+- Monitoring Status: Open
+- Linked Documents:
+  - [Import Products vNext Spec](../30-features/import-products/import-products-vnext-spec.md)
+  - [Core Evolution Plan](../00-planning/core-evolution-plan.md)
+  - [System Normative Charter](./system-normative-charter.md)
+
+### Risk ID: R-SRCH-11
+- Domain: Search / Header Runtime Coupling
+- Surface Anchor: `docs/50-ops/audits/search-system-technical-audit.md`, `includes/modules/header/frontend/ajax-search.php`, search runtime contracts
+- Description: Search requests are still request-bound and uncached in current runtime, with partial filter wiring risk between UI/CSS expectations and effective query constraints.
+- Invariant Threatened: Deterministic read-only discovery behavior and non-blocking navigation under load/failure.
+- Impact: High
+- Likelihood: Medium
+- Risk Level: High
+- Current Mitigation: AS-IS documentation, vNext deterministic contract (filters/index/cache), and explicit read-only authority boundary.
+- Monitoring Status: Monitoring
+- Linked Documents:
+  - [Search System Technical Audit](../50-ops/audits/search-system-technical-audit.md)
+  - [Search Module Spec](../30-features/search/search-module-spec.md)
+  - [Search vNext Spec](../30-features/search/search-vnext-spec.md)
+
+### Risk ID: R-RED-12
+- Domain: Redirect / Routing Authority
+- Surface Anchor: `includes/class-bw-redirects.php`, `template_redirect` precedence, legacy redirect storage/validation path
+- Description: Current redirect runtime can still experience chain/precedence instability before full v2 policy enforcement (protected-route gate, deterministic precedence, multi-hop loop validation).
+- Invariant Threatened: Protected commerce routes and deterministic routing authority convergence.
+- Impact: Critical
+- Likelihood: Medium
+- Risk Level: Critical
+- Current Mitigation: Existing self-loop safeguards, governance v2 spec constraints, and Tier 0 freeze until implementation task begins.
+- Monitoring Status: Open
+- Linked Documents:
+  - [Redirect Engine Technical Audit](../50-ops/audits/redirect-engine-technical-audit.md)
+  - [Redirect Engine v2 Spec](../30-features/redirect/redirect-engine-v2-spec.md)
+  - [Runtime Hook Map](../50-ops/runtime-hook-map.md)
+
+### Risk ID: R-HDR-13
+- Domain: Header / Global UX Orchestration
+- Surface Anchor: `wp_body_open` injection (`bw_header_render_frontend`), responsive/off-canvas/search bindings, smart scroll runtime listeners
+- Description: Header global listener and dual-block responsive behavior remain sensitive to binding drift (double-init, keydown/resize overlap), creating cross-surface UX instability.
+- Invariant Threatened: Header must remain presentation-only and MUST NOT block commerce/account navigation under failure states.
+- Impact: High
+- Likelihood: Medium
+- Risk Level: High
+- Current Mitigation: Initialization guards, module spec contracts, responsive/scroll state-machine documentation, and Tier 0 regression checklist.
+- Monitoring Status: Monitoring
+- Linked Documents:
+  - [Header System Technical Audit](../50-ops/audits/header-system-technical-audit.md)
+  - [Header Module Spec](../30-features/header/header-module-spec.md)
+  - [Header Responsive Contract](../30-features/header/header-responsive-contract.md)
+
+### Risk ID: R-GOV-14
+- Domain: Governance / Tooling / Operational Continuity
+- Surface Anchor: Bootstrap path coupling (`blackwork-core-plugin.php`), tooling path dependencies (`composer.json` lint scripts), planning/decision-log operational controls
+- Description: Metadata/path migrations and governance doc drift can create operational interruption (activation path changes, stale tooling targets, inconsistent control docs) without explicit authority change.
+- Invariant Threatened: Deterministic operational behavior contract and governance traceability for Tier-sensitive changes.
+- Impact: Medium
+- Likelihood: Medium
+- Risk Level: Medium
+- Current Mitigation: Decision-log closure discipline, runtime-hook-map governance rules, and explicit migration tracking in planning/governance docs.
+- Monitoring Status: Monitoring
+- Linked Documents:
+  - [Core Evolution Plan](../00-planning/core-evolution-plan.md)
+  - [Decision Log](../00-planning/decision-log.md)
+  - [Runtime Hook Map](../50-ops/runtime-hook-map.md)
+
 ## 4) Governance Rules
 - All Tier 0 changes must be reviewed against this register before implementation.
 - Risks cannot be marked `Resolved` without audit confirmation evidence.
