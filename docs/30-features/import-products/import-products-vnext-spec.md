@@ -26,11 +26,10 @@ Normative rules:
 - Delimiter selection MUST be deterministic per run and persisted in run metadata.
 
 ### Required columns
-- A mandatory unique product key MUST exist for each row.
-- Allowed mandatory key strategy:
-  - `sku` OR
-  - canonical external ID field (for example `external_id`)
-- At least one mandatory unique key field MUST be configured as canonical key for the run namespace.
+- SKU MUST be present for every row.
+- SKU MUST be unique across the Woo product store.
+- Rows without SKU MUST fail fast at parse/validation stage.
+- SKU MUST be treated as immutable identity once product is created.
 
 ### Optional columns
 - Optional columns MAY include:
@@ -49,15 +48,19 @@ Normative rules:
 
 ### Row Identity Key
 - Each row MUST resolve to a deterministic Row Identity Key:
-  - `row_identity_key = import_namespace + canonical_unique_key`
-- Canonical unique key MUST be one of:
-  - `sku` OR
-  - canonical external ID
+  - `row_identity_key = import_namespace + sku`
+- Canonical unique key = SKU.
 
 ### Convergence requirements
 - Re-running the same dataset MUST converge to the same Woo product records.
 - Duplicate product creation for an already-seen Row Identity Key MUST NOT occur.
 - A row processed multiple times MUST yield one effective product identity target.
+- For any given SKU, importer MUST guarantee at most one Woo product entity exists.
+
+### SKU Immutability Rule
+- Once a product is created using a given SKU, that SKU MUST NOT be reassigned to a different logical product.
+- SKU change MUST be treated as new identity and new Row Identity Key.
+- Import runtime MUST NOT silently mutate SKU during update path.
 
 ### Create/update rules
 - If Row Identity Key resolves to an existing product, importer MUST execute update path.
@@ -179,3 +182,6 @@ Normative rules:
 
 5. Image failure simulation
 - Simulate unreachable image references; verify product row convergence, error traceability, and retry-safe behavior.
+
+6. SKU collision handling
+- Verify duplicate SKU in the same input file fails deterministically with explicit row-level errors.

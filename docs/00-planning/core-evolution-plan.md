@@ -7,10 +7,10 @@ It MUST be used as planning reference only and MUST NOT replace ADRs.
 ## Tier 0 – Critical Surfaces (High Risk / High Impact)
 
 ### Import Products Bulk System (audit + spec)
-- Status: Backlog
+- Status: Done
 - Short description: Produce implementation-faithful audit and formal specification of the bulk import surface, including validation and failure containment.
 - Risk classification: High
-- Notes: Tier 0 due to broad data and catalog impact.
+- Notes: Audit + vNext spec completed. Implementation delivery remains backlog.
 
 ### Redirect Engine Validation
 - Status: Backlog
