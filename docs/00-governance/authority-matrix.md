@@ -82,3 +82,21 @@ Rules:
 - No parallel authority definitions are permitted.
 - Creation of a new authority surface REQUIRES ADR.
 - Authority duplication is prohibited.
+
+## 6. Authority Conflict Resolution
+
+Conflict rules:
+
+- In any cross-domain conflict, Tier 0 authority MUST prevail.
+- If two Tier 1 domains conflict, the domain that defines truth for the specific surface MUST prevail.
+- Signal and Presentation domains MUST yield to Mutate/Define domains.
+- UI state MUST NEVER override confirmed authority state.
+- No runtime signal may redefine an authority-confirmed truth surface.
+
+## 7. Authority Surface Invariant
+
+- There MUST be exactly one defining authority per truth surface.
+- Parallel authority definitions are prohibited.
+- Creation of a new authority surface REQUIRES ADR.
+- Authority duplication or shadow authority behavior is forbidden.
+- Any detected authority overlap MUST trigger governance review.
