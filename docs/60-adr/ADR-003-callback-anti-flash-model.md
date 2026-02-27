@@ -6,121 +6,161 @@ Accepted
 This decision is binding and may only be altered through a superseding ADR.
 
 ## Context
+
 Blackwork checkout and post-payment surfaces combine asynchronous provider confirmation, return/redirect routes, fragment refresh cycles, and UI rendering layers.
 
 ADR-001 establishes checkout selector orchestration authority.
 ADR-002 establishes top-down authority precedence (Payment > Authentication > Provisioning).
-This ADR formalizes callback anti-flash discipline so runtime rendering cannot speculate on payment truth before authoritative confirmation.
 
-The model applies to payment callbacks/webhooks, return pages, checkout fragments, and any success-like UI surface that can be reached before or during provider confirmation.
+This ADR formalizes the Callback Anti-Flash Model to ensure UI layers cannot speculate, downgrade, or misrepresent payment truth during asynchronous confirmation flows.
+
+The model applies to:
+
+- Provider callbacks/webhooks
+- Redirect and return routes
+- Checkout fragment refresh cycles
+- Success or thank-you surfaces
+- Any UI capable of rendering payment state before or during confirmation
 
 ## Problem Definition (Flash/Flicker Risks)
-Without explicit anti-flash governance, transitional surfaces can misrepresent state and create non-deterministic behavior.
 
-Primary risks:
-- Success-like UI rendered before provider-confirmed payment.
-- Visual flicker between pending and confirmed states during callback races.
-- Fragment refresh re-introducing stale UI state after authority already converged.
-- Duplicate callback/retry events causing repeated transitions or temporary regressions.
-- Redirect/return pages treated as authority confirmation instead of transitional transport.
+Without explicit anti-flash governance:
 
-These risks can create false-positive payment perception, unstable user journeys, and state divergence across checkout/order surfaces.
+- Success UI may render before provider-confirmed payment.
+- Pending/confirmed states may visually oscillate during callback races.
+- Fragment refresh may reintroduce stale UI after authority convergence.
+- Duplicate callback events may trigger repeated or regressive transitions.
+- Redirect surfaces may be misinterpreted as confirmation authority.
+
+These behaviors create false-positive payment perception, unstable journeys, and cross-layer divergence.
 
 ## Decision
+
 Blackwork formally adopts the Callback Anti-Flash Model as a Tier 0 governance rule set.
 
-Binding decision:
-- Payment truth MUST be established ONLY by provider-confirmed webhook/callback processed through authoritative local mapping.
-- Redirect/return URLs MUST be treated as transitional surfaces and MUST NOT be treated as authority confirmation.
-- UI MUST reflect authoritative order/payment state and MUST NOT speculate.
-- Duplicate callback events MUST be idempotent and MUST converge.
-- Once authority is established, visual state MUST NOT flicker to a lower-confidence state.
+Binding rules:
+
+- Payment truth MUST be established ONLY by provider-confirmed webhook/callback processed through authoritative local reconciliation.
+- Redirect/return URLs are transitional transport layers and MUST NOT be treated as authority confirmation.
+- UI MUST render from reconciled local authoritative state only.
+- UI MUST NOT speculate, infer, or upgrade payment state.
+- Duplicate callback events MUST be idempotent and converge.
+- Once authoritative confirmation is reached, visual state MUST NOT regress or flicker to lower-confidence states.
+
+This model operates within ADR-002 authority hierarchy and preserves monotonic progression at the Payment Authority layer.
+
+## Single Source of Render Truth
+
+All rendering surfaces MUST read from the reconciled local authoritative order/payment state.
+
+The following are explicitly NON-authoritative signals:
+
+- Query parameters
+- Stripe return flags
+- Client-side redirect indicators
+- Fragment timing order
+- Browser event sequencing
+- Frontend success triggers
+
+These signals MAY influence UX flow but MUST NOT determine payment truth.
 
 ## Callback Convergence Model
-Callback handling MUST satisfy all of the following:
 
-1. Authenticity gate
-- Callback/webhook input MUST be validated before any state mutation.
+Callback handling MUST satisfy:
 
-2. Idempotent mutation gate
-- Replayed or duplicate events MUST NOT duplicate side effects.
-- Repeated processing of equivalent events MUST converge to the same terminal state.
+### 1. Authenticity Gate
+Callback/webhook input MUST be cryptographically or signature validated before mutation.
 
-3. Monotonic state progression
-- State transitions MUST be monotonic.
-- Confirmed payment CANNOT regress to pending or speculative states.
+### 2. Idempotent Mutation Gate
+Duplicate or replayed events MUST NOT duplicate side effects.
+Repeated processing MUST converge to identical terminal state.
 
-4. Local authority reconciliation
-- Provider outcomes MUST reconcile into authoritative local order/payment state exactly once per effective transition.
-- UI rendering MUST read reconciled local authority, not pre-reconciliation transient inputs.
+### 3. Monotonic State Progression
+State transitions MUST be monotonic.
+Confirmed payment CANNOT regress to pending or speculative state.
 
-5. Retry safety
-- Retry events MAY re-enter processing but MUST preserve terminal-state stability once reached.
+Once confirmed state is rendered, no subsequent async event may visually downgrade it.
 
-## Redirect/Return Surface Rules
-Return and redirect surfaces are operational transport layers.
+### 4. Deterministic Reconciliation
+Provider outcome MUST reconcile into authoritative local state exactly once per effective transition.
+UI MUST render only after reconciliation snapshot is stable.
+
+### 5. Retry Safety
+Retry events MAY re-enter processing but MUST preserve terminal-state stability once reached.
+
+## Redirect / Return Surface Rules
+
+Return and redirect routes are operational transport layers only.
 
 Rules:
-- Return/thank-you surfaces MUST NOT declare payment success unless local authoritative state is confirmed.
-- Pending or unresolved confirmation MUST render safe neutral/pending messaging, not success certainty.
-- Return route rendering MUST tolerate delayed webhook confirmation without false-positive success display.
-- Duplicate return hits MUST be repeat-safe and MUST NOT trigger divergent state presentation.
-- Redirect handling MUST NOT introduce loops or state oscillation.
 
-Required safe rendering outcomes:
-- Confirmed payment: stable confirmed state.
-- Pending confirmation: stable pending state.
-- Duplicate webhook/return: stable previously converged state.
-- Retry events: no regression, no speculative success.
+- Return surfaces MUST NOT declare success without confirmed authoritative local state.
+- Pending confirmation MUST render neutral or pending messaging.
+- Delayed webhook confirmation MUST NOT create false-positive success.
+- Duplicate return hits MUST be repeat-safe.
+- Redirect handling MUST NOT introduce loops or oscillation.
+
+Allowed stable outcomes:
+
+- Confirmed → stable confirmed
+- Pending → stable pending
+- Duplicate webhook → stable previously converged
+- Retry → no regression
 
 ## Fragment Refresh Discipline
-Fragment refresh is a presentation update mechanism and MUST remain non-authoritative.
+
+Fragment refresh is presentation-only and MUST remain non-authoritative.
 
 Rules:
-- Fragment refresh cycles MUST converge to one deterministic state per authority snapshot.
-- Fragment updates MUST NOT re-activate stale pre-confirmation UI once payment authority has converged.
-- Fragment-bound UI controls MUST re-bind deterministically after DOM replacement.
-- Fragment refresh MUST NOT create contradictory state signals across payment method selection, order status display, or success indicators.
-- Fragment/UI timing races MUST resolve in favor of authoritative local state, not client timing order.
+
+- Fragment cycles MUST converge to a single deterministic state per authority snapshot.
+- Stale pre-confirmation UI MUST NOT reappear after confirmation.
+- Fragment-bound controls MUST re-bind deterministically after DOM replacement.
+- Timing races MUST resolve in favor of reconciled local authority.
+- Fragment rendering MUST NOT create contradictory payment signals.
 
 ## Idempotency Requirements
-All callback-adjacent flows MUST satisfy idempotency invariants:
 
-- Duplicate webhook events MUST be safely ignored or re-applied without changing terminal truth.
-- Duplicate return/callback requests MUST NOT create additional business transitions.
-- Callback processing MUST be deterministic for identical inputs against identical authority state.
-- Event processing history or equivalent deduplication controls MUST prevent side-effect duplication.
-- Idempotency MUST apply to payment/order convergence even when network retries or delayed confirmations occur.
+All callback-adjacent flows MUST satisfy:
+
+- Duplicate webhook events MUST NOT alter terminal truth.
+- Duplicate return/callback requests MUST NOT create new transitions.
+- Processing MUST be deterministic for identical input + identical authority state.
+- Deduplication or equivalent controls MUST prevent side-effect duplication.
+- Idempotency MUST apply under network retry and delayed confirmation scenarios.
 
 ## Alternatives Considered
 
 ### 1) UI-first success model
 Rejected.
-Allows speculative success rendering and violates payment authority doctrine.
+Speculative and violates Payment Authority doctrine.
 
 ### 2) Redirect-as-confirmation model
 Rejected.
-Treats transport surfaces as authority, causing false confirmations under delayed or failed provider confirmation.
+Treats transport layer as authority and creates false confirmation risk.
 
-### 3) Best-effort anti-flash without strict monotonic rules
+### 3) Soft anti-flash without strict monotonicity
 Rejected.
-Cannot guarantee deterministic convergence under duplicates, retries, and fragment races.
+Cannot guarantee convergence under duplicate or delayed events.
 
 ### 4) Fragment-driven authority inference
 Rejected.
-Inverts trust boundaries by allowing presentation timing to influence business truth.
+Allows presentation timing to influence business truth.
 
 ## Consequences
-- Checkout and return flows remain stable under delayed confirmation and duplicate callback events.
+
+- Checkout and return flows remain stable under delayed or duplicated confirmations.
 - Success surfaces become authority-aligned and non-speculative.
-- Fragment refresh behavior is constrained to deterministic reflection of authoritative state.
-- Regression validation for callback/return/payment surfaces MUST include anti-flash and monotonic-transition verification.
-- Cross-domain behavior remains compatible with ADR-001 and ADR-002 authority boundaries.
+- Fragment refresh is constrained to deterministic reflection of reconciled authority.
+- Regression validation MUST include anti-flash and monotonic verification.
+- Fully compatible with ADR-001 and ADR-002 authority boundaries.
 
 ## Invariants Protected
-- Payment truth MUST originate only from provider-confirmed callback/webhook + local authoritative mapping.
-- Redirect/return surfaces MUST NOT be treated as payment authority.
-- UI layers MUST NOT speculate, infer, or upgrade payment truth.
-- State transitions MUST be monotonic; confirmed MUST NOT regress to pending.
-- Duplicate callback/retry events MUST converge to one stable terminal state.
-- Fragment refresh cycles MUST deterministically reflect authority and MUST NOT create flicker-driven state divergence.
+
+- Payment truth MUST originate only from provider-confirmed callback + local authoritative reconciliation.
+- Redirect/return routes MUST NOT be treated as payment authority.
+- UI layers MUST NOT speculate or upgrade payment state.
+- State transitions MUST be monotonic.
+- Confirmed state MUST NOT regress.
+- Duplicate events MUST converge to a single stable terminal state.
+- Fragment refresh MUST deterministically reflect authority without flicker-induced divergence.
