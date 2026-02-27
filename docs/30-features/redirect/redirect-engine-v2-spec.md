@@ -46,6 +46,7 @@ Critical rules:
 - Redirect Engine MUST NOT allow rule creation where **target** matches a protected route.
 - Redirect Engine MUST NOT execute a redirect when protected-route gate fails at runtime.
 - Admin validation MUST reject protected-route violations with explicit per-row error messages.
+- Any route that begins with a protected base path MUST be treated as protected (for example: `/checkout/*`, `/my-account/*`, `/cart/*`).
 
 The protected-route policy SHALL be treated as non-overridable in normal admin operations.
 
@@ -105,9 +106,11 @@ Redirect evaluation order SHALL be deterministic and globally enforced:
 4. WooCommerce endpoint routing
 
 Hooking requirements:
-- Redirect Engine MUST be attached at a priority that preserves this order.
-- If WordPress canonical processing is on `template_redirect` default priority, Redirect Engine SHALL run after canonical completion and before Woo endpoint-specific handlers.
-- Runtime MUST document and enforce final hook priority used.
+- Redirect Engine MUST run on the `template_redirect` hook.
+- Redirect Engine MUST run AFTER WordPress canonical handling with priority `>= 10`.
+- Redirect Engine MUST run BEFORE WooCommerce endpoint handlers.
+- Redirect Engine priority `< 10` is prohibited.
+- Runtime MUST document and enforce the final hook priority used.
 
 Conflict policy:
 - If protected route gate blocks evaluation, Blackwork redirect MUST NOT execute.
@@ -131,7 +134,7 @@ Guardrails:
 - Runtime MUST avoid full linear scan for exact rules.
 
 Caching:
-- An optional transient/object-cache snapshot MAY be used.
+- An optional transient/object-cache snapshot MUST be used when available in the runtime environment.
 - Cache invalidation MUST occur on any create/update/delete/enable/disable operation.
 
 ## 8. Storage Model
