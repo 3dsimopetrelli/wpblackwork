@@ -72,3 +72,20 @@ Notes:
 Search runtime fully documented (AS-IS).
 Search vNext architecture defined and approved.
 Implementation scheduled in roadmap backlog.
+
+## Template Hardening — Governance Upgrade
+
+Status: CLOSED
+Notes:
+Start and Close templates updated to include invariant protection layer.
+No authority drift.
+No Tier reclassification.
+Governance strengthened without increasing procedural weight.
+
+## Plugin Identity Rename — Metadata Update
+
+Status: CLOSED
+Date: 2026-02-27
+Notes:
+Plugin display identity updated from BW Elementor Widgets to Blackwork Core Plugin.
+Metadata-only change (name, description, version, authors) with no runtime authority mutation.

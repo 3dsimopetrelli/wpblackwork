@@ -1,9 +1,9 @@
 <?php
 /**
- * Plugin Name: BW Elementor Widgets
- * Description: Collezione di widget personalizzati per Elementor
- * Version: 1.1.1
- * Author: Simone
+ * Plugin Name: Blackwork Core Plugin
+ * Description: Custom Elementor widgets and runtime modules for Blackwork Core.
+ * Version: 2.1.0
+ * Author: Simone Zanone & Mattia Maragno
  */
 
 if (!defined('ABSPATH')) {
