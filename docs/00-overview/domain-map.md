@@ -35,6 +35,20 @@ Layering rules:
 - Presentation layers MUST NOT become authority surfaces.
 - Orchestration layers MAY coordinate but MUST NOT redefine truth ownership.
 
+## Truth Ownership Matrix
+| Domain | Tier | Defines Truth | Mutates State | Signals Only | Presentation Only |
+|---|---:|---|---|---|---|
+| Redirect / Routing Authority | 0 | Yes | No | No | No |
+| Import Products Authority | 0 | Yes | Yes | No | No |
+| Payment Confirmation Authority | 0 | Yes | Yes | No | No |
+| Payment Provider Integration | 1 | No | Yes | No | No |
+| Checkout Orchestration | 1 | No | Yes | No | No |
+| Cart Interaction (Cart Popup + Cart Page fallback) | 1 | No | Yes | No | No |
+| Header / Global Layout | 2 | No | No | No | Yes |
+| Consent / Brevo Sync | 1 | No | Yes | No | No |
+| Supabase/Auth Sync | 1 | No | Yes | No | No |
+| Shared Runtime Utilities (fragments, loaders, JS bridges) | 2 | No | No | Yes | No |
+
 ## 3. Domain Inventory
 
 ### 3.1 Redirect / Routing Authority
@@ -85,24 +99,41 @@ Layering rules:
   - `docs/60-adr/ADR-001-upe-vs-custom-selector.md`
   - `docs/60-adr/ADR-003-callback-anti-flash-model.md`
 
-### 3.4 Payment Provider Integration
-- Domain Name: Payment Provider Integration
-- Tier: 1
-- Primary Responsibility: Execute provider payment flows and reconcile provider outcomes to local order state.
+### 3.4 Payment Confirmation Authority
+- Domain Name: Payment Confirmation Authority
+- Tier: 0
+- Primary Responsibility: Establish final payment outcome truth and converge local order payment state from authoritative provider confirmation events.
 - Authority Level: Defines Truth
-- Owns: Payment outcome confirmation/reconciliation contract and provider callback processing.
-- Reads From: Checkout intent, gateway configuration, provider callbacks/webhooks.
+- Owns: Provider-confirmed payment truth and terminal payment-state convergence surface.
+- Reads From: Provider callbacks/webhooks and authoritative local order context.
 - Cannot Override:
-  - Redirect authority policy
+  - Routing authority policy
   - Auth/session authority boundaries
   - Consent authority boundaries
+- Related Specs / ADR references:
+  - `docs/40-integrations/payments/payments-architecture-map.md`
+  - `docs/50-ops/runtime-hook-map.md`
+  - `docs/60-adr/ADR-002-authority-hierarchy.md`
+  - `docs/60-adr/ADR-003-callback-anti-flash-model.md`
+
+### 3.5 Payment Provider Integration
+- Domain Name: Payment Provider Integration
+- Tier: 1
+- Primary Responsibility: Execute provider-specific payment flows under local authority contracts.
+- Authority Level: Mutates State
+- Owns: Gateway/runtime integration surface, provider request/response adaptation, and provider-specific orchestration.
+- Reads From: Checkout intent, gateway configuration, provider callbacks/webhooks.
+- Cannot Override:
+  - Payment Confirmation Authority
+  - Redirect authority policy
+  - Auth/session authority boundaries
 - Related Specs / ADR references:
   - `docs/40-integrations/payments/payments-architecture-map.md`
   - `docs/60-adr/ADR-002-authority-hierarchy.md`
   - `docs/60-adr/ADR-003-callback-anti-flash-model.md`
   - `docs/60-adr/ADR-006-provider-switch-model.md`
 
-### 3.5 Cart Interaction (Cart Popup + Cart Page fallback)
+### 3.6 Cart Interaction (Cart Popup + Cart Page fallback)
 - Domain Name: Cart Interaction
 - Tier: 1
 - Primary Responsibility: Operate cart interaction UX over canonical Woo cart state.
@@ -118,7 +149,7 @@ Layering rules:
   - `docs/40-integrations/cart-checkout-responsibility-matrix.md`
   - `docs/60-adr/ADR-001-upe-vs-custom-selector.md`
 
-### 3.6 Header / Global Layout
+### 3.7 Header / Global Layout
 - Domain Name: Header / Global Layout
 - Tier: 2
 - Primary Responsibility: Global layout rendering, navigation presentation, and non-authoritative runtime UI state.
@@ -135,7 +166,7 @@ Layering rules:
   - `docs/30-features/header/header-responsive-contract.md`
   - `docs/30-features/header/header-admin-settings-map.md`
 
-### 3.7 Consent / Brevo Sync
+### 3.8 Consent / Brevo Sync
 - Domain Name: Consent / Brevo Sync
 - Tier: 1
 - Primary Responsibility: Enforce consent gate and execute marketing sync as downstream non-blocking flow.
@@ -151,7 +182,7 @@ Layering rules:
   - `docs/60-adr/ADR-004-consent-gate-doctrine.md`
   - `docs/60-adr/ADR-002-authority-hierarchy.md`
 
-### 3.8 Supabase/Auth Sync
+### 3.9 Supabase/Auth Sync
 - Domain Name: Supabase/Auth Sync
 - Tier: 1
 - Primary Responsibility: Coordinate identity/session bridge and onboarding/provisioning convergence with local authority constraints.
@@ -168,7 +199,7 @@ Layering rules:
   - `docs/60-adr/ADR-002-authority-hierarchy.md`
   - `docs/60-adr/ADR-005-claim-idempotency-rule.md`
 
-### 3.9 Shared Runtime Utilities (fragments, loaders, JS bridges)
+### 3.10 Shared Runtime Utilities (fragments, loaders, JS bridges)
 - Domain Name: Shared Runtime Utilities
 - Tier: 2
 - Primary Responsibility: Runtime event propagation, UI sync triggers, and non-authoritative glue behavior.
@@ -219,3 +250,11 @@ Global governance constraints:
 - Any change that shifts authority boundaries MUST be documented as architecture decision.
 - Any change that modifies runtime hook priority on Tier 0 surfaces MUST be treated as behavior-contract modification.
 - Documentation MUST be updated when domain boundaries or authority ownership change.
+
+## System Invariants
+- Exactly one authority MUST exist per truth surface.
+- Authority MUST NOT be overridden by lower tiers.
+- Presentation layers MUST NOT create or redefine truth.
+- Canonical product identity MUST be SKU.
+- Runtime hook priority MUST be treated as behavioral contract.
+- Tier 0 domains REQUIRE ADR for change.
