@@ -278,6 +278,37 @@ Sono ancora persistite e localizzate in JS config, ma lo stile effettivo corrent
 - Flusso completo popup: `cart-popup/assets/js/bw-cart-popup.js`
 - Endpoint popup: `cart-popup/frontend/cart-popup-frontend.php`
 - Bootstrap/config popup: `cart-popup/cart-popup.php`
+
+## 14) Cart Domain Boundary (Non-Authority Classification)
+
+### Cart domain owns
+- Cart UI behavior (panel, mini-cart interactions, quantity/remove/coupon UX in cart surfaces).
+- Cart presentation state and transition-to-checkout controls.
+- Cart-side fragment refresh for cart visualization consistency.
+
+### Cart domain is explicitly non-authoritative for
+- Payment truth.
+- Authentication/session truth.
+- Provisioning/entitlement truth.
+- Checkout payment selector authority.
+
+### Cart MUST NOT mutate
+- Checkout payment method authority or submit-path state.
+- Order/payment lifecycle truth.
+- Callback/webhook reconciliation outcomes.
+- Provisioning claim state.
+
+### Transition-to-checkout contract
+- Cart MAY initiate navigation to checkout.
+- Cart MUST hand off orchestration authority to Checkout at transition boundary.
+- After handoff, payment eligibility, selector state, and return-surface behavior belong to Checkout domain.
+
+### Fragment responsibility split
+- Cart fragment updates: cart visualization only.
+- Checkout fragment convergence: checkout orchestration concern (see checkout architecture map).
+
+### Cross-domain reference
+- Checkout boundary and authority rules: `../checkout/checkout-architecture-map.md` (section "Domain Boundary: Checkout vs Cart").
 - Salvataggio campi admin popup: `cart-popup/admin/settings-page.php`
 - Tab admin unificato: `admin/class-blackwork-site-settings.php`
 - Coupon checkout custom: `woocommerce/woocommerce-init.php`

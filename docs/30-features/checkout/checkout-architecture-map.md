@@ -181,3 +181,30 @@ Checkout depends on these documentation domains:
   - wallet scripts
   - `woocommerce-init.php`
   require regression protocol execution.
+
+## 9) Domain Boundary: Checkout vs Cart
+
+### Checkout domain owns
+- Checkout orchestration, payment method eligibility/rendering, selector authority, and submit-path determinism.
+- Fragment reflection discipline on checkout surfaces after WooCommerce refresh events.
+- Redirect/return/thank-you rendering discipline bound to authoritative local payment/order state.
+- Provider boundary mediation during checkout execution (payments, auth/provisioning, marketing hooks) without authority takeover.
+
+### Checkout domain MUST NOT assume
+- Cart UI state equals payment readiness or payment truth.
+- Mini-cart state or cart-popup visual signals as authoritative business state.
+- Redirect/query/UI signals as payment confirmation authority.
+
+### Cart domain can interact but MUST remain non-authoritative
+- Cart and mini-cart may read checkout-relevant data for UX continuity.
+- Cart transition controls (CTA to checkout) may initiate flow but MUST NOT mutate checkout payment authority.
+- Cart-side fragments are presentation concerns; checkout fragment convergence remains checkout responsibility.
+
+### Payment state read/write boundary
+- Checkout may read payment-related runtime signals to orchestrate UI.
+- Checkout UI components MUST NOT write authoritative payment truth.
+- Authoritative payment state mutation remains callback/webhook reconciliation path per ADR-002 and ADR-003.
+
+### Primary document ownership (no overlap)
+- Primary Checkout boundary reference: this file.
+- Primary Cart boundary reference: `../cart-popup/cart-popup-technical-guide.md` section "Cart Domain Boundary (Non-Authority Classification)".
