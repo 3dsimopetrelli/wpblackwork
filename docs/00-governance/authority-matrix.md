@@ -70,19 +70,6 @@ Cross-references:
 - `docs/30-features/import-products/import-products-vnext-spec.md`
 - `docs/60-adr/ADR-002-authority-hierarchy.md`
 
-## Authority Conflict Resolution
-Rules:
-- In any cross-domain conflict, Tier 0 authority prevails.
-- If two Tier 1 domains conflict, the domain that defines truth for the affected surface prevails.
-- Signal and Presentation domains MUST yield to Mutate/Define domains.
-- UI state MUST NEVER override confirmed authority state.
-
-## Authority Surface Invariant
-- There MUST be exactly one defining authority per truth surface.
-- No parallel authority definitions are permitted.
-- Creation of a new authority surface REQUIRES ADR.
-- Authority duplication is prohibited.
-
 ## 6. Authority Conflict Resolution
 
 Conflict rules:
