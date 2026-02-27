@@ -52,20 +52,6 @@ It MUST be used as planning reference only and MUST NOT replace ADRs.
 
 ## Tier 1 – UX & Runtime
 
-### Woo Loading -> Skeleton System
-- Status: Backlog
-- Risk classification: Medium
-- Short description: Define and implement runtime-safe transition from spinner-first loading to deterministic skeleton rendering.
-- Reference docs:
-  - `docs/50-ops/regression-coverage-map.md`
-  - `docs/50-ops/regression-protocol.md`
-- Acceptance:
-  - Checkout/cart perceived loading improves without authority drift
-  - Existing regression journeys remain green
-  - No blocking behavior introduced
-  - Visual states converge deterministically under refresh/retry
-  - Rollback path is documented
-
 ### Coming Soon Hardening
 - Status: Backlog
 - Risk classification: Medium
@@ -139,3 +125,28 @@ It MUST be used as planning reference only and MUST NOT replace ADRs.
   - Rollout sequencing and rollback conditions are documented
   - Documentation references are normalized
   - No functional drift introduced by rename-only changes
+
+## Tier 3 – Final Stabilization Layer
+
+### Woo Loading -> Skeleton System
+- Status: Deferred (Final Phase Only)
+- Risk classification: Medium
+- Short description: Skeleton Loading system MUST be implemented only after runtime surfaces are frozen and validated as stable.
+- Reference docs:
+  - `docs/50-ops/regression-coverage-map.md`
+  - `docs/50-ops/regression-protocol.md`
+  - `docs/30-features/redirect/redirect-engine-v2-spec.md`
+  - `docs/30-features/import-products/import-products-vnext-spec.md`
+- Gating prerequisites:
+  - Cart flow is stable
+  - Checkout flow is stable
+  - Header state machine is frozen
+  - Redirect Engine v2 implemented
+  - Import Engine v2 implemented
+- Rule:
+  - No skeleton implementation allowed before runtime surfaces are frozen.
+- Acceptance:
+  - No interference with Woo AJAX
+  - No race conditions with cart updates
+  - Deterministic loading states
+  - No layout shift regressions
