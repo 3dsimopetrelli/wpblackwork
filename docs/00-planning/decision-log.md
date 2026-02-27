@@ -16,6 +16,24 @@ If a decision is normative and architecture-binding, the ADR process MUST be use
 
 ## Entries
 
+### Entry 004
+- Date: 2026-02-27
+- Decision summary: SKU chosen as canonical unique key for Import Domain.
+- Affected domain: Data Import / Product Identity
+- Rationale: Woo-native uniqueness and deterministic idempotency for bulk imports.
+- Risk impact: Reduces duplicate risk; constrains identity model.
+- Follow-up actions:
+  - Implement Import Engine v2 per `docs/30-features/import-products/import-products-vnext-spec.md`.
+
+### Entry 003
+- Date: 2026-02-27
+- Decision summary: SKU chosen as canonical unique key for Import Products domain.
+- Affected domain: Data Import / Product Identity
+- Rationale: Woo-native uniqueness and deterministic idempotency for bulk imports.
+- Risk impact: Reduces duplicate risk; constrains identity model.
+- Follow-up actions:
+  - Implement Import Engine v2 per `docs/30-features/import-products/import-products-vnext-spec.md`.
+
 ### Entry 002
 - Date: 2026-02-27
 - Decision summary: SKU selected as the canonical unique key for the Import Domain in the Import Products vNext specification.

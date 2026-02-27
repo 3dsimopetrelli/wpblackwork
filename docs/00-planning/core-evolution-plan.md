@@ -1,83 +1,141 @@
 # Blackwork Core – Evolution Plan
 
 This document is the governance planning layer for roadmap execution.
-It tracks priority, risk, and execution intent.
+It tracks priority, risk, execution intent, and acceptance gates.
 It MUST be used as planning reference only and MUST NOT replace ADRs.
 
-## Tier 0 – Critical Surfaces (High Risk / High Impact)
+## Tier 0 – Critical Data / Authority
 
-### Import Products Bulk System (audit + spec)
-- Status: Done
-- Short description: Produce implementation-faithful audit and formal specification of the bulk import surface, including validation and failure containment.
-- Risk classification: High
-- Notes: Audit + vNext spec completed. Implementation delivery remains backlog.
+### Import Products — Import Engine v2 (Implementation)
+- Status: Backlog (planned in ~2 weeks)
+- Risk classification: Tier 0 Data Integrity
+- Short description: Implement the vNext bulk-safe importer with SKU-canonical identity, chunked execution, checkpoint resume, and run-level audit trail.
+- Reference docs:
+  - `docs/50-ops/audits/import-products-technical-audit.md`
+  - `docs/50-ops/audits/import-products-developer-notes.md`
+  - `docs/30-features/import-products/import-products-vnext-spec.md`
+- Acceptance:
+  - Re-run converges (no duplicates) per SKU
+  - Chunked execution does not timeout on 800 rows
+  - Persistent run log exists (run id + row errors)
+  - Resume from checkpoint works after forced interruption
+  - Image failures do not kill the entire run
 
-### Redirect Engine Validation
+### Redirect Engine Audit
 - Status: Backlog
-- Short description: Validate redirect engine runtime rules, conflict handling, and deterministic route resolution under mixed auth/checkout paths.
 - Risk classification: High
-- Notes: Any drift can affect critical navigation and conversion paths.
+- Short description: Audit redirect engine runtime behavior, rule precedence, and deterministic resolution across auth/checkout paths.
+- Reference docs:
+  - `docs/20-development/admin-panel-map.md`
+  - `docs/50-ops/admin-panel-reality-audit.md`
+- Acceptance:
+  - Redirect rule precedence documented and reproducible
+  - Conflict cases are enumerated with deterministic expected outcome
+  - No route introduces circular redirect behavior
+  - Admin setting to runtime propagation is verified
+  - Audit output is linkable from planning/governance docs
 
-### Mail Marketing Consent Validation
+### Mail Marketing / Brevo Validation
 - Status: Backlog
-- Short description: Validate consent gate integrity and ensure execution remains compliant with local consent authority doctrine.
 - Risk classification: High
-- Notes: Must remain aligned with Consent Gate Doctrine and non-blocking commerce principles.
+- Short description: Validate consent-gated mail marketing behavior and Brevo integration boundaries against governance invariants.
+- Reference docs:
+  - `docs/40-integrations/brevo/brevo-architecture-map.md`
+  - `docs/60-adr/ADR-004-consent-gate-doctrine.md`
+  - `docs/00-governance/system-normative-charter.md`
+- Acceptance:
+  - Consent gate behavior is validated end-to-end
+  - Non-blocking commerce invariant is confirmed
+  - Local authority over consent remains intact
+  - Retry/observability paths are documented
+  - Validation findings are captured in ops/audit docs
 
-### Header Performance Pass
-- Status: Backlog
-- Short description: Run targeted performance audit on scroll listeners, overlays, and responsive runtime behavior while preserving current governance contracts.
-- Risk classification: High
-- Notes: Tier 0 UX surface with global impact.
-
-### Checkout/Cart Regression Monitoring
-- Status: Backlog
-- Short description: Formalize recurring monitoring of checkout-cart interaction surfaces and regression drift signals.
-- Risk classification: High
-- Notes: Must preserve directional flow and authority boundaries.
-
-## Tier 1 – UX & Runtime Enhancements
+## Tier 1 – UX & Runtime
 
 ### Woo Loading -> Skeleton System
 - Status: Backlog
-- Short description: Define controlled UX enhancement path from spinner-based loading to deterministic skeleton patterns.
 - Risk classification: Medium
-- Notes: Must avoid introducing authority-coupled UI assumptions.
+- Short description: Define and implement runtime-safe transition from spinner-first loading to deterministic skeleton rendering.
+- Reference docs:
+  - `docs/50-ops/regression-coverage-map.md`
+  - `docs/50-ops/regression-protocol.md`
+- Acceptance:
+  - Checkout/cart perceived loading improves without authority drift
+  - Existing regression journeys remain green
+  - No blocking behavior introduced
+  - Visual states converge deterministically under refresh/retry
+  - Rollback path is documented
 
 ### Coming Soon Hardening
 - Status: Backlog
-- Short description: Stabilize coming-soon behavior under routing, access-control, and admin toggle transitions.
 - Risk classification: Medium
-- Notes: Ensure safe degrade and no accidental commerce lockout.
+- Short description: Harden Coming Soon mode behavior across routing, visibility controls, and logged-in bypass logic.
+- Reference docs:
+  - `docs/20-development/admin-panel-map.md`
+  - `docs/50-ops/admin-panel-reality-audit.md`
+- Acceptance:
+  - Visibility rules are deterministic for guest vs authenticated users
+  - No accidental commerce lockout occurs
+  - Toggle propagation from admin to runtime is verified
+  - Edge routing cases are documented
+  - Regression checks pass on critical surfaces
 
-### Admin Panel Simplification (Header)
+### Header Performance Pass
 - Status: Backlog
-- Short description: Use Header Admin Settings Map to simplify panel complexity without changing runtime contracts.
+- Risk classification: High
+- Short description: Validate and harden header runtime performance under smart scroll, responsive overlays, and global listener load.
+- Reference docs:
+  - `docs/50-ops/audits/header-system-technical-audit.md`
+  - `docs/30-features/header/header-module-spec.md`
+  - `docs/30-features/header/header-scroll-state-machine-spec.md`
+  - `docs/30-features/header/header-responsive-contract.md`
+- Acceptance:
+  - Scroll and resize behavior remains deterministic
+  - Listener binding remains bounded and non-duplicative
+  - Responsive and off-canvas flows remain stable
+  - No commerce-blocking regression introduced by header layer
+  - Findings and measurements are documented
+
+### Header Admin Simplification
+- Status: Backlog
 - Risk classification: Medium
-- Notes: Scope is UI simplification, not behavior redesign.
+- Short description: Simplify header admin configuration UX while preserving existing runtime contracts and precedence rules.
+- Reference docs:
+  - `docs/30-features/header/header-admin-settings-map.md`
+  - `docs/30-features/header/header-module-spec.md`
+- Acceptance:
+  - No setting behavior changes relative to current runtime contract
+  - General vs Smart Scroll precedence remains intact
+  - Mobile override behavior remains intact
+  - Settings storage/sanitization contract remains unchanged
+  - Admin flow is documented after simplification
 
-### Cart Popup UX refinements
+## Tier 2 – Refactor & Cleanup
+
+### Elementor Widgets Cleanup
 - Status: Backlog
-- Short description: Improve cart popup interaction quality while preserving progressive enhancement and non-authority constraints.
-- Risk classification: Medium
-- Notes: Must remain compatible with Cart vs Checkout responsibility rules.
-
-## Tier 2 – Refactors & Cleanup
-
-### Elementor Widgets Inventory & Cleanup
-- Status: Backlog
-- Short description: Build full widget inventory and identify cleanup candidates under controlled, non-breaking governance constraints.
 - Risk classification: Low
-- Notes: Documentation-first sequencing recommended.
+- Short description: Inventory and clean unused or legacy widget surfaces under controlled non-breaking constraints.
+- Reference docs:
+  - `docs/10-architecture/blackwork-technical-documentation.md`
+  - `docs/00-governance/blast-radius-consolidation-map.md`
+- Acceptance:
+  - Widget inventory is complete and classified
+  - Cleanup scope excludes Tier 0 authority-sensitive paths unless explicitly gated
+  - Removed/deprecated surfaces are documented
+  - Regression checks cover affected UI surfaces
+  - No unresolved runtime references remain
 
-### Plugin Rename Strategy (BW -> Blackwork Core)
+### Plugin Rename (BW -> Blackwork Core)
 - Status: Backlog
-- Short description: Define migration plan for naming standardization across code, docs, and runtime identifiers.
 - Risk classification: Medium
-- Notes: Requires compatibility and rollout strategy to prevent identifier drift.
-
-### Legacy Smart Header deprecation strategy
-- Status: Backlog
-- Short description: Plan governance-safe deprecation path for legacy smart header fallback while preserving current fallback guarantees.
-- Risk classification: Medium
-- Notes: Legacy path is frozen fallback; deprecation must be staged and validated.
+- Short description: Define and execute naming migration strategy across docs, code identifiers, and runtime-facing labels.
+- Reference docs:
+  - `docs/00-governance/system-normative-charter.md`
+  - `docs/00-governance/docs-code-alignment-status.md`
+- Acceptance:
+  - Migration map exists for identifiers and user-facing names
+  - Backward compatibility constraints are explicit
+  - Rollout sequencing and rollback conditions are documented
+  - Documentation references are normalized
+  - No functional drift introduced by rename-only changes
