@@ -16,6 +16,17 @@ If a decision is normative and architecture-binding, the ADR process MUST be use
 
 ## Entries
 
+### Entry 002
+- Date: 2026-02-27
+- Decision summary: SKU selected as the canonical unique key for the Import Domain in the Import Products vNext specification.
+- Affected domain: Data Import / Product Identity
+- Rationale: Convergence and idempotency model requires one immutable canonical key to prevent duplicate product identity paths.
+- Risk impact: High
+- Follow-up actions:
+  - Keep importer implementation backlog aligned with SKU-only identity rule.
+  - Reject run configurations that do not provide SKU per row.
+  - Validate deterministic duplicate-SKU failure behavior in regression runs.
+
 ### Entry 001
 - Date: 2026-02-27
 - Decision summary: Introduced a dedicated governance planning layer under `docs/00-planning/` to track evolution priorities and decision-driven roadmap shifts.
