@@ -90,11 +90,43 @@ Normative interpretation:
 - Shared utilities MUST NOT mutate business authority state.
 - Shared utilities MUST remain presentation-only lifecycle helpers.
 
+## 4.1) Directional Flow Constraint
+
+Operational flow direction is strictly:
+
+`Cart -> Checkout -> Payment UI`
+
+Reverse authority flow is prohibited.
+
+- Cart MAY emit operational update events.
+- Checkout MAY orchestrate payment selection.
+- Payment UI MAY reflect or adjust payment selection state.
+- No downstream layer MAY redefine upstream operational or business state.
+
+## 4.2) Allowed Cross-Domain Interactions
+
+The following interactions are explicitly permitted:
+
+- Cart MAY trigger `update_checkout` after cart mutation.
+- Checkout MAY re-render order summary based on cart state.
+- Payment UI MAY react to `updated_checkout` lifecycle events.
+- Shared utilities MAY listen to lifecycle events for UX purposes.
+
+These interactions remain non-authoritative and MUST NOT mutate business truth.
+
 ## 5) Fragment Refresh Classification
 
 ### Event emission layer
 - Cart layer may emit fragment refresh triggers for cart synchronization (`wc_fragment_refresh`) in cart-popup operations.
 - Cart and checkout flows may emit `update_checkout` when checkout recomputation is needed.
+
+`update_checkout` clarification:
+- `update_checkout` is a recomputation trigger only.
+- It MUST NOT define payment authority.
+- It MUST NOT confirm payment truth.
+- It MUST NOT mutate entitlement state.
+- It MUST NOT override cart business truth.
+- It is a recalculation and DOM refresh instruction only.
 
 ### State reflection layer
 - Cart reflects cart visualization state (badge, popup list, mini-cart-facing UX).
@@ -105,6 +137,16 @@ Normative interpretation:
 - Reconciliation is NOT owned by cart/checkout/payment JS.
 - Authoritative reconciliation belongs to local server-side business logic and callback/webhook processing.
 - JS layers consume reflected state and must remain non-authoritative.
+
+## 5.1) Mobile Order Summary Duplication Pattern
+
+The mobile order summary clone is classified as a Presentation Duplication Pattern.
+
+Rules:
+- Both DOM instances are presentation-only.
+- Neither instance defines authority.
+- JS binding MUST avoid double-binding on the same node.
+- Clone logic MUST NOT introduce business mutation side effects.
 
 ## 6) Cross-References
 
