@@ -23,6 +23,13 @@ Admin authority constraint:
 - Admin flags MUST affect presentation and interaction behavior only.
 - No configuration MAY elevate Cart Pop-Up to an authority layer.
 
+### Canonical Cart Truth Doctrine
+
+- The canonical WooCommerce cart session is the sole source of cart business truth.
+- Cart Pop-Up MUST NOT maintain parallel cart state.
+- All pricing, tax, coupon validation, and totals logic MUST remain server-authoritative.
+- Business rules MUST NOT be duplicated or reimplemented in JS.
+
 ## 2) Progressive Enhancement Model
 
 Cart Pop-Up is a Progressive Enhancement Layer over the canonical WooCommerce Cart Page.
@@ -47,6 +54,12 @@ JS failure guarantee:
 - No JS exception or runtime failure in Cart Pop-Up MAY block canonical Woo add-to-cart completion.
 - If interception fails, default redirect-to-cart behavior MUST proceed.
 
+### JS Failure Guarantee
+
+- No JS error, exception, or runtime failure inside Cart Pop-Up may block canonical Woo add-to-cart completion.
+- If interception fails, default Woo redirect-to-cart behavior MUST proceed.
+- Commerce flow MUST remain functional without Cart Pop-Up JS.
+
 No divergence rule:
 - Coupon logic MUST be identical to Cart Page.
 - Quantity/remove logic MUST be identical to Cart Page.
@@ -54,6 +67,7 @@ No divergence rule:
 - Business rules MUST NOT be duplicated in JS.
 - Cart Pop-Up MUST mirror canonical Woo behavior exactly.
 - No alternative pricing logic is permitted.
+- No alternative pricing or coupon validation logic is permitted.
 
 Canonical cart truth doctrine:
 - Canonical WooCommerce cart session is the sole source of cart business truth.
@@ -89,6 +103,11 @@ Option interaction constraints:
 - Slide-in behavior MUST remain an interaction enhancement, not authority.
 - Width/overlay/presentation options MUST NOT alter cart business rules.
 - Admin options MUST NOT expand mutation scope beyond cart-operational behavior.
+
+Authority constraint:
+- Admin configuration options MUST NOT expand mutation scope.
+- Configuration affects presentation and interaction only.
+- No option may elevate Cart Pop-Up to authority layer.
 
 ## 4) Runtime Lifecycle
 
@@ -149,6 +168,19 @@ Cart Pop-Up MUST NOT:
 - Define consent state.
 - Override canonical cart/session business logic.
 - Promote UI/fragment/redirect signals to authority status.
+
+## Directional Flow Constraint
+
+Operational flow direction is strictly:
+
+Cart -> Checkout -> Payment UI
+
+Rules:
+
+- Cart Pop-Up MAY emit operational recomputation triggers.
+- Cart Pop-Up MUST NOT mutate downstream authority domains.
+- Checkout MUST NOT redefine canonical cart truth.
+- Reverse authority flow is prohibited.
 
 ## 7) Coupling Map
 
