@@ -27,7 +27,7 @@ Il modulo custom renderizza un header desktop+mobile proprio, gestisce Smart Scr
 - `/Users/simonezanon/Documents/local site/BlackWork/wp-content/plugins/wpblackwork/includes/modules/header/templates/parts/search-overlay.php`
 
 Legacy/fallback:
-- `/Users/simonezanon/Documents/local site/BlackWork/wp-content/plugins/wpblackwork/bw-main-elementor-widgets.php` (`bw_enqueue_smart_header_assets`)
+- `/Users/simonezanon/Documents/local site/BlackWork/wp-content/plugins/wpblackwork/blackwork-core-plugin.php` (`bw_enqueue_smart_header_assets`)
 
 ### JS
 Custom header:

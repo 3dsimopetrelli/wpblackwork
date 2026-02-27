@@ -6,7 +6,7 @@ if (!defined('ABSPATH')) {
 /**
  * Handler AJAX per la ricerca live dei prodotti
  * 
- * Migrated from bw-main-elementor-widgets.php to allow standalone header usage.
+ * Migrated from blackwork-core-plugin.php to allow standalone header usage.
  */
 
 add_action('wp_ajax_bw_live_search_products', 'bw_header_live_search_products');

@@ -191,7 +191,7 @@ From `includes/admin/checkout-subscribe/class-bw-checkout-subscribe-admin.php`:
 - When enabled:
   - Hides default WooCommerce spinner/loading overlay behavior in frontend layer.
 - Frontend consumer:
-  - `bw-main-elementor-widgets.php`.
+  - `blackwork-core-plugin.php`.
 
 ## Header (submenu)
 - Renderer: `bw_header_render_admin_page()`.

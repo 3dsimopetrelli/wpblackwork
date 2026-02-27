@@ -6,7 +6,7 @@ Scope: root-level files audit only (no runtime refactor)
 ## A) Plugin Header Metadata Target
 
 Confirmed main plugin header file:
-- `bw-main-elementor-widgets.php`
+- `blackwork-core-plugin.php`
 
 Confirmed display metadata fields in header block:
 - `Plugin Name`

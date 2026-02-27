@@ -28,7 +28,7 @@ The plugin requires:
 
 ### Main Entry Point
 
-`bw-main-elementor-widgets.php` - Main plugin file that:
+`blackwork-core-plugin.php` - Main plugin file that:
 - Defines plugin constants (`BW_MEW_URL`, `BW_MEW_PATH`)
 - Loads all submodules and core components
 - Registers asset enqueue hooks
@@ -140,7 +140,7 @@ Templates in `woocommerce/templates/` override core WooCommerce templates:
 
 ## AJAX Handlers
 
-Located in `bw-main-elementor-widgets.php`:
+Located in `blackwork-core-plugin.php`:
 
 1. **Live Product Search** (`bw_live_search_products`)
    - Endpoint: `wp_ajax_bw_live_search_products`

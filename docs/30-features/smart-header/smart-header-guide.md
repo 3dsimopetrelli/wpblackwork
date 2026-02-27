@@ -91,7 +91,7 @@ Il sistema è composto da questi file:
 
 ### Caricamento Automatico
 
-I file vengono caricati automaticamente dal plugin **bw-main-elementor-widgets.php** tramite:
+I file vengono caricati automaticamente dal plugin **blackwork-core-plugin.php** tramite:
 - `bw_enqueue_smart_header_assets()` - Funzione che registra e carica CSS e JS
 - Hook `wp_enqueue_scripts` - Carica i file solo sul frontend (NON nell'editor Elementor)
 

@@ -199,7 +199,7 @@ Files:
 ## 12. Known constraints / known noise
 
 - `composer run lint:main` currently fails on pre-existing file:
-  - `/Users/simonezanon/Documents/local site/BlackWork/wp-content/plugins/wpblackwork/bw-main-elementor-widgets.php`
+  - `/Users/simonezanon/Documents/local site/BlackWork/wp-content/plugins/wpblackwork/blackwork-core-plugin.php`
 - This is unrelated to My Account customizations but appears in mandatory lint command output.
 
 ## 13. Debug guide (quick)

@@ -178,7 +178,7 @@ Mail Marketing operational assets:
 - Option keys:
   - `bw_loading_global_spinner_hidden`
 - Frontend consumer:
-  - `bw-main-elementor-widgets.php`
+  - `blackwork-core-plugin.php`
 - Dependencies:
   - WooCommerce loading/spinner behavior hooks.
 

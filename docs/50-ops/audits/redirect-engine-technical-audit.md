@@ -12,7 +12,7 @@ Primary risks observed:
 
 ## 2) Entry Points & File Inventory
 ### Core bootstrap/load
-- `/Users/simonezanon/Documents/local site/BlackWork/wp-content/plugins/wpblackwork/bw-main-elementor-widgets.php`
+- `/Users/simonezanon/Documents/local site/BlackWork/wp-content/plugins/wpblackwork/blackwork-core-plugin.php`
   - Responsibility: plugin bootstrap.
   - Key point: conditionally requires Redirect runtime file:
     - `includes/class-bw-redirects.php`.

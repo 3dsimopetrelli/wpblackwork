@@ -173,7 +173,7 @@ Normative controls for Tier 0 hooks:
 
 ## 5) Unknowns / where to look
 - Some hook registrations occur inside class initialization paths (`::init()` / constructor registration). If runtime behavior differs from this map, verify bootstrap sequence in:
-  - `bw-main-elementor-widgets.php`
+  - `blackwork-core-plugin.php`
   - `woocommerce/woocommerce-init.php`
   - `includes/admin/checkout-subscribe/class-bw-checkout-subscribe-frontend.php`
 - Third-party plugin hook collisions (Rank Math/SEO/redirect plugins) are unknown from repository-only inspection. Inspect active plugin hook stack at runtime (`template_redirect`, `wp`, `wp_head`, Woo payment/order hooks).

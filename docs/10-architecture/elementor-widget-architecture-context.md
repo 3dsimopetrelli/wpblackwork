@@ -6,7 +6,7 @@ Questo documento sintetizza l'architettura reale dei widget Elementor nel plugin
 ## 1) Bootstrap e registrazione widget
 
 ### Entry point plugin
-- File: `bw-main-elementor-widgets.php`
+- File: `blackwork-core-plugin.php`
 - Include il loader widget in:
   - `require_once __DIR__ . '/includes/class-bw-widget-loader.php';`
 
@@ -25,7 +25,7 @@ Questo documento sintetizza l'architettura reale dei widget Elementor nel plugin
   - Evita doppia registrazione con flag interno `$widgets_registered`
 
 ## 2) Categoria Elementor custom
-- File: `bw-main-elementor-widgets.php`
+- File: `blackwork-core-plugin.php`
 - Categoria registrata: `blackwork`
 - Etichetta in editor: `Black Work Widgets`
 
@@ -59,7 +59,7 @@ Pattern prevalente in `includes/widgets/`:
   - `assets/js/bw-{widget}.js`
 
 ### Registrazione/enqueue centralizzata
-- File: `bw-main-elementor-widgets.php`
+- File: `blackwork-core-plugin.php`
 - Pattern:
   - `bw_register_*_widget_assets()`
   - `bw_enqueue_*_widget_assets()`
@@ -104,7 +104,7 @@ L'header usa ora il modulo custom server-rendered:
 - `includes/modules/header/assets/css/*`
 - `includes/modules/header/assets/js/*`
 
-Il contratto AJAX live search resta in `bw-main-elementor-widgets.php`:
+Il contratto AJAX live search resta in `blackwork-core-plugin.php`:
 - action: `bw_live_search_products`
 - nonce: `bw_search_nonce`
 

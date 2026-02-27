@@ -89,3 +89,12 @@ Date: 2026-02-27
 Notes:
 Plugin display identity updated from BW Elementor Widgets to Blackwork Core Plugin.
 Metadata-only change (name, description, version, authors) with no runtime authority mutation.
+
+## Bootstrap Filename Migration
+
+Status: CLOSED
+Date: 2026-02-27
+Notes:
+Bootstrap file renamed to `blackwork-core-plugin.php` from the previous bootstrap filename.
+Runtime references and tooling script paths were aligned.
+Plugin slug, text-domain, internal prefixes, and runtime authority model remain unchanged.

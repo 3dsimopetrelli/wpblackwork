@@ -90,7 +90,7 @@ Breakpoint unificato:
 
 ## Integrazione bootstrap
 Il modulo viene incluso da:
-- `bw-main-elementor-widgets.php`
+- `blackwork-core-plugin.php`
 
 Elementor widget code esistente non viene rimosso in questa fase.
 

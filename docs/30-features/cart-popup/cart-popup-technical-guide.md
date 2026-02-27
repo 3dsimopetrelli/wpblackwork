@@ -21,7 +21,7 @@ Il Cart Pop-up sostituisce (in specifici contesti) il comportamento standard di 
 - `cart-popup/admin/settings-page.php`
 
 ### Integrazioni plugin / WooCommerce
-- `bw-main-elementor-widgets.php` (bootstrap modulo)
+- `blackwork-core-plugin.php` (bootstrap modulo)
 - `admin/class-blackwork-site-settings.php` (pannello unificato “Blackwork Site”, tab Cart Pop-up)
 - `includes/modules/header/templates/header.php` (trigger cart icona header)
 - `includes/modules/header/assets/js/bw-navshop.js` (apertura popup da header)
@@ -42,7 +42,7 @@ Il Cart Pop-up sostituisce (in specifici contesti) il comportamento standard di 
 
 ## 3) Bootstrap e inizializzazione
 
-1. `bw-main-elementor-widgets.php` include `cart-popup/cart-popup.php`.
+1. `blackwork-core-plugin.php` include `cart-popup/cart-popup.php`.
 2. `cart-popup/cart-popup.php`:
 - definisce costanti percorso/URL modulo,
 - include admin settings e logica frontend,

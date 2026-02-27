@@ -15,7 +15,7 @@
     },
     "scripts": {
         "lint": "phpcs --standard=WordPress .",
-        "lint:main": "phpcs --standard=WordPress bw-main-elementor-widgets.php",
-        "lint:fix:main": "phpcbf --standard=WordPress bw-main-elementor-widgets.php"
+        "lint:main": "phpcs --standard=WordPress blackwork-core-plugin.php",
+        "lint:fix:main": "phpcbf --standard=WordPress blackwork-core-plugin.php"
     }
 }

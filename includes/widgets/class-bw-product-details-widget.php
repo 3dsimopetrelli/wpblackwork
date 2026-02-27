@@ -444,6 +444,6 @@ class Widget_Bw_Product_Details extends Widget_Base {
     }
 
     private function get_plugin_main_file() {
-        return dirname( __FILE__, 3 ) . '/bw-main-elementor-widgets.php';
+        return dirname( __FILE__, 3 ) . '/blackwork-core-plugin.php';
     }
 }

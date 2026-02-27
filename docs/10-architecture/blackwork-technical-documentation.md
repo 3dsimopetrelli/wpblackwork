@@ -99,7 +99,7 @@ wpblackwork/
 │           └── set-password.php             # Onboarding password
 ├── cart-popup/                              # Cart popup submodule
 ├── BW_coming_soon/                          # Coming soon submodule
-└── bw-main-elementor-widgets.php            # Main plugin file
+└── blackwork-core-plugin.php            # Main plugin file
 ```
 
 ### 1.2 Core Dependencies
