@@ -5289,7 +5289,7 @@ function bw_import_handle_upload_request()
             'created' => 0,
             'updated' => 0,
             'skipped' => 0,
-            'warnings' => 0,
+            'errors' => 0,
         ],
         'last_errors' => [],
         'last_warnings' => [],
@@ -5359,7 +5359,7 @@ function bw_import_handle_run_request($state)
             'created' => 0,
             'updated' => 0,
             'skipped' => 0,
-            'warnings' => 0,
+            'errors' => 0,
         ];
         $state['last_errors'] = [];
         $state['last_warnings'] = [];
@@ -5394,7 +5394,7 @@ function bw_import_handle_run_request($state)
     $state['totals']['created'] += (int) $result['created'];
     $state['totals']['updated'] += (int) $result['updated'];
     $state['totals']['skipped'] += (int) $result['skipped'];
-    $state['totals']['warnings'] += (int) $result['warnings_count'];
+    $state['totals']['errors'] += (int) $result['errors_count'];
     $state['last_errors'] = bw_import_merge_bounded_messages(
         isset($state['last_errors']) ? (array) $state['last_errors'] : [],
         isset($result['errors']) ? (array) $result['errors'] : []
@@ -5419,12 +5419,12 @@ function bw_import_handle_run_request($state)
     }
 
     $message = sprintf(
-        /* translators: 1: created count, 2: updated count, 3: skipped count, 4: warnings count */
-        __('Import completed. Created: %1$d, Updated: %2$d, Skipped: %3$d, Warnings: %4$d', 'bw'),
+        /* translators: 1: created count, 2: updated count, 3: skipped count, 4: errors count */
+        __('Import completed. Created: %1$d, Updated: %2$d, Skipped: %3$d, Errors: %4$d', 'bw'),
         (int) $state['totals']['created'],
         (int) $state['totals']['updated'],
         (int) $state['totals']['skipped'],
-        (int) $state['totals']['warnings']
+        (int) $state['totals']['errors']
     );
 
     if (!empty($state['last_errors'])) {
@@ -5536,19 +5536,14 @@ function bw_import_parse_csv_file($file_path, $max_rows = 0)
 }
 
 /**
- * Parse CSV in deterministic chunks without loading full file in memory.
+ * Open CSV file handle for importer chunk reads.
  *
- * @param string $file_path  CSV file path.
- * @param int    $start_row  Zero-based row index in data rows (header excluded).
- * @param int    $limit      Max number of rows to return.
+ * @param string $file_path CSV file path.
  *
- * @return array|WP_Error
+ * @return resource|WP_Error
  */
-function bw_import_parse_csv_chunk($file_path, $start_row, $limit)
+function bw_import_open_csv($file_path)
 {
-    $start_row = max(0, (int) $start_row);
-    $limit = max(1, (int) $limit);
-
     if (!file_exists($file_path)) {
         return new WP_Error('bw_import_missing_file', __('The uploaded CSV file cannot be found.', 'bw'));
     }
@@ -5558,11 +5553,39 @@ function bw_import_parse_csv_chunk($file_path, $start_row, $limit)
         return new WP_Error('bw_import_open_error', __('Unable to open the CSV file.', 'bw'));
     }
 
+    return $handle;
+}
+
+/**
+ * Read CSV headers from an opened handle.
+ *
+ * @param resource $handle CSV handle.
+ *
+ * @return array|WP_Error
+ */
+function bw_import_read_headers($handle)
+{
     $headers = fgetcsv($handle);
     if (empty($headers)) {
-        fclose($handle);
         return new WP_Error('bw_import_headers', __('The CSV file is missing a header row.', 'bw'));
     }
+
+    return $headers;
+}
+
+/**
+ * Read one CSV chunk from an opened handle.
+ *
+ * @param resource $handle    CSV handle.
+ * @param int      $start_row Zero-based row offset excluding header.
+ * @param int      $limit     Chunk size.
+ *
+ * @return array
+ */
+function bw_import_read_chunk($handle, $start_row, $limit)
+{
+    $start_row = max(0, (int) $start_row);
+    $limit = max(1, (int) $limit);
 
     $current_row = 0;
     while ($current_row < $start_row && ($data = fgetcsv($handle)) !== false) {
@@ -5577,14 +5600,46 @@ function bw_import_parse_csv_chunk($file_path, $start_row, $limit)
         $current_row++;
     }
 
-    $eof = feof($handle);
+    return [
+        'rows' => $rows,
+        'next_row' => $current_row,
+        'eof' => feof($handle),
+    ];
+}
+
+/**
+ * Parse CSV in deterministic chunks without loading full file in memory.
+ *
+ * @param string $file_path  CSV file path.
+ * @param int    $start_row  Zero-based row index in data rows (header excluded).
+ * @param int    $limit      Max number of rows to return.
+ *
+ * @return array|WP_Error
+ */
+function bw_import_parse_csv_chunk($file_path, $start_row, $limit)
+{
+    $start_row = max(0, (int) $start_row);
+    $limit = max(1, (int) $limit);
+
+    $handle = bw_import_open_csv($file_path);
+    if (is_wp_error($handle)) {
+        return $handle;
+    }
+
+    $headers = bw_import_read_headers($handle);
+    if (is_wp_error($headers)) {
+        fclose($handle);
+        return $headers;
+    }
+
+    $chunk = bw_import_read_chunk($handle, $start_row, $limit);
     fclose($handle);
 
     return [
         'headers' => $headers,
-        'rows' => $rows,
-        'next_row' => $current_row,
-        'eof' => $eof,
+        'rows' => $chunk['rows'],
+        'next_row' => $chunk['next_row'],
+        'eof' => $chunk['eof'],
     ];
 }
 
@@ -5999,7 +6054,7 @@ function bw_import_process_rows($headers, $rows, $mapping, $update_existing = fa
         'created' => 0,
         'updated' => 0,
         'skipped' => 0,
-        'warnings_count' => 0,
+        'errors_count' => 0,
         'errors' => [],
         'warnings' => [],
     ];
@@ -6013,6 +6068,7 @@ function bw_import_process_rows($headers, $rows, $mapping, $update_existing = fa
         $prepared = bw_import_prepare_row_data($row_data, $mapping);
         if (is_wp_error($prepared)) {
             $result['skipped']++;
+            $result['errors_count']++;
             $result['errors'][] = sprintf(__('Row %1$d: %2$s', 'bw'), $row_offset + $row_index + 2, $prepared->get_error_message());
             continue;
         }
@@ -6020,13 +6076,13 @@ function bw_import_process_rows($headers, $rows, $mapping, $update_existing = fa
         $save_result = bw_import_save_product_from_row($prepared, $update_existing, $options);
         if (is_wp_error($save_result)) {
             $result['skipped']++;
+            $result['errors_count']++;
             $result['errors'][] = sprintf(__('Row %1$d: %2$s', 'bw'), $row_offset + $row_index + 2, $save_result->get_error_message());
             continue;
         }
 
         if (!empty($save_result['warnings'])) {
             foreach ((array) $save_result['warnings'] as $warning) {
-                $result['warnings_count']++;
                 $result['warnings'][] = sprintf(__('Row %1$d: %2$s', 'bw'), $row_offset + $row_index + 2, $warning);
             }
         }
