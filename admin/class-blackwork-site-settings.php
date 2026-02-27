@@ -4972,10 +4972,6 @@ function bw_site_render_import_product_tab()
     }
 
     $notices = [];
-    if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-        bw_import_clear_state();
-    }
-
     $state = bw_import_get_state();
 
     if (isset($_POST['bw_import_upload_submit'])) {
@@ -5120,6 +5116,9 @@ function bw_site_render_import_product_tab()
 
             <form method="post">
                 <?php wp_nonce_field('bw_import_run', 'bw_import_run_nonce'); ?>
+                <?php
+                $state_skip_images = array_key_exists('skip_images', $state) ? !empty($state['skip_images']) : true;
+                ?>
                 <table class="widefat fixed" style="max-width:900px;">
                     <thead>
                         <tr>
@@ -5191,7 +5190,43 @@ function bw_site_render_import_product_tab()
                     </table>
                 </div>
 
-                <?php submit_button(__('Save Mapping & Run Import', 'bw'), 'primary', 'bw_import_run'); ?>
+                <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 6px; max-width: 620px;">
+                    <strong><?php esc_html_e('Image import behavior', 'bw'); ?></strong>
+                    <label style="display: flex; gap: 8px; align-items: flex-start;">
+                        <input type="checkbox" name="bw_import_skip_images" value="1" <?php checked($state_skip_images); ?> />
+                        <span><?php esc_html_e('Skip image sideload for safety (recommended). Image columns are ignored and logged as skipped by configuration.', 'bw'); ?></span>
+                    </label>
+                </div>
+
+                <?php
+                $button_label = !empty($state['in_progress'])
+                    ? __('Continue Import (next chunk)', 'bw')
+                    : __('Save Mapping & Run Import', 'bw');
+                submit_button($button_label, 'primary', 'bw_import_run');
+                ?>
+            </form>
+        <?php endif; ?>
+
+        <?php if (!empty($state['in_progress']) && !empty($state['totals']) && !empty($state['headers'])): ?>
+            <hr />
+            <h3><?php esc_html_e('Import progress', 'bw'); ?></h3>
+            <p>
+                <?php
+                echo esc_html(
+                    sprintf(
+                        /* translators: 1: row cursor, 2: created count, 3: updated count, 4: skipped count */
+                        __('Processed rows: %1$d — Created: %2$d, Updated: %3$d, Skipped: %4$d', 'bw'),
+                        isset($state['row_cursor']) ? (int) $state['row_cursor'] : 0,
+                        isset($state['totals']['created']) ? (int) $state['totals']['created'] : 0,
+                        isset($state['totals']['updated']) ? (int) $state['totals']['updated'] : 0,
+                        isset($state['totals']['skipped']) ? (int) $state['totals']['skipped'] : 0
+                    )
+                );
+                ?>
+            </p>
+            <form method="post">
+                <?php wp_nonce_field('bw_import_run', 'bw_import_run_nonce'); ?>
+                <?php submit_button(__('Continue Import (next chunk)', 'bw'), 'secondary', 'bw_import_run', false); ?>
             </form>
         <?php endif; ?>
     </div>
@@ -5246,6 +5281,18 @@ function bw_import_handle_upload_request()
         'headers' => $parsed['headers'],
         'sample' => $parsed['rows'],
         'update_existing' => $update_existing,
+        'skip_images' => true,
+        'row_cursor' => 0,
+        'in_progress' => false,
+        'mapping' => [],
+        'totals' => [
+            'created' => 0,
+            'updated' => 0,
+            'skipped' => 0,
+            'warnings' => 0,
+        ],
+        'last_errors' => [],
+        'last_warnings' => [],
         'upload_summary' => [
             'file_name' => basename($upload['file']),
             'total_fields' => $summary['total'],
@@ -5284,37 +5331,104 @@ function bw_import_handle_run_request($state)
         return new WP_Error('bw_import_missing_state', __('No CSV file is attached. Upload a file before running the import.', 'bw'));
     }
 
-    $raw_mapping = isset($_POST['bw_import_mapping']) ? (array) $_POST['bw_import_mapping'] : [];
+    $is_first_step = empty($state['in_progress']);
     $mapping = [];
-    foreach ($state['headers'] as $header) {
-        $value = isset($raw_mapping[$header]) ? sanitize_text_field(wp_unslash($raw_mapping[$header])) : 'ignore';
-        if ('ignore' !== $value) {
-            $mapping[$header] = $value;
+
+    if ($is_first_step) {
+        $raw_mapping = isset($_POST['bw_import_mapping']) ? (array) $_POST['bw_import_mapping'] : [];
+        foreach ($state['headers'] as $header) {
+            $value = isset($raw_mapping[$header]) ? sanitize_text_field(wp_unslash($raw_mapping[$header])) : 'ignore';
+            if ('ignore' !== $value) {
+                $mapping[$header] = $value;
+            }
+        }
+
+        if (!bw_import_has_identifier($mapping)) {
+            return new WP_Error('bw_import_missing_identifier', __('Please map SKU to proceed. Product ID may be mapped as secondary, but SKU is mandatory.', 'bw'));
+        }
+
+        $sku_validation = bw_import_validate_unique_skus($state['file_path'], $state['headers'], $mapping);
+        if (is_wp_error($sku_validation)) {
+            return $sku_validation;
+        }
+
+        $state['mapping'] = $mapping;
+        $state['row_cursor'] = 0;
+        $state['in_progress'] = true;
+        $state['totals'] = [
+            'created' => 0,
+            'updated' => 0,
+            'skipped' => 0,
+            'warnings' => 0,
+        ];
+        $state['last_errors'] = [];
+        $state['last_warnings'] = [];
+        $state['skip_images'] = !empty($_POST['bw_import_skip_images']);
+    } else {
+        $mapping = isset($state['mapping']) && is_array($state['mapping']) ? $state['mapping'] : [];
+        if (!bw_import_has_identifier($mapping)) {
+            return new WP_Error('bw_import_missing_identifier', __('Import state is missing SKU mapping. Re-upload the CSV and map SKU again.', 'bw'));
         }
     }
 
-    if (!bw_import_has_identifier($mapping)) {
-        return new WP_Error('bw_import_missing_identifier', __('Please map at least Product ID, SKU, or Title to proceed.', 'bw'));
-    }
-
-    $parsed = bw_import_parse_csv_file($state['file_path']);
-    if (is_wp_error($parsed)) {
-        return $parsed;
+    $chunk_size = bw_import_chunk_size();
+    $parsed_chunk = bw_import_parse_csv_chunk($state['file_path'], (int) $state['row_cursor'], $chunk_size);
+    if (is_wp_error($parsed_chunk)) {
+        return $parsed_chunk;
     }
 
     $update_existing = !empty($state['update_existing']);
-
-    $result = bw_import_process_rows($parsed['headers'], $parsed['rows'], $mapping, $update_existing);
-    $message = sprintf(
-        /* translators: 1: created count, 2: updated count, 3: skipped count */
-        __('Import completed. Created: %1$d, Updated: %2$d, Skipped: %3$d', 'bw'),
-        (int) $result['created'],
-        (int) $result['updated'],
-        (int) $result['skipped']
+    $options = [
+        'skip_images' => !empty($state['skip_images']),
+    ];
+    $result = bw_import_process_rows(
+        $parsed_chunk['headers'],
+        $parsed_chunk['rows'],
+        $mapping,
+        $update_existing,
+        (int) $state['row_cursor'],
+        $options
     );
 
-    if (!empty($result['errors'])) {
-        $message .= ' — ' . implode(' | ', array_map('esc_html', $result['errors']));
+    $state['row_cursor'] = (int) $parsed_chunk['next_row'];
+    $state['totals']['created'] += (int) $result['created'];
+    $state['totals']['updated'] += (int) $result['updated'];
+    $state['totals']['skipped'] += (int) $result['skipped'];
+    $state['totals']['warnings'] += (int) $result['warnings_count'];
+    $state['last_errors'] = bw_import_merge_bounded_messages(
+        isset($state['last_errors']) ? (array) $state['last_errors'] : [],
+        isset($result['errors']) ? (array) $result['errors'] : []
+    );
+    $state['last_warnings'] = bw_import_merge_bounded_messages(
+        isset($state['last_warnings']) ? (array) $state['last_warnings'] : [],
+        isset($result['warnings']) ? (array) $result['warnings'] : []
+    );
+
+    if (empty($parsed_chunk['eof'])) {
+        bw_import_save_state($state);
+        return [
+            'message' => sprintf(
+                /* translators: 1: processed rows, 2: created count, 3: updated count, 4: skipped count */
+                __('Chunk completed. Processed rows: %1$d — Created: %2$d, Updated: %3$d, Skipped: %4$d. Click continue to process the next chunk.', 'bw'),
+                (int) $state['row_cursor'],
+                (int) $state['totals']['created'],
+                (int) $state['totals']['updated'],
+                (int) $state['totals']['skipped']
+            ),
+        ];
+    }
+
+    $message = sprintf(
+        /* translators: 1: created count, 2: updated count, 3: skipped count, 4: warnings count */
+        __('Import completed. Created: %1$d, Updated: %2$d, Skipped: %3$d, Warnings: %4$d', 'bw'),
+        (int) $state['totals']['created'],
+        (int) $state['totals']['updated'],
+        (int) $state['totals']['skipped'],
+        (int) $state['totals']['warnings']
+    );
+
+    if (!empty($state['last_errors'])) {
+        $message .= ' — ' . implode(' | ', array_map('esc_html', (array) $state['last_errors']));
     }
 
     bw_import_clear_state();
@@ -5322,6 +5436,16 @@ function bw_import_handle_run_request($state)
     return [
         'message' => $message,
     ];
+}
+
+/**
+ * Chunk size for importer run steps.
+ *
+ * @return int
+ */
+function bw_import_chunk_size()
+{
+    return (int) apply_filters('bw_import_chunk_size', 50);
 }
 
 /**
@@ -5408,6 +5532,59 @@ function bw_import_parse_csv_file($file_path, $max_rows = 0)
     return [
         'headers' => $headers,
         'rows' => $rows,
+    ];
+}
+
+/**
+ * Parse CSV in deterministic chunks without loading full file in memory.
+ *
+ * @param string $file_path  CSV file path.
+ * @param int    $start_row  Zero-based row index in data rows (header excluded).
+ * @param int    $limit      Max number of rows to return.
+ *
+ * @return array|WP_Error
+ */
+function bw_import_parse_csv_chunk($file_path, $start_row, $limit)
+{
+    $start_row = max(0, (int) $start_row);
+    $limit = max(1, (int) $limit);
+
+    if (!file_exists($file_path)) {
+        return new WP_Error('bw_import_missing_file', __('The uploaded CSV file cannot be found.', 'bw'));
+    }
+
+    $handle = fopen($file_path, 'r');
+    if (!$handle) {
+        return new WP_Error('bw_import_open_error', __('Unable to open the CSV file.', 'bw'));
+    }
+
+    $headers = fgetcsv($handle);
+    if (empty($headers)) {
+        fclose($handle);
+        return new WP_Error('bw_import_headers', __('The CSV file is missing a header row.', 'bw'));
+    }
+
+    $current_row = 0;
+    while ($current_row < $start_row && ($data = fgetcsv($handle)) !== false) {
+        $current_row++;
+    }
+
+    $rows = [];
+    $read_count = 0;
+    while ($read_count < $limit && ($data = fgetcsv($handle)) !== false) {
+        $rows[] = $data;
+        $read_count++;
+        $current_row++;
+    }
+
+    $eof = feof($handle);
+    fclose($handle);
+
+    return [
+        'headers' => $headers,
+        'rows' => $rows,
+        'next_row' => $current_row,
+        'eof' => $eof,
     ];
 }
 
@@ -5804,7 +5981,7 @@ function bw_import_pretty_meta_label($meta_key)
 function bw_import_has_identifier($mapping)
 {
     $values = array_values($mapping);
-    return in_array('product_id', $values, true) || in_array('sku', $values, true) || in_array('post_title', $values, true);
+    return in_array('sku', $values, true);
 }
 
 /**
@@ -5816,13 +5993,15 @@ function bw_import_has_identifier($mapping)
  *
  * @return array
  */
-function bw_import_process_rows($headers, $rows, $mapping, $update_existing = false)
+function bw_import_process_rows($headers, $rows, $mapping, $update_existing = false, $row_offset = 0, $options = [])
 {
     $result = [
         'created' => 0,
         'updated' => 0,
         'skipped' => 0,
+        'warnings_count' => 0,
         'errors' => [],
+        'warnings' => [],
     ];
 
     foreach ($rows as $row_index => $row) {
@@ -5834,18 +6013,25 @@ function bw_import_process_rows($headers, $rows, $mapping, $update_existing = fa
         $prepared = bw_import_prepare_row_data($row_data, $mapping);
         if (is_wp_error($prepared)) {
             $result['skipped']++;
-            $result['errors'][] = sprintf(__('Row %1$d: %2$s', 'bw'), $row_index + 2, $prepared->get_error_message());
+            $result['errors'][] = sprintf(__('Row %1$d: %2$s', 'bw'), $row_offset + $row_index + 2, $prepared->get_error_message());
             continue;
         }
 
-        $save_result = bw_import_save_product_from_row($prepared, $update_existing);
+        $save_result = bw_import_save_product_from_row($prepared, $update_existing, $options);
         if (is_wp_error($save_result)) {
             $result['skipped']++;
-            $result['errors'][] = sprintf(__('Row %1$d: %2$s', 'bw'), $row_index + 2, $save_result->get_error_message());
+            $result['errors'][] = sprintf(__('Row %1$d: %2$s', 'bw'), $row_offset + $row_index + 2, $save_result->get_error_message());
             continue;
         }
 
-        if ($save_result === 'updated') {
+        if (!empty($save_result['warnings'])) {
+            foreach ((array) $save_result['warnings'] as $warning) {
+                $result['warnings_count']++;
+                $result['warnings'][] = sprintf(__('Row %1$d: %2$s', 'bw'), $row_offset + $row_index + 2, $warning);
+            }
+        }
+
+        if (!empty($save_result['status']) && $save_result['status'] === 'updated') {
             $result['updated']++;
         } else {
             $result['created']++;
@@ -5983,8 +6169,8 @@ function bw_import_prepare_row_data($row_data, $mapping)
         }
     }
 
-    if (empty($data['product']['id']) && empty($data['product']['sku']) && empty($data['product']['name'])) {
-        return new WP_Error('bw_import_missing_identifiers', __('Missing Product ID, SKU or Title for this row.', 'bw'));
+    if (empty($data['product']['sku'])) {
+        return new WP_Error('bw_import_missing_identifiers', __('Missing SKU for this row.', 'bw'));
     }
 
     return $data;
@@ -6013,12 +6199,20 @@ function bw_import_explode_list($value)
  *
  * @return string|WP_Error
  */
-function bw_import_save_product_from_row($data, $update_existing = false)
+function bw_import_save_product_from_row($data, $update_existing = false, $options = [])
 {
+    $options = wp_parse_args(
+        $options,
+        [
+            'skip_images' => true,
+        ]
+    );
+
     $product_id = isset($data['product']['id']) ? absint($data['product']['id']) : 0;
     $sku = isset($data['product']['sku']) ? $data['product']['sku'] : '';
     $product = null;
     $status = 'created';
+    $warnings = [];
 
     if ($product_id) {
         $product = wc_get_product($product_id);
@@ -6156,57 +6350,31 @@ function bw_import_save_product_from_row($data, $update_existing = false)
         $product->set_tax_class($data['product']['tax_class']);
     }
 
-    try {
-        $product_id = $product->save();
-    } catch (Throwable $exception) {
-        return new WP_Error('bw_import_save', $exception->getMessage());
-    }
-
-    if (!$product_id) {
-        return new WP_Error('bw_import_save', __('Unable to save the product.', 'bw'));
-    }
-
     if (!empty($data['categories'])) {
-        bw_import_assign_terms($product_id, $data['categories'], 'product_cat');
+        $category_ids = bw_import_resolve_term_ids($data['categories'], 'product_cat');
+        if (!empty($category_ids)) {
+            $product->set_category_ids($category_ids);
+        }
     }
 
     if (!empty($data['tags'])) {
-        bw_import_assign_terms($product_id, $data['tags'], 'product_tag');
+        $tag_ids = bw_import_resolve_term_ids($data['tags'], 'product_tag');
+        if (!empty($tag_ids)) {
+            $product->set_tag_ids($tag_ids);
+        }
     }
 
     if (!empty($data['meta'])) {
         foreach ($data['meta'] as $meta_key => $meta_value) {
-            update_post_meta($product_id, $meta_key, $meta_value);
-        }
-    }
-
-    if (!empty($data['product']['featured_image'])) {
-        $attachment_id = bw_import_handle_image($data['product']['featured_image'], $product_id);
-        if ($attachment_id) {
-            set_post_thumbnail($product_id, $attachment_id);
-        }
-    }
-
-    if (!empty($data['product']['gallery'])) {
-        $gallery_ids = [];
-        foreach ($data['product']['gallery'] as $image_url) {
-            $image_id = bw_import_handle_image($image_url, $product_id);
-            if ($image_id) {
-                $gallery_ids[] = $image_id;
-            }
-        }
-        if (!empty($gallery_ids)) {
-            $product->set_gallery_image_ids($gallery_ids);
-            try {
-                $product->save();
-            } catch (Throwable $exception) {
-                return new WP_Error('bw_import_save', $exception->getMessage());
-            }
+            $product->update_meta_data($meta_key, $meta_value);
         }
     }
 
     if (!empty($data['attributes'])) {
-        bw_import_apply_attributes($product_id, $data['attributes']);
+        $attribute_objects = bw_import_build_attributes($data['attributes']);
+        if (!empty($attribute_objects)) {
+            $product->set_attributes($attribute_objects);
+        }
     }
 
     if (!empty($data['upsells'])) {
@@ -6217,13 +6385,48 @@ function bw_import_save_product_from_row($data, $update_existing = false)
         $product->set_cross_sell_ids(bw_import_locate_product_ids($data['cross_sells']));
     }
 
+    if (!empty($options['skip_images'])) {
+        if (!empty($data['product']['featured_image']) || !empty($data['product']['gallery'])) {
+            $warnings[] = __('Images skipped by configuration.', 'bw');
+        }
+    } else {
+        if (!empty($data['product']['featured_image'])) {
+            $attachment_id = bw_import_handle_image($data['product']['featured_image'], $product_id);
+            if ($attachment_id) {
+                $product->set_image_id($attachment_id);
+            } else {
+                $warnings[] = __('Featured image sideload failed.', 'bw');
+            }
+        }
+
+        if (!empty($data['product']['gallery'])) {
+            $gallery_ids = [];
+            foreach ($data['product']['gallery'] as $image_url) {
+                $image_id = bw_import_handle_image($image_url, $product_id);
+                if ($image_id) {
+                    $gallery_ids[] = $image_id;
+                } else {
+                    $warnings[] = sprintf(
+                        /* translators: %s: image URL */
+                        __('Gallery image sideload failed: %s', 'bw'),
+                        esc_url_raw($image_url)
+                    );
+                }
+            }
+            $product->set_gallery_image_ids($gallery_ids);
+        }
+    }
+
     try {
         $product->save();
     } catch (Throwable $exception) {
         return new WP_Error('bw_import_save', $exception->getMessage());
     }
 
-    return $status;
+    return [
+        'status' => $status,
+        'warnings' => $warnings,
+    ];
 }
 
 /**
@@ -6277,6 +6480,33 @@ function bw_import_assign_terms($product_id, $terms, $taxonomy)
     if (!empty($term_ids)) {
         wp_set_object_terms($product_id, $term_ids, $taxonomy, false);
     }
+}
+
+/**
+ * Resolve term IDs for a taxonomy, creating missing terms when possible.
+ *
+ * @param array  $terms    Terms list.
+ * @param string $taxonomy Taxonomy slug.
+ *
+ * @return array
+ */
+function bw_import_resolve_term_ids($terms, $taxonomy)
+{
+    $term_ids = [];
+    foreach ((array) $terms as $term) {
+        $existing = term_exists($term, $taxonomy);
+        if ($existing && !is_wp_error($existing)) {
+            $term_ids[] = (int) $existing['term_id'];
+            continue;
+        }
+
+        $created = wp_insert_term($term, $taxonomy);
+        if (!is_wp_error($created) && !empty($created['term_id'])) {
+            $term_ids[] = (int) $created['term_id'];
+        }
+    }
+
+    return $term_ids;
 }
 
 /**
@@ -6365,6 +6595,148 @@ function bw_import_apply_attributes($product_id, $attributes)
             $product->save();
         }
     }
+}
+
+/**
+ * Build product attributes array without saving the product.
+ *
+ * @param array $attributes Raw attributes map.
+ *
+ * @return array
+ */
+function bw_import_build_attributes($attributes)
+{
+    $product_attributes = [];
+
+    foreach ((array) $attributes as $taxonomy => $value) {
+        $terms = bw_import_explode_list($value);
+        if (empty($terms) || !taxonomy_exists($taxonomy)) {
+            continue;
+        }
+
+        $term_ids = bw_import_resolve_term_ids($terms, $taxonomy);
+        if (empty($term_ids)) {
+            continue;
+        }
+
+        $attribute = new WC_Product_Attribute();
+        $attribute->set_id(wc_attribute_taxonomy_id_by_name($taxonomy));
+        $attribute->set_name($taxonomy);
+        $attribute->set_options($term_ids);
+        $attribute->set_visible(true);
+        $attribute->set_variation(false);
+        $product_attributes[$taxonomy] = $attribute;
+    }
+
+    return $product_attributes;
+}
+
+/**
+ * Find mapped CSV header for a target field.
+ *
+ * @param array  $headers Headers list.
+ * @param array  $mapping Mapping array.
+ * @param string $target  Mapping target.
+ *
+ * @return string
+ */
+function bw_import_find_mapped_header($headers, $mapping, $target)
+{
+    foreach ((array) $headers as $header) {
+        if (isset($mapping[$header]) && $mapping[$header] === $target) {
+            return (string) $header;
+        }
+    }
+
+    return '';
+}
+
+/**
+ * Validate duplicate SKU rows before any write operation.
+ *
+ * @param string $file_path CSV path.
+ * @param array  $headers   CSV headers.
+ * @param array  $mapping   Mapping snapshot.
+ *
+ * @return true|WP_Error
+ */
+function bw_import_validate_unique_skus($file_path, $headers, $mapping)
+{
+    $sku_header = bw_import_find_mapped_header($headers, $mapping, 'sku');
+    if ($sku_header === '') {
+        return new WP_Error('bw_import_missing_sku_mapping', __('SKU mapping is required to run the import.', 'bw'));
+    }
+
+    $sku_column_index = array_search($sku_header, (array) $headers, true);
+    if ($sku_column_index === false) {
+        return new WP_Error('bw_import_missing_sku_column', __('Mapped SKU column was not found in CSV headers.', 'bw'));
+    }
+
+    $seen_skus = [];
+    $cursor = 0;
+    $chunk_size = bw_import_chunk_size();
+    $duplicate_examples = [];
+
+    while (true) {
+        $chunk = bw_import_parse_csv_chunk($file_path, $cursor, $chunk_size);
+        if (is_wp_error($chunk)) {
+            return $chunk;
+        }
+
+        foreach ($chunk['rows'] as $row) {
+            $raw_sku = isset($row[$sku_column_index]) ? $row[$sku_column_index] : '';
+            $sku = sanitize_text_field(trim((string) $raw_sku));
+            if ($sku === '') {
+                continue;
+            }
+
+            if (isset($seen_skus[$sku])) {
+                $duplicate_examples[] = $sku;
+                if (count($duplicate_examples) >= 10) {
+                    break 2;
+                }
+            } else {
+                $seen_skus[$sku] = true;
+            }
+        }
+
+        if (!empty($chunk['eof'])) {
+            break;
+        }
+        $cursor = (int) $chunk['next_row'];
+    }
+
+    if (!empty($duplicate_examples)) {
+        return new WP_Error(
+            'bw_import_duplicate_sku',
+            sprintf(
+                /* translators: %s: duplicate SKU list */
+                __('Duplicate SKU values found in CSV. Import aborted before writes. Examples: %s', 'bw'),
+                implode(', ', array_unique($duplicate_examples))
+            )
+        );
+    }
+
+    return true;
+}
+
+/**
+ * Merge and bound user-visible importer messages.
+ *
+ * @param array $existing Existing list.
+ * @param array $incoming New list.
+ * @param int   $limit    Max retained messages.
+ *
+ * @return array
+ */
+function bw_import_merge_bounded_messages($existing, $incoming, $limit = 20)
+{
+    $merged = array_merge((array) $existing, (array) $incoming);
+    if (count($merged) <= $limit) {
+        return $merged;
+    }
+
+    return array_slice($merged, -1 * absint($limit));
 }
 
 /**
