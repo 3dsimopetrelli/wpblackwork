@@ -74,6 +74,19 @@ Normative rules:
 - If decision direction changed, decision-log update is REQUIRED.
 - Closure MUST NOT occur before documentation synchronization.
 
+## 5.1) Invariant Confirmation
+
+- Any system invariant modified? (Yes/No)
+- Any invariant weakened or made ambiguous? (Yes/No)
+- Any new invariant implicitly introduced? (Yes/No)
+
+If YES:
+- ADR reference:
+- Documentation updated accordingly.
+
+Normative rule:
+- Closure MUST be blocked if invariant drift occurred without ADR.
+
 ## 6) Risk Reclassification
 
 Post-implementation risk assessment:
@@ -104,4 +117,3 @@ Required closure action:
 - Append closure entry to `docs/00-planning/decision-log.md`.
 
 Closure notes:
-

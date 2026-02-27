@@ -63,6 +63,26 @@ Required determination:
 - Governance impact status: `None` / `Controlled` / `ADR Required`
 - If `ADR Required`, implementation MUST NOT proceed.
 
+## 4.1) System Invariants Check
+
+Does this task impact any declared system invariants? (Yes/No)
+
+System invariants reference:
+- Canonical SKU identity
+- Single authority per truth surface
+- Protected commerce routes
+- Consent gate doctrine
+- Deterministic retry behavior
+- Tier 0 state immutability rules
+
+If YES:
+- Specify which invariant:
+- Explain impact:
+- ADR required? (Yes/No)
+
+Normative rule:
+- If a system invariant changes or becomes ambiguous, ADR is REQUIRED before implementation.
+
 ## 5) Determinism Statement
 
 Define deterministic behavior expected after change:
