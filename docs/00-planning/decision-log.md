@@ -38,3 +38,11 @@ If a decision is normative and architecture-binding, the ADR process MUST be use
   - Reject run configurations that do not provide SKU per row.
   - Validate deterministic duplicate-SKU failure behavior in regression runs.
   - Implement Import Engine v2 per `docs/30-features/import-products/import-products-vnext-spec.md`.
+
+## Governance Layer Closure
+
+Status: CLOSED  
+Date: 2026-02-27  
+Notes:
+Governance structure finalized after structural review and normalization.
+Further changes require ADR escalation.
