@@ -31,9 +31,10 @@ If a decision is normative and architecture-binding, the ADR process MUST be use
 - Date: 2026-02-27
 - Decision summary: SKU selected as the canonical unique key for the Import Domain in the Import Products vNext specification.
 - Affected domain: Data Import / Product Identity
-- Rationale: Convergence and idempotency model requires one immutable canonical key to prevent duplicate product identity paths.
+- Rationale: Convergence and idempotency model requires one immutable canonical key to prevent duplicate product identity paths. Woo-native uniqueness ensures deterministic bulk import behavior.
 - Risk impact: High
 - Follow-up actions:
   - Keep importer implementation backlog aligned with SKU-only identity rule.
   - Reject run configurations that do not provide SKU per row.
   - Validate deterministic duplicate-SKU failure behavior in regression runs.
+  - Implement Import Engine v2 per `docs/30-features/import-products/import-products-vnext-spec.md`.
