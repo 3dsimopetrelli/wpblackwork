@@ -54,3 +54,12 @@ Date: 2026-02-27
 Notes:
 Governance structure finalized after structural review and normalization.
 Further changes require ADR escalation.
+
+## Search AS-IS Documentation Closure
+
+Status: CLOSED
+Date: 2026-02-27
+Notes:
+Search runtime documented completely.
+Initial letter indexing not present in current implementation.
+Enhancements will be defined under Search vNext spec.
