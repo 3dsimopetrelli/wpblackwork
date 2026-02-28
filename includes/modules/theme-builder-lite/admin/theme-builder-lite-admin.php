@@ -57,8 +57,22 @@ add_action('admin_menu', 'bw_tbl_admin_menu', 21);
 if (!function_exists('bw_tbl_admin_enqueue_assets')) {
     function bw_tbl_admin_enqueue_assets($hook)
     {
-        $is_page = isset($_GET['page']) && 'bw-theme-builder-lite-settings' === sanitize_key(wp_unslash($_GET['page']));
-        if (!$is_page) {
+        $screen = function_exists('get_current_screen') ? get_current_screen() : null;
+        $page = isset($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : '';
+        $action = isset($_GET['action']) ? sanitize_key(wp_unslash($_GET['action'])) : '';
+
+        $is_settings_page = (
+            'bw-theme-builder-lite-settings' === $page
+            || 'blackwork-site-settings_page_bw-theme-builder-lite-settings' === $hook
+            || ($screen && 'blackwork-site-settings_page_bw-theme-builder-lite-settings' === $screen->id)
+        );
+
+        // Never load the settings JS inside Elementor editor routes.
+        if ('elementor' === $action) {
+            return;
+        }
+
+        if (!$is_settings_page) {
             return;
         }
 

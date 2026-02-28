@@ -110,6 +110,23 @@ if (!function_exists('bw_tbl_is_elementor_preview')) {
     }
 }
 
+if (!function_exists('bw_tbl_is_elementor_editor_request')) {
+    function bw_tbl_is_elementor_editor_request()
+    {
+        $action = isset($_GET['action']) ? sanitize_key(wp_unslash($_GET['action'])) : '';
+        if ('elementor' === $action) {
+            return true;
+        }
+
+        // Elementor preview iframe requests usually include this query key.
+        if (isset($_GET['elementor-preview'])) {
+            return true;
+        }
+
+        return false;
+    }
+}
+
 if (!function_exists('bw_tbl_get_runtime_footer_template_id')) {
     function bw_tbl_get_runtime_footer_template_id()
     {
@@ -121,7 +138,7 @@ if (!function_exists('bw_tbl_get_runtime_footer_template_id')) {
 
         $runtime_template_id = 0;
 
-        if (is_admin() || wp_doing_ajax() || is_feed() || is_embed() || bw_tbl_is_elementor_preview()) {
+        if (is_admin() || wp_doing_ajax() || is_feed() || is_embed() || bw_tbl_is_elementor_preview() || bw_tbl_is_elementor_editor_request()) {
             return $runtime_template_id;
         }
 
@@ -184,7 +201,12 @@ if (!function_exists('bw_tbl_render_footer_template_content')) {
         if (class_exists('\\Elementor\\Plugin')) {
             $plugin = \Elementor\Plugin::instance();
             if ($plugin && isset($plugin->frontend)) {
-                $content = $plugin->frontend->get_builder_content_for_display($template_id, true);
+                try {
+                    $content = $plugin->frontend->get_builder_content_for_display($template_id, true);
+                } catch (\Throwable $exception) {
+                    return '';
+                }
+
                 if (is_string($content) && '' !== trim($content)) {
                     return $content;
                 }
