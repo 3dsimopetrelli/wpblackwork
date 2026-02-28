@@ -138,7 +138,7 @@ if (!function_exists('bw_tbl_get_runtime_footer_template_id')) {
 
         $runtime_template_id = 0;
 
-        if (is_admin() || wp_doing_ajax() || is_feed() || is_embed() || bw_tbl_is_elementor_preview() || bw_tbl_is_elementor_editor_request()) {
+        if (is_admin() || wp_doing_ajax() || is_feed() || is_embed() || is_singular('bw_template') || bw_tbl_is_elementor_preview() || bw_tbl_is_elementor_editor_request()) {
             return $runtime_template_id;
         }
 
