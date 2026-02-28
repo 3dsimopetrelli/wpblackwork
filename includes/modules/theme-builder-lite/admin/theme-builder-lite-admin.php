@@ -143,84 +143,104 @@ if (!function_exists('bw_tbl_render_admin_page')) {
         }
 
         ?>
-        <div class="wrap">
+        <div class="wrap bw-tbl-admin-wrap">
             <h1><?php esc_html_e('Theme Builder Lite', 'bw'); ?></h1>
             <p><?php esc_html_e('Phase 1 controls: Custom Fonts and Footer Template override.', 'bw'); ?></p>
 
             <form method="post" action="options.php">
                 <?php settings_fields('bw_tbl_settings_group'); ?>
 
-                <h2><?php esc_html_e('Feature Flags', 'bw'); ?></h2>
-                <table class="form-table" role="presentation">
-                    <tr>
-                        <th scope="row"><?php esc_html_e('Enable Theme Builder Lite', 'bw'); ?></th>
-                        <td>
-                            <label>
-                                <input type="checkbox" name="<?php echo esc_attr(BW_TBL_FEATURE_FLAGS_OPTION); ?>[enabled]" value="1" <?php checked(!empty($flags['enabled'])); ?> />
-                                <?php esc_html_e('Master switch for Theme Builder Lite runtime.', 'bw'); ?>
-                            </label>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><?php esc_html_e('Enable Custom Fonts', 'bw'); ?></th>
-                        <td>
-                            <label>
-                                <input type="checkbox" name="<?php echo esc_attr(BW_TBL_FEATURE_FLAGS_OPTION); ?>[custom_fonts_enabled]" value="1" <?php checked(!empty($flags['custom_fonts_enabled'])); ?> />
-                                <?php esc_html_e('Output @font-face CSS on frontend when fonts are configured.', 'bw'); ?>
-                            </label>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><?php esc_html_e('Enable Footer Override', 'bw'); ?></th>
-                        <td>
-                            <label>
-                                <input type="checkbox" name="<?php echo esc_attr(BW_TBL_FEATURE_FLAGS_OPTION); ?>[footer_override_enabled]" value="1" <?php checked(!empty($flags['footer_override_enabled'])); ?> />
-                                <?php esc_html_e('Render active BW footer template instead of theme footer.', 'bw'); ?>
-                            </label>
-                        </td>
-                    </tr>
-                </table>
+                <h2 class="nav-tab-wrapper" id="bw-tbl-tabs" style="margin-bottom:16px;">
+                    <a href="#bw-tbl-tab-settings" class="nav-tab nav-tab-active" data-bw-tbl-tab="settings"><?php esc_html_e('Settings', 'bw'); ?></a>
+                    <a href="#bw-tbl-tab-fonts" class="nav-tab" data-bw-tbl-tab="fonts"><?php esc_html_e('Fonts', 'bw'); ?></a>
+                    <a href="#bw-tbl-tab-footer" class="nav-tab" data-bw-tbl-tab="footer"><?php esc_html_e('Footer', 'bw'); ?></a>
+                </h2>
 
-                <h2><?php esc_html_e('Custom Fonts', 'bw'); ?></h2>
-                <p><?php esc_html_e('Upload/select WOFF2 (preferred) or WOFF files from the WordPress media library.', 'bw'); ?></p>
-                <table class="widefat striped" id="bw-tbl-fonts-table">
-                    <thead>
+                <div id="bw-tbl-tab-settings" class="bw-tbl-tab-panel is-active" data-bw-tbl-panel="settings">
+                    <table class="form-table" role="presentation">
                         <tr>
-                            <th><?php esc_html_e('Font Family', 'bw'); ?></th>
-                            <th><?php esc_html_e('WOFF2 Source', 'bw'); ?></th>
-                            <th><?php esc_html_e('WOFF Source', 'bw'); ?></th>
-                            <th><?php esc_html_e('Weight', 'bw'); ?></th>
-                            <th><?php esc_html_e('Style', 'bw'); ?></th>
-                            <th><?php esc_html_e('Actions', 'bw'); ?></th>
+                            <th scope="row"><?php esc_html_e('Enable Theme Builder Lite', 'bw'); ?></th>
+                            <td>
+                                <label>
+                                    <input id="bw-tbl-flag-enabled" type="checkbox" name="<?php echo esc_attr(BW_TBL_FEATURE_FLAGS_OPTION); ?>[enabled]" value="1" <?php checked(!empty($flags['enabled'])); ?> />
+                                    <?php esc_html_e('Master switch for Theme Builder Lite runtime.', 'bw'); ?>
+                                </label>
+                                <p class="description"><?php esc_html_e('If disabled, all Theme Builder Lite frontend output is disabled (fonts + footer override).', 'bw'); ?></p>
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($fonts as $index => $font) : ?>
-                            <?php bw_tbl_render_font_row($index, $font); ?>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-                <p>
-                    <button type="button" class="button" id="bw-tbl-add-font-row"><?php esc_html_e('Add Font', 'bw'); ?></button>
-                </p>
+                    </table>
+                </div>
 
-                <h2><?php esc_html_e('Footer Template', 'bw'); ?></h2>
-                <table class="form-table" role="presentation">
-                    <tr>
-                        <th scope="row"><label for="bw-tbl-active-footer-template"><?php esc_html_e('Active Footer Template', 'bw'); ?></label></th>
-                        <td>
-                            <select id="bw-tbl-active-footer-template" name="<?php echo esc_attr(BW_TBL_FOOTER_OPTION); ?>[active_footer_template_id]">
-                                <option value="0"><?php esc_html_e('Use theme footer (disabled)', 'bw'); ?></option>
-                                <?php foreach ($footer_choices as $template_id => $template_title) : ?>
-                                    <option value="<?php echo esc_attr((string) $template_id); ?>" <?php selected((int) $footer_option['active_footer_template_id'], (int) $template_id); ?>><?php echo esc_html($template_title); ?></option>
+                <div id="bw-tbl-tab-fonts" class="bw-tbl-tab-panel" data-bw-tbl-panel="fonts" style="display:none;">
+                    <table class="form-table" role="presentation">
+                        <tr>
+                            <th scope="row"><?php esc_html_e('Enable Custom Fonts', 'bw'); ?></th>
+                            <td>
+                                <label>
+                                    <input id="bw-tbl-flag-custom-fonts" type="checkbox" name="<?php echo esc_attr(BW_TBL_FEATURE_FLAGS_OPTION); ?>[custom_fonts_enabled]" value="1" <?php checked(!empty($flags['custom_fonts_enabled'])); ?> />
+                                    <?php esc_html_e('Output @font-face CSS on frontend when fonts are configured.', 'bw'); ?>
+                                </label>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <div id="bw-tbl-fonts-controls" style="margin-top:8px;">
+                        <p><?php esc_html_e('Upload/select WOFF2 (preferred) or WOFF files from the WordPress media library.', 'bw'); ?></p>
+                        <table class="widefat striped" id="bw-tbl-fonts-table">
+                            <thead>
+                                <tr>
+                                    <th><?php esc_html_e('Font Family', 'bw'); ?></th>
+                                    <th><?php esc_html_e('WOFF2 Source', 'bw'); ?></th>
+                                    <th><?php esc_html_e('WOFF Source', 'bw'); ?></th>
+                                    <th><?php esc_html_e('Weight', 'bw'); ?></th>
+                                    <th><?php esc_html_e('Style', 'bw'); ?></th>
+                                    <th><?php esc_html_e('Actions', 'bw'); ?></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($fonts as $index => $font) : ?>
+                                    <?php bw_tbl_render_font_row($index, $font); ?>
                                 <?php endforeach; ?>
-                            </select>
-                            <p class="description">
-                                <?php esc_html_e('Create/edit templates under Blackwork Site > BW Templates. Phase 1 supports only templates with type "footer".', 'bw'); ?>
-                            </p>
-                        </td>
-                    </tr>
-                </table>
+                            </tbody>
+                        </table>
+                        <p>
+                            <button type="button" class="button" id="bw-tbl-add-font-row"><?php esc_html_e('Add Font', 'bw'); ?></button>
+                        </p>
+                    </div>
+                </div>
+
+                <div id="bw-tbl-tab-footer" class="bw-tbl-tab-panel" data-bw-tbl-panel="footer" style="display:none;">
+                    <table class="form-table" role="presentation">
+                        <tr>
+                            <th scope="row"><?php esc_html_e('Enable Footer Override', 'bw'); ?></th>
+                            <td>
+                                <label>
+                                    <input id="bw-tbl-flag-footer-override" type="checkbox" name="<?php echo esc_attr(BW_TBL_FEATURE_FLAGS_OPTION); ?>[footer_override_enabled]" value="1" <?php checked(!empty($flags['footer_override_enabled'])); ?> />
+                                    <?php esc_html_e('Render active BW footer template instead of theme footer.', 'bw'); ?>
+                                </label>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <div id="bw-tbl-footer-controls" style="margin-top:8px;">
+                        <table class="form-table" role="presentation">
+                            <tr>
+                                <th scope="row"><label for="bw-tbl-active-footer-template"><?php esc_html_e('Active Footer Template', 'bw'); ?></label></th>
+                                <td>
+                                    <select id="bw-tbl-active-footer-template" name="<?php echo esc_attr(BW_TBL_FOOTER_OPTION); ?>[active_footer_template_id]">
+                                        <option value="0"><?php esc_html_e('Use theme footer (disabled)', 'bw'); ?></option>
+                                        <?php foreach ($footer_choices as $template_id => $template_title) : ?>
+                                            <option value="<?php echo esc_attr((string) $template_id); ?>" <?php selected((int) $footer_option['active_footer_template_id'], (int) $template_id); ?>><?php echo esc_html($template_title); ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                    <p class="description">
+                                        <?php esc_html_e('Create/edit templates under Blackwork Site > BW Templates. Phase 1 supports only templates with type "footer".', 'bw'); ?>
+                                    </p>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
 
                 <?php submit_button(__('Save Theme Builder Lite Settings', 'bw')); ?>
             </form>

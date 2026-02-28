@@ -54,11 +54,30 @@ Excluded from Phase 1:
 ### Post Type and Meta
 - CPT: `bw_template`
 - Post meta: `bw_template_type` (Phase 1 value: `footer`)
+- Elementor support automation:
+  - Filter path: `elementor/cpt_support` includes `bw_template`
+  - Option sync path: `elementor_cpt_support` is auto-updated in admin to include `bw_template`
+  - Result: `Edit with Elementor` is available without manual Elementor settings changes
 
 ## 4) Feature Flags
 - Master switch: `bw_theme_builder_lite_flags[enabled]`
 - Fonts switch: `bw_theme_builder_lite_flags[custom_fonts_enabled]`
 - Footer switch: `bw_theme_builder_lite_flags[footer_override_enabled]`
+
+## 4.1) Admin UI Tabs and Option Mapping
+- Tab `Settings` (default):
+  - `bw_theme_builder_lite_flags[enabled]`
+- Tab `Fonts`:
+  - `bw_theme_builder_lite_flags[custom_fonts_enabled]`
+  - `bw_custom_fonts_v1[...]`
+  - Fonts table is hidden when `custom_fonts_enabled=0`
+- Tab `Footer`:
+  - `bw_theme_builder_lite_flags[footer_override_enabled]`
+  - `bw_theme_builder_lite_footer_v1[active_footer_template_id]`
+  - Active footer selector is hidden when `footer_override_enabled=0`
+
+Persistence rule:
+- Single settings form persists all option keys across tabs.
 
 ## 5) Rollback Steps
 1. Open `Blackwork Site -> Theme Builder Lite`.
