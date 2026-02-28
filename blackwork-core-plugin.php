@@ -84,6 +84,11 @@ if (file_exists(plugin_dir_path(__FILE__) . 'includes/modules/header/header-modu
     require_once plugin_dir_path(__FILE__) . 'includes/modules/header/header-module.php';
 }
 
+// Theme Builder Lite module (fonts + footer template runtime)
+if (file_exists(plugin_dir_path(__FILE__) . 'includes/modules/theme-builder-lite/theme-builder-lite-module.php')) {
+    require_once plugin_dir_path(__FILE__) . 'includes/modules/theme-builder-lite/theme-builder-lite-module.php';
+}
+
 // Checkout fields manager (admin + frontend)
 $bw_checkout_fields_admin = plugin_dir_path(__FILE__) . 'includes/admin/checkout-fields/class-bw-checkout-fields-admin.php';
 $bw_checkout_fields_frontend = plugin_dir_path(__FILE__) . 'includes/admin/checkout-fields/class-bw-checkout-fields-frontend.php';

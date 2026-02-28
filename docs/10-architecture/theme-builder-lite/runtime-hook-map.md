@@ -1,146 +1,50 @@
-# Theme Builder Lite - Runtime Hook Map (Foundation)
+# Theme Builder Lite - Runtime Hook Map (Phase 1 Actual)
 
-## 1) Purpose
-This map defines the planned runtime hook contract for Theme Builder Lite MVP.
-It is governance-facing and deterministic by design.
+## Purpose
+Actual runtime hooks used by Phase 1 implementation.
+Scope is limited to Custom Fonts and Footer Template.
 
-Scope:
-- Custom Fonts
-- Footer template rendering
-- Single Product template rendering
-- Condition resolution lifecycle
+## Hook Inventory
 
-Non-scope:
-- Redirect authority
-- Checkout/payment/auth authority surfaces
-- Global template stack ownership
+| Hook | Priority | Callback | File | Function |
+|---|---:|---|---|---|
+| `init` | 9 | `bw_tbl_register_template_cpt` | `includes/modules/theme-builder-lite/cpt/template-cpt.php` | Register `bw_template` CPT |
+| `init` | 10 | `bw_tbl_register_template_type_meta` | `includes/modules/theme-builder-lite/cpt/template-meta.php` | Register `bw_template_type` post meta |
+| `admin_init` | 10 (default) | `bw_tbl_register_admin_settings` | `includes/modules/theme-builder-lite/admin/theme-builder-lite-admin.php` | Register options and sanitizers |
+| `admin_menu` | 21 | `bw_tbl_admin_menu` | `includes/modules/theme-builder-lite/admin/theme-builder-lite-admin.php` | Add Theme Builder Lite submenu |
+| `admin_enqueue_scripts` | 10 (default) | `bw_tbl_admin_enqueue_assets` | `includes/modules/theme-builder-lite/admin/theme-builder-lite-admin.php` | Enqueue admin JS/media uploader |
+| `add_meta_boxes` | 10 (default) | `bw_tbl_add_template_type_metabox` | `includes/modules/theme-builder-lite/cpt/template-meta.php` | Add template type metabox |
+| `save_post_bw_template` | 10 (default) | `bw_tbl_save_template_type_metabox` | `includes/modules/theme-builder-lite/cpt/template-meta.php` | Persist template type |
+| `wp_insert_post` | 10 (default) | `bw_tbl_default_template_type_on_insert` | `includes/modules/theme-builder-lite/cpt/template-meta.php` | Default type on first insert |
+| `elementor/cpt_support` (filter) | 10 (default) | `bw_tbl_add_elementor_cpt_support` | `includes/modules/theme-builder-lite/cpt/template-cpt.php` | Enable Elementor Free editing for `bw_template` |
+| `upload_mimes` (filter) | 10 (default) | `bw_tbl_allow_font_upload_mimes` | `includes/modules/theme-builder-lite/fonts/custom-fonts.php` | Allow WOFF/WOFF2 uploads for admins |
+| `wp_check_filetype_and_ext` (filter) | 10 | `bw_tbl_fix_font_filetype_and_ext` | `includes/modules/theme-builder-lite/fonts/custom-fonts.php` | Normalize font file type detection |
+| `wp_enqueue_scripts` | 20 | `bw_tbl_enqueue_custom_fonts_css` | `includes/modules/theme-builder-lite/fonts/custom-fonts.php` | Enqueue generated `@font-face` CSS |
+| `wp` | 20 | `bw_tbl_prepare_footer_runtime` | `includes/modules/theme-builder-lite/runtime/footer-runtime.php` | Resolve active footer and remove known theme footer callback |
+| `wp_head` | 99 | `bw_tbl_footer_theme_fallback_css` | `includes/modules/theme-builder-lite/runtime/footer-runtime.php` | Scoped CSS fallback to suppress theme footer |
+| `wp_footer` | 20 | `bw_tbl_render_footer_template` | `includes/modules/theme-builder-lite/runtime/footer-runtime.php` | Render active Elementor footer template |
 
-## 2) Hook Inventory (Planned)
+## Feature Flag Gates
+Option: `bw_theme_builder_lite_flags`
+- Master gate: `enabled`
+- Fonts gate: `custom_fonts_enabled`
+- Footer gate: `footer_override_enabled`
 
-| Hook | Priority | Callback | Purpose | Domain | Notes |
-|---|---:|---|---|---|---|
-| `plugins_loaded` | 15 | `bw_tbl_bootstrap_module` | Load module files after plugin bootstrap | Theme Builder Lite | Must short-circuit if Elementor/Woo deps missing where required. |
-| `init` | 9 | `bw_tbl_register_template_cpt` | Register `bw_template` CPT | Theme Builder Lite | CPT is storage + editor target only. |
-| `init` | 10 | `bw_tbl_register_template_meta` | Register/sanitize template meta schema | Theme Builder Lite | Includes conditions/version/priority/type/enabled. |
-| `elementor/cpt_support` (filter) | 10 | `bw_tbl_add_elementor_cpt_support` | Allow Elementor Free editing of `bw_template` | Elementor Integration | No custom builder logic. |
-| `wp_enqueue_scripts` | 20 | `bw_tbl_enqueue_custom_fonts` | Enqueue generated `@font-face` CSS | Custom Fonts | Runs only if flags + font records available. |
-| `wp` | 20 | `bw_tbl_prepare_footer_runtime` | Precompute footer candidate + remove known theme footer callbacks if needed | Footer Runtime | Execute only when footer module enabled and candidate exists. |
-| `wp_head` | 99 | `bw_tbl_footer_fallback_css` | Conditional footer-hide CSS fallback | Footer Runtime | Used only when callback removal is not possible. |
-| `wp_footer` | 20 | `bw_tbl_render_footer_template` | Render resolved footer template | Footer Runtime | Fail-open: if resolve/render fails, do nothing. |
-| `template_redirect` | 9 | `bw_tbl_prepare_single_product_runtime` | Resolve single product candidate and wire request-local hooks | Single Product Runtime | Must only run on `is_product()`. |
-| `woocommerce_before_single_product` | 5 | `bw_tbl_render_single_product_template` | Render resolved Elementor template for single product | Single Product Runtime | Active only if resolver selected a template for this request. |
+Runtime behavior:
+- All frontend output paths are gated by these flags.
+- If flag checks fail, hooks return without mutation/output.
 
-## 3) Woo Single Product Replacement Contract
+## Fallback Contract
 
-When `bw_tbl_prepare_single_product_runtime` resolves a template:
-- Remove default Woo single product callbacks for current request only.
-- Register custom renderer at `woocommerce_before_single_product` priority 5.
+Footer:
+- Active template must be `bw_template` + `publish` + `bw_template_type=footer`.
+- If invalid/missing/error: no custom output, theme footer remains.
 
-Default callbacks intended for removal (request-local):
-- `woocommerce_before_single_product_summary`:
-  - `woocommerce_show_product_sale_flash` (10)
-  - `woocommerce_show_product_images` (20)
-- `woocommerce_single_product_summary`:
-  - `woocommerce_template_single_title` (5)
-  - `woocommerce_template_single_rating` (10)
-  - `woocommerce_template_single_price` (10)
-  - `woocommerce_template_single_excerpt` (20)
-  - `woocommerce_template_single_add_to_cart` (30)
-  - `woocommerce_template_single_meta` (40)
-  - `woocommerce_template_single_sharing` (50)
-  - `WC_Structured_Data::generate_product_data` (60)
-- `woocommerce_after_single_product_summary`:
-  - `woocommerce_output_product_data_tabs` (10)
-  - `woocommerce_upsell_display` (15)
-  - `woocommerce_output_related_products` (20)
+Fonts:
+- At least one valid source is required.
+- Invalid rows are skipped without blocking frontend.
 
-Governance rule:
-- This removal must be request-scoped and enabled only when a valid Theme Builder Lite template is selected.
-
-## 4) Condition Engine Runtime Calls
-
-Primary runtime API:
-- `bw_tbl_resolve_template($type, $context)`
-
-Context keys (MVP):
-- `is_product`
-- `product_id`
-- `product_cat_ids`
-- `is_search`
-
-Resolution sequence:
-1. Load published `bw_template` posts for `$type`.
-2. Filter by `_bw_tmpl_enabled`.
-3. Evaluate `_bw_tmpl_conditions`.
-4. Sort by deterministic tie-break.
-5. Return one template ID or `0`.
-
-Determinism tie-break (mandatory):
-1. `_bw_tmpl_priority` DESC
-2. Specificity score DESC
-3. `post_modified_gmt` DESC
-4. `ID` DESC
-
-## 5) Conflict and Collision Rules
-
-### 5.1 Footer collisions
-Potential collisions:
-- Theme footer callbacks
-- Third-party footer injections
-- Existing `wp_footer` plugin callbacks (example: account modal output)
-
-Resolution:
-- Theme footer suppression only when a custom footer is active.
-- Keep non-theme `wp_footer` callbacks untouched.
-- Custom footer render at priority 20 to remain compatible with late scripts/modals.
-
-### 5.2 Single product collisions
-Potential collisions:
-- Existing Woo single product customizations
-- Third-party content injections in Woo hooks
-
-Resolution:
-- Default Woo callbacks are removed only when custom template active.
-- Third-party callbacks are not globally removed unless explicitly mapped in future hardening pass.
-- If collisions remain, maintain feature-flagged off switch at module level.
-
-### 5.3 Existing plugin override stack
-Existing stack to preserve:
-- `woocommerce_locate_template` and `woocommerce_locate_core_template` custom resolver in `woocommerce/woocommerce-init.php`.
-
-Rule:
-- Theme Builder Lite must not modify this resolver behavior for MVP.
-
-## 6) Feature Flag Hook Gates
-
-Option key:
-- `bw_theme_builder_lite_flags`
-
-Gate checks:
-- Before registering runtime hooks, check `enabled`.
-- Before footer hooks, check `footer_templates_enabled`.
-- Before single product hooks, check `single_product_templates_enabled`.
-- Before custom fonts enqueue, check `custom_fonts_enabled`.
-
-Rollback behavior:
-- Turning flags off disables callbacks and returns control to theme/Woo defaults.
-
-## 7) Fallback and Fail-Open Rules
-
-Footer fail-open:
-- Resolver miss -> do nothing.
-- Render error -> do nothing and keep theme footer.
-
-Single product fail-open:
-- Resolver miss -> no hook removals; Woo default lifecycle remains.
-- Invalid template content -> abort custom render and keep Woo default.
-
-Custom fonts fail-open:
-- Invalid source or broken metadata -> skip font-face generation for that entry.
-
-## 8) What Must Not Change
-
-- Do not alter Tier 0 hook priorities documented in core runtime map.
-- Do not hijack `template_include` globally.
-- Do not register hooks without feature-flag gating.
-- Do not suppress theme fallback when no valid custom template exists.
+## Explicitly Not Used in Phase 1
+- `template_include`
+- WooCommerce single product hooks
+- Header runtime hooks

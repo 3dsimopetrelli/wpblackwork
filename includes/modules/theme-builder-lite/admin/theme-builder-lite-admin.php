@@ -1,0 +1,243 @@
+<?php
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+if (!function_exists('bw_tbl_register_admin_settings')) {
+    function bw_tbl_register_admin_settings()
+    {
+        register_setting(
+            'bw_tbl_settings_group',
+            BW_TBL_FEATURE_FLAGS_OPTION,
+            [
+                'type' => 'array',
+                'sanitize_callback' => 'bw_tbl_sanitize_feature_flags',
+                'default' => bw_tbl_feature_flag_defaults(),
+            ]
+        );
+
+        register_setting(
+            'bw_tbl_settings_group',
+            BW_TBL_CUSTOM_FONTS_OPTION,
+            [
+                'type' => 'array',
+                'sanitize_callback' => 'bw_tbl_sanitize_custom_fonts_option',
+                'default' => bw_tbl_default_custom_fonts_option(),
+            ]
+        );
+
+        register_setting(
+            'bw_tbl_settings_group',
+            BW_TBL_FOOTER_OPTION,
+            [
+                'type' => 'array',
+                'sanitize_callback' => 'bw_tbl_sanitize_footer_option',
+                'default' => bw_tbl_default_footer_option(),
+            ]
+        );
+    }
+}
+add_action('admin_init', 'bw_tbl_register_admin_settings');
+
+if (!function_exists('bw_tbl_admin_menu')) {
+    function bw_tbl_admin_menu()
+    {
+        add_submenu_page(
+            'blackwork-site-settings',
+            __('Theme Builder Lite', 'bw'),
+            __('Theme Builder Lite', 'bw'),
+            'manage_options',
+            'bw-theme-builder-lite-settings',
+            'bw_tbl_render_admin_page'
+        );
+    }
+}
+add_action('admin_menu', 'bw_tbl_admin_menu', 21);
+
+if (!function_exists('bw_tbl_admin_enqueue_assets')) {
+    function bw_tbl_admin_enqueue_assets($hook)
+    {
+        $is_page = isset($_GET['page']) && 'bw-theme-builder-lite-settings' === sanitize_key(wp_unslash($_GET['page']));
+        if (!$is_page) {
+            return;
+        }
+
+        wp_enqueue_media();
+
+        $script_path = BW_MEW_PATH . 'includes/modules/theme-builder-lite/admin/theme-builder-lite-admin.js';
+        wp_enqueue_script(
+            'bw-theme-builder-lite-admin',
+            BW_MEW_URL . 'includes/modules/theme-builder-lite/admin/theme-builder-lite-admin.js',
+            ['jquery', 'media-editor', 'media-models', 'media-views'],
+            file_exists($script_path) ? filemtime($script_path) : '1.0.0',
+            true
+        );
+    }
+}
+add_action('admin_enqueue_scripts', 'bw_tbl_admin_enqueue_assets');
+
+if (!function_exists('bw_tbl_render_font_row')) {
+    function bw_tbl_render_font_row($index, $font)
+    {
+        $index = absint($index);
+
+        $family = isset($font['font_family']) ? (string) $font['font_family'] : '';
+        $sources = isset($font['sources']) && is_array($font['sources']) ? $font['sources'] : [];
+        $woff2 = isset($sources['woff2']) ? (string) $sources['woff2'] : '';
+        $woff = isset($sources['woff']) ? (string) $sources['woff'] : '';
+        $weight = isset($font['font_weight']) ? (string) $font['font_weight'] : '400';
+        $style = isset($font['font_style']) ? (string) $font['font_style'] : 'normal';
+        ?>
+        <tr class="bw-tbl-font-row">
+            <td>
+                <input type="text" class="regular-text" name="<?php echo esc_attr(BW_TBL_CUSTOM_FONTS_OPTION); ?>[fonts][<?php echo esc_attr((string) $index); ?>][font_family]" value="<?php echo esc_attr($family); ?>" placeholder="Inter" />
+            </td>
+            <td>
+                <input type="url" class="regular-text bw-tbl-font-source bw-tbl-font-source-woff2" name="<?php echo esc_attr(BW_TBL_CUSTOM_FONTS_OPTION); ?>[fonts][<?php echo esc_attr((string) $index); ?>][sources][woff2]" value="<?php echo esc_url($woff2); ?>" placeholder="https://...font.woff2" />
+                <button type="button" class="button bw-tbl-media-select" data-format="woff2"><?php esc_html_e('Select .woff2', 'bw'); ?></button>
+            </td>
+            <td>
+                <input type="url" class="regular-text bw-tbl-font-source bw-tbl-font-source-woff" name="<?php echo esc_attr(BW_TBL_CUSTOM_FONTS_OPTION); ?>[fonts][<?php echo esc_attr((string) $index); ?>][sources][woff]" value="<?php echo esc_url($woff); ?>" placeholder="https://...font.woff" />
+                <button type="button" class="button bw-tbl-media-select" data-format="woff"><?php esc_html_e('Select .woff', 'bw'); ?></button>
+            </td>
+            <td>
+                <input type="text" class="small-text" name="<?php echo esc_attr(BW_TBL_CUSTOM_FONTS_OPTION); ?>[fonts][<?php echo esc_attr((string) $index); ?>][font_weight]" value="<?php echo esc_attr($weight); ?>" placeholder="400" />
+            </td>
+            <td>
+                <select name="<?php echo esc_attr(BW_TBL_CUSTOM_FONTS_OPTION); ?>[fonts][<?php echo esc_attr((string) $index); ?>][font_style]">
+                    <option value="normal" <?php selected($style, 'normal'); ?>><?php esc_html_e('normal', 'bw'); ?></option>
+                    <option value="italic" <?php selected($style, 'italic'); ?>><?php esc_html_e('italic', 'bw'); ?></option>
+                    <option value="oblique" <?php selected($style, 'oblique'); ?>><?php esc_html_e('oblique', 'bw'); ?></option>
+                </select>
+            </td>
+            <td>
+                <button type="button" class="button-link-delete bw-tbl-remove-font-row"><?php esc_html_e('Remove', 'bw'); ?></button>
+            </td>
+        </tr>
+        <?php
+    }
+}
+
+if (!function_exists('bw_tbl_render_admin_page')) {
+    function bw_tbl_render_admin_page()
+    {
+        if (!current_user_can('manage_options')) {
+            return;
+        }
+
+        $flags = bw_tbl_get_feature_flags();
+        $fonts_option = bw_tbl_get_custom_fonts_option();
+        $footer_option = bw_tbl_get_footer_option();
+        $footer_choices = bw_tbl_get_footer_template_choices();
+
+        $fonts = isset($fonts_option['fonts']) && is_array($fonts_option['fonts']) ? $fonts_option['fonts'] : [];
+        if (empty($fonts)) {
+            $fonts = [
+                [
+                    'font_family' => '',
+                    'sources' => ['woff2' => '', 'woff' => ''],
+                    'font_weight' => '400',
+                    'font_style' => 'normal',
+                ],
+            ];
+        }
+
+        ?>
+        <div class="wrap">
+            <h1><?php esc_html_e('Theme Builder Lite', 'bw'); ?></h1>
+            <p><?php esc_html_e('Phase 1 controls: Custom Fonts and Footer Template override.', 'bw'); ?></p>
+
+            <form method="post" action="options.php">
+                <?php settings_fields('bw_tbl_settings_group'); ?>
+
+                <h2><?php esc_html_e('Feature Flags', 'bw'); ?></h2>
+                <table class="form-table" role="presentation">
+                    <tr>
+                        <th scope="row"><?php esc_html_e('Enable Theme Builder Lite', 'bw'); ?></th>
+                        <td>
+                            <label>
+                                <input type="checkbox" name="<?php echo esc_attr(BW_TBL_FEATURE_FLAGS_OPTION); ?>[enabled]" value="1" <?php checked(!empty($flags['enabled'])); ?> />
+                                <?php esc_html_e('Master switch for Theme Builder Lite runtime.', 'bw'); ?>
+                            </label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><?php esc_html_e('Enable Custom Fonts', 'bw'); ?></th>
+                        <td>
+                            <label>
+                                <input type="checkbox" name="<?php echo esc_attr(BW_TBL_FEATURE_FLAGS_OPTION); ?>[custom_fonts_enabled]" value="1" <?php checked(!empty($flags['custom_fonts_enabled'])); ?> />
+                                <?php esc_html_e('Output @font-face CSS on frontend when fonts are configured.', 'bw'); ?>
+                            </label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><?php esc_html_e('Enable Footer Override', 'bw'); ?></th>
+                        <td>
+                            <label>
+                                <input type="checkbox" name="<?php echo esc_attr(BW_TBL_FEATURE_FLAGS_OPTION); ?>[footer_override_enabled]" value="1" <?php checked(!empty($flags['footer_override_enabled'])); ?> />
+                                <?php esc_html_e('Render active BW footer template instead of theme footer.', 'bw'); ?>
+                            </label>
+                        </td>
+                    </tr>
+                </table>
+
+                <h2><?php esc_html_e('Custom Fonts', 'bw'); ?></h2>
+                <p><?php esc_html_e('Upload/select WOFF2 (preferred) or WOFF files from the WordPress media library.', 'bw'); ?></p>
+                <table class="widefat striped" id="bw-tbl-fonts-table">
+                    <thead>
+                        <tr>
+                            <th><?php esc_html_e('Font Family', 'bw'); ?></th>
+                            <th><?php esc_html_e('WOFF2 Source', 'bw'); ?></th>
+                            <th><?php esc_html_e('WOFF Source', 'bw'); ?></th>
+                            <th><?php esc_html_e('Weight', 'bw'); ?></th>
+                            <th><?php esc_html_e('Style', 'bw'); ?></th>
+                            <th><?php esc_html_e('Actions', 'bw'); ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($fonts as $index => $font) : ?>
+                            <?php bw_tbl_render_font_row($index, $font); ?>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+                <p>
+                    <button type="button" class="button" id="bw-tbl-add-font-row"><?php esc_html_e('Add Font', 'bw'); ?></button>
+                </p>
+
+                <h2><?php esc_html_e('Footer Template', 'bw'); ?></h2>
+                <table class="form-table" role="presentation">
+                    <tr>
+                        <th scope="row"><label for="bw-tbl-active-footer-template"><?php esc_html_e('Active Footer Template', 'bw'); ?></label></th>
+                        <td>
+                            <select id="bw-tbl-active-footer-template" name="<?php echo esc_attr(BW_TBL_FOOTER_OPTION); ?>[active_footer_template_id]">
+                                <option value="0"><?php esc_html_e('Use theme footer (disabled)', 'bw'); ?></option>
+                                <?php foreach ($footer_choices as $template_id => $template_title) : ?>
+                                    <option value="<?php echo esc_attr((string) $template_id); ?>" <?php selected((int) $footer_option['active_footer_template_id'], (int) $template_id); ?>><?php echo esc_html($template_title); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <p class="description">
+                                <?php esc_html_e('Create/edit templates under Blackwork Site > BW Templates. Phase 1 supports only templates with type "footer".', 'bw'); ?>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+
+                <?php submit_button(__('Save Theme Builder Lite Settings', 'bw')); ?>
+            </form>
+        </div>
+        <script type="text/html" id="tmpl-bw-tbl-font-row">
+            <?php
+            bw_tbl_render_font_row(
+                99999,
+                [
+                    'font_family' => '',
+                    'sources' => ['woff2' => '', 'woff' => ''],
+                    'font_weight' => '400',
+                    'font_style' => 'normal',
+                ]
+            );
+            ?>
+        </script>
+        <?php
+    }
+}
