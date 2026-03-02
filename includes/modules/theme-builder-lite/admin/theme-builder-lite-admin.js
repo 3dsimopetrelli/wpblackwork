@@ -108,15 +108,25 @@
         var $button = $(this);
         var format = ($button.data('format') || '').toString().toLowerCase();
         var $input = $button.siblings('input.bw-tbl-font-source');
+        var libraryType = '';
+        var modalTitle = 'Select font file';
+
+        if (format === 'woff2') {
+            libraryType = 'font/woff2';
+            modalTitle = 'Select .woff2 font file';
+        } else if (format === 'woff') {
+            libraryType = 'font/woff';
+            modalTitle = 'Select .woff font file';
+        }
 
         var frame = wp.media({
-            title: 'Select font file',
+            title: modalTitle,
             button: {
                 text: 'Use this font'
             },
             multiple: false,
             library: {
-                type: ''
+                type: libraryType
             }
         });
 
