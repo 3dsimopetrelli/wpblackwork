@@ -50,6 +50,17 @@ If a decision is normative and architecture-binding, the ADR process MUST be use
   - Preserve preview guards that bypass footer override during Elementor editor/preview and `bw_template` singular requests.
   - Re-evaluate this contract if future template types introduce public routing requirements.
 
+### Entry 004
+- Date: 2026-03-02
+- Decision summary: Theme Builder Lite Custom Fonts Elementor integration uses deferred bootstrap (`plugins_loaded` immediate check + `elementor/loaded` fallback) with idempotent registration guard.
+- Affected domain: Theme Builder Lite / Custom Fonts / Elementor Integration
+- Rationale: Elementor may emit `elementor/loaded` before dependent plugin hook registration depending on load order; deferred bootstrap guarantees deterministic registration without duplicate hooks.
+- Risk impact: Medium reduced to Low-Medium for runtime registration timing failures.
+- Follow-up actions:
+  - Keep hook surfaces limited to `elementor/fonts/groups`, `elementor/fonts/additional_fonts`, and editor/preview style enqueue hooks.
+  - Revalidate integration filters when Elementor major versions change.
+  - Maintain fail-open behavior if Elementor is unavailable or filters are altered upstream.
+
 ## Governance Layer Closure
 
 Status: CLOSED  

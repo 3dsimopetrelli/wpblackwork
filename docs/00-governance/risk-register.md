@@ -49,6 +49,30 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
   - Runtime docs updated with actual hook isolation contract.
 - Closure status: Resolved
 
+#### Resolved Risk ID: R-TBL-03 (Closed)
+- Domain: Theme Builder Lite / Custom Fonts / Elementor UI
+- Previous threat: Custom fonts configured in `bw_custom_fonts_v1` were not reliably injected into Elementor Typography family dropdown and not consistently available in editor preview context.
+- Resolution evidence:
+  - Dedicated Elementor fonts integration module added with group + family injection hooks.
+  - Shared deterministic CSS builder reused for frontend and Elementor editor/preview enqueue paths.
+  - Manual validation confirmed: `Custom Fonts` group visible, configured family selectable, and rendered in editor preview iframe.
+  - Hook map + spec updated with final contracts.
+- Closure status: Resolved
+
+### Risk ID: R-TBL-04
+- Domain: Theme Builder Lite / Elementor Compatibility
+- Surface Anchor: `includes/modules/theme-builder-lite/integrations/elementor-fonts.php` (`elementor/fonts/groups`, `elementor/fonts/additional_fonts`, bootstrap defer on `plugins_loaded` + `elementor/loaded`)
+- Description: Elementor internal API/filter behavior may drift across releases, potentially degrading custom font group/list injection without hard failures.
+- Invariant Threatened: Deterministic visibility of configured custom families in Elementor Typography controls.
+- Impact: Medium
+- Likelihood: Medium
+- Risk Level: Medium
+- Current Mitigation: Soft dependency + defer bootstrap pattern + idempotent registration guard + fail-open behavior when Elementor is absent or filters are unavailable.
+- Monitoring Status: Monitoring
+- Linked Documents:
+  - [Theme Builder Lite Spec](../30-features/theme-builder-lite/theme-builder-lite-spec.md)
+  - [Theme Builder Lite Runtime Hook Map](../10-architecture/theme-builder-lite/runtime-hook-map.md)
+
 ### Risk ID: R-CHK-01
 - Domain: Checkout / Payments
 - Surface Anchor: `assets/js/bw-payment-methods.js`, `assets/js/bw-google-pay.js`, `assets/js/bw-apple-pay.js` (`updated_checkout` handlers)
