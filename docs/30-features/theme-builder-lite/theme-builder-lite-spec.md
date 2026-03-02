@@ -260,6 +260,14 @@ Resolver contract:
   - nonce + capability checks on save
   - empty/invalid input normalizes to empty arrays (fail-open with resolver contract).
 
+### Admin UX - BW Templates List Table (Implemented)
+- `bw_template` list table shows additional informative columns:
+  - `Type` (label from `bw_template_type`)
+  - `Priority` (`bw_template_priority`, default `10`)
+  - `Applies To` (summary from `bw_tbl_display_rules_v1`, include/exclude with concise truncation)
+- Optional type filter dropdown is available above the list table (`All Types` + specific template types).
+- No runtime resolver behavior is changed by this admin UX enhancement.
+
 ### Phase 2 Step 4 - Archive Contexts (Non-Woo) (Implemented)
 - Resolver type mapping:
   - `archive` when request is `is_home()` or `is_archive()`, excluding Woo archive surfaces (`is_shop`, `is_product_taxonomy`, `is_post_type_archive('product')`)
