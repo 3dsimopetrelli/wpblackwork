@@ -4,6 +4,7 @@
 - Phase 1: Implemented
 - Phase 2 Step 1: Implemented (resolver skeleton only)
 - Phase 2 Step 2: Implemented (conditions engine core, no UI yet)
+- Phase 2 Step 3: Implemented (Display Rules metabox + deterministic persistence)
 - Scope delivered in Phase 1:
   - Custom Fonts module
   - Footer Template module
@@ -16,6 +17,10 @@
   - Display rules storage contract via `bw_tbl_display_rules_v1` post meta
   - Rules normalization pipeline (`include[]`, `exclude[]`) with deterministic invalid-rule stripping
   - Exclude-first evaluation + include evaluation contract integrated into resolver candidate filtering
+- Scope delivered in Phase 2 Step 3:
+  - WordPress-native `Display Rules` metabox on `bw_template`
+  - Priority field persisted to `bw_template_priority` (`0..999`, default `10`)
+  - Include/Exclude sections persisted to `bw_tbl_display_rules_v1` using normalized shape
 - Out of scope (not implemented):
   - Single Product override (deferred to later Phase 2 step)
   - Condition engine include/exclude matrix (deferred to later Phase 2 step)
@@ -217,6 +222,27 @@ Resolver contract:
     - no applicable include/exclude rule types (match-all by contract)
 - Fail-open behavior:
   - missing/invalid/unparseable rules meta normalizes to empty include/exclude and does not hard-fail resolver flow.
+
+### Phase 2 Step 3 - Display Rules Admin Contract (Implemented)
+- Metabox scope:
+  - `bw_template` edit screen only
+- Fields:
+  - `Priority` number input (`bw_template_priority`)
+  - `Include Rules` table
+  - `Exclude Rules` table
+- Supported rule types in UI:
+  - `post_category` (category term IDs)
+  - `post_id` (post IDs)
+  - `page_id` (page IDs)
+- Persistence:
+  - `bw_tbl_display_rules_v1` always saved with both keys:
+    - `include` => array
+    - `exclude` => array
+  - Unknown rule types and invalid/non-positive IDs are dropped
+  - IDs are deduplicated and sorted ascending before save
+- Safety:
+  - nonce + capability checks on save
+  - empty/invalid input normalizes to empty arrays (fail-open with resolver contract).
 
 ## Rollback
 1. Disable master flag `bw_theme_builder_lite_flags[enabled]`.
