@@ -3,6 +3,7 @@
 ## Status
 - Phase 1: Implemented
 - Phase 2 Step 1: Implemented (resolver skeleton only)
+- Phase 2 Step 2: Implemented (conditions engine core, no UI yet)
 - Scope delivered in Phase 1:
   - Custom Fonts module
   - Footer Template module
@@ -11,6 +12,10 @@
   - Deterministic winner selection (`priority DESC`, `template_id ASC`)
   - Runtime wrapper render path (Elementor builder first, `the_content` fallback)
   - New feature flag: `templates_enabled`
+- Scope delivered in Phase 2 Step 2:
+  - Display rules storage contract via `bw_tbl_display_rules_v1` post meta
+  - Rules normalization pipeline (`include[]`, `exclude[]`) with deterministic invalid-rule stripping
+  - Exclude-first evaluation + include evaluation contract integrated into resolver candidate filtering
 - Out of scope (not implemented):
   - Single Product override (deferred to later Phase 2 step)
   - Condition engine include/exclude matrix (deferred to later Phase 2 step)
@@ -182,7 +187,7 @@ Resolver contract:
   - Woo safety list: `is_cart()`, `is_checkout()`, `is_account_page()`, `is_wc_endpoint_url()`
 - Candidate selection:
   - `bw_template` + `publish` + matching `bw_template_type`
-  - Step 1 default: no condition rows yet, so match-all within resolved type context
+  - Step 2: candidates are filtered by conditions engine before winner selection
 - Winner selection:
   - highest `bw_template_priority` first (default `10`)
   - tie-break: lowest template id
@@ -191,6 +196,27 @@ Resolver contract:
   - fallback to classic `the_content`
 - Fail-open invariant:
   - if no winner / invalid winner / empty render / wrapper missing/error -> return original theme template unchanged.
+
+### Phase 2 Step 2 - Conditions Engine Contract (Implemented)
+- Storage meta key:
+  - `bw_tbl_display_rules_v1` with normalized shape:
+    - `include` => list of rules
+    - `exclude` => list of rules
+- Evaluation order:
+  1) Exclude rules first: any match disqualifies template
+  2) Include rules second:
+     - if no applicable include rules => match-all in current template context
+     - else at least one include rule must match
+- Supported rule types in current implementation:
+  - `single_post`:
+    - `post_category` (term IDs)
+    - `post_id` (post IDs)
+  - `single_page`:
+    - `page_id` (page IDs)
+  - `search`, `error_404`:
+    - no applicable include/exclude rule types (match-all by contract)
+- Fail-open behavior:
+  - missing/invalid/unparseable rules meta normalizes to empty include/exclude and does not hard-fail resolver flow.
 
 ## Rollback
 1. Disable master flag `bw_theme_builder_lite_flags[enabled]`.

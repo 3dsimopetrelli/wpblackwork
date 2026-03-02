@@ -74,8 +74,45 @@ if (!function_exists('bw_tbl_runtime_get_template_priority')) {
     }
 }
 
+if (!function_exists('bw_tbl_runtime_build_context')) {
+    function bw_tbl_runtime_build_context($template_type)
+    {
+        $template_type = sanitize_key((string) $template_type);
+        $context = [
+            'template_type' => $template_type,
+            'post_id' => 0,
+            'page_id' => 0,
+            'post_category_term_ids' => [],
+        ];
+
+        if ('single_post' === $template_type) {
+            $post_id = get_queried_object_id();
+            $post_id = absint($post_id);
+            $context['post_id'] = $post_id;
+
+            if ($post_id > 0) {
+                $terms = wp_get_post_terms($post_id, 'category', ['fields' => 'ids']);
+                if (is_array($terms)) {
+                    $term_ids = [];
+                    foreach ($terms as $term_id) {
+                        $term_id = absint($term_id);
+                        if ($term_id > 0) {
+                            $term_ids[$term_id] = $term_id;
+                        }
+                    }
+                    $context['post_category_term_ids'] = array_values($term_ids);
+                }
+            }
+        } elseif ('single_page' === $template_type) {
+            $context['page_id'] = absint(get_queried_object_id());
+        }
+
+        return $context;
+    }
+}
+
 if (!function_exists('bw_tbl_runtime_get_candidates')) {
-    function bw_tbl_runtime_get_candidates($template_type)
+    function bw_tbl_runtime_get_candidates($template_type, $context = [])
     {
         $template_type = sanitize_key((string) $template_type);
         if ('' === $template_type) {
@@ -104,6 +141,10 @@ if (!function_exists('bw_tbl_runtime_get_candidates')) {
         foreach ($query->posts as $template_id) {
             $template_id = absint($template_id);
             if ($template_id <= 0) {
+                continue;
+            }
+
+            if (!bw_tbl_template_matches_rules($template_id, $context, null)) {
                 continue;
             }
 
@@ -137,9 +178,9 @@ if (!function_exists('bw_tbl_runtime_get_candidates')) {
 }
 
 if (!function_exists('bw_tbl_runtime_select_winner')) {
-    function bw_tbl_runtime_select_winner($template_type)
+    function bw_tbl_runtime_select_winner($template_type, $context = [])
     {
-        $candidates = bw_tbl_runtime_get_candidates($template_type);
+        $candidates = bw_tbl_runtime_get_candidates($template_type, $context);
         if (empty($candidates)) {
             return 0;
         }
@@ -166,7 +207,8 @@ if (!function_exists('bw_tbl_runtime_resolve_template_include')) {
             return $template;
         }
 
-        $winner_id = bw_tbl_runtime_select_winner($template_type);
+        $context = bw_tbl_runtime_build_context($template_type);
+        $winner_id = bw_tbl_runtime_select_winner($template_type, $context);
         if ($winner_id <= 0) {
             return $template;
         }
