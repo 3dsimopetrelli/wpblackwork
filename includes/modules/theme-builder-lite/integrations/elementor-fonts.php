@@ -44,11 +44,15 @@ if (!function_exists('bw_tbl_elementor_fonts_groups')) {
             $groups = [];
         }
 
-        if (!isset($groups['bw_tbl_custom_fonts'])) {
-            $groups['bw_tbl_custom_fonts'] = __('Custom Fonts', 'bw');
+        $custom = [
+            'bw_tbl_custom_fonts' => __('Custom Fonts', 'bw'),
+        ];
+
+        if (isset($groups['bw_tbl_custom_fonts'])) {
+            unset($groups['bw_tbl_custom_fonts']);
         }
 
-        return $groups;
+        return $custom + $groups;
     }
 }
 
