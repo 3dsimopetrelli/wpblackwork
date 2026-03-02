@@ -10,6 +10,7 @@ Scope is limited to Custom Fonts and Footer Template.
 |---|---:|---|---|---|
 | `init` | 9 | `bw_tbl_register_template_cpt` | `includes/modules/theme-builder-lite/cpt/template-cpt.php` | Register `bw_template` CPT |
 | `init` | 10 | `bw_tbl_register_template_type_meta` | `includes/modules/theme-builder-lite/cpt/template-meta.php` | Register `bw_template_type` post meta |
+| `plugins_loaded` | 20 | `bw_tbl_register_elementor_fonts_integration` | `includes/modules/theme-builder-lite/integrations/elementor-fonts.php` | Register Elementor fonts integration hooks (soft dependency) |
 | `admin_init` | 10 (default) | `bw_tbl_register_admin_settings` | `includes/modules/theme-builder-lite/admin/theme-builder-lite-admin.php` | Register options and sanitizers |
 | `admin_init` | 20 | `bw_tbl_ensure_elementor_cpt_support_option` | `includes/modules/theme-builder-lite/cpt/template-cpt.php` | Persist `bw_template` in `elementor_cpt_support` option |
 | `admin_init` | 30 | `bw_tbl_maybe_flush_template_rewrite_rules` | `includes/modules/theme-builder-lite/cpt/template-cpt.php` | One-time rewrite flush for `bw_template` preview URLs |
@@ -19,6 +20,10 @@ Scope is limited to Custom Fonts and Footer Template.
 | `save_post_bw_template` | 10 (default) | `bw_tbl_save_template_type_metabox` | `includes/modules/theme-builder-lite/cpt/template-meta.php` | Persist template type |
 | `wp_insert_post` | 10 (default) | `bw_tbl_default_template_type_on_insert` | `includes/modules/theme-builder-lite/cpt/template-meta.php` | Default type on first insert |
 | `elementor/cpt_support` (filter) | 10 (default) | `bw_tbl_add_elementor_cpt_support` | `includes/modules/theme-builder-lite/cpt/template-cpt.php` | Enable Elementor Free editing for `bw_template` |
+| `elementor/fonts/groups` (filter) | 20 | `bw_tbl_elementor_fonts_groups` | `includes/modules/theme-builder-lite/integrations/elementor-fonts.php` | Register `Custom Fonts` group in typography family control |
+| `elementor/fonts/additional_fonts` (filter) | 20 | `bw_tbl_elementor_additional_fonts` | `includes/modules/theme-builder-lite/integrations/elementor-fonts.php` | Inject families from `bw_custom_fonts_v1` into Elementor typography list |
+| `elementor/editor/after_enqueue_styles` | 20 | `bw_tbl_enqueue_custom_fonts_css` | `includes/modules/theme-builder-lite/integrations/elementor-fonts.php` | Enqueue `@font-face` CSS in Elementor editor context |
+| `elementor/preview/enqueue_styles` | 20 | `bw_tbl_enqueue_custom_fonts_css` | `includes/modules/theme-builder-lite/integrations/elementor-fonts.php` | Enqueue same `@font-face` CSS in Elementor preview iframe |
 | `update_option_bw_theme_builder_lite_flags` | 10 (default) | `bw_tbl_ensure_elementor_cpt_support_option` | `includes/modules/theme-builder-lite/cpt/template-cpt.php` | Re-assert Elementor CPT support after flags save |
 | `upload_mimes` (filter) | 10 (default) | `bw_tbl_allow_font_upload_mimes` | `includes/modules/theme-builder-lite/fonts/custom-fonts.php` | Allow WOFF/WOFF2 uploads for admins |
 | `wp_check_filetype_and_ext` (filter) | 10 | `bw_tbl_fix_font_filetype_and_ext` | `includes/modules/theme-builder-lite/fonts/custom-fonts.php` | Normalize font file type detection |
@@ -39,6 +44,7 @@ Runtime behavior:
 - All frontend output paths are gated by these flags.
 - If flag checks fail, hooks return without mutation/output.
 - Admin assets are scoped to `blackwork-site-settings_page_bw-theme-builder-lite-settings` only and are not loaded on Elementor editor routes.
+- Elementor font integration is soft-dependent and executes only after `elementor/loaded`; otherwise callbacks no-op.
 
 ## Fallback Contract
 

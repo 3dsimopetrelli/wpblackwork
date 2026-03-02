@@ -84,6 +84,33 @@ Frontend behavior:
   - `custom_fonts_enabled` is enabled,
   - at least one valid font source exists.
 
+### Custom Fonts - Elementor Typography Integration Contract
+- Activation conditions:
+  - `did_action('elementor/loaded')` is true
+  - `bw_theme_builder_lite_flags[enabled] = 1`
+  - `bw_theme_builder_lite_flags[custom_fonts_enabled] = 1`
+- Data source:
+  - Only `bw_custom_fonts_v1` snapshot
+  - Only valid entries (attachment-backed source + mime/ext valid)
+  - `font_family` values are deduplicated before injection
+- UI mapping:
+  - Injected via `elementor/fonts/additional_fonts` with priority `20`
+  - Group key registered via `elementor/fonts/groups` as `Custom Fonts`
+  - Dropdown label matches the exact stored `font_family` string
+- Fail-open:
+  - If Elementor is absent/not loaded, flags are off, or snapshot is invalid/empty, Elementor font list is returned unchanged.
+
+### Custom Fonts - Editor Preview Enqueue Contract
+- CSS builder is shared between frontend and editor contexts (single deterministic builder path).
+- Editor hooks:
+  - `elementor/editor/after_enqueue_styles`
+  - `elementor/preview/enqueue_styles`
+- Guards:
+  - same feature flags as frontend
+  - no enqueue when CSS output is empty
+- Isolation:
+  - no global wp-admin enqueue; styles are attached only through Elementor editor/preview hooks.
+
 ## D) Footer Template (Implemented)
 CPT: `bw_template`
 - Registered in admin under Blackwork Site menu.
