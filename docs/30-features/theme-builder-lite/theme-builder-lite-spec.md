@@ -7,6 +7,7 @@
 - Phase 2 Step 3: Implemented (Display Rules metabox + deterministic persistence)
 - Phase 2 Step 4: Implemented (archive non-Woo contexts + archive rules)
 - Phase 2 Step 5: Implemented (Woo single product context + conditions)
+- Phase 2 Step 6: Implemented (Woo product archive context + conditions)
 - Scope delivered in Phase 1:
   - Custom Fonts module
   - Footer Template module
@@ -33,8 +34,12 @@
   - Resolver context mapping for Woo single product requests (`is_product()`) with endpoint safety bypass unchanged
   - Conditions engine support for `product_category` (`product_cat` terms) and `product_id` (specific product IDs)
   - Single Product-specific Include/Exclude controls in metabox with deterministic sanitize/save
+- Scope delivered in Phase 2 Step 6:
+  - Added `product_archive` template type
+  - Resolver context mapping for Woo shop + product category/tag archives
+  - Conditions engine support for `product_archive_shop`, `product_archive_category`, `product_archive_tag`
+  - Product Archive-specific Include/Exclude controls in metabox with deterministic sanitize/save
 - Out of scope (not implemented):
-  - Product Archive / Shop override (deferred to later Phase 2 step)
   - Woo template stack takeover
 
 ## Task Start Template (Phase 1)
@@ -285,6 +290,23 @@ Resolver contract:
 - Evaluation and precedence remain unchanged:
   - Exclude-first
   - Include empty => match-all within `single_product` context (Elementor-like “All Products” behavior)
+  - Winner: highest priority, tie-break by lowest template ID
+
+### Phase 2 Step 6 - Woo Product Archive (Implemented)
+- Resolver type mapping:
+  - `product_archive` when request is Woo shop archive (`is_shop()` or `is_post_type_archive('product')`)
+  - `product_archive` when request is product category/tag archive (`is_product_category()`, `is_product_tag()`)
+  - Unknown Woo product taxonomies remain bypassed (`is_product_taxonomy()` fallback branch)
+- Product archive context payload passed to conditions engine:
+  - `product_archive_kind` in `{shop, product_cat, product_tag, generic}`
+  - `product_archive_term_id` for taxonomy archives
+- Supported product archive rule types:
+  - `product_archive_shop`
+  - `product_archive_category` (`product_cat` term IDs)
+  - `product_archive_tag` (`product_tag` term IDs)
+- Evaluation and precedence remain unchanged:
+  - Exclude-first
+  - Include empty => match-all within `product_archive` context (Elementor-like “All Product Archives” behavior)
   - Winner: highest priority, tie-break by lowest template ID
 
 ## Rollback

@@ -65,15 +65,19 @@ if (!function_exists('bw_tbl_runtime_resolve_request_template_type')) {
             return 'single_product';
         }
 
-        if (function_exists('is_shop') && is_shop()) {
-            return '';
+        if ((function_exists('is_shop') && is_shop()) || (function_exists('is_post_type_archive') && is_post_type_archive('product'))) {
+            return 'product_archive';
+        }
+
+        if (function_exists('is_product_category') && is_product_category()) {
+            return 'product_archive';
+        }
+
+        if (function_exists('is_product_tag') && is_product_tag()) {
+            return 'product_archive';
         }
 
         if (function_exists('is_product_taxonomy') && is_product_taxonomy()) {
-            return '';
-        }
-
-        if (function_exists('is_post_type_archive') && is_post_type_archive('product')) {
             return '';
         }
 
@@ -105,6 +109,8 @@ if (!function_exists('bw_tbl_runtime_build_context')) {
             'post_category_term_ids' => [],
             'product_id' => 0,
             'product_category_term_ids' => [],
+            'product_archive_kind' => '',
+            'product_archive_term_id' => 0,
             'archive_kind' => '',
             'archive_term_id' => 0,
             'archive_post_types' => [],
@@ -146,6 +152,20 @@ if (!function_exists('bw_tbl_runtime_build_context')) {
                     }
                     $context['product_category_term_ids'] = array_values($term_ids);
                 }
+            }
+        } elseif ('product_archive' === $template_type) {
+            if ((function_exists('is_shop') && is_shop()) || (function_exists('is_post_type_archive') && is_post_type_archive('product'))) {
+                $context['product_archive_kind'] = 'shop';
+            } elseif (function_exists('is_product_category') && is_product_category()) {
+                $term = get_queried_object();
+                $context['product_archive_kind'] = 'product_cat';
+                $context['product_archive_term_id'] = isset($term->term_id) ? absint($term->term_id) : 0;
+            } elseif (function_exists('is_product_tag') && is_product_tag()) {
+                $term = get_queried_object();
+                $context['product_archive_kind'] = 'product_tag';
+                $context['product_archive_term_id'] = isset($term->term_id) ? absint($term->term_id) : 0;
+            } else {
+                $context['product_archive_kind'] = 'generic';
             }
         } elseif ('archive' === $template_type) {
             if (is_home()) {

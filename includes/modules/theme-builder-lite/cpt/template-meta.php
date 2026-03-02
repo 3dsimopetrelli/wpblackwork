@@ -6,14 +6,14 @@ if (!defined('ABSPATH')) {
 if (!function_exists('bw_tbl_template_type_allowed_values')) {
     function bw_tbl_template_type_allowed_values()
     {
-        return ['footer', 'single_post', 'single_page', 'single_product', 'archive', 'search', 'error_404'];
+        return ['footer', 'single_post', 'single_page', 'single_product', 'product_archive', 'archive', 'search', 'error_404'];
     }
 }
 
 if (!function_exists('bw_tbl_rules_allowed_types')) {
     function bw_tbl_rules_allowed_types()
     {
-        return ['post_category', 'post_id', 'page_id', 'product_category', 'product_id', 'archive_blog', 'archive_category', 'archive_tag', 'archive_post_type'];
+        return ['post_category', 'post_id', 'page_id', 'product_category', 'product_id', 'product_archive_shop', 'product_archive_category', 'product_archive_tag', 'archive_blog', 'archive_category', 'archive_tag', 'archive_post_type'];
     }
 }
 
@@ -355,6 +355,114 @@ if (!function_exists('bw_tbl_get_single_product_rules_for_ui')) {
     }
 }
 
+if (!function_exists('bw_tbl_parse_product_archive_rules_section')) {
+    function bw_tbl_parse_product_archive_rules_section($raw_section)
+    {
+        $raw_section = is_array($raw_section) ? $raw_section : [];
+        $rules = [];
+
+        $shop = !empty($raw_section['product_archive_shop']) ? 1 : 0;
+        if ($shop) {
+            $rules[] = [
+                'type' => 'product_archive_shop',
+            ];
+        }
+
+        $category_ids = [];
+        if (isset($raw_section['product_archive_category']) && is_array($raw_section['product_archive_category'])) {
+            foreach ($raw_section['product_archive_category'] as $term_id) {
+                $term_id = absint($term_id);
+                if ($term_id > 0) {
+                    $category_ids[$term_id] = $term_id;
+                }
+            }
+        }
+        $category_ids = array_values($category_ids);
+        sort($category_ids, SORT_NUMERIC);
+        if (!empty($category_ids)) {
+            $rules[] = [
+                'type' => 'product_archive_category',
+                'terms' => $category_ids,
+            ];
+        }
+
+        $tag_ids = [];
+        if (isset($raw_section['product_archive_tag']) && is_array($raw_section['product_archive_tag'])) {
+            foreach ($raw_section['product_archive_tag'] as $term_id) {
+                $term_id = absint($term_id);
+                if ($term_id > 0) {
+                    $tag_ids[$term_id] = $term_id;
+                }
+            }
+        }
+        $tag_ids = array_values($tag_ids);
+        sort($tag_ids, SORT_NUMERIC);
+        if (!empty($tag_ids)) {
+            $rules[] = [
+                'type' => 'product_archive_tag',
+                'terms' => $tag_ids,
+            ];
+        }
+
+        return $rules;
+    }
+}
+
+if (!function_exists('bw_tbl_get_product_archive_rules_for_ui')) {
+    function bw_tbl_get_product_archive_rules_for_ui($post_id, $section)
+    {
+        $raw = get_post_meta($post_id, 'bw_tbl_display_rules_v1', true);
+        $raw = is_array($raw) ? $raw : [];
+        $rows = isset($raw[$section]) && is_array($raw[$section]) ? $raw[$section] : [];
+
+        $result = [
+            'product_archive_shop' => 0,
+            'product_archive_category' => [],
+            'product_archive_tag' => [],
+        ];
+
+        foreach ($rows as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+
+            $type = isset($row['type']) ? sanitize_key((string) $row['type']) : '';
+            if ('product_archive_shop' === $type) {
+                $result['product_archive_shop'] = 1;
+                continue;
+            }
+
+            if ('product_archive_category' === $type) {
+                $terms = isset($row['terms']) && is_array($row['terms']) ? $row['terms'] : [];
+                foreach ($terms as $term_id) {
+                    $term_id = absint($term_id);
+                    if ($term_id > 0) {
+                        $result['product_archive_category'][$term_id] = $term_id;
+                    }
+                }
+                continue;
+            }
+
+            if ('product_archive_tag' === $type) {
+                $terms = isset($row['terms']) && is_array($row['terms']) ? $row['terms'] : [];
+                foreach ($terms as $term_id) {
+                    $term_id = absint($term_id);
+                    if ($term_id > 0) {
+                        $result['product_archive_tag'][$term_id] = $term_id;
+                    }
+                }
+            }
+        }
+
+        $result['product_archive_category'] = array_values($result['product_archive_category']);
+        sort($result['product_archive_category'], SORT_NUMERIC);
+        $result['product_archive_tag'] = array_values($result['product_archive_tag']);
+        sort($result['product_archive_tag'], SORT_NUMERIC);
+
+        return $result;
+    }
+}
+
 if (!function_exists('bw_tbl_normalize_saved_rule_for_ui')) {
     function bw_tbl_normalize_saved_rule_for_ui($rule)
     {
@@ -474,12 +582,13 @@ if (!function_exists('bw_tbl_render_template_type_metabox')) {
                 <option value="single_post" <?php selected($current, 'single_post'); ?>><?php esc_html_e('Single Post', 'bw'); ?></option>
                 <option value="single_page" <?php selected($current, 'single_page'); ?>><?php esc_html_e('Single Page', 'bw'); ?></option>
                 <option value="single_product" <?php selected($current, 'single_product'); ?>><?php esc_html_e('Single Product', 'bw'); ?></option>
+                <option value="product_archive" <?php selected($current, 'product_archive'); ?>><?php esc_html_e('Product Archive', 'bw'); ?></option>
                 <option value="archive" <?php selected($current, 'archive'); ?>><?php esc_html_e('Archive', 'bw'); ?></option>
                 <option value="search" <?php selected($current, 'search'); ?>><?php esc_html_e('Search Results', 'bw'); ?></option>
                 <option value="error_404" <?php selected($current, 'error_404'); ?>><?php esc_html_e('Error 404', 'bw'); ?></option>
             </select>
         </p>
-        <p class="description"><?php esc_html_e('Phase 2 supports Footer, Single Post, Single Page, Single Product, Archive, Search Results, and Error 404.', 'bw'); ?></p>
+        <p class="description"><?php esc_html_e('Phase 2 supports Footer, Single Post, Single Page, Single Product, Product Archive, Archive, Search Results, and Error 404.', 'bw'); ?></p>
         <?php
     }
 }
@@ -550,6 +659,8 @@ if (!function_exists('bw_tbl_render_template_rules_metabox')) {
         $archive_exclude = bw_tbl_get_archive_rules_for_ui($post->ID, 'exclude');
         $single_product_include = bw_tbl_get_single_product_rules_for_ui($post->ID, 'include');
         $single_product_exclude = bw_tbl_get_single_product_rules_for_ui($post->ID, 'exclude');
+        $product_archive_include = bw_tbl_get_product_archive_rules_for_ui($post->ID, 'include');
+        $product_archive_exclude = bw_tbl_get_product_archive_rules_for_ui($post->ID, 'exclude');
         $archive_post_type_options = bw_tbl_archive_post_type_options();
         $category_terms = get_terms(
             [
@@ -569,6 +680,12 @@ if (!function_exists('bw_tbl_render_template_rules_metabox')) {
                 'hide_empty' => false,
             ]
         );
+        $product_tag_terms = get_terms(
+            [
+                'taxonomy' => 'product_tag',
+                'hide_empty' => false,
+            ]
+        );
         ?>
         <p>
             <label for="bw-template-priority-field"><strong><?php esc_html_e('Priority', 'bw'); ?></strong></label><br />
@@ -578,7 +695,7 @@ if (!function_exists('bw_tbl_render_template_rules_metabox')) {
 
         <hr />
 
-        <div id="bw-tbl-standard-rules-panel" style="<?php echo in_array($template_type, ['archive', 'single_product'], true) ? 'display:none;' : ''; ?>">
+        <div id="bw-tbl-standard-rules-panel" style="<?php echo in_array($template_type, ['archive', 'single_product', 'product_archive'], true) ? 'display:none;' : ''; ?>">
             <p><strong><?php esc_html_e('Include Rules', 'bw'); ?></strong></p>
             <?php bw_tbl_render_rules_rows('include', $include_rows); ?>
 
@@ -708,25 +825,86 @@ if (!function_exists('bw_tbl_render_template_rules_metabox')) {
             </p>
         </div>
 
+        <div id="bw-tbl-product-archive-rules-panel" style="<?php echo 'product_archive' === $template_type ? '' : 'display:none;'; ?>">
+            <p><strong><?php esc_html_e('Include Rules (Product Archive)', 'bw'); ?></strong></p>
+            <p>
+                <label>
+                    <input type="checkbox" name="bw_tbl_product_archive_rules[include][product_archive_shop]" value="1" <?php checked(!empty($product_archive_include['product_archive_shop'])); ?> />
+                    <?php esc_html_e('Shop main page', 'bw'); ?>
+                </label>
+            </p>
+            <p>
+                <label for="bw-tbl-product-archive-include-category"><?php esc_html_e('Product category archives', 'bw'); ?></label><br />
+                <select id="bw-tbl-product-archive-include-category" name="bw_tbl_product_archive_rules[include][product_archive_category][]" multiple size="6" style="width:100%;">
+                    <?php if (!is_wp_error($product_cat_terms) && is_array($product_cat_terms)) : ?>
+                        <?php foreach ($product_cat_terms as $term) : ?>
+                            <option value="<?php echo esc_attr((string) $term->term_id); ?>" <?php selected(in_array((int) $term->term_id, $product_archive_include['product_archive_category'], true)); ?>><?php echo esc_html($term->name); ?></option>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </select>
+            </p>
+            <p>
+                <label for="bw-tbl-product-archive-include-tag"><?php esc_html_e('Product tag archives', 'bw'); ?></label><br />
+                <select id="bw-tbl-product-archive-include-tag" name="bw_tbl_product_archive_rules[include][product_archive_tag][]" multiple size="6" style="width:100%;">
+                    <?php if (!is_wp_error($product_tag_terms) && is_array($product_tag_terms)) : ?>
+                        <?php foreach ($product_tag_terms as $term) : ?>
+                            <option value="<?php echo esc_attr((string) $term->term_id); ?>" <?php selected(in_array((int) $term->term_id, $product_archive_include['product_archive_tag'], true)); ?>><?php echo esc_html($term->name); ?></option>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </select>
+            </p>
+
+            <p style="margin-top:14px;"><strong><?php esc_html_e('Exclude Rules (Product Archive)', 'bw'); ?></strong></p>
+            <p>
+                <label>
+                    <input type="checkbox" name="bw_tbl_product_archive_rules[exclude][product_archive_shop]" value="1" <?php checked(!empty($product_archive_exclude['product_archive_shop'])); ?> />
+                    <?php esc_html_e('Shop main page', 'bw'); ?>
+                </label>
+            </p>
+            <p>
+                <label for="bw-tbl-product-archive-exclude-category"><?php esc_html_e('Product category archives', 'bw'); ?></label><br />
+                <select id="bw-tbl-product-archive-exclude-category" name="bw_tbl_product_archive_rules[exclude][product_archive_category][]" multiple size="6" style="width:100%;">
+                    <?php if (!is_wp_error($product_cat_terms) && is_array($product_cat_terms)) : ?>
+                        <?php foreach ($product_cat_terms as $term) : ?>
+                            <option value="<?php echo esc_attr((string) $term->term_id); ?>" <?php selected(in_array((int) $term->term_id, $product_archive_exclude['product_archive_category'], true)); ?>><?php echo esc_html($term->name); ?></option>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </select>
+            </p>
+            <p>
+                <label for="bw-tbl-product-archive-exclude-tag"><?php esc_html_e('Product tag archives', 'bw'); ?></label><br />
+                <select id="bw-tbl-product-archive-exclude-tag" name="bw_tbl_product_archive_rules[exclude][product_archive_tag][]" multiple size="6" style="width:100%;">
+                    <?php if (!is_wp_error($product_tag_terms) && is_array($product_tag_terms)) : ?>
+                        <?php foreach ($product_tag_terms as $term) : ?>
+                            <option value="<?php echo esc_attr((string) $term->term_id); ?>" <?php selected(in_array((int) $term->term_id, $product_archive_exclude['product_archive_tag'], true)); ?>><?php echo esc_html($term->name); ?></option>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </select>
+            </p>
+        </div>
+
         <p class="description" style="margin-top:12px;">
-            <?php esc_html_e('For search and 404 template types, rules are not required. Empty include/exclude means match-all within the selected template type. For single product, empty include means all products.', 'bw'); ?>
+            <?php esc_html_e('For search and 404 template types, rules are not required. Empty include/exclude means match-all within the selected template type. For single product and product archive, empty include means all in that context.', 'bw'); ?>
         </p>
         <script>
             (function () {
                 var typeField = document.getElementById('bw-template-type-field');
                 var archivePanel = document.getElementById('bw-tbl-archive-rules-panel');
                 var singleProductPanel = document.getElementById('bw-tbl-single-product-rules-panel');
+                var productArchivePanel = document.getElementById('bw-tbl-product-archive-rules-panel');
                 var standardPanel = document.getElementById('bw-tbl-standard-rules-panel');
-                if (!typeField || !archivePanel || !singleProductPanel || !standardPanel) {
+                if (!typeField || !archivePanel || !singleProductPanel || !productArchivePanel || !standardPanel) {
                     return;
                 }
 
                 function syncPanels() {
                     var isArchive = typeField.value === 'archive';
                     var isSingleProduct = typeField.value === 'single_product';
+                    var isProductArchive = typeField.value === 'product_archive';
                     archivePanel.style.display = isArchive ? '' : 'none';
                     singleProductPanel.style.display = isSingleProduct ? '' : 'none';
-                    standardPanel.style.display = (isArchive || isSingleProduct) ? 'none' : '';
+                    productArchivePanel.style.display = isProductArchive ? '' : 'none';
+                    standardPanel.style.display = (isArchive || isSingleProduct || isProductArchive) ? 'none' : '';
                 }
 
                 typeField.addEventListener('change', syncPanels);
@@ -803,6 +981,10 @@ if (!function_exists('bw_tbl_save_template_rules_metabox')) {
             $single_product_rules_raw = isset($_POST['bw_tbl_single_product_rules']) && is_array($_POST['bw_tbl_single_product_rules']) ? wp_unslash($_POST['bw_tbl_single_product_rules']) : [];
             $normalized_rules['include'] = bw_tbl_parse_single_product_rules_section(isset($single_product_rules_raw['include']) ? $single_product_rules_raw['include'] : []);
             $normalized_rules['exclude'] = bw_tbl_parse_single_product_rules_section(isset($single_product_rules_raw['exclude']) ? $single_product_rules_raw['exclude'] : []);
+        } elseif ('product_archive' === $posted_type) {
+            $product_archive_rules_raw = isset($_POST['bw_tbl_product_archive_rules']) && is_array($_POST['bw_tbl_product_archive_rules']) ? wp_unslash($_POST['bw_tbl_product_archive_rules']) : [];
+            $normalized_rules['include'] = bw_tbl_parse_product_archive_rules_section(isset($product_archive_rules_raw['include']) ? $product_archive_rules_raw['include'] : []);
+            $normalized_rules['exclude'] = bw_tbl_parse_product_archive_rules_section(isset($product_archive_rules_raw['exclude']) ? $product_archive_rules_raw['exclude'] : []);
         } else {
             $include_raw = isset($raw_rules['include']) && is_array($raw_rules['include']) ? $raw_rules['include'] : [];
             $exclude_raw = isset($raw_rules['exclude']) && is_array($raw_rules['exclude']) ? $raw_rules['exclude'] : [];

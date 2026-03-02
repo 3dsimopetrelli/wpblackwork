@@ -76,7 +76,7 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 ### Risk ID: R-TBL-05
 - Domain: Theme Builder Lite / Template Resolver
 - Surface Anchor: `includes/modules/theme-builder-lite/runtime/template-resolver.php` (`template_include` priority `50`)
-- Description: Resolver conflicts with theme or third-party `template_include` logic could produce unexpected template precedence behavior, including Woo single-product template selection drift.
+- Description: Resolver conflicts with theme or third-party `template_include` logic could produce unexpected template precedence behavior, including Woo single-product and Woo product-archive template selection drift.
 - Invariant Threatened: Fail-open template selection must never break native theme rendering.
 - Impact: Medium
 - Likelihood: Medium

@@ -1,10 +1,10 @@
-# Theme Builder Lite - Runtime Hook Map (Phase 1 + Phase 2 Step 5)
+# Theme Builder Lite - Runtime Hook Map (Phase 1 + Phase 2 Step 6)
 
 ## Purpose
 Actual runtime hooks used by implemented Theme Builder Lite surfaces.
 Current scope includes:
 - Phase 1: Custom Fonts + Footer Template
-- Phase 2 Step 5: resolver for `single_post`, `single_page`, `single_product` (Woo singular), `archive` (non-Woo), `search`, `error_404`
+- Phase 2 Step 6: resolver for `single_post`, `single_page`, `single_product` (Woo singular), `product_archive` (Woo shop/category/tag), `archive` (non-Woo), `search`, `error_404`
 
 ## Hook Inventory
 
@@ -50,8 +50,8 @@ Runtime behavior:
 - If flag checks fail, hooks return without mutation/output.
 - Admin assets are scoped to `blackwork-site-settings_page_bw-theme-builder-lite-settings` only and are not loaded on Elementor editor routes.
 - Elementor font integration is soft-dependent and executes only after `elementor/loaded`; otherwise callbacks no-op.
-- Phase 2 resolver bypasses: admin/ajax/feed/embed, `is_singular('bw_template')`, Elementor editor/preview, Woo safety endpoints (`is_cart`, `is_checkout`, `is_account_page`, `is_wc_endpoint_url`), and Woo archive contexts (`is_shop`, `is_product_taxonomy`, `is_post_type_archive('product')`).
-- Woo context coverage in current implementation: `single_product` only (shop/product archive still bypassed).
+- Phase 2 resolver bypasses: admin/ajax/feed/embed, `is_singular('bw_template')`, Elementor editor/preview, Woo safety endpoints (`is_cart`, `is_checkout`, `is_account_page`, `is_wc_endpoint_url`), and non-target Woo product taxonomies (`is_product_taxonomy()` fallback path).
+- Woo context coverage in current implementation: `single_product` + `product_archive` (shop + product category/tag).
 
 ## Fallback Contract
 

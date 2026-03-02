@@ -116,6 +116,36 @@ if (!function_exists('bw_tbl_normalize_single_rule')) {
             ];
         }
 
+        if ('product_archive_shop' === $type) {
+            return [
+                'type' => 'product_archive_shop',
+            ];
+        }
+
+        if ('product_archive_category' === $type) {
+            $terms = bw_tbl_rule_int_list(isset($raw_rule['terms']) ? $raw_rule['terms'] : []);
+            if (empty($terms)) {
+                return null;
+            }
+
+            return [
+                'type' => 'product_archive_category',
+                'terms' => $terms,
+            ];
+        }
+
+        if ('product_archive_tag' === $type) {
+            $terms = bw_tbl_rule_int_list(isset($raw_rule['terms']) ? $raw_rule['terms'] : []);
+            if (empty($terms)) {
+                return null;
+            }
+
+            return [
+                'type' => 'product_archive_tag',
+                'terms' => $terms,
+            ];
+        }
+
         if ('archive_blog' === $type) {
             return [
                 'type' => 'archive_blog',
@@ -227,6 +257,10 @@ if (!function_exists('bw_tbl_rule_applies_to_context_type')) {
             return in_array($rule_type, ['product_category', 'product_id'], true);
         }
 
+        if ('product_archive' === $template_type) {
+            return in_array($rule_type, ['product_archive_shop', 'product_archive_category', 'product_archive_tag'], true);
+        }
+
         if ('archive' === $template_type) {
             return in_array($rule_type, ['archive_blog', 'archive_category', 'archive_tag', 'archive_post_type'], true);
         }
@@ -252,6 +286,8 @@ if (!function_exists('bw_tbl_rule_matches_context')) {
         $current_terms = isset($context['post_category_term_ids']) && is_array($context['post_category_term_ids']) ? $context['post_category_term_ids'] : [];
         $current_product_id = isset($context['product_id']) ? absint($context['product_id']) : 0;
         $current_product_terms = isset($context['product_category_term_ids']) && is_array($context['product_category_term_ids']) ? $context['product_category_term_ids'] : [];
+        $product_archive_kind = isset($context['product_archive_kind']) ? sanitize_key((string) $context['product_archive_kind']) : '';
+        $product_archive_term_id = isset($context['product_archive_term_id']) ? absint($context['product_archive_term_id']) : 0;
         $archive_kind = isset($context['archive_kind']) ? sanitize_key((string) $context['archive_kind']) : '';
         $archive_term_id = isset($context['archive_term_id']) ? absint($context['archive_term_id']) : 0;
         $archive_post_types = isset($context['archive_post_types']) && is_array($context['archive_post_types']) ? $context['archive_post_types'] : [];
@@ -279,6 +315,20 @@ if (!function_exists('bw_tbl_rule_matches_context')) {
         if ('product_id' === $type) {
             $ids = isset($rule['ids']) && is_array($rule['ids']) ? $rule['ids'] : [];
             return $current_product_id > 0 && in_array($current_product_id, $ids, true);
+        }
+
+        if ('product_archive_shop' === $type) {
+            return 'shop' === $product_archive_kind;
+        }
+
+        if ('product_archive_category' === $type) {
+            $terms = isset($rule['terms']) && is_array($rule['terms']) ? $rule['terms'] : [];
+            return 'product_cat' === $product_archive_kind && $product_archive_term_id > 0 && in_array($product_archive_term_id, $terms, true);
+        }
+
+        if ('product_archive_tag' === $type) {
+            $terms = isset($rule['terms']) && is_array($rule['terms']) ? $rule['terms'] : [];
+            return 'product_tag' === $product_archive_kind && $product_archive_term_id > 0 && in_array($product_archive_term_id, $terms, true);
         }
 
         if ('archive_blog' === $type) {
