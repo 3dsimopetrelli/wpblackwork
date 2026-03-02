@@ -10,7 +10,8 @@ Scope is limited to Custom Fonts and Footer Template.
 |---|---:|---|---|---|
 | `init` | 9 | `bw_tbl_register_template_cpt` | `includes/modules/theme-builder-lite/cpt/template-cpt.php` | Register `bw_template` CPT |
 | `init` | 10 | `bw_tbl_register_template_type_meta` | `includes/modules/theme-builder-lite/cpt/template-meta.php` | Register `bw_template_type` post meta |
-| `elementor/loaded` | 20 | `bw_tbl_register_elementor_fonts_integration` | `includes/modules/theme-builder-lite/integrations/elementor-fonts.php` | Register Elementor fonts integration hooks |
+| `plugins_loaded` | 20 | `bw_tbl_bootstrap_elementor_fonts_integration` | `includes/modules/theme-builder-lite/integrations/elementor-fonts.php` | Register immediately if Elementor already loaded, otherwise defer registration |
+| `elementor/loaded` | 20 | `bw_tbl_register_elementor_fonts_integration` | `includes/modules/theme-builder-lite/integrations/elementor-fonts.php` | Deferred registration path when Elementor loads after bootstrap check |
 | `admin_init` | 10 (default) | `bw_tbl_register_admin_settings` | `includes/modules/theme-builder-lite/admin/theme-builder-lite-admin.php` | Register options and sanitizers |
 | `admin_init` | 20 | `bw_tbl_ensure_elementor_cpt_support_option` | `includes/modules/theme-builder-lite/cpt/template-cpt.php` | Persist `bw_template` in `elementor_cpt_support` option |
 | `admin_init` | 30 | `bw_tbl_maybe_flush_template_rewrite_rules` | `includes/modules/theme-builder-lite/cpt/template-cpt.php` | One-time rewrite flush for `bw_template` preview URLs |
