@@ -52,6 +52,117 @@ if (!function_exists('bw_tbl_admin_format_terms')) {
     }
 }
 
+if (!function_exists('bw_tbl_admin_rule_values_by_type')) {
+    function bw_tbl_admin_rule_values_by_type($rules, $rule_type, $value_key)
+    {
+        $rules = is_array($rules) ? $rules : [];
+        $rule_type = sanitize_key((string) $rule_type);
+        $value_key = sanitize_key((string) $value_key);
+        $result = [];
+
+        foreach ($rules as $rule) {
+            if (!is_array($rule)) {
+                continue;
+            }
+
+            $type = isset($rule['type']) ? sanitize_key((string) $rule['type']) : '';
+            if ($type !== $rule_type) {
+                continue;
+            }
+
+            $values = isset($rule[$value_key]) && is_array($rule[$value_key]) ? $rule[$value_key] : [];
+            foreach ($values as $value) {
+                $value = 'terms' === $value_key ? absint($value) : (int) $value;
+                if ($value > 0) {
+                    $result[$value] = $value;
+                }
+            }
+        }
+
+        $result = array_values($result);
+        sort($result, SORT_NUMERIC);
+
+        return $result;
+    }
+}
+
+if (!function_exists('bw_tbl_admin_has_rule_type')) {
+    function bw_tbl_admin_has_rule_type($rules, $rule_type)
+    {
+        $rules = is_array($rules) ? $rules : [];
+        $rule_type = sanitize_key((string) $rule_type);
+
+        foreach ($rules as $rule) {
+            if (!is_array($rule)) {
+                continue;
+            }
+            $type = isset($rule['type']) ? sanitize_key((string) $rule['type']) : '';
+            if ($type === $rule_type) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+}
+
+if (!function_exists('bw_tbl_admin_quick_edit_payload')) {
+    function bw_tbl_admin_quick_edit_payload($post_id)
+    {
+        $post_id = absint($post_id);
+        $type = get_post_meta($post_id, 'bw_template_type', true);
+        if (function_exists('bw_tbl_sanitize_template_type')) {
+            $type = bw_tbl_sanitize_template_type($type);
+        } else {
+            $type = sanitize_key((string) $type);
+        }
+
+        $priority = get_post_meta($post_id, 'bw_template_priority', true);
+        $priority = is_numeric($priority) ? (int) $priority : 10;
+
+        $raw = get_post_meta($post_id, 'bw_tbl_display_rules_v1', true);
+        $raw = is_array($raw) ? $raw : [];
+        $include = isset($raw['include']) && is_array($raw['include']) ? $raw['include'] : [];
+        $exclude = isset($raw['exclude']) && is_array($raw['exclude']) ? $raw['exclude'] : [];
+
+        return [
+            'type' => $type,
+            'type_label' => bw_tbl_admin_template_type_label($type),
+            'priority' => $priority,
+            'single_product' => [
+                'include_categories' => bw_tbl_admin_rule_values_by_type($include, 'product_category', 'terms'),
+                'include_ids' => bw_tbl_admin_rule_values_by_type($include, 'product_id', 'ids'),
+                'exclude_categories' => bw_tbl_admin_rule_values_by_type($exclude, 'product_category', 'terms'),
+                'exclude_ids' => bw_tbl_admin_rule_values_by_type($exclude, 'product_id', 'ids'),
+            ],
+            'product_archive' => [
+                'include_shop' => bw_tbl_admin_has_rule_type($include, 'product_archive_shop') ? 1 : 0,
+                'include_categories' => bw_tbl_admin_rule_values_by_type($include, 'product_archive_category', 'terms'),
+                'include_tags' => bw_tbl_admin_rule_values_by_type($include, 'product_archive_tag', 'terms'),
+                'exclude_shop' => bw_tbl_admin_has_rule_type($exclude, 'product_archive_shop') ? 1 : 0,
+                'exclude_categories' => bw_tbl_admin_rule_values_by_type($exclude, 'product_archive_category', 'terms'),
+                'exclude_tags' => bw_tbl_admin_rule_values_by_type($exclude, 'product_archive_tag', 'terms'),
+            ],
+            'single_post' => [
+                'include_categories' => bw_tbl_admin_rule_values_by_type($include, 'post_category', 'terms'),
+                'include_ids' => bw_tbl_admin_rule_values_by_type($include, 'post_id', 'ids'),
+                'exclude_categories' => bw_tbl_admin_rule_values_by_type($exclude, 'post_category', 'terms'),
+                'exclude_ids' => bw_tbl_admin_rule_values_by_type($exclude, 'post_id', 'ids'),
+            ],
+            'single_page' => [
+                'include_ids' => bw_tbl_admin_rule_values_by_type($include, 'page_id', 'ids'),
+                'exclude_ids' => bw_tbl_admin_rule_values_by_type($exclude, 'page_id', 'ids'),
+            ],
+            'archive' => [
+                'include_blog' => bw_tbl_admin_has_rule_type($include, 'archive_blog') ? 1 : 0,
+                'include_categories' => bw_tbl_admin_rule_values_by_type($include, 'archive_category', 'terms'),
+                'exclude_blog' => bw_tbl_admin_has_rule_type($exclude, 'archive_blog') ? 1 : 0,
+                'exclude_categories' => bw_tbl_admin_rule_values_by_type($exclude, 'archive_category', 'terms'),
+            ],
+        ];
+    }
+}
+
 if (!function_exists('bw_tbl_admin_rules_part_to_text')) {
     function bw_tbl_admin_rules_part_to_text($rules, $section)
     {
@@ -200,11 +311,243 @@ if (!function_exists('bw_tbl_admin_render_list_column')) {
         }
 
         if ('bw_tbl_applies_to' === $column) {
-            echo esc_html(bw_tbl_admin_rules_summary($post_id));
+            $summary = bw_tbl_admin_rules_summary($post_id);
+            $payload = bw_tbl_admin_quick_edit_payload($post_id);
+            echo esc_html($summary);
+            echo '<span class="bw-tbl-qe-data" style="display:none;" data-bw-qe="' . esc_attr(wp_json_encode($payload)) . '"></span>';
         }
     }
 }
 add_action('manage_bw_template_posts_custom_column', 'bw_tbl_admin_render_list_column', 10, 2);
+
+if (!function_exists('bw_tbl_admin_quick_edit_taxonomy_multiselect')) {
+    function bw_tbl_admin_quick_edit_taxonomy_multiselect($taxonomy, $name, $id)
+    {
+        $taxonomy = sanitize_key((string) $taxonomy);
+        $name = (string) $name;
+        $id = sanitize_html_class((string) $id);
+
+        $dropdown = wp_dropdown_categories(
+            [
+                'taxonomy' => $taxonomy,
+                'hide_empty' => false,
+                'name' => $name,
+                'id' => $id,
+                'show_option_none' => false,
+                'echo' => false,
+                'hierarchical' => true,
+                'orderby' => 'name',
+                'value_field' => 'term_id',
+            ]
+        );
+
+        if (!is_string($dropdown) || '' === $dropdown) {
+            echo '<select multiple="multiple" name="' . esc_attr($name) . '" id="' . esc_attr($id) . '" style="width:100%;"></select>';
+            return;
+        }
+
+        $dropdown = preg_replace('/<select\s/i', '<select multiple="multiple" size="5" data-multiple="1" style="width:100%;" ', $dropdown, 1);
+        echo $dropdown; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+    }
+}
+
+if (!function_exists('bw_tbl_admin_quick_edit_custom_box')) {
+    function bw_tbl_admin_quick_edit_custom_box($column_name, $post_type)
+    {
+        if ('bw_template' !== $post_type || 'bw_tbl_applies_to' !== $column_name) {
+            return;
+        }
+        ?>
+        <fieldset class="inline-edit-col-right bw-tbl-qe-wrap">
+            <div class="inline-edit-col">
+                <input type="hidden" name="bw_tbl_quick_edit_mode" value="1" />
+                <?php wp_nonce_field('bw_tbl_quick_edit_save', 'bw_tbl_quick_edit_nonce'); ?>
+
+                <p><strong><?php esc_html_e('Template Type', 'bw'); ?>:</strong> <span class="bw-tbl-qe-type-label">-</span></p>
+                <input type="hidden" name="bw_template_type" class="bw-tbl-qe-type" value="" />
+
+                <label>
+                    <span class="title"><?php esc_html_e('Priority', 'bw'); ?></span>
+                    <span class="input-text-wrap"><input type="number" min="0" max="999" step="1" name="bw_template_priority" class="bw-tbl-qe-priority" value="10" /></span>
+                </label>
+
+                <div class="bw-tbl-qe-section" data-type="single_product" style="margin-top:10px;">
+                    <p><strong><?php esc_html_e('Single Product Conditions', 'bw'); ?></strong></p>
+                    <p><?php esc_html_e('Include - Product Categories', 'bw'); ?></p>
+                    <?php bw_tbl_admin_quick_edit_taxonomy_multiselect('product_cat', 'bw_tbl_single_product_rules[include][product_category][]', 'bw-tbl-qe-sp-inc-cat'); ?>
+                    <p><?php esc_html_e('Include - Product IDs', 'bw'); ?></p>
+                    <input type="text" name="bw_tbl_single_product_rules[include][product_id]" class="widefat bw-tbl-qe-sp-inc-ids" />
+                    <p><?php esc_html_e('Exclude - Product Categories', 'bw'); ?></p>
+                    <?php bw_tbl_admin_quick_edit_taxonomy_multiselect('product_cat', 'bw_tbl_single_product_rules[exclude][product_category][]', 'bw-tbl-qe-sp-exc-cat'); ?>
+                    <p><?php esc_html_e('Exclude - Product IDs', 'bw'); ?></p>
+                    <input type="text" name="bw_tbl_single_product_rules[exclude][product_id]" class="widefat bw-tbl-qe-sp-exc-ids" />
+                </div>
+
+                <div class="bw-tbl-qe-section" data-type="product_archive" style="margin-top:10px;">
+                    <p><strong><?php esc_html_e('Product Archive Conditions', 'bw'); ?></strong></p>
+                    <label><input type="checkbox" name="bw_tbl_product_archive_rules[include][product_archive_shop]" class="bw-tbl-qe-pa-inc-shop" value="1" /> <?php esc_html_e('Include Shop page', 'bw'); ?></label>
+                    <p><?php esc_html_e('Include - Product Categories', 'bw'); ?></p>
+                    <?php bw_tbl_admin_quick_edit_taxonomy_multiselect('product_cat', 'bw_tbl_product_archive_rules[include][product_archive_category][]', 'bw-tbl-qe-pa-inc-cat'); ?>
+                    <p><?php esc_html_e('Include - Product Tags', 'bw'); ?></p>
+                    <?php bw_tbl_admin_quick_edit_taxonomy_multiselect('product_tag', 'bw_tbl_product_archive_rules[include][product_archive_tag][]', 'bw-tbl-qe-pa-inc-tag'); ?>
+                    <label><input type="checkbox" name="bw_tbl_product_archive_rules[exclude][product_archive_shop]" class="bw-tbl-qe-pa-exc-shop" value="1" /> <?php esc_html_e('Exclude Shop page', 'bw'); ?></label>
+                    <p><?php esc_html_e('Exclude - Product Categories', 'bw'); ?></p>
+                    <?php bw_tbl_admin_quick_edit_taxonomy_multiselect('product_cat', 'bw_tbl_product_archive_rules[exclude][product_archive_category][]', 'bw-tbl-qe-pa-exc-cat'); ?>
+                    <p><?php esc_html_e('Exclude - Product Tags', 'bw'); ?></p>
+                    <?php bw_tbl_admin_quick_edit_taxonomy_multiselect('product_tag', 'bw_tbl_product_archive_rules[exclude][product_archive_tag][]', 'bw-tbl-qe-pa-exc-tag'); ?>
+                </div>
+
+                <div class="bw-tbl-qe-section" data-type="single_post" style="margin-top:10px;">
+                    <p><strong><?php esc_html_e('Single Post Conditions', 'bw'); ?></strong></p>
+                    <p><?php esc_html_e('Include - Post Categories', 'bw'); ?></p>
+                    <?php bw_tbl_admin_quick_edit_taxonomy_multiselect('category', 'bw_tbl_single_post_rules[include][post_category][]', 'bw-tbl-qe-post-inc-cat'); ?>
+                    <p><?php esc_html_e('Include - Post IDs', 'bw'); ?></p>
+                    <input type="text" name="bw_tbl_single_post_rules[include][post_id]" class="widefat bw-tbl-qe-post-inc-ids" />
+                    <p><?php esc_html_e('Exclude - Post Categories', 'bw'); ?></p>
+                    <?php bw_tbl_admin_quick_edit_taxonomy_multiselect('category', 'bw_tbl_single_post_rules[exclude][post_category][]', 'bw-tbl-qe-post-exc-cat'); ?>
+                    <p><?php esc_html_e('Exclude - Post IDs', 'bw'); ?></p>
+                    <input type="text" name="bw_tbl_single_post_rules[exclude][post_id]" class="widefat bw-tbl-qe-post-exc-ids" />
+                </div>
+
+                <div class="bw-tbl-qe-section" data-type="single_page" style="margin-top:10px;">
+                    <p><strong><?php esc_html_e('Single Page Conditions', 'bw'); ?></strong></p>
+                    <p><?php esc_html_e('Include - Page IDs', 'bw'); ?></p>
+                    <input type="text" name="bw_tbl_single_page_rules[include][page_id]" class="widefat bw-tbl-qe-page-inc-ids" />
+                    <p><?php esc_html_e('Exclude - Page IDs', 'bw'); ?></p>
+                    <input type="text" name="bw_tbl_single_page_rules[exclude][page_id]" class="widefat bw-tbl-qe-page-exc-ids" />
+                </div>
+
+                <div class="bw-tbl-qe-section" data-type="archive" style="margin-top:10px;">
+                    <p><strong><?php esc_html_e('Archive Conditions', 'bw'); ?></strong></p>
+                    <label><input type="checkbox" name="bw_tbl_archive_rules[include][archive_blog]" class="bw-tbl-qe-arc-inc-blog" value="1" /> <?php esc_html_e('Include Blog archive', 'bw'); ?></label>
+                    <p><?php esc_html_e('Include - Categories', 'bw'); ?></p>
+                    <?php bw_tbl_admin_quick_edit_taxonomy_multiselect('category', 'bw_tbl_archive_rules[include][archive_category][]', 'bw-tbl-qe-arc-inc-cat'); ?>
+                    <label><input type="checkbox" name="bw_tbl_archive_rules[exclude][archive_blog]" class="bw-tbl-qe-arc-exc-blog" value="1" /> <?php esc_html_e('Exclude Blog archive', 'bw'); ?></label>
+                    <p><?php esc_html_e('Exclude - Categories', 'bw'); ?></p>
+                    <?php bw_tbl_admin_quick_edit_taxonomy_multiselect('category', 'bw_tbl_archive_rules[exclude][archive_category][]', 'bw-tbl-qe-arc-exc-cat'); ?>
+                </div>
+
+                <div class="bw-tbl-qe-section" data-type="search,error_404" style="margin-top:10px;">
+                    <p class="description"><?php esc_html_e('Applies globally per type; no additional rules.', 'bw'); ?></p>
+                </div>
+            </div>
+        </fieldset>
+        <?php
+    }
+}
+add_action('quick_edit_custom_box', 'bw_tbl_admin_quick_edit_custom_box', 10, 2);
+
+if (!function_exists('bw_tbl_admin_quick_edit_inline_script')) {
+    function bw_tbl_admin_quick_edit_inline_script()
+    {
+        global $typenow;
+        if ('bw_template' !== $typenow) {
+            return;
+        }
+        ?>
+        <script>
+            (function ($) {
+                function csvFromArray(arr) {
+                    if (!Array.isArray(arr) || !arr.length) {
+                        return '';
+                    }
+                    return arr.join(',');
+                }
+
+                function clearQuickEdit(row) {
+                    row.find('.bw-tbl-qe-priority').val('10');
+                    row.find('input[type="text"]').val('');
+                    row.find('input[type="checkbox"]').prop('checked', false);
+                    row.find('select[multiple]').val([]);
+                }
+
+                function showTypeSection(row, type) {
+                    row.find('.bw-tbl-qe-section').hide();
+                    row.find('.bw-tbl-qe-section').each(function () {
+                        var types = String($(this).data('type') || '').split(',');
+                        if (types.indexOf(type) !== -1) {
+                            $(this).show();
+                        }
+                    });
+                }
+
+                function fillQuickEdit(row, data) {
+                    data = data || {};
+                    var type = String(data.type || 'footer');
+                    row.find('.bw-tbl-qe-type').val(type);
+                    row.find('.bw-tbl-qe-type-label').text(String(data.type_label || type));
+                    row.find('.bw-tbl-qe-priority').val(data.priority || 10);
+
+                    var sp = data.single_product || {};
+                    row.find('.bw-tbl-qe-sp-inc-cat').val(sp.include_categories || []);
+                    row.find('.bw-tbl-qe-sp-inc-ids').val(csvFromArray(sp.include_ids || []));
+                    row.find('.bw-tbl-qe-sp-exc-cat').val(sp.exclude_categories || []);
+                    row.find('.bw-tbl-qe-sp-exc-ids').val(csvFromArray(sp.exclude_ids || []));
+
+                    var pa = data.product_archive || {};
+                    row.find('.bw-tbl-qe-pa-inc-shop').prop('checked', Number(pa.include_shop || 0) === 1);
+                    row.find('.bw-tbl-qe-pa-inc-cat').val(pa.include_categories || []);
+                    row.find('.bw-tbl-qe-pa-inc-tag').val(pa.include_tags || []);
+                    row.find('.bw-tbl-qe-pa-exc-shop').prop('checked', Number(pa.exclude_shop || 0) === 1);
+                    row.find('.bw-tbl-qe-pa-exc-cat').val(pa.exclude_categories || []);
+                    row.find('.bw-tbl-qe-pa-exc-tag').val(pa.exclude_tags || []);
+
+                    var post = data.single_post || {};
+                    row.find('.bw-tbl-qe-post-inc-cat').val(post.include_categories || []);
+                    row.find('.bw-tbl-qe-post-inc-ids').val(csvFromArray(post.include_ids || []));
+                    row.find('.bw-tbl-qe-post-exc-cat').val(post.exclude_categories || []);
+                    row.find('.bw-tbl-qe-post-exc-ids').val(csvFromArray(post.exclude_ids || []));
+
+                    var page = data.single_page || {};
+                    row.find('.bw-tbl-qe-page-inc-ids').val(csvFromArray(page.include_ids || []));
+                    row.find('.bw-tbl-qe-page-exc-ids').val(csvFromArray(page.exclude_ids || []));
+
+                    var arc = data.archive || {};
+                    row.find('.bw-tbl-qe-arc-inc-blog').prop('checked', Number(arc.include_blog || 0) === 1);
+                    row.find('.bw-tbl-qe-arc-inc-cat').val(arc.include_categories || []);
+                    row.find('.bw-tbl-qe-arc-exc-blog').prop('checked', Number(arc.exclude_blog || 0) === 1);
+                    row.find('.bw-tbl-qe-arc-exc-cat').val(arc.exclude_categories || []);
+
+                    showTypeSection(row, type);
+                }
+
+                $(document).on('click', '.editinline', function () {
+                    var postRow = $(this).closest('tr');
+                    var postId = postRow.attr('id') ? postRow.attr('id').replace('post-', '') : '';
+                    if (!postId) {
+                        return;
+                    }
+
+                    setTimeout(function () {
+                        var quickRow = $('#edit-' + postId);
+                        if (!quickRow.length) {
+                            return;
+                        }
+
+                        clearQuickEdit(quickRow);
+
+                        var dataNode = postRow.find('.bw-tbl-qe-data');
+                        var rawData = dataNode.attr('data-bw-qe');
+                        if (!rawData) {
+                            return;
+                        }
+
+                        var parsed = {};
+                        try {
+                            parsed = JSON.parse(rawData);
+                        } catch (e) {
+                            parsed = {};
+                        }
+
+                        fillQuickEdit(quickRow, parsed);
+                    }, 0);
+                });
+            })(jQuery);
+        </script>
+        <?php
+    }
+}
+add_action('admin_footer-edit.php', 'bw_tbl_admin_quick_edit_inline_script');
 
 if (!function_exists('bw_tbl_admin_type_filter_dropdown')) {
     function bw_tbl_admin_type_filter_dropdown()

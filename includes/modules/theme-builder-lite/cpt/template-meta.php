@@ -306,6 +306,60 @@ if (!function_exists('bw_tbl_parse_single_product_rules_section')) {
     }
 }
 
+if (!function_exists('bw_tbl_parse_single_post_rules_section')) {
+    function bw_tbl_parse_single_post_rules_section($raw_section)
+    {
+        $raw_section = is_array($raw_section) ? $raw_section : [];
+        $rules = [];
+
+        $category_ids = [];
+        if (isset($raw_section['post_category']) && is_array($raw_section['post_category'])) {
+            foreach ($raw_section['post_category'] as $term_id) {
+                $term_id = absint($term_id);
+                if ($term_id > 0) {
+                    $category_ids[$term_id] = $term_id;
+                }
+            }
+        }
+        $category_ids = array_values($category_ids);
+        sort($category_ids, SORT_NUMERIC);
+        if (!empty($category_ids)) {
+            $rules[] = [
+                'type' => 'post_category',
+                'terms' => $category_ids,
+            ];
+        }
+
+        $post_ids = isset($raw_section['post_id']) ? bw_tbl_parse_csv_ids((string) $raw_section['post_id']) : [];
+        if (!empty($post_ids)) {
+            $rules[] = [
+                'type' => 'post_id',
+                'ids' => $post_ids,
+            ];
+        }
+
+        return $rules;
+    }
+}
+
+if (!function_exists('bw_tbl_parse_single_page_rules_section')) {
+    function bw_tbl_parse_single_page_rules_section($raw_section)
+    {
+        $raw_section = is_array($raw_section) ? $raw_section : [];
+        $rules = [];
+
+        $page_ids = isset($raw_section['page_id']) ? bw_tbl_parse_csv_ids((string) $raw_section['page_id']) : [];
+        if (!empty($page_ids)) {
+            $rules[] = [
+                'type' => 'page_id',
+                'ids' => $page_ids,
+            ];
+        }
+
+        return $rules;
+    }
+}
+
 if (!function_exists('bw_tbl_get_single_product_rules_for_ui')) {
     function bw_tbl_get_single_product_rules_for_ui($post_id, $section)
     {
@@ -948,7 +1002,9 @@ if (!function_exists('bw_tbl_save_template_rules_metabox')) {
             return;
         }
 
-        if (!isset($_POST['bw_tbl_template_rules_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['bw_tbl_template_rules_nonce'])), 'bw_tbl_template_rules_save')) {
+        $metabox_nonce_ok = isset($_POST['bw_tbl_template_rules_nonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['bw_tbl_template_rules_nonce'])), 'bw_tbl_template_rules_save');
+        $quick_edit_nonce_ok = isset($_POST['bw_tbl_quick_edit_nonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['bw_tbl_quick_edit_nonce'])), 'bw_tbl_quick_edit_save');
+        if (!$metabox_nonce_ok && !$quick_edit_nonce_ok) {
             return;
         }
 
@@ -971,9 +1027,18 @@ if (!function_exists('bw_tbl_save_template_rules_metabox')) {
 
         $raw_rules = isset($_POST['bw_tbl_display_rules']) && is_array($_POST['bw_tbl_display_rules']) ? wp_unslash($_POST['bw_tbl_display_rules']) : [];
         $posted_type = isset($_POST['bw_template_type']) ? bw_tbl_sanitize_template_type(wp_unslash($_POST['bw_template_type'])) : bw_tbl_sanitize_template_type(get_post_meta($post_id, 'bw_template_type', true));
+        $quick_mode = !empty($_POST['bw_tbl_quick_edit_mode']) && $quick_edit_nonce_ok;
         $normalized_rules = ['include' => [], 'exclude' => []];
 
-        if ('archive' === $posted_type) {
+        if ($quick_mode && 'single_post' === $posted_type) {
+            $single_post_rules_raw = isset($_POST['bw_tbl_single_post_rules']) && is_array($_POST['bw_tbl_single_post_rules']) ? wp_unslash($_POST['bw_tbl_single_post_rules']) : [];
+            $normalized_rules['include'] = bw_tbl_parse_single_post_rules_section(isset($single_post_rules_raw['include']) ? $single_post_rules_raw['include'] : []);
+            $normalized_rules['exclude'] = bw_tbl_parse_single_post_rules_section(isset($single_post_rules_raw['exclude']) ? $single_post_rules_raw['exclude'] : []);
+        } elseif ($quick_mode && 'single_page' === $posted_type) {
+            $single_page_rules_raw = isset($_POST['bw_tbl_single_page_rules']) && is_array($_POST['bw_tbl_single_page_rules']) ? wp_unslash($_POST['bw_tbl_single_page_rules']) : [];
+            $normalized_rules['include'] = bw_tbl_parse_single_page_rules_section(isset($single_page_rules_raw['include']) ? $single_page_rules_raw['include'] : []);
+            $normalized_rules['exclude'] = bw_tbl_parse_single_page_rules_section(isset($single_page_rules_raw['exclude']) ? $single_page_rules_raw['exclude'] : []);
+        } elseif ('archive' === $posted_type) {
             $archive_rules_raw = isset($_POST['bw_tbl_archive_rules']) && is_array($_POST['bw_tbl_archive_rules']) ? wp_unslash($_POST['bw_tbl_archive_rules']) : [];
             $normalized_rules['include'] = bw_tbl_parse_archive_rules_section(isset($archive_rules_raw['include']) ? $archive_rules_raw['include'] : []);
             $normalized_rules['exclude'] = bw_tbl_parse_archive_rules_section(isset($archive_rules_raw['exclude']) ? $archive_rules_raw['exclude'] : []);
