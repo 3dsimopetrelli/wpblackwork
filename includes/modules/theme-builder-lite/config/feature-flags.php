@@ -22,6 +22,7 @@ if (!function_exists('bw_tbl_feature_flag_defaults')) {
             'enabled' => 0,
             'custom_fonts_enabled' => 0,
             'footer_override_enabled' => 0,
+            'templates_enabled' => 0,
         ];
     }
 }
@@ -60,6 +61,7 @@ if (!function_exists('bw_tbl_sanitize_feature_flags')) {
             'enabled' => !empty($input['enabled']) ? 1 : 0,
             'custom_fonts_enabled' => !empty($input['custom_fonts_enabled']) ? 1 : 0,
             'footer_override_enabled' => !empty($input['footer_override_enabled']) ? 1 : 0,
+            'templates_enabled' => !empty($input['templates_enabled']) ? 1 : 0,
         ] + $defaults;
     }
 }

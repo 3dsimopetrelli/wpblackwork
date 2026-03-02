@@ -2,12 +2,18 @@
 
 ## Status
 - Phase 1: Implemented
+- Phase 2 Step 1: Implemented (resolver skeleton only)
 - Scope delivered in Phase 1:
   - Custom Fonts module
   - Footer Template module
+- Scope delivered in Phase 2 Step 1:
+  - `template_include` resolver skeleton with strict bypass guards
+  - Deterministic winner selection (`priority DESC`, `template_id ASC`)
+  - Runtime wrapper render path (Elementor builder first, `the_content` fallback)
+  - New feature flag: `templates_enabled`
 - Out of scope (not implemented):
-  - Single Product override
-  - Condition engine include/exclude matrix
+  - Single Product override (deferred to later Phase 2 step)
+  - Condition engine include/exclude matrix (deferred to later Phase 2 step)
   - Woo template stack takeover
 
 ## Task Start Template (Phase 1)
@@ -57,10 +63,11 @@ Option key: `bw_theme_builder_lite_flags`
 - `enabled` (master)
 - `custom_fonts_enabled`
 - `footer_override_enabled`
+- `templates_enabled`
 
 Behavior:
 - If master flag is off, runtime output is disabled.
-- Sub-flags gate fonts and footer independently.
+- Sub-flags gate fonts, footer, and Phase 2 template resolver independently.
 
 ## C) Custom Fonts (Implemented)
 Storage option: `bw_custom_fonts_v1`
@@ -158,6 +165,32 @@ Runtime behavior:
 - No `template_include` global interception.
 - No WooCommerce template resolver changes.
 - No header system modifications.
+
+## F) Phase 2 Step 1 - Resolver Skeleton (Implemented)
+Supported template contexts in this step:
+- `single_post` (`is_singular('post')`)
+- `single_page` (`is_page()`)
+- `search` (`is_search()`)
+- `error_404` (`is_404()`)
+
+Resolver contract:
+- Hook: `template_include` (priority `50`)
+- Strict bypasses:
+  - admin/ajax/feed/embed
+  - `is_singular('bw_template')`
+  - Elementor editor/preview requests
+  - Woo safety list: `is_cart()`, `is_checkout()`, `is_account_page()`, `is_wc_endpoint_url()`
+- Candidate selection:
+  - `bw_template` + `publish` + matching `bw_template_type`
+  - Step 1 default: no condition rows yet, so match-all within resolved type context
+- Winner selection:
+  - highest `bw_template_priority` first (default `10`)
+  - tie-break: lowest template id
+- Rendering:
+  - Elementor builder output first
+  - fallback to classic `the_content`
+- Fail-open invariant:
+  - if no winner / invalid winner / empty render / wrapper missing/error -> return original theme template unchanged.
 
 ## Rollback
 1. Disable master flag `bw_theme_builder_lite_flags[enabled]`.

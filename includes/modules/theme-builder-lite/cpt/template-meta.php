@@ -6,7 +6,7 @@ if (!defined('ABSPATH')) {
 if (!function_exists('bw_tbl_template_type_allowed_values')) {
     function bw_tbl_template_type_allowed_values()
     {
-        return ['footer'];
+        return ['footer', 'single_post', 'single_page', 'search', 'error_404'];
     }
 }
 
@@ -71,9 +71,13 @@ if (!function_exists('bw_tbl_render_template_type_metabox')) {
             <label for="bw-template-type-field"><?php esc_html_e('Type', 'bw'); ?></label>
             <select id="bw-template-type-field" name="bw_template_type" class="widefat">
                 <option value="footer" <?php selected($current, 'footer'); ?>><?php esc_html_e('Footer', 'bw'); ?></option>
+                <option value="single_post" <?php selected($current, 'single_post'); ?>><?php esc_html_e('Single Post', 'bw'); ?></option>
+                <option value="single_page" <?php selected($current, 'single_page'); ?>><?php esc_html_e('Single Page', 'bw'); ?></option>
+                <option value="search" <?php selected($current, 'search'); ?>><?php esc_html_e('Search Results', 'bw'); ?></option>
+                <option value="error_404" <?php selected($current, 'error_404'); ?>><?php esc_html_e('Error 404', 'bw'); ?></option>
             </select>
         </p>
-        <p class="description"><?php esc_html_e('Phase 1 supports only Footer templates.', 'bw'); ?></p>
+        <p class="description"><?php esc_html_e('Phase 2 Step 1 supports Footer, Single Post, Single Page, Search Results, and Error 404.', 'bw'); ?></p>
         <?php
     }
 }

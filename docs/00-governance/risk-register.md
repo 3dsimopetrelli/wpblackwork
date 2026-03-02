@@ -73,6 +73,20 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
   - [Theme Builder Lite Spec](../30-features/theme-builder-lite/theme-builder-lite-spec.md)
   - [Theme Builder Lite Runtime Hook Map](../10-architecture/theme-builder-lite/runtime-hook-map.md)
 
+### Risk ID: R-TBL-05
+- Domain: Theme Builder Lite / Template Resolver
+- Surface Anchor: `includes/modules/theme-builder-lite/runtime/template-resolver.php` (`template_include` priority `50`)
+- Description: Resolver conflicts with theme or third-party `template_include` logic could produce unexpected template precedence behavior.
+- Invariant Threatened: Fail-open template selection must never break native theme rendering.
+- Impact: Medium
+- Likelihood: Medium
+- Risk Level: Medium
+- Current Mitigation: strict bypass guards (admin/editor/preview/Woo safety endpoints), deterministic winner contract, and fail-open fallback to original `$template` on any mismatch/error/empty render.
+- Monitoring Status: Monitoring
+- Linked Documents:
+  - [Theme Builder Lite Spec](../30-features/theme-builder-lite/theme-builder-lite-spec.md)
+  - [Theme Builder Lite Runtime Hook Map](../10-architecture/theme-builder-lite/runtime-hook-map.md)
+
 ### Risk ID: R-CHK-01
 - Domain: Checkout / Payments
 - Surface Anchor: `assets/js/bw-payment-methods.js`, `assets/js/bw-google-pay.js`, `assets/js/bw-apple-pay.js` (`updated_checkout` handlers)

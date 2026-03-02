@@ -182,6 +182,16 @@ if (!function_exists('bw_tbl_render_admin_page')) {
                                 <p class="description"><?php esc_html_e('If disabled, all Theme Builder Lite frontend output is disabled (fonts + footer override).', 'bw'); ?></p>
                             </td>
                         </tr>
+                        <tr>
+                            <th scope="row"><?php esc_html_e('Enable Templates Resolver (Phase 2 Step 1)', 'bw'); ?></th>
+                            <td>
+                                <label>
+                                    <input id="bw-tbl-flag-templates-enabled" type="checkbox" name="<?php echo esc_attr(BW_TBL_FEATURE_FLAGS_OPTION); ?>[templates_enabled]" value="1" <?php checked(!empty($flags['templates_enabled'])); ?> />
+                                    <?php esc_html_e('Enable template_include resolver for Single Post, Single Page, Search, and 404 contexts.', 'bw'); ?>
+                                </label>
+                                <p class="description"><?php esc_html_e('Fail-open: if no valid template is resolved, the active theme template is used.', 'bw'); ?></p>
+                            </td>
+                        </tr>
                     </table>
                 </div>
 

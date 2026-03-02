@@ -9,5 +9,7 @@ require_once __DIR__ . '/cpt/template-meta.php';
 require_once __DIR__ . '/fonts/custom-fonts.php';
 require_once __DIR__ . '/integrations/elementor-fonts.php';
 require_once __DIR__ . '/runtime/footer-runtime.php';
+require_once __DIR__ . '/runtime/template-wrapper.php';
+require_once __DIR__ . '/runtime/template-resolver.php';
 require_once __DIR__ . '/runtime/template-preview.php';
 require_once __DIR__ . '/admin/theme-builder-lite-admin.php';
