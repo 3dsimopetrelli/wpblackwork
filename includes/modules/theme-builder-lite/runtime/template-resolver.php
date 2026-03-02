@@ -61,6 +61,22 @@ if (!function_exists('bw_tbl_runtime_resolve_request_template_type')) {
             return 'single_page';
         }
 
+        if (function_exists('is_shop') && is_shop()) {
+            return '';
+        }
+
+        if (function_exists('is_product_taxonomy') && is_product_taxonomy()) {
+            return '';
+        }
+
+        if (function_exists('is_post_type_archive') && is_post_type_archive('product')) {
+            return '';
+        }
+
+        if (is_home() || is_archive()) {
+            return 'archive';
+        }
+
         return '';
     }
 }
@@ -83,6 +99,9 @@ if (!function_exists('bw_tbl_runtime_build_context')) {
             'post_id' => 0,
             'page_id' => 0,
             'post_category_term_ids' => [],
+            'archive_kind' => '',
+            'archive_term_id' => 0,
+            'archive_post_types' => [],
         ];
 
         if ('single_post' === $template_type) {
@@ -105,6 +124,33 @@ if (!function_exists('bw_tbl_runtime_build_context')) {
             }
         } elseif ('single_page' === $template_type) {
             $context['page_id'] = absint(get_queried_object_id());
+        } elseif ('archive' === $template_type) {
+            if (is_home()) {
+                $context['archive_kind'] = 'blog';
+            } elseif (is_category()) {
+                $term = get_queried_object();
+                $context['archive_kind'] = 'category';
+                $context['archive_term_id'] = isset($term->term_id) ? absint($term->term_id) : 0;
+            } elseif (is_tag()) {
+                $term = get_queried_object();
+                $context['archive_kind'] = 'tag';
+                $context['archive_term_id'] = isset($term->term_id) ? absint($term->term_id) : 0;
+            } elseif (is_post_type_archive()) {
+                $context['archive_kind'] = 'post_type';
+                $raw_post_type = get_query_var('post_type');
+                $post_types = is_array($raw_post_type) ? $raw_post_type : [$raw_post_type];
+                $normalized = [];
+                foreach ($post_types as $post_type) {
+                    $post_type = sanitize_key((string) $post_type);
+                    if ('' === $post_type || 'product' === $post_type || 'bw_template' === $post_type) {
+                        continue;
+                    }
+                    $normalized[$post_type] = $post_type;
+                }
+                $context['archive_post_types'] = array_values($normalized);
+            } else {
+                $context['archive_kind'] = 'generic';
+            }
         }
 
         return $context;

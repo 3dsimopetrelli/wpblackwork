@@ -5,6 +5,7 @@
 - Phase 2 Step 1: Implemented (resolver skeleton only)
 - Phase 2 Step 2: Implemented (conditions engine core, no UI yet)
 - Phase 2 Step 3: Implemented (Display Rules metabox + deterministic persistence)
+- Phase 2 Step 4: Implemented (archive non-Woo contexts + archive rules)
 - Scope delivered in Phase 1:
   - Custom Fonts module
   - Footer Template module
@@ -21,9 +22,13 @@
   - WordPress-native `Display Rules` metabox on `bw_template`
   - Priority field persisted to `bw_template_priority` (`0..999`, default `10`)
   - Include/Exclude sections persisted to `bw_tbl_display_rules_v1` using normalized shape
+- Scope delivered in Phase 2 Step 4:
+  - Added `archive` template type (non-Woo contexts only)
+  - Resolver context mapping for blog archive, category archive, tag archive, and post type archive
+  - Conditions engine support for `archive_blog`, `archive_category`, `archive_tag`, `archive_post_type`
+  - Archive-specific Include/Exclude controls in metabox with deterministic sanitize/save
 - Out of scope (not implemented):
   - Single Product override (deferred to later Phase 2 step)
-  - Condition engine include/exclude matrix (deferred to later Phase 2 step)
   - Woo template stack takeover
 
 ## Task Start Template (Phase 1)
@@ -243,6 +248,23 @@ Resolver contract:
 - Safety:
   - nonce + capability checks on save
   - empty/invalid input normalizes to empty arrays (fail-open with resolver contract).
+
+### Phase 2 Step 4 - Archive Contexts (Non-Woo) (Implemented)
+- Resolver type mapping:
+  - `archive` when request is `is_home()` or `is_archive()`, excluding Woo archive surfaces (`is_shop`, `is_product_taxonomy`, `is_post_type_archive('product')`)
+- Archive sub-context payload passed to conditions engine:
+  - `archive_kind` in `{blog, category, tag, post_type, generic}`
+  - `archive_term_id` for category/tag
+  - `archive_post_types[]` for post type archives (excluding `product` and `bw_template`)
+- Supported archive rule types:
+  - `archive_blog`
+  - `archive_category` (category term IDs)
+  - `archive_tag` (tag term IDs)
+  - `archive_post_type` (post type names)
+- Evaluation and precedence remain unchanged:
+  - Exclude-first
+  - Include empty => match-all within archive context
+  - Winner: highest priority, tie-break by lowest template ID
 
 ## Rollback
 1. Disable master flag `bw_theme_builder_lite_flags[enabled]`.

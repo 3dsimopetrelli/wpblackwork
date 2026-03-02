@@ -22,6 +22,28 @@ if (!function_exists('bw_tbl_rule_int_list')) {
     }
 }
 
+if (!function_exists('bw_tbl_rule_post_type_list')) {
+    function bw_tbl_rule_post_type_list($value)
+    {
+        if (!is_array($value)) {
+            return [];
+        }
+
+        $result = [];
+        foreach ($value as $item) {
+            $item = sanitize_key((string) $item);
+            if ('' === $item || 'attachment' === $item || 'bw_template' === $item || 'product' === $item) {
+                continue;
+            }
+            $result[$item] = $item;
+        }
+
+        $result = array_values($result);
+        sort($result, SORT_STRING);
+        return $result;
+    }
+}
+
 if (!function_exists('bw_tbl_normalize_single_rule')) {
     function bw_tbl_normalize_single_rule($raw_rule)
     {
@@ -67,6 +89,48 @@ if (!function_exists('bw_tbl_normalize_single_rule')) {
             return [
                 'type' => 'page_id',
                 'ids' => $ids,
+            ];
+        }
+
+        if ('archive_blog' === $type) {
+            return [
+                'type' => 'archive_blog',
+            ];
+        }
+
+        if ('archive_category' === $type) {
+            $terms = bw_tbl_rule_int_list(isset($raw_rule['terms']) ? $raw_rule['terms'] : []);
+            if (empty($terms)) {
+                return null;
+            }
+
+            return [
+                'type' => 'archive_category',
+                'terms' => $terms,
+            ];
+        }
+
+        if ('archive_tag' === $type) {
+            $terms = bw_tbl_rule_int_list(isset($raw_rule['terms']) ? $raw_rule['terms'] : []);
+            if (empty($terms)) {
+                return null;
+            }
+
+            return [
+                'type' => 'archive_tag',
+                'terms' => $terms,
+            ];
+        }
+
+        if ('archive_post_type' === $type) {
+            $post_types = bw_tbl_rule_post_type_list(isset($raw_rule['post_types']) ? $raw_rule['post_types'] : []);
+            if (empty($post_types)) {
+                return null;
+            }
+
+            return [
+                'type' => 'archive_post_type',
+                'post_types' => $post_types,
             ];
         }
 
@@ -135,6 +199,10 @@ if (!function_exists('bw_tbl_rule_applies_to_context_type')) {
             return in_array($rule_type, ['page_id'], true);
         }
 
+        if ('archive' === $template_type) {
+            return in_array($rule_type, ['archive_blog', 'archive_category', 'archive_tag', 'archive_post_type'], true);
+        }
+
         if (in_array($template_type, ['search', 'error_404'], true)) {
             return false;
         }
@@ -154,6 +222,9 @@ if (!function_exists('bw_tbl_rule_matches_context')) {
         $current_post_id = isset($context['post_id']) ? absint($context['post_id']) : 0;
         $current_page_id = isset($context['page_id']) ? absint($context['page_id']) : 0;
         $current_terms = isset($context['post_category_term_ids']) && is_array($context['post_category_term_ids']) ? $context['post_category_term_ids'] : [];
+        $archive_kind = isset($context['archive_kind']) ? sanitize_key((string) $context['archive_kind']) : '';
+        $archive_term_id = isset($context['archive_term_id']) ? absint($context['archive_term_id']) : 0;
+        $archive_post_types = isset($context['archive_post_types']) && is_array($context['archive_post_types']) ? $context['archive_post_types'] : [];
 
         if ('post_category' === $type) {
             $rule_terms = isset($rule['terms']) && is_array($rule['terms']) ? $rule['terms'] : [];
@@ -168,6 +239,25 @@ if (!function_exists('bw_tbl_rule_matches_context')) {
         if ('page_id' === $type) {
             $ids = isset($rule['ids']) && is_array($rule['ids']) ? $rule['ids'] : [];
             return $current_page_id > 0 && in_array($current_page_id, $ids, true);
+        }
+
+        if ('archive_blog' === $type) {
+            return 'blog' === $archive_kind;
+        }
+
+        if ('archive_category' === $type) {
+            $terms = isset($rule['terms']) && is_array($rule['terms']) ? $rule['terms'] : [];
+            return 'category' === $archive_kind && $archive_term_id > 0 && in_array($archive_term_id, $terms, true);
+        }
+
+        if ('archive_tag' === $type) {
+            $terms = isset($rule['terms']) && is_array($rule['terms']) ? $rule['terms'] : [];
+            return 'tag' === $archive_kind && $archive_term_id > 0 && in_array($archive_term_id, $terms, true);
+        }
+
+        if ('archive_post_type' === $type) {
+            $rule_post_types = isset($rule['post_types']) && is_array($rule['post_types']) ? $rule['post_types'] : [];
+            return 'post_type' === $archive_kind && !empty(array_intersect($rule_post_types, $archive_post_types));
         }
 
         return false;

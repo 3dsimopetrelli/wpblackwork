@@ -1,10 +1,10 @@
-# Theme Builder Lite - Runtime Hook Map (Phase 1 + Phase 2 Step 1)
+# Theme Builder Lite - Runtime Hook Map (Phase 1 + Phase 2 Step 4)
 
 ## Purpose
 Actual runtime hooks used by implemented Theme Builder Lite surfaces.
 Current scope includes:
 - Phase 1: Custom Fonts + Footer Template
-- Phase 2 Step 1: resolver skeleton for `single_post`, `single_page`, `search`, `error_404`
+- Phase 2 Step 4: resolver for `single_post`, `single_page`, `archive` (non-Woo), `search`, `error_404`
 
 ## Hook Inventory
 
@@ -31,7 +31,7 @@ Current scope includes:
 | `upload_mimes` (filter) | 10 (default) | `bw_tbl_allow_font_upload_mimes` | `includes/modules/theme-builder-lite/fonts/custom-fonts.php` | Allow WOFF/WOFF2 uploads for admins |
 | `wp_check_filetype_and_ext` (filter) | 10 | `bw_tbl_fix_font_filetype_and_ext` | `includes/modules/theme-builder-lite/fonts/custom-fonts.php` | Normalize font file type detection |
 | `template_include` (filter) | 99 | `bw_tbl_include_single_template_preview` | `includes/modules/theme-builder-lite/runtime/template-preview.php` | Route `bw_template` singular to safe preview template |
-| `template_include` (filter) | 50 | `bw_tbl_runtime_resolve_template_include` | `includes/modules/theme-builder-lite/runtime/template-resolver.php` | Phase 2 Step 1 resolver skeleton with strict guards + deterministic winner selection |
+| `template_include` (filter) | 50 | `bw_tbl_runtime_resolve_template_include` | `includes/modules/theme-builder-lite/runtime/template-resolver.php` | Phase 2 resolver with strict guards, conditions filtering, and deterministic winner selection |
 | `wp_robots` (filter) | 10 (default) | `bw_tbl_add_noindex_for_bw_template` | `includes/modules/theme-builder-lite/runtime/template-preview.php` | Enforce noindex for public preview URLs |
 | `wp_enqueue_scripts` | 20 | `bw_tbl_enqueue_custom_fonts_css` | `includes/modules/theme-builder-lite/fonts/custom-fonts.php` | Enqueue generated `@font-face` CSS |
 | `wp` | 20 | `bw_tbl_prepare_footer_runtime` | `includes/modules/theme-builder-lite/runtime/footer-runtime.php` | Resolve active footer and remove known theme footer callback |
@@ -50,7 +50,7 @@ Runtime behavior:
 - If flag checks fail, hooks return without mutation/output.
 - Admin assets are scoped to `blackwork-site-settings_page_bw-theme-builder-lite-settings` only and are not loaded on Elementor editor routes.
 - Elementor font integration is soft-dependent and executes only after `elementor/loaded`; otherwise callbacks no-op.
-- Phase 2 Step 1 resolver bypasses: admin/ajax/feed/embed, `is_singular('bw_template')`, Elementor editor/preview, Woo safety endpoints (`is_cart`, `is_checkout`, `is_account_page`, `is_wc_endpoint_url`).
+- Phase 2 resolver bypasses: admin/ajax/feed/embed, `is_singular('bw_template')`, Elementor editor/preview, Woo safety endpoints (`is_cart`, `is_checkout`, `is_account_page`, `is_wc_endpoint_url`), and Woo archive contexts (`is_shop`, `is_product_taxonomy`, `is_post_type_archive('product')`).
 
 ## Fallback Contract
 
