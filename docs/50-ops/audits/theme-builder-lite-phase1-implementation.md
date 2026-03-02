@@ -22,6 +22,8 @@ Excluded from Phase 1:
 - `includes/modules/theme-builder-lite/cpt/template-meta.php`
 - `includes/modules/theme-builder-lite/fonts/custom-fonts.php`
 - `includes/modules/theme-builder-lite/runtime/footer-runtime.php`
+- `includes/modules/theme-builder-lite/runtime/template-preview.php`
+- `includes/modules/theme-builder-lite/templates/single-bw-template.php`
 - `includes/modules/theme-builder-lite/admin/theme-builder-lite-admin.php`
 - `includes/modules/theme-builder-lite/admin/theme-builder-lite-admin.js`
 
@@ -51,6 +53,9 @@ Excluded from Phase 1:
   - `version`
   - `active_footer_template_id`
 
+- `bw_tbl_rewrite_rules_version`
+  - one-time rewrite migration marker for `bw_template` preview permalink stability
+
 ### Post Type and Meta
 - CPT: `bw_template`
 - Post meta: `bw_template_type` (Phase 1 value: `footer`)
@@ -78,6 +83,31 @@ Excluded from Phase 1:
 
 Persistence rule:
 - Single settings form persists all option keys across tabs.
+
+## 4.2) Footer Override - Final Rendering Contract
+- Activation conditions:
+  - `bw_theme_builder_lite_flags[enabled]=1`
+  - `bw_theme_builder_lite_flags[footer_override_enabled]=1`
+  - active template resolves to published `bw_template` with `bw_template_type=footer`
+- Rendering priority:
+  - Elementor builder content first
+  - fallback to classic content via `the_content`
+- Preview safeguards:
+  - override bypass on Elementor editor/preview requests
+  - override bypass on `is_singular('bw_template')`
+  - dedicated `template_include` preview template ensures valid 200 render context for Elementor
+- Fail-open invariant:
+  - invalid template/content/exception path returns to theme footer with no hard failure
+
+## 4.3) Elementor Editor Freeze Resolution Evidence
+- Root cause confirmed in Phase 1 hardening:
+  - Elementor preview URL for `bw_template` returned 404, causing editor-side save-handle bootstrap failure.
+- Mitigation implemented:
+  - `bw_template` previewability contract + rewrite stabilization
+  - noindex guard for previewable template URLs
+  - strict admin asset enqueue scoping to Theme Builder Lite settings page
+- Result:
+  - `Edit with Elementor` for footer templates loads without stuck loading overlay.
 
 ## 5) Rollback Steps
 1. Open `Blackwork Site -> Theme Builder Lite`.

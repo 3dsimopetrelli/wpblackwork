@@ -39,6 +39,17 @@ If a decision is normative and architecture-binding, the ADR process MUST be use
   - Validate deterministic duplicate-SKU failure behavior in regression runs.
   - Implement Import Engine v2 per `docs/30-features/import-products/import-products-vnext-spec.md`.
 
+### Entry 003
+- Date: 2026-03-02
+- Decision summary: Theme Builder Lite `bw_template` remains non-public in site navigation but is intentionally previewable for Elementor via controlled singular rendering and noindex policy.
+- Affected domain: Theme Builder Lite / Elementor Integration / Runtime Isolation
+- Rationale: Elementor editor requires a valid frontend preview response (HTTP 200 + WP head/footer hooks). A controlled preview path resolves editor bootstrap failures while preserving SEO/privacy constraints.
+- Risk impact: Medium reduced to Low for Phase 1 Footer Override editor stability.
+- Follow-up actions:
+  - Keep admin assets scoped to Theme Builder Lite settings page only.
+  - Preserve preview guards that bypass footer override during Elementor editor/preview and `bw_template` singular requests.
+  - Re-evaluate this contract if future template types introduce public routing requirements.
+
 ## Governance Layer Closure
 
 Status: CLOSED  

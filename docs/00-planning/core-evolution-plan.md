@@ -52,6 +52,21 @@ It MUST be used as planning reference only and MUST NOT replace ADRs.
 
 ## Tier 1 – UX & Runtime
 
+### Theme Builder Lite — Phase 1 (Fonts + Footer Override)
+- Status: Completed (2026-03-02)
+- Risk classification: Medium
+- Short description: Delivered modular Theme Builder Lite Phase 1 with custom fonts, BW footer templates, Elementor support automation, preview-safe template rendering, and fail-open footer override behavior.
+- Reference docs:
+  - `docs/30-features/theme-builder-lite/theme-builder-lite-spec.md`
+  - `docs/10-architecture/theme-builder-lite/runtime-hook-map.md`
+  - `docs/50-ops/audits/theme-builder-lite-phase1-implementation.md`
+- Acceptance:
+  - `bw_template` editable with Elementor Free without manual settings changes
+  - `bw_template` preview permalink resolves with HTTP 200
+  - Footer override respects master/sub-feature flags and remains fail-open
+  - Elementor editor preview recursion/conflict safeguards are active
+  - Admin controls delivered as tabs (`Settings`, `Fonts`, `Footer`)
+
 ### Coming Soon Hardening
 - Status: Backlog
 - Risk classification: Medium

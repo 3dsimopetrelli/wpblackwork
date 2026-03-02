@@ -27,6 +27,28 @@ Risk level (qualitative):
 - Low: Low impact + Low/Medium likelihood.
 
 ## 3) Risk Entries
+### Recently Resolved (Closed and Removed from Active Register)
+These risks were active during Theme Builder Lite Phase 1 and are now closed with implementation evidence. They are retained here as closure notes only and are not active risks.
+
+#### Resolved Risk ID: R-TBL-01 (Closed)
+- Domain: Theme Builder Lite / Elementor Editor
+- Previous threat: `bw_template` permalink returned 404, causing Elementor editor preview bootstrap failure and editor freeze.
+- Resolution evidence:
+  - `bw_template` made previewable with stable rewrite/permalink + one-time rewrite flush.
+  - Dedicated `template_include` preview path added for `is_singular('bw_template')`.
+  - `wp_robots` noindex guard applied to prevent indexing of previewable templates.
+  - Audit: `docs/50-ops/audits/theme-builder-lite-phase1-implementation.md`
+- Closure status: Resolved
+
+#### Resolved Risk ID: R-TBL-02 (Closed)
+- Domain: Theme Builder Lite / Admin Runtime Isolation
+- Previous threat: Theme Builder Lite admin assets could interfere with Elementor editor initialization.
+- Resolution evidence:
+  - Strict `admin_enqueue_scripts` scoping to Theme Builder Lite settings page.
+  - Explicit bypass for Elementor editor route (`action=elementor`).
+  - Runtime docs updated with actual hook isolation contract.
+- Closure status: Resolved
+
 ### Risk ID: R-CHK-01
 - Domain: Checkout / Payments
 - Surface Anchor: `assets/js/bw-payment-methods.js`, `assets/js/bw-google-pay.js`, `assets/js/bw-apple-pay.js` (`updated_checkout` handlers)

@@ -88,6 +88,8 @@ Frontend behavior:
 CPT: `bw_template`
 - Registered in admin under Blackwork Site menu.
 - Elementor Free support added via `elementor/cpt_support` filter.
+- Elementor support is also enforced via `elementor_cpt_support` option sync (`admin_init`) to avoid manual Elementor settings steps.
+- Previewability for Elementor editor is enabled (`publicly_queryable=true`, rewrite slug `bw-template`, `show_in_rest=true`, `exclude_from_search=true`, `has_archive=false`).
 
 Template type:
 - Meta key `bw_template_type`
@@ -102,10 +104,27 @@ Runtime behavior:
   - attempts to suppress known theme footer callback (Hello Elementor)
   - applies conservative fallback CSS for common theme footer selectors
   - renders Elementor content in `wp_footer`
+- `bw_template` single requests use a dedicated preview template include path and are marked `noindex/nofollow/noarchive` via `wp_robots`.
 - Fail-open:
   - invalid/missing template -> no override
   - render failure -> no override
   - theme footer remains the default fallback
+
+### Footer Override - Final Rendering Contract
+- Activation conditions:
+  - Master flag `bw_theme_builder_lite_flags[enabled] = 1`
+  - Footer flag `bw_theme_builder_lite_flags[footer_override_enabled] = 1`
+  - Active footer template id resolves to a published `bw_template` with `bw_template_type=footer`
+  - Request is frontend and not admin/ajax/feed/embed, not `is_singular('bw_template')`, and not Elementor editor/preview request.
+- Rendering priority:
+  - Runtime resolves a single deterministic active template id.
+  - Elementor builder render (`get_builder_content_for_display`) is attempted first.
+  - If Elementor render is empty/unavailable, classic `the_content` fallback is attempted.
+- Preview safeguards:
+  - Footer override is bypassed on Elementor editor/preview requests and on `bw_template` singular preview pages.
+  - `bw_template` preview path returns normal frontend context (200 + WP head/footer hooks) through dedicated template include wiring.
+- Fail-open invariant:
+  - Any invalid template state, missing content, runtime exception, or guard mismatch returns control to theme footer with no hard failure.
 
 ## E) Explicit Non-Goals (Phase 1)
 - No single product override logic.
