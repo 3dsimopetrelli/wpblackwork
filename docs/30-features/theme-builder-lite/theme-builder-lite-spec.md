@@ -266,7 +266,7 @@ Resolver contract:
   - `Priority` (`bw_template_priority`, default `10`)
   - `Applies To` (summary from `bw_tbl_display_rules_v1`, include/exclude with concise truncation)
 - Optional type filter dropdown is available above the list table (`All Types` + specific template types).
-- Quick Edit supports updating priority and type-aware conditions while preserving the same `bw_tbl_display_rules_v1` storage schema.
+- Quick Edit is the primary UI for updating priority and type-aware conditions; the template editor shows conditions read-only while preserving the same `bw_tbl_display_rules_v1` storage schema.
 - No runtime resolver behavior is changed by this admin UX enhancement.
 
 ### Phase 2 Step 4 - Archive Contexts (Non-Woo) (Implemented)
