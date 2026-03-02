@@ -61,6 +61,10 @@ if (!function_exists('bw_tbl_runtime_resolve_request_template_type')) {
             return 'single_page';
         }
 
+        if (function_exists('is_product') && is_product()) {
+            return 'single_product';
+        }
+
         if (function_exists('is_shop') && is_shop()) {
             return '';
         }
@@ -99,6 +103,8 @@ if (!function_exists('bw_tbl_runtime_build_context')) {
             'post_id' => 0,
             'page_id' => 0,
             'post_category_term_ids' => [],
+            'product_id' => 0,
+            'product_category_term_ids' => [],
             'archive_kind' => '',
             'archive_term_id' => 0,
             'archive_post_types' => [],
@@ -124,6 +130,23 @@ if (!function_exists('bw_tbl_runtime_build_context')) {
             }
         } elseif ('single_page' === $template_type) {
             $context['page_id'] = absint(get_queried_object_id());
+        } elseif ('single_product' === $template_type) {
+            $product_id = absint(get_queried_object_id());
+            $context['product_id'] = $product_id;
+
+            if ($product_id > 0) {
+                $terms = wp_get_post_terms($product_id, 'product_cat', ['fields' => 'ids']);
+                if (is_array($terms)) {
+                    $term_ids = [];
+                    foreach ($terms as $term_id) {
+                        $term_id = absint($term_id);
+                        if ($term_id > 0) {
+                            $term_ids[$term_id] = $term_id;
+                        }
+                    }
+                    $context['product_category_term_ids'] = array_values($term_ids);
+                }
+            }
         } elseif ('archive' === $template_type) {
             if (is_home()) {
                 $context['archive_kind'] = 'blog';
