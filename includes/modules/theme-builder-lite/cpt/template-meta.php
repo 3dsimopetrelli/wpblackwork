@@ -782,18 +782,25 @@ if (!function_exists('bw_tbl_save_template_rules_metabox')) {
         }
 
         $priority = isset($_POST['bw_template_priority']) ? (int) wp_unslash($_POST['bw_template_priority']) : 10;
-        if ($priority < 0) {
-            $priority = 0;
+        $priority_touched = isset($_POST['bw_tbl_qe_priority_touched']) && '1' === (string) wp_unslash($_POST['bw_tbl_qe_priority_touched']);
+        if ($priority_touched && isset($_POST['bw_template_priority']) && is_numeric(wp_unslash($_POST['bw_template_priority']))) {
+            if ($priority < 0) {
+                $priority = 0;
+            }
+            if ($priority > 999) {
+                $priority = 999;
+            }
+            update_post_meta($post_id, 'bw_template_priority', $priority);
         }
-        if ($priority > 999) {
-            $priority = 999;
-        }
-        update_post_meta($post_id, 'bw_template_priority', $priority);
 
         $raw_rules = isset($_POST['bw_tbl_display_rules']) && is_array($_POST['bw_tbl_display_rules']) ? wp_unslash($_POST['bw_tbl_display_rules']) : [];
         $posted_type = isset($_POST['bw_template_type']) ? bw_tbl_sanitize_template_type(wp_unslash($_POST['bw_template_type'])) : bw_tbl_sanitize_template_type(get_post_meta($post_id, 'bw_template_type', true));
         $quick_mode = !empty($_POST['bw_tbl_quick_edit_mode']) && $quick_edit_nonce_ok;
         if (!$quick_mode) {
+            return;
+        }
+        $rules_touched = isset($_POST['bw_tbl_qe_rules_touched']) && '1' === (string) wp_unslash($_POST['bw_tbl_qe_rules_touched']);
+        if (!$rules_touched) {
             return;
         }
         $normalized_rules = ['include' => [], 'exclude' => []];

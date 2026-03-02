@@ -342,11 +342,11 @@ if (!function_exists('bw_tbl_admin_quick_edit_taxonomy_multiselect')) {
         );
 
         if (!is_string($dropdown) || '' === $dropdown) {
-            echo '<select multiple="multiple" name="' . esc_attr($name) . '" id="' . esc_attr($id) . '" style="width:100%;"></select>';
+            echo '<select multiple="multiple" name="' . esc_attr($name) . '" id="' . esc_attr($id) . '" class="' . esc_attr($id) . '" style="width:100%;"></select>';
             return;
         }
 
-        $dropdown = preg_replace('/<select\s/i', '<select multiple="multiple" size="5" data-multiple="1" style="width:100%;" ', $dropdown, 1);
+        $dropdown = preg_replace('/<select\s/i', '<select multiple="multiple" size="5" data-multiple="1" class="' . esc_attr($id) . '" style="width:100%;" ', $dropdown, 1);
         echo $dropdown; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
     }
 }
@@ -361,6 +361,8 @@ if (!function_exists('bw_tbl_admin_quick_edit_custom_box')) {
         <fieldset class="inline-edit-col-right bw-tbl-qe-wrap">
             <div class="inline-edit-col">
                 <input type="hidden" name="bw_tbl_quick_edit_mode" value="1" />
+                <input type="hidden" name="bw_tbl_qe_priority_touched" class="bw-tbl-qe-priority-touched" value="0" />
+                <input type="hidden" name="bw_tbl_qe_rules_touched" class="bw-tbl-qe-rules-touched" value="0" />
                 <?php wp_nonce_field('bw_tbl_quick_edit_save', 'bw_tbl_quick_edit_nonce'); ?>
 
                 <p><strong><?php esc_html_e('Template Type', 'bw'); ?>:</strong> <span class="bw-tbl-qe-type-label">-</span></p>
@@ -437,117 +439,28 @@ if (!function_exists('bw_tbl_admin_quick_edit_custom_box')) {
 }
 add_action('quick_edit_custom_box', 'bw_tbl_admin_quick_edit_custom_box', 10, 2);
 
-if (!function_exists('bw_tbl_admin_quick_edit_inline_script')) {
-    function bw_tbl_admin_quick_edit_inline_script()
+if (!function_exists('bw_tbl_admin_enqueue_quick_edit_assets')) {
+    function bw_tbl_admin_enqueue_quick_edit_assets($hook)
     {
-        global $typenow;
-        if ('bw_template' !== $typenow) {
+        if ('edit.php' !== $hook) {
             return;
         }
-        ?>
-        <script>
-            (function ($) {
-                function csvFromArray(arr) {
-                    if (!Array.isArray(arr) || !arr.length) {
-                        return '';
-                    }
-                    return arr.join(',');
-                }
 
-                function clearQuickEdit(row) {
-                    row.find('.bw-tbl-qe-priority').val('10');
-                    row.find('input[type="text"]').val('');
-                    row.find('input[type="checkbox"]').prop('checked', false);
-                    row.find('select[multiple]').val([]);
-                }
+        $post_type = isset($_GET['post_type']) ? sanitize_key(wp_unslash($_GET['post_type'])) : '';
+        if ('bw_template' !== $post_type) {
+            return;
+        }
 
-                function showTypeSection(row, type) {
-                    row.find('.bw-tbl-qe-section').hide();
-                    row.find('.bw-tbl-qe-section').each(function () {
-                        var types = String($(this).data('type') || '').split(',');
-                        if (types.indexOf(type) !== -1) {
-                            $(this).show();
-                        }
-                    });
-                }
-
-                function fillQuickEdit(row, data) {
-                    data = data || {};
-                    var type = String(data.type || 'footer');
-                    row.find('.bw-tbl-qe-type').val(type);
-                    row.find('.bw-tbl-qe-type-label').text(String(data.type_label || type));
-                    row.find('.bw-tbl-qe-priority').val(data.priority || 10);
-
-                    var sp = data.single_product || {};
-                    row.find('.bw-tbl-qe-sp-inc-cat').val(sp.include_categories || []);
-                    row.find('.bw-tbl-qe-sp-inc-ids').val(csvFromArray(sp.include_ids || []));
-                    row.find('.bw-tbl-qe-sp-exc-cat').val(sp.exclude_categories || []);
-                    row.find('.bw-tbl-qe-sp-exc-ids').val(csvFromArray(sp.exclude_ids || []));
-
-                    var pa = data.product_archive || {};
-                    row.find('.bw-tbl-qe-pa-inc-shop').prop('checked', Number(pa.include_shop || 0) === 1);
-                    row.find('.bw-tbl-qe-pa-inc-cat').val(pa.include_categories || []);
-                    row.find('.bw-tbl-qe-pa-inc-tag').val(pa.include_tags || []);
-                    row.find('.bw-tbl-qe-pa-exc-shop').prop('checked', Number(pa.exclude_shop || 0) === 1);
-                    row.find('.bw-tbl-qe-pa-exc-cat').val(pa.exclude_categories || []);
-                    row.find('.bw-tbl-qe-pa-exc-tag').val(pa.exclude_tags || []);
-
-                    var post = data.single_post || {};
-                    row.find('.bw-tbl-qe-post-inc-cat').val(post.include_categories || []);
-                    row.find('.bw-tbl-qe-post-inc-ids').val(csvFromArray(post.include_ids || []));
-                    row.find('.bw-tbl-qe-post-exc-cat').val(post.exclude_categories || []);
-                    row.find('.bw-tbl-qe-post-exc-ids').val(csvFromArray(post.exclude_ids || []));
-
-                    var page = data.single_page || {};
-                    row.find('.bw-tbl-qe-page-inc-ids').val(csvFromArray(page.include_ids || []));
-                    row.find('.bw-tbl-qe-page-exc-ids').val(csvFromArray(page.exclude_ids || []));
-
-                    var arc = data.archive || {};
-                    row.find('.bw-tbl-qe-arc-inc-blog').prop('checked', Number(arc.include_blog || 0) === 1);
-                    row.find('.bw-tbl-qe-arc-inc-cat').val(arc.include_categories || []);
-                    row.find('.bw-tbl-qe-arc-exc-blog').prop('checked', Number(arc.exclude_blog || 0) === 1);
-                    row.find('.bw-tbl-qe-arc-exc-cat').val(arc.exclude_categories || []);
-
-                    showTypeSection(row, type);
-                }
-
-                $(document).on('click', '.editinline', function () {
-                    var postRow = $(this).closest('tr');
-                    var postId = postRow.attr('id') ? postRow.attr('id').replace('post-', '') : '';
-                    if (!postId) {
-                        return;
-                    }
-
-                    setTimeout(function () {
-                        var quickRow = $('#edit-' + postId);
-                        if (!quickRow.length) {
-                            return;
-                        }
-
-                        clearQuickEdit(quickRow);
-
-                        var dataNode = postRow.find('.bw-tbl-qe-data');
-                        var rawData = dataNode.attr('data-bw-qe');
-                        if (!rawData) {
-                            return;
-                        }
-
-                        var parsed = {};
-                        try {
-                            parsed = JSON.parse(rawData);
-                        } catch (e) {
-                            parsed = {};
-                        }
-
-                        fillQuickEdit(quickRow, parsed);
-                    }, 0);
-                });
-            })(jQuery);
-        </script>
-        <?php
+        wp_enqueue_script(
+            'bw-tbl-quickedit',
+            plugin_dir_url(__FILE__) . 'bw-templates-quickedit.js',
+            ['jquery', 'inline-edit-post'],
+            '1.0.0',
+            true
+        );
     }
 }
-add_action('admin_footer-edit.php', 'bw_tbl_admin_quick_edit_inline_script');
+add_action('admin_enqueue_scripts', 'bw_tbl_admin_enqueue_quick_edit_assets');
 
 if (!function_exists('bw_tbl_admin_type_filter_dropdown')) {
     function bw_tbl_admin_type_filter_dropdown()
