@@ -165,6 +165,16 @@ if (!function_exists('bw_tbl_render_single_product_rule_row')) {
     {
         $selected_ids = is_array($selected_ids) ? array_values(array_map('absint', $selected_ids)) : [];
         $parent_term_ids = is_array($parent_term_ids) ? array_values(array_map('absint', $parent_term_ids)) : [];
+        $parent_term_map = array_fill_keys($parent_term_ids, true);
+        $selected_ids = array_values(
+            array_filter(
+                $selected_ids,
+                static function ($term_id) use ($parent_term_map) {
+                    $term_id = absint($term_id);
+                    return $term_id > 0 && isset($parent_term_map[$term_id]);
+                }
+            )
+        );
 
         if (empty($parent_term_ids) || !function_exists('wp_terms_checklist')) {
             return '';
@@ -178,6 +188,7 @@ if (!function_exists('bw_tbl_render_single_product_rule_row')) {
                 'checked_ontop' => false,
                 'echo' => false,
                 'include' => $parent_term_ids,
+                'hierarchical' => false,
                 'name' => $name,
             ]
         );

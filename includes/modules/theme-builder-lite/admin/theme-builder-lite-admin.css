@@ -47,14 +47,21 @@
 
 .bw-tbl-admin-wrap .bw-tbl-term-checklist-wrap ul {
     margin: 0;
+    padding-left: 0;
+    list-style: none;
 }
 
 .bw-tbl-admin-wrap .bw-tbl-term-checklist-wrap li {
     margin: 0 0 6px 0;
+    list-style: none;
 }
 
 .bw-tbl-admin-wrap .bw-tbl-term-checklist-wrap li:last-child {
     margin-bottom: 0;
+}
+
+.bw-tbl-admin-wrap .bw-tbl-term-checklist-wrap li::marker {
+    content: '';
 }
 
 .bw-tbl-admin-wrap .bw-tbl-rule-actions {
