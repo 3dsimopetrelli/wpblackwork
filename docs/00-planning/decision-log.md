@@ -72,6 +72,48 @@ If a decision is normative and architecture-binding, the ADR process MUST be use
   - Preserve fail-open behavior and Woo endpoint bypass invariants.
   - Plan a separate migration/cleanup task for legacy `bw_tbl_display_rules_v1` single-product rules.
 
+### Entry 006
+- Date: 2026-03-03
+- Decision summary: Finalized Single Product conditions authority in Settings with repeater snapshot `bw_theme_builder_lite_single_product_rules_v2`; Quick Edit is not an editable authority surface.
+- Affected domain: Theme Builder Lite / Admin Configuration / Runtime Resolver
+- Rationale: Settings-based authority is deterministic and avoids Quick Edit lifecycle instability; repeater enables explicit ordered rule evaluation.
+- Risk impact: Medium reduced to Low-Medium for persistence reliability; introduces managed dual-surface compatibility monitoring.
+- Follow-up actions:
+  - Keep v1 option as legacy fallback only when v2 is absent.
+  - Keep runtime fail-open and Woo bypass guards unchanged.
+  - Schedule explicit migration cleanup task for legacy meta/option convergence.
+
+### Entry 007
+- Date: 2026-03-03
+- Decision summary: Enforced parent-only product category selection in admin UI while preserving ancestor-aware runtime matching for products assigned to child categories.
+- Affected domain: Theme Builder Lite / Woo Single Product Conditions
+- Rationale: Reduces operator clutter and ambiguity while preserving practical matching behavior across parent-child taxonomy assignments.
+- Risk impact: Medium reduced to Low-Medium for operator misconfiguration and rule drift.
+- Follow-up actions:
+  - Keep sanitize hardening for parent-only IDs.
+  - Keep runtime ancestor expansion for single-product category matching.
+
+### Entry 008
+- Date: 2026-03-03
+- Decision summary: Locked deterministic first-match rule evaluation (top-to-bottom) for single-product settings-driven resolver.
+- Affected domain: Theme Builder Lite / Runtime Determinism
+- Rationale: First-match semantics are explainable and stable; avoids tie ambiguity in settings-driven rule lists.
+- Risk impact: Medium (precedence misunderstanding) managed through explicit UI/docs contract.
+- Follow-up actions:
+  - Keep precedence contract visible in docs and admin copy.
+  - Add future diagnostics surface to show matched rule.
+
+### Entry 009
+- Date: 2026-03-03
+- Decision summary: Added list-table inline type dropdown mutation with linkage-protection prompt and safe unlink behavior.
+- Affected domain: Theme Builder Lite / Admin List UX / Data Integrity
+- Rationale: Improves operator velocity while protecting linked templates from accidental silent breakage.
+- Risk impact: Medium (unlink integrity) mitigated by nonce/capability/enum validation and explicit `Not linked` feedback.
+- Follow-up actions:
+  - Keep confirmation prompt for linked templates.
+  - Keep rejection path for invalid/unauthorized mutations.
+  - Keep badge truth reflection synchronized with settings state.
+
 ## Governance Layer Closure
 
 Status: CLOSED  

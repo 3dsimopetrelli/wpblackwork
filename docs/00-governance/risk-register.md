@@ -89,13 +89,52 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 
 ### Risk ID: R-TBL-06
 - Domain: Theme Builder Lite / Configuration Surfaces
-- Surface Anchor: `bw_theme_builder_lite_single_product_v1` option vs legacy `bw_tbl_display_rules_v1` post meta
-- Description: During transition away from Quick Edit, legacy single-product rules remain stored in post meta while settings tab becomes source of truth; operator confusion or mixed expectations can occur if precedence is not explicit.
+- Surface Anchor: `bw_theme_builder_lite_single_product_rules_v2` (authority) with legacy `bw_theme_builder_lite_single_product_v1` and `bw_tbl_display_rules_v1` retained
+- Description: During compatibility period, legacy single-product data remains present while settings repeater v2 is authoritative; operator confusion can occur if precedence is misunderstood.
 - Invariant Threatened: Deterministic and explainable single-product template selection.
 - Impact: Medium
 - Likelihood: Medium
 - Risk Level: Medium
-- Current Mitigation: explicit precedence contract (settings option authoritative when enabled), Quick Edit conditions removed, fail-open fallback, and migration deferred to dedicated cleanup task.
+- Current Mitigation: explicit precedence contract (v2 authoritative; v1 fallback only if v2 absent), Quick Edit conditions removed, fail-open fallback, migration deferred to dedicated cleanup task.
+- Monitoring Status: Monitoring
+- Linked Documents:
+  - [Theme Builder Lite Spec](../30-features/theme-builder-lite/theme-builder-lite-spec.md)
+
+### Risk ID: R-TBL-07
+- Domain: Theme Builder Lite / Rule Determinism
+- Surface Anchor: Single-product repeater evaluation order in settings resolver path
+- Description: Operators may misinterpret precedence when multiple rules overlap, expecting “most specific” instead of first-match list order.
+- Invariant Threatened: Deterministic, explainable template selection.
+- Impact: Medium
+- Likelihood: Medium
+- Risk Level: Medium
+- Current Mitigation: explicit contract in docs/UI (top-to-bottom, exclude-first, include-empty=match-all, first-match wins), status summary, fail-open fallback.
+- Monitoring Status: Monitoring
+- Linked Documents:
+  - [Theme Builder Lite Spec](../30-features/theme-builder-lite/theme-builder-lite-spec.md)
+
+### Risk ID: R-TBL-08
+- Domain: Theme Builder Lite / Admin List UX Integrity
+- Surface Anchor: Inline type dropdown (`wp_ajax_bw_tbl_update_template_type`) and linkage badges
+- Description: Inline type mutation can invalidate existing settings linkages and leave templates unlinked if changed unintentionally.
+- Invariant Threatened: Linkage visibility and safe mutation behavior.
+- Impact: Medium
+- Likelihood: Medium
+- Risk Level: Medium
+- Current Mitigation: linked-template confirmation prompt, nonce/capability/enum validation, safe rejection path, explicit `Not linked` badge after mutation.
+- Monitoring Status: Monitoring
+- Linked Documents:
+  - [Theme Builder Lite Spec](../30-features/theme-builder-lite/theme-builder-lite-spec.md)
+
+### Risk ID: R-TBL-09
+- Domain: Theme Builder Lite / Admin UX Scaling
+- Surface Anchor: Single-product repeater settings tab with rule cards/checklists
+- Description: Large rule sets may reduce operator usability/performance and increase configuration error probability.
+- Invariant Threatened: Maintainable and reliable admin configuration experience.
+- Impact: Medium
+- Likelihood: Medium
+- Risk Level: Medium
+- Current Mitigation: parent-only flat checklist, explicit include/exclude toggles, clearer spacing/status summary; backlog for reorder/search/diagnostics enhancements.
 - Monitoring Status: Monitoring
 - Linked Documents:
   - [Theme Builder Lite Spec](../30-features/theme-builder-lite/theme-builder-lite-spec.md)

@@ -98,7 +98,7 @@ Behavior:
 
 ## Single Product Conditions (Settings-Driven MVP)
 - Quick Edit condition controls for `bw_template` are removed by design (stability hardening).
-- Single Product conditions are configured in `Theme Builder Lite` admin tab: `Post Product Category`.
+- Single Product conditions are configured in `Theme Builder Lite` admin tab: `Single Product`.
 - Dedicated option key: `bw_theme_builder_lite_single_product_v1`
   - `enabled`
   - `active_single_product_template_id`
@@ -286,8 +286,75 @@ Resolver contract:
 - Optional type filter dropdown is available above the list table (`All Types` + specific template types).
 - Quick Edit custom conditions are removed (core inline edit only).
 - The `bw_template` post edit screen remains guidance-only for conditions.
-- Single Product conditions are configured from Theme Builder Lite settings tab `Post Product Category`.
+- Single Product conditions are configured from Theme Builder Lite settings tab `Single Product`.
 - Legacy storage schema `bw_tbl_display_rules_v1` remains unchanged in DB for backward compatibility.
+
+### 2026-03 Update - Single Product Settings Authority (v2 Repeater)
+- Authoritative single-product conditions surface is the Theme Builder Lite settings tab (`Single Product`); Quick Edit is not an authority surface.
+- New option snapshot: `bw_theme_builder_lite_single_product_rules_v2`
+  - `enabled` (bool)
+  - `rules[]`:
+    - `template_id` (published `bw_template`, type `single_product`)
+    - `include_product_cat[]` (parent `product_cat` term IDs only)
+    - `exclude_product_cat[]` (parent `product_cat` term IDs only)
+- Backward compatibility:
+  - `bw_theme_builder_lite_single_product_v1` is preserved as legacy compatibility source.
+  - If v2 is absent, resolver derives effective v2 payload from v1 without destructive migration.
+- Deterministic evaluation contract:
+  - Rules evaluate top-to-bottom.
+  - Exclude-first, include-second.
+  - First matching valid rule wins.
+  - Include empty means match-all.
+- Parent-only UI + ancestor runtime match:
+  - UI shows only parent product categories (`parent=0`), flat checklist.
+  - Runtime matches product terms including ancestors so parent rules match child-assigned products.
+- Status summary behavior:
+  - Single Product tab shows enabled state, rules count, and active template count.
+  - Warning shown when enabled but no valid linked template exists.
+- List UX behavior:
+  - Badges: `Applies to: Footer`, `Applies to: Single Product`, `Not linked`.
+  - Inline Type dropdown on list table autosaves with nonce/capability checks.
+  - Linked templates require confirmation before type mutation.
+  - Invalid/unauthorized type mutations are rejected; linkage invalidation surfaces safely as `Not linked`.
+
+## Extending Theme Builder Lite to New Contexts
+Reusable extension pattern (2026-03):
+
+1. Storage schema
+- Create a versioned option snapshot per context (`*_vN`).
+- Keep shape deterministic with explicit booleans and normalized arrays.
+- Preserve previous version for compatibility fallback; avoid destructive migration in runtime path.
+
+2. Admin UI pattern
+- Use settings-tab authority for stable persistence.
+- Repeater rows for multi-rule contexts.
+- Explicit toggles for optional behavior (e.g., include mode, exclude enable).
+- Keep UI fail-open: if JS fails, fields remain editable.
+
+3. Runtime branch pattern
+- Gate by master + feature flags before resolver branch.
+- Apply global + Woo safety bypass first.
+- Build normalized context payload once.
+- Evaluate rules deterministically (document order + explicit precedence).
+- On mismatch/error/invalid render, fail-open to theme template.
+
+4. Validation rules
+- Validate IDs/capabilities/types at sanitize time.
+- Restrict taxonomy selectors to intended subset (e.g., parent-only categories).
+- Reject invalid AJAX payloads with nonce + capability + enum validation.
+
+5. List UX expectations
+- Reflect active linkage with explicit badges.
+- Surface unlinked state clearly (`Not linked`).
+- Any inline mutation that can break linkage must warn and remain safe on failure.
+
+6. Minimal test checklist for each new context
+- Save/reload persistence.
+- Deterministic winner behavior.
+- Include/exclude precedence.
+- Guard/bypass confirmation.
+- Badge truth reflection.
+- Fail-open fallback verification.
 
 ### Phase 2 Step 4 - Archive Contexts (Non-Woo) (Implemented)
 - Resolver type mapping:
