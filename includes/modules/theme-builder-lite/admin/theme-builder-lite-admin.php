@@ -160,11 +160,12 @@ if (!function_exists('bw_tbl_render_font_row')) {
     }
 }
 
-if (!function_exists('bw_tbl_render_single_product_rule_row')) {
-    function bw_tbl_render_product_cat_checklist($name, $selected_ids, $parent_term_ids)
+if (!function_exists('bw_tbl_render_product_cat_checklist')) {
+    function bw_tbl_render_product_cat_checklist($name, $selected_ids, $parent_product_categories)
     {
         $selected_ids = is_array($selected_ids) ? array_values(array_map('absint', $selected_ids)) : [];
-        $parent_term_ids = is_array($parent_term_ids) ? array_values(array_map('absint', $parent_term_ids)) : [];
+        $parent_product_categories = is_array($parent_product_categories) ? $parent_product_categories : [];
+        $parent_term_ids = array_values(array_map('absint', array_keys($parent_product_categories)));
         $parent_term_map = array_fill_keys($parent_term_ids, true);
         $selected_ids = array_values(
             array_filter(
@@ -176,22 +177,23 @@ if (!function_exists('bw_tbl_render_single_product_rule_row')) {
             )
         );
 
-        if (empty($parent_term_ids) || !function_exists('wp_terms_checklist')) {
+        if (empty($parent_term_ids)) {
             return '';
         }
 
-        return wp_terms_checklist(
-            0,
-            [
-                'taxonomy' => 'product_cat',
-                'selected_cats' => $selected_ids,
-                'checked_ontop' => false,
-                'echo' => false,
-                'include' => $parent_term_ids,
-                'hierarchical' => false,
-                'name' => $name,
-            ]
-        );
+        $selected_map = array_fill_keys($selected_ids, true);
+        $html = '<ul>';
+        foreach ($parent_product_categories as $term_id => $term_name) {
+            $term_id = absint($term_id);
+            if ($term_id <= 0) {
+                continue;
+            }
+            $checked = isset($selected_map[$term_id]) ? ' checked="checked"' : '';
+            $html .= '<li><label><input type="checkbox" name="' . esc_attr($name) . '" value="' . esc_attr((string) $term_id) . '"' . $checked . ' /> ' . esc_html((string) $term_name) . '</label></li>';
+        }
+        $html .= '</ul>';
+
+        return $html;
     }
 }
 
@@ -205,11 +207,10 @@ if (!function_exists('bw_tbl_render_single_product_rule_row')) {
         $include_mode = !empty($include) ? 'selected' : 'all';
         $exclude = isset($rule['exclude_product_cat']) && is_array($rule['exclude_product_cat']) ? array_map('absint', $rule['exclude_product_cat']) : [];
         $exclude_enabled = !empty($exclude);
-        $parent_term_ids = array_keys(is_array($parent_product_categories) ? $parent_product_categories : []);
         $include_input_name = BW_TBL_SINGLE_PRODUCT_RULES_OPTION . '[rules][' . $index . '][include_product_cat][]';
         $exclude_input_name = BW_TBL_SINGLE_PRODUCT_RULES_OPTION . '[rules][' . $index . '][exclude_product_cat][]';
-        $include_checklist = bw_tbl_render_product_cat_checklist($include_input_name, $include, $parent_term_ids);
-        $exclude_checklist = bw_tbl_render_product_cat_checklist($exclude_input_name, $exclude, $parent_term_ids);
+        $include_checklist = bw_tbl_render_product_cat_checklist($include_input_name, $include, $parent_product_categories);
+        $exclude_checklist = bw_tbl_render_product_cat_checklist($exclude_input_name, $exclude, $parent_product_categories);
         ?>
         <div class="bw-tbl-single-product-rule" data-bw-tbl-rule-index="<?php echo esc_attr((string) $index); ?>">
             <p class="bw-tbl-rule-heading">
