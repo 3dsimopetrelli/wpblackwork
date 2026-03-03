@@ -421,6 +421,54 @@ if (!function_exists('bw_tbl_get_preview_product_id')) {
     }
 }
 
+if (!function_exists('bw_tbl_resolve_product_context_id')) {
+    function bw_tbl_resolve_product_context_id($settings = [])
+    {
+        $settings = is_array($settings) ? $settings : [];
+
+        if (function_exists('is_product') && is_product()) {
+            $queried_id = absint(get_queried_object_id());
+            if ($queried_id > 0) {
+                return [
+                    'id' => $queried_id,
+                    'source' => 'real_context',
+                ];
+            }
+        }
+
+        $is_preview_single_product = false;
+        if (function_exists('bw_tbl_get_elementor_preview_single_product_context')) {
+            $context = bw_tbl_get_elementor_preview_single_product_context();
+            $is_preview_single_product = !empty($context['apply']);
+        }
+
+        if ($is_preview_single_product) {
+            $preview_product_id = function_exists('bw_tbl_get_preview_product_id')
+                ? absint(bw_tbl_get_preview_product_id())
+                : 0;
+
+            if ($preview_product_id > 0) {
+                return [
+                    'id' => $preview_product_id,
+                    'source' => 'preview_fallback',
+                ];
+            }
+        }
+
+        if (!empty($settings['product_id'])) {
+            return [
+                'id' => absint($settings['product_id']),
+                'source' => 'manual_setting',
+            ];
+        }
+
+        return [
+            'id' => 0,
+            'source' => 'missing',
+        ];
+    }
+}
+
 if (!function_exists('bw_tbl_runtime_resolve_single_product_settings_winner')) {
     function bw_tbl_runtime_resolve_single_product_settings_winner($context = [])
     {

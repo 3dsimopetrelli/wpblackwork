@@ -1233,130 +1233,21 @@ class BW_Price_Variation_Widget extends Widget_Base {
         }
 
         private function get_product_id_from_settings( $settings ) {
-                // 1) Real frontend single-product context has absolute precedence.
-                if ( function_exists( 'is_product' ) && is_product() ) {
-                        $queried_id = absint( get_queried_object_id() );
-                        if ( $queried_id > 0 ) {
-                                return [
-                                        'id' => $queried_id,
-                                        'source' => 'real_context',
-                                ];
-                        }
+                if ( function_exists( 'bw_tbl_resolve_product_context_id' ) ) {
+                        return bw_tbl_resolve_product_context_id( $settings );
                 }
 
-                // 2) Elementor bw_template(single_product) preview fallback.
-                if ( $this->is_single_product_template_preview_context() ) {
-                        $preview_product_id = 0;
-                        if ( function_exists( 'bw_tbl_get_preview_product_id' ) ) {
-                                $preview_product_id = absint( bw_tbl_get_preview_product_id() );
-                        }
-
-                        if ( $preview_product_id <= 0 && function_exists( 'bw_tbl_get_single_product_preview_product_id' ) ) {
-                                $preview_product_id = absint( bw_tbl_get_single_product_preview_product_id( false ) );
-                        }
-
-                        if ( $preview_product_id <= 0 && ! empty( $GLOBALS['bw_tbl_preview_product_id'] ) ) {
-                                $preview_product_id = absint( $GLOBALS['bw_tbl_preview_product_id'] );
-                        }
-
-                        if ( $preview_product_id > 0 ) {
-                                return [
-                                        'id' => $preview_product_id,
-                                        'source' => 'preview_fallback',
-                                ];
-                        }
-                }
-
-                // 3) Manual widget setting.
                 if ( ! empty( $settings['product_id'] ) ) {
                         return [
-                                'id' => intval( $settings['product_id'] ),
+                                'id' => absint( $settings['product_id'] ),
                                 'source' => 'manual_setting',
                         ];
                 }
 
-                // 4) No valid context.
                 return [
                         'id' => 0,
                         'source' => 'missing',
                 ];
-        }
-
-        private function is_single_product_template_preview_context() {
-
-                // 1) Detect Elementor context (editor or iframe preview)
-                $is_elementor_context = false;
-
-                if ( class_exists( '\Elementor\Plugin' ) ) {
-                        $plugin = \Elementor\Plugin::$instance;
-
-                        if ( isset( $plugin->editor ) && $plugin->editor && $plugin->editor->is_edit_mode() ) {
-                                $is_elementor_context = true;
-                        }
-
-                        if ( isset( $plugin->preview ) && $plugin->preview && $plugin->preview->is_preview_mode() ) {
-                                $is_elementor_context = true;
-                        }
-                }
-
-                if ( isset( $_GET['elementor-preview'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-                        $is_elementor_context = true;
-                }
-
-                if ( ! $is_elementor_context ) {
-                        if ( defined( 'BW_TBL_DEBUG_PREVIEW' ) && BW_TBL_DEBUG_PREVIEW ) {
-                                error_log( '[BW_TBL_PREVIEW_DEBUG] is_single_product_template_preview_context context=false' ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-                        }
-                        return false;
-                }
-
-                // 2) Resolve bw_template ID being previewed
-                $template_id = 0;
-
-                if ( isset( $_GET['elementor-preview'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-                        $template_id = absint( $_GET['elementor-preview'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-                }
-
-                if ( ! $template_id && function_exists( 'is_singular' ) && is_singular( 'bw_template' ) ) {
-                        $template_id = absint( get_queried_object_id() );
-                }
-
-                if ( ! $template_id && isset( $_GET['post'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-                        $maybe_id = absint( $_GET['post'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-                        if ( $maybe_id > 0 && get_post_type( $maybe_id ) === 'bw_template' ) {
-                                $template_id = $maybe_id;
-                        }
-                }
-
-                if ( ! $template_id ) {
-                        if ( defined( 'BW_TBL_DEBUG_PREVIEW' ) && BW_TBL_DEBUG_PREVIEW ) {
-                                error_log( '[BW_TBL_PREVIEW_DEBUG] is_single_product_template_preview_context template_id=0 return=false' ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-                        }
-                        return false;
-                }
-
-                if ( get_post_type( $template_id ) !== 'bw_template' ) {
-                        if ( defined( 'BW_TBL_DEBUG_PREVIEW' ) && BW_TBL_DEBUG_PREVIEW ) {
-                                error_log( '[BW_TBL_PREVIEW_DEBUG] is_single_product_template_preview_context template_id=' . $template_id . ' post_type_mismatch return=false' ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-                        }
-                        return false;
-                }
-
-                // 3) Confirm template type is single_product
-                $type = get_post_meta( $template_id, 'bw_template_type', true );
-                $result = ( $type === 'single_product' );
-
-                if ( defined( 'BW_TBL_DEBUG_PREVIEW' ) && BW_TBL_DEBUG_PREVIEW ) {
-                        $elementor_preview_param = isset( $_GET['elementor-preview'] ) ? absint( $_GET['elementor-preview'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-                        error_log( // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-                                '[BW_TBL_PREVIEW_DEBUG] elementor_preview=' . $elementor_preview_param .
-                                ' template_id=' . $template_id .
-                                ' bw_template_type=' . (string) $type .
-                                ' return=' . ( $result ? 'true' : 'false' )
-                        );
-                }
-
-                return $result;
         }
 
         private function get_variations_data( $available_variations ) {

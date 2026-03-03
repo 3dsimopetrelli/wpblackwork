@@ -528,16 +528,20 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
         // Determine product ID
         $product_id = 0;
         if ( $use_metabox_product ) {
-            // Get the current post ID (the product being viewed/edited)
-            $current_post_id = get_the_ID();
+            $context_resolution = function_exists( 'bw_tbl_resolve_product_context_id' )
+                ? bw_tbl_resolve_product_context_id( [] )
+                : [
+                    'id' => absint( get_the_ID() ),
+                    'source' => 'fallback',
+                ];
+            $current_post_id = isset( $context_resolution['id'] ) ? absint( $context_resolution['id'] ) : 0;
 
-            if (
-                ( ! $current_post_id || 'product' !== get_post_type( $current_post_id ) ) &&
-                class_exists( '\\Elementor\\Plugin' ) &&
-                \Elementor\Plugin::$instance->editor->is_edit_mode() &&
-                ! empty( $GLOBALS['bw_tbl_preview_product_id'] )
-            ) {
-                $current_post_id = absint( $GLOBALS['bw_tbl_preview_product_id'] );
+            if ( defined( 'BW_TBL_DEBUG_PREVIEW' ) && BW_TBL_DEBUG_PREVIEW ) {
+                error_log( // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+                    '[BW TBL Preview] BW Static Showcase resolved product source=' .
+                    ( isset( $context_resolution['source'] ) ? (string) $context_resolution['source'] : 'unknown' ) .
+                    ' id=' . $current_post_id
+                );
             }
 
             if ( $current_post_id && 'product' === get_post_type( $current_post_id ) ) {
