@@ -469,7 +469,7 @@ if (!function_exists('bw_tbl_admin_quick_edit_custom_box')) {
                     <span class="input-text-wrap"><input type="number" min="0" max="999" step="1" name="bw_tbl_qe_priority" class="bw-tbl-qe-priority" value="10" /></span>
                 </label>
 
-                <div class="bw-tbl-qe-section" data-section="single_product" style="margin-top:10px;">
+                <div class="bw-tbl-qe-section" data-bw-section="single_product" style="margin-top:10px;">
                     <p><strong><?php esc_html_e('Single Product Conditions', 'bw'); ?></strong></p>
                     <p><?php esc_html_e('Include - Product Categories', 'bw'); ?></p>
                     <?php bw_tbl_admin_quick_edit_taxonomy_multiselect('product_cat', 'bw_tbl_qe_include_product_cat[]', 'bw-tbl-qe-sp-inc-cat'); ?>
@@ -481,7 +481,7 @@ if (!function_exists('bw_tbl_admin_quick_edit_custom_box')) {
                     <input type="text" name="bw_tbl_qe_exclude_product_ids" class="widefat bw-tbl-qe-sp-exc-ids" />
                 </div>
 
-                <div class="bw-tbl-qe-section" data-section="product_archive" style="margin-top:10px;">
+                <div class="bw-tbl-qe-section" data-bw-section="product_archive" style="margin-top:10px;">
                     <p><strong><?php esc_html_e('Product Archive Conditions', 'bw'); ?></strong></p>
                     <label><input type="checkbox" name="bw_tbl_qe_include_product_archive_shop" class="bw-tbl-qe-pa-inc-shop" value="1" /> <?php esc_html_e('Include Shop page', 'bw'); ?></label>
                     <p><?php esc_html_e('Include - Product Categories', 'bw'); ?></p>
@@ -495,7 +495,7 @@ if (!function_exists('bw_tbl_admin_quick_edit_custom_box')) {
                     <?php bw_tbl_admin_quick_edit_taxonomy_multiselect('product_tag', 'bw_tbl_qe_exclude_product_archive_tag[]', 'bw-tbl-qe-pa-exc-tag'); ?>
                 </div>
 
-                <div class="bw-tbl-qe-section" data-section="single_post" style="margin-top:10px;">
+                <div class="bw-tbl-qe-section" data-bw-section="single_post" style="margin-top:10px;">
                     <p><strong><?php esc_html_e('Single Post Conditions', 'bw'); ?></strong></p>
                     <p><?php esc_html_e('Include - Post Categories', 'bw'); ?></p>
                     <?php bw_tbl_admin_quick_edit_taxonomy_multiselect('category', 'bw_tbl_qe_include_post_cat[]', 'bw-tbl-qe-post-inc-cat'); ?>
@@ -507,7 +507,7 @@ if (!function_exists('bw_tbl_admin_quick_edit_custom_box')) {
                     <input type="text" name="bw_tbl_qe_exclude_post_ids" class="widefat bw-tbl-qe-post-exc-ids" />
                 </div>
 
-                <div class="bw-tbl-qe-section" data-section="single_page" style="margin-top:10px;">
+                <div class="bw-tbl-qe-section" data-bw-section="single_page" style="margin-top:10px;">
                     <p><strong><?php esc_html_e('Single Page Conditions', 'bw'); ?></strong></p>
                     <p><?php esc_html_e('Include - Page IDs', 'bw'); ?></p>
                     <input type="text" name="bw_tbl_qe_include_page_ids" class="widefat bw-tbl-qe-page-inc-ids" />
@@ -515,7 +515,7 @@ if (!function_exists('bw_tbl_admin_quick_edit_custom_box')) {
                     <input type="text" name="bw_tbl_qe_exclude_page_ids" class="widefat bw-tbl-qe-page-exc-ids" />
                 </div>
 
-                <div class="bw-tbl-qe-section" data-section="archive" style="margin-top:10px;">
+                <div class="bw-tbl-qe-section" data-bw-section="archive" style="margin-top:10px;">
                     <p><strong><?php esc_html_e('Archive Conditions', 'bw'); ?></strong></p>
                     <label><input type="checkbox" name="bw_tbl_qe_include_archive_blog" class="bw-tbl-qe-arc-inc-blog" value="1" /> <?php esc_html_e('Include Blog archive', 'bw'); ?></label>
                     <p><?php esc_html_e('Include - Categories', 'bw'); ?></p>
@@ -547,11 +547,13 @@ if (!function_exists('bw_tbl_admin_enqueue_quick_edit_assets')) {
             return;
         }
 
+        $script_path = plugin_dir_path(__FILE__) . 'bw-templates-quickedit.js';
+        $script_version = file_exists($script_path) ? (string) filemtime($script_path) : '1.0.0';
         wp_enqueue_script(
             'bw-tbl-quickedit',
             plugin_dir_url(__FILE__) . 'bw-templates-quickedit.js',
             ['jquery', 'inline-edit-post'],
-            '1.0.0',
+            $script_version,
             true
         );
     }

@@ -25,10 +25,29 @@
 
         row.find('.bw-tbl-qe-section').hide();
         row.find('.bw-tbl-qe-section').each(function () {
-            if (String($(this).data('section') || '') === section) {
+            if (String($(this).data('bw-section') || '') === section) {
                 $(this).show();
             }
         });
+    }
+
+    function resolveSectionToOpen(data) {
+        data = data || {};
+
+        // A) previously saved explicit section.
+        var section = String(data.last_section || '');
+        if (section) {
+            return section;
+        }
+
+        // B) inferred server-side from first non-empty saved rule group.
+        section = String(data.first_non_empty_section || '');
+        if (section) {
+            return section;
+        }
+
+        // C) fallback default.
+        return 'single_product';
     }
 
     function fillQuickEdit(row, data) {
@@ -69,13 +88,7 @@
         row.find('.bw-tbl-qe-arc-exc-blog').prop('checked', Number(arc.exclude_blog || 0) === 1);
         row.find('.bw-tbl-qe-arc-exc-cat').val(arc.exclude_categories || []);
 
-        var section = String(data.last_section || '');
-        if (!section) {
-            section = String(data.first_non_empty_section || '');
-        }
-        if (!section) {
-            section = 'single_product';
-        }
+        var section = resolveSectionToOpen(data);
         row.find('.bw-tbl-qe-section-select').val(section);
 
         row.find('.bw-tbl-qe-priority-touched').val('0');
