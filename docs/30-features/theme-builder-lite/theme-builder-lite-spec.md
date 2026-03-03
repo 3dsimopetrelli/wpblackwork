@@ -34,12 +34,12 @@
   - Added `single_product` template type
   - Resolver context mapping for Woo single product requests (`is_product()`) with endpoint safety bypass unchanged
   - Conditions engine support for `product_category` (`product_cat` terms) and `product_id` (specific product IDs)
-  - Single Product-specific Include/Exclude controls in metabox with deterministic sanitize/save
+  - Single Product settings authority finalized in Theme Builder Lite tab with deterministic repeater v2 sanitize/save
 - Scope delivered in Phase 2 Step 6:
   - Added `product_archive` template type
   - Resolver context mapping for Woo shop + product category/tag archives
   - Conditions engine support for `product_archive_shop`, `product_archive_category`, `product_archive_tag`
-  - Product Archive-specific Include/Exclude controls in metabox with deterministic sanitize/save
+  - Product Archive settings authority finalized in Theme Builder Lite tab with deterministic repeater v2 sanitize/save
 - Out of scope (not implemented):
   - Woo template stack takeover
 
@@ -312,10 +312,35 @@ Resolver contract:
   - Single Product tab shows enabled state, rules count, and active template count.
   - Warning shown when enabled but no valid linked template exists.
 - List UX behavior:
-  - Badges: `Applies to: Footer`, `Applies to: Single Product`, `Not linked`.
+  - Badges: `Applies to: Footer`, `Applies to: Single Product`, `Applies to: Product Archive`, `Not linked`.
   - Inline Type dropdown on list table autosaves with nonce/capability checks.
   - Linked templates require confirmation before type mutation.
   - Invalid/unauthorized type mutations are rejected; linkage invalidation surfaces safely as `Not linked`.
+
+### 2026-03 Update - Product Archive Settings Authority (v2 Repeater)
+- Authoritative product-archive conditions surface is Theme Builder Lite settings tab `Product Archive`; Quick Edit is not an authority surface.
+- New option snapshot: `bw_theme_builder_lite_product_archive_rules_v2`
+  - `enabled` (bool)
+  - `rules[]`:
+    - `template_id` (published `bw_template`, type `product_archive`)
+    - `include_product_cat[]` (parent `product_cat` IDs only)
+    - `exclude_product_cat[]` (parent `product_cat` IDs only)
+- UI contract:
+  - Status summary (enabled/disabled, rule count, active template count, warning when enabled with no valid linked templates)
+  - Repeater with explicit include mode (`all` vs `selected`)
+  - Optional exclude toggle (`Enable exclusions`)
+  - Parent-only flat product category checklist (no subcategories rendered)
+- Runtime contract for product category archives:
+  - Settings branch runs only for `product_cat` archive context.
+  - Rules evaluate top-to-bottom, exclude-first.
+  - Include empty means match-all.
+  - First matching valid rule wins.
+  - Archive term matching uses current term + ancestors so parent rules match child category archives.
+- Fail-open:
+  - Disabled/no match/invalid template => resolver returns original theme/Woo template path unchanged.
+- Admin list UX:
+  - Template row shows `Applies to: Product Archive` when linked by any enabled Product Archive rule.
+  - `Not linked` remains true only when template is not referenced by active Footer/Single Product/Product Archive settings surfaces.
 
 ## Extending Theme Builder Lite to New Contexts
 Reusable extension pattern (2026-03):
@@ -355,6 +380,9 @@ Reusable extension pattern (2026-03):
 - Guard/bypass confirmation.
 - Badge truth reflection.
 - Fail-open fallback verification.
+
+Implemented example:
+- `Product Archive` follows this exact pattern with option `bw_theme_builder_lite_product_archive_rules_v2`, parent-only UI, ancestor-aware runtime matching, and linkage badges in Templates list UX.
 
 ### Phase 2 Step 4 - Archive Contexts (Non-Woo) (Implemented)
 - Resolver type mapping:

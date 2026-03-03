@@ -139,6 +139,59 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 - Linked Documents:
   - [Theme Builder Lite Spec](../30-features/theme-builder-lite/theme-builder-lite-spec.md)
 
+### Risk ID: R-TBL-10
+- Domain: Theme Builder Lite / Product Archive Rules
+- Surface Anchor: `bw_theme_builder_lite_product_archive_rules_v2` rule ordering and include/exclude controls
+- Description: Operators may misread precedence across archive rules and expect specificity scoring instead of saved-order first-match evaluation.
+- Invariant Threatened: Deterministic, explainable resolver behavior on product category archives.
+- Impact: Medium
+- Likelihood: Medium
+- Risk Level: Medium
+- Current Mitigation: Explicit contract in UI/docs (`exclude` before `include`, include-empty=match-all, top-to-bottom first-match wins), status summary, fail-open fallback.
+- Monitoring Status: Monitoring
+- Linked Documents:
+  - [Theme Builder Lite Spec](../30-features/theme-builder-lite/theme-builder-lite-spec.md)
+
+### Risk ID: R-TBL-11
+- Domain: Theme Builder Lite / Admin UX Scaling
+- Surface Anchor: Product Archive repeater with parent-category checklist per rule
+- Description: Large numbers of rules and terms can reduce admin usability and increase configuration mistakes.
+- Invariant Threatened: Reliable operator configuration and deterministic rule intent.
+- Impact: Medium
+- Likelihood: Medium
+- Risk Level: Medium
+- Current Mitigation: Parent-only checklist (no subcategories), optional exclusion toggle, concise status summary, deterministic sanitize on save.
+- Monitoring Status: Monitoring
+- Linked Documents:
+  - [Theme Builder Lite Spec](../30-features/theme-builder-lite/theme-builder-lite-spec.md)
+
+### Risk ID: R-TBL-12
+- Domain: Theme Builder Lite / Template Type Integrity
+- Surface Anchor: Product Archive rule sanitize/validation (`template_id` must be `publish` + `bw_template_type=product_archive`)
+- Description: Type drift after manual type changes can silently invalidate rule links unless strict validation is enforced.
+- Invariant Threatened: Valid template linkage for archive runtime selection.
+- Impact: Medium
+- Likelihood: Medium
+- Risk Level: Medium
+- Current Mitigation: Sanitizer drops invalid template IDs, runtime revalidates before match, list badges surface `Not linked` when linkage is broken.
+- Monitoring Status: Monitoring
+- Linked Documents:
+  - [Theme Builder Lite Spec](../30-features/theme-builder-lite/theme-builder-lite-spec.md)
+
+### Risk ID: R-TBL-13
+- Domain: Theme Builder Lite / Resolver Branching
+- Surface Anchor: `template_include` branch for product category archives with ancestor-aware matching
+- Description: Archive resolver regressions could alter Woo product-category page rendering precedence when plugins/themes also filter `template_include`.
+- Invariant Threatened: Fail-open and non-breaking Woo archive rendering.
+- Impact: Medium
+- Likelihood: Medium
+- Risk Level: Medium
+- Current Mitigation: Existing bypass guards preserved, branch scoped to `product_cat` context, deterministic first-match, fail-open to original theme template on no-match/invalid state.
+- Monitoring Status: Monitoring
+- Linked Documents:
+  - [Theme Builder Lite Spec](../30-features/theme-builder-lite/theme-builder-lite-spec.md)
+  - [Theme Builder Lite Runtime Hook Map](../10-architecture/theme-builder-lite/runtime-hook-map.md)
+
 ### Risk ID: R-CHK-01
 - Domain: Checkout / Payments
 - Surface Anchor: `assets/js/bw-payment-methods.js`, `assets/js/bw-google-pay.js`, `assets/js/bw-apple-pay.js` (`updated_checkout` handlers)

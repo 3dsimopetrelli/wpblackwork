@@ -114,6 +114,18 @@ If a decision is normative and architecture-binding, the ADR process MUST be use
   - Keep rejection path for invalid/unauthorized mutations.
   - Keep badge truth reflection synchronized with settings state.
 
+### Entry 010
+- Date: 2026-03-03
+- Decision summary: Implemented Product Archive conditions as Settings authority (`Product Archive` tab) using repeater snapshot `bw_theme_builder_lite_product_archive_rules_v2`; Quick Edit is not an authority surface.
+- Affected domain: Theme Builder Lite / Woo Product Archive / Admin Configuration
+- Rationale: Product-archive template routing requires deterministic, stable persistence; settings authority avoids inline-edit instability and keeps archive routing contract explicit.
+- Risk impact: Medium managed through strict sanitize/validation and fail-open resolver behavior.
+- Follow-up actions:
+  - Keep parent-only product category UI in settings.
+  - Keep ancestor-aware runtime matching so parent selections match child category archives.
+  - Keep deterministic first-match evaluation (top-to-bottom, exclude-first, include-empty=match-all).
+  - Keep template validation strict (`publish` + `bw_template_type=product_archive`) for runtime integrity.
+
 ## Governance Layer Closure
 
 Status: CLOSED  
