@@ -104,7 +104,8 @@
 
     function syncExcludeFields($scope) {
         var $root = $scope && $scope.length ? $scope : $(document);
-        $root.find('.bw-tbl-single-product-rule').each(function () {
+        var $rules = $root.filter('.bw-tbl-single-product-rule').add($root.find('.bw-tbl-single-product-rule'));
+        $rules.each(function () {
             var $rule = $(this);
             var enabled = $rule.find('.bw-tbl-enable-exclude').is(':checked');
             if (enabled) {
