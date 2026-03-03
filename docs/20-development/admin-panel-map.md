@@ -8,8 +8,16 @@ It consolidates the structural reality already audited in [`docs/50-ops/admin-pa
 
 ### 1.1 Menu registration
 - Main menu (`blackwork-site-settings`): registered with `add_menu_page(...)` in `admin/class-blackwork-site-settings.php`.
+- Main submenu alias (`blackwork-site-settings`): explicit `Site Settings` submenu registered with `add_submenu_page(...)` in `admin/class-blackwork-site-settings.php`.
 - Header submenu (`bw-header-settings`): registered with `add_submenu_page(...)` in `includes/modules/header/admin/header-admin.php`.
 - Mail Marketing submenu (`blackwork-mail-marketing`): registered with `add_submenu_page(...)` in `includes/admin/checkout-subscribe/class-bw-checkout-subscribe-admin.php`.
+
+### 1.1.1 2026-03 Navigation Restore
+- `Site Settings` submenu was explicitly restored under `Blackwork Site`.
+- Purpose: prevent WordPress from opening the first child module (`All Templates`) when clicking the top-level menu.
+- Result:
+  - `Blackwork Site` consistently lands on the unified settings router (`bw_site_settings_page`).
+  - Checkout / Supabase / Coming Soon / Redirect / Import / Loading tabs remain reachable from a stable entrypoint.
 
 ### 1.2 Capability model
 - Primary capability baseline: `manage_options` (main menu + Header + Mail Marketing).

@@ -126,6 +126,16 @@ If a decision is normative and architecture-binding, the ADR process MUST be use
   - Keep deterministic first-match evaluation (top-to-bottom, exclude-first, include-empty=match-all).
   - Keep template validation strict (`publish` + `bw_template_type=product_archive`) for runtime integrity.
 
+### Entry 011
+- Date: 2026-03-03
+- Decision summary: Restored explicit `Site Settings` submenu under `Blackwork Site` using the same slug (`blackwork-site-settings`) to keep the unified settings router as stable admin entrypoint.
+- Affected domain: Admin Navigation / Site Settings
+- Rationale: Without explicit submenu alias, top-level navigation could default to the first child module (`All Templates`), hiding the expected multi-tab settings surface (Checkout, Supabase, Coming Soon, Redirect, Import, Loading).
+- Risk impact: Low reduced to Very Low for admin navigation regression.
+- Follow-up actions:
+  - Keep `blackwork-site-settings` as canonical parent slug for module submenus.
+  - Keep Site Settings submenu visible as first child to preserve predictable landing behavior.
+
 ## Governance Layer Closure
 
 Status: CLOSED  
