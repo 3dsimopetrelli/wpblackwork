@@ -539,14 +539,6 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
                 ];
             $current_post_id = isset( $context_resolution['id'] ) ? absint( $context_resolution['id'] ) : 0;
 
-            if ( defined( 'BW_TBL_DEBUG_PREVIEW' ) && BW_TBL_DEBUG_PREVIEW ) {
-                error_log( // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-                    '[BW TBL Preview] BW Static Showcase resolved product source=' .
-                    ( isset( $context_resolution['source'] ) ? (string) $context_resolution['source'] : 'unknown' ) .
-                    ' id=' . $current_post_id
-                );
-            }
-
             if ( $current_post_id && 'product' === get_post_type( $current_post_id ) ) {
                 // Read the linked product from the metabox
                 $linked_product = get_post_meta( $current_post_id, '_bw_showcase_linked_product', true );

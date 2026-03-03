@@ -1308,56 +1308,13 @@ $license_html  = function_exists( 'bw_get_variation_license_table_html' ) ? bw_g
 
                 $settings = $this->get_settings_for_display();
 
-                if ( defined( 'BW_TBL_DEBUG_PREVIEW' ) && BW_TBL_DEBUG_PREVIEW ) {
-                        $elementor_preview = isset( $_GET['elementor-preview'] ) ? absint( $_GET['elementor-preview'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-                        $debug_is_product = function_exists( 'is_product' ) ? ( is_product() ? '1' : '0' ) : 'n/a';
-                        $debug_is_bw_template = function_exists( 'is_singular' ) ? ( is_singular( 'bw_template' ) ? '1' : '0' ) : 'n/a';
-                        error_log( // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-                                '[BW_PRICE_VARIATION_DEBUG] before_resolver is_product=' . $debug_is_product .
-                                ' is_singular_bw_template=' . $debug_is_bw_template .
-                                ' elementor_preview=' . $elementor_preview
-                        );
-                }
-
                 // Get product ID from settings or current context
                 $product_resolution = $this->get_product_id_from_settings( $settings );
                 $product_id = isset( $product_resolution['id'] ) ? absint( $product_resolution['id'] ) : 0;
-                $product_source = isset( $product_resolution['source'] ) ? (string) $product_resolution['source'] : 'unknown';
-
-                if ( defined( 'BW_TBL_DEBUG_PREVIEW' ) && BW_TBL_DEBUG_PREVIEW ) {
-                        error_log( // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-                                '[BW_PRICE_VARIATION_DEBUG] resolver_result id=' . $product_id . ' source=' . $product_source
-                        );
-                }
-
-                if ( defined( 'BW_TBL_DEBUG_PREVIEW' ) && BW_TBL_DEBUG_PREVIEW ) {
-                        error_log( // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-                                '[BW TBL Preview] BW Price Variation resolved product source=' . $product_source . ' id=' . $product_id
-                        );
-                }
 
                 // Get the product
                 global $product;
                 $product = wc_get_product( $product_id );
-
-                if ( defined( 'BW_TBL_DEBUG_PREVIEW' ) && BW_TBL_DEBUG_PREVIEW ) {
-                        $has_product = $product ? '1' : '0';
-                        $product_post_type = 'n/a';
-                        $product_post_status = 'n/a';
-                        if ( $product && method_exists( $product, 'get_id' ) ) {
-                                $debug_post = get_post( $product->get_id() );
-                                if ( $debug_post instanceof \WP_Post ) {
-                                        $product_post_type = (string) $debug_post->post_type;
-                                        $product_post_status = (string) $debug_post->post_status;
-                                }
-                        }
-                        error_log( // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-                                '[BW_PRICE_VARIATION_DEBUG] wc_get_product id=' . $product_id .
-                                ' found=' . $has_product .
-                                ' post_type=' . $product_post_type .
-                                ' post_status=' . $product_post_status
-                        );
-                }
 
                 // Validate product exists and is variable type
                 if ( ! $product ) {
