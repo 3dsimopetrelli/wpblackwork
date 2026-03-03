@@ -7,6 +7,10 @@ if (!defined('BW_TBL_SINGLE_PRODUCT_OPTION')) {
     define('BW_TBL_SINGLE_PRODUCT_OPTION', 'bw_theme_builder_lite_single_product_v1');
 }
 
+if (!defined('BW_TBL_SINGLE_PRODUCT_RULES_OPTION')) {
+    define('BW_TBL_SINGLE_PRODUCT_RULES_OPTION', 'bw_theme_builder_lite_single_product_rules_v2');
+}
+
 if (!function_exists('bw_tbl_runtime_debug_enabled')) {
     function bw_tbl_runtime_debug_enabled()
     {
@@ -75,6 +79,16 @@ if (!function_exists('bw_tbl_default_single_product_option')) {
     }
 }
 
+if (!function_exists('bw_tbl_default_single_product_rules_option')) {
+    function bw_tbl_default_single_product_rules_option()
+    {
+        return [
+            'enabled' => 0,
+            'rules' => [],
+        ];
+    }
+}
+
 if (!function_exists('bw_tbl_get_single_product_option')) {
     function bw_tbl_get_single_product_option()
     {
@@ -84,6 +98,34 @@ if (!function_exists('bw_tbl_get_single_product_option')) {
         }
 
         return array_replace(bw_tbl_default_single_product_option(), $saved);
+    }
+}
+
+if (!function_exists('bw_tbl_convert_single_product_v1_to_v2')) {
+    function bw_tbl_convert_single_product_v1_to_v2($v1_option)
+    {
+        $v1_option = is_array($v1_option) ? $v1_option : [];
+        $v1_option = array_replace(bw_tbl_default_single_product_option(), $v1_option);
+
+        $rule = [
+            'template_id' => isset($v1_option['active_single_product_template_id']) ? absint($v1_option['active_single_product_template_id']) : 0,
+            'include_product_cat' => isset($v1_option['include_product_cat']) && is_array($v1_option['include_product_cat'])
+                ? bw_tbl_filter_parent_product_cat_ids($v1_option['include_product_cat'])
+                : [],
+            'exclude_product_cat' => isset($v1_option['exclude_product_cat']) && is_array($v1_option['exclude_product_cat'])
+                ? bw_tbl_filter_parent_product_cat_ids($v1_option['exclude_product_cat'])
+                : [],
+        ];
+
+        $rules = [];
+        if ($rule['template_id'] > 0 || !empty($rule['include_product_cat']) || !empty($rule['exclude_product_cat'])) {
+            $rules[] = $rule;
+        }
+
+        return [
+            'enabled' => !empty($v1_option['enabled']) ? 1 : 0,
+            'rules' => $rules,
+        ];
     }
 }
 
@@ -135,6 +177,92 @@ if (!function_exists('bw_tbl_sanitize_single_product_option')) {
             'include_product_cat' => $include_product_cat,
             'exclude_product_cat' => $exclude_product_cat,
         ];
+    }
+}
+
+if (!function_exists('bw_tbl_sanitize_single_product_rule')) {
+    function bw_tbl_sanitize_single_product_rule($rule)
+    {
+        $rule = is_array($rule) ? $rule : [];
+
+        $template_id = isset($rule['template_id']) ? absint($rule['template_id']) : 0;
+        if (!bw_tbl_is_valid_single_product_template($template_id)) {
+            $template_id = 0;
+        }
+
+        $include_product_cat = isset($rule['include_product_cat']) && is_array($rule['include_product_cat'])
+            ? bw_tbl_filter_parent_product_cat_ids($rule['include_product_cat'])
+            : [];
+        $exclude_product_cat = isset($rule['exclude_product_cat']) && is_array($rule['exclude_product_cat'])
+            ? bw_tbl_filter_parent_product_cat_ids($rule['exclude_product_cat'])
+            : [];
+
+        return [
+            'template_id' => $template_id,
+            'include_product_cat' => $include_product_cat,
+            'exclude_product_cat' => $exclude_product_cat,
+        ];
+    }
+}
+
+if (!function_exists('bw_tbl_sanitize_single_product_rules_option')) {
+    function bw_tbl_sanitize_single_product_rules_option($input)
+    {
+        $input = is_array($input) ? $input : [];
+        $enabled = !empty($input['enabled']) ? 1 : 0;
+
+        $raw_rules = isset($input['rules']) && is_array($input['rules']) ? $input['rules'] : [];
+        $rules = [];
+        foreach ($raw_rules as $raw_rule) {
+            $rule = bw_tbl_sanitize_single_product_rule($raw_rule);
+            if ($rule['template_id'] <= 0) {
+                continue;
+            }
+            $rules[] = $rule;
+        }
+
+        return [
+            'enabled' => $enabled,
+            'rules' => array_values($rules),
+        ];
+    }
+}
+
+if (!function_exists('bw_tbl_get_single_product_rules_option')) {
+    function bw_tbl_get_single_product_rules_option()
+    {
+        $saved_v2 = get_option(BW_TBL_SINGLE_PRODUCT_RULES_OPTION, null);
+        if (is_array($saved_v2)) {
+            return bw_tbl_sanitize_single_product_rules_option($saved_v2);
+        }
+
+        $saved_v1 = bw_tbl_get_single_product_option();
+        return bw_tbl_convert_single_product_v1_to_v2($saved_v1);
+    }
+}
+
+if (!function_exists('bw_tbl_get_single_product_rules_template_ids')) {
+    function bw_tbl_get_single_product_rules_template_ids($option = null)
+    {
+        $option = is_array($option) ? $option : bw_tbl_get_single_product_rules_option();
+        $rules = isset($option['rules']) && is_array($option['rules']) ? $option['rules'] : [];
+
+        $template_ids = [];
+        foreach ($rules as $rule) {
+            if (!is_array($rule)) {
+                continue;
+            }
+            $template_id = isset($rule['template_id']) ? absint($rule['template_id']) : 0;
+            if ($template_id <= 0) {
+                continue;
+            }
+            if (!bw_tbl_is_valid_single_product_template($template_id)) {
+                continue;
+            }
+            $template_ids[$template_id] = $template_id;
+        }
+
+        return array_values($template_ids);
     }
 }
 
@@ -211,7 +339,7 @@ if (!function_exists('bw_tbl_get_parent_product_category_choices')) {
 if (!function_exists('bw_tbl_runtime_resolve_single_product_settings_winner')) {
     function bw_tbl_runtime_resolve_single_product_settings_winner($context = [])
     {
-        $option = bw_tbl_get_single_product_option();
+        $option = bw_tbl_get_single_product_rules_option();
 
         // New settings surface takes precedence only when explicitly enabled.
         if (empty($option['enabled'])) {
@@ -222,9 +350,9 @@ if (!function_exists('bw_tbl_runtime_resolve_single_product_settings_winner')) {
             ];
         }
 
-        $template_id = isset($option['active_single_product_template_id']) ? absint($option['active_single_product_template_id']) : 0;
-        if (!bw_tbl_is_valid_single_product_template($template_id)) {
-            bw_tbl_runtime_debug_log('single_product settings invalid active template', ['template_id' => $template_id]);
+        $rules = isset($option['rules']) && is_array($option['rules']) ? $option['rules'] : [];
+        if (empty($rules)) {
+            bw_tbl_runtime_debug_log('single_product settings no rules');
             return [
                 'handled' => true,
                 'winner_id' => 0,
@@ -258,51 +386,69 @@ if (!function_exists('bw_tbl_runtime_resolve_single_product_settings_winner')) {
         }
         $product_cat_map = array_fill_keys(array_values($expanded_product_cat_ids), true);
 
-        $exclude = isset($option['exclude_product_cat']) && is_array($option['exclude_product_cat']) ? $option['exclude_product_cat'] : [];
-        foreach ($exclude as $term_id) {
-            $term_id = absint($term_id);
-            if ($term_id > 0 && isset($product_cat_map[$term_id])) {
-                bw_tbl_runtime_debug_log(
-                    'single_product settings excluded by category',
-                    ['template_id' => $template_id, 'term_id' => $term_id]
-                );
-                return [
-                    'handled' => true,
-                    'winner_id' => 0,
-                ];
+        foreach ($rules as $index => $rule) {
+            if (!is_array($rule)) {
+                continue;
             }
-        }
 
-        $include = isset($option['include_product_cat']) && is_array($option['include_product_cat']) ? $option['include_product_cat'] : [];
-        if (!empty($include)) {
-            $matched = false;
-            foreach ($include as $term_id) {
+            $sanitized_rule = bw_tbl_sanitize_single_product_rule($rule);
+            $template_id = isset($sanitized_rule['template_id']) ? absint($sanitized_rule['template_id']) : 0;
+            if ($template_id <= 0) {
+                bw_tbl_runtime_debug_log('single_product settings skip invalid rule template', ['rule_index' => $index]);
+                continue;
+            }
+
+            $excluded = false;
+            $exclude = isset($sanitized_rule['exclude_product_cat']) && is_array($sanitized_rule['exclude_product_cat']) ? $sanitized_rule['exclude_product_cat'] : [];
+            foreach ($exclude as $term_id) {
                 $term_id = absint($term_id);
                 if ($term_id > 0 && isset($product_cat_map[$term_id])) {
-                    $matched = true;
+                    $excluded = true;
+                    bw_tbl_runtime_debug_log(
+                        'single_product settings rule excluded by category',
+                        ['rule_index' => $index, 'template_id' => $template_id, 'term_id' => $term_id]
+                    );
                     break;
                 }
             }
 
-            if (!$matched) {
+            if ($excluded) {
+                continue;
+            }
+
+            $include = isset($sanitized_rule['include_product_cat']) && is_array($sanitized_rule['include_product_cat']) ? $sanitized_rule['include_product_cat'] : [];
+            if (empty($include)) {
                 bw_tbl_runtime_debug_log(
-                    'single_product settings include miss',
-                    ['template_id' => $template_id, 'include' => $include, 'product_cats' => array_keys($product_cat_map)]
+                    'single_product settings rule match (include empty)',
+                    ['rule_index' => $index, 'template_id' => $template_id]
                 );
                 return [
                     'handled' => true,
-                    'winner_id' => 0,
+                    'winner_id' => $template_id,
                 ];
+            }
+            foreach ($include as $term_id) {
+                $term_id = absint($term_id);
+                if ($term_id > 0 && isset($product_cat_map[$term_id])) {
+                    bw_tbl_runtime_debug_log(
+                        'single_product settings rule match',
+                        ['rule_index' => $index, 'template_id' => $template_id, 'term_id' => $term_id]
+                    );
+                    return [
+                        'handled' => true,
+                        'winner_id' => $template_id,
+                    ];
+                }
             }
         }
 
         bw_tbl_runtime_debug_log(
-            'single_product settings match',
-            ['template_id' => $template_id, 'product_cats' => array_keys($product_cat_map)]
+            'single_product settings no matching rule',
+            ['product_cats' => array_keys($product_cat_map)]
         );
         return [
             'handled' => true,
-            'winner_id' => $template_id,
+            'winner_id' => 0,
         ];
     }
 }

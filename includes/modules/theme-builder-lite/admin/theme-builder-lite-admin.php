@@ -45,6 +45,16 @@ if (!function_exists('bw_tbl_register_admin_settings')) {
                 'default' => bw_tbl_default_single_product_option(),
             ]
         );
+
+        register_setting(
+            'bw_tbl_settings_group',
+            BW_TBL_SINGLE_PRODUCT_RULES_OPTION,
+            [
+                'type' => 'array',
+                'sanitize_callback' => 'bw_tbl_sanitize_single_product_rules_option',
+                'default' => bw_tbl_default_single_product_rules_option(),
+            ]
+        );
     }
 }
 add_action('admin_init', 'bw_tbl_register_admin_settings');
@@ -142,6 +152,68 @@ if (!function_exists('bw_tbl_render_font_row')) {
     }
 }
 
+if (!function_exists('bw_tbl_render_single_product_rule_row')) {
+    function bw_tbl_render_single_product_rule_row($index, $rule, $template_choices, $parent_product_categories)
+    {
+        $index = absint($index);
+        $rule = is_array($rule) ? $rule : [];
+        $template_id = isset($rule['template_id']) ? absint($rule['template_id']) : 0;
+        $include = isset($rule['include_product_cat']) && is_array($rule['include_product_cat']) ? array_map('absint', $rule['include_product_cat']) : [];
+        $exclude = isset($rule['exclude_product_cat']) && is_array($rule['exclude_product_cat']) ? array_map('absint', $rule['exclude_product_cat']) : [];
+        ?>
+        <div class="bw-tbl-single-product-rule" data-bw-tbl-rule-index="<?php echo esc_attr((string) $index); ?>" style="border:1px solid #dcdcde;background:#fff;padding:12px;margin-bottom:12px;">
+            <p style="margin:0 0 10px 0;">
+                <strong><?php esc_html_e('Rule', 'bw'); ?> #<span class="bw-tbl-rule-number"><?php echo esc_html((string) ($index + 1)); ?></span></strong>
+            </p>
+            <table class="form-table" role="presentation" style="margin:0;">
+                <tr>
+                    <th scope="row">
+                        <label><?php esc_html_e('Active Single Product Template', 'bw'); ?></label>
+                    </th>
+                    <td>
+                        <select name="<?php echo esc_attr(BW_TBL_SINGLE_PRODUCT_RULES_OPTION); ?>[rules][<?php echo esc_attr((string) $index); ?>][template_id]">
+                            <option value="0"><?php esc_html_e('Select template', 'bw'); ?></option>
+                            <?php foreach ($template_choices as $choice_id => $choice_title) : ?>
+                                <option value="<?php echo esc_attr((string) $choice_id); ?>" <?php selected($template_id, (int) $choice_id); ?>><?php echo esc_html($choice_title); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">
+                        <label><?php esc_html_e('Include Product Categories', 'bw'); ?></label>
+                    </th>
+                    <td>
+                        <select name="<?php echo esc_attr(BW_TBL_SINGLE_PRODUCT_RULES_OPTION); ?>[rules][<?php echo esc_attr((string) $index); ?>][include_product_cat][]" multiple="multiple" size="8" style="min-width:280px;">
+                            <?php foreach ($parent_product_categories as $term_id => $term_name) : ?>
+                                <option value="<?php echo esc_attr((string) $term_id); ?>" <?php selected(in_array((int) $term_id, $include, true)); ?>><?php echo esc_html($term_name); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <p class="description"><?php esc_html_e('If empty, include behaves as match-all for this rule.', 'bw'); ?></p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">
+                        <label><?php esc_html_e('Exclude Product Categories', 'bw'); ?></label>
+                    </th>
+                    <td>
+                        <select name="<?php echo esc_attr(BW_TBL_SINGLE_PRODUCT_RULES_OPTION); ?>[rules][<?php echo esc_attr((string) $index); ?>][exclude_product_cat][]" multiple="multiple" size="8" style="min-width:280px;">
+                            <?php foreach ($parent_product_categories as $term_id => $term_name) : ?>
+                                <option value="<?php echo esc_attr((string) $term_id); ?>" <?php selected(in_array((int) $term_id, $exclude, true)); ?>><?php echo esc_html($term_name); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <p class="description"><?php esc_html_e('Exclude is evaluated before include for each rule.', 'bw'); ?></p>
+                    </td>
+                </tr>
+            </table>
+            <p style="margin:8px 0 0 0;">
+                <button type="button" class="button-link-delete bw-tbl-remove-single-product-rule"><?php esc_html_e('Remove rule', 'bw'); ?></button>
+            </p>
+        </div>
+        <?php
+    }
+}
+
 if (!function_exists('bw_tbl_render_admin_page')) {
     function bw_tbl_render_admin_page()
     {
@@ -153,15 +225,23 @@ if (!function_exists('bw_tbl_render_admin_page')) {
         $fonts_option = bw_tbl_get_custom_fonts_option();
         $footer_option = bw_tbl_get_footer_option();
         $footer_choices = bw_tbl_get_footer_template_choices();
-        $single_product_option = bw_tbl_get_single_product_option();
+        $single_product_rules_option = bw_tbl_get_single_product_rules_option();
         $single_product_choices = bw_tbl_get_single_product_template_choices();
         $parent_product_categories = bw_tbl_get_parent_product_category_choices();
-        $single_product_enabled = !empty($single_product_option['enabled']);
-        $single_product_active_id = isset($single_product_option['active_single_product_template_id']) ? absint($single_product_option['active_single_product_template_id']) : 0;
-        $single_product_active_title = isset($single_product_choices[$single_product_active_id]) ? (string) $single_product_choices[$single_product_active_id] : '';
-        $single_product_include_count = isset($single_product_option['include_product_cat']) && is_array($single_product_option['include_product_cat']) ? count($single_product_option['include_product_cat']) : 0;
-        $single_product_exclude_count = isset($single_product_option['exclude_product_cat']) && is_array($single_product_option['exclude_product_cat']) ? count($single_product_option['exclude_product_cat']) : 0;
-        $single_product_missing_active_template = $single_product_enabled && '' === $single_product_active_title;
+        $single_product_enabled = !empty($single_product_rules_option['enabled']);
+        $single_product_rules = isset($single_product_rules_option['rules']) && is_array($single_product_rules_option['rules']) ? $single_product_rules_option['rules'] : [];
+        $single_product_rules_count = count($single_product_rules);
+        $single_product_active_templates_count = count(bw_tbl_get_single_product_rules_template_ids($single_product_rules_option));
+        $single_product_missing_active_template = $single_product_enabled && $single_product_active_templates_count <= 0;
+        if (empty($single_product_rules)) {
+            $single_product_rules = [
+                [
+                    'template_id' => 0,
+                    'include_product_cat' => [],
+                    'exclude_product_cat' => [],
+                ],
+            ];
+        }
 
         $fonts = isset($fonts_option['fonts']) && is_array($fonts_option['fonts']) ? $fonts_option['fonts'] : [];
         if (empty($fonts)) {
@@ -292,18 +372,15 @@ if (!function_exists('bw_tbl_render_admin_page')) {
                             <strong><?php esc_html_e('Status:', 'bw'); ?></strong>
                             <?php echo $single_product_enabled ? esc_html__('Enabled', 'bw') : esc_html__('Disabled', 'bw'); ?>
                             <span style="margin:0 8px;color:#9aa0a6;">|</span>
-                            <strong><?php esc_html_e('Active Template:', 'bw'); ?></strong>
-                            <?php echo '' !== $single_product_active_title ? esc_html($single_product_active_title) : esc_html__('None selected', 'bw'); ?>
+                            <strong><?php esc_html_e('Rules:', 'bw'); ?></strong>
+                            <?php echo esc_html((string) $single_product_rules_count); ?>
                             <span style="margin:0 8px;color:#9aa0a6;">|</span>
-                            <strong><?php esc_html_e('Include Categories:', 'bw'); ?></strong>
-                            <?php echo esc_html((string) $single_product_include_count); ?>
-                            <span style="margin:0 8px;color:#9aa0a6;">|</span>
-                            <strong><?php esc_html_e('Exclude Categories:', 'bw'); ?></strong>
-                            <?php echo esc_html((string) $single_product_exclude_count); ?>
+                            <strong><?php esc_html_e('Active Templates:', 'bw'); ?></strong>
+                            <?php echo esc_html((string) $single_product_active_templates_count); ?>
                         </p>
                         <?php if ($single_product_missing_active_template) : ?>
                             <p style="margin:8px 0 0 0;">
-                                <?php esc_html_e('Single Product override is enabled but no active valid template is selected.', 'bw'); ?>
+                                <?php esc_html_e('Single Product override is enabled but no valid template is linked in rules.', 'bw'); ?>
                             </p>
                         <?php endif; ?>
                     </div>
@@ -313,7 +390,7 @@ if (!function_exists('bw_tbl_render_admin_page')) {
                             <th scope="row"><?php esc_html_e('Enable Single Product Override', 'bw'); ?></th>
                             <td>
                                 <label>
-                                    <input id="bw-tbl-flag-single-product-conditions" type="checkbox" name="<?php echo esc_attr(BW_TBL_SINGLE_PRODUCT_OPTION); ?>[enabled]" value="1" <?php checked(!empty($single_product_option['enabled'])); ?> />
+                                    <input id="bw-tbl-flag-single-product-conditions" type="checkbox" name="<?php echo esc_attr(BW_TBL_SINGLE_PRODUCT_RULES_OPTION); ?>[enabled]" value="1" <?php checked(!empty($single_product_rules_option['enabled'])); ?> />
                                     <?php esc_html_e('Resolve Single Product templates using product-category include/exclude rules.', 'bw'); ?>
                                 </label>
                                 <p class="description"><?php esc_html_e('This affects WooCommerce single product pages only (not product category archive pages).', 'bw'); ?></p>
@@ -322,41 +399,14 @@ if (!function_exists('bw_tbl_render_admin_page')) {
                     </table>
 
                     <div id="bw-tbl-single-product-controls" style="margin-top:8px;">
-                        <table class="form-table" role="presentation">
-                            <tr>
-                                <th scope="row"><label for="bw-tbl-active-single-product-template"><?php esc_html_e('Active Single Product Template', 'bw'); ?></label></th>
-                                <td>
-                                    <select id="bw-tbl-active-single-product-template" name="<?php echo esc_attr(BW_TBL_SINGLE_PRODUCT_OPTION); ?>[active_single_product_template_id]">
-                                        <option value="0"><?php esc_html_e('Use theme single product template (disabled)', 'bw'); ?></option>
-                                        <?php foreach ($single_product_choices as $template_id => $template_title) : ?>
-                                            <option value="<?php echo esc_attr((string) $template_id); ?>" <?php selected((int) $single_product_option['active_single_product_template_id'], (int) $template_id); ?>><?php echo esc_html($template_title); ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th scope="row"><label for="bw-tbl-include-product-cat"><?php esc_html_e('Include Product Categories', 'bw'); ?></label></th>
-                                <td>
-                                    <select id="bw-tbl-include-product-cat" name="<?php echo esc_attr(BW_TBL_SINGLE_PRODUCT_OPTION); ?>[include_product_cat][]" multiple="multiple" size="8" style="min-width:280px;">
-                                        <?php foreach ($parent_product_categories as $term_id => $term_name) : ?>
-                                            <option value="<?php echo esc_attr((string) $term_id); ?>" <?php selected(in_array((int) $term_id, (array) $single_product_option['include_product_cat'], true)); ?>><?php echo esc_html($term_name); ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                    <p class="description"><?php esc_html_e('If empty, include behaves as match-all.', 'bw'); ?></p>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th scope="row"><label for="bw-tbl-exclude-product-cat"><?php esc_html_e('Exclude Product Categories', 'bw'); ?></label></th>
-                                <td>
-                                    <select id="bw-tbl-exclude-product-cat" name="<?php echo esc_attr(BW_TBL_SINGLE_PRODUCT_OPTION); ?>[exclude_product_cat][]" multiple="multiple" size="8" style="min-width:280px;">
-                                        <?php foreach ($parent_product_categories as $term_id => $term_name) : ?>
-                                            <option value="<?php echo esc_attr((string) $term_id); ?>" <?php selected(in_array((int) $term_id, (array) $single_product_option['exclude_product_cat'], true)); ?>><?php echo esc_html($term_name); ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                    <p class="description"><?php esc_html_e('Exclude rules are evaluated before include rules.', 'bw'); ?></p>
-                                </td>
-                            </tr>
-                        </table>
+                        <div id="bw-tbl-single-product-rules-list">
+                            <?php foreach ($single_product_rules as $rule_index => $single_product_rule) : ?>
+                                <?php bw_tbl_render_single_product_rule_row($rule_index, $single_product_rule, $single_product_choices, $parent_product_categories); ?>
+                            <?php endforeach; ?>
+                        </div>
+                        <p>
+                            <button type="button" class="button" id="bw-tbl-add-single-product-rule"><?php esc_html_e('+ Add Rule', 'bw'); ?></button>
+                        </p>
                     </div>
                 </div>
 
@@ -373,6 +423,20 @@ if (!function_exists('bw_tbl_render_admin_page')) {
                     'font_weight' => '400',
                     'font_style' => 'normal',
                 ]
+            );
+            ?>
+        </script>
+        <script type="text/html" id="tmpl-bw-tbl-single-product-rule-row">
+            <?php
+            bw_tbl_render_single_product_rule_row(
+                99999,
+                [
+                    'template_id' => 0,
+                    'include_product_cat' => [],
+                    'exclude_product_cat' => [],
+                ],
+                $single_product_choices,
+                $parent_product_categories
             );
             ?>
         </script>

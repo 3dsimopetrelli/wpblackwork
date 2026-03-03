@@ -192,32 +192,49 @@ if (!function_exists('bw_tbl_admin_rules_summary')) {
 if (!function_exists('bw_tbl_admin_single_product_settings_summary')) {
     function bw_tbl_admin_single_product_settings_summary($post_id)
     {
-        if (!function_exists('bw_tbl_get_single_product_option')) {
+        if (!function_exists('bw_tbl_get_single_product_rules_option')) {
             return '';
         }
 
         $post_id = absint($post_id);
-        $option = bw_tbl_get_single_product_option();
+        $option = bw_tbl_get_single_product_rules_option();
         if (empty($option['enabled'])) {
             return '';
         }
 
-        $active_id = isset($option['active_single_product_template_id']) ? absint($option['active_single_product_template_id']) : 0;
-        if ($active_id !== $post_id) {
+        $rules = isset($option['rules']) && is_array($option['rules']) ? $option['rules'] : [];
+        if (empty($rules)) {
             return '';
         }
 
-        $include = isset($option['include_product_cat']) && is_array($option['include_product_cat']) ? $option['include_product_cat'] : [];
-        $exclude = isset($option['exclude_product_cat']) && is_array($option['exclude_product_cat']) ? $option['exclude_product_cat'] : [];
+        $parts = [];
+        foreach ($rules as $rule) {
+            if (!is_array($rule)) {
+                continue;
+            }
 
-        $include_names = bw_tbl_admin_format_terms('product_cat', $include);
-        $exclude_names = bw_tbl_admin_format_terms('product_cat', $exclude);
-        $summary = '' !== $include_names ? sprintf(__('In Product Category: %s', 'bw'), $include_names) : __('All (within type)', 'bw');
-        if ('' !== $exclude_names) {
-            $summary .= '; ' . sprintf(__('Excluding: In Product Category: %s', 'bw'), $exclude_names);
+            $template_id = isset($rule['template_id']) ? absint($rule['template_id']) : 0;
+            if ($template_id !== $post_id) {
+                continue;
+            }
+
+            $include = isset($rule['include_product_cat']) && is_array($rule['include_product_cat']) ? $rule['include_product_cat'] : [];
+            $exclude = isset($rule['exclude_product_cat']) && is_array($rule['exclude_product_cat']) ? $rule['exclude_product_cat'] : [];
+
+            $include_names = bw_tbl_admin_format_terms('product_cat', $include);
+            $exclude_names = bw_tbl_admin_format_terms('product_cat', $exclude);
+            $summary = '' !== $include_names ? sprintf(__('In Product Category: %s', 'bw'), $include_names) : __('All (within type)', 'bw');
+            if ('' !== $exclude_names) {
+                $summary .= '; ' . sprintf(__('Excluding: In Product Category: %s', 'bw'), $exclude_names);
+            }
+            $parts[] = $summary;
         }
 
-        return $summary;
+        if (empty($parts)) {
+            return '';
+        }
+
+        return implode(' | ', $parts);
     }
 }
 
@@ -245,17 +262,27 @@ if (!function_exists('bw_tbl_admin_is_active_single_product_template')) {
     function bw_tbl_admin_is_active_single_product_template($post_id)
     {
         $post_id = absint($post_id);
-        if ($post_id <= 0 || !function_exists('bw_tbl_get_single_product_option')) {
+        if ($post_id <= 0 || !function_exists('bw_tbl_get_single_product_rules_option')) {
             return false;
         }
 
-        $option = bw_tbl_get_single_product_option();
+        $option = bw_tbl_get_single_product_rules_option();
         if (empty($option['enabled'])) {
             return false;
         }
 
-        $active_id = isset($option['active_single_product_template_id']) ? absint($option['active_single_product_template_id']) : 0;
-        return $active_id > 0 && $active_id === $post_id;
+        $rules = isset($option['rules']) && is_array($option['rules']) ? $option['rules'] : [];
+        foreach ($rules as $rule) {
+            if (!is_array($rule)) {
+                continue;
+            }
+            $template_id = isset($rule['template_id']) ? absint($rule['template_id']) : 0;
+            if ($template_id > 0 && $template_id === $post_id) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
 
