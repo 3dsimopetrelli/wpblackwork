@@ -429,67 +429,67 @@ if (!function_exists('bw_tbl_admin_quick_edit_custom_box')) {
                 <?php wp_nonce_field('bw_tbl_quick_edit_save', 'bw_tbl_quick_edit_nonce'); ?>
 
                 <p><strong><?php esc_html_e('Template Type', 'bw'); ?>:</strong> <span class="bw-tbl-qe-type-label">-</span></p>
-                <input type="hidden" name="bw_template_type" class="bw-tbl-qe-type" value="" />
+                <input type="hidden" name="bw_tbl_qe_template_type" class="bw-tbl-qe-type" value="" />
 
                 <label>
                     <span class="title"><?php esc_html_e('Priority', 'bw'); ?></span>
-                    <span class="input-text-wrap"><input type="number" min="0" max="999" step="1" name="bw_template_priority" class="bw-tbl-qe-priority" value="10" /></span>
+                    <span class="input-text-wrap"><input type="number" min="0" max="999" step="1" name="bw_tbl_qe_priority" class="bw-tbl-qe-priority" value="10" /></span>
                 </label>
 
                 <div class="bw-tbl-qe-section" data-type="single_product" style="margin-top:10px;">
                     <p><strong><?php esc_html_e('Single Product Conditions', 'bw'); ?></strong></p>
                     <p><?php esc_html_e('Include - Product Categories', 'bw'); ?></p>
-                    <?php bw_tbl_admin_quick_edit_taxonomy_multiselect('product_cat', 'bw_tbl_single_product_rules[include][product_category][]', 'bw-tbl-qe-sp-inc-cat'); ?>
+                    <?php bw_tbl_admin_quick_edit_taxonomy_multiselect('product_cat', 'bw_tbl_qe_include_product_cat[]', 'bw-tbl-qe-sp-inc-cat'); ?>
                     <p><?php esc_html_e('Include - Product IDs', 'bw'); ?></p>
-                    <input type="text" name="bw_tbl_single_product_rules[include][product_id]" class="widefat bw-tbl-qe-sp-inc-ids" />
+                    <input type="text" name="bw_tbl_qe_include_product_ids" class="widefat bw-tbl-qe-sp-inc-ids" />
                     <p><?php esc_html_e('Exclude - Product Categories', 'bw'); ?></p>
-                    <?php bw_tbl_admin_quick_edit_taxonomy_multiselect('product_cat', 'bw_tbl_single_product_rules[exclude][product_category][]', 'bw-tbl-qe-sp-exc-cat'); ?>
+                    <?php bw_tbl_admin_quick_edit_taxonomy_multiselect('product_cat', 'bw_tbl_qe_exclude_product_cat[]', 'bw-tbl-qe-sp-exc-cat'); ?>
                     <p><?php esc_html_e('Exclude - Product IDs', 'bw'); ?></p>
-                    <input type="text" name="bw_tbl_single_product_rules[exclude][product_id]" class="widefat bw-tbl-qe-sp-exc-ids" />
+                    <input type="text" name="bw_tbl_qe_exclude_product_ids" class="widefat bw-tbl-qe-sp-exc-ids" />
                 </div>
 
                 <div class="bw-tbl-qe-section" data-type="product_archive" style="margin-top:10px;">
                     <p><strong><?php esc_html_e('Product Archive Conditions', 'bw'); ?></strong></p>
-                    <label><input type="checkbox" name="bw_tbl_product_archive_rules[include][product_archive_shop]" class="bw-tbl-qe-pa-inc-shop" value="1" /> <?php esc_html_e('Include Shop page', 'bw'); ?></label>
+                    <label><input type="checkbox" name="bw_tbl_qe_include_product_archive_shop" class="bw-tbl-qe-pa-inc-shop" value="1" /> <?php esc_html_e('Include Shop page', 'bw'); ?></label>
                     <p><?php esc_html_e('Include - Product Categories', 'bw'); ?></p>
-                    <?php bw_tbl_admin_quick_edit_taxonomy_multiselect('product_cat', 'bw_tbl_product_archive_rules[include][product_archive_category][]', 'bw-tbl-qe-pa-inc-cat'); ?>
+                    <?php bw_tbl_admin_quick_edit_taxonomy_multiselect('product_cat', 'bw_tbl_qe_include_product_archive_cat[]', 'bw-tbl-qe-pa-inc-cat'); ?>
                     <p><?php esc_html_e('Include - Product Tags', 'bw'); ?></p>
-                    <?php bw_tbl_admin_quick_edit_taxonomy_multiselect('product_tag', 'bw_tbl_product_archive_rules[include][product_archive_tag][]', 'bw-tbl-qe-pa-inc-tag'); ?>
-                    <label><input type="checkbox" name="bw_tbl_product_archive_rules[exclude][product_archive_shop]" class="bw-tbl-qe-pa-exc-shop" value="1" /> <?php esc_html_e('Exclude Shop page', 'bw'); ?></label>
+                    <?php bw_tbl_admin_quick_edit_taxonomy_multiselect('product_tag', 'bw_tbl_qe_include_product_archive_tag[]', 'bw-tbl-qe-pa-inc-tag'); ?>
+                    <label><input type="checkbox" name="bw_tbl_qe_exclude_product_archive_shop" class="bw-tbl-qe-pa-exc-shop" value="1" /> <?php esc_html_e('Exclude Shop page', 'bw'); ?></label>
                     <p><?php esc_html_e('Exclude - Product Categories', 'bw'); ?></p>
-                    <?php bw_tbl_admin_quick_edit_taxonomy_multiselect('product_cat', 'bw_tbl_product_archive_rules[exclude][product_archive_category][]', 'bw-tbl-qe-pa-exc-cat'); ?>
+                    <?php bw_tbl_admin_quick_edit_taxonomy_multiselect('product_cat', 'bw_tbl_qe_exclude_product_archive_cat[]', 'bw-tbl-qe-pa-exc-cat'); ?>
                     <p><?php esc_html_e('Exclude - Product Tags', 'bw'); ?></p>
-                    <?php bw_tbl_admin_quick_edit_taxonomy_multiselect('product_tag', 'bw_tbl_product_archive_rules[exclude][product_archive_tag][]', 'bw-tbl-qe-pa-exc-tag'); ?>
+                    <?php bw_tbl_admin_quick_edit_taxonomy_multiselect('product_tag', 'bw_tbl_qe_exclude_product_archive_tag[]', 'bw-tbl-qe-pa-exc-tag'); ?>
                 </div>
 
                 <div class="bw-tbl-qe-section" data-type="single_post" style="margin-top:10px;">
                     <p><strong><?php esc_html_e('Single Post Conditions', 'bw'); ?></strong></p>
                     <p><?php esc_html_e('Include - Post Categories', 'bw'); ?></p>
-                    <?php bw_tbl_admin_quick_edit_taxonomy_multiselect('category', 'bw_tbl_single_post_rules[include][post_category][]', 'bw-tbl-qe-post-inc-cat'); ?>
+                    <?php bw_tbl_admin_quick_edit_taxonomy_multiselect('category', 'bw_tbl_qe_include_post_cat[]', 'bw-tbl-qe-post-inc-cat'); ?>
                     <p><?php esc_html_e('Include - Post IDs', 'bw'); ?></p>
-                    <input type="text" name="bw_tbl_single_post_rules[include][post_id]" class="widefat bw-tbl-qe-post-inc-ids" />
+                    <input type="text" name="bw_tbl_qe_include_post_ids" class="widefat bw-tbl-qe-post-inc-ids" />
                     <p><?php esc_html_e('Exclude - Post Categories', 'bw'); ?></p>
-                    <?php bw_tbl_admin_quick_edit_taxonomy_multiselect('category', 'bw_tbl_single_post_rules[exclude][post_category][]', 'bw-tbl-qe-post-exc-cat'); ?>
+                    <?php bw_tbl_admin_quick_edit_taxonomy_multiselect('category', 'bw_tbl_qe_exclude_post_cat[]', 'bw-tbl-qe-post-exc-cat'); ?>
                     <p><?php esc_html_e('Exclude - Post IDs', 'bw'); ?></p>
-                    <input type="text" name="bw_tbl_single_post_rules[exclude][post_id]" class="widefat bw-tbl-qe-post-exc-ids" />
+                    <input type="text" name="bw_tbl_qe_exclude_post_ids" class="widefat bw-tbl-qe-post-exc-ids" />
                 </div>
 
                 <div class="bw-tbl-qe-section" data-type="single_page" style="margin-top:10px;">
                     <p><strong><?php esc_html_e('Single Page Conditions', 'bw'); ?></strong></p>
                     <p><?php esc_html_e('Include - Page IDs', 'bw'); ?></p>
-                    <input type="text" name="bw_tbl_single_page_rules[include][page_id]" class="widefat bw-tbl-qe-page-inc-ids" />
+                    <input type="text" name="bw_tbl_qe_include_page_ids" class="widefat bw-tbl-qe-page-inc-ids" />
                     <p><?php esc_html_e('Exclude - Page IDs', 'bw'); ?></p>
-                    <input type="text" name="bw_tbl_single_page_rules[exclude][page_id]" class="widefat bw-tbl-qe-page-exc-ids" />
+                    <input type="text" name="bw_tbl_qe_exclude_page_ids" class="widefat bw-tbl-qe-page-exc-ids" />
                 </div>
 
                 <div class="bw-tbl-qe-section" data-type="archive" style="margin-top:10px;">
                     <p><strong><?php esc_html_e('Archive Conditions', 'bw'); ?></strong></p>
-                    <label><input type="checkbox" name="bw_tbl_archive_rules[include][archive_blog]" class="bw-tbl-qe-arc-inc-blog" value="1" /> <?php esc_html_e('Include Blog archive', 'bw'); ?></label>
+                    <label><input type="checkbox" name="bw_tbl_qe_include_archive_blog" class="bw-tbl-qe-arc-inc-blog" value="1" /> <?php esc_html_e('Include Blog archive', 'bw'); ?></label>
                     <p><?php esc_html_e('Include - Categories', 'bw'); ?></p>
-                    <?php bw_tbl_admin_quick_edit_taxonomy_multiselect('category', 'bw_tbl_archive_rules[include][archive_category][]', 'bw-tbl-qe-arc-inc-cat'); ?>
-                    <label><input type="checkbox" name="bw_tbl_archive_rules[exclude][archive_blog]" class="bw-tbl-qe-arc-exc-blog" value="1" /> <?php esc_html_e('Exclude Blog archive', 'bw'); ?></label>
+                    <?php bw_tbl_admin_quick_edit_taxonomy_multiselect('category', 'bw_tbl_qe_include_archive_cat[]', 'bw-tbl-qe-arc-inc-cat'); ?>
+                    <label><input type="checkbox" name="bw_tbl_qe_exclude_archive_blog" class="bw-tbl-qe-arc-exc-blog" value="1" /> <?php esc_html_e('Exclude Blog archive', 'bw'); ?></label>
                     <p><?php esc_html_e('Exclude - Categories', 'bw'); ?></p>
-                    <?php bw_tbl_admin_quick_edit_taxonomy_multiselect('category', 'bw_tbl_archive_rules[exclude][archive_category][]', 'bw-tbl-qe-arc-exc-cat'); ?>
+                    <?php bw_tbl_admin_quick_edit_taxonomy_multiselect('category', 'bw_tbl_qe_exclude_archive_cat[]', 'bw-tbl-qe-arc-exc-cat'); ?>
                 </div>
 
                 <div class="bw-tbl-qe-section" data-type="search,error_404" style="margin-top:10px;">
