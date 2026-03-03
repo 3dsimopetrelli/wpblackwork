@@ -530,6 +530,16 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
         if ( $use_metabox_product ) {
             // Get the current post ID (the product being viewed/edited)
             $current_post_id = get_the_ID();
+
+            if (
+                ( ! $current_post_id || 'product' !== get_post_type( $current_post_id ) ) &&
+                class_exists( '\\Elementor\\Plugin' ) &&
+                \Elementor\Plugin::$instance->editor->is_edit_mode() &&
+                ! empty( $GLOBALS['bw_tbl_preview_product_id'] )
+            ) {
+                $current_post_id = absint( $GLOBALS['bw_tbl_preview_product_id'] );
+            }
+
             if ( $current_post_id && 'product' === get_post_type( $current_post_id ) ) {
                 // Read the linked product from the metabox
                 $linked_product = get_post_meta( $current_post_id, '_bw_showcase_linked_product', true );

@@ -1237,6 +1237,13 @@ class BW_Price_Variation_Widget extends Widget_Base {
                         return intval( $settings['product_id'] );
                 }
 
+                if ( class_exists( '\\Elementor\\Plugin' ) && \Elementor\Plugin::$instance->editor->is_edit_mode() ) {
+                        $preview_product_id = isset( $GLOBALS['bw_tbl_preview_product_id'] ) ? absint( $GLOBALS['bw_tbl_preview_product_id'] ) : 0;
+                        if ( $preview_product_id > 0 ) {
+                                return $preview_product_id;
+                        }
+                }
+
                 return get_the_ID();
         }
 
