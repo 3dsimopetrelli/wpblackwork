@@ -524,12 +524,15 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
         $settings   = $this->get_settings_for_display();
         $post_type  = isset( $settings['post_type'] ) ? sanitize_key( $settings['post_type'] ) : 'product';
         $use_metabox_product = isset( $settings['use_metabox_product'] ) && 'yes' === $settings['use_metabox_product'];
+        $is_editor = class_exists( '\Elementor\Plugin' )
+            && \Elementor\Plugin::$instance->editor
+            && \Elementor\Plugin::$instance->editor->is_edit_mode();
 
         // Determine product ID
         $product_id = 0;
         if ( $use_metabox_product ) {
             $context_resolution = function_exists( 'bw_tbl_resolve_product_context_id' )
-                ? bw_tbl_resolve_product_context_id( [] )
+                ? bw_tbl_resolve_product_context_id( [ '__widget_class' => __CLASS__ ] )
                 : [
                     'id' => absint( get_the_ID() ),
                     'source' => 'fallback',
@@ -558,10 +561,13 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
         $image_crop = isset( $settings['image_crop'] ) && 'yes' === $settings['image_crop'];
 
         if ( ! $product_id ) {
+            if ( ! $is_editor ) {
+                return;
+            }
             ?>
             <div class="bw-static-showcase-placeholder">
                 <div class="bw-static-showcase-placeholder__inner">
-                    <?php esc_html_e( 'Please enter a Product ID in the widget settings.', 'bw-elementor-widgets' ); ?>
+                    <?php esc_html_e( 'BW Static Showcase: Product not found. Select a Preview Product in Theme Builder Lite > Single Product or set Product ID in widget.', 'bw-elementor-widgets' ); ?>
                 </div>
             </div>
             <?php
@@ -571,10 +577,13 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
         $post = get_post( $product_id );
 
         if ( ! $post || $post->post_type !== $post_type || $post->post_status !== 'publish' ) {
+            if ( ! $is_editor ) {
+                return;
+            }
             ?>
             <div class="bw-static-showcase-placeholder">
                 <div class="bw-static-showcase-placeholder__inner">
-                    <?php esc_html_e( 'Product not found or not published.', 'bw-elementor-widgets' ); ?>
+                    <?php esc_html_e( 'BW Static Showcase: Product not found. Select a Preview Product in Theme Builder Lite > Single Product or set Product ID in widget.', 'bw-elementor-widgets' ); ?>
                 </div>
             </div>
             <?php

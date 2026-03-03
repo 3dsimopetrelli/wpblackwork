@@ -1367,6 +1367,17 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
             return $product->get_name();
         }
 
+        if ( function_exists( 'bw_tbl_resolve_product_context_id' ) && function_exists( 'wc_get_product' ) ) {
+            $resolution = bw_tbl_resolve_product_context_id( [ '__widget_class' => __CLASS__ ] );
+            $product_id = isset( $resolution['id'] ) ? absint( $resolution['id'] ) : 0;
+            if ( $product_id > 0 ) {
+                $resolved_product = wc_get_product( $product_id );
+                if ( $resolved_product && is_a( $resolved_product, 'WC_Product' ) ) {
+                    return $resolved_product->get_name();
+                }
+            }
+        }
+
         // Fallback to post title
         if ( is_singular() ) {
             return get_the_title();
@@ -1391,11 +1402,22 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
         } elseif ( $settings['images_source'] === 'query' ) {
             // Get current product gallery images
             global $product;
+            $context_product = null;
             if ( $product && is_a( $product, 'WC_Product' ) ) {
-                $attachment_ids = $product->get_gallery_image_ids();
+                $context_product = $product;
+            } elseif ( function_exists( 'bw_tbl_resolve_product_context_id' ) && function_exists( 'wc_get_product' ) ) {
+                $resolution = bw_tbl_resolve_product_context_id( [ '__widget_class' => __CLASS__ ] );
+                $product_id = isset( $resolution['id'] ) ? absint( $resolution['id'] ) : 0;
+                if ( $product_id > 0 ) {
+                    $context_product = wc_get_product( $product_id );
+                }
+            }
+
+            if ( $context_product && is_a( $context_product, 'WC_Product' ) ) {
+                $attachment_ids = $context_product->get_gallery_image_ids();
 
                 // Include featured image as first
-                $featured_id = $product->get_image_id();
+                $featured_id = $context_product->get_image_id();
                 if ( $featured_id ) {
                     array_unshift( $attachment_ids, $featured_id );
                 }

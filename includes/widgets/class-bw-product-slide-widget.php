@@ -357,9 +357,11 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
         $slides = [];
 
         // Se "Use Product Gallery" è attivo, usa le immagini della gallery del prodotto corrente
-        if ( $use_product_gallery && function_exists( 'wc_get_product' ) && is_product() ) {
-            global $post;
-            $product_id = $post ? $post->ID : 0;
+        if ( $use_product_gallery && function_exists( 'wc_get_product' ) ) {
+            $resolution = function_exists( 'bw_tbl_resolve_product_context_id' )
+                ? bw_tbl_resolve_product_context_id( [ '__widget_class' => __CLASS__ ] )
+                : [ 'id' => 0 ];
+            $product_id = isset( $resolution['id'] ) ? absint( $resolution['id'] ) : 0;
 
             if ( $product_id > 0 ) {
                 $product = wc_get_product( $product_id );

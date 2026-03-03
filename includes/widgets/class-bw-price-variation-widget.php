@@ -1234,6 +1234,7 @@ class BW_Price_Variation_Widget extends Widget_Base {
 
         private function get_product_id_from_settings( $settings ) {
                 if ( function_exists( 'bw_tbl_resolve_product_context_id' ) ) {
+                        $settings['__widget_class'] = __CLASS__;
                         return bw_tbl_resolve_product_context_id( $settings );
                 }
 

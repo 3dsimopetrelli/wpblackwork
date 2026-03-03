@@ -712,15 +712,28 @@ class BW_Add_To_Cart_Variation_Widget extends Widget_Base {
     }
 
     private function get_product_instance( $settings ) {
-        global $product;
-
         if ( isset( $settings['use_current_product'] ) && 'yes' === $settings['use_current_product'] ) {
-            $candidate = $product ? wc_get_product( $product ) : null;
-            if ( ! $candidate && get_the_ID() ) {
-                $candidate = wc_get_product( get_the_ID() );
-            }
-            if ( $candidate ) {
-                return $candidate;
+            if ( function_exists( 'bw_tbl_resolve_product_context_id' ) ) {
+                $resolver_settings = [
+                    '__widget_class' => __CLASS__,
+                ];
+                $resolved = bw_tbl_resolve_product_context_id( $resolver_settings );
+                $resolved_id = isset( $resolved['id'] ) ? absint( $resolved['id'] ) : 0;
+                if ( $resolved_id > 0 ) {
+                    $candidate = wc_get_product( $resolved_id );
+                    if ( $candidate ) {
+                        return $candidate;
+                    }
+                }
+            } else {
+                global $product;
+                $candidate = $product ? wc_get_product( $product ) : null;
+                if ( ! $candidate && get_the_ID() ) {
+                    $candidate = wc_get_product( get_the_ID() );
+                }
+                if ( $candidate ) {
+                    return $candidate;
+                }
             }
         }
 

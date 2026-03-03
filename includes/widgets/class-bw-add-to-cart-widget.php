@@ -307,8 +307,13 @@ class BW_Add_To_Cart_Widget extends Widget_Base {
             return;
         }
 
+        $context_resolution = function_exists( 'bw_tbl_resolve_product_context_id' )
+            ? bw_tbl_resolve_product_context_id( [ '__widget_class' => __CLASS__ ] )
+            : [ 'id' => 0 ];
+
+        $resolved_product_id = isset( $context_resolution['id'] ) ? absint( $context_resolution['id'] ) : 0;
         global $product;
-        $product = wc_get_product( $product );
+        $product = $resolved_product_id > 0 ? wc_get_product( $resolved_product_id ) : null;
 
         if ( ! $product || ! $product->is_purchasable() ) {
             return;

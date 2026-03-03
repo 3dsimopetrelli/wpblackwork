@@ -834,18 +834,18 @@ class BW_Related_Products_Widget extends Widget_Base {
 			return $product;
 		}
 
-		$queried_id = get_queried_object_id();
-		if ( $queried_id ) {
-			$maybe_product = wc_get_product( $queried_id );
-			if ( $maybe_product instanceof \WC_Product ) {
-				return $maybe_product;
-			}
-		}
-
-		if ( class_exists( '\\Elementor\\Plugin' ) && \Elementor\Plugin::$instance->editor->is_edit_mode() ) {
-			$editor_product = wc_get_product( get_the_ID() );
-			if ( $editor_product instanceof \WC_Product ) {
-				return $editor_product;
+		if ( function_exists( 'bw_tbl_resolve_product_context_id' ) ) {
+			$resolved = bw_tbl_resolve_product_context_id(
+				[
+					'__widget_class' => __CLASS__,
+				]
+			);
+			$resolved_id = isset( $resolved['id'] ) ? absint( $resolved['id'] ) : 0;
+			if ( $resolved_id > 0 ) {
+				$maybe_product = wc_get_product( $resolved_id );
+				if ( $maybe_product instanceof \WC_Product ) {
+					return $maybe_product;
+				}
 			}
 		}
 

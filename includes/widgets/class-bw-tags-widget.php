@@ -257,12 +257,11 @@ class BW_Tags_Widget extends Widget_Base {
             return;
         }
 
-        $product = wc_get_product();
-
-        if ( ! $product ) {
-            $product_id = get_queried_object_id();
-            $product    = $product_id ? wc_get_product( $product_id ) : null;
-        }
+        $resolution = function_exists( 'bw_tbl_resolve_product_context_id' )
+            ? bw_tbl_resolve_product_context_id( [ '__widget_class' => __CLASS__ ] )
+            : [ 'id' => absint( get_queried_object_id() ) ];
+        $product_id = isset( $resolution['id'] ) ? absint( $resolution['id'] ) : 0;
+        $product = $product_id > 0 ? wc_get_product( $product_id ) : null;
 
         if ( ! $product ) {
             return;

@@ -242,9 +242,19 @@ class Widget_Bw_Product_Details extends Widget_Base {
     }
 
     protected function render() {
-        $product_id = get_the_ID();
+        $is_editor = class_exists( '\Elementor\Plugin' )
+            && \Elementor\Plugin::$instance->editor
+            && \Elementor\Plugin::$instance->editor->is_edit_mode();
+
+        $resolution = function_exists( 'bw_tbl_resolve_product_context_id' )
+            ? bw_tbl_resolve_product_context_id( [ '__widget_class' => __CLASS__ ] )
+            : [ 'id' => absint( get_the_ID() ), 'source' => 'fallback' ];
+        $product_id = isset( $resolution['id'] ) ? absint( $resolution['id'] ) : 0;
 
         if ( ! $product_id ) {
+            if ( $is_editor ) {
+                echo '<div class="bw-product-details-widget__notice">' . esc_html__( 'BW Product Details: Product not found. Select a Preview Product in Theme Builder Lite > Single Product or set Product ID in widget.', 'bw' ) . '</div>';
+            }
             return;
         }
 
@@ -252,6 +262,9 @@ class Widget_Bw_Product_Details extends Widget_Base {
             $product = wc_get_product( $product_id );
 
             if ( ! $product ) {
+                if ( $is_editor ) {
+                    echo '<div class="bw-product-details-widget__notice">' . esc_html__( 'BW Product Details: Product not found. Select a Preview Product in Theme Builder Lite > Single Product or set Product ID in widget.', 'bw' ) . '</div>';
+                }
                 return;
             }
 

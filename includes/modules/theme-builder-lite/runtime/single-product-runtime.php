@@ -429,6 +429,9 @@ if (!function_exists('bw_tbl_resolve_product_context_id')) {
         if (function_exists('is_product') && is_product()) {
             $queried_id = absint(get_queried_object_id());
             if ($queried_id > 0) {
+                if (defined('BW_TBL_DEBUG_PREVIEW') && BW_TBL_DEBUG_PREVIEW && !empty($settings['__widget_class'])) {
+                    error_log('[BW_TBL_PREVIEW_DEBUG] widget=' . (string) $settings['__widget_class'] . ' source=real_context id=' . $queried_id); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+                }
                 return [
                     'id' => $queried_id,
                     'source' => 'real_context',
@@ -436,18 +439,23 @@ if (!function_exists('bw_tbl_resolve_product_context_id')) {
             }
         }
 
-        $is_preview_single_product = false;
-        if (function_exists('bw_tbl_get_elementor_preview_single_product_context')) {
-            $context = bw_tbl_get_elementor_preview_single_product_context();
-            $is_preview_single_product = !empty($context['apply']);
-        }
-
-        if ($is_preview_single_product) {
+        if (function_exists('bw_tbl_is_bw_single_product_template_preview') && bw_tbl_is_bw_single_product_template_preview()) {
             $preview_product_id = function_exists('bw_tbl_get_preview_product_id')
                 ? absint(bw_tbl_get_preview_product_id())
                 : 0;
 
+            if ($preview_product_id <= 0 && function_exists('bw_tbl_get_single_product_preview_product_id')) {
+                $preview_product_id = absint(bw_tbl_get_single_product_preview_product_id(false));
+            }
+
+            if ($preview_product_id <= 0 && !empty($GLOBALS['bw_tbl_preview_product_id'])) {
+                $preview_product_id = absint($GLOBALS['bw_tbl_preview_product_id']);
+            }
+
             if ($preview_product_id > 0) {
+                if (defined('BW_TBL_DEBUG_PREVIEW') && BW_TBL_DEBUG_PREVIEW && !empty($settings['__widget_class'])) {
+                    error_log('[BW_TBL_PREVIEW_DEBUG] widget=' . (string) $settings['__widget_class'] . ' source=preview_fallback id=' . $preview_product_id); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+                }
                 return [
                     'id' => $preview_product_id,
                     'source' => 'preview_fallback',
@@ -456,16 +464,79 @@ if (!function_exists('bw_tbl_resolve_product_context_id')) {
         }
 
         if (!empty($settings['product_id'])) {
+            $manual_id = absint($settings['product_id']);
+            if (defined('BW_TBL_DEBUG_PREVIEW') && BW_TBL_DEBUG_PREVIEW && !empty($settings['__widget_class'])) {
+                error_log('[BW_TBL_PREVIEW_DEBUG] widget=' . (string) $settings['__widget_class'] . ' source=manual_setting id=' . $manual_id); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+            }
             return [
-                'id' => absint($settings['product_id']),
+                'id' => $manual_id,
                 'source' => 'manual_setting',
             ];
+        }
+
+        if (defined('BW_TBL_DEBUG_PREVIEW') && BW_TBL_DEBUG_PREVIEW && !empty($settings['__widget_class'])) {
+            error_log('[BW_TBL_PREVIEW_DEBUG] widget=' . (string) $settings['__widget_class'] . ' source=missing id=0'); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
         }
 
         return [
             'id' => 0,
             'source' => 'missing',
         ];
+    }
+}
+
+if (!function_exists('bw_tbl_validate_preview_product_id')) {
+    function bw_tbl_validate_preview_product_id($id)
+    {
+        $id = absint($id);
+        return bw_tbl_is_valid_preview_product($id) ? $id : 0;
+    }
+}
+
+if (!function_exists('bw_tbl_is_bw_single_product_template_preview')) {
+    function bw_tbl_is_bw_single_product_template_preview()
+    {
+        if (!class_exists('\Elementor\Plugin')) {
+            return false;
+        }
+
+        $is_elementor_context = false;
+        $plugin = \Elementor\Plugin::$instance;
+
+        if ($plugin && isset($plugin->editor) && method_exists($plugin->editor, 'is_edit_mode') && $plugin->editor->is_edit_mode()) {
+            $is_elementor_context = true;
+        }
+
+        if ($plugin && isset($plugin->preview) && method_exists($plugin->preview, 'is_preview_mode') && $plugin->preview->is_preview_mode()) {
+            $is_elementor_context = true;
+        }
+
+        if (isset($_GET['elementor-preview'])) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+            $is_elementor_context = true;
+        }
+
+        if (!$is_elementor_context) {
+            return false;
+        }
+
+        if (function_exists('bw_tbl_get_elementor_preview_single_product_context')) {
+            $context = bw_tbl_get_elementor_preview_single_product_context();
+            return !empty($context['apply']);
+        }
+
+        $template_id = isset($_GET['elementor-preview']) ? absint(wp_unslash($_GET['elementor-preview'])) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        if ($template_id <= 0 && isset($_GET['post'])) {
+            $maybe_id = absint(wp_unslash($_GET['post'])); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+            if ($maybe_id > 0 && 'bw_template' === get_post_type($maybe_id)) {
+                $template_id = $maybe_id;
+            }
+        }
+
+        if ($template_id <= 0 || 'bw_template' !== get_post_type($template_id)) {
+            return false;
+        }
+
+        return 'single_product' === get_post_meta($template_id, 'bw_template_type', true);
     }
 }
 
