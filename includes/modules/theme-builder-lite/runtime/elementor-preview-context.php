@@ -85,11 +85,25 @@ if (!function_exists('bw_tbl_get_elementor_preview_product_id')) {
             return 0;
         }
 
-        if (!function_exists('bw_tbl_is_elementor_editor_request') || !bw_tbl_is_elementor_editor_request()) {
+        $is_editor_request = function_exists('bw_tbl_is_elementor_editor_request') && bw_tbl_is_elementor_editor_request();
+        $is_preview_mode = function_exists('bw_tbl_is_elementor_preview') && bw_tbl_is_elementor_preview();
+        if (!$is_editor_request && !$is_preview_mode) {
             return 0;
         }
 
         $template_id = isset($_GET['elementor-preview']) ? absint(wp_unslash($_GET['elementor-preview'])) : 0;
+        if ($template_id <= 0 && is_singular('bw_template')) {
+            $template_id = absint(get_queried_object_id());
+        }
+        if ($template_id <= 0 && isset($_GET['post'])) {
+            $candidate = absint(wp_unslash($_GET['post']));
+            if ($candidate > 0) {
+                $candidate_post = get_post($candidate);
+                if ($candidate_post instanceof WP_Post && 'bw_template' === $candidate_post->post_type) {
+                    $template_id = $candidate;
+                }
+            }
+        }
         if ($template_id <= 0) {
             return 0;
         }
