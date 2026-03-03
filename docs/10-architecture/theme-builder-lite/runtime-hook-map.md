@@ -34,6 +34,7 @@ Current scope includes:
 | `template_include` (filter) | 50 | `bw_tbl_runtime_resolve_template_include` | `includes/modules/theme-builder-lite/runtime/template-resolver.php` | Phase 2 resolver with strict guards, conditions filtering, and deterministic winner selection |
 | `wp_robots` (filter) | 10 (default) | `bw_tbl_add_noindex_for_bw_template` | `includes/modules/theme-builder-lite/runtime/template-preview.php` | Enforce noindex for public preview URLs |
 | `wp_enqueue_scripts` | 20 | `bw_tbl_enqueue_custom_fonts_css` | `includes/modules/theme-builder-lite/fonts/custom-fonts.php` | Enqueue generated `@font-face` CSS |
+| `wp` | 20 | `bw_tbl_apply_elementor_single_product_preview_context` | `includes/modules/theme-builder-lite/runtime/elementor-preview-context.php` | In Elementor bw_template(single_product) preview, set Woo product context + preview bridge (`$GLOBALS['bw_tbl_preview_product_id']` and `set_query_var`) without mutating `WP_Query` |
 | `wp` | 20 | `bw_tbl_prepare_footer_runtime` | `includes/modules/theme-builder-lite/runtime/footer-runtime.php` | Resolve active footer and remove known theme footer callback |
 | `wp_head` | 99 | `bw_tbl_footer_theme_fallback_css` | `includes/modules/theme-builder-lite/runtime/footer-runtime.php` | Scoped CSS fallback to suppress theme footer |
 | `wp_footer` | 20 | `bw_tbl_render_footer_template` | `includes/modules/theme-builder-lite/runtime/footer-runtime.php` | Render active Elementor footer template |

@@ -113,6 +113,19 @@ Behavior:
   - legacy `bw_tbl_display_rules_v1` meta is retained in DB and can be migrated later
   - legacy data is not mutated by this settings-driven path
 
+### 2026-03 Update - Elementor Preview Product Bridge Contract
+- Elementor preview iframe does not reliably expose `elementor-preview` parameter inside widget render callbacks.
+- Theme Builder Lite sets a preview bridge during preview context bootstrap:
+  - global: `$GLOBALS['bw_tbl_preview_product_id']`
+  - query var: `bw_tbl_preview_product_id`
+- BW product-dependent widgets must resolve product context through shared resolver `bw_tbl_resolve_product_context_id()` (not by direct `$_GET` checks in render methods).
+- Resolver order for preview fallback is deterministic:
+  - bridge global -> bridge query var -> saved preview option.
+- This avoids `WP_Query` spoofing and keeps frontend behavior unchanged.
+
+### 2026-03 Operational Note
+- `WP_Scripts::add ... slick-js not registered` notice is unrelated to Theme Builder Lite preview bridge/product-context resolution and should be handled in a separate asset-dependency task.
+
 ## C) Custom Fonts (Implemented)
 Storage option: `bw_custom_fonts_v1`
 - `version`
