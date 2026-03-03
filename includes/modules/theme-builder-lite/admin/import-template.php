@@ -14,12 +14,14 @@ if (!function_exists('bw_tbl_import_template_max_size')) {
 if (!function_exists('bw_tbl_import_type_map')) {
     function bw_tbl_import_type_map($raw_type)
     {
-        $raw_type = sanitize_key((string) $raw_type);
-        $raw_type = str_replace('-', '_', $raw_type);
+        $normalized = sanitize_key((string) $raw_type);
+        $normalized = str_replace('-', '_', $normalized);
+        $normalized = trim($normalized);
 
         $map = [
             'product_archive' => 'product_archive',
             'single_product' => 'single_product',
+            'product' => 'single_product',
             'footer' => 'footer',
             'single_post' => 'single_post',
             'single_page' => 'single_page',
@@ -29,7 +31,7 @@ if (!function_exists('bw_tbl_import_type_map')) {
             '404' => 'error_404',
         ];
 
-        return isset($map[$raw_type]) ? $map[$raw_type] : '';
+        return isset($map[$normalized]) ? $map[$normalized] : '';
     }
 }
 
@@ -113,6 +115,43 @@ if (!function_exists('bw_tbl_import_map_type_from_payload')) {
             $mapped = bw_tbl_import_type_map($raw_type);
             if ('' !== $mapped) {
                 return $mapped;
+            }
+        }
+
+        return '';
+    }
+}
+
+if (!function_exists('bw_tbl_import_guess_type_from_elements')) {
+    function bw_tbl_import_guess_type_from_elements($elements)
+    {
+        $elements = is_array($elements) ? $elements : [];
+        if (empty($elements)) {
+            return '';
+        }
+
+        $stack = $elements;
+        while (!empty($stack)) {
+            $node = array_pop($stack);
+            if (!is_array($node)) {
+                continue;
+            }
+
+            $widget_type = isset($node['widgetType']) ? sanitize_key((string) $node['widgetType']) : '';
+            $widget_type = str_replace('-', '_', $widget_type);
+            if ('' !== $widget_type) {
+                if (0 === strpos($widget_type, 'woocommerce_product_') || in_array($widget_type, ['bw_price_variation', 'bw_related_products'], true)) {
+                    return 'single_product';
+                }
+                if (in_array($widget_type, ['theme_archive_title', 'bw_filtered_post_wall'], true)) {
+                    return 'product_archive';
+                }
+            }
+
+            if (isset($node['elements']) && is_array($node['elements']) && !empty($node['elements'])) {
+                foreach ($node['elements'] as $child) {
+                    $stack[] = $child;
+                }
             }
         }
 
@@ -254,7 +293,7 @@ if (!function_exists('bw_tbl_render_import_template_tab')) {
                     <td>
                         <input id="bw-tbl-import-file" type="file" name="bw_tbl_import_file" accept=".json,application/json,text/json,text/plain" required />
                         <p class="description"><?php echo esc_html(sprintf(__('Accepted: .json (max %s MB)', 'bw'), (string) $max_mb)); ?></p>
-                        <p class="description"><?php esc_html_e('Template type is auto-detected from the JSON export type. If not mappable, import is aborted.', 'bw'); ?></p>
+                        <p class="description"><?php esc_html_e('Template type is auto-detected from JSON. If not mappable, a safe fallback type is applied automatically.', 'bw'); ?></p>
                     </td>
                 </tr>
             </table>
@@ -418,14 +457,6 @@ if (!function_exists('bw_tbl_import_template_handle')) {
             $title = __('Imported Template', 'bw');
         }
 
-        $template_type = bw_tbl_import_map_type_from_payload($payload);
-
-        $allowed_types = bw_tbl_import_template_choices();
-        if ('' === $template_type || !isset($allowed_types[$template_type])) {
-            wp_safe_redirect(bw_tbl_import_redirect_url('error', __('Template type could not be mapped from JSON type. Import aborted.', 'bw')));
-            exit;
-        }
-
         $elements = [];
         if (isset($payload['content']) && is_array($payload['content'])) {
             $elements = $payload['content'];
@@ -436,6 +467,19 @@ if (!function_exists('bw_tbl_import_template_handle')) {
         if (empty($elements)) {
             wp_safe_redirect(bw_tbl_import_redirect_url('error', __('JSON does not contain Elementor content elements.', 'bw')));
             exit;
+        }
+
+        $template_type = bw_tbl_import_map_type_from_payload($payload);
+        if ('' === $template_type) {
+            $template_type = bw_tbl_import_guess_type_from_elements($elements);
+        }
+
+        $allowed_types = bw_tbl_import_template_choices();
+        $used_fallback_type = false;
+        if ('' === $template_type || !isset($allowed_types[$template_type])) {
+            // Keep importer permissive for generic/snippet exports: default to a safe BW type.
+            $template_type = 'single_page';
+            $used_fallback_type = true;
         }
 
         $page_settings = [];
@@ -508,7 +552,10 @@ if (!function_exists('bw_tbl_import_template_handle')) {
             update_post_meta($post_id, 'bw_tbl_library_template_id', $library_id);
         }
 
-        wp_safe_redirect(bw_tbl_import_redirect_url('success', __('Template imported successfully as draft.', 'bw'), $post_id));
+        $success_message = $used_fallback_type
+            ? __('Template imported as draft using fallback type: Single Page.', 'bw')
+            : __('Template imported successfully as draft.', 'bw');
+        wp_safe_redirect(bw_tbl_import_redirect_url('success', $success_message, $post_id));
         exit;
     }
 }
