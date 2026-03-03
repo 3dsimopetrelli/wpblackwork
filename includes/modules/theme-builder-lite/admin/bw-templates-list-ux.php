@@ -22,6 +22,18 @@ if (!function_exists('bw_tbl_admin_template_type_label')) {
     }
 }
 
+if (!function_exists('bw_tbl_admin_allowed_template_types')) {
+    function bw_tbl_admin_allowed_template_types()
+    {
+        if (function_exists('bw_tbl_template_type_allowed_values')) {
+            $types = bw_tbl_template_type_allowed_values();
+            return is_array($types) ? array_values($types) : [];
+        }
+
+        return ['footer', 'single_post', 'single_page', 'single_product', 'product_archive', 'archive', 'search', 'error_404'];
+    }
+}
+
 if (!function_exists('bw_tbl_filter_parent_product_cat_ids')) {
     function bw_tbl_filter_parent_product_cat_ids($term_ids)
     {
@@ -286,6 +298,26 @@ if (!function_exists('bw_tbl_admin_is_active_single_product_template')) {
     }
 }
 
+if (!function_exists('bw_tbl_admin_is_linked_template')) {
+    function bw_tbl_admin_is_linked_template($post_id)
+    {
+        $post_id = absint($post_id);
+        if ($post_id <= 0) {
+            return false;
+        }
+
+        if (bw_tbl_admin_is_active_footer_template($post_id)) {
+            return true;
+        }
+
+        if (bw_tbl_admin_is_active_single_product_template($post_id)) {
+            return true;
+        }
+
+        return false;
+    }
+}
+
 if (!function_exists('bw_tbl_admin_template_link_badges')) {
     function bw_tbl_admin_template_link_badges($post_id, $template_type)
     {
@@ -359,7 +391,25 @@ if (!function_exists('bw_tbl_admin_render_list_column')) {
             } else {
                 $type = sanitize_key((string) $type);
             }
-            echo esc_html(bw_tbl_admin_template_type_label($type));
+
+            if (!current_user_can('edit_post', $post_id)) {
+                echo esc_html(bw_tbl_admin_template_type_label($type));
+                return;
+            }
+
+            $allowed_types = bw_tbl_admin_allowed_template_types();
+            $is_linked = bw_tbl_admin_is_linked_template($post_id) ? '1' : '0';
+
+            echo '<select class="bw-tbl-inline-type-select" data-post-id="' . esc_attr((string) $post_id) . '" data-linked="' . esc_attr($is_linked) . '" style="min-width:160px;">';
+            foreach ($allowed_types as $allowed_type) {
+                $allowed_type = sanitize_key((string) $allowed_type);
+                if ('' === $allowed_type) {
+                    continue;
+                }
+                echo '<option value="' . esc_attr($allowed_type) . '" ' . selected($type, $allowed_type, false) . '>' . esc_html(bw_tbl_admin_template_type_label($allowed_type)) . '</option>';
+            }
+            echo '</select>';
+            echo '<span class="bw-tbl-inline-type-status" style="margin-left:8px;color:#50575e;"></span>';
             return;
         }
 
@@ -490,3 +540,80 @@ if (!function_exists('bw_tbl_admin_apply_type_filter')) {
     }
 }
 add_action('pre_get_posts', 'bw_tbl_admin_apply_type_filter');
+
+if (!function_exists('bw_tbl_admin_enqueue_inline_type_assets')) {
+    function bw_tbl_admin_enqueue_inline_type_assets($hook)
+    {
+        if ('edit.php' !== $hook) {
+            return;
+        }
+
+        $post_type = isset($_GET['post_type']) ? sanitize_key(wp_unslash($_GET['post_type'])) : '';
+        if ('bw_template' !== $post_type) {
+            return;
+        }
+
+        $script_path = BW_MEW_PATH . 'includes/modules/theme-builder-lite/admin/bw-template-type-inline.js';
+        wp_enqueue_script(
+            'bw-tbl-inline-template-type',
+            BW_MEW_URL . 'includes/modules/theme-builder-lite/admin/bw-template-type-inline.js',
+            ['jquery'],
+            file_exists($script_path) ? filemtime($script_path) : '1.0.0',
+            true
+        );
+
+        wp_localize_script(
+            'bw-tbl-inline-template-type',
+            'bwTblInlineType',
+            [
+                'ajaxUrl' => admin_url('admin-ajax.php'),
+                'nonce' => wp_create_nonce('bw_tbl_inline_type_update'),
+                'confirmMessage' => __('This template is currently linked. Changing type may break links. Continue?', 'bw'),
+                'saving' => __('Saving…', 'bw'),
+                'saved' => __('Saved', 'bw'),
+                'error' => __('Error', 'bw'),
+            ]
+        );
+    }
+}
+add_action('admin_enqueue_scripts', 'bw_tbl_admin_enqueue_inline_type_assets');
+
+if (!function_exists('bw_tbl_admin_ajax_update_template_type')) {
+    function bw_tbl_admin_ajax_update_template_type()
+    {
+        if (!check_ajax_referer('bw_tbl_inline_type_update', 'nonce', false)) {
+            wp_send_json_error(['message' => __('Invalid nonce.', 'bw')], 403);
+        }
+
+        $post_id = isset($_POST['post_id']) ? absint(wp_unslash($_POST['post_id'])) : 0;
+        $new_type = isset($_POST['template_type']) ? sanitize_key(wp_unslash($_POST['template_type'])) : '';
+
+        if ($post_id <= 0 || '' === $new_type) {
+            wp_send_json_error(['message' => __('Invalid request.', 'bw')], 400);
+        }
+
+        if (!current_user_can('edit_post', $post_id)) {
+            wp_send_json_error(['message' => __('Unauthorized.', 'bw')], 403);
+        }
+
+        $post = get_post($post_id);
+        if (!($post instanceof WP_Post) || 'bw_template' !== $post->post_type) {
+            wp_send_json_error(['message' => __('Invalid template.', 'bw')], 400);
+        }
+
+        $allowed = bw_tbl_admin_allowed_template_types();
+        if (!in_array($new_type, $allowed, true)) {
+            wp_send_json_error(['message' => __('Invalid template type.', 'bw')], 400);
+        }
+
+        update_post_meta($post_id, 'bw_template_type', $new_type);
+
+        wp_send_json_success(
+            [
+                'type' => $new_type,
+                'label' => bw_tbl_admin_template_type_label($new_type),
+            ]
+        );
+    }
+}
+add_action('wp_ajax_bw_tbl_update_template_type', 'bw_tbl_admin_ajax_update_template_type');
