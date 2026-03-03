@@ -203,7 +203,7 @@ if (!function_exists('bw_tbl_render_single_product_rule_row')) {
                             <?php esc_html_e('Enable exclusions (optional)', 'bw'); ?>
                         </label>
                         <p class="description"><?php esc_html_e('Optional. If a product matches an excluded category, this rule will not apply (exclusions override includes).', 'bw'); ?></p>
-                        <div class="bw-tbl-exclude-fields" style="<?php echo $exclude_enabled ? '' : 'display:none;'; ?>">
+                        <div class="bw-tbl-exclude-fields">
                             <select name="<?php echo esc_attr(BW_TBL_SINGLE_PRODUCT_RULES_OPTION); ?>[rules][<?php echo esc_attr((string) $index); ?>][exclude_product_cat][]" multiple="multiple" size="8" style="min-width:280px;">
                                 <?php foreach ($parent_product_categories as $term_id => $term_name) : ?>
                                     <option value="<?php echo esc_attr((string) $term_id); ?>" <?php selected(in_array((int) $term_id, $exclude, true)); ?>><?php echo esc_html($term_name); ?></option>
