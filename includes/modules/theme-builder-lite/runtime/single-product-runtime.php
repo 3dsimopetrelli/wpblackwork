@@ -11,6 +11,10 @@ if (!defined('BW_TBL_SINGLE_PRODUCT_RULES_OPTION')) {
     define('BW_TBL_SINGLE_PRODUCT_RULES_OPTION', 'bw_theme_builder_lite_single_product_rules_v2');
 }
 
+if (!defined('BW_TBL_SINGLE_PRODUCT_PREVIEW_PRODUCT_OPTION')) {
+    define('BW_TBL_SINGLE_PRODUCT_PREVIEW_PRODUCT_OPTION', 'bw_theme_builder_lite_single_product_preview_product_id');
+}
+
 if (!function_exists('bw_tbl_runtime_debug_enabled')) {
     function bw_tbl_runtime_debug_enabled()
     {
@@ -339,6 +343,73 @@ if (!function_exists('bw_tbl_get_parent_product_category_choices')) {
         }
 
         return $choices;
+    }
+}
+
+if (!function_exists('bw_tbl_is_valid_preview_product')) {
+    function bw_tbl_is_valid_preview_product($product_id)
+    {
+        $product_id = absint($product_id);
+        if ($product_id <= 0) {
+            return false;
+        }
+
+        $post = get_post($product_id);
+        return $post instanceof WP_Post
+            && 'product' === $post->post_type
+            && 'publish' === $post->post_status;
+    }
+}
+
+if (!function_exists('bw_tbl_get_first_published_product_id')) {
+    function bw_tbl_get_first_published_product_id()
+    {
+        $query = new WP_Query(
+            [
+                'post_type' => 'product',
+                'post_status' => 'publish',
+                'posts_per_page' => 1,
+                'fields' => 'ids',
+                'orderby' => 'date',
+                'order' => 'DESC',
+                'no_found_rows' => true,
+            ]
+        );
+
+        if (empty($query->posts)) {
+            return 0;
+        }
+
+        return absint($query->posts[0]);
+    }
+}
+
+if (!function_exists('bw_tbl_sanitize_single_product_preview_product_id')) {
+    function bw_tbl_sanitize_single_product_preview_product_id($input)
+    {
+        $product_id = absint($input);
+        if ($product_id <= 0) {
+            return 0;
+        }
+
+        return bw_tbl_is_valid_preview_product($product_id) ? $product_id : 0;
+    }
+}
+
+if (!function_exists('bw_tbl_get_single_product_preview_product_id')) {
+    function bw_tbl_get_single_product_preview_product_id($allow_fallback = true)
+    {
+        $saved = get_option(BW_TBL_SINGLE_PRODUCT_PREVIEW_PRODUCT_OPTION, 0);
+        $saved_id = bw_tbl_sanitize_single_product_preview_product_id($saved);
+        if ($saved_id > 0) {
+            return $saved_id;
+        }
+
+        if (!$allow_fallback) {
+            return 0;
+        }
+
+        return bw_tbl_get_first_published_product_id();
     }
 }
 

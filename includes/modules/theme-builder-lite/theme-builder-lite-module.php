@@ -11,6 +11,7 @@ require_once __DIR__ . '/integrations/elementor-fonts.php';
 require_once __DIR__ . '/runtime/footer-runtime.php';
 require_once __DIR__ . '/runtime/single-product-runtime.php';
 require_once __DIR__ . '/runtime/product-archive-runtime.php';
+require_once __DIR__ . '/runtime/elementor-preview-context.php';
 require_once __DIR__ . '/runtime/template-wrapper.php';
 require_once __DIR__ . '/runtime/conditions-engine.php';
 require_once __DIR__ . '/runtime/template-resolver.php';

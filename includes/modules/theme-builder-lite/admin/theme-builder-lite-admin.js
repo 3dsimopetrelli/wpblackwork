@@ -344,6 +344,143 @@
         frame.open();
     });
 
+    function initSingleProductPreviewSearch() {
+        var $hidden = $('#bw-tbl-single-product-preview-product-id');
+        if (!$hidden.length) {
+            return;
+        }
+
+        var cfg = window.bwTblAdmin || {};
+        var ajaxUrl = (cfg.ajaxUrl || '').toString();
+        var nonce = (cfg.previewProductNonce || '').toString();
+        if (!ajaxUrl || !nonce) {
+            return;
+        }
+
+        var i18n = cfg.i18n || {};
+        var $search = $('#bw-tbl-single-product-preview-product-search');
+        var $results = $('#bw-tbl-single-product-preview-product-results');
+        var $selected = $('#bw-tbl-single-product-preview-product-selected-text');
+        var $clear = $('#bw-tbl-single-product-preview-product-clear');
+        var debounceTimer = null;
+
+        function clearResults() {
+            $results.hide().empty();
+        }
+
+        function setSelected(id, title) {
+            var cleanId = parseInt(id, 10);
+            if (isNaN(cleanId) || cleanId <= 0) {
+                cleanId = 0;
+            }
+
+            var cleanTitle = (title || '').toString();
+            $hidden.val(cleanId > 0 ? cleanId : 0);
+            if (cleanId > 0 && cleanTitle) {
+                $selected.text(cleanTitle + ' (ID ' + cleanId + ')');
+            } else {
+                $selected.text('None selected');
+            }
+            $selected.attr('data-selected-id', cleanId > 0 ? cleanId : 0);
+            $selected.attr('data-selected-title', cleanTitle);
+        }
+
+        function renderItems(items) {
+            $results.empty();
+
+            if (!items || !items.length) {
+                $('<div class="bw-tbl-ajax-search-empty" />')
+                    .text((i18n.noResults || 'No products found.').toString())
+                    .appendTo($results);
+                $results.show();
+                return;
+            }
+
+            items.forEach(function (item) {
+                var id = parseInt(item.id, 10);
+                var text = (item.text || '').toString();
+                if (!id || !text) {
+                    return;
+                }
+
+                $('<button type="button" class="bw-tbl-ajax-search-item" />')
+                    .attr('data-id', id)
+                    .attr('data-title', text)
+                    .text(text + ' (ID ' + id + ')')
+                    .appendTo($results);
+            });
+
+            $results.show();
+        }
+
+        function searchProducts(term) {
+            var query = (term || '').toString().trim();
+            if (query.length < 2) {
+                clearResults();
+                return;
+            }
+
+            $results.show().html(
+                $('<div class="bw-tbl-ajax-search-empty" />').text((i18n.searching || 'Searching products...').toString())
+            );
+
+            $.post(ajaxUrl, {
+                action: 'bw_tbl_search_preview_products',
+                nonce: nonce,
+                q: query
+            })
+                .done(function (response) {
+                    if (!response || response.success !== true || !response.data) {
+                        renderItems([]);
+                        return;
+                    }
+                    renderItems(response.data.items || []);
+                })
+                .fail(function () {
+                    $results.empty();
+                    $('<div class="bw-tbl-ajax-search-empty" />')
+                        .text((i18n.requestFailed || 'Search failed. Try again.').toString())
+                        .appendTo($results);
+                    $results.show();
+                });
+        }
+
+        $search.on('input', function () {
+            var term = $(this).val();
+            if (debounceTimer) {
+                window.clearTimeout(debounceTimer);
+            }
+            debounceTimer = window.setTimeout(function () {
+                searchProducts(term);
+            }, 250);
+        });
+
+        $results.on('click', '.bw-tbl-ajax-search-item', function () {
+            var $item = $(this);
+            setSelected($item.data('id'), $item.data('title'));
+            $search.val($item.data('title') || '');
+            clearResults();
+        });
+
+        $clear.on('click', function (event) {
+            event.preventDefault();
+            $search.val('');
+            setSelected(0, '');
+            clearResults();
+        });
+
+        $(document).on('click', function (event) {
+            if (!$(event.target).closest('#bw-tbl-single-product-preview-product-search, #bw-tbl-single-product-preview-product-results').length) {
+                clearResults();
+            }
+        });
+
+        var selectedTitle = ($selected.attr('data-selected-title') || '').toString();
+        if (selectedTitle) {
+            $search.val(selectedTitle);
+        }
+    }
+
     $(function () {
         var tabFromQuery = '';
         try {
@@ -358,5 +495,6 @@
         syncFeatureSections();
         syncIncludeFields();
         syncExcludeFields();
+        initSingleProductPreviewSearch();
     });
 })(jQuery);

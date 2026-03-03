@@ -58,6 +58,16 @@ if (!function_exists('bw_tbl_register_admin_settings')) {
 
         register_setting(
             'bw_tbl_settings_group',
+            BW_TBL_SINGLE_PRODUCT_PREVIEW_PRODUCT_OPTION,
+            [
+                'type' => 'integer',
+                'sanitize_callback' => 'bw_tbl_sanitize_single_product_preview_product_id',
+                'default' => 0,
+            ]
+        );
+
+        register_setting(
+            'bw_tbl_settings_group',
             BW_TBL_PRODUCT_ARCHIVE_RULES_OPTION,
             [
                 'type' => 'array',
@@ -123,6 +133,21 @@ if (!function_exists('bw_tbl_admin_enqueue_assets')) {
             ['jquery', 'media-editor', 'media-models', 'media-views'],
             file_exists($script_path) ? filemtime($script_path) : '1.0.0',
             true
+        );
+
+        wp_localize_script(
+            'bw-theme-builder-lite-admin',
+            'bwTblAdmin',
+            [
+                'ajaxUrl' => admin_url('admin-ajax.php'),
+                'previewProductNonce' => wp_create_nonce('bw_tbl_preview_product_search'),
+                'i18n' => [
+                    'searching' => __('Searching products...', 'bw'),
+                    'noResults' => __('No products found.', 'bw'),
+                    'requestFailed' => __('Search failed. Try again.', 'bw'),
+                    'selectedPrefix' => __('Selected:', 'bw'),
+                ],
+            ]
         );
     }
 }
@@ -373,6 +398,57 @@ if (!function_exists('bw_tbl_render_product_archive_rule_row')) {
     }
 }
 
+if (!function_exists('bw_tbl_ajax_search_preview_products')) {
+    function bw_tbl_ajax_search_preview_products()
+    {
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => __('Permission denied.', 'bw')], 403);
+        }
+
+        check_ajax_referer('bw_tbl_preview_product_search', 'nonce');
+
+        $search = isset($_POST['q']) ? sanitize_text_field(wp_unslash($_POST['q'])) : '';
+        $search = trim($search);
+        if ('' === $search) {
+            wp_send_json_success(['items' => []]);
+        }
+
+        $query = new WP_Query(
+            [
+                'post_type' => 'product',
+                'post_status' => 'publish',
+                'posts_per_page' => 20,
+                's' => $search,
+                'fields' => 'ids',
+                'orderby' => 'title',
+                'order' => 'ASC',
+                'no_found_rows' => true,
+            ]
+        );
+
+        $items = [];
+        foreach ($query->posts as $product_id) {
+            $product_id = absint($product_id);
+            if ($product_id <= 0) {
+                continue;
+            }
+
+            $title = get_the_title($product_id);
+            if (!is_string($title) || '' === trim($title)) {
+                $title = sprintf(__('Product #%d', 'bw'), $product_id);
+            }
+
+            $items[] = [
+                'id' => $product_id,
+                'text' => $title,
+            ];
+        }
+
+        wp_send_json_success(['items' => $items]);
+    }
+}
+add_action('wp_ajax_bw_tbl_search_preview_products', 'bw_tbl_ajax_search_preview_products');
+
 if (!function_exists('bw_tbl_render_admin_page')) {
     function bw_tbl_render_admin_page()
     {
@@ -386,6 +462,17 @@ if (!function_exists('bw_tbl_render_admin_page')) {
         $footer_choices = bw_tbl_get_footer_template_choices();
         $single_product_rules_option = bw_tbl_get_single_product_rules_option();
         $single_product_choices = bw_tbl_get_single_product_template_choices();
+        $preview_product_saved_id = bw_tbl_sanitize_single_product_preview_product_id(get_option(BW_TBL_SINGLE_PRODUCT_PREVIEW_PRODUCT_OPTION, 0));
+        $preview_product_effective_id = bw_tbl_get_single_product_preview_product_id(true);
+        $preview_product_saved_valid = $preview_product_saved_id > 0;
+        $preview_product_effective_valid = $preview_product_effective_id > 0;
+        $preview_product_title = '';
+        if ($preview_product_effective_valid) {
+            $preview_product_title = get_the_title($preview_product_effective_id);
+            if (!is_string($preview_product_title) || '' === trim($preview_product_title)) {
+                $preview_product_title = sprintf(__('Product #%d', 'bw'), $preview_product_effective_id);
+            }
+        }
         $product_archive_rules_option = bw_tbl_get_product_archive_rules_option();
         $product_archive_choices = bw_tbl_get_product_archive_template_choices();
         $parent_product_categories = bw_tbl_get_parent_product_category_choices();
@@ -394,6 +481,7 @@ if (!function_exists('bw_tbl_render_admin_page')) {
         $single_product_rules_count = count($single_product_rules);
         $single_product_active_templates_count = count(bw_tbl_get_single_product_rules_template_ids($single_product_rules_option));
         $single_product_missing_active_template = $single_product_enabled && $single_product_active_templates_count <= 0;
+        $single_product_preview_missing = $single_product_enabled && !$preview_product_effective_valid;
         $product_archive_enabled = !empty($product_archive_rules_option['enabled']);
         $product_archive_rules = isset($product_archive_rules_option['rules']) && is_array($product_archive_rules_option['rules']) ? $product_archive_rules_option['rules'] : [];
         $product_archive_rules_count = count($product_archive_rules);
@@ -573,7 +661,60 @@ if (!function_exists('bw_tbl_render_admin_page')) {
                                 <p class="description"><?php esc_html_e('This affects WooCommerce single product pages only (not product category archive pages).', 'bw'); ?></p>
                             </td>
                         </tr>
+                        <tr>
+                            <th scope="row"><?php esc_html_e('Preview Product (Editor Only)', 'bw'); ?></th>
+                            <td>
+                                <input
+                                    type="hidden"
+                                    id="bw-tbl-single-product-preview-product-id"
+                                    name="<?php echo esc_attr(BW_TBL_SINGLE_PRODUCT_PREVIEW_PRODUCT_OPTION); ?>"
+                                    value="<?php echo esc_attr((string) $preview_product_saved_id); ?>"
+                                />
+                                <input
+                                    type="search"
+                                    id="bw-tbl-single-product-preview-product-search"
+                                    class="regular-text"
+                                    placeholder="<?php esc_attr_e('Search products by title...', 'bw'); ?>"
+                                    autocomplete="off"
+                                />
+                                <button type="button" class="button" id="bw-tbl-single-product-preview-product-clear"><?php esc_html_e('Clear', 'bw'); ?></button>
+                                <div id="bw-tbl-single-product-preview-product-results" class="bw-tbl-ajax-search-results" style="display:none;"></div>
+                                <p class="description" id="bw-tbl-single-product-preview-product-selected-label">
+                                    <strong><?php esc_html_e('Selected:', 'bw'); ?></strong>
+                                    <span
+                                        id="bw-tbl-single-product-preview-product-selected-text"
+                                        data-selected-id="<?php echo esc_attr((string) $preview_product_effective_id); ?>"
+                                        data-selected-title="<?php echo esc_attr((string) $preview_product_title); ?>"
+                                    >
+                                        <?php if ($preview_product_effective_valid) : ?>
+                                            <?php echo esc_html($preview_product_title); ?> (ID <?php echo esc_html((string) $preview_product_effective_id); ?>)
+                                        <?php else : ?>
+                                            <?php esc_html_e('None selected', 'bw'); ?>
+                                        <?php endif; ?>
+                                    </span>
+                                </p>
+                                <p class="description"><?php esc_html_e('Used only for Elementor editor preview. Does not affect frontend.', 'bw'); ?></p>
+                            </td>
+                        </tr>
                     </table>
+
+                    <?php if ($single_product_preview_missing) : ?>
+                        <div class="notice notice-warning" style="margin:0 0 12px 0;padding:10px 12px;">
+                            <p style="margin:0;"><?php esc_html_e('Preview product missing/invalid. Elementor preview will not inject product context until a valid published product is selected.', 'bw'); ?></p>
+                        </div>
+                    <?php elseif (!$preview_product_saved_valid && $preview_product_effective_valid) : ?>
+                        <div class="notice notice-info" style="margin:0 0 12px 0;padding:10px 12px;">
+                            <p style="margin:0;">
+                                <?php
+                                printf(
+                                    /* translators: %d product id */
+                                    esc_html__('No preview product explicitly selected. Using fallback product ID %d for editor context.', 'bw'),
+                                    (int) $preview_product_effective_id
+                                );
+                                ?>
+                            </p>
+                        </div>
+                    <?php endif; ?>
 
                     <div id="bw-tbl-single-product-controls" style="margin-top:8px;">
                         <div id="bw-tbl-single-product-rules-list">
