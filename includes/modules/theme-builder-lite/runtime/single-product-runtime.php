@@ -193,7 +193,8 @@ if (!function_exists('bw_tbl_sanitize_single_product_rule')) {
         $include_product_cat = isset($rule['include_product_cat']) && is_array($rule['include_product_cat'])
             ? bw_tbl_filter_parent_product_cat_ids($rule['include_product_cat'])
             : [];
-        $exclude_product_cat = isset($rule['exclude_product_cat']) && is_array($rule['exclude_product_cat'])
+        $exclude_enabled = !empty($rule['exclude_enabled']);
+        $exclude_product_cat = ($exclude_enabled && isset($rule['exclude_product_cat']) && is_array($rule['exclude_product_cat']))
             ? bw_tbl_filter_parent_product_cat_ids($rule['exclude_product_cat'])
             : [];
 

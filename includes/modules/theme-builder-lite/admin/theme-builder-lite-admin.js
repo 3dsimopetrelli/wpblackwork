@@ -102,6 +102,19 @@
         }
     }
 
+    function syncExcludeFields($scope) {
+        var $root = $scope && $scope.length ? $scope : $(document);
+        $root.find('.bw-tbl-single-product-rule').each(function () {
+            var $rule = $(this);
+            var enabled = $rule.find('.bw-tbl-enable-exclude').is(':checked');
+            if (enabled) {
+                $rule.find('.bw-tbl-exclude-fields').show();
+            } else {
+                $rule.find('.bw-tbl-exclude-fields').hide();
+            }
+        });
+    }
+
     $(document).on('click', '#bw-tbl-tabs .nav-tab', function (event) {
         event.preventDefault();
         var tabKey = ($(this).data('bw-tbl-tab') || 'settings').toString();
@@ -128,10 +141,14 @@
             return;
         }
         $('#bw-tbl-single-product-rules-list').append(row);
+        syncExcludeFields(row);
     });
 
     $(document).on('click', '.bw-tbl-remove-single-product-rule', function (event) {
         event.preventDefault();
+        if (!window.confirm('Remove this rule?')) {
+            return;
+        }
         var $rows = $('#bw-tbl-single-product-rules-list .bw-tbl-single-product-rule');
         if ($rows.length <= 1) {
             var $rule = $(this).closest('.bw-tbl-single-product-rule');
@@ -146,6 +163,11 @@
         }
 
         $(this).closest('.bw-tbl-single-product-rule').remove();
+    });
+
+    $(document).on('change', '.bw-tbl-enable-exclude', function () {
+        var $rule = $(this).closest('.bw-tbl-single-product-rule');
+        syncExcludeFields($rule);
     });
 
     $(document).on('click', '.bw-tbl-remove-font-row', function (event) {
@@ -217,5 +239,6 @@
     $(function () {
         setTab('settings');
         syncFeatureSections();
+        syncExcludeFields();
     });
 })(jQuery);

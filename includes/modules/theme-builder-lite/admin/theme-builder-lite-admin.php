@@ -160,6 +160,7 @@ if (!function_exists('bw_tbl_render_single_product_rule_row')) {
         $template_id = isset($rule['template_id']) ? absint($rule['template_id']) : 0;
         $include = isset($rule['include_product_cat']) && is_array($rule['include_product_cat']) ? array_map('absint', $rule['include_product_cat']) : [];
         $exclude = isset($rule['exclude_product_cat']) && is_array($rule['exclude_product_cat']) ? array_map('absint', $rule['exclude_product_cat']) : [];
+        $exclude_enabled = !empty($exclude);
         ?>
         <div class="bw-tbl-single-product-rule" data-bw-tbl-rule-index="<?php echo esc_attr((string) $index); ?>" style="border:1px solid #dcdcde;background:#fff;padding:12px;margin-bottom:12px;">
             <p style="margin:0 0 10px 0;">
@@ -197,17 +198,23 @@ if (!function_exists('bw_tbl_render_single_product_rule_row')) {
                         <label><?php esc_html_e('Exclude Product Categories', 'bw'); ?></label>
                     </th>
                     <td>
-                        <select name="<?php echo esc_attr(BW_TBL_SINGLE_PRODUCT_RULES_OPTION); ?>[rules][<?php echo esc_attr((string) $index); ?>][exclude_product_cat][]" multiple="multiple" size="8" style="min-width:280px;">
-                            <?php foreach ($parent_product_categories as $term_id => $term_name) : ?>
-                                <option value="<?php echo esc_attr((string) $term_id); ?>" <?php selected(in_array((int) $term_id, $exclude, true)); ?>><?php echo esc_html($term_name); ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                        <p class="description"><?php esc_html_e('Exclude is evaluated before include for each rule.', 'bw'); ?></p>
+                        <label>
+                            <input type="checkbox" class="bw-tbl-enable-exclude" name="<?php echo esc_attr(BW_TBL_SINGLE_PRODUCT_RULES_OPTION); ?>[rules][<?php echo esc_attr((string) $index); ?>][exclude_enabled]" value="1" <?php checked($exclude_enabled); ?> />
+                            <?php esc_html_e('Enable exclusions (optional)', 'bw'); ?>
+                        </label>
+                        <p class="description"><?php esc_html_e('Optional. If a product matches an excluded category, this rule will not apply (exclusions override includes).', 'bw'); ?></p>
+                        <div class="bw-tbl-exclude-fields" style="<?php echo $exclude_enabled ? '' : 'display:none;'; ?>">
+                            <select name="<?php echo esc_attr(BW_TBL_SINGLE_PRODUCT_RULES_OPTION); ?>[rules][<?php echo esc_attr((string) $index); ?>][exclude_product_cat][]" multiple="multiple" size="8" style="min-width:280px;">
+                                <?php foreach ($parent_product_categories as $term_id => $term_name) : ?>
+                                    <option value="<?php echo esc_attr((string) $term_id); ?>" <?php selected(in_array((int) $term_id, $exclude, true)); ?>><?php echo esc_html($term_name); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
                     </td>
                 </tr>
             </table>
             <p style="margin:8px 0 0 0;">
-                <button type="button" class="button-link-delete bw-tbl-remove-single-product-rule"><?php esc_html_e('Remove rule', 'bw'); ?></button>
+                <button type="button" class="button button-link-delete bw-tbl-remove-single-product-rule"><?php esc_html_e('Remove rule', 'bw'); ?></button>
             </p>
         </div>
         <?php
