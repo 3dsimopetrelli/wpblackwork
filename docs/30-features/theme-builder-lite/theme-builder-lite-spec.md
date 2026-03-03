@@ -269,11 +269,9 @@ Resolver contract:
 - Quick Edit is the single source of truth for updating priority and type-aware conditions.
 - The `bw_template` post edit screen does not expose conditions controls to avoid duplicate/conflicting admin surfaces.
 - The post edit screen shows a guidance-only `Display Rules` notice that points users to Templates list Quick Edit.
-- Quick Edit Conditions UI - Section dropdown contract:
-  - A `Section` dropdown shows one conditions group at a time (`single_product`, `product_archive`, `single_post`, `single_page`, `archive`).
-  - Default open section order: saved `bw_tbl_qe_last_section` -> first group containing saved values -> `single_product`.
-  - Selection is persisted per template in `bw_tbl_qe_last_section`.
-  - Quick Edit Section auto-restore contract (A/B/C precedence): A) saved `last_section`, B) inferred first non-empty saved rules group, C) `single_product` fallback.
+- Quick Edit Conditions UI (stabilized scope):
+  - Quick Edit currently exposes only `Single Product Conditions` (include/exclude `product_cat` + include/exclude `product_id`).
+  - Other condition sections are intentionally hidden in this phase and will be reintroduced in a dedicated hardening step.
   - Large taxonomy selectors use searchable dropdown enhancement (SelectWoo/Select2 when available) with native multi-select fallback.
   - Fail-open: if Quick Edit JS is not available, all groups remain visible and editable.
 - Storage schema remains unchanged: `bw_tbl_display_rules_v1`.

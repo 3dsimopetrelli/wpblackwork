@@ -171,55 +171,12 @@ if (!function_exists('bw_tbl_admin_quick_edit_payload')) {
             'exclude_categories' => bw_tbl_admin_rule_values_by_type($exclude, 'product_category', 'terms'),
             'exclude_ids' => bw_tbl_admin_rule_values_by_type($exclude, 'product_id', 'ids'),
         ];
-        $product_archive = [
-            'include_shop' => bw_tbl_admin_has_rule_type($include, 'product_archive_shop') ? 1 : 0,
-            'include_categories' => bw_tbl_admin_rule_values_by_type($include, 'product_archive_category', 'terms'),
-            'include_tags' => bw_tbl_admin_rule_values_by_type($include, 'product_archive_tag', 'terms'),
-            'exclude_shop' => bw_tbl_admin_has_rule_type($exclude, 'product_archive_shop') ? 1 : 0,
-            'exclude_categories' => bw_tbl_admin_rule_values_by_type($exclude, 'product_archive_category', 'terms'),
-            'exclude_tags' => bw_tbl_admin_rule_values_by_type($exclude, 'product_archive_tag', 'terms'),
-        ];
-        $single_post = [
-            'include_categories' => bw_tbl_admin_rule_values_by_type($include, 'post_category', 'terms'),
-            'include_ids' => bw_tbl_admin_rule_values_by_type($include, 'post_id', 'ids'),
-            'exclude_categories' => bw_tbl_admin_rule_values_by_type($exclude, 'post_category', 'terms'),
-            'exclude_ids' => bw_tbl_admin_rule_values_by_type($exclude, 'post_id', 'ids'),
-        ];
-        $single_page = [
-            'include_ids' => bw_tbl_admin_rule_values_by_type($include, 'page_id', 'ids'),
-            'exclude_ids' => bw_tbl_admin_rule_values_by_type($exclude, 'page_id', 'ids'),
-        ];
-        $archive = [
-            'include_blog' => bw_tbl_admin_has_rule_type($include, 'archive_blog') ? 1 : 0,
-            'include_categories' => bw_tbl_admin_rule_values_by_type($include, 'archive_category', 'terms'),
-            'exclude_blog' => bw_tbl_admin_has_rule_type($exclude, 'archive_blog') ? 1 : 0,
-            'exclude_categories' => bw_tbl_admin_rule_values_by_type($exclude, 'archive_category', 'terms'),
-        ];
-
-        $first_non_empty_section = '';
-        if (!empty($single_product['include_categories']) || !empty($single_product['exclude_categories']) || !empty($single_product['include_ids']) || !empty($single_product['exclude_ids'])) {
-            $first_non_empty_section = 'single_product';
-        } elseif (1 === (int) $product_archive['include_shop'] || 1 === (int) $product_archive['exclude_shop'] || !empty($product_archive['include_categories']) || !empty($product_archive['exclude_categories']) || !empty($product_archive['include_tags']) || !empty($product_archive['exclude_tags'])) {
-            $first_non_empty_section = 'product_archive';
-        } elseif (!empty($single_post['include_categories']) || !empty($single_post['exclude_categories']) || !empty($single_post['include_ids']) || !empty($single_post['exclude_ids'])) {
-            $first_non_empty_section = 'single_post';
-        } elseif (!empty($single_page['include_ids']) || !empty($single_page['exclude_ids'])) {
-            $first_non_empty_section = 'single_page';
-        } elseif (1 === (int) $archive['include_blog'] || 1 === (int) $archive['exclude_blog'] || !empty($archive['include_categories']) || !empty($archive['exclude_categories'])) {
-            $first_non_empty_section = 'archive';
-        }
-
         return [
             'type' => $type,
             'type_label' => bw_tbl_admin_template_type_label($type),
             'priority' => $priority,
             'last_section' => $last_section,
-            'first_non_empty_section' => $first_non_empty_section,
             'single_product' => $single_product,
-            'product_archive' => $product_archive,
-            'single_post' => $single_post,
-            'single_page' => $single_page,
-            'archive' => $archive,
         ];
     }
 }
@@ -453,25 +410,8 @@ if (!function_exists('bw_tbl_admin_quick_edit_custom_box')) {
 
                 <p><strong><?php esc_html_e('Template Type', 'bw'); ?>:</strong> <span class="bw-tbl-qe-type-label">-</span></p>
                 <input type="hidden" name="bw_tbl_qe_template_type" class="bw-tbl-qe-type" value="" />
-                <label>
-                    <span class="title"><?php esc_html_e('Section', 'bw'); ?></span>
-                    <select name="bw_tbl_qe_section" class="bw-tbl-qe-section-select">
-                        <option value="single_product"><?php esc_html_e('Single Product Conditions', 'bw'); ?></option>
-                        <option value="product_archive"><?php esc_html_e('Product Archive Conditions', 'bw'); ?></option>
-                        <option value="single_post"><?php esc_html_e('Single Post Conditions', 'bw'); ?></option>
-                        <option value="single_page"><?php esc_html_e('Single Page Conditions', 'bw'); ?></option>
-                        <option value="archive"><?php esc_html_e('Archive Conditions', 'bw'); ?></option>
-                        <option value="search"><?php esc_html_e('Search Results', 'bw'); ?></option>
-                        <option value="error_404"><?php esc_html_e('404', 'bw'); ?></option>
-                    </select>
-                </label>
-
-                <label>
-                    <span class="title"><?php esc_html_e('Priority', 'bw'); ?></span>
-                    <span class="input-text-wrap"><input type="number" min="0" max="999" step="1" name="bw_tbl_qe_priority" class="bw-tbl-qe-priority" value="10" /></span>
-                </label>
-
-                <div class="bw-tbl-qe-section" data-bw-section="single_product" style="margin-top:10px;">
+                <?php // Future sections (archive/page/post/product archive) will be reintroduced in a dedicated Phase 2 hardening task. ?>
+                <div class="bw-tbl-qe-section bw-tbl-qe-section-single-product" style="margin-top:10px;">
                     <p><strong><?php esc_html_e('Single Product Conditions', 'bw'); ?></strong></p>
                     <p><?php esc_html_e('Include - Product Categories', 'bw'); ?></p>
                     <?php bw_tbl_admin_quick_edit_taxonomy_multiselect('product_cat', 'bw_tbl_qe_include_product_cat[]', 'bw-tbl-qe-sp-inc-cat'); ?>
@@ -481,58 +421,6 @@ if (!function_exists('bw_tbl_admin_quick_edit_custom_box')) {
                     <?php bw_tbl_admin_quick_edit_taxonomy_multiselect('product_cat', 'bw_tbl_qe_exclude_product_cat[]', 'bw-tbl-qe-sp-exc-cat'); ?>
                     <p><?php esc_html_e('Exclude - Product IDs', 'bw'); ?></p>
                     <input type="text" name="bw_tbl_qe_exclude_product_ids" class="widefat bw-tbl-qe-sp-exc-ids" />
-                </div>
-
-                <div class="bw-tbl-qe-section" data-bw-section="product_archive" style="margin-top:10px;">
-                    <p><strong><?php esc_html_e('Product Archive Conditions', 'bw'); ?></strong></p>
-                    <label><input type="checkbox" name="bw_tbl_qe_include_product_archive_shop" class="bw-tbl-qe-pa-inc-shop" value="1" /> <?php esc_html_e('Include Shop page', 'bw'); ?></label>
-                    <p><?php esc_html_e('Include - Product Categories', 'bw'); ?></p>
-                    <?php bw_tbl_admin_quick_edit_taxonomy_multiselect('product_cat', 'bw_tbl_qe_include_product_archive_cat[]', 'bw-tbl-qe-pa-inc-cat'); ?>
-                    <p><?php esc_html_e('Include - Product Tags', 'bw'); ?></p>
-                    <?php bw_tbl_admin_quick_edit_taxonomy_multiselect('product_tag', 'bw_tbl_qe_include_product_archive_tag[]', 'bw-tbl-qe-pa-inc-tag'); ?>
-                    <label><input type="checkbox" name="bw_tbl_qe_exclude_product_archive_shop" class="bw-tbl-qe-pa-exc-shop" value="1" /> <?php esc_html_e('Exclude Shop page', 'bw'); ?></label>
-                    <p><?php esc_html_e('Exclude - Product Categories', 'bw'); ?></p>
-                    <?php bw_tbl_admin_quick_edit_taxonomy_multiselect('product_cat', 'bw_tbl_qe_exclude_product_archive_cat[]', 'bw-tbl-qe-pa-exc-cat'); ?>
-                    <p><?php esc_html_e('Exclude - Product Tags', 'bw'); ?></p>
-                    <?php bw_tbl_admin_quick_edit_taxonomy_multiselect('product_tag', 'bw_tbl_qe_exclude_product_archive_tag[]', 'bw-tbl-qe-pa-exc-tag'); ?>
-                </div>
-
-                <div class="bw-tbl-qe-section" data-bw-section="single_post" style="margin-top:10px;">
-                    <p><strong><?php esc_html_e('Single Post Conditions', 'bw'); ?></strong></p>
-                    <p><?php esc_html_e('Include - Post Categories', 'bw'); ?></p>
-                    <?php bw_tbl_admin_quick_edit_taxonomy_multiselect('category', 'bw_tbl_qe_include_post_cat[]', 'bw-tbl-qe-post-inc-cat'); ?>
-                    <p><?php esc_html_e('Include - Post IDs', 'bw'); ?></p>
-                    <input type="text" name="bw_tbl_qe_include_post_ids" class="widefat bw-tbl-qe-post-inc-ids" />
-                    <p><?php esc_html_e('Exclude - Post Categories', 'bw'); ?></p>
-                    <?php bw_tbl_admin_quick_edit_taxonomy_multiselect('category', 'bw_tbl_qe_exclude_post_cat[]', 'bw-tbl-qe-post-exc-cat'); ?>
-                    <p><?php esc_html_e('Exclude - Post IDs', 'bw'); ?></p>
-                    <input type="text" name="bw_tbl_qe_exclude_post_ids" class="widefat bw-tbl-qe-post-exc-ids" />
-                </div>
-
-                <div class="bw-tbl-qe-section" data-bw-section="single_page" style="margin-top:10px;">
-                    <p><strong><?php esc_html_e('Single Page Conditions', 'bw'); ?></strong></p>
-                    <p><?php esc_html_e('Include - Page IDs', 'bw'); ?></p>
-                    <input type="text" name="bw_tbl_qe_include_page_ids" class="widefat bw-tbl-qe-page-inc-ids" />
-                    <p><?php esc_html_e('Exclude - Page IDs', 'bw'); ?></p>
-                    <input type="text" name="bw_tbl_qe_exclude_page_ids" class="widefat bw-tbl-qe-page-exc-ids" />
-                </div>
-
-                <div class="bw-tbl-qe-section" data-bw-section="archive" style="margin-top:10px;">
-                    <p><strong><?php esc_html_e('Archive Conditions', 'bw'); ?></strong></p>
-                    <label><input type="checkbox" name="bw_tbl_qe_include_archive_blog" class="bw-tbl-qe-arc-inc-blog" value="1" /> <?php esc_html_e('Include Blog archive', 'bw'); ?></label>
-                    <p><?php esc_html_e('Include - Categories', 'bw'); ?></p>
-                    <?php bw_tbl_admin_quick_edit_taxonomy_multiselect('category', 'bw_tbl_qe_include_archive_cat[]', 'bw-tbl-qe-arc-inc-cat'); ?>
-                    <label><input type="checkbox" name="bw_tbl_qe_exclude_archive_blog" class="bw-tbl-qe-arc-exc-blog" value="1" /> <?php esc_html_e('Exclude Blog archive', 'bw'); ?></label>
-                    <p><?php esc_html_e('Exclude - Categories', 'bw'); ?></p>
-                    <?php bw_tbl_admin_quick_edit_taxonomy_multiselect('category', 'bw_tbl_qe_exclude_archive_cat[]', 'bw-tbl-qe-arc-exc-cat'); ?>
-                </div>
-
-                <div class="bw-tbl-qe-section" data-bw-section="search" style="margin-top:10px;">
-                    <p class="description"><?php esc_html_e('Applies globally per type; no additional rules.', 'bw'); ?></p>
-                </div>
-
-                <div class="bw-tbl-qe-section" data-bw-section="error_404" style="margin-top:10px;">
-                    <p class="description"><?php esc_html_e('Applies globally per type; no additional rules.', 'bw'); ?></p>
                 </div>
             </div>
         </fieldset>

@@ -940,120 +940,31 @@ if (!function_exists('bw_tbl_save_template_rules_metabox')) {
 
         $posted_type_raw = isset($_POST['bw_tbl_qe_template_type']) ? sanitize_key((string) wp_unslash($_POST['bw_tbl_qe_template_type'])) : '';
         $posted_type = '' !== $posted_type_raw ? bw_tbl_sanitize_template_type($posted_type_raw) : bw_tbl_sanitize_template_type(get_post_meta($post_id, 'bw_template_type', true));
-        $last_section = isset($_POST['bw_tbl_qe_section']) ? bw_tbl_sanitize_qe_section(wp_unslash($_POST['bw_tbl_qe_section'])) : '';
-        if ('' !== $last_section) {
-            update_post_meta($post_id, 'bw_tbl_qe_last_section', $last_section);
-        }
-
-        if (isset($_POST['bw_tbl_qe_priority']) && is_numeric(wp_unslash($_POST['bw_tbl_qe_priority']))) {
-            $priority = (int) wp_unslash($_POST['bw_tbl_qe_priority']);
-            if ($priority < 0) {
-                $priority = 0;
-            }
-            if ($priority > 999) {
-                $priority = 999;
-            }
-            update_post_meta($post_id, 'bw_template_priority', $priority);
-        }
-
-        $supported_types = ['single_post', 'single_page', 'archive', 'single_product', 'product_archive'];
-        if (!in_array($posted_type, $supported_types, true)) {
-            bw_tbl_qe_debug_log('save_post skipped unsupported type', ['post_id' => absint($post_id), 'posted_type' => $posted_type]);
+        if ('single_product' !== $posted_type) {
+            bw_tbl_qe_debug_log('save_post skipped non-single_product type (quick edit simplified)', ['post_id' => absint($post_id), 'posted_type' => $posted_type]);
             return;
         }
 
+        update_post_meta($post_id, 'bw_tbl_qe_last_section', 'single_product');
+
         $normalized_rules = ['include' => [], 'exclude' => []];
 
-        if ('single_post' === $posted_type) {
-            $include_cats = bw_tbl_qe_post_int_list('bw_tbl_qe_include_post_cat');
-            $exclude_cats = bw_tbl_qe_post_int_list('bw_tbl_qe_exclude_post_cat');
-            $include_ids = bw_tbl_qe_post_csv_ids('bw_tbl_qe_include_post_ids');
-            $exclude_ids = bw_tbl_qe_post_csv_ids('bw_tbl_qe_exclude_post_ids');
+        $include_cats = bw_tbl_filter_parent_product_cat_ids(bw_tbl_qe_post_int_list('bw_tbl_qe_include_product_cat'));
+        $exclude_cats = bw_tbl_filter_parent_product_cat_ids(bw_tbl_qe_post_int_list('bw_tbl_qe_exclude_product_cat'));
+        $include_ids = bw_tbl_qe_post_csv_ids('bw_tbl_qe_include_product_ids');
+        $exclude_ids = bw_tbl_qe_post_csv_ids('bw_tbl_qe_exclude_product_ids');
 
-            if (!empty($include_cats)) {
-                $normalized_rules['include'][] = ['type' => 'post_category', 'terms' => $include_cats];
-            }
-            if (!empty($include_ids)) {
-                $normalized_rules['include'][] = ['type' => 'post_id', 'ids' => $include_ids];
-            }
-            if (!empty($exclude_cats)) {
-                $normalized_rules['exclude'][] = ['type' => 'post_category', 'terms' => $exclude_cats];
-            }
-            if (!empty($exclude_ids)) {
-                $normalized_rules['exclude'][] = ['type' => 'post_id', 'ids' => $exclude_ids];
-            }
-        } elseif ('single_page' === $posted_type) {
-            $include_ids = bw_tbl_qe_post_csv_ids('bw_tbl_qe_include_page_ids');
-            $exclude_ids = bw_tbl_qe_post_csv_ids('bw_tbl_qe_exclude_page_ids');
-
-            if (!empty($include_ids)) {
-                $normalized_rules['include'][] = ['type' => 'page_id', 'ids' => $include_ids];
-            }
-            if (!empty($exclude_ids)) {
-                $normalized_rules['exclude'][] = ['type' => 'page_id', 'ids' => $exclude_ids];
-            }
-        } elseif ('archive' === $posted_type) {
-            $include_blog = bw_tbl_qe_post_checkbox('bw_tbl_qe_include_archive_blog');
-            $exclude_blog = bw_tbl_qe_post_checkbox('bw_tbl_qe_exclude_archive_blog');
-            $include_cats = bw_tbl_qe_post_int_list('bw_tbl_qe_include_archive_cat');
-            $exclude_cats = bw_tbl_qe_post_int_list('bw_tbl_qe_exclude_archive_cat');
-
-            if ($include_blog) {
-                $normalized_rules['include'][] = ['type' => 'archive_blog'];
-            }
-            if (!empty($include_cats)) {
-                $normalized_rules['include'][] = ['type' => 'archive_category', 'terms' => $include_cats];
-            }
-            if ($exclude_blog) {
-                $normalized_rules['exclude'][] = ['type' => 'archive_blog'];
-            }
-            if (!empty($exclude_cats)) {
-                $normalized_rules['exclude'][] = ['type' => 'archive_category', 'terms' => $exclude_cats];
-            }
-        } elseif ('single_product' === $posted_type) {
-            $include_cats = bw_tbl_filter_parent_product_cat_ids(bw_tbl_qe_post_int_list('bw_tbl_qe_include_product_cat'));
-            $exclude_cats = bw_tbl_filter_parent_product_cat_ids(bw_tbl_qe_post_int_list('bw_tbl_qe_exclude_product_cat'));
-            $include_ids = bw_tbl_qe_post_csv_ids('bw_tbl_qe_include_product_ids');
-            $exclude_ids = bw_tbl_qe_post_csv_ids('bw_tbl_qe_exclude_product_ids');
-
-            if (!empty($include_cats)) {
-                $normalized_rules['include'][] = ['type' => 'product_category', 'terms' => $include_cats];
-            }
-            if (!empty($include_ids)) {
-                $normalized_rules['include'][] = ['type' => 'product_id', 'ids' => $include_ids];
-            }
-            if (!empty($exclude_cats)) {
-                $normalized_rules['exclude'][] = ['type' => 'product_category', 'terms' => $exclude_cats];
-            }
-            if (!empty($exclude_ids)) {
-                $normalized_rules['exclude'][] = ['type' => 'product_id', 'ids' => $exclude_ids];
-            }
-        } elseif ('product_archive' === $posted_type) {
-            $include_shop = bw_tbl_qe_post_checkbox('bw_tbl_qe_include_product_archive_shop');
-            $exclude_shop = bw_tbl_qe_post_checkbox('bw_tbl_qe_exclude_product_archive_shop');
-            $include_cats = bw_tbl_filter_parent_product_cat_ids(bw_tbl_qe_post_int_list('bw_tbl_qe_include_product_archive_cat'));
-            $exclude_cats = bw_tbl_filter_parent_product_cat_ids(bw_tbl_qe_post_int_list('bw_tbl_qe_exclude_product_archive_cat'));
-            $include_tags = bw_tbl_qe_post_int_list('bw_tbl_qe_include_product_archive_tag');
-            $exclude_tags = bw_tbl_qe_post_int_list('bw_tbl_qe_exclude_product_archive_tag');
-
-            if ($include_shop) {
-                $normalized_rules['include'][] = ['type' => 'product_archive_shop'];
-            }
-            if (!empty($include_cats)) {
-                $normalized_rules['include'][] = ['type' => 'product_archive_category', 'terms' => $include_cats];
-            }
-            if (!empty($include_tags)) {
-                $normalized_rules['include'][] = ['type' => 'product_archive_tag', 'terms' => $include_tags];
-            }
-            if ($exclude_shop) {
-                $normalized_rules['exclude'][] = ['type' => 'product_archive_shop'];
-            }
-            if (!empty($exclude_cats)) {
-                $normalized_rules['exclude'][] = ['type' => 'product_archive_category', 'terms' => $exclude_cats];
-            }
-            if (!empty($exclude_tags)) {
-                $normalized_rules['exclude'][] = ['type' => 'product_archive_tag', 'terms' => $exclude_tags];
-            }
+        if (!empty($include_cats)) {
+            $normalized_rules['include'][] = ['type' => 'product_category', 'terms' => $include_cats];
+        }
+        if (!empty($include_ids)) {
+            $normalized_rules['include'][] = ['type' => 'product_id', 'ids' => $include_ids];
+        }
+        if (!empty($exclude_cats)) {
+            $normalized_rules['exclude'][] = ['type' => 'product_category', 'terms' => $exclude_cats];
+        }
+        if (!empty($exclude_ids)) {
+            $normalized_rules['exclude'][] = ['type' => 'product_id', 'ids' => $exclude_ids];
         }
 
         update_post_meta($post_id, 'bw_tbl_display_rules_v1', $normalized_rules);
