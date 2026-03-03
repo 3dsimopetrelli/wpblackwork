@@ -342,6 +342,37 @@ Resolver contract:
   - Template row shows `Applies to: Product Archive` when linked by any enabled Product Archive rule.
   - `Not linked` remains true only when template is not referenced by active Footer/Single Product/Product Archive settings surfaces.
 
+### 2026-03 Update - Import Template Tab (Elementor JSON -> bw_template)
+- New admin tab: `Import Template` inside Theme Builder Lite settings.
+- Upload contract:
+  - accepts `.json` only
+  - nonce-protected submission
+  - capability gate: `manage_options`
+  - size limited by filterable cap (default 8 MB)
+- Import validation contract:
+  - payload must be valid JSON object
+  - must include Elementor content structure (`content[]` or `elements[]`)
+  - template type is auto-detected from JSON `type` with optional manual override
+- Type mapping contract:
+  - `product-archive` -> `product_archive`
+  - `single-product` -> `single_product`
+  - additional allowed BW types supported through same map/enum validation
+- Persistence contract:
+  - creates `bw_template` post as `draft`
+  - sets `bw_template_type` to validated mapped type
+  - writes required Elementor meta:
+    - `_elementor_data`
+    - `_elementor_edit_mode` (`builder`)
+    - `_elementor_version`
+    - `_elementor_page_settings`
+- Fail-open + integrity:
+  - on any validation/import error: no partial template kept
+  - importer reports explicit admin error notice and exits safely
+- Limitations:
+  - no conversion of Elementor Pro widgets to free equivalents
+  - no batch/zip import
+  - media asset remapping is out of scope
+
 ## Extending Theme Builder Lite to New Contexts
 Reusable extension pattern (2026-03):
 
@@ -383,6 +414,7 @@ Reusable extension pattern (2026-03):
 
 Implemented example:
 - `Product Archive` follows this exact pattern with option `bw_theme_builder_lite_product_archive_rules_v2`, parent-only UI, ancestor-aware runtime matching, and linkage badges in Templates list UX.
+- `Import Template` follows the same governance pattern as a settings-driven authority surface: explicit validation, deterministic type mapping, strict capability/nonce gates, and fail-open rollback on import errors.
 
 ### Phase 2 Step 4 - Archive Contexts (Non-Woo) (Implemented)
 - Resolver type mapping:

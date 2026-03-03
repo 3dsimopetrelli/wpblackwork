@@ -136,6 +136,17 @@ If a decision is normative and architecture-binding, the ADR process MUST be use
   - Keep `blackwork-site-settings` as canonical parent slug for module submenus.
   - Keep Site Settings submenu visible as first child to preserve predictable landing behavior.
 
+### Entry 012
+- Date: 2026-03-03
+- Decision summary: Added Theme Builder Lite `Import Template` settings tab to import Elementor JSON into `bw_template` with deterministic type mapping and Elementor meta persistence.
+- Affected domain: Theme Builder Lite / Admin Settings / Elementor Integration / Data Import
+- Rationale: Manual template recreation is error-prone; controlled JSON import accelerates setup while preserving authority boundaries and fail-open behavior.
+- Risk impact: Medium managed through strict file/type/capability validation and no-partial-create rollback on failure.
+- Follow-up actions:
+  - Keep importer scoped to admin settings authority (no Quick Edit/import side channels).
+  - Keep JSON validation strict and type mapping explicit.
+  - Track unsupported Elementor Pro widgets as non-blocking compatibility limitation in docs.
+
 ## Governance Layer Closure
 
 Status: CLOSED  

@@ -192,6 +192,19 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
   - [Theme Builder Lite Spec](../30-features/theme-builder-lite/theme-builder-lite-spec.md)
   - [Theme Builder Lite Runtime Hook Map](../10-architecture/theme-builder-lite/runtime-hook-map.md)
 
+### Risk ID: R-TBL-14
+- Domain: Theme Builder Lite / Import Template
+- Surface Anchor: `Import Template` tab JSON upload handler (`admin_post_bw_tbl_import_template`)
+- Description: Importing malformed or untrusted Elementor JSON can trigger invalid template creation attempts or oversized payload stress if validation boundaries drift.
+- Invariant Threatened: Deterministic and safe admin import with no partial writes and no unauthorized content mutation.
+- Impact: Medium
+- Likelihood: Medium
+- Risk Level: Medium
+- Current Mitigation: strict capability + nonce checks, `.json` extension/type validation, size cap, JSON decode validation, required content structure checks, allowed-type mapping validation, rollback via hard delete on metadata write failure.
+- Monitoring Status: Monitoring
+- Linked Documents:
+  - [Theme Builder Lite Spec](../30-features/theme-builder-lite/theme-builder-lite-spec.md)
+
 ### Risk ID: R-CHK-01
 - Domain: Checkout / Payments
 - Surface Anchor: `assets/js/bw-payment-methods.js`, `assets/js/bw-google-pay.js`, `assets/js/bw-apple-pay.js` (`updated_checkout` handlers)

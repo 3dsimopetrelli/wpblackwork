@@ -345,7 +345,16 @@
     });
 
     $(function () {
-        setTab('settings');
+        var tabFromQuery = '';
+        try {
+            var params = new URLSearchParams(window.location.search || '');
+            tabFromQuery = (params.get('tab') || '').toString();
+        } catch (err) {
+            tabFromQuery = '';
+        }
+        var allowedTabs = ['settings', 'fonts', 'footer', 'single-product', 'product-archive', 'import-template'];
+        var initialTab = allowedTabs.indexOf(tabFromQuery) >= 0 ? tabFromQuery : 'settings';
+        setTab(initialTab);
         syncFeatureSections();
         syncIncludeFields();
         syncExcludeFields();

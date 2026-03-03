@@ -433,7 +433,7 @@ if (!function_exists('bw_tbl_render_admin_page')) {
         ?>
         <div class="wrap bw-tbl-admin-wrap">
             <h1><?php esc_html_e('Theme Builder Lite', 'bw'); ?></h1>
-            <p><?php esc_html_e('Controls for Fonts, Footer, Single Product, and Product Archive template overrides.', 'bw'); ?></p>
+            <p><?php esc_html_e('Controls for Fonts, Footer, Single Product, Product Archive, and template import.', 'bw'); ?></p>
 
             <form method="post" action="options.php">
                 <?php settings_fields('bw_tbl_settings_group'); ?>
@@ -444,6 +444,7 @@ if (!function_exists('bw_tbl_render_admin_page')) {
                     <a href="#bw-tbl-tab-footer" class="nav-tab" data-bw-tbl-tab="footer"><?php esc_html_e('Footer', 'bw'); ?></a>
                     <a href="#bw-tbl-tab-single-product" class="nav-tab" data-bw-tbl-tab="single-product"><?php esc_html_e('Single Product', 'bw'); ?></a>
                     <a href="#bw-tbl-tab-product-archive" class="nav-tab" data-bw-tbl-tab="product-archive"><?php esc_html_e('Product Archive', 'bw'); ?></a>
+                    <a href="#bw-tbl-tab-import-template" class="nav-tab" data-bw-tbl-tab="import-template"><?php esc_html_e('Import Template', 'bw'); ?></a>
                 </h2>
 
                 <div id="bw-tbl-tab-settings" class="bw-tbl-tab-panel is-active" data-bw-tbl-panel="settings">
@@ -632,6 +633,16 @@ if (!function_exists('bw_tbl_render_admin_page')) {
 
                 <?php submit_button(__('Save Theme Builder Lite Settings', 'bw')); ?>
             </form>
+
+            <div id="bw-tbl-tab-import-template" class="bw-tbl-tab-panel" data-bw-tbl-panel="import-template" style="display:none;">
+                <?php
+                if (function_exists('bw_tbl_render_import_template_tab')) {
+                    bw_tbl_render_import_template_tab();
+                } else {
+                    echo '<div class="notice notice-error" style="margin:0 0 12px 0;padding:10px 12px;"><p style="margin:0;">' . esc_html__('Import module is unavailable.', 'bw') . '</p></div>';
+                }
+                ?>
+            </div>
         </div>
         <script type="text/html" id="tmpl-bw-tbl-font-row">
             <?php

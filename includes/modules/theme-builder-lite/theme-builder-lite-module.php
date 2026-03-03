@@ -18,5 +18,6 @@ require_once __DIR__ . '/runtime/template-preview.php';
 require_once __DIR__ . '/admin/theme-builder-lite-admin.php';
 
 if (is_admin()) {
+    require_once __DIR__ . '/admin/import-template.php';
     require_once __DIR__ . '/admin/bw-templates-list-ux.php';
 }
