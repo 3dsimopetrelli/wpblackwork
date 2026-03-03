@@ -356,7 +356,7 @@ if (!function_exists('bw_tbl_admin_quick_edit_taxonomy_multiselect')) {
                 ]
             );
 
-            echo '<select multiple="multiple" size="5" name="' . esc_attr($name) . '" id="' . esc_attr($id) . '" class="bw-tbl-qe-taxonomy-select ' . esc_attr($id) . '" style="width:100%;">';
+            echo '<select multiple="multiple" data-placeholder="' . esc_attr__('Select categories...', 'bw') . '" name="' . esc_attr($name) . '" id="' . esc_attr($id) . '" class="bw-tbl-qe-taxonomy-select wc-enhanced-select ' . esc_attr($id) . '" style="width:100%;">';
             if (!is_wp_error($terms) && is_array($terms)) {
                 foreach ($terms as $term) {
                     if (!($term instanceof WP_Term)) {
@@ -384,11 +384,11 @@ if (!function_exists('bw_tbl_admin_quick_edit_taxonomy_multiselect')) {
         );
 
         if (!is_string($dropdown) || '' === $dropdown) {
-            echo '<select multiple="multiple" name="' . esc_attr($name) . '" id="' . esc_attr($id) . '" class="bw-tbl-qe-taxonomy-select ' . esc_attr($id) . '" style="width:100%;"></select>';
+            echo '<select multiple="multiple" data-placeholder="' . esc_attr__('Select terms...', 'bw') . '" name="' . esc_attr($name) . '" id="' . esc_attr($id) . '" class="bw-tbl-qe-taxonomy-select wc-enhanced-select ' . esc_attr($id) . '" style="width:100%;"></select>';
             return;
         }
 
-        $dropdown = preg_replace('/<select\s/i', '<select multiple="multiple" size="5" data-multiple="1" class="bw-tbl-qe-taxonomy-select ' . esc_attr($id) . '" style="width:100%;" ', $dropdown, 1);
+        $dropdown = preg_replace('/<select\s/i', '<select multiple="multiple" data-placeholder="' . esc_attr__('Select terms...', 'bw') . '" data-multiple="1" class="bw-tbl-qe-taxonomy-select wc-enhanced-select ' . esc_attr($id) . '" style="width:100%;" ', $dropdown, 1);
         echo $dropdown; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
     }
 }
@@ -443,15 +443,26 @@ if (!function_exists('bw_tbl_admin_enqueue_quick_edit_assets')) {
 
         $script_path = plugin_dir_path(__FILE__) . 'bw-templates-quickedit.js';
         $script_version = file_exists($script_path) ? (string) filemtime($script_path) : '1.0.0';
+        $deps = ['jquery', 'inline-edit-post'];
+        if (wp_script_is('wc-enhanced-select', 'registered')) {
+            $deps[] = 'wc-enhanced-select';
+        } elseif (wp_script_is('selectWoo', 'registered')) {
+            $deps[] = 'selectWoo';
+        } elseif (wp_script_is('select2', 'registered')) {
+            $deps[] = 'select2';
+        }
+
         wp_enqueue_script(
             'bw-tbl-quickedit',
             plugin_dir_url(__FILE__) . 'bw-templates-quickedit.js',
-            ['jquery', 'inline-edit-post'],
+            $deps,
             $script_version,
             true
         );
 
-        if (wp_script_is('selectWoo', 'registered')) {
+        if (wp_script_is('wc-enhanced-select', 'registered')) {
+            wp_enqueue_script('wc-enhanced-select');
+        } elseif (wp_script_is('selectWoo', 'registered')) {
             wp_enqueue_script('selectWoo');
         } elseif (wp_script_is('select2', 'registered')) {
             wp_enqueue_script('select2');

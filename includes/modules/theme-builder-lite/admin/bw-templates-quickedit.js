@@ -29,7 +29,8 @@
             var config = {
                 width: '100%',
                 closeOnSelect: false,
-                placeholder: ''
+                placeholder: String(select.attr('data-placeholder') || ''),
+                allowClear: false
             };
 
             if (typeof select.selectWoo === 'function') {
