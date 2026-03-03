@@ -56,9 +56,11 @@ if (!function_exists('bw_tbl_apply_elementor_single_product_preview_context')) {
             return;
         }
 
-        $GLOBALS['post'] = $product_post;
-        setup_postdata($product_post);
-
+        /*
+         * Editor safety contract:
+         * - never override the queried preview document post (`bw_template`)
+         * - inject only Woo product globals for widget context
+         */
         if (function_exists('wc_setup_product_data')) {
             wc_setup_product_data($product_post);
         } elseif (function_exists('wc_get_product')) {
