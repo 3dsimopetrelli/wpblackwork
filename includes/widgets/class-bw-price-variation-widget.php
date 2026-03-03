@@ -1233,18 +1233,83 @@ class BW_Price_Variation_Widget extends Widget_Base {
         }
 
         private function get_product_id_from_settings( $settings ) {
-                if ( ! empty( $settings['product_id'] ) ) {
-                        return intval( $settings['product_id'] );
-                }
-
-                if ( class_exists( '\\Elementor\\Plugin' ) && \Elementor\Plugin::$instance->editor->is_edit_mode() ) {
-                        $preview_product_id = isset( $GLOBALS['bw_tbl_preview_product_id'] ) ? absint( $GLOBALS['bw_tbl_preview_product_id'] ) : 0;
-                        if ( $preview_product_id > 0 ) {
-                                return $preview_product_id;
+                // 1) Real frontend single-product context has absolute precedence.
+                if ( function_exists( 'is_product' ) && is_product() ) {
+                        $queried_id = absint( get_queried_object_id() );
+                        if ( $queried_id > 0 ) {
+                                return [
+                                        'id' => $queried_id,
+                                        'source' => 'real_context',
+                                ];
                         }
                 }
 
-                return get_the_ID();
+                // 2) Elementor bw_template(single_product) preview fallback.
+                if ( $this->is_single_product_template_preview_context() ) {
+                        $preview_product_id = 0;
+                        if ( function_exists( 'bw_tbl_get_preview_product_id' ) ) {
+                                $preview_product_id = absint( bw_tbl_get_preview_product_id() );
+                        }
+
+                        if ( $preview_product_id <= 0 && function_exists( 'bw_tbl_get_single_product_preview_product_id' ) ) {
+                                $preview_product_id = absint( bw_tbl_get_single_product_preview_product_id( false ) );
+                        }
+
+                        if ( $preview_product_id <= 0 && ! empty( $GLOBALS['bw_tbl_preview_product_id'] ) ) {
+                                $preview_product_id = absint( $GLOBALS['bw_tbl_preview_product_id'] );
+                        }
+
+                        if ( $preview_product_id > 0 ) {
+                                return [
+                                        'id' => $preview_product_id,
+                                        'source' => 'preview_fallback',
+                                ];
+                        }
+                }
+
+                // 3) Manual widget setting.
+                if ( ! empty( $settings['product_id'] ) ) {
+                        return [
+                                'id' => intval( $settings['product_id'] ),
+                                'source' => 'manual_setting',
+                        ];
+                }
+
+                // 4) No valid context.
+                return [
+                        'id' => 0,
+                        'source' => 'missing',
+                ];
+        }
+
+        private function is_single_product_template_preview_context() {
+                if ( ! class_exists( '\\Elementor\\Plugin' ) ) {
+                        return false;
+                }
+
+                $plugin = \Elementor\Plugin::$instance;
+                $is_editor = isset( $plugin->editor ) && method_exists( $plugin->editor, 'is_edit_mode' ) && $plugin->editor->is_edit_mode();
+                $is_preview = isset( $plugin->preview ) && method_exists( $plugin->preview, 'is_preview_mode' ) && $plugin->preview->is_preview_mode();
+                if ( ! $is_editor && ! $is_preview ) {
+                        return false;
+                }
+
+                if ( function_exists( 'bw_tbl_get_elementor_preview_single_product_context' ) ) {
+                        $context = bw_tbl_get_elementor_preview_single_product_context();
+                        return ! empty( $context['apply'] );
+                }
+
+                $template_id = isset( $_GET['elementor-preview'] ) ? absint( wp_unslash( $_GET['elementor-preview'] ) ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                if ( $template_id <= 0 ) {
+                        return false;
+                }
+
+                $template_post = get_post( $template_id );
+                if ( ! $template_post || 'bw_template' !== $template_post->post_type ) {
+                        return false;
+                }
+
+                return 'single_product' === sanitize_key( (string) get_post_meta( $template_id, 'bw_template_type', true ) );
         }
 
         private function get_variations_data( $available_variations ) {
@@ -1305,7 +1370,15 @@ $license_html  = function_exists( 'bw_get_variation_license_table_html' ) ? bw_g
                 $settings = $this->get_settings_for_display();
 
                 // Get product ID from settings or current context
-                $product_id = $this->get_product_id_from_settings( $settings );
+                $product_resolution = $this->get_product_id_from_settings( $settings );
+                $product_id = isset( $product_resolution['id'] ) ? absint( $product_resolution['id'] ) : 0;
+                $product_source = isset( $product_resolution['source'] ) ? (string) $product_resolution['source'] : 'unknown';
+
+                if ( defined( 'BW_TBL_DEBUG_PREVIEW' ) && BW_TBL_DEBUG_PREVIEW ) {
+                        error_log( // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+                                '[BW TBL Preview] BW Price Variation resolved product source=' . $product_source . ' id=' . $product_id
+                        );
+                }
 
                 // Get the product
                 global $product;

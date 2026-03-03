@@ -413,6 +413,14 @@ if (!function_exists('bw_tbl_get_single_product_preview_product_id')) {
     }
 }
 
+if (!function_exists('bw_tbl_get_preview_product_id')) {
+    function bw_tbl_get_preview_product_id()
+    {
+        $saved = get_option(BW_TBL_SINGLE_PRODUCT_PREVIEW_PRODUCT_OPTION, 0);
+        return bw_tbl_sanitize_single_product_preview_product_id($saved);
+    }
+}
+
 if (!function_exists('bw_tbl_runtime_resolve_single_product_settings_winner')) {
     function bw_tbl_runtime_resolve_single_product_settings_winner($context = [])
     {
