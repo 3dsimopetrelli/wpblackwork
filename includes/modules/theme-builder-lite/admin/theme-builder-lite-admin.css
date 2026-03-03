@@ -23,11 +23,6 @@
     width: 240px;
 }
 
-.bw-tbl-admin-wrap .bw-tbl-term-select {
-    min-width: 320px;
-    border-radius: 6px;
-}
-
 .bw-tbl-admin-wrap .bw-tbl-include-mode {
     margin: 0 0 8px 0;
 }
@@ -38,6 +33,28 @@
 
 .bw-tbl-admin-wrap .bw-tbl-exclude-fields {
     margin-top: 10px;
+}
+
+.bw-tbl-admin-wrap .bw-tbl-term-checklist-wrap {
+    min-width: 320px;
+    max-height: 220px;
+    overflow: auto;
+    border: 1px solid #c3c4c7;
+    border-radius: 6px;
+    background: #fff;
+    padding: 8px 10px;
+}
+
+.bw-tbl-admin-wrap .bw-tbl-term-checklist-wrap ul {
+    margin: 0;
+}
+
+.bw-tbl-admin-wrap .bw-tbl-term-checklist-wrap li {
+    margin: 0 0 6px 0;
+}
+
+.bw-tbl-admin-wrap .bw-tbl-term-checklist-wrap li:last-child {
+    margin-bottom: 0;
 }
 
 .bw-tbl-admin-wrap .bw-tbl-rule-actions {

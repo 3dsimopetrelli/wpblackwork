@@ -108,10 +108,13 @@
         $rules.each(function () {
             var $rule = $(this);
             var enabled = $rule.find('.bw-tbl-enable-exclude').is(':checked');
+            var $excludeInputs = $rule.find('.bw-tbl-exclude-fields input[type="checkbox"]');
             if (enabled) {
                 $rule.find('.bw-tbl-exclude-fields').show();
+                $excludeInputs.prop('disabled', false);
             } else {
                 $rule.find('.bw-tbl-exclude-fields').hide();
+                $excludeInputs.prop('disabled', true);
             }
         });
     }
@@ -123,14 +126,14 @@
             var $rule = $(this);
             var mode = ($rule.find('.bw-tbl-include-mode-radio:checked').val() || 'all').toString();
             var $fields = $rule.find('.bw-tbl-include-fields');
-            var $select = $fields.find('select');
+            var $includeInputs = $fields.find('input[type="checkbox"]');
             if (mode === 'selected') {
                 $fields.show();
-                $select.prop('disabled', false);
+                $includeInputs.prop('disabled', false);
             } else {
                 $fields.hide();
-                $select.prop('disabled', true);
-                $select.val([]);
+                $includeInputs.prop('disabled', true);
+                $includeInputs.prop('checked', false);
             }
         });
     }
@@ -174,12 +177,9 @@
         if ($rows.length <= 1) {
             var $rule = $(this).closest('.bw-tbl-single-product-rule');
             $rule.find('select').each(function () {
-                if ($(this).is('[multiple]')) {
-                    $(this).val([]);
-                } else {
-                    $(this).val('0');
-                }
+                $(this).val('0');
             });
+            $rule.find('.bw-tbl-include-fields input[type="checkbox"], .bw-tbl-exclude-fields input[type="checkbox"]').prop('checked', false);
             $rule.find('.bw-tbl-include-mode-radio[value="all"]').prop('checked', true);
             $rule.find('.bw-tbl-enable-exclude').prop('checked', false);
             syncIncludeFields($rule);

@@ -161,6 +161,30 @@ if (!function_exists('bw_tbl_render_font_row')) {
 }
 
 if (!function_exists('bw_tbl_render_single_product_rule_row')) {
+    function bw_tbl_render_product_cat_checklist($name, $selected_ids, $parent_term_ids)
+    {
+        $selected_ids = is_array($selected_ids) ? array_values(array_map('absint', $selected_ids)) : [];
+        $parent_term_ids = is_array($parent_term_ids) ? array_values(array_map('absint', $parent_term_ids)) : [];
+
+        if (empty($parent_term_ids) || !function_exists('wp_terms_checklist')) {
+            return '';
+        }
+
+        return wp_terms_checklist(
+            0,
+            [
+                'taxonomy' => 'product_cat',
+                'selected_cats' => $selected_ids,
+                'checked_ontop' => false,
+                'echo' => false,
+                'include' => $parent_term_ids,
+                'name' => $name,
+            ]
+        );
+    }
+}
+
+if (!function_exists('bw_tbl_render_single_product_rule_row')) {
     function bw_tbl_render_single_product_rule_row($index, $rule, $template_choices, $parent_product_categories)
     {
         $index = absint($index);
@@ -170,6 +194,11 @@ if (!function_exists('bw_tbl_render_single_product_rule_row')) {
         $include_mode = !empty($include) ? 'selected' : 'all';
         $exclude = isset($rule['exclude_product_cat']) && is_array($rule['exclude_product_cat']) ? array_map('absint', $rule['exclude_product_cat']) : [];
         $exclude_enabled = !empty($exclude);
+        $parent_term_ids = array_keys(is_array($parent_product_categories) ? $parent_product_categories : []);
+        $include_input_name = BW_TBL_SINGLE_PRODUCT_RULES_OPTION . '[rules][' . $index . '][include_product_cat][]';
+        $exclude_input_name = BW_TBL_SINGLE_PRODUCT_RULES_OPTION . '[rules][' . $index . '][exclude_product_cat][]';
+        $include_checklist = bw_tbl_render_product_cat_checklist($include_input_name, $include, $parent_term_ids);
+        $exclude_checklist = bw_tbl_render_product_cat_checklist($exclude_input_name, $exclude, $parent_term_ids);
         ?>
         <div class="bw-tbl-single-product-rule" data-bw-tbl-rule-index="<?php echo esc_attr((string) $index); ?>">
             <p class="bw-tbl-rule-heading">
@@ -206,11 +235,9 @@ if (!function_exists('bw_tbl_render_single_product_rule_row')) {
                             </label>
                         </fieldset>
                         <div class="bw-tbl-include-fields">
-                            <select class="bw-tbl-term-select" name="<?php echo esc_attr(BW_TBL_SINGLE_PRODUCT_RULES_OPTION); ?>[rules][<?php echo esc_attr((string) $index); ?>][include_product_cat][]" multiple="multiple" size="8">
-                                <?php foreach ($parent_product_categories as $term_id => $term_name) : ?>
-                                    <option value="<?php echo esc_attr((string) $term_id); ?>" <?php selected(in_array((int) $term_id, $include, true)); ?>><?php echo esc_html($term_name); ?></option>
-                                <?php endforeach; ?>
-                            </select>
+                            <div class="bw-tbl-term-checklist-wrap">
+                                <?php echo $include_checklist; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                            </div>
                         </div>
                         <p class="description"><?php esc_html_e('If set to “all”, this rule matches every category unless excluded.', 'bw'); ?></p>
                     </td>
@@ -226,11 +253,9 @@ if (!function_exists('bw_tbl_render_single_product_rule_row')) {
                         </label>
                         <p class="description"><?php esc_html_e('Optional. If a product matches an excluded category, this rule will not apply (exclusions override includes).', 'bw'); ?></p>
                         <div class="bw-tbl-exclude-fields">
-                            <select class="bw-tbl-term-select" name="<?php echo esc_attr(BW_TBL_SINGLE_PRODUCT_RULES_OPTION); ?>[rules][<?php echo esc_attr((string) $index); ?>][exclude_product_cat][]" multiple="multiple" size="8">
-                                <?php foreach ($parent_product_categories as $term_id => $term_name) : ?>
-                                    <option value="<?php echo esc_attr((string) $term_id); ?>" <?php selected(in_array((int) $term_id, $exclude, true)); ?>><?php echo esc_html($term_name); ?></option>
-                                <?php endforeach; ?>
-                            </select>
+                            <div class="bw-tbl-term-checklist-wrap">
+                                <?php echo $exclude_checklist; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                            </div>
                         </div>
                     </td>
                 </tr>
