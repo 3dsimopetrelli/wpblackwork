@@ -147,6 +147,18 @@ If a decision is normative and architecture-binding, the ADR process MUST be use
   - Keep JSON validation strict and type mapping explicit.
   - Track unsupported Elementor Pro widgets as non-blocking compatibility limitation in docs.
 
+### Entry 013
+- Date: 2026-03-03
+- Decision summary: Finalized Import Template behavior as auto-detect-only authority with safe fallback type and Elementor Library mirror creation for popup discoverability.
+- Affected domain: Theme Builder Lite / Admin Settings / Data Import / Elementor Integration
+- Rationale: Import flow must remain deterministic and operator-safe without manual override ambiguity, while ensuring imported templates are visible in Elementor library insert workflow.
+- Risk impact: Medium reduced to Low-Medium for operator friction; import compatibility drift remains monitored.
+- Follow-up actions:
+  - Keep manual type override removed from Import tab UI.
+  - Keep fallback behavior explicit in admin notice (`single_page` fallback when type is not mappable).
+  - Keep mirror `elementor_library` creation transactional with rollback on failure.
+  - Preserve `bw_tbl_imported` traceability marker for filters/audits.
+
 ## Governance Layer Closure
 
 Status: CLOSED  

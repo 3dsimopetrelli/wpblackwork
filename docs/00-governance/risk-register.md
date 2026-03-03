@@ -205,6 +205,34 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 - Linked Documents:
   - [Theme Builder Lite Spec](../30-features/theme-builder-lite/theme-builder-lite-spec.md)
 
+### Risk ID: R-TBL-15
+- Domain: Theme Builder Lite / Import Template / Elementor Compatibility
+- Surface Anchor: Imported `_elementor_*` metadata and mirror `elementor_library` records
+- Description: Elementor schema/version drift can make some imported templates editable with partial degradation or widget-level incompatibilities.
+- Invariant Threatened: Deterministic editability and predictable imported-template behavior in Elementor editor/library flows.
+- Impact: Medium
+- Likelihood: Medium
+- Risk Level: Medium
+- Current Mitigation: importer persists raw Elementor payload without destructive transformation, sets required baseline meta, and keeps import as draft for manual validation before linking.
+- Monitoring Status: Monitoring
+- Linked Documents:
+  - [Theme Builder Lite Spec](../30-features/theme-builder-lite/theme-builder-lite-spec.md)
+  - [Decision Log](../00-planning/decision-log.md)
+
+### Risk ID: R-TBL-16
+- Domain: Theme Builder Lite / Import Template / Admin Integrity
+- Surface Anchor: Auto-detect type mapping with `single_page` fallback for unmappable payloads
+- Description: Operators may assume fallback type reflects semantic intent; incorrect linkage can occur if fallback imports are not reviewed before activation.
+- Invariant Threatened: Correct template-type authority and predictable routing intent.
+- Impact: Medium
+- Likelihood: Medium
+- Risk Level: Medium
+- Current Mitigation: explicit fallback success notice, imported-title prefix (`Imported —`), `bw_tbl_imported` marker for audit/filtering, and draft-default status to force review before linkage.
+- Monitoring Status: Monitoring
+- Linked Documents:
+  - [Theme Builder Lite Spec](../30-features/theme-builder-lite/theme-builder-lite-spec.md)
+  - [Decision Log](../00-planning/decision-log.md)
+
 ### Risk ID: R-CHK-01
 - Domain: Checkout / Payments
 - Surface Anchor: `assets/js/bw-payment-methods.js`, `assets/js/bw-google-pay.js`, `assets/js/bw-apple-pay.js` (`updated_checkout` handlers)

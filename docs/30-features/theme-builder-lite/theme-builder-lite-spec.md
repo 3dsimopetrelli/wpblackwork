@@ -352,22 +352,33 @@ Resolver contract:
 - Import validation contract:
   - payload must be valid JSON object
   - must include Elementor content structure (`content[]` or `elements[]`)
-  - template type is auto-detected from JSON `type` with optional manual override
+  - template type is auto-detected from JSON payload (`type`/`template_type`/`doc_type`) with deterministic widget-heuristic fallback
+  - no manual type override field is exposed in UI
 - Type mapping contract:
   - `product-archive` -> `product_archive`
   - `single-product` -> `single_product`
+  - `product` -> `single_product`
   - additional allowed BW types supported through same map/enum validation
+  - if still unmappable, importer applies safe fallback type `single_page` and keeps post as `draft` with explicit admin notice
 - Persistence contract:
   - creates `bw_template` post as `draft`
+  - prefixes title as `Imported — {Original Title}`
   - sets `bw_template_type` to validated mapped type
+  - marks imported record with `bw_tbl_imported=1`
   - writes required Elementor meta:
     - `_elementor_data`
     - `_elementor_edit_mode` (`builder`)
     - `_elementor_version`
     - `_elementor_page_settings`
+    - `_elementor_template_type`
+  - creates mirrored `elementor_library` post to ensure imported templates are discoverable in Elementor library popup
+  - stores linkage between imported `bw_template` and mirrored library template via meta
 - Fail-open + integrity:
   - on any validation/import error: no partial template kept
+  - on metadata or library-mirror failure: created draft is deleted
   - importer reports explicit admin error notice and exits safely
+- History:
+  - tab renders deterministic `Recent Imports` list (last 10 by `bw_tbl_imported=1`) with title, detected type, date/time, and edit link
 - Limitations:
   - no conversion of Elementor Pro widgets to free equivalents
   - no batch/zip import
