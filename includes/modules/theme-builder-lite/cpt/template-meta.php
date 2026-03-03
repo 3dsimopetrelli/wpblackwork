@@ -102,6 +102,15 @@ if (!function_exists('bw_tbl_qe_post_checkbox')) {
     }
 }
 
+if (!function_exists('bw_tbl_sanitize_qe_section')) {
+    function bw_tbl_sanitize_qe_section($value)
+    {
+        $value = sanitize_key((string) $value);
+        $allowed = ['single_product', 'product_archive', 'single_post', 'single_page', 'archive'];
+        return in_array($value, $allowed, true) ? $value : '';
+    }
+}
+
 if (!function_exists('bw_tbl_qe_debug_log')) {
     function bw_tbl_qe_debug_log($message, $context = [])
     {
@@ -931,6 +940,10 @@ if (!function_exists('bw_tbl_save_template_rules_metabox')) {
 
         $posted_type_raw = isset($_POST['bw_tbl_qe_template_type']) ? sanitize_key((string) wp_unslash($_POST['bw_tbl_qe_template_type'])) : '';
         $posted_type = '' !== $posted_type_raw ? bw_tbl_sanitize_template_type($posted_type_raw) : bw_tbl_sanitize_template_type(get_post_meta($post_id, 'bw_template_type', true));
+        $last_section = isset($_POST['bw_tbl_qe_section']) ? bw_tbl_sanitize_qe_section(wp_unslash($_POST['bw_tbl_qe_section'])) : '';
+        if ('' !== $last_section) {
+            update_post_meta($post_id, 'bw_tbl_qe_last_section', $last_section);
+        }
 
         if (isset($_POST['bw_tbl_qe_priority']) && is_numeric(wp_unslash($_POST['bw_tbl_qe_priority']))) {
             $priority = (int) wp_unslash($_POST['bw_tbl_qe_priority']);

@@ -17,11 +17,15 @@
         row.find('.bw-tbl-qe-rules-touched').val('0');
     }
 
-    function showTypeSection(row, type) {
+    function toggleSection(row, section) {
+        section = String(section || '');
+        if (!section) {
+            return;
+        }
+
         row.find('.bw-tbl-qe-section').hide();
         row.find('.bw-tbl-qe-section').each(function () {
-            var types = String($(this).data('type') || '').split(',');
-            if (types.indexOf(type) !== -1) {
+            if (String($(this).data('section') || '') === section) {
                 $(this).show();
             }
         });
@@ -65,9 +69,18 @@
         row.find('.bw-tbl-qe-arc-exc-blog').prop('checked', Number(arc.exclude_blog || 0) === 1);
         row.find('.bw-tbl-qe-arc-exc-cat').val(arc.exclude_categories || []);
 
+        var section = String(data.last_section || '');
+        if (!section) {
+            section = String(data.first_non_empty_section || '');
+        }
+        if (!section) {
+            section = 'single_product';
+        }
+        row.find('.bw-tbl-qe-section-select').val(section);
+
         row.find('.bw-tbl-qe-priority-touched').val('0');
         row.find('.bw-tbl-qe-rules-touched').val('0');
-        showTypeSection(row, type);
+        toggleSection(row, section);
     }
 
     function getPostId(id) {
@@ -125,4 +138,9 @@
             $(this).closest('tr.inline-editor').find('.bw-tbl-qe-rules-touched').val('1');
         }
     );
+
+    $(document).on('change', '.bw-tbl-qe-section-select', function () {
+        var row = $(this).closest('tr.inline-editor');
+        toggleSection(row, $(this).val());
+    });
 })(jQuery);

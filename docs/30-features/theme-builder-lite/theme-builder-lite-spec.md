@@ -269,6 +269,10 @@ Resolver contract:
 - Quick Edit is the single source of truth for updating priority and type-aware conditions.
 - The `bw_template` post edit screen does not expose conditions controls to avoid duplicate/conflicting admin surfaces.
 - The post edit screen shows a guidance-only `Display Rules` notice that points users to Templates list Quick Edit.
+- Quick Edit Conditions UI - Section dropdown contract:
+  - A `Section` dropdown shows one conditions group at a time (`single_product`, `product_archive`, `single_post`, `single_page`, `archive`).
+  - Default open section order: saved `bw_tbl_qe_last_section` -> first group containing saved values -> `single_product`.
+  - Selection is persisted per template in `bw_tbl_qe_last_section`.
 - Storage schema remains unchanged: `bw_tbl_display_rules_v1`.
 - No runtime resolver behavior is changed by this admin UX enhancement.
 
