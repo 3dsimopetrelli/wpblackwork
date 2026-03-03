@@ -250,6 +250,55 @@ if (!function_exists('bw_tbl_admin_single_product_settings_summary')) {
     }
 }
 
+if (!function_exists('bw_tbl_admin_product_archive_settings_summary')) {
+    function bw_tbl_admin_product_archive_settings_summary($post_id)
+    {
+        if (!function_exists('bw_tbl_get_product_archive_rules_option')) {
+            return '';
+        }
+
+        $post_id = absint($post_id);
+        $option = bw_tbl_get_product_archive_rules_option();
+        if (empty($option['enabled'])) {
+            return '';
+        }
+
+        $rules = isset($option['rules']) && is_array($option['rules']) ? $option['rules'] : [];
+        if (empty($rules)) {
+            return '';
+        }
+
+        $parts = [];
+        foreach ($rules as $rule) {
+            if (!is_array($rule)) {
+                continue;
+            }
+
+            $template_id = isset($rule['template_id']) ? absint($rule['template_id']) : 0;
+            if ($template_id !== $post_id) {
+                continue;
+            }
+
+            $include = isset($rule['include_product_cat']) && is_array($rule['include_product_cat']) ? $rule['include_product_cat'] : [];
+            $exclude = isset($rule['exclude_product_cat']) && is_array($rule['exclude_product_cat']) ? $rule['exclude_product_cat'] : [];
+
+            $include_names = bw_tbl_admin_format_terms('product_cat', $include);
+            $exclude_names = bw_tbl_admin_format_terms('product_cat', $exclude);
+            $summary = '' !== $include_names ? sprintf(__('On Product Category: %s', 'bw'), $include_names) : __('Match-all', 'bw');
+            if ('' !== $exclude_names) {
+                $summary .= '; ' . sprintf(__('Excluding: On Product Category: %s', 'bw'), $exclude_names);
+            }
+            $parts[] = $summary;
+        }
+
+        if (empty($parts)) {
+            return '';
+        }
+
+        return implode(' | ', $parts);
+    }
+}
+
 if (!function_exists('bw_tbl_admin_is_active_footer_template')) {
     function bw_tbl_admin_is_active_footer_template($post_id)
     {
@@ -298,6 +347,34 @@ if (!function_exists('bw_tbl_admin_is_active_single_product_template')) {
     }
 }
 
+if (!function_exists('bw_tbl_admin_is_active_product_archive_template')) {
+    function bw_tbl_admin_is_active_product_archive_template($post_id)
+    {
+        $post_id = absint($post_id);
+        if ($post_id <= 0 || !function_exists('bw_tbl_get_product_archive_rules_option')) {
+            return false;
+        }
+
+        $option = bw_tbl_get_product_archive_rules_option();
+        if (empty($option['enabled'])) {
+            return false;
+        }
+
+        $rules = isset($option['rules']) && is_array($option['rules']) ? $option['rules'] : [];
+        foreach ($rules as $rule) {
+            if (!is_array($rule)) {
+                continue;
+            }
+            $template_id = isset($rule['template_id']) ? absint($rule['template_id']) : 0;
+            if ($template_id > 0 && $template_id === $post_id) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+}
+
 if (!function_exists('bw_tbl_admin_is_linked_template')) {
     function bw_tbl_admin_is_linked_template($post_id)
     {
@@ -311,6 +388,10 @@ if (!function_exists('bw_tbl_admin_is_linked_template')) {
         }
 
         if (bw_tbl_admin_is_active_single_product_template($post_id)) {
+            return true;
+        }
+
+        if (bw_tbl_admin_is_active_product_archive_template($post_id)) {
             return true;
         }
 
@@ -330,6 +411,7 @@ if (!function_exists('bw_tbl_admin_template_link_badges')) {
         $badges = [];
         $is_footer_active = ('footer' === $template_type) && bw_tbl_admin_is_active_footer_template($post_id);
         $is_single_product_active = ('single_product' === $template_type) && bw_tbl_admin_is_active_single_product_template($post_id);
+        $is_product_archive_active = ('product_archive' === $template_type) && bw_tbl_admin_is_active_product_archive_template($post_id);
 
         if ($is_footer_active) {
             $badges[] = [
@@ -345,7 +427,14 @@ if (!function_exists('bw_tbl_admin_template_link_badges')) {
             ];
         }
 
-        if (!$is_footer_active && !$is_single_product_active) {
+        if ($is_product_archive_active) {
+            $badges[] = [
+                'text' => __('Applies to: Product Archive', 'bw'),
+                'style' => 'background:#e8f0fe;color:#0b57d0;',
+            ];
+        }
+
+        if (!$is_footer_active && !$is_single_product_active && !$is_product_archive_active) {
             $badges[] = [
                 'text' => __('Not linked', 'bw'),
                 'style' => 'background:#fbeaea;color:#a61b1b;',
@@ -438,6 +527,14 @@ if (!function_exists('bw_tbl_admin_render_list_column')) {
 
             if ('single_product' === $type && bw_tbl_admin_is_active_single_product_template($post_id)) {
                 $settings_summary = bw_tbl_admin_single_product_settings_summary($post_id);
+                if ('' !== $settings_summary) {
+                    echo '<div style="margin-top:6px;">' . esc_html($settings_summary) . '</div>';
+                    return;
+                }
+            }
+
+            if ('product_archive' === $type && bw_tbl_admin_is_active_product_archive_template($post_id)) {
+                $settings_summary = bw_tbl_admin_product_archive_settings_summary($post_id);
                 if ('' !== $settings_summary) {
                     echo '<div style="margin-top:6px;">' . esc_html($settings_summary) . '</div>';
                     return;

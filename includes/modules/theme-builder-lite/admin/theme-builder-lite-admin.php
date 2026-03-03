@@ -55,6 +55,16 @@ if (!function_exists('bw_tbl_register_admin_settings')) {
                 'default' => bw_tbl_default_single_product_rules_option(),
             ]
         );
+
+        register_setting(
+            'bw_tbl_settings_group',
+            BW_TBL_PRODUCT_ARCHIVE_RULES_OPTION,
+            [
+                'type' => 'array',
+                'sanitize_callback' => 'bw_tbl_sanitize_product_archive_rules_option',
+                'default' => bw_tbl_default_product_archive_rules_option(),
+            ]
+        );
     }
 }
 add_action('admin_init', 'bw_tbl_register_admin_settings');
@@ -280,6 +290,89 @@ if (!function_exists('bw_tbl_render_single_product_rule_row')) {
     }
 }
 
+if (!function_exists('bw_tbl_render_product_archive_rule_row')) {
+    function bw_tbl_render_product_archive_rule_row($index, $rule, $template_choices, $parent_product_categories)
+    {
+        $index = absint($index);
+        $rule = is_array($rule) ? $rule : [];
+        $template_id = isset($rule['template_id']) ? absint($rule['template_id']) : 0;
+        $include = isset($rule['include_product_cat']) && is_array($rule['include_product_cat']) ? array_map('absint', $rule['include_product_cat']) : [];
+        $include_mode = !empty($include) ? 'selected' : 'all';
+        $exclude = isset($rule['exclude_product_cat']) && is_array($rule['exclude_product_cat']) ? array_map('absint', $rule['exclude_product_cat']) : [];
+        $exclude_enabled = !empty($exclude);
+        $include_input_name = BW_TBL_PRODUCT_ARCHIVE_RULES_OPTION . '[rules][' . $index . '][include_product_cat][]';
+        $exclude_input_name = BW_TBL_PRODUCT_ARCHIVE_RULES_OPTION . '[rules][' . $index . '][exclude_product_cat][]';
+        $include_checklist = bw_tbl_render_product_cat_checklist($include_input_name, $include, $parent_product_categories);
+        $exclude_checklist = bw_tbl_render_product_cat_checklist($exclude_input_name, $exclude, $parent_product_categories);
+        ?>
+        <div class="bw-tbl-product-archive-rule" data-bw-tbl-rule-index="<?php echo esc_attr((string) $index); ?>">
+            <p class="bw-tbl-rule-heading">
+                <strong><?php esc_html_e('Rule', 'bw'); ?> #<span class="bw-tbl-rule-number"><?php echo esc_html((string) ($index + 1)); ?></span></strong>
+            </p>
+            <table class="form-table bw-tbl-rule-table" role="presentation">
+                <tr>
+                    <th scope="row">
+                        <label><?php esc_html_e('Active Product Archive Template', 'bw'); ?></label>
+                    </th>
+                    <td>
+                        <select name="<?php echo esc_attr(BW_TBL_PRODUCT_ARCHIVE_RULES_OPTION); ?>[rules][<?php echo esc_attr((string) $index); ?>][template_id]">
+                            <option value="0"><?php esc_html_e('Select template', 'bw'); ?></option>
+                            <?php foreach ($template_choices as $choice_id => $choice_title) : ?>
+                                <option value="<?php echo esc_attr((string) $choice_id); ?>" <?php selected($template_id, (int) $choice_id); ?>><?php echo esc_html($choice_title); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">
+                        <label><?php esc_html_e('Include Product Categories', 'bw'); ?></label>
+                    </th>
+                    <td>
+                        <fieldset class="bw-tbl-include-mode">
+                            <label>
+                                <input type="radio" class="bw-tbl-include-mode-radio" name="<?php echo esc_attr(BW_TBL_PRODUCT_ARCHIVE_RULES_OPTION); ?>[rules][<?php echo esc_attr((string) $index); ?>][include_mode]" value="all" <?php checked('all', $include_mode); ?> />
+                                <?php esc_html_e('Apply to all categories', 'bw'); ?>
+                            </label>
+                            <br />
+                            <label>
+                                <input type="radio" class="bw-tbl-include-mode-radio" name="<?php echo esc_attr(BW_TBL_PRODUCT_ARCHIVE_RULES_OPTION); ?>[rules][<?php echo esc_attr((string) $index); ?>][include_mode]" value="selected" <?php checked('selected', $include_mode); ?> />
+                                <?php esc_html_e('Apply only to selected categories', 'bw'); ?>
+                            </label>
+                        </fieldset>
+                        <div class="bw-tbl-include-fields">
+                            <div class="bw-tbl-term-checklist-wrap">
+                                <?php echo $include_checklist; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                            </div>
+                        </div>
+                        <p class="description"><?php esc_html_e('If set to “all”, this rule matches every product category archive unless excluded.', 'bw'); ?></p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">
+                        <label><?php esc_html_e('Exclude Product Categories', 'bw'); ?></label>
+                    </th>
+                    <td>
+                        <label>
+                            <input type="checkbox" class="bw-tbl-enable-exclude" name="<?php echo esc_attr(BW_TBL_PRODUCT_ARCHIVE_RULES_OPTION); ?>[rules][<?php echo esc_attr((string) $index); ?>][exclude_enabled]" value="1" <?php checked($exclude_enabled); ?> />
+                            <?php esc_html_e('Enable exclusions (optional)', 'bw'); ?>
+                        </label>
+                        <p class="description"><?php esc_html_e('Optional. If an archive matches an excluded category, this rule will not apply (exclusions override includes).', 'bw'); ?></p>
+                        <div class="bw-tbl-exclude-fields">
+                            <div class="bw-tbl-term-checklist-wrap">
+                                <?php echo $exclude_checklist; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+            <p class="bw-tbl-rule-actions">
+                <button type="button" class="button button-link-delete bw-tbl-remove-product-archive-rule"><?php esc_html_e('Remove rule', 'bw'); ?></button>
+            </p>
+        </div>
+        <?php
+    }
+}
+
 if (!function_exists('bw_tbl_render_admin_page')) {
     function bw_tbl_render_admin_page()
     {
@@ -293,14 +386,30 @@ if (!function_exists('bw_tbl_render_admin_page')) {
         $footer_choices = bw_tbl_get_footer_template_choices();
         $single_product_rules_option = bw_tbl_get_single_product_rules_option();
         $single_product_choices = bw_tbl_get_single_product_template_choices();
+        $product_archive_rules_option = bw_tbl_get_product_archive_rules_option();
+        $product_archive_choices = bw_tbl_get_product_archive_template_choices();
         $parent_product_categories = bw_tbl_get_parent_product_category_choices();
         $single_product_enabled = !empty($single_product_rules_option['enabled']);
         $single_product_rules = isset($single_product_rules_option['rules']) && is_array($single_product_rules_option['rules']) ? $single_product_rules_option['rules'] : [];
         $single_product_rules_count = count($single_product_rules);
         $single_product_active_templates_count = count(bw_tbl_get_single_product_rules_template_ids($single_product_rules_option));
         $single_product_missing_active_template = $single_product_enabled && $single_product_active_templates_count <= 0;
+        $product_archive_enabled = !empty($product_archive_rules_option['enabled']);
+        $product_archive_rules = isset($product_archive_rules_option['rules']) && is_array($product_archive_rules_option['rules']) ? $product_archive_rules_option['rules'] : [];
+        $product_archive_rules_count = count($product_archive_rules);
+        $product_archive_active_templates_count = count(bw_tbl_get_product_archive_rules_template_ids($product_archive_rules_option));
+        $product_archive_missing_active_template = $product_archive_enabled && $product_archive_active_templates_count <= 0;
         if (empty($single_product_rules)) {
             $single_product_rules = [
+                [
+                    'template_id' => 0,
+                    'include_product_cat' => [],
+                    'exclude_product_cat' => [],
+                ],
+            ];
+        }
+        if (empty($product_archive_rules)) {
+            $product_archive_rules = [
                 [
                     'template_id' => 0,
                     'include_product_cat' => [],
@@ -324,7 +433,7 @@ if (!function_exists('bw_tbl_render_admin_page')) {
         ?>
         <div class="wrap bw-tbl-admin-wrap">
             <h1><?php esc_html_e('Theme Builder Lite', 'bw'); ?></h1>
-            <p><?php esc_html_e('Controls for Fonts, Footer, and Single Product category-based template override.', 'bw'); ?></p>
+            <p><?php esc_html_e('Controls for Fonts, Footer, Single Product, and Product Archive template overrides.', 'bw'); ?></p>
 
             <form method="post" action="options.php">
                 <?php settings_fields('bw_tbl_settings_group'); ?>
@@ -334,6 +443,7 @@ if (!function_exists('bw_tbl_render_admin_page')) {
                     <a href="#bw-tbl-tab-fonts" class="nav-tab" data-bw-tbl-tab="fonts"><?php esc_html_e('Fonts', 'bw'); ?></a>
                     <a href="#bw-tbl-tab-footer" class="nav-tab" data-bw-tbl-tab="footer"><?php esc_html_e('Footer', 'bw'); ?></a>
                     <a href="#bw-tbl-tab-single-product" class="nav-tab" data-bw-tbl-tab="single-product"><?php esc_html_e('Single Product', 'bw'); ?></a>
+                    <a href="#bw-tbl-tab-product-archive" class="nav-tab" data-bw-tbl-tab="product-archive"><?php esc_html_e('Product Archive', 'bw'); ?></a>
                 </h2>
 
                 <div id="bw-tbl-tab-settings" class="bw-tbl-tab-panel is-active" data-bw-tbl-panel="settings">
@@ -476,6 +586,50 @@ if (!function_exists('bw_tbl_render_admin_page')) {
                     </div>
                 </div>
 
+                <div id="bw-tbl-tab-product-archive" class="bw-tbl-tab-panel" data-bw-tbl-panel="product-archive" style="display:none;">
+                    <div class="notice <?php echo $product_archive_missing_active_template ? 'notice-warning' : 'notice-info'; ?>" style="margin:0 0 12px 0;padding:10px 12px;">
+                        <p style="margin:0;">
+                            <strong><?php esc_html_e('Status:', 'bw'); ?></strong>
+                            <?php echo $product_archive_enabled ? esc_html__('Enabled', 'bw') : esc_html__('Disabled', 'bw'); ?>
+                            <span style="margin:0 8px;color:#9aa0a6;">|</span>
+                            <strong><?php esc_html_e('Rules:', 'bw'); ?></strong>
+                            <?php echo esc_html((string) $product_archive_rules_count); ?>
+                            <span style="margin:0 8px;color:#9aa0a6;">|</span>
+                            <strong><?php esc_html_e('Active Templates:', 'bw'); ?></strong>
+                            <?php echo esc_html((string) $product_archive_active_templates_count); ?>
+                        </p>
+                        <?php if ($product_archive_missing_active_template) : ?>
+                            <p style="margin:8px 0 0 0;">
+                                <?php esc_html_e('Product Archive override is enabled but no valid template is linked in rules.', 'bw'); ?>
+                            </p>
+                        <?php endif; ?>
+                    </div>
+
+                    <table class="form-table" role="presentation">
+                        <tr>
+                            <th scope="row"><?php esc_html_e('Enable Product Archive Override', 'bw'); ?></th>
+                            <td>
+                                <label>
+                                    <input id="bw-tbl-flag-product-archive-conditions" type="checkbox" name="<?php echo esc_attr(BW_TBL_PRODUCT_ARCHIVE_RULES_OPTION); ?>[enabled]" value="1" <?php checked(!empty($product_archive_rules_option['enabled'])); ?> />
+                                    <?php esc_html_e('Resolve Product Archive templates using product-category include/exclude rules.', 'bw'); ?>
+                                </label>
+                                <p class="description"><?php esc_html_e('This affects WooCommerce product category archive pages only.', 'bw'); ?></p>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <div id="bw-tbl-product-archive-controls" style="margin-top:8px;">
+                        <div id="bw-tbl-product-archive-rules-list">
+                            <?php foreach ($product_archive_rules as $rule_index => $product_archive_rule) : ?>
+                                <?php bw_tbl_render_product_archive_rule_row($rule_index, $product_archive_rule, $product_archive_choices, $parent_product_categories); ?>
+                            <?php endforeach; ?>
+                        </div>
+                        <p class="bw-tbl-rules-toolbar">
+                            <button type="button" class="button" id="bw-tbl-add-product-archive-rule"><?php esc_html_e('+ Add Rule', 'bw'); ?></button>
+                        </p>
+                    </div>
+                </div>
+
                 <?php submit_button(__('Save Theme Builder Lite Settings', 'bw')); ?>
             </form>
         </div>
@@ -502,6 +656,20 @@ if (!function_exists('bw_tbl_render_admin_page')) {
                     'exclude_product_cat' => [],
                 ],
                 $single_product_choices,
+                $parent_product_categories
+            );
+            ?>
+        </script>
+        <script type="text/html" id="tmpl-bw-tbl-product-archive-rule-row">
+            <?php
+            bw_tbl_render_product_archive_rule_row(
+                99999,
+                [
+                    'template_id' => 0,
+                    'include_product_cat' => [],
+                    'exclude_product_cat' => [],
+                ],
+                $product_archive_choices,
                 $parent_product_categories
             );
             ?>

@@ -2,7 +2,8 @@
     border-radius: 8px;
 }
 
-.bw-tbl-admin-wrap .bw-tbl-single-product-rule {
+.bw-tbl-admin-wrap .bw-tbl-single-product-rule,
+.bw-tbl-admin-wrap .bw-tbl-product-archive-rule {
     border: 1px solid #dcdcde;
     border-radius: 10px;
     background: #fff;
@@ -69,7 +70,8 @@
     text-align: right;
 }
 
-.bw-tbl-admin-wrap .bw-tbl-remove-single-product-rule {
+.bw-tbl-admin-wrap .bw-tbl-remove-single-product-rule,
+.bw-tbl-admin-wrap .bw-tbl-remove-product-archive-rule {
     text-decoration: none;
 }
 

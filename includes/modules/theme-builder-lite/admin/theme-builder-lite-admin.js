@@ -9,6 +9,10 @@
         return $('#tmpl-bw-tbl-single-product-rule-row').html() || '';
     }
 
+    function getProductArchiveRuleTemplate() {
+        return $('#tmpl-bw-tbl-product-archive-rule-row').html() || '';
+    }
+
     function nextIndex() {
         var max = -1;
         $('#bw-tbl-fonts-table tbody tr').each(function () {
@@ -67,6 +71,36 @@
         return $row;
     }
 
+    function nextProductArchiveRuleIndex() {
+        var max = -1;
+        $('#bw-tbl-product-archive-rules-list .bw-tbl-product-archive-rule').each(function () {
+            var name = $(this).find('select[name*="[rules]["]').first().attr('name') || '';
+            var match = name.match(/\[rules\]\[(\d+)\]/);
+            if (match) {
+                var value = parseInt(match[1], 10);
+                if (!isNaN(value) && value > max) {
+                    max = value;
+                }
+            }
+        });
+
+        return max + 1;
+    }
+
+    function buildProductArchiveRuleRow() {
+        var html = getProductArchiveRuleTemplate();
+        if (!html) {
+            return $();
+        }
+
+        var index = nextProductArchiveRuleIndex();
+        html = html.replace(/\[99999\]/g, '[' + index + ']');
+        html = html.replace(/data-bw-tbl-rule-index="99999"/g, 'data-bw-tbl-rule-index="' + index + '"');
+        var $row = $(html);
+        $row.find('.bw-tbl-rule-number').text((index + 1).toString());
+        return $row;
+    }
+
     function setTab(tabKey) {
         var $tabs = $('#bw-tbl-tabs .nav-tab');
         var $panels = $('.bw-tbl-tab-panel');
@@ -82,6 +116,7 @@
         var fontsEnabled = $('#bw-tbl-flag-custom-fonts').is(':checked');
         var footerEnabled = $('#bw-tbl-flag-footer-override').is(':checked');
         var singleProductEnabled = $('#bw-tbl-flag-single-product-conditions').is(':checked');
+        var productArchiveEnabled = $('#bw-tbl-flag-product-archive-conditions').is(':checked');
 
         if (fontsEnabled) {
             $('#bw-tbl-fonts-controls').show();
@@ -100,11 +135,19 @@
         } else {
             $('#bw-tbl-single-product-controls').hide();
         }
+
+        if (productArchiveEnabled) {
+            $('#bw-tbl-product-archive-controls').show();
+        } else {
+            $('#bw-tbl-product-archive-controls').hide();
+        }
     }
 
     function syncExcludeFields($scope) {
         var $root = $scope && $scope.length ? $scope : $(document);
-        var $rules = $root.filter('.bw-tbl-single-product-rule').add($root.find('.bw-tbl-single-product-rule'));
+        var $rules = $root
+            .filter('.bw-tbl-single-product-rule, .bw-tbl-product-archive-rule')
+            .add($root.find('.bw-tbl-single-product-rule, .bw-tbl-product-archive-rule'));
         $rules.each(function () {
             var $rule = $(this);
             var enabled = $rule.find('.bw-tbl-enable-exclude').is(':checked');
@@ -121,7 +164,9 @@
 
     function syncIncludeFields($scope) {
         var $root = $scope && $scope.length ? $scope : $(document);
-        var $rules = $root.filter('.bw-tbl-single-product-rule').add($root.find('.bw-tbl-single-product-rule'));
+        var $rules = $root
+            .filter('.bw-tbl-single-product-rule, .bw-tbl-product-archive-rule')
+            .add($root.find('.bw-tbl-single-product-rule, .bw-tbl-product-archive-rule'));
         $rules.each(function () {
             var $rule = $(this);
             var mode = ($rule.find('.bw-tbl-include-mode-radio:checked').val() || 'all').toString();
@@ -144,7 +189,7 @@
         setTab(tabKey);
     });
 
-    $(document).on('change', '#bw-tbl-flag-custom-fonts, #bw-tbl-flag-footer-override, #bw-tbl-flag-single-product-conditions', function () {
+    $(document).on('change', '#bw-tbl-flag-custom-fonts, #bw-tbl-flag-footer-override, #bw-tbl-flag-single-product-conditions, #bw-tbl-flag-product-archive-conditions', function () {
         syncFeatureSections();
     });
 
@@ -164,6 +209,17 @@
             return;
         }
         $('#bw-tbl-single-product-rules-list').append(row);
+        syncIncludeFields(row);
+        syncExcludeFields(row);
+    });
+
+    $(document).on('click', '#bw-tbl-add-product-archive-rule', function (event) {
+        event.preventDefault();
+        var row = buildProductArchiveRuleRow();
+        if (!row.length) {
+            return;
+        }
+        $('#bw-tbl-product-archive-rules-list').append(row);
         syncIncludeFields(row);
         syncExcludeFields(row);
     });
@@ -190,13 +246,35 @@
         $(this).closest('.bw-tbl-single-product-rule').remove();
     });
 
+    $(document).on('click', '.bw-tbl-remove-product-archive-rule', function (event) {
+        event.preventDefault();
+        if (!window.confirm('Remove this rule?')) {
+            return;
+        }
+        var $rows = $('#bw-tbl-product-archive-rules-list .bw-tbl-product-archive-rule');
+        if ($rows.length <= 1) {
+            var $rule = $(this).closest('.bw-tbl-product-archive-rule');
+            $rule.find('select').each(function () {
+                $(this).val('0');
+            });
+            $rule.find('.bw-tbl-include-fields input[type="checkbox"], .bw-tbl-exclude-fields input[type="checkbox"]').prop('checked', false);
+            $rule.find('.bw-tbl-include-mode-radio[value="all"]').prop('checked', true);
+            $rule.find('.bw-tbl-enable-exclude').prop('checked', false);
+            syncIncludeFields($rule);
+            syncExcludeFields($rule);
+            return;
+        }
+
+        $(this).closest('.bw-tbl-product-archive-rule').remove();
+    });
+
     $(document).on('change', '.bw-tbl-enable-exclude', function () {
-        var $rule = $(this).closest('.bw-tbl-single-product-rule');
+        var $rule = $(this).closest('.bw-tbl-single-product-rule, .bw-tbl-product-archive-rule');
         syncExcludeFields($rule);
     });
 
     $(document).on('change', '.bw-tbl-include-mode-radio', function () {
-        var $rule = $(this).closest('.bw-tbl-single-product-rule');
+        var $rule = $(this).closest('.bw-tbl-single-product-rule, .bw-tbl-product-archive-rule');
         syncIncludeFields($rule);
     });
 
