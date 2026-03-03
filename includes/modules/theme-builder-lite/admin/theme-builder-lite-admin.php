@@ -35,6 +35,16 @@ if (!function_exists('bw_tbl_register_admin_settings')) {
                 'default' => bw_tbl_default_footer_option(),
             ]
         );
+
+        register_setting(
+            'bw_tbl_settings_group',
+            BW_TBL_SINGLE_PRODUCT_OPTION,
+            [
+                'type' => 'array',
+                'sanitize_callback' => 'bw_tbl_sanitize_single_product_option',
+                'default' => bw_tbl_default_single_product_option(),
+            ]
+        );
     }
 }
 add_action('admin_init', 'bw_tbl_register_admin_settings');
@@ -143,6 +153,9 @@ if (!function_exists('bw_tbl_render_admin_page')) {
         $fonts_option = bw_tbl_get_custom_fonts_option();
         $footer_option = bw_tbl_get_footer_option();
         $footer_choices = bw_tbl_get_footer_template_choices();
+        $single_product_option = bw_tbl_get_single_product_option();
+        $single_product_choices = bw_tbl_get_single_product_template_choices();
+        $parent_product_categories = bw_tbl_get_parent_product_category_choices();
 
         $fonts = isset($fonts_option['fonts']) && is_array($fonts_option['fonts']) ? $fonts_option['fonts'] : [];
         if (empty($fonts)) {
@@ -159,7 +172,7 @@ if (!function_exists('bw_tbl_render_admin_page')) {
         ?>
         <div class="wrap bw-tbl-admin-wrap">
             <h1><?php esc_html_e('Theme Builder Lite', 'bw'); ?></h1>
-            <p><?php esc_html_e('Phase 1 controls: Custom Fonts and Footer Template override.', 'bw'); ?></p>
+            <p><?php esc_html_e('Controls for Fonts, Footer, and Single Product category-based template override.', 'bw'); ?></p>
 
             <form method="post" action="options.php">
                 <?php settings_fields('bw_tbl_settings_group'); ?>
@@ -168,6 +181,7 @@ if (!function_exists('bw_tbl_render_admin_page')) {
                     <a href="#bw-tbl-tab-settings" class="nav-tab nav-tab-active" data-bw-tbl-tab="settings"><?php esc_html_e('Settings', 'bw'); ?></a>
                     <a href="#bw-tbl-tab-fonts" class="nav-tab" data-bw-tbl-tab="fonts"><?php esc_html_e('Fonts', 'bw'); ?></a>
                     <a href="#bw-tbl-tab-footer" class="nav-tab" data-bw-tbl-tab="footer"><?php esc_html_e('Footer', 'bw'); ?></a>
+                    <a href="#bw-tbl-tab-single-product" class="nav-tab" data-bw-tbl-tab="single-product"><?php esc_html_e('Post Product Category', 'bw'); ?></a>
                 </h2>
 
                 <div id="bw-tbl-tab-settings" class="bw-tbl-tab-panel is-active" data-bw-tbl-panel="settings">
@@ -260,6 +274,59 @@ if (!function_exists('bw_tbl_render_admin_page')) {
                                     <p class="description">
                                         <?php esc_html_e('Create/edit templates under Blackwork Site > BW Templates. Phase 1 supports only templates with type "footer".', 'bw'); ?>
                                     </p>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="bw-tbl-tab-single-product" class="bw-tbl-tab-panel" data-bw-tbl-panel="single-product" style="display:none;">
+                    <table class="form-table" role="presentation">
+                        <tr>
+                            <th scope="row"><?php esc_html_e('Enable Single Product Override', 'bw'); ?></th>
+                            <td>
+                                <label>
+                                    <input id="bw-tbl-flag-single-product-conditions" type="checkbox" name="<?php echo esc_attr(BW_TBL_SINGLE_PRODUCT_OPTION); ?>[enabled]" value="1" <?php checked(!empty($single_product_option['enabled'])); ?> />
+                                    <?php esc_html_e('Resolve single product template from settings include/exclude product categories.', 'bw'); ?>
+                                </label>
+                                <p class="description"><?php esc_html_e('When enabled, this settings tab is the source of truth for Single Product conditions.', 'bw'); ?></p>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <div id="bw-tbl-single-product-controls" style="margin-top:8px;">
+                        <table class="form-table" role="presentation">
+                            <tr>
+                                <th scope="row"><label for="bw-tbl-active-single-product-template"><?php esc_html_e('Active Single Product Template', 'bw'); ?></label></th>
+                                <td>
+                                    <select id="bw-tbl-active-single-product-template" name="<?php echo esc_attr(BW_TBL_SINGLE_PRODUCT_OPTION); ?>[active_single_product_template_id]">
+                                        <option value="0"><?php esc_html_e('Use theme single product template (disabled)', 'bw'); ?></option>
+                                        <?php foreach ($single_product_choices as $template_id => $template_title) : ?>
+                                            <option value="<?php echo esc_attr((string) $template_id); ?>" <?php selected((int) $single_product_option['active_single_product_template_id'], (int) $template_id); ?>><?php echo esc_html($template_title); ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label for="bw-tbl-include-product-cat"><?php esc_html_e('Include Product Categories', 'bw'); ?></label></th>
+                                <td>
+                                    <select id="bw-tbl-include-product-cat" name="<?php echo esc_attr(BW_TBL_SINGLE_PRODUCT_OPTION); ?>[include_product_cat][]" multiple="multiple" size="8" style="min-width:280px;">
+                                        <?php foreach ($parent_product_categories as $term_id => $term_name) : ?>
+                                            <option value="<?php echo esc_attr((string) $term_id); ?>" <?php selected(in_array((int) $term_id, (array) $single_product_option['include_product_cat'], true)); ?>><?php echo esc_html($term_name); ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                    <p class="description"><?php esc_html_e('If empty, include behaves as match-all.', 'bw'); ?></p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label for="bw-tbl-exclude-product-cat"><?php esc_html_e('Exclude Product Categories', 'bw'); ?></label></th>
+                                <td>
+                                    <select id="bw-tbl-exclude-product-cat" name="<?php echo esc_attr(BW_TBL_SINGLE_PRODUCT_OPTION); ?>[exclude_product_cat][]" multiple="multiple" size="8" style="min-width:280px;">
+                                        <?php foreach ($parent_product_categories as $term_id => $term_name) : ?>
+                                            <option value="<?php echo esc_attr((string) $term_id); ?>" <?php selected(in_array((int) $term_id, (array) $single_product_option['exclude_product_cat'], true)); ?>><?php echo esc_html($term_name); ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                    <p class="description"><?php esc_html_e('Exclude rules are evaluated before include rules.', 'bw'); ?></p>
                                 </td>
                             </tr>
                         </table>

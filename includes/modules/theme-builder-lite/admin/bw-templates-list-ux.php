@@ -88,99 +88,6 @@ if (!function_exists('bw_tbl_admin_format_terms')) {
     }
 }
 
-if (!function_exists('bw_tbl_admin_rule_values_by_type')) {
-    function bw_tbl_admin_rule_values_by_type($rules, $rule_type, $value_key)
-    {
-        $rules = is_array($rules) ? $rules : [];
-        $rule_type = sanitize_key((string) $rule_type);
-        $value_key = sanitize_key((string) $value_key);
-        $result = [];
-
-        foreach ($rules as $rule) {
-            if (!is_array($rule)) {
-                continue;
-            }
-
-            $type = isset($rule['type']) ? sanitize_key((string) $rule['type']) : '';
-            if ($type !== $rule_type) {
-                continue;
-            }
-
-            $values = isset($rule[$value_key]) && is_array($rule[$value_key]) ? $rule[$value_key] : [];
-            foreach ($values as $value) {
-                $value = 'terms' === $value_key ? absint($value) : (int) $value;
-                if ($value > 0) {
-                    $result[$value] = $value;
-                }
-            }
-        }
-
-        $result = array_values($result);
-        if ('terms' === $value_key && in_array($rule_type, ['product_category', 'product_archive_category'], true)) {
-            $result = bw_tbl_filter_parent_product_cat_ids($result);
-        }
-        sort($result, SORT_NUMERIC);
-
-        return $result;
-    }
-}
-
-if (!function_exists('bw_tbl_admin_has_rule_type')) {
-    function bw_tbl_admin_has_rule_type($rules, $rule_type)
-    {
-        $rules = is_array($rules) ? $rules : [];
-        $rule_type = sanitize_key((string) $rule_type);
-
-        foreach ($rules as $rule) {
-            if (!is_array($rule)) {
-                continue;
-            }
-            $type = isset($rule['type']) ? sanitize_key((string) $rule['type']) : '';
-            if ($type === $rule_type) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-}
-
-if (!function_exists('bw_tbl_admin_quick_edit_payload')) {
-    function bw_tbl_admin_quick_edit_payload($post_id)
-    {
-        $post_id = absint($post_id);
-        $type = get_post_meta($post_id, 'bw_template_type', true);
-        if (function_exists('bw_tbl_sanitize_template_type')) {
-            $type = bw_tbl_sanitize_template_type($type);
-        } else {
-            $type = sanitize_key((string) $type);
-        }
-
-        $priority = get_post_meta($post_id, 'bw_template_priority', true);
-        $priority = is_numeric($priority) ? (int) $priority : 10;
-
-        $raw = get_post_meta($post_id, 'bw_tbl_display_rules_v1', true);
-        $raw = is_array($raw) ? $raw : [];
-        $include = isset($raw['include']) && is_array($raw['include']) ? $raw['include'] : [];
-        $exclude = isset($raw['exclude']) && is_array($raw['exclude']) ? $raw['exclude'] : [];
-        $last_section = sanitize_key((string) get_post_meta($post_id, 'bw_tbl_qe_last_section', true));
-
-        $single_product = [
-            'include_categories' => bw_tbl_admin_rule_values_by_type($include, 'product_category', 'terms'),
-            'include_ids' => bw_tbl_admin_rule_values_by_type($include, 'product_id', 'ids'),
-            'exclude_categories' => bw_tbl_admin_rule_values_by_type($exclude, 'product_category', 'terms'),
-            'exclude_ids' => bw_tbl_admin_rule_values_by_type($exclude, 'product_id', 'ids'),
-        ];
-        return [
-            'type' => $type,
-            'type_label' => bw_tbl_admin_template_type_label($type),
-            'priority' => $priority,
-            'last_section' => $last_section,
-            'single_product' => $single_product,
-        ];
-    }
-}
-
 if (!function_exists('bw_tbl_admin_rules_part_to_text')) {
     function bw_tbl_admin_rules_part_to_text($rules, $section)
     {
@@ -282,6 +189,38 @@ if (!function_exists('bw_tbl_admin_rules_summary')) {
     }
 }
 
+if (!function_exists('bw_tbl_admin_single_product_settings_summary')) {
+    function bw_tbl_admin_single_product_settings_summary($post_id)
+    {
+        if (!function_exists('bw_tbl_get_single_product_option')) {
+            return '';
+        }
+
+        $post_id = absint($post_id);
+        $option = bw_tbl_get_single_product_option();
+        if (empty($option['enabled'])) {
+            return '';
+        }
+
+        $active_id = isset($option['active_single_product_template_id']) ? absint($option['active_single_product_template_id']) : 0;
+        if ($active_id !== $post_id) {
+            return __('Controlled from Theme Builder Lite settings (inactive for this template).', 'bw');
+        }
+
+        $include = isset($option['include_product_cat']) && is_array($option['include_product_cat']) ? $option['include_product_cat'] : [];
+        $exclude = isset($option['exclude_product_cat']) && is_array($option['exclude_product_cat']) ? $option['exclude_product_cat'] : [];
+
+        $include_names = bw_tbl_admin_format_terms('product_cat', $include);
+        $exclude_names = bw_tbl_admin_format_terms('product_cat', $exclude);
+        $summary = '' !== $include_names ? sprintf(__('In Product Category: %s', 'bw'), $include_names) : __('All (within type)', 'bw');
+        if ('' !== $exclude_names) {
+            $summary .= '; ' . sprintf(__('Excluding: In Product Category: %s', 'bw'), $exclude_names);
+        }
+
+        return $summary;
+    }
+}
+
 if (!function_exists('bw_tbl_admin_list_columns')) {
     function bw_tbl_admin_list_columns($columns)
     {
@@ -329,153 +268,21 @@ if (!function_exists('bw_tbl_admin_render_list_column')) {
         }
 
         if ('bw_tbl_applies_to' === $column) {
-            $summary = bw_tbl_admin_rules_summary($post_id);
-            $payload = bw_tbl_admin_quick_edit_payload($post_id);
-            echo esc_html($summary);
-            echo '<span class="bw-tbl-qe-data" style="display:none;" data-bw-qe="' . esc_attr(wp_json_encode($payload)) . '"></span>';
+            $type = get_post_meta($post_id, 'bw_template_type', true);
+            $type = function_exists('bw_tbl_sanitize_template_type') ? bw_tbl_sanitize_template_type($type) : sanitize_key((string) $type);
+            if ('single_product' === $type) {
+                $settings_summary = bw_tbl_admin_single_product_settings_summary($post_id);
+                if ('' !== $settings_summary) {
+                    echo esc_html($settings_summary);
+                    return;
+                }
+            }
+
+            echo esc_html(bw_tbl_admin_rules_summary($post_id));
         }
     }
 }
 add_action('manage_bw_template_posts_custom_column', 'bw_tbl_admin_render_list_column', 10, 2);
-
-if (!function_exists('bw_tbl_admin_quick_edit_taxonomy_multiselect')) {
-    function bw_tbl_admin_quick_edit_taxonomy_multiselect($taxonomy, $name, $id)
-    {
-        $taxonomy = sanitize_key((string) $taxonomy);
-        $name = (string) $name;
-        $id = sanitize_html_class((string) $id);
-
-        if ('product_cat' === $taxonomy) {
-            $terms = get_terms(
-                [
-                    'taxonomy' => 'product_cat',
-                    'hide_empty' => false,
-                    'parent' => 0,
-                    'orderby' => 'name',
-                    'order' => 'ASC',
-                ]
-            );
-
-            echo '<select multiple="multiple" data-placeholder="' . esc_attr__('Select categories...', 'bw') . '" name="' . esc_attr($name) . '" id="' . esc_attr($id) . '" class="bw-tbl-qe-taxonomy-select wc-enhanced-select ' . esc_attr($id) . '" style="width:100%;">';
-            if (!is_wp_error($terms) && is_array($terms)) {
-                foreach ($terms as $term) {
-                    if (!($term instanceof WP_Term)) {
-                        continue;
-                    }
-                    echo '<option value="' . esc_attr((string) $term->term_id) . '">' . esc_html($term->name) . '</option>';
-                }
-            }
-            echo '</select>';
-            return;
-        }
-
-        $dropdown = wp_dropdown_categories(
-            [
-                'taxonomy' => $taxonomy,
-                'hide_empty' => false,
-                'name' => $name,
-                'id' => $id,
-                'show_option_none' => false,
-                'echo' => false,
-                'hierarchical' => true,
-                'orderby' => 'name',
-                'value_field' => 'term_id',
-            ]
-        );
-
-        if (!is_string($dropdown) || '' === $dropdown) {
-            echo '<select multiple="multiple" data-placeholder="' . esc_attr__('Select terms...', 'bw') . '" name="' . esc_attr($name) . '" id="' . esc_attr($id) . '" class="bw-tbl-qe-taxonomy-select wc-enhanced-select ' . esc_attr($id) . '" style="width:100%;"></select>';
-            return;
-        }
-
-        $dropdown = preg_replace('/<select\s/i', '<select multiple="multiple" data-placeholder="' . esc_attr__('Select terms...', 'bw') . '" data-multiple="1" class="bw-tbl-qe-taxonomy-select wc-enhanced-select ' . esc_attr($id) . '" style="width:100%;" ', $dropdown, 1);
-        echo $dropdown; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-    }
-}
-
-if (!function_exists('bw_tbl_admin_quick_edit_custom_box')) {
-    function bw_tbl_admin_quick_edit_custom_box($column_name, $post_type)
-    {
-        if ('bw_template' !== $post_type || 'bw_tbl_applies_to' !== $column_name) {
-            return;
-        }
-        ?>
-        <fieldset class="inline-edit-col-right bw-tbl-qe-wrap">
-            <div class="inline-edit-col">
-                <input type="hidden" name="bw_tbl_quick_edit_mode" value="1" />
-                <input type="hidden" name="bw_tbl_qe_present" value="1" />
-                <input type="hidden" name="bw_tbl_qe_priority_touched" class="bw-tbl-qe-priority-touched" value="0" />
-                <input type="hidden" name="bw_tbl_qe_rules_touched" class="bw-tbl-qe-rules-touched" value="0" />
-                <?php wp_nonce_field('bw_tbl_quick_edit_save', 'bw_tbl_quick_edit_nonce'); ?>
-
-                <p><strong><?php esc_html_e('Template Type', 'bw'); ?>:</strong> <span class="bw-tbl-qe-type-label">-</span></p>
-                <input type="hidden" name="bw_tbl_qe_template_type" class="bw-tbl-qe-type" value="" />
-                <?php // Future sections (archive/page/post/product archive) will be reintroduced in a dedicated Phase 2 hardening task. ?>
-                <div class="bw-tbl-qe-section bw-tbl-qe-section-single-product" style="margin-top:10px;">
-                    <p><strong><?php esc_html_e('Single Product Conditions', 'bw'); ?></strong></p>
-                    <p><?php esc_html_e('Include - Product Categories', 'bw'); ?></p>
-                    <?php bw_tbl_admin_quick_edit_taxonomy_multiselect('product_cat', 'bw_tbl_qe_include_product_cat[]', 'bw-tbl-qe-sp-inc-cat'); ?>
-                    <p><?php esc_html_e('Include - Product IDs', 'bw'); ?></p>
-                    <input type="text" name="bw_tbl_qe_include_product_ids" class="widefat bw-tbl-qe-sp-inc-ids" />
-                    <p><?php esc_html_e('Exclude - Product Categories', 'bw'); ?></p>
-                    <?php bw_tbl_admin_quick_edit_taxonomy_multiselect('product_cat', 'bw_tbl_qe_exclude_product_cat[]', 'bw-tbl-qe-sp-exc-cat'); ?>
-                    <p><?php esc_html_e('Exclude - Product IDs', 'bw'); ?></p>
-                    <input type="text" name="bw_tbl_qe_exclude_product_ids" class="widefat bw-tbl-qe-sp-exc-ids" />
-                </div>
-            </div>
-        </fieldset>
-        <?php
-    }
-}
-add_action('quick_edit_custom_box', 'bw_tbl_admin_quick_edit_custom_box', 10, 2);
-
-if (!function_exists('bw_tbl_admin_enqueue_quick_edit_assets')) {
-    function bw_tbl_admin_enqueue_quick_edit_assets($hook)
-    {
-        if ('edit.php' !== $hook) {
-            return;
-        }
-
-        $post_type = isset($_GET['post_type']) ? sanitize_key(wp_unslash($_GET['post_type'])) : '';
-        if ('bw_template' !== $post_type) {
-            return;
-        }
-
-        $script_path = plugin_dir_path(__FILE__) . 'bw-templates-quickedit.js';
-        $script_version = file_exists($script_path) ? (string) filemtime($script_path) : '1.0.0';
-        $deps = ['jquery', 'inline-edit-post'];
-        if (wp_script_is('wc-enhanced-select', 'registered')) {
-            $deps[] = 'wc-enhanced-select';
-        } elseif (wp_script_is('selectWoo', 'registered')) {
-            $deps[] = 'selectWoo';
-        } elseif (wp_script_is('select2', 'registered')) {
-            $deps[] = 'select2';
-        }
-
-        wp_enqueue_script(
-            'bw-tbl-quickedit',
-            plugin_dir_url(__FILE__) . 'bw-templates-quickedit.js',
-            $deps,
-            $script_version,
-            true
-        );
-
-        if (wp_script_is('wc-enhanced-select', 'registered')) {
-            wp_enqueue_script('wc-enhanced-select');
-        } elseif (wp_script_is('selectWoo', 'registered')) {
-            wp_enqueue_script('selectWoo');
-        } elseif (wp_script_is('select2', 'registered')) {
-            wp_enqueue_script('select2');
-        }
-
-        if (wp_style_is('select2', 'registered')) {
-            wp_enqueue_style('select2');
-        } elseif (wp_style_is('selectWoo', 'registered')) {
-            wp_enqueue_style('selectWoo');
-        }
-    }
-}
-add_action('admin_enqueue_scripts', 'bw_tbl_admin_enqueue_quick_edit_assets');
 
 if (!function_exists('bw_tbl_admin_type_filter_dropdown')) {
     function bw_tbl_admin_type_filter_dropdown()

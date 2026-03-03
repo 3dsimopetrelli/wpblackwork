@@ -61,6 +61,17 @@ If a decision is normative and architecture-binding, the ADR process MUST be use
   - Revalidate integration filters when Elementor major versions change.
   - Maintain fail-open behavior if Elementor is unavailable or filters are altered upstream.
 
+### Entry 005
+- Date: 2026-03-03
+- Decision summary: Abandoned `bw_template` Quick Edit conditions UX and moved Single Product category conditions to Theme Builder Lite settings tab as the authoritative admin surface.
+- Affected domain: Theme Builder Lite / Admin Configuration / Runtime Resolver
+- Rationale: Quick Edit DOM lifecycle produced unstable persistence/restore behavior and risked interference with core inline edit fields; settings-based storage provides deterministic saves and clearer ownership.
+- Risk impact: Medium reduced to Low-Medium for admin edit stability; introduces managed dual-surface legacy-data monitoring.
+- Follow-up actions:
+  - Keep `bw_theme_builder_lite_single_product_v1` as source of truth when enabled.
+  - Preserve fail-open behavior and Woo endpoint bypass invariants.
+  - Plan a separate migration/cleanup task for legacy `bw_tbl_display_rules_v1` single-product rules.
+
 ## Governance Layer Closure
 
 Status: CLOSED  

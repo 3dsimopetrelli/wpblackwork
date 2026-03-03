@@ -47,6 +47,7 @@
     function syncFeatureSections() {
         var fontsEnabled = $('#bw-tbl-flag-custom-fonts').is(':checked');
         var footerEnabled = $('#bw-tbl-flag-footer-override').is(':checked');
+        var singleProductEnabled = $('#bw-tbl-flag-single-product-conditions').is(':checked');
 
         if (fontsEnabled) {
             $('#bw-tbl-fonts-controls').show();
@@ -59,6 +60,12 @@
         } else {
             $('#bw-tbl-footer-controls').hide();
         }
+
+        if (singleProductEnabled) {
+            $('#bw-tbl-single-product-controls').show();
+        } else {
+            $('#bw-tbl-single-product-controls').hide();
+        }
     }
 
     $(document).on('click', '#bw-tbl-tabs .nav-tab', function (event) {
@@ -67,7 +74,7 @@
         setTab(tabKey);
     });
 
-    $(document).on('change', '#bw-tbl-flag-custom-fonts, #bw-tbl-flag-footer-override', function () {
+    $(document).on('change', '#bw-tbl-flag-custom-fonts, #bw-tbl-flag-footer-override, #bw-tbl-flag-single-product-conditions', function () {
         syncFeatureSections();
     });
 

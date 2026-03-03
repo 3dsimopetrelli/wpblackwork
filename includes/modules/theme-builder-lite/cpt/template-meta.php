@@ -58,75 +58,6 @@ if (!function_exists('bw_tbl_parse_csv_ids')) {
     }
 }
 
-if (!function_exists('bw_tbl_qe_post_int_list')) {
-    function bw_tbl_qe_post_int_list($key)
-    {
-        if (!isset($_POST[$key])) {
-            return [];
-        }
-
-        $raw = wp_unslash($_POST[$key]);
-        if (!is_array($raw)) {
-            return [];
-        }
-
-        $ids = [];
-        foreach ($raw as $item) {
-            $id = absint($item);
-            if ($id > 0) {
-                $ids[$id] = $id;
-            }
-        }
-
-        $ids = array_values($ids);
-        sort($ids, SORT_NUMERIC);
-        return $ids;
-    }
-}
-
-if (!function_exists('bw_tbl_qe_post_csv_ids')) {
-    function bw_tbl_qe_post_csv_ids($key)
-    {
-        if (!isset($_POST[$key])) {
-            return [];
-        }
-
-        return bw_tbl_parse_csv_ids((string) wp_unslash($_POST[$key]));
-    }
-}
-
-if (!function_exists('bw_tbl_qe_post_checkbox')) {
-    function bw_tbl_qe_post_checkbox($key)
-    {
-        return !empty($_POST[$key]);
-    }
-}
-
-if (!function_exists('bw_tbl_sanitize_qe_section')) {
-    function bw_tbl_sanitize_qe_section($value)
-    {
-        $value = sanitize_key((string) $value);
-        $allowed = ['single_product', 'product_archive', 'single_post', 'single_page', 'archive', 'search', 'error_404'];
-        return in_array($value, $allowed, true) ? $value : '';
-    }
-}
-
-if (!function_exists('bw_tbl_qe_debug_log')) {
-    function bw_tbl_qe_debug_log($message, $context = [])
-    {
-        if (!defined('WP_DEBUG_LOG') || !WP_DEBUG_LOG) {
-            return;
-        }
-
-        $suffix = '';
-        if (is_array($context) && !empty($context)) {
-            $suffix = ' ' . wp_json_encode($context);
-        }
-
-        error_log('[BW TBL QE] ' . (string) $message . $suffix); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-    }
-}
-
 if (!function_exists('bw_tbl_filter_parent_product_cat_ids')) {
     function bw_tbl_filter_parent_product_cat_ids($term_ids)
     {
@@ -731,11 +662,11 @@ add_action('add_meta_boxes', 'bw_tbl_add_template_type_metabox');
 if (!function_exists('bw_tbl_render_template_rules_guidance_metabox')) {
     function bw_tbl_render_template_rules_guidance_metabox()
     {
-        $list_url = admin_url('edit.php?post_type=bw_template');
+        $settings_url = admin_url('admin.php?page=bw-theme-builder-lite-settings');
         ?>
-        <p><?php esc_html_e('Conditions are managed from Templates list via Quick Edit.', 'bw'); ?></p>
+        <p><?php esc_html_e('Single Product conditions are managed from Theme Builder Lite settings.', 'bw'); ?></p>
         <p style="margin-top:10px;">
-            <a class="button button-secondary" href="<?php echo esc_url($list_url); ?>"><?php esc_html_e('Open Templates List', 'bw'); ?></a>
+            <a class="button button-secondary" href="<?php echo esc_url($settings_url); ?>"><?php esc_html_e('Open Theme Builder Lite Settings', 'bw'); ?></a>
         </p>
         <?php
     }
@@ -849,7 +780,7 @@ if (!function_exists('bw_tbl_render_template_rules_metabox')) {
             <a class="button button-primary" href="<?php echo esc_url($list_url); ?>"><?php esc_html_e('Go To BW Templates List', 'bw'); ?></a>
         </p>
         <p class="description">
-            <?php esc_html_e('Edit conditions using Quick Edit in the list to avoid conflicting UI.', 'bw'); ?>
+            <?php esc_html_e('Edit Single Product conditions in Theme Builder Lite settings. Legacy display-rules meta is kept for backward compatibility.', 'bw'); ?>
         </p>
         <?php
     }
@@ -880,105 +811,6 @@ if (!function_exists('bw_tbl_save_template_type_metabox')) {
     }
 }
 add_action('save_post_bw_template', 'bw_tbl_save_template_type_metabox');
-
-if (!function_exists('bw_tbl_save_template_rules_metabox')) {
-    function bw_tbl_save_template_rules_metabox($post_id)
-    {
-        if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
-            return;
-        }
-
-        $doing_ajax = defined('DOING_AJAX') && DOING_AJAX;
-        $request_action = isset($_POST['action']) ? sanitize_key(wp_unslash($_POST['action'])) : '';
-        $is_inline_save_request = $doing_ajax && 'inline-save' === $request_action;
-        $has_qe_marker = !empty($_POST['bw_tbl_qe_present']);
-
-        bw_tbl_qe_debug_log(
-            'save_post entry',
-            [
-                'post_id' => absint($post_id),
-                'post_type' => get_post_type($post_id),
-                'doing_ajax' => $doing_ajax ? 1 : 0,
-                'current_action' => current_action(),
-                'request_action' => $request_action,
-                'has_qe_marker' => $has_qe_marker ? 1 : 0,
-                'has_qe_nonce' => isset($_POST['bw_tbl_quick_edit_nonce']) ? 1 : 0,
-                'has_inline_nonce' => isset($_POST['_inline_edit']) ? 1 : 0,
-                'has_include_product_cat' => isset($_POST['bw_tbl_qe_include_product_cat']) ? 1 : 0,
-                'has_exclude_product_cat' => isset($_POST['bw_tbl_qe_exclude_product_cat']) ? 1 : 0,
-                'has_include_product_ids' => isset($_POST['bw_tbl_qe_include_product_ids']) ? 1 : 0,
-                'has_exclude_product_ids' => isset($_POST['bw_tbl_qe_exclude_product_ids']) ? 1 : 0,
-            ]
-        );
-
-        if (!$has_qe_marker && !$is_inline_save_request) {
-            return;
-        }
-
-        $quick_edit_nonce_ok = isset($_POST['bw_tbl_quick_edit_nonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['bw_tbl_quick_edit_nonce'])), 'bw_tbl_quick_edit_save');
-        $inline_nonce_ok = isset($_POST['_inline_edit']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['_inline_edit'])), 'inlineeditnonce');
-        if (!$quick_edit_nonce_ok && !$inline_nonce_ok) {
-            bw_tbl_qe_debug_log('save_post blocked by nonce');
-            return;
-        }
-
-        if (!current_user_can('edit_post', $post_id)) {
-            bw_tbl_qe_debug_log('save_post blocked by capability', ['post_id' => absint($post_id)]);
-            return;
-        }
-
-        if ('bw_template' !== get_post_type($post_id)) {
-            bw_tbl_qe_debug_log('save_post skipped non-bw_template', ['post_id' => absint($post_id)]);
-            return;
-        }
-
-        $quick_mode = !empty($_POST['bw_tbl_quick_edit_mode']);
-        if (!$quick_mode) {
-            bw_tbl_qe_debug_log('save_post skipped no quick mode', ['post_id' => absint($post_id)]);
-            return;
-        }
-
-        $posted_type_raw = isset($_POST['bw_tbl_qe_template_type']) ? sanitize_key((string) wp_unslash($_POST['bw_tbl_qe_template_type'])) : '';
-        $posted_type = '' !== $posted_type_raw ? bw_tbl_sanitize_template_type($posted_type_raw) : bw_tbl_sanitize_template_type(get_post_meta($post_id, 'bw_template_type', true));
-        if ('single_product' !== $posted_type) {
-            bw_tbl_qe_debug_log('save_post skipped non-single_product type (quick edit simplified)', ['post_id' => absint($post_id), 'posted_type' => $posted_type]);
-            return;
-        }
-
-        update_post_meta($post_id, 'bw_tbl_qe_last_section', 'single_product');
-
-        $normalized_rules = ['include' => [], 'exclude' => []];
-
-        $include_cats = bw_tbl_filter_parent_product_cat_ids(bw_tbl_qe_post_int_list('bw_tbl_qe_include_product_cat'));
-        $exclude_cats = bw_tbl_filter_parent_product_cat_ids(bw_tbl_qe_post_int_list('bw_tbl_qe_exclude_product_cat'));
-        $include_ids = bw_tbl_qe_post_csv_ids('bw_tbl_qe_include_product_ids');
-        $exclude_ids = bw_tbl_qe_post_csv_ids('bw_tbl_qe_exclude_product_ids');
-
-        if (!empty($include_cats)) {
-            $normalized_rules['include'][] = ['type' => 'product_category', 'terms' => $include_cats];
-        }
-        if (!empty($include_ids)) {
-            $normalized_rules['include'][] = ['type' => 'product_id', 'ids' => $include_ids];
-        }
-        if (!empty($exclude_cats)) {
-            $normalized_rules['exclude'][] = ['type' => 'product_category', 'terms' => $exclude_cats];
-        }
-        if (!empty($exclude_ids)) {
-            $normalized_rules['exclude'][] = ['type' => 'product_id', 'ids' => $exclude_ids];
-        }
-
-        update_post_meta($post_id, 'bw_tbl_display_rules_v1', $normalized_rules);
-        bw_tbl_qe_debug_log(
-            'save_post rules saved',
-            [
-                'post_id' => absint($post_id),
-                'posted_type' => $posted_type,
-                'saved_rules' => get_post_meta($post_id, 'bw_tbl_display_rules_v1', true),
-            ]
-        );
-    }
-}
-add_action('save_post_bw_template', 'bw_tbl_save_template_rules_metabox');
 
 if (!function_exists('bw_tbl_default_template_type_on_insert')) {
     function bw_tbl_default_template_type_on_insert($post_id, $post, $update)

@@ -87,6 +87,19 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
   - [Theme Builder Lite Spec](../30-features/theme-builder-lite/theme-builder-lite-spec.md)
   - [Theme Builder Lite Runtime Hook Map](../10-architecture/theme-builder-lite/runtime-hook-map.md)
 
+### Risk ID: R-TBL-06
+- Domain: Theme Builder Lite / Configuration Surfaces
+- Surface Anchor: `bw_theme_builder_lite_single_product_v1` option vs legacy `bw_tbl_display_rules_v1` post meta
+- Description: During transition away from Quick Edit, legacy single-product rules remain stored in post meta while settings tab becomes source of truth; operator confusion or mixed expectations can occur if precedence is not explicit.
+- Invariant Threatened: Deterministic and explainable single-product template selection.
+- Impact: Medium
+- Likelihood: Medium
+- Risk Level: Medium
+- Current Mitigation: explicit precedence contract (settings option authoritative when enabled), Quick Edit conditions removed, fail-open fallback, and migration deferred to dedicated cleanup task.
+- Monitoring Status: Monitoring
+- Linked Documents:
+  - [Theme Builder Lite Spec](../30-features/theme-builder-lite/theme-builder-lite-spec.md)
+
 ### Risk ID: R-CHK-01
 - Domain: Checkout / Payments
 - Surface Anchor: `assets/js/bw-payment-methods.js`, `assets/js/bw-google-pay.js`, `assets/js/bw-apple-pay.js` (`updated_checkout` handlers)

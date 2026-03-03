@@ -297,7 +297,21 @@ if (!function_exists('bw_tbl_runtime_resolve_template_include')) {
         }
 
         $context = bw_tbl_runtime_build_context($template_type);
-        $winner_id = bw_tbl_runtime_select_winner($template_type, $context);
+        $winner_id = 0;
+        if ('single_product' === $template_type && function_exists('bw_tbl_runtime_resolve_single_product_settings_winner')) {
+            $single_product_result = bw_tbl_runtime_resolve_single_product_settings_winner($context);
+            $handled = !empty($single_product_result['handled']);
+            if ($handled) {
+                $winner_id = isset($single_product_result['winner_id']) ? absint($single_product_result['winner_id']) : 0;
+                if ($winner_id <= 0) {
+                    return $template;
+                }
+            }
+        }
+
+        if ($winner_id <= 0) {
+            $winner_id = bw_tbl_runtime_select_winner($template_type, $context);
+        }
         if ($winner_id <= 0) {
             return $template;
         }

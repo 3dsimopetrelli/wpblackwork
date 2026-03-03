@@ -8,6 +8,7 @@
 - Phase 2 Step 4: Implemented (archive non-Woo contexts + archive rules)
 - Phase 2 Step 5: Implemented (Woo single product context + conditions)
 - Phase 2 Step 6: Implemented (Woo product archive context + conditions)
+- Single Product conditions UX stabilization: Implemented (settings-tab source of truth; Quick Edit conditions removed)
 - Scope delivered in Phase 1:
   - Custom Fonts module
   - Footer Template module
@@ -94,6 +95,23 @@ Option key: `bw_theme_builder_lite_flags`
 Behavior:
 - If master flag is off, runtime output is disabled.
 - Sub-flags gate fonts, footer, and Phase 2 template resolver independently.
+
+## Single Product Conditions (Settings-Driven MVP)
+- Quick Edit condition controls for `bw_template` are removed by design (stability hardening).
+- Single Product conditions are configured in `Theme Builder Lite` admin tab: `Post Product Category`.
+- Dedicated option key: `bw_theme_builder_lite_single_product_v1`
+  - `enabled`
+  - `active_single_product_template_id`
+  - `include_product_cat` (parent `product_cat` IDs only)
+  - `exclude_product_cat` (parent `product_cat` IDs only)
+- Runtime precedence contract:
+  - when this option is `enabled=1`, it is authoritative for `is_product()` resolution
+  - `exclude` evaluates first
+  - empty `include` = match-all
+  - invalid/missing template or no-match => fail-open to theme template
+- Backward compatibility:
+  - legacy `bw_tbl_display_rules_v1` meta is retained in DB and can be migrated later
+  - legacy data is not mutated by this settings-driven path
 
 ## C) Custom Fonts (Implemented)
 Storage option: `bw_custom_fonts_v1`
@@ -266,16 +284,10 @@ Resolver contract:
   - `Priority` (`bw_template_priority`, default `10`)
   - `Applies To` (summary from `bw_tbl_display_rules_v1`, include/exclude with concise truncation)
 - Optional type filter dropdown is available above the list table (`All Types` + specific template types).
-- Quick Edit is the single source of truth for updating priority and type-aware conditions.
-- The `bw_template` post edit screen does not expose conditions controls to avoid duplicate/conflicting admin surfaces.
-- The post edit screen shows a guidance-only `Display Rules` notice that points users to Templates list Quick Edit.
-- Quick Edit Conditions UI (stabilized scope):
-  - Quick Edit currently exposes only `Single Product Conditions` (include/exclude `product_cat` + include/exclude `product_id`).
-  - Other condition sections are intentionally hidden in this phase and will be reintroduced in a dedicated hardening step.
-  - Large taxonomy selectors use searchable dropdown enhancement (SelectWoo/Select2 when available) with native multi-select fallback.
-  - Fail-open: if Quick Edit JS is not available, all groups remain visible and editable.
-- Storage schema remains unchanged: `bw_tbl_display_rules_v1`.
-- No runtime resolver behavior is changed by this admin UX enhancement.
+- Quick Edit custom conditions are removed (core inline edit only).
+- The `bw_template` post edit screen remains guidance-only for conditions.
+- Single Product conditions are configured from Theme Builder Lite settings tab `Post Product Category`.
+- Legacy storage schema `bw_tbl_display_rules_v1` remains unchanged in DB for backward compatibility.
 
 ### Phase 2 Step 4 - Archive Contexts (Non-Woo) (Implemented)
 - Resolver type mapping:
@@ -313,6 +325,9 @@ Resolver contract:
   - Exclude-first
   - Include empty => match-all within `single_product` context (Elementor-like “All Products” behavior)
   - Winner: highest priority, tie-break by lowest template ID
+- Settings-surface precedence update:
+  - When `bw_theme_builder_lite_single_product_v1[enabled]=1`, settings tab conditions are authoritative for `single_product`.
+  - If settings do not match or configured template is invalid, resolver fails open to theme template.
 
 ### Phase 2 Step 6 - Woo Product Archive (Implemented)
 - Resolver type mapping:
