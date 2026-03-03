@@ -28,6 +28,17 @@ function bw_site_settings_menu()
         $icon_svg,                  // Icon (cerchio verde #80FD03)
         30                          // Position (dopo Comments)
     );
+
+    // Keep an explicit first submenu entry so clicking Blackwork Site does not
+    // default to the first child module (e.g. BW Templates list).
+    add_submenu_page(
+        'blackwork-site-settings',
+        __('Site Settings', 'bw'),
+        __('Site Settings', 'bw'),
+        'manage_options',
+        'blackwork-site-settings',
+        'bw_site_settings_page'
+    );
 }
 add_action('admin_menu', 'bw_site_settings_menu');
 
