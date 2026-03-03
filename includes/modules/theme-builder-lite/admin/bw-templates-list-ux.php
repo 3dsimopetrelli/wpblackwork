@@ -424,6 +424,7 @@ if (!function_exists('bw_tbl_admin_quick_edit_custom_box')) {
         <fieldset class="inline-edit-col-right bw-tbl-qe-wrap">
             <div class="inline-edit-col">
                 <input type="hidden" name="bw_tbl_quick_edit_mode" value="1" />
+                <input type="hidden" name="bw_tbl_qe_present" value="1" />
                 <input type="hidden" name="bw_tbl_qe_priority_touched" class="bw-tbl-qe-priority-touched" value="0" />
                 <input type="hidden" name="bw_tbl_qe_rules_touched" class="bw-tbl-qe-rules-touched" value="0" />
                 <?php wp_nonce_field('bw_tbl_quick_edit_save', 'bw_tbl_quick_edit_nonce'); ?>

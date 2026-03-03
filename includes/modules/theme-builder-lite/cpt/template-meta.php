@@ -102,6 +102,22 @@ if (!function_exists('bw_tbl_qe_post_checkbox')) {
     }
 }
 
+if (!function_exists('bw_tbl_qe_debug_log')) {
+    function bw_tbl_qe_debug_log($message, $context = [])
+    {
+        if (!defined('WP_DEBUG_LOG') || !WP_DEBUG_LOG) {
+            return;
+        }
+
+        $suffix = '';
+        if (is_array($context) && !empty($context)) {
+            $suffix = ' ' . wp_json_encode($context);
+        }
+
+        error_log('[BW TBL QE] ' . (string) $message . $suffix); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+    }
+}
+
 if (!function_exists('bw_tbl_filter_parent_product_cat_ids')) {
     function bw_tbl_filter_parent_product_cat_ids($term_ids)
     {
@@ -682,6 +698,15 @@ if (!function_exists('bw_tbl_add_template_type_metabox')) {
     function bw_tbl_add_template_type_metabox()
     {
         add_meta_box(
+            'bw_tbl_template_rules_guidance_metabox',
+            __('Display Rules', 'bw'),
+            'bw_tbl_render_template_rules_guidance_metabox',
+            'bw_template',
+            'normal',
+            'default'
+        );
+
+        add_meta_box(
             'bw_tbl_template_type_metabox',
             __('Template Type', 'bw'),
             'bw_tbl_render_template_type_metabox',
@@ -693,6 +718,19 @@ if (!function_exists('bw_tbl_add_template_type_metabox')) {
     }
 }
 add_action('add_meta_boxes', 'bw_tbl_add_template_type_metabox');
+
+if (!function_exists('bw_tbl_render_template_rules_guidance_metabox')) {
+    function bw_tbl_render_template_rules_guidance_metabox()
+    {
+        $list_url = admin_url('edit.php?post_type=bw_template');
+        ?>
+        <p><?php esc_html_e('Conditions are managed from Templates list via Quick Edit.', 'bw'); ?></p>
+        <p style="margin-top:10px;">
+            <a class="button button-secondary" href="<?php echo esc_url($list_url); ?>"><?php esc_html_e('Open Templates List', 'bw'); ?></a>
+        </p>
+        <?php
+    }
+}
 
 if (!function_exists('bw_tbl_render_template_type_metabox')) {
     function bw_tbl_render_template_type_metabox($post)
@@ -841,26 +879,58 @@ if (!function_exists('bw_tbl_save_template_rules_metabox')) {
             return;
         }
 
+        $doing_ajax = defined('DOING_AJAX') && DOING_AJAX;
+        $request_action = isset($_POST['action']) ? sanitize_key(wp_unslash($_POST['action'])) : '';
+        $is_inline_save_request = $doing_ajax && 'inline-save' === $request_action;
+        $has_qe_marker = !empty($_POST['bw_tbl_qe_present']);
+
+        bw_tbl_qe_debug_log(
+            'save_post entry',
+            [
+                'post_id' => absint($post_id),
+                'post_type' => get_post_type($post_id),
+                'doing_ajax' => $doing_ajax ? 1 : 0,
+                'current_action' => current_action(),
+                'request_action' => $request_action,
+                'has_qe_marker' => $has_qe_marker ? 1 : 0,
+                'has_qe_nonce' => isset($_POST['bw_tbl_quick_edit_nonce']) ? 1 : 0,
+                'has_inline_nonce' => isset($_POST['_inline_edit']) ? 1 : 0,
+                'has_include_product_cat' => isset($_POST['bw_tbl_qe_include_product_cat']) ? 1 : 0,
+                'has_exclude_product_cat' => isset($_POST['bw_tbl_qe_exclude_product_cat']) ? 1 : 0,
+                'has_include_product_ids' => isset($_POST['bw_tbl_qe_include_product_ids']) ? 1 : 0,
+                'has_exclude_product_ids' => isset($_POST['bw_tbl_qe_exclude_product_ids']) ? 1 : 0,
+            ]
+        );
+
+        if (!$has_qe_marker && !$is_inline_save_request) {
+            return;
+        }
+
         $quick_edit_nonce_ok = isset($_POST['bw_tbl_quick_edit_nonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['bw_tbl_quick_edit_nonce'])), 'bw_tbl_quick_edit_save');
         $inline_nonce_ok = isset($_POST['_inline_edit']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['_inline_edit'])), 'inlineeditnonce');
         if (!$quick_edit_nonce_ok && !$inline_nonce_ok) {
+            bw_tbl_qe_debug_log('save_post blocked by nonce');
             return;
         }
 
         if (!current_user_can('edit_post', $post_id)) {
+            bw_tbl_qe_debug_log('save_post blocked by capability', ['post_id' => absint($post_id)]);
             return;
         }
 
         if ('bw_template' !== get_post_type($post_id)) {
+            bw_tbl_qe_debug_log('save_post skipped non-bw_template', ['post_id' => absint($post_id)]);
             return;
         }
 
         $quick_mode = !empty($_POST['bw_tbl_quick_edit_mode']);
         if (!$quick_mode) {
+            bw_tbl_qe_debug_log('save_post skipped no quick mode', ['post_id' => absint($post_id)]);
             return;
         }
 
-        $posted_type = isset($_POST['bw_tbl_qe_template_type']) ? bw_tbl_sanitize_template_type(wp_unslash($_POST['bw_tbl_qe_template_type'])) : bw_tbl_sanitize_template_type(get_post_meta($post_id, 'bw_template_type', true));
+        $posted_type_raw = isset($_POST['bw_tbl_qe_template_type']) ? sanitize_key((string) wp_unslash($_POST['bw_tbl_qe_template_type'])) : '';
+        $posted_type = '' !== $posted_type_raw ? bw_tbl_sanitize_template_type($posted_type_raw) : bw_tbl_sanitize_template_type(get_post_meta($post_id, 'bw_template_type', true));
 
         if (isset($_POST['bw_tbl_qe_priority']) && is_numeric(wp_unslash($_POST['bw_tbl_qe_priority']))) {
             $priority = (int) wp_unslash($_POST['bw_tbl_qe_priority']);
@@ -871,6 +941,12 @@ if (!function_exists('bw_tbl_save_template_rules_metabox')) {
                 $priority = 999;
             }
             update_post_meta($post_id, 'bw_template_priority', $priority);
+        }
+
+        $supported_types = ['single_post', 'single_page', 'archive', 'single_product', 'product_archive'];
+        if (!in_array($posted_type, $supported_types, true)) {
+            bw_tbl_qe_debug_log('save_post skipped unsupported type', ['post_id' => absint($post_id), 'posted_type' => $posted_type]);
+            return;
         }
 
         $normalized_rules = ['include' => [], 'exclude' => []];
@@ -968,6 +1044,14 @@ if (!function_exists('bw_tbl_save_template_rules_metabox')) {
         }
 
         update_post_meta($post_id, 'bw_tbl_display_rules_v1', $normalized_rules);
+        bw_tbl_qe_debug_log(
+            'save_post rules saved',
+            [
+                'post_id' => absint($post_id),
+                'posted_type' => $posted_type,
+                'saved_rules' => get_post_meta($post_id, 'bw_tbl_display_rules_v1', true),
+            ]
+        );
     }
 }
 add_action('save_post_bw_template', 'bw_tbl_save_template_rules_metabox');

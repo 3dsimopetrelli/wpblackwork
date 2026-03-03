@@ -268,6 +268,7 @@ Resolver contract:
 - Optional type filter dropdown is available above the list table (`All Types` + specific template types).
 - Quick Edit is the single source of truth for updating priority and type-aware conditions.
 - The `bw_template` post edit screen does not expose conditions controls to avoid duplicate/conflicting admin surfaces.
+- The post edit screen shows a guidance-only `Display Rules` notice that points users to Templates list Quick Edit.
 - Storage schema remains unchanged: `bw_tbl_display_rules_v1`.
 - No runtime resolver behavior is changed by this admin UX enhancement.
 
