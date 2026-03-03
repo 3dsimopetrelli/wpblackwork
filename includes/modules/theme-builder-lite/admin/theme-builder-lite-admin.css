@@ -1,0 +1,41 @@
+.bw-tbl-admin-wrap .bw-tbl-tab-panel .notice {
+    border-radius: 8px;
+}
+
+.bw-tbl-admin-wrap .bw-tbl-single-product-rule {
+    border: 1px solid #dcdcde;
+    border-radius: 10px;
+    background: #fff;
+    padding: 14px;
+    margin-bottom: 14px;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.03);
+}
+
+.bw-tbl-admin-wrap .bw-tbl-rule-heading {
+    margin: 0 0 12px 0;
+}
+
+.bw-tbl-admin-wrap .bw-tbl-rule-table {
+    margin: 0;
+}
+
+.bw-tbl-admin-wrap .bw-tbl-rule-table th {
+    width: 240px;
+}
+
+.bw-tbl-admin-wrap .bw-tbl-term-select {
+    min-width: 320px;
+    border-radius: 6px;
+}
+
+.bw-tbl-admin-wrap .bw-tbl-exclude-fields {
+    margin-top: 10px;
+}
+
+.bw-tbl-admin-wrap .bw-tbl-rule-actions {
+    margin: 12px 0 0 0;
+}
+
+.bw-tbl-admin-wrap .bw-tbl-remove-single-product-rule {
+    text-decoration: none;
+}
