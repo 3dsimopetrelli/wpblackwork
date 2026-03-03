@@ -440,19 +440,40 @@ if (!function_exists('bw_tbl_resolve_product_context_id')) {
         }
 
         if (function_exists('bw_tbl_is_bw_single_product_template_preview') && bw_tbl_is_bw_single_product_template_preview()) {
-            $preview_product_id = function_exists('bw_tbl_get_preview_product_id')
-                ? absint(bw_tbl_get_preview_product_id())
-                : 0;
+            $preview_product_id = 0;
+            $preview_source = 'none';
+
+            if (!empty($GLOBALS['bw_tbl_preview_product_id'])) {
+                $preview_product_id = absint($GLOBALS['bw_tbl_preview_product_id']);
+                $preview_source = 'global';
+            }
+
+            if ($preview_product_id <= 0) {
+                $query_var_id = absint(get_query_var('bw_tbl_preview_product_id'));
+                if ($query_var_id > 0) {
+                    $preview_product_id = $query_var_id;
+                    $preview_source = 'query_var';
+                }
+            }
+
+            if ($preview_product_id <= 0 && function_exists('bw_tbl_get_preview_product_id')) {
+                $preview_product_id = absint(bw_tbl_get_preview_product_id());
+                if ($preview_product_id > 0) {
+                    $preview_source = 'option_v1';
+                }
+            }
 
             if ($preview_product_id <= 0 && function_exists('bw_tbl_get_single_product_preview_product_id')) {
                 $preview_product_id = absint(bw_tbl_get_single_product_preview_product_id(false));
-            }
-
-            if ($preview_product_id <= 0 && !empty($GLOBALS['bw_tbl_preview_product_id'])) {
-                $preview_product_id = absint($GLOBALS['bw_tbl_preview_product_id']);
+                if ($preview_product_id > 0) {
+                    $preview_source = 'option_legacy';
+                }
             }
 
             if ($preview_product_id > 0) {
+                if (defined('BW_TBL_DEBUG_PREVIEW') && BW_TBL_DEBUG_PREVIEW) {
+                    error_log('[BW_TBL_PREVIEW_DEBUG] resolver_preview_source=' . $preview_source . ' id=' . $preview_product_id); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+                }
                 if (defined('BW_TBL_DEBUG_PREVIEW') && BW_TBL_DEBUG_PREVIEW && !empty($settings['__widget_class'])) {
                     error_log('[BW_TBL_PREVIEW_DEBUG] widget=' . (string) $settings['__widget_class'] . ' source=preview_fallback id=' . $preview_product_id); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
                 }
@@ -500,43 +521,52 @@ if (!function_exists('bw_tbl_is_bw_single_product_template_preview')) {
             return false;
         }
 
-        $is_elementor_context = false;
         $plugin = \Elementor\Plugin::$instance;
-
-        if ($plugin && isset($plugin->editor) && method_exists($plugin->editor, 'is_edit_mode') && $plugin->editor->is_edit_mode()) {
-            $is_elementor_context = true;
-        }
-
-        if ($plugin && isset($plugin->preview) && method_exists($plugin->preview, 'is_preview_mode') && $plugin->preview->is_preview_mode()) {
-            $is_elementor_context = true;
-        }
-
-        if (isset($_GET['elementor-preview'])) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-            $is_elementor_context = true;
-        }
+        $is_editor = $plugin && isset($plugin->editor) && method_exists($plugin->editor, 'is_edit_mode') && $plugin->editor->is_edit_mode();
+        $is_preview = $plugin && isset($plugin->preview) && method_exists($plugin->preview, 'is_preview_mode') && $plugin->preview->is_preview_mode();
+        $is_elementor_context = $is_editor || $is_preview;
 
         if (!$is_elementor_context) {
             return false;
         }
 
-        if (function_exists('bw_tbl_get_elementor_preview_single_product_context')) {
-            $context = bw_tbl_get_elementor_preview_single_product_context();
-            return !empty($context['apply']);
+        $bridge_global = !empty($GLOBALS['bw_tbl_preview_product_id']) ? absint($GLOBALS['bw_tbl_preview_product_id']) : 0;
+        $bridge_qv = absint(get_query_var('bw_tbl_preview_product_id'));
+
+        if ($bridge_global > 0 || $bridge_qv > 0) {
+            if (defined('BW_TBL_DEBUG_PREVIEW') && BW_TBL_DEBUG_PREVIEW) {
+                error_log('[BW_TBL_PREVIEW_DEBUG] preview_gate=true via_bridge global=' . $bridge_global . ' qv=' . $bridge_qv); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+            }
+            return true;
         }
 
-        $template_id = isset($_GET['elementor-preview']) ? absint(wp_unslash($_GET['elementor-preview'])) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-        if ($template_id <= 0 && isset($_GET['post'])) {
-            $maybe_id = absint(wp_unslash($_GET['post'])); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-            if ($maybe_id > 0 && 'bw_template' === get_post_type($maybe_id)) {
-                $template_id = $maybe_id;
+        if (function_exists('bw_tbl_get_elementor_preview_template_id')) {
+            $template_id = absint(bw_tbl_get_elementor_preview_template_id());
+            if ($template_id > 0 && 'bw_template' === get_post_type($template_id)) {
+                $template_type = (string) get_post_meta($template_id, 'bw_template_type', true);
+                $result = ('single_product' === $template_type);
+                if (defined('BW_TBL_DEBUG_PREVIEW') && BW_TBL_DEBUG_PREVIEW) {
+                    error_log('[BW_TBL_PREVIEW_DEBUG] preview_gate template_id=' . $template_id . ' type=' . $template_type . ' result=' . ($result ? '1' : '0')); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+                }
+                return $result;
             }
         }
 
-        if ($template_id <= 0 || 'bw_template' !== get_post_type($template_id)) {
-            return false;
+        if (function_exists('is_singular') && is_singular('bw_template')) {
+            $template_id = absint(get_queried_object_id());
+            $template_type = (string) get_post_meta($template_id, 'bw_template_type', true);
+            $result = ('single_product' === $template_type);
+            if (defined('BW_TBL_DEBUG_PREVIEW') && BW_TBL_DEBUG_PREVIEW) {
+                error_log('[BW_TBL_PREVIEW_DEBUG] preview_gate queried_template_id=' . $template_id . ' type=' . $template_type . ' result=' . ($result ? '1' : '0')); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+            }
+            return $result;
         }
 
-        return 'single_product' === get_post_meta($template_id, 'bw_template_type', true);
+        if (defined('BW_TBL_DEBUG_PREVIEW') && BW_TBL_DEBUG_PREVIEW) {
+            error_log('[BW_TBL_PREVIEW_DEBUG] preview_gate=false no_template_context'); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+        }
+
+        return false;
     }
 }
 

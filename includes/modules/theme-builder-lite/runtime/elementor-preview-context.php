@@ -174,6 +174,7 @@ if (!function_exists('bw_tbl_apply_elementor_single_product_preview_context')) {
         }
 
         $GLOBALS['bw_tbl_preview_product_id'] = $product_id;
+        set_query_var('bw_tbl_preview_product_id', $product_id);
         $applied = true;
 
         bw_tbl_preview_debug_log('preview context applied without wp_query mutation', [
@@ -181,6 +182,11 @@ if (!function_exists('bw_tbl_apply_elementor_single_product_preview_context')) {
             'product_id' => $product_id,
             'wc_product' => ($product && is_a($product, 'WC_Product')),
             'wp_query_mutated' => false,
+        ]);
+
+        bw_tbl_preview_debug_log('preview bridge values set', [
+            'global_bw_tbl_preview_product_id' => isset($GLOBALS['bw_tbl_preview_product_id']) ? absint($GLOBALS['bw_tbl_preview_product_id']) : 0,
+            'query_var_bw_tbl_preview_product_id' => absint(get_query_var('bw_tbl_preview_product_id')),
         ]);
     }
 }
