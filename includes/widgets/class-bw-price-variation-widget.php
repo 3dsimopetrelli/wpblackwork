@@ -1283,33 +1283,80 @@ class BW_Price_Variation_Widget extends Widget_Base {
         }
 
         private function is_single_product_template_preview_context() {
-                if ( ! class_exists( '\\Elementor\\Plugin' ) ) {
+
+                // 1) Detect Elementor context (editor or iframe preview)
+                $is_elementor_context = false;
+
+                if ( class_exists( '\Elementor\Plugin' ) ) {
+                        $plugin = \Elementor\Plugin::$instance;
+
+                        if ( isset( $plugin->editor ) && $plugin->editor && $plugin->editor->is_edit_mode() ) {
+                                $is_elementor_context = true;
+                        }
+
+                        if ( isset( $plugin->preview ) && $plugin->preview && $plugin->preview->is_preview_mode() ) {
+                                $is_elementor_context = true;
+                        }
+                }
+
+                if ( isset( $_GET['elementor-preview'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                        $is_elementor_context = true;
+                }
+
+                if ( ! $is_elementor_context ) {
+                        if ( defined( 'BW_TBL_DEBUG_PREVIEW' ) && BW_TBL_DEBUG_PREVIEW ) {
+                                error_log( '[BW_TBL_PREVIEW_DEBUG] is_single_product_template_preview_context context=false' ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+                        }
                         return false;
                 }
 
-                $plugin = \Elementor\Plugin::$instance;
-                $is_editor = isset( $plugin->editor ) && method_exists( $plugin->editor, 'is_edit_mode' ) && $plugin->editor->is_edit_mode();
-                $is_preview = isset( $plugin->preview ) && method_exists( $plugin->preview, 'is_preview_mode' ) && $plugin->preview->is_preview_mode();
-                if ( ! $is_editor && ! $is_preview ) {
+                // 2) Resolve bw_template ID being previewed
+                $template_id = 0;
+
+                if ( isset( $_GET['elementor-preview'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                        $template_id = absint( $_GET['elementor-preview'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                }
+
+                if ( ! $template_id && function_exists( 'is_singular' ) && is_singular( 'bw_template' ) ) {
+                        $template_id = absint( get_queried_object_id() );
+                }
+
+                if ( ! $template_id && isset( $_GET['post'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                        $maybe_id = absint( $_GET['post'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                        if ( $maybe_id > 0 && get_post_type( $maybe_id ) === 'bw_template' ) {
+                                $template_id = $maybe_id;
+                        }
+                }
+
+                if ( ! $template_id ) {
+                        if ( defined( 'BW_TBL_DEBUG_PREVIEW' ) && BW_TBL_DEBUG_PREVIEW ) {
+                                error_log( '[BW_TBL_PREVIEW_DEBUG] is_single_product_template_preview_context template_id=0 return=false' ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+                        }
                         return false;
                 }
 
-                if ( function_exists( 'bw_tbl_get_elementor_preview_single_product_context' ) ) {
-                        $context = bw_tbl_get_elementor_preview_single_product_context();
-                        return ! empty( $context['apply'] );
-                }
-
-                $template_id = isset( $_GET['elementor-preview'] ) ? absint( wp_unslash( $_GET['elementor-preview'] ) ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-                if ( $template_id <= 0 ) {
+                if ( get_post_type( $template_id ) !== 'bw_template' ) {
+                        if ( defined( 'BW_TBL_DEBUG_PREVIEW' ) && BW_TBL_DEBUG_PREVIEW ) {
+                                error_log( '[BW_TBL_PREVIEW_DEBUG] is_single_product_template_preview_context template_id=' . $template_id . ' post_type_mismatch return=false' ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+                        }
                         return false;
                 }
 
-                $template_post = get_post( $template_id );
-                if ( ! $template_post || 'bw_template' !== $template_post->post_type ) {
-                        return false;
+                // 3) Confirm template type is single_product
+                $type = get_post_meta( $template_id, 'bw_template_type', true );
+                $result = ( $type === 'single_product' );
+
+                if ( defined( 'BW_TBL_DEBUG_PREVIEW' ) && BW_TBL_DEBUG_PREVIEW ) {
+                        $elementor_preview_param = isset( $_GET['elementor-preview'] ) ? absint( $_GET['elementor-preview'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                        error_log( // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+                                '[BW_TBL_PREVIEW_DEBUG] elementor_preview=' . $elementor_preview_param .
+                                ' template_id=' . $template_id .
+                                ' bw_template_type=' . (string) $type .
+                                ' return=' . ( $result ? 'true' : 'false' )
+                        );
                 }
 
-                return 'single_product' === sanitize_key( (string) get_post_meta( $template_id, 'bw_template_type', true ) );
+                return $result;
         }
 
         private function get_variations_data( $available_variations ) {
