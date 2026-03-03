@@ -108,8 +108,6 @@ if (!function_exists('bw_tbl_render_import_template_tab')) {
         $result = bw_tbl_import_result();
         $max_size = bw_tbl_import_template_max_size();
         $max_mb = number_format_i18n($max_size / MB_IN_BYTES, 0);
-        $type_choices = bw_tbl_import_template_choices();
-
         if (is_array($result)) {
             $notice_class = ('success' === $result['status']) ? 'notice-success' : 'notice-error';
             echo '<div class="notice ' . esc_attr($notice_class) . '" style="margin:0 0 12px 0;padding:10px 12px;"><p style="margin:0;">' . esc_html($result['message']) . '</p>';
@@ -132,24 +130,90 @@ if (!function_exists('bw_tbl_render_import_template_tab')) {
                     <td>
                         <input id="bw-tbl-import-file" type="file" name="bw_tbl_import_file" accept=".json,application/json,text/json,text/plain" required />
                         <p class="description"><?php echo esc_html(sprintf(__('Accepted: .json (max %s MB)', 'bw'), (string) $max_mb)); ?></p>
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row"><label for="bw-tbl-import-type-override"><?php esc_html_e('Template Type Override', 'bw'); ?></label></th>
-                    <td>
-                        <select id="bw-tbl-import-type-override" name="bw_tbl_import_type_override">
-                            <option value=""><?php esc_html_e('Auto detect from JSON type', 'bw'); ?></option>
-                            <?php foreach ($type_choices as $type_value => $type_label) : ?>
-                                <option value="<?php echo esc_attr($type_value); ?>"><?php echo esc_html($type_label); ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                        <p class="description"><?php esc_html_e('Use override only if JSON type is missing or unsupported.', 'bw'); ?></p>
+                        <p class="description"><?php esc_html_e('Template type is auto-detected from the JSON export type. If not mappable, import is aborted.', 'bw'); ?></p>
                     </td>
                 </tr>
             </table>
             <?php submit_button(__('Import Template', 'bw'), 'primary', 'bw_tbl_import_submit', false); ?>
         </form>
+        <?php bw_tbl_render_import_history(); ?>
         <?php
+    }
+}
+
+if (!function_exists('bw_tbl_render_import_history')) {
+    function bw_tbl_render_import_history()
+    {
+        $query = new WP_Query(
+            [
+                'post_type' => 'bw_template',
+                'post_status' => ['draft', 'publish', 'pending', 'future', 'private'],
+                'posts_per_page' => 10,
+                'no_found_rows' => true,
+                'orderby' => 'date',
+                'order' => 'DESC',
+                'meta_query' => [
+                    [
+                        'key' => 'bw_tbl_imported',
+                        'value' => '1',
+                    ],
+                ],
+            ]
+        );
+
+        echo '<hr style="margin:20px 0;" />';
+        echo '<h2 style="margin:0 0 10px 0;">' . esc_html__('Recent Imports', 'bw') . '</h2>';
+
+        if (!$query->have_posts()) {
+            echo '<p class="description">' . esc_html__('No imported templates yet.', 'bw') . '</p>';
+            return;
+        }
+
+        echo '<table class="widefat striped"><thead><tr>';
+        echo '<th>' . esc_html__('Title', 'bw') . '</th>';
+        echo '<th>' . esc_html__('Detected Type', 'bw') . '</th>';
+        echo '<th>' . esc_html__('Date', 'bw') . '</th>';
+        echo '<th>' . esc_html__('Actions', 'bw') . '</th>';
+        echo '</tr></thead><tbody>';
+
+        foreach ($query->posts as $post) {
+            if (!($post instanceof WP_Post)) {
+                continue;
+            }
+
+            $post_id = absint($post->ID);
+            if ($post_id <= 0) {
+                continue;
+            }
+
+            $title = get_the_title($post_id);
+            $title = is_string($title) && '' !== trim($title) ? $title : sprintf(__('Template #%d', 'bw'), $post_id);
+
+            $raw_type = get_post_meta($post_id, 'bw_template_type', true);
+            $type = function_exists('bw_tbl_sanitize_template_type') ? bw_tbl_sanitize_template_type($raw_type) : sanitize_key((string) $raw_type);
+            $type_label = $type;
+            if (function_exists('bw_tbl_admin_template_type_label')) {
+                $type_label = bw_tbl_admin_template_type_label($type);
+            }
+
+            $edit_link = get_edit_post_link($post_id, 'raw');
+            $date_display = get_the_date(get_option('date_format') . ' ' . get_option('time_format'), $post_id);
+
+            echo '<tr>';
+            echo '<td>' . esc_html($title) . '</td>';
+            echo '<td>' . esc_html((string) $type_label) . '</td>';
+            echo '<td>' . esc_html((string) $date_display) . '</td>';
+            echo '<td>';
+            if (is_string($edit_link) && '' !== $edit_link) {
+                echo '<a class="button button-small" href="' . esc_url($edit_link) . '">' . esc_html__('Edit', 'bw') . '</a>';
+            } else {
+                echo '<span class="description">' . esc_html__('Unavailable', 'bw') . '</span>';
+            }
+            echo '</td>';
+            echo '</tr>';
+        }
+
+        echo '</tbody></table>';
     }
 }
 
@@ -223,13 +287,11 @@ if (!function_exists('bw_tbl_import_template_handle')) {
         }
 
         $raw_type = isset($payload['type']) ? (string) $payload['type'] : '';
-        $detected_type = bw_tbl_import_type_map($raw_type);
-        $override_type = isset($_POST['bw_tbl_import_type_override']) ? sanitize_key(wp_unslash($_POST['bw_tbl_import_type_override'])) : '';
-        $template_type = ('' !== $override_type) ? bw_tbl_import_type_map($override_type) : $detected_type;
+        $template_type = bw_tbl_import_type_map($raw_type);
 
         $allowed_types = bw_tbl_import_template_choices();
         if ('' === $template_type || !isset($allowed_types[$template_type])) {
-            wp_safe_redirect(bw_tbl_import_redirect_url('error', __('Template type could not be detected. Please select a type override.', 'bw')));
+            wp_safe_redirect(bw_tbl_import_redirect_url('error', __('Template type could not be mapped from JSON type. Import aborted.', 'bw')));
             exit;
         }
 
@@ -257,11 +319,13 @@ if (!function_exists('bw_tbl_import_template_handle')) {
             exit;
         }
 
+        $prefixed_title = sprintf(__('Imported — %s', 'bw'), $title);
+
         $post_id = wp_insert_post(
             [
                 'post_type' => 'bw_template',
                 'post_status' => 'draft',
-                'post_title' => $title,
+                'post_title' => $prefixed_title,
             ],
             true
         );
@@ -279,6 +343,7 @@ if (!function_exists('bw_tbl_import_template_handle')) {
 
         $required_meta = [
             'bw_template_type' => $template_type,
+            'bw_tbl_imported' => '1',
             '_elementor_data' => wp_slash($elementor_data_json),
             '_elementor_edit_mode' => 'builder',
             '_elementor_version' => defined('ELEMENTOR_VERSION') ? ELEMENTOR_VERSION : '3.0.0',
