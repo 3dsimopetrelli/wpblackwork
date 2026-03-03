@@ -22,11 +22,47 @@ if (!function_exists('bw_tbl_admin_template_type_label')) {
     }
 }
 
+if (!function_exists('bw_tbl_filter_parent_product_cat_ids')) {
+    function bw_tbl_filter_parent_product_cat_ids($term_ids)
+    {
+        $term_ids = is_array($term_ids) ? $term_ids : [];
+        if (empty($term_ids)) {
+            return [];
+        }
+
+        $valid = [];
+        foreach ($term_ids as $term_id) {
+            $term_id = absint($term_id);
+            if ($term_id <= 0) {
+                continue;
+            }
+
+            $term = get_term($term_id, 'product_cat');
+            if (!($term instanceof WP_Term) || is_wp_error($term)) {
+                continue;
+            }
+
+            if ((int) $term->parent !== 0) {
+                continue;
+            }
+
+            $valid[$term_id] = $term_id;
+        }
+
+        $valid = array_values($valid);
+        sort($valid, SORT_NUMERIC);
+        return $valid;
+    }
+}
+
 if (!function_exists('bw_tbl_admin_format_terms')) {
     function bw_tbl_admin_format_terms($taxonomy, $term_ids)
     {
         $taxonomy = sanitize_key((string) $taxonomy);
         $term_ids = is_array($term_ids) ? $term_ids : [];
+        if ('product_cat' === $taxonomy) {
+            $term_ids = bw_tbl_filter_parent_product_cat_ids($term_ids);
+        }
         if (empty($term_ids)) {
             return '';
         }
@@ -80,6 +116,9 @@ if (!function_exists('bw_tbl_admin_rule_values_by_type')) {
         }
 
         $result = array_values($result);
+        if ('terms' === $value_key && in_array($rule_type, ['product_category', 'product_archive_category'], true)) {
+            $result = bw_tbl_filter_parent_product_cat_ids($result);
+        }
         sort($result, SORT_NUMERIC);
 
         return $result;
@@ -326,6 +365,30 @@ if (!function_exists('bw_tbl_admin_quick_edit_taxonomy_multiselect')) {
         $taxonomy = sanitize_key((string) $taxonomy);
         $name = (string) $name;
         $id = sanitize_html_class((string) $id);
+
+        if ('product_cat' === $taxonomy) {
+            $terms = get_terms(
+                [
+                    'taxonomy' => 'product_cat',
+                    'hide_empty' => false,
+                    'parent' => 0,
+                    'orderby' => 'name',
+                    'order' => 'ASC',
+                ]
+            );
+
+            echo '<select multiple="multiple" size="5" name="' . esc_attr($name) . '" id="' . esc_attr($id) . '" class="' . esc_attr($id) . '" style="width:100%;">';
+            if (!is_wp_error($terms) && is_array($terms)) {
+                foreach ($terms as $term) {
+                    if (!($term instanceof WP_Term)) {
+                        continue;
+                    }
+                    echo '<option value="' . esc_attr((string) $term->term_id) . '">' . esc_html($term->name) . '</option>';
+                }
+            }
+            echo '</select>';
+            return;
+        }
 
         $dropdown = wp_dropdown_categories(
             [

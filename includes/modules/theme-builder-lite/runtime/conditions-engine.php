@@ -44,6 +44,39 @@ if (!function_exists('bw_tbl_rule_post_type_list')) {
     }
 }
 
+if (!function_exists('bw_tbl_filter_parent_product_cat_ids')) {
+    function bw_tbl_filter_parent_product_cat_ids($term_ids)
+    {
+        $term_ids = is_array($term_ids) ? $term_ids : [];
+        if (empty($term_ids)) {
+            return [];
+        }
+
+        $valid = [];
+        foreach ($term_ids as $term_id) {
+            $term_id = absint($term_id);
+            if ($term_id <= 0) {
+                continue;
+            }
+
+            $term = get_term($term_id, 'product_cat');
+            if (!($term instanceof WP_Term) || is_wp_error($term)) {
+                continue;
+            }
+
+            if ((int) $term->parent !== 0) {
+                continue;
+            }
+
+            $valid[$term_id] = $term_id;
+        }
+
+        $valid = array_values($valid);
+        sort($valid, SORT_NUMERIC);
+        return $valid;
+    }
+}
+
 if (!function_exists('bw_tbl_normalize_single_rule')) {
     function bw_tbl_normalize_single_rule($raw_rule)
     {
@@ -94,6 +127,7 @@ if (!function_exists('bw_tbl_normalize_single_rule')) {
 
         if ('product_category' === $type) {
             $terms = bw_tbl_rule_int_list(isset($raw_rule['terms']) ? $raw_rule['terms'] : []);
+            $terms = bw_tbl_filter_parent_product_cat_ids($terms);
             if (empty($terms)) {
                 return null;
             }
@@ -124,6 +158,7 @@ if (!function_exists('bw_tbl_normalize_single_rule')) {
 
         if ('product_archive_category' === $type) {
             $terms = bw_tbl_rule_int_list(isset($raw_rule['terms']) ? $raw_rule['terms'] : []);
+            $terms = bw_tbl_filter_parent_product_cat_ids($terms);
             if (empty($terms)) {
                 return null;
             }

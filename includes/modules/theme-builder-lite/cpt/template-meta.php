@@ -58,6 +58,39 @@ if (!function_exists('bw_tbl_parse_csv_ids')) {
     }
 }
 
+if (!function_exists('bw_tbl_filter_parent_product_cat_ids')) {
+    function bw_tbl_filter_parent_product_cat_ids($term_ids)
+    {
+        $term_ids = is_array($term_ids) ? $term_ids : [];
+        if (empty($term_ids)) {
+            return [];
+        }
+
+        $valid = [];
+        foreach ($term_ids as $term_id) {
+            $term_id = absint($term_id);
+            if ($term_id <= 0) {
+                continue;
+            }
+
+            $term = get_term($term_id, 'product_cat');
+            if (!($term instanceof WP_Term) || is_wp_error($term)) {
+                continue;
+            }
+
+            if ((int) $term->parent !== 0) {
+                continue;
+            }
+
+            $valid[$term_id] = $term_id;
+        }
+
+        $valid = array_values($valid);
+        sort($valid, SORT_NUMERIC);
+        return $valid;
+    }
+}
+
 if (!function_exists('bw_tbl_parse_rule_rows')) {
     function bw_tbl_parse_rule_rows($rows)
     {
@@ -287,6 +320,7 @@ if (!function_exists('bw_tbl_parse_single_product_rules_section')) {
         }
         $category_ids = array_values($category_ids);
         sort($category_ids, SORT_NUMERIC);
+        $category_ids = bw_tbl_filter_parent_product_cat_ids($category_ids);
         if (!empty($category_ids)) {
             $rules[] = [
                 'type' => 'product_category',
@@ -402,6 +436,7 @@ if (!function_exists('bw_tbl_get_single_product_rules_for_ui')) {
 
         $result['product_category'] = array_values($result['product_category']);
         sort($result['product_category'], SORT_NUMERIC);
+        $result['product_category'] = bw_tbl_filter_parent_product_cat_ids($result['product_category']);
         $result['product_id'] = array_values($result['product_id']);
         sort($result['product_id'], SORT_NUMERIC);
 
@@ -433,6 +468,7 @@ if (!function_exists('bw_tbl_parse_product_archive_rules_section')) {
         }
         $category_ids = array_values($category_ids);
         sort($category_ids, SORT_NUMERIC);
+        $category_ids = bw_tbl_filter_parent_product_cat_ids($category_ids);
         if (!empty($category_ids)) {
             $rules[] = [
                 'type' => 'product_archive_category',
@@ -510,6 +546,7 @@ if (!function_exists('bw_tbl_get_product_archive_rules_for_ui')) {
 
         $result['product_archive_category'] = array_values($result['product_archive_category']);
         sort($result['product_archive_category'], SORT_NUMERIC);
+        $result['product_archive_category'] = bw_tbl_filter_parent_product_cat_ids($result['product_archive_category']);
         $result['product_archive_tag'] = array_values($result['product_archive_tag']);
         sort($result['product_archive_tag'], SORT_NUMERIC);
 

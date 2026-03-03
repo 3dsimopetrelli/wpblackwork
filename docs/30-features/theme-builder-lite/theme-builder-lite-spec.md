@@ -296,6 +296,11 @@ Resolver contract:
 - Supported single product rule types:
   - `product_category` (product category term IDs)
   - `product_id` (specific product IDs)
+- Product category contract (parent-only):
+  - `product_category` conditions accept only parent `product_cat` terms (`parent=0`).
+  - Subcategories are excluded from admin condition selectors.
+  - Save normalization drops non-parent IDs.
+  - Matching is direct term ID comparison on assigned product terms (no parent-chain traversal).
 - Evaluation and precedence remain unchanged:
   - Exclude-first
   - Include empty => match-all within `single_product` context (Elementor-like “All Products” behavior)
@@ -313,6 +318,9 @@ Resolver contract:
   - `product_archive_shop`
   - `product_archive_category` (`product_cat` term IDs)
   - `product_archive_tag` (`product_tag` term IDs)
+- Product category contract (parent-only):
+  - `product_archive_category` accepts only parent `product_cat` terms (`parent=0`).
+  - Subcategories are intentionally excluded from UI and matching.
 - Evaluation and precedence remain unchanged:
   - Exclude-first
   - Include empty => match-all within `product_archive` context (Elementor-like “All Product Archives” behavior)
