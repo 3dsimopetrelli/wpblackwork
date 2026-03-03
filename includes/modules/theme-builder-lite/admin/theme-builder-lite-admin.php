@@ -470,7 +470,7 @@ if (!function_exists('bw_tbl_render_admin_page')) {
                                 <?php bw_tbl_render_single_product_rule_row($rule_index, $single_product_rule, $single_product_choices, $parent_product_categories); ?>
                             <?php endforeach; ?>
                         </div>
-                        <p>
+                        <p class="bw-tbl-rules-toolbar">
                             <button type="button" class="button" id="bw-tbl-add-single-product-rule"><?php esc_html_e('+ Add Rule', 'bw'); ?></button>
                         </p>
                     </div>

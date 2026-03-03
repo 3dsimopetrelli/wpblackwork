@@ -66,8 +66,14 @@
 
 .bw-tbl-admin-wrap .bw-tbl-rule-actions {
     margin: 12px 0 0 0;
+    text-align: right;
 }
 
 .bw-tbl-admin-wrap .bw-tbl-remove-single-product-rule {
     text-decoration: none;
+}
+
+.bw-tbl-admin-wrap .bw-tbl-rules-toolbar {
+    margin: 10px 0 0 0;
+    text-align: right;
 }
