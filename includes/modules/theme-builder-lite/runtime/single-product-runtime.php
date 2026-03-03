@@ -209,7 +209,29 @@ if (!function_exists('bw_tbl_runtime_resolve_single_product_settings_winner')) {
         $product_cat_ids = isset($context['product_category_term_ids']) && is_array($context['product_category_term_ids'])
             ? array_values(array_filter(array_map('absint', $context['product_category_term_ids'])))
             : [];
-        $product_cat_map = array_fill_keys($product_cat_ids, true);
+        $expanded_product_cat_ids = [];
+        foreach ($product_cat_ids as $term_id) {
+            $term_id = absint($term_id);
+            if ($term_id <= 0) {
+                continue;
+            }
+
+            $expanded_product_cat_ids[$term_id] = $term_id;
+
+            // Parent-only rules must also match products assigned to child terms.
+            $ancestors = get_ancestors($term_id, 'product_cat', 'taxonomy');
+            if (!is_array($ancestors)) {
+                continue;
+            }
+
+            foreach ($ancestors as $ancestor_id) {
+                $ancestor_id = absint($ancestor_id);
+                if ($ancestor_id > 0) {
+                    $expanded_product_cat_ids[$ancestor_id] = $ancestor_id;
+                }
+            }
+        }
+        $product_cat_map = array_fill_keys(array_values($expanded_product_cat_ids), true);
 
         $exclude = isset($option['exclude_product_cat']) && is_array($option['exclude_product_cat']) ? $option['exclude_product_cat'] : [];
         foreach ($exclude as $term_id) {

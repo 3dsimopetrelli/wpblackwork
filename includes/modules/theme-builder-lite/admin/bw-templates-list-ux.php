@@ -221,6 +221,26 @@ if (!function_exists('bw_tbl_admin_single_product_settings_summary')) {
     }
 }
 
+if (!function_exists('bw_tbl_admin_is_active_footer_template')) {
+    function bw_tbl_admin_is_active_footer_template($post_id)
+    {
+        $post_id = absint($post_id);
+        if ($post_id <= 0 || !function_exists('bw_tbl_get_feature_flags') || !function_exists('bw_tbl_get_footer_option')) {
+            return false;
+        }
+
+        $flags = bw_tbl_get_feature_flags();
+        if (empty($flags['footer_override_enabled'])) {
+            return false;
+        }
+
+        $footer_option = bw_tbl_get_footer_option();
+        $active_footer_id = isset($footer_option['active_footer_template_id']) ? absint($footer_option['active_footer_template_id']) : 0;
+
+        return $active_footer_id > 0 && $active_footer_id === $post_id;
+    }
+}
+
 if (!function_exists('bw_tbl_admin_list_columns')) {
     function bw_tbl_admin_list_columns($columns)
     {
@@ -278,11 +298,34 @@ if (!function_exists('bw_tbl_admin_render_list_column')) {
                 }
             }
 
+            if ('footer' === $type && bw_tbl_admin_is_active_footer_template($post_id)) {
+                echo '<span class="bw-tbl-pill" style="display:inline-block;padding:2px 8px;border-radius:999px;background:#e8f0fe;color:#0b57d0;font-weight:600;">' . esc_html__('Applies to: Footer', 'bw') . '</span>';
+                return;
+            }
+
             echo esc_html(bw_tbl_admin_rules_summary($post_id));
         }
     }
 }
 add_action('manage_bw_template_posts_custom_column', 'bw_tbl_admin_render_list_column', 10, 2);
+
+if (!function_exists('bw_tbl_admin_footer_display_state')) {
+    function bw_tbl_admin_footer_display_state($states, $post)
+    {
+        if (!($post instanceof WP_Post) || 'bw_template' !== $post->post_type) {
+            return $states;
+        }
+
+        $post_id = isset($post->ID) ? absint($post->ID) : 0;
+        if ($post_id <= 0 || !bw_tbl_admin_is_active_footer_template($post_id)) {
+            return $states;
+        }
+
+        $states['bw_tbl_applies_footer'] = __('Applies to: Footer', 'bw');
+        return $states;
+    }
+}
+add_filter('display_post_states', 'bw_tbl_admin_footer_display_state', 10, 2);
 
 if (!function_exists('bw_tbl_admin_type_filter_dropdown')) {
     function bw_tbl_admin_type_filter_dropdown()
