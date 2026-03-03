@@ -190,7 +190,8 @@ if (!function_exists('bw_tbl_sanitize_single_product_rule')) {
             $template_id = 0;
         }
 
-        $include_product_cat = isset($rule['include_product_cat']) && is_array($rule['include_product_cat'])
+        $include_mode = isset($rule['include_mode']) ? sanitize_key((string) $rule['include_mode']) : '';
+        $include_product_cat = ('selected' === $include_mode && isset($rule['include_product_cat']) && is_array($rule['include_product_cat']))
             ? bw_tbl_filter_parent_product_cat_ids($rule['include_product_cat'])
             : [];
         $exclude_enabled = !empty($rule['exclude_enabled']);

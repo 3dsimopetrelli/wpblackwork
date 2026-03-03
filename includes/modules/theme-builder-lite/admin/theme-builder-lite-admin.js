@@ -116,6 +116,25 @@
         });
     }
 
+    function syncIncludeFields($scope) {
+        var $root = $scope && $scope.length ? $scope : $(document);
+        var $rules = $root.filter('.bw-tbl-single-product-rule').add($root.find('.bw-tbl-single-product-rule'));
+        $rules.each(function () {
+            var $rule = $(this);
+            var mode = ($rule.find('.bw-tbl-include-mode-radio:checked').val() || 'all').toString();
+            var $fields = $rule.find('.bw-tbl-include-fields');
+            var $select = $fields.find('select');
+            if (mode === 'selected') {
+                $fields.show();
+                $select.prop('disabled', false);
+            } else {
+                $fields.hide();
+                $select.prop('disabled', true);
+                $select.val([]);
+            }
+        });
+    }
+
     $(document).on('click', '#bw-tbl-tabs .nav-tab', function (event) {
         event.preventDefault();
         var tabKey = ($(this).data('bw-tbl-tab') || 'settings').toString();
@@ -142,6 +161,7 @@
             return;
         }
         $('#bw-tbl-single-product-rules-list').append(row);
+        syncIncludeFields(row);
         syncExcludeFields(row);
     });
 
@@ -160,6 +180,10 @@
                     $(this).val('0');
                 }
             });
+            $rule.find('.bw-tbl-include-mode-radio[value="all"]').prop('checked', true);
+            $rule.find('.bw-tbl-enable-exclude').prop('checked', false);
+            syncIncludeFields($rule);
+            syncExcludeFields($rule);
             return;
         }
 
@@ -169,6 +193,11 @@
     $(document).on('change', '.bw-tbl-enable-exclude', function () {
         var $rule = $(this).closest('.bw-tbl-single-product-rule');
         syncExcludeFields($rule);
+    });
+
+    $(document).on('change', '.bw-tbl-include-mode-radio', function () {
+        var $rule = $(this).closest('.bw-tbl-single-product-rule');
+        syncIncludeFields($rule);
     });
 
     $(document).on('click', '.bw-tbl-remove-font-row', function (event) {
@@ -240,6 +269,7 @@
     $(function () {
         setTab('settings');
         syncFeatureSections();
+        syncIncludeFields();
         syncExcludeFields();
     });
 })(jQuery);

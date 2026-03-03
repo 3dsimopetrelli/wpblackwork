@@ -28,6 +28,14 @@
     border-radius: 6px;
 }
 
+.bw-tbl-admin-wrap .bw-tbl-include-mode {
+    margin: 0 0 8px 0;
+}
+
+.bw-tbl-admin-wrap .bw-tbl-include-fields {
+    margin-top: 8px;
+}
+
 .bw-tbl-admin-wrap .bw-tbl-exclude-fields {
     margin-top: 10px;
 }

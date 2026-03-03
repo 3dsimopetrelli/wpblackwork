@@ -167,6 +167,7 @@ if (!function_exists('bw_tbl_render_single_product_rule_row')) {
         $rule = is_array($rule) ? $rule : [];
         $template_id = isset($rule['template_id']) ? absint($rule['template_id']) : 0;
         $include = isset($rule['include_product_cat']) && is_array($rule['include_product_cat']) ? array_map('absint', $rule['include_product_cat']) : [];
+        $include_mode = !empty($include) ? 'selected' : 'all';
         $exclude = isset($rule['exclude_product_cat']) && is_array($rule['exclude_product_cat']) ? array_map('absint', $rule['exclude_product_cat']) : [];
         $exclude_enabled = !empty($exclude);
         ?>
@@ -193,12 +194,25 @@ if (!function_exists('bw_tbl_render_single_product_rule_row')) {
                         <label><?php esc_html_e('Include Product Categories', 'bw'); ?></label>
                     </th>
                     <td>
-                        <select class="bw-tbl-term-select" name="<?php echo esc_attr(BW_TBL_SINGLE_PRODUCT_RULES_OPTION); ?>[rules][<?php echo esc_attr((string) $index); ?>][include_product_cat][]" multiple="multiple" size="8">
-                            <?php foreach ($parent_product_categories as $term_id => $term_name) : ?>
-                                <option value="<?php echo esc_attr((string) $term_id); ?>" <?php selected(in_array((int) $term_id, $include, true)); ?>><?php echo esc_html($term_name); ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                        <p class="description"><?php esc_html_e('If empty, include behaves as match-all for this rule.', 'bw'); ?></p>
+                        <fieldset class="bw-tbl-include-mode">
+                            <label>
+                                <input type="radio" class="bw-tbl-include-mode-radio" name="<?php echo esc_attr(BW_TBL_SINGLE_PRODUCT_RULES_OPTION); ?>[rules][<?php echo esc_attr((string) $index); ?>][include_mode]" value="all" <?php checked('all', $include_mode); ?> />
+                                <?php esc_html_e('Apply to all categories', 'bw'); ?>
+                            </label>
+                            <br />
+                            <label>
+                                <input type="radio" class="bw-tbl-include-mode-radio" name="<?php echo esc_attr(BW_TBL_SINGLE_PRODUCT_RULES_OPTION); ?>[rules][<?php echo esc_attr((string) $index); ?>][include_mode]" value="selected" <?php checked('selected', $include_mode); ?> />
+                                <?php esc_html_e('Apply only to selected categories', 'bw'); ?>
+                            </label>
+                        </fieldset>
+                        <div class="bw-tbl-include-fields">
+                            <select class="bw-tbl-term-select" name="<?php echo esc_attr(BW_TBL_SINGLE_PRODUCT_RULES_OPTION); ?>[rules][<?php echo esc_attr((string) $index); ?>][include_product_cat][]" multiple="multiple" size="8">
+                                <?php foreach ($parent_product_categories as $term_id => $term_name) : ?>
+                                    <option value="<?php echo esc_attr((string) $term_id); ?>" <?php selected(in_array((int) $term_id, $include, true)); ?>><?php echo esc_html($term_name); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <p class="description"><?php esc_html_e('If set to “all”, this rule matches every category unless excluded.', 'bw'); ?></p>
                     </td>
                 </tr>
                 <tr>
