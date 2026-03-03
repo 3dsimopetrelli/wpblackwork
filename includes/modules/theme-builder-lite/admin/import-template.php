@@ -64,6 +64,99 @@ if (!function_exists('bw_tbl_import_template_choices')) {
     }
 }
 
+if (!function_exists('bw_tbl_import_extract_template_payload')) {
+    function bw_tbl_import_extract_template_payload($payload)
+    {
+        if (!is_array($payload)) {
+            return null;
+        }
+
+        if (isset($payload['content']) || isset($payload['elements']) || isset($payload['title']) || isset($payload['type'])) {
+            return $payload;
+        }
+
+        if (isset($payload[0]) && is_array($payload[0])) {
+            $candidate = $payload[0];
+            if (isset($candidate['content']) || isset($candidate['elements']) || isset($candidate['title']) || isset($candidate['type'])) {
+                return $candidate;
+            }
+        }
+
+        if (isset($payload['templates']) && is_array($payload['templates']) && isset($payload['templates'][0]) && is_array($payload['templates'][0])) {
+            $candidate = $payload['templates'][0];
+            if (isset($candidate['content']) || isset($candidate['elements']) || isset($candidate['title']) || isset($candidate['type'])) {
+                return $candidate;
+            }
+        }
+
+        return null;
+    }
+}
+
+if (!function_exists('bw_tbl_import_map_type_from_payload')) {
+    function bw_tbl_import_map_type_from_payload($payload)
+    {
+        $payload = is_array($payload) ? $payload : [];
+
+        $candidates = [];
+        if (isset($payload['type'])) {
+            $candidates[] = (string) $payload['type'];
+        }
+        if (isset($payload['template_type'])) {
+            $candidates[] = (string) $payload['template_type'];
+        }
+        if (isset($payload['doc_type'])) {
+            $candidates[] = (string) $payload['doc_type'];
+        }
+
+        foreach ($candidates as $raw_type) {
+            $mapped = bw_tbl_import_type_map($raw_type);
+            if ('' !== $mapped) {
+                return $mapped;
+            }
+        }
+
+        return '';
+    }
+}
+
+if (!function_exists('bw_tbl_import_create_library_template')) {
+    function bw_tbl_import_create_library_template($title, $elementor_data_json, $page_settings, $source_bw_template_id)
+    {
+        if (!post_type_exists('elementor_library')) {
+            return new WP_Error('bw_tbl_library_unavailable', __('Elementor Library post type is unavailable.', 'bw'));
+        }
+
+        $library_id = wp_insert_post(
+            [
+                'post_type' => 'elementor_library',
+                'post_status' => 'publish',
+                'post_title' => $title,
+            ],
+            true
+        );
+
+        if (is_wp_error($library_id)) {
+            return $library_id;
+        }
+
+        $library_id = absint($library_id);
+        if ($library_id <= 0) {
+            return new WP_Error('bw_tbl_library_create_failed', __('Unable to create Elementor Library template.', 'bw'));
+        }
+
+        update_post_meta($library_id, '_elementor_data', wp_slash($elementor_data_json));
+        update_post_meta($library_id, '_elementor_edit_mode', 'builder');
+        update_post_meta($library_id, '_elementor_version', defined('ELEMENTOR_VERSION') ? ELEMENTOR_VERSION : '3.0.0');
+        update_post_meta($library_id, '_elementor_page_settings', is_array($page_settings) ? $page_settings : []);
+        update_post_meta($library_id, '_elementor_template_type', 'page');
+        update_post_meta($library_id, 'bw_tbl_imported', '1');
+        update_post_meta($library_id, 'bw_tbl_source_bw_template_id', absint($source_bw_template_id));
+
+        return $library_id;
+    }
+}
+
 if (!function_exists('bw_tbl_import_redirect_url')) {
     function bw_tbl_import_redirect_url($status, $message, $post_id = 0)
     {
@@ -102,10 +195,41 @@ if (!function_exists('bw_tbl_import_result')) {
     }
 }
 
+if (!function_exists('bw_tbl_repair_imported_template_meta')) {
+    function bw_tbl_repair_imported_template_meta($post_id)
+    {
+        $post_id = absint($post_id);
+        if ($post_id <= 0) {
+            return;
+        }
+
+        $post = get_post($post_id);
+        if (!($post instanceof WP_Post) || 'bw_template' !== $post->post_type) {
+            return;
+        }
+
+        $raw_settings = get_post_meta($post_id, '_elementor_page_settings', true);
+        if (is_string($raw_settings) && '' !== trim($raw_settings)) {
+            $decoded = json_decode($raw_settings, true);
+            if (is_array($decoded) && JSON_ERROR_NONE === json_last_error()) {
+                update_post_meta($post_id, '_elementor_page_settings', $decoded);
+            }
+        }
+
+        $template_type = get_post_meta($post_id, '_elementor_template_type', true);
+        if (!is_string($template_type) || '' === trim($template_type)) {
+            update_post_meta($post_id, '_elementor_template_type', 'page');
+        }
+    }
+}
+
 if (!function_exists('bw_tbl_render_import_template_tab')) {
     function bw_tbl_render_import_template_tab()
     {
         $result = bw_tbl_import_result();
+        if (is_array($result) && !empty($result['post_id'])) {
+            bw_tbl_repair_imported_template_meta((int) $result['post_id']);
+        }
         $max_size = bw_tbl_import_template_max_size();
         $max_mb = number_format_i18n($max_size / MB_IN_BYTES, 0);
         if (is_array($result)) {
@@ -185,6 +309,8 @@ if (!function_exists('bw_tbl_render_import_history')) {
             if ($post_id <= 0) {
                 continue;
             }
+
+            bw_tbl_repair_imported_template_meta($post_id);
 
             $title = get_the_title($post_id);
             $title = is_string($title) && '' !== trim($title) ? $title : sprintf(__('Template #%d', 'bw'), $post_id);
@@ -272,9 +398,15 @@ if (!function_exists('bw_tbl_import_template_handle')) {
             exit;
         }
 
-        $payload = json_decode($json_raw, true);
-        if (!is_array($payload) || JSON_ERROR_NONE !== json_last_error()) {
+        $decoded = json_decode($json_raw, true);
+        if (!is_array($decoded) || JSON_ERROR_NONE !== json_last_error()) {
             wp_safe_redirect(bw_tbl_import_redirect_url('error', __('Invalid JSON payload.', 'bw')));
+            exit;
+        }
+
+        $payload = bw_tbl_import_extract_template_payload($decoded);
+        if (!is_array($payload)) {
+            wp_safe_redirect(bw_tbl_import_redirect_url('error', __('JSON payload does not contain a supported Elementor template structure.', 'bw')));
             exit;
         }
 
@@ -286,8 +418,7 @@ if (!function_exists('bw_tbl_import_template_handle')) {
             $title = __('Imported Template', 'bw');
         }
 
-        $raw_type = isset($payload['type']) ? (string) $payload['type'] : '';
-        $template_type = bw_tbl_import_type_map($raw_type);
+        $template_type = bw_tbl_import_map_type_from_payload($payload);
 
         $allowed_types = bw_tbl_import_template_choices();
         if ('' === $template_type || !isset($allowed_types[$template_type])) {
@@ -313,8 +444,7 @@ if (!function_exists('bw_tbl_import_template_handle')) {
         }
 
         $elementor_data_json = wp_json_encode($elements);
-        $page_settings_json = wp_json_encode($page_settings);
-        if (!is_string($elementor_data_json) || '' === $elementor_data_json || !is_string($page_settings_json)) {
+        if (!is_string($elementor_data_json) || '' === $elementor_data_json) {
             wp_safe_redirect(bw_tbl_import_redirect_url('error', __('Unable to encode Elementor data for import.', 'bw')));
             exit;
         }
@@ -347,7 +477,8 @@ if (!function_exists('bw_tbl_import_template_handle')) {
             '_elementor_data' => wp_slash($elementor_data_json),
             '_elementor_edit_mode' => 'builder',
             '_elementor_version' => defined('ELEMENTOR_VERSION') ? ELEMENTOR_VERSION : '3.0.0',
-            '_elementor_page_settings' => wp_slash($page_settings_json),
+            '_elementor_page_settings' => is_array($page_settings) ? $page_settings : [],
+            '_elementor_template_type' => 'page',
         ];
 
         $meta_ok = true;
@@ -363,6 +494,18 @@ if (!function_exists('bw_tbl_import_template_handle')) {
             wp_delete_post($post_id, true);
             wp_safe_redirect(bw_tbl_import_redirect_url('error', __('Import failed while saving Elementor metadata.', 'bw')));
             exit;
+        }
+
+        $library_result = bw_tbl_import_create_library_template($prefixed_title, $elementor_data_json, $page_settings, $post_id);
+        if (is_wp_error($library_result)) {
+            wp_delete_post($post_id, true);
+            wp_safe_redirect(bw_tbl_import_redirect_url('error', __('Import failed while creating Elementor Library entry.', 'bw')));
+            exit;
+        }
+
+        $library_id = absint($library_result);
+        if ($library_id > 0) {
+            update_post_meta($post_id, 'bw_tbl_library_template_id', $library_id);
         }
 
         wp_safe_redirect(bw_tbl_import_redirect_url('success', __('Template imported successfully as draft.', 'bw'), $post_id));
