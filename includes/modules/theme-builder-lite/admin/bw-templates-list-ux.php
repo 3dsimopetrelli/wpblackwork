@@ -461,6 +461,8 @@ if (!function_exists('bw_tbl_admin_quick_edit_custom_box')) {
                         <option value="single_post"><?php esc_html_e('Single Post Conditions', 'bw'); ?></option>
                         <option value="single_page"><?php esc_html_e('Single Page Conditions', 'bw'); ?></option>
                         <option value="archive"><?php esc_html_e('Archive Conditions', 'bw'); ?></option>
+                        <option value="search"><?php esc_html_e('Search Results', 'bw'); ?></option>
+                        <option value="error_404"><?php esc_html_e('404', 'bw'); ?></option>
                     </select>
                 </label>
 
@@ -525,7 +527,11 @@ if (!function_exists('bw_tbl_admin_quick_edit_custom_box')) {
                     <?php bw_tbl_admin_quick_edit_taxonomy_multiselect('category', 'bw_tbl_qe_exclude_archive_cat[]', 'bw-tbl-qe-arc-exc-cat'); ?>
                 </div>
 
-                <div class="bw-tbl-qe-note" style="margin-top:10px;">
+                <div class="bw-tbl-qe-section" data-bw-section="search" style="margin-top:10px;">
+                    <p class="description"><?php esc_html_e('Applies globally per type; no additional rules.', 'bw'); ?></p>
+                </div>
+
+                <div class="bw-tbl-qe-section" data-bw-section="error_404" style="margin-top:10px;">
                     <p class="description"><?php esc_html_e('Applies globally per type; no additional rules.', 'bw'); ?></p>
                 </div>
             </div>

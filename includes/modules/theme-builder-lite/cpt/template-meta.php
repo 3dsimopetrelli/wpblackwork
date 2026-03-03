@@ -106,7 +106,7 @@ if (!function_exists('bw_tbl_sanitize_qe_section')) {
     function bw_tbl_sanitize_qe_section($value)
     {
         $value = sanitize_key((string) $value);
-        $allowed = ['single_product', 'product_archive', 'single_post', 'single_page', 'archive'];
+        $allowed = ['single_product', 'product_archive', 'single_post', 'single_page', 'archive', 'search', 'error_404'];
         return in_array($value, $allowed, true) ? $value : '';
     }
 }
