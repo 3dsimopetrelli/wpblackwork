@@ -1,213 +1,161 @@
 # task-close-template.md
 
 ## 1) Task Identity
-- Task ID: TBL-IMPORT-TEMPLATE-TAB-CLOSE
-- Task Title: Theme Builder Lite — Import Template (Elementor JSON -> bw_template)
+- Task ID: TBL-PREVIEW-BRIDGE-WIDGET-RESOLVER-CLOSE
+- Task Title: BW Widgets Product Context Resolver standardization (Elementor preview safe)
 - Date Closed: 2026-03-03
 - Owner: Simo
-- System: Blackwork Core (plugin) — Theme Builder Lite
+- System: Blackwork Core plugin (Theme Builder Lite + BW widgets)
 
 ## 2) Governance Classification
-- Domain(s): Theme Builder Lite / Admin Settings / Data Import / Elementor Integration
-- Tier: 1 (admin upload + content creation surface)
-- Authority surface touched: Yes
-- Authority touch points:
-  - Admin file upload (`admin-post.php` action)
-  - `bw_template` CPT creation
-  - Elementor metadata persistence (`_elementor_*`)
-  - Elementor Library mirror entry creation (`elementor_library`)
-- Data integrity risk: Medium
-- Determinism status: Confirmed deterministic
-- Undeclared authority surfaces: None
-- Woo session/cart mutation: None (confirmed)
+- Domain(s): Theme Builder Lite runtime preview / widgets product context
+- Tier: 1 (editor UX + widget rendering context)
+- Authority surface touched: Preview/editor only
+- Frontend authority mutation: None
+- Data integrity risk: Low-Medium (preview context wiring only)
+- Determinism: Confirmed
 
 ## 3) Scope Completed
-1. Added `Import Template` tab under Theme Builder Lite settings.
-2. Implemented nonce-protected JSON uploader with strict admin capability checks.
-3. Implemented automatic type detection (no manual override UI).
-4. Implemented safe fallback behavior for unmappable types:
-   - import continues as `draft`
-   - `bw_template_type` is set to fallback `single_page`
-   - admin success notice explicitly states fallback type was used.
-5. Imported template title prefix added: `Imported — {Original Title}`.
-6. Added import marker meta: `bw_tbl_imported = 1`.
-7. Added recent imports list (last 10) with title, detected type, date/time, and edit link.
-8. Added Elementor Library mirror creation so imported templates appear in Elementor template library popup.
-9. Added imported-meta repair path for older malformed `_elementor_page_settings` values.
-10. Fail-open preserved: validation failures and metadata write failures do not keep partial posts.
+1. Added preview bridge in Theme Builder Lite preview context:
+   - `$GLOBALS['bw_tbl_preview_product_id']`
+   - `set_query_var('bw_tbl_preview_product_id', $product_id)`
+2. Kept preview hook deterministic at `wp` priority `20`.
+3. Standardized product resolution via shared resolver:
+   - `bw_tbl_resolve_product_context_id()`
+   - `real_context -> preview_fallback -> manual_setting -> missing`
+4. Standardized preview gating helper:
+   - `bw_tbl_is_bw_single_product_template_preview()`
+5. Removed direct `elementor-preview` dependency from widget render paths.
+6. Removed noisy temporary per-widget debug logs; retained minimal bridge+resolver logs behind `BW_TBL_DEBUG_PREVIEW`.
+7. Updated docs (spec + runtime hook map) to document the bridge contract.
 
-## 4) Runtime Contract (Import Layer)
-- Import runs only in admin context via `admin_post_bw_tbl_import_template`.
-- Import does not hook into `template_include` and does not alter resolver behavior directly.
-- Imported templates affect runtime only if later linked through existing Settings authority surfaces.
-- Determinism:
-  - JSON decoded once per request.
-  - Type mapping uses local deterministic map + deterministic widget heuristic.
-  - No external API calls.
-- Fail-open behavior:
-  - invalid upload / invalid JSON / missing content -> error notice + no post created.
-  - metadata write failure -> created post is hard-deleted.
-  - Elementor Library mirror creation failure -> created `bw_template` is hard-deleted.
+## 4) Audit Evidence (Workspace-Real)
+### Evidence A: No `elementor-preview` usage in widgets
+Command:
+```bash
+rg -n "\$_GET\['elementor-preview'\]|\$_GET\['elementor_preview'\]|elementor-preview" includes/widgets -g"*.php"
+```
+Output:
+```text
+(no matches)
+```
 
-## 5) Data Model / Keys / Constants
-### CPT and Post Types
-- Target CPT: `bw_template`
-- Mirror post type: `elementor_library` (when available)
+### Evidence B: Bridge set + hook timing + no query mutation flag
+File:
+- `includes/modules/theme-builder-lite/runtime/elementor-preview-context.php`
 
-### Meta keys written on imported `bw_template`
-- `bw_template_type`
-- `bw_tbl_imported`
-- `_elementor_data`
-- `_elementor_edit_mode`
-- `_elementor_version`
-- `_elementor_page_settings`
-- `_elementor_template_type`
-- `bw_tbl_library_template_id` (link to mirror library item)
+Code snippet:
+```php
+$GLOBALS['bw_tbl_preview_product_id'] = $product_id;
+set_query_var('bw_tbl_preview_product_id', $product_id);
+...
+bw_tbl_preview_debug_log('preview context applied without wp_query mutation', [
+    ...
+    'wp_query_mutated' => false,
+]);
+...
+add_action('wp', 'bw_tbl_apply_elementor_single_product_preview_context', 20);
+```
 
-### Meta keys written on mirror `elementor_library`
-- `_elementor_data`
-- `_elementor_edit_mode`
-- `_elementor_version`
-- `_elementor_page_settings`
-- `_elementor_template_type`
-- `bw_tbl_imported`
-- `bw_tbl_source_bw_template_id`
+### Evidence C: Resolver order
+File:
+- `includes/modules/theme-builder-lite/runtime/single-product-runtime.php`
 
-### Option keys introduced
-- None (importer uses admin action + post meta only)
+Observed order in code:
+1) `real_context` (`is_product()` + `get_queried_object_id()`)
+2) `preview_fallback` by source:
+   - global `bw_tbl_preview_product_id`
+   - query var `bw_tbl_preview_product_id`
+   - option `bw_tbl_get_preview_product_id()`
+   - option legacy `bw_tbl_get_single_product_preview_product_id(false)`
+3) `manual_setting` (`$settings['product_id']`)
+4) `missing`
 
-### Constants introduced
-- None
+### Evidence D: WP_Scripts notice not emitted by BW for `elementor-v2-editor-components`
+Command:
+```bash
+rg -n "elementor-v2-editor-components" includes -g"*.php"
+```
+Output:
+```text
+(no matches)
+```
 
-## 6) Hooks / AJAX / Nonce / Capability
-### Hooks used
-- `admin_post_bw_tbl_import_template` -> import handler
-- Tab render invoked from Theme Builder Lite admin settings page render pipeline
+## 5) Exact Files Changed (Task Scope)
+Runtime:
+- `includes/modules/theme-builder-lite/runtime/elementor-preview-context.php`
+- `includes/modules/theme-builder-lite/runtime/single-product-runtime.php`
 
-### AJAX endpoints
-- None added for this task
+Widgets:
+- `includes/widgets/class-bw-price-variation-widget.php`
+- `includes/widgets/class-bw-static-showcase-widget.php`
+- `includes/widgets/class-bw-product-details-widget.php`
+- `includes/widgets/class-bw-related-products-widget.php`
+- `includes/widgets/class-bw-add-to-cart-widget.php`
+- `includes/widgets/class-bw-add-to-cart-variation-widget.php`
+- `includes/widgets/class-bw-product-slide-widget.php`
+- `includes/widgets/class-bw-tags-widget.php`
+- `includes/widgets/class-bw-presentation-slide-widget.php`
 
-### Nonce and capability
-- Nonce action: `bw_tbl_import_template`
-- Capability check: `manage_options`
-
-### Upload validation
-- Extension: `.json` only
-- MIME/ext verification via `wp_check_filetype_and_ext`
-- Max size: filterable through `bw_tbl_import_template_max_size` (default 8MB)
-
-## 7) CSS Selectors and JS Handlers
-- No dedicated new importer JS handlers were required.
-- Existing tab router JS was extended to include `import-template` tab key.
-- Import flow is server-post based and deterministic (no client-side serialization logic).
-
-## 8) Security and Integrity Controls
-- Strict nonce verification before processing upload.
-- Strict capability gate (`manage_options`).
-- Upload sanity checks (`is_uploaded_file`, size, extension, MIME/ext).
-- JSON decode checks with explicit error paths.
-- Content structure guard (`content[]` or `elements[]` required).
-- Strict post type creation target (`bw_template` only).
-- No arbitrary post type mutation exposed.
-
-## 9) Backward Compatibility
-- Existing Theme Builder Lite options are untouched.
-- Existing resolver logic and linked-rule settings remain unchanged.
-- Legacy/non-imported templates continue to function without migration.
-- Import history relies on additive marker `bw_tbl_imported` and does not alter existing non-imported records.
-
-## 10) Acceptance Criteria Verification
-1. Import tab visible under Theme Builder Lite: Verified.
-2. Valid Elementor JSON creates `bw_template` draft: Verified.
-3. Imported title is prefixed (`Imported — ...`): Verified.
-4. Type detection is automatic (no manual override field): Verified.
-5. Unmappable type falls back to draft + safe fallback type notice: Verified.
-6. Invalid JSON shows clear error and creates no post: Verified.
-7. Import history shows recent imports with edit links: Verified.
-8. Elementor library popup visibility path implemented through mirror `elementor_library` post: Verified.
-
-## 11) Invariants Verification
-- No impact on Single Product/Product Archive/Footer resolvers: Verified.
-- No new resolver branch added for import flow: Verified.
-- No Woo cart/checkout/account mutation: Verified.
-- No Quick Edit authority reintroduced: Verified.
-- Determinism preserved: Verified.
-
-## 12) Exact Files Modified
-Code:
-- `includes/modules/theme-builder-lite/admin/import-template.php` (new)
-- `includes/modules/theme-builder-lite/admin/theme-builder-lite-admin.php`
-- `includes/modules/theme-builder-lite/admin/theme-builder-lite-admin.js`
-- `includes/modules/theme-builder-lite/theme-builder-lite-module.php`
-
-Documentation (close execution):
+Docs:
+- `docs/30-features/theme-builder-lite/theme-builder-lite-spec.md`
+- `docs/10-architecture/theme-builder-lite/runtime-hook-map.md`
+- `docs/00-planning/decision-log.md`
+- `docs/00-governance/risk-register.md`
 - `task-close-template.md`
-- `docs/30-features/theme-builder-lite/theme-builder-lite-spec.md`
-- `docs/00-planning/decision-log.md`
-- `docs/00-governance/risk-register.md`
 
-## 13) Risk Register Updates (Applied)
-- `R-TBL-14`: untrusted/malformed JSON import risk (kept active, mitigated by strict validation and rollback-on-failure).
-- `R-TBL-15` (new): Elementor metadata/version compatibility drift risk for imported payloads.
-- `R-TBL-16` (new): admin misuse/semantic mismatch risk when fallback type is auto-applied.
+## 6) Runtime Contract (Final)
+- Bridge activation conditions:
+  - Elementor editor/preview request
+  - previewed post is `bw_template`
+  - `bw_template_type = single_product`
+  - preview product id is valid published Woo product
+- Hook order:
+  - bridge set on `wp@20` before widget render
+- Resolver precedence:
+  - `real_context > preview_fallback > manual_setting > missing`
+- Invariants:
+  - No `WP_Query` spoofing
+  - No `$GLOBALS['post']` replacement
+  - No frontend behavior mutation
 
-## 14) Decision Log Entries (Applied)
-- Import Template authority resides in Theme Builder Lite settings tab.
-- No manual type override field; type is auto-detected.
-- If unmappable, importer applies safe fallback type and keeps draft status.
-- Imported templates are prefixed with `Imported —` and flagged `bw_tbl_imported=1`.
-- Import creates Elementor Library mirror for popup discoverability.
-- Importer remains fail-open with no partial writes on failure.
+## 7) Acceptance Checklist
+- Elementor iframe warning-output mitigation applied (`WP_DEBUG_DISPLAY=false`, `display_errors=0`): Verified.
+- Bridge values are set before render (`global + query_var`): Verified by code and bridge logs.
+- Resolver can produce `preview_fallback` from bridge: Verified by code and observed logs.
+- Widgets no longer parse `$_GET['elementor-preview']` in render paths: Verified by grep (no matches).
+- `WP_Scripts::add` notice classified external to BW for `elementor-v2-editor-components`: Verified by grep (no matches in BW includes).
 
-## 15) Debug / Testing Notes
-- Import result notice supports success/error diagnostics in admin UI.
-- Repair helper normalizes malformed imported `_elementor_page_settings` when opening import tab/history.
-- Manual tests run against:
-  - valid mapped JSON
-  - valid unmapped JSON (fallback)
-  - invalid JSON payload
-  - history rendering
+## 8) Known Limitations (Explicit)
+- Remote server log path for blackwork.pro is not accessible from current workspace environment.
+  - Accessible local log here: `/Users/simonezanon/Documents/local site/BlackWork/wp-content/debug.log`
+  - Remote path requested for audit (`/home/u216997858/domains/blackwork.pro/public_html/wp-content/debug.log`) is unavailable in this session.
+- Therefore, per-widget proof lines from production server logs are an **audit limitation due to environment access**, not an implementation gap.
+- If hard audit requires remote per-widget lines, operator must provide pasted lines from remote `debug.log`.
 
-## 16) Rollback Plan
-1. Revert importer wiring by removing `admin/import-template.php` require from module bootstrap.
-2. Remove `Import Template` tab panel render from Theme Builder Lite admin page.
-3. Keep imported posts/data intact unless cleanup is explicitly requested.
-4. If needed, filter/hide imported entries by `bw_tbl_imported` without deleting source templates.
+## 9) Debug Strategy and Cleanup
+- Kept minimal debug behind `BW_TBL_DEBUG_PREVIEW`:
+  - bridge logs (`preview context applied...`, `preview bridge values set`)
+  - resolver logs (`resolver_preview_source`, `widget=<class> source=<source> id=<id>`)
+- Removed noisy temporary logs (`BW_PRICE_VARIATION_DEBUG` removed).
 
-## 17) Known Limitations
-- No Elementor Pro -> Free widget conversion layer.
-- No batch/zip import.
-- No media remapping pipeline.
-- Fallback type may require manual correction via existing template type controls.
+## 10) Rollback Plan
+1. Disable debug:
+   - `BW_TBL_DEBUG_PREVIEW=false`
+2. Bridge rollback:
+   - remove/guard `add_action('wp', 'bw_tbl_apply_elementor_single_product_preview_context', 20)`
+3. Widget rollback:
+   - revert resolver-call changes in widget files listed above.
+4. Keep fail-open:
+   - unresolved context remains `missing` and widgets keep editor-only notices.
 
-## 18) Future Extension Surface
-- Add explicit preflight diagnostics panel before commit.
-- Add import dry-run mode.
-- Add duplicate-content detection/hash to avoid repeated imports.
-- Add optional mapping profiles for common external template exports.
-- Add bulk import queue with per-file result ledger.
-
-## 19) Documentation Patch Plan Executed
-Updated:
-- `docs/30-features/theme-builder-lite/theme-builder-lite-spec.md`
-  - Import tab authority and flow
-  - auto-detect + fallback behavior (no manual override)
-  - Elementor library popup visibility contract
-- `docs/00-planning/decision-log.md`
-  - import authority and behavior decisions
-- `docs/00-governance/risk-register.md`
-  - import-related active risks and mitigations
-
-Verification:
-- Outdated references implying manual type override were corrected.
-- No unrelated sections were removed.
-- Authority model remains settings-driven and deterministic.
-
-## 20) Manual Regression Checklist
-1. Import valid mapped JSON (`product-archive`) -> draft created with prefixed title and expected type.
-2. Import valid unmapped JSON -> draft created with fallback type notice.
-3. Import invalid JSON -> error notice and no post creation.
-4. Open Recent Imports -> row visible with detected type and edit action.
-5. Open Elementor library popup -> imported mirror template discoverable.
-6. Verify existing Single Product/Product Archive/Footer runtime behavior unchanged.
-7. Verify Woo cart/checkout/account pages unaffected.
+## 11) WP_Scripts Notice Classification
+- Notice:
+  - `WP_Scripts::add ... elementor-v2-editor-components dependencies not registered`
+- Classification:
+  - not emitted by BW plugin code (no matching handle in `includes/**/*.php`)
+- Mitigation in place:
+  - keep `WP_DEBUG_LOG=true`
+  - keep `WP_DEBUG_DISPLAY=false`
+  - keep `display_errors=0`
+  - warnings go to log file, not HTML iframe response

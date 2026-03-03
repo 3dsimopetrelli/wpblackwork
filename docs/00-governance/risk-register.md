@@ -436,6 +436,25 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
   - [Decision Log](../00-planning/decision-log.md)
   - [Runtime Hook Map](../50-ops/runtime-hook-map.md)
 
+### Risk ID: R-TBL-17
+- Domain: Theme Builder Lite / Elementor Preview / BW Widgets
+- Surface Anchor: `includes/modules/theme-builder-lite/runtime/elementor-preview-context.php`, `includes/modules/theme-builder-lite/runtime/single-product-runtime.php`, BW widget render paths using product context.
+- Description: Preview context convergence depends on bridge values being set and observable in the same request scope; audits can fail if server-side logs are not accessible from execution environment.
+- Invariant Threatened: Deterministic preview product resolution for bw_template(single_product) without WP_Query mutation.
+- Impact: Medium
+- Likelihood: Medium
+- Risk Level: Medium
+- Current Mitigation:
+  - Bridge set on `wp@20` (`$GLOBALS['bw_tbl_preview_product_id']` + `set_query_var('bw_tbl_preview_product_id', ...)`)
+  - Shared resolver precedence (`real_context -> preview_fallback -> manual_setting -> missing`)
+  - Debug flag `BW_TBL_DEBUG_PREVIEW` with bridge/resolver logs only
+  - Explicitly disable warning output in HTML (`WP_DEBUG_DISPLAY=false`, `display_errors=0`)
+- Monitoring Status: Monitoring
+- Linked Documents:
+  - [Theme Builder Lite Spec](../30-features/theme-builder-lite/theme-builder-lite-spec.md)
+  - [Theme Builder Lite Runtime Hook Map](../10-architecture/theme-builder-lite/runtime-hook-map.md)
+  - [Decision Log](../00-planning/decision-log.md)
+
 ## 4) Governance Rules
 - All Tier 0 changes must be reviewed against this register before implementation.
 - Risks cannot be marked `Resolved` without audit confirmation evidence.

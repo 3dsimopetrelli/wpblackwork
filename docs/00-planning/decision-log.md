@@ -159,6 +159,18 @@ If a decision is normative and architecture-binding, the ADR process MUST be use
   - Keep mirror `elementor_library` creation transactional with rollback on failure.
   - Preserve `bw_tbl_imported` traceability marker for filters/audits.
 
+### Entry 014
+- Date: 2026-03-03
+- Decision summary: Standardized all BW product-dependent widgets on shared resolver `bw_tbl_resolve_product_context_id()` and banned direct `$_GET['elementor-preview']` checks in widget render paths.
+- Affected domain: Theme Builder Lite Preview Runtime / BW Widgets Product Context
+- Rationale: Elementor preview iframe does not reliably expose `elementor-preview` at widget render time; deterministic bridge (`global` + `query_var`) is required to prevent context misses and editor regressions.
+- Risk impact: Medium reduced to Low-Medium via single-source resolver and bridge-first precedence.
+- Follow-up actions:
+  - Keep preview bridge authoritative (`$GLOBALS['bw_tbl_preview_product_id']`, `set_query_var`).
+  - Keep resolver precedence fixed (`real_context -> preview_fallback -> manual_setting -> missing`).
+  - Keep `BW_TBL_DEBUG_PREVIEW` scoped to bridge+resolver logs only (no per-widget debug noise).
+  - Validate per-widget server log evidence on the target environment during audit closure.
+
 ## Governance Layer Closure
 
 Status: CLOSED  
