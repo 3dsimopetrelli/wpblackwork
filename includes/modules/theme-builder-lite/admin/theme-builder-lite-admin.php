@@ -156,6 +156,12 @@ if (!function_exists('bw_tbl_render_admin_page')) {
         $single_product_option = bw_tbl_get_single_product_option();
         $single_product_choices = bw_tbl_get_single_product_template_choices();
         $parent_product_categories = bw_tbl_get_parent_product_category_choices();
+        $single_product_enabled = !empty($single_product_option['enabled']);
+        $single_product_active_id = isset($single_product_option['active_single_product_template_id']) ? absint($single_product_option['active_single_product_template_id']) : 0;
+        $single_product_active_title = isset($single_product_choices[$single_product_active_id]) ? (string) $single_product_choices[$single_product_active_id] : '';
+        $single_product_include_count = isset($single_product_option['include_product_cat']) && is_array($single_product_option['include_product_cat']) ? count($single_product_option['include_product_cat']) : 0;
+        $single_product_exclude_count = isset($single_product_option['exclude_product_cat']) && is_array($single_product_option['exclude_product_cat']) ? count($single_product_option['exclude_product_cat']) : 0;
+        $single_product_missing_active_template = $single_product_enabled && '' === $single_product_active_title;
 
         $fonts = isset($fonts_option['fonts']) && is_array($fonts_option['fonts']) ? $fonts_option['fonts'] : [];
         if (empty($fonts)) {
@@ -281,6 +287,27 @@ if (!function_exists('bw_tbl_render_admin_page')) {
                 </div>
 
                 <div id="bw-tbl-tab-single-product" class="bw-tbl-tab-panel" data-bw-tbl-panel="single-product" style="display:none;">
+                    <div class="notice <?php echo $single_product_missing_active_template ? 'notice-warning' : 'notice-info'; ?>" style="margin:0 0 12px 0;padding:10px 12px;">
+                        <p style="margin:0;">
+                            <strong><?php esc_html_e('Status:', 'bw'); ?></strong>
+                            <?php echo $single_product_enabled ? esc_html__('Enabled', 'bw') : esc_html__('Disabled', 'bw'); ?>
+                            <span style="margin:0 8px;color:#9aa0a6;">|</span>
+                            <strong><?php esc_html_e('Active Template:', 'bw'); ?></strong>
+                            <?php echo '' !== $single_product_active_title ? esc_html($single_product_active_title) : esc_html__('None selected', 'bw'); ?>
+                            <span style="margin:0 8px;color:#9aa0a6;">|</span>
+                            <strong><?php esc_html_e('Include Categories:', 'bw'); ?></strong>
+                            <?php echo esc_html((string) $single_product_include_count); ?>
+                            <span style="margin:0 8px;color:#9aa0a6;">|</span>
+                            <strong><?php esc_html_e('Exclude Categories:', 'bw'); ?></strong>
+                            <?php echo esc_html((string) $single_product_exclude_count); ?>
+                        </p>
+                        <?php if ($single_product_missing_active_template) : ?>
+                            <p style="margin:8px 0 0 0;">
+                                <?php esc_html_e('Single Product override is enabled but no active valid template is selected.', 'bw'); ?>
+                            </p>
+                        <?php endif; ?>
+                    </div>
+
                     <table class="form-table" role="presentation">
                         <tr>
                             <th scope="row"><?php esc_html_e('Enable Single Product Override', 'bw'); ?></th>
