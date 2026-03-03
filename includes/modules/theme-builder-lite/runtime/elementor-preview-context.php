@@ -73,3 +73,48 @@ if (!function_exists('bw_tbl_apply_elementor_single_product_preview_context')) {
     }
 }
 add_action('wp', 'bw_tbl_apply_elementor_single_product_preview_context', 5);
+
+if (!function_exists('bw_tbl_get_elementor_preview_product_id')) {
+    function bw_tbl_get_elementor_preview_product_id()
+    {
+        if (is_admin() || wp_doing_ajax() || is_feed() || is_embed()) {
+            return 0;
+        }
+
+        if (!defined('ELEMENTOR_VERSION') || !class_exists('\\Elementor\\Plugin')) {
+            return 0;
+        }
+
+        if (!function_exists('bw_tbl_is_elementor_editor_request') || !bw_tbl_is_elementor_editor_request()) {
+            return 0;
+        }
+
+        $template_id = isset($_GET['elementor-preview']) ? absint(wp_unslash($_GET['elementor-preview'])) : 0;
+        if ($template_id <= 0) {
+            return 0;
+        }
+
+        $template_post = get_post($template_id);
+        if (!($template_post instanceof WP_Post) || 'bw_template' !== $template_post->post_type) {
+            return 0;
+        }
+
+        $template_type = get_post_meta($template_id, 'bw_template_type', true);
+        if (function_exists('bw_tbl_sanitize_template_type')) {
+            $template_type = bw_tbl_sanitize_template_type($template_type);
+        } else {
+            $template_type = sanitize_key((string) $template_type);
+        }
+
+        if ('single_product' !== $template_type) {
+            return 0;
+        }
+
+        if (!function_exists('bw_tbl_get_single_product_preview_product_id') || !function_exists('bw_tbl_is_valid_preview_product')) {
+            return 0;
+        }
+
+        $product_id = bw_tbl_get_single_product_preview_product_id(true);
+        return bw_tbl_is_valid_preview_product($product_id) ? $product_id : 0;
+    }
+}

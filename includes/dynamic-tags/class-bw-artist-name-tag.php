@@ -124,6 +124,13 @@ if ( class_exists( '\Elementor\Core\DynamicTags\Tag' ) && class_exists( '\Elemen
                 }
             }
 
+            if ( ( ! $post_id || 'product' !== get_post_type( $post_id ) ) && function_exists( 'bw_tbl_get_elementor_preview_product_id' ) ) {
+                $preview_product_id = absint( bw_tbl_get_elementor_preview_product_id() );
+                if ( $preview_product_id > 0 ) {
+                    $post_id = $preview_product_id;
+                }
+            }
+
             return (int) $post_id;
         }
     }

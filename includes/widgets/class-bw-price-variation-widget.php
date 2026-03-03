@@ -1237,7 +1237,19 @@ class BW_Price_Variation_Widget extends Widget_Base {
                         return intval( $settings['product_id'] );
                 }
 
-                return get_the_ID();
+                $product_id = get_the_ID();
+                if ( $product_id && 'product' === get_post_type( $product_id ) ) {
+                        return intval( $product_id );
+                }
+
+                if ( function_exists( 'bw_tbl_get_elementor_preview_product_id' ) ) {
+                        $preview_product_id = absint( bw_tbl_get_elementor_preview_product_id() );
+                        if ( $preview_product_id > 0 ) {
+                                return intval( $preview_product_id );
+                        }
+                }
+
+                return intval( $product_id );
         }
 
         private function get_variations_data( $available_variations ) {

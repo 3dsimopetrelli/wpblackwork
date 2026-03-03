@@ -535,6 +535,13 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
                 $linked_product = get_post_meta( $current_post_id, '_bw_showcase_linked_product', true );
                 $product_id = $linked_product ? absint( $linked_product ) : 0;
             }
+
+            if ( ! $product_id && function_exists( 'bw_tbl_get_elementor_preview_product_id' ) ) {
+                $preview_product_id = absint( bw_tbl_get_elementor_preview_product_id() );
+                if ( $preview_product_id > 0 ) {
+                    $product_id = $preview_product_id;
+                }
+            }
         } else {
             // Use the manually entered product ID
             $product_id = isset( $settings['product_id'] ) ? absint( $settings['product_id'] ) : 0;
