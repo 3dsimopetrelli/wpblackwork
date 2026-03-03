@@ -1,6 +1,49 @@
 (function ($) {
     'use strict';
 
+    function hasSelectEnhancer() {
+        return typeof $.fn.selectWoo === 'function' || typeof $.fn.select2 === 'function';
+    }
+
+    function initSearchableTaxonomySelects(row) {
+        if (!hasSelectEnhancer()) {
+            return;
+        }
+
+        row.find('.bw-tbl-qe-taxonomy-select').each(function () {
+            var select = $(this);
+            var currentValue = select.val();
+
+            try {
+                if (select.hasClass('select2-hidden-accessible')) {
+                    if (typeof select.selectWoo === 'function') {
+                        select.selectWoo('destroy');
+                    } else if (typeof select.select2 === 'function') {
+                        select.select2('destroy');
+                    }
+                }
+            } catch (e) {
+                // Fail-open: keep native multiselect usable.
+            }
+
+            var config = {
+                width: '100%',
+                closeOnSelect: false,
+                placeholder: ''
+            };
+
+            if (typeof select.selectWoo === 'function') {
+                select.selectWoo(config);
+            } else if (typeof select.select2 === 'function') {
+                select.select2(config);
+            }
+
+            if (Array.isArray(currentValue)) {
+                select.val(currentValue).trigger('change');
+            }
+        });
+    }
+
     function csvFromArray(arr) {
         if (!Array.isArray(arr) || !arr.length) {
             return '';
@@ -94,6 +137,7 @@
         row.find('.bw-tbl-qe-priority-touched').val('0');
         row.find('.bw-tbl-qe-rules-touched').val('0');
         toggleSection(row, section);
+        initSearchableTaxonomySelects(row);
     }
 
     function getPostId(id) {
@@ -124,6 +168,9 @@
         }
 
         clearQuickEdit(quickRow);
+        quickRow.find('.bw-tbl-qe-section-select').val('single_product');
+        toggleSection(quickRow, 'single_product');
+        initSearchableTaxonomySelects(quickRow);
 
         var rawData = postRow.find('.bw-tbl-qe-data').attr('data-bw-qe');
         if (!rawData) {

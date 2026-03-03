@@ -274,6 +274,7 @@ Resolver contract:
   - Default open section order: saved `bw_tbl_qe_last_section` -> first group containing saved values -> `single_product`.
   - Selection is persisted per template in `bw_tbl_qe_last_section`.
   - Quick Edit Section auto-restore contract (A/B/C precedence): A) saved `last_section`, B) inferred first non-empty saved rules group, C) `single_product` fallback.
+  - Large taxonomy selectors use searchable dropdown enhancement (SelectWoo/Select2 when available) with native multi-select fallback.
   - Fail-open: if Quick Edit JS is not available, all groups remain visible and editable.
 - Storage schema remains unchanged: `bw_tbl_display_rules_v1`.
 - No runtime resolver behavior is changed by this admin UX enhancement.
