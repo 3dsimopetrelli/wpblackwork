@@ -299,11 +299,17 @@ if (!function_exists('bw_tbl_runtime_resolve_template_include')) {
         $context = bw_tbl_runtime_build_context($template_type);
         $winner_id = 0;
         if ('single_product' === $template_type && function_exists('bw_tbl_runtime_resolve_single_product_settings_winner')) {
+            if (function_exists('bw_tbl_runtime_debug_log')) {
+                bw_tbl_runtime_debug_log('resolver entering single_product settings branch', ['template_type' => $template_type]);
+            }
             $single_product_result = bw_tbl_runtime_resolve_single_product_settings_winner($context);
             $handled = !empty($single_product_result['handled']);
             if ($handled) {
                 $winner_id = isset($single_product_result['winner_id']) ? absint($single_product_result['winner_id']) : 0;
                 if ($winner_id <= 0) {
+                    if (function_exists('bw_tbl_runtime_debug_log')) {
+                        bw_tbl_runtime_debug_log('resolver single_product settings handled with no winner -> fail-open');
+                    }
                     return $template;
                 }
             }

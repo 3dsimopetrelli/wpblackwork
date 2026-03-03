@@ -7,6 +7,29 @@ if (!defined('BW_TBL_SINGLE_PRODUCT_OPTION')) {
     define('BW_TBL_SINGLE_PRODUCT_OPTION', 'bw_theme_builder_lite_single_product_v1');
 }
 
+if (!function_exists('bw_tbl_runtime_debug_enabled')) {
+    function bw_tbl_runtime_debug_enabled()
+    {
+        return defined('BW_TBL_DEBUG') && BW_TBL_DEBUG;
+    }
+}
+
+if (!function_exists('bw_tbl_runtime_debug_log')) {
+    function bw_tbl_runtime_debug_log($message, $context = [])
+    {
+        if (!bw_tbl_runtime_debug_enabled()) {
+            return;
+        }
+
+        $suffix = '';
+        if (is_array($context) && !empty($context)) {
+            $suffix = ' ' . wp_json_encode($context);
+        }
+
+        error_log('[BW TBL Runtime] ' . (string) $message . $suffix); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+    }
+}
+
 if (!function_exists('bw_tbl_filter_parent_product_cat_ids')) {
     function bw_tbl_filter_parent_product_cat_ids($term_ids)
     {
@@ -192,6 +215,7 @@ if (!function_exists('bw_tbl_runtime_resolve_single_product_settings_winner')) {
 
         // New settings surface takes precedence only when explicitly enabled.
         if (empty($option['enabled'])) {
+            bw_tbl_runtime_debug_log('single_product settings path disabled');
             return [
                 'handled' => false,
                 'winner_id' => 0,
@@ -200,6 +224,7 @@ if (!function_exists('bw_tbl_runtime_resolve_single_product_settings_winner')) {
 
         $template_id = isset($option['active_single_product_template_id']) ? absint($option['active_single_product_template_id']) : 0;
         if (!bw_tbl_is_valid_single_product_template($template_id)) {
+            bw_tbl_runtime_debug_log('single_product settings invalid active template', ['template_id' => $template_id]);
             return [
                 'handled' => true,
                 'winner_id' => 0,
@@ -237,6 +262,10 @@ if (!function_exists('bw_tbl_runtime_resolve_single_product_settings_winner')) {
         foreach ($exclude as $term_id) {
             $term_id = absint($term_id);
             if ($term_id > 0 && isset($product_cat_map[$term_id])) {
+                bw_tbl_runtime_debug_log(
+                    'single_product settings excluded by category',
+                    ['template_id' => $template_id, 'term_id' => $term_id]
+                );
                 return [
                     'handled' => true,
                     'winner_id' => 0,
@@ -256,6 +285,10 @@ if (!function_exists('bw_tbl_runtime_resolve_single_product_settings_winner')) {
             }
 
             if (!$matched) {
+                bw_tbl_runtime_debug_log(
+                    'single_product settings include miss',
+                    ['template_id' => $template_id, 'include' => $include, 'product_cats' => array_keys($product_cat_map)]
+                );
                 return [
                     'handled' => true,
                     'winner_id' => 0,
@@ -263,6 +296,10 @@ if (!function_exists('bw_tbl_runtime_resolve_single_product_settings_winner')) {
             }
         }
 
+        bw_tbl_runtime_debug_log(
+            'single_product settings match',
+            ['template_id' => $template_id, 'product_cats' => array_keys($product_cat_map)]
+        );
         return [
             'handled' => true,
             'winner_id' => $template_id,

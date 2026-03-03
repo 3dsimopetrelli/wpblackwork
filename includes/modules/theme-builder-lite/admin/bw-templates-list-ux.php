@@ -204,7 +204,7 @@ if (!function_exists('bw_tbl_admin_single_product_settings_summary')) {
 
         $active_id = isset($option['active_single_product_template_id']) ? absint($option['active_single_product_template_id']) : 0;
         if ($active_id !== $post_id) {
-            return __('Controlled from Theme Builder Lite settings (inactive for this template).', 'bw');
+            return '';
         }
 
         $include = isset($option['include_product_cat']) && is_array($option['include_product_cat']) ? $option['include_product_cat'] : [];
@@ -238,6 +238,62 @@ if (!function_exists('bw_tbl_admin_is_active_footer_template')) {
         $active_footer_id = isset($footer_option['active_footer_template_id']) ? absint($footer_option['active_footer_template_id']) : 0;
 
         return $active_footer_id > 0 && $active_footer_id === $post_id;
+    }
+}
+
+if (!function_exists('bw_tbl_admin_is_active_single_product_template')) {
+    function bw_tbl_admin_is_active_single_product_template($post_id)
+    {
+        $post_id = absint($post_id);
+        if ($post_id <= 0 || !function_exists('bw_tbl_get_single_product_option')) {
+            return false;
+        }
+
+        $option = bw_tbl_get_single_product_option();
+        if (empty($option['enabled'])) {
+            return false;
+        }
+
+        $active_id = isset($option['active_single_product_template_id']) ? absint($option['active_single_product_template_id']) : 0;
+        return $active_id > 0 && $active_id === $post_id;
+    }
+}
+
+if (!function_exists('bw_tbl_admin_template_link_badges')) {
+    function bw_tbl_admin_template_link_badges($post_id, $template_type)
+    {
+        $post_id = absint($post_id);
+        $template_type = sanitize_key((string) $template_type);
+        if ($post_id <= 0) {
+            return [];
+        }
+
+        $badges = [];
+        $is_footer_active = ('footer' === $template_type) && bw_tbl_admin_is_active_footer_template($post_id);
+        $is_single_product_active = ('single_product' === $template_type) && bw_tbl_admin_is_active_single_product_template($post_id);
+
+        if ($is_footer_active) {
+            $badges[] = [
+                'text' => __('Applies to: Footer', 'bw'),
+                'style' => 'background:#e8f0fe;color:#0b57d0;',
+            ];
+        }
+
+        if ($is_single_product_active) {
+            $badges[] = [
+                'text' => __('Applies to: Single Product', 'bw'),
+                'style' => 'background:#e8f0fe;color:#0b57d0;',
+            ];
+        }
+
+        if (!$is_footer_active && !$is_single_product_active) {
+            $badges[] = [
+                'text' => __('Not linked', 'bw'),
+                'style' => 'background:#fbeaea;color:#a61b1b;',
+            ];
+        }
+
+        return $badges;
     }
 }
 
@@ -290,16 +346,28 @@ if (!function_exists('bw_tbl_admin_render_list_column')) {
         if ('bw_tbl_applies_to' === $column) {
             $type = get_post_meta($post_id, 'bw_template_type', true);
             $type = function_exists('bw_tbl_sanitize_template_type') ? bw_tbl_sanitize_template_type($type) : sanitize_key((string) $type);
-            if ('single_product' === $type) {
+
+            $badges = bw_tbl_admin_template_link_badges($post_id, $type);
+            if (!empty($badges)) {
+                foreach ($badges as $badge) {
+                    $text = isset($badge['text']) ? (string) $badge['text'] : '';
+                    $style = isset($badge['style']) ? (string) $badge['style'] : '';
+                    if ('' === $text) {
+                        continue;
+                    }
+                    echo '<span class="bw-tbl-pill" style="display:inline-block;padding:2px 8px;border-radius:999px;font-weight:600;margin-right:6px;' . esc_attr($style) . '">' . esc_html($text) . '</span>';
+                }
+            }
+
+            if ('single_product' === $type && bw_tbl_admin_is_active_single_product_template($post_id)) {
                 $settings_summary = bw_tbl_admin_single_product_settings_summary($post_id);
                 if ('' !== $settings_summary) {
-                    echo esc_html($settings_summary);
+                    echo '<div style="margin-top:6px;">' . esc_html($settings_summary) . '</div>';
                     return;
                 }
             }
 
-            if ('footer' === $type && bw_tbl_admin_is_active_footer_template($post_id)) {
-                echo '<span class="bw-tbl-pill" style="display:inline-block;padding:2px 8px;border-radius:999px;background:#e8f0fe;color:#0b57d0;font-weight:600;">' . esc_html__('Applies to: Footer', 'bw') . '</span>';
+            if (!empty($badges)) {
                 return;
             }
 
@@ -317,11 +385,21 @@ if (!function_exists('bw_tbl_admin_footer_display_state')) {
         }
 
         $post_id = isset($post->ID) ? absint($post->ID) : 0;
-        if ($post_id <= 0 || !bw_tbl_admin_is_active_footer_template($post_id)) {
+        if ($post_id <= 0) {
             return $states;
         }
 
-        $states['bw_tbl_applies_footer'] = __('Applies to: Footer', 'bw');
+        $type = get_post_meta($post_id, 'bw_template_type', true);
+        $type = function_exists('bw_tbl_sanitize_template_type') ? bw_tbl_sanitize_template_type($type) : sanitize_key((string) $type);
+        $badges = bw_tbl_admin_template_link_badges($post_id, $type);
+        foreach ($badges as $badge) {
+            $text = isset($badge['text']) ? (string) $badge['text'] : '';
+            if ('' === $text) {
+                continue;
+            }
+            $key = 'bw_tbl_state_' . md5($text);
+            $states[$key] = $text;
+        }
         return $states;
     }
 }
