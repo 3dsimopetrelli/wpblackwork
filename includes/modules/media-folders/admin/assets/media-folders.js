@@ -620,7 +620,7 @@
         var pinIndicator = item.pinned ? '<span class="bw-mf-pin-indicator" aria-hidden="true">📌</span>' : '';
         var chevron = hasChildren
             ? '<button class="bw-mf-chevron" type="button" aria-label="Toggle folder" aria-expanded="' + (isCollapsed ? 'false' : 'true') + '">▶</button>'
-            : '<span class="bw-mf-chevron bw-mf-chevron--placeholder" aria-hidden="true">▶</span>';
+            : '';
 
         if (iconColor) {
             styles.push('--bw-mf-icon-color:' + iconColor);
@@ -1012,7 +1012,7 @@
             node.classList.toggle('is-collapsed', !!folderCollapsedMap[id]);
 
             var chevron = node.querySelector('.bw-mf-chevron');
-            if (chevron && !chevron.classList.contains('bw-mf-chevron--placeholder')) {
+            if (chevron) {
                 chevron.setAttribute('aria-expanded', folderCollapsedMap[id] ? 'false' : 'true');
                 chevron.classList.toggle('is-collapsed', !!folderCollapsedMap[id]);
             }
@@ -1410,10 +1410,6 @@
             e.preventDefault();
             e.stopPropagation();
             e.stopImmediatePropagation();
-
-            if ($(this).hasClass('bw-mf-chevron--placeholder')) {
-                return;
-            }
 
             var row = $(this).closest('.bw-media-folder-node');
             var termId = parseInt(row.attr('data-term-id') || row.attr('data-id') || '0', 10);

@@ -234,8 +234,8 @@ body.upload-php.bw-mf-enabled .attachments-browser .attachment.bw-mf-marked::aft
     position: absolute;
     top: 6px;
     left: 6px;
-    width: 10px;
-    height: 10px;
+    width: 12px;
+    height: 12px;
     border-radius: 999px;
     background: var(--bw-mf-marker-color, #000);
     z-index: 999;
@@ -274,11 +274,6 @@ body.upload-php.bw-mf-enabled .bw-mf-chevron {
 
 body.upload-php.bw-mf-enabled .bw-mf-chevron.is-collapsed {
     transform: rotate(0deg);
-}
-
-body.upload-php.bw-mf-enabled .bw-mf-chevron--placeholder {
-    opacity: 0.25;
-    cursor: default;
 }
 
 body.upload-php.bw-mf-enabled .bw-mf-folder-icon {
