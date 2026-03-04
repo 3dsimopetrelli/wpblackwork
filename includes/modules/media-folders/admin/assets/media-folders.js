@@ -14,6 +14,7 @@
         mode: (cfg.active && cfg.active.mode === 'grid') ? 'grid' : 'list'
     };
     var draggedIds = [];
+    var dragBadgeEl = null;
     var INTERNAL_DRAG_KEY = '__BW_MF_INTERNAL_DRAG';
 
     function root() {
@@ -39,6 +40,37 @@
         }
 
         console.log('[BW_MF_DEBUG] ' + message);
+    }
+
+    function clearDropHover() {
+        $('#bw-media-folders-tree .bw-media-folder-node, #bw-media-folders-defaults .bw-media-default--drop')
+            .removeClass('is-drag-over bw-mf-folder-drop-hover');
+    }
+
+    function destroyDragBadge() {
+        if (dragBadgeEl && dragBadgeEl.parentNode) {
+            dragBadgeEl.parentNode.removeChild(dragBadgeEl);
+        }
+        dragBadgeEl = null;
+    }
+
+    function setupDragBadge(event, count) {
+        destroyDragBadge();
+        if (!event || !event.originalEvent || !event.originalEvent.dataTransfer || !count || count < 1) {
+            return;
+        }
+
+        var badge = document.createElement('div');
+        badge.className = 'bw-mf-drag-badge';
+        badge.textContent = count + ' item' + (count === 1 ? '' : 's') + ' selected';
+        document.body.appendChild(badge);
+
+        try {
+            event.originalEvent.dataTransfer.setDragImage(badge, 0, 0);
+            dragBadgeEl = badge;
+        } catch (err) {
+            destroyDragBadge();
+        }
     }
 
     function request(action, payload, onDone) {
@@ -374,28 +406,33 @@
 
         $('#bw-media-folders-tree .bw-media-folder-node, #bw-media-folders-defaults .bw-media-default--drop')
             .off('.bwMfDnD')
+            .on('dragenter.bwMfDnD', function (e) {
+                e.preventDefault();
+                $(this).addClass('is-drag-over bw-mf-folder-drop-hover');
+            })
             .on('dragover.bwMfDnD', function (e) {
-            e.preventDefault();
-            $(this).addClass('is-drag-over');
-        }).on('dragleave.bwMfDnD', function () {
-            $(this).removeClass('is-drag-over');
-        }).on('drop.bwMfDnD', function (e) {
-            e.preventDefault();
-            $(this).removeClass('is-drag-over');
-            setInternalDrag(false);
+                e.preventDefault();
+                $(this).addClass('is-drag-over bw-mf-folder-drop-hover');
+            }).on('dragleave.bwMfDnD', function () {
+                $(this).removeClass('is-drag-over bw-mf-folder-drop-hover');
+            }).on('drop.bwMfDnD', function (e) {
+                e.preventDefault();
+                $(this).removeClass('is-drag-over bw-mf-folder-drop-hover');
+                setInternalDrag(false);
+                destroyDragBadge();
 
-            var folderId = parseInt($(this).attr('data-term-id') || $(this).attr('data-folder-id') || $(this).attr('data-id') || '0', 10);
-            var ids = readDraggedIdsFromDataTransfer(e);
-            if (!ids.length) {
-                debugLog('drop ignored: no draggable ids');
-                return;
-            }
+                var folderId = parseInt($(this).attr('data-term-id') || $(this).attr('data-folder-id') || $(this).attr('data-id') || '0', 10);
+                var ids = readDraggedIdsFromDataTransfer(e);
+                if (!ids.length) {
+                    debugLog('drop ignored: no draggable ids');
+                    return;
+                }
 
-            debugLog('drop assign request', { folderId: folderId, ids: ids });
-            assignFolder(folderId, ids, function () {
-                refreshMediaView();
+                debugLog('drop assign request', { folderId: folderId, ids: ids });
+                assignFolder(folderId, ids, function () {
+                    refreshMediaView();
+                });
             });
-        });
 
         $(document)
             .off('dragstart.bwMfDnDGrid', '.attachments-browser .attachment')
@@ -412,6 +449,7 @@
                 if (e.originalEvent && e.originalEvent.dataTransfer) {
                     e.originalEvent.dataTransfer.setData('text/plain', ids.join(','));
                 }
+                setupDragBadge(e, ids.length);
                 debugLog('grid dragstart', { ids: ids });
             });
 
@@ -430,6 +468,7 @@
                 if (e.originalEvent && e.originalEvent.dataTransfer) {
                     e.originalEvent.dataTransfer.setData('text/plain', ids.join(','));
                 }
+                setupDragBadge(e, ids.length);
                 debugLog('list dragstart', { ids: ids });
             });
 
@@ -438,7 +477,8 @@
             .on('dragend.bwMfDnDCleanup', '.attachments-browser .attachment, .wp-list-table tbody tr', function () {
                 draggedIds = [];
                 setInternalDrag(false);
-                $('#bw-media-folders-tree .bw-media-folder-node, #bw-media-folders-defaults .bw-media-default--drop').removeClass('is-drag-over');
+                clearDropHover();
+                destroyDragBadge();
             }
         );
 

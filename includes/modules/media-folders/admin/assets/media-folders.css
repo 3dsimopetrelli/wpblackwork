@@ -142,6 +142,34 @@ body.upload-php.bw-mf-enabled .bw-media-folder-node.is-drag-over {
     outline: 2px dashed #2271b1;
 }
 
+body.upload-php.bw-mf-enabled .bw-media-folder-node.bw-mf-folder-drop-hover,
+body.upload-php.bw-mf-enabled .bw-media-default.bw-mf-folder-drop-hover {
+    background: #80fd03;
+    color: #ffffff;
+    border-radius: 6px;
+    transition: background-color 120ms ease, color 120ms ease;
+}
+
+body.upload-php.bw-mf-enabled .bw-media-folder-node.bw-mf-folder-drop-hover .bw-media-folder-node__count {
+    color: #ffffff;
+}
+
+body.upload-php.bw-mf-enabled .bw-mf-drag-badge {
+    position: fixed;
+    top: -9999px;
+    left: -9999px;
+    background: #80fd03;
+    color: #000000;
+    padding: 6px 10px;
+    border-radius: 999px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.2;
+    pointer-events: none;
+    z-index: 999999;
+}
+
 body.upload-php.bw-mf-enabled .bw-media-folder-node__main {
     border: 0;
     background: transparent;
