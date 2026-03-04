@@ -21,6 +21,7 @@
     var contextMenuTargetId = 0;
     var contextMenuRowRef = null;
     var contextMenuOpenTick = false;
+    var colorPopoverRowRef = null;
 
     function root() {
         return $('#bw-media-folders-root');
@@ -205,9 +206,17 @@
         var pad = Math.max(0, depth) * 14;
         var pinnedClass = item.pinned ? ' is-pinned' : '';
         var active = (!state.activeUnassigned && state.activeFolder === item.id) ? ' is-active' : '';
+        var styles = ['padding-left:' + pad + 'px'];
+        var iconColor = item.icon_color ? String(item.icon_color) : '';
+        var iconColorAttr = '';
+
+        if (iconColor) {
+            styles.push('--bw-mf-icon-color:' + iconColor);
+            iconColorAttr = ' data-icon-color="' + iconColor + '"';
+        }
 
         return '' +
-            '<div class="bw-media-folder-node' + pinnedClass + active + '" data-id="' + item.id + '" data-term-id="' + item.id + '" data-folder-id="' + item.id + '" data-parent="' + item.parent + '" style="padding-left:' + pad + 'px">' +
+            '<div class="bw-media-folder-node' + pinnedClass + active + '" data-id="' + item.id + '" data-term-id="' + item.id + '" data-folder-id="' + item.id + '" data-parent="' + item.parent + '"' + iconColorAttr + ' style="' + styles.join(';') + '">' +
             '  <button class="bw-media-folder-node__main" type="button">' +
             '    <span class="bw-mf-folder-icon" aria-hidden="true">' +
             '      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">' +
@@ -245,10 +254,29 @@
         $('body').append(html);
     }
 
+    function renderColorPopover() {
+        if ($('#bw-mf-color-popover').length) {
+            return;
+        }
+
+        var html = '' +
+            '<div id="bw-mf-color-popover" class="bw-mf-color-popover" aria-hidden="true">' +
+            '  <input type="color" id="bw-mf-color-input" value="#9aa0a6" />' +
+            '  <button type="button" class="button button-small" id="bw-mf-color-reset">Reset</button>' +
+            '</div>';
+
+        $('body').append(html);
+    }
+
     function hideContextMenu() {
         $('#bw-mf-context-menu').removeClass('is-open').attr('aria-hidden', 'true');
         contextMenuTargetId = 0;
         contextMenuRowRef = null;
+    }
+
+    function hideColorPopover() {
+        $('#bw-mf-color-popover').removeClass('is-open').attr('aria-hidden', 'true');
+        colorPopoverRowRef = null;
     }
 
     function bwMfOpenFolderMenu(config) {
@@ -264,6 +292,8 @@
             hideContextMenu();
             return;
         }
+
+        hideColorPopover();
 
         contextMenuTargetId = termId;
         contextMenuRowRef = rowEl;
@@ -354,6 +384,58 @@
 
         button.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
         return true;
+    }
+
+    function setRowIconColor(rowEl, color) {
+        if (!rowEl || !rowEl.style) {
+            return;
+        }
+
+        if (color) {
+            rowEl.style.setProperty('--bw-mf-icon-color', color);
+            rowEl.setAttribute('data-icon-color', color);
+            return;
+        }
+
+        rowEl.style.removeProperty('--bw-mf-icon-color');
+        rowEl.removeAttribute('data-icon-color');
+    }
+
+    function openColorPopover(rowEl, anchorEl) {
+        var pop = $('#bw-mf-color-popover');
+        if (!rowEl || !anchorEl || !pop.length) {
+            return;
+        }
+
+        colorPopoverRowRef = rowEl;
+        var current = rowEl.getAttribute('data-icon-color') || '#9aa0a6';
+        $('#bw-mf-color-input').val(current);
+
+        var rect = anchorEl.getBoundingClientRect();
+        pop.addClass('is-open').attr('aria-hidden', 'false').css({
+            left: '0px',
+            top: '0px',
+            visibility: 'hidden'
+        });
+
+        var popWidth = pop.outerWidth() || 0;
+        var popHeight = pop.outerHeight() || 0;
+        var left = rect.right + window.pageXOffset - popWidth;
+        var top = rect.bottom + window.pageYOffset + 6;
+
+        var viewportLeft = window.pageXOffset;
+        var viewportTop = window.pageYOffset;
+        var viewportRight = viewportLeft + window.innerWidth;
+        var viewportBottom = viewportTop + window.innerHeight;
+
+        left = Math.max(viewportLeft + 10, Math.min(left, viewportRight - popWidth - 10));
+        top = Math.max(viewportTop + 10, Math.min(top, viewportBottom - popHeight - 10));
+
+        pop.css({
+            left: left + 'px',
+            top: top + 'px',
+            visibility: 'visible'
+        });
     }
 
     function promptRenameFolder(termId) {
@@ -827,16 +909,24 @@
             if ($(e.target).closest('#bw-mf-context-menu').length) {
                 return;
             }
+            if ($(e.target).closest('#bw-mf-color-popover').length) {
+                return;
+            }
             if ($(e.target).closest('.bw-mf-folder-pencil, .bw-mf-folder-rename-btn').length) {
                 return;
             }
             hideContextMenu();
+            hideColorPopover();
         });
 
-        $(window).on('scroll resize', hideContextMenu);
+        $(window).on('scroll resize', function () {
+            hideContextMenu();
+            hideColorPopover();
+        });
         $(document).on('keydown', function (e) {
             if (e.key === 'Escape') {
                 hideContextMenu();
+                hideColorPopover();
             }
         });
 
@@ -857,7 +947,9 @@
             } else if (cmd === 'pin') {
                 actionButton = actions.pin || null;
             } else if (cmd === 'color') {
-                actionButton = actions.color || null;
+                hideContextMenu();
+                openColorPopover(row.get(0), row.find('.bw-mf-folder-pencil, .bw-mf-folder-rename-btn').get(0));
+                return;
             } else if (cmd === 'delete') {
                 actionButton = actions.del || null;
             }
@@ -869,6 +961,35 @@
 
             bwMfTriggerActionButton(actionButton, cmd);
             hideContextMenu();
+        });
+
+        $(document).on('input change', '#bw-mf-color-input', function () {
+            var rowEl = colorPopoverRowRef;
+            var color = String($(this).val() || '');
+            var termId = rowEl ? parseInt($(rowEl).attr('data-id') || '0', 10) : 0;
+            if (!(termId > 0) || !color) {
+                return;
+            }
+
+            request('bw_mf_set_folder_color', { term_id: termId, color: color }, function (data) {
+                var applied = data && data.color ? String(data.color) : color;
+                setRowIconColor(rowEl, applied);
+            }, { silent: true });
+        });
+
+        $(document).on('click', '#bw-mf-color-reset', function (e) {
+            e.preventDefault();
+            var rowEl = colorPopoverRowRef;
+            var termId = rowEl ? parseInt($(rowEl).attr('data-id') || '0', 10) : 0;
+            if (!(termId > 0)) {
+                hideColorPopover();
+                return;
+            }
+
+            request('bw_mf_reset_folder_color', { term_id: termId }, function () {
+                setRowIconColor(rowEl, '');
+                hideColorPopover();
+            }, { silent: true });
         });
 
         root().on('click', '.bw-mf-folder-pencil, .bw-mf-folder-rename-btn', function (e) {
@@ -973,6 +1094,7 @@
     function init() {
         mountLayout();
         renderContextMenu();
+        renderColorPopover();
         makeGridTilesDraggable();
         makeListRowsDraggable();
         bindInternalDragSuppression();

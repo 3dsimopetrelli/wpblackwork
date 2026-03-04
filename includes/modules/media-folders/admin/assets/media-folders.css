@@ -153,8 +153,7 @@ body.upload-php.bw-mf-enabled .bw-media-folder-node:hover {
 
 body.upload-php.bw-mf-enabled .bw-media-folder-node:hover .bw-media-folder-node__main,
 body.upload-php.bw-mf-enabled .bw-media-folder-node:hover .bw-media-folder-node__name,
-body.upload-php.bw-mf-enabled .bw-media-folder-node:hover .bw-media-folder-node__count,
-body.upload-php.bw-mf-enabled .bw-media-folder-node:hover .bw-mf-folder-icon {
+body.upload-php.bw-mf-enabled .bw-media-folder-node:hover .bw-media-folder-node__count {
     color: #111111;
 }
 
@@ -186,6 +185,13 @@ body.upload-php.bw-mf-enabled .bw-mf-folder-drop-hover .bw-media-folder-node__co
 
 body.upload-php.bw-mf-enabled .bw-mf-folder-drop-hover .bw-mf-folder-icon {
     color: #0b0b0b !important;
+}
+
+body.upload-php.bw-mf-enabled .bw-media-folder-node[data-icon-color] .bw-mf-folder-icon,
+body.upload-php.bw-mf-enabled .bw-media-folder-node[data-icon-color].is-active .bw-mf-folder-icon,
+body.upload-php.bw-mf-enabled .bw-media-folder-node[data-icon-color]:hover .bw-mf-folder-icon,
+body.upload-php.bw-mf-enabled .bw-media-folder-node[data-icon-color].bw-mf-folder-drop-hover .bw-mf-folder-icon {
+    color: var(--bw-mf-icon-color) !important;
 }
 
 body.upload-php.bw-mf-enabled .bw-media-folder-node.bw-mf-folder-drop-hover .bw-media-folder-node__main {
@@ -221,7 +227,7 @@ body.upload-php.bw-mf-enabled .bw-media-folder-node__main {
 }
 
 body.upload-php.bw-mf-enabled .bw-mf-folder-icon {
-    color: #9aa0a6;
+    color: var(--bw-mf-icon-color, #9aa0a6);
     flex: 0 0 auto;
 }
 
@@ -334,6 +340,31 @@ body.upload-php.bw-mf-enabled .bw-mf-context-menu__item:disabled {
 
 body.upload-php.bw-mf-enabled .bw-mf-context-menu__item--danger {
     color: #b32d2e;
+}
+
+body.upload-php.bw-mf-enabled .bw-mf-color-popover {
+    position: absolute;
+    display: none;
+    align-items: center;
+    gap: 8px;
+    background: #ffffff;
+    border: 1px solid #dcdcde;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.16);
+    padding: 8px;
+    z-index: 999999;
+}
+
+body.upload-php.bw-mf-enabled .bw-mf-color-popover.is-open {
+    display: inline-flex;
+}
+
+body.upload-php.bw-mf-enabled .bw-mf-color-popover input[type="color"] {
+    width: 34px;
+    height: 28px;
+    border: 0;
+    background: transparent;
+    padding: 0;
 }
 
 body.upload-php.bw-mf-enabled .bw-media-folders__bulk {

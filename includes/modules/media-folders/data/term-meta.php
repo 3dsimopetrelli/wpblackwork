@@ -31,6 +31,14 @@ if (!function_exists('bw_mf_register_term_meta')) {
             'show_in_rest' => false,
             'sanitize_callback' => 'absint',
         ]);
+
+        register_term_meta('bw_media_folder', 'bw_mf_icon_color', [
+            'type' => 'string',
+            'single' => true,
+            'default' => '',
+            'show_in_rest' => false,
+            'sanitize_callback' => 'bw_mf_sanitize_hex_color',
+        ]);
     }
 }
 

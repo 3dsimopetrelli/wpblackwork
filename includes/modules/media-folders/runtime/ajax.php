@@ -14,6 +14,8 @@ add_action('wp_ajax_bw_media_rename_folder', 'bw_mf_ajax_rename_folder');
 add_action('wp_ajax_bw_media_delete_folder', 'bw_mf_ajax_delete_folder');
 add_action('wp_ajax_bw_media_assign_folder', 'bw_mf_ajax_assign_folder');
 add_action('wp_ajax_bw_media_update_folder_meta', 'bw_mf_ajax_update_folder_meta');
+add_action('wp_ajax_bw_mf_set_folder_color', 'bw_mf_ajax_set_folder_color');
+add_action('wp_ajax_bw_mf_reset_folder_color', 'bw_mf_ajax_reset_folder_color');
 
 if (!function_exists('bw_mf_ajax_error')) {
     function bw_mf_ajax_error($message, $code = 400)
@@ -150,6 +152,7 @@ if (!function_exists('bw_mf_build_folder_nodes')) {
                 'parent' => (int) $term->parent,
                 'count' => isset($counts_map[$term_id]) ? (int) $counts_map[$term_id] : 0,
                 'color' => (string) get_term_meta($term->term_id, 'bw_color', true),
+                'icon_color' => (string) get_term_meta($term->term_id, 'bw_mf_icon_color', true),
                 'pinned' => (int) get_term_meta($term->term_id, 'bw_pinned', true),
                 'sort' => (int) get_term_meta($term->term_id, 'bw_sort', true),
             ];
@@ -419,6 +422,49 @@ if (!function_exists('bw_mf_ajax_update_folder_meta')) {
         wp_send_json_success([
             'term_id' => $term_id,
             'message' => __('Folder metadata updated.', 'bw'),
+        ]);
+    }
+}
+
+if (!function_exists('bw_mf_ajax_set_folder_color')) {
+    function bw_mf_ajax_set_folder_color()
+    {
+        bw_mf_ajax_require('bw_mf_set_folder_color', 'bw_mf_manage_folders');
+
+        $term_id = isset($_POST['term_id']) ? absint($_POST['term_id']) : 0;
+        $color = isset($_POST['color']) ? bw_mf_sanitize_hex_color($_POST['color']) : '';
+
+        if ($term_id <= 0 || $color === '') {
+            bw_mf_ajax_error(__('Invalid folder color data.', 'bw'), 400);
+        }
+
+        bw_mf_get_folder_term_or_error($term_id);
+        update_term_meta($term_id, 'bw_mf_icon_color', $color);
+
+        wp_send_json_success([
+            'term_id' => $term_id,
+            'color' => $color,
+            'message' => __('Folder icon color updated.', 'bw'),
+        ]);
+    }
+}
+
+if (!function_exists('bw_mf_ajax_reset_folder_color')) {
+    function bw_mf_ajax_reset_folder_color()
+    {
+        bw_mf_ajax_require('bw_mf_reset_folder_color', 'bw_mf_manage_folders');
+
+        $term_id = isset($_POST['term_id']) ? absint($_POST['term_id']) : 0;
+        if ($term_id <= 0) {
+            bw_mf_ajax_error(__('Invalid folder.', 'bw'), 400);
+        }
+
+        bw_mf_get_folder_term_or_error($term_id);
+        delete_term_meta($term_id, 'bw_mf_icon_color');
+
+        wp_send_json_success([
+            'term_id' => $term_id,
+            'message' => __('Folder icon color reset.', 'bw'),
         ]);
     }
 }
