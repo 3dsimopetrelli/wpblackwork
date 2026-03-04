@@ -47,6 +47,14 @@
             .removeClass('is-drag-over bw-mf-folder-drop-hover');
     }
 
+    function dropRowForElement($el) {
+        if (!$el || !$el.length) {
+            return $();
+        }
+
+        return $el.closest('.bw-media-folder-node, .bw-media-default--drop');
+    }
+
     function destroyDragBadge() {
         if (dragBadgeEl && dragBadgeEl.parentNode) {
             dragBadgeEl.parentNode.removeChild(dragBadgeEl);
@@ -408,16 +416,16 @@
             .off('.bwMfDnD')
             .on('dragenter.bwMfDnD', function (e) {
                 e.preventDefault();
-                $(this).addClass('is-drag-over bw-mf-folder-drop-hover');
+                dropRowForElement($(this)).addClass('is-drag-over bw-mf-folder-drop-hover');
             })
             .on('dragover.bwMfDnD', function (e) {
                 e.preventDefault();
-                $(this).addClass('is-drag-over bw-mf-folder-drop-hover');
+                dropRowForElement($(this)).addClass('is-drag-over bw-mf-folder-drop-hover');
             }).on('dragleave.bwMfDnD', function () {
-                $(this).removeClass('is-drag-over bw-mf-folder-drop-hover');
+                dropRowForElement($(this)).removeClass('is-drag-over bw-mf-folder-drop-hover');
             }).on('drop.bwMfDnD', function (e) {
                 e.preventDefault();
-                $(this).removeClass('is-drag-over bw-mf-folder-drop-hover');
+                dropRowForElement($(this)).removeClass('is-drag-over bw-mf-folder-drop-hover');
                 setInternalDrag(false);
                 destroyDragBadge();
 
