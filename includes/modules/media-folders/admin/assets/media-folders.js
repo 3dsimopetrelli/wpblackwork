@@ -16,6 +16,8 @@
     var draggedIds = [];
     var dragBadgeEl = null;
     var INTERNAL_DRAG_KEY = '__BW_MF_INTERNAL_DRAG';
+    var FOLDER_NODE_SEL = '.bw-media-folder-node[data-term-id]';
+    var currentHoverNode = null;
 
     function root() {
         return $('#bw-media-folders-root');
@@ -45,36 +47,21 @@
     function clearDropHover() {
         $('#bw-media-folders-tree .bw-media-folder-node, #bw-media-folders-defaults .bw-media-default--drop')
             .removeClass('is-drag-over bw-mf-folder-drop-hover');
-        $('#bw-media-folders-tree li').removeClass('bw-mf-folder-drop-hover');
+        currentHoverNode = null;
     }
 
-    function dropRowForElement($el) {
-        if (!$el || !$el.length) {
-            return { node: $(), row: $() };
+    function setCurrentHoverNode(node) {
+        if (currentHoverNode && currentHoverNode !== node) {
+            currentHoverNode.classList.remove('bw-mf-folder-drop-hover', 'is-drag-over');
         }
 
-        var node = $el.closest('[data-term-id]');
-        if (!node.length) {
-            node = $el.closest('.bw-media-folder-node, .bw-media-default--drop');
-        }
-        var row = node.closest('li');
-        if (!row.length) {
-            row = node;
+        if (!node) {
+            currentHoverNode = null;
+            return;
         }
 
-        return { node: node, row: row };
-    }
-
-    function setDropHover($el) {
-        var target = dropRowForElement($el);
-        target.node.addClass('is-drag-over bw-mf-folder-drop-hover');
-        target.row.addClass('bw-mf-folder-drop-hover');
-    }
-
-    function clearDropHoverFor($el) {
-        var target = dropRowForElement($el);
-        target.node.removeClass('is-drag-over bw-mf-folder-drop-hover');
-        target.row.removeClass('bw-mf-folder-drop-hover');
+        node.classList.add('bw-mf-folder-drop-hover', 'is-drag-over');
+        currentHoverNode = node;
     }
 
     function destroyDragBadge() {
@@ -375,12 +362,26 @@
                 return;
             }
 
+            if (event.type === 'dragover') {
+                var hoverNode = event.target && event.target.closest ? event.target.closest(FOLDER_NODE_SEL) : null;
+                setCurrentHoverNode(hoverNode);
+                if (window.BW_MF_DEBUG && hoverNode) {
+                    console.log('[BW_MF_DEBUG] hover node', hoverNode.getAttribute('data-term-id') || '');
+                }
+            }
+
             if (event.type === 'drop') {
                 setInternalDrag(false);
+                clearDropHover();
             }
 
             event.preventDefault();
             if (event.type === 'dragenter' || event.type === 'dragover') {
+                if (event.dataTransfer) {
+                    try {
+                        event.dataTransfer.dropEffect = 'move';
+                    } catch (err) {}
+                }
                 event.stopImmediatePropagation();
                 return;
             }
@@ -438,7 +439,6 @@
             .off('.bwMfDnD')
             .on('dragenter.bwMfDnD', function (e) {
                 e.preventDefault();
-                setDropHover($(e.target));
                 if (e.originalEvent && e.originalEvent.dataTransfer) {
                     try {
                         e.originalEvent.dataTransfer.dropEffect = 'move';
@@ -447,17 +447,14 @@
             })
             .on('dragover.bwMfDnD', function (e) {
                 e.preventDefault();
-                setDropHover($(e.target));
                 if (e.originalEvent && e.originalEvent.dataTransfer) {
                     try {
                         e.originalEvent.dataTransfer.dropEffect = 'move';
                     } catch (err) {}
                 }
-            }).on('dragleave.bwMfDnD', function (e) {
-                clearDropHoverFor($(e.target));
             }).on('drop.bwMfDnD', function (e) {
                 e.preventDefault();
-                clearDropHoverFor($(e.target));
+                clearDropHover();
                 setInternalDrag(false);
                 destroyDragBadge();
 
