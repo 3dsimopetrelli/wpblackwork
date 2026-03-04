@@ -28,6 +28,7 @@
         (cfg.flags && parseInt(cfg.flags.cornerIndicator, 10) === 1) ||
         parseInt(cfg.cornerIndicatorEnabled, 10) === 1
     );
+    var badgeTooltipEnabled = parseInt(cfg.badgeTooltipEnabled, 10) === 1;
     var markerObserver = null;
     var markerDebounceTimer = null;
     var markerCache = new Map();
@@ -37,6 +38,8 @@
     var markerIntersectionObserver = null;
     var markerVisibleTiles = new Set();
     var markerObservedTiles = (typeof WeakSet !== 'undefined') ? new WeakSet() : null;
+    var badgeTooltipEl = null;
+    var badgeTooltipEventsBound = false;
     var folderByParentMap = {};
     var folderCollapsedMap = {};
     var FOLDER_COLLAPSED_KEY = 'bw_mf_folder_collapsed';
@@ -280,6 +283,9 @@
             if (tile.style.getPropertyValue('--bw-mf-marker-color')) {
                 tile.style.removeProperty('--bw-mf-marker-color');
             }
+            if (tile.hasAttribute('data-bw-mf-folder-name')) {
+                tile.removeAttribute('data-bw-mf-folder-name');
+            }
         });
     }
 
@@ -302,6 +308,7 @@
         markerObservedTiles = (typeof WeakSet !== 'undefined') ? new WeakSet() : null;
 
         clearCornerMarkers();
+        hideBadgeTooltip();
     }
 
     function getCornerViewContext() {
@@ -412,7 +419,8 @@
                     var marker = markers[idKey] || {};
                     markerCache.set(id, {
                         assigned: !!marker.assigned,
-                        color: isValidHexColor(marker.color) ? marker.color : null
+                        color: isValidHexColor(marker.color) ? marker.color : null,
+                        folder_name: marker.folder_name ? String(marker.folder_name) : ''
                     });
                     markerFailedIds.delete(id);
                 });
@@ -437,6 +445,9 @@
             if (tile.style.getPropertyValue('--bw-mf-marker-color')) {
                 tile.style.removeProperty('--bw-mf-marker-color');
             }
+            if (tile.hasAttribute('data-bw-mf-folder-name')) {
+                tile.removeAttribute('data-bw-mf-folder-name');
+            }
             return;
         }
 
@@ -446,6 +457,11 @@
         var targetColor = marker.color || '#000';
         if (tile.style.getPropertyValue('--bw-mf-marker-color') !== targetColor) {
             tile.style.setProperty('--bw-mf-marker-color', targetColor);
+        }
+        if (marker.folder_name) {
+            tile.setAttribute('data-bw-mf-folder-name', marker.folder_name);
+        } else if (tile.hasAttribute('data-bw-mf-folder-name')) {
+            tile.removeAttribute('data-bw-mf-folder-name');
         }
     }
 
@@ -475,10 +491,15 @@
 
         if (viewCtx.folderId > 0) {
             var folderColor = resolveFolderViewColor(viewCtx.folderId);
+            var folder = state.folders.find(function (item) {
+                return parseInt(item.id, 10) === viewCtx.folderId;
+            });
+            var folderName = folder && folder.name ? String(folder.name) : '';
             tiles.forEach(function (tile) {
                 setTileCornerMarker(tile, {
                     assigned: true,
-                    color: folderColor
+                    color: folderColor,
+                    folder_name: folderName
                 });
             });
             return;
@@ -526,6 +547,81 @@
             scheduleCornerMarkerRefresh();
         });
         markerObserver.observe(attachmentsRoot, { childList: true, subtree: false });
+    }
+
+    function ensureBadgeTooltipEl() {
+        if (!cornerIndicatorEnabled || !badgeTooltipEnabled) {
+            return null;
+        }
+
+        if (badgeTooltipEl && document.body.contains(badgeTooltipEl)) {
+            return badgeTooltipEl;
+        }
+
+        badgeTooltipEl = document.createElement('div');
+        badgeTooltipEl.id = 'bw-mf-badge-tooltip';
+        badgeTooltipEl.className = 'bw-mf-badge-tooltip';
+        badgeTooltipEl.setAttribute('aria-hidden', 'true');
+        document.body.appendChild(badgeTooltipEl);
+        return badgeTooltipEl;
+    }
+
+    function hideBadgeTooltip() {
+        if (!badgeTooltipEl) {
+            return;
+        }
+
+        badgeTooltipEl.classList.remove('is-visible');
+        badgeTooltipEl.setAttribute('aria-hidden', 'true');
+    }
+
+    function showBadgeTooltipForTile(tile) {
+        if (!cornerIndicatorEnabled || !badgeTooltipEnabled || !tile) {
+            return;
+        }
+
+        var folderName = String(tile.getAttribute('data-bw-mf-folder-name') || '').trim();
+        if (!folderName) {
+            hideBadgeTooltip();
+            return;
+        }
+
+        var tooltip = ensureBadgeTooltipEl();
+        if (!tooltip) {
+            return;
+        }
+
+        tooltip.textContent = folderName;
+
+        var rect = tile.getBoundingClientRect();
+        var x = rect.left + window.pageXOffset + 8;
+        var y = rect.top + window.pageYOffset + 8;
+
+        tooltip.style.left = x + 'px';
+        tooltip.style.top = y + 'px';
+        tooltip.classList.add('is-visible');
+        tooltip.setAttribute('aria-hidden', 'false');
+    }
+
+    function bindBadgeTooltipEvents() {
+        if (!cornerIndicatorEnabled || !badgeTooltipEnabled || badgeTooltipEventsBound) {
+            return;
+        }
+
+        ensureBadgeTooltipEl();
+        badgeTooltipEventsBound = true;
+
+        $(document).on('mouseenter.bwMfBadgeTooltip', '.attachments-browser .attachment.bw-mf-marked', function () {
+            showBadgeTooltipForTile(this);
+        });
+
+        $(document).on('mousemove.bwMfBadgeTooltip', '.attachments-browser .attachment.bw-mf-marked', function () {
+            showBadgeTooltipForTile(this);
+        });
+
+        $(document).on('mouseleave.bwMfBadgeTooltip', '.attachments-browser .attachment.bw-mf-marked', function () {
+            hideBadgeTooltip();
+        });
     }
 
     function refreshCounts() {
@@ -1743,6 +1839,7 @@
 
         setCollapsedState(collapsed);
         bindEvents();
+        bindBadgeTooltipEvents();
         registerGridAjaxFilter();
         refreshTree();
         bindCornerMarkerObserver();

@@ -473,6 +473,30 @@ body.upload-php.bw-mf-enabled .bw-mf-color-popover input[type="color"] {
     padding: 0;
 }
 
+body.upload-php.bw-mf-enabled #bw-mf-badge-tooltip {
+    position: absolute;
+    left: 0;
+    top: 0;
+    padding: 4px 8px;
+    font-size: 12px;
+    line-height: 1.2;
+    color: #ffffff;
+    background: #111111;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+    z-index: 1000000;
+    opacity: 0;
+    transform: translateY(2px);
+    transition: opacity 120ms ease-out, transform 120ms ease-out;
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+body.upload-php.bw-mf-enabled #bw-mf-badge-tooltip.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
 body.upload-php.bw-mf-enabled .bw-media-folders__bulk {
     margin-top: 10px;
     display: flex;

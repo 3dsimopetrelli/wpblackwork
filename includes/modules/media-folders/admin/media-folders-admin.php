@@ -39,6 +39,7 @@ if (!function_exists('bw_mf_admin_enqueue_assets')) {
         $css_path = __DIR__ . '/assets/media-folders.css';
         $js_path = __DIR__ . '/assets/media-folders.js';
         $corner_enabled = bw_mf_is_corner_indicator_enabled();
+        $badge_tooltip_enabled = function_exists('bw_mf_get_badge_tooltip_enabled') ? bw_mf_get_badge_tooltip_enabled() : false;
 
         $css_version = file_exists($css_path) ? (string) filemtime($css_path) : '1.0.0';
         $js_version = file_exists($js_path) ? (string) filemtime($js_path) : '1.0.0';
@@ -66,6 +67,7 @@ if (!function_exists('bw_mf_admin_enqueue_assets')) {
             'flags' => [
                 'cornerIndicator' => $corner_enabled ? 1 : 0,
             ],
+            'badgeTooltipEnabled' => ($corner_enabled && $badge_tooltip_enabled) ? 1 : 0,
             'text' => [
                 'newFolderPrompt' => __('Folder name', 'bw'),
                 'renamePrompt' => __('Rename folder', 'bw'),

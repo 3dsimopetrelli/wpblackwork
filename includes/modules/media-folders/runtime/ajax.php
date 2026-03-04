@@ -538,6 +538,7 @@ if (!function_exists('bw_mf_ajax_get_corner_markers')) {
             $markers[$attachment_id] = [
                 'assigned' => false,
                 'color' => null,
+                'folder_name' => '',
             ];
 
             $post = get_post($attachment_id);
@@ -558,6 +559,7 @@ if (!function_exists('bw_mf_ajax_get_corner_markers')) {
             $color = bw_mf_sanitize_hex_color((string) get_term_meta((int) $term->term_id, 'bw_mf_icon_color', true));
             $markers[$attachment_id]['assigned'] = true;
             $markers[$attachment_id]['color'] = ($color !== '') ? $color : null;
+            $markers[$attachment_id]['folder_name'] = wp_strip_all_tags((string) $term->name);
         }
 
         wp_send_json_success([
