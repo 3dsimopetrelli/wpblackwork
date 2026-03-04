@@ -2,6 +2,7 @@ body.upload-php.bw-mf-enabled {
     --bw-mf-panel-width: 300px;
     --bw-mf-tab-width: 34px;
     --bw-mf-sidebar-width: var(--bw-mf-panel-width);
+    --bw-mf-green: #80fd03;
 }
 
 body.upload-php.bw-mf-enabled.bw-mf-collapsed {
@@ -145,19 +146,25 @@ body.upload-php.bw-mf-enabled .bw-media-folder-node.is-drag-over {
 }
 
 body.upload-php.bw-mf-enabled .bw-media-folder-node.bw-mf-folder-drop-hover,
-body.upload-php.bw-mf-enabled .bw-media-default.bw-mf-folder-drop-hover {
-    background: #80fd03;
+body.upload-php.bw-mf-enabled .bw-media-default.bw-mf-folder-drop-hover,
+body.upload-php.bw-mf-enabled li.bw-mf-folder-drop-hover,
+body.upload-php.bw-mf-enabled .bw-mf-folder-drop-hover {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    box-sizing: border-box;
+    background: var(--bw-mf-green);
     color: #111111;
     border-radius: 10px;
     transition: background-color 120ms ease, color 120ms ease;
-    width: 100%;
 }
 
 body.upload-php.bw-mf-enabled .bw-mf-folder-drop-hover a,
 body.upload-php.bw-mf-enabled .bw-mf-folder-drop-hover button,
 body.upload-php.bw-mf-enabled .bw-mf-folder-drop-hover .bw-media-folder-node__name,
 body.upload-php.bw-mf-enabled .bw-mf-folder-drop-hover .bw-media-folder-node__count {
-    color: inherit;
+    background: transparent !important;
+    color: #0b0b0b !important;
 }
 
 body.upload-php.bw-mf-enabled .bw-media-folder-node.bw-mf-folder-drop-hover .bw-media-folder-node__main {
@@ -168,7 +175,7 @@ body.upload-php.bw-mf-enabled .bw-mf-drag-badge {
     position: fixed;
     top: -9999px;
     left: -9999px;
-    background: #80fd03;
+    background: var(--bw-mf-green);
     color: #000000;
     padding: 7px 10px;
     border-radius: 999px;
