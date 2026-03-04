@@ -107,8 +107,16 @@ if (!function_exists('bw_mf_filter_media_list_query')) {
 }
 
 if (!function_exists('bw_mf_filter_media_grid_query')) {
-    function bw_mf_filter_media_grid_query($args, $query)
+    function bw_mf_filter_media_grid_query($args, $query = [])
     {
+        if (!is_array($args)) {
+            return $args;
+        }
+
+        if (!is_array($query)) {
+            $query = [];
+        }
+
         if (!bw_mf_is_query_attachments_ajax()) {
             return $args;
         }
