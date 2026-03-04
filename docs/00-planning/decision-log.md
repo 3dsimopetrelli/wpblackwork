@@ -171,6 +171,18 @@ If a decision is normative and architecture-binding, the ADR process MUST be use
   - Keep `BW_TBL_DEBUG_PREVIEW` scoped to bridge+resolver logs only (no per-widget debug noise).
   - Validate per-widget server log evidence on the target environment during audit closure.
 
+### Entry 015
+- Date: 2026-03-04
+- Decision summary: Completed Media Folders admin module as isolated `upload.php` surface with taxonomy-backed virtual folders, guarded grid/list query filtering, marker/badge UX, and quick type filters.
+- Affected domain: Media Library Admin / Media Folders
+- Rationale: Media operations needed deterministic folder organization and assignment workflows without modifying file paths, frontend media behavior, or non-media runtime domains.
+- Risk impact: Medium (admin DOM coupling and observer/event complexity), mitigated by strict screen guards, fail-open query filters, capability/nonce/context validation, and coalesced refresh scheduling.
+- Follow-up actions:
+  - Keep module gated by `bw_core_flags['media_folders']`.
+  - Revalidate toolbar/tablenav selector contracts on WordPress major admin UI changes.
+  - Monitor marker + quick-filter observer behavior on very large libraries.
+  - Keep closure reference synchronized in `docs/tasks/media-folders-close-task.md`.
+
 ## Governance Layer Closure
 
 Status: CLOSED  

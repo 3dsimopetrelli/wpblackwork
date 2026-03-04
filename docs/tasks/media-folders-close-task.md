@@ -188,9 +188,10 @@ MutationObserver:
 - Separate observers for marker refresh and quick-filter placement/update.
 - Observers are singleton/idempotent and re-used.
 
-Debounce:
-- Marker refresh uses debounced scheduling.
-- Quick filter count/placement updates are debounced to limit DOM churn.
+Coalesced scheduling:
+- A single `requestAnimationFrame` scheduler coalesces heavy refresh work (`scheduleBwMfRefresh`).
+- Burst updates from observers/UI interactions resolve to one consolidated pass.
+- Debug instrumentation (`BW_MF_DEBUG`) logs schedule-vs-run coalescing.
 
 Prevention of DOM duplication:
 - Init guarded by `window.__BW_MF_INIT_DONE`.
@@ -200,6 +201,7 @@ Prevention of DOM duplication:
 Caching:
 - Marker cache by attachment ID (`markerCache`) avoids repeated marker fetch.
 - Quick filter mime cache by attachment ID (`quickTypeMimeCache`) avoids repeated MIME detection.
+- Marker fetch queue is single-flight (`markerFetchInFlight`) with pending ID set batching (`markerPendingIds`), avoiding concurrent duplicate XHR.
 
 ## Risks
 WordPress admin DOM changes:

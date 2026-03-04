@@ -24,6 +24,26 @@ Use it to quickly identify what is aligned, what is fragile, and which documenta
   - nonce handling per tab/action
   - admin JS conditional rendering logic
 
+### Media Library Admin (Media Folders)
+- Primary docs:
+  - [Media Folders Spec](../../30-features/media-folders/media-folders-module-spec.md)
+  - [Media Folders Task Closure](../../tasks/media-folders-close-task.md)
+- Code reality anchors:
+  - `includes/modules/media-folders/media-folders-module.php`
+  - `includes/modules/media-folders/admin/media-folders-admin.php`
+  - `includes/modules/media-folders/admin/assets/media-folders.js`
+  - `includes/modules/media-folders/runtime/media-query-filter.php`
+  - `includes/modules/media-folders/runtime/ajax.php`
+- Alignment status: `Aligned`
+- Known gaps:
+  - WordPress admin DOM drift can affect toolbar placement selectors over time.
+  - Observer-heavy UI integration requires periodic performance revalidation on large libraries.
+- Highest-risk surfaces:
+  - `upload.php` toolbar/tablenav DOM anchors
+  - `ajax_query_attachments_args` payload shape compatibility
+  - marker endpoint batching/caching behavior
+  - drag/drop event interaction with core Media Library uploader surface
+
 ### Checkout
 - Primary docs:
   - [Checkout Architecture Map](../../30-features/checkout/checkout-architecture-map.md)

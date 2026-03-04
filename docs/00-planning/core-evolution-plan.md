@@ -67,6 +67,21 @@ It MUST be used as planning reference only and MUST NOT replace ADRs.
   - Elementor editor preview recursion/conflict safeguards are active
   - Admin controls delivered as tabs (`Settings`, `Fonts`, `Footer`)
 
+### Media Folders — Admin Media Library Module
+- Status: Completed (2026-03-04)
+- Risk classification: Medium
+- Short description: Delivered isolated Media Library folder system (`upload.php`) with virtual taxonomy folders, list/grid filtering, drag/drop + bulk assignment, folder metadata actions (pin/color), assigned-media badge markers, optional marker tooltip, and quick type filters (Video/JPEG/PNG/SVG/Fonts).
+- Reference docs:
+  - `docs/30-features/media-folders/media-folders-module-spec.md`
+  - `docs/tasks/media-folders-close-task.md`
+  - `docs/00-governance/risk-register.md`
+- Acceptance:
+  - Admin-only and feature-flag-gated (`bw_core_flags['media_folders']`)
+  - No physical file path/URL mutation
+  - Grid/list filtering stable with fail-open guards
+  - Folder CRUD/meta + assignment protected by nonce/capability/context checks
+  - Runtime remains no-op when module flag is off
+
 ### Coming Soon Hardening
 - Status: Backlog
 - Risk classification: Medium

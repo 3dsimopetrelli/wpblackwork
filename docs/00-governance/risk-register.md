@@ -258,8 +258,37 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 - Current Mitigation: Triple-layer suppression (UPE params style rules, cleaner script with MutationObserver, polling fallback).
 - Monitoring Status: Monitoring
 - Linked Documents:
-  - [Technical Hardening Plan](./technical-hardening-plan.md)
+  - [Blast-Radius Consolidation Map](./blast-radius-consolidation-map.md)
   - [Checkout Payment Selector Audit](../50-ops/audits/checkout-payment-selector-audit.md)
+
+### Risk ID: R-MF-01
+- Domain: Media Folders / Media Library Admin
+- Surface Anchor: `includes/modules/media-folders/admin/assets/media-folders.js` (toolbar placement selectors + observers + DnD interaction layer)
+- Description: WordPress Media Library admin DOM structure (`.media-toolbar`, `.tablenav.top`, attachment classes) can change across releases, causing quick-filter placement drift or degraded JS behavior.
+- Invariant Threatened: Admin-only fail-open behavior with non-breaking Media Library default operations.
+- Impact: Medium
+- Likelihood: Medium
+- Risk Level: Medium
+- Current Mitigation: strict `upload.php` scoping, idempotent DOM insertion, coalesced refresh scheduler, selector fallback chain, and no-op/fail-open guards when targets are missing.
+- Monitoring Status: Monitoring
+- Linked Documents:
+  - [Media Folders Spec](../30-features/media-folders/media-folders-module-spec.md)
+  - [Media Folders Task Closure](../tasks/media-folders-close-task.md)
+
+### Risk ID: R-MF-02
+- Domain: Media Folders / Data Integrity
+- Surface Anchor: `includes/modules/media-folders/runtime/ajax.php` (`bw_media_assign_folder`, folder CRUD/meta endpoints, counts/markers endpoints)
+- Description: High-volume media assignment or conflicting plugin taxonomy operations may create temporary count/marker mismatches or perceived state lag in admin lists/grids.
+- Invariant Threatened: Deterministic media-folder assignment visibility in current admin session.
+- Impact: Medium
+- Likelihood: Medium
+- Risk Level: Medium
+- Current Mitigation: attachment ID normalization + batch limit (200), capability/nonce/context validation, server-side counts API, marker cache invalidation on assignment, and single-flight marker fetch queue.
+- Monitoring Status: Monitoring
+- Linked Documents:
+  - [Media Folders Spec](../30-features/media-folders/media-folders-module-spec.md)
+  - [Media Folders Task Closure](../tasks/media-folders-close-task.md)
+  - [Technical Hardening Plan](./technical-hardening-plan.md)
 
 ### Risk ID: R-PAY-03
 - Domain: Payments / Wallets
