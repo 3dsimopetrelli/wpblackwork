@@ -130,19 +130,62 @@ if (!function_exists('bw_mf_build_folder_nodes')) {
         $terms = get_terms([
             'taxonomy' => 'bw_media_folder',
             'hide_empty' => false,
+            'hierarchical' => true,
         ]);
 
         if (is_wp_error($terms) || !is_array($terms)) {
             return [];
         }
 
+        $base_counts = [];
+        $children_map = [];
+
+        foreach ($terms as $term) {
+            $term_id = (int) $term->term_id;
+            $parent_id = (int) $term->parent;
+            $base_counts[$term_id] = (int) $term->count;
+
+            if (!isset($children_map[$parent_id])) {
+                $children_map[$parent_id] = [];
+            }
+
+            $children_map[$parent_id][] = $term_id;
+        }
+
+        $aggregate_counts = [];
+        $walker = static function ($term_id, array &$trail) use (&$walker, &$aggregate_counts, $base_counts, $children_map) {
+            if (isset($aggregate_counts[$term_id])) {
+                return $aggregate_counts[$term_id];
+            }
+
+            if (isset($trail[$term_id])) {
+                return isset($base_counts[$term_id]) ? (int) $base_counts[$term_id] : 0;
+            }
+
+            $trail[$term_id] = true;
+            $total = isset($base_counts[$term_id]) ? (int) $base_counts[$term_id] : 0;
+            $children = isset($children_map[$term_id]) && is_array($children_map[$term_id]) ? $children_map[$term_id] : [];
+
+            foreach ($children as $child_id) {
+                $total += (int) $walker((int) $child_id, $trail);
+            }
+
+            unset($trail[$term_id]);
+            $aggregate_counts[$term_id] = $total;
+
+            return $total;
+        };
+
         $nodes = [];
         foreach ($terms as $term) {
+            $trail = [];
+            $term_id = (int) $term->term_id;
+
             $nodes[] = [
-                'id' => (int) $term->term_id,
+                'id' => $term_id,
                 'name' => $term->name,
                 'parent' => (int) $term->parent,
-                'count' => (int) $term->count,
+                'count' => (int) $walker($term_id, $trail),
                 'color' => (string) get_term_meta($term->term_id, 'bw_color', true),
                 'pinned' => (int) get_term_meta($term->term_id, 'bw_pinned', true),
                 'sort' => (int) get_term_meta($term->term_id, 'bw_sort', true),
