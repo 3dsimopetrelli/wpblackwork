@@ -250,6 +250,7 @@ body.upload-php.bw-mf-enabled .bw-media-folder-node__main {
     flex: 1 1 auto;
     display: flex;
     align-items: center;
+    justify-content: flex-start;
     gap: 8px;
     cursor: pointer;
     padding: 4px;
@@ -316,12 +317,18 @@ body.upload-php.bw-mf-enabled .bw-media-folder-node__name {
     line-height: 1.4;
 }
 
+body.upload-php.bw-mf-enabled .bw-mf-folder-name {
+    flex: 1;
+    margin-left: 6px;
+}
+
 body.upload-php.bw-mf-enabled .bw-media-folder-node__meta {
     display: inline-flex;
     align-items: center;
     justify-content: flex-end;
     gap: 6px;
     min-width: 52px;
+    margin-left: auto;
 }
 
 body.upload-php.bw-mf-enabled .bw-media-folder-node__count {
@@ -329,6 +336,10 @@ body.upload-php.bw-mf-enabled .bw-media-folder-node__count {
     font-size: 13px;
     min-width: 28px;
     text-align: right;
+}
+
+body.upload-php.bw-mf-enabled .bw-mf-count {
+    margin-left: auto;
 }
 
 body.upload-php.bw-mf-enabled .bw-mf-pin-indicator {

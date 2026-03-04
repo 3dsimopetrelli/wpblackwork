@@ -617,7 +617,7 @@
         var iconColorAttr = '';
         var pinnedAttr = item.pinned ? '1' : '0';
         var collapsedAttr = isCollapsed ? '1' : '0';
-        var pinIndicator = item.pinned ? '<span class="bw-mf-pin-indicator" aria-hidden="true">📌</span>' : '';
+        var pinIndicator = item.pinned ? '<span class="bw-mf-pin-indicator bw-mf-pin" aria-hidden="true">📌</span>' : '';
         var chevron = hasChildren
             ? '<button class="bw-mf-chevron" type="button" aria-label="Toggle folder" aria-expanded="' + (isCollapsed ? 'false' : 'true') + '">▶</button>'
             : '';
@@ -636,10 +636,10 @@
             '        <path fill="currentColor" d="M5.5 5 H9.8 A1.6 1.6 0 0 1 11 5.6 L12.2 7 A1.6 1.6 0 0 0 13.4 7.6 H18.5 A1.5 1.5 0 0 1 20 9.1 V18.5 A1.5 1.5 0 0 1 18.5 20 H5.5 A1.5 1.5 0 0 1 4 18.5 V6.5 A1.5 1.5 0 0 1 5.5 5 Z"></path>' +
             '      </svg>' +
             '    </span>' +
-            '    <span class="bw-media-folder-node__name">' + item.name + '</span>' +
+            '    <span class="bw-media-folder-node__name bw-mf-folder-name">' + item.name + '</span>' +
             '    <span class="bw-media-folder-node__meta">' +
             pinIndicator +
-            '      <span class="bw-media-folder-node__count">' + item.count + '</span>' +
+            '      <span class="bw-media-folder-node__count bw-mf-count">' + item.count + '</span>' +
             '    </span>' +
             '  </button>' +
             '  <button type="button" class="bw-mf-folder-pencil bw-mf-folder-rename-btn" aria-label="Folder actions">' +
