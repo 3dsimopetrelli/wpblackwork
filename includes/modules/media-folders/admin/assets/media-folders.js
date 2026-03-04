@@ -354,7 +354,8 @@
     function getQuickTypeDefinitions() {
         return [
             { key: 'video', label: 'Video' },
-            { key: 'images', label: 'Images' },
+            { key: 'jpeg', label: 'JPEG' },
+            { key: 'png', label: 'PNG' },
             { key: 'svg', label: 'SVG' },
             { key: 'fonts', label: 'Fonts' }
         ];
@@ -545,23 +546,28 @@
             return 'video';
         }
 
-        if (normalized === 'image/jpeg' || normalized === 'image/png') {
-            return 'images';
+        if (normalized === 'image/jpeg' || normalized === 'image/jpg') {
+            return 'jpeg';
+        }
+
+        if (normalized === 'image/png') {
+            return 'png';
         }
 
         if (normalized === 'image/svg+xml') {
             return 'svg';
         }
 
-        var fontAppMimes = {
-            'application/font-woff': true,
-            'application/font-woff2': true,
-            'application/x-font-ttf': true,
-            'application/x-font-opentype': true,
-            'application/vnd.ms-fontobject': true
-        };
-
-        if (normalized.indexOf('font/') === 0 || fontAppMimes[normalized]) {
+        if (
+            normalized.indexOf('font/') === 0 ||
+            normalized.indexOf('application/font') === 0 ||
+            normalized.indexOf('application/x-font') === 0 ||
+            normalized === 'application/vnd.ms-fontobject' ||
+            normalized === 'font/woff' ||
+            normalized === 'font/woff2' ||
+            normalized === 'font/ttf' ||
+            normalized === 'font/otf'
+        ) {
             return 'fonts';
         }
 
@@ -710,7 +716,7 @@
         }
         ensureTypeFiltersPlacement();
 
-        var counts = { video: 0, images: 0, svg: 0, fonts: 0 };
+        var counts = { video: 0, jpeg: 0, png: 0, svg: 0, fonts: 0 };
         var nodes = getAttachmentNodesForQuickFilters();
 
         nodes.forEach(function (node) {
