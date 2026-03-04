@@ -613,39 +613,61 @@
         return bar;
     }
 
-    function ensureTypeFiltersRow() {
+    function ensureTypeFiltersPlacement() {
         var bar = ensureQuickFiltersToolbar();
         if (!bar) {
             return null;
         }
 
-        var gridToolbar = document.querySelector('.media-toolbar');
-        var listToolbar = document.querySelector('.tablenav.top');
-        var anchor = gridToolbar || listToolbar;
-
-        if (!anchor) {
-            anchor = document.querySelector('#wpbody-content .wrap') || document.querySelector('#wpbody-content h1');
+        var legacyRow = document.querySelector('.bw-mf-toolbar-row--typefilters');
+        if (legacyRow && legacyRow !== bar.parentNode) {
+            legacyRow.parentNode.removeChild(legacyRow);
         }
 
-        if (!anchor || !anchor.parentNode) {
-            return null;
+        var body = document.body;
+        var gridSecondary = document.querySelector('.media-toolbar .media-toolbar-secondary');
+        var gridPrimary = document.querySelector('.media-toolbar .media-toolbar-primary') || document.querySelector('.media-toolbar');
+        var listBar = document.querySelector('.tablenav.top');
+        var preferredContainer = gridSecondary || gridPrimary || null;
+
+        if (!preferredContainer && listBar) {
+            preferredContainer = listBar.querySelector('.actions') ||
+                (listBar.querySelector('.tablenav-pages') ? listBar.querySelector('.tablenav-pages').parentElement : null) ||
+                listBar;
         }
 
-        var row = document.querySelector('.bw-mf-toolbar-row--typefilters');
-        if (!row) {
-            row = document.createElement('div');
-            row.className = 'bw-mf-toolbar-row bw-mf-toolbar-row--typefilters';
+        var inline = !!preferredContainer;
+        var wrapper = document.querySelector('.bw-mf-toolbar-inline');
+
+        if (!wrapper) {
+            wrapper = document.createElement('div');
+            wrapper.className = 'bw-mf-toolbar-inline';
         }
 
-        if (row.parentNode !== anchor.parentNode || row.previousElementSibling !== anchor) {
-            anchor.parentNode.insertBefore(row, anchor.nextSibling);
+        if (!preferredContainer) {
+            var fallbackAnchor = document.querySelector('#wpbody-content .wrap') || document.querySelector('#wpbody-content h1');
+            if (fallbackAnchor && fallbackAnchor.parentNode) {
+                if (wrapper.parentNode !== fallbackAnchor.parentNode || wrapper.previousElementSibling !== fallbackAnchor) {
+                    fallbackAnchor.parentNode.insertBefore(wrapper, fallbackAnchor.nextSibling);
+                }
+                if (bar.parentNode !== wrapper) {
+                    wrapper.appendChild(bar);
+                }
+            }
+            body.classList.remove('bw-mf-has-typefilters-inline');
+            return wrapper;
         }
 
-        if (bar.parentNode !== row) {
-            row.appendChild(bar);
+        if (wrapper.parentNode !== preferredContainer) {
+            preferredContainer.appendChild(wrapper);
         }
 
-        return row;
+        if (bar.parentNode !== wrapper) {
+            wrapper.appendChild(bar);
+        }
+
+        body.classList.toggle('bw-mf-has-typefilters-inline', inline);
+        return wrapper;
     }
 
     function updateQuickFilterCounts(counts) {
@@ -686,7 +708,7 @@
         if (!bar) {
             return;
         }
-        ensureTypeFiltersRow();
+        ensureTypeFiltersPlacement();
 
         var counts = { video: 0, images: 0, svg: 0, fonts: 0 };
         var nodes = getAttachmentNodesForQuickFilters();
@@ -764,7 +786,7 @@
 
         quickTypeLayoutDebounceTimer = window.setTimeout(function () {
             quickTypeLayoutDebounceTimer = null;
-            ensureTypeFiltersRow();
+            ensureTypeFiltersPlacement();
         }, 180);
     }
 
@@ -2321,7 +2343,7 @@
         refreshTree();
         bindCornerMarkerObserver();
         bindQuickTypeFilterObserver();
-        ensureTypeFiltersRow();
+        ensureTypeFiltersPlacement();
         scheduleCornerMarkerRefresh();
         scheduleQuickTypeLayoutRefresh();
         scheduleQuickTypeFiltersRefresh();
@@ -2340,7 +2362,7 @@
         window.setTimeout(function () {
             bindQuickTypeFilterObserver();
             bindQuickTypeLayoutObserver();
-            ensureTypeFiltersRow();
+            ensureTypeFiltersPlacement();
             scheduleQuickTypeFiltersRefresh();
         }, 350);
     });
