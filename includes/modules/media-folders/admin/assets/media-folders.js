@@ -1099,7 +1099,8 @@
                 currentParent = parseInt(parentNode.getAttribute('data-parent') || '0', 10);
             }
 
-            node.style.display = (matchesSearch && !hiddenByCollapse) ? '' : 'none';
+            node.style.display = matchesSearch ? '' : 'none';
+            node.classList.toggle('bw-mf-hidden-by-collapse', !!hiddenByCollapse);
             node.classList.toggle('is-collapsed', !!folderCollapsedMap[id]);
 
             var chevron = node.querySelector('.bw-mf-chevron');

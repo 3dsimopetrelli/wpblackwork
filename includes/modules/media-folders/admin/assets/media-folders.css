@@ -143,6 +143,10 @@ body.upload-php.bw-mf-enabled .bw-media-folder-node {
     width: 100%;
     box-sizing: border-box;
     font-size: 15px;
+    max-height: 52px;
+    opacity: 1;
+    overflow: hidden;
+    transition: max-height 240ms cubic-bezier(.2, .8, .2, 1), opacity 240ms cubic-bezier(.2, .8, .2, 1), margin 240ms cubic-bezier(.2, .8, .2, 1);
 }
 
 body.upload-php.bw-mf-enabled .bw-media-folder-node.is-active {
@@ -244,25 +248,27 @@ body.upload-php.bw-mf-enabled .bw-media-folder-node__main {
     border: 0;
     background: transparent;
     text-align: left;
-    display: flex;
+    display: grid;
     align-items: center;
+    grid-template-columns: 1fr auto;
     justify-content: flex-start;
     width: 100%;
     cursor: pointer;
-    padding: 4px;
+    padding: 4px 2px 4px 4px;
 }
 
 body.upload-php.bw-mf-enabled .bw-mf-left {
-    display: flex;
+    display: grid;
     align-items: center;
-    gap: 5px;
+    grid-template-columns: 14px 25px minmax(0, 1fr);
+    column-gap: 3px;
     min-width: 0;
 }
 
 body.upload-php.bw-mf-enabled .bw-mf-right {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 6px;
     margin-left: auto;
 }
 
@@ -286,6 +292,7 @@ body.upload-php.bw-mf-enabled .bw-mf-chevron {
     transform: rotate(90deg);
     transition: transform 220ms cubic-bezier(.2, .8, .2, 1), opacity 220ms cubic-bezier(.2, .8, .2, 1), color 220ms ease-out;
     will-change: transform;
+    grid-column: 1;
 }
 
 body.upload-php.bw-mf-enabled .bw-mf-chevron svg,
@@ -307,6 +314,7 @@ body.upload-php.bw-mf-enabled .bw-mf-folder-icon {
     display: flex;
     align-items: center;
     justify-content: center;
+    grid-column: 2;
 }
 
 body.upload-php.bw-mf-enabled .bw-mf-folder-icon svg {
@@ -327,6 +335,7 @@ body.upload-php.bw-mf-enabled .bw-media-folder-node__name {
     text-overflow: ellipsis;
     font-size: 15px;
     line-height: 1.4;
+    grid-column: 3;
 }
 
 body.upload-php.bw-mf-enabled .bw-mf-folder-name {
@@ -375,7 +384,14 @@ body.upload-php.bw-mf-enabled .bw-mf-folder-rename-btn {
     pointer-events: none;
     transition: opacity 120ms ease;
     cursor: pointer;
-    margin-right: 2px;
+    margin-right: 4px;
+}
+
+body.upload-php.bw-mf-enabled .bw-media-folder-node.bw-mf-hidden-by-collapse {
+    max-height: 0;
+    opacity: 0;
+    margin-bottom: 0;
+    pointer-events: none;
 }
 
 body.upload-php.bw-mf-enabled .bw-media-folder-node:hover .bw-mf-folder-rename-btn {
