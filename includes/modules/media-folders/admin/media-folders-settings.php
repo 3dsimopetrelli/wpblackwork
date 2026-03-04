@@ -28,7 +28,8 @@ if (!function_exists('bw_mf_render_settings_page')) {
 
         if (isset($_POST['bw_mf_settings_submit'])) {
             check_admin_referer('bw_mf_settings_save', 'bw_mf_settings_nonce');
-            $enabled = !empty($_POST['bw_core_flags']['media_folders']) ? 1 : 0;
+            $core_flags = (isset($_POST['bw_core_flags']) && is_array($_POST['bw_core_flags'])) ? $_POST['bw_core_flags'] : [];
+            $enabled = !empty($core_flags['media_folders']) ? 1 : 0;
             bw_core_update_flags([
                 'media_folders' => $enabled,
             ]);
