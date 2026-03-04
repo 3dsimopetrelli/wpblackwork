@@ -22,6 +22,8 @@
     var contextMenuRowRef = null;
     var contextMenuOpenTick = false;
     var colorPopoverRowRef = null;
+    var colorSaveTimer = null;
+    var eventsBound = false;
 
     function root() {
         return $('#bw-media-folders-root');
@@ -145,9 +147,11 @@
             if (data && data.counts) {
                 state.counts = data.counts;
             }
-
-            renderDefaults();
-            renderTree();
+            $('#bw-media-folders-defaults .bw-media-default[data-type="all"] span').text(state.counts.all || 0);
+            $('#bw-media-folders-defaults .bw-media-default[data-type="unassigned"] span').text(state.counts.unassigned || 0);
+            state.folders.forEach(function (item) {
+                $('#bw-media-folders-tree .bw-media-folder-node[data-id="' + item.id + '"] .bw-media-folder-node__count').text(item.count);
+            });
         }, { silent: true });
     }
 
@@ -277,6 +281,10 @@
     function hideColorPopover() {
         $('#bw-mf-color-popover').removeClass('is-open').attr('aria-hidden', 'true');
         colorPopoverRowRef = null;
+        if (colorSaveTimer) {
+            window.clearTimeout(colorSaveTimer);
+            colorSaveTimer = null;
+        }
     }
 
     function bwMfOpenFolderMenu(config) {
@@ -795,6 +803,11 @@
     }
 
     function registerGridAjaxFilter() {
+        if (window.__BW_MF_PREFILTER_DONE) {
+            return;
+        }
+        window.__BW_MF_PREFILTER_DONE = true;
+
         $.ajaxPrefilter(function (options) {
             if (typeof options.data !== 'string' || typeof options.url !== 'string' || options.url.indexOf('admin-ajax.php') === -1) {
                 return;
@@ -837,6 +850,11 @@
     }
 
     function bindEvents() {
+        if (eventsBound) {
+            return;
+        }
+        eventsBound = true;
+
         root().on('click', '#bw-media-folders-toggle', function () {
             var collapsed = !$('body').hasClass('bw-mf-collapsed');
             setCollapsedState(collapsed);
@@ -934,8 +952,27 @@
             var item = $(this);
             var cmd = item.attr('data-cmd') || '';
             var row = contextMenuRowRef ? $(contextMenuRowRef) : $();
+            var termId = row.length ? parseInt(row.attr('data-id') || '0', 10) : 0;
+            var folder = termId > 0 ? findFolder(termId) : null;
 
             if (!row.length) {
+                hideContextMenu();
+                return;
+            }
+
+            if (cmd === 'pin') {
+                if (!folder) {
+                    hideContextMenu();
+                    return;
+                }
+
+                var nextPin = folder.pinned ? 0 : 1;
+                request('bw_media_update_folder_meta', {
+                    term_id: termId,
+                    pinned: nextPin,
+                    color: folder.color || '',
+                    sort: folder.sort || 0
+                }, refreshTree, { silent: true });
                 hideContextMenu();
                 return;
             }
@@ -971,10 +1008,16 @@
                 return;
             }
 
-            request('bw_mf_set_folder_color', { term_id: termId, color: color }, function (data) {
-                var applied = data && data.color ? String(data.color) : color;
-                setRowIconColor(rowEl, applied);
-            }, { silent: true });
+            setRowIconColor(rowEl, color);
+            if (colorSaveTimer) {
+                window.clearTimeout(colorSaveTimer);
+            }
+            colorSaveTimer = window.setTimeout(function () {
+                request('bw_mf_set_folder_color', { term_id: termId, color: color }, function (data) {
+                    var applied = data && data.color ? String(data.color) : color;
+                    setRowIconColor(rowEl, applied);
+                }, { silent: true });
+            }, 180);
         });
 
         $(document).on('click', '#bw-mf-color-reset', function (e) {
@@ -1092,6 +1135,11 @@
     }
 
     function init() {
+        if (window.__BW_MF_INIT_DONE) {
+            return;
+        }
+        window.__BW_MF_INIT_DONE = true;
+
         mountLayout();
         renderContextMenu();
         renderColorPopover();
