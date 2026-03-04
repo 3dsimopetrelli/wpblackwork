@@ -18,6 +18,7 @@
     var INTERNAL_DRAG_KEY = '__BW_MF_INTERNAL_DRAG';
     var FOLDER_NODE_SEL = '.bw-media-folder-node[data-term-id]';
     var currentHoverNode = null;
+    var contextMenuTargetId = 0;
 
     function root() {
         return $('#bw-media-folders-root');
@@ -214,14 +215,62 @@
             '    <span class="bw-media-folder-node__name">' + item.name + '</span>' +
             '    <span class="bw-media-folder-node__count">' + item.count + '</span>' +
             '  </button>' +
-            '  <div class="bw-media-folder-node__actions">' +
-            '    <button type="button" class="bw-mf-action" data-action="sub">+</button>' +
-            '    <button type="button" class="bw-mf-action" data-action="rename">R</button>' +
-            '    <button type="button" class="bw-mf-action" data-action="pin">' + (item.pinned ? 'U' : 'P') + '</button>' +
-            '    <button type="button" class="bw-mf-action" data-action="color">C</button>' +
-            '    <button type="button" class="bw-mf-action bw-mf-action--danger" data-action="delete">X</button>' +
-            '  </div>' +
+            '  <button type="button" class="bw-mf-folder-rename-btn" data-action="rename" aria-label="Rename folder">' +
+            '    <span class="dashicons dashicons-edit" aria-hidden="true"></span>' +
+            '  </button>' +
             '</div>';
+    }
+
+    function renderContextMenu() {
+        if ($('#bw-mf-context-menu').length) {
+            return;
+        }
+
+        var html = '' +
+            '<div id="bw-mf-context-menu" class="bw-mf-context-menu" role="menu" aria-hidden="true">' +
+            '  <button type="button" class="bw-mf-context-menu__item" data-cmd="new-folder"><span class="dashicons dashicons-plus-alt2" aria-hidden="true"></span><span>New folder</span></button>' +
+            '  <button type="button" class="bw-mf-context-menu__item" data-cmd="new-subfolder"><span class="dashicons dashicons-editor-indent" aria-hidden="true"></span><span>New sub-folder</span></button>' +
+            '  <button type="button" class="bw-mf-context-menu__item" data-cmd="rename"><span class="dashicons dashicons-edit" aria-hidden="true"></span><span>Rename</span></button>' +
+            '  <button type="button" class="bw-mf-context-menu__item is-disabled" data-cmd="icon-color" disabled><span class="dashicons dashicons-art" aria-hidden="true"></span><span>Icon Color (coming soon)</span></button>' +
+            '  <button type="button" class="bw-mf-context-menu__item" data-cmd="sticky"><span class="dashicons dashicons-sticky" aria-hidden="true"></span><span>Sticky Folder</span></button>' +
+            '  <button type="button" class="bw-mf-context-menu__item bw-mf-context-menu__item--danger" data-cmd="delete"><span class="dashicons dashicons-trash" aria-hidden="true"></span><span>Delete</span></button>' +
+            '  <button type="button" class="bw-mf-context-menu__item is-disabled" data-cmd="star" disabled><span class="dashicons dashicons-star-filled" aria-hidden="true"></span><span>Star (coming soon)</span></button>' +
+            '  <button type="button" class="bw-mf-context-menu__item is-disabled" data-cmd="lock" disabled><span class="dashicons dashicons-lock" aria-hidden="true"></span><span>Lock (coming soon)</span></button>' +
+            '  <button type="button" class="bw-mf-context-menu__item is-disabled" data-cmd="duplicate" disabled><span class="dashicons dashicons-admin-page" aria-hidden="true"></span><span>Duplicate (coming soon)</span></button>' +
+            '  <button type="button" class="bw-mf-context-menu__item is-disabled" data-cmd="download-zip" disabled><span class="dashicons dashicons-download" aria-hidden="true"></span><span>Download ZIP (coming soon)</span></button>' +
+            '</div>';
+
+        $('body').append(html);
+    }
+
+    function hideContextMenu() {
+        $('#bw-mf-context-menu').removeClass('is-open').attr('aria-hidden', 'true');
+        contextMenuTargetId = 0;
+    }
+
+    function showContextMenu(x, y, termId) {
+        var menu = $('#bw-mf-context-menu');
+        if (!menu.length || !(termId > 0)) {
+            hideContextMenu();
+            return;
+        }
+
+        contextMenuTargetId = termId;
+        menu.css({ left: x + 'px', top: y + 'px' }).addClass('is-open').attr('aria-hidden', 'false');
+    }
+
+    function promptRenameFolder(termId) {
+        var folder = findFolder(termId);
+        if (!folder || termId <= 0) {
+            return;
+        }
+
+        var newName = window.prompt(cfg.text && cfg.text.renamePrompt ? cfg.text.renamePrompt : 'Rename folder', folder.name);
+        if (!newName) {
+            return;
+        }
+
+        request('bw_media_rename_folder', { term_id: termId, name: newName }, refreshTree);
     }
 
     function renderDefaults() {
@@ -665,26 +714,88 @@
             window.location.href = getQueryUrl(folderId, false);
         });
 
-        root().on('click', '.bw-mf-action', function (e) {
+        root().on('click', '.bw-mf-folder-rename-btn', function (e) {
+            e.preventDefault();
             e.stopPropagation();
-            var node = $(this).closest('.bw-media-folder-node');
-            var termId = parseInt(node.attr('data-id') || '0', 10);
-            var action = $(this).attr('data-action');
+            var termId = parseInt($(this).closest('.bw-media-folder-node').attr('data-id') || '0', 10);
+            if (termId <= 0) {
+                return;
+            }
+            promptRenameFolder(termId);
+        });
+
+        root().on('contextmenu', '.bw-media-folder-node', function (e) {
+            e.preventDefault();
+            var termId = parseInt($(this).attr('data-id') || '0', 10);
+            showContextMenu(e.pageX, e.pageY, termId);
+        });
+
+        $(document).on('click', function (e) {
+            if ($(e.target).closest('#bw-mf-context-menu').length) {
+                return;
+            }
+            hideContextMenu();
+        });
+
+        $(window).on('scroll resize', hideContextMenu);
+        $(document).on('keydown', function (e) {
+            if (e.key === 'Escape') {
+                hideContextMenu();
+            }
+        });
+
+        $(document).on('click', '#bw-mf-context-menu .bw-mf-context-menu__item', function () {
+            var item = $(this);
+            if (item.hasClass('is-disabled')) {
+                hideContextMenu();
+                return;
+            }
+
+            var cmd = item.attr('data-cmd') || '';
+            var termId = contextMenuTargetId;
             var folder = findFolder(termId);
-
-            if (!folder || termId <= 0) {
+            if (!(termId > 0) || !folder) {
+                hideContextMenu();
                 return;
             }
 
-            if (action === 'rename') {
-                var newName = window.prompt(cfg.text && cfg.text.renamePrompt ? cfg.text.renamePrompt : 'Rename folder', folder.name);
-                if (newName) {
-                    request('bw_media_rename_folder', { term_id: termId, name: newName }, refreshTree);
+            if (cmd === 'new-folder') {
+                var createName = window.prompt(cfg.text && cfg.text.newFolderPrompt ? cfg.text.newFolderPrompt : 'Folder name');
+                if (createName) {
+                    request('bw_media_create_folder', { name: createName, parent: 0 }, refreshTree);
                 }
+                hideContextMenu();
                 return;
             }
 
-            if (action === 'delete') {
+            if (cmd === 'new-subfolder') {
+                var subName = window.prompt(cfg.text && cfg.text.createSubPrompt ? cfg.text.createSubPrompt : 'Subfolder name');
+                if (subName) {
+                    request('bw_media_create_folder', { name: subName, parent: termId }, refreshTree);
+                }
+                hideContextMenu();
+                return;
+            }
+
+            if (cmd === 'rename') {
+                promptRenameFolder(termId);
+                hideContextMenu();
+                return;
+            }
+
+            if (cmd === 'sticky') {
+                var nextPin = folder.pinned ? 0 : 1;
+                request('bw_media_update_folder_meta', {
+                    term_id: termId,
+                    pinned: nextPin,
+                    color: folder.color || '',
+                    sort: folder.sort || 0
+                }, refreshTree);
+                hideContextMenu();
+                return;
+            }
+
+            if (cmd === 'delete') {
                 if (window.confirm(cfg.text && cfg.text.confirmDelete ? cfg.text.confirmDelete : 'Delete this folder?')) {
                     request('bw_media_delete_folder', { term_id: termId }, function () {
                         if (state.activeFolder === termId) {
@@ -694,39 +805,11 @@
                         refreshTree();
                     });
                 }
+                hideContextMenu();
                 return;
             }
 
-            if (action === 'sub') {
-                var subName = window.prompt(cfg.text && cfg.text.createSubPrompt ? cfg.text.createSubPrompt : 'Subfolder name');
-                if (subName) {
-                    request('bw_media_create_folder', { name: subName, parent: termId }, refreshTree);
-                }
-                return;
-            }
-
-            if (action === 'pin') {
-                var nextPin = folder.pinned ? 0 : 1;
-                request('bw_media_update_folder_meta', {
-                    term_id: termId,
-                    pinned: nextPin,
-                    color: folder.color || '',
-                    sort: folder.sort || 0
-                }, refreshTree);
-                return;
-            }
-
-            if (action === 'color') {
-                var color = window.prompt('Folder color (hex)', folder.color || '#6b7280');
-                if (color) {
-                    request('bw_media_update_folder_meta', {
-                        term_id: termId,
-                        pinned: folder.pinned ? 1 : 0,
-                        color: color,
-                        sort: folder.sort || 0
-                    }, refreshTree);
-                }
-            }
+            hideContextMenu();
         });
 
         root().on('click', '#bw-media-folders-bulk-btn', function () {
@@ -762,6 +845,7 @@
 
     function init() {
         mountLayout();
+        renderContextMenu();
         makeGridTilesDraggable();
         makeListRowsDraggable();
         bindInternalDragSuppression();

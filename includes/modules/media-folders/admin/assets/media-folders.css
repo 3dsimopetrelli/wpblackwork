@@ -138,13 +138,24 @@ body.upload-php.bw-mf-enabled .bw-media-folder-node {
 }
 
 body.upload-php.bw-mf-enabled .bw-media-folder-node.is-active {
-    background: #1e5eff;
+    background: #80fd03;
 }
 
 body.upload-php.bw-mf-enabled .bw-media-folder-node.is-active .bw-media-folder-node__main,
 body.upload-php.bw-mf-enabled .bw-media-folder-node.is-active .bw-media-folder-node__name,
 body.upload-php.bw-mf-enabled .bw-media-folder-node.is-active .bw-media-folder-node__count {
-    color: #ffffff;
+    color: #111111;
+}
+
+body.upload-php.bw-mf-enabled .bw-media-folder-node:hover {
+    background: #80fd03;
+}
+
+body.upload-php.bw-mf-enabled .bw-media-folder-node:hover .bw-media-folder-node__main,
+body.upload-php.bw-mf-enabled .bw-media-folder-node:hover .bw-media-folder-node__name,
+body.upload-php.bw-mf-enabled .bw-media-folder-node:hover .bw-media-folder-node__count,
+body.upload-php.bw-mf-enabled .bw-media-folder-node:hover .bw-mf-folder-icon {
+    color: #111111;
 }
 
 body.upload-php.bw-mf-enabled .bw-media-folder-node.is-drag-over {
@@ -201,7 +212,7 @@ body.upload-php.bw-mf-enabled .bw-media-folder-node__main {
     border: 0;
     background: transparent;
     text-align: left;
-    width: 100%;
+    flex: 1 1 auto;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -233,27 +244,85 @@ body.upload-php.bw-mf-enabled .bw-media-folder-node__name {
 }
 
 body.upload-php.bw-mf-enabled .bw-media-folder-node__count {
-    color: #50575e;
+    color: inherit;
     font-size: 12px;
+    min-width: 28px;
+    text-align: right;
 }
 
-body.upload-php.bw-mf-enabled .bw-media-folder-node__actions {
-    display: flex;
-    gap: 2px;
-}
-
-body.upload-php.bw-mf-enabled .bw-mf-action {
-    border: 1px solid #c3c4c7;
-    background: #fff;
-    border-radius: 3px;
-    width: 22px;
-    height: 22px;
-    line-height: 20px;
-    padding: 0;
+body.upload-php.bw-mf-enabled .bw-mf-folder-rename-btn {
+    border: 0;
+    background: transparent;
+    color: #111111;
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 120ms ease;
     cursor: pointer;
 }
 
-body.upload-php.bw-mf-enabled .bw-mf-action--danger {
+body.upload-php.bw-mf-enabled .bw-media-folder-node:hover .bw-mf-folder-rename-btn {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+body.upload-php.bw-mf-enabled .bw-mf-folder-rename-btn:hover {
+    background: rgba(0, 0, 0, 0.08);
+}
+
+body.upload-php.bw-mf-enabled .bw-mf-context-menu {
+    position: absolute;
+    display: none;
+    min-width: 230px;
+    background: #ffffff;
+    border: 1px solid #dcdcde;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.16);
+    padding: 6px;
+    z-index: 999999;
+}
+
+body.upload-php.bw-mf-enabled .bw-mf-context-menu.is-open {
+    display: block;
+}
+
+body.upload-php.bw-mf-enabled .bw-mf-context-menu__item {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-align: left;
+    padding: 7px 8px;
+    border-radius: 6px;
+    color: #1d2327;
+    cursor: pointer;
+}
+
+body.upload-php.bw-mf-enabled .bw-mf-context-menu__item .dashicons {
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+}
+
+body.upload-php.bw-mf-enabled .bw-mf-context-menu__item:hover {
+    background: #80fd03;
+    color: #111111;
+}
+
+body.upload-php.bw-mf-enabled .bw-mf-context-menu__item.is-disabled,
+body.upload-php.bw-mf-enabled .bw-mf-context-menu__item:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+body.upload-php.bw-mf-enabled .bw-mf-context-menu__item--danger {
     color: #b32d2e;
 }
 
