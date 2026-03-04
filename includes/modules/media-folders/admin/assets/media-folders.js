@@ -30,7 +30,6 @@
     );
     var badgeTooltipEnabled = parseInt(cfg.badgeTooltipEnabled, 10) === 1;
     var markerObserver = null;
-    var markerDebounceTimer = null;
     var markerCache = new Map();
     var markerFailedIds = new Set();
     var markerFetchInFlight = false;
@@ -41,19 +40,28 @@
     var badgeTooltipEl = null;
     var badgeTooltipEventsBound = false;
     var quickTypeFilterActive = '';
-    var quickTypeFilterDebounceTimer = null;
     var quickTypeFilterObserver = null;
     var quickTypeFilterObserverTarget = null;
     var quickTypeLayoutObserver = null;
-    var quickTypeLayoutDebounceTimer = null;
     var quickTypeMimeCache = new Map();
     var quickTypeFiltersEventsBound = false;
+    var bwMfRefreshScheduled = false;
+    var bwMfRefreshReasons = [];
+    var bwMfRefreshCount = 0;
+    var bwMfRefreshRunCount = 0;
+    var gridToolbarEl = null;
+    var listToolbarEl = null;
+    var quickFiltersBarEl = null;
     var folderByParentMap = {};
     var folderCollapsedMap = {};
     var FOLDER_COLLAPSED_KEY = 'bw_mf_folder_collapsed';
 
     function isGridMode() {
         return state.mode === 'grid' || !!document.querySelector('.attachments-browser');
+    }
+
+    function isUploadScreen() {
+        return !!(document.body && document.body.classList && document.body.classList.contains('upload-php'));
     }
 
     function getAttachmentsBrowserEl() {
@@ -173,23 +181,51 @@
         return /^#[0-9a-f]{6}$/i.test(String(color || ''));
     }
 
+    function scheduleBwMfRefresh(reason) {
+        if (!isUploadScreen()) {
+            return;
+        }
+
+        if (reason) {
+            bwMfRefreshReasons.push(reason);
+        }
+
+        bwMfRefreshCount += 1;
+        if (bwMfRefreshScheduled) {
+            return;
+        }
+
+        bwMfRefreshScheduled = true;
+        window.requestAnimationFrame(function () {
+            bwMfRefreshScheduled = false;
+            bwMfRefreshRunCount += 1;
+            if (window.BW_MF_DEBUG) {
+                debugLog('refresh coalesced', {
+                    scheduled: bwMfRefreshCount,
+                    runs: bwMfRefreshRunCount,
+                    reasons: bwMfRefreshReasons.slice(-6)
+                });
+            }
+            bwMfRefreshCount = 0;
+            bwMfRefreshReasons = [];
+
+            ensureTypeFiltersPlacement();
+            if (cornerIndicatorEnabled && isGridMode()) {
+                observeGridTilesForCorners();
+                bwMfApplyCornerMarkers();
+            } else if (!cornerIndicatorEnabled) {
+                clearCornerMarkers();
+            }
+            recomputeQuickTypeFilters();
+        });
+    }
+
     function scheduleCornerMarkerRefresh() {
         if (!cornerIndicatorEnabled) {
             disableCornerMarkers();
             return;
         }
-
-        if (!isGridMode()) {
-            return;
-        }
-
-        if (markerDebounceTimer) {
-            window.clearTimeout(markerDebounceTimer);
-        }
-        markerDebounceTimer = window.setTimeout(function () {
-            markerDebounceTimer = null;
-            bwMfApplyCornerMarkers();
-        }, 320);
+        scheduleBwMfRefresh('corner');
     }
 
     function getVisibleGridTiles() {
@@ -298,11 +334,6 @@
     }
 
     function disableCornerMarkers() {
-        if (markerDebounceTimer) {
-            window.clearTimeout(markerDebounceTimer);
-            markerDebounceTimer = null;
-        }
-
         if (markerObserver) {
             markerObserver.disconnect();
             markerObserver = null;
@@ -601,6 +632,10 @@
     }
 
     function ensureQuickFiltersToolbar() {
+        if (quickFiltersBarEl && document.body.contains(quickFiltersBarEl)) {
+            return quickFiltersBarEl;
+        }
+
         var bar = document.getElementById('bw-mf-type-filters');
         if (!bar) {
             bar = document.createElement('div');
@@ -616,6 +651,7 @@
             });
         }
 
+        quickFiltersBarEl = bar;
         return bar;
     }
 
@@ -631,9 +667,16 @@
         }
 
         var body = document.body;
-        var gridSecondary = document.querySelector('.media-toolbar .media-toolbar-secondary');
-        var gridPrimary = document.querySelector('.media-toolbar .media-toolbar-primary') || document.querySelector('.media-toolbar');
-        var listBar = document.querySelector('.tablenav.top');
+        if (!gridToolbarEl || !document.body.contains(gridToolbarEl)) {
+            gridToolbarEl = document.querySelector('.media-toolbar');
+        }
+        if (!listToolbarEl || !document.body.contains(listToolbarEl)) {
+            listToolbarEl = document.querySelector('.tablenav.top');
+        }
+
+        var gridSecondary = gridToolbarEl ? gridToolbarEl.querySelector('.media-toolbar-secondary') : null;
+        var gridPrimary = gridToolbarEl ? (gridToolbarEl.querySelector('.media-toolbar-primary') || gridToolbarEl) : null;
+        var listBar = listToolbarEl;
         var preferredContainer = gridSecondary || gridPrimary || null;
 
         if (!preferredContainer && listBar) {
@@ -710,11 +753,14 @@
     }
 
     function recomputeQuickTypeFilters() {
+        if (!isUploadScreen()) {
+            return;
+        }
+
         var bar = ensureQuickFiltersToolbar();
         if (!bar) {
             return;
         }
-        ensureTypeFiltersPlacement();
 
         var counts = { video: 0, jpeg: 0, png: 0, svg: 0, fonts: 0 };
         var nodes = getAttachmentNodesForQuickFilters();
@@ -751,14 +797,7 @@
     }
 
     function scheduleQuickTypeFiltersRefresh() {
-        if (quickTypeFilterDebounceTimer) {
-            window.clearTimeout(quickTypeFilterDebounceTimer);
-        }
-
-        quickTypeFilterDebounceTimer = window.setTimeout(function () {
-            quickTypeFilterDebounceTimer = null;
-            recomputeQuickTypeFilters();
-        }, 180);
+        scheduleBwMfRefresh('types');
     }
 
     function bindQuickTypeFilterObserver() {
@@ -786,14 +825,7 @@
     }
 
     function scheduleQuickTypeLayoutRefresh() {
-        if (quickTypeLayoutDebounceTimer) {
-            window.clearTimeout(quickTypeLayoutDebounceTimer);
-        }
-
-        quickTypeLayoutDebounceTimer = window.setTimeout(function () {
-            quickTypeLayoutDebounceTimer = null;
-            ensureTypeFiltersPlacement();
-        }, 180);
+        scheduleBwMfRefresh('layout');
     }
 
     function bindQuickTypeLayoutObserver() {
@@ -1040,8 +1072,7 @@
         }
 
         markerObserver = new MutationObserver(function () {
-            observeGridTilesForCorners();
-            scheduleCornerMarkerRefresh();
+            scheduleBwMfRefresh('marker-observer');
         });
         markerObserver.observe(attachmentsRoot, { childList: true, subtree: false });
     }
@@ -1192,9 +1223,8 @@
                 collection.more();
             }
 
-            scheduleCornerMarkerRefresh();
             bindQuickTypeFilterObserver();
-            scheduleQuickTypeFiltersRefresh();
+            scheduleBwMfRefresh('apply-grid-filter');
             return true;
         } catch (e) {
             return false;
@@ -1653,8 +1683,7 @@
             renderDefaults();
             renderTree();
             refreshCounts();
-            scheduleCornerMarkerRefresh();
-            scheduleQuickTypeFiltersRefresh();
+            scheduleBwMfRefresh('refresh-tree');
         });
     }
 
@@ -1749,8 +1778,7 @@
             if (typeof onDone === 'function') {
                 onDone();
             }
-            scheduleCornerMarkerRefresh();
-            scheduleQuickTypeFiltersRefresh();
+            scheduleBwMfRefresh('assign-folder');
         });
     }
 
@@ -2323,6 +2351,10 @@
         }
         window.__BW_MF_INIT_DONE = true;
 
+        if (!isUploadScreen()) {
+            return;
+        }
+
         mountLayout();
         loadCollapsedState();
         renderContextMenu();
@@ -2350,9 +2382,7 @@
         bindCornerMarkerObserver();
         bindQuickTypeFilterObserver();
         ensureTypeFiltersPlacement();
-        scheduleCornerMarkerRefresh();
-        scheduleQuickTypeLayoutRefresh();
-        scheduleQuickTypeFiltersRefresh();
+        scheduleBwMfRefresh('init');
     }
 
     $(init);
@@ -2362,14 +2392,13 @@
             clearCornerMarkers();
         } else {
             window.setTimeout(function () {
-                bwMfApplyCornerMarkers();
+                scheduleBwMfRefresh('dom-ready-corner');
             }, 500);
         }
         window.setTimeout(function () {
             bindQuickTypeFilterObserver();
             bindQuickTypeLayoutObserver();
-            ensureTypeFiltersPlacement();
-            scheduleQuickTypeFiltersRefresh();
+            scheduleBwMfRefresh('dom-ready-types');
         }, 350);
     });
 })(jQuery);
