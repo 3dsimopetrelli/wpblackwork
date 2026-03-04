@@ -8,6 +8,7 @@ if (!defined('BW_MF_ASSIGN_BATCH_LIMIT')) {
 }
 
 add_action('wp_ajax_bw_media_get_folders_tree', 'bw_mf_ajax_get_folders_tree');
+add_action('wp_ajax_bw_media_get_folder_counts', 'bw_mf_ajax_get_folder_counts');
 add_action('wp_ajax_bw_media_create_folder', 'bw_mf_ajax_create_folder');
 add_action('wp_ajax_bw_media_rename_folder', 'bw_mf_ajax_rename_folder');
 add_action('wp_ajax_bw_media_delete_folder', 'bw_mf_ajax_delete_folder');
@@ -137,55 +138,17 @@ if (!function_exists('bw_mf_build_folder_nodes')) {
             return [];
         }
 
-        $base_counts = [];
-        $children_map = [];
-
-        foreach ($terms as $term) {
-            $term_id = (int) $term->term_id;
-            $parent_id = (int) $term->parent;
-            $base_counts[$term_id] = (int) $term->count;
-
-            if (!isset($children_map[$parent_id])) {
-                $children_map[$parent_id] = [];
-            }
-
-            $children_map[$parent_id][] = $term_id;
-        }
-
-        $aggregate_counts = [];
-        $walker = static function ($term_id, array &$trail) use (&$walker, &$aggregate_counts, $base_counts, $children_map) {
-            if (isset($aggregate_counts[$term_id])) {
-                return $aggregate_counts[$term_id];
-            }
-
-            if (isset($trail[$term_id])) {
-                return isset($base_counts[$term_id]) ? (int) $base_counts[$term_id] : 0;
-            }
-
-            $trail[$term_id] = true;
-            $total = isset($base_counts[$term_id]) ? (int) $base_counts[$term_id] : 0;
-            $children = isset($children_map[$term_id]) && is_array($children_map[$term_id]) ? $children_map[$term_id] : [];
-
-            foreach ($children as $child_id) {
-                $total += (int) $walker((int) $child_id, $trail);
-            }
-
-            unset($trail[$term_id]);
-            $aggregate_counts[$term_id] = $total;
-
-            return $total;
-        };
+        $counts_map = bw_mf_get_folder_counts_map($terms);
 
         $nodes = [];
         foreach ($terms as $term) {
-            $trail = [];
             $term_id = (int) $term->term_id;
 
             $nodes[] = [
                 'id' => $term_id,
                 'name' => $term->name,
                 'parent' => (int) $term->parent,
-                'count' => (int) $walker($term_id, $trail),
+                'count' => isset($counts_map[$term_id]) ? (int) $counts_map[$term_id] : 0,
                 'color' => (string) get_term_meta($term->term_id, 'bw_color', true),
                 'pinned' => (int) get_term_meta($term->term_id, 'bw_pinned', true),
                 'sort' => (int) get_term_meta($term->term_id, 'bw_sort', true),
@@ -205,6 +168,51 @@ if (!function_exists('bw_mf_build_folder_nodes')) {
         });
 
         return $nodes;
+    }
+}
+
+if (!function_exists('bw_mf_get_folder_counts_map')) {
+    function bw_mf_get_folder_counts_map($terms = null)
+    {
+        if (!is_array($terms)) {
+            $terms = get_terms([
+                'taxonomy' => 'bw_media_folder',
+                'hide_empty' => false,
+                'hierarchical' => true,
+            ]);
+        }
+
+        if (is_wp_error($terms) || !is_array($terms) || empty($terms)) {
+            return [];
+        }
+
+        $counts = [];
+        foreach ($terms as $term) {
+            if (!$term || !isset($term->term_id)) {
+                continue;
+            }
+
+            $term_id = (int) $term->term_id;
+            $query = new WP_Query([
+                'post_type' => 'attachment',
+                'post_status' => 'inherit',
+                'posts_per_page' => 1,
+                'fields' => 'ids',
+                'no_found_rows' => false,
+                'tax_query' => [
+                    [
+                        'taxonomy' => 'bw_media_folder',
+                        'field' => 'term_id',
+                        'terms' => [$term_id],
+                        'include_children' => true,
+                    ],
+                ],
+            ]);
+
+            $counts[$term_id] = (int) $query->found_posts;
+        }
+
+        return $counts;
     }
 }
 
@@ -230,6 +238,30 @@ if (!function_exists('bw_mf_ajax_get_folders_tree')) {
 
         wp_send_json_success([
             'folders' => bw_mf_build_folder_nodes(),
+            'counts' => [
+                'all' => $all_files,
+                'unassigned' => bw_mf_get_unassigned_count(),
+            ],
+        ]);
+    }
+}
+
+if (!function_exists('bw_mf_ajax_get_folder_counts')) {
+    function bw_mf_ajax_get_folder_counts()
+    {
+        bw_mf_ajax_require('bw_media_get_folder_counts', 'upload_files');
+
+        $terms = get_terms([
+            'taxonomy' => 'bw_media_folder',
+            'hide_empty' => false,
+            'hierarchical' => true,
+        ]);
+
+        $all_count = wp_count_posts('attachment');
+        $all_files = isset($all_count->inherit) ? (int) $all_count->inherit : 0;
+
+        wp_send_json_success([
+            'folder_counts' => bw_mf_get_folder_counts_map($terms),
             'counts' => [
                 'all' => $all_files,
                 'unassigned' => bw_mf_get_unassigned_count(),

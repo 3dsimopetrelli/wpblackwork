@@ -90,7 +90,8 @@
         }
     }
 
-    function request(action, payload, onDone) {
+    function request(action, payload, onDone, options) {
+        var opts = options || {};
         if (!action || !cfg.ajaxUrl || !cfg.nonce) {
             return;
         }
@@ -105,7 +106,9 @@
             .done(function (res) {
                 if (!res || !res.success) {
                     var msg = res && res.data && res.data.message ? res.data.message : 'Request failed';
-                    window.alert(msg);
+                    if (!opts.silent) {
+                        window.alert(msg);
+                    }
                     return;
                 }
 
@@ -114,8 +117,34 @@
                 }
             })
             .fail(function () {
-                window.alert('Request failed');
+                if (!opts.silent) {
+                    window.alert('Request failed');
+                }
             });
+    }
+
+    function refreshCounts() {
+        request('bw_media_get_folder_counts', {}, function (data) {
+            var map = data && data.folder_counts && typeof data.folder_counts === 'object' ? data.folder_counts : null;
+            if (map) {
+                state.folders = state.folders.map(function (item) {
+                    var byString = map[String(item.id)];
+                    var byInt = map[item.id];
+                    var next = byString !== undefined ? byString : byInt;
+                    if (next !== undefined) {
+                        item.count = parseInt(next, 10) || 0;
+                    }
+                    return item;
+                });
+            }
+
+            if (data && data.counts) {
+                state.counts = data.counts;
+            }
+
+            renderDefaults();
+            renderTree();
+        }, { silent: true });
     }
 
     function getQueryUrl(folderId, unassigned) {
@@ -246,6 +275,7 @@
             state.counts = data.counts || { all: 0, unassigned: 0 };
             renderDefaults();
             renderTree();
+            refreshCounts();
         });
     }
 
