@@ -13,12 +13,30 @@
         activeUnassigned: !!(cfg.active && parseInt(cfg.active.unassigned, 10) === 1),
         mode: (cfg.active && cfg.active.mode === 'grid') ? 'grid' : 'list'
     };
+    var draggedIds = [];
 
     function root() {
         return $('#bw-media-folders-root');
     }
 
+    function debugLog(message, payload) {
+        if (!window.BW_MF_DEBUG) {
+            return;
+        }
+
+        if (payload) {
+            console.log('[BW_MF_DEBUG] ' + message, payload);
+            return;
+        }
+
+        console.log('[BW_MF_DEBUG] ' + message);
+    }
+
     function request(action, payload, onDone) {
+        if (!action || !cfg.ajaxUrl || !cfg.nonce) {
+            return;
+        }
+
         var body = $.extend({}, payload || {}, {
             action: action,
             nonce: cfg.nonce,
@@ -85,7 +103,7 @@
         var unClass = state.activeUnassigned ? ' is-active' : '';
 
         html += '<button type="button" class="bw-media-default' + allClass + '" data-type="all">All Files <span>' + (state.counts.all || 0) + '</span></button>';
-        html += '<button type="button" class="bw-media-default bw-media-default--drop' + unClass + '" data-type="unassigned" data-folder-id="0">Unassigned Files <span>' + (state.counts.unassigned || 0) + '</span></button>';
+        html += '<button type="button" class="bw-media-default bw-media-default--drop' + unClass + '" data-type="unassigned" data-term-id="0" data-folder-id="0">Unassigned Files <span>' + (state.counts.unassigned || 0) + '</span></button>';
 
         $('#bw-media-folders-defaults').html(html);
     }
@@ -224,7 +242,48 @@
         });
     }
 
+    function makeGridTilesDraggable() {
+        $('.attachments-browser .attachment').attr('draggable', 'true');
+    }
+
+    function readDraggedIdsFromDataTransfer(event) {
+        var result = [];
+        var transfer = event && event.originalEvent ? event.originalEvent.dataTransfer : null;
+        var raw = transfer && typeof transfer.getData === 'function' ? transfer.getData('text/plain') : '';
+
+        if (raw) {
+            raw.split(',').forEach(function (chunk) {
+                var id = parseInt(String(chunk).trim(), 10);
+                if (id > 0) {
+                    result.push(id);
+                }
+            });
+        }
+
+        if (!result.length && draggedIds.length) {
+            result = draggedIds.slice();
+        }
+
+        return Array.from(new Set(result));
+    }
+
+    function collectDragIdsForElement($el) {
+        var id = parseInt($el.attr('data-id') || (($el.attr('id') || '').replace('post-', '')) || '0', 10);
+        if (!(id > 0)) {
+            return [];
+        }
+
+        var selected = collectSelectedMediaIds();
+        if (selected.indexOf(id) !== -1 && selected.length > 1) {
+            return selected;
+        }
+
+        return [id];
+    }
+
     function bindDropTargets() {
+        makeGridTilesDraggable();
+
         $('#bw-media-folders-tree .bw-media-folder-node, #bw-media-folders-defaults .bw-media-default--drop')
             .off('.bwMfDnD')
             .on('dragover.bwMfDnD', function (e) {
@@ -237,35 +296,57 @@
             $(this).removeClass('is-drag-over');
 
             var folderId = parseInt($(this).attr('data-term-id') || $(this).attr('data-folder-id') || $(this).attr('data-id') || '0', 10);
-            var mediaId = parseInt(e.originalEvent.dataTransfer.getData('text/plain') || '0', 10);
-            if (mediaId <= 0) {
+            var ids = readDraggedIdsFromDataTransfer(e);
+            if (!ids.length) {
+                debugLog('drop ignored: no draggable ids');
                 return;
             }
 
-            assignFolder(folderId, [mediaId], function () {
+            debugLog('drop assign request', { folderId: folderId, ids: ids });
+            assignFolder(folderId, ids, function () {
                 refreshMediaView();
             });
         });
 
-        $('.attachments .attachment')
-            .off('.bwMfDnD')
-            .attr('draggable', 'true')
-            .on('dragstart.bwMfDnD', function (e) {
-            var id = parseInt($(this).attr('data-id') || '0', 10);
-            if (id > 0) {
-                e.originalEvent.dataTransfer.setData('text/plain', String(id));
-            }
-        });
+        $(document)
+            .off('dragstart.bwMfDnDGrid', '.attachments-browser .attachment')
+            .on('dragstart.bwMfDnDGrid', '.attachments-browser .attachment', function (e) {
+                var ids = collectDragIdsForElement($(this));
+                if (!ids.length) {
+                    draggedIds = [];
+                    return;
+                }
 
-        $('.wp-list-table tbody tr')
-            .off('.bwMfDnD')
-            .attr('draggable', 'true')
-            .on('dragstart.bwMfDnD', function (e) {
-            var id = parseInt(($(this).attr('id') || '').replace('post-', ''), 10);
-            if (id > 0) {
-                e.originalEvent.dataTransfer.setData('text/plain', String(id));
+                draggedIds = ids.slice();
+                if (e.originalEvent && e.originalEvent.dataTransfer) {
+                    e.originalEvent.dataTransfer.setData('text/plain', ids.join(','));
+                }
+                debugLog('grid dragstart', { ids: ids });
+            });
+
+        $(document)
+            .off('dragstart.bwMfDnDList', '.wp-list-table tbody tr')
+            .on('dragstart.bwMfDnDList', '.wp-list-table tbody tr', function (e) {
+                var ids = collectDragIdsForElement($(this));
+                if (!ids.length) {
+                    draggedIds = [];
+                    return;
+                }
+
+                draggedIds = ids.slice();
+                if (e.originalEvent && e.originalEvent.dataTransfer) {
+                    e.originalEvent.dataTransfer.setData('text/plain', ids.join(','));
+                }
+                debugLog('list dragstart', { ids: ids });
+            });
+
+        $(document)
+            .off('dragend.bwMfDnDCleanup', '.attachments-browser .attachment, .wp-list-table tbody tr')
+            .on('dragend.bwMfDnDCleanup', '.attachments-browser .attachment, .wp-list-table tbody tr', function () {
+                draggedIds = [];
+                $('#bw-media-folders-tree .bw-media-folder-node, #bw-media-folders-defaults .bw-media-default--drop').removeClass('is-drag-over');
             }
-        });
+        );
     }
 
     function registerGridAjaxFilter() {
@@ -443,6 +524,7 @@
 
     function init() {
         mountLayout();
+        makeGridTilesDraggable();
 
         var collapsed = false;
         try {
