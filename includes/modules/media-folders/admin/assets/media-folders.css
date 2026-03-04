@@ -65,6 +65,16 @@ body.upload-php.folded.bw-mf-enabled #bw-mf-collapse-tab {
 
 body.upload-php.bw-mf-enabled.bw-mf-collapsed #bw-mf-collapse-tab {
     display: block;
+    width: var(--bw-mf-tab-width);
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 6px;
+    white-space: nowrap;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    line-height: 1;
 }
 
 body.upload-php.bw-mf-enabled .bw-media-folders__header {
@@ -229,11 +239,16 @@ body.upload-php.bw-mf-enabled .bw-media-folder-node__main {
 body.upload-php.bw-mf-enabled .bw-mf-folder-icon {
     color: var(--bw-mf-icon-color, #9aa0a6);
     flex: 0 0 auto;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 6px;
 }
 
 body.upload-php.bw-mf-enabled .bw-mf-folder-icon svg {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     display: block;
 }
 
