@@ -63,7 +63,7 @@
         var color = item.color ? item.color : '#6b7280';
 
         return '' +
-            '<div class="bw-media-folder-node' + pinnedClass + active + '" data-id="' + item.id + '" data-folder-id="' + item.id + '" data-parent="' + item.parent + '" style="padding-left:' + pad + 'px">' +
+            '<div class="bw-media-folder-node' + pinnedClass + active + '" data-id="' + item.id + '" data-term-id="' + item.id + '" data-folder-id="' + item.id + '" data-parent="' + item.parent + '" style="padding-left:' + pad + 'px">' +
             '  <button class="bw-media-folder-node__main" type="button">' +
             '    <span class="bw-media-folder-node__dot" style="background:' + color + '"></span>' +
             '    <span class="bw-media-folder-node__name">' + item.name + '</span>' +
@@ -214,7 +214,7 @@
 
     function assignFolder(folderId, ids, onDone) {
         request('bw_media_assign_folder', {
-            folder_id: folderId,
+            term_id: folderId,
             attachment_ids: ids
         }, function () {
             refreshTree();
@@ -236,7 +236,7 @@
             e.preventDefault();
             $(this).removeClass('is-drag-over');
 
-            var folderId = parseInt($(this).attr('data-folder-id') || $(this).attr('data-id') || '0', 10);
+            var folderId = parseInt($(this).attr('data-term-id') || $(this).attr('data-folder-id') || $(this).attr('data-id') || '0', 10);
             var mediaId = parseInt(e.originalEvent.dataTransfer.getData('text/plain') || '0', 10);
             if (mediaId <= 0) {
                 return;

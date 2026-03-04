@@ -286,7 +286,10 @@ if (!function_exists('bw_mf_ajax_assign_folder')) {
     {
         bw_mf_ajax_require('bw_media_assign_folder', 'upload_files');
 
-        $folder_id = isset($_POST['folder_id']) ? absint($_POST['folder_id']) : 0;
+        $term_id = isset($_POST['term_id']) ? absint($_POST['term_id']) : 0;
+        if ($term_id <= 0 && isset($_POST['folder_id'])) {
+            $term_id = absint($_POST['folder_id']);
+        }
         $attachment_ids = isset($_POST['attachment_ids']) ? bw_mf_normalize_attachment_ids($_POST['attachment_ids']) : [];
 
         if (empty($attachment_ids)) {
@@ -297,21 +300,22 @@ if (!function_exists('bw_mf_ajax_assign_folder')) {
             bw_mf_ajax_error(__('Too many media items in one request.', 'bw'), 400);
         }
 
-        if ($folder_id > 0) {
-            bw_mf_get_folder_term_or_error($folder_id);
+        if ($term_id > 0) {
+            bw_mf_get_folder_term_or_error($term_id);
         }
 
         foreach ($attachment_ids as $attachment_id) {
-            if ($folder_id > 0) {
-                wp_set_object_terms($attachment_id, [$folder_id], 'bw_media_folder', false);
+            if ($term_id > 0) {
+                wp_set_object_terms($attachment_id, [$term_id], 'bw_media_folder', false);
             } else {
                 wp_set_object_terms($attachment_id, [], 'bw_media_folder', false);
             }
         }
 
         wp_send_json_success([
-            'folder_id' => $folder_id,
-            'attachment_ids' => $attachment_ids,
+            'folder_id' => $term_id,
+            'term_id' => $term_id,
+            'assigned_ids' => $attachment_ids,
             'message' => __('Media updated.', 'bw'),
         ]);
     }

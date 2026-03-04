@@ -22,7 +22,7 @@ if (!defined('ABSPATH')) {
 
     <div class="bw-media-folders__defaults" id="bw-media-folders-defaults"></div>
 
-    <div class="bw-media-folders__tree" id="bw-media-folders-tree"></div>
+    <div class="bw-media-folders__tree" id="bw-media-folders-tree" data-dropzone="folders"></div>
 
     <div class="bw-media-folders__bulk">
         <label for="bw-media-folders-bulk-select"><?php esc_html_e('Bulk organize', 'bw'); ?></label>
