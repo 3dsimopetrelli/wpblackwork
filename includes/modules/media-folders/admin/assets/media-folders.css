@@ -520,6 +520,49 @@ body.upload-php.bw-mf-enabled .bw-media-folders__bulk {
     gap: 6px;
 }
 
+body.upload-php.bw-mf-enabled #bw-mf-type-filters {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 10px;
+    flex-wrap: wrap;
+}
+
+body.upload-php.bw-mf-enabled .bw-mf-type-filter {
+    border: 1px solid #ccd0d4;
+    background: #ffffff;
+    color: #1d2327;
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 12px;
+    line-height: 1.2;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+}
+
+body.upload-php.bw-mf-enabled .bw-mf-type-filter:hover {
+    border-color: #80fd03;
+}
+
+body.upload-php.bw-mf-enabled .bw-mf-type-filter.is-active {
+    background: #80fd03;
+    border-color: #80fd03;
+    color: #111111;
+}
+
+body.upload-php.bw-mf-enabled .bw-mf-type-filter__count {
+    min-width: 14px;
+    text-align: right;
+    font-weight: 600;
+}
+
+body.upload-php.bw-mf-enabled .attachments-browser .attachment.bw-mf-type-hidden,
+body.upload-php.bw-mf-enabled #the-list tr.bw-mf-type-hidden {
+    display: none !important;
+}
+
 @media (max-width: 1280px) {
     body.upload-php.bw-mf-enabled {
         --bw-mf-panel-width: 260px;

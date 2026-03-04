@@ -40,6 +40,12 @@
     var markerObservedTiles = (typeof WeakSet !== 'undefined') ? new WeakSet() : null;
     var badgeTooltipEl = null;
     var badgeTooltipEventsBound = false;
+    var quickTypeFilterActive = '';
+    var quickTypeFilterDebounceTimer = null;
+    var quickTypeFilterObserver = null;
+    var quickTypeFilterObserverTarget = null;
+    var quickTypeMimeCache = new Map();
+    var quickTypeFiltersEventsBound = false;
     var folderByParentMap = {};
     var folderCollapsedMap = {};
     var FOLDER_COLLAPSED_KEY = 'bw_mf_folder_collapsed';
@@ -341,6 +347,418 @@
     function absint(value) {
         var parsed = parseInt(value, 10);
         return parsed > 0 ? parsed : 0;
+    }
+
+    function getQuickTypeDefinitions() {
+        return [
+            { key: 'video', label: 'Video' },
+            { key: 'images', label: 'Images' },
+            { key: 'svg', label: 'SVG' },
+            { key: 'fonts', label: 'Fonts' }
+        ];
+    }
+
+    function normalizeMimeType(mime) {
+        return String(mime || '').trim().toLowerCase();
+    }
+
+    function getFileExtension(value) {
+        var text = String(value || '').trim().toLowerCase();
+        if (!text) {
+            return '';
+        }
+
+        var clean = text.split('?')[0].split('#')[0];
+        var dot = clean.lastIndexOf('.');
+        if (dot < 0 || dot === clean.length - 1) {
+            return '';
+        }
+
+        return clean.substring(dot + 1);
+    }
+
+    function mapExtensionToMime(extension) {
+        var ext = String(extension || '').toLowerCase();
+        if (!ext) {
+            return '';
+        }
+
+        if (ext === 'jpg' || ext === 'jpeg') {
+            return 'image/jpeg';
+        }
+        if (ext === 'png') {
+            return 'image/png';
+        }
+        if (ext === 'svg') {
+            return 'image/svg+xml';
+        }
+        if (ext === 'woff') {
+            return 'font/woff';
+        }
+        if (ext === 'woff2') {
+            return 'font/woff2';
+        }
+        if (ext === 'ttf') {
+            return 'font/ttf';
+        }
+        if (ext === 'otf') {
+            return 'font/otf';
+        }
+        if (ext === 'eot') {
+            return 'application/vnd.ms-fontobject';
+        }
+        if (ext === 'mp4') {
+            return 'video/mp4';
+        }
+        if (ext === 'mov') {
+            return 'video/quicktime';
+        }
+        if (ext === 'm4v') {
+            return 'video/x-m4v';
+        }
+        if (ext === 'webm') {
+            return 'video/webm';
+        }
+        if (ext === 'ogv' || ext === 'ogg') {
+            return 'video/ogg';
+        }
+
+        return '';
+    }
+
+    function getMimeFromClasses(node) {
+        if (!node || !node.className) {
+            return '';
+        }
+
+        var classes = String(node.className).split(/\s+/);
+        if (classes.indexOf('type-video') !== -1) {
+            return 'video/*';
+        }
+
+        if (classes.indexOf('type-font') !== -1) {
+            return 'font/*';
+        }
+
+        var subtypeClass = classes.find(function (className) {
+            return className.indexOf('subtype-') === 0;
+        });
+
+        if (subtypeClass) {
+            var subtype = subtypeClass.replace('subtype-', '').toLowerCase();
+            if (subtype === 'jpeg' || subtype === 'jpg') {
+                return 'image/jpeg';
+            }
+            if (subtype === 'png') {
+                return 'image/png';
+            }
+            if (subtype.indexOf('svg') !== -1) {
+                return 'image/svg+xml';
+            }
+            if (subtype === 'woff' || subtype === 'woff2' || subtype === 'ttf' || subtype === 'otf') {
+                return 'font/' + subtype;
+            }
+            if (subtype === 'vnd-ms-fontobject' || subtype === 'eot') {
+                return 'application/vnd.ms-fontobject';
+            }
+            if (subtype === 'mp4') {
+                return 'video/mp4';
+            }
+        }
+
+        return '';
+    }
+
+    function getMimeFromMediaModel(id) {
+        if (!(id > 0) || !(window.wp && wp.media && wp.media.model && wp.media.model.Attachment)) {
+            return '';
+        }
+
+        try {
+            var model = wp.media.model.Attachment.get(id);
+            if (!model || typeof model.get !== 'function') {
+                return '';
+            }
+
+            var mime = normalizeMimeType(model.get('mime'));
+            if (mime) {
+                return mime;
+            }
+
+            var type = normalizeMimeType(model.get('type'));
+            var subtype = normalizeMimeType(model.get('subtype'));
+            if (type && subtype) {
+                return type + '/' + subtype;
+            }
+        } catch (e) {
+            return '';
+        }
+
+        return '';
+    }
+
+    function detectMimeForNode(node, id) {
+        if (!node) {
+            return '';
+        }
+
+        var attrMime = normalizeMimeType(node.getAttribute('data-mime'));
+        if (attrMime) {
+            return attrMime;
+        }
+
+        var modelMime = getMimeFromMediaModel(id);
+        if (modelMime) {
+            return modelMime;
+        }
+
+        var classMime = getMimeFromClasses(node);
+        if (classMime) {
+            return classMime;
+        }
+
+        var fileText = '';
+        var titleNode = node.querySelector('.column-title strong a, .attachment-filename, .filename');
+        if (titleNode) {
+            fileText = titleNode.textContent || '';
+        }
+        if (!fileText) {
+            fileText = node.getAttribute('aria-label') || '';
+        }
+        var ext = getFileExtension(fileText);
+        if (ext) {
+            return mapExtensionToMime(ext);
+        }
+
+        return '';
+    }
+
+    function mapMimeToQuickType(mime) {
+        var normalized = normalizeMimeType(mime);
+        if (!normalized) {
+            return '';
+        }
+
+        if (normalized.indexOf('video/') === 0 || normalized === 'video/*') {
+            return 'video';
+        }
+
+        if (normalized === 'image/jpeg' || normalized === 'image/png') {
+            return 'images';
+        }
+
+        if (normalized === 'image/svg+xml') {
+            return 'svg';
+        }
+
+        var fontAppMimes = {
+            'application/font-woff': true,
+            'application/font-woff2': true,
+            'application/x-font-ttf': true,
+            'application/x-font-opentype': true,
+            'application/vnd.ms-fontobject': true
+        };
+
+        if (normalized.indexOf('font/') === 0 || fontAppMimes[normalized]) {
+            return 'fonts';
+        }
+
+        return '';
+    }
+
+    function getAttachmentNodesForQuickFilters() {
+        if (isGridMode()) {
+            return Array.prototype.slice.call(document.querySelectorAll('.attachments-browser .attachment[data-id]'));
+        }
+
+        return Array.prototype.slice.call(document.querySelectorAll('#the-list tr[id^="post-"]'));
+    }
+
+    function getAttachmentIdFromQuickNode(node) {
+        if (!node) {
+            return 0;
+        }
+
+        var dataId = absint(node.getAttribute('data-id'));
+        if (dataId > 0) {
+            return dataId;
+        }
+
+        var rowId = String(node.getAttribute('id') || '');
+        if (rowId.indexOf('post-') === 0) {
+            return absint(rowId.replace('post-', ''));
+        }
+
+        return 0;
+    }
+
+    function ensureQuickFiltersToolbar() {
+        var host = null;
+
+        if (isGridMode()) {
+            host = document.querySelector('.attachments-browser .media-toolbar-primary') ||
+                document.querySelector('.attachments-browser .media-toolbar-secondary') ||
+                document.querySelector('.attachments-browser .media-toolbar');
+        } else {
+            host = document.querySelector('.tablenav.top .alignleft.actions');
+        }
+
+        if (!host) {
+            return null;
+        }
+
+        var bar = document.getElementById('bw-mf-type-filters');
+        if (!bar) {
+            bar = document.createElement('div');
+            bar.id = 'bw-mf-type-filters';
+            bar.className = 'bw-mf-type-filters';
+            getQuickTypeDefinitions().forEach(function (def) {
+                var button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'bw-mf-type-filter';
+                button.setAttribute('data-filter', def.key);
+                button.innerHTML = '<span class="bw-mf-type-filter__label">' + def.label + '</span><span class="bw-mf-type-filter__count">0</span>';
+                bar.appendChild(button);
+            });
+        }
+
+        if (bar.parentNode !== host) {
+            host.appendChild(bar);
+        }
+
+        return bar;
+    }
+
+    function updateQuickFilterCounts(counts) {
+        var bar = document.getElementById('bw-mf-type-filters');
+        if (!bar) {
+            return;
+        }
+
+        getQuickTypeDefinitions().forEach(function (def) {
+            var button = bar.querySelector('.bw-mf-type-filter[data-filter="' + def.key + '"]');
+            if (!button) {
+                return;
+            }
+
+            var countEl = button.querySelector('.bw-mf-type-filter__count');
+            if (countEl) {
+                countEl.textContent = String(counts[def.key] || 0);
+            }
+            button.classList.toggle('is-active', quickTypeFilterActive === def.key);
+        });
+    }
+
+    function setQuickTypeNodeVisibility(node, visible) {
+        if (!node) {
+            return;
+        }
+
+        var shouldHide = !visible;
+        if (node.classList.contains('bw-mf-type-hidden') === shouldHide) {
+            return;
+        }
+
+        node.classList.toggle('bw-mf-type-hidden', shouldHide);
+    }
+
+    function recomputeQuickTypeFilters() {
+        var bar = ensureQuickFiltersToolbar();
+        if (!bar) {
+            return;
+        }
+
+        var counts = { video: 0, images: 0, svg: 0, fonts: 0 };
+        var nodes = getAttachmentNodesForQuickFilters();
+
+        nodes.forEach(function (node) {
+            var id = getAttachmentIdFromQuickNode(node);
+            if (!(id > 0)) {
+                setQuickTypeNodeVisibility(node, !quickTypeFilterActive);
+                return;
+            }
+
+            var mime = quickTypeMimeCache.get(id);
+            if (!mime) {
+                mime = detectMimeForNode(node, id);
+                if (mime) {
+                    quickTypeMimeCache.set(id, mime);
+                }
+            }
+
+            var typeKey = mapMimeToQuickType(mime);
+            if (typeKey && counts[typeKey] !== undefined) {
+                counts[typeKey] += 1;
+            }
+
+            if (!quickTypeFilterActive) {
+                setQuickTypeNodeVisibility(node, true);
+                return;
+            }
+
+            setQuickTypeNodeVisibility(node, quickTypeFilterActive === typeKey);
+        });
+
+        updateQuickFilterCounts(counts);
+    }
+
+    function scheduleQuickTypeFiltersRefresh() {
+        if (quickTypeFilterDebounceTimer) {
+            window.clearTimeout(quickTypeFilterDebounceTimer);
+        }
+
+        quickTypeFilterDebounceTimer = window.setTimeout(function () {
+            quickTypeFilterDebounceTimer = null;
+            recomputeQuickTypeFilters();
+        }, 180);
+    }
+
+    function bindQuickTypeFilterObserver() {
+        if (quickTypeFilterObserver && quickTypeFilterObserverTarget && document.body.contains(quickTypeFilterObserverTarget)) {
+            return;
+        }
+
+        var target = isGridMode()
+            ? document.querySelector('.attachments-browser')
+            : document.querySelector('#the-list');
+
+        if (!target || typeof MutationObserver === 'undefined') {
+            return;
+        }
+
+        if (quickTypeFilterObserver) {
+            quickTypeFilterObserver.disconnect();
+        }
+
+        quickTypeFilterObserverTarget = target;
+        quickTypeFilterObserver = new MutationObserver(function () {
+            scheduleQuickTypeFiltersRefresh();
+        });
+        quickTypeFilterObserver.observe(target, { childList: true, subtree: true });
+    }
+
+    function bindQuickTypeFilterEvents() {
+        if (quickTypeFiltersEventsBound) {
+            return;
+        }
+        quickTypeFiltersEventsBound = true;
+
+        $(document)
+            .off('click.bwMfTypeFilters', '#bw-mf-type-filters .bw-mf-type-filter')
+            .on('click.bwMfTypeFilters', '#bw-mf-type-filters .bw-mf-type-filter', function (e) {
+                e.preventDefault();
+                var filterKey = String($(this).attr('data-filter') || '');
+                if (!filterKey) {
+                    return;
+                }
+
+                if (quickTypeFilterActive === filterKey) {
+                    quickTypeFilterActive = '';
+                } else {
+                    quickTypeFilterActive = filterKey;
+                }
+                scheduleQuickTypeFiltersRefresh();
+            });
     }
 
     function resolveFolderViewColor(folderId) {
@@ -696,6 +1114,8 @@
             }
 
             scheduleCornerMarkerRefresh();
+            bindQuickTypeFilterObserver();
+            scheduleQuickTypeFiltersRefresh();
             return true;
         } catch (e) {
             return false;
@@ -1155,6 +1575,7 @@
             renderTree();
             refreshCounts();
             scheduleCornerMarkerRefresh();
+            scheduleQuickTypeFiltersRefresh();
         });
     }
 
@@ -1219,6 +1640,7 @@
                         });
                         browser.collection.more();
                         scheduleCornerMarkerRefresh();
+                        scheduleQuickTypeFiltersRefresh();
                         return;
                     }
                 }
@@ -1249,6 +1671,7 @@
                 onDone();
             }
             scheduleCornerMarkerRefresh();
+            scheduleQuickTypeFiltersRefresh();
         });
     }
 
@@ -1841,10 +2264,13 @@
         setCollapsedState(collapsed);
         bindEvents();
         bindBadgeTooltipEvents();
+        bindQuickTypeFilterEvents();
         registerGridAjaxFilter();
         refreshTree();
         bindCornerMarkerObserver();
+        bindQuickTypeFilterObserver();
         scheduleCornerMarkerRefresh();
+        scheduleQuickTypeFiltersRefresh();
     }
 
     $(init);
@@ -1852,10 +2278,14 @@
     document.addEventListener('DOMContentLoaded', function () {
         if (!cornerIndicatorEnabled) {
             clearCornerMarkers();
-            return;
+        } else {
+            window.setTimeout(function () {
+                bwMfApplyCornerMarkers();
+            }, 500);
         }
         window.setTimeout(function () {
-            bwMfApplyCornerMarkers();
-        }, 500);
+            bindQuickTypeFilterObserver();
+            scheduleQuickTypeFiltersRefresh();
+        }, 350);
     });
 })(jQuery);
