@@ -629,7 +629,7 @@
 
         return '' +
             '<div class="bw-media-folder-node' + pinnedClass + active + (hasChildren ? ' is-parent' : '') + (isCollapsed ? ' is-collapsed' : '') + '" data-id="' + item.id + '" data-term-id="' + item.id + '" data-folder-id="' + item.id + '" data-parent="' + item.parent + '" data-pinned="' + pinnedAttr + '" data-collapsed="' + collapsedAttr + '"' + iconColorAttr + ' style="' + styles.join(';') + '">' +
-            '  <button class="bw-media-folder-node__main" type="button">' +
+            '  <div class="bw-media-folder-node__main" role="button" tabindex="0">' +
             '    <span class="bw-mf-left">' +
             chevron +
             '      <span class="bw-mf-folder-icon" aria-hidden="true">' +
@@ -646,7 +646,7 @@
             '          <span class="dashicons dashicons-edit" aria-hidden="true"></span>' +
             '      </button>' +
             '    </span>' +
-            '  </button>' +
+            '  </div>' +
             '  <div class="bw-media-folder-node__actions bw-media-folder-node__actions--hidden" aria-hidden="true">' +
             '    <button type="button" class="bw-mf-action" data-action="rename">R</button>' +
             '    <button type="button" class="bw-mf-action" data-action="pin">' + (item.pinned ? 'U' : 'P') + '</button>' +
@@ -1462,6 +1462,9 @@
             if ($(e.target).closest('.bw-mf-chevron').length) {
                 return;
             }
+            if ($(e.target).closest('.bw-mf-folder-pencil').length) {
+                return;
+            }
             var folderId = parseInt($(this).closest('.bw-media-folder-node').attr('data-term-id') || $(this).closest('.bw-media-folder-node').attr('data-id') || '0', 10);
             state.activeFolder = folderId > 0 ? folderId : 0;
             state.activeUnassigned = false;
@@ -1471,6 +1474,14 @@
                 return;
             }
             window.location.href = getQueryUrl(folderId, false);
+        });
+
+        root().on('keydown', '.bw-media-folder-node__main', function (e) {
+            if (e.key !== 'Enter' && e.key !== ' ') {
+                return;
+            }
+            e.preventDefault();
+            $(this).trigger('click');
         });
 
         root().on('contextmenu', '.bw-media-folder-node', function (e) {
