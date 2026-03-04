@@ -44,6 +44,8 @@
     var quickTypeFilterDebounceTimer = null;
     var quickTypeFilterObserver = null;
     var quickTypeFilterObserverTarget = null;
+    var quickTypeLayoutObserver = null;
+    var quickTypeLayoutDebounceTimer = null;
     var quickTypeMimeCache = new Map();
     var quickTypeFiltersEventsBound = false;
     var folderByParentMap = {};
@@ -593,20 +595,6 @@
     }
 
     function ensureQuickFiltersToolbar() {
-        var host = null;
-
-        if (isGridMode()) {
-            host = document.querySelector('.attachments-browser .media-toolbar-primary') ||
-                document.querySelector('.attachments-browser .media-toolbar-secondary') ||
-                document.querySelector('.attachments-browser .media-toolbar');
-        } else {
-            host = document.querySelector('.tablenav.top .alignleft.actions');
-        }
-
-        if (!host) {
-            return null;
-        }
-
         var bar = document.getElementById('bw-mf-type-filters');
         if (!bar) {
             bar = document.createElement('div');
@@ -622,11 +610,42 @@
             });
         }
 
-        if (bar.parentNode !== host) {
-            host.appendChild(bar);
+        return bar;
+    }
+
+    function ensureTypeFiltersRow() {
+        var bar = ensureQuickFiltersToolbar();
+        if (!bar) {
+            return null;
         }
 
-        return bar;
+        var gridToolbar = document.querySelector('.media-toolbar');
+        var listToolbar = document.querySelector('.tablenav.top');
+        var anchor = gridToolbar || listToolbar;
+
+        if (!anchor) {
+            anchor = document.querySelector('#wpbody-content .wrap') || document.querySelector('#wpbody-content h1');
+        }
+
+        if (!anchor || !anchor.parentNode) {
+            return null;
+        }
+
+        var row = document.querySelector('.bw-mf-toolbar-row--typefilters');
+        if (!row) {
+            row = document.createElement('div');
+            row.className = 'bw-mf-toolbar-row bw-mf-toolbar-row--typefilters';
+        }
+
+        if (row.parentNode !== anchor.parentNode || row.previousElementSibling !== anchor) {
+            anchor.parentNode.insertBefore(row, anchor.nextSibling);
+        }
+
+        if (bar.parentNode !== row) {
+            row.appendChild(bar);
+        }
+
+        return row;
     }
 
     function updateQuickFilterCounts(counts) {
@@ -667,6 +686,7 @@
         if (!bar) {
             return;
         }
+        ensureTypeFiltersRow();
 
         var counts = { video: 0, images: 0, svg: 0, fonts: 0 };
         var nodes = getAttachmentNodesForQuickFilters();
@@ -735,6 +755,37 @@
             scheduleQuickTypeFiltersRefresh();
         });
         quickTypeFilterObserver.observe(target, { childList: true, subtree: true });
+    }
+
+    function scheduleQuickTypeLayoutRefresh() {
+        if (quickTypeLayoutDebounceTimer) {
+            window.clearTimeout(quickTypeLayoutDebounceTimer);
+        }
+
+        quickTypeLayoutDebounceTimer = window.setTimeout(function () {
+            quickTypeLayoutDebounceTimer = null;
+            ensureTypeFiltersRow();
+        }, 180);
+    }
+
+    function bindQuickTypeLayoutObserver() {
+        if (quickTypeLayoutObserver) {
+            return;
+        }
+
+        if (typeof MutationObserver === 'undefined') {
+            return;
+        }
+
+        var target = document.querySelector('#wpbody-content') || document.body;
+        if (!target) {
+            return;
+        }
+
+        quickTypeLayoutObserver = new MutationObserver(function () {
+            scheduleQuickTypeLayoutRefresh();
+        });
+        quickTypeLayoutObserver.observe(target, { childList: true, subtree: true });
     }
 
     function bindQuickTypeFilterEvents() {
@@ -2265,11 +2316,14 @@
         bindEvents();
         bindBadgeTooltipEvents();
         bindQuickTypeFilterEvents();
+        bindQuickTypeLayoutObserver();
         registerGridAjaxFilter();
         refreshTree();
         bindCornerMarkerObserver();
         bindQuickTypeFilterObserver();
+        ensureTypeFiltersRow();
         scheduleCornerMarkerRefresh();
+        scheduleQuickTypeLayoutRefresh();
         scheduleQuickTypeFiltersRefresh();
     }
 
@@ -2285,6 +2339,8 @@
         }
         window.setTimeout(function () {
             bindQuickTypeFilterObserver();
+            bindQuickTypeLayoutObserver();
+            ensureTypeFiltersRow();
             scheduleQuickTypeFiltersRefresh();
         }, 350);
     });

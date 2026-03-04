@@ -520,12 +520,20 @@ body.upload-php.bw-mf-enabled .bw-media-folders__bulk {
     gap: 6px;
 }
 
-body.upload-php.bw-mf-enabled #bw-mf-type-filters {
-    display: inline-flex;
+body.upload-php.bw-mf-enabled .bw-mf-toolbar-row--typefilters {
+    margin-top: 8px;
+    display: flex;
+    justify-content: flex-start;
     align-items: center;
-    gap: 8px;
-    margin-left: 10px;
+    width: 100%;
+    clear: both;
+}
+
+body.upload-php.bw-mf-enabled .bw-mf-type-filters {
+    display: flex;
     flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
 }
 
 body.upload-php.bw-mf-enabled .bw-mf-type-filter {
@@ -533,9 +541,10 @@ body.upload-php.bw-mf-enabled .bw-mf-type-filter {
     background: #ffffff;
     color: #1d2327;
     border-radius: 999px;
-    padding: 4px 10px;
-    font-size: 12px;
-    line-height: 1.2;
+    height: 32px;
+    line-height: 30px;
+    padding: 0 12px;
+    font-size: 14px;
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -561,6 +570,22 @@ body.upload-php.bw-mf-enabled .bw-mf-type-filter__count {
 body.upload-php.bw-mf-enabled .attachments-browser .attachment.bw-mf-type-hidden,
 body.upload-php.bw-mf-enabled #the-list tr.bw-mf-type-hidden {
     display: none !important;
+}
+
+body.upload-php.bw-mf-enabled .media-toolbar .search .button,
+body.upload-php.bw-mf-enabled .media-toolbar .search-form button,
+body.upload-php.bw-mf-enabled .media-toolbar .search button {
+    height: 32px;
+    padding: 0 14px;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+body.upload-php.bw-mf-enabled .media-toolbar .search-form,
+body.upload-php.bw-mf-enabled .media-toolbar .search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 @media (max-width: 1280px) {
