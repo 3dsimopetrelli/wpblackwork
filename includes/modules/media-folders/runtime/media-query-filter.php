@@ -30,6 +30,23 @@ if (!function_exists('bw_mf_is_query_attachments_ajax')) {
     }
 }
 
+if (!function_exists('bw_mf_grid_debug_log')) {
+    function bw_mf_grid_debug_log($message, $context = [])
+    {
+        if (!defined('BW_MF_DEBUG') || !BW_MF_DEBUG) {
+            return;
+        }
+
+        $payload = '';
+        if (is_array($context) && !empty($context)) {
+            $encoded = wp_json_encode($context);
+            $payload = $encoded ? ' ' . $encoded : '';
+        }
+
+        error_log('[BW_MF_DEBUG] ' . $message . $payload);
+    }
+}
+
 if (!function_exists('bw_mf_apply_folder_tax_query')) {
     function bw_mf_apply_folder_tax_query(array $tax_query, $folder_id, $unassigned)
     {
@@ -94,6 +111,9 @@ if (!function_exists('bw_mf_filter_media_list_query')) {
 
         $folder_id = isset($_GET['bw_media_folder']) ? absint($_GET['bw_media_folder']) : 0;
         $unassigned = isset($_GET['bw_media_unassigned']) && (string) $_GET['bw_media_unassigned'] === '1';
+        if ($unassigned) {
+            $folder_id = 0;
+        }
 
         if (!$unassigned && $folder_id <= 0) {
             return;
@@ -123,19 +143,29 @@ if (!function_exists('bw_mf_filter_media_grid_query')) {
 
         $has_custom_filter = isset($query['bw_media_folder']) || isset($query['bw_media_unassigned']);
         if (!$has_custom_filter) {
+            bw_mf_grid_debug_log('grid filter bypass: missing custom vars');
             return $args;
         }
 
         $folder_id = isset($query['bw_media_folder']) ? absint($query['bw_media_folder']) : 0;
         $unassigned = isset($query['bw_media_unassigned']) && (string) $query['bw_media_unassigned'] === '1';
+        if ($unassigned) {
+            $folder_id = 0;
+        }
 
         if (!$unassigned && $folder_id <= 0) {
+            bw_mf_grid_debug_log('grid filter bypass: invalid folder/unassigned payload', $query);
             return $args;
         }
 
         $existing_tax_query = isset($args['tax_query']) ? $args['tax_query'] : [];
         $mf_tax_query = bw_mf_apply_folder_tax_query([], $folder_id, $unassigned);
         $args['tax_query'] = bw_mf_merge_tax_query($existing_tax_query, $mf_tax_query);
+        bw_mf_grid_debug_log('grid filter applied', [
+            'folder_id' => $folder_id,
+            'unassigned' => $unassigned ? 1 : 0,
+            'tax_query' => $args['tax_query'],
+        ]);
 
         return $args;
     }
