@@ -37,7 +37,7 @@ body.upload-php.folded.bw-mf-enabled #bw-media-folders-root {
 }
 
 body.upload-php.bw-mf-enabled.bw-mf-collapsed #bw-media-folders-root {
-    transform: translateX(calc(-1 * (var(--bw-mf-panel-width) - var(--bw-mf-tab-width))));
+    transform: translateX(calc(-1 * var(--bw-mf-panel-width)));
 }
 
 body.upload-php.bw-mf-enabled #bw-mf-collapse-tab {
@@ -48,14 +48,14 @@ body.upload-php.bw-mf-enabled #bw-mf-collapse-tab {
     height: 116px;
     border: 1px solid #dcdcde;
     border-left: 0;
-    background: #f6f7f7;
-    color: #1d2327;
+    background: #2271b1;
+    color: #ffffff;
     writing-mode: vertical-rl;
     text-orientation: mixed;
     transform: rotate(180deg);
     cursor: pointer;
     z-index: 31;
-    display: block;
+    display: none;
 }
 
 body.upload-php.folded.bw-mf-enabled #bw-mf-collapse-tab {
@@ -63,9 +63,7 @@ body.upload-php.folded.bw-mf-enabled #bw-mf-collapse-tab {
 }
 
 body.upload-php.bw-mf-enabled.bw-mf-collapsed #bw-mf-collapse-tab {
-    background: #2271b1;
-    color: #ffffff;
-    border-color: #135e96;
+    display: block;
 }
 
 body.upload-php.bw-mf-enabled .bw-media-folders__header {

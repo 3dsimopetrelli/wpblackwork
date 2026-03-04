@@ -251,7 +251,7 @@
 
         $('#bw-mf-collapse-tab')
             .attr('aria-expanded', collapsed ? 'false' : 'true')
-            .text(collapsed ? 'Open Folders' : 'Collapse Folders');
+            .text('Open Folders');
 
         try {
             window.localStorage.setItem('bw_mf_collapsed', collapsed ? '1' : '0');
@@ -267,8 +267,7 @@
         });
 
         $(document).on('click', '#bw-mf-collapse-tab', function () {
-            var collapsed = !$('body').hasClass('bw-mf-collapsed');
-            setCollapsedState(collapsed);
+            setCollapsedState(false);
         });
 
         root().on('click', '#bw-mr-new-folder-btn', function () {
