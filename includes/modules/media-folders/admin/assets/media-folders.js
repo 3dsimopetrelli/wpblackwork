@@ -14,9 +14,18 @@
         mode: (cfg.active && cfg.active.mode === 'grid') ? 'grid' : 'list'
     };
     var draggedIds = [];
+    var INTERNAL_DRAG_KEY = '__BW_MF_INTERNAL_DRAG';
 
     function root() {
         return $('#bw-media-folders-root');
+    }
+
+    function setInternalDrag(active) {
+        window[INTERNAL_DRAG_KEY] = !!active;
+    }
+
+    function isInternalDragActive() {
+        return !!window[INTERNAL_DRAG_KEY];
     }
 
     function debugLog(message, payload) {
@@ -244,6 +253,42 @@
 
     function makeGridTilesDraggable() {
         $('.attachments-browser .attachment').attr('draggable', 'true');
+        $('.attachments-browser .attachment img').attr('draggable', 'false');
+    }
+
+    function makeListRowsDraggable() {
+        $('.wp-list-table tbody tr').attr('draggable', 'true');
+    }
+
+    function bindInternalDragSuppression() {
+        if (document.__bwMfDragSuppressionBound) {
+            return;
+        }
+
+        document.__bwMfDragSuppressionBound = true;
+
+        function isFolderTarget(target) {
+            return !!(target && target.closest && target.closest('#bw-media-folders-root'));
+        }
+
+        function suppressUploaderHijack(event) {
+            if (!isInternalDragActive()) {
+                return;
+            }
+
+            if (event.type === 'drop') {
+                setInternalDrag(false);
+            }
+
+            event.preventDefault();
+            if (!isFolderTarget(event.target)) {
+                event.stopImmediatePropagation();
+            }
+        }
+
+        document.addEventListener('dragenter', suppressUploaderHijack, true);
+        document.addEventListener('dragover', suppressUploaderHijack, true);
+        document.addEventListener('drop', suppressUploaderHijack, true);
     }
 
     function readDraggedIdsFromDataTransfer(event) {
@@ -283,6 +328,7 @@
 
     function bindDropTargets() {
         makeGridTilesDraggable();
+        makeListRowsDraggable();
 
         $('#bw-media-folders-tree .bw-media-folder-node, #bw-media-folders-defaults .bw-media-default--drop')
             .off('.bwMfDnD')
@@ -294,6 +340,7 @@
         }).on('drop.bwMfDnD', function (e) {
             e.preventDefault();
             $(this).removeClass('is-drag-over');
+            setInternalDrag(false);
 
             var folderId = parseInt($(this).attr('data-term-id') || $(this).attr('data-folder-id') || $(this).attr('data-id') || '0', 10);
             var ids = readDraggedIdsFromDataTransfer(e);
@@ -314,10 +361,12 @@
                 var ids = collectDragIdsForElement($(this));
                 if (!ids.length) {
                     draggedIds = [];
+                    setInternalDrag(false);
                     return;
                 }
 
                 draggedIds = ids.slice();
+                setInternalDrag(true);
                 if (e.originalEvent && e.originalEvent.dataTransfer) {
                     e.originalEvent.dataTransfer.setData('text/plain', ids.join(','));
                 }
@@ -330,10 +379,12 @@
                 var ids = collectDragIdsForElement($(this));
                 if (!ids.length) {
                     draggedIds = [];
+                    setInternalDrag(false);
                     return;
                 }
 
                 draggedIds = ids.slice();
+                setInternalDrag(true);
                 if (e.originalEvent && e.originalEvent.dataTransfer) {
                     e.originalEvent.dataTransfer.setData('text/plain', ids.join(','));
                 }
@@ -344,9 +395,17 @@
             .off('dragend.bwMfDnDCleanup', '.attachments-browser .attachment, .wp-list-table tbody tr')
             .on('dragend.bwMfDnDCleanup', '.attachments-browser .attachment, .wp-list-table tbody tr', function () {
                 draggedIds = [];
+                setInternalDrag(false);
                 $('#bw-media-folders-tree .bw-media-folder-node, #bw-media-folders-defaults .bw-media-default--drop').removeClass('is-drag-over');
             }
         );
+
+        $(document)
+            .off('mousedown.bwMfDnDImage', '.attachments-browser .attachment')
+            .on('mousedown.bwMfDnDImage', '.attachments-browser .attachment', function () {
+                $(this).attr('draggable', 'true');
+                $(this).find('img').attr('draggable', 'false');
+            });
     }
 
     function registerGridAjaxFilter() {
@@ -525,6 +584,8 @@
     function init() {
         mountLayout();
         makeGridTilesDraggable();
+        makeListRowsDraggable();
+        bindInternalDragSuppression();
 
         var collapsed = false;
         try {
