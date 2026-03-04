@@ -32,3 +32,6 @@ if (!defined('ABSPATH')) {
         <button type="button" class="button" id="bw-media-folders-bulk-btn"><?php esc_html_e('Move selected', 'bw'); ?></button>
     </div>
 </div>
+<button type="button" id="bw-mf-collapse-tab" aria-label="<?php esc_attr_e('Open folders sidebar', 'bw'); ?>">
+    <?php esc_html_e('Folders', 'bw'); ?>
+</button>

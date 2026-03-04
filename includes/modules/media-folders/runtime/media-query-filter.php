@@ -47,11 +47,36 @@ if (!function_exists('bw_mf_apply_folder_tax_query')) {
                 'taxonomy' => 'bw_media_folder',
                 'field' => 'term_id',
                 'terms' => [$folder_id],
-                'include_children' => true,
             ];
         }
 
         return $tax_query;
+    }
+}
+
+if (!function_exists('bw_mf_merge_tax_query')) {
+    function bw_mf_merge_tax_query($existing, array $addition)
+    {
+        if (!is_array($existing)) {
+            $existing = [];
+        }
+
+        $relation = 'AND';
+        if (isset($existing['relation']) && in_array($existing['relation'], ['AND', 'OR'], true)) {
+            $relation = $existing['relation'];
+            unset($existing['relation']);
+        }
+
+        $merged = array_values($existing);
+        foreach ($addition as $clause) {
+            $merged[] = $clause;
+        }
+
+        if (!empty($merged)) {
+            $merged['relation'] = $relation;
+        }
+
+        return $merged;
     }
 }
 
@@ -74,12 +99,9 @@ if (!function_exists('bw_mf_filter_media_list_query')) {
             return;
         }
 
-        $tax_query = $query->get('tax_query');
-        if (!is_array($tax_query)) {
-            $tax_query = [];
-        }
-
-        $query->set('tax_query', bw_mf_apply_folder_tax_query($tax_query, $folder_id, $unassigned));
+        $existing_tax_query = $query->get('tax_query');
+        $mf_tax_query = bw_mf_apply_folder_tax_query([], $folder_id, $unassigned);
+        $query->set('tax_query', bw_mf_merge_tax_query($existing_tax_query, $mf_tax_query));
         $query->set('post_type', 'attachment');
     }
 }
@@ -103,8 +125,9 @@ if (!function_exists('bw_mf_filter_media_grid_query')) {
             return $args;
         }
 
-        $tax_query = isset($args['tax_query']) && is_array($args['tax_query']) ? $args['tax_query'] : [];
-        $args['tax_query'] = bw_mf_apply_folder_tax_query($tax_query, $folder_id, $unassigned);
+        $existing_tax_query = isset($args['tax_query']) ? $args['tax_query'] : [];
+        $mf_tax_query = bw_mf_apply_folder_tax_query([], $folder_id, $unassigned);
+        $args['tax_query'] = bw_mf_merge_tax_query($existing_tax_query, $mf_tax_query);
 
         return $args;
     }

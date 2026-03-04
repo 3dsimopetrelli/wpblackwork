@@ -244,14 +244,26 @@
     function bindEvents() {
         root().on('click', '#bw-media-folders-toggle', function () {
             var body = $('body');
-            body.toggleClass('bw-media-folders-collapsed');
+            body.toggleClass('bw-mf-collapsed');
 
-            var collapsed = body.hasClass('bw-media-folders-collapsed');
+            var collapsed = body.hasClass('bw-mf-collapsed');
             $(this).attr('aria-expanded', collapsed ? 'false' : 'true');
             $(this).text(collapsed ? 'Expand' : 'Collapse');
 
             try {
-                window.localStorage.setItem('bwMediaFoldersCollapsed', collapsed ? '1' : '0');
+                window.localStorage.setItem('bw_mf_collapsed', collapsed ? '1' : '0');
+            } catch (e) {
+                // ignore storage errors
+            }
+        });
+
+        $(document).on('click', '#bw-mf-collapse-tab', function () {
+            var body = $('body');
+            body.removeClass('bw-mf-collapsed');
+            $('#bw-media-folders-toggle').attr('aria-expanded', 'true').text('Collapse');
+
+            try {
+                window.localStorage.setItem('bw_mf_collapsed', '0');
             } catch (e) {
                 // ignore storage errors
             }
@@ -363,13 +375,13 @@
 
     function mountLayout() {
         var body = $('body');
-        if (!body.hasClass('bw-media-folders-enabled')) {
-            body.addClass('bw-media-folders-enabled');
-        }
-
         var rootEl = root();
         if (!rootEl.length) {
             return;
+        }
+
+        if (!body.hasClass('bw-mf-enabled')) {
+            body.addClass('bw-mf-enabled');
         }
 
         var target = $('#wpbody-content');
@@ -382,8 +394,8 @@
         mountLayout();
 
         try {
-            if (window.localStorage.getItem('bwMediaFoldersCollapsed') === '1') {
-                $('body').addClass('bw-media-folders-collapsed');
+            if (window.localStorage.getItem('bw_mf_collapsed') === '1') {
+                $('body').addClass('bw-mf-collapsed');
                 $('#bw-media-folders-toggle').attr('aria-expanded', 'false').text('Expand');
             }
         } catch (e) {

@@ -4,8 +4,15 @@ if (!defined('ABSPATH')) {
 }
 
 require_once __DIR__ . '/data/installer.php';
+if (is_admin()) {
+    require_once __DIR__ . '/admin/media-folders-settings.php';
+}
 
 if (!bw_mf_is_enabled()) {
+    return;
+}
+
+if (!is_admin()) {
     return;
 }
 
