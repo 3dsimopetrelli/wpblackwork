@@ -11,7 +11,7 @@ if (!function_exists('bw_mf_register_settings_submenu')) {
         add_submenu_page(
             'blackwork-site-settings',
             __('Media Folders', 'bw'),
-            __('Folders', 'bw'),
+            __('Media Folders', 'bw'),
             'manage_options',
             'bw-media-folders-settings',
             'bw_mf_render_settings_page'
@@ -52,6 +52,9 @@ if (!function_exists('bw_mf_render_settings_page')) {
                                     <input type="checkbox" name="bw_core_flags[media_folders]" value="1" <?php checked($enabled); ?> />
                                     <?php esc_html_e('Enable folder sidebar and media organization in Media Library.', 'bw'); ?>
                                 </label>
+                                <p class="description">
+                                    <?php esc_html_e('When disabled, Media Folders module is a no-op (no assets, no filters, no AJAX endpoints).', 'bw'); ?>
+                                </p>
                             </td>
                         </tr>
                     </tbody>
