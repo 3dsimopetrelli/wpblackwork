@@ -33,6 +33,10 @@
     var markerCache = new Map();
     var markerFetchInFlight = false;
 
+    function isGridMode() {
+        return state.mode === 'grid' || !!document.querySelector('.attachments-browser');
+    }
+
     function root() {
         return $('#bw-media-folders-root');
     }
@@ -147,7 +151,7 @@
             return;
         }
 
-        if (state.mode !== 'grid') {
+        if (!isGridMode()) {
             return;
         }
 
@@ -246,7 +250,7 @@
             return;
         }
 
-        if (state.mode !== 'grid') {
+        if (!isGridMode()) {
             return;
         }
 
@@ -280,11 +284,11 @@
     }
 
     function bindCornerMarkerObserver() {
-        if (!cornerIndicatorEnabled || state.mode !== 'grid' || markerObserver) {
+        if (!cornerIndicatorEnabled || !isGridMode() || markerObserver) {
             return;
         }
 
-        var attachmentsRoot = document.querySelector('.attachments-browser .attachments');
+        var attachmentsRoot = document.querySelector('.attachments-browser');
         if (!attachmentsRoot || typeof MutationObserver === 'undefined') {
             return;
         }
@@ -1379,4 +1383,14 @@
     }
 
     $(init);
+
+    document.addEventListener('DOMContentLoaded', function () {
+        if (!cornerIndicatorEnabled) {
+            clearCornerMarkers();
+            return;
+        }
+        window.setTimeout(function () {
+            bwMfApplyCornerMarkers();
+        }, 500);
+    });
 })(jQuery);
