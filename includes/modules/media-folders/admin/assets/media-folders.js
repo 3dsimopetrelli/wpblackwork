@@ -63,7 +63,7 @@
         var color = item.color ? item.color : '#6b7280';
 
         return '' +
-            '<div class="bw-media-folder-node' + pinnedClass + active + '" data-id="' + item.id + '" data-parent="' + item.parent + '" style="padding-left:' + pad + 'px">' +
+            '<div class="bw-media-folder-node' + pinnedClass + active + '" data-id="' + item.id + '" data-folder-id="' + item.id + '" data-parent="' + item.parent + '" style="padding-left:' + pad + 'px">' +
             '  <button class="bw-media-folder-node__main" type="button">' +
             '    <span class="bw-media-folder-node__dot" style="background:' + color + '"></span>' +
             '    <span class="bw-media-folder-node__name">' + item.name + '</span>' +
@@ -85,7 +85,7 @@
         var unClass = state.activeUnassigned ? ' is-active' : '';
 
         html += '<button type="button" class="bw-media-default' + allClass + '" data-type="all">All Files <span>' + (state.counts.all || 0) + '</span></button>';
-        html += '<button type="button" class="bw-media-default' + unClass + '" data-type="unassigned">Unassigned Files <span>' + (state.counts.unassigned || 0) + '</span></button>';
+        html += '<button type="button" class="bw-media-default bw-media-default--drop' + unClass + '" data-type="unassigned" data-folder-id="0">Unassigned Files <span>' + (state.counts.unassigned || 0) + '</span></button>';
 
         $('#bw-media-folders-defaults').html(html);
     }
@@ -170,7 +170,46 @@
             }
         });
 
+        if (window.wp && wp.media && wp.media.frame && wp.media.frame.state) {
+            try {
+                var selection = wp.media.frame.state().get('selection');
+                if (selection && typeof selection.each === 'function') {
+                    selection.each(function (model) {
+                        var modelId = parseInt(model && model.get ? model.get('id') : 0, 10);
+                        if (modelId > 0) {
+                            ids.push(modelId);
+                        }
+                    });
+                }
+            } catch (e) {
+                // fail-open: fallback to DOM selected nodes only
+            }
+        }
+
         return Array.from(new Set(ids));
+    }
+
+    function refreshMediaView() {
+        if (state.mode === 'grid' && window.wp && wp.media && wp.media.frame) {
+            try {
+                var frame = wp.media.frame;
+                if (frame.content && frame.content.get) {
+                    var browser = frame.content.get();
+                    if (browser && browser.collection && typeof browser.collection.props === 'function') {
+                        browser.collection.props.set({
+                            bw_media_folder: state.activeFolder > 0 ? state.activeFolder : undefined,
+                            bw_media_unassigned: state.activeUnassigned ? '1' : undefined
+                        });
+                        browser.collection.more();
+                        return;
+                    }
+                }
+            } catch (e) {
+                // fallback below
+            }
+        }
+
+        window.location.reload();
     }
 
     function assignFolder(folderId, ids, onDone) {
@@ -186,36 +225,42 @@
     }
 
     function bindDropTargets() {
-        $('#bw-media-folders-tree .bw-media-folder-node').on('dragover', function (e) {
+        $('#bw-media-folders-tree .bw-media-folder-node, #bw-media-folders-defaults .bw-media-default--drop')
+            .off('.bwMfDnD')
+            .on('dragover.bwMfDnD', function (e) {
             e.preventDefault();
             $(this).addClass('is-drag-over');
-        }).on('dragleave', function () {
+        }).on('dragleave.bwMfDnD', function () {
             $(this).removeClass('is-drag-over');
-        }).on('drop', function (e) {
+        }).on('drop.bwMfDnD', function (e) {
             e.preventDefault();
             $(this).removeClass('is-drag-over');
 
-            var folderId = parseInt($(this).attr('data-id') || '0', 10);
+            var folderId = parseInt($(this).attr('data-folder-id') || $(this).attr('data-id') || '0', 10);
             var mediaId = parseInt(e.originalEvent.dataTransfer.getData('text/plain') || '0', 10);
-            if (folderId <= 0 || mediaId <= 0) {
+            if (mediaId <= 0) {
                 return;
             }
 
             assignFolder(folderId, [mediaId], function () {
-                if (state.mode === 'grid') {
-                    window.location.reload();
-                }
+                refreshMediaView();
             });
         });
 
-        $('.attachments .attachment').attr('draggable', 'true').on('dragstart', function (e) {
+        $('.attachments .attachment')
+            .off('.bwMfDnD')
+            .attr('draggable', 'true')
+            .on('dragstart.bwMfDnD', function (e) {
             var id = parseInt($(this).attr('data-id') || '0', 10);
             if (id > 0) {
                 e.originalEvent.dataTransfer.setData('text/plain', String(id));
             }
         });
 
-        $('.wp-list-table tbody tr').attr('draggable', 'true').on('dragstart', function (e) {
+        $('.wp-list-table tbody tr')
+            .off('.bwMfDnD')
+            .attr('draggable', 'true')
+            .on('dragstart.bwMfDnD', function (e) {
             var id = parseInt(($(this).attr('id') || '').replace('post-', ''), 10);
             if (id > 0) {
                 e.originalEvent.dataTransfer.setData('text/plain', String(id));
@@ -234,9 +279,14 @@
             }
 
             if (state.activeUnassigned) {
-                options.data += '&query%5Bbw_media_unassigned%5D=1';
+                if (options.data.indexOf('query%5Bbw_media_unassigned%5D=1') === -1) {
+                    options.data += '&query%5Bbw_media_unassigned%5D=1';
+                }
             } else if (state.activeFolder > 0) {
-                options.data += '&query%5Bbw_media_folder%5D=' + encodeURIComponent(String(state.activeFolder));
+                var encodedFolder = 'query%5Bbw_media_folder%5D=' + encodeURIComponent(String(state.activeFolder));
+                if (options.data.indexOf('query%5Bbw_media_folder%5D=') === -1) {
+                    options.data += '&' + encodedFolder;
+                }
             }
         });
     }
@@ -369,7 +419,7 @@
 
             var folderId = parseInt($('#bw-media-folders-bulk-select').val() || '0', 10);
             assignFolder(folderId, ids, function () {
-                window.location.reload();
+                refreshMediaView();
             });
         });
     }

@@ -42,17 +42,17 @@ body.upload-php.bw-mf-enabled.bw-mf-collapsed #bw-media-folders-root {
 
 body.upload-php.bw-mf-enabled #bw-mf-collapse-tab {
     position: fixed;
-    top: 92px;
+    top: 96px;
     left: calc(160px + var(--bw-mf-sidebar-width) - var(--bw-mf-tab-width));
-    width: var(--bw-mf-tab-width);
-    height: 116px;
+    width: 96px;
+    height: 30px;
     border: 1px solid #dcdcde;
-    border-left: 0;
+    border-radius: 0 4px 4px 0;
     background: #2271b1;
     color: #ffffff;
-    writing-mode: vertical-rl;
-    text-orientation: mixed;
-    transform: rotate(180deg);
+    padding: 0 8px;
+    line-height: 28px;
+    font-size: 12px;
     cursor: pointer;
     z-index: 31;
     display: none;
