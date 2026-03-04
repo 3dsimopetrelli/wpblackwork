@@ -37,6 +37,9 @@
     var markerIntersectionObserver = null;
     var markerVisibleTiles = new Set();
     var markerObservedTiles = (typeof WeakSet !== 'undefined') ? new WeakSet() : null;
+    var folderByParentMap = {};
+    var folderCollapsedMap = {};
+    var FOLDER_COLLAPSED_KEY = 'bw_mf_folder_collapsed';
 
     function isGridMode() {
         return state.mode === 'grid' || !!document.querySelector('.attachments-browser');
@@ -271,11 +274,11 @@
 
     function clearCornerMarkers() {
         getCornerWorkingTiles().forEach(function (tile) {
-            if (tile.classList.contains('bw-mf-corner')) {
-                tile.classList.remove('bw-mf-corner');
+            if (tile.classList.contains('bw-mf-marked')) {
+                tile.classList.remove('bw-mf-marked');
             }
-            if (tile.style.getPropertyValue('--bw-mf-corner-color')) {
-                tile.style.removeProperty('--bw-mf-corner-color');
+            if (tile.style.getPropertyValue('--bw-mf-marker-color')) {
+                tile.style.removeProperty('--bw-mf-marker-color');
             }
         });
     }
@@ -428,21 +431,21 @@
         }
 
         if (!marker || !marker.assigned) {
-            if (tile.classList.contains('bw-mf-corner')) {
-                tile.classList.remove('bw-mf-corner');
+            if (tile.classList.contains('bw-mf-marked')) {
+                tile.classList.remove('bw-mf-marked');
             }
-            if (tile.style.getPropertyValue('--bw-mf-corner-color')) {
-                tile.style.removeProperty('--bw-mf-corner-color');
+            if (tile.style.getPropertyValue('--bw-mf-marker-color')) {
+                tile.style.removeProperty('--bw-mf-marker-color');
             }
             return;
         }
 
-        if (!tile.classList.contains('bw-mf-corner')) {
-            tile.classList.add('bw-mf-corner');
+        if (!tile.classList.contains('bw-mf-marked')) {
+            tile.classList.add('bw-mf-marked');
         }
         var targetColor = marker.color || '#000';
-        if (tile.style.getPropertyValue('--bw-mf-corner-color') !== targetColor) {
-            tile.style.setProperty('--bw-mf-corner-color', targetColor);
+        if (tile.style.getPropertyValue('--bw-mf-marker-color') !== targetColor) {
+            tile.style.setProperty('--bw-mf-marker-color', targetColor);
         }
     }
 
@@ -607,11 +610,17 @@
         var pad = Math.max(0, depth) * 14;
         var pinnedClass = item.pinned ? ' is-pinned' : '';
         var active = (!state.activeUnassigned && state.activeFolder === item.id) ? ' is-active' : '';
+        var isCollapsed = !!folderCollapsedMap[item.id];
+        var hasChildren = !!(folderByParentMap[item.id] && folderByParentMap[item.id].length);
         var styles = ['padding-left:' + pad + 'px'];
         var iconColor = item.icon_color ? String(item.icon_color) : '';
         var iconColorAttr = '';
         var pinnedAttr = item.pinned ? '1' : '0';
+        var collapsedAttr = isCollapsed ? '1' : '0';
         var pinIndicator = item.pinned ? '<span class="bw-mf-pin-indicator" aria-hidden="true">📌</span>' : '';
+        var chevron = hasChildren
+            ? '<button class="bw-mf-chevron" type="button" aria-label="Toggle folder" aria-expanded="' + (isCollapsed ? 'false' : 'true') + '">▶</button>'
+            : '<span class="bw-mf-chevron bw-mf-chevron--placeholder" aria-hidden="true">▶</span>';
 
         if (iconColor) {
             styles.push('--bw-mf-icon-color:' + iconColor);
@@ -619,16 +628,19 @@
         }
 
         return '' +
-            '<div class="bw-media-folder-node' + pinnedClass + active + '" data-id="' + item.id + '" data-term-id="' + item.id + '" data-folder-id="' + item.id + '" data-parent="' + item.parent + '" data-pinned="' + pinnedAttr + '"' + iconColorAttr + ' style="' + styles.join(';') + '">' +
+            '<div class="bw-media-folder-node' + pinnedClass + active + (hasChildren ? ' is-parent' : '') + (isCollapsed ? ' is-collapsed' : '') + '" data-id="' + item.id + '" data-term-id="' + item.id + '" data-folder-id="' + item.id + '" data-parent="' + item.parent + '" data-pinned="' + pinnedAttr + '" data-collapsed="' + collapsedAttr + '"' + iconColorAttr + ' style="' + styles.join(';') + '">' +
             '  <button class="bw-media-folder-node__main" type="button">' +
+            chevron +
             '    <span class="bw-mf-folder-icon" aria-hidden="true">' +
             '      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">' +
             '        <path fill="currentColor" d="M5.5 5 H9.8 A1.6 1.6 0 0 1 11 5.6 L12.2 7 A1.6 1.6 0 0 0 13.4 7.6 H18.5 A1.5 1.5 0 0 1 20 9.1 V18.5 A1.5 1.5 0 0 1 18.5 20 H5.5 A1.5 1.5 0 0 1 4 18.5 V6.5 A1.5 1.5 0 0 1 5.5 5 Z"></path>' +
             '      </svg>' +
             '    </span>' +
             '    <span class="bw-media-folder-node__name">' + item.name + '</span>' +
-            '    <span class="bw-media-folder-node__count">' + item.count + '</span>' +
+            '    <span class="bw-media-folder-node__meta">' +
             pinIndicator +
+            '      <span class="bw-media-folder-node__count">' + item.count + '</span>' +
+            '    </span>' +
             '  </button>' +
             '  <button type="button" class="bw-mf-folder-pencil bw-mf-folder-rename-btn" aria-label="Folder actions">' +
             '    <span class="dashicons dashicons-edit" aria-hidden="true"></span>' +
@@ -791,14 +803,14 @@
         rowEl.setAttribute('data-pinned', isPinned ? '1' : '0');
         rowEl.classList.toggle('is-pinned', isPinned);
 
-        var main = rowEl.querySelector('.bw-media-folder-node__main');
+        var meta = rowEl.querySelector('.bw-media-folder-node__meta');
         var indicator = rowEl.querySelector('.bw-mf-pin-indicator');
-        if (isPinned && !indicator && main) {
+        if (isPinned && !indicator && meta) {
             indicator = document.createElement('span');
             indicator.className = 'bw-mf-pin-indicator';
             indicator.setAttribute('aria-hidden', 'true');
             indicator.textContent = '📌';
-            main.appendChild(indicator);
+            meta.insertBefore(indicator, meta.firstChild || null);
         } else if (!isPinned && indicator && indicator.parentNode) {
             indicator.parentNode.removeChild(indicator);
         }
@@ -893,6 +905,53 @@
         $('#bw-media-folders-defaults').html(html);
     }
 
+    function loadCollapsedState() {
+        folderCollapsedMap = {};
+        try {
+            var raw = window.localStorage.getItem(FOLDER_COLLAPSED_KEY);
+            if (!raw) {
+                return;
+            }
+
+            var parsed = JSON.parse(raw);
+            if (!parsed || typeof parsed !== 'object') {
+                return;
+            }
+
+            Object.keys(parsed).forEach(function (key) {
+                if (parsed[key]) {
+                    var id = parseInt(key, 10);
+                    if (id > 0) {
+                        folderCollapsedMap[id] = true;
+                    }
+                }
+            });
+        } catch (e) {
+            folderCollapsedMap = {};
+        }
+    }
+
+    function saveCollapsedState() {
+        try {
+            window.localStorage.setItem(FOLDER_COLLAPSED_KEY, JSON.stringify(folderCollapsedMap));
+        } catch (e) {
+            // ignore storage errors
+        }
+    }
+
+    function toggleFolderCollapsed(termId) {
+        if (!(termId > 0)) {
+            return;
+        }
+        if (folderCollapsedMap[termId]) {
+            delete folderCollapsedMap[termId];
+        } else {
+            folderCollapsedMap[termId] = true;
+        }
+        saveCollapsedState();
+        syncTreeNodeVisibility();
+    }
+
     function buildTreeRows() {
         var byParent = {};
 
@@ -903,6 +962,7 @@
             }
             byParent[p].push(item);
         });
+        folderByParentMap = byParent;
 
         function walk(parent, depth, out) {
             var children = byParent[parent] || [];
@@ -917,6 +977,48 @@
         return rows;
     }
 
+    function syncTreeNodeVisibility() {
+        var searchTerm = ($('#bw-mr-folder-search').val() || '').toLowerCase().trim();
+        var nodes = Array.prototype.slice.call(document.querySelectorAll('#bw-media-folders-tree .bw-media-folder-node'));
+        var nodeById = {};
+        nodes.forEach(function (node) {
+            var id = parseInt(node.getAttribute('data-id') || '0', 10);
+            if (id > 0) {
+                nodeById[id] = node;
+            }
+        });
+
+        nodes.forEach(function (node) {
+            var id = parseInt(node.getAttribute('data-id') || '0', 10);
+            var parentId = parseInt(node.getAttribute('data-parent') || '0', 10);
+            var matchesSearch = !searchTerm || ((node.querySelector('.bw-media-folder-node__name') && node.querySelector('.bw-media-folder-node__name').textContent || '').toLowerCase().indexOf(searchTerm) !== -1);
+
+            var hiddenByCollapse = false;
+            var currentParent = parentId;
+            while (currentParent > 0) {
+                if (folderCollapsedMap[currentParent]) {
+                    hiddenByCollapse = true;
+                    break;
+                }
+
+                var parentNode = nodeById[currentParent];
+                if (!parentNode) {
+                    break;
+                }
+                currentParent = parseInt(parentNode.getAttribute('data-parent') || '0', 10);
+            }
+
+            node.style.display = (matchesSearch && !hiddenByCollapse) ? '' : 'none';
+            node.classList.toggle('is-collapsed', !!folderCollapsedMap[id]);
+
+            var chevron = node.querySelector('.bw-mf-chevron');
+            if (chevron && !chevron.classList.contains('bw-mf-chevron--placeholder')) {
+                chevron.setAttribute('aria-expanded', folderCollapsedMap[id] ? 'false' : 'true');
+                chevron.classList.toggle('is-collapsed', !!folderCollapsedMap[id]);
+            }
+        });
+    }
+
     function renderTree() {
         $('#bw-media-folders-tree').html(buildTreeRows().join(''));
 
@@ -926,7 +1028,7 @@
         });
         $('#bw-media-folders-bulk-select').html(options.join(''));
 
-        applySearchFilter();
+        syncTreeNodeVisibility();
         bindDropTargets();
     }
 
@@ -948,12 +1050,7 @@
     }
 
     function applySearchFilter() {
-        var term = ($('#bw-mr-folder-search').val() || '').toLowerCase().trim();
-        $('#bw-media-folders-tree .bw-media-folder-node').each(function () {
-            var text = ($(this).find('.bw-media-folder-node__name').text() || '').toLowerCase();
-            var show = !term || text.indexOf(term) !== -1;
-            $(this).toggle(show);
-        });
+        syncTreeNodeVisibility();
     }
 
     function collectSelectedMediaIds() {
@@ -1309,6 +1406,20 @@
 
         root().on('input', '#bw-mr-folder-search', applySearchFilter);
 
+        root().on('click', '.bw-mf-chevron', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+
+            if ($(this).hasClass('bw-mf-chevron--placeholder')) {
+                return;
+            }
+
+            var row = $(this).closest('.bw-media-folder-node');
+            var termId = parseInt(row.attr('data-term-id') || row.attr('data-id') || '0', 10);
+            toggleFolderCollapsed(termId);
+        });
+
         root().on('click', '.bw-media-default', function () {
             var type = $(this).attr('data-type');
             if (type === 'unassigned') {
@@ -1333,7 +1444,10 @@
             window.location.href = getQueryUrl(0, false);
         });
 
-        root().on('click', '.bw-media-folder-node__main', function () {
+        root().on('click', '.bw-media-folder-node__main', function (e) {
+            if ($(e.target).closest('.bw-mf-chevron').length) {
+                return;
+            }
             var folderId = parseInt($(this).closest('.bw-media-folder-node').attr('data-term-id') || $(this).closest('.bw-media-folder-node').attr('data-id') || '0', 10);
             state.activeFolder = folderId > 0 ? folderId : 0;
             state.activeUnassigned = false;
@@ -1586,6 +1700,7 @@
         window.__BW_MF_INIT_DONE = true;
 
         mountLayout();
+        loadCollapsedState();
         renderContextMenu();
         renderColorPopover();
         makeGridTilesDraggable();

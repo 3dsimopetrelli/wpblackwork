@@ -145,6 +145,7 @@ body.upload-php.bw-mf-enabled .bw-media-folder-node {
     border-radius: 4px;
     width: 100%;
     box-sizing: border-box;
+    font-size: 15px;
 }
 
 body.upload-php.bw-mf-enabled .bw-media-folder-node.is-active {
@@ -224,21 +225,22 @@ body.upload-php.bw-mf-enabled .bw-mf-drag-badge {
     z-index: 999999;
 }
 
-body.upload-php.bw-mf-enabled .attachments-browser .attachment.bw-mf-corner {
+body.upload-php.bw-mf-enabled .attachments-browser .attachment.bw-mf-marked {
     position: relative;
 }
 
-body.upload-php.bw-mf-enabled .attachments-browser .attachment.bw-mf-corner::after {
+body.upload-php.bw-mf-enabled .attachments-browser .attachment.bw-mf-marked::after {
     content: "";
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 0;
-    height: 0;
-    border-top: 14px solid var(--bw-mf-corner-color, #000);
-    border-right: 14px solid transparent;
+    top: 6px;
+    left: 6px;
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    background: var(--bw-mf-marker-color, #000);
     z-index: 999;
     pointer-events: none;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
 }
 
 body.upload-php.bw-mf-enabled .bw-media-folder-node__main {
@@ -251,6 +253,32 @@ body.upload-php.bw-mf-enabled .bw-media-folder-node__main {
     gap: 8px;
     cursor: pointer;
     padding: 4px;
+    width: 100%;
+}
+
+body.upload-php.bw-mf-enabled .bw-mf-chevron {
+    border: 0;
+    background: transparent;
+    width: 16px;
+    min-width: 16px;
+    height: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    color: #4b5563;
+    cursor: pointer;
+    transform: rotate(90deg);
+    transition: transform 120ms ease, color 120ms ease;
+}
+
+body.upload-php.bw-mf-enabled .bw-mf-chevron.is-collapsed {
+    transform: rotate(0deg);
+}
+
+body.upload-php.bw-mf-enabled .bw-mf-chevron--placeholder {
+    opacity: 0.25;
+    cursor: default;
 }
 
 body.upload-php.bw-mf-enabled .bw-mf-folder-icon {
@@ -264,8 +292,8 @@ body.upload-php.bw-mf-enabled .bw-mf-folder-icon {
 }
 
 body.upload-php.bw-mf-enabled .bw-mf-folder-icon svg {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
     display: block;
 }
 
@@ -279,17 +307,27 @@ body.upload-php.bw-mf-enabled .bw-media-folder-node__name {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    font-size: 15px;
+    line-height: 1.4;
+}
+
+body.upload-php.bw-mf-enabled .bw-media-folder-node__meta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    min-width: 52px;
 }
 
 body.upload-php.bw-mf-enabled .bw-media-folder-node__count {
     color: inherit;
-    font-size: 12px;
+    font-size: 13px;
     min-width: 28px;
     text-align: right;
 }
 
 body.upload-php.bw-mf-enabled .bw-mf-pin-indicator {
-    margin-left: 6px;
+    margin-left: 0;
     font-size: 12px;
     line-height: 1;
     opacity: 0.9;
