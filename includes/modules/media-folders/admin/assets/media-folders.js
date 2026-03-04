@@ -34,6 +34,9 @@
     var markerFailedIds = new Set();
     var markerFetchInFlight = false;
     var attachmentsBrowserEl = null;
+    var markerIntersectionObserver = null;
+    var markerVisibleTiles = new Set();
+    var markerObservedTiles = (typeof WeakSet !== 'undefined') ? new WeakSet() : null;
 
     function isGridMode() {
         return state.mode === 'grid' || !!document.querySelector('.attachments-browser');
@@ -184,8 +187,90 @@
         return Array.prototype.slice.call(browser.querySelectorAll('.attachment[data-id]'));
     }
 
+    function initCornerIntersectionObserver() {
+        if (markerIntersectionObserver || typeof IntersectionObserver === 'undefined') {
+            return;
+        }
+
+        if (window.__BW_MF_CORNER_IO && typeof window.__BW_MF_CORNER_IO.observe === 'function') {
+            markerIntersectionObserver = window.__BW_MF_CORNER_IO;
+            return;
+        }
+
+        markerIntersectionObserver = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                if (!entry || !entry.target) {
+                    return;
+                }
+
+                if (entry.isIntersecting) {
+                    markerVisibleTiles.add(entry.target);
+                } else {
+                    markerVisibleTiles.delete(entry.target);
+                }
+            });
+
+            scheduleCornerMarkerRefresh();
+        }, {
+            root: null,
+            threshold: 0
+        });
+
+        window.__BW_MF_CORNER_IO = markerIntersectionObserver;
+    }
+
+    function observeGridTilesForCorners() {
+        if (!cornerIndicatorEnabled || !isGridMode()) {
+            return;
+        }
+
+        initCornerIntersectionObserver();
+
+        var tiles = getVisibleGridTiles();
+        if (!tiles.length) {
+            return;
+        }
+
+        if (!markerIntersectionObserver) {
+            markerVisibleTiles.clear();
+            tiles.forEach(function (tile) {
+                markerVisibleTiles.add(tile);
+            });
+            return;
+        }
+
+        tiles.forEach(function (tile) {
+            if (markerObservedTiles && markerObservedTiles.has(tile)) {
+                return;
+            }
+
+            if (markerObservedTiles) {
+                markerObservedTiles.add(tile);
+            }
+
+            markerIntersectionObserver.observe(tile);
+        });
+    }
+
+    function getCornerWorkingTiles() {
+        if (!markerIntersectionObserver) {
+            return getVisibleGridTiles();
+        }
+
+        var tiles = [];
+        markerVisibleTiles.forEach(function (tile) {
+            if (!tile || !document.body.contains(tile)) {
+                markerVisibleTiles.delete(tile);
+                return;
+            }
+            tiles.push(tile);
+        });
+
+        return tiles;
+    }
+
     function clearCornerMarkers() {
-        getVisibleGridTiles().forEach(function (tile) {
+        getCornerWorkingTiles().forEach(function (tile) {
             if (tile.classList.contains('bw-mf-corner')) {
                 tile.classList.remove('bw-mf-corner');
             }
@@ -205,6 +290,13 @@
             markerObserver.disconnect();
             markerObserver = null;
         }
+
+        if (markerIntersectionObserver && typeof markerIntersectionObserver.disconnect === 'function') {
+            markerIntersectionObserver.disconnect();
+        }
+
+        markerVisibleTiles.clear();
+        markerObservedTiles = (typeof WeakSet !== 'undefined') ? new WeakSet() : null;
 
         clearCornerMarkers();
     }
@@ -275,9 +367,9 @@
         return defaultColor;
     }
 
-    function collectVisibleAttachmentIds() {
+    function collectVisibleAttachmentIds(tiles) {
         var ids = [];
-        getVisibleGridTiles().forEach(function (tile) {
+        (tiles || []).forEach(function (tile) {
             var id = parseInt(tile.getAttribute('data-id') || '0', 10);
             if (id > 0) {
                 ids.push(id);
@@ -365,8 +457,9 @@
         }
 
         bindCornerMarkerObserver();
+        observeGridTilesForCorners();
 
-        var tiles = getVisibleGridTiles();
+        var tiles = getCornerWorkingTiles();
         if (!tiles.length) {
             return;
         }
@@ -388,13 +481,13 @@
             return;
         }
 
-        var visibleIds = collectVisibleAttachmentIds();
+        var visibleIds = collectVisibleAttachmentIds(tiles);
         var missingIds = visibleIds.filter(function (id) {
             return !markerCache.has(id) && !markerFailedIds.has(id);
         });
 
         var apply = function () {
-            tiles.forEach(function (tile) {
+            getCornerWorkingTiles().forEach(function (tile) {
                 var id = parseInt(tile.getAttribute('data-id') || '0', 10);
                 setTileCornerMarker(tile, markerCache.get(id));
             });
@@ -426,6 +519,7 @@
         }
 
         markerObserver = new MutationObserver(function () {
+            observeGridTilesForCorners();
             scheduleCornerMarkerRefresh();
         });
         markerObserver.observe(attachmentsRoot, { childList: true, subtree: false });
