@@ -142,8 +142,18 @@ if (!function_exists('bw_mf_filter_media_grid_query')) {
             return $args;
         }
 
-        if (!is_array($query)) {
+        if (is_object($query) && property_exists($query, 'query_vars') && is_array($query->query_vars)) {
+            $query = $query->query_vars;
+        } elseif (!is_array($query)) {
             $query = [];
+        }
+
+        if ((!isset($query['bw_media_folder']) && !isset($query['bw_media_unassigned'])) && isset($_REQUEST['query']) && is_array($_REQUEST['query'])) {
+            foreach (['bw_media_folder', 'bw_media_unassigned', 'bw_media_assigned'] as $key) {
+                if (isset($_REQUEST['query'][$key])) {
+                    $query[$key] = $_REQUEST['query'][$key];
+                }
+            }
         }
 
         if (!bw_mf_is_query_attachments_ajax()) {
