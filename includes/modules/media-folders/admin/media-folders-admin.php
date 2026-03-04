@@ -73,6 +73,9 @@ if (!function_exists('bw_mf_admin_enqueue_assets')) {
             'nonce' => wp_create_nonce('bw_media_folders_nonce'),
             'active' => bw_mf_get_active_filter_payload(),
             'cornerIndicatorEnabled' => $corner_enabled ? 1 : 0,
+            'flags' => [
+                'cornerIndicator' => $corner_enabled ? 1 : 0,
+            ],
             'text' => [
                 'newFolderPrompt' => __('Folder name', 'bw'),
                 'renamePrompt' => __('Rename folder', 'bw'),

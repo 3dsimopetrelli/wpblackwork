@@ -1,7 +1,7 @@
 (function ($) {
     'use strict';
 
-    var cfg = window.bwMediaFolders || {};
+    var cfg = window.bwMediaFolders || window.bwMF || {};
     if (!cfg.ajaxUrl || !cfg.nonce) {
         return;
     }
@@ -24,6 +24,14 @@
     var colorPopoverRowRef = null;
     var colorSaveTimer = null;
     var eventsBound = false;
+    var cornerIndicatorEnabled = !!(
+        (cfg.flags && parseInt(cfg.flags.cornerIndicator, 10) === 1) ||
+        parseInt(cfg.cornerIndicatorEnabled, 10) === 1
+    );
+    var markerCache = new Map();
+    var markerRequestInFlight = false;
+    var markerObserver = null;
+    var markerDebounceTimer = null;
 
     function root() {
         return $('#bw-media-folders-root');
@@ -129,6 +137,158 @@
             });
     }
 
+    function isValidHexColor(color) {
+        return /^#[0-9a-f]{6}$/i.test(String(color || ''));
+    }
+
+    function scheduleCornerMarkerRefresh() {
+        if (!cornerIndicatorEnabled || state.mode !== 'grid') {
+            return;
+        }
+
+        if (markerDebounceTimer) {
+            window.clearTimeout(markerDebounceTimer);
+        }
+        markerDebounceTimer = window.setTimeout(function () {
+            markerDebounceTimer = null;
+            bwMfApplyCornerMarkers();
+        }, 250);
+    }
+
+    function getVisibleGridTiles() {
+        return Array.prototype.slice.call(document.querySelectorAll('.attachments-browser .attachment[data-id]'));
+    }
+
+    function setTileCornerMarker(tile, marker) {
+        if (!tile) {
+            return;
+        }
+
+        var hasFolder = !!(marker && marker.has_folder);
+        if (!hasFolder) {
+            tile.classList.remove('bw-mf-has-folder');
+            tile.style.removeProperty('--bw-mf-corner-color');
+            return;
+        }
+
+        var color = (marker && isValidHexColor(marker.color)) ? marker.color : '#80FD03';
+        tile.classList.add('bw-mf-has-folder');
+        tile.style.setProperty('--bw-mf-corner-color', color);
+    }
+
+    function applyMarkersFromCache(tiles) {
+        tiles.forEach(function (tile) {
+            var id = parseInt(tile.getAttribute('data-id') || '0', 10);
+            if (!(id > 0)) {
+                return;
+            }
+
+            if (!markerCache.has(id)) {
+                return;
+            }
+
+            setTileCornerMarker(tile, markerCache.get(id));
+        });
+    }
+
+    function bwMfFetchCornerMarkers(ids) {
+        if (!ids.length || markerRequestInFlight) {
+            return;
+        }
+
+        markerRequestInFlight = true;
+        $.post(cfg.ajaxUrl, {
+            action: 'bw_mf_get_attachment_folder_markers',
+            nonce: cfg.nonce,
+            bw_mf_context: 'upload',
+            attachment_ids: ids
+        })
+            .done(function (res) {
+                if (!res || !res.success || !res.data || typeof res.data.markers !== 'object') {
+                    return;
+                }
+
+                Object.keys(res.data.markers).forEach(function (idKey) {
+                    var id = parseInt(idKey, 10);
+                    if (!(id > 0)) {
+                        return;
+                    }
+
+                    var marker = res.data.markers[idKey] || {};
+                    markerCache.set(id, {
+                        has_folder: !!marker.has_folder,
+                        color: isValidHexColor(marker.color) ? marker.color : null
+                    });
+                });
+
+                applyMarkersFromCache(getVisibleGridTiles());
+            })
+            .always(function () {
+                markerRequestInFlight = false;
+            });
+    }
+
+    function bwMfApplyCornerMarkers() {
+        if (!cornerIndicatorEnabled || state.mode !== 'grid') {
+            return;
+        }
+
+        bindCornerMarkerObserver();
+
+        var tiles = getVisibleGridTiles();
+        if (!tiles.length) {
+            return;
+        }
+
+        var ids = [];
+        var seen = {};
+        tiles.forEach(function (tile) {
+            var id = parseInt(tile.getAttribute('data-id') || '0', 10);
+            if (id > 0 && !seen[id]) {
+                seen[id] = true;
+                ids.push(id);
+            }
+        });
+
+        ids = ids.slice(0, 200);
+        applyMarkersFromCache(tiles);
+
+        var missing = ids.filter(function (id) {
+            return !markerCache.has(id);
+        });
+
+        bwMfFetchCornerMarkers(missing);
+    }
+
+    function invalidateCornerMarkerCache(ids) {
+        if (!Array.isArray(ids) || !ids.length) {
+            return;
+        }
+
+        ids.forEach(function (id) {
+            var parsed = parseInt(id, 10);
+            if (parsed > 0) {
+                markerCache.delete(parsed);
+            }
+        });
+    }
+
+    function bindCornerMarkerObserver() {
+        if (!cornerIndicatorEnabled || state.mode !== 'grid' || markerObserver) {
+            return;
+        }
+
+        var attachmentsRoot = document.querySelector('.attachments-browser .attachments');
+        if (!attachmentsRoot || typeof MutationObserver === 'undefined') {
+            return;
+        }
+
+        markerObserver = new MutationObserver(function () {
+            scheduleCornerMarkerRefresh();
+        });
+        markerObserver.observe(attachmentsRoot, { childList: true, subtree: true });
+    }
+
     function refreshCounts() {
         request('bw_media_get_folder_counts', {}, function (data) {
             var map = data && data.folder_counts && typeof data.folder_counts === 'object' ? data.folder_counts : null;
@@ -200,6 +360,7 @@
                 collection.more();
             }
 
+            scheduleCornerMarkerRefresh();
             return true;
         } catch (e) {
             return false;
@@ -540,6 +701,7 @@
             renderDefaults();
             renderTree();
             refreshCounts();
+            scheduleCornerMarkerRefresh();
         });
     }
 
@@ -608,6 +770,7 @@
                             bw_media_unassigned: state.activeUnassigned ? '1' : undefined
                         });
                         browser.collection.more();
+                        scheduleCornerMarkerRefresh();
                         return;
                     }
                 }
@@ -624,10 +787,12 @@
             term_id: folderId,
             attachment_ids: ids
         }, function () {
+            invalidateCornerMarkerCache(ids);
             refreshTree();
             if (typeof onDone === 'function') {
                 onDone();
             }
+            scheduleCornerMarkerRefresh();
         });
     }
 
@@ -1196,6 +1361,8 @@
         bindEvents();
         registerGridAjaxFilter();
         refreshTree();
+        bindCornerMarkerObserver();
+        scheduleCornerMarkerRefresh();
     }
 
     $(init);

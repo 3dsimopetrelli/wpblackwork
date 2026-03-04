@@ -17,6 +17,7 @@ add_action('wp_ajax_bw_media_update_folder_meta', 'bw_mf_ajax_update_folder_meta
 add_action('wp_ajax_bw_mf_set_folder_color', 'bw_mf_ajax_set_folder_color');
 add_action('wp_ajax_bw_mf_reset_folder_color', 'bw_mf_ajax_reset_folder_color');
 add_action('wp_ajax_bw_mf_toggle_folder_pin', 'bw_mf_ajax_toggle_folder_pin');
+add_action('wp_ajax_bw_mf_get_attachment_folder_markers', 'bw_mf_ajax_get_attachment_folder_markers');
 
 if (!function_exists('bw_mf_ajax_error')) {
     function bw_mf_ajax_error($message, $code = 400)
@@ -510,6 +511,51 @@ if (!function_exists('bw_mf_ajax_reset_folder_color')) {
         wp_send_json_success([
             'term_id' => $term_id,
             'message' => __('Folder icon color reset.', 'bw'),
+        ]);
+    }
+}
+
+if (!function_exists('bw_mf_ajax_get_attachment_folder_markers')) {
+    function bw_mf_ajax_get_attachment_folder_markers()
+    {
+        bw_mf_ajax_require('bw_mf_get_attachment_folder_markers', 'upload_files');
+
+        $raw_ids = isset($_POST['attachment_ids']) && is_array($_POST['attachment_ids']) ? $_POST['attachment_ids'] : [];
+        $attachment_ids = bw_mf_normalize_attachment_ids($raw_ids);
+        if (empty($attachment_ids)) {
+            wp_send_json_success([
+                'markers' => [],
+            ]);
+        }
+
+        if (count($attachment_ids) > BW_MF_ASSIGN_BATCH_LIMIT) {
+            $attachment_ids = array_slice($attachment_ids, 0, BW_MF_ASSIGN_BATCH_LIMIT);
+        }
+
+        $markers = [];
+        foreach ($attachment_ids as $attachment_id) {
+            $markers[$attachment_id] = [
+                'has_folder' => false,
+                'color' => null,
+            ];
+
+            $term_ids = wp_get_object_terms($attachment_id, 'bw_media_folder', [
+                'fields' => 'ids',
+            ]);
+
+            if (is_wp_error($term_ids) || empty($term_ids)) {
+                continue;
+            }
+
+            $first_term_id = (int) reset($term_ids);
+            $color = bw_mf_sanitize_hex_color((string) get_term_meta($first_term_id, 'bw_mf_icon_color', true));
+
+            $markers[$attachment_id]['has_folder'] = true;
+            $markers[$attachment_id]['color'] = ($color !== '') ? $color : null;
+        }
+
+        wp_send_json_success([
+            'markers' => $markers,
         ]);
     }
 }

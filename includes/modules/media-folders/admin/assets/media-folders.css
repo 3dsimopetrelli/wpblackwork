@@ -224,6 +224,24 @@ body.upload-php.bw-mf-enabled .bw-mf-drag-badge {
     z-index: 999999;
 }
 
+body.upload-php.bw-mf-enabled .attachments-browser .attachment.bw-mf-has-folder {
+    position: relative;
+}
+
+body.upload-php.bw-mf-enabled .attachments-browser .attachment.bw-mf-has-folder::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 0;
+    height: 0;
+    border-top: 14px solid var(--bw-mf-corner-color, #80FD03);
+    border-left: 14px solid transparent;
+    z-index: 5;
+    pointer-events: none;
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.25));
+}
+
 body.upload-php.bw-mf-enabled .bw-media-folder-node__main {
     border: 0;
     background: transparent;
