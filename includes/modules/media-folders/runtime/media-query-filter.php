@@ -84,9 +84,17 @@ if (!function_exists('bw_mf_merge_tax_query')) {
             unset($existing['relation']);
         }
 
-        $merged = array_values($existing);
+        $merged = [];
+        foreach ($existing as $clause) {
+            if (is_array($clause)) {
+                $merged[] = $clause;
+            }
+        }
+
         foreach ($addition as $clause) {
-            $merged[] = $clause;
+            if (is_array($clause)) {
+                $merged[] = $clause;
+            }
         }
 
         if (!empty($merged)) {
@@ -130,6 +138,7 @@ if (!function_exists('bw_mf_filter_media_grid_query')) {
     function bw_mf_filter_media_grid_query($args, $query = [])
     {
         if (!is_array($args)) {
+            bw_mf_grid_debug_log('grid filter bypass: args not array');
             return $args;
         }
 
