@@ -12,6 +12,7 @@ if (!function_exists('bw_core_default_flags')) {
     {
         return [
             'media_folders' => 0,
+            'media_folders_corner_indicator' => 0,
         ];
     }
 }
@@ -33,6 +34,14 @@ if (!function_exists('bw_mf_is_enabled')) {
     {
         $flags = bw_core_get_flags();
         return !empty($flags['media_folders']);
+    }
+}
+
+if (!function_exists('bw_mf_is_corner_indicator_enabled')) {
+    function bw_mf_is_corner_indicator_enabled()
+    {
+        $flags = bw_core_get_flags();
+        return !empty($flags['media_folders']) && !empty($flags['media_folders_corner_indicator']);
     }
 }
 

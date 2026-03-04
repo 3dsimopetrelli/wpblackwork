@@ -38,6 +38,8 @@ if (!function_exists('bw_mf_admin_enqueue_assets')) {
 
         $css_path = __DIR__ . '/assets/media-folders.css';
         $js_path = __DIR__ . '/assets/media-folders.js';
+        $corner_css_path = __DIR__ . '/assets/media-folders-corner-indicator.css';
+        $corner_enabled = bw_mf_is_corner_indicator_enabled();
 
         $css_version = file_exists($css_path) ? (string) filemtime($css_path) : '1.0.0';
         $js_version = file_exists($js_path) ? (string) filemtime($js_path) : '1.0.0';
@@ -57,10 +59,20 @@ if (!function_exists('bw_mf_admin_enqueue_assets')) {
             true
         );
 
+        if ($corner_enabled && file_exists($corner_css_path)) {
+            wp_enqueue_style(
+                'bw-media-folders-corner-indicator',
+                plugin_dir_url(__FILE__) . 'assets/media-folders-corner-indicator.css',
+                ['bw-media-folders'],
+                (string) filemtime($corner_css_path)
+            );
+        }
+
         wp_localize_script('bw-media-folders', 'bwMediaFolders', [
             'ajaxUrl' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('bw_media_folders_nonce'),
             'active' => bw_mf_get_active_filter_payload(),
+            'cornerIndicatorEnabled' => $corner_enabled ? 1 : 0,
             'text' => [
                 'newFolderPrompt' => __('Folder name', 'bw'),
                 'renamePrompt' => __('Rename folder', 'bw'),

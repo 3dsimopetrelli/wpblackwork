@@ -1,0 +1,11 @@
+body.upload-php.bw-mf-enabled .bw-mf-corner-indicator {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 0;
+    height: 0;
+    border-top: 10px solid #80fd03;
+    border-left: 10px solid transparent;
+    pointer-events: none;
+    z-index: 2;
+}

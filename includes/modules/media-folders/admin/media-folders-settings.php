@@ -30,8 +30,10 @@ if (!function_exists('bw_mf_render_settings_page')) {
             check_admin_referer('bw_mf_settings_save', 'bw_mf_settings_nonce');
             $core_flags = (isset($_POST['bw_core_flags']) && is_array($_POST['bw_core_flags'])) ? $_POST['bw_core_flags'] : [];
             $enabled = !empty($core_flags['media_folders']) ? 1 : 0;
+            $corner_indicator = !empty($core_flags['media_folders_corner_indicator']) ? 1 : 0;
             bw_core_update_flags([
                 'media_folders' => $enabled,
+                'media_folders_corner_indicator' => $corner_indicator,
             ]);
 
             echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__('Media Folders settings saved.', 'bw') . '</p></div>';
@@ -39,6 +41,7 @@ if (!function_exists('bw_mf_render_settings_page')) {
 
         $flags = bw_core_get_flags();
         $enabled = !empty($flags['media_folders']);
+        $corner_indicator_enabled = !empty($flags['media_folders_corner_indicator']);
         ?>
         <div class="wrap">
             <h1><?php esc_html_e('Media Folders', 'bw'); ?></h1>
@@ -58,6 +61,20 @@ if (!function_exists('bw_mf_render_settings_page')) {
                                 </p>
                             </td>
                         </tr>
+                        <?php if ($enabled) : ?>
+                        <tr>
+                            <th scope="row"><?php esc_html_e('Folder assignment corner indicator', 'bw'); ?></th>
+                            <td>
+                                <label>
+                                    <input type="checkbox" name="bw_core_flags[media_folders_corner_indicator]" value="1" <?php checked($corner_indicator_enabled); ?> />
+                                    <?php esc_html_e('Enable corner indicator on assigned media thumbnails.', 'bw'); ?>
+                                </label>
+                                <p class="description">
+                                    <?php esc_html_e('Shows a small colored corner on media thumbnails when an item is assigned to a folder.', 'bw'); ?>
+                                </p>
+                            </td>
+                        </tr>
+                        <?php endif; ?>
                     </tbody>
                 </table>
 
