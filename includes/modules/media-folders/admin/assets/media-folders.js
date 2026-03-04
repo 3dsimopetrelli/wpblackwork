@@ -270,8 +270,9 @@
 
         var left = 0;
         var top = 0;
+        var rect = null;
         if (anchorEl && typeof anchorEl.getBoundingClientRect === 'function') {
-            var rect = anchorEl.getBoundingClientRect();
+            rect = anchorEl.getBoundingClientRect();
             left = rect.left + window.pageXOffset;
             top = rect.bottom + window.pageYOffset + 6;
         } else {
@@ -280,7 +281,37 @@
         }
 
         contextMenuOpenTick = true;
-        menu.css({ left: left + 'px', top: top + 'px' }).addClass('is-open').attr('aria-hidden', 'false');
+        menu.addClass('is-open').attr('aria-hidden', 'false').css({
+            left: left + 'px',
+            top: top + 'px',
+            visibility: 'hidden'
+        });
+
+        var menuWidth = menu.outerWidth() || 0;
+        var menuHeight = menu.outerHeight() || 0;
+        var viewportLeft = window.pageXOffset;
+        var viewportTop = window.pageYOffset;
+        var viewportRight = viewportLeft + window.innerWidth;
+        var viewportBottom = viewportTop + window.innerHeight;
+
+        if (left + menuWidth > viewportRight - 10) {
+            left = Math.max(viewportLeft + 10, viewportRight - menuWidth - 10);
+        }
+
+        if (top + menuHeight > viewportBottom - 10) {
+            if (rect) {
+                top = rect.top + window.pageYOffset - menuHeight - 6;
+            } else {
+                top = Math.max(viewportTop + 10, viewportBottom - menuHeight - 10);
+            }
+        }
+
+        menu.css({
+            left: left + 'px',
+            top: top + 'px',
+            visibility: 'visible'
+        });
+
         window.requestAnimationFrame(function () {
             contextMenuOpenTick = false;
         });
@@ -741,16 +772,6 @@
             window.location.href = getQueryUrl(folderId, false);
         });
 
-        root().on('click', '.bw-mf-folder-rename-btn', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            var termId = parseInt($(this).closest('.bw-media-folder-node').attr('data-id') || '0', 10);
-            if (termId <= 0) {
-                return;
-            }
-            promptRenameFolder(termId);
-        });
-
         root().on('contextmenu', '.bw-media-folder-node', function (e) {
             e.preventDefault();
             bwMfOpenFolderMenu({
@@ -765,6 +786,9 @@
                 return;
             }
             if ($(e.target).closest('#bw-mf-context-menu').length) {
+                return;
+            }
+            if ($(e.target).closest('.bw-mf-folder-pencil, .bw-mf-folder-rename-btn').length) {
                 return;
             }
             hideContextMenu();
@@ -802,6 +826,7 @@
         root().on('click', '.bw-mf-folder-pencil, .bw-mf-folder-rename-btn', function (e) {
             e.preventDefault();
             e.stopPropagation();
+            e.stopImmediatePropagation();
             var row = $(this).closest('.bw-media-folder-node[data-term-id]');
             if (!row.length) {
                 return;
