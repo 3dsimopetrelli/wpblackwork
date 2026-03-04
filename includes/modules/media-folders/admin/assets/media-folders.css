@@ -283,7 +283,6 @@ body.upload-php.bw-mf-enabled .bw-media-folder-node__actions--hidden {
     height: 1px;
     overflow: hidden;
     opacity: 0;
-    pointer-events: none;
 }
 
 body.upload-php.bw-mf-enabled .bw-mf-context-menu {

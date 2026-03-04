@@ -271,9 +271,20 @@
         var left = 0;
         var top = 0;
         var rect = null;
+        var menuWidth = 0;
+        var menuHeight = 0;
+
+        menu.addClass('is-open').attr('aria-hidden', 'false').css({
+            left: '0px',
+            top: '0px',
+            visibility: 'hidden'
+        });
+        menuWidth = menu.outerWidth() || 0;
+        menuHeight = menu.outerHeight() || 0;
+
         if (anchorEl && typeof anchorEl.getBoundingClientRect === 'function') {
             rect = anchorEl.getBoundingClientRect();
-            left = rect.left + window.pageXOffset;
+            left = rect.right + window.pageXOffset - menuWidth;
             top = rect.bottom + window.pageYOffset + 6;
         } else {
             left = (clientX !== null ? clientX : 0) + window.pageXOffset;
@@ -281,30 +292,13 @@
         }
 
         contextMenuOpenTick = true;
-        menu.addClass('is-open').attr('aria-hidden', 'false').css({
-            left: left + 'px',
-            top: top + 'px',
-            visibility: 'hidden'
-        });
-
-        var menuWidth = menu.outerWidth() || 0;
-        var menuHeight = menu.outerHeight() || 0;
         var viewportLeft = window.pageXOffset;
         var viewportTop = window.pageYOffset;
         var viewportRight = viewportLeft + window.innerWidth;
         var viewportBottom = viewportTop + window.innerHeight;
 
-        if (left + menuWidth > viewportRight - 10) {
-            left = Math.max(viewportLeft + 10, viewportRight - menuWidth - 10);
-        }
-
-        if (top + menuHeight > viewportBottom - 10) {
-            if (rect) {
-                top = rect.top + window.pageYOffset - menuHeight - 6;
-            } else {
-                top = Math.max(viewportTop + 10, viewportBottom - menuHeight - 10);
-            }
-        }
+        left = Math.max(viewportLeft + 10, Math.min(left, viewportRight - menuWidth - 10));
+        top = Math.max(viewportTop + 10, Math.min(top, viewportBottom - menuHeight - 10));
 
         menu.css({
             left: left + 'px',
@@ -315,6 +309,51 @@
         window.requestAnimationFrame(function () {
             contextMenuOpenTick = false;
         });
+    }
+
+    function bwMfResolveActionButtons(rowEl) {
+        if (!rowEl || !rowEl.querySelectorAll) {
+            return {};
+        }
+
+        var byData = {
+            rename: rowEl.querySelector('[data-action="rename"]'),
+            pin: rowEl.querySelector('[data-action="pin"], [data-action="up"], [data-action="sticky"]'),
+            color: rowEl.querySelector('[data-action="color"]'),
+            del: rowEl.querySelector('[data-action="delete"]')
+        };
+
+        var btns = Array.from(rowEl.querySelectorAll('button, a'));
+        var byText = {
+            rename: btns.find(function (b) { return ((b.textContent || '').trim() === 'R'); }),
+            pin: btns.find(function (b) {
+                var t = (b.textContent || '').trim();
+                return t === 'U' || t === 'P';
+            }),
+            color: btns.find(function (b) { return ((b.textContent || '').trim() === 'C'); }),
+            del: btns.find(function (b) { return ((b.textContent || '').trim() === 'X'); })
+        };
+
+        var resolved = $.extend({}, byText);
+        Object.keys(byData).forEach(function (key) {
+            if (byData[key]) {
+                resolved[key] = byData[key];
+            }
+        });
+
+        return resolved;
+    }
+
+    function bwMfTriggerActionButton(button, label) {
+        if (!button || typeof button.dispatchEvent !== 'function') {
+            if (window.BW_MF_DEBUG) {
+                console.warn('[BW_MF_DEBUG] missing folder action button:', label);
+            }
+            return false;
+        }
+
+        button.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+        return true;
     }
 
     function promptRenameFolder(termId) {
@@ -805,21 +844,30 @@
             var item = $(this);
             var cmd = item.attr('data-cmd') || '';
             var row = contextMenuRowRef ? $(contextMenuRowRef) : $();
-            var cmdToAction = { rename: 'rename', pin: 'pin', color: 'color', delete: 'delete' };
-            var targetAction = cmdToAction[cmd] || '';
 
-            if (!row.length || !targetAction) {
+            if (!row.length) {
                 hideContextMenu();
                 return;
             }
 
-            var actionButton = row.find('.bw-mf-action[data-action="' + targetAction + '"]').first();
-            if (!actionButton.length) {
+            var actions = bwMfResolveActionButtons(row.get(0));
+            var actionButton = null;
+            if (cmd === 'rename') {
+                actionButton = actions.rename || null;
+            } else if (cmd === 'pin') {
+                actionButton = actions.pin || null;
+            } else if (cmd === 'color') {
+                actionButton = actions.color || null;
+            } else if (cmd === 'delete') {
+                actionButton = actions.del || null;
+            }
+
+            if (!actionButton) {
                 hideContextMenu();
                 return;
             }
 
-            actionButton.trigger('click');
+            bwMfTriggerActionButton(actionButton, cmd);
             hideContextMenu();
         });
 
