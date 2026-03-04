@@ -3,6 +3,10 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+if (!defined('BW_MF_ASSIGN_BATCH_LIMIT')) {
+    define('BW_MF_ASSIGN_BATCH_LIMIT', 200);
+}
+
 add_action('wp_ajax_bw_media_get_folders_tree', 'bw_mf_ajax_get_folders_tree');
 add_action('wp_ajax_bw_media_create_folder', 'bw_mf_ajax_create_folder');
 add_action('wp_ajax_bw_media_rename_folder', 'bw_mf_ajax_rename_folder');
@@ -19,13 +23,20 @@ if (!function_exists('bw_mf_ajax_error')) {
     }
 }
 
-if (!function_exists('bw_mf_assert_upload_screen_request')) {
-    function bw_mf_assert_upload_screen_request()
+if (!function_exists('bw_mf_assert_upload_context')) {
+    function bw_mf_assert_upload_context()
     {
-        $referer = wp_get_referer();
-        if (!is_string($referer) || strpos($referer, 'upload.php') === false) {
+        $context = isset($_POST['bw_mf_context']) ? sanitize_key((string) $_POST['bw_mf_context']) : '';
+        if ($context !== 'upload') {
             bw_mf_ajax_error(__('Invalid media screen context.', 'bw'), 403);
         }
+    }
+}
+
+if (!function_exists('bw_mf_user_can_manage_folders')) {
+    function bw_mf_user_can_manage_folders()
+    {
+        return current_user_can('upload_files') && current_user_can('manage_categories');
     }
 }
 
@@ -45,9 +56,25 @@ if (!function_exists('bw_mf_ajax_require')) {
             bw_mf_ajax_error(__('Invalid nonce.', 'bw'), 403);
         }
 
-        bw_mf_assert_upload_screen_request();
+        bw_mf_assert_upload_context();
 
-        if (!current_user_can($capability)) {
+        if (is_array($capability)) {
+            foreach ($capability as $cap) {
+                if (!current_user_can((string) $cap)) {
+                    bw_mf_ajax_error(__('Insufficient permissions.', 'bw'), 403);
+                }
+            }
+            return;
+        }
+
+        if ($capability === 'bw_mf_manage_folders') {
+            if (!bw_mf_user_can_manage_folders()) {
+                bw_mf_ajax_error(__('Insufficient permissions.', 'bw'), 403);
+            }
+            return;
+        }
+
+        if (!current_user_can((string) $capability)) {
             bw_mf_ajax_error(__('Insufficient permissions.', 'bw'), 403);
         }
     }
@@ -138,6 +165,18 @@ if (!function_exists('bw_mf_build_folder_nodes')) {
     }
 }
 
+if (!function_exists('bw_mf_get_folder_term_or_error')) {
+    function bw_mf_get_folder_term_or_error($term_id)
+    {
+        $term = get_term($term_id, 'bw_media_folder');
+        if (!$term || is_wp_error($term)) {
+            bw_mf_ajax_error(__('Folder not found.', 'bw'), 404);
+        }
+
+        return $term;
+    }
+}
+
 if (!function_exists('bw_mf_ajax_get_folders_tree')) {
     function bw_mf_ajax_get_folders_tree()
     {
@@ -159,13 +198,18 @@ if (!function_exists('bw_mf_ajax_get_folders_tree')) {
 if (!function_exists('bw_mf_ajax_create_folder')) {
     function bw_mf_ajax_create_folder()
     {
-        bw_mf_ajax_require('bw_media_create_folder', 'manage_options');
+        bw_mf_ajax_require('bw_media_create_folder', 'bw_mf_manage_folders');
 
         $name = isset($_POST['name']) ? sanitize_text_field((string) $_POST['name']) : '';
+        $name = trim($name);
         $parent = isset($_POST['parent']) ? absint($_POST['parent']) : 0;
 
         if ($name === '') {
             bw_mf_ajax_error(__('Folder name is required.', 'bw'));
+        }
+
+        if ($parent > 0) {
+            bw_mf_get_folder_term_or_error($parent);
         }
 
         $created = wp_insert_term($name, 'bw_media_folder', [
@@ -186,14 +230,17 @@ if (!function_exists('bw_mf_ajax_create_folder')) {
 if (!function_exists('bw_mf_ajax_rename_folder')) {
     function bw_mf_ajax_rename_folder()
     {
-        bw_mf_ajax_require('bw_media_rename_folder', 'manage_options');
+        bw_mf_ajax_require('bw_media_rename_folder', 'bw_mf_manage_folders');
 
         $term_id = isset($_POST['term_id']) ? absint($_POST['term_id']) : 0;
         $name = isset($_POST['name']) ? sanitize_text_field((string) $_POST['name']) : '';
+        $name = trim($name);
 
         if ($term_id <= 0 || $name === '') {
             bw_mf_ajax_error(__('Invalid folder data.', 'bw'));
         }
+
+        bw_mf_get_folder_term_or_error($term_id);
 
         $updated = wp_update_term($term_id, 'bw_media_folder', [
             'name' => $name,
@@ -213,12 +260,14 @@ if (!function_exists('bw_mf_ajax_rename_folder')) {
 if (!function_exists('bw_mf_ajax_delete_folder')) {
     function bw_mf_ajax_delete_folder()
     {
-        bw_mf_ajax_require('bw_media_delete_folder', 'manage_options');
+        bw_mf_ajax_require('bw_media_delete_folder', 'bw_mf_manage_folders');
 
         $term_id = isset($_POST['term_id']) ? absint($_POST['term_id']) : 0;
         if ($term_id <= 0) {
             bw_mf_ajax_error(__('Invalid folder.', 'bw'));
         }
+
+        bw_mf_get_folder_term_or_error($term_id);
 
         $deleted = wp_delete_term($term_id, 'bw_media_folder');
         if (is_wp_error($deleted) || !$deleted) {
@@ -244,6 +293,14 @@ if (!function_exists('bw_mf_ajax_assign_folder')) {
             bw_mf_ajax_error(__('No media selected.', 'bw'));
         }
 
+        if (count($attachment_ids) > BW_MF_ASSIGN_BATCH_LIMIT) {
+            bw_mf_ajax_error(__('Too many media items in one request.', 'bw'), 400);
+        }
+
+        if ($folder_id > 0) {
+            bw_mf_get_folder_term_or_error($folder_id);
+        }
+
         foreach ($attachment_ids as $attachment_id) {
             if ($folder_id > 0) {
                 wp_set_object_terms($attachment_id, [$folder_id], 'bw_media_folder', false);
@@ -263,12 +320,14 @@ if (!function_exists('bw_mf_ajax_assign_folder')) {
 if (!function_exists('bw_mf_ajax_update_folder_meta')) {
     function bw_mf_ajax_update_folder_meta()
     {
-        bw_mf_ajax_require('bw_media_update_folder_meta', 'manage_options');
+        bw_mf_ajax_require('bw_media_update_folder_meta', 'bw_mf_manage_folders');
 
         $term_id = isset($_POST['term_id']) ? absint($_POST['term_id']) : 0;
         if ($term_id <= 0) {
             bw_mf_ajax_error(__('Invalid folder.', 'bw'));
         }
+
+        bw_mf_get_folder_term_or_error($term_id);
 
         $color = isset($_POST['color']) ? bw_mf_sanitize_hex_color($_POST['color']) : '';
         $pinned = isset($_POST['pinned']) ? (!empty($_POST['pinned']) ? 1 : 0) : 0;

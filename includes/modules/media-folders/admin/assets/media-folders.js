@@ -21,7 +21,8 @@
     function request(action, payload, onDone) {
         var body = $.extend({}, payload || {}, {
             action: action,
-            nonce: cfg.nonce
+            nonce: cfg.nonce,
+            bw_mf_context: 'upload'
         });
 
         $.post(cfg.ajaxUrl, body)

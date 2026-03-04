@@ -8,6 +8,7 @@ Feature-specific guides grouped by domain.
 - [header](header/README.md)
 - [my-account](my-account/README.md)
 - [navigation](navigation/README.md)
+- [media-folders](media-folders/media-folders-module-spec.md)
 - [product-types](product-types/README.md)
 - [product-slide](product-slide/README.md)
 - [cart-popup](cart-popup/README.md)

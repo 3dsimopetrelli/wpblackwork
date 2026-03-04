@@ -18,11 +18,15 @@ if (!function_exists('bw_mf_is_upload_screen')) {
     }
 }
 
-if (!function_exists('bw_mf_is_upload_ajax_context')) {
-    function bw_mf_is_upload_ajax_context()
+if (!function_exists('bw_mf_is_query_attachments_ajax')) {
+    function bw_mf_is_query_attachments_ajax()
     {
-        $referer = wp_get_referer();
-        return is_string($referer) && strpos($referer, 'upload.php') !== false;
+        if (!is_admin() || !wp_doing_ajax()) {
+            return false;
+        }
+
+        $action = isset($_REQUEST['action']) ? sanitize_key((string) $_REQUEST['action']) : '';
+        return $action === 'query-attachments';
     }
 }
 
@@ -83,7 +87,12 @@ if (!function_exists('bw_mf_filter_media_list_query')) {
 if (!function_exists('bw_mf_filter_media_grid_query')) {
     function bw_mf_filter_media_grid_query($args, $query)
     {
-        if (!is_admin() || !wp_doing_ajax() || !bw_mf_is_upload_ajax_context()) {
+        if (!bw_mf_is_query_attachments_ajax()) {
+            return $args;
+        }
+
+        $has_custom_filter = isset($query['bw_media_folder']) || isset($query['bw_media_unassigned']);
+        if (!$has_custom_filter) {
             return $args;
         }
 
