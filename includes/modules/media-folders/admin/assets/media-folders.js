@@ -30,6 +30,8 @@
     );
     var markerObserver = null;
     var markerDebounceTimer = null;
+    var markerCache = new Map();
+    var markerFetchInFlight = false;
 
     function root() {
         return $('#bw-media-folders-root');
@@ -140,7 +142,12 @@
     }
 
     function scheduleCornerMarkerRefresh() {
-        if (!cornerIndicatorEnabled || state.mode !== 'grid') {
+        if (!cornerIndicatorEnabled) {
+            clearCornerMarkers();
+            return;
+        }
+
+        if (state.mode !== 'grid') {
             return;
         }
 
@@ -164,74 +171,82 @@
         });
     }
 
-    function getCurrentCornerContext() {
-        var folderId = '';
-        var unassigned = false;
-
-        try {
-            var url = new URL(window.location.href);
-            folderId = String(url.searchParams.get('bw_media_folder') || '').trim();
-            unassigned = String(url.searchParams.get('bw_media_unassigned') || '') === '1';
-        } catch (e) {
-            folderId = '';
-            unassigned = false;
-        }
-
-        if (!folderId && !unassigned) {
-            if (state.activeFolder > 0) {
-                folderId = String(state.activeFolder);
-            } else if (state.activeUnassigned) {
-                unassigned = true;
+    function collectVisibleAttachmentIds() {
+        var ids = [];
+        getVisibleGridTiles().forEach(function (tile) {
+            var id = parseInt(tile.getAttribute('data-id') || '0', 10);
+            if (id > 0) {
+                ids.push(id);
             }
-        }
+        });
 
-        return {
-            folderId: folderId,
-            unassigned: unassigned
-        };
+        return Array.from(new Set(ids)).slice(0, 200);
     }
 
-    function resolveCornerColor(folderId, unassigned) {
-        if (unassigned) {
-            return '#80FD03';
+    function fetchCornerMarkers(ids, onDone) {
+        if (!ids.length || markerFetchInFlight) {
+            if (typeof onDone === 'function') {
+                onDone();
+            }
+            return;
         }
 
-        if (!folderId) {
-            return '#80FD03';
-        }
+        markerFetchInFlight = true;
+        $.post(cfg.ajaxUrl, {
+            action: 'bw_mf_get_corner_markers',
+            nonce: cfg.nonce,
+            bw_mf_context: 'upload',
+            attachment_ids: ids
+        })
+            .done(function (res) {
+                if (!res || !res.success || !res.data || typeof res.data.markers !== 'object') {
+                    return;
+                }
 
-        var row = document.querySelector('.bw-media-folder-node[data-term-id="' + folderId + '"]');
-        if (!row) {
-            return '#80FD03';
-        }
+                var markers = res.data.markers;
+                Object.keys(markers).forEach(function (idKey) {
+                    var id = parseInt(idKey, 10);
+                    if (!(id > 0)) {
+                        return;
+                    }
 
-        var attrColor = row.getAttribute('data-icon-color');
-        if (isValidHexColor(attrColor)) {
-            return attrColor;
-        }
-
-        var cssVar = row.style ? row.style.getPropertyValue('--bw-mf-icon-color') : '';
-        if (!cssVar) {
-            cssVar = window.getComputedStyle(row).getPropertyValue('--bw-mf-icon-color');
-        }
-        cssVar = String(cssVar || '').trim();
-        if (isValidHexColor(cssVar)) {
-            return cssVar;
-        }
-
-        return '#80FD03';
+                    var marker = markers[idKey] || {};
+                    markerCache.set(id, {
+                        assigned: !!marker.assigned,
+                        color: isValidHexColor(marker.color) ? marker.color : null
+                    });
+                });
+            })
+            .always(function () {
+                markerFetchInFlight = false;
+                if (typeof onDone === 'function') {
+                    onDone();
+                }
+            });
     }
 
-    function setTileCornerMarker(tile, color) {
+    function setTileCornerMarker(tile, marker) {
         if (!tile) {
             return;
         }
+
+        if (!marker || !marker.assigned) {
+            tile.classList.remove('bw-mf-corner');
+            tile.style.removeProperty('--bw-mf-corner-color');
+            return;
+        }
+
         tile.classList.add('bw-mf-corner');
-        tile.style.setProperty('--bw-mf-corner-color', color || '#80FD03');
+        tile.style.setProperty('--bw-mf-corner-color', marker.color || '#000');
     }
 
     function bwMfApplyCornerMarkers() {
-        if (!cornerIndicatorEnabled || state.mode !== 'grid') {
+        if (!cornerIndicatorEnabled) {
+            clearCornerMarkers();
+            return;
+        }
+
+        if (state.mode !== 'grid') {
             return;
         }
 
@@ -242,15 +257,25 @@
             return;
         }
 
-        var ctx = getCurrentCornerContext();
-        if (!ctx.folderId && !ctx.unassigned) {
-            clearCornerMarkers();
+        var visibleIds = collectVisibleAttachmentIds();
+        var missingIds = visibleIds.filter(function (id) {
+            return !markerCache.has(id);
+        });
+
+        var apply = function () {
+            tiles.forEach(function (tile) {
+                var id = parseInt(tile.getAttribute('data-id') || '0', 10);
+                setTileCornerMarker(tile, markerCache.get(id));
+            });
+        };
+
+        if (!missingIds.length) {
+            apply();
             return;
         }
 
-        var color = resolveCornerColor(ctx.folderId, ctx.unassigned);
-        tiles.forEach(function (tile) {
-            setTileCornerMarker(tile, color);
+        fetchCornerMarkers(missingIds, function () {
+            apply();
         });
     }
 
@@ -768,6 +793,14 @@
             term_id: folderId,
             attachment_ids: ids
         }, function () {
+            if (Array.isArray(ids)) {
+                ids.forEach(function (id) {
+                    var parsed = parseInt(id, 10);
+                    if (parsed > 0) {
+                        markerCache.delete(parsed);
+                    }
+                });
+            }
             refreshTree();
             if (typeof onDone === 'function') {
                 onDone();

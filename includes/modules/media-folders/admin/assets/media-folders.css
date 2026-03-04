@@ -235,11 +235,10 @@ body.upload-php.bw-mf-enabled .attachments-browser .attachment.bw-mf-corner::aft
     left: 0;
     width: 0;
     height: 0;
-    border-top: 14px solid var(--bw-mf-corner-color, #80FD03);
+    border-top: 14px solid var(--bw-mf-corner-color, #000);
     border-right: 14px solid transparent;
-    z-index: 5;
+    z-index: 999;
     pointer-events: none;
-    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.25));
 }
 
 body.upload-php.bw-mf-enabled .bw-media-folder-node__main {
