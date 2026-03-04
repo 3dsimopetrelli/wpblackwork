@@ -32,7 +32,9 @@
     var markerObserver = null;
     var markerCache = new Map();
     var markerFailedIds = new Set();
-    var markerFetchInFlight = false;
+    var markerFetchInFlight = null;
+    var markerPendingIds = new Set();
+    var markerFetchWaiters = [];
     var attachmentsBrowserEl = null;
     var markerIntersectionObserver = null;
     var markerVisibleTiles = new Set();
@@ -800,6 +802,85 @@
         scheduleBwMfRefresh('types');
     }
 
+    function mutationNodeHasAttachment(node) {
+        if (!node || node.nodeType !== 1) {
+            return false;
+        }
+
+        if (node.matches && (node.matches('.attachment') || node.matches('.attachments-browser'))) {
+            return true;
+        }
+
+        return !!(node.querySelector && node.querySelector('.attachment'));
+    }
+
+    function mutationsContainAttachmentChanges(mutations) {
+        for (var i = 0; i < mutations.length; i += 1) {
+            var mutation = mutations[i];
+            if (!mutation) {
+                continue;
+            }
+
+            if (mutation.type === 'attributes') {
+                if (mutation.attributeName === 'class') {
+                    var target = mutation.target;
+                    if (target && target.nodeType === 1 && target.matches && (target.matches('.attachment') || target.matches('.attachments-browser') || target.matches('.attachments-browser *'))) {
+                        return true;
+                    }
+                }
+                continue;
+            }
+
+            if (mutation.type !== 'childList') {
+                continue;
+            }
+
+            var added = mutation.addedNodes || [];
+            for (var a = 0; a < added.length; a += 1) {
+                if (mutationNodeHasAttachment(added[a])) {
+                    return true;
+                }
+            }
+
+            var removed = mutation.removedNodes || [];
+            for (var r = 0; r < removed.length; r += 1) {
+                if (mutationNodeHasAttachment(removed[r])) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    function mutationsContainLayoutChanges(mutations) {
+        for (var i = 0; i < mutations.length; i += 1) {
+            var mutation = mutations[i];
+            if (!mutation || mutation.type !== 'childList') {
+                continue;
+            }
+
+            var collections = [mutation.addedNodes || [], mutation.removedNodes || []];
+            for (var c = 0; c < collections.length; c += 1) {
+                var nodes = collections[c];
+                for (var n = 0; n < nodes.length; n += 1) {
+                    var node = nodes[n];
+                    if (!node || node.nodeType !== 1) {
+                        continue;
+                    }
+                    if (node.matches && (node.matches('.media-toolbar') || node.matches('.tablenav.top') || node.matches('.attachments-browser') || node.matches('#the-list'))) {
+                        return true;
+                    }
+                    if (node.querySelector && node.querySelector('.media-toolbar, .tablenav.top, .attachments-browser, #the-list')) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
     function bindQuickTypeFilterObserver() {
         if (quickTypeFilterObserver && quickTypeFilterObserverTarget && document.body.contains(quickTypeFilterObserverTarget)) {
             return;
@@ -818,14 +899,13 @@
         }
 
         quickTypeFilterObserverTarget = target;
-        quickTypeFilterObserver = new MutationObserver(function () {
-            scheduleQuickTypeFiltersRefresh();
+        quickTypeFilterObserver = new MutationObserver(function (mutations) {
+            if (!mutationsContainAttachmentChanges(mutations || [])) {
+                return;
+            }
+            scheduleBwMfRefresh('types-observer');
         });
-        quickTypeFilterObserver.observe(target, { childList: true, subtree: true });
-    }
-
-    function scheduleQuickTypeLayoutRefresh() {
-        scheduleBwMfRefresh('layout');
+        quickTypeFilterObserver.observe(target, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
     }
 
     function bindQuickTypeLayoutObserver() {
@@ -842,8 +922,11 @@
             return;
         }
 
-        quickTypeLayoutObserver = new MutationObserver(function () {
-            scheduleQuickTypeLayoutRefresh();
+        quickTypeLayoutObserver = new MutationObserver(function (mutations) {
+            if (!mutationsContainLayoutChanges(mutations || [])) {
+                return;
+            }
+            scheduleBwMfRefresh('layout-observer');
         });
         quickTypeLayoutObserver.observe(target, { childList: true, subtree: true });
     }
@@ -918,20 +1001,64 @@
         return Array.from(new Set(ids)).slice(0, 200);
     }
 
-    function fetchCornerMarkers(ids, onDone) {
-        if (!ids.length || markerFetchInFlight) {
-            if (typeof onDone === 'function') {
-                onDone();
+    function getMarkerPendingBatch(maxBatch) {
+        var batch = [];
+        markerPendingIds.forEach(function (id) {
+            if (batch.length >= maxBatch) {
+                return;
             }
+            batch.push(id);
+        });
+        return batch;
+    }
+
+    function flushMarkerWaiters() {
+        if (!markerFetchWaiters.length) {
             return;
         }
 
-        markerFetchInFlight = true;
-        $.post(cfg.ajaxUrl, {
+        var waiters = markerFetchWaiters.slice();
+        markerFetchWaiters = [];
+        waiters.forEach(function (cb) {
+            if (typeof cb === 'function') {
+                cb();
+            }
+        });
+    }
+
+    function fetchCornerMarkers(ids, onDone) {
+        if (typeof onDone === 'function') {
+            markerFetchWaiters.push(onDone);
+        }
+
+        (ids || []).forEach(function (id) {
+            var parsed = parseInt(id, 10);
+            if (parsed > 0 && !markerCache.has(parsed) && !markerFailedIds.has(parsed)) {
+                markerPendingIds.add(parsed);
+            }
+        });
+
+        if (!markerPendingIds.size) {
+            flushMarkerWaiters();
+            return null;
+        }
+
+        if (markerFetchInFlight) {
+            debugLog('corner markers fetch skipped (inFlight)', { pending: markerPendingIds.size });
+            return markerFetchInFlight;
+        }
+
+        var batch = getMarkerPendingBatch(200);
+        if (!batch.length) {
+            flushMarkerWaiters();
+            return null;
+        }
+
+        markerFetchInFlight = $.post(cfg.ajaxUrl, {
             action: 'bw_mf_get_corner_markers',
             nonce: cfg.nonce,
             bw_mf_context: 'upload',
-            attachment_ids: ids
+            attachment_ids: batch
         })
             .done(function (res) {
                 if (!res || !res.success || !res.data || typeof res.data.markers !== 'object') {
@@ -952,14 +1079,25 @@
                         folder_name: marker.folder_name ? String(marker.folder_name) : ''
                     });
                     markerFailedIds.delete(id);
+                    markerPendingIds.delete(id);
+                });
+            })
+            .fail(function () {
+                batch.forEach(function (id) {
+                    markerFailedIds.add(id);
+                    markerPendingIds.delete(id);
                 });
             })
             .always(function () {
-                markerFetchInFlight = false;
-                if (typeof onDone === 'function') {
-                    onDone();
+                markerFetchInFlight = null;
+                flushMarkerWaiters();
+                debugLog('corner markers fetch done', { pending: markerPendingIds.size });
+                if (markerPendingIds.size > 0) {
+                    scheduleBwMfRefresh('corner-markers');
                 }
             });
+
+        return markerFetchInFlight;
     }
 
     function setTileCornerMarker(tile, marker) {
@@ -1071,10 +1209,13 @@
             return;
         }
 
-        markerObserver = new MutationObserver(function () {
+        markerObserver = new MutationObserver(function (mutations) {
+            if (!mutationsContainAttachmentChanges(mutations || [])) {
+                return;
+            }
             scheduleBwMfRefresh('marker-observer');
         });
-        markerObserver.observe(attachmentsRoot, { childList: true, subtree: false });
+        markerObserver.observe(attachmentsRoot, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
     }
 
     function ensureBadgeTooltipEl() {
@@ -1747,8 +1888,7 @@
                             bw_media_unassigned: state.activeUnassigned ? '1' : undefined
                         });
                         browser.collection.more();
-                        scheduleCornerMarkerRefresh();
-                        scheduleQuickTypeFiltersRefresh();
+                        scheduleBwMfRefresh('refresh-media-view');
                         return;
                     }
                 }
