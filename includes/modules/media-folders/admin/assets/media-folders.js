@@ -202,12 +202,15 @@
         var pad = Math.max(0, depth) * 14;
         var pinnedClass = item.pinned ? ' is-pinned' : '';
         var active = (!state.activeUnassigned && state.activeFolder === item.id) ? ' is-active' : '';
-        var color = item.color ? item.color : '#6b7280';
 
         return '' +
             '<div class="bw-media-folder-node' + pinnedClass + active + '" data-id="' + item.id + '" data-term-id="' + item.id + '" data-folder-id="' + item.id + '" data-parent="' + item.parent + '" style="padding-left:' + pad + 'px">' +
             '  <button class="bw-media-folder-node__main" type="button">' +
-            '    <span class="bw-media-folder-node__dot" style="background:' + color + '"></span>' +
+            '    <span class="bw-mf-folder-icon" aria-hidden="true">' +
+            '      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">' +
+            '        <path fill="currentColor" d="M5.5 5 H9.8 A1.6 1.6 0 0 1 11 5.6 L12.2 7 A1.6 1.6 0 0 0 13.4 7.6 H18.5 A1.5 1.5 0 0 1 20 9.1 V18.5 A1.5 1.5 0 0 1 18.5 20 H5.5 A1.5 1.5 0 0 1 4 18.5 V6.5 A1.5 1.5 0 0 1 5.5 5 Z"></path>' +
+            '      </svg>' +
+            '    </span>' +
             '    <span class="bw-media-folder-node__name">' + item.name + '</span>' +
             '    <span class="bw-media-folder-node__count">' + item.count + '</span>' +
             '  </button>' +
