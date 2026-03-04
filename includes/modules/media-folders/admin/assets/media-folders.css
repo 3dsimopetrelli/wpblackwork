@@ -256,6 +256,13 @@ body.upload-php.bw-mf-enabled .bw-media-folder-node__count {
     text-align: right;
 }
 
+body.upload-php.bw-mf-enabled .bw-mf-pin-indicator {
+    margin-left: 6px;
+    font-size: 12px;
+    line-height: 1;
+    opacity: 0.9;
+}
+
 body.upload-php.bw-mf-enabled .bw-mf-folder-rename-btn {
     border: 0;
     background: transparent;

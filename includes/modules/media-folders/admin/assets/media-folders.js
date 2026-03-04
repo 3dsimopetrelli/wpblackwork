@@ -213,6 +213,8 @@
         var styles = ['padding-left:' + pad + 'px'];
         var iconColor = item.icon_color ? String(item.icon_color) : '';
         var iconColorAttr = '';
+        var pinnedAttr = item.pinned ? '1' : '0';
+        var pinIndicator = item.pinned ? '<span class="bw-mf-pin-indicator" aria-hidden="true">📌</span>' : '';
 
         if (iconColor) {
             styles.push('--bw-mf-icon-color:' + iconColor);
@@ -220,7 +222,7 @@
         }
 
         return '' +
-            '<div class="bw-media-folder-node' + pinnedClass + active + '" data-id="' + item.id + '" data-term-id="' + item.id + '" data-folder-id="' + item.id + '" data-parent="' + item.parent + '"' + iconColorAttr + ' style="' + styles.join(';') + '">' +
+            '<div class="bw-media-folder-node' + pinnedClass + active + '" data-id="' + item.id + '" data-term-id="' + item.id + '" data-folder-id="' + item.id + '" data-parent="' + item.parent + '" data-pinned="' + pinnedAttr + '"' + iconColorAttr + ' style="' + styles.join(';') + '">' +
             '  <button class="bw-media-folder-node__main" type="button">' +
             '    <span class="bw-mf-folder-icon" aria-hidden="true">' +
             '      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">' +
@@ -229,6 +231,7 @@
             '    </span>' +
             '    <span class="bw-media-folder-node__name">' + item.name + '</span>' +
             '    <span class="bw-media-folder-node__count">' + item.count + '</span>' +
+            pinIndicator +
             '  </button>' +
             '  <button type="button" class="bw-mf-folder-pencil bw-mf-folder-rename-btn" aria-label="Folder actions">' +
             '    <span class="dashicons dashicons-edit" aria-hidden="true"></span>' +
@@ -380,6 +383,28 @@
         });
 
         return resolved;
+    }
+
+    function updateRowPinnedState(rowEl, pinned) {
+        if (!rowEl) {
+            return;
+        }
+
+        var isPinned = !!pinned;
+        rowEl.setAttribute('data-pinned', isPinned ? '1' : '0');
+        rowEl.classList.toggle('is-pinned', isPinned);
+
+        var main = rowEl.querySelector('.bw-media-folder-node__main');
+        var indicator = rowEl.querySelector('.bw-mf-pin-indicator');
+        if (isPinned && !indicator && main) {
+            indicator = document.createElement('span');
+            indicator.className = 'bw-mf-pin-indicator';
+            indicator.setAttribute('aria-hidden', 'true');
+            indicator.textContent = '📌';
+            main.appendChild(indicator);
+        } else if (!isPinned && indicator && indicator.parentNode) {
+            indicator.parentNode.removeChild(indicator);
+        }
     }
 
     function bwMfTriggerActionButton(button, label) {
@@ -961,18 +986,29 @@
             }
 
             if (cmd === 'pin') {
-                if (!folder) {
+                if (!folder || !row.length) {
                     hideContextMenu();
                     return;
                 }
 
-                var nextPin = folder.pinned ? 0 : 1;
-                request('bw_media_update_folder_meta', {
+                var nextPin = row.attr('data-pinned') === '1' ? 0 : 1;
+                request('bw_mf_toggle_folder_pin', {
                     term_id: termId,
-                    pinned: nextPin,
-                    color: folder.color || '',
-                    sort: folder.sort || 0
+                    pinned: nextPin
                 }, refreshTree, { silent: true });
+
+                folder.pinned = nextPin ? 1 : 0;
+                updateRowPinnedState(row.get(0), nextPin);
+                state.folders.sort(function (a, b) {
+                    if (a.parent !== b.parent) {
+                        return 0;
+                    }
+                    if ((a.pinned ? 1 : 0) !== (b.pinned ? 1 : 0)) {
+                        return (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0);
+                    }
+                    return String(a.name || '').localeCompare(String(b.name || ''));
+                });
+                renderTree();
                 hideContextMenu();
                 return;
             }

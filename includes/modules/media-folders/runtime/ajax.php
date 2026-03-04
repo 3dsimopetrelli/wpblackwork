@@ -16,6 +16,7 @@ add_action('wp_ajax_bw_media_assign_folder', 'bw_mf_ajax_assign_folder');
 add_action('wp_ajax_bw_media_update_folder_meta', 'bw_mf_ajax_update_folder_meta');
 add_action('wp_ajax_bw_mf_set_folder_color', 'bw_mf_ajax_set_folder_color');
 add_action('wp_ajax_bw_mf_reset_folder_color', 'bw_mf_ajax_reset_folder_color');
+add_action('wp_ajax_bw_mf_toggle_folder_pin', 'bw_mf_ajax_toggle_folder_pin');
 
 if (!function_exists('bw_mf_ajax_error')) {
     function bw_mf_ajax_error($message, $code = 400)
@@ -142,33 +143,52 @@ if (!function_exists('bw_mf_build_folder_nodes')) {
 
         $counts_map = bw_mf_get_folder_counts_map($terms);
 
-        $nodes = [];
+        $by_parent = [];
         foreach ($terms as $term) {
             $term_id = (int) $term->term_id;
+            $parent_id = (int) $term->parent;
+            $pinned = (int) get_term_meta($term->term_id, 'bw_mf_pinned', true);
+            if ($pinned !== 1) {
+                $pinned = (int) get_term_meta($term->term_id, 'bw_pinned', true);
+            }
 
-            $nodes[] = [
+            if (!isset($by_parent[$parent_id])) {
+                $by_parent[$parent_id] = [];
+            }
+
+            $by_parent[$parent_id][] = [
                 'id' => $term_id,
                 'name' => $term->name,
-                'parent' => (int) $term->parent,
+                'parent' => $parent_id,
                 'count' => isset($counts_map[$term_id]) ? (int) $counts_map[$term_id] : 0,
                 'color' => (string) get_term_meta($term->term_id, 'bw_color', true),
                 'icon_color' => (string) get_term_meta($term->term_id, 'bw_mf_icon_color', true),
-                'pinned' => (int) get_term_meta($term->term_id, 'bw_pinned', true),
+                'pinned' => $pinned ? 1 : 0,
                 'sort' => (int) get_term_meta($term->term_id, 'bw_sort', true),
             ];
         }
 
-        usort($nodes, static function ($a, $b) {
-            if ((int) $a['pinned'] !== (int) $b['pinned']) {
-                return ((int) $b['pinned']) <=> ((int) $a['pinned']);
+        $nodes = [];
+        $walk = static function ($parent_id) use (&$walk, &$nodes, &$by_parent) {
+            if (!isset($by_parent[$parent_id]) || !is_array($by_parent[$parent_id])) {
+                return;
             }
 
-            if ((int) $a['sort'] !== (int) $b['sort']) {
-                return ((int) $a['sort']) <=> ((int) $b['sort']);
-            }
+            usort($by_parent[$parent_id], static function ($a, $b) {
+                if ((int) $a['pinned'] !== (int) $b['pinned']) {
+                    return ((int) $b['pinned']) <=> ((int) $a['pinned']);
+                }
 
-            return strcasecmp((string) $a['name'], (string) $b['name']);
-        });
+                return strcasecmp((string) $a['name'], (string) $b['name']);
+            });
+
+            foreach ($by_parent[$parent_id] as $node) {
+                $nodes[] = $node;
+                $walk((int) $node['id']);
+            }
+        };
+
+        $walk(0);
 
         return $nodes;
     }
@@ -417,11 +437,36 @@ if (!function_exists('bw_mf_ajax_update_folder_meta')) {
 
         update_term_meta($term_id, 'bw_color', $color);
         update_term_meta($term_id, 'bw_pinned', $pinned);
+        update_term_meta($term_id, 'bw_mf_pinned', $pinned);
         update_term_meta($term_id, 'bw_sort', $sort);
 
         wp_send_json_success([
             'term_id' => $term_id,
             'message' => __('Folder metadata updated.', 'bw'),
+        ]);
+    }
+}
+
+if (!function_exists('bw_mf_ajax_toggle_folder_pin')) {
+    function bw_mf_ajax_toggle_folder_pin()
+    {
+        bw_mf_ajax_require('bw_mf_toggle_folder_pin', 'bw_mf_manage_folders');
+
+        $term_id = isset($_POST['term_id']) ? absint($_POST['term_id']) : 0;
+        $pinned = isset($_POST['pinned']) ? (!empty($_POST['pinned']) ? 1 : 0) : 0;
+
+        if ($term_id <= 0) {
+            bw_mf_ajax_error(__('Invalid folder.', 'bw'), 400);
+        }
+
+        bw_mf_get_folder_term_or_error($term_id);
+        update_term_meta($term_id, 'bw_mf_pinned', $pinned);
+        update_term_meta($term_id, 'bw_pinned', $pinned);
+
+        wp_send_json_success([
+            'term_id' => $term_id,
+            'pinned' => $pinned,
+            'message' => __('Folder pin state updated.', 'bw'),
         ]);
     }
 }
