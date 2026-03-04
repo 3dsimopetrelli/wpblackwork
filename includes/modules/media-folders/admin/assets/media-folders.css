@@ -249,6 +249,7 @@ body.upload-php.bw-mf-enabled .bw-media-folder-node__main {
     flex: 1 1 auto;
     display: flex;
     align-items: center;
+    justify-content: flex-start;
     width: 100%;
     cursor: pointer;
     padding: 4px;

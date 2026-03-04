@@ -617,7 +617,7 @@
         var iconColorAttr = '';
         var pinnedAttr = item.pinned ? '1' : '0';
         var collapsedAttr = isCollapsed ? '1' : '0';
-        var pinIndicator = item.pinned ? '<span class="bw-mf-pin-indicator bw-mf-pin" aria-hidden="true">📌</span>' : '';
+        var pinIndicator = '<span class="bw-mf-pin bw-mf-pin-indicator" aria-hidden="true">' + (item.pinned ? '📌' : '') + '</span>';
         var chevron = hasChildren
             ? '<button class="bw-mf-chevron" type="button" aria-label="Toggle folder" aria-expanded="' + (isCollapsed ? 'false' : 'true') + '">▶</button>'
             : '';
@@ -639,14 +639,12 @@
             '      </span>' +
             '      <span class="bw-media-folder-node__name bw-mf-folder-name">' + item.name + '</span>' +
             '    </span>' +
-            '    <span class="bw-media-folder-node__meta bw-mf-right">' +
+            '    <span class="bw-mf-right">' +
             pinIndicator +
             '      <span class="bw-media-folder-node__count bw-mf-count">' + item.count + '</span>' +
-            '      <span class="bw-mf-folder-pencil-wrap">' +
-            '        <span class="bw-mf-folder-pencil bw-mf-folder-rename-btn" role="button" tabindex="0" aria-label="Folder actions">' +
+            '      <button class="bw-mf-folder-pencil bw-mf-folder-rename-btn" type="button" aria-label="Folder actions">' +
             '          <span class="dashicons dashicons-edit" aria-hidden="true"></span>' +
-            '        </span>' +
-            '      </span>' +
+            '      </button>' +
             '    </span>' +
             '  </button>' +
             '  <div class="bw-media-folder-node__actions bw-media-folder-node__actions--hidden" aria-hidden="true">' +
@@ -807,16 +805,9 @@
         rowEl.setAttribute('data-pinned', isPinned ? '1' : '0');
         rowEl.classList.toggle('is-pinned', isPinned);
 
-        var meta = rowEl.querySelector('.bw-media-folder-node__meta');
-        var indicator = rowEl.querySelector('.bw-mf-pin-indicator');
-        if (isPinned && !indicator && meta) {
-            indicator = document.createElement('span');
-            indicator.className = 'bw-mf-pin-indicator';
-            indicator.setAttribute('aria-hidden', 'true');
-            indicator.textContent = '📌';
-            meta.insertBefore(indicator, meta.firstChild || null);
-        } else if (!isPinned && indicator && indicator.parentNode) {
-            indicator.parentNode.removeChild(indicator);
+        var indicator = rowEl.querySelector('.bw-mf-pin');
+        if (indicator) {
+            indicator.textContent = isPinned ? '📌' : '';
         }
     }
 
@@ -1034,6 +1025,29 @@
 
         syncTreeNodeVisibility();
         bindDropTargets();
+        debugAssertFolderRowLayout();
+    }
+
+    function debugAssertFolderRowLayout() {
+        if (!window.BW_MF_DEBUG) {
+            return;
+        }
+
+        var nodes = document.querySelectorAll('#bw-media-folders-tree .bw-media-folder-node');
+        Array.prototype.forEach.call(nodes, function (node) {
+            var main = node.querySelector('.bw-media-folder-node__main');
+            var left = node.querySelector('.bw-mf-left');
+            var right = node.querySelector('.bw-mf-right');
+            if (!main || !left || !right) {
+                console.warn('[BW_MF_DEBUG] invalid row structure', node);
+                return;
+            }
+
+            var styles = window.getComputedStyle(main);
+            if (styles.justifyContent === 'space-between') {
+                console.warn('[BW_MF_DEBUG] invalid main justify-content', node);
+            }
+        });
     }
 
     function refreshTree() {
