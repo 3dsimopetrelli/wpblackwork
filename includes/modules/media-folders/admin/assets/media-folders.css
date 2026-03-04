@@ -224,11 +224,11 @@ body.upload-php.bw-mf-enabled .bw-mf-drag-badge {
     z-index: 999999;
 }
 
-body.upload-php.bw-mf-enabled .attachments-browser .attachment.bw-mf-has-folder {
+body.upload-php.bw-mf-enabled .attachments-browser .attachment.bw-mf-corner {
     position: relative;
 }
 
-body.upload-php.bw-mf-enabled .attachments-browser .attachment.bw-mf-has-folder::after {
+body.upload-php.bw-mf-enabled .attachments-browser .attachment.bw-mf-corner::after {
     content: "";
     position: absolute;
     top: 0;

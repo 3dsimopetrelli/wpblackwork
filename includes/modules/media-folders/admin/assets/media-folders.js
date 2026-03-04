@@ -157,52 +157,77 @@
         return Array.prototype.slice.call(document.querySelectorAll('.attachments-browser .attachment[data-id]'));
     }
 
-    function getTileMarkerData(id) {
-        if (!(id > 0) || !window.wp || !wp.media || typeof wp.media.attachment !== 'function') {
-            return null;
-        }
-
-        try {
-            var model = wp.media.attachment(id);
-            if (!model || typeof model.get !== 'function') {
-                return null;
-            }
-
-            return {
-                has_folder: parseInt(model.get('bw_mf_has_folder'), 10) === 1,
-                color: model.get('bw_mf_folder_color') || null
-            };
-        } catch (e) {
-            return null;
-        }
+    function clearCornerMarkers() {
+        getVisibleGridTiles().forEach(function (tile) {
+            tile.classList.remove('bw-mf-corner');
+            tile.style.removeProperty('--bw-mf-corner-color');
+        });
     }
 
-    function setTileCornerMarker(tile, marker) {
+    function getCurrentCornerContext() {
+        var folderId = '';
+        var unassigned = false;
+
+        try {
+            var url = new URL(window.location.href);
+            folderId = String(url.searchParams.get('bw_media_folder') || '').trim();
+            unassigned = String(url.searchParams.get('bw_media_unassigned') || '') === '1';
+        } catch (e) {
+            folderId = '';
+            unassigned = false;
+        }
+
+        if (!folderId && !unassigned) {
+            if (state.activeFolder > 0) {
+                folderId = String(state.activeFolder);
+            } else if (state.activeUnassigned) {
+                unassigned = true;
+            }
+        }
+
+        return {
+            folderId: folderId,
+            unassigned: unassigned
+        };
+    }
+
+    function resolveCornerColor(folderId, unassigned) {
+        if (unassigned) {
+            return '#80FD03';
+        }
+
+        if (!folderId) {
+            return '#80FD03';
+        }
+
+        var row = document.querySelector('.bw-media-folder-node[data-term-id="' + folderId + '"]');
+        if (!row) {
+            return '#80FD03';
+        }
+
+        var attrColor = row.getAttribute('data-icon-color');
+        if (isValidHexColor(attrColor)) {
+            return attrColor;
+        }
+
+        var cssVar = row.style ? row.style.getPropertyValue('--bw-mf-icon-color') : '';
+        if (!cssVar) {
+            cssVar = window.getComputedStyle(row).getPropertyValue('--bw-mf-icon-color');
+        }
+        cssVar = String(cssVar || '').trim();
+        if (isValidHexColor(cssVar)) {
+            return cssVar;
+        }
+
+        return '#80FD03';
+    }
+
+    function setTileCornerMarker(tile, color) {
         if (!tile) {
             return;
         }
-
-        var hasFolder = !!(marker && marker.has_folder);
-        if (!hasFolder) {
-            tile.classList.remove('bw-mf-has-folder');
-            tile.style.removeProperty('--bw-mf-corner-color');
-            return;
-        }
-
-        var color = (marker && isValidHexColor(marker.color)) ? marker.color : '#80FD03';
-        tile.classList.add('bw-mf-has-folder');
-        tile.style.setProperty('--bw-mf-corner-color', color);
-    }
-
-    function applyMarkersFromMediaState(tiles) {
-        tiles.forEach(function (tile) {
-            var id = parseInt(tile.getAttribute('data-id') || '0', 10);
-            if (!(id > 0)) {
-                return;
-            }
-
-            setTileCornerMarker(tile, getTileMarkerData(id));
-        });
+        tile.classList.add('bw-mf-corner');
+        tile.style.setProperty('--bw-mf-corner-color', color || '#80FD03');
     }
 
     function bwMfApplyCornerMarkers() {
@@ -217,7 +242,16 @@
             return;
         }
 
-        applyMarkersFromMediaState(tiles);
+        var ctx = getCurrentCornerContext();
+        if (!ctx.folderId && !ctx.unassigned) {
+            clearCornerMarkers();
+            return;
+        }
+
+        var color = resolveCornerColor(ctx.folderId, ctx.unassigned);
+        tiles.forEach(function (tile) {
+            setTileCornerMarker(tile, color);
+        });
     }
 
     function bindCornerMarkerObserver() {
