@@ -139,7 +139,6 @@ body.upload-php.bw-mf-enabled .bw-media-folders__tree {
 body.upload-php.bw-mf-enabled .bw-media-folder-node {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     gap: 6px;
     margin-bottom: 4px;
     border-radius: 4px;
@@ -250,11 +249,23 @@ body.upload-php.bw-mf-enabled .bw-media-folder-node__main {
     flex: 1 1 auto;
     display: flex;
     align-items: center;
-    justify-content: flex-start;
-    gap: 8px;
+    width: 100%;
     cursor: pointer;
     padding: 4px;
-    width: 100%;
+}
+
+body.upload-php.bw-mf-enabled .bw-mf-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+body.upload-php.bw-mf-enabled .bw-mf-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
 }
 
 body.upload-php.bw-mf-enabled .bw-mf-chevron {
@@ -320,6 +331,7 @@ body.upload-php.bw-mf-enabled .bw-media-folder-node__name {
 body.upload-php.bw-mf-enabled .bw-mf-folder-name {
     flex: 1;
     margin-left: 6px;
+    min-width: 0;
 }
 
 body.upload-php.bw-mf-enabled .bw-media-folder-node__meta {
@@ -328,7 +340,6 @@ body.upload-php.bw-mf-enabled .bw-media-folder-node__meta {
     justify-content: flex-end;
     gap: 6px;
     min-width: 52px;
-    margin-left: auto;
 }
 
 body.upload-php.bw-mf-enabled .bw-media-folder-node__count {
