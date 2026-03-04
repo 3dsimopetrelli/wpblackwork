@@ -241,32 +241,34 @@
         });
     }
 
+    function setCollapsedState(collapsed) {
+        var body = $('body');
+        body.toggleClass('bw-mf-collapsed', collapsed);
+
+        $('#bw-media-folders-toggle')
+            .attr('aria-expanded', collapsed ? 'false' : 'true')
+            .text(collapsed ? 'Expand' : 'Collapse');
+
+        $('#bw-mf-collapse-tab')
+            .attr('aria-expanded', collapsed ? 'false' : 'true')
+            .text(collapsed ? 'Open Folders' : 'Collapse Folders');
+
+        try {
+            window.localStorage.setItem('bw_mf_collapsed', collapsed ? '1' : '0');
+        } catch (e) {
+            // ignore storage errors
+        }
+    }
+
     function bindEvents() {
         root().on('click', '#bw-media-folders-toggle', function () {
-            var body = $('body');
-            body.toggleClass('bw-mf-collapsed');
-
-            var collapsed = body.hasClass('bw-mf-collapsed');
-            $(this).attr('aria-expanded', collapsed ? 'false' : 'true');
-            $(this).text(collapsed ? 'Expand' : 'Collapse');
-
-            try {
-                window.localStorage.setItem('bw_mf_collapsed', collapsed ? '1' : '0');
-            } catch (e) {
-                // ignore storage errors
-            }
+            var collapsed = !$('body').hasClass('bw-mf-collapsed');
+            setCollapsedState(collapsed);
         });
 
         $(document).on('click', '#bw-mf-collapse-tab', function () {
-            var body = $('body');
-            body.removeClass('bw-mf-collapsed');
-            $('#bw-media-folders-toggle').attr('aria-expanded', 'true').text('Collapse');
-
-            try {
-                window.localStorage.setItem('bw_mf_collapsed', '0');
-            } catch (e) {
-                // ignore storage errors
-            }
+            var collapsed = !$('body').hasClass('bw-mf-collapsed');
+            setCollapsedState(collapsed);
         });
 
         root().on('click', '#bw-mr-new-folder-btn', function () {
@@ -393,15 +395,16 @@
     function init() {
         mountLayout();
 
+        var collapsed = false;
         try {
             if (window.localStorage.getItem('bw_mf_collapsed') === '1') {
-                $('body').addClass('bw-mf-collapsed');
-                $('#bw-media-folders-toggle').attr('aria-expanded', 'false').text('Expand');
+                collapsed = true;
             }
         } catch (e) {
             // ignore storage errors
         }
 
+        setCollapsedState(collapsed);
         bindEvents();
         registerGridAjaxFilter();
         refreshTree();

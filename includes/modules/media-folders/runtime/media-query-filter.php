@@ -93,7 +93,7 @@ if (!function_exists('bw_mf_filter_media_list_query')) {
         }
 
         $folder_id = isset($_GET['bw_media_folder']) ? absint($_GET['bw_media_folder']) : 0;
-        $unassigned = !empty($_GET['bw_media_unassigned']);
+        $unassigned = isset($_GET['bw_media_unassigned']) && (string) $_GET['bw_media_unassigned'] === '1';
 
         if (!$unassigned && $folder_id <= 0) {
             return;
@@ -119,7 +119,7 @@ if (!function_exists('bw_mf_filter_media_grid_query')) {
         }
 
         $folder_id = isset($query['bw_media_folder']) ? absint($query['bw_media_folder']) : 0;
-        $unassigned = !empty($query['bw_media_unassigned']);
+        $unassigned = isset($query['bw_media_unassigned']) && (string) $query['bw_media_unassigned'] === '1';
 
         if (!$unassigned && $folder_id <= 0) {
             return $args;

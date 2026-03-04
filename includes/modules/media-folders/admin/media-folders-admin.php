@@ -23,7 +23,7 @@ if (!function_exists('bw_mf_get_active_filter_payload')) {
     {
         return [
             'folder' => isset($_GET['bw_media_folder']) ? absint($_GET['bw_media_folder']) : 0,
-            'unassigned' => !empty($_GET['bw_media_unassigned']) ? 1 : 0,
+            'unassigned' => (isset($_GET['bw_media_unassigned']) && (string) $_GET['bw_media_unassigned'] === '1') ? 1 : 0,
             'mode' => isset($_GET['mode']) ? sanitize_key($_GET['mode']) : 'list',
         ];
     }
