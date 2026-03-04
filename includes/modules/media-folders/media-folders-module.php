@@ -19,5 +19,6 @@ if (!is_admin()) {
 require_once __DIR__ . '/data/taxonomy.php';
 require_once __DIR__ . '/data/term-meta.php';
 require_once __DIR__ . '/runtime/media-query-filter.php';
+require_once __DIR__ . '/runtime/attachment-corner-indicator.php';
 require_once __DIR__ . '/runtime/ajax.php';
 require_once __DIR__ . '/admin/media-folders-admin.php';

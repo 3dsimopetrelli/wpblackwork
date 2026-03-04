@@ -28,8 +28,6 @@
         (cfg.flags && parseInt(cfg.flags.cornerIndicator, 10) === 1) ||
         parseInt(cfg.cornerIndicatorEnabled, 10) === 1
     );
-    var markerCache = new Map();
-    var markerRequestInFlight = false;
     var markerObserver = null;
     var markerDebounceTimer = null;
 
@@ -159,6 +157,26 @@
         return Array.prototype.slice.call(document.querySelectorAll('.attachments-browser .attachment[data-id]'));
     }
 
+    function getTileMarkerData(id) {
+        if (!(id > 0) || !window.wp || !wp.media || typeof wp.media.attachment !== 'function') {
+            return null;
+        }
+
+        try {
+            var model = wp.media.attachment(id);
+            if (!model || typeof model.get !== 'function') {
+                return null;
+            }
+
+            return {
+                has_folder: parseInt(model.get('bw_mf_has_folder'), 10) === 1,
+                color: model.get('bw_mf_folder_color') || null
+            };
+        } catch (e) {
+            return null;
+        }
+    }
+
     function setTileCornerMarker(tile, marker) {
         if (!tile) {
             return;
@@ -176,56 +194,15 @@
         tile.style.setProperty('--bw-mf-corner-color', color);
     }
 
-    function applyMarkersFromCache(tiles) {
+    function applyMarkersFromMediaState(tiles) {
         tiles.forEach(function (tile) {
             var id = parseInt(tile.getAttribute('data-id') || '0', 10);
             if (!(id > 0)) {
                 return;
             }
 
-            if (!markerCache.has(id)) {
-                return;
-            }
-
-            setTileCornerMarker(tile, markerCache.get(id));
+            setTileCornerMarker(tile, getTileMarkerData(id));
         });
-    }
-
-    function bwMfFetchCornerMarkers(ids) {
-        if (!ids.length || markerRequestInFlight) {
-            return;
-        }
-
-        markerRequestInFlight = true;
-        $.post(cfg.ajaxUrl, {
-            action: 'bw_mf_get_attachment_folder_markers',
-            nonce: cfg.nonce,
-            bw_mf_context: 'upload',
-            attachment_ids: ids
-        })
-            .done(function (res) {
-                if (!res || !res.success || !res.data || typeof res.data.markers !== 'object') {
-                    return;
-                }
-
-                Object.keys(res.data.markers).forEach(function (idKey) {
-                    var id = parseInt(idKey, 10);
-                    if (!(id > 0)) {
-                        return;
-                    }
-
-                    var marker = res.data.markers[idKey] || {};
-                    markerCache.set(id, {
-                        has_folder: !!marker.has_folder,
-                        color: isValidHexColor(marker.color) ? marker.color : null
-                    });
-                });
-
-                applyMarkersFromCache(getVisibleGridTiles());
-            })
-            .always(function () {
-                markerRequestInFlight = false;
-            });
     }
 
     function bwMfApplyCornerMarkers() {
@@ -240,37 +217,7 @@
             return;
         }
 
-        var ids = [];
-        var seen = {};
-        tiles.forEach(function (tile) {
-            var id = parseInt(tile.getAttribute('data-id') || '0', 10);
-            if (id > 0 && !seen[id]) {
-                seen[id] = true;
-                ids.push(id);
-            }
-        });
-
-        ids = ids.slice(0, 200);
-        applyMarkersFromCache(tiles);
-
-        var missing = ids.filter(function (id) {
-            return !markerCache.has(id);
-        });
-
-        bwMfFetchCornerMarkers(missing);
-    }
-
-    function invalidateCornerMarkerCache(ids) {
-        if (!Array.isArray(ids) || !ids.length) {
-            return;
-        }
-
-        ids.forEach(function (id) {
-            var parsed = parseInt(id, 10);
-            if (parsed > 0) {
-                markerCache.delete(parsed);
-            }
-        });
+        applyMarkersFromMediaState(tiles);
     }
 
     function bindCornerMarkerObserver() {
@@ -787,7 +734,6 @@
             term_id: folderId,
             attachment_ids: ids
         }, function () {
-            invalidateCornerMarkerCache(ids);
             refreshTree();
             if (typeof onDone === 'function') {
                 onDone();
