@@ -14,6 +14,16 @@ This protocol is binding for all high-impact domains:
 
 Any technical task that touches these domains must follow this protocol before implementation starts.
 
+## 1.1 Task Templates
+Task templates are located in:
+
+`docs/templates/`
+
+Templates:
+- `task-start-template.md`
+- `task-closure-template.md`
+- `maintenance-task-template.md`
+
 ## 2. Core Principle
 Code is subordinate to governance.
 

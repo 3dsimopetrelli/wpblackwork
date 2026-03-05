@@ -11,4 +11,4 @@ Startup-tech structure with domain-based sections and archived historical report
 - [50-ops](50-ops/README.md)
 - [60-adr](60-adr/README.md)
 - [99-archive](99-archive/README.md)
-- [_templates](_templates/README.md)
+- [templates](templates/README.md)
