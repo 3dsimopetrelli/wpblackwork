@@ -256,7 +256,9 @@
 
 .bw-admin-root .bw-form-row__field input,
 .bw-admin-root .bw-form-row__field select {
+    width: 100%;
     max-width: 100%;
+    box-sizing: border-box;
 }
 
 .bw-admin-root .bw-form-row__field-compact {
@@ -289,7 +291,7 @@
     justify-self: end;
     align-self: end;
     white-space: nowrap;
-    padding-top: 4px;
+    padding-top: 8px;
 }
 
 .bw-admin-root .bw-form-row__label {
@@ -331,15 +333,23 @@
     margin: 0;
 }
 
-.bw-admin-root .bw-form-row__remove {
-    font-size: 12px;
-    color: #b32d2e;
+.bw-admin-root .bw-form-row__field .small-text,
+.bw-admin-root .bw-form-row__field select {
+    width: 100% !important;
+    max-width: none;
 }
 
-.bw-admin-root .bw-form-row__remove:hover,
-.bw-admin-root .bw-form-row__remove:focus {
-    color: #8a2424;
-    text-decoration: underline;
+.bw-admin-root .bw-button--danger {
+    background: #b32d2e;
+    border-color: #b32d2e;
+    color: #fff;
+}
+
+.bw-admin-root .bw-button--danger:hover,
+.bw-admin-root .bw-button--danger:focus {
+    background: #8a2424;
+    border-color: #8a2424;
+    color: #fff;
 }
 
 .bw-admin-root .bw-header-media-preview {

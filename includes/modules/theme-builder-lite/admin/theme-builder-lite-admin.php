@@ -203,7 +203,7 @@ if (!function_exists('bw_tbl_render_font_row')) {
                 </div>
 
                 <div class="bw-form-row__actions">
-                    <button type="button" class="button-link-delete bw-form-row__remove bw-tbl-remove-font-row"><?php esc_html_e('Remove', 'bw'); ?></button>
+                    <button type="button" class="button bw-button--danger bw-tbl-remove-font-row"><?php esc_html_e('Remove', 'bw'); ?></button>
                 </div>
             </div>
         </div>
