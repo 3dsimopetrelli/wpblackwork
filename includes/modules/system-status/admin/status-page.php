@@ -68,7 +68,7 @@ if (!function_exists('bw_system_status_render_admin_page')) {
             return;
         }
         ?>
-        <div class="wrap">
+        <div class="wrap bw-admin-root bw-admin-page bw-admin-page-status">
             <style>
                 #bw-system-status-app { max-width: 1150px; }
                 .bw-system-header { margin-bottom:10px; }
