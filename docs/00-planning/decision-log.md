@@ -183,6 +183,17 @@ If a decision is normative and architecture-binding, the ADR process MUST be use
   - Monitor marker + quick-filter observer behavior on very large libraries.
   - Keep closure reference synchronized in `docs/tasks/media-folders-close-task.md`.
 
+### Entry 016
+- Date: 2026-03-05
+- Decision summary: Enforced `Site Settings` as deterministic landing page for top-level `Blackwork Site` and introduced a dedicated admin-only `Status` diagnostics module with on-demand, cached, read-only health checks.
+- Affected domain: Admin Navigation / Diagnostics / Governance
+- Rationale: Preserve predictable admin entrypoint behavior while adding a safe observability surface that does not run heavy scans during normal admin page loads.
+- Risk impact: Low-Medium (AJAX diagnostics endpoint + large-library scan pressure) managed by capability/nonce gates and transient caching.
+- Follow-up actions:
+  - Keep diagnostics checks read-only and capability-gated.
+  - Keep transient-cached snapshots to avoid repeated heavy scans on reload.
+  - Reassess storage/DB query strategy if large-site scan latency increases.
+
 ## Governance Layer Closure
 
 Status: CLOSED  

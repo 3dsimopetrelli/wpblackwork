@@ -484,6 +484,20 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
   - [Theme Builder Lite Runtime Hook Map](../10-architecture/theme-builder-lite/runtime-hook-map.md)
   - [Decision Log](../00-planning/decision-log.md)
 
+### Risk ID: R-ADM-18
+- Domain: Admin / System Status Diagnostics
+- Surface Anchor: `includes/modules/system-status/runtime/check-runner.php` and check modules under `includes/modules/system-status/runtime/checks/`
+- Description: On-demand diagnostics can become heavy on large datasets or expose privileged infrastructure metadata if endpoint protections drift.
+- Invariant Threatened: Admin diagnostics must remain read-only, capability-gated, nonce-protected, and non-blocking for normal admin navigation.
+- Impact: Medium
+- Likelihood: Medium
+- Risk Level: Medium
+- Current Mitigation: Admin-only submenu, `manage_options` capability gate, nonce-validated AJAX action, on-demand execution only, transient snapshot caching, graceful partial/warn responses.
+- Monitoring Status: Monitoring
+- Linked Documents:
+  - [System Status (Admin Diagnostics)](../30-features/system-status/README.md)
+  - [System Normative Charter](./system-normative-charter.md)
+
 ## 4) Governance Rules
 - All Tier 0 changes must be reviewed against this register before implementation.
 - Risks cannot be marked `Resolved` without audit confirmation evidence.

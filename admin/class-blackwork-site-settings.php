@@ -43,6 +43,42 @@ function bw_site_settings_menu()
 add_action('admin_menu', 'bw_site_settings_menu');
 
 /**
+ * Force Site Settings as first submenu entry for Blackwork top-level menu.
+ */
+function bw_site_settings_force_default_submenu()
+{
+    global $submenu;
+
+    if (empty($submenu['blackwork-site-settings']) || !is_array($submenu['blackwork-site-settings'])) {
+        return;
+    }
+
+    $target_item = null;
+    $other_items = [];
+
+    foreach ($submenu['blackwork-site-settings'] as $item) {
+        if (isset($item[2]) && 'blackwork-site-settings' === $item[2]) {
+            $target_item = $item;
+            continue;
+        }
+
+        $other_items[] = $item;
+    }
+
+    if (null === $target_item) {
+        $target_item = [
+            __('Site Settings', 'bw'),
+            'manage_options',
+            'blackwork-site-settings',
+            __('Site Settings', 'bw'),
+        ];
+    }
+
+    $submenu['blackwork-site-settings'] = array_merge([$target_item], $other_items);
+}
+add_action('admin_menu', 'bw_site_settings_force_default_submenu', 999);
+
+/**
  * Carica lo stile per l'icona del menu admin (globale).
  */
 function bw_site_settings_admin_menu_icon_styles()

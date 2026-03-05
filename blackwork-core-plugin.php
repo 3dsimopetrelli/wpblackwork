@@ -94,6 +94,11 @@ if (file_exists(plugin_dir_path(__FILE__) . 'includes/modules/media-folders/medi
     require_once plugin_dir_path(__FILE__) . 'includes/modules/media-folders/media-folders-module.php';
 }
 
+// System Status module (admin diagnostics dashboard)
+if (file_exists(plugin_dir_path(__FILE__) . 'includes/modules/system-status/system-status-module.php')) {
+    require_once plugin_dir_path(__FILE__) . 'includes/modules/system-status/system-status-module.php';
+}
+
 // Checkout fields manager (admin + frontend)
 $bw_checkout_fields_admin = plugin_dir_path(__FILE__) . 'includes/admin/checkout-fields/class-bw-checkout-fields-admin.php';
 $bw_checkout_fields_frontend = plugin_dir_path(__FILE__) . 'includes/admin/checkout-fields/class-bw-checkout-fields-frontend.php';
