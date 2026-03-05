@@ -14,8 +14,11 @@
         }
     },
     "scripts": {
-        "lint": "phpcs --standard=WordPress .",
-        "lint:main": "phpcs --standard=WordPress blackwork-core-plugin.php",
-        "lint:fix:main": "phpcbf --standard=WordPress blackwork-core-plugin.php"
+        "lint": "phpcs -d memory_limit=512M --standard=phpcs.xml.dist blackwork-core-plugin.php",
+        "lint:main": "phpcs -d memory_limit=512M --standard=phpcs.xml.dist blackwork-core-plugin.php",
+        "lint:legacy": "phpcs -d memory_limit=512M --standard=WordPress blackwork-core-plugin.php",
+        "lint:fix:legacy": "phpcbf -d memory_limit=512M --standard=WordPress blackwork-core-plugin.php",
+        "lint:strict": "phpcs -d memory_limit=512M --standard=WordPress admin includes metabox templates woocommerce cart-popup BW_coming_soon",
+        "lint:changed": "sh -c 'FILES=$(git diff --name-only --diff-filter=ACMRTUXB HEAD -- \"*.php\"); if [ -z \"$FILES\" ]; then echo \"No changed PHP files to lint.\"; else phpcs -d memory_limit=512M --standard=phpcs.xml.dist $FILES; fi'"
     }
 }

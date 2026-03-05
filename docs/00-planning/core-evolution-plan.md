@@ -165,6 +165,19 @@ It MUST be used as planning reference only and MUST NOT replace ADRs.
   - `.bw-admin-root` scope and no-bleed guarantees preserved
   - Regression checklist executed for all panel surfaces
 
+### PHPCS Legacy Baseline Reduction Program
+- Status: Backlog
+- Risk classification: Low
+- Short description: Incrementally reduce historical PHPCS violations in `blackwork-core-plugin.php` while keeping `lint:main` green for active development.
+- Reference docs:
+  - `docs/20-development/linting-and-phpcs-baseline.md`
+  - `phpcs.xml.dist`
+- Acceptance:
+  - `lint:main` passes for all non-legacy paths
+  - `lint:legacy` trend shows decreasing violation count over time
+  - baseline scope remains limited to approved legacy file(s) only
+  - baseline exclusion removed once legacy file is compliant
+
 ### Elementor Widgets Cleanup
 - Status: Backlog
 - Risk classification: Low
