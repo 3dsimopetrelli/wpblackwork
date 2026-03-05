@@ -53,7 +53,8 @@ if (!function_exists('bw_system_status_check_media')) {
     {
         global $wpdb;
 
-        $limit = 5000;
+        $limit = 3000;
+        $top_n = 5;
         $posts_table = $wpdb->posts;
         $postmeta_table = $wpdb->postmeta;
 
@@ -81,6 +82,8 @@ if (!function_exists('bw_system_status_check_media')) {
         $total_bytes = 0;
         $missing_files = 0;
         $unknown_type_bytes = 0;
+        $largest_file = null;
+        $top_largest_files = [];
 
         $bytes_by_type = [
             'jpeg' => 0,
@@ -115,7 +118,29 @@ if (!function_exists('bw_system_status_check_media')) {
             } else {
                 $unknown_type_bytes += $size;
             }
+
+            $current_item = [
+                'id' => isset($row['ID']) ? (int) $row['ID'] : 0,
+                'file' => $relative_file,
+                'mime_type' => isset($row['post_mime_type']) ? (string) $row['post_mime_type'] : '',
+                'size_bytes' => $size,
+                'size_human' => bw_system_status_format_bytes($size),
+            ];
+
+            if (null === $largest_file || $size > (int) $largest_file['size_bytes']) {
+                $largest_file = $current_item;
+            }
+
+            $top_largest_files[] = $current_item;
         }
+
+        usort(
+            $top_largest_files,
+            static function ($left, $right) {
+                return ((int) $right['size_bytes']) <=> ((int) $left['size_bytes']);
+            }
+        );
+        $top_largest_files = array_slice($top_largest_files, 0, $top_n);
 
         $status = 'ok';
         $warnings = [];
@@ -139,6 +164,19 @@ if (!function_exists('bw_system_status_check_media')) {
             );
         }
 
+        $bytes_by_type['other'] = $unknown_type_bytes;
+        $type_distribution = [];
+        $type_breakdown = [];
+        foreach ($bytes_by_type as $type => $bytes) {
+            $percent = $total_bytes > 0 ? round((((float) $bytes / (float) $total_bytes) * 100), 2) : 0;
+            $type_distribution[$type] = $percent;
+            $type_breakdown[$type] = [
+                'bytes' => (int) $bytes,
+                'bytes_human' => bw_system_status_format_bytes((int) $bytes),
+                'percent' => $percent,
+            ];
+        }
+
         return [
             'status' => $status,
             'summary' => sprintf(
@@ -147,19 +185,22 @@ if (!function_exists('bw_system_status_check_media')) {
                 number_format_i18n($total_attachments),
                 bw_system_status_format_bytes($total_bytes)
             ),
+            'total_files' => $total_attachments,
+            'total_bytes' => $total_bytes,
+            'by_type' => $type_breakdown,
+            'largest_file' => $largest_file,
+            'top_largest_files' => $top_largest_files,
             'metrics' => [
+                'total_files' => $total_attachments,
                 'attachments_total' => $total_attachments,
                 'attachments_analyzed' => count($rows),
                 'total_bytes' => $total_bytes,
                 'total_bytes_human' => bw_system_status_format_bytes($total_bytes),
-                'bytes_by_type' => [
-                    'jpeg' => bw_system_status_format_bytes((int) $bytes_by_type['jpeg']),
-                    'png' => bw_system_status_format_bytes((int) $bytes_by_type['png']),
-                    'svg' => bw_system_status_format_bytes((int) $bytes_by_type['svg']),
-                    'video' => bw_system_status_format_bytes((int) $bytes_by_type['video']),
-                    'webp' => bw_system_status_format_bytes((int) $bytes_by_type['webp']),
-                    'other' => bw_system_status_format_bytes((int) $unknown_type_bytes),
-                ],
+                'by_type' => $type_breakdown,
+                'bytes_by_type' => $type_breakdown,
+                'type_distribution_percent' => $type_distribution,
+                'largest_file' => $largest_file,
+                'top_largest_files' => $top_largest_files,
             ],
             'warnings' => $warnings,
         ];

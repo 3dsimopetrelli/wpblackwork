@@ -69,8 +69,17 @@ if (!function_exists('bw_system_status_render_admin_page')) {
         }
         ?>
         <div class="wrap">
+            <style>
+                #bw-system-status-table .bw-status-badge { font-weight: 600; }
+                #bw-system-status-table tr.bw-status-ok .bw-status-badge,
+                #bw-system-overview .bw-status-ok { color: #1d7f35; }
+                #bw-system-status-table tr.bw-status-warn .bw-status-badge,
+                #bw-system-overview .bw-status-warn { color: #8a6d00; }
+                #bw-system-status-table tr.bw-status-error .bw-status-badge,
+                #bw-system-overview .bw-status-error { color: #b32d2e; }
+            </style>
             <h1><?php esc_html_e('Blackwork System Status', 'bw'); ?></h1>
-            <p><?php esc_html_e('Run a read-only health snapshot for media storage, database size estimate, and registered image sizes.', 'bw'); ?></p>
+            <p><?php esc_html_e('Run a read-only health snapshot for media storage, database health, server limits, WordPress environment, and registered image sizes.', 'bw'); ?></p>
 
             <p>
                 <button type="button" class="button button-primary" id="bw-system-status-run"><?php esc_html_e('Run System Check', 'bw'); ?></button>
@@ -80,6 +89,22 @@ if (!function_exists('bw_system_status_render_admin_page')) {
             <div id="bw-system-status-feedback" class="notice" style="display:none;"><p></p></div>
 
             <div id="bw-system-status-results" style="display:none; max-width: 980px;">
+                <h2><?php esc_html_e('Overview', 'bw'); ?></h2>
+                <div id="bw-system-overview" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+                    <div class="bw-system-overview-item" data-overview="server" style="padding:8px 10px;border:1px solid #dcdcde;background:#fff;">
+                        <?php esc_html_e('Server: -', 'bw'); ?>
+                    </div>
+                    <div class="bw-system-overview-item" data-overview="database" style="padding:8px 10px;border:1px solid #dcdcde;background:#fff;">
+                        <?php esc_html_e('Database: -', 'bw'); ?>
+                    </div>
+                    <div class="bw-system-overview-item" data-overview="media" style="padding:8px 10px;border:1px solid #dcdcde;background:#fff;">
+                        <?php esc_html_e('Media Storage: -', 'bw'); ?>
+                    </div>
+                    <div class="bw-system-overview-item" data-overview="wordpress" style="padding:8px 10px;border:1px solid #dcdcde;background:#fff;">
+                        <?php esc_html_e('WordPress: -', 'bw'); ?>
+                    </div>
+                </div>
+
                 <h2><?php esc_html_e('Snapshot', 'bw'); ?></h2>
                 <p>
                     <strong><?php esc_html_e('Generated at:', 'bw'); ?></strong>
@@ -87,6 +112,12 @@ if (!function_exists('bw_system_status_render_admin_page')) {
                     &nbsp;|&nbsp;
                     <strong><?php esc_html_e('Source:', 'bw'); ?></strong>
                     <span id="bw-system-source">-</span>
+                    &nbsp;|&nbsp;
+                    <strong><?php esc_html_e('TTL:', 'bw'); ?></strong>
+                    <span id="bw-system-ttl">-</span>
+                    &nbsp;|&nbsp;
+                    <strong><?php esc_html_e('Execution time:', 'bw'); ?></strong>
+                    <span id="bw-system-execution-time">-</span>
                 </p>
 
                 <table class="widefat striped" id="bw-system-status-table">
@@ -110,6 +141,16 @@ if (!function_exists('bw_system_status_render_admin_page')) {
                         </tr>
                         <tr data-check="images">
                             <td><?php esc_html_e('Registered Image Sizes', 'bw'); ?></td>
+                            <td class="bw-status-badge">-</td>
+                            <td class="bw-status-summary">-</td>
+                        </tr>
+                        <tr data-check="wordpress">
+                            <td><?php esc_html_e('WordPress Environment', 'bw'); ?></td>
+                            <td class="bw-status-badge">-</td>
+                            <td class="bw-status-summary">-</td>
+                        </tr>
+                        <tr data-check="server">
+                            <td><?php esc_html_e('Server Limits', 'bw'); ?></td>
                             <td class="bw-status-badge">-</td>
                             <td class="bw-status-summary">-</td>
                         </tr>

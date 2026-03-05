@@ -12,3 +12,5 @@ require_once __DIR__ . '/runtime/check-runner.php';
 require_once __DIR__ . '/runtime/checks/check-media.php';
 require_once __DIR__ . '/runtime/checks/check-database.php';
 require_once __DIR__ . '/runtime/checks/check-images.php';
+require_once __DIR__ . '/runtime/checks/check-wordpress.php';
+require_once __DIR__ . '/runtime/checks/check-server.php';

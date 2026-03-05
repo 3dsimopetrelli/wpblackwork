@@ -20,20 +20,22 @@ if (!function_exists('bw_system_status_build_snapshot')) {
             return $cached_snapshot;
         }
 
-        $media_check = bw_system_status_check_media();
-        $database_check = bw_system_status_check_database();
-        $images_check = bw_system_status_check_images();
+        $started_at = microtime(true);
+        $checks = [
+            'media' => bw_system_status_safe_check('bw_system_status_check_media', 'Media Library'),
+            'database' => bw_system_status_safe_check('bw_system_status_check_database', 'Database'),
+            'images' => bw_system_status_safe_check('bw_system_status_check_images', 'Registered Image Sizes'),
+            'wordpress' => bw_system_status_safe_check('bw_system_status_check_wordpress', 'WordPress Environment'),
+            'server' => bw_system_status_safe_check('bw_system_status_check_server', 'Server Limits'),
+        ];
 
         $snapshot = [
             'ok' => true,
             'generated_at' => current_time('mysql'),
             'cached' => false,
             'ttl_seconds' => BW_SYSTEM_STATUS_TRANSIENT_TTL,
-            'checks' => [
-                'media' => $media_check,
-                'database' => $database_check,
-                'images' => $images_check,
-            ],
+            'execution_time_ms' => (int) round((microtime(true) - $started_at) * 1000),
+            'checks' => $checks,
         ];
 
         set_transient(BW_SYSTEM_STATUS_TRANSIENT_KEY, $snapshot, BW_SYSTEM_STATUS_TRANSIENT_TTL);
@@ -60,3 +62,67 @@ if (!function_exists('bw_system_status_ajax_run_check')) {
     }
 }
 add_action('wp_ajax_bw_system_status_run_check', 'bw_system_status_ajax_run_check');
+
+if (!function_exists('bw_system_status_safe_check')) {
+    function bw_system_status_safe_check($callback, $label)
+    {
+        try {
+            if (!is_callable($callback)) {
+                return [
+                    'status' => 'error',
+                    'summary' => sprintf(
+                        /* translators: %s: check label */
+                        __('%s check is unavailable.', 'bw'),
+                        $label
+                    ),
+                    'metrics' => [],
+                    'warnings' => [__('Check callback is not callable.', 'bw')],
+                ];
+            }
+
+            $result = call_user_func($callback);
+            if (!is_array($result)) {
+                return [
+                    'status' => 'error',
+                    'summary' => sprintf(
+                        /* translators: %s: check label */
+                        __('%s check returned an invalid payload.', 'bw'),
+                        $label
+                    ),
+                    'metrics' => [],
+                    'warnings' => [__('Invalid check payload.', 'bw')],
+                ];
+            }
+
+            if (!isset($result['status'])) {
+                $result['status'] = 'error';
+            }
+            if (!isset($result['summary'])) {
+                $result['summary'] = sprintf(
+                    /* translators: %s: check label */
+                    __('%s check completed.', 'bw'),
+                    $label
+                );
+            }
+            if (!isset($result['metrics']) || !is_array($result['metrics'])) {
+                $result['metrics'] = [];
+            }
+            if (!isset($result['warnings']) || !is_array($result['warnings'])) {
+                $result['warnings'] = [];
+            }
+
+            return $result;
+        } catch (Throwable $throwable) {
+            return [
+                'status' => 'error',
+                'summary' => sprintf(
+                    /* translators: %s: check label */
+                    __('%s check failed.', 'bw'),
+                    $label
+                ),
+                'metrics' => [],
+                'warnings' => [__('Check failed gracefully. Review logs for details.', 'bw')],
+            ];
+        }
+    }
+}
