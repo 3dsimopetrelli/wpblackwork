@@ -227,6 +227,17 @@ If a decision is normative and architecture-binding, the ADR process MUST be use
   - Keep tab content renderers unchanged in behavior.
   - Continue progressive UI kit adoption to other Blackwork admin surfaces without runtime logic changes.
 
+### Entry 020
+- Date: 2026-03-05
+- Decision summary: Closed Shopify-style Admin UI rollout as a panel-wide standard across all target Blackwork Site admin surfaces using a shared, scoped UI Kit.
+- Affected domain: Admin UX / Governance / Blackwork Site Panel
+- Rationale: Unified visual language reduces operator friction, accelerates support/training, and enables future admin pages to reuse a stable layout contract without behavior rewrites.
+- Risk impact: Low (UI-only standardization) with controlled residual risk on CSS bleed via strict root scoping and guarded enqueue surfaces.
+- Follow-up actions:
+  - Keep `.bw-admin-root` as mandatory root contract for Blackwork UI kit pages.
+  - Keep WP-native mechanics untouched on list-table surfaces (search, filters, bulk, sorting, pagination).
+  - Require new admin pages to follow `docs/20-development/admin-ui-guidelines.md`.
+
 ## Governance Layer Closure
 
 Status: CLOSED  

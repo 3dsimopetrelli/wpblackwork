@@ -77,7 +77,7 @@ Mail Marketing operational assets:
 - Enqueue strategy:
   - centralized in `admin/class-blackwork-site-settings.php` via `bw_admin_enqueue_ui_kit_assets()`
   - gated by `bw_is_blackwork_site_admin_screen(...)`
-  - loads only on Blackwork Site panel surfaces (`blackwork-site-settings` top-level and its subpages, including Mail Marketing)
+  - loads only on Blackwork Site panel surfaces (`blackwork-site-settings` top-level/subpages, `blackwork-mail-marketing`, and `edit.php?post_type=bw_template`)
 - Scope strategy:
   - all reusable rules are namespaced under `.bw-admin-root` to prevent bleed into unrelated WordPress admin screens.
 - Adoption pattern for other Blackwork admin pages:
@@ -86,6 +86,7 @@ Mail Marketing operational assets:
   3. Keep native WordPress form controls and existing save handlers unchanged.
 
 Current adoption:
+- `Blackwork Site > Status` page
 - `Blackwork Site > Media Folders` settings page
 - `Blackwork Site > Site Settings` router page (header, action bar, card-wrapped tabs/content, save-proxy CTA bound to existing tab submit buttons)
 - `Blackwork Site > Mail Marketing` page (header, action bar with save CTA, UI-kit tabs, card-grouped General/Checkout settings)
