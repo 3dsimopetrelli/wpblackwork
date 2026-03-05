@@ -108,7 +108,9 @@ Current adoption:
 ### 1.7 Asset Strategy (Admin)
 - Shared visual primitives:
   - `admin/css/bw-admin-ui-kit.css`
-  - loaded by `bw_admin_enqueue_ui_kit_assets()` via `bw_is_blackwork_site_admin_screen(...)`.
+  - always loaded on all Blackwork Site admin surfaces (Site Settings, Mail Marketing, Header, Theme Builder Lite, Status, Media Folders settings, All Templates).
+  - enqueue path: `bw_admin_enqueue_ui_kit_assets()` via `bw_is_blackwork_site_admin_screen(...)`.
+  - remains scoped by selectors under `.bw-admin-root` to avoid admin-wide CSS bleed.
 - Site-settings legacy/admin utilities:
   - `admin/class-blackwork-site-settings.php::bw_site_settings_admin_assets()`.
   - Whitelist matrix (post `BW-TASK-20260305-09`):
