@@ -3,6 +3,7 @@ body.bw-mf-enabled {
     --bw-mf-tab-width: 34px;
     --bw-mf-sidebar-width: var(--bw-mf-panel-width);
     --bw-mf-green: #80fd03;
+    --bw-mf-top-offset: 32px;
 }
 
 body.bw-mf-enabled.bw-mf-collapsed {
@@ -17,7 +18,7 @@ body.bw-mf-enabled #wpbody-content {
 
 body.bw-mf-enabled #bw-media-folders-root {
     position: fixed;
-    top: 32px;
+    top: var(--bw-mf-top-offset);
     bottom: 0;
     left: 160px;
     width: var(--bw-mf-panel-width);
@@ -43,7 +44,7 @@ body.bw-mf-enabled.bw-mf-collapsed #bw-media-folders-root {
 
 body.bw-mf-enabled #bw-mf-collapse-tab {
     position: fixed;
-    top: 96px;
+    top: calc(var(--bw-mf-top-offset) + 64px);
     left: calc(160px + var(--bw-mf-sidebar-width) - var(--bw-mf-tab-width));
     width: 96px;
     height: 30px;

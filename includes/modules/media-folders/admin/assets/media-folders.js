@@ -2566,6 +2566,21 @@
         if (target.length && !rootEl.parent().is(target)) {
             rootEl.prependTo(target);
         }
+
+        // Woo product list has a fixed top header that can overlap the sidebar.
+        if (body.hasClass('post-type-product')) {
+            var topOffset = 32;
+            var wooHeader = document.querySelector('.woocommerce-layout__header, .woocommerce-layout-header');
+            if (wooHeader) {
+                var rect = wooHeader.getBoundingClientRect();
+                if (rect && rect.bottom > 32) {
+                    topOffset = Math.ceil(rect.bottom);
+                }
+            }
+            document.body.style.setProperty('--bw-mf-top-offset', topOffset + 'px');
+        } else {
+            document.body.style.setProperty('--bw-mf-top-offset', '32px');
+        }
     }
 
     function init() {

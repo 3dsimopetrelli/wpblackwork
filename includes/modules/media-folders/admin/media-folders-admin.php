@@ -139,7 +139,8 @@ if (!function_exists('bw_mf_register_list_table_drag_column')) {
             return;
         }
 
-        add_filter("manage_{$post_type}_posts_columns", 'bw_mf_add_drag_handle_column', 9);
+        add_filter("manage_{$post_type}_posts_columns", 'bw_mf_add_drag_handle_column', 999);
+        add_filter("manage_edit-{$post_type}_columns", 'bw_mf_add_drag_handle_column', 999);
         add_action("manage_{$post_type}_posts_custom_column", 'bw_mf_render_drag_handle_column', 10, 2);
     }
 }
@@ -155,6 +156,10 @@ if (!function_exists('bw_mf_add_drag_handle_column')) {
         $priority_keys = $post_type === 'product'
             ? ['name', 'title', 'cb']
             : ['title', 'cb'];
+
+        if (isset($columns['bw_mf_drag_handle'])) {
+            unset($columns['bw_mf_drag_handle']);
+        }
 
         $result = [];
         $inserted = false;
