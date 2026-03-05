@@ -221,18 +221,18 @@
 
 .bw-admin-root .bw-form-row {
     border: 1px solid var(--bw-admin-border-soft);
-    border-radius: 10px;
-    background: #fcfcfc;
-    padding: 12px;
-    margin-bottom: 10px;
+    border-radius: 8px;
+    background: #fff;
+    padding: 10px 12px;
+    margin-bottom: 8px;
 }
 
 .bw-admin-root .bw-form-row__header {
     display: grid;
-    grid-template-columns: minmax(160px, 1.2fr) auto auto auto;
+    grid-template-columns: minmax(240px, 1fr) 96px 120px auto;
     gap: 10px;
     align-items: end;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
 
 .bw-admin-root .bw-form-row__field {
@@ -248,42 +248,63 @@
 }
 
 .bw-admin-root .bw-form-row__field-compact {
-    min-width: 90px;
+    min-width: 0;
 }
 
 .bw-admin-root .bw-form-row__actions {
     justify-self: end;
-    align-self: center;
+    align-self: end;
     white-space: nowrap;
 }
 
 .bw-admin-root .bw-form-row__label {
     display: block;
-    font-size: 12px;
+    font-size: 11px;
+    line-height: 1.25;
     color: var(--bw-admin-text-muted);
 }
 
 .bw-admin-root .bw-form-row__body {
     display: grid;
     grid-template-columns: repeat(2, minmax(220px, 1fr));
-    gap: 12px;
+    gap: 10px;
 }
 
 .bw-admin-root .bw-form-row__source {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 4px;
     min-width: 0;
 }
 
-.bw-admin-root .bw-form-row__source input {
-    width: 100%;
+.bw-admin-root .bw-form-row__source-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.bw-admin-root .bw-form-row__source-control input {
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 0;
     max-width: none;
     box-sizing: border-box;
 }
 
-.bw-admin-root .bw-form-row__source .button {
-    align-self: flex-start;
+.bw-admin-root .bw-form-row__source-control .button {
+    flex: 0 0 auto;
+    margin: 0;
+}
+
+.bw-admin-root .bw-form-row__remove {
+    font-size: 12px;
+    color: #b32d2e;
+}
+
+.bw-admin-root .bw-form-row__remove:hover,
+.bw-admin-root .bw-form-row__remove:focus {
+    color: #8a2424;
+    text-decoration: underline;
 }
 
 .bw-admin-root .bw-header-media-preview {
@@ -368,6 +389,11 @@
 
     .bw-admin-root .bw-form-row__body {
         grid-template-columns: 1fr;
+    }
+
+    .bw-admin-root .bw-form-row__source-control {
+        flex-direction: column;
+        align-items: stretch;
     }
 }
 
