@@ -112,7 +112,12 @@ function bw_is_blackwork_site_admin_screen($hook, $page_slug = '')
         return true;
     }
 
-    return !empty($page_slug) && 0 === strpos($page_slug, 'blackwork-');
+    $allowed_pages = [
+        'blackwork-site-settings',
+        'blackwork-mail-marketing',
+    ];
+
+    return !empty($page_slug) && in_array($page_slug, $allowed_pages, true);
 }
 
 /**
