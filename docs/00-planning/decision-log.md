@@ -258,6 +258,7 @@ If a decision is normative and architecture-binding, the ADR process MUST be use
 - Follow-up actions:
   - Keep taxonomy resolver as single source of truth.
   - Keep list-table drag source restricted to handle column.
+  - Keep product list-table drag column anchored before `name` (fallback `title`, then `cb`) with no append fallback.
   - Keep media bulk assignment as media-only behavior.
 
 ### Entry 021

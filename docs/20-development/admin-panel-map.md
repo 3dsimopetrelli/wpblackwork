@@ -135,6 +135,7 @@ Current adoption:
       - Products list (`edit.php?post_type=product`) when `media_folders_use_products=1`
     - list-table UX contract (posts/pages/products):
       - dedicated drag-handle column before `Title`
+      - products anchor before `name` (fallback `title`, then `cb`) to stay deterministic with WooCommerce column maps
       - drag start only from handle (`dashicons-move`)
       - single-item drag assignment only (no list-table bulk drag)
   - Mail Marketing auxiliary panels: `admin/js/bw-order-newsletter-status.js`, `admin/js/bw-user-mail-marketing.js`

@@ -209,7 +209,10 @@ Corner markers payload:
   - `edit.php` (Posts)
   - `edit.php?post_type=page` (Pages)
   - `edit.php?post_type=product` (Products)
-- Dedicated drag-handle column (`bw_mf_drag_handle`) is rendered before Title.
+- Dedicated drag-handle column (`bw_mf_drag_handle`) is rendered before the primary label column:
+  - products: before `name` (fallback `title`, then `cb`)
+  - posts/pages: before `title` (fallback `cb`)
+  - no append-to-end fallback is allowed.
 - Handle icon: 4-arrows (`dashicons-move`), drag start source is handle only.
 - Drag ghost label shows current row title.
 - Row/checkbox drag start is disabled for non-media post types.

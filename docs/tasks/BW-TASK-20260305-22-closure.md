@@ -5,7 +5,7 @@
 - Task title: Media Folders: live settings conditionals + separate folders per content type + single-item drag assignment (Posts/Pages/Products)
 - Domain: Media Folders / Admin Runtime
 - Tier classification: 1
-- Implementation commit(s): `940fe9a`
+- Implementation commit(s): `940fe9a`, `8891858`, `bf68497`
 
 ### Commit Traceability
 - Commit hash: `940fe9a`
@@ -23,6 +23,16 @@
   - `docs/00-planning/decision-log.md`
   - `docs/00-governance/risk-register.md`
   - `docs/tasks/BW-TASK-20260305-22-start.md`
+- Commit hash: `8891858`
+- Commit message: `fix(media-folders): place product drag handle before name/title anchor`
+- Files impacted:
+  - `includes/modules/media-folders/admin/media-folders-admin.php`
+- Commit hash: `bf68497`
+- Commit message: `fix(media-folders): product column anchor and sidebar top offset under woo fixed header`
+- Files impacted:
+  - `includes/modules/media-folders/admin/media-folders-admin.php`
+  - `includes/modules/media-folders/admin/assets/media-folders.js`
+  - `includes/modules/media-folders/admin/assets/media-folders.css`
 
 ## 2) Implementation Summary
 - Modified files: listed above.
@@ -30,6 +40,8 @@
   - taxonomy model moved to strict per-content-type isolation.
   - list-table drag handle column (posts/pages/products).
   - single-item handle-only list-table drag assignment UX.
+  - WooCommerce products list-table column anchor corrected to insert drag handle before `name` (fallback `title`, then `cb`) with no end-append path.
+  - Products list sidebar offset hardened for Woo fixed header using dynamic CSS variable (`--bw-mf-top-offset`) computed from real header height.
   - request-context taxonomy resolver for folder CRUD/count/filter/assign endpoints.
 - Hooks modified or registered:
   - `current_screen` -> dynamic registration of `manage_{$post_type}_posts_columns` and `manage_{$post_type}_posts_custom_column` (enabled post types only, non-attachment).
@@ -46,7 +58,7 @@
 - New hooks registered:
   - `current_screen` handler for list-table drag-handle column injection.
 - Hook priorities modified:
-  - none.
+  - product columns now also use `manage_edit-{$post_type}_columns` at priority `999` to preserve deterministic insertion before Woo `name` column after third-party mutations.
 - Filters added or removed:
   - no new global filters; existing filters now use deterministic post_type->taxonomy resolver.
 - AJAX endpoints added or modified:
@@ -78,12 +90,14 @@
 - Local testing performed: Yes
 - Environment used: Repository-level implementation validation + required static checks
 - Screenshots / logs:
-  - `php -l` success logs on all modified PHP files.
-  - `composer run lint:main` executed successfully.
+  - `php -l` success logs on touched PHP files (`taxonomy.php`, `term-meta.php`, `media-folders-admin.php`, `ajax.php`, `media-query-filter.php`).
+  - `composer run lint:main` executed (exit success in closure pass).
 - Edge cases tested:
   - non-media contexts cannot trigger marker endpoint behavior.
   - non-media list rows not draggable except handle button.
   - taxonomy resolver fails closed on invalid context.
+  - products drag-handle column remains before `Product Name` even when Woo/third-party column maps are present.
+  - products sidebar root is not hidden under fixed Woo admin notices/headers.
 
 ## 4) Regression Surface Verification
 - Surface name: Media Library runtime (upload.php grid/list)
@@ -160,6 +174,8 @@ Confirm:
 - Monitoring required: Yes
 - Surfaces to monitor:
   - list-table drag handle rendering on posts/pages/products
+  - WooCommerce products list-table column ordering drift on plugin updates
+  - Woo fixed-header offset interactions on products screen
   - taxonomy isolation behavior in folder trees and assignments
   - media behavior regressions on upload grid/list
 - Monitoring duration: 1 release cycle
