@@ -1432,6 +1432,7 @@
         var html = '' +
             '<div id="bw-mf-context-menu" class="bw-mf-context-menu" role="menu" aria-hidden="true">' +
             '  <button type="button" class="bw-mf-context-menu__item" data-cmd="rename"><span class="dashicons dashicons-edit" aria-hidden="true"></span><span>Rename</span></button>' +
+            '  <button type="button" class="bw-mf-context-menu__item" data-cmd="new-subfolder"><span class="dashicons dashicons-category" aria-hidden="true"></span><span>New Subfolder</span></button>' +
             '  <button type="button" class="bw-mf-context-menu__item" data-cmd="pin"><span class="dashicons dashicons-sticky" aria-hidden="true"></span><span>Pin / Unpin</span></button>' +
             '  <button type="button" class="bw-mf-context-menu__item" data-cmd="color"><span class="dashicons dashicons-art" aria-hidden="true"></span><span>Icon Color</span></button>' +
             '  <button type="button" class="bw-mf-context-menu__item bw-mf-context-menu__item--danger" data-cmd="delete"><span class="dashicons dashicons-trash" aria-hidden="true"></span><span>Delete</span></button>' +
@@ -2349,6 +2350,28 @@
             var folder = termId > 0 ? findFolder(termId) : null;
 
             if (!row.length) {
+                hideContextMenu();
+                return;
+            }
+
+            if (cmd === 'new-subfolder') {
+                if (!folder || termId <= 0) {
+                    hideContextMenu();
+                    return;
+                }
+
+                var promptText = cfg.text && cfg.text.createSubPrompt ? cfg.text.createSubPrompt : 'Subfolder name';
+                var subName = window.prompt(promptText);
+                if (!subName) {
+                    hideContextMenu();
+                    return;
+                }
+
+                request('bw_media_create_folder', {
+                    name: subName,
+                    parent: termId
+                }, refreshTree);
+
                 hideContextMenu();
                 return;
             }

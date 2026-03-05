@@ -281,6 +281,17 @@ If a decision is normative and architecture-binding, the ADR process MUST be use
   - Keep shared guard helpers as the single source for list/grid query eligibility.
   - Keep strict folder payload normalization (`absint` + strict `'1'` for unassigned).
   - Keep no-op behavior when filter params are absent or invalid.
+
+### Entry 025
+- Date: 2026-03-06
+- Decision summary: Standardized folder context menu action `New Subfolder` across Media/Posts/Pages/Products by reusing existing folder-create endpoint with explicit parent-in-same-context validation.
+- Affected domain: Media Folders / Admin UX / Taxonomy Isolation
+- Rationale: Subfolder creation must be context-consistent and isolated without introducing new endpoints or divergent create flows.
+- Risk impact: Low-Medium, mitigated by existing nonce/capability gates and taxonomy-scoped parent validation.
+- Follow-up actions:
+  - Keep root `New Folder` behavior unchanged (parent `0` only from global button).
+  - Keep parent validation tied to resolved taxonomy context.
+  - Keep tree refresh path single-flow (`refreshTree`) after create/subcreate.
   - Keep media bulk assignment as media-only behavior.
 
 ### Entry 021

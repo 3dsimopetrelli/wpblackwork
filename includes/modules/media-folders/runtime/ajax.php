@@ -882,7 +882,7 @@ if (!function_exists('bw_mf_ajax_create_folder')) {
 
         $name = isset($_POST['name']) ? sanitize_text_field((string) $_POST['name']) : '';
         $name = trim($name);
-        $parent = isset($_POST['parent']) ? absint($_POST['parent']) : 0;
+        $parent = isset($_POST['parent']) ? absint(wp_unslash((string) $_POST['parent'])) : 0;
 
         if ($name === '') {
             bw_mf_ajax_error(__('Folder name is required.', 'bw'));

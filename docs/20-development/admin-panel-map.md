@@ -145,6 +145,7 @@ Current adoption:
       - products anchor before `name` (fallback `title`, then `cb`) to stay deterministic with WooCommerce column maps
       - drag start only from handle (`dashicons-move`)
       - single-item drag assignment only (no list-table bulk drag)
+      - folder node pencil context menu actions: Rename, New Subfolder, Pin/Unpin, Icon Color, Delete
   - Mail Marketing auxiliary panels: `admin/js/bw-order-newsletter-status.js`, `admin/js/bw-user-mail-marketing.js`
 
 ## 2) Tab-by-Tab Structural Map

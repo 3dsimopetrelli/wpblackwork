@@ -195,7 +195,12 @@ Corner markers payload:
   - count,
   - pencil button for action menu.
 - Context menu actions:
-  - Rename, Pin/Unpin, Icon Color, Delete.
+  - Rename, New Subfolder, Pin/Unpin, Icon Color, Delete.
+- New Subfolder contract:
+  - available in all enabled contexts (Media/Posts/Pages/Products),
+  - uses existing create-folder endpoint (`bw_media_create_folder`) with payload `{ name, parent }`,
+  - `parent` is current node term id and must validate in the same resolved taxonomy/context,
+  - successful creation refreshes current tree and preserves context isolation.
 
 ### DnD / Bulk
 - Grid/list draggable sources.
