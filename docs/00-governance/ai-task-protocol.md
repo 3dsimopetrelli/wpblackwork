@@ -7,6 +7,21 @@ All implementation work MUST follow the governance-controlled task lifecycle.
 
 AI agents MUST treat this document as the authoritative entry point.
 
+## 0) Task Initialization
+
+All work MUST begin with a governed task.
+
+AI agents MUST:
+
+1. Create or receive a task description
+2. Complete the Task Start Template
+3. Validate the Acceptance Gate
+4. Only then begin implementation
+
+Normative rule:
+
+Implementation MUST NOT begin without a completed Task Start Template.
+
 ## 1) Mandatory Task Lifecycle
 
 All implementation work MUST follow this lifecycle:
@@ -123,7 +138,8 @@ Before implementing code, AI agents MUST read:
 `docs/templates/task-start-template.md`  
 `docs/templates/task-closure-template.md`
 
-AI agents SHOULD also review:
+AI agents MUST also review the following documentation layers
+when they are relevant to the task:
 
 `docs/00-governance/`  
 `docs/10-architecture/`  
@@ -146,3 +162,6 @@ as binding governance documents.
 
 Any implementation performed outside this protocol
 is considered a governance violation.
+
+If this repository contains a `docs/` directory,
+AI agents MUST treat it as the authoritative system documentation.
