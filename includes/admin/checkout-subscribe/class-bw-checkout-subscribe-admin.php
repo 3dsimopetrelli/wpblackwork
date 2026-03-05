@@ -487,167 +487,214 @@ class BW_Checkout_Subscribe_Admin {
         $general_url = add_query_arg( 'tab', 'general', $base_url );
         $checkout_url = add_query_arg( 'tab', 'checkout', $base_url );
         ?>
-        <div class="wrap">
-            <h1><?php esc_html_e( 'Mail Marketing', 'bw' ); ?></h1>
+        <div class="wrap bw-admin-root bw-admin-page bw-admin-page-mail-marketing">
+            <div class="bw-admin-header">
+                <h1 class="bw-admin-title"><?php esc_html_e( 'Mail Marketing', 'bw' ); ?></h1>
+                <p class="bw-admin-subtitle"><?php esc_html_e( 'Configure email capture, Brevo integration, and checkout newsletter behavior.', 'bw' ); ?></p>
+            </div>
 
             <?php if ( isset( $_GET['saved'] ) && '1' === sanitize_text_field( wp_unslash( $_GET['saved'] ) ) ) : ?>
                 <div class="notice notice-success is-dismissible"><p><strong><?php esc_html_e( 'Mail Marketing settings saved.', 'bw' ); ?></strong></p></div>
             <?php endif; ?>
-
-            <h2 class="nav-tab-wrapper">
-                <a class="nav-tab <?php echo 'general' === $active_tab ? 'nav-tab-active' : ''; ?>" href="<?php echo esc_url( $general_url ); ?>"><?php esc_html_e( 'General', 'bw' ); ?></a>
-                <a class="nav-tab <?php echo 'checkout' === $active_tab ? 'nav-tab-active' : ''; ?>" href="<?php echo esc_url( $checkout_url ); ?>"><?php esc_html_e( 'Checkout', 'bw' ); ?></a>
-            </h2>
 
             <form method="post" action="">
                 <?php wp_nonce_field( 'bw_mail_marketing_save', 'bw_mail_marketing_nonce' ); ?>
                 <input type="hidden" name="bw_mail_marketing_submit" value="1" />
                 <input type="hidden" name="bw_mail_marketing_tab" value="<?php echo esc_attr( $active_tab ); ?>" />
 
+                <div class="bw-admin-action-bar">
+                    <div class="bw-admin-action-meta">
+                        <?php esc_html_e( 'Configure email capture and newsletter settings.', 'bw' ); ?>
+                    </div>
+                    <div class="bw-admin-action-buttons">
+                        <button type="submit" class="button button-primary"><?php esc_html_e( 'Save Settings', 'bw' ); ?></button>
+                    </div>
+                </div>
+
+                <section class="bw-admin-card bw-admin-card-mail-marketing">
+                    <h2 class="bw-admin-card-title"><?php esc_html_e( 'Sections', 'bw' ); ?></h2>
+                    <p class="bw-admin-card-helper"><?php esc_html_e( 'Switch between global Brevo settings and checkout channel controls.', 'bw' ); ?></p>
+                    <nav class="nav-tab-wrapper bw-admin-tabs">
+                        <a class="nav-tab <?php echo 'general' === $active_tab ? 'nav-tab-active' : ''; ?>" href="<?php echo esc_url( $general_url ); ?>"><?php esc_html_e( 'General', 'bw' ); ?></a>
+                        <a class="nav-tab <?php echo 'checkout' === $active_tab ? 'nav-tab-active' : ''; ?>" href="<?php echo esc_url( $checkout_url ); ?>"><?php esc_html_e( 'Checkout', 'bw' ); ?></a>
+                    </nav>
+                </section>
+
                 <?php if ( 'general' === $active_tab ) : ?>
-                    <table class="form-table" role="presentation">
-                        <tr>
-                            <th scope="row"><label for="bw_mail_marketing_general_api_key"><?php esc_html_e( 'Brevo API key', 'bw' ); ?></label></th>
-                            <td>
-                                <input type="password" id="bw_mail_marketing_general_api_key" name="bw_mail_marketing_general_api_key" class="regular-text" value="<?php echo esc_attr( $general_settings['api_key'] ); ?>" autocomplete="new-password" />
-                                <p class="description"><?php esc_html_e( 'Required for all channels.', 'bw' ); ?></p>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th scope="row"><?php esc_html_e( 'API base URL', 'bw' ); ?></th>
-                            <td>
-                                <input type="text" class="regular-text" value="<?php echo esc_attr( BW_Mail_Marketing_Settings::API_BASE_URL ); ?>" readonly="readonly" />
-                                <p class="description"><?php esc_html_e( 'Managed by plugin and not editable.', 'bw' ); ?></p>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th scope="row"><?php esc_html_e( 'Test connection', 'bw' ); ?></th>
-                            <td>
-                                <button type="button" class="button" id="bw-brevo-test-connection"><?php esc_html_e( 'Test connection', 'bw' ); ?></button>
-                                <span class="bw-brevo-test-result" aria-live="polite"></span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th scope="row"><label for="bw_mail_marketing_general_list_id"><?php esc_html_e( 'Main list', 'bw' ); ?></label></th>
-                            <td>
-                                <?php if ( ! empty( $lists_data['success'] ) ) : ?>
-                                    <select id="bw_mail_marketing_general_list_id" name="bw_mail_marketing_general_list_id">
-                                        <option value="0"><?php esc_html_e( 'Select list', 'bw' ); ?></option>
-                                        <?php foreach ( $lists_data['lists'] as $list ) : ?>
-                                            <option value="<?php echo esc_attr( $list['id'] ); ?>" <?php selected( (int) $general_settings['list_id'], (int) $list['id'] ); ?>>
-                                                <?php echo esc_html( sprintf( '#%d - %s', (int) $list['id'], $list['name'] ) ); ?>
-                                            </option>
-                                        <?php endforeach; ?>
+                    <section class="bw-admin-card">
+                        <h2 class="bw-admin-card-title"><?php esc_html_e( 'Brevo Connection', 'bw' ); ?></h2>
+                        <p class="bw-admin-card-helper"><?php esc_html_e( 'Set API access and target list for newsletter sync.', 'bw' ); ?></p>
+                        <table class="form-table bw-admin-table" role="presentation">
+                            <tr>
+                                <th scope="row"><label for="bw_mail_marketing_general_api_key"><?php esc_html_e( 'Brevo API key', 'bw' ); ?></label></th>
+                                <td>
+                                    <input type="password" id="bw_mail_marketing_general_api_key" name="bw_mail_marketing_general_api_key" class="regular-text" value="<?php echo esc_attr( $general_settings['api_key'] ); ?>" autocomplete="new-password" />
+                                    <p class="description"><?php esc_html_e( 'Required for all channels.', 'bw' ); ?></p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><?php esc_html_e( 'API base URL', 'bw' ); ?></th>
+                                <td>
+                                    <input type="text" class="regular-text" value="<?php echo esc_attr( BW_Mail_Marketing_Settings::API_BASE_URL ); ?>" readonly="readonly" />
+                                    <p class="description"><?php esc_html_e( 'Managed by plugin and not editable.', 'bw' ); ?></p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><?php esc_html_e( 'Test connection', 'bw' ); ?></th>
+                                <td>
+                                    <button type="button" class="button" id="bw-brevo-test-connection"><?php esc_html_e( 'Test connection', 'bw' ); ?></button>
+                                    <span class="bw-brevo-test-result" aria-live="polite"></span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label for="bw_mail_marketing_general_list_id"><?php esc_html_e( 'Main list', 'bw' ); ?></label></th>
+                                <td>
+                                    <?php if ( ! empty( $lists_data['success'] ) ) : ?>
+                                        <select id="bw_mail_marketing_general_list_id" name="bw_mail_marketing_general_list_id">
+                                            <option value="0"><?php esc_html_e( 'Select list', 'bw' ); ?></option>
+                                            <?php foreach ( $lists_data['lists'] as $list ) : ?>
+                                                <option value="<?php echo esc_attr( $list['id'] ); ?>" <?php selected( (int) $general_settings['list_id'], (int) $list['id'] ); ?>>
+                                                    <?php echo esc_html( sprintf( '#%d - %s', (int) $list['id'], $list['name'] ) ); ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    <?php else : ?>
+                                        <input type="number" id="bw_mail_marketing_general_list_id" name="bw_mail_marketing_general_list_id" value="<?php echo esc_attr( $general_settings['list_id'] ); ?>" class="small-text" min="0" />
+                                        <p class="description"><?php echo esc_html( $lists_data['message'] ); ?></p>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                        </table>
+                    </section>
+
+                    <section class="bw-admin-card">
+                        <h2 class="bw-admin-card-title"><?php esc_html_e( 'Opt-in and Sender', 'bw' ); ?></h2>
+                        <p class="bw-admin-card-helper"><?php esc_html_e( 'Set opt-in mode and sender information for outgoing communication.', 'bw' ); ?></p>
+                        <table class="form-table bw-admin-table" role="presentation">
+                            <tr>
+                                <th scope="row"><label for="bw_mail_marketing_general_default_optin_mode"><?php esc_html_e( 'Default opt-in mode', 'bw' ); ?></label></th>
+                                <td>
+                                    <select id="bw_mail_marketing_general_default_optin_mode" name="bw_mail_marketing_general_default_optin_mode">
+                                        <option value="single_opt_in" <?php selected( $general_settings['default_optin_mode'], 'single_opt_in' ); ?>><?php esc_html_e( 'Single opt-in', 'bw' ); ?></option>
+                                        <option value="double_opt_in" <?php selected( $general_settings['default_optin_mode'], 'double_opt_in' ); ?>><?php esc_html_e( 'Double opt-in', 'bw' ); ?></option>
                                     </select>
-                                <?php else : ?>
-                                    <input type="number" id="bw_mail_marketing_general_list_id" name="bw_mail_marketing_general_list_id" value="<?php echo esc_attr( $general_settings['list_id'] ); ?>" class="small-text" min="0" />
-                                    <p class="description"><?php echo esc_html( $lists_data['message'] ); ?></p>
-                                <?php endif; ?>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th scope="row"><label for="bw_mail_marketing_general_default_optin_mode"><?php esc_html_e( 'Default opt-in mode', 'bw' ); ?></label></th>
-                            <td>
-                                <select id="bw_mail_marketing_general_default_optin_mode" name="bw_mail_marketing_general_default_optin_mode">
-                                    <option value="single_opt_in" <?php selected( $general_settings['default_optin_mode'], 'single_opt_in' ); ?>><?php esc_html_e( 'Single opt-in', 'bw' ); ?></option>
-                                    <option value="double_opt_in" <?php selected( $general_settings['default_optin_mode'], 'double_opt_in' ); ?>><?php esc_html_e( 'Double opt-in', 'bw' ); ?></option>
-                                </select>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th scope="row"><label for="bw_mail_marketing_general_double_optin_template_id"><?php esc_html_e( 'DOI template ID', 'bw' ); ?></label></th>
-                            <td><input type="number" id="bw_mail_marketing_general_double_optin_template_id" name="bw_mail_marketing_general_double_optin_template_id" value="<?php echo esc_attr( $general_settings['double_optin_template_id'] ); ?>" class="small-text" min="0" /></td>
-                        </tr>
-                        <tr>
-                            <th scope="row"><label for="bw_mail_marketing_general_double_optin_redirect_url"><?php esc_html_e( 'DOI redirect URL', 'bw' ); ?></label></th>
-                            <td><input type="url" id="bw_mail_marketing_general_double_optin_redirect_url" name="bw_mail_marketing_general_double_optin_redirect_url" value="<?php echo esc_attr( $general_settings['double_optin_redirect_url'] ); ?>" class="regular-text" /></td>
-                        </tr>
-                        <tr>
-                            <th scope="row"><label for="bw_mail_marketing_general_sender_name"><?php esc_html_e( 'Sender name', 'bw' ); ?></label></th>
-                            <td><input type="text" id="bw_mail_marketing_general_sender_name" name="bw_mail_marketing_general_sender_name" value="<?php echo esc_attr( $general_settings['sender_name'] ); ?>" class="regular-text" /></td>
-                        </tr>
-                        <tr>
-                            <th scope="row"><label for="bw_mail_marketing_general_sender_email"><?php esc_html_e( 'Sender email', 'bw' ); ?></label></th>
-                            <td><input type="email" id="bw_mail_marketing_general_sender_email" name="bw_mail_marketing_general_sender_email" value="<?php echo esc_attr( $general_settings['sender_email'] ); ?>" class="regular-text" /></td>
-                        </tr>
-                        <tr>
-                            <th scope="row"><?php esc_html_e( 'Debug logging', 'bw' ); ?></th>
-                            <td>
-                                <label><input type="checkbox" name="bw_mail_marketing_general_debug_logging" value="1" <?php checked( $general_settings['debug_logging'], 1 ); ?> /> <?php esc_html_e( 'Enable verbose logs in WooCommerce logger.', 'bw' ); ?></label>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th scope="row"><label for="bw_mail_marketing_general_resubscribe_policy"><?php esc_html_e( 'Resubscribe policy', 'bw' ); ?></label></th>
-                            <td>
-                                <select id="bw_mail_marketing_general_resubscribe_policy" name="bw_mail_marketing_general_resubscribe_policy">
-                                    <option value="no_auto_resubscribe" <?php selected( $general_settings['resubscribe_policy'], 'no_auto_resubscribe' ); ?>><?php esc_html_e( 'Do not auto-resubscribe unsubscribed/blocklisted', 'bw' ); ?></option>
-                                </select>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th scope="row"><?php esc_html_e( 'Attribute sync', 'bw' ); ?></th>
-                            <td>
-                                <label style="margin-right: 16px;"><input type="checkbox" name="bw_mail_marketing_general_sync_first_name" value="1" <?php checked( $general_settings['sync_first_name'], 1 ); ?> /> <?php esc_html_e( 'First name', 'bw' ); ?></label>
-                                <label><input type="checkbox" name="bw_mail_marketing_general_sync_last_name" value="1" <?php checked( $general_settings['sync_last_name'], 1 ); ?> /> <?php esc_html_e( 'Last name', 'bw' ); ?></label>
-                            </td>
-                        </tr>
-                    </table>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label for="bw_mail_marketing_general_double_optin_template_id"><?php esc_html_e( 'DOI template ID', 'bw' ); ?></label></th>
+                                <td><input type="number" id="bw_mail_marketing_general_double_optin_template_id" name="bw_mail_marketing_general_double_optin_template_id" value="<?php echo esc_attr( $general_settings['double_optin_template_id'] ); ?>" class="small-text" min="0" /></td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label for="bw_mail_marketing_general_double_optin_redirect_url"><?php esc_html_e( 'DOI redirect URL', 'bw' ); ?></label></th>
+                                <td><input type="url" id="bw_mail_marketing_general_double_optin_redirect_url" name="bw_mail_marketing_general_double_optin_redirect_url" value="<?php echo esc_attr( $general_settings['double_optin_redirect_url'] ); ?>" class="regular-text" /></td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label for="bw_mail_marketing_general_sender_name"><?php esc_html_e( 'Sender name', 'bw' ); ?></label></th>
+                                <td><input type="text" id="bw_mail_marketing_general_sender_name" name="bw_mail_marketing_general_sender_name" value="<?php echo esc_attr( $general_settings['sender_name'] ); ?>" class="regular-text" /></td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label for="bw_mail_marketing_general_sender_email"><?php esc_html_e( 'Sender email', 'bw' ); ?></label></th>
+                                <td><input type="email" id="bw_mail_marketing_general_sender_email" name="bw_mail_marketing_general_sender_email" value="<?php echo esc_attr( $general_settings['sender_email'] ); ?>" class="regular-text" /></td>
+                            </tr>
+                        </table>
+                    </section>
+
+                    <section class="bw-admin-card">
+                        <h2 class="bw-admin-card-title"><?php esc_html_e( 'Advanced', 'bw' ); ?></h2>
+                        <p class="bw-admin-card-helper"><?php esc_html_e( 'Control logging and customer attribute synchronization behavior.', 'bw' ); ?></p>
+                        <table class="form-table bw-admin-table" role="presentation">
+                            <tr>
+                                <th scope="row"><?php esc_html_e( 'Debug logging', 'bw' ); ?></th>
+                                <td>
+                                    <label><input type="checkbox" name="bw_mail_marketing_general_debug_logging" value="1" <?php checked( $general_settings['debug_logging'], 1 ); ?> /> <?php esc_html_e( 'Enable verbose logs in WooCommerce logger.', 'bw' ); ?></label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label for="bw_mail_marketing_general_resubscribe_policy"><?php esc_html_e( 'Resubscribe policy', 'bw' ); ?></label></th>
+                                <td>
+                                    <select id="bw_mail_marketing_general_resubscribe_policy" name="bw_mail_marketing_general_resubscribe_policy">
+                                        <option value="no_auto_resubscribe" <?php selected( $general_settings['resubscribe_policy'], 'no_auto_resubscribe' ); ?>><?php esc_html_e( 'Do not auto-resubscribe unsubscribed/blocklisted', 'bw' ); ?></option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><?php esc_html_e( 'Attribute sync', 'bw' ); ?></th>
+                                <td>
+                                    <label style="margin-right: 16px;"><input type="checkbox" name="bw_mail_marketing_general_sync_first_name" value="1" <?php checked( $general_settings['sync_first_name'], 1 ); ?> /> <?php esc_html_e( 'First name', 'bw' ); ?></label>
+                                    <label><input type="checkbox" name="bw_mail_marketing_general_sync_last_name" value="1" <?php checked( $general_settings['sync_last_name'], 1 ); ?> /> <?php esc_html_e( 'Last name', 'bw' ); ?></label>
+                                </td>
+                            </tr>
+                        </table>
+                    </section>
                 <?php else : ?>
-                    <table class="form-table" role="presentation">
-                        <tr>
-                            <th scope="row"><?php esc_html_e( 'Enable newsletter checkbox', 'bw' ); ?></th>
-                            <td>
-                                <label><input type="checkbox" name="bw_mail_marketing_checkout_enabled" value="1" <?php checked( $checkout_settings['enabled'], 1 ); ?> /> <?php esc_html_e( 'Show the opt-in checkbox on checkout.', 'bw' ); ?></label>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th scope="row"><?php esc_html_e( 'Default checked', 'bw' ); ?></th>
-                            <td>
-                                <label><input type="checkbox" name="bw_mail_marketing_checkout_default_checked" value="1" <?php checked( $checkout_settings['default_checked'], 1 ); ?> /> <?php esc_html_e( 'Pre-check checkbox (verify GDPR compliance).', 'bw' ); ?></label>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th scope="row"><label for="bw_mail_marketing_checkout_label_text"><?php esc_html_e( 'Checkbox label', 'bw' ); ?></label></th>
-                            <td><input type="text" id="bw_mail_marketing_checkout_label_text" name="bw_mail_marketing_checkout_label_text" value="<?php echo esc_attr( $checkout_settings['label_text'] ); ?>" class="regular-text" /></td>
-                        </tr>
-                        <tr>
-                            <th scope="row"><label for="bw_mail_marketing_checkout_privacy_text"><?php esc_html_e( 'Privacy text', 'bw' ); ?></label></th>
-                            <td><textarea id="bw_mail_marketing_checkout_privacy_text" name="bw_mail_marketing_checkout_privacy_text" rows="3" class="large-text"><?php echo esc_textarea( $checkout_settings['privacy_text'] ); ?></textarea></td>
-                        </tr>
-                        <tr>
-                            <th scope="row"><label for="bw_mail_marketing_checkout_timing"><?php esc_html_e( 'Subscribe timing', 'bw' ); ?></label></th>
-                            <td>
-                                <select id="bw_mail_marketing_checkout_timing" name="bw_mail_marketing_checkout_timing">
-                                    <option value="paid" <?php selected( $checkout_settings['subscribe_timing'], 'paid' ); ?>><?php esc_html_e( 'Order paid (default)', 'bw' ); ?></option>
-                                    <option value="created" <?php selected( $checkout_settings['subscribe_timing'], 'created' ); ?>><?php esc_html_e( 'Order created (checkout submit)', 'bw' ); ?></option>
-                                </select>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th scope="row"><label for="bw_mail_marketing_checkout_channel_optin_mode"><?php esc_html_e( 'Channel opt-in mode', 'bw' ); ?></label></th>
-                            <td>
-                                <select id="bw_mail_marketing_checkout_channel_optin_mode" name="bw_mail_marketing_checkout_channel_optin_mode">
-                                    <option value="inherit" <?php selected( $checkout_settings['channel_optin_mode'], 'inherit' ); ?>><?php esc_html_e( 'Inherit General setting', 'bw' ); ?></option>
-                                    <option value="single_opt_in" <?php selected( $checkout_settings['channel_optin_mode'], 'single_opt_in' ); ?>><?php esc_html_e( 'Force single opt-in', 'bw' ); ?></option>
-                                    <option value="double_opt_in" <?php selected( $checkout_settings['channel_optin_mode'], 'double_opt_in' ); ?>><?php esc_html_e( 'Force double opt-in', 'bw' ); ?></option>
-                                </select>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th scope="row"><label for="bw_mail_marketing_checkout_placement_after_key"><?php esc_html_e( 'Placement after field key', 'bw' ); ?></label></th>
-                            <td>
-                                <input type="text" id="bw_mail_marketing_checkout_placement_after_key" name="bw_mail_marketing_checkout_placement_after_key" value="<?php echo esc_attr( $checkout_settings['placement_after_key'] ); ?>" class="regular-text" />
-                                <p class="description"><?php esc_html_e( 'Default: billing_email', 'bw' ); ?></p>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th scope="row"><label for="bw_mail_marketing_checkout_priority_offset"><?php esc_html_e( 'Priority offset', 'bw' ); ?></label></th>
-                            <td><input type="number" id="bw_mail_marketing_checkout_priority_offset" name="bw_mail_marketing_checkout_priority_offset" value="<?php echo esc_attr( $checkout_settings['priority_offset'] ); ?>" min="-50" max="50" step="1" /></td>
-                        </tr>
-                    </table>
+                    <section class="bw-admin-card">
+                        <h2 class="bw-admin-card-title"><?php esc_html_e( 'Checkout Opt-in', 'bw' ); ?></h2>
+                        <p class="bw-admin-card-helper"><?php esc_html_e( 'Control visibility and default behavior of the newsletter checkbox.', 'bw' ); ?></p>
+                        <table class="form-table bw-admin-table" role="presentation">
+                            <tr>
+                                <th scope="row"><?php esc_html_e( 'Enable newsletter checkbox', 'bw' ); ?></th>
+                                <td>
+                                    <label><input type="checkbox" name="bw_mail_marketing_checkout_enabled" value="1" <?php checked( $checkout_settings['enabled'], 1 ); ?> /> <?php esc_html_e( 'Show the opt-in checkbox on checkout.', 'bw' ); ?></label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><?php esc_html_e( 'Default checked', 'bw' ); ?></th>
+                                <td>
+                                    <label><input type="checkbox" name="bw_mail_marketing_checkout_default_checked" value="1" <?php checked( $checkout_settings['default_checked'], 1 ); ?> /> <?php esc_html_e( 'Pre-check checkbox (verify GDPR compliance).', 'bw' ); ?></label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label for="bw_mail_marketing_checkout_label_text"><?php esc_html_e( 'Checkbox label', 'bw' ); ?></label></th>
+                                <td><input type="text" id="bw_mail_marketing_checkout_label_text" name="bw_mail_marketing_checkout_label_text" value="<?php echo esc_attr( $checkout_settings['label_text'] ); ?>" class="regular-text" /></td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label for="bw_mail_marketing_checkout_privacy_text"><?php esc_html_e( 'Privacy text', 'bw' ); ?></label></th>
+                                <td><textarea id="bw_mail_marketing_checkout_privacy_text" name="bw_mail_marketing_checkout_privacy_text" rows="3" class="large-text"><?php echo esc_textarea( $checkout_settings['privacy_text'] ); ?></textarea></td>
+                            </tr>
+                        </table>
+                    </section>
+
+                    <section class="bw-admin-card">
+                        <h2 class="bw-admin-card-title"><?php esc_html_e( 'Subscription Behavior', 'bw' ); ?></h2>
+                        <p class="bw-admin-card-helper"><?php esc_html_e( 'Define timing, opt-in mode override, and field placement strategy.', 'bw' ); ?></p>
+                        <table class="form-table bw-admin-table" role="presentation">
+                            <tr>
+                                <th scope="row"><label for="bw_mail_marketing_checkout_timing"><?php esc_html_e( 'Subscribe timing', 'bw' ); ?></label></th>
+                                <td>
+                                    <select id="bw_mail_marketing_checkout_timing" name="bw_mail_marketing_checkout_timing">
+                                        <option value="paid" <?php selected( $checkout_settings['subscribe_timing'], 'paid' ); ?>><?php esc_html_e( 'Order paid (default)', 'bw' ); ?></option>
+                                        <option value="created" <?php selected( $checkout_settings['subscribe_timing'], 'created' ); ?>><?php esc_html_e( 'Order created (checkout submit)', 'bw' ); ?></option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label for="bw_mail_marketing_checkout_channel_optin_mode"><?php esc_html_e( 'Channel opt-in mode', 'bw' ); ?></label></th>
+                                <td>
+                                    <select id="bw_mail_marketing_checkout_channel_optin_mode" name="bw_mail_marketing_checkout_channel_optin_mode">
+                                        <option value="inherit" <?php selected( $checkout_settings['channel_optin_mode'], 'inherit' ); ?>><?php esc_html_e( 'Inherit General setting', 'bw' ); ?></option>
+                                        <option value="single_opt_in" <?php selected( $checkout_settings['channel_optin_mode'], 'single_opt_in' ); ?>><?php esc_html_e( 'Force single opt-in', 'bw' ); ?></option>
+                                        <option value="double_opt_in" <?php selected( $checkout_settings['channel_optin_mode'], 'double_opt_in' ); ?>><?php esc_html_e( 'Force double opt-in', 'bw' ); ?></option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label for="bw_mail_marketing_checkout_placement_after_key"><?php esc_html_e( 'Placement after field key', 'bw' ); ?></label></th>
+                                <td>
+                                    <input type="text" id="bw_mail_marketing_checkout_placement_after_key" name="bw_mail_marketing_checkout_placement_after_key" value="<?php echo esc_attr( $checkout_settings['placement_after_key'] ); ?>" class="regular-text" />
+                                    <p class="description"><?php esc_html_e( 'Default: billing_email', 'bw' ); ?></p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label for="bw_mail_marketing_checkout_priority_offset"><?php esc_html_e( 'Priority offset', 'bw' ); ?></label></th>
+                                <td><input type="number" id="bw_mail_marketing_checkout_priority_offset" name="bw_mail_marketing_checkout_priority_offset" value="<?php echo esc_attr( $checkout_settings['priority_offset'] ); ?>" min="-50" max="50" step="1" /></td>
+                            </tr>
+                        </table>
+                    </section>
                 <?php endif; ?>
 
-                <?php submit_button( __( 'Save Mail Marketing settings', 'bw' ) ); ?>
+                <div class="submit">
+                    <button type="submit" class="button button-primary"><?php esc_html_e( 'Save Mail Marketing settings', 'bw' ); ?></button>
+                </div>
             </form>
         </div>
         <?php
