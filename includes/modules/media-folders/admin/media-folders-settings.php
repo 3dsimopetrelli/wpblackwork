@@ -73,7 +73,7 @@ if (!function_exists('bw_mf_render_settings_page')) {
                     </div>
                 </div>
 
-                <section class="bw-admin-card">
+                <section class="bw-admin-card bw-admin-card-media-folders">
                     <h2 class="bw-admin-card-title"><?php esc_html_e('Module Controls', 'bw'); ?></h2>
                     <p class="bw-admin-card-helper"><?php esc_html_e('Enable or refine folder assignment indicators used in the Media Library.', 'bw'); ?></p>
 
