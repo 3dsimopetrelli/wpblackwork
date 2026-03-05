@@ -175,15 +175,50 @@
 }
 
 .bw-admin-root .bw-admin-tabs {
-    margin-top: 12px;
-    border-bottom: 0;
+    margin: 12px 0 0;
+    border: 0;
     padding-left: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 
 .bw-admin-root .bw-admin-tabs .nav-tab {
-    border-radius: 8px 8px 0 0;
+    margin: 0;
+    border: 1px solid var(--bw-admin-border-soft);
+    border-radius: 999px;
+    background: #f6f7f7;
+    color: var(--bw-admin-text-muted);
+    line-height: 1.2;
 }
 
-.bw-admin-root .bw-admin-card-site-settings-content .submit {
+.bw-admin-root .bw-admin-tabs .nav-tab:hover {
+    background: #ffffff;
+    color: var(--bw-admin-text);
+}
+
+.bw-admin-root .bw-admin-tabs .nav-tab.nav-tab-active {
+    background: #ffffff;
+    color: var(--bw-admin-text);
+    border-color: var(--bw-admin-border);
+    font-weight: 600;
+}
+
+.bw-admin-root .bw-admin-card-site-settings {
+    padding-bottom: 0;
+}
+
+.bw-admin-root .bw-admin-card-site-settings .bw-admin-site-settings-content {
+    margin-top: 12px;
+    border-top: 1px solid var(--bw-admin-border-soft);
+    padding: 16px 0 0;
+    background: transparent;
+    border-right: 0;
+    border-bottom: 0;
+    border-left: 0;
+    box-shadow: none;
+}
+
+.bw-admin-root .bw-admin-card-site-settings .submit {
     margin-top: 18px;
 }

@@ -847,71 +847,69 @@ function bw_site_settings_page()
             </div>
         </div>
 
-        <section class="bw-admin-card">
+        <section class="bw-admin-card bw-admin-card-site-settings">
             <h2 class="bw-admin-card-title"><?php esc_html_e('Panels', 'bw'); ?></h2>
             <p class="bw-admin-card-helper"><?php esc_html_e('Switch between configuration domains without leaving Site Settings.', 'bw'); ?></p>
 
-        <!-- Tab Navigation -->
-        <nav class="nav-tab-wrapper bw-admin-tabs">
-            <a href="?page=blackwork-site-settings&tab=cart-popup"
-                class="nav-tab <?php echo $active_tab === 'cart-popup' ? 'nav-tab-active' : ''; ?>">
-                Cart Pop-up
-            </a>
-            <a href="?page=blackwork-site-settings&tab=bw-coming-soon"
-                class="nav-tab <?php echo $active_tab === 'bw-coming-soon' ? 'nav-tab-active' : ''; ?>">
-                BW Coming Soon
-            </a>
-            <a href="?page=blackwork-site-settings&tab=account-page"
-                class="nav-tab <?php echo $active_tab === 'account-page' ? 'nav-tab-active' : ''; ?>">
-                Login Page
-            </a>
-            <a href="?page=blackwork-site-settings&tab=my-account-page"
-                class="nav-tab <?php echo $active_tab === 'my-account-page' ? 'nav-tab-active' : ''; ?>">
-                My Account Page
-            </a>
-            <a href="?page=blackwork-site-settings&tab=checkout"
-                class="nav-tab <?php echo $active_tab === 'checkout' ? 'nav-tab-active' : ''; ?>">
-                Checkout
-            </a>
-            <a href="?page=blackwork-site-settings&tab=redirect"
-                class="nav-tab <?php echo $active_tab === 'redirect' ? 'nav-tab-active' : ''; ?>">
-                Redirect
-            </a>
-            <a href="?page=blackwork-site-settings&tab=import-product"
-                class="nav-tab <?php echo $active_tab === 'import-product' ? 'nav-tab-active' : ''; ?>">
-                Import Product
-            </a>
-            <a href="?page=blackwork-site-settings&tab=loading"
-                class="nav-tab <?php echo $active_tab === 'loading' ? 'nav-tab-active' : ''; ?>">
-                Loading
-            </a>
-        </nav>
-        </section>
+            <!-- Tab Navigation -->
+            <nav class="nav-tab-wrapper bw-admin-tabs">
+                <a href="?page=blackwork-site-settings&tab=cart-popup"
+                    class="nav-tab <?php echo $active_tab === 'cart-popup' ? 'nav-tab-active' : ''; ?>">
+                    Cart Pop-up
+                </a>
+                <a href="?page=blackwork-site-settings&tab=bw-coming-soon"
+                    class="nav-tab <?php echo $active_tab === 'bw-coming-soon' ? 'nav-tab-active' : ''; ?>">
+                    BW Coming Soon
+                </a>
+                <a href="?page=blackwork-site-settings&tab=account-page"
+                    class="nav-tab <?php echo $active_tab === 'account-page' ? 'nav-tab-active' : ''; ?>">
+                    Login Page
+                </a>
+                <a href="?page=blackwork-site-settings&tab=my-account-page"
+                    class="nav-tab <?php echo $active_tab === 'my-account-page' ? 'nav-tab-active' : ''; ?>">
+                    My Account Page
+                </a>
+                <a href="?page=blackwork-site-settings&tab=checkout"
+                    class="nav-tab <?php echo $active_tab === 'checkout' ? 'nav-tab-active' : ''; ?>">
+                    Checkout
+                </a>
+                <a href="?page=blackwork-site-settings&tab=redirect"
+                    class="nav-tab <?php echo $active_tab === 'redirect' ? 'nav-tab-active' : ''; ?>">
+                    Redirect
+                </a>
+                <a href="?page=blackwork-site-settings&tab=import-product"
+                    class="nav-tab <?php echo $active_tab === 'import-product' ? 'nav-tab-active' : ''; ?>">
+                    Import Product
+                </a>
+                <a href="?page=blackwork-site-settings&tab=loading"
+                    class="nav-tab <?php echo $active_tab === 'loading' ? 'nav-tab-active' : ''; ?>">
+                    Loading
+                </a>
+            </nav>
 
-        <section class="bw-admin-card bw-admin-card-site-settings-content">
-        <!-- Tab Content -->
-        <div class="tab-content bw-admin-site-settings-content">
-            <?php
-            // Renderizza il contenuto del tab attivo
-            if ($active_tab === 'cart-popup') {
-                bw_site_render_cart_popup_tab();
-            } elseif ($active_tab === 'bw-coming-soon') {
-                bw_site_render_coming_soon_tab();
-            } elseif ($active_tab === 'account-page') {
-                bw_site_render_account_page_tab();
-            } elseif ($active_tab === 'my-account-page') {
-                bw_site_render_my_account_front_tab();
-            } elseif ($active_tab === 'checkout') {
-                bw_site_render_checkout_tab();
-            } elseif ($active_tab === 'redirect') {
-                bw_site_render_redirect_tab();
-            } elseif ($active_tab === 'import-product') {
-                bw_site_render_import_product_tab();
-            } elseif ($active_tab === 'loading') {
-                bw_site_render_loading_tab();
-            }
-            ?>
-        </div>
+            <!-- Tab Content -->
+            <div class="tab-content bw-admin-site-settings-content">
+                <?php
+                // Renderizza il contenuto del tab attivo
+                if ($active_tab === 'cart-popup') {
+                    bw_site_render_cart_popup_tab();
+                } elseif ($active_tab === 'bw-coming-soon') {
+                    bw_site_render_coming_soon_tab();
+                } elseif ($active_tab === 'account-page') {
+                    bw_site_render_account_page_tab();
+                } elseif ($active_tab === 'my-account-page') {
+                    bw_site_render_my_account_front_tab();
+                } elseif ($active_tab === 'checkout') {
+                    bw_site_render_checkout_tab();
+                } elseif ($active_tab === 'redirect') {
+                    bw_site_render_redirect_tab();
+                } elseif ($active_tab === 'import-product') {
+                    bw_site_render_import_product_tab();
+                } elseif ($active_tab === 'loading') {
+                    bw_site_render_loading_tab();
+                }
+                ?>
+            </div>
         </section>
     </div>
     <?php if (!empty($active_submit_name)) : ?>
