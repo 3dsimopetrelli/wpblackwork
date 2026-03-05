@@ -18,8 +18,8 @@ docs/00-governance/risk-notes-theme-builder-lite.md
 docs/00-governance/risk-register.md
 docs/00-governance/system-normative-charter.md
 docs/00-governance/system-state-matrix.md
-docs/00-governance/task-close-template.md
-docs/00-governance/task-start-template.md
+docs/templates/task-closure-template.md
+docs/templates/task-start-template.md
 docs/00-governance/technical-hardening-plan.md
 docs/00-governance/working-protocol.md
 docs/00-overview
@@ -210,11 +210,11 @@ docs/99-archive/smart-header/README.md
 docs/99-archive/smart-header/smart-header-auto-dark-detection.md
 docs/99-archive/smart-header/smart-header-dark-zones-guide.md
 docs/README.md
-docs/_templates
-docs/_templates/README.md
-docs/_templates/maintenance-task-template.md
-docs/_templates/task-closure-template.md
-docs/_templates/task-start-template.md
+docs/templates
+docs/templates/README.md
+docs/templates/maintenance-task-template.md
+docs/templates/task-closure-template.md
+docs/templates/task-start-template.md
 docs/tasks
 docs/tasks/BW-DOCS-ARCHITECTURE-SNAPSHOT.md
 docs/tasks/BW-TASK-20260305-01-closure.md
@@ -239,7 +239,7 @@ docs/tasks/media-folders-close-task.md
 - `docs/60-adr`: Architecture Decision Records (normative architecture decisions).
 - `docs/60-system`: system integration-level maps not yet fully indexed.
 - `docs/99-archive`: historical/superseded documents kept for traceability.
-- `docs/_templates`: reusable templates for task start/maintenance/closure workflows.
+- `docs/templates`: reusable templates for task start/maintenance/closure workflows.
 - `docs/tasks`: task-level delivery records, implementation reports, and closure artifacts.
 
 ### Major Subfolders
@@ -285,7 +285,7 @@ docs/tasks/media-folders-close-task.md
 
 1. **Header docs overlap**: `docs/30-features/header/*` vs `docs/99-archive/header/*` plus `docs/30-features/smart-header/*` and archive smart-header docs.
 2. **Protocol duplication risk**: `docs/00-governance/working-protocol.md`, `docs/00-governance/blackwork-new-chat-operating-protocol.md`, and `docs/50-ops/blackwork-development-protocol.md` partially overlap process guidance.
-3. **Task template duplication**: `docs/00-governance/task-*.md` and `docs/_templates/task-*.md` cover similar start/close flows.
+3. **Task template duplication**: `docs/00-governance/task-*.md` and `docs/templates/task-*.md` cover similar start/close flows.
 4. **Checkout architecture overlap**: `docs/30-features/checkout/checkout-architecture-map.md` and `docs/40-integrations/cart-checkout-responsibility-matrix.md` and some `docs/50-ops/*checkout*` audits can drift.
 5. **Supabase cross-location overlap**: `docs/40-integrations/supabase/*` and `docs/60-system/integration/*` can duplicate integration maps.
 6. **Admin architecture overlap**: `docs/20-development/admin-panel-map.md` and `docs/50-ops/admin-panel-reality-audit.md` (map vs audit) may diverge if update cadence differs.
