@@ -6,6 +6,7 @@ if (!defined('ABSPATH')) {
 add_action('admin_enqueue_scripts', 'bw_mf_admin_enqueue_assets', 20);
 add_action('admin_footer-upload.php', 'bw_mf_render_sidebar_mount', 20);
 add_action('admin_footer-edit.php', 'bw_mf_render_sidebar_mount', 20);
+add_action('current_screen', 'bw_mf_register_list_table_drag_column', 20);
 
 if (!function_exists('bw_mf_get_current_screen_post_type')) {
     function bw_mf_get_current_screen_post_type()
@@ -76,6 +77,10 @@ if (!function_exists('bw_mf_admin_enqueue_assets')) {
         }
 
         $screen_context = bw_mf_get_context_for_post_type($post_type);
+        $taxonomy = bw_mf_get_taxonomy_for_post_type($post_type);
+        if ($taxonomy === '') {
+            return;
+        }
         $css_path = __DIR__ . '/assets/media-folders.css';
         $js_path = __DIR__ . '/assets/media-folders.js';
         $corner_enabled = bw_mf_is_corner_indicator_enabled();
@@ -104,6 +109,7 @@ if (!function_exists('bw_mf_admin_enqueue_assets')) {
             'nonce' => wp_create_nonce('bw_media_folders_nonce'),
             'active' => bw_mf_get_active_filter_payload($post_type),
             'postType' => $post_type,
+            'taxonomy' => $taxonomy,
             'screenContext' => $screen_context,
             'cornerIndicatorEnabled' => ($post_type === 'attachment' && $corner_enabled) ? 1 : 0,
             'flags' => [
@@ -118,6 +124,72 @@ if (!function_exists('bw_mf_admin_enqueue_assets')) {
                 'selectMedia' => __('Select at least one media item.', 'bw'),
             ],
         ]);
+    }
+}
+
+if (!function_exists('bw_mf_register_list_table_drag_column')) {
+    function bw_mf_register_list_table_drag_column()
+    {
+        if (!bw_mf_admin_is_supported_list_screen()) {
+            return;
+        }
+
+        $post_type = bw_mf_get_current_screen_post_type();
+        if ($post_type === '' || $post_type === 'attachment') {
+            return;
+        }
+
+        add_filter("manage_{$post_type}_posts_columns", 'bw_mf_add_drag_handle_column', 9);
+        add_action("manage_{$post_type}_posts_custom_column", 'bw_mf_render_drag_handle_column', 10, 2);
+    }
+}
+
+if (!function_exists('bw_mf_add_drag_handle_column')) {
+    function bw_mf_add_drag_handle_column($columns)
+    {
+        if (!is_array($columns)) {
+            return $columns;
+        }
+
+        $result = [];
+        foreach ($columns as $key => $label) {
+            if ($key === 'title') {
+                $result['bw_mf_drag_handle'] = '';
+            }
+            $result[$key] = $label;
+        }
+
+        if (!isset($result['bw_mf_drag_handle'])) {
+            $result = array_merge(['bw_mf_drag_handle' => ''], $result);
+        }
+
+        return $result;
+    }
+}
+
+if (!function_exists('bw_mf_render_drag_handle_column')) {
+    function bw_mf_render_drag_handle_column($column_name, $post_id)
+    {
+        if ($column_name !== 'bw_mf_drag_handle') {
+            return;
+        }
+
+        $post = get_post($post_id);
+        if (!$post) {
+            return;
+        }
+
+        $title = get_the_title($post_id);
+        if ($title === '') {
+            $title = __('(no title)', 'bw');
+        }
+
+        printf(
+            '<button type="button" class="bw-mf-row-drag-handle" draggable="true" data-post-id="%d" data-drag-title="%s" aria-label="%s"><span class="dashicons dashicons-move" aria-hidden="true"></span></button>',
+            (int) $post_id,
+            esc_attr($title),
+            esc_attr__('Drag item to folder', 'bw')
+        );
     }
 }
 

@@ -8,45 +8,47 @@ add_action('init', 'bw_mf_register_term_meta', 11);
 if (!function_exists('bw_mf_register_term_meta')) {
     function bw_mf_register_term_meta()
     {
-        register_term_meta('bw_media_folder', 'bw_color', [
-            'type' => 'string',
-            'single' => true,
-            'default' => '',
-            'show_in_rest' => false,
-            'sanitize_callback' => 'bw_mf_sanitize_hex_color',
-        ]);
+        foreach (bw_mf_get_supported_taxonomies() as $taxonomy) {
+            register_term_meta($taxonomy, 'bw_color', [
+                'type' => 'string',
+                'single' => true,
+                'default' => '',
+                'show_in_rest' => false,
+                'sanitize_callback' => 'bw_mf_sanitize_hex_color',
+            ]);
 
-        register_term_meta('bw_media_folder', 'bw_pinned', [
-            'type' => 'integer',
-            'single' => true,
-            'default' => 0,
-            'show_in_rest' => false,
-            'sanitize_callback' => 'bw_mf_sanitize_checkbox_int',
-        ]);
+            register_term_meta($taxonomy, 'bw_pinned', [
+                'type' => 'integer',
+                'single' => true,
+                'default' => 0,
+                'show_in_rest' => false,
+                'sanitize_callback' => 'bw_mf_sanitize_checkbox_int',
+            ]);
 
-        register_term_meta('bw_media_folder', 'bw_sort', [
-            'type' => 'integer',
-            'single' => true,
-            'default' => 0,
-            'show_in_rest' => false,
-            'sanitize_callback' => 'absint',
-        ]);
+            register_term_meta($taxonomy, 'bw_sort', [
+                'type' => 'integer',
+                'single' => true,
+                'default' => 0,
+                'show_in_rest' => false,
+                'sanitize_callback' => 'absint',
+            ]);
 
-        register_term_meta('bw_media_folder', 'bw_mf_icon_color', [
-            'type' => 'string',
-            'single' => true,
-            'default' => '',
-            'show_in_rest' => false,
-            'sanitize_callback' => 'bw_mf_sanitize_hex_color',
-        ]);
+            register_term_meta($taxonomy, 'bw_mf_icon_color', [
+                'type' => 'string',
+                'single' => true,
+                'default' => '',
+                'show_in_rest' => false,
+                'sanitize_callback' => 'bw_mf_sanitize_hex_color',
+            ]);
 
-        register_term_meta('bw_media_folder', 'bw_mf_pinned', [
-            'type' => 'integer',
-            'single' => true,
-            'default' => 0,
-            'show_in_rest' => false,
-            'sanitize_callback' => 'bw_mf_sanitize_checkbox_int',
-        ]);
+            register_term_meta($taxonomy, 'bw_mf_pinned', [
+                'type' => 'integer',
+                'single' => true,
+                'default' => 0,
+                'show_in_rest' => false,
+                'sanitize_callback' => 'bw_mf_sanitize_checkbox_int',
+            ]);
+        }
     }
 }
 

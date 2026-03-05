@@ -249,6 +249,17 @@ If a decision is normative and architecture-binding, the ADR process MUST be use
   - Keep media-grid (`ajax_query_attachments_args`) behavior attachment-only.
   - Revalidate selectors/placement contracts on WordPress admin UI updates.
 
+### Entry 022
+- Date: 2026-03-05
+- Decision summary: Enforced strict folder isolation per content type using dedicated taxonomies and constrained list-table drag UX for Posts/Pages/Products to handle-only single-item assignment.
+- Affected domain: Media Folders / Admin List Tables / Data Isolation
+- Rationale: Cross-content folder sharing created ambiguity and contamination risk; separate taxonomy truth surfaces guarantee deterministic isolation and clearer operator intent.
+- Risk impact: Medium, mitigated by deterministic post_type->taxonomy mapping, unchanged nonce/capability gates, and fail-open guards on unsupported contexts.
+- Follow-up actions:
+  - Keep taxonomy resolver as single source of truth.
+  - Keep list-table drag source restricted to handle column.
+  - Keep media bulk assignment as media-only behavior.
+
 ### Entry 021
 - Date: 2026-03-05
 - Decision summary: Opened a phased Blackwork Site admin hardening program after Shopify rollout audit, prioritizing enqueue-scope correctness and modular maintainability without changing runtime/storefront behavior.

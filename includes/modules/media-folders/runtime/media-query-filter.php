@@ -72,11 +72,16 @@ if (!function_exists('bw_mf_grid_debug_log')) {
 }
 
 if (!function_exists('bw_mf_apply_folder_tax_query')) {
-    function bw_mf_apply_folder_tax_query(array $tax_query, $folder_id, $unassigned)
+    function bw_mf_apply_folder_tax_query(array $tax_query, $folder_id, $unassigned, $taxonomy)
     {
+        $taxonomy = sanitize_key((string) $taxonomy);
+        if ($taxonomy === '') {
+            return $tax_query;
+        }
+
         if ($unassigned) {
             $tax_query[] = [
-                'taxonomy' => 'bw_media_folder',
+                'taxonomy' => $taxonomy,
                 'operator' => 'NOT EXISTS',
             ];
 
@@ -85,7 +90,7 @@ if (!function_exists('bw_mf_apply_folder_tax_query')) {
 
         if ($folder_id > 0) {
             $tax_query[] = [
-                'taxonomy' => 'bw_media_folder',
+                'taxonomy' => $taxonomy,
                 'field' => 'term_id',
                 'terms' => [$folder_id],
             ];
@@ -140,6 +145,10 @@ if (!function_exists('bw_mf_filter_media_list_query')) {
         if ($screen_post_type === '') {
             return;
         }
+        $taxonomy = bw_mf_get_taxonomy_for_post_type($screen_post_type);
+        if ($taxonomy === '') {
+            return;
+        }
 
         $post_type = $query->get('post_type');
         if ($post_type && $post_type !== $screen_post_type) {
@@ -157,7 +166,7 @@ if (!function_exists('bw_mf_filter_media_list_query')) {
         }
 
         $existing_tax_query = $query->get('tax_query');
-        $mf_tax_query = bw_mf_apply_folder_tax_query([], $folder_id, $unassigned);
+        $mf_tax_query = bw_mf_apply_folder_tax_query([], $folder_id, $unassigned, $taxonomy);
         $query->set('tax_query', bw_mf_merge_tax_query($existing_tax_query, $mf_tax_query));
         $query->set('post_type', $screen_post_type);
     }
@@ -207,7 +216,7 @@ if (!function_exists('bw_mf_filter_media_grid_query')) {
         }
 
         $existing_tax_query = isset($args['tax_query']) ? $args['tax_query'] : [];
-        $mf_tax_query = bw_mf_apply_folder_tax_query([], $folder_id, $unassigned);
+        $mf_tax_query = bw_mf_apply_folder_tax_query([], $folder_id, $unassigned, 'bw_media_folder');
         $args['tax_query'] = bw_mf_merge_tax_query($existing_tax_query, $mf_tax_query);
         bw_mf_grid_debug_log('grid filter applied', [
             'folder_id' => $folder_id,

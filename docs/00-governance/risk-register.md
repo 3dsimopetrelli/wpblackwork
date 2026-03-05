@@ -283,7 +283,7 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 - Impact: Medium
 - Likelihood: Medium
 - Risk Level: Medium
-- Current Mitigation: attachment ID normalization + batch limit (200), capability/nonce/context validation, server-side counts API, marker cache invalidation on assignment, and single-flight marker fetch queue.
+- Current Mitigation: attachment/object ID normalization + batch limit (200), capability/nonce/context validation, deterministic post_type->taxonomy isolation (`bw_media_folder`/`bw_post_folder`/`bw_page_folder`/`bw_product_folder`), server-side counts API, marker cache invalidation on assignment, and single-flight marker fetch queue.
 - Monitoring Status: Monitoring
 - Linked Documents:
   - [Media Folders Spec](../30-features/media-folders/media-folders-module-spec.md)

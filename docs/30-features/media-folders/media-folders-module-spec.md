@@ -37,11 +37,16 @@ Out of scope:
   - module is no-op (no taxonomy/runtime/admin assets/ajax registration execution path from module loader).
 
 ## Data Model
-### Taxonomy
-- `bw_media_folder`
-- Hierarchical: `true`
-- Object type: `attachment`
-- `public=false`, `show_ui=false`, `show_in_rest=false`, `rewrite=false`, `query_var=false`
+### Taxonomy (Strict Isolation)
+- `bw_media_folder` -> `attachment`
+- `bw_post_folder` -> `post`
+- `bw_page_folder` -> `page`
+- `bw_product_folder` -> `product`
+- All are hierarchical and admin-virtual (`public=false`, `show_ui=false`, `show_in_rest=false`, `rewrite=false`, `query_var=false`)
+- Isolation contract:
+  - each admin content type reads/writes only its mapped taxonomy
+  - folder trees are not shared across content types
+  - enabling Posts/Pages/Products starts with empty trees by design
 
 ### Term Meta
 - Legacy metadata:
@@ -93,6 +98,7 @@ Rationale:
   - main query,
   - post type context enabled via module flags,
   - `bw_media_folder` or `bw_media_unassigned=1` provided.
+- Taxonomy used is resolved deterministically by post type (`attachment/post/page/product`).
 
 ### Grid mode (`ajax_query_attachments_args`)
 - Applies only when:
@@ -163,6 +169,10 @@ Corner markers payload:
 - Drop targets:
   - folder rows + unassigned default row.
 - Bulk move uses selected media ids + selected folder id.
+- Constraint:
+  - bulk assignment remains Media-only.
+  - Posts/Pages/Products use single-item drag assignment only.
+  - list-table drag starts only from dedicated drag handle column.
 
 ### Marker
 - Badge class:
@@ -193,6 +203,16 @@ Corner markers payload:
 - Save semantics remain unchanged:
   - existing keys preserved,
   - same nonce/save flow.
+
+## List Table UX Contract (Posts/Pages/Products)
+- Screens:
+  - `edit.php` (Posts)
+  - `edit.php?post_type=page` (Pages)
+  - `edit.php?post_type=product` (Products)
+- Dedicated drag-handle column (`bw_mf_drag_handle`) is rendered before Title.
+- Handle icon: 4-arrows (`dashicons-move`), drag start source is handle only.
+- Drag ghost label shows current row title.
+- Row/checkbox drag start is disabled for non-media post types.
 
 ## Settings Page UI Contract
 - Settings submenu page (`Blackwork Site -> Media Folders`) keeps the same option semantics and save flow.

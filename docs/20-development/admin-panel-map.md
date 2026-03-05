@@ -133,6 +133,10 @@ Current adoption:
       - Posts list (`edit.php`) when `media_folders_use_posts=1`
       - Pages list (`edit.php?post_type=page`) when `media_folders_use_pages=1`
       - Products list (`edit.php?post_type=product`) when `media_folders_use_products=1`
+    - list-table UX contract (posts/pages/products):
+      - dedicated drag-handle column before `Title`
+      - drag start only from handle (`dashicons-move`)
+      - single-item drag assignment only (no list-table bulk drag)
   - Mail Marketing auxiliary panels: `admin/js/bw-order-newsletter-status.js`, `admin/js/bw-user-mail-marketing.js`
 
 ## 2) Tab-by-Tab Structural Map

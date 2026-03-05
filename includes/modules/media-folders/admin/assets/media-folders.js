@@ -141,7 +141,7 @@
         dragBadgeEl = null;
     }
 
-    function setupDragBadge(event, count) {
+    function setupDragBadge(event, count, labelText) {
         destroyDragBadge();
         if (!event || !event.originalEvent || !event.originalEvent.dataTransfer || !count || count < 1) {
             return;
@@ -149,7 +149,7 @@
 
         var badge = document.createElement('div');
         badge.className = 'bw-mf-drag-badge';
-        badge.textContent = count + ' item' + (count === 1 ? '' : 's') + ' selected';
+        badge.textContent = labelText ? String(labelText) : (count + ' item' + (count === 1 ? '' : 's') + ' selected');
         document.body.appendChild(badge);
 
         try {
@@ -1958,7 +1958,13 @@
     }
 
     function makeListRowsDraggable() {
-        $('.wp-list-table tbody tr').attr('draggable', 'true');
+        if (isMediaPostType()) {
+            $('.wp-list-table tbody tr').attr('draggable', 'true');
+            return;
+        }
+
+        $('.wp-list-table tbody tr').attr('draggable', 'false');
+        $('.bw-mf-row-drag-handle').attr('draggable', 'true');
     }
 
     function bindInternalDragSuppression() {
@@ -2033,6 +2039,11 @@
     }
 
     function collectDragIdsForElement($el) {
+        if (!isMediaPostType()) {
+            var singleId = parseInt($el.attr('data-post-id') || '0', 10);
+            return singleId > 0 ? [singleId] : [];
+        }
+
         var id = parseInt($el.attr('data-id') || (($el.attr('id') || '').replace('post-', '')) || '0', 10);
         if (!(id > 0)) {
             return [];
@@ -2111,6 +2122,9 @@
         $(document)
             .off('dragstart.bwMfDnDList', '.wp-list-table tbody tr')
             .on('dragstart.bwMfDnDList', '.wp-list-table tbody tr', function (e) {
+                if (!isMediaPostType()) {
+                    return;
+                }
                 var ids = collectDragIdsForElement($(this));
                 if (!ids.length) {
                     draggedIds = [];
@@ -2131,8 +2145,40 @@
             });
 
         $(document)
-            .off('dragend.bwMfDnDCleanup', '.attachments-browser .attachment, .wp-list-table tbody tr')
-            .on('dragend.bwMfDnDCleanup', '.attachments-browser .attachment, .wp-list-table tbody tr', function () {
+            .off('dragstart.bwMfDnDHandle', '.bw-mf-row-drag-handle')
+            .on('dragstart.bwMfDnDHandle', '.bw-mf-row-drag-handle', function (e) {
+                if (isMediaPostType()) {
+                    return;
+                }
+
+                var ids = collectDragIdsForElement($(this));
+                if (!ids.length) {
+                    draggedIds = [];
+                    setInternalDrag(false);
+                    return;
+                }
+
+                var dragTitle = String($(this).attr('data-drag-title') || '').trim();
+                if (!dragTitle) {
+                    dragTitle = 'Item';
+                }
+                var dragLabel = '↕ ' + dragTitle;
+
+                draggedIds = [ids[0]];
+                setInternalDrag(true);
+                if (e.originalEvent && e.originalEvent.dataTransfer) {
+                    try {
+                        e.originalEvent.dataTransfer.effectAllowed = 'move';
+                    } catch (err) {}
+                    e.originalEvent.dataTransfer.setData('text/plain', String(ids[0]));
+                }
+                setupDragBadge(e, 1, dragLabel);
+                debugLog('handle dragstart', { ids: draggedIds, title: dragTitle });
+            });
+
+        $(document)
+            .off('dragend.bwMfDnDCleanup', '.attachments-browser .attachment, .wp-list-table tbody tr, .bw-mf-row-drag-handle')
+            .on('dragend.bwMfDnDCleanup', '.attachments-browser .attachment, .wp-list-table tbody tr, .bw-mf-row-drag-handle', function () {
                 draggedIds = [];
                 setInternalDrag(false);
                 clearDropHover();
@@ -2489,6 +2535,9 @@
         });
 
         root().on('click', '#bw-media-folders-bulk-btn', function () {
+            if (!isMediaPostType()) {
+                return;
+            }
             var ids = collectSelectedMediaIds();
             if (!ids.length) {
                 window.alert(cfg.text && cfg.text.selectMedia ? cfg.text.selectMedia : 'Select at least one media item.');
@@ -2530,6 +2579,9 @@
         }
 
         mountLayout();
+        if (!isMediaPostType()) {
+            root().find('.bw-media-folders__bulk').hide();
+        }
         loadCollapsedState();
         renderContextMenu();
         renderColorPopover();
