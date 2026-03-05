@@ -10,6 +10,17 @@ A task MUST NOT be closed unless all required verification and documentation ali
 - Tier classification:
 - Implementation commit(s):
 
+### Commit Traceability
+
+List the exact commits associated with this task.
+
+- Commit 1:
+- Commit 2:
+- Commit 3:
+
+Normative rule:
+All implementation commits MUST be traceable to the task ID.
+
 Normative rules:
 - Task identification fields are REQUIRED.
 - Closure MUST NOT proceed with missing identification metadata.
@@ -21,6 +32,19 @@ Briefly describe what was implemented.
 - Runtime surfaces touched:
 - Hooks modified or registered:
 - Database/data surfaces touched (if any):
+
+### Runtime Surface Diff
+
+Declare any runtime changes introduced by this task.
+
+- New hooks registered:
+- Hook priorities modified:
+- Runtime filters added or removed:
+- Admin routes added:
+- AJAX endpoints added or modified:
+
+Normative rule:
+All runtime surface mutations MUST be explicitly declared.
 
 Normative rule:
 - All modified surfaces MUST be explicitly declared.
@@ -118,6 +142,21 @@ Confirm:
 
 Normative rule:
 - Integrity status MUST be PASS for closure.
+
+## Post-Closure Monitoring
+Specify if monitoring is required after deployment.
+
+- Monitoring required? (Yes/No)
+- Surfaces to monitor:
+- Duration:
+
+Examples:
+- checkout flow
+- payment gateway integration
+- admin panel runtime
+
+Normative rule:
+If runtime-critical surfaces are modified, post-closure monitoring is REQUIRED.
 
 ## 9) Closure Declaration
 - Task closure status: CLOSED / REOPEN REQUIRED
