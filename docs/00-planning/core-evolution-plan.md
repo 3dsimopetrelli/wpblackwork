@@ -149,6 +149,22 @@ It MUST be used as planning reference only and MUST NOT replace ADRs.
 
 ## Tier 2 – Refactor & Cleanup
 
+### Blackwork Site Admin Hardening Program (Post Shopify rollout)
+- Status: Backlog
+- Risk classification: Medium
+- Short description: Incremental admin-only hardening focused on enqueue scope optimization, security consistency, and maintainability deduplication for the Blackwork Site panel.
+- Reference docs:
+  - `docs/tasks/BW-TASK-20260305-08-admin-panel-architecture-audit.md`
+  - `docs/20-development/admin-panel-map.md`
+  - `docs/20-development/admin-ui-guidelines.md`
+  - `docs/00-governance/risk-register.md`
+- Acceptance:
+  - Page/tab-specific enqueue matrix implemented for Blackwork admin assets
+  - No save flow or option-key behavior changes across migrated pages
+  - WP list-table mechanics preserved for All Templates
+  - `.bw-admin-root` scope and no-bleed guarantees preserved
+  - Regression checklist executed for all panel surfaces
+
 ### Elementor Widgets Cleanup
 - Status: Backlog
 - Risk classification: Low

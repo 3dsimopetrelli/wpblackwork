@@ -94,6 +94,31 @@ Current adoption:
 - `Blackwork Site > Theme Builder Lite` page (header shell, action bar save CTA, Sections card with UI-kit tabs, card-grouped tab content)
 - `Blackwork Site > All Templates` list screen (WP-native list table wrapped in UI-kit shell/action bar and skinned styles; behavior unchanged)
 
+### 1.6 Blackwork Site Page Inventory (Post Shopify rollout)
+| Page | Route / Slug | Entrypoint callback | Primary owner file | Save/Action model | UI root |
+|---|---|---|---|---|---|
+| Site Settings | `admin.php?page=blackwork-site-settings` | `bw_site_settings_page` | `admin/class-blackwork-site-settings.php` | custom POST per tab + nonce | `.bw-admin-root` |
+| Status | `admin.php?page=bw-system-status` | `bw_system_status_render_admin_page` | `includes/modules/system-status/admin/status-page.php` | admin-ajax (`bw_system_status_run_check`) | `.bw-admin-root` |
+| Media Folders (settings) | `admin.php?page=bw-media-folders-settings` | `bw_mf_render_settings_page` | `includes/modules/media-folders/admin/media-folders-settings.php` | custom POST + nonce | `.bw-admin-root` |
+| Mail Marketing | `admin.php?page=blackwork-mail-marketing` | `render_mail_marketing_page` | `includes/admin/checkout-subscribe/class-bw-checkout-subscribe-admin.php` | custom POST + nonce | `.bw-admin-root` |
+| Header | `admin.php?page=bw-header-settings` | `bw_header_render_admin_page` | `includes/modules/header/admin/header-admin.php` | Settings API (`options.php`) | `.bw-admin-root` |
+| Theme Builder Lite | `admin.php?page=bw-theme-builder-lite-settings` | `bw_tbl_render_admin_page` | `includes/modules/theme-builder-lite/admin/theme-builder-lite-admin.php` | Settings API + import nonce handler | `.bw-admin-root` |
+| All Templates | `edit.php?post_type=bw_template` | WP list table (`edit.php`) + UX wrapper JS | `includes/modules/theme-builder-lite/admin/bw-template-type-inline.js` | WP List Table native + inline ajax type update | `.bw-admin-root` (injected) |
+
+### 1.7 Asset Strategy (Admin)
+- Shared visual primitives:
+  - `admin/css/bw-admin-ui-kit.css`
+  - loaded by `bw_admin_enqueue_ui_kit_assets()` via `bw_is_blackwork_site_admin_screen(...)`.
+- Site-settings legacy/admin utilities:
+  - `admin/class-blackwork-site-settings.php::bw_site_settings_admin_assets()`.
+  - Current behavior loads broad assets on all Blackwork screens; tracked for refactor in task audit roadmap (`BW-TASK-20260305-08`).
+- Module-local assets:
+  - Status: `includes/modules/system-status/admin/assets/system-status-admin.js`
+  - Theme Builder Lite: `.../theme-builder-lite-admin.css|js`, `bw-template-type-inline.js`
+  - Header: `includes/modules/header/admin/header-admin.js`
+  - Media Folders library screen: `includes/modules/media-folders/admin/assets/media-folders.css|js`
+  - Mail Marketing auxiliary panels: `admin/js/bw-order-newsletter-status.js`, `admin/js/bw-user-mail-marketing.js`
+
 ## 2) Tab-by-Tab Structural Map
 
 ## Cart Pop-up

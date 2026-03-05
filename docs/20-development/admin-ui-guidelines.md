@@ -18,6 +18,8 @@ Applies to Blackwork Site admin surfaces only:
 - UI Kit is enqueued via `bw_admin_enqueue_ui_kit_assets()` in `admin/class-blackwork-site-settings.php`
 - Guard function: `bw_is_blackwork_site_admin_screen()`
 - Must remain page-scoped to Blackwork surfaces only (no global WP admin bleed)
+- Prefer page-local/module-local assets with strict hook + slug checks.
+- Do not load heavy admin scripts globally across all Blackwork pages when only one tab/page needs them.
 
 ## Layout Contract
 Use this structure for new/updated pages:
@@ -38,12 +40,32 @@ Canonical flow:
   - save handlers and POST targets
   - WP_List_Table behavior (filters, search, bulk actions, sorting, pagination, row actions)
 - If page uses WP list tables, do not rebuild table markup manually.
+- Keep read-only diagnostics/admin observer endpoints read-only unless explicitly approved by feature contract.
 
 ## Styling Guidelines
 - Keep all selectors scoped under `.bw-admin-root`
 - Prefer generic utility classes over module-specific CSS names
 - Reuse existing primitives before adding new classes
 - If overflow is needed for large tables, use a wrapper (`.bw-table-wrap`) with `overflow-x:auto`
+- Avoid large inline `<style>` blocks in render callbacks; prefer shared UI kit primitives or module-scoped static assets.
+- Keep focus states visible and preserve WordPress baseline semantics for labels/inputs/buttons.
+
+## Admin Security Checklist (New/Updated Page)
+- Capability gate at page entry (`current_user_can(...)`) before rendering sensitive controls.
+- Nonce field present on POST forms; server-side `check_admin_referer(...)` before writes.
+- AJAX actions:
+  - register only `wp_ajax_*` unless anonymous access is explicitly required.
+  - verify nonce (`check_ajax_referer`) and capability before processing input.
+  - sanitize all request values (`sanitize_key`, `sanitize_text_field`, `absint`, etc.).
+- Escape all output (`esc_html`, `esc_attr`, `esc_url`, `esc_textarea`) in templates.
+
+## Admin Performance Checklist (New/Updated Page)
+- No heavy scans/queries on normal page load unless bounded and required.
+- Prefer on-demand actions (button-triggered) for expensive diagnostics.
+- Add bounded limits for scans (`LIMIT`, caps) and show partial-warning states.
+- Cache expensive diagnostics snapshots where possible (transient/object cache).
+- Ensure assets are loaded only on the intended screen/tab.
+- Confirm no duplicate enqueue of same heavy dependencies across panel pages.
 
 ## Verification Checklist
 For each UI rollout:
@@ -53,3 +75,5 @@ For each UI rollout:
 - No option key changes
 - No PHP notices/fatals
 - No CSS bleed outside Blackwork Site pages
+- Nonce + capability checks still enforced on affected forms/endpoints
+- Screen-specific assets still load on target page and do not leak to unrelated admin screens

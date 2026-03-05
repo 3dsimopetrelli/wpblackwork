@@ -238,6 +238,17 @@ If a decision is normative and architecture-binding, the ADR process MUST be use
   - Keep WP-native mechanics untouched on list-table surfaces (search, filters, bulk, sorting, pagination).
   - Require new admin pages to follow `docs/20-development/admin-ui-guidelines.md`.
 
+### Entry 021
+- Date: 2026-03-05
+- Decision summary: Opened a phased Blackwork Site admin hardening program after Shopify rollout audit, prioritizing enqueue-scope correctness and modular maintainability without changing runtime/storefront behavior.
+- Affected domain: Admin Architecture / Governance / Performance
+- Rationale: UI unification is complete, but audit evidence shows residual technical debt in broad asset loading and monolithic admin controller structure; incremental hardening is needed to keep the panel stable and scalable.
+- Risk impact: Medium (admin regressions during refactor) mitigated by phased rollout, strict invariants, and regression gates.
+- Follow-up actions:
+  - Execute P1 enqueue tightening first (`bw_site_settings_admin_assets` page/tab matrix).
+  - Keep all refactors UI/admin-only unless separately approved at governance level.
+  - Prepare ADR before any large decomposition of `admin/class-blackwork-site-settings.php`.
+
 ## Governance Layer Closure
 
 Status: CLOSED  

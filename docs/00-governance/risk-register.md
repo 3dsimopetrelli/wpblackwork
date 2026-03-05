@@ -504,6 +504,23 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
   - [System Status (Admin Diagnostics)](../30-features/system-status/README.md)
   - [System Normative Charter](./system-normative-charter.md)
 
+### Risk ID: R-ADM-19
+- Domain: Admin / Asset Enqueue Scope / Panel Performance
+- Surface Anchor: `admin/class-blackwork-site-settings.php` (`bw_site_settings_admin_assets`) and Blackwork admin screen guard (`bw_is_blackwork_site_admin_screen`)
+- Description: Broad asset enqueue strategy can load non-required scripts/styles (media uploader, color picker, gateway test scripts) on unrelated Blackwork admin pages, degrading responsiveness and increasing maintenance risk.
+- Invariant Threatened: Admin pages should load only the assets required for their own behavior, with no cross-page performance drag.
+- Impact: Medium
+- Likelihood: Medium
+- Risk Level: Medium
+- Current Mitigation:
+  - Shared UI kit is centrally guarded and scoped to Blackwork screens.
+  - Additional refactor program planned to split/enforce page/tab-specific enqueue matrix.
+- Monitoring Status: Open
+- Linked Documents:
+  - [Admin Panel Map](../20-development/admin-panel-map.md)
+  - [Admin UI Guidelines](../20-development/admin-ui-guidelines.md)
+  - [BW-TASK-20260305-08 Admin Audit](../tasks/BW-TASK-20260305-08-admin-panel-architecture-audit.md)
+
 ## 4) Governance Rules
 - All Tier 0 changes must be reviewed against this register before implementation.
 - Risks cannot be marked `Resolved` without audit confirmation evidence.
