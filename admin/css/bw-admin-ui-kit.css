@@ -173,3 +173,17 @@
 .bw-admin-root .bw-admin-status-error {
     color: var(--bw-admin-error);
 }
+
+.bw-admin-root .bw-admin-tabs {
+    margin-top: 12px;
+    border-bottom: 0;
+    padding-left: 0;
+}
+
+.bw-admin-root .bw-admin-tabs .nav-tab {
+    border-radius: 8px 8px 0 0;
+}
+
+.bw-admin-root .bw-admin-card-site-settings-content .submit {
+    margin-top: 18px;
+}

@@ -216,6 +216,17 @@ If a decision is normative and architecture-binding, the ADR process MUST be use
   - Reuse the same primitives (header/action bar/card/field/table) on future Blackwork admin pages.
   - Preserve semantic form controls and focus visibility in all UI Kit adoptions.
 
+### Entry 019
+- Date: 2026-03-05
+- Decision summary: Applied the shared Blackwork Admin UI Kit to `Blackwork Site > Site Settings` main router page, including header, action bar, and card-based tab/content containers with a non-invasive save-proxy CTA.
+- Affected domain: Admin UX / Site Settings Router
+- Rationale: Site Settings was the main remaining panel surface with inconsistent visual language; aligning it with Status/Media Folders improves consistency while preserving existing tab-specific save logic.
+- Risk impact: Low (UI-only), mitigated by preserving existing nonce/POST handlers and forwarding save action to existing submit controls.
+- Follow-up actions:
+  - Keep save-proxy mapped to existing tab submit names only (no new save flow).
+  - Keep tab content renderers unchanged in behavior.
+  - Continue progressive UI kit adoption to other Blackwork admin surfaces without runtime logic changes.
+
 ## Governance Layer Closure
 
 Status: CLOSED  

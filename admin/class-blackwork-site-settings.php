@@ -817,12 +817,42 @@ function bw_site_settings_page()
     // Determina quale tab è attivo
     $active_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'cart-popup';
 
+    $save_button_map = [
+        'cart-popup' => 'bw_cart_popup_submit',
+        'bw-coming-soon' => 'bw_coming_soon_submit',
+        'account-page' => 'bw_account_page_submit',
+        'my-account-page' => 'bw_myaccount_content_submit',
+        'checkout' => 'bw_checkout_settings_submit',
+        'redirect' => 'bw_redirects_submit',
+        'loading' => 'bw_loading_settings_submit',
+    ];
+    $active_submit_name = isset($save_button_map[$active_tab]) ? $save_button_map[$active_tab] : '';
     ?>
-    <div class="wrap">
-        <h1>Blackwork Site Settings</h1>
+    <div class="wrap bw-admin-root bw-admin-page bw-admin-page-site-settings">
+        <div class="bw-admin-header">
+            <h1 class="bw-admin-title"><?php esc_html_e('Site Settings', 'bw'); ?></h1>
+            <p class="bw-admin-subtitle"><?php esc_html_e('Manage core Blackwork site configuration from a unified admin panel.', 'bw'); ?></p>
+        </div>
+
+        <div class="bw-admin-action-bar">
+            <div class="bw-admin-action-meta">
+                <?php esc_html_e('Select a panel tab, then save the current section changes.', 'bw'); ?>
+            </div>
+            <div class="bw-admin-action-buttons">
+                <?php if (!empty($active_submit_name)) : ?>
+                    <button type="button" class="button button-primary" id="bw-site-settings-save-proxy" data-submit-name="<?php echo esc_attr($active_submit_name); ?>">
+                        <?php esc_html_e('Save Settings', 'bw'); ?>
+                    </button>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <section class="bw-admin-card">
+            <h2 class="bw-admin-card-title"><?php esc_html_e('Panels', 'bw'); ?></h2>
+            <p class="bw-admin-card-helper"><?php esc_html_e('Switch between configuration domains without leaving Site Settings.', 'bw'); ?></p>
 
         <!-- Tab Navigation -->
-        <nav class="nav-tab-wrapper">
+        <nav class="nav-tab-wrapper bw-admin-tabs">
             <a href="?page=blackwork-site-settings&tab=cart-popup"
                 class="nav-tab <?php echo $active_tab === 'cart-popup' ? 'nav-tab-active' : ''; ?>">
                 Cart Pop-up
@@ -856,9 +886,11 @@ function bw_site_settings_page()
                 Loading
             </a>
         </nav>
+        </section>
 
+        <section class="bw-admin-card bw-admin-card-site-settings-content">
         <!-- Tab Content -->
-        <div class="tab-content">
+        <div class="tab-content bw-admin-site-settings-content">
             <?php
             // Renderizza il contenuto del tab attivo
             if ($active_tab === 'cart-popup') {
@@ -880,7 +912,39 @@ function bw_site_settings_page()
             }
             ?>
         </div>
+        </section>
     </div>
+    <?php if (!empty($active_submit_name)) : ?>
+    <script>
+    (function () {
+        var proxyButton = document.getElementById('bw-site-settings-save-proxy');
+        if (!proxyButton) {
+            return;
+        }
+
+        proxyButton.addEventListener('click', function () {
+            var submitName = proxyButton.getAttribute('data-submit-name');
+            var contentRoot = document.querySelector('.bw-admin-site-settings-content');
+            if (!contentRoot) {
+                return;
+            }
+
+            var targetButton = null;
+            if (submitName) {
+                targetButton = contentRoot.querySelector('[type="submit"][name="' + submitName + '"]');
+            }
+
+            if (!targetButton) {
+                targetButton = contentRoot.querySelector('button[type="submit"], input[type="submit"]');
+            }
+
+            if (targetButton) {
+                targetButton.click();
+            }
+        });
+    })();
+    </script>
+    <?php endif; ?>
     <?php
 }
 

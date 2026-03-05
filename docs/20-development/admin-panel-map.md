@@ -85,6 +85,10 @@ Mail Marketing operational assets:
   2. Compose layout with kit primitives (`.bw-admin-header`, `.bw-admin-action-bar`, `.bw-admin-card`, `.bw-admin-field-row`, `.bw-admin-table`).
   3. Keep native WordPress form controls and existing save handlers unchanged.
 
+Current adoption:
+- `Blackwork Site > Media Folders` settings page
+- `Blackwork Site > Site Settings` router page (header, action bar, card-wrapped tabs/content, save-proxy CTA bound to existing tab submit buttons)
+
 ## 2) Tab-by-Tab Structural Map
 
 ## Cart Pop-up
