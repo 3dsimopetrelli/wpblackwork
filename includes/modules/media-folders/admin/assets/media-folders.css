@@ -532,21 +532,23 @@ body.bw-mf-enabled .bw-mf-toolbar-inline {
 body.edit-php.post-type-product.bw-mf-enabled .column-bw_mf_drag_handle,
 body.edit-php.post-type-product.bw-mf-enabled th#bw_mf_drag_handle,
 body.edit-php.post-type-product.bw-mf-enabled td.column-bw_mf_drag_handle {
-    width: 34px;
-    min-width: 34px;
-    max-width: 34px;
+    width: 26px !important;
+    min-width: 26px !important;
+    max-width: 26px !important;
     text-align: center;
-    padding-left: 4px;
-    padding-right: 4px;
+    padding-left: 2px !important;
+    padding-right: 2px !important;
+    white-space: nowrap;
 }
 
 body.edit-php.post-type-product.bw-mf-enabled .wp-list-table th.check-column,
 body.edit-php.post-type-product.bw-mf-enabled .wp-list-table td.check-column {
-    width: 34px;
-    min-width: 34px;
-    max-width: 34px;
-    padding-left: 4px;
-    padding-right: 4px;
+    width: 26px !important;
+    min-width: 26px !important;
+    max-width: 26px !important;
+    padding-left: 2px !important;
+    padding-right: 2px !important;
+    white-space: nowrap;
 }
 
 body.edit-php.post-type-product.bw-mf-enabled .bw-mf-row-drag-handle {
@@ -575,8 +577,18 @@ body.edit-php.post-type-product.bw-mf-enabled .bw-mf-row-drag-handle .dashicons 
 
 body.edit-php.post-type-product.bw-mf-enabled .wp-list-table .column-thumb,
 body.edit-php.post-type-product.bw-mf-enabled .wp-list-table .column-image {
-    width: 134px;
-    min-width: 134px;
+    width: 132px !important;
+    min-width: 132px !important;
+    max-width: 132px !important;
+    padding-left: 0 !important;
+    padding-right: 2px !important;
+    white-space: nowrap;
+}
+
+body.edit-php.post-type-product.bw-mf-enabled .wp-list-table th.column-name,
+body.edit-php.post-type-product.bw-mf-enabled .wp-list-table td.column-name {
+    width: 42% !important;
+    min-width: 420px;
 }
 
 body.edit-php.post-type-product.bw-mf-enabled .wp-list-table .column-thumb img,
@@ -588,6 +600,8 @@ body.edit-php.post-type-product.bw-mf-enabled .wp-list-table .column-image .atta
     max-width: 130px !important;
     max-height: 130px !important;
     object-fit: cover;
+    display: block;
+    margin: 0;
 }
 
 body.bw-mf-enabled .bw-mf-type-filters {
