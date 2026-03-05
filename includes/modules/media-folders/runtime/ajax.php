@@ -39,7 +39,7 @@ if (!function_exists('bw_mf_ajax_error')) {
 if (!function_exists('bw_mf_assert_upload_context')) {
     function bw_mf_assert_upload_context()
     {
-        $context = isset($_POST['bw_mf_context']) ? sanitize_key((string) $_POST['bw_mf_context']) : '';
+        $context = isset($_POST['bw_mf_context']) ? sanitize_key(wp_unslash($_POST['bw_mf_context'])) : '';
         if ($context !== 'upload') {
             bw_mf_ajax_error(__('Invalid media screen context.', 'bw'), 403);
         }
@@ -60,7 +60,7 @@ if (!function_exists('bw_mf_ajax_require')) {
             bw_mf_ajax_error(__('Invalid request context.', 'bw'), 400);
         }
 
-        $posted_action = isset($_POST['action']) ? sanitize_key((string) $_POST['action']) : '';
+        $posted_action = isset($_POST['action']) ? sanitize_key(wp_unslash($_POST['action'])) : '';
         if ($posted_action !== $expected_action) {
             bw_mf_ajax_error(__('Invalid action.', 'bw'), 400);
         }
@@ -325,10 +325,15 @@ if (!function_exists('bw_mf_get_folder_counts_map_batched')) {
             return array_fill_keys(array_values($term_ids), 0);
         }
 
+        $requested_tt_ids = array_values(array_unique(array_map('absint', array_keys($term_taxonomy_to_term))));
+        if (empty($requested_tt_ids)) {
+            return array_fill_keys(array_values($term_ids), 0);
+        }
+
+        $tt_id_placeholders = implode(',', array_fill(0, count($requested_tt_ids), '%d'));
+
         // Batch read all assignment relationships once, then fan out to ancestor terms in PHP.
-        $rows = $wpdb->get_results(
-            $wpdb->prepare(
-                "
+        $sql = "
                 SELECT DISTINCT tr.object_id, tr.term_taxonomy_id
                 FROM {$wpdb->term_relationships} AS tr
                 INNER JOIN {$wpdb->posts} AS p ON p.ID = tr.object_id
@@ -336,14 +341,13 @@ if (!function_exists('bw_mf_get_folder_counts_map_batched')) {
                 WHERE tt.taxonomy = %s
                   AND p.post_type = %s
                   AND p.post_status = %s
+                  AND tr.term_taxonomy_id IN ({$tt_id_placeholders})
                 ORDER BY tr.object_id ASC
-                ",
-                'bw_media_folder',
-                'attachment',
-                'inherit'
-            ),
-            ARRAY_A
-        );
+                ";
+
+        $prepare_args = array_merge([$sql, 'bw_media_folder', 'attachment', 'inherit'], $requested_tt_ids);
+        $prepared_sql = call_user_func_array([$wpdb, 'prepare'], $prepare_args);
+        $rows = $wpdb->get_results($prepared_sql, ARRAY_A);
 
         if (!is_array($rows)) {
             return false;
