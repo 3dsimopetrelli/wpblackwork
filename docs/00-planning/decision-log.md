@@ -194,6 +194,17 @@ If a decision is normative and architecture-binding, the ADR process MUST be use
   - Keep transient-cached snapshots to avoid repeated heavy scans on reload.
   - Reassess storage/DB query strategy if large-site scan latency increases.
 
+### Entry 017
+- Date: 2026-03-05
+- Decision summary: Adopted a Shopify-style admin dashboard architecture for `Blackwork Site > Status`, using metric-first cards, section-scoped actions, and demand-only technical details.
+- Affected domain: Admin UX / System Status Diagnostics
+- Rationale: Previous diagnostics presentation was too developer-centric; owner/admin operation requires rapid interpretation of health indicators with minimal technical noise while keeping deep data available on demand.
+- Risk impact: Low-Medium (UI complexity growth) mitigated by preserving existing module boundaries, immutable read-only runtime checks, and stable AJAX response contracts.
+- Follow-up actions:
+  - Keep overview + card UX consistent with status payload contract (`status`, `summary`, `metrics`, `warnings`).
+  - Keep per-section scopes (`media`, `images`, `database`, `wordpress`, `limits`, `image_sizes_counts`) stable for maintainability.
+  - Keep debug details collapsed by default and avoid expanding technical output in primary UX.
+
 ## Governance Layer Closure
 
 Status: CLOSED  

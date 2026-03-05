@@ -1,7 +1,7 @@
 # BlackWork Site - Complete Technical Documentation
 
-**Version:** 1.1
-**Last Updated:** 2026-02-26
+**Version:** 1.2
+**Last Updated:** 2026-03-05
 **Plugin Path:** `wp-content/plugins/wpblackwork/`
 
 ---
@@ -28,7 +28,7 @@
 `wpblackwork` is a modular WordPress plugin for BlackWork, with three primary pillars:
 - Elementor widgets (auto-loaded by `includes/class-bw-widget-loader.php`)
 - WooCommerce customizations (checkout, my-account, product-type extensions)
-- Shared site modules (`admin/`, `cart-popup/`, `BW_coming_soon/`)
+- Shared site modules (`admin/`, `cart-popup/`, `BW_coming_soon/`, `includes/modules/system-status/`)
 
 Core implementation principles:
 - Keep WooCommerce core flows intact, then layer custom UX and integrations.
@@ -80,6 +80,20 @@ wpblackwork/
 │   │   └── checkout-subscribe/
 │   │       ├── class-bw-checkout-subscribe-admin.php
 │   │       └── class-bw-checkout-subscribe-frontend.php
+│   ├── modules/
+│   │   └── system-status/
+│   │       ├── system-status-module.php
+│   │       ├── admin/
+│   │       │   ├── status-page.php
+│   │       │   └── assets/system-status-admin.js
+│   │       └── runtime/
+│   │           ├── check-runner.php
+│   │           └── checks/
+│   │               ├── check-media.php
+│   │               ├── check-database.php
+│   │               ├── check-images.php
+│   │               ├── check-wordpress.php
+│   │               └── check-server.php
 │   └── widgets/                              # Elementor widgets
 ├── woocommerce/
 │   ├── woocommerce-init.php                 # WooCommerce customizations (1558 lines)
@@ -1003,7 +1017,13 @@ See [Section 3.3](#33-configuration-options-wp_options) for complete list.
 | `bw_remove_coupon` | `bw_mew_ajax_remove_coupon` | Remove coupon |
 | `bw_brevo_test_connection` | Admin handler | Test Brevo API |
 
-### 9.3 Nonce Keys
+### 9.3 Admin Diagnostics Endpoints
+
+| Action | Handler | Auth Required | Purpose |
+|--------|---------|---------------|---------|
+| `bw_system_status_run_check` | `bw_system_status_handle_run_check` | Admin (`manage_options`) + nonce | On-demand read-only diagnostics snapshot (`all` or scoped checks) |
+
+### 9.4 Nonce Keys
 
 | Nonce | Action | Used In |
 |-------|--------|---------|
@@ -1012,6 +1032,7 @@ See [Section 3.3](#33-configuration-options-wp_options) for complete list.
 | `bw-google-pay-nonce` | Google Pay | Payment |
 | `bw_checkout_subscribe_test` | Brevo test | Admin |
 | `bw_account_page_nonce` | Settings save | Admin |
+| `bw_system_status_run_check` | System Status checks | Admin diagnostics |
 
 ---
 

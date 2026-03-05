@@ -1,5 +1,8 @@
 # BW-TASK-20260305-01 — Implementation Report
 
+> Note: this file captures the initial implementation phase.
+> Final validated closure state is documented in `docs/tasks/BW-TASK-20260305-01-closure.md`.
+
 ## Task
 - **Task ID:** BW-TASK-20260305-01
 - **Title:** Set default landing page to Site Settings + add Status health dashboard

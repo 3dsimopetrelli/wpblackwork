@@ -13,3 +13,8 @@ Feature-specific guides grouped by domain.
 - [product-types](product-types/README.md)
 - [product-slide](product-slide/README.md)
 - [cart-popup](cart-popup/README.md)
+
+## Feature Registry Highlights
+| Feature | Location | Purpose | Key capabilities |
+|---|---|---|---|
+| System Status Dashboard | `includes/modules/system-status/` + [system-status/README.md](system-status/README.md) | Admin-only health visibility without storefront impact | On-demand AJAX checks, per-section scopes, transient snapshot cache, Shopify-like metric cards, read-only diagnostics, nonce/capability protections |

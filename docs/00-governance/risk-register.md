@@ -492,7 +492,13 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 - Impact: Medium
 - Likelihood: Medium
 - Risk Level: Medium
-- Current Mitigation: Admin-only submenu, `manage_options` capability gate, nonce-validated AJAX action, on-demand execution only, transient snapshot caching, graceful partial/warn responses.
+- Current Mitigation:
+  - Capability gate: `manage_options`
+  - Nonce verification on `bw_system_status_run_check`
+  - Read-only check contract (no write/delete/update paths)
+  - On-demand execution only (no heavy operations on normal page load)
+  - Transient snapshot caching with bounded scans and partial warning behavior
+  - Structured graceful-failure responses to avoid dashboard-wide breakage
 - Monitoring Status: Monitoring
 - Linked Documents:
   - [System Status (Admin Diagnostics)](../30-features/system-status/README.md)
