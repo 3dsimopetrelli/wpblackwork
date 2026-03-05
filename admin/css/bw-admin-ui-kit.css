@@ -150,6 +150,51 @@
     font-weight: 600;
 }
 
+.bw-admin-root .bw-admin-table--compact-first-col {
+    table-layout: fixed;
+    width: 100%;
+}
+
+.bw-admin-root .bw-admin-table--compact-first-col th:first-child,
+.bw-admin-root .bw-admin-table--compact-first-col td:first-child {
+    width: 14%;
+}
+
+.bw-admin-root .bw-admin-table--wide-middle th:nth-child(2),
+.bw-admin-root .bw-admin-table--wide-middle td:nth-child(2),
+.bw-admin-root .bw-admin-table--wide-middle th:nth-child(3),
+.bw-admin-root .bw-admin-table--wide-middle td:nth-child(3) {
+    width: 30%;
+}
+
+.bw-admin-root .bw-admin-table--wide-middle td:nth-child(2) input,
+.bw-admin-root .bw-admin-table--wide-middle td:nth-child(3) input {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+}
+
+.bw-admin-root .bw-admin-table--wide-middle td:nth-child(2) .button,
+.bw-admin-root .bw-admin-table--wide-middle td:nth-child(3) .button {
+    margin-top: 6px;
+}
+
+@media (max-width: 1080px) {
+    .bw-admin-root .bw-admin-table--compact-first-col,
+    .bw-admin-root .bw-admin-table--wide-middle {
+        table-layout: auto;
+    }
+
+    .bw-admin-root .bw-admin-table--compact-first-col th:first-child,
+    .bw-admin-root .bw-admin-table--compact-first-col td:first-child,
+    .bw-admin-root .bw-admin-table--wide-middle th:nth-child(2),
+    .bw-admin-root .bw-admin-table--wide-middle td:nth-child(2),
+    .bw-admin-root .bw-admin-table--wide-middle th:nth-child(3),
+    .bw-admin-root .bw-admin-table--wide-middle td:nth-child(3) {
+        width: auto;
+    }
+}
+
 .bw-admin-root .bw-admin-form-grid th,
 .bw-admin-root .bw-admin-form-grid td {
     padding: 12px 8px;

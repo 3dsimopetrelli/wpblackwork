@@ -601,7 +601,7 @@ if (!function_exists('bw_tbl_render_admin_page')) {
 
                     <div id="bw-tbl-fonts-controls" style="margin-top:8px;">
                         <p><?php esc_html_e('Upload/select WOFF2 (preferred) or WOFF files from the WordPress media library.', 'bw'); ?></p>
-                        <table class="widefat striped bw-admin-table" id="bw-tbl-fonts-table">
+                        <table class="widefat striped bw-admin-table bw-admin-table--compact-first-col bw-admin-table--wide-middle" id="bw-tbl-fonts-table">
                             <thead>
                                 <tr>
                                     <th><?php esc_html_e('Font Family', 'bw'); ?></th>
@@ -811,9 +811,6 @@ if (!function_exists('bw_tbl_render_admin_page')) {
                     </section>
                 </div>
 
-                <div class="submit">
-                    <?php submit_button(__('Save Settings', 'bw')); ?>
-                </div>
             </form>
 
                 <div id="bw-tbl-tab-import-template" class="bw-tbl-tab-panel" data-bw-tbl-panel="import-template" style="display:none;">
