@@ -5,11 +5,11 @@
 - Task title: Media Folders: settings live-conditional UI + enable folders for Posts/Pages/Products
 - Domain: Media Folders / Admin Runtime
 - Tier classification: 1
-- Implementation commit(s): `TBD (to be filled after commit)`
+- Implementation commit(s): `5903cd0`
 
 ### Commit Traceability
-- Commit hash: `TBD`
-- Commit message: `TBD`
+- Commit hash: `5903cd0`
+- Commit message: `feat(media-folders): live settings conditionals and list-table post type support`
 - Files impacted:
   - `includes/modules/media-folders/data/installer.php`
   - `includes/modules/media-folders/data/taxonomy.php`
