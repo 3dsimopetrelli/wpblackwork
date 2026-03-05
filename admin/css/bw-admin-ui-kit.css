@@ -563,13 +563,27 @@
     margin-top: 0;
 }
 
-.bw-admin-root.bw-admin-templates .bw-admin-action-bar-list .bw-admin-action-meta {
-    display: none;
+.bw-admin-root.bw-admin-templates .bw-admin-action-bar-list {
+    width: 100%;
+}
+
+.bw-admin-root.bw-admin-templates .bw-admin-action-bar-list .bw-admin-action-buttons {
+    width: 100%;
 }
 
 .bw-admin-root.bw-admin-templates .bw-admin-action-bar-list .search-box {
     float: none;
     margin: 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.bw-admin-root.bw-admin-templates .bw-admin-action-bar-list .search-box input[type="search"] {
+    flex: 1 1 auto;
+    min-width: 220px;
+    max-width: none;
 }
 
 .bw-admin-root.bw-admin-templates .subsubsub {

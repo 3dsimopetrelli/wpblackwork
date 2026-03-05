@@ -111,9 +111,11 @@
             }
         }
 
-        if (!$form.children('.bw-admin-action-bar').length) {
-            var $bar = $('<div class="bw-admin-action-bar bw-admin-action-bar-list"></div>');
-            $bar.append('<div class="bw-admin-action-meta"></div>');
+        var helperText = (cfg.actionHelper || 'Filter, search, and manage your templates.').toString();
+        var $bar = $form.children('.bw-admin-action-bar').first();
+        if (!$bar.length) {
+            $bar = $('<div class="bw-admin-action-bar bw-admin-action-bar-list"></div>');
+            $bar.append($('<div class="bw-admin-action-meta"></div>').text(helperText));
             var $actions = $('<div class="bw-admin-action-buttons"></div>');
             var $search = $form.find('p.search-box').first();
             if ($search.length) {
@@ -121,15 +123,24 @@
             }
             $bar.append($actions);
             $form.prepend($bar);
+        } else {
+            $bar.find('.bw-admin-action-meta').text(helperText);
         }
 
         var $views = $form.find('ul.subsubsub').first();
         if ($views.length && !$form.find('.bw-admin-views-helper').length) {
             $views.after(
                 $('<p class="bw-admin-views-helper"></p>').text(
-                    (cfg.actionHelper || 'Filter, search, and manage your templates.').toString()
+                    helperText
                 )
             );
+        }
+
+        var $viewsHelper = $form.find('.bw-admin-views-helper').first();
+        if ($viewsHelper.length) {
+            $bar.insertAfter($viewsHelper);
+        } else if ($views.length) {
+            $bar.insertAfter($views);
         }
 
         $form.find('table.wp-list-table').each(function () {
