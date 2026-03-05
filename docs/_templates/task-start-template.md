@@ -51,15 +51,18 @@ Normative rules:
 - All target files MUST be declared before implementation.
 - Out-of-scope boundaries MUST be explicit.
 
-## Implementation Scope Lock
-- Confirm all target files are declared? (Yes/No)
-- Any potential hidden coupling discovered during reading? (Yes/No)
-- If Yes, list coupling surfaces:
+## 3.1) Implementation Scope Lock
+
+Confirm that the declared scope is complete.
+
+- All files expected to change are listed? (Yes/No)
+- Hidden coupling risks discovered? (Yes/No)
 
 Normative rules:
-- Implementation MUST NOT modify files outside declared scope.
-- Discovery of additional surfaces MUST pause the task and trigger scope review.
-- Scope expansion without review is PROHIBITED.
+
+Implementation MUST NOT modify files outside the declared scope.
+
+If new surfaces are discovered during development, the task MUST pause and the scope MUST be updated.
 
 ## Governance Impact Analysis
 - Authority surfaces touched:
@@ -131,24 +134,26 @@ Normative rules:
 - Implementation MUST NOT begin unless this declaration is completed.
 - If behavior changes are expected, documentation targets MUST be declared before coding.
 
-## Documentation Alignment Requirement
-Before implementation begins, documentation alignment obligations MUST be declared.
+## 6A) Documentation Alignment Requirement
+Before implementation begins, the documentation architecture MUST be evaluated.
 
-The following documentation layers MUST be reviewed and aligned if implementation changes behavior:
-- Governance layer (`docs/00-governance/`)
-- Planning layer (`docs/00-planning/`)
-- Architecture layer (`docs/10-architecture/`)
-- Development rules (`docs/20-development/`)
-- Feature documentation (`docs/30-features/`)
-- Integration documentation (`docs/40-integrations/`)
-- Operations and runbooks (`docs/50-ops/`)
-- ADR records (`docs/60-adr/`)
-- System integration maps (`docs/60-system/`)
+The following documentation layers MUST be checked for potential updates:
+- `docs/00-governance/`
+- `docs/00-planning/`
+- `docs/10-architecture/`
+- `docs/20-development/`
+- `docs/30-features/`
+- `docs/40-integrations/`
+- `docs/50-ops/`
+- `docs/60-adr/`
+- `docs/60-system/`
 
-Normative rules:
-- Documentation MUST remain consistent with implementation.
-- Behavioral changes REQUIRE documentation updates.
-- Documentation alignment planning is REQUIRED before coding begins.
+For each layer specify:
+- Impacted? (Yes/No)
+- Target documents (if known)
+
+Normative rule:
+- Implementation MUST NOT begin until documentation impact has been declared.
 
 ## Acceptance Gate
 DO NOT IMPLEMENT YET.
