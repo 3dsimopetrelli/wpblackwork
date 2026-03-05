@@ -119,6 +119,30 @@ Rationale:
 - Fail-open:
   - invalid/missing payload returns original args unchanged.
 
+### Query Guard Contract (Main Query Only + Screen Only + Fail-Open)
+All Media Folders query mutations are guard-first and fail-open.
+
+List-query mutation (`pre_get_posts`) occurs only when ALL are true:
+- `is_admin()` true
+- not `wp_doing_ajax()`
+- not `REST_REQUEST`
+- not `DOING_CRON`
+- supported screen context (`upload.php` or `edit.php`)
+- `$query->is_main_query()` true
+- post type is enabled in Media Folders flags
+- valid folder filter payload present (`bw_media_folder > 0` OR `bw_media_unassigned === '1'`)
+
+Grid-query mutation (`ajax_query_attachments_args`) occurs only when ALL are true:
+- admin ajax `action=query-attachments`
+- not `REST_REQUEST`
+- not `DOING_CRON`
+- valid filter payload present (`bw_media_folder > 0` OR `bw_media_unassigned === '1'`)
+
+Parameter handling is deterministic:
+- `bw_media_folder`: `absint` normalized
+- `bw_media_unassigned`: strict string `'1'` only
+- missing/invalid params -> no mutation
+
 ## AJAX Endpoints
 Registered endpoints:
 - `bw_media_get_folders_tree`

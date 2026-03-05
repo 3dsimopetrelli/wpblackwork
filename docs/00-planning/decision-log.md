@@ -270,6 +270,17 @@ If a decision is normative and architecture-binding, the ADR process MUST be use
   - Keep cache keys scoped by taxonomy + post_type context.
   - Keep one invalidation per assignment operation (suspend per-item invalidation during batch updates).
   - Keep list-table query filters fail-open unless folder params are explicitly present.
+
+### Entry 024
+- Date: 2026-03-06
+- Decision summary: Hardened Media Folders query mutation contract to strict screen-only + main-query-only + fail-open guards for list/grid filters.
+- Affected domain: Media Folders / Admin Runtime / Query Safety
+- Rationale: Prevent unintended mutation of secondary/admin-adjacent queries (quick edit/modal/ajax/rest/cron paths) while preserving existing filtering behavior on intended screens.
+- Risk impact: Medium reduced to Low-Medium for unintended query side effects.
+- Follow-up actions:
+  - Keep shared guard helpers as the single source for list/grid query eligibility.
+  - Keep strict folder payload normalization (`absint` + strict `'1'` for unassigned).
+  - Keep no-op behavior when filter params are absent or invalid.
   - Keep media bulk assignment as media-only behavior.
 
 ### Entry 021
