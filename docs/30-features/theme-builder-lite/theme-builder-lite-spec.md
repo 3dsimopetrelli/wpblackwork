@@ -411,6 +411,13 @@ Reusable extension pattern (2026-03):
 - Explicit toggles for optional behavior (e.g., include mode, exclude enable).
 - Keep UI fail-open: if JS fails, fields remain editable.
 
+### Settings Page UI Contract (2026-03)
+- `Blackwork Site > Theme Builder Lite` adopts the shared Blackwork Admin UI Kit (`admin/css/bw-admin-ui-kit.css`).
+- Pattern: `.bw-admin-root` shell, page header + subtitle, top action bar with primary save CTA, `Sections` card with pill tabs, and card-grouped tab panels.
+- Constraints:
+  - UI-only styling alignment; no changes to option keys/defaults/sanitizers/save handlers.
+  - Styling scope remains under `.bw-admin-root`; Theme Builder Lite module CSS selectors are additionally scoped to `.bw-admin-root.bw-tbl-admin-wrap`.
+
 3. Runtime branch pattern
 - Gate by master + feature flags before resolver branch.
 - Apply global + Woo safety bypass first.
