@@ -71,11 +71,12 @@ if (!function_exists('bw_system_status_render_admin_page')) {
         <div class="wrap">
             <style>
                 #bw-system-status-app { max-width: 1150px; }
-                .bw-system-header { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; margin-bottom:16px; }
+                .bw-system-header { margin-bottom:10px; }
                 .bw-system-title { margin:0; font-size:28px; line-height:1.2; }
                 .bw-system-subtitle { margin:6px 0 0; color:#646970; }
-                .bw-system-header-actions { display:flex; flex-direction:column; align-items:flex-end; gap:8px; }
-                .bw-system-header-actions .button + .button { margin-left:8px; }
+                .bw-system-action-bar { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; background:#fff; border:1px solid #dcdcde; border-radius:10px; padding:10px 12px; margin:8px 0 14px; }
+                .bw-system-action-buttons { white-space:nowrap; }
+                .bw-system-action-buttons .button + .button { margin-left:8px; }
                 .bw-system-meta { font-size:12px; color:#646970; }
                 .bw-system-overview-strip { display:grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap:10px; margin-bottom:14px; }
                 .bw-overview-pill { background:#fff; border:1px solid #dcdcde; border-radius:10px; padding:10px 12px; }
@@ -96,6 +97,9 @@ if (!function_exists('bw_system_status_render_admin_page')) {
                 .bw-system-card-badge { display:inline-block; margin-bottom:8px; font-weight:600; font-size:11px; padding:2px 8px; border-radius:999px; border:1px solid #dcdcde; }
                 .bw-system-list { margin:8px 0 0; padding-left:18px; }
                 .bw-system-list li { margin:4px 0; }
+                .bw-system-table { width:100%; border-collapse: collapse; margin-top:8px; font-size:13px; }
+                .bw-system-table th, .bw-system-table td { text-align:left; border-bottom:1px solid #f0f0f1; padding:6px 8px; }
+                .bw-system-table th { color:#646970; font-weight:600; font-size:12px; }
                 .bw-system-details { margin-top:10px; border-top:1px solid #f0f0f1; padding-top:10px; }
                 .bw-system-debug-link { margin-top:14px; }
                 #bw-system-status-json { max-height:360px; overflow:auto; background:#fff; border:1px solid #dcdcde; padding:12px; }
@@ -106,28 +110,26 @@ if (!function_exists('bw_system_status_render_admin_page')) {
 
             <div id="bw-system-status-app">
                 <div class="bw-system-header">
-                    <div>
-                        <h1 class="bw-system-title"><?php esc_html_e('Status', 'bw'); ?></h1>
-                        <p class="bw-system-subtitle"><?php esc_html_e('Run read-only health checks for storage, database, WordPress, and image configuration.', 'bw'); ?></p>
-                    </div>
-                    <div class="bw-system-header-actions">
-                        <div>
-                            <button type="button" class="button button-primary" id="bw-system-status-run"><?php esc_html_e('Run full check', 'bw'); ?></button>
-                            <button type="button" class="button" id="bw-system-status-refresh"><?php esc_html_e('Force refresh', 'bw'); ?></button>
-                        </div>
-                        <div class="bw-system-meta">
-                            <?php esc_html_e('Last check:', 'bw'); ?> <span id="bw-system-generated-at">-</span>
-                            &nbsp;•&nbsp;
-                            <?php esc_html_e('Source:', 'bw'); ?> <span id="bw-system-source">-</span>
-                            &nbsp;•&nbsp;
-                            <?php esc_html_e('TTL:', 'bw'); ?> <span id="bw-system-ttl">-</span>
-                            &nbsp;•&nbsp;
-                            <?php esc_html_e('Exec:', 'bw'); ?> <span id="bw-system-execution-time">-</span>
-                        </div>
-                    </div>
+                    <h1 class="bw-system-title"><?php esc_html_e('Status', 'bw'); ?></h1>
+                    <p class="bw-system-subtitle"><?php esc_html_e('Run read-only health checks for storage, database, WordPress, and image configuration.', 'bw'); ?></p>
                 </div>
 
                 <div id="bw-system-status-feedback" class="notice" style="display:none;"><p></p></div>
+                <div class="bw-system-action-bar">
+                    <div class="bw-system-meta">
+                        <?php esc_html_e('Last check:', 'bw'); ?> <span id="bw-system-generated-at">-</span>
+                        &nbsp;•&nbsp;
+                        <?php esc_html_e('Source:', 'bw'); ?> <span id="bw-system-source">-</span>
+                        &nbsp;•&nbsp;
+                        <?php esc_html_e('TTL:', 'bw'); ?> <span id="bw-system-ttl">-</span>
+                        &nbsp;•&nbsp;
+                        <?php esc_html_e('Exec:', 'bw'); ?> <span id="bw-system-execution-time">-</span>
+                    </div>
+                    <div class="bw-system-action-buttons">
+                        <button type="button" class="button button-primary" id="bw-system-status-run"><?php esc_html_e('Run full check', 'bw'); ?></button>
+                        <button type="button" class="button" id="bw-system-status-refresh"><?php esc_html_e('Force refresh', 'bw'); ?></button>
+                    </div>
+                </div>
 
                 <div id="bw-system-status-results" style="display:none;">
                     <div class="bw-system-overview-strip" id="bw-system-overview">
@@ -182,7 +184,7 @@ if (!function_exists('bw_system_status_render_admin_page')) {
                             <details class="bw-system-details">
                                 <summary><?php esc_html_e('Show details', 'bw'); ?></summary>
                                 <div style="margin-top:8px;">
-                                    <h4 style="margin:0 0 6px;"><?php esc_html_e('Top 5 largest files', 'bw'); ?></h4>
+                                    <h4 style="margin:0 0 6px;"><?php esc_html_e('Top 10 largest files', 'bw'); ?></h4>
                                     <ul class="bw-system-list" data-field="media-largest-list"></ul>
                                     <h4 style="margin:10px 0 6px;"><?php esc_html_e('Warnings', 'bw'); ?></h4>
                                     <ul class="bw-system-list" data-field="media-warnings"></ul>
@@ -203,12 +205,24 @@ if (!function_exists('bw_system_status_render_admin_page')) {
                                 <div class="bw-system-card-actions">
                                     <span class="bw-system-card-badge">-</span>
                                     <div><button type="button" class="button button-secondary bw-system-run-section" data-scope="images"><?php esc_html_e('Run image sizes check', 'bw'); ?></button></div>
+                                    <div style="margin-top:6px;"><button type="button" class="button bw-system-run-section" data-scope="image_sizes_counts"><?php esc_html_e('Compute generated counts', 'bw'); ?></button></div>
                                 </div>
                             </div>
                             <details class="bw-system-details">
                                 <summary><?php esc_html_e('Show details', 'bw'); ?></summary>
                                 <p style="margin-top:8px;"><?php esc_html_e('These are configuration sizes; removing sizes requires a separate optimization task.', 'bw'); ?></p>
-                                <ul class="bw-system-list" data-field="images-size-list"></ul>
+                                <p data-field="images-generated-hint" style="color:#646970;">—</p>
+                                <table class="bw-system-table">
+                                    <thead>
+                                        <tr>
+                                            <th><?php esc_html_e('Name', 'bw'); ?></th>
+                                            <th><?php esc_html_e('Dimensions', 'bw'); ?></th>
+                                            <th><?php esc_html_e('Crop', 'bw'); ?></th>
+                                            <th><?php esc_html_e('Generated files', 'bw'); ?></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody data-field="images-size-table-body"></tbody>
+                                </table>
                             </details>
                         </section>
 

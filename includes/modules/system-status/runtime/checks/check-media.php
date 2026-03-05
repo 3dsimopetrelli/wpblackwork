@@ -54,7 +54,7 @@ if (!function_exists('bw_system_status_check_media')) {
         global $wpdb;
 
         $limit = 3000;
-        $top_n = 5;
+        $top_n = 10;
         $posts_table = $wpdb->posts;
         $postmeta_table = $wpdb->postmeta;
 
@@ -84,6 +84,7 @@ if (!function_exists('bw_system_status_check_media')) {
         $unknown_type_bytes = 0;
         $largest_file = null;
         $top_largest_files = [];
+        $missing_entries = [];
 
         $bytes_by_type = [
             'jpeg' => 0,
@@ -97,12 +98,26 @@ if (!function_exists('bw_system_status_check_media')) {
             $relative_file = isset($row['attached_file']) ? (string) $row['attached_file'] : '';
             if ('' === $relative_file || '' === $basedir) {
                 $missing_files++;
+                if (count($missing_entries) < 10) {
+                    $missing_entries[] = [
+                        'id' => isset($row['ID']) ? (int) $row['ID'] : 0,
+                        'file' => $relative_file,
+                        'reason' => 'meta_missing',
+                    ];
+                }
                 continue;
             }
 
             $absolute_file = trailingslashit($basedir) . ltrim($relative_file, '/');
             if (!is_file($absolute_file) || !is_readable($absolute_file)) {
                 $missing_files++;
+                if (count($missing_entries) < 10) {
+                    $missing_entries[] = [
+                        'id' => isset($row['ID']) ? (int) $row['ID'] : 0,
+                        'file' => $relative_file,
+                        'reason' => 'file_missing_or_unreadable',
+                    ];
+                }
                 continue;
             }
 
@@ -141,6 +156,12 @@ if (!function_exists('bw_system_status_check_media')) {
             }
         );
         $top_largest_files = array_slice($top_largest_files, 0, $top_n);
+        foreach ($top_largest_files as &$item) {
+            $item['edit_url'] = !empty($item['id'])
+                ? admin_url('post.php?post=' . (int) $item['id'] . '&action=edit')
+                : '';
+        }
+        unset($item);
 
         $status = 'ok';
         $warnings = [];
@@ -201,6 +222,7 @@ if (!function_exists('bw_system_status_check_media')) {
                 'type_distribution_percent' => $type_distribution,
                 'largest_file' => $largest_file,
                 'top_largest_files' => $top_largest_files,
+                'missing_files' => $missing_entries,
             ],
             'warnings' => $warnings,
         ];

@@ -26,7 +26,14 @@ if (!function_exists('bw_system_status_build_snapshot')) {
 
         $requested_checks = array_values(array_intersect($available_check_keys, $requested_checks));
         if (empty($requested_checks)) {
-            $requested_checks = $available_check_keys;
+            $requested_checks = ['media', 'images', 'database', 'wordpress', 'limits'];
+        }
+
+        if (
+            in_array('image_sizes_counts', $requested_checks, true)
+            && !in_array('images', $requested_checks, true)
+        ) {
+            $requested_checks[] = 'images';
         }
 
         $cached_snapshot = get_transient(BW_SYSTEM_STATUS_TRANSIENT_KEY);
@@ -67,6 +74,40 @@ if (!function_exists('bw_system_status_build_snapshot')) {
                 $registry[$check_key]['callback'],
                 $registry[$check_key]['label']
             );
+        }
+
+        if (
+            isset($snapshot['checks']['image_sizes_counts']['metrics']['generated_counts'])
+            && isset($snapshot['checks']['images'])
+        ) {
+            $generated_counts = $snapshot['checks']['image_sizes_counts']['metrics']['generated_counts'];
+
+            if (!isset($snapshot['checks']['images']['metrics']) || !is_array($snapshot['checks']['images']['metrics'])) {
+                $snapshot['checks']['images']['metrics'] = [];
+            }
+            $snapshot['checks']['images']['metrics']['generated_counts'] = $generated_counts;
+
+            if (
+                isset($snapshot['checks']['image_sizes_counts']['status'])
+                && 'warn' === $snapshot['checks']['image_sizes_counts']['status']
+                && isset($snapshot['checks']['images']['status'])
+                && 'error' !== $snapshot['checks']['images']['status']
+            ) {
+                $snapshot['checks']['images']['status'] = 'warn';
+            }
+
+            if (
+                isset($snapshot['checks']['image_sizes_counts']['warnings'])
+                && is_array($snapshot['checks']['image_sizes_counts']['warnings'])
+            ) {
+                if (!isset($snapshot['checks']['images']['warnings']) || !is_array($snapshot['checks']['images']['warnings'])) {
+                    $snapshot['checks']['images']['warnings'] = [];
+                }
+                $snapshot['checks']['images']['warnings'] = array_values(array_unique(array_merge(
+                    $snapshot['checks']['images']['warnings'],
+                    $snapshot['checks']['image_sizes_counts']['warnings']
+                )));
+            }
         }
 
         $snapshot['ok'] = true;
@@ -112,6 +153,10 @@ if (!function_exists('bw_system_status_get_check_registry')) {
                 'callback' => 'bw_system_status_check_server',
                 'label' => 'PHP Limits',
             ],
+            'image_sizes_counts' => [
+                'callback' => 'bw_system_status_check_image_sizes_counts',
+                'label' => 'Image Sizes Generated Counts',
+            ],
         ];
     }
 }
@@ -125,7 +170,7 @@ if (!function_exists('bw_system_status_map_scope_to_checks')) {
             return [];
         }
 
-        $allowed_scopes = ['media', 'images', 'database', 'wordpress', 'limits'];
+        $allowed_scopes = ['media', 'images', 'database', 'wordpress', 'limits', 'image_sizes_counts'];
         if (!in_array($scope, $allowed_scopes, true)) {
             return [];
         }

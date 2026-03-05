@@ -3,13 +3,16 @@
 ## Purpose
 Provide an admin-only, on-demand health snapshot under `Blackwork Site > Status` without impacting storefront runtime.
 
-## Scope (v3)
+## Scope (v4)
 - Menu routing: top-level `Blackwork Site` lands on `Site Settings`.
 - New submenu page: `Status`.
 - Manual button-triggered AJAX checks (no cron).
 - Read-only diagnostics with transient cache.
 - Shopify-like owner/admin UI with:
-  - page header actions (`Run full check`, `Force refresh`) and last-run metadata
+  - page header (title + subtitle)
+  - dedicated action bar below notices with:
+    - `Last check`, `Source`, `TTL`, `Exec`
+    - `Run full check` + `Force refresh`
   - top overview strip with compact status pills
   - five metric-first cards with per-section actions
   - debug payload hidden by default via `Show debug JSON`
@@ -20,7 +23,7 @@ Provide an admin-only, on-demand health snapshot under `Blackwork Site > Status`
   - total bytes estimate from attachment files
   - bytes by type (`jpeg`, `png`, `svg`, `video`, `webp`, `other`) + percentage distribution
   - largest media file
-  - top largest media files (bounded list)
+  - top 10 largest media files (bounded list, clickable admin edit links when available)
 - Database:
   - total database size estimate
   - total table count
@@ -31,6 +34,7 @@ Provide an admin-only, on-demand health snapshot under `Blackwork Site > Status`
   - registered image sizes (`name`, `width`, `height`, `crop`)
   - estimated generated image count
   - duplicate size detection (`width/height/crop`)
+  - optional on-demand generated counts per size (`Compute generated counts`)
 - WordPress environment:
   - WordPress version
   - WooCommerce version (if available)
@@ -49,8 +53,9 @@ Provide an admin-only, on-demand health snapshot under `Blackwork Site > Status`
 - Read-only behavior only (no delete/update writes).
 - Heavy work runs only on button click and uses transient cache (`10 minutes`) to avoid repeated scans on page reload.
 - Check runner wraps each check with graceful-failure handling so partial failures still return structured JSON.
-- AJAX supports `check_scope`: `all`, `media`, `images`, `database`, `wordpress`, `limits`.
+- AJAX supports `check_scope`: `all`, `media`, `images`, `database`, `wordpress`, `limits`, `image_sizes_counts`.
 - Per-section refresh recomputes only requested scope and merges results into cached snapshot.
+- `all` does not execute `image_sizes_counts` (heavy path remains explicit on-demand only).
 
 ## File Map
 - Bootstrap: `includes/modules/system-status/system-status-module.php`
@@ -66,6 +71,7 @@ Provide an admin-only, on-demand health snapshot under `Blackwork Site > Status`
 
 ## Operational Notes
 - Media byte totals are calculated from readable files and can return partial/warn on very large libraries; scans are bounded.
+- On-demand `image_sizes_counts` scan is capped to `3000` image attachments and returns partial warning when cap is reached.
 - Database sizes are estimates and can degrade gracefully when host permissions restrict `information_schema`.
 - Snapshot payload includes: `generated_at`, `ttl_seconds`, `cached`, `execution_time_ms`, and `checks`.
 - Each check returns `status` (`ok|warn|error`) and a human-readable `summary` used by badges.

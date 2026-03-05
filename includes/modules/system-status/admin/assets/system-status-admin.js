@@ -76,6 +76,10 @@
         });
     }
 
+    function appendTextRow($container, text) {
+        $container.append($('<li/>').text(text));
+    }
+
     function renderMedia(checkData) {
         if (!checkData || !checkData.metrics) {
             return;
@@ -100,12 +104,36 @@
         $('[data-field="media-type-webp"]').text((byType.webp && byType.webp.bytes_human) ? byType.webp.bytes_human : '-');
         $('[data-field="media-type-other"]').text((byType.other && byType.other.bytes_human) ? byType.other.bytes_human : '-');
 
-        var largestList = [];
+        var $largestList = $('[data-field="media-largest-list"]');
+        $largestList.empty();
         (metrics.top_largest_files || []).forEach(function (item) {
-            largestList.push(cleanFileName(item.file) + ' (' + (item.size_human || '-') + ')');
+            var $li = $('<li/>');
+            var label = cleanFileName(item.file) + ' (' + (item.size_human || '-') + ')';
+            if (item.id) {
+                label += ' #' + item.id;
+            }
+
+            if (item.edit_url) {
+                $('<a/>')
+                    .attr('href', item.edit_url)
+                    .attr('target', '_blank')
+                    .attr('rel', 'noopener noreferrer')
+                    .text(label)
+                    .appendTo($li);
+            } else {
+                $li.text(label);
+            }
+            $largestList.append($li);
         });
-        setList($('[data-field="media-largest-list"]'), largestList);
-        setList($('[data-field="media-warnings"]'), checkData.warnings || []);
+        if (!$largestList.children().length) {
+            appendTextRow($largestList, '-');
+        }
+
+        var warningRows = (checkData.warnings || []).slice();
+        (metrics.missing_files || []).forEach(function (entry) {
+            warningRows.push('Missing/unreadable: #' + (entry.id || 0) + ' ' + (entry.file || '(no path)'));
+        });
+        setList($('[data-field="media-warnings"]'), warningRows);
     }
 
     function renderImageSizes(checkData) {
@@ -116,12 +144,40 @@
         var metrics = checkData.metrics;
         var sizes = metrics.sizes || [];
         $('[data-field="images-total-sizes"]').text(metrics.total_registered_sizes || sizes.length || '-');
+        var generatedCounts = metrics.generated_counts || null;
+        var perSize = (generatedCounts && generatedCounts.per_size) ? generatedCounts.per_size : null;
+        var $tbody = $('[data-field="images-size-table-body"]');
+        $tbody.empty();
 
-        var rows = [];
         sizes.forEach(function (size) {
-            rows.push((size.name || '-') + ' — ' + (size.width || 0) + 'x' + (size.height || 0) + ' — crop: ' + (size.crop ? 'yes' : 'no'));
+            var generatedValue = '—';
+            if (perSize && Object.prototype.hasOwnProperty.call(perSize, size.name)) {
+                generatedValue = String(perSize[size.name]);
+            }
+
+            var $tr = $('<tr/>');
+            $('<td/>').text(size.name || '-').appendTo($tr);
+            $('<td/>').text((size.width || 0) + 'x' + (size.height || 0)).appendTo($tr);
+            $('<td/>').text(size.crop ? 'yes' : 'no').appendTo($tr);
+            $('<td/>').text(generatedValue).appendTo($tr);
+            $tbody.append($tr);
         });
-        setList($('[data-field="images-size-list"]'), rows);
+
+        if (!$tbody.children().length) {
+            var $empty = $('<tr/>');
+            $('<td/>').attr('colspan', 4).text('-').appendTo($empty);
+            $tbody.append($empty);
+        }
+
+        if (generatedCounts) {
+            var hint = 'Generated totals: ' + (generatedCounts.total_resized_files || 0) + ' resized files';
+            if (generatedCounts.partial) {
+                hint += ' (partial: scanned ' + generatedCounts.scanned_attachments + ' of ' + generatedCounts.total_image_attachments + ')';
+            }
+            $('[data-field="images-generated-hint"]').text(hint);
+        } else {
+            $('[data-field="images-generated-hint"]').text('Generated counts not computed yet. Use \"Compute generated counts\".');
+        }
     }
 
     function renderDatabase(checkData) {
@@ -213,10 +269,15 @@
         setCardStatus('wordpress', checks.wordpress || {});
         setCardStatus('limits', checks.limits || {});
 
-        setOverviewItem('media', (checks.media || {}).status || 'unknown', (checks.media || {}).summary || '-');
-        setOverviewItem('database', (checks.database || {}).status || 'unknown', (checks.database || {}).summary || '-');
-        setOverviewItem('wordpress', (checks.wordpress || {}).status || 'unknown', (checks.wordpress || {}).summary || '-');
-        setOverviewItem('limits', (checks.limits || {}).status || 'unknown', (checks.limits || {}).summary || '-');
+        var mediaSummary = ((checks.media || {}).metrics && (checks.media || {}).metrics.total_bytes_human) ? ('Media ' + checks.media.metrics.total_bytes_human) : ((checks.media || {}).summary || '-');
+        var dbSummary = ((checks.database || {}).metrics && (checks.database || {}).metrics.total_db_size_human) ? ('DB ' + checks.database.metrics.total_db_size_human) : ((checks.database || {}).summary || '-');
+        var wpSummary = ((checks.wordpress || {}).metrics) ? ('WP ' + (checks.wordpress.metrics.wordpress_version || '-') + ' on PHP ' + (checks.wordpress.metrics.php_version || '-')) : ((checks.wordpress || {}).summary || '-');
+        var limitsSummary = ((checks.limits || {}).metrics) ? ('Upload ' + (checks.limits.metrics.upload_max_filesize || '-') + ' • Memory ' + (checks.limits.metrics.memory_limit || '-')) : ((checks.limits || {}).summary || '-');
+
+        setOverviewItem('media', (checks.media || {}).status || 'unknown', mediaSummary);
+        setOverviewItem('database', (checks.database || {}).status || 'unknown', dbSummary);
+        setOverviewItem('wordpress', (checks.wordpress || {}).status || 'unknown', wpSummary);
+        setOverviewItem('limits', (checks.limits || {}).status || 'unknown', limitsSummary);
 
         renderMedia(checks.media || {});
         renderImageSizes(checks.images || {});
