@@ -5,6 +5,7 @@ Native Blackwork Media Library organization using virtual folders (`bw_media_fol
 
 Goals delivered:
 - Sidebar folder tree in Media Library (`upload.php`).
+- Optional sidebar folder tree on selected post list tables (`edit.php` for Posts/Pages/Products).
 - Hierarchical folders (parent/child).
 - Drag & drop and bulk assignment.
 - Folder/unassigned filtering for grid and list views.
@@ -24,9 +25,14 @@ Out of scope:
 - Global flag storage:
   - option `bw_core_flags`
 - Effective gating:
-  - `bw_core_flags['media_folders'] = 1` enables module runtime.
-  - `bw_core_flags['media_folders_corner_indicator'] = 1` enables marker feature.
-  - option `bw_mf_badge_tooltip_enabled = 1` enables marker tooltip (only meaningful when marker feature is on).
+- `bw_core_flags['media_folders'] = 1` enables module runtime.
+- `bw_core_flags['media_folders_corner_indicator'] = 1` enables marker feature.
+- Post type targets:
+  - `bw_core_flags['media_folders_use_media']`
+  - `bw_core_flags['media_folders_use_posts']`
+  - `bw_core_flags['media_folders_use_pages']`
+  - `bw_core_flags['media_folders_use_products']`
+- option `bw_mf_badge_tooltip_enabled = 1` enables marker tooltip (only meaningful when marker feature is on).
 - If disabled:
   - module is no-op (no taxonomy/runtime/admin assets/ajax registration execution path from module loader).
 
@@ -72,19 +78,20 @@ Rationale:
 
 ### Admin integration
 - `admin_menu` (priority 60): settings submenu (`Blackwork Site -> Media Folders`)
-- `admin_enqueue_scripts` (priority 20): enqueue `media-folders.css/js` only on `upload.php` + `screen->id === upload`
+- `admin_enqueue_scripts` (priority 20): enqueue `media-folders.css/js` only on enabled list screens (`upload.php`, `edit.php` with selected post type)
 - `admin_footer-upload.php` (priority 20): sidebar mount HTML output
+- `admin_footer-edit.php` (priority 20): sidebar mount HTML output for selected post types
 
 ### Media query filters
-- `pre_get_posts` (priority 20): list mode filtering, guarded to Media Library main query only
+- `pre_get_posts` (priority 20): list mode filtering, guarded to enabled list-table main query (`attachment`/`post`/`page`/`product`)
 - `ajax_query_attachments_args` (priority 20, accepted args 2): grid mode filtering with fail-open guards
 
 ## Query Filter Contract
-### List mode (`pre_get_posts`)
+### List mode (`pre_get_posts`, upload/edit list tables)
 - Applies only when:
-  - upload screen,
+  - enabled supported screen (`upload.php` or `edit.php`),
   - main query,
-  - post type attachment context,
+  - post type context enabled via module flags,
   - `bw_media_folder` or `bw_media_unassigned=1` provided.
 
 ### Grid mode (`ajax_query_attachments_args`)
@@ -114,7 +121,7 @@ Registered endpoints:
 Validation contract (all endpoints):
 - action name exact match.
 - nonce `bw_media_folders_nonce`.
-- upload context `bw_mf_context=upload`.
+- admin list-table context `bw_mf_context` mapped to enabled post type (`upload` => `attachment`, `post`, `page`, `product`).
 - capability check per endpoint.
 
 Data sanitization:
@@ -133,6 +140,7 @@ Corner markers payload:
 ## Frontend/Admin UI Contract (Admin Only)
 ### Sidebar
 - Mount node: `#bw-media-folders-root`.
+- Enabled on selected admin list screens according to post-type flags.
 - Collapsible with body classes:
   - `bw-mf-enabled`
   - `bw-mf-collapsed`
@@ -164,6 +172,7 @@ Corner markers payload:
 - Tooltip singleton:
   - `#bw-mf-badge-tooltip`
   - enabled only when tooltip flag is on and folder name exists.
+  - media-only (`attachment`) surface.
 
 ### Quick Type Filters
 - Chips:
@@ -173,6 +182,17 @@ Corner markers payload:
   - injected idempotently into media toolbar/list tablenav.
 - Filtering:
   - class toggle `.bw-mf-type-hidden` on tiles/rows.
+  - media-only (`upload.php`) surface.
+
+## Settings Page UI Contract
+- Settings page controls update visibility live without refresh:
+  - master toggle `media_folders` controls dependent sections.
+  - corner indicator toggle controls tooltip sub-toggle visibility.
+- "Use folders with" controls govern runtime activation by post type:
+  - Media / Posts / Pages / Products.
+- Save semantics remain unchanged:
+  - existing keys preserved,
+  - same nonce/save flow.
 
 ## Settings Page UI Contract
 - Settings submenu page (`Blackwork Site -> Media Folders`) keeps the same option semantics and save flow.

@@ -38,10 +38,18 @@ if (!function_exists('bw_mf_render_settings_page')) {
             $core_flags = (isset($_POST['bw_core_flags']) && is_array($_POST['bw_core_flags'])) ? wp_unslash($_POST['bw_core_flags']) : [];
             $enabled = !empty($core_flags['media_folders']) ? 1 : 0;
             $corner_indicator = !empty($core_flags['media_folders_corner_indicator']) ? 1 : 0;
+            $use_media = !empty($core_flags['media_folders_use_media']) ? 1 : 0;
+            $use_posts = !empty($core_flags['media_folders_use_posts']) ? 1 : 0;
+            $use_pages = !empty($core_flags['media_folders_use_pages']) ? 1 : 0;
+            $use_products = !empty($core_flags['media_folders_use_products']) ? 1 : 0;
             $badge_tooltip_enabled = isset($_POST['bw_mf_badge_tooltip_enabled']) ? 1 : 0;
             bw_core_update_flags([
                 'media_folders' => $enabled,
                 'media_folders_corner_indicator' => $corner_indicator,
+                'media_folders_use_media' => $use_media,
+                'media_folders_use_posts' => $use_posts,
+                'media_folders_use_pages' => $use_pages,
+                'media_folders_use_products' => $use_products,
             ]);
             update_option('bw_mf_badge_tooltip_enabled', $badge_tooltip_enabled ? 1 : 0);
 
@@ -51,6 +59,10 @@ if (!function_exists('bw_mf_render_settings_page')) {
         $flags = bw_core_get_flags();
         $enabled = !empty($flags['media_folders']);
         $corner_indicator_enabled = !empty($flags['media_folders_corner_indicator']);
+        $use_media_enabled = !empty($flags['media_folders_use_media']);
+        $use_posts_enabled = !empty($flags['media_folders_use_posts']);
+        $use_pages_enabled = !empty($flags['media_folders_use_pages']);
+        $use_products_enabled = !empty($flags['media_folders_use_products']);
         $badge_tooltip_enabled = bw_mf_get_badge_tooltip_enabled();
         ?>
         <div class="wrap bw-admin-root bw-admin-page bw-admin-page-media-folders">
@@ -81,7 +93,7 @@ if (!function_exists('bw_mf_render_settings_page')) {
                         <div class="bw-admin-field-row">
                             <p class="bw-admin-field-title"><?php esc_html_e('Enable Media Folders', 'bw'); ?></p>
                             <label>
-                                <input type="checkbox" name="bw_core_flags[media_folders]" value="1" <?php checked($enabled); ?> />
+                                <input type="checkbox" name="bw_core_flags[media_folders]" value="1" data-bw-mf-master-toggle="1" <?php checked($enabled); ?> />
                                 <?php esc_html_e('Enable folder sidebar and media organization in Media Library.', 'bw'); ?>
                             </label>
                             <p class="description">
@@ -89,11 +101,33 @@ if (!function_exists('bw_mf_render_settings_page')) {
                             </p>
                         </div>
 
-                        <?php if ($enabled) : ?>
-                        <div class="bw-admin-field-row">
+                        <div class="bw-admin-field-row" data-bw-mf-visible-when-master="1" <?php if (!$enabled) : ?>style="display:none;"<?php endif; ?>>
+                            <p class="bw-admin-field-title"><?php esc_html_e('Use folders with', 'bw'); ?></p>
+                            <label>
+                                <input type="checkbox" name="bw_core_flags[media_folders_use_media]" value="1" <?php checked($use_media_enabled); ?> />
+                                <?php esc_html_e('Media', 'bw'); ?>
+                            </label><br />
+                            <label>
+                                <input type="checkbox" name="bw_core_flags[media_folders_use_posts]" value="1" <?php checked($use_posts_enabled); ?> />
+                                <?php esc_html_e('Posts', 'bw'); ?>
+                            </label><br />
+                            <label>
+                                <input type="checkbox" name="bw_core_flags[media_folders_use_pages]" value="1" <?php checked($use_pages_enabled); ?> />
+                                <?php esc_html_e('Pages', 'bw'); ?>
+                            </label><br />
+                            <label>
+                                <input type="checkbox" name="bw_core_flags[media_folders_use_products]" value="1" <?php checked($use_products_enabled); ?> />
+                                <?php esc_html_e('Products', 'bw'); ?>
+                            </label>
+                            <p class="description">
+                                <?php esc_html_e('Enable folder sidebar and list filtering on selected admin list screens.', 'bw'); ?>
+                            </p>
+                        </div>
+
+                        <div class="bw-admin-field-row" data-bw-mf-visible-when-master="1" <?php if (!$enabled) : ?>style="display:none;"<?php endif; ?>>
                             <p class="bw-admin-field-title"><?php esc_html_e('Folder assignment corner indicator', 'bw'); ?></p>
                             <label>
-                                <input type="checkbox" name="bw_core_flags[media_folders_corner_indicator]" value="1" <?php checked($corner_indicator_enabled); ?> />
+                                <input type="checkbox" name="bw_core_flags[media_folders_corner_indicator]" value="1" data-bw-mf-corner-toggle="1" <?php checked($corner_indicator_enabled); ?> />
                                 <?php esc_html_e('Enable corner indicator on assigned media thumbnails.', 'bw'); ?>
                             </label>
                             <p class="description">
@@ -101,8 +135,7 @@ if (!function_exists('bw_mf_render_settings_page')) {
                             </p>
                         </div>
 
-                        <?php if ($corner_indicator_enabled) : ?>
-                        <div class="bw-admin-field-row">
+                        <div class="bw-admin-field-row" data-bw-mf-visible-when-corner="1" <?php if (!($enabled && $corner_indicator_enabled)) : ?>style="display:none;"<?php endif; ?>>
                             <p class="bw-admin-field-title"><?php esc_html_e('Show folder name tooltip on badge', 'bw'); ?></p>
                             <label>
                                 <input type="checkbox" name="bw_mf_badge_tooltip_enabled" value="1" <?php checked($badge_tooltip_enabled); ?> />
@@ -112,12 +145,43 @@ if (!function_exists('bw_mf_render_settings_page')) {
                                 <?php esc_html_e('When enabled, hovering the badge shows the folder name.', 'bw'); ?>
                             </p>
                         </div>
-                        <?php endif; ?>
-                        <?php endif; ?>
                     </div>
                 </section>
             </form>
         </div>
+        <script>
+        (function () {
+            var root = document.querySelector('.bw-admin-page-media-folders');
+            if (!root) {
+                return;
+            }
+
+            var master = root.querySelector('input[data-bw-mf-master-toggle="1"]');
+            var corner = root.querySelector('input[data-bw-mf-corner-toggle="1"]');
+            if (!master) {
+                return;
+            }
+
+            function syncVisibility() {
+                var masterOn = !!master.checked;
+                var cornerOn = !!(corner && corner.checked);
+
+                root.querySelectorAll('[data-bw-mf-visible-when-master="1"]').forEach(function (el) {
+                    el.style.display = masterOn ? '' : 'none';
+                });
+
+                root.querySelectorAll('[data-bw-mf-visible-when-corner="1"]').forEach(function (el) {
+                    el.style.display = (masterOn && cornerOn) ? '' : 'none';
+                });
+            }
+
+            master.addEventListener('change', syncVisibility);
+            if (corner) {
+                corner.addEventListener('change', syncVisibility);
+            }
+            syncVisibility();
+        })();
+        </script>
         <?php
     }
 }

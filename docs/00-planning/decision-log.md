@@ -240,6 +240,17 @@ If a decision is normative and architecture-binding, the ADR process MUST be use
 
 ### Entry 021
 - Date: 2026-03-05
+- Decision summary: Extended Media Folders from Media-only scope to a flag-controlled multi-post-type admin list-table contract (Media/Posts/Pages/Products), while keeping media-specific marker/type-filter UX bound to Media Library only.
+- Affected domain: Media Folders / Admin List Tables / Settings UX
+- Rationale: Folder organization workflows are needed for editorial/admin list tables beyond attachments; controlled post-type flags preserve isolation and deterministic rollout.
+- Risk impact: Medium (admin list-table DOM coupling + broader query filter surface) mitigated by strict screen/post-type guards, fail-open filtering, and unchanged nonce/capability contracts.
+- Follow-up actions:
+  - Keep master no-op behavior (`media_folders=0`) as immediate rollback path.
+  - Keep media-grid (`ajax_query_attachments_args`) behavior attachment-only.
+  - Revalidate selectors/placement contracts on WordPress admin UI updates.
+
+### Entry 021
+- Date: 2026-03-05
 - Decision summary: Opened a phased Blackwork Site admin hardening program after Shopify rollout audit, prioritizing enqueue-scope correctness and modular maintainability without changing runtime/storefront behavior.
 - Affected domain: Admin Architecture / Governance / Performance
 - Rationale: UI unification is complete, but audit evidence shows residual technical debt in broad asset loading and monolithic admin controller structure; incremental hardening is needed to keep the panel stable and scalable.

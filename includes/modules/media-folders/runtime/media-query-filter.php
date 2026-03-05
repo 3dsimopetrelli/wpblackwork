@@ -6,15 +6,39 @@ if (!defined('ABSPATH')) {
 add_action('pre_get_posts', 'bw_mf_filter_media_list_query', 20);
 add_filter('ajax_query_attachments_args', 'bw_mf_filter_media_grid_query', 20, 2);
 
-if (!function_exists('bw_mf_is_upload_screen')) {
-    function bw_mf_is_upload_screen()
+if (!function_exists('bw_mf_get_current_list_screen_post_type')) {
+    function bw_mf_get_current_list_screen_post_type()
     {
         if (!is_admin() || !function_exists('get_current_screen')) {
-            return false;
+            return '';
         }
 
         $screen = get_current_screen();
-        return $screen && $screen->id === 'upload';
+        if (!$screen) {
+            return '';
+        }
+
+        if ($screen->id === 'upload') {
+            return 'attachment';
+        }
+
+        if ($screen->base === 'edit' && !empty($screen->post_type)) {
+            return sanitize_key((string) $screen->post_type);
+        }
+
+        return '';
+    }
+}
+
+if (!function_exists('bw_mf_is_supported_list_screen')) {
+    function bw_mf_is_supported_list_screen()
+    {
+        $post_type = bw_mf_get_current_list_screen_post_type();
+        if ($post_type === '') {
+            return false;
+        }
+
+        return bw_mf_is_post_type_enabled($post_type);
     }
 }
 
@@ -108,12 +132,17 @@ if (!function_exists('bw_mf_merge_tax_query')) {
 if (!function_exists('bw_mf_filter_media_list_query')) {
     function bw_mf_filter_media_list_query($query)
     {
-        if (!bw_mf_is_upload_screen() || !$query instanceof WP_Query || !$query->is_main_query()) {
+        if (!bw_mf_is_supported_list_screen() || !$query instanceof WP_Query || !$query->is_main_query()) {
+            return;
+        }
+
+        $screen_post_type = bw_mf_get_current_list_screen_post_type();
+        if ($screen_post_type === '') {
             return;
         }
 
         $post_type = $query->get('post_type');
-        if ($post_type && $post_type !== 'attachment') {
+        if ($post_type && $post_type !== $screen_post_type) {
             return;
         }
 
@@ -130,7 +159,7 @@ if (!function_exists('bw_mf_filter_media_list_query')) {
         $existing_tax_query = $query->get('tax_query');
         $mf_tax_query = bw_mf_apply_folder_tax_query([], $folder_id, $unassigned);
         $query->set('tax_query', bw_mf_merge_tax_query($existing_tax_query, $mf_tax_query));
-        $query->set('post_type', 'attachment');
+        $query->set('post_type', $screen_post_type);
     }
 }
 

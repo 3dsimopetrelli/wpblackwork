@@ -128,6 +128,11 @@ Current adoption:
   - Theme Builder Lite: `.../theme-builder-lite-admin.css|js`, `bw-template-type-inline.js`
   - Header: `includes/modules/header/admin/header-admin.js`
   - Media Folders library screen: `includes/modules/media-folders/admin/assets/media-folders.css|js`
+    - enabled surfaces controlled by `bw_core_flags`:
+      - Media Library (`upload.php`) when `media_folders_use_media=1`
+      - Posts list (`edit.php`) when `media_folders_use_posts=1`
+      - Pages list (`edit.php?post_type=page`) when `media_folders_use_pages=1`
+      - Products list (`edit.php?post_type=product`) when `media_folders_use_products=1`
   - Mail Marketing auxiliary panels: `admin/js/bw-order-newsletter-status.js`, `admin/js/bw-user-mail-marketing.js`
 
 ## 2) Tab-by-Tab Structural Map

@@ -36,13 +36,24 @@ if (!function_exists('bw_mf_ajax_error')) {
     }
 }
 
-if (!function_exists('bw_mf_assert_upload_context')) {
-    function bw_mf_assert_upload_context()
+if (!function_exists('bw_mf_get_request_post_type')) {
+    function bw_mf_get_request_post_type()
     {
         $context = isset($_POST['bw_mf_context']) ? sanitize_key(wp_unslash($_POST['bw_mf_context'])) : '';
-        if ($context !== 'upload') {
+        if ($context === '') {
             bw_mf_ajax_error(__('Invalid media screen context.', 'bw'), 403);
         }
+
+        $post_type = bw_mf_get_post_type_for_context($context);
+        if ($post_type === '') {
+            bw_mf_ajax_error(__('Invalid media screen context.', 'bw'), 403);
+        }
+
+        if (!bw_mf_is_post_type_enabled($post_type)) {
+            bw_mf_ajax_error(__('Invalid media screen context.', 'bw'), 403);
+        }
+
+        return $post_type;
     }
 }
 
@@ -69,7 +80,7 @@ if (!function_exists('bw_mf_ajax_require')) {
             bw_mf_ajax_error(__('Invalid nonce.', 'bw'), 403);
         }
 
-        bw_mf_assert_upload_context();
+        bw_mf_get_request_post_type();
 
         if (is_array($capability)) {
             foreach ($capability as $cap) {
@@ -93,10 +104,15 @@ if (!function_exists('bw_mf_ajax_require')) {
     }
 }
 
-if (!function_exists('bw_mf_normalize_attachment_ids')) {
-    function bw_mf_normalize_attachment_ids($raw_ids)
+if (!function_exists('bw_mf_normalize_object_ids')) {
+    function bw_mf_normalize_object_ids($raw_ids, $post_type)
     {
         if (!is_array($raw_ids)) {
+            return [];
+        }
+
+        $post_type = sanitize_key((string) $post_type);
+        if ($post_type === '') {
             return [];
         }
 
@@ -107,7 +123,7 @@ if (!function_exists('bw_mf_normalize_attachment_ids')) {
 
         $valid = [];
         foreach ($ids as $id) {
-            if (get_post_type($id) === 'attachment') {
+            if (get_post_type($id) === $post_type) {
                 $valid[] = $id;
             }
         }
@@ -117,11 +133,18 @@ if (!function_exists('bw_mf_normalize_attachment_ids')) {
 }
 
 if (!function_exists('bw_mf_get_unassigned_count')) {
-    function bw_mf_get_unassigned_count()
+    function bw_mf_get_unassigned_count($post_type = 'attachment')
     {
+        $post_type = sanitize_key((string) $post_type);
+        if ($post_type === '') {
+            $post_type = 'attachment';
+        }
+
+        $post_status = $post_type === 'attachment' ? 'inherit' : 'any';
         $query = new WP_Query([
-            'post_type' => 'attachment',
-            'post_status' => 'inherit',
+            'post_type' => $post_type,
+            'post_status' => $post_status,
+            'post_status__not_in' => ($post_type === 'attachment') ? [] : ['trash', 'auto-draft'],
             'posts_per_page' => 1,
             'fields' => 'ids',
             'no_found_rows' => false,
@@ -138,7 +161,7 @@ if (!function_exists('bw_mf_get_unassigned_count')) {
 }
 
 if (!function_exists('bw_mf_build_folder_nodes')) {
-    function bw_mf_build_folder_nodes()
+    function bw_mf_build_folder_nodes($post_type = 'attachment')
     {
         $terms = get_terms([
             'taxonomy' => 'bw_media_folder',
@@ -150,7 +173,7 @@ if (!function_exists('bw_mf_build_folder_nodes')) {
             return [];
         }
 
-        $counts_map = bw_mf_get_folder_counts_map($terms);
+        $counts_map = bw_mf_get_folder_counts_map($terms, $post_type);
 
         $by_parent = [];
         foreach ($terms as $term) {
@@ -204,8 +227,13 @@ if (!function_exists('bw_mf_build_folder_nodes')) {
 }
 
 if (!function_exists('bw_mf_get_folder_counts_map')) {
-    function bw_mf_get_folder_counts_map($terms = null)
+    function bw_mf_get_folder_counts_map($terms = null, $post_type = 'attachment')
     {
+        $post_type = sanitize_key((string) $post_type);
+        if ($post_type === '') {
+            $post_type = 'attachment';
+        }
+
         if (!is_array($terms)) {
             $terms = get_terms([
                 'taxonomy' => 'bw_media_folder',
@@ -231,25 +259,42 @@ if (!function_exists('bw_mf_get_folder_counts_map')) {
 
         $requested_term_ids = array_values(array_unique($requested_term_ids));
 
-        static $request_cache = null;
-        if (null === $request_cache) {
-            $request_cache = get_transient(BW_MF_COUNTS_CACHE_KEY);
+        static $request_cache_by_post_type = [];
+        if (!array_key_exists($post_type, $request_cache_by_post_type)) {
+            $cache_key = BW_MF_COUNTS_CACHE_KEY . '_' . $post_type;
+            $request_cache = get_transient($cache_key);
             if (!is_array($request_cache)) {
                 $request_cache = null;
             }
-        }
 
-        if (null === $request_cache) {
-            $request_cache = bw_mf_get_folder_counts_map_batched($terms);
-            if (!is_array($request_cache)) {
-                $request_cache = bw_mf_get_folder_counts_map_fallback($terms);
-                if (defined('WP_DEBUG') && WP_DEBUG) {
-                    error_log('[bw-media-folders] Falling back to per-term count queries.');
+            if (null === $request_cache) {
+                $request_cache = bw_mf_get_folder_counts_map_batched($terms, $post_type);
+                if (!is_array($request_cache)) {
+                    $request_cache = bw_mf_get_folder_counts_map_fallback($terms, $post_type);
+                    if (defined('WP_DEBUG') && WP_DEBUG) {
+                        error_log('[bw-media-folders] Falling back to per-term count queries.');
+                    }
+                }
+
+                if (is_array($request_cache)) {
+                    set_transient($cache_key, $request_cache, BW_MF_COUNTS_CACHE_TTL);
                 }
             }
 
-            if (is_array($request_cache)) {
-                set_transient(BW_MF_COUNTS_CACHE_KEY, $request_cache, BW_MF_COUNTS_CACHE_TTL);
+            if (!is_array($request_cache)) {
+                $request_cache = [];
+            }
+            $request_cache_by_post_type[$post_type] = $request_cache;
+        }
+
+        $request_cache = $request_cache_by_post_type[$post_type];
+        if (!is_array($request_cache)) {
+            $request_cache = bw_mf_get_folder_counts_map_fallback($terms, $post_type);
+            if (!is_array($request_cache)) {
+                $request_cache = [];
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                    error_log('[bw-media-folders] Falling back to per-term count queries.');
+                }
             }
         }
 
@@ -263,9 +308,14 @@ if (!function_exists('bw_mf_get_folder_counts_map')) {
 }
 
 if (!function_exists('bw_mf_get_folder_counts_map_batched')) {
-    function bw_mf_get_folder_counts_map_batched($terms)
+    function bw_mf_get_folder_counts_map_batched($terms, $post_type = 'attachment')
     {
         global $wpdb;
+
+        $post_type = sanitize_key((string) $post_type);
+        if ($post_type === '') {
+            $post_type = 'attachment';
+        }
 
         if (!is_array($terms) || empty($terms)) {
             return [];
@@ -333,6 +383,14 @@ if (!function_exists('bw_mf_get_folder_counts_map_batched')) {
         $tt_id_placeholders = implode(',', array_fill(0, count($requested_tt_ids), '%d'));
 
         // Batch read all assignment relationships once, then fan out to ancestor terms in PHP.
+        $status_sql = "AND p.post_status = %s";
+        $prepare_prefix = ['bw_media_folder', $post_type];
+        if ($post_type === 'attachment') {
+            $prepare_prefix[] = 'inherit';
+        } else {
+            $status_sql = "AND p.post_status NOT IN ('trash', 'auto-draft')";
+        }
+
         $sql = "
                 SELECT DISTINCT tr.object_id, tr.term_taxonomy_id
                 FROM {$wpdb->term_relationships} AS tr
@@ -340,12 +398,12 @@ if (!function_exists('bw_mf_get_folder_counts_map_batched')) {
                 INNER JOIN {$wpdb->term_taxonomy} AS tt ON tt.term_taxonomy_id = tr.term_taxonomy_id
                 WHERE tt.taxonomy = %s
                   AND p.post_type = %s
-                  AND p.post_status = %s
+                  {$status_sql}
                   AND tr.term_taxonomy_id IN ({$tt_id_placeholders})
                 ORDER BY tr.object_id ASC
                 ";
 
-        $prepare_args = array_merge([$sql, 'bw_media_folder', 'attachment', 'inherit'], $requested_tt_ids);
+        $prepare_args = array_merge([$sql], $prepare_prefix, $requested_tt_ids);
         $prepared_sql = call_user_func_array([$wpdb, 'prepare'], $prepare_args);
         $rows = $wpdb->get_results($prepared_sql, ARRAY_A);
 
@@ -419,8 +477,13 @@ if (!function_exists('bw_mf_get_folder_counts_map_batched')) {
 }
 
 if (!function_exists('bw_mf_get_folder_counts_map_fallback')) {
-    function bw_mf_get_folder_counts_map_fallback($terms)
+    function bw_mf_get_folder_counts_map_fallback($terms, $post_type = 'attachment')
     {
+        $post_type = sanitize_key((string) $post_type);
+        if ($post_type === '') {
+            $post_type = 'attachment';
+        }
+
         $counts = [];
         foreach ($terms as $term) {
             if (!$term || !isset($term->term_id)) {
@@ -429,8 +492,9 @@ if (!function_exists('bw_mf_get_folder_counts_map_fallback')) {
 
             $term_id = (int) $term->term_id;
             $query = new WP_Query([
-                'post_type' => 'attachment',
-                'post_status' => 'inherit',
+                'post_type' => $post_type,
+                'post_status' => ($post_type === 'attachment') ? 'inherit' : 'any',
+                'post_status__not_in' => ($post_type === 'attachment') ? [] : ['trash', 'auto-draft'],
                 'posts_per_page' => 1,
                 'fields' => 'ids',
                 'no_found_rows' => false,
@@ -454,7 +518,9 @@ if (!function_exists('bw_mf_get_folder_counts_map_fallback')) {
 if (!function_exists('bw_mf_invalidate_folder_counts_cache')) {
     function bw_mf_invalidate_folder_counts_cache()
     {
-        delete_transient(BW_MF_COUNTS_CACHE_KEY);
+        foreach (bw_mf_supported_post_type_flags() as $post_type => $_flag) {
+            delete_transient(BW_MF_COUNTS_CACHE_KEY . '_' . $post_type);
+        }
     }
 }
 
@@ -489,15 +555,28 @@ if (!function_exists('bw_mf_ajax_get_folders_tree')) {
     function bw_mf_ajax_get_folders_tree()
     {
         bw_mf_ajax_require('bw_media_get_folders_tree', 'upload_files');
+        $post_type = bw_mf_get_request_post_type();
 
-        $all_count = wp_count_posts('attachment');
-        $all_files = isset($all_count->inherit) ? (int) $all_count->inherit : 0;
+        $all_count = wp_count_posts($post_type);
+        if (!is_object($all_count)) {
+            $all_files = 0;
+        } elseif ($post_type === 'attachment') {
+            $all_files = isset($all_count->inherit) ? (int) $all_count->inherit : 0;
+        } else {
+            $all_files = 0;
+            foreach ((array) $all_count as $status => $value) {
+                if (in_array((string) $status, ['trash', 'auto-draft'], true)) {
+                    continue;
+                }
+                $all_files += (int) $value;
+            }
+        }
 
         wp_send_json_success([
-            'folders' => bw_mf_build_folder_nodes(),
+            'folders' => bw_mf_build_folder_nodes($post_type),
             'counts' => [
                 'all' => $all_files,
-                'unassigned' => bw_mf_get_unassigned_count(),
+                'unassigned' => bw_mf_get_unassigned_count($post_type),
             ],
         ]);
     }
@@ -507,6 +586,7 @@ if (!function_exists('bw_mf_ajax_get_folder_counts')) {
     function bw_mf_ajax_get_folder_counts()
     {
         bw_mf_ajax_require('bw_media_get_folder_counts', 'upload_files');
+        $post_type = bw_mf_get_request_post_type();
 
         $terms = get_terms([
             'taxonomy' => 'bw_media_folder',
@@ -514,14 +594,26 @@ if (!function_exists('bw_mf_ajax_get_folder_counts')) {
             'hierarchical' => true,
         ]);
 
-        $all_count = wp_count_posts('attachment');
-        $all_files = isset($all_count->inherit) ? (int) $all_count->inherit : 0;
+        $all_count = wp_count_posts($post_type);
+        if (!is_object($all_count)) {
+            $all_files = 0;
+        } elseif ($post_type === 'attachment') {
+            $all_files = isset($all_count->inherit) ? (int) $all_count->inherit : 0;
+        } else {
+            $all_files = 0;
+            foreach ((array) $all_count as $status => $value) {
+                if (in_array((string) $status, ['trash', 'auto-draft'], true)) {
+                    continue;
+                }
+                $all_files += (int) $value;
+            }
+        }
 
         wp_send_json_success([
-            'folder_counts' => bw_mf_get_folder_counts_map($terms),
+            'folder_counts' => bw_mf_get_folder_counts_map($terms, $post_type),
             'counts' => [
                 'all' => $all_files,
-                'unassigned' => bw_mf_get_unassigned_count(),
+                'unassigned' => bw_mf_get_unassigned_count($post_type),
             ],
         ]);
     }
@@ -617,38 +709,39 @@ if (!function_exists('bw_mf_ajax_assign_folder')) {
     function bw_mf_ajax_assign_folder()
     {
         bw_mf_ajax_require('bw_media_assign_folder', 'upload_files');
+        $post_type = bw_mf_get_request_post_type();
 
         $term_id = isset($_POST['term_id']) ? absint($_POST['term_id']) : 0;
         if ($term_id <= 0 && isset($_POST['folder_id'])) {
             $term_id = absint($_POST['folder_id']);
         }
-        $attachment_ids = isset($_POST['attachment_ids']) ? bw_mf_normalize_attachment_ids($_POST['attachment_ids']) : [];
+        $object_ids = isset($_POST['attachment_ids']) ? bw_mf_normalize_object_ids($_POST['attachment_ids'], $post_type) : [];
 
-        if (empty($attachment_ids)) {
-            bw_mf_ajax_error(__('No media selected.', 'bw'));
+        if (empty($object_ids)) {
+            bw_mf_ajax_error(__('No items selected.', 'bw'));
         }
 
-        if (count($attachment_ids) > BW_MF_ASSIGN_BATCH_LIMIT) {
-            bw_mf_ajax_error(__('Too many media items in one request.', 'bw'), 400);
+        if (count($object_ids) > BW_MF_ASSIGN_BATCH_LIMIT) {
+            bw_mf_ajax_error(__('Too many items in one request.', 'bw'), 400);
         }
 
         if ($term_id > 0) {
             bw_mf_get_folder_term_or_error($term_id);
         }
 
-        foreach ($attachment_ids as $attachment_id) {
+        foreach ($object_ids as $object_id) {
             if ($term_id > 0) {
-                wp_set_object_terms($attachment_id, [$term_id], 'bw_media_folder', false);
+                wp_set_object_terms($object_id, [$term_id], 'bw_media_folder', false);
             } else {
-                wp_set_object_terms($attachment_id, [], 'bw_media_folder', false);
+                wp_set_object_terms($object_id, [], 'bw_media_folder', false);
             }
         }
 
         wp_send_json_success([
             'folder_id' => $term_id,
             'term_id' => $term_id,
-            'assigned_ids' => $attachment_ids,
-            'message' => __('Media updated.', 'bw'),
+            'assigned_ids' => $object_ids,
+            'message' => __('Items updated.', 'bw'),
         ]);
     }
 }
@@ -752,6 +845,12 @@ if (!function_exists('bw_mf_ajax_get_corner_markers')) {
     function bw_mf_ajax_get_corner_markers()
     {
         bw_mf_ajax_require('bw_mf_get_corner_markers', 'upload_files');
+        $post_type = bw_mf_get_request_post_type();
+        if ($post_type !== 'attachment') {
+            wp_send_json_success([
+                'markers' => [],
+            ]);
+        }
 
         $raw_ids = isset($_POST['attachment_ids']) && is_array($_POST['attachment_ids']) ? $_POST['attachment_ids'] : [];
         $attachment_ids = array_values(array_unique(array_filter(array_map('absint', $raw_ids))));

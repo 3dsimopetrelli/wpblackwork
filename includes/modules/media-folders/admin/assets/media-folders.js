@@ -5,6 +5,8 @@
     if (!cfg.ajaxUrl || !cfg.nonce) {
         return;
     }
+    var currentPostType = String(cfg.postType || 'attachment');
+    var currentScreenContext = String(cfg.screenContext || (currentPostType === 'attachment' ? 'upload' : currentPostType));
 
     var state = {
         folders: [],
@@ -64,6 +66,18 @@
 
     function isUploadScreen() {
         return !!(document.body && document.body.classList && document.body.classList.contains('upload-php'));
+    }
+
+    function isSupportedListScreen() {
+        if (!document.body || !document.body.classList) {
+            return false;
+        }
+
+        return document.body.classList.contains('upload-php') || document.body.classList.contains('edit-php');
+    }
+
+    function isMediaPostType() {
+        return currentPostType === 'attachment';
     }
 
     function getAttachmentsBrowserEl() {
@@ -155,7 +169,7 @@
         var body = $.extend({}, payload || {}, {
             action: action,
             nonce: cfg.nonce,
-            bw_mf_context: 'upload'
+            bw_mf_context: currentScreenContext
         });
 
         $.post(cfg.ajaxUrl, body)
@@ -184,7 +198,7 @@
     }
 
     function scheduleBwMfRefresh(reason) {
-        if (!isUploadScreen()) {
+        if (!isSupportedListScreen()) {
             return;
         }
 
@@ -211,19 +225,21 @@
             bwMfRefreshCount = 0;
             bwMfRefreshReasons = [];
 
-            ensureTypeFiltersPlacement();
-            if (cornerIndicatorEnabled && isGridMode()) {
-                observeGridTilesForCorners();
-                bwMfApplyCornerMarkers();
-            } else if (!cornerIndicatorEnabled) {
-                clearCornerMarkers();
+            if (isMediaPostType()) {
+                ensureTypeFiltersPlacement();
+                if (cornerIndicatorEnabled && isGridMode()) {
+                    observeGridTilesForCorners();
+                    bwMfApplyCornerMarkers();
+                } else if (!cornerIndicatorEnabled) {
+                    clearCornerMarkers();
+                }
+                recomputeQuickTypeFilters();
             }
-            recomputeQuickTypeFilters();
         });
     }
 
     function scheduleCornerMarkerRefresh() {
-        if (!cornerIndicatorEnabled) {
+        if (!isMediaPostType() || !cornerIndicatorEnabled) {
             disableCornerMarkers();
             return;
         }
@@ -882,6 +898,10 @@
     }
 
     function bindQuickTypeFilterObserver() {
+        if (!isMediaPostType()) {
+            return;
+        }
+
         if (quickTypeFilterObserver && quickTypeFilterObserverTarget && document.body.contains(quickTypeFilterObserverTarget)) {
             return;
         }
@@ -909,6 +929,10 @@
     }
 
     function bindQuickTypeLayoutObserver() {
+        if (!isMediaPostType()) {
+            return;
+        }
+
         if (quickTypeLayoutObserver) {
             return;
         }
@@ -932,6 +956,10 @@
     }
 
     function bindQuickTypeFilterEvents() {
+        if (!isMediaPostType()) {
+            return;
+        }
+
         if (quickTypeFiltersEventsBound) {
             return;
         }
@@ -1057,7 +1085,7 @@
         markerFetchInFlight = $.post(cfg.ajaxUrl, {
             action: 'bw_mf_get_corner_markers',
             nonce: cfg.nonce,
-            bw_mf_context: 'upload',
+            bw_mf_context: currentScreenContext,
             attachment_ids: batch
         })
             .done(function (res) {
@@ -1659,9 +1687,11 @@
         var html = '';
         var allClass = (!state.activeFolder && !state.activeUnassigned) ? ' is-active' : '';
         var unClass = state.activeUnassigned ? ' is-active' : '';
+        var allLabel = isMediaPostType() ? 'All Files' : 'All Items';
+        var unassignedLabel = isMediaPostType() ? 'Unassigned Files' : 'Unassigned Items';
 
-        html += '<button type="button" class="bw-media-default' + allClass + '" data-type="all">All Files <span>' + (state.counts.all || 0) + '</span></button>';
-        html += '<button type="button" class="bw-media-default bw-media-default--drop' + unClass + '" data-type="unassigned" data-term-id="0" data-folder-id="0">Unassigned Files <span>' + (state.counts.unassigned || 0) + '</span></button>';
+        html += '<button type="button" class="bw-media-default' + allClass + '" data-type="all">' + allLabel + ' <span>' + (state.counts.all || 0) + '</span></button>';
+        html += '<button type="button" class="bw-media-default bw-media-default--drop' + unClass + '" data-type="unassigned" data-term-id="0" data-folder-id="0">' + unassignedLabel + ' <span>' + (state.counts.unassigned || 0) + '</span></button>';
 
         $('#bw-media-folders-defaults').html(html);
     }
@@ -2119,6 +2149,10 @@
     }
 
     function registerGridAjaxFilter() {
+        if (!isMediaPostType()) {
+            return;
+        }
+
         if (window.__BW_MF_PREFILTER_DONE) {
             return;
         }
@@ -2491,7 +2525,7 @@
         }
         window.__BW_MF_INIT_DONE = true;
 
-        if (!isUploadScreen()) {
+        if (!isSupportedListScreen()) {
             return;
         }
 
@@ -2515,30 +2549,36 @@
         setCollapsedState(collapsed);
         bindEvents();
         bindBadgeTooltipEvents();
-        bindQuickTypeFilterEvents();
-        bindQuickTypeLayoutObserver();
-        registerGridAjaxFilter();
+        if (isMediaPostType()) {
+            bindQuickTypeFilterEvents();
+            bindQuickTypeLayoutObserver();
+            registerGridAjaxFilter();
+        }
         refreshTree();
         bindCornerMarkerObserver();
-        bindQuickTypeFilterObserver();
-        ensureTypeFiltersPlacement();
+        if (isMediaPostType()) {
+            bindQuickTypeFilterObserver();
+            ensureTypeFiltersPlacement();
+        }
         scheduleBwMfRefresh('init');
     }
 
     $(init);
 
     document.addEventListener('DOMContentLoaded', function () {
-        if (!cornerIndicatorEnabled) {
+        if (!isMediaPostType() || !cornerIndicatorEnabled) {
             clearCornerMarkers();
         } else {
             window.setTimeout(function () {
                 scheduleBwMfRefresh('dom-ready-corner');
             }, 500);
         }
-        window.setTimeout(function () {
-            bindQuickTypeFilterObserver();
-            bindQuickTypeLayoutObserver();
-            scheduleBwMfRefresh('dom-ready-types');
-        }, 350);
+        if (isMediaPostType()) {
+            window.setTimeout(function () {
+                bindQuickTypeFilterObserver();
+                bindQuickTypeLayoutObserver();
+                scheduleBwMfRefresh('dom-ready-types');
+            }, 350);
+        }
     });
 })(jQuery);

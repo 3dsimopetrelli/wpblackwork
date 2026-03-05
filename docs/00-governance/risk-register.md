@@ -263,8 +263,8 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 
 ### Risk ID: R-MF-01
 - Domain: Media Folders / Media Library Admin
-- Surface Anchor: `includes/modules/media-folders/admin/assets/media-folders.js` (toolbar placement selectors + observers + DnD interaction layer)
-- Description: WordPress Media Library admin DOM structure (`.media-toolbar`, `.tablenav.top`, attachment classes) can change across releases, causing quick-filter placement drift or degraded JS behavior.
+- Surface Anchor: `includes/modules/media-folders/admin/assets/media-folders.js` (toolbar/list-table placement selectors + observers + DnD interaction layer)
+- Description: WordPress admin list-table/media DOM structure (`.media-toolbar`, `.tablenav.top`, `#the-list`, row classes) can change across releases, causing placement drift or degraded JS behavior on Media/Posts/Pages/Products list surfaces.
 - Invariant Threatened: Admin-only fail-open behavior with non-breaking Media Library default operations.
 - Impact: Medium
 - Likelihood: Medium
