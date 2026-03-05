@@ -89,7 +89,7 @@ Current adoption:
 - `Blackwork Site > Media Folders` settings page
 - `Blackwork Site > Site Settings` router page (header, action bar, card-wrapped tabs/content, save-proxy CTA bound to existing tab submit buttons)
 - `Blackwork Site > Mail Marketing` page (header, action bar with save CTA, UI-kit tabs, card-grouped General/Checkout settings)
-- `Blackwork Site > Header` page (header shell, action bar save CTA, UI-kit tabs, card-wrapped General/Header Scroll panels)
+- `Blackwork Site > Header` page (header shell, action bar save CTA, UI-kit primary tabs, and section-card settings groups)
 
 ## 2) Tab-by-Tab Structural Map
 
