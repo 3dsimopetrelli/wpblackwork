@@ -12,35 +12,107 @@ if (!defined('BW_SYSTEM_STATUS_TRANSIENT_TTL')) {
 }
 
 if (!function_exists('bw_system_status_build_snapshot')) {
-    function bw_system_status_build_snapshot($force_refresh = false)
+    function bw_system_status_build_snapshot($force_refresh = false, $requested_checks = [])
     {
+        $registry = bw_system_status_get_check_registry();
+        $available_check_keys = array_keys($registry);
+
+        if (is_string($requested_checks)) {
+            $requested_checks = array_filter(array_map('trim', explode(',', $requested_checks)));
+        }
+        if (!is_array($requested_checks)) {
+            $requested_checks = [];
+        }
+
+        $requested_checks = array_values(array_intersect($available_check_keys, $requested_checks));
+        if (empty($requested_checks)) {
+            $requested_checks = $available_check_keys;
+        }
+
         $cached_snapshot = get_transient(BW_SYSTEM_STATUS_TRANSIENT_KEY);
-        if (!$force_refresh && is_array($cached_snapshot)) {
-            $cached_snapshot['cached'] = true;
-            return $cached_snapshot;
+        if (
+            !$force_refresh
+            && is_array($cached_snapshot)
+            && isset($cached_snapshot['checks'])
+            && is_array($cached_snapshot['checks'])
+        ) {
+            $all_requested_cached = true;
+            foreach ($requested_checks as $check_key) {
+                if (!isset($cached_snapshot['checks'][$check_key])) {
+                    $all_requested_cached = false;
+                    break;
+                }
+            }
+
+            if ($all_requested_cached) {
+                $cached_snapshot['ttl_seconds'] = BW_SYSTEM_STATUS_TRANSIENT_TTL;
+                $cached_snapshot['execution_time_ms'] = isset($cached_snapshot['execution_time_ms']) ? (int) $cached_snapshot['execution_time_ms'] : 0;
+                $cached_snapshot['cached'] = true;
+                return $cached_snapshot;
+            }
+        }
+
+        $snapshot = is_array($cached_snapshot) ? $cached_snapshot : [];
+        if (!isset($snapshot['checks']) || !is_array($snapshot['checks'])) {
+            $snapshot['checks'] = [];
         }
 
         $started_at = microtime(true);
-        $checks = [
-            'media' => bw_system_status_safe_check('bw_system_status_check_media', 'Media Library'),
-            'database' => bw_system_status_safe_check('bw_system_status_check_database', 'Database'),
-            'images' => bw_system_status_safe_check('bw_system_status_check_images', 'Registered Image Sizes'),
-            'wordpress' => bw_system_status_safe_check('bw_system_status_check_wordpress', 'WordPress Environment'),
-            'server' => bw_system_status_safe_check('bw_system_status_check_server', 'Server Limits'),
-        ];
+        foreach ($requested_checks as $check_key) {
+            if (!isset($registry[$check_key])) {
+                continue;
+            }
 
-        $snapshot = [
-            'ok' => true,
-            'generated_at' => current_time('mysql'),
-            'cached' => false,
-            'ttl_seconds' => BW_SYSTEM_STATUS_TRANSIENT_TTL,
-            'execution_time_ms' => (int) round((microtime(true) - $started_at) * 1000),
-            'checks' => $checks,
-        ];
+            $snapshot['checks'][$check_key] = bw_system_status_safe_check(
+                $registry[$check_key]['callback'],
+                $registry[$check_key]['label']
+            );
+        }
+
+        $snapshot['ok'] = true;
+        foreach ($snapshot['checks'] as $check_data) {
+            if (isset($check_data['status']) && 'error' === $check_data['status']) {
+                $snapshot['ok'] = false;
+                break;
+            }
+        }
+
+        $snapshot['generated_at'] = current_time('mysql');
+        $snapshot['cached'] = false;
+        $snapshot['ttl_seconds'] = BW_SYSTEM_STATUS_TRANSIENT_TTL;
+        $snapshot['execution_time_ms'] = (int) round((microtime(true) - $started_at) * 1000);
 
         set_transient(BW_SYSTEM_STATUS_TRANSIENT_KEY, $snapshot, BW_SYSTEM_STATUS_TRANSIENT_TTL);
 
         return $snapshot;
+    }
+}
+
+if (!function_exists('bw_system_status_get_check_registry')) {
+    function bw_system_status_get_check_registry()
+    {
+        return [
+            'media' => [
+                'callback' => 'bw_system_status_check_media',
+                'label' => 'Media Library',
+            ],
+            'images' => [
+                'callback' => 'bw_system_status_check_images',
+                'label' => 'Registered Image Sizes',
+            ],
+            'database' => [
+                'callback' => 'bw_system_status_check_database',
+                'label' => 'Database',
+            ],
+            'wordpress' => [
+                'callback' => 'bw_system_status_check_wordpress',
+                'label' => 'WordPress Environment',
+            ],
+            'server' => [
+                'callback' => 'bw_system_status_check_server',
+                'label' => 'PHP Limits',
+            ],
+        ];
     }
 }
 
@@ -56,8 +128,17 @@ if (!function_exists('bw_system_status_ajax_run_check')) {
         check_ajax_referer('bw_system_status_run_check', 'nonce');
 
         $force_refresh = isset($_POST['force_refresh']) && '1' === sanitize_text_field(wp_unslash($_POST['force_refresh']));
+        $requested_checks = [];
+        if (isset($_POST['checks'])) {
+            $raw_checks = wp_unslash($_POST['checks']);
+            if (is_array($raw_checks)) {
+                $requested_checks = array_map('sanitize_key', $raw_checks);
+            } else {
+                $requested_checks = array_map('sanitize_key', explode(',', sanitize_text_field($raw_checks)));
+            }
+        }
 
-        $snapshot = bw_system_status_build_snapshot($force_refresh);
+        $snapshot = bw_system_status_build_snapshot($force_refresh, $requested_checks);
         wp_send_json_success($snapshot);
     }
 }

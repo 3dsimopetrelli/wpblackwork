@@ -9,6 +9,8 @@ Provide an admin-only, on-demand health snapshot under `Blackwork Site > Status`
 - Manual button-triggered AJAX checks (no cron).
 - Read-only diagnostics with transient cache.
 - Top overview panel with per-domain badges.
+- Owner/admin-friendly card UI with per-section run buttons.
+- Debug payload hidden by default and available via `Show debug details` + `Download JSON`.
 
 ## Checks
 - Media Library:
@@ -33,7 +35,7 @@ Provide an admin-only, on-demand health snapshot under `Blackwork Site > Status`
   - PHP version
   - PHP memory limit
   - `WP_DEBUG` and `DISALLOW_FILE_EDIT`
-- Server limits:
+- PHP limits:
   - `upload_max_filesize`
   - `post_max_size`
   - `max_execution_time`
@@ -45,6 +47,7 @@ Provide an admin-only, on-demand health snapshot under `Blackwork Site > Status`
 - Read-only behavior only (no delete/update writes).
 - Heavy work runs only on button click and uses transient cache (`10 minutes`) to avoid repeated scans on page reload.
 - Check runner wraps each check with graceful-failure handling so partial failures still return structured JSON.
+- Per-section refresh requests only selected checks, reusing cached snapshot values for other sections.
 
 ## File Map
 - Bootstrap: `includes/modules/system-status/system-status-module.php`
@@ -62,4 +65,5 @@ Provide an admin-only, on-demand health snapshot under `Blackwork Site > Status`
 - Media byte totals are calculated from readable files and can return partial/warn on very large libraries; scans are bounded.
 - Database sizes are estimates and can degrade gracefully when host permissions restrict `information_schema`.
 - Snapshot payload includes: `generated_at`, `ttl_seconds`, `cached`, `execution_time_ms`, and `checks`.
-- The dashboard uses `OK/WARN/ERROR` per check and exposes raw JSON for debugging.
+- Each check returns `status` (`ok|warn|error`) and a human-readable `summary` used by badges.
+- Full JSON payload remains available in the collapsed debug area and can be exported as a file.

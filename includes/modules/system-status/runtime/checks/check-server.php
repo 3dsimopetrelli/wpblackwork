@@ -73,7 +73,7 @@ if (!function_exists('bw_system_status_check_server')) {
             'status' => $status,
             'summary' => sprintf(
                 /* translators: 1: upload max file size, 2: memory limit */
-                __('Upload limit %1$s, memory %2$s', 'bw'),
+                __('PHP limits: upload %1$s, memory %2$s', 'bw'),
                 $upload_max_filesize_raw,
                 $memory_limit_raw
             ),
