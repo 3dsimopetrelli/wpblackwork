@@ -227,12 +227,24 @@
     margin-bottom: 8px;
 }
 
-.bw-admin-root .bw-form-row__header {
+.bw-admin-root .bw-grid-2 {
     display: grid;
-    grid-template-columns: minmax(240px, 1fr) 96px 120px auto;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.bw-admin-root .bw-grid-2--gap {
+    gap: 10px 12px;
+}
+
+.bw-admin-root .bw-grid-50-50 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
-    align-items: end;
-    margin-bottom: 8px;
+}
+
+.bw-admin-root .bw-form-row__layout {
+    display: grid;
+    align-items: start;
 }
 
 .bw-admin-root .bw-form-row__field {
@@ -251,10 +263,33 @@
     min-width: 0;
 }
 
+.bw-admin-root .bw-form-row__field-family {
+    grid-column: 1;
+    grid-row: 1;
+}
+
+.bw-admin-root .bw-form-row__meta {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+.bw-admin-root .bw-form-row__source-woff2 {
+    grid-column: 1;
+    grid-row: 2;
+}
+
+.bw-admin-root .bw-form-row__source-woff {
+    grid-column: 2;
+    grid-row: 2;
+}
+
 .bw-admin-root .bw-form-row__actions {
+    grid-column: 2;
+    grid-row: 3;
     justify-self: end;
     align-self: end;
     white-space: nowrap;
+    padding-top: 4px;
 }
 
 .bw-admin-root .bw-form-row__label {
@@ -378,17 +413,38 @@
 }
 
 @media (max-width: 1080px) {
-    .bw-admin-root .bw-form-row__header {
+    .bw-admin-root .bw-grid-2 {
         grid-template-columns: 1fr;
-        align-items: start;
+    }
+
+    .bw-admin-root .bw-grid-50-50 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .bw-admin-root .bw-form-row__field-family {
+        grid-column: 1;
+        grid-row: 1;
+    }
+
+    .bw-admin-root .bw-form-row__meta {
+        grid-column: 1;
+        grid-row: 2;
+    }
+
+    .bw-admin-root .bw-form-row__source-woff2 {
+        grid-column: 1;
+        grid-row: 3;
+    }
+
+    .bw-admin-root .bw-form-row__source-woff {
+        grid-column: 1;
+        grid-row: 4;
     }
 
     .bw-admin-root .bw-form-row__actions {
+        grid-column: 1;
+        grid-row: 5;
         justify-self: start;
-    }
-
-    .bw-admin-root .bw-form-row__body {
-        grid-template-columns: 1fr;
     }
 
     .bw-admin-root .bw-form-row__source-control {

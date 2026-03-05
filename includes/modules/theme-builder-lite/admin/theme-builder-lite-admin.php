@@ -166,41 +166,44 @@ if (!function_exists('bw_tbl_render_font_row')) {
         $style = isset($font['font_style']) ? (string) $font['font_style'] : 'normal';
         ?>
         <div class="bw-form-row bw-tbl-font-row">
-            <div class="bw-form-row__header">
-                <div class="bw-form-row__field">
+            <div class="bw-grid-2 bw-grid-2--gap bw-form-row__layout">
+                <div class="bw-form-row__field bw-form-row__field-family">
                     <label class="bw-form-row__label"><?php esc_html_e('Font Family', 'bw'); ?></label>
                     <input type="text" class="regular-text" name="<?php echo esc_attr(BW_TBL_CUSTOM_FONTS_OPTION); ?>[fonts][<?php echo esc_attr((string) $index); ?>][font_family]" value="<?php echo esc_attr($family); ?>" placeholder="Inter" />
                 </div>
-                <div class="bw-form-row__field bw-form-row__field-compact">
-                    <label class="bw-form-row__label"><?php esc_html_e('Weight', 'bw'); ?></label>
-                    <input type="text" class="small-text" name="<?php echo esc_attr(BW_TBL_CUSTOM_FONTS_OPTION); ?>[fonts][<?php echo esc_attr((string) $index); ?>][font_weight]" value="<?php echo esc_attr($weight); ?>" placeholder="400" />
+
+                <div class="bw-grid-50-50 bw-form-row__meta">
+                    <div class="bw-form-row__field bw-form-row__field-compact">
+                        <label class="bw-form-row__label"><?php esc_html_e('Weight', 'bw'); ?></label>
+                        <input type="text" class="small-text" name="<?php echo esc_attr(BW_TBL_CUSTOM_FONTS_OPTION); ?>[fonts][<?php echo esc_attr((string) $index); ?>][font_weight]" value="<?php echo esc_attr($weight); ?>" placeholder="400" />
+                    </div>
+                    <div class="bw-form-row__field bw-form-row__field-compact">
+                        <label class="bw-form-row__label"><?php esc_html_e('Style', 'bw'); ?></label>
+                        <select name="<?php echo esc_attr(BW_TBL_CUSTOM_FONTS_OPTION); ?>[fonts][<?php echo esc_attr((string) $index); ?>][font_style]">
+                            <option value="normal" <?php selected($style, 'normal'); ?>><?php esc_html_e('normal', 'bw'); ?></option>
+                            <option value="italic" <?php selected($style, 'italic'); ?>><?php esc_html_e('italic', 'bw'); ?></option>
+                            <option value="oblique" <?php selected($style, 'oblique'); ?>><?php esc_html_e('oblique', 'bw'); ?></option>
+                        </select>
+                    </div>
                 </div>
-                <div class="bw-form-row__field bw-form-row__field-compact">
-                    <label class="bw-form-row__label"><?php esc_html_e('Style', 'bw'); ?></label>
-                    <select name="<?php echo esc_attr(BW_TBL_CUSTOM_FONTS_OPTION); ?>[fonts][<?php echo esc_attr((string) $index); ?>][font_style]">
-                        <option value="normal" <?php selected($style, 'normal'); ?>><?php esc_html_e('normal', 'bw'); ?></option>
-                        <option value="italic" <?php selected($style, 'italic'); ?>><?php esc_html_e('italic', 'bw'); ?></option>
-                        <option value="oblique" <?php selected($style, 'oblique'); ?>><?php esc_html_e('oblique', 'bw'); ?></option>
-                    </select>
-                </div>
-                <div class="bw-form-row__actions">
-                    <button type="button" class="button-link-delete bw-form-row__remove bw-tbl-remove-font-row"><?php esc_html_e('Remove', 'bw'); ?></button>
-                </div>
-            </div>
-            <div class="bw-form-row__body">
-                <div class="bw-form-row__source">
+
+                <div class="bw-form-row__source bw-form-row__source-woff2">
                     <label class="bw-form-row__label"><?php esc_html_e('WOFF2 Source', 'bw'); ?></label>
                     <div class="bw-form-row__source-control">
                         <input type="url" class="regular-text bw-tbl-font-source bw-tbl-font-source-woff2" name="<?php echo esc_attr(BW_TBL_CUSTOM_FONTS_OPTION); ?>[fonts][<?php echo esc_attr((string) $index); ?>][sources][woff2]" value="<?php echo esc_url($woff2); ?>" placeholder="https://...font.woff2" />
                         <button type="button" class="button button-secondary bw-tbl-media-select" data-format="woff2"><?php esc_html_e('Select .woff2', 'bw'); ?></button>
                     </div>
                 </div>
-                <div class="bw-form-row__source">
+                <div class="bw-form-row__source bw-form-row__source-woff">
                     <label class="bw-form-row__label"><?php esc_html_e('WOFF Source', 'bw'); ?></label>
                     <div class="bw-form-row__source-control">
                         <input type="url" class="regular-text bw-tbl-font-source bw-tbl-font-source-woff" name="<?php echo esc_attr(BW_TBL_CUSTOM_FONTS_OPTION); ?>[fonts][<?php echo esc_attr((string) $index); ?>][sources][woff]" value="<?php echo esc_url($woff); ?>" placeholder="https://...font.woff" />
                         <button type="button" class="button button-secondary bw-tbl-media-select" data-format="woff"><?php esc_html_e('Select .woff', 'bw'); ?></button>
                     </div>
+                </div>
+
+                <div class="bw-form-row__actions">
+                    <button type="button" class="button-link-delete bw-form-row__remove bw-tbl-remove-font-row"><?php esc_html_e('Remove', 'bw'); ?></button>
                 </div>
             </div>
         </div>
