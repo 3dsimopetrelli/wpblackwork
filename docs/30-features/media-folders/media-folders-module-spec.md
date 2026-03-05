@@ -171,6 +171,18 @@ Corner markers payload:
 - Filtering:
   - class toggle `.bw-mf-type-hidden` on tiles/rows.
 
+## Settings Page UI Contract
+- Settings submenu page (`Blackwork Site -> Media Folders`) keeps the same option semantics and save flow.
+- Presentation uses the shared Blackwork Admin UI Kit (`admin/css/bw-admin-ui-kit.css`) with scoped wrapper `.bw-admin-root`.
+- Layout contract:
+  - page header (title + subtitle)
+  - action bar below notices with primary `Save Settings` CTA
+  - card-based grouped controls for module flags
+- Accessibility baseline is preserved:
+  - native form controls remain WordPress-standard inputs/buttons
+  - focus outlines are retained/enhanced by the scoped UI kit
+- No runtime/media-library behavior changes are introduced by this UI alignment.
+
 ## Performance Contract
 - Idempotent init guard:
   - `window.__BW_MF_INIT_DONE`.

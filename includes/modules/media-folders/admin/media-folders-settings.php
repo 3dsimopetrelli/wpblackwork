@@ -53,60 +53,69 @@ if (!function_exists('bw_mf_render_settings_page')) {
         $corner_indicator_enabled = !empty($flags['media_folders_corner_indicator']);
         $badge_tooltip_enabled = bw_mf_get_badge_tooltip_enabled();
         ?>
-        <div class="wrap">
-            <h1><?php esc_html_e('Media Folders', 'bw'); ?></h1>
+        <div class="wrap bw-admin-root bw-admin-page bw-admin-page-media-folders">
+            <div class="bw-admin-header">
+                <h1 class="bw-admin-title"><?php esc_html_e('Media Folders', 'bw'); ?></h1>
+                <p class="bw-admin-subtitle"><?php esc_html_e('Manage Media Library folder organization behavior for Blackwork admin users.', 'bw'); ?></p>
+            </div>
+
             <form method="post">
                 <?php wp_nonce_field('bw_mf_settings_save', 'bw_mf_settings_nonce'); ?>
-                <table class="form-table" role="presentation">
-                    <tbody>
-                        <tr>
-                            <th scope="row"><?php esc_html_e('Enable Media Folders', 'bw'); ?></th>
-                            <td>
-                                <label>
-                                    <input type="checkbox" name="bw_core_flags[media_folders]" value="1" <?php checked($enabled); ?> />
-                                    <?php esc_html_e('Enable folder sidebar and media organization in Media Library.', 'bw'); ?>
-                                </label>
-                                <p class="description">
-                                    <?php esc_html_e('When disabled, Media Folders module is a no-op (no assets, no filters, no AJAX endpoints).', 'bw'); ?>
-                                </p>
-                            </td>
-                        </tr>
-                        <?php if ($enabled) : ?>
-                        <tr>
-                            <th scope="row"><?php esc_html_e('Folder assignment corner indicator', 'bw'); ?></th>
-                            <td>
-                                <label>
-                                    <input type="checkbox" name="bw_core_flags[media_folders_corner_indicator]" value="1" <?php checked($corner_indicator_enabled); ?> />
-                                    <?php esc_html_e('Enable corner indicator on assigned media thumbnails.', 'bw'); ?>
-                                </label>
-                                <p class="description">
-                                    <?php esc_html_e('Shows a small colored corner on media thumbnails when an item is assigned to a folder.', 'bw'); ?>
-                                </p>
-                            </td>
-                        </tr>
-                        <?php if ($corner_indicator_enabled) : ?>
-                        <tr>
-                            <th scope="row"><?php esc_html_e('Show folder name tooltip on badge', 'bw'); ?></th>
-                            <td>
-                                <label>
-                                    <input type="checkbox" name="bw_mf_badge_tooltip_enabled" value="1" <?php checked($badge_tooltip_enabled); ?> />
-                                    <?php esc_html_e('Enable badge tooltip with folder name.', 'bw'); ?>
-                                </label>
-                                <p class="description">
-                                    <?php esc_html_e('When enabled, hovering the badge shows the folder name.', 'bw'); ?>
-                                </p>
-                            </td>
-                        </tr>
-                        <?php endif; ?>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
 
-                <p class="submit">
-                    <button type="submit" class="button button-primary" name="bw_mf_settings_submit" value="1">
-                        <?php esc_html_e('Save Settings', 'bw'); ?>
-                    </button>
-                </p>
+                <div class="bw-admin-action-bar">
+                    <div class="bw-admin-action-meta">
+                        <?php esc_html_e('Changes affect Media Library admin tools only.', 'bw'); ?>
+                    </div>
+                    <div class="bw-admin-action-buttons">
+                        <button type="submit" class="button button-primary" name="bw_mf_settings_submit" value="1">
+                            <?php esc_html_e('Save Settings', 'bw'); ?>
+                        </button>
+                    </div>
+                </div>
+
+                <section class="bw-admin-card">
+                    <h2 class="bw-admin-card-title"><?php esc_html_e('Module Controls', 'bw'); ?></h2>
+                    <p class="bw-admin-card-helper"><?php esc_html_e('Enable or refine folder assignment indicators used in the Media Library.', 'bw'); ?></p>
+
+                    <div class="bw-admin-card-divider bw-admin-field-list">
+                        <div class="bw-admin-field-row">
+                            <p class="bw-admin-field-title"><?php esc_html_e('Enable Media Folders', 'bw'); ?></p>
+                            <label>
+                                <input type="checkbox" name="bw_core_flags[media_folders]" value="1" <?php checked($enabled); ?> />
+                                <?php esc_html_e('Enable folder sidebar and media organization in Media Library.', 'bw'); ?>
+                            </label>
+                            <p class="description">
+                                <?php esc_html_e('When disabled, Media Folders module is a no-op (no assets, no filters, no AJAX endpoints).', 'bw'); ?>
+                            </p>
+                        </div>
+
+                        <?php if ($enabled) : ?>
+                        <div class="bw-admin-field-row">
+                            <p class="bw-admin-field-title"><?php esc_html_e('Folder assignment corner indicator', 'bw'); ?></p>
+                            <label>
+                                <input type="checkbox" name="bw_core_flags[media_folders_corner_indicator]" value="1" <?php checked($corner_indicator_enabled); ?> />
+                                <?php esc_html_e('Enable corner indicator on assigned media thumbnails.', 'bw'); ?>
+                            </label>
+                            <p class="description">
+                                <?php esc_html_e('Shows a small colored corner on media thumbnails when an item is assigned to a folder.', 'bw'); ?>
+                            </p>
+                        </div>
+
+                        <?php if ($corner_indicator_enabled) : ?>
+                        <div class="bw-admin-field-row">
+                            <p class="bw-admin-field-title"><?php esc_html_e('Show folder name tooltip on badge', 'bw'); ?></p>
+                            <label>
+                                <input type="checkbox" name="bw_mf_badge_tooltip_enabled" value="1" <?php checked($badge_tooltip_enabled); ?> />
+                                <?php esc_html_e('Enable badge tooltip with folder name.', 'bw'); ?>
+                            </label>
+                            <p class="description">
+                                <?php esc_html_e('When enabled, hovering the badge shows the folder name.', 'bw'); ?>
+                            </p>
+                        </div>
+                        <?php endif; ?>
+                        <?php endif; ?>
+                    </div>
+                </section>
             </form>
         </div>
         <?php

@@ -205,6 +205,17 @@ If a decision is normative and architecture-binding, the ADR process MUST be use
   - Keep per-section scopes (`media`, `images`, `database`, `wordpress`, `limits`, `image_sizes_counts`) stable for maintainability.
   - Keep debug details collapsed by default and avoid expanding technical output in primary UX.
 
+### Entry 018
+- Date: 2026-03-05
+- Decision summary: Introduced a reusable Blackwork Admin UI Kit (`admin/css/bw-admin-ui-kit.css`) and applied it to `Blackwork Site > Media Folders` settings page to standardize panel UX language.
+- Affected domain: Admin UX / Blackwork Site Settings Surfaces
+- Rationale: Status established a clearer Shopify-like visual model; a shared lightweight UI kit reduces duplicated CSS and keeps future panel pages visually consistent without altering feature behavior.
+- Risk impact: Low (UI-only change), controlled by scoped CSS root and Blackwork-page-only enqueue strategy.
+- Follow-up actions:
+  - Keep UI Kit style scope under `.bw-admin-root` to avoid admin-wide bleed.
+  - Reuse the same primitives (header/action bar/card/field/table) on future Blackwork admin pages.
+  - Preserve semantic form controls and focus visibility in all UI Kit adoptions.
+
 ## Governance Layer Closure
 
 Status: CLOSED  

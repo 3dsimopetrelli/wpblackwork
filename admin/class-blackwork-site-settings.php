@@ -96,20 +96,56 @@ function bw_site_settings_admin_menu_icon_styles()
 add_action('admin_enqueue_scripts', 'bw_site_settings_admin_menu_icon_styles');
 
 /**
+ * Check whether current admin screen belongs to Blackwork Site panel.
+ */
+function bw_is_blackwork_site_admin_screen($hook, $page_slug = '')
+{
+    if ('toplevel_page_blackwork-site-settings' === $hook) {
+        return true;
+    }
+
+    if (0 === strpos($hook, 'blackwork-site-settings_page_')) {
+        return true;
+    }
+
+    if (0 === strpos($hook, 'blackwork-site_page_')) {
+        return true;
+    }
+
+    return !empty($page_slug) && 0 === strpos($page_slug, 'blackwork-');
+}
+
+/**
+ * Enqueue shared Blackwork admin UI kit styles.
+ */
+function bw_admin_enqueue_ui_kit_assets($hook)
+{
+    $current_page = isset($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : '';
+    if (!bw_is_blackwork_site_admin_screen($hook, $current_page)) {
+        return;
+    }
+
+    $ui_kit_path = BW_MEW_PATH . 'admin/css/bw-admin-ui-kit.css';
+    $ui_kit_version = file_exists($ui_kit_path) ? filemtime($ui_kit_path) : '1.0.0';
+
+    wp_enqueue_style(
+        'bw-admin-ui-kit',
+        BW_MEW_URL . 'admin/css/bw-admin-ui-kit.css',
+        [],
+        $ui_kit_version
+    );
+}
+add_action('admin_enqueue_scripts', 'bw_admin_enqueue_ui_kit_assets', 12);
+
+/**
  * Carica gli assets per la pagina admin
  */
 function bw_site_settings_admin_assets($hook)
 {
     $current_page = isset($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : '';
 
-    $allowed_hooks = [
-        'toplevel_page_blackwork-site-settings',
-        'blackwork-site-settings_page_blackwork-mail-marketing',
-        'blackwork-site_page_blackwork-mail-marketing',
-    ];
-
-    // Carica solo nelle pagine Blackwork Site (principale + Mail Marketing).
-    if (!in_array($hook, $allowed_hooks, true) && 'blackwork-mail-marketing' !== $current_page) {
+    // Carica solo nelle pagine Blackwork Site.
+    if (!bw_is_blackwork_site_admin_screen($hook, $current_page) && 'blackwork-mail-marketing' !== $current_page) {
         return;
     }
 

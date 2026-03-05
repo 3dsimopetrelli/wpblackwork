@@ -55,6 +55,7 @@ Mail Marketing module:
 ### 1.5 Admin assets
 Main settings assets:
 - `admin/css/blackwork-site-settings.css`
+- `admin/css/bw-admin-ui-kit.css` (shared Shopify-style Blackwork admin UI primitives; scoped to Blackwork Site pages)
 - `admin/js/bw-redirects.js`
 - `admin/js/bw-google-pay-admin.js`
 - `admin/js/bw-klarna-admin.js`
