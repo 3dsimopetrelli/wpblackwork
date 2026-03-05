@@ -21,10 +21,15 @@ if (!function_exists('bw_mf_admin_is_upload_screen')) {
 if (!function_exists('bw_mf_get_active_filter_payload')) {
     function bw_mf_get_active_filter_payload()
     {
+        $mode = isset($_GET['mode']) ? sanitize_key(wp_unslash($_GET['mode'])) : 'list';
+        if (!in_array($mode, ['list', 'grid'], true)) {
+            $mode = 'list';
+        }
+
         return [
-            'folder' => isset($_GET['bw_media_folder']) ? absint($_GET['bw_media_folder']) : 0,
-            'unassigned' => (isset($_GET['bw_media_unassigned']) && (string) $_GET['bw_media_unassigned'] === '1') ? 1 : 0,
-            'mode' => isset($_GET['mode']) ? sanitize_key($_GET['mode']) : 'list',
+            'folder' => isset($_GET['bw_media_folder']) ? absint(wp_unslash($_GET['bw_media_folder'])) : 0,
+            'unassigned' => (isset($_GET['bw_media_unassigned']) && '1' === sanitize_key(wp_unslash($_GET['bw_media_unassigned']))) ? 1 : 0,
+            'mode' => $mode,
         ];
     }
 }

@@ -849,7 +849,11 @@ function bw_site_settings_page()
     }
 
     // Determina quale tab è attivo
-    $active_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'cart-popup';
+    $allowed_tabs = ['cart-popup', 'bw-coming-soon', 'account-page', 'my-account-page', 'checkout', 'redirect', 'import-product', 'loading'];
+    $active_tab = isset($_GET['tab']) ? sanitize_key(wp_unslash($_GET['tab'])) : 'cart-popup';
+    if (!in_array($active_tab, $allowed_tabs, true)) {
+        $active_tab = 'cart-popup';
+    }
 
     $save_button_map = [
         'cart-popup' => 'bw_cart_popup_submit',
@@ -990,63 +994,63 @@ function bw_site_render_account_page_tab()
     if (isset($_POST['bw_account_page_submit'])) {
         check_admin_referer('bw_account_page_save', 'bw_account_page_nonce');
 
-        $login_provider = isset($_POST['bw_account_login_provider']) ? sanitize_key($_POST['bw_account_login_provider']) : 'wordpress';
-        $login_image = isset($_POST['bw_account_login_image']) ? esc_url_raw($_POST['bw_account_login_image']) : '';
-        $login_image_id = isset($_POST['bw_account_login_image_id']) ? absint($_POST['bw_account_login_image_id']) : 0;
-        $logo = isset($_POST['bw_account_logo']) ? esc_url_raw($_POST['bw_account_logo']) : '';
-        $logo_id = isset($_POST['bw_account_logo_id']) ? absint($_POST['bw_account_logo_id']) : 0;
-        $logo_width = isset($_POST['bw_account_logo_width']) ? absint($_POST['bw_account_logo_width']) : 180;
-        $logo_padding_top = isset($_POST['bw_account_logo_padding_top']) ? absint($_POST['bw_account_logo_padding_top']) : 0;
-        $logo_padding_bottom = isset($_POST['bw_account_logo_padding_bottom']) ? absint($_POST['bw_account_logo_padding_bottom']) : 30;
-        $login_title_supabase = isset($_POST['bw_account_login_title_supabase']) ? sanitize_text_field($_POST['bw_account_login_title_supabase']) : '';
-        $login_subtitle_supabase = isset($_POST['bw_account_login_subtitle_supabase']) ? sanitize_textarea_field($_POST['bw_account_login_subtitle_supabase']) : '';
-        $login_title_wordpress = isset($_POST['bw_account_login_title_wordpress']) ? sanitize_text_field($_POST['bw_account_login_title_wordpress']) : '';
-        $login_subtitle_wordpress = isset($_POST['bw_account_login_subtitle_wordpress']) ? sanitize_textarea_field($_POST['bw_account_login_subtitle_wordpress']) : '';
+        $login_provider = isset($_POST['bw_account_login_provider']) ? sanitize_key(wp_unslash($_POST['bw_account_login_provider'])) : 'wordpress';
+        $login_image = isset($_POST['bw_account_login_image']) ? esc_url_raw(wp_unslash($_POST['bw_account_login_image'])) : '';
+        $login_image_id = isset($_POST['bw_account_login_image_id']) ? absint(wp_unslash($_POST['bw_account_login_image_id'])) : 0;
+        $logo = isset($_POST['bw_account_logo']) ? esc_url_raw(wp_unslash($_POST['bw_account_logo'])) : '';
+        $logo_id = isset($_POST['bw_account_logo_id']) ? absint(wp_unslash($_POST['bw_account_logo_id'])) : 0;
+        $logo_width = isset($_POST['bw_account_logo_width']) ? absint(wp_unslash($_POST['bw_account_logo_width'])) : 180;
+        $logo_padding_top = isset($_POST['bw_account_logo_padding_top']) ? absint(wp_unslash($_POST['bw_account_logo_padding_top'])) : 0;
+        $logo_padding_bottom = isset($_POST['bw_account_logo_padding_bottom']) ? absint(wp_unslash($_POST['bw_account_logo_padding_bottom'])) : 30;
+        $login_title_supabase = isset($_POST['bw_account_login_title_supabase']) ? sanitize_text_field(wp_unslash($_POST['bw_account_login_title_supabase'])) : '';
+        $login_subtitle_supabase = isset($_POST['bw_account_login_subtitle_supabase']) ? sanitize_textarea_field(wp_unslash($_POST['bw_account_login_subtitle_supabase'])) : '';
+        $login_title_wordpress = isset($_POST['bw_account_login_title_wordpress']) ? sanitize_text_field(wp_unslash($_POST['bw_account_login_title_wordpress'])) : '';
+        $login_subtitle_wordpress = isset($_POST['bw_account_login_subtitle_wordpress']) ? sanitize_textarea_field(wp_unslash($_POST['bw_account_login_subtitle_wordpress'])) : '';
         $show_social_buttons = isset($_POST['bw_account_show_social_buttons']) ? 1 : 0;
         $facebook = isset($_POST['bw_account_facebook']) ? 1 : 0;
         $google = isset($_POST['bw_account_google']) ? 1 : 0;
-        $facebook_app_id = isset($_POST['bw_account_facebook_app_id']) ? sanitize_text_field($_POST['bw_account_facebook_app_id']) : '';
-        $facebook_app_secret = isset($_POST['bw_account_facebook_app_secret']) ? sanitize_text_field($_POST['bw_account_facebook_app_secret']) : '';
-        $google_client_id = isset($_POST['bw_account_google_client_id']) ? sanitize_text_field($_POST['bw_account_google_client_id']) : '';
-        $google_client_secret = isset($_POST['bw_account_google_client_secret']) ? sanitize_text_field($_POST['bw_account_google_client_secret']) : '';
-        $passwordless_url = isset($_POST['bw_account_passwordless_url']) ? esc_url_raw($_POST['bw_account_passwordless_url']) : '';
-        $supabase_project_url = isset($_POST['bw_supabase_project_url']) ? esc_url_raw(trim($_POST['bw_supabase_project_url'])) : '';
-        $supabase_anon_key = isset($_POST['bw_supabase_anon_key']) ? sanitize_textarea_field(trim($_POST['bw_supabase_anon_key'])) : '';
-        $supabase_service_key = isset($_POST['bw_supabase_service_role_key']) ? sanitize_textarea_field($_POST['bw_supabase_service_role_key']) : '';
-        $supabase_auth_mode = isset($_POST['bw_supabase_auth_mode']) ? sanitize_key($_POST['bw_supabase_auth_mode']) : 'password';
-        $supabase_login_mode = isset($_POST['bw_supabase_login_mode']) ? sanitize_key($_POST['bw_supabase_login_mode']) : 'native';
-        $supabase_cookie_name = isset($_POST['bw_supabase_jwt_cookie_name']) ? sanitize_key($_POST['bw_supabase_jwt_cookie_name']) : 'bw_supabase_session';
-        $supabase_storage = isset($_POST['bw_supabase_session_storage']) ? sanitize_key($_POST['bw_supabase_session_storage']) : 'cookie';
+        $facebook_app_id = isset($_POST['bw_account_facebook_app_id']) ? sanitize_text_field(wp_unslash($_POST['bw_account_facebook_app_id'])) : '';
+        $facebook_app_secret = isset($_POST['bw_account_facebook_app_secret']) ? sanitize_text_field(wp_unslash($_POST['bw_account_facebook_app_secret'])) : '';
+        $google_client_id = isset($_POST['bw_account_google_client_id']) ? sanitize_text_field(wp_unslash($_POST['bw_account_google_client_id'])) : '';
+        $google_client_secret = isset($_POST['bw_account_google_client_secret']) ? sanitize_text_field(wp_unslash($_POST['bw_account_google_client_secret'])) : '';
+        $passwordless_url = isset($_POST['bw_account_passwordless_url']) ? esc_url_raw(wp_unslash($_POST['bw_account_passwordless_url'])) : '';
+        $supabase_project_url = isset($_POST['bw_supabase_project_url']) ? esc_url_raw(trim(wp_unslash($_POST['bw_supabase_project_url']))) : '';
+        $supabase_anon_key = isset($_POST['bw_supabase_anon_key']) ? sanitize_textarea_field(trim(wp_unslash($_POST['bw_supabase_anon_key']))) : '';
+        $supabase_service_key = isset($_POST['bw_supabase_service_role_key']) ? sanitize_textarea_field(wp_unslash($_POST['bw_supabase_service_role_key'])) : '';
+        $supabase_auth_mode = isset($_POST['bw_supabase_auth_mode']) ? sanitize_key(wp_unslash($_POST['bw_supabase_auth_mode'])) : 'password';
+        $supabase_login_mode = isset($_POST['bw_supabase_login_mode']) ? sanitize_key(wp_unslash($_POST['bw_supabase_login_mode'])) : 'native';
+        $supabase_cookie_name = isset($_POST['bw_supabase_jwt_cookie_name']) ? sanitize_key(wp_unslash($_POST['bw_supabase_jwt_cookie_name'])) : 'bw_supabase_session';
+        $supabase_storage = isset($_POST['bw_supabase_session_storage']) ? sanitize_key(wp_unslash($_POST['bw_supabase_session_storage'])) : 'cookie';
         $supabase_link_users = isset($_POST['bw_supabase_enable_wp_user_linking']) ? 1 : 0;
         $supabase_debug_log = isset($_POST['bw_supabase_debug_log']) ? 1 : 0;
         $supabase_with_plugins = isset($_POST['bw_supabase_with_plugins']) ? 1 : 0;
-        $supabase_registration = isset($_POST['bw_supabase_registration_mode']) ? sanitize_text_field($_POST['bw_supabase_registration_mode']) : 'R2';
-        $supabase_signup_url = isset($_POST['bw_supabase_provider_signup_url']) ? esc_url_raw($_POST['bw_supabase_provider_signup_url']) : '';
-        $supabase_reset_url = isset($_POST['bw_supabase_provider_reset_url']) ? esc_url_raw($_POST['bw_supabase_provider_reset_url']) : '';
-        $supabase_confirm_url = isset($_POST['bw_supabase_email_confirm_redirect_url']) ? esc_url_raw(trim($_POST['bw_supabase_email_confirm_redirect_url'])) : '';
+        $supabase_registration = isset($_POST['bw_supabase_registration_mode']) ? sanitize_text_field(wp_unslash($_POST['bw_supabase_registration_mode'])) : 'R2';
+        $supabase_signup_url = isset($_POST['bw_supabase_provider_signup_url']) ? esc_url_raw(wp_unslash($_POST['bw_supabase_provider_signup_url'])) : '';
+        $supabase_reset_url = isset($_POST['bw_supabase_provider_reset_url']) ? esc_url_raw(wp_unslash($_POST['bw_supabase_provider_reset_url'])) : '';
+        $supabase_confirm_url = isset($_POST['bw_supabase_email_confirm_redirect_url']) ? esc_url_raw(trim(wp_unslash($_POST['bw_supabase_email_confirm_redirect_url']))) : '';
         $supabase_magic_link_enabled = isset($_POST['bw_supabase_magic_link_enabled']) ? 1 : 0;
         $supabase_otp_allow_signup = isset($_POST['bw_supabase_otp_allow_signup']) ? 1 : 0;
         $supabase_oauth_google_enabled = isset($_POST['bw_supabase_oauth_google_enabled']) ? 1 : 0;
         $supabase_oauth_facebook_enabled = isset($_POST['bw_supabase_oauth_facebook_enabled']) ? 1 : 0;
         $supabase_oauth_apple_enabled = isset($_POST['bw_supabase_oauth_apple_enabled']) ? 1 : 0;
-        $supabase_google_client_id = isset($_POST['bw_supabase_google_client_id']) ? sanitize_text_field($_POST['bw_supabase_google_client_id']) : '';
-        $supabase_google_client_secret = isset($_POST['bw_supabase_google_client_secret']) ? sanitize_textarea_field($_POST['bw_supabase_google_client_secret']) : '';
-        $supabase_google_redirect_url = isset($_POST['bw_supabase_google_redirect_url']) ? esc_url_raw($_POST['bw_supabase_google_redirect_url']) : '';
-        $supabase_google_scopes = isset($_POST['bw_supabase_google_scopes']) ? sanitize_text_field($_POST['bw_supabase_google_scopes']) : '';
-        $supabase_google_prompt = isset($_POST['bw_supabase_google_prompt']) ? sanitize_text_field($_POST['bw_supabase_google_prompt']) : '';
-        $supabase_facebook_app_id = isset($_POST['bw_supabase_facebook_app_id']) ? sanitize_text_field($_POST['bw_supabase_facebook_app_id']) : '';
-        $supabase_facebook_app_secret = isset($_POST['bw_supabase_facebook_app_secret']) ? sanitize_textarea_field($_POST['bw_supabase_facebook_app_secret']) : '';
-        $supabase_facebook_redirect_url = isset($_POST['bw_supabase_facebook_redirect_url']) ? esc_url_raw($_POST['bw_supabase_facebook_redirect_url']) : '';
-        $supabase_facebook_scopes = isset($_POST['bw_supabase_facebook_scopes']) ? sanitize_text_field($_POST['bw_supabase_facebook_scopes']) : '';
-        $supabase_apple_client_id = isset($_POST['bw_supabase_apple_client_id']) ? sanitize_text_field($_POST['bw_supabase_apple_client_id']) : '';
-        $supabase_apple_team_id = isset($_POST['bw_supabase_apple_team_id']) ? sanitize_text_field($_POST['bw_supabase_apple_team_id']) : '';
-        $supabase_apple_key_id = isset($_POST['bw_supabase_apple_key_id']) ? sanitize_text_field($_POST['bw_supabase_apple_key_id']) : '';
-        $supabase_apple_private_key = isset($_POST['bw_supabase_apple_private_key']) ? sanitize_textarea_field($_POST['bw_supabase_apple_private_key']) : '';
-        $supabase_apple_redirect_url = isset($_POST['bw_supabase_apple_redirect_url']) ? esc_url_raw($_POST['bw_supabase_apple_redirect_url']) : '';
+        $supabase_google_client_id = isset($_POST['bw_supabase_google_client_id']) ? sanitize_text_field(wp_unslash($_POST['bw_supabase_google_client_id'])) : '';
+        $supabase_google_client_secret = isset($_POST['bw_supabase_google_client_secret']) ? sanitize_textarea_field(wp_unslash($_POST['bw_supabase_google_client_secret'])) : '';
+        $supabase_google_redirect_url = isset($_POST['bw_supabase_google_redirect_url']) ? esc_url_raw(wp_unslash($_POST['bw_supabase_google_redirect_url'])) : '';
+        $supabase_google_scopes = isset($_POST['bw_supabase_google_scopes']) ? sanitize_text_field(wp_unslash($_POST['bw_supabase_google_scopes'])) : '';
+        $supabase_google_prompt = isset($_POST['bw_supabase_google_prompt']) ? sanitize_text_field(wp_unslash($_POST['bw_supabase_google_prompt'])) : '';
+        $supabase_facebook_app_id = isset($_POST['bw_supabase_facebook_app_id']) ? sanitize_text_field(wp_unslash($_POST['bw_supabase_facebook_app_id'])) : '';
+        $supabase_facebook_app_secret = isset($_POST['bw_supabase_facebook_app_secret']) ? sanitize_textarea_field(wp_unslash($_POST['bw_supabase_facebook_app_secret'])) : '';
+        $supabase_facebook_redirect_url = isset($_POST['bw_supabase_facebook_redirect_url']) ? esc_url_raw(wp_unslash($_POST['bw_supabase_facebook_redirect_url'])) : '';
+        $supabase_facebook_scopes = isset($_POST['bw_supabase_facebook_scopes']) ? sanitize_text_field(wp_unslash($_POST['bw_supabase_facebook_scopes'])) : '';
+        $supabase_apple_client_id = isset($_POST['bw_supabase_apple_client_id']) ? sanitize_text_field(wp_unslash($_POST['bw_supabase_apple_client_id'])) : '';
+        $supabase_apple_team_id = isset($_POST['bw_supabase_apple_team_id']) ? sanitize_text_field(wp_unslash($_POST['bw_supabase_apple_team_id'])) : '';
+        $supabase_apple_key_id = isset($_POST['bw_supabase_apple_key_id']) ? sanitize_text_field(wp_unslash($_POST['bw_supabase_apple_key_id'])) : '';
+        $supabase_apple_private_key = isset($_POST['bw_supabase_apple_private_key']) ? sanitize_textarea_field(wp_unslash($_POST['bw_supabase_apple_private_key'])) : '';
+        $supabase_apple_redirect_url = isset($_POST['bw_supabase_apple_redirect_url']) ? esc_url_raw(wp_unslash($_POST['bw_supabase_apple_redirect_url'])) : '';
         $supabase_password_enabled = isset($_POST['bw_supabase_login_password_enabled']) ? 1 : 0;
-        $supabase_magic_link_redirect = isset($_POST['bw_supabase_magic_link_redirect_url']) ? esc_url_raw(trim($_POST['bw_supabase_magic_link_redirect_url'])) : '';
-        $supabase_oauth_redirect = isset($_POST['bw_supabase_oauth_redirect_url']) ? esc_url_raw(trim($_POST['bw_supabase_oauth_redirect_url'])) : '';
-        $supabase_signup_redirect = isset($_POST['bw_supabase_signup_redirect_url']) ? esc_url_raw(trim($_POST['bw_supabase_signup_redirect_url'])) : '';
+        $supabase_magic_link_redirect = isset($_POST['bw_supabase_magic_link_redirect_url']) ? esc_url_raw(trim(wp_unslash($_POST['bw_supabase_magic_link_redirect_url']))) : '';
+        $supabase_oauth_redirect = isset($_POST['bw_supabase_oauth_redirect_url']) ? esc_url_raw(trim(wp_unslash($_POST['bw_supabase_oauth_redirect_url']))) : '';
+        $supabase_signup_redirect = isset($_POST['bw_supabase_signup_redirect_url']) ? esc_url_raw(trim(wp_unslash($_POST['bw_supabase_signup_redirect_url']))) : '';
         $supabase_auto_login = isset($_POST['bw_supabase_auto_login_after_confirm']) ? 1 : 0;
         $supabase_create_users = isset($_POST['bw_supabase_create_wp_users']) ? 1 : 0;
 
@@ -2614,17 +2618,22 @@ function bw_site_render_checkout_tab()
         ];
         update_option('bw_checkout_fields_settings', $checkout_fields_settings);
 
-        // Redirect to the same tab to prevent losing tab state
+        // Redirect to the same tab to prevent losing tab state.
+        $allowed_checkout_tabs = ['style', 'supabase', 'fields', 'subscribe', 'google-maps', 'google-pay', 'klarna-pay', 'apple-pay', 'footer'];
+        $checkout_tab = isset($_GET['checkout_tab']) ? sanitize_key(wp_unslash($_GET['checkout_tab'])) : 'style';
+        if (!in_array($checkout_tab, $allowed_checkout_tabs, true)) {
+            $checkout_tab = 'style';
+        }
         wp_safe_redirect(add_query_arg(array(
             'page' => 'blackwork-site-settings',
             'tab' => 'checkout',
-            'checkout_tab' => isset($_GET['checkout_tab']) ? sanitize_key($_GET['checkout_tab']) : 'style',
+            'checkout_tab' => $checkout_tab,
             'saved' => '1'
         ), admin_url('admin.php')));
         exit;
     }
 
-    $saved = isset($_GET['saved']) && $_GET['saved'] === '1';
+    $saved = isset($_GET['saved']) && '1' === sanitize_key(wp_unslash($_GET['saved']));
 
     $logo = get_option('bw_checkout_logo', '');
     $logo_align = get_option('bw_checkout_logo_align', 'left');
@@ -2700,7 +2709,7 @@ function bw_site_render_checkout_tab()
         <?php wp_nonce_field('bw_checkout_settings_save', 'bw_checkout_settings_nonce'); ?>
 
         <?php
-        $active_checkout_tab = isset($_GET['checkout_tab']) ? sanitize_key($_GET['checkout_tab']) : 'style';
+        $active_checkout_tab = isset($_GET['checkout_tab']) ? sanitize_key(wp_unslash($_GET['checkout_tab'])) : 'style';
         $allowed_checkout_tabs = ['style', 'supabase', 'fields', 'subscribe', 'google-maps', 'google-pay', 'klarna-pay', 'apple-pay', 'footer'];
         if (!in_array($active_checkout_tab, $allowed_checkout_tabs, true)) {
             $active_checkout_tab = 'style';

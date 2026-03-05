@@ -21,7 +21,8 @@ add_action('admin_menu', 'bw_header_admin_menu', 20);
 if (!function_exists('bw_header_admin_enqueue_assets')) {
     function bw_header_admin_enqueue_assets($hook)
     {
-        $is_header_page = isset($_GET['page']) && $_GET['page'] === 'bw-header-settings'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        $page = isset($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        $is_header_page = ('bw-header-settings' === $page);
         if (!$is_header_page) {
             return;
         }
@@ -92,7 +93,7 @@ if (!function_exists('bw_header_render_admin_page')) {
 
         $settings = bw_header_get_settings();
         $menus = bw_header_get_menu_options();
-        $settings_updated = !empty($_GET['settings-updated']); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        $settings_updated = isset($_GET['settings-updated']) && '' !== sanitize_key(wp_unslash($_GET['settings-updated'])); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
         ?>
         <div class="wrap bw-admin-root bw-admin-page bw-admin-page-header">
             <div class="bw-admin-header">

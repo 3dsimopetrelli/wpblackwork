@@ -59,6 +59,37 @@ Canonical flow:
   - sanitize all request values (`sanitize_key`, `sanitize_text_field`, `absint`, etc.).
 - Escape all output (`esc_html`, `esc_attr`, `esc_url`, `esc_textarea`) in templates.
 
+## Admin Request Input Handling Pattern
+Use a canonical read pattern for all admin request parameters:
+
+```php
+$tab = isset($_GET['tab'])
+    ? sanitize_key(wp_unslash($_GET['tab']))
+    : '';
+```
+
+For text values from POST:
+
+```php
+$value = isset($_POST['something'])
+    ? sanitize_text_field(wp_unslash($_POST['something']))
+    : '';
+```
+
+For enum-like controls (`tab`, `section`, `view`), always apply an allowlist with fallback:
+
+```php
+$allowed_tabs = ['general', 'advanced'];
+if (!in_array($tab, $allowed_tabs, true)) {
+    $tab = 'general';
+}
+```
+
+Notes:
+- Keep `check_admin_referer(...)` and capability checks unchanged.
+- Use `absint(wp_unslash(...))` for numeric request IDs.
+- Escape on output separately (`esc_attr`, `esc_html`, `esc_url`), even after sanitization.
+
 ## Admin Performance Checklist (New/Updated Page)
 - No heavy scans/queries on normal page load unless bounded and required.
 - Prefer on-demand actions (button-triggered) for expensive diagnostics.

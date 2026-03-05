@@ -540,7 +540,7 @@ if (!function_exists('bw_tbl_render_admin_page')) {
                 <h1 class="bw-admin-title"><?php esc_html_e('Theme Builder Lite', 'bw'); ?></h1>
                 <p class="bw-admin-subtitle"><?php esc_html_e('Configure templates, fonts, footer overrides, and import tools for lightweight theme builder flows.', 'bw'); ?></p>
             </div>
-            <?php if (!empty($_GET['settings-updated'])) : // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?>
+            <?php if (isset($_GET['settings-updated']) && '' !== sanitize_key(wp_unslash($_GET['settings-updated']))) : // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?>
                 <div class="notice notice-success is-dismissible">
                     <p><strong><?php esc_html_e('Theme Builder Lite settings saved.', 'bw'); ?></strong></p>
                 </div>

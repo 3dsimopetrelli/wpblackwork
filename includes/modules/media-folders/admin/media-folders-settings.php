@@ -35,7 +35,7 @@ if (!function_exists('bw_mf_render_settings_page')) {
 
         if (isset($_POST['bw_mf_settings_submit'])) {
             check_admin_referer('bw_mf_settings_save', 'bw_mf_settings_nonce');
-            $core_flags = (isset($_POST['bw_core_flags']) && is_array($_POST['bw_core_flags'])) ? $_POST['bw_core_flags'] : [];
+            $core_flags = (isset($_POST['bw_core_flags']) && is_array($_POST['bw_core_flags'])) ? wp_unslash($_POST['bw_core_flags']) : [];
             $enabled = !empty($core_flags['media_folders']) ? 1 : 0;
             $corner_indicator = !empty($core_flags['media_folders_corner_indicator']) ? 1 : 0;
             $badge_tooltip_enabled = isset($_POST['bw_mf_badge_tooltip_enabled']) ? 1 : 0;
