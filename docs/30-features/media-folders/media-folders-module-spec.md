@@ -228,7 +228,7 @@ Corner markers payload:
 - Products-only UI polish contract (`edit.php?post_type=product`, when product support is enabled):
   - drag-handle column (`bw_mf_drag_handle`) uses compact fixed width.
   - checkbox column (`check-column`) uses compact fixed width.
-  - product thumbnail size is increased for admin list readability with Woo filter-backed square target (default `200x200`, override via `BW_MF_PRODUCT_ADMIN_THUMB_SIZE` or `bw_mf_product_admin_thumbnail_size` filter), with CSS display fallback scoped to product list table only.
+  - product thumbnail source size uses Woo/WP thumbnail target (`150x150` default, override via `BW_MF_PRODUCT_ADMIN_THUMB_SIZE` or `bw_mf_product_admin_thumbnail_size` filter), then rendered at compact square `130x130` via product-screen-scoped CSS.
 
 ## Settings Page UI Contract
 - Settings submenu page (`Blackwork Site -> Media Folders`) keeps the same option semantics and save flow.

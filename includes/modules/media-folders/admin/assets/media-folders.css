@@ -532,21 +532,21 @@ body.bw-mf-enabled .bw-mf-toolbar-inline {
 body.edit-php.post-type-product.bw-mf-enabled .column-bw_mf_drag_handle,
 body.edit-php.post-type-product.bw-mf-enabled th#bw_mf_drag_handle,
 body.edit-php.post-type-product.bw-mf-enabled td.column-bw_mf_drag_handle {
-    width: 32px;
-    min-width: 32px;
-    max-width: 32px;
+    width: 50px;
+    min-width: 50px;
+    max-width: 50px;
     text-align: center;
-    padding-left: 6px;
-    padding-right: 6px;
+    padding-left: 8px;
+    padding-right: 8px;
 }
 
 body.edit-php.post-type-product.bw-mf-enabled .wp-list-table th.check-column,
 body.edit-php.post-type-product.bw-mf-enabled .wp-list-table td.check-column {
-    width: 32px;
-    min-width: 32px;
-    max-width: 32px;
-    padding-left: 6px;
-    padding-right: 6px;
+    width: 50px;
+    min-width: 50px;
+    max-width: 50px;
+    padding-left: 8px;
+    padding-right: 8px;
 }
 
 body.edit-php.post-type-product.bw-mf-enabled .bw-mf-row-drag-handle {
@@ -575,17 +575,17 @@ body.edit-php.post-type-product.bw-mf-enabled .bw-mf-row-drag-handle .dashicons 
 
 body.edit-php.post-type-product.bw-mf-enabled .wp-list-table .column-thumb,
 body.edit-php.post-type-product.bw-mf-enabled .wp-list-table .column-image {
-    width: 212px;
-    min-width: 212px;
+    width: 146px;
+    min-width: 146px;
 }
 
 body.edit-php.post-type-product.bw-mf-enabled .wp-list-table .column-thumb img,
 body.edit-php.post-type-product.bw-mf-enabled .wp-list-table .column-image img,
 body.edit-php.post-type-product.bw-mf-enabled .wp-list-table .column-thumb .attachment-post-thumbnail,
 body.edit-php.post-type-product.bw-mf-enabled .wp-list-table .column-image .attachment-post-thumbnail {
-    width: 200px;
-    height: 200px;
-    max-width: 200px;
+    width: 130px;
+    height: 130px;
+    max-width: 130px;
     object-fit: cover;
 }
 

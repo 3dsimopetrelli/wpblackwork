@@ -54,9 +54,10 @@ if (!function_exists('bw_mf_is_product_list_screen')) {
 if (!function_exists('bw_mf_get_product_admin_thumbnail_size')) {
     function bw_mf_get_product_admin_thumbnail_size()
     {
-        $default = defined('BW_MF_PRODUCT_ADMIN_THUMB_SIZE') ? absint(BW_MF_PRODUCT_ADMIN_THUMB_SIZE) : 200;
+        // Use WP thumbnail cut as source (150x150), CSS controls final visual size.
+        $default = defined('BW_MF_PRODUCT_ADMIN_THUMB_SIZE') ? absint(BW_MF_PRODUCT_ADMIN_THUMB_SIZE) : 150;
         if ($default <= 0) {
-            $default = 200;
+            $default = 150;
         }
 
         $size = apply_filters('bw_mf_product_admin_thumbnail_size', $default);

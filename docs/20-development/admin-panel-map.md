@@ -139,7 +139,7 @@ Current adoption:
       - list-table filters mutate queries only when folder params are present (fail-open otherwise)
     - products list UI polish contract (`edit.php?post_type=product`, when `media_folders_use_products=1`):
       - compact fixed widths for drag-handle and checkbox columns
-      - admin product thumbnail target size increased to square `200x200` (overridable via Media Folders admin filter/constant), with product-screen-only fallback CSS
+      - admin product thumbnail source target set to `150x150` (overridable via Media Folders admin filter/constant) and rendered as compact square `130x130` with product-screen-only CSS
     - list-table UX contract (posts/pages/products):
       - dedicated drag-handle column before `Title`
       - products anchor before `name` (fallback `title`, then `cb`) to stay deterministic with WooCommerce column maps
