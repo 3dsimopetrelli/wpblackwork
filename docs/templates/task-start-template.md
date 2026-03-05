@@ -51,6 +51,19 @@ Normative rules:
 - All target files MUST be declared before implementation.
 - Out-of-scope boundaries MUST be explicit.
 
+## Runtime Surface Declaration
+
+Declare expected runtime surfaces affected.
+
+- New hooks expected:
+- Hook priority modifications:
+- Filters expected:
+- AJAX endpoints expected:
+- Admin routes expected:
+
+Normative rule:
+All expected runtime mutations MUST be declared before implementation.
+
 ## 3.1) Implementation Scope Lock
 
 Confirm that the declared scope is complete.
@@ -98,6 +111,17 @@ Normative rules:
 - Non-deterministic behavior in critical flows MUST be escalated to governance review.
 - If deterministic behavior cannot be guaranteed, implementation MUST NOT proceed.
 
+## Testing Strategy
+
+Describe how the implementation will be verified.
+
+- Local testing plan:
+- Edge cases expected:
+- Failure scenarios considered:
+
+Normative rule:
+Critical flows MUST have explicit testing strategy.
+
 ## Documentation Update Plan
 Documentation layers that MUST be considered before implementation:
 
@@ -133,6 +157,17 @@ Normative rules:
 - Documentation impact declaration is REQUIRED and BLOCKING.
 - Implementation MUST NOT begin unless this declaration is completed.
 - If behavior changes are expected, documentation targets MUST be declared before coding.
+
+## Rollback Strategy
+
+Describe rollback feasibility.
+
+- Revert via commit possible? (Yes/No)
+- Database migration involved? (Yes/No)
+- Manual rollback steps required?
+
+Normative rule:
+If rollback is non-trivial, mitigation steps MUST be declared.
 
 ## 6A) Documentation Alignment Requirement
 Before implementation begins, the documentation architecture MUST be evaluated.
