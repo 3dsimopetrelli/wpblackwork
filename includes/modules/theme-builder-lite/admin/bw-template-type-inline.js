@@ -67,5 +67,68 @@
             var $select = $(this);
             $select.data('original', ($select.val() || '').toString());
         });
+
+        var $body = $('body');
+        var $wrap = $('.wrap').first();
+        var $form = $('#posts-filter');
+        if (!$wrap.length || !$form.length) {
+            return;
+        }
+
+        $body.addClass('bw-admin-templates-screen');
+        $wrap.addClass('bw-admin-root bw-admin-page bw-admin-templates');
+
+        if (!$wrap.children('.bw-admin-header').length) {
+            var $title = $wrap.children('h1.wp-heading-inline').first();
+            var $header = $('<div class="bw-admin-header bw-admin-header--split"></div>');
+            var $headerMain = $('<div class="bw-admin-header-main"></div>');
+            var $headerActions = $('<div class="bw-admin-header-actions"></div>');
+            var listTitle = (cfg.listTitle || 'All Templates').toString();
+            var listSubtitle = (cfg.listSubtitle || 'Manage templates, type, priority, and applies-to rules.').toString();
+
+            if ($title.length) {
+                $title.text(listTitle).addClass('bw-admin-title');
+                $headerMain.append($title);
+            } else {
+                $headerMain.append($('<h1 class="bw-admin-title"></h1>').text(listTitle));
+            }
+
+            $headerMain.append($('<p class="bw-admin-subtitle"></p>').text(listSubtitle));
+            $wrap.children('.page-title-action').each(function () {
+                $headerActions.append($(this).addClass('button button-secondary'));
+            });
+
+            $header.append($headerMain);
+            if ($headerActions.children().length) {
+                $header.append($headerActions);
+            }
+
+            var $wpHeaderEnd = $wrap.children('.wp-header-end').first();
+            if ($wpHeaderEnd.length) {
+                $header.insertBefore($wpHeaderEnd);
+            } else {
+                $wrap.prepend($header);
+            }
+        }
+
+        if (!$form.children('.bw-admin-action-bar').length) {
+            var $bar = $('<div class="bw-admin-action-bar bw-admin-action-bar-list"></div>');
+            $bar.append($('<div class="bw-admin-action-meta"></div>').text((cfg.actionHelper || 'Filter, search, and manage your templates.').toString()));
+            var $actions = $('<div class="bw-admin-action-buttons"></div>');
+            var $search = $form.find('p.search-box').first();
+            if ($search.length) {
+                $actions.append($search);
+            }
+            $bar.append($actions);
+            $form.prepend($bar);
+        }
+
+        $form.find('table.wp-list-table').each(function () {
+            var $table = $(this);
+            if ($table.parent('.bw-table-wrap').length) {
+                return;
+            }
+            $table.wrap('<div class="bw-table-wrap"></div>');
+        });
     });
 })(jQuery);

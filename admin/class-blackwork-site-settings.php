@@ -100,6 +100,8 @@ add_action('admin_enqueue_scripts', 'bw_site_settings_admin_menu_icon_styles');
  */
 function bw_is_blackwork_site_admin_screen($hook, $page_slug = '')
 {
+    $post_type = isset($_GET['post_type']) ? sanitize_key(wp_unslash($_GET['post_type'])) : '';
+
     if ('toplevel_page_blackwork-site-settings' === $hook) {
         return true;
     }
@@ -109,6 +111,10 @@ function bw_is_blackwork_site_admin_screen($hook, $page_slug = '')
     }
 
     if (0 === strpos($hook, 'blackwork-site_page_')) {
+        return true;
+    }
+
+    if ('edit.php' === $hook && 'bw_template' === $post_type) {
         return true;
     }
 

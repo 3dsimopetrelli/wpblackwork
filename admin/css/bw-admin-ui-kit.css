@@ -392,6 +392,24 @@
     color: var(--bw-admin-error);
 }
 
+.bw-admin-root .bw-admin-pill {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-weight: 600;
+    margin-right: 6px;
+}
+
+.bw-admin-root .bw-admin-pill--info {
+    background: #e8f0fe;
+    color: #0b57d0;
+}
+
+.bw-admin-root .bw-admin-pill--warn {
+    background: #fbeaea;
+    color: #a61b1b;
+}
+
 .bw-admin-root .bw-admin-tabs {
     margin: 12px 0 0;
     border: 0;
@@ -513,4 +531,88 @@
     color: var(--bw-admin-text);
     border-color: var(--bw-admin-border);
     font-weight: 600;
+}
+
+.bw-admin-root.bw-admin-templates .bw-admin-header {
+    margin-bottom: 12px;
+}
+
+.bw-admin-root .bw-admin-header--split {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.bw-admin-root .bw-admin-header-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.bw-admin-root.bw-admin-templates #posts-filter {
+    margin-top: 0;
+}
+
+.bw-admin-root.bw-admin-templates .bw-admin-action-bar-list {
+    margin-top: 0;
+}
+
+.bw-admin-root.bw-admin-templates .bw-admin-action-bar-list .search-box {
+    float: none;
+    margin: 0;
+}
+
+.bw-admin-root.bw-admin-templates .subsubsub {
+    margin: 0 0 10px;
+}
+
+.bw-admin-root.bw-admin-templates .tablenav.top,
+.bw-admin-root.bw-admin-templates .tablenav.bottom {
+    margin: 0;
+    padding: 10px 0;
+}
+
+.bw-admin-root.bw-admin-templates .tablenav .actions {
+    padding: 0;
+}
+
+.bw-admin-root.bw-admin-templates .tablenav .actions select,
+.bw-admin-root.bw-admin-templates .tablenav .actions .button {
+    margin-right: 6px;
+}
+
+.bw-admin-root .bw-table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--bw-admin-border-soft);
+    border-radius: 10px;
+    background: #fff;
+}
+
+.bw-admin-root .bw-table-wrap .wp-list-table {
+    margin: 0;
+    border: 0;
+    box-shadow: none;
+}
+
+.bw-admin-root .bw-table-wrap .wp-list-table th,
+.bw-admin-root .bw-table-wrap .wp-list-table td {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    border-bottom-color: var(--bw-admin-border-soft);
+}
+
+.bw-admin-root .bw-table-wrap .wp-list-table thead th,
+.bw-admin-root .bw-table-wrap .wp-list-table tfoot th {
+    background: #fbfbfc;
+}
+
+.bw-admin-root .bw-table-wrap .wp-list-table thead th a,
+.bw-admin-root .bw-table-wrap .wp-list-table tfoot th a {
+    color: var(--bw-admin-text-muted);
+}
+
+.bw-admin-root .bw-table-wrap .wp-list-table tbody tr:hover {
+    background: #fafafa;
 }

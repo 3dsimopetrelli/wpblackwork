@@ -416,28 +416,28 @@ if (!function_exists('bw_tbl_admin_template_link_badges')) {
         if ($is_footer_active) {
             $badges[] = [
                 'text' => __('Applies to: Footer', 'bw'),
-                'style' => 'background:#e8f0fe;color:#0b57d0;',
+                'tone' => 'info',
             ];
         }
 
         if ($is_single_product_active) {
             $badges[] = [
                 'text' => __('Applies to: Single Product', 'bw'),
-                'style' => 'background:#e8f0fe;color:#0b57d0;',
+                'tone' => 'info',
             ];
         }
 
         if ($is_product_archive_active) {
             $badges[] = [
                 'text' => __('Applies to: Product Archive', 'bw'),
-                'style' => 'background:#e8f0fe;color:#0b57d0;',
+                'tone' => 'info',
             ];
         }
 
         if (!$is_footer_active && !$is_single_product_active && !$is_product_archive_active) {
             $badges[] = [
                 'text' => __('Not linked', 'bw'),
-                'style' => 'background:#fbeaea;color:#a61b1b;',
+                'tone' => 'warn',
             ];
         }
 
@@ -517,11 +517,12 @@ if (!function_exists('bw_tbl_admin_render_list_column')) {
             if (!empty($badges)) {
                 foreach ($badges as $badge) {
                     $text = isset($badge['text']) ? (string) $badge['text'] : '';
-                    $style = isset($badge['style']) ? (string) $badge['style'] : '';
+                    $tone = isset($badge['tone']) ? sanitize_key((string) $badge['tone']) : 'info';
+                    $tone_class = 'warn' === $tone ? 'bw-admin-pill--warn' : 'bw-admin-pill--info';
                     if ('' === $text) {
                         continue;
                     }
-                    echo '<span class="bw-tbl-pill" style="display:inline-block;padding:2px 8px;border-radius:999px;font-weight:600;margin-right:6px;' . esc_attr($style) . '">' . esc_html($text) . '</span>';
+                    echo '<span class="bw-tbl-pill bw-admin-pill ' . esc_attr($tone_class) . '">' . esc_html($text) . '</span>';
                 }
             }
 
@@ -669,6 +670,9 @@ if (!function_exists('bw_tbl_admin_enqueue_inline_type_assets')) {
                 'saving' => __('Saving…', 'bw'),
                 'saved' => __('Saved', 'bw'),
                 'error' => __('Error', 'bw'),
+                'listTitle' => __('All Templates', 'bw'),
+                'listSubtitle' => __('Manage templates, type, priority, and applies-to rules.', 'bw'),
+                'actionHelper' => __('Filter, search, and manage your templates.', 'bw'),
             ]
         );
     }
