@@ -3,14 +3,16 @@
 ## Purpose
 Provide an admin-only, on-demand health snapshot under `Blackwork Site > Status` without impacting storefront runtime.
 
-## Scope (v2)
+## Scope (v3)
 - Menu routing: top-level `Blackwork Site` lands on `Site Settings`.
 - New submenu page: `Status`.
 - Manual button-triggered AJAX checks (no cron).
 - Read-only diagnostics with transient cache.
-- Top overview panel with per-domain badges.
-- Owner/admin-friendly card UI with per-section run buttons.
-- Debug payload hidden by default and available via `Show debug details` + `Download JSON`.
+- Shopify-like owner/admin UI with:
+  - page header actions (`Run full check`, `Force refresh`) and last-run metadata
+  - top overview strip with compact status pills
+  - five metric-first cards with per-section actions
+  - debug payload hidden by default via `Show debug JSON`
 
 ## Checks
 - Media Library:
@@ -47,7 +49,8 @@ Provide an admin-only, on-demand health snapshot under `Blackwork Site > Status`
 - Read-only behavior only (no delete/update writes).
 - Heavy work runs only on button click and uses transient cache (`10 minutes`) to avoid repeated scans on page reload.
 - Check runner wraps each check with graceful-failure handling so partial failures still return structured JSON.
-- Per-section refresh requests only selected checks, reusing cached snapshot values for other sections.
+- AJAX supports `check_scope`: `all`, `media`, `images`, `database`, `wordpress`, `limits`.
+- Per-section refresh recomputes only requested scope and merges results into cached snapshot.
 
 ## File Map
 - Bootstrap: `includes/modules/system-status/system-status-module.php`

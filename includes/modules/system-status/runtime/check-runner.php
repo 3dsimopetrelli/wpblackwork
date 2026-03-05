@@ -108,11 +108,29 @@ if (!function_exists('bw_system_status_get_check_registry')) {
                 'callback' => 'bw_system_status_check_wordpress',
                 'label' => 'WordPress Environment',
             ],
-            'server' => [
+            'limits' => [
                 'callback' => 'bw_system_status_check_server',
                 'label' => 'PHP Limits',
             ],
         ];
+    }
+}
+
+if (!function_exists('bw_system_status_map_scope_to_checks')) {
+    function bw_system_status_map_scope_to_checks($scope)
+    {
+        $scope = sanitize_key((string) $scope);
+
+        if ('' === $scope || 'all' === $scope) {
+            return [];
+        }
+
+        $allowed_scopes = ['media', 'images', 'database', 'wordpress', 'limits'];
+        if (!in_array($scope, $allowed_scopes, true)) {
+            return [];
+        }
+
+        return [$scope];
     }
 }
 
@@ -128,15 +146,9 @@ if (!function_exists('bw_system_status_ajax_run_check')) {
         check_ajax_referer('bw_system_status_run_check', 'nonce');
 
         $force_refresh = isset($_POST['force_refresh']) && '1' === sanitize_text_field(wp_unslash($_POST['force_refresh']));
-        $requested_checks = [];
-        if (isset($_POST['checks'])) {
-            $raw_checks = wp_unslash($_POST['checks']);
-            if (is_array($raw_checks)) {
-                $requested_checks = array_map('sanitize_key', $raw_checks);
-            } else {
-                $requested_checks = array_map('sanitize_key', explode(',', sanitize_text_field($raw_checks)));
-            }
-        }
+        $requested_checks = bw_system_status_map_scope_to_checks(
+            isset($_POST['check_scope']) ? wp_unslash($_POST['check_scope']) : 'all'
+        );
 
         $snapshot = bw_system_status_build_snapshot($force_refresh, $requested_checks);
         wp_send_json_success($snapshot);

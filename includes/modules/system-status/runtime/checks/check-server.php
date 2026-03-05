@@ -49,9 +49,9 @@ if (!function_exists('bw_system_status_check_server')) {
 
         $status = 'ok';
 
-        if ($upload_max_filesize > 0 && $upload_max_filesize < (32 * 1024 * 1024)) {
+        if ($upload_max_filesize > 0 && $upload_max_filesize < (64 * 1024 * 1024)) {
             $status = 'warn';
-            $warnings[] = __('upload_max_filesize is below 32MB.', 'bw');
+            $warnings[] = __('upload_max_filesize is below 64MB.', 'bw');
         }
 
         if ($post_max_size > 0 && $post_max_size < (32 * 1024 * 1024)) {
@@ -59,14 +59,14 @@ if (!function_exists('bw_system_status_check_server')) {
             $warnings[] = __('post_max_size is below 32MB.', 'bw');
         }
 
-        if ($max_execution_time > 0 && $max_execution_time < 60) {
+        if ($max_execution_time > 0 && $max_execution_time < 30) {
             $status = 'warn';
-            $warnings[] = __('max_execution_time is below 60 seconds.', 'bw');
+            $warnings[] = __('max_execution_time is below 30 seconds.', 'bw');
         }
 
-        if ($memory_limit > 0 && $memory_limit < (128 * 1024 * 1024)) {
+        if ($memory_limit > 0 && $memory_limit < (256 * 1024 * 1024)) {
             $status = 'warn';
-            $warnings[] = __('PHP memory_limit is below 128MB.', 'bw');
+            $warnings[] = __('PHP memory_limit is below 256MB.', 'bw');
         }
 
         return [
