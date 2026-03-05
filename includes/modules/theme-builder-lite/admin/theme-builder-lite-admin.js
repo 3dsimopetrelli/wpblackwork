@@ -15,7 +15,7 @@
 
     function nextIndex() {
         var max = -1;
-        $('#bw-tbl-fonts-table tbody tr').each(function () {
+        $('#bw-tbl-fonts-list .bw-tbl-font-row').each(function () {
             var name = $(this).find('input[name*="[fonts]["]').first().attr('name') || '';
             var match = name.match(/\[fonts\]\[(\d+)\]/);
             if (match) {
@@ -199,7 +199,7 @@
         if (!row.length) {
             return;
         }
-        $('#bw-tbl-fonts-table tbody').append(row);
+        $('#bw-tbl-fonts-list').append(row);
     });
 
     $(document).on('click', '#bw-tbl-add-single-product-rule', function (event) {
@@ -280,14 +280,14 @@
 
     $(document).on('click', '.bw-tbl-remove-font-row', function (event) {
         event.preventDefault();
-        var $rows = $('#bw-tbl-fonts-table tbody tr');
+        var $rows = $('#bw-tbl-fonts-list .bw-tbl-font-row');
         if ($rows.length <= 1) {
-            $(this).closest('tr').find('input[type="text"], input[type="url"]').val('');
-            $(this).closest('tr').find('select').val('normal');
+            $(this).closest('.bw-tbl-font-row').find('input[type="text"], input[type="url"]').val('');
+            $(this).closest('.bw-tbl-font-row').find('select').val('normal');
             return;
         }
 
-        $(this).closest('tr').remove();
+        $(this).closest('.bw-tbl-font-row').remove();
     });
 
     function extractExtension(url) {
