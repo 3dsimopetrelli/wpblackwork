@@ -604,6 +604,10 @@ body.edit-php.post-type-product.bw-mf-enabled .wp-list-table .column-image .atta
     margin: 0;
 }
 
+body.edit-php.post-type-product.bw-mf-enabled .tablenav.top .actions.bulkactions {
+    margin-bottom: 8px;
+}
+
 body.bw-mf-enabled .bw-mf-type-filters {
     display: flex;
     flex-wrap: wrap;
