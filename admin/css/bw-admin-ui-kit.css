@@ -211,7 +211,7 @@
 .bw-admin-root .bw-admin-card-site-settings .bw-admin-site-settings-content {
     margin-top: 12px;
     border-top: 1px solid var(--bw-admin-border-soft);
-    padding: 16px 0 0;
+    padding: 16px 0 18px;
     background: transparent;
     border-right: 0;
     border-bottom: 0;
@@ -221,4 +221,37 @@
 
 .bw-admin-root .bw-admin-card-site-settings .submit {
     margin-top: 18px;
+    margin-bottom: 0;
+}
+
+.bw-admin-root .bw-admin-site-settings-content .nav-tab-wrapper:not(.bw-admin-tabs) {
+    margin: 8px 0 14px;
+    border: 0;
+    padding-left: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.bw-admin-root .bw-admin-site-settings-content .nav-tab-wrapper:not(.bw-admin-tabs) .nav-tab {
+    margin: 0;
+    padding: 7px 12px;
+    border: 1px solid var(--bw-admin-border-soft);
+    border-radius: 999px;
+    background: #f6f7f7;
+    color: var(--bw-admin-text-muted);
+    font-size: 12px;
+    line-height: 1.2;
+}
+
+.bw-admin-root .bw-admin-site-settings-content .nav-tab-wrapper:not(.bw-admin-tabs) .nav-tab:hover {
+    background: #ffffff;
+    color: var(--bw-admin-text);
+}
+
+.bw-admin-root .bw-admin-site-settings-content .nav-tab-wrapper:not(.bw-admin-tabs) .nav-tab.nav-tab-active {
+    background: #ffffff;
+    color: var(--bw-admin-text);
+    border-color: var(--bw-admin-border);
+    font-weight: 600;
 }
