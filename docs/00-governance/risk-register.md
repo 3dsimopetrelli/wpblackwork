@@ -258,6 +258,22 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 - Current Mitigation: Triple-layer suppression (UPE params style rules, cleaner script with MutationObserver, polling fallback).
 - Monitoring Status: Monitoring
 - Linked Documents:
+
+### Risk ID: R-MF-01
+- Domain: Media Folders / Admin Runtime / Counts Pipeline
+- Surface Anchor: `includes/modules/media-folders/runtime/ajax.php` (`bw_mf_get_folder_counts_map_batched`, tree/summary cache paths)
+- Risk type: Performance scalability
+- Description: On very large datasets (e.g. 50k+ media items, 10k+ posts/products, deep folder hierarchies), even batched aggregation queries for folder counts can become expensive depending on hosting and DB performance characteristics.
+- Invariant Threatened: Responsive admin folder tree/counts under high-volume installations.
+- Impact: Medium-High
+- Likelihood: Low (current scale)
+- Risk Level: Medium
+- Current Mitigation: Batched relationship aggregation + taxonomy/post_type scoped transient/object-cache with deterministic invalidation.
+- Planned Mitigation Strategy: Introduce materialized folder counts (incremental updates on assignment/mutation events) to avoid repeated relationship recomputation at very large scale.
+- Monitoring Status: Planning / Watchlist
+- Linked Documents:
+  - [Media Folders Module Spec](../30-features/media-folders/media-folders-module-spec.md)
+  - [Decision Log](../00-planning/decision-log.md)
   - [Blast-Radius Consolidation Map](./blast-radius-consolidation-map.md)
   - [Checkout Payment Selector Audit](../50-ops/audits/checkout-payment-selector-audit.md)
 
