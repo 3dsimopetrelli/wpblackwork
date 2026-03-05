@@ -5,11 +5,11 @@
 - Task title: Media Folders: live settings conditionals + separate folders per content type + single-item drag assignment (Posts/Pages/Products)
 - Domain: Media Folders / Admin Runtime
 - Tier classification: 1
-- Implementation commit(s): `TBD`
+- Implementation commit(s): `940fe9a`
 
 ### Commit Traceability
-- Commit hash: `TBD`
-- Commit message: `TBD`
+- Commit hash: `940fe9a`
+- Commit message: `feat(media-folders): isolate folders by content type and add handle-only single-item drag on list tables`
 - Files impacted:
   - `includes/modules/media-folders/data/taxonomy.php`
   - `includes/modules/media-folders/data/term-meta.php`
