@@ -7,6 +7,9 @@ add_action('admin_enqueue_scripts', 'bw_mf_admin_enqueue_assets', 20);
 add_action('admin_footer-upload.php', 'bw_mf_render_sidebar_mount', 20);
 add_action('admin_footer-edit.php', 'bw_mf_render_sidebar_mount', 20);
 add_action('current_screen', 'bw_mf_register_list_table_drag_column', 20);
+add_filter('woocommerce_product_table_thumbnail_size', 'bw_mf_filter_product_admin_thumbnail_size', 20);
+add_filter('woocommerce_admin_product_list_table_image_size', 'bw_mf_filter_product_admin_thumbnail_size', 20);
+add_filter('woocommerce_product_list_table_thumbnail_size', 'bw_mf_filter_product_admin_thumbnail_size', 20);
 
 if (!function_exists('bw_mf_get_current_screen_post_type')) {
     function bw_mf_get_current_screen_post_type()
@@ -29,6 +32,56 @@ if (!function_exists('bw_mf_get_current_screen_post_type')) {
         }
 
         return '';
+    }
+}
+
+if (!function_exists('bw_mf_is_product_list_screen')) {
+    function bw_mf_is_product_list_screen()
+    {
+        if (!is_admin() || !function_exists('get_current_screen')) {
+            return false;
+        }
+
+        $screen = get_current_screen();
+        if (!$screen) {
+            return false;
+        }
+
+        return $screen->base === 'edit' && $screen->post_type === 'product';
+    }
+}
+
+if (!function_exists('bw_mf_get_product_admin_thumbnail_size')) {
+    function bw_mf_get_product_admin_thumbnail_size()
+    {
+        $default = defined('BW_MF_PRODUCT_ADMIN_THUMB_SIZE') ? absint(BW_MF_PRODUCT_ADMIN_THUMB_SIZE) : 200;
+        if ($default <= 0) {
+            $default = 200;
+        }
+
+        $size = apply_filters('bw_mf_product_admin_thumbnail_size', $default);
+        $size = absint($size);
+        if ($size <= 0) {
+            $size = $default;
+        }
+
+        return $size;
+    }
+}
+
+if (!function_exists('bw_mf_filter_product_admin_thumbnail_size')) {
+    function bw_mf_filter_product_admin_thumbnail_size($size)
+    {
+        if (!bw_mf_is_product_list_screen()) {
+            return $size;
+        }
+
+        if (!bw_mf_is_post_type_enabled('product')) {
+            return $size;
+        }
+
+        $thumb_size = bw_mf_get_product_admin_thumbnail_size();
+        return [$thumb_size, $thumb_size];
     }
 }
 

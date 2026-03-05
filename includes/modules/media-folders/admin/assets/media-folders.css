@@ -529,12 +529,27 @@ body.bw-mf-enabled .bw-mf-toolbar-inline {
     padding-top: 8px;
 }
 
-body.edit-php.bw-mf-enabled .column-bw_mf_drag_handle {
-    width: 36px;
+body.edit-php.post-type-product.bw-mf-enabled .column-bw_mf_drag_handle,
+body.edit-php.post-type-product.bw-mf-enabled th#bw_mf_drag_handle,
+body.edit-php.post-type-product.bw-mf-enabled td.column-bw_mf_drag_handle {
+    width: 32px;
+    min-width: 32px;
+    max-width: 32px;
     text-align: center;
+    padding-left: 6px;
+    padding-right: 6px;
 }
 
-body.edit-php.bw-mf-enabled .bw-mf-row-drag-handle {
+body.edit-php.post-type-product.bw-mf-enabled .wp-list-table th.check-column,
+body.edit-php.post-type-product.bw-mf-enabled .wp-list-table td.check-column {
+    width: 32px;
+    min-width: 32px;
+    max-width: 32px;
+    padding-left: 6px;
+    padding-right: 6px;
+}
+
+body.edit-php.post-type-product.bw-mf-enabled .bw-mf-row-drag-handle {
     border: 0;
     background: transparent;
     padding: 0;
@@ -547,15 +562,31 @@ body.edit-php.bw-mf-enabled .bw-mf-row-drag-handle {
     color: #2c3338;
 }
 
-body.edit-php.bw-mf-enabled .bw-mf-row-drag-handle:active {
+body.edit-php.post-type-product.bw-mf-enabled .bw-mf-row-drag-handle:active {
     cursor: grabbing;
 }
 
-body.edit-php.bw-mf-enabled .bw-mf-row-drag-handle .dashicons {
+body.edit-php.post-type-product.bw-mf-enabled .bw-mf-row-drag-handle .dashicons {
     font-size: 16px;
     width: 16px;
     height: 16px;
     line-height: 16px;
+}
+
+body.edit-php.post-type-product.bw-mf-enabled .wp-list-table .column-thumb,
+body.edit-php.post-type-product.bw-mf-enabled .wp-list-table .column-image {
+    width: 212px;
+    min-width: 212px;
+}
+
+body.edit-php.post-type-product.bw-mf-enabled .wp-list-table .column-thumb img,
+body.edit-php.post-type-product.bw-mf-enabled .wp-list-table .column-image img,
+body.edit-php.post-type-product.bw-mf-enabled .wp-list-table .column-thumb .attachment-post-thumbnail,
+body.edit-php.post-type-product.bw-mf-enabled .wp-list-table .column-image .attachment-post-thumbnail {
+    width: 200px;
+    height: 200px;
+    max-width: 200px;
+    object-fit: cover;
 }
 
 body.bw-mf-enabled .bw-mf-type-filters {
