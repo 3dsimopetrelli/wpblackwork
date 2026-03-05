@@ -12,14 +12,14 @@ A task MUST NOT be closed unless all required verification and documentation ali
 
 ### Commit Traceability
 
-List the exact commits associated with this task.
+List all commits associated with this task.
 
-- Commit 1:
-- Commit 2:
-- Commit 3:
+- Commit hash:
+- Commit message:
+- Files impacted:
 
 Normative rule:
-All implementation commits MUST be traceable to the task ID.
+All commits implementing the task MUST be traceable to the Task ID.
 
 Normative rules:
 - Task identification fields are REQUIRED.
@@ -35,16 +35,16 @@ Briefly describe what was implemented.
 
 ### Runtime Surface Diff
 
-Declare any runtime changes introduced by this task.
+Declare all runtime surfaces affected by this task.
 
 - New hooks registered:
 - Hook priorities modified:
-- Runtime filters added or removed:
-- Admin routes added:
+- Filters added or removed:
 - AJAX endpoints added or modified:
+- Admin routes added or modified:
 
 Normative rule:
-All runtime surface mutations MUST be explicitly declared.
+All runtime surface mutations MUST be declared.
 
 Normative rule:
 - All modified surfaces MUST be explicitly declared.
@@ -144,19 +144,20 @@ Normative rule:
 - Integrity status MUST be PASS for closure.
 
 ## Post-Closure Monitoring
-Specify if monitoring is required after deployment.
+Specify if runtime monitoring is required after deployment.
 
-- Monitoring required? (Yes/No)
+- Monitoring required: Yes / No
 - Surfaces to monitor:
-- Duration:
+- Monitoring duration:
 
 Examples:
 - checkout flow
-- payment gateway integration
-- admin panel runtime
+- media library runtime
+- payment gateways
+- admin UI runtime
 
 Normative rule:
-If runtime-critical surfaces are modified, post-closure monitoring is REQUIRED.
+If runtime-critical surfaces are modified, monitoring MUST be declared.
 
 ## 9) Closure Declaration
 - Task closure status: CLOSED / REOPEN REQUIRED
