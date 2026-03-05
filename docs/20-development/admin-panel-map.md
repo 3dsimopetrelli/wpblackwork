@@ -72,6 +72,19 @@ Mail Marketing operational assets:
 - `admin/js/bw-user-mail-marketing.js`
 - `admin/css/bw-order-newsletter-status.css`
 
+### 1.5.1 Shared Admin UI Kit pattern
+- Kit file: `admin/css/bw-admin-ui-kit.css`
+- Enqueue strategy:
+  - centralized in `admin/class-blackwork-site-settings.php` via `bw_admin_enqueue_ui_kit_assets()`
+  - gated by `bw_is_blackwork_site_admin_screen(...)`
+  - loads only on Blackwork Site panel surfaces (`blackwork-site-settings` top-level and its subpages, including Mail Marketing)
+- Scope strategy:
+  - all reusable rules are namespaced under `.bw-admin-root` to prevent bleed into unrelated WordPress admin screens.
+- Adoption pattern for other Blackwork admin pages:
+  1. Wrap page container with `.bw-admin-root`.
+  2. Compose layout with kit primitives (`.bw-admin-header`, `.bw-admin-action-bar`, `.bw-admin-card`, `.bw-admin-field-row`, `.bw-admin-table`).
+  3. Keep native WordPress form controls and existing save handlers unchanged.
+
 ## 2) Tab-by-Tab Structural Map
 
 ## Cart Pop-up
