@@ -165,3 +165,19 @@ is considered a governance violation.
 
 If this repository contains a `docs/` directory,
 AI agents MUST treat it as the authoritative system documentation.
+
+## 10) Performance Evidence Recording
+
+When a task introduces performance-related changes (query optimization, caching, batching, request reduction, observer/coalescing behavior, etc.), the closure report SHOULD include minimal observable evidence of impact.
+
+Recommended lightweight evidence types:
+
+- Network request comparison (before vs after)
+- Reduction of duplicate AJAX calls
+- Cache-hit observation after initial load
+- Approximate response-time band comparison
+- Query-path rationale (why the new path is cheaper)
+
+Note:
+This does NOT require full benchmarking infrastructure.
+Lightweight, observable verification is sufficient for governance closure evidence.
