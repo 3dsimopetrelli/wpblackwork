@@ -133,6 +133,10 @@ Current adoption:
       - Posts list (`edit.php`) when `media_folders_use_posts=1`
       - Pages list (`edit.php?post_type=page`) when `media_folders_use_pages=1`
       - Products list (`edit.php?post_type=product`) when `media_folders_use_products=1`
+    - runtime hardening contract:
+      - folder tree + summary counters are cache-backed per taxonomy/context (`taxonomy + post_type`)
+      - assignment batching invalidates cache once per operation (no per-item invalidation storms)
+      - list-table filters mutate queries only when folder params are present (fail-open otherwise)
     - list-table UX contract (posts/pages/products):
       - dedicated drag-handle column before `Title`
       - products anchor before `name` (fallback `title`, then `cb`) to stay deterministic with WooCommerce column maps

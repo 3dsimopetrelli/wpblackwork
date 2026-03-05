@@ -1321,32 +1321,6 @@
         });
     }
 
-    function refreshCounts() {
-        request('bw_media_get_folder_counts', {}, function (data) {
-            var map = data && data.folder_counts && typeof data.folder_counts === 'object' ? data.folder_counts : null;
-            if (map) {
-                state.folders = state.folders.map(function (item) {
-                    var byString = map[String(item.id)];
-                    var byInt = map[item.id];
-                    var next = byString !== undefined ? byString : byInt;
-                    if (next !== undefined) {
-                        item.count = parseInt(next, 10) || 0;
-                    }
-                    return item;
-                });
-            }
-
-            if (data && data.counts) {
-                state.counts = data.counts;
-            }
-            $('#bw-media-folders-defaults .bw-media-default[data-type="all"] span').text(state.counts.all || 0);
-            $('#bw-media-folders-defaults .bw-media-default[data-type="unassigned"] span').text(state.counts.unassigned || 0);
-            state.folders.forEach(function (item) {
-                $('#bw-media-folders-tree .bw-media-folder-node[data-id="' + item.id + '"] .bw-media-folder-node__count').text(item.count);
-            });
-        }, { silent: true });
-    }
-
     function getQueryUrl(folderId, unassigned) {
         var url = new URL(window.location.href);
         url.searchParams.delete('bw_media_folder');
@@ -1853,7 +1827,6 @@
             state.counts = data.counts || { all: 0, unassigned: 0 };
             renderDefaults();
             renderTree();
-            refreshCounts();
             scheduleBwMfRefresh('refresh-tree');
         });
     }

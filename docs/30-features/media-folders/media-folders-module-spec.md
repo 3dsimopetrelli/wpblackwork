@@ -63,8 +63,17 @@ Out of scope:
 - Folder counts:
   - computed server-side as aggregate parent counts (`include_children` semantics).
   - runtime uses a batched relationship query (`term_relationships + term_taxonomy + posts`) and a PHP ancestor pass to avoid per-term `WP_Query` loops.
-  - short transient cache key `bw_mf_folder_counts_v1` (TTL 180s), invalidated on folder term edits and attachment-folder assignment updates.
+  - deterministic cache keys are taxonomy + context scoped:
+    - `bw_mf_folder_counts_v1_{taxonomy}_{post_type}` (folder counts map)
+    - `bw_mf_folder_tree_v1_{taxonomy}_{post_type}` (render-ready tree nodes)
+    - `bw_mf_folder_summary_v1_{taxonomy}_{post_type}` (`all` + `unassigned`)
+  - transient/object-cache TTL: 180s.
   - fail-open fallback: if batched query fails, legacy per-term `WP_Query` counting is used.
+  - invalidation contract:
+    - `set_object_terms` (scoped to supported taxonomies),
+    - `created_{taxonomy}` / `edited_{taxonomy}` / `delete_{taxonomy}`,
+    - `added_term_meta` / `updated_term_meta` / `deleted_term_meta` for tree-affecting keys (`bw_color`, `bw_mf_icon_color`, `bw_pinned`, `bw_mf_pinned`, `bw_sort`).
+  - batch assignment path suspends per-item invalidation and performs one post-batch invalidation.
 
 ## Capability Model
 - Read tree + assign + bulk assign:
@@ -246,6 +255,9 @@ Corner markers payload:
   - one XHR at a time,
   - pending id set batched (max 200),
   - follow-up fetch scheduled through global refresh scheduler.
+- Tree/count refresh:
+  - sidebar refresh uses `bw_media_get_folders_tree` as primary source of folder counts and summary counters.
+  - duplicate count refresh requests are avoided after tree refresh.
 
 ## Rollback
 - Set `bw_core_flags['media_folders'] = 0`.

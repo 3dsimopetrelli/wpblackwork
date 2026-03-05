@@ -30,15 +30,38 @@ if (!function_exists('bw_mf_get_current_list_screen_post_type')) {
     }
 }
 
+if (!function_exists('bw_mf_is_supported_admin_list_pagenow')) {
+    function bw_mf_is_supported_admin_list_pagenow()
+    {
+        if (!is_admin()) {
+            return false;
+        }
+
+        global $pagenow;
+        return in_array((string) $pagenow, ['upload.php', 'edit.php'], true);
+    }
+}
+
 if (!function_exists('bw_mf_is_supported_list_screen')) {
     function bw_mf_is_supported_list_screen()
     {
+        if (!bw_mf_is_supported_admin_list_pagenow()) {
+            return false;
+        }
+
         $post_type = bw_mf_get_current_list_screen_post_type();
         if ($post_type === '') {
             return false;
         }
 
         return bw_mf_is_post_type_enabled($post_type);
+    }
+}
+
+if (!function_exists('bw_mf_has_list_filter_params')) {
+    function bw_mf_has_list_filter_params()
+    {
+        return isset($_GET['bw_media_folder']) || isset($_GET['bw_media_unassigned']);
     }
 }
 
@@ -137,7 +160,15 @@ if (!function_exists('bw_mf_merge_tax_query')) {
 if (!function_exists('bw_mf_filter_media_list_query')) {
     function bw_mf_filter_media_list_query($query)
     {
-        if (!bw_mf_is_supported_list_screen() || !$query instanceof WP_Query || !$query->is_main_query()) {
+        if (!$query instanceof WP_Query || !$query->is_main_query()) {
+            return;
+        }
+
+        if (!bw_mf_has_list_filter_params()) {
+            return;
+        }
+
+        if (!bw_mf_is_supported_list_screen()) {
             return;
         }
 

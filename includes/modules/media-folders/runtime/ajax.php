@@ -15,6 +15,22 @@ if (!defined('BW_MF_COUNTS_CACHE_TTL')) {
     define('BW_MF_COUNTS_CACHE_TTL', 180);
 }
 
+if (!defined('BW_MF_TREE_CACHE_KEY')) {
+    define('BW_MF_TREE_CACHE_KEY', 'bw_mf_folder_tree_v1');
+}
+
+if (!defined('BW_MF_TREE_CACHE_TTL')) {
+    define('BW_MF_TREE_CACHE_TTL', 180);
+}
+
+if (!defined('BW_MF_SUMMARY_CACHE_KEY')) {
+    define('BW_MF_SUMMARY_CACHE_KEY', 'bw_mf_folder_summary_v1');
+}
+
+if (!defined('BW_MF_CACHE_GROUP')) {
+    define('BW_MF_CACHE_GROUP', 'bw_media_folders');
+}
+
 add_action('wp_ajax_bw_media_get_folders_tree', 'bw_mf_ajax_get_folders_tree');
 add_action('wp_ajax_bw_media_get_folder_counts', 'bw_mf_ajax_get_folder_counts');
 add_action('wp_ajax_bw_media_create_folder', 'bw_mf_ajax_create_folder');
@@ -134,14 +150,120 @@ if (!function_exists('bw_mf_normalize_object_ids')) {
             return [];
         }
 
-        $valid = [];
-        foreach ($ids as $id) {
-            if (get_post_type($id) === $post_type) {
-                $valid[] = $id;
+        $validated_ids = get_posts([
+            'post_type' => $post_type,
+            'post__in' => $ids,
+            'post_status' => ($post_type === 'attachment') ? 'inherit' : 'any',
+            'post_status__not_in' => ($post_type === 'attachment') ? [] : ['trash', 'auto-draft'],
+            'fields' => 'ids',
+            'posts_per_page' => count($ids),
+            'orderby' => 'post__in',
+            'no_found_rows' => true,
+            'update_post_meta_cache' => false,
+            'update_post_term_cache' => false,
+            'cache_results' => true,
+        ]);
+
+        if (!is_array($validated_ids) || empty($validated_ids)) {
+            return [];
+        }
+
+        return array_values(array_unique(array_map('absint', $validated_ids)));
+    }
+}
+
+if (!function_exists('bw_mf_cache_key')) {
+    function bw_mf_cache_key($prefix, $taxonomy, $context)
+    {
+        $prefix = sanitize_key((string) $prefix);
+        $taxonomy = sanitize_key((string) $taxonomy);
+        $context = sanitize_key((string) $context);
+
+        return $prefix . '_' . $taxonomy . '_' . $context;
+    }
+}
+
+if (!function_exists('bw_mf_cache_get')) {
+    function bw_mf_cache_get($key)
+    {
+        $found = false;
+        $cached = wp_cache_get($key, BW_MF_CACHE_GROUP, false, $found);
+        if ($found) {
+            return $cached;
+        }
+
+        $cached = get_transient($key);
+        if (false !== $cached) {
+            wp_cache_set($key, $cached, BW_MF_CACHE_GROUP, BW_MF_COUNTS_CACHE_TTL);
+            return $cached;
+        }
+
+        return null;
+    }
+}
+
+if (!function_exists('bw_mf_cache_set')) {
+    function bw_mf_cache_set($key, $value, $ttl = BW_MF_COUNTS_CACHE_TTL)
+    {
+        wp_cache_set($key, $value, BW_MF_CACHE_GROUP, (int) $ttl);
+        set_transient($key, $value, (int) $ttl);
+    }
+}
+
+if (!function_exists('bw_mf_cache_delete')) {
+    function bw_mf_cache_delete($key)
+    {
+        wp_cache_delete($key, BW_MF_CACHE_GROUP);
+        delete_transient($key);
+    }
+}
+
+if (!function_exists('bw_mf_get_summary_counts')) {
+    function bw_mf_get_summary_counts($post_type = 'attachment', $taxonomy = 'bw_media_folder')
+    {
+        $post_type = sanitize_key((string) $post_type);
+        if ($post_type === '') {
+            $post_type = 'attachment';
+        }
+        $taxonomy = sanitize_key((string) $taxonomy);
+        if ($taxonomy === '') {
+            return [
+                'all' => 0,
+                'unassigned' => 0,
+            ];
+        }
+
+        $cache_key = bw_mf_cache_key(BW_MF_SUMMARY_CACHE_KEY, $taxonomy, $post_type);
+        $cached = bw_mf_cache_get($cache_key);
+        if (is_array($cached) && isset($cached['all'], $cached['unassigned'])) {
+            return [
+                'all' => (int) $cached['all'],
+                'unassigned' => (int) $cached['unassigned'],
+            ];
+        }
+
+        $all_count = wp_count_posts($post_type);
+        if (!is_object($all_count)) {
+            $all_files = 0;
+        } elseif ($post_type === 'attachment') {
+            $all_files = isset($all_count->inherit) ? (int) $all_count->inherit : 0;
+        } else {
+            $all_files = 0;
+            foreach ((array) $all_count as $status => $value) {
+                if (in_array((string) $status, ['trash', 'auto-draft'], true)) {
+                    continue;
+                }
+                $all_files += (int) $value;
             }
         }
 
-        return $valid;
+        $summary = [
+            'all' => (int) $all_files,
+            'unassigned' => bw_mf_get_unassigned_count($post_type, $taxonomy),
+        ];
+
+        bw_mf_cache_set($cache_key, $summary, BW_MF_COUNTS_CACHE_TTL);
+        return $summary;
     }
 }
 
@@ -180,6 +302,21 @@ if (!function_exists('bw_mf_get_unassigned_count')) {
 if (!function_exists('bw_mf_build_folder_nodes')) {
     function bw_mf_build_folder_nodes($post_type = 'attachment', $taxonomy = 'bw_media_folder')
     {
+        $post_type = sanitize_key((string) $post_type);
+        if ($post_type === '') {
+            $post_type = 'attachment';
+        }
+        $taxonomy = sanitize_key((string) $taxonomy);
+        if ($taxonomy === '') {
+            return [];
+        }
+
+        $tree_cache_key = bw_mf_cache_key(BW_MF_TREE_CACHE_KEY, $taxonomy, $post_type);
+        $cached_nodes = bw_mf_cache_get($tree_cache_key);
+        if (is_array($cached_nodes)) {
+            return $cached_nodes;
+        }
+
         $terms = get_terms([
             'taxonomy' => $taxonomy,
             'hide_empty' => false,
@@ -239,6 +376,7 @@ if (!function_exists('bw_mf_build_folder_nodes')) {
 
         $walk(0);
 
+        bw_mf_cache_set($tree_cache_key, $nodes, BW_MF_TREE_CACHE_TTL);
         return $nodes;
     }
 }
@@ -280,16 +418,12 @@ if (!function_exists('bw_mf_get_folder_counts_map')) {
 
         $requested_term_ids = array_values(array_unique($requested_term_ids));
 
-        static $request_cache_by_post_type = [];
+        static $request_cache_by_scope = [];
         $cache_scope = $taxonomy . '|' . $post_type;
-        if (!array_key_exists($cache_scope, $request_cache_by_post_type)) {
-            $cache_key = BW_MF_COUNTS_CACHE_KEY . '_' . $taxonomy . '_' . $post_type;
-            $request_cache = get_transient($cache_key);
+        if (!array_key_exists($cache_scope, $request_cache_by_scope)) {
+            $cache_key = bw_mf_cache_key(BW_MF_COUNTS_CACHE_KEY, $taxonomy, $post_type);
+            $request_cache = bw_mf_cache_get($cache_key);
             if (!is_array($request_cache)) {
-                $request_cache = null;
-            }
-
-            if (null === $request_cache) {
                 $request_cache = bw_mf_get_folder_counts_map_batched($terms, $post_type, $taxonomy);
                 if (!is_array($request_cache)) {
                     $request_cache = bw_mf_get_folder_counts_map_fallback($terms, $post_type, $taxonomy);
@@ -299,17 +433,17 @@ if (!function_exists('bw_mf_get_folder_counts_map')) {
                 }
 
                 if (is_array($request_cache)) {
-                    set_transient($cache_key, $request_cache, BW_MF_COUNTS_CACHE_TTL);
+                    bw_mf_cache_set($cache_key, $request_cache, BW_MF_COUNTS_CACHE_TTL);
                 }
             }
 
             if (!is_array($request_cache)) {
                 $request_cache = [];
             }
-            $request_cache_by_post_type[$cache_scope] = $request_cache;
+            $request_cache_by_scope[$cache_scope] = $request_cache;
         }
 
-        $request_cache = $request_cache_by_post_type[$cache_scope];
+        $request_cache = $request_cache_by_scope[$cache_scope];
         if (!is_array($request_cache)) {
             $request_cache = bw_mf_get_folder_counts_map_fallback($terms, $post_type, $taxonomy);
             if (!is_array($request_cache)) {
@@ -367,17 +501,16 @@ if (!function_exists('bw_mf_get_folder_counts_map_batched')) {
             return [];
         }
 
-        $tt_rows = $wpdb->get_results(
-            $wpdb->prepare(
-                "
+        $tt_id_placeholders = implode(',', array_fill(0, count($term_ids), '%d'));
+        $tt_sql = "
                 SELECT term_taxonomy_id, term_id
                 FROM {$wpdb->term_taxonomy}
                 WHERE taxonomy = %s
-                ",
-                $taxonomy
-            ),
-            ARRAY_A
-        );
+                  AND term_id IN ({$tt_id_placeholders})
+                ";
+        $tt_prepare_args = array_merge([$tt_sql, $taxonomy], array_values($term_ids));
+        $tt_prepared_sql = call_user_func_array([$wpdb, 'prepare'], $tt_prepare_args);
+        $tt_rows = $wpdb->get_results($tt_prepared_sql, ARRAY_A);
 
         if (!is_array($tt_rows) || empty($tt_rows)) {
             return array_fill_keys(array_values($term_ids), 0);
@@ -546,10 +679,53 @@ if (!function_exists('bw_mf_get_folder_counts_map_fallback')) {
 }
 
 if (!function_exists('bw_mf_invalidate_folder_counts_cache')) {
-    function bw_mf_invalidate_folder_counts_cache()
+    function bw_mf_invalidate_folder_counts_cache($post_type = '', $taxonomy = '')
     {
-        foreach (bw_mf_taxonomy_map() as $post_type => $taxonomy) {
-            delete_transient(BW_MF_COUNTS_CACHE_KEY . '_' . $taxonomy . '_' . $post_type);
+        $post_type = sanitize_key((string) $post_type);
+        $taxonomy = sanitize_key((string) $taxonomy);
+
+        if ($post_type !== '' && $taxonomy !== '') {
+            bw_mf_cache_delete(bw_mf_cache_key(BW_MF_COUNTS_CACHE_KEY, $taxonomy, $post_type));
+            bw_mf_cache_delete(bw_mf_cache_key(BW_MF_TREE_CACHE_KEY, $taxonomy, $post_type));
+            bw_mf_cache_delete(bw_mf_cache_key(BW_MF_SUMMARY_CACHE_KEY, $taxonomy, $post_type));
+            return;
+        }
+
+        foreach (bw_mf_taxonomy_map() as $map_post_type => $map_taxonomy) {
+            bw_mf_cache_delete(bw_mf_cache_key(BW_MF_COUNTS_CACHE_KEY, $map_taxonomy, $map_post_type));
+            bw_mf_cache_delete(bw_mf_cache_key(BW_MF_TREE_CACHE_KEY, $map_taxonomy, $map_post_type));
+            bw_mf_cache_delete(bw_mf_cache_key(BW_MF_SUMMARY_CACHE_KEY, $map_taxonomy, $map_post_type));
+        }
+    }
+}
+
+if (!function_exists('bw_mf_is_cache_invalidation_suspended')) {
+    function bw_mf_is_cache_invalidation_suspended()
+    {
+        return !empty($GLOBALS['bw_mf_suspend_cache_invalidation']);
+    }
+}
+
+if (!function_exists('bw_mf_suspend_cache_invalidation')) {
+    function bw_mf_suspend_cache_invalidation()
+    {
+        if (!isset($GLOBALS['bw_mf_suspend_cache_invalidation'])) {
+            $GLOBALS['bw_mf_suspend_cache_invalidation'] = 0;
+        }
+        $GLOBALS['bw_mf_suspend_cache_invalidation']++;
+    }
+}
+
+if (!function_exists('bw_mf_resume_cache_invalidation')) {
+    function bw_mf_resume_cache_invalidation()
+    {
+        if (!isset($GLOBALS['bw_mf_suspend_cache_invalidation'])) {
+            return;
+        }
+
+        $GLOBALS['bw_mf_suspend_cache_invalidation']--;
+        if ((int) $GLOBALS['bw_mf_suspend_cache_invalidation'] < 0) {
+            $GLOBALS['bw_mf_suspend_cache_invalidation'] = 0;
         }
     }
 }
@@ -557,7 +733,23 @@ if (!function_exists('bw_mf_invalidate_folder_counts_cache')) {
 if (!function_exists('bw_mf_invalidate_folder_counts_cache_on_set_terms')) {
     function bw_mf_invalidate_folder_counts_cache_on_set_terms($object_id, $terms, $tt_ids, $taxonomy)
     {
+        if (bw_mf_is_cache_invalidation_suspended()) {
+            return;
+        }
+
         if (!in_array($taxonomy, bw_mf_get_supported_taxonomies(), true)) {
+            return;
+        }
+
+        $post_type = get_post_type((int) $object_id);
+        if (!$post_type) {
+            bw_mf_invalidate_folder_counts_cache();
+            return;
+        }
+
+        $resolved_taxonomy = bw_mf_get_taxonomy_for_post_type($post_type);
+        if ($resolved_taxonomy === $taxonomy) {
+            bw_mf_invalidate_folder_counts_cache($post_type, $taxonomy);
             return;
         }
 
@@ -566,10 +758,66 @@ if (!function_exists('bw_mf_invalidate_folder_counts_cache_on_set_terms')) {
 }
 add_action('set_object_terms', 'bw_mf_invalidate_folder_counts_cache_on_set_terms', 10, 4);
 foreach (bw_mf_get_supported_taxonomies() as $bw_mf_taxonomy_key) {
-    add_action('created_' . $bw_mf_taxonomy_key, 'bw_mf_invalidate_folder_counts_cache');
-    add_action('edited_' . $bw_mf_taxonomy_key, 'bw_mf_invalidate_folder_counts_cache');
-    add_action('delete_' . $bw_mf_taxonomy_key, 'bw_mf_invalidate_folder_counts_cache');
+    add_action('created_' . $bw_mf_taxonomy_key, static function () use ($bw_mf_taxonomy_key) {
+        foreach (bw_mf_taxonomy_map() as $post_type => $taxonomy) {
+            if ($taxonomy === $bw_mf_taxonomy_key) {
+                bw_mf_invalidate_folder_counts_cache($post_type, $taxonomy);
+                return;
+            }
+        }
+        bw_mf_invalidate_folder_counts_cache();
+    });
+    add_action('edited_' . $bw_mf_taxonomy_key, static function () use ($bw_mf_taxonomy_key) {
+        foreach (bw_mf_taxonomy_map() as $post_type => $taxonomy) {
+            if ($taxonomy === $bw_mf_taxonomy_key) {
+                bw_mf_invalidate_folder_counts_cache($post_type, $taxonomy);
+                return;
+            }
+        }
+        bw_mf_invalidate_folder_counts_cache();
+    });
+    add_action('delete_' . $bw_mf_taxonomy_key, static function () use ($bw_mf_taxonomy_key) {
+        foreach (bw_mf_taxonomy_map() as $post_type => $taxonomy) {
+            if ($taxonomy === $bw_mf_taxonomy_key) {
+                bw_mf_invalidate_folder_counts_cache($post_type, $taxonomy);
+                return;
+            }
+        }
+        bw_mf_invalidate_folder_counts_cache();
+    });
 }
+
+if (!function_exists('bw_mf_invalidate_folder_counts_cache_on_term_meta')) {
+    function bw_mf_invalidate_folder_counts_cache_on_term_meta($meta_id, $term_id, $meta_key, $_meta_value)
+    {
+        $watched = ['bw_color', 'bw_mf_icon_color', 'bw_pinned', 'bw_mf_pinned', 'bw_sort'];
+        if (!in_array((string) $meta_key, $watched, true)) {
+            return;
+        }
+
+        $term = get_term((int) $term_id);
+        if (!$term || is_wp_error($term) || empty($term->taxonomy)) {
+            return;
+        }
+
+        $taxonomy = sanitize_key((string) $term->taxonomy);
+        if (!in_array($taxonomy, bw_mf_get_supported_taxonomies(), true)) {
+            return;
+        }
+
+        foreach (bw_mf_taxonomy_map() as $post_type => $mapped_taxonomy) {
+            if ($mapped_taxonomy === $taxonomy) {
+                bw_mf_invalidate_folder_counts_cache($post_type, $taxonomy);
+                return;
+            }
+        }
+
+        bw_mf_invalidate_folder_counts_cache();
+    }
+}
+add_action('added_term_meta', 'bw_mf_invalidate_folder_counts_cache_on_term_meta', 10, 4);
+add_action('updated_term_meta', 'bw_mf_invalidate_folder_counts_cache_on_term_meta', 10, 4);
+add_action('deleted_term_meta', 'bw_mf_invalidate_folder_counts_cache_on_term_meta', 10, 4);
 
 if (!function_exists('bw_mf_get_folder_term_or_error')) {
     function bw_mf_get_folder_term_or_error($term_id, $taxonomy)
@@ -589,27 +837,13 @@ if (!function_exists('bw_mf_ajax_get_folders_tree')) {
         bw_mf_ajax_require('bw_media_get_folders_tree', 'upload_files');
         $post_type = bw_mf_get_request_post_type();
         $taxonomy = bw_mf_get_request_taxonomy();
-
-        $all_count = wp_count_posts($post_type);
-        if (!is_object($all_count)) {
-            $all_files = 0;
-        } elseif ($post_type === 'attachment') {
-            $all_files = isset($all_count->inherit) ? (int) $all_count->inherit : 0;
-        } else {
-            $all_files = 0;
-            foreach ((array) $all_count as $status => $value) {
-                if (in_array((string) $status, ['trash', 'auto-draft'], true)) {
-                    continue;
-                }
-                $all_files += (int) $value;
-            }
-        }
+        $summary = bw_mf_get_summary_counts($post_type, $taxonomy);
 
         wp_send_json_success([
             'folders' => bw_mf_build_folder_nodes($post_type, $taxonomy),
             'counts' => [
-                'all' => $all_files,
-                'unassigned' => bw_mf_get_unassigned_count($post_type, $taxonomy),
+                'all' => (int) $summary['all'],
+                'unassigned' => (int) $summary['unassigned'],
             ],
         ]);
     }
@@ -628,26 +862,13 @@ if (!function_exists('bw_mf_ajax_get_folder_counts')) {
             'hierarchical' => true,
         ]);
 
-        $all_count = wp_count_posts($post_type);
-        if (!is_object($all_count)) {
-            $all_files = 0;
-        } elseif ($post_type === 'attachment') {
-            $all_files = isset($all_count->inherit) ? (int) $all_count->inherit : 0;
-        } else {
-            $all_files = 0;
-            foreach ((array) $all_count as $status => $value) {
-                if (in_array((string) $status, ['trash', 'auto-draft'], true)) {
-                    continue;
-                }
-                $all_files += (int) $value;
-            }
-        }
+        $summary = bw_mf_get_summary_counts($post_type, $taxonomy);
 
         wp_send_json_success([
             'folder_counts' => bw_mf_get_folder_counts_map($terms, $post_type, $taxonomy),
             'counts' => [
-                'all' => $all_files,
-                'unassigned' => bw_mf_get_unassigned_count($post_type, $taxonomy),
+                'all' => (int) $summary['all'],
+                'unassigned' => (int) $summary['unassigned'],
             ],
         ]);
     }
@@ -767,13 +988,50 @@ if (!function_exists('bw_mf_ajax_assign_folder')) {
             bw_mf_get_folder_term_or_error($term_id, $taxonomy);
         }
 
-        foreach ($object_ids as $object_id) {
-            if ($term_id > 0) {
-                wp_set_object_terms($object_id, [$term_id], $taxonomy, false);
-            } else {
-                wp_set_object_terms($object_id, [], $taxonomy, false);
+        $existing_map = [];
+        $existing_rows = wp_get_object_terms($object_ids, $taxonomy, [
+            'fields' => 'all_with_object_id',
+            'orderby' => 'none',
+            'update_term_meta_cache' => false,
+        ]);
+        if (!is_wp_error($existing_rows) && is_array($existing_rows)) {
+            foreach ($existing_rows as $row) {
+                if (!isset($row->object_id, $row->term_id)) {
+                    continue;
+                }
+                $oid = (int) $row->object_id;
+                if (!isset($existing_map[$oid])) {
+                    $existing_map[$oid] = [];
+                }
+                $existing_map[$oid][] = (int) $row->term_id;
             }
         }
+
+        bw_mf_suspend_cache_invalidation();
+        wp_defer_term_counting(true);
+        try {
+            foreach ($object_ids as $object_id) {
+                $current_terms = isset($existing_map[$object_id]) && is_array($existing_map[$object_id])
+                    ? array_values(array_unique(array_map('absint', $existing_map[$object_id])))
+                    : [];
+                sort($current_terms);
+
+                $next_terms = $term_id > 0 ? [$term_id] : [];
+                $next_terms = array_values(array_unique(array_map('absint', $next_terms)));
+                sort($next_terms);
+
+                if ($current_terms === $next_terms) {
+                    continue;
+                }
+
+                wp_set_object_terms($object_id, $next_terms, $taxonomy, false);
+            }
+        } finally {
+            wp_defer_term_counting(false);
+            bw_mf_resume_cache_invalidation();
+        }
+
+        bw_mf_invalidate_folder_counts_cache($post_type, $taxonomy);
 
         wp_send_json_success([
             'folder_id' => $term_id,
