@@ -188,8 +188,10 @@ Normative rules:
 
 ## Governance Enforcement Rule
 
+This template defines the mandatory governance protocol for task execution in the Blackwork repository.
+
 Implementation MUST NOT begin until this template is fully completed.
 
-Any violation of declared scope, governance rules, or invariants MUST stop the task immediately.
+Any violation of declared scope, governance rules, determinism guarantees, or documentation alignment MUST stop the task immediately.
 
 All AI agents operating in this repository MUST treat this template as a binding governance protocol.
