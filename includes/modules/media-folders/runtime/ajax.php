@@ -7,6 +7,14 @@ if (!defined('BW_MF_ASSIGN_BATCH_LIMIT')) {
     define('BW_MF_ASSIGN_BATCH_LIMIT', 200);
 }
 
+if (!defined('BW_MF_COUNTS_CACHE_KEY')) {
+    define('BW_MF_COUNTS_CACHE_KEY', 'bw_mf_folder_counts_v1');
+}
+
+if (!defined('BW_MF_COUNTS_CACHE_TTL')) {
+    define('BW_MF_COUNTS_CACHE_TTL', 180);
+}
+
 add_action('wp_ajax_bw_media_get_folders_tree', 'bw_mf_ajax_get_folders_tree');
 add_action('wp_ajax_bw_media_get_folder_counts', 'bw_mf_ajax_get_folder_counts');
 add_action('wp_ajax_bw_media_create_folder', 'bw_mf_ajax_create_folder');
@@ -210,6 +218,205 @@ if (!function_exists('bw_mf_get_folder_counts_map')) {
             return [];
         }
 
+        $requested_term_ids = [];
+        foreach ($terms as $term) {
+            if ($term && isset($term->term_id)) {
+                $requested_term_ids[] = (int) $term->term_id;
+            }
+        }
+
+        if (empty($requested_term_ids)) {
+            return [];
+        }
+
+        $requested_term_ids = array_values(array_unique($requested_term_ids));
+
+        static $request_cache = null;
+        if (null === $request_cache) {
+            $request_cache = get_transient(BW_MF_COUNTS_CACHE_KEY);
+            if (!is_array($request_cache)) {
+                $request_cache = null;
+            }
+        }
+
+        if (null === $request_cache) {
+            $request_cache = bw_mf_get_folder_counts_map_batched($terms);
+            if (!is_array($request_cache)) {
+                $request_cache = bw_mf_get_folder_counts_map_fallback($terms);
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                    error_log('[bw-media-folders] Falling back to per-term count queries.');
+                }
+            }
+
+            if (is_array($request_cache)) {
+                set_transient(BW_MF_COUNTS_CACHE_KEY, $request_cache, BW_MF_COUNTS_CACHE_TTL);
+            }
+        }
+
+        $counts = [];
+        foreach ($requested_term_ids as $term_id) {
+            $counts[$term_id] = isset($request_cache[$term_id]) ? (int) $request_cache[$term_id] : 0;
+        }
+
+        return $counts;
+    }
+}
+
+if (!function_exists('bw_mf_get_folder_counts_map_batched')) {
+    function bw_mf_get_folder_counts_map_batched($terms)
+    {
+        global $wpdb;
+
+        if (!is_array($terms) || empty($terms)) {
+            return [];
+        }
+
+        $term_ids = [];
+        $parent_map = [];
+
+        foreach ($terms as $term) {
+            if (!$term || !isset($term->term_id)) {
+                continue;
+            }
+
+            $term_id = (int) $term->term_id;
+            $parent_id = isset($term->parent) ? (int) $term->parent : 0;
+
+            $term_ids[$term_id] = $term_id;
+            $parent_map[$term_id] = $parent_id;
+
+        }
+
+        if (empty($term_ids)) {
+            return [];
+        }
+
+        $tt_rows = $wpdb->get_results(
+            $wpdb->prepare(
+                "
+                SELECT term_taxonomy_id, term_id
+                FROM {$wpdb->term_taxonomy}
+                WHERE taxonomy = %s
+                ",
+                'bw_media_folder'
+            ),
+            ARRAY_A
+        );
+
+        if (!is_array($tt_rows) || empty($tt_rows)) {
+            return array_fill_keys(array_values($term_ids), 0);
+        }
+
+        $term_taxonomy_to_term = [];
+        foreach ($tt_rows as $row) {
+            if (!isset($row['term_taxonomy_id'], $row['term_id'])) {
+                continue;
+            }
+
+            $mapped_term_id = (int) $row['term_id'];
+            if (!isset($term_ids[$mapped_term_id])) {
+                continue;
+            }
+
+            $term_taxonomy_to_term[(int) $row['term_taxonomy_id']] = $mapped_term_id;
+        }
+
+        if (empty($term_taxonomy_to_term)) {
+            return array_fill_keys(array_values($term_ids), 0);
+        }
+
+        // Batch read all assignment relationships once, then fan out to ancestor terms in PHP.
+        $rows = $wpdb->get_results(
+            $wpdb->prepare(
+                "
+                SELECT DISTINCT tr.object_id, tr.term_taxonomy_id
+                FROM {$wpdb->term_relationships} AS tr
+                INNER JOIN {$wpdb->posts} AS p ON p.ID = tr.object_id
+                INNER JOIN {$wpdb->term_taxonomy} AS tt ON tt.term_taxonomy_id = tr.term_taxonomy_id
+                WHERE tt.taxonomy = %s
+                  AND p.post_type = %s
+                  AND p.post_status = %s
+                ORDER BY tr.object_id ASC
+                ",
+                'bw_media_folder',
+                'attachment',
+                'inherit'
+            ),
+            ARRAY_A
+        );
+
+        if (!is_array($rows)) {
+            return false;
+        }
+
+        $ancestors_map = [];
+        foreach ($term_ids as $term_id) {
+            $ancestors = [$term_id => true];
+            $cursor = isset($parent_map[$term_id]) ? (int) $parent_map[$term_id] : 0;
+            $guard = 0;
+            while ($cursor > 0 && isset($term_ids[$cursor]) && $guard < 50) {
+                $ancestors[$cursor] = true;
+                $cursor = isset($parent_map[$cursor]) ? (int) $parent_map[$cursor] : 0;
+                $guard++;
+            }
+
+            $ancestors_map[$term_id] = array_keys($ancestors);
+        }
+
+        $counts = array_fill_keys(array_values($term_ids), 0);
+        $current_object_id = 0;
+        $current_ancestors = [];
+
+        $flush_current_object = static function () use (&$counts, &$current_ancestors) {
+            if (empty($current_ancestors)) {
+                return;
+            }
+
+            foreach ($current_ancestors as $ancestor_term_id => $_) {
+                if (isset($counts[$ancestor_term_id])) {
+                    $counts[$ancestor_term_id]++;
+                }
+            }
+        };
+
+        foreach ($rows as $row) {
+            if (!isset($row['object_id'], $row['term_taxonomy_id'])) {
+                continue;
+            }
+
+            $object_id = (int) $row['object_id'];
+            $tt_id = (int) $row['term_taxonomy_id'];
+
+            if (!isset($term_taxonomy_to_term[$tt_id])) {
+                continue;
+            }
+
+            if ($current_object_id > 0 && $object_id !== $current_object_id) {
+                $flush_current_object();
+                $current_ancestors = [];
+            }
+
+            $current_object_id = $object_id;
+            $direct_term_id = $term_taxonomy_to_term[$tt_id];
+
+            if (!isset($ancestors_map[$direct_term_id])) {
+                continue;
+            }
+
+            foreach ($ancestors_map[$direct_term_id] as $ancestor_term_id) {
+                $current_ancestors[(int) $ancestor_term_id] = true;
+            }
+        }
+
+        $flush_current_object();
+
+        return $counts;
+    }
+}
+
+if (!function_exists('bw_mf_get_folder_counts_map_fallback')) {
+    function bw_mf_get_folder_counts_map_fallback($terms)
+    {
         $counts = [];
         foreach ($terms as $term) {
             if (!$term || !isset($term->term_id)) {
@@ -239,6 +446,28 @@ if (!function_exists('bw_mf_get_folder_counts_map')) {
         return $counts;
     }
 }
+
+if (!function_exists('bw_mf_invalidate_folder_counts_cache')) {
+    function bw_mf_invalidate_folder_counts_cache()
+    {
+        delete_transient(BW_MF_COUNTS_CACHE_KEY);
+    }
+}
+
+if (!function_exists('bw_mf_invalidate_folder_counts_cache_on_set_terms')) {
+    function bw_mf_invalidate_folder_counts_cache_on_set_terms($object_id, $terms, $tt_ids, $taxonomy)
+    {
+        if ($taxonomy !== 'bw_media_folder') {
+            return;
+        }
+
+        bw_mf_invalidate_folder_counts_cache();
+    }
+}
+add_action('set_object_terms', 'bw_mf_invalidate_folder_counts_cache_on_set_terms', 10, 4);
+add_action('created_bw_media_folder', 'bw_mf_invalidate_folder_counts_cache');
+add_action('edited_bw_media_folder', 'bw_mf_invalidate_folder_counts_cache');
+add_action('delete_bw_media_folder', 'bw_mf_invalidate_folder_counts_cache');
 
 if (!function_exists('bw_mf_get_folder_term_or_error')) {
     function bw_mf_get_folder_term_or_error($term_id)

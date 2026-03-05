@@ -50,7 +50,10 @@ Out of scope:
 - Unassigned files:
   - attachments where taxonomy `bw_media_folder` is `NOT EXISTS`.
 - Folder counts:
-  - computed server-side with `include_children => true` for aggregate parent counts.
+  - computed server-side as aggregate parent counts (`include_children` semantics).
+  - runtime uses a batched relationship query (`term_relationships + term_taxonomy + posts`) and a PHP ancestor pass to avoid per-term `WP_Query` loops.
+  - short transient cache key `bw_mf_folder_counts_v1` (TTL 180s), invalidated on folder term edits and attachment-folder assignment updates.
+  - fail-open fallback: if batched query fails, legacy per-term `WP_Query` counting is used.
 
 ## Capability Model
 - Read tree + assign + bulk assign:
