@@ -171,11 +171,11 @@ if (!function_exists('bw_tbl_render_font_row')) {
             </td>
             <td>
                 <input type="url" class="regular-text bw-tbl-font-source bw-tbl-font-source-woff2" name="<?php echo esc_attr(BW_TBL_CUSTOM_FONTS_OPTION); ?>[fonts][<?php echo esc_attr((string) $index); ?>][sources][woff2]" value="<?php echo esc_url($woff2); ?>" placeholder="https://...font.woff2" />
-                <button type="button" class="button bw-tbl-media-select" data-format="woff2"><?php esc_html_e('Select .woff2', 'bw'); ?></button>
+                <button type="button" class="button button-secondary bw-tbl-media-select" data-format="woff2"><?php esc_html_e('Select .woff2', 'bw'); ?></button>
             </td>
             <td>
                 <input type="url" class="regular-text bw-tbl-font-source bw-tbl-font-source-woff" name="<?php echo esc_attr(BW_TBL_CUSTOM_FONTS_OPTION); ?>[fonts][<?php echo esc_attr((string) $index); ?>][sources][woff]" value="<?php echo esc_url($woff); ?>" placeholder="https://...font.woff" />
-                <button type="button" class="button bw-tbl-media-select" data-format="woff"><?php esc_html_e('Select .woff', 'bw'); ?></button>
+                <button type="button" class="button button-secondary bw-tbl-media-select" data-format="woff"><?php esc_html_e('Select .woff', 'bw'); ?></button>
             </td>
             <td>
                 <input type="text" class="small-text" name="<?php echo esc_attr(BW_TBL_CUSTOM_FONTS_OPTION); ?>[fonts][<?php echo esc_attr((string) $index); ?>][font_weight]" value="<?php echo esc_attr($weight); ?>" placeholder="400" />
@@ -251,7 +251,7 @@ if (!function_exists('bw_tbl_render_single_product_rule_row')) {
             <p class="bw-tbl-rule-heading">
                 <strong><?php esc_html_e('Rule', 'bw'); ?> #<span class="bw-tbl-rule-number"><?php echo esc_html((string) ($index + 1)); ?></span></strong>
             </p>
-            <table class="form-table bw-tbl-rule-table" role="presentation">
+            <table class="form-table bw-admin-table bw-admin-form-grid bw-tbl-rule-table" role="presentation">
                 <tr>
                     <th scope="row">
                         <label><?php esc_html_e('Active Single Product Template', 'bw'); ?></label>
@@ -334,7 +334,7 @@ if (!function_exists('bw_tbl_render_product_archive_rule_row')) {
             <p class="bw-tbl-rule-heading">
                 <strong><?php esc_html_e('Rule', 'bw'); ?> #<span class="bw-tbl-rule-number"><?php echo esc_html((string) ($index + 1)); ?></span></strong>
             </p>
-            <table class="form-table bw-tbl-rule-table" role="presentation">
+            <table class="form-table bw-admin-table bw-admin-form-grid bw-tbl-rule-table" role="presentation">
                 <tr>
                     <th scope="row">
                         <label><?php esc_html_e('Active Product Archive Template', 'bw'); ?></label>
@@ -519,24 +519,46 @@ if (!function_exists('bw_tbl_render_admin_page')) {
         }
 
         ?>
-        <div class="wrap bw-tbl-admin-wrap">
-            <h1><?php esc_html_e('Theme Builder Lite', 'bw'); ?></h1>
-            <p><?php esc_html_e('Controls for Fonts, Footer, Single Product, Product Archive, and template import.', 'bw'); ?></p>
+        <div class="wrap bw-admin-root bw-tbl-admin-wrap">
+            <div class="bw-admin-header">
+                <h1 class="bw-admin-title"><?php esc_html_e('Theme Builder Lite', 'bw'); ?></h1>
+                <p class="bw-admin-subtitle"><?php esc_html_e('Configure templates, fonts, footer overrides, and import tools for lightweight theme builder flows.', 'bw'); ?></p>
+            </div>
+            <?php if (!empty($_GET['settings-updated'])) : // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?>
+                <div class="notice notice-success is-dismissible">
+                    <p><strong><?php esc_html_e('Theme Builder Lite settings saved.', 'bw'); ?></strong></p>
+                </div>
+            <?php endif; ?>
 
             <form method="post" action="options.php">
                 <?php settings_fields('bw_tbl_settings_group'); ?>
+                <div class="bw-admin-action-bar">
+                    <div class="bw-admin-action-meta">
+                        <?php esc_html_e('Configure templates and lightweight theme builder settings.', 'bw'); ?>
+                    </div>
+                    <div class="bw-admin-action-buttons">
+                        <?php submit_button(__('Save Settings', 'bw'), 'primary', 'submit', false); ?>
+                    </div>
+                </div>
 
-                <h2 class="nav-tab-wrapper" id="bw-tbl-tabs" style="margin-bottom:16px;">
-                    <a href="#bw-tbl-tab-settings" class="nav-tab nav-tab-active" data-bw-tbl-tab="settings"><?php esc_html_e('Settings', 'bw'); ?></a>
-                    <a href="#bw-tbl-tab-fonts" class="nav-tab" data-bw-tbl-tab="fonts"><?php esc_html_e('Fonts', 'bw'); ?></a>
-                    <a href="#bw-tbl-tab-footer" class="nav-tab" data-bw-tbl-tab="footer"><?php esc_html_e('Footer', 'bw'); ?></a>
-                    <a href="#bw-tbl-tab-single-product" class="nav-tab" data-bw-tbl-tab="single-product"><?php esc_html_e('Single Product', 'bw'); ?></a>
-                    <a href="#bw-tbl-tab-product-archive" class="nav-tab" data-bw-tbl-tab="product-archive"><?php esc_html_e('Product Archive', 'bw'); ?></a>
-                    <a href="#bw-tbl-tab-import-template" class="nav-tab" data-bw-tbl-tab="import-template"><?php esc_html_e('Import Template', 'bw'); ?></a>
-                </h2>
+                <section class="bw-admin-card">
+                    <h2 class="bw-admin-card-title"><?php esc_html_e('Sections', 'bw'); ?></h2>
+                    <p class="bw-admin-card-helper"><?php esc_html_e('Switch between feature flags, templates, and import operations.', 'bw'); ?></p>
+                    <nav class="nav-tab-wrapper bw-admin-tabs" id="bw-tbl-tabs">
+                        <a href="#bw-tbl-tab-settings" class="nav-tab nav-tab-active" data-bw-tbl-tab="settings"><?php esc_html_e('Settings', 'bw'); ?></a>
+                        <a href="#bw-tbl-tab-fonts" class="nav-tab" data-bw-tbl-tab="fonts"><?php esc_html_e('Fonts', 'bw'); ?></a>
+                        <a href="#bw-tbl-tab-footer" class="nav-tab" data-bw-tbl-tab="footer"><?php esc_html_e('Footer', 'bw'); ?></a>
+                        <a href="#bw-tbl-tab-single-product" class="nav-tab" data-bw-tbl-tab="single-product"><?php esc_html_e('Single Product', 'bw'); ?></a>
+                        <a href="#bw-tbl-tab-product-archive" class="nav-tab" data-bw-tbl-tab="product-archive"><?php esc_html_e('Product Archive', 'bw'); ?></a>
+                        <a href="#bw-tbl-tab-import-template" class="nav-tab" data-bw-tbl-tab="import-template"><?php esc_html_e('Import Template', 'bw'); ?></a>
+                    </nav>
+                </section>
 
                 <div id="bw-tbl-tab-settings" class="bw-tbl-tab-panel is-active" data-bw-tbl-panel="settings">
-                    <table class="form-table" role="presentation">
+                    <section class="bw-admin-card">
+                        <h2 class="bw-admin-card-title"><?php esc_html_e('Core Settings', 'bw'); ?></h2>
+                        <p class="bw-admin-card-helper"><?php esc_html_e('Control master flags for Theme Builder Lite runtime and resolver.', 'bw'); ?></p>
+                        <table class="form-table bw-admin-table bw-admin-form-grid" role="presentation">
                         <tr>
                             <th scope="row"><?php esc_html_e('Enable Theme Builder Lite', 'bw'); ?></th>
                             <td>
@@ -558,10 +580,14 @@ if (!function_exists('bw_tbl_render_admin_page')) {
                             </td>
                         </tr>
                     </table>
+                    </section>
                 </div>
 
                 <div id="bw-tbl-tab-fonts" class="bw-tbl-tab-panel" data-bw-tbl-panel="fonts" style="display:none;">
-                    <table class="form-table" role="presentation">
+                    <section class="bw-admin-card">
+                        <h2 class="bw-admin-card-title"><?php esc_html_e('Custom Fonts', 'bw'); ?></h2>
+                        <p class="bw-admin-card-helper"><?php esc_html_e('Manage font activation and register media-hosted WOFF/WOFF2 sources.', 'bw'); ?></p>
+                    <table class="form-table bw-admin-table bw-admin-form-grid" role="presentation">
                         <tr>
                             <th scope="row"><?php esc_html_e('Enable Custom Fonts', 'bw'); ?></th>
                             <td>
@@ -575,7 +601,7 @@ if (!function_exists('bw_tbl_render_admin_page')) {
 
                     <div id="bw-tbl-fonts-controls" style="margin-top:8px;">
                         <p><?php esc_html_e('Upload/select WOFF2 (preferred) or WOFF files from the WordPress media library.', 'bw'); ?></p>
-                        <table class="widefat striped" id="bw-tbl-fonts-table">
+                        <table class="widefat striped bw-admin-table" id="bw-tbl-fonts-table">
                             <thead>
                                 <tr>
                                     <th><?php esc_html_e('Font Family', 'bw'); ?></th>
@@ -593,13 +619,17 @@ if (!function_exists('bw_tbl_render_admin_page')) {
                             </tbody>
                         </table>
                         <p>
-                            <button type="button" class="button" id="bw-tbl-add-font-row"><?php esc_html_e('Add Font', 'bw'); ?></button>
+                            <button type="button" class="button button-secondary" id="bw-tbl-add-font-row"><?php esc_html_e('Add Font', 'bw'); ?></button>
                         </p>
                     </div>
+                    </section>
                 </div>
 
                 <div id="bw-tbl-tab-footer" class="bw-tbl-tab-panel" data-bw-tbl-panel="footer" style="display:none;">
-                    <table class="form-table" role="presentation">
+                    <section class="bw-admin-card">
+                        <h2 class="bw-admin-card-title"><?php esc_html_e('Footer', 'bw'); ?></h2>
+                        <p class="bw-admin-card-helper"><?php esc_html_e('Enable footer override and choose the active footer template.', 'bw'); ?></p>
+                    <table class="form-table bw-admin-table bw-admin-form-grid" role="presentation">
                         <tr>
                             <th scope="row"><?php esc_html_e('Enable Footer Override', 'bw'); ?></th>
                             <td>
@@ -612,7 +642,7 @@ if (!function_exists('bw_tbl_render_admin_page')) {
                     </table>
 
                     <div id="bw-tbl-footer-controls" style="margin-top:8px;">
-                        <table class="form-table" role="presentation">
+                        <table class="form-table bw-admin-table bw-admin-form-grid" role="presentation">
                             <tr>
                                 <th scope="row"><label for="bw-tbl-active-footer-template"><?php esc_html_e('Active Footer Template', 'bw'); ?></label></th>
                                 <td>
@@ -629,9 +659,13 @@ if (!function_exists('bw_tbl_render_admin_page')) {
                             </tr>
                         </table>
                     </div>
+                    </section>
                 </div>
 
                 <div id="bw-tbl-tab-single-product" class="bw-tbl-tab-panel" data-bw-tbl-panel="single-product" style="display:none;">
+                    <section class="bw-admin-card">
+                        <h2 class="bw-admin-card-title"><?php esc_html_e('Single Product Rules', 'bw'); ?></h2>
+                        <p class="bw-admin-card-helper"><?php esc_html_e('Define category-based template rules and editor preview context for single product pages.', 'bw'); ?></p>
                     <div class="notice <?php echo $single_product_missing_active_template ? 'notice-warning' : 'notice-info'; ?>" style="margin:0 0 12px 0;padding:10px 12px;">
                         <p style="margin:0;">
                             <strong><?php esc_html_e('Status:', 'bw'); ?></strong>
@@ -650,7 +684,7 @@ if (!function_exists('bw_tbl_render_admin_page')) {
                         <?php endif; ?>
                     </div>
 
-                    <table class="form-table" role="presentation">
+                    <table class="form-table bw-admin-table bw-admin-form-grid" role="presentation">
                         <tr>
                             <th scope="row"><?php esc_html_e('Enable Single Product Override', 'bw'); ?></th>
                             <td>
@@ -726,9 +760,13 @@ if (!function_exists('bw_tbl_render_admin_page')) {
                             <button type="button" class="button" id="bw-tbl-add-single-product-rule"><?php esc_html_e('+ Add Rule', 'bw'); ?></button>
                         </p>
                     </div>
+                    </section>
                 </div>
 
                 <div id="bw-tbl-tab-product-archive" class="bw-tbl-tab-panel" data-bw-tbl-panel="product-archive" style="display:none;">
+                    <section class="bw-admin-card">
+                        <h2 class="bw-admin-card-title"><?php esc_html_e('Product Archive Rules', 'bw'); ?></h2>
+                        <p class="bw-admin-card-helper"><?php esc_html_e('Configure category-based resolver rules for WooCommerce product archive templates.', 'bw'); ?></p>
                     <div class="notice <?php echo $product_archive_missing_active_template ? 'notice-warning' : 'notice-info'; ?>" style="margin:0 0 12px 0;padding:10px 12px;">
                         <p style="margin:0;">
                             <strong><?php esc_html_e('Status:', 'bw'); ?></strong>
@@ -747,7 +785,7 @@ if (!function_exists('bw_tbl_render_admin_page')) {
                         <?php endif; ?>
                     </div>
 
-                    <table class="form-table" role="presentation">
+                    <table class="form-table bw-admin-table bw-admin-form-grid" role="presentation">
                         <tr>
                             <th scope="row"><?php esc_html_e('Enable Product Archive Override', 'bw'); ?></th>
                             <td>
@@ -770,12 +808,18 @@ if (!function_exists('bw_tbl_render_admin_page')) {
                             <button type="button" class="button" id="bw-tbl-add-product-archive-rule"><?php esc_html_e('+ Add Rule', 'bw'); ?></button>
                         </p>
                     </div>
+                    </section>
                 </div>
 
-                <?php submit_button(__('Save Theme Builder Lite Settings', 'bw')); ?>
+                <div class="submit">
+                    <?php submit_button(__('Save Settings', 'bw')); ?>
+                </div>
             </form>
 
-            <div id="bw-tbl-tab-import-template" class="bw-tbl-tab-panel" data-bw-tbl-panel="import-template" style="display:none;">
+                <div id="bw-tbl-tab-import-template" class="bw-tbl-tab-panel" data-bw-tbl-panel="import-template" style="display:none;">
+                    <section class="bw-admin-card">
+                        <h2 class="bw-admin-card-title"><?php esc_html_e('Import Template', 'bw'); ?></h2>
+                        <p class="bw-admin-card-helper"><?php esc_html_e('Import Elementor JSON and map it into BW Template drafts safely.', 'bw'); ?></p>
                 <?php
                 if (function_exists('bw_tbl_render_import_template_tab')) {
                     bw_tbl_render_import_template_tab();
@@ -783,6 +827,7 @@ if (!function_exists('bw_tbl_render_admin_page')) {
                     echo '<div class="notice notice-error" style="margin:0 0 12px 0;padding:10px 12px;"><p style="margin:0;">' . esc_html__('Import module is unavailable.', 'bw') . '</p></div>';
                 }
                 ?>
+                    </section>
             </div>
         </div>
         <script type="text/html" id="tmpl-bw-tbl-font-row">
