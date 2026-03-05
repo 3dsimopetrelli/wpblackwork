@@ -151,16 +151,24 @@ if (!function_exists('bw_mf_add_drag_handle_column')) {
             return $columns;
         }
 
+        $post_type = bw_mf_get_current_screen_post_type();
+        $priority_keys = $post_type === 'product'
+            ? ['name', 'title', 'cb']
+            : ['title', 'cb'];
+
         $result = [];
+        $inserted = false;
         foreach ($columns as $key => $label) {
-            if ($key === 'title') {
+            if (!$inserted && in_array($key, $priority_keys, true)) {
                 $result['bw_mf_drag_handle'] = '';
+                $inserted = true;
             }
             $result[$key] = $label;
         }
 
-        if (!isset($result['bw_mf_drag_handle'])) {
-            $result = array_merge(['bw_mf_drag_handle' => ''], $result);
+        if (!$inserted) {
+            // No safe anchor found: preserve original columns unchanged (never append at end).
+            return $columns;
         }
 
         return $result;
