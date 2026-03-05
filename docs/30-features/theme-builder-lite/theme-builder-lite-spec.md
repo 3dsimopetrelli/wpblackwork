@@ -301,6 +301,10 @@ Resolver contract:
 - The `bw_template` post edit screen remains guidance-only for conditions.
 - Single Product conditions are configured from Theme Builder Lite settings tab `Single Product`.
 - Legacy storage schema `bw_tbl_display_rules_v1` remains unchanged in DB for backward compatibility.
+- UI Contract (2026-03):
+  - `Blackwork Site > All Templates` keeps WordPress native list table mechanics (`WP_List_Table`) intact.
+  - UI layer is wrapper/skin only: `.bw-admin-root` shell, action bar, responsive table wrapper, and pill styling.
+  - No changes to filters, bulk actions, search, sorting, pagination, row actions, URLs, nonce, or query behavior.
 
 ### 2026-03 Update - Single Product Settings Authority (v2 Repeater)
 - Authoritative single-product conditions surface is the Theme Builder Lite settings tab (`Single Product`); Quick Edit is not an authority surface.
