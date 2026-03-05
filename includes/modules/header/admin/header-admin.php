@@ -115,13 +115,17 @@ if (!function_exists('bw_header_render_admin_page')) {
                     </div>
                 </div>
 
-                <h2 class="nav-tab-wrapper bw-admin-tabs" id="bw-header-tabs">
-                    <a href="#bw-header-tab-general" class="nav-tab nav-tab-active"><?php esc_html_e('General', 'bw'); ?></a>
-                    <a href="#bw-header-tab-scroll" class="nav-tab"><?php esc_html_e('Header Scroll', 'bw'); ?></a>
-                </h2>
+                <section class="bw-admin-card">
+                    <h2 class="bw-admin-card-title"><?php esc_html_e('Sections', 'bw'); ?></h2>
+                    <p class="bw-admin-card-helper"><?php esc_html_e('Switch between core header configuration and scroll behavior controls.', 'bw'); ?></p>
+                    <nav class="nav-tab-wrapper bw-admin-tabs" id="bw-header-tabs">
+                        <a href="#bw-header-tab-general" class="nav-tab nav-tab-active"><?php esc_html_e('General', 'bw'); ?></a>
+                        <a href="#bw-header-tab-scroll" class="nav-tab"><?php esc_html_e('Header Scroll', 'bw'); ?></a>
+                    </nav>
+                </section>
                 <div id="bw-header-tab-general" class="bw-header-tab-panel is-active">
                     <div class="bw-admin-card">
-                        <h2 class="bw-admin-card-title"><?php esc_html_e('General', 'bw'); ?></h2>
+                        <h2 class="bw-admin-card-title"><?php esc_html_e('Core Settings', 'bw'); ?></h2>
                         <p class="bw-admin-card-helper"><?php esc_html_e('Core header activation and base visual behavior.', 'bw'); ?></p>
                         <table class="form-table bw-admin-table bw-admin-form-grid" role="presentation">
                         <tbody>
@@ -386,7 +390,7 @@ if (!function_exists('bw_header_render_admin_page')) {
 
                 <div id="bw-header-tab-scroll" class="bw-header-tab-panel" style="display:none;">
                     <div class="bw-admin-card">
-                        <h2 class="bw-admin-card-title"><?php esc_html_e('Header Scroll', 'bw'); ?></h2>
+                        <h2 class="bw-admin-card-title"><?php esc_html_e('Scroll Behavior', 'bw'); ?></h2>
                         <p class="bw-admin-card-helper"><?php esc_html_e('Control smart scroll behavior and interaction thresholds.', 'bw'); ?></p>
                         <table class="form-table bw-admin-table bw-admin-form-grid" role="presentation">
                         <tbody>
@@ -514,7 +518,7 @@ if (!function_exists('bw_header_render_admin_page')) {
                     </table>
                 </div>
                 <div class="submit">
-                    <?php submit_button(__('Save Header Settings', 'bw')); ?>
+                    <?php submit_button(__('Save Settings', 'bw')); ?>
                 </div>
             </form>
         </div>
