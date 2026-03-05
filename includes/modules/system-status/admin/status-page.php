@@ -69,45 +69,6 @@ if (!function_exists('bw_system_status_render_admin_page')) {
         }
         ?>
         <div class="wrap bw-admin-root bw-admin-page bw-admin-page-status">
-            <style>
-                #bw-system-status-app { max-width: 1150px; }
-                .bw-system-header { margin-bottom:10px; }
-                .bw-system-title { margin:0; font-size:28px; line-height:1.2; }
-                .bw-system-subtitle { margin:6px 0 0; color:#646970; }
-                .bw-system-action-bar { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; background:#fff; border:1px solid #dcdcde; border-radius:10px; padding:10px 12px; margin:8px 0 14px; }
-                .bw-system-action-buttons { white-space:nowrap; }
-                .bw-system-action-buttons .button + .button { margin-left:8px; }
-                .bw-system-meta { font-size:12px; color:#646970; }
-                .bw-system-overview-strip { display:grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap:10px; margin-bottom:14px; }
-                .bw-overview-pill { background:#fff; border:1px solid #dcdcde; border-radius:10px; padding:10px 12px; }
-                .bw-overview-pill-label { font-size:12px; color:#646970; margin-bottom:4px; }
-                .bw-overview-pill-status { font-weight:600; margin-bottom:2px; }
-                .bw-overview-pill-summary { color:#2c3338; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-                #bw-system-cards { display:flex; flex-direction:column; gap:12px; }
-                .bw-system-card { background:#fff; border:1px solid #dcdcde; border-radius:12px; padding:14px; }
-                .bw-system-card-top { display:grid; grid-template-columns: minmax(200px, 1fr) minmax(280px, 1.5fr) auto; gap:14px; align-items:start; }
-                .bw-system-card-title { margin:0; font-size:17px; }
-                .bw-system-card-helper { margin:6px 0 0; color:#646970; }
-                .bw-system-card-summary { margin:10px 0 0; color:#50575e; }
-                .bw-system-stat-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap:8px; }
-                .bw-system-stat { border:1px solid #f0f0f1; border-radius:8px; padding:8px; background:#fcfcfc; }
-                .bw-system-stat-label { font-size:11px; color:#646970; margin-bottom:2px; text-transform:uppercase; }
-                .bw-system-stat-value { font-weight:600; font-size:15px; word-break:break-word; }
-                .bw-system-card-actions { text-align:right; white-space:nowrap; }
-                .bw-system-card-badge { display:inline-block; margin-bottom:8px; font-weight:600; font-size:11px; padding:2px 8px; border-radius:999px; border:1px solid #dcdcde; }
-                .bw-system-list { margin:8px 0 0; padding-left:18px; }
-                .bw-system-list li { margin:4px 0; }
-                .bw-system-table { width:100%; border-collapse: collapse; margin-top:8px; font-size:13px; }
-                .bw-system-table th, .bw-system-table td { text-align:left; border-bottom:1px solid #f0f0f1; padding:6px 8px; }
-                .bw-system-table th { color:#646970; font-weight:600; font-size:12px; }
-                .bw-system-details { margin-top:10px; border-top:1px solid #f0f0f1; padding-top:10px; }
-                .bw-system-debug-link { margin-top:14px; }
-                #bw-system-status-json { max-height:360px; overflow:auto; background:#fff; border:1px solid #dcdcde; padding:12px; }
-                .bw-status-ok { color:#1d7f35; }
-                .bw-status-warn { color:#8a6d00; }
-                .bw-status-error { color:#b32d2e; }
-            </style>
-
             <div id="bw-system-status-app">
                 <div class="bw-system-header">
                     <h1 class="bw-system-title"><?php esc_html_e('Status', 'bw'); ?></h1>

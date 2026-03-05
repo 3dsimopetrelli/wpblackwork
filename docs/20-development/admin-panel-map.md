@@ -122,7 +122,9 @@ Current adoption:
     - `blackwork-mail-marketing&tab=general`: `bw-checkout-subscribe.js`
   - Out-of-scope pages (Header, Theme Builder Lite, Status, Media Folders, All Templates) do not receive the Site Settings tab-specific assets.
 - Module-local assets:
-  - Status: `includes/modules/system-status/admin/assets/system-status-admin.js`
+  - Status:
+    - behavior: `includes/modules/system-status/admin/assets/system-status-admin.js`
+    - styling: shared UI kit (`admin/css/bw-admin-ui-kit.css`) with Status-scoped selectors under `.bw-admin-root.bw-admin-page-status` (no inline `<style>` block)
   - Theme Builder Lite: `.../theme-builder-lite-admin.css|js`, `bw-template-type-inline.js`
   - Header: `includes/modules/header/admin/header-admin.js`
   - Media Folders library screen: `includes/modules/media-folders/admin/assets/media-folders.css|js`
