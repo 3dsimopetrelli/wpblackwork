@@ -92,8 +92,11 @@ if (!function_exists('bw_header_render_admin_page')) {
         $menus = bw_header_get_menu_options();
         $settings_updated = !empty($_GET['settings-updated']); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
         ?>
-        <div class="wrap">
-            <h1><?php esc_html_e('Blackwork Header Settings', 'bw'); ?></h1>
+        <div class="wrap bw-admin-root bw-admin-page bw-admin-page-header">
+            <div class="bw-admin-header">
+                <h1 class="bw-admin-title"><?php esc_html_e('Header', 'bw'); ?></h1>
+                <p class="bw-admin-subtitle"><?php esc_html_e('Configure header layout, navigation, media assets, and responsive behavior.', 'bw'); ?></p>
+            </div>
             <?php if ($settings_updated) : ?>
                 <div class="notice notice-success is-dismissible">
                     <p><?php esc_html_e('Header settings saved successfully.', 'bw'); ?></p>
@@ -101,15 +104,23 @@ if (!function_exists('bw_header_render_admin_page')) {
             <?php endif; ?>
             <form method="post" action="options.php">
                 <?php settings_fields('bw_header_settings_group'); ?>
-                <h2 class="nav-tab-wrapper" id="bw-header-tabs" style="margin-bottom:16px;">
+                <div class="bw-admin-action-bar">
+                    <div class="bw-admin-action-meta">
+                        <?php esc_html_e('Configure header layout, navigation, and responsive behavior.', 'bw'); ?>
+                    </div>
+                    <div class="bw-admin-action-buttons">
+                        <?php submit_button(__('Save Settings', 'bw'), 'primary', 'submit', false); ?>
+                    </div>
+                </div>
+
+                <h2 class="nav-tab-wrapper bw-admin-tabs" id="bw-header-tabs">
                     <a href="#bw-header-tab-general" class="nav-tab nav-tab-active"><?php esc_html_e('General', 'bw'); ?></a>
                     <a href="#bw-header-tab-scroll" class="nav-tab"><?php esc_html_e('Header Scroll', 'bw'); ?></a>
                 </h2>
-                <p class="submit" style="margin: 8px 0 18px;">
-                    <?php submit_button(__('Save Header Settings', 'bw'), 'primary', 'submit', false); ?>
-                </p>
-                <div id="bw-header-tab-general" class="bw-header-tab-panel is-active">
-                    <table class="form-table" role="presentation">
+                <div id="bw-header-tab-general" class="bw-header-tab-panel bw-admin-card is-active">
+                    <h2 class="bw-admin-card-title"><?php esc_html_e('General', 'bw'); ?></h2>
+                    <p class="bw-admin-card-helper"><?php esc_html_e('Manage header activation, branding, menus, labels, links, and responsive spacing controls.', 'bw'); ?></p>
+                    <table class="form-table bw-admin-table" role="presentation">
                         <tbody>
                     <tr>
                         <th scope="row"><?php esc_html_e('Enable Custom Header', 'bw'); ?></th>
@@ -336,8 +347,10 @@ if (!function_exists('bw_header_render_admin_page')) {
                     </table>
                 </div>
 
-                <div id="bw-header-tab-scroll" class="bw-header-tab-panel" style="display:none;">
-                    <table class="form-table" role="presentation">
+                <div id="bw-header-tab-scroll" class="bw-header-tab-panel bw-admin-card" style="display:none;">
+                    <h2 class="bw-admin-card-title"><?php esc_html_e('Header Scroll', 'bw'); ?></h2>
+                    <p class="bw-admin-card-helper"><?php esc_html_e('Control smart scroll thresholds, background behavior, and blur panel settings.', 'bw'); ?></p>
+                    <table class="form-table bw-admin-table" role="presentation">
                         <tbody>
                             <tr>
                                 <th scope="row"><?php esc_html_e('Enable Smart Header Scroll', 'bw'); ?></th>
@@ -444,7 +457,9 @@ if (!function_exists('bw_header_render_admin_page')) {
                         </tbody>
                     </table>
                 </div>
-                <?php submit_button(__('Save Header Settings', 'bw')); ?>
+                <div class="submit">
+                    <?php submit_button(__('Save Header Settings', 'bw')); ?>
+                </div>
             </form>
         </div>
         <?php
