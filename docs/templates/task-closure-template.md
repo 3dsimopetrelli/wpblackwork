@@ -60,6 +60,18 @@ Normative rules:
 - All criteria MUST pass before closure.
 - If any criterion fails, the task MUST remain open.
 
+### Testing Evidence
+
+Provide evidence of testing performed.
+
+- Local testing performed: Yes / No
+- Environment used:
+- Screenshots / logs:
+- Edge cases tested:
+
+Normative rule:
+Testing evidence MUST exist for runtime-critical changes.
+
 ## 4) Regression Surface Verification
 List all regression surfaces declared at task start.
 
@@ -142,6 +154,17 @@ Confirm:
 
 Normative rule:
 - Integrity status MUST be PASS for closure.
+
+## Rollback Safety
+
+Confirm rollback feasibility.
+
+- Can the change be reverted via commit revert? (Yes / No)
+- Database migration involved? (Yes / No)
+- Manual rollback steps required?
+
+Normative rule:
+If rollback is not trivial, mitigation steps MUST be documented.
 
 ## Post-Closure Monitoring
 Specify if runtime monitoring is required after deployment.
