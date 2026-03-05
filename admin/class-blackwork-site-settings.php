@@ -154,13 +154,35 @@ add_action('admin_enqueue_scripts', 'bw_admin_enqueue_ui_kit_assets', 12);
 function bw_site_settings_admin_assets($hook)
 {
     $current_page = isset($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : '';
+    $current_tab_raw = isset($_GET['tab']) ? sanitize_key(wp_unslash($_GET['tab'])) : '';
 
-    // Carica solo nelle pagine Blackwork Site.
-    if (!bw_is_blackwork_site_admin_screen($hook, $current_page) && 'blackwork-mail-marketing' !== $current_page) {
+    $is_site_settings_page = ('blackwork-site-settings' === $current_page || 'toplevel_page_blackwork-site-settings' === $hook);
+    $is_mail_marketing_page = (
+        'blackwork-mail-marketing' === $current_page
+        || 'blackwork-site-settings_page_blackwork-mail-marketing' === $hook
+    );
+
+    // Site Settings asset matrix is restricted to Site Settings and Mail Marketing pages.
+    if (!$is_site_settings_page && !$is_mail_marketing_page) {
         return;
     }
 
-    // CSS per la pagina admin
+    $site_settings_tabs = [
+        'cart-popup',
+        'bw-coming-soon',
+        'account-page',
+        'my-account-page',
+        'checkout',
+        'redirect',
+        'import-product',
+        'loading',
+    ];
+    $mail_marketing_tabs = ['general', 'checkout'];
+
+    $current_site_settings_tab = in_array($current_tab_raw, $site_settings_tabs, true) ? $current_tab_raw : 'cart-popup';
+    $current_mail_marketing_tab = in_array($current_tab_raw, $mail_marketing_tabs, true) ? $current_tab_raw : 'general';
+
+    // Base Site Settings admin CSS (used by Site Settings and Mail Marketing controls).
     wp_enqueue_style(
         'bw-site-settings-admin',
         BW_MEW_URL . 'admin/css/blackwork-site-settings.css',
@@ -168,28 +190,26 @@ function bw_site_settings_admin_assets($hook)
         '1.0.0'
     );
 
-    wp_enqueue_style('wp-color-picker');
+    // Enqueue only where media upload/select controls are present.
+    if ($is_site_settings_page && in_array($current_site_settings_tab, ['account-page', 'checkout'], true)) {
+        wp_enqueue_media();
+    }
 
-    // JavaScript per la pagina admin (se necessario)
-    wp_enqueue_script('jquery');
-    wp_enqueue_media();
-    wp_enqueue_script('wp-color-picker');
+    if ($is_site_settings_page && 'redirect' === $current_site_settings_tab) {
+        $redirects_script_path = BW_MEW_PATH . 'admin/js/bw-redirects.js';
+        $redirects_version = file_exists($redirects_script_path) ? filemtime($redirects_script_path) : '1.0.0';
 
-    $redirects_script_path = BW_MEW_PATH . 'admin/js/bw-redirects.js';
-    $redirects_version = file_exists($redirects_script_path) ? filemtime($redirects_script_path) : '1.0.0';
-
-    wp_enqueue_script(
-        'bw-redirects-admin',
-        BW_MEW_URL . 'admin/js/bw-redirects.js',
-        ['jquery'],
-        $redirects_version,
-        true
-    );
-
-    $current_tab = isset($_GET['tab']) ? sanitize_key(wp_unslash($_GET['tab'])) : '';
+        wp_enqueue_script(
+            'bw-redirects-admin',
+            BW_MEW_URL . 'admin/js/bw-redirects.js',
+            ['jquery'],
+            $redirects_version,
+            true
+        );
+    }
 
     // Enqueue Brevo test script only on Mail Marketing > General.
-    if ('blackwork-mail-marketing' === $current_page && ('' === $current_tab || 'general' === $current_tab)) {
+    if ($is_mail_marketing_page && 'general' === $current_mail_marketing_tab) {
         $subscribe_script_path = BW_MEW_PATH . 'admin/js/bw-checkout-subscribe.js';
         $subscribe_version = file_exists($subscribe_script_path) ? filemtime($subscribe_script_path) : '1.0.0';
 
@@ -213,83 +233,91 @@ function bw_site_settings_admin_assets($hook)
         );
     }
 
-    $google_pay_admin_script_path = BW_MEW_PATH . 'admin/js/bw-google-pay-admin.js';
-    $google_pay_admin_version = file_exists($google_pay_admin_script_path) ? filemtime($google_pay_admin_script_path) : '1.0.0';
+    if ($is_site_settings_page && 'checkout' === $current_site_settings_tab) {
+        // Checkout tab uses media selector + WP color picker + payment diagnostics scripts.
+        wp_enqueue_style('wp-color-picker');
+        wp_enqueue_script('wp-color-picker');
 
-    wp_enqueue_script(
-        'bw-google-pay-admin',
-        BW_MEW_URL . 'admin/js/bw-google-pay-admin.js',
-        ['jquery'],
-        $google_pay_admin_version,
-        true
-    );
+        $google_pay_admin_script_path = BW_MEW_PATH . 'admin/js/bw-google-pay-admin.js';
+        $google_pay_admin_version = file_exists($google_pay_admin_script_path) ? filemtime($google_pay_admin_script_path) : '1.0.0';
 
-    wp_localize_script(
-        'bw-google-pay-admin',
-        'bwGooglePayAdmin',
-        [
-            'nonce' => wp_create_nonce('bw_google_pay_test_connection'),
-            'errorText' => esc_html__('Connection test failed. Please verify your Stripe keys.', 'bw'),
-            'testingText' => esc_html__('Testing connection…', 'bw'),
-        ]
-    );
+        wp_enqueue_script(
+            'bw-google-pay-admin',
+            BW_MEW_URL . 'admin/js/bw-google-pay-admin.js',
+            ['jquery'],
+            $google_pay_admin_version,
+            true
+        );
 
-    $klarna_admin_script_path = BW_MEW_PATH . 'admin/js/bw-klarna-admin.js';
-    $klarna_admin_version = file_exists($klarna_admin_script_path) ? filemtime($klarna_admin_script_path) : '1.0.0';
+        wp_localize_script(
+            'bw-google-pay-admin',
+            'bwGooglePayAdmin',
+            [
+                'nonce' => wp_create_nonce('bw_google_pay_test_connection'),
+                'errorText' => esc_html__('Connection test failed. Please verify your Stripe keys.', 'bw'),
+                'testingText' => esc_html__('Testing connection…', 'bw'),
+            ]
+        );
 
-    wp_enqueue_script(
-        'bw-klarna-admin',
-        BW_MEW_URL . 'admin/js/bw-klarna-admin.js',
-        ['jquery'],
-        $klarna_admin_version,
-        true
-    );
+        $klarna_admin_script_path = BW_MEW_PATH . 'admin/js/bw-klarna-admin.js';
+        $klarna_admin_version = file_exists($klarna_admin_script_path) ? filemtime($klarna_admin_script_path) : '1.0.0';
 
-    wp_localize_script(
-        'bw-klarna-admin',
-        'bwKlarnaAdmin',
-        [
-            'nonce' => wp_create_nonce('bw_klarna_test_connection'),
-            'errorText' => esc_html__('Connection test failed. Please verify your Stripe keys.', 'bw'),
-            'testingText' => esc_html__('Testing connection…', 'bw'),
-        ]
-    );
+        wp_enqueue_script(
+            'bw-klarna-admin',
+            BW_MEW_URL . 'admin/js/bw-klarna-admin.js',
+            ['jquery'],
+            $klarna_admin_version,
+            true
+        );
 
-    $apple_pay_admin_script_path = BW_MEW_PATH . 'admin/js/bw-apple-pay-admin.js';
-    $apple_pay_admin_version = file_exists($apple_pay_admin_script_path) ? filemtime($apple_pay_admin_script_path) : '1.0.0';
+        wp_localize_script(
+            'bw-klarna-admin',
+            'bwKlarnaAdmin',
+            [
+                'nonce' => wp_create_nonce('bw_klarna_test_connection'),
+                'errorText' => esc_html__('Connection test failed. Please verify your Stripe keys.', 'bw'),
+                'testingText' => esc_html__('Testing connection…', 'bw'),
+            ]
+        );
 
-    wp_enqueue_script(
-        'bw-apple-pay-admin',
-        BW_MEW_URL . 'admin/js/bw-apple-pay-admin.js',
-        ['jquery'],
-        $apple_pay_admin_version,
-        true
-    );
+        $apple_pay_admin_script_path = BW_MEW_PATH . 'admin/js/bw-apple-pay-admin.js';
+        $apple_pay_admin_version = file_exists($apple_pay_admin_script_path) ? filemtime($apple_pay_admin_script_path) : '1.0.0';
 
-    wp_localize_script(
-        'bw-apple-pay-admin',
-        'bwApplePayAdmin',
-        [
-            'nonce' => wp_create_nonce('bw_apple_pay_test_connection'),
-            'errorText' => esc_html__('Connection test failed. Please verify your Stripe keys.', 'bw'),
-            'testingText' => esc_html__('Testing connection…', 'bw'),
-            'testingDomainText' => esc_html__('Checking domain…', 'bw'),
-            'domainOkText' => esc_html__('Domain verified in Stripe.', 'bw'),
-            'domainErrorText' => esc_html__('Domain verification failed. Please check Stripe domain settings.', 'bw'),
-        ]
-    );
+        wp_enqueue_script(
+            'bw-apple-pay-admin',
+            BW_MEW_URL . 'admin/js/bw-apple-pay-admin.js',
+            ['jquery'],
+            $apple_pay_admin_version,
+            true
+        );
 
-    // Border toggle script (shared across Cart Pop-up and Site Settings)
-    $border_toggle_path = BW_MEW_PATH . 'assets/js/bw-border-toggle-admin.js';
-    $border_toggle_version = file_exists($border_toggle_path) ? filemtime($border_toggle_path) : '1.0.0';
+        wp_localize_script(
+            'bw-apple-pay-admin',
+            'bwApplePayAdmin',
+            [
+                'nonce' => wp_create_nonce('bw_apple_pay_test_connection'),
+                'errorText' => esc_html__('Connection test failed. Please verify your Stripe keys.', 'bw'),
+                'testingText' => esc_html__('Testing connection…', 'bw'),
+                'testingDomainText' => esc_html__('Checking domain…', 'bw'),
+                'domainOkText' => esc_html__('Domain verified in Stripe.', 'bw'),
+                'domainErrorText' => esc_html__('Domain verification failed. Please check Stripe domain settings.', 'bw'),
+            ]
+        );
+    }
 
-    wp_enqueue_script(
-        'bw-border-toggle-admin',
-        BW_MEW_URL . 'assets/js/bw-border-toggle-admin.js',
-        ['jquery'],
-        $border_toggle_version,
-        true
-    );
+    if ($is_site_settings_page && 'cart-popup' === $current_site_settings_tab) {
+        // Cart Pop-up tab border controls.
+        $border_toggle_path = BW_MEW_PATH . 'assets/js/bw-border-toggle-admin.js';
+        $border_toggle_version = file_exists($border_toggle_path) ? filemtime($border_toggle_path) : '1.0.0';
+
+        wp_enqueue_script(
+            'bw-border-toggle-admin',
+            BW_MEW_URL . 'assets/js/bw-border-toggle-admin.js',
+            ['jquery'],
+            $border_toggle_version,
+            true
+        );
+    }
 }
 add_action('admin_enqueue_scripts', 'bw_site_settings_admin_assets');
 

@@ -111,7 +111,14 @@ Current adoption:
   - loaded by `bw_admin_enqueue_ui_kit_assets()` via `bw_is_blackwork_site_admin_screen(...)`.
 - Site-settings legacy/admin utilities:
   - `admin/class-blackwork-site-settings.php::bw_site_settings_admin_assets()`.
-  - Current behavior loads broad assets on all Blackwork screens; tracked for refactor in task audit roadmap (`BW-TASK-20260305-08`).
+  - Whitelist matrix (post `BW-TASK-20260305-09`):
+    - `blackwork-site-settings` (all tabs): `admin/css/blackwork-site-settings.css`
+    - `blackwork-site-settings&tab=account-page`: `wp_enqueue_media()`
+    - `blackwork-site-settings&tab=checkout`: `wp_enqueue_media()`, `wp-color-picker`, `bw-google-pay-admin.js`, `bw-klarna-admin.js`, `bw-apple-pay-admin.js`
+    - `blackwork-site-settings&tab=redirect`: `bw-redirects.js`
+    - `blackwork-site-settings&tab=cart-popup`: `bw-border-toggle-admin.js`
+    - `blackwork-mail-marketing&tab=general`: `bw-checkout-subscribe.js`
+  - Out-of-scope pages (Header, Theme Builder Lite, Status, Media Folders, All Templates) do not receive the Site Settings tab-specific assets.
 - Module-local assets:
   - Status: `includes/modules/system-status/admin/assets/system-status-admin.js`
   - Theme Builder Lite: `.../theme-builder-lite-admin.css|js`, `bw-template-type-inline.js`
