@@ -113,7 +113,7 @@
 
         if (!$form.children('.bw-admin-action-bar').length) {
             var $bar = $('<div class="bw-admin-action-bar bw-admin-action-bar-list"></div>');
-            $bar.append($('<div class="bw-admin-action-meta"></div>').text((cfg.actionHelper || 'Filter, search, and manage your templates.').toString()));
+            $bar.append('<div class="bw-admin-action-meta"></div>');
             var $actions = $('<div class="bw-admin-action-buttons"></div>');
             var $search = $form.find('p.search-box').first();
             if ($search.length) {
@@ -121,6 +121,15 @@
             }
             $bar.append($actions);
             $form.prepend($bar);
+        }
+
+        var $views = $form.find('ul.subsubsub').first();
+        if ($views.length && !$form.find('.bw-admin-views-helper').length) {
+            $views.after(
+                $('<p class="bw-admin-views-helper"></p>').text(
+                    (cfg.actionHelper || 'Filter, search, and manage your templates.').toString()
+                )
+            );
         }
 
         $form.find('table.wp-list-table').each(function () {
