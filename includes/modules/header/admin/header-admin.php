@@ -67,13 +67,15 @@ if (!function_exists('bw_header_render_media_field')) {
             <th scope="row"><label><?php echo esc_html($label); ?></label></th>
             <td>
                 <input type="hidden" name="<?php echo esc_attr($name); ?>" value="<?php echo esc_attr($attachment_id); ?>" class="bw-header-media-id" />
-                <div class="bw-header-media-preview" style="margin-bottom:8px;">
+                <div class="bw-header-media-preview">
                     <?php if ($url) : ?>
-                        <img src="<?php echo esc_url($url); ?>" alt="" style="max-width:80px;max-height:80px;display:block;" />
+                        <img src="<?php echo esc_url($url); ?>" alt="" class="bw-header-media-preview-image" />
                     <?php endif; ?>
                 </div>
-                <button type="button" class="button bw-header-media-upload"><?php esc_html_e('Upload/Select', 'bw'); ?></button>
-                <button type="button" class="button bw-header-media-remove" <?php disabled(!$attachment_id); ?>><?php esc_html_e('Remove', 'bw'); ?></button>
+                <div class="bw-header-media-actions">
+                    <button type="button" class="button button-secondary bw-header-media-upload"><?php esc_html_e('Upload/Select', 'bw'); ?></button>
+                    <button type="button" class="button button-secondary bw-header-media-remove" <?php disabled(!$attachment_id); ?>><?php esc_html_e('Remove', 'bw'); ?></button>
+                </div>
                 <p class="description"><?php esc_html_e('Supports SVG and regular image attachments.', 'bw'); ?></p>
             </td>
         </tr>
@@ -117,10 +119,11 @@ if (!function_exists('bw_header_render_admin_page')) {
                     <a href="#bw-header-tab-general" class="nav-tab nav-tab-active"><?php esc_html_e('General', 'bw'); ?></a>
                     <a href="#bw-header-tab-scroll" class="nav-tab"><?php esc_html_e('Header Scroll', 'bw'); ?></a>
                 </h2>
-                <div id="bw-header-tab-general" class="bw-header-tab-panel bw-admin-card is-active">
-                    <h2 class="bw-admin-card-title"><?php esc_html_e('General', 'bw'); ?></h2>
-                    <p class="bw-admin-card-helper"><?php esc_html_e('Manage header activation, branding, menus, labels, links, and responsive spacing controls.', 'bw'); ?></p>
-                    <table class="form-table bw-admin-table" role="presentation">
+                <div id="bw-header-tab-general" class="bw-header-tab-panel is-active">
+                    <div class="bw-admin-card">
+                        <h2 class="bw-admin-card-title"><?php esc_html_e('General', 'bw'); ?></h2>
+                        <p class="bw-admin-card-helper"><?php esc_html_e('Core header activation and base visual behavior.', 'bw'); ?></p>
+                        <table class="form-table bw-admin-table bw-admin-form-grid" role="presentation">
                         <tbody>
                     <tr>
                         <th scope="row"><?php esc_html_e('Enable Custom Header', 'bw'); ?></th>
@@ -148,6 +151,15 @@ if (!function_exists('bw_header_render_admin_page')) {
                             </label>
                         </td>
                     </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="bw-admin-card">
+                    <h2 class="bw-admin-card-title"><?php esc_html_e('Branding', 'bw'); ?></h2>
+                    <p class="bw-admin-card-helper"><?php esc_html_e('Set logo assets and sizing for header branding.', 'bw'); ?></p>
+                    <table class="form-table bw-admin-table bw-admin-form-grid" role="presentation">
+                        <tbody>
                     <?php bw_header_render_media_field(BW_HEADER_OPTION_KEY . '[logo_attachment_id]', $settings['logo_attachment_id'], __('Logo Upload', 'bw')); ?>
                     <tr>
                         <th scope="row"><label for="bw-header-logo-width"><?php esc_html_e('Logo Width (px)', 'bw'); ?></label></th>
@@ -160,6 +172,15 @@ if (!function_exists('bw_header_render_admin_page')) {
                             <p class="description"><?php esc_html_e('Use 0 for auto height.', 'bw'); ?></p>
                         </td>
                     </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="bw-admin-card">
+                    <h2 class="bw-admin-card-title"><?php esc_html_e('Navigation', 'bw'); ?></h2>
+                    <p class="bw-admin-card-helper"><?php esc_html_e('Configure menus, breakpoint, and desktop inner spacing.', 'bw'); ?></p>
+                    <table class="form-table bw-admin-table bw-admin-form-grid" role="presentation">
+                        <tbody>
                     <tr>
                         <th scope="row"><label for="bw-header-desktop-menu"><?php esc_html_e('Desktop Menu', 'bw'); ?></label></th>
                         <td>
@@ -204,7 +225,15 @@ if (!function_exists('bw_header_render_admin_page')) {
                             <p class="description"><?php esc_html_e('Controls padding of .bw-custom-header__inner (the container shown in DevTools).', 'bw'); ?></p>
                         </td>
                     </tr>
+                        </tbody>
+                    </table>
+                </div>
 
+                <div class="bw-admin-card">
+                    <h2 class="bw-admin-card-title"><?php esc_html_e('Responsive', 'bw'); ?></h2>
+                    <p class="bw-admin-card-helper"><?php esc_html_e('Tune mobile icon assets, spacing, and badge offsets.', 'bw'); ?></p>
+                    <table class="form-table bw-admin-table bw-admin-form-grid" role="presentation">
+                        <tbody>
                     <?php bw_header_render_media_field(BW_HEADER_OPTION_KEY . '[icons][mobile_hamburger_attachment_id]', $settings['icons']['mobile_hamburger_attachment_id'], __('Mobile Hamburger SVG', 'bw')); ?>
                     <?php bw_header_render_media_field(BW_HEADER_OPTION_KEY . '[icons][mobile_search_attachment_id]', $settings['icons']['mobile_search_attachment_id'], __('Mobile Search SVG', 'bw')); ?>
                     <?php bw_header_render_media_field(BW_HEADER_OPTION_KEY . '[icons][mobile_cart_attachment_id]', $settings['icons']['mobile_cart_attachment_id'], __('Mobile Cart SVG', 'bw')); ?>
@@ -322,7 +351,15 @@ if (!function_exists('bw_header_render_admin_page')) {
                             <p class="description"><?php esc_html_e('Controls desktop badge width/height/line-height scale.', 'bw'); ?></p>
                         </td>
                     </tr>
+                        </tbody>
+                    </table>
+                </div>
 
+                <div class="bw-admin-card">
+                    <h2 class="bw-admin-card-title"><?php esc_html_e('Links & Labels', 'bw'); ?></h2>
+                    <p class="bw-admin-card-helper"><?php esc_html_e('Set header labels and destination links for account and cart actions.', 'bw'); ?></p>
+                    <table class="form-table bw-admin-table bw-admin-form-grid" role="presentation">
+                        <tbody>
                     <tr>
                         <th scope="row"><label for="bw-header-label-search"><?php esc_html_e('Search Label', 'bw'); ?></label></th>
                         <td><input id="bw-header-label-search" type="text" class="regular-text" name="<?php echo esc_attr(BW_HEADER_OPTION_KEY); ?>[labels][search]" value="<?php echo esc_attr($settings['labels']['search']); ?>" /></td>
@@ -347,10 +384,11 @@ if (!function_exists('bw_header_render_admin_page')) {
                     </table>
                 </div>
 
-                <div id="bw-header-tab-scroll" class="bw-header-tab-panel bw-admin-card" style="display:none;">
-                    <h2 class="bw-admin-card-title"><?php esc_html_e('Header Scroll', 'bw'); ?></h2>
-                    <p class="bw-admin-card-helper"><?php esc_html_e('Control smart scroll thresholds, background behavior, and blur panel settings.', 'bw'); ?></p>
-                    <table class="form-table bw-admin-table" role="presentation">
+                <div id="bw-header-tab-scroll" class="bw-header-tab-panel" style="display:none;">
+                    <div class="bw-admin-card">
+                        <h2 class="bw-admin-card-title"><?php esc_html_e('Header Scroll', 'bw'); ?></h2>
+                        <p class="bw-admin-card-helper"><?php esc_html_e('Control smart scroll behavior and interaction thresholds.', 'bw'); ?></p>
+                        <table class="form-table bw-admin-table bw-admin-form-grid" role="presentation">
                         <tbody>
                             <tr>
                                 <th scope="row"><?php esc_html_e('Enable Smart Header Scroll', 'bw'); ?></th>
@@ -382,6 +420,15 @@ if (!function_exists('bw_header_render_admin_page')) {
                                     <p class="description"><?php esc_html_e('Minimum movement to detect direction changes.', 'bw'); ?></p>
                                 </td>
                             </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="bw-admin-card">
+                    <h2 class="bw-admin-card-title"><?php esc_html_e('Scroll Appearance', 'bw'); ?></h2>
+                    <p class="bw-admin-card-helper"><?php esc_html_e('Set Smart Header colors and opacity transitions.', 'bw'); ?></p>
+                    <table class="form-table bw-admin-table bw-admin-form-grid" role="presentation">
+                        <tbody>
                             <tr>
                                 <th scope="row"><label for="bw-header-smart-bg-color"><?php esc_html_e('Header BG Color (Smart)', 'bw'); ?></label></th>
                                 <td><input id="bw-header-smart-bg-color" type="color" name="<?php echo esc_attr(BW_HEADER_OPTION_KEY); ?>[smart_header][header_bg_color]" value="<?php echo esc_attr($settings['smart_header']['header_bg_color']); ?>" /></td>
@@ -405,6 +452,15 @@ if (!function_exists('bw_header_render_admin_page')) {
                                     <input id="bw-header-smart-scrolled-bg-opacity" type="number" min="0" max="1" step="0.01" name="<?php echo esc_attr(BW_HEADER_OPTION_KEY); ?>[smart_header][header_scrolled_bg_opacity]" value="<?php echo esc_attr((float) $settings['smart_header']['header_scrolled_bg_opacity']); ?>" oninput="document.getElementById('bw-header-smart-scrolled-bg-opacity-range').value=this.value;" style="width:90px;margin-left:10px;" />
                                 </td>
                             </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="bw-admin-card">
+                    <h2 class="bw-admin-card-title"><?php esc_html_e('Blur Panel', 'bw'); ?></h2>
+                    <p class="bw-admin-card-helper"><?php esc_html_e('Configure desktop menu blur panel tint, radius, and padding.', 'bw'); ?></p>
+                    <table class="form-table bw-admin-table bw-admin-form-grid" role="presentation">
+                        <tbody>
                             <tr>
                                 <th scope="row"><?php esc_html_e('Desktop Menu Blur Panel', 'bw'); ?></th>
                                 <td>

@@ -150,6 +150,46 @@
     font-weight: 600;
 }
 
+.bw-admin-root .bw-admin-form-grid th,
+.bw-admin-root .bw-admin-form-grid td {
+    padding: 12px 8px;
+    vertical-align: top;
+}
+
+.bw-admin-root .bw-admin-form-grid th {
+    width: 32%;
+    color: var(--bw-admin-text);
+}
+
+.bw-admin-root .bw-admin-form-grid td {
+    width: 68%;
+}
+
+.bw-admin-root .bw-admin-form-grid tr:last-child th,
+.bw-admin-root .bw-admin-form-grid tr:last-child td {
+    border-bottom: 0;
+}
+
+.bw-admin-root .bw-admin-form-grid .description {
+    margin-top: 6px;
+}
+
+.bw-admin-root .bw-header-media-preview {
+    margin-bottom: 8px;
+}
+
+.bw-admin-root .bw-header-media-preview-image {
+    display: block;
+    max-width: 80px;
+    max-height: 80px;
+}
+
+.bw-admin-root .bw-header-media-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
 .bw-admin-root .button:focus,
 .bw-admin-root .button:focus-visible,
 .bw-admin-root input:focus,

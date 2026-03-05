@@ -17,7 +17,7 @@
         frame.on('select', function () {
             const attachment = frame.state().get('selection').first().toJSON();
             $fieldWrap.find('.bw-header-media-id').val(attachment.id);
-            $fieldWrap.find('.bw-header-media-preview').html('<img src="' + attachment.url + '" alt="" style="max-width:80px;max-height:80px;display:block;" />');
+            $fieldWrap.find('.bw-header-media-preview').html('<img src="' + attachment.url + '" alt="" class="bw-header-media-preview-image" />');
             $fieldWrap.find('.bw-header-media-remove').prop('disabled', false);
         });
 
