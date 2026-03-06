@@ -79,7 +79,13 @@ function bw_user_needs_onboarding( $user_id ) {
         return false;
     }
 
-    return 1 !== (int) get_user_meta( $user_id, 'bw_supabase_onboarded', true );
+    if ( function_exists( 'bw_mew_reconcile_onboarding_marker' ) && is_user_logged_in() && (int) get_current_user_id() === (int) $user_id ) {
+        bw_mew_reconcile_onboarding_marker( $user_id, 'account-needs-onboarding-check' );
+    }
+
+    return ! function_exists( 'bw_mew_is_user_marked_onboarded' )
+        ? ( 1 !== (int) get_user_meta( $user_id, 'bw_supabase_onboarded', true ) )
+        : ! bw_mew_is_user_marked_onboarded( $user_id );
 }
 
 /**

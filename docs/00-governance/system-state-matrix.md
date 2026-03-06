@@ -78,6 +78,7 @@ It is used to:
 | Consent synced to Brevo without local consent | Remote sync cannot create consent truth | Local consent authority doctrine |
 | UI-selected gateway differs from submitted `payment_method` | Checkout must submit deterministic selected gateway | Submission integrity rule |
 | Callback loop state with no convergence terminal | Callback paths must be repeat-safe and loop-free | Callback convergence invariant |
+| Logged-in (Supabase ready) + onboarding marker stuck non-onboarded without invite/error pending signals | Marker no longer reflects real readiness and can create false account lock | Onboarding marker convergence guard + authenticated stale-marker reconciliation |
 
 ## 5) High-Risk Transitional States
 - Payment just confirmed + Auth callback in progress
@@ -97,6 +98,7 @@ These transitions require explicit regression validation because they combine in
 - Repeated triggers must converge (idempotent behavior).
 - Payment and order authority cannot be overridden by auth, onboarding, or marketing flows.
 - Consent state cannot be created by remote destination systems.
+- Onboarding marker transitions must be context-deterministic and must not silently downgrade from onboarded state outside explicit onboarding-pending paths.
 
 ## 7) Usage Protocol
 During refactor:

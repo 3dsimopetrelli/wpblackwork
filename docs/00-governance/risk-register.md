@@ -369,7 +369,12 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 - Impact: High
 - Likelihood: Medium
 - Risk Level: High
-- Current Mitigation: Explicit marker writes per flow, password modal gate checks, provider-specific branching.
+- Current Mitigation:
+  - Centralized marker write guard (`bw_mew_set_onboarding_marker`) enforces deterministic writes and blocks non-authorized downgrades from onboarded to non-onboarded.
+  - Authenticated stale-state reconciliation (`bw_mew_reconcile_onboarding_marker`) promotes missing marker to onboarded only when invite/error pending signals are absent and session context is valid.
+  - Token-login convergence rules are now explicit by context (`otp-needs-password`, `invite-pending`, `invite-ready`, `ready`) to prevent branch-timing drift.
+  - Invite send/resend paths no longer blindly downgrade onboarding marker for already-onboarded users.
+  - My Account onboarding gate reads reconciled marker state through `bw_user_needs_onboarding()`, reducing false lock scenarios after callback/modal/token re-entry.
 - Monitoring Status: Open
 - Linked Documents:
   - [Cross-Domain State Dictionary](./cross-domain-state-dictionary.md)

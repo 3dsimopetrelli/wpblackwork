@@ -102,6 +102,7 @@ Email and password management:
 Dependency on Supabase onboarding marker:
 - Marker is read by `bw_user_needs_onboarding()`.
 - Marker is flipped by set-password completion and selected callback/token flows in `class-bw-supabase-auth.php`.
+- Marker convergence is guarded server-side by deterministic write policy (`bw_mew_set_onboarding_marker`) and authenticated stale-marker reconciliation (`bw_mew_reconcile_onboarding_marker`).
 
 Failure-safe behavior (not verified):
 - My Account stays in gated/auth-transition experience (callback loader, password modal, or login surface depending on state).

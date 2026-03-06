@@ -229,6 +229,8 @@ Observed mapping/onboarding keys:
 ### Onboarding marker
 Primary state marker:
 - `bw_supabase_onboarded` (1 = onboarded, otherwise onboarding/pending)
+- Writes are convergence-guarded in runtime to avoid branch-timing drift across token-login/modal/callback paths.
+- Non-authorized marker downgrades are blocked; stale missing markers for authenticated ready users are reconciled under explicit safety conditions.
 
 ### Order ownership implications
 After successful Supabase/WP mapping, guest orders/download permissions can be attached to the resolved WP user (`bw_mew_claim_guest_orders_for_user` and related helpers), which affects My Account order/download access.

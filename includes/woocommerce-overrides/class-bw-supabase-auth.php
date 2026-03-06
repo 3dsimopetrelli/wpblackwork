@@ -64,6 +64,111 @@ function bw_mew_supabase_debug_payload( array $config ) {
 }
 
 /**
+ * Check whether a user is currently marked as onboarded.
+ *
+ * @param int $user_id User ID.
+ *
+ * @return bool
+ */
+function bw_mew_is_user_marked_onboarded( $user_id ) {
+    $user_id = absint( $user_id );
+    if ( ! $user_id ) {
+        return false;
+    }
+
+    return 1 === (int) get_user_meta( $user_id, 'bw_supabase_onboarded', true );
+}
+
+/**
+ * Deterministically write the onboarding marker with downgrade guards.
+ *
+ * @param int    $user_id User ID.
+ * @param bool   $state   Target onboarded state.
+ * @param string $context Context label.
+ * @param array  $args    Optional args.
+ *
+ * @return bool True when state changed.
+ */
+function bw_mew_set_onboarding_marker( $user_id, $state, $context = '', array $args = [] ) {
+    $user_id = absint( $user_id );
+    if ( ! $user_id ) {
+        return false;
+    }
+
+    $target_state    = (bool) $state;
+    $current_state   = bw_mew_is_user_marked_onboarded( $user_id );
+    $allow_downgrade = isset( $args['allow_downgrade'] ) ? (bool) $args['allow_downgrade'] : false;
+    $debug_log       = isset( $args['debug_log'] ) ? (bool) $args['debug_log'] : (bool) get_option( 'bw_supabase_debug_log', 0 );
+
+    if ( $current_state === $target_state ) {
+        return false;
+    }
+
+    if ( $current_state && ! $target_state && ! $allow_downgrade ) {
+        if ( $debug_log ) {
+            error_log(
+                sprintf(
+                    'Supabase onboarding marker downgrade blocked (%s) user=%d',
+                    $context ? $context : 'unknown',
+                    $user_id
+                )
+            );
+        }
+        return false;
+    }
+
+    update_user_meta( $user_id, 'bw_supabase_onboarded', $target_state ? 1 : 0 );
+
+    if ( $debug_log ) {
+        error_log(
+            sprintf(
+                'Supabase onboarding marker set (%s) user=%d state=%d',
+                $context ? $context : 'unknown',
+                $user_id,
+                $target_state ? 1 : 0
+            )
+        );
+    }
+
+    return true;
+}
+
+/**
+ * Reconcile stale onboarding marker for authenticated users with valid session context.
+ *
+ * @param int    $user_id User ID.
+ * @param string $context Context label.
+ *
+ * @return void
+ */
+function bw_mew_reconcile_onboarding_marker( $user_id, $context = '' ) {
+    $user_id = absint( $user_id );
+    if ( ! $user_id || bw_mew_is_user_marked_onboarded( $user_id ) ) {
+        return;
+    }
+
+    $invited_flag     = 1 === (int) get_user_meta( $user_id, 'bw_supabase_invited', true );
+    $onboarding_error = (string) get_user_meta( $user_id, 'bw_supabase_onboarding_error', true );
+    if ( $invited_flag || '' !== trim( $onboarding_error ) ) {
+        return;
+    }
+
+    $access_token = bw_mew_get_supabase_access_token( $user_id );
+    if ( ! $access_token ) {
+        return;
+    }
+
+    bw_mew_set_onboarding_marker(
+        $user_id,
+        true,
+        $context ? $context : 'reconcile',
+        [
+            'allow_downgrade' => false,
+        ]
+    );
+}
+
+/**
  * Sanitize and normalize redirect URLs for Supabase email confirmations.
  *
  * @param string $url Raw URL.
@@ -456,7 +561,9 @@ function bw_mew_sync_supabase_user_on_load() {
         return;
     }
 
-    bw_mew_sync_supabase_user( get_current_user_id(), 'page-load' );
+    $user_id = get_current_user_id();
+    bw_mew_sync_supabase_user( $user_id, 'page-load' );
+    bw_mew_reconcile_onboarding_marker( $user_id, 'page-load' );
 }
 add_action( 'init', 'bw_mew_sync_supabase_user_on_load', 20 );
 
@@ -619,19 +726,60 @@ function bw_mew_handle_supabase_token_login() {
 
     $already_onboarded       = function_exists( 'bw_user_needs_onboarding' )
         ? ! bw_user_needs_onboarding( $user->ID )
-        : ( 1 === (int) get_user_meta( $user->ID, 'bw_supabase_onboarded', true ) );
+        : bw_mew_is_user_marked_onboarded( $user->ID );
     $is_invite               = 'invite' === $token_type;
+    $has_invite_flag         = 1 === (int) get_user_meta( $user->ID, 'bw_supabase_invited', true );
     $needs_password_cookie   = isset( $_COOKIE['bw_post_otp_needs_password'] ) ? sanitize_text_field( wp_unslash( $_COOKIE['bw_post_otp_needs_password'] ) ) : '';
     $needs_password_for_otp  = 'otp' === $token_type && '1' === $needs_password_cookie;
+    $needs_onboarding        = false;
 
     if ( $needs_password_for_otp ) {
-        update_user_meta( $user->ID, 'bw_supabase_onboarded', 0 );
+        bw_mew_set_onboarding_marker(
+            $user->ID,
+            false,
+            'token-login:otp-needs-password',
+            [
+                'allow_downgrade' => true,
+                'debug_log'       => $debug_log,
+            ]
+        );
         delete_user_meta( $user->ID, 'bw_supabase_invited' );
-    } elseif ( $is_invite && ! $already_onboarded ) {
-        update_user_meta( $user->ID, 'bw_supabase_onboarded', 0 );
+        $needs_onboarding = true;
+    } elseif ( $is_invite && ! $already_onboarded && $has_invite_flag ) {
+        bw_mew_set_onboarding_marker(
+            $user->ID,
+            false,
+            'token-login:invite-pending',
+            [
+                'allow_downgrade' => true,
+                'debug_log'       => $debug_log,
+            ]
+        );
         update_user_meta( $user->ID, 'bw_supabase_invited', 1 );
+        $needs_onboarding = true;
     } elseif ( ! $is_invite ) {
-        update_user_meta( $user->ID, 'bw_supabase_onboarded', 1 );
+        bw_mew_set_onboarding_marker(
+            $user->ID,
+            true,
+            'token-login:ready',
+            [
+                'allow_downgrade' => false,
+                'debug_log'       => $debug_log,
+            ]
+        );
+        delete_user_meta( $user->ID, 'bw_supabase_invited' );
+    } elseif ( $already_onboarded || ! $has_invite_flag ) {
+        // Invite callback for a user already considered ready (or stale missing invite flag):
+        // enforce convergence to onboarded state and avoid false onboarding lock.
+        bw_mew_set_onboarding_marker(
+            $user->ID,
+            true,
+            'token-login:invite-ready',
+            [
+                'allow_downgrade' => false,
+                'debug_log'       => $debug_log,
+            ]
+        );
         delete_user_meta( $user->ID, 'bw_supabase_invited' );
     }
 
@@ -641,7 +789,6 @@ function bw_mew_handle_supabase_token_login() {
     bw_mew_claim_guest_orders_for_user( $user->ID, $email, $debug_log, 'token-login' );
     bw_mew_sync_user_name_from_orders( $user->ID, $email );
 
-    $needs_onboarding = $is_invite && ! $already_onboarded;
     if ( $needs_password_for_otp || $needs_onboarding ) {
         $redirect_url = add_query_arg( 'bw_set_password', '1', $account_url );
     } else {
@@ -818,7 +965,7 @@ function bw_mew_handle_supabase_login() {
 
     $user_id = get_current_user_id();
     if ( $user_id ) {
-        update_user_meta( $user_id, 'bw_supabase_onboarded', 1 );
+        bw_mew_set_onboarding_marker( $user_id, true, 'password-login', [ 'debug_log' => $debug_log ] );
         delete_user_meta( $user_id, 'bw_supabase_invited' );
         delete_user_meta( $user_id, 'bw_supabase_invite_error' );
         delete_user_meta( $user_id, 'bw_supabase_onboarding_error' );
@@ -1611,7 +1758,15 @@ function bw_mew_handle_supabase_checkout_invite( $order_id ) {
             update_user_meta( $user->ID, 'bw_supabase_invited', 1 );
             update_user_meta( $user->ID, 'bw_supabase_invite_sent_at', $now );
             update_user_meta( $user->ID, 'bw_supabase_invite_resend_count', $resend_count + 1 );
-            update_user_meta( $user->ID, 'bw_supabase_onboarded', 0 );
+            bw_mew_set_onboarding_marker(
+                $user->ID,
+                false,
+                'checkout-invite-sent',
+                [
+                    'allow_downgrade' => false,
+                    'debug_log'       => $debug_log,
+                ]
+            );
             if ( $result['user_id'] ) {
                 update_user_meta( $user->ID, 'bw_supabase_user_id', sanitize_text_field( $result['user_id'] ) );
             }
@@ -1878,7 +2033,15 @@ function bw_mew_handle_supabase_resend_invite() {
         if ( $user instanceof WP_User ) {
             update_user_meta( $user->ID, 'bw_supabase_invited', 1 );
             update_user_meta( $user->ID, 'bw_supabase_invite_sent_at', time() );
-            update_user_meta( $user->ID, 'bw_supabase_onboarded', 0 );
+            bw_mew_set_onboarding_marker(
+                $user->ID,
+                false,
+                'resend-invite-sent',
+                [
+                    'allow_downgrade' => false,
+                    'debug_log'       => $debug_log,
+                ]
+            );
         }
         wp_send_json_success(
             [ 'message' => __( 'Invite sent. Please check your email.', 'bw' ) ]
@@ -1998,8 +2161,8 @@ function bw_mew_handle_set_password_modal() {
         wp_send_json_error( [ 'message' => $response->get_error_message() ], 500 );
     }
 
-    // Mark user as onboarded
-    update_user_meta( $user_id, 'bw_supabase_onboarded', 1 );
+    // Mark user as onboarded.
+    bw_mew_set_onboarding_marker( $user_id, true, 'set-password-modal' );
     delete_user_meta( $user_id, 'bw_supabase_invited' );
     delete_user_meta( $user_id, 'bw_supabase_invite_error' );
     delete_user_meta( $user_id, 'bw_supabase_onboarding_error' );

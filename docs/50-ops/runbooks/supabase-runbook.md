@@ -43,6 +43,11 @@ High-risk integrations and dependencies:
 - Test expired/invalid invite behavior.
 - Test password policy validation consistency UI/backend.
 - Check browser console and `debug.log` for Supabase/auth errors.
+- Test deterministic onboarding marker convergence for:
+  - token-login (`invite`, `otp`, ready user paths)
+  - password modal completion
+  - callback refresh/re-entry with authenticated session
+- Confirm stale marker reconciliation does not unlock users with pending invite/error signals.
 
 ## 6. Documentation Update Requirements
 - Update `CHANGELOG.md` for flow-affecting Supabase changes.

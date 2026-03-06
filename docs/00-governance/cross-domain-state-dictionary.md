@@ -75,6 +75,11 @@ Defines:
 Authority:
 - Supabase identity flow + bridge layer that establishes local session continuity.
 
+Convergence contract:
+- Marker writes must be deterministic and repeat-safe across callback/token-login/modal paths.
+- Downgrade from onboarded (`1`) to non-onboarded (`0`) is allowed only in explicit onboarding-pending contexts.
+- Authenticated stale-marker reconciliation may promote marker to onboarded only when invite/error pending signals are absent.
+
 Never overridden by:
 - order completion alone.
 

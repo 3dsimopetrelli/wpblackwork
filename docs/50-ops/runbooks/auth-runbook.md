@@ -42,6 +42,8 @@ High-risk integrations and dependencies:
 - Validate provider-specific account access rules.
 - Validate onboarding/password gate behavior where applicable.
 - Scan console and server logs for auth callback/session errors.
+- Validate onboarding marker convergence (`bw_supabase_onboarded`) across token-login, callback re-entry, and password-modal completion.
+- Validate that invite/resend paths do not regress already-onboarded users into false onboarding lock.
 - Validate callback convergence invariants on `bw_auth_callback` routes:
   - no loader persistence after failed/invalid callback payload
   - no callback re-entry loop after browser refresh
