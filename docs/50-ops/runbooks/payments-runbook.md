@@ -44,6 +44,7 @@ High-risk integrations and dependencies:
 - Test express checkout logic visibility and action sync.
 - Test gateway fallback logic when wallet method is unavailable.
 - Confirm webhook processing updates order status correctly.
+- Test concurrent duplicate webhook delivery (same `event_id`) with stale-claim reclaim path; only one worker may claim/apply while others no-op.
 - Scan console/network for payment-related JS/API errors.
 
 ## 6. Documentation Update Requirements

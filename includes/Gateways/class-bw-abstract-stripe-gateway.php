@@ -435,11 +435,13 @@ abstract class BW_Abstract_Stripe_Gateway extends WC_Payment_Gateway {
 		}
 
 		$claim_meta_key = $this->get_event_claim_meta_key( $event_id );
+		$claim_token    = wp_generate_uuid4();
 		$claim_record   = array(
 			'state'      => 'processing',
 			'gateway'    => $this->id,
 			'type'       => sanitize_text_field( (string) $type ),
 			'started_at' => time(),
+			'claim'      => sanitize_text_field( $claim_token ),
 		);
 
 		$claimed = add_post_meta( $order->get_id(), $claim_meta_key, $claim_record, true );
@@ -458,8 +460,15 @@ abstract class BW_Abstract_Stripe_Gateway extends WC_Payment_Gateway {
 
 		if ( ! isset( $existing['started_at'] ) || ( time() - (int) $existing['started_at'] ) > 300 ) {
 			$claim_record['reclaimed'] = true;
-			update_post_meta( $order->get_id(), $claim_meta_key, $claim_record );
-			return true;
+			$reclaimed                 = update_post_meta( $order->get_id(), $claim_meta_key, $claim_record, $existing );
+			if ( $reclaimed ) {
+				return true;
+			}
+
+			$latest = get_post_meta( $order->get_id(), $claim_meta_key, true );
+			if ( is_array( $latest ) && isset( $latest['state'] ) && 'completed' === $latest['state'] ) {
+				return false;
+			}
 		}
 
 		return false;

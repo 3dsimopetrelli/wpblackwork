@@ -418,6 +418,7 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 - Likelihood: Low-Medium
 - Risk Level: High
 - Current Mitigation: Signature-first authenticity gate, event-id claim ledger (`_bw_evt_claim_*`) with completed-state dedupe, deterministic unknown/duplicate/out-of-order no-op behavior, monotonic transition guard, and return-flow-safe convergence checks before order mutation.
+  - Stale-claim reclaim is now compare-and-swap guarded (`update_post_meta(..., $new, $existing)`) to prevent dual reclaim under concurrent webhook workers on the same event id.
 - Monitoring Status: Monitoring
 - Linked Documents:
   - [Callback Contracts](./callback-contracts.md)

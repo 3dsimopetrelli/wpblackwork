@@ -218,6 +218,7 @@ Typical failure classes in these zones:
 ### 3) Webhook Integrity + Idempotency Invariant
 - Webhook signature validation is mandatory before any state mutation.
 - Event replay must be idempotent through processed-event tracking and PaymentIntent consistency checks.
+- Event claim/reclaim must remain concurrency-safe; stale claim recovery must use compare-and-swap semantics to avoid dual execution during parallel deliveries.
 - A webhook event may be safely ignored only when invariant checks fail (invalid signature, mismatched gateway/order/PI, already processed event).
 
 ### 4) Wallet Capability Discipline
