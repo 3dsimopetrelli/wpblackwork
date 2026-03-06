@@ -419,14 +419,21 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 - Description: Bulk import execution remains exposed to duplicate/partial-write risk until Import Engine v2 is implemented with chunking, checkpointing, and deterministic SKU convergence.
 - Invariant Threatened: Canonical SKU identity and single authority per product entity.
 - Impact: Critical
-- Likelihood: Medium
-- Risk Level: Critical
-- Current Mitigation: Governance lock in vNext spec (SKU-only identity, resumable model, run-level audit requirements) and Tier 0 backlog gating in planning.
-- Monitoring Status: Open
+- Likelihood: Low-Medium
+- Risk Level: High
+- Current Mitigation:
+  - Run-level lock in `wp_options` (`bw_import_run_lock`) enforces single authoritative import mutator with stale-lock reclaim and deterministic operator-safe abort on active contention.
+  - Durable run-state model in `wp_options` (`bw_import_run_{run_id}` + `bw_import_active_run`) is now authoritative for resume/checkpoint state; user transient remains UI mirror only.
+  - Deterministic row outcome ledger (`created|updated|skipped|failed`) with bounded retention and non-double-count convergence by row identity.
+  - SKU identity hardening in save path: ID-first + SKU lookup, pre-create re-resolve, and deterministic SKU-conflict retry-to-update gate.
+  - Publish status allowlist enforcement (`draft|publish|pending|private`) with deterministic invalid-value normalization to `draft` + warning trace.
+- Monitoring Status: Monitoring
 - Linked Documents:
+  - [ADR-008 Import Engine Authority Hardening](../60-adr/ADR-008-import-engine-authority-hardening.md)
   - [Import Products vNext Spec](../30-features/import-products/import-products-vnext-spec.md)
   - [Core Evolution Plan](../00-planning/core-evolution-plan.md)
   - [System Normative Charter](./system-normative-charter.md)
+  - [BW-TASK-20260306-13 Closure](../tasks/BW-TASK-20260306-13-closure.md)
 
 ### Risk ID: R-SRCH-11
 - Domain: Search / Header Runtime Coupling

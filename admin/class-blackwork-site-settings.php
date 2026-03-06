@@ -5483,12 +5483,25 @@ function bw_import_handle_upload_request()
         return $parsed;
     }
 
+    $active_run_id = bw_import_get_active_run_id();
+    if ($active_run_id !== '') {
+        bw_import_release_lock($active_run_id, get_current_user_id(), true);
+    }
+
     $summary = bw_import_calculate_header_stats($parsed['headers']);
 
     $update_existing = !empty($_POST['bw_import_update_existing']);
+    $run_id = bw_import_generate_run_id();
+    $chunk_size = bw_import_chunk_size();
+    $file_fingerprint = bw_import_file_fingerprint($upload['file']);
+    $now = time();
 
     $state = [
+        'run_id' => $run_id,
+        'status' => 'queued',
+        'owner_user_id' => get_current_user_id(),
         'file_path' => $upload['file'],
+        'file_fingerprint' => $file_fingerprint,
         'file_url' => $upload['url'],
         'headers' => $parsed['headers'],
         'sample' => $parsed['rows'],
@@ -5502,7 +5515,26 @@ function bw_import_handle_upload_request()
             'updated' => 0,
             'skipped' => 0,
             'errors' => 0,
+            'failed' => 0,
         ],
+        'counters' => [
+            'created' => 0,
+            'updated' => 0,
+            'skipped' => 0,
+            'failed' => 0,
+        ],
+        'row_outcomes' => [],
+        'row_outcome_order' => [],
+        'mapping_snapshot' => [],
+        'options_snapshot' => [
+            'update_existing' => $update_existing,
+            'skip_images' => true,
+            'chunk_size' => $chunk_size,
+        ],
+        'started_at' => $now,
+        'updated_at' => $now,
+        'completed_at' => 0,
+        'lock' => [],
         'last_errors' => [],
         'last_warnings' => [],
         'upload_summary' => [
@@ -5517,6 +5549,8 @@ function bw_import_handle_upload_request()
         ],
     ];
 
+    bw_import_save_run_state($state);
+    bw_import_set_active_run_id($run_id);
     bw_import_save_state($state);
 
     return $state;
@@ -5539,16 +5573,52 @@ function bw_import_handle_run_request($state)
         return new WP_Error('bw_import_nonce', __('Invalid nonce. Please try again.', 'bw'));
     }
 
-    if (empty($state['file_path']) || empty($state['headers'])) {
+    $active_run_id = bw_import_get_active_run_id();
+    $requested_run_id = isset($state['run_id']) ? sanitize_text_field((string) $state['run_id']) : '';
+    $run_id = $requested_run_id !== '' ? $requested_run_id : $active_run_id;
+    $run_state = $run_id !== '' ? bw_import_get_run_state($run_id) : [];
+
+    if (empty($run_state) && is_array($state) && !empty($state['file_path']) && !empty($state['headers'])) {
+        $run_state = $state;
+    }
+
+    if (empty($run_state['file_path']) || empty($run_state['headers'])) {
         return new WP_Error('bw_import_missing_state', __('No CSV file is attached. Upload a file before running the import.', 'bw'));
     }
 
-    $is_first_step = empty($state['in_progress']);
+    if (empty($run_state['run_id'])) {
+        $run_state['run_id'] = bw_import_generate_run_id();
+    }
+    $run_id = (string) $run_state['run_id'];
+    $is_first_step = empty($run_state['in_progress']) || empty($run_state['mapping_snapshot']);
+
+    $lock_result = bw_import_acquire_lock($run_id, get_current_user_id());
+    if (empty($lock_result['ok'])) {
+        return new WP_Error('bw_import_lock_held', isset($lock_result['message']) ? $lock_result['message'] : __('An import run is currently locked by another operator.', 'bw'));
+    }
+
+    if (!empty($lock_result['warning'])) {
+        $run_state['last_warnings'] = bw_import_merge_bounded_messages(
+            isset($run_state['last_warnings']) ? (array) $run_state['last_warnings'] : [],
+            [$lock_result['warning']]
+        );
+    }
+
+    $run_state['owner_user_id'] = get_current_user_id();
+    $run_state['status'] = 'running';
+    $run_state['updated_at'] = time();
+    $run_state['lock'] = bw_import_get_lock_payload();
+    bw_import_save_run_state($run_state);
+    bw_import_set_active_run_id($run_id);
+    bw_import_save_state($run_state);
+
+    bw_import_refresh_lock($run_id, get_current_user_id());
+
     $mapping = [];
 
     if ($is_first_step) {
         $raw_mapping = isset($_POST['bw_import_mapping']) ? (array) $_POST['bw_import_mapping'] : [];
-        foreach ($state['headers'] as $header) {
+        foreach ($run_state['headers'] as $header) {
             $value = isset($raw_mapping[$header]) ? sanitize_text_field(wp_unslash($raw_mapping[$header])) : 'ignore';
             if ('ignore' !== $value) {
                 $mapping[$header] = $value;
@@ -5556,94 +5626,138 @@ function bw_import_handle_run_request($state)
         }
 
         if (!bw_import_has_identifier($mapping)) {
+            bw_import_release_lock($run_id, get_current_user_id());
             return new WP_Error('bw_import_missing_identifier', __('Please map SKU to proceed. Product ID may be mapped as secondary, but SKU is mandatory.', 'bw'));
         }
 
-        $sku_validation = bw_import_validate_unique_skus($state['file_path'], $state['headers'], $mapping);
+        $sku_validation = bw_import_validate_unique_skus($run_state['file_path'], $run_state['headers'], $mapping);
         if (is_wp_error($sku_validation)) {
+            bw_import_release_lock($run_id, get_current_user_id());
             return $sku_validation;
         }
 
-        $state['mapping'] = $mapping;
-        $state['row_cursor'] = 0;
-        $state['in_progress'] = true;
-        $state['totals'] = [
+        $run_state['mapping'] = $mapping;
+        $run_state['mapping_snapshot'] = $mapping;
+        $run_state['row_cursor'] = 0;
+        $run_state['in_progress'] = true;
+        $run_state['status'] = 'running';
+        $run_state['totals'] = [
             'created' => 0,
             'updated' => 0,
             'skipped' => 0,
             'errors' => 0,
+            'failed' => 0,
         ];
-        $state['last_errors'] = [];
-        $state['last_warnings'] = [];
-        $state['skip_images'] = !empty($_POST['bw_import_skip_images']);
+        $run_state['counters'] = [
+            'created' => 0,
+            'updated' => 0,
+            'skipped' => 0,
+            'failed' => 0,
+        ];
+        $run_state['row_outcomes'] = [];
+        $run_state['row_outcome_order'] = [];
+        $run_state['last_errors'] = [];
+        $run_state['last_warnings'] = [];
+        $run_state['skip_images'] = !empty($_POST['bw_import_skip_images']);
+        $run_state['options_snapshot'] = [
+            'update_existing' => !empty($run_state['update_existing']),
+            'skip_images' => !empty($run_state['skip_images']),
+            'chunk_size' => bw_import_chunk_size(),
+        ];
     } else {
-        $mapping = isset($state['mapping']) && is_array($state['mapping']) ? $state['mapping'] : [];
+        $mapping = isset($run_state['mapping_snapshot']) && is_array($run_state['mapping_snapshot']) ? $run_state['mapping_snapshot'] : [];
         if (!bw_import_has_identifier($mapping)) {
+            $run_state['status'] = 'failed';
+            $run_state['updated_at'] = time();
+            bw_import_save_run_state($run_state);
+            bw_import_release_lock($run_id, get_current_user_id());
             return new WP_Error('bw_import_missing_identifier', __('Import state is missing SKU mapping. Re-upload the CSV and map SKU again.', 'bw'));
         }
     }
 
-    $chunk_size = bw_import_chunk_size();
-    $parsed_chunk = bw_import_parse_csv_chunk($state['file_path'], (int) $state['row_cursor'], $chunk_size);
+    $chunk_size = isset($run_state['options_snapshot']['chunk_size']) ? absint($run_state['options_snapshot']['chunk_size']) : bw_import_chunk_size();
+    if ($chunk_size < 1) {
+        $chunk_size = bw_import_chunk_size();
+    }
+
+    $parsed_chunk = bw_import_parse_csv_chunk($run_state['file_path'], (int) $run_state['row_cursor'], $chunk_size);
     if (is_wp_error($parsed_chunk)) {
+        $run_state['status'] = 'failed';
+        $run_state['last_errors'] = bw_import_merge_bounded_messages(
+            isset($run_state['last_errors']) ? (array) $run_state['last_errors'] : [],
+            [$parsed_chunk->get_error_message()]
+        );
+        $run_state['updated_at'] = time();
+        bw_import_save_run_state($run_state);
+        bw_import_save_state($run_state);
+        bw_import_release_lock($run_id, get_current_user_id());
         return $parsed_chunk;
     }
 
-    $update_existing = !empty($state['update_existing']);
+    $update_existing = !empty($run_state['update_existing']);
     $options = [
-        'skip_images' => !empty($state['skip_images']),
+        'skip_images' => !empty($run_state['skip_images']),
     ];
     $result = bw_import_process_rows(
         $parsed_chunk['headers'],
         $parsed_chunk['rows'],
         $mapping,
         $update_existing,
-        (int) $state['row_cursor'],
-        $options
+        (int) $run_state['row_cursor'],
+        $options,
+        $run_state
     );
 
-    $state['row_cursor'] = (int) $parsed_chunk['next_row'];
-    $state['totals']['created'] += (int) $result['created'];
-    $state['totals']['updated'] += (int) $result['updated'];
-    $state['totals']['skipped'] += (int) $result['skipped'];
-    $state['totals']['errors'] += (int) $result['errors_count'];
-    $state['last_errors'] = bw_import_merge_bounded_messages(
-        isset($state['last_errors']) ? (array) $state['last_errors'] : [],
+    $run_state['row_cursor'] = (int) $parsed_chunk['next_row'];
+    $run_state['last_errors'] = bw_import_merge_bounded_messages(
+        isset($run_state['last_errors']) ? (array) $run_state['last_errors'] : [],
         isset($result['errors']) ? (array) $result['errors'] : []
     );
-    $state['last_warnings'] = bw_import_merge_bounded_messages(
-        isset($state['last_warnings']) ? (array) $state['last_warnings'] : [],
+    $run_state['last_warnings'] = bw_import_merge_bounded_messages(
+        isset($run_state['last_warnings']) ? (array) $run_state['last_warnings'] : [],
         isset($result['warnings']) ? (array) $result['warnings'] : []
     );
+    $run_state['updated_at'] = time();
+    $run_state['lock'] = bw_import_get_lock_payload();
 
     if (empty($parsed_chunk['eof'])) {
-        bw_import_save_state($state);
+        $run_state['status'] = 'running';
+        bw_import_save_run_state($run_state);
+        bw_import_save_state($run_state);
+        bw_import_refresh_lock($run_id, get_current_user_id());
         return [
             'message' => sprintf(
                 /* translators: 1: processed rows, 2: created count, 3: updated count, 4: skipped count */
                 __('Chunk completed. Processed rows: %1$d — Created: %2$d, Updated: %3$d, Skipped: %4$d. Click continue to process the next chunk.', 'bw'),
-                (int) $state['row_cursor'],
-                (int) $state['totals']['created'],
-                (int) $state['totals']['updated'],
-                (int) $state['totals']['skipped']
+                (int) $run_state['row_cursor'],
+                (int) $run_state['totals']['created'],
+                (int) $run_state['totals']['updated'],
+                (int) $run_state['totals']['skipped']
             ),
         ];
     }
 
+    $run_state['status'] = 'completed';
+    $run_state['in_progress'] = false;
+    $run_state['completed_at'] = time();
+    bw_import_save_run_state($run_state);
+
     $message = sprintf(
         /* translators: 1: created count, 2: updated count, 3: skipped count, 4: errors count */
         __('Import completed. Created: %1$d, Updated: %2$d, Skipped: %3$d, Errors: %4$d', 'bw'),
-        (int) $state['totals']['created'],
-        (int) $state['totals']['updated'],
-        (int) $state['totals']['skipped'],
-        (int) $state['totals']['errors']
+        (int) $run_state['totals']['created'],
+        (int) $run_state['totals']['updated'],
+        (int) $run_state['totals']['skipped'],
+        (int) $run_state['totals']['errors']
     );
 
-    if (!empty($state['last_errors'])) {
-        $message .= ' — ' . implode(' | ', array_map('esc_html', (array) $state['last_errors']));
+    if (!empty($run_state['last_errors'])) {
+        $message .= ' — ' . implode(' | ', array_map('esc_html', (array) $run_state['last_errors']));
     }
 
-    bw_import_clear_state();
+    bw_import_release_lock($run_id, get_current_user_id());
+    bw_import_set_active_run_id('');
+    bw_import_clear_state($run_id, true);
 
     return [
         'message' => $message,
@@ -5676,7 +5790,278 @@ function bw_import_upload_dir($dirs)
 }
 
 /**
- * Salva lo stato dell'import in un transient per l'utente corrente.
+ * Option keys and helpers for durable import runtime state.
+ */
+function bw_import_lock_option_key()
+{
+    return 'bw_import_run_lock';
+}
+
+function bw_import_active_run_option_key()
+{
+    return 'bw_import_active_run';
+}
+
+function bw_import_run_option_key($run_id)
+{
+    return 'bw_import_run_' . sanitize_key((string) $run_id);
+}
+
+function bw_import_generate_run_id()
+{
+    if (function_exists('wp_generate_uuid4')) {
+        return sanitize_key(str_replace('-', '', wp_generate_uuid4()));
+    }
+
+    return sanitize_key(uniqid('bwimp_', true));
+}
+
+function bw_import_file_fingerprint($file_path)
+{
+    if (!is_string($file_path) || $file_path === '' || !file_exists($file_path)) {
+        return '';
+    }
+
+    $sha1 = @sha1_file($file_path);
+    if (is_string($sha1) && $sha1 !== '') {
+        return $sha1;
+    }
+
+    return md5($file_path . '|' . filesize($file_path) . '|' . filemtime($file_path));
+}
+
+function bw_import_get_active_run_id()
+{
+    $run_id = get_option(bw_import_active_run_option_key(), '');
+    return is_string($run_id) ? sanitize_text_field($run_id) : '';
+}
+
+function bw_import_set_active_run_id($run_id)
+{
+    $run_id = sanitize_text_field((string) $run_id);
+
+    if ($run_id === '') {
+        delete_option(bw_import_active_run_option_key());
+        return;
+    }
+
+    update_option(bw_import_active_run_option_key(), $run_id, false);
+}
+
+function bw_import_get_run_state($run_id)
+{
+    $run_id = sanitize_text_field((string) $run_id);
+    if ($run_id === '') {
+        return [];
+    }
+
+    $state = get_option(bw_import_run_option_key($run_id), []);
+    return is_array($state) ? $state : [];
+}
+
+function bw_import_sync_totals_from_counters($run_state)
+{
+    $run_state = is_array($run_state) ? $run_state : [];
+    $counters = isset($run_state['counters']) && is_array($run_state['counters']) ? $run_state['counters'] : [];
+
+    $created = isset($counters['created']) ? absint($counters['created']) : 0;
+    $updated = isset($counters['updated']) ? absint($counters['updated']) : 0;
+    $skipped = isset($counters['skipped']) ? absint($counters['skipped']) : 0;
+    $failed = isset($counters['failed']) ? absint($counters['failed']) : 0;
+
+    $run_state['counters'] = [
+        'created' => $created,
+        'updated' => $updated,
+        'skipped' => $skipped,
+        'failed' => $failed,
+    ];
+    $run_state['totals'] = [
+        'created' => $created,
+        'updated' => $updated,
+        'skipped' => $skipped,
+        'errors' => $failed,
+        'failed' => $failed,
+    ];
+
+    return $run_state;
+}
+
+function bw_import_save_run_state($run_state)
+{
+    if (!is_array($run_state) || empty($run_state['run_id'])) {
+        return;
+    }
+
+    $run_state = bw_import_sync_totals_from_counters($run_state);
+    $run_state['updated_at'] = time();
+
+    update_option(bw_import_run_option_key($run_state['run_id']), $run_state, false);
+}
+
+function bw_import_clear_run_state($run_id)
+{
+    $run_id = sanitize_text_field((string) $run_id);
+    if ($run_id === '') {
+        return;
+    }
+
+    delete_option(bw_import_run_option_key($run_id));
+    if (bw_import_get_active_run_id() === $run_id) {
+        bw_import_set_active_run_id('');
+    }
+}
+
+function bw_import_get_lock_payload()
+{
+    $lock = get_option(bw_import_lock_option_key(), []);
+    return is_array($lock) ? $lock : [];
+}
+
+function bw_import_is_lock_stale($lock)
+{
+    if (!is_array($lock) || empty($lock['expires_at'])) {
+        return true;
+    }
+
+    return (int) $lock['expires_at'] <= time();
+}
+
+function bw_import_acquire_lock($run_id, $user_id)
+{
+    $run_id = sanitize_text_field((string) $run_id);
+    $user_id = absint($user_id);
+    $existing_lock = bw_import_get_lock_payload();
+    $stale = bw_import_is_lock_stale($existing_lock);
+
+    if (!empty($existing_lock) && !$stale) {
+        $locked_run = isset($existing_lock['run_id']) ? sanitize_text_field((string) $existing_lock['run_id']) : '';
+        $locked_owner = isset($existing_lock['owner_user_id']) ? absint($existing_lock['owner_user_id']) : 0;
+
+        if (!($locked_run === $run_id && $locked_owner === $user_id)) {
+            return [
+                'ok' => false,
+                'message' => sprintf(
+                    /* translators: 1: user id, 2: run id */
+                    __('Another import run is active (owner user ID: %1$d, run: %2$s). Please retry later.', 'bw'),
+                    $locked_owner,
+                    $locked_run !== '' ? $locked_run : 'n/a'
+                ),
+            ];
+        }
+    }
+
+    $now = time();
+    $lock_payload = [
+        'run_id' => $run_id,
+        'owner_user_id' => $user_id,
+        'acquired_at' => $now,
+        'expires_at' => $now + 300,
+        'heartbeat_at' => $now,
+    ];
+    update_option(bw_import_lock_option_key(), $lock_payload, false);
+
+    $response = ['ok' => true];
+    if ($stale && !empty($existing_lock)) {
+        $response['warning'] = __('A stale import lock was reclaimed before continuing.', 'bw');
+    }
+
+    return $response;
+}
+
+function bw_import_refresh_lock($run_id, $user_id)
+{
+    $run_id = sanitize_text_field((string) $run_id);
+    $user_id = absint($user_id);
+    $lock = bw_import_get_lock_payload();
+
+    if (
+        empty($lock) ||
+        (isset($lock['run_id']) ? sanitize_text_field((string) $lock['run_id']) : '') !== $run_id ||
+        (isset($lock['owner_user_id']) ? absint($lock['owner_user_id']) : 0) !== $user_id
+    ) {
+        return false;
+    }
+
+    $now = time();
+    $lock['heartbeat_at'] = $now;
+    $lock['expires_at'] = $now + 300;
+    update_option(bw_import_lock_option_key(), $lock, false);
+    return true;
+}
+
+function bw_import_release_lock($run_id, $user_id, $force = false)
+{
+    $run_id = sanitize_text_field((string) $run_id);
+    $user_id = absint($user_id);
+    $lock = bw_import_get_lock_payload();
+    if (empty($lock)) {
+        return true;
+    }
+
+    $locked_run = isset($lock['run_id']) ? sanitize_text_field((string) $lock['run_id']) : '';
+    $locked_owner = isset($lock['owner_user_id']) ? absint($lock['owner_user_id']) : 0;
+
+    if ($force || ($locked_run === $run_id && ($locked_owner === $user_id || bw_import_is_lock_stale($lock)))) {
+        delete_option(bw_import_lock_option_key());
+        return true;
+    }
+
+    return false;
+}
+
+function bw_import_make_row_identity($row_offset, $row_index, $sku)
+{
+    $cursor = absint($row_offset + $row_index + 2);
+    $sku_hash = md5(sanitize_text_field((string) $sku));
+    return 'r' . $cursor . '_s' . $sku_hash;
+}
+
+function bw_import_record_row_outcome(&$run_state, $row_identity, $outcome, $message = '')
+{
+    $allowed_outcomes = ['created', 'updated', 'skipped', 'failed'];
+    if (!in_array($outcome, $allowed_outcomes, true)) {
+        return false;
+    }
+
+    if (!is_array($run_state)) {
+        $run_state = [];
+    }
+
+    if (!isset($run_state['row_outcomes']) || !is_array($run_state['row_outcomes'])) {
+        $run_state['row_outcomes'] = [];
+    }
+    if (!isset($run_state['row_outcome_order']) || !is_array($run_state['row_outcome_order'])) {
+        $run_state['row_outcome_order'] = [];
+    }
+    if (!isset($run_state['counters']) || !is_array($run_state['counters'])) {
+        $run_state['counters'] = ['created' => 0, 'updated' => 0, 'skipped' => 0, 'failed' => 0];
+    }
+
+    if (isset($run_state['row_outcomes'][$row_identity])) {
+        return false;
+    }
+
+    $run_state['row_outcomes'][$row_identity] = [
+        'outcome' => $outcome,
+        'message' => sanitize_text_field((string) $message),
+        'at' => time(),
+    ];
+    $run_state['row_outcome_order'][] = $row_identity;
+    $run_state['counters'][$outcome] = isset($run_state['counters'][$outcome]) ? ((int) $run_state['counters'][$outcome] + 1) : 1;
+
+    while (count($run_state['row_outcome_order']) > 500) {
+        $oldest = array_shift($run_state['row_outcome_order']);
+        if ($oldest !== null) {
+            unset($run_state['row_outcomes'][$oldest]);
+        }
+    }
+
+    $run_state = bw_import_sync_totals_from_counters($run_state);
+    return true;
+}
+
+/**
+ * Salva stato import come transient UI mirror (non-authoritative).
  *
  * @param array $state Stato da salvare.
  */
@@ -5686,12 +6071,21 @@ function bw_import_save_state($state)
 }
 
 /**
- * Recupera lo stato salvato.
+ * Recupera lo stato import: preferisce run state durevole attivo.
  *
  * @return array
  */
 function bw_import_get_state()
 {
+    $active_run_id = bw_import_get_active_run_id();
+    if ($active_run_id !== '') {
+        $run_state = bw_import_get_run_state($active_run_id);
+        if (!empty($run_state)) {
+            bw_import_save_state($run_state);
+            return $run_state;
+        }
+    }
+
     $state = get_transient('bw_import_state_' . get_current_user_id());
     return is_array($state) ? $state : [];
 }
@@ -5699,9 +6093,16 @@ function bw_import_get_state()
 /**
  * Pulisce lo stato di importazione.
  */
-function bw_import_clear_state()
+function bw_import_clear_state($run_id = '', $preserve_run_state = true)
 {
     delete_transient('bw_import_state_' . get_current_user_id());
+
+    if ($run_id !== '' && !$preserve_run_state) {
+        bw_import_clear_run_state($run_id);
+        return;
+    }
+
+    bw_import_set_active_run_id('');
 }
 
 /**
@@ -6260,7 +6661,7 @@ function bw_import_has_identifier($mapping)
  *
  * @return array
  */
-function bw_import_process_rows($headers, $rows, $mapping, $update_existing = false, $row_offset = 0, $options = [])
+function bw_import_process_rows($headers, $rows, $mapping, $update_existing = false, $row_offset = 0, $options = [], &$run_state = null)
 {
     $result = [
         'created' => 0,
@@ -6279,16 +6680,33 @@ function bw_import_process_rows($headers, $rows, $mapping, $update_existing = fa
 
         $prepared = bw_import_prepare_row_data($row_data, $mapping);
         if (is_wp_error($prepared)) {
+            $row_identity = bw_import_make_row_identity($row_offset, $row_index, '');
+            bw_import_record_row_outcome($run_state, $row_identity, 'failed', $prepared->get_error_message());
             $result['skipped']++;
             $result['errors_count']++;
             $result['errors'][] = sprintf(__('Row %1$d: %2$s', 'bw'), $row_offset + $row_index + 2, $prepared->get_error_message());
             continue;
         }
 
+        if (!empty($prepared['warnings'])) {
+            foreach ((array) $prepared['warnings'] as $warning) {
+                $result['warnings'][] = sprintf(__('Row %1$d: %2$s', 'bw'), $row_offset + $row_index + 2, $warning);
+            }
+        }
+
+        $row_sku = isset($prepared['product']['sku']) ? (string) $prepared['product']['sku'] : '';
+        $row_identity = bw_import_make_row_identity($row_offset, $row_index, $row_sku);
         $save_result = bw_import_save_product_from_row($prepared, $update_existing, $options);
         if (is_wp_error($save_result)) {
-            $result['skipped']++;
-            $result['errors_count']++;
+            $error_code = $save_result->get_error_code();
+            if ('bw_import_missing_product_match' === $error_code) {
+                bw_import_record_row_outcome($run_state, $row_identity, 'skipped', $save_result->get_error_message());
+                $result['skipped']++;
+            } else {
+                bw_import_record_row_outcome($run_state, $row_identity, 'failed', $save_result->get_error_message());
+                $result['skipped']++;
+                $result['errors_count']++;
+            }
             $result['errors'][] = sprintf(__('Row %1$d: %2$s', 'bw'), $row_offset + $row_index + 2, $save_result->get_error_message());
             continue;
         }
@@ -6300,8 +6718,10 @@ function bw_import_process_rows($headers, $rows, $mapping, $update_existing = fa
         }
 
         if (!empty($save_result['status']) && $save_result['status'] === 'updated') {
+            bw_import_record_row_outcome($run_state, $row_identity, 'updated');
             $result['updated']++;
         } else {
+            bw_import_record_row_outcome($run_state, $row_identity, 'created');
             $result['created']++;
         }
     }
@@ -6327,6 +6747,7 @@ function bw_import_prepare_row_data($row_data, $mapping)
         'attributes' => [],
         'upsells' => [],
         'cross_sells' => [],
+        'warnings' => [],
     ];
 
     foreach ($row_data as $header => $value) {
@@ -6363,7 +6784,18 @@ function bw_import_prepare_row_data($row_data, $mapping)
                 $data['product']['slug'] = sanitize_title($clean_value);
                 break;
             case 'post_status':
-                $data['product']['status'] = sanitize_key($clean_value);
+                $status = strtolower(sanitize_key($clean_value));
+                $allowed_statuses = ['draft', 'publish', 'pending', 'private'];
+                if ($status !== '' && !in_array($status, $allowed_statuses, true)) {
+                    $data['product']['status'] = 'draft';
+                    $data['warnings'][] = sprintf(
+                        /* translators: %s: invalid status value */
+                        __('Invalid status "%s" normalized to draft.', 'bw'),
+                        $status
+                    );
+                } else {
+                    $data['product']['status'] = $status;
+                }
                 break;
             case 'product_type':
                 $data['product']['type'] = sanitize_key($clean_value);
@@ -6473,6 +6905,7 @@ function bw_import_save_product_from_row($data, $update_existing = false, $optio
         $options,
         [
             'skip_images' => true,
+            'sku_retry_done' => false,
         ]
     );
 
@@ -6502,16 +6935,48 @@ function bw_import_save_product_from_row($data, $update_existing = false, $optio
             __('Skipping row because no existing product matches the provided ID or SKU.', 'bw')
         );
     } else {
-        $product_type = !empty($data['product']['type']) ? $data['product']['type'] : 'simple';
-
-        try {
-            $product = wc_get_product_object($product_type);
-        } catch (Throwable $exception) {
-            return new WP_Error('bw_import_product_object', $exception->getMessage());
+        if ($sku) {
+            $resolved_product_id = wc_get_product_id_by_sku($sku);
+            if ($resolved_product_id) {
+                $product = wc_get_product($resolved_product_id);
+                if ($product) {
+                    $product_id = $resolved_product_id;
+                    $status = 'updated';
+                }
+            }
         }
 
         if (!$product) {
-            return new WP_Error('bw_import_product_object', __('Unable to create product object for type.', 'bw'));
+            $product_type = !empty($data['product']['type']) ? $data['product']['type'] : 'simple';
+
+            try {
+                $product = wc_get_product_object($product_type);
+            } catch (Throwable $exception) {
+                return new WP_Error('bw_import_product_object', $exception->getMessage());
+            }
+
+            if (!$product) {
+                return new WP_Error('bw_import_product_object', __('Unable to create product object for type.', 'bw'));
+            }
+        }
+    }
+
+    if ($sku) {
+        try {
+            $product->set_sku($sku);
+        } catch (WC_Data_Exception $exception) {
+            if (empty($options['sku_retry_done'])) {
+                $resolved_product_id = wc_get_product_id_by_sku($sku);
+                if ($resolved_product_id) {
+                    $retry_data = $data;
+                    $retry_data['product']['id'] = $resolved_product_id;
+                    $retry_options = $options;
+                    $retry_options['sku_retry_done'] = true;
+                    return bw_import_save_product_from_row($retry_data, false, $retry_options);
+                }
+            }
+
+            return new WP_Error('bw_import_sku', $exception->getMessage());
         }
     }
 
@@ -6533,14 +6998,6 @@ function bw_import_save_product_from_row($data, $update_existing = false, $optio
 
     if (!empty($data['product']['short_description'])) {
         $product->set_short_description($data['product']['short_description']);
-    }
-
-    if ($sku) {
-        try {
-            $product->set_sku($sku);
-        } catch (WC_Data_Exception $exception) {
-            return new WP_Error('bw_import_sku', $exception->getMessage());
-        }
     }
 
     if (isset($data['product']['regular_price'])) {

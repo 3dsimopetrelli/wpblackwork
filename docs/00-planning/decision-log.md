@@ -305,6 +305,19 @@ If a decision is normative and architecture-binding, the ADR process MUST be use
   - Keep all refactors UI/admin-only unless separately approved at governance level.
   - Prepare ADR before any large decomposition of `admin/class-blackwork-site-settings.php`.
 
+### Entry 027
+- Date: 2026-03-06
+- Decision summary: Established import authority hardening baseline with a single active run lock, durable run state, deterministic row outcome ledger, and SKU conflict-safe convergence.
+- Affected domain: Import Engine / Catalog Authority / Convergence
+- Rationale: Import runtime is a Tier-0 catalog mutator surface; transient-only progress and lockless execution created duplicate/partial-write risk under re-entry, retries, and overlapping operator actions.
+- Risk impact: Critical reduced to High through run-level lock ownership, stale lock reclaim policy, durable checkpoint authority, and deterministic row/sku convergence guards.
+- Follow-up actions:
+  - Keep `bw_import_run_lock` as the sole runtime lock authority (no parallel lock surfaces).
+  - Keep durable run options (`bw_import_run_{run_id}` and `bw_import_active_run`) authoritative for resume state; transient remains UI mirror only.
+  - Keep row terminal outcome model (`created|updated|skipped|failed`) idempotent and non-double-counting by deterministic row identity.
+  - Keep publish status allowlist enforcement (`draft|publish|pending|private`) with invalid-value normalization to `draft`.
+  - Reassess need for dedicated import-run table if run-history retention and telemetry requirements outgrow option-backed storage.
+
 ## Governance Layer Closure
 
 Status: CLOSED  
