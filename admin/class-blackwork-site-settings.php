@@ -992,6 +992,10 @@ function bw_site_render_account_page_tab()
     $saved = false;
 
     if (isset($_POST['bw_account_page_submit'])) {
+        if (!current_user_can('manage_options')) {
+            return;
+        }
+
         check_admin_referer('bw_account_page_save', 'bw_account_page_nonce');
 
         $login_provider = isset($_POST['bw_account_login_provider']) ? sanitize_key(wp_unslash($_POST['bw_account_login_provider'])) : 'wordpress';
@@ -2353,6 +2357,10 @@ function bw_site_render_my_account_front_tab()
     $saved = false;
 
     if (isset($_POST['bw_myaccount_content_submit'])) {
+        if (!current_user_can('manage_options')) {
+            return;
+        }
+
         check_admin_referer('bw_myaccount_front_save', 'bw_myaccount_front_nonce');
 
         $black_box_text = isset($_POST['bw_myaccount_black_box_text'])
@@ -2424,6 +2432,10 @@ function bw_site_render_checkout_tab()
     $saved = false;
 
     if (isset($_POST['bw_checkout_settings_submit']) || isset($_POST['bw_checkout_footer_submit'])) {
+        if (!current_user_can('manage_options')) {
+            return;
+        }
+
         check_admin_referer('bw_checkout_settings_save', 'bw_checkout_settings_nonce');
 
         $logo = isset($_POST['bw_checkout_logo']) ? esc_url_raw(wp_unslash($_POST['bw_checkout_logo'])) : '';
@@ -2489,6 +2501,9 @@ function bw_site_render_checkout_tab()
 
         foreach ($policies as $key => $option_prefix) {
             $policy_data = isset($_POST[$option_prefix]) ? wp_unslash($_POST[$option_prefix]) : [];
+            if (!is_array($policy_data)) {
+                $policy_data = [];
+            }
             $sanitized_data = [
                 'enabled' => isset($policy_data['enabled']) ? '1' : '0',
                 'title' => isset($policy_data['title']) ? sanitize_text_field($policy_data['title']) : '',
@@ -5120,6 +5135,10 @@ function bw_site_render_coming_soon_tab()
     // Salva le impostazioni se il form è stato inviato
     $saved = false;
     if (isset($_POST['bw_coming_soon_submit'])) {
+        if (!current_user_can('manage_options')) {
+            return;
+        }
+
         check_admin_referer('bw_coming_soon_save', 'bw_coming_soon_nonce');
 
         $active_value = isset($_POST['bw_coming_soon_toggle']) ? 1 : 0;
@@ -6996,6 +7015,10 @@ function bw_site_render_loading_tab()
     $saved = false;
 
     if (isset($_POST['bw_loading_settings_submit'])) {
+        if (!current_user_can('manage_options')) {
+            return;
+        }
+
         check_admin_referer('bw_loading_settings_save', 'bw_loading_settings_nonce');
 
         $global_spinner_hidden = isset($_POST['bw_loading_global_spinner_hidden']) ? 1 : 0;

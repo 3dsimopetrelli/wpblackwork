@@ -571,6 +571,26 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
   - [Elementor Widget Architecture Context](../10-architecture/elementor-widget-architecture-context.md)
   - [Docs-Code Alignment Status](./docs-code-alignment-status.md)
 
+### Risk ID: R-ADM-21
+- Domain: Admin / Settings Input Integrity
+- Surface Anchor: `admin/class-blackwork-site-settings.php`, `includes/admin/checkout-fields/class-bw-checkout-fields-admin.php`, `includes/admin/checkout-subscribe/class-bw-checkout-subscribe-admin.php`, `includes/modules/media-folders/admin/media-folders-settings.php`, Theme Builder Lite admin settings/AJAX handlers
+- Description: Admin settings write paths can introduce unsafe persistence if capability checks, nonce verification, input sanitization, or option-schema constraints drift across modules.
+- Invariant Threatened: Admin option writes must be capability-gated, nonce-protected, sanitized, schema-safe, and deterministic.
+- Impact: High
+- Likelihood: Medium
+- Risk Level: High
+- Current Mitigation:
+  - Guard-first save handlers with explicit capability checks before POST payload processing in Blackwork Site Settings tabs.
+  - Nonce verification on state-changing POST/AJAX handlers (`check_admin_referer` / `check_ajax_referer`) before persistence.
+  - Type-specific input sanitization (`sanitize_text_field`, `sanitize_key`, `absint`, `sanitize_email`, `esc_url_raw`, `wp_kses_post`).
+  - Schema-safe array normalization for policy option payloads (array validation + allowlist key construction) before `update_option`.
+  - Fail-safe behavior: invalid capability/nonce/context paths abort without option writes.
+- Monitoring Status: Monitoring
+- Linked Documents:
+  - [BW-TASK-20260306-08 Closure](../tasks/BW-TASK-20260306-08-closure.md)
+  - [Admin Panel Map](../20-development/admin-panel-map.md)
+  - [Technical Hardening Plan](./technical-hardening-plan.md)
+
 ## 4) Governance Rules
 - All Tier 0 changes must be reviewed against this register before implementation.
 - Risks cannot be marked `Resolved` without audit confirmation evidence.
