@@ -2,9 +2,9 @@
 
 ## 1) Task Identification
 - Task ID: `BW-TASK-20260306-06`
-- Task title: Payments Webhook Exactly-Once Hardening
+- Task title: Webhook Convergence Hardening
 - Domain: Payments / Webhook Convergence
-- Tier classification: 1
+- Tier classification: 0
 - Risk reference: `R-PAY-08`
 
 ## 2) Scope
@@ -54,6 +54,11 @@ Reason gateway-specific files were not touched:
 7. Fail-safe behavior
 - Unknown event types, duplicate events, and out-of-order transitions resolve to safe no-op with HTTP 200.
 
+8. Concurrency-safe stale-claim reclaim
+- Stale claim reclaim in `claim_event_processing()` now uses compare-and-swap update semantics (`update_post_meta(..., $new, $existing)`).
+- Parallel workers can no longer both reclaim the same stale claim record and both execute side effects.
+- If reclaim loses the race and claim is already completed, the event exits deterministically as no-op.
+
 ## 4) Determinism Evidence
 - Input/output determinism:
   - Same `(order_id, event_id, event_type)` converges to a single outcome due to claim marker and completed-state checks.
@@ -87,8 +92,21 @@ Reason gateway-specific files were not touched:
   - `docs/00-governance/risk-register.md`
 - Added closure evidence artifact:
   - `docs/tasks/BW-TASK-20260306-06-closure.md`
+- Updated payments architecture/runbook wording to reflect concurrency-safe claim/reclaim behavior:
+  - `docs/40-integrations/payments/payments-architecture-map.md`
+  - `docs/50-ops/runbooks/payments-runbook.md`
 - No runtime hook-map update required (runtime surface unchanged).
 - No decision-log update required (no new standing operational rule beyond scoped mitigation implementation).
 
 ## 9) Performance / Cost Note
 - The new query/runtime path is cheaper under duplicate webhook traffic because duplicate and concurrent replays exit at claim-check stage before status transitions and side effects.
+
+## 10) Verification and Closure Status
+- Static checks:
+  - `php -l includes/Gateways/class-bw-abstract-stripe-gateway.php` -> PASS
+  - `composer run lint:main` -> PASS
+- Manual replay/concurrency validation: recommended, but closure accepted based on deterministic claim-ledger + CAS reclaim safeguards and preserved monotonic transition guards.
+- Risk state update:
+  - `R-PAY-08` remains `Monitoring`.
+- Task closure status:
+  - `CLOSED`
