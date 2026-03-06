@@ -209,6 +209,22 @@ Normative rules:
 - Any `No` is BLOCKING.
 - Implementation MUST NOT begin until all gate items are `Yes`.
 
+## Release Gate Awareness
+All tasks will pass through the Release Gate before deployment.
+
+Task planning and implementation MUST preserve:
+- rollback safety
+- determinism guarantees
+- documentation alignment
+
+to ensure successful release validation.
+
+Release Gate checklist reference:
+`docs/50-ops/release-gate.md`
+
+Normative rule:
+- Work that cannot satisfy Release Gate requirements MUST be escalated before deployment.
+
 ## Abort Conditions
 - Scope drift detected
 - Undeclared authority surface discovered

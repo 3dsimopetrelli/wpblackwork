@@ -182,6 +182,19 @@ Examples:
 Normative rule:
 If runtime-critical surfaces are modified, monitoring MUST be declared.
 
+## Release Gate Preparation
+- Release Gate required? (Yes/No)
+
+Release validation notes:
+- runtime surfaces to verify
+- operational smoke tests required
+
+- Rollback readiness confirmed? (Yes/No)
+
+Normative rules:
+- Release Gate preparation MUST be completed before deployment.
+- Closure artifacts MUST provide enough evidence to execute Release Gate checks.
+
 ## 9) Closure Declaration
 - Task closure status: CLOSED / REOPEN REQUIRED
 - Responsible reviewer:

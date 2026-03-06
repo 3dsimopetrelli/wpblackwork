@@ -28,14 +28,21 @@ All implementation work MUST follow this lifecycle:
 
 Task Initialization  
 → Task Start Template completion  
+→ Acceptance Gate  
 → Implementation  
 → Verification  
 → Documentation alignment  
-→ Task Closure Template completion
+→ Task Closure Template completion  
+→ Release Gate  
+→ Deployment
 
 Normative rule:
 
 AI agents MUST NOT implement code outside a governed task lifecycle.
+
+Normative rule:
+
+No deployment should occur until the Release Gate checklist passes.
 
 ## 2) Required Templates
 
@@ -181,3 +188,16 @@ Recommended lightweight evidence types:
 Note:
 This does NOT require full benchmarking infrastructure.
 Lightweight, observable verification is sufficient for governance closure evidence.
+
+## 11) Release Gate Requirement
+
+All deployable changes MUST pass the Release Gate before production deployment.
+
+Release Gate checklist is defined in:
+
+`docs/50-ops/release-gate.md`
+
+Normative rules:
+
+- Release Gate runs after task closure and before deployment.
+- Deployment MUST NOT proceed until all mandatory Release Gate checks pass.
