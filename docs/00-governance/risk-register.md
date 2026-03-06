@@ -537,6 +537,26 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
   - [Admin UI Guidelines](../20-development/admin-ui-guidelines.md)
   - [BW-TASK-20260305-08 Admin Audit](../tasks/BW-TASK-20260305-08-admin-panel-architecture-audit.md)
 
+### Risk ID: R-FPW-20
+- Domain: Filtered Post Wall / Public AJAX Runtime
+- Surface Anchor: `blackwork-core-plugin.php` (`bw_fpw_get_subcategories`, `bw_fpw_get_tags`, `bw_fpw_filter_posts`, FPW tag aggregation helpers)
+- Description: Public FPW AJAX endpoints can degrade under catalog growth or automation pressure if request normalization, post-type boundaries, query caps, and abuse guards drift from hardened defaults.
+- Invariant Threatened: Deterministic, non-blocking FPW filtering with bounded read-path cost and intended public visibility only.
+- Impact: High
+- Likelihood: Medium
+- Risk Level: High
+- Current Mitigation:
+  - Strict request normalization (`post_type` allowlist, bounded term arrays, deterministic sort/order defaults).
+  - Bounded query contract (no unbounded `posts_per_page=-1` paths, capped `per_page`, capped tag-source post scan).
+  - Batched tag aggregation (`wp_get_object_terms` over bounded ID set) to avoid per-post N+1 loops.
+  - Transient-based nopriv throttle guard with fail-soft compatible responses.
+  - Publish-only query constraints preserved.
+- Monitoring Status: Monitoring
+- Linked Documents:
+  - [BW-TASK-20260306-03 Closure](../tasks/BW-TASK-20260306-03-closure.md)
+  - [Elementor Widget Architecture Context](../10-architecture/elementor-widget-architecture-context.md)
+  - [Docs-Code Alignment Status](./docs-code-alignment-status.md)
+
 ## 4) Governance Rules
 - All Tier 0 changes must be reviewed against this register before implementation.
 - Risks cannot be marked `Resolved` without audit confirmation evidence.
