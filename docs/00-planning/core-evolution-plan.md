@@ -165,6 +165,32 @@ It MUST be used as planning reference only and MUST NOT replace ADRs.
   - `.bw-admin-root` scope and no-bleed guarantees preserved
   - Regression checklist executed for all panel surfaces
 
+### Supabase Bridge Anonymous Scope Tightening
+- Status: Backlog
+- Risk classification: Medium
+- Short description: Reduce anonymous-page runtime overhead by tightening `bw_mew_enqueue_supabase_bridge()` load scope to contexts that actually require invite/callback token handling.
+- Reference docs:
+  - `docs/00-governance/risk-register.md`
+  - `docs/50-ops/audits/my-account-domain-audit.md`
+- Acceptance:
+  - Bridge script no longer enqueues on unrelated anonymous pages
+  - Invite/callback/auth convergence flows remain functional
+  - No regression in anonymous account entry paths
+  - Runtime behavior remains deterministic under repeated page loads
+
+### Governance Traceability Cleanup (Risk ID Uniqueness)
+- Status: Backlog
+- Risk classification: Medium
+- Short description: Enforce periodic uniqueness/consistency checks for governance identifiers (risk IDs, decision entries, cross-doc references) to prevent traceability drift.
+- Reference docs:
+  - `docs/00-governance/risk-register.md`
+  - `docs/00-planning/decision-log.md`
+- Acceptance:
+  - Risk IDs are unique and sequentially coherent per domain family
+  - Duplicate/conflicting IDs are eliminated and references normalized
+  - Decision-log numbering and references remain unambiguous
+  - Governance docs pass cross-reference validation checklist
+
 ### PHPCS Legacy Baseline Reduction Program
 - Status: Backlog
 - Risk classification: Low

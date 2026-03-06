@@ -62,12 +62,12 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 ### Risk ID: R-TBL-04
 - Domain: Theme Builder Lite / Elementor Compatibility
 - Surface Anchor: `includes/modules/theme-builder-lite/integrations/elementor-fonts.php` (`elementor/fonts/groups`, `elementor/fonts/additional_fonts`, bootstrap defer on `plugins_loaded` + `elementor/loaded`)
-- Description: Elementor internal API/filter behavior may drift across releases, potentially degrading custom font group/list injection without hard failures.
+- Description: Elementor internal API/filter behavior may drift across releases, potentially degrading custom font group/list injection without hard failures, including silent no-op behavior when internal font contracts change.
 - Invariant Threatened: Deterministic visibility of configured custom families in Elementor Typography controls.
 - Impact: Medium
 - Likelihood: Medium
 - Risk Level: Medium
-- Current Mitigation: Soft dependency + defer bootstrap pattern + idempotent registration guard + fail-open behavior when Elementor is absent or filters are unavailable.
+- Current Mitigation: Soft dependency + defer bootstrap pattern + idempotent registration guard + fail-open behavior when Elementor is absent or filters are unavailable; runtime monitoring for internal API drift keeps failures non-fatal.
 - Monitoring Status: Monitoring
 - Linked Documents:
   - [Theme Builder Lite Spec](../30-features/theme-builder-lite/theme-builder-lite-spec.md)
@@ -76,12 +76,12 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 ### Risk ID: R-TBL-05
 - Domain: Theme Builder Lite / Template Resolver
 - Surface Anchor: `includes/modules/theme-builder-lite/runtime/template-resolver.php` (`template_include` priority `50`)
-- Description: Resolver conflicts with theme or third-party `template_include` logic could produce unexpected template precedence behavior, including Woo single-product and Woo product-archive template selection drift.
+- Description: Resolver conflicts with theme or third-party `template_include` logic could produce unexpected template precedence behavior, including Woo single-product/product-archive selection drift and child-theme override displacement.
 - Invariant Threatened: Fail-open template selection must never break native theme rendering.
 - Impact: Medium
 - Likelihood: Medium
 - Risk Level: Medium
-- Current Mitigation: strict bypass guards (admin/editor/preview/Woo safety endpoints), explicit bypass for Woo archive contexts, deterministic winner contract, and fail-open fallback to original `$template` on any mismatch/error/empty render.
+- Current Mitigation: strict bypass guards (admin/editor/preview/Woo safety endpoints), explicit bypass for Woo archive contexts, deterministic winner contract, fail-open fallback to original `$template` on mismatch/error/empty render, and precedence monitoring for filter-order bypass scenarios.
 - Monitoring Status: Monitoring
 - Linked Documents:
   - [Theme Builder Lite Spec](../30-features/theme-builder-lite/theme-builder-lite-spec.md)
@@ -200,7 +200,7 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 - Impact: Medium
 - Likelihood: Medium
 - Risk Level: Medium
-- Current Mitigation: strict capability + nonce checks, `.json` extension/type validation, size cap, JSON decode validation, required content structure checks, allowed-type mapping validation, rollback via hard delete on metadata write failure.
+- Current Mitigation: strict capability + nonce checks, `.json` extension/type validation, size cap, JSON decode validation, required content structure checks, allowed-type mapping validation, rollback via hard delete on metadata write failure, and compatibility monitoring for future Elementor schema drift.
 - Monitoring Status: Monitoring
 - Linked Documents:
   - [Theme Builder Lite Spec](../30-features/theme-builder-lite/theme-builder-lite-spec.md)
@@ -213,7 +213,7 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 - Impact: Medium
 - Likelihood: Medium
 - Risk Level: Medium
-- Current Mitigation: importer persists raw Elementor payload without destructive transformation, sets required baseline meta, and keeps import as draft for manual validation before linking.
+- Current Mitigation: importer persists raw Elementor payload without destructive transformation, sets required baseline meta, keeps import as draft for manual validation before linking, and requires periodic validation against Elementor schema/version drift.
 - Monitoring Status: Monitoring
 - Linked Documents:
   - [Theme Builder Lite Spec](../30-features/theme-builder-lite/theme-builder-lite-spec.md)
@@ -227,11 +227,25 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 - Impact: Medium
 - Likelihood: Medium
 - Risk Level: Medium
-- Current Mitigation: explicit fallback success notice, imported-title prefix (`Imported —`), `bw_tbl_imported` marker for audit/filtering, and draft-default status to force review before linkage.
+- Current Mitigation: explicit fallback success notice, imported-title prefix (`Imported —`), `bw_tbl_imported` marker for audit/filtering, draft-default status to force review before linkage, and post-import review expectation when schema semantics are uncertain.
 - Monitoring Status: Monitoring
 - Linked Documents:
   - [Theme Builder Lite Spec](../30-features/theme-builder-lite/theme-builder-lite-spec.md)
   - [Decision Log](../00-planning/decision-log.md)
+
+### Risk ID: R-TBL-18
+- Domain: Theme Builder Lite / Rule Authority
+- Surface Anchor: Rule option surfaces `bw_tbl_display_rules_v1` and `bw_theme_builder_lite_single_product_rules_v2`
+- Description: Coexisting legacy `_v1` and active `_v2` rule stores can create dual-authority ambiguity, deterministic drift in operator expectations, and audit confusion if read/write boundaries are unclear.
+- Invariant Threatened: Single authoritative truth surface for template-rule resolution and explainable operator behavior.
+- Impact: Medium
+- Likelihood: Medium
+- Risk Level: Medium
+- Current Mitigation: `_v2` remains runtime authority with bounded legacy fallback behavior; governance follow-up requires explicit legacy deprecation/migration and docs alignment to prevent dual-surface confusion.
+- Monitoring Status: Monitoring
+- Linked Documents:
+  - [Theme Builder Lite Spec](../30-features/theme-builder-lite/theme-builder-lite-spec.md)
+  - [Core Evolution Plan](../00-planning/core-evolution-plan.md)
 
 ### Risk ID: R-CHK-01
 - Domain: Checkout / Payments
@@ -274,7 +288,7 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 - Impact: Medium-High
 - Likelihood: Low (current scale)
 - Risk Level: Medium
-- Current Mitigation: Batched relationship aggregation + taxonomy/post_type scoped transient/object-cache with deterministic invalidation.
+- Current Mitigation: Batched relationship aggregation + taxonomy/post_type scoped transient/object-cache with deterministic invalidation, with large-dataset watchpoint for heavy batch-query degradation.
 - Planned Mitigation Strategy: Introduce materialized folder counts (incremental updates on assignment/mutation events) to avoid repeated relationship recomputation at very large scale.
 - Monitoring Status: Planning / Watchlist
 - Linked Documents:
@@ -305,7 +319,7 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 - Impact: Medium
 - Likelihood: Medium
 - Risk Level: Medium
-- Current Mitigation: attachment/object ID normalization + batch limit (200), capability/nonce/context validation, deterministic post_type->taxonomy isolation (`bw_media_folder`/`bw_post_folder`/`bw_page_folder`/`bw_product_folder`), server-side counts API, marker cache invalidation on assignment, single-flight marker fetch queue, and runtime query-isolation guards in `runtime/media-query-filter.php` (signature-safe `ajax_query_attachments_args`, attachment-only context gate, taxonomy validation, deterministic `tax_query` merge, and fail-open bypass on invalid payload/context).
+- Current Mitigation: attachment/object ID normalization + batch limit (200), capability/nonce/context validation, deterministic post_type->taxonomy isolation (`bw_media_folder`/`bw_post_folder`/`bw_page_folder`/`bw_product_folder`), server-side counts API, marker cache invalidation on assignment, single-flight marker fetch queue, runtime query-isolation guards in `runtime/media-query-filter.php` (signature-safe `ajax_query_attachments_args`, attachment-only context gate, taxonomy validation, deterministic `tax_query` merge, fail-open bypass on invalid payload/context), and monitoring for very-large-library batch-query pressure.
 - Monitoring Status: Monitoring
 - Linked Documents:
   - [Media Folders Spec](../30-features/media-folders/media-folders-module-spec.md)
@@ -378,7 +392,7 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 - Impact: Medium
 - Likelihood: Medium
 - Risk Level: Medium
-- Current Mitigation: Pending-email clear on confirmed email match; security tab forced on callback; URL param cleanup.
+- Current Mitigation: Pending-email clear on confirmed email match; security tab forced on callback; URL param cleanup; convergence checks across callback/onboarding re-entry to reduce stale-banner persistence windows.
 - Monitoring Status: Monitoring
 - Linked Documents:
   - [My Account Domain Audit](../50-ops/audits/my-account-domain-audit.md)
@@ -407,7 +421,7 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 - Impact: High
 - Likelihood: Low-Medium
 - Risk Level: Medium-High
-- Current Mitigation: Hard consent gate checks, paid-hook gating, local meta audit trail, non-blocking behavior.
+- Current Mitigation: Hard consent gate checks, paid-hook gating, local meta audit trail, non-blocking behavior, and timing-aware monitoring to detect anomalous hook-order paths.
 - Monitoring Status: Monitoring
 - Linked Documents:
   - [Blast-Radius Consolidation Map](./blast-radius-consolidation-map.md)
@@ -542,6 +556,7 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
   - On-demand execution only (no heavy operations on normal page load)
   - Transient snapshot caching with bounded scans and partial warning behavior
   - Structured graceful-failure responses to avoid dashboard-wide breakage
+  - Capability/nonce gates remain required first-check controls before any diagnostic payload assembly.
 - Monitoring Status: Monitoring
 - Linked Documents:
   - [System Status (Admin Diagnostics)](../30-features/system-status/README.md)
@@ -558,6 +573,7 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 - Current Mitigation:
   - Shared UI kit is centrally guarded and scoped to Blackwork screens.
   - Additional refactor program planned to split/enforce page/tab-specific enqueue matrix.
+  - Explicit watchpoint for tab/page-scoped asset matrix enforcement in `bw_site_settings_admin_assets`.
 - Monitoring Status: Open
 - Linked Documents:
   - [Admin Panel Map](../20-development/admin-panel-map.md)
