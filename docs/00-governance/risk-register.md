@@ -305,11 +305,12 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 - Impact: Medium
 - Likelihood: Medium
 - Risk Level: Medium
-- Current Mitigation: attachment/object ID normalization + batch limit (200), capability/nonce/context validation, deterministic post_type->taxonomy isolation (`bw_media_folder`/`bw_post_folder`/`bw_page_folder`/`bw_product_folder`), server-side counts API, marker cache invalidation on assignment, and single-flight marker fetch queue.
+- Current Mitigation: attachment/object ID normalization + batch limit (200), capability/nonce/context validation, deterministic post_type->taxonomy isolation (`bw_media_folder`/`bw_post_folder`/`bw_page_folder`/`bw_product_folder`), server-side counts API, marker cache invalidation on assignment, single-flight marker fetch queue, and runtime query-isolation guards in `runtime/media-query-filter.php` (signature-safe `ajax_query_attachments_args`, attachment-only context gate, taxonomy validation, deterministic `tax_query` merge, and fail-open bypass on invalid payload/context).
 - Monitoring Status: Monitoring
 - Linked Documents:
   - [Media Folders Spec](../30-features/media-folders/media-folders-module-spec.md)
   - [Media Folders Task Closure](../tasks/media-folders-close-task.md)
+  - [BW-TASK-20260306-07 Closure](../tasks/BW-TASK-20260306-07-closure.md)
   - [Technical Hardening Plan](./technical-hardening-plan.md)
 
 ### Risk ID: R-PAY-03
