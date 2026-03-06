@@ -187,7 +187,7 @@ function bw_mew_enqueue_account_page_assets()
 
     wp_enqueue_script(
         'supabase-js',
-        'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',
+        'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.4/dist/umd/supabase.min.js',
         [],
         null,
         true
@@ -274,7 +274,7 @@ function bw_mew_enqueue_supabase_bridge()
     if (!wp_script_is('supabase-js', 'registered')) {
         wp_register_script(
             'supabase-js',
-            'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',
+            'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.4/dist/umd/supabase.min.js',
             [],
             null,
             true

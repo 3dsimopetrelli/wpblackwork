@@ -864,6 +864,8 @@ function bw_enqueue_about_menu_widget_assets()
 
 function bw_register_filtered_post_wall_widget_assets()
 {
+    static $fpw_assets_localized = false;
+
     $css_file = __DIR__ . '/assets/css/bw-filtered-post-wall.css';
     $css_version = file_exists($css_file) ? filemtime($css_file) : '1.0.0';
 
@@ -885,15 +887,18 @@ function bw_register_filtered_post_wall_widget_assets()
         true
     );
 
-    // Localize script per AJAX
-    wp_localize_script(
-        'bw-filtered-post-wall-js',
-        'bwFilteredPostWallAjax',
-        [
-            'ajaxurl' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('bw_fpw_nonce'),
-        ]
-    );
+    // Localize once to avoid duplicate globals/nonces across multi-hook registration.
+    if (!$fpw_assets_localized) {
+        wp_localize_script(
+            'bw-filtered-post-wall-js',
+            'bwFilteredPostWallAjax',
+            [
+                'ajaxurl' => admin_url('admin-ajax.php'),
+                'nonce' => wp_create_nonce('bw_fpw_nonce'),
+            ]
+        );
+        $fpw_assets_localized = true;
+    }
 }
 
 function bw_enqueue_filtered_post_wall_widget_assets()
