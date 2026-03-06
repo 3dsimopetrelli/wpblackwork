@@ -18,6 +18,10 @@ if (!defined('BW_MEW_PATH')) {
     define('BW_MEW_PATH', plugin_dir_path(__FILE__));
 }
 
+if (!defined('BLACKWORK_PLUGIN_VERSION')) {
+    define('BLACKWORK_PLUGIN_VERSION', '2.1.0');
+}
+
 /**
  * Enable safe SVG uploads for administrators/editors and prevent raster metadata processing.
  */
@@ -25,19 +29,367 @@ function bw_mew_allow_svg_uploads($mimes)
 {
     if (current_user_can('manage_options')) {
         $mimes['svg'] = 'image/svg+xml';
-        $mimes['svgz'] = 'image/svg+xml';
     }
 
     return $mimes;
 }
 add_filter('upload_mimes', 'bw_mew_allow_svg_uploads');
 
+function bw_mew_get_svg_upload_error_message($type)
+{
+    $messages = [
+        'svgz_not_allowed' => __('SVG upload blocked: compressed SVGZ files are not allowed.', 'bw-elementor-widgets'),
+        'read_failed' => __('SVG upload blocked: file could not be read for validation.', 'bw-elementor-widgets'),
+        'invalid_xml' => __('SVG upload blocked: file is malformed or not a valid SVG document.', 'bw-elementor-widgets'),
+        'unsafe_content' => __('SVG upload blocked: unsafe content was detected.', 'bw-elementor-widgets'),
+        'sanitize_failed' => __('SVG upload blocked: sanitizer failed to produce a safe result.', 'bw-elementor-widgets'),
+        'write_failed' => __('SVG upload blocked: sanitized content could not be persisted.', 'bw-elementor-widgets'),
+    ];
+
+    return isset($messages[$type]) ? $messages[$type] : __('SVG upload blocked: validation failed.', 'bw-elementor-widgets');
+}
+
+function bw_mew_get_svg_allowed_tags()
+{
+    return [
+        'svg' => [
+            'class' => true,
+            'id' => true,
+            'xmlns' => true,
+            'xmlns:xlink' => true,
+            'viewbox' => true,
+            'width' => true,
+            'height' => true,
+            'role' => true,
+            'aria-hidden' => true,
+            'focusable' => true,
+            'preserveaspectratio' => true,
+        ],
+        'g' => [
+            'class' => true,
+            'id' => true,
+            'transform' => true,
+            'fill' => true,
+            'stroke' => true,
+            'stroke-width' => true,
+            'opacity' => true,
+            'clip-path' => true,
+            'mask' => true,
+            'filter' => true,
+        ],
+        'path' => [
+            'class' => true,
+            'id' => true,
+            'd' => true,
+            'transform' => true,
+            'fill' => true,
+            'stroke' => true,
+            'stroke-width' => true,
+            'stroke-linecap' => true,
+            'stroke-linejoin' => true,
+            'stroke-miterlimit' => true,
+            'stroke-dasharray' => true,
+            'stroke-dashoffset' => true,
+            'opacity' => true,
+            'fill-rule' => true,
+            'clip-rule' => true,
+        ],
+        'rect' => [
+            'class' => true,
+            'id' => true,
+            'x' => true,
+            'y' => true,
+            'width' => true,
+            'height' => true,
+            'rx' => true,
+            'ry' => true,
+            'transform' => true,
+            'fill' => true,
+            'stroke' => true,
+            'stroke-width' => true,
+            'opacity' => true,
+        ],
+        'circle' => [
+            'class' => true,
+            'id' => true,
+            'cx' => true,
+            'cy' => true,
+            'r' => true,
+            'transform' => true,
+            'fill' => true,
+            'stroke' => true,
+            'stroke-width' => true,
+            'opacity' => true,
+        ],
+        'ellipse' => [
+            'class' => true,
+            'id' => true,
+            'cx' => true,
+            'cy' => true,
+            'rx' => true,
+            'ry' => true,
+            'transform' => true,
+            'fill' => true,
+            'stroke' => true,
+            'stroke-width' => true,
+            'opacity' => true,
+        ],
+        'line' => [
+            'class' => true,
+            'id' => true,
+            'x1' => true,
+            'y1' => true,
+            'x2' => true,
+            'y2' => true,
+            'transform' => true,
+            'fill' => true,
+            'stroke' => true,
+            'stroke-width' => true,
+            'opacity' => true,
+        ],
+        'polyline' => [
+            'class' => true,
+            'id' => true,
+            'points' => true,
+            'transform' => true,
+            'fill' => true,
+            'stroke' => true,
+            'stroke-width' => true,
+            'opacity' => true,
+        ],
+        'polygon' => [
+            'class' => true,
+            'id' => true,
+            'points' => true,
+            'transform' => true,
+            'fill' => true,
+            'stroke' => true,
+            'stroke-width' => true,
+            'opacity' => true,
+        ],
+        'title' => [],
+        'desc' => [],
+        'defs' => [],
+        'clippath' => [
+            'id' => true,
+            'clipPathUnits' => true,
+        ],
+        'mask' => [
+            'id' => true,
+            'x' => true,
+            'y' => true,
+            'width' => true,
+            'height' => true,
+            'maskUnits' => true,
+            'maskContentUnits' => true,
+        ],
+        'symbol' => [
+            'id' => true,
+            'viewbox' => true,
+            'preserveaspectratio' => true,
+        ],
+        'use' => [
+            'href' => true,
+            'xlink:href' => true,
+            'x' => true,
+            'y' => true,
+            'width' => true,
+            'height' => true,
+            'transform' => true,
+        ],
+        'lineargradient' => [
+            'id' => true,
+            'x1' => true,
+            'y1' => true,
+            'x2' => true,
+            'y2' => true,
+            'gradientunits' => true,
+            'gradienttransform' => true,
+            'spreadmethod' => true,
+        ],
+        'radialgradient' => [
+            'id' => true,
+            'cx' => true,
+            'cy' => true,
+            'r' => true,
+            'fx' => true,
+            'fy' => true,
+            'gradientunits' => true,
+            'gradienttransform' => true,
+            'spreadmethod' => true,
+        ],
+        'stop' => [
+            'offset' => true,
+            'stop-color' => true,
+            'stop-opacity' => true,
+        ],
+    ];
+}
+
+function bw_mew_svg_sanitize_content($content)
+{
+    $content = (string) $content;
+    $content = preg_replace('/^\xEF\xBB\xBF/', '', $content);
+    $content = str_replace("\0", '', $content);
+    $content = preg_replace('/<\?(?:xml|php).*?\?>/is', '', $content);
+    $content = preg_replace('/<!DOCTYPE.*?>/is', '', $content);
+    $content = preg_replace('/<!ENTITY.*?>/is', '', $content);
+
+    if (null === $content) {
+        return '';
+    }
+
+    return wp_kses($content, bw_mew_get_svg_allowed_tags(), ['http', 'https', 'mailto']);
+}
+
+function bw_mew_svg_is_valid_document($svg)
+{
+    if ('' === trim((string) $svg)) {
+        return false;
+    }
+
+    if (!class_exists('DOMDocument')) {
+        return false;
+    }
+
+    $previous = libxml_use_internal_errors(true);
+    $dom = new DOMDocument();
+    $loaded = $dom->loadXML((string) $svg, LIBXML_NONET | LIBXML_NOWARNING | LIBXML_NOERROR | LIBXML_COMPACT);
+    libxml_clear_errors();
+    libxml_use_internal_errors($previous);
+
+    if (!$loaded || !$dom->documentElement) {
+        return false;
+    }
+
+    if ('svg' !== strtolower($dom->documentElement->nodeName)) {
+        return false;
+    }
+
+    $dangerous_tags = ['script', 'foreignobject', 'iframe', 'object', 'embed', 'audio', 'video'];
+    $xpath = new DOMXPath($dom);
+    foreach ($dangerous_tags as $tag) {
+        if ($xpath->query('//*[translate(local-name(), "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz")="' . $tag . '"]')->length > 0) {
+            return false;
+        }
+    }
+
+    $nodes = $dom->getElementsByTagName('*');
+    foreach ($nodes as $node) {
+        if (!$node->hasAttributes()) {
+            continue;
+        }
+
+        foreach ($node->attributes as $attribute) {
+            $attr_name = strtolower($attribute->nodeName);
+            $attr_value = strtolower(trim((string) $attribute->nodeValue));
+
+            if (0 === strpos($attr_name, 'on')) {
+                return false;
+            }
+
+            if (in_array($attr_name, ['href', 'xlink:href'], true)) {
+                if ('' === $attr_value || '#' === $attr_value || 0 === strpos($attr_value, '#')) {
+                    continue;
+                }
+
+                if (0 === strpos($attr_value, 'javascript:') || 0 === strpos($attr_value, 'data:')) {
+                    return false;
+                }
+            }
+        }
+    }
+
+    return true;
+}
+
+function bw_mew_svg_upload_prefilter($file)
+{
+    $filename = isset($file['name']) ? (string) $file['name'] : '';
+    $tmp_name = isset($file['tmp_name']) ? (string) $file['tmp_name'] : '';
+    $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+
+    if (!in_array($extension, ['svg', 'svgz'], true)) {
+        return $file;
+    }
+
+    if (!current_user_can('manage_options')) {
+        $file['error'] = bw_mew_get_svg_upload_error_message('unsafe_content');
+        return $file;
+    }
+
+    if ('svgz' === $extension) {
+        $file['error'] = bw_mew_get_svg_upload_error_message('svgz_not_allowed');
+        return $file;
+    }
+
+    if ('' === $tmp_name || !is_readable($tmp_name)) {
+        $file['error'] = bw_mew_get_svg_upload_error_message('read_failed');
+        return $file;
+    }
+
+    $raw_content = file_get_contents($tmp_name);
+    if (false === $raw_content || '' === trim((string) $raw_content)) {
+        $file['error'] = bw_mew_get_svg_upload_error_message('read_failed');
+        return $file;
+    }
+
+    if (false !== strpos((string) $raw_content, "\0")) {
+        $file['error'] = bw_mew_get_svg_upload_error_message('invalid_xml');
+        return $file;
+    }
+
+    $sanitized = bw_mew_svg_sanitize_content((string) $raw_content);
+    if ('' === trim((string) $sanitized)) {
+        $file['error'] = bw_mew_get_svg_upload_error_message('sanitize_failed');
+        return $file;
+    }
+
+    if (!bw_mew_svg_is_valid_document($sanitized)) {
+        $file['error'] = bw_mew_get_svg_upload_error_message('unsafe_content');
+        return $file;
+    }
+
+    $bytes_written = file_put_contents($tmp_name, $sanitized, LOCK_EX);
+    if (false === $bytes_written) {
+        $file['error'] = bw_mew_get_svg_upload_error_message('write_failed');
+        return $file;
+    }
+
+    return $file;
+}
+add_filter('wp_handle_upload_prefilter', 'bw_mew_svg_upload_prefilter');
+
 function bw_mew_fix_svg_filetype($data, $file, $filename, $mimes)
 {
+    $extension = strtolower(pathinfo((string) $filename, PATHINFO_EXTENSION));
+
+    if ('svgz' === $extension) {
+        return $data;
+    }
+
+    if ('svg' !== $extension) {
+        return $data;
+    }
+
+    if (!is_string($file) || '' === $file || !is_readable($file)) {
+        return $data;
+    }
+
+    $content = file_get_contents($file);
+    if (false === $content) {
+        return $data;
+    }
+
+    $sanitized = bw_mew_svg_sanitize_content((string) $content);
+    if (!bw_mew_svg_is_valid_document($sanitized)) {
+        return $data;
+    }
+
     $filetype = wp_check_filetype($filename, $mimes);
 
-    if (!empty($filetype['ext']) && in_array($filetype['ext'], ['svg', 'svgz'], true)) {
-        $data['ext'] = $filetype['ext'];
+    if (!empty($filetype['ext']) && 'svg' === $filetype['ext']) {
+        $data['ext'] = 'svg';
         $data['type'] = 'image/svg+xml';
         $data['proper_filename'] = $filename;
     }
@@ -333,11 +685,14 @@ function bw_enqueue_slick_slider_assets()
         $custom_class_version
     );
 
+    $slick_slider_js_file = __DIR__ . '/assets/js/bw-slick-slider.js';
+    $slick_slider_js_version = file_exists($slick_slider_js_file) ? filemtime($slick_slider_js_file) : BLACKWORK_PLUGIN_VERSION;
+
     wp_enqueue_script(
         'bw-slick-slider-js',
         plugin_dir_url(__FILE__) . 'assets/js/bw-slick-slider.js',
         ['jquery', 'slick-js'],
-        filemtime(__DIR__ . '/assets/js/bw-slick-slider.js'),
+        $slick_slider_js_version,
         true
     );
 
@@ -1271,6 +1626,56 @@ function bw_fpw_render_tag_markup($tags)
     return ob_get_clean();
 }
 
+function bw_fpw_normalize_array_for_cache_key($values)
+{
+    if (!is_array($values)) {
+        return [];
+    }
+
+    $normalized = array_map('absint', $values);
+    $normalized = array_filter(
+        $normalized,
+        static function ($value) {
+            return $value > 0;
+        }
+    );
+    $normalized = array_values(array_unique($normalized));
+    sort($normalized, SORT_NUMERIC);
+
+    return $normalized;
+}
+
+function bw_fpw_generate_cache_key($params)
+{
+    $params = is_array($params) ? $params : [];
+
+    $canonical_payload = [
+        'schema' => 'v1',
+        'widget_id' => isset($params['widget_id']) ? (string) $params['widget_id'] : '',
+        'post_type' => isset($params['post_type']) ? (string) $params['post_type'] : bw_fpw_get_default_post_type(),
+        'category' => isset($params['category']) ? (string) $params['category'] : 'all',
+        'subcategories' => bw_fpw_normalize_array_for_cache_key(isset($params['subcategories']) ? $params['subcategories'] : []),
+        'tags' => bw_fpw_normalize_array_for_cache_key(isset($params['tags']) ? $params['tags'] : []),
+        'image_toggle' => !empty($params['image_toggle']) ? 1 : 0,
+        'image_size' => isset($params['image_size']) ? (string) $params['image_size'] : 'large',
+        'hover_effect' => !empty($params['hover_effect']) ? 1 : 0,
+        'open_cart_popup' => !empty($params['open_cart_popup']) ? 1 : 0,
+        'order_by' => isset($params['order_by']) ? (string) $params['order_by'] : 'date',
+        'order' => isset($params['order']) ? (string) $params['order'] : 'DESC',
+        'per_page' => isset($params['per_page']) ? (int) $params['per_page'] : bw_fpw_get_default_per_page(),
+        'page' => isset($params['page']) ? (int) $params['page'] : 1,
+    ];
+
+    $payload_json = wp_json_encode($canonical_payload);
+    if (!is_string($payload_json) || '' === $payload_json) {
+        $payload_json = serialize($canonical_payload);
+    }
+
+    $hash = hash('sha256', $payload_json);
+
+    return 'bw_fpw_' . $hash;
+}
+
 /**
  * Handler AJAX per filtrare i post
  */
@@ -1319,24 +1724,22 @@ function bw_fpw_filter_posts()
     // PERFORMANCE: Check transient cache first (3 minutes)
     // Skip cache for random order
     if (!$skip_cache) {
-        $cache_key_parts = [
-            'bw_fpw_filter',
-            $widget_id,
-            $post_type,
-            $category,
-            md5(wp_json_encode($subcategories)),
-            md5(wp_json_encode($tags)),
-            $image_toggle ? '1' : '0',
-            $image_size,
-            $hover_effect ? '1' : '0',
-            $open_cart_popup ? '1' : '0',
-            $order_by,
-            $order,
-            (string) $per_page,
-            (string) $page,
+        $cache_key_params = [
+            'widget_id' => $widget_id,
+            'post_type' => $post_type,
+            'category' => $category,
+            'subcategories' => $subcategories,
+            'tags' => $tags,
+            'image_toggle' => $image_toggle,
+            'image_size' => $image_size,
+            'hover_effect' => $hover_effect,
+            'open_cart_popup' => $open_cart_popup,
+            'order_by' => $order_by,
+            'order' => $order,
+            'per_page' => $per_page,
+            'page' => $page,
         ];
-        $transient_key = implode('_', $cache_key_parts);
-        $transient_key = substr($transient_key, 0, 172); // WordPress transient key max length
+        $transient_key = bw_fpw_generate_cache_key($cache_key_params);
 
         $cached_result = get_transient($transient_key);
 

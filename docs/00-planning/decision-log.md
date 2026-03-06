@@ -294,7 +294,7 @@ If a decision is normative and architecture-binding, the ADR process MUST be use
   - Keep tree refresh path single-flow (`refreshTree`) after create/subcreate.
   - Keep media bulk assignment as media-only behavior.
 
-### Entry 021
+### Entry 026
 - Date: 2026-03-05
 - Decision summary: Opened a phased Blackwork Site admin hardening program after Shopify rollout audit, prioritizing enqueue-scope correctness and modular maintainability without changing runtime/storefront behavior.
 - Affected domain: Admin Architecture / Governance / Performance
@@ -304,14 +304,6 @@ If a decision is normative and architecture-binding, the ADR process MUST be use
   - Execute P1 enqueue tightening first (`bw_site_settings_admin_assets` page/tab matrix).
   - Keep all refactors UI/admin-only unless separately approved at governance level.
   - Prepare ADR before any large decomposition of `admin/class-blackwork-site-settings.php`.
-
-## Governance Layer Closure
-
-Status: CLOSED  
-Date: 2026-02-27  
-Notes:
-Governance structure finalized after structural review and normalization.
-Further changes require ADR escalation.
 
 ## Governance Layer Closure
 

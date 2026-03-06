@@ -283,7 +283,7 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
   - [Blast-Radius Consolidation Map](./blast-radius-consolidation-map.md)
   - [Checkout Payment Selector Audit](../50-ops/audits/checkout-payment-selector-audit.md)
 
-### Risk ID: R-MF-01
+### Risk ID: R-MF-03
 - Domain: Media Folders / Media Library Admin
 - Surface Anchor: `includes/modules/media-folders/admin/assets/media-folders.js` (toolbar/list-table placement selectors + observers + DnD interaction layer)
 - Description: WordPress admin list-table/media DOM structure (`.media-toolbar`, `.tablenav.top`, `#the-list`, row classes) can change across releases, causing placement drift or degraded JS behavior on Media/Posts/Pages/Products list surfaces.
@@ -436,12 +436,18 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 - Impact: High
 - Likelihood: Medium
 - Risk Level: High
-- Current Mitigation: AS-IS documentation, vNext deterministic contract (filters/index/cache), and explicit read-only authority boundary.
+- Current Mitigation:
+  - Request normalization guard (`search_term` sanitize+trim, min length gate, category/product_type normalization).
+  - Safe-empty response contract for malformed/invalid/too-short requests with stable JSON schema.
+  - Bounded query constraints (`posts_per_page=10`, `no_found_rows`, `ignore_sticky_posts`, disabled meta/term cache hydration).
+  - Deterministic ordering (`orderby=title`, `order=ASC`) and stable response shaping (`products` + `results` aliases).
+  - Publish-only + WooCommerce visibility exclusion via `product_visibility` NOT IN (`exclude-from-search`, `exclude-from-catalog`).
 - Monitoring Status: Monitoring
 - Linked Documents:
   - [Search System Technical Audit](../50-ops/audits/search-system-technical-audit.md)
   - [Search Module Spec](../30-features/search/search-module-spec.md)
   - [Search vNext Spec](../30-features/search/search-vnext-spec.md)
+  - [BW-TASK-20260306-09 Closure](../tasks/BW-TASK-20260306-09-closure.md)
 
 ### Risk ID: R-RED-12
 - Domain: Redirect / Routing Authority
@@ -564,6 +570,7 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
   - Bounded query contract (no unbounded `posts_per_page=-1` paths, capped `per_page`, capped tag-source post scan).
   - Batched tag aggregation (`wp_get_object_terms` over bounded ID set) to avoid per-post N+1 loops.
   - Transient-based nopriv throttle guard with fail-soft compatible responses.
+  - Deterministic hashed FPW cache keys (`bw_fpw_{sha256}` from canonical normalized payload) replacing truncation-based key construction, eliminating prefix-collision risk.
   - Publish-only query constraints preserved.
 - Monitoring Status: Monitoring
 - Linked Documents:
@@ -589,6 +596,24 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 - Linked Documents:
   - [BW-TASK-20260306-08 Closure](../tasks/BW-TASK-20260306-08-closure.md)
   - [Admin Panel Map](../20-development/admin-panel-map.md)
+  - [Technical Hardening Plan](./technical-hardening-plan.md)
+
+### Risk ID: R-SEC-22
+- Domain: Media Upload / SVG Sanitization
+- Surface Anchor: `blackwork-core-plugin.php` (`upload_mimes`, `wp_handle_upload_prefilter`, `wp_check_filetype_and_ext`)
+- Description: SVG uploads can become a stored-XSS vector if executable markup survives upload validation or sanitizer hardening drifts over time.
+- Invariant Threatened: No executable SVG payload may be persisted through media upload flow.
+- Impact: Critical
+- Likelihood: Medium
+- Risk Level: High
+- Current Mitigation:
+  - Capability-gated SVG allowance (`manage_options`) with no broadened role scope.
+  - Fail-closed SVG upload prefilter (`wp_handle_upload_prefilter`) validates/sanitizes SVG before attachment creation.
+  - Deterministic reject path for malformed/unsafe SVG and explicit reject policy for `svgz`.
+  - Strict SVG filetype normalization path limited to validated real SVG content.
+- Monitoring Status: Monitoring
+- Linked Documents:
+  - [BW-TASK-20260306-10 Closure](../tasks/BW-TASK-20260306-10-closure.md)
   - [Technical Hardening Plan](./technical-hardening-plan.md)
 
 ## 4) Governance Rules
