@@ -3,6 +3,9 @@
 ## 1. Domain Scope
 Includes Supabase-linked account provisioning, callback bridging, create-password lifecycle, and related audits.
 
+Verification Hold Note:
+- Onboarding marker convergence hardening is implemented, but verification identified anomalies requiring deeper investigation before closure.
+
 Related folders:
 - `docs/40-integrations/supabase/`
 - `docs/40-integrations/supabase/audits/`

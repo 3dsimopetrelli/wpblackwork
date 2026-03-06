@@ -3,6 +3,9 @@
 ## 1. Domain Scope
 Includes account access flows and provider logic across WordPress auth, Supabase auth, and social login coupling.
 
+Verification Hold Note:
+- Onboarding marker convergence hardening is implemented, but verification identified anomalies requiring deeper investigation before closure.
+
 Related folders:
 - `docs/40-integrations/auth/`
 - `docs/40-integrations/supabase/`

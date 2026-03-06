@@ -375,6 +375,7 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
   - Token-login convergence rules are now explicit by context (`otp-needs-password`, `invite-pending`, `invite-ready`, `ready`) to prevent branch-timing drift.
   - Invite send/resend paths no longer blindly downgrade onboarding marker for already-onboarded users.
   - My Account onboarding gate reads reconciled marker state through `bw_user_needs_onboarding()`, reducing false lock scenarios after callback/modal/token re-entry.
+  - Verification Hold: implementation is completed, but manual verification identified onboarding convergence anomalies that require deeper runtime investigation before closure.
 - Monitoring Status: Open
 - Linked Documents:
   - [Cross-Domain State Dictionary](./cross-domain-state-dictionary.md)
