@@ -11,6 +11,11 @@
 (function () {
     'use strict';
 
+    if (window.__BW_PAYMENT_METHODS_BOOTSTRAPPED__) {
+        return;
+    }
+    window.__BW_PAYMENT_METHODS_BOOTSTRAPPED__ = true;
+
     var BW_SYNC_TIMER = null;
     var BW_SYNC_DELAY_MS = 80;
     var BW_WALLET_GATEWAY_TO_SELECTORS = {
@@ -23,6 +28,8 @@
     ];
     var BW_INTERNAL_RADIO_CHANGE = false;
     var BW_LAST_SELECTED_METHOD = '';
+    var BW_IS_CONVERGING = false;
+    var BW_TOOLTIP_DOC_BOUND = false;
 
     function findFallbackPaymentMethod(excludedValue) {
         if (BW_LAST_SELECTED_METHOD && BW_LAST_SELECTED_METHOD !== excludedValue) {
@@ -35,6 +42,54 @@
         return Array.from(document.querySelectorAll('input[name="payment_method"]')).find(function (radio) {
             return radio.value !== excludedValue && !radio.disabled;
         }) || null;
+    }
+
+    function getPaymentContainer() {
+        return document.querySelector('#payment');
+    }
+
+    function getEnabledPaymentMethodRadios(container) {
+        var scope = container || document;
+        return Array.from(scope.querySelectorAll('input[name="payment_method"]')).filter(function (radio) {
+            return !radio.disabled;
+        });
+    }
+
+    function getPreferredPaymentMethodRadio(container, preferredValue) {
+        var scope = container || document;
+
+        if (preferredValue) {
+            var preferred = scope.querySelector('input[name="payment_method"][value="' + preferredValue + '"]');
+            if (preferred && !preferred.disabled) {
+                return preferred;
+            }
+        }
+
+        if (BW_LAST_SELECTED_METHOD) {
+            var remembered = scope.querySelector('input[name="payment_method"][value="' + BW_LAST_SELECTED_METHOD + '"]');
+            if (remembered && !remembered.disabled) {
+                return remembered;
+            }
+        }
+
+        var checked = scope.querySelector('input[name="payment_method"]:checked');
+        if (checked && !checked.disabled) {
+            return checked;
+        }
+
+        var enabled = getEnabledPaymentMethodRadios(scope);
+        return enabled.length ? enabled[0] : null;
+    }
+
+    function applySingleRadioSelection(container, selectedRadio) {
+        var scope = container || document;
+        var radios = scope.querySelectorAll('input[name="payment_method"]');
+
+        BW_INTERNAL_RADIO_CHANGE = true;
+        radios.forEach(function (input) {
+            input.checked = !!selectedRadio && input === selectedRadio;
+        });
+        BW_INTERNAL_RADIO_CHANGE = false;
     }
 
     function getSelectedPaymentMethod() {
@@ -134,33 +189,67 @@
         }
     }
 
-    /**
-     * Single source of truth for checkout action buttons visibility.
-     * Keeps exactly one actionable button visible at all times.
-     *
-     * @param {string} reason Optional debug reason.
-     */
-    function bwSyncCheckoutActionButtons(reason) { // eslint-disable-line no-unused-vars
-        normalizeCardGatewayTitles();
-        syncAccordionState();
-        dedupeWalletDom();
+    function syncCheckoutActionButtonsForSelectedMethod(selected) {
+        var selectedGateway = selected || '';
+        var isWallet = isWalletGateway(selectedGateway);
+        var available = isWallet && isWalletAvailable(selectedGateway);
+        var hasActionButton = isWallet && hasWalletActionButton(selectedGateway);
 
-        var selected = getSelectedPaymentMethod();
-        var isWallet = isWalletGateway(selected);
-        var available = isWallet && isWalletAvailable(selected);
-        var hasActionButton = isWallet && hasWalletActionButton(selected);
+        if (isWallet && (!available || !hasActionButton)) {
+            var fallback = findFallbackPaymentMethod(selectedGateway);
+            if (fallback) {
+                applySingleRadioSelection(getPaymentContainer(), fallback);
+                selectedGateway = fallback.value;
+                BW_LAST_SELECTED_METHOD = selectedGateway;
+                updatePlaceOrderButton(fallback);
+                isWallet = isWalletGateway(selectedGateway);
+                available = isWallet && isWalletAvailable(selectedGateway);
+                hasActionButton = isWallet && hasWalletActionButton(selectedGateway);
+            }
+        }
 
         hideAllWalletButtons();
         showPlaceOrderButtons();
         updateBodyWalletClass('', false);
 
         if (isWallet && available && hasActionButton) {
-            showWalletButton(selected);
+            showWalletButton(selectedGateway);
             hidePlaceOrderButtons();
-            updateBodyWalletClass(selected, true);
+            updateBodyWalletClass(selectedGateway, true);
+        }
+    }
+
+    /**
+     * Single authority convergence routine.
+     * Ensures selected row, checked radio and actionable submit state are coherent.
+     *
+     * @param {string} reason Optional debug reason.
+     * @param {Object} options Convergence options.
+     */
+    function bwConvergeCheckoutSelectorState(reason, options) { // eslint-disable-line no-unused-vars
+        var opts = options || {};
+        if (BW_IS_CONVERGING) {
             return;
         }
+        BW_IS_CONVERGING = true;
 
+        try {
+            normalizeCardGatewayTitles();
+            dedupeWalletDom();
+
+            var selectedRadio = syncAccordionState(opts.preferredValue || '');
+            syncCheckoutActionButtonsForSelectedMethod(selectedRadio ? selectedRadio.value : '');
+
+            if (opts.triggerWooSelectionEvent && selectedRadio && window.jQuery) {
+                window.jQuery(document.body).trigger('payment_method_selected');
+            }
+        } finally {
+            BW_IS_CONVERGING = false;
+        }
+    }
+
+    function bwSyncCheckoutActionButtons(reason) { // eslint-disable-line no-unused-vars
+        bwConvergeCheckoutSelectorState(reason || 'sync', {});
     }
 
     function bwScheduleSync(reason) { // eslint-disable-line no-unused-vars
@@ -231,45 +320,15 @@
      * longer needs to manage is-open.  It still keeps is-selected in sync
      * (for border/background styling) and updates the button label.
      */
-    function syncAccordionState() {
-        var paymentContainer = document.querySelector('#payment');
+    function syncAccordionState(preferredValue) {
+        var paymentContainer = getPaymentContainer();
         if (!paymentContainer) {
-            return;
+            return null;
         }
 
-        var checkedRadio = paymentContainer.querySelector('input[name="payment_method"]:checked');
-
-        // Resilience: if third-party scripts temporarily clear all radios,
-        // restore last known selection (or first enabled fallback).
-        if (!checkedRadio) {
-            if (BW_LAST_SELECTED_METHOD) {
-                var remembered = paymentContainer.querySelector('input[name="payment_method"][value="' + BW_LAST_SELECTED_METHOD + '"]');
-                if (remembered && !remembered.disabled) {
-                    remembered.checked = true;
-                    checkedRadio = remembered;
-                }
-            }
-
-            if (!checkedRadio) {
-                var firstEnabled = Array.from(paymentContainer.querySelectorAll('input[name="payment_method"]')).find(function (input) {
-                    return !input.disabled;
-                });
-                if (firstEnabled) {
-                    firstEnabled.checked = true;
-                    checkedRadio = firstEnabled;
-                }
-            }
-        }
-
-        BW_LAST_SELECTED_METHOD = checkedRadio ? checkedRadio.value : BW_LAST_SELECTED_METHOD;
-
-        // Force a single checked payment radio to avoid Woo/third-party race
-        // conditions where Stripe stays checked while another gateway is selected.
-        if (checkedRadio) {
-            paymentContainer.querySelectorAll('input[name="payment_method"]').forEach(function (input) {
-                input.checked = (input === checkedRadio);
-            });
-        }
+        var checkedRadio = getPreferredPaymentMethodRadio(paymentContainer, preferredValue);
+        applySingleRadioSelection(paymentContainer, checkedRadio);
+        BW_LAST_SELECTED_METHOD = checkedRadio ? checkedRadio.value : '';
 
         paymentContainer.querySelectorAll('.bw-payment-method').forEach(function (method) {
             var radio      = method.querySelector('input[name="payment_method"]');
@@ -287,6 +346,8 @@
         if (checkedRadio) {
             updatePlaceOrderButton(checkedRadio);
         }
+
+        return checkedRadio;
     }
 
     /**
@@ -294,7 +355,7 @@
      * @param {HTMLElement} radio - The radio button that just became checked.
      */
     function handlePaymentMethodChange(radio) {
-        var paymentContainer = document.querySelector('#payment');
+        var paymentContainer = getPaymentContainer();
         if (!paymentContainer) {
             return;
         }
@@ -304,17 +365,10 @@
         }
 
         BW_LAST_SELECTED_METHOD = radio.value;
-
-        paymentContainer.querySelectorAll('input[name="payment_method"]').forEach(function (input) {
-            input.checked = input === radio;
+        bwConvergeCheckoutSelectorState('method_change', {
+            preferredValue: radio.value,
+            triggerWooSelectionEvent: true
         });
-
-        syncAccordionState();
-
-        // Notify WooCommerce.
-        if (window.jQuery) {
-            window.jQuery(document.body).trigger('payment_method_selected');
-        }
     }
 
     // -------------------------------------------------------------------------
@@ -497,7 +551,24 @@
     function initPaymentIconsTooltips() {
         var moreIcons = document.querySelectorAll('.bw-payment-icon--more');
 
+        if (!BW_TOOLTIP_DOC_BOUND) {
+            document.addEventListener('click', function (event) {
+                document.querySelectorAll('.bw-payment-icon--more .bw-payment-icon__tooltip').forEach(function (tooltip) {
+                    var owner = tooltip.closest('.bw-payment-icon--more');
+                    if (owner && !owner.contains(event.target)) {
+                        tooltip.style.display = 'none';
+                    }
+                });
+            });
+            BW_TOOLTIP_DOC_BOUND = true;
+        }
+
         moreIcons.forEach(function (moreIcon) {
+            if (moreIcon.getAttribute('data-bw-tooltip-bound') === '1') {
+                return;
+            }
+            moreIcon.setAttribute('data-bw-tooltip-bound', '1');
+
             var tooltip     = moreIcon.querySelector('.bw-payment-icon__tooltip');
             var hideTimeout;
 
@@ -528,12 +599,6 @@
                     tooltip.style.display = 'none';
                 }, 100);
             });
-
-            document.addEventListener('click', function (event) {
-                if (!moreIcon.contains(event.target)) {
-                    tooltip.style.display = 'none';
-                }
-            });
         });
     }
 
@@ -546,7 +611,7 @@
             document.body.classList.add('bw-no-has-support');
         }
         normalizeCardGatewayTitles();
-        syncAccordionState();
+        bwConvergeCheckoutSelectorState('init');
         handleFormSubmission();
         initPaymentIconsTooltips();
         bwScheduleSync('init');
@@ -564,26 +629,24 @@
     if (window.jQuery) {
         window.jQuery(function ($) {
             $(document.body).off('updated_checkout.bwWalletUi').on('updated_checkout.bwWalletUi', function () {
-                normalizeCardGatewayTitles();
-                syncAccordionState();
+                bwConvergeCheckoutSelectorState('updated_checkout');
                 initPaymentIconsTooltips();
                 bwScheduleSync('updated_checkout');
             });
 
             $(document.body).off('payment_method_selected.bwWalletUi').on('payment_method_selected.bwWalletUi', function () {
-                normalizeCardGatewayTitles();
-                syncAccordionState();
+                bwConvergeCheckoutSelectorState('payment_method_selected');
                 bwScheduleSync('payment_method_selected');
             });
 
             $(document).off('change.bwWalletUi', 'input[name="payment_method"]').on('change.bwWalletUi', 'input[name="payment_method"]', function () {
-                normalizeCardGatewayTitles();
-                syncAccordionState();
+                bwConvergeCheckoutSelectorState('payment_method_change');
                 bwScheduleSync('payment_method_change');
             });
 
             $(document.body).off('checkout_error.bwWalletUi').on('checkout_error.bwWalletUi', function () {
                 removeLoadingState();
+                bwConvergeCheckoutSelectorState('checkout_error');
                 bwScheduleSync('checkout_error');
             });
         });

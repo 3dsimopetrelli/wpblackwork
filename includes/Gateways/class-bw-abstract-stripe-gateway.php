@@ -251,9 +251,13 @@ abstract class BW_Abstract_Stripe_Gateway extends WC_Payment_Gateway {
 		}
 
 		$event_id = isset( $event['id'] ) ? sanitize_text_field( (string) $event['id'] ) : '';
-		$type     = isset( $event['type'] ) ? (string) $event['type'] : '';
+		$type     = isset( $event['type'] ) ? sanitize_text_field( (string) $event['type'] ) : '';
 		$pi       = isset( $event['data']['object'] ) && is_array( $event['data']['object'] ) ? $event['data']['object'] : array();
 		$pi_id    = isset( $pi['id'] ) ? sanitize_text_field( (string) $pi['id'] ) : '';
+
+		if ( '' === $event_id ) {
+			$this->respond_ok();
+		}
 
 		$order_id = 0;
 		if ( isset( $pi['metadata']['wc_order_id'] ) ) {
@@ -289,45 +293,12 @@ abstract class BW_Abstract_Stripe_Gateway extends WC_Payment_Gateway {
 			$this->respond_ok();
 		}
 
-		if ( ! empty( $event_id ) && $this->is_event_processed( $order, $event_id ) ) {
+		if ( ! $this->claim_event_processing( $order, $event_id, $type ) ) {
 			$this->respond_ok();
 		}
 
-		switch ( $type ) {
-			case 'payment_intent.succeeded':
-				if ( ! $order->is_paid() ) {
-					$order->payment_complete( $pi_id );
-					$order->add_order_note( sprintf( __( 'Payment confirmed via Stripe Webhook. PaymentIntent: %s', 'bw' ), $pi_id ) );
-				}
-				break;
-
-			case 'payment_intent.payment_failed':
-				if ( ! $order->is_paid() && 'failed' !== $order->get_status() ) {
-					$err_msg = isset( $pi['last_payment_error']['message'] ) ? sanitize_text_field( (string) $pi['last_payment_error']['message'] ) : 'unknown';
-					$order->update_status( 'failed', sprintf( __( 'Payment failed via Stripe Webhook. PI: %1$s — %2$s', 'bw' ), $pi_id, $err_msg ) );
-				}
-				break;
-
-			case 'payment_intent.processing':
-				if ( ! $order->is_paid() ) {
-					if ( 'on-hold' !== $order->get_status() ) {
-						$order->update_status( 'on-hold', sprintf( __( 'Payment processing via Stripe Webhook. PaymentIntent: %s', 'bw' ), $pi_id ) );
-					} else {
-						$order->add_order_note( sprintf( __( 'Payment processing via Stripe Webhook. PaymentIntent: %s', 'bw' ), $pi_id ) );
-					}
-				}
-				break;
-
-			case 'payment_intent.canceled':
-				if ( ! $order->is_paid() && 'cancelled' !== $order->get_status() ) {
-					$order->update_status( 'cancelled', sprintf( __( 'Payment canceled via Stripe Webhook. PaymentIntent: %s', 'bw' ), $pi_id ) );
-				}
-				break;
-		}
-
-		if ( ! empty( $event_id ) ) {
-			$this->mark_event_processed( $order, $event_id );
-		}
+		$outcome = $this->apply_webhook_event_to_order( $order, $type, $pi, $pi_id, $event_id );
+		$this->mark_event_processed( $order, $event_id, $type, $outcome );
 
 		status_header( 200 );
 		exit( 'OK' );
@@ -432,6 +403,12 @@ abstract class BW_Abstract_Stripe_Gateway extends WC_Payment_Gateway {
 	 * @return bool
 	 */
 	protected function is_event_processed( WC_Order $order, $event_id ) {
+		$claim_meta_key = $this->get_event_claim_meta_key( $event_id );
+		$claim_record   = get_post_meta( $order->get_id(), $claim_meta_key, true );
+		if ( is_array( $claim_record ) && isset( $claim_record['state'] ) && 'completed' === $claim_record['state'] ) {
+			return true;
+		}
+
 		$processed = $order->get_meta( $this->get_meta_key( 'processed_events' ), true );
 		if ( ! is_array( $processed ) ) {
 			return false;
@@ -440,13 +417,82 @@ abstract class BW_Abstract_Stripe_Gateway extends WC_Payment_Gateway {
 	}
 
 	/**
+	 * Try to claim webhook event processing using per-order event marker.
+	 *
+	 * @param WC_Order $order    WooCommerce order.
+	 * @param string   $event_id Stripe event id.
+	 * @param string   $type     Stripe event type.
+	 * @return bool
+	 */
+	protected function claim_event_processing( WC_Order $order, $event_id, $type ) {
+		$event_id = sanitize_text_field( (string) $event_id );
+		if ( '' === $event_id ) {
+			return false;
+		}
+
+		if ( $this->is_event_processed( $order, $event_id ) ) {
+			return false;
+		}
+
+		$claim_meta_key = $this->get_event_claim_meta_key( $event_id );
+		$claim_record   = array(
+			'state'      => 'processing',
+			'gateway'    => $this->id,
+			'type'       => sanitize_text_field( (string) $type ),
+			'started_at' => time(),
+		);
+
+		$claimed = add_post_meta( $order->get_id(), $claim_meta_key, $claim_record, true );
+		if ( $claimed ) {
+			return true;
+		}
+
+		$existing = get_post_meta( $order->get_id(), $claim_meta_key, true );
+		if ( ! is_array( $existing ) ) {
+			return false;
+		}
+
+		if ( isset( $existing['state'] ) && 'completed' === $existing['state'] ) {
+			return false;
+		}
+
+		if ( ! isset( $existing['started_at'] ) || ( time() - (int) $existing['started_at'] ) > 300 ) {
+			$claim_record['reclaimed'] = true;
+			update_post_meta( $order->get_id(), $claim_meta_key, $claim_record );
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
 	 * Mark Stripe event as processed and keep rolling history.
 	 *
 	 * @param WC_Order $order    WooCommerce order.
 	 * @param string   $event_id Stripe event id.
+	 * @param string   $type     Stripe event type.
+	 * @param string   $outcome  Deterministic processing outcome.
 	 * @return void
 	 */
-	protected function mark_event_processed( WC_Order $order, $event_id ) {
+	protected function mark_event_processed( WC_Order $order, $event_id, $type = '', $outcome = 'noop' ) {
+		$event_id = sanitize_text_field( (string) $event_id );
+		if ( '' === $event_id ) {
+			return;
+		}
+
+		$claim_meta_key = $this->get_event_claim_meta_key( $event_id );
+		update_post_meta(
+			$order->get_id(),
+			$claim_meta_key,
+			array(
+				'state'        => 'completed',
+				'gateway'      => $this->id,
+				'type'         => sanitize_text_field( (string) $type ),
+				'outcome'      => sanitize_key( (string) $outcome ),
+				'completed_at' => time(),
+			)
+		);
+
 		$processed = $order->get_meta( $this->get_meta_key( 'processed_events' ), true );
 		if ( ! is_array( $processed ) ) {
 			$processed = array();
@@ -460,6 +506,153 @@ abstract class BW_Abstract_Stripe_Gateway extends WC_Payment_Gateway {
 
 		$order->update_meta_data( $this->get_meta_key( 'processed_events' ), $processed );
 		$order->save();
+	}
+
+	/**
+	 * Apply Stripe webhook event to order with deterministic no-op handling.
+	 *
+	 * @param WC_Order $order    WooCommerce order.
+	 * @param string   $type     Stripe event type.
+	 * @param array    $pi       PaymentIntent payload.
+	 * @param string   $pi_id    PaymentIntent id.
+	 * @param string   $event_id Stripe event id.
+	 * @return string
+	 */
+	protected function apply_webhook_event_to_order( WC_Order $order, $type, $pi, $pi_id, $event_id ) {
+		if ( ! in_array( $type, $this->get_supported_webhook_event_types(), true ) ) {
+			return 'ignored_unknown_event';
+		}
+
+		$current_status = (string) $order->get_status();
+
+		switch ( $type ) {
+			case 'payment_intent.succeeded':
+				if ( $order->is_paid() ) {
+					return 'ignored_already_paid';
+				}
+				$order->payment_complete( $pi_id );
+				$order->add_order_note(
+					sprintf(
+						/* translators: 1: PaymentIntent id, 2: Stripe event id */
+						__( 'Payment confirmed via Stripe Webhook. PaymentIntent: %1$s (event: %2$s)', 'bw' ),
+						$pi_id,
+						$event_id
+					)
+				);
+				return 'applied_success';
+
+			case 'payment_intent.payment_failed':
+				if ( ! $this->can_apply_webhook_status_transition( $current_status, 'failed', $order->is_paid() ) ) {
+					return 'ignored_out_of_order';
+				}
+				$err_msg = isset( $pi['last_payment_error']['message'] ) ? sanitize_text_field( (string) $pi['last_payment_error']['message'] ) : 'unknown';
+				$order->update_status(
+					'failed',
+					sprintf(
+						/* translators: 1: PaymentIntent id, 2: error message, 3: event id */
+						__( 'Payment failed via Stripe Webhook. PI: %1$s — %2$s (event: %3$s)', 'bw' ),
+						$pi_id,
+						$err_msg,
+						$event_id
+					)
+				);
+				return 'applied_failed';
+
+			case 'payment_intent.processing':
+				if ( ! $this->can_apply_webhook_status_transition( $current_status, 'on-hold', $order->is_paid() ) ) {
+					return 'ignored_out_of_order';
+				}
+				$order->update_status(
+					'on-hold',
+					sprintf(
+						/* translators: 1: PaymentIntent id, 2: event id */
+						__( 'Payment processing via Stripe Webhook. PaymentIntent: %1$s (event: %2$s)', 'bw' ),
+						$pi_id,
+						$event_id
+					)
+				);
+				return 'applied_processing';
+
+			case 'payment_intent.canceled':
+				if ( ! $this->can_apply_webhook_status_transition( $current_status, 'cancelled', $order->is_paid() ) ) {
+					return 'ignored_out_of_order';
+				}
+				$order->update_status(
+					'cancelled',
+					sprintf(
+						/* translators: 1: PaymentIntent id, 2: event id */
+						__( 'Payment canceled via Stripe Webhook. PaymentIntent: %1$s (event: %2$s)', 'bw' ),
+						$pi_id,
+						$event_id
+					)
+				);
+				return 'applied_cancelled';
+		}
+
+		return 'ignored_unknown_event';
+	}
+
+	/**
+	 * Determine if a webhook transition is allowed under monotonic guard rules.
+	 *
+	 * @param string $current_status Current WooCommerce order status.
+	 * @param string $target_status  Requested target status.
+	 * @param bool   $is_paid        Whether order is already paid.
+	 * @return bool
+	 */
+	protected function can_apply_webhook_status_transition( $current_status, $target_status, $is_paid ) {
+		$current_status = sanitize_key( (string) $current_status );
+		$target_status  = sanitize_key( (string) $target_status );
+
+		if ( '' === $target_status || $current_status === $target_status ) {
+			return false;
+		}
+
+		if ( $is_paid && in_array( $target_status, array( 'failed', 'cancelled', 'on-hold', 'pending' ), true ) ) {
+			return false;
+		}
+
+		$terminal_statuses = array( 'completed', 'processing', 'refunded', 'failed', 'cancelled' );
+		if ( in_array( $current_status, $terminal_statuses, true ) && in_array( $target_status, array( 'failed', 'cancelled', 'on-hold', 'pending' ), true ) ) {
+			return false;
+		}
+
+		$rank = array(
+			'pending'    => 0,
+			'on-hold'    => 1,
+			'processing' => 2,
+			'completed'  => 3,
+		);
+
+		if ( isset( $rank[ $current_status ] ) && isset( $rank[ $target_status ] ) && $rank[ $target_status ] < $rank[ $current_status ] ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Build event claim meta key for a Stripe event id.
+	 *
+	 * @param string $event_id Stripe event id.
+	 * @return string
+	 */
+	protected function get_event_claim_meta_key( $event_id ) {
+		return '_bw_evt_claim_' . sanitize_key( $this->id ) . '_' . md5( (string) $event_id );
+	}
+
+	/**
+	 * Supported Stripe webhook event types for deterministic convergence.
+	 *
+	 * @return array
+	 */
+	protected function get_supported_webhook_event_types() {
+		return array(
+			'payment_intent.succeeded',
+			'payment_intent.payment_failed',
+			'payment_intent.processing',
+			'payment_intent.canceled',
+		);
 	}
 
 	/**

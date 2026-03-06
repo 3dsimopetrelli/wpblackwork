@@ -241,11 +241,17 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 - Impact: High
 - Likelihood: Medium
 - Risk Level: High
-- Current Mitigation: Re-sync on `updated_checkout`, fallback method selection, dedupe helpers, scheduled sync.
-- Monitoring Status: Open
+- Current Mitigation:
+  - Central selector convergence routine in `bw-payment-methods.js` (`bwConvergeCheckoutSelectorState`) acts as single authority for final UI/radio/submit state.
+  - Deterministic fallback selects remembered valid gateway or first enabled gateway when selected method is missing/disabled after fragment refresh.
+  - Idempotent rebind protections: bootstrapping guard, namespaced/off-on jQuery handlers, and deduped tooltip/wallet DOM hooks.
+  - Wallet/UPE interference containment: unavailable wallet selection is reconciled to valid non-wallet gateway with synchronized action-button visibility.
+  - Shared scheduled reconciliation on `updated_checkout`, `payment_method_selected`, and `checkout_error`.
+- Monitoring Status: Monitoring
 - Linked Documents:
   - [Blast-Radius Consolidation Map](./blast-radius-consolidation-map.md)
   - [Checkout Payment Selector Audit](../50-ops/audits/checkout-payment-selector-audit.md)
+  - [BW-TASK-20260306-05 Closure](../tasks/BW-TASK-20260306-05-closure.md)
 
 ### Risk ID: R-PAY-02
 - Domain: Payments / Checkout
@@ -385,8 +391,8 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 - Impact: Critical
 - Likelihood: Low-Medium
 - Risk Level: High
-- Current Mitigation: Signature verification, event/order checks, meta-based replay guards in gateway implementations.
-- Monitoring Status: Open
+- Current Mitigation: Signature-first authenticity gate, event-id claim ledger (`_bw_evt_claim_*`) with completed-state dedupe, deterministic unknown/duplicate/out-of-order no-op behavior, monotonic transition guard, and return-flow-safe convergence checks before order mutation.
+- Monitoring Status: Monitoring
 - Linked Documents:
   - [Callback Contracts](./callback-contracts.md)
   - [Blast-Radius Consolidation Map](./blast-radius-consolidation-map.md)
@@ -444,11 +450,18 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 - Impact: Critical
 - Likelihood: Medium
 - Risk Level: Critical
-- Current Mitigation: Existing self-loop safeguards, governance v2 spec constraints, and Tier 0 freeze until implementation task begins.
-- Monitoring Status: Open
+- Current Mitigation:
+  - Single canonical normalization path (`bw_normalize_redirect_path`) enforced across save-time validation, runtime matching, protected-route checks, loop checks, and target-path validation.
+  - Protected-route policy enforced in save-time and runtime gates (`/wp-admin`, `/wp-login.php`, `/wp-json`, `/cart`, `/checkout`, `/my-account`, `/wc-api` families).
+  - Redirect runtime priority hardened to `template_redirect@10` to align deterministic precedence with canonical handling and downstream route ownership.
+  - Save-time rule safety filter (`pre_update_option_bw_redirects`) rejects self-loop and direct two-node loop patterns.
+  - Runtime fail-open controls include direct reverse-loop guard and hop-limit guard (`max_redirect_hops=5`) with chain-abort on unsafe paths.
+  - Deterministic first-match source indexing per request avoids duplicate source ambiguity and unnecessary repeated scans.
+- Monitoring Status: Monitoring
 - Linked Documents:
   - [Redirect Engine Technical Audit](../50-ops/audits/redirect-engine-technical-audit.md)
   - [Redirect Engine v2 Spec](../30-features/redirect/redirect-engine-v2-spec.md)
+  - [ADR-007 Redirect Authority Hardening](../60-adr/ADR-007-redirect-authority-hardening.md)
   - [Runtime Hook Map](../50-ops/runtime-hook-map.md)
 
 ### Risk ID: R-HDR-13
