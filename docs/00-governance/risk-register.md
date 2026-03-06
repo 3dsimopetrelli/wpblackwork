@@ -355,7 +355,7 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
   - Stale callback/session-storage cleanup strengthened (`bw_auth_in_progress`, timestamp, handled markers) in preload and bridge layers.
   - `bw_auth_in_progress` now carries timestamp guard with stale reset window to prevent long-lived re-entry loops from old browser state.
   - Existing session check endpoint + callback param normalization retained.
-- Monitoring Status: Open
+- Monitoring Status: Monitoring
 - Linked Documents:
   - [Callback Contracts](./callback-contracts.md)
   - [My Account Domain Audit](../50-ops/audits/my-account-domain-audit.md)
