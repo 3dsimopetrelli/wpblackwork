@@ -76,6 +76,7 @@ Normative rules:
 ### Resumable processing
 - Import execution MUST be resumable from checkpoints.
 - Interrupted runs MUST support safe re-entry without duplicating completed row effects.
+- Completed runs MUST be terminal and non-restartable under the same run identity.
 
 ### Checkpointing
 - Checkpoint state MUST include at minimum:
@@ -83,6 +84,7 @@ Normative rules:
   - chunk index or row cursor
   - per-row terminal status (`done` / `error` / `skipped`)
   - timestamp of last processed checkpoint
+  - durable processed-row identity set used for replay-safe dedupe across resume/retry
 
 ### Progress reporting
 - Admin runtime MUST expose deterministic progress indicators:
@@ -150,6 +152,7 @@ Normative rules:
 - Row retries MUST be safe and idempotent.
 - Run restarts MUST re-use existing run identity or create explicit successor linkage.
 - Safe re-entry MUST NOT re-apply already terminal row mutations as duplicates.
+- Lock reclaim under interruption MUST be deterministic and concurrency-safe (single reclaim winner).
 
 ## 8) Security & Permissions
 

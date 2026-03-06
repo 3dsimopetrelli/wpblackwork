@@ -7,9 +7,11 @@ It MUST be used as planning reference only and MUST NOT replace ADRs.
 ## Tier 0 – Critical Data / Authority
 
 ### Import Products — Import Engine v2 (Implementation)
-- Status: Backlog (planned in ~2 weeks)
+- Status: Implemented — awaiting runtime validation
 - Risk classification: Tier 0 Data Integrity
 - Short description: Implement the vNext bulk-safe importer with SKU-canonical identity, chunked execution, checkpoint resume, and run-level audit trail.
+- Latest hardening increment: run-lock reclaim CAS guard, active-run authority guard, and replay-safe processed-row dedupe (`processed_row_keys`) implemented in current runtime.
+- Manual runtime validation will occur during real catalog import operations.
 - Reference docs:
   - `docs/50-ops/audits/import-products-technical-audit.md`
   - `docs/50-ops/audits/import-products-developer-notes.md`

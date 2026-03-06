@@ -450,10 +450,15 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 - Risk Level: High
 - Current Mitigation:
   - Run-level lock in `wp_options` (`bw_import_run_lock`) enforces single authoritative import mutator with stale-lock reclaim and deterministic operator-safe abort on active contention.
+  - Stale lock reclaim is compare-and-swap protected to prevent dual lock ownership under concurrent reclaim attempts.
   - Durable run-state model in `wp_options` (`bw_import_run_{run_id}` + `bw_import_active_run`) is now authoritative for resume/checkpoint state; user transient remains UI mirror only.
+  - Active run mismatch guard blocks transient/UI run-id drift and keeps `bw_import_active_run` as authority source for execution.
   - Deterministic row outcome ledger (`created|updated|skipped|failed`) with bounded retention and non-double-count convergence by row identity.
+  - Persistent `processed_row_keys` set preserves replay-safe row dedupe beyond bounded visible ledger retention, preventing duplicate mutation on large-run retries.
   - SKU identity hardening in save path: ID-first + SKU lookup, pre-create re-resolve, and deterministic SKU-conflict retry-to-update gate.
   - Publish status allowlist enforcement (`draft|publish|pending|private`) with deterministic invalid-value normalization to `draft` + warning trace.
+  - Implementation status: Implemented — awaiting runtime validation.
+  - Manual runtime validation will occur during real catalog import operations.
 - Monitoring Status: Monitoring
 - Linked Documents:
   - [ADR-008 Import Engine Authority Hardening](../60-adr/ADR-008-import-engine-authority-hardening.md)
