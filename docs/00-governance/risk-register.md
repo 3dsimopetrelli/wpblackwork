@@ -591,6 +591,7 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 - Current Mitigation:
   - Strict request normalization (`post_type` allowlist, bounded term arrays, deterministic sort/order defaults).
   - Bounded query contract (no unbounded `posts_per_page=-1` paths, capped `per_page`, capped tag-source post scan).
+  - Additional watchpoint: `bw_fpw_get_related_tags_data()` uses `get_terms()` without `number` cap when `category='all'`; public AJAX cache/throttle reduce repeated pressure, but first-hit payload can still be large on high-tag catalogs.
   - Batched tag aggregation (`wp_get_object_terms` over bounded ID set) to avoid per-post N+1 loops.
   - Transient-based nopriv throttle guard with fail-soft compatible responses.
   - Deterministic hashed FPW cache keys (`bw_fpw_{sha256}` from canonical normalized payload) replacing truncation-based key construction, eliminating prefix-collision risk.
@@ -600,6 +601,42 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
   - [BW-TASK-20260306-03 Closure](../tasks/BW-TASK-20260306-03-closure.md)
   - [Elementor Widget Architecture Context](../10-architecture/elementor-widget-architecture-context.md)
   - [Docs-Code Alignment Status](./docs-code-alignment-status.md)
+
+Additional Evidence (Radar Verification – FPW Tags Query)
+
+Radar analysis identified an additional unbounded term query path in
+`bw_fpw_get_related_tags_data()` when `category='all'`.
+
+Surface:
+blackwork-core-plugin.php (approx lines 1683–1710)
+
+Behavior:
+The function calls:
+
+get_terms([
+  'taxonomy' => ...,
+  'hide_empty' => true
+])
+
+without a `number` limit, potentially returning all non-empty tags
+in large catalogs.
+
+Context:
+This path is reachable via the public AJAX endpoint
+`bw_fpw_get_tags()` and also during `bw_fpw_filter_posts()` response assembly.
+
+Existing mitigations already reduce repeated load:
+
+- transient caching (5 minutes)
+- throttle guard
+- normalized query constraints
+
+However the first-hit query size may still be large on installations
+with high tag cardinality.
+
+Mitigation follow-up:
+Evaluate adding a bounded `number` limit or alternative deterministic
+term sampling strategy for the `category='all'` branch.
 
 ### Risk ID: R-ADM-21
 - Domain: Admin / Settings Input Integrity
@@ -638,6 +675,101 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 - Linked Documents:
   - [BW-TASK-20260306-10 Closure](../tasks/BW-TASK-20260306-10-closure.md)
   - [Technical Hardening Plan](./technical-hardening-plan.md)
+
+### Risk ID: R-FE-23
+
+Domain:
+Frontend / UI Dependencies
+
+Surface Anchor:
+blackwork-core-plugin.php (`bw_enqueue_slick_slider_assets`)
+CDN dependency `slick-carousel@1.8.1`
+
+Description:
+The plugin relies heavily on Slick Carousel 1.8.1 loaded from a CDN.
+The library is effectively frozen upstream and is no longer actively
+maintained.
+
+Multiple storefront widgets and scripts depend on Slick runtime
+behavior and CSS contracts.
+
+Invariant Threatened:
+Long-term maintainability and security posture of frontend UI
+dependencies.
+
+Impact:
+Medium
+
+Likelihood:
+Medium
+
+Risk Level:
+Medium
+
+Current Mitigation:
+Pinned CDN version ensures deterministic runtime behavior.
+
+Monitoring Status:
+Monitoring
+
+Notes:
+Due to extensive coupling across widgets and JS runtime,
+replacement or migration would require a controlled frontend
+refactor effort.
+
+### Risk ID: R-WOO-24
+
+Domain:
+WooCommerce Integration / Template Overrides
+
+Surface Anchor:
+woocommerce/templates/
+
+Description:
+The plugin maintains a large set of WooCommerce template overrides
+(27 files). Several overrides are version-stale relative to the
+current WooCommerce core templates.
+
+Examples identified:
+
+checkout/payment.php
+plugin version: 8.1.0
+core version: 9.8.0
+
+cart/cart.php
+plugin version: 7.9.0
+core version: 10.1.0
+
+single-product/related.php
+plugin version: 3.9.0
+core version: 10.3.0
+
+myaccount/navigation.php
+plugin version: 2.6.0
+core version: 9.3.0
+
+Invariant Threatened:
+Template overrides must remain compatible with WooCommerce core
+template contracts.
+
+Impact:
+High
+
+Likelihood:
+Medium
+
+Risk Level:
+High
+
+Current Mitigation:
+None systematic.
+
+Monitoring Status:
+Open
+
+Recommended Mitigation:
+Perform a systematic template override audit and align overrides
+with current WooCommerce template versions.
 
 ## 4) Governance Rules
 - All Tier 0 changes must be reviewed against this register before implementation.

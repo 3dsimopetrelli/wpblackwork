@@ -191,6 +191,27 @@ It MUST be used as planning reference only and MUST NOT replace ADRs.
   - Decision-log numbering and references remain unambiguous
   - Governance docs pass cross-reference validation checklist
 
+### Legacy Option Cleanup Migration
+
+Status:
+Backlog
+
+Risk classification:
+Low
+
+Description:
+The function `bw_cleanup_account_description_option()` runs on every
+`init` and performs repeated `get_option()` checks for legacy options.
+
+File:
+blackwork-core-plugin.php
+
+The routine should be converted into a one-time migration step
+executed during plugin upgrade instead of running on every request.
+
+Reason:
+Improve bootstrap hygiene and avoid unnecessary option lookups.
+
 ### PHPCS Legacy Baseline Reduction Program
 - Status: Backlog
 - Risk classification: Low
