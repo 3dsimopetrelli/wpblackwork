@@ -42,6 +42,11 @@ High-risk integrations and dependencies:
 - Validate provider-specific account access rules.
 - Validate onboarding/password gate behavior where applicable.
 - Scan console and server logs for auth callback/session errors.
+- Validate callback convergence invariants on `bw_auth_callback` routes:
+  - no loader persistence after failed/invalid callback payload
+  - no callback re-entry loop after browser refresh
+  - deterministic terminal fallback to account or set-password route
+  - stale callback markers in session storage are cleared
 
 ## 6. Documentation Update Requirements
 - Update `CHANGELOG.md` for auth behavior changes.

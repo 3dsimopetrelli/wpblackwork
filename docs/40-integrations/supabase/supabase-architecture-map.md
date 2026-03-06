@@ -165,6 +165,11 @@ After callback/token bridge reaches WordPress context, existing Supabase/WP link
 Callback paths are funneled toward account endpoints to avoid fragmented auth state.
 Bridge scripts (`bw-supabase-bridge.js`, account scripts) coordinate hash/code callback handling and session confirmation before redirect.
 
+Callback convergence hardening (R-AUTH-04):
+- callback terminal fallback is explicit for unhandled/failed callback payloads to avoid loader dead-ends.
+- refresh/re-entry behavior is repeat-safe and converges to a deterministic account terminal route.
+- stale client callback markers (`bw_auth_in_progress`, handled callback/session flags) are actively cleaned to prevent loop resurrection from prior sessions.
+
 ## 6) Token & Session Model
 
 ### JWT storage strategy

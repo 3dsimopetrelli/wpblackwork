@@ -380,20 +380,37 @@ function bw_mew_supabase_early_invite_redirect_hint()
             if (window.sessionStorage) {
                 if (isLoggedIn) {
                     sessionStorage.removeItem('bw_auth_in_progress');
+                    sessionStorage.removeItem('bw_auth_in_progress_at');
+                    sessionStorage.removeItem('bw_oauth_bridge_done');
                 }
                 if (hasInviteHash || hasInviteCode || callbackMode || setPasswordMode) {
                     sessionStorage.setItem('bw_auth_in_progress', '1');
+                    sessionStorage.setItem('bw_auth_in_progress_at', String(Date.now()));
                 }
                 if (search.get('logged_out') === '1') {
                     sessionStorage.removeItem('bw_auth_in_progress');
+                    sessionStorage.removeItem('bw_auth_in_progress_at');
+                    sessionStorage.removeItem('bw_oauth_bridge_done');
                 }
             }
         } catch (e) {}
 
         var authInProgress = false;
+        var authInProgressAt = 0;
         try {
             authInProgress = !!(window.sessionStorage && sessionStorage.getItem('bw_auth_in_progress') === '1');
+            authInProgressAt = window.sessionStorage ? parseInt(sessionStorage.getItem('bw_auth_in_progress_at') || '0', 10) : 0;
         } catch (e) {}
+        if (authInProgress && authInProgressAt && (Date.now() - authInProgressAt) > 120000) {
+            authInProgress = false;
+            try {
+                if (window.sessionStorage) {
+                    sessionStorage.removeItem('bw_auth_in_progress');
+                    sessionStorage.removeItem('bw_auth_in_progress_at');
+                    sessionStorage.removeItem('bw_oauth_bridge_done');
+                }
+            } catch (e) {}
+        }
 
         // Stale callback URL (common after logout): no auth payload available.
         // Avoid showing the callback loader forever and go back to clean My Account.
@@ -401,6 +418,10 @@ function bw_mew_supabase_early_invite_redirect_hint()
             try {
                 if (window.sessionStorage) {
                     sessionStorage.removeItem('bw_auth_in_progress');
+                    sessionStorage.removeItem('bw_auth_in_progress_at');
+                    sessionStorage.removeItem('bw_oauth_bridge_done');
+                    sessionStorage.removeItem('bw_handled_supabase_code');
+                    sessionStorage.removeItem('bw_handled_supabase_hash');
                 }
             } catch (e) {}
             window.location.replace(<?php echo wp_json_encode($account_url); ?>);

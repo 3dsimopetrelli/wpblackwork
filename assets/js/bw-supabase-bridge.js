@@ -40,6 +40,8 @@
             if (window.sessionStorage) {
                 try {
                     sessionStorage.removeItem('bw_auth_in_progress');
+                    sessionStorage.removeItem('bw_auth_in_progress_at');
+                    sessionStorage.removeItem('bw_oauth_bridge_done');
                 } catch (error) {
                     // ignore sessionStorage errors
                 }
@@ -52,6 +54,7 @@
             if (window.sessionStorage) {
                 try {
                     sessionStorage.setItem('bw_auth_in_progress', '1');
+                    sessionStorage.setItem('bw_auth_in_progress_at', String(Date.now()));
                 } catch (error) {
                     // ignore sessionStorage errors
                 }
@@ -76,6 +79,8 @@
                     sessionStorage.removeItem('bw_supabase_access_token');
                     sessionStorage.removeItem('bw_supabase_refresh_token');
                     sessionStorage.removeItem('bw_auth_in_progress');
+                    sessionStorage.removeItem('bw_auth_in_progress_at');
+                    sessionStorage.removeItem('bw_oauth_bridge_done');
                 } catch (error) {
                     // ignore sessionStorage errors
                 }
@@ -105,6 +110,25 @@
         var codeHandledKey = 'bw_handled_supabase_code';
         var redirectGuardKey = 'bw_oauth_bridge_done';
         var redirectDelayMs = 150;
+        var redirectScheduled = false;
+        var getAccountUrl = function () {
+            return window.bwSupabaseBridge.accountUrl || '/my-account/';
+        };
+        var getTerminalTarget = function () {
+            if (needsSetPassword) {
+                return window.bwSupabaseBridge.setPasswordUrl || getAccountUrl();
+            }
+            return getAccountUrl();
+        };
+        var redirectToTerminal = function (reason) {
+            var target = getTerminalTarget();
+            logDebug('Supabase callback fallback redirect', { reason: reason || 'unknown', target: target });
+            cleanAuthParams();
+            cleanHash();
+            clearAuthInProgress();
+            window.location.replace(target);
+            return true;
+        };
         if (window.sessionStorage) {
             try {
                 if (sessionStorage.getItem(handledKey) === 'done') {
@@ -153,7 +177,7 @@
                 }
             }
 
-            var accountUrl = window.bwSupabaseBridge.accountUrl || '/my-account/';
+            var accountUrl = getAccountUrl();
             var targetUrl = new URL(accountUrl, window.location.origin);
             targetUrl.searchParams.set('bw_invite_error', errorCode);
 
@@ -247,11 +271,13 @@
             if (!payload || !payload.success) {
                 return false;
             }
+            if (redirectScheduled) {
+                return true;
+            }
             if (window.sessionStorage) {
                 try {
                     if (sessionStorage.getItem(redirectGuardKey) === '1') {
-                        logDebug('Skip redirect (already redirected)');
-                        return false;
+                        logDebug('Redirect guard already set; continuing with terminal redirect');
                     }
                     sessionStorage.setItem(redirectGuardKey, '1');
                 } catch (error) {
@@ -292,6 +318,10 @@
             };
 
             var scheduleRedirect = function () {
+                if (redirectScheduled) {
+                    return;
+                }
+                redirectScheduled = true;
                 logDebug('Bridge success -> redirecting to /my-account/');
                 setTimeout(function () {
                     clearAuthInProgress();
@@ -341,8 +371,10 @@
                             // ignore sessionStorage errors
                         }
                     }
-                    redirectAfterBridge(payload);
-                    return payload;
+                    return redirectAfterBridge(payload);
+                })
+                .catch(function () {
+                    return false;
                 });
         };
 
@@ -379,9 +411,7 @@
             }
 
             if (inviteType === 'invite') {
-                return bridgeSession(accessToken, refreshToken, inviteType).then(function () {
-                    return true;
-                });
+                return bridgeSession(accessToken, refreshToken, inviteType);
             }
 
             if (inviteType === 'recovery') {
@@ -389,9 +419,7 @@
                 return Promise.resolve(true);
             }
 
-            return bridgeSession(accessToken, refreshToken, inviteType).then(function () {
-                return true;
-            });
+            return bridgeSession(accessToken, refreshToken, inviteType);
         };
 
         var getCodeVerifier = function () {
@@ -430,7 +458,7 @@
             if (window.sessionStorage) {
                 try {
                     if (sessionStorage.getItem(codeHandledKey) === '1') {
-                        cleanAuthParams();
+                        redirectToTerminal('code_already_handled');
                         return Promise.resolve(true);
                     }
                     sessionStorage.setItem(codeHandledKey, '1');
@@ -460,9 +488,7 @@
                         throw new Error('Supabase session missing after PKCE exchange.');
                     }
                     logDebug('Supabase code exchange success', { hasSession: true });
-                    return bridgeSession(session.access_token || '', session.refresh_token || '', 'oauth').then(function () {
-                        return true;
-                    });
+                    return bridgeSession(session.access_token || '', session.refresh_token || '', 'oauth');
                 }).catch(function (error) {
                     logDebug('Supabase code exchange failed', { message: error && error.message ? error.message : 'unknown' });
                     return false;
@@ -503,9 +529,7 @@
                     if (!accessToken) {
                         throw new Error('Supabase PKCE exchange missing token.');
                     }
-                    return bridgeSession(accessToken, refreshToken, 'oauth').then(function () {
-                        return true;
-                    });
+                    return bridgeSession(accessToken, refreshToken, 'oauth');
                 })
                 .catch(function (error) {
                     logDebug('Supabase PKCE exchange failed', { message: error && error.message ? error.message : 'unknown' });
@@ -584,7 +608,11 @@
                 if (handled) {
                     return;
                 }
-                handleHashTokens();
+                handleHashTokens().then(function (hashHandled) {
+                    if (!hashHandled && isAuthCallback) {
+                        redirectToTerminal('code_or_hash_not_handled');
+                    }
+                });
             });
             return;
         }
@@ -593,6 +621,10 @@
             return;
         }
 
-        handleHashTokens();
+        handleHashTokens().then(function (handled) {
+            if (!handled && isAuthCallback) {
+                redirectToTerminal('callback_without_handled_payload');
+            }
+        });
     });
 })();

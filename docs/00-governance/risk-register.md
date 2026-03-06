@@ -349,7 +349,12 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 - Impact: Critical
 - Likelihood: Medium
 - Risk Level: Critical
-- Current Mitigation: `bw_auth_in_progress` state controls, stale callback cleanup, session check endpoint, callback query normalization.
+- Current Mitigation:
+  - Callback bridge now enforces deterministic terminal fallback redirects for unhandled/failed callback payloads (`bw_auth_callback` paths no longer remain on loader indefinitely).
+  - Repeat-safe redirect convergence guard hardened (`bw_oauth_bridge_done` no longer blocks terminal redirect after refresh/re-entry).
+  - Stale callback/session-storage cleanup strengthened (`bw_auth_in_progress`, timestamp, handled markers) in preload and bridge layers.
+  - `bw_auth_in_progress` now carries timestamp guard with stale reset window to prevent long-lived re-entry loops from old browser state.
+  - Existing session check endpoint + callback param normalization retained.
 - Monitoring Status: Open
 - Linked Documents:
   - [Callback Contracts](./callback-contracts.md)
