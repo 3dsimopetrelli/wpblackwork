@@ -43,6 +43,7 @@
     var googlePayCheckStartedAt = 0;
     var googlePayProbeAttempts = 0;
     var googlePayRetryTimer = null;
+    var googlePayFinalUnavailable = false;
     var GOOGLE_PAY_MAX_PROBE_ATTEMPTS = 3;
     var GOOGLE_PAY_RETRY_DELAY_MS = 1200;
     window.BW_GPAY_AVAILABLE = false;
@@ -246,6 +247,7 @@
     function setGooglePayCheckingState(reason) {
         googlePayState = 'checking';
         googlePayAvailable = false;
+        googlePayFinalUnavailable = false;
         window.BW_GPAY_AVAILABLE = false;
         googlePayCheckStartedAt = Date.now();
         markGooglePayCheckingState();
@@ -263,21 +265,24 @@
         var isGoogleMethod = selectedMethod === 'bw_google_pay';
 
         if (isGoogleMethod) {
-            if (googlePayState === 'available' && googlePayAvailable) {
-                $wrapper.show();
-                if (hasCustomBtn) {
-                    $placeholder.hide();
-                }
-            } else if (googlePayState === 'checking') {
-                $wrapper.hide();
-                $placeholder.show();
-            } else {
+            if (googlePayState === 'unavailable' && googlePayFinalUnavailable) {
                 $wrapper.hide();
                 $placeholder.show();
                 renderGooglePayUnavailableState();
+            } else {
+                // Keep launch path visible while checking/retrying so UX can
+                // hand off to native Google Pay flow when possible.
+                $wrapper.show();
+                if (hasCustomBtn) {
+                    $placeholder.hide();
+                } else if (googlePayState === 'checking') {
+                    $placeholder.show();
+                } else {
+                    $placeholder.hide();
+                }
             }
 
-            if (googlePayAvailable && $('#bw-google-pay-trigger').length === 0) {
+            if (paymentRequest && $('#bw-google-pay-trigger').length === 0) {
                 var btn  = document.createElement('button');
                 btn.type = 'button';
                 btn.id   = 'bw-google-pay-trigger';
@@ -302,7 +307,7 @@
                 }
 
                 // Ensure "Inizializzazione Google Pay..." is hidden as soon as the custom button exists.
-                if (googlePayState === 'available' && googlePayAvailable) {
+                if (googlePayState !== 'unavailable' || !googlePayFinalUnavailable) {
                     $placeholder.hide();
                 }
             }
@@ -376,6 +381,7 @@
         googlePayAvailable = false;
         window.BW_GPAY_AVAILABLE = false;
         googlePayState = 'unavailable';
+        googlePayFinalUnavailable = true;
         clearTimeout(googlePayCheckTimer);
         clearTimeout(googlePayRetryTimer);
         renderGooglePayUnavailableState();
@@ -400,12 +406,34 @@
         $(document).off('click.bwgpay', '#bw-google-pay-trigger')
             .on('click.bwgpay', '#bw-google-pay-trigger', function (e) {
                 e.preventDefault();
+
+                if (googlePayState === 'unavailable' && googlePayFinalUnavailable) {
+                    renderGooglePayUnavailableState();
+                    return;
+                }
+
                 if (!bwValidateRequiredCheckoutFields()) {
                     BW_GOOGLE_PAY_DEBUG && console.warn('[BW Google Pay] Campi obbligatori mancanti: popup bloccato.');
                     return;
                 }
-                if (paymentRequest) {
-                    paymentRequest.show();
+                if (!paymentRequest) {
+                    return;
+                }
+
+                var openResult = null;
+                try {
+                    openResult = paymentRequest.show();
+                } catch (error) {
+                    scheduleGooglePayProbeRetry('paymentRequest.show threw');
+                    return;
+                }
+
+                if (openResult && typeof openResult.catch === 'function') {
+                    openResult.catch(function () {
+                        // Keep UX in transient checking state and retry probe
+                        // instead of immediately dead-ending in unavailable.
+                        scheduleGooglePayProbeRetry('paymentRequest.show rejected');
+                    });
                 }
             });
     }
@@ -451,6 +479,7 @@
 
             if (googlePayAvailable) {
                 googlePayState = 'available';
+                googlePayFinalUnavailable = false;
                 clearTimeout(googlePayRetryTimer);
                 markGooglePayAvailableState();
                 $('#bw-google-pay-accordion-placeholder').hide();
@@ -461,6 +490,7 @@
 
             if (bwGooglePayParams.testMode) {
                 googlePayState = 'available';
+                googlePayFinalUnavailable = false;
                 clearTimeout(googlePayRetryTimer);
                 $('#bw-google-pay-accordion-placeholder').hide();
                 markGooglePayAvailableState();
@@ -589,6 +619,7 @@
         BW_GOOGLE_PAY_DEBUG && console.log('[BW Google Pay] Params:', { country: country, currency: currency, cents: initialCents });
 
         runGooglePayAvailabilityProbe('init_probe');
+        bindGooglePayTriggerClick();
 
         // Fires when the customer approves the payment in the Google Pay sheet.
         paymentRequest.on('paymentmethod', function (ev) {
