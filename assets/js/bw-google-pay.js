@@ -2,12 +2,10 @@
     'use strict';
 
     var BW_GOOGLE_PAY_DEBUG = window.BW_GOOGLE_PAY_DEBUG === true;
-
     var state = {
-        stripe: null,
         paymentRequest: null,
-        initialized: false,
-        hasTechnicalError: false
+        technicalError: false,
+        initialized: false
     };
 
     function debugLog() {
@@ -57,73 +55,59 @@
         }
     }
 
+    function getActiveAreaContainer() {
+        return document.getElementById('bw-google-pay-accordion-placeholder');
+    }
+
     function renderTechnicalError(message) {
-        var placeholder = document.getElementById('bw-google-pay-accordion-placeholder');
-        if (placeholder) {
-            placeholder.innerHTML = '' +
+        var container = getActiveAreaContainer();
+        if (container) {
+            container.innerHTML = '' +
                 '<div class="bw-gpay-unavailable" role="status" aria-live="polite">' +
                     '<p class="bw-gpay-unavailable__title">Google Pay integration error.</p>' +
                     '<p class="bw-gpay-unavailable__text">' + message + '</p>' +
                 '</div>';
-            placeholder.style.display = '';
         }
 
-        var wrapper = document.getElementById('bw-google-pay-button-wrapper');
-        if (wrapper) {
-            wrapper.style.display = 'none';
+        var externalWrapper = document.getElementById('bw-google-pay-button-wrapper');
+        if (externalWrapper) {
+            externalWrapper.style.display = 'none';
         }
 
-        state.hasTechnicalError = true;
+        state.technicalError = true;
         window.BW_GPAY_AVAILABLE = false;
         markGooglePayUnavailable();
         scheduleSelectorSync('gpay_technical_error');
     }
 
-    function ensureGooglePayTrigger() {
-        var container = document.getElementById('bw-google-pay-button');
+    function ensureGooglePayTriggerInActiveArea() {
+        var container = getActiveAreaContainer();
         if (!container) {
             return false;
         }
 
-        if (document.getElementById('bw-google-pay-trigger')) {
-            return true;
+        var trigger = container.querySelector('#bw-google-pay-trigger');
+        if (!trigger) {
+            trigger = document.createElement('button');
+            trigger.type = 'button';
+            trigger.id = 'bw-google-pay-trigger';
+            trigger.className = 'bw-custom-gpay-btn';
+            trigger.textContent = 'Google Pay';
+            container.innerHTML = '';
+            container.appendChild(trigger);
         }
-
-        var btn = document.createElement('button');
-        btn.type = 'button';
-        btn.id = 'bw-google-pay-trigger';
-        btn.className = 'bw-custom-gpay-btn';
-        btn.textContent = 'Google Pay';
-
-        container.innerHTML = '';
-        container.appendChild(btn);
 
         return true;
     }
 
-    function showGooglePayActiveUi() {
-        if (state.hasTechnicalError) {
-            return;
+    function hideLegacyExternalGooglePayWrapper() {
+        var externalWrapper = document.getElementById('bw-google-pay-button-wrapper');
+        if (externalWrapper) {
+            externalWrapper.style.display = 'none';
         }
-
-        var wrapper = document.getElementById('bw-google-pay-button-wrapper');
-        var placeholder = document.getElementById('bw-google-pay-accordion-placeholder');
-
-        ensureGooglePayTrigger();
-
-        if (wrapper) {
-            wrapper.style.display = '';
-        }
-        if (placeholder) {
-            placeholder.style.display = 'none';
-        }
-
-        window.BW_GPAY_AVAILABLE = true;
-        markGooglePayAvailable();
-        scheduleSelectorSync('gpay_active');
     }
 
-    function bwParseWcAmount(text) {
+    function parseWcAmount(text) {
         var cleaned = String(text || '').replace(/[^\d.,]/g, '');
         if (!cleaned) {
             return 0;
@@ -141,18 +125,18 @@
         return parseFloat(cleaned) || 0;
     }
 
-    function bwGetOrderTotalCents() {
+    function getOrderTotalCents() {
         if (window.bwGooglePayParams && Number(window.bwGooglePayParams.orderTotalCents) > 0) {
             return Number(window.bwGooglePayParams.orderTotalCents);
         }
 
-        var el = document.querySelector('.order-total .woocommerce-Price-amount bdi') ||
+        var orderTotalNode = document.querySelector('.order-total .woocommerce-Price-amount bdi') ||
             document.querySelector('.woocommerce-Price-amount bdi:last-child');
 
-        return Math.max(1, Math.round(bwParseWcAmount(el ? el.textContent : '') * 100));
+        return Math.max(1, Math.round(parseWcAmount(orderTotalNode ? orderTotalNode.textContent : '') * 100));
     }
 
-    function validateRequiredCheckoutFields() {
+    function validateCheckoutFields() {
         var form = document.querySelector('form.checkout');
         if (!form) {
             return true;
@@ -171,15 +155,9 @@
             }
 
             var type = (input.getAttribute('type') || '').toLowerCase();
-            var valid = true;
+            var isValid = (type === 'checkbox') ? !!input.checked : String(input.value || '').trim() !== '';
 
-            if (type === 'checkbox') {
-                valid = !!input.checked;
-            } else {
-                valid = String(input.value || '').trim() !== '';
-            }
-
-            if (!valid) {
+            if (!isValid) {
                 row.classList.remove('woocommerce-validated');
                 row.classList.add('woocommerce-invalid');
                 input.focus();
@@ -245,29 +223,29 @@
         state.paymentRequest.update({
             total: {
                 label: 'Ordine BlackWork',
-                amount: bwGetOrderTotalCents()
+                amount: getOrderTotalCents()
             }
         });
     }
 
-    function bindGooglePayTrigger() {
+    function bindGooglePayClick() {
         $(document)
             .off('click.bwgpay', '#bw-google-pay-trigger')
-            .on('click.bwgpay', '#bw-google-pay-trigger', function (e) {
-                e.preventDefault();
+            .on('click.bwgpay', '#bw-google-pay-trigger', function (event) {
+                event.preventDefault();
 
-                if (state.hasTechnicalError || !state.paymentRequest) {
+                if (!state.paymentRequest || state.technicalError) {
                     return;
                 }
 
-                if (!validateRequiredCheckoutFields()) {
+                if (!validateCheckoutFields()) {
                     return;
                 }
 
                 try {
-                    var result = state.paymentRequest.show();
-                    if (result && typeof result.catch === 'function') {
-                        result.catch(function (error) {
+                    var showResult = state.paymentRequest.show();
+                    if (showResult && typeof showResult.catch === 'function') {
+                        showResult.catch(function (error) {
                             debugLog('[BW Google Pay] show() rejected', error);
                         });
                     }
@@ -277,19 +255,16 @@
             });
     }
 
-    function validateBootConfig() {
+    function validateConfig() {
         if (typeof window.bwGooglePayParams === 'undefined') {
             return 'Google Pay settings are missing from checkout configuration.';
         }
-
         if (typeof window.Stripe === 'undefined') {
             return 'Stripe runtime is not available for Google Pay.';
         }
-
         if (!bwGooglePayParams.publishableKey) {
             return 'Stripe publishable key is missing for Google Pay.';
         }
-
         if (!bwGooglePayParams.ajaxCheckoutUrl) {
             return 'Checkout endpoint is missing for Google Pay.';
         }
@@ -297,26 +272,26 @@
         return '';
     }
 
-    function initGooglePayRuntime() {
-        if (state.initialized || state.hasTechnicalError) {
+    function initRuntime() {
+        if (state.initialized || state.technicalError) {
             return;
         }
 
-        var configError = validateBootConfig();
+        var configError = validateConfig();
         if (configError) {
             renderTechnicalError(configError);
             return;
         }
 
         try {
-            state.stripe = Stripe(bwGooglePayParams.publishableKey);
-            state.paymentRequest = state.stripe.paymentRequest({
+            var stripe = Stripe(bwGooglePayParams.publishableKey);
+            state.paymentRequest = stripe.paymentRequest({
                 country: (bwGooglePayParams.country || 'IT').toUpperCase(),
                 currency: (bwGooglePayParams.currency || 'eur').toLowerCase(),
                 disableWallets: ['link'],
                 total: {
                     label: 'Ordine BlackWork',
-                    amount: bwGetOrderTotalCents()
+                    amount: getOrderTotalCents()
                 },
                 requestPayerName: true,
                 requestPayerEmail: true,
@@ -340,11 +315,17 @@
             $(document.body).trigger('update_checkout');
         });
 
-        bindGooglePayTrigger();
-        showGooglePayActiveUi();
+        bindGooglePayClick();
+        hideLegacyExternalGooglePayWrapper();
+        ensureGooglePayTriggerInActiveArea();
+
+        window.BW_GPAY_AVAILABLE = true;
+        markGooglePayAvailable();
+        scheduleSelectorSync('gpay_ready');
+
         state.initialized = true;
 
-        // Diagnostic only: do not use as a user-facing gate.
+        // Diagnostic only, never user-facing gating.
         state.paymentRequest.canMakePayment().then(function (result) {
             debugLog('[BW Google Pay] canMakePayment diagnostic', result);
         }).catch(function (error) {
@@ -353,13 +334,18 @@
     }
 
     $(document).ready(function () {
-        initGooglePayRuntime();
+        initRuntime();
 
         $(document.body).off('updated_checkout.bwgpay').on('updated_checkout.bwgpay', function () {
-            if (state.hasTechnicalError) {
+            if (state.technicalError) {
                 return;
             }
-            showGooglePayActiveUi();
+
+            hideLegacyExternalGooglePayWrapper();
+            ensureGooglePayTriggerInActiveArea();
+            window.BW_GPAY_AVAILABLE = true;
+            markGooglePayAvailable();
+            scheduleSelectorSync('gpay_updated_checkout');
             updatePaymentRequestTotal();
         });
     });
