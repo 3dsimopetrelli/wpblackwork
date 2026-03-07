@@ -372,11 +372,8 @@
 
         placeholder.innerHTML = '' +
             '<div class="bw-gpay-unavailable" role="status" aria-live="polite">' +
-                '<p class="bw-gpay-unavailable__title">Google Pay is not available on this device.</p>' +
-                '<p class="bw-gpay-unavailable__text">To use Google Pay, add a supported card to your Google Wallet and try again, or choose another payment method.</p>' +
-                '<div class="bw-gpay-unavailable__actions">' +
-                    '<a class="bw-gpay-unavailable__btn bw-gpay-unavailable__btn--primary" href="https://pay.google.com/gp/w/home/paymentmethods" target="_blank" rel="noopener noreferrer">Open Google Wallet</a>' +
-                '</div>' +
+                '<p class="bw-gpay-unavailable__title">Google Pay integration is currently unavailable.</p>' +
+                '<p class="bw-gpay-unavailable__text">Please contact support. This is a technical configuration issue.</p>' +
             '</div>';
     }
 
@@ -393,7 +390,7 @@
             if (placeholder) {
                 placeholder.innerHTML = '' +
                     '<div class="bw-gpay-unavailable" role="status" aria-live="polite">' +
-                        '<p class="bw-gpay-unavailable__title">Google Pay is temporarily unavailable.</p>' +
+                        '<p class="bw-gpay-unavailable__title">Google Pay integration error.</p>' +
                         '<p class="bw-gpay-unavailable__text">' + message + '</p>' +
                     '</div>';
             }
@@ -429,15 +426,8 @@
                     openResult = paymentRequest.show();
                 } catch (error) {
                     googlePayLaunchFailureCount += 1;
-                    if (
-                        googlePayLaunchFailureCount >= GOOGLE_PAY_MAX_LAUNCH_FAILURES &&
-                        googlePayProbeAttempts >= GOOGLE_PAY_MAX_PROBE_ATTEMPTS
-                    ) {
-                        setGooglePayUnavailable(
-                            'Google Pay is not available on this device/browser. Please add a supported card to Google Wallet or use another payment method.',
-                            'paymentRequest.show threw after launch attempts'
-                        );
-                        return;
+                    if (googlePayLaunchFailureCount >= GOOGLE_PAY_MAX_LAUNCH_FAILURES) {
+                        window.bwCheckout.renderCheckoutNotice('error', 'Google Pay could not be opened right now. Please try again.');
                     }
                     scheduleGooglePayProbeRetry('paymentRequest.show threw');
                     return;
@@ -446,15 +436,8 @@
                 if (openResult && typeof openResult.catch === 'function') {
                     openResult.catch(function () {
                         googlePayLaunchFailureCount += 1;
-                        if (
-                            googlePayLaunchFailureCount >= GOOGLE_PAY_MAX_LAUNCH_FAILURES &&
-                            googlePayProbeAttempts >= GOOGLE_PAY_MAX_PROBE_ATTEMPTS
-                        ) {
-                            setGooglePayUnavailable(
-                                'Google Pay is not available on this device/browser. Please add a supported card to Google Wallet or use another payment method.',
-                                'paymentRequest.show rejected after launch attempts'
-                            );
-                            return;
+                        if (googlePayLaunchFailureCount >= GOOGLE_PAY_MAX_LAUNCH_FAILURES) {
+                            window.bwCheckout.renderCheckoutNotice('error', 'Google Pay could not be opened right now. Please try again.');
                         }
                         // Keep UX in transient checking state and retry probe
                         // instead of immediately dead-ending in unavailable.
@@ -467,20 +450,14 @@
     function scheduleGooglePayProbeRetry(reason) {
         clearTimeout(googlePayRetryTimer);
         if (googlePayProbeAttempts >= GOOGLE_PAY_MAX_PROBE_ATTEMPTS) {
-            if (!googlePayLaunchAttempted) {
-                // Pre-check failures alone are not authoritative enough to show
-                // a final unavailable dead-end before a real launch attempt.
-                googlePayProbeAttempts = 0;
-                setGooglePayCheckingState('precheck_soft_retry');
-                googlePayRetryTimer = setTimeout(function () {
-                    runGooglePayAvailabilityProbe('precheck_soft_retry');
-                }, GOOGLE_PAY_RETRY_DELAY_MS * 2);
-                return;
-            }
-            setGooglePayUnavailable(
-                'Google Pay is not available on this device/browser. Please add a supported card to Google Wallet or use another payment method.',
-                reason || 'probe max attempts reached'
-            );
+            // Pre-check outcomes are advisory only for UX: keep Google Pay active
+            // and delegate final eligibility messaging to Google-owned flow.
+            googlePayState = 'available';
+            googlePayFinalUnavailable = false;
+            window.BW_GPAY_AVAILABLE = true;
+            markGooglePayAvailableState();
+            syncGooglePayUiState();
+            bindGooglePayTriggerClick();
             return;
         }
 
@@ -511,11 +488,11 @@
             clearTimeout(googlePayCheckTimer);
 
             googlePayAvailable = bwCanShowGooglePay(result);
-            window.BW_GPAY_AVAILABLE = googlePayAvailable === true;
 
             if (googlePayAvailable) {
                 googlePayState = 'available';
                 googlePayFinalUnavailable = false;
+                window.BW_GPAY_AVAILABLE = true;
                 googlePayLaunchFailureCount = 0;
                 clearTimeout(googlePayRetryTimer);
                 markGooglePayAvailableState();
@@ -528,6 +505,7 @@
             if (bwGooglePayParams.testMode) {
                 googlePayState = 'available';
                 googlePayFinalUnavailable = false;
+                window.BW_GPAY_AVAILABLE = true;
                 googlePayLaunchFailureCount = 0;
                 clearTimeout(googlePayRetryTimer);
                 $('#bw-google-pay-accordion-placeholder').hide();
@@ -546,10 +524,12 @@
                 return;
             }
 
-            setGooglePayUnavailable(
-                'Google Pay is not available on this device/browser. Please add a supported card to Google Wallet or use another payment method.',
-                'canMakePayment returned no googlePay support'
-            );
+            googlePayState = 'available';
+            googlePayFinalUnavailable = false;
+            window.BW_GPAY_AVAILABLE = true;
+            markGooglePayAvailableState();
+            syncGooglePayUiState();
+            bindGooglePayTriggerClick();
         }).catch(function () {
             clearTimeout(googlePayCheckTimer);
             scheduleGooglePayProbeRetry('canMakePayment promise rejected');
