@@ -356,14 +356,14 @@ Future strategy:
 
 ### Entry 029
 - Date: 2026-03-07
-- Decision summary: Stripe Payment Element internal card subview handling delegated to supported UPE params (`wc_stripe_upe_params`) with accordion-preserving `appearance.rules`, instead of external CSS masking/hiding hacks.
+- Decision summary: Stripe Payment Element internal card/icon subview issue resolved by adopting `tabs` layout through `wc_stripe_upe_params`.
 - Affected domain: Checkout / Stripe Payment Element UI ownership boundary
-- Rationale: There is no confirmed dedicated official toggle to hide only the internal "Card + icon" mini-subview; the governance-safe control point in this integration is plugin-level UPE params (`appearance.rules`) applied by Stripe runtime while keeping accordion.
-- Risk impact: Medium reduced to Low-Medium by removing brittle selector-level overrides and using authoritative config path.
+- Rationale: Internal Stripe subviews are Stripe-owned UI; selector-level hide attempts were exploratory and brittle. `tabs` removes the duplicated internal card/icon subview with lower fragility on the supported config surface.
+- Risk impact: Medium reduced to Low-Medium through stable layout configuration and removal of internal selector hacks from solution strategy.
 - Follow-up actions:
-  - Keep Payment Element layout pinned to `accordion` in `bw_mew_customize_stripe_upe_appearance()`.
-  - Keep internal subview neutralization in `appearance.rules` via `wc_stripe_upe_params`.
-  - Avoid new CSS rules targeting Stripe internal `p-*` card mini-subview nodes as primary behavior control.
+  - Keep Payment Element layout pinned to `tabs` in `bw_mew_customize_stripe_upe_appearance()`.
+  - Use `wc_stripe_upe_params` as the authoritative control surface for Stripe Payment Element configuration.
+  - Avoid reintroducing Stripe-internal selector hide hacks as primary behavior control.
   - Treat any migration to alternative Stripe card integration as a separate architecture task with full regression gate.
 
 ## Governance Layer Closure

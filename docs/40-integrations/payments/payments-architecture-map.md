@@ -198,10 +198,14 @@ Each gateway implementation is expected to satisfy these responsibilities.
   - function `bw_mew_customize_stripe_upe_appearance()` in `woocommerce/woocommerce-init.php`.
 
 ### Supported approach
-- Payment Element layout/appearance changes must be applied via params (for example layout type), not via fragile CSS overrides on Stripe internal `p-*` class hierarchy.
+- Payment Element layout/appearance changes must be applied via supported params (for example layout type), not via fragile CSS overrides on Stripe internal `p-*` class hierarchy.
+- Adopted configuration for this issue:
+  - `layout.type = tabs`
+  - applied via `wc_stripe_upe_params` in `bw_mew_customize_stripe_upe_appearance()`.
 
 ### Unsupported primary approach
 - Using external CSS as primary control to remove Stripe internal card/icon subviews is non-deterministic and not architecture-safe as a long-term contract.
+- Internal selector/appearance-rule hacks targeting Stripe mini-subview internals are exploratory only and not the final governance-approved solution path.
 
 ### Escalation rule
 - If supported layout params cannot satisfy UX requirements, raise a dedicated architecture task before introducing lower-level Stripe integration alternatives.
