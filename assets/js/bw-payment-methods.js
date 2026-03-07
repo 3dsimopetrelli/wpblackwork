@@ -89,6 +89,21 @@
             }
         }
 
+        var checked = scope.querySelector('input[name="payment_method"]:checked');
+
+        // Explicit current selection is authoritative, and wallet selections
+        // must never be overridden by restore-from-persistence logic.
+        if (checked) {
+            if (isWalletGateway(checked.value)) {
+                return checked;
+            }
+            if (!checked.disabled) {
+                return checked;
+            }
+        }
+
+        // Restore remembered/persisted method only when there is no valid
+        // current selection or the selected method is unavailable.
         if (BW_LAST_SELECTED_METHOD) {
             var remembered = scope.querySelector('input[name="payment_method"][value="' + BW_LAST_SELECTED_METHOD + '"]');
             if (remembered && !remembered.disabled) {
@@ -102,11 +117,6 @@
             if (persistedRadio && !persistedRadio.disabled) {
                 return persistedRadio;
             }
-        }
-
-        var checked = scope.querySelector('input[name="payment_method"]:checked');
-        if (checked && !checked.disabled) {
-            return checked;
         }
 
         var enabled = getEnabledPaymentMethodRadios(scope);
