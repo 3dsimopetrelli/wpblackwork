@@ -211,11 +211,67 @@
         });
     }
 
+    function findNativeGooglePayLaunchTarget() {
+        var candidates = Array.from(document.querySelectorAll(
+            '#wc-stripe-express-checkout-element button, ' +
+            '#wc-stripe-payment-request-wrapper button, ' +
+            '.wc-stripe-payment-request-buttons button, ' +
+            '#wcpay-express-checkout-element button, ' +
+            '.wcpay-express-checkout-wrapper button, ' +
+            'button[aria-label*="Google Pay"], ' +
+            'button[title*="Google Pay"]'
+        ));
+
+        for (var i = 0; i < candidates.length; i += 1) {
+            var btn = candidates[i];
+            if (!btn || btn.id === 'bw-google-pay-trigger' || btn.disabled) {
+                continue;
+            }
+
+            var label = (
+                (btn.getAttribute('aria-label') || '') + ' ' +
+                (btn.getAttribute('title') || '') + ' ' +
+                (btn.textContent || '')
+            ).toLowerCase();
+
+            if (label.indexOf('google') !== -1 || label.indexOf('gpay') !== -1) {
+                return btn;
+            }
+        }
+
+        return null;
+    }
+
+    function forwardClickToNativeGooglePayLauncher() {
+        var target = findNativeGooglePayLaunchTarget();
+        if (!target) {
+            console.warn('[BW Google Pay] native launcher not found for proxy click');
+            return false;
+        }
+
+        console.info('[BW Google Pay] forwarding click to native launcher', {
+            tag: target.tagName,
+            id: target.id || '',
+            classes: target.className || '',
+            ariaLabel: target.getAttribute('aria-label') || '',
+            title: target.getAttribute('title') || ''
+        });
+
+        target.dispatchEvent(new MouseEvent('click', {
+            bubbles: true,
+            cancelable: true,
+            view: window
+        }));
+
+        return true;
+    }
+
     function bindGooglePayLaunchHandler() {
         $(document)
             .off('click.bwgpay', '#bw-google-pay-trigger')
             .on('click.bwgpay', '#bw-google-pay-trigger', function (event) {
                 event.preventDefault();
+                console.info('[BW Google Pay] custom trigger clicked');
 
                 if (!state.paymentRequest || state.technicalError) {
                     console.error('[BW Google Pay] launch blocked: invalid runtime state', {
@@ -225,7 +281,12 @@
                     return;
                 }
 
+                if (forwardClickToNativeGooglePayLauncher()) {
+                    return;
+                }
+
                 try {
+                    console.info('[BW Google Pay] native proxy unavailable, falling back to paymentRequest.show()');
                     var launch = state.paymentRequest.show();
                     if (launch && typeof launch.catch === 'function') {
                         launch.catch(function (error) {
