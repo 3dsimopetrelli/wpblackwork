@@ -29,6 +29,7 @@
     var BW_SELECTOR_SESSION_KEY = 'bw_checkout_selected_payment_method';
     var BW_INTERNAL_RADIO_CHANGE = false;
     var BW_LAST_SELECTED_METHOD = '';
+    var BW_LAST_EXPLICIT_SELECTION = '';
     var BW_PENDING_USER_SELECTION = '';
     var BW_IS_CONVERGING = false;
     var BW_TOOLTIP_DOC_BOUND = false;
@@ -69,6 +70,24 @@
         }) || null;
     }
 
+    function getSelectableRadioByValue(scope, methodValue) {
+        var searchScope = scope || document;
+        if (!methodValue) {
+            return null;
+        }
+
+        var radio = searchScope.querySelector('input[name="payment_method"][value="' + methodValue + '"]');
+        if (!radio || radio.disabled) {
+            return null;
+        }
+
+        if (isWalletGateway(methodValue) && isWalletExplicitlyUnavailable(methodValue)) {
+            return null;
+        }
+
+        return radio;
+    }
+
     function getPaymentContainer() {
         return document.querySelector('#payment');
     }
@@ -84,13 +103,23 @@
         var scope = container || document;
 
         if (preferredValue) {
-            var preferred = scope.querySelector('input[name="payment_method"][value="' + preferredValue + '"]');
-            if (preferred && !preferred.disabled) {
+            var preferred = getSelectableRadioByValue(scope, preferredValue);
+            if (preferred) {
                 return preferred;
             }
         }
 
         var checked = scope.querySelector('input[name="payment_method"]:checked');
+
+        var explicit = getSelectableRadioByValue(scope, BW_LAST_EXPLICIT_SELECTION);
+        if (explicit) {
+            // Validation-triggered checkout refresh can transiently restore the
+            // platform default (card). The user's explicit selection remains
+            // authoritative unless it's actually unavailable.
+            if (!checked || checked.disabled || checked.value !== explicit.value) {
+                return explicit;
+            }
+        }
 
         // Explicit current selection is authoritative, and wallet selections
         // must never be overridden by restore-from-persistence logic.
@@ -300,8 +329,8 @@
      */
     function bwConvergeCheckoutSelectorState(reason, options) { // eslint-disable-line no-unused-vars
         var opts = options || {};
-        if (!opts.preferredValue && BW_PENDING_USER_SELECTION) {
-            opts.preferredValue = BW_PENDING_USER_SELECTION;
+        if (!opts.preferredValue) {
+            opts.preferredValue = BW_PENDING_USER_SELECTION || BW_LAST_EXPLICIT_SELECTION || '';
         }
         if (BW_IS_CONVERGING) {
             return;
@@ -451,6 +480,7 @@
         }
 
         BW_LAST_SELECTED_METHOD = radio.value;
+        BW_LAST_EXPLICIT_SELECTION = radio.value;
         BW_PENDING_USER_SELECTION = radio.value;
         persistSelectedMethod(BW_LAST_SELECTED_METHOD);
         bwConvergeCheckoutSelectorState('method_change', {
@@ -699,6 +729,7 @@
             document.body.classList.add('bw-no-has-support');
         }
         BW_LAST_SELECTED_METHOD = getPersistedSelectedMethod() || BW_LAST_SELECTED_METHOD;
+        BW_LAST_EXPLICIT_SELECTION = BW_LAST_EXPLICIT_SELECTION || BW_LAST_SELECTED_METHOD;
         normalizeCardGatewayTitles();
         bwConvergeCheckoutSelectorState('init');
         handleFormSubmission();
@@ -718,7 +749,9 @@
     if (window.jQuery) {
         window.jQuery(function ($) {
             $(document.body).off('update_checkout.bwWalletUi').on('update_checkout.bwWalletUi', function () {
-                persistSelectedMethod(getSelectedPaymentMethod());
+                var currentSelection = getSelectedPaymentMethod();
+                var authoritativeSelection = BW_PENDING_USER_SELECTION || BW_LAST_EXPLICIT_SELECTION || currentSelection;
+                persistSelectedMethod(authoritativeSelection);
                 bwScheduleSync('update_checkout');
             });
 
