@@ -224,6 +224,31 @@
         return false;
     }
 
+    function getWalletRadio(gatewayId) {
+        return document.querySelector('input[name="payment_method"][value="' + gatewayId + '"]');
+    }
+
+    function isWalletExplicitlyUnavailable(gatewayId) {
+        var radio = getWalletRadio(gatewayId);
+        if (!radio) {
+            return false;
+        }
+
+        var methodRow = radio.closest('.bw-payment-method');
+        var markedUnavailable = radio.hasAttribute('data-bw-unavailable') || (methodRow && methodRow.hasAttribute('data-bw-unavailable'));
+        if (!markedUnavailable) {
+            return false;
+        }
+
+        // Google Pay marks "checking" with data-bw-gpay-checking while still
+        // converging; this must not trigger fallback to card.
+        if (gatewayId === 'bw_google_pay' && radio.hasAttribute('data-bw-gpay-checking')) {
+            return false;
+        }
+
+        return true;
+    }
+
     function updateBodyWalletClass(gatewayId, isActiveWallet) {
         document.body.classList.remove.apply(document.body.classList, BW_BODY_WALLET_CLASSES);
         if (isActiveWallet) {
@@ -237,7 +262,10 @@
         var available = isWallet && isWalletAvailable(selectedGateway);
         var hasActionButton = isWallet && hasWalletActionButton(selectedGateway);
 
-        if (isWallet && (!available || !hasActionButton)) {
+        // Fallback only when wallet is explicitly unavailable.
+        // During first-pass wallet initialization/checking we keep wallet selected
+        // and let wallet scripts converge UI/button availability.
+        if (isWallet && isWalletExplicitlyUnavailable(selectedGateway)) {
             var fallback = findFallbackPaymentMethod(selectedGateway);
             if (fallback) {
                 applySingleRadioSelection(getPaymentContainer(), fallback);
