@@ -39,9 +39,6 @@
     var paymentRequest = null;
     var googlePayAvailable = false;
     var googlePayState = 'checking'; // checking | available | unavailable
-    var googlePayCheckTimer = null;
-    var googlePayCheckStartedAt = 0;
-    window.BW_GPAY_AVAILABLE = false;
 
     // -------------------------------------------------------------------------
     // Helpers
@@ -86,20 +83,6 @@
             $el = $('.woocommerce-Price-amount bdi').last();
         }
         return Math.round(bwParseWcAmount($el.text()) * 100);
-    }
-
-    function bwNormalizeCents(value, fallback) {
-        var parsed = Number(value);
-        if (!Number.isFinite(parsed)) {
-            return fallback;
-        }
-
-        parsed = Math.round(parsed);
-        if (parsed <= 0) {
-            return fallback;
-        }
-
-        return parsed;
     }
 
     /**
@@ -203,50 +186,19 @@
         return true;
     }
 
-    function dedupeGooglePayDom() {
-        var $wrappers = $('#bw-google-pay-button-wrapper');
-        if ($wrappers.length > 1) {
-            $wrappers.slice(1).remove();
-        }
-
-        var $triggers = $('#bw-google-pay-trigger');
-        if ($triggers.length > 1) {
-            $triggers.slice(1).remove();
-        }
-    }
-
-    function syncGooglePayInfoBlock() {
-        var $methodRow = $('li.payment_method_bw_google_pay, li[data-gateway-id="bw_google_pay"]').first();
-        if (!$methodRow.length) {
-            return;
-        }
-
-        var $info = $methodRow.find('.bw-google-pay-info');
-        if (!$info.length) {
-            return;
-        }
-
-        if (googlePayState === 'unavailable') {
-            $info.hide();
-        } else {
-            $info.show();
-        }
-    }
-
-    function scheduleGlobalWalletSync(reason) {
-        if (typeof window.bwScheduleSyncCheckoutActionButtons === 'function') {
-            window.bwScheduleSyncCheckoutActionButtons(reason || 'gpay');
-        }
-    }
-
-    function syncGooglePayUiState() {
+    function handleButtonVisibility() {
         var selectedMethod = $('input[name="payment_method"]:checked').val();
+        var $placeOrder    = $('#place_order');
         var $wrapper       = $('#bw-google-pay-button-wrapper');
         var $placeholder   = $('#bw-google-pay-accordion-placeholder');
         var hasCustomBtn   = $('#bw-google-pay-trigger').length > 0;
         var isGoogleMethod = selectedMethod === 'bw_google_pay';
 
         if (isGoogleMethod) {
+            // While Google Pay is selected, never show the generic Place order button.
+            // This avoids intermediate UI glitches during async capability checks.
+            $placeOrder[0] && $placeOrder[0].style.setProperty('display', 'none', 'important');
+
             if (googlePayState === 'available' && googlePayAvailable) {
                 $wrapper.show();
                 if (hasCustomBtn) {
@@ -258,7 +210,6 @@
             } else {
                 $wrapper.hide();
                 $placeholder.show();
-                renderGooglePayUnavailableState();
             }
 
             if (googlePayAvailable && $('#bw-google-pay-trigger').length === 0) {
@@ -290,51 +241,13 @@
                     $placeholder.hide();
                 }
             }
-            dedupeGooglePayDom();
+        } else {
+            $wrapper.hide();
+            if ($placeOrder[0]) {
+                $placeOrder[0].style.display = '';
+            }
+            $placeOrder.show();
         }
-
-        syncGooglePayInfoBlock();
-        scheduleGlobalWalletSync('gpay_ui');
-    }
-
-    /**
-     * Disable Google Pay radio and fallback to another method if selected.
-     */
-    function disableGooglePaySelection() {
-        var $gpayInput = $('input[name="payment_method"][value="bw_google_pay"]');
-        if (!$gpayInput.length) {
-            return;
-        }
-
-        $gpayInput.attr('data-bw-unavailable', '1');
-        $gpayInput.closest('.bw-payment-method').attr('data-bw-unavailable', '1');
-    }
-
-    function markGooglePayCheckingState() {
-        var $gpayInput = $('input[name="payment_method"][value="bw_google_pay"]');
-        if (!$gpayInput.length) {
-            return;
-        }
-
-        // Keep the gateway selectable while availability check is in progress.
-        // Convergence fallback is handled by the shared selector runtime only
-        // when Google Pay is explicitly unavailable (not merely "checking").
-        $gpayInput.prop('disabled', false).removeAttr('aria-disabled');
-        $gpayInput.attr('data-bw-unavailable', '1');
-        $gpayInput.attr('data-bw-gpay-checking', '1');
-        $gpayInput.closest('.bw-payment-method').attr('data-bw-unavailable', '1');
-    }
-
-    function markGooglePayAvailableState() {
-        var $gpayInput = $('input[name="payment_method"][value="bw_google_pay"]');
-        if (!$gpayInput.length) {
-            return;
-        }
-
-        $gpayInput.prop('disabled', false).removeAttr('aria-disabled');
-        $gpayInput.removeAttr('data-bw-unavailable');
-        $gpayInput.removeAttr('data-bw-gpay-checking');
-        $gpayInput.closest('.bw-payment-method').removeAttr('data-bw-unavailable');
     }
 
     /**
@@ -356,27 +269,22 @@
             '</div>';
     }
 
-    function setGooglePayUnavailable(message, debugReason) {
-        googlePayAvailable = false;
-        window.BW_GPAY_AVAILABLE = false;
-        googlePayState = 'unavailable';
-        clearTimeout(googlePayCheckTimer);
-        renderGooglePayUnavailableState();
-        if (message) {
-            var placeholder = document.getElementById('bw-google-pay-accordion-placeholder');
-            if (placeholder) {
-                placeholder.innerHTML = '' +
-                    '<div class="bw-gpay-unavailable" role="status" aria-live="polite">' +
-                        '<p class="bw-gpay-unavailable__title">Google Pay is temporarily unavailable.</p>' +
-                        '<p class="bw-gpay-unavailable__text">' + message + '</p>' +
-                    '</div>';
+    /**
+     * MutationObserver to prevent WooCommerce or theme scripts from
+     * overriding our display:none on #place_order.
+     */
+    function observePlaceOrderButton() {
+        var target = document.getElementById('place_order');
+        if (!target) return;
+
+        var observer = new MutationObserver(function () {
+            if ($('input[name="payment_method"]:checked').val() === 'bw_google_pay' &&
+                target.style.display !== 'none') {
+                target.style.setProperty('display', 'none', 'important');
             }
-        }
-        disableGooglePaySelection();
-        syncGooglePayUiState();
-        if (debugReason) {
-            console.error('[BW Google Pay] unavailable reason:', debugReason);
-        }
+        });
+
+        observer.observe(target, { attributes: true, attributeFilter: ['style', 'class'] });
     }
 
     // -------------------------------------------------------------------------
@@ -443,18 +351,9 @@
     // -------------------------------------------------------------------------
 
     function initGooglePay() {
-        // Prefer the server-side total (set at page load via wp_localize_script).
-        // Fall back to DOM scraping only if the PHP value is missing/zero.
-        var initialCents = (bwGooglePayParams.orderTotalCents > 0)
-            ? bwGooglePayParams.orderTotalCents
-            : bwGetOrderTotalCents();
-        initialCents = bwNormalizeCents(initialCents, 100);
+        var initialCents = bwGetOrderTotalCents();
         googlePayState = 'checking';
         googlePayAvailable = false;
-        window.BW_GPAY_AVAILABLE = false;
-        googlePayCheckStartedAt = Date.now();
-        markGooglePayCheckingState();
-        syncGooglePayUiState();
 
         // Fallback to safe defaults if WC settings are empty (avoids Stripe validation error).
         var country  = (bwGooglePayParams.country  || 'IT').toUpperCase();
@@ -466,71 +365,27 @@
                 currency: currency,
                 total: {
                     label:  'Ordine BlackWork',
-                    amount: initialCents, // Stripe requires a positive integer
+                    amount: initialCents || 100, // Stripe requires a positive integer
                 },
                 requestPayerName:  true,
                 requestPayerEmail: true,
                 requestPayerPhone: true,
             });
         } catch (err) {
-            setGooglePayUnavailable(
-                'Google Pay initialization failed. Please choose another payment method or refresh the page.',
-                err && err.message ? err.message : err
-            );
+            BW_GOOGLE_PAY_DEBUG && console.error('[BW Google Pay] stripe.paymentRequest() error:', err);
             return;
         }
 
         BW_GOOGLE_PAY_DEBUG && console.log('[BW Google Pay] Params:', { country: country, currency: currency, cents: initialCents });
 
-        clearTimeout(googlePayCheckTimer);
-        googlePayCheckTimer = setTimeout(function () {
-            if (googlePayState !== 'checking') {
-                return;
-            }
-            setGooglePayUnavailable(
-                'Google Pay check timed out. Please refresh and try again, or choose another payment method.',
-                'canMakePayment timeout > 6000ms'
-            );
-        }, 6000);
-
         paymentRequest.canMakePayment().then(function (result) {
             BW_GOOGLE_PAY_DEBUG && console.log('[BW Google Pay] canMakePayment result:', result);
-            clearTimeout(googlePayCheckTimer);
             googlePayAvailable = bwCanShowGooglePay(result);
-            window.BW_GPAY_AVAILABLE = googlePayAvailable === true;
             googlePayState = googlePayAvailable ? 'available' : 'unavailable';
 
             if (googlePayAvailable) {
-                // Google Pay is explicitly available on this device/browser.
-                BW_GOOGLE_PAY_DEBUG && console.log('[BW Google Pay] Google Pay disponibile:', result);
-                markGooglePayAvailableState();
                 $('#bw-google-pay-accordion-placeholder').hide();
-                syncGooglePayUiState();
-
-                $(document).off('click.bwgpay', '#bw-google-pay-trigger')
-                           .on('click.bwgpay', '#bw-google-pay-trigger', function (e) {
-                    e.preventDefault();
-                    if (!bwValidateRequiredCheckoutFields()) {
-                        BW_GOOGLE_PAY_DEBUG && console.warn('[BW Google Pay] Campi obbligatori mancanti: popup bloccato.');
-                        return;
-                    }
-                    paymentRequest.show();
-                });
-
-            } else if (bwGooglePayParams.testMode) {
-                /*
-                 * TEST MODE FALLBACK
-                 * canMakePayment() returns null when the browser has no Google Pay
-                 * or Stripe Link configured.  In test mode we still render the button
-                 * so the UI/payment flow can be verified.  In production the button is
-                 * only shown when the device genuinely supports it.
-                 */
-                BW_GOOGLE_PAY_DEBUG && console.warn('[BW Google Pay] Test mode: canMakePayment null — forcing button visible for UI testing.');
-
-                $('#bw-google-pay-accordion-placeholder').hide();
-                markGooglePayAvailableState();
-                dedupeGooglePayDom();
-                syncGooglePayUiState();
+                handleButtonVisibility();
 
                 $(document).off('click.bwgpay', '#bw-google-pay-trigger')
                     .on('click.bwgpay', '#bw-google-pay-trigger', function (e) {
@@ -543,16 +398,15 @@
                     });
             } else {
                 BW_GOOGLE_PAY_DEBUG && console.log('[BW Google Pay] Non disponibile su questo dispositivo/browser.');
-                setGooglePayUnavailable(
-                    'Google Pay is not available on this device/browser. Please add a supported card to Google Wallet or use another payment method.',
-                    'canMakePayment returned no googlePay support'
-                );
+                $('#bw-google-pay-button-wrapper').hide();
+                renderGooglePayUnavailableState();
+
+                handleButtonVisibility();
             }
         }).catch(function () {
-            setGooglePayUnavailable(
-                'Google Pay check failed. Please refresh and try again, or choose another payment method.',
-                'canMakePayment promise rejected'
-            );
+            googlePayAvailable = false;
+            googlePayState = 'unavailable';
+            handleButtonVisibility();
         });
 
         // Fires when the customer approves the payment in the Google Pay sheet.
@@ -560,66 +414,31 @@
             BW_GOOGLE_PAY_DEBUG && console.log('[BW Google Pay] paymentMethod ricevuto:', ev.paymentMethod.id);
             submitCheckoutWithGooglePay(ev, ev.paymentMethod.id);
         });
-
-        paymentRequest.on('cancel', function () {
-            BW_GOOGLE_PAY_DEBUG && console.log('[BW Google Pay] Payment sheet canceled by customer.');
-            if (bwGooglePayParams && bwGooglePayParams.adminDebug) {
-                console.info('[BW Wallet Debug][gpay_cancel]', {
-                    gateway_id: 'bw_google_pay',
-                    order_id: null,
-                    order_status: 'checkout',
-                    redirect_status: 'canceled',
-                    is_paid: false,
-                    is_cart_empty: null
-                });
-            }
-            window.bwCheckout.renderCheckoutNotice('error', 'Google Pay payment was canceled. You can try again or choose another payment method.');
-            $('#bw_google_pay_method_id').val('');
-            window.bwCheckout.removeLoadingState();
-            $(document.body).trigger('update_checkout');
-        });
     }
 
     // -------------------------------------------------------------------------
     // Initialisation
     // -------------------------------------------------------------------------
 
-        $(document).ready(function () {
+    $(document).ready(function () {
         initGooglePay();
+        observePlaceOrderButton();
 
-        $(document.body).off('change.bwgpay', 'input[name="payment_method"]').on('change.bwgpay', 'input[name="payment_method"]', function () {
-            syncGooglePayUiState();
+        $(document.body).on('change', 'input[name="payment_method"]', function () {
+            handleButtonVisibility();
         });
 
-        $(document.body).off('updated_checkout.bwgpay').on('updated_checkout.bwgpay', function () {
-            // WooCommerce replaces payment-method markup on every refresh.
-            // Re-apply Google Pay radio state to the newly rendered input.
-            if (googlePayState === 'available' && googlePayAvailable) {
-                markGooglePayAvailableState();
-            } else if (googlePayState === 'checking') {
-                markGooglePayCheckingState();
-            } else if (googlePayState === 'unavailable') {
-                disableGooglePaySelection();
-            }
-
-            dedupeGooglePayDom();
-            syncGooglePayUiState();
+        $(document.body).on('updated_checkout', function () {
+            handleButtonVisibility();
 
             // WooCommerce can re-render payment fields and bring back the placeholder:
             // keep it hidden when Google Pay button is already available.
             if ($('#bw-google-pay-trigger').length) {
                 $('#bw-google-pay-accordion-placeholder').hide();
-            } else if (googlePayState === 'unavailable') {
-                renderGooglePayUnavailableState();
-            } else if (googlePayState === 'checking' && (Date.now() - googlePayCheckStartedAt) > 6500) {
-                setGooglePayUnavailable(
-                    'Google Pay check timed out. Please refresh and try again, or choose another payment method.',
-                    'stuck checking after updated_checkout refresh'
-                );
             }
 
             if (paymentRequest) {
-                var updatedCents = bwNormalizeCents(bwGetOrderTotalCents(), 100);
+                var updatedCents = bwGetOrderTotalCents() || 100;
                 BW_GOOGLE_PAY_DEBUG && console.log('[BW Google Pay] Aggiornamento totale:', updatedCents, 'centesimi');
                 paymentRequest.update({
                     total: {
@@ -630,7 +449,7 @@
             }
         });
 
-        syncGooglePayUiState();
+        handleButtonVisibility();
     });
 
 })(jQuery);
