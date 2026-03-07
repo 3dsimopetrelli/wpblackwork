@@ -317,7 +317,9 @@
 
             if (BW_PENDING_USER_SELECTION) {
                 var pendingRadio = document.querySelector('input[name="payment_method"][value="' + BW_PENDING_USER_SELECTION + '"]');
-                var pendingUnavailable = pendingRadio && pendingRadio.hasAttribute('data-bw-unavailable');
+                var pendingUnavailable = pendingRadio && isWalletGateway(BW_PENDING_USER_SELECTION)
+                    ? isWalletExplicitlyUnavailable(BW_PENDING_USER_SELECTION)
+                    : (pendingRadio && pendingRadio.hasAttribute('data-bw-unavailable'));
                 if (!pendingRadio || pendingRadio.disabled || pendingUnavailable || (selectedRadio && selectedRadio.value === BW_PENDING_USER_SELECTION)) {
                     BW_PENDING_USER_SELECTION = '';
                 }
