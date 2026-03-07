@@ -1854,6 +1854,12 @@ function bw_mew_customize_stripe_elements_style($options)
  */
 function bw_mew_customize_stripe_upe_appearance($params)
 {
+    // Keep Payment Element in accordion mode (tabs not allowed for this surface).
+    $params['layout'] = array(
+        'type' => 'accordion',
+        'defaultCollapsed' => false,
+    );
+
     // Add appearance configuration to UPE params
     $params['appearance'] = array(
         'theme' => 'flat',
@@ -1983,6 +1989,68 @@ function bw_mew_customize_stripe_upe_appearance($params)
             ),
             '.AccordionButton' => array(
                 'display' => 'none !important',
+            ),
+            '.PaymentAccordionButtonView' => array(
+                'display' => 'none !important',
+                'height' => '0 !important',
+                'minHeight' => '0 !important',
+                'overflow' => 'hidden !important',
+            ),
+            '.p-PaymentAccordionButtonView' => array(
+                'display' => 'none !important',
+                'height' => '0 !important',
+                'minHeight' => '0 !important',
+                'maxHeight' => '0 !important',
+                'padding' => '0 !important',
+                'margin' => '0 !important',
+                'overflow' => 'hidden !important',
+                'opacity' => '0',
+                'visibility' => 'hidden',
+            ),
+            '.PaymentAccordionButtonIconContainer' => array(
+                'display' => 'none !important',
+                'height' => '0 !important',
+                'width' => '0 !important',
+                'overflow' => 'hidden !important',
+            ),
+            '.p-PaymentAccordionButtonIconContainer' => array(
+                'display' => 'none !important',
+                'height' => '0 !important',
+                'width' => '0 !important',
+                'minWidth' => '0 !important',
+                'padding' => '0 !important',
+                'margin' => '0 !important',
+                'overflow' => 'hidden !important',
+                'opacity' => '0',
+                'visibility' => 'hidden',
+            ),
+            '.PaymentAccordionButtonText' => array(
+                'display' => 'none !important',
+                'height' => '0 !important',
+                'overflow' => 'hidden !important',
+                'opacity' => '0',
+            ),
+            '.p-PaymentAccordionButtonText' => array(
+                'display' => 'none !important',
+                'height' => '0 !important',
+                'maxHeight' => '0 !important',
+                'padding' => '0 !important',
+                'margin' => '0 !important',
+                'overflow' => 'hidden !important',
+                'opacity' => '0',
+                'visibility' => 'hidden',
+            ),
+            '.p-HeightObserver' => array(
+                'height' => '0 !important',
+                'minHeight' => '0 !important',
+                'maxHeight' => '0 !important',
+                'overflow' => 'hidden !important',
+            ),
+            '.p-HeightObserver--delayIncrease' => array(
+                'height' => '0 !important',
+                'minHeight' => '0 !important',
+                'maxHeight' => '0 !important',
+                'overflow' => 'hidden !important',
             ),
         ),
     );

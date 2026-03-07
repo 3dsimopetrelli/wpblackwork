@@ -354,6 +354,18 @@ Future strategy:
 - Blackwork must not implement parallel custom wallet launchers when Stripe/WCPay already owns wallet runtime.
 - Future wallet integrations must use authoritative Stripe/WCPay integration points only.
 
+### Entry 029
+- Date: 2026-03-07
+- Decision summary: Stripe Payment Element internal card subview handling delegated to supported UPE params (`wc_stripe_upe_params`) with accordion-preserving `appearance.rules`, instead of external CSS masking/hiding hacks.
+- Affected domain: Checkout / Stripe Payment Element UI ownership boundary
+- Rationale: There is no confirmed dedicated official toggle to hide only the internal "Card + icon" mini-subview; the governance-safe control point in this integration is plugin-level UPE params (`appearance.rules`) applied by Stripe runtime while keeping accordion.
+- Risk impact: Medium reduced to Low-Medium by removing brittle selector-level overrides and using authoritative config path.
+- Follow-up actions:
+  - Keep Payment Element layout pinned to `accordion` in `bw_mew_customize_stripe_upe_appearance()`.
+  - Keep internal subview neutralization in `appearance.rules` via `wc_stripe_upe_params`.
+  - Avoid new CSS rules targeting Stripe internal `p-*` card mini-subview nodes as primary behavior control.
+  - Treat any migration to alternative Stripe card integration as a separate architecture task with full regression gate.
+
 ## Governance Layer Closure
 
 Status: CLOSED  

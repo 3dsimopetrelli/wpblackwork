@@ -189,6 +189,23 @@ Each gateway implementation is expected to satisfy these responsibilities.
 - Any future wallet integration must use authoritative Stripe/WCPay integration points only.
 - Do not implement parallel custom wallet launcher runtimes when Stripe/WCPay already owns the wallet lifecycle.
 
+## Stripe Payment Element UI Control Boundary
+
+### Authoritative control point
+- Stripe Payment Element UI structure must be controlled through supported Stripe/Woo params pipeline, not by targeting internal rendered subnodes.
+- In Blackwork this control point is:
+  - filter `wc_stripe_upe_params`
+  - function `bw_mew_customize_stripe_upe_appearance()` in `woocommerce/woocommerce-init.php`.
+
+### Supported approach
+- Payment Element layout/appearance changes must be applied via params (for example layout type), not via fragile CSS overrides on Stripe internal `p-*` class hierarchy.
+
+### Unsupported primary approach
+- Using external CSS as primary control to remove Stripe internal card/icon subviews is non-deterministic and not architecture-safe as a long-term contract.
+
+### Escalation rule
+- If supported layout params cannot satisfy UX requirements, raise a dedicated architecture task before introducing lower-level Stripe integration alternatives.
+
 ## 6) Precedence & Mode Rules
 
 ### Custom toggle vs Woo enable
