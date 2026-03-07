@@ -261,7 +261,12 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
   - Idempotent rebind protections: bootstrapping guard, namespaced/off-on jQuery handlers, and deduped tooltip/wallet DOM hooks.
   - Wallet/UPE interference containment: unavailable wallet selection is reconciled to valid non-wallet gateway with synchronized action-button visibility.
   - Shared scheduled reconciliation on `updated_checkout`, `payment_method_selected`, and `checkout_error`.
-- Monitoring Status: Monitoring
+- Closure Note:
+  - Root cause: validation-driven WooCommerce refresh cycles could transiently restore card as DOM checked default, overriding explicit user-selected method.
+  - Fix: explicit-selection authority model in selector runtime (`BW_PENDING_USER_SELECTION` -> `BW_LAST_EXPLICIT_SELECTION` -> persisted value -> DOM checked fallback), with restore constrained to actually selectable methods.
+  - Validation evidence: manual checkout tests confirmed Klarna, PayPal, and Card selection persistence across `checkout_error` + `update_checkout` refresh cycles; selected radio, visible panel, and CTA remained aligned.
+  - Scope boundary: Apple Pay selection converges correctly; Google Pay fallback to card occurred only when Google Pay was explicitly unavailable/ineligible in runtime evidence. Remaining Google Pay eligibility behavior is tracked under `R-PAY-03` (wallet availability/state drift), not `R-CHK-01`.
+- Monitoring Status: Closed -> Monitoring
 - Linked Documents:
   - [Blast-Radius Consolidation Map](./blast-radius-consolidation-map.md)
   - [Checkout Payment Selector Audit](../50-ops/audits/checkout-payment-selector-audit.md)

@@ -178,6 +178,57 @@ Each gateway implementation is expected to satisfy these responsibilities.
 - Custom selector (`payment.php` + `bw-payment-methods.js`) is the operative checkout payment UI.
 - Stripe UPE components are visually constrained/cleaned to prevent duplicate method controls.
 
+## Checkout Payment Selector Determinism Model
+
+### 1) Explicit User Selection Authority
+- The explicit payment method selected by the user is authoritative.
+- Runtime variables enforcing this rule:
+  - `BW_PENDING_USER_SELECTION`
+  - `BW_LAST_EXPLICIT_SELECTION`
+- These sources must always take priority over transient DOM states.
+
+### 2) WooCommerce Refresh Cycles
+- WooCommerce frequently re-renders checkout during:
+  - checkout validation errors
+  - shipping changes
+  - address changes
+  - payment updates
+- These refresh cycles can temporarily reset the DOM checked radio.
+- The system must never treat transient DOM refresh state as authoritative.
+
+### 3) Payment Method Persistence Contract
+- Explicit user choice must survive:
+  - checkout validation errors
+  - `update_checkout` / `updated_checkout` events
+  - fragment refresh
+  - wallet cancel/return flows
+  - focus/visibility/page restore
+- Fallback to another payment method is allowed only when the previously selected method becomes unavailable.
+
+### 4) Wallet Special Handling
+- Wallet methods (Apple Pay / Google Pay) have additional runtime states:
+  - checking
+  - available
+  - unavailable
+- Wallet availability state must not override explicit user selection unless the wallet is truly unavailable.
+
+### 5) UI Convergence Rule
+- At all times the following must remain aligned:
+  - selected radio input
+  - visible accordion panel
+  - active payment controls
+- Any mismatch between these three states is a checkout integrity defect.
+
+### 6) Governance Rule
+- Any future modification touching:
+  - `bw-payment-methods.js`
+  - wallet availability logic
+  - checkout payment selector UI
+  must preserve this determinism contract.
+- Violations require:
+  - governance review
+  - regression testing against selector persistence scenarios.
+
 ## 7) High-Risk Zones
 Blast-radius hotspots:
 - `woocommerce/templates/checkout/payment.php`
