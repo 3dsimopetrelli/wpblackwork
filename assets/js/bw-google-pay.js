@@ -592,6 +592,16 @@
         });
 
         $(document.body).off('updated_checkout.bwgpay').on('updated_checkout.bwgpay', function () {
+            // WooCommerce replaces payment-method markup on every refresh.
+            // Re-apply Google Pay radio state to the newly rendered input.
+            if (googlePayState === 'available' && googlePayAvailable) {
+                markGooglePayAvailableState();
+            } else if (googlePayState === 'checking') {
+                markGooglePayCheckingState();
+            } else if (googlePayState === 'unavailable') {
+                disableGooglePaySelection();
+            }
+
             dedupeGooglePayDom();
             syncGooglePayUiState();
 
