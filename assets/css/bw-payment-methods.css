@@ -1056,20 +1056,12 @@ body.woocommerce-checkout .bw-payment-method__fields .wc-stripe-upe-element ifra
 	-webkit-clip-path: none;
 }
 
-/* Stripe UPE newer versions render the "Card" accordion row in the parent DOM
-   (outside the iframe) using internal class names like p-PaymentAccordionButtonView.
-   Use broad selectors so the rule applies regardless of where Stripe places the element.
-   JS in bw-stripe-upe-cleaner.js provides a second layer via MutationObserver. */
-body.woocommerce-checkout [class*="PaymentAccordionButtonView"],
-body.woocommerce-checkout [data-testid="payment-accordion-wrapper"] {
+/* Stripe Payment Element: remove Stripe internal card subview (icon + "Card" text)
+   only inside the Stripe payment method header, keeping outer method label visible. */
+body.woocommerce-checkout li.wc_payment_method.payment_method_stripe .p-PaymentAccordionButtonView {
 	display: none !important;
-}
-
-/* Stripe Payment Element: hide only the card icon in the card method header.
-   Scoped to Stripe method row so other gateway/wallet icons remain unaffected. */
-body.woocommerce-checkout li.wc_payment_method.payment_method_stripe .p-PaymentAccordionButtonIconContainer,
-body.woocommerce-checkout li.wc_payment_method.payment_method_stripe .p-PaymentAccordionButtonIcon {
-	display: none !important;
+	margin: 0 !important;
+	padding: 0 !important;
 }
 
 /* Remove any ::before pseudo-element from payment box */
