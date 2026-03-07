@@ -136,41 +136,6 @@
         return Math.max(1, Math.round(parseWcAmount(orderTotalNode ? orderTotalNode.textContent : '') * 100));
     }
 
-    function validateCheckoutFields() {
-        var form = document.querySelector('form.checkout');
-        if (!form) {
-            return true;
-        }
-
-        var requiredRows = form.querySelectorAll('.validate-required');
-        for (var i = 0; i < requiredRows.length; i += 1) {
-            var row = requiredRows[i];
-            if (row.offsetParent === null) {
-                continue;
-            }
-
-            var input = row.querySelector('input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled])');
-            if (!input) {
-                continue;
-            }
-
-            var type = (input.getAttribute('type') || '').toLowerCase();
-            var isValid = (type === 'checkbox') ? !!input.checked : String(input.value || '').trim() !== '';
-
-            if (!isValid) {
-                row.classList.remove('woocommerce-validated');
-                row.classList.add('woocommerce-invalid');
-                input.focus();
-                return false;
-            }
-
-            row.classList.remove('woocommerce-invalid');
-            row.classList.add('woocommerce-validated');
-        }
-
-        return true;
-    }
-
     function submitCheckoutWithGooglePay(ev, methodId) {
         var $form = $('form.checkout');
         if (!$form.length) {
@@ -235,10 +200,12 @@
                 event.preventDefault();
 
                 if (!state.paymentRequest || state.technicalError) {
-                    return;
-                }
-
-                if (!validateCheckoutFields()) {
+                    if (window.console && typeof window.console.error === 'function') {
+                        window.console.error('[BW Google Pay] launch blocked: paymentRequest unavailable or technical error state', {
+                            hasPaymentRequest: !!state.paymentRequest,
+                            technicalError: state.technicalError
+                        });
+                    }
                     return;
                 }
 
@@ -246,11 +213,15 @@
                     var showResult = state.paymentRequest.show();
                     if (showResult && typeof showResult.catch === 'function') {
                         showResult.catch(function (error) {
-                            debugLog('[BW Google Pay] show() rejected', error);
+                            if (window.console && typeof window.console.error === 'function') {
+                                window.console.error('[BW Google Pay] show() rejected', error);
+                            }
                         });
                     }
                 } catch (error) {
-                    debugLog('[BW Google Pay] show() threw', error);
+                    if (window.console && typeof window.console.error === 'function') {
+                        window.console.error('[BW Google Pay] show() threw', error);
+                    }
                 }
             });
     }
