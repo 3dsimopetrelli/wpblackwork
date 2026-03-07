@@ -4,7 +4,10 @@
     var state = {
         paymentRequest: null,
         technicalError: false,
-        initialized: false
+        initialized: false,
+        canMakePaymentChecked: false,
+        canMakePaymentResult: null,
+        launchReady: false
     };
 
     function getGooglePayRadio() {
@@ -211,6 +214,32 @@
         });
     }
 
+    function runCanMakePaymentCheck() {
+        if (!state.paymentRequest) {
+            console.warn('[BW Google Pay] canMakePayment skipped: paymentRequest missing');
+            return;
+        }
+
+        state.paymentRequest.canMakePayment().then(function (result) {
+            state.canMakePaymentChecked = true;
+            state.canMakePaymentResult = result || null;
+            // Lifecycle guard: Stripe requires canMakePayment() to run before show().
+            // launchReady is true once check completed and at least one wallet capability exists.
+            state.launchReady = !!result;
+
+            console.info('[BW Google Pay] canMakePayment completed', {
+                result: result,
+                launchReady: state.launchReady
+            });
+        }).catch(function (error) {
+            state.canMakePaymentChecked = true;
+            state.canMakePaymentResult = null;
+            state.launchReady = false;
+
+            console.error('[BW Google Pay] canMakePayment failed', error);
+        });
+    }
+
     function findNativeGooglePayLaunchTarget() {
         var candidates = Array.from(document.querySelectorAll(
             '#wc-stripe-express-checkout-element button, ' +
@@ -221,6 +250,23 @@
             'button[aria-label*="Google Pay"], ' +
             'button[title*="Google Pay"]'
         ));
+
+        console.info('[BW Google Pay] native launcher candidates', {
+            count: candidates.length,
+            nodes: candidates.map(function (btn) {
+                var rect = btn.getBoundingClientRect ? btn.getBoundingClientRect() : { width: 0, height: 0 };
+                return {
+                    tag: btn.tagName,
+                    id: btn.id || '',
+                    classes: btn.className || '',
+                    ariaLabel: btn.getAttribute('aria-label') || '',
+                    title: btn.getAttribute('title') || '',
+                    connected: !!btn.isConnected,
+                    visible: rect.width > 0 && rect.height > 0,
+                    disabled: !!btn.disabled
+                };
+            })
+        });
 
         for (var i = 0; i < candidates.length; i += 1) {
             var btn = candidates[i];
@@ -254,7 +300,8 @@
             id: target.id || '',
             classes: target.className || '',
             ariaLabel: target.getAttribute('aria-label') || '',
-            title: target.getAttribute('title') || ''
+            title: target.getAttribute('title') || '',
+            connected: !!target.isConnected
         });
 
         target.dispatchEvent(new MouseEvent('click', {
@@ -282,6 +329,17 @@
                 }
 
                 if (forwardClickToNativeGooglePayLauncher()) {
+                    return;
+                }
+
+                console.info('[BW Google Pay] paymentRequest readiness state', {
+                    canMakePaymentChecked: state.canMakePaymentChecked,
+                    canMakePaymentResult: state.canMakePaymentResult,
+                    launchReady: state.launchReady
+                });
+
+                if (!state.canMakePaymentChecked || !state.launchReady) {
+                    console.warn('[BW Google Pay] fallback show() skipped: readiness invalid');
                     return;
                 }
 
@@ -365,6 +423,7 @@
         window.BW_GPAY_AVAILABLE = true;
         markGooglePayAvailable();
         scheduleSelectorSync('gpay_ready');
+        runCanMakePaymentCheck();
 
         state.initialized = true;
     }
