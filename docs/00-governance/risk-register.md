@@ -281,12 +281,16 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 - Impact: High
 - Likelihood: Medium
 - Risk Level: High
-- Current Mitigation: None in runtime path; tracked as open hardening item.
-- Monitoring Status: Open
-- Mitigation Path: Replace `arguments.callee` retry with a named retry function bound to the same bootstrap flow.
+- Status: Mitigated
+- Current Mitigation: Replaced `arguments.callee` with named retry function `initBwCheckout` in checkout bootstrap path; strict-mode-safe retry behavior preserved.
+- Monitoring Status: Closed -> Monitoring
+- Mitigation Path: Completed via `BW-TASK-20260308-01`.
+- Task: `BW-TASK-20260308-01`
+- Date: `2026-03-08`
 - Linked Documents:
   - [Core Evolution Plan](../00-planning/core-evolution-plan.md)
   - [BW-TASK-20260307-radar-batch2-validation](../tasks/BW-TASK-20260307-radar-batch2-validation.md)
+  - [BW-TASK-20260308-01 Closure](../tasks/BW-TASK-20260308-01-closure.md)
 
 ### Risk ID: R-PAY-02
 - Domain: Payments / Checkout

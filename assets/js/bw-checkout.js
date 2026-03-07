@@ -1,4 +1,4 @@
-(function () {
+(function initBwCheckout() {
     'use strict';
 
     // Debug flag — set window.BW_CHECKOUT_DEBUG = true in the browser console to enable logging
@@ -12,7 +12,7 @@
     if (!$) {
         BW_CHECKOUT_DEBUG && console.log('[BW Checkout] jQuery not ready, will retry');
         // jQuery not loaded, retry after short delay
-        setTimeout(arguments.callee, 100);
+        setTimeout(initBwCheckout, 100);
         return;
     }
 
