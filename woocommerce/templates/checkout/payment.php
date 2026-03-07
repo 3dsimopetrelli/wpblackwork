@@ -441,13 +441,17 @@ if (!wp_doing_ajax()) {
 			<span class="bw-mobile-total-amount">—</span>
 		</div>
 
-		<div id="bw-google-pay-button-wrapper" style="display: none;">
-			<div id="bw-google-pay-button"></div>
-		</div>
+			<?php if ( ! empty( $available_gateways['bw_google_pay'] ) ) : ?>
+				<div id="bw-google-pay-button-wrapper" style="display: none;">
+					<div id="bw-google-pay-button"></div>
+				</div>
+			<?php endif; ?>
 
-		<div id="bw-apple-pay-button-wrapper" style="display: none;">
-			<div id="bw-apple-pay-button"></div>
-		</div>
+			<?php if ( ! empty( $available_gateways['bw_apple_pay'] ) ) : ?>
+				<div id="bw-apple-pay-button-wrapper" style="display: none;">
+					<div id="bw-apple-pay-button"></div>
+				</div>
+			<?php endif; ?>
 
 		<button type="submit"
 			class="button alt bw-place-order-btn<?php echo esc_attr(wc_wp_theme_get_element_class_name('button') ? ' ' . wc_wp_theme_get_element_class_name('button') : ''); ?>"
