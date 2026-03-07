@@ -32,6 +32,11 @@
 (function ($) {
     'use strict';
 
+    if (window.__BW_STRIPE_UPE_CLEANER_BOOTSTRAPPED__) {
+        return;
+    }
+    window.__BW_STRIPE_UPE_CLEANER_BOOTSTRAPPED__ = true;
+
     /* Selectors to hide — every element matching any of these gets display:none inline. */
     var SELECTORS = [
         '.p-AccordionButton[data-value="card"]',
@@ -42,6 +47,9 @@
 
     /* WeakSet to track which elements already have a per-element observer. */
     var watched = (typeof WeakSet !== 'undefined') ? new WeakSet() : null;
+    var rootObserver = null;
+    var pollIntervalId = null;
+    var delayedPasses = [];
 
     function forceHide(el) {
         el.style.setProperty('display', 'none', 'important');
@@ -70,37 +78,51 @@
     /* Global DOM observer: catch elements added asynchronously by Stripe. */
     function initDomObserver() {
         if (!window.MutationObserver) { return; }
-        new MutationObserver(function () {
+        if (rootObserver) { return; }
+        rootObserver = new MutationObserver(function () {
             hideAll();
-        }).observe(document.body, { childList: true, subtree: true });
+        });
+        rootObserver.observe(document.body, { childList: true, subtree: true });
     }
 
     /* setInterval safety net: Stripe may show elements between our MO callbacks. */
     function startPolling() {
+        if (pollIntervalId) {
+            clearInterval(pollIntervalId);
+            pollIntervalId = null;
+        }
+
         var ticks = 0;
-        var interval = setInterval(function () {
+        pollIntervalId = setInterval(function () {
             hideAll();
             ticks++;
-            if (ticks >= 20) { clearInterval(interval); } /* stop after 4 s (20 × 200 ms) */
+            if (ticks >= 20) {
+                clearInterval(pollIntervalId);
+                pollIntervalId = null;
+            } /* stop after 4 s (20 × 200 ms) */
         }, 200);
+    }
+
+    function scheduleDelayedPasses() {
+        delayedPasses.forEach(function (id) { clearTimeout(id); });
+        delayedPasses = [];
+        [500, 1000, 2000].forEach(function (ms) {
+            delayedPasses.push(setTimeout(hideAll, ms));
+        });
     }
 
     $(document).ready(function () {
         hideAll();
         initDomObserver();
         startPolling();
-
-        /* Extra passes at common Stripe render milestones. */
-        setTimeout(hideAll, 500);
-        setTimeout(hideAll, 1000);
-        setTimeout(hideAll, 2000);
+        scheduleDelayedPasses();
     });
 
     /* Re-run after WooCommerce checkout AJAX updates. */
-    $(document.body).on('updated_checkout', function () {
+    $(document.body).off('updated_checkout.bwUpeCleaner').on('updated_checkout.bwUpeCleaner', function () {
         hideAll();
         startPolling();
-        setTimeout(hideAll, 500);
+        scheduleDelayedPasses();
     });
 
 })(jQuery);

@@ -679,12 +679,6 @@ class BW_Checkout_Subscribe_Frontend {
         } elseif ( isset( $_POST['billing'] ) && is_array( $_POST['billing'] ) && array_key_exists( 'bw_subscribe_newsletter', $_POST['billing'] ) ) {
             $raw_value = (string) wp_unslash( $_POST['billing']['bw_subscribe_newsletter'] );
             $field_received = 'yes';
-        } elseif ( function_exists( 'WC' ) && WC()->checkout() ) {
-            $wc_value = WC()->checkout()->get_value( 'bw_subscribe_newsletter' );
-            if ( null !== $wc_value && '' !== (string) $wc_value ) {
-                $raw_value = (string) $wc_value;
-                $field_received = 'yes';
-            }
         }
 
         if ( isset( $_POST['bw_subscribe_newsletter_frontend'] ) ) {

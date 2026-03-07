@@ -276,6 +276,7 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 - Likelihood: Medium
 - Risk Level: High
 - Current Mitigation: Triple-layer suppression (UPE params style rules, cleaner script with MutationObserver, polling fallback).
+  - Cleaner runtime now includes bootstrap/idempotency guard, namespaced `updated_checkout` rebinding, and de-duplicated polling timers to avoid listener/poller accumulation across refresh cycles.
 - Monitoring Status: Monitoring
 - Linked Documents:
 
@@ -435,6 +436,9 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 - Likelihood: Low-Medium
 - Risk Level: Medium-High
 - Current Mitigation: Hard consent gate checks, paid-hook gating, local meta audit trail, non-blocking behavior, and timing-aware monitoring to detect anomalous hook-order paths.
+  - Fallback consent inference via `WC()->checkout()->get_value('bw_subscribe_newsletter')` removed.
+  - Consent evaluation now enforces explicit checkout POST payload sources only.
+  - Runtime checkout validation confirmed consent capture + Brevo sync with no duplicate/timing anomalies in tested opt-in flow.
 - Monitoring Status: Monitoring
 - Linked Documents:
   - [Blast-Radius Consolidation Map](./blast-radius-consolidation-map.md)

@@ -26,10 +26,34 @@
         'bw-wallet-bw_google_pay',
         'bw-wallet-bw_apple_pay'
     ];
+    var BW_SELECTOR_SESSION_KEY = 'bw_checkout_selected_payment_method';
     var BW_INTERNAL_RADIO_CHANGE = false;
     var BW_LAST_SELECTED_METHOD = '';
     var BW_IS_CONVERGING = false;
     var BW_TOOLTIP_DOC_BOUND = false;
+
+    function getPersistedSelectedMethod() {
+        try {
+            return window.sessionStorage ? String(window.sessionStorage.getItem(BW_SELECTOR_SESSION_KEY) || '') : '';
+        } catch (error) {
+            return '';
+        }
+    }
+
+    function persistSelectedMethod(methodValue) {
+        try {
+            if (!window.sessionStorage) {
+                return;
+            }
+            if (methodValue) {
+                window.sessionStorage.setItem(BW_SELECTOR_SESSION_KEY, methodValue);
+            } else {
+                window.sessionStorage.removeItem(BW_SELECTOR_SESSION_KEY);
+            }
+        } catch (error) {
+            // Ignore storage failures (private mode / blocked storage): runtime still converges in-memory.
+        }
+    }
 
     function findFallbackPaymentMethod(excludedValue) {
         if (BW_LAST_SELECTED_METHOD && BW_LAST_SELECTED_METHOD !== excludedValue) {
@@ -69,6 +93,14 @@
             var remembered = scope.querySelector('input[name="payment_method"][value="' + BW_LAST_SELECTED_METHOD + '"]');
             if (remembered && !remembered.disabled) {
                 return remembered;
+            }
+        }
+
+        var persisted = getPersistedSelectedMethod();
+        if (persisted) {
+            var persistedRadio = scope.querySelector('input[name="payment_method"][value="' + persisted + '"]');
+            if (persistedRadio && !persistedRadio.disabled) {
+                return persistedRadio;
             }
         }
 
@@ -201,6 +233,7 @@
                 applySingleRadioSelection(getPaymentContainer(), fallback);
                 selectedGateway = fallback.value;
                 BW_LAST_SELECTED_METHOD = selectedGateway;
+                persistSelectedMethod(selectedGateway);
                 updatePlaceOrderButton(fallback);
                 isWallet = isWalletGateway(selectedGateway);
                 available = isWallet && isWalletAvailable(selectedGateway);
@@ -329,6 +362,7 @@
         var checkedRadio = getPreferredPaymentMethodRadio(paymentContainer, preferredValue);
         applySingleRadioSelection(paymentContainer, checkedRadio);
         BW_LAST_SELECTED_METHOD = checkedRadio ? checkedRadio.value : '';
+        persistSelectedMethod(BW_LAST_SELECTED_METHOD);
 
         paymentContainer.querySelectorAll('.bw-payment-method').forEach(function (method) {
             var radio      = method.querySelector('input[name="payment_method"]');
@@ -365,6 +399,7 @@
         }
 
         BW_LAST_SELECTED_METHOD = radio.value;
+        persistSelectedMethod(BW_LAST_SELECTED_METHOD);
         bwConvergeCheckoutSelectorState('method_change', {
             preferredValue: radio.value,
             triggerWooSelectionEvent: true
@@ -610,6 +645,7 @@
         if (!(window.CSS && CSS.supports && CSS.supports('selector(:has(*))'))) {
             document.body.classList.add('bw-no-has-support');
         }
+        BW_LAST_SELECTED_METHOD = getPersistedSelectedMethod() || BW_LAST_SELECTED_METHOD;
         normalizeCardGatewayTitles();
         bwConvergeCheckoutSelectorState('init');
         handleFormSubmission();
@@ -628,6 +664,11 @@
     // The DOM is fully ready when `updated_checkout` fires — no delay needed.
     if (window.jQuery) {
         window.jQuery(function ($) {
+            $(document.body).off('update_checkout.bwWalletUi').on('update_checkout.bwWalletUi', function () {
+                persistSelectedMethod(getSelectedPaymentMethod());
+                bwScheduleSync('update_checkout');
+            });
+
             $(document.body).off('updated_checkout.bwWalletUi').on('updated_checkout.bwWalletUi', function () {
                 bwConvergeCheckoutSelectorState('updated_checkout');
                 initPaymentIconsTooltips();
@@ -651,6 +692,22 @@
             });
         });
     }
+
+    // Wallet cancel/return may not always emit deterministic selectors immediately:
+    // converge again on tab/page focus transitions.
+    window.addEventListener('pageshow', function () {
+        bwScheduleSync('pageshow');
+    });
+
+    window.addEventListener('focus', function () {
+        bwScheduleSync('window_focus');
+    });
+
+    document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) {
+            bwScheduleSync('visibilitychange_visible');
+        }
+    });
 
     // -------------------------------------------------------------------------
     // Shared checkout notice renderer (used by Google Pay, Apple Pay, Klarna).
