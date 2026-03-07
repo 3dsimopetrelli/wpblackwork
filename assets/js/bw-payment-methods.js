@@ -29,6 +29,7 @@
     var BW_SELECTOR_SESSION_KEY = 'bw_checkout_selected_payment_method';
     var BW_INTERNAL_RADIO_CHANGE = false;
     var BW_LAST_SELECTED_METHOD = '';
+    var BW_PENDING_USER_SELECTION = '';
     var BW_IS_CONVERGING = false;
     var BW_TOOLTIP_DOC_BOUND = false;
 
@@ -299,6 +300,9 @@
      */
     function bwConvergeCheckoutSelectorState(reason, options) { // eslint-disable-line no-unused-vars
         var opts = options || {};
+        if (!opts.preferredValue && BW_PENDING_USER_SELECTION) {
+            opts.preferredValue = BW_PENDING_USER_SELECTION;
+        }
         if (BW_IS_CONVERGING) {
             return;
         }
@@ -310,6 +314,14 @@
 
             var selectedRadio = syncAccordionState(opts.preferredValue || '');
             syncCheckoutActionButtonsForSelectedMethod(selectedRadio ? selectedRadio.value : '');
+
+            if (BW_PENDING_USER_SELECTION) {
+                var pendingRadio = document.querySelector('input[name="payment_method"][value="' + BW_PENDING_USER_SELECTION + '"]');
+                var pendingUnavailable = pendingRadio && pendingRadio.hasAttribute('data-bw-unavailable');
+                if (!pendingRadio || pendingRadio.disabled || pendingUnavailable || (selectedRadio && selectedRadio.value === BW_PENDING_USER_SELECTION)) {
+                    BW_PENDING_USER_SELECTION = '';
+                }
+            }
 
             if (opts.triggerWooSelectionEvent && selectedRadio && window.jQuery) {
                 window.jQuery(document.body).trigger('payment_method_selected');
@@ -437,6 +449,7 @@
         }
 
         BW_LAST_SELECTED_METHOD = radio.value;
+        BW_PENDING_USER_SELECTION = radio.value;
         persistSelectedMethod(BW_LAST_SELECTED_METHOD);
         bwConvergeCheckoutSelectorState('method_change', {
             preferredValue: radio.value,
@@ -708,7 +721,9 @@
             });
 
             $(document.body).off('updated_checkout.bwWalletUi').on('updated_checkout.bwWalletUi', function () {
-                bwConvergeCheckoutSelectorState('updated_checkout');
+                bwConvergeCheckoutSelectorState('updated_checkout', {
+                    preferredValue: BW_PENDING_USER_SELECTION || ''
+                });
                 initPaymentIconsTooltips();
                 bwScheduleSync('updated_checkout');
             });
