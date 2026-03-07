@@ -409,44 +409,28 @@
                 }
 
                 var openResult = null;
-                paymentRequest.canMakePayment().then(function (result) {
-                    var canLaunchGooglePay = bwCanShowGooglePay(result) || bwGooglePayParams.testMode;
-                    if (!canLaunchGooglePay) {
-                        googlePayLaunchFailureCount += 1;
-                        window.bwCheckout.renderCheckoutNotice('error', 'Google Pay is not ready yet. Please try again in a moment.');
-                        scheduleGooglePayProbeRetry('launch blocked: explicit googlePay support missing');
-                        return;
-                    }
-
-                    try {
-                        openResult = paymentRequest.show();
-                    } catch (error) {
-                        googlePayLaunchFailureCount += 1;
-                        if (googlePayLaunchFailureCount >= GOOGLE_PAY_MAX_LAUNCH_FAILURES) {
-                            window.bwCheckout.renderCheckoutNotice('error', 'Google Pay could not be opened right now. Please try again.');
-                        }
-                        scheduleGooglePayProbeRetry('paymentRequest.show threw');
-                        return;
-                    }
-
-                    if (openResult && typeof openResult.catch === 'function') {
-                        openResult.catch(function () {
-                            googlePayLaunchFailureCount += 1;
-                            if (googlePayLaunchFailureCount >= GOOGLE_PAY_MAX_LAUNCH_FAILURES) {
-                                window.bwCheckout.renderCheckoutNotice('error', 'Google Pay could not be opened right now. Please try again.');
-                            }
-                            // Keep UX in transient checking state and retry probe
-                            // instead of immediately dead-ending in unavailable.
-                            scheduleGooglePayProbeRetry('paymentRequest.show rejected');
-                        });
-                    }
-                }).catch(function () {
+                try {
+                    openResult = paymentRequest.show();
+                } catch (error) {
                     googlePayLaunchFailureCount += 1;
                     if (googlePayLaunchFailureCount >= GOOGLE_PAY_MAX_LAUNCH_FAILURES) {
                         window.bwCheckout.renderCheckoutNotice('error', 'Google Pay could not be opened right now. Please try again.');
                     }
-                    scheduleGooglePayProbeRetry('launch preflight canMakePayment rejected');
-                });
+                    scheduleGooglePayProbeRetry('paymentRequest.show threw');
+                    return;
+                }
+
+                if (openResult && typeof openResult.catch === 'function') {
+                    openResult.catch(function () {
+                        googlePayLaunchFailureCount += 1;
+                        if (googlePayLaunchFailureCount >= GOOGLE_PAY_MAX_LAUNCH_FAILURES) {
+                            window.bwCheckout.renderCheckoutNotice('error', 'Google Pay could not be opened right now. Please try again.');
+                        }
+                        // Keep UX in transient checking state and retry probe
+                        // instead of immediately dead-ending in unavailable.
+                        scheduleGooglePayProbeRetry('paymentRequest.show rejected');
+                    });
+                }
             });
     }
 
@@ -621,6 +605,7 @@
             paymentRequest = stripe.paymentRequest({
                 country:  country,
                 currency: currency,
+                disableWallets: ['link'],
                 total: {
                     label:  'Ordine BlackWork',
                     amount: initialCents, // Stripe requires a positive integer
