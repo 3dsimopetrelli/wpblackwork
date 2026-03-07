@@ -316,6 +316,10 @@
             return;
         }
 
+        // Keep the gateway selectable while availability check is in progress.
+        // Convergence fallback is handled by the shared selector runtime only
+        // when Google Pay is explicitly unavailable (not merely "checking").
+        $gpayInput.prop('disabled', false).removeAttr('aria-disabled');
         $gpayInput.attr('data-bw-unavailable', '1');
         $gpayInput.attr('data-bw-gpay-checking', '1');
         $gpayInput.closest('.bw-payment-method').attr('data-bw-unavailable', '1');
