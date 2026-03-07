@@ -318,6 +318,42 @@ If a decision is normative and architecture-binding, the ADR process MUST be use
   - Keep publish status allowlist enforcement (`draft|publish|pending|private`) with invalid-value normalization to `draft`.
   - Reassess need for dedicated import-run table if run-history retention and telemetry requirements outgrow option-backed storage.
 
+### Entry 028
+- Date: 2026-03-07
+- Decision summary: Wallet launcher ownership delegated to Stripe/WCPay runtime.
+- Affected domain: Checkout Payments / Wallet Runtime Ownership
+- Rationale: Investigation confirmed native wallet launchers are internally owned by WooCommerce Stripe / WCPay express runtime and custom Blackwork launcher paths were parallel, non-authoritative, and non-deterministic.
+- Risk impact: Medium reduced to Low after disable-path hardening and template residue cleanup.
+- Follow-up actions:
+  - Keep `bw_google_pay_enabled` and `bw_apple_pay_enabled` as authoritative custom-runtime toggles.
+  - Preserve enqueue gates in `woocommerce/woocommerce-init.php` so disabled wallets do not load custom JS.
+  - Preserve wrapper gating in `woocommerce/templates/checkout/payment.php` so disabled wallets leave no dead DOM containers.
+  - Do not introduce parallel custom wallet launcher flows when Stripe/WCPay already owns the runtime.
+
+Problem:
+- Repeated checkout wallet incidents showed custom launcher attempts were not reliably authoritative versus native Stripe/WCPay express wallet lifecycle.
+
+Evidence:
+- Authoritative native wallet surfaces mounted in Stripe/WCPay containers:
+  - `#wc-stripe-express-checkout-element`
+  - `#wc-stripe-payment-request-wrapper`
+  - `#wcpay-express-checkout-element`
+- Custom launchers were parallel PaymentRequest lifecycles (`bw-google-pay.js`, `bw-apple-pay.js`) with ownership mismatch.
+- Disable-path audit confirmed full shutdown after conditional wrapper cleanup.
+
+Decision:
+- Delegate wallet launch lifecycle ownership to Stripe/WCPay express runtime.
+- Keep Blackwork custom wallet launchers disabled in this ownership model.
+
+Consequences:
+- Prevents authority conflict and nondeterministic wallet launch behavior.
+- Eliminates dead disabled-wallet residue in checkout template.
+- Keeps checkout runtime deterministic under native Stripe/WCPay wallet ownership.
+
+Future strategy:
+- Blackwork must not implement parallel custom wallet launchers when Stripe/WCPay already owns wallet runtime.
+- Future wallet integrations must use authoritative Stripe/WCPay integration points only.
+
 ## Governance Layer Closure
 
 Status: CLOSED  

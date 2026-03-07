@@ -162,6 +162,33 @@ Each gateway implementation is expected to satisfy these responsibilities.
 - Stripe UPE styling is overridden by filters.
 - `assets/js/bw-stripe-upe-cleaner.js` removes conflicting UPE rows to keep custom selector coherent.
 
+## Wallet Runtime Ownership
+
+### Authoritative owner
+- Stripe/WCPay express runtime owns wallet launch lifecycle in checkout.
+- Native runtime containers include:
+  - `#wc-stripe-express-checkout-element`
+  - `#wc-stripe-payment-request-wrapper`
+  - `#wcpay-express-checkout-element`
+
+### Blackwork ownership boundary
+- In this integration setup, Blackwork must not directly trigger wallet launch.
+- Parallel custom PaymentRequest launcher paths are unsupported and non-authoritative.
+- Custom Google Pay / Apple Pay launchers are disabled under this ownership model.
+
+### Disabled-state cleanliness contract
+- Disabled must mean:
+  - no payment-row render
+  - no wallet launcher render
+  - no custom wallet JS enqueue
+  - no custom runtime init/listeners
+  - no dead wallet wrapper DOM residue
+- Wrapper gating in `woocommerce/templates/checkout/payment.php` enforces clean disabled DOM output.
+
+### Future integration rule
+- Any future wallet integration must use authoritative Stripe/WCPay integration points only.
+- Do not implement parallel custom wallet launcher runtimes when Stripe/WCPay already owns the wallet lifecycle.
+
 ## 6) Precedence & Mode Rules
 
 ### Custom toggle vs Woo enable
