@@ -405,7 +405,12 @@
                     return;
                 }
                 if (!paymentRequest) {
-                    return;
+                    // Try to recover runtime instance and keep the UX on
+                    // Google-owned flow instead of local notice gating.
+                    initGooglePay();
+                    if (!paymentRequest) {
+                        return;
+                    }
                 }
 
                 var openResult = null;
@@ -413,9 +418,6 @@
                     openResult = paymentRequest.show();
                 } catch (error) {
                     googlePayLaunchFailureCount += 1;
-                    if (googlePayLaunchFailureCount >= GOOGLE_PAY_MAX_LAUNCH_FAILURES) {
-                        window.bwCheckout.renderCheckoutNotice('error', 'Google Pay could not be opened right now. Please try again.');
-                    }
                     scheduleGooglePayProbeRetry('paymentRequest.show threw');
                     return;
                 }
@@ -423,9 +425,6 @@
                 if (openResult && typeof openResult.catch === 'function') {
                     openResult.catch(function () {
                         googlePayLaunchFailureCount += 1;
-                        if (googlePayLaunchFailureCount >= GOOGLE_PAY_MAX_LAUNCH_FAILURES) {
-                            window.bwCheckout.renderCheckoutNotice('error', 'Google Pay could not be opened right now. Please try again.');
-                        }
                         // Keep UX in transient checking state and retry probe
                         // instead of immediately dead-ending in unavailable.
                         scheduleGooglePayProbeRetry('paymentRequest.show rejected');
@@ -645,7 +644,6 @@
                     is_cart_empty: null
                 });
             }
-            window.bwCheckout.renderCheckoutNotice('error', 'Google Pay payment was canceled. You can try again or choose another payment method.');
             $('#bw_google_pay_method_id').val('');
             window.bwCheckout.removeLoadingState();
             $(document.body).trigger('update_checkout');
