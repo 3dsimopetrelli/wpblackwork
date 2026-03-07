@@ -1854,9 +1854,9 @@ function bw_mew_customize_stripe_elements_style($options)
  */
 function bw_mew_customize_stripe_upe_appearance($params)
 {
-    // Keep Payment Element in accordion mode (tabs not allowed for this surface).
+    // Keep Payment Element in tabs mode for stable card subview rendering.
     $params['layout'] = array(
-        'type' => 'accordion',
+        'type' => 'tabs',
         'defaultCollapsed' => false,
     );
 
@@ -1985,7 +1985,7 @@ function bw_mew_customize_stripe_upe_appearance($params)
                 'display' => 'none !important',
             ),
             '.PaymentElement' => array(
-                'padding' => '0',
+                'paddingTop' => '15px',
             ),
             '.AccordionButton' => array(
                 'display' => 'none !important',
