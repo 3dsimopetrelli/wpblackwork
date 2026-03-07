@@ -1056,12 +1056,28 @@ body.woocommerce-checkout .bw-payment-method__fields .wc-stripe-upe-element ifra
 	-webkit-clip-path: none;
 }
 
-/* Stripe Payment Element: remove Stripe internal card subview (icon + "Card" text)
-   only inside the Stripe payment method header, keeping outer method label visible. */
-body.woocommerce-checkout li.wc_payment_method.payment_method_stripe .p-PaymentAccordionButtonView {
+/* Stripe Payment Element: remove the whole internal accordion header mini-block
+   (icon + internal "Card" text + related header wrappers) for the card row only.
+   Keep Stripe fields panel visible and functional. */
+body.woocommerce-checkout li.wc_payment_method.payment_method_stripe .p-PaymentAccordionButton,
+body.woocommerce-checkout li.wc_payment_method.payment_method_stripe .p-PaymentAccordionButtonContent,
+body.woocommerce-checkout li.wc_payment_method.payment_method_stripe .p-PaymentAccordionButtonView,
+body.woocommerce-checkout li.wc_payment_method.payment_method_stripe .p-PaymentAccordionButtonLabel,
+body.woocommerce-checkout li.wc_payment_method.payment_method_stripe .p-PaymentAccordionButtonIconContainer,
+body.woocommerce-checkout li.wc_payment_method.payment_method_stripe .p-PaymentAccordionButtonIcon {
 	display: none !important;
 	margin: 0 !important;
 	padding: 0 !important;
+	min-height: 0 !important;
+	height: 0 !important;
+}
+
+/* Remove residual spacing left by hidden Stripe accordion header wrappers. */
+body.woocommerce-checkout li.wc_payment_method.payment_method_stripe .p-PaymentAccordionItem,
+body.woocommerce-checkout li.wc_payment_method.payment_method_stripe .p-PaymentAccordionItem--selected,
+body.woocommerce-checkout li.wc_payment_method.payment_method_stripe .p-PaymentAccordionItemContent {
+	margin-top: 0 !important;
+	padding-top: 0 !important;
 }
 
 /* Remove any ::before pseudo-element from payment box */
