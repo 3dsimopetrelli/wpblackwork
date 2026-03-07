@@ -240,77 +240,31 @@
         });
     }
 
-    function findNativeGooglePayLaunchTarget() {
-        var candidates = Array.from(document.querySelectorAll(
-            '#wc-stripe-express-checkout-element button, ' +
-            '#wc-stripe-payment-request-wrapper button, ' +
-            '.wc-stripe-payment-request-buttons button, ' +
-            '#wcpay-express-checkout-element button, ' +
-            '.wcpay-express-checkout-wrapper button, ' +
-            'button[aria-label*="Google Pay"], ' +
-            'button[title*="Google Pay"]'
-        ));
+    function logNativeLauncherOwnership() {
+        var roots = [
+            document.getElementById('wc-stripe-express-checkout-element'),
+            document.getElementById('wc-stripe-payment-request-wrapper'),
+            document.getElementById('wcpay-express-checkout-element')
+        ].filter(Boolean);
 
-        console.info('[BW Google Pay] native launcher candidates', {
-            count: candidates.length,
-            nodes: candidates.map(function (btn) {
-                var rect = btn.getBoundingClientRect ? btn.getBoundingClientRect() : { width: 0, height: 0 };
-                return {
-                    tag: btn.tagName,
-                    id: btn.id || '',
-                    classes: btn.className || '',
-                    ariaLabel: btn.getAttribute('aria-label') || '',
-                    title: btn.getAttribute('title') || '',
-                    connected: !!btn.isConnected,
-                    visible: rect.width > 0 && rect.height > 0,
-                    disabled: !!btn.disabled
-                };
-            })
+        var summary = roots.map(function (root) {
+            var iframes = root.querySelectorAll('iframe').length;
+            var buttons = root.querySelectorAll('button').length;
+            var rect = root.getBoundingClientRect ? root.getBoundingClientRect() : { width: 0, height: 0 };
+            return {
+                id: root.id || '',
+                className: root.className || '',
+                connected: !!root.isConnected,
+                visible: rect.width > 0 && rect.height > 0,
+                iframeCount: iframes,
+                buttonCount: buttons
+            };
         });
 
-        for (var i = 0; i < candidates.length; i += 1) {
-            var btn = candidates[i];
-            if (!btn || btn.id === 'bw-google-pay-trigger' || btn.disabled) {
-                continue;
-            }
-
-            var label = (
-                (btn.getAttribute('aria-label') || '') + ' ' +
-                (btn.getAttribute('title') || '') + ' ' +
-                (btn.textContent || '')
-            ).toLowerCase();
-
-            if (label.indexOf('google') !== -1 || label.indexOf('gpay') !== -1) {
-                return btn;
-            }
-        }
-
-        return null;
-    }
-
-    function forwardClickToNativeGooglePayLauncher() {
-        var target = findNativeGooglePayLaunchTarget();
-        if (!target) {
-            console.warn('[BW Google Pay] native launcher not found for proxy click');
-            return false;
-        }
-
-        console.info('[BW Google Pay] forwarding click to native launcher', {
-            tag: target.tagName,
-            id: target.id || '',
-            classes: target.className || '',
-            ariaLabel: target.getAttribute('aria-label') || '',
-            title: target.getAttribute('title') || '',
-            connected: !!target.isConnected
+        console.info('[BW Google Pay] native launcher ownership snapshot', {
+            roots: summary,
+            note: 'Stripe native express launcher may be internally owned (iframe/shadow) and not safely proxy-clickable.'
         });
-
-        target.dispatchEvent(new MouseEvent('click', {
-            bubbles: true,
-            cancelable: true,
-            view: window
-        }));
-
-        return true;
     }
 
     function bindGooglePayLaunchHandler() {
@@ -328,23 +282,25 @@
                     return;
                 }
 
-                if (forwardClickToNativeGooglePayLauncher()) {
-                    return;
-                }
-
                 console.info('[BW Google Pay] paymentRequest readiness state', {
                     canMakePaymentChecked: state.canMakePaymentChecked,
                     canMakePaymentResult: state.canMakePaymentResult,
                     launchReady: state.launchReady
                 });
 
-                if (!state.canMakePaymentChecked || !state.launchReady) {
+                if (!state.canMakePaymentChecked) {
+                    console.warn('[BW Google Pay] launch blocked: canMakePayment not completed yet');
+                    runCanMakePaymentCheck();
+                    return;
+                }
+
+                if (!state.launchReady) {
                     console.warn('[BW Google Pay] fallback show() skipped: readiness invalid');
                     return;
                 }
 
                 try {
-                    console.info('[BW Google Pay] native proxy unavailable, falling back to paymentRequest.show()');
+                    console.info('[BW Google Pay] launching via local authoritative paymentRequest.show()');
                     var launch = state.paymentRequest.show();
                     if (launch && typeof launch.catch === 'function') {
                         launch.catch(function (error) {
@@ -423,6 +379,7 @@
         window.BW_GPAY_AVAILABLE = true;
         markGooglePayAvailable();
         scheduleSelectorSync('gpay_ready');
+        logNativeLauncherOwnership();
         runCanMakePaymentCheck();
 
         state.initialized = true;
@@ -443,6 +400,7 @@
                 markGooglePayAvailable();
                 scheduleSelectorSync('gpay_updated_checkout');
                 updatePaymentRequestTotal();
+                runCanMakePaymentCheck();
             });
     });
 
