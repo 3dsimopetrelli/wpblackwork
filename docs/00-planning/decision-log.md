@@ -366,6 +366,48 @@ Future strategy:
   - Avoid reintroducing Stripe-internal selector hide hacks as primary behavior control.
   - Treat any migration to alternative Stripe card integration as a separate architecture task with full regression gate.
 
+### Entry 030
+- Date: 2026-03-07
+- Decision summary: Retain guest-compatible nonce fallback in Supabase token-login callback path, with explicit governance watchpoint.
+- Affected domain: Auth / Supabase callback bridge / anonymous invite re-entry
+- Rationale: Cached anonymous callback landings can deliver stale localized nonces; strict nonce failure in this path breaks deterministic invite/token convergence for legitimate users.
+- Risk impact: Medium (reduced CSRF strictness in guest callback path) with mitigations preserved by mandatory Supabase access-token verification before WP session creation.
+- Follow-up actions:
+  - Keep strict nonce enforcement for authenticated requests.
+  - Keep guest fallback constrained to token-login callback path only.
+  - Track public email-exists enumeration and callback-surface hardening separately in risk register updates.
+  - Reassess fallback policy if cache architecture changes make fresh nonce guarantee deterministic.
+
+### Entry 031
+- Date: 2026-03-07
+- Decision summary: Trusted WooCommerce filter boundary in checkout templates.
+- Affected domain: Checkout / Template extension boundary
+- Rationale: `woocommerce_cart_item_remove_link` is intentionally filter-extensible HTML in WooCommerce; unescaped echo of the filtered fragment is a trusted extension boundary, not an intrinsic vulnerability in Blackwork.
+- Risk impact: Low (context-dependent on third-party filter trust), no direct Blackwork exploit path confirmed in baseline runtime.
+- Follow-up actions:
+  - Keep boundary documented in governance triage artifacts for Radar Batch 2 — Checkout Weakness Analysis.
+  - Do not apply blind escaping that would break valid WooCommerce extension HTML.
+  - Reassess only if untrusted plugin injection is introduced in the deployment profile.
+
+Problem:
+- Radar Batch 2 flagged `apply_filters('woocommerce_cart_item_remove_link', ...)` output as unsafe due to unescaped echo in checkout review template.
+
+Evidence:
+- Runtime template echoes filtered remove-link HTML in `woocommerce/templates/checkout/review-order.php` and follows WooCommerce extension contract for markup override.
+- Baseline Blackwork payload is escaped before filter application; trust boundary applies to third-party filter injectors.
+
+Decision:
+- No sanitization change applied in this path.
+- Classified as an extension trust-boundary decision, not a standalone vulnerability.
+
+Consequences:
+- Preserves WooCommerce ecosystem compatibility for remove-link customizations.
+- Keeps risk governance-visible without introducing breaking output restrictions.
+
+Future strategy:
+- Maintain strict plugin trust posture in production stacks.
+- Track this as a decision-log boundary item linked to Radar Batch 2 triage, not as an immediate runtime hotfix.
+
 ## Governance Layer Closure
 
 Status: CLOSED  

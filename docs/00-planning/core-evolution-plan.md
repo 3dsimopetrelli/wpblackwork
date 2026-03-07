@@ -180,6 +180,28 @@ It MUST be used as planning reference only and MUST NOT replace ADRs.
   - No regression in anonymous account entry paths
   - Runtime behavior remains deterministic under repeated page loads
 
+### Radar Triage Backlog — Auth / Checkout / Search (2026-03-07)
+- Status: Backlog
+- Risk classification: Mixed (Medium-High)
+- Short description: Implement triage-confirmed hardening items from radar validation batch that were classified as backlog (non-immediate risk-register updates).
+- Scope items:
+  - Supabase page-load sync optimization: avoid external HTTP sync on every authenticated request (`bw_mew_sync_supabase_user_on_load`).
+  - Supabase admin-users lookup completeness: avoid first-page-only (`per_page=100,page=1`) false negatives in email-exists helper.
+  - Coupon rate limit IP trust hardening: reduce dependency on `HTTP_CF_CONNECTING_IP` without trusted proxy guarantee.
+  - Token-login session store dedupe: remove duplicate `bw_mew_supabase_store_session()` writes in same flow.
+  - Checkout cart quantity sync hardening: tighten validation surface for posted `cart[*][qty]` mutations.
+  - CSP compatibility: remove/replace inline invite redirect bootstrap script path or support CSP-safe nonce flow.
+  - My Account menu compatibility: replace hard override strategy and unconditional `orders` insertion with merge-safe behavior.
+  - Supabase bridge load scope tightening: stop loading bridge on unrelated anonymous pages.
+  - Supabase login error normalization: prevent raw upstream message propagation in user-facing errors.
+  - Early invite runtime scope tightening: stop running preloader/redirect runtime on every page.
+  - Google Pay gateway ownership cleanup: resolve dual class ownership surface (`includes/woocommerce-overrides` vs `includes/Gateways`) to prevent future include/authority drift.
+- Reference docs:
+  - `docs/00-governance/risk-register.md`
+  - `docs/00-planning/decision-log.md`
+  - `docs/50-ops/audits/my-account-domain-audit.md`
+  - `docs/50-ops/audits/search-system-technical-audit.md`
+
 ### Governance Traceability Cleanup (Risk ID Uniqueness)
 - Status: Backlog
 - Risk classification: Medium
@@ -192,6 +214,71 @@ It MUST be used as planning reference only and MUST NOT replace ADRs.
   - Duplicate/conflicting IDs are eliminated and references normalized
   - Decision-log numbering and references remain unambiguous
   - Governance docs pass cross-reference validation checklist
+
+### Radar Triage Backlog — Checkout Runtime Hardening (2026-03-07)
+- Status: Backlog
+- Risk classification: Mixed (Low-High)
+- Source: Radar Batch 2 — Checkout Weakness Analysis
+- Scope items:
+  - #2 Payment methods bootstrap flag may block full re-init edges (`assets/js/bw-payment-methods.js`) — Low.
+  - #3 Direct POST selected-method read in payment template (`woocommerce/templates/checkout/payment.php`) — Low.
+  - #4 Inline script without CSP nonce for policy payload bootstrap (`woocommerce/templates/checkout/form-checkout.php`) — Medium.
+  - #5 Checkout quantity sync trust boundary on posted cart payload (`woocommerce/woocommerce-init.php`) — Medium.
+  - #6 Coupon rate-limit key trusts proxy header path (`woocommerce/woocommerce-init.php`) — Medium.
+  - #7 MutationObserver `innerHTML` decode sink risk in error normalizer (`assets/js/bw-checkout.js`) — Medium.
+  - #9 Coupon removal full redirect causes form-state loss (`assets/js/bw-checkout.js`) — Low.
+  - #10 `alert()` fallback for checkout coupon errors (`assets/js/bw-checkout.js`) — Low.
+  - #11 Manual sticky behavior implemented in JS instead of native CSS sticky (`assets/js/bw-checkout.js`) — Low.
+  - #12 Coupon AJAX calls without explicit timeout (`assets/js/bw-checkout.js`) — Low.
+  - #13 Gateway type detection via `strpos($gateway->id, ...)` (`woocommerce/templates/checkout/payment.php`) — Low.
+  - #15 Checkout settings return raw `legal_text` before render-context escaping (`woocommerce/woocommerce-init.php`) — Low.
+  - #16 Duplicated inline style attributes on checkout wrapper/grid (`woocommerce/templates/checkout/form-checkout.php`) — Low.
+  - #17 Policy content duplicated in HTML data attributes and global JS object (`woocommerce/templates/checkout/form-checkout.php`) — Low.
+  - #19 Skeleton flag hardcoded false (dead feature toggle path) (`woocommerce/templates/checkout/form-checkout.php`) — Low.
+  - #20 Dial-code country list hardcoded in checkout JS (`assets/js/bw-checkout.js`) — Low.
+- Reference docs:
+  - `docs/00-governance/risk-register.md`
+  - `docs/00-planning/decision-log.md`
+  - `docs/tasks/BW-TASK-20260307-radar-batch2-validation.md`
+
+### Radar Triage Backlog — Performance / Asset Loading (2026-03-07)
+- Status: Backlog
+- Risk classification: Mixed (Low-Medium)
+- Source: Radar Batch 3 — Performance Analysis
+- Scope items:
+  - #2 Cart popup dynamic CSS option fan-out (`cart-popup/frontend/cart-popup-frontend.php`) — Low.  
+    Rationale: many per-request `get_option()` lookups + string-built inline CSS.
+  - #3 No dedicated build/minify/bundle pipeline (`composer.json`, asset enqueue surfaces) — Low.  
+    Rationale: source-per-file delivery increases parse/request overhead.
+  - #4 Many separate asset requests from per-file enqueue strategy (`blackwork-core-plugin.php`, `woocommerce/woocommerce-init.php`) — Medium.  
+    Rationale: network/request overhead accumulates on complex pages.
+  - #5 Assets loaded more globally than required (`cart-popup/cart-popup.php`, `woocommerce/woocommerce-init.php`) — Medium.  
+    Rationale: cart popup + anonymous bridge scope increase baseline frontend payload.
+  - #6 Cart popup dynamic CSS emitted inline instead of static cacheable asset (`cart-popup/frontend/cart-popup-frontend.php`) — Medium.  
+    Rationale: CSS is regenerated in HTML and not cacheable as independent file.
+  - #7 Google Maps API eagerly loaded on checkout (`woocommerce/woocommerce-init.php`) — Medium.  
+    Rationale: external script cost paid before field-level interaction.
+  - #8 Missing resource hints for external domains (`preconnect` / `dns-prefetch`) — Low.  
+    Rationale: no explicit handshake optimization for third-party origins.
+  - #9 Repeated `file_exists()` + `filemtime()` version pattern (`blackwork-core-plugin.php`, `woocommerce/woocommerce-init.php`) — Medium.  
+    Rationale: repeated filesystem stat calls on request path.
+  - #11 Sticky layout reimplemented in JS (`assets/js/bw-checkout.js`) — Medium.  
+    Rationale: scroll/resize JS path is more fragile than native sticky.
+  - #12 `wp_localize_script` payload minimization review (`woocommerce/woocommerce-init.php`, `cart-popup/cart-popup.php`, header assets) — Low.  
+    Rationale: inline config footprint grows HTML payload.
+  - #14 Slick loaded from CDN (`blackwork-core-plugin.php`) — Medium.  
+    Rationale: third-party dependency/network coupling in critical UI widgets.
+  - #15 Duplicated Stripe enqueue logic across wallet branches (`woocommerce/woocommerce-init.php`) — Low.  
+    Rationale: duplicated logic adds maintenance drift risk even with WP handle dedupe.
+  - #16 Payment method icons without explicit width/height attributes (`woocommerce/templates/checkout/payment.php`) — Low.  
+    Rationale: potential CLS risk despite CSS sizing guard.
+  - #17 Checkout footprint measurement/profiling required (`woocommerce/woocommerce-init.php`, checkout JS/CSS stack) — Medium (profiling item).  
+    Rationale: “extremely large” claim needs measured evidence.
+  - #13 Widget N+1 concern (profiling/context item only) (`includes/widgets/*`) — Low (context).  
+    Rationale: requires query instrumentation, not confirmed from static reading alone.
+- Reference docs:
+  - `docs/00-governance/risk-register.md`
+  - `docs/tasks/BW-TASK-20260307-radar-batch3-performance-validation.md`
 
 ### Legacy Option Cleanup Migration
 

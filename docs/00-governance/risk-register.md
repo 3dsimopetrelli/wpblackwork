@@ -272,6 +272,22 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
   - [Checkout Payment Selector Audit](../50-ops/audits/checkout-payment-selector-audit.md)
   - [BW-TASK-20260306-05 Closure](../tasks/BW-TASK-20260306-05-closure.md)
 
+### Risk ID: R-CHK-02
+- Domain: Checkout / Runtime Bootstrap
+- Source: Radar Batch 2 — Checkout Weakness Analysis
+- Surface Anchor: `assets/js/bw-checkout.js` strict bootstrap branch
+- Description: `arguments.callee` is used inside strict mode during jQuery retry bootstrap and can throw runtime `TypeError`, breaking checkout initialization.
+- Invariant Threatened: Deterministic checkout bootstrap and listener initialization on first load.
+- Impact: High
+- Likelihood: Medium
+- Risk Level: High
+- Current Mitigation: None in runtime path; tracked as open hardening item.
+- Monitoring Status: Open
+- Mitigation Path: Replace `arguments.callee` retry with a named retry function bound to the same bootstrap flow.
+- Linked Documents:
+  - [Core Evolution Plan](../00-planning/core-evolution-plan.md)
+  - [BW-TASK-20260307-radar-batch2-validation](../tasks/BW-TASK-20260307-radar-batch2-validation.md)
+
 ### Risk ID: R-PAY-02
 - Domain: Payments / Checkout
 - Surface Anchor: `assets/js/bw-stripe-upe-cleaner.js`, `wc_stripe_upe_params` customization in `woocommerce/woocommerce-init.php`
@@ -381,11 +397,29 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
   - Token-login convergence rules are now explicit by context (`otp-needs-password`, `invite-pending`, `invite-ready`, `ready`) to prevent branch-timing drift.
   - Invite send/resend paths no longer blindly downgrade onboarding marker for already-onboarded users.
   - My Account onboarding gate reads reconciled marker state through `bw_user_needs_onboarding()`, reducing false lock scenarios after callback/modal/token re-entry.
+  - Radar validation update (2026-03-07): onboarding gate still relies on single marker usermeta as final readiness flag; reconciliation guard reduces drift but cross-request atomicity is still a watchpoint under concurrent callback/retry paths.
   - Verification Hold: implementation is completed, but manual verification identified onboarding convergence anomalies that require deeper runtime investigation before closure.
 - Monitoring Status: Open
 - Linked Documents:
   - [Cross-Domain State Dictionary](./cross-domain-state-dictionary.md)
   - [My Account Domain Audit](../50-ops/audits/my-account-domain-audit.md)
+
+### Risk ID: R-AUTH-25
+- Domain: Auth / Supabase / Public Endpoint Exposure
+- Surface Anchor: `includes/woocommerce-overrides/class-bw-supabase-auth.php` (`bw_mew_handle_supabase_email_exists`)
+- Description: Public `nopriv` email-exists endpoint returns explicit account existence signal (`exists=true/false`) and can become an enumeration surface when nonce acquisition is possible from anonymous auth pages.
+- Invariant Threatened: Public auth helpers must not expose high-confidence identity existence oracle.
+- Impact: High
+- Likelihood: Medium
+- Risk Level: High
+- Current Mitigation:
+  - Nonce gate required (`check_ajax_referer('bw-supabase-login', 'nonce')`).
+  - Input validation rejects invalid email payloads.
+  - Fail-safe response when service-role key is unavailable.
+- Monitoring Status: Open
+- Linked Documents:
+  - [Radar Analysis Workflow](./radar-analysis-workflow.md)
+  - [Technical Hardening Plan](./technical-hardening-plan.md)
 
 ### Risk ID: R-SUPA-06
 - Domain: Supabase / Orders / My Account
@@ -395,7 +429,9 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 - Impact: High
 - Likelihood: Medium
 - Risk Level: High
-- Current Mitigation: Repeated claim invocation designed as convergence path in token-login and modal success.
+- Current Mitigation:
+  - Repeated claim invocation designed as convergence path in token-login and modal success.
+  - Radar validation update (2026-03-07): claim query still uses unbounded order fetch (`wc_get_orders` with `limit => -1`), which remains a high-scale performance/convergence watchpoint for accounts with large guest-order history.
 - Monitoring Status: Monitoring
 - Linked Documents:
   - [Technical Hardening Plan](./technical-hardening-plan.md)
@@ -490,6 +526,7 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
   - Bounded query constraints (`posts_per_page=10`, `no_found_rows`, `ignore_sticky_posts`, disabled meta/term cache hydration).
   - Deterministic ordering (`orderby=title`, `order=ASC`) and stable response shaping (`products` + `results` aliases).
   - Publish-only + WooCommerce visibility exclusion via `product_visibility` NOT IN (`exclude-from-search`, `exclude-from-catalog`).
+  - Radar validation update (2026-03-07): endpoint remains publicly callable (`nopriv`) without server-side rate limiting; bounded query contract reduces blast radius but does not provide abuse throttling.
 - Monitoring Status: Monitoring
 - Linked Documents:
   - [Search System Technical Audit](../50-ops/audits/search-system-technical-audit.md)
@@ -797,6 +834,24 @@ Open
 Recommended Mitigation:
 Perform a systematic template override audit and align overrides
 with current WooCommerce template versions.
+
+### Risk ID: R-PERF-26
+- Domain: Performance / Resilience / Supabase Runtime
+- Source: Radar Batch 3 — Performance Analysis
+- Surface Anchor: `includes/woocommerce-overrides/class-bw-supabase-auth.php` (`bw_mew_sync_supabase_user_on_load`)
+- Description: Authenticated frontend requests trigger Supabase user sync on `init`, including synchronous external HTTP (`auth/v1/user`) with up to 15s timeout, which can degrade cross-domain page resilience under provider/network latency.
+- Invariant Threatened: Authenticated frontend navigation should remain responsive and not be tightly coupled to blocking external identity fetch on every page load.
+- Impact: High
+- Likelihood: Medium
+- Risk Level: High
+- Current Mitigation:
+  - Guard rails skip the sync for admin, AJAX, and anonymous sessions.
+  - Sync path exits early when token/session is missing or remote call fails.
+  - Marker reconciliation remains deterministic after sync attempt.
+- Monitoring Status: Open
+- Linked Documents:
+  - [Core Evolution Plan](../00-planning/core-evolution-plan.md)
+  - [BW-TASK-20260307-radar-batch3-performance-validation](../tasks/BW-TASK-20260307-radar-batch3-performance-validation.md)
 
 ## 4) Governance Rules
 - All Tier 0 changes must be reviewed against this register before implementation.
