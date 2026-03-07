@@ -448,9 +448,9 @@
 
             googlePayAvailable = bwCanShowGooglePay(result);
             window.BW_GPAY_AVAILABLE = googlePayAvailable === true;
-            googlePayState = googlePayAvailable ? 'available' : 'unavailable';
 
             if (googlePayAvailable) {
+                googlePayState = 'available';
                 clearTimeout(googlePayRetryTimer);
                 markGooglePayAvailableState();
                 $('#bw-google-pay-accordion-placeholder').hide();
@@ -460,6 +460,7 @@
             }
 
             if (bwGooglePayParams.testMode) {
+                googlePayState = 'available';
                 clearTimeout(googlePayRetryTimer);
                 $('#bw-google-pay-accordion-placeholder').hide();
                 markGooglePayAvailableState();
@@ -470,6 +471,9 @@
             }
 
             if (googlePayProbeAttempts < GOOGLE_PAY_MAX_PROBE_ATTEMPTS) {
+                // Keep the state in "checking" while retries are pending:
+                // do not downgrade to unavailable on the first transient miss.
+                setGooglePayCheckingState('retry_pending_not_unavailable');
                 scheduleGooglePayProbeRetry('canMakePayment returned no googlePay support');
                 return;
             }
@@ -620,6 +624,17 @@
 
         $(document.body).off('change.bwgpay', 'input[name="payment_method"]').on('change.bwgpay', 'input[name="payment_method"]', function () {
             syncGooglePayUiState();
+
+            // Re-probe when the user explicitly selects Google Pay and no
+            // actionable trigger is present yet. This prevents stale "unavailable"
+            // outcomes from early transient checks.
+            if (
+                $(this).val() === 'bw_google_pay' &&
+                !$('#bw-google-pay-trigger').length &&
+                googlePayProbeAttempts < GOOGLE_PAY_MAX_PROBE_ATTEMPTS
+            ) {
+                runGooglePayAvailabilityProbe('selected_method_reprobe');
+            }
         });
 
         $(document.body).off('updated_checkout.bwgpay').on('updated_checkout.bwgpay', function () {
