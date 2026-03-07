@@ -1065,6 +1065,13 @@ body.woocommerce-checkout [data-testid="payment-accordion-wrapper"] {
 	display: none !important;
 }
 
+/* Stripe Payment Element: hide only the card icon in the card method header.
+   Scoped to Stripe method row so other gateway/wallet icons remain unaffected. */
+body.woocommerce-checkout li.wc_payment_method.payment_method_stripe .p-PaymentAccordionButtonIconContainer,
+body.woocommerce-checkout li.wc_payment_method.payment_method_stripe .p-PaymentAccordionButtonIcon {
+	display: none !important;
+}
+
 /* Remove any ::before pseudo-element from payment box */
 body.woocommerce-checkout .bw-payment-method__content.payment_box::before,
 body.woocommerce-checkout .payment_box.payment_method_stripe::before {
