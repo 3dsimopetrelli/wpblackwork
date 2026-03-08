@@ -221,7 +221,7 @@ It MUST be used as planning reference only and MUST NOT replace ADRs.
 - Source: Radar Batch 2 — Checkout Weakness Analysis
 - Scope items:
   - #2 Payment methods bootstrap flag may block full re-init edges (`assets/js/bw-payment-methods.js`) — Low.
-  - #3 Direct POST selected-method read in payment template (`woocommerce/templates/checkout/payment.php`) — Low.
+  - #3 Direct POST selected-method read in payment template (`woocommerce/templates/checkout/payment.php`) — Low. Completed — `BW-TASK-20260308-05` (2026-03-08).
   - #4 Inline script without CSP nonce for policy payload bootstrap (`woocommerce/templates/checkout/form-checkout.php`) — Medium.
   - #5 Checkout quantity sync trust boundary on posted cart payload (`woocommerce/woocommerce-init.php`) — Medium.
   - #6 Coupon rate-limit key trusts proxy header path (`woocommerce/woocommerce-init.php`) — Medium.

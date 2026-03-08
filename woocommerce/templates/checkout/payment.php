@@ -26,16 +26,24 @@ if (!wp_doing_ajax()) {
 			role="radiogroup"
 			aria-labelledby="bw-payment-heading">
 			<?php
-			if (!empty($available_gateways)) {
-				// Preserve selected method across AJAX checkout updates.
-				$chosen_method = isset( $_POST['payment_method'] ) // phpcs:ignore WordPress.Security.NonceVerification.Missing
-					? wc_clean( wp_unslash( $_POST['payment_method'] ) ) // phpcs:ignore WordPress.Security.NonceVerification.Missing
-					: WC()->session->get( 'chosen_payment_method' );
-				// Fall back to the first gateway when nothing is stored yet.
-				if ( empty( $chosen_method ) ) {
-					$first         = reset( $available_gateways );
-					$chosen_method = $first ? $first->id : '';
-				}
+				if (!empty($available_gateways)) {
+					// Preserve selected method across AJAX checkout updates.
+					$posted_method = '';
+					if ( isset( $_POST['payment_method'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+						$raw_posted_method = wp_unslash( $_POST['payment_method'] ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+						$posted_method     = is_scalar( $raw_posted_method ) ? sanitize_key( (string) $raw_posted_method ) : '';
+					}
+					$chosen_method = '' !== $posted_method ? $posted_method : WC()->session->get( 'chosen_payment_method' );
+					$chosen_method = is_scalar( $chosen_method ) ? sanitize_key( (string) $chosen_method ) : '';
+					// Accept only known available gateway IDs.
+					if ( ! empty( $chosen_method ) && ! isset( $available_gateways[ $chosen_method ] ) ) {
+						$chosen_method = '';
+					}
+					// Fall back to the first gateway when nothing is stored yet.
+					if ( empty( $chosen_method ) ) {
+						$first         = reset( $available_gateways );
+						$chosen_method = $first ? $first->id : '';
+					}
 
 				$gateway_count = 0;
 				foreach ($available_gateways as $gateway) {

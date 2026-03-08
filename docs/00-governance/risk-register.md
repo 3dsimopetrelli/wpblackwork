@@ -292,6 +292,26 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
   - [BW-TASK-20260307-radar-batch2-validation](../tasks/BW-TASK-20260307-radar-batch2-validation.md)
   - [BW-TASK-20260308-01 Closure](../tasks/BW-TASK-20260308-01-closure.md)
 
+### Risk ID: R-CHK-03
+- Domain: Checkout / Payment Method Input Trust
+- Source: Radar Batch 2 — Checkout Weakness Analysis
+- Surface Anchor: `woocommerce/templates/checkout/payment.php` (`$_POST['payment_method']` selected-method handling)
+- Description: Directly consuming posted `payment_method` without strict gateway validation can allow malformed/unknown values to influence selected-method runtime behavior.
+- Invariant Threatened: Selected payment method must be deterministic and constrained to currently available gateways.
+- Impact: Medium
+- Likelihood: Medium
+- Risk Level: Medium
+- Status: Mitigated
+- Current Mitigation: Posted `payment_method` is sanitized and validated against `$available_gateways` before use; unknown values are discarded and deterministic fallback remains first available gateway.
+- Monitoring Status: Closed -> Monitoring
+- Mitigation Path: Completed via `BW-TASK-20260308-05`.
+- Task: `BW-TASK-20260308-05`
+- Date: `2026-03-08`
+- Linked Documents:
+  - [Core Evolution Plan](../00-planning/core-evolution-plan.md)
+  - [BW-TASK-20260307-radar-batch2-validation](../tasks/BW-TASK-20260307-radar-batch2-validation.md)
+  - [BW-TASK-20260308-05 Closure](../tasks/BW-TASK-20260308-05-closure.md)
+
 ### Risk ID: R-PAY-02
 - Domain: Payments / Checkout
 - Surface Anchor: `assets/js/bw-stripe-upe-cleaner.js`, `wc_stripe_upe_params` customization in `woocommerce/woocommerce-init.php`
@@ -438,11 +458,15 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 - Risk Level: High
 - Current Mitigation:
   - Repeated claim invocation designed as convergence path in token-login and modal success.
-  - Radar validation update (2026-03-07): claim query still uses unbounded order fetch (`wc_get_orders` with `limit => -1`), which remains a high-scale performance/convergence watchpoint for accounts with large guest-order history.
-- Monitoring Status: Monitoring
+  - Guest-order claim query is bounded (`wc_get_orders` limit set to `50`) to avoid unbounded fetch under large guest-order histories while preserving guest identity filters.
+- Monitoring Status: Mitigated
+- Mitigation Update (2026-03-08):
+  - Bounded `wc_get_orders` query in guest order claim logic (`limit => 50`).
+  - Task reference: `BW-TASK-20260308-04`.
 - Linked Documents:
   - [Technical Hardening Plan](./technical-hardening-plan.md)
   - [My Account Domain Audit](../50-ops/audits/my-account-domain-audit.md)
+  - [BW-TASK-20260308-04-closure](../tasks/BW-TASK-20260308-04-closure.md)
 
 ### Risk ID: R-ACC-07
 - Domain: My Account / Supabase

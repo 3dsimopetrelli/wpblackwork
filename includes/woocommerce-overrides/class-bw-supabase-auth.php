@@ -1469,7 +1469,7 @@ function bw_mew_claim_guest_orders_for_user( $user_id, $email, $debug_log = fals
 
     $orders = wc_get_orders(
         [
-            'limit'         => -1,
+            'limit'         => 50,
             'customer_id'   => 0,
             'billing_email' => $email,
             'return'        => 'objects',
