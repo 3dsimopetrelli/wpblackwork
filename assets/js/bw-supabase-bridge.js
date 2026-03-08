@@ -488,7 +488,8 @@
                         throw new Error('Supabase session missing after PKCE exchange.');
                     }
                     logDebug('Supabase code exchange success', { hasSession: true });
-                    return bridgeSession(session.access_token || '', session.refresh_token || '', 'oauth');
+                    var bridgeType = typeParam || 'oauth';
+                    return bridgeSession(session.access_token || '', session.refresh_token || '', bridgeType);
                 }).catch(function (error) {
                     logDebug('Supabase code exchange failed', { message: error && error.message ? error.message : 'unknown' });
                     return false;
@@ -529,7 +530,8 @@
                     if (!accessToken) {
                         throw new Error('Supabase PKCE exchange missing token.');
                     }
-                    return bridgeSession(accessToken, refreshToken, 'oauth');
+                    var bridgeType = typeParam || 'oauth';
+                    return bridgeSession(accessToken, refreshToken, bridgeType);
                 })
                 .catch(function (error) {
                     logDebug('Supabase PKCE exchange failed', { message: error && error.message ? error.message : 'unknown' });
