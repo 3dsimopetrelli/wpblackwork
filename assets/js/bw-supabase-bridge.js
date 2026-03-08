@@ -131,14 +131,25 @@
         };
         if (window.sessionStorage) {
             try {
+                var currentHash = window.location.hash || '';
+                var hasIncomingHashAuth = currentHash.indexOf('access_token=') !== -1
+                    || currentHash.indexOf('refresh_token=') !== -1
+                    || currentHash.indexOf('error_code=') !== -1;
                 if (sessionStorage.getItem(handledKey) === 'done') {
-                    if (window.history && window.history.replaceState) {
+                    if (!authCode && !hasIncomingHashAuth) {
+                        if (window.history && window.history.replaceState) {
+                            var cleanedUrl = new URL(window.location.href);
+                            cleanedUrl.hash = '';
+                            window.history.replaceState({}, document.title, cleanedUrl.pathname + (cleanedUrl.search ? cleanedUrl.search : ''));
+                        }
+                        return;
+                    }
+                    if (hasIncomingHashAuth) {
+                        sessionStorage.removeItem(handledKey);
+                    } else if (window.history && window.history.replaceState) {
                         var cleanedUrl = new URL(window.location.href);
                         cleanedUrl.hash = '';
                         window.history.replaceState({}, document.title, cleanedUrl.pathname + (cleanedUrl.search ? cleanedUrl.search : ''));
-                    }
-                    if (!authCode) {
-                        return;
                     }
                 }
             } catch (error) {
