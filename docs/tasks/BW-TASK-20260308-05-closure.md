@@ -8,7 +8,7 @@
 
 ## Change Summary
 - File changed: `woocommerce/templates/checkout/payment.php`
-- Fix applied: `payment_method` is sanitized before use and validated against `$available_gateways`.
+- Fix applied: posted `payment_method` is accepted only when scalar, normalized via `sanitize_key`, scalar-normalized on session fallback, and validated against `$available_gateways`.
 - Invalid/unknown payment method values are discarded with deterministic fallback to first available gateway.
 
 ## Validation Summary

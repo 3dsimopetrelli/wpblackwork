@@ -302,7 +302,7 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 - Likelihood: Medium
 - Risk Level: Medium
 - Status: Mitigated
-- Current Mitigation: Posted `payment_method` is sanitized and validated against `$available_gateways` before use; unknown values are discarded and deterministic fallback remains first available gateway.
+- Current Mitigation: Posted `payment_method` is accepted only when scalar and normalized with `sanitize_key`; session fallback is scalar-normalized and validated against `$available_gateways`; unknown/malformed values are discarded with deterministic first-gateway fallback.
 - Monitoring Status: Closed -> Monitoring
 - Mitigation Path: Completed via `BW-TASK-20260308-05`.
 - Task: `BW-TASK-20260308-05`
@@ -311,6 +311,26 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
   - [Core Evolution Plan](../00-planning/core-evolution-plan.md)
   - [BW-TASK-20260307-radar-batch2-validation](../tasks/BW-TASK-20260307-radar-batch2-validation.md)
   - [BW-TASK-20260308-05 Closure](../tasks/BW-TASK-20260308-05-closure.md)
+
+### Risk ID: R-CHK-04
+- Domain: Checkout / Runtime DOM Safety
+- Source: Radar Batch 2 — Checkout Weakness Analysis
+- Surface Anchor: `assets/js/bw-checkout.js` (`initEntityDecoder` MutationObserver branch)
+- Description: MutationObserver error normalization used HTML decode + `innerHTML` reinsertion, creating a DOM sink that could widen unsafe markup handling on checkout error surfaces.
+- Invariant Threatened: Checkout error rendering must remain deterministic and text-safe without HTML reinsertion sinks.
+- Impact: Medium
+- Likelihood: Medium
+- Risk Level: Medium
+- Status: Mitigated
+- Current Mitigation: Replaced HTML reinsertion path with text-only normalization (`textContent`) after entity decode.
+- Monitoring Status: Closed -> Monitoring
+- Mitigation Path: Completed via `BW-TASK-20260308-06`.
+- Task: `BW-TASK-20260308-06`
+- Date: `2026-03-08`
+- Linked Documents:
+  - [Core Evolution Plan](../00-planning/core-evolution-plan.md)
+  - [BW-TASK-20260307-radar-batch2-validation](../tasks/BW-TASK-20260307-radar-batch2-validation.md)
+  - [BW-TASK-20260308-06 Closure](../tasks/BW-TASK-20260308-06-closure.md)
 
 ### Risk ID: R-PAY-02
 - Domain: Payments / Checkout

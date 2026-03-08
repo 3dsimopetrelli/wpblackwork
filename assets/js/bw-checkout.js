@@ -654,25 +654,34 @@
 
     // Global observer to decode HTML entities in error messages
     function initEntityDecoder() {
+        function decodeEntitiesToText(value) {
+            var txt = document.createElement('textarea');
+            txt.innerHTML = value;
+            return txt.value;
+        }
+
+        function normalizeErrorNode(node) {
+            if (!node || node.nodeType !== 1) {
+                return;
+            }
+            var currentText = String(node.textContent || '');
+            if (currentText.indexOf('&quot;') === -1) {
+                return;
+            }
+            node.textContent = decodeEntitiesToText(currentText);
+        }
+
         var observer = new MutationObserver(function (mutations) {
             mutations.forEach(function (mutation) {
                 mutation.addedNodes.forEach(function (node) {
                     if (node.nodeType === 1 && (node.className.includes('woocommerce-error') || node.className.includes('bw-coupon-error'))) {
-                        if (node.innerHTML.includes('&quot;')) {
-                            var txt = document.createElement('textarea');
-                            txt.innerHTML = node.innerHTML;
-                            node.innerHTML = txt.value;
-                        }
+                        normalizeErrorNode(node);
                     }
                     // Also check children
                     if (node.nodeType === 1 && node.querySelector('.woocommerce-error')) {
                         var errs = node.querySelectorAll('.woocommerce-error');
                         errs.forEach(function (err) {
-                            if (err.innerHTML.includes('&quot;')) {
-                                var txt = document.createElement('textarea');
-                                txt.innerHTML = err.innerHTML;
-                                err.innerHTML = txt.value;
-                            }
+                            normalizeErrorNode(err);
                         });
                     }
                 });
