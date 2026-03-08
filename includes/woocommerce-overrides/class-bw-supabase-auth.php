@@ -793,8 +793,22 @@ function bw_mew_handle_supabase_token_login() {
     $already_onboarded       = bw_mew_is_user_marked_onboarded( $user->ID );
     $has_invite_flag         = 1 === (int) get_user_meta( $user->ID, 'bw_supabase_invited', true );
     $needs_password_cookie   = isset( $_COOKIE['bw_post_otp_needs_password'] ) ? sanitize_text_field( wp_unslash( $_COOKIE['bw_post_otp_needs_password'] ) ) : '';
-    $needs_password_for_otp  = 'otp' === $token_type && '1' === $needs_password_cookie;
+    $needs_password_for_otp  = 'otp' === $token_type && '1' === $needs_password_cookie && ! $already_onboarded;
     $needs_onboarding        = false;
+
+    if ( 'otp' === $token_type && isset( $_COOKIE['bw_post_otp_needs_password'] ) ) {
+        setcookie(
+            'bw_post_otp_needs_password',
+            '',
+            [
+                'expires'  => time() - HOUR_IN_SECONDS,
+                'path'     => '/',
+                'secure'   => is_ssl(),
+                'httponly' => true,
+                'samesite' => 'Lax',
+            ]
+        );
+    }
 
     if ( $needs_password_for_otp ) {
         bw_mew_set_onboarding_marker(
