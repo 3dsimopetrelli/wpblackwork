@@ -260,11 +260,12 @@ function bw_mew_enqueue_account_page_assets()
  */
 function bw_mew_enqueue_supabase_bridge()
 {
-    if (is_user_logged_in()) {
+    $is_account_context = function_exists('is_account_page') && is_account_page();
+
+    if (is_user_logged_in() && !$is_account_context) {
         return;
     }
 
-    $is_account_context = function_exists('is_account_page') && is_account_page();
     $is_checkout_context = function_exists('bw_mew_is_checkout_request') && bw_mew_is_checkout_request();
     $is_magic_redirect_context = false;
     $magic_link_redirect_url = trim((string) get_option('bw_supabase_magic_link_redirect_url', ''));
