@@ -602,6 +602,20 @@
         };
 
         if (needsSetPassword && !authCode && !window.location.hash) {
+            var isLoggedIn = Boolean(window.bwSupabaseBridge.isLoggedIn);
+            if (isLoggedIn) {
+                var setPasswordTarget = window.bwSupabaseBridge.setPasswordUrl || '/my-account/set-password/';
+                var normalizePath = function (path) {
+                    var normalized = '/' + String(path || '/').replace(/^\/+|\/+$/g, '');
+                    return normalized === '/' ? '/' : normalized;
+                };
+                var currentPath = normalizePath(window.location.pathname || '/');
+                var targetPath = normalizePath(new URL(setPasswordTarget, window.location.origin).pathname);
+                if (currentPath !== targetPath) {
+                    window.location.replace(setPasswordTarget);
+                    return;
+                }
+            }
             logDebug('Waiting WP session for set-password flow');
             waitForWpSession(
                 function () {

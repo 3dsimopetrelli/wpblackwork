@@ -915,7 +915,9 @@
         }
 
         var searchParams = new URLSearchParams(window.location.search);
+        var skipAutoBridge = false;
         if (searchParams.has('logged_out')) {
+            skipAutoBridge = true;
             clearAuthStorage();
             searchParams.delete('logged_out');
             if (window.history && window.history.replaceState) {
@@ -937,7 +939,9 @@
 
         handleLegacyEmailParam();
         initializeScreenState();
-        checkExistingSession();
+        if (!skipAutoBridge) {
+            checkExistingSession();
+        }
 
         authWrapper.addEventListener('submit', function (event) {
             var form = event.target;

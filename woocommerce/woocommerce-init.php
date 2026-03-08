@@ -355,6 +355,7 @@ function bw_mew_enqueue_supabase_bridge()
             'expiredLinkUrl' => $expired_link_url,
             'projectUrl' => get_option('bw_supabase_project_url', ''),
             'anonKey' => get_option('bw_supabase_anon_key', ''),
+            'isLoggedIn' => is_user_logged_in(),
             'debug' => (int) get_option('bw_supabase_debug_log', 0),
         ]
     );
