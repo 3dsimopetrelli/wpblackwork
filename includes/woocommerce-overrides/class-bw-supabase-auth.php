@@ -566,8 +566,18 @@ function bw_mew_sync_supabase_user_on_load() {
         return;
     }
 
+    // TEMP DEBUG INSTRUMENTATION (BW-TASK-20260308-02): visual sync guard trace.
+    $debug_count = (int) get_user_meta( $user_id, 'bw_supabase_sync_debug_count', true );
+    $debug_count++;
+
     $sync_guard_key = 'bw_supabase_sync_guard_' . $user_id;
     if ( get_transient( $sync_guard_key ) ) {
+        update_user_meta( $user_id, 'bw_supabase_sync_debug_count', $debug_count );
+        $GLOBALS['bw_supabase_sync_debug_state'] = [
+            'status'  => 'SKIPPED',
+            'count'   => $debug_count,
+            'user_id' => $user_id,
+        ];
         return;
     }
 
@@ -575,8 +585,41 @@ function bw_mew_sync_supabase_user_on_load() {
     bw_mew_reconcile_onboarding_marker( $user_id, 'page-load' );
 
     set_transient( $sync_guard_key, 1, 5 * MINUTE_IN_SECONDS );
+    update_user_meta( $user_id, 'bw_supabase_sync_debug_count', $debug_count );
+    $GLOBALS['bw_supabase_sync_debug_state'] = [
+        'status'  => 'EXECUTED',
+        'count'   => $debug_count,
+        'user_id' => $user_id,
+    ];
 }
 add_action( 'init', 'bw_mew_sync_supabase_user_on_load', 20 );
+
+/**
+ * TEMP DEBUG BAR (BW-TASK-20260308-02): render page-load sync guard state.
+ */
+function bw_mew_render_supabase_sync_debug_bar() {
+    if ( is_admin() || ! is_user_logged_in() ) {
+        return;
+    }
+
+    $state = isset( $GLOBALS['bw_supabase_sync_debug_state'] ) && is_array( $GLOBALS['bw_supabase_sync_debug_state'] )
+        ? $GLOBALS['bw_supabase_sync_debug_state']
+        : null;
+    if ( ! $state ) {
+        return;
+    }
+
+    $status  = isset( $state['status'] ) ? sanitize_text_field( (string) $state['status'] ) : 'UNKNOWN';
+    $count   = isset( $state['count'] ) ? absint( $state['count'] ) : 0;
+    $user_id = isset( $state['user_id'] ) ? absint( $state['user_id'] ) : 0;
+    $color   = 'EXECUTED' === $status ? '#136f2d' : '#7a4b00';
+    ?>
+    <div style="position:fixed;top:0;left:0;right:0;z-index:99999;background:<?php echo esc_attr( $color ); ?>;color:#fff;padding:8px 12px;font:600 12px/1.3 Arial,sans-serif;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,.25);">
+        <?php echo esc_html( sprintf( 'BW Sync: %s - count: %d - user: %d', $status, $count, $user_id ) ); ?>
+    </div>
+    <?php
+}
+add_action( 'wp_body_open', 'bw_mew_render_supabase_sync_debug_bar', 1 );
 
 /**
  * Use a Supabase access token to create a WordPress session after confirmation.
