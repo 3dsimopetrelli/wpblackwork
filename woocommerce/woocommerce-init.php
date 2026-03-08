@@ -509,6 +509,10 @@ function bw_mew_enqueue_checkout_assets()
     if (!bw_mew_is_checkout_request()) {
         return;
     }
+    // Skip heavy checkout runtime on thank-you endpoint (dedicated assets are enqueued separately).
+    if (function_exists('is_wc_endpoint_url') && is_wc_endpoint_url('order-received')) {
+        return;
+    }
 
     $css_file = BW_MEW_PATH . 'assets/css/bw-checkout.css';
     $js_file = BW_MEW_PATH . 'assets/js/bw-checkout.js';

@@ -252,7 +252,7 @@ It MUST be used as planning reference only and MUST NOT replace ADRs.
     Rationale: source-per-file delivery increases parse/request overhead.
   - #4 Many separate asset requests from per-file enqueue strategy (`blackwork-core-plugin.php`, `woocommerce/woocommerce-init.php`) — Medium.  
     Rationale: network/request overhead accumulates on complex pages.
-  - #5 Assets loaded more globally than required (`cart-popup/cart-popup.php`, `woocommerce/woocommerce-init.php`) — Medium.  
+  - #5 Assets loaded more globally than required (`cart-popup/cart-popup.php`, `woocommerce/woocommerce-init.php`) — Medium. Completed (checkout `order-received` scope reduction) — `BW-TASK-20260308-09` (2026-03-08).  
     Rationale: cart popup + anonymous bridge scope increase baseline frontend payload.
   - #6 Cart popup dynamic CSS emitted inline instead of static cacheable asset (`cart-popup/frontend/cart-popup-frontend.php`) — Medium.  
     Rationale: CSS is regenerated in HTML and not cacheable as independent file.

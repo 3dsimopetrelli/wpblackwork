@@ -949,6 +949,26 @@ with current WooCommerce template versions.
   - [BW-TASK-20260307-radar-batch3-performance-validation](../tasks/BW-TASK-20260307-radar-batch3-performance-validation.md)
   - [BW-TASK-20260308-02-closure](../tasks/BW-TASK-20260308-02-closure.md)
 
+### Risk ID: R-PERF-27
+- Domain: Performance / Frontend Asset Scope
+- Source: Radar Batch 3 — Performance Analysis
+- Surface Anchor: `woocommerce/woocommerce-init.php` (`bw_mew_enqueue_checkout_assets`)
+- Description: Checkout runtime asset stack was being enqueued on `order-received`, adding avoidable frontend requests where interactive checkout logic is not required.
+- Invariant Threatened: Frontend pages should load only required runtime assets for their interaction surface.
+- Impact: Medium
+- Likelihood: Medium
+- Risk Level: Medium
+- Status: Mitigated
+- Current Mitigation: Added endpoint guard to skip full checkout runtime enqueues on `order-received`, relying on dedicated thank-you page asset path.
+- Monitoring Status: Closed -> Monitoring
+- Mitigation Path: Completed via `BW-TASK-20260308-09`.
+- Task: `BW-TASK-20260308-09`
+- Date: `2026-03-08`
+- Linked Documents:
+  - [Core Evolution Plan](../00-planning/core-evolution-plan.md)
+  - [BW-TASK-20260307-radar-batch3-performance-validation](../tasks/BW-TASK-20260307-radar-batch3-performance-validation.md)
+  - [BW-TASK-20260308-09-closure](../tasks/BW-TASK-20260308-09-closure.md)
+
 ## 4) Governance Rules
 - All Tier 0 changes must be reviewed against this register before implementation.
 - Risks cannot be marked `Resolved` without audit confirmation evidence.
