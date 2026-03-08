@@ -168,7 +168,7 @@ It MUST be used as planning reference only and MUST NOT replace ADRs.
   - Regression checklist executed for all panel surfaces
 
 ### Supabase Bridge Anonymous Scope Tightening
-- Status: Backlog
+- Status: Completed — `BW-TASK-20260308-10` (2026-03-08)
 - Risk classification: Medium
 - Short description: Reduce anonymous-page runtime overhead by tightening `bw_mew_enqueue_supabase_bridge()` load scope to contexts that actually require invite/callback token handling.
 - Reference docs:
@@ -192,7 +192,7 @@ It MUST be used as planning reference only and MUST NOT replace ADRs.
   - Checkout cart quantity sync hardening: tighten validation surface for posted `cart[*][qty]` mutations.
   - CSP compatibility: remove/replace inline invite redirect bootstrap script path or support CSP-safe nonce flow.
   - My Account menu compatibility: replace hard override strategy and unconditional `orders` insertion with merge-safe behavior.
-  - Supabase bridge load scope tightening: stop loading bridge on unrelated anonymous pages.
+  - Supabase bridge load scope tightening: stop loading bridge on unrelated anonymous pages. Completed — `BW-TASK-20260308-10` (2026-03-08).
   - Supabase login error normalization: prevent raw upstream message propagation in user-facing errors.
   - Early invite runtime scope tightening: stop running preloader/redirect runtime on every page.
   - Google Pay gateway ownership cleanup: resolve dual class ownership surface (`includes/woocommerce-overrides` vs `includes/Gateways`) to prevent future include/authority drift.

@@ -508,6 +508,24 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
   - [Technical Hardening Plan](./technical-hardening-plan.md)
   - [BW-TASK-20260308-03-closure](../tasks/BW-TASK-20260308-03-closure.md)
 
+### Risk ID: R-AUTH-12
+- Domain: Auth / Supabase / Frontend Runtime Scope
+- Surface Anchor: `woocommerce/woocommerce-init.php` (`bw_mew_enqueue_supabase_bridge`)
+- Description: Supabase runtime scripts were enqueued on non-auth frontend pages, increasing unnecessary payload and auth runtime execution surface.
+- Invariant Threatened: Auth bridge runtime must load only on auth-relevant contexts.
+- Impact: Medium
+- Likelihood: Medium
+- Risk Level: Medium
+- Status: Mitigated
+- Current Mitigation: Restricted `supabase-js` and `bw-supabase-bridge.js` enqueue scope to auth-relevant contexts only.
+- Monitoring Status: Closed -> Monitoring
+- Mitigation: restrict supabase-js and bw-supabase-bridge enqueue to auth-relevant contexts only.
+- Task reference: `BW-TASK-20260308-10`
+- Date: `2026-03-08`
+- Linked Documents:
+  - [Core Evolution Plan](../00-planning/core-evolution-plan.md)
+  - [BW-TASK-20260308-10-closure](../tasks/BW-TASK-20260308-10-closure.md)
+
 ### Risk ID: R-SUPA-06
 - Domain: Supabase / Orders / My Account
 - Surface Anchor: `bw_mew_claim_guest_orders_for_user()` in `class-bw-supabase-auth.php`
