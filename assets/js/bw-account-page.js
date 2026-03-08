@@ -1154,6 +1154,11 @@
                         if (getAuthFlow() === 'signup') {
                             return;
                         }
+                        if (payload && payload.success && payload.data && payload.data.needs_password === true) {
+                            setAuthFlow('signup');
+                            switchAuthScreen('create-password');
+                            return;
+                        }
                         if (shouldFallbackToCreatePassword(payload)) {
                             setAuthFlow('signup');
                             switchAuthScreen('create-password');
