@@ -584,6 +584,8 @@ function bw_mew_handle_supabase_token_login() {
     $nonce_valid = check_ajax_referer( 'bw-supabase-login', 'nonce', false );
     $token_type  = isset( $_POST['type'] ) ? sanitize_key( wp_unslash( $_POST['type'] ) ) : '';
     $account_url = wc_get_page_permalink( 'myaccount' );
+    $access_token  = isset( $_POST['access_token'] ) ? sanitize_text_field( wp_unslash( $_POST['access_token'] ) ) : '';
+    $refresh_token = isset( $_POST['refresh_token'] ) ? sanitize_text_field( wp_unslash( $_POST['refresh_token'] ) ) : '';
     $build_redirect_url = static function ( $url, $type ) {
         if ( 'email_change' !== $type ) {
             return $url;
@@ -598,17 +600,7 @@ function bw_mew_handle_supabase_token_login() {
         );
     };
 
-    // Keep strict nonce checks for authenticated requests.
-    if ( ! $nonce_valid && is_user_logged_in() ) {
-        wp_send_json_error(
-            [ 'message' => __( 'Security check failed. Please refresh and try again.', 'bw' ) ],
-            403
-        );
-    }
-
-    // Conservative guest fallback: allow stale nonce only for same-site callback
-    // requests to preserve invite/recovery/token bridge flows behind cached pages.
-    if ( ! $nonce_valid && ! is_user_logged_in() ) {
+    $same_site_callback_request = static function () {
         $site_parts  = wp_parse_url( home_url( '/' ) );
         $site_host   = isset( $site_parts['host'] ) ? strtolower( (string) $site_parts['host'] ) : '';
         $site_scheme = isset( $site_parts['scheme'] ) ? strtolower( (string) $site_parts['scheme'] ) : '';
@@ -635,10 +627,13 @@ function bw_mew_handle_supabase_token_login() {
         $origin_allowed = '' === $origin_raw || $same_origin;
         $referer_allowed = '' === $referer_raw || $same_site_referer;
 
-        $allowed_guest_types = [ '', 'invite', 'recovery', 'otp', 'oauth', 'magiclink', 'email_change' ];
-        $type_allowed = in_array( $token_type, $allowed_guest_types, true );
+        return $origin_allowed && $referer_allowed && $sec_fetch_allowed;
+    };
 
-        if ( ! $type_allowed || ! $origin_allowed || ! $referer_allowed || ! $sec_fetch_allowed ) {
+    // Keep strict nonce checks for authenticated requests, with a narrow
+    // same-site callback allowance for email-change confirmation.
+    if ( ! $nonce_valid && is_user_logged_in() ) {
+        if ( 'email_change' !== $token_type || ! $access_token || ! $same_site_callback_request() ) {
             wp_send_json_error(
                 [ 'message' => __( 'Security check failed. Please refresh and try again.', 'bw' ) ],
                 403
@@ -646,7 +641,21 @@ function bw_mew_handle_supabase_token_login() {
         }
     }
 
-    if ( is_user_logged_in() ) {
+    // Conservative guest fallback: allow stale nonce only for same-site callback
+    // requests to preserve invite/recovery/token bridge flows behind cached pages.
+    if ( ! $nonce_valid && ! is_user_logged_in() ) {
+        $allowed_guest_types = [ '', 'invite', 'recovery', 'otp', 'oauth', 'magiclink', 'email_change' ];
+        $type_allowed = in_array( $token_type, $allowed_guest_types, true );
+
+        if ( ! $type_allowed || ! $same_site_callback_request() ) {
+            wp_send_json_error(
+                [ 'message' => __( 'Security check failed. Please refresh and try again.', 'bw' ) ],
+                403
+            );
+        }
+    }
+
+    if ( is_user_logged_in() && 'email_change' !== $token_type ) {
         wp_send_json_success(
             [
                 'redirect' => $build_redirect_url( $account_url, $token_type ),
@@ -654,8 +663,6 @@ function bw_mew_handle_supabase_token_login() {
         );
     }
 
-    $access_token  = isset( $_POST['access_token'] ) ? sanitize_text_field( wp_unslash( $_POST['access_token'] ) ) : '';
-    $refresh_token = isset( $_POST['refresh_token'] ) ? sanitize_text_field( wp_unslash( $_POST['refresh_token'] ) ) : '';
     if ( ! $access_token ) {
         wp_send_json_error(
             [ 'message' => __( 'Missing access token.', 'bw' ) ],
@@ -725,7 +732,12 @@ function bw_mew_handle_supabase_token_login() {
     }
 
     $create_users = (bool) get_option( 'bw_supabase_create_wp_users', 1 );
-    $user         = get_user_by( 'email', $email );
+    $user         = null;
+    if ( 'email_change' === $token_type && is_user_logged_in() ) {
+        $user = wp_get_current_user();
+    } else {
+        $user = get_user_by( 'email', $email );
+    }
 
     if ( ! $user && $create_users ) {
         $user_id = wp_create_user( $email, wp_generate_password( 32, true ), $email );
