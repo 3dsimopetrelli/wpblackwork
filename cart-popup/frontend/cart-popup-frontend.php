@@ -303,64 +303,119 @@ function bw_cart_popup_dynamic_css()
     }
 
 
+    // Recupera tutte le opzioni CSS in una mappa locale e riusa i valori.
+    $defaults = [
+        'bw_cart_popup_panel_width' => 400,
+        'bw_cart_popup_mobile_width' => 100,
+        'bw_cart_popup_overlay_color' => '#000000',
+        'bw_cart_popup_overlay_opacity' => 0.5,
+        'bw_cart_popup_panel_bg' => '#ffffff',
+        'bw_cart_popup_checkout_bg' => '#28a745',
+        'bw_cart_popup_checkout_bg_hover' => '#218838',
+        'bw_cart_popup_checkout_text_color' => '#ffffff',
+        'bw_cart_popup_checkout_text_hover' => '#ffffff',
+        'bw_cart_popup_checkout_font_size' => 14,
+        'bw_cart_popup_checkout_border_radius' => 6,
+        'bw_cart_popup_checkout_border_enabled' => 0,
+        'bw_cart_popup_checkout_border_width' => 1,
+        'bw_cart_popup_checkout_border_style' => 'solid',
+        'bw_cart_popup_checkout_border_color' => '#28a745',
+        'bw_cart_popup_checkout_padding_top' => 12,
+        'bw_cart_popup_checkout_padding_right' => 20,
+        'bw_cart_popup_checkout_padding_bottom' => 12,
+        'bw_cart_popup_checkout_padding_left' => 20,
+        'bw_cart_popup_continue_bg' => '#6c757d',
+        'bw_cart_popup_continue_bg_hover' => '#5a6268',
+        'bw_cart_popup_continue_text_color' => '#ffffff',
+        'bw_cart_popup_continue_text_hover' => '#ffffff',
+        'bw_cart_popup_continue_font_size' => 14,
+        'bw_cart_popup_continue_border_radius' => 6,
+        'bw_cart_popup_continue_border_enabled' => 0,
+        'bw_cart_popup_continue_border_width' => 1,
+        'bw_cart_popup_continue_border_style' => 'solid',
+        'bw_cart_popup_continue_border_color' => '#6c757d',
+        'bw_cart_popup_continue_padding_top' => 12,
+        'bw_cart_popup_continue_padding_right' => 20,
+        'bw_cart_popup_continue_padding_bottom' => 12,
+        'bw_cart_popup_continue_padding_left' => 20,
+        'bw_cart_popup_cart_icon_margin_top' => 0,
+        'bw_cart_popup_cart_icon_margin_right' => 0,
+        'bw_cart_popup_cart_icon_margin_bottom' => 0,
+        'bw_cart_popup_cart_icon_margin_left' => 0,
+        'bw_cart_popup_empty_cart_padding_top' => 0,
+        'bw_cart_popup_empty_cart_padding_right' => 0,
+        'bw_cart_popup_empty_cart_padding_bottom' => 0,
+        'bw_cart_popup_empty_cart_padding_left' => 0,
+        'bw_cart_popup_promo_input_padding_top' => 10,
+        'bw_cart_popup_promo_input_padding_right' => 12,
+        'bw_cart_popup_promo_input_padding_bottom' => 10,
+        'bw_cart_popup_promo_input_padding_left' => 12,
+        'bw_cart_popup_promo_placeholder_font_size' => 14,
+        'bw_cart_popup_apply_button_font_weight' => 'normal',
+    ];
+    $options = [];
+    foreach ($defaults as $key => $default_value) {
+        $options[$key] = get_option($key, $default_value);
+    }
+
     // Recupera le impostazioni generali
-    $panel_width = get_option('bw_cart_popup_panel_width', 400);
-    $mobile_width = get_option('bw_cart_popup_mobile_width', 100);
-    $overlay_color = get_option('bw_cart_popup_overlay_color', '#000000');
-    $overlay_opacity = get_option('bw_cart_popup_overlay_opacity', 0.5);
-    $panel_bg = get_option('bw_cart_popup_panel_bg', '#ffffff');
+    $panel_width = $options['bw_cart_popup_panel_width'];
+    $mobile_width = $options['bw_cart_popup_mobile_width'];
+    $overlay_color = $options['bw_cart_popup_overlay_color'];
+    $overlay_opacity = $options['bw_cart_popup_overlay_opacity'];
+    $panel_bg = $options['bw_cart_popup_panel_bg'];
 
     // Proceed to Checkout button settings
-    $checkout_bg = get_option('bw_cart_popup_checkout_bg', '#28a745');
-    $checkout_bg_hover = get_option('bw_cart_popup_checkout_bg_hover', '#218838');
-    $checkout_text_color = get_option('bw_cart_popup_checkout_text_color', '#ffffff');
-    $checkout_text_hover = get_option('bw_cart_popup_checkout_text_hover', '#ffffff');
-    $checkout_font_size = get_option('bw_cart_popup_checkout_font_size', 14);
-    $checkout_border_radius = get_option('bw_cart_popup_checkout_border_radius', 6);
-    $checkout_border_enabled = get_option('bw_cart_popup_checkout_border_enabled', 0);
-    $checkout_border_width = get_option('bw_cart_popup_checkout_border_width', 1);
-    $checkout_border_style = get_option('bw_cart_popup_checkout_border_style', 'solid');
-    $checkout_border_color = get_option('bw_cart_popup_checkout_border_color', '#28a745');
-    $checkout_padding_top = get_option('bw_cart_popup_checkout_padding_top', 12);
-    $checkout_padding_right = get_option('bw_cart_popup_checkout_padding_right', 20);
-    $checkout_padding_bottom = get_option('bw_cart_popup_checkout_padding_bottom', 12);
-    $checkout_padding_left = get_option('bw_cart_popup_checkout_padding_left', 20);
+    $checkout_bg = $options['bw_cart_popup_checkout_bg'];
+    $checkout_bg_hover = $options['bw_cart_popup_checkout_bg_hover'];
+    $checkout_text_color = $options['bw_cart_popup_checkout_text_color'];
+    $checkout_text_hover = $options['bw_cart_popup_checkout_text_hover'];
+    $checkout_font_size = $options['bw_cart_popup_checkout_font_size'];
+    $checkout_border_radius = $options['bw_cart_popup_checkout_border_radius'];
+    $checkout_border_enabled = $options['bw_cart_popup_checkout_border_enabled'];
+    $checkout_border_width = $options['bw_cart_popup_checkout_border_width'];
+    $checkout_border_style = $options['bw_cart_popup_checkout_border_style'];
+    $checkout_border_color = $options['bw_cart_popup_checkout_border_color'];
+    $checkout_padding_top = $options['bw_cart_popup_checkout_padding_top'];
+    $checkout_padding_right = $options['bw_cart_popup_checkout_padding_right'];
+    $checkout_padding_bottom = $options['bw_cart_popup_checkout_padding_bottom'];
+    $checkout_padding_left = $options['bw_cart_popup_checkout_padding_left'];
 
     // Continue Shopping button settings
-    $continue_bg = get_option('bw_cart_popup_continue_bg', '#6c757d');
-    $continue_bg_hover = get_option('bw_cart_popup_continue_bg_hover', '#5a6268');
-    $continue_text_color = get_option('bw_cart_popup_continue_text_color', '#ffffff');
-    $continue_text_hover = get_option('bw_cart_popup_continue_text_hover', '#ffffff');
-    $continue_font_size = get_option('bw_cart_popup_continue_font_size', 14);
-    $continue_border_radius = get_option('bw_cart_popup_continue_border_radius', 6);
-    $continue_border_enabled = get_option('bw_cart_popup_continue_border_enabled', 0);
-    $continue_border_width = get_option('bw_cart_popup_continue_border_width', 1);
-    $continue_border_style = get_option('bw_cart_popup_continue_border_style', 'solid');
-    $continue_border_color = get_option('bw_cart_popup_continue_border_color', '#6c757d');
-    $continue_padding_top = get_option('bw_cart_popup_continue_padding_top', 12);
-    $continue_padding_right = get_option('bw_cart_popup_continue_padding_right', 20);
-    $continue_padding_bottom = get_option('bw_cart_popup_continue_padding_bottom', 12);
-    $continue_padding_left = get_option('bw_cart_popup_continue_padding_left', 20);
+    $continue_bg = $options['bw_cart_popup_continue_bg'];
+    $continue_bg_hover = $options['bw_cart_popup_continue_bg_hover'];
+    $continue_text_color = $options['bw_cart_popup_continue_text_color'];
+    $continue_text_hover = $options['bw_cart_popup_continue_text_hover'];
+    $continue_font_size = $options['bw_cart_popup_continue_font_size'];
+    $continue_border_radius = $options['bw_cart_popup_continue_border_radius'];
+    $continue_border_enabled = $options['bw_cart_popup_continue_border_enabled'];
+    $continue_border_width = $options['bw_cart_popup_continue_border_width'];
+    $continue_border_style = $options['bw_cart_popup_continue_border_style'];
+    $continue_border_color = $options['bw_cart_popup_continue_border_color'];
+    $continue_padding_top = $options['bw_cart_popup_continue_padding_top'];
+    $continue_padding_right = $options['bw_cart_popup_continue_padding_right'];
+    $continue_padding_bottom = $options['bw_cart_popup_continue_padding_bottom'];
+    $continue_padding_left = $options['bw_cart_popup_continue_padding_left'];
 
     // Margin per Cart Icon SVG
-    $cart_icon_margin_top = get_option('bw_cart_popup_cart_icon_margin_top', 0);
-    $cart_icon_margin_right = get_option('bw_cart_popup_cart_icon_margin_right', 0);
-    $cart_icon_margin_bottom = get_option('bw_cart_popup_cart_icon_margin_bottom', 0);
-    $cart_icon_margin_left = get_option('bw_cart_popup_cart_icon_margin_left', 0);
+    $cart_icon_margin_top = $options['bw_cart_popup_cart_icon_margin_top'];
+    $cart_icon_margin_right = $options['bw_cart_popup_cart_icon_margin_right'];
+    $cart_icon_margin_bottom = $options['bw_cart_popup_cart_icon_margin_bottom'];
+    $cart_icon_margin_left = $options['bw_cart_popup_cart_icon_margin_left'];
 
     // Padding per Empty Cart SVG
-    $empty_cart_padding_top = get_option('bw_cart_popup_empty_cart_padding_top', 0);
-    $empty_cart_padding_right = get_option('bw_cart_popup_empty_cart_padding_right', 0);
-    $empty_cart_padding_bottom = get_option('bw_cart_popup_empty_cart_padding_bottom', 0);
-    $empty_cart_padding_left = get_option('bw_cart_popup_empty_cart_padding_left', 0);
+    $empty_cart_padding_top = $options['bw_cart_popup_empty_cart_padding_top'];
+    $empty_cart_padding_right = $options['bw_cart_popup_empty_cart_padding_right'];
+    $empty_cart_padding_bottom = $options['bw_cart_popup_empty_cart_padding_bottom'];
+    $empty_cart_padding_left = $options['bw_cart_popup_empty_cart_padding_left'];
 
     // Promo code section settings
-    $promo_input_padding_top = get_option('bw_cart_popup_promo_input_padding_top', 10);
-    $promo_input_padding_right = get_option('bw_cart_popup_promo_input_padding_right', 12);
-    $promo_input_padding_bottom = get_option('bw_cart_popup_promo_input_padding_bottom', 10);
-    $promo_input_padding_left = get_option('bw_cart_popup_promo_input_padding_left', 12);
-    $promo_placeholder_font_size = get_option('bw_cart_popup_promo_placeholder_font_size', 14);
-    $apply_button_font_weight = get_option('bw_cart_popup_apply_button_font_weight', 'normal');
+    $promo_input_padding_top = $options['bw_cart_popup_promo_input_padding_top'];
+    $promo_input_padding_right = $options['bw_cart_popup_promo_input_padding_right'];
+    $promo_input_padding_bottom = $options['bw_cart_popup_promo_input_padding_bottom'];
+    $promo_input_padding_left = $options['bw_cart_popup_promo_input_padding_left'];
+    $promo_placeholder_font_size = $options['bw_cart_popup_promo_placeholder_font_size'];
+    $apply_button_font_weight = $options['bw_cart_popup_apply_button_font_weight'];
 
     // Converti colore hex in rgba per l'overlay
     $overlay_rgb = bw_cart_popup_hex_to_rgb($overlay_color);

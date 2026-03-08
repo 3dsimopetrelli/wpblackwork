@@ -268,7 +268,7 @@ It MUST be used as planning reference only and MUST NOT replace ADRs.
     Rationale: inline config footprint grows HTML payload.
   - #14 Slick loaded from CDN (`blackwork-core-plugin.php`) — Medium.  
     Rationale: third-party dependency/network coupling in critical UI widgets.
-  - #15 Duplicated Stripe enqueue logic across wallet branches (`woocommerce/woocommerce-init.php`) — Low.  
+  - #15 Duplicated Stripe enqueue logic across wallet branches (`woocommerce/woocommerce-init.php`) — Low. Completed — `BW-TASK-20260308-13` (2026-03-08).  
     Rationale: duplicated logic adds maintenance drift risk even with WP handle dedupe.
   - #16 Payment method icons without explicit width/height attributes (`woocommerce/templates/checkout/payment.php`) — Low.  
     Rationale: potential CLS risk despite CSS sizing guard.

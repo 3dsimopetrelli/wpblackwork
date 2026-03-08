@@ -1005,6 +1005,26 @@ with current WooCommerce template versions.
   - [BW-TASK-20260307-radar-batch3-performance-validation](../tasks/BW-TASK-20260307-radar-batch3-performance-validation.md)
   - [BW-TASK-20260308-09-closure](../tasks/BW-TASK-20260308-09-closure.md)
 
+### Risk ID: R-PERF-28
+- Domain: Performance / Payments Asset Determinism
+- Source: Radar Batch 3 — Performance Analysis
+- Surface Anchor: `woocommerce/woocommerce-init.php` (`bw_mew_enqueue_checkout_assets`)
+- Description: Duplicate Stripe enqueue branches in wallet asset logic increase maintenance drift risk and can create divergence between equivalent Google Pay / Apple Pay paths over time.
+- Invariant Threatened: Wallet-related Stripe asset loading should remain single-path and deterministic.
+- Impact: Low
+- Likelihood: Medium
+- Risk Level: Low
+- Status: Mitigated
+- Current Mitigation: Consolidated duplicated Stripe enqueue branches into a single shared deterministic path while preserving existing wallet conditions, handle, URL, dependencies, and load order.
+- Monitoring Status: Closed -> Monitoring
+- Mitigation Path: Completed via `BW-TASK-20260308-13`.
+- Task: `BW-TASK-20260308-13`
+- Date: `2026-03-08`
+- Linked Documents:
+  - [Core Evolution Plan](../00-planning/core-evolution-plan.md)
+  - [BW-TASK-20260307-radar-batch3-performance-validation](../tasks/BW-TASK-20260307-radar-batch3-performance-validation.md)
+  - [BW-TASK-20260308-13-closure](../tasks/BW-TASK-20260308-13-closure.md)
+
 ## 4) Governance Rules
 - All Tier 0 changes must be reviewed against this register before implementation.
 - Risks cannot be marked `Resolved` without audit confirmation evidence.
