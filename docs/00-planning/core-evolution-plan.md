@@ -226,7 +226,7 @@ It MUST be used as planning reference only and MUST NOT replace ADRs.
   - #5 Checkout quantity sync trust boundary on posted cart payload (`woocommerce/woocommerce-init.php`) — Medium.
   - #6 Coupon rate-limit key trusts proxy header path (`woocommerce/woocommerce-init.php`) — Medium.
   - #7 MutationObserver `innerHTML` decode sink risk in error normalizer (`assets/js/bw-checkout.js`) — Medium. Completed — `BW-TASK-20260308-06` (2026-03-08).
-  - #9 Coupon removal full redirect causes form-state loss (`assets/js/bw-checkout.js`) — Low.
+  - #9 Coupon removal full redirect causes form-state loss (`assets/js/bw-checkout.js`) — Low. Completed — `BW-TASK-20260308-08` (2026-03-08).
   - #10 `alert()` fallback for checkout coupon errors (`assets/js/bw-checkout.js`) — Low.
   - #11 Manual sticky behavior implemented in JS instead of native CSS sticky (`assets/js/bw-checkout.js`) — Low.
   - #12 Coupon AJAX calls without explicit timeout (`assets/js/bw-checkout.js`) — Low. Completed — `BW-TASK-20260308-07` (2026-03-08).

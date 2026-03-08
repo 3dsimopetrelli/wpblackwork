@@ -352,6 +352,26 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
   - [BW-TASK-20260307-radar-batch2-validation](../tasks/BW-TASK-20260307-radar-batch2-validation.md)
   - [BW-TASK-20260308-07 Closure](../tasks/BW-TASK-20260308-07-closure.md)
 
+### Risk ID: R-CHK-06
+- Domain: Checkout / Coupon UX Convergence
+- Source: Radar Batch 2 — Checkout Weakness Analysis
+- Surface Anchor: `assets/js/bw-checkout.js` (coupon removal success branch)
+- Description: Coupon removal success path performed full-page redirect, which could reset checkout form state and disrupt in-progress input flow.
+- Invariant Threatened: Coupon updates must converge in-place without losing checkout form state.
+- Impact: Medium
+- Likelihood: Medium
+- Risk Level: Medium
+- Status: Mitigated
+- Current Mitigation: Replaced coupon-removal redirect with in-place WooCommerce event-driven refresh (`removed_coupon` + `update_checkout`), preserving field state and deterministic checkout convergence.
+- Monitoring Status: Closed -> Monitoring
+- Mitigation Path: Completed via `BW-TASK-20260308-08`.
+- Task: `BW-TASK-20260308-08`
+- Date: `2026-03-08`
+- Linked Documents:
+  - [Core Evolution Plan](../00-planning/core-evolution-plan.md)
+  - [BW-TASK-20260307-radar-batch2-validation](../tasks/BW-TASK-20260307-radar-batch2-validation.md)
+  - [BW-TASK-20260308-08 Closure](../tasks/BW-TASK-20260308-08-closure.md)
+
 ### Risk ID: R-PAY-02
 - Domain: Payments / Checkout
 - Surface Anchor: `assets/js/bw-stripe-upe-cleaner.js`, `wc_stripe_upe_params` customization in `woocommerce/woocommerce-init.php`
