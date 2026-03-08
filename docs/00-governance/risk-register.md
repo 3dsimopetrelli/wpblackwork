@@ -852,10 +852,15 @@ with current WooCommerce template versions.
   - Guard rails skip the sync for admin, AJAX, and anonymous sessions.
   - Sync path exits early when token/session is missing or remote call fails.
   - Marker reconciliation remains deterministic after sync attempt.
-- Monitoring Status: Open
+- Monitoring Status: Mitigated
+- Mitigation Update (2026-03-08):
+  - Added per-user transient guard in `bw_mew_sync_supabase_user_on_load()` to avoid external Supabase sync on every authenticated page load.
+  - Guard key: `bw_supabase_sync_guard_{user_id}` with `5 * MINUTE_IN_SECONDS` TTL.
+  - Task reference: `BW-TASK-20260308-02`.
 - Linked Documents:
   - [Core Evolution Plan](../00-planning/core-evolution-plan.md)
   - [BW-TASK-20260307-radar-batch3-performance-validation](../tasks/BW-TASK-20260307-radar-batch3-performance-validation.md)
+  - [BW-TASK-20260308-02-closure](../tasks/BW-TASK-20260308-02-closure.md)
 
 ## 4) Governance Rules
 - All Tier 0 changes must be reviewed against this register before implementation.

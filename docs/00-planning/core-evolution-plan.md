@@ -185,7 +185,7 @@ It MUST be used as planning reference only and MUST NOT replace ADRs.
 - Risk classification: Mixed (Medium-High)
 - Short description: Implement triage-confirmed hardening items from radar validation batch that were classified as backlog (non-immediate risk-register updates).
 - Scope items:
-  - Supabase page-load sync optimization: avoid external HTTP sync on every authenticated request (`bw_mew_sync_supabase_user_on_load`).
+  - Supabase page-load sync optimization: avoid external HTTP sync on every authenticated request (`bw_mew_sync_supabase_user_on_load`). Completed — `BW-TASK-20260308-02` (2026-03-08).
   - Supabase admin-users lookup completeness: avoid first-page-only (`per_page=100,page=1`) false negatives in email-exists helper.
   - Coupon rate limit IP trust hardening: reduce dependency on `HTTP_CF_CONNECTING_IP` without trusted proxy guarantee.
   - Token-login session store dedupe: remove duplicate `bw_mew_supabase_store_session()` writes in same flow.
