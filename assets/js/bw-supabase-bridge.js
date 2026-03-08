@@ -633,14 +633,36 @@
             return;
         }
 
-        if (handleInviteHashError()) {
-            return;
-        }
-
-        handleHashTokens().then(function (handled) {
-            if (!handled && isAuthCallback) {
-                redirectToTerminal('callback_without_handled_payload');
+        var processHashCallback = function (reason) {
+            if (handleInviteHashError()) {
+                return;
             }
+
+            handleHashTokens().then(function (handled) {
+                if (!handled && isAuthCallback) {
+                    redirectToTerminal(reason || 'callback_without_handled_payload');
+                }
+            });
+        };
+
+        window.addEventListener('hashchange', function () {
+            var incomingHash = window.location.hash || '';
+            var hasSupabaseHash = incomingHash.indexOf('access_token=') !== -1
+                || incomingHash.indexOf('refresh_token=') !== -1
+                || incomingHash.indexOf('error_code=') !== -1;
+            if (!hasSupabaseHash) {
+                return;
+            }
+            if (window.sessionStorage) {
+                try {
+                    sessionStorage.removeItem(handledKey);
+                } catch (error) {
+                    // ignore sessionStorage errors
+                }
+            }
+            processHashCallback('callback_hashchange_not_handled');
         });
+
+        processHashCallback('callback_without_handled_payload');
     });
 })();

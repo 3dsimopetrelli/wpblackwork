@@ -807,7 +807,7 @@ function bw_mew_handle_supabase_token_login() {
         );
         delete_user_meta( $user->ID, 'bw_supabase_invited' );
         $needs_onboarding = true;
-    } elseif ( $is_invite && ( $force_set_password || ( ! $already_onboarded && $has_invite_flag ) ) ) {
+    } elseif ( $is_invite && ( $force_set_password || ! $already_onboarded ) ) {
         bw_mew_set_onboarding_marker(
             $user->ID,
             false,
