@@ -865,6 +865,13 @@
             var pendingFlow = getAuthFlow();
             var hasPendingToken = Boolean(getSessionStorageItem(pendingAccessTokenKey));
 
+            if (!hasCallback && pendingFlow === 'signup' && !hasPendingToken) {
+                // Prevent stale signup mode from forcing OTP users into create-password.
+                // Signup intent is valid only while a pending token exists for the current flow.
+                setAuthFlow('login');
+                pendingFlow = 'login';
+            }
+
             if (!storedEmail && !hasCallback) {
                 setPendingOtpEmail('');
                 clearAuthFlow();
@@ -950,10 +957,11 @@
                 checkEmailExists(emailValue)
                     .then(function (result) {
                         var exists = result && result.ok ? Boolean(result.exists) : false;
-                        var flow = exists ? 'login' : 'signup';
+                        // Keep OTP convergence in login mode. Email-exists response is neutralized
+                        // server-side for anti-enumeration, so it must not drive signup UI.
+                        var flow = 'login';
                         var shouldCreateUser = !exists;
                         if (!result || !result.ok) {
-                            flow = 'signup';
                             shouldCreateUser = true;
                         }
                         logDebug('EMAIL_EXISTS_DECISION', {
