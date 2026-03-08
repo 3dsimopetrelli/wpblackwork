@@ -806,6 +806,16 @@
             return true;
         };
 
+        var shouldFallbackToCreatePassword = function (payload) {
+            if (!payload || payload.success) {
+                return false;
+            }
+            var message = payload && payload.data && payload.data.message
+                ? String(payload.data.message).toLowerCase()
+                : '';
+            return message.indexOf('no matching wordpress user found') !== -1;
+        };
+
         var checkExistingSession = function () {
             if (getSessionStorageItem(sessionCheckKey) === '1') {
                 return;
@@ -1142,6 +1152,11 @@
                     })
                     .then(function (payload) {
                         if (getAuthFlow() === 'signup') {
+                            return;
+                        }
+                        if (shouldFallbackToCreatePassword(payload)) {
+                            setAuthFlow('signup');
+                            switchAuthScreen('create-password');
                             return;
                         }
                         if (!completeBridgeRedirect(payload)) {
