@@ -786,10 +786,11 @@ function bw_mew_handle_supabase_token_login() {
         );
     }
 
-    $already_onboarded       = function_exists( 'bw_user_needs_onboarding' )
-        ? ! bw_user_needs_onboarding( $user->ID )
-        : bw_mew_is_user_marked_onboarded( $user->ID );
     $is_invite               = 'invite' === $token_type;
+    // Use the raw onboarding marker in token-login flow.
+    // bw_user_needs_onboarding() can reconcile state for logged-in users, which
+    // is too early during invite callback convergence and may suppress set-password flow.
+    $already_onboarded       = bw_mew_is_user_marked_onboarded( $user->ID );
     $has_invite_flag         = 1 === (int) get_user_meta( $user->ID, 'bw_supabase_invited', true );
     $needs_password_cookie   = isset( $_COOKIE['bw_post_otp_needs_password'] ) ? sanitize_text_field( wp_unslash( $_COOKIE['bw_post_otp_needs_password'] ) ) : '';
     $needs_password_for_otp  = 'otp' === $token_type && '1' === $needs_password_cookie;
