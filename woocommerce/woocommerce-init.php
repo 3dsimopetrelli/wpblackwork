@@ -264,6 +264,48 @@ function bw_mew_enqueue_supabase_bridge()
         return;
     }
 
+    $is_account_context = function_exists('is_account_page') && is_account_page();
+    $is_checkout_context = function_exists('bw_mew_is_checkout_request') && bw_mew_is_checkout_request();
+    $is_magic_redirect_context = false;
+    $magic_link_redirect_url = trim((string) get_option('bw_supabase_magic_link_redirect_url', ''));
+    if ($magic_link_redirect_url !== '') {
+        $magic_redirect_path = wp_parse_url($magic_link_redirect_url, PHP_URL_PATH);
+        $request_uri = isset($_SERVER['REQUEST_URI']) ? wp_unslash($_SERVER['REQUEST_URI']) : '/'; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+        $current_path = wp_parse_url((string) $request_uri, PHP_URL_PATH);
+        if (is_string($magic_redirect_path) && is_string($current_path)) {
+            $normalize_path = static function ($path) {
+                $normalized = '/' . trim((string) $path, '/');
+                return '/' === $normalized ? '/' : untrailingslashit($normalized);
+            };
+            $is_magic_redirect_context = $normalize_path($magic_redirect_path) === $normalize_path($current_path);
+        }
+    }
+    $auth_query_keys = [
+        'bw_auth_callback',
+        'bw_set_password',
+        'code',
+        'type',
+        'state',
+        'provider',
+        'bw_email_confirmed',
+        'logged_out',
+    ];
+    $has_auth_query = false;
+    foreach ($auth_query_keys as $query_key) {
+        if (isset($_GET[$query_key])) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+            $raw_query_value = wp_unslash($_GET[$query_key]); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+            $query_value = is_scalar($raw_query_value) ? sanitize_text_field((string) $raw_query_value) : '';
+            if ($query_value !== '') {
+                $has_auth_query = true;
+                break;
+            }
+        }
+    }
+
+    if (!$is_account_context && !$is_checkout_context && !$has_auth_query && !$is_magic_redirect_context) {
+        return;
+    }
+
     $js_file = BW_MEW_PATH . 'assets/js/bw-supabase-bridge.js';
     if (!file_exists($js_file)) {
         return;
