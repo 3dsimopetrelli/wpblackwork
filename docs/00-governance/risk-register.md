@@ -1025,6 +1025,26 @@ with current WooCommerce template versions.
   - [BW-TASK-20260307-radar-batch3-performance-validation](../tasks/BW-TASK-20260307-radar-batch3-performance-validation.md)
   - [BW-TASK-20260308-13-closure](../tasks/BW-TASK-20260308-13-closure.md)
 
+### Risk ID: R-PERF-29
+- Domain: Performance / Cart Popup Dynamic CSS
+- Source: Radar Batch 3 — Performance Analysis
+- Surface Anchor: `cart-popup/frontend/cart-popup-frontend.php` (`bw_cart_popup_dynamic_css`)
+- Description: Dynamic CSS generation for cart popup performed many repeated `get_option()` calls per request in a TTFB-sensitive rendering path.
+- Invariant Threatened: Dynamic CSS rendering should remain deterministic and avoid unnecessary repeated option lookups.
+- Impact: Low
+- Likelihood: Medium
+- Risk Level: Low
+- Status: Mitigated
+- Current Mitigation: Consolidated repeated dynamic CSS option lookups into a local options/default map and reused local values for CSS generation in a single deterministic pass.
+- Monitoring Status: Closed -> Monitoring
+- Mitigation Path: Completed via `BW-TASK-20260308-14`.
+- Task: `BW-TASK-20260308-14`
+- Date: `2026-03-08`
+- Linked Documents:
+  - [Core Evolution Plan](../00-planning/core-evolution-plan.md)
+  - [BW-TASK-20260307-radar-batch3-performance-validation](../tasks/BW-TASK-20260307-radar-batch3-performance-validation.md)
+  - [BW-TASK-20260308-14-closure](../tasks/BW-TASK-20260308-14-closure.md)
+
 ## 4) Governance Rules
 - All Tier 0 changes must be reviewed against this register before implementation.
 - Risks cannot be marked `Resolved` without audit confirmation evidence.

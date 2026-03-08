@@ -598,14 +598,52 @@ function bw_mew_handle_supabase_token_login() {
         );
     };
 
-    // For invite/hash callbacks from public pages, the localized nonce can be stale
-    // because of full-page cache. In that case we continue and rely on Supabase token
-    // verification below. Keep strict nonce checks for already-authenticated requests.
+    // Keep strict nonce checks for authenticated requests.
     if ( ! $nonce_valid && is_user_logged_in() ) {
         wp_send_json_error(
             [ 'message' => __( 'Security check failed. Please refresh and try again.', 'bw' ) ],
             403
         );
+    }
+
+    // Conservative guest fallback: allow stale nonce only for same-site callback
+    // requests to preserve invite/recovery/token bridge flows behind cached pages.
+    if ( ! $nonce_valid && ! is_user_logged_in() ) {
+        $site_parts  = wp_parse_url( home_url( '/' ) );
+        $site_host   = isset( $site_parts['host'] ) ? strtolower( (string) $site_parts['host'] ) : '';
+        $site_scheme = isset( $site_parts['scheme'] ) ? strtolower( (string) $site_parts['scheme'] ) : '';
+
+        $origin_raw = isset( $_SERVER['HTTP_ORIGIN'] ) // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+            ? wp_unslash( $_SERVER['HTTP_ORIGIN'] ) // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+            : '';
+        $origin_parts = $origin_raw ? wp_parse_url( esc_url_raw( (string) $origin_raw ) ) : [];
+        $origin_host = isset( $origin_parts['host'] ) ? strtolower( (string) $origin_parts['host'] ) : '';
+        $origin_scheme = isset( $origin_parts['scheme'] ) ? strtolower( (string) $origin_parts['scheme'] ) : '';
+        $same_origin = $origin_host && $site_host && $origin_host === $site_host;
+        if ( $same_origin && $site_scheme && $origin_scheme ) {
+            $same_origin = $origin_scheme === $site_scheme;
+        }
+
+        $referer_raw = wp_get_referer();
+        $referer_parts = $referer_raw ? wp_parse_url( (string) $referer_raw ) : [];
+        $referer_host = isset( $referer_parts['host'] ) ? strtolower( (string) $referer_parts['host'] ) : '';
+        $same_site_referer = $referer_host && $site_host && $referer_host === $site_host;
+        $sec_fetch_site = isset( $_SERVER['HTTP_SEC_FETCH_SITE'] ) // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+            ? strtolower( sanitize_text_field( wp_unslash( $_SERVER['HTTP_SEC_FETCH_SITE'] ) ) ) // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+            : '';
+        $sec_fetch_allowed = '' === $sec_fetch_site || in_array( $sec_fetch_site, [ 'same-origin', 'same-site', 'none' ], true );
+        $origin_allowed = '' === $origin_raw || $same_origin;
+        $referer_allowed = '' === $referer_raw || $same_site_referer;
+
+        $allowed_guest_types = [ '', 'invite', 'recovery', 'otp', 'oauth', 'magiclink', 'email_change' ];
+        $type_allowed = in_array( $token_type, $allowed_guest_types, true );
+
+        if ( ! $type_allowed || ! $origin_allowed || ! $referer_allowed || ! $sec_fetch_allowed ) {
+            wp_send_json_error(
+                [ 'message' => __( 'Security check failed. Please refresh and try again.', 'bw' ) ],
+                403
+            );
+        }
     }
 
     if ( is_user_logged_in() ) {

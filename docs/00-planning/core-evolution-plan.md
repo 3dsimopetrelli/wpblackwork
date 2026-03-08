@@ -246,7 +246,7 @@ It MUST be used as planning reference only and MUST NOT replace ADRs.
 - Risk classification: Mixed (Low-Medium)
 - Source: Radar Batch 3 — Performance Analysis
 - Scope items:
-  - #2 Cart popup dynamic CSS option fan-out (`cart-popup/frontend/cart-popup-frontend.php`) — Low.  
+  - #2 Cart popup dynamic CSS option fan-out (`cart-popup/frontend/cart-popup-frontend.php`) — Low. Completed — `BW-TASK-20260308-14` (2026-03-08).  
     Rationale: many per-request `get_option()` lookups + string-built inline CSS.
   - #3 No dedicated build/minify/bundle pipeline (`composer.json`, asset enqueue surfaces) — Low.  
     Rationale: source-per-file delivery increases parse/request overhead.
