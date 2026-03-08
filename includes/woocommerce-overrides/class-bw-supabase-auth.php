@@ -998,120 +998,17 @@ add_action( 'wp_ajax_nopriv_bw_supabase_login', 'bw_mew_handle_supabase_login' )
 add_action( 'wp_ajax_bw_supabase_login', 'bw_mew_handle_supabase_login' );
 
 /**
- * Check if a Supabase user exists by email.
+ * Return a neutral response for Supabase email checks to prevent enumeration.
  */
 function bw_mew_handle_supabase_email_exists() {
     check_ajax_referer( 'bw-supabase-login', 'nonce' );
 
-    $email = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
-    if ( ! $email || ! is_email( $email ) ) {
-        wp_send_json_error(
-            [
-                'ok'     => false,
-                'exists' => false,
-                'reason' => 'invalid_email',
-            ],
-            400
-        );
-    }
-
-    $config    = bw_mew_get_supabase_config();
-    $debug_log = (bool) get_option( 'bw_supabase_debug_log', 0 );
-    $service_key = trim( (string) get_option( 'bw_supabase_service_role_key', '' ) );
-
-    if ( empty( $config['has_url'] ) || ! $service_key ) {
-        if ( $debug_log ) {
-            error_log( sprintf( 'Supabase email exists skipped (missing service role). email_hash=%s', hash( 'sha256', strtolower( $email ) ) ) );
-        }
-        wp_send_json_success(
-            [
-                'ok'     => false,
-                'exists' => false,
-                'reason' => 'service_role_missing',
-                'status' => 200,
-            ]
-        );
-    }
-
-    $endpoint = trailingslashit( untrailingslashit( $config['project_url'] ) ) . 'auth/v1/admin/users';
-    $endpoint = add_query_arg(
-        [
-            'page'     => 1,
-            'per_page' => 100,
-        ],
-        $endpoint
-    );
-
-    $response = wp_remote_get(
-        $endpoint,
-        [
-            'headers' => [
-                'apikey'       => $service_key,
-                'Authorization' => 'Bearer ' . $service_key,
-                'Accept'       => 'application/json',
-            ],
-            'timeout' => 15,
-        ]
-    );
-
-    if ( is_wp_error( $response ) ) {
-        if ( $debug_log ) {
-            error_log( sprintf( 'Supabase email exists error: %s', $response->get_error_message() ) );
-        }
-        wp_send_json_success(
-            [
-                'ok'     => false,
-                'exists' => false,
-                'reason' => 'request_failed',
-                'status' => 500,
-            ]
-        );
-    }
-
-    $status_code = wp_remote_retrieve_response_code( $response );
-    $payload     = json_decode( wp_remote_retrieve_body( $response ), true );
-    $exists      = false;
-    $users       = [];
-
-    if ( is_array( $payload ) ) {
-        if ( isset( $payload['users'] ) && is_array( $payload['users'] ) ) {
-            $users = $payload['users'];
-        } elseif ( isset( $payload[0] ) ) {
-            $users = $payload;
-        }
-    }
-
-    if ( $users ) {
-        $email_lower = strtolower( $email );
-        foreach ( $users as $user ) {
-            if ( ! is_array( $user ) || empty( $user['email'] ) ) {
-                continue;
-            }
-            if ( strtolower( (string) $user['email'] ) === $email_lower ) {
-                $exists = true;
-                break;
-            }
-        }
-    }
-
-    if ( $debug_log ) {
-        error_log(
-            sprintf(
-                'Supabase email exists (status=%d, exists=%s, endpoint=%s, email_hash=%s)',
-                (int) $status_code,
-                $exists ? 'yes' : 'no',
-                $endpoint,
-                hash( 'sha256', strtolower( $email ) )
-            )
-        );
-    }
-
     wp_send_json_success(
         [
             'ok'     => true,
-            'exists' => $exists,
+            'exists' => false,
             'reason' => '',
-            'status' => (int) $status_code,
+            'status' => 'ok',
         ]
     );
 }

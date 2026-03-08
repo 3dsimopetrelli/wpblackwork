@@ -418,12 +418,15 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 - Risk Level: High
 - Current Mitigation:
   - Nonce gate required (`check_ajax_referer('bw-supabase-login', 'nonce')`).
-  - Input validation rejects invalid email payloads.
-  - Fail-safe response when service-role key is unavailable.
-- Monitoring Status: Open
+  - Endpoint response neutralized to deterministic non-disclosing payload (no existence oracle).
+- Monitoring Status: Mitigated
+- Mitigation Update (2026-03-08):
+  - Neutralized `bw_supabase_email_exists` response to prevent enumeration.
+  - Task reference: `BW-TASK-20260308-03`.
 - Linked Documents:
   - [Radar Analysis Workflow](./radar-analysis-workflow.md)
   - [Technical Hardening Plan](./technical-hardening-plan.md)
+  - [BW-TASK-20260308-03-closure](../tasks/BW-TASK-20260308-03-closure.md)
 
 ### Risk ID: R-SUPA-06
 - Domain: Supabase / Orders / My Account
