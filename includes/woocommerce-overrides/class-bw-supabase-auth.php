@@ -567,16 +567,18 @@ function bw_mew_sync_supabase_user_on_load() {
     }
 
     // TEMP DEBUG INSTRUMENTATION (BW-TASK-20260308-02): visual sync guard trace.
-    $debug_count = (int) get_user_meta( $user_id, 'bw_supabase_sync_debug_count', true );
-    $debug_count++;
+    $executed_count = (int) get_user_meta( $user_id, 'bw_supabase_sync_debug_executed_count', true );
+    $skipped_count  = (int) get_user_meta( $user_id, 'bw_supabase_sync_debug_skipped_count', true );
 
     $sync_guard_key = 'bw_supabase_sync_guard_' . $user_id;
     if ( get_transient( $sync_guard_key ) ) {
-        update_user_meta( $user_id, 'bw_supabase_sync_debug_count', $debug_count );
+        $skipped_count++;
+        update_user_meta( $user_id, 'bw_supabase_sync_debug_skipped_count', $skipped_count );
         $GLOBALS['bw_supabase_sync_debug_state'] = [
-            'status'  => 'SKIPPED',
-            'count'   => $debug_count,
-            'user_id' => $user_id,
+            'status'   => 'SKIPPED',
+            'executed' => $executed_count,
+            'skipped'  => $skipped_count,
+            'user_id'  => $user_id,
         ];
         return;
     }
@@ -584,12 +586,15 @@ function bw_mew_sync_supabase_user_on_load() {
     bw_mew_sync_supabase_user( $user_id, 'page-load' );
     bw_mew_reconcile_onboarding_marker( $user_id, 'page-load' );
 
-    set_transient( $sync_guard_key, 1, 5 * MINUTE_IN_SECONDS );
-    update_user_meta( $user_id, 'bw_supabase_sync_debug_count', $debug_count );
+    // TEMP TEST TTL: 60s for faster manual validation cycles.
+    set_transient( $sync_guard_key, 1, 60 );
+    $executed_count++;
+    update_user_meta( $user_id, 'bw_supabase_sync_debug_executed_count', $executed_count );
     $GLOBALS['bw_supabase_sync_debug_state'] = [
-        'status'  => 'EXECUTED',
-        'count'   => $debug_count,
-        'user_id' => $user_id,
+        'status'   => 'EXECUTED',
+        'executed' => $executed_count,
+        'skipped'  => $skipped_count,
+        'user_id'  => $user_id,
     ];
 }
 add_action( 'init', 'bw_mew_sync_supabase_user_on_load', 20 );
@@ -609,13 +614,14 @@ function bw_mew_render_supabase_sync_debug_bar() {
         return;
     }
 
-    $status  = isset( $state['status'] ) ? sanitize_text_field( (string) $state['status'] ) : 'UNKNOWN';
-    $count   = isset( $state['count'] ) ? absint( $state['count'] ) : 0;
-    $user_id = isset( $state['user_id'] ) ? absint( $state['user_id'] ) : 0;
-    $color   = 'EXECUTED' === $status ? '#136f2d' : '#7a4b00';
+    $status         = isset( $state['status'] ) ? sanitize_text_field( (string) $state['status'] ) : 'UNKNOWN';
+    $executed_count = isset( $state['executed'] ) ? absint( $state['executed'] ) : 0;
+    $skipped_count  = isset( $state['skipped'] ) ? absint( $state['skipped'] ) : 0;
+    $user_id        = isset( $state['user_id'] ) ? absint( $state['user_id'] ) : 0;
+    $color          = 'EXECUTED' === $status ? '#136f2d' : '#7a4b00';
     ?>
     <div style="position:fixed;top:0;left:0;right:0;z-index:99999;background:<?php echo esc_attr( $color ); ?>;color:#fff;padding:8px 12px;font:600 12px/1.3 Arial,sans-serif;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,.25);">
-        <?php echo esc_html( sprintf( 'BW Sync: %s - count: %d - user: %d', $status, $count, $user_id ) ); ?>
+        <?php echo esc_html( sprintf( 'BW Sync: %s | executed: %d | skipped: %d | user: %d', $status, $executed_count, $skipped_count, $user_id ) ); ?>
     </div>
     <?php
 }
