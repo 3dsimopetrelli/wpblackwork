@@ -609,6 +609,7 @@ function bw_mew_handle_supabase_token_login() {
         $origin_raw = isset( $_SERVER['HTTP_ORIGIN'] ) // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
             ? wp_unslash( $_SERVER['HTTP_ORIGIN'] ) // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
             : '';
+        $origin_normalized = strtolower( trim( (string) $origin_raw ) );
         $origin_parts = $origin_raw ? wp_parse_url( esc_url_raw( (string) $origin_raw ) ) : [];
         $origin_host = isset( $origin_parts['host'] ) ? strtolower( (string) $origin_parts['host'] ) : '';
         $origin_scheme = isset( $origin_parts['scheme'] ) ? strtolower( (string) $origin_parts['scheme'] ) : '';
@@ -625,7 +626,7 @@ function bw_mew_handle_supabase_token_login() {
             ? strtolower( sanitize_text_field( wp_unslash( $_SERVER['HTTP_SEC_FETCH_SITE'] ) ) ) // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
             : '';
         $sec_fetch_allowed = '' === $sec_fetch_site || in_array( $sec_fetch_site, [ 'same-origin', 'same-site', 'none' ], true );
-        $origin_allowed = '' === $origin_raw || $same_origin;
+        $origin_allowed = '' === $origin_raw || 'null' === $origin_normalized || $same_origin;
         $referer_allowed = '' === $referer_raw || $same_site_referer;
 
         return $origin_allowed && $referer_allowed && $sec_fetch_allowed;
