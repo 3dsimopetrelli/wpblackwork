@@ -526,6 +526,24 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
   - [Core Evolution Plan](../00-planning/core-evolution-plan.md)
   - [BW-TASK-20260308-10-closure](../tasks/BW-TASK-20260308-10-closure.md)
 
+### Risk ID: R-AUTH-13
+- Domain: Auth / Supabase / Frontend Preload Scope
+- Surface Anchor: `woocommerce/woocommerce-init.php` (`bw_mew_supabase_early_invite_redirect_hint`)
+- Description: Supabase auth preload helper output (`bw-supabase-auth-preload` style + inline bootstrap script) was being injected on non-auth frontend pages.
+- Invariant Threatened: Auth preload/bootstrap helper must run only on auth-relevant surfaces.
+- Impact: Medium
+- Likelihood: Medium
+- Risk Level: Medium
+- Status: Mitigated
+- Current Mitigation: Restricted `bw-supabase-auth-preload` helper output to auth-relevant contexts only (My Account/login, checkout context, auth/callback query URLs, configured magic-link redirect context).
+- Monitoring Status: Closed -> Monitoring
+- Mitigation: restricted `bw-supabase-auth-preload` helper output to auth-relevant contexts only.
+- Task reference: `BW-TASK-20260308-11`
+- Date: `2026-03-08`
+- Linked Documents:
+  - [Core Evolution Plan](../00-planning/core-evolution-plan.md)
+  - [BW-TASK-20260308-11-closure](../tasks/BW-TASK-20260308-11-closure.md)
+
 ### Risk ID: R-SUPA-06
 - Domain: Supabase / Orders / My Account
 - Surface Anchor: `bw_mew_claim_guest_orders_for_user()` in `class-bw-supabase-auth.php`

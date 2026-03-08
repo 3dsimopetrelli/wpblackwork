@@ -194,7 +194,7 @@ It MUST be used as planning reference only and MUST NOT replace ADRs.
   - My Account menu compatibility: replace hard override strategy and unconditional `orders` insertion with merge-safe behavior.
   - Supabase bridge load scope tightening: stop loading bridge on unrelated anonymous pages. Completed — `BW-TASK-20260308-10` (2026-03-08).
   - Supabase login error normalization: prevent raw upstream message propagation in user-facing errors.
-  - Early invite runtime scope tightening: stop running preloader/redirect runtime on every page.
+  - Early invite runtime scope tightening: stop running preloader/redirect runtime on every page. Completed — `BW-TASK-20260308-11` (2026-03-08).
   - Google Pay gateway ownership cleanup: resolve dual class ownership surface (`includes/woocommerce-overrides` vs `includes/Gateways`) to prevent future include/authority drift.
 - Reference docs:
   - `docs/00-governance/risk-register.md`
