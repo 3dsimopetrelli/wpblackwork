@@ -562,8 +562,19 @@ function bw_mew_sync_supabase_user_on_load() {
     }
 
     $user_id = get_current_user_id();
+    if ( ! $user_id ) {
+        return;
+    }
+
+    $sync_guard_key = 'bw_supabase_sync_guard_' . $user_id;
+    if ( get_transient( $sync_guard_key ) ) {
+        return;
+    }
+
     bw_mew_sync_supabase_user( $user_id, 'page-load' );
     bw_mew_reconcile_onboarding_marker( $user_id, 'page-load' );
+
+    set_transient( $sync_guard_key, 1, 5 * MINUTE_IN_SECONDS );
 }
 add_action( 'init', 'bw_mew_sync_supabase_user_on_load', 20 );
 
