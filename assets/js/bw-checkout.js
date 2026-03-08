@@ -177,6 +177,7 @@
             $.ajax({
                 type: 'POST',
                 url: bwCheckoutParams.ajax_url,
+                timeout: 10000,
                 data: {
                     action: 'bw_remove_coupon',
                     nonce: bwCheckoutParams.nonce,
@@ -184,17 +185,20 @@
                 },
                 success: function (response) {
                     if (response.success) {
-                        // CRITICAL: Use redirect instead of reload() to prevent POST replay
-                        // window.location.reload() can replay the last POST (coupon application)
-                        // Redirect to same page forces a fresh GET request without POST data
-                        window.location.href = window.location.pathname + window.location.search;
+                        // Keep checkout state in-place and refresh totals via WooCommerce events.
+                        $(document.body).trigger('removed_coupon', [couponCode]);
+                        $(document.body).trigger('update_checkout');
                     } else {
                         setOrderSummaryLoading(false);
                         showCouponMessage(response.data.message || 'Error removing coupon', 'error');
                     }
                 },
-                error: function () {
+                error: function (jqXHR, textStatus) {
                     setOrderSummaryLoading(false);
+                    if (textStatus === 'timeout') {
+                        showCouponMessage('Coupon removal timed out. Please try again.', 'error');
+                        return;
+                    }
                     showCouponMessage('Error removing coupon', 'error');
                 }
             });
@@ -741,6 +745,7 @@
             window.jQuery.ajax({
                 type: 'POST',
                 url: bwCheckoutParams.ajax_url,
+                timeout: 10000,
                 data: {
                     action: 'bw_apply_coupon',
                     nonce: bwCheckoutParams.nonce,
@@ -765,8 +770,12 @@
                         showErr(errorMessage);
                     }
                 },
-                error: function () {
+                error: function (jqXHR, textStatus) {
                     setOrderSummaryLoading(false);
+                    if (textStatus === 'timeout') {
+                        showErr('Coupon request timed out. Please try again.');
+                        return;
+                    }
                     showErr('Error applying coupon.');
                 }
             });

@@ -229,7 +229,7 @@ It MUST be used as planning reference only and MUST NOT replace ADRs.
   - #9 Coupon removal full redirect causes form-state loss (`assets/js/bw-checkout.js`) — Low.
   - #10 `alert()` fallback for checkout coupon errors (`assets/js/bw-checkout.js`) — Low.
   - #11 Manual sticky behavior implemented in JS instead of native CSS sticky (`assets/js/bw-checkout.js`) — Low.
-  - #12 Coupon AJAX calls without explicit timeout (`assets/js/bw-checkout.js`) — Low.
+  - #12 Coupon AJAX calls without explicit timeout (`assets/js/bw-checkout.js`) — Low. Completed — `BW-TASK-20260308-07` (2026-03-08).
   - #13 Gateway type detection via `strpos($gateway->id, ...)` (`woocommerce/templates/checkout/payment.php`) — Low.
   - #15 Checkout settings return raw `legal_text` before render-context escaping (`woocommerce/woocommerce-init.php`) — Low.
   - #16 Duplicated inline style attributes on checkout wrapper/grid (`woocommerce/templates/checkout/form-checkout.php`) — Low.

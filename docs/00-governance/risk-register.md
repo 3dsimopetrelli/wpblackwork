@@ -332,6 +332,26 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
   - [BW-TASK-20260307-radar-batch2-validation](../tasks/BW-TASK-20260307-radar-batch2-validation.md)
   - [BW-TASK-20260308-06 Closure](../tasks/BW-TASK-20260308-06-closure.md)
 
+### Risk ID: R-CHK-05
+- Domain: Checkout / Coupon Runtime Resilience
+- Source: Radar Batch 2 — Checkout Weakness Analysis
+- Surface Anchor: `assets/js/bw-checkout.js` (`bw_apply_coupon` / `bw_remove_coupon` AJAX paths)
+- Description: Coupon AJAX calls without explicit timeout can leave checkout in a prolonged loading/locked state when requests stall.
+- Invariant Threatened: Checkout must remain usable and recover deterministically on network stalls/failures.
+- Impact: Medium
+- Likelihood: Medium
+- Risk Level: Medium
+- Status: Mitigated
+- Current Mitigation: Added explicit AJAX timeout (`10000ms`) and safe timeout/network failure recovery that clears loading state and surfaces user-facing error feedback.
+- Monitoring Status: Closed -> Monitoring
+- Mitigation Path: Completed via `BW-TASK-20260308-07`.
+- Task: `BW-TASK-20260308-07`
+- Date: `2026-03-08`
+- Linked Documents:
+  - [Core Evolution Plan](../00-planning/core-evolution-plan.md)
+  - [BW-TASK-20260307-radar-batch2-validation](../tasks/BW-TASK-20260307-radar-batch2-validation.md)
+  - [BW-TASK-20260308-07 Closure](../tasks/BW-TASK-20260308-07-closure.md)
+
 ### Risk ID: R-PAY-02
 - Domain: Payments / Checkout
 - Surface Anchor: `assets/js/bw-stripe-upe-cleaner.js`, `wc_stripe_upe_params` customization in `woocommerce/woocommerce-init.php`
