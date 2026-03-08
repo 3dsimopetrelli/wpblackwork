@@ -355,7 +355,7 @@
             return true;
         };
 
-        var bridgeSession = function (accessToken, refreshToken, context) {
+        var bridgeSession = function (accessToken, refreshToken, context, forceSetPassword) {
             return fetch(window.bwSupabaseBridge.ajaxUrl, {
                 method: 'POST',
                 credentials: 'same-origin',
@@ -367,7 +367,8 @@
                     nonce: window.bwSupabaseBridge.nonce,
                     access_token: accessToken,
                     refresh_token: refreshToken,
-                    type: context || ''
+                    type: context || '',
+                    force_set_password: forceSetPassword ? '1' : '0'
                 })
             })
                 .then(function (response) {
@@ -401,6 +402,7 @@
             var accessToken = params.get('access_token') || '';
             var refreshToken = params.get('refresh_token') || '';
             var inviteType = params.get('type') || '';
+            var redirectTo = params.get('redirect_to') || '';
 
             if (!accessToken) {
                 return Promise.resolve(false);
@@ -422,7 +424,8 @@
             }
 
             if (inviteType === 'invite') {
-                return bridgeSession(accessToken, refreshToken, inviteType);
+                var forceSetPassword = redirectTo.indexOf('set-password') !== -1;
+                return bridgeSession(accessToken, refreshToken, inviteType, forceSetPassword);
             }
 
             if (inviteType === 'recovery') {

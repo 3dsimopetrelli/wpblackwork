@@ -583,6 +583,7 @@ add_action( 'init', 'bw_mew_sync_supabase_user_on_load', 20 );
 function bw_mew_handle_supabase_token_login() {
     $nonce_valid = check_ajax_referer( 'bw-supabase-login', 'nonce', false );
     $token_type  = isset( $_POST['type'] ) ? sanitize_key( wp_unslash( $_POST['type'] ) ) : '';
+    $force_set_password = isset( $_POST['force_set_password'] ) && '1' === sanitize_text_field( wp_unslash( $_POST['force_set_password'] ) );
     $account_url = wc_get_page_permalink( 'myaccount' );
     $access_token  = isset( $_POST['access_token'] ) ? sanitize_text_field( wp_unslash( $_POST['access_token'] ) ) : '';
     $refresh_token = isset( $_POST['refresh_token'] ) ? sanitize_text_field( wp_unslash( $_POST['refresh_token'] ) ) : '';
@@ -805,7 +806,7 @@ function bw_mew_handle_supabase_token_login() {
         );
         delete_user_meta( $user->ID, 'bw_supabase_invited' );
         $needs_onboarding = true;
-    } elseif ( $is_invite && ! $already_onboarded && $has_invite_flag ) {
+    } elseif ( $is_invite && ( $force_set_password || ( ! $already_onboarded && $has_invite_flag ) ) ) {
         bw_mew_set_onboarding_marker(
             $user->ID,
             false,
