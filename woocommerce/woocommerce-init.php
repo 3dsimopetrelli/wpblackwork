@@ -41,30 +41,6 @@ function bw_mew_initialize_woocommerce_overrides()
         require_once $google_pay_file;
     }
 
-    $stripe_api_client_file = BW_MEW_PATH . 'includes/Stripe/class-bw-stripe-api-client.php';
-    if (file_exists($stripe_api_client_file)) {
-        require_once $stripe_api_client_file;
-    }
-
-    $stripe_abstract_gateway_file = BW_MEW_PATH . 'includes/Gateways/class-bw-abstract-stripe-gateway.php';
-    if (file_exists($stripe_abstract_gateway_file)) {
-        require_once $stripe_abstract_gateway_file;
-    }
-
-    if (!class_exists('BW_Klarna_Gateway')) {
-        $klarna_gateway_file = BW_MEW_PATH . 'includes/Gateways/class-bw-klarna-gateway.php';
-        if (file_exists($klarna_gateway_file)) {
-            require_once $klarna_gateway_file;
-        }
-    }
-
-    if (!class_exists('BW_Apple_Pay_Gateway')) {
-        $apple_pay_gateway_file = BW_MEW_PATH . 'includes/Gateways/class-bw-apple-pay-gateway.php';
-        if (file_exists($apple_pay_gateway_file)) {
-            require_once $apple_pay_gateway_file;
-        }
-    }
-
     add_filter('woocommerce_locate_template', 'bw_mew_locate_template', 1, 3);
     add_action('wp_enqueue_scripts', 'bw_mew_enqueue_related_products_assets', 30);
     add_action('wp_enqueue_scripts', 'bw_mew_enqueue_account_page_assets', 20);
@@ -187,7 +163,7 @@ function bw_mew_enqueue_account_page_assets()
 
     wp_enqueue_script(
         'supabase-js',
-        'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.4/dist/umd/supabase.min.js',
+        'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',
         [],
         null,
         true
@@ -260,50 +236,7 @@ function bw_mew_enqueue_account_page_assets()
  */
 function bw_mew_enqueue_supabase_bridge()
 {
-    $is_account_context = function_exists('is_account_page') && is_account_page();
-
-    if (is_user_logged_in() && !$is_account_context) {
-        return;
-    }
-
-    $is_checkout_context = function_exists('bw_mew_is_checkout_request') && bw_mew_is_checkout_request();
-    $is_magic_redirect_context = false;
-    $magic_link_redirect_url = trim((string) get_option('bw_supabase_magic_link_redirect_url', ''));
-    if ($magic_link_redirect_url !== '') {
-        $magic_redirect_path = wp_parse_url($magic_link_redirect_url, PHP_URL_PATH);
-        $request_uri = isset($_SERVER['REQUEST_URI']) ? wp_unslash($_SERVER['REQUEST_URI']) : '/'; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-        $current_path = wp_parse_url((string) $request_uri, PHP_URL_PATH);
-        if (is_string($magic_redirect_path) && is_string($current_path)) {
-            $normalize_path = static function ($path) {
-                $normalized = '/' . trim((string) $path, '/');
-                return '/' === $normalized ? '/' : untrailingslashit($normalized);
-            };
-            $is_magic_redirect_context = $normalize_path($magic_redirect_path) === $normalize_path($current_path);
-        }
-    }
-    $auth_query_keys = [
-        'bw_auth_callback',
-        'bw_set_password',
-        'code',
-        'type',
-        'state',
-        'provider',
-        'bw_email_confirmed',
-        'logged_out',
-    ];
-    $has_auth_query = false;
-    foreach ($auth_query_keys as $query_key) {
-        if (isset($_GET[$query_key])) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-            $raw_query_value = wp_unslash($_GET[$query_key]); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-            $query_value = is_scalar($raw_query_value) ? sanitize_text_field((string) $raw_query_value) : '';
-            if ($query_value !== '') {
-                $has_auth_query = true;
-                break;
-            }
-        }
-    }
-
-    if (!$is_account_context && !$is_checkout_context && !$has_auth_query && !$is_magic_redirect_context) {
+    if (is_user_logged_in()) {
         return;
     }
 
@@ -317,7 +250,7 @@ function bw_mew_enqueue_supabase_bridge()
     if (!wp_script_is('supabase-js', 'registered')) {
         wp_register_script(
             'supabase-js',
-            'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.4/dist/umd/supabase.min.js',
+            'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',
             [],
             null,
             true
@@ -355,7 +288,6 @@ function bw_mew_enqueue_supabase_bridge()
             'expiredLinkUrl' => $expired_link_url,
             'projectUrl' => get_option('bw_supabase_project_url', ''),
             'anonKey' => get_option('bw_supabase_anon_key', ''),
-            'isLoggedIn' => is_user_logged_in(),
             'debug' => (int) get_option('bw_supabase_debug_log', 0),
         ]
     );
@@ -371,14 +303,6 @@ add_action('wp_enqueue_scripts', 'bw_mew_enqueue_supabase_bridge', 20);
  */
 function bw_mew_supabase_early_invite_redirect_hint()
 {
-    if (is_admin()) {
-        return;
-    }
-
-    if (is_user_logged_in()) {
-        return;
-    }
-
     $account_url = wc_get_page_permalink('myaccount');
     if (!$account_url) {
         return;
@@ -432,37 +356,20 @@ function bw_mew_supabase_early_invite_redirect_hint()
             if (window.sessionStorage) {
                 if (isLoggedIn) {
                     sessionStorage.removeItem('bw_auth_in_progress');
-                    sessionStorage.removeItem('bw_auth_in_progress_at');
-                    sessionStorage.removeItem('bw_oauth_bridge_done');
                 }
                 if (hasInviteHash || hasInviteCode || callbackMode || setPasswordMode) {
                     sessionStorage.setItem('bw_auth_in_progress', '1');
-                    sessionStorage.setItem('bw_auth_in_progress_at', String(Date.now()));
                 }
                 if (search.get('logged_out') === '1') {
                     sessionStorage.removeItem('bw_auth_in_progress');
-                    sessionStorage.removeItem('bw_auth_in_progress_at');
-                    sessionStorage.removeItem('bw_oauth_bridge_done');
                 }
             }
         } catch (e) {}
 
         var authInProgress = false;
-        var authInProgressAt = 0;
         try {
             authInProgress = !!(window.sessionStorage && sessionStorage.getItem('bw_auth_in_progress') === '1');
-            authInProgressAt = window.sessionStorage ? parseInt(sessionStorage.getItem('bw_auth_in_progress_at') || '0', 10) : 0;
         } catch (e) {}
-        if (authInProgress && authInProgressAt && (Date.now() - authInProgressAt) > 120000) {
-            authInProgress = false;
-            try {
-                if (window.sessionStorage) {
-                    sessionStorage.removeItem('bw_auth_in_progress');
-                    sessionStorage.removeItem('bw_auth_in_progress_at');
-                    sessionStorage.removeItem('bw_oauth_bridge_done');
-                }
-            } catch (e) {}
-        }
 
         // Stale callback URL (common after logout): no auth payload available.
         // Avoid showing the callback loader forever and go back to clean My Account.
@@ -470,10 +377,6 @@ function bw_mew_supabase_early_invite_redirect_hint()
             try {
                 if (window.sessionStorage) {
                     sessionStorage.removeItem('bw_auth_in_progress');
-                    sessionStorage.removeItem('bw_auth_in_progress_at');
-                    sessionStorage.removeItem('bw_oauth_bridge_done');
-                    sessionStorage.removeItem('bw_handled_supabase_code');
-                    sessionStorage.removeItem('bw_handled_supabase_hash');
                 }
             } catch (e) {}
             window.location.replace(<?php echo wp_json_encode($account_url); ?>);
@@ -561,10 +464,6 @@ function bw_mew_enqueue_checkout_assets()
     if (!bw_mew_is_checkout_request()) {
         return;
     }
-    // Skip heavy checkout runtime on thank-you endpoint (dedicated assets are enqueued separately).
-    if (function_exists('is_wc_endpoint_url') && is_wc_endpoint_url('order-received')) {
-        return;
-    }
 
     $css_file = BW_MEW_PATH . 'assets/css/bw-checkout.css';
     $js_file = BW_MEW_PATH . 'assets/js/bw-checkout.js';
@@ -581,26 +480,10 @@ function bw_mew_enqueue_checkout_assets()
     if (file_exists($js_file)) {
         $js_version = filemtime($js_file);
         $dependencies = ['jquery'];
-        $google_maps_enabled = get_option('bw_google_maps_enabled', '0');
-        $google_maps_api_key = get_option('bw_google_maps_api_key', '');
-        $google_maps_autofill = get_option('bw_google_maps_autofill', '1');
-        $google_maps_restrict = get_option('bw_google_maps_restrict_country', '1');
 
         if (wp_script_is('wc-checkout', 'registered')) {
             wp_enqueue_script('wc-checkout');
             $dependencies[] = 'wc-checkout';
-        }
-
-        // Ensure Places API is available before bw-checkout initializes autocomplete.
-        if ('1' === $google_maps_enabled && !empty($google_maps_api_key)) {
-            wp_enqueue_script(
-                'google-maps-places',
-                'https://maps.googleapis.com/maps/api/js?key=' . esc_attr($google_maps_api_key) . '&libraries=places',
-                [],
-                null,
-                true
-            );
-            $dependencies[] = 'google-maps-places';
         }
 
         wp_enqueue_script(
@@ -632,6 +515,23 @@ function bw_mew_enqueue_checkout_assets()
                 'freeOrderButtonText' => esc_html($free_order_button_text),
             )
         );
+
+        // Google Maps settings for floating labels + autocomplete
+        $google_maps_enabled = get_option('bw_google_maps_enabled', '0');
+        $google_maps_api_key = get_option('bw_google_maps_api_key', '');
+        $google_maps_autofill = get_option('bw_google_maps_autofill', '1');
+        $google_maps_restrict = get_option('bw_google_maps_restrict_country', '1');
+
+        // Load Google Maps API if enabled and API key exists
+        if ('1' === $google_maps_enabled && !empty($google_maps_api_key)) {
+            wp_enqueue_script(
+                'google-maps-places',
+                'https://maps.googleapis.com/maps/api/js?key=' . esc_attr($google_maps_api_key) . '&libraries=places',
+                [],
+                null,
+                true
+            );
+        }
 
         // Pass Google Maps settings to JavaScript
         wp_localize_script(
@@ -708,23 +608,14 @@ function bw_mew_enqueue_checkout_assets()
     }
 
     // Google Pay Integration
-    $available_gateways = function_exists('WC') && WC()->payment_gateways()
-        ? WC()->payment_gateways()->get_available_payment_gateways()
-        : array();
-    $should_enqueue_google_pay = (get_option('bw_google_pay_enabled', '0') === '1') || isset($available_gateways['bw_google_pay']);
-    $should_enqueue_apple_pay = (get_option('bw_apple_pay_enabled', '0') === '1') || isset($available_gateways['bw_apple_pay']);
-
-    if ($should_enqueue_google_pay || $should_enqueue_apple_pay) {
-        wp_enqueue_script('stripe', 'https://js.stripe.com/v3/', [], null, true);
-    }
-
-    if ($should_enqueue_google_pay) {
+    if (get_option('bw_google_pay_enabled', '0') === '1') {
         $google_pay_js = BW_MEW_PATH . 'assets/js/bw-google-pay.js';
         if (file_exists($google_pay_js)) {
+            wp_enqueue_script('stripe', 'https://js.stripe.com/v3/', [], null, true);
             wp_enqueue_script(
                 'bw-google-pay',
                 BW_MEW_URL . 'assets/js/bw-google-pay.js',
-                ['jquery', 'stripe', 'wc-checkout', 'bw-payment-methods'],
+                ['jquery', 'stripe', 'wc-checkout'],
                 filemtime($google_pay_js),
                 true
             );
@@ -734,30 +625,26 @@ function bw_mew_enqueue_checkout_assets()
                 ? get_option('bw_google_pay_test_publishable_key', '')
                 : get_option('bw_google_pay_publishable_key', '');
 
-            // Pass server-side cart total so JS doesn't have to scrape the DOM.
-            $cart_total_cents = ( WC()->cart && ! WC()->cart->is_empty() )
-                ? (int) round( (float) WC()->cart->get_total( 'raw' ) * 100 )
-                : 0;
-
             wp_localize_script('bw-google-pay', 'bwGooglePayParams', [
                 'publishableKey'   => $pub_key,
                 'testMode'         => $test_mode,
                 'country'          => WC()->countries->get_base_country(),
                 'currency'         => strtolower( get_woocommerce_currency() ),
                 'ajaxCheckoutUrl'  => add_query_arg( 'wc-ajax', 'checkout', home_url( '/' ) ),
-                'orderTotalCents'  => $cart_total_cents,
+                'adminDebug'       => (defined('WP_DEBUG') && WP_DEBUG && current_user_can('manage_options')),
             ]);
         }
     }
 
-    // Apple Pay Integration
-    if ($should_enqueue_apple_pay) {
+    // Apple Pay Integration (live-only).
+    if (get_option('bw_apple_pay_enabled', '0') === '1') {
         $apple_pay_js = BW_MEW_PATH . 'assets/js/bw-apple-pay.js';
         if (file_exists($apple_pay_js)) {
+            wp_enqueue_script('stripe', 'https://js.stripe.com/v3/', [], null, true);
             wp_enqueue_script(
                 'bw-apple-pay',
                 BW_MEW_URL . 'assets/js/bw-apple-pay.js',
-                ['jquery', 'stripe', 'wc-checkout', 'bw-payment-methods'],
+                ['jquery', 'stripe', 'wc-checkout'],
                 filemtime($apple_pay_js),
                 true
             );
@@ -767,16 +654,11 @@ function bw_mew_enqueue_checkout_assets()
                 $apple_pub_key = (string) get_option('bw_google_pay_publishable_key', '');
             }
 
-            $cart_total_cents = ( WC()->cart && ! WC()->cart->is_empty() )
-                ? (int) round( (float) WC()->cart->get_total( 'raw' ) * 100 )
-                : 0;
             wp_localize_script('bw-apple-pay', 'bwApplePayParams', [
                 'publishableKey'   => $apple_pub_key,
                 'country'          => WC()->countries->get_base_country(),
                 'currency'         => strtolower(get_woocommerce_currency()),
                 'ajaxCheckoutUrl'  => add_query_arg('wc-ajax', 'checkout', home_url('/')),
-                'orderTotalCents'  => $cart_total_cents,
-                'enableExpressFallback' => get_option('bw_apple_pay_express_helper_enabled', '1') === '1',
                 'adminDebug'       => (defined('WP_DEBUG') && WP_DEBUG && current_user_can('manage_options')),
             ]);
         }
@@ -1610,30 +1492,6 @@ function bw_mew_render_express_divider()
 add_action('woocommerce_checkout_before_customer_details', 'bw_mew_render_express_divider', 100);
 
 /**
- * Rate-limit coupon AJAX actions per IP address.
- *
- * Prevents automated brute-force enumeration of coupon codes.
- * Allows max 10 attempts per IP every 5 minutes.
- * Sends a JSON error and exits if the limit is exceeded.
- *
- * @param string $action Unique action name used as part of the transient key.
- */
-function bw_mew_coupon_rate_limit_check( $action ) {
-    $ip_raw = isset( $_SERVER['HTTP_CF_CONNECTING_IP'] )
-        ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_CF_CONNECTING_IP'] ) )
-        : ( isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : 'unknown' );
-
-    $key      = 'bw_coupon_rl_' . md5( $action . $ip_raw );
-    $attempts = (int) get_transient( $key );
-
-    if ( $attempts >= 10 ) {
-        wp_send_json_error( array( 'message' => __( 'Too many attempts. Please wait a few minutes and try again.', 'woocommerce' ) ), 429 );
-    }
-
-    set_transient( $key, $attempts + 1, 5 * MINUTE_IN_SECONDS );
-}
-
-/**
  * AJAX handler to remove coupon from cart.
  *
  * FIX: This handler now properly synchronizes with WooCommerce's checkout refresh mechanism
@@ -1645,7 +1503,6 @@ function bw_mew_coupon_rate_limit_check( $action ) {
 function bw_mew_ajax_remove_coupon()
 {
     check_ajax_referer('bw-checkout-nonce', 'nonce');
-    bw_mew_coupon_rate_limit_check( 'remove_coupon' );
 
     if (!class_exists('WooCommerce') || !WC()->cart) {
         wp_send_json_error(array('message' => __('Cart not available.', 'woocommerce')));
@@ -1722,7 +1579,6 @@ function bw_mew_ajax_remove_coupon()
 function bw_mew_ajax_apply_coupon()
 {
     check_ajax_referer('bw-checkout-nonce', 'nonce');
-    bw_mew_coupon_rate_limit_check( 'apply_coupon' );
 
     if (!class_exists('WooCommerce') || !WC()->cart) {
         wp_send_json_error(array('message' => __('Cart not available.', 'woocommerce')));
@@ -1889,13 +1745,6 @@ function bw_mew_customize_stripe_elements_style($options)
             '.PaymentElement' => array(
                 'padding' => '0',
             ),
-            '.Input--invalid' => array(
-                // Keep the error border inside the input box to avoid clipping artifacts.
-                'border' => '2px solid #991b1b',
-                'borderColor' => '#991b1b',
-                'boxShadow' => 'none',
-                'backgroundColor' => '#fef2f2',
-            ),
         ),
     );
 
@@ -1911,12 +1760,6 @@ function bw_mew_customize_stripe_elements_style($options)
  */
 function bw_mew_customize_stripe_upe_appearance($params)
 {
-    // Keep Payment Element in tabs mode for stable card subview rendering.
-    $params['layout'] = array(
-        'type' => 'tabs',
-        'defaultCollapsed' => false,
-    );
-
     // Add appearance configuration to UPE params
     $params['appearance'] = array(
         'theme' => 'flat',
@@ -1950,10 +1793,7 @@ function bw_mew_customize_stripe_upe_appearance($params)
                 'boxShadow' => '0 0 0 3px rgba(59, 130, 246, 0.1)',
             ),
             '.Input--invalid' => array(
-                // Prevent the default external danger ring (it gets visually clipped).
-                'border' => '2px solid #991b1b',
-                'borderColor' => '#991b1b',
-                'boxShadow' => 'none',
+                'borderColor' => '#fecaca',
                 'backgroundColor' => '#fef2f2',
             ),
             '.Label' => array(
@@ -2042,7 +1882,10 @@ function bw_mew_customize_stripe_upe_appearance($params)
                 'display' => 'none !important',
             ),
             '.PaymentElement' => array(
-                'paddingTop' => '15px',
+                'padding' => '0',
+            ),
+            '.AccordionButton' => array(
+                'display' => 'none !important',
             ),
         ),
     );
@@ -2176,88 +2019,4 @@ function bw_mew_prepare_cart_layout()
     add_filter('woocommerce_cart_ready_to_calc_shipping', '__return_false', 99);
     add_filter('woocommerce_shipping_calculator_enabled', '__return_false', 99);
     add_filter('woocommerce_cart_needs_shipping', '__return_false', 99);
-}
-
-// ─── Stuck-order monitoring cron ─────────────────────────────────────────────
-
-/**
- * Register the hourly cron event for stuck-order monitoring.
- *
- * Hooked on 'init' so WP-Cron can schedule when no request triggers it.
- */
-function bw_mew_register_stuck_order_cron() {
-    if ( ! wp_next_scheduled( 'bw_mew_check_stuck_orders' ) ) {
-        wp_schedule_event( time(), 'hourly', 'bw_mew_check_stuck_orders' );
-    }
-}
-add_action( 'init', 'bw_mew_register_stuck_order_cron' );
-add_action( 'bw_mew_check_stuck_orders', 'bw_mew_run_stuck_order_check' );
-
-/**
- * Find BW gateway orders stuck in pending/on-hold for more than 4 hours.
- *
- * An order is considered "stuck" when:
- *  - its status is pending or on-hold
- *  - it has a BW PaymentIntent meta key (meaning a payment was attempted)
- *  - it is not paid
- *  - it was last modified more than 4 hours ago
- *
- * On finding stuck orders the function sends a single admin notification email
- * and writes a WC log entry.
- */
-function bw_mew_run_stuck_order_check() {
-    if ( ! function_exists( 'wc_get_orders' ) ) {
-        return;
-    }
-
-    $cutoff = strtotime( '-4 hours' );
-
-    $orders = wc_get_orders( array(
-        'status'       => array( 'wc-pending', 'wc-on-hold' ),
-        'date_modified' => '<' . $cutoff,
-        'limit'        => 50,
-        'meta_query'   => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
-            'relation' => 'OR',
-            array( 'key' => '_bw_gpay_pi_id',     'compare' => 'EXISTS' ),
-            array( 'key' => '_bw_klarna_pi_id',   'compare' => 'EXISTS' ),
-            array( 'key' => '_bw_apple_pay_pi_id','compare' => 'EXISTS' ),
-        ),
-    ) );
-
-    if ( empty( $orders ) ) {
-        return;
-    }
-
-    $stuck = array();
-    foreach ( $orders as $order ) {
-        if ( ! $order->is_paid() ) {
-            $stuck[] = sprintf(
-                '#%d — %s — %s — modified %s',
-                $order->get_id(),
-                $order->get_payment_method(),
-                $order->get_status(),
-                $order->get_date_modified() ? $order->get_date_modified()->date( 'Y-m-d H:i' ) : 'n/a'
-            );
-        }
-    }
-
-    if ( empty( $stuck ) ) {
-        return;
-    }
-
-    $logger = wc_get_logger();
-    $logger->warning(
-        sprintf( 'BW stuck orders detected (%d): %s', count( $stuck ), implode( ' | ', $stuck ) ),
-        array( 'source' => 'bw-gateway' )
-    );
-
-    wp_mail(
-        get_option( 'admin_email' ),
-        sprintf( '[%s] BW Gateway — %d order(s) may be stuck', get_bloginfo( 'name' ), count( $stuck ) ),
-        sprintf(
-            "The following orders are in pending/on-hold status with a BW PaymentIntent recorded\nbut have not been updated in over 4 hours.\n\nCheck the Stripe dashboard to verify whether payment was captured.\n\n%s\n\nWooCommerce Orders: %s",
-            implode( "\n", $stuck ),
-            admin_url( 'edit.php?post_type=shop_order' )
-        )
-    );
 }

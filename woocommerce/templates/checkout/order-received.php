@@ -55,22 +55,7 @@ if ( function_exists( 'bw_mew_render_order_received_logo_header' ) ) {
 	$billing_email   = $order->get_billing_email();
 	$login_provider  = strtolower( (string) get_option( 'bw_account_login_provider', 'wordpress' ) );
 	$provision_enabled = '1' === (string) get_option( 'bw_supabase_checkout_provision_enabled', '0' );
-	$order_user_id   = (int) $order->get_user_id();
-	$is_guest_order  = 0 === $order_user_id;
-	$order_user      = $order_user_id > 0 ? get_user_by( 'id', $order_user_id ) : false;
-	$email_user      = $billing_email ? get_user_by( 'email', $billing_email ) : false;
-	$resolved_user   = $email_user instanceof WP_User ? $email_user : ( $order_user instanceof WP_User ? $order_user : false );
-	$is_onboarded    = false;
-
-	if ( $resolved_user instanceof WP_User ) {
-		if ( function_exists( 'bw_mew_is_user_marked_onboarded' ) ) {
-			$is_onboarded = bw_mew_is_user_marked_onboarded( $resolved_user->ID );
-		} else {
-			$is_onboarded = 1 === (int) get_user_meta( $resolved_user->ID, 'bw_supabase_onboarded', true );
-		}
-	}
-
-	$show_email_reminder_cta = ( 'supabase' === $login_provider || $provision_enabled ) && ( $is_guest_order || ! $is_onboarded );
+	$show_email_reminder_cta = ! is_user_logged_in() && ( 'supabase' === $login_provider || $provision_enabled );
 	$my_account_url  = wc_get_page_permalink( 'myaccount' );
 	$cta_url         = $my_account_url;
 	$cta_label       = __( 'Go to your account', 'wpblackwork' );

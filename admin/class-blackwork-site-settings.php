@@ -28,55 +28,8 @@ function bw_site_settings_menu()
         $icon_svg,                  // Icon (cerchio verde #80FD03)
         30                          // Position (dopo Comments)
     );
-
-    // Keep an explicit first submenu entry so clicking Blackwork Site does not
-    // default to the first child module (e.g. BW Templates list).
-    add_submenu_page(
-        'blackwork-site-settings',
-        __('Site Settings', 'bw'),
-        __('Site Settings', 'bw'),
-        'manage_options',
-        'blackwork-site-settings',
-        'bw_site_settings_page'
-    );
 }
 add_action('admin_menu', 'bw_site_settings_menu');
-
-/**
- * Force Site Settings as first submenu entry for Blackwork top-level menu.
- */
-function bw_site_settings_force_default_submenu()
-{
-    global $submenu;
-
-    if (empty($submenu['blackwork-site-settings']) || !is_array($submenu['blackwork-site-settings'])) {
-        return;
-    }
-
-    $target_item = null;
-    $other_items = [];
-
-    foreach ($submenu['blackwork-site-settings'] as $item) {
-        if (isset($item[2]) && 'blackwork-site-settings' === $item[2]) {
-            $target_item = $item;
-            continue;
-        }
-
-        $other_items[] = $item;
-    }
-
-    if (null === $target_item) {
-        $target_item = [
-            __('Site Settings', 'bw'),
-            'manage_options',
-            'blackwork-site-settings',
-            __('Site Settings', 'bw'),
-        ];
-    }
-
-    $submenu['blackwork-site-settings'] = array_merge([$target_item], $other_items);
-}
-add_action('admin_menu', 'bw_site_settings_force_default_submenu', 999);
 
 /**
  * Carica lo stile per l'icona del menu admin (globale).
@@ -96,93 +49,16 @@ function bw_site_settings_admin_menu_icon_styles()
 add_action('admin_enqueue_scripts', 'bw_site_settings_admin_menu_icon_styles');
 
 /**
- * Check whether current admin screen belongs to Blackwork Site panel.
- */
-function bw_is_blackwork_site_admin_screen($hook, $page_slug = '')
-{
-    $post_type = isset($_GET['post_type']) ? sanitize_key(wp_unslash($_GET['post_type'])) : '';
-
-    if ('toplevel_page_blackwork-site-settings' === $hook) {
-        return true;
-    }
-
-    if (0 === strpos($hook, 'blackwork-site-settings_page_')) {
-        return true;
-    }
-
-    if (0 === strpos($hook, 'blackwork-site_page_')) {
-        return true;
-    }
-
-    if ('edit.php' === $hook && 'bw_template' === $post_type) {
-        return true;
-    }
-
-    $allowed_pages = [
-        'blackwork-site-settings',
-        'blackwork-mail-marketing',
-    ];
-
-    return !empty($page_slug) && in_array($page_slug, $allowed_pages, true);
-}
-
-/**
- * Enqueue shared Blackwork admin UI kit styles.
- */
-function bw_admin_enqueue_ui_kit_assets($hook)
-{
-    $current_page = isset($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : '';
-    if (!bw_is_blackwork_site_admin_screen($hook, $current_page)) {
-        return;
-    }
-
-    $ui_kit_path = BW_MEW_PATH . 'admin/css/bw-admin-ui-kit.css';
-    $ui_kit_version = file_exists($ui_kit_path) ? filemtime($ui_kit_path) : '1.0.0';
-
-    wp_enqueue_style(
-        'bw-admin-ui-kit',
-        BW_MEW_URL . 'admin/css/bw-admin-ui-kit.css',
-        [],
-        $ui_kit_version
-    );
-}
-add_action('admin_enqueue_scripts', 'bw_admin_enqueue_ui_kit_assets', 12);
-
-/**
  * Carica gli assets per la pagina admin
  */
 function bw_site_settings_admin_assets($hook)
 {
-    $current_page = isset($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : '';
-    $current_tab_raw = isset($_GET['tab']) ? sanitize_key(wp_unslash($_GET['tab'])) : '';
-
-    $is_site_settings_page = ('blackwork-site-settings' === $current_page || 'toplevel_page_blackwork-site-settings' === $hook);
-    $is_mail_marketing_page = (
-        'blackwork-mail-marketing' === $current_page
-        || 'blackwork-site-settings_page_blackwork-mail-marketing' === $hook
-    );
-
-    // Site Settings asset matrix is restricted to Site Settings and Mail Marketing pages.
-    if (!$is_site_settings_page && !$is_mail_marketing_page) {
+    // Carica solo nella nostra pagina (toplevel perché è un menu principale)
+    if ($hook !== 'toplevel_page_blackwork-site-settings') {
         return;
     }
 
-    $site_settings_tabs = [
-        'cart-popup',
-        'bw-coming-soon',
-        'account-page',
-        'my-account-page',
-        'checkout',
-        'redirect',
-        'import-product',
-        'loading',
-    ];
-    $mail_marketing_tabs = ['general', 'checkout'];
-
-    $current_site_settings_tab = in_array($current_tab_raw, $site_settings_tabs, true) ? $current_tab_raw : 'cart-popup';
-    $current_mail_marketing_tab = in_array($current_tab_raw, $mail_marketing_tabs, true) ? $current_tab_raw : 'general';
-
-    // Base Site Settings admin CSS (used by Site Settings and Mail Marketing controls).
+    // CSS per la pagina admin
     wp_enqueue_style(
         'bw-site-settings-admin',
         BW_MEW_URL . 'admin/css/blackwork-site-settings.css',
@@ -190,134 +66,118 @@ function bw_site_settings_admin_assets($hook)
         '1.0.0'
     );
 
-    // Enqueue only where media upload/select controls are present.
-    if ($is_site_settings_page && in_array($current_site_settings_tab, ['account-page', 'checkout'], true)) {
-        wp_enqueue_media();
-    }
+    wp_enqueue_style('wp-color-picker');
 
-    if ($is_site_settings_page && 'redirect' === $current_site_settings_tab) {
-        $redirects_script_path = BW_MEW_PATH . 'admin/js/bw-redirects.js';
-        $redirects_version = file_exists($redirects_script_path) ? filemtime($redirects_script_path) : '1.0.0';
+    // JavaScript per la pagina admin (se necessario)
+    wp_enqueue_script('jquery');
+    wp_enqueue_media();
+    wp_enqueue_script('wp-color-picker');
 
-        wp_enqueue_script(
-            'bw-redirects-admin',
-            BW_MEW_URL . 'admin/js/bw-redirects.js',
-            ['jquery'],
-            $redirects_version,
-            true
-        );
-    }
+    $redirects_script_path = BW_MEW_PATH . 'admin/js/bw-redirects.js';
+    $redirects_version = file_exists($redirects_script_path) ? filemtime($redirects_script_path) : '1.0.0';
 
-    // Enqueue Brevo test script only on Mail Marketing > General.
-    if ($is_mail_marketing_page && 'general' === $current_mail_marketing_tab) {
-        $subscribe_script_path = BW_MEW_PATH . 'admin/js/bw-checkout-subscribe.js';
-        $subscribe_version = file_exists($subscribe_script_path) ? filemtime($subscribe_script_path) : '1.0.0';
+    wp_enqueue_script(
+        'bw-redirects-admin',
+        BW_MEW_URL . 'admin/js/bw-redirects.js',
+        ['jquery'],
+        $redirects_version,
+        true
+    );
 
-        wp_enqueue_script(
-            'bw-checkout-subscribe-admin',
-            BW_MEW_URL . 'admin/js/bw-checkout-subscribe.js',
-            ['jquery'],
-            $subscribe_version,
-            true
-        );
+    $subscribe_script_path = BW_MEW_PATH . 'admin/js/bw-checkout-subscribe.js';
+    $subscribe_version = file_exists($subscribe_script_path) ? filemtime($subscribe_script_path) : '1.0.0';
 
-        wp_localize_script(
-            'bw-checkout-subscribe-admin',
-            'bwCheckoutSubscribe',
-            [
-                'ajaxUrl' => admin_url('admin-ajax.php'),
-                'nonce' => wp_create_nonce('bw_checkout_subscribe_test'),
-                'errorText' => esc_html__('Connection failed. Please check the API key and network.', 'bw'),
-                'testingText' => esc_html__('Testing connection...', 'bw'),
-            ]
-        );
-    }
+    wp_enqueue_script(
+        'bw-checkout-subscribe-admin',
+        BW_MEW_URL . 'admin/js/bw-checkout-subscribe.js',
+        ['jquery'],
+        $subscribe_version,
+        true
+    );
 
-    if ($is_site_settings_page && 'checkout' === $current_site_settings_tab) {
-        // Checkout tab uses media selector + WP color picker + payment diagnostics scripts.
-        wp_enqueue_style('wp-color-picker');
-        wp_enqueue_script('wp-color-picker');
+    wp_localize_script(
+        'bw-checkout-subscribe-admin',
+        'bwCheckoutSubscribe',
+        [
+            'nonce' => wp_create_nonce('bw_checkout_subscribe_test'),
+            'errorText' => esc_html__('Connection failed. Please check the API key.', 'bw'),
+        ]
+    );
 
-        $google_pay_admin_script_path = BW_MEW_PATH . 'admin/js/bw-google-pay-admin.js';
-        $google_pay_admin_version = file_exists($google_pay_admin_script_path) ? filemtime($google_pay_admin_script_path) : '1.0.0';
+    $google_pay_admin_script_path = BW_MEW_PATH . 'admin/js/bw-google-pay-admin.js';
+    $google_pay_admin_version = file_exists($google_pay_admin_script_path) ? filemtime($google_pay_admin_script_path) : '1.0.0';
 
-        wp_enqueue_script(
-            'bw-google-pay-admin',
-            BW_MEW_URL . 'admin/js/bw-google-pay-admin.js',
-            ['jquery'],
-            $google_pay_admin_version,
-            true
-        );
+    wp_enqueue_script(
+        'bw-google-pay-admin',
+        BW_MEW_URL . 'admin/js/bw-google-pay-admin.js',
+        ['jquery'],
+        $google_pay_admin_version,
+        true
+    );
 
-        wp_localize_script(
-            'bw-google-pay-admin',
-            'bwGooglePayAdmin',
-            [
-                'nonce' => wp_create_nonce('bw_google_pay_test_connection'),
-                'errorText' => esc_html__('Connection test failed. Please verify your Stripe keys.', 'bw'),
-                'testingText' => esc_html__('Testing connection…', 'bw'),
-            ]
-        );
+    wp_localize_script(
+        'bw-google-pay-admin',
+        'bwGooglePayAdmin',
+        [
+            'nonce' => wp_create_nonce('bw_google_pay_test_connection'),
+            'errorText' => esc_html__('Connection test failed. Please verify your Stripe keys.', 'bw'),
+            'testingText' => esc_html__('Testing connection…', 'bw'),
+        ]
+    );
 
-        $klarna_admin_script_path = BW_MEW_PATH . 'admin/js/bw-klarna-admin.js';
-        $klarna_admin_version = file_exists($klarna_admin_script_path) ? filemtime($klarna_admin_script_path) : '1.0.0';
+    $klarna_admin_script_path = BW_MEW_PATH . 'admin/js/bw-klarna-admin.js';
+    $klarna_admin_version = file_exists($klarna_admin_script_path) ? filemtime($klarna_admin_script_path) : '1.0.0';
 
-        wp_enqueue_script(
-            'bw-klarna-admin',
-            BW_MEW_URL . 'admin/js/bw-klarna-admin.js',
-            ['jquery'],
-            $klarna_admin_version,
-            true
-        );
+    wp_enqueue_script(
+        'bw-klarna-admin',
+        BW_MEW_URL . 'admin/js/bw-klarna-admin.js',
+        ['jquery'],
+        $klarna_admin_version,
+        true
+    );
 
-        wp_localize_script(
-            'bw-klarna-admin',
-            'bwKlarnaAdmin',
-            [
-                'nonce' => wp_create_nonce('bw_klarna_test_connection'),
-                'errorText' => esc_html__('Connection test failed. Please verify your Stripe keys.', 'bw'),
-                'testingText' => esc_html__('Testing connection…', 'bw'),
-            ]
-        );
+    wp_localize_script(
+        'bw-klarna-admin',
+        'bwKlarnaAdmin',
+        [
+            'nonce' => wp_create_nonce('bw_klarna_test_connection'),
+            'errorText' => esc_html__('Connection test failed. Please verify your Stripe keys.', 'bw'),
+            'testingText' => esc_html__('Testing connection…', 'bw'),
+        ]
+    );
 
-        $apple_pay_admin_script_path = BW_MEW_PATH . 'admin/js/bw-apple-pay-admin.js';
-        $apple_pay_admin_version = file_exists($apple_pay_admin_script_path) ? filemtime($apple_pay_admin_script_path) : '1.0.0';
+    $apple_pay_admin_script_path = BW_MEW_PATH . 'admin/js/bw-apple-pay-admin.js';
+    $apple_pay_admin_version = file_exists($apple_pay_admin_script_path) ? filemtime($apple_pay_admin_script_path) : '1.0.0';
 
-        wp_enqueue_script(
-            'bw-apple-pay-admin',
-            BW_MEW_URL . 'admin/js/bw-apple-pay-admin.js',
-            ['jquery'],
-            $apple_pay_admin_version,
-            true
-        );
+    wp_enqueue_script(
+        'bw-apple-pay-admin',
+        BW_MEW_URL . 'admin/js/bw-apple-pay-admin.js',
+        ['jquery'],
+        $apple_pay_admin_version,
+        true
+    );
 
-        wp_localize_script(
-            'bw-apple-pay-admin',
-            'bwApplePayAdmin',
-            [
-                'nonce' => wp_create_nonce('bw_apple_pay_test_connection'),
-                'errorText' => esc_html__('Connection test failed. Please verify your Stripe keys.', 'bw'),
-                'testingText' => esc_html__('Testing connection…', 'bw'),
-                'testingDomainText' => esc_html__('Checking domain…', 'bw'),
-                'domainOkText' => esc_html__('Domain verified in Stripe.', 'bw'),
-                'domainErrorText' => esc_html__('Domain verification failed. Please check Stripe domain settings.', 'bw'),
-            ]
-        );
-    }
+    wp_localize_script(
+        'bw-apple-pay-admin',
+        'bwApplePayAdmin',
+        [
+            'nonce' => wp_create_nonce('bw_apple_pay_test_connection'),
+            'errorText' => esc_html__('Connection test failed. Please verify your Stripe keys.', 'bw'),
+            'testingText' => esc_html__('Testing connection…', 'bw'),
+        ]
+    );
 
-    if ($is_site_settings_page && 'cart-popup' === $current_site_settings_tab) {
-        // Cart Pop-up tab border controls.
-        $border_toggle_path = BW_MEW_PATH . 'assets/js/bw-border-toggle-admin.js';
-        $border_toggle_version = file_exists($border_toggle_path) ? filemtime($border_toggle_path) : '1.0.0';
+    // Border toggle script (shared across Cart Pop-up and Site Settings)
+    $border_toggle_path = BW_MEW_PATH . 'assets/js/bw-border-toggle-admin.js';
+    $border_toggle_version = file_exists($border_toggle_path) ? filemtime($border_toggle_path) : '1.0.0';
 
-        wp_enqueue_script(
-            'bw-border-toggle-admin',
-            BW_MEW_URL . 'assets/js/bw-border-toggle-admin.js',
-            ['jquery'],
-            $border_toggle_version,
-            true
-        );
-    }
+    wp_enqueue_script(
+        'bw-border-toggle-admin',
+        BW_MEW_URL . 'assets/js/bw-border-toggle-admin.js',
+        ['jquery'],
+        $border_toggle_version,
+        true
+    );
 }
 add_action('admin_enqueue_scripts', 'bw_site_settings_admin_assets');
 
@@ -419,106 +279,6 @@ function bw_google_pay_test_connection_ajax_handler()
     ]);
 }
 add_action('wp_ajax_bw_google_pay_test_connection', 'bw_google_pay_test_connection_ajax_handler');
-
-/**
- * AJAX handler to test Google Maps + Places API connectivity for checkout autocomplete.
- */
-function bw_google_maps_test_connection_ajax_handler()
-{
-    if (!current_user_can('manage_options')) {
-        wp_send_json_error(['message' => __('Permission denied.', 'bw')]);
-    }
-
-    check_ajax_referer('bw_google_maps_test_connection', 'nonce');
-
-    $api_key = isset($_POST['api_key']) ? sanitize_text_field(wp_unslash($_POST['api_key'])) : '';
-
-    if ('' === $api_key) {
-        wp_send_json_error(['message' => __('Google Maps API key is required.', 'bw')]);
-    }
-
-    if (0 !== strpos($api_key, 'AIza')) {
-        wp_send_json_error([
-            'message' => __('The API key format looks invalid. It should start with "AIza".', 'bw'),
-        ]);
-    }
-
-    $site_referer = home_url('/');
-
-    $maps_js_url = add_query_arg(
-        [
-            'key' => $api_key,
-            'libraries' => 'places',
-            'v' => 'weekly',
-        ],
-        'https://maps.googleapis.com/maps/api/js'
-    );
-
-    $maps_js_response = wp_remote_get(
-        $maps_js_url,
-        [
-            'timeout' => 20,
-            'headers' => [
-                'Referer' => $site_referer,
-            ],
-        ]
-    );
-
-    if (is_wp_error($maps_js_response)) {
-        wp_send_json_error([
-            'message' => sprintf(
-                /* translators: %s: WP error message */
-                __('Unable to reach Google Maps JavaScript API: %s', 'bw'),
-                $maps_js_response->get_error_message()
-            ),
-        ]);
-    }
-
-    $maps_status_code = (int) wp_remote_retrieve_response_code($maps_js_response);
-    $maps_body = (string) wp_remote_retrieve_body($maps_js_response);
-
-    if ($maps_status_code < 200 || $maps_status_code >= 300) {
-        wp_send_json_error([
-            'message' => sprintf(
-                /* translators: %d: HTTP status code */
-                __('Google Maps JavaScript API returned HTTP %d.', 'bw'),
-                $maps_status_code
-            ),
-        ]);
-    }
-
-    $known_maps_errors = [
-        'RefererNotAllowedMapError' => __('Referrer is not allowed. Add your domain to HTTP referrer restrictions.', 'bw'),
-        'InvalidKeyMapError' => __('Invalid API key.', 'bw'),
-        'ApiNotActivatedMapError' => __('Maps JavaScript API or Places API is not enabled in Google Cloud.', 'bw'),
-        'ApiProjectMapError' => __('The key is linked to a project that cannot use this API.', 'bw'),
-        'BillingNotEnabledMapError' => __('Billing is not enabled for this Google Cloud project.', 'bw'),
-        'ExpiredKeyMapError' => __('This API key is expired.', 'bw'),
-    ];
-
-    foreach ($known_maps_errors as $error_code => $error_message) {
-        if (false !== strpos($maps_body, $error_code)) {
-            wp_send_json_error([
-                'message' => $error_message,
-                'details' => sprintf(
-                    /* translators: %s: Google Maps error code */
-                    __('Google error code: %s', 'bw'),
-                    $error_code
-                ),
-            ]);
-        }
-    }
-
-    wp_send_json_success([
-        'message' => __('Google Maps key is valid for Maps JavaScript API and referrer restrictions look correct.', 'bw'),
-        'details' => sprintf(
-            /* translators: %s: tested site URL */
-            __('Tested referrer: %s. Note: server-side Places Web Service is intentionally not checked when key uses HTTP referrer restrictions.', 'bw'),
-            esc_url_raw($site_referer)
-        ),
-    ]);
-}
-add_action('wp_ajax_bw_google_maps_test_connection', 'bw_google_maps_test_connection_ajax_handler');
 
 /**
  * AJAX handler to test Stripe connection for Klarna settings (live mode).
@@ -704,141 +464,6 @@ function bw_apple_pay_test_connection_ajax_handler()
 add_action('wp_ajax_bw_apple_pay_test_connection', 'bw_apple_pay_test_connection_ajax_handler');
 
 /**
- * AJAX handler to verify Apple Pay domain status in Stripe (live mode only).
- */
-function bw_apple_pay_verify_domain_ajax_handler()
-{
-    if (!current_user_can('manage_options')) {
-        wp_send_json_error(['message' => __('Permission denied.', 'bw')]);
-    }
-
-    check_ajax_referer('bw_apple_pay_test_connection', 'nonce');
-
-    $secret_key = isset($_POST['secret_key']) ? sanitize_text_field(wp_unslash($_POST['secret_key'])) : '';
-    if ('' === $secret_key) {
-        $secret_key = (string) get_option('bw_apple_pay_secret_key', '');
-    }
-    if ('' === $secret_key) {
-        $secret_key = (string) get_option('bw_google_pay_secret_key', '');
-    }
-
-    if ('' === $secret_key) {
-        wp_send_json_error(['message' => __('Live secret key is required before checking domain verification.', 'bw')]);
-    }
-
-    if (0 === strpos($secret_key, 'sk_test_')) {
-        wp_send_json_error([
-            'message' => __('Apple Pay LIVE mode does not accept test keys. Use a secret key starting with sk_live_.', 'bw'),
-        ]);
-    }
-
-    if (0 !== strpos($secret_key, 'sk_live_')) {
-        wp_send_json_error([
-            'message' => __('Apple Pay LIVE mode requires a secret key starting with sk_live_.', 'bw'),
-        ]);
-    }
-
-    $site_domain = wp_parse_url(home_url('/'), PHP_URL_HOST);
-    $site_domain = is_string($site_domain) ? strtolower(trim($site_domain)) : '';
-    if ('' === $site_domain) {
-        wp_send_json_error(['message' => __('Unable to detect your site domain.', 'bw')]);
-    }
-
-    $response = wp_remote_get(
-        'https://api.stripe.com/v1/payment_method_domains?limit=100',
-        [
-            'timeout' => 20,
-            'headers' => [
-                'Authorization' => 'Bearer ' . $secret_key,
-            ],
-        ]
-    );
-
-    if (is_wp_error($response)) {
-        wp_send_json_error([
-            'message' => sprintf(
-                /* translators: %s: WP error message */
-                __('Unable to reach Stripe API: %s', 'bw'),
-                $response->get_error_message()
-            ),
-        ]);
-    }
-
-    $status_code = (int) wp_remote_retrieve_response_code($response);
-    $body = wp_remote_retrieve_body($response);
-    $payload = json_decode($body, true);
-
-    if ($status_code < 200 || $status_code >= 300) {
-        $stripe_error = '';
-        if (is_array($payload) && isset($payload['error']['message'])) {
-            $stripe_error = sanitize_text_field((string) $payload['error']['message']);
-        }
-
-        wp_send_json_error([
-            'message' => $stripe_error
-                ? sprintf(__('Stripe API error: %s', 'bw'), $stripe_error)
-                : __('Stripe API rejected the request while checking domain verification.', 'bw'),
-        ]);
-    }
-
-    if (!is_array($payload) || !isset($payload['data']) || !is_array($payload['data'])) {
-        wp_send_json_error(['message' => __('Unexpected Stripe response while checking domain verification.', 'bw')]);
-    }
-
-    $domain_variants = array_unique(array_filter([
-        $site_domain,
-        preg_replace('/^www\./', '', $site_domain),
-        'www.' . preg_replace('/^www\./', '', $site_domain),
-    ]));
-
-    $matched = null;
-    foreach ($payload['data'] as $item) {
-        if (!is_array($item) || empty($item['domain_name'])) {
-            continue;
-        }
-        $domain_name = strtolower((string) $item['domain_name']);
-        if (in_array($domain_name, $domain_variants, true)) {
-            $matched = $item;
-            break;
-        }
-    }
-
-    if (null === $matched) {
-        wp_send_json_error([
-            'message' => sprintf(
-                /* translators: %s: domain name */
-                __('Domain not found in Stripe Payment Method Domains: %s. Add and verify it in Stripe Dashboard > Settings > Payment method domains.', 'bw'),
-                $site_domain
-            ),
-        ]);
-    }
-
-    $is_enabled = isset($matched['enabled']) ? (bool) $matched['enabled'] : false;
-    $matched_domain = sanitize_text_field((string) $matched['domain_name']);
-
-    if (!$is_enabled) {
-        wp_send_json_error([
-            'message' => sprintf(
-                /* translators: %s: domain name */
-                __('Domain found but not enabled: %s. Enable it in Stripe Payment method domains.', 'bw'),
-                $matched_domain
-            ),
-        ]);
-    }
-
-    wp_send_json_success([
-        'message' => sprintf(
-            /* translators: %s: domain name */
-            __('Domain verified and enabled in Stripe: %s', 'bw'),
-            $matched_domain
-        ),
-        'domain' => $matched_domain,
-        'enabled' => true,
-    ]);
-}
-add_action('wp_ajax_bw_apple_pay_verify_domain', 'bw_apple_pay_verify_domain_ajax_handler');
-
-/**
  * Renderizza la pagina delle impostazioni con tab
  */
 function bw_site_settings_page()
@@ -849,138 +474,72 @@ function bw_site_settings_page()
     }
 
     // Determina quale tab è attivo
-    $allowed_tabs = ['cart-popup', 'bw-coming-soon', 'account-page', 'my-account-page', 'checkout', 'redirect', 'import-product', 'loading'];
-    $active_tab = isset($_GET['tab']) ? sanitize_key(wp_unslash($_GET['tab'])) : 'cart-popup';
-    if (!in_array($active_tab, $allowed_tabs, true)) {
-        $active_tab = 'cart-popup';
-    }
+    $active_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'cart-popup';
 
-    $save_button_map = [
-        'cart-popup' => 'bw_cart_popup_submit',
-        'bw-coming-soon' => 'bw_coming_soon_submit',
-        'account-page' => 'bw_account_page_submit',
-        'my-account-page' => 'bw_myaccount_content_submit',
-        'checkout' => 'bw_checkout_settings_submit',
-        'redirect' => 'bw_redirects_submit',
-        'loading' => 'bw_loading_settings_submit',
-    ];
-    $active_submit_name = isset($save_button_map[$active_tab]) ? $save_button_map[$active_tab] : '';
     ?>
-    <div class="wrap bw-admin-root bw-admin-page bw-admin-page-site-settings">
-        <div class="bw-admin-header">
-            <h1 class="bw-admin-title"><?php esc_html_e('Site Settings', 'bw'); ?></h1>
-            <p class="bw-admin-subtitle"><?php esc_html_e('Manage core Blackwork site configuration from a unified admin panel.', 'bw'); ?></p>
+    <div class="wrap">
+        <h1>Blackwork Site Settings</h1>
+
+        <!-- Tab Navigation -->
+        <nav class="nav-tab-wrapper">
+            <a href="?page=blackwork-site-settings&tab=cart-popup"
+                class="nav-tab <?php echo $active_tab === 'cart-popup' ? 'nav-tab-active' : ''; ?>">
+                Cart Pop-up
+            </a>
+            <a href="?page=blackwork-site-settings&tab=bw-coming-soon"
+                class="nav-tab <?php echo $active_tab === 'bw-coming-soon' ? 'nav-tab-active' : ''; ?>">
+                BW Coming Soon
+            </a>
+            <a href="?page=blackwork-site-settings&tab=account-page"
+                class="nav-tab <?php echo $active_tab === 'account-page' ? 'nav-tab-active' : ''; ?>">
+                Login Page
+            </a>
+            <a href="?page=blackwork-site-settings&tab=my-account-page"
+                class="nav-tab <?php echo $active_tab === 'my-account-page' ? 'nav-tab-active' : ''; ?>">
+                My Account Page
+            </a>
+            <a href="?page=blackwork-site-settings&tab=checkout"
+                class="nav-tab <?php echo $active_tab === 'checkout' ? 'nav-tab-active' : ''; ?>">
+                Checkout
+            </a>
+            <a href="?page=blackwork-site-settings&tab=redirect"
+                class="nav-tab <?php echo $active_tab === 'redirect' ? 'nav-tab-active' : ''; ?>">
+                Redirect
+            </a>
+            <a href="?page=blackwork-site-settings&tab=import-product"
+                class="nav-tab <?php echo $active_tab === 'import-product' ? 'nav-tab-active' : ''; ?>">
+                Import Product
+            </a>
+            <a href="?page=blackwork-site-settings&tab=loading"
+                class="nav-tab <?php echo $active_tab === 'loading' ? 'nav-tab-active' : ''; ?>">
+                Loading
+            </a>
+        </nav>
+
+        <!-- Tab Content -->
+        <div class="tab-content">
+            <?php
+            // Renderizza il contenuto del tab attivo
+            if ($active_tab === 'cart-popup') {
+                bw_site_render_cart_popup_tab();
+            } elseif ($active_tab === 'bw-coming-soon') {
+                bw_site_render_coming_soon_tab();
+            } elseif ($active_tab === 'account-page') {
+                bw_site_render_account_page_tab();
+            } elseif ($active_tab === 'my-account-page') {
+                bw_site_render_my_account_front_tab();
+            } elseif ($active_tab === 'checkout') {
+                bw_site_render_checkout_tab();
+            } elseif ($active_tab === 'redirect') {
+                bw_site_render_redirect_tab();
+            } elseif ($active_tab === 'import-product') {
+                bw_site_render_import_product_tab();
+            } elseif ($active_tab === 'loading') {
+                bw_site_render_loading_tab();
+            }
+            ?>
         </div>
-
-        <div class="bw-admin-action-bar">
-            <div class="bw-admin-action-meta">
-                <?php esc_html_e('Select a panel tab, then save the current section changes.', 'bw'); ?>
-            </div>
-            <div class="bw-admin-action-buttons">
-                <?php if (!empty($active_submit_name)) : ?>
-                    <button type="button" class="button button-primary" id="bw-site-settings-save-proxy" data-submit-name="<?php echo esc_attr($active_submit_name); ?>">
-                        <?php esc_html_e('Save Settings', 'bw'); ?>
-                    </button>
-                <?php endif; ?>
-            </div>
-        </div>
-
-        <section class="bw-admin-card bw-admin-card-site-settings">
-            <h2 class="bw-admin-card-title"><?php esc_html_e('Panels', 'bw'); ?></h2>
-            <p class="bw-admin-card-helper"><?php esc_html_e('Switch between configuration domains without leaving Site Settings.', 'bw'); ?></p>
-
-            <!-- Tab Navigation -->
-            <nav class="nav-tab-wrapper bw-admin-tabs">
-                <a href="?page=blackwork-site-settings&tab=cart-popup"
-                    class="nav-tab <?php echo $active_tab === 'cart-popup' ? 'nav-tab-active' : ''; ?>">
-                    Cart Pop-up
-                </a>
-                <a href="?page=blackwork-site-settings&tab=bw-coming-soon"
-                    class="nav-tab <?php echo $active_tab === 'bw-coming-soon' ? 'nav-tab-active' : ''; ?>">
-                    BW Coming Soon
-                </a>
-                <a href="?page=blackwork-site-settings&tab=account-page"
-                    class="nav-tab <?php echo $active_tab === 'account-page' ? 'nav-tab-active' : ''; ?>">
-                    Login Page
-                </a>
-                <a href="?page=blackwork-site-settings&tab=my-account-page"
-                    class="nav-tab <?php echo $active_tab === 'my-account-page' ? 'nav-tab-active' : ''; ?>">
-                    My Account Page
-                </a>
-                <a href="?page=blackwork-site-settings&tab=checkout"
-                    class="nav-tab <?php echo $active_tab === 'checkout' ? 'nav-tab-active' : ''; ?>">
-                    Checkout
-                </a>
-                <a href="?page=blackwork-site-settings&tab=redirect"
-                    class="nav-tab <?php echo $active_tab === 'redirect' ? 'nav-tab-active' : ''; ?>">
-                    Redirect
-                </a>
-                <a href="?page=blackwork-site-settings&tab=import-product"
-                    class="nav-tab <?php echo $active_tab === 'import-product' ? 'nav-tab-active' : ''; ?>">
-                    Import Product
-                </a>
-                <a href="?page=blackwork-site-settings&tab=loading"
-                    class="nav-tab <?php echo $active_tab === 'loading' ? 'nav-tab-active' : ''; ?>">
-                    Loading
-                </a>
-            </nav>
-
-            <!-- Tab Content -->
-            <div class="tab-content bw-admin-site-settings-content">
-                <?php
-                // Renderizza il contenuto del tab attivo
-                if ($active_tab === 'cart-popup') {
-                    bw_site_render_cart_popup_tab();
-                } elseif ($active_tab === 'bw-coming-soon') {
-                    bw_site_render_coming_soon_tab();
-                } elseif ($active_tab === 'account-page') {
-                    bw_site_render_account_page_tab();
-                } elseif ($active_tab === 'my-account-page') {
-                    bw_site_render_my_account_front_tab();
-                } elseif ($active_tab === 'checkout') {
-                    bw_site_render_checkout_tab();
-                } elseif ($active_tab === 'redirect') {
-                    bw_site_render_redirect_tab();
-                } elseif ($active_tab === 'import-product') {
-                    bw_site_render_import_product_tab();
-                } elseif ($active_tab === 'loading') {
-                    bw_site_render_loading_tab();
-                }
-                ?>
-            </div>
-        </section>
     </div>
-    <?php if (!empty($active_submit_name)) : ?>
-    <script>
-    (function () {
-        var proxyButton = document.getElementById('bw-site-settings-save-proxy');
-        if (!proxyButton) {
-            return;
-        }
-
-        proxyButton.addEventListener('click', function () {
-            var submitName = proxyButton.getAttribute('data-submit-name');
-            var contentRoot = document.querySelector('.bw-admin-site-settings-content');
-            if (!contentRoot) {
-                return;
-            }
-
-            var targetButton = null;
-            if (submitName) {
-                targetButton = contentRoot.querySelector('[type="submit"][name="' + submitName + '"]');
-            }
-
-            if (!targetButton) {
-                targetButton = contentRoot.querySelector('button[type="submit"], input[type="submit"]');
-            }
-
-            if (targetButton) {
-                targetButton.click();
-            }
-        });
-    })();
-    </script>
-    <?php endif; ?>
     <?php
 }
 
@@ -992,69 +551,65 @@ function bw_site_render_account_page_tab()
     $saved = false;
 
     if (isset($_POST['bw_account_page_submit'])) {
-        if (!current_user_can('manage_options')) {
-            return;
-        }
-
         check_admin_referer('bw_account_page_save', 'bw_account_page_nonce');
 
-        $login_provider = isset($_POST['bw_account_login_provider']) ? sanitize_key(wp_unslash($_POST['bw_account_login_provider'])) : 'wordpress';
-        $login_image = isset($_POST['bw_account_login_image']) ? esc_url_raw(wp_unslash($_POST['bw_account_login_image'])) : '';
-        $login_image_id = isset($_POST['bw_account_login_image_id']) ? absint(wp_unslash($_POST['bw_account_login_image_id'])) : 0;
-        $logo = isset($_POST['bw_account_logo']) ? esc_url_raw(wp_unslash($_POST['bw_account_logo'])) : '';
-        $logo_id = isset($_POST['bw_account_logo_id']) ? absint(wp_unslash($_POST['bw_account_logo_id'])) : 0;
-        $logo_width = isset($_POST['bw_account_logo_width']) ? absint(wp_unslash($_POST['bw_account_logo_width'])) : 180;
-        $logo_padding_top = isset($_POST['bw_account_logo_padding_top']) ? absint(wp_unslash($_POST['bw_account_logo_padding_top'])) : 0;
-        $logo_padding_bottom = isset($_POST['bw_account_logo_padding_bottom']) ? absint(wp_unslash($_POST['bw_account_logo_padding_bottom'])) : 30;
-        $login_title_supabase = isset($_POST['bw_account_login_title_supabase']) ? sanitize_text_field(wp_unslash($_POST['bw_account_login_title_supabase'])) : '';
-        $login_subtitle_supabase = isset($_POST['bw_account_login_subtitle_supabase']) ? sanitize_textarea_field(wp_unslash($_POST['bw_account_login_subtitle_supabase'])) : '';
-        $login_title_wordpress = isset($_POST['bw_account_login_title_wordpress']) ? sanitize_text_field(wp_unslash($_POST['bw_account_login_title_wordpress'])) : '';
-        $login_subtitle_wordpress = isset($_POST['bw_account_login_subtitle_wordpress']) ? sanitize_textarea_field(wp_unslash($_POST['bw_account_login_subtitle_wordpress'])) : '';
+        $login_provider = isset($_POST['bw_account_login_provider']) ? sanitize_key($_POST['bw_account_login_provider']) : 'wordpress';
+        $login_image = isset($_POST['bw_account_login_image']) ? esc_url_raw($_POST['bw_account_login_image']) : '';
+        $login_image_id = isset($_POST['bw_account_login_image_id']) ? absint($_POST['bw_account_login_image_id']) : 0;
+        $logo = isset($_POST['bw_account_logo']) ? esc_url_raw($_POST['bw_account_logo']) : '';
+        $logo_id = isset($_POST['bw_account_logo_id']) ? absint($_POST['bw_account_logo_id']) : 0;
+        $logo_width = isset($_POST['bw_account_logo_width']) ? absint($_POST['bw_account_logo_width']) : 180;
+        $logo_padding_top = isset($_POST['bw_account_logo_padding_top']) ? absint($_POST['bw_account_logo_padding_top']) : 0;
+        $logo_padding_bottom = isset($_POST['bw_account_logo_padding_bottom']) ? absint($_POST['bw_account_logo_padding_bottom']) : 30;
+        $login_title_supabase = isset($_POST['bw_account_login_title_supabase']) ? sanitize_text_field($_POST['bw_account_login_title_supabase']) : '';
+        $login_subtitle_supabase = isset($_POST['bw_account_login_subtitle_supabase']) ? sanitize_textarea_field($_POST['bw_account_login_subtitle_supabase']) : '';
+        $login_title_wordpress = isset($_POST['bw_account_login_title_wordpress']) ? sanitize_text_field($_POST['bw_account_login_title_wordpress']) : '';
+        $login_subtitle_wordpress = isset($_POST['bw_account_login_subtitle_wordpress']) ? sanitize_textarea_field($_POST['bw_account_login_subtitle_wordpress']) : '';
         $show_social_buttons = isset($_POST['bw_account_show_social_buttons']) ? 1 : 0;
         $facebook = isset($_POST['bw_account_facebook']) ? 1 : 0;
         $google = isset($_POST['bw_account_google']) ? 1 : 0;
-        $facebook_app_id = isset($_POST['bw_account_facebook_app_id']) ? sanitize_text_field(wp_unslash($_POST['bw_account_facebook_app_id'])) : '';
-        $facebook_app_secret = isset($_POST['bw_account_facebook_app_secret']) ? sanitize_text_field(wp_unslash($_POST['bw_account_facebook_app_secret'])) : '';
-        $google_client_id = isset($_POST['bw_account_google_client_id']) ? sanitize_text_field(wp_unslash($_POST['bw_account_google_client_id'])) : '';
-        $google_client_secret = isset($_POST['bw_account_google_client_secret']) ? sanitize_text_field(wp_unslash($_POST['bw_account_google_client_secret'])) : '';
-        $passwordless_url = isset($_POST['bw_account_passwordless_url']) ? esc_url_raw(wp_unslash($_POST['bw_account_passwordless_url'])) : '';
-        $supabase_project_url = isset($_POST['bw_supabase_project_url']) ? esc_url_raw(trim(wp_unslash($_POST['bw_supabase_project_url']))) : '';
-        $supabase_anon_key = isset($_POST['bw_supabase_anon_key']) ? sanitize_textarea_field(trim(wp_unslash($_POST['bw_supabase_anon_key']))) : '';
-        $supabase_service_key = isset($_POST['bw_supabase_service_role_key']) ? sanitize_textarea_field(wp_unslash($_POST['bw_supabase_service_role_key'])) : '';
-        $supabase_auth_mode = isset($_POST['bw_supabase_auth_mode']) ? sanitize_key(wp_unslash($_POST['bw_supabase_auth_mode'])) : 'password';
-        $supabase_login_mode = isset($_POST['bw_supabase_login_mode']) ? sanitize_key(wp_unslash($_POST['bw_supabase_login_mode'])) : 'native';
-        $supabase_cookie_name = isset($_POST['bw_supabase_jwt_cookie_name']) ? sanitize_key(wp_unslash($_POST['bw_supabase_jwt_cookie_name'])) : 'bw_supabase_session';
-        $supabase_storage = isset($_POST['bw_supabase_session_storage']) ? sanitize_key(wp_unslash($_POST['bw_supabase_session_storage'])) : 'cookie';
+        $facebook_app_id = isset($_POST['bw_account_facebook_app_id']) ? sanitize_text_field($_POST['bw_account_facebook_app_id']) : '';
+        $facebook_app_secret = isset($_POST['bw_account_facebook_app_secret']) ? sanitize_text_field($_POST['bw_account_facebook_app_secret']) : '';
+        $google_client_id = isset($_POST['bw_account_google_client_id']) ? sanitize_text_field($_POST['bw_account_google_client_id']) : '';
+        $google_client_secret = isset($_POST['bw_account_google_client_secret']) ? sanitize_text_field($_POST['bw_account_google_client_secret']) : '';
+        $passwordless_url = isset($_POST['bw_account_passwordless_url']) ? esc_url_raw($_POST['bw_account_passwordless_url']) : '';
+        $supabase_project_url = isset($_POST['bw_supabase_project_url']) ? esc_url_raw(trim($_POST['bw_supabase_project_url'])) : '';
+        $supabase_anon_key = isset($_POST['bw_supabase_anon_key']) ? sanitize_textarea_field(trim($_POST['bw_supabase_anon_key'])) : '';
+        $supabase_service_key = isset($_POST['bw_supabase_service_role_key']) ? sanitize_textarea_field($_POST['bw_supabase_service_role_key']) : '';
+        $supabase_auth_mode = isset($_POST['bw_supabase_auth_mode']) ? sanitize_key($_POST['bw_supabase_auth_mode']) : 'password';
+        $supabase_login_mode = isset($_POST['bw_supabase_login_mode']) ? sanitize_key($_POST['bw_supabase_login_mode']) : 'native';
+        $supabase_cookie_name = isset($_POST['bw_supabase_jwt_cookie_name']) ? sanitize_key($_POST['bw_supabase_jwt_cookie_name']) : 'bw_supabase_session';
+        $supabase_storage = isset($_POST['bw_supabase_session_storage']) ? sanitize_key($_POST['bw_supabase_session_storage']) : 'cookie';
         $supabase_link_users = isset($_POST['bw_supabase_enable_wp_user_linking']) ? 1 : 0;
         $supabase_debug_log = isset($_POST['bw_supabase_debug_log']) ? 1 : 0;
         $supabase_with_plugins = isset($_POST['bw_supabase_with_plugins']) ? 1 : 0;
-        $supabase_registration = isset($_POST['bw_supabase_registration_mode']) ? sanitize_text_field(wp_unslash($_POST['bw_supabase_registration_mode'])) : 'R2';
-        $supabase_signup_url = isset($_POST['bw_supabase_provider_signup_url']) ? esc_url_raw(wp_unslash($_POST['bw_supabase_provider_signup_url'])) : '';
-        $supabase_reset_url = isset($_POST['bw_supabase_provider_reset_url']) ? esc_url_raw(wp_unslash($_POST['bw_supabase_provider_reset_url'])) : '';
-        $supabase_confirm_url = isset($_POST['bw_supabase_email_confirm_redirect_url']) ? esc_url_raw(trim(wp_unslash($_POST['bw_supabase_email_confirm_redirect_url']))) : '';
+        $supabase_registration = isset($_POST['bw_supabase_registration_mode']) ? sanitize_text_field($_POST['bw_supabase_registration_mode']) : 'R2';
+        $supabase_signup_url = isset($_POST['bw_supabase_provider_signup_url']) ? esc_url_raw($_POST['bw_supabase_provider_signup_url']) : '';
+        $supabase_reset_url = isset($_POST['bw_supabase_provider_reset_url']) ? esc_url_raw($_POST['bw_supabase_provider_reset_url']) : '';
+        $supabase_confirm_url = isset($_POST['bw_supabase_email_confirm_redirect_url']) ? esc_url_raw(trim($_POST['bw_supabase_email_confirm_redirect_url'])) : '';
         $supabase_magic_link_enabled = isset($_POST['bw_supabase_magic_link_enabled']) ? 1 : 0;
         $supabase_otp_allow_signup = isset($_POST['bw_supabase_otp_allow_signup']) ? 1 : 0;
         $supabase_oauth_google_enabled = isset($_POST['bw_supabase_oauth_google_enabled']) ? 1 : 0;
         $supabase_oauth_facebook_enabled = isset($_POST['bw_supabase_oauth_facebook_enabled']) ? 1 : 0;
         $supabase_oauth_apple_enabled = isset($_POST['bw_supabase_oauth_apple_enabled']) ? 1 : 0;
-        $supabase_google_client_id = isset($_POST['bw_supabase_google_client_id']) ? sanitize_text_field(wp_unslash($_POST['bw_supabase_google_client_id'])) : '';
-        $supabase_google_client_secret = isset($_POST['bw_supabase_google_client_secret']) ? sanitize_textarea_field(wp_unslash($_POST['bw_supabase_google_client_secret'])) : '';
-        $supabase_google_redirect_url = isset($_POST['bw_supabase_google_redirect_url']) ? esc_url_raw(wp_unslash($_POST['bw_supabase_google_redirect_url'])) : '';
-        $supabase_google_scopes = isset($_POST['bw_supabase_google_scopes']) ? sanitize_text_field(wp_unslash($_POST['bw_supabase_google_scopes'])) : '';
-        $supabase_google_prompt = isset($_POST['bw_supabase_google_prompt']) ? sanitize_text_field(wp_unslash($_POST['bw_supabase_google_prompt'])) : '';
-        $supabase_facebook_app_id = isset($_POST['bw_supabase_facebook_app_id']) ? sanitize_text_field(wp_unslash($_POST['bw_supabase_facebook_app_id'])) : '';
-        $supabase_facebook_app_secret = isset($_POST['bw_supabase_facebook_app_secret']) ? sanitize_textarea_field(wp_unslash($_POST['bw_supabase_facebook_app_secret'])) : '';
-        $supabase_facebook_redirect_url = isset($_POST['bw_supabase_facebook_redirect_url']) ? esc_url_raw(wp_unslash($_POST['bw_supabase_facebook_redirect_url'])) : '';
-        $supabase_facebook_scopes = isset($_POST['bw_supabase_facebook_scopes']) ? sanitize_text_field(wp_unslash($_POST['bw_supabase_facebook_scopes'])) : '';
-        $supabase_apple_client_id = isset($_POST['bw_supabase_apple_client_id']) ? sanitize_text_field(wp_unslash($_POST['bw_supabase_apple_client_id'])) : '';
-        $supabase_apple_team_id = isset($_POST['bw_supabase_apple_team_id']) ? sanitize_text_field(wp_unslash($_POST['bw_supabase_apple_team_id'])) : '';
-        $supabase_apple_key_id = isset($_POST['bw_supabase_apple_key_id']) ? sanitize_text_field(wp_unslash($_POST['bw_supabase_apple_key_id'])) : '';
-        $supabase_apple_private_key = isset($_POST['bw_supabase_apple_private_key']) ? sanitize_textarea_field(wp_unslash($_POST['bw_supabase_apple_private_key'])) : '';
-        $supabase_apple_redirect_url = isset($_POST['bw_supabase_apple_redirect_url']) ? esc_url_raw(wp_unslash($_POST['bw_supabase_apple_redirect_url'])) : '';
+        $supabase_google_client_id = isset($_POST['bw_supabase_google_client_id']) ? sanitize_text_field($_POST['bw_supabase_google_client_id']) : '';
+        $supabase_google_client_secret = isset($_POST['bw_supabase_google_client_secret']) ? sanitize_textarea_field($_POST['bw_supabase_google_client_secret']) : '';
+        $supabase_google_redirect_url = isset($_POST['bw_supabase_google_redirect_url']) ? esc_url_raw($_POST['bw_supabase_google_redirect_url']) : '';
+        $supabase_google_scopes = isset($_POST['bw_supabase_google_scopes']) ? sanitize_text_field($_POST['bw_supabase_google_scopes']) : '';
+        $supabase_google_prompt = isset($_POST['bw_supabase_google_prompt']) ? sanitize_text_field($_POST['bw_supabase_google_prompt']) : '';
+        $supabase_facebook_app_id = isset($_POST['bw_supabase_facebook_app_id']) ? sanitize_text_field($_POST['bw_supabase_facebook_app_id']) : '';
+        $supabase_facebook_app_secret = isset($_POST['bw_supabase_facebook_app_secret']) ? sanitize_textarea_field($_POST['bw_supabase_facebook_app_secret']) : '';
+        $supabase_facebook_redirect_url = isset($_POST['bw_supabase_facebook_redirect_url']) ? esc_url_raw($_POST['bw_supabase_facebook_redirect_url']) : '';
+        $supabase_facebook_scopes = isset($_POST['bw_supabase_facebook_scopes']) ? sanitize_text_field($_POST['bw_supabase_facebook_scopes']) : '';
+        $supabase_apple_client_id = isset($_POST['bw_supabase_apple_client_id']) ? sanitize_text_field($_POST['bw_supabase_apple_client_id']) : '';
+        $supabase_apple_team_id = isset($_POST['bw_supabase_apple_team_id']) ? sanitize_text_field($_POST['bw_supabase_apple_team_id']) : '';
+        $supabase_apple_key_id = isset($_POST['bw_supabase_apple_key_id']) ? sanitize_text_field($_POST['bw_supabase_apple_key_id']) : '';
+        $supabase_apple_private_key = isset($_POST['bw_supabase_apple_private_key']) ? sanitize_textarea_field($_POST['bw_supabase_apple_private_key']) : '';
+        $supabase_apple_redirect_url = isset($_POST['bw_supabase_apple_redirect_url']) ? esc_url_raw($_POST['bw_supabase_apple_redirect_url']) : '';
         $supabase_password_enabled = isset($_POST['bw_supabase_login_password_enabled']) ? 1 : 0;
-        $supabase_magic_link_redirect = isset($_POST['bw_supabase_magic_link_redirect_url']) ? esc_url_raw(trim(wp_unslash($_POST['bw_supabase_magic_link_redirect_url']))) : '';
-        $supabase_oauth_redirect = isset($_POST['bw_supabase_oauth_redirect_url']) ? esc_url_raw(trim(wp_unslash($_POST['bw_supabase_oauth_redirect_url']))) : '';
-        $supabase_signup_redirect = isset($_POST['bw_supabase_signup_redirect_url']) ? esc_url_raw(trim(wp_unslash($_POST['bw_supabase_signup_redirect_url']))) : '';
+        $supabase_magic_link_redirect = isset($_POST['bw_supabase_magic_link_redirect_url']) ? esc_url_raw(trim($_POST['bw_supabase_magic_link_redirect_url'])) : '';
+        $supabase_oauth_redirect = isset($_POST['bw_supabase_oauth_redirect_url']) ? esc_url_raw(trim($_POST['bw_supabase_oauth_redirect_url'])) : '';
+        $supabase_signup_redirect = isset($_POST['bw_supabase_signup_redirect_url']) ? esc_url_raw(trim($_POST['bw_supabase_signup_redirect_url'])) : '';
         $supabase_auto_login = isset($_POST['bw_supabase_auto_login_after_confirm']) ? 1 : 0;
         $supabase_create_users = isset($_POST['bw_supabase_create_wp_users']) ? 1 : 0;
 
@@ -2357,10 +1912,6 @@ function bw_site_render_my_account_front_tab()
     $saved = false;
 
     if (isset($_POST['bw_myaccount_content_submit'])) {
-        if (!current_user_can('manage_options')) {
-            return;
-        }
-
         check_admin_referer('bw_myaccount_front_save', 'bw_myaccount_front_nonce');
 
         $black_box_text = isset($_POST['bw_myaccount_black_box_text'])
@@ -2432,10 +1983,6 @@ function bw_site_render_checkout_tab()
     $saved = false;
 
     if (isset($_POST['bw_checkout_settings_submit']) || isset($_POST['bw_checkout_footer_submit'])) {
-        if (!current_user_can('manage_options')) {
-            return;
-        }
-
         check_admin_referer('bw_checkout_settings_save', 'bw_checkout_settings_nonce');
 
         $logo = isset($_POST['bw_checkout_logo']) ? esc_url_raw(wp_unslash($_POST['bw_checkout_logo'])) : '';
@@ -2484,7 +2031,6 @@ function bw_site_render_checkout_tab()
         $klarna_statement_descriptor = isset($_POST['bw_klarna_statement_descriptor']) ? substr(sanitize_text_field(wp_unslash($_POST['bw_klarna_statement_descriptor'])), 0, 22) : '';
         $klarna_webhook_secret = isset($_POST['bw_klarna_webhook_secret']) ? sanitize_text_field(wp_unslash($_POST['bw_klarna_webhook_secret'])) : '';
         $apple_pay_enabled = isset($_POST['bw_apple_pay_enabled']) ? 1 : 0;
-        $apple_pay_express_helper_enabled = isset($_POST['bw_apple_pay_express_helper_enabled']) ? 1 : 0;
         $apple_pay_pub_key = isset($_POST['bw_apple_pay_publishable_key']) ? sanitize_text_field(wp_unslash($_POST['bw_apple_pay_publishable_key'])) : '';
         $apple_pay_sec_key = isset($_POST['bw_apple_pay_secret_key']) ? sanitize_text_field(wp_unslash($_POST['bw_apple_pay_secret_key'])) : '';
         $apple_pay_statement_descriptor = isset($_POST['bw_apple_pay_statement_descriptor']) ? substr(sanitize_text_field(wp_unslash($_POST['bw_apple_pay_statement_descriptor'])), 0, 22) : '';
@@ -2501,9 +2047,6 @@ function bw_site_render_checkout_tab()
 
         foreach ($policies as $key => $option_prefix) {
             $policy_data = isset($_POST[$option_prefix]) ? wp_unslash($_POST[$option_prefix]) : [];
-            if (!is_array($policy_data)) {
-                $policy_data = [];
-            }
             $sanitized_data = [
                 'enabled' => isset($policy_data['enabled']) ? '1' : '0',
                 'title' => isset($policy_data['title']) ? sanitize_text_field($policy_data['title']) : '',
@@ -2593,7 +2136,6 @@ function bw_site_render_checkout_tab()
         update_option('bw_klarna_statement_descriptor', $klarna_statement_descriptor);
         update_option('bw_klarna_webhook_secret', $klarna_webhook_secret);
         update_option('bw_apple_pay_enabled', $apple_pay_enabled);
-        update_option('bw_apple_pay_express_helper_enabled', $apple_pay_express_helper_enabled);
         update_option('bw_apple_pay_publishable_key', $apple_pay_pub_key);
         update_option('bw_apple_pay_secret_key', $apple_pay_sec_key);
         update_option('bw_apple_pay_statement_descriptor', $apple_pay_statement_descriptor);
@@ -2633,22 +2175,17 @@ function bw_site_render_checkout_tab()
         ];
         update_option('bw_checkout_fields_settings', $checkout_fields_settings);
 
-        // Redirect to the same tab to prevent losing tab state.
-        $allowed_checkout_tabs = ['style', 'supabase', 'fields', 'subscribe', 'google-maps', 'google-pay', 'klarna-pay', 'apple-pay', 'footer'];
-        $checkout_tab = isset($_GET['checkout_tab']) ? sanitize_key(wp_unslash($_GET['checkout_tab'])) : 'style';
-        if (!in_array($checkout_tab, $allowed_checkout_tabs, true)) {
-            $checkout_tab = 'style';
-        }
+        // Redirect to the same tab to prevent losing tab state
         wp_safe_redirect(add_query_arg(array(
             'page' => 'blackwork-site-settings',
             'tab' => 'checkout',
-            'checkout_tab' => $checkout_tab,
+            'checkout_tab' => isset($_GET['checkout_tab']) ? sanitize_key($_GET['checkout_tab']) : 'style',
             'saved' => '1'
         ), admin_url('admin.php')));
         exit;
     }
 
-    $saved = isset($_GET['saved']) && '1' === sanitize_key(wp_unslash($_GET['saved']));
+    $saved = isset($_GET['saved']) && $_GET['saved'] === '1';
 
     $logo = get_option('bw_checkout_logo', '');
     $logo_align = get_option('bw_checkout_logo_align', 'left');
@@ -2724,7 +2261,7 @@ function bw_site_render_checkout_tab()
         <?php wp_nonce_field('bw_checkout_settings_save', 'bw_checkout_settings_nonce'); ?>
 
         <?php
-        $active_checkout_tab = isset($_GET['checkout_tab']) ? sanitize_key(wp_unslash($_GET['checkout_tab'])) : 'style';
+        $active_checkout_tab = isset($_GET['checkout_tab']) ? sanitize_key($_GET['checkout_tab']) : 'style';
         $allowed_checkout_tabs = ['style', 'supabase', 'fields', 'subscribe', 'google-maps', 'google-pay', 'klarna-pay', 'apple-pay', 'footer'];
         if (!in_array($active_checkout_tab, $allowed_checkout_tabs, true)) {
             $active_checkout_tab = 'style';
@@ -2733,6 +2270,7 @@ function bw_site_render_checkout_tab()
         $style_tab_url = add_query_arg('checkout_tab', 'style');
         $supabase_tab_url = add_query_arg('checkout_tab', 'supabase');
         $fields_tab_url = add_query_arg('checkout_tab', 'fields');
+        $subscribe_tab_url = add_query_arg('checkout_tab', 'subscribe');
         $google_maps_tab_url = add_query_arg('checkout_tab', 'google-maps');
         $google_pay_tab_url = add_query_arg('checkout_tab', 'google-pay');
         $klarna_pay_tab_url = add_query_arg('checkout_tab', 'klarna-pay');
@@ -2752,6 +2290,10 @@ function bw_site_render_checkout_tab()
             <a class="nav-tab <?php echo 'fields' === $active_checkout_tab ? 'nav-tab-active' : ''; ?>"
                 href="<?php echo esc_url($fields_tab_url); ?>">
                 <?php esc_html_e('Checkout Fields', 'bw'); ?>
+            </a>
+            <a class="nav-tab <?php echo 'subscribe' === $active_checkout_tab ? 'nav-tab-active' : ''; ?>"
+                href="<?php echo esc_url($subscribe_tab_url); ?>">
+                <?php esc_html_e('Subscribe', 'bw'); ?>
             </a>
             <a class="nav-tab <?php echo 'google-maps' === $active_checkout_tab ? 'nav-tab-active' : ''; ?>"
                 href="<?php echo esc_url($google_maps_tab_url); ?>">
@@ -3193,27 +2735,11 @@ function bw_site_render_checkout_tab()
         </div>
 
         <div class="bw-tab-panel" data-bw-tab="subscribe" <?php echo 'subscribe' === $active_checkout_tab ? '' : 'style="display:none;"'; ?>>
-            <?php
-            $mail_marketing_checkout_url = add_query_arg(
-                [
-                    'page' => 'blackwork-mail-marketing',
-                    'tab' => 'checkout',
-                ],
-                admin_url('admin.php')
-            );
-            ?>
-            <div class="notice notice-info inline">
-                <p>
-                    <strong><?php esc_html_e('Subscribe settings moved.', 'bw'); ?></strong>
-                    <?php
-                    printf(
-                        /* translators: %s: link to Mail Marketing page */
-                        esc_html__('Manage newsletter settings in %s.', 'bw'),
-                        '<a href="' . esc_url($mail_marketing_checkout_url) . '">' . esc_html__('Blackwork Site > Mail Marketing > Checkout', 'bw') . '</a>'
-                    );
-                    ?>
-                </p>
-            </div>
+            <?php if (class_exists('BW_Checkout_Subscribe_Admin')): ?>
+                <?php BW_Checkout_Subscribe_Admin::get_instance()->render_tab(); ?>
+            <?php else: ?>
+                <p><?php esc_html_e('Subscribe module is unavailable.', 'bw'); ?></p>
+            <?php endif; ?>
         </div>
 
         <div class="bw-tab-panel" data-bw-tab="google-maps" <?php echo 'google-maps' === $active_checkout_tab ? '' : 'style="display:none;"'; ?>>
@@ -3223,7 +2749,6 @@ function bw_site_render_checkout_tab()
             $google_maps_api_key = get_option('bw_google_maps_api_key', '');
             $google_maps_autofill = get_option('bw_google_maps_autofill', '1');
             $google_maps_restrict_country = get_option('bw_google_maps_restrict_country', '1');
-            $google_maps_test_nonce = wp_create_nonce('bw_google_maps_test_connection');
             ?>
 
             <table class="form-table" role="presentation">
@@ -3266,29 +2791,6 @@ function bw_site_render_checkout_tab()
                                 ?>
                                 <br>
                                 <strong><?php esc_html_e('Free tier: $200/month (~70,000 autocomplete requests)', 'bw'); ?></strong>
-                            </p>
-                        </td>
-                    </tr>
-
-                    <tr>
-                        <th scope="row">
-                            <label for="bw_google_maps_test_connection"><?php esc_html_e('API Connection Test', 'bw'); ?></label>
-                        </th>
-                        <td>
-                            <button type="button" id="bw_google_maps_test_connection" class="button button-secondary">
-                                <?php esc_html_e('Test Google Maps Connection', 'bw'); ?>
-                            </button>
-                            <p id="bw_google_maps_test_result" class="description" style="margin-top: 10px; display:none;"></p>
-                            <p class="description" style="margin-top: 10px;">
-                                <strong><?php esc_html_e('Monitor API usage & costs:', 'bw'); ?></strong><br>
-                                <a href="https://console.cloud.google.com/apis/api/maps-backend.googleapis.com/quotas"
-                                    target="_blank" rel="noopener noreferrer"><?php esc_html_e('Maps JavaScript API Quotas', 'bw'); ?></a> |
-                                <a href="https://console.cloud.google.com/apis/api/places-backend.googleapis.com/quotas"
-                                    target="_blank" rel="noopener noreferrer"><?php esc_html_e('Places API Quotas', 'bw'); ?></a> |
-                                <a href="https://console.cloud.google.com/apis/dashboard"
-                                    target="_blank" rel="noopener noreferrer"><?php esc_html_e('API Metrics Dashboard', 'bw'); ?></a> |
-                                <a href="https://console.cloud.google.com/billing/budgets"
-                                    target="_blank" rel="noopener noreferrer"><?php esc_html_e('Billing Budgets & Alerts', 'bw'); ?></a>
                             </p>
                         </td>
                     </tr>
@@ -3363,39 +2865,6 @@ function bw_site_render_checkout_tab()
 
             <script>
                 jQuery(document).ready(function ($) {
-                    var $testButton = $('#bw_google_maps_test_connection');
-                    var $testResult = $('#bw_google_maps_test_result');
-                    var defaultButtonText = $testButton.text();
-
-                    function setTestMessage(type, message, details) {
-                        var color = '#0a7a2f';
-                        var bg = '#ecfdf3';
-                        var border = '#9ee7b3';
-
-                        if (type === 'error') {
-                            color = '#a90000';
-                            bg = '#fff1f1';
-                            border = '#f0b2b2';
-                        }
-
-                        var text = message || '';
-                        if (details) {
-                            text += ' ' + details;
-                        }
-
-                        $testResult
-                            .text(text)
-                            .css({
-                                display: 'block',
-                                color: color,
-                                background: bg,
-                                border: '1px solid ' + border,
-                                borderRadius: '6px',
-                                padding: '10px 12px',
-                                fontWeight: 500
-                            });
-                    }
-
                     // Toggle conditional fields
                     $('#bw_google_maps_enabled').on('change', function () {
                         if ($(this).is(':checked')) {
@@ -3403,36 +2872,6 @@ function bw_site_render_checkout_tab()
                         } else {
                             $('#bw-google-maps-conditional-fields').slideUp(200);
                         }
-                    });
-
-                    $testButton.on('click', function () {
-                        var apiKey = ($('#bw_google_maps_api_key').val() || '').trim();
-
-                        if (!apiKey) {
-                            setTestMessage('error', '<?php echo esc_js(__('Insert a Google Maps API key first.', 'bw')); ?>');
-                            return;
-                        }
-
-                        $testButton.prop('disabled', true).text('<?php echo esc_js(__('Testing…', 'bw')); ?>');
-                        $testResult.hide().text('');
-
-                        $.post(ajaxurl, {
-                            action: 'bw_google_maps_test_connection',
-                            nonce: '<?php echo esc_js($google_maps_test_nonce); ?>',
-                            api_key: apiKey
-                        }).done(function (response) {
-                            if (response && response.success && response.data) {
-                                setTestMessage('success', response.data.message || '<?php echo esc_js(__('Connection successful.', 'bw')); ?>', response.data.details || '');
-                                return;
-                            }
-
-                            var data = response && response.data ? response.data : {};
-                            setTestMessage('error', data.message || '<?php echo esc_js(__('Connection test failed.', 'bw')); ?>', data.details || '');
-                        }).fail(function () {
-                            setTestMessage('error', '<?php echo esc_js(__('Unable to run connection test. Please try again.', 'bw')); ?>');
-                        }).always(function () {
-                            $testButton.prop('disabled', false).text(defaultButtonText);
-                        });
                     });
                 });
             </script>
@@ -3757,14 +3196,11 @@ function bw_site_render_checkout_tab()
         <div class="bw-tab-panel" data-bw-tab="apple-pay" <?php echo 'apple-pay' === $active_checkout_tab ? '' : 'style="display:none;"'; ?>>
             <?php
             $apple_pay_enabled = get_option('bw_apple_pay_enabled', 0);
-            $apple_pay_express_helper_enabled = get_option('bw_apple_pay_express_helper_enabled', 1);
             $apple_pay_pub_key = get_option('bw_apple_pay_publishable_key', '');
             $apple_pay_sec_key = get_option('bw_apple_pay_secret_key', '');
             $apple_pay_statement_descriptor = get_option('bw_apple_pay_statement_descriptor', '');
             $apple_pay_webhook_secret = get_option('bw_apple_pay_webhook_secret', '');
             $apple_pay_webhook_url = add_query_arg('wc-api', 'bw_apple_pay', home_url('/'));
-            $apple_pay_site_domain = wp_parse_url(home_url('/'), PHP_URL_HOST);
-            $apple_pay_site_domain = is_string($apple_pay_site_domain) ? strtolower(trim($apple_pay_site_domain)) : '';
             ?>
 
             <div class="bw-settings-section">
@@ -3808,17 +3244,6 @@ function bw_site_render_checkout_tab()
                     </tr>
 
                     <tr>
-                        <th scope="row">Express Checkout Helper</th>
-                        <td>
-                            <label class="bw-switch">
-                                <input name="bw_apple_pay_express_helper_enabled" type="checkbox" id="bw_apple_pay_express_helper_enabled" value="1" <?php checked(1, $apple_pay_express_helper_enabled); ?> />
-                                <span class="bw-slider round"></span>
-                            </label>
-                            <p class="description" style="margin-top: 8px;">When Apple Pay is unavailable, use the Apple button to scroll to the Express Checkout section.</p>
-                        </td>
-                    </tr>
-
-                    <tr>
                         <th scope="row">Connection Check (Global)</th>
                         <td>
                             <div class="bw-google-pay-connection-row">
@@ -3827,23 +3252,6 @@ function bw_site_render_checkout_tab()
                             </div>
                             <span id="bw-apple-pay-test-result" class="bw-google-pay-test-result" aria-live="polite"></span>
                             <p class="description" style="margin-top: 8px;">This check always validates <strong>live keys</strong> for Apple Pay. Test keys are never accepted.</p>
-                        </td>
-                    </tr>
-
-                    <tr>
-                        <th scope="row">Domain Verification</th>
-                        <td>
-                            <div class="bw-google-pay-connection-row">
-                                <button type="button" class="button" id="bw-apple-pay-verify-domain">Verify domain in Stripe</button>
-                            </div>
-                            <span id="bw-apple-pay-domain-result" class="bw-google-pay-test-result" aria-live="polite"></span>
-                            <p class="description" style="margin-top: 8px;">
-                                Checks Stripe Payment Method Domains for: <strong><?php echo esc_html($apple_pay_site_domain); ?></strong>.
-                                If not verified/enabled, Apple Pay will not be available in checkout.
-                                <br />
-                                Verify/manage domains in Stripe:
-                                <a href="https://dashboard.stripe.com/settings/payment_methods" target="_blank" rel="noopener noreferrer">Stripe Dashboard → Settings → Payment Methods</a>.
-                            </p>
                         </td>
                     </tr>
 
@@ -5135,10 +4543,6 @@ function bw_site_render_coming_soon_tab()
     // Salva le impostazioni se il form è stato inviato
     $saved = false;
     if (isset($_POST['bw_coming_soon_submit'])) {
-        if (!current_user_can('manage_options')) {
-            return;
-        }
-
         check_admin_referer('bw_coming_soon_save', 'bw_coming_soon_nonce');
 
         $active_value = isset($_POST['bw_coming_soon_toggle']) ? 1 : 0;
@@ -5184,6 +4588,10 @@ function bw_site_render_import_product_tab()
     }
 
     $notices = [];
+    if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        bw_import_clear_state();
+    }
+
     $state = bw_import_get_state();
 
     if (isset($_POST['bw_import_upload_submit'])) {
@@ -5328,9 +4736,6 @@ function bw_site_render_import_product_tab()
 
             <form method="post">
                 <?php wp_nonce_field('bw_import_run', 'bw_import_run_nonce'); ?>
-                <?php
-                $state_skip_images = array_key_exists('skip_images', $state) ? !empty($state['skip_images']) : true;
-                ?>
                 <table class="widefat fixed" style="max-width:900px;">
                     <thead>
                         <tr>
@@ -5402,43 +4807,7 @@ function bw_site_render_import_product_tab()
                     </table>
                 </div>
 
-                <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 6px; max-width: 620px;">
-                    <strong><?php esc_html_e('Image import behavior', 'bw'); ?></strong>
-                    <label style="display: flex; gap: 8px; align-items: flex-start;">
-                        <input type="checkbox" name="bw_import_skip_images" value="1" <?php checked($state_skip_images); ?> />
-                        <span><?php esc_html_e('Skip image sideload for safety (recommended). Image columns are ignored and logged as skipped by configuration.', 'bw'); ?></span>
-                    </label>
-                </div>
-
-                <?php
-                $button_label = !empty($state['in_progress'])
-                    ? __('Continue Import (next chunk)', 'bw')
-                    : __('Save Mapping & Run Import', 'bw');
-                submit_button($button_label, 'primary', 'bw_import_run');
-                ?>
-            </form>
-        <?php endif; ?>
-
-        <?php if (!empty($state['in_progress']) && !empty($state['totals']) && !empty($state['headers'])): ?>
-            <hr />
-            <h3><?php esc_html_e('Import progress', 'bw'); ?></h3>
-            <p>
-                <?php
-                echo esc_html(
-                    sprintf(
-                        /* translators: 1: row cursor, 2: created count, 3: updated count, 4: skipped count */
-                        __('Processed rows: %1$d — Created: %2$d, Updated: %3$d, Skipped: %4$d', 'bw'),
-                        isset($state['row_cursor']) ? (int) $state['row_cursor'] : 0,
-                        isset($state['totals']['created']) ? (int) $state['totals']['created'] : 0,
-                        isset($state['totals']['updated']) ? (int) $state['totals']['updated'] : 0,
-                        isset($state['totals']['skipped']) ? (int) $state['totals']['skipped'] : 0
-                    )
-                );
-                ?>
-            </p>
-            <form method="post">
-                <?php wp_nonce_field('bw_import_run', 'bw_import_run_nonce'); ?>
-                <?php submit_button(__('Continue Import (next chunk)', 'bw'), 'secondary', 'bw_import_run', false); ?>
+                <?php submit_button(__('Save Mapping & Run Import', 'bw'), 'primary', 'bw_import_run'); ?>
             </form>
         <?php endif; ?>
     </div>
@@ -5483,61 +4852,16 @@ function bw_import_handle_upload_request()
         return $parsed;
     }
 
-    $active_run_id = bw_import_get_active_run_id();
-    if ($active_run_id !== '') {
-        bw_import_release_lock($active_run_id, get_current_user_id(), true);
-    }
-
     $summary = bw_import_calculate_header_stats($parsed['headers']);
 
     $update_existing = !empty($_POST['bw_import_update_existing']);
-    $run_id = bw_import_generate_run_id();
-    $chunk_size = bw_import_chunk_size();
-    $file_fingerprint = bw_import_file_fingerprint($upload['file']);
-    $now = time();
 
     $state = [
-        'run_id' => $run_id,
-        'status' => 'queued',
-        'owner_user_id' => get_current_user_id(),
         'file_path' => $upload['file'],
-        'file_fingerprint' => $file_fingerprint,
         'file_url' => $upload['url'],
         'headers' => $parsed['headers'],
         'sample' => $parsed['rows'],
         'update_existing' => $update_existing,
-        'skip_images' => true,
-        'row_cursor' => 0,
-        'in_progress' => false,
-        'mapping' => [],
-        'totals' => [
-            'created' => 0,
-            'updated' => 0,
-            'skipped' => 0,
-            'errors' => 0,
-            'failed' => 0,
-        ],
-        'counters' => [
-            'created' => 0,
-            'updated' => 0,
-            'skipped' => 0,
-            'failed' => 0,
-        ],
-        'row_outcomes' => [],
-        'row_outcome_order' => [],
-        'processed_row_keys' => [],
-        'mapping_snapshot' => [],
-        'options_snapshot' => [
-            'update_existing' => $update_existing,
-            'skip_images' => true,
-            'chunk_size' => $chunk_size,
-        ],
-        'started_at' => $now,
-        'updated_at' => $now,
-        'completed_at' => 0,
-        'lock' => [],
-        'last_errors' => [],
-        'last_warnings' => [],
         'upload_summary' => [
             'file_name' => basename($upload['file']),
             'total_fields' => $summary['total'],
@@ -5550,8 +4874,6 @@ function bw_import_handle_upload_request()
         ],
     ];
 
-    bw_import_save_run_state($state);
-    bw_import_set_active_run_id($run_id);
     bw_import_save_state($state);
 
     return $state;
@@ -5574,214 +4896,48 @@ function bw_import_handle_run_request($state)
         return new WP_Error('bw_import_nonce', __('Invalid nonce. Please try again.', 'bw'));
     }
 
-    $active_run_id = bw_import_get_active_run_id();
-    $requested_run_id = isset($state['run_id']) ? sanitize_text_field((string) $state['run_id']) : '';
-    $run_id = $active_run_id !== '' ? $active_run_id : $requested_run_id;
-
-    if ($active_run_id !== '' && $requested_run_id !== '' && $active_run_id !== $requested_run_id) {
-        return new WP_Error('bw_import_run_mismatch', __('An active import run is already authoritative. Refresh and continue the active run.', 'bw'));
-    }
-
-    $run_state = $run_id !== '' ? bw_import_get_run_state($run_id) : [];
-
-    if (empty($run_state['file_path']) || empty($run_state['headers'])) {
+    if (empty($state['file_path']) || empty($state['headers'])) {
         return new WP_Error('bw_import_missing_state', __('No CSV file is attached. Upload a file before running the import.', 'bw'));
     }
 
-    if (empty($run_state['run_id'])) {
-        $run_state['run_id'] = bw_import_generate_run_id();
-    }
-    $run_id = (string) $run_state['run_id'];
-    $current_status = isset($run_state['status']) ? sanitize_key((string) $run_state['status']) : '';
-    if ($current_status === 'completed') {
-        return [
-            'message' => __('This import run is already completed. Upload a new CSV to start another run.', 'bw'),
-        ];
-    }
-
-    $is_first_step = empty($run_state['mapping_snapshot']);
-
-    $lock_result = bw_import_acquire_lock($run_id, get_current_user_id());
-    if (empty($lock_result['ok'])) {
-        return new WP_Error('bw_import_lock_held', isset($lock_result['message']) ? $lock_result['message'] : __('An import run is currently locked by another operator.', 'bw'));
-    }
-
-    if (!empty($lock_result['warning'])) {
-        $run_state['last_warnings'] = bw_import_merge_bounded_messages(
-            isset($run_state['last_warnings']) ? (array) $run_state['last_warnings'] : [],
-            [$lock_result['warning']]
-        );
-    }
-
-    $run_state['owner_user_id'] = get_current_user_id();
-    $run_state['status'] = 'running';
-    $run_state['updated_at'] = time();
-    $run_state['lock'] = bw_import_get_lock_payload();
-    bw_import_save_run_state($run_state);
-    bw_import_set_active_run_id($run_id);
-    bw_import_save_state($run_state);
-
-    bw_import_refresh_lock($run_id, get_current_user_id());
-
+    $raw_mapping = isset($_POST['bw_import_mapping']) ? (array) $_POST['bw_import_mapping'] : [];
     $mapping = [];
-
-    if ($is_first_step) {
-        $raw_mapping = isset($_POST['bw_import_mapping']) ? (array) $_POST['bw_import_mapping'] : [];
-        foreach ($run_state['headers'] as $header) {
-            $value = isset($raw_mapping[$header]) ? sanitize_text_field(wp_unslash($raw_mapping[$header])) : 'ignore';
-            if ('ignore' !== $value) {
-                $mapping[$header] = $value;
-            }
-        }
-
-        if (!bw_import_has_identifier($mapping)) {
-            bw_import_release_lock($run_id, get_current_user_id());
-            return new WP_Error('bw_import_missing_identifier', __('Please map SKU to proceed. Product ID may be mapped as secondary, but SKU is mandatory.', 'bw'));
-        }
-
-        $sku_validation = bw_import_validate_unique_skus($run_state['file_path'], $run_state['headers'], $mapping);
-        if (is_wp_error($sku_validation)) {
-            bw_import_release_lock($run_id, get_current_user_id());
-            return $sku_validation;
-        }
-
-        $run_state['mapping'] = $mapping;
-        $run_state['mapping_snapshot'] = $mapping;
-        $run_state['row_cursor'] = 0;
-        $run_state['in_progress'] = true;
-        $run_state['status'] = 'running';
-        $run_state['totals'] = [
-            'created' => 0,
-            'updated' => 0,
-            'skipped' => 0,
-            'errors' => 0,
-            'failed' => 0,
-        ];
-        $run_state['counters'] = [
-            'created' => 0,
-            'updated' => 0,
-            'skipped' => 0,
-            'failed' => 0,
-        ];
-        $run_state['row_outcomes'] = [];
-        $run_state['row_outcome_order'] = [];
-        $run_state['processed_row_keys'] = [];
-        $run_state['last_errors'] = [];
-        $run_state['last_warnings'] = [];
-        $run_state['skip_images'] = !empty($_POST['bw_import_skip_images']);
-        $run_state['options_snapshot'] = [
-            'update_existing' => !empty($run_state['update_existing']),
-            'skip_images' => !empty($run_state['skip_images']),
-            'chunk_size' => bw_import_chunk_size(),
-        ];
-    } else {
-        $mapping = isset($run_state['mapping_snapshot']) && is_array($run_state['mapping_snapshot']) ? $run_state['mapping_snapshot'] : [];
-        if (!bw_import_has_identifier($mapping)) {
-            $run_state['status'] = 'failed';
-            $run_state['updated_at'] = time();
-            bw_import_save_run_state($run_state);
-            bw_import_release_lock($run_id, get_current_user_id());
-            return new WP_Error('bw_import_missing_identifier', __('Import state is missing SKU mapping. Re-upload the CSV and map SKU again.', 'bw'));
+    foreach ($state['headers'] as $header) {
+        $value = isset($raw_mapping[$header]) ? sanitize_text_field(wp_unslash($raw_mapping[$header])) : 'ignore';
+        if ('ignore' !== $value) {
+            $mapping[$header] = $value;
         }
     }
 
-    $chunk_size = isset($run_state['options_snapshot']['chunk_size']) ? absint($run_state['options_snapshot']['chunk_size']) : bw_import_chunk_size();
-    if ($chunk_size < 1) {
-        $chunk_size = bw_import_chunk_size();
+    if (!bw_import_has_identifier($mapping)) {
+        return new WP_Error('bw_import_missing_identifier', __('Please map at least Product ID, SKU, or Title to proceed.', 'bw'));
     }
 
-    $parsed_chunk = bw_import_parse_csv_chunk($run_state['file_path'], (int) $run_state['row_cursor'], $chunk_size);
-    if (is_wp_error($parsed_chunk)) {
-        $run_state['status'] = 'failed';
-        $run_state['last_errors'] = bw_import_merge_bounded_messages(
-            isset($run_state['last_errors']) ? (array) $run_state['last_errors'] : [],
-            [$parsed_chunk->get_error_message()]
-        );
-        $run_state['updated_at'] = time();
-        bw_import_save_run_state($run_state);
-        bw_import_save_state($run_state);
-        bw_import_release_lock($run_id, get_current_user_id());
-        return $parsed_chunk;
+    $parsed = bw_import_parse_csv_file($state['file_path']);
+    if (is_wp_error($parsed)) {
+        return $parsed;
     }
 
-    $update_existing = !empty($run_state['update_existing']);
-    $options = [
-        'skip_images' => !empty($run_state['skip_images']),
-    ];
-    $result = bw_import_process_rows(
-        $parsed_chunk['headers'],
-        $parsed_chunk['rows'],
-        $mapping,
-        $update_existing,
-        (int) $run_state['row_cursor'],
-        $options,
-        $run_state
-    );
+    $update_existing = !empty($state['update_existing']);
 
-    $run_state['row_cursor'] = (int) $parsed_chunk['next_row'];
-    $run_state['last_errors'] = bw_import_merge_bounded_messages(
-        isset($run_state['last_errors']) ? (array) $run_state['last_errors'] : [],
-        isset($result['errors']) ? (array) $result['errors'] : []
-    );
-    $run_state['last_warnings'] = bw_import_merge_bounded_messages(
-        isset($run_state['last_warnings']) ? (array) $run_state['last_warnings'] : [],
-        isset($result['warnings']) ? (array) $result['warnings'] : []
-    );
-    $run_state['updated_at'] = time();
-    $run_state['lock'] = bw_import_get_lock_payload();
-
-    if (empty($parsed_chunk['eof'])) {
-        $run_state['status'] = 'running';
-        bw_import_save_run_state($run_state);
-        bw_import_save_state($run_state);
-        bw_import_refresh_lock($run_id, get_current_user_id());
-        return [
-            'message' => sprintf(
-                /* translators: 1: processed rows, 2: created count, 3: updated count, 4: skipped count */
-                __('Chunk completed. Processed rows: %1$d — Created: %2$d, Updated: %3$d, Skipped: %4$d. Click continue to process the next chunk.', 'bw'),
-                (int) $run_state['row_cursor'],
-                (int) $run_state['totals']['created'],
-                (int) $run_state['totals']['updated'],
-                (int) $run_state['totals']['skipped']
-            ),
-        ];
-    }
-
-    $run_state['status'] = 'completed';
-    $run_state['in_progress'] = false;
-    $run_state['completed_at'] = time();
-    bw_import_save_run_state($run_state);
-
+    $result = bw_import_process_rows($parsed['headers'], $parsed['rows'], $mapping, $update_existing);
     $message = sprintf(
-        /* translators: 1: created count, 2: updated count, 3: skipped count, 4: errors count */
-        __('Import completed. Created: %1$d, Updated: %2$d, Skipped: %3$d, Errors: %4$d', 'bw'),
-        (int) $run_state['totals']['created'],
-        (int) $run_state['totals']['updated'],
-        (int) $run_state['totals']['skipped'],
-        (int) $run_state['totals']['errors']
+        /* translators: 1: created count, 2: updated count, 3: skipped count */
+        __('Import completed. Created: %1$d, Updated: %2$d, Skipped: %3$d', 'bw'),
+        (int) $result['created'],
+        (int) $result['updated'],
+        (int) $result['skipped']
     );
 
-    if (!empty($run_state['last_errors'])) {
-        $message .= ' — ' . implode(' | ', array_map('esc_html', (array) $run_state['last_errors']));
+    if (!empty($result['errors'])) {
+        $message .= ' — ' . implode(' | ', array_map('esc_html', $result['errors']));
     }
 
-    bw_import_release_lock($run_id, get_current_user_id());
-    bw_import_set_active_run_id('');
-    bw_import_clear_state($run_id, true);
+    bw_import_clear_state();
 
     return [
         'message' => $message,
     ];
-}
-
-/**
- * Chunk size for importer run steps.
- *
- * @return int
- */
-function bw_import_chunk_size()
-{
-    return (int) apply_filters('bw_import_chunk_size', 50);
 }
 
 /**
@@ -5800,379 +4956,7 @@ function bw_import_upload_dir($dirs)
 }
 
 /**
- * Option keys and helpers for durable import runtime state.
- */
-function bw_import_lock_option_key()
-{
-    return 'bw_import_run_lock';
-}
-
-function bw_import_active_run_option_key()
-{
-    return 'bw_import_active_run';
-}
-
-function bw_import_run_option_key($run_id)
-{
-    return 'bw_import_run_' . sanitize_key((string) $run_id);
-}
-
-function bw_import_generate_run_id()
-{
-    if (function_exists('wp_generate_uuid4')) {
-        return sanitize_key(str_replace('-', '', wp_generate_uuid4()));
-    }
-
-    return sanitize_key(uniqid('bwimp_', true));
-}
-
-function bw_import_file_fingerprint($file_path)
-{
-    if (!is_string($file_path) || $file_path === '' || !file_exists($file_path)) {
-        return '';
-    }
-
-    $sha1 = @sha1_file($file_path);
-    if (is_string($sha1) && $sha1 !== '') {
-        return $sha1;
-    }
-
-    return md5($file_path . '|' . filesize($file_path) . '|' . filemtime($file_path));
-}
-
-function bw_import_get_active_run_id()
-{
-    $run_id = get_option(bw_import_active_run_option_key(), '');
-    return is_string($run_id) ? sanitize_text_field($run_id) : '';
-}
-
-function bw_import_set_active_run_id($run_id)
-{
-    $run_id = sanitize_text_field((string) $run_id);
-
-    if ($run_id === '') {
-        delete_option(bw_import_active_run_option_key());
-        return;
-    }
-
-    update_option(bw_import_active_run_option_key(), $run_id, false);
-}
-
-function bw_import_get_run_state($run_id)
-{
-    $run_id = sanitize_text_field((string) $run_id);
-    if ($run_id === '') {
-        return [];
-    }
-
-    $state = get_option(bw_import_run_option_key($run_id), []);
-    if (!is_array($state)) {
-        return [];
-    }
-
-    if (!isset($state['processed_row_keys']) || !is_array($state['processed_row_keys'])) {
-        $state['processed_row_keys'] = [];
-    }
-
-    if (!empty($state['row_outcomes']) && is_array($state['row_outcomes'])) {
-        foreach (array_keys($state['row_outcomes']) as $row_key) {
-            $row_key = sanitize_text_field((string) $row_key);
-            if ($row_key !== '' && !isset($state['processed_row_keys'][$row_key])) {
-                $state['processed_row_keys'][$row_key] = true;
-            }
-        }
-    }
-
-    return $state;
-}
-
-function bw_import_sync_totals_from_counters($run_state)
-{
-    $run_state = is_array($run_state) ? $run_state : [];
-    $counters = isset($run_state['counters']) && is_array($run_state['counters']) ? $run_state['counters'] : [];
-
-    $created = isset($counters['created']) ? absint($counters['created']) : 0;
-    $updated = isset($counters['updated']) ? absint($counters['updated']) : 0;
-    $skipped = isset($counters['skipped']) ? absint($counters['skipped']) : 0;
-    $failed = isset($counters['failed']) ? absint($counters['failed']) : 0;
-
-    $run_state['counters'] = [
-        'created' => $created,
-        'updated' => $updated,
-        'skipped' => $skipped,
-        'failed' => $failed,
-    ];
-    $run_state['totals'] = [
-        'created' => $created,
-        'updated' => $updated,
-        'skipped' => $skipped,
-        'errors' => $failed,
-        'failed' => $failed,
-    ];
-
-    return $run_state;
-}
-
-function bw_import_save_run_state($run_state)
-{
-    if (!is_array($run_state) || empty($run_state['run_id'])) {
-        return;
-    }
-
-    $run_state = bw_import_sync_totals_from_counters($run_state);
-    $run_state['updated_at'] = time();
-    if (!isset($run_state['processed_row_keys']) || !is_array($run_state['processed_row_keys'])) {
-        $run_state['processed_row_keys'] = [];
-    }
-
-    update_option(bw_import_run_option_key($run_state['run_id']), $run_state, false);
-}
-
-function bw_import_lock_compare_and_swap($expected_lock, $new_lock)
-{
-    global $wpdb;
-
-    $option_name = bw_import_lock_option_key();
-    $expected = is_array($expected_lock) ? $expected_lock : [];
-    $replacement = is_array($new_lock) ? $new_lock : [];
-
-    if (empty($expected)) {
-        return add_option($option_name, $replacement, '', false);
-    }
-
-    $table = $wpdb->options;
-    $updated = $wpdb->query(
-        $wpdb->prepare(
-            "UPDATE {$table} SET option_value = %s WHERE option_name = %s AND option_value = %s",
-            maybe_serialize($replacement),
-            $option_name,
-            maybe_serialize($expected)
-        )
-    );
-
-    return 1 === (int) $updated;
-}
-
-function bw_import_lock_delete_if_matches($expected_lock)
-{
-    global $wpdb;
-
-    $expected = is_array($expected_lock) ? $expected_lock : [];
-    if (empty($expected)) {
-        return false;
-    }
-
-    $option_name = bw_import_lock_option_key();
-    $table = $wpdb->options;
-    $deleted = $wpdb->query(
-        $wpdb->prepare(
-            "DELETE FROM {$table} WHERE option_name = %s AND option_value = %s",
-            $option_name,
-            maybe_serialize($expected)
-        )
-    );
-
-    return 1 === (int) $deleted;
-}
-
-function bw_import_clear_run_state($run_id)
-{
-    $run_id = sanitize_text_field((string) $run_id);
-    if ($run_id === '') {
-        return;
-    }
-
-    delete_option(bw_import_run_option_key($run_id));
-    if (bw_import_get_active_run_id() === $run_id) {
-        bw_import_set_active_run_id('');
-    }
-}
-
-function bw_import_get_lock_payload()
-{
-    $lock = get_option(bw_import_lock_option_key(), []);
-    return is_array($lock) ? $lock : [];
-}
-
-function bw_import_is_lock_stale($lock)
-{
-    if (!is_array($lock) || empty($lock['expires_at'])) {
-        return true;
-    }
-
-    return (int) $lock['expires_at'] <= time();
-}
-
-function bw_import_acquire_lock($run_id, $user_id)
-{
-    $run_id = sanitize_text_field((string) $run_id);
-    $user_id = absint($user_id);
-    $attempts = 0;
-
-    while ($attempts < 3) {
-        $attempts++;
-        $existing_lock = bw_import_get_lock_payload();
-        $stale = bw_import_is_lock_stale($existing_lock);
-
-        if (!empty($existing_lock) && !$stale) {
-            $locked_run = isset($existing_lock['run_id']) ? sanitize_text_field((string) $existing_lock['run_id']) : '';
-            $locked_owner = isset($existing_lock['owner_user_id']) ? absint($existing_lock['owner_user_id']) : 0;
-
-            if (!($locked_run === $run_id && $locked_owner === $user_id)) {
-                return [
-                    'ok' => false,
-                    'message' => sprintf(
-                        /* translators: 1: user id, 2: run id */
-                        __('Another import run is active (owner user ID: %1$d, run: %2$s). Please retry later.', 'bw'),
-                        $locked_owner,
-                        $locked_run !== '' ? $locked_run : 'n/a'
-                    ),
-                ];
-            }
-        }
-
-        $now = time();
-        $lock_payload = [
-            'run_id' => $run_id,
-            'owner_user_id' => $user_id,
-            'acquired_at' => $now,
-            'expires_at' => $now + 300,
-            'heartbeat_at' => $now,
-        ];
-
-        if (bw_import_lock_compare_and_swap($existing_lock, $lock_payload)) {
-            $response = ['ok' => true];
-            if ($stale && !empty($existing_lock)) {
-                $response['warning'] = __('A stale import lock was reclaimed before continuing.', 'bw');
-            }
-
-            return $response;
-        }
-    }
-
-    return [
-        'ok' => false,
-        'message' => __('Unable to acquire import lock safely due to concurrent updates. Please retry.', 'bw'),
-    ];
-}
-
-function bw_import_refresh_lock($run_id, $user_id)
-{
-    $run_id = sanitize_text_field((string) $run_id);
-    $user_id = absint($user_id);
-    $lock = bw_import_get_lock_payload();
-
-    if (
-        empty($lock) ||
-        (isset($lock['run_id']) ? sanitize_text_field((string) $lock['run_id']) : '') !== $run_id ||
-        (isset($lock['owner_user_id']) ? absint($lock['owner_user_id']) : 0) !== $user_id
-    ) {
-        return false;
-    }
-
-    $now = time();
-    $updated_lock = $lock;
-    $updated_lock['heartbeat_at'] = $now;
-    $updated_lock['expires_at'] = $now + 300;
-    return bw_import_lock_compare_and_swap($lock, $updated_lock);
-}
-
-function bw_import_release_lock($run_id, $user_id, $force = false)
-{
-    $run_id = sanitize_text_field((string) $run_id);
-    $user_id = absint($user_id);
-    $lock = bw_import_get_lock_payload();
-    if (empty($lock)) {
-        return true;
-    }
-
-    $locked_run = isset($lock['run_id']) ? sanitize_text_field((string) $lock['run_id']) : '';
-    $locked_owner = isset($lock['owner_user_id']) ? absint($lock['owner_user_id']) : 0;
-
-    if ($force) {
-        delete_option(bw_import_lock_option_key());
-        return true;
-    }
-
-    if ($locked_run === $run_id && ($locked_owner === $user_id || bw_import_is_lock_stale($lock))) {
-        if (bw_import_lock_delete_if_matches($lock)) {
-            return true;
-        }
-
-        $latest = bw_import_get_lock_payload();
-        if (empty($latest)) {
-            return true;
-        }
-
-        $latest_run = isset($latest['run_id']) ? sanitize_text_field((string) $latest['run_id']) : '';
-        if ($latest_run === $run_id && bw_import_is_lock_stale($latest)) {
-            delete_option(bw_import_lock_option_key());
-            return true;
-        }
-
-        return false;
-    }
-
-    return false;
-}
-
-function bw_import_make_row_identity($row_offset, $row_index, $sku)
-{
-    $cursor = absint($row_offset + $row_index + 2);
-    $sku_hash = md5(sanitize_text_field((string) $sku));
-    return 'r' . $cursor . '_s' . $sku_hash;
-}
-
-function bw_import_record_row_outcome(&$run_state, $row_identity, $outcome, $message = '')
-{
-    $allowed_outcomes = ['created', 'updated', 'skipped', 'failed'];
-    if (!in_array($outcome, $allowed_outcomes, true)) {
-        return false;
-    }
-
-    if (!is_array($run_state)) {
-        $run_state = [];
-    }
-
-    if (!isset($run_state['row_outcomes']) || !is_array($run_state['row_outcomes'])) {
-        $run_state['row_outcomes'] = [];
-    }
-    if (!isset($run_state['row_outcome_order']) || !is_array($run_state['row_outcome_order'])) {
-        $run_state['row_outcome_order'] = [];
-    }
-    if (!isset($run_state['counters']) || !is_array($run_state['counters'])) {
-        $run_state['counters'] = ['created' => 0, 'updated' => 0, 'skipped' => 0, 'failed' => 0];
-    }
-    if (!isset($run_state['processed_row_keys']) || !is_array($run_state['processed_row_keys'])) {
-        $run_state['processed_row_keys'] = [];
-    }
-
-    if ($row_identity === '' || isset($run_state['processed_row_keys'][$row_identity])) {
-        return false;
-    }
-
-    $run_state['processed_row_keys'][$row_identity] = true;
-    $run_state['row_outcomes'][$row_identity] = [
-        'outcome' => $outcome,
-        'message' => sanitize_text_field((string) $message),
-        'at' => time(),
-    ];
-    $run_state['row_outcome_order'][] = $row_identity;
-    $run_state['counters'][$outcome] = isset($run_state['counters'][$outcome]) ? ((int) $run_state['counters'][$outcome] + 1) : 1;
-
-    while (count($run_state['row_outcome_order']) > 500) {
-        $oldest = array_shift($run_state['row_outcome_order']);
-        if ($oldest !== null) {
-            unset($run_state['row_outcomes'][$oldest]);
-        }
-    }
-
-    $run_state = bw_import_sync_totals_from_counters($run_state);
-    return true;
-}
-
-/**
- * Salva stato import come transient UI mirror (non-authoritative).
+ * Salva lo stato dell'import in un transient per l'utente corrente.
  *
  * @param array $state Stato da salvare.
  */
@@ -6182,23 +4966,12 @@ function bw_import_save_state($state)
 }
 
 /**
- * Recupera lo stato import: preferisce run state durevole attivo.
+ * Recupera lo stato salvato.
  *
  * @return array
  */
 function bw_import_get_state()
 {
-    $active_run_id = bw_import_get_active_run_id();
-    if ($active_run_id !== '') {
-        $run_state = bw_import_get_run_state($active_run_id);
-        if (!empty($run_state)) {
-            bw_import_save_state($run_state);
-            return $run_state;
-        }
-
-        bw_import_set_active_run_id('');
-    }
-
     $state = get_transient('bw_import_state_' . get_current_user_id());
     return is_array($state) ? $state : [];
 }
@@ -6206,16 +4979,9 @@ function bw_import_get_state()
 /**
  * Pulisce lo stato di importazione.
  */
-function bw_import_clear_state($run_id = '', $preserve_run_state = true)
+function bw_import_clear_state()
 {
     delete_transient('bw_import_state_' . get_current_user_id());
-
-    if ($run_id !== '' && !$preserve_run_state) {
-        bw_import_clear_run_state($run_id);
-        return;
-    }
-
-    bw_import_set_active_run_id('');
 }
 
 /**
@@ -6258,114 +5024,6 @@ function bw_import_parse_csv_file($file_path, $max_rows = 0)
     return [
         'headers' => $headers,
         'rows' => $rows,
-    ];
-}
-
-/**
- * Open CSV file handle for importer chunk reads.
- *
- * @param string $file_path CSV file path.
- *
- * @return resource|WP_Error
- */
-function bw_import_open_csv($file_path)
-{
-    if (!file_exists($file_path)) {
-        return new WP_Error('bw_import_missing_file', __('The uploaded CSV file cannot be found.', 'bw'));
-    }
-
-    $handle = fopen($file_path, 'r');
-    if (!$handle) {
-        return new WP_Error('bw_import_open_error', __('Unable to open the CSV file.', 'bw'));
-    }
-
-    return $handle;
-}
-
-/**
- * Read CSV headers from an opened handle.
- *
- * @param resource $handle CSV handle.
- *
- * @return array|WP_Error
- */
-function bw_import_read_headers($handle)
-{
-    $headers = fgetcsv($handle);
-    if (empty($headers)) {
-        return new WP_Error('bw_import_headers', __('The CSV file is missing a header row.', 'bw'));
-    }
-
-    return $headers;
-}
-
-/**
- * Read one CSV chunk from an opened handle.
- *
- * @param resource $handle    CSV handle.
- * @param int      $start_row Zero-based row offset excluding header.
- * @param int      $limit     Chunk size.
- *
- * @return array
- */
-function bw_import_read_chunk($handle, $start_row, $limit)
-{
-    $start_row = max(0, (int) $start_row);
-    $limit = max(1, (int) $limit);
-
-    $current_row = 0;
-    while ($current_row < $start_row && ($data = fgetcsv($handle)) !== false) {
-        $current_row++;
-    }
-
-    $rows = [];
-    $read_count = 0;
-    while ($read_count < $limit && ($data = fgetcsv($handle)) !== false) {
-        $rows[] = $data;
-        $read_count++;
-        $current_row++;
-    }
-
-    return [
-        'rows' => $rows,
-        'next_row' => $current_row,
-        'eof' => feof($handle),
-    ];
-}
-
-/**
- * Parse CSV in deterministic chunks without loading full file in memory.
- *
- * @param string $file_path  CSV file path.
- * @param int    $start_row  Zero-based row index in data rows (header excluded).
- * @param int    $limit      Max number of rows to return.
- *
- * @return array|WP_Error
- */
-function bw_import_parse_csv_chunk($file_path, $start_row, $limit)
-{
-    $start_row = max(0, (int) $start_row);
-    $limit = max(1, (int) $limit);
-
-    $handle = bw_import_open_csv($file_path);
-    if (is_wp_error($handle)) {
-        return $handle;
-    }
-
-    $headers = bw_import_read_headers($handle);
-    if (is_wp_error($headers)) {
-        fclose($handle);
-        return $headers;
-    }
-
-    $chunk = bw_import_read_chunk($handle, $start_row, $limit);
-    fclose($handle);
-
-    return [
-        'headers' => $headers,
-        'rows' => $chunk['rows'],
-        'next_row' => $chunk['next_row'],
-        'eof' => $chunk['eof'],
     ];
 }
 
@@ -6762,7 +5420,7 @@ function bw_import_pretty_meta_label($meta_key)
 function bw_import_has_identifier($mapping)
 {
     $values = array_values($mapping);
-    return in_array('sku', $values, true);
+    return in_array('product_id', $values, true) || in_array('sku', $values, true) || in_array('post_title', $values, true);
 }
 
 /**
@@ -6774,15 +5432,13 @@ function bw_import_has_identifier($mapping)
  *
  * @return array
  */
-function bw_import_process_rows($headers, $rows, $mapping, $update_existing = false, $row_offset = 0, $options = [], &$run_state = null)
+function bw_import_process_rows($headers, $rows, $mapping, $update_existing = false)
 {
     $result = [
         'created' => 0,
         'updated' => 0,
         'skipped' => 0,
-        'errors_count' => 0,
         'errors' => [],
-        'warnings' => [],
     ];
 
     foreach ($rows as $row_index => $row) {
@@ -6793,64 +5449,22 @@ function bw_import_process_rows($headers, $rows, $mapping, $update_existing = fa
 
         $prepared = bw_import_prepare_row_data($row_data, $mapping);
         if (is_wp_error($prepared)) {
-            $row_identity = bw_import_make_row_identity($row_offset, $row_index, '');
-            $recorded = bw_import_record_row_outcome($run_state, $row_identity, 'failed', $prepared->get_error_message());
-            if ($recorded) {
-                $result['skipped']++;
-                $result['errors_count']++;
-                $result['errors'][] = sprintf(__('Row %1$d: %2$s', 'bw'), $row_offset + $row_index + 2, $prepared->get_error_message());
-            }
+            $result['skipped']++;
+            $result['errors'][] = sprintf(__('Row %1$d: %2$s', 'bw'), $row_index + 2, $prepared->get_error_message());
             continue;
         }
 
-        if (!empty($prepared['warnings'])) {
-            foreach ((array) $prepared['warnings'] as $warning) {
-                $result['warnings'][] = sprintf(__('Row %1$d: %2$s', 'bw'), $row_offset + $row_index + 2, $warning);
-            }
-        }
-
-        $row_sku = isset($prepared['product']['sku']) ? (string) $prepared['product']['sku'] : '';
-        $row_identity = bw_import_make_row_identity($row_offset, $row_index, $row_sku);
-        if (!empty($run_state['processed_row_keys']) && is_array($run_state['processed_row_keys']) && isset($run_state['processed_row_keys'][$row_identity])) {
-            continue;
-        }
-
-        $save_result = bw_import_save_product_from_row($prepared, $update_existing, $options);
+        $save_result = bw_import_save_product_from_row($prepared, $update_existing);
         if (is_wp_error($save_result)) {
-            $error_code = $save_result->get_error_code();
-            $row_recorded = false;
-            if ('bw_import_missing_product_match' === $error_code) {
-                $row_recorded = bw_import_record_row_outcome($run_state, $row_identity, 'skipped', $save_result->get_error_message());
-                if ($row_recorded) {
-                    $result['skipped']++;
-                }
-            } else {
-                $row_recorded = bw_import_record_row_outcome($run_state, $row_identity, 'failed', $save_result->get_error_message());
-                if ($row_recorded) {
-                    $result['skipped']++;
-                    $result['errors_count']++;
-                }
-            }
-            if ($row_recorded) {
-                $result['errors'][] = sprintf(__('Row %1$d: %2$s', 'bw'), $row_offset + $row_index + 2, $save_result->get_error_message());
-            }
+            $result['skipped']++;
+            $result['errors'][] = sprintf(__('Row %1$d: %2$s', 'bw'), $row_index + 2, $save_result->get_error_message());
             continue;
         }
 
-        if (!empty($save_result['warnings'])) {
-            foreach ((array) $save_result['warnings'] as $warning) {
-                $result['warnings'][] = sprintf(__('Row %1$d: %2$s', 'bw'), $row_offset + $row_index + 2, $warning);
-            }
-        }
-
-        if (!empty($save_result['status']) && $save_result['status'] === 'updated') {
-            if (bw_import_record_row_outcome($run_state, $row_identity, 'updated')) {
-                $result['updated']++;
-            }
+        if ($save_result === 'updated') {
+            $result['updated']++;
         } else {
-            if (bw_import_record_row_outcome($run_state, $row_identity, 'created')) {
-                $result['created']++;
-            }
+            $result['created']++;
         }
     }
 
@@ -6875,7 +5489,6 @@ function bw_import_prepare_row_data($row_data, $mapping)
         'attributes' => [],
         'upsells' => [],
         'cross_sells' => [],
-        'warnings' => [],
     ];
 
     foreach ($row_data as $header => $value) {
@@ -6912,18 +5525,7 @@ function bw_import_prepare_row_data($row_data, $mapping)
                 $data['product']['slug'] = sanitize_title($clean_value);
                 break;
             case 'post_status':
-                $status = strtolower(sanitize_key($clean_value));
-                $allowed_statuses = ['draft', 'publish', 'pending', 'private'];
-                if ($status !== '' && !in_array($status, $allowed_statuses, true)) {
-                    $data['product']['status'] = 'draft';
-                    $data['warnings'][] = sprintf(
-                        /* translators: %s: invalid status value */
-                        __('Invalid status "%s" normalized to draft.', 'bw'),
-                        $status
-                    );
-                } else {
-                    $data['product']['status'] = $status;
-                }
+                $data['product']['status'] = sanitize_key($clean_value);
                 break;
             case 'product_type':
                 $data['product']['type'] = sanitize_key($clean_value);
@@ -6997,8 +5599,8 @@ function bw_import_prepare_row_data($row_data, $mapping)
         }
     }
 
-    if (empty($data['product']['sku'])) {
-        return new WP_Error('bw_import_missing_identifiers', __('Missing SKU for this row.', 'bw'));
+    if (empty($data['product']['id']) && empty($data['product']['sku']) && empty($data['product']['name'])) {
+        return new WP_Error('bw_import_missing_identifiers', __('Missing Product ID, SKU or Title for this row.', 'bw'));
     }
 
     return $data;
@@ -7027,21 +5629,12 @@ function bw_import_explode_list($value)
  *
  * @return string|WP_Error
  */
-function bw_import_save_product_from_row($data, $update_existing = false, $options = [])
+function bw_import_save_product_from_row($data, $update_existing = false)
 {
-    $options = wp_parse_args(
-        $options,
-        [
-            'skip_images' => true,
-            'sku_retry_done' => false,
-        ]
-    );
-
     $product_id = isset($data['product']['id']) ? absint($data['product']['id']) : 0;
     $sku = isset($data['product']['sku']) ? $data['product']['sku'] : '';
     $product = null;
     $status = 'created';
-    $warnings = [];
 
     if ($product_id) {
         $product = wc_get_product($product_id);
@@ -7063,48 +5656,16 @@ function bw_import_save_product_from_row($data, $update_existing = false, $optio
             __('Skipping row because no existing product matches the provided ID or SKU.', 'bw')
         );
     } else {
-        if ($sku) {
-            $resolved_product_id = wc_get_product_id_by_sku($sku);
-            if ($resolved_product_id) {
-                $product = wc_get_product($resolved_product_id);
-                if ($product) {
-                    $product_id = $resolved_product_id;
-                    $status = 'updated';
-                }
-            }
+        $product_type = !empty($data['product']['type']) ? $data['product']['type'] : 'simple';
+
+        try {
+            $product = wc_get_product_object($product_type);
+        } catch (Throwable $exception) {
+            return new WP_Error('bw_import_product_object', $exception->getMessage());
         }
 
         if (!$product) {
-            $product_type = !empty($data['product']['type']) ? $data['product']['type'] : 'simple';
-
-            try {
-                $product = wc_get_product_object($product_type);
-            } catch (Throwable $exception) {
-                return new WP_Error('bw_import_product_object', $exception->getMessage());
-            }
-
-            if (!$product) {
-                return new WP_Error('bw_import_product_object', __('Unable to create product object for type.', 'bw'));
-            }
-        }
-    }
-
-    if ($sku) {
-        try {
-            $product->set_sku($sku);
-        } catch (WC_Data_Exception $exception) {
-            if (empty($options['sku_retry_done'])) {
-                $resolved_product_id = wc_get_product_id_by_sku($sku);
-                if ($resolved_product_id) {
-                    $retry_data = $data;
-                    $retry_data['product']['id'] = $resolved_product_id;
-                    $retry_options = $options;
-                    $retry_options['sku_retry_done'] = true;
-                    return bw_import_save_product_from_row($retry_data, false, $retry_options);
-                }
-            }
-
-            return new WP_Error('bw_import_sku', $exception->getMessage());
+            return new WP_Error('bw_import_product_object', __('Unable to create product object for type.', 'bw'));
         }
     }
 
@@ -7126,6 +5687,14 @@ function bw_import_save_product_from_row($data, $update_existing = false, $optio
 
     if (!empty($data['product']['short_description'])) {
         $product->set_short_description($data['product']['short_description']);
+    }
+
+    if ($sku) {
+        try {
+            $product->set_sku($sku);
+        } catch (WC_Data_Exception $exception) {
+            return new WP_Error('bw_import_sku', $exception->getMessage());
+        }
     }
 
     if (isset($data['product']['regular_price'])) {
@@ -7203,31 +5772,57 @@ function bw_import_save_product_from_row($data, $update_existing = false, $optio
         $product->set_tax_class($data['product']['tax_class']);
     }
 
+    try {
+        $product_id = $product->save();
+    } catch (Throwable $exception) {
+        return new WP_Error('bw_import_save', $exception->getMessage());
+    }
+
+    if (!$product_id) {
+        return new WP_Error('bw_import_save', __('Unable to save the product.', 'bw'));
+    }
+
     if (!empty($data['categories'])) {
-        $category_ids = bw_import_resolve_term_ids($data['categories'], 'product_cat');
-        if (!empty($category_ids)) {
-            $product->set_category_ids($category_ids);
-        }
+        bw_import_assign_terms($product_id, $data['categories'], 'product_cat');
     }
 
     if (!empty($data['tags'])) {
-        $tag_ids = bw_import_resolve_term_ids($data['tags'], 'product_tag');
-        if (!empty($tag_ids)) {
-            $product->set_tag_ids($tag_ids);
-        }
+        bw_import_assign_terms($product_id, $data['tags'], 'product_tag');
     }
 
     if (!empty($data['meta'])) {
         foreach ($data['meta'] as $meta_key => $meta_value) {
-            $product->update_meta_data($meta_key, $meta_value);
+            update_post_meta($product_id, $meta_key, $meta_value);
+        }
+    }
+
+    if (!empty($data['product']['featured_image'])) {
+        $attachment_id = bw_import_handle_image($data['product']['featured_image'], $product_id);
+        if ($attachment_id) {
+            set_post_thumbnail($product_id, $attachment_id);
+        }
+    }
+
+    if (!empty($data['product']['gallery'])) {
+        $gallery_ids = [];
+        foreach ($data['product']['gallery'] as $image_url) {
+            $image_id = bw_import_handle_image($image_url, $product_id);
+            if ($image_id) {
+                $gallery_ids[] = $image_id;
+            }
+        }
+        if (!empty($gallery_ids)) {
+            $product->set_gallery_image_ids($gallery_ids);
+            try {
+                $product->save();
+            } catch (Throwable $exception) {
+                return new WP_Error('bw_import_save', $exception->getMessage());
+            }
         }
     }
 
     if (!empty($data['attributes'])) {
-        $attribute_objects = bw_import_build_attributes($data['attributes']);
-        if (!empty($attribute_objects)) {
-            $product->set_attributes($attribute_objects);
-        }
+        bw_import_apply_attributes($product_id, $data['attributes']);
     }
 
     if (!empty($data['upsells'])) {
@@ -7238,48 +5833,13 @@ function bw_import_save_product_from_row($data, $update_existing = false, $optio
         $product->set_cross_sell_ids(bw_import_locate_product_ids($data['cross_sells']));
     }
 
-    if (!empty($options['skip_images'])) {
-        if (!empty($data['product']['featured_image']) || !empty($data['product']['gallery'])) {
-            $warnings[] = __('Images skipped by configuration.', 'bw');
-        }
-    } else {
-        if (!empty($data['product']['featured_image'])) {
-            $attachment_id = bw_import_handle_image($data['product']['featured_image'], $product_id);
-            if ($attachment_id) {
-                $product->set_image_id($attachment_id);
-            } else {
-                $warnings[] = __('Featured image sideload failed.', 'bw');
-            }
-        }
-
-        if (!empty($data['product']['gallery'])) {
-            $gallery_ids = [];
-            foreach ($data['product']['gallery'] as $image_url) {
-                $image_id = bw_import_handle_image($image_url, $product_id);
-                if ($image_id) {
-                    $gallery_ids[] = $image_id;
-                } else {
-                    $warnings[] = sprintf(
-                        /* translators: %s: image URL */
-                        __('Gallery image sideload failed: %s', 'bw'),
-                        esc_url_raw($image_url)
-                    );
-                }
-            }
-            $product->set_gallery_image_ids($gallery_ids);
-        }
-    }
-
     try {
         $product->save();
     } catch (Throwable $exception) {
         return new WP_Error('bw_import_save', $exception->getMessage());
     }
 
-    return [
-        'status' => $status,
-        'warnings' => $warnings,
-    ];
+    return $status;
 }
 
 /**
@@ -7333,33 +5893,6 @@ function bw_import_assign_terms($product_id, $terms, $taxonomy)
     if (!empty($term_ids)) {
         wp_set_object_terms($product_id, $term_ids, $taxonomy, false);
     }
-}
-
-/**
- * Resolve term IDs for a taxonomy, creating missing terms when possible.
- *
- * @param array  $terms    Terms list.
- * @param string $taxonomy Taxonomy slug.
- *
- * @return array
- */
-function bw_import_resolve_term_ids($terms, $taxonomy)
-{
-    $term_ids = [];
-    foreach ((array) $terms as $term) {
-        $existing = term_exists($term, $taxonomy);
-        if ($existing && !is_wp_error($existing)) {
-            $term_ids[] = (int) $existing['term_id'];
-            continue;
-        }
-
-        $created = wp_insert_term($term, $taxonomy);
-        if (!is_wp_error($created) && !empty($created['term_id'])) {
-            $term_ids[] = (int) $created['term_id'];
-        }
-    }
-
-    return $term_ids;
 }
 
 /**
@@ -7451,148 +5984,6 @@ function bw_import_apply_attributes($product_id, $attributes)
 }
 
 /**
- * Build product attributes array without saving the product.
- *
- * @param array $attributes Raw attributes map.
- *
- * @return array
- */
-function bw_import_build_attributes($attributes)
-{
-    $product_attributes = [];
-
-    foreach ((array) $attributes as $taxonomy => $value) {
-        $terms = bw_import_explode_list($value);
-        if (empty($terms) || !taxonomy_exists($taxonomy)) {
-            continue;
-        }
-
-        $term_ids = bw_import_resolve_term_ids($terms, $taxonomy);
-        if (empty($term_ids)) {
-            continue;
-        }
-
-        $attribute = new WC_Product_Attribute();
-        $attribute->set_id(wc_attribute_taxonomy_id_by_name($taxonomy));
-        $attribute->set_name($taxonomy);
-        $attribute->set_options($term_ids);
-        $attribute->set_visible(true);
-        $attribute->set_variation(false);
-        $product_attributes[$taxonomy] = $attribute;
-    }
-
-    return $product_attributes;
-}
-
-/**
- * Find mapped CSV header for a target field.
- *
- * @param array  $headers Headers list.
- * @param array  $mapping Mapping array.
- * @param string $target  Mapping target.
- *
- * @return string
- */
-function bw_import_find_mapped_header($headers, $mapping, $target)
-{
-    foreach ((array) $headers as $header) {
-        if (isset($mapping[$header]) && $mapping[$header] === $target) {
-            return (string) $header;
-        }
-    }
-
-    return '';
-}
-
-/**
- * Validate duplicate SKU rows before any write operation.
- *
- * @param string $file_path CSV path.
- * @param array  $headers   CSV headers.
- * @param array  $mapping   Mapping snapshot.
- *
- * @return true|WP_Error
- */
-function bw_import_validate_unique_skus($file_path, $headers, $mapping)
-{
-    $sku_header = bw_import_find_mapped_header($headers, $mapping, 'sku');
-    if ($sku_header === '') {
-        return new WP_Error('bw_import_missing_sku_mapping', __('SKU mapping is required to run the import.', 'bw'));
-    }
-
-    $sku_column_index = array_search($sku_header, (array) $headers, true);
-    if ($sku_column_index === false) {
-        return new WP_Error('bw_import_missing_sku_column', __('Mapped SKU column was not found in CSV headers.', 'bw'));
-    }
-
-    $seen_skus = [];
-    $cursor = 0;
-    $chunk_size = bw_import_chunk_size();
-    $duplicate_examples = [];
-
-    while (true) {
-        $chunk = bw_import_parse_csv_chunk($file_path, $cursor, $chunk_size);
-        if (is_wp_error($chunk)) {
-            return $chunk;
-        }
-
-        foreach ($chunk['rows'] as $row) {
-            $raw_sku = isset($row[$sku_column_index]) ? $row[$sku_column_index] : '';
-            $sku = sanitize_text_field(trim((string) $raw_sku));
-            if ($sku === '') {
-                continue;
-            }
-
-            if (isset($seen_skus[$sku])) {
-                $duplicate_examples[] = $sku;
-                if (count($duplicate_examples) >= 10) {
-                    break 2;
-                }
-            } else {
-                $seen_skus[$sku] = true;
-            }
-        }
-
-        if (!empty($chunk['eof'])) {
-            break;
-        }
-        $cursor = (int) $chunk['next_row'];
-    }
-
-    if (!empty($duplicate_examples)) {
-        return new WP_Error(
-            'bw_import_duplicate_sku',
-            sprintf(
-                /* translators: %s: duplicate SKU list */
-                __('Duplicate SKU values found in CSV. Import aborted before writes. Examples: %s', 'bw'),
-                implode(', ', array_unique($duplicate_examples))
-            )
-        );
-    }
-
-    return true;
-}
-
-/**
- * Merge and bound user-visible importer messages.
- *
- * @param array $existing Existing list.
- * @param array $incoming New list.
- * @param int   $limit    Max retained messages.
- *
- * @return array
- */
-function bw_import_merge_bounded_messages($existing, $incoming, $limit = 20)
-{
-    $merged = array_merge((array) $existing, (array) $incoming);
-    if (count($merged) <= $limit) {
-        return $merged;
-    }
-
-    return array_slice($merged, -1 * absint($limit));
-}
-
-/**
  * Renderizza il tab Loading
  */
 function bw_site_render_loading_tab()
@@ -7600,10 +5991,6 @@ function bw_site_render_loading_tab()
     $saved = false;
 
     if (isset($_POST['bw_loading_settings_submit'])) {
-        if (!current_user_can('manage_options')) {
-            return;
-        }
-
         check_admin_referer('bw_loading_settings_save', 'bw_loading_settings_nonce');
 
         $global_spinner_hidden = isset($_POST['bw_loading_global_spinner_hidden']) ? 1 : 0;
