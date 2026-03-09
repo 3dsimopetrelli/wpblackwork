@@ -36,6 +36,26 @@ function bw_mew_initialize_woocommerce_overrides()
         BW_Notice_Manager::init();
     }
 
+    $stripe_api_client_file = BW_MEW_PATH . 'includes/Stripe/class-bw-stripe-api-client.php';
+    if (file_exists($stripe_api_client_file)) {
+        require_once $stripe_api_client_file;
+    }
+
+    $stripe_safe_logger_file = BW_MEW_PATH . 'includes/Utils/class-bw-stripe-safe-logger.php';
+    if (file_exists($stripe_safe_logger_file)) {
+        require_once $stripe_safe_logger_file;
+    }
+
+    $stripe_abstract_gateway_file = BW_MEW_PATH . 'includes/Gateways/class-bw-abstract-stripe-gateway.php';
+    if (file_exists($stripe_abstract_gateway_file)) {
+        require_once $stripe_abstract_gateway_file;
+    }
+
+    $klarna_gateway_file = BW_MEW_PATH . 'includes/Gateways/class-bw-klarna-gateway.php';
+    if (file_exists($klarna_gateway_file)) {
+        require_once $klarna_gateway_file;
+    }
+
     $google_pay_file = BW_MEW_PATH . 'includes/woocommerce-overrides/class-bw-google-pay-gateway.php';
     if (file_exists($google_pay_file)) {
         require_once $google_pay_file;
