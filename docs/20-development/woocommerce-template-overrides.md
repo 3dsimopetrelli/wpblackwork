@@ -76,6 +76,10 @@ Tutti i template utilizzano la classe `BW_Product_Card_Renderer` che supporta qu
     - Previous override header: `@version 7.9.0`
     - Current override header: `@version 10.1.0`
     - Strategy: minimal compatibility contract patch (remove-link contract, cart/coupon actions hooks, before-collaterals hook, wrapper-balance fix) + selector contract regression fix for Woo cart.js (`.woocommerce-cart-form__contents`, `.product-remove`)
+  - `single-product/related.php` (patch 5)
+    - Previous override header: `@version 3.9.0`
+    - Current override header: `@version 10.3.0`
+    - Strategy: minimal structural compatibility patch (WooCommerce-style metadata block, `@package WooCommerce\\Templates`, lazy-load media-count preflight, core-safe `setup_postdata` assignment pattern) with Wallpost product card UX preserved
 
 ### Minimal Patch Strategy (Template Rebases)
 - Keep custom UI classes/layout where behavior is stable.
@@ -86,5 +90,8 @@ Tutti i template utilizzano la classe `BW_Product_Card_Renderer` che supporta qu
 - Avoid payment/auth/Supabase adjacent runtime edits in template-only rebases.
 - Validate with checkout regression matrix before marking patch item closed.
 
-### R-WOO-24 Remaining Patch Items
-- `single-product/related.php`
+### R-WOO-24 Closure Summary
+- Status: `RESOLVED`
+- Compatibility strategy: incremental minimal structural patching (5 patches) instead of full override rewrites.
+- BlackWork custom UX preserved across checkout/cart/single-product surfaces.
+- Supabase blast radius: none (no Supabase-adjacent templates or runtime files touched).

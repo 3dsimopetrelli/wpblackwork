@@ -971,7 +971,7 @@ Current Mitigation:
 None systematic.
 
 Monitoring Status:
-Open
+Closed
 
 Recommended Mitigation:
 Perform a systematic template override audit and align overrides
@@ -994,16 +994,21 @@ Mitigation Update (2026-03-09):
 - Follow-up regression fix applied on the same surface: restored WooCommerce cart.js selector contracts required for last-item empty-cart transition by adding `.woocommerce-cart-form__contents` on cart items container and `.product-remove` on remove-link wrapper.
 - Verified regressions: remove-last-item empty cart transition works on mobile and desktop; non-last-item refresh works; quantity/update/coupon flows preserved; custom empty cart UI still renders.
 - Supabase protected surfaces were not touched.
+- Patch 5 completed for `single-product/related.php` with minimal structural compatibility alignment to WooCommerce core `10.3.0` (WooCommerce-style metadata header, `@package WooCommerce\Templates`, lazy-load media count preflight, core-safe `setup_postdata` assignment pattern).
+- BlackWork Wallpost layout, custom card markup, loop props, filters, and product UX were preserved.
+- Verified regressions: related products render correctly on single product pages, layout remains unchanged on mobile/desktop, and no PHP warnings were introduced.
+- Supabase protected surfaces were not touched.
 
 Progress Status:
-- `R-WOO-24` remains Open (partial mitigation complete).
+- `R-WOO-24` is Resolved (all planned patch items completed).
 - Completed items:
   - `checkout/form-coupon.php`
   - `checkout/payment.php`
   - `checkout/form-checkout.php`
   - `cart/cart.php`
-- Pending patch items:
   - `single-product/related.php`
+- Pending patch items:
+  - None
 
 ### Risk ID: R-PERF-26
 - Domain: Performance / Resilience / Supabase Runtime
