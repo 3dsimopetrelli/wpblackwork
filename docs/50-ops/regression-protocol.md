@@ -203,20 +203,29 @@ When tasks touch Supabase protected surfaces, these smoke tests are mandatory:
   - widget remote invalid/non-SVG response falls back to default icon
   - Media Library SVG upload behavior unchanged
 
-## Brevo Checkout Hardening (Patch 1)
+## Brevo Checkout Hardening (Patch 1 + Patch 2)
 - Date: 2026-03-10
-- Risk: `R-BRE-09` (patch 1) - `CLOSED`
+- Risk: `R-BRE-09` - `RESOLVED`
 - Scope:
-  - Removed unsafe legacy Coming Soon Brevo subscription runtime from:
+  - Patch 1: removed unsafe legacy Coming Soon Brevo subscription runtime from:
     - `BW_coming_soon/includes/functions.php`
-  - Removed:
+  - Patch 1 removed:
     - `bw_handle_subscription()` implementation
     - `add_action("init", "bw_handle_subscription")`
-  - No changes to canonical checkout/mail-marketing Brevo runtime.
+  - Patch 2: preserved positive checkout subscribe state in:
+    - `includes/admin/checkout-subscribe/class-bw-checkout-subscribe-frontend.php`
+  - Patch 2 changed duplicate-pass handling:
+    - existing `subscribed|pending|1` now exits as no-op
+    - removed destructive rewrite to `skipped` for already-valid positive states
+  - No redesign of canonical checkout/mail-marketing Brevo runtime.
   - No Supabase-adjacent surfaces touched.
 - Required regression checks completed:
   - Coming Soon page still renders normally
   - legacy POST path no longer performs Brevo writes
   - no request to Brevo contacts API originates from removed Coming Soon path
   - checkout newsletter flow unchanged
+  - consented order reaches `subscribed`/`pending` correctly
+  - duplicate hook passes do not downgrade `subscribed`
+  - duplicate hook passes do not downgrade `pending`
+  - no-consent path still becomes `skipped` when appropriate
   - mail-marketing admin tools unchanged

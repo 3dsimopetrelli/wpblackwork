@@ -661,9 +661,12 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
     - removed `bw_handle_subscription()` implementation
     - removed `add_action("init", "bw_handle_subscription")`
   - Outcome: unsafe unauthenticated public-write path with hardcoded API key removed.
-  - Remaining:
-    - `R-BRE-09 patch 2`: prevent destructive `subscribed/pending -> skipped` downgrade in checkout subscribe flow.
-- Monitoring Status: Monitoring
+  - `R-BRE-09 patch 2`: CLOSED.
+  - Updated checkout subscribe frontend state handling in `includes/admin/checkout-subscribe/class-bw-checkout-subscribe-frontend.php`:
+    - duplicate lifecycle passes now preserve existing `subscribed|pending|1` as no-op
+    - destructive rewrite to `skipped` removed for already-valid positive states
+  - Outcome: positive subscribe states no longer downgrade across repeated created/processing/completed passes.
+- Monitoring Status: Resolved
 - Linked Documents:
   - [Blast-Radius Consolidation Map](./blast-radius-consolidation-map.md)
   - [Technical Hardening Plan](./technical-hardening-plan.md)

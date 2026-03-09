@@ -7,6 +7,12 @@ Core guarantees:
 - GDPR-safe opt-in model based on explicit consent evidence.
 - Non-blocking checkout behavior (marketing sync is decoupled from payment completion).
 - Idempotent contact synchronization (email-based upsert to Brevo).
+- Positive-state preservation on duplicate lifecycle passes (`subscribed|pending` must not downgrade).
+
+## 1.1) Hardening Updates (2026-03-10)
+- `R-BRE-09 patch 1`: removed legacy Coming Soon public Brevo write path in `BW_coming_soon/includes/functions.php` (hardcoded key + unauthenticated POST handler removed).
+- `R-BRE-09 patch 2`: checkout subscribe frontend duplicate-pass handling now preserves existing `subscribed|pending|1` states as no-op in `process_subscription()` (`includes/admin/checkout-subscribe/class-bw-checkout-subscribe-frontend.php`).
+- Net effect: legacy unsafe public path removed; destructive positive-state downgrade removed.
 
 Out of scope / non-guarantees:
 - No continuous background polling model unless explicitly triggered by existing admin actions.

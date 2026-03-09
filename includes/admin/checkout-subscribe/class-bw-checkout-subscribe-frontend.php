@@ -305,8 +305,9 @@ class BW_Checkout_Subscribe_Frontend {
 
         $already = (string) $order->get_meta( '_bw_brevo_subscribed', true );
         if ( in_array( $already, [ 'subscribed', 'pending', '1' ], true ) ) {
-            $this->mark_skipped( $order, 'already_subscribed' );
-            $this->log_event( 'info', 'Skipping subscribe: already subscribed/pending.', $order, '', 'skipped' );
+            // Preserve positive states on duplicate lifecycle passes (created/processing/completed).
+            // No-op to avoid destructive downgrade to "skipped".
+            $this->log_event( 'info', 'No-op subscribe pass: already subscribed/pending.', $order, '', 'info' );
             return;
         }
 
