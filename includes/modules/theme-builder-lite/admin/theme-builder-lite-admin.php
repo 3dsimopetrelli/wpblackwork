@@ -600,13 +600,13 @@ if (!function_exists('bw_tbl_render_admin_page')) {
                             <td>
                                 <label style="display:block;margin-bottom:6px;">
                                     <input id="bw-tbl-elementor-disable-breakpoints" type="checkbox" name="<?php echo esc_attr(BW_TBL_FOOTER_OPTION); ?>[elementor_disable_child_breakpoints]" value="1" <?php checked(!empty($footer_option['elementor_disable_child_breakpoints'])); ?> />
-                                    <?php esc_html_e('Disable child-theme breakpoints in Elementor editor/preview', 'bw'); ?>
+                                    <?php esc_html_e('Disable theme breakpoints in frontend and Elementor editor/preview', 'bw'); ?>
                                 </label>
                                 <label style="display:block;">
                                     <input id="bw-tbl-elementor-disable-child-css" type="checkbox" name="<?php echo esc_attr(BW_TBL_FOOTER_OPTION); ?>[elementor_disable_child_css]" value="1" <?php checked(!empty($footer_option['elementor_disable_child_css'])); ?> />
-                                    <?php esc_html_e('Disable all child-theme CSS in Elementor editor/preview', 'bw'); ?>
+                                    <?php esc_html_e('Disable all theme CSS in frontend and Elementor editor/preview', 'bw'); ?>
                                 </label>
-                                <p class="description"><?php esc_html_e('Applied only in Elementor editor/preview context. Frontend storefront is not affected.', 'bw'); ?></p>
+                                <p class="description"><?php esc_html_e('Applies to frontend runtime and Elementor editor/preview. Use with caution.', 'bw'); ?></p>
                             </td>
                         </tr>
                     </table>
