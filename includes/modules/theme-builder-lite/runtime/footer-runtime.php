@@ -12,6 +12,8 @@ if (!function_exists('bw_tbl_default_footer_option')) {
             'exclude_enabled' => 0,
             'exclude_checkout' => 0,
             'exclude_order_received' => 0,
+            'elementor_disable_child_breakpoints' => 0,
+            'elementor_disable_child_css' => 0,
         ];
     }
 }
@@ -34,6 +36,8 @@ if (!function_exists('bw_tbl_sanitize_footer_option')) {
         $exclude_enabled = !empty($input['exclude_enabled']) ? 1 : 0;
         $exclude_checkout = ($exclude_enabled && !empty($input['exclude_checkout'])) ? 1 : 0;
         $exclude_order_received = ($exclude_enabled && !empty($input['exclude_order_received'])) ? 1 : 0;
+        $elementor_disable_child_css = !empty($input['elementor_disable_child_css']) ? 1 : 0;
+        $elementor_disable_child_breakpoints = ($elementor_disable_child_css || !empty($input['elementor_disable_child_breakpoints'])) ? 1 : 0;
 
         if ($active_id > 0) {
             $post = get_post($active_id);
@@ -50,6 +54,8 @@ if (!function_exists('bw_tbl_sanitize_footer_option')) {
             'exclude_enabled' => $exclude_enabled,
             'exclude_checkout' => $exclude_checkout,
             'exclude_order_received' => $exclude_order_received,
+            'elementor_disable_child_breakpoints' => $elementor_disable_child_breakpoints,
+            'elementor_disable_child_css' => $elementor_disable_child_css,
         ];
     }
 }

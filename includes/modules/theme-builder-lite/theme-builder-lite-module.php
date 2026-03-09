@@ -9,6 +9,7 @@ require_once __DIR__ . '/cpt/template-meta.php';
 require_once __DIR__ . '/fonts/custom-fonts.php';
 require_once __DIR__ . '/integrations/elementor-fonts.php';
 require_once __DIR__ . '/runtime/footer-runtime.php';
+require_once __DIR__ . '/runtime/elementor-child-theme-css-guard.php';
 require_once __DIR__ . '/runtime/single-product-runtime.php';
 require_once __DIR__ . '/runtime/product-archive-runtime.php';
 require_once __DIR__ . '/runtime/elementor-preview-context.php';
