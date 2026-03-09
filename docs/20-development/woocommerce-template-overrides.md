@@ -53,3 +53,28 @@ Tutti i template utilizzano la classe `BW_Product_Card_Renderer` che supporta qu
 - Assicurati che il plugin BW Elementor Widgets sia attivo
 - I template utilizzano le stesse classi CSS del widget BW Wallpost
 - Puoi personalizzare l'aspetto tramite i CSS del tuo tema
+
+## Maintenance Governance
+
+### Version Alignment Log
+- Date: 2026-03-09
+- Risk reference: `R-WOO-24` (WooCommerce template overrides stale risk)
+- Patch item completed: `checkout/form-coupon.php` (patch 1)
+- Previous override header: `@version 7.0.1`
+- Current override header: `@version 9.8.0`
+- Strategy: minimal compatibility rebase (core form contract + preserved BlackWork custom UX classes)
+
+### Minimal Patch Strategy (Template Rebases)
+- Keep custom UI classes/layout where behavior is stable.
+- Re-align structural WooCommerce contracts first:
+  - form wrapper and method
+  - canonical field IDs and accessibility labels
+  - nonce handling via core helpers
+- Avoid payment/auth/Supabase adjacent runtime edits in template-only rebases.
+- Validate with checkout regression matrix before marking patch item closed.
+
+### R-WOO-24 Remaining Patch Items
+- `checkout/payment.php`
+- `checkout/form-checkout.php`
+- `cart/cart.php`
+- `single-product/related.php`

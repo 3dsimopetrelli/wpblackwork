@@ -962,6 +962,22 @@ Recommended Mitigation:
 Perform a systematic template override audit and align overrides
 with current WooCommerce template versions.
 
+Mitigation Update (2026-03-09):
+- Patch 1 completed for `checkout/form-coupon.php` with minimal compatibility rebase to WooCommerce core `9.8.0` structure.
+- BlackWork custom coupon UX classes were preserved while restoring canonical form/id/nonce/accessibility contracts.
+- Verified coupon apply flows (valid/invalid, submit button and Enter key, guest/logged-in, mobile/desktop) and no payment method regressions.
+- Supabase protected surfaces were not touched.
+
+Progress Status:
+- `R-WOO-24` remains Open (partial mitigation complete).
+- Completed item:
+  - `checkout/form-coupon.php`
+- Pending patch items:
+  - `checkout/payment.php`
+  - `checkout/form-checkout.php`
+  - `cart/cart.php`
+  - `single-product/related.php`
+
 ### Risk ID: R-PERF-26
 - Domain: Performance / Resilience / Supabase Runtime
 - Source: Radar Batch 3 — Performance Analysis
