@@ -16,7 +16,26 @@ if (!defined('ABSPATH')) {
  */
 function bw_cart_popup_sanitize_svg($svg)
 {
-    // Permetti tutti i tag e attributi SVG comuni
+    $svg = (string) $svg;
+    if ('' === trim($svg)) {
+        return '';
+    }
+
+    // Canonical hardening pipeline from plugin core.
+    if (function_exists('bw_mew_svg_sanitize_content') && function_exists('bw_mew_svg_is_valid_document')) {
+        $sanitized = (string) bw_mew_svg_sanitize_content($svg);
+        if ('' === trim($sanitized)) {
+            return '';
+        }
+
+        if (!bw_mew_svg_is_valid_document($sanitized)) {
+            return '';
+        }
+
+        return $sanitized;
+    }
+
+    // Safe fallback if core helpers are unavailable.
     $allowed_tags = [
         'svg' => [
             'xmlns' => true,
@@ -30,7 +49,6 @@ function bw_cart_popup_sanitize_svg($svg)
             'stroke-linejoin' => true,
             'class' => true,
             'id' => true,
-            'style' => true,
             'preserveaspectratio' => true,
             'aria-hidden' => true,
             'role' => true,
@@ -44,7 +62,6 @@ function bw_cart_popup_sanitize_svg($svg)
             'stroke-linejoin' => true,
             'class' => true,
             'id' => true,
-            'style' => true,
             'opacity' => true,
             'transform' => true,
         ],
@@ -57,7 +74,6 @@ function bw_cart_popup_sanitize_svg($svg)
             'stroke-width' => true,
             'class' => true,
             'id' => true,
-            'style' => true,
             'opacity' => true,
             'transform' => true,
         ],
@@ -73,7 +89,6 @@ function bw_cart_popup_sanitize_svg($svg)
             'stroke-width' => true,
             'class' => true,
             'id' => true,
-            'style' => true,
             'opacity' => true,
             'transform' => true,
         ],
@@ -84,7 +99,6 @@ function bw_cart_popup_sanitize_svg($svg)
             'stroke-width' => true,
             'class' => true,
             'id' => true,
-            'style' => true,
             'opacity' => true,
             'transform' => true,
         ],
@@ -95,7 +109,6 @@ function bw_cart_popup_sanitize_svg($svg)
             'stroke-width' => true,
             'class' => true,
             'id' => true,
-            'style' => true,
             'opacity' => true,
             'transform' => true,
         ],
@@ -109,7 +122,6 @@ function bw_cart_popup_sanitize_svg($svg)
             'stroke-width' => true,
             'class' => true,
             'id' => true,
-            'style' => true,
             'opacity' => true,
             'transform' => true,
         ],
@@ -122,7 +134,6 @@ function bw_cart_popup_sanitize_svg($svg)
             'stroke-width' => true,
             'class' => true,
             'id' => true,
-            'style' => true,
             'opacity' => true,
             'transform' => true,
         ],
@@ -132,7 +143,6 @@ function bw_cart_popup_sanitize_svg($svg)
             'stroke-width' => true,
             'class' => true,
             'id' => true,
-            'style' => true,
             'opacity' => true,
             'transform' => true,
         ],

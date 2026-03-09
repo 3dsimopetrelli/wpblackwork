@@ -104,6 +104,103 @@ function bw_cart_popup_get_coupon_amount($cart, $code, $coupon_amounts = [])
 }
 
 /**
+ * Strict SVG allowlist for frontend cart popup output.
+ *
+ * @return array<string, mixed>
+ */
+function bw_cart_popup_get_strict_svg_allowed_tags()
+{
+    return [
+        'svg' => [
+            'class' => true,
+            'xmlns' => true,
+            'width' => true,
+            'height' => true,
+            'viewbox' => true,
+            'viewBox' => true,
+            'fill' => true,
+            'stroke' => true,
+            'stroke-width' => true,
+            'stroke-linecap' => true,
+            'stroke-linejoin' => true,
+            'aria-hidden' => true,
+            'focusable' => true,
+            'role' => true,
+            'preserveAspectRatio' => true,
+        ],
+        'g' => [
+            'fill' => true,
+            'stroke' => true,
+            'stroke-width' => true,
+            'transform' => true,
+            'fill-rule' => true,
+            'clip-rule' => true,
+        ],
+        'path' => [
+            'd' => true,
+            'fill' => true,
+            'stroke' => true,
+            'stroke-width' => true,
+            'stroke-linecap' => true,
+            'stroke-linejoin' => true,
+            'transform' => true,
+            'fill-rule' => true,
+            'clip-rule' => true,
+        ],
+        'circle' => [
+            'cx' => true,
+            'cy' => true,
+            'r' => true,
+            'fill' => true,
+            'stroke' => true,
+            'stroke-width' => true,
+            'transform' => true,
+        ],
+        'rect' => [
+            'x' => true,
+            'y' => true,
+            'width' => true,
+            'height' => true,
+            'rx' => true,
+            'ry' => true,
+            'fill' => true,
+            'stroke' => true,
+            'stroke-width' => true,
+            'transform' => true,
+        ],
+        'line' => [
+            'x1' => true,
+            'y1' => true,
+            'x2' => true,
+            'y2' => true,
+            'stroke' => true,
+            'stroke-width' => true,
+            'stroke-linecap' => true,
+            'stroke-linejoin' => true,
+            'transform' => true,
+        ],
+        'polyline' => [
+            'points' => true,
+            'fill' => true,
+            'stroke' => true,
+            'stroke-width' => true,
+            'stroke-linecap' => true,
+            'stroke-linejoin' => true,
+            'transform' => true,
+        ],
+        'polygon' => [
+            'points' => true,
+            'fill' => true,
+            'stroke' => true,
+            'stroke-width' => true,
+            'stroke-linecap' => true,
+            'stroke-linejoin' => true,
+            'transform' => true,
+        ],
+    ];
+}
+
+/**
  * Aggiungi il markup HTML del cart pop-up nel footer
  * NOTA: Il markup viene sempre renderizzato perché è necessario anche per i widget
  * (anche se l'opzione globale cart popup è disattivata)
@@ -136,6 +233,23 @@ function bw_cart_popup_render_panel()
     // Determina l'URL di ritorno allo shop (per empty cart)
     if (empty($return_shop_url)) {
         $return_shop_url = home_url('/shop/');
+    }
+
+    $allowed_svg_tags = bw_cart_popup_get_strict_svg_allowed_tags();
+    $empty_cart_svg_render = '';
+    $additional_svg_render = '';
+
+    if (!empty($empty_cart_svg)) {
+        $empty_cart_svg_render = wp_kses((string) $empty_cart_svg, $allowed_svg_tags);
+    }
+
+    if (!empty($additional_svg)) {
+        $additional_svg_render = (string) $additional_svg;
+        if ($svg_black) {
+            // Prefer explicit fill attribute to avoid inline style usage.
+            $additional_svg_render = preg_replace('/<(path|circle|rect|polygon|ellipse)([^>]*)>/i', '<$1$2 fill="#000">', $additional_svg_render);
+        }
+        $additional_svg_render = wp_kses($additional_svg_render, $allowed_svg_tags);
     }
 
     ?>
@@ -174,7 +288,7 @@ function bw_cart_popup_render_panel()
         <div class="bw-cart-popup-empty-state" style="display: none;">
             <div class="bw-cart-empty-icon">
                 <?php if (!empty($empty_cart_svg)): ?>
-                    <?php echo $empty_cart_svg; ?>
+                    <?php echo $empty_cart_svg_render; ?>
                 <?php else: ?>
                     <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -257,22 +371,10 @@ function bw_cart_popup_render_panel()
             </a>
         </div>
 
-        <?php if (!empty($additional_svg)): ?>
+        <?php if ('' !== trim($additional_svg_render)): ?>
             <!-- SVG Personalizzato -->
             <div class="bw-cart-popup-custom-svg">
-                <?php
-                // Processa l'SVG per applicare fill nero se richiesto
-                $svg_output = $additional_svg;
-                if ($svg_black) {
-                    // Applica fill: #000 su tutti i tag path, circle, rect, polygon, etc.
-                    $svg_output = preg_replace('/<path([^>]*)>/i', '<path$1 style="fill: #000;">', $svg_output);
-                    $svg_output = preg_replace('/<circle([^>]*)>/i', '<circle$1 style="fill: #000;">', $svg_output);
-                    $svg_output = preg_replace('/<rect([^>]*)>/i', '<rect$1 style="fill: #000;">', $svg_output);
-                    $svg_output = preg_replace('/<polygon([^>]*)>/i', '<polygon$1 style="fill: #000;">', $svg_output);
-                    $svg_output = preg_replace('/<ellipse([^>]*)>/i', '<ellipse$1 style="fill: #000;">', $svg_output);
-                }
-                echo $svg_output;
-                ?>
+                <?php echo $additional_svg_render; ?>
             </div>
         <?php endif; ?>
     </div>

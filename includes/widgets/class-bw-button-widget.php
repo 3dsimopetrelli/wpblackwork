@@ -721,7 +721,18 @@ class BW_Button_Widget extends Widget_Base {
             $response = wp_safe_remote_get( $custom_icon['url'] );
 
             if ( ! is_wp_error( $response ) ) {
-                $icon_html = $this->sanitize_svg( wp_remote_retrieve_body( $response ) );
+                $content_type = wp_remote_retrieve_header( $response, 'content-type' );
+                if ( $this->is_svg_content_type( $content_type ) ) {
+                    $remote_body = wp_remote_retrieve_body( $response );
+                    if ( function_exists( 'bw_mew_svg_sanitize_content' ) && function_exists( 'bw_mew_svg_is_valid_document' ) ) {
+                        $sanitized = (string) bw_mew_svg_sanitize_content( (string) $remote_body );
+                        if ( '' !== trim( $sanitized ) && bw_mew_svg_is_valid_document( $sanitized ) ) {
+                            $icon_html = $this->sanitize_svg( $sanitized );
+                        }
+                    } else {
+                        $icon_html = $this->sanitize_svg( $remote_body );
+                    }
+                }
             }
         }
 
@@ -774,5 +785,14 @@ class BW_Button_Widget extends Widget_Base {
         ];
 
         return wp_kses( $svg_content, $allowed_tags );
+    }
+
+    private function is_svg_content_type( $content_type ) {
+        $content_type = strtolower( trim( (string) $content_type ) );
+        if ( '' === $content_type ) {
+            return false;
+        }
+
+        return false !== strpos( $content_type, 'image/svg+xml' );
     }
 }
