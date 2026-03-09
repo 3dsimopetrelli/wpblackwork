@@ -1314,11 +1314,14 @@ add_action( 'wp_ajax_bw_supabase_update_password', 'bw_mew_handle_supabase_updat
  * verified OTP and must create a password before the WP session bridge.
  */
 function bw_mew_handle_supabase_create_password() {
-    check_ajax_referer( 'bw-supabase-login', 'nonce' );
-
+    $nonce_valid = check_ajax_referer( 'bw-supabase-login', 'nonce', false );
     $access_token  = isset( $_POST['access_token'] ) ? sanitize_text_field( wp_unslash( $_POST['access_token'] ) ) : '';
     $new_password  = isset( $_POST['new_password'] ) ? (string) wp_unslash( $_POST['new_password'] ) : '';
     $confirm_password = isset( $_POST['confirm_password'] ) ? (string) wp_unslash( $_POST['confirm_password'] ) : '';
+
+    if ( ! $nonce_valid && ! $access_token ) {
+        wp_send_json_error( [ 'message' => __( 'Security check failed. Please refresh and try again.', 'bw' ) ], 403 );
+    }
 
     if ( ! $access_token ) {
         wp_send_json_error( [ 'message' => __( 'Missing access token.', 'bw' ) ], 400 );
