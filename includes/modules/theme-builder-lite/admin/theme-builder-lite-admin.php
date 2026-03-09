@@ -595,6 +595,20 @@ if (!function_exists('bw_tbl_render_admin_page')) {
                                 <p class="description"><?php esc_html_e('Fail-open: if no valid template is resolved, the active theme template is used.', 'bw'); ?></p>
                             </td>
                         </tr>
+                        <tr>
+                            <th scope="row"><?php esc_html_e('Elementor Bug Workarounds', 'bw'); ?></th>
+                            <td>
+                                <label style="display:block;margin-bottom:6px;">
+                                    <input id="bw-tbl-elementor-disable-breakpoints" type="checkbox" name="<?php echo esc_attr(BW_TBL_FOOTER_OPTION); ?>[elementor_disable_child_breakpoints]" value="1" <?php checked(!empty($footer_option['elementor_disable_child_breakpoints'])); ?> />
+                                    <?php esc_html_e('Disable child-theme breakpoints in Elementor editor/preview', 'bw'); ?>
+                                </label>
+                                <label style="display:block;">
+                                    <input id="bw-tbl-elementor-disable-child-css" type="checkbox" name="<?php echo esc_attr(BW_TBL_FOOTER_OPTION); ?>[elementor_disable_child_css]" value="1" <?php checked(!empty($footer_option['elementor_disable_child_css'])); ?> />
+                                    <?php esc_html_e('Disable all child-theme CSS in Elementor editor/preview', 'bw'); ?>
+                                </label>
+                                <p class="description"><?php esc_html_e('Applied only in Elementor editor/preview context. Frontend storefront is not affected.', 'bw'); ?></p>
+                            </td>
+                        </tr>
                     </table>
                     </section>
                 </div>
@@ -680,20 +694,6 @@ if (!function_exists('bw_tbl_render_admin_page')) {
                                             <?php esc_html_e('Order received / thank-you pages', 'bw'); ?>
                                         </label>
                                     </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th scope="row"><?php esc_html_e('Elementor Bug Workarounds', 'bw'); ?></th>
-                                <td>
-                                    <label style="display:block;margin-bottom:6px;">
-                                        <input id="bw-tbl-elementor-disable-breakpoints" type="checkbox" name="<?php echo esc_attr(BW_TBL_FOOTER_OPTION); ?>[elementor_disable_child_breakpoints]" value="1" <?php checked(!empty($footer_option['elementor_disable_child_breakpoints'])); ?> />
-                                        <?php esc_html_e('Disable child-theme breakpoints in Elementor editor/preview', 'bw'); ?>
-                                    </label>
-                                    <label style="display:block;">
-                                        <input id="bw-tbl-elementor-disable-child-css" type="checkbox" name="<?php echo esc_attr(BW_TBL_FOOTER_OPTION); ?>[elementor_disable_child_css]" value="1" <?php checked(!empty($footer_option['elementor_disable_child_css'])); ?> />
-                                        <?php esc_html_e('Disable all child-theme CSS in Elementor editor/preview', 'bw'); ?>
-                                    </label>
-                                    <p class="description"><?php esc_html_e('Applied only in Elementor editor/preview context. Frontend storefront is not affected.', 'bw'); ?></p>
                                 </td>
                             </tr>
                         </table>
