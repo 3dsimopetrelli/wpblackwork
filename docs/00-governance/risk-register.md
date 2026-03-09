@@ -967,13 +967,17 @@ Mitigation Update (2026-03-09):
 - BlackWork custom coupon UX classes were preserved while restoring canonical form/id/nonce/accessibility contracts.
 - Verified coupon apply flows (valid/invalid, submit button and Enter key, guest/logged-in, mobile/desktop) and no payment method regressions.
 - Supabase protected surfaces were not touched.
+- Patch 2 completed for `checkout/payment.php` with minimal structural compatibility alignment to WooCommerce core `9.8.0` (header version, `WC()->cart` guard, no-methods fallback branch, translator-safe noscript block).
+- BlackWork custom payment accordion UI, gateway visibility behavior, and gateway business logic were preserved.
+- Verified payment regressions: Card, PayPal, Klarna, gateway switching, `updated_checkout` selection persistence, mobile accordion behavior, and noscript update-totals fallback.
+- Supabase protected surfaces were not touched.
 
 Progress Status:
 - `R-WOO-24` remains Open (partial mitigation complete).
-- Completed item:
+- Completed items:
   - `checkout/form-coupon.php`
-- Pending patch items:
   - `checkout/payment.php`
+- Pending patch items:
   - `checkout/form-checkout.php`
   - `cart/cart.php`
   - `single-product/related.php`

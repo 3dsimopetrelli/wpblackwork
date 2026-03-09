@@ -59,10 +59,15 @@ Tutti i template utilizzano la classe `BW_Product_Card_Renderer` che supporta qu
 ### Version Alignment Log
 - Date: 2026-03-09
 - Risk reference: `R-WOO-24` (WooCommerce template overrides stale risk)
-- Patch item completed: `checkout/form-coupon.php` (patch 1)
-- Previous override header: `@version 7.0.1`
-- Current override header: `@version 9.8.0`
-- Strategy: minimal compatibility rebase (core form contract + preserved BlackWork custom UX classes)
+- Patch items completed:
+  - `checkout/form-coupon.php` (patch 1)
+    - Previous override header: `@version 7.0.1`
+    - Current override header: `@version 9.8.0`
+    - Strategy: minimal compatibility rebase (core form contract + preserved BlackWork custom UX classes)
+  - `checkout/payment.php` (patch 2)
+    - Previous override header: `@version 8.1.0`
+    - Current override header: `@version 9.8.0`
+    - Strategy: structural alignment only (`WC()->cart` guard, no-available-methods core branch, translator-safe noscript) with custom payment UI preserved
 
 ### Minimal Patch Strategy (Template Rebases)
 - Keep custom UI classes/layout where behavior is stable.
@@ -74,7 +79,6 @@ Tutti i template utilizzano la classe `BW_Product_Card_Renderer` che supporta qu
 - Validate with checkout regression matrix before marking patch item closed.
 
 ### R-WOO-24 Remaining Patch Items
-- `checkout/payment.php`
 - `checkout/form-checkout.php`
 - `cart/cart.php`
 - `single-product/related.php`
