@@ -2,9 +2,17 @@
 /**
  * Cart Page
  *
- * @see     https://docs.woocommerce.com/document/template-structure/
+ * This template can be overridden by copying it to yourtheme/woocommerce/cart/cart.php.
+ *
+ * HOWEVER, on occasion WooCommerce will need to update template files and you
+ * (the theme developer) will need to copy the new files to your theme to
+ * maintain compatibility. We try to do this as little as possible, but it does
+ * happen. When this occurs the version of the template file will be bumped and
+ * the readme will list any important changes.
+ *
+ * @see     https://woocommerce.com/document/template-structure/
  * @package WooCommerce\Templates
- * @version 7.9.0
+ * @version 10.1.0
  */
 
 defined('ABSPATH') || exit;
@@ -102,9 +110,10 @@ do_action('woocommerce_before_cart'); ?>
                                             echo apply_filters(
                                                 'woocommerce_cart_item_remove_link',
                                                 sprintf(
-                                                    '<a href="%s" class="remove" aria-label="%s" data-product_id="%s" data-product_sku="%s">Remove</a>',
+                                                    '<a role="button" href="%s" class="remove" aria-label="%s" data-product_id="%s" data-product_sku="%s">Remove</a>',
                                                     esc_url(wc_get_cart_remove_url($cart_item_key)),
-                                                    esc_attr(sprintf(__('Remove %s from cart', 'woocommerce'), $product_name)),
+                                                    /* translators: %s is the product name */
+                                                    esc_attr(sprintf(__('Remove %s from cart', 'woocommerce'), wp_strip_all_tags($product_name))),
                                                     esc_attr($product_id),
                                                     esc_attr($_product->get_sku())
                                                 ),
@@ -127,8 +136,15 @@ do_action('woocommerce_before_cart'); ?>
                     <?php do_action('woocommerce_cart_contents'); ?>
 
                     <div class="actions" style="display: none;">
+                        <?php if (wc_coupons_enabled()): ?>
+                            <div class="coupon" style="display: none;">
+                                <?php do_action('woocommerce_cart_coupon'); ?>
+                            </div>
+                        <?php endif; ?>
+
                         <button type="submit" class="button" name="update_cart"
                             value="<?php esc_attr_e('Update cart', 'woocommerce'); ?>"><?php esc_html_e('Update cart', 'woocommerce'); ?></button>
+                        <?php do_action('woocommerce_cart_actions'); ?>
                         <?php wp_nonce_field('woocommerce-cart', 'woocommerce-cart-nonce'); ?>
                     </div>
 
@@ -138,6 +154,8 @@ do_action('woocommerce_before_cart'); ?>
 
             <?php do_action('woocommerce_after_cart_table'); ?>
         </form>
+
+        <?php do_action('woocommerce_before_cart_collaterals'); ?>
 
         <div class="bw-cart-totals-column">
             <div class="cart-collaterals">
@@ -153,7 +171,6 @@ do_action('woocommerce_before_cart'); ?>
         </div>
     </div>
 
-</div>
 </div>
 
 <?php do_action('woocommerce_after_cart'); ?>
