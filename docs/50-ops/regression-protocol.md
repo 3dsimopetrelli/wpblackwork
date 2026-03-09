@@ -66,10 +66,11 @@ When tasks touch Supabase protected surfaces, these smoke tests are mandatory:
 
 ## Admin Asset Scope Hardening
 - Date: 2026-03-09
-- Risk: `R-ADM-19` (patch A, patch B)
+- Risk: `R-ADM-19` (patch A, patch B) - `MITIGATED`
 - Scope:
   - Patch A closed: Blackwork admin menu CSS enqueue scoped to Blackwork admin surfaces only.
   - Patch B closed: Digital Products metabox Select2 loading moved to scoped `admin_enqueue_scripts` (`post.php`/`post-new.php` + `post_type=product`), with runtime preference (`selectWoo` -> `select2` -> local fallback).
+  - Patch C deferred (optional backlog): stricter screen/hook replacement for remaining `$_GET['page']` checks in low-risk admin modules (Header, System Status).
   - Local fallback assets added:
     - `assets/lib/select2/js/select2.full.min.js`
     - `assets/lib/select2/css/select2.css`

@@ -498,7 +498,7 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
   - My Account onboarding gate reads reconciled marker state through `bw_user_needs_onboarding()`, reducing false lock scenarios after callback/modal/token re-entry.
   - Radar validation update (2026-03-07): onboarding gate still relies on single marker usermeta as final readiness flag; reconciliation guard reduces drift but cross-request atomicity is still a watchpoint under concurrent callback/retry paths.
   - Verification Hold: implementation is completed, but manual verification identified onboarding convergence anomalies that require deeper runtime investigation before closure.
-- Monitoring Status: Open
+- Monitoring Status: Mitigated
 - Linked Documents:
   - [Cross-Domain State Dictionary](./cross-domain-state-dictionary.md)
   - [My Account Domain Audit](../50-ops/audits/my-account-domain-audit.md)
@@ -796,6 +796,7 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
     - `assets/lib/select2/css/select2.css`
   - Verification: product edit/new Select2 search works; no CDN Select2 request; no duplicate Select2/SelectWoo runtime on same page; non-product admin pages do not load metabox Select2.
   - Supabase-adjacent surfaces were not touched.
+  - Patch C assessment completed (no implementation): stricter screen/hook replacement for remaining `$_GET['page']` checks was evaluated on Header/System Status admin modules and deferred as optional backlog due to low real risk and limited payoff.
 - Progress Status:
   - Completed:
     - Patch A: Blackwork admin menu CSS scope reduction
@@ -804,6 +805,8 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
     - Patch C (optional): screen/hook hardening for page detection
   - Patch A Status: Closed
   - Patch B Status: Closed
+  - Patch C Status: Deferred (Optional Backlog)
+  - Overall Risk Status: Mitigated (active risk closed; optional hardening follow-up retained as backlog)
 - Linked Documents:
   - [Admin Panel Map](../20-development/admin-panel-map.md)
   - [Admin UI Guidelines](../20-development/admin-ui-guidelines.md)
