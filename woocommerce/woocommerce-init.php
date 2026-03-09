@@ -962,13 +962,22 @@ function bw_mew_prepare_checkout_layout()
  */
 function bw_mew_is_checkout_request()
 {
-    if (function_exists('is_checkout') && is_checkout() && !is_cart()) {
+    if (
+        function_exists('is_checkout')
+        && is_checkout()
+        && !is_cart()
+        && (!function_exists('is_order_received_page') || !is_order_received_page())
+    ) {
         return true;
     }
 
     if (function_exists('is_page')) {
         $checkout_page_id = function_exists('wc_get_page_id') ? wc_get_page_id('checkout') : 0;
-        if ($checkout_page_id && is_page($checkout_page_id)) {
+        if (
+            $checkout_page_id
+            && is_page($checkout_page_id)
+            && (!function_exists('is_order_received_page') || !is_order_received_page())
+        ) {
             return true;
         }
     }
