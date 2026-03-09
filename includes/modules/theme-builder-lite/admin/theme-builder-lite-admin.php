@@ -661,6 +661,27 @@ if (!function_exists('bw_tbl_render_admin_page')) {
                                     </p>
                                 </td>
                             </tr>
+                            <tr>
+                                <th scope="row"><?php esc_html_e('Exclude Footer On Pages', 'bw'); ?></th>
+                                <td>
+                                    <label>
+                                        <input id="bw-tbl-footer-enable-exclusions" type="checkbox" name="<?php echo esc_attr(BW_TBL_FOOTER_OPTION); ?>[exclude_enabled]" value="1" <?php checked(!empty($footer_option['exclude_enabled'])); ?> />
+                                        <?php esc_html_e('Enable exclusions (optional)', 'bw'); ?>
+                                    </label>
+                                    <p class="description"><?php esc_html_e('Optional. When enabled, BW footer override is skipped on selected WooCommerce pages.', 'bw'); ?></p>
+
+                                    <div id="bw-tbl-footer-exclusion-controls" style="margin-top:8px;">
+                                        <label style="display:block;margin-bottom:6px;">
+                                            <input type="checkbox" name="<?php echo esc_attr(BW_TBL_FOOTER_OPTION); ?>[exclude_checkout]" value="1" <?php checked(!empty($footer_option['exclude_checkout'])); ?> />
+                                            <?php esc_html_e('Checkout page', 'bw'); ?>
+                                        </label>
+                                        <label style="display:block;">
+                                            <input type="checkbox" name="<?php echo esc_attr(BW_TBL_FOOTER_OPTION); ?>[exclude_order_received]" value="1" <?php checked(!empty($footer_option['exclude_order_received'])); ?> />
+                                            <?php esc_html_e('Order received / thank-you pages', 'bw'); ?>
+                                        </label>
+                                    </div>
+                                </td>
+                            </tr>
                         </table>
                     </div>
                     </section>

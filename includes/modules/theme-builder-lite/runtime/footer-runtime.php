@@ -7,8 +7,11 @@ if (!function_exists('bw_tbl_default_footer_option')) {
     function bw_tbl_default_footer_option()
     {
         return [
-            'version' => 1,
+            'version' => 2,
             'active_footer_template_id' => 0,
+            'exclude_enabled' => 0,
+            'exclude_checkout' => 0,
+            'exclude_order_received' => 0,
         ];
     }
 }
@@ -28,6 +31,9 @@ if (!function_exists('bw_tbl_sanitize_footer_option')) {
     {
         $input = is_array($input) ? $input : [];
         $active_id = isset($input['active_footer_template_id']) ? absint($input['active_footer_template_id']) : 0;
+        $exclude_enabled = !empty($input['exclude_enabled']) ? 1 : 0;
+        $exclude_checkout = ($exclude_enabled && !empty($input['exclude_checkout'])) ? 1 : 0;
+        $exclude_order_received = ($exclude_enabled && !empty($input['exclude_order_received'])) ? 1 : 0;
 
         if ($active_id > 0) {
             $post = get_post($active_id);
@@ -39,9 +45,38 @@ if (!function_exists('bw_tbl_sanitize_footer_option')) {
         }
 
         return [
-            'version' => 1,
+            'version' => 2,
             'active_footer_template_id' => $active_id,
+            'exclude_enabled' => $exclude_enabled,
+            'exclude_checkout' => $exclude_checkout,
+            'exclude_order_received' => $exclude_order_received,
         ];
+    }
+}
+
+if (!function_exists('bw_tbl_is_footer_excluded_current_request')) {
+    function bw_tbl_is_footer_excluded_current_request()
+    {
+        $footer_option = bw_tbl_get_footer_option();
+        if (empty($footer_option['exclude_enabled'])) {
+            return false;
+        }
+
+        if (!empty($footer_option['exclude_checkout']) && function_exists('is_checkout') && is_checkout()) {
+            return true;
+        }
+
+        if (!empty($footer_option['exclude_order_received'])) {
+            if (function_exists('is_order_received_page') && is_order_received_page()) {
+                return true;
+            }
+
+            if (function_exists('is_wc_endpoint_url') && is_wc_endpoint_url('order-received')) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
 
@@ -143,6 +178,10 @@ if (!function_exists('bw_tbl_get_runtime_footer_template_id')) {
         }
 
         if (!bw_tbl_is_feature_enabled('footer_override_enabled')) {
+            return $runtime_template_id;
+        }
+
+        if (bw_tbl_is_footer_excluded_current_request()) {
             return $runtime_template_id;
         }
 
