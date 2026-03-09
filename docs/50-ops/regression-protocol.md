@@ -81,13 +81,16 @@ When tasks touch Supabase protected surfaces, these smoke tests are mandatory:
   - No duplicate Select2/SelectWoo runtime on the same product editor page.
   - Non-product admin pages do not load metabox Select2 assets.
 
-## Admin Settings Input Integrity (Patch A)
+## Admin Settings Input Integrity (Patch A + Patch B)
 - Date: 2026-03-10
-- Risk: `R-ADM-21` (patch A) - `CLOSED`
+- Risk: `R-ADM-21` (patch A, patch B) - `RESOLVED`
 - Scope:
   - Hardened Cart Popup admin save path in `cart-popup/admin/settings-page.php`.
   - Added normalized scalar input reads (`wp_unslash`), enum allowlists, and bounded numeric clamping.
   - Preserved option names and admin UX; SVG pipeline unchanged.
+  - Hardened variation license AJAX exposure by removing unauthenticated route registration in `metabox/variation-license-html-field.php`:
+    - removed `wp_ajax_nopriv_bw_get_variation_license_html`
+    - kept authenticated hook + handler intact
   - No Supabase-adjacent surfaces touched.
 - Required regression checks completed:
   - normal values save and persist
@@ -97,8 +100,10 @@ When tasks touch Supabase protected surfaces, these smoke tests are mandatory:
   - SVG fields still behave correctly
   - out-of-range values are clamped
   - frontend cart popup behavior unchanged
-- Next step:
-  - `R-ADM-21` patch B discovery: review `variation-license` AJAX `nopriv` exposure.
+  - logged-out product variation license HTML still renders correctly
+  - logged-in behavior unchanged
+  - no frontend dependency on `bw_get_variation_license_html` AJAX action
+  - unauthenticated direct call to old AJAX action no longer works
 
 ## Media Folders Counts Pipeline Audit
 - Date: 2026-03-09

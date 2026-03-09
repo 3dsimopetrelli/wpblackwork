@@ -265,6 +265,15 @@ Il tab `Cart Pop-up` usa la funzione di salvataggio centralizzata `bw_cart_popup
 - `bw_cart_popup_svg_black` transformation now uses `fill="#000"` attribute before output allowlist sanitization.
 - Fallback local allowlist removed `style` attribute to reduce SVG inline-style attack surface.
 
+#### Admin input integrity hardening note (2026-03-10)
+- Save path `bw_cart_popup_save_settings()` now normalizes scalar reads with `wp_unslash` before sanitization.
+- Bounded numeric fields now apply deterministic clamping (panel/mobile width, overlay opacity, paddings, margins, font sizes, border radius/width).
+- Enum-like fields now use allowlists:
+  - `bw_cart_popup_checkout_border_style`
+  - `bw_cart_popup_continue_border_style`
+  - `bw_cart_popup_apply_button_font_weight`
+- Option keys and admin UX remain unchanged.
+
 ### G) Opzioni legacy ancora salvate
 - `bw_cart_popup_checkout_color`
 - `bw_cart_popup_continue_color`

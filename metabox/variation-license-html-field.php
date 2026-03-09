@@ -89,7 +89,6 @@ delete_post_meta( $variation_id, '_bw_variation_license_html' );
  * AJAX handler to get variation license HTML.
  */
 add_action( 'wp_ajax_bw_get_variation_license_html', 'bw_get_variation_license_html' );
-add_action( 'wp_ajax_nopriv_bw_get_variation_license_html', 'bw_get_variation_license_html' );
 
 function bw_get_variation_license_html() {
 // Verify nonce.

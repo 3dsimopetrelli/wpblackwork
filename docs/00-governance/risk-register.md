@@ -913,7 +913,8 @@ term sampling strategy for the `category='all'` branch.
   - Type-specific input sanitization (`sanitize_text_field`, `sanitize_key`, `absint`, `sanitize_email`, `esc_url_raw`, `wp_kses_post`).
   - Schema-safe array normalization for policy option payloads (array validation + allowlist key construction) before `update_option`.
   - Fail-safe behavior: invalid capability/nonce/context paths abort without option writes.
-- Monitoring Status: Monitoring
+- Status: Resolved
+- Monitoring Status: Closed
 - Patch Status:
   - Patch A: `CLOSED` (2026-03-10) — Cart Popup settings input integrity hardening completed in `cart-popup/admin/settings-page.php`.
     - Normalized scalar reads via `wp_unslash` before sanitization.
@@ -924,7 +925,12 @@ term sampling strategy for the `category='all'` branch.
     - Added numeric clamping for bounded runtime/style fields (panel/mobile width, overlay opacity, paddings, margins, font sizes, border radius/width).
     - No option key changes, no UI redesign, no Supabase-adjacent modifications.
     - Validation checks: `php -l` PASS, `composer run lint:main` PASS.
-  - Patch B: `PENDING DISCOVERY` — review/decision on `variation-license` AJAX `nopriv` exposure (`metabox/variation-license-html-field.php`).
+  - Patch B: `CLOSED` (2026-03-10) — Variation license AJAX exposure hardening completed in `metabox/variation-license-html-field.php`.
+    - Removed public route: `add_action( 'wp_ajax_nopriv_bw_get_variation_license_html', ... )`.
+    - Kept authenticated route and handler intact.
+    - Runtime basis: current frontend already embeds variation license HTML in variation payloads; repository JS does not require the old unauthenticated action.
+    - Validation checks: `php -l` PASS, `composer run lint:main` PASS.
+  - Overall: `R-ADM-21` set to `RESOLVED`.
 - Linked Documents:
   - [BW-TASK-20260306-08 Closure](../tasks/BW-TASK-20260306-08-closure.md)
   - [Admin Panel Map](../20-development/admin-panel-map.md)
