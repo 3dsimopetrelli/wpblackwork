@@ -33,6 +33,7 @@
     var BW_PENDING_USER_SELECTION = '';
     var BW_IS_CONVERGING = false;
     var BW_TOOLTIP_DOC_BOUND = false;
+    var BW_DIRECT_RADIO_HOOK_BOUND = false;
 
     function getPersistedSelectedMethod() {
         try {
@@ -727,6 +728,36 @@
         if (!(window.CSS && CSS.supports && CSS.supports('selector(:has(*))'))) {
             document.body.classList.add('bw-no-has-support');
         }
+
+        // Direct radio-click hook on #payment (capture phase) so we can track
+        // first-click intent even when WooCommerce stops bubbling propagation.
+        if (!BW_DIRECT_RADIO_HOOK_BOUND) {
+            document.addEventListener('click', function (event) {
+                var target = event.target;
+                if (!target || target.type !== 'radio' || target.name !== 'payment_method') {
+                    return;
+                }
+
+                var paymentRoot = target.closest('#payment');
+                if (!paymentRoot || target.disabled) {
+                    return;
+                }
+
+                // Keep native radio behavior; only persist explicit selection
+                // intent so post-click convergence cannot restore old method.
+                BW_LAST_EXPLICIT_SELECTION = target.value;
+                BW_PENDING_USER_SELECTION = target.value;
+                persistSelectedMethod(target.value);
+
+                setTimeout(function () {
+                    bwConvergeCheckoutSelectorState('direct_radio_click', {
+                        preferredValue: target.value
+                    });
+                }, 0);
+            }, true);
+            BW_DIRECT_RADIO_HOOK_BOUND = true;
+        }
+
         BW_LAST_SELECTED_METHOD = getPersistedSelectedMethod() || BW_LAST_SELECTED_METHOD;
         BW_LAST_EXPLICIT_SELECTION = BW_LAST_EXPLICIT_SELECTION || BW_LAST_SELECTED_METHOD;
         normalizeCardGatewayTitles();
