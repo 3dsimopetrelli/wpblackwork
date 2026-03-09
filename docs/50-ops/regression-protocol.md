@@ -80,3 +80,24 @@ When tasks touch Supabase protected surfaces, these smoke tests are mandatory:
   - No CDN Select2 requests remain from metabox path.
   - No duplicate Select2/SelectWoo runtime on the same product editor page.
   - Non-product admin pages do not load metabox Select2 assets.
+
+## Media Folders Counts Pipeline Audit
+- Date: 2026-03-09
+- Risk: `R-MF-01` - `WATCHLIST / PLANNED MITIGATION`
+- Audit scope:
+  - Media Folders counts computation, cache and invalidation pipeline.
+  - No implementation changes in this phase (analysis-only closure).
+- Confirmed paths:
+  - Primary: `bw_mf_get_folder_counts_map_batched()`
+  - Fallback: `bw_mf_get_folder_counts_map_fallback()`
+- Confirmed risks:
+  - stale-count window until TTL when invalidation misses lifecycle events
+  - cache churn from broad invalidation
+  - expensive fallback behavior under large datasets
+- Planned mitigation watchlist:
+  - monitor/log fallback activation
+  - extend invalidation hooks to object lifecycle events
+  - split tree/meta invalidation from counts invalidation
+  - add bulk integrity regression scenarios
+- Supabase note:
+  - No Supabase-adjacent surfaces involved.

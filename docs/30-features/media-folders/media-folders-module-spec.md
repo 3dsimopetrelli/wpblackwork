@@ -75,6 +75,22 @@ Out of scope:
     - `added_term_meta` / `updated_term_meta` / `deleted_term_meta` for tree-affecting keys (`bw_color`, `bw_mf_icon_color`, `bw_pinned`, `bw_mf_pinned`, `bw_sort`).
   - batch assignment path suspends per-item invalidation and performs one post-batch invalidation.
 
+### Governance Watchlist (R-MF-01)
+- Audit date: 2026-03-09
+- Status: Watchlist / Planned Mitigation (no runtime changes in audit phase)
+- Confirmed count paths:
+  - Primary batched path: `bw_mf_get_folder_counts_map_batched()`
+  - Fallback path: `bw_mf_get_folder_counts_map_fallback()`
+- Known risks:
+  - stale counts can persist until TTL when invalidation misses lifecycle events
+  - broad invalidation may cause avoidable cache churn
+  - fallback path can be expensive on very large datasets
+- Planned follow-up:
+  - monitor/log fallback activation
+  - extend invalidation to object lifecycle hooks
+  - split tree/meta invalidation from counts invalidation
+  - add bulk integrity regression scenarios
+
 ## Capability Model
 - Read tree + assign + bulk assign:
   - requires `upload_files`.

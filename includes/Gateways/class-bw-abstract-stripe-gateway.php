@@ -228,6 +228,12 @@ abstract class BW_Abstract_Stripe_Gateway extends WC_Payment_Gateway {
 	 * @return void
 	 */
 	public function handle_webhook() {
+		$request_method = isset( $_SERVER['REQUEST_METHOD'] ) ? strtoupper( sanitize_text_field( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) ) : '';
+		if ( 'POST' !== $request_method ) {
+			status_header( 405 );
+			exit( 'Method Not Allowed.' );
+		}
+
 		$payload    = file_get_contents( 'php://input' );
 		$sig_header = isset( $_SERVER['HTTP_STRIPE_SIGNATURE'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_STRIPE_SIGNATURE'] ) ) : '';
 		$secret     = ! empty( $this->webhook_secret ) ? $this->webhook_secret : $this->get_webhook_secret_for_mode( $this->get_gateway_mode() );

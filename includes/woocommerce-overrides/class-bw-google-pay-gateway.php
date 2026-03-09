@@ -429,6 +429,12 @@ class BW_Google_Pay_Gateway extends WC_Payment_Gateway {
 	 *   - payment_intent.payment_failed → logs the failure
 	 */
 	public function handle_webhook() {
+		$request_method = isset( $_SERVER['REQUEST_METHOD'] ) ? strtoupper( sanitize_text_field( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) ) : '';
+		if ( 'POST' !== $request_method ) {
+			status_header( 405 );
+			exit( 'Method Not Allowed.' );
+		}
+
 		$payload = file_get_contents( 'php://input' );
 
 		// Read the raw header — do NOT sanitize_text_field() as it can strip

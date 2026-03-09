@@ -411,7 +411,24 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 - Risk Level: Medium
 - Current Mitigation: Batched relationship aggregation + taxonomy/post_type scoped transient/object-cache with deterministic invalidation, with large-dataset watchpoint for heavy batch-query degradation.
 - Planned Mitigation Strategy: Introduce materialized folder counts (incremental updates on assignment/mutation events) to avoid repeated relationship recomputation at very large scale.
-- Monitoring Status: Planning / Watchlist
+- Monitoring Status: Watchlist / Planned Mitigation
+- Audit Update (2026-03-09):
+  - Audit phase completed for Media Folders counts pipeline (no runtime changes applied).
+  - Primary counts path confirmed: `bw_mf_get_folder_counts_map_batched()`.
+  - Fallback counts path confirmed: `bw_mf_get_folder_counts_map_fallback()`.
+  - Cache layer confirmed: object cache + transients + request-scope static cache.
+  - Main integrity/performance risks confirmed:
+    - stale-count windows until TTL when invalidation misses object lifecycle events
+    - cache churn due to broad invalidation scope
+    - expensive fallback behavior on large datasets
+  - Supabase-adjacent surfaces: none.
+  - Decision: keep as watchlist/planned mitigation item; defer runtime implementation.
+- Planned Follow-up:
+  - Add monitoring/logging for fallback path activation.
+  - Extend invalidation coverage to object lifecycle events (trash/untrash/delete/status transitions where relevant).
+  - Split tree/meta invalidation from counts invalidation to reduce cache churn.
+  - Add bulk integrity regression scenarios for high-volume assignment/mutation paths.
+- Risk Status: Open (Watchlist)
 - Linked Documents:
   - [Media Folders Module Spec](../30-features/media-folders/media-folders-module-spec.md)
   - [Decision Log](../00-planning/decision-log.md)
