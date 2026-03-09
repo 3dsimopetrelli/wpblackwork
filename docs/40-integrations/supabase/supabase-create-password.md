@@ -405,3 +405,30 @@ After a guest checkout (Supabase provider enabled), the user must:
    - `CiaoSimone!` => must pass.
 2. Logged-in profile password update:
    - strict 5-rule policy remains active.
+
+---
+
+## Password Update Race Guard (Updated 2026-03-09)
+
+### Issue observed
+- During OTP/invite create-password flow, user could see:
+  - `New password should be different from the old password.`
+- This could happen even in valid onboarding transitions where password write had already been applied once and a second update attempt hit Supabase duplicate-password protection.
+
+### Root cause
+- Supabase `/auth/v1/user` password update can return a "same as old password" error in retry/race paths.
+- The plugin previously treated that response as hard failure, blocking continuation.
+
+### Fix implemented
+- Added dedicated detector:
+  - `bw_mew_is_supabase_same_password_error()`
+- Applied tolerant handling in all relevant handlers:
+  - `bw_mew_handle_supabase_create_password()`
+  - `bw_mew_handle_set_password_modal()`
+  - `bw_mew_handle_supabase_update_password()`
+- Behavior now:
+  - if the only error is "new password must be different from old", flow continues as success;
+  - other Supabase errors remain blocking.
+
+### File
+- `includes/woocommerce-overrides/class-bw-supabase-auth.php`
