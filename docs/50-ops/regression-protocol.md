@@ -63,3 +63,19 @@ When tasks touch Supabase protected surfaces, these smoke tests are mandatory:
   - radio click must select payment method on first click
   - row/label click must behave identically
   - selection must persist after `updated_checkout`
+
+## Admin Asset Scope Hardening
+- Date: 2026-03-09
+- Risk: `R-ADM-19` (patch A, patch B)
+- Scope:
+  - Patch A closed: Blackwork admin menu CSS enqueue scoped to Blackwork admin surfaces only.
+  - Patch B closed: Digital Products metabox Select2 loading moved to scoped `admin_enqueue_scripts` (`post.php`/`post-new.php` + `post_type=product`), with runtime preference (`selectWoo` -> `select2` -> local fallback).
+  - Local fallback assets added:
+    - `assets/lib/select2/js/select2.full.min.js`
+    - `assets/lib/select2/css/select2.css`
+- Required regression checks completed:
+  - Dashboard / Posts / Orders do not load Blackwork menu CSS outside intended scope.
+  - Product edit/new screens load Select2 correctly for Showcase linked-product search.
+  - No CDN Select2 requests remain from metabox path.
+  - No duplicate Select2/SelectWoo runtime on the same product editor page.
+  - Non-product admin pages do not load metabox Select2 assets.

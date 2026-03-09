@@ -781,6 +781,29 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
   - Additional refactor program planned to split/enforce page/tab-specific enqueue matrix.
   - Explicit watchpoint for tab/page-scoped asset matrix enforcement in `bw_site_settings_admin_assets`.
 - Monitoring Status: Open
+- Mitigation Update (2026-03-09):
+  - Patch A completed: scoped `bw-site-settings-admin-menu` stylesheet enqueue to Blackwork admin surfaces only.
+  - File updated: `admin/class-blackwork-site-settings.php`.
+  - Change detail: `bw_site_settings_admin_menu_icon_styles()` now receives `$hook` and exits early unless `bw_is_blackwork_site_admin_screen($hook, $current_page)` matches.
+  - Result: menu-icon admin CSS is no longer loaded globally across unrelated `wp-admin` screens.
+  - Verification: Dashboard and Posts/Orders no longer load the stylesheet; Blackwork main/settings pages and `edit.php?post_type=bw_template` remain visually unchanged.
+  - Supabase-adjacent surfaces were not touched.
+  - Patch B completed: hardened Select2 runtime loading for Digital Products metabox (`metabox/digital-products-metabox.php`).
+  - Removed CDN Select2 enqueue from metabox render path and moved loading to `admin_enqueue_scripts` with strict scope (`post.php` / `post-new.php` + `post_type=product`).
+  - Runtime resolution now prefers existing handles (`selectWoo`, then `select2`) and falls back to plugin-local assets only when neither runtime is registered.
+  - Added local fallback assets:
+    - `assets/lib/select2/js/select2.full.min.js`
+    - `assets/lib/select2/css/select2.css`
+  - Verification: product edit/new Select2 search works; no CDN Select2 request; no duplicate Select2/SelectWoo runtime on same page; non-product admin pages do not load metabox Select2.
+  - Supabase-adjacent surfaces were not touched.
+- Progress Status:
+  - Completed:
+    - Patch A: Blackwork admin menu CSS scope reduction
+    - Patch B: Select2 metabox loading hardening
+  - Remaining:
+    - Patch C (optional): screen/hook hardening for page detection
+  - Patch A Status: Closed
+  - Patch B Status: Closed
 - Linked Documents:
   - [Admin Panel Map](../20-development/admin-panel-map.md)
   - [Admin UI Guidelines](../20-development/admin-ui-guidelines.md)

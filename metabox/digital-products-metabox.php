@@ -27,6 +27,70 @@ function bw_add_digital_products_metabox() {
 add_action( 'add_meta_boxes', 'bw_add_digital_products_metabox' );
 
 /**
+ * Enqueue metabox assets only on product editor screens.
+ *
+ * @param string $hook Admin hook suffix.
+ */
+function bw_enqueue_digital_products_metabox_assets( $hook ) {
+    if ( ! in_array( $hook, [ 'post.php', 'post-new.php' ], true ) ) {
+        return;
+    }
+
+    if ( ! function_exists( 'get_current_screen' ) ) {
+        return;
+    }
+
+    $screen = get_current_screen();
+    if ( ! $screen || 'product' !== $screen->post_type ) {
+        return;
+    }
+
+    $select_handle = '';
+
+    if ( wp_script_is( 'selectWoo', 'registered' ) ) {
+        $select_handle = 'selectWoo';
+    } elseif ( wp_script_is( 'select2', 'registered' ) ) {
+        $select_handle = 'select2';
+    } else {
+        $fallback_js_rel   = 'assets/lib/select2/js/select2.full.min.js';
+        $fallback_css_rel  = 'assets/lib/select2/css/select2.css';
+        $fallback_js_path  = BW_MEW_PATH . $fallback_js_rel;
+        $fallback_css_path = BW_MEW_PATH . $fallback_css_rel;
+
+        if ( file_exists( $fallback_js_path ) ) {
+            wp_register_script(
+                'bw-select2-fallback',
+                BW_MEW_URL . $fallback_js_rel,
+                [ 'jquery' ],
+                filemtime( $fallback_js_path ),
+                true
+            );
+            $select_handle = 'bw-select2-fallback';
+        }
+
+        if ( file_exists( $fallback_css_path ) && ! wp_style_is( 'select2', 'registered' ) ) {
+            wp_register_style(
+                'bw-select2-fallback',
+                BW_MEW_URL . $fallback_css_rel,
+                [],
+                filemtime( $fallback_css_path )
+            );
+        }
+    }
+
+    if ( '' !== $select_handle ) {
+        wp_enqueue_script( $select_handle );
+    }
+
+    if ( wp_style_is( 'select2', 'registered' ) ) {
+        wp_enqueue_style( 'select2' );
+    } elseif ( wp_style_is( 'bw-select2-fallback', 'registered' ) ) {
+        wp_enqueue_style( 'bw-select2-fallback' );
+    }
+}
+add_action( 'admin_enqueue_scripts', 'bw_enqueue_digital_products_metabox_assets' );
+
+/**
  * Render the Digital Products metabox.
  *
  * @param \WP_Post $post Current post object.
@@ -307,11 +371,18 @@ function bw_render_digital_products_metabox( $post ) {
       }
     })();
 
-    // Initialize Select2 for product search
+    // Initialize Select2/SelectWoo for product search
     (function($){
+      var selectFn = null;
       if (typeof $.fn.select2 !== 'undefined') {
+        selectFn = 'select2';
+      } else if (typeof $.fn.selectWoo !== 'undefined') {
+        selectFn = 'selectWoo';
+      }
+
+      if (selectFn) {
         $(document).ready(function(){
-          $('#bw_showcase_linked_product').select2({
+          $('#bw_showcase_linked_product')[selectFn]({
             ajax: {
               url: ajaxurl,
               dataType: 'json',
@@ -438,10 +509,6 @@ function bw_render_showcase_image_field_script() {
 
     $printed = true;
 
-    // Enqueue Select2 for product search
-    wp_enqueue_style( 'select2', 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css', [], '4.1.0' );
-    wp_enqueue_script( 'select2', 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js', [ 'jquery' ], '4.1.0', true );
-
     ?>
     <script>
         ( function( $ ) {
@@ -539,4 +606,3 @@ function bw_search_products_ajax() {
     wp_send_json( $results );
 }
 add_action( 'wp_ajax_bw_search_products', 'bw_search_products_ajax' );
-
