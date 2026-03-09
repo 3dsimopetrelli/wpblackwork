@@ -40,6 +40,7 @@ It complements the full risk register but is optimized for quick orientation whe
 - Watchlist / Deferred: 1
 
 Last governance-aligned updates:
+- 2026-03-10: `R-BRE-09` patch 1 closed (legacy Coming Soon public Brevo handler removed).
 - 2026-03-10: `R-ADM-21` resolved (patch A + patch B).
 - 2026-03-09: `R-WOO-24` resolved (patch 1..5 complete).
 - 2026-03-09: `R-ADM-19` mitigated (patch A/B complete, patch C deferred).
@@ -71,7 +72,7 @@ Last governance-aligned updates:
 | R-AUTH-05 | Supabase auth flow stabilization | Auth / Supabase | High | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Mitigation wave completed | Monitoring | Supabase-adjacent |
 | R-AUTH-25 | Public auth endpoint exposure | Auth / Supabase | High | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Exposure controls tightened | Rate-limit/abuse posture review | Supabase-adjacent |
 | R-SUPA-06 | Supabase orders/account coupling | Supabase / Orders / Account | High | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Mitigation controls documented | Monitoring | Supabase-adjacent |
-| R-BRE-09 | Brevo checkout sync drift | Brevo / Checkout | High | <span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">OPEN</span> | Brevo controls present | Runtime reliability hardening | Non-Supabase |
+| R-BRE-09 | Brevo checkout sync drift | Brevo / Checkout | High | <span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">OPEN</span> | Patch 1 closed: legacy public handler removed | Patch 2: prevent subscribed/pending -> skipped downgrade | Non-Supabase |
 | R-SRCH-11 | Search runtime coupling risk | Search / Header | High | <span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">OPEN</span> | Existing safeguards retained | Performance/isolation follow-up | Non-Supabase |
 | R-HDR-13 | Header orchestration complexity | Header / UX | High | <span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">OPEN</span> | Existing guardrails documented | Additional isolation hardening | Non-Supabase |
 | R-FPW-20 | Public AJAX filtered wall risk | Filtered Post Wall | High | <span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">OPEN</span> | Cache + throttle controls present | Query-bounds hardening | Non-Supabase |
@@ -491,10 +492,10 @@ Last governance-aligned updates:
 - Priority: High
 - Status: Open
 - Summary: Mailing/subscription runtime drift risk remains active.
-- What has been completed: Integration controls and admin tooling.
-- What is still pending: Additional reliability hardening.
+- What has been completed: Integration controls/admin tooling and patch 1 closure removing legacy Coming Soon public Brevo handler with hardcoded key.
+- What is still pending: Patch 2 to prevent destructive `subscribed/pending -> skipped` state downgrade in checkout subscribe flow.
 - Supabase-adjacent blast radius: No.
-- Recommended next step: Improve retry/failure observability.
+- Recommended next step: Deliver patch 2 state-machine hardening before broader reliability wave.
 
 ### R-IMP-10 — Import pipeline integrity
 - Area: Import / Catalog

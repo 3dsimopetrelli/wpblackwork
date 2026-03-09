@@ -655,6 +655,14 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
   - Fallback consent inference via `WC()->checkout()->get_value('bw_subscribe_newsletter')` removed.
   - Consent evaluation now enforces explicit checkout POST payload sources only.
   - Runtime checkout validation confirmed consent capture + Brevo sync with no duplicate/timing anomalies in tested opt-in flow.
+- Patch update (2026-03-10):
+  - `R-BRE-09 patch 1`: CLOSED.
+  - Removed legacy public Brevo handler from `BW_coming_soon/includes/functions.php`:
+    - removed `bw_handle_subscription()` implementation
+    - removed `add_action("init", "bw_handle_subscription")`
+  - Outcome: unsafe unauthenticated public-write path with hardcoded API key removed.
+  - Remaining:
+    - `R-BRE-09 patch 2`: prevent destructive `subscribed/pending -> skipped` downgrade in checkout subscribe flow.
 - Monitoring Status: Monitoring
 - Linked Documents:
   - [Blast-Radius Consolidation Map](./blast-radius-consolidation-map.md)
