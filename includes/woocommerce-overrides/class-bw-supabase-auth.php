@@ -1258,6 +1258,23 @@ function bw_mew_supabase_password_meets_onboarding_requirements( $password ) {
 }
 
 /**
+ * Detect Supabase "same password" error to avoid false-negative onboarding blocks.
+ *
+ * In callback/retry race conditions, Supabase may reject a second identical update
+ * with "New password should be different from the old password." even if the first
+ * update already succeeded.
+ *
+ * @param WP_Error $error Error returned by Supabase update call.
+ *
+ * @return bool
+ */
+function bw_mew_is_supabase_same_password_error( WP_Error $error ) {
+    $message = strtolower( (string) $error->get_error_message() );
+    return false !== strpos( $message, 'new password should be different from the old password' )
+        || ( false !== strpos( $message, 'different from the old password' ) && false !== strpos( $message, 'password' ) );
+}
+
+/**
  * Update Supabase password via AJAX.
  */
 function bw_mew_handle_supabase_update_password() {
@@ -1296,7 +1313,9 @@ function bw_mew_handle_supabase_update_password() {
     );
 
     if ( is_wp_error( $response ) ) {
-        wp_send_json_error( [ 'message' => $response->get_error_message() ], 500 );
+        if ( ! bw_mew_is_supabase_same_password_error( $response ) ) {
+            wp_send_json_error( [ 'message' => $response->get_error_message() ], 500 );
+        }
     }
 
     wp_send_json_success(
@@ -1346,6 +1365,14 @@ function bw_mew_handle_supabase_create_password() {
     );
 
     if ( is_wp_error( $response ) ) {
+        if ( bw_mew_is_supabase_same_password_error( $response ) ) {
+            wp_send_json_success(
+                [
+                    'message' => __( 'Password updated.', 'bw' ),
+                    'user'    => [],
+                ]
+            );
+        }
         $status = (int) $response->get_error_data( 'status' );
         if ( $status < 400 || $status > 599 ) {
             $status = 500;
@@ -2135,7 +2162,9 @@ function bw_mew_handle_set_password_modal() {
     );
 
     if ( is_wp_error( $response ) ) {
-        wp_send_json_error( [ 'message' => $response->get_error_message() ], 500 );
+        if ( ! bw_mew_is_supabase_same_password_error( $response ) ) {
+            wp_send_json_error( [ 'message' => $response->get_error_message() ], 500 );
+        }
     }
 
     // Mark user as onboarded.
