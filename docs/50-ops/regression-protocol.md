@@ -50,3 +50,10 @@ When tasks touch Supabase protected surfaces, these smoke tests are mandatory:
   - payment gateway visibility unaffected (Card / PayPal / Klarna)
   - gateway switching and `updated_checkout` selection persistence
   - noscript update-totals fallback present
+
+## Checkout Payment Selector Interaction
+- Risk/Task: `CHECKOUT-02` (resolved)
+- Mandatory regression assertions:
+  - radio click must select payment method on first click
+  - row/label click must behave identically
+  - selection must persist after `updated_checkout`

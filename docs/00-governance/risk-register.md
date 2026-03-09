@@ -372,6 +372,21 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
   - [BW-TASK-20260307-radar-batch2-validation](../tasks/BW-TASK-20260307-radar-batch2-validation.md)
   - [BW-TASK-20260308-08 Closure](../tasks/BW-TASK-20260308-08-closure.md)
 
+### CHECKOUT-02
+- Title: Payment method selector double-click bug
+- Status: Resolved
+- Domain: Checkout / Frontend Interaction
+- Surface: Checkout JS interaction layer (`assets/js/bw-payment-methods.js`, `#payment input[name="payment_method"]`)
+- Fix Type: JS interaction hook (radio input path)
+- Resolution Summary:
+  - Added direct radio-input interaction hook on checkout payment surface to capture first-click intent even when WooCommerce stops propagation on direct radio click.
+  - Preserved native radio behavior and existing row/label normalization behavior.
+  - Verified deterministic first-click selection for Card/PayPal/Klarna and persistence after `updated_checkout`.
+- Scope Confirmation:
+  - No WooCommerce template changes
+  - No Stripe/PayPal/Klarna business-logic changes
+  - No Supabase surface changes
+
 ### Risk ID: R-PAY-02
 - Domain: Payments / Checkout
 - Surface Anchor: `assets/js/bw-stripe-upe-cleaner.js`, `wc_stripe_upe_params` customization in `woocommerce/woocommerce-init.php`
