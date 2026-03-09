@@ -122,3 +122,35 @@ When tasks touch Supabase protected surfaces, these smoke tests are mandatory:
   - invalid signature via POST still fails
   - GET to webhook endpoint is rejected (`405`)
   - unsupported event keeps expected no-op behavior
+
+## SVG Sanitization Hardening Follow-up
+- Date: 2026-03-09
+- Risk: `R-SEC-22` - `RESOLVED`
+- Scope:
+  - Secondary SVG intake/output paths hardened to reuse canonical security pipeline.
+  - Updated files:
+    - `cart-popup/admin/settings-page.php`
+    - `cart-popup/frontend/cart-popup-frontend.php`
+    - `includes/widgets/class-bw-button-widget.php`
+- Applied controls:
+  - Cart popup option sanitizer now uses:
+    - `bw_mew_svg_sanitize_content()`
+    - `bw_mew_svg_is_valid_document()`
+  - Frontend output of stored cart popup SVG now passes strict `wp_kses` allowlist.
+  - Remote SVG in button widget now requires SVG content type + canonical sanitize/validate; invalid payload falls back to default icon.
+  - Fallback cart popup SVG allowlist no longer permits inline `style`.
+- Scope constraints respected:
+  - Media Library SVG upload pipeline unchanged.
+  - No upload hooks changed.
+  - Header/logo SVG path unchanged.
+  - No Supabase-adjacent surfaces touched.
+- Required regression checks completed:
+  - valid cart popup SVG saves and renders
+  - malformed/unsafe cart popup SVG rejected
+  - empty-cart custom SVG renders correctly
+  - additional custom SVG renders correctly
+  - `svg_black` coloring preserved
+  - widget attachment SVG renders
+  - widget remote valid SVG renders
+  - widget remote invalid/non-SVG response falls back to default icon
+  - Media Library SVG upload behavior unchanged

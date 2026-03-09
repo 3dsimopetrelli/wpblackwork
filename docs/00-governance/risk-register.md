@@ -927,12 +927,21 @@ term sampling strategy for the `category='all'` branch.
 - Impact: Critical
 - Likelihood: Medium
 - Risk Level: High
+- Status: Resolved
 - Current Mitigation:
   - Capability-gated SVG allowance (`manage_options`) with no broadened role scope.
   - Fail-closed SVG upload prefilter (`wp_handle_upload_prefilter`) validates/sanitizes SVG before attachment creation.
   - Deterministic reject path for malformed/unsafe SVG and explicit reject policy for `svgz`.
   - Strict SVG filetype normalization path limited to validated real SVG content.
-- Monitoring Status: Monitoring
+  - Follow-up hardening (2026-03-09) completed on secondary SVG intake/output paths:
+    - `cart-popup/admin/settings-page.php`: `bw_cart_popup_sanitize_svg()` now reuses canonical pipeline (`bw_mew_svg_sanitize_content()` + `bw_mew_svg_is_valid_document()`), rejects invalid SVG, and removes `style` in fallback allowlist.
+    - `cart-popup/frontend/cart-popup-frontend.php`: defense-in-depth `wp_kses` output hardening with strict SVG allowlist for stored option SVG.
+    - `includes/widgets/class-bw-button-widget.php`: remote SVG path now enforces `Content-Type` check + canonical sanitize/validate pipeline before render; invalid responses fall back to default icon.
+  - Scope safety confirmation:
+    - Media Library SVG upload hooks unchanged.
+    - Header/logo SVG path unchanged.
+    - No Supabase-adjacent surfaces modified.
+- Monitoring Status: Closed
 - Linked Documents:
   - [BW-TASK-20260306-10 Closure](../tasks/BW-TASK-20260306-10-closure.md)
   - [Technical Hardening Plan](./technical-hardening-plan.md)

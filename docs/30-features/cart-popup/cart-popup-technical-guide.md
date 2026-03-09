@@ -256,6 +256,15 @@ Il tab `Cart Pop-up` usa la funzione di salvataggio centralizzata `bw_cart_popup
 - `bw_cart_popup_cart_icon_margin_left`
 - `bw_cart_popup_svg_black`: forza fill nero su SVG custom.
 
+#### SVG security hardening note (2026-03-09)
+- Save-time sanitizer for `bw_cart_popup_additional_svg` and `bw_cart_popup_empty_cart_svg` now reuses canonical plugin pipeline:
+  - `bw_mew_svg_sanitize_content()`
+  - `bw_mew_svg_is_valid_document()`
+- Invalid/malformed SVG payloads are rejected and not persisted.
+- Frontend rendering now applies strict output-time `wp_kses` allowlist before echoing stored SVG options (defense in depth).
+- `bw_cart_popup_svg_black` transformation now uses `fill="#000"` attribute before output allowlist sanitization.
+- Fallback local allowlist removed `style` attribute to reduce SVG inline-style attack surface.
+
 ### G) Opzioni legacy ancora salvate
 - `bw_cart_popup_checkout_color`
 - `bw_cart_popup_continue_color`
