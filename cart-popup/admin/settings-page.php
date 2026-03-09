@@ -198,13 +198,46 @@ add_action('admin_menu', 'bw_cart_popup_admin_menu');
  */
 function bw_cart_popup_save_settings()
 {
-    if (!isset($_POST['bw_cart_popup_nonce']) || !wp_verify_nonce($_POST['bw_cart_popup_nonce'], 'bw_cart_popup_save')) {
+    $posted_nonce = isset($_POST['bw_cart_popup_nonce']) ? (string) wp_unslash($_POST['bw_cart_popup_nonce']) : '';
+    if ('' === $posted_nonce || !wp_verify_nonce($posted_nonce, 'bw_cart_popup_save')) {
         return;
     }
 
     if (!current_user_can('manage_options')) {
         return;
     }
+
+    $post_value = static function ($key, $default = '') {
+        if (!isset($_POST[$key])) {
+            return $default;
+        }
+
+        return wp_unslash($_POST[$key]);
+    };
+
+    $clamp_int = static function ($value, $min, $max, $default) {
+        $normalized = is_numeric($value) ? (int) $value : (int) $default;
+        if ($normalized < $min) {
+            return $min;
+        }
+        if ($normalized > $max) {
+            return $max;
+        }
+
+        return $normalized;
+    };
+
+    $clamp_float = static function ($value, $min, $max, $default) {
+        $normalized = is_numeric($value) ? (float) $value : (float) $default;
+        if ($normalized < $min) {
+            return $min;
+        }
+        if ($normalized > $max) {
+            return $max;
+        }
+
+        return $normalized;
+    };
 
     // Toggle ON/OFF
     update_option('bw_cart_popup_active', isset($_POST['bw_cart_popup_active']) ? 1 : 0);
@@ -216,189 +249,195 @@ function bw_cart_popup_save_settings()
     update_option('bw_cart_popup_slide_animation', isset($_POST['bw_cart_popup_slide_animation']) ? 1 : 0);
 
     // Larghezza pannello (percentuale)
-    $panel_width = isset($_POST['bw_cart_popup_panel_width']) ? intval($_POST['bw_cart_popup_panel_width']) : 400;
+    $panel_width = $clamp_int($post_value('bw_cart_popup_panel_width', 400), 300, 1200, 400);
     update_option('bw_cart_popup_panel_width', $panel_width);
 
     // Larghezza Mobile (percentuale)
-    $mobile_width = isset($_POST['bw_cart_popup_mobile_width']) ? intval($_POST['bw_cart_popup_mobile_width']) : 100;
+    $mobile_width = $clamp_int($post_value('bw_cart_popup_mobile_width', 100), 10, 100, 100);
     update_option('bw_cart_popup_mobile_width', $mobile_width);
 
     // Colore overlay
-    $overlay_color = isset($_POST['bw_cart_popup_overlay_color']) ? sanitize_hex_color($_POST['bw_cart_popup_overlay_color']) : '#000000';
+    $overlay_color = sanitize_hex_color((string) $post_value('bw_cart_popup_overlay_color', '#000000'));
     update_option('bw_cart_popup_overlay_color', $overlay_color);
 
     // Opacità overlay
-    $overlay_opacity = isset($_POST['bw_cart_popup_overlay_opacity']) ? floatval($_POST['bw_cart_popup_overlay_opacity']) : 0.5;
+    $overlay_opacity = $clamp_float($post_value('bw_cart_popup_overlay_opacity', 0.5), 0, 1, 0.5);
     update_option('bw_cart_popup_overlay_opacity', $overlay_opacity);
 
     // Colore sfondo pannello
-    $panel_bg = isset($_POST['bw_cart_popup_panel_bg']) ? sanitize_hex_color($_POST['bw_cart_popup_panel_bg']) : '#ffffff';
+    $panel_bg = sanitize_hex_color((string) $post_value('bw_cart_popup_panel_bg', '#ffffff'));
     update_option('bw_cart_popup_panel_bg', $panel_bg);
 
     // Testo pulsante checkout
-    $checkout_text = isset($_POST['bw_cart_popup_checkout_text']) ? sanitize_text_field($_POST['bw_cart_popup_checkout_text']) : 'Proceed to checkout';
+    $checkout_text = sanitize_text_field((string) $post_value('bw_cart_popup_checkout_text', 'Proceed to checkout'));
     update_option('bw_cart_popup_checkout_text', $checkout_text);
 
     // RIMOSSO: Link personalizzato checkout - ora si usa sempre wc_get_checkout_url()
     // per garantire che il pulsante porti sempre alla pagina di checkout WooCommerce
 
     // Colore pulsante checkout
-    $checkout_color = isset($_POST['bw_cart_popup_checkout_color']) ? sanitize_hex_color($_POST['bw_cart_popup_checkout_color']) : '#28a745';
+    $checkout_color = sanitize_hex_color((string) $post_value('bw_cart_popup_checkout_color', '#28a745'));
     update_option('bw_cart_popup_checkout_color', $checkout_color);
 
     // Testo pulsante continue shopping
-    $continue_text = isset($_POST['bw_cart_popup_continue_text']) ? sanitize_text_field($_POST['bw_cart_popup_continue_text']) : 'Continue shopping';
+    $continue_text = sanitize_text_field((string) $post_value('bw_cart_popup_continue_text', 'Continue shopping'));
     update_option('bw_cart_popup_continue_text', $continue_text);
 
     // Link personalizzato continue shopping
-    $continue_url = isset($_POST['bw_cart_popup_continue_url']) ? esc_url_raw($_POST['bw_cart_popup_continue_url']) : '';
+    $continue_url = esc_url_raw((string) $post_value('bw_cart_popup_continue_url', ''));
     update_option('bw_cart_popup_continue_url', $continue_url);
 
     // Colore pulsante continue shopping
-    $continue_color = isset($_POST['bw_cart_popup_continue_color']) ? sanitize_hex_color($_POST['bw_cart_popup_continue_color']) : '#6c757d';
+    $continue_color = sanitize_hex_color((string) $post_value('bw_cart_popup_continue_color', '#6c757d'));
     update_option('bw_cart_popup_continue_color', $continue_color);
 
     // SVG personalizzato per Cart Pop-Up (usa sanitize_textarea per preservare SVG)
-    $additional_svg = isset($_POST['bw_cart_popup_additional_svg']) ? bw_cart_popup_sanitize_svg($_POST['bw_cart_popup_additional_svg']) : '';
+    $additional_svg = bw_cart_popup_sanitize_svg((string) $post_value('bw_cart_popup_additional_svg', ''));
     update_option('bw_cart_popup_additional_svg', $additional_svg);
 
     // Empty Cart SVG personalizzato (usa sanitize_textarea per preservare SVG)
-    $empty_cart_svg = isset($_POST['bw_cart_popup_empty_cart_svg']) ? bw_cart_popup_sanitize_svg($_POST['bw_cart_popup_empty_cart_svg']) : '';
+    $empty_cart_svg = bw_cart_popup_sanitize_svg((string) $post_value('bw_cart_popup_empty_cart_svg', ''));
     update_option('bw_cart_popup_empty_cart_svg', $empty_cart_svg);
 
     // Opzione per colorare SVG di nero
     update_option('bw_cart_popup_svg_black', isset($_POST['bw_cart_popup_svg_black']) ? 1 : 0);
 
     // Margin per Cart Icon SVG
-    $cart_icon_margin_top = isset($_POST['bw_cart_popup_cart_icon_margin_top']) ? intval($_POST['bw_cart_popup_cart_icon_margin_top']) : 0;
+    $cart_icon_margin_top = $clamp_int($post_value('bw_cart_popup_cart_icon_margin_top', 0), -500, 500, 0);
     update_option('bw_cart_popup_cart_icon_margin_top', $cart_icon_margin_top);
 
-    $cart_icon_margin_right = isset($_POST['bw_cart_popup_cart_icon_margin_right']) ? intval($_POST['bw_cart_popup_cart_icon_margin_right']) : 0;
+    $cart_icon_margin_right = $clamp_int($post_value('bw_cart_popup_cart_icon_margin_right', 0), -500, 500, 0);
     update_option('bw_cart_popup_cart_icon_margin_right', $cart_icon_margin_right);
 
-    $cart_icon_margin_bottom = isset($_POST['bw_cart_popup_cart_icon_margin_bottom']) ? intval($_POST['bw_cart_popup_cart_icon_margin_bottom']) : 0;
+    $cart_icon_margin_bottom = $clamp_int($post_value('bw_cart_popup_cart_icon_margin_bottom', 0), -500, 500, 0);
     update_option('bw_cart_popup_cart_icon_margin_bottom', $cart_icon_margin_bottom);
 
-    $cart_icon_margin_left = isset($_POST['bw_cart_popup_cart_icon_margin_left']) ? intval($_POST['bw_cart_popup_cart_icon_margin_left']) : 0;
+    $cart_icon_margin_left = $clamp_int($post_value('bw_cart_popup_cart_icon_margin_left', 0), -500, 500, 0);
     update_option('bw_cart_popup_cart_icon_margin_left', $cart_icon_margin_left);
 
     // Padding per Empty Cart SVG
-    $empty_cart_padding_top = isset($_POST['bw_cart_popup_empty_cart_padding_top']) ? intval($_POST['bw_cart_popup_empty_cart_padding_top']) : 0;
+    $empty_cart_padding_top = $clamp_int($post_value('bw_cart_popup_empty_cart_padding_top', 0), 0, 500, 0);
     update_option('bw_cart_popup_empty_cart_padding_top', $empty_cart_padding_top);
 
-    $empty_cart_padding_right = isset($_POST['bw_cart_popup_empty_cart_padding_right']) ? intval($_POST['bw_cart_popup_empty_cart_padding_right']) : 0;
+    $empty_cart_padding_right = $clamp_int($post_value('bw_cart_popup_empty_cart_padding_right', 0), 0, 500, 0);
     update_option('bw_cart_popup_empty_cart_padding_right', $empty_cart_padding_right);
 
-    $empty_cart_padding_bottom = isset($_POST['bw_cart_popup_empty_cart_padding_bottom']) ? intval($_POST['bw_cart_popup_empty_cart_padding_bottom']) : 0;
+    $empty_cart_padding_bottom = $clamp_int($post_value('bw_cart_popup_empty_cart_padding_bottom', 0), 0, 500, 0);
     update_option('bw_cart_popup_empty_cart_padding_bottom', $empty_cart_padding_bottom);
 
-    $empty_cart_padding_left = isset($_POST['bw_cart_popup_empty_cart_padding_left']) ? intval($_POST['bw_cart_popup_empty_cart_padding_left']) : 0;
+    $empty_cart_padding_left = $clamp_int($post_value('bw_cart_popup_empty_cart_padding_left', 0), 0, 500, 0);
     update_option('bw_cart_popup_empty_cart_padding_left', $empty_cart_padding_left);
 
     // === PROCEED TO CHECKOUT BUTTON SETTINGS ===
     // Background color
-    $checkout_bg = isset($_POST['bw_cart_popup_checkout_bg']) ? sanitize_hex_color($_POST['bw_cart_popup_checkout_bg']) : '#28a745';
+    $checkout_bg = sanitize_hex_color((string) $post_value('bw_cart_popup_checkout_bg', '#28a745'));
     update_option('bw_cart_popup_checkout_bg', $checkout_bg);
 
     // Background hover color
-    $checkout_bg_hover = isset($_POST['bw_cart_popup_checkout_bg_hover']) ? sanitize_hex_color($_POST['bw_cart_popup_checkout_bg_hover']) : '#218838';
+    $checkout_bg_hover = sanitize_hex_color((string) $post_value('bw_cart_popup_checkout_bg_hover', '#218838'));
     update_option('bw_cart_popup_checkout_bg_hover', $checkout_bg_hover);
 
     // Text color
-    $checkout_text_color = isset($_POST['bw_cart_popup_checkout_text_color']) ? sanitize_hex_color($_POST['bw_cart_popup_checkout_text_color']) : '#ffffff';
+    $checkout_text_color = sanitize_hex_color((string) $post_value('bw_cart_popup_checkout_text_color', '#ffffff'));
     update_option('bw_cart_popup_checkout_text_color', $checkout_text_color);
 
     // Text hover color
-    $checkout_text_hover = isset($_POST['bw_cart_popup_checkout_text_hover']) ? sanitize_hex_color($_POST['bw_cart_popup_checkout_text_hover']) : '#ffffff';
+    $checkout_text_hover = sanitize_hex_color((string) $post_value('bw_cart_popup_checkout_text_hover', '#ffffff'));
     update_option('bw_cart_popup_checkout_text_hover', $checkout_text_hover);
 
     // Font size
-    $checkout_font_size = isset($_POST['bw_cart_popup_checkout_font_size']) ? intval($_POST['bw_cart_popup_checkout_font_size']) : 14;
+    $checkout_font_size = $clamp_int($post_value('bw_cart_popup_checkout_font_size', 14), 8, 120, 14);
     update_option('bw_cart_popup_checkout_font_size', $checkout_font_size);
 
     // Border radius
-    $checkout_border_radius = isset($_POST['bw_cart_popup_checkout_border_radius']) ? intval($_POST['bw_cart_popup_checkout_border_radius']) : 6;
+    $checkout_border_radius = $clamp_int($post_value('bw_cart_popup_checkout_border_radius', 6), 0, 200, 6);
     update_option('bw_cart_popup_checkout_border_radius', $checkout_border_radius);
 
     // Border enabled
     update_option('bw_cart_popup_checkout_border_enabled', isset($_POST['bw_cart_popup_checkout_border_enabled']) ? 1 : 0);
 
     // Border width
-    $checkout_border_width = isset($_POST['bw_cart_popup_checkout_border_width']) ? intval($_POST['bw_cart_popup_checkout_border_width']) : 1;
+    $checkout_border_width = $clamp_int($post_value('bw_cart_popup_checkout_border_width', 1), 0, 20, 1);
     update_option('bw_cart_popup_checkout_border_width', $checkout_border_width);
 
     // Border style
-    $checkout_border_style = isset($_POST['bw_cart_popup_checkout_border_style']) ? sanitize_text_field($_POST['bw_cart_popup_checkout_border_style']) : 'solid';
+    $checkout_border_style = sanitize_key((string) $post_value('bw_cart_popup_checkout_border_style', 'solid'));
+    if (!in_array($checkout_border_style, ['none', 'solid', 'dashed', 'dotted', 'double'], true)) {
+        $checkout_border_style = 'solid';
+    }
     update_option('bw_cart_popup_checkout_border_style', $checkout_border_style);
 
     // Border color
-    $checkout_border_color = isset($_POST['bw_cart_popup_checkout_border_color']) ? sanitize_hex_color($_POST['bw_cart_popup_checkout_border_color']) : '#28a745';
+    $checkout_border_color = sanitize_hex_color((string) $post_value('bw_cart_popup_checkout_border_color', '#28a745'));
     update_option('bw_cart_popup_checkout_border_color', $checkout_border_color);
 
     // Padding
-    $checkout_padding_top = isset($_POST['bw_cart_popup_checkout_padding_top']) ? intval($_POST['bw_cart_popup_checkout_padding_top']) : 12;
+    $checkout_padding_top = $clamp_int($post_value('bw_cart_popup_checkout_padding_top', 12), 0, 500, 12);
     update_option('bw_cart_popup_checkout_padding_top', $checkout_padding_top);
 
-    $checkout_padding_right = isset($_POST['bw_cart_popup_checkout_padding_right']) ? intval($_POST['bw_cart_popup_checkout_padding_right']) : 20;
+    $checkout_padding_right = $clamp_int($post_value('bw_cart_popup_checkout_padding_right', 20), 0, 500, 20);
     update_option('bw_cart_popup_checkout_padding_right', $checkout_padding_right);
 
-    $checkout_padding_bottom = isset($_POST['bw_cart_popup_checkout_padding_bottom']) ? intval($_POST['bw_cart_popup_checkout_padding_bottom']) : 12;
+    $checkout_padding_bottom = $clamp_int($post_value('bw_cart_popup_checkout_padding_bottom', 12), 0, 500, 12);
     update_option('bw_cart_popup_checkout_padding_bottom', $checkout_padding_bottom);
 
-    $checkout_padding_left = isset($_POST['bw_cart_popup_checkout_padding_left']) ? intval($_POST['bw_cart_popup_checkout_padding_left']) : 20;
+    $checkout_padding_left = $clamp_int($post_value('bw_cart_popup_checkout_padding_left', 20), 0, 500, 20);
     update_option('bw_cart_popup_checkout_padding_left', $checkout_padding_left);
 
     // === CONTINUE SHOPPING BUTTON SETTINGS ===
     // Background color
-    $continue_bg = isset($_POST['bw_cart_popup_continue_bg']) ? sanitize_hex_color($_POST['bw_cart_popup_continue_bg']) : '#6c757d';
+    $continue_bg = sanitize_hex_color((string) $post_value('bw_cart_popup_continue_bg', '#6c757d'));
     update_option('bw_cart_popup_continue_bg', $continue_bg);
 
     // Background hover color
-    $continue_bg_hover = isset($_POST['bw_cart_popup_continue_bg_hover']) ? sanitize_hex_color($_POST['bw_cart_popup_continue_bg_hover']) : '#5a6268';
+    $continue_bg_hover = sanitize_hex_color((string) $post_value('bw_cart_popup_continue_bg_hover', '#5a6268'));
     update_option('bw_cart_popup_continue_bg_hover', $continue_bg_hover);
 
     // Text color
-    $continue_text_color = isset($_POST['bw_cart_popup_continue_text_color']) ? sanitize_hex_color($_POST['bw_cart_popup_continue_text_color']) : '#ffffff';
+    $continue_text_color = sanitize_hex_color((string) $post_value('bw_cart_popup_continue_text_color', '#ffffff'));
     update_option('bw_cart_popup_continue_text_color', $continue_text_color);
 
     // Text hover color
-    $continue_text_hover = isset($_POST['bw_cart_popup_continue_text_hover']) ? sanitize_hex_color($_POST['bw_cart_popup_continue_text_hover']) : '#ffffff';
+    $continue_text_hover = sanitize_hex_color((string) $post_value('bw_cart_popup_continue_text_hover', '#ffffff'));
     update_option('bw_cart_popup_continue_text_hover', $continue_text_hover);
 
     // Font size
-    $continue_font_size = isset($_POST['bw_cart_popup_continue_font_size']) ? intval($_POST['bw_cart_popup_continue_font_size']) : 14;
+    $continue_font_size = $clamp_int($post_value('bw_cart_popup_continue_font_size', 14), 8, 120, 14);
     update_option('bw_cart_popup_continue_font_size', $continue_font_size);
 
     // Border radius
-    $continue_border_radius = isset($_POST['bw_cart_popup_continue_border_radius']) ? intval($_POST['bw_cart_popup_continue_border_radius']) : 6;
+    $continue_border_radius = $clamp_int($post_value('bw_cart_popup_continue_border_radius', 6), 0, 200, 6);
     update_option('bw_cart_popup_continue_border_radius', $continue_border_radius);
 
     // Border enabled
     update_option('bw_cart_popup_continue_border_enabled', isset($_POST['bw_cart_popup_continue_border_enabled']) ? 1 : 0);
 
     // Border width
-    $continue_border_width = isset($_POST['bw_cart_popup_continue_border_width']) ? intval($_POST['bw_cart_popup_continue_border_width']) : 1;
+    $continue_border_width = $clamp_int($post_value('bw_cart_popup_continue_border_width', 1), 0, 20, 1);
     update_option('bw_cart_popup_continue_border_width', $continue_border_width);
 
     // Border style
-    $continue_border_style = isset($_POST['bw_cart_popup_continue_border_style']) ? sanitize_text_field($_POST['bw_cart_popup_continue_border_style']) : 'solid';
+    $continue_border_style = sanitize_key((string) $post_value('bw_cart_popup_continue_border_style', 'solid'));
+    if (!in_array($continue_border_style, ['none', 'solid', 'dashed', 'dotted', 'double'], true)) {
+        $continue_border_style = 'solid';
+    }
     update_option('bw_cart_popup_continue_border_style', $continue_border_style);
 
     // Border color
-    $continue_border_color = isset($_POST['bw_cart_popup_continue_border_color']) ? sanitize_hex_color($_POST['bw_cart_popup_continue_border_color']) : '#6c757d';
+    $continue_border_color = sanitize_hex_color((string) $post_value('bw_cart_popup_continue_border_color', '#6c757d'));
     update_option('bw_cart_popup_continue_border_color', $continue_border_color);
 
     // Padding
-    $continue_padding_top = isset($_POST['bw_cart_popup_continue_padding_top']) ? intval($_POST['bw_cart_popup_continue_padding_top']) : 12;
+    $continue_padding_top = $clamp_int($post_value('bw_cart_popup_continue_padding_top', 12), 0, 500, 12);
     update_option('bw_cart_popup_continue_padding_top', $continue_padding_top);
 
-    $continue_padding_right = isset($_POST['bw_cart_popup_continue_padding_right']) ? intval($_POST['bw_cart_popup_continue_padding_right']) : 20;
+    $continue_padding_right = $clamp_int($post_value('bw_cart_popup_continue_padding_right', 20), 0, 500, 20);
     update_option('bw_cart_popup_continue_padding_right', $continue_padding_right);
 
-    $continue_padding_bottom = isset($_POST['bw_cart_popup_continue_padding_bottom']) ? intval($_POST['bw_cart_popup_continue_padding_bottom']) : 12;
+    $continue_padding_bottom = $clamp_int($post_value('bw_cart_popup_continue_padding_bottom', 12), 0, 500, 12);
     update_option('bw_cart_popup_continue_padding_bottom', $continue_padding_bottom);
 
-    $continue_padding_left = isset($_POST['bw_cart_popup_continue_padding_left']) ? intval($_POST['bw_cart_popup_continue_padding_left']) : 20;
+    $continue_padding_left = $clamp_int($post_value('bw_cart_popup_continue_padding_left', 20), 0, 500, 20);
     update_option('bw_cart_popup_continue_padding_left', $continue_padding_left);
 
     // Quantity badge toggle
@@ -406,33 +445,36 @@ function bw_cart_popup_save_settings()
 
     // === PROMO CODE SECTION ===
     // Promo code section label
-    $promo_section_label = isset($_POST['bw_cart_popup_promo_section_label']) ? sanitize_text_field($_POST['bw_cart_popup_promo_section_label']) : 'Promo code section';
+    $promo_section_label = sanitize_text_field((string) $post_value('bw_cart_popup_promo_section_label', 'Promo code section'));
     update_option('bw_cart_popup_promo_section_label', $promo_section_label);
 
     // Promo input padding
-    $promo_input_padding_top = isset($_POST['bw_cart_popup_promo_input_padding_top']) ? intval($_POST['bw_cart_popup_promo_input_padding_top']) : 10;
+    $promo_input_padding_top = $clamp_int($post_value('bw_cart_popup_promo_input_padding_top', 10), 0, 500, 10);
     update_option('bw_cart_popup_promo_input_padding_top', $promo_input_padding_top);
 
-    $promo_input_padding_right = isset($_POST['bw_cart_popup_promo_input_padding_right']) ? intval($_POST['bw_cart_popup_promo_input_padding_right']) : 12;
+    $promo_input_padding_right = $clamp_int($post_value('bw_cart_popup_promo_input_padding_right', 12), 0, 500, 12);
     update_option('bw_cart_popup_promo_input_padding_right', $promo_input_padding_right);
 
-    $promo_input_padding_bottom = isset($_POST['bw_cart_popup_promo_input_padding_bottom']) ? intval($_POST['bw_cart_popup_promo_input_padding_bottom']) : 10;
+    $promo_input_padding_bottom = $clamp_int($post_value('bw_cart_popup_promo_input_padding_bottom', 10), 0, 500, 10);
     update_option('bw_cart_popup_promo_input_padding_bottom', $promo_input_padding_bottom);
 
-    $promo_input_padding_left = isset($_POST['bw_cart_popup_promo_input_padding_left']) ? intval($_POST['bw_cart_popup_promo_input_padding_left']) : 12;
+    $promo_input_padding_left = $clamp_int($post_value('bw_cart_popup_promo_input_padding_left', 12), 0, 500, 12);
     update_option('bw_cart_popup_promo_input_padding_left', $promo_input_padding_left);
 
     // Promo input placeholder font size
-    $promo_placeholder_font_size = isset($_POST['bw_cart_popup_promo_placeholder_font_size']) ? intval($_POST['bw_cart_popup_promo_placeholder_font_size']) : 14;
+    $promo_placeholder_font_size = $clamp_int($post_value('bw_cart_popup_promo_placeholder_font_size', 14), 8, 120, 14);
     update_option('bw_cart_popup_promo_placeholder_font_size', $promo_placeholder_font_size);
 
     // Apply button font weight
-    $apply_button_font_weight = isset($_POST['bw_cart_popup_apply_button_font_weight']) ? sanitize_text_field($_POST['bw_cart_popup_apply_button_font_weight']) : 'normal';
+    $apply_button_font_weight = sanitize_key((string) $post_value('bw_cart_popup_apply_button_font_weight', 'normal'));
+    if (!in_array($apply_button_font_weight, ['normal', 'bold', '100', '200', '300', '400', '500', '600', '700', '800', '900'], true)) {
+        $apply_button_font_weight = 'normal';
+    }
     update_option('bw_cart_popup_apply_button_font_weight', $apply_button_font_weight);
 
     // === EMPTY CART SETTINGS ===
     // Return to shop link
-    $return_shop_url = isset($_POST['bw_cart_popup_return_shop_url']) ? esc_url_raw($_POST['bw_cart_popup_return_shop_url']) : '';
+    $return_shop_url = esc_url_raw((string) $post_value('bw_cart_popup_return_shop_url', ''));
     update_option('bw_cart_popup_return_shop_url', $return_shop_url);
 
     return true;

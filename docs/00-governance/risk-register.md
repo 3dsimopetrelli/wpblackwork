@@ -914,6 +914,17 @@ term sampling strategy for the `category='all'` branch.
   - Schema-safe array normalization for policy option payloads (array validation + allowlist key construction) before `update_option`.
   - Fail-safe behavior: invalid capability/nonce/context paths abort without option writes.
 - Monitoring Status: Monitoring
+- Patch Status:
+  - Patch A: `CLOSED` (2026-03-10) — Cart Popup settings input integrity hardening completed in `cart-popup/admin/settings-page.php`.
+    - Normalized scalar reads via `wp_unslash` before sanitization.
+    - Added enum allowlists:
+      - `bw_cart_popup_checkout_border_style`
+      - `bw_cart_popup_continue_border_style`
+      - `bw_cart_popup_apply_button_font_weight`
+    - Added numeric clamping for bounded runtime/style fields (panel/mobile width, overlay opacity, paddings, margins, font sizes, border radius/width).
+    - No option key changes, no UI redesign, no Supabase-adjacent modifications.
+    - Validation checks: `php -l` PASS, `composer run lint:main` PASS.
+  - Patch B: `PENDING DISCOVERY` — review/decision on `variation-license` AJAX `nopriv` exposure (`metabox/variation-license-html-field.php`).
 - Linked Documents:
   - [BW-TASK-20260306-08 Closure](../tasks/BW-TASK-20260306-08-closure.md)
   - [Admin Panel Map](../20-development/admin-panel-map.md)
