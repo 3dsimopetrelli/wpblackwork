@@ -845,9 +845,9 @@ function bw_mew_handle_supabase_token_login() {
             ]
         );
         delete_user_meta( $user->ID, 'bw_supabase_invited' );
-    } elseif ( $already_onboarded || ! $has_invite_flag ) {
-        // Invite callback for a user already considered ready (or stale missing invite flag):
-        // enforce convergence to onboarded state and avoid false onboarding lock.
+    } elseif ( $already_onboarded ) {
+        // Invite callback for a user already considered ready:
+        // keep convergence to onboarded state and avoid false onboarding lock.
         bw_mew_set_onboarding_marker(
             $user->ID,
             true,

@@ -121,8 +121,9 @@ add_action( 'woocommerce_account_set-password_endpoint', 'bw_mew_render_set_pass
 /**
  * Enforce onboarding lock until Supabase password is set.
  *
- * When provider is Supabase, we use a modal instead of redirecting.
- * When provider is WordPress, no onboarding lock is enforced.
+ * For Supabase provider, users not yet onboarded are hard-redirected to
+ * the set-password endpoint to prevent access to My Account content.
+ * For WordPress provider, no onboarding lock is enforced.
  */
 function bw_mew_enforce_supabase_onboarding_lock() {
     if ( ! function_exists( 'is_account_page' ) || ! is_account_page() || ! is_user_logged_in() ) {
@@ -145,13 +146,21 @@ function bw_mew_enforce_supabase_onboarding_lock() {
         return;
     }
 
-    // For Supabase provider: let modal handle gating (no redirect)
-    // Allow set-password and logout endpoints
+    // Allow set-password and logout endpoints.
     if ( is_wc_endpoint_url( 'set-password' ) || is_wc_endpoint_url( 'customer-logout' ) ) {
         return;
     }
 
-    // Modal will handle the gating via JS - no redirect needed
+    $set_password_url = function_exists( 'wc_get_account_endpoint_url' )
+        ? wc_get_account_endpoint_url( 'set-password' )
+        : '';
+
+    if ( ! $set_password_url ) {
+        $set_password_url = home_url( '/my-account/set-password/' );
+    }
+
+    wp_safe_redirect( $set_password_url );
+    exit;
 }
 add_action( 'template_redirect', 'bw_mew_enforce_supabase_onboarding_lock' );
 

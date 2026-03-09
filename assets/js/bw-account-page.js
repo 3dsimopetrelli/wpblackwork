@@ -454,48 +454,8 @@
             });
         };
 
-        var updateSupabasePassword = function (newPassword) {
+        var updateSupabasePasswordDirect = function (newPassword, accessToken) {
             var supabase = getSupabaseClient();
-            var accessToken = getSessionStorageItem(pendingAccessTokenKey) || getSessionStorageItem('bw_supabase_access_token');
-            var refreshToken = getSessionStorageItem(pendingRefreshTokenKey) || getSessionStorageItem('bw_supabase_refresh_token');
-            logDebug('PASSWORD_UPDATE_START', {
-                mode: authConfig.ajaxUrl && authConfig.nonce ? 'ajax' : (supabase ? 'sdk' : 'rest'),
-                hasAccessToken: Boolean(accessToken)
-            });
-
-            if (authConfig.ajaxUrl && authConfig.nonce && accessToken) {
-                return fetch(authConfig.ajaxUrl, {
-                    method: 'POST',
-                    credentials: 'same-origin',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8'
-                    },
-                    body: new URLSearchParams({
-                        action: 'bw_supabase_create_password',
-                        nonce: authConfig.nonce,
-                        access_token: accessToken,
-                        refresh_token: refreshToken || '',
-                        new_password: newPassword,
-                        confirm_password: newPassword
-                    })
-                }).then(function (response) {
-                    return response.json().then(function (payload) {
-                        var ok = Boolean(payload && payload.success);
-                        logDebug('PASSWORD_UPDATE_RESULT', {
-                            mode: 'ajax',
-                            ok: ok,
-                            status: response.status
-                        });
-                        if (!ok) {
-                            var message = payload && payload.data && payload.data.message
-                                ? payload.data.message
-                                : getMessage('createPasswordError', 'Unable to update password.');
-                            return { error: new Error(message) };
-                        }
-                        return payload.data || {};
-                    });
-                });
-            }
 
             if (supabase && supabase.auth && typeof supabase.auth.updateUser === 'function') {
                 return supabase.auth.updateUser({ password: newPassword }).then(function (response) {
@@ -531,16 +491,88 @@
                     ok: response.ok,
                     status: response.status
                 });
-                if (!response.ok) {
-                    return response.json().then(function (payload) {
-                        var message = payload && (payload.msg || payload.message) ? (payload.msg || payload.message) : getMessage('createPasswordError', 'Unable to update password.');
-                        throw new Error(message);
+                return response.json()
+                    .catch(function () {
+                        return {};
+                    })
+                    .then(function (payload) {
+                        if (!response.ok) {
+                            var message = payload && (payload.msg || payload.message)
+                                ? (payload.msg || payload.message)
+                                : getMessage('createPasswordError', 'Unable to update password.');
+                            return { error: new Error(message) };
+                        }
+                        return { data: payload };
                     });
-                }
-                return response.json();
             }).catch(function (error) {
                 return { error: error };
             });
+        };
+
+        var updateSupabasePassword = function (newPassword) {
+            var supabase = getSupabaseClient();
+            var accessToken = getSessionStorageItem(pendingAccessTokenKey) || getSessionStorageItem('bw_supabase_access_token');
+            var refreshToken = getSessionStorageItem(pendingRefreshTokenKey) || getSessionStorageItem('bw_supabase_refresh_token');
+            logDebug('PASSWORD_UPDATE_START', {
+                mode: authConfig.ajaxUrl && authConfig.nonce ? 'ajax' : (supabase ? 'sdk' : 'rest'),
+                hasAccessToken: Boolean(accessToken)
+            });
+
+            if (authConfig.ajaxUrl && authConfig.nonce && accessToken) {
+                return fetch(authConfig.ajaxUrl, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8'
+                    },
+                    body: new URLSearchParams({
+                        action: 'bw_supabase_create_password',
+                        nonce: authConfig.nonce,
+                        access_token: accessToken,
+                        refresh_token: refreshToken || '',
+                        new_password: newPassword,
+                        confirm_password: newPassword
+                    })
+                }).then(function (response) {
+                    return response.text().then(function (text) {
+                        var payload = {};
+                        try {
+                            payload = text ? JSON.parse(text) : {};
+                        } catch (error) {
+                            payload = {};
+                        }
+
+                        var ok = Boolean(payload && payload.success);
+                        logDebug('PASSWORD_UPDATE_RESULT', {
+                            mode: 'ajax',
+                            ok: ok,
+                            status: response.status
+                        });
+
+                        if (ok) {
+                            return payload.data || {};
+                        }
+
+                        var message = payload && payload.data && payload.data.message ? payload.data.message : '';
+                        var shouldFallback = response.status === 403 || response.status >= 500 || !message;
+
+                        if (shouldFallback) {
+                            logDebug('PASSWORD_UPDATE_FALLBACK', {
+                                reason: response.status || 'invalid_response',
+                                hasMessage: Boolean(message)
+                            });
+                            return updateSupabasePasswordDirect(newPassword, accessToken);
+                        }
+
+                        return { error: new Error(message) };
+                    });
+                }).catch(function () {
+                    logDebug('PASSWORD_UPDATE_FALLBACK', { reason: 'network_error' });
+                    return updateSupabasePasswordDirect(newPassword, accessToken);
+                });
+            }
+
+            return updateSupabasePasswordDirect(newPassword, accessToken);
         };
 
         var resolveBridgeTokens = function () {
