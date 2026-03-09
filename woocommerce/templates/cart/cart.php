@@ -30,7 +30,7 @@ do_action('woocommerce_before_cart'); ?>
                     <?php wc_print_notices(); ?>
                 </div>
 
-                <div class="bw-cart-items-list">
+                <div class="bw-cart-items-list woocommerce-cart-form__contents">
                     <?php do_action('woocommerce_before_cart_contents'); ?>
 
                     <?php
@@ -105,7 +105,7 @@ do_action('woocommerce_before_cart'); ?>
                                             <?php endif; ?>
                                         </div>
 
-                                        <div class="bw-cart-item__remove">
+                                        <div class="bw-cart-item__remove product-remove">
                                             <?php
                                             echo apply_filters(
                                                 'woocommerce_cart_item_remove_link',
