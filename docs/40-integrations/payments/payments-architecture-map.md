@@ -35,6 +35,13 @@ Registration/loading model:
   - `includes/Gateways/class-bw-apple-pay-gateway.php`
   - shared base: `includes/Gateways/class-bw-abstract-stripe-gateway.php`
 
+Google Pay runtime authority note (2026-03-09):
+- Active runtime source of truth is the legacy class:
+  - `includes/woocommerce-overrides/class-bw-google-pay-gateway.php`
+- `includes/Gateways/class-bw-google-pay-gateway.php` exists in repository but is not bootstrapped in current runtime path.
+- Both cannot coexist at runtime because they define the same class name (`BW_Google_Pay_Gateway`) and gateway id (`bw_google_pay`).
+- Until convergence is approved as a dedicated architecture task, Google Pay fixes must target the active legacy runtime path.
+
 Operational invariant (CHECKOUT-01):
 - Gateway registration depends on class availability at runtime (`class_exists(...)` checks).
 - If a custom gateway class is not required before registration, it will not enter WooCommerce gateway lists.
@@ -74,6 +81,11 @@ Contract:
 Webhook endpoints handled per gateway via `woocommerce_api_{gateway_id}`.
 
 Core webhook logic lives in `BW_Abstract_Stripe_Gateway::handle_webhook()` and maps Stripe PaymentIntent events to WooCommerce order state.
+
+Google Pay webhook runtime-path decision:
+- Active webhook handler path:
+  - `includes/woocommerce-overrides/class-bw-google-pay-gateway.php` (`/?wc-api=bw_google_pay`)
+- Convergence to the abstract Stripe-backed Google class is deferred and tracked as architecture cleanup follow-up.
 
 ## 3) Runtime Flow Model
 Lifecycle:

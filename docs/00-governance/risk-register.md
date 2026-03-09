@@ -618,10 +618,22 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 - Impact: Critical
 - Likelihood: Low-Medium
 - Risk Level: High
+- Status: Mitigated (Partial Mitigation Complete)
 - Current Mitigation: Signature-first authenticity gate, event-id claim ledger (`_bw_evt_claim_*`) with completed-state dedupe, deterministic unknown/duplicate/out-of-order no-op behavior, monotonic transition guard, and return-flow-safe convergence checks before order mutation.
   - Stale-claim reclaim is now compare-and-swap guarded (`update_post_meta(..., $new, $existing)`) to prevent dual reclaim under concurrent webhook workers on the same event id.
   - Closure note: Webhook Convergence Hardening implementation completed; risk moved to Monitoring with residual provider-timing variability tracked operationally.
-- Monitoring Status: Monitoring
+- Patch update (2026-03-09):
+  - `R-PAY-08 patch 1`: CLOSED.
+  - Added explicit POST-only enforcement in webhook handlers:
+    - `includes/Gateways/class-bw-abstract-stripe-gateway.php`
+    - `includes/woocommerce-overrides/class-bw-google-pay-gateway.php`
+  - Runtime-path decision (Google Pay):
+    - Current runtime source of truth: `includes/woocommerce-overrides/class-bw-google-pay-gateway.php`.
+    - Inactive/not bootstrapped path: `includes/Gateways/class-bw-google-pay-gateway.php`.
+    - Both classes cannot coexist at runtime (same class name `BW_Google_Pay_Gateway` and same gateway id `bw_google_pay`).
+    - Any Google Pay webhook/payment fix must target the legacy runtime path until convergence is explicitly approved.
+  - Follow-up: Google Pay runtime convergence deferred to a dedicated architecture cleanup task.
+- Monitoring Status: Mitigated / Partial Mitigation Complete
 - Linked Documents:
   - [Callback Contracts](./callback-contracts.md)
   - [Blast-Radius Consolidation Map](./blast-radius-consolidation-map.md)

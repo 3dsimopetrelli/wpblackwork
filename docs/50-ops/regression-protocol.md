@@ -101,3 +101,24 @@ When tasks touch Supabase protected surfaces, these smoke tests are mandatory:
   - add bulk integrity regression scenarios
 - Supabase note:
   - No Supabase-adjacent surfaces involved.
+
+## Payments Webhook Hardening (Patch 1)
+- Date: 2026-03-09
+- Risk: `R-PAY-08` (patch 1) - `CLOSED`
+- Scope:
+  - Added explicit POST-only method enforcement for Blackwork-owned Stripe webhook handlers.
+  - Updated files:
+    - `includes/Gateways/class-bw-abstract-stripe-gateway.php`
+    - `includes/woocommerce-overrides/class-bw-google-pay-gateway.php`
+- Runtime decision record:
+  - Active Google Pay runtime/webhook source of truth:
+    - `includes/woocommerce-overrides/class-bw-google-pay-gateway.php`
+  - In-repo but inactive/not bootstrapped path:
+    - `includes/Gateways/class-bw-google-pay-gateway.php`
+  - Same class name + same gateway id means both paths cannot be active together at runtime.
+  - Google Pay runtime convergence is deferred to a dedicated architecture cleanup task.
+- Required regression checks:
+  - valid webhook via POST still processes
+  - invalid signature via POST still fails
+  - GET to webhook endpoint is rejected (`405`)
+  - unsupported event keeps expected no-op behavior
