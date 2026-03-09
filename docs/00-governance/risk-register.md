@@ -986,14 +986,18 @@ Mitigation Update (2026-03-09):
 - BlackWork custom payment accordion UI, gateway visibility behavior, and gateway business logic were preserved.
 - Verified payment regressions: Card, PayPal, Klarna, gateway switching, `updated_checkout` selection persistence, mobile accordion behavior, and noscript update-totals fallback.
 - Supabase protected surfaces were not touched.
+- Patch 3 completed for `checkout/form-checkout.php` with minimal structural compatibility deltas against WooCommerce core `9.4.0` (template metadata header, checkout form `aria-label`, restored trailing `woocommerce_after_checkout_form` hook).
+- BlackWork checkout layout, payment placement, review-order structure, and gateway behavior were preserved.
+- Verified regressions: layout unchanged, billing/shipping render+validation, Card/PayPal/Klarna visibility unchanged, order review/totals unchanged, submit flow intact, mobile layout intact.
+- Supabase protected surfaces were not touched.
 
 Progress Status:
 - `R-WOO-24` remains Open (partial mitigation complete).
 - Completed items:
   - `checkout/form-coupon.php`
   - `checkout/payment.php`
-- Pending patch items:
   - `checkout/form-checkout.php`
+- Pending patch items:
   - `cart/cart.php`
   - `single-product/related.php`
 
