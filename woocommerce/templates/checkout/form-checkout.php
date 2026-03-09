@@ -2,7 +2,17 @@
 /**
  * Checkout Form
  *
- * @package WooCommerce
+ * This template can be overridden by copying it to yourtheme/woocommerce/checkout/form-checkout.php.
+ *
+ * HOWEVER, on occasion WooCommerce will need to update template files and you
+ * (the theme developer) will need to copy the new files to your theme to
+ * maintain compatibility. We try to do this as little as possible, but it does
+ * happen. When this occurs the version of the template file will be bumped and
+ * the readme will list any important changes.
+ *
+ * @see https://woocommerce.com/document/template-structure/
+ * @package WooCommerce\Templates
+ * @version 9.4.0
  */
 
 defined('ABSPATH') || exit;
@@ -95,7 +105,8 @@ if (function_exists('bw_mew_render_checkout_header')) {
 ?>
 
 <form name="checkout" method="post" class="checkout woocommerce-checkout bw-checkout-form"
-    action="<?php echo esc_url(wc_get_checkout_url()); ?>" enctype="multipart/form-data">
+    action="<?php echo esc_url(wc_get_checkout_url()); ?>" enctype="multipart/form-data"
+    aria-label="<?php echo esc_attr__('Checkout', 'woocommerce'); ?>">
     <div class="bw-checkout-wrapper" style="<?php echo esc_attr($grid_inline_styles); ?>">
         <div class="bw-checkout-grid" style="<?php echo esc_attr($grid_inline_styles); ?>">
             <div class="bw-checkout-left">
@@ -274,3 +285,5 @@ if (function_exists('bw_mew_render_checkout_header')) {
         <?php endif; ?>
     </div>
 </form>
+
+<?php do_action('woocommerce_after_checkout_form', $checkout); ?>
