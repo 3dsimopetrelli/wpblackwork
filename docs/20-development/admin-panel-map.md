@@ -19,6 +19,20 @@ It consolidates the structural reality already audited in [`docs/50-ops/admin-pa
   - `Blackwork Site` consistently lands on the unified settings router (`bw_site_settings_page`).
   - Checkout / Supabase / Coming Soon / Redirect / Import / Loading tabs remain reachable from a stable entrypoint.
 
+### 1.1.2 2026-03-09 Post-Rollback Realignment
+- Following a rollback that unintentionally reverted admin-panel files, the `Blackwork Site` panel contract was re-aligned to the current Shopify-style governance baseline.
+- Restored authority surfaces:
+  - `admin/class-blackwork-site-settings.php`
+  - `includes/admin/checkout-subscribe/class-bw-checkout-subscribe-admin.php`
+- Restored panel invariants:
+  - `Site Settings` remains the first deterministic submenu landing under `Blackwork Site`.
+  - `Mail Marketing` remains a first-class submenu under `blackwork-site-settings`.
+  - Shared UI kit loading remains scoped through `bw_is_blackwork_site_admin_screen(...)` and `bw_admin_enqueue_ui_kit_assets(...)`.
+  - Site Settings tab-specific assets remain restricted by page/tab matrix in `bw_site_settings_admin_assets(...)`.
+- Traceability:
+  - Governance decision: `docs/00-planning/decision-log.md` (Entry 032).
+  - Closure artifact: `docs/tasks/BW-TASK-20260309-01-closure.md`.
+
 ### 1.2 Capability model
 - Primary capability baseline: `manage_options` (main menu + Header + Mail Marketing).
 - Import Product tab extends gate with `manage_woocommerce` OR `manage_options`.

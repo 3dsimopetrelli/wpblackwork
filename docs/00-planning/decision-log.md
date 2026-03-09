@@ -408,6 +408,18 @@ Future strategy:
 - Maintain strict plugin trust posture in production stacks.
 - Track this as a decision-log boundary item linked to Radar Batch 2 triage, not as an immediate runtime hotfix.
 
+### Entry 032
+- Date: 2026-03-09
+- Decision summary: Re-aligned `Blackwork Site` admin panel to the current Shopify-style governance baseline after rollback drift on panel authority files.
+- Affected domain: Admin Navigation / Admin Asset Scope / Mail Marketing Submenu / Panel Governance Traceability
+- Rationale: A Supabase-oriented rollback unintentionally pulled older versions of panel authority files, causing drift from the documented panel contract and risking inconsistent admin landing/scope behavior.
+- Risk impact: Medium reduced to Low through deterministic baseline restore and narrow blast-radius recovery.
+- Follow-up actions:
+  - Keep `admin/class-blackwork-site-settings.php` and `includes/admin/checkout-subscribe/class-bw-checkout-subscribe-admin.php` aligned with admin-panel governance docs.
+  - Keep `Site Settings` deterministic first submenu behavior under `blackwork-site-settings`.
+  - Keep UI kit and page/tab asset scope guarded by current panel gating functions.
+  - Preserve closure trace in `docs/tasks/BW-TASK-20260309-01-closure.md`.
+
 ## Governance Layer Closure
 
 Status: CLOSED  
