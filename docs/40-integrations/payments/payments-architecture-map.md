@@ -35,6 +35,12 @@ Registration/loading model:
   - `includes/Gateways/class-bw-apple-pay-gateway.php`
   - shared base: `includes/Gateways/class-bw-abstract-stripe-gateway.php`
 
+Operational invariant (CHECKOUT-01):
+- Gateway registration depends on class availability at runtime (`class_exists(...)` checks).
+- If a custom gateway class is not required before registration, it will not enter WooCommerce gateway lists.
+- Confirmed incident: Klarna visibility regression occurred when `BW_Klarna_Gateway` was not loaded in bootstrap; result was missing `bw_klarna` in `$available_gateways` and no checkout render row.
+- Resolution anchor: explicit class loading in `woocommerce/woocommerce-init.php` for Klarna dependency chain.
+
 ### Layer C: Stripe SDK integration
 Stripe is integrated at multiple levels:
 - server side: `BW_Stripe_Api_Client` + gateway API requests

@@ -28,6 +28,18 @@ This document tracks the BlackWork custom Klarna gateway architecture and settin
 - Hook: `woocommerce_payment_gateways`
 - Registered class: `BW_Klarna_Gateway`
 
+### Bootstrap Requirement (CHECKOUT-01)
+- `BW_Klarna_Gateway` must be loaded before gateway registration is evaluated.
+- Required bootstrap surface:
+  - `/Users/simonezanon/Documents/local site/BlackWork/wp-content/plugins/wpblackwork/woocommerce/woocommerce-init.php`
+- Required includes for Klarna path:
+  - `includes/Stripe/class-bw-stripe-api-client.php`
+  - `includes/Utils/class-bw-stripe-safe-logger.php`
+  - `includes/Gateways/class-bw-abstract-stripe-gateway.php`
+  - `includes/Gateways/class-bw-klarna-gateway.php`
+- Failure mode:
+  - if `class_exists('BW_Klarna_Gateway')` is false during `woocommerce_payment_gateways`, `bw_klarna` is never added and checkout cannot render Klarna because `$available_gateways` does not contain it.
+
 ### Admin Tab (BlackWork Site > Checkout > Klarna Pay)
 - File: `/Users/simonezanon/Documents/local site/BlackWork/wp-content/plugins/wpblackwork/admin/class-blackwork-site-settings.php`
 - New sub-tab: `klarna-pay`
