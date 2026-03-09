@@ -1086,26 +1086,26 @@
             submitButton.disabled = true;
         }
 
-        fetch(projectUrl.replace(/\/$/, '') + '/auth/v1/user', {
-            method: 'PUT',
+        fetch(ajaxUrl, {
+            method: 'POST',
+            credentials: 'same-origin',
             headers: {
-                apikey: anonKey,
-                Authorization: 'Bearer ' + accessToken,
-                'Content-Type': 'application/json',
-                Accept: 'application/json'
+                'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8'
             },
-            body: JSON.stringify({
-                password: newPassword.value
+            body: new URLSearchParams({
+                action: 'bw_supabase_create_password',
+                nonce: nonce,
+                access_token: accessToken,
+                new_password: newPassword.value,
+                confirm_password: confirmPassword.value
             })
         })
-            .then((response) => {
-                if (!response.ok) {
-                    return response.json().then((payload) => {
-                        const message = payload && (payload.msg || payload.message) ? (payload.msg || payload.message) : 'Unable to update password.';
-                        throw new Error(message);
-                    });
+            .then((response) => response.json())
+            .then((payload) => {
+                if (!payload || !payload.success) {
+                    const message = payload && payload.data && payload.data.message ? payload.data.message : 'Unable to update password.';
+                    throw new Error(message);
                 }
-                return response.json();
             })
             .then(() => {
                 if (!ajaxUrl || !nonce) {
