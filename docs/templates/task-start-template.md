@@ -104,6 +104,13 @@ If new surfaces are discovered during development, the task MUST pause and the s
 - Runtime hook/order changes:
 - Requires ADR? (Yes/No)
 - Risk register impact required? (Yes/No)
+- Risk dashboard impact required? (Yes/No)
+
+Risk synchronization rule:
+- Whenever a risk investigation begins, ensure the risk exists in:
+  - `docs/00-governance/risk-register.md`
+  - `docs/00-governance/risk-status-dashboard.md`
+- If a new risk is discovered, it MUST be registered in both files before implementation begins.
 
 Normative rules:
 - Governance impact analysis is REQUIRED and BLOCKING.

@@ -4,6 +4,10 @@
 This document is the authoritative registry of open technical risks at governance level.
 It tracks systemic threats to stability, authority boundaries, and non-break invariants across domains.
 
+Governance synchronization rule:
+- The quick overview in `docs/00-governance/risk-status-dashboard.md` MUST stay synchronized with this register.
+- Whenever a risk is added, closed, mitigated, deferred, or moved to watchlist, both files MUST be updated in the same task.
+
 Difference:
 - Risk: governance-level threat that can cause cross-domain instability or invariant break.
 - TODO: implementation task/action item. A TODO may address a risk, but it is not the risk itself.

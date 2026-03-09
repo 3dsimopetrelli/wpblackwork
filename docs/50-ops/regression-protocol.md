@@ -21,6 +21,30 @@ After any maintenance task, validate:
 - Then run cross-domain sanity checks to detect side effects.
 - Record anomalies and link them to incident level and affected domain docs.
 
+## Risk Work Protocol (Start / Close)
+### Task Start / Risk Work Protocol
+Whenever a new risk investigation starts, ensure the risk is registered both in:
+- `docs/00-governance/risk-register.md`
+- `docs/00-governance/risk-status-dashboard.md`
+
+The Risk Status Dashboard is the quick overview of all governance risks and must be kept synchronized with the Risk Register.
+
+If a new risk is discovered during investigation, add it to both files before proceeding with mitigation planning.
+
+### Task Close / Status Change Protocol
+When a risk is closed or status changes, update:
+- `docs/00-governance/risk-register.md`
+- `docs/00-governance/risk-status-dashboard.md`
+- `docs/50-ops/regression-protocol.md` (if testing procedures changed)
+- feature technical docs (if behavior changed)
+
+### Risk Closure Documentation Checklist
+Before marking a risk as `CLOSED` or `RESOLVED`:
+- risk-register.md updated
+- risk-status-dashboard.md updated
+- regression protocol updated if needed
+- feature technical docs updated if relevant
+
 ## Supabase Protected Surface Smoke Binding
 When tasks touch Supabase protected surfaces, these smoke tests are mandatory:
 

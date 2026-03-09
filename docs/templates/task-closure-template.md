@@ -137,11 +137,19 @@ Normative rule:
 - Roadmap updated? (`docs/00-planning/core-evolution-plan.md`)
 - Decision log updated? (`docs/00-planning/decision-log.md`)
 - Risk register updated? (`docs/00-governance/risk-register.md`)
+- Risk status dashboard updated? (`docs/00-governance/risk-status-dashboard.md`)
 - Runtime hook map updated? (`docs/50-ops/runtime-hook-map.md`)
 - Feature documentation updated? (`docs/30-features/...`)
 
 Normative rule:
 - If system behavior changes, governance/documentation updates are REQUIRED.
+
+### Risk Closure Documentation Checklist
+Before marking a risk as `CLOSED` or `RESOLVED`, ensure:
+- `docs/00-governance/risk-register.md` updated
+- `docs/00-governance/risk-status-dashboard.md` updated
+- `docs/50-ops/regression-protocol.md` updated (if regression procedures changed)
+- feature technical documentation updated (if implementation changed)
 
 ## 8) Final Integrity Check
 Confirm:

@@ -86,6 +86,9 @@ AI agents MUST respect the following governance artifacts:
 Risk Register  
 `docs/00-governance/risk-register.md`
 
+Risk Status Dashboard  
+`docs/00-governance/risk-status-dashboard.md`
+
 Decision Log  
 `docs/00-planning/decision-log.md`
 
@@ -96,6 +99,9 @@ Normative rule:
 
 Changes that affect system behavior, authority ownership, or risk posture
 MUST update the corresponding governance documents.
+
+Risk governance rule:
+- The Risk Register and Risk Status Dashboard MUST remain synchronized at task start and task close.
 
 ## 5) Determinism Requirement
 
