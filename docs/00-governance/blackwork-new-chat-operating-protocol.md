@@ -137,6 +137,7 @@ ChatGPT MUST always consider:
 -   No silent drift
 -   No hidden coupling
 -   No uncontrolled surface mutation
+-   Supabase protected surfaces require explicit flow validation before merge
 
 ------------------------------------------------------------------------
 

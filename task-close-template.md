@@ -159,3 +159,15 @@ Docs:
   - keep `WP_DEBUG_DISPLAY=false`
   - keep `display_errors=0`
   - warnings go to log file, not HTML iframe response
+
+### Supabase Flow Verification
+
+If protected surfaces were modified, required evidence MUST include:
+
+- guest checkout invite send
+- invite email click -> callback convergence
+- create-password onboarding completion
+- guest order claim visible in My Account
+- resend invite functionality
+- expired invite recovery
+- logout + re-entry session validation

@@ -64,6 +64,26 @@ Declare expected runtime surfaces affected.
 Normative rule:
 All expected runtime mutations MUST be declared before implementation.
 
+### Supabase Flow Risk Alert
+
+If the task modifies any Supabase protected surface:
+
+- `includes/woocommerce-overrides/class-bw-supabase-auth.php`
+- `includes/woocommerce-overrides/class-bw-my-account.php`
+- `assets/js/bw-supabase-bridge.js`
+- `woocommerce/templates/myaccount/my-account.php`
+- `woocommerce/templates/checkout/order-received.php`
+
+Then the task MUST include:
+
+- Supabase flow impact declaration
+- list of affected flows
+- planned smoke tests
+
+Normative rules:
+- Any task touching protected Supabase surfaces is governance-critical.
+- Implementation MUST NOT start without the Supabase flow impact declaration.
+
 ## 3.1) Implementation Scope Lock
 
 Confirm that the declared scope is complete.

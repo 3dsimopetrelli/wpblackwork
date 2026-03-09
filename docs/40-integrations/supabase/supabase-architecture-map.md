@@ -401,3 +401,307 @@ If provider is set to Supabase but required config/dependencies are missing, run
 - [Regression Protocol](../../50-ops/regression-protocol.md)
 - [Auth Architecture Map](../auth/auth-architecture-map.md)
 - [Checkout Architecture Map](../../30-features/checkout/checkout-architecture-map.md)
+
+## 12) Canonical Recovery Flow Inventory (Rollback-Stable Baseline)
+
+### Flow 1 — Provider selection (WordPress vs Supabase)
+- Business purpose: route authentication/provisioning behavior by active provider mode.
+- User-visible trigger: user opens My Account/login or checkout-linked auth surfaces.
+- Entry point: provider option read from runtime settings (`bw_account_login_provider`).
+- Control handoff: template/bootstrap reads provider, then routes to WP-native or Supabase-aware logic.
+- PHP owner files: `includes/woocommerce-overrides/class-bw-supabase-auth.php`
+- JS owner files: `assets/js/bw-account-page.js`, `assets/js/bw-my-account.js`
+- Template owner files: `woocommerce/templates/myaccount/form-login.php`, `woocommerce/templates/myaccount/my-account.php`
+- Key functions/classes: Supabase auth class provider checks and conditional hook wiring.
+- Supabase endpoints: none when provider=`wordpress`; Supabase stack enabled when provider=`supabase`.
+- Nonce requirements: inherited by downstream AJAX/auth handlers.
+- Token handling responsibility: disabled/bypassed in WordPress mode, enabled in Supabase mode.
+- WP session authority point: WordPress-only auth in WP mode; token bridge/session exchange in Supabase mode.
+- State/meta markers: provider option gates onboarding/token/session behaviors.
+- Redirect behavior: provider-dependent My Account/auth paths.
+- Expected terminal state: deterministic provider branch with no cross-mode leakage.
+- Likely failure modes: wrong provider value, mixed hooks, stale mode assumptions.
+- User-visible symptoms: unexpected login UI/flow, missing Supabase onboarding, or wrong CTA behavior.
+- First evidence to check: provider option value, boot logs, template branch selection.
+- canonical owner: `docs/40-integrations/supabase/supabase-architecture-map.md`
+- supporting docs: `docs/40-integrations/auth/auth-architecture-map.md`, `docs/30-features/my-account/my-account-complete-guide.md`
+- cross-domain dependencies: WooCommerce account templates, plugin option storage.
+- criticality classification: auth-critical.
+
+### Flow 2 — Native Supabase login (email/password)
+- Business purpose: authenticate via Supabase password grant and establish WordPress session.
+- User-visible trigger: submit email/password form in Supabase login mode.
+- Entry point: `admin-ajax.php` action for Supabase password login.
+- Control handoff: JS submits AJAX -> PHP validates nonce -> Supabase `/auth/v1/token?grant_type=password` -> WP user resolve/create -> session set.
+- PHP owner files: `includes/woocommerce-overrides/class-bw-supabase-auth.php`
+- JS owner files: `assets/js/bw-account-page.js`, `assets/js/bw-my-account.js`
+- Template owner files: `woocommerce/templates/myaccount/form-login.php`
+- Key functions/classes: login handler, user mapping helpers, token persistence helpers.
+- Supabase endpoints: `POST /auth/v1/token?grant_type=password`, optional profile/user reads.
+- Nonce requirements: required and enforced on AJAX login action.
+- Token handling responsibility: plugin persists access/refresh token (cookie/usermeta strategy).
+- WP session authority point: `wp_set_auth_cookie` after successful Supabase auth + user mapping.
+- State/meta markers: user linkage/meta + onboarding marker behavior as applicable.
+- Redirect behavior: success redirects to My Account clean state.
+- Expected terminal state: authenticated WP session aligned with Supabase identity.
+- Likely failure modes: nonce fail, Supabase 4xx/5xx, mapping conflict, token persistence error.
+- User-visible symptoms: login fails, generic auth error, session not retained.
+- First evidence to check: AJAX response payload, nonce status, Supabase response body, debug log auth traces.
+- canonical owner: `docs/40-integrations/supabase/supabase-architecture-map.md`
+- supporting docs: `docs/50-ops/runbooks/supabase-runbook.md`
+- cross-domain dependencies: WP user APIs, WooCommerce account endpoint routing.
+- criticality classification: auth-critical, session-critical.
+
+### Flow 3 — Callback/token bridge login (invite, recovery, magic link)
+- Business purpose: convert Supabase callback tokens into authoritative WP authenticated session.
+- User-visible trigger: click invite/magic/recovery link from email.
+- Entry point: callback marker `?bw_auth_callback=1` and hash/code payload processing.
+- Control handoff: browser lands on callback route -> `assets/js/bw-supabase-bridge.js` extracts token/codes -> AJAX/bridge exchange -> PHP validates and sets session -> clean My Account destination.
+- PHP owner files: `woocommerce/woocommerce-init.php`, `includes/woocommerce-overrides/class-bw-supabase-auth.php`
+- JS owner files: `assets/js/bw-supabase-bridge.js`
+- Template owner files: `woocommerce/templates/myaccount/auth-callback.php`, `woocommerce/templates/myaccount/my-account.php`
+- Key functions/classes: callback routing bootstrap, token-login handlers, session exchange helpers.
+- Supabase endpoints: callback code exchange/token validation paths, user/session endpoints as needed.
+- Nonce requirements: token-login policy uses controlled same-site callback allowances for callback completion paths.
+- Token handling responsibility: bridge JS captures callback token data; PHP persists final tokens.
+- WP session authority point: WP cookie set once callback token is validated/mapped.
+- State/meta markers: callback/query markers and onboarding marker updates.
+- Redirect behavior: callback URL cleaned and redirected to stable My Account state.
+- Expected terminal state: no callback fragment left, user in deterministic session state.
+- Likely failure modes: hash not parsed, callback marker mismatch, bridge script not loaded, nonce/policy rejection.
+- User-visible symptoms: callback loop, stuck loading, landing on wrong account state.
+- First evidence to check: browser network for bridge actions, callback params, JS console, debug log callback traces.
+- canonical owner: `docs/40-integrations/supabase/supabase-architecture-map.md`
+- supporting docs: `docs/40-integrations/supabase/supabase-create-password.md`, `docs/50-ops/runbooks/supabase-runbook.md`
+- cross-domain dependencies: email template redirect URLs, My Account route availability.
+- criticality classification: auth-critical, session-critical.
+
+### Flow 4 — Post-checkout guest provisioning (automatic invite)
+- Business purpose: provision guest buyers into Supabase onboarding without manual account creation.
+- User-visible trigger: guest order transitions to eligible paid/lifecycle statuses.
+- Entry point: WooCommerce order status hooks in Supabase auth class.
+- Control handoff: Woo order status event -> eligibility checks -> invite send attempt -> meta/throttle update.
+- PHP owner files: `includes/woocommerce-overrides/class-bw-supabase-auth.php`
+- JS owner files: none required for server-side invite dispatch.
+- Template owner files: checkout/order-received templates consume resulting state.
+- Key functions/classes: invite dispatcher, throttle guards, user creation/linkage helpers.
+- Supabase endpoints: `POST /auth/v1/invite`
+- Nonce requirements: not AJAX user-initiated; server-side trusted hook path.
+- Token handling responsibility: none directly; invite mail initiates later callback/token flow.
+- WP session authority point: not created here unless separate login flow occurs.
+- State/meta markers: invite sent/attempt timestamps, throttle markers, onboarding-related user/order meta.
+- Redirect behavior: none; affects downstream account CTA behavior.
+- Expected terminal state: invite sent once per throttle policy, state recorded.
+- Likely failure modes: missing service-role context, duplicate suppression, misclassified status eligibility.
+- User-visible symptoms: no invite email after purchase, no onboarding progression.
+- First evidence to check: debug log invite trace lines, order meta markers, status transition timing.
+- canonical owner: `docs/40-integrations/supabase/supabase-architecture-map.md`
+- supporting docs: `docs/30-features/checkout/complete-guide.md`, `docs/50-ops/runbooks/supabase-runbook.md`
+- cross-domain dependencies: WooCommerce order lifecycle, Supabase email deliverability.
+- criticality classification: checkout-coupled, onboarding-critical.
+
+### Flow 5 — Order received guest + Supabase CTA behavior
+- Business purpose: show post-checkout guidance matching guest onboarding state under Supabase provider.
+- User-visible trigger: visit `/checkout/order-received/...` after purchase.
+- Entry point: checkout order-received template render.
+- Control handoff: template inspects login/provider/order state and selects branch.
+- PHP owner files: `includes/woocommerce-overrides/class-bw-supabase-auth.php`
+- JS owner files: optional UI scripts only.
+- Template owner files: `woocommerce/templates/checkout/order-received.php`
+- Key functions/classes: branch checks for guest/logged-in/onboarded and provider mode.
+- Supabase endpoints: none directly during render.
+- Nonce requirements: none for passive render branch.
+- Token handling responsibility: none directly in this render layer.
+- WP session authority point: branch reads current WP session state.
+- State/meta markers: order/user onboarding markers and provider setting.
+- Redirect behavior: branch-specific CTA behavior; reminder branch is intentionally static.
+- Expected terminal state: guest sees setup reminder; onboarded/logged user sees account-oriented confirmation.
+- Likely failure modes: wrong branch conditions, stale user marker, provider mismatch.
+- User-visible symptoms: wrong CTA text/action, session-expired message shown incorrectly, confusion after checkout.
+- First evidence to check: template trace logs, branch trace markers, provider option, current user/order IDs.
+- canonical owner: `docs/40-integrations/supabase/supabase-create-password.md`
+- supporting docs: `docs/30-features/checkout/complete-guide.md`
+- cross-domain dependencies: checkout template override load order.
+- criticality classification: checkout-coupled, onboarding-critical.
+
+### Flow 6 — Create password / onboarding gate
+- Business purpose: force password setup completion before full account access when onboarding pending.
+- User-visible trigger: post-callback authenticated state with onboarding marker incomplete.
+- Entry point: My Account gate checks (`bw_supabase_onboarded != 1`) and set-password surfaces.
+- Control handoff: account page render -> gate condition -> set-password modal/page handlers -> success updates marker.
+- PHP owner files: `includes/woocommerce-overrides/class-bw-my-account.php`, `includes/woocommerce-overrides/class-bw-supabase-auth.php`
+- JS owner files: `assets/js/bw-password-modal.js`, `assets/js/bw-my-account.js`
+- Template owner files: `woocommerce/templates/myaccount/set-password.php`, `woocommerce/templates/myaccount/my-account.php`
+- Key functions/classes: onboarding gate checks, create/set password handlers, marker convergence logic.
+- Supabase endpoints: `POST /auth/v1/user` (password update with bearer token/session).
+- Nonce requirements: required on create/set password AJAX handlers.
+- Token handling responsibility: valid Supabase access context required to update password.
+- WP session authority point: WP session may exist before marker is set; gate controls access completion.
+- State/meta markers: `bw_supabase_onboarded` and related onboarding flags.
+- Redirect behavior: success returns to clean My Account logged-in state.
+- Expected terminal state: password set successfully and onboarding marker persisted as complete.
+- Likely failure modes: missing Supabase session, validator mismatch, duplicate-password edge, AJAX failure.
+- User-visible symptoms: "Unable to update password", repeated gate, can’t reach downloads/orders.
+- First evidence to check: password handler logs, network response body, onboarding marker value, token presence.
+- canonical owner: `docs/40-integrations/supabase/supabase-create-password.md`
+- supporting docs: `docs/30-features/my-account/my-account-complete-guide.md`, `docs/50-ops/runbooks/supabase-runbook.md`
+- cross-domain dependencies: callback bridge (Flow 3), order claim visibility (Flow 7).
+- criticality classification: onboarding-critical, auth-critical.
+
+### Flow 7 — Guest order claim to authenticated account
+- Business purpose: bind guest orders/download permissions to authenticated mapped account.
+- User-visible trigger: user completes onboarding/login and opens My Account orders/downloads.
+- Entry point: mapping/claim logic on auth completion and order lookup surfaces.
+- Control handoff: auth success -> WP user resolution/link -> guest order reassignment/association -> account views render purchases.
+- PHP owner files: `includes/woocommerce-overrides/class-bw-supabase-auth.php`
+- JS owner files: none required for core claim.
+- Template owner files: `woocommerce/templates/myaccount/my-account.php`, order/download templates.
+- Key functions/classes: user/email mapping, order claim helpers.
+- Supabase endpoints: indirectly via auth identity source.
+- Nonce requirements: dependent on initiating action (login/callback handlers).
+- Token handling responsibility: auth identity continuity across claim operations.
+- WP session authority point: claim is meaningful only after valid WP authenticated user context.
+- State/meta markers: claimed order ownership/user_id and linked meta.
+- Redirect behavior: user remains in My Account with claimed resources visible.
+- Expected terminal state: previously guest orders and downloads visible under authenticated account.
+- Likely failure modes: email mismatch, claim not triggered, race with onboarding marker.
+- User-visible symptoms: "No order has been made yet" despite paid order.
+- First evidence to check: order user_id/meta, mapping logs, auth identity email, claim helper execution traces.
+- canonical owner: `docs/40-integrations/supabase/supabase-architecture-map.md`
+- supporting docs: `docs/30-features/my-account/my-account-complete-guide.md`, `docs/50-ops/runbooks/supabase-runbook.md`
+- cross-domain dependencies: WooCommerce order ownership model.
+- criticality classification: onboarding-critical, checkout-coupled.
+
+### Flow 8 — Resend invite email
+- Business purpose: recover onboarding when initial invite expired/lost.
+- User-visible trigger: user lands in onboarding reminder screen and requests resend.
+- Entry point: resend invite form/action in login template.
+- Control handoff: JS/UI submit -> PHP resend handler -> Supabase invite endpoint or active-account short-circuit.
+- PHP owner files: `includes/woocommerce-overrides/class-bw-supabase-auth.php`
+- JS owner files: `assets/js/bw-account-page.js`
+- Template owner files: `woocommerce/templates/myaccount/form-login.php`
+- Key functions/classes: resend handler, active-account detection, response message mapper.
+- Supabase endpoints: `POST /auth/v1/invite`.
+- Nonce requirements: required for resend AJAX/form submission.
+- Token handling responsibility: no new login session directly; invite email restarts callback/token path.
+- WP session authority point: not created by resend itself.
+- State/meta markers: invite resend attempt metadata and throttle guards.
+- Redirect behavior: generally same screen with success/error status.
+- Expected terminal state: new invite sent OR explicit "already active" guidance to normal login.
+- Likely failure modes: throttling, Supabase reject, invalid email context.
+- User-visible symptoms: resend appears to do nothing, repeated error, confusing status copy.
+- First evidence to check: resend action response, invite logs, throttle markers.
+- canonical owner: `docs/40-integrations/supabase/supabase-create-password.md`
+- supporting docs: `docs/50-ops/runbooks/supabase-runbook.md`
+- cross-domain dependencies: email template health, provider mode.
+- criticality classification: onboarding-critical.
+
+### Flow 9 — Expired link handling (`otp_expired`)
+- Business purpose: deterministic recovery path when invite/magic link token is invalid/expired.
+- User-visible trigger: user clicks old/used/expired email link.
+- Entry point: callback error parameters include `error_code=otp_expired`.
+- Control handoff: callback parser detects expired token -> plugin redirects to configured expired-link URL.
+- PHP owner files: `includes/woocommerce-overrides/class-bw-supabase-auth.php`
+- JS owner files: `assets/js/bw-supabase-bridge.js` (error-state parsing where applicable)
+- Template owner files: login/recovery template surfaces at destination URL.
+- Key functions/classes: expired-link detector, redirect resolver.
+- Supabase endpoints: callback verification path yields expired status.
+- Nonce requirements: not primary in read/redirect step.
+- Token handling responsibility: rejected/expired token must not be promoted.
+- WP session authority point: no WP login completion when token expired.
+- State/meta markers: error code markers in callback/query state.
+- Redirect behavior: to configured expired-link page with resend entry.
+- Expected terminal state: user lands on recovery UI and can resend invite.
+- Likely failure modes: redirect URL missing/not configured, parser miss, stale fragment handling.
+- User-visible symptoms: lands on wrong page (home or generic my-account), no clear recovery path.
+- First evidence to check: final URL, callback params, redirect setting, bridge logs.
+- canonical owner: `docs/40-integrations/supabase/supabase-create-password.md`
+- supporting docs: `docs/50-ops/runbooks/supabase-runbook.md`
+- cross-domain dependencies: Supabase redirect allow-list and email template links.
+- criticality classification: onboarding-critical, callback-critical.
+
+### Flow 10 — Refresh token and session persistence
+- Business purpose: maintain authenticated continuity when access token expires but refresh token remains valid.
+- User-visible trigger: authenticated session continues across page loads/expiry windows.
+- Entry point: server-side token check detects missing/expired access token.
+- Control handoff: PHP checks persistence store -> if refresh token present attempts refresh -> updates stored tokens -> continues request.
+- PHP owner files: `includes/woocommerce-overrides/class-bw-supabase-auth.php`
+- JS owner files: bridge/account scripts consume resulting state.
+- Template owner files: My Account templates render based on refreshed session state.
+- Key functions/classes: token load/save helpers, refresh request helper, fallback strategy.
+- Supabase endpoints: token refresh endpoint (`/auth/v1/token?grant_type=refresh_token`).
+- Nonce requirements: server-to-server refresh path; nonce not primary control.
+- Token handling responsibility: plugin owns dual-mode session persistence (cookie/usermeta) with fallback.
+- WP session authority point: WP session remains authoritative once user is authenticated; token refresh supports continued integration calls.
+- State/meta markers: persisted access/refresh token stores and expiry-related metadata.
+- Redirect behavior: usually none; silent continuity unless refresh fails.
+- Expected terminal state: refreshed token set and uninterrupted account experience.
+- Likely failure modes: refresh token missing/invalid, persistence write/read mismatch between cookie/usermeta stores.
+- User-visible symptoms: sudden logout-like state, create-password/session-missing errors, repeated callback prompts.
+- First evidence to check: token store presence (cookie/usermeta), refresh call responses, fallback branch logs.
+- canonical owner: `docs/40-integrations/supabase/supabase-architecture-map.md`
+- supporting docs: `docs/50-ops/runbooks/supabase-runbook.md`
+- cross-domain dependencies: browser cookie behavior, WP usermeta availability.
+- criticality classification: session-critical, auth-critical.
+
+### Flow 11 — Logout and session cleanup
+- Business purpose: terminate WP auth and invalidate plugin-side runtime session context.
+- User-visible trigger: user clicks logout from My Account.
+- Entry point: WordPress logout flow + Supabase integration cleanup hooks.
+- Control handoff: WP logout action -> plugin cleanup routines expire Supabase-related cookies/session artifacts.
+- PHP owner files: `includes/woocommerce-overrides/class-bw-supabase-auth.php`
+- JS owner files: minimal; browser transitions to logged-out view.
+- Template owner files: `woocommerce/templates/myaccount/my-account.php`, `woocommerce/templates/myaccount/form-login.php`
+- Key functions/classes: logout cleanup hooks and cookie expiration helpers.
+- Supabase endpoints: none required for local logout cleanup path.
+- Nonce requirements: standard WP logout protections.
+- Token handling responsibility: cookies/session artifacts expired in logout path; not all usermeta token records are cleared in the same path.
+- WP session authority point: WP logout finalizes unauthenticated state.
+- State/meta markers: cookie/session cleanup markers; usermeta may persist for later controlled use.
+- Redirect behavior: standard post-logout My Account/login view.
+- Expected terminal state: user is logged out in WordPress and active session cookies removed.
+- Likely failure modes: stale callback marker URL, partial cleanup perception, redirect to callback loading screen.
+- User-visible symptoms: seeing callback/loading view after logout refresh, confusion about session state.
+- First evidence to check: current URL query params (`bw_auth_callback`), logout hook execution, cookie state.
+- canonical owner: `docs/40-integrations/supabase/supabase-architecture-map.md`
+- supporting docs: `docs/50-ops/runbooks/supabase-runbook.md`
+- cross-domain dependencies: WP core logout routing, client cache/state.
+- criticality classification: session-critical.
+
+### Runtime clarifications that must remain explicit
+- Invite provisioning hooks are broader than just `processing`/`completed`; documentation and triage must not assume only two statuses.
+- Token-login nonce policy includes controlled same-site callback allowances; this is intentional and part of callback hardening.
+- Two different password validators exist and are intentionally split by flow scope.
+- Order-received onboarding reminder branch contains a static/non-clickable onboarding reminder CTA by design.
+- Logout cleanup expires cookies but does not clear all token usermeta in the same path.
+- Session persistence uses dual-mode session persistence (cookie/usermeta) with fallback.
+
+## 13) Protected Runtime Surfaces (Governance Alert Matrix)
+
+> ⚠️ Supabase Protected Surface  
+> This file participates in the canonical Supabase flow architecture.  
+> Any modification requires:  
+> - Supabase Flow Risk Alert  
+> - mandatory regression smoke verification  
+> - rollback comparison against the rollback-stable baseline  
+> Changes on protected surfaces must never be merged without flow validation.
+
+| Surface | Why sensitive | Canonical flows at risk | Severity | Coupling class | Likely user-visible symptoms | First smoke tests after change | Rollback comparison mandatory |
+|---|---|---|---|---|---|---|---|
+| `includes/woocommerce-overrides/class-bw-supabase-auth.php` | Core auth/provisioning/token/session authority and invite dispatch | 1,2,3,4,6,7,8,9,10,11 | Critical | auth/session/callback/onboarding/claim/checkout | Login fails, callback loops, invite missing, orders not claimed, session drops | S1 guest purchase->invite, S2 callback bridge login, S3 create password complete, S4 claimed orders visible, S5 logout cleanup | Yes |
+| `includes/woocommerce-overrides/class-bw-my-account.php` | Onboarding gate and My Account access gating | 6,7 | Critical | onboarding/session/auth | User enters account without password setup or gets stuck in gate | S3 create password completion + gate unlock, S4 orders/downloads post-onboarding | Yes |
+| `woocommerce/woocommerce-init.php` | Callback bootstrap wiring and flow routing | 3,6,9,11 | Critical | callback/session/auth | Auth callback not resolving, loader loops, wrong landing state | S2 callback bridge end-to-end, S6 expired link route, S7 logout then clean login page | Yes |
+| `assets/js/bw-supabase-bridge.js` | Client callback parser and JS->PHP bridge handoff | 3,6,9,10 | Critical | callback/session/onboarding | Callback stuck, missing session handoff, expired link mishandled | S2 callback bridge with invite link, S6 expired link handling, S8 refresh/re-entry continuity | Yes |
+| `assets/js/bw-account-page.js` | Login/onboarding form actions (including resend) | 2,6,8 | High | auth/onboarding | Submit actions fail, resend unusable, messaging mismatch | S9 native login submit, S10 resend invite path | Yes |
+| `assets/js/bw-my-account.js` | My Account state transitions and onboarding UI behavior | 3,6,10,11 | High | session/onboarding/callback | Incorrect state rendering, repeated gates, stale callback visuals | S3 create-password modal/page behavior, S8 refresh continuity, S7 logout path | Yes |
+| `assets/js/bw-password-modal.js` | Password setup UX validation and submit orchestration | 6 | High | onboarding/auth | Button/state mismatch, false pass/fail, password submit errors | S3 onboarding password creation with valid/invalid samples | Yes |
+| `woocommerce/templates/myaccount/form-login.php` | Entry UI for login, resend invite, provider-specific messaging | 1,2,8,9 | High | auth/onboarding/callback | Wrong login method shown, resend flow confusion, recovery blocked | S9 native login, S10 resend invite, S6 expired-link recovery page | Yes |
+| `woocommerce/templates/myaccount/my-account.php` | Account shell where callback/onboarding gating appears | 1,3,6,7,11 | High | session/onboarding/auth | Wrong account state, premature access, post-logout anomalies | S2 callback to My Account, S3 gate->unlock, S7 logout and re-open My Account | Yes |
+| `woocommerce/templates/myaccount/auth-callback.php` | Dedicated callback view and control transfer point | 3,9 | Critical | callback/session | Stuck callback screen, no session bridge completion | S2 callback flow from invite/magic link, S6 expired callback behavior | Yes |
+| `woocommerce/templates/myaccount/set-password.php` | Password setup screen for onboarding completion | 6 | High | onboarding/auth | Cannot complete password, conflicting validation signals | S3 set-password completion and post-success redirect | Yes |
+| `woocommerce/templates/checkout/order-received.php` | Post-checkout branch logic and onboarding reminder behavior | 4,5,7 | Critical | checkout/onboarding/claim | Wrong thank-you CTA, wrong guest guidance, purchase visibility confusion | S1 guest purchase order-received branch, S4 order claim visibility after setup | Yes |
+
+### Governance enforcement
+- Any PR touching one or more surfaces above must raise a **Supabase Flow Risk Alert** in task notes.
+- Minimum regression gate: run smoke set S1-S4 for Critical surfaces and targeted smoke for High/Medium surfaces.
+- Comparator requirement: diff behavior against the Rollback-Stable Baseline documented in Section 12 before merge approval.
