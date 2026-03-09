@@ -990,6 +990,10 @@ Mitigation Update (2026-03-09):
 - BlackWork checkout layout, payment placement, review-order structure, and gateway behavior were preserved.
 - Verified regressions: layout unchanged, billing/shipping render+validation, Card/PayPal/Klarna visibility unchanged, order review/totals unchanged, submit flow intact, mobile layout intact.
 - Supabase protected surfaces were not touched.
+- Patch 4 completed for `cart/cart.php` with minimal structural compatibility alignment to WooCommerce core `10.1.0` (template metadata header, remove-link contract, restored `woocommerce_cart_actions`, restored coupon compatibility hook path, restored `woocommerce_before_cart_collaterals`, wrapper closure balance fix).
+- Follow-up regression fix applied on the same surface: restored WooCommerce cart.js selector contracts required for last-item empty-cart transition by adding `.woocommerce-cart-form__contents` on cart items container and `.product-remove` on remove-link wrapper.
+- Verified regressions: remove-last-item empty cart transition works on mobile and desktop; non-last-item refresh works; quantity/update/coupon flows preserved; custom empty cart UI still renders.
+- Supabase protected surfaces were not touched.
 
 Progress Status:
 - `R-WOO-24` remains Open (partial mitigation complete).
@@ -997,8 +1001,8 @@ Progress Status:
   - `checkout/form-coupon.php`
   - `checkout/payment.php`
   - `checkout/form-checkout.php`
-- Pending patch items:
   - `cart/cart.php`
+- Pending patch items:
   - `single-product/related.php`
 
 ### Risk ID: R-PERF-26

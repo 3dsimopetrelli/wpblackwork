@@ -72,6 +72,10 @@ Tutti i template utilizzano la classe `BW_Product_Card_Renderer` che supporta qu
     - Previous override header: custom/non-core metadata
     - Current override header: WooCommerce template metadata block (`@version 9.4.0`)
     - Strategy: minimal structural compatibility patch (`aria-label` + trailing `woocommerce_after_checkout_form` hook restore), no layout/runtime flow rewrite
+  - `cart/cart.php` (patch 4)
+    - Previous override header: `@version 7.9.0`
+    - Current override header: `@version 10.1.0`
+    - Strategy: minimal compatibility contract patch (remove-link contract, cart/coupon actions hooks, before-collaterals hook, wrapper-balance fix) + selector contract regression fix for Woo cart.js (`.woocommerce-cart-form__contents`, `.product-remove`)
 
 ### Minimal Patch Strategy (Template Rebases)
 - Keep custom UI classes/layout where behavior is stable.
@@ -83,5 +87,4 @@ Tutti i template utilizzano la classe `BW_Product_Card_Renderer` che supporta qu
 - Validate with checkout regression matrix before marking patch item closed.
 
 ### R-WOO-24 Remaining Patch Items
-- `cart/cart.php`
 - `single-product/related.php`

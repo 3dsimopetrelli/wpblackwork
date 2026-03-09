@@ -34,11 +34,12 @@ When tasks touch Supabase protected surfaces, these smoke tests are mandatory:
 
 ## WooCommerce Template Override Rebase Notes
 - Date: 2026-03-09
-- Risk: `R-WOO-24` (patch 1, patch 2, patch 3)
+- Risk: `R-WOO-24` (patch 1, patch 2, patch 3, patch 4)
 - Templates updated:
   - `woocommerce/templates/checkout/form-coupon.php`
   - `woocommerce/templates/checkout/payment.php`
   - `woocommerce/templates/checkout/form-checkout.php`
+  - `woocommerce/templates/cart/cart.php`
 - Alignment action:
   - Rebased override structure to current WooCommerce checkout coupon form contract.
   - Preserved BlackWork coupon UI classes and floating-label wrapper for UX continuity.
@@ -52,6 +53,7 @@ When tasks touch Supabase protected surfaces, these smoke tests are mandatory:
   - gateway switching and `updated_checkout` selection persistence
   - noscript update-totals fallback present
   - checkout form submit still works with accessibility/form contract intact (`aria-label` + trailing after-form hook restored)
+  - cart last-item removal transitions to empty-cart view on mobile and desktop
 
 ## Checkout Payment Selector Interaction
 - Risk/Task: `CHECKOUT-02` (resolved)
