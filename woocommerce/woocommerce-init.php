@@ -607,11 +607,32 @@ function bw_mew_enqueue_checkout_assets()
         );
     }
 
+    $enqueue_stripe_v3 = static function () {
+        if (wp_script_is('bw-stripe-v3', 'enqueued') || wp_script_is('stripe', 'enqueued')) {
+            return;
+        }
+
+        if (wp_script_is('stripe', 'registered')) {
+            wp_enqueue_script('stripe');
+            return;
+        }
+
+        if (!wp_script_is('bw-stripe-v3', 'registered')) {
+            wp_register_script('bw-stripe-v3', 'https://js.stripe.com/v3/', [], null, true);
+        }
+
+        wp_enqueue_script('bw-stripe-v3');
+
+        if (!wp_script_is('stripe', 'registered')) {
+            wp_register_script('stripe', false, ['bw-stripe-v3'], null, true);
+        }
+    };
+
     // Google Pay Integration
     if (get_option('bw_google_pay_enabled', '0') === '1') {
         $google_pay_js = BW_MEW_PATH . 'assets/js/bw-google-pay.js';
         if (file_exists($google_pay_js)) {
-            wp_enqueue_script('stripe', 'https://js.stripe.com/v3/', [], null, true);
+            $enqueue_stripe_v3();
             wp_enqueue_script(
                 'bw-google-pay',
                 BW_MEW_URL . 'assets/js/bw-google-pay.js',
@@ -640,7 +661,7 @@ function bw_mew_enqueue_checkout_assets()
     if (get_option('bw_apple_pay_enabled', '0') === '1') {
         $apple_pay_js = BW_MEW_PATH . 'assets/js/bw-apple-pay.js';
         if (file_exists($apple_pay_js)) {
-            wp_enqueue_script('stripe', 'https://js.stripe.com/v3/', [], null, true);
+            $enqueue_stripe_v3();
             wp_enqueue_script(
                 'bw-apple-pay',
                 BW_MEW_URL . 'assets/js/bw-apple-pay.js',
