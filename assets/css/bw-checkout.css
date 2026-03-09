@@ -1468,12 +1468,13 @@ body.woocommerce-checkout .bw-checkout-right .bw-qty-badge {
 /* Floating label - active state (when focused or has value) */
 .bw-review-coupon input[type="text"]:focus~.bw-floating-label,
 .bw-review-coupon .bw-coupon-input-wrapper.has-value .bw-floating-label {
-    top: 8px;
+    top: -8px;
     transform: translateY(0);
     font-size: 11px;
-    color: #666;
-    background: transparent;
+    color: #374151;
+    background: #ffffff;
     left: 14px;
+    font-weight: 500;
 }
 
 /* Button - narrower and inactive by default */
@@ -1832,9 +1833,10 @@ body.bw-order-summary-open .bw-order-summary-caret {
 
     .bw-review-coupon input[type="text"]:focus~.bw-floating-label,
     .bw-review-coupon .bw-coupon-input-wrapper.has-value .bw-floating-label {
-        top: 6px;
+        top: -8px;
         font-size: 10px;
         left: 10px;
+        background: #ffffff;
     }
 
     .bw-review-coupon button[type="submit"] {
