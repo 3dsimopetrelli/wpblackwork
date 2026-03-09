@@ -586,15 +586,11 @@
         }
     });
 
-    // Entire payment-method header is clickable (except direct radio click).
+    // Entire payment-method header is clickable, including direct radio click.
+    // Use one deterministic path for row/label/radio so selection is immediate.
     document.addEventListener('click', function (event) {
         var header = event.target.closest('.bw-payment-method__header');
         if (!header) {
-            return;
-        }
-
-        // Let native radio click behavior pass through.
-        if (event.target.type === 'radio') {
             return;
         }
 
@@ -605,6 +601,9 @@
                 event.preventDefault();
                 return;
             }
+
+            // Always route through the same selection branch to avoid native/UI
+            // race conditions where direct radio clicks may need a second tap.
             event.preventDefault();
             if (!radio.checked) {
                 radio.checked = true;
