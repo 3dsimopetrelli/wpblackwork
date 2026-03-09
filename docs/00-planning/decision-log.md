@@ -420,6 +420,18 @@ Future strategy:
   - Keep UI kit and page/tab asset scope guarded by current panel gating functions.
   - Preserve closure trace in `docs/tasks/BW-TASK-20260309-01-closure.md`.
 
+### Entry 033
+- Date: 2026-03-09
+- Decision summary: Added Theme Builder Lite governed controls for footer exclusions and theme CSS suppression (breakpoints-only/full) with explicit bounded guard behavior.
+- Affected domain: Theme Builder Lite / Admin Controls / Frontend + Elementor Styling
+- Rationale: Theme stylesheet constraints (especially responsive breakpoints) created layout interference for Theme Builder Lite contexts; operators required explicit, panel-driven suppression controls with safety boundaries.
+- Risk impact: Medium reduced to Low-Medium through bounded scope and fail-open behavior.
+- Follow-up actions:
+  - Keep control authority in Theme Builder Lite settings surfaces (Settings + Footer tabs).
+  - Keep guard scope limited to child/parent theme stylesheet roots only.
+  - Keep full-disable behavior authoritative when both suppression toggles are enabled.
+  - Preserve closure trace in `docs/tasks/BW-TASK-20260309-02-closure.md`.
+
 ## Governance Layer Closure
 
 Status: CLOSED  

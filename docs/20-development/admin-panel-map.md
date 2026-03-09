@@ -119,6 +119,24 @@ Current adoption:
 | Theme Builder Lite | `admin.php?page=bw-theme-builder-lite-settings` | `bw_tbl_render_admin_page` | `includes/modules/theme-builder-lite/admin/theme-builder-lite-admin.php` | Settings API + import nonce handler | `.bw-admin-root` |
 | All Templates | `edit.php?post_type=bw_template` | WP list table (`edit.php`) + UX wrapper JS | `includes/modules/theme-builder-lite/admin/bw-template-type-inline.js` | WP List Table native + inline ajax type update | `.bw-admin-root` (injected) |
 
+### 1.6.1 2026-03-09 Theme Builder Lite Control Updates
+- Footer tab additions:
+  - Optional footer exclusion controls (`Exclude Footer On Pages`) for:
+    - Checkout page
+    - Order received / thank-you pages
+- Settings tab additions:
+  - New `Elementor Bug Workarounds` controls:
+    - `Disable theme breakpoints in frontend and Elementor editor/preview`
+    - `Disable all theme CSS in frontend and Elementor editor/preview`
+- Runtime protection scope:
+  - Guard applies only to theme stylesheet roots (child + parent theme paths), not plugin CSS bundles.
+  - Full-disable mode dequeues matched theme styles.
+  - Breakpoint mode strips `@media` blocks from matched theme styles while preserving non-media CSS.
+  - If a stylesheet cannot be safely mapped/read, it is left unchanged (fail-open).
+- Traceability:
+  - Governance decision: `docs/00-planning/decision-log.md` (Entry 033).
+  - Closure artifact: `docs/tasks/BW-TASK-20260309-02-closure.md`.
+
 ### 1.7 Asset Strategy (Admin)
 - Shared visual primitives:
   - `admin/css/bw-admin-ui-kit.css`

@@ -217,6 +217,25 @@ Runtime behavior:
 - Fail-open invariant:
   - Any invalid template state, missing content, runtime exception, or guard mismatch returns control to theme footer with no hard failure.
 
+### 2026-03-09 Update - Footer Exclusions and Theme CSS Guard
+- Footer option contract (`bw_theme_builder_lite_footer_v1`) includes:
+  - `exclude_enabled`
+  - `exclude_checkout`
+  - `exclude_order_received`
+  - `elementor_disable_child_breakpoints`
+  - `elementor_disable_child_css`
+- Footer exclusion behavior:
+  - when exclusions are enabled, footer override is skipped on selected WooCommerce contexts:
+    - checkout
+    - order-received / thank-you
+- Theme CSS guard behavior:
+  - controls are managed from Theme Builder Lite `Settings` tab (`Elementor Bug Workarounds`)
+  - breakpoints-only mode strips `@media` blocks from matched theme stylesheets
+  - full mode dequeues matched theme stylesheets entirely
+  - guard matching scope includes both child-theme and parent-theme stylesheet roots
+  - enforcement scope includes frontend runtime and Elementor editor/preview contexts
+  - fail-open: unmappable/unreadable stylesheets are left unchanged
+
 ## E) Explicit Non-Goals (Phase 1)
 - No single product override logic.
 - No `template_include` global interception.
@@ -421,6 +440,15 @@ Reusable extension pattern (2026-03):
 - Constraints:
   - UI-only styling alignment; no changes to option keys/defaults/sanitizers/save handlers.
   - Styling scope remains under `.bw-admin-root`; Theme Builder Lite module CSS selectors are additionally scoped to `.bw-admin-root.bw-tbl-admin-wrap`.
+- Control additions (2026-03-09):
+  - `Settings` tab:
+    - `Elementor Bug Workarounds`
+      - `Disable theme breakpoints in frontend and Elementor editor/preview`
+      - `Disable all theme CSS in frontend and Elementor editor/preview`
+  - `Footer` tab:
+    - `Exclude Footer On Pages`
+      - `Checkout page`
+      - `Order received / thank-you pages`
 
 3. Runtime branch pattern
 - Gate by master + feature flags before resolver branch.
