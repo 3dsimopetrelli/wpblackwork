@@ -1,6 +1,6 @@
 # BW Checkout — Guida Completa
 
-**Ultimo aggiornamento:** 2026-02-24
+**Ultimo aggiornamento:** 2026-03-09
 **Plugin:** BW Elementor Widgets
 **Tema:** BlackWork
 
@@ -733,6 +733,17 @@ Il form coupon custom ha un **floating label** e un bottone "Apply" separato:
 </div>
 ```
 
+### Contratto Floating Label (UI-07)
+
+Perché un campo custom partecipi al sistema floating label checkout, deve rispettare questo contratto:
+
+1. Wrapper relativo: `.bw-coupon-input-wrapper` (o `.bw-field-wrapper` nei campi checkout standard).
+2. Input target: classe/id agganciata dal JS (`.bw-coupon-code-input`, `#coupon_code`, `#coupon_code_mobile`).
+3. Label sibling con classe `.bw-floating-label` e testo `data-full` / `data-short`.
+4. Stato runtime: il JS deve poter applicare/rimuovere `.has-value` sul wrapper.
+
+Nel caso coupon, la visibilità "non floating" era dovuta a stile attivo non allineato (label ancora interna). Con `UI-07` lo stato attivo è stato allineato ai campi checkout standard.
+
 ### CSS Floating Label Coupon
 
 ```css
@@ -763,10 +774,13 @@ Il form coupon custom ha un **floating label** e un bottone "Apply" separato:
 /* Label in alto (quando ha focus o valore) */
 .bw-review-coupon input[type="text"]:focus ~ .bw-floating-label,
 .bw-review-coupon .bw-coupon-input-wrapper.has-value .bw-floating-label {
-    top: 8px;
+    top: -8px;
     transform: translateY(0);
     font-size: 11px;
-    color: #666;
+    color: #374151;
+    background: #f2f2f2;
+    border-radius: 8px;
+    font-weight: 500;
 }
 ```
 
@@ -1379,6 +1393,23 @@ Tutte le variabili vengono impostate via inline style nel PHP del template e poi
 ---
 
 ## 17. Integrazione Stripe
+
+### Requisiti Bootstrap Gateway Checkout (CHECKOUT-01)
+
+I gateway custom devono essere caricati prima che WooCommerce valuti la registrazione gateway (`woocommerce_payment_gateways`), altrimenti non entrano in runtime.
+
+Invariante operativo:
+- se `class_exists('BW_Klarna_Gateway')` è false durante la registrazione, `bw_klarna` non viene aggiunto.
+- se `bw_klarna` non entra nella lista gateway WooCommerce, non può comparire in `$available_gateways` e il template checkout non ha nulla da renderizzare.
+
+Per `bw_klarna`, la catena minima di dipendenze bootstrap è:
+- `includes/Stripe/class-bw-stripe-api-client.php`
+- `includes/Utils/class-bw-stripe-safe-logger.php`
+- `includes/Gateways/class-bw-abstract-stripe-gateway.php`
+- `includes/Gateways/class-bw-klarna-gateway.php`
+
+Surface di bootstrap:
+- `woocommerce/woocommerce-init.php` (`bw_mew_initialize_woocommerce_overrides()`)
 
 ### Appearance API — Errori inline
 
