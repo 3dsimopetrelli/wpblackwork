@@ -503,11 +503,22 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 - Impact: High
 - Likelihood: Medium
 - Risk Level: High
-- Current Mitigation: Availability checks, disabled wallet selection fallback, dynamic UI synchronization.
-- Monitoring Status: Monitoring
+- Status: Partial Mitigation Complete
+- Current Mitigation:
+  - Hardened Google Pay availability ownership in `assets/js/bw-google-pay.js` with deterministic setter `setGooglePayAvailability(isAvailable, reason)`.
+  - Removed optimistic `BW_GPAY_AVAILABLE = true` paths on init and `updated_checkout`.
+  - Availability now derives from real readiness/capability check result (`launchReady`) with explicit `false` on pending check, negative capability, and failure/error paths.
+  - Availability transitions now re-trigger checkout convergence through existing `scheduleSelectorSync(...)`.
+- Patch Update (2026-03-10):
+  - Task: `R-PAY-03`
+  - File modified: `assets/js/bw-google-pay.js`
+  - Result: Drift risk reduced without changing gateway business logic; no Supabase-adjacent surfaces touched.
+  - Final status: `PARTIAL MITIGATION` (manual wallet regression validation pending)
+- Monitoring Status: Monitoring / Manual verification pending
 - Linked Documents:
   - [Blast-Radius Consolidation Map](./blast-radius-consolidation-map.md)
   - [Checkout Payment Selector Audit](../50-ops/audits/checkout-payment-selector-audit.md)
+  - [R-PAY-03 Closure Record](../tasks/R-PAY-03-closure.md)
 
 ### Risk ID: R-AUTH-04
 - Domain: Auth / Supabase / My Account

@@ -326,3 +326,23 @@ When tasks touch Supabase protected surfaces, these smoke tests are mandatory:
   - submit order with non-default gateway selected
   - unavailable gateway after refresh
   - zero-total / free-order path (when present)
+
+## Wallet Availability / State Drift Hardening (R-PAY-03)
+- Date: 2026-03-10
+- Risk: `R-PAY-03` - `PARTIAL MITIGATION`
+- Scope:
+  - Minimal JS-only hardening in `assets/js/bw-google-pay.js`.
+  - `BW_GPAY_AVAILABLE` ownership moved to deterministic setter (`setGooglePayAvailability`).
+  - Removed optimistic Google Pay availability (`true`) on init and `updated_checkout`.
+  - Availability now converges to `false` during pending check, negative capability, and failure/error paths.
+  - Selector convergence is re-triggered on availability changes via existing `scheduleSelectorSync(...)`.
+  - No Supabase-adjacent surfaces touched.
+- Regression checks required (manual):
+  - checkout load with Google Pay supported
+  - checkout load with Google Pay unsupported
+  - switch between wallet and non-wallet gateways
+  - `updated_checkout` after shipping/address change
+  - coupon apply/remove
+  - wallet visibility after fragment refresh
+  - fallback: wallet unavailable -> `place_order` visible
+  - Apple Pay behavior unchanged

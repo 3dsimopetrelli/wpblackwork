@@ -10,6 +10,19 @@
         launchReady: false
     };
 
+    function setGooglePayAvailability(isAvailable, reason) {
+        var next = isAvailable === true;
+        window.BW_GPAY_AVAILABLE = next;
+
+        if (next) {
+            markGooglePayAvailable();
+        } else {
+            markGooglePayUnavailable();
+        }
+
+        scheduleSelectorSync(reason || (next ? 'gpay_available' : 'gpay_unavailable'));
+    }
+
     function getGooglePayRadio() {
         return document.querySelector('input[name="payment_method"][value="bw_google_pay"]');
     }
@@ -89,9 +102,7 @@
         }
 
         state.technicalError = true;
-        window.BW_GPAY_AVAILABLE = false;
-        markGooglePayUnavailable();
-        scheduleSelectorSync('gpay_technical_error');
+        setGooglePayAvailability(false, 'gpay_technical_error');
     }
 
     function ensureSingleExternalTrigger() {
@@ -220,12 +231,17 @@
             return;
         }
 
+        // Availability must be driven by confirmed capability only.
+        state.launchReady = false;
+        setGooglePayAvailability(false, 'gpay_check_start');
+
         state.paymentRequest.canMakePayment().then(function (result) {
             state.canMakePaymentChecked = true;
             state.canMakePaymentResult = result || null;
             // Lifecycle guard: Stripe requires canMakePayment() to run before show().
             // launchReady is true once check completed and at least one wallet capability exists.
             state.launchReady = !!result;
+            setGooglePayAvailability(state.launchReady, state.launchReady ? 'gpay_check_ready' : 'gpay_check_unavailable');
 
             console.info('[BW Google Pay] canMakePayment completed', {
                 result: result,
@@ -235,6 +251,7 @@
             state.canMakePaymentChecked = true;
             state.canMakePaymentResult = null;
             state.launchReady = false;
+            setGooglePayAvailability(false, 'gpay_check_error');
 
             console.error('[BW Google Pay] canMakePayment failed', error);
         });
@@ -375,10 +392,7 @@
 
         bindGooglePayLaunchHandler();
         ensureSingleExternalTrigger();
-
-        window.BW_GPAY_AVAILABLE = true;
-        markGooglePayAvailable();
-        scheduleSelectorSync('gpay_ready');
+        setGooglePayAvailability(false, 'gpay_init_pending_check');
         logNativeLauncherOwnership();
         runCanMakePaymentCheck();
 
@@ -396,9 +410,7 @@
                 }
 
                 ensureSingleExternalTrigger();
-                window.BW_GPAY_AVAILABLE = true;
-                markGooglePayAvailable();
-                scheduleSelectorSync('gpay_updated_checkout');
+                setGooglePayAvailability(false, 'gpay_updated_checkout_pending_check');
                 updatePaymentRequestTotal();
                 runCanMakePaymentCheck();
             });
