@@ -844,12 +844,20 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 - Impact: High
 - Likelihood: Medium
 - Risk Level: High
-- Current Mitigation: Initialization guards, module spec contracts, responsive/scroll state-machine documentation, and Tier 0 regression checklist.
-- Monitoring Status: Monitoring
+- Status: Mitigated
+- Current Mitigation: Initialization guards, module spec contracts, responsive/scroll state-machine documentation, Tier 0 regression checklist, and deterministic global search-overlay coordination via reference-counted body-state ownership.
+- Patch Update (2026-03-10):
+  - Task: `R-HDR-13`
+  - File modified: `includes/modules/header/assets/js/bw-search.js`
+  - Change: introduced global counter `window.BW_HEADER_SEARCH_OPEN_COUNT` to coordinate multi-instance search overlays (desktop/mobile) and prevent premature removal of `body.bw-search-overlay-active`.
+  - Result: global header search overlay state is now deterministic under multiple overlay instances; no Supabase/auth surfaces touched.
+  - Final status: `MITIGATED`
+- Monitoring Status: Closed -> Monitoring
 - Linked Documents:
   - [Header System Technical Audit](../50-ops/audits/header-system-technical-audit.md)
   - [Header Module Spec](../30-features/header/header-module-spec.md)
   - [Header Responsive Contract](../30-features/header/header-responsive-contract.md)
+  - [R-HDR-13 Closure Record](../tasks/R-HDR-13-closure.md)
 
 ### Risk ID: R-GOV-14
 - Domain: Governance / Tooling / Operational Continuity

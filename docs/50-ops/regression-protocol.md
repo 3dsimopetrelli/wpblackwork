@@ -302,6 +302,21 @@ When tasks touch Supabase protected surfaces, these smoke tests are mandatory:
   - no obvious performance regression in live search
   - no runtime errors in header search UI
 
+## Header Search Overlay Global-State Hardening (R-HDR-13)
+- Date: 2026-03-10
+- Risk: `R-HDR-13` - `MITIGATED`
+- Scope:
+  - Deterministic multi-instance overlay coordination in `includes/modules/header/assets/js/bw-search.js`.
+  - Global reference counter `window.BW_HEADER_SEARCH_OPEN_COUNT` now owns `body.bw-search-overlay-active` removal timing.
+- Required regression checks completed:
+  - open/close search overlay on desktop
+  - open/close search overlay on mobile
+  - open both overlays sequentially; close one while another remains open
+  - verify `body.bw-search-overlay-active` remains applied until all overlays are closed
+  - Escape key closes active overlay correctly
+  - resize desktop/mobile with overlay active
+  - cart popup interaction does not break search overlay state
+
 ## Public AJAX Mutation Transport Hardening (R-FPW-20 Patch 1)
 - Date: 2026-03-10
 - Risk: `R-FPW-20` (patch 1) - `CLOSED`

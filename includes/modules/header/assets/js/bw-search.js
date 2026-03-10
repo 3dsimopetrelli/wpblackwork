@@ -1,6 +1,10 @@
 (function ($) {
     'use strict';
 
+    if (typeof window.BW_HEADER_SEARCH_OPEN_COUNT !== 'number' || window.BW_HEADER_SEARCH_OPEN_COUNT < 0) {
+        window.BW_HEADER_SEARCH_OPEN_COUNT = 0;
+    }
+
     class BWSearchWidget {
         constructor(element) {
             this.$element = $(element);
@@ -48,7 +52,7 @@
 
             this.isOpen = true;
             this.$overlay.addClass('is-active');
-            $('body').addClass('bw-search-overlay-active');
+            this.incrementGlobalOverlayCount();
 
             setTimeout(() => this.$input.trigger('focus'), 450);
         }
@@ -63,9 +67,28 @@
 
             this.isOpen = false;
             this.$overlay.removeClass('is-active');
-            $('body').removeClass('bw-search-overlay-active');
+            this.decrementGlobalOverlayCount();
             this.$input.val('').removeClass('has-content');
             this.hideResults();
+        }
+
+        incrementGlobalOverlayCount() {
+            window.BW_HEADER_SEARCH_OPEN_COUNT = Math.max(0, (window.BW_HEADER_SEARCH_OPEN_COUNT || 0) + 1);
+            this.syncGlobalOverlayClass();
+        }
+
+        decrementGlobalOverlayCount() {
+            window.BW_HEADER_SEARCH_OPEN_COUNT = Math.max(0, (window.BW_HEADER_SEARCH_OPEN_COUNT || 0) - 1);
+            this.syncGlobalOverlayClass();
+        }
+
+        syncGlobalOverlayClass() {
+            if ((window.BW_HEADER_SEARCH_OPEN_COUNT || 0) > 0) {
+                $('body').addClass('bw-search-overlay-active');
+                return;
+            }
+
+            $('body').removeClass('bw-search-overlay-active');
         }
 
         onOverlayClick(e) {

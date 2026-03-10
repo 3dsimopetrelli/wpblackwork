@@ -35,12 +35,13 @@ It complements the full risk register but is optimized for quick orientation whe
 ## 1. Executive snapshot
 - Total risks: 54
 - Resolved: 7
-- Mitigated: 23
+- Mitigated: 24
 - Partial Mitigation Complete: 2
-- Open: 21
+- Open: 20
 - Watchlist / Deferred: 1
 
 Last governance-aligned updates:
+- 2026-03-10: `R-HDR-13` mitigated via deterministic multi-instance search overlay coordination (`BW_HEADER_SEARCH_OPEN_COUNT`) in `includes/modules/header/assets/js/bw-search.js`.
 - 2026-03-10: `R-MF-02` and `R-MF-03` mitigated after Media Folders query-merge hardening (`bw_mf_merge_tax_query` outer `AND`) and assignment integrity re-validation.
 - 2026-03-10: `R-SRCH-11` mitigated with live-search visibility alignment (`exclude-from-search` only) in `includes/modules/header/frontend/ajax-search.php`; search semantics drift reduced with no Supabase/auth scope impact.
 - 2026-03-10: External radar HTTP-timeout finding marked stale/not applicable after repository-wide verification (all relevant calls have explicit timeout; no unsafe timeout/cURL path).
@@ -85,7 +86,7 @@ Last governance-aligned updates:
 | R-SUPA-06 | Supabase orders/account coupling | Supabase / Orders / Account | High | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Mitigation controls documented | Monitoring | Supabase-adjacent |
 | R-BRE-09 | Brevo checkout sync drift | Brevo / Checkout | High | <span style="background:#2ecc71;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">RESOLVED</span> | Patch 1 + patch 2 closed; stale `xkeysib-...` finding verified | None | Closed state; non-Supabase |
 | R-SRCH-11 | Search runtime coupling risk | Search / Header | High | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Live-search visibility aligned to WooCommerce search semantics | Monitoring + optional abuse/rate hardening follow-up | Non-Supabase |
-| R-HDR-13 | Header orchestration complexity | Header / UX | High | <span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">OPEN</span> | Existing guardrails documented | Additional isolation hardening | Non-Supabase |
+| R-HDR-13 | Header orchestration complexity | Header / UX | High | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Search overlay global state hardened with reference counter | Monitoring + cross-device orchestration checks | Non-Supabase |
 | R-FPW-20 | Public AJAX filtered wall risk | Filtered Post Wall | High | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Patch 1 + patch 2 closed | Patch 3 abuse/rate hardening review | Non-Supabase |
 | R-ADM-21 | Admin settings input integrity | Admin / Settings | High | <span style="background:#2ecc71;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">RESOLVED</span> | Patch A + B closed (2026-03-10) | None | Includes non-Supabase surfaces only |
 | R-PERF-26 | Supabase sync runtime latency | Performance / Supabase | High | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Transient guard added | Monitoring | Supabase-adjacent |
@@ -542,12 +543,12 @@ Last governance-aligned updates:
 ### R-HDR-13 — Header global orchestration risk
 - Area: Header / UX orchestration
 - Priority: High
-- Status: Open
-- Summary: Header remains a high-coupling runtime with broad blast radius.
-- What has been completed: Existing controls and docs.
-- What is still pending: Additional hardening and regression coverage.
+- Status: Mitigated
+- Summary: Global search overlay body-state drift across desktop/mobile instances has been corrected.
+- What has been completed: Added deterministic reference-counted ownership (`BW_HEADER_SEARCH_OPEN_COUNT`) for `body.bw-search-overlay-active` in header search runtime.
+- What is still pending: Monitoring via cross-device orchestration regression checks.
 - Supabase-adjacent blast radius: No.
-- Recommended next step: Increase cross-device/header state regression matrix.
+- Recommended next step: Keep header overlay/cart/nav interaction checks in standard regression cadence.
 
 ### R-GOV-14 — Governance continuity risk
 - Area: Governance / Tooling
