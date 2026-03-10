@@ -37,6 +37,21 @@ function bw_coming_soon_get_brevo_settings()
 }
 
 /**
+ * Resolve requester IP for lightweight throttling.
+ *
+ * @return string
+ */
+function bw_coming_soon_get_request_ip()
+{
+    $ip = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '';
+    if ('' === $ip) {
+        return 'unknown';
+    }
+
+    return strtolower($ip);
+}
+
+/**
  * Handle Coming Soon subscribe submission using canonical Brevo settings.
  */
 function bw_coming_soon_handle_subscribe_submission()
@@ -77,6 +92,16 @@ function bw_coming_soon_handle_subscribe_submission()
         wp_safe_redirect(add_query_arg('bw_cs', 'err', $redirect_url));
         exit;
     }
+
+    $cooldown_seconds = (int) apply_filters('bw_coming_soon_subscribe_cooldown_seconds', 120);
+    $cooldown_seconds = max(30, min(600, $cooldown_seconds));
+    $requester_ip = bw_coming_soon_get_request_ip();
+    $cooldown_key = 'bw_cs_sub_rate_' . md5(strtolower($email) . '|' . $requester_ip);
+    if (get_transient($cooldown_key)) {
+        wp_safe_redirect(add_query_arg('bw_cs', 'err', $redirect_url));
+        exit;
+    }
+    set_transient($cooldown_key, 1, $cooldown_seconds);
 
     if (!class_exists('BW_Mail_Marketing_Settings') || !class_exists('BW_Brevo_Client')) {
         wp_safe_redirect(add_query_arg('bw_cs', 'err', $redirect_url));

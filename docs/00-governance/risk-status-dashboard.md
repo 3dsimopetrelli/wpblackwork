@@ -41,6 +41,7 @@ It complements the full risk register but is optimized for quick orientation whe
 - Watchlist / Deferred: 1
 
 Last governance-aligned updates:
+- 2026-03-10: External radar HTTP-timeout finding marked stale/not applicable after repository-wide verification (all relevant calls have explicit timeout; no unsafe timeout/cURL path).
 - 2026-03-10: `R-BRE-09` closure verification completed (`xkeysib-...` finding confirmed stale; canonical Brevo config centralized).
 - 2026-03-10: `R-FPW-20` patch 2 closed (authenticated product search capability hardening).
 - 2026-03-10: `R-IMP-10` mitigated (patch 1 + patch 2 complete).

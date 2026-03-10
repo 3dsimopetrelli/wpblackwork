@@ -240,6 +240,22 @@ When tasks touch Supabase protected surfaces, these smoke tests are mandatory:
   - Coming Soon Brevo runtime uses canonical Mail Marketing configuration (`bw_mail_marketing_general_settings`) via `BW_Mail_Marketing_Settings::get_general_settings()['api_key']`
   - previous secret-exposure radar hit is classified as stale (older revision/external snapshot)
 
+## HTTP Timeout Verification (External Radar)
+- Date: 2026-03-10
+- Scope:
+  - `admin/class-blackwork-site-settings.php`
+  - `BW_coming_soon/includes/functions.php`
+  - `includes/integrations/brevo/class-bw-brevo-client.php`
+- Result: `PASS`
+- Verification summary:
+  - all relevant HTTP calls use explicit `timeout` values
+  - no `timeout => 0` usage found
+  - no unsafe raw cURL path detected
+  - `BW_coming_soon/includes/functions.php` has no outbound HTTP request
+  - Brevo client uses explicit timeout (default `15`)
+- Classification: stale / not applicable finding in current snapshot
+- Recommended action: no runtime patch required
+
 ## Import Pipeline Integrity Hardening (R-IMP-10)
 - Date: 2026-03-10
 - Risk: `R-IMP-10` - `MITIGATED`

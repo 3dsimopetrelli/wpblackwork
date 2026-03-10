@@ -31,6 +31,23 @@ Risk level (qualitative):
 - Low: Low impact + Low/Medium likelihood.
 
 ## 3) Risk Entries
+### External Radar Verification Notes (Stale / Not Applicable)
+These entries track externally reported findings that were re-verified against the current repository snapshot and found to be stale/non-applicable.
+
+#### Verification Note: HTTP Timeout Missing (Coming Soon/Admin) — Stale
+- Domain: Reliability / HTTP Runtime
+- Reported Surface: `admin/class-blackwork-site-settings.php`, `BW_coming_soon/includes/functions.php`
+- Verification Date: 2026-03-10
+- Result:
+  - All relevant `wp_remote_get/wp_remote_post/wp_remote_request` calls in current runtime include explicit `timeout`.
+  - No call uses `timeout => 0`.
+  - No raw `curl_exec` usage detected.
+  - `BW_coming_soon/includes/functions.php` contains no outbound HTTP request.
+  - `includes/integrations/brevo/class-bw-brevo-client.php` uses explicit timeout (default `15`).
+- Risk Classification (current snapshot): Low
+- Status: Stale / Not Applicable
+- Recommended Action: No runtime patch required.
+
 ### Recently Resolved (Closed and Removed from Active Register)
 These risks were active during Theme Builder Lite Phase 1 and are now closed with implementation evidence. They are retained here as closure notes only and are not active risks.
 

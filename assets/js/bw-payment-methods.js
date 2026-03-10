@@ -100,6 +100,23 @@
         });
     }
 
+    function isRadioUnavailable(radio) {
+        if (!radio) {
+            return true;
+        }
+
+        if (radio.disabled) {
+            return true;
+        }
+
+        if (isWalletGateway(radio.value) && isWalletExplicitlyUnavailable(radio.value)) {
+            return true;
+        }
+
+        var row = radio.closest('.bw-payment-method');
+        return radio.hasAttribute('data-bw-unavailable') || !!(row && row.hasAttribute('data-bw-unavailable'));
+    }
+
     function getPreferredPaymentMethodRadio(container, preferredValue) {
         var scope = container || document;
 
@@ -116,8 +133,8 @@
         if (explicit) {
             // Validation-triggered checkout refresh can transiently restore the
             // platform default (card). The user's explicit selection remains
-            // authoritative unless it's actually unavailable.
-            if (!checked || checked.disabled || checked.value !== explicit.value) {
+            // authoritative only when current checked selection is not usable.
+            if (!checked || isRadioUnavailable(checked)) {
                 return explicit;
             }
         }
@@ -504,6 +521,11 @@
             return;
         }
 
+        // Keep free-order label authoritative (managed by bw-checkout.js).
+        if (document.body && document.body.classList.contains('bw-free-order')) {
+            return;
+        }
+
         var buttonTextSpan = placeOrderBtn.querySelector('.bw-place-order-btn__text');
         var buttonText     = radio.getAttribute('data-order_button_text') ||
                              placeOrderBtn.getAttribute('data-default-text') ||
@@ -533,6 +555,45 @@
     // Form submission loading state
     // -------------------------------------------------------------------------
 
+    function reconcilePaymentStateBeforeSubmit() {
+        var paymentContainer = getPaymentContainer();
+        if (!paymentContainer) {
+            return;
+        }
+
+        var enabledRadios = getEnabledPaymentMethodRadios(paymentContainer);
+        if (!enabledRadios.length) {
+            return;
+        }
+
+        var checkedEnabled = enabledRadios.filter(function (radio) {
+            return radio.checked && !isRadioUnavailable(radio);
+        });
+
+        var selectedRadio = checkedEnabled.length === 1 ? checkedEnabled[0] : null;
+
+        if (!selectedRadio) {
+            selectedRadio = getPreferredPaymentMethodRadio(
+                paymentContainer,
+                BW_PENDING_USER_SELECTION || BW_LAST_EXPLICIT_SELECTION || ''
+            );
+        }
+
+        if (!selectedRadio) {
+            selectedRadio = enabledRadios[0];
+        }
+
+        if (!selectedRadio) {
+            return;
+        }
+
+        applySingleRadioSelection(paymentContainer, selectedRadio);
+        syncAccordionState(selectedRadio.value);
+        bwConvergeCheckoutSelectorState('pre_submit_reconcile', {
+            preferredValue: selectedRadio.value
+        });
+    }
+
     function handleFormSubmission() {
         var checkoutForm = document.querySelector('form.checkout');
         if (!checkoutForm) {
@@ -540,6 +601,7 @@
         }
 
         checkoutForm.addEventListener('submit', function () {
+            reconcilePaymentStateBeforeSubmit();
             var placeOrderBtn = document.querySelector('.bw-place-order-btn');
             if (placeOrderBtn && !placeOrderBtn.classList.contains('processing')) {
                 placeOrderBtn.classList.add('processing');
