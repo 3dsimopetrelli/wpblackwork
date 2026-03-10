@@ -28,6 +28,64 @@ require_once BW_CART_POPUP_PATH . 'admin/settings-page.php';
 require_once BW_CART_POPUP_PATH . 'frontend/cart-popup-frontend.php';
 
 /**
+ * Determine whether Cart Popup runtime assets/markup are needed for current request.
+ *
+ * Conservative defaults keep compatibility for common trigger surfaces while
+ * allowing explicit integrations to force runtime through a filter.
+ *
+ * @return bool
+ */
+function bw_cart_popup_should_load_assets() {
+    // Verifica se WooCommerce è attivo
+    if (!class_exists('WooCommerce')) {
+        return false;
+    }
+
+    $is_active = (int) get_option('bw_cart_popup_active', 0) === 1;
+    $has_floating_trigger = (int) get_option('bw_cart_popup_show_floating_trigger', 0) === 1;
+    $disable_on_checkout = (int) get_option('bw_cart_popup_disable_on_checkout', 1) === 1;
+
+    if ($disable_on_checkout && function_exists('is_checkout') && is_checkout()) {
+        return (bool) apply_filters('bw_cart_popup_should_load_assets', false);
+    }
+
+    // Keep header/cart integration behavior unchanged when custom header runtime is active.
+    $has_header_popup_integration = function_exists('bw_header_is_enabled') && bw_header_is_enabled();
+
+    // Preserve common WooCommerce trigger contexts.
+    $is_woocommerce_context = function_exists('is_woocommerce') && is_woocommerce();
+    if (!$is_woocommerce_context && function_exists('is_cart') && is_cart()) {
+        $is_woocommerce_context = true;
+    }
+    if (!$is_woocommerce_context && function_exists('is_checkout') && is_checkout()) {
+        $is_woocommerce_context = true;
+    }
+
+    // Preserve popup usage on Elementor-built singular pages where widget triggers are likely.
+    $is_elementor_singular = false;
+    if (function_exists('is_singular') && is_singular()) {
+        $post_id = absint(get_queried_object_id());
+        if ($post_id > 0) {
+            $is_elementor_singular = metadata_exists('post', $post_id, '_elementor_data')
+                || 'builder' === get_post_meta($post_id, '_elementor_edit_mode', true);
+        }
+    }
+
+    $should_load = $is_active
+        || $has_floating_trigger
+        || $has_header_popup_integration
+        || $is_woocommerce_context
+        || $is_elementor_singular;
+
+    /**
+     * Filter effective Cart Popup runtime requirement for current request.
+     *
+     * @param bool $should_load Computed default requirement.
+     */
+    return (bool) apply_filters('bw_cart_popup_should_load_assets', $should_load);
+}
+
+/**
  * Cleanup: Rimuove l'opzione obsoleta bw_cart_popup_checkout_url
  * Questa opzione è stata rimossa per garantire che il pulsante checkout
  * porti sempre alla pagina di checkout WooCommerce standard
@@ -107,8 +165,6 @@ function bw_cart_popup_register_assets() {
         ]
     );
 }
-add_action('wp_enqueue_scripts', 'bw_cart_popup_register_assets');
-
 /**
  * Carica gli assets del Cart Pop-Up nel frontend
  * NOTA: Gli assets vengono sempre caricati perché sono necessari anche per i widget
@@ -122,6 +178,10 @@ function bw_cart_popup_enqueue_assets() {
 
     // Non caricare nell'admin
     if (is_admin()) {
+        return;
+    }
+
+    if (!bw_cart_popup_should_load_assets()) {
         return;
     }
 

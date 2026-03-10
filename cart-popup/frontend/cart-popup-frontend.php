@@ -212,6 +212,10 @@ function bw_cart_popup_render_panel()
         return;
     }
 
+    if (function_exists('bw_cart_popup_should_load_assets') && !bw_cart_popup_should_load_assets()) {
+        return;
+    }
+
     // Recupera le impostazioni
     $checkout_text = get_option('bw_cart_popup_checkout_text', 'Proceed to checkout');
     // Forza l'URL del pulsante principale verso il checkout standard di WooCommerce
@@ -401,6 +405,10 @@ function bw_cart_popup_dynamic_css()
 {
     // Verifica se WooCommerce è attivo
     if (!class_exists('WooCommerce')) {
+        return;
+    }
+
+    if (function_exists('bw_cart_popup_should_load_assets') && !bw_cart_popup_should_load_assets()) {
         return;
     }
 
