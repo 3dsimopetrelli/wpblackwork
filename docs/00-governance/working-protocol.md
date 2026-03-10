@@ -166,6 +166,19 @@ If any mandatory journey fails, release is blocked.
 ### Phase E – Governance Update
 Objective: synchronize governance artifacts with real system state after change validation.
 
+### Task Closure Governance Rule
+All tasks must be closed using the **Task Close Protocol**.
+
+Reference file:
+`docs/governance/task-close.md`
+
+The protocol ensures that:
+- the Risk Register is updated
+- the Regression Protocol is updated
+- the Risk Status Dashboard is updated
+
+This guarantees that the governance system remains synchronized with code changes.
+
 Mandatory post-change actions:
 1. Update Risk Register status for involved risk IDs.
 2. Update Technical Hardening Plan if sequencing, mitigation priority, or acceptance criteria changed.

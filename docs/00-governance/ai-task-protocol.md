@@ -54,10 +54,15 @@ Before closing a task, the following template MUST be completed:
 
 `docs/templates/task-closure-template.md`
 
+Task closure protocol (authoritative):
+
+`docs/governance/task-close.md`
+
 Normative rules:
 
 - Implementation MUST NOT begin until the Task Start Template is completed.
 - A task MUST NOT be considered finished until the Task Closure Template is completed.
+- Every task closure MUST explicitly reference and follow `docs/governance/task-close.md`.
 
 ## 3) Mandatory Documentation Alignment
 
@@ -102,6 +107,10 @@ MUST update the corresponding governance documents.
 
 Risk governance rule:
 - The Risk Register and Risk Status Dashboard MUST remain synchronized at task start and task close.
+
+Task closure governance rule:
+- Every task closure must explicitly reference the task-close protocol and follow its checklist.
+- Codex must treat `docs/governance/task-close.md` as the authoritative procedure for finalizing tasks.
 
 ## 5) Determinism Requirement
 
