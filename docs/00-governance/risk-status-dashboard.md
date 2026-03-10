@@ -35,12 +35,14 @@ It complements the full risk register but is optimized for quick orientation whe
 ## 1. Executive snapshot
 - Total risks: 54
 - Resolved: 7
-- Mitigated: 20
+- Mitigated: 23
 - Partial Mitigation Complete: 2
-- Open: 24
+- Open: 21
 - Watchlist / Deferred: 1
 
 Last governance-aligned updates:
+- 2026-03-10: `R-MF-02` and `R-MF-03` mitigated after Media Folders query-merge hardening (`bw_mf_merge_tax_query` outer `AND`) and assignment integrity re-validation.
+- 2026-03-10: `R-SRCH-11` mitigated with live-search visibility alignment (`exclude-from-search` only) in `includes/modules/header/frontend/ajax-search.php`; search semantics drift reduced with no Supabase/auth scope impact.
 - 2026-03-10: External radar HTTP-timeout finding marked stale/not applicable after repository-wide verification (all relevant calls have explicit timeout; no unsafe timeout/cURL path).
 - 2026-03-10: `R-RED-12` mitigated on strict non-Supabase scope (`bw_show_coming_soon` precedence clarified to `template_redirect@1`); auth/Supabase redirect scope remains frozen.
 - 2026-03-10: `R-PAY-02` mitigated and task closed after manual checkout validation (payment convergence hardening in `bw-payment-methods.js`).
@@ -82,7 +84,7 @@ Last governance-aligned updates:
 | R-AUTH-25 | Public auth endpoint exposure | Auth / Supabase | High | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Exposure controls tightened | Rate-limit/abuse posture review | Supabase-adjacent |
 | R-SUPA-06 | Supabase orders/account coupling | Supabase / Orders / Account | High | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Mitigation controls documented | Monitoring | Supabase-adjacent |
 | R-BRE-09 | Brevo checkout sync drift | Brevo / Checkout | High | <span style="background:#2ecc71;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">RESOLVED</span> | Patch 1 + patch 2 closed; stale `xkeysib-...` finding verified | None | Closed state; non-Supabase |
-| R-SRCH-11 | Search runtime coupling risk | Search / Header | High | <span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">OPEN</span> | Existing safeguards retained | Performance/isolation follow-up | Non-Supabase |
+| R-SRCH-11 | Search runtime coupling risk | Search / Header | High | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Live-search visibility aligned to WooCommerce search semantics | Monitoring + optional abuse/rate hardening follow-up | Non-Supabase |
 | R-HDR-13 | Header orchestration complexity | Header / UX | High | <span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">OPEN</span> | Existing guardrails documented | Additional isolation hardening | Non-Supabase |
 | R-FPW-20 | Public AJAX filtered wall risk | Filtered Post Wall | High | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Patch 1 + patch 2 closed | Patch 3 abuse/rate hardening review | Non-Supabase |
 | R-ADM-21 | Admin settings input integrity | Admin / Settings | High | <span style="background:#2ecc71;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">RESOLVED</span> | Patch A + B closed (2026-03-10) | None | Includes non-Supabase surfaces only |
@@ -107,8 +109,8 @@ Last governance-aligned updates:
 | R-CHK-05 | Coupon AJAX timeout resilience | Checkout / Coupon | Medium | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Timeout + recovery shipped | Monitoring | Non-Supabase |
 | R-CHK-06 | Coupon UX convergence | Checkout / Coupon UX | Medium | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Redirect removal and in-place refresh | Monitoring | Non-Supabase |
 | R-MF-01 | Media Folders counts integrity/perf | Media Folders | Medium-High | <span style="background:#95a5a6;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">WATCHLIST</span> | Audit closed as watchlist | Planned mitigation wave | Non-Supabase |
-| R-MF-02 | Folder assignment data integrity | Media Folders | Medium | <span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">OPEN</span> | Baseline controls present | Integrity hardening backlog | Non-Supabase |
-| R-MF-03 | Media admin runtime drift | Media Folders | Medium | <span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">OPEN</span> | Existing runtime guards | Monitoring | Non-Supabase |
+| R-MF-02 | Folder assignment data integrity | Media Folders | Medium | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Assignment pipeline re-validated (no critical bug found) | Monitoring under large-library scenarios | Non-Supabase |
+| R-MF-03 | Media admin runtime drift | Media Folders | Medium | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Restrictive tax_query merge hardening shipped | Monitoring + plugin-interop observation | Non-Supabase |
 | R-AUTH-12 | Auth frontend runtime scope | Auth / Supabase | Medium | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Scope reduction completed | Monitoring | Supabase-adjacent |
 | R-AUTH-13 | Auth preload scope | Auth / Supabase | Medium | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Preload hardening completed | Monitoring | Supabase-adjacent |
 | R-ACC-07 | My Account auth integration drift | My Account / Supabase | Medium | <span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">OPEN</span> | Existing safeguards retained | Additional convergence hardening | Supabase-adjacent |
@@ -409,22 +411,22 @@ Last governance-aligned updates:
 ### R-MF-02 — Media folder assignment integrity
 - Area: Media Folders
 - Priority: Medium
-- Status: Open
-- Summary: Assignment integrity can drift under edge operations.
-- What has been completed: Baseline protections.
-- What is still pending: Additional integrity hardening.
+- Status: Mitigated
+- Summary: Assignment integrity is stable under current capability/context/batch guards.
+- What has been completed: Assignment lifecycle re-validation confirmed no active critical bug; integrity controls remain robust.
+- What is still pending: Monitoring only for extreme-volume/interop edge cases.
 - Supabase-adjacent blast radius: No.
-- Recommended next step: Add bulk-operation integrity scenarios.
+- Recommended next step: Keep bulk assignment regression checks in normal cadence.
 
 ### R-MF-03 — Media admin runtime stability
 - Area: Media Folders
 - Priority: Medium
-- Status: Open
-- Summary: Media-library runtime behavior may drift under plugin/admin changes.
-- What has been completed: Core runtime hooks in place.
-- What is still pending: Monitoring/hardening follow-up.
+- Status: Mitigated
+- Summary: Runtime drift risk from tax-query relation inheritance has been corrected.
+- What has been completed: `bw_mf_merge_tax_query()` hardened with explicit outer `AND` so folder/unassigned filter stays restrictive with third-party tax clauses.
+- What is still pending: Monitoring only for plugin interop regressions.
 - Supabase-adjacent blast radius: No.
-- Recommended next step: Extend admin regression matrix.
+- Recommended next step: Keep list/grid + mixed tax_query interop checks in regression matrix.
 
 ### R-AUTH-04 — Supabase auth/my-account coupling
 - Area: Auth / Supabase / My Account
@@ -520,12 +522,12 @@ Last governance-aligned updates:
 ### R-SRCH-11 — Search/header runtime coupling
 - Area: Search / Header
 - Priority: High
-- Status: Open
-- Summary: Search runtime coupling can propagate regressions to header UX.
-- What has been completed: Current guards and docs.
-- What is still pending: Isolation/perf follow-up.
+- Status: Mitigated
+- Summary: Live search semantics were misaligned with WooCommerce visibility and could hide searchable products.
+- What has been completed: Search visibility tax-query aligned to search context (`exclude-from-search` only) in `includes/modules/header/frontend/ajax-search.php`; no auth/Supabase surface changes.
+- What is still pending: Monitoring and optional abuse/rate hardening for public nopriv endpoint.
 - Supabase-adjacent blast radius: No.
-- Recommended next step: Strengthen query bounds and fallback behavior tests.
+- Recommended next step: Keep reusable live-search regression checks in normal release cadence.
 
 ### R-RED-12 — Redirect authority boundary
 - Area: Redirect / Routing

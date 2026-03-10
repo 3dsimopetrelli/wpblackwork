@@ -91,9 +91,6 @@ if (!function_exists('bw_header_live_search_build_visibility_tax_query')) {
             if (!empty($visibility_term_ids['exclude-from-search'])) {
                 $excluded_terms[] = (int) $visibility_term_ids['exclude-from-search'];
             }
-            if (!empty($visibility_term_ids['exclude-from-catalog'])) {
-                $excluded_terms[] = (int) $visibility_term_ids['exclude-from-catalog'];
-            }
 
             $excluded_terms = array_values(array_unique(array_filter(array_map('absint', $excluded_terms))));
             if (!empty($excluded_terms)) {

@@ -150,6 +150,25 @@ When tasks touch Supabase protected surfaces, these smoke tests are mandatory:
 - Supabase note:
   - No Supabase-adjacent surfaces involved.
 
+## Media Folders Query Restrictiveness Hardening (R-MF-02 / R-MF-03)
+- Date: 2026-03-10
+- Risks:
+  - `R-MF-02` - `MITIGATED`
+  - `R-MF-03` - `MITIGATED`
+- Scope:
+  - Hardened `bw_mf_merge_tax_query()` in `includes/modules/media-folders/runtime/media-query-filter.php`.
+  - Existing tax clauses remain grouped with their internal relation; Media Folders clause is merged under explicit outer `AND`.
+  - Prevents pre-existing `OR` relations from weakening folder/unassigned filtering.
+- Required regression checks completed:
+  - assign media to folder, reload, confirm persistence
+  - remove folder, confirm attachment becomes unassigned
+  - grid media filter by folder remains correct
+  - grid media filter by unassigned remains correct
+  - list view media filter remains correct
+  - pagination/search still work in media library
+  - folder filter remains restrictive even with another tax_query present
+  - counts/tree still update correctly after assignment/delete
+
 ## Payments Webhook Hardening (Patch 1)
 - Date: 2026-03-09
 - Risk: `R-PAY-08` (patch 1) - `CLOSED`
@@ -268,6 +287,20 @@ When tasks touch Supabase protected surfaces, these smoke tests are mandatory:
   - enum values validated during import
   - invalid enum values ignored safely
   - valid imports unaffected
+
+## Search Live Runtime Visibility Alignment (R-SRCH-11)
+- Date: 2026-03-10
+- Risk: `R-SRCH-11` - `MITIGATED`
+- Scope:
+  - Live AJAX search visibility alignment in `includes/modules/header/frontend/ajax-search.php`.
+  - Search context now excludes only `exclude-from-search` (no `exclude-from-catalog` exclusion in live search).
+- Required regression checks completed:
+  - live search finds products that are searchable but excluded from catalog
+  - products excluded from search remain excluded
+  - category/type filters still work
+  - guest and logged-in AJAX responses still work
+  - no obvious performance regression in live search
+  - no runtime errors in header search UI
 
 ## Public AJAX Mutation Transport Hardening (R-FPW-20 Patch 1)
 - Date: 2026-03-10

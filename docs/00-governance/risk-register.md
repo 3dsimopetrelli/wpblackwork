@@ -473,11 +473,19 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 - Impact: Medium
 - Likelihood: Medium
 - Risk Level: Medium
-- Current Mitigation: strict `upload.php` scoping, idempotent DOM insertion, coalesced refresh scheduler, selector fallback chain, and no-op/fail-open guards when targets are missing.
-- Monitoring Status: Monitoring
+- Status: Mitigated
+- Current Mitigation: strict `upload.php` scoping, idempotent DOM insertion, coalesced refresh scheduler, selector fallback chain, no-op/fail-open guards when targets are missing, and deterministic restrictive `tax_query` merge with explicit outer `AND` for media folder filters.
+- Patch Update (2026-03-10):
+  - Task: `R-MF-03`
+  - File modified: `includes/modules/media-folders/runtime/media-query-filter.php`
+  - Change: hardened `bw_mf_merge_tax_query()` so existing third-party tax clauses remain internally grouped while Media Folders folder/unassigned clause is applied under explicit outer `AND`.
+  - Result: folder filter remains restrictive even when existing `tax_query` relation is `OR`; media admin runtime drift risk reduced.
+  - Final status: `MITIGATED`
+- Monitoring Status: Closed -> Monitoring
 - Linked Documents:
   - [Media Folders Spec](../30-features/media-folders/media-folders-module-spec.md)
   - [Media Folders Task Closure](../tasks/media-folders-close-task.md)
+  - [R-MF-02 + R-MF-03 Closure Record](../tasks/R-MF-02-R-MF-03-closure.md)
 
 ### Risk ID: R-MF-02
 - Domain: Media Folders / Data Integrity
@@ -487,12 +495,18 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 - Impact: Medium
 - Likelihood: Medium
 - Risk Level: Medium
-- Current Mitigation: attachment/object ID normalization + batch limit (200), capability/nonce/context validation, deterministic post_type->taxonomy isolation (`bw_media_folder`/`bw_post_folder`/`bw_page_folder`/`bw_product_folder`), server-side counts API, marker cache invalidation on assignment, single-flight marker fetch queue, runtime query-isolation guards in `runtime/media-query-filter.php` (signature-safe `ajax_query_attachments_args`, attachment-only context gate, taxonomy validation, deterministic `tax_query` merge, fail-open bypass on invalid payload/context), and monitoring for very-large-library batch-query pressure.
-- Monitoring Status: Monitoring
+- Status: Mitigated
+- Current Mitigation: attachment/object ID normalization + batch limit (200), capability/nonce/context validation, deterministic post_type->taxonomy isolation (`bw_media_folder`/`bw_post_folder`/`bw_page_folder`/`bw_product_folder`), server-side counts API, marker cache invalidation on assignment, single-flight marker fetch queue, runtime query-isolation guards in `runtime/media-query-filter.php` (signature-safe `ajax_query_attachments_args`, attachment-only context gate, taxonomy validation, deterministic restrictive `tax_query` merge, fail-open bypass on invalid payload/context), and monitoring for very-large-library batch-query pressure.
+- Assessment Update (2026-03-10):
+  - Assignment integrity pipeline re-validated; no active critical assignment bug confirmed.
+  - Existing assignment lifecycle remains deterministic under validated batch/capability/context constraints.
+  - Final status: `MITIGATED`
+- Monitoring Status: Closed -> Monitoring
 - Linked Documents:
   - [Media Folders Spec](../30-features/media-folders/media-folders-module-spec.md)
   - [Media Folders Task Closure](../tasks/media-folders-close-task.md)
   - [BW-TASK-20260306-07 Closure](../tasks/BW-TASK-20260306-07-closure.md)
+  - [R-MF-02 + R-MF-03 Closure Record](../tasks/R-MF-02-R-MF-03-closure.md)
   - [Technical Hardening Plan](./technical-hardening-plan.md)
 
 ### Risk ID: R-PAY-03
@@ -767,19 +781,27 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 - Impact: High
 - Likelihood: Medium
 - Risk Level: High
+- Status: Mitigated
 - Current Mitigation:
   - Request normalization guard (`search_term` sanitize+trim, min length gate, category/product_type normalization).
   - Safe-empty response contract for malformed/invalid/too-short requests with stable JSON schema.
   - Bounded query constraints (`posts_per_page=10`, `no_found_rows`, `ignore_sticky_posts`, disabled meta/term cache hydration).
   - Deterministic ordering (`orderby=title`, `order=ASC`) and stable response shaping (`products` + `results` aliases).
-  - Publish-only + WooCommerce visibility exclusion via `product_visibility` NOT IN (`exclude-from-search`, `exclude-from-catalog`).
+  - Publish-only + WooCommerce search visibility exclusion via `product_visibility` NOT IN (`exclude-from-search`).
   - Radar validation update (2026-03-07): endpoint remains publicly callable (`nopriv`) without server-side rate limiting; bounded query contract reduces blast radius but does not provide abuse throttling.
-- Monitoring Status: Monitoring
+- Patch Update (2026-03-10):
+  - Task: `R-SRCH-11`
+  - File modified: `includes/modules/header/frontend/ajax-search.php`
+  - Change: live-search visibility alignment for search context (`exclude-from-catalog` removal from search tax query exclusion set).
+  - Result: searchable-but-catalog-hidden products are no longer incorrectly filtered from live AJAX search; guest/logged-in endpoint contract unchanged.
+  - Final status: `MITIGATED`
+- Monitoring Status: Closed -> Monitoring
 - Linked Documents:
   - [Search System Technical Audit](../50-ops/audits/search-system-technical-audit.md)
   - [Search Module Spec](../30-features/search/search-module-spec.md)
   - [Search vNext Spec](../30-features/search/search-vnext-spec.md)
   - [BW-TASK-20260306-09 Closure](../tasks/BW-TASK-20260306-09-closure.md)
+  - [R-SRCH-11 Closure Record](../tasks/R-SRCH-11-closure.md)
 
 ### Risk ID: R-RED-12
 - Domain: Redirect / Routing Authority

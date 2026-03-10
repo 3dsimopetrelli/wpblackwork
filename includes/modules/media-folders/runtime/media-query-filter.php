@@ -281,28 +281,50 @@ if (!function_exists('bw_mf_merge_tax_query')) {
             $existing = [];
         }
 
-        $relation = 'AND';
+        $existing_relation = 'AND';
         if (isset($existing['relation']) && in_array($existing['relation'], ['AND', 'OR'], true)) {
-            $relation = $existing['relation'];
+            $existing_relation = $existing['relation'];
             unset($existing['relation']);
         }
 
-        $merged = [];
+        $existing_clauses = [];
         foreach ($existing as $clause) {
             if (is_array($clause)) {
-                $merged[] = $clause;
+                $existing_clauses[] = $clause;
             }
         }
 
+        $addition_clauses = [];
         foreach ($addition as $clause) {
             if (is_array($clause)) {
-                $merged[] = $clause;
+                $addition_clauses[] = $clause;
             }
         }
 
-        if (!empty($merged)) {
-            $merged['relation'] = $relation;
+        if (empty($addition_clauses)) {
+            if (!empty($existing_clauses) && count($existing_clauses) > 1) {
+                $existing_clauses['relation'] = $existing_relation;
+            }
+            return $existing_clauses;
         }
+
+        if (empty($existing_clauses)) {
+            if (count($addition_clauses) > 1) {
+                $addition_clauses['relation'] = 'AND';
+            }
+            return $addition_clauses;
+        }
+
+        $existing_group = $existing_clauses;
+        if (count($existing_group) > 1) {
+            $existing_group['relation'] = $existing_relation;
+        }
+
+        $merged = [$existing_group];
+        foreach ($addition_clauses as $clause) {
+            $merged[] = $clause;
+        }
+        $merged['relation'] = 'AND';
 
         return $merged;
     }
