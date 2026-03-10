@@ -890,6 +890,23 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
   - Transient-based nopriv throttle guard with fail-soft compatible responses.
   - Deterministic hashed FPW cache keys (`bw_fpw_{sha256}` from canonical normalized payload) replacing truncation-based key construction, eliminating prefix-collision risk.
   - Publish-only query constraints preserved.
+  - Patch update (2026-03-10):
+    - `R-FPW-20 patch 1`: CLOSED.
+    - Added POST-only method enforcement for non-Supabase public mutation AJAX endpoints:
+      - `bw_cart_popup_add_to_cart`
+      - `bw_cart_popup_remove_item`
+      - `bw_cart_popup_update_quantity`
+      - `bw_cart_popup_apply_coupon`
+      - `bw_cart_popup_remove_coupon`
+      - `bw_apply_coupon`
+      - `bw_remove_coupon`
+    - Files updated:
+      - `cart-popup/frontend/cart-popup-frontend.php`
+      - `woocommerce/woocommerce-init.php`
+    - Outcome: nonce-protected public mutation endpoints now explicitly reject non-POST transport with HTTP 405.
+  - Remaining mitigation backlog:
+    - patch 2: capability hardening review for authenticated search endpoint
+    - patch 3: abuse/rate hardening review for public read-only endpoints
 - Monitoring Status: Monitoring
 - Linked Documents:
   - [BW-TASK-20260306-03 Closure](../tasks/BW-TASK-20260306-03-closure.md)

@@ -630,6 +630,11 @@ add_action('wp_head', 'bw_cart_popup_dynamic_css');
  */
 function bw_cart_popup_ajax_add_to_cart()
 {
+    $request_method = isset($_SERVER['REQUEST_METHOD']) ? strtoupper(sanitize_text_field(wp_unslash($_SERVER['REQUEST_METHOD']))) : '';
+    if ('POST' !== $request_method) {
+        wp_send_json_error(['message' => __('Method Not Allowed.', 'bw')], 405);
+    }
+
     check_ajax_referer('bw_cart_popup_nonce', 'nonce');
 
     if (!class_exists('WooCommerce')) {
@@ -852,6 +857,11 @@ add_action('wp_ajax_nopriv_bw_cart_popup_get_contents', 'bw_cart_popup_get_cart_
  */
 function bw_cart_popup_remove_item()
 {
+    $request_method = isset($_SERVER['REQUEST_METHOD']) ? strtoupper(sanitize_text_field(wp_unslash($_SERVER['REQUEST_METHOD']))) : '';
+    if ('POST' !== $request_method) {
+        wp_send_json_error(['message' => __('Method Not Allowed.', 'bw')], 405);
+    }
+
     check_ajax_referer('bw_cart_popup_nonce', 'nonce');
 
     if (!class_exists('WooCommerce')) {
@@ -904,6 +914,11 @@ add_action('wp_ajax_nopriv_bw_cart_popup_remove_item', 'bw_cart_popup_remove_ite
  */
 function bw_cart_popup_update_quantity()
 {
+    $request_method = isset($_SERVER['REQUEST_METHOD']) ? strtoupper(sanitize_text_field(wp_unslash($_SERVER['REQUEST_METHOD']))) : '';
+    if ('POST' !== $request_method) {
+        wp_send_json_error(['message' => __('Method Not Allowed.', 'bw')], 405);
+    }
+
     check_ajax_referer('bw_cart_popup_nonce', 'nonce');
 
     if (!class_exists('WooCommerce')) {
@@ -963,6 +978,11 @@ add_action('wp_ajax_nopriv_bw_cart_popup_update_quantity', 'bw_cart_popup_update
  */
 function bw_cart_popup_apply_coupon()
 {
+    $request_method = isset($_SERVER['REQUEST_METHOD']) ? strtoupper(sanitize_text_field(wp_unslash($_SERVER['REQUEST_METHOD']))) : '';
+    if ('POST' !== $request_method) {
+        wp_send_json_error(['message' => __('Method Not Allowed.', 'bw')], 405);
+    }
+
     check_ajax_referer('bw_cart_popup_nonce', 'nonce');
 
     if (!class_exists('WooCommerce')) {
@@ -1037,6 +1057,11 @@ add_action('wp_ajax_nopriv_bw_cart_popup_apply_coupon', 'bw_cart_popup_apply_cou
  */
 function bw_cart_popup_remove_coupon()
 {
+    $request_method = isset($_SERVER['REQUEST_METHOD']) ? strtoupper(sanitize_text_field(wp_unslash($_SERVER['REQUEST_METHOD']))) : '';
+    if ('POST' !== $request_method) {
+        wp_send_json_error(['message' => __('Method Not Allowed.', 'bw')], 405);
+    }
+
     check_ajax_referer('bw_cart_popup_nonce', 'nonce');
 
     if (!class_exists('WooCommerce')) {

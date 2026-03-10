@@ -242,3 +242,26 @@ When tasks touch Supabase protected surfaces, these smoke tests are mandatory:
   - enum values validated during import
   - invalid enum values ignored safely
   - valid imports unaffected
+
+## Public AJAX Mutation Transport Hardening (R-FPW-20 Patch 1)
+- Date: 2026-03-10
+- Risk: `R-FPW-20` (patch 1) - `CLOSED`
+- Scope:
+  - Added explicit POST-only method enforcement for non-Supabase public mutation endpoints.
+  - Updated files:
+    - `cart-popup/frontend/cart-popup-frontend.php`
+    - `woocommerce/woocommerce-init.php`
+  - Patched handlers:
+    - `bw_cart_popup_add_to_cart`
+    - `bw_cart_popup_remove_item`
+    - `bw_cart_popup_update_quantity`
+    - `bw_cart_popup_apply_coupon`
+    - `bw_cart_popup_remove_coupon`
+    - `bw_apply_coupon`
+    - `bw_remove_coupon`
+- Required regression checks completed:
+  - valid POST requests still work for all patched actions
+  - GET requests return HTTP 405
+  - Cart Popup behavior unchanged
+  - checkout coupon apply/remove behavior unchanged
+  - public read-only AJAX endpoints remain unaffected

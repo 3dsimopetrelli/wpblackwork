@@ -1552,6 +1552,11 @@ add_action('woocommerce_checkout_before_customer_details', 'bw_mew_render_expres
  */
 function bw_mew_ajax_remove_coupon()
 {
+    $request_method = isset($_SERVER['REQUEST_METHOD']) ? strtoupper(sanitize_text_field(wp_unslash($_SERVER['REQUEST_METHOD']))) : '';
+    if ('POST' !== $request_method) {
+        wp_send_json_error(array('message' => __('Method Not Allowed.', 'woocommerce')), 405);
+    }
+
     check_ajax_referer('bw-checkout-nonce', 'nonce');
 
     if (!class_exists('WooCommerce') || !WC()->cart) {
@@ -1628,6 +1633,11 @@ function bw_mew_ajax_remove_coupon()
  */
 function bw_mew_ajax_apply_coupon()
 {
+    $request_method = isset($_SERVER['REQUEST_METHOD']) ? strtoupper(sanitize_text_field(wp_unslash($_SERVER['REQUEST_METHOD']))) : '';
+    if ('POST' !== $request_method) {
+        wp_send_json_error(array('message' => __('Method Not Allowed.', 'woocommerce')), 405);
+    }
+
     check_ajax_referer('bw-checkout-nonce', 'nonce');
 
     if (!class_exists('WooCommerce') || !WC()->cart) {
