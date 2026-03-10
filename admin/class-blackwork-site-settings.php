@@ -5710,8 +5710,30 @@ function bw_import_handle_run_request($state)
     }
 
     $update_existing = !empty($run_state['update_existing']);
+    $checkpoint_every = (int) apply_filters('bw_import_checkpoint_every', 10);
+    if ($checkpoint_every < 1) {
+        $checkpoint_every = 1;
+    }
+    if ($checkpoint_every > $chunk_size) {
+        $checkpoint_every = $chunk_size;
+    }
+
     $options = [
         'skip_images' => !empty($run_state['skip_images']),
+        'checkpoint_every' => $checkpoint_every,
+        'checkpoint_callback' => static function ($absolute_row) use (&$run_state, $run_id) {
+            $absolute_row = max(0, (int) $absolute_row);
+            if ($absolute_row <= (int) $run_state['row_cursor']) {
+                return;
+            }
+
+            $run_state['row_cursor'] = $absolute_row;
+            $run_state['updated_at'] = time();
+            $run_state['lock'] = bw_import_get_lock_payload();
+            bw_import_save_run_state($run_state);
+            bw_import_save_state($run_state);
+            bw_import_refresh_lock($run_id, get_current_user_id());
+        },
     ];
     $result = bw_import_process_rows(
         $parsed_chunk['headers'],
@@ -6790,6 +6812,26 @@ function bw_import_process_rows($headers, $rows, $mapping, $update_existing = fa
         'warnings' => [],
     ];
 
+    $checkpoint_callback = (isset($options['checkpoint_callback']) && is_callable($options['checkpoint_callback']))
+        ? $options['checkpoint_callback']
+        : null;
+    $checkpoint_every = isset($options['checkpoint_every']) ? absint($options['checkpoint_every']) : 0;
+    $processed_since_checkpoint = 0;
+    $last_absolute_row = -1;
+
+    $maybe_checkpoint = static function ($absolute_row) use (&$processed_since_checkpoint, &$last_absolute_row, $checkpoint_every, $checkpoint_callback) {
+        if (!$checkpoint_callback || $checkpoint_every < 1) {
+            return;
+        }
+
+        $last_absolute_row = (int) $absolute_row;
+        $processed_since_checkpoint++;
+        if ($processed_since_checkpoint >= $checkpoint_every) {
+            call_user_func($checkpoint_callback, $last_absolute_row);
+            $processed_since_checkpoint = 0;
+        }
+    };
+
     foreach ($rows as $row_index => $row) {
         $row_data = [];
         foreach ($headers as $i => $header) {
@@ -6805,6 +6847,7 @@ function bw_import_process_rows($headers, $rows, $mapping, $update_existing = fa
                 $result['errors_count']++;
                 $result['errors'][] = sprintf(__('Row %1$d: %2$s', 'bw'), $row_offset + $row_index + 2, $prepared->get_error_message());
             }
+            $maybe_checkpoint($row_offset + $row_index + 1);
             continue;
         }
 
@@ -6817,6 +6860,7 @@ function bw_import_process_rows($headers, $rows, $mapping, $update_existing = fa
         $row_sku = isset($prepared['product']['sku']) ? (string) $prepared['product']['sku'] : '';
         $row_identity = bw_import_make_row_identity($row_offset, $row_index, $row_sku);
         if (!empty($run_state['processed_row_keys']) && is_array($run_state['processed_row_keys']) && isset($run_state['processed_row_keys'][$row_identity])) {
+            $maybe_checkpoint($row_offset + $row_index + 1);
             continue;
         }
 
@@ -6839,6 +6883,7 @@ function bw_import_process_rows($headers, $rows, $mapping, $update_existing = fa
             if ($row_recorded) {
                 $result['errors'][] = sprintf(__('Row %1$d: %2$s', 'bw'), $row_offset + $row_index + 2, $save_result->get_error_message());
             }
+            $maybe_checkpoint($row_offset + $row_index + 1);
             continue;
         }
 
@@ -6857,6 +6902,12 @@ function bw_import_process_rows($headers, $rows, $mapping, $update_existing = fa
                 $result['created']++;
             }
         }
+
+        $maybe_checkpoint($row_offset + $row_index + 1);
+    }
+
+    if ($checkpoint_callback && $processed_since_checkpoint > 0 && $last_absolute_row >= 0) {
+        call_user_func($checkpoint_callback, $last_absolute_row);
     }
 
     return $result;
