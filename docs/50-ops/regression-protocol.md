@@ -361,6 +361,24 @@ When tasks touch Supabase protected surfaces, these smoke tests are mandatory:
   - simulate Slick unavailable: no JS fatal, static markup remains usable
   - no infinite retry loop remains in presentation slide runtime
 
+## Slick Asset Scope Hardening (R-FE-23)
+- Date: 2026-03-10
+- Risk: `R-FE-23` - `MITIGATED`
+- Scope:
+  - `blackwork-core-plugin.php` Slick/bootstrap moved from unconditional Elementor enqueue hooks to register-only authority on `init`.
+  - Removed unconditional global enqueue path for:
+    - `bw_enqueue_slick_slider_assets`
+    - `bw_enqueue_presentation_slide_widget_assets`
+  - Slick payload now loads through Elementor widget dependency contracts only.
+- Required regression checks completed:
+  - Elementor frontend with each Slick widget individually: assets load and widget works
+  - Elementor frontend with no Slick widgets: Slick CDN assets absent
+  - Elementor editor with Slick widget: no missing handle errors
+  - Elementor preview with Slick widget: works correctly
+  - Presentation Slide remains functional (including mobile Slick mode)
+  - no console errors when Slick widgets are absent
+  - non-Elementor pages unaffected
+
 ## Public AJAX Mutation Transport Hardening (R-FPW-20 Patch 1)
 - Date: 2026-03-10
 - Risk: `R-FPW-20` (patch 1) - `CLOSED`

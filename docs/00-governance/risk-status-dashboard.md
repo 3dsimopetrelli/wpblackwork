@@ -44,6 +44,7 @@ Snapshot integrity rule:
 - Executive snapshot counts MUST be synchronized with the totals derived from the rows in **Risk summary table**.
 
 Last governance-aligned updates:
+- 2026-03-10: `R-FE-23` asset-scope hardening closed (`blackwork-core-plugin.php` moved Slick/bootstrap to register-only `init`; dependency-driven loading prevents global Slick CDN payload on pages without Slick widgets).
 - 2026-03-10: `R-PERF-29` task closed (Cart Popup runtime scope hardening + checkout suppression option; popup assets/panel/CSS/JS suppressed on checkout when enabled by default).
 - 2026-03-10: `R-FPW-02` closed (FPW transient key canonicalization in `bw_fpw_get_tags`; stable cache reuse for identical subcategory sets).
 - 2026-03-10: ReRadar FPW tag N+1 finding closed as **False Positive** (`bw_fpw_collect_tags_from_posts()` already uses batched `wp_get_object_terms` over bounded ID set; no runtime patch required).
@@ -127,7 +128,7 @@ Last governance-aligned updates:
 | R-TBL-17 | Elementor preview context drift | Theme Builder Lite | Medium | <span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">OPEN</span> | Preview-context safeguards | Monitoring | Non-Supabase |
 | R-ADM-18 | Admin diagnostics integrity risk | Admin / System Status | Medium | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Partial-refresh freshness hardening shipped | Monitoring only | Non-Supabase |
 | R-ADM-19 | Admin asset scope/perf risk | Admin / Enqueue Scope | Medium | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Patch A/B closed; C deferred | Optional patch C only | Non-Supabase |
-| R-FE-23 | Slick dependency longevity risk | Frontend / Dependencies | Medium | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Fail-soft Slick hardening shipped | Optional enqueue-scope cleanup backlog | Non-Supabase |
+| R-FE-23 | Slick dependency longevity risk | Frontend / Dependencies | Medium | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Fail-soft + register-only Slick scope hardening shipped | Monitoring + long-term migration planning | Non-Supabase |
 | R-PERF-27 | Order-received checkout scope | Performance / Checkout | Medium | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Guard excludes order-received runtime | Monitoring | Non-Supabase |
 | R-TBL-01 | bw_template preview 404 risk | Theme Builder Lite | Medium | <span style="background:#2ecc71;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">RESOLVED</span> | Closed with previewable CPT path | None | Historical resolved risk |
 | R-TBL-02 | Admin asset/editor interference | Theme Builder Lite | Medium | <span style="background:#2ecc71;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">RESOLVED</span> | Closed with strict enqueue scoping | None | Historical resolved risk |
@@ -622,11 +623,11 @@ Last governance-aligned updates:
 - Area: Frontend / UI dependencies
 - Priority: Medium
 - Status: Mitigated
-- Summary: Slick-missing runtime fragility has been reduced with fail-soft guards and bounded retry behavior.
-- What has been completed: Added explicit Slick availability guards in shared/product slider runtimes and replaced infinite presentation retry with bounded stop.
-- What is still pending: Optional global Slick enqueue scoping cleanup and long-term migration planning.
+- Summary: Slick runtime fragility and global over-scope loading have been reduced with fail-soft guards and register-only bootstrap.
+- What has been completed: Added explicit Slick availability guards in shared/product slider runtimes, replaced infinite presentation retry with bounded stop, and moved Slick/bootstrap payloads to register-only `init` so loading is widget-dependency-driven.
+- What is still pending: Long-term migration planning away from legacy Slick dependency.
 - Supabase-adjacent blast radius: No.
-- Recommended next step: Keep Slick-unavailable regression checks in release cadence and track enqueue-scope optimization as separate backlog.
+- Recommended next step: Keep Slick-unavailable and Slick-scope checks in release cadence while planning migration.
 
 ### R-WOO-24 — WooCommerce template override staleness
 - Area: WooCommerce / Template Overrides

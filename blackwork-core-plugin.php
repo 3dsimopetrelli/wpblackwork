@@ -585,9 +585,7 @@ function bw_initialize_woocommerce_components()
 }
 add_action('woocommerce_init', 'bw_initialize_woocommerce_components', 5);
 
-add_action('elementor/frontend/after_enqueue_scripts', 'bw_enqueue_slick_slider_assets');
-add_action('elementor/editor/after_enqueue_scripts', 'bw_enqueue_slick_slider_assets');
-add_action('elementor/preview/enqueue_scripts', 'bw_enqueue_slick_slider_assets');
+add_action('init', 'bw_enqueue_slick_slider_assets');
 add_action('elementor/editor/after_enqueue_scripts', 'bw_enqueue_slick_slider_admin_script');
 add_action('init', 'bw_register_divider_style');
 add_action('init', 'bw_register_button_widget_assets');
@@ -611,19 +609,17 @@ add_action('elementor/editor/after_enqueue_scripts', 'bw_enqueue_related_product
 add_action('init', 'bw_register_price_variation_widget_assets');
 add_action('init', 'bw_register_add_to_cart_variation_widget_assets');
 add_action('init', 'bw_register_presentation_slide_widget_assets');
-add_action('elementor/frontend/after_enqueue_scripts', 'bw_enqueue_presentation_slide_widget_assets');
-add_action('elementor/editor/after_enqueue_scripts', 'bw_enqueue_presentation_slide_widget_assets');
 
 function bw_enqueue_slick_slider_assets()
 {
-    wp_enqueue_style(
+    wp_register_style(
         'slick-css',
         'https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css',
         [],
         '1.8.1'
     );
 
-    wp_enqueue_script(
+    wp_register_script(
         'slick-js',
         'https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js',
         ['jquery'],
@@ -634,7 +630,7 @@ function bw_enqueue_slick_slider_assets()
     $slick_slider_css_file = __DIR__ . '/assets/css/bw-slick-slider.css';
     $slick_slider_version = file_exists($slick_slider_css_file) ? filemtime($slick_slider_css_file) : '1.0.0';
 
-    wp_enqueue_style(
+    wp_register_style(
         'bw-slick-slider-style',
         plugin_dir_url(__FILE__) . 'assets/css/bw-slick-slider.css',
         [],
@@ -644,7 +640,7 @@ function bw_enqueue_slick_slider_assets()
     $showcase_css_file = __DIR__ . '/assets/css/bw-slide-showcase.css';
     $showcase_version = file_exists($showcase_css_file) ? filemtime($showcase_css_file) : '1.0.0';
 
-    wp_enqueue_style(
+    wp_register_style(
         'bw-slide-showcase-style',
         plugin_dir_url(__FILE__) . 'assets/css/bw-slide-showcase.css',
         [],
@@ -654,7 +650,7 @@ function bw_enqueue_slick_slider_assets()
     $product_slide_css_file = __DIR__ . '/assets/css/bw-product-slide.css';
     $product_slide_version = file_exists($product_slide_css_file) ? filemtime($product_slide_css_file) : '1.0.0';
 
-    wp_enqueue_style(
+    wp_register_style(
         'bw-product-slide-style',
         plugin_dir_url(__FILE__) . 'assets/css/bw-product-slide.css',
         [],
@@ -664,7 +660,7 @@ function bw_enqueue_slick_slider_assets()
     $bw_custom_class_css_file = __DIR__ . '/assets/css/bw-custom-class.css';
     $custom_class_version = file_exists($bw_custom_class_css_file) ? filemtime($bw_custom_class_css_file) : '1.0.0';
 
-    wp_enqueue_style(
+    wp_register_style(
         'bw-fullbleed-style',
         plugin_dir_url(__FILE__) . 'assets/css/bw-custom-class.css',
         [],
@@ -674,7 +670,7 @@ function bw_enqueue_slick_slider_assets()
     $slick_slider_js_file = __DIR__ . '/assets/js/bw-slick-slider.js';
     $slick_slider_js_version = file_exists($slick_slider_js_file) ? filemtime($slick_slider_js_file) : BLACKWORK_PLUGIN_VERSION;
 
-    wp_enqueue_script(
+    wp_register_script(
         'bw-slick-slider-js',
         plugin_dir_url(__FILE__) . 'assets/js/bw-slick-slider.js',
         ['jquery', 'slick-js'],
@@ -684,18 +680,19 @@ function bw_enqueue_slick_slider_assets()
 
     $product_slide_js_file = __DIR__ . '/assets/js/bw-product-slide.js';
     $product_slide_version_js = file_exists($product_slide_js_file) ? filemtime($product_slide_js_file) : '1.0.0';
+    $product_slide_deps = ['jquery', 'slick-js'];
 
-    wp_enqueue_script(
+    if (class_exists('WooCommerce')) {
+        $product_slide_deps[] = 'wc-add-to-cart-variation';
+    }
+
+    wp_register_script(
         'bw-product-slide-js',
         plugin_dir_url(__FILE__) . 'assets/js/bw-product-slide.js',
-        ['jquery', 'slick-js'],
+        $product_slide_deps,
         $product_slide_version_js,
         true
     );
-
-    if (class_exists('WooCommerce')) {
-        wp_enqueue_script('wc-add-to-cart-variation');
-    }
 
     wp_localize_script(
         'bw-slick-slider-js',

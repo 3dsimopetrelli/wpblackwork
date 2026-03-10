@@ -1171,6 +1171,7 @@ Mitigated
 Current Mitigation:
 Pinned CDN version ensures deterministic runtime behavior.
 Fail-soft runtime guards now prevent hard failures when Slick is unavailable.
+Slick/bootstrap assets are globally registered on `init` and loaded only via widget dependency contracts when Slick-based widgets are rendered.
 
 Patch Update (2026-03-10):
 - Task: `R-FE-23`
@@ -1187,6 +1188,24 @@ Patch Update (2026-03-10):
   - Existing behavior remains unchanged when Slick is available.
 - Final status: `MITIGATED`
 
+Patch Update (2026-03-10, scope hardening):
+- Task: `Slick asset scope hardening`
+- File modified:
+  - `blackwork-core-plugin.php`
+- Change:
+  - Removed unconditional Elementor enqueue hooks for Slick/global slider payloads.
+  - Rewired Slick bootstrap to register-only authority on `init`.
+  - Converted Slick-related handles from global enqueue to registration-only:
+    - `slick-css`, `slick-js`
+    - `bw-slick-slider-style`, `bw-slick-slider-js`
+    - `bw-product-slide-style`, `bw-product-slide-js`
+    - `bw-slide-showcase-style`, `bw-fullbleed-style`
+  - Preserved localization and dependency-driven widget loading.
+- Result:
+  - Elementor pages without Slick widgets no longer load Slick CDN assets by default.
+  - Frontend/editor/preview still load Slick assets when widget dependency declarations require them.
+- Final status: `MITIGATED`
+
 Monitoring Status:
 Closed -> Monitoring
 
@@ -1194,10 +1213,11 @@ Notes:
 Due to extensive coupling across widgets and JS runtime,
 replacement or migration would require a controlled frontend
 refactor effort.
-Global Slick enqueue scope optimization remains optional future cleanup and is out of this patch scope.
+Global Slick over-scope enqueue issue has been mitigated via register-only bootstrap and dependency-driven loading authority.
 
 Linked Documents:
 - [R-FE-23 Closure Record](../tasks/R-FE-23-closure.md)
+- [R-FE-23 Slick Asset Scope Hardening Closure](../tasks/R-FE-23-slick-asset-scope-hardening-closure.md)
 
 ### Risk ID: R-WOO-24
 
