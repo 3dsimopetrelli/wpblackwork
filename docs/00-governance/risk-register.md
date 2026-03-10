@@ -1350,24 +1350,25 @@ Progress Status:
   - [BW-TASK-20260308-13-closure](../tasks/BW-TASK-20260308-13-closure.md)
 
 ### Risk ID: R-PERF-29
-- Domain: Performance / Cart Popup Dynamic CSS
+- Domain: Performance / Cart Popup Runtime Scope
 - Source: Radar Batch 3 — Performance Analysis
-- Surface Anchor: `cart-popup/frontend/cart-popup-frontend.php` (`bw_cart_popup_dynamic_css`)
-- Description: Dynamic CSS generation for cart popup performed many repeated `get_option()` calls per request in a TTFB-sensitive rendering path.
-- Invariant Threatened: Dynamic CSS rendering should remain deterministic and avoid unnecessary repeated option lookups.
+- Surface Anchor: `cart-popup/frontend/cart-popup-frontend.php`, `cart-popup/cart-popup.php`
+- Description: Cart Popup runtime previously had avoidable global load pressure (dynamic CSS option churn + unconditional frontend runtime surfaces), including checkout exposure where popup runtime is not desired by default.
+- Invariant Threatened: Cart Popup runtime should load only when needed and remain explicitly suppressible on checkout.
 - Impact: Low
 - Likelihood: Medium
 - Risk Level: Low
 - Status: Mitigated
-- Current Mitigation: Consolidated repeated dynamic CSS option lookups into a local options/default map and reused local values for CSS generation in a single deterministic pass.
+- Current Mitigation: Consolidated dynamic CSS option retrieval into a single deterministic pass, added centralized runtime-needed guard (`bw_cart_popup_should_load_assets`) for assets/panel/CSS output, and added checkout suppression option (`bw_cart_popup_disable_on_checkout`, default enabled) to prevent popup runtime on checkout by default.
 - Monitoring Status: Closed -> Monitoring
-- Mitigation Path: Completed via `BW-TASK-20260308-14`.
-- Task: `BW-TASK-20260308-14`
-- Date: `2026-03-08`
+- Mitigation Path: Completed via `BW-TASK-20260308-14` + Cart Popup runtime hardening closure.
+- Task: `BW-TASK-20260308-14` + `R-PERF-29-cart-popup-runtime-hardening-closure`
+- Date: `2026-03-10`
 - Linked Documents:
   - [Core Evolution Plan](../00-planning/core-evolution-plan.md)
   - [BW-TASK-20260307-radar-batch3-performance-validation](../tasks/BW-TASK-20260307-radar-batch3-performance-validation.md)
   - [BW-TASK-20260308-14-closure](../tasks/BW-TASK-20260308-14-closure.md)
+  - [R-PERF-29-cart-popup-runtime-hardening-closure](../tasks/R-PERF-29-cart-popup-runtime-hardening-closure.md)
 
 ## 4) Governance Rules
 - All Tier 0 changes must be reviewed against this register before implementation.

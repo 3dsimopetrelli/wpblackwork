@@ -44,6 +44,7 @@ Snapshot integrity rule:
 - Executive snapshot counts MUST be synchronized with the totals derived from the rows in **Risk summary table**.
 
 Last governance-aligned updates:
+- 2026-03-10: `R-PERF-29` task closed (Cart Popup runtime scope hardening + checkout suppression option; popup assets/panel/CSS/JS suppressed on checkout when enabled by default).
 - 2026-03-10: `R-FPW-02` closed (FPW transient key canonicalization in `bw_fpw_get_tags`; stable cache reuse for identical subcategory sets).
 - 2026-03-10: ReRadar FPW tag N+1 finding closed as **False Positive** (`bw_fpw_collect_tags_from_posts()` already uses batched `wp_get_object_terms` over bounded ID set; no runtime patch required).
 - 2026-03-10: `R-FE-23` mitigated with fail-soft Slick hardening (shared/product guard + bounded presentation retry stop) without architecture refactor.
@@ -132,7 +133,7 @@ Last governance-aligned updates:
 | R-TBL-02 | Admin asset/editor interference | Theme Builder Lite | Medium | <span style="background:#2ecc71;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">RESOLVED</span> | Closed with strict enqueue scoping | None | Historical resolved risk |
 | R-TBL-03 | Custom fonts Elementor visibility | Theme Builder Lite | Medium | <span style="background:#2ecc71;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">RESOLVED</span> | Closed with Elementor font integration | None | Historical resolved risk |
 | R-PERF-28 | Stripe enqueue duplication | Performance / Payments | Low | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Canonical Stripe enqueue path shipped | Monitoring | Non-Supabase |
-| R-PERF-29 | Cart popup dynamic CSS lookup cost | Performance / Cart Popup | Low | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Consolidated option retrieval pass | Monitoring | Non-Supabase |
+| R-PERF-29 | Cart popup runtime scope/load drift | Performance / Cart Popup | Low | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Runtime-needed guard + checkout suppression setting shipped | Monitoring | Non-Supabase |
 
 ## 4. Detailed risk notes
 
@@ -667,15 +668,15 @@ Last governance-aligned updates:
 - Supabase-adjacent blast radius: No.
 - Recommended next step: None beyond periodic checkout network audit.
 
-### R-PERF-29 — Cart popup dynamic CSS lookup cost
+### R-PERF-29 — Cart popup runtime scope/load drift
 - Area: Performance / Cart Popup
 - Priority: Low
 - Status: Mitigated
-- Summary: Repeated option lookups in CSS generation reduced.
-- What has been completed: Single-pass local options map.
+- Summary: Cart Popup runtime load was hardened to avoid unnecessary global surfaces and to suppress popup runtime on checkout by default.
+- What has been completed: Single-pass dynamic CSS option map, centralized runtime-needed guard for assets/panel/CSS, and admin setting `bw_cart_popup_disable_on_checkout` (default enabled) in Blackwork Site Panel.
 - What is still pending: Monitoring.
 - Supabase-adjacent blast radius: No.
-- Recommended next step: None beyond TTFB watch.
+- Recommended next step: Keep checkout/non-checkout runtime suppression checks in regression protocol.
 
 ## 5. Recommended next wave
 1. `R-AUTH-04` — Core Supabase auth surface still open; requires a dedicated, controlled hardening wave.

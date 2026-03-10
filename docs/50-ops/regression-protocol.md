@@ -427,6 +427,34 @@ When tasks touch Supabase protected surfaces, these smoke tests are mandatory:
   - tag ordering/output contract unchanged
   - no query behavior changes
 
+## Cart Popup Runtime Scope + Checkout Suppression (R-PERF-29)
+- Date: 2026-03-10
+- Risk: `R-PERF-29` - `MITIGATED`
+- Scope:
+  - Runtime-needed guard applied to Cart Popup frontend surfaces:
+    - assets enqueue
+    - panel render
+    - dynamic CSS output
+  - Added admin setting `bw_cart_popup_disable_on_checkout` (default enabled) in Blackwork Site Panel Cart Pop-up tab.
+  - Checkout runtime suppression when setting is enabled: no floating icon, no popup panel, no popup CSS/JS.
+  - Outside checkout, existing Cart Popup behavior preserved.
+- Required regression checks completed:
+  - checkout page + setting enabled:
+    - floating cart icon absent
+    - popup panel markup absent
+    - popup CSS/JS absent
+    - no popup trigger/runtime available
+  - checkout page + setting disabled:
+    - legacy popup behavior restored
+  - non-checkout pages:
+    - popup behavior unchanged
+    - header/cart integration unchanged
+    - widget/button triggers remain functional
+    - Woo fragments/cart AJAX unaffected
+  - admin:
+    - setting visible in Blackwork Site Panel
+    - setting persists correctly
+
 ## Checkout Payment State Integrity Hardening (R-PAY-02)
 - Date: 2026-03-10
 - Risk: `R-PAY-02` - `MITIGATED`
