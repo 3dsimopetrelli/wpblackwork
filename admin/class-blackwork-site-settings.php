@@ -5137,6 +5137,20 @@ function bw_site_render_redirect_tab()
  */
 function bw_site_render_coming_soon_tab()
 {
+    $settings_defaults = [
+        'subscribe_enabled' => 0,
+        'list_id_override' => 0,
+        'channel_optin_mode' => 'inherit',
+        'success_message' => __('Thanks for subscribing! Please check your inbox.', 'bw'),
+        'error_message' => __('Unable to subscribe right now. Please try again later.', 'bw'),
+    ];
+
+    $saved_settings = get_option('bw_coming_soon_brevo_settings', []);
+    if (!is_array($saved_settings)) {
+        $saved_settings = [];
+    }
+    $brevo_settings = array_merge($settings_defaults, $saved_settings);
+
     // Salva le impostazioni se il form è stato inviato
     $saved = false;
     if (isset($_POST['bw_coming_soon_submit'])) {
@@ -5148,6 +5162,27 @@ function bw_site_render_coming_soon_tab()
 
         $active_value = isset($_POST['bw_coming_soon_toggle']) ? 1 : 0;
         update_option('bw_coming_soon_active', $active_value);
+
+        $channel_optin_mode = isset($_POST['bw_coming_soon_channel_optin_mode'])
+            ? sanitize_key(wp_unslash($_POST['bw_coming_soon_channel_optin_mode']))
+            : 'inherit';
+        if (!in_array($channel_optin_mode, ['inherit', 'single_opt_in', 'double_opt_in'], true)) {
+            $channel_optin_mode = 'inherit';
+        }
+
+        $updated_brevo_settings = [
+            'subscribe_enabled' => !empty($_POST['bw_coming_soon_subscribe_enabled']) ? 1 : 0,
+            'list_id_override' => isset($_POST['bw_coming_soon_list_id_override']) ? absint(wp_unslash($_POST['bw_coming_soon_list_id_override'])) : 0,
+            'channel_optin_mode' => $channel_optin_mode,
+            'success_message' => isset($_POST['bw_coming_soon_success_message'])
+                ? sanitize_textarea_field(wp_unslash($_POST['bw_coming_soon_success_message']))
+                : $settings_defaults['success_message'],
+            'error_message' => isset($_POST['bw_coming_soon_error_message'])
+                ? sanitize_textarea_field(wp_unslash($_POST['bw_coming_soon_error_message']))
+                : $settings_defaults['error_message'],
+        ];
+        update_option('bw_coming_soon_brevo_settings', $updated_brevo_settings);
+        $brevo_settings = array_merge($settings_defaults, $updated_brevo_settings);
         $saved = true;
     }
 
@@ -5170,6 +5205,76 @@ function bw_site_render_coming_soon_tab()
                     <input type="checkbox" id="bw_coming_soon_toggle" name="bw_coming_soon_toggle" value="1" <?php checked(1, $active); ?> />
                     <span class="description">Quando attivo, il sito mostrerà la pagina Coming Soon ai visitatori non
                         loggati.</span>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_coming_soon_subscribe_enabled"><?php esc_html_e('Enable Coming Soon subscribe form', 'bw'); ?></label>
+                </th>
+                <td>
+                    <input
+                        type="checkbox"
+                        id="bw_coming_soon_subscribe_enabled"
+                        name="bw_coming_soon_subscribe_enabled"
+                        value="1"
+                        <?php checked(1, (int) $brevo_settings['subscribe_enabled']); ?>
+                    />
+                    <span class="description"><?php esc_html_e('Use Mail Marketing Brevo settings for Coming Soon subscriptions.', 'bw'); ?></span>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_coming_soon_list_id_override"><?php esc_html_e('Brevo list override', 'bw'); ?></label>
+                </th>
+                <td>
+                    <input
+                        type="number"
+                        id="bw_coming_soon_list_id_override"
+                        name="bw_coming_soon_list_id_override"
+                        value="<?php echo esc_attr((int) $brevo_settings['list_id_override']); ?>"
+                        min="0"
+                        step="1"
+                        class="small-text"
+                    />
+                    <span class="description"><?php esc_html_e('Optional. Leave empty/0 to use Mail Marketing main list.', 'bw'); ?></span>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_coming_soon_channel_optin_mode"><?php esc_html_e('Channel opt-in mode', 'bw'); ?></label>
+                </th>
+                <td>
+                    <select id="bw_coming_soon_channel_optin_mode" name="bw_coming_soon_channel_optin_mode">
+                        <option value="inherit" <?php selected($brevo_settings['channel_optin_mode'], 'inherit'); ?>><?php esc_html_e('Inherit General setting', 'bw'); ?></option>
+                        <option value="single_opt_in" <?php selected($brevo_settings['channel_optin_mode'], 'single_opt_in'); ?>><?php esc_html_e('Force single opt-in', 'bw'); ?></option>
+                        <option value="double_opt_in" <?php selected($brevo_settings['channel_optin_mode'], 'double_opt_in'); ?>><?php esc_html_e('Force double opt-in', 'bw'); ?></option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_coming_soon_success_message"><?php esc_html_e('Success message', 'bw'); ?></label>
+                </th>
+                <td>
+                    <textarea
+                        id="bw_coming_soon_success_message"
+                        name="bw_coming_soon_success_message"
+                        rows="3"
+                        class="large-text"
+                    ><?php echo esc_textarea((string) $brevo_settings['success_message']); ?></textarea>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bw_coming_soon_error_message"><?php esc_html_e('Error message', 'bw'); ?></label>
+                </th>
+                <td>
+                    <textarea
+                        id="bw_coming_soon_error_message"
+                        name="bw_coming_soon_error_message"
+                        rows="3"
+                        class="large-text"
+                    ><?php echo esc_textarea((string) $brevo_settings['error_message']); ?></textarea>
                 </td>
             </tr>
         </table>

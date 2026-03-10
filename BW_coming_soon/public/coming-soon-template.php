@@ -2,6 +2,16 @@
 if (!defined('ABSPATH')) {
     exit;
 }
+
+$bw_coming_soon_channel_settings = function_exists('bw_coming_soon_get_brevo_settings')
+    ? bw_coming_soon_get_brevo_settings()
+    : [
+        'subscribe_enabled' => 0,
+        'success_message' => __('Thanks for subscribing! Please check your inbox.', 'bw'),
+        'error_message' => __('Unable to subscribe right now. Please try again later.', 'bw'),
+    ];
+
+$bw_coming_soon_feedback = isset($_GET['bw_cs']) ? sanitize_key(wp_unslash($_GET['bw_cs'])) : '';
 ?>
 <!DOCTYPE html>
 <html <?php language_attributes(); ?>>
@@ -26,7 +36,10 @@ if (!defined('ABSPATH')) {
 An archive spanning centuries of antiquarian material, rare books and prints, curated and prepared for creative use, made available in vector and high-resolution formats for designers, artists, and researchers</p>
             
             <!-- Newsletter form -->
-            <form class="bw-newsletter" method="post">
+            <?php if (!empty($bw_coming_soon_channel_settings['subscribe_enabled'])) : ?>
+            <form class="bw-newsletter" method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
+                <input type="hidden" name="action" value="bw_coming_soon_subscribe">
+                <?php wp_nonce_field('bw_coming_soon_subscribe', 'bw_coming_soon_subscribe_nonce'); ?>
                 <div class="bw-input-group">
                     <input type="email" name="bw_email" placeholder="Enter your email address here" required>
                     <button type="submit" name="bw_subscribe" class="bw-btn">Subscribe</button>
@@ -35,10 +48,13 @@ An archive spanning centuries of antiquarian material, rare books and prints, cu
                     <input type="checkbox" name="bw_privacy" required>
                     I agree that my email will only be used for Blackwork updates.
                 </label>
-                <?php if (isset($_GET['bw_subscribed']) && $_GET['bw_subscribed'] == '1') : ?>
-                    <p class="bw-success">Thanks for subscribing! Please check your email inbox to confirm your subscription. If you don’t see it, check your spam folder.</p>
+                <?php if ('ok' === $bw_coming_soon_feedback) : ?>
+                    <p class="bw-success"><?php echo esc_html((string) $bw_coming_soon_channel_settings['success_message']); ?></p>
+                <?php elseif ('err' === $bw_coming_soon_feedback) : ?>
+                    <p class="bw-success"><?php echo esc_html((string) $bw_coming_soon_channel_settings['error_message']); ?></p>
                 <?php endif; ?>
             </form>
+            <?php endif; ?>
         </div>
     </div>
 
