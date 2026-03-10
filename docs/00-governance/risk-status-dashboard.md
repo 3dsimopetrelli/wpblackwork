@@ -44,6 +44,7 @@ Snapshot integrity rule:
 - Executive snapshot counts MUST be synchronized with the totals derived from the rows in **Risk summary table**.
 
 Last governance-aligned updates:
+- 2026-03-10: ReRadar FPW tag N+1 finding closed as **False Positive** (`bw_fpw_collect_tags_from_posts()` already uses batched `wp_get_object_terms` over bounded ID set; no runtime patch required).
 - 2026-03-10: `R-FE-23` mitigated with fail-soft Slick hardening (shared/product guard + bounded presentation retry stop) without architecture refactor.
 - 2026-03-10: `R-ADM-18` mitigated with deterministic diagnostics freshness metadata (`is_partial_refresh`, `refreshed_checks`, `last_full_generated_at`) and `Mixed` source indicator for scoped refreshes.
 - 2026-03-10: `R-HDR-13` mitigated via deterministic multi-instance search overlay coordination (`BW_HEADER_SEARCH_OPEN_COUNT`) in `includes/modules/header/assets/js/bw-search.js`.
@@ -610,7 +611,7 @@ Last governance-aligned updates:
 - Priority: High
 - Status: Mitigated
 - Summary: Public AJAX runtime risk reduced with transport + capability hardening; remaining work is abuse/rate posture for read-only endpoints.
-- What has been completed: Transient cache/throttle guard, patch 1 POST-only transport hardening for public mutation endpoints, patch 2 capability enforcement (`edit_products`) for authenticated `bw_search_products_ajax`.
+- What has been completed: Transient cache/throttle guard, patch 1 POST-only transport hardening for public mutation endpoints, patch 2 capability enforcement (`edit_products`) for authenticated `bw_search_products_ajax`, ReRadar suspected FPW tag N+1 closed as false positive (batched `wp_get_object_terms` already in place).
 - What is still pending: patch 3 abuse/rate hardening review for public read-only endpoints.
 - Supabase-adjacent blast radius: No.
 - Recommended next step: Add strict result limits in `category=all` branch.

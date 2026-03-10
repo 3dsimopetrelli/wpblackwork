@@ -983,7 +983,7 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 - Impact: High
 - Likelihood: Medium
 - Risk Level: High
-- Current Mitigation:
+  - Current Mitigation:
   - Strict request normalization (`post_type` allowlist, bounded term arrays, deterministic sort/order defaults).
   - Bounded query contract (no unbounded `posts_per_page=-1` paths, capped `per_page`, capped tag-source post scan).
   - Additional watchpoint: `bw_fpw_get_related_tags_data()` uses `get_terms()` without `number` cap when `category='all'`; public AJAX cache/throttle reduce repeated pressure, but first-hit payload can still be large on high-tag catalogs.
@@ -1014,6 +1014,14 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
     - Outcome: authenticated endpoint no longer allows generic logged-in users with nonce to query product titles/IDs.
   - Remaining mitigation backlog:
     - patch 3: abuse/rate hardening review for public read-only endpoints
+  - Verification update (2026-03-10, ReRadar):
+    - Finding reviewed: suspected N+1 tag lookup in `bw_fpw_collect_tags_from_posts()` (`blackwork-core-plugin.php`).
+    - Result: **False Positive / stale finding**.
+    - Evidence: current implementation already uses a batched term lookup:
+      - `wp_get_object_terms($post_ids, $taxonomy, ['fields' => 'all_with_object_id'])`
+      - one query over bounded ID set, no per-post term query loop.
+    - Action: no runtime patch required for this finding.
+    - Governance status for this verification: `CLOSED (False Positive)`.
 - Status: Mitigated
 - Monitoring Status: Monitoring
 - Linked Documents:

@@ -1563,7 +1563,10 @@ function bw_fpw_get_tags()
     }
 
     // PERFORMANCE: Check transient cache first (5 minutes)
-    $subcats_hash = md5(wp_json_encode($subcategories));
+    // Canonicalize set-like subcategory input for stable cache keys.
+    $subcategories_for_key = $subcategories;
+    sort($subcategories_for_key, SORT_NUMERIC);
+    $subcats_hash = md5(wp_json_encode($subcategories_for_key));
     $transient_key = 'bw_fpw_tags_' . $post_type . '_' . $category_id . '_' . $subcats_hash;
     $cached_result = get_transient($transient_key);
 

@@ -400,6 +400,17 @@ When tasks touch Supabase protected surfaces, these smoke tests are mandatory:
   - nonce behavior unchanged
   - metabox product search UI still works for authorized users
 
+## FPW Tag Query Verification (ReRadar)
+- Date: 2026-03-10
+- Risk context: `R-FPW-20` verification task
+- Result: `CLOSED (False Positive)`
+- Verification summary:
+  - audited `bw_fpw_collect_tags_from_posts()` in `blackwork-core-plugin.php`
+  - confirmed current implementation already uses batched term lookup:
+    - `wp_get_object_terms($post_ids, $taxonomy, ['fields' => 'all_with_object_id'])`
+  - confirmed no per-post `wp_get_object_terms()` loop exists in current snapshot
+  - no runtime patch required
+
 ## Checkout Payment State Integrity Hardening (R-PAY-02)
 - Date: 2026-03-10
 - Risk: `R-PAY-02` - `MITIGATED`
