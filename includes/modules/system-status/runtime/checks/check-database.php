@@ -50,6 +50,8 @@ if (!function_exists('bw_system_status_check_database')) {
 
         if (empty($table_rows)) {
             $source = 'show_table_status';
+            $table_count = 0;
+            $total_db_bytes = 0;
             $status_rows = $wpdb->get_results('SHOW TABLE STATUS', ARRAY_A);
 
             if (is_array($status_rows)) {

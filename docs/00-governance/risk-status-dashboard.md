@@ -35,12 +35,13 @@ It complements the full risk register but is optimized for quick orientation whe
 ## 1. Executive snapshot
 - Total risks: 54
 - Resolved: 7
-- Mitigated: 24
+- Mitigated: 25
 - Partial Mitigation Complete: 2
-- Open: 20
+- Open: 19
 - Watchlist / Deferred: 1
 
 Last governance-aligned updates:
+- 2026-03-10: `R-ADM-18` mitigated with deterministic diagnostics freshness metadata (`is_partial_refresh`, `refreshed_checks`, `last_full_generated_at`) and `Mixed` source indicator for scoped refreshes.
 - 2026-03-10: `R-HDR-13` mitigated via deterministic multi-instance search overlay coordination (`BW_HEADER_SEARCH_OPEN_COUNT`) in `includes/modules/header/assets/js/bw-search.js`.
 - 2026-03-10: `R-MF-02` and `R-MF-03` mitigated after Media Folders query-merge hardening (`bw_mf_merge_tax_query` outer `AND`) and assignment integrity re-validation.
 - 2026-03-10: `R-SRCH-11` mitigated with live-search visibility alignment (`exclude-from-search` only) in `includes/modules/header/frontend/ajax-search.php`; search semantics drift reduced with no Supabase/auth scope impact.
@@ -117,7 +118,7 @@ Last governance-aligned updates:
 | R-ACC-07 | My Account auth integration drift | My Account / Supabase | Medium | <span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">OPEN</span> | Existing safeguards retained | Additional convergence hardening | Supabase-adjacent |
 | R-GOV-14 | Governance operational continuity | Governance / Tooling | Medium | <span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">OPEN</span> | Governance docs updated | Ongoing process hardening | Cross-domain |
 | R-TBL-17 | Elementor preview context drift | Theme Builder Lite | Medium | <span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">OPEN</span> | Preview-context safeguards | Monitoring | Non-Supabase |
-| R-ADM-18 | Admin diagnostics integrity risk | Admin / System Status | Medium | <span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">OPEN</span> | Diagnostics framework documented | Hardening backlog | Non-Supabase |
+| R-ADM-18 | Admin diagnostics integrity risk | Admin / System Status | Medium | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Partial-refresh freshness hardening shipped | Monitoring only | Non-Supabase |
 | R-ADM-19 | Admin asset scope/perf risk | Admin / Enqueue Scope | Medium | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Patch A/B closed; C deferred | Optional patch C only | Non-Supabase |
 | R-FE-23 | Slick dependency longevity risk | Frontend / Dependencies | Medium | <span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">OPEN</span> | Pinned version strategy | Migration program (future) | Non-Supabase |
 | R-PERF-27 | Order-received checkout scope | Performance / Checkout | Medium | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Guard excludes order-received runtime | Monitoring | Non-Supabase |
@@ -563,12 +564,12 @@ Last governance-aligned updates:
 ### R-ADM-18 — Admin diagnostics integrity
 - Area: Admin / System Status
 - Priority: Medium
-- Status: Open
-- Summary: Diagnostics surfaces can drift in accuracy/scope.
-- What has been completed: Structured status module and scoped checks.
-- What is still pending: Additional hardening and verification.
+- Status: Mitigated
+- Summary: Diagnostics freshness signaling drift in scoped refreshes has been corrected.
+- What has been completed: Added deterministic partial-refresh metadata in snapshot payloads and `Mixed` UI source indicator; DB fallback accumulation micro-hardening shipped.
+- What is still pending: Monitoring and routine regression execution.
 - Supabase-adjacent blast radius: No.
-- Recommended next step: Add deterministic fixture checks for diagnostics output.
+- Recommended next step: Keep diagnostics mixed-freshness checks in regular release regression cadence.
 
 ### R-ADM-19 — Admin asset enqueue scope
 - Area: Admin / Performance

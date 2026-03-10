@@ -317,6 +317,26 @@ When tasks touch Supabase protected surfaces, these smoke tests are mandatory:
   - resize desktop/mobile with overlay active
   - cart popup interaction does not break search overlay state
 
+## System Status Diagnostics Freshness Integrity (R-ADM-18)
+- Date: 2026-03-10
+- Risk: `R-ADM-18` - `MITIGATED`
+- Scope:
+  - Deterministic freshness metadata hardening in:
+    - `includes/modules/system-status/runtime/check-runner.php`
+    - `includes/modules/system-status/admin/assets/system-status-admin.js`
+    - `includes/modules/system-status/runtime/checks/check-database.php`
+  - Added payload fields: `is_partial_refresh`, `refreshed_checks`, `last_full_generated_at`.
+  - Scoped refreshes now render as `Mixed` source in admin UI.
+  - DB fallback path now resets `table_count` and `total_db_bytes` before `SHOW TABLE STATUS` accumulation.
+- Required regression checks completed:
+  - run full system status check
+  - run partial single-section check
+  - verify source indicator shows `Mixed` for partial refresh payload
+  - verify full refresh returns normal `Live`/`Cached` source behavior
+  - verify metadata coherence (`is_partial_refresh`, `refreshed_checks`, `last_full_generated_at`)
+  - verify DB totals/table count remain coherent on fallback path
+  - verify unauthorized requests remain blocked (capability + nonce)
+
 ## Public AJAX Mutation Transport Hardening (R-FPW-20 Patch 1)
 - Date: 2026-03-10
 - Risk: `R-FPW-20` (patch 1) - `CLOSED`

@@ -255,9 +255,16 @@
     function renderResults(payload) {
         latestPayload = payload;
 
+        var sourceLabel = 'Live';
+        if (payload.is_partial_refresh) {
+            sourceLabel = 'Mixed';
+        } else if (payload.cached) {
+            sourceLabel = 'Cached';
+        }
+
         $('#bw-system-status-results').show();
         $('#bw-system-generated-at').text(payload.generated_at || '-');
-        $('#bw-system-source').text(payload.cached ? 'Cached' : 'Live');
+        $('#bw-system-source').text(sourceLabel);
         $('#bw-system-ttl').text((payload.ttl_seconds || '-') + 's');
         $('#bw-system-execution-time').text((payload.execution_time_ms || 0) + 'ms');
 

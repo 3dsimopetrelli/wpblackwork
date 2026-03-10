@@ -16,6 +16,7 @@ if (!function_exists('bw_system_status_build_snapshot')) {
     {
         $registry = bw_system_status_get_check_registry();
         $available_check_keys = array_keys($registry);
+        $default_full_checks = ['media', 'images', 'database', 'wordpress', 'limits'];
 
         if (is_string($requested_checks)) {
             $requested_checks = array_filter(array_map('trim', explode(',', $requested_checks)));
@@ -26,7 +27,7 @@ if (!function_exists('bw_system_status_build_snapshot')) {
 
         $requested_checks = array_values(array_intersect($available_check_keys, $requested_checks));
         if (empty($requested_checks)) {
-            $requested_checks = ['media', 'images', 'database', 'wordpress', 'limits'];
+            $requested_checks = $default_full_checks;
         }
 
         if (
@@ -55,6 +56,9 @@ if (!function_exists('bw_system_status_build_snapshot')) {
                 $cached_snapshot['ttl_seconds'] = BW_SYSTEM_STATUS_TRANSIENT_TTL;
                 $cached_snapshot['execution_time_ms'] = isset($cached_snapshot['execution_time_ms']) ? (int) $cached_snapshot['execution_time_ms'] : 0;
                 $cached_snapshot['cached'] = true;
+                $cached_snapshot['is_partial_refresh'] = isset($cached_snapshot['is_partial_refresh']) ? (bool) $cached_snapshot['is_partial_refresh'] : false;
+                $cached_snapshot['refreshed_checks'] = isset($cached_snapshot['refreshed_checks']) && is_array($cached_snapshot['refreshed_checks']) ? array_values($cached_snapshot['refreshed_checks']) : [];
+                $cached_snapshot['last_full_generated_at'] = isset($cached_snapshot['last_full_generated_at']) ? (string) $cached_snapshot['last_full_generated_at'] : '';
                 return $cached_snapshot;
             }
         }
@@ -118,8 +122,19 @@ if (!function_exists('bw_system_status_build_snapshot')) {
             }
         }
 
-        $snapshot['generated_at'] = current_time('mysql');
+        $is_full_refresh = !array_diff($default_full_checks, $requested_checks) && !array_diff($requested_checks, $default_full_checks);
+        $generated_at = current_time('mysql');
+
+        if ($is_full_refresh) {
+            $snapshot['last_full_generated_at'] = $generated_at;
+        } elseif (!isset($snapshot['last_full_generated_at'])) {
+            $snapshot['last_full_generated_at'] = '';
+        }
+
+        $snapshot['generated_at'] = $generated_at;
         $snapshot['cached'] = false;
+        $snapshot['is_partial_refresh'] = !$is_full_refresh;
+        $snapshot['refreshed_checks'] = $requested_checks;
         $snapshot['ttl_seconds'] = BW_SYSTEM_STATUS_TRANSIENT_TTL;
         $snapshot['execution_time_ms'] = (int) round((microtime(true) - $started_at) * 1000);
 

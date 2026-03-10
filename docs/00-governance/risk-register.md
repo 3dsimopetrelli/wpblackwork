@@ -901,6 +901,7 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 - Impact: Medium
 - Likelihood: Medium
 - Risk Level: Medium
+- Status: Mitigated
 - Current Mitigation:
   - Capability gate: `manage_options`
   - Nonce verification on `bw_system_status_run_check`
@@ -909,10 +910,26 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
   - Transient snapshot caching with bounded scans and partial warning behavior
   - Structured graceful-failure responses to avoid dashboard-wide breakage
   - Capability/nonce gates remain required first-check controls before any diagnostic payload assembly.
-- Monitoring Status: Monitoring
+- Patch Update (2026-03-10):
+  - Task: `R-ADM-18`
+  - Files modified:
+    - `includes/modules/system-status/runtime/check-runner.php`
+    - `includes/modules/system-status/admin/assets/system-status-admin.js`
+    - `includes/modules/system-status/runtime/checks/check-database.php`
+  - Change:
+    - Added explicit partial refresh metadata (`is_partial_refresh`, `refreshed_checks`, `last_full_generated_at`) in System Status snapshot payloads.
+    - Preserved `last_full_generated_at` for full runs and marked scoped runs as partial.
+    - Updated admin source indicator to show `Mixed` when payload freshness is partial.
+    - Added DB fallback micro-hardening by resetting table counters before `SHOW TABLE STATUS` accumulation.
+  - Result:
+    - Diagnostics freshness is now deterministic and non-misleading during scoped refreshes.
+    - Fallback DB totals avoid double-accumulation edge behavior.
+  - Final status: `MITIGATED`
+- Monitoring Status: Closed -> Monitoring
 - Linked Documents:
   - [System Status (Admin Diagnostics)](../30-features/system-status/README.md)
   - [System Normative Charter](./system-normative-charter.md)
+  - [R-ADM-18 Closure Record](../tasks/R-ADM-18-closure.md)
 
 ### Risk ID: R-ADM-19
 - Domain: Admin / Asset Enqueue Scope / Panel Performance
