@@ -41,6 +41,7 @@ It complements the full risk register but is optimized for quick orientation whe
 - Watchlist / Deferred: 1
 
 Last governance-aligned updates:
+- 2026-03-10: `R-BRE-09` closure verification completed (`xkeysib-...` finding confirmed stale; canonical Brevo config centralized).
 - 2026-03-10: `R-FPW-20` patch 2 closed (authenticated product search capability hardening).
 - 2026-03-10: `R-IMP-10` mitigated (patch 1 + patch 2 complete).
 - 2026-03-10: `R-BRE-09` resolved (patch 1 + patch 2 complete).
@@ -76,7 +77,7 @@ Last governance-aligned updates:
 | R-AUTH-05 | Supabase auth flow stabilization | Auth / Supabase | High | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Mitigation wave completed | Monitoring | Supabase-adjacent |
 | R-AUTH-25 | Public auth endpoint exposure | Auth / Supabase | High | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Exposure controls tightened | Rate-limit/abuse posture review | Supabase-adjacent |
 | R-SUPA-06 | Supabase orders/account coupling | Supabase / Orders / Account | High | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Mitigation controls documented | Monitoring | Supabase-adjacent |
-| R-BRE-09 | Brevo checkout sync drift | Brevo / Checkout | High | <span style="background:#2ecc71;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">RESOLVED</span> | Patch 1 + patch 2 closed | None | Non-Supabase |
+| R-BRE-09 | Brevo checkout sync drift | Brevo / Checkout | High | <span style="background:#2ecc71;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">RESOLVED</span> | Patch 1 + patch 2 closed; stale `xkeysib-...` finding verified | None | Closed state; non-Supabase |
 | R-SRCH-11 | Search runtime coupling risk | Search / Header | High | <span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">OPEN</span> | Existing safeguards retained | Performance/isolation follow-up | Non-Supabase |
 | R-HDR-13 | Header orchestration complexity | Header / UX | High | <span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">OPEN</span> | Existing guardrails documented | Additional isolation hardening | Non-Supabase |
 | R-FPW-20 | Public AJAX filtered wall risk | Filtered Post Wall | High | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Patch 1 + patch 2 closed | Patch 3 abuse/rate hardening review | Non-Supabase |
@@ -498,6 +499,7 @@ Last governance-aligned updates:
 - Summary: High-priority Brevo checkout integrity gaps are closed.
 - What has been completed: Integration controls/admin tooling, patch 1 legacy public handler removal, and patch 2 positive-state preservation (`subscribed|pending|1` no-op on duplicate passes).
 - What is still pending: None.
+- Closure note: CLOSED after repository-wide verification confirmed no hardcoded Brevo key (`xkeysib-...`) in current snapshot; previous finding is stale.
 - Supabase-adjacent blast radius: No.
 - Recommended next step: Keep in monitoring cadence and reopen only on new runtime evidence.
 

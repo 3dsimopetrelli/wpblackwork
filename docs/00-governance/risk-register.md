@@ -651,6 +651,7 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 - Impact: High
 - Likelihood: Low-Medium
 - Risk Level: Medium-High
+- Status: Resolved
 - Current Mitigation: Hard consent gate checks, paid-hook gating, local meta audit trail, non-blocking behavior, and timing-aware monitoring to detect anomalous hook-order paths.
   - Fallback consent inference via `WC()->checkout()->get_value('bw_subscribe_newsletter')` removed.
   - Consent evaluation now enforces explicit checkout POST payload sources only.
@@ -666,7 +667,12 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
     - duplicate lifecycle passes now preserve existing `subscribed|pending|1` as no-op
     - destructive rewrite to `skipped` removed for already-valid positive states
   - Outcome: positive subscribe states no longer downgrade across repeated created/processing/completed passes.
-- Monitoring Status: Resolved
+  - Closure verification (2026-03-10):
+    - Verification confirmed that no Brevo API key is hardcoded in the current repository snapshot.
+    - Legacy Coming Soon handler/runtime no longer exists (`bw_handle_subscription()` removed; no `add_action("init", "bw_handle_subscription")` hook present).
+    - Coming Soon runtime now sources Brevo credentials only from canonical Mail Marketing configuration (`bw_mail_marketing_general_settings` via `BW_Mail_Marketing_Settings::get_general_settings()['api_key']`).
+    - Previous `xkeysib-...` radar hit is mapped to an outdated revision/external snapshot and treated as stale.
+- Monitoring Status: Closed
 - Linked Documents:
   - [Blast-Radius Consolidation Map](./blast-radius-consolidation-map.md)
   - [Technical Hardening Plan](./technical-hardening-plan.md)

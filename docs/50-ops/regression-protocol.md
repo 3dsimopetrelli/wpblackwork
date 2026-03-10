@@ -230,6 +230,16 @@ When tasks touch Supabase protected surfaces, these smoke tests are mandatory:
   - no-consent path still becomes `skipped` when appropriate
   - mail-marketing admin tools unchanged
 
+## Brevo Secret Exposure Verification
+- Date: 2026-03-10
+- Risk: `R-BRE-09` - `CLOSED` (closure verification)
+- Result: `PASS`
+- Verification coverage:
+  - repository-wide scan confirms no `xkeysib-` token present
+  - legacy Coming Soon runtime path is absent (`bw_handle_subscription()` and `add_action("init", "bw_handle_subscription")` not present)
+  - Coming Soon Brevo runtime uses canonical Mail Marketing configuration (`bw_mail_marketing_general_settings`) via `BW_Mail_Marketing_Settings::get_general_settings()['api_key']`
+  - previous secret-exposure radar hit is classified as stale (older revision/external snapshot)
+
 ## Import Pipeline Integrity Hardening (R-IMP-10)
 - Date: 2026-03-10
 - Risk: `R-IMP-10` - `MITIGATED`
