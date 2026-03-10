@@ -69,6 +69,15 @@ Normative rules:
 
 ## 4) Execution Model (Bulk Safe)
 
+### Current runtime hardening snapshot (2026-03-10)
+- Legacy runtime now includes in-chunk checkpoint persistence (`row_cursor` updates during chunk execution) to reduce replay side effects after interrupted runs.
+- Import normalization now enforces enum allowlists for:
+  - `product_type` (`simple|variable|grouped|external`)
+  - `stock_status` (`instock|outofstock|onbackorder`)
+  - `backorders` (`no|notify|yes`)
+  - `tax_status` (`taxable|shipping|none`)
+- Invalid enum values are ignored safely with row warnings; valid rows remain unchanged.
+
 ### Chunking
 - Import execution MUST be chunked.
 - A run MUST process rows in bounded chunk sizes, not as one monolithic request.

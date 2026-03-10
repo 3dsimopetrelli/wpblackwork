@@ -26,6 +26,7 @@ This dashboard complements the full risk register but is optimized for fast orie
 | R-ADM-19 | Admin asset scoping | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Medium | 2026-03-09 |
 | R-PAY-08 | Payment webhook architecture | <span style="background:#f39c12;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">PARTIAL</span> | Critical | 2026-03-09 |
 | R-MF-01 | Media folders counts pipeline | <span style="background:#95a5a6;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">WATCHLIST</span> | Medium-High | 2026-03-09 |
+| R-IMP-10 | Import / Catalog Data Integrity | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Critical | 2026-03-10 |
 
 ## Dashboard purpose
 The Risk Status Dashboard provides a single-glance overview of all governance risks and their current state.  
@@ -34,12 +35,13 @@ It complements the full risk register but is optimized for quick orientation whe
 ## 1. Executive snapshot
 - Total risks: 54
 - Resolved: 7
-- Mitigated: 16
+- Mitigated: 17
 - Partial Mitigation Complete: 1
-- Open: 29
+- Open: 28
 - Watchlist / Deferred: 1
 
 Last governance-aligned updates:
+- 2026-03-10: `R-IMP-10` mitigated (patch 1 + patch 2 complete).
 - 2026-03-10: `R-BRE-09` resolved (patch 1 + patch 2 complete).
 - 2026-03-10: `R-BRE-09` patch 1 closed (legacy Coming Soon public Brevo handler removed).
 - 2026-03-10: `R-ADM-21` resolved (patch A + patch B).
@@ -62,7 +64,7 @@ Last governance-aligned updates:
 | Risk ID | Title | Area | Priority | Current Status | Last Action | Remaining Work | Notes |
 |---|---|---|---|---|---|---|---|
 | R-AUTH-04 | Supabase auth coupling risk | Auth / Supabase / My Account | Critical | <span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">OPEN</span> | Guardrails documented | Full hardening wave pending | Supabase-adjacent |
-| R-IMP-10 | Import data integrity risk | Import / Catalog | Critical | <span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">OPEN</span> | Import flow lock/guards present | Broader integrity hardening | Non-Supabase |
+| R-IMP-10 | Import data integrity risk | Import / Catalog | Critical | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Patch 1 + patch 2 completed | Optional chunk read efficiency + media idempotency | Non-Supabase |
 | R-RED-12 | Redirect authority drift | Redirect / Routing | Critical | <span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">OPEN</span> | Redirect sanitizer path active | Cross-path normalization hardening | Non-Supabase |
 | R-PAY-08 | Webhook architecture drift | Payments / Webhooks | Critical | <span style="background:#f39c12;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">PARTIAL</span> | Patch 1 POST-only enforcement closed | Google Pay runtime convergence task | Non-Supabase |
 | R-SEC-22 | SVG sanitization hardening follow-up | Security / SVG | Critical | <span style="background:#2ecc71;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">RESOLVED</span> | Secondary SVG hardening completed | None | Non-Supabase |
@@ -501,12 +503,12 @@ Last governance-aligned updates:
 ### R-IMP-10 — Import pipeline integrity
 - Area: Import / Catalog
 - Priority: Critical
-- Status: Open
-- Summary: Import path still carries high integrity risk.
-- What has been completed: Locking, capability, nonce, state guards.
-- What is still pending: Broader idempotency/consistency hardening.
+- Status: Mitigated
+- Summary: Import integrity risk reduced with checkpoint resume hardening and strict enum normalization allowlists.
+- What has been completed: Locking/capability/nonce/state guards, patch 1 in-chunk progress checkpoints, patch 2 enum allowlist validation (`product_type`, `stock_status`, `backorders`, `tax_status`).
+- What is still pending: Optional future hardening only (chunk read efficiency and media idempotency).
 - Supabase-adjacent blast radius: No.
-- Recommended next step: Add deterministic rollback and integrity checks per chunk.
+- Recommended next step: Keep monitoring; schedule optional efficiency/idempotency hardening only if runtime evidence justifies it.
 
 ### R-SRCH-11 — Search/header runtime coupling
 - Area: Search / Header
@@ -661,6 +663,5 @@ Last governance-aligned updates:
 ## 5. Recommended next wave
 1. `R-RED-12` — High-impact routing authority risk with critical priority and open status.
 2. `R-AUTH-04` — Core Supabase auth surface still open; requires a dedicated, controlled hardening wave.
-3. `R-IMP-10` — Import integrity remains critical and operationally risky.
-4. `R-PAY-08` — Complete Google Pay runtime convergence to close partial mitigation state.
-5. `R-FPW-20` — Public AJAX query-bounds hardening offers strong risk-reduction/value ratio.
+3. `R-PAY-08` — Complete Google Pay runtime convergence to close partial mitigation state.
+4. `R-FPW-20` — Public AJAX query-bounds hardening offers strong risk-reduction/value ratio.

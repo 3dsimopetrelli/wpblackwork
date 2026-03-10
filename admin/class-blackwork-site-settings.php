@@ -6982,7 +6982,18 @@ function bw_import_prepare_row_data($row_data, $mapping)
                 }
                 break;
             case 'product_type':
-                $data['product']['type'] = sanitize_key($clean_value);
+                $product_type = sanitize_key($clean_value);
+                $allowed_product_types = ['simple', 'variable', 'grouped', 'external'];
+                if ($product_type !== '' && !in_array($product_type, $allowed_product_types, true)) {
+                    $data['product']['type'] = '';
+                    $data['warnings'][] = sprintf(
+                        /* translators: %s: invalid product type */
+                        __('Invalid product type "%s" ignored.', 'bw'),
+                        $product_type
+                    );
+                } else {
+                    $data['product']['type'] = $product_type;
+                }
                 break;
             case 'post_content':
                 $data['product']['description'] = wp_kses_post($clean_value);
@@ -7009,10 +7020,32 @@ function bw_import_prepare_row_data($row_data, $mapping)
                 $data['product']['manage_stock'] = in_array(strtolower($clean_value), ['yes', '1', 'true'], true);
                 break;
             case 'stock_status':
-                $data['product']['stock_status'] = sanitize_key($clean_value);
+                $stock_status = sanitize_key($clean_value);
+                $allowed_stock_statuses = ['instock', 'outofstock', 'onbackorder'];
+                if ($stock_status !== '' && !in_array($stock_status, $allowed_stock_statuses, true)) {
+                    $data['product']['stock_status'] = '';
+                    $data['warnings'][] = sprintf(
+                        /* translators: %s: invalid stock status */
+                        __('Invalid stock status "%s" ignored.', 'bw'),
+                        $stock_status
+                    );
+                } else {
+                    $data['product']['stock_status'] = $stock_status;
+                }
                 break;
             case 'backorders':
-                $data['product']['backorders'] = sanitize_key($clean_value);
+                $backorders = sanitize_key($clean_value);
+                $allowed_backorders = ['no', 'notify', 'yes'];
+                if ($backorders !== '' && !in_array($backorders, $allowed_backorders, true)) {
+                    $data['product']['backorders'] = '';
+                    $data['warnings'][] = sprintf(
+                        /* translators: %s: invalid backorders value */
+                        __('Invalid backorders value "%s" ignored.', 'bw'),
+                        $backorders
+                    );
+                } else {
+                    $data['product']['backorders'] = $backorders;
+                }
                 break;
             case 'sold_individually':
                 $data['product']['sold_individually'] = in_array(strtolower($clean_value), ['yes', '1', 'true'], true);
@@ -7027,7 +7060,18 @@ function bw_import_prepare_row_data($row_data, $mapping)
                 $data['product']['shipping_class'] = sanitize_title($clean_value);
                 break;
             case 'tax_status':
-                $data['product']['tax_status'] = sanitize_key($clean_value);
+                $tax_status = sanitize_key($clean_value);
+                $allowed_tax_statuses = ['taxable', 'shipping', 'none'];
+                if ($tax_status !== '' && !in_array($tax_status, $allowed_tax_statuses, true)) {
+                    $data['product']['tax_status'] = '';
+                    $data['warnings'][] = sprintf(
+                        /* translators: %s: invalid tax status */
+                        __('Invalid tax status "%s" ignored.', 'bw'),
+                        $tax_status
+                    );
+                } else {
+                    $data['product']['tax_status'] = $tax_status;
+                }
                 break;
             case 'tax_class':
                 $data['product']['tax_class'] = sanitize_title($clean_value);

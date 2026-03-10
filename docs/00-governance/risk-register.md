@@ -674,7 +674,7 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 ### Risk ID: R-IMP-10
 - Domain: Import / Catalog Data Integrity
 - Surface Anchor: Current import runtime (legacy sync path) vs vNext requirements in `docs/30-features/import-products/import-products-vnext-spec.md`
-- Description: Bulk import execution remains exposed to duplicate/partial-write risk until Import Engine v2 is implemented with chunking, checkpointing, and deterministic SKU convergence.
+- Description: Import integrity exposure has been reduced by runtime checkpoint hardening and enum allowlist enforcement; optional hardening backlog remains for performance/idempotency optimization.
 - Invariant Threatened: Canonical SKU identity and single authority per product entity.
 - Impact: Critical
 - Likelihood: Low-Medium
@@ -688,9 +688,27 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
   - Persistent `processed_row_keys` set preserves replay-safe row dedupe beyond bounded visible ledger retention, preventing duplicate mutation on large-run retries.
   - SKU identity hardening in save path: ID-first + SKU lookup, pre-create re-resolve, and deterministic SKU-conflict retry-to-update gate.
   - Publish status allowlist enforcement (`draft|publish|pending|private`) with deterministic invalid-value normalization to `draft` + warning trace.
-  - Implementation status: Implemented — awaiting runtime validation.
-  - Manual runtime validation will occur during real catalog import operations.
-- Monitoring Status: Monitoring
+  - Patch update (2026-03-10):
+    - `R-IMP-10 patch 1`: CLOSED.
+    - Added in-chunk progress checkpoint hardening in `admin/class-blackwork-site-settings.php`:
+      - configurable cadence via `bw_import_checkpoint_every` (default 10, bounded to chunk size),
+      - row cursor persisted during chunk execution through checkpoint callback,
+      - durable run state + transient mirror + lock heartbeat refreshed at checkpoints.
+    - Outcome: interrupted imports resume closer to actual processed progress; replay side effects reduced.
+    - `R-IMP-10 patch 2`: CLOSED.
+    - Added strict enum allowlist validation in `bw_import_prepare_row_data()` for:
+      - `product_type`: `simple|variable|grouped|external`
+      - `stock_status`: `instock|outofstock|onbackorder`
+      - `backorders`: `no|notify|yes`
+      - `tax_status`: `taxable|shipping|none`
+    - Invalid enum values are ignored safely with row warnings (`Invalid ... ignored.`).
+    - Outcome: malformed enum-like values no longer propagate into WooCommerce product state.
+  - Remaining optional hardening backlog:
+    - chunk read efficiency improvement
+    - media idempotency protection
+- Status: Mitigated
+- Monitoring Status: Closed
+- Mitigation Update Date: 2026-03-10
 - Linked Documents:
   - [ADR-008 Import Engine Authority Hardening](../60-adr/ADR-008-import-engine-authority-hardening.md)
   - [Import Products vNext Spec](../30-features/import-products/import-products-vnext-spec.md)

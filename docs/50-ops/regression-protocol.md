@@ -229,3 +229,16 @@ When tasks touch Supabase protected surfaces, these smoke tests are mandatory:
   - duplicate hook passes do not downgrade `pending`
   - no-consent path still becomes `skipped` when appropriate
   - mail-marketing admin tools unchanged
+
+## Import Pipeline Integrity Hardening (R-IMP-10)
+- Date: 2026-03-10
+- Risk: `R-IMP-10` - `MITIGATED`
+- Scope:
+  - Patch 1: import progress checkpoint hardening in `admin/class-blackwork-site-settings.php`.
+  - Patch 2: strict enum allowlist validation in importer normalization path (`bw_import_prepare_row_data`).
+- Required regression checks completed:
+  - interrupted import resumes close to actual progress
+  - duplicate replay of already processed rows reduced
+  - enum values validated during import
+  - invalid enum values ignored safely
+  - valid imports unaffected
