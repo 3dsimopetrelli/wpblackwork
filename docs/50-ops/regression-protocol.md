@@ -45,6 +45,13 @@ Before marking a risk as `CLOSED` or `RESOLVED`:
 - regression protocol updated if needed
 - feature technical docs updated if relevant
 
+### Governance Consistency Checks
+Run these checks when opening or closing governed risk work:
+- risk IDs in `docs/00-governance/risk-register.md` and `docs/00-governance/risk-status-dashboard.md` match
+- Executive snapshot counts in `docs/00-governance/risk-status-dashboard.md` match table-derived counts
+- each closed risk has a closure artifact in `docs/tasks/`
+- each closure artifact explicitly references `docs/governance/task-close.md`
+
 ## Supabase Protected Surface Smoke Binding
 When tasks touch Supabase protected surfaces, these smoke tests are mandatory:
 

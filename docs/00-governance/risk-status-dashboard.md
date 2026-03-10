@@ -40,6 +40,9 @@ It complements the full risk register but is optimized for quick orientation whe
 - Open: 18
 - Watchlist / Deferred: 1
 
+Snapshot integrity rule:
+- Executive snapshot counts MUST be synchronized with the totals derived from the rows in **Risk summary table**.
+
 Last governance-aligned updates:
 - 2026-03-10: `R-FE-23` mitigated with fail-soft Slick hardening (shared/product guard + bounded presentation retry stop) without architecture refactor.
 - 2026-03-10: `R-ADM-18` mitigated with deterministic diagnostics freshness metadata (`is_partial_refresh`, `refreshed_checks`, `last_full_generated_at`) and `Mixed` source indicator for scoped refreshes.

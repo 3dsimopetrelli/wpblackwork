@@ -32,7 +32,7 @@ Task Initialization
 → Implementation  
 → Verification  
 → Documentation alignment  
-→ Task Closure Template completion  
+→ Task Close Protocol completion  
 → Release Gate  
 → Deployment
 
@@ -50,19 +50,20 @@ Before starting implementation, the following template MUST be completed:
 
 `docs/templates/task-start-template.md`
 
-Before closing a task, the following template MUST be completed:
-
-`docs/templates/task-closure-template.md`
-
-Task closure protocol (authoritative):
+Before closing a task, follow the authoritative closure protocol:
 
 `docs/governance/task-close.md`
+
+Optional closure structure guidance:
+
+`docs/templates/task-closure-template.md`
 
 Normative rules:
 
 - Implementation MUST NOT begin until the Task Start Template is completed.
-- A task MUST NOT be considered finished until the Task Closure Template is completed.
-- Every task closure MUST explicitly reference and follow `docs/governance/task-close.md`.
+- A task MUST NOT be considered finished until `docs/governance/task-close.md` has been followed completely.
+- `docs/templates/task-closure-template.md` is optional structure guidance and does not replace `docs/governance/task-close.md`.
+- Every task closure prompt MUST explicitly reference and follow `docs/governance/task-close.md`.
 
 ## 3) Mandatory Documentation Alignment
 
@@ -178,9 +179,11 @@ This protocol is mandatory for all AI agents operating inside the repository.
 AI agents MUST treat:
 
 `docs/templates/task-start-template.md`  
-`docs/templates/task-closure-template.md`
+`docs/governance/task-close.md`
 
 as binding governance documents.
+
+`docs/templates/task-closure-template.md` remains optional structure guidance.
 
 Any implementation performed outside this protocol
 is considered a governance violation.
