@@ -265,3 +265,19 @@ When tasks touch Supabase protected surfaces, these smoke tests are mandatory:
   - Cart Popup behavior unchanged
   - checkout coupon apply/remove behavior unchanged
   - public read-only AJAX endpoints remain unaffected
+
+## Authenticated Product Search Capability Hardening (R-FPW-20 Patch 2)
+- Date: 2026-03-10
+- Risk: `R-FPW-20` (patch 2) - `CLOSED`
+- Scope:
+  - Added explicit capability enforcement in authenticated AJAX endpoint `bw_search_products_ajax`.
+  - Updated file:
+    - `metabox/digital-products-metabox.php`
+  - Control added:
+    - requires `current_user_can( 'edit_products' )`
+    - unauthorized requests return JSON permission error (`403`)
+- Required regression checks completed:
+  - authorized users with `edit_products` can search products normally
+  - unauthorized logged-in users receive permission error (`403`)
+  - nonce behavior unchanged
+  - metabox product search UI still works for authorized users

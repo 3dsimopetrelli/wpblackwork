@@ -571,6 +571,10 @@ function bw_render_showcase_image_field_script() {
  * AJAX handler for searching WooCommerce products.
  */
 function bw_search_products_ajax() {
+    if ( ! current_user_can( 'edit_products' ) ) {
+        wp_send_json_error( [ 'message' => __( 'Permission denied.', 'bw' ) ], 403 );
+    }
+
     check_ajax_referer( 'bw_search_products', 'nonce' );
 
     $search_term = isset( $_GET['q'] ) ? sanitize_text_field( wp_unslash( $_GET['q'] ) ) : '';

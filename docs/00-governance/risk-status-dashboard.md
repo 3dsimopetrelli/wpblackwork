@@ -35,12 +35,13 @@ It complements the full risk register but is optimized for quick orientation whe
 ## 1. Executive snapshot
 - Total risks: 54
 - Resolved: 7
-- Mitigated: 17
+- Mitigated: 18
 - Partial Mitigation Complete: 1
-- Open: 28
+- Open: 27
 - Watchlist / Deferred: 1
 
 Last governance-aligned updates:
+- 2026-03-10: `R-FPW-20` patch 2 closed (authenticated product search capability hardening).
 - 2026-03-10: `R-IMP-10` mitigated (patch 1 + patch 2 complete).
 - 2026-03-10: `R-BRE-09` resolved (patch 1 + patch 2 complete).
 - 2026-03-10: `R-BRE-09` patch 1 closed (legacy Coming Soon public Brevo handler removed).
@@ -78,7 +79,7 @@ Last governance-aligned updates:
 | R-BRE-09 | Brevo checkout sync drift | Brevo / Checkout | High | <span style="background:#2ecc71;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">RESOLVED</span> | Patch 1 + patch 2 closed | None | Non-Supabase |
 | R-SRCH-11 | Search runtime coupling risk | Search / Header | High | <span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">OPEN</span> | Existing safeguards retained | Performance/isolation follow-up | Non-Supabase |
 | R-HDR-13 | Header orchestration complexity | Header / UX | High | <span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">OPEN</span> | Existing guardrails documented | Additional isolation hardening | Non-Supabase |
-| R-FPW-20 | Public AJAX filtered wall risk | Filtered Post Wall | High | <span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">OPEN</span> | Patch 1 POST-only hardening closed | Patch 2 capability review + patch 3 abuse/rate hardening | Non-Supabase |
+| R-FPW-20 | Public AJAX filtered wall risk | Filtered Post Wall | High | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Patch 1 + patch 2 closed | Patch 3 abuse/rate hardening review | Non-Supabase |
 | R-ADM-21 | Admin settings input integrity | Admin / Settings | High | <span style="background:#2ecc71;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">RESOLVED</span> | Patch A + B closed (2026-03-10) | None | Includes non-Supabase surfaces only |
 | R-PERF-26 | Supabase sync runtime latency | Performance / Supabase | High | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Transient guard added | Monitoring | Supabase-adjacent |
 | R-WOO-24 | Woo template override stale risk | WooCommerce Templates | High | <span style="background:#2ecc71;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">RESOLVED</span> | Patch sequence 1..5 complete | None | No Supabase blast radius in patches |
@@ -593,10 +594,10 @@ Last governance-aligned updates:
 ### R-FPW-20 — Filtered post wall public AJAX
 - Area: Filtered Post Wall
 - Priority: High
-- Status: Open
-- Summary: Public AJAX runtime still carries abuse/perf risk under large datasets.
-- What has been completed: Transient cache/throttle guard plus patch 1 POST-only transport hardening for public mutation endpoints (`cart-popup` and checkout coupon actions).
-- What is still pending: patch 2 capability hardening review for authenticated search endpoint and patch 3 abuse/rate hardening review for public read-only endpoints.
+- Status: Mitigated
+- Summary: Public AJAX runtime risk reduced with transport + capability hardening; remaining work is abuse/rate posture for read-only endpoints.
+- What has been completed: Transient cache/throttle guard, patch 1 POST-only transport hardening for public mutation endpoints, patch 2 capability enforcement (`edit_products`) for authenticated `bw_search_products_ajax`.
+- What is still pending: patch 3 abuse/rate hardening review for public read-only endpoints.
 - Supabase-adjacent blast radius: No.
 - Recommended next step: Add strict result limits in `category=all` branch.
 

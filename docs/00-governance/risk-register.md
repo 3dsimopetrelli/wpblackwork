@@ -904,9 +904,16 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
       - `cart-popup/frontend/cart-popup-frontend.php`
       - `woocommerce/woocommerce-init.php`
     - Outcome: nonce-protected public mutation endpoints now explicitly reject non-POST transport with HTTP 405.
+    - `R-FPW-20 patch 2`: CLOSED.
+    - Added explicit capability guard for authenticated product search endpoint:
+      - handler: `bw_search_products_ajax`
+      - file: `metabox/digital-products-metabox.php`
+      - requirement: `current_user_can( 'edit_products' )`
+      - unauthorized path: JSON permission error with HTTP 403.
+    - Outcome: authenticated endpoint no longer allows generic logged-in users with nonce to query product titles/IDs.
   - Remaining mitigation backlog:
-    - patch 2: capability hardening review for authenticated search endpoint
     - patch 3: abuse/rate hardening review for public read-only endpoints
+- Status: Mitigated
 - Monitoring Status: Monitoring
 - Linked Documents:
   - [BW-TASK-20260306-03 Closure](../tasks/BW-TASK-20260306-03-closure.md)
