@@ -35,13 +35,14 @@ It complements the full risk register but is optimized for quick orientation whe
 ## 1. Executive snapshot
 - Total risks: 54
 - Resolved: 7
-- Mitigated: 19
+- Mitigated: 20
 - Partial Mitigation Complete: 2
-- Open: 25
+- Open: 24
 - Watchlist / Deferred: 1
 
 Last governance-aligned updates:
 - 2026-03-10: External radar HTTP-timeout finding marked stale/not applicable after repository-wide verification (all relevant calls have explicit timeout; no unsafe timeout/cURL path).
+- 2026-03-10: `R-RED-12` mitigated on strict non-Supabase scope (`bw_show_coming_soon` precedence clarified to `template_redirect@1`); auth/Supabase redirect scope remains frozen.
 - 2026-03-10: `R-PAY-02` mitigated and task closed after manual checkout validation (payment convergence hardening in `bw-payment-methods.js`).
 - 2026-03-10: `R-PAY-03` partial mitigation recorded (Google Pay availability ownership hardened; manual wallet regression verification pending).
 - 2026-03-10: `R-BRE-09` closure verification completed (`xkeysib-...` finding confirmed stale; canonical Brevo config centralized).
@@ -70,7 +71,7 @@ Last governance-aligned updates:
 |---|---|---|---|---|---|---|---|
 | R-AUTH-04 | Supabase auth coupling risk | Auth / Supabase / My Account | Critical | <span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">OPEN</span> | Guardrails documented | Full hardening wave pending | Supabase-adjacent |
 | R-IMP-10 | Import data integrity risk | Import / Catalog | Critical | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Patch 1 + patch 2 completed | Optional chunk read efficiency + media idempotency | Non-Supabase |
-| R-RED-12 | Redirect authority drift | Redirect / Routing | Critical | <span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">OPEN</span> | Redirect sanitizer path active | Cross-path normalization hardening | Non-Supabase |
+| R-RED-12 | Redirect authority drift | Redirect / Routing | Critical | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Coming Soon precedence clarified (`template_redirect@1`) | Auth/Supabase redirect scope frozen for later review | Non-Supabase mitigated |
 | R-PAY-08 | Webhook architecture drift | Payments / Webhooks | Critical | <span style="background:#f39c12;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">PARTIAL</span> | Patch 1 POST-only enforcement closed | Google Pay runtime convergence task | Non-Supabase |
 | R-SEC-22 | SVG sanitization hardening follow-up | Security / SVG | Critical | <span style="background:#2ecc71;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">RESOLVED</span> | Secondary SVG hardening completed | None | Non-Supabase |
 | R-CHK-01 | Payment selector race/convergence | Checkout / Payments | High | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Selector authority model shipped | Ongoing monitoring | Non-Supabase |
@@ -529,12 +530,12 @@ Last governance-aligned updates:
 ### R-RED-12 — Redirect authority boundary
 - Area: Redirect / Routing
 - Priority: Critical
-- Status: Open
-- Summary: Redirect authority errors can create high-impact routing faults.
-- What has been completed: Sanitized storage path implemented.
-- What is still pending: End-to-end normalization and conflict controls.
-- Supabase-adjacent blast radius: No.
-- Recommended next step: Add strict source-path normalization contract tests.
+- Status: Mitigated (non-Supabase scope)
+- Summary: Non-auth redirect authority ambiguity in maintenance mode was resolved by explicit Coming Soon precedence over generic redirect engine.
+- What has been completed: `bw_show_coming_soon` moved to `template_redirect@1` (minimal precedence fix), preserving existing redirect engine and route protections.
+- What is still pending: Auth/Supabase redirect domain remains frozen and out of scope for this mitigation wave.
+- Supabase-adjacent blast radius: Frozen / excluded.
+- Recommended next step: Re-open dedicated redirect review for auth/Supabase surfaces after freeze lift.
 
 ### R-HDR-13 — Header global orchestration risk
 - Area: Header / UX orchestration
@@ -667,7 +668,7 @@ Last governance-aligned updates:
 - Recommended next step: None beyond TTFB watch.
 
 ## 5. Recommended next wave
-1. `R-RED-12` — High-impact routing authority risk with critical priority and open status.
-2. `R-AUTH-04` — Core Supabase auth surface still open; requires a dedicated, controlled hardening wave.
-3. `R-PAY-08` — Complete Google Pay runtime convergence to close partial mitigation state.
-4. `R-FPW-20` — Public AJAX query-bounds hardening offers strong risk-reduction/value ratio.
+1. `R-AUTH-04` — Core Supabase auth surface still open; requires a dedicated, controlled hardening wave.
+2. `R-PAY-08` — Complete Google Pay runtime convergence to close partial mitigation state.
+3. `R-FPW-20` — Public AJAX query-bounds hardening offers strong risk-reduction/value ratio.
+4. `R-RED-12` — Execute frozen auth/Supabase redirect review only after freeze lift.

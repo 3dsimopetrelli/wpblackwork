@@ -211,7 +211,7 @@ function bw_show_coming_soon() {
     include plugin_dir_path(__FILE__) . '../public/coming-soon-template.php';
     exit;
 }
-add_action('template_redirect', 'bw_show_coming_soon');
+add_action('template_redirect', 'bw_show_coming_soon', 1);
 
 // Legacy public Brevo subscription handler intentionally removed.
 // Security hardening: this module no longer accepts unauthenticated POST-to-Brevo

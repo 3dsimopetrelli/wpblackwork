@@ -796,12 +796,23 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
   - Save-time rule safety filter (`pre_update_option_bw_redirects`) rejects self-loop and direct two-node loop patterns.
   - Runtime fail-open controls include direct reverse-loop guard and hop-limit guard (`max_redirect_hops=5`) with chain-abort on unsafe paths.
   - Deterministic first-match source indexing per request avoids duplicate source ambiguity and unnecessary repeated scans.
+- Patch Update (2026-03-10):
+  - Task: `R-RED-12`
+  - Scope: strict non-Supabase redirect surfaces only.
+  - File modified: `BW_coming_soon/includes/functions.php`
+  - Change: `bw_show_coming_soon` hook precedence clarified to `template_redirect@1` (from default priority), making Coming Soon the explicit authority in anonymous maintenance mode before generic redirect engine.
+  - Result: non-Supabase redirect authority ambiguity resolved with minimal diff; no runtime logic changes outside precedence.
+- Status: Mitigated (non-Supabase scope)
 - Monitoring Status: Monitoring
+- Frozen Scope Note:
+  - Auth/Supabase redirect surfaces remain frozen and excluded from this mitigation wave.
+  - Deferred for later dedicated review after freeze lift.
 - Linked Documents:
   - [Redirect Engine Technical Audit](../50-ops/audits/redirect-engine-technical-audit.md)
   - [Redirect Engine v2 Spec](../30-features/redirect/redirect-engine-v2-spec.md)
   - [ADR-007 Redirect Authority Hardening](../60-adr/ADR-007-redirect-authority-hardening.md)
   - [Runtime Hook Map](../50-ops/runtime-hook-map.md)
+  - [R-RED-12 Closure Record](../tasks/R-RED-12-closure.md)
 
 ### Risk ID: R-HDR-13
 - Domain: Header / Global UX Orchestration

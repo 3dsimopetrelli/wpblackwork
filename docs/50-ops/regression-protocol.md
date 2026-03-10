@@ -346,3 +346,19 @@ When tasks touch Supabase protected surfaces, these smoke tests are mandatory:
   - wallet visibility after fragment refresh
   - fallback: wallet unavailable -> `place_order` visible
   - Apple Pay behavior unchanged
+
+## Redirect Authority Drift Hardening (R-RED-12)
+- Date: 2026-03-10
+- Risk: `R-RED-12` - `MITIGATED` (strict non-Supabase scope)
+- Scope:
+  - Minimal precedence clarification in `BW_coming_soon/includes/functions.php`.
+  - `bw_show_coming_soon` now runs at `template_redirect@1` to establish deterministic authority in anonymous maintenance mode.
+  - Generic redirect engine (`includes/class-bw-redirects.php`) left unchanged.
+  - Auth/Supabase redirect surfaces excluded by freeze policy.
+- Regression checks required (manual):
+  - Coming Soon active + anonymous visit on URL with custom redirect rule
+  - Coming Soon active + anonymous visit on URL without custom redirect rule
+  - Coming Soon inactive + custom redirect rule still works
+  - cart/checkout routes remain unaffected by custom redirect rules
+  - wallet failed return still redirects to checkout
+  - admin save/import redirects unchanged
