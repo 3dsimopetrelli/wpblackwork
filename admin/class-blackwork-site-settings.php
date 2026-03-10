@@ -4079,6 +4079,7 @@ function bw_site_render_cart_popup_tab()
     // Recupera le impostazioni correnti
     $active = get_option('bw_cart_popup_active', 0);
     $show_floating_trigger = get_option('bw_cart_popup_show_floating_trigger', 0);
+    $disable_on_checkout = get_option('bw_cart_popup_disable_on_checkout', 1);
     $panel_width = get_option('bw_cart_popup_panel_width', 400);
     $mobile_width = get_option('bw_cart_popup_mobile_width', 100);
     $overlay_color = get_option('bw_cart_popup_overlay_color', '#000000');
@@ -4187,6 +4188,20 @@ function bw_site_render_cart_popup_tab()
                             name="bw_cart_popup_show_floating_trigger" value="1" <?php checked(1, $show_floating_trigger); ?> />
                         <span class="description">Attiva l'icona fissa in basso a destra con badge quantità; cliccandola si
                             apre il cart pop-up.</span>
+                    </label>
+                </td>
+            </tr>
+
+            <tr>
+                <th scope="row">
+                    <label for="bw_cart_popup_disable_on_checkout">Disabilita Cart Pop-Up in checkout</label>
+                </th>
+                <td>
+                    <label class="switch">
+                        <input type="checkbox" id="bw_cart_popup_disable_on_checkout"
+                            name="bw_cart_popup_disable_on_checkout" value="1" <?php checked(1, $disable_on_checkout); ?> />
+                        <span class="description">Quando attivo, in checkout non vengono caricati icona flottante,
+                            pannello, CSS e JS del Cart Pop-Up.</span>
                     </label>
                 </td>
             </tr>
