@@ -44,6 +44,7 @@ Snapshot integrity rule:
 - Executive snapshot counts MUST be synchronized with the totals derived from the rows in **Risk summary table**.
 
 Last governance-aligned updates:
+- 2026-03-10: `R-FPW-02` closed (FPW transient key canonicalization in `bw_fpw_get_tags`; stable cache reuse for identical subcategory sets).
 - 2026-03-10: ReRadar FPW tag N+1 finding closed as **False Positive** (`bw_fpw_collect_tags_from_posts()` already uses batched `wp_get_object_terms` over bounded ID set; no runtime patch required).
 - 2026-03-10: `R-FE-23` mitigated with fail-soft Slick hardening (shared/product guard + bounded presentation retry stop) without architecture refactor.
 - 2026-03-10: `R-ADM-18` mitigated with deterministic diagnostics freshness metadata (`is_partial_refresh`, `refreshed_checks`, `last_full_generated_at`) and `Mixed` source indicator for scoped refreshes.
@@ -93,7 +94,7 @@ Last governance-aligned updates:
 | R-BRE-09 | Brevo checkout sync drift | Brevo / Checkout | High | <span style="background:#2ecc71;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">RESOLVED</span> | Patch 1 + patch 2 closed; stale `xkeysib-...` finding verified | None | Closed state; non-Supabase |
 | R-SRCH-11 | Search runtime coupling risk | Search / Header | High | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Live-search visibility aligned to WooCommerce search semantics | Monitoring + optional abuse/rate hardening follow-up | Non-Supabase |
 | R-HDR-13 | Header orchestration complexity | Header / UX | High | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Search overlay global state hardened with reference counter | Monitoring + cross-device orchestration checks | Non-Supabase |
-| R-FPW-20 | Public AJAX filtered wall risk | Filtered Post Wall | High | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Patch 1 + patch 2 closed | Patch 3 abuse/rate hardening review | Non-Supabase |
+| R-FPW-20 | Public AJAX filtered wall risk | Filtered Post Wall | High | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Patch 1 + patch 2 + R-FPW-02 closed | Patch 3 abuse/rate hardening review | Non-Supabase |
 | R-ADM-21 | Admin settings input integrity | Admin / Settings | High | <span style="background:#2ecc71;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">RESOLVED</span> | Patch A + B closed (2026-03-10) | None | Includes non-Supabase surfaces only |
 | R-PERF-26 | Supabase sync runtime latency | Performance / Supabase | High | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Transient guard added | Monitoring | Supabase-adjacent |
 | R-WOO-24 | Woo template override stale risk | WooCommerce Templates | High | <span style="background:#2ecc71;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">RESOLVED</span> | Patch sequence 1..5 complete | None | No Supabase blast radius in patches |
@@ -611,7 +612,7 @@ Last governance-aligned updates:
 - Priority: High
 - Status: Mitigated
 - Summary: Public AJAX runtime risk reduced with transport + capability hardening; remaining work is abuse/rate posture for read-only endpoints.
-- What has been completed: Transient cache/throttle guard, patch 1 POST-only transport hardening for public mutation endpoints, patch 2 capability enforcement (`edit_products`) for authenticated `bw_search_products_ajax`, ReRadar suspected FPW tag N+1 closed as false positive (batched `wp_get_object_terms` already in place).
+- What has been completed: Transient cache/throttle guard, patch 1 POST-only transport hardening for public mutation endpoints, patch 2 capability enforcement (`edit_products`) for authenticated `bw_search_products_ajax`, R-FPW-02 cache-key canonicalization for deterministic transient reuse, ReRadar suspected FPW tag N+1 closed as false positive (batched `wp_get_object_terms` already in place).
 - What is still pending: patch 3 abuse/rate hardening review for public read-only endpoints.
 - Supabase-adjacent blast radius: No.
 - Recommended next step: Add strict result limits in `category=all` branch.

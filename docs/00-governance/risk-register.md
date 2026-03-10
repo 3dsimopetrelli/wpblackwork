@@ -1012,6 +1012,12 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
       - requirement: `current_user_can( 'edit_products' )`
       - unauthorized path: JSON permission error with HTTP 403.
     - Outcome: authenticated endpoint no longer allows generic logged-in users with nonce to query product titles/IDs.
+    - `R-FPW-02`: CLOSED.
+    - Hardened transient cache-key determinism in `bw_fpw_get_tags()`:
+      - file: `blackwork-core-plugin.php`
+      - change: canonicalized cache-key-only subcategory copy with numeric sort before hash generation (`md5(wp_json_encode(...))`).
+      - result: logically identical subcategory sets now reuse the same transient key regardless of input order.
+      - scope: cache-key generation only; query behavior, response shape, tag ordering, and filter semantics unchanged.
   - Remaining mitigation backlog:
     - patch 3: abuse/rate hardening review for public read-only endpoints
   - Verification update (2026-03-10, ReRadar):

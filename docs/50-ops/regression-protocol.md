@@ -411,6 +411,22 @@ When tasks touch Supabase protected surfaces, these smoke tests are mandatory:
   - confirmed no per-post `wp_get_object_terms()` loop exists in current snapshot
   - no runtime patch required
 
+## FPW Cache-Key Determinism Hardening (R-FPW-02)
+- Date: 2026-03-10
+- Risk context: `R-FPW-20` subtask (`R-FPW-02`)
+- Result: `CLOSED` (mitigation applied)
+- Scope:
+  - file: `blackwork-core-plugin.php`
+  - function: `bw_fpw_get_tags()`
+  - change: sorted cache-key-only subcategory copy (`SORT_NUMERIC`) before `md5(wp_json_encode(...))`
+- Required regression checks completed:
+  - same logical subcategory set in different order reuses same transient key
+  - empty subcategory list still works
+  - posts without tags still return empty correctly
+  - shared tag aggregation unchanged
+  - tag ordering/output contract unchanged
+  - no query behavior changes
+
 ## Checkout Payment State Integrity Hardening (R-PAY-02)
 - Date: 2026-03-10
 - Risk: `R-PAY-02` - `MITIGATED`
