@@ -17,6 +17,7 @@
             this.initialized = false;
             this.customCursor = null;
             this.slickInstances = [];
+            this.slickRetryCount = 0;
 
             this.init();
         }
@@ -28,8 +29,12 @@
 
             // Wait for Slick to be available
             if (typeof $.fn.slick === 'undefined') {
-                console.warn('Slick slider not loaded yet, retrying...');
-                setTimeout(() => this.init(), 100);
+                this.slickRetryCount += 1;
+                if (this.slickRetryCount <= 20) {
+                    setTimeout(() => this.init(), 100);
+                } else if (window.console && typeof window.console.warn === 'function') {
+                    window.console.warn('BW Presentation Slide: Slick unavailable, skipping widget slider initialization.');
+                }
                 return;
             }
 

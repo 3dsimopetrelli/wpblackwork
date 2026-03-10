@@ -1151,16 +1151,39 @@ Medium
 Risk Level:
 Medium
 
+Status:
+Mitigated
+
 Current Mitigation:
 Pinned CDN version ensures deterministic runtime behavior.
+Fail-soft runtime guards now prevent hard failures when Slick is unavailable.
+
+Patch Update (2026-03-10):
+- Task: `R-FE-23`
+- Files modified:
+  - `assets/js/bw-slick-slider.js`
+  - `assets/js/bw-product-slide.js`
+  - `assets/js/bw-presentation-slide.js`
+- Change:
+  - Added explicit Slick availability guards in shared/product slider init paths.
+  - Added bounded retry logic for presentation slider (20 attempts at 100ms) replacing infinite retry loop.
+  - Missing Slick now degrades to safe no-init behavior instead of runtime fatals/polling churn.
+- Result:
+  - Slick-dependent widgets fail soft when Slick is unavailable.
+  - Existing behavior remains unchanged when Slick is available.
+- Final status: `MITIGATED`
 
 Monitoring Status:
-Monitoring
+Closed -> Monitoring
 
 Notes:
 Due to extensive coupling across widgets and JS runtime,
 replacement or migration would require a controlled frontend
 refactor effort.
+Global Slick enqueue scope optimization remains optional future cleanup and is out of this patch scope.
+
+Linked Documents:
+- [R-FE-23 Closure Record](../tasks/R-FE-23-closure.md)
 
 ### Risk ID: R-WOO-24
 

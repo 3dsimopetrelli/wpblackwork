@@ -740,6 +740,10 @@
       return;
     }
 
+    if (typeof $.fn.slick !== 'function') {
+      return;
+    }
+
     $containers.each(function () {
       var $container = $(this);
       var $slider = $container.find('.bw-product-slide-wrapper');

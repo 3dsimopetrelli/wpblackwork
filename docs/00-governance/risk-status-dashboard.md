@@ -35,12 +35,13 @@ It complements the full risk register but is optimized for quick orientation whe
 ## 1. Executive snapshot
 - Total risks: 54
 - Resolved: 7
-- Mitigated: 25
+- Mitigated: 26
 - Partial Mitigation Complete: 2
-- Open: 19
+- Open: 18
 - Watchlist / Deferred: 1
 
 Last governance-aligned updates:
+- 2026-03-10: `R-FE-23` mitigated with fail-soft Slick hardening (shared/product guard + bounded presentation retry stop) without architecture refactor.
 - 2026-03-10: `R-ADM-18` mitigated with deterministic diagnostics freshness metadata (`is_partial_refresh`, `refreshed_checks`, `last_full_generated_at`) and `Mixed` source indicator for scoped refreshes.
 - 2026-03-10: `R-HDR-13` mitigated via deterministic multi-instance search overlay coordination (`BW_HEADER_SEARCH_OPEN_COUNT`) in `includes/modules/header/assets/js/bw-search.js`.
 - 2026-03-10: `R-MF-02` and `R-MF-03` mitigated after Media Folders query-merge hardening (`bw_mf_merge_tax_query` outer `AND`) and assignment integrity re-validation.
@@ -120,7 +121,7 @@ Last governance-aligned updates:
 | R-TBL-17 | Elementor preview context drift | Theme Builder Lite | Medium | <span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">OPEN</span> | Preview-context safeguards | Monitoring | Non-Supabase |
 | R-ADM-18 | Admin diagnostics integrity risk | Admin / System Status | Medium | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Partial-refresh freshness hardening shipped | Monitoring only | Non-Supabase |
 | R-ADM-19 | Admin asset scope/perf risk | Admin / Enqueue Scope | Medium | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Patch A/B closed; C deferred | Optional patch C only | Non-Supabase |
-| R-FE-23 | Slick dependency longevity risk | Frontend / Dependencies | Medium | <span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">OPEN</span> | Pinned version strategy | Migration program (future) | Non-Supabase |
+| R-FE-23 | Slick dependency longevity risk | Frontend / Dependencies | Medium | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Fail-soft Slick hardening shipped | Optional enqueue-scope cleanup backlog | Non-Supabase |
 | R-PERF-27 | Order-received checkout scope | Performance / Checkout | Medium | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Guard excludes order-received runtime | Monitoring | Non-Supabase |
 | R-TBL-01 | bw_template preview 404 risk | Theme Builder Lite | Medium | <span style="background:#2ecc71;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">RESOLVED</span> | Closed with previewable CPT path | None | Historical resolved risk |
 | R-TBL-02 | Admin asset/editor interference | Theme Builder Lite | Medium | <span style="background:#2ecc71;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">RESOLVED</span> | Closed with strict enqueue scoping | None | Historical resolved risk |
@@ -614,12 +615,12 @@ Last governance-aligned updates:
 ### R-FE-23 — Frontend dependency longevity (Slick)
 - Area: Frontend / UI dependencies
 - Priority: Medium
-- Status: Open
-- Summary: Heavy reliance on legacy Slick library remains a long-term maintainability risk.
-- What has been completed: Version pinning for deterministic behavior.
-- What is still pending: Controlled migration/refactor program.
+- Status: Mitigated
+- Summary: Slick-missing runtime fragility has been reduced with fail-soft guards and bounded retry behavior.
+- What has been completed: Added explicit Slick availability guards in shared/product slider runtimes and replaced infinite presentation retry with bounded stop.
+- What is still pending: Optional global Slick enqueue scoping cleanup and long-term migration planning.
 - Supabase-adjacent blast radius: No.
-- Recommended next step: Define phased replacement plan by widget family.
+- Recommended next step: Keep Slick-unavailable regression checks in release cadence and track enqueue-scope optimization as separate backlog.
 
 ### R-WOO-24 — WooCommerce template override staleness
 - Area: WooCommerce / Template Overrides

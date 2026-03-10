@@ -12,6 +12,7 @@
   var assetsUrl = ensureTrailingSlash(
     (window.bwSlickSlider && window.bwSlickSlider.assetsUrl) || ''
   );
+  var slickMissingLogged = false;
 
   var normalizeBoolean = function (value, fallback) {
     if (typeof value === 'boolean') {
@@ -339,6 +340,14 @@
 
   var rebuildSlider = function ($currentSlider) {
     if (!$currentSlider || !$currentSlider.length) {
+      return;
+    }
+
+    if (typeof $.fn.slick !== 'function') {
+      if (!slickMissingLogged && window.console && typeof window.console.warn === 'function') {
+        window.console.warn('BW Slick Slider: Slick is unavailable, skipping slider initialization.');
+        slickMissingLogged = true;
+      }
       return;
     }
 

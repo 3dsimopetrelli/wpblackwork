@@ -337,6 +337,23 @@ When tasks touch Supabase protected surfaces, these smoke tests are mandatory:
   - verify DB totals/table count remain coherent on fallback path
   - verify unauthorized requests remain blocked (capability + nonce)
 
+## Slick Fail-Soft Hardening (R-FE-23)
+- Date: 2026-03-10
+- Risk: `R-FE-23` - `MITIGATED`
+- Scope:
+  - Fail-soft guard in shared Slick runtime: `assets/js/bw-slick-slider.js`.
+  - Fail-soft guard in product slide runtime: `assets/js/bw-product-slide.js`.
+  - Bounded retry stop in presentation runtime: `assets/js/bw-presentation-slide.js`.
+  - No architecture redesign; no enqueue-scope refactor in this patch.
+- Required regression checks completed:
+  - BW Slick Slider works when Slick is available
+  - BW Product Slide works when Slick is available
+  - BW Presentation Slide works when Slick is available
+  - Elementor editor/preview remains stable
+  - no duplicate init regressions
+  - simulate Slick unavailable: no JS fatal, static markup remains usable
+  - no infinite retry loop remains in presentation slide runtime
+
 ## Public AJAX Mutation Transport Hardening (R-FPW-20 Patch 1)
 - Date: 2026-03-10
 - Risk: `R-FPW-20` (patch 1) - `CLOSED`
