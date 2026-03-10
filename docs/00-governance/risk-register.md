@@ -410,16 +410,25 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
 
 ### Risk ID: R-PAY-02
 - Domain: Payments / Checkout
-- Surface Anchor: `assets/js/bw-stripe-upe-cleaner.js`, `wc_stripe_upe_params` customization in `woocommerce/woocommerce-init.php`
-- Description: UPE cleanup relies on volatile Stripe DOM/class selectors; upstream changes can reintroduce duplicate/competing controls.
-- Invariant Threatened: Single visible payment selector contract.
+- Surface Anchor: `assets/js/bw-payment-methods.js` (payment state convergence + pre-submit reconciliation)
+- Description: Client-side convergence could unnecessarily re-assert prior explicit selection during `updated_checkout`/fragment refresh edge paths, increasing payment UI/radio drift risk.
+- Invariant Threatened: Deterministic checkout payment state across load, refresh, and submit.
 - Impact: High
 - Likelihood: Medium
 - Risk Level: High
-- Current Mitigation: Triple-layer suppression (UPE params style rules, cleaner script with MutationObserver, polling fallback).
-  - Cleaner runtime now includes bootstrap/idempotency guard, namespaced `updated_checkout` rebinding, and de-duplicated polling timers to avoid listener/poller accumulation across refresh cycles.
-- Monitoring Status: Monitoring
+- Status: Mitigated
+- Current Mitigation:
+  - Hardened explicit-selection re-apply guard: re-apply only when current checked method is missing/disabled/unavailable.
+  - Added pre-submit reconciliation guard to align checked radio and selected/open UI state before submit.
+  - Added minimal free-order drift guard to avoid `#place_order` label override conflicts.
+- Patch Update (2026-03-10):
+  - Task: `R-PAY-02`
+  - File modified: `assets/js/bw-payment-methods.js`
+  - Result: Manual checkout validation passed; no Supabase-adjacent surfaces touched; checkout runtime behavior preserved.
+  - Final status: `MITIGATED`
+- Monitoring Status: Closed -> Monitoring
 - Linked Documents:
+  - [R-PAY-02 Closure Record](../tasks/R-PAY-02-closure.md)
 
 ### Risk ID: R-MF-01
 - Domain: Media Folders / Admin Runtime / Counts Pipeline

@@ -35,13 +35,14 @@ It complements the full risk register but is optimized for quick orientation whe
 ## 1. Executive snapshot
 - Total risks: 54
 - Resolved: 7
-- Mitigated: 18
+- Mitigated: 19
 - Partial Mitigation Complete: 1
-- Open: 27
+- Open: 26
 - Watchlist / Deferred: 1
 
 Last governance-aligned updates:
 - 2026-03-10: External radar HTTP-timeout finding marked stale/not applicable after repository-wide verification (all relevant calls have explicit timeout; no unsafe timeout/cURL path).
+- 2026-03-10: `R-PAY-02` mitigated and task closed after manual checkout validation (payment convergence hardening in `bw-payment-methods.js`).
 - 2026-03-10: `R-BRE-09` closure verification completed (`xkeysib-...` finding confirmed stale; canonical Brevo config centralized).
 - 2026-03-10: `R-FPW-20` patch 2 closed (authenticated product search capability hardening).
 - 2026-03-10: `R-IMP-10` mitigated (patch 1 + patch 2 complete).
@@ -73,7 +74,7 @@ Last governance-aligned updates:
 | R-SEC-22 | SVG sanitization hardening follow-up | Security / SVG | Critical | <span style="background:#2ecc71;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">RESOLVED</span> | Secondary SVG hardening completed | None | Non-Supabase |
 | R-CHK-01 | Payment selector race/convergence | Checkout / Payments | High | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Selector authority model shipped | Ongoing monitoring | Non-Supabase |
 | R-CHK-02 | Strict bootstrap runtime break | Checkout / Runtime | High | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | `arguments.callee` removal completed | Monitoring only | Non-Supabase |
-| R-PAY-02 | Checkout payment state integrity | Payments / Checkout | High | <span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">OPEN</span> | Baseline controls in place | Additional hardening waves | Non-Supabase |
+| R-PAY-02 | Checkout payment state integrity | Payments / Checkout | High | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Minimal JS hardening shipped + manual validation passed | Monitoring only | Non-Supabase |
 | R-PAY-03 | Wallet availability/state drift | Payments / Wallets | High | <span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">OPEN</span> | Compatibility notes + constraints | Wallet determinism hardening | Non-Supabase |
 | R-AUTH-05 | Supabase auth flow stabilization | Auth / Supabase | High | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Mitigation wave completed | Monitoring | Supabase-adjacent |
 | R-AUTH-25 | Public auth endpoint exposure | Auth / Supabase | High | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Exposure controls tightened | Rate-limit/abuse posture review | Supabase-adjacent |
@@ -366,12 +367,12 @@ Last governance-aligned updates:
 ### R-PAY-02 — Payments checkout integrity
 - Area: Payments / Checkout
 - Priority: High
-- Status: Open
-- Summary: Payment path integrity risk remains active.
-- What has been completed: Baseline controls.
-- What is still pending: Additional deterministic hardening waves.
+- Status: Mitigated
+- Summary: Residual checkout payment convergence drift was hardened with minimal JS-only guards.
+- What has been completed: Explicit-selection re-apply guard hardened; pre-submit reconciliation added; free-order button-label drift guard added; manual checkout validation passed.
+- What is still pending: Routine monitoring only.
 - Supabase-adjacent blast radius: No.
-- Recommended next step: Prioritize after webhook convergence planning.
+- Recommended next step: Keep the payment-state regression checks in regular checkout validation cycles.
 
 ### R-PAY-03 — Wallet runtime state drift
 - Area: Payments / Wallets

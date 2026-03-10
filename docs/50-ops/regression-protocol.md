@@ -307,3 +307,22 @@ When tasks touch Supabase protected surfaces, these smoke tests are mandatory:
   - unauthorized logged-in users receive permission error (`403`)
   - nonce behavior unchanged
   - metabox product search UI still works for authorized users
+
+## Checkout Payment State Integrity Hardening (R-PAY-02)
+- Date: 2026-03-10
+- Risk: `R-PAY-02` - `MITIGATED`
+- Scope:
+  - Minimal JS-only hardening in `assets/js/bw-payment-methods.js`.
+  - Hardened explicit-selection re-apply behavior to avoid unnecessary overrides of valid checked method.
+  - Added pre-submit reconciliation guard so checked `payment_method` and selected/open UI row converge before submit.
+  - Added minimal free-order guard to avoid `#place_order` label drift while `body.bw-free-order` is active.
+  - No Supabase-adjacent surfaces touched.
+- Required regression checks completed:
+  - checkout load with default gateway
+  - repeated payment method switching
+  - `updated_checkout` / fragment refresh after address or shipping change
+  - coupon apply/remove flow
+  - wallet-capable gateway visibility behavior
+  - submit order with non-default gateway selected
+  - unavailable gateway after refresh
+  - zero-total / free-order path (when present)
