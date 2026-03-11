@@ -1,0 +1,46 @@
+/* Elementor editor only: Blackwork widget panel family styles */
+
+.elementor-panel .elementor-element.bw-editor-widget-card {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.elementor-panel .elementor-element.bw-editor-widget-card .title,
+.elementor-panel .elementor-element.bw-editor-widget-card .elementor-element-title,
+.elementor-panel .elementor-element.bw-editor-widget-card .widget-title {
+  color: #ffffff !important;
+}
+
+.elementor-panel .elementor-element.bw-editor-widget-card .icon,
+.elementor-panel .elementor-element.bw-editor-widget-card .icon i,
+.elementor-panel .elementor-element.bw-editor-widget-card .elementor-element-icon,
+.elementor-panel .elementor-element.bw-editor-widget-card .elementor-element-icon i,
+.elementor-panel .elementor-element.bw-editor-widget-card .elementor-element-icon svg {
+  color: #ffffff !important;
+  fill: #ffffff !important;
+}
+
+/* BW-UI family */
+.elementor-panel .elementor-element.bw-editor-widget-card.bw-family-ui {
+  background: #111111 !important;
+  border-color: #1f1f1f !important;
+}
+
+/* BW-SP family */
+.elementor-panel .elementor-element.bw-editor-widget-card.bw-family-sp {
+  background: #6b3fd6 !important;
+  border-color: #7c58db !important;
+}
+
+/* Deprecated family */
+.elementor-panel .elementor-element.bw-editor-widget-card.bw-family-deprecated {
+  background: #2f3238 !important;
+  border-color: #4a4f57 !important;
+}
+
+.elementor-panel .elementor-element.bw-editor-widget-card.bw-family-deprecated .title,
+.elementor-panel .elementor-element.bw-editor-widget-card.bw-family-deprecated .elementor-element-title,
+.elementor-panel .elementor-element.bw-editor-widget-card.bw-family-deprecated .widget-title {
+  color: #d8dde6 !important;
+}

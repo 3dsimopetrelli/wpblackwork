@@ -827,6 +827,27 @@ function bw_enqueue_slick_slider_admin_script()
             'nonce' => wp_create_nonce('bw_get_child_categories'),
         ]
     );
+
+    $panel_css_file = __DIR__ . '/assets/css/bw-elementor-widget-panel.css';
+    $panel_css_version = file_exists($panel_css_file) ? filemtime($panel_css_file) : '1.0.0';
+
+    wp_enqueue_style(
+        'bw-elementor-widget-panel-style',
+        plugin_dir_url(__FILE__) . 'assets/css/bw-elementor-widget-panel.css',
+        [],
+        $panel_css_version
+    );
+
+    $panel_js_file = __DIR__ . '/assets/js/bw-elementor-widget-panel.js';
+    $panel_js_version = file_exists($panel_js_file) ? filemtime($panel_js_file) : '1.0.0';
+
+    wp_enqueue_script(
+        'bw-elementor-widget-panel-script',
+        plugin_dir_url(__FILE__) . 'assets/js/bw-elementor-widget-panel.js',
+        ['jquery'],
+        $panel_js_version,
+        true
+    );
 }
 
 function bw_register_divider_style()
