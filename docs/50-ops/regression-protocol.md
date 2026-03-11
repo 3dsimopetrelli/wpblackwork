@@ -44,6 +44,16 @@ Wave-specific checks:
   - one-time shared core initialization
   - widget-specific adapter behavior preserved
 
+## Theme Builder Lite Editor UX Cleanup Regression
+- Scope:
+  - `Theme Builder Lite > Settings > Core Settings > Hide Pro upgrade panels`
+- Required checks:
+  - Elementor editor loads correctly with no sidebar crash/errors.
+  - Widget panel/category list remains visible and usable.
+  - With toggle enabled: Pro/Upgrade upsell accordion/panel groups are hidden in Elementor sidebar.
+  - With toggle disabled: upsell panels return to default Elementor behavior.
+  - Frontend pages and frontend widget rendering remain unchanged.
+
 ## Risk Work Protocol (Start / Close)
 ### Task Start / Risk Work Protocol
 Whenever a new risk investigation starts, ensure the risk is registered both in:

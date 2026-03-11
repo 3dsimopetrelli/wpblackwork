@@ -94,6 +94,9 @@ It MUST be used as planning reference only and MUST NOT replace ADRs.
   - Footer override respects master/sub-feature flags and remains fail-open
   - Elementor editor preview recursion/conflict safeguards are active
   - Admin controls delivered as tabs (`Settings`, `Fonts`, `Footer`)
+  - Editor UX cleanup toggle available in Core Settings:
+    - `Hide Pro upgrade panels` (Elementor editor-only)
+    - rationale: reduce Pro upsell noise/confusion for Blackwork editing flows without affecting frontend runtime
 
 ### Media Folders — Admin Media Library Module
 - Status: Completed (2026-03-04)

@@ -1396,7 +1396,8 @@ if (isset($_POST['bw_new_tab_submit'])) {
 - Slider lifecycle/config logic is duplicated across multiple JS runtimes.
 
 ### 13.3 Confirmed Direction
-- `BW_Product_Card_Renderer` is the canonical product-card markup authority.
+- `BW_Product_Card_Component` is the canonical product-card markup authority.
+- `BW_Product_Card_Renderer` remains as backward-compatible bridge during transition waves.
 - `bw-product-card.css` is the canonical product-card skin.
 - A shared `slider-core` runtime is the target authority for slider lifecycle.
 - Shared Elementor control groups should replace repeated large control blocks where safe.
@@ -1417,6 +1418,20 @@ if (isset($_POST['bw_new_tab_submit'])) {
 - `docs/30-features/elementor-widgets/architecture-direction.md`
 - `docs/30-features/elementor-widgets/rationalization-policy.md`
 - `docs/30-features/elementor-widgets/migration-sequence.md`
+
+### 13.6 Theme Builder Lite Editor UX Integration
+- Theme Builder Lite `Settings > Core Settings` now includes `Hide Pro upgrade panels`.
+- Setting authority:
+  - option key group: `bw_theme_builder_lite_flags`
+  - field: `hide_pro_upgrade_panels`
+- Scope and behavior:
+  - applies only to Elementor editor sidebar UI (admin/editor context)
+  - hides upgrade/upsell accordion/panel sections to reduce editor noise
+  - when disabled, Elementor editor sidebar returns to default behavior
+- Non-impact guarantees:
+  - no frontend rendering changes
+  - no widget runtime rendering changes
+  - no widget slug/control contract changes
 
 ### 12.1 Authentication Security
 

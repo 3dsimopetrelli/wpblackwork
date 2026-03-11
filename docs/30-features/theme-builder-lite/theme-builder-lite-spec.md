@@ -442,6 +442,9 @@ Reusable extension pattern (2026-03):
   - Styling scope remains under `.bw-admin-root`; Theme Builder Lite module CSS selectors are additionally scoped to `.bw-admin-root.bw-tbl-admin-wrap`.
 - Control additions (2026-03-09):
   - `Settings` tab:
+    - `Hide Pro upgrade panels`
+      - hides Elementor editor sidebar upgrade/upsell groups
+      - editor-only scope; no frontend effect
     - `Elementor Bug Workarounds`
       - `Disable theme breakpoints in frontend and Elementor editor/preview`
       - `Disable all theme CSS in frontend and Elementor editor/preview`
@@ -449,6 +452,16 @@ Reusable extension pattern (2026-03):
     - `Exclude Footer On Pages`
       - `Checkout page`
       - `Order received / thank-you pages`
+
+### Core Settings - Editor UX Cleanup (2026-03)
+- Setting key:
+  - `bw_theme_builder_lite_flags[hide_pro_upgrade_panels]`
+- Purpose:
+  - reduce editor confusion/noise by hiding Elementor Pro upgrade prompts in sidebar panels.
+- Runtime scope:
+  - Elementor editor only (`elementor/editor/*` enqueue path)
+  - no frontend rendering changes
+  - no widget runtime rendering changes
 
 3. Runtime branch pattern
 - Gate by master + feature flags before resolver branch.
