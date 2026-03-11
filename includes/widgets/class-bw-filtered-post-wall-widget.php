@@ -789,6 +789,91 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'description'  => __( 'Show or hide filter UI. Query/grid output remains active.', 'bw-elementor-widgets' ),
         ] );
 
+        // Get product categories for the dropdown
+        $category_options = [ 'all' => __( 'All Categories', 'bw-elementor-widgets' ) ];
+        $product_categories = get_terms(
+            [
+                'taxonomy'   => 'product_cat',
+                'hide_empty' => false,
+                'parent'     => 0, // Only top-level categories
+            ]
+        );
+        if ( ! is_wp_error( $product_categories ) && ! empty( $product_categories ) ) {
+            foreach ( $product_categories as $category ) {
+                $category_options[ $category->term_id ] = $category->name;
+            }
+        }
+
+        $this->add_control( 'default_category', [
+            'label'       => __( 'Default Category', 'bw-elementor-widgets' ),
+            'type'        => Controls_Manager::SELECT,
+            'options'     => $category_options,
+            'default'     => 'all',
+            'description' => __( 'Limit the widget to a specific category. When selected, only subcategories and tags from this category will be shown.', 'bw-elementor-widgets' ),
+            'condition'   => [ 'show_filters' => 'yes' ],
+        ] );
+
+        $this->add_control( 'show_categories', [
+            'label'        => __( 'Show Categories', 'bw-elementor-widgets' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
+            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
+            'return_value' => 'yes',
+            'default'      => 'yes',
+            'condition'    => [ 'show_filters' => 'yes' ],
+        ] );
+
+        $this->add_control( 'filter_categories_title', [
+            'label'       => __( 'Categories Title', 'bw-elementor-widgets' ),
+            'type'        => Controls_Manager::TEXT,
+            'default'     => __( 'Categories', 'bw-elementor-widgets' ),
+            'condition'   => [ 'show_filters' => 'yes' ],
+        ] );
+
+        $this->add_control( 'show_subcategories', [
+            'label'        => __( 'Show Subcategories', 'bw-elementor-widgets' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
+            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
+            'return_value' => 'yes',
+            'default'      => 'yes',
+            'condition'    => [ 'show_filters' => 'yes' ],
+        ] );
+
+        $this->add_control( 'filter_subcategories_title', [
+            'label'       => __( 'Subcategories Title', 'bw-elementor-widgets' ),
+            'type'        => Controls_Manager::TEXT,
+            'default'     => __( 'Subcategories', 'bw-elementor-widgets' ),
+            'condition'   => [ 'show_filters' => 'yes', 'show_subcategories' => 'yes' ],
+        ] );
+
+        $this->add_control( 'show_tags', [
+            'label'        => __( 'Show Tags', 'bw-elementor-widgets' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
+            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
+            'return_value' => 'yes',
+            'default'      => 'yes',
+            'condition'    => [ 'show_filters' => 'yes' ],
+        ] );
+
+        $this->add_control( 'filter_tags_title', [
+            'label'       => __( 'Tags Title', 'bw-elementor-widgets' ),
+            'type'        => Controls_Manager::TEXT,
+            'default'     => __( 'Tags', 'bw-elementor-widgets' ),
+            'condition'   => [ 'show_filters' => 'yes', 'show_tags' => 'yes' ],
+        ] );
+
+        $this->add_control( 'show_all_button', [
+            'label'        => __( 'Show “All” Option', 'bw-elementor-widgets' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
+            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
+            'return_value' => 'yes',
+            'default'      => 'yes',
+            'condition'    => [ 'show_filters' => 'yes' ],
+        ] );
+
         $this->end_controls_section();
     }
 
@@ -1501,12 +1586,14 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
         $categories_title      = isset( $settings['filter_categories_title'] ) ? $settings['filter_categories_title'] : __( 'Categories', 'bw-elementor-widgets' );
         $subcategories_title   = isset( $settings['filter_subcategories_title'] ) ? $settings['filter_subcategories_title'] : __( 'Subcategories', 'bw-elementor-widgets' );
         $tags_title            = isset( $settings['filter_tags_title'] ) ? $settings['filter_tags_title'] : __( 'Tags', 'bw-elementor-widgets' );
-        $show_categories       = true;
-        $show_subcategories    = true;
-        $show_tags             = true;
-        $show_all_button       = true;
+        $show_categories       = isset( $settings['show_categories'] ) ? 'yes' === $settings['show_categories'] : true;
+        $show_subcategories    = isset( $settings['show_subcategories'] ) ? 'yes' === $settings['show_subcategories'] : true;
+        $show_tags             = isset( $settings['show_tags'] ) ? 'yes' === $settings['show_tags'] : true;
+        $show_all_button       = isset( $settings['show_all_button'] ) ? 'yes' === $settings['show_all_button'] : true;
 
-        $default_category = 'all';
+        $default_category = isset( $settings['default_category'] ) && 'all' !== $settings['default_category']
+            ? absint( $settings['default_category'] )
+            : 'all';
 
         $taxonomy     = 'product' === $post_type ? 'product_cat' : 'category';
 

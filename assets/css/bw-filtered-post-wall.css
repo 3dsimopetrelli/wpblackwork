@@ -22,9 +22,10 @@
 
 .bw-fpw-filter-label {
   margin: 0;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 600;
   line-height: 1.4;
+  color: #000;
 }
 
 .bw-fpw-filter-options {
@@ -39,6 +40,15 @@
   display: inline-block;
   cursor: pointer;
   line-height: 1.6;
+  font-size: 20px;
+  color: #000;
+  background: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  text-decoration: none !important;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .bw-fpw-filter-option::after {
@@ -84,15 +94,18 @@
 .bw-fpw-mobile-apply {
   width: 100%;
   display: inline-flex;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   gap: 8px;
-  padding: 12px 16px;
-  border: 1px solid #111;
-  border-radius: 6px;
-  background: #fff;
-  color: #111;
+  padding: 4px 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: #000;
+  font-size: 20px;
+  font-weight: 400;
   cursor: pointer;
+  box-shadow: none;
 }
 
 .bw-fpw-mobile-filter-button-icon {
@@ -161,6 +174,12 @@
   align-items: center;
   padding: 8px 0;
   cursor: pointer;
+  font-size: 20px;
+  color: #000;
+  background: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
 }
 
 .bw-fpw-mobile-dropdown-icon {
@@ -194,8 +213,14 @@
   justify-content: flex-start;
   align-items: center;
   gap: 6px;
-  padding: 8px 2px;
+  padding: 4px 0;
   cursor: pointer;
+  font-size: 20px;
+  color: #000;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
 }
 
 .bw-fpw-mobile-filter-panel__footer {
