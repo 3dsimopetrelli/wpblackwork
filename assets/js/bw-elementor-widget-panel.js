@@ -18,6 +18,8 @@
     '.elementor-panel .elementor-element',
     '.elementor-panel-category-items .elementor-element'
   ];
+  var panelObserver = null;
+  var observerTick = null;
 
   function normalizeText(value) {
     return String(value || '').replace(/\s+/g, ' ').trim();
@@ -98,8 +100,53 @@
     setTimeout(function () { styleWidgetCards($(document)); }, 500);
   }
 
+  function connectPanelObserver() {
+    if (panelObserver || typeof MutationObserver === 'undefined') {
+      return;
+    }
+
+    var panelRoot = document.querySelector('.elementor-panel');
+    if (!panelRoot) {
+      return;
+    }
+
+    panelObserver = new MutationObserver(function () {
+      schedulePanelScan();
+    });
+
+    panelObserver.observe(panelRoot, {
+      childList: true,
+      subtree: true
+    });
+  }
+
+  function bootPanelObserver() {
+    connectPanelObserver();
+
+    if (panelObserver || observerTick) {
+      return;
+    }
+
+    observerTick = setInterval(function () {
+      connectPanelObserver();
+      if (panelObserver) {
+        clearInterval(observerTick);
+        observerTick = null;
+      }
+    }, 250);
+
+    setTimeout(function () {
+      if (!panelObserver && observerTick) {
+        clearInterval(observerTick);
+        observerTick = null;
+      }
+    }, 10000);
+  }
+
   $(document).ready(schedulePanelScan);
   $(window).on('elementor:init', schedulePanelScan);
   $(window).on('elementor/frontend/init', schedulePanelScan);
   $(document).on('keyup click', '.elementor-panel', schedulePanelScan);
+  $(document).ready(bootPanelObserver);
+  $(window).on('elementor:init elementor/frontend/init', bootPanelObserver);
 })(jQuery);

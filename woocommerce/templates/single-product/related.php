@@ -51,11 +51,11 @@ if ( $related_products ) :
         <div class="bw-related-products-grid bw-wallpost-grid">
             <?php
             foreach ( $related_products as $related_product ) :
-                if ( ! class_exists( 'BW_Product_Card_Renderer' ) ) {
+                if ( ! class_exists( 'BW_Product_Card_Component' ) ) {
                     continue;
                 }
 
-                echo BW_Product_Card_Renderer::render_card(
+                echo BW_Product_Card_Component::render(
                     $related_product,
                     [
                         'image_size'           => 'woocommerce_thumbnail',

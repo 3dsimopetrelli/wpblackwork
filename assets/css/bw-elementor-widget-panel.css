@@ -6,6 +6,11 @@
   transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
+.elementor-panel .elementor-element.bw-editor-widget-card .elementor-element-wrapper {
+  border-radius: 8px;
+  background: transparent !important;
+}
+
 .elementor-panel .elementor-element.bw-editor-widget-card .title,
 .elementor-panel .elementor-element.bw-editor-widget-card .elementor-element-title,
 .elementor-panel .elementor-element.bw-editor-widget-card .widget-title {
@@ -27,16 +32,28 @@
   border-color: #1f1f1f !important;
 }
 
+.elementor-panel .elementor-element.bw-editor-widget-card.bw-family-ui .elementor-element-wrapper {
+  background: #111111 !important;
+}
+
 /* BW-SP family */
 .elementor-panel .elementor-element.bw-editor-widget-card.bw-family-sp {
   background: #6b3fd6 !important;
   border-color: #7c58db !important;
 }
 
+.elementor-panel .elementor-element.bw-editor-widget-card.bw-family-sp .elementor-element-wrapper {
+  background: #6b3fd6 !important;
+}
+
 /* Deprecated family */
 .elementor-panel .elementor-element.bw-editor-widget-card.bw-family-deprecated {
   background: #2f3238 !important;
   border-color: #4a4f57 !important;
+}
+
+.elementor-panel .elementor-element.bw-editor-widget-card.bw-family-deprecated .elementor-element-wrapper {
+  background: #2f3238 !important;
 }
 
 .elementor-panel .elementor-element.bw-editor-widget-card.bw-family-deprecated .title,
