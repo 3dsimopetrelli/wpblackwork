@@ -3,6 +3,14 @@
 ## Objective
 Define a realistic target architecture for the Blackwork Elementor widget subsystem without a big-bang rewrite.
 
+## Implemented baseline (current state)
+- Product-card authority already in use through `BW_Product_Card_Renderer` across multiple product surfaces.
+- `bw-filtered-post-wall` already supports dual mode via `Enable Filter`:
+  - enabled: filtered grid behavior
+  - disabled: simple grid behavior
+- `bw-wallpost` remains active only for compatibility and is explicitly deprecated.
+- `bw-add-to-cart` and `bw-add-to-cart-variation` remain active only for compatibility and are explicitly deprecated.
+
 ## Target family boundaries
 - `Product Grid Family`
   - canonical wall/query-grid widget (future convergence of `bw-filtered-post-wall` + `bw-wallpost`)
@@ -63,3 +71,9 @@ Target:
 - converge by family in waves
 - keep backward-compatible selectors/contracts until each wave is validated
 - use closure artifacts and regression protocol updates per wave
+
+## Deferred target steps
+- finalize wall/query-grid convergence and retire `bw-wallpost` in governed removal wave
+- retire deprecated add-to-cart widgets in governed removal wave
+- complete generic slider rationalization (`bw-slick-slider` + `bw-slide-showcase`)
+- add shared slider-core lifecycle authority after convergence prerequisites

@@ -54,7 +54,8 @@ Document the current real architecture of Blackwork Elementor widgets and define
 - Shared control groups -> reduce duplicated control blocks where safe.
 
 Decisions already fixed:
-- `bw-add-to-cart` -> DELETE
+- `bw-add-to-cart` -> DEPRECATE (active) -> DELETE in removal wave
+- `bw-add-to-cart-variation` -> DEPRECATE (active) -> DELETE in removal wave
 - `bw-filtered-post-wall` + `bw-wallpost` -> merge into canonical wall/query-grid widget with optional filters
 - `bw-product-slide` -> canonical product slider
 - `bw-presentation-slide` -> specialized presentation/gallery slider

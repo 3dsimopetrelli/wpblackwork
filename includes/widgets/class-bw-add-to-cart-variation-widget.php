@@ -34,11 +34,37 @@ class BW_Add_To_Cart_Variation_Widget extends Widget_Base {
     }
 
     protected function register_controls() {
+        $this->register_deprecation_notice_controls();
         $this->register_content_controls();
         $this->register_price_style_controls();
         $this->register_variation_buttons_style_controls();
         $this->register_license_box_style_controls();
         $this->register_add_to_cart_style_controls();
+    }
+
+    private function register_deprecation_notice_controls() {
+        $this->start_controls_section(
+            'section_deprecation_notice',
+            [
+                'label' => __( 'Deprecation Notice', 'bw' ),
+                'tab'   => Controls_Manager::TAB_CONTENT,
+            ]
+        );
+
+        $this->add_control(
+            'deprecation_notice',
+            [
+                'type'            => Controls_Manager::RAW_HTML,
+                'raw'             => wp_kses_post(
+                    '<strong>' . esc_html__( 'This widget is deprecated.', 'bw' ) . '</strong><br>' .
+                    esc_html__( 'For new implementations use maintained BW-SP widget family surfaces.', 'bw' ) . '<br>' .
+                    esc_html__( 'No automatic migration is performed: keep existing instances for backward compatibility until removal wave.', 'bw' )
+                ),
+                'content_classes' => 'elementor-panel-alert elementor-panel-alert-warning',
+            ]
+        );
+
+        $this->end_controls_section();
     }
 
     private function register_content_controls() {

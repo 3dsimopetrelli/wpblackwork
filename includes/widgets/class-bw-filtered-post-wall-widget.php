@@ -46,7 +46,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
         $this->start_controls_section( 'responsive_filter_section', [
             'label' => __( 'Responsive Filter', 'bw-elementor-widgets' ),
             'tab'   => Controls_Manager::TAB_CONTENT,
-            'condition' => [ 'show_filters' => 'yes' ],
+            'condition' => [ 'enable_filter' => 'yes', 'show_filters' => 'yes' ],
         ] );
 
         $this->add_control( 'filter_responsive_breakpoint', [
@@ -435,7 +435,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
         $this->start_controls_section( 'responsive_filter_panel_style', [
             'label'     => __( 'Responsive Filter Panel', 'bw-elementor-widgets' ),
             'tab'       => Controls_Manager::TAB_STYLE,
-            'condition' => [ 'show_filters' => 'yes' ],
+            'condition' => [ 'enable_filter' => 'yes', 'show_filters' => 'yes' ],
         ] );
 
         $this->add_control( 'responsive_filter_panel_header_settings_heading', [
@@ -783,6 +783,16 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'label' => __( 'Filter Settings', 'bw-elementor-widgets' ),
         ] );
 
+        $this->add_control( 'enable_filter', [
+            'label'        => __( 'Enable Filter', 'bw-elementor-widgets' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
+            'label_off'    => __( 'No', 'bw-elementor-widgets' ),
+            'return_value' => 'yes',
+            'default'      => 'yes',
+            'description'  => __( 'Attiva/disattiva l\'interfaccia filtri. Se disattivo, il widget funziona come griglia semplice.', 'bw-elementor-widgets' ),
+        ] );
+
         $this->add_control( 'show_filters', [
             'label'        => __( 'Show Filters', 'bw-elementor-widgets' ),
             'type'         => Controls_Manager::SWITCHER,
@@ -812,7 +822,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'options'     => $category_options,
             'default'     => 'all',
             'description' => __( 'Limit the widget to a specific category. When selected, only subcategories and tags from this category will be shown.', 'bw-elementor-widgets' ),
-            'condition'   => [ 'show_filters' => 'yes' ],
+            'condition'   => [ 'enable_filter' => 'yes', 'show_filters' => 'yes' ],
         ] );
 
         $this->add_control( 'show_categories', [
@@ -822,14 +832,14 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
             'return_value' => 'yes',
             'default'      => 'yes',
-            'condition'    => [ 'show_filters' => 'yes' ],
+            'condition'    => [ 'enable_filter' => 'yes', 'show_filters' => 'yes' ],
         ] );
 
         $this->add_control( 'filter_categories_title', [
             'label'       => __( 'Categories Title', 'bw-elementor-widgets' ),
             'type'        => Controls_Manager::TEXT,
             'default'     => __( 'Categories', 'bw-elementor-widgets' ),
-            'condition'   => [ 'show_filters' => 'yes' ],
+            'condition'   => [ 'enable_filter' => 'yes', 'show_filters' => 'yes' ],
         ] );
 
         $this->add_control( 'show_subcategories', [
@@ -839,14 +849,14 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
             'return_value' => 'yes',
             'default'      => 'yes',
-            'condition'    => [ 'show_filters' => 'yes' ],
+            'condition'    => [ 'enable_filter' => 'yes', 'show_filters' => 'yes' ],
         ] );
 
         $this->add_control( 'filter_subcategories_title', [
             'label'       => __( 'Subcategories Title', 'bw-elementor-widgets' ),
             'type'        => Controls_Manager::TEXT,
             'default'     => __( 'Subcategories', 'bw-elementor-widgets' ),
-            'condition'   => [ 'show_filters' => 'yes', 'show_subcategories' => 'yes' ],
+            'condition'   => [ 'enable_filter' => 'yes', 'show_filters' => 'yes', 'show_subcategories' => 'yes' ],
         ] );
 
         $this->add_control( 'show_tags', [
@@ -856,14 +866,14 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
             'return_value' => 'yes',
             'default'      => 'yes',
-            'condition'    => [ 'show_filters' => 'yes' ],
+            'condition'    => [ 'enable_filter' => 'yes', 'show_filters' => 'yes' ],
         ] );
 
         $this->add_control( 'filter_tags_title', [
             'label'       => __( 'Tags Title', 'bw-elementor-widgets' ),
             'type'        => Controls_Manager::TEXT,
             'default'     => __( 'Tags', 'bw-elementor-widgets' ),
-            'condition'   => [ 'show_filters' => 'yes', 'show_tags' => 'yes' ],
+            'condition'   => [ 'enable_filter' => 'yes', 'show_filters' => 'yes', 'show_tags' => 'yes' ],
         ] );
 
         $this->add_control( 'show_all_button', [
@@ -873,7 +883,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
             'return_value' => 'yes',
             'default'      => 'yes',
-            'condition'    => [ 'show_filters' => 'yes' ],
+            'condition'    => [ 'enable_filter' => 'yes', 'show_filters' => 'yes' ],
         ] );
 
         $this->add_control( 'filter_position', [
@@ -885,7 +895,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
                 'right'  => __( 'Right Sidebar', 'bw-elementor-widgets' ),
             ],
             'default'   => 'top',
-            'condition' => [ 'show_filters' => 'yes' ],
+            'condition' => [ 'enable_filter' => 'yes', 'show_filters' => 'yes' ],
         ] );
 
         $this->end_controls_section();
@@ -894,7 +904,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
         $this->start_controls_section( 'filter_style_section', [
             'label'     => __( 'Filter Style', 'bw-elementor-widgets' ),
             'tab'       => Controls_Manager::TAB_STYLE,
-            'condition' => [ 'show_filters' => 'yes' ],
+            'condition' => [ 'enable_filter' => 'yes', 'show_filters' => 'yes' ],
         ] );
 
         $this->add_control( 'filter_label_color', [
@@ -1870,11 +1880,12 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
         $settings = $this->get_settings_for_display();
         $widget_id = $this->get_id();
 
-        $show_filters = isset( $settings['show_filters'] ) && 'yes' === $settings['show_filters'];
+        $enable_filter = ! isset( $settings['enable_filter'] ) || 'yes' === $settings['enable_filter'];
+        $show_filters = $enable_filter && isset( $settings['show_filters'] ) && 'yes' === $settings['show_filters'];
         $filter_position = isset( $settings['filter_position'] ) ? $settings['filter_position'] : 'top';
 
         // Render filters area
-        $this->render_wrapper_start( $settings );
+        $this->render_wrapper_start( $settings, $show_filters );
 
         if ( $show_filters ) {
             $this->render_filters( $settings, $widget_id );
@@ -1885,8 +1896,8 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
         $this->render_wrapper_end( $settings );
     }
 
-    private function render_wrapper_start( $settings ) {
-        $filter_position = isset( $settings['filter_position'] ) ? $settings['filter_position'] : 'top';
+    private function render_wrapper_start( $settings, $show_filters = true ) {
+        $filter_position = ( $show_filters && isset( $settings['filter_position'] ) ) ? $settings['filter_position'] : 'top';
         $wrapper_classes = [ 'bw-filtered-post-wall-wrapper', 'bw-fpw-layout-' . $filter_position ];
 
         // Add filter select style classes (multiple can be active)
@@ -2363,6 +2374,45 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
 
     private function render_post_item( $settings, $post_type, $image_toggle, $image_size, $hover_effect, $open_cart_popup ) {
         $post_id   = get_the_ID();
+
+        if ( 'product' === $post_type && class_exists( 'BW_Product_Card_Renderer' ) && function_exists( 'wc_get_product' ) ) {
+            $product = wc_get_product( $post_id );
+
+            if ( $product ) {
+                echo BW_Product_Card_Renderer::render_card(
+                    $product,
+                    [
+                        'image_size'             => $image_size,
+                        'show_image'             => $image_toggle,
+                        'show_hover_image'       => $image_toggle && $hover_effect,
+                        'hover_image_source'     => 'meta',
+                        'show_title'             => true,
+                        'show_description'       => true,
+                        'description_mode'       => 'auto',
+                        'show_price'             => true,
+                        'show_buttons'           => true,
+                        'show_add_to_cart'       => true,
+                        'open_cart_popup'        => $open_cart_popup,
+                        'wrapper_classes'        => 'bw-fpw-item',
+                        'card_classes'           => 'bw-fpw-card',
+                        'media_classes'          => 'bw-fpw-media',
+                        'media_link_classes'     => 'bw-fpw-media-link',
+                        'image_wrapper_classes'  => 'bw-fpw-image',
+                        'content_classes'        => 'bw-fpw-content bw-slider-content',
+                        'title_classes'          => 'bw-fpw-title',
+                        'description_classes'    => 'bw-fpw-description',
+                        'price_classes'          => 'bw-fpw-price price',
+                        'overlay_classes'        => 'bw-fpw-overlay overlay-buttons has-buttons',
+                        'overlay_buttons_classes'=> 'bw-fpw-overlay-buttons',
+                        'view_button_classes'    => 'bw-fpw-overlay-button overlay-button overlay-button--view',
+                        'cart_button_classes'    => 'bw-fpw-overlay-button overlay-button overlay-button--cart bw-btn-addtocart',
+                        'placeholder_classes'    => 'bw-fpw-image-placeholder',
+                    ]
+                );
+                return;
+            }
+        }
+
         $permalink = get_permalink( $post_id );
         $title     = get_the_title( $post_id );
         $excerpt   = get_the_excerpt( $post_id );

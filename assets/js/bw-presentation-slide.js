@@ -5,6 +5,30 @@
 (function ($) {
     'use strict';
 
+    function getSliderCore() {
+        if (window.BWSliderCore && typeof window.BWSliderCore === 'object') {
+            return window.BWSliderCore;
+        }
+
+        return null;
+    }
+
+    function destroySlickInstance($slider) {
+        if (!$slider || !$slider.length) {
+            return;
+        }
+
+        const core = getSliderCore();
+        if (core && typeof core.destroyInstance === 'function') {
+            core.destroyInstance($slider);
+            return;
+        }
+
+        if ($slider.hasClass('slick-initialized') && typeof $.fn.slick === 'function') {
+            $slider.slick('unslick');
+        }
+    }
+
     /**
      * Main BW Presentation Slide Class
      */
@@ -63,9 +87,7 @@
             if ($slider.length === 0) return;
 
             // Destroy existing instance if any
-            if ($slider.hasClass('slick-initialized')) {
-                $slider.slick('unslick');
-            }
+            destroySlickInstance($slider);
 
             this.$wrapper.addClass('loading');
 
@@ -429,12 +451,8 @@
             if ($sliderMain.length === 0 || $sliderThumbs.length === 0) return;
 
             // Destroy existing instances
-            if ($sliderMain.hasClass('slick-initialized')) {
-                $sliderMain.slick('unslick');
-            }
-            if ($sliderThumbs.hasClass('slick-initialized')) {
-                $sliderThumbs.slick('unslick');
-            }
+            destroySlickInstance($sliderMain);
+            destroySlickInstance($sliderThumbs);
 
             // Initialize main slider
             $sliderMain.slick({
@@ -477,12 +495,8 @@
             const $sliderMain = this.$wrapper.find('.bw-ps-slider-main');
             const $sliderThumbs = this.$wrapper.find('.bw-ps-slider-thumbs');
 
-            if ($sliderMain.hasClass('slick-initialized')) {
-                $sliderMain.slick('unslick');
-            }
-            if ($sliderThumbs.hasClass('slick-initialized')) {
-                $sliderThumbs.slick('unslick');
-            }
+            destroySlickInstance($sliderMain);
+            destroySlickInstance($sliderThumbs);
         }
 
         /**
@@ -744,9 +758,7 @@
         destroy() {
             // Destroy all Slick instances
             this.slickInstances.forEach($instance => {
-                if ($instance.hasClass('slick-initialized')) {
-                    $instance.slick('unslick');
-                }
+                destroySlickInstance($instance);
             });
 
             // Remove event listeners
@@ -797,26 +809,41 @@
     /**
      * Elementor frontend hooks
      */
-    if (typeof elementorFrontend !== 'undefined') {
-        // Initialize when Elementor preview is loaded
-        $(window).on('elementor/frontend/init', function () {
-            elementorFrontend.hooks.addAction('frontend/element_ready/bw-presentation-slide.default', function ($scope) {
-                const $wrapper = $scope.find('.bw-ps-wrapper');
-                if ($wrapper.length) {
-                    // Destroy existing instance
-                    const existingInstance = $wrapper.data('bw-ps-instance');
-                    if (existingInstance) {
-                        existingInstance.destroy();
-                        $wrapper.removeData('bw-ps-instance');
-                    }
+    let presentationHooksRegistered = false;
+    function registerElementorHooks() {
+        if (presentationHooksRegistered) {
+            return;
+        }
 
-                    // Create new instance
-                    const instance = new BWPresentationSlide($wrapper[0]);
-                    $wrapper.data('bw-ps-instance', instance);
+        if (
+            typeof elementorFrontend === 'undefined' ||
+            !elementorFrontend.hooks ||
+            typeof elementorFrontend.hooks.addAction !== 'function'
+        ) {
+            return;
+        }
+
+        presentationHooksRegistered = true;
+
+        elementorFrontend.hooks.addAction('frontend/element_ready/bw-presentation-slide.default', function ($scope) {
+            const $wrapper = $scope.find('.bw-ps-wrapper');
+            if ($wrapper.length) {
+                // Destroy existing instance
+                const existingInstance = $wrapper.data('bw-ps-instance');
+                if (existingInstance) {
+                    existingInstance.destroy();
+                    $wrapper.removeData('bw-ps-instance');
                 }
-            });
+
+                // Create new instance
+                const instance = new BWPresentationSlide($wrapper[0]);
+                $wrapper.data('bw-ps-instance', instance);
+            }
         });
     }
+
+    registerElementorHooks();
+    $(window).on('elementor/frontend/init', registerElementorHooks);
 
     /**
      * Expose for debugging

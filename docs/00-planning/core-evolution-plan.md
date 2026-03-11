@@ -59,7 +59,8 @@ It MUST be used as planning reference only and MUST NOT replace ADRs.
 - Risk classification: High (runtime coupling + maintainability)
 - Short description: Rationalize the custom Elementor widget subsystem with shared product-card authority, shared slider-core authority, and family-based convergence without big-bang rewrite.
 - Confirmed decisions:
-  - `bw-add-to-cart` -> DELETE
+  - `bw-add-to-cart` -> DEPRECATE (active) -> DELETE in removal wave
+  - `bw-add-to-cart-variation` -> DEPRECATE (active) -> DELETE in removal wave
   - `bw-filtered-post-wall` + `bw-wallpost` -> MERGE into canonical wall/query-grid widget
   - `bw-product-slide` -> canonical product slider
   - `bw-presentation-slide` -> specialized presentation/gallery slider

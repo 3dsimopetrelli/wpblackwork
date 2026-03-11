@@ -32,9 +32,25 @@
    * - ✅ Preserved drag/swipe settings in all responsive breakpoints
    *
    * See: docs/2025-12-13-product-slide-vacuum-cleanup-report.md
-   */
+  */
+
+  var getSliderCore = function () {
+    if (window.BWSliderCore && typeof window.BWSliderCore === 'object') {
+      return window.BWSliderCore;
+    }
+
+    return null;
+  };
 
   var parseSettings = function ($slider) {
+    var core = getSliderCore();
+    if (core && typeof core.parseSettings === 'function') {
+      var coreSettings = core.parseSettings($slider);
+      if (coreSettings && typeof coreSettings === 'object') {
+        return coreSettings;
+      }
+    }
+
     var rawSettings = $slider.attr('data-slider-settings');
     if (!rawSettings) {
       return {};
@@ -51,11 +67,39 @@
   var buildSettings = function (defaults, custom) {
     var settings = $.extend(true, {}, defaults, custom || {});
 
+    var core = getSliderCore();
+    if (
+      core &&
+      typeof core.normalizeResponsive === 'function' &&
+      typeof settings.responsive !== 'undefined'
+    ) {
+      var normalizedResponsive = core.normalizeResponsive(settings.responsive);
+      settings.responsive = Array.isArray(normalizedResponsive)
+        ? normalizedResponsive
+        : settings.responsive;
+    }
+
     if (settings.responsive && !Array.isArray(settings.responsive)) {
       delete settings.responsive;
     }
 
     return settings;
+  };
+
+  var destroySliderInstance = function ($slider) {
+    if (!$slider || !$slider.length) {
+      return;
+    }
+
+    var core = getSliderCore();
+    if (core && typeof core.destroyInstance === 'function') {
+      core.destroyInstance($slider);
+      return;
+    }
+
+    if ($slider.hasClass('slick-initialized')) {
+      $slider.slick('unslick');
+    }
   };
 
   var sortBreakpoints = function (responsive) {
@@ -754,9 +798,7 @@
 
       unbindResponsiveUpdates($slider);
 
-      if ($slider.hasClass('slick-initialized')) {
-        $slider.slick('unslick');
-      }
+      destroySliderInstance($slider);
 
       $slider.off('.bwProductSlide');
       $slider.off('.bwProductSlideArrows');

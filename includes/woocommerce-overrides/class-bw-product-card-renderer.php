@@ -28,13 +28,28 @@ class BW_Product_Card_Renderer {
 		'image_size'          => 'large',
 		'show_image'          => true,
 		'show_hover_image'    => true,
+		'hover_image_source'  => 'meta',
 		'show_title'          => true,
 		'show_description'    => false,
+		'description_mode'    => 'auto',
 		'show_price'          => true,
 		'show_buttons'        => true,
 		'show_add_to_cart'    => true,
 		'open_cart_popup'     => false,
+		'use_wc_product_class' => false,
 		'image_classes'       => '',
+		'media_link_classes'  => '',
+		'media_classes'       => '',
+		'image_wrapper_classes' => '',
+		'content_classes'     => '',
+		'title_classes'       => '',
+		'description_classes' => '',
+		'price_classes'       => '',
+		'overlay_classes'     => '',
+		'overlay_buttons_classes' => '',
+		'view_button_classes' => '',
+		'cart_button_classes' => '',
+		'placeholder_classes' => '',
 		'card_classes'        => '',
 		'wrapper_classes'     => '',
 	];
@@ -76,25 +91,30 @@ class BW_Product_Card_Renderer {
 		}
 
 		// Build classes
-		$item_classes = [ 'bw-wallpost-item', 'bw-slick-item', 'bw-product-card-item' ];
-		if ( ! empty( $settings['wrapper_classes'] ) ) {
-			$item_classes[] = $settings['wrapper_classes'];
-		}
+		$item_classes = self::merge_classes(
+			[ 'bw-wallpost-item', 'bw-slick-item', 'bw-product-card-item' ],
+			$settings['wrapper_classes']
+		);
 
-		$card_classes = [ 'bw-wallpost-card', 'bw-slick-item__inner', 'bw-ss__card', 'bw-product-card' ];
-		if ( ! empty( $settings['card_classes'] ) ) {
-			$card_classes[] = $settings['card_classes'];
-		}
+		$card_classes = self::merge_classes(
+			[ 'bw-wallpost-card', 'bw-slick-item__inner', 'bw-ss__card', 'bw-product-card' ],
+			$settings['card_classes']
+		);
+
+		$content_classes = self::merge_classes(
+			[ 'bw-wallpost-content', 'bw-slick-item__content', 'bw-ss__content', 'bw-slider-content', 'bw-slick-slider-text-box' ],
+			$settings['content_classes']
+		);
 
 		ob_start();
 		?>
-		<article <?php post_class( $item_classes, $post_id ); ?>>
+		<article <?php self::render_article_class_attribute( $item_classes, $product, $post_id, $settings ); ?>>
 			<div class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $card_classes ) ) ); ?>">
 				<div class="bw-slider-image-container">
 					<?php echo self::render_product_image( $product, $settings ); ?>
 				</div>
 
-				<div class="bw-wallpost-content bw-slick-item__content bw-ss__content bw-slider-content bw-slick-slider-text-box">
+				<div class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $content_classes ) ) ); ?>">
 					<?php echo self::render_product_content( $product, $settings ); ?>
 				</div>
 			</div>
@@ -138,7 +158,17 @@ class BW_Product_Card_Renderer {
 		// Get hover image
 		$hover_image_html = '';
 		if ( $settings['show_hover_image'] ) {
-			$hover_image_id = (int) get_post_meta( $post_id, '_bw_slider_hover_image', true );
+			$hover_source   = isset( $settings['hover_image_source'] ) ? sanitize_key( (string) $settings['hover_image_source'] ) : 'meta';
+			$hover_image_id = 0;
+
+			if ( 'gallery_first' === $hover_source ) {
+				$gallery_ids = $product->get_gallery_image_ids();
+				if ( ! empty( $gallery_ids ) ) {
+					$hover_image_id = (int) reset( $gallery_ids );
+				}
+			} else {
+				$hover_image_id = (int) get_post_meta( $post_id, '_bw_slider_hover_image', true );
+			}
 
 			if ( $hover_image_id ) {
 				$hover_image_html = wp_get_attachment_image(
@@ -159,15 +189,35 @@ class BW_Product_Card_Renderer {
 			$media_classes[] = 'bw-wallpost-media--placeholder';
 			$media_classes[] = 'bw-slick-item__image--placeholder';
 		}
-		if ( ! empty( $settings['image_classes'] ) ) {
-			$media_classes[] = $settings['image_classes'];
+		$media_classes = self::merge_classes(
+			$media_classes,
+			[
+				$settings['image_classes'],
+				$settings['media_classes'],
+			]
+		);
+
+		$image_wrapper_classes = self::merge_classes(
+			[ 'bw-wallpost-image', 'bw-slick-slider-image' ],
+			$settings['image_wrapper_classes']
+		);
+		if ( $hover_image_html ) {
+			$image_wrapper_classes = self::merge_classes(
+				$image_wrapper_classes,
+				[ 'bw-wallpost-image--has-hover', 'bw-slick-slider-image--has-hover' ]
+			);
 		}
+
+		$media_link_classes = self::merge_classes(
+			[ 'bw-wallpost-image-link-overlay' ],
+			$settings['media_link_classes']
+		);
 
 		ob_start();
 		?>
 		<div class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $media_classes ) ) ); ?>">
 			<?php if ( $thumbnail_html ) : ?>
-				<div class="bw-wallpost-image bw-slick-slider-image<?php echo $hover_image_html ? ' bw-wallpost-image--has-hover bw-slick-slider-image--has-hover' : ''; ?>">
+				<div class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $image_wrapper_classes ) ) ); ?>">
 					<?php echo wp_kses_post( $thumbnail_html ); ?>
 					<?php if ( $hover_image_html ) : ?>
 						<?php echo wp_kses_post( $hover_image_html ); ?>
@@ -175,13 +225,14 @@ class BW_Product_Card_Renderer {
 				</div>
 
 				<!-- Link invisibile che copre l'intera area dell'immagine -->
-				<a class="bw-wallpost-image-link-overlay" href="<?php echo esc_url( $permalink ); ?>" aria-label="<?php echo esc_attr( $title ); ?>"></a>
+				<a class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $media_link_classes ) ) ); ?>" href="<?php echo esc_url( $permalink ); ?>" aria-label="<?php echo esc_attr( $title ); ?>"></a>
 
 				<?php if ( $settings['show_buttons'] ) : ?>
 					<?php echo self::render_overlay_buttons( $product, $settings ); ?>
 				<?php endif; ?>
 			<?php else : ?>
-				<span class="bw-wallpost-image-placeholder bw-slick-item__image-placeholder" aria-hidden="true"></span>
+				<?php $placeholder_classes = self::merge_classes( [ 'bw-wallpost-image-placeholder', 'bw-slick-item__image-placeholder' ], $settings['placeholder_classes'] ); ?>
+				<span class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $placeholder_classes ) ) ); ?>" aria-hidden="true"></span>
 			<?php endif; ?>
 		</div>
 		<?php
@@ -203,6 +254,22 @@ class BW_Product_Card_Renderer {
 		$has_add_to_cart   = false;
 		$add_to_cart_url   = '';
 		$open_cart_popup   = $settings['open_cart_popup'];
+		$overlay_classes = self::merge_classes(
+			[ 'bw-wallpost-overlay', 'overlay-buttons', 'bw-ss__overlay', 'has-buttons' ],
+			$settings['overlay_classes']
+		);
+		$overlay_buttons_classes = self::merge_classes(
+			[ 'bw-wallpost-overlay-buttons', 'bw-ss__buttons', 'bw-slide-buttons' ],
+			$settings['overlay_buttons_classes']
+		);
+		$view_button_classes = self::merge_classes(
+			[ 'bw-wallpost-overlay-button', 'overlay-button', 'overlay-button--view', 'bw-ss__btn', 'bw-view-btn', 'bw-slide-button' ],
+			$settings['view_button_classes']
+		);
+		$cart_button_classes = self::merge_classes(
+			[ 'bw-wallpost-overlay-button', 'overlay-button', 'overlay-button--cart', 'bw-ss__btn', 'bw-btn-addtocart', 'bw-slide-button' ],
+			$settings['cart_button_classes']
+		);
 
 		if ( $settings['show_add_to_cart'] ) {
 			if ( $product->is_type( 'variable' ) ) {
@@ -224,13 +291,13 @@ class BW_Product_Card_Renderer {
 
 		ob_start();
 		?>
-		<div class="bw-wallpost-overlay overlay-buttons bw-ss__overlay has-buttons">
-			<div class="bw-wallpost-overlay-buttons bw-ss__buttons bw-slide-buttons<?php echo $has_add_to_cart ? ' bw-wallpost-overlay-buttons--double bw-ss__buttons--double' : ''; ?>">
-				<a class="bw-wallpost-overlay-button overlay-button overlay-button--view bw-ss__btn bw-view-btn bw-slide-button" href="<?php echo esc_url( $permalink ); ?>">
+		<div class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $overlay_classes ) ) ); ?>">
+			<div class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $overlay_buttons_classes ) ) ); ?><?php echo $has_add_to_cart ? ' bw-wallpost-overlay-buttons--double bw-ss__buttons--double' : ''; ?>">
+				<a class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $view_button_classes ) ) ); ?>" href="<?php echo esc_url( $permalink ); ?>">
 					<span class="bw-wallpost-overlay-button__label overlay-button__label"><?php esc_html_e( 'View Product', 'bw-elementor-widgets' ); ?></span>
 				</a>
 				<?php if ( $has_add_to_cart && $add_to_cart_url ) : ?>
-					<a class="bw-wallpost-overlay-button overlay-button overlay-button--cart bw-ss__btn bw-btn-addtocart bw-slide-button" href="<?php echo esc_url( $add_to_cart_url ); ?>"<?php echo $open_cart_popup ? ' data-open-cart-popup="1"' : ''; ?>>
+					<a class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $cart_button_classes ) ) ); ?>" href="<?php echo esc_url( $add_to_cart_url ); ?>"<?php echo $open_cart_popup ? ' data-open-cart-popup="1"' : ''; ?>>
 						<span class="bw-wallpost-overlay-button__label overlay-button__label"><?php esc_html_e( 'Add to Cart', 'bw-elementor-widgets' ); ?></span>
 					</a>
 				<?php endif; ?>
@@ -256,9 +323,10 @@ class BW_Product_Card_Renderer {
 		$excerpt   = '';
 
 		if ( $settings['show_description'] ) {
+			$description_mode = isset( $settings['description_mode'] ) ? sanitize_key( (string) $settings['description_mode'] ) : 'auto';
 			$excerpt = $product->get_short_description();
 
-			if ( empty( $excerpt ) ) {
+			if ( 'auto' === $description_mode && empty( $excerpt ) ) {
 				$excerpt = wp_trim_words( wp_strip_all_tags( $product->get_description() ), 30 );
 			}
 
@@ -271,11 +339,14 @@ class BW_Product_Card_Renderer {
 		if ( $settings['show_price'] ) {
 			$price_html = self::get_price_markup( $product );
 		}
+		$title_classes = self::merge_classes( [ 'bw-wallpost-title', 'bw-slick-item__title', 'bw-slick-title', 'bw-slider-title' ], $settings['title_classes'] );
+		$description_classes = self::merge_classes( [ 'bw-wallpost-description', 'bw-slick-item__excerpt', 'bw-slick-description', 'bw-slider-description' ], $settings['description_classes'] );
+		$price_classes = self::merge_classes( [ 'bw-wallpost-price', 'bw-slick-item__price', 'price', 'bw-slick-price', 'bw-slider-price' ], $settings['price_classes'] );
 
 		ob_start();
 		?>
 		<?php if ( $settings['show_title'] ) : ?>
-			<h3 class="bw-wallpost-title bw-slick-item__title bw-slick-title bw-slider-title">
+			<h3 class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $title_classes ) ) ); ?>">
 				<a href="<?php echo esc_url( $permalink ); ?>">
 					<?php echo esc_html( $title ); ?>
 				</a>
@@ -283,14 +354,45 @@ class BW_Product_Card_Renderer {
 		<?php endif; ?>
 
 		<?php if ( $settings['show_description'] && ! empty( $excerpt ) ) : ?>
-			<div class="bw-wallpost-description bw-slick-item__excerpt bw-slick-description bw-slider-description"><?php echo wp_kses_post( $excerpt ); ?></div>
+			<div class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $description_classes ) ) ); ?>"><?php echo wp_kses_post( $excerpt ); ?></div>
 		<?php endif; ?>
 
 		<?php if ( $settings['show_price'] && $price_html ) : ?>
-			<div class="bw-wallpost-price bw-slick-item__price price bw-slick-price bw-slider-price"><?php echo wp_kses_post( $price_html ); ?></div>
+			<div class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $price_classes ) ) ); ?>"><?php echo wp_kses_post( $price_html ); ?></div>
 		<?php endif; ?>
 		<?php
 		return ob_get_clean();
+	}
+
+	/**
+	 * Merge class lists.
+	 *
+	 * @param array        $base_classes Base classes.
+	 * @param string|array $extra_classes Extra class string or list.
+	 * @return array
+	 */
+	private static function merge_classes( $base_classes, $extra_classes ) {
+		$merged = [];
+
+		foreach ( (array) $base_classes as $class_set ) {
+			foreach ( preg_split( '/\s+/', (string) $class_set ) as $class_name ) {
+				$class_name = trim( $class_name );
+				if ( '' !== $class_name ) {
+					$merged[] = $class_name;
+				}
+			}
+		}
+
+		foreach ( (array) $extra_classes as $class_set ) {
+			foreach ( preg_split( '/\s+/', (string) $class_set ) as $class_name ) {
+				$class_name = trim( $class_name );
+				if ( '' !== $class_name ) {
+					$merged[] = $class_name;
+				}
+			}
+		}
+
+		return array_values( array_unique( $merged ) );
 	}
 
 	/**
@@ -348,6 +450,25 @@ class BW_Product_Card_Renderer {
 		}
 
 		return '';
+	}
+
+	/**
+	 * Render class attribute for article wrapper.
+	 *
+	 * @param array      $item_classes Item classes.
+	 * @param WC_Product $product      Product object.
+	 * @param int        $post_id      Post ID.
+	 * @param array      $settings     Settings.
+	 * @return void
+	 */
+	private static function render_article_class_attribute( $item_classes, $product, $post_id, $settings ) {
+		$use_wc_product_class = ! empty( $settings['use_wc_product_class'] );
+		if ( $use_wc_product_class && function_exists( 'wc_product_class' ) ) {
+			wc_product_class( implode( ' ', array_map( 'sanitize_html_class', $item_classes ) ), $product );
+			return;
+		}
+
+		post_class( $item_classes, $post_id );
 	}
 
 	/**

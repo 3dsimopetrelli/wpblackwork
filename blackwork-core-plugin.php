@@ -1927,6 +1927,49 @@ function bw_fpw_filter_posts()
             $query->the_post();
 
             $post_id = get_the_ID();
+
+            if (
+                'product' === $post_type &&
+                class_exists('BW_Product_Card_Renderer') &&
+                function_exists('wc_get_product')
+            ) {
+                $product = wc_get_product($post_id);
+
+                if ($product) {
+                    echo BW_Product_Card_Renderer::render_card(
+                        $product,
+                        [
+                            'image_size' => $image_size,
+                            'show_image' => $image_toggle,
+                            'show_hover_image' => $image_toggle && $hover_effect,
+                            'hover_image_source' => 'meta',
+                            'show_title' => true,
+                            'show_description' => true,
+                            'description_mode' => 'auto',
+                            'show_price' => true,
+                            'show_buttons' => true,
+                            'show_add_to_cart' => true,
+                            'open_cart_popup' => $open_cart_popup,
+                            'wrapper_classes' => 'bw-fpw-item',
+                            'card_classes' => 'bw-fpw-card',
+                            'media_classes' => 'bw-fpw-media',
+                            'media_link_classes' => 'bw-fpw-media-link',
+                            'image_wrapper_classes' => 'bw-fpw-image',
+                            'content_classes' => 'bw-fpw-content bw-slider-content',
+                            'title_classes' => 'bw-fpw-title',
+                            'description_classes' => 'bw-fpw-description',
+                            'price_classes' => 'bw-fpw-price price',
+                            'overlay_classes' => 'bw-fpw-overlay overlay-buttons has-buttons',
+                            'overlay_buttons_classes' => 'bw-fpw-overlay-buttons',
+                            'view_button_classes' => 'bw-fpw-overlay-button overlay-button overlay-button--view',
+                            'cart_button_classes' => 'bw-fpw-overlay-button overlay-button overlay-button--cart bw-btn-addtocart',
+                            'placeholder_classes' => 'bw-fpw-image-placeholder',
+                        ]
+                    );
+                    continue;
+                }
+            }
+
             $permalink = get_permalink($post_id);
             $title = get_the_title($post_id);
             $excerpt = get_the_excerpt($post_id);

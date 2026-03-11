@@ -30,6 +30,28 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - `bw-slick-slider` + `bw-slide-showcase` -> rationalization/merge path under review
 - `bw-related-products` -> current best reference for shared product-card reuse
 
+## Current implementation status (completed waves)
+- Widget panel naming applied:
+  - `BW-UI ...`
+  - `BW-SP ...`
+  - `DEPRECATED - ...`
+- Elementor editor panel differentiation applied (BW-UI, BW-SP, deprecated).
+- Shared product-card authority extended and adopted in:
+  - Woo related template
+  - `bw-slick-slider` product path
+  - `bw-wallpost` product path
+  - `bw-filtered-post-wall` product path (including AJAX HTML response path)
+- `bw-filtered-post-wall` supports `Enable Filter = yes/no`.
+- Deprecation path active:
+  - `bw-wallpost` -> use `bw-filtered-post-wall` with `Enable Filter = No`
+  - `bw-add-to-cart` and `bw-add-to-cart-variation` marked deprecated (kept for compatibility)
+
+## Deferred future work
+- final removal wave for deprecated widgets after migration validation
+- wall/query-grid consolidation completion (`bw-filtered-post-wall` as canonical single surface)
+- slider-core convergence (`bw-slick-slider` + `bw-slide-showcase` rationalization)
+- control-group extraction/reuse where safe
+
 ## Out of scope
 - no runtime implementation in this documentation phase
 - no immediate widget deletions or rebuilds in code

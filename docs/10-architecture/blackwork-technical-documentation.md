@@ -1402,7 +1402,8 @@ if (isset($_POST['bw_new_tab_submit'])) {
 - Shared Elementor control groups should replace repeated large control blocks where safe.
 
 ### 13.4 Governed Widget Decisions
-- `bw-add-to-cart` -> DELETE
+- `bw-add-to-cart` -> DEPRECATE (active) -> DELETE in removal wave
+- `bw-add-to-cart-variation` -> DEPRECATE (active) -> DELETE in removal wave
 - `bw-filtered-post-wall` + `bw-wallpost` -> merge into one canonical wall/query-grid widget with optional filters
 - `bw-product-slide` -> canonical product slider
 - `bw-presentation-slide` -> specialized presentation/gallery slider

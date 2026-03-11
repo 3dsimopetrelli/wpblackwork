@@ -34,10 +34,29 @@ class BW_WallPost_Widget extends Widget_Base {
     }
 
     protected function register_controls() {
+        $this->register_deprecation_notice_controls();
         $this->register_query_controls();
         $this->register_layout_controls();
         $this->register_image_controls();
         $this->register_style_controls();
+    }
+
+    private function register_deprecation_notice_controls() {
+        $this->start_controls_section( 'deprecation_notice_section', [
+            'label' => __( 'Deprecation Notice', 'bw-elementor-widgets' ),
+        ] );
+
+        $this->add_control( 'deprecation_notice', [
+            'type'            => Controls_Manager::RAW_HTML,
+            'raw'             => wp_kses_post(
+                '<strong>' . esc_html__( 'This widget is deprecated.', 'bw-elementor-widgets' ) . '</strong><br>' .
+                esc_html__( 'Use BW-UI Product Grid (bw-filtered-post-wall) as replacement.', 'bw-elementor-widgets' ) . '<br>' .
+                esc_html__( 'Set "Enable Filter" = No to match simple wall/grid behavior.', 'bw-elementor-widgets' )
+            ),
+            'content_classes' => 'elementor-panel-alert elementor-panel-alert-warning',
+        ] );
+
+        $this->end_controls_section();
     }
 
     private function register_query_controls() {
@@ -890,6 +909,31 @@ class BW_WallPost_Widget extends Widget_Base {
                         $query->the_post();
 
                         $post_id   = get_the_ID();
+
+                        if ( 'product' === $post_type && class_exists( 'BW_Product_Card_Renderer' ) && function_exists( 'wc_get_product' ) ) {
+                            $product = wc_get_product( $post_id );
+
+                            if ( $product ) {
+                                echo BW_Product_Card_Renderer::render_card(
+                                    $product,
+                                    [
+                                        'image_size'        => $image_size,
+                                        'show_image'        => $image_toggle,
+                                        'show_hover_image'  => $image_toggle && $hover_effect,
+                                        'hover_image_source'=> 'meta',
+                                        'show_title'        => true,
+                                        'show_description'  => true,
+                                        'description_mode'  => 'auto',
+                                        'show_price'        => true,
+                                        'show_buttons'      => true,
+                                        'show_add_to_cart'  => true,
+                                        'open_cart_popup'   => $open_cart_popup,
+                                    ]
+                                );
+                                continue;
+                            }
+                        }
+
                         $permalink = get_permalink( $post_id );
                         $title     = get_the_title( $post_id );
                         $excerpt   = get_the_excerpt( $post_id );

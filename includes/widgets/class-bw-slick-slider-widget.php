@@ -1004,6 +1004,32 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
                     $query->the_post();
 
                     $post_id   = get_the_ID();
+
+                    if ( 'product' === $content_type && class_exists( 'BW_Product_Card_Renderer' ) && function_exists( 'wc_get_product' ) ) {
+                        $product = wc_get_product( $post_id );
+
+                        if ( $product ) {
+                            echo BW_Product_Card_Renderer::render_card(
+                                $product,
+                                [
+                                    'image_size'        => 'large',
+                                    'show_image'        => true,
+                                    'show_hover_image'  => true,
+                                    'hover_image_source'=> 'meta',
+                                    'show_title'        => true,
+                                    'show_description'  => true,
+                                    'description_mode'  => 'auto',
+                                    'show_price'        => true,
+                                    'show_buttons'      => true,
+                                    'show_add_to_cart'  => true,
+                                    'open_cart_popup'   => $open_cart_popup,
+                                    'wrapper_classes'   => 'bw-slick-item',
+                                ]
+                            );
+                            continue;
+                        }
+                    }
+
                     $permalink = get_permalink( $post_id );
                     $title     = get_the_title( $post_id );
                     $excerpt   = get_the_excerpt( $post_id );

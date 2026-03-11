@@ -665,19 +665,60 @@
     });
   };
 
+  // Shared slider-core authority (Wave 1):
+  // minimal lifecycle and settings authority for bw-slick-slider + bw-slide-showcase.
+  var sliderCore = window.BWSliderCore || {};
+  sliderCore.version = sliderCore.version || '1.0.0';
+
+  sliderCore.findInstances = function ($scope) {
+    var $context = $scope && $scope.length ? $scope : $(document);
+    return $context.find('.bw-slick-slider');
+  };
+
+  sliderCore.normalizeResponsive = normalizeResponsive;
+  sliderCore.parseSettings = parseSettings;
+  sliderCore.getColumnWidthInfo = getColumnWidthInfo;
+
+  sliderCore.destroyInstance = function ($slider) {
+    if (!$slider || !$slider.length) {
+      return;
+    }
+
+    if ($slider.hasClass('slick-initialized') && typeof $.fn.slick === 'function') {
+      $slider.slick('unslick');
+    }
+  };
+
+  sliderCore.initInstance = function ($slider) {
+    rebuildSlider($slider);
+  };
+
+  sliderCore.reinitInstance = function ($slider) {
+    sliderCore.destroyInstance($slider);
+    sliderCore.initInstance($slider);
+  };
+
+  sliderCore.scheduleReinit = function ($slider) {
+    scheduleRebuild($slider);
+  };
+
+  sliderCore.initInScope = function ($scope) {
+    initSlickSlider($scope);
+  };
+
   $(function () {
     if (
       typeof elementorFrontend === 'undefined' ||
       typeof elementorFrontend.isEditMode !== 'function' ||
       !elementorFrontend.isEditMode()
     ) {
-      initSlickSlider($(document));
+      sliderCore.initInScope($(document));
     }
   });
 
-  var hooksRegistered = false;
-  var registerElementorHooks = function () {
-    if (hooksRegistered) {
+  sliderCore._hooksRegistered = !!sliderCore._hooksRegistered;
+  sliderCore.registerElementorHooks = function () {
+    if (sliderCore._hooksRegistered) {
       return;
     }
 
@@ -689,8 +730,10 @@
       return;
     }
 
-    hooksRegistered = true;
+    sliderCore._hooksRegistered = true;
 
+    // Intentional shared runtime: bw-slide-showcase reuses this same JS/core file.
+    // There is no separate bw-slide-showcase runtime JS by design.
     var widgetsToInit = [
       'frontend/element_ready/bw-slick-slider.default',
       'frontend/element_ready/bw-slide-showcase.default',
@@ -698,11 +741,13 @@
 
     widgetsToInit.forEach(function (hook) {
       elementorFrontend.hooks.addAction(hook, function ($scope) {
-        initSlickSlider($scope);
+        sliderCore.initInScope($scope);
       });
     });
   };
 
-  registerElementorHooks();
-  $(window).on('elementor/frontend/init', registerElementorHooks);
+  window.BWSliderCore = sliderCore;
+
+  sliderCore.registerElementorHooks();
+  $(window).on('elementor/frontend/init', sliderCore.registerElementorHooks);
 })(jQuery);
