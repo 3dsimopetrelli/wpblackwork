@@ -35,11 +35,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
 
     protected function register_controls() {
         $this->register_filter_controls();
-        $this->register_responsive_filter_controls();
         $this->register_query_controls();
-        $this->register_layout_controls();
-        $this->register_image_controls();
-        $this->register_style_controls();
     }
 
     private function register_responsive_filter_controls() {
@@ -783,16 +779,6 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'label' => __( 'Filter Settings', 'bw-elementor-widgets' ),
         ] );
 
-        $this->add_control( 'enable_filter', [
-            'label'        => __( 'Enable Filter', 'bw-elementor-widgets' ),
-            'type'         => Controls_Manager::SWITCHER,
-            'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
-            'label_off'    => __( 'No', 'bw-elementor-widgets' ),
-            'return_value' => 'yes',
-            'default'      => 'yes',
-            'description'  => __( 'Attiva/disattiva l\'interfaccia filtri. Se disattivo, il widget funziona come griglia semplice.', 'bw-elementor-widgets' ),
-        ] );
-
         $this->add_control( 'show_filters', [
             'label'        => __( 'Show Filters', 'bw-elementor-widgets' ),
             'type'         => Controls_Manager::SWITCHER,
@@ -800,390 +786,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'label_off'    => __( 'No', 'bw-elementor-widgets' ),
             'return_value' => 'yes',
             'default'      => 'yes',
-            'description'  => __( 'Mostra/nascondi i filtri di categoria e tag', 'bw-elementor-widgets' ),
-        ] );
-
-        // Get product categories for the dropdown
-        $category_options = [ 'all' => __( 'All Categories', 'bw-elementor-widgets' ) ];
-        $product_categories = get_terms( [
-            'taxonomy'   => 'product_cat',
-            'hide_empty' => false,
-            'parent'     => 0, // Only top-level categories
-        ] );
-        if ( ! is_wp_error( $product_categories ) && ! empty( $product_categories ) ) {
-            foreach ( $product_categories as $category ) {
-                $category_options[ $category->term_id ] = $category->name;
-            }
-        }
-
-        $this->add_control( 'default_category', [
-            'label'       => __( 'Default Category', 'bw-elementor-widgets' ),
-            'type'        => Controls_Manager::SELECT,
-            'options'     => $category_options,
-            'default'     => 'all',
-            'description' => __( 'Limit the widget to a specific category. When selected, only subcategories and tags from this category will be shown.', 'bw-elementor-widgets' ),
-            'condition'   => [ 'enable_filter' => 'yes', 'show_filters' => 'yes' ],
-        ] );
-
-        $this->add_control( 'show_categories', [
-            'label'        => __( 'Show Categories', 'bw-elementor-widgets' ),
-            'type'         => Controls_Manager::SWITCHER,
-            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
-            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
-            'return_value' => 'yes',
-            'default'      => 'yes',
-            'condition'    => [ 'enable_filter' => 'yes', 'show_filters' => 'yes' ],
-        ] );
-
-        $this->add_control( 'filter_categories_title', [
-            'label'       => __( 'Categories Title', 'bw-elementor-widgets' ),
-            'type'        => Controls_Manager::TEXT,
-            'default'     => __( 'Categories', 'bw-elementor-widgets' ),
-            'condition'   => [ 'enable_filter' => 'yes', 'show_filters' => 'yes' ],
-        ] );
-
-        $this->add_control( 'show_subcategories', [
-            'label'        => __( 'Show Subcategories', 'bw-elementor-widgets' ),
-            'type'         => Controls_Manager::SWITCHER,
-            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
-            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
-            'return_value' => 'yes',
-            'default'      => 'yes',
-            'condition'    => [ 'enable_filter' => 'yes', 'show_filters' => 'yes' ],
-        ] );
-
-        $this->add_control( 'filter_subcategories_title', [
-            'label'       => __( 'Subcategories Title', 'bw-elementor-widgets' ),
-            'type'        => Controls_Manager::TEXT,
-            'default'     => __( 'Subcategories', 'bw-elementor-widgets' ),
-            'condition'   => [ 'enable_filter' => 'yes', 'show_filters' => 'yes', 'show_subcategories' => 'yes' ],
-        ] );
-
-        $this->add_control( 'show_tags', [
-            'label'        => __( 'Show Tags', 'bw-elementor-widgets' ),
-            'type'         => Controls_Manager::SWITCHER,
-            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
-            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
-            'return_value' => 'yes',
-            'default'      => 'yes',
-            'condition'    => [ 'enable_filter' => 'yes', 'show_filters' => 'yes' ],
-        ] );
-
-        $this->add_control( 'filter_tags_title', [
-            'label'       => __( 'Tags Title', 'bw-elementor-widgets' ),
-            'type'        => Controls_Manager::TEXT,
-            'default'     => __( 'Tags', 'bw-elementor-widgets' ),
-            'condition'   => [ 'enable_filter' => 'yes', 'show_filters' => 'yes', 'show_tags' => 'yes' ],
-        ] );
-
-        $this->add_control( 'show_all_button', [
-            'label'        => __( 'Show “All” Option', 'bw-elementor-widgets' ),
-            'type'         => Controls_Manager::SWITCHER,
-            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
-            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
-            'return_value' => 'yes',
-            'default'      => 'yes',
-            'condition'    => [ 'enable_filter' => 'yes', 'show_filters' => 'yes' ],
-        ] );
-
-        $this->add_control( 'filter_position', [
-            'label'   => __( 'Filter Position', 'bw-elementor-widgets' ),
-            'type'    => Controls_Manager::SELECT,
-            'options' => [
-                'top'    => __( 'Top', 'bw-elementor-widgets' ),
-                'left'   => __( 'Left Sidebar', 'bw-elementor-widgets' ),
-                'right'  => __( 'Right Sidebar', 'bw-elementor-widgets' ),
-            ],
-            'default'   => 'top',
-            'condition' => [ 'enable_filter' => 'yes', 'show_filters' => 'yes' ],
-        ] );
-
-        $this->end_controls_section();
-
-        // Filter Style Section
-        $this->start_controls_section( 'filter_style_section', [
-            'label'     => __( 'Filter Style', 'bw-elementor-widgets' ),
-            'tab'       => Controls_Manager::TAB_STYLE,
-            'condition' => [ 'enable_filter' => 'yes', 'show_filters' => 'yes' ],
-        ] );
-
-        $this->add_control( 'filter_label_color', [
-            'label'     => __( 'Title Color', 'bw-elementor-widgets' ),
-            'type'      => Controls_Manager::COLOR,
-            'default'   => '#000000',
-            'selectors' => [
-                '{{WRAPPER}} .bw-fpw-filter-label' => 'color: {{VALUE}};',
-            ],
-        ] );
-
-        $this->add_group_control( Group_Control_Typography::get_type(), [
-            'name'           => 'filter_label_typography',
-            'selector'       => '{{WRAPPER}} .bw-fpw-filter-label',
-            'fields_options' => [
-                'font_size' => [
-                    'default' => [
-                        'size' => 18,
-                        'unit' => 'px',
-                    ],
-                ],
-            ],
-        ] );
-
-        $this->start_controls_tabs( 'filter_option_color_tabs' );
-
-        $this->start_controls_tab( 'filter_option_color_tab', [
-            'label' => __( 'Default', 'bw-elementor-widgets' ),
-        ] );
-
-        $this->add_control( 'filter_option_color', [
-            'label'     => __( 'Options Color', 'bw-elementor-widgets' ),
-            'type'      => Controls_Manager::COLOR,
-            'default'   => '#000000',
-            'selectors' => [
-                '{{WRAPPER}} .bw-fpw-filter-option' => 'color: {{VALUE}};',
-            ],
-        ] );
-
-        $this->end_controls_tab();
-
-        $this->start_controls_tab( 'filter_option_color_hover_tab', [
-            'label' => __( 'Hover', 'bw-elementor-widgets' ),
-        ] );
-
-        $this->add_control( 'filter_option_hover_color', [
-            'label'     => __( 'Hover Color', 'bw-elementor-widgets' ),
-            'type'      => Controls_Manager::COLOR,
-            'default'   => '#000000',
-            'selectors' => [
-                '{{WRAPPER}} .bw-fpw-filter-option:hover, {{WRAPPER}} .bw-fpw-filter-option.active' => 'color: {{VALUE}};',
-            ],
-        ] );
-
-        $this->end_controls_tab();
-
-        $this->end_controls_tabs();
-
-        $this->add_group_control( Group_Control_Typography::get_type(), [
-            'name'           => 'filter_option_typography',
-            'selector'       => '{{WRAPPER}} .bw-fpw-filter-option',
-            'fields_options' => [
-                'font_size' => [
-                    'default' => [
-                        'size' => 18,
-                        'unit' => 'px',
-                    ],
-                ],
-            ],
-        ] );
-
-        $this->add_control( 'filter_count_color', [
-            'label'     => __( 'Count Color', 'bw-elementor-widgets' ),
-            'type'      => Controls_Manager::COLOR,
-            'default'   => '#9b9b9b',
-            'selectors' => [
-                '{{WRAPPER}} .bw-fpw-option-count' => 'color: {{VALUE}};',
-            ],
-        ] );
-
-        $this->add_control( 'filter_spacing_heading', [
-            'label'     => __( 'Spacing', 'bw-elementor-widgets' ),
-            'type'      => Controls_Manager::HEADING,
-            'separator' => 'before',
-        ] );
-
-        $this->add_responsive_control( 'categories_title_margin_bottom', [
-            'label'      => __( 'Categories Title – Margin Bottom', 'bw-elementor-widgets' ),
-            'type'       => Controls_Manager::SLIDER,
-            'size_units' => [ 'px', 'em', 'rem' ],
-            'range'      => [
-                'px'  => [ 'min' => -50, 'max' => 200 ],
-                'em'  => [ 'min' => -5, 'max' => 12 ],
-                'rem' => [ 'min' => -5, 'max' => 12 ],
-            ],
-            'selectors'  => [
-                '{{WRAPPER}} .bw-fpw-filter-row--categories .bw-fpw-filter-label' => 'margin-bottom: {{SIZE}}{{UNIT}};',
-            ],
-        ] );
-
-        $this->add_responsive_control( 'categories_list_margin_bottom', [
-            'label'      => __( 'Categories – Margin Bottom', 'bw-elementor-widgets' ),
-            'type'       => Controls_Manager::SLIDER,
-            'size_units' => [ 'px', 'em', 'rem' ],
-            'range'      => [
-                'px'  => [ 'min' => -50, 'max' => 200 ],
-                'em'  => [ 'min' => -5, 'max' => 12 ],
-                'rem' => [ 'min' => -5, 'max' => 12 ],
-            ],
-            'selectors'  => [
-                '{{WRAPPER}} .bw-fpw-filter-row--categories .bw-fpw-filter-options' => 'margin-bottom: {{SIZE}}{{UNIT}};',
-            ],
-        ] );
-
-        $this->add_responsive_control( 'subcategories_title_margin_bottom', [
-            'label'      => __( 'Subcategories Title – Margin Bottom', 'bw-elementor-widgets' ),
-            'type'       => Controls_Manager::SLIDER,
-            'size_units' => [ 'px', 'em', 'rem' ],
-            'range'      => [
-                'px'  => [ 'min' => -50, 'max' => 200 ],
-                'em'  => [ 'min' => -5, 'max' => 12 ],
-                'rem' => [ 'min' => -5, 'max' => 12 ],
-            ],
-            'selectors'  => [
-                '{{WRAPPER}} .bw-fpw-filter-row--subcategories .bw-fpw-filter-label' => 'margin-bottom: {{SIZE}}{{UNIT}};',
-            ],
-            'condition'  => [ 'show_subcategories' => 'yes' ],
-        ] );
-
-        $this->add_responsive_control( 'subcategories_list_margin_bottom', [
-            'label'      => __( 'Subcategories – Margin Bottom', 'bw-elementor-widgets' ),
-            'type'       => Controls_Manager::SLIDER,
-            'size_units' => [ 'px', 'em', 'rem' ],
-            'range'      => [
-                'px'  => [ 'min' => -50, 'max' => 200 ],
-                'em'  => [ 'min' => -5, 'max' => 12 ],
-                'rem' => [ 'min' => -5, 'max' => 12 ],
-            ],
-            'selectors'  => [
-                '{{WRAPPER}} .bw-fpw-filter-row--subcategories .bw-fpw-filter-options' => 'margin-bottom: {{SIZE}}{{UNIT}};',
-            ],
-            'condition'  => [ 'show_subcategories' => 'yes' ],
-        ] );
-
-        $this->add_responsive_control( 'tags_title_margin_bottom', [
-            'label'      => __( 'Tags Title – Margin Bottom', 'bw-elementor-widgets' ),
-            'type'       => Controls_Manager::SLIDER,
-            'size_units' => [ 'px', 'em', 'rem' ],
-            'range'      => [
-                'px'  => [ 'min' => -50, 'max' => 200 ],
-                'em'  => [ 'min' => -5, 'max' => 12 ],
-                'rem' => [ 'min' => -5, 'max' => 12 ],
-            ],
-            'selectors'  => [
-                '{{WRAPPER}} .bw-fpw-filter-row--tags .bw-fpw-filter-label' => 'margin-bottom: {{SIZE}}{{UNIT}};',
-            ],
-            'condition'  => [ 'show_tags' => 'yes' ],
-        ] );
-
-        $this->add_responsive_control( 'tags_list_margin_bottom', [
-            'label'      => __( 'Tags – Margin Bottom', 'bw-elementor-widgets' ),
-            'type'       => Controls_Manager::SLIDER,
-            'size_units' => [ 'px', 'em', 'rem' ],
-            'range'      => [
-                'px'  => [ 'min' => -50, 'max' => 200 ],
-                'em'  => [ 'min' => -5, 'max' => 12 ],
-                'rem' => [ 'min' => -5, 'max' => 12 ],
-            ],
-            'selectors'  => [
-                '{{WRAPPER}} .bw-fpw-filter-row--tags .bw-fpw-filter-options' => 'margin-bottom: {{SIZE}}{{UNIT}};',
-            ],
-            'condition'  => [ 'show_tags' => 'yes' ],
-        ] );
-
-        $this->add_control( 'filter_box_background', [
-            'label'     => __( 'Background Color', 'bw-elementor-widgets' ),
-            'type'      => Controls_Manager::COLOR,
-            'default'   => 'transparent',
-            'selectors' => [
-                '{{WRAPPER}} .bw-fpw-filters' => 'background-color: {{VALUE}};',
-            ],
-        ] );
-
-        $this->add_control( 'filter_box_border', [
-            'label'        => __( 'Show Border', 'bw-elementor-widgets' ),
-            'type'         => Controls_Manager::SWITCHER,
-            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
-            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
-            'return_value' => 'yes',
-            'default'      => 'no',
-        ] );
-
-        $this->add_responsive_control( 'filter_box_radius', [
-            'label'      => __( 'Border Radius', 'bw-elementor-widgets' ),
-            'type'       => Controls_Manager::SLIDER,
-            'size_units' => [ 'px', '%' ],
-            'range'      => [
-                'px' => [ 'min' => 0, 'max' => 50 ],
-            ],
-            'selectors'  => [
-                '{{WRAPPER}} .bw-fpw-filters' => 'border-radius: {{SIZE}}{{UNIT}};',
-            ],
-            'condition'  => [ 'filter_box_border' => 'yes' ],
-        ] );
-
-        $this->add_responsive_control( 'filter_box_border_width', [
-            'label'      => __( 'Border Width', 'bw-elementor-widgets' ),
-            'type'       => Controls_Manager::SLIDER,
-            'size_units' => [ 'px' ],
-            'range'      => [
-                'px' => [ 'min' => 0, 'max' => 10 ],
-            ],
-            'default'    => [
-                'size' => 1,
-                'unit' => 'px',
-            ],
-            'selectors'  => [
-                '{{WRAPPER}} .bw-fpw-filters' => 'border-width: {{SIZE}}{{UNIT}};',
-            ],
-            'condition'  => [ 'filter_box_border' => 'yes' ],
-        ] );
-
-        $this->add_control( 'filter_box_border_color', [
-            'label'     => __( 'Border Color', 'bw-elementor-widgets' ),
-            'type'      => Controls_Manager::COLOR,
-            'default'   => '#e0e0e0',
-            'selectors' => [
-                '{{WRAPPER}} .bw-fpw-filters' => 'border-color: {{VALUE}}; border-style: solid;',
-            ],
-            'condition' => [ 'filter_box_border' => 'yes' ],
-        ] );
-
-        // Filter Select - Active State Styling
-        $this->add_control( 'filter_select_heading', [
-            'label'     => __( 'Filter Select', 'bw-elementor-widgets' ),
-            'type'      => Controls_Manager::HEADING,
-            'separator' => 'before',
-            'description' => __( 'Stile per evidenziare i filtri attivi (Categoria, Subcategory, Tag selezionati)', 'bw-elementor-widgets' ),
-        ] );
-
-        $this->add_control( 'filter_select_bold', [
-            'label'        => __( 'Bold', 'bw-elementor-widgets' ),
-            'type'         => Controls_Manager::SWITCHER,
-            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
-            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
-            'return_value' => 'yes',
-            'default'      => 'no',
-            'description'  => __( 'Applica grassetto ai filtri attivi', 'bw-elementor-widgets' ),
-        ] );
-
-        $this->add_control( 'filter_select_underline', [
-            'label'        => __( 'Underscore', 'bw-elementor-widgets' ),
-            'type'         => Controls_Manager::SWITCHER,
-            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
-            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
-            'return_value' => 'yes',
-            'default'      => 'no',
-            'description'  => __( 'Sottolinea i filtri attivi', 'bw-elementor-widgets' ),
-        ] );
-
-        $this->add_control( 'filter_select_custom_color', [
-            'label'        => __( 'Custom Color', 'bw-elementor-widgets' ),
-            'type'         => Controls_Manager::SWITCHER,
-            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
-            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
-            'return_value' => 'yes',
-            'default'      => 'no',
-            'description'  => __( 'Usa un colore personalizzato per i filtri attivi', 'bw-elementor-widgets' ),
-        ] );
-
-        $this->add_control( 'filter_select_color', [
-            'label'     => __( 'Active Filter Color', 'bw-elementor-widgets' ),
-            'type'      => Controls_Manager::COLOR,
-            'default'   => '#000000',
-            'selectors' => [
-                '{{WRAPPER}} .bw-fpw-filter-option.active .bw-fpw-option-label' => 'color: {{VALUE}} !important;',
-                '{{WRAPPER}} .bw-fpw-mobile-dropdown-options .bw-fpw-filter-option.active .bw-fpw-option-label' => 'color: {{VALUE}} !important;',
-            ],
-            'condition' => [ 'filter_select_custom_color' => 'yes' ],
+            'description'  => __( 'Show or hide filter UI. Query/grid output remains active.', 'bw-elementor-widgets' ),
         ] );
 
         $this->end_controls_section();
@@ -1262,18 +865,6 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'condition' => [
                 'order_by!' => 'rand',
             ],
-        ] );
-
-        $this->add_control( 'open_cart_popup', [
-            'label'        => __( 'Apri cart pop-up su Add to Cart', 'bw-elementor-widgets' ),
-            'type'         => Controls_Manager::SWITCHER,
-            'label_on'     => __( 'Sì', 'bw-elementor-widgets' ),
-            'label_off'    => __( 'No', 'bw-elementor-widgets' ),
-            'return_value' => 'yes',
-            'default'      => '',
-            'separator'    => 'before',
-            'description'  => __( 'Se attivo, il pulsante Add to Cart apre il cart pop-up dopo l\'aggiunta al carrello.', 'bw-elementor-widgets' ),
-            'condition'    => [ 'post_type' => 'product' ],
         ] );
 
         $this->end_controls_section();
@@ -1880,9 +1471,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
         $settings = $this->get_settings_for_display();
         $widget_id = $this->get_id();
 
-        $enable_filter = ! isset( $settings['enable_filter'] ) || 'yes' === $settings['enable_filter'];
-        $show_filters = $enable_filter && isset( $settings['show_filters'] ) && 'yes' === $settings['show_filters'];
-        $filter_position = isset( $settings['filter_position'] ) ? $settings['filter_position'] : 'top';
+        $show_filters = isset( $settings['show_filters'] ) && 'yes' === $settings['show_filters'];
 
         // Render filters area
         $this->render_wrapper_start( $settings, $show_filters );
@@ -1897,26 +1486,8 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
     }
 
     private function render_wrapper_start( $settings, $show_filters = true ) {
-        $filter_position = ( $show_filters && isset( $settings['filter_position'] ) ) ? $settings['filter_position'] : 'top';
-        $wrapper_classes = [ 'bw-filtered-post-wall-wrapper', 'bw-fpw-layout-' . $filter_position ];
-
-        // Add filter select style classes (multiple can be active)
-        if ( isset( $settings['filter_select_bold'] ) && 'yes' === $settings['filter_select_bold'] ) {
-            $wrapper_classes[] = 'bw-fpw-select-bold';
-        }
-        if ( isset( $settings['filter_select_underline'] ) && 'yes' === $settings['filter_select_underline'] ) {
-            $wrapper_classes[] = 'bw-fpw-select-underline';
-        }
-        if ( isset( $settings['filter_select_custom_color'] ) && 'yes' === $settings['filter_select_custom_color'] ) {
-            $wrapper_classes[] = 'bw-fpw-select-custom-color';
-        }
-
-        // Add class when Show Results button should use same style as Filters button
-        if ( isset( $settings['apply_style_to_show_results'] ) && 'yes' === $settings['apply_style_to_show_results'] ) {
-            $wrapper_classes[] = 'bw-fpw-apply-style-to-show-results';
-        }
-
-        $responsive_breakpoint = isset( $settings['filter_responsive_breakpoint'] ) ? absint( $settings['filter_responsive_breakpoint'] ) : 900;
+        $wrapper_classes = [ 'bw-filtered-post-wall-wrapper', 'bw-fpw-layout-top' ];
+        $responsive_breakpoint = 900;
 
         echo '<div class="' . esc_attr( implode( ' ', $wrapper_classes ) ) . '" data-filter-breakpoint="' . esc_attr( $responsive_breakpoint ) . '">';
     }
@@ -1930,15 +1501,12 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
         $categories_title      = isset( $settings['filter_categories_title'] ) ? $settings['filter_categories_title'] : __( 'Categories', 'bw-elementor-widgets' );
         $subcategories_title   = isset( $settings['filter_subcategories_title'] ) ? $settings['filter_subcategories_title'] : __( 'Subcategories', 'bw-elementor-widgets' );
         $tags_title            = isset( $settings['filter_tags_title'] ) ? $settings['filter_tags_title'] : __( 'Tags', 'bw-elementor-widgets' );
-        $show_categories       = isset( $settings['show_categories'] ) ? 'yes' === $settings['show_categories'] : true;
-        $show_subcategories    = isset( $settings['show_subcategories'] ) ? 'yes' === $settings['show_subcategories'] : true;
-        $show_tags             = isset( $settings['show_tags'] ) ? 'yes' === $settings['show_tags'] : true;
-        $show_all_button       = isset( $settings['show_all_button'] ) ? 'yes' === $settings['show_all_button'] : true;
+        $show_categories       = true;
+        $show_subcategories    = true;
+        $show_tags             = true;
+        $show_all_button       = true;
 
-        // Get default category setting
-        $default_category = isset( $settings['default_category'] ) && 'all' !== $settings['default_category']
-            ? absint( $settings['default_category'] )
-            : 'all';
+        $default_category = 'all';
 
         $taxonomy     = 'product' === $post_type ? 'product_cat' : 'category';
 
@@ -1974,31 +1542,20 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
         $mobile_panel_title    = __( 'Filter products', 'bw-elementor-widgets' );
         $mobile_filters_title  = __( 'Filters', 'bw-elementor-widgets' );
         $mobile_show_results   = __( 'Show results', 'bw-elementor-widgets' );
-        $mobile_button_border  = isset( $settings['responsive_filter_button_border'] ) ? 'yes' === $settings['responsive_filter_button_border'] : true;
+        $mobile_button_border  = true;
         $mobile_button_classes = [ 'bw-fpw-mobile-filter-button' ];
-        $apply_button_classes  = [ 'bw-fpw-mobile-apply' ];
+        $apply_button_classes  = [ 'bw-fpw-mobile-apply', 'bw-fpw-mobile-filter-button' ];
 
         if ( ! $mobile_button_border ) {
             $mobile_button_classes[] = 'bw-fpw-mobile-filter-button--borderless';
             $apply_button_classes[]  = 'bw-fpw-mobile-filter-button--borderless';
         }
 
-        if ( isset( $settings['apply_style_to_show_results'] ) && 'yes' === $settings['apply_style_to_show_results'] ) {
-            $apply_button_classes[] = 'bw-fpw-mobile-filter-button';
-        }
-
-        // Icon logic
-        $show_icon = isset( $settings['responsive_filter_button_show_icon'] ) && 'yes' === $settings['responsive_filter_button_show_icon'];
+        $show_icon = true;
         $icon_html = '';
 
         if ( $show_icon ) {
-            // Check for custom SVG
-            if ( ! empty( $settings['responsive_filter_button_custom_icon']['url'] ) ) {
-                $icon_html = '<img src="' . esc_url( $settings['responsive_filter_button_custom_icon']['url'] ) . '" class="bw-fpw-mobile-filter-button-icon" alt="" />';
-            } else {
-                // Default filter icon (SVG inline)
-                $icon_html = '<svg class="bw-fpw-mobile-filter-button-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 7H21M6 12H18M9 17H15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
-            }
+            $icon_html = '<svg class="bw-fpw-mobile-filter-button-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 7H21M6 12H18M9 17H15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
         }
         ?>
 
@@ -2176,47 +1733,20 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             $posts_per_page = -1;
         }
 
-        // Get layout values
-        $columns_desktop = isset( $settings['columns_desktop'] ) ? max( 1, absint( $settings['columns_desktop'] ) ) : 4;
-        $columns_desktop = max( 1, min( 6, $columns_desktop ) );
-        $gap_desktop_data = BW_Widget_Helper::get_slider_value_with_unit( $settings, 'gap_desktop', 15, 'px' );
-        $gap_desktop_size = isset( $gap_desktop_data['size'] ) ? (float) $gap_desktop_data['size'] : 15;
-        if ( ! is_finite( $gap_desktop_size ) ) {
-            $gap_desktop_size = 15;
-        }
-        $image_height_desktop_data = BW_Widget_Helper::get_slider_value_with_unit( $settings, 'image_height_desktop', 625, 'px' );
-        $image_height_desktop = isset( $image_height_desktop_data['size'] ) ? (float) $image_height_desktop_data['size'] : 625;
+        $columns_desktop = 4;
+        $gap_desktop_size = 15;
+        $breakpoint_tablet_min = 768;
+        $breakpoint_tablet_max = 1024;
+        $columns_tablet = 2;
+        $gap_tablet_size = 10;
+        $breakpoint_mobile_max = 767;
+        $columns_mobile = 1;
+        $gap_mobile_size = 10;
 
-        // Get tablet values
-        $breakpoint_tablet_min = isset( $settings['breakpoint_tablet_min'] ) ? absint( $settings['breakpoint_tablet_min'] ) : 768;
-        $breakpoint_tablet_max = isset( $settings['breakpoint_tablet_max'] ) ? absint( $settings['breakpoint_tablet_max'] ) : 1024;
-        $columns_tablet  = isset( $settings['columns_tablet'] ) ? max( 1, absint( $settings['columns_tablet'] ) ) : 2;
-        $columns_tablet  = max( 1, min( 4, $columns_tablet ) );
-        $gap_tablet_data = BW_Widget_Helper::get_slider_value_with_unit( $settings, 'gap_tablet', 10, 'px' );
-        $gap_tablet_size = isset( $gap_tablet_data['size'] ) ? (float) $gap_tablet_data['size'] : 10;
-        if ( ! is_finite( $gap_tablet_size ) ) {
-            $gap_tablet_size = 10;
-        }
-        $image_height_tablet_data = BW_Widget_Helper::get_slider_value_with_unit( $settings, 'image_height_tablet', 400, 'px' );
-        $image_height_tablet = isset( $image_height_tablet_data['size'] ) ? (float) $image_height_tablet_data['size'] : 400;
-
-        // Get mobile values
-        $breakpoint_mobile_max = isset( $settings['breakpoint_mobile_max'] ) ? absint( $settings['breakpoint_mobile_max'] ) : 767;
-        $columns_mobile  = isset( $settings['columns_mobile'] ) ? max( 1, absint( $settings['columns_mobile'] ) ) : 1;
-        $columns_mobile  = max( 1, min( 2, $columns_mobile ) );
-        $gap_mobile_data = BW_Widget_Helper::get_slider_value_with_unit( $settings, 'gap_mobile', 10, 'px' );
-        $gap_mobile_size = isset( $gap_mobile_data['size'] ) ? (float) $gap_mobile_data['size'] : 10;
-        if ( ! is_finite( $gap_mobile_size ) ) {
-            $gap_mobile_size = 10;
-        }
-        $image_height_mobile_data = BW_Widget_Helper::get_slider_value_with_unit( $settings, 'image_height_mobile', 300, 'px' );
-        $image_height_mobile = isset( $image_height_mobile_data['size'] ) ? (float) $image_height_mobile_data['size'] : 300;
-
-        // Image controls
-        $image_toggle    = isset( $settings['image_toggle'] ) && 'yes' === $settings['image_toggle'];
-        $image_size      = isset( $settings['image_size'] ) ? $settings['image_size'] : 'large';
-        $hover_effect    = isset( $settings['hover_effect'] ) && 'yes' === $settings['hover_effect'];
-        $open_cart_popup = isset( $settings['open_cart_popup'] ) && 'yes' === $settings['open_cart_popup'];
+        $image_toggle    = true;
+        $image_size      = 'large';
+        $hover_effect    = true;
+        $open_cart_popup = false;
 
         $include_ids = isset( $settings['specific_ids'] ) ? BW_Widget_Helper::parse_ids( $settings['specific_ids'] ) : [];
 
@@ -2291,9 +1821,6 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
         }
 
         $wrapper_classes = [ 'bw-filtered-post-wall' ];
-        $wrapper_style   = '--bw-fpw-columns:' . $columns_desktop . ';';
-        $wrapper_style  .= '--bw-fpw-gap:' . $gap_desktop_size . 'px;';
-
         $grid_attributes = [
             'class'                       => 'bw-fpw-grid',
             'data-widget-id'              => $widget_id,
@@ -2310,7 +1837,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'data-image-toggle'           => $image_toggle ? 'yes' : 'no',
             'data-image-size'             => $image_size,
             'data-hover-effect'           => $hover_effect ? 'yes' : 'no',
-            'data-open-cart-popup'        => $open_cart_popup ? 'yes' : 'no',
+            'data-open-cart-popup'        => 'no',
             'data-order-by'               => $order_by,
             'data-order'                  => $order,
         ];
@@ -2326,7 +1853,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
 
         $query = new \WP_Query( $query_args );
         ?>
-        <div class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $wrapper_classes ) ) ); ?>" style="<?php echo esc_attr( $wrapper_style ); ?>">
+        <div class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $wrapper_classes ) ) ); ?>">
             <div<?php echo $grid_attr_html; ?>>
                 <?php if ( $query->have_posts() ) : ?>
                     <?php
@@ -2345,29 +1872,6 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
                 <?php endif; ?>
             </div>
         </div>
-
-        <style>
-            /* Mobile */
-            @media (max-width: <?php echo esc_attr( $breakpoint_mobile_max ); ?>px) {
-                .elementor-element-<?php echo esc_attr( $this->get_id() ); ?> .bw-fpw-media img {
-                    height: <?php echo esc_attr( $image_height_mobile ); ?>px !important;
-                }
-            }
-
-            /* Tablet */
-            @media (min-width: <?php echo esc_attr( $breakpoint_tablet_min ); ?>px) and (max-width: <?php echo esc_attr( $breakpoint_tablet_max ); ?>px) {
-                .elementor-element-<?php echo esc_attr( $this->get_id() ); ?> .bw-fpw-media img {
-                    height: <?php echo esc_attr( $image_height_tablet ); ?>px !important;
-                }
-            }
-
-            /* Desktop */
-            @media (min-width: <?php echo esc_attr( $breakpoint_tablet_max + 1 ); ?>px) {
-                .elementor-element-<?php echo esc_attr( $this->get_id() ); ?> .bw-fpw-media img {
-                    height: <?php echo esc_attr( $image_height_desktop ); ?>px !important;
-                }
-            }
-        </style>
         <?php
         wp_reset_postdata();
     }
