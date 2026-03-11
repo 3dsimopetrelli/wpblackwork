@@ -282,6 +282,19 @@ When tasks touch Supabase protected surfaces, these smoke tests are mandatory:
 - Classification: stale / not applicable finding in current snapshot
 - Recommended action: no runtime patch required
 
+## My Account CSS Size Verification (External Radar)
+- Date: 2026-03-10
+- Scope:
+  - `assets/css/bw-my-account.css`
+- Result: `PASS`
+- Verification summary:
+  - current snapshot size measured at ~48,084 bytes (~47 KB), not ~2.1 MB
+  - no embedded third-party CSS libraries found
+  - no bundled Elementor-generated CSS detected
+  - moderate selector overlap observed (historical override layering), but not a payload-risk incident
+- Classification: false positive / stale report
+- Recommended action: no runtime patch required; optional non-urgent selector consolidation backlog only
+
 ## Import Pipeline Integrity Hardening (R-IMP-10)
 - Date: 2026-03-10
 - Risk: `R-IMP-10` - `MITIGATED`

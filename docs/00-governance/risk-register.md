@@ -48,6 +48,20 @@ These entries track externally reported findings that were re-verified against t
 - Status: Stale / Not Applicable
 - Recommended Action: No runtime patch required.
 
+#### Verification Note: `bw-my-account.css` Size Anomaly (`~2.1 MB`) — False Positive
+- Domain: Frontend CSS / My Account
+- Reported Surface: `assets/css/bw-my-account.css`
+- Verification Date: 2026-03-10
+- Result:
+  - actual file size in current snapshot is ~48,084 bytes (~47 KB), ~2,124 lines
+  - no embedded third-party libraries detected (slick/bootstrap/normalize)
+  - no bundled Elementor-generated CSS fragment detected
+  - structure is segmented by My Account UI domains (layout/nav, orders/purchases, downloads, settings/forms, password validation, responsive)
+  - moderate historical selector overlap exists (not a payload-size incident)
+- Risk Classification (current snapshot): None
+- Status: False Positive / Stale Report
+- Recommended Action: No runtime patch required; optional non-urgent cleanup can consolidate repeated downloads selectors post-auth freeze.
+
 ### Recently Resolved (Closed and Removed from Active Register)
 These risks were active during Theme Builder Lite Phase 1 and are now closed with implementation evidence. They are retained here as closure notes only and are not active risks.
 
