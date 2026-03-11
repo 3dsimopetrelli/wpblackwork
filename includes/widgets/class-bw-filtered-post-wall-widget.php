@@ -2375,11 +2375,11 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
     private function render_post_item( $settings, $post_type, $image_toggle, $image_size, $hover_effect, $open_cart_popup ) {
         $post_id   = get_the_ID();
 
-        if ( 'product' === $post_type && class_exists( 'BW_Product_Card_Renderer' ) && function_exists( 'wc_get_product' ) ) {
+        if ( 'product' === $post_type && class_exists( 'BW_Product_Card_Component' ) && function_exists( 'wc_get_product' ) ) {
             $product = wc_get_product( $post_id );
 
             if ( $product ) {
-                echo BW_Product_Card_Renderer::render_card(
+                echo BW_Product_Card_Component::render(
                     $product,
                     [
                         'image_size'             => $image_size,

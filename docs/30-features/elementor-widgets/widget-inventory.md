@@ -23,6 +23,11 @@
 | `bw-tags` | `includes/widgets/class-bw-tags-widget.php` | Taxonomy/UI | non-slider |
 | `bw-wallpost` | `includes/widgets/class-bw-wallpost-widget.php` | Query Grid | deprecated; replace with `bw-filtered-post-wall` + `Enable Filter = No` |
 
+## Visible editor titles (selected canonical mappings)
+- `bw-slick-slider` -> `BW-UI Product Slider` (visible title)
+- `bw-product-slide` -> `BW-SP Gallery Product` (visible title)
+- Internal slugs above remain the runtime authority.
+
 ## Current implementation deltas (status)
 - `bw-filtered-post-wall`: now supports `Enable Filter = yes/no` (can run as filtered grid or simple grid).
 - `bw-filtered-post-wall` product rendering is delegated to `BW_Product_Card_Renderer` in both:

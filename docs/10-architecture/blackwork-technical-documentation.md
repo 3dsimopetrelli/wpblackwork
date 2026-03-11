@@ -1405,9 +1405,9 @@ if (isset($_POST['bw_new_tab_submit'])) {
 - `bw-add-to-cart` -> DEPRECATE (active) -> DELETE in removal wave
 - `bw-add-to-cart-variation` -> DEPRECATE (active) -> DELETE in removal wave
 - `bw-filtered-post-wall` + `bw-wallpost` -> merge into one canonical wall/query-grid widget with optional filters
-- `bw-product-slide` -> canonical product slider
+- `bw-product-slide` -> canonical product slider (visible title: `BW-SP Gallery Product`)
 - `bw-presentation-slide` -> specialized presentation/gallery slider
-- `bw-slick-slider` + `bw-slide-showcase` -> rationalization/merge path under review
+- `bw-slick-slider` + `bw-slide-showcase` -> rationalization/merge path under review (`bw-slick-slider` visible title: `BW-UI Product Slider`)
 - `bw-related-products` -> current best reference for shared product-card reuse
 
 ### 13.5 Program References

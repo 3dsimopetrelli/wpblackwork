@@ -872,7 +872,7 @@ class BW_Related_Products_Widget extends Widget_Base {
 	 * Render widget output
 	 */
 	protected function render() {
-		if ( ! function_exists( 'wc_get_product' ) || ! class_exists( 'BW_Product_Card_Renderer' ) ) {
+		if ( ! function_exists( 'wc_get_product' ) || ! class_exists( 'BW_Product_Card_Component' ) ) {
 			return;
 		}
 
@@ -934,7 +934,7 @@ class BW_Related_Products_Widget extends Widget_Base {
 			<div class="bw-related-products-grid" style="--bw-rp-columns: <?php echo esc_attr( $columns ); ?>;">
 				<?php
 				foreach ( $related_product_ids as $related_product_id ) {
-					echo BW_Product_Card_Renderer::render_card( $related_product_id, $card_settings );
+					echo BW_Product_Card_Component::render( $related_product_id, $card_settings );
 				}
 				?>
 			</div>

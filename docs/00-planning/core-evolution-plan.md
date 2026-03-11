@@ -62,9 +62,9 @@ It MUST be used as planning reference only and MUST NOT replace ADRs.
   - `bw-add-to-cart` -> DEPRECATE (active) -> DELETE in removal wave
   - `bw-add-to-cart-variation` -> DEPRECATE (active) -> DELETE in removal wave
   - `bw-filtered-post-wall` + `bw-wallpost` -> MERGE into canonical wall/query-grid widget
-  - `bw-product-slide` -> canonical product slider
+  - `bw-product-slide` -> canonical product slider (visible title: `BW-SP Gallery Product`)
   - `bw-presentation-slide` -> specialized presentation/gallery slider
-  - `bw-slick-slider` + `bw-slide-showcase` -> rationalization path under review
+  - `bw-slick-slider` + `bw-slide-showcase` -> rationalization path under review (`bw-slick-slider` visible title: `BW-UI Product Slider`)
   - `bw-related-products` -> current best product-card reuse reference
 - Reference docs:
   - `docs/10-architecture/elementor-widget-architecture-context.md`

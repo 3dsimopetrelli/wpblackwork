@@ -62,6 +62,11 @@ Decisions already fixed:
 - `bw-slick-slider` + `bw-slide-showcase` -> rationalization/merge path under review
 - `bw-related-products` -> current best reference for shared product-card reuse
 
+Visible editor title alignment (current):
+- `bw-slick-slider` -> `BW-UI Product Slider`
+- `bw-product-slide` -> `BW-SP Gallery Product`
+- Scope note: title alignment affects editor labeling only; slug/runtime authority is unchanged.
+
 ## Migration doctrine
 - No big-bang rewrite.
 - Family-by-family migration waves.

@@ -30,6 +30,11 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - `bw-slick-slider` + `bw-slide-showcase` -> rationalization/merge path under review
 - `bw-related-products` -> current best reference for shared product-card reuse
 
+## Visible title alignment (editor)
+- Internal slug `bw-slick-slider` -> visible title `BW-UI Product Slider`
+- Internal slug `bw-product-slide` -> visible title `BW-SP Gallery Product`
+- Note: this is editor labeling only (`get_title()`); internal slugs/contracts remain unchanged.
+
 ## Current implementation status (completed waves)
 - Widget panel naming applied:
   - `BW-UI ...`

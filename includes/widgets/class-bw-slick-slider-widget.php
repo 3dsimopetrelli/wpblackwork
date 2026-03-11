@@ -15,7 +15,7 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
     }
 
     public function get_title() {
-        return 'BW-UI Slick Slider';
+        return 'BW-UI Product Slider';
     }
 
     public function get_icon() {
@@ -1005,11 +1005,11 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
 
                     $post_id   = get_the_ID();
 
-                    if ( 'product' === $content_type && class_exists( 'BW_Product_Card_Renderer' ) && function_exists( 'wc_get_product' ) ) {
+                    if ( 'product' === $content_type && class_exists( 'BW_Product_Card_Component' ) && function_exists( 'wc_get_product' ) ) {
                         $product = wc_get_product( $post_id );
 
                         if ( $product ) {
-                            echo BW_Product_Card_Renderer::render_card(
+                            echo BW_Product_Card_Component::render(
                                 $product,
                                 [
                                     'image_size'        => 'large',
