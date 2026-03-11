@@ -14,7 +14,7 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
     }
 
     public function get_title() {
-        return 'BW Static Showcase';
+        return 'BW-SP Static Showcase';
     }
 
     public function get_icon() {

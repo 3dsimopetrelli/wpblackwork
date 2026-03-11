@@ -15,7 +15,7 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
     }
 
     public function get_title() {
-        return 'BW Slick Slider';
+        return 'BW-UI Slick Slider';
     }
 
     public function get_icon() {

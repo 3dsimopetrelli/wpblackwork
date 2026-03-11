@@ -13,7 +13,7 @@ class BW_Add_To_Cart_Widget extends Widget_Base {
     }
 
     public function get_title() {
-        return __( 'BW Add to Cart', 'bw' );
+        return __( 'DEPRECATED - BW Add to Cart', 'bw' );
     }
 
     public function get_icon() {

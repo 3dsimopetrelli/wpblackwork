@@ -14,7 +14,7 @@ class BW_WallPost_Widget extends Widget_Base {
     }
 
     public function get_title() {
-        return esc_html__( 'BW WallPost', 'bw-elementor-widgets' );
+        return esc_html__( 'DEPRECATED - BW WallPost', 'bw-elementor-widgets' );
     }
 
     public function get_icon() {

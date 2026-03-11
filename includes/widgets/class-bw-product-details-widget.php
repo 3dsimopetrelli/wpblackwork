@@ -13,7 +13,7 @@ class Widget_Bw_Product_Details extends Widget_Base {
     }
 
     public function get_title() {
-        return __( 'BW Product Details Table', 'bw' );
+        return __( 'BW-SP Product Details', 'bw' );
     }
 
     public function get_icon() {

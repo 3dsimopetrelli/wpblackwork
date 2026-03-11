@@ -13,7 +13,7 @@ class BW_Related_Post_Widget extends Widget_Base {
     }
 
     public function get_title() {
-        return esc_html__( 'BW Related Post', 'bw-elementor-widgets' );
+        return esc_html__( 'BW-SP Related Post', 'bw-elementor-widgets' );
     }
 
     public function get_icon() {

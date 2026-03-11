@@ -17,7 +17,7 @@ class Widget_Bw_Product_Slide extends Widget_Bw_Slide_Showcase {
     }
 
     public function get_title() {
-        return 'BW Product Slide';
+        return 'BW-SP Product Slider';
     }
 
     public function get_icon() {

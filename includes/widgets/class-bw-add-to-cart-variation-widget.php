@@ -14,7 +14,7 @@ class BW_Add_To_Cart_Variation_Widget extends Widget_Base {
     }
 
     public function get_title() {
-        return __( 'BW Add To Cart Variation', 'bw' );
+        return __( 'DEPRECATED - BW Add To Cart Variation', 'bw' );
     }
 
     public function get_icon() {

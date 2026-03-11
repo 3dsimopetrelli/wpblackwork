@@ -23,7 +23,7 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
     }
 
     public function get_title() {
-        return __( 'BW Presentation Slide', 'bw-elementor-widgets' );
+        return __( 'BW-UI Presentation Slider', 'bw-elementor-widgets' );
     }
 
     public function get_icon() {

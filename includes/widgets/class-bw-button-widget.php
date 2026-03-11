@@ -14,7 +14,7 @@ class BW_Button_Widget extends Widget_Base {
     }
 
     public function get_title() {
-        return __( 'BW Button', 'bw' );
+        return __( 'BW-UI Button', 'bw' );
     }
 
     public function get_icon() {

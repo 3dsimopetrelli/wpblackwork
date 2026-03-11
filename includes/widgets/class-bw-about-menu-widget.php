@@ -20,7 +20,7 @@ class BW_About_Menu_Widget extends Widget_Base {
     }
 
     public function get_title() {
-        return __( 'BW About Menu', 'bw' );
+        return __( 'BW-UI About Menu', 'bw' );
     }
 
     public function get_icon() {

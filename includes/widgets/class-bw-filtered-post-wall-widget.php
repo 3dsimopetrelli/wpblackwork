@@ -14,7 +14,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
     }
 
     public function get_title() {
-        return esc_html__( 'BW Filtered Post Wall', 'bw-elementor-widgets' );
+        return esc_html__( 'BW-UI Product Grid', 'bw-elementor-widgets' );
     }
 
     public function get_icon() {

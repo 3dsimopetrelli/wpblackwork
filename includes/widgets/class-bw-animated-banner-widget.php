@@ -13,7 +13,7 @@ class BW_Animated_Banner_Widget extends Widget_Base {
     }
 
     public function get_title() {
-        return __( 'BW Animated Banner', 'bw' );
+        return __( 'BW-UI Animated Banner', 'bw' );
     }
 
     public function get_icon() {

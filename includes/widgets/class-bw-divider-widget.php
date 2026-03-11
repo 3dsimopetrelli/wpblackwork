@@ -12,7 +12,7 @@ class Widget_Bw_Divider extends Widget_Base {
     }
 
     public function get_title() {
-        return 'BW Divider';
+        return 'BW-UI Divider';
     }
 
     public function get_icon() {

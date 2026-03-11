@@ -15,7 +15,7 @@ class Widget_Bw_Slide_Showcase extends Widget_Base {
     }
 
     public function get_title() {
-        return 'BW Slide Showcase';
+        return 'BW-UI Slide Showcase';
     }
 
     public function get_icon() {

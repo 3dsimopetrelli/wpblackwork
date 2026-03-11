@@ -23,7 +23,7 @@ class BW_Related_Products_Widget extends Widget_Base {
 	}
 
 	public function get_title() {
-		return esc_html__( 'BW Related Products', 'bw-elementor-widgets' );
+		return esc_html__( 'BW-SP Related Products', 'bw-elementor-widgets' );
 	}
 
 	public function get_icon() {

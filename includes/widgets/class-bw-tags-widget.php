@@ -13,7 +13,7 @@ class BW_Tags_Widget extends Widget_Base {
     }
 
     public function get_title() {
-        return __( 'BW Tags', 'bw' );
+        return __( 'BW-UI Tags', 'bw' );
     }
 
     public function get_icon() {

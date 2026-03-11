@@ -21,7 +21,7 @@ class BW_Price_Variation_Widget extends Widget_Base {
 	}
 
 	public function get_title() {
-		return __( 'BW Price Variation', 'bw' );
+		return __( 'BW-SP Price Variation', 'bw' );
 	}
 
 	public function get_icon() {
