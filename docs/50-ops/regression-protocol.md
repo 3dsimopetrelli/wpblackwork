@@ -21,6 +21,29 @@ After any maintenance task, validate:
 - Then run cross-domain sanity checks to detect side effects.
 - Record anomalies and link them to incident level and affected domain docs.
 
+## Elementor Widget Rebuild Regression Baseline
+Use this baseline for all governed widget migration waves.
+
+Required checks:
+- Elementor frontend rendering for impacted widgets (desktop/tablet/mobile)
+- Elementor editor open/reopen and preview re-render stability
+- No missing handle/runtime errors in console for widget dependencies
+- Product-card contract stability where applicable (image/title/price/CTA)
+- Slider multi-instance stability where applicable (init, re-init, destroy)
+- Slider behavior after responsive breakpoint changes (arrows/dots/count/width/height where used)
+- No regression on pages where migrated widgets are absent (no unnecessary runtime side effects)
+
+Wave-specific checks:
+- Wall/query-grid convergence waves:
+  - filter state and result determinism
+  - pagination/query continuity
+- Product-card convergence waves:
+  - add-to-cart CTA behavior remains coherent
+  - hover/image fallback behavior remains coherent
+- Slider-core convergence waves:
+  - one-time shared core initialization
+  - widget-specific adapter behavior preserved
+
 ## Risk Work Protocol (Start / Close)
 ### Task Start / Risk Work Protocol
 Whenever a new risk investigation starts, ensure the risk is registered both in:

@@ -20,6 +20,7 @@
 10. [Implementation Guide for New Features](#10-implementation-guide-for-new-features)
 11. [Data Flow Diagrams](#11-data-flow-diagrams)
 12. [Security Considerations](#12-security-considerations)
+13. [Elementor Widget Subsystem Snapshot](#13-elementor-widget-subsystem-snapshot)
 
 ---
 
@@ -34,6 +35,7 @@ Core implementation principles:
 - Keep WooCommerce core flows intact, then layer custom UX and integrations.
 - Centralize settings and runtime contracts to minimize regressions.
 - Use module-level assets and hooks to avoid global side effects.
+- Govern Elementor widget evolution through shared runtime authorities (product-card + slider-core) and gradual migration waves.
 
 ---
 
@@ -1380,6 +1382,40 @@ if (isset($_POST['bw_new_tab_submit'])) {
 ---
 
 ## 12. Security Considerations
+
+## 13. Elementor Widget Subsystem Snapshot
+
+### 13.1 Runtime Authority
+- Widget classes live in `includes/widgets/`.
+- Registration is centralized in `includes/class-bw-widget-loader.php`.
+- Primary asset registration authority is in `blackwork-core-plugin.php`.
+
+### 13.2 Current Architecture Status
+- Asset loading is partially centralized but runtime ownership is still fragmented.
+- Product-card-like rendering logic exists in multiple widget/template surfaces.
+- Slider lifecycle/config logic is duplicated across multiple JS runtimes.
+
+### 13.3 Confirmed Direction
+- `BW_Product_Card_Renderer` is the canonical product-card markup authority.
+- `bw-product-card.css` is the canonical product-card skin.
+- A shared `slider-core` runtime is the target authority for slider lifecycle.
+- Shared Elementor control groups should replace repeated large control blocks where safe.
+
+### 13.4 Governed Widget Decisions
+- `bw-add-to-cart` -> DELETE
+- `bw-filtered-post-wall` + `bw-wallpost` -> merge into one canonical wall/query-grid widget with optional filters
+- `bw-product-slide` -> canonical product slider
+- `bw-presentation-slide` -> specialized presentation/gallery slider
+- `bw-slick-slider` + `bw-slide-showcase` -> rationalization/merge path under review
+- `bw-related-products` -> current best reference for shared product-card reuse
+
+### 13.5 Program References
+- `docs/10-architecture/elementor-widget-architecture-context.md`
+- `docs/30-features/elementor-widgets/README.md`
+- `docs/30-features/elementor-widgets/widget-inventory.md`
+- `docs/30-features/elementor-widgets/architecture-direction.md`
+- `docs/30-features/elementor-widgets/rationalization-policy.md`
+- `docs/30-features/elementor-widgets/migration-sequence.md`
 
 ### 12.1 Authentication Security
 

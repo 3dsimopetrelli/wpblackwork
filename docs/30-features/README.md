@@ -13,6 +13,7 @@ Feature-specific guides grouped by domain.
 - [product-types](product-types/README.md)
 - [product-slide](product-slide/README.md)
 - [cart-popup](cart-popup/README.md)
+- [elementor-widgets](elementor-widgets/README.md)
 
 ## Feature Registry Highlights
 | Feature | Location | Purpose | Key capabilities |
