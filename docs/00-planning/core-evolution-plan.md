@@ -59,9 +59,10 @@ It MUST be used as planning reference only and MUST NOT replace ADRs.
 - Risk classification: High (runtime coupling + maintainability)
 - Short description: Rationalize the custom Elementor widget subsystem with shared product-card authority, shared slider-core authority, and family-based convergence without big-bang rewrite.
 - Confirmed decisions:
-  - `bw-add-to-cart` -> DEPRECATE (active) -> DELETE in removal wave
-  - `bw-add-to-cart-variation` -> DEPRECATE (active) -> DELETE in removal wave
-  - `bw-filtered-post-wall` + `bw-wallpost` -> MERGE into canonical wall/query-grid widget
+  - `bw-add-to-cart` -> DELETE (completed)
+  - `bw-add-to-cart-variation` -> DELETE (completed)
+  - `bw-wallpost` -> DELETE (completed)
+  - `bw-filtered-post-wall` -> canonical wall/query-grid widget
   - `bw-product-slide` -> canonical product slider (visible title: `BW-SP Gallery Product`)
   - `bw-presentation-slide` -> specialized presentation/gallery slider
   - `bw-slick-slider` + `bw-slide-showcase` -> rationalization path under review (`bw-slick-slider` visible title: `BW-UI Product Slider`)
@@ -75,7 +76,7 @@ It MUST be used as planning reference only and MUST NOT replace ADRs.
   - `docs/30-features/elementor-widgets/migration-sequence.md`
 - Acceptance:
   - Family boundaries and migration sequence remain deterministic and documented
-  - Product-card rendering converges to `BW_Product_Card_Renderer` + `bw-product-card.css`
+  - Product-card rendering converges to `BW_Product_Card_Component` + `bw-product-card.css` (`BW_Product_Card_Renderer` bridge only where still needed)
   - Slider lifecycle converges to shared slider-core with adapter-level behavior
   - Regression checks are updated per migration wave before closure
   - Deprecated/deleted widgets follow closure protocol and docs/tasks traceability

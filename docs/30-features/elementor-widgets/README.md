@@ -23,8 +23,10 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - `migration-sequence.md`: gradual migration sequence and ops/regression alignment
 
 ## Confirmed decisions (current)
-- `bw-add-to-cart` -> DELETE
-- `bw-filtered-post-wall` + `bw-wallpost` -> merge into one canonical wall/query-grid widget
+- `bw-add-to-cart` -> DELETE (completed)
+- `bw-add-to-cart-variation` -> DELETE (completed)
+- `bw-wallpost` -> DELETE (completed)
+- `bw-filtered-post-wall` -> canonical wall/query-grid widget
 - `bw-product-slide` -> canonical product slider
 - `bw-presentation-slide` -> specialized presentation/gallery slider
 - `bw-slick-slider` + `bw-slide-showcase` -> rationalization/merge path under review
@@ -44,16 +46,13 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - Shared product-card authority extended and adopted in:
   - Woo related template
   - `bw-slick-slider` product path
-  - `bw-wallpost` product path
   - `bw-filtered-post-wall` product path (including AJAX HTML response path)
 - `bw-filtered-post-wall` supports `Enable Filter = yes/no`.
-- Deprecation path active:
+- Removal/replacement path finalized:
   - `bw-wallpost` -> use `bw-filtered-post-wall` with `Enable Filter = No`
-  - `bw-add-to-cart` and `bw-add-to-cart-variation` marked deprecated (kept for compatibility)
+  - `bw-add-to-cart` and `bw-add-to-cart-variation` removed; use maintained BW-SP surfaces
 
 ## Deferred future work
-- final removal wave for deprecated widgets after migration validation
-- wall/query-grid consolidation completion (`bw-filtered-post-wall` as canonical single surface)
 - slider-core convergence (`bw-slick-slider` + `bw-slide-showcase` rationalization)
 - control-group extraction/reuse where safe
 

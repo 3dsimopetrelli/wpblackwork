@@ -33,11 +33,11 @@ Document the current real architecture of Blackwork Elementor widgets and define
 
 ## Current widget families (operational map)
 - Product Grid / Query Grid:
-  - `bw-filtered-post-wall`, `bw-wallpost`, `bw-related-products`
+  - `bw-filtered-post-wall`, `bw-related-products`
 - Slider:
   - `bw-product-slide`, `bw-presentation-slide`, `bw-slick-slider`, `bw-slide-showcase`
 - Product Utility:
-  - `bw-add-to-cart`, `bw-add-to-cart-variation`, `bw-price-variation`, `bw-product-details-table`
+  - `bw-price-variation`, `bw-product-details-table`
 - Content/UI utilities:
   - about-menu, button, divider, animated-banner, tags, related-post, static-showcase
 
@@ -54,9 +54,10 @@ Document the current real architecture of Blackwork Elementor widgets and define
 - Shared control groups -> reduce duplicated control blocks where safe.
 
 Decisions already fixed:
-- `bw-add-to-cart` -> DEPRECATE (active) -> DELETE in removal wave
-- `bw-add-to-cart-variation` -> DEPRECATE (active) -> DELETE in removal wave
-- `bw-filtered-post-wall` + `bw-wallpost` -> merge into canonical wall/query-grid widget with optional filters
+- `bw-add-to-cart` -> DELETE (completed)
+- `bw-add-to-cart-variation` -> DELETE (completed)
+- `bw-wallpost` -> DELETE (completed)
+- `bw-filtered-post-wall` -> canonical wall/query-grid widget with optional filters
 - `bw-product-slide` -> canonical product slider
 - `bw-presentation-slide` -> specialized presentation/gallery slider
 - `bw-slick-slider` + `bw-slide-showcase` -> rationalization/merge path under review
