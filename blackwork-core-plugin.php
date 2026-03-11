@@ -1403,6 +1403,17 @@ function bw_fpw_normalize_image_size($raw_image_size)
     return $image_size;
 }
 
+function bw_fpw_normalize_image_mode($raw_image_mode)
+{
+    $image_mode = sanitize_key((string) $raw_image_mode);
+
+    if (!in_array($image_mode, ['proportional', 'cover'], true)) {
+        return 'proportional';
+    }
+
+    return $image_mode;
+}
+
 function bw_fpw_get_request_fingerprint()
 {
     $remote_addr = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : 'unknown';
@@ -1757,6 +1768,7 @@ function bw_fpw_generate_cache_key($params)
         'tags' => bw_fpw_normalize_array_for_cache_key(isset($params['tags']) ? $params['tags'] : []),
         'image_toggle' => !empty($params['image_toggle']) ? 1 : 0,
         'image_size' => isset($params['image_size']) ? (string) $params['image_size'] : 'large',
+        'image_mode' => isset($params['image_mode']) ? (string) $params['image_mode'] : 'proportional',
         'hover_effect' => !empty($params['hover_effect']) ? 1 : 0,
         'open_cart_popup' => !empty($params['open_cart_popup']) ? 1 : 0,
         'order_by' => isset($params['order_by']) ? (string) $params['order_by'] : 'date',
@@ -1792,6 +1804,7 @@ function bw_fpw_filter_posts()
     $tags = bw_fpw_normalize_int_array(isset($_POST['tags']) ? wp_unslash($_POST['tags']) : [], 50);
     $image_toggle = bw_fpw_normalize_bool(isset($_POST['image_toggle']) ? wp_unslash($_POST['image_toggle']) : null, false);
     $image_size = bw_fpw_normalize_image_size(isset($_POST['image_size']) ? wp_unslash($_POST['image_size']) : 'large');
+    $image_mode = bw_fpw_normalize_image_mode(isset($_POST['image_mode']) ? wp_unslash($_POST['image_mode']) : 'proportional');
     $hover_effect = bw_fpw_normalize_bool(isset($_POST['hover_effect']) ? wp_unslash($_POST['hover_effect']) : null, false);
     $open_cart_popup = bw_fpw_normalize_bool(isset($_POST['open_cart_popup']) ? wp_unslash($_POST['open_cart_popup']) : null, false);
     $order_by = bw_fpw_normalize_order_by(isset($_POST['order_by']) ? wp_unslash($_POST['order_by']) : 'date');
@@ -1831,6 +1844,7 @@ function bw_fpw_filter_posts()
             'tags' => $tags,
             'image_toggle' => $image_toggle,
             'image_size' => $image_size,
+            'image_mode' => $image_mode,
             'hover_effect' => $hover_effect,
             'open_cart_popup' => $open_cart_popup,
             'order_by' => $order_by,
@@ -1924,6 +1938,7 @@ function bw_fpw_filter_posts()
                         $product,
                         [
                             'image_size' => $image_size,
+                            'image_mode' => $image_mode,
                             'show_image' => $image_toggle,
                             'show_hover_image' => $image_toggle && $hover_effect,
                             'hover_image_source' => 'meta',

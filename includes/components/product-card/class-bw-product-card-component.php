@@ -23,6 +23,7 @@ class BW_Product_Card_Component {
 	 */
 	private static $default_settings = [
 		'image_size'               => 'large',
+		'image_mode'               => 'cover',
 		'show_image'               => true,
 		'show_hover_image'         => true,
 		'hover_image_source'       => 'meta',
@@ -156,6 +157,7 @@ class BW_Product_Card_Component {
 			return '';
 		}
 
+		$image_mode = self::normalize_image_mode( $settings['image_mode'] );
 		$post_id    = $product->get_id();
 		$permalink  = function_exists( 'bw_get_safe_product_permalink' )
 			? bw_get_safe_product_permalink( $product )
@@ -173,7 +175,7 @@ class BW_Product_Card_Component {
 				false,
 				[
 					'loading' => 'lazy',
-					'class'   => 'bw-slider-main',
+					'class'   => 'bw-slider-main bw-product-card-image-el bw-product-card-image-el--' . $image_mode,
 				]
 			);
 		}
@@ -198,14 +200,14 @@ class BW_Product_Card_Component {
 					$image_size,
 					false,
 					[
-						'class'   => 'bw-slider-hover',
+						'class'   => 'bw-slider-hover bw-product-card-image-el bw-product-card-image-el--' . $image_mode,
 						'loading' => 'lazy',
 					]
 				);
 			}
 		}
 
-		$media_classes = [ 'bw-wallpost-media', 'bw-slick-item__image', 'bw-ss__media' ];
+		$media_classes = [ 'bw-wallpost-media', 'bw-slick-item__image', 'bw-ss__media', 'bw-product-card-media--' . $image_mode ];
 		if ( ! $thumbnail_html ) {
 			$media_classes[] = 'bw-wallpost-media--placeholder';
 			$media_classes[] = 'bw-slick-item__image--placeholder';
@@ -220,7 +222,7 @@ class BW_Product_Card_Component {
 		);
 
 		$image_wrapper_classes = self::merge_classes(
-			[ 'bw-wallpost-image', 'bw-slick-slider-image' ],
+			[ 'bw-wallpost-image', 'bw-slick-slider-image', 'bw-product-card-image--' . $image_mode ],
 			$settings['image_wrapper_classes']
 		);
 		if ( $hover_image_html ) {
@@ -470,6 +472,22 @@ class BW_Product_Card_Component {
 		}
 
 		return '';
+	}
+
+	/**
+	 * Normalize image mode setting.
+	 *
+	 * @param string $image_mode Raw image mode.
+	 * @return string
+	 */
+	private static function normalize_image_mode( $image_mode ) {
+		$image_mode = sanitize_key( (string) $image_mode );
+
+		if ( ! in_array( $image_mode, [ 'proportional', 'cover' ], true ) ) {
+			return 'cover';
+		}
+
+		return $image_mode;
 	}
 
 	/**

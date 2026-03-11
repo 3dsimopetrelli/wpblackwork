@@ -7,6 +7,11 @@
     // MASONRY SYSTEM (from wallpost)
     // ============================================
 
+    function useCssGrid($grid) {
+        var mode = String($grid.attr('data-layout-mode') || '').toLowerCase();
+        return mode === 'css-grid';
+    }
+
     function getCurrentDevice($grid) {
         var width = window.innerWidth || $(window).width();
 
@@ -46,6 +51,14 @@
 
     function setItemWidths($grid) {
         if (!$grid || !$grid.length) {
+            return;
+        }
+
+        if (useCssGrid($grid)) {
+            $grid.find('.bw-fpw-item').css({
+                'width': '',
+                'margin-bottom': ''
+            });
             return;
         }
 
@@ -91,6 +104,11 @@
             return;
         }
 
+        if (useCssGrid($grid)) {
+            $grid.css('height', '');
+            return;
+        }
+
         var instance = $grid.data('masonry');
         if (!instance) {
             return;
@@ -125,6 +143,20 @@
     }
 
     function layoutGrid($grid, forceReinit) {
+        if (useCssGrid($grid)) {
+            if (typeof $.fn.masonry === 'function' && $grid.data('masonry')) {
+                $grid.masonry('destroy');
+            }
+
+            $grid.addClass('bw-fpw-initialized');
+            $grid.find('.bw-fpw-item').css({
+                'width': '',
+                'margin-bottom': ''
+            });
+            $grid.css('height', '');
+            return;
+        }
+
         if (typeof $.fn.masonry !== 'function') {
             return;
         }
@@ -614,6 +646,7 @@
         var postType = $grid.attr('data-post-type') || 'product';
         var imageToggle = $grid.attr('data-image-toggle') || 'no';
         var imageSize = $grid.attr('data-image-size') || 'large';
+        var imageMode = $grid.attr('data-image-mode') || 'proportional';
         var hoverEffect = $grid.attr('data-hover-effect') || 'no';
         var openCartPopup = $grid.attr('data-open-cart-popup') || 'no';
         var orderBy = $grid.attr('data-order-by') || 'date';
@@ -635,7 +668,8 @@
             subcategories: state.subcategories,
             tags: state.tags,
             order_by: orderBy,
-            order: order
+            order: order,
+            image_mode: imageMode
         });
 
         var cachedResponse = getCachedData(cacheKey);
@@ -668,6 +702,7 @@
                 tags: state.tags,
                 image_toggle: imageToggle,
                 image_size: imageSize,
+                image_mode: imageMode,
                 hover_effect: hoverEffect,
                 open_cart_popup: openCartPopup,
                 order_by: orderBy,
@@ -1219,6 +1254,10 @@
         resizeTimeout = setTimeout(function () {
             $('.bw-fpw-grid.bw-fpw-initialized').each(function () {
                 var $grid = $(this);
+                if (useCssGrid($grid)) {
+                    layoutGrid($grid, false);
+                    return;
+                }
                 var gridId = $grid.attr('data-widget-id') || $grid.index();
                 var currentDevice = getCurrentDevice($grid);
                 var previousDevice = lastDeviceByGrid[gridId];
@@ -1370,6 +1409,10 @@
             editorResizeTimeout = setTimeout(function () {
                 $('.bw-fpw-grid.bw-fpw-initialized').each(function () {
                     var $grid = $(this);
+                    if (useCssGrid($grid)) {
+                        layoutGrid($grid, false);
+                        return;
+                    }
                     setItemWidths($grid);
                     layoutGrid($grid, false);
                     updateGridHeight($grid);

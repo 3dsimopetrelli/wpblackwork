@@ -36,6 +36,45 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
     protected function register_controls() {
         $this->register_filter_controls();
         $this->register_query_controls();
+        $this->register_rebuild_layout_controls();
+    }
+
+    private function register_rebuild_layout_controls() {
+        $this->start_controls_section( 'layout_rebuild_section', [
+            'label' => __( 'Layout', 'bw-elementor-widgets' ),
+        ] );
+
+        $this->add_control( 'desktop_columns', [
+            'label'   => __( 'Desktop Columns', 'bw-elementor-widgets' ),
+            'type'    => Controls_Manager::SELECT,
+            'default' => '4',
+            'options' => [
+                '3' => '3',
+                '4' => '4',
+            ],
+        ] );
+
+        $this->add_control( 'container_max_width', [
+            'label'       => __( 'Container Max Width (px)', 'bw-elementor-widgets' ),
+            'type'        => Controls_Manager::NUMBER,
+            'default'     => 2000,
+            'min'         => 800,
+            'max'         => 4000,
+            'step'        => 10,
+            'description' => __( 'Full-width container with this max width cap.', 'bw-elementor-widgets' ),
+        ] );
+
+        $this->add_control( 'image_mode', [
+            'label'   => __( 'Image Mode', 'bw-elementor-widgets' ),
+            'type'    => Controls_Manager::SELECT,
+            'default' => 'proportional',
+            'options' => [
+                'proportional' => __( 'Proportional', 'bw-elementor-widgets' ),
+                'cover'        => __( 'Cover', 'bw-elementor-widgets' ),
+            ],
+        ] );
+
+        $this->end_controls_section();
     }
 
     private function register_responsive_filter_controls() {
@@ -1820,15 +1859,31 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             $posts_per_page = -1;
         }
 
-        $columns_desktop = 4;
-        $gap_desktop_size = 15;
+        $desktop_columns = isset( $settings['desktop_columns'] ) ? absint( $settings['desktop_columns'] ) : 4;
+        if ( ! in_array( $desktop_columns, [ 3, 4 ], true ) ) {
+            $desktop_columns = 4;
+        }
+        $gap_desktop_size = 24;
         $breakpoint_tablet_min = 768;
         $breakpoint_tablet_max = 1024;
         $columns_tablet = 2;
-        $gap_tablet_size = 10;
+        $gap_tablet_size = 20;
         $breakpoint_mobile_max = 767;
-        $columns_mobile = 1;
-        $gap_mobile_size = 10;
+        $columns_mobile = 2;
+        $gap_mobile_size = 16;
+
+        $container_max_width = isset( $settings['container_max_width'] ) ? absint( $settings['container_max_width'] ) : 2000;
+        if ( $container_max_width < 800 ) {
+            $container_max_width = 800;
+        }
+        if ( $container_max_width > 4000 ) {
+            $container_max_width = 4000;
+        }
+
+        $image_mode = isset( $settings['image_mode'] ) ? sanitize_key( (string) $settings['image_mode'] ) : 'proportional';
+        if ( ! in_array( $image_mode, [ 'proportional', 'cover' ], true ) ) {
+            $image_mode = 'proportional';
+        }
 
         $image_toggle    = true;
         $image_size      = 'large';
@@ -1908,11 +1963,13 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
         }
 
         $wrapper_classes = [ 'bw-filtered-post-wall' ];
+        $wrapper_style   = '--bw-fpw-max-width:' . $container_max_width . 'px; --bw-fpw-desktop-columns:' . $desktop_columns . '; --bw-fpw-grid-gap:' . $gap_desktop_size . 'px;';
         $grid_attributes = [
             'class'                       => 'bw-fpw-grid',
+            'data-layout-mode'            => 'css-grid',
             'data-widget-id'              => $widget_id,
             'data-post-type'              => $post_type,
-            'data-columns-desktop'        => $columns_desktop,
+            'data-columns-desktop'        => $desktop_columns,
             'data-gap-desktop'            => $gap_desktop_size,
             'data-breakpoint-tablet-min'  => $breakpoint_tablet_min,
             'data-breakpoint-tablet-max'  => $breakpoint_tablet_max,
@@ -1923,6 +1980,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'data-gap-mobile'             => $gap_mobile_size,
             'data-image-toggle'           => $image_toggle ? 'yes' : 'no',
             'data-image-size'             => $image_size,
+            'data-image-mode'             => $image_mode,
             'data-hover-effect'           => $hover_effect ? 'yes' : 'no',
             'data-open-cart-popup'        => 'no',
             'data-order-by'               => $order_by,
@@ -1940,13 +1998,13 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
 
         $query = new \WP_Query( $query_args );
         ?>
-        <div class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $wrapper_classes ) ) ); ?>">
+        <div class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $wrapper_classes ) ) ); ?>" style="<?php echo esc_attr( $wrapper_style ); ?>">
             <div<?php echo $grid_attr_html; ?>>
                 <?php if ( $query->have_posts() ) : ?>
                     <?php
                     while ( $query->have_posts() ) :
                         $query->the_post();
-                        $this->render_post_item( $settings, $post_type, $image_toggle, $image_size, $hover_effect, $open_cart_popup );
+                        $this->render_post_item( $settings, $post_type, $image_toggle, $image_size, $image_mode, $hover_effect, $open_cart_popup );
                     endwhile;
                     ?>
                 <?php else : ?>
@@ -1963,7 +2021,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
         wp_reset_postdata();
     }
 
-    private function render_post_item( $settings, $post_type, $image_toggle, $image_size, $hover_effect, $open_cart_popup ) {
+    private function render_post_item( $settings, $post_type, $image_toggle, $image_size, $image_mode, $hover_effect, $open_cart_popup ) {
         $post_id   = get_the_ID();
 
         if ( 'product' === $post_type && class_exists( 'BW_Product_Card_Component' ) && function_exists( 'wc_get_product' ) ) {
@@ -1974,6 +2032,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
                     $product,
                     [
                         'image_size'             => $image_size,
+                        'image_mode'             => $image_mode,
                         'show_image'             => $image_toggle,
                         'show_hover_image'       => $image_toggle && $hover_effect,
                         'hover_image_source'     => 'meta',
