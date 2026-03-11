@@ -18,6 +18,16 @@
     '.elementor-panel .elementor-element',
     '.elementor-panel-category-items .elementor-element'
   ];
+  var REMOVED_WIDGET_SLUGS = [
+    'bw-add-to-cart',
+    'bw-add-to-cart-variation',
+    'bw-wallpost'
+  ];
+  var REMOVED_WIDGET_TITLES = [
+    'DEPRECATED - BW Add to Cart',
+    'DEPRECATED - BW Add To Cart Variation',
+    'DEPRECATED - BW WallPost'
+  ];
   var panelObserver = null;
   var observerTick = null;
 
@@ -41,7 +51,31 @@
   }
 
   function getWidgetType($card) {
-    return normalizeText($card.attr('data-widget_type') || $card.data('widget_type'));
+    return normalizeText(
+      $card.attr('data-widget_type') ||
+      $card.data('widget_type') ||
+      $card.attr('data-element_type') ||
+      $card.data('element_type')
+    );
+  }
+
+  function getWidgetSlug(widgetType) {
+    var normalized = normalizeText(widgetType).toLowerCase();
+    if (!normalized) {
+      return '';
+    }
+
+    return normalized.split('.')[0];
+  }
+
+  function isRemovedWidgetCard(title, widgetType) {
+    var slug = getWidgetSlug(widgetType);
+
+    if (slug && REMOVED_WIDGET_SLUGS.indexOf(slug) !== -1) {
+      return true;
+    }
+
+    return REMOVED_WIDGET_TITLES.indexOf(title) !== -1;
   }
 
   function getFamilyClass(title) {
@@ -80,6 +114,12 @@
       var widgetType = getWidgetType($card);
 
       $card.removeClass(CARD_CLASSES.join(' '));
+      $card.removeClass('bw-removed-widget-card').removeAttr('aria-hidden').css('display', '');
+
+      if (isRemovedWidgetCard(title, widgetType)) {
+        $card.addClass('bw-removed-widget-card').attr('aria-hidden', 'true').css('display', 'none');
+        return;
+      }
 
       if (!isBlackworkWidget($card, title, widgetType)) {
         return;
