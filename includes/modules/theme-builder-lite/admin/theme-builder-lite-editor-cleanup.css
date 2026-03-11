@@ -1,0 +1,6 @@
+/* Elementor editor only: hide Pro upgrade/upsell panel groups when enabled. */
+
+.elementor-panel .bw-tbl-hide-pro-upsell,
+.elementor-panel .elementor-control-type-upgrade {
+  display: none !important;
+}

@@ -153,6 +153,35 @@ if (!function_exists('bw_tbl_admin_enqueue_assets')) {
 }
 add_action('admin_enqueue_scripts', 'bw_tbl_admin_enqueue_assets');
 
+if (!function_exists('bw_tbl_enqueue_editor_cleanup_assets')) {
+    function bw_tbl_enqueue_editor_cleanup_assets()
+    {
+        $flags = function_exists('bw_tbl_get_feature_flags') ? bw_tbl_get_feature_flags() : [];
+        if (empty($flags['hide_pro_upgrade_panels'])) {
+            return;
+        }
+
+        $style_path = BW_MEW_PATH . 'includes/modules/theme-builder-lite/admin/theme-builder-lite-editor-cleanup.css';
+        wp_enqueue_style(
+            'bw-tbl-elementor-editor-cleanup',
+            BW_MEW_URL . 'includes/modules/theme-builder-lite/admin/theme-builder-lite-editor-cleanup.css',
+            [],
+            file_exists($style_path) ? filemtime($style_path) : '1.0.0'
+        );
+
+        $script_path = BW_MEW_PATH . 'includes/modules/theme-builder-lite/admin/theme-builder-lite-editor-cleanup.js';
+        wp_enqueue_script(
+            'bw-tbl-elementor-editor-cleanup',
+            BW_MEW_URL . 'includes/modules/theme-builder-lite/admin/theme-builder-lite-editor-cleanup.js',
+            ['jquery'],
+            file_exists($script_path) ? filemtime($script_path) : '1.0.0',
+            true
+        );
+    }
+}
+add_action('elementor/editor/after_enqueue_styles', 'bw_tbl_enqueue_editor_cleanup_assets', 20);
+add_action('elementor/editor/after_enqueue_scripts', 'bw_tbl_enqueue_editor_cleanup_assets', 20);
+
 if (!function_exists('bw_tbl_render_font_row')) {
     function bw_tbl_render_font_row($index, $font)
     {
@@ -538,7 +567,7 @@ if (!function_exists('bw_tbl_render_admin_page')) {
         <div class="wrap bw-admin-root bw-tbl-admin-wrap">
             <div class="bw-admin-header">
                 <h1 class="bw-admin-title"><?php esc_html_e('Theme Builder Lite', 'bw'); ?></h1>
-                <p class="bw-admin-subtitle"><?php esc_html_e('Configure templates, fonts, footer overrides, and import tools for lightweight theme builder flows.', 'bw'); ?></p>
+                <p class="bw-admin-subtitle"><?php esc_html_e('A lightweight Elementor Pro alternative, completely free.', 'bw'); ?></p>
             </div>
             <?php if (isset($_GET['settings-updated']) && '' !== sanitize_key(wp_unslash($_GET['settings-updated']))) : // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?>
                 <div class="notice notice-success is-dismissible">
@@ -559,7 +588,7 @@ if (!function_exists('bw_tbl_render_admin_page')) {
 
                 <section class="bw-admin-card">
                     <h2 class="bw-admin-card-title"><?php esc_html_e('Sections', 'bw'); ?></h2>
-                    <p class="bw-admin-card-helper"><?php esc_html_e('Switch between feature flags, templates, and import operations.', 'bw'); ?></p>
+                    <p class="bw-admin-card-helper"><?php esc_html_e('A lightweight Elementor Pro alternative', 'bw'); ?></p>
                     <nav class="nav-tab-wrapper bw-admin-tabs" id="bw-tbl-tabs">
                         <a href="#bw-tbl-tab-settings" class="nav-tab nav-tab-active" data-bw-tbl-tab="settings"><?php esc_html_e('Settings', 'bw'); ?></a>
                         <a href="#bw-tbl-tab-fonts" class="nav-tab" data-bw-tbl-tab="fonts"><?php esc_html_e('Fonts', 'bw'); ?></a>
@@ -593,6 +622,15 @@ if (!function_exists('bw_tbl_render_admin_page')) {
                                     <?php esc_html_e('Enable template_include resolver for Single Post, Single Page, Search, and 404 contexts.', 'bw'); ?>
                                 </label>
                                 <p class="description"><?php esc_html_e('Fail-open: if no valid template is resolved, the active theme template is used.', 'bw'); ?></p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><?php esc_html_e('Hide Pro upgrade panels', 'bw'); ?></th>
+                            <td>
+                                <label>
+                                    <input id="bw-tbl-flag-hide-pro-upgrade-panels" type="checkbox" name="<?php echo esc_attr(BW_TBL_FEATURE_FLAGS_OPTION); ?>[hide_pro_upgrade_panels]" value="1" <?php checked(!empty($flags['hide_pro_upgrade_panels'])); ?> />
+                                    <?php esc_html_e('Hide Elementor editor sidebar sections that display Upgrade prompts.', 'bw'); ?>
+                                </label>
                             </td>
                         </tr>
                         <tr>
