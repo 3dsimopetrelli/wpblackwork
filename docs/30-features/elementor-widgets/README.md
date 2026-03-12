@@ -62,6 +62,28 @@ This directory is the governed documentation baseline for the audit/rebuild prog
   - `bw-wallpost` -> use `bw-product-grid` with `Enable Filter = No`
   - `bw-add-to-cart` and `bw-add-to-cart-variation` removed; use maintained BW-SP surfaces
 
+## BW Product Grid Stabilization (2026)
+- A dedicated stabilization wave was completed on `BW Product Grid` to harden runtime behavior and remove residual drift before further feature work.
+- Activated previously dormant Elementor controls:
+  - `image_toggle`
+  - `image_size`
+  - `hover_effect`
+  - `filter_responsive_breakpoint`
+  - responsive filter mobile controls
+- Removed dead JavaScript utilities from the runtime:
+  - `clearWidgetCache()`
+  - `debounce()`
+  - `debounceTimers`
+  - `loadAndOpenTagsInMobile()`
+- Cleaned up unused PHP methods and dead branches.
+- Consolidated resize handling into a single dispatcher.
+- Aligned responsive breakpoint behavior across PHP, JS, and CSS.
+
+Final responsive contract:
+- mobile <= 767px
+- tablet 768-1024px
+- desktop >= 1025px
+
 ## Deferred future work
 - slider-core convergence (`bw-slick-slider` + `bw-slide-showcase` rationalization)
 - control-group extraction/reuse where safe

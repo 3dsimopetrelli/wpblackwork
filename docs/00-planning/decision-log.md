@@ -455,6 +455,27 @@ Future strategy:
   - Revisit editor-control activation separately where controls exist in code but are not yet on the active registration path.
   - Keep closure trace synchronized in `docs/tasks/BW-TASK-20260312-ELW-01-closure.md`.
 
+### 2026 — BW Product Grid Stabilization
+
+Decision:
+Perform a full cleanup and alignment pass on the Product Grid widget before further feature development.
+
+Motivation:
+- reduce legacy drift
+- remove dead code
+- ensure Elementor controls match runtime behavior
+- unify responsive breakpoints across runtime layers
+
+Key outcomes:
+- dead JS utilities removed
+- unused PHP code removed
+- responsive breakpoints aligned
+- editor controls activated
+- resize runtime simplified
+
+Impact:
+The widget is now considered stable and ready for future UI refinement and feature work.
+
 ## Governance Layer Closure
 
 Status: CLOSED  

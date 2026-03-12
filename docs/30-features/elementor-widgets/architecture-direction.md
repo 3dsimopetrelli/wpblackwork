@@ -37,6 +37,25 @@ Direction:
 - avoid re-implementing card markup/CTA/price logic in each widget/template
 - allow controlled variants through explicit renderer settings (show/hide fields, class modifiers)
 
+### Runtime Cleanup and Consistency Improvements
+Under the `BW Product Grid` stabilization wave, the widget runtime was hardened without introducing new feature scope.
+
+Implemented improvements:
+- removal of duplicate logic
+- extraction of shared helpers where safe
+- price markup centralized through `bw_fpw_get_price_markup()`
+- responsive behavior unified across CSS and JS
+- removal of console debug statements
+- elimination of dead JavaScript code
+- activation of dormant Elementor controls
+
+This wave focused on:
+- code health
+- runtime stability
+- editor/runtime consistency
+
+This wave did not introduce new user-facing features; it was a bounded cleanup and consistency pass ahead of future UI refinement and feature work.
+
 ## Shared slider-core authority
 Direction:
 - create a shared `slider-core` runtime authority for lifecycle and common behavior
