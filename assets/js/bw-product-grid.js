@@ -964,6 +964,7 @@
                 var $placeholder = $placeholders.eq(index);
 
                 if ($placeholder.length) {
+                    $item.addClass('bw-fpw-item--from-placeholder');
                     $placeholder.replaceWith($item);
                 } else {
                     $grid.append($item);
@@ -989,6 +990,7 @@
 
         $items
             .addClass('bw-fpw-item--reveal bw-fpw-item--reveal-' + revealMode)
+            .removeClass('bw-fpw-item--reveal-initial bw-fpw-item--reveal-append')
             .removeClass('bw-fpw-item--visible');
     }
 
@@ -999,7 +1001,8 @@
 
         var $revealItems = $items.filter('.bw-fpw-item--reveal');
         var revealMode = mode === 'initial' ? 'initial' : 'append';
-        var baseDelay = revealMode === 'initial' ? 58 : 48;
+        var baseDelay = revealMode === 'initial' ? 72 : 58;
+        var settleDelay = revealMode === 'initial' ? 780 : 640;
 
         if (!$revealItems.length) {
             return;
@@ -1011,6 +1014,12 @@
 
             setTimeout(function () {
                 $item.addClass('bw-fpw-item--visible');
+
+                if ($item.hasClass('bw-fpw-item--from-placeholder')) {
+                    setTimeout(function () {
+                        $item.removeClass('bw-fpw-item--from-placeholder');
+                    }, settleDelay);
+                }
             }, delay);
         });
     }

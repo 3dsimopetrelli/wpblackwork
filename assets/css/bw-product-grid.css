@@ -311,7 +311,7 @@
   position: relative;
   overflow: hidden;
   border-radius: inherit;
-  background: rgba(245, 243, 239, 0.94);
+  background: rgba(249, 247, 243, 0.96);
 }
 
 .bw-fpw-media--placeholder-proportional,
@@ -322,9 +322,8 @@
 .bw-fpw-image-placeholder-shell,
 .bw-fpw-placeholder-line {
   display: block;
-  background: rgba(236, 233, 228, 0.92);
+  background: rgba(241, 238, 233, 0.88);
   border-radius: 999px;
-  animation: bw-fpw-placeholder-breathe 1.6s ease-in-out infinite;
 }
 
 .bw-fpw-image-placeholder-shell {
@@ -341,7 +340,7 @@
 .bw-fpw-placeholder-line--meta {
   width: 46%;
   height: 9px;
-  opacity: 0.82;
+  opacity: 0.72;
 }
 
 .bw-fpw-item.bw-fpw-item--reveal {
@@ -351,18 +350,33 @@
 }
 
 .bw-fpw-item.bw-fpw-item--reveal-initial {
-  transform: translateY(3px);
-  transition: opacity 0.54s cubic-bezier(0.22, 1, 0.36, 1), transform 0.54s cubic-bezier(0.22, 1, 0.36, 1);
+  transform: translateY(1px);
+  transition: opacity 0.62s cubic-bezier(0.22, 1, 0.36, 1), transform 0.62s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .bw-fpw-item.bw-fpw-item--reveal-append {
-  transform: translateY(5px);
-  transition: opacity 0.46s cubic-bezier(0.22, 1, 0.36, 1), transform 0.46s cubic-bezier(0.22, 1, 0.36, 1);
+  transform: translateY(2px);
+  transition: opacity 0.54s cubic-bezier(0.22, 1, 0.36, 1), transform 0.54s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .bw-fpw-item.bw-fpw-item--reveal.bw-fpw-item--visible {
   opacity: 1;
   transform: translateY(0);
+}
+
+.bw-fpw-item--from-placeholder .bw-fpw-card {
+  background: rgba(249, 247, 243, 0.62);
+  transition: background-color 0.72s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.bw-fpw-item--from-placeholder .bw-fpw-media {
+  background-color: rgba(249, 247, 243, 0.72);
+  transition: background-color 0.72s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.bw-fpw-item--from-placeholder.bw-fpw-item--visible .bw-fpw-card,
+.bw-fpw-item--from-placeholder.bw-fpw-item--visible .bw-fpw-media {
+  background-color: transparent;
 }
 
 .bw-fpw-load-state {
@@ -458,17 +472,6 @@
   }
 }
 
-@keyframes bw-fpw-placeholder-breathe {
-  0%,
-  100% {
-    opacity: 0.88;
-  }
-
-  50% {
-    opacity: 1;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .bw-fpw-item.bw-fpw-item--reveal {
     transition: none;
@@ -479,8 +482,8 @@
     animation: none;
   }
 
-  .bw-fpw-image-placeholder-shell,
-  .bw-fpw-placeholder-line {
-    animation: none;
+  .bw-fpw-item--from-placeholder .bw-fpw-card,
+  .bw-fpw-item--from-placeholder .bw-fpw-media {
+    transition: none;
   }
 }
