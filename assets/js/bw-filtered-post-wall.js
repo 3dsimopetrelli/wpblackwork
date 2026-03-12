@@ -16,6 +16,22 @@
         return mode === 'css-grid';
     }
 
+    function scheduleEditorMasonryRetry($grid, forceReinit) {
+        if (!isElementorEditor() || !$grid || !$grid.length) {
+            return;
+        }
+
+        var retryCount = parseInt($grid.data('bw-editor-masonry-retry'), 10) || 0;
+        if (retryCount >= 10) {
+            return;
+        }
+
+        $grid.data('bw-editor-masonry-retry', retryCount + 1);
+        setTimeout(function () {
+            layoutGrid($grid, !!forceReinit);
+        }, 120);
+    }
+
     function getCurrentDevice($grid) {
         var width = window.innerWidth || $(window).width();
 
@@ -161,7 +177,13 @@
             return;
         }
 
+        if (isElementorEditor() && (!$grid.is(':visible') || $grid.width() < 40)) {
+            scheduleEditorMasonryRetry($grid, forceReinit);
+            return;
+        }
+
         if (typeof $.fn.masonry !== 'function') {
+            scheduleEditorMasonryRetry($grid, forceReinit);
             return;
         }
 
@@ -205,6 +227,8 @@
                         updateGridHeight($grid);
                     }
                 }, 100);
+
+                $grid.data('bw-editor-masonry-retry', 0);
             });
             return;
         }
@@ -243,6 +267,8 @@
                     updateGridHeight($grid);
                 }
             }, 100);
+
+            $grid.data('bw-editor-masonry-retry', 0);
         };
 
         withImagesLoaded($grid, initializeMasonry);
@@ -1307,7 +1333,13 @@
 
                     setTimeout(function () {
                         initWidget(self.$element);
-                    }, 50);
+                        setTimeout(function () {
+                            var $grid = self.$element.find('.bw-fpw-grid');
+                            if ($grid.length) {
+                                layoutGrid($grid, true);
+                            }
+                        }, 250);
+                    }, 80);
                 },
 
                 onElementChange: function (settingKey) {
