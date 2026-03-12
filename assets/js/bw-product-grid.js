@@ -1060,10 +1060,8 @@
                 updateWidgetPagingState(widgetId, {
                     isLoading: true
                 });
-                $wrapper.addClass('bw-product-grid--loading-more');
             } else {
                 $grid.css('opacity', '0');
-                $wrapper.addClass('bw-product-grid--loading');
                 $filters.addClass('loading');
             }
 
@@ -1082,10 +1080,8 @@
             updateWidgetPagingState(widgetId, {
                 isLoading: true
             });
-            $wrapper.addClass('bw-product-grid--loading-more');
         } else {
             $grid.css('opacity', '0');
-            $wrapper.addClass('bw-product-grid--loading');
             $filters.addClass('loading');
             updateWidgetPagingState(widgetId, {
                 currentPage: 1,
@@ -1150,7 +1146,6 @@
                 console.error('❌ AJAX error:', error);
 
                 if (appendMode) {
-                    $wrapper.removeClass('bw-product-grid--loading-more');
                     updateWidgetPagingState(widgetId, {
                         isLoading: false
                     });
@@ -1159,7 +1154,6 @@
                 }
 
                 $grid.html('<div class="bw-fpw-placeholder">Error loading posts.</div>');
-                $wrapper.removeClass('bw-product-grid--loading');
                 $filters.removeClass('loading');
                 $filters.attr('data-has-posts', '0');
                 $('.bw-fpw-filter-row--subcategories[data-widget-id="' + widgetId + '"], .bw-fpw-filter-row--tags[data-widget-id="' + widgetId + '"]').hide();
@@ -1227,7 +1221,6 @@
                 }));
 
                 finalizeGridUpdate($grid, $responseItems, true, function () {
-                    $wrapper.removeClass('bw-product-grid--loading-more');
                     updateWidgetPagingState(widgetId, {
                         isLoading: false
                     });
@@ -1331,7 +1324,6 @@
             }));
 
             finalizeGridUpdate($grid, $responseItems, false, function () {
-                $wrapper.removeClass('bw-product-grid--loading');
                 $filters.removeClass('loading');
                 syncInfiniteObserver(widgetId);
             });
@@ -1341,7 +1333,6 @@
             console.error('❌ Filter response error:', response);
 
             if (appendMode) {
-                $wrapper.removeClass('bw-product-grid--loading-more');
                 updateWidgetPagingState(widgetId, {
                     isLoading: false,
                     hasMore: false,
@@ -1359,7 +1350,6 @@
             $grid.html(emptyStateHtml);
 
             // Remove loading state
-            $wrapper.removeClass('bw-product-grid--loading');
             $filters.removeClass('loading');
             $filters.attr('data-has-posts', '0');
             updateWidgetPagingState(widgetId, {
