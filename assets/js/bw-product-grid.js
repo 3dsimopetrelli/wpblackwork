@@ -894,6 +894,92 @@
         return $nodes.filter('.bw-fpw-item').add($nodes.find('.bw-fpw-item'));
     }
 
+    function clearLoadingPlaceholders($grid) {
+        if (!$grid || !$grid.length) {
+            return;
+        }
+
+        $grid.children('.bw-fpw-item--loading-placeholder').remove();
+    }
+
+    function createLoadingPlaceholders(count, imageMode) {
+        var total = Math.max(0, parseInteger(count, 0));
+        var safeImageMode = imageMode === 'cover' ? 'cover' : 'proportional';
+        var html = '';
+
+        for (var i = 0; i < total; i += 1) {
+            html += ''
+                + '<article class="bw-fpw-item bw-fpw-item--loading-placeholder" aria-hidden="true">'
+                + '  <div class="bw-fpw-card bw-fpw-card--placeholder">'
+                + '    <div class="bw-fpw-media bw-fpw-media--placeholder bw-fpw-media--placeholder-' + safeImageMode + '">'
+                + '      <span class="bw-fpw-image-placeholder-shell"></span>'
+                + '    </div>'
+                + '    <div class="bw-fpw-content bw-fpw-content--placeholder">'
+                + '      <span class="bw-fpw-placeholder-line bw-fpw-placeholder-line--title"></span>'
+                + '      <span class="bw-fpw-placeholder-line bw-fpw-placeholder-line--meta"></span>'
+                + '    </div>'
+                + '  </div>'
+                + '</article>';
+        }
+
+        return createResponseNodes(html);
+    }
+
+    function appendLoadingPlaceholders($grid, count) {
+        if (!$grid || !$grid.length) {
+            return $();
+        }
+
+        clearLoadingPlaceholders($grid);
+
+        var $placeholders = createLoadingPlaceholders(count, $grid.attr('data-image-mode'));
+
+        if ($placeholders.length) {
+            $grid.append($placeholders);
+        }
+
+        return $placeholders;
+    }
+
+    function replaceLoadingPlaceholders($grid, $items) {
+        if (!$grid || !$grid.length) {
+            return $items;
+        }
+
+        var $placeholders = $grid.children('.bw-fpw-item--loading-placeholder');
+
+        if (!$placeholders.length) {
+            if ($items && $items.length) {
+                $grid.append($items);
+            }
+
+            return $items;
+        }
+
+        var $insertedItems = $();
+
+        if ($items && $items.length) {
+            $items.each(function (index) {
+                var $item = $(this);
+                var $placeholder = $placeholders.eq(index);
+
+                if ($placeholder.length) {
+                    $placeholder.replaceWith($item);
+                } else {
+                    $grid.append($item);
+                }
+
+                $insertedItems = $insertedItems.add($item);
+            });
+        }
+
+        if ($placeholders.length > $insertedItems.length) {
+            $placeholders.slice($insertedItems.length).remove();
+        }
+
+        return $insertedItems;
+    }
+
     function prepareItemsForReveal($items) {
         if (!$items || !$items.length) {
             return;
@@ -915,7 +1001,7 @@
 
         $revealItems.each(function (index) {
             var $item = $(this);
-            var delay = index * 70;
+            var delay = index * 42;
 
             setTimeout(function () {
                 $item.addClass('bw-fpw-item--visible');
@@ -929,7 +1015,6 @@
                 layoutGrid($grid, false);
             } else {
                 initGrid($grid);
-                $grid.css('opacity', '1');
             }
 
             animatePostsStaggered($items);
@@ -1009,6 +1094,8 @@
             return;
         }
 
+        clearLoadingPlaceholders($grid);
+
         var state = filterState[widgetId];
         var postType = $grid.attr('data-post-type') || 'product';
         var imageToggle = $grid.attr('data-image-toggle') || 'no';
@@ -1060,8 +1147,8 @@
                 updateWidgetPagingState(widgetId, {
                     isLoading: true
                 });
+                appendLoadingPlaceholders($grid, requestPerPage);
             } else {
-                $grid.css('opacity', '0');
                 $filters.addClass('loading');
             }
 
@@ -1080,8 +1167,8 @@
             updateWidgetPagingState(widgetId, {
                 isLoading: true
             });
+            appendLoadingPlaceholders($grid, requestPerPage);
         } else {
-            $grid.css('opacity', '0');
             $filters.addClass('loading');
             updateWidgetPagingState(widgetId, {
                 currentPage: 1,
@@ -1139,6 +1226,7 @@
 
                 // Don't show error if request was aborted
                 if (status === 'abort') {
+                    clearLoadingPlaceholders($grid);
                     console.log('🚫 Request aborted for widget:', widgetId);
                     return;
                 }
@@ -1146,6 +1234,7 @@
                 console.error('❌ AJAX error:', error);
 
                 if (appendMode) {
+                    clearLoadingPlaceholders($grid);
                     updateWidgetPagingState(widgetId, {
                         isLoading: false
                     });
@@ -1212,9 +1301,7 @@
             prepareItemsForReveal($responseItems);
 
             if (appendMode) {
-                if ($responseNodes.length) {
-                    $grid.append($responseNodes);
-                }
+                $responseItems = replaceLoadingPlaceholders($grid, $responseItems);
 
                 updateWidgetPagingState(widgetId, $.extend({}, paginationMeta, {
                     isLoading: true
@@ -1237,6 +1324,7 @@
                 destroyGridInstance($grid);
             }
 
+            clearLoadingPlaceholders($grid);
             $grid.empty().append($responseNodes);
 
             var $subcatRow = $('.bw-fpw-filter-row--subcategories[data-widget-id="' + widgetId + '"]');
@@ -1333,6 +1421,7 @@
             console.error('❌ Filter response error:', response);
 
             if (appendMode) {
+                clearLoadingPlaceholders($grid);
                 updateWidgetPagingState(widgetId, {
                     isLoading: false,
                     hasMore: false,
@@ -1347,6 +1436,7 @@
             emptyStateHtml += '<p class="bw-fpw-empty-message">No content available</p>';
             emptyStateHtml += '<button class="elementor-button bw-fpw-reset-filters" data-widget-id="' + widgetId + '">RESET FILTERS</button>';
             emptyStateHtml += '</div>';
+            clearLoadingPlaceholders($grid);
             $grid.html(emptyStateHtml);
 
             // Remove loading state
