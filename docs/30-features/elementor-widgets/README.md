@@ -57,6 +57,7 @@ This directory is the governed documentation baseline for the audit/rebuild prog
   - `bw-slick-slider` product path
   - `bw-product-grid` product path (including AJAX HTML response path)
 - `bw-product-grid` supports `Enable Filter = yes/no`.
+- `bw-product-grid` also completed a post-implementation runtime hardening pass covering settings alignment, dead-code removal, duplicate-markup reduction, debug-log removal, and resize-handler consolidation.
 - Removal/replacement path finalized:
   - `bw-wallpost` -> use `bw-product-grid` with `Enable Filter = No`
   - `bw-add-to-cart` and `bw-add-to-cart-variation` removed; use maintained BW-SP surfaces

@@ -443,6 +443,18 @@ Future strategy:
   - Keep full-disable behavior authoritative when both suppression toggles are enabled.
   - Preserve closure trace in `docs/tasks/BW-TASK-20260309-02-closure.md`.
 
+### Entry 034
+- Date: 2026-03-12
+- Decision summary: Executed a targeted BW Product Grid hardening pass after the rename and infinite-loading implementation to remove legacy artifacts and stabilize the widget runtime.
+- Affected domain: Elementor Widgets / BW Product Grid / Frontend Runtime Hardening
+- Rationale: The widget had completed naming convergence and infinite-loading delivery, but still contained hardcoded settings reads, dead branches, duplicated render logic, debug traces, and duplicated resize handling that increased drift risk and reduced maintainability.
+- Risk impact: Medium reduced to Low-Medium through bounded cleanup with no architecture rewrite.
+- Follow-up actions:
+  - Keep the hardening wave scoped to incremental cleanup tasks `PG-01` through `PG-07`.
+  - Preserve the current infinite-loading architecture and canonical widget naming while removing dead/runtime-misaligned code.
+  - Revisit editor-control activation separately where controls exist in code but are not yet on the active registration path.
+  - Keep closure trace synchronized in `docs/tasks/BW-TASK-20260312-ELW-01-closure.md`.
+
 ## Governance Layer Closure
 
 Status: CLOSED  

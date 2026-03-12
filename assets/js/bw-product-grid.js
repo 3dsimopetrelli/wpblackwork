@@ -18,6 +18,14 @@
         return $grid;
     }
 
+    // Detect if we're in Elementor editor
+    function isElementorEditor() {
+        return (typeof elementorFrontend !== 'undefined' &&
+            elementorFrontend.isEditMode &&
+            elementorFrontend.isEditMode()) ||
+            (typeof elementor !== 'undefined');
+    }
+
     function useEditorMasonryFallback($grid) {
         return isElementorEditor() && !useCssGrid($grid);
     }
@@ -1905,13 +1913,5 @@
 
     registerElementorHooks();
     $(window).on('elementor/frontend/init', registerElementorHooks);
-
-    // Detect if we're in Elementor editor
-    function isElementorEditor() {
-        return (typeof elementorFrontend !== 'undefined' &&
-            elementorFrontend.isEditMode &&
-            elementorFrontend.isEditMode()) ||
-            (typeof elementor !== 'undefined');
-    }
 
 })(jQuery);

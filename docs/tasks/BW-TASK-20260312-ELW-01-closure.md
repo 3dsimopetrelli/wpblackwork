@@ -42,6 +42,22 @@
 - Historical reference:
   - formerly `bw-filtered-post-wall`
 
+## Hardening Pass (Post-Implementation)
+- A targeted cleanup wave was executed after the initial infinite-loading implementation to reduce drift and harden the widget runtime without changing the core architecture.
+- Tasks completed in this pass:
+  - `PG-01` — Image settings now read from Elementor settings instead of hardcoded values.
+  - `PG-02` — Responsive filter breakpoint now reads from widget settings instead of hardcoded `900`.
+  - `PG-03` — Removed debug console logging from runtime JS.
+  - `PG-04` — Removed dead method `format_filter_label()`.
+  - `PG-05` — Extracted duplicated category filter loop into helper `render_category_filter_items()`.
+  - `PG-06` — Removed dead UI flags (`mobile_button_border`, `show_icon`).
+  - `PG-07` — Consolidated multiple resize handlers into single debounced dispatcher `handleGridResize()`.
+- This hardening pass improved:
+  - runtime clarity
+  - maintainability
+  - removal of dead code
+  - consistency between editor controls and runtime
+
 ## Validation
 - `php -l includes/widgets/class-bw-product-grid-widget.php`
   - pass

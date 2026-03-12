@@ -2230,5 +2230,37 @@ function bw_fpw_get_price_markup($post_id)
         }
     }
 
+    $regular_price = get_post_meta($post_id, '_regular_price', true);
+    $sale_price = get_post_meta($post_id, '_sale_price', true);
+    $current_price = get_post_meta($post_id, '_price', true);
+
+    if ('' === $current_price && '' === $regular_price && '' === $sale_price) {
+        $additional_keys = ['price', 'product_price'];
+        foreach ($additional_keys as $meta_key) {
+            $meta_value = get_post_meta($post_id, $meta_key, true);
+            if ('' !== $meta_value && null !== $meta_value) {
+                $current_price = $meta_value;
+                break;
+            }
+        }
+    }
+
+    $regular_markup = $format_price($regular_price);
+    $sale_markup = $format_price($sale_price);
+    $current_markup = $format_price($current_price);
+
+    if ($sale_markup && $regular_markup && $sale_markup !== $regular_markup) {
+        return '<span class="price-original"><del>' . $regular_markup . '</del></span>' .
+            '<span class="price-sale">' . $sale_markup . '</span>';
+    }
+
+    if ($current_markup) {
+        return '<span class="price-regular">' . $current_markup . '</span>';
+    }
+
+    if ($regular_markup) {
+        return '<span class="price-regular">' . $regular_markup . '</span>';
+    }
+
     return '';
 }

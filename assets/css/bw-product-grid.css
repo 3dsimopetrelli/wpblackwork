@@ -445,17 +445,18 @@
   object-fit: cover;
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 1024px) {
   .bw-fpw-grid[data-layout-mode="css-grid"],
   .bw-fpw-grid.bw-fpw-editor-masonry-fallback[data-layout-mode="masonry"] {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
   }
 }
 
 @media (max-width: 767px) {
   .bw-fpw-grid[data-layout-mode="css-grid"],
   .bw-fpw-grid.bw-fpw-editor-masonry-fallback[data-layout-mode="masonry"] {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
   }
 }
 
