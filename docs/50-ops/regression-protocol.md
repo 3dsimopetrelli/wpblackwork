@@ -47,7 +47,7 @@ Wave-specific checks:
 ## BW Product Grid Infinite Loading
 - Task: `BW-TASK-20260312-ELW-01`
 - Scope:
-  - `bw-filtered-post-wall` / `BW-UI Product Grid`
+  - `bw-product-grid` / `BW Product Grid`
 - Required checks:
   - initial server-rendered batch count matches subsequent AJAX `per_page`
   - filter changes reset pagination to page 1 and replace grid content cleanly

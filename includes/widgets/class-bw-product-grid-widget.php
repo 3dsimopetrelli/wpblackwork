@@ -7,14 +7,14 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-class BW_Filtered_Post_Wall_Widget extends Widget_Base {
+class BW_Product_Grid_Widget extends Widget_Base {
 
     public function get_name() {
-        return 'bw-filtered-post-wall';
+        return 'bw-product-grid';
     }
 
     public function get_title() {
-        return esc_html__( 'BW-UI Product Grid', 'bw-elementor-widgets' );
+        return esc_html__( 'BW Product Grid', 'bw-elementor-widgets' );
     }
 
     public function get_icon() {
@@ -26,11 +26,11 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
     }
 
     public function get_script_depends() {
-        return [ 'imagesloaded', 'masonry', 'bw-filtered-post-wall-js' ];
+        return [ 'imagesloaded', 'masonry', 'bw-product-grid-js' ];
     }
 
     public function get_style_depends() {
-        return [ 'bw-filtered-post-wall-style' ];
+        return [ 'bw-product-grid-style' ];
     }
 
     protected function register_controls() {
@@ -535,7 +535,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'label'     => __( 'Title Color', 'bw-elementor-widgets' ),
             'type'      => Controls_Manager::COLOR,
             'selectors' => [
-                '{{WRAPPER}} .bw-filtered-post-wall-wrapper' => '--bw-fpw-mobile-header-title-color: {{VALUE}};',
+                '{{WRAPPER}} .bw-product-grid-wrapper' => '--bw-fpw-mobile-header-title-color: {{VALUE}};',
             ],
         ] );
 
@@ -559,7 +559,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'default'   => 'left',
             'selectors' => [
                 '{{WRAPPER}} .bw-fpw-mobile-filter-panel__title' => 'text-align: {{VALUE}};',
-                '{{WRAPPER}} .bw-filtered-post-wall-wrapper'     => '--bw-fpw-mobile-header-align: {{VALUE}};',
+                '{{WRAPPER}} .bw-product-grid-wrapper'     => '--bw-fpw-mobile-header-align: {{VALUE}};',
             ],
         ] );
 
@@ -569,7 +569,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'size_units' => [ 'px', 'em', 'rem' ],
             'selectors'  => [
                 '{{WRAPPER}} .bw-fpw-mobile-filter-panel__title' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-                '{{WRAPPER}} .bw-filtered-post-wall-wrapper' => '--bw-fpw-mobile-header-padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                '{{WRAPPER}} .bw-product-grid-wrapper' => '--bw-fpw-mobile-header-padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
             ],
         ] );
 
@@ -577,7 +577,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'label'     => __( 'Header Background', 'bw-elementor-widgets' ),
             'type'      => Controls_Manager::COLOR,
             'selectors' => [
-                '{{WRAPPER}} .bw-filtered-post-wall-wrapper' => '--bw-fpw-mobile-header-bg: {{VALUE}};',
+                '{{WRAPPER}} .bw-product-grid-wrapper' => '--bw-fpw-mobile-header-bg: {{VALUE}};',
             ],
         ] );
 
@@ -592,7 +592,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'type'      => Controls_Manager::COLOR,
             'default'   => '#000000',
             'selectors' => [
-                '{{WRAPPER}} .bw-filtered-post-wall-wrapper' => '--bw-fpw-mobile-close-color: {{VALUE}};',
+                '{{WRAPPER}} .bw-product-grid-wrapper' => '--bw-fpw-mobile-close-color: {{VALUE}};',
                 '{{WRAPPER}} .bw-fpw-mobile-filter-close'    => 'color: {{VALUE}} !important;',
             ],
         ] );
@@ -611,7 +611,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
                 'unit' => 'px',
             ],
             'selectors'  => [
-                '{{WRAPPER}} .bw-filtered-post-wall-wrapper' => '--bw-fpw-mobile-close-size: {{SIZE}}{{UNIT}};',
+                '{{WRAPPER}} .bw-product-grid-wrapper' => '--bw-fpw-mobile-close-size: {{SIZE}}{{UNIT}};',
             ],
         ] );
 
@@ -628,7 +628,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
                 'unit' => '%',
             ],
             'selectors'  => [
-                '{{WRAPPER}} .bw-filtered-post-wall-wrapper' => '--bw-fpw-mobile-close-top: {{SIZE}}{{UNIT}};',
+                '{{WRAPPER}} .bw-product-grid-wrapper' => '--bw-fpw-mobile-close-top: {{SIZE}}{{UNIT}};',
             ],
         ] );
 
@@ -645,7 +645,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
                 'unit' => 'px',
             ],
             'selectors'  => [
-                '{{WRAPPER}} .bw-filtered-post-wall-wrapper' => '--bw-fpw-mobile-close-right: {{SIZE}}{{UNIT}};',
+                '{{WRAPPER}} .bw-product-grid-wrapper' => '--bw-fpw-mobile-close-right: {{SIZE}}{{UNIT}};',
             ],
         ] );
 
@@ -658,7 +658,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
                 '%'  => [ 'min' => 0, 'max' => 100 ],
             ],
             'selectors'  => [
-                '{{WRAPPER}} .bw-filtered-post-wall-wrapper' => '--bw-fpw-mobile-close-left: {{SIZE}}{{UNIT}};',
+                '{{WRAPPER}} .bw-product-grid-wrapper' => '--bw-fpw-mobile-close-left: {{SIZE}}{{UNIT}};',
             ],
         ] );
 
@@ -671,7 +671,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
                 '%'  => [ 'min' => 0, 'max' => 100 ],
             ],
             'selectors'  => [
-                '{{WRAPPER}} .bw-filtered-post-wall-wrapper' => '--bw-fpw-mobile-close-bottom: {{SIZE}}{{UNIT}};',
+                '{{WRAPPER}} .bw-product-grid-wrapper' => '--bw-fpw-mobile-close-bottom: {{SIZE}}{{UNIT}};',
             ],
         ] );
 
@@ -691,7 +691,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
                 'rem' => [ 'min' => -10, 'max' => 20 ],
             ],
             'selectors'  => [
-                '{{WRAPPER}} .bw-filtered-post-wall-wrapper' => '--bw-fpw-mobile-dropdowns-padding-top: {{SIZE}}{{UNIT}};',
+                '{{WRAPPER}} .bw-product-grid-wrapper' => '--bw-fpw-mobile-dropdowns-padding-top: {{SIZE}}{{UNIT}};',
             ],
         ] );
 
@@ -704,7 +704,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'label'     => __( 'Color', 'bw-elementor-widgets' ),
             'type'      => Controls_Manager::COLOR,
             'selectors' => [
-                '{{WRAPPER}} .bw-filtered-post-wall-wrapper' => '--bw-fpw-mobile-dropdown-title-color: {{VALUE}};',
+                '{{WRAPPER}} .bw-product-grid-wrapper' => '--bw-fpw-mobile-dropdown-title-color: {{VALUE}};',
                 '{{WRAPPER}} .bw-fpw-mobile-dropdown-toggle, {{WRAPPER}} .bw-fpw-mobile-dropdown-label' => 'color: {{VALUE}} !important;',
                 '{{WRAPPER}} .bw-fpw-mobile-dropdown-icon' => 'border-color: {{VALUE}} !important;',
             ],
@@ -714,7 +714,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'label'     => __( 'Hover Color', 'bw-elementor-widgets' ),
             'type'      => Controls_Manager::COLOR,
             'selectors' => [
-                '{{WRAPPER}} .bw-filtered-post-wall-wrapper' => '--bw-fpw-mobile-dropdown-title-hover-color: {{VALUE}};',
+                '{{WRAPPER}} .bw-product-grid-wrapper' => '--bw-fpw-mobile-dropdown-title-hover-color: {{VALUE}};',
                 '{{WRAPPER}} .bw-fpw-mobile-dropdown-toggle:hover, {{WRAPPER}} .bw-fpw-mobile-dropdown-toggle:focus, {{WRAPPER}} .bw-fpw-mobile-dropdown-toggle:hover .bw-fpw-mobile-dropdown-label, {{WRAPPER}} .bw-fpw-mobile-dropdown-toggle:focus .bw-fpw-mobile-dropdown-label' => 'color: {{VALUE}} !important;',
                 '{{WRAPPER}} .bw-fpw-mobile-dropdown-toggle:hover .bw-fpw-mobile-dropdown-icon, {{WRAPPER}} .bw-fpw-mobile-dropdown-toggle:focus .bw-fpw-mobile-dropdown-icon' => 'border-color: {{VALUE}} !important;',
             ],
@@ -725,7 +725,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'type'       => Controls_Manager::DIMENSIONS,
             'size_units' => [ 'px', 'em', 'rem' ],
             'selectors'  => [
-                '{{WRAPPER}} .bw-filtered-post-wall-wrapper' => '--bw-fpw-mobile-dropdown-title-margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                '{{WRAPPER}} .bw-product-grid-wrapper' => '--bw-fpw-mobile-dropdown-title-margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
             ],
         ] );
 
@@ -734,7 +734,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'type'       => Controls_Manager::DIMENSIONS,
             'size_units' => [ 'px', 'em', 'rem' ],
             'selectors'  => [
-                '{{WRAPPER}} .bw-filtered-post-wall-wrapper' => '--bw-fpw-mobile-dropdown-title-padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                '{{WRAPPER}} .bw-product-grid-wrapper' => '--bw-fpw-mobile-dropdown-title-padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
             ],
         ] );
 
@@ -742,7 +742,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'label'     => __( 'Background Color', 'bw-elementor-widgets' ),
             'type'      => Controls_Manager::COLOR,
             'selectors' => [
-                '{{WRAPPER}} .bw-filtered-post-wall-wrapper' => '--bw-fpw-mobile-dropdown-toggle-bg: {{VALUE}};',
+                '{{WRAPPER}} .bw-product-grid-wrapper' => '--bw-fpw-mobile-dropdown-toggle-bg: {{VALUE}};',
             ],
         ] );
 
@@ -754,7 +754,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'return_value' => 'yes',
             'default'      => 'no',
             'selectors'    => [
-                '{{WRAPPER}} .bw-filtered-post-wall-wrapper' => '--bw-fpw-mobile-dropdown-toggle-border-style: {{VALUE}};',
+                '{{WRAPPER}} .bw-product-grid-wrapper' => '--bw-fpw-mobile-dropdown-toggle-border-style: {{VALUE}};',
             ],
             'selectors_dictionary' => [
                 'yes' => 'solid',
@@ -766,7 +766,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'type'      => Controls_Manager::COLOR,
             'default'   => '#000000',
             'selectors' => [
-                '{{WRAPPER}} .bw-filtered-post-wall-wrapper' => '--bw-fpw-mobile-dropdown-toggle-border-color: {{VALUE}};',
+                '{{WRAPPER}} .bw-product-grid-wrapper' => '--bw-fpw-mobile-dropdown-toggle-border-color: {{VALUE}};',
             ],
             'condition' => [ 'responsive_dropdown_toggle_border' => 'yes' ],
         ] );
@@ -778,7 +778,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'range'      => [ 'px' => [ 'min' => 0, 'max' => 10 ] ],
             'default'    => [ 'size' => 1, 'unit' => 'px' ],
             'selectors'  => [
-                '{{WRAPPER}} .bw-filtered-post-wall-wrapper' => '--bw-fpw-mobile-dropdown-toggle-border-width: {{SIZE}}{{UNIT}};',
+                '{{WRAPPER}} .bw-product-grid-wrapper' => '--bw-fpw-mobile-dropdown-toggle-border-width: {{SIZE}}{{UNIT}};',
             ],
             'condition'  => [ 'responsive_dropdown_toggle_border' => 'yes' ],
         ] );
@@ -792,7 +792,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
                 '%'  => [ 'min' => 0, 'max' => 100 ],
             ],
             'selectors'  => [
-                '{{WRAPPER}} .bw-filtered-post-wall-wrapper' => '--bw-fpw-mobile-dropdown-toggle-border-radius: {{SIZE}}{{UNIT}};',
+                '{{WRAPPER}} .bw-product-grid-wrapper' => '--bw-fpw-mobile-dropdown-toggle-border-radius: {{SIZE}}{{UNIT}};',
             ],
             'condition'  => [ 'responsive_dropdown_toggle_border' => 'yes' ],
         ] );
@@ -820,7 +820,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'label'     => __( 'Text Color', 'bw-elementor-widgets' ),
             'type'      => Controls_Manager::COLOR,
             'selectors' => [
-                '{{WRAPPER}} .bw-filtered-post-wall-wrapper' => '--bw-fpw-mobile-button-color: {{VALUE}};',
+                '{{WRAPPER}} .bw-product-grid-wrapper' => '--bw-fpw-mobile-button-color: {{VALUE}};',
                 '{{WRAPPER}} .bw-fpw-mobile-dropdown-options .bw-fpw-filter-option, {{WRAPPER}} .bw-fpw-mobile-dropdown-options .bw-fpw-option-label, {{WRAPPER}} .bw-fpw-mobile-dropdown-options .bw-fpw-option-count' => 'color: {{VALUE}} !important;',
             ],
         ] );
@@ -829,7 +829,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'label'     => __( 'Text Color Hover', 'bw-elementor-widgets' ),
             'type'      => Controls_Manager::COLOR,
             'selectors' => [
-                '{{WRAPPER}} .bw-filtered-post-wall-wrapper' => '--bw-fpw-mobile-button-hover-color: {{VALUE}};',
+                '{{WRAPPER}} .bw-product-grid-wrapper' => '--bw-fpw-mobile-button-hover-color: {{VALUE}};',
                 '{{WRAPPER}} .bw-fpw-mobile-dropdown-options .bw-fpw-filter-option:hover, {{WRAPPER}} .bw-fpw-mobile-dropdown-options .bw-fpw-filter-option:focus, {{WRAPPER}} .bw-fpw-mobile-dropdown-options .bw-fpw-filter-option:hover .bw-fpw-option-label, {{WRAPPER}} .bw-fpw-mobile-dropdown-options .bw-fpw-filter-option:focus .bw-fpw-option-label, {{WRAPPER}} .bw-fpw-mobile-dropdown-options .bw-fpw-filter-option:hover .bw-fpw-option-count, {{WRAPPER}} .bw-fpw-mobile-dropdown-options .bw-fpw-filter-option:focus .bw-fpw-option-count' => 'color: {{VALUE}} !important;',
             ],
         ] );
@@ -839,7 +839,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'type'       => Controls_Manager::DIMENSIONS,
             'size_units' => [ 'px', 'em', 'rem' ],
             'selectors'  => [
-                '{{WRAPPER}} .bw-filtered-post-wall-wrapper' => '--bw-fpw-mobile-option-padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                '{{WRAPPER}} .bw-product-grid-wrapper' => '--bw-fpw-mobile-option-padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 '{{WRAPPER}} .bw-fpw-mobile-dropdown-options .bw-fpw-filter-option' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
             ],
         ] );
@@ -848,7 +848,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'label'     => __( 'Background', 'bw-elementor-widgets' ),
             'type'      => Controls_Manager::COLOR,
             'selectors' => [
-                '{{WRAPPER}} .bw-filtered-post-wall-wrapper' => '--bw-fpw-mobile-button-bg: {{VALUE}};',
+                '{{WRAPPER}} .bw-product-grid-wrapper' => '--bw-fpw-mobile-button-bg: {{VALUE}};',
             ],
         ] );
         $this->end_controls_section();
@@ -1080,7 +1080,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
                 '%'  => [ 'min' => -50, 'max' => 50, 'step' => 1 ],
             ],
             'selectors'  => [
-                '{{WRAPPER}} .bw-filtered-post-wall-wrapper' => 'margin-top: {{SIZE}}{{UNIT}};',
+                '{{WRAPPER}} .bw-product-grid-wrapper' => 'margin-top: {{SIZE}}{{UNIT}};',
             ],
         ] );
 
@@ -1093,7 +1093,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
                 '%'  => [ 'min' => -50, 'max' => 50, 'step' => 1 ],
             ],
             'selectors'  => [
-                '{{WRAPPER}} .bw-filtered-post-wall-wrapper' => 'margin-bottom: {{SIZE}}{{UNIT}};',
+                '{{WRAPPER}} .bw-product-grid-wrapper' => 'margin-bottom: {{SIZE}}{{UNIT}};',
             ],
         ] );
 
@@ -1389,7 +1389,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
                 'size' => 0.7,
             ],
             'selectors' => [
-                '{{WRAPPER}} .bw-filtered-post-wall' => '--bw-fpw-hover-opacity: {{SIZE}};',
+                '{{WRAPPER}} .bw-product-grid' => '--bw-fpw-hover-opacity: {{SIZE}};',
             ],
             'condition' => [ 'hover_effect' => 'yes' ],
         ] );
@@ -1412,13 +1412,13 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'label'     => __( 'Colore titolo', 'bw-elementor-widgets' ),
             'type'      => Controls_Manager::COLOR,
             'selectors' => [
-                '{{WRAPPER}} .bw-filtered-post-wall .bw-fpw-title' => 'color: {{VALUE}};',
+                '{{WRAPPER}} .bw-product-grid .bw-fpw-title' => 'color: {{VALUE}};',
             ],
         ] );
 
         $this->add_group_control( Group_Control_Typography::get_type(), [
             'name'     => 'title_typography',
-            'selector' => '{{WRAPPER}} .bw-filtered-post-wall .bw-fpw-title',
+            'selector' => '{{WRAPPER}} .bw-product-grid .bw-fpw-title',
             'fields_options' => [
                 'font_size' => [
                     'default' => [
@@ -1437,7 +1437,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
                 'px' => [ 'min' => -100, 'max' => 200, 'step' => 1 ],
             ],
             'selectors'  => [
-                '{{WRAPPER}} .bw-filtered-post-wall .bw-fpw-title' => 'margin-top: {{SIZE}}{{UNIT}};',
+                '{{WRAPPER}} .bw-product-grid .bw-fpw-title' => 'margin-top: {{SIZE}}{{UNIT}};',
             ],
         ] );
 
@@ -1449,7 +1449,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
                 'px' => [ 'min' => -100, 'max' => 200, 'step' => 1 ],
             ],
             'selectors'  => [
-                '{{WRAPPER}} .bw-filtered-post-wall .bw-fpw-title' => 'margin-bottom: {{SIZE}}{{UNIT}};',
+                '{{WRAPPER}} .bw-product-grid .bw-fpw-title' => 'margin-bottom: {{SIZE}}{{UNIT}};',
             ],
         ] );
 
@@ -1463,13 +1463,13 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'label'     => __( 'Colore descrizione', 'bw-elementor-widgets' ),
             'type'      => Controls_Manager::COLOR,
             'selectors' => [
-                '{{WRAPPER}} .bw-filtered-post-wall .bw-fpw-description' => 'color: {{VALUE}};',
+                '{{WRAPPER}} .bw-product-grid .bw-fpw-description' => 'color: {{VALUE}};',
             ],
         ] );
 
         $this->add_group_control( Group_Control_Typography::get_type(), [
             'name'     => 'description_typography',
-            'selector' => '{{WRAPPER}} .bw-filtered-post-wall .bw-fpw-description',
+            'selector' => '{{WRAPPER}} .bw-product-grid .bw-fpw-description',
             'fields_options' => [
                 'font_size' => [
                     'default' => [
@@ -1488,7 +1488,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
                 'px' => [ 'min' => -100, 'max' => 200, 'step' => 1 ],
             ],
             'selectors'  => [
-                '{{WRAPPER}} .bw-filtered-post-wall .bw-fpw-description' => 'margin-top: {{SIZE}}{{UNIT}};',
+                '{{WRAPPER}} .bw-product-grid .bw-fpw-description' => 'margin-top: {{SIZE}}{{UNIT}};',
             ],
         ] );
 
@@ -1500,7 +1500,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
                 'px' => [ 'min' => -100, 'max' => 200, 'step' => 1 ],
             ],
             'selectors'  => [
-                '{{WRAPPER}} .bw-filtered-post-wall .bw-fpw-description' => 'margin-bottom: {{SIZE}}{{UNIT}};',
+                '{{WRAPPER}} .bw-product-grid .bw-fpw-description' => 'margin-bottom: {{SIZE}}{{UNIT}};',
             ],
         ] );
 
@@ -1514,13 +1514,13 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'label'     => __( 'Colore prezzo', 'bw-elementor-widgets' ),
             'type'      => Controls_Manager::COLOR,
             'selectors' => [
-                '{{WRAPPER}} .bw-filtered-post-wall .bw-fpw-price' => 'color: {{VALUE}};',
+                '{{WRAPPER}} .bw-product-grid .bw-fpw-price' => 'color: {{VALUE}};',
             ],
         ] );
 
         $this->add_group_control( Group_Control_Typography::get_type(), [
             'name'     => 'price_typography',
-            'selector' => '{{WRAPPER}} .bw-filtered-post-wall .bw-fpw-price',
+            'selector' => '{{WRAPPER}} .bw-product-grid .bw-fpw-price',
             'fields_options' => [
                 'font_size' => [
                     'default' => [
@@ -1539,7 +1539,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
                 'px' => [ 'min' => -100, 'max' => 200, 'step' => 1 ],
             ],
             'selectors'  => [
-                '{{WRAPPER}} .bw-filtered-post-wall .bw-fpw-price' => 'margin-top: {{SIZE}}{{UNIT}};',
+                '{{WRAPPER}} .bw-product-grid .bw-fpw-price' => 'margin-top: {{SIZE}}{{UNIT}};',
             ],
         ] );
 
@@ -1551,7 +1551,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
                 'px' => [ 'min' => -100, 'max' => 200, 'step' => 1 ],
             ],
             'selectors'  => [
-                '{{WRAPPER}} .bw-filtered-post-wall .bw-fpw-price' => 'margin-bottom: {{SIZE}}{{UNIT}};',
+                '{{WRAPPER}} .bw-product-grid .bw-fpw-price' => 'margin-bottom: {{SIZE}}{{UNIT}};',
             ],
         ] );
 
@@ -1564,7 +1564,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
 
         $this->add_group_control( Group_Control_Typography::get_type(), [
             'name'     => 'overlay_buttons_typography',
-            'selector' => '{{WRAPPER}} .bw-filtered-post-wall .bw-fpw-overlay-button',
+            'selector' => '{{WRAPPER}} .bw-product-grid .bw-fpw-overlay-button',
         ] );
 
         $this->start_controls_tabs( 'overlay_buttons_color_tabs' );
@@ -1577,7 +1577,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'label'     => __( 'Colore testo', 'bw-elementor-widgets' ),
             'type'      => Controls_Manager::COLOR,
             'selectors' => [
-                '{{WRAPPER}} .bw-filtered-post-wall' => '--bw-fpw-overlay-buttons-color: {{VALUE}};',
+                '{{WRAPPER}} .bw-product-grid' => '--bw-fpw-overlay-buttons-color: {{VALUE}};',
             ],
         ] );
 
@@ -1586,7 +1586,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'type'      => Controls_Manager::COLOR,
             'default'   => '#FFFFFF',
             'selectors' => [
-                '{{WRAPPER}} .bw-filtered-post-wall' => '--bw-fpw-overlay-buttons-background: {{VALUE}};',
+                '{{WRAPPER}} .bw-product-grid' => '--bw-fpw-overlay-buttons-background: {{VALUE}};',
             ],
         ] );
 
@@ -1600,7 +1600,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'label'     => __( 'Colore testo (hover)', 'bw-elementor-widgets' ),
             'type'      => Controls_Manager::COLOR,
             'selectors' => [
-                '{{WRAPPER}} .bw-filtered-post-wall' => '--bw-fpw-overlay-buttons-color-hover: {{VALUE}};',
+                '{{WRAPPER}} .bw-product-grid' => '--bw-fpw-overlay-buttons-color-hover: {{VALUE}};',
             ],
         ] );
 
@@ -1609,7 +1609,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'type'      => Controls_Manager::COLOR,
             'default'   => '#80FD03',
             'selectors' => [
-                '{{WRAPPER}} .bw-filtered-post-wall' => '--bw-fpw-overlay-buttons-background-hover: {{VALUE}};',
+                '{{WRAPPER}} .bw-product-grid' => '--bw-fpw-overlay-buttons-background-hover: {{VALUE}};',
             ],
         ] );
 
@@ -1630,7 +1630,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
                 'unit' => 'px',
             ],
             'selectors'  => [
-                '{{WRAPPER}} .bw-filtered-post-wall' => '--bw-fpw-overlay-buttons-radius: {{SIZE}}{{UNIT}};',
+                '{{WRAPPER}} .bw-product-grid' => '--bw-fpw-overlay-buttons-radius: {{SIZE}}{{UNIT}};',
             ],
         ] );
 
@@ -1647,7 +1647,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
                 'isLinked' => false,
             ],
             'selectors'  => [
-                '{{WRAPPER}} .bw-filtered-post-wall' => '--bw-fpw-overlay-buttons-padding-top: {{TOP}}{{UNIT}}; --bw-fpw-overlay-buttons-padding-right: {{RIGHT}}{{UNIT}}; --bw-fpw-overlay-buttons-padding-bottom: {{BOTTOM}}{{UNIT}}; --bw-fpw-overlay-buttons-padding-left: {{LEFT}}{{UNIT}};',
+                '{{WRAPPER}} .bw-product-grid' => '--bw-fpw-overlay-buttons-padding-top: {{TOP}}{{UNIT}}; --bw-fpw-overlay-buttons-padding-right: {{RIGHT}}{{UNIT}}; --bw-fpw-overlay-buttons-padding-bottom: {{BOTTOM}}{{UNIT}}; --bw-fpw-overlay-buttons-padding-left: {{LEFT}}{{UNIT}};',
             ],
         ] );
 
@@ -1674,7 +1674,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
     }
 
     private function render_wrapper_start( $settings, $show_filters = true ) {
-        $wrapper_classes = [ 'bw-filtered-post-wall-wrapper', 'bw-fpw-layout-top' ];
+        $wrapper_classes = [ 'bw-product-grid-wrapper', 'bw-fpw-layout-top' ];
         $responsive_breakpoint = 900;
 
         echo '<div class="' . esc_attr( implode( ' ', $wrapper_classes ) ) . '" data-filter-breakpoint="' . esc_attr( $responsive_breakpoint ) . '">';
@@ -2082,7 +2082,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
         $next_offset       = $has_more ? $initial_items : 0;
         $load_trigger_px   = 300;
 
-        $wrapper_classes = [ 'bw-filtered-post-wall' ];
+        $wrapper_classes = [ 'bw-product-grid' ];
         $wrapper_style   = '--bw-fpw-max-width:' . $container_max_width . 'px; --bw-fpw-desktop-columns:' . $desktop_columns . '; --bw-fpw-grid-gap:' . $gap_desktop_size . 'px;';
         $grid_attributes = [
             'class'                       => 'bw-fpw-grid',

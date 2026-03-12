@@ -1,7 +1,7 @@
 (function ($) {
     'use strict';
 
-    console.log('🚀 BW Filtered Post Wall: Script loaded');
+    console.log('🚀 BW Product Grid: Script loaded');
 
     // ============================================
     // MASONRY SYSTEM (from wallpost)
@@ -650,13 +650,13 @@
         }
 
         $.ajax({
-            url: bwFilteredPostWallAjax.ajaxurl,
+            url: bwProductGridAjax.ajaxurl,
             type: 'POST',
             data: {
                 action: 'bw_fpw_get_subcategories',
                 category_id: categoryId,
                 post_type: postType,
-                nonce: bwFilteredPostWallAjax.nonce
+                nonce: bwProductGridAjax.nonce
             },
             success: function (response) {
                 // Cache the response
@@ -763,14 +763,14 @@
         }
 
         $.ajax({
-            url: bwFilteredPostWallAjax.ajaxurl,
+            url: bwProductGridAjax.ajaxurl,
             type: 'POST',
             data: {
                 action: 'bw_fpw_get_tags',
                 category_id: categoryId,
                 post_type: postType,
                 subcategories: subcategories || [],
-                nonce: bwFilteredPostWallAjax.nonce
+                nonce: bwProductGridAjax.nonce
             },
             success: function (response) {
                 // Cache the response
@@ -987,7 +987,7 @@
         options = options || {};
 
         var $grid = $('.bw-fpw-grid[data-widget-id="' + widgetId + '"]');
-        var $wrapper = $grid.closest('.bw-filtered-post-wall');
+        var $wrapper = $grid.closest('.bw-product-grid');
         var $filters = $('.bw-fpw-filters[data-widget-id="' + widgetId + '"]');
         var pagingState = getWidgetPagingState(widgetId);
         var appendMode = !!options.append;
@@ -1060,10 +1060,10 @@
                 updateWidgetPagingState(widgetId, {
                     isLoading: true
                 });
-                $wrapper.addClass('bw-filtered-post-wall--loading-more');
+                $wrapper.addClass('bw-product-grid--loading-more');
             } else {
                 $grid.css('opacity', '0');
-                $wrapper.addClass('bw-filtered-post-wall--loading');
+                $wrapper.addClass('bw-product-grid--loading');
                 $filters.addClass('loading');
             }
 
@@ -1082,10 +1082,10 @@
             updateWidgetPagingState(widgetId, {
                 isLoading: true
             });
-            $wrapper.addClass('bw-filtered-post-wall--loading-more');
+            $wrapper.addClass('bw-product-grid--loading-more');
         } else {
             $grid.css('opacity', '0');
-            $wrapper.addClass('bw-filtered-post-wall--loading');
+            $wrapper.addClass('bw-product-grid--loading');
             $filters.addClass('loading');
             updateWidgetPagingState(widgetId, {
                 currentPage: 1,
@@ -1102,7 +1102,7 @@
         var hadMasonryBefore = getMasonryInstance($grid) ? true : false;
 
         ajaxRequestQueue[widgetId] = $.ajax({
-            url: bwFilteredPostWallAjax.ajaxurl,
+            url: bwProductGridAjax.ajaxurl,
             type: 'POST',
             data: {
                 action: 'bw_fpw_filter_posts',
@@ -1121,7 +1121,7 @@
                 per_page: requestPerPage,
                 page: requestedPage,
                 offset: requestedOffset,
-                nonce: bwFilteredPostWallAjax.nonce
+                nonce: bwProductGridAjax.nonce
             },
             success: function (response) {
                 // Cache the response
@@ -1150,7 +1150,7 @@
                 console.error('❌ AJAX error:', error);
 
                 if (appendMode) {
-                    $wrapper.removeClass('bw-filtered-post-wall--loading-more');
+                    $wrapper.removeClass('bw-product-grid--loading-more');
                     updateWidgetPagingState(widgetId, {
                         isLoading: false
                     });
@@ -1159,7 +1159,7 @@
                 }
 
                 $grid.html('<div class="bw-fpw-placeholder">Error loading posts.</div>');
-                $wrapper.removeClass('bw-filtered-post-wall--loading');
+                $wrapper.removeClass('bw-product-grid--loading');
                 $filters.removeClass('loading');
                 $filters.attr('data-has-posts', '0');
                 $('.bw-fpw-filter-row--subcategories[data-widget-id="' + widgetId + '"], .bw-fpw-filter-row--tags[data-widget-id="' + widgetId + '"]').hide();
@@ -1227,7 +1227,7 @@
                 }));
 
                 finalizeGridUpdate($grid, $responseItems, true, function () {
-                    $wrapper.removeClass('bw-filtered-post-wall--loading-more');
+                    $wrapper.removeClass('bw-product-grid--loading-more');
                     updateWidgetPagingState(widgetId, {
                         isLoading: false
                     });
@@ -1331,7 +1331,7 @@
             }));
 
             finalizeGridUpdate($grid, $responseItems, false, function () {
-                $wrapper.removeClass('bw-filtered-post-wall--loading');
+                $wrapper.removeClass('bw-product-grid--loading');
                 $filters.removeClass('loading');
                 syncInfiniteObserver(widgetId);
             });
@@ -1341,7 +1341,7 @@
             console.error('❌ Filter response error:', response);
 
             if (appendMode) {
-                $wrapper.removeClass('bw-filtered-post-wall--loading-more');
+                $wrapper.removeClass('bw-product-grid--loading-more');
                 updateWidgetPagingState(widgetId, {
                     isLoading: false,
                     hasMore: false,
@@ -1359,7 +1359,7 @@
             $grid.html(emptyStateHtml);
 
             // Remove loading state
-            $wrapper.removeClass('bw-filtered-post-wall--loading');
+            $wrapper.removeClass('bw-product-grid--loading');
             $filters.removeClass('loading');
             $filters.attr('data-has-posts', '0');
             updateWidgetPagingState(widgetId, {
@@ -1375,7 +1375,7 @@
     }
 
     function isInMobileMode(widgetId) {
-        var $wrapper = $('.bw-fpw-filters[data-widget-id="' + widgetId + '"]').closest('.bw-filtered-post-wall-wrapper');
+        var $wrapper = $('.bw-fpw-filters[data-widget-id="' + widgetId + '"]').closest('.bw-product-grid-wrapper');
         return $wrapper.hasClass('bw-fpw-mobile-filters-enabled');
     }
 
@@ -1629,7 +1629,7 @@
 
     function openMobilePanel(widgetId) {
         var $panel = $('.bw-fpw-mobile-filter[data-widget-id="' + widgetId + '"] .bw-fpw-mobile-filter-panel');
-        var $wrapper = $panel.closest('.bw-filtered-post-wall-wrapper');
+        var $wrapper = $panel.closest('.bw-product-grid-wrapper');
 
         if ($panel.length) {
             $wrapper.addClass('bw-fpw-mobile-panel-open');
@@ -1639,7 +1639,7 @@
 
     function closeMobilePanel(widgetId) {
         var $panel = $('.bw-fpw-mobile-filter[data-widget-id="' + widgetId + '"] .bw-fpw-mobile-filter-panel');
-        var $wrapper = $panel.closest('.bw-filtered-post-wall-wrapper');
+        var $wrapper = $panel.closest('.bw-product-grid-wrapper');
 
         if ($panel.length) {
             $wrapper.removeClass('bw-fpw-mobile-panel-open');
@@ -1648,7 +1648,7 @@
     }
 
     function toggleResponsiveFilters() {
-        $('.bw-filtered-post-wall-wrapper').each(function () {
+        $('.bw-product-grid-wrapper').each(function () {
             var $wrapper = $(this);
             var breakpoint = parseInt($wrapper.attr('data-filter-breakpoint')) || 900;
             var width = window.innerWidth || $(window).width();
@@ -1798,7 +1798,7 @@
 
         hooksRegistered = true;
 
-        elementorFrontend.hooks.addAction('frontend/element_ready/bw-filtered-post-wall.default', addElementorHandler);
+        elementorFrontend.hooks.addAction('frontend/element_ready/bw-product-grid.default', addElementorHandler);
     }
 
     registerElementorHooks();

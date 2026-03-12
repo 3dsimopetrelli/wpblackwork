@@ -2,8 +2,8 @@
 
 ## Task
 - Task ID: `R-FPW-02`
-- Title: Normalize transient cache key inputs (Filtered Post Wall)
-- Domain: Filtered Post Wall / Public AJAX Runtime
+- Title: Normalize transient cache key inputs (Product Grid, formerly Filtered Post Wall)
+- Domain: Product Grid / Public AJAX Runtime (formerly Filtered Post Wall)
 
 ## Protocol Reference
 - Closure executed following: `docs/governance/task-close.md`

@@ -61,7 +61,7 @@ All widgets are located in `includes/widgets/` and follow this pattern:
 
 **Key Widgets (current):**
 - `class-bw-slick-slider-widget.php` - Slick carousel for posts/products
-- `class-bw-filtered-post-wall-widget.php` - Filterable masonry grid with category/tag filters
+- `class-bw-product-grid-widget.php` - Filterable masonry grid with category/tag filters
 - `class-bw-wallpost-widget.php` - Masonry layout using WordPress native masonry
 - `class-bw-product-slide-widget.php` - Product slider with variations
 - `class-bw-related-products-widget.php` - Related products display
@@ -148,7 +148,7 @@ Located in `blackwork-core-plugin.php`:
    - Returns JSON with product data
    - Contract preserved for custom header search (`bw_search_nonce`, `action: bw_live_search_products`)
 
-2. **Filtered Post Wall**
+2. **Product Grid**
    - `bw_fpw_get_subcategories` - Get child categories
    - `bw_fpw_get_tags` - Get tags for category
    - `bw_fpw_filter_posts` - Filter posts by category/subcategories/tags

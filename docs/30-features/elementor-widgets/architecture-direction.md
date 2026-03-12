@@ -5,7 +5,7 @@ Define a realistic target architecture for the Blackwork Elementor widget subsys
 
 ## Implemented baseline (current state)
 - Product-card authority is `BW_Product_Card_Component` across migrated product surfaces (`BW_Product_Card_Renderer` remains compatibility bridge).
-- `bw-filtered-post-wall` already supports dual mode via `Enable Filter`:
+- `bw-product-grid` already supports dual mode via `Enable Filter`:
   - enabled: filtered grid behavior
   - disabled: simple grid behavior
 - `bw-wallpost` has been removed after governed replacement validation.
@@ -13,7 +13,7 @@ Define a realistic target architecture for the Blackwork Elementor widget subsys
 
 ## Target family boundaries
 - `Product Grid Family`
-  - canonical wall/query-grid widget (`bw-filtered-post-wall`)
+  - canonical wall/query-grid widget (`bw-product-grid`)
   - `bw-related-products` as product-card reuse reference
 - `Product Slider Family`
   - `bw-product-slide` as canonical product slider

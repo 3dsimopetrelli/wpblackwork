@@ -8,7 +8,7 @@
 | `bw-animated-banner` | `includes/widgets/class-bw-animated-banner-widget.php` | Content/UI | non-product |
 | `bw-button` | `includes/widgets/class-bw-button-widget.php` | UI Utility | non-product |
 | `bw-divider` | `includes/widgets/class-bw-divider-widget.php` | UI Utility | non-product |
-| `bw-filtered-post-wall` | `includes/widgets/class-bw-filtered-post-wall-widget.php` | Query Grid | canonical wall/query-grid widget |
+| `bw-product-grid` | `includes/widgets/class-bw-product-grid-widget.php` | Query Grid | canonical wall/query-grid widget |
 | `bw-presentation-slide` | `includes/widgets/class-bw-presentation-slide-widget.php` | Presentation Slider | specialized |
 | `bw-price-variation` | `includes/widgets/class-bw-price-variation-widget.php` | Product Pricing | non-card pricing widget |
 | `bw-product-details-table` | `includes/widgets/class-bw-product-details-widget.php` | Product Details | non-card details widget |
@@ -26,14 +26,14 @@
 - Internal slugs above remain the runtime authority.
 
 ## Current implementation deltas (status)
-- `bw-filtered-post-wall`: now supports `Enable Filter = yes/no` (can run as filtered grid or simple grid).
-- `bw-filtered-post-wall` product rendering is delegated to `BW_Product_Card_Component` in both:
+- `bw-product-grid`: now supports `Enable Filter = yes/no` (can run as filtered grid or simple grid).
+- `bw-product-grid` product rendering is delegated to `BW_Product_Card_Component` in both:
   - widget server render path
   - AJAX response path (`bw_fpw_filter_posts`).
 - `bw-slick-slider` product rendering path is delegated to `BW_Product_Card_Component`.
 - `bw-related-products` product rendering path is delegated to `BW_Product_Card_Component`.
 - Removed widgets (governed removal wave completed):
-  - `bw-wallpost` (replacement: `bw-filtered-post-wall` + `Enable Filter = No`)
+  - `bw-wallpost` (replacement: `bw-product-grid` + `Enable Filter = No`)
   - `bw-add-to-cart`
   - `bw-add-to-cart-variation`
 

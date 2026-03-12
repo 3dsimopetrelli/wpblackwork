@@ -33,7 +33,7 @@ Document the current real architecture of Blackwork Elementor widgets and define
 
 ## Current widget families (operational map)
 - Product Grid / Query Grid:
-  - `bw-filtered-post-wall`, `bw-related-products`
+  - `bw-product-grid`, `bw-related-products`
 - Slider:
   - `bw-product-slide`, `bw-presentation-slide`, `bw-slick-slider`, `bw-slide-showcase`
 - Product Utility:
@@ -57,7 +57,7 @@ Decisions already fixed:
 - `bw-add-to-cart` -> DELETE (completed)
 - `bw-add-to-cart-variation` -> DELETE (completed)
 - `bw-wallpost` -> DELETE (completed)
-- `bw-filtered-post-wall` -> canonical wall/query-grid widget with optional filters
+- `bw-product-grid` -> canonical wall/query-grid widget with optional filters
 - `bw-product-slide` -> canonical product slider
 - `bw-presentation-slide` -> specialized presentation/gallery slider
 - `bw-slick-slider` + `bw-slide-showcase` -> rationalization/merge path under review

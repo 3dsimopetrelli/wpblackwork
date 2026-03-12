@@ -1325,7 +1325,7 @@ The plugin is organized into distinct submodules, loaded by the main file `bw-ma
 ### 2. Elementor Widgets
 Widgets are auto-discovered from `includes/widgets/`. Key widgets include:
 - **Sliders**: `BW_Slick_Slider_Widget`, `BW_Product_Slide_Widget`, `BW_Presentation_Slide_Widget`.
-- **Content Walls**: `BW_Filtered_Post_Wall_Widget`, `BW_Wallpost_Widget`.
+- **Content Walls**: `BW_Product_Grid_Widget`, `BW_Wallpost_Widget`.
 - **Commerce**: `BW_Related_Products_Widget`, `BW_Add_To_Cart_Variation_Widget`.
 
 ### 3. WooCommerce Customizations

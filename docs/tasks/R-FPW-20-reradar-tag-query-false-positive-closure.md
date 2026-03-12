@@ -1,7 +1,7 @@
 # R-FPW-20 ReRadar Verification Closure
 
 ## Task
-Filtered Post Wall — suspected N+1 tag query (ReRadar finding)
+Product Grid (formerly Filtered Post Wall) — suspected N+1 tag query (ReRadar finding)
 
 ## Protocol Reference
 - Closure performed under: `docs/governance/task-close.md`

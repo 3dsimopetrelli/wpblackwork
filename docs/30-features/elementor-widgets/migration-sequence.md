@@ -10,15 +10,15 @@
 - Adopted in:
   - Woo related template
   - `bw-slick-slider` product path
-  - `bw-filtered-post-wall` product path (widget + AJAX)
+  - `bw-product-grid` product path (widget + AJAX)
   - `bw-related-products` product path
 - Product-card duplication reduced on migrated product paths
 
 ## Wave 2 — Wall/query-grid convergence (completed)
-- Canonical direction confirmed: `bw-filtered-post-wall`
-- `Enable Filter = yes/no` implemented in `bw-filtered-post-wall`
+- Canonical direction confirmed: `bw-product-grid`
+- `Enable Filter = yes/no` implemented in `bw-product-grid`
 - `bw-wallpost` replacement path validated and documented:
-  - `bw-filtered-post-wall` + `Enable Filter = No`
+  - `bw-product-grid` + `Enable Filter = No`
 - `bw-wallpost` removed in governed removal wave
 
 ## Wave 3 — Slider runtime convergence (future)

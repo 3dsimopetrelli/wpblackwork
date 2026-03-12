@@ -3,7 +3,7 @@
 ## 1) Task Identification
 - Task ID: `BW-TASK-20260306-03`
 - Task title: FPW Public AJAX Scalability Hardening
-- Domain: Filtered Post Wall / Public AJAX Runtime
+- Domain: Product Grid / Public AJAX Runtime (formerly Filtered Post Wall)
 - Tier classification: 1
 - Implementation commit(s): N/A (working tree)
 

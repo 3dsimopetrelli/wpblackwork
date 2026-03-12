@@ -2,15 +2,15 @@
 
 ## Task Reference
 - Task ID: `BW-TASK-20260312-ELW-01`
-- Title: Implement governed infinite loading architecture for BW-UI Product Grid
+- Title: Implement governed infinite loading architecture for BW Product Grid
 - Start artifact: `docs/tasks/BW-TASK-20260312-ELW-01-start.md`
 - Closure protocol reference: `docs/governance/task-close.md`
 
 ## Scope Closed
-- `includes/widgets/class-bw-filtered-post-wall-widget.php`
+- `includes/widgets/class-bw-product-grid-widget.php`
 - `blackwork-core-plugin.php`
-- `assets/js/bw-filtered-post-wall.js`
-- `assets/css/bw-filtered-post-wall.css`
+- `assets/js/bw-product-grid.js`
+- `assets/css/bw-product-grid.css`
 - `docs/50-ops/regression-protocol.md`
 
 ## Implemented Outcome
@@ -20,21 +20,21 @@
   - `per_page`
   - `has_more`
   - `next_page`
-- `bw-filtered-post-wall` now exposes per-instance frontend pagination state via data attributes.
+- `bw-product-grid` now exposes per-instance frontend pagination state via data attributes.
 - Frontend infinite loading now uses append mode with `IntersectionObserver`.
 - Filter changes reset pagination state and keep replace-mode behavior.
 - Added lightweight bottom loading indicator and real sequential reveal styling.
 - Legacy unlimited `posts_per_page` instances remain on replace-mode behavior and do not enter infinite loading.
 
 ## Constraints Preserved
-- `bw-filtered-post-wall` remains the canonical wall/query-grid widget.
+- `bw-product-grid` remains the canonical wall/query-grid widget.
 - `BW_Product_Card_Component` remains the product-card authority.
 - No new global asset loading was introduced.
 - Initial render remains server-rendered.
 - Existing filter/category/tag query semantics were preserved.
 
 ## Validation
-- `php -l includes/widgets/class-bw-filtered-post-wall-widget.php`
+- `php -l includes/widgets/class-bw-product-grid-widget.php`
   - pass
 - `php -l blackwork-core-plugin.php`
   - pass

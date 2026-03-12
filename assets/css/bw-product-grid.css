@@ -1,6 +1,6 @@
-/* BW Filtered Post Wall */
+/* BW Product Grid */
 
-.bw-filtered-post-wall-wrapper {
+.bw-product-grid-wrapper {
   position: relative;
 }
 
@@ -52,9 +52,9 @@
 }
 
 /* Keep filter options at 16px even with Elementor kit button typography rules */
-.elementor-widget-bw-filtered-post-wall .bw-fpw-filter-option,
-.elementor-widget-bw-filtered-post-wall .bw-fpw-filter-option .bw-fpw-option-label,
-.elementor-widget-bw-filtered-post-wall .bw-fpw-filter-option .bw-fpw-option-count {
+.elementor-widget-bw-product-grid .bw-fpw-filter-option,
+.elementor-widget-bw-product-grid .bw-fpw-filter-option .bw-fpw-option-label,
+.elementor-widget-bw-product-grid .bw-fpw-filter-option .bw-fpw-option-count {
   font-size: 16px !important;
   line-height: 1.6;
   padding: 0 !important;
@@ -259,7 +259,7 @@
 /* -------------------------------------------------------
    Grid Shell
    ------------------------------------------------------- */
-.bw-filtered-post-wall {
+.bw-product-grid {
   width: 100%;
   max-width: var(--bw-fpw-max-width, 2000px);
   margin: 0 auto;

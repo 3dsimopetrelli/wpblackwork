@@ -62,7 +62,7 @@ It MUST be used as planning reference only and MUST NOT replace ADRs.
   - `bw-add-to-cart` -> DELETE (completed)
   - `bw-add-to-cart-variation` -> DELETE (completed)
   - `bw-wallpost` -> DELETE (completed)
-  - `bw-filtered-post-wall` -> canonical wall/query-grid widget
+  - `bw-product-grid` -> canonical wall/query-grid widget
   - `bw-product-slide` -> canonical product slider (visible title: `BW-SP Gallery Product`)
   - `bw-presentation-slide` -> specialized presentation/gallery slider
   - `bw-slick-slider` + `bw-slide-showcase` -> rationalization path under review (`bw-slick-slider` visible title: `BW-UI Product Slider`)

@@ -26,7 +26,7 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - `bw-add-to-cart` -> DELETE (completed)
 - `bw-add-to-cart-variation` -> DELETE (completed)
 - `bw-wallpost` -> DELETE (completed)
-- `bw-filtered-post-wall` -> canonical wall/query-grid widget
+- `bw-product-grid` -> canonical wall/query-grid widget
 - `bw-product-slide` -> canonical product slider
 - `bw-presentation-slide` -> specialized presentation/gallery slider
 - `bw-slick-slider` + `bw-slide-showcase` -> rationalization/merge path under review
@@ -46,10 +46,10 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - Shared product-card authority extended and adopted in:
   - Woo related template
   - `bw-slick-slider` product path
-  - `bw-filtered-post-wall` product path (including AJAX HTML response path)
-- `bw-filtered-post-wall` supports `Enable Filter = yes/no`.
+  - `bw-product-grid` product path (including AJAX HTML response path)
+- `bw-product-grid` supports `Enable Filter = yes/no`.
 - Removal/replacement path finalized:
-  - `bw-wallpost` -> use `bw-filtered-post-wall` with `Enable Filter = No`
+  - `bw-wallpost` -> use `bw-product-grid` with `Enable Filter = No`
   - `bw-add-to-cart` and `bw-add-to-cart-variation` removed; use maintained BW-SP surfaces
 
 ## Deferred future work

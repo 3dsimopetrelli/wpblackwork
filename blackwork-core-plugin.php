@@ -593,9 +593,9 @@ add_action('init', 'bw_register_about_menu_widget_assets');
 add_action('init', 'bw_register_wallpost_widget_assets');
 add_action('elementor/frontend/after_register_scripts', 'bw_enqueue_about_menu_widget_assets');
 add_action('elementor/editor/after_enqueue_scripts', 'bw_enqueue_about_menu_widget_assets');
-add_action('init', 'bw_register_filtered_post_wall_widget_assets');
-add_action('elementor/frontend/after_enqueue_scripts', 'bw_enqueue_filtered_post_wall_widget_assets');
-add_action('elementor/editor/after_enqueue_scripts', 'bw_enqueue_filtered_post_wall_widget_assets');
+add_action('init', 'bw_register_product_grid_widget_assets');
+add_action('elementor/frontend/after_enqueue_scripts', 'bw_enqueue_product_grid_widget_assets');
+add_action('elementor/editor/after_enqueue_scripts', 'bw_enqueue_product_grid_widget_assets');
 add_action('init', 'bw_register_animated_banner_widget_assets');
 add_action('elementor/frontend/after_enqueue_scripts', 'bw_enqueue_animated_banner_widget_assets');
 add_action('elementor/editor/after_enqueue_scripts', 'bw_enqueue_animated_banner_widget_assets');
@@ -977,57 +977,57 @@ function bw_enqueue_about_menu_widget_assets()
     }
 }
 
-function bw_register_filtered_post_wall_widget_assets()
+function bw_register_product_grid_widget_assets()
 {
-    static $fpw_assets_localized = false;
+    static $product_grid_assets_localized = false;
 
-    $css_file = __DIR__ . '/assets/css/bw-filtered-post-wall.css';
+    $css_file = __DIR__ . '/assets/css/bw-product-grid.css';
     $css_version = file_exists($css_file) ? filemtime($css_file) : '1.0.0';
 
     wp_register_style(
-        'bw-filtered-post-wall-style',
-        plugin_dir_url(__FILE__) . 'assets/css/bw-filtered-post-wall.css',
+        'bw-product-grid-style',
+        plugin_dir_url(__FILE__) . 'assets/css/bw-product-grid.css',
         [],
         $css_version
     );
 
-    $js_file = __DIR__ . '/assets/js/bw-filtered-post-wall.js';
+    $js_file = __DIR__ . '/assets/js/bw-product-grid.js';
     $js_version = file_exists($js_file) ? filemtime($js_file) : '1.0.0';
 
     wp_register_script(
-        'bw-filtered-post-wall-js',
-        plugin_dir_url(__FILE__) . 'assets/js/bw-filtered-post-wall.js',
+        'bw-product-grid-js',
+        plugin_dir_url(__FILE__) . 'assets/js/bw-product-grid.js',
         ['jquery', 'imagesloaded', 'masonry'],
         $js_version,
         true
     );
 
     // Localize once to avoid duplicate globals/nonces across multi-hook registration.
-    if (!$fpw_assets_localized) {
+    if (!$product_grid_assets_localized) {
         wp_localize_script(
-            'bw-filtered-post-wall-js',
-            'bwFilteredPostWallAjax',
+            'bw-product-grid-js',
+            'bwProductGridAjax',
             [
                 'ajaxurl' => admin_url('admin-ajax.php'),
                 'nonce' => wp_create_nonce('bw_fpw_nonce'),
             ]
         );
-        $fpw_assets_localized = true;
+        $product_grid_assets_localized = true;
     }
 }
 
-function bw_enqueue_filtered_post_wall_widget_assets()
+function bw_enqueue_product_grid_widget_assets()
 {
-    if (!wp_style_is('bw-filtered-post-wall-style', 'registered') || !wp_script_is('bw-filtered-post-wall-js', 'registered')) {
-        bw_register_filtered_post_wall_widget_assets();
+    if (!wp_style_is('bw-product-grid-style', 'registered') || !wp_script_is('bw-product-grid-js', 'registered')) {
+        bw_register_product_grid_widget_assets();
     }
 
-    if (wp_style_is('bw-filtered-post-wall-style', 'registered')) {
-        wp_enqueue_style('bw-filtered-post-wall-style');
+    if (wp_style_is('bw-product-grid-style', 'registered')) {
+        wp_enqueue_style('bw-product-grid-style');
     }
 
-    if (wp_script_is('bw-filtered-post-wall-js', 'registered')) {
-        wp_enqueue_script('bw-filtered-post-wall-js');
+    if (wp_script_is('bw-product-grid-js', 'registered')) {
+        wp_enqueue_script('bw-product-grid-js');
     }
 }
 

@@ -284,7 +284,7 @@ Il Cart Pop-up sostituisce (in specifici contesti) il comportamento standard di 
 - `includes/modules/header/templates/header.php` (trigger cart icona header)
 - `includes/modules/header/assets/js/bw-navshop.js` (apertura popup da header)
 - `includes/widgets/class-bw-slick-slider-widget.php` (data attribute `data-open-cart-popup="1"`)
-- `includes/widgets/class-bw-filtered-post-wall-widget.php` (data attribute `data-open-cart-popup="1"`)
+- `includes/widgets/class-bw-product-grid-widget.php` (data attribute `data-open-cart-popup="1"`)
 - `includes/widgets/class-bw-related-products-widget.php` (opzione Elementor per popup)
 - `woocommerce/templates/single-product/related.php` (button con `data-open-cart-popup="1"`)
 - `templates/woocommerce/content-product.php` (flag `open_cart_popup` per renderer card)

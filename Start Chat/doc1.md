@@ -2137,7 +2137,7 @@ These risks were active during Theme Builder Lite Phase 1 and are now closed wit
   - [BW-TASK-20260305-08 Admin Audit](../tasks/BW-TASK-20260305-08-admin-panel-architecture-audit.md)
 
 ### Risk ID: R-FPW-20
-- Domain: Filtered Post Wall / Public AJAX Runtime
+- Domain: Product Grid / Public AJAX Runtime (formerly Filtered Post Wall)
 - Surface Anchor: `blackwork-core-plugin.php` (`bw_fpw_get_subcategories`, `bw_fpw_get_tags`, `bw_fpw_filter_posts`, FPW tag aggregation helpers)
 - Description: Public FPW AJAX endpoints can degrade under catalog growth or automation pressure if request normalization, post-type boundaries, query caps, and abuse guards drift from hardened defaults.
 - Invariant Threatened: Deterministic, non-blocking FPW filtering with bounded read-path cost and intended public visibility only.
@@ -5891,7 +5891,7 @@ Widget trovati in `includes/widgets/`:
 - `bw-animated-banner`
 - `bw-button`
 - `bw-divider`
-- `bw-filtered-post-wall`
+- `bw-product-grid`
 - `bw-navshop`
 - `bw-presentation-slide`
 - `bw-price-variation`

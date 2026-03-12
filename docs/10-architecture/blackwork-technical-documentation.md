@@ -1406,7 +1406,7 @@ if (isset($_POST['bw_new_tab_submit'])) {
 - `bw-add-to-cart` -> DELETE (completed)
 - `bw-add-to-cart-variation` -> DELETE (completed)
 - `bw-wallpost` -> DELETE (completed)
-- `bw-filtered-post-wall` -> canonical wall/query-grid widget with optional filters
+- `bw-product-grid` -> canonical wall/query-grid widget with optional filters
 - `bw-product-slide` -> canonical product slider (visible title: `BW-SP Gallery Product`)
 - `bw-presentation-slide` -> specialized presentation/gallery slider
 - `bw-slick-slider` + `bw-slide-showcase` -> rationalization/merge path under review (`bw-slick-slider` visible title: `BW-UI Product Slider`)

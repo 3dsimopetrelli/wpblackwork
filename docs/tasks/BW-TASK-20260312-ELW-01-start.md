@@ -1,23 +1,23 @@
 # Blackwork Governance — Task Start Template
 
 ## Context
-- Task title: Implement governed infinite loading architecture for BW-UI Product Grid
+- Task title: Implement governed infinite loading architecture for BW Product Grid
 - Request source: User request in Codex session (`BW-TASK-20260312-ELW-01`)
-- Expected outcome: Safe frontend-only infinite loading for `bw-filtered-post-wall` with aligned initial/AJAX pagination contract, append-based loading, lightweight loader, and real sequential reveal behavior.
+- Expected outcome: Safe frontend-only infinite loading for `bw-product-grid` with aligned initial/AJAX pagination contract, append-based loading, lightweight loader, and real sequential reveal behavior.
 - Constraints:
-  - Preserve `bw-filtered-post-wall` as canonical wall/grid widget
+  - Preserve `bw-product-grid` as canonical wall/grid widget
   - Preserve `BW_Product_Card_Component` authority
   - No big-bang rewrite
   - No global asset loading changes outside declared scope
   - Frontend behavior prioritized over Elementor editor behavior
 
 ## Task Classification
-- Domain: Elementor Widgets / Filtered Post Wall / Frontend Runtime
+- Domain: Elementor Widgets / Product Grid / Frontend Runtime (formerly Filtered Post Wall)
 - Incident/Task type: Governed feature hardening / architecture convergence
 - Risk level (L1/L2/L3): L2
 - Tier classification (0/1/2/3): 1
 - Affected systems:
-  - `bw-filtered-post-wall` widget PHP render
+  - `bw-product-grid` widget PHP render
   - FPW frontend JS/CSS runtime
   - FPW public AJAX endpoint
 - Integration impact:
@@ -58,9 +58,9 @@
   - Add append-based infinite loading in the existing FPW JS runtime
   - Treat CSS-grid as first-class path and keep Masonry on minimal safe relayout behavior
 - Files likely impacted:
-  - `includes/widgets/class-bw-filtered-post-wall-widget.php`
-  - `assets/js/bw-filtered-post-wall.js`
-  - `assets/css/bw-filtered-post-wall.css`
+  - `includes/widgets/class-bw-product-grid-widget.php`
+  - `assets/js/bw-product-grid.js`
+  - `assets/css/bw-product-grid.css`
   - `blackwork-core-plugin.php`
   - `docs/tasks/BW-TASK-20260312-ELW-01-start.md`
   - `docs/tasks/BW-TASK-20260312-ELW-01-closure.md`
@@ -103,7 +103,7 @@
 
 ## System Invariants Check
 - Declared invariants that MUST remain true:
-  - `bw-filtered-post-wall` remains canonical wall/query-grid widget
+  - `bw-product-grid` remains canonical wall/query-grid widget
   - current filter/query semantics remain intact
   - `BW_Product_Card_Component` remains product-card authority
   - no global asset loading regression is introduced
