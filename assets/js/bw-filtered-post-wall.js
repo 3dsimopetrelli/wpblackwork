@@ -2,6 +2,7 @@
     'use strict';
 
     console.log('🚀 BW Filtered Post Wall: Script loaded');
+    var BW_FPW_DEBUG_PREFIX = '[BW FPW Masonry Debug]';
 
     // ============================================
     // MASONRY SYSTEM (from wallpost)
@@ -16,6 +17,23 @@
         return mode === 'css-grid';
     }
 
+    function debugIsEnabled() {
+        return isElementorEditor();
+    }
+
+    function debugLog(message, context) {
+        if (!debugIsEnabled()) {
+            return;
+        }
+
+        if (typeof context !== 'undefined') {
+            console.log(BW_FPW_DEBUG_PREFIX + ' ' + message, context);
+            return;
+        }
+
+        console.log(BW_FPW_DEBUG_PREFIX + ' ' + message);
+    }
+
     function scheduleEditorMasonryRetry($grid, forceReinit) {
         if (!isElementorEditor() || !$grid || !$grid.length) {
             return;
@@ -23,10 +41,18 @@
 
         var retryCount = parseInt($grid.data('bw-editor-masonry-retry'), 10) || 0;
         if (retryCount >= 10) {
+            debugLog('editor masonry retry limit reached', {
+                widgetId: $grid.attr('data-widget-id') || null
+            });
             return;
         }
 
         $grid.data('bw-editor-masonry-retry', retryCount + 1);
+        debugLog('editor masonry retry scheduled', {
+            widgetId: $grid.attr('data-widget-id') || null,
+            retry: retryCount + 1,
+            forceReinit: !!forceReinit
+        });
         setTimeout(function () {
             layoutGrid($grid, !!forceReinit);
         }, 120);
@@ -132,11 +158,21 @@
 
         if (typeof $grid.imagesLoaded === 'function') {
             $grid.imagesLoaded(function () {
+                debugLog('imagesLoaded callback fired', {
+                    widgetId: $grid.attr('data-widget-id') || null,
+                    layoutMode: $grid.attr('data-layout-mode') || '',
+                    masonryEffect: $grid.attr('data-masonry-effect') || '',
+                    gridWidth: $grid.width() || 0,
+                    itemCount: $grid.find('.bw-fpw-item').length
+                });
                 callback();
             });
             return;
         }
 
+        debugLog('imagesLoaded unavailable; immediate callback', {
+            widgetId: $grid.attr('data-widget-id') || null
+        });
         callback();
     }
 
@@ -193,6 +229,10 @@
 
         var instance = $grid.data('masonry');
         if (!instance) {
+            debugLog('editor relayout skipped: missing masonry instance', {
+                widgetId: $grid.attr('data-widget-id') || null,
+                gridWidth: $grid.width() || 0
+            });
             return;
         }
 
@@ -203,11 +243,25 @@
         }
 
         if (typeof instance.reloadItems === 'function') {
+            debugLog('editor relayout: reloadItems()', {
+                widgetId: $grid.attr('data-widget-id') || null
+            });
             instance.reloadItems();
         }
         if (typeof instance.layout === 'function') {
+            debugLog('editor relayout: layout()', {
+                widgetId: $grid.attr('data-widget-id') || null
+            });
             instance.layout();
         }
+        debugLog('editor relayout applied', {
+            widgetId: $grid.attr('data-widget-id') || null,
+            itemCount: $grid.find('.bw-fpw-item').length,
+            itemWidth: itemWidth,
+            gridWidth: $grid.width() || 0,
+            instanceItems: instance.items ? instance.items.length : null,
+            instanceColumnWidth: instance.options ? instance.options.columnWidth : null
+        });
         updateGridHeight($grid);
     }
 
@@ -223,6 +277,11 @@
 
         var resizeTimer = null;
         var observer = new ResizeObserver(function () {
+            debugLog('ResizeObserver fired', {
+                widgetId: $grid.attr('data-widget-id') || null,
+                gridWidth: $grid.width() || 0,
+                itemCount: $grid.find('.bw-fpw-item').length
+            });
             clearTimeout(resizeTimer);
             resizeTimer = setTimeout(function () {
                 applyEditorMasonryRelayout($grid);
@@ -236,6 +295,9 @@
         }
 
         editorGridObservers.set(gridEl, observer);
+        debugLog('ResizeObserver attached', {
+            widgetId: $grid.attr('data-widget-id') || null
+        });
     }
 
     function detachEditorGridObserver($grid) {
@@ -257,6 +319,16 @@
     }
 
     function layoutGrid($grid, forceReinit) {
+        debugLog('layoutGrid start', {
+            widgetId: $grid.attr('data-widget-id') || null,
+            layoutMode: $grid.attr('data-layout-mode') || '',
+            masonryEffect: $grid.attr('data-masonry-effect') || '',
+            forceReinit: !!forceReinit,
+            gridWidth: $grid.width() || 0,
+            itemCount: $grid.find('.bw-fpw-item').length,
+            itemWidth: getCurrentItemWidth($grid)
+        });
+
         if (useCssGrid($grid)) {
             if (typeof $.fn.masonry === 'function' && $grid.data('masonry')) {
                 $grid.masonry('destroy');
@@ -268,15 +340,26 @@
                 'margin-bottom': ''
             });
             $grid.css('height', '');
+            debugLog('layoutGrid: css-grid mode (masonry bypass)', {
+                widgetId: $grid.attr('data-widget-id') || null
+            });
             return;
         }
 
         if (isElementorEditor() && (!$grid.is(':visible') || $grid.width() < 40)) {
+            debugLog('layoutGrid: editor geometry unstable', {
+                widgetId: $grid.attr('data-widget-id') || null,
+                visible: $grid.is(':visible'),
+                gridWidth: $grid.width() || 0
+            });
             scheduleEditorMasonryRetry($grid, forceReinit);
             return;
         }
 
         if (typeof $.fn.masonry !== 'function') {
+            debugLog('layoutGrid: $.fn.masonry unavailable', {
+                widgetId: $grid.attr('data-widget-id') || null
+            });
             scheduleEditorMasonryRetry($grid, forceReinit);
             return;
         }
@@ -313,9 +396,15 @@
                 }
 
                 if (typeof instance.reloadItems === 'function') {
+                    debugLog('layoutGrid existing instance: reloadItems()', {
+                        widgetId: $grid.attr('data-widget-id') || null
+                    });
                     instance.reloadItems();
                 }
 
+                debugLog('layoutGrid existing instance: layout()', {
+                    widgetId: $grid.attr('data-widget-id') || null
+                });
                 instance.layout();
                 updateGridHeight($grid);
 
@@ -328,6 +417,12 @@
 
                 $grid.data('bw-editor-masonry-retry', 0);
                 attachEditorGridObserver($grid);
+                debugLog('layoutGrid existing instance complete', {
+                    widgetId: $grid.attr('data-widget-id') || null,
+                    gutter: gap,
+                    columnWidth: instance.options ? instance.options.columnWidth : null,
+                    instanceItems: instance.items ? instance.items.length : null
+                });
             });
             return;
         }
@@ -345,16 +440,39 @@
                 transitionDuration: '0.3s'
             };
 
+            debugLog('masonry init options', {
+                widgetId: $grid.attr('data-widget-id') || null,
+                itemSelector: masonryOptions.itemSelector,
+                columnWidth: masonryOptions.columnWidth,
+                gutter: masonryOptions.gutter,
+                percentPosition: masonryOptions.percentPosition,
+                horizontalOrder: masonryOptions.horizontalOrder,
+                gridWidth: $grid.width() || 0,
+                itemWidth: getCurrentItemWidth($grid),
+                itemCount: $grid.find('.bw-fpw-item').length
+            });
             $grid.masonry(masonryOptions);
             $grid.addClass('bw-fpw-initialized');
 
             var masonryInstance = $grid.data('masonry');
+            debugLog('masonry instance created', {
+                widgetId: $grid.attr('data-widget-id') || null,
+                created: !!masonryInstance,
+                instanceItems: masonryInstance && masonryInstance.items ? masonryInstance.items.length : null,
+                instanceColumnWidth: masonryInstance && masonryInstance.options ? masonryInstance.options.columnWidth : null
+            });
 
             if (masonryInstance && typeof masonryInstance.reloadItems === 'function') {
+                debugLog('masonry new instance: reloadItems()', {
+                    widgetId: $grid.attr('data-widget-id') || null
+                });
                 masonryInstance.reloadItems();
             }
 
             if (masonryInstance && typeof masonryInstance.layout === 'function') {
+                debugLog('masonry new instance: layout()', {
+                    widgetId: $grid.attr('data-widget-id') || null
+                });
                 masonryInstance.layout();
             }
 
@@ -1323,6 +1441,13 @@
         $grids.each(function () {
             var $grid = $(this);
             var widgetId = $grid.attr('data-widget-id');
+            debugLog('initWidget grid start', {
+                widgetId: widgetId || null,
+                layoutMode: $grid.attr('data-layout-mode') || '',
+                masonryEffect: $grid.attr('data-masonry-effect') || '',
+                gridWidth: $grid.width() || 0,
+                itemCount: $grid.find('.bw-fpw-item').length
+            });
 
             initFilterState(widgetId);
             var $filters = $('.bw-fpw-filters[data-widget-id="' + widgetId + '"]');
@@ -1385,6 +1510,12 @@
         resizeTimeout = setTimeout(function () {
             $('.bw-fpw-grid.bw-fpw-initialized').each(function () {
                 var $grid = $(this);
+                debugLog('window resize relayout pass', {
+                    widgetId: $grid.attr('data-widget-id') || null,
+                    layoutMode: $grid.attr('data-layout-mode') || '',
+                    masonryEffect: $grid.attr('data-masonry-effect') || '',
+                    gridWidth: $grid.width() || 0
+                });
                 if (useCssGrid($grid)) {
                     layoutGrid($grid, false);
                     return;
@@ -1433,10 +1564,16 @@
                     var self = this;
 
                     setTimeout(function () {
+                        debugLog('Elementor handler onInit fired', {
+                            widgetId: self.$element.find('.bw-fpw-grid').attr('data-widget-id') || null
+                        });
                         initWidget(self.$element);
                         setTimeout(function () {
                             var $grid = self.$element.find('.bw-fpw-grid');
                             if ($grid.length) {
+                                debugLog('Elementor delayed layout pass', {
+                                    widgetId: $grid.attr('data-widget-id') || null
+                                });
                                 layoutGrid($grid, true);
                             }
                         }, 250);
@@ -1468,6 +1605,11 @@
                     }
 
                     this.layoutTimeout = setTimeout(function () {
+                        debugLog('Elementor onElementChange relayout', {
+                            widgetId: $grid.attr('data-widget-id') || null,
+                            settingKey: settingKey || '',
+                            fullReinit: !!needsFullReinit
+                        });
                         if (needsFullReinit) {
                             initGrid($grid);
 
@@ -1524,6 +1666,7 @@
         }
 
         hooksRegistered = true;
+        debugLog('Elementor hooks registered');
 
         elementorFrontend.hooks.addAction('frontend/element_ready/bw-filtered-post-wall.default', addElementorHandler);
     }
