@@ -1630,7 +1630,6 @@
     }
 
     $(function () {
-        initWidget($(document));
         initFilters();
         toggleResponsiveFilters();
 
@@ -1685,113 +1684,22 @@
     // ============================================
 
     var hooksRegistered = false;
-    var FilteredPostWallHandlerClass;
 
     function addElementorHandler($scope) {
-        if (!FilteredPostWallHandlerClass) {
-            if (
-                typeof elementorModules === 'undefined' ||
-                !elementorModules.frontend ||
-                !elementorModules.frontend.handlers ||
-                !elementorModules.frontend.handlers.Base
-            ) {
-                initWidget($scope);
-                return;
-            }
+        var $targetScope = $scope && $scope.length ? $scope : $(document);
+        debugLog('Elementor lifecycle hook fired for FPW widget', {
+            scopeHasGrid: $targetScope.find('.bw-fpw-grid').length > 0
+        });
 
-            FilteredPostWallHandlerClass = elementorModules.frontend.handlers.Base.extend({
-                onInit: function () {
-                    elementorModules.frontend.handlers.Base.prototype.onInit.apply(this, arguments);
+        setTimeout(function () {
+            initWidget($targetScope);
 
-                    var self = this;
-
-                    setTimeout(function () {
-                        debugLog('Elementor handler onInit fired', {
-                            widgetId: self.$element.find('.bw-fpw-grid').attr('data-widget-id') || null
-                        });
-                        initWidget(self.$element);
-                        setTimeout(function () {
-                            var $grid = self.$element.find('.bw-fpw-grid');
-                            if ($grid.length) {
-                                debugLog('Elementor delayed layout pass', {
-                                    widgetId: $grid.attr('data-widget-id') || null
-                                });
-                                layoutGrid($grid, true);
-                            }
-                        }, 250);
-                    }, 80);
-                },
-
-                onElementChange: function (settingKey) {
-                    var self = this;
-                    var $grid = this.$element.find('.bw-fpw-grid');
-
-                    if (!$grid.length) {
-                        return;
-                    }
-
-                    if (this.layoutTimeout) {
-                        clearTimeout(this.layoutTimeout);
-                    }
-
-                    var needsFullReinit = settingKey && (
-                        settingKey.indexOf('posts_per_page') !== -1 ||
-                        settingKey.indexOf('columns') !== -1 ||
-                        settingKey.indexOf('gap') !== -1 ||
-                        settingKey.indexOf('order') !== -1 ||
-                        settingKey.indexOf('masonry_effect') !== -1
-                    );
-
-                    if (needsFullReinit) {
-                        destroyGridInstance($grid);
-                    }
-
-                    this.layoutTimeout = setTimeout(function () {
-                        debugLog('Elementor onElementChange relayout', {
-                            widgetId: $grid.attr('data-widget-id') || null,
-                            settingKey: settingKey || '',
-                            fullReinit: !!needsFullReinit
-                        });
-                        if (needsFullReinit) {
-                            initGrid($grid);
-
-                            setTimeout(function () {
-                                layoutGrid($grid, false);
-                            }, 200);
-                        } else {
-                            layoutGrid($grid, false);
-                        }
-                    }, 150);
-                },
-
-                onDestroy: function () {
-                    var $grid = this.$element.find('.bw-fpw-grid');
-
-                    if (this.layoutTimeout) {
-                        clearTimeout(this.layoutTimeout);
-                    }
-
-                    if ($grid.length) {
-                        $grid.each(function () {
-                            destroyGridInstance($(this));
-                        });
-                    }
-
-                    elementorModules.frontend.handlers.Base.prototype.onDestroy.apply(this, arguments);
-                }
-            });
-        }
-
-        if (
-            FilteredPostWallHandlerClass &&
-            elementorFrontend.elementsHandler &&
-            typeof elementorFrontend.elementsHandler.addHandler === 'function'
-        ) {
-            elementorFrontend.elementsHandler.addHandler(FilteredPostWallHandlerClass, { $element: $scope });
-            return;
-        }
-
-        initWidget($scope);
+            setTimeout(function () {
+                $targetScope.find('.bw-fpw-grid').each(function () {
+                    layoutGrid($(this), true);
+                });
+            }, 220);
+        }, 80);
     }
 
     function registerElementorHooks() {
