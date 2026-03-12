@@ -1015,27 +1015,30 @@
     function finalizeGridUpdate($grid, $items, appendMode, callback, revealMode) {
         var widgetId = $grid.attr('data-widget-id');
         var runFinalize = function () {
+            var completeReveal = function () {
+                animatePostsStaggered($items, revealMode, widgetId);
+
+                if (!useCssGrid($grid)) {
+                    setTimeout(function () {
+                        var instance = getMasonryInstance($grid);
+                        if (instance && typeof instance.layout === 'function') {
+                            instance.layout();
+                            updateGridHeight($grid);
+                        }
+                    }, 200);
+
+                }
+
+                if (typeof callback === 'function') {
+                    callback();
+                }
+            };
+
             if (appendMode) {
                 layoutGrid($grid, false);
+                completeReveal();
             } else {
-                initGrid($grid);
-            }
-
-            animatePostsStaggered($items, revealMode, widgetId);
-
-            if (!useCssGrid($grid)) {
-                setTimeout(function () {
-                    var instance = getMasonryInstance($grid);
-                    if (instance && typeof instance.layout === 'function') {
-                        instance.layout();
-                        updateGridHeight($grid);
-                    }
-                }, 200);
-
-            }
-
-            if (typeof callback === 'function') {
-                callback();
+                initGrid($grid, completeReveal);
             }
         };
 
