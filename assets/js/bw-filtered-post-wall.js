@@ -69,6 +69,25 @@
         return gap;
     }
 
+    function getCurrentItemWidth($grid) {
+        if (!$grid || !$grid.length) {
+            return 0;
+        }
+
+        var cachedWidth = parseFloat($grid.data('bw-item-width'));
+        if (cachedWidth && cachedWidth > 0) {
+            return cachedWidth;
+        }
+
+        var $firstItem = $grid.find('.bw-fpw-item').first();
+        if (!$firstItem.length) {
+            return 0;
+        }
+
+        var measuredWidth = parseFloat($firstItem.outerWidth());
+        return measuredWidth > 0 ? measuredWidth : 0;
+    }
+
     function setItemWidths($grid) {
         if (!$grid || !$grid.length) {
             return;
@@ -79,6 +98,7 @@
                 'width': '',
                 'margin-bottom': ''
             });
+            $grid.removeData('bw-item-width');
             return;
         }
 
@@ -94,6 +114,7 @@
         var containerWidth = $grid.width();
         var totalGap = gap * (columnsCount - 1);
         var itemWidth = (containerWidth - totalGap) / columnsCount;
+        $grid.data('bw-item-width', itemWidth > 0 ? itemWidth : 0);
 
         $items.each(function () {
             var $item = $(this);
@@ -160,6 +181,79 @@
         }
 
         $grid.removeClass('bw-fpw-initialized');
+        detachEditorGridObserver($grid);
+    }
+
+    var editorGridObservers = new WeakMap();
+
+    function applyEditorMasonryRelayout($grid) {
+        if (!$grid || !$grid.length || useCssGrid($grid)) {
+            return;
+        }
+
+        var instance = $grid.data('masonry');
+        if (!instance) {
+            return;
+        }
+
+        setItemWidths($grid);
+        var itemWidth = getCurrentItemWidth($grid);
+        if (itemWidth > 0) {
+            instance.options.columnWidth = itemWidth;
+        }
+
+        if (typeof instance.reloadItems === 'function') {
+            instance.reloadItems();
+        }
+        if (typeof instance.layout === 'function') {
+            instance.layout();
+        }
+        updateGridHeight($grid);
+    }
+
+    function attachEditorGridObserver($grid) {
+        if (!isElementorEditor() || typeof ResizeObserver === 'undefined' || !$grid || !$grid.length) {
+            return;
+        }
+
+        var gridEl = $grid.get(0);
+        if (!gridEl || editorGridObservers.has(gridEl)) {
+            return;
+        }
+
+        var resizeTimer = null;
+        var observer = new ResizeObserver(function () {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(function () {
+                applyEditorMasonryRelayout($grid);
+            }, 80);
+        });
+
+        observer.observe(gridEl);
+        var stableWrapper = $grid.closest('.elementor-widget-container').get(0);
+        if (stableWrapper && stableWrapper !== gridEl) {
+            observer.observe(stableWrapper);
+        }
+
+        editorGridObservers.set(gridEl, observer);
+    }
+
+    function detachEditorGridObserver($grid) {
+        if (typeof ResizeObserver === 'undefined' || !$grid || !$grid.length) {
+            return;
+        }
+
+        var gridEl = $grid.get(0);
+        if (!gridEl || !editorGridObservers.has(gridEl)) {
+            return;
+        }
+
+        var observer = editorGridObservers.get(gridEl);
+        if (observer && typeof observer.disconnect === 'function') {
+            observer.disconnect();
+        }
+
+        editorGridObservers.delete(gridEl);
     }
 
     function layoutGrid($grid, forceReinit) {
@@ -213,6 +307,10 @@
 
             withImagesLoaded($grid, function () {
                 instance.options.gutter = gap;
+                var currentItemWidth = getCurrentItemWidth($grid);
+                if (currentItemWidth > 0) {
+                    instance.options.columnWidth = currentItemWidth;
+                }
 
                 if (typeof instance.reloadItems === 'function') {
                     instance.reloadItems();
@@ -229,6 +327,7 @@
                 }, 100);
 
                 $grid.data('bw-editor-masonry-retry', 0);
+                attachEditorGridObserver($grid);
             });
             return;
         }
@@ -239,6 +338,7 @@
 
             var masonryOptions = {
                 itemSelector: '.bw-fpw-item',
+                columnWidth: getCurrentItemWidth($grid) || '.bw-fpw-item',
                 percentPosition: false,
                 gutter: gap,
                 horizontalOrder: true,
@@ -269,6 +369,7 @@
             }, 100);
 
             $grid.data('bw-editor-masonry-retry', 0);
+            attachEditorGridObserver($grid);
         };
 
         withImagesLoaded($grid, initializeMasonry);
