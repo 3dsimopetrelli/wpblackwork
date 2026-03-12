@@ -10,7 +10,7 @@
 
 .bw-fpw-filter-rows {
   display: grid;
-  gap: 0;
+  gap: 5px;
 }
 
 .bw-fpw-filter-row {
@@ -57,6 +57,7 @@
 .elementor-widget-bw-filtered-post-wall .bw-fpw-filter-option .bw-fpw-option-count {
   font-size: 16px !important;
   line-height: 1.6;
+  padding: 0 !important;
 }
 
 .bw-fpw-filter-option::after {
