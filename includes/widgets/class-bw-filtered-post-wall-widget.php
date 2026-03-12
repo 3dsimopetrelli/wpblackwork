@@ -42,6 +42,38 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
     private function register_rebuild_layout_controls() {
         $this->start_controls_section( 'layout_rebuild_section', [
             'label' => __( 'Layout', 'bw-elementor-widgets' ),
+            'tab'   => Controls_Manager::TAB_CONTENT,
+        ] );
+
+        $this->add_control( 'infinite_scroll', [
+            'label'        => __( 'Infinite Scroll', 'bw-elementor-widgets' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
+            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
+            'return_value' => 'yes',
+            'default'      => 'yes',
+        ] );
+
+        $this->add_control( 'initial_items', [
+            'label'       => __( 'Initial Items', 'bw-elementor-widgets' ),
+            'type'        => Controls_Manager::NUMBER,
+            'min'         => -1,
+            'max'         => 100,
+            'step'        => 1,
+            'default'     => 12,
+            'description' => __( 'Use -1 to render all items and disable infinite loading.', 'bw-elementor-widgets' ),
+        ] );
+
+        $this->add_control( 'load_batch_size', [
+            'label'     => __( 'Load Batch Size', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::NUMBER,
+            'min'       => 1,
+            'max'       => 100,
+            'step'      => 1,
+            'default'   => 12,
+            'condition' => [
+                'infinite_scroll' => 'yes',
+            ],
         ] );
 
         $this->add_control( 'desktop_columns', [
