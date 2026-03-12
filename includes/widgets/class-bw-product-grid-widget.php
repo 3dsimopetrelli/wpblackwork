@@ -1427,7 +1427,9 @@ class BW_Product_Grid_Widget extends Widget_Base {
 
     private function render_wrapper_start( $settings, $show_filters = true ) {
         $wrapper_classes = [ 'bw-product-grid-wrapper', 'bw-fpw-layout-top' ];
-        $responsive_breakpoint = 900;
+        $responsive_breakpoint = isset( $settings['filter_responsive_breakpoint'] )
+            ? max( 320, (int) $settings['filter_responsive_breakpoint'] )
+            : 900;
 
         echo '<div class="' . esc_attr( implode( ' ', $wrapper_classes ) ) . '" data-filter-breakpoint="' . esc_attr( $responsive_breakpoint ) . '">';
     }
@@ -1484,29 +1486,15 @@ class BW_Product_Grid_Widget extends Widget_Base {
         $mobile_panel_title    = __( 'Filter products', 'bw-elementor-widgets' );
         $mobile_filters_title  = __( 'Filters', 'bw-elementor-widgets' );
         $mobile_show_results   = __( 'Show results', 'bw-elementor-widgets' );
-        $mobile_button_border  = true;
         $mobile_button_classes = [ 'bw-fpw-mobile-filter-button' ];
         $apply_button_classes  = [ 'bw-fpw-mobile-apply', 'bw-fpw-mobile-filter-button' ];
-
-        if ( ! $mobile_button_border ) {
-            $mobile_button_classes[] = 'bw-fpw-mobile-filter-button--borderless';
-            $apply_button_classes[]  = 'bw-fpw-mobile-filter-button--borderless';
-        }
-
-        $show_icon = true;
-        $icon_html = '';
-
-        if ( $show_icon ) {
-            $icon_html = '<svg class="bw-fpw-mobile-filter-button-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 7H21M6 12H18M9 17H15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
-        }
+        $icon_html             = '<svg class="bw-fpw-mobile-filter-button-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 7H21M6 12H18M9 17H15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
         ?>
 
         <div class="bw-fpw-mobile-filter" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-default-category="<?php echo esc_attr( $default_category ); ?>">
             <button class="<?php echo esc_attr( implode( ' ', $mobile_button_classes ) ); ?>" type="button">
                 <?php
-                if ( $show_icon ) {
-                    echo $icon_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-                }
+                echo $icon_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
                 echo esc_html( $mobile_filters_title );
                 ?>
             </button>
@@ -1526,27 +1514,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
                             </button>
                             <div class="bw-fpw-mobile-dropdown-panel" aria-hidden="true">
                                 <div class="bw-fpw-mobile-dropdown-options bw-fpw-filter-options bw-fpw-filter-options--categories" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
-                                    <?php if ( $show_all_button && 'all' === $default_category ) : ?>
-                                        <button class="bw-fpw-filter-option bw-fpw-cat-button active" data-category="all">
-                                            <span class="bw-fpw-option-label"><?php echo esc_html( __( 'All', 'bw-elementor-widgets' ) ); ?></span> <span class="bw-fpw-option-count">(<?php echo esc_html( $this->get_total_post_count( $post_type ) ); ?>)</span>
-                                        </button>
-                                    <?php endif; ?>
-
-                                    <?php if ( ! empty( $parent_terms ) && ! is_wp_error( $parent_terms ) ) : ?>
-                                        <?php
-                                        // Mark default category as active, or first category if no default
-                                        $has_active_category = $show_all_button && 'all' === $default_category;
-                                        foreach ( $parent_terms as $category ) :
-                                            $is_active = ( 'all' !== $default_category && $category->term_id === $default_category ) || ( ! $has_active_category );
-                                            if ( $is_active ) {
-                                                $has_active_category = true;
-                                            }
-                                            ?>
-                                            <button class="bw-fpw-filter-option bw-fpw-cat-button<?php echo $is_active ? ' active' : ''; ?>" data-category="<?php echo esc_attr( $category->term_id ); ?>">
-                                                <span class="bw-fpw-option-label"><?php echo esc_html( $category->name ); ?></span> <span class="bw-fpw-option-count">(<?php echo esc_html( $category->count ); ?>)</span>
-                                            </button>
-                                        <?php endforeach; ?>
-                                    <?php endif; ?>
+                                    <?php $this->render_category_filter_items( $parent_terms, $default_category, $show_all_button, $post_type ); ?>
                                 </div>
                             </div>
                         </div>
@@ -1603,26 +1571,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
                     <div class="bw-fpw-filter-row bw-fpw-filter-row--categories" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
                         <h3 class="bw-fpw-filter-label"><?php echo esc_html( $categories_title ); ?></h3>
                         <div class="bw-fpw-filter-options bw-fpw-filter-options--categories" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
-                            <?php if ( $show_all_button && 'all' === $default_category ) : ?>
-                                <button class="bw-fpw-filter-option bw-fpw-cat-button active" data-category="all">
-                                    <span class="bw-fpw-option-label"><?php echo esc_html( __( 'All', 'bw-elementor-widgets' ) ); ?></span> <span class="bw-fpw-option-count">(<?php echo esc_html( $this->get_total_post_count( $post_type ) ); ?>)</span>
-                                </button>
-                            <?php endif; ?>
-                            <?php if ( ! empty( $parent_terms ) && ! is_wp_error( $parent_terms ) ) : ?>
-                                <?php
-                                // Mark default category as active, or first category if no default
-                                $has_active_category = $show_all_button && 'all' === $default_category;
-                                foreach ( $parent_terms as $category ) :
-                                    $is_active = ( 'all' !== $default_category && $category->term_id === $default_category ) || ( ! $has_active_category );
-                                    if ( $is_active ) {
-                                        $has_active_category = true;
-                                    }
-                                    ?>
-                                    <button class="bw-fpw-filter-option bw-fpw-cat-button<?php echo $is_active ? ' active' : ''; ?>" data-category="<?php echo esc_attr( $category->term_id ); ?>">
-                                        <span class="bw-fpw-option-label"><?php echo esc_html( $category->name ); ?></span> <span class="bw-fpw-option-count">(<?php echo esc_html( $category->count ); ?>)</span>
-                                    </button>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
+                            <?php $this->render_category_filter_items( $parent_terms, $default_category, $show_all_button, $post_type ); ?>
                         </div>
                     </div>
                 <?php endif; ?>
@@ -1655,6 +1604,34 @@ class BW_Product_Grid_Widget extends Widget_Base {
             </div>
         </div>
         <?php
+    }
+
+    private function render_category_filter_items( $parent_terms, $default_category, $show_all_button, $post_type ) {
+        if ( $show_all_button && 'all' === $default_category ) :
+            ?>
+            <button class="bw-fpw-filter-option bw-fpw-cat-button active" data-category="all">
+                <span class="bw-fpw-option-label"><?php echo esc_html( __( 'All', 'bw-elementor-widgets' ) ); ?></span> <span class="bw-fpw-option-count">(<?php echo esc_html( $this->get_total_post_count( $post_type ) ); ?>)</span>
+            </button>
+            <?php
+        endif;
+
+        if ( empty( $parent_terms ) || is_wp_error( $parent_terms ) ) {
+            return;
+        }
+
+        $has_active_category = $show_all_button && 'all' === $default_category;
+
+        foreach ( $parent_terms as $category ) :
+            $is_active = ( 'all' !== $default_category && $category->term_id === $default_category ) || ( ! $has_active_category );
+            if ( $is_active ) {
+                $has_active_category = true;
+            }
+            ?>
+            <button class="bw-fpw-filter-option bw-fpw-cat-button<?php echo $is_active ? ' active' : ''; ?>" data-category="<?php echo esc_attr( $category->term_id ); ?>">
+                <span class="bw-fpw-option-label"><?php echo esc_html( $category->name ); ?></span> <span class="bw-fpw-option-count">(<?php echo esc_html( $category->count ); ?>)</span>
+            </button>
+            <?php
+        endforeach;
     }
 
     private function render_posts( $settings, $widget_id, $raw_settings = [] ) {
@@ -1746,9 +1723,9 @@ class BW_Product_Grid_Widget extends Widget_Base {
         $masonry_effect = isset( $settings['masonry_effect'] ) && 'yes' === $settings['masonry_effect'] ? 'yes' : 'no';
         $layout_mode    = 'yes' === $masonry_effect ? 'masonry' : 'css-grid';
 
-        $image_toggle    = true;
-        $image_size      = 'large';
-        $hover_effect    = true;
+        $image_toggle    = isset( $settings['image_toggle'] ) && 'yes' === $settings['image_toggle'];
+        $image_size      = isset( $settings['image_size'] ) && '' !== $settings['image_size'] ? $settings['image_size'] : 'large';
+        $hover_effect    = isset( $settings['hover_effect'] ) && 'yes' === $settings['hover_effect'];
         $open_cart_popup = false;
 
         $include_ids = isset( $settings['specific_ids'] ) ? BW_Widget_Helper::parse_ids( $settings['specific_ids'] ) : [];
@@ -2256,12 +2233,6 @@ class BW_Product_Grid_Widget extends Widget_Base {
         $post_ids = $this->get_filtered_post_ids( $post_type, $category, $subcategories );
 
         return $this->collect_terms_from_posts( $tag_taxonomy, $post_ids );
-    }
-
-    private function format_filter_label( $name, $count ) {
-        $count = is_numeric( $count ) ? (int) $count : $count;
-
-        return trim( sprintf( '%s (%s)', $name, $count ) );
     }
 
     private function get_price_markup( $post_id ) {

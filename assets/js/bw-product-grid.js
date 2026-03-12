@@ -1,8 +1,6 @@
 (function ($) {
     'use strict';
 
-    console.log('🚀 BW Product Grid: Script loaded');
-
     // ============================================
     // MASONRY SYSTEM (from wallpost)
     // ============================================
@@ -633,8 +631,6 @@
             }, 150);
         }
 
-        console.log('📂 Loading subcategories for category:', categoryId);
-
         // Check cache first
         var cacheKey = getCacheKey('subcategories', {
             category_id: categoryId,
@@ -644,7 +640,6 @@
 
         var cachedResponse = getCachedData(cacheKey);
         if (cachedResponse) {
-            console.log('⚡ Using cached subcategories');
             processSubcategoriesResponse(cachedResponse, widgetId, $subcatContainers, $subcatRow, hasPosts, isMobile, autoOpenMobile);
             return;
         }
@@ -664,7 +659,6 @@
                 processSubcategoriesResponse(response, widgetId, $subcatContainers, $subcatRow, hasPosts, isMobile, autoOpenMobile);
             },
             error: function () {
-                console.error('❌ Error loading subcategories');
                 $subcatContainers.html('<p class="bw-fpw-error">Error loading subcategories</p>');
                 if ($subcatRow.length) {
                     if (hasPosts) {
@@ -745,8 +739,6 @@
             }, 150);
         }
 
-        console.log('🏷️ Loading tags for category:', categoryId);
-
         // Check cache first
         var cacheKey = getCacheKey('tags', {
             category_id: categoryId,
@@ -757,7 +749,6 @@
 
         var cachedResponse = getCachedData(cacheKey);
         if (cachedResponse) {
-            console.log('⚡ Using cached tags');
             processTagsResponse(cachedResponse, widgetId, $tagContainers, $tagRow, hasPosts, isMobile, autoOpenMobile);
             return;
         }
@@ -778,7 +769,6 @@
                 processTagsResponse(response, widgetId, $tagContainers, $tagRow, hasPosts, isMobile, autoOpenMobile);
             },
             error: function () {
-                console.error('❌ Error loading tags');
                 $tagContainers.html('<p class="bw-fpw-error">Error loading tags</p>');
                 if ($tagRow.length) {
                     if (hasPosts) {
@@ -1120,7 +1110,6 @@
         var appendMode = !!options.append;
 
         if (!$grid.length) {
-            console.error('❌ Grid not found for widget:', widgetId);
             return;
         }
 
@@ -1158,12 +1147,9 @@
             return;
         }
 
-        console.log('🔍 Filtering posts:', state);
-
         // Cancel pending request for this widget if exists
         if (ajaxRequestQueue[widgetId]) {
             ajaxRequestQueue[widgetId].abort();
-            console.log('⚠️ Cancelled pending request for widget:', widgetId);
         }
 
         disconnectInfiniteObserver(widgetId);
@@ -1194,7 +1180,6 @@
                 $filters.addClass('loading');
             }
 
-            console.log('⚡ Using cached filter results - INSTANT!');
             processFilterResponse(cachedResponse, widgetId, $grid, $wrapper, $filters, {
                 append: appendMode,
                 hadMasonryBefore: !!getMasonryInstance($grid),
@@ -1269,11 +1254,8 @@
                 // Don't show error if request was aborted
                 if (status === 'abort') {
                     clearLoadingPlaceholders($grid);
-                    console.log('🚫 Request aborted for widget:', widgetId);
                     return;
                 }
-
-                console.error('❌ AJAX error:', error);
 
                 if (appendMode) {
                     clearLoadingPlaceholders($grid);
@@ -1356,7 +1338,6 @@
                     syncInfiniteObserver(widgetId);
                 }, 'append');
 
-                console.log('✅ Posts appended successfully');
                 return;
             }
 
@@ -1458,10 +1439,7 @@
                 syncInfiniteObserver(widgetId);
             }, 'initial');
 
-            console.log('✅ Posts filtered successfully');
         } else {
-            console.error('❌ Filter response error:', response);
-
             if (appendMode) {
                 clearLoadingPlaceholders($grid);
                 updateWidgetPagingState(widgetId, {
@@ -1536,8 +1514,6 @@
                 return $(this).closest('[data-widget-id]').attr('data-widget-id') === widgetId;
             }).removeClass('active');
 
-            console.log('📁 Category selected:', categoryId);
-
             var isMobileMode = isInMobileMode(widgetId);
 
             if ($subcatContainer.length) {
@@ -1588,8 +1564,6 @@
                 subcats.push(subcatId);
             }
 
-            console.log('📂 Subcategories selected:', subcats);
-
             // Reload tags based on category and selected subcategories
             var currentCategory = filterState[widgetId].category;
             var $tagOptions = $('.bw-fpw-tag-options[data-widget-id="' + widgetId + '"]');
@@ -1629,8 +1603,6 @@
             } else {
                 tags.push(tagId);
             }
-
-            console.log('🏷️ Tags selected:', tags);
 
             // Filter posts only if NOT in mobile mode
             // In mobile mode, wait for "Show Results" button click
@@ -1684,13 +1656,10 @@
             var widgetId = $button.attr('data-widget-id');
 
             if (!widgetId) {
-                console.error('❌ Widget ID not found for reset button');
                 return;
             }
 
             initFilterState(widgetId);
-
-            console.log('🔄 Resetting filters for widget:', widgetId);
 
             // Get default category from filters
             var $filters = $('.bw-fpw-filters[data-widget-id="' + widgetId + '"]');
@@ -1745,7 +1714,6 @@
             // Filter posts to show initial state
             filterPosts(widgetId);
 
-            console.log('✅ Filters reset successfully');
         });
     }
 
@@ -1842,48 +1810,59 @@
         });
     }
 
-    $(function () {
-        initFilters();
-        toggleResponsiveFilters();
-
-        var resizeTimer;
-        $(window).on('resize orientationchange', function () {
-            clearTimeout(resizeTimer);
-            resizeTimer = setTimeout(function () {
-                toggleResponsiveFilters();
-            }, 150);
-        });
-    });
-
     // Window resize handler
-    var resizeTimeout;
     var lastDeviceByGrid = {};
 
-    $(window).on('resize', function () {
-        clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(function () {
-            $('.bw-fpw-grid.bw-fpw-initialized').each(function () {
-                var $grid = $(this);
-                if (useCssGrid($grid)) {
-                    layoutGrid($grid, false);
-                    return;
-                }
-                var gridId = $grid.attr('data-widget-id') || $grid.index();
-                var currentDevice = getCurrentDevice($grid);
-                var previousDevice = lastDeviceByGrid[gridId];
-                var deviceChanged = currentDevice !== previousDevice;
+    function handleGridResize() {
+        var isEditor = isElementorEditor();
 
-                if (deviceChanged && $grid[0]) {
-                    void $grid[0].offsetHeight;
-                }
+        toggleResponsiveFilters();
 
+        $('.bw-fpw-grid.bw-fpw-initialized').each(function () {
+            var $grid = $(this);
+
+            if (useCssGrid($grid)) {
+                layoutGrid($grid, false);
+                return;
+            }
+
+            if (isEditor) {
                 setItemWidths($grid);
-                layoutGrid($grid, deviceChanged);
+                layoutGrid($grid, false);
                 updateGridHeight($grid);
+                return;
+            }
 
-                lastDeviceByGrid[gridId] = currentDevice;
+            var gridId = $grid.attr('data-widget-id') || $grid.index();
+            var currentDevice = getCurrentDevice($grid);
+            var previousDevice = lastDeviceByGrid[gridId];
+            var deviceChanged = currentDevice !== previousDevice;
+
+            if (deviceChanged && $grid[0]) {
+                void $grid[0].offsetHeight;
+            }
+
+            setItemWidths($grid);
+            layoutGrid($grid, deviceChanged);
+            updateGridHeight($grid);
+
+            lastDeviceByGrid[gridId] = currentDevice;
+        });
+    }
+
+    $(function () {
+        initFilters();
+        handleGridResize();
+
+        var resizeTimer;
+        $(window)
+            .off('resize.bwProductGrid orientationchange.bwProductGrid')
+            .on('resize.bwProductGrid orientationchange.bwProductGrid', function () {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(function () {
+                    handleGridResize();
+                }, 150);
             });
-        }, 150);
     });
 
     // ============================================
@@ -1933,26 +1912,6 @@
             elementorFrontend.isEditMode &&
             elementorFrontend.isEditMode()) ||
             (typeof elementor !== 'undefined');
-    }
-
-    // Enhanced initialization for editor
-    if (isElementorEditor()) {
-        var editorResizeTimeout;
-        $(window).off('resize.bwFPW').on('resize.bwFPW', function () {
-            clearTimeout(editorResizeTimeout);
-            editorResizeTimeout = setTimeout(function () {
-                $('.bw-fpw-grid.bw-fpw-initialized').each(function () {
-                    var $grid = $(this);
-                    if (useCssGrid($grid)) {
-                        layoutGrid($grid, false);
-                        return;
-                    }
-                    setItemWidths($grid);
-                    layoutGrid($grid, false);
-                    updateGridHeight($grid);
-                });
-            }, 150);
-        });
     }
 
 })(jQuery);
