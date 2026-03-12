@@ -74,6 +74,15 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             ],
         ] );
 
+        $this->add_control( 'masonry_effect', [
+            'label'        => __( 'Masonry Effect', 'bw-elementor-widgets' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
+            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
+            'return_value' => 'yes',
+            'default'      => 'yes',
+        ] );
+
         $this->end_controls_section();
     }
 
@@ -1885,6 +1894,9 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             $image_mode = 'proportional';
         }
 
+        $masonry_effect = isset( $settings['masonry_effect'] ) && 'yes' === $settings['masonry_effect'] ? 'yes' : 'no';
+        $layout_mode    = 'yes' === $masonry_effect ? 'masonry' : 'css-grid';
+
         $image_toggle    = true;
         $image_size      = 'large';
         $hover_effect    = true;
@@ -1966,7 +1978,8 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
         $wrapper_style   = '--bw-fpw-max-width:' . $container_max_width . 'px; --bw-fpw-desktop-columns:' . $desktop_columns . '; --bw-fpw-grid-gap:' . $gap_desktop_size . 'px;';
         $grid_attributes = [
             'class'                       => 'bw-fpw-grid',
-            'data-layout-mode'            => 'css-grid',
+            'data-layout-mode'            => $layout_mode,
+            'data-masonry-effect'         => $masonry_effect,
             'data-widget-id'              => $widget_id,
             'data-post-type'              => $post_type,
             'data-columns-desktop'        => $desktop_columns,

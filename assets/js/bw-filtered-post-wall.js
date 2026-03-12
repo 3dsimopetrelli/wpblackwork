@@ -9,6 +9,10 @@
 
     function useCssGrid($grid) {
         var mode = String($grid.attr('data-layout-mode') || '').toLowerCase();
+        if (!mode) {
+            var masonryEffect = String($grid.attr('data-masonry-effect') || '').toLowerCase();
+            return masonryEffect === 'no';
+        }
         return mode === 'css-grid';
     }
 
@@ -1322,7 +1326,8 @@
                         settingKey.indexOf('posts_per_page') !== -1 ||
                         settingKey.indexOf('columns') !== -1 ||
                         settingKey.indexOf('gap') !== -1 ||
-                        settingKey.indexOf('order') !== -1
+                        settingKey.indexOf('order') !== -1 ||
+                        settingKey.indexOf('masonry_effect') !== -1
                     );
 
                     if (needsFullReinit) {
