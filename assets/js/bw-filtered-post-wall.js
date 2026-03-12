@@ -2,8 +2,6 @@
     'use strict';
 
     console.log('🚀 BW Filtered Post Wall: Script loaded');
-    var BW_FPW_DEBUG_PREFIX = '[BW FPW Masonry Debug]';
-    var BW_FPW_FINAL_DEBUG_PREFIX = '[BW FPW Masonry Final Debug]';
 
     // ============================================
     // MASONRY SYSTEM (from wallpost)
@@ -18,35 +16,8 @@
         return mode === 'css-grid';
     }
 
-    function debugIsEnabled() {
-        return isElementorEditor();
-    }
-
-    function debugLog(message, context) {
-        if (!debugIsEnabled()) {
-            return;
-        }
-
-        if (typeof context !== 'undefined') {
-            console.log(BW_FPW_DEBUG_PREFIX + ' ' + message, context);
-            return;
-        }
-
-        console.log(BW_FPW_DEBUG_PREFIX + ' ' + message);
-    }
-
-    function finalDebugLog(message, context) {
-        if (!debugIsEnabled()) {
-            return;
-        }
-
-        if (typeof context !== 'undefined') {
-            console.log(BW_FPW_FINAL_DEBUG_PREFIX + ' ' + message, context);
-            return;
-        }
-
-        console.log(BW_FPW_FINAL_DEBUG_PREFIX + ' ' + message);
-    }
+    function debugLog() {}
+    function finalDebugLog() {}
 
     function getGridIdentity($grid) {
         if (!$grid || !$grid.length) {
@@ -116,6 +87,10 @@
         }
 
         return $grid;
+    }
+
+    function useEditorMasonryFallback($grid) {
+        return isElementorEditor() && !useCssGrid($grid);
     }
 
     function getMasonryInstance($grid) {
@@ -242,6 +217,16 @@
 
     function setItemWidths($grid) {
         if (!$grid || !$grid.length) {
+            return;
+        }
+
+        if (useEditorMasonryFallback($grid)) {
+            $grid.find('.bw-fpw-item').css({
+                'width': '',
+                'margin-bottom': '',
+                'position': ''
+            });
+            $grid.removeData('bw-item-width');
             return;
         }
 
@@ -466,6 +451,8 @@
                 $cssGridContainer.masonry('destroy');
             }
 
+            $grid.removeClass('bw-fpw-editor-masonry-fallback');
+            $grid.attr('data-editor-masonry-fallback', 'no');
             $grid.addClass('bw-fpw-initialized');
             $grid.find('.bw-fpw-item').css({
                 'width': '',
@@ -477,6 +464,27 @@
             });
             return;
         }
+
+        if (useEditorMasonryFallback($grid)) {
+            var $editorFallbackContainer = getMasonryContainer($grid);
+            if (typeof $.fn.masonry === 'function' && $editorFallbackContainer.data('masonry')) {
+                $editorFallbackContainer.masonry('destroy');
+            }
+
+            $grid.addClass('bw-fpw-editor-masonry-fallback');
+            $grid.attr('data-editor-masonry-fallback', 'yes');
+            $grid.addClass('bw-fpw-initialized');
+            $grid.find('.bw-fpw-item').css({
+                'width': '',
+                'margin-bottom': '',
+                'position': ''
+            });
+            $grid.css('height', '');
+            return;
+        }
+
+        $grid.removeClass('bw-fpw-editor-masonry-fallback');
+        $grid.attr('data-editor-masonry-fallback', 'no');
 
         if (isElementorEditor() && (!$grid.is(':visible') || $grid.width() < 40)) {
             debugLog('layoutGrid: editor geometry unstable', {

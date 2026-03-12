@@ -276,6 +276,19 @@
   width: 100%;
 }
 
+.bw-fpw-grid.bw-fpw-editor-masonry-fallback[data-layout-mode="masonry"] {
+  display: grid;
+  grid-template-columns: repeat(var(--bw-fpw-desktop-columns, 4), minmax(0, 1fr));
+  gap: var(--bw-fpw-grid-gap, 24px);
+  width: 100%;
+}
+
+.bw-fpw-grid.bw-fpw-editor-masonry-fallback .bw-fpw-item {
+  width: auto !important;
+  margin-bottom: 0 !important;
+  position: static !important;
+}
+
 .bw-fpw-item {
   min-width: 0;
 }
@@ -301,10 +314,18 @@
   .bw-fpw-grid[data-layout-mode="css-grid"] {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .bw-fpw-grid.bw-fpw-editor-masonry-fallback[data-layout-mode="masonry"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 767px) {
   .bw-fpw-grid[data-layout-mode="css-grid"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .bw-fpw-grid.bw-fpw-editor-masonry-fallback[data-layout-mode="masonry"] {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
