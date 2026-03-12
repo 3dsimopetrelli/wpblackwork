@@ -58,6 +58,31 @@
         }, 120);
     }
 
+    function scheduleEditorItemsRetry($grid, forceReinit) {
+        if (!isElementorEditor() || !$grid || !$grid.length) {
+            return;
+        }
+
+        var retryCount = parseInt($grid.data('bw-editor-items-retry'), 10) || 0;
+        if (retryCount >= 10) {
+            debugLog('editor items retry limit reached', {
+                widgetId: $grid.attr('data-widget-id') || null
+            });
+            return;
+        }
+
+        $grid.data('bw-editor-items-retry', retryCount + 1);
+        debugLog('editor items retry scheduled', {
+            widgetId: $grid.attr('data-widget-id') || null,
+            retry: retryCount + 1,
+            forceReinit: !!forceReinit
+        });
+
+        setTimeout(function () {
+            layoutGrid($grid, !!forceReinit);
+        }, 120);
+    }
+
     function getCurrentDevice($grid) {
         var width = window.innerWidth || $(window).width();
 
@@ -356,6 +381,15 @@
             return;
         }
 
+        if (isElementorEditor() && $grid.find('.bw-fpw-item').length === 0) {
+            debugLog('layoutGrid: masonry mode but items not in DOM yet', {
+                widgetId: $grid.attr('data-widget-id') || null,
+                gridWidth: $grid.width() || 0
+            });
+            scheduleEditorItemsRetry($grid, forceReinit);
+            return;
+        }
+
         if (typeof $.fn.masonry !== 'function') {
             debugLog('layoutGrid: $.fn.masonry unavailable', {
                 widgetId: $grid.attr('data-widget-id') || null
@@ -416,6 +450,7 @@
                 }, 100);
 
                 $grid.data('bw-editor-masonry-retry', 0);
+                $grid.data('bw-editor-items-retry', 0);
                 attachEditorGridObserver($grid);
                 debugLog('layoutGrid existing instance complete', {
                     widgetId: $grid.attr('data-widget-id') || null,
@@ -487,6 +522,7 @@
             }, 100);
 
             $grid.data('bw-editor-masonry-retry', 0);
+            $grid.data('bw-editor-items-retry', 0);
             attachEditorGridObserver($grid);
         };
 
