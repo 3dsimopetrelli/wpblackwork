@@ -87,3 +87,16 @@ Completed work:
 - JS resize logic consolidated
 
 The widget runtime and editor configuration are now consistent.
+
+## Loading and Animation Completion
+This task also closed a dedicated loading and animation hardening pass on `BW Product Grid`.
+
+Completed work:
+- eager/lazy policy propagation now reaches `BW_Product_Card_Component`
+- product-card component support was extended with explicit `image_loading` and `hover_image_loading`
+- initial server render now uses eager first-row main images and lazy later items/hover images
+- Masonry wait scope was narrowed to primary images only
+- initial and replace-mode reveal sequencing now runs behind grid-ready completion
+- stale stagger timer lifecycle is cleared before new reveal cycles
+
+This completion reduced loading/layout race conditions and aligned visual reveal behavior with deterministic runtime readiness.

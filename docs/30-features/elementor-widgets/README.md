@@ -84,6 +84,23 @@ Final responsive contract:
 - tablet 768-1024px
 - desktop >= 1025px
 
+### Lazy Loading and Animation Stabilization
+- `BW_Product_Card_Component` now supports explicit loading controls:
+  - `image_loading`
+  - `hover_image_loading`
+- AJAX loading policy is now explicit:
+  - initial batch can be eager
+  - appended batches remain lazy
+  - hover images stay lazy
+- Initial server-side render now uses:
+  - eager for first-row main images
+  - lazy for later initial items
+  - lazy for hover images
+- Masonry/reveal waits are now limited to primary images only:
+  - `img.bw-slider-main`
+- Initial reveal and replace-mode reveal are now sequenced behind grid-ready completion.
+- Stale stagger timers are cleared before new reveal cycles so replaced content cannot be affected by orphaned timeouts.
+
 ## Deferred future work
 - slider-core convergence (`bw-slick-slider` + `bw-slide-showcase` rationalization)
 - control-group extraction/reuse where safe

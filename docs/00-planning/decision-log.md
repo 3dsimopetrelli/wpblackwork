@@ -476,6 +476,28 @@ Key outcomes:
 Impact:
 The widget is now considered stable and ready for future UI refinement and feature work.
 
+### 2026 — BW Product Grid Loading and Animation Hardening
+
+Decision:
+Correct loading-policy propagation and animation sequencing before further UX refinements on `BW Product Grid`.
+
+Motivation:
+- initial and appended image loading needed explicit eager/lazy authority
+- hover-image loading was incorrectly allowed to influence Masonry/reveal timing
+- reveal sequencing still had race-risk during initial and replace-mode flows
+- UX refinement work would remain unstable unless loading and layout readiness were deterministic first
+
+What was fixed:
+- `BW_Product_Card_Component` now accepts explicit `image_loading` and `hover_image_loading`
+- AJAX and initial render now use explicit loading policy propagation
+- initial server render no longer treats all first-batch images the same
+- Masonry/reveal waits were narrowed to primary images only
+- initial and replace-mode reveals now start only after grid-ready completion
+- stale stagger timers are cleared before new reveal cycles
+
+Impact:
+Loading and animation behavior is now deterministic enough to support further visual refinement without preserving legacy race-condition compensations.
+
 ## Governance Layer Closure
 
 Status: CLOSED  

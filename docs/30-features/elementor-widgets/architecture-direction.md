@@ -56,6 +56,21 @@ This wave focused on:
 
 This wave did not introduce new user-facing features; it was a bounded cleanup and consistency pass ahead of future UI refinement and feature work.
 
+### Loading Policy and Animation Sequencing Hardening
+This hardening wave also corrected loading-policy propagation and animation sequencing without changing the widget architecture.
+
+Implemented direction:
+- loading policy now distinguishes between main images and hover images
+- first paint and append flow now follow different loading behavior
+- Masonry is no longer blocked by hover-image loading
+- reveal starts only after layout-ready completion in both initial and replace flows
+- stale stagger timers are cleared before a new reveal cycle starts
+
+Architectural effect:
+- improved layout determinism
+- reduced visible jumps during first paint and replace-mode updates
+- preserved the current infinite-loading and Masonry architecture while making sequencing explicit
+
 ## Shared slider-core authority
 Direction:
 - create a shared `slider-core` runtime authority for lifecycle and common behavior
