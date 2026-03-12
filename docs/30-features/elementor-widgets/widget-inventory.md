@@ -2,6 +2,13 @@
 
 ## Runtime inventory (from `includes/widgets/`)
 
+Canonical transition note:
+- `BW Product Grid` is the canonical current name for the former `bw-filtered-post-wall` widget.
+- Canonical runtime identifiers:
+  - slug: `bw-product-grid`
+  - class: `BW_Product_Grid_Widget`
+  - file: `includes/widgets/class-bw-product-grid-widget.php`
+
 | Widget Slug | Class File | Family (Current) | Notes |
 |---|---|---|---|
 | `bw-about-menu` | `includes/widgets/class-bw-about-menu-widget.php` | UI/Navigation | non-product |
@@ -26,6 +33,10 @@
 - Internal slugs above remain the runtime authority.
 
 ## Current implementation deltas (status)
+- `BW Product Grid` naming convergence completed:
+  - canonical visible title: `BW Product Grid`
+  - canonical slug: `bw-product-grid`
+  - canonical class: `BW_Product_Grid_Widget`
 - `bw-product-grid`: now supports `Enable Filter = yes/no` (can run as filtered grid or simple grid).
 - `bw-product-grid` product rendering is delegated to `BW_Product_Card_Component` in both:
   - widget server render path

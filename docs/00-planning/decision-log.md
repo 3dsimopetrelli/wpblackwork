@@ -258,6 +258,17 @@ If a decision is normative and architecture-binding, the ADR process MUST be use
 - Follow-up actions:
   - Keep taxonomy resolver as single source of truth.
   - Keep list-table drag source restricted to handle column.
+
+### Entry 023
+- Date: 2026-03-12
+- Decision summary: Unified the former `bw-filtered-post-wall` Elementor widget under the canonical Product Grid naming model: visible title `BW Product Grid`, slug `bw-product-grid`, class `BW_Product_Grid_Widget`.
+- Affected domain: Elementor Widgets / Product Grid / Documentation Alignment
+- Rationale: The previous mixed naming (`BW-UI Product Grid`, `bw-filtered-post-wall`, `BW_Filtered_Post_Wall_Widget`) created avoidable drift between editor UI, runtime code, and architecture docs. One canonical name makes future audit/rebuild work easier and reduces ambiguity for contributors and AI sessions.
+- Risk impact: Low-Medium, because top-level naming is now clearer while some low-level internal `bw_fpw_*` runtime contracts remain intentionally unchanged for scoped compatibility.
+- Follow-up actions:
+  - Keep `BW Product Grid` as the only canonical current name in active documentation.
+  - Allow legacy naming only as explicit historical reference where traceability matters.
+  - Reassess whether internal `bw_fpw_*` runtime contracts should be renamed in a future dedicated wave.
   - Keep product list-table drag column anchored before `name` (fallback `title`, then `cb`) with no append fallback.
 
 ### Entry 023

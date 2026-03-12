@@ -33,6 +33,15 @@
 - Initial render remains server-rendered.
 - Existing filter/category/tag query semantics were preserved.
 
+## Naming Convergence
+- This wave also finalized the widget naming convergence for the canonical wall/query-grid surface.
+- Current canonical identifiers:
+  - visible title: `BW Product Grid`
+  - slug: `bw-product-grid`
+  - class: `BW_Product_Grid_Widget`
+- Historical reference:
+  - formerly `bw-filtered-post-wall`
+
 ## Validation
 - `php -l includes/widgets/class-bw-product-grid-widget.php`
   - pass

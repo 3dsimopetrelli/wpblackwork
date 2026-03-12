@@ -4,6 +4,9 @@
 Define a realistic target architecture for the Blackwork Elementor widget subsystem without a big-bang rewrite.
 
 ## Implemented baseline (current state)
+- `BW Product Grid` is the canonical name for the former `bw-filtered-post-wall` widget, with:
+  - slug: `bw-product-grid`
+  - class: `BW_Product_Grid_Widget`
 - Product-card authority is `BW_Product_Card_Component` across migrated product surfaces (`BW_Product_Card_Renderer` remains compatibility bridge).
 - `bw-product-grid` already supports dual mode via `Enable Filter`:
   - enabled: filtered grid behavior
@@ -13,7 +16,7 @@ Define a realistic target architecture for the Blackwork Elementor widget subsys
 
 ## Target family boundaries
 - `Product Grid Family`
-  - canonical wall/query-grid widget (`bw-product-grid`)
+  - canonical wall/query-grid widget (`bw-product-grid`, visible title `BW Product Grid`)
   - `bw-related-products` as product-card reuse reference
 - `Product Slider Family`
   - `bw-product-slide` as canonical product slider

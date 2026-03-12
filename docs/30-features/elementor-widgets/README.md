@@ -3,6 +3,14 @@
 ## Scope
 This feature area documents the Blackwork custom Elementor widget subsystem.
 
+Canonical naming note:
+- `BW Product Grid` is the current canonical wall/query-grid widget.
+- Runtime identifiers:
+  - slug: `bw-product-grid`
+  - class: `BW_Product_Grid_Widget`
+- Historical reference:
+  - `BW Product Grid` (formerly `bw-filtered-post-wall`)
+
 Current runtime authority:
 - Widget classes: `includes/widgets/`
 - Widget registration loader: `includes/class-bw-widget-loader.php`
@@ -33,6 +41,7 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - `bw-related-products` -> current best reference for shared product-card reuse
 
 ## Visible title alignment (editor)
+- Internal slug `bw-product-grid` -> visible title `BW Product Grid`
 - Internal slug `bw-slick-slider` -> visible title `BW-UI Product Slider`
 - Internal slug `bw-product-slide` -> visible title `BW-SP Gallery Product`
 - Note: this is editor labeling only (`get_title()`); internal slugs/contracts remain unchanged.
