@@ -86,6 +86,43 @@
         };
     }
 
+    function getMasonryContainer($grid) {
+        if (!$grid || !$grid.length) {
+            return $grid;
+        }
+
+        var $directItems = $grid.children('.bw-fpw-item');
+        if ($directItems.length) {
+            return $grid;
+        }
+
+        var $allItems = $grid.find('.bw-fpw-item');
+        if (!$allItems.length) {
+            return $grid;
+        }
+
+        var $candidate = $allItems.first().parent();
+        if (!$candidate.length || $candidate.is($grid)) {
+            return $grid;
+        }
+
+        if ($candidate.children('.bw-fpw-item').length === $allItems.length) {
+            finalDebugLog('Masonry container remapped to inner wrapper', {
+                outerGrid: getGridIdentity($grid),
+                masonryContainer: getGridIdentity($candidate),
+                items: $allItems.length
+            });
+            return $candidate;
+        }
+
+        return $grid;
+    }
+
+    function getMasonryInstance($grid) {
+        var $container = getMasonryContainer($grid);
+        return $container && $container.length ? $container.data('masonry') : null;
+    }
+
     function scheduleEditorMasonryRetry($grid, forceReinit) {
         if (!isElementorEditor() || !$grid || !$grid.length) {
             return;
@@ -217,16 +254,18 @@
             return;
         }
 
+        var $masonryContainer = getMasonryContainer($grid);
+
         var device = getCurrentDevice($grid);
         var columnsCount = getColumns($grid, device);
         var gap = getGutterValue($grid, device);
-        var $items = $grid.find('.bw-fpw-item');
+        var $items = $masonryContainer.find('.bw-fpw-item');
 
         if (!$items.length) {
             return;
         }
 
-        var containerWidth = $grid.width();
+        var containerWidth = $masonryContainer.width();
         var totalGap = gap * (columnsCount - 1);
         var itemWidth = (containerWidth - totalGap) / columnsCount;
         $grid.data('bw-item-width', itemWidth > 0 ? itemWidth : 0);
@@ -275,13 +314,13 @@
             return;
         }
 
-        var instance = $grid.data('masonry');
+        var instance = getMasonryInstance($grid);
         if (!instance) {
             return;
         }
 
         var maxHeight = 0;
-        var $items = $grid.find('.bw-fpw-item');
+        var $items = getMasonryContainer($grid).find('.bw-fpw-item');
 
         $items.each(function () {
             var $item = $(this);
@@ -301,8 +340,9 @@
             return;
         }
 
-        if (typeof $.fn.masonry === 'function' && $grid.data('masonry')) {
-            $grid.masonry('destroy');
+        var $masonryContainer = getMasonryContainer($grid);
+        if (typeof $.fn.masonry === 'function' && $masonryContainer.data('masonry')) {
+            $masonryContainer.masonry('destroy');
         }
 
         $grid.removeClass('bw-fpw-initialized');
@@ -316,7 +356,7 @@
             return;
         }
 
-        var instance = $grid.data('masonry');
+        var instance = getMasonryInstance($grid);
         if (!instance) {
             debugLog('editor relayout skipped: missing masonry instance', {
                 widgetId: $grid.attr('data-widget-id') || null,
@@ -421,8 +461,9 @@
         });
 
         if (useCssGrid($grid)) {
-            if (typeof $.fn.masonry === 'function' && $grid.data('masonry')) {
-                $grid.masonry('destroy');
+            var $cssGridContainer = getMasonryContainer($grid);
+            if (typeof $.fn.masonry === 'function' && $cssGridContainer.data('masonry')) {
+                $cssGridContainer.masonry('destroy');
             }
 
             $grid.addClass('bw-fpw-initialized');
@@ -484,7 +525,8 @@
         var device = getCurrentDevice($grid);
         var columnsCount = getColumns($grid, device);
         var gap = getGutterValue($grid, device);
-        var instance = $grid.data('masonry');
+        var $masonryContainer = getMasonryContainer($grid);
+        var instance = $masonryContainer.data('masonry');
 
         var lastColumns = $grid.data('bw-last-columns');
         var lastGutter = $grid.data('bw-last-gutter');
@@ -579,10 +621,10 @@
                 columnWidth: masonryOptions.columnWidth,
                 gutter: masonryOptions.gutter
             });
-            $grid.masonry(masonryOptions);
+            $masonryContainer.masonry(masonryOptions);
             $grid.addClass('bw-fpw-initialized');
 
-            var masonryInstance = $grid.data('masonry');
+            var masonryInstance = $masonryContainer.data('masonry');
             debugLog('masonry instance created', {
                 widgetId: $grid.attr('data-widget-id') || null,
                 created: !!masonryInstance,
@@ -620,7 +662,7 @@
             updateGridHeight($grid);
 
             setTimeout(function () {
-                var instance = $grid.data('masonry');
+                var instance = getMasonryInstance($grid);
                 if (instance && typeof instance.layout === 'function') {
                     instance.layout();
                     updateGridHeight($grid);
@@ -1079,7 +1121,7 @@
 
         // OPTIMIZATION: Only destroy masonry if necessary
         // Store current instance to check if we need full reinit
-        var hadMasonryBefore = $grid.data('masonry') ? true : false;
+        var hadMasonryBefore = getMasonryInstance($grid) ? true : false;
 
         ajaxRequestQueue[widgetId] = $.ajax({
             url: bwFilteredPostWallAjax.ajaxurl,
@@ -1237,7 +1279,7 @@
 
                 // Additional layout passes for stability
                 setTimeout(function () {
-                    var instance = $grid.data('masonry');
+                    var instance = getMasonryInstance($grid);
                     if (instance && typeof instance.layout === 'function') {
                         instance.layout();
                         updateGridHeight($grid);
@@ -1245,7 +1287,7 @@
                 }, 200);
 
                 setTimeout(function () {
-                    var instance = $grid.data('masonry');
+                    var instance = getMasonryInstance($grid);
                     if (instance && typeof instance.layout === 'function') {
                         instance.layout();
                         updateGridHeight($grid);
