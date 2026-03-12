@@ -292,57 +292,6 @@
   min-width: 0;
 }
 
-.bw-fpw-item--loading-placeholder {
-  pointer-events: none;
-}
-
-.bw-fpw-card--placeholder {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.bw-fpw-content--placeholder {
-  display: grid;
-  gap: 8px;
-}
-
-.bw-fpw-media--placeholder {
-  position: relative;
-  overflow: hidden;
-  border-radius: inherit;
-  background: rgba(249, 247, 243, 0.96);
-}
-
-.bw-fpw-media--placeholder-proportional,
-.bw-fpw-media--placeholder-cover {
-  aspect-ratio: 4 / 5;
-}
-
-.bw-fpw-image-placeholder-shell,
-.bw-fpw-placeholder-line {
-  display: block;
-  background: rgba(241, 238, 233, 0.88);
-  border-radius: 999px;
-}
-
-.bw-fpw-image-placeholder-shell {
-  width: 100%;
-  height: 100%;
-  min-height: 100%;
-}
-
-.bw-fpw-placeholder-line--title {
-  width: 72%;
-  height: 12px;
-}
-
-.bw-fpw-placeholder-line--meta {
-  width: 46%;
-  height: 9px;
-  opacity: 0.72;
-}
-
 .bw-fpw-item.bw-fpw-item--reveal {
   opacity: 0;
   will-change: opacity, transform;
@@ -362,21 +311,6 @@
 .bw-fpw-item.bw-fpw-item--reveal.bw-fpw-item--visible {
   opacity: 1;
   transform: translateY(0);
-}
-
-.bw-fpw-item--from-placeholder .bw-fpw-card {
-  background: rgba(249, 247, 243, 0.62);
-  transition: background-color 0.72s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.bw-fpw-item--from-placeholder .bw-fpw-media {
-  background-color: rgba(249, 247, 243, 0.72);
-  transition: background-color 0.72s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.bw-fpw-item--from-placeholder.bw-fpw-item--visible .bw-fpw-card,
-.bw-fpw-item--from-placeholder.bw-fpw-item--visible .bw-fpw-media {
-  background-color: transparent;
 }
 
 .bw-fpw-load-state {
@@ -428,21 +362,10 @@
   display: none;
 }
 
-.bw-fpw-grid[data-image-mode="proportional"] .bw-fpw-media img {
+.bw-fpw-grid .bw-fpw-media img {
   width: 100%;
   height: auto;
   object-fit: contain;
-}
-
-.bw-fpw-grid[data-image-mode="cover"] .bw-fpw-media {
-  aspect-ratio: 4 / 5;
-  overflow: hidden;
-}
-
-.bw-fpw-grid[data-image-mode="cover"] .bw-fpw-media img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
 }
 
 @media (max-width: 1024px) {
@@ -481,10 +404,5 @@
 
   .bw-fpw-load-indicator__spinner {
     animation: none;
-  }
-
-  .bw-fpw-item--from-placeholder .bw-fpw-card,
-  .bw-fpw-item--from-placeholder .bw-fpw-media {
-    transition: none;
   }
 }

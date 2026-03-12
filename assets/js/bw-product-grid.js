@@ -857,14 +857,6 @@
         return $nodes.filter('.bw-fpw-item').add($nodes.find('.bw-fpw-item'));
     }
 
-    function clearLoadingPlaceholders($grid) {
-        if (!$grid || !$grid.length) {
-            return;
-        }
-
-        $grid.children('.bw-fpw-item--loading-placeholder').remove();
-    }
-
     function clearStaggerTimers(widgetId) {
         if (!widgetId || !staggerTimersByWidget[widgetId]) {
             return;
@@ -875,85 +867,6 @@
         });
 
         staggerTimersByWidget[widgetId] = [];
-    }
-
-    function createLoadingPlaceholders(count, imageMode) {
-        var total = Math.max(0, parseInteger(count, 0));
-        var safeImageMode = imageMode === 'cover' ? 'cover' : 'proportional';
-        var html = '';
-
-        for (var i = 0; i < total; i += 1) {
-            html += ''
-                + '<article class="bw-fpw-item bw-fpw-item--loading-placeholder" aria-hidden="true">'
-                + '  <div class="bw-fpw-card bw-fpw-card--placeholder">'
-                + '    <div class="bw-fpw-media bw-fpw-media--placeholder bw-fpw-media--placeholder-' + safeImageMode + '">'
-                + '      <span class="bw-fpw-image-placeholder-shell"></span>'
-                + '    </div>'
-                + '    <div class="bw-fpw-content bw-fpw-content--placeholder">'
-                + '      <span class="bw-fpw-placeholder-line bw-fpw-placeholder-line--title"></span>'
-                + '      <span class="bw-fpw-placeholder-line bw-fpw-placeholder-line--meta"></span>'
-                + '    </div>'
-                + '  </div>'
-                + '</article>';
-        }
-
-        return createResponseNodes(html);
-    }
-
-    function appendLoadingPlaceholders($grid, count) {
-        if (!$grid || !$grid.length) {
-            return $();
-        }
-
-        clearLoadingPlaceholders($grid);
-
-        var $placeholders = createLoadingPlaceholders(count, $grid.attr('data-image-mode'));
-
-        if ($placeholders.length) {
-            $grid.append($placeholders);
-        }
-
-        return $placeholders;
-    }
-
-    function replaceLoadingPlaceholders($grid, $items) {
-        if (!$grid || !$grid.length) {
-            return $items;
-        }
-
-        var $placeholders = $grid.children('.bw-fpw-item--loading-placeholder');
-
-        if (!$placeholders.length) {
-            if ($items && $items.length) {
-                $grid.append($items);
-            }
-
-            return $items;
-        }
-
-        var $insertedItems = $();
-
-        if ($items && $items.length) {
-            $items.each(function (index) {
-                var $item = $(this);
-                var $placeholder = $placeholders.eq(index);
-
-                if ($placeholder.length) {
-                    $item.addClass('bw-fpw-item--from-placeholder');
-                    $placeholder.replaceWith($item);
-                } else {
-                    $grid.append($item);
-                }
-
-                $insertedItems = $insertedItems.add($item);
-            });
-        }
-
-        if ($placeholders.length > $insertedItems.length) {
-            $placeholders.slice($insertedItems.length).remove();
-        }
-
-        return $insertedItems;
     }
 
     function prepareItemsForReveal($items, mode) {
@@ -977,8 +890,6 @@
         var $revealItems = $items.filter('.bw-fpw-item--reveal');
         var revealMode = mode === 'initial' ? 'initial' : 'append';
         var baseDelay = revealMode === 'initial' ? 72 : 58;
-        var settleDelay = revealMode === 'initial' ? 780 : 640;
-
         if (!$revealItems.length) {
             return;
         }
@@ -994,16 +905,6 @@
 
             var revealTimer = setTimeout(function () {
                 $item.addClass('bw-fpw-item--visible');
-
-                if ($item.hasClass('bw-fpw-item--from-placeholder')) {
-                    var settleTimer = setTimeout(function () {
-                        $item.removeClass('bw-fpw-item--from-placeholder');
-                    }, settleDelay);
-
-                    if (widgetId && staggerTimersByWidget[widgetId]) {
-                        staggerTimersByWidget[widgetId].push(settleTimer);
-                    }
-                }
             }, delay);
 
             if (widgetId && staggerTimersByWidget[widgetId]) {
@@ -1062,7 +963,7 @@
         }
 
         var widgetId = $grid.attr('data-widget-id');
-        var $items = $grid.children('.bw-fpw-item').not('.bw-fpw-item--loading-placeholder');
+        var $items = $grid.children('.bw-fpw-item');
 
         if (!$items.length) {
             $grid.attr('data-initial-reveal-done', 'yes');
@@ -1120,14 +1021,13 @@
         }
 
         clearStaggerTimers(widgetId);
-        clearLoadingPlaceholders($grid);
 
         var state = filterState[widgetId];
         var postType = $grid.attr('data-post-type') || 'product';
-        var imageToggle = $grid.attr('data-image-toggle') || 'no';
-        var imageSize = $grid.attr('data-image-size') || 'large';
-        var imageMode = $grid.attr('data-image-mode') || 'proportional';
-        var hoverEffect = $grid.attr('data-hover-effect') || 'no';
+        var imageToggle = 'yes';
+        var imageSize = 'large';
+        var imageMode = 'proportional';
+        var hoverEffect = 'yes';
         var openCartPopup = $grid.attr('data-open-cart-popup') || 'no';
         var orderBy = $grid.attr('data-order-by') || 'date';
         var order = $grid.attr('data-order') || 'DESC';
@@ -1170,7 +1070,6 @@
                 updateWidgetPagingState(widgetId, {
                     isLoading: true
                 });
-                appendLoadingPlaceholders($grid, requestPerPage);
             } else {
                 $filters.addClass('loading');
             }
@@ -1189,7 +1088,6 @@
             updateWidgetPagingState(widgetId, {
                 isLoading: true
             });
-            appendLoadingPlaceholders($grid, requestPerPage);
         } else {
             $filters.addClass('loading');
             updateWidgetPagingState(widgetId, {
@@ -1248,12 +1146,10 @@
 
                 // Don't show error if request was aborted
                 if (status === 'abort') {
-                    clearLoadingPlaceholders($grid);
                     return;
                 }
 
                 if (appendMode) {
-                    clearLoadingPlaceholders($grid);
                     updateWidgetPagingState(widgetId, {
                         isLoading: false
                     });
@@ -1320,7 +1216,9 @@
             prepareItemsForReveal($responseItems, appendMode ? 'append' : 'initial');
 
             if (appendMode) {
-                $responseItems = replaceLoadingPlaceholders($grid, $responseItems);
+                if ($responseItems && $responseItems.length) {
+                    $grid.append($responseItems);
+                }
 
                 updateWidgetPagingState(widgetId, $.extend({}, paginationMeta, {
                     isLoading: true
@@ -1343,7 +1241,6 @@
             }
 
             clearStaggerTimers(widgetId);
-            clearLoadingPlaceholders($grid);
             $grid.empty().append($responseNodes);
 
             var $subcatRow = $('.bw-fpw-filter-row--subcategories[data-widget-id="' + widgetId + '"]');
@@ -1437,7 +1334,6 @@
 
         } else {
             if (appendMode) {
-                clearLoadingPlaceholders($grid);
                 updateWidgetPagingState(widgetId, {
                     isLoading: false,
                     hasMore: false,
@@ -1453,7 +1349,6 @@
             emptyStateHtml += '<button class="elementor-button bw-fpw-reset-filters" data-widget-id="' + widgetId + '">RESET FILTERS</button>';
             emptyStateHtml += '</div>';
             clearStaggerTimers(widgetId);
-            clearLoadingPlaceholders($grid);
             $grid.html(emptyStateHtml);
 
             // Remove loading state
