@@ -10,7 +10,7 @@
 
 .bw-fpw-filter-rows {
   display: grid;
-  gap: 16px;
+  gap: 0;
 }
 
 .bw-fpw-filter-row {
@@ -22,7 +22,7 @@
 
 .bw-fpw-filter-label {
   margin: 0;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 600;
   line-height: 1.4;
   color: #000;
