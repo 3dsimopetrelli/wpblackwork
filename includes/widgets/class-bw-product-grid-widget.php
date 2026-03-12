@@ -1907,15 +1907,20 @@ class BW_Product_Grid_Widget extends Widget_Base {
         if ( 'product' === $post_type && class_exists( 'BW_Product_Card_Component' ) && function_exists( 'wc_get_product' ) ) {
             $product = wc_get_product( $post_id );
 
-            if ( $product ) {
-                echo BW_Product_Card_Component::render(
-                    $product,
-                    [
-                        'image_size'             => $image_size,
-                        'image_mode'             => $image_mode,
-                        'show_image'             => $image_toggle,
-                        'show_hover_image'       => $image_toggle && $hover_effect,
-                        'hover_image_source'     => 'meta',
+	            if ( $product ) {
+	                $initial_image_loading       = 'eager';
+	                $initial_hover_image_loading = 'lazy';
+
+	                echo BW_Product_Card_Component::render(
+	                    $product,
+	                    [
+	                        'image_size'             => $image_size,
+	                        'image_mode'             => $image_mode,
+	                        'image_loading'          => $initial_image_loading,
+	                        'hover_image_loading'    => $initial_hover_image_loading,
+	                        'show_image'             => $image_toggle,
+	                        'show_hover_image'       => $image_toggle && $hover_effect,
+	                        'hover_image_source'     => 'meta',
                         'show_title'             => true,
                         'show_description'       => true,
                         'description_mode'       => 'auto',
@@ -1957,11 +1962,11 @@ class BW_Product_Grid_Widget extends Widget_Base {
 
         $thumbnail_html = '';
 
-        if ( $image_toggle && has_post_thumbnail( $post_id ) ) {
-            $thumbnail_args = [
-                'loading' => 'lazy',
-                'class'   => 'bw-slider-main',
-            ];
+	        if ( $image_toggle && has_post_thumbnail( $post_id ) ) {
+	            $thumbnail_args = [
+	                'loading' => 'eager',
+	                'class'   => 'bw-slider-main',
+	            ];
 
             $thumbnail_html = get_the_post_thumbnail( $post_id, $image_size, $thumbnail_args );
         }
@@ -1975,10 +1980,10 @@ class BW_Product_Grid_Widget extends Widget_Base {
                     $hover_image_id,
                     $image_size,
                     false,
-                    [
-                        'class'   => 'bw-slider-hover',
-                        'loading' => 'lazy',
-                    ]
+	                    [
+	                        'class'   => 'bw-slider-hover',
+	                        'loading' => 'lazy',
+	                    ]
                 );
             }
         }

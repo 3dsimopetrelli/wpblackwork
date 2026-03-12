@@ -21,12 +21,14 @@ class BW_Product_Card_Component {
 	 *
 	 * @var array
 	 */
-	private static $default_settings = [
-		'image_size'               => 'large',
-		'image_mode'               => 'cover',
-		'show_image'               => true,
-		'show_hover_image'         => true,
-		'hover_image_source'       => 'meta',
+		private static $default_settings = [
+			'image_size'               => 'large',
+			'image_mode'               => 'cover',
+			'image_loading'            => 'lazy',
+			'hover_image_loading'      => 'lazy',
+			'show_image'               => true,
+			'show_hover_image'         => true,
+			'hover_image_source'       => 'meta',
 		'show_title'               => true,
 		'show_description'         => false,
 		'description_mode'         => 'auto',
@@ -152,33 +154,37 @@ class BW_Product_Card_Component {
 	 * @param array      $settings Settings.
 	 * @return string
 	 */
-	private static function render_product_image( $product, $settings ) {
-		if ( ! $settings['show_image'] ) {
-			return '';
-		}
+		private static function render_product_image( $product, $settings ) {
+			if ( ! $settings['show_image'] ) {
+				return '';
+			}
 
-		$image_mode = self::normalize_image_mode( $settings['image_mode'] );
-		$post_id    = $product->get_id();
-		$permalink  = function_exists( 'bw_get_safe_product_permalink' )
-			? bw_get_safe_product_permalink( $product )
-			: $product->get_permalink();
-		$title      = $product->get_name();
-		$image_size = $settings['image_size'];
-
-		$thumbnail_html = '';
-		$image_id       = $product->get_image_id();
-
-		if ( $image_id ) {
-			$thumbnail_html = wp_get_attachment_image(
-				$image_id,
-				$image_size,
-				false,
-				[
-					'loading' => 'lazy',
-					'class'   => 'bw-slider-main bw-product-card-image-el bw-product-card-image-el--' . $image_mode,
-				]
+			$image_mode          = self::normalize_image_mode( $settings['image_mode'] );
+			$post_id             = $product->get_id();
+			$permalink           = function_exists( 'bw_get_safe_product_permalink' )
+				? bw_get_safe_product_permalink( $product )
+				: $product->get_permalink();
+			$title               = $product->get_name();
+			$image_size          = $settings['image_size'];
+			$image_loading       = self::normalize_image_loading( isset( $settings['image_loading'] ) ? $settings['image_loading'] : 'lazy' );
+			$hover_image_loading = self::normalize_image_loading(
+				isset( $settings['hover_image_loading'] ) ? $settings['hover_image_loading'] : 'lazy'
 			);
-		}
+
+			$thumbnail_html = '';
+			$image_id       = $product->get_image_id();
+
+			if ( $image_id ) {
+				$thumbnail_html = wp_get_attachment_image(
+					$image_id,
+					$image_size,
+					false,
+					[
+						'loading' => $image_loading,
+						'class'   => 'bw-slider-main bw-product-card-image-el bw-product-card-image-el--' . $image_mode,
+					]
+				);
+			}
 
 		$hover_image_html = '';
 		if ( $settings['show_hover_image'] ) {
@@ -194,18 +200,18 @@ class BW_Product_Card_Component {
 				$hover_image_id = (int) get_post_meta( $post_id, '_bw_slider_hover_image', true );
 			}
 
-			if ( $hover_image_id ) {
-				$hover_image_html = wp_get_attachment_image(
-					$hover_image_id,
-					$image_size,
-					false,
-					[
-						'class'   => 'bw-slider-hover bw-product-card-image-el bw-product-card-image-el--' . $image_mode,
-						'loading' => 'lazy',
-					]
-				);
+				if ( $hover_image_id ) {
+					$hover_image_html = wp_get_attachment_image(
+						$hover_image_id,
+						$image_size,
+						false,
+						[
+							'class'   => 'bw-slider-hover bw-product-card-image-el bw-product-card-image-el--' . $image_mode,
+							'loading' => $hover_image_loading,
+						]
+					);
+				}
 			}
-		}
 
 		$media_classes = [ 'bw-wallpost-media', 'bw-slick-item__image', 'bw-ss__media', 'bw-product-card-media--' . $image_mode ];
 		if ( ! $thumbnail_html ) {
@@ -488,6 +494,22 @@ class BW_Product_Card_Component {
 		}
 
 		return $image_mode;
+	}
+
+	/**
+	 * Normalize image loading setting.
+	 *
+	 * @param string $image_loading Raw image loading mode.
+	 * @return string
+	 */
+	private static function normalize_image_loading( $image_loading ) {
+		$image_loading = sanitize_key( (string) $image_loading );
+
+		if ( ! in_array( $image_loading, [ 'lazy', 'eager', 'auto' ], true ) ) {
+			return 'lazy';
+		}
+
+		return $image_loading;
 	}
 
 	/**

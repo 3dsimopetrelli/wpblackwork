@@ -1962,6 +1962,7 @@ function bw_fpw_filter_posts()
                         [
                             'image_size' => $image_size,
                             'image_mode' => $image_mode,
+                            'image_loading' => $image_loading,
                             'show_image' => $image_toggle,
                             'show_hover_image' => $image_toggle && $hover_effect,
                             'hover_image_source' => 'meta',

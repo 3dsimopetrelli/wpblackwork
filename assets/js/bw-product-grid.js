@@ -140,6 +140,16 @@
         });
     }
 
+    function getPrimaryImageScope($scope) {
+        if (!$scope || !$scope.length) {
+            return $scope;
+        }
+
+        var $primaryImages = $scope.filter('img.bw-slider-main').add($scope.find('img.bw-slider-main'));
+
+        return $primaryImages.length ? $primaryImages : $scope;
+    }
+
     function withImagesLoaded($grid, callback) {
         if (typeof callback !== 'function') {
             return;
@@ -266,7 +276,7 @@
         if (instance && !forceReinit) {
             setItemWidths($grid);
 
-            withImagesLoaded($grid, function () {
+            withImagesLoaded(getPrimaryImageScope($grid), function () {
                 instance.options.gutter = gap;
                 var currentItemWidth = getCurrentItemWidth($grid);
                 if (currentItemWidth > 0) {
@@ -283,7 +293,7 @@
             return;
         }
 
-        withImagesLoaded($grid, function () {
+        withImagesLoaded(getPrimaryImageScope($grid), function () {
             destroyGridInstance($grid);
             setItemWidths($grid);
 
@@ -1006,7 +1016,7 @@
         }
 
         var $imageScope = appendMode && $items && $items.length ? $items : $grid;
-        withImagesLoaded($imageScope, runFinalize);
+        withImagesLoaded(getPrimaryImageScope($imageScope), runFinalize);
     }
 
     function runInitialReveal($grid) {
@@ -1029,7 +1039,7 @@
         prepareItemsForReveal($items, 'initial');
 
         requestAnimationFrame(function () {
-            withImagesLoaded($grid, function () {
+            withImagesLoaded(getPrimaryImageScope($grid), function () {
                 animatePostsStaggered($items, 'initial');
                 $grid.attr('data-initial-reveal-done', 'yes');
             });
