@@ -209,7 +209,13 @@
         $grid.removeClass('bw-fpw-initialized');
     }
 
-    function layoutGrid($grid, forceReinit) {
+    function layoutGrid($grid, forceReinit, onReady) {
+        var finalizeLayout = function () {
+            if (typeof onReady === 'function') {
+                onReady();
+            }
+        };
+
         if (useCssGrid($grid)) {
             if (typeof $.fn.masonry === 'function' && $grid.data('masonry')) {
                 $grid.masonry('destroy');
@@ -224,6 +230,7 @@
                 'position': ''
             });
             $grid.css('height', '');
+            finalizeLayout();
             return;
         }
 
@@ -242,6 +249,7 @@
                 'position': ''
             });
             $grid.css('height', '');
+            finalizeLayout();
             return;
         }
 
@@ -249,6 +257,7 @@
         $grid.attr('data-editor-masonry-fallback', 'no');
 
         if (typeof $.fn.masonry !== 'function') {
+            finalizeLayout();
             return;
         }
 
@@ -289,6 +298,7 @@
 
                 instance.layout();
                 updateGridHeight($grid);
+                finalizeLayout();
             });
             return;
         }
@@ -319,15 +329,16 @@
             }
 
             updateGridHeight($grid);
+            finalizeLayout();
         });
     }
 
-    function initGrid($grid) {
+    function initGrid($grid, onReady) {
         if (!$grid || !$grid.length) {
             return;
         }
 
-        layoutGrid($grid, true);
+        layoutGrid($grid, true, onReady);
     }
 
     // ============================================
@@ -336,6 +347,7 @@
 
     var filterState = {};
     var widgetPagingState = {};
+    var staggerTimersByWidget = {};
 
     // ============================================
     // PERFORMANCE OPTIMIZATION - CACHING SYSTEM
@@ -853,6 +865,18 @@
         $grid.children('.bw-fpw-item--loading-placeholder').remove();
     }
 
+    function clearStaggerTimers(widgetId) {
+        if (!widgetId || !staggerTimersByWidget[widgetId]) {
+            return;
+        }
+
+        staggerTimersByWidget[widgetId].forEach(function (timerId) {
+            clearTimeout(timerId);
+        });
+
+        staggerTimersByWidget[widgetId] = [];
+    }
+
     function createLoadingPlaceholders(count, imageMode) {
         var total = Math.max(0, parseInteger(count, 0));
         var safeImageMode = imageMode === 'cover' ? 'cover' : 'proportional';
@@ -945,7 +969,7 @@
             .removeClass('bw-fpw-item--visible');
     }
 
-    function animatePostsStaggered($items, mode) {
+    function animatePostsStaggered($items, mode, widgetId) {
         if (!$items || !$items.length) {
             return;
         }
@@ -959,23 +983,37 @@
             return;
         }
 
+        if (widgetId) {
+            clearStaggerTimers(widgetId);
+            staggerTimersByWidget[widgetId] = [];
+        }
+
         $revealItems.each(function (index) {
             var $item = $(this);
             var delay = index * baseDelay;
 
-            setTimeout(function () {
+            var revealTimer = setTimeout(function () {
                 $item.addClass('bw-fpw-item--visible');
 
                 if ($item.hasClass('bw-fpw-item--from-placeholder')) {
-                    setTimeout(function () {
+                    var settleTimer = setTimeout(function () {
                         $item.removeClass('bw-fpw-item--from-placeholder');
                     }, settleDelay);
+
+                    if (widgetId && staggerTimersByWidget[widgetId]) {
+                        staggerTimersByWidget[widgetId].push(settleTimer);
+                    }
                 }
             }, delay);
+
+            if (widgetId && staggerTimersByWidget[widgetId]) {
+                staggerTimersByWidget[widgetId].push(revealTimer);
+            }
         });
     }
 
     function finalizeGridUpdate($grid, $items, appendMode, callback, revealMode) {
+        var widgetId = $grid.attr('data-widget-id');
         var runFinalize = function () {
             if (appendMode) {
                 layoutGrid($grid, false);
@@ -983,7 +1021,7 @@
                 initGrid($grid);
             }
 
-            animatePostsStaggered($items, revealMode);
+            animatePostsStaggered($items, revealMode, widgetId);
 
             if (!useCssGrid($grid)) {
                 setTimeout(function () {
@@ -994,15 +1032,6 @@
                     }
                 }, 200);
 
-                if (!appendMode) {
-                    setTimeout(function () {
-                        var instance = getMasonryInstance($grid);
-                        if (instance && typeof instance.layout === 'function') {
-                            instance.layout();
-                            updateGridHeight($grid);
-                        }
-                    }, 500);
-                }
             }
 
             if (typeof callback === 'function') {
@@ -1029,6 +1058,7 @@
             return;
         }
 
+        var widgetId = $grid.attr('data-widget-id');
         var $items = $grid.children('.bw-fpw-item').not('.bw-fpw-item--loading-placeholder');
 
         if (!$items.length) {
@@ -1040,7 +1070,7 @@
 
         requestAnimationFrame(function () {
             withImagesLoaded(getPrimaryImageScope($grid), function () {
-                animatePostsStaggered($items, 'initial');
+                animatePostsStaggered($items, 'initial', widgetId);
                 $grid.attr('data-initial-reveal-done', 'yes');
             });
         });
@@ -1086,6 +1116,7 @@
             return;
         }
 
+        clearStaggerTimers(widgetId);
         clearLoadingPlaceholders($grid);
 
         var state = filterState[widgetId];
@@ -1308,6 +1339,7 @@
                 destroyGridInstance($grid);
             }
 
+            clearStaggerTimers(widgetId);
             clearLoadingPlaceholders($grid);
             $grid.empty().append($responseNodes);
 
@@ -1417,6 +1449,7 @@
             emptyStateHtml += '<p class="bw-fpw-empty-message">No content available</p>';
             emptyStateHtml += '<button class="elementor-button bw-fpw-reset-filters" data-widget-id="' + widgetId + '">RESET FILTERS</button>';
             emptyStateHtml += '</div>';
+            clearStaggerTimers(widgetId);
             clearLoadingPlaceholders($grid);
             $grid.html(emptyStateHtml);
 
@@ -1762,8 +1795,9 @@
                 });
                 filterState[widgetId].tags = initialTags;
             }
-            initGrid($grid);
-            runInitialReveal($grid);
+            initGrid($grid, function () {
+                runInitialReveal($grid);
+            });
             updateWidgetPagingState(widgetId, {
                 isLoading: false
             });
