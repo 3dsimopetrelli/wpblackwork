@@ -3,6 +3,7 @@
 
     console.log('🚀 BW Filtered Post Wall: Script loaded');
     var BW_FPW_DEBUG_PREFIX = '[BW FPW Masonry Debug]';
+    var BW_FPW_FINAL_DEBUG_PREFIX = '[BW FPW Masonry Final Debug]';
 
     // ============================================
     // MASONRY SYSTEM (from wallpost)
@@ -32,6 +33,57 @@
         }
 
         console.log(BW_FPW_DEBUG_PREFIX + ' ' + message);
+    }
+
+    function finalDebugLog(message, context) {
+        if (!debugIsEnabled()) {
+            return;
+        }
+
+        if (typeof context !== 'undefined') {
+            console.log(BW_FPW_FINAL_DEBUG_PREFIX + ' ' + message, context);
+            return;
+        }
+
+        console.log(BW_FPW_FINAL_DEBUG_PREFIX + ' ' + message);
+    }
+
+    function getGridIdentity($grid) {
+        if (!$grid || !$grid.length) {
+            return 'grid-missing';
+        }
+
+        var el = $grid.get(0);
+        if (!el) {
+            return 'grid-no-element';
+        }
+
+        var idPart = el.id ? ('#' + el.id) : '';
+        var classPart = el.className ? ('.' + String(el.className).trim().replace(/\s+/g, '.')) : '';
+        return el.tagName.toLowerCase() + idPart + classPart;
+    }
+
+    function getGridContextState($grid) {
+        if (!$grid || !$grid.length) {
+            return {};
+        }
+
+        var hiddenParentCount = $grid.parents().filter(function () {
+            var $p = $(this);
+            return $p.css('display') === 'none' || $p.css('visibility') === 'hidden';
+        }).length;
+
+        return {
+            widgetId: $grid.attr('data-widget-id') || null,
+            layoutMode: $grid.attr('data-layout-mode') || '',
+            masonryEffect: $grid.attr('data-masonry-effect') || '',
+            gridIdentity: getGridIdentity($grid),
+            gridWidth: $grid.width() || 0,
+            itemCount: $grid.find('.bw-fpw-item').length,
+            insideWidgetContainer: $grid.closest('.elementor-widget-container').length > 0,
+            insideElementorWrapper: $grid.closest('.elementor-widget, .elementor-element').length > 0,
+            hiddenOrOffscreenParentFound: hiddenParentCount > 0
+        };
     }
 
     function scheduleEditorMasonryRetry($grid, forceReinit) {
@@ -68,6 +120,12 @@
             debugLog('editor items retry limit reached', {
                 widgetId: $grid.attr('data-widget-id') || null
             });
+            finalDebugLog('Retry loop stop (max reached)', {
+                retryAttempt: retryCount,
+                itemCount: $grid.find('.bw-fpw-item').length,
+                gridWidth: $grid.width() || 0,
+                blocked: true
+            });
             return;
         }
 
@@ -76,6 +134,12 @@
             widgetId: $grid.attr('data-widget-id') || null,
             retry: retryCount + 1,
             forceReinit: !!forceReinit
+        });
+        finalDebugLog('Retry loop tick', {
+            retryAttempt: retryCount + 1,
+            itemCount: $grid.find('.bw-fpw-item').length,
+            gridWidth: $grid.width() || 0,
+            blocked: $grid.find('.bw-fpw-item').length === 0
         });
 
         setTimeout(function () {
@@ -344,6 +408,8 @@
     }
 
     function layoutGrid($grid, forceReinit) {
+        finalDebugLog('Before guard checkpoint', getGridContextState($grid));
+
         debugLog('layoutGrid start', {
             widgetId: $grid.attr('data-widget-id') || null,
             layoutMode: $grid.attr('data-layout-mode') || '',
@@ -386,9 +452,22 @@
                 widgetId: $grid.attr('data-widget-id') || null,
                 gridWidth: $grid.width() || 0
             });
+            finalDebugLog('Guard blocked init (no items yet)', {
+                widgetId: $grid.attr('data-widget-id') || null,
+                itemCount: $grid.find('.bw-fpw-item').length,
+                gridWidth: $grid.width() || 0,
+                blocked: true
+            });
             scheduleEditorItemsRetry($grid, forceReinit);
             return;
         }
+
+        finalDebugLog('Guard allows init', {
+            widgetId: $grid.attr('data-widget-id') || null,
+            itemCount: $grid.find('.bw-fpw-item').length,
+            gridWidth: $grid.width() || 0,
+            blocked: false
+        });
 
         if (typeof $.fn.masonry !== 'function') {
             debugLog('layoutGrid: $.fn.masonry unavailable', {
@@ -441,6 +520,12 @@
                 });
                 instance.layout();
                 updateGridHeight($grid);
+                finalDebugLog('After reload/layout (existing instance)', {
+                    widgetId: $grid.attr('data-widget-id') || null,
+                    domItemCount: $grid.find('.bw-fpw-item').length,
+                    instanceItems: instance.items ? instance.items.length : null,
+                    mismatch: instance.items ? instance.items.length !== $grid.find('.bw-fpw-item').length : null
+                });
 
                 setTimeout(function () {
                     if (instance && typeof instance.layout === 'function') {
@@ -486,6 +571,14 @@
                 itemWidth: getCurrentItemWidth($grid),
                 itemCount: $grid.find('.bw-fpw-item').length
             });
+            finalDebugLog('At masonry init checkpoint', {
+                targetGrid: getGridIdentity($grid),
+                widgetId: $grid.attr('data-widget-id') || null,
+                itemCount: $grid.find('.bw-fpw-item').length,
+                itemSelector: masonryOptions.itemSelector,
+                columnWidth: masonryOptions.columnWidth,
+                gutter: masonryOptions.gutter
+            });
             $grid.masonry(masonryOptions);
             $grid.addClass('bw-fpw-initialized');
 
@@ -495,6 +588,13 @@
                 created: !!masonryInstance,
                 instanceItems: masonryInstance && masonryInstance.items ? masonryInstance.items.length : null,
                 instanceColumnWidth: masonryInstance && masonryInstance.options ? masonryInstance.options.columnWidth : null
+            });
+            finalDebugLog('Immediately after masonry init', {
+                instanceExists: !!masonryInstance,
+                instanceItems: masonryInstance && masonryInstance.items ? masonryInstance.items.length : null,
+                instanceElement: masonryInstance && masonryInstance.element ? masonryInstance.element : null,
+                domItemCount: $grid.find('.bw-fpw-item').length,
+                targetGrid: getGridIdentity($grid)
             });
 
             if (masonryInstance && typeof masonryInstance.reloadItems === 'function') {
@@ -510,6 +610,12 @@
                 });
                 masonryInstance.layout();
             }
+            finalDebugLog('After reload/layout (new instance)', {
+                widgetId: $grid.attr('data-widget-id') || null,
+                domItemCount: $grid.find('.bw-fpw-item').length,
+                instanceItems: masonryInstance && masonryInstance.items ? masonryInstance.items.length : null,
+                mismatch: masonryInstance && masonryInstance.items ? masonryInstance.items.length !== $grid.find('.bw-fpw-item').length : null
+            });
 
             updateGridHeight($grid);
 
