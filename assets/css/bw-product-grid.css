@@ -346,9 +346,18 @@
 
 .bw-fpw-item.bw-fpw-item--reveal {
   opacity: 0;
-  transform: translateY(6px);
-  transition: opacity 0.42s cubic-bezier(0.22, 1, 0.36, 1), transform 0.42s cubic-bezier(0.22, 1, 0.36, 1);
   will-change: opacity, transform;
+  backface-visibility: hidden;
+}
+
+.bw-fpw-item.bw-fpw-item--reveal-initial {
+  transform: translateY(3px);
+  transition: opacity 0.54s cubic-bezier(0.22, 1, 0.36, 1), transform 0.54s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.bw-fpw-item.bw-fpw-item--reveal-append {
+  transform: translateY(5px);
+  transition: opacity 0.46s cubic-bezier(0.22, 1, 0.36, 1), transform 0.46s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .bw-fpw-item.bw-fpw-item--reveal.bw-fpw-item--visible {

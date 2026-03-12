@@ -980,20 +980,26 @@
         return $insertedItems;
     }
 
-    function prepareItemsForReveal($items) {
+    function prepareItemsForReveal($items, mode) {
         if (!$items || !$items.length) {
             return;
         }
 
-        $items.addClass('bw-fpw-item--reveal').removeClass('bw-fpw-item--visible');
+        var revealMode = mode === 'initial' ? 'initial' : 'append';
+
+        $items
+            .addClass('bw-fpw-item--reveal bw-fpw-item--reveal-' + revealMode)
+            .removeClass('bw-fpw-item--visible');
     }
 
-    function animatePostsStaggered($items) {
+    function animatePostsStaggered($items, mode) {
         if (!$items || !$items.length) {
             return;
         }
 
         var $revealItems = $items.filter('.bw-fpw-item--reveal');
+        var revealMode = mode === 'initial' ? 'initial' : 'append';
+        var baseDelay = revealMode === 'initial' ? 58 : 48;
 
         if (!$revealItems.length) {
             return;
@@ -1001,7 +1007,7 @@
 
         $revealItems.each(function (index) {
             var $item = $(this);
-            var delay = index * 42;
+            var delay = index * baseDelay;
 
             setTimeout(function () {
                 $item.addClass('bw-fpw-item--visible');
@@ -1009,7 +1015,7 @@
         });
     }
 
-    function finalizeGridUpdate($grid, $items, appendMode, callback) {
+    function finalizeGridUpdate($grid, $items, appendMode, callback, revealMode) {
         var runFinalize = function () {
             if (appendMode) {
                 layoutGrid($grid, false);
@@ -1017,7 +1023,7 @@
                 initGrid($grid);
             }
 
-            animatePostsStaggered($items);
+            animatePostsStaggered($items, revealMode);
 
             if (!useCssGrid($grid)) {
                 setTimeout(function () {
@@ -1051,6 +1057,33 @@
 
         var $imageScope = appendMode && $items && $items.length ? $items : $grid;
         withImagesLoaded($imageScope, runFinalize);
+    }
+
+    function runInitialReveal($grid) {
+        if (
+            !$grid ||
+            !$grid.length ||
+            $grid.attr('data-initial-reveal-done') === 'yes' ||
+            isElementorEditor()
+        ) {
+            return;
+        }
+
+        var $items = $grid.children('.bw-fpw-item').not('.bw-fpw-item--loading-placeholder');
+
+        if (!$items.length) {
+            $grid.attr('data-initial-reveal-done', 'yes');
+            return;
+        }
+
+        prepareItemsForReveal($items, 'initial');
+
+        requestAnimationFrame(function () {
+            withImagesLoaded($grid, function () {
+                animatePostsStaggered($items, 'initial');
+                $grid.attr('data-initial-reveal-done', 'yes');
+            });
+        });
     }
 
     function loadNextPage(widgetId) {
@@ -1298,7 +1331,7 @@
             var $responseNodes = createResponseNodes(response.data.html);
             var $responseItems = getResponseItems($responseNodes);
 
-            prepareItemsForReveal($responseItems);
+            prepareItemsForReveal($responseItems, appendMode ? 'append' : 'initial');
 
             if (appendMode) {
                 $responseItems = replaceLoadingPlaceholders($grid, $responseItems);
@@ -1312,7 +1345,7 @@
                         isLoading: false
                     });
                     syncInfiniteObserver(widgetId);
-                });
+                }, 'append');
 
                 console.log('✅ Posts appended successfully');
                 return;
@@ -1414,7 +1447,7 @@
             finalizeGridUpdate($grid, $responseItems, false, function () {
                 $filters.removeClass('loading');
                 syncInfiniteObserver(widgetId);
-            });
+            }, 'initial');
 
             console.log('✅ Posts filtered successfully');
         } else {
@@ -1792,6 +1825,7 @@
                 filterState[widgetId].tags = initialTags;
             }
             initGrid($grid);
+            runInitialReveal($grid);
             updateWidgetPagingState(widgetId, {
                 isLoading: false
             });
