@@ -1825,6 +1825,8 @@ function bw_fpw_filter_posts()
         1,
         1000
     );
+    $raw_offset = isset($_POST['offset']) ? wp_unslash($_POST['offset']) : null;
+    $offset = is_numeric($raw_offset) ? max(0, (int) $raw_offset) : 0;
 
     if (bw_fpw_is_throttled_request('bw_fpw_filter_posts')) {
         bw_fpw_send_throttled_response('bw_fpw_filter_posts', $widget_id);
@@ -1855,6 +1857,7 @@ function bw_fpw_filter_posts()
             'order' => $order,
             'per_page' => $per_page,
             'page' => $page,
+            'offset' => $offset,
         ];
         $transient_key = bw_fpw_generate_cache_key($cache_key_params);
 
@@ -1874,13 +1877,18 @@ function bw_fpw_filter_posts()
     $query_args = [
         'post_type' => $post_type,
         'posts_per_page' => $query_posts_per_page,
-        'paged' => $page,
         'post_status' => 'publish',
         'no_found_rows' => true,
         'ignore_sticky_posts' => true,
         'orderby' => $order_by,
         'order' => $order,
     ];
+
+    if ($per_page > 0 && $offset > 0) {
+        $query_args['offset'] = $offset;
+    } else {
+        $query_args['paged'] = $page;
+    }
 
     $tax_query = [];
 
@@ -1924,9 +1932,10 @@ function bw_fpw_filter_posts()
 
     $has_posts = $query->have_posts();
     $has_more = $per_page > 0 && $has_posts && $query->post_count > $per_page;
-    $next_page = $has_more ? $page + 1 : 0;
+    $response_page = $per_page > 0 ? (int) floor($offset / $per_page) + 1 : $page;
+    $next_page = $has_more ? $response_page + 1 : 0;
     $rendered_posts = 0;
-    $image_loading = $page > 1 ? 'lazy' : 'eager';
+    $image_loading = ($page > 1 || $offset > 0) ? 'lazy' : 'eager';
 
     ob_start();
 
@@ -2152,10 +2161,13 @@ function bw_fpw_filter_posts()
         'tags_html' => bw_fpw_render_tag_markup($related_tags),
         'available_tags' => $available_tags,
         'has_posts' => $has_posts,
-        'page' => $page,
+        'page' => $response_page,
         'per_page' => $per_page,
         'has_more' => $has_more,
         'next_page' => $next_page,
+        'offset' => $offset,
+        'loaded_count' => $per_page > 0 ? $offset + $rendered_posts : $rendered_posts,
+        'next_offset' => $has_more ? $offset + $rendered_posts : 0,
     ];
 
     // PERFORMANCE: Cache result for 3 minutes (skip random order)

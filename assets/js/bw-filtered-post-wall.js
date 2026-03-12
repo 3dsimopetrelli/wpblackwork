@@ -422,13 +422,31 @@
         }
 
         state.gridEl = $grid[0];
+        state.initialItems = parseInteger($grid.attr('data-initial-items'), typeof state.initialItems === 'number' ? state.initialItems : 12);
+        state.loadBatchSize = parseInteger($grid.attr('data-load-batch-size'), typeof state.loadBatchSize === 'number' ? state.loadBatchSize : state.initialItems);
         state.perPage = parseInteger($grid.attr('data-per-page'), typeof state.perPage === 'number' ? state.perPage : 12);
         state.currentPage = Math.max(1, parseInteger($grid.attr('data-current-page'), typeof state.currentPage === 'number' ? state.currentPage : 1));
         state.nextPage = Math.max(0, parseInteger($grid.attr('data-next-page'), typeof state.nextPage === 'number' ? state.nextPage : state.currentPage + 1));
+        state.loadedCount = Math.max(0, parseInteger($grid.attr('data-loaded-count'), typeof state.loadedCount === 'number' ? state.loadedCount : $grid.find('.bw-fpw-item').length));
+        state.nextOffset = Math.max(0, parseInteger($grid.attr('data-next-offset'), typeof state.nextOffset === 'number' ? state.nextOffset : state.loadedCount));
         state.hasMore = parseBoolData($grid.attr('data-has-more'));
         state.infiniteEnabled = parseBoolData($grid.attr('data-infinite-enabled')) && state.perPage > 0;
         state.loadTriggerOffset = Math.max(0, parseInteger($grid.attr('data-load-trigger-offset'), typeof state.loadTriggerOffset === 'number' ? state.loadTriggerOffset : 300));
         state.isLoading = !!state.isLoading;
+
+        if (state.initialItems === 0) {
+            state.initialItems = 12;
+        }
+
+        if (state.loadBatchSize < 1) {
+            state.loadBatchSize = state.perPage > 0 ? state.perPage : 12;
+        }
+
+        if (state.infiniteEnabled) {
+            state.perPage = state.loadBatchSize;
+        } else if (state.initialItems > 0) {
+            state.perPage = state.initialItems;
+        }
 
         widgetPagingState[widgetId] = state;
 
@@ -472,6 +490,14 @@
             state.perPage = parseInteger(metadata.perPage, state.perPage);
         }
 
+        if (typeof metadata.initialItems !== 'undefined') {
+            state.initialItems = parseInteger(metadata.initialItems, state.initialItems);
+        }
+
+        if (typeof metadata.loadBatchSize !== 'undefined') {
+            state.loadBatchSize = parseInteger(metadata.loadBatchSize, state.loadBatchSize);
+        }
+
         if (typeof metadata.currentPage !== 'undefined') {
             state.currentPage = Math.max(1, parseInteger(metadata.currentPage, state.currentPage));
         }
@@ -484,6 +510,14 @@
             state.hasMore = !!metadata.hasMore;
         }
 
+        if (typeof metadata.loadedCount !== 'undefined') {
+            state.loadedCount = Math.max(0, parseInteger(metadata.loadedCount, state.loadedCount));
+        }
+
+        if (typeof metadata.nextOffset !== 'undefined') {
+            state.nextOffset = Math.max(0, parseInteger(metadata.nextOffset, state.nextOffset));
+        }
+
         if (typeof metadata.infiniteEnabled !== 'undefined') {
             state.infiniteEnabled = !!metadata.infiniteEnabled && state.perPage > 0;
         }
@@ -492,9 +526,27 @@
             state.isLoading = !!metadata.isLoading;
         }
 
+        if (state.loadBatchSize < 1) {
+            state.loadBatchSize = state.perPage > 0 ? state.perPage : 12;
+        }
+
+        if (state.infiniteEnabled && state.loadBatchSize > 0) {
+            state.perPage = state.loadBatchSize;
+        } else if (state.initialItems > 0) {
+            state.perPage = state.initialItems;
+        }
+
+        if (!state.hasMore) {
+            state.nextOffset = 0;
+        }
+
+        $grid.attr('data-initial-items', state.initialItems);
+        $grid.attr('data-load-batch-size', state.loadBatchSize);
         $grid.attr('data-per-page', state.perPage);
         $grid.attr('data-current-page', state.currentPage);
         $grid.attr('data-next-page', state.nextPage);
+        $grid.attr('data-loaded-count', state.loadedCount);
+        $grid.attr('data-next-offset', state.nextOffset);
         $grid.attr('data-has-more', state.hasMore ? '1' : '0');
         $grid.attr('data-infinite-enabled', state.infiniteEnabled ? 'yes' : 'no');
 
@@ -926,7 +978,8 @@
         var nextPage = state.nextPage > 0 ? state.nextPage : state.currentPage + 1;
         filterPosts(widgetId, {
             append: true,
-            page: nextPage
+            page: nextPage,
+            offset: state.nextOffset > 0 ? state.nextOffset : state.loadedCount
         });
     }
 
@@ -965,7 +1018,16 @@
         var openCartPopup = $grid.attr('data-open-cart-popup') || 'no';
         var orderBy = $grid.attr('data-order-by') || 'date';
         var order = $grid.attr('data-order') || 'DESC';
-        var perPage = parseInteger($grid.attr('data-per-page'), pagingState.perPage);
+        var requestPerPage = appendMode ? pagingState.loadBatchSize : pagingState.initialItems;
+        var requestedOffset = appendMode ? Math.max(0, parseInteger(options.offset, pagingState.nextOffset > 0 ? pagingState.nextOffset : pagingState.loadedCount)) : 0;
+
+        if (!appendMode && requestPerPage === 0) {
+            requestPerPage = pagingState.perPage;
+        }
+
+        if (appendMode && requestPerPage < 1) {
+            return;
+        }
 
         console.log('🔍 Filtering posts:', state);
 
@@ -987,8 +1049,9 @@
             order_by: orderBy,
             order: order,
             image_mode: imageMode,
-            per_page: perPage,
-            page: requestedPage
+            per_page: requestPerPage,
+            page: requestedPage,
+            offset: requestedOffset
         });
 
         var cachedResponse = getCachedData(cacheKey);
@@ -1009,7 +1072,8 @@
                 append: appendMode,
                 hadMasonryBefore: !!getMasonryInstance($grid),
                 requestedPage: requestedPage,
-                perPage: perPage
+                perPage: requestPerPage,
+                requestedOffset: requestedOffset
             });
             return;
         }
@@ -1027,6 +1091,8 @@
                 currentPage: 1,
                 nextPage: 0,
                 hasMore: false,
+                loadedCount: 0,
+                nextOffset: 0,
                 isLoading: false
             });
         }
@@ -1052,8 +1118,9 @@
                 open_cart_popup: openCartPopup,
                 order_by: orderBy,
                 order: order,
-                per_page: perPage,
+                per_page: requestPerPage,
                 page: requestedPage,
+                offset: requestedOffset,
                 nonce: bwFilteredPostWallAjax.nonce
             },
             success: function (response) {
@@ -1066,7 +1133,8 @@
                     append: appendMode,
                     hadMasonryBefore: hadMasonryBefore,
                     requestedPage: requestedPage,
-                    perPage: perPage
+                    perPage: requestPerPage,
+                    requestedOffset: requestedOffset
                 });
             },
             error: function (xhr, status, error) {
@@ -1105,19 +1173,41 @@
         var appendMode = !!options.append;
         var fallbackPage = Math.max(1, parseInteger(options.requestedPage, appendMode ? 2 : 1));
         var fallbackPerPage = parseInteger(options.perPage, 12);
+        var fallbackOffset = Math.max(0, parseInteger(options.requestedOffset, appendMode ? fallbackPerPage : 0));
         var currentPagingState = getWidgetPagingState(widgetId);
         var paginationMeta = {
-            perPage: parseInteger(response && response.data ? response.data.per_page : fallbackPerPage, fallbackPerPage),
+            perPage: currentPagingState ? currentPagingState.perPage : fallbackPerPage,
+            initialItems: currentPagingState ? currentPagingState.initialItems : fallbackPerPage,
+            loadBatchSize: currentPagingState ? currentPagingState.loadBatchSize : fallbackPerPage,
             currentPage: Math.max(1, parseInteger(response && response.data ? response.data.page : fallbackPage, fallbackPage)),
             hasMore: !!(response && response.data && response.data.has_more),
             nextPage: Math.max(0, parseInteger(response && response.data ? response.data.next_page : 0, 0)),
+            loadedCount: Math.max(0, parseInteger(response && response.data ? response.data.loaded_count : (appendMode ? fallbackOffset : 0), appendMode ? fallbackOffset : 0)),
+            nextOffset: Math.max(0, parseInteger(response && response.data ? response.data.next_offset : 0, 0)),
             infiniteEnabled: currentPagingState ? currentPagingState.infiniteEnabled : parseBoolData($grid.attr('data-infinite-enabled'))
         };
 
-        if (paginationMeta.perPage <= 0) {
+        if (paginationMeta.loadBatchSize <= 0 && paginationMeta.perPage > 0) {
+            paginationMeta.loadBatchSize = paginationMeta.perPage;
+        }
+
+        if (paginationMeta.perPage <= 0 && paginationMeta.loadBatchSize > 0) {
+            paginationMeta.perPage = paginationMeta.loadBatchSize;
+        }
+
+        if (paginationMeta.initialItems <= 0 && currentPagingState && currentPagingState.initialItems > 0) {
+            paginationMeta.initialItems = currentPagingState.initialItems;
+        }
+
+        if (paginationMeta.loadBatchSize <= 0 && currentPagingState && currentPagingState.loadBatchSize > 0) {
+            paginationMeta.loadBatchSize = currentPagingState.loadBatchSize;
+        }
+
+        if ((paginationMeta.perPage <= 0 && paginationMeta.loadBatchSize <= 0) || paginationMeta.initialItems <= 0) {
             paginationMeta.infiniteEnabled = false;
             paginationMeta.hasMore = false;
             paginationMeta.nextPage = 0;
+            paginationMeta.nextOffset = 0;
         }
 
         if (response.success && response.data) {
@@ -1236,6 +1326,7 @@
             }
 
             updateWidgetPagingState(widgetId, $.extend({}, paginationMeta, {
+                loadedCount: Math.max(0, parseInteger(response.data.loaded_count, $responseItems.length)),
                 isLoading: false
             }));
 
@@ -1254,7 +1345,8 @@
                 updateWidgetPagingState(widgetId, {
                     isLoading: false,
                     hasMore: false,
-                    nextPage: 0
+                    nextPage: 0,
+                    nextOffset: 0
                 });
                 syncInfiniteObserver(widgetId);
                 return;
@@ -1274,6 +1366,8 @@
                 currentPage: 1,
                 hasMore: false,
                 nextPage: 0,
+                loadedCount: 0,
+                nextOffset: 0,
                 isLoading: false
             });
             $('.bw-fpw-filter-row--subcategories[data-widget-id="' + widgetId + '"], .bw-fpw-filter-row--tags[data-widget-id="' + widgetId + '"]').hide();

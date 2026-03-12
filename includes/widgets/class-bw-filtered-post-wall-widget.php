@@ -1008,13 +1008,35 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'label' => __( 'Layout', 'bw-elementor-widgets' ),
         ] );
 
-        $this->add_control( 'posts_per_page', [
-            'label'   => __( 'Numero di post', 'bw-elementor-widgets' ),
+        $this->add_control( 'infinite_scroll', [
+            'label'        => __( 'Infinite Scroll', 'bw-elementor-widgets' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
+            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
+            'return_value' => 'yes',
+            'default'      => 'yes',
+        ] );
+
+        $this->add_control( 'initial_items', [
+            'label'   => __( 'Initial Items', 'bw-elementor-widgets' ),
             'type'    => Controls_Manager::NUMBER,
             'min'     => -1,
             'max'     => 100,
             'step'    => 1,
             'default' => 12,
+            'description' => __( 'Use -1 to render all items and disable infinite loading.', 'bw-elementor-widgets' ),
+        ] );
+
+        $this->add_control( 'load_batch_size', [
+            'label'   => __( 'Load Batch Size', 'bw-elementor-widgets' ),
+            'type'    => Controls_Manager::NUMBER,
+            'min'     => 1,
+            'max'     => 100,
+            'step'    => 1,
+            'default' => 12,
+            'condition' => [
+                'infinite_scroll' => 'yes',
+            ],
         ] );
 
         $this->add_responsive_control( 'margin_top', [
@@ -1602,6 +1624,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
 
     protected function render() {
         $settings = $this->get_settings_for_display();
+        $raw_settings = $this->get_settings();
         $widget_id = $this->get_id();
 
         $show_filters = isset( $settings['show_filters'] ) && 'yes' === $settings['show_filters'];
@@ -1613,7 +1636,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             $this->render_filters( $settings, $widget_id );
         }
 
-        $this->render_posts( $settings, $widget_id );
+        $this->render_posts( $settings, $widget_id, $raw_settings );
 
         $this->render_wrapper_end( $settings );
     }
@@ -1850,7 +1873,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
         <?php
     }
 
-    private function render_posts( $settings, $widget_id ) {
+    private function render_posts( $settings, $widget_id, $raw_settings = [] ) {
         $post_type         = isset( $settings['post_type'] ) ? sanitize_key( $settings['post_type'] ) : 'post';
         $available_post_types = BW_Widget_Helper::get_post_type_options();
 
@@ -1863,13 +1886,52 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             $post_type      = array_key_exists( 'post', $available_post_types ) ? 'post' : reset( $post_type_keys );
         }
 
-        $posts_per_page = isset( $settings['posts_per_page'] ) ? (int) $settings['posts_per_page'] : 12;
-        if ( 0 === $posts_per_page ) {
-            $posts_per_page = -1;
+        $raw_settings = is_array( $raw_settings ) ? $raw_settings : [];
+
+        $legacy_posts_per_page = isset( $raw_settings['posts_per_page'] )
+            ? (int) $raw_settings['posts_per_page']
+            : ( isset( $settings['posts_per_page'] ) ? (int) $settings['posts_per_page'] : 12 );
+        if ( 0 === $legacy_posts_per_page ) {
+            $legacy_posts_per_page = -1;
         }
 
-        $pagination_per_page = $posts_per_page > 0 ? $posts_per_page : -1;
-        $infinite_enabled    = $pagination_per_page > 0;
+        $has_infinite_scroll_setting = array_key_exists( 'infinite_scroll', $raw_settings );
+        $has_initial_items_setting   = array_key_exists( 'initial_items', $raw_settings );
+        $has_load_batch_size_setting = array_key_exists( 'load_batch_size', $raw_settings );
+
+        $initial_items = $has_initial_items_setting
+            ? (int) $settings['initial_items']
+            : $legacy_posts_per_page;
+        if ( 0 === $initial_items ) {
+            $initial_items = 12;
+        }
+        if ( $initial_items < -1 ) {
+            $initial_items = -1;
+        }
+        if ( $initial_items > 100 ) {
+            $initial_items = 100;
+        }
+
+        $infinite_enabled = $has_infinite_scroll_setting
+            ? ( isset( $settings['infinite_scroll'] ) && 'yes' === $settings['infinite_scroll'] )
+            : $legacy_posts_per_page > 0;
+
+        if ( $initial_items <= 0 ) {
+            $infinite_enabled = false;
+        }
+
+        $load_batch_size = $has_load_batch_size_setting
+            ? (int) $settings['load_batch_size']
+            : ( $legacy_posts_per_page > 0 ? $legacy_posts_per_page : 12 );
+        if ( $load_batch_size < 1 ) {
+            $load_batch_size = 12;
+        }
+        if ( $load_batch_size > 100 ) {
+            $load_batch_size = 100;
+        }
+
+        $initial_query_size   = $infinite_enabled ? $initial_items + 1 : $initial_items;
+        $pagination_per_page  = $infinite_enabled ? $load_batch_size : $initial_items;
 
         $desktop_columns = isset( $settings['desktop_columns'] ) ? absint( $settings['desktop_columns'] ) : 4;
         if ( ! in_array( $desktop_columns, [ 3, 4 ], true ) ) {
@@ -1937,7 +1999,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
 
         $query_args = [
             'post_type'      => $post_type,
-            'posts_per_page' => $infinite_enabled ? $pagination_per_page + 1 : -1,
+            'posts_per_page' => $initial_query_size,
             'post_status'    => 'publish',
             'no_found_rows'  => true,
             'ignore_sticky_posts' => true,
@@ -1982,9 +2044,10 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
         $query = new \WP_Query( $query_args );
 
         $has_posts         = $query->have_posts();
-        $has_more          = $infinite_enabled && $query->post_count > $pagination_per_page;
+        $has_more          = $infinite_enabled && $query->post_count > $initial_items;
         $current_page      = 1;
         $next_page         = $has_more ? 2 : 0;
+        $next_offset       = $has_more ? $initial_items : 0;
         $load_trigger_px   = 300;
 
         $wrapper_classes = [ 'bw-filtered-post-wall' ];
@@ -2011,9 +2074,13 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'data-open-cart-popup'        => 'no',
             'data-order-by'               => $order_by,
             'data-order'                  => $order,
+            'data-initial-items'          => $initial_items,
+            'data-load-batch-size'        => $load_batch_size,
             'data-per-page'               => $pagination_per_page,
             'data-current-page'           => $current_page,
             'data-next-page'              => $next_page,
+            'data-loaded-count'           => $infinite_enabled ? min( $initial_items, max( 0, $query->post_count ) ) : max( 0, $query->post_count ),
+            'data-next-offset'            => $next_offset,
             'data-has-more'               => $has_more ? '1' : '0',
             'data-infinite-enabled'       => $infinite_enabled ? 'yes' : 'no',
             'data-load-trigger-offset'    => $load_trigger_px,
@@ -2043,7 +2110,7 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
                     <?php
                     while ( $query->have_posts() ) :
                         $query->the_post();
-                        if ( $infinite_enabled && $rendered_posts >= $pagination_per_page ) {
+                        if ( $infinite_enabled && $rendered_posts >= $initial_items ) {
                             break;
                         }
                         $this->render_post_item( $settings, $post_type, $image_toggle, $image_size, $image_mode, $hover_effect, $open_cart_popup );
